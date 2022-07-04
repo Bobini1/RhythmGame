@@ -1,0 +1,12 @@
+.idea/
+.vs/
+.vscode/
+build/
+cmake/open-cpp-coverage.cmake
+cmake-build-*/
+conan/
+prefix/
+CMakeLists.txt.user
+CMakeUserPresets.json
+conanbuildinfo.txt
+conaninfo.txt
