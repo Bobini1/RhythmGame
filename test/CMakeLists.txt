@@ -13,9 +13,9 @@ find_package(Catch2 3 REQUIRED)
 
 add_executable(RhythmGame_test source/RhythmGame_test.cpp)
 target_link_libraries(
-    RhythmGame_test PRIVATE
-    RhythmGame_lib
-    Catch2::Catch2WithMain
+        RhythmGame_test PRIVATE
+        DB
+        Catch2::Catch2WithMain
         ${Catch2_LIBRARIES}
 )
 target_compile_features(RhythmGame_test PRIVATE cxx_std_20)

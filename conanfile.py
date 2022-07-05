@@ -16,6 +16,7 @@ class Recipe(ConanFile):
         self.requires("boost/1.79.0")
         self.requires("di/1.2.0")
         self.requires("fmt/7.0.3")
+        self.requires("stb/cci.20210910")
 
 
         # Testing only dependencies below

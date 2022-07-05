@@ -1,7 +1,6 @@
 
 #define BOOST_TEST_DYN_LINK
 #define BOOST_TEST_MAIN  // in only one cpp file
-#include "lib.hpp"
 
 #include <catch2/catch_test_macros.hpp>
 
