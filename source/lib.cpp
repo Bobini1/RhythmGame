@@ -1,6 +1,8 @@
 #include "lib.hpp"
 #include <sol/sol.hpp>
 #include <cassert>
+#include <fmt/core.h>
+#include <folly/FBString.h>
 
 library::library()
 {

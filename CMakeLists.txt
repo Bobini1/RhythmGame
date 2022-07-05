@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 3.20)
 
 include(cmake/prelude.cmake)
-
 project(
     RhythmGame
     VERSION 0.0.0
@@ -30,12 +29,8 @@ target_compile_features(RhythmGame_lib PUBLIC cxx_std_20)
 
 # <------------ lua support --------------->
 
-find_package(Lua51 REQUIRED)
-target_include_directories(RhythmGame_lib PRIVATE ${LUA_INCLUDE_DIR})
-
 find_package(sol2 REQUIRED)
-target_link_libraries(RhythmGame_lib PRIVATE sol2::sol2 ${LUA_LIBRARY})
-target_include_directories(RhythmGame_lib PRIVATE ${sol2_INCLUDE_DIRS})
+target_link_libraries(RhythmGame_lib PRIVATE sol2::sol2)
 
 # <------------ hiredis (db) --------------->
 
@@ -58,6 +53,20 @@ target_include_directories(redis++::redis++ INTERFACE "${REDIS_PP_HEADER}")
 target_link_libraries(redis++::redis++ INTERFACE hiredis::hiredis)
 
 target_link_libraries(RhythmGame_lib PRIVATE redis++::redis++)
+
+# <------------ fmt --------------->
+
+
+find_package(fmt REQUIRED)
+
+target_link_libraries(RhythmGame_lib PRIVATE fmt::fmt)
+
+# <------------- folly --------------->
+
+
+find_package(folly REQUIRED)
+
+target_link_libraries(RhythmGame_lib PRIVATE Folly::folly)
 
 
 
