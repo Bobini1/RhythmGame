@@ -1,6 +1,6 @@
 # RhythmGame
 
-This is the RhythmGame project.
+A fast and portable rhythm game. (work in progress)
 
 # Building and installing
 
