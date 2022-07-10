@@ -11,8 +11,7 @@ namespace charts::models::bms {
 class BmsChart : public Chart
 {
   public:
-    BmsChart(std::unique_ptr<ChartInfo> chartInfo);
-    auto getChartInfo() -> const ChartInfo& override;
+    ~BmsChart() override = default;
 };
 } // namespace charts::models::bms
 

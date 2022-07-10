@@ -4,6 +4,16 @@
 
 #include "BmsChart.h"
 
-namespace charts::models::bms {
+#include <utility>
 
-}
+namespace charts::models::bms {
+class BmsChartImpl : public BmsChart
+{
+    ChartInfo chartInfo;
+  public:
+    explicit BmsChartImpl(ChartInfo chartInfo)
+    : chartInfo(std::move(chartInfo))
+    {}
+    auto getChartInfo() -> const ChartInfo& override {}
+};
+} // namespace charts::models::bms
