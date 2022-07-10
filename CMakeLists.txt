@@ -18,28 +18,15 @@ include(cmake/variables.cmake)
 find_package(sol2 REQUIRED)
 #target_link_libraries(RhythmGame_lib PRIVATE sol2::sol2)
 
-# <------------ hiredis (db) --------------->
+# <------------ SQLiteCpp (db) --------------->
 
-add_library(hiredis::hiredis UNKNOWN IMPORTED rhythm_game/DB/source/DB.cpp rhythm_game/DB/include/DB.h)
-find_path(HIREDIS_HEADER hiredis REQUIRED)
-find_library(HIREDIS_LIB hiredis REQUIRED)
+find_package(SQLiteCpp REQUIRED)
 
-set_target_properties(hiredis::hiredis PROPERTIES IMPORTED_LOCATION ${HIREDIS_LIB})
-set_target_properties(hiredis::hiredis PROPERTIES IMPORTED_HEADER_LOCATION ${HIREDIS_HEADER})
+# <------------ pegtl (parsing) --------------->
 
-
-# <------------ redis-plus-plus (db)-------------->
-
-add_library(redis++::redis++ UNKNOWN IMPORTED)
-find_path(REDIS_PP_HEADER sw REQUIRED)
-find_library(REDIS_PP_LIB redis++_static REQUIRED)
-
-set_target_properties(redis++::redis++ PROPERTIES IMPORTED_LOCATION "${REDIS_PP_LIB}")
-target_include_directories(redis++::redis++ INTERFACE "${REDIS_PP_HEADER}")
-target_link_libraries(redis++::redis++ INTERFACE hiredis::hiredis)
+find_package(pegtl)
 
 # <------------ fmt --------------->
-
 
 find_package(fmt REQUIRED)
 
@@ -47,18 +34,26 @@ find_package(fmt REQUIRED)
 
 # <------------- folly --------------->
 
-
 find_package(folly REQUIRED)
 
-#target_link_libraries(RhythmGame_lib PRIVATE Folly::folly)
+# <------------ boost --------------->
+
+find_package(Boost REQUIRED COMPONENTS icl)
+
+# <------------ type_safe --------------->
+
+
+find_package(type_safe REQUIRED)
+
+
 
 # ---- Load libraries ----
 
-add_subdirectory(rhythm_game)
+add_subdirectory(src)
 
 # ---- Declare executable ----
 
-add_executable(RhythmGame_exe rhythm_game/main.cpp)
+add_executable(RhythmGame_exe src/main.cpp)
 add_executable(RhythmGame::exe ALIAS RhythmGame_exe)
 
 set_target_properties(
