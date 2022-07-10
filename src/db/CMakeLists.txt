@@ -6,6 +6,6 @@ target_include_directories(
         "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
 )
 target_link_libraries(
-        DB PRIVATE redis++::redis++
+        DB PRIVATE SQLiteCpp
 )
 target_compile_features(DB PUBLIC cxx_std_20)
