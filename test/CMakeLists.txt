@@ -16,7 +16,6 @@ target_link_libraries(
         RhythmGame_test PRIVATE
         DB
         Catch2::Catch2WithMain
-        ${Catch2_LIBRARIES}
 )
 target_compile_features(RhythmGame_test PRIVATE cxx_std_20)
 include(Catch)

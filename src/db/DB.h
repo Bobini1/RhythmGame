@@ -8,7 +8,7 @@
 #include <memory>
 #include <string>
 
-namespace rhythm_game::db {
+namespace db {
 class Db
 {
   public:
@@ -18,15 +18,10 @@ class Db
     virtual auto get(const std::string& key) -> std::string = 0;
 
   protected:
-    Db() = default;
-    Db(Db&&) = default;
-    Db(Db&) = default;
-    auto operator=(Db&&) -> Db& = default;
-    auto operator=(const Db&) -> Db& = default;
 };
 
 auto
 create_db() -> std::unique_ptr<Db>;
-} // namespace src::db
+} // namespace db
 
 #endif // RHYTHMGAME_DB_H

@@ -3,3 +3,7 @@
 //
 
 #include "BmsChart.h"
+
+namespace charts::models::bms {
+
+}

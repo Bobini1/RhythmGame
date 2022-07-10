@@ -1,11 +1,6 @@
-add_library(ChartReading OBJECT
-        ChartReaders/ChartReader.cpp)
-target_include_directories(
-        ChartReading ${warning_guard}
-        PUBLIC
-        "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
-)
+add_library(Charts OBJECT
+        chart_readers/BmsChartReader.cpp models/Chart.h models/Chart.cpp models/ChartInfo.cpp models/ChartInfo.h models/MetadataTypes.h models/bms/BmsChart.cpp models/bms/BmsChart.h)
 target_link_libraries(
-        ChartReading PRIVATE taocpp::pegtl Folly::folly
+        Charts PRIVATE taocpp::pegtl boost_icl type_safe::type_safe
 )
-target_compile_features(ChartReading PUBLIC cxx_std_20)
+target_compile_features(Charts PUBLIC cxx_std_20)

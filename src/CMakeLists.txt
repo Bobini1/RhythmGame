@@ -1,2 +1,2 @@
-add_subdirectory("DB")
-add_subdirectory("ChartReading")
+add_subdirectory("db")
+add_subdirectory("charts")

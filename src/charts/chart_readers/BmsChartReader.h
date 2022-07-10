@@ -2,19 +2,23 @@
 // Created by bobini on 07.07.2022.
 //
 
-#ifndef RHYTHMGAME_CHARTREADER_H
-#define RHYTHMGAME_CHARTREADER_H
+#ifndef RHYTHMGAME_BMSCHARTREADER_H
+#define RHYTHMGAME_BMSCHARTREADER_H
 
-#include <folly/FBString.h>
+#include <string>
 
-class SMChart;
+namespace charts {
+    class BmsChart {};
+}
 
-namespace charts::cha
 
-class SMChartReader
+namespace charts::chart_readers {
+class BmsChartReader
 {
-    virtual ~SMChartReader() = default;
-    virtual SMChart readSMChart(folly::fbstring& chart);
+  public:
+    virtual ~BmsChartReader() = default;
+    virtual BmsChart readBmsChart(std::string& chart) = 0;
 };
+} // namespace charts::chart_readers
 
-#endif // RHYTHMGAME_CHARTREADER_H
+#endif // RHYTHMGAME_BMSCHARTREADER_H

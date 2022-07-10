@@ -1,10 +1,5 @@
 add_library(DB OBJECT
-        source/DB.cpp)
-target_include_directories(
-        DB ${warning_guard}
-        PUBLIC
-        "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
-)
+        DB.cpp)
 target_link_libraries(
         DB PRIVATE SQLiteCpp
 )

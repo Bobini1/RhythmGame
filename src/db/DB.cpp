@@ -8,7 +8,7 @@
 #include "DB.h"
 #include <SQLiteCpp/SQLiteCpp.h>
 #include <SQLiteCpp/VariadicBind.h>
-namespace rhythm_game::db {
+namespace db {
 
 class SQLiteDb : public Db
 {
