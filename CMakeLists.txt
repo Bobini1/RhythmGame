@@ -24,7 +24,7 @@ find_package(SQLiteCpp REQUIRED)
 
 # <------------ pegtl (parsing) --------------->
 
-find_package(pegtl)
+find_package(pegtl REQUIRED)
 
 # <------------ fmt --------------->
 
@@ -38,13 +38,12 @@ find_package(folly REQUIRED)
 
 # <------------ boost --------------->
 
-find_package(Boost REQUIRED COMPONENTS icl)
+find_package(Boost REQUIRED)
 
 # <------------ type_safe --------------->
 
 
 find_package(type_safe REQUIRED)
-
 
 
 # ---- Load libraries ----
@@ -64,7 +63,7 @@ set_target_properties(
 
 target_compile_features(RhythmGame_exe PRIVATE cxx_std_20)
 
-target_link_libraries(RhythmGame_exe PRIVATE DB)
+target_link_libraries(RhythmGame_exe PRIVATE DB Charts)
 
 # ---- Install rules ----
 
