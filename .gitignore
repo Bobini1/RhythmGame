@@ -11,3 +11,5 @@ CMakeLists.txt.user
 CMakeUserPresets.json
 conanbuildinfo.txt
 conaninfo.txt
+conan.lock
+graph_info.json
