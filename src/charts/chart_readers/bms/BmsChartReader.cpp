@@ -4,12 +4,13 @@
 
 #include "BmsChartReader.h"
 #include <tao/pegtl.hpp>
+#include <string>
 
 namespace {
 
 } // namespace
 
-namespace charts::chart_readers {
+namespace charts::chart_readers::bms {
 namespace {
 namespace pegtl = tao::pegtl;
 // clang-format off
@@ -70,10 +71,21 @@ class BmsChartReaderImpl : public BmsChartReader
 {
   public:
     ~BmsChartReaderImpl() override = default;
-    virtual auto readChart(std::string& chart) -> BmsChart
+    virtual auto readChart(std::string& chart) -> models::bms::BmsChart
     {
-        return BmsChart{};
+        using namespace std::string_literals;
+        using namespace std::chrono_literals;
+        return models::bms::BmsChart{ models::ChartInfo {
+          models::Title{ "" },
+          models::Artist{ "" },
+          models::Genre{ "" },
+          models::ChartType{ "BMS" },
+          models::Difficulty{ "" },
+          models::Level{ 0 },
+          models::NoteCount{ 0U },
+          boost::icl::interval_map<models::Offset, models::Bpm>{},
+          models::Offset{ 0s } } };
     };
 };
 } // namespace
-} // namespace charts::chart_readers
+} // namespace charts::chart_readers::bms

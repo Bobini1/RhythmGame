@@ -1,4 +1,4 @@
-# ---- In-rhythm_game guard ----
+# ---- In-src guard ----
 
 if(CMAKE_SOURCE_DIR STREQUAL CMAKE_BINARY_DIR)
   message(

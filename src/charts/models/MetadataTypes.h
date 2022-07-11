@@ -10,7 +10,7 @@
 #include <type_safe/types.hpp>
 namespace charts::models {
 using Offset = std::chrono::milliseconds;
-using Bpm = type_safe::floating_point<double>;
+using Bpm = double;
 using Level =
   std::variant<type_safe::integer<int>, type_safe::floating_point<double>>;
 using NoteCount = type_safe::integer<unsigned int>;

@@ -16,8 +16,6 @@ class Db
     virtual auto insert(const std::string& key, const std::string& value)
       -> void = 0;
     virtual auto get(const std::string& key) -> std::string = 0;
-
-  protected:
 };
 
 auto

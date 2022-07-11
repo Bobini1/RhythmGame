@@ -6,19 +6,19 @@
 #define RHYTHMGAME_BMSCHARTREADER_H
 
 #include <string>
-
-namespace charts {
-    class BmsChart {};
-}
+#include <memory>
+#include "../../models/bms/BmsChart.h"
 
 
-namespace charts::chart_readers {
+namespace charts::chart_readers::bms {
 class BmsChartReader
 {
   public:
     virtual ~BmsChartReader() = default;
-    virtual BmsChart readBmsChart(std::string& chart) = 0;
+    virtual auto readBmsChart(std::string& chart) -> models::bms::BmsChart;
 };
-} // namespace charts::chart_readers
+
+auto createBmsChartReader() -> std::unique_ptr<BmsChartReader>;
+} // namespace charts::chart_readers::bms
 
 #endif // RHYTHMGAME_BMSCHARTREADER_H

@@ -46,9 +46,17 @@ find_package(Boost REQUIRED)
 find_package(type_safe REQUIRED)
 
 
-# ---- Load libraries ----
+# ---- Load library ----
 
-add_subdirectory(src)
+add_library(RhythmGame_lib OBJECT src/db/Db.cpp src/db/sqlite_cpp_db/SqliteCppDb.cpp src/db/sqlite_cpp_db/SqliteCppDb.h
+        src/charts/chart_readers/bms/BmsChartReader.cpp src/charts/models/Chart.h src/charts/models/Chart.cpp src/charts/models/ChartInfo.cpp src/charts/models/ChartInfo.h src/charts/models/MetadataTypes.h src/charts/models/bms/BmsChart.cpp src/charts/models/bms/BmsChart.h)
+target_link_libraries(RhythmGame_lib PRIVATE SQLiteCpp taocpp::pegtl Boost::boost type_safe::type_safe)
+target_compile_features(RhythmGame_lib PRIVATE cxx_std_20)
+target_include_directories(
+        RhythmGame_lib ${warning_guard}
+        PUBLIC
+        "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src>"
+)
 
 # ---- Declare executable ----
 
@@ -63,7 +71,7 @@ set_target_properties(
 
 target_compile_features(RhythmGame_exe PRIVATE cxx_std_20)
 
-target_link_libraries(RhythmGame_exe PRIVATE DB Charts)
+target_link_libraries(RhythmGame_exe PRIVATE RhythmGame_lib)
 
 # ---- Install rules ----
 

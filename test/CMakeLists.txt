@@ -14,9 +14,7 @@ find_package(Catch2 3 REQUIRED)
 add_executable(RhythmGame_test RhythmGame_test.cpp BmsChartReader.test.cpp)
 target_link_libraries(
         RhythmGame_test PRIVATE
-        Charts
-
-        DB
+        RhythmGame_lib
         Catch2::Catch2WithMain
 )
 target_compile_features(RhythmGame_test PRIVATE cxx_std_20)

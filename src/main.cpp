@@ -1,11 +1,11 @@
 #include <iostream>
 #include <memory>
 
-#include "db/DB.h"
+#include "db/sqlite_cpp_db/SqliteCppDb.h"
 
 auto main() -> int
 {
-  auto db = db::create_db();
-  db->insert("key", "value");
-  std::cout << db->get("key") << std::endl;
+  auto gameDb = std::make_unique<db::sql_db::SqliteCppDb>();
+  gameDb->insert("key", "value");
+  std::cout << gameDb->get("key") << std::endl;
 }
