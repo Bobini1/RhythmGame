@@ -4,7 +4,7 @@ IndentWidth: 4
 TabWidth: 4
 
 
-SortIncludes: Never
+SortIncludes: false
 
 
 BreakBeforeBraces: Custom
