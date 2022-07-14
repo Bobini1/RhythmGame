@@ -86,7 +86,6 @@ jobs:
         with: { python-version: "3.8" }
 
       - name: Install dependencies
-        env: { CXX: clang++-12 }
         run: pip3 install "conan<2,!=1.49.0"
           && conan profile new default --detect
           && cp .github/clang-12.profile ~/.conan/profiles/default

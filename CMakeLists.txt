@@ -30,11 +30,6 @@ find_package(pegtl REQUIRED)
 
 find_package(fmt REQUIRED)
 
-#target_link_libraries(RhythmGame_lib PRIVATE fmt::fmt)
-
-# <------------- folly --------------->
-
-find_package(folly REQUIRED)
 
 # <------------ boost --------------->
 
