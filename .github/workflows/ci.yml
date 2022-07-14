@@ -34,12 +34,9 @@ jobs:
 
     runs-on: ubuntu-latest
 
-    # To enable coverage, delete the last line from the conditional below and
-    # edit the "<name>" placeholder to your GitHub name.
     # If you do not wish to use codecov, then simply delete this job from the
     # workflow.
-    if: github.repository_owner == '<name>'
-      && false
+    if: github.repository_owner == 'Bobini1'
 
     steps:
       - uses: actions/checkout@v2
@@ -89,6 +86,7 @@ jobs:
         with: { python-version: "3.8" }
 
       - name: Install dependencies
+        env: { CXX: clang++-12 }
         run: pip3 install "conan<2,!=1.49.0"
           && conan profile new default --detect
           && cp .github/clang-12.profile ~/.conan/profiles/default
