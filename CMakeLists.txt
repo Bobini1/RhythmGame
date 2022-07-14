@@ -47,10 +47,6 @@ add_library(RhythmGame_lib OBJECT src/db/Db.cpp src/db/sqlite_cpp_db/SqliteCppDb
         src/charts/chart_readers/bms/BmsChartReader.cpp src/charts/models/Chart.h src/charts/models/Chart.cpp src/charts/models/ChartInfo.cpp src/charts/models/ChartInfo.h src/charts/models/MetadataTypes.h src/charts/models/bms/BmsChart.cpp src/charts/models/bms/BmsChart.h)
 target_link_libraries(RhythmGame_lib PRIVATE SQLiteCpp taocpp::pegtl Boost::boost PUBLIC type_safe::type_safe)
 
-# Always link with libstdc++fs.a when using GCC 8.
-# Note: This command makes sure that this option comes pretty late on the cmdline.
-target_link_libraries(RhythmGame_lib PUBLIC "$<$<AND:$<CXX_COMPILER_ID:GNU>,$<VERSION_LESS:$<CXX_COMPILER_VERSION>,9.0>>:-lstdc++fs>")
-
 target_compile_features(RhythmGame_lib PRIVATE cxx_std_20)
 target_include_directories(
         RhythmGame_lib ${warning_guard}
