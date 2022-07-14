@@ -11,15 +11,14 @@ namespace charts::models::bms {
 class BmsChart : public Chart
 {
     ChartInfo chartInfo;
+
   public:
     explicit BmsChart(ChartInfo chartInfo)
       : chartInfo(std::move(chartInfo))
-    {}
-    auto getChartInfo() -> const ChartInfo& override {
-        return chartInfo;
+    {
     }
+    auto getChartInfo() -> const ChartInfo& override { return chartInfo; }
 };
 } // namespace charts::models::bms
-
 
 #endif // RHYTHMGAME_BMSCHART_H

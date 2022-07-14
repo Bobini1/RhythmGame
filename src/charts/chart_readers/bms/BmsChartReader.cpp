@@ -75,7 +75,7 @@ class BmsChartReaderImpl : public BmsChartReader
     {
         using namespace std::string_literals;
         using namespace std::chrono_literals;
-        return models::bms::BmsChart{ models::ChartInfo {
+        return models::bms::BmsChart{ models::ChartInfo{
           models::Title{ "" },
           models::Artist{ "" },
           models::Genre{ "" },

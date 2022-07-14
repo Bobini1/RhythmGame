@@ -9,7 +9,6 @@
 #include <memory>
 #include "../../models/bms/BmsChart.h"
 
-
 namespace charts::chart_readers::bms {
 class BmsChartReader
 {
@@ -18,7 +17,8 @@ class BmsChartReader
     virtual auto readBmsChart(std::string& chart) -> models::bms::BmsChart;
 };
 
-auto createBmsChartReader() -> std::unique_ptr<BmsChartReader>;
+auto
+createBmsChartReader() -> std::unique_ptr<BmsChartReader>;
 } // namespace charts::chart_readers::bms
 
 #endif // RHYTHMGAME_BMSCHARTREADER_H
