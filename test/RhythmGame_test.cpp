@@ -1,14 +1,17 @@
 
 #define BOOST_TEST_DYN_LINK
-#define BOOST_TEST_MAIN  // in only one cpp file
+#define BOOST_TEST_MAIN // in only one cpp file
 
 #include <catch2/catch_test_macros.hpp>
 
-static auto factorial( int number ) -> int {
-  return number <= 1 ? 1 : factorial( number - 1 ) * number;  // fail
-  // return number <= 1 ? 1      : Factorial( number - 1 ) * number;  // pass
+static auto
+factorial(int number) -> int
+{
+    return number <= 1 ? 1 : factorial(number - 1) * number; // fail
+    // return number <= 1 ? 1      : Factorial( number - 1 ) * number;  // pass
 }
 
-TEST_CASE( "Factorial of 0 is 1 (fail)", "[single-file]" ) {
-  REQUIRE( factorial(0) == 1 );
+TEST_CASE("Factorial of 0 is 1 (fail)", "[single-file]")
+{
+    REQUIRE(factorial(0) == 1);
 }
