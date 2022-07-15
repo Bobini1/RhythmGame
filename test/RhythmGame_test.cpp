@@ -12,4 +12,3 @@ TEST_CASE("Factorial of 0 is 1 (fail)", "[single-file]")
 {
     REQUIRE(factorial(0) == 1);
 }
-
