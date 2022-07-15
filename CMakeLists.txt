@@ -44,7 +44,8 @@ find_package(type_safe REQUIRED)
 # ---- Load library ----
 
 include(CheckCXXSymbolExists)
-check_cxx_symbol_exists(std::filesystem::path::preferred_separator filesystem has_filesystem)
+check_cxx_symbol_exists(std::filesystem::__cxx11::path::_List::type filesystem has_filesystem)
+message(STATUS "Has filesystem: ${has_filesystem}")
 
 add_library(RhythmGame_lib OBJECT src/db/Db.cpp src/db/sqlite_cpp_db/SqliteCppDb.cpp src/db/sqlite_cpp_db/SqliteCppDb.h
         src/charts/chart_readers/bms/BmsChartReader.cpp src/charts/models/Chart.h src/charts/models/Chart.cpp src/charts/models/ChartInfo.cpp src/charts/models/ChartInfo.h src/charts/models/MetadataTypes.h src/charts/models/bms/BmsChart.cpp src/charts/models/bms/BmsChart.h)
