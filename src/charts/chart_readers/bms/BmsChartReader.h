@@ -13,12 +13,8 @@ namespace charts::chart_readers::bms {
 class BmsChartReader
 {
   public:
-    virtual ~BmsChartReader() = default;
-    virtual auto readBmsChart(std::string& chart) -> models::bms::BmsChart;
+    auto readBmsChart(std::string& chart) -> models::bms::BmsChart;
 };
-
-auto
-createBmsChartReader() -> std::unique_ptr<BmsChartReader>;
 } // namespace charts::chart_readers::bms
 
 #endif // RHYTHMGAME_BMSCHARTREADER_H

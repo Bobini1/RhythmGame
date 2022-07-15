@@ -1,7 +1,4 @@
 
-#define BOOST_TEST_DYN_LINK
-#define BOOST_TEST_MAIN // in only one cpp file
-
 #include <catch2/catch_test_macros.hpp>
 
 static auto
