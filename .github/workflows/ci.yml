@@ -32,7 +32,7 @@ jobs:
   coverage:
     needs: [ lint ]
 
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
 
     # If you do not wish to use codecov, then simply delete this job from the
     # workflow.
