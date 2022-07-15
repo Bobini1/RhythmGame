@@ -7,5 +7,3 @@ compiler.version=12
 os=Linux
 
 [env]
-CC=/usr/bin/clang
-CXX=/usr/bin/clang++
