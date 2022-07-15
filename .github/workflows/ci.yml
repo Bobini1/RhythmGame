@@ -93,6 +93,7 @@ jobs:
         run: pip3 install "conan<2,!=1.49.0"
           && conan profile new default --detect
           && cp .github/clang-12.profile ~/.conan/profiles/default
+          && conan profile show default
           && conan install . -b missing
 
       - name: Configure
