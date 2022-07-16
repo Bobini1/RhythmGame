@@ -1,6 +1,6 @@
 # ---- Variables ----
 
-message(STATUS "raw coverage status location: ${PROJECT_BINARY_DIR}/test.profraw")
+message(STATUS "raw coverage status location: ${PROJECT_BINARY_DIR}/default.profraw")
 
 set(
         SHOW_DIRS
@@ -9,19 +9,19 @@ set(
 
 set(
         COVERAGE_TRACE_COMMAND
-        LLVM_PROFILE_FILE="${PROJECT_BINARY_DIR}/test.profraw" "${PROJECT_BINARY_DIR}/test/RhythmGame_test"
+        "${PROJECT_BINARY_DIR}/test/RhythmGame_test"
 )
 
 set(
         COVERAGE_MERGE_COMMAND
-        llvm-profdata merge -sparse "${PROJECT_BINARY_DIR}/test.profraw" -o "${PROJECT_BINARY_DIR}/test.profdata"
+        llvm-profdata merge -sparse "${PROJECT_BINARY_DIR}/test/default.profraw" -o "${PROJECT_BINARY_DIR}/test/test.profdata"
         CACHE STRING
         "; separated command to generate a trace for the 'coverage' target"
 )
 
 set(
         COVERAGE_SAVE_COMMAND
-        llvm-cov show "${PROJECT_BINARY_DIR}/test/RhythmGame_test" -instr-profile="${PROJECT_BINARY_DIR}/test.profdata" > coverage.info
+        llvm-cov show "${PROJECT_BINARY_DIR}/test/RhythmGame_test" -instr-profile="${PROJECT_BINARY_DIR}/test/test.profdata" > coverage.info
         CACHE STRING
         "; separated command to generate an HTML report for the 'coverage' target"
 )
