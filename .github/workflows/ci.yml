@@ -158,7 +158,7 @@ jobs:
         shell: bash
         run: |
           pip3 install "conan<2,!=1.49.0"
-          conan profile new default --detect
+          conan profile new default --detect --force
           if [ ${{ matrix.os }} = ubuntu-latest ]; then
             conan profile update settings.compiler.libcxx=libstdc++11 default
           fi
