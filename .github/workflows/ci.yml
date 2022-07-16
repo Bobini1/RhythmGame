@@ -49,6 +49,12 @@ jobs:
         uses: actions/setup-python@v2
         with: { python-version: "3.8" }
 
+      - name: Cache conan
+        id: cache-conan
+        uses: actions/cache@v3.0.5
+        with:
+          path: ~/.conan/data
+          key: conan-packages-coverage
 
       - name: Install dependencies
         env: { CXX: clang++-12 }
@@ -90,6 +96,13 @@ jobs:
 
       - name: Install Clang 12
         run: sudo apt update && sudo apt install clang-12
+
+      - name: Cache conan
+        id: cache-conan
+        uses: actions/cache@v3.0.5
+        with:
+          path: ~/.conan/data
+          key: conan-packages-sanitize
 
       - name: Install dependencies
         env: { CXX: clang++-12 }
@@ -135,6 +148,13 @@ jobs:
       - name: Install Python
         uses: actions/setup-python@v2
         with: { python-version: "3.8" }
+
+      - name: Cache conan
+        id: cache-conan
+        uses: actions/cache@v3.0.5
+        with:
+          path: ~/.conan/data
+          key: conan-packages-${{ matrix.os }}
 
       - name: Install dependencies
         shell: bash
