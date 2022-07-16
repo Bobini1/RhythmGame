@@ -12,7 +12,6 @@ project(
 include(cmake/project-is-top-level.cmake)
 include(cmake/variables.cmake)
 
-
 # <------------ lua support --------------->
 
 find_package(sol2 REQUIRED)
