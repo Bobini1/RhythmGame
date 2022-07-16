@@ -2,14 +2,10 @@
 
 message(STATUS "raw coverage status location: ${PROJECT_BINARY_DIR}/test.profraw")
 
-set(
-        SHOW_DIRS
-        ls -R
-)
 
 set(
         COVERAGE_TRACE_COMMAND
-        LLVM_PROFILE_FILE="${PROJECT_BINARY_DIR}/test.profraw" "${PROJECT_BINARY_DIR}/RhythmGame_test"
+        LLVM_PROFILE_FILE="${PROJECT_BINARY_DIR}/test.profraw" "${PROJECT_BINARY_DIR}/test/RhythmGame_test"
 )
 
 
@@ -22,7 +18,7 @@ set(
 
 set(
         COVERAGE_SAVE_COMMAND
-        llvm-cov show "${PROJECT_BINARY_DIR}/RhythmGame_test" -instr-profile="${PROJECT_BINARY_DIR}/test.profdata" > coverage.info
+        llvm-cov show "${PROJECT_BINARY_DIR}/test/RhythmGame_test" -instr-profile="${PROJECT_BINARY_DIR}/test.profdata" > coverage.info
         CACHE STRING
         "; separated command to generate an HTML report for the 'coverage' target"
 )
@@ -31,7 +27,6 @@ set(
 
 add_custom_target(
         coverage
-        COMMAND ${SHOW_DIRS}
         COMMAND ${COVERAGE_TRACE_COMMAND}
         COMMAND ${COVERAGE_MERGE_COMMAND}
         COMMAND ${COVERAGE_SAVE_COMMAND}
