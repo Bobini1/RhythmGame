@@ -4,7 +4,7 @@ message(STATUS "raw coverage status location: ${PROJECT_BINARY_DIR}/test.profraw
 
 set(
         SHOW_DIRS
-        echo "$PWD" && ls -R
+        echo \"$PWD\" && ls -R
 )
 
 set(
