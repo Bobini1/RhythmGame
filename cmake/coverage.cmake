@@ -3,15 +3,9 @@
 message(STATUS "raw coverage status location: ${PROJECT_BINARY_DIR}/test.profraw")
 
 set(
-        SHOW_DIRS
-        echo \"$PWD\" && ls -R
-)
-
-set(
         COVERAGE_TRACE_COMMAND
         LLVM_PROFILE_FILE="${PROJECT_BINARY_DIR}/test.profraw" "${PROJECT_BINARY_DIR}/test/RhythmGame_test"
 )
-
 
 set(
         COVERAGE_MERGE_COMMAND
@@ -31,7 +25,6 @@ set(
 
 add_custom_target(
         coverage
-        COMMAND ${SHOW_DIRS}
         COMMAND ${COVERAGE_TRACE_COMMAND}
         COMMAND ${COVERAGE_MERGE_COMMAND}
         COMMAND ${COVERAGE_SAVE_COMMAND}
