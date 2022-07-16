@@ -14,7 +14,7 @@ set(
 
 set(
         COVERAGE_MERGE_COMMAND
-        llvm-profdata merge -sparse "${PROJECT_BINARY_DIR}/test/default.profraw" -o "${PROJECT_BINARY_DIR}/test/test.profdata"
+        llvm-profdata merge -sparse "${PROJECT_BINARY_DIR}/default.profraw" -o "${PROJECT_BINARY_DIR}/test/test.profdata"
         CACHE STRING
         "; separated command to generate a trace for the 'coverage' target"
 )
