@@ -151,7 +151,7 @@ jobs:
         id: cache-conan
         uses: actions/cache@v3.0.5
         with:
-          path: ~/.conan/data
+          path: ~/.conan/
           key: conan-packages-${{ matrix.os }}
 
       - name: Install dependencies
