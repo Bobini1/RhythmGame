@@ -4,7 +4,7 @@ message(STATUS "raw coverage status location: ${PROJECT_BINARY_DIR}/test.profraw
 
 set(
         SHOW_DIRS
-        ls ${PROJECT_BINARY_DIR}
+        find ${PROJECT_BINARY_DIR} -name *.profraw
 )
 
 set(
