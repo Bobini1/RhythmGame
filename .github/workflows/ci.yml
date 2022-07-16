@@ -173,7 +173,7 @@ jobs:
     # simply delete this job similarly to the coverage one.
     if: github.ref == 'refs/heads/master'
       && github.event_name == 'push'
-      && github.repository_owner == '<name>'
+      && github.repository_owner == 'Bobini1'
       && false
 
     steps:
