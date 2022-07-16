@@ -50,12 +50,14 @@ jobs:
         with: { python-version: "3.8" }
 
       - name: Install dependencies
+        env: { CXX: clang++-12 }
         run: pip3 install "conan<2,!=1.49.0"
           && conan profile new default --detect
-          && conan profile update settings.compiler.libcxx=libstdc++11 default
+          && cp .github/clang-12.profile ~/.conan/profiles/default
           && conan install . -b missing
 
       - name: Configure
+        env: { CXX: clang++-12 }
         run: cmake --preset=ci-coverage
 
       - name: Build
@@ -84,6 +86,9 @@ jobs:
       - name: Install Python
         uses: actions/setup-python@v2
         with: { python-version: "3.8" }
+
+      - name: Install Clang 12
+        run: sudo apt update && sudo apt install clang-12
 
       - name: Install dependencies
         env: { CXX: clang++-12 }
