@@ -151,8 +151,16 @@ jobs:
         id: cache-conan
         uses: actions/cache@v3.0.5
         with:
-          path: ~/.conan/
+          path: ~/.conan/data
           key: conan-packages-${{ matrix.os }}
+
+      - name: Cache conan extra exports
+        if: matrix.os == 'windows-latest'
+        id: cache-conan-exports
+        uses: actions/cache@v3.0.5
+        with:
+          path: C:/.conan
+          key: conan-exports-extra-windows
 
       - name: Install dependencies
         shell: bash
