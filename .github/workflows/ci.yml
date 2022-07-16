@@ -34,8 +34,6 @@ jobs:
 
     runs-on: ubuntu-latest
 
-    # If you do not wish to use codecov, then simply delete this job from the
-    # workflow.
     if: github.repository_owner == 'Bobini1'
 
     steps:
@@ -49,6 +47,12 @@ jobs:
         uses: actions/setup-python@v2
         with: { python-version: "3.8" }
 
+      - name: Cache conan
+        id: cache-conan
+        uses: actions/cache@v3.0.5
+        with:
+          path: ~/.conan/data
+          key: conan-packages-coverage
 
       - name: Install dependencies
         env: { CXX: clang++-12 }
@@ -90,6 +94,13 @@ jobs:
 
       - name: Install Clang 12
         run: sudo apt update && sudo apt install clang-12
+
+      - name: Cache conan
+        id: cache-conan
+        uses: actions/cache@v3.0.5
+        with:
+          path: ~/.conan/data
+          key: conan-packages-sanitize
 
       - name: Install dependencies
         env: { CXX: clang++-12 }
@@ -136,11 +147,26 @@ jobs:
         uses: actions/setup-python@v2
         with: { python-version: "3.8" }
 
+      - name: Cache conan
+        id: cache-conan
+        uses: actions/cache@v3.0.5
+        with:
+          path: ~/.conan/data
+          key: conan-packages-${{ matrix.os }}-v2
+
+      - name: Cache conan extra exports
+        if: matrix.os == 'windows-latest'
+        id: cache-conan-exports
+        uses: actions/cache@v3.0.5
+        with:
+          path: C:/.conan
+          key: conan-exports-extra-windows
+
       - name: Install dependencies
         shell: bash
         run: |
           pip3 install "conan<2,!=1.49.0"
-          conan profile new default --detect
+          conan profile new default --detect --force
           if [ ${{ matrix.os }} = ubuntu-latest ]; then
             conan profile update settings.compiler.libcxx=libstdc++11 default
           fi
@@ -166,17 +192,6 @@ jobs:
 
     runs-on: ubuntu-latest
 
-    # To enable, first you have to create an orphaned gh-pages branch:
-    #
-    #    git switch --orphan gh-pages
-    #    git commit --allow-empty -m "Initial commit"
-    #    git push -u origin gh-pages
-    #
-    # Edit the <name> placeholder below to your GitHub name, so this action
-    # runs only in your repository and no one else's fork. After these, delete
-    # this comment and the last line in the conditional below.
-    # If you do not wish to use GitHub Pages for deploying documentation, then
-    # simply delete this job similarly to the coverage one.
     if: github.ref == 'refs/heads/master'
       && github.event_name == 'push'
       && github.repository_owner == 'Bobini1'
