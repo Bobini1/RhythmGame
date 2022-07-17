@@ -43,7 +43,7 @@ jobs:
 
       - name: Install llvm utils
         run: sudo apt-get update -q
-          && sudo apt-get install llvm -q -y
+          && sudo apt-get install llvm-12 -q -y
 
       - name: Install Python
         uses: actions/setup-python@v2
