@@ -13,18 +13,20 @@ namespace charts::models {
 class Chart
 {
   public:
+    Chart(std::string title,
+          std::string artist,
+          std::string bpm,
+          std::variant<BmsMeta> meta);
     [[nodiscard]] auto getTitle() const -> const std::string&;
     [[nodiscard]] auto getArtist() const -> const std::string&;
     [[nodiscard]] auto getBpm() const -> const std::string&;
+    [[nodiscard]] auto getMeta() const -> const std::variant<BmsMeta>&;
 
   private:
     std::string title;
     std::string artist;
     std::string bpm;
-    
     std::variant<BmsMeta> meta;
-
-  public:
 };
 } // namespace charts::models
 

@@ -12,8 +12,7 @@ TEST_CASE("Check if Title is parsed correctly", "[single-file]")
     auto reader = charts::chart_readers::bms::BmsChartReader{};
     auto testString = "#TITLE END TIME"s;
     auto res = reader.readBmsChart(testString);
-    REQUIRE(static_cast<const std::string&>(res.getChartInfo().title) ==
-            "END TIME"s);
+    REQUIRE(res.getTitle() == "END TIME"s);
 }
 
 TEST_CASE("Check if Artist is parsed correctly", "[single-file]")
@@ -22,6 +21,5 @@ TEST_CASE("Check if Artist is parsed correctly", "[single-file]")
     auto reader = charts::chart_readers::bms::BmsChartReader{};
     auto testString = "#ARTIST cres"s;
     auto res = reader.readBmsChart(testString);
-    REQUIRE(static_cast<const std::string&>(res.getChartInfo().artist) ==
-            "cres"s);
+    REQUIRE(res.getArtist() == "cres"s);
 }

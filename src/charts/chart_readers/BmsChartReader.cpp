@@ -73,6 +73,6 @@ BmsChartReader::readBmsChart(std::string& chart) -> models::Chart
 {
     using namespace std::string_literals;
     using namespace std::chrono_literals;
-    return models::Chart{  };
+    return { "", "", "", BmsMeta{ ""s, ""s, ""s } };
 };
 } // namespace charts::chart_readers::bms
