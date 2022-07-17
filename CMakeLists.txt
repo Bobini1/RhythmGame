@@ -43,7 +43,7 @@ find_package(type_safe REQUIRED)
 # ---- Load library ----
 
 add_library(RhythmGame_lib OBJECT src/db/Db.cpp src/db/sqlite_cpp_db/SqliteCppDb.cpp src/db/sqlite_cpp_db/SqliteCppDb.h
-        src/charts/chart_readers/bms/BmsChartReader.cpp src/charts/models/Chart.h src/charts/models/Chart.cpp src/charts/models/ChartInfo.cpp src/charts/models/ChartInfo.h src/charts/models/MetadataTypes.h src/charts/models/bms/BmsChart.cpp src/charts/models/bms/BmsChart.h)
+        src/charts/chart_readers/BmsChartReader.cpp src/charts/models/Chart.h src/charts/models/Chart.cpp src/charts/models/ChartInfo.cpp src/charts/models/ChartInfo.h src/charts/models/MetadataTypes.h src/charts/models/BmsMeta.cpp src/charts/models/BmsMeta.h)
 target_link_libraries(RhythmGame_lib PRIVATE SQLiteCpp taocpp::pegtl PUBLIC Boost::headers type_safe::type_safe)
 
 target_compile_features(RhythmGame_lib PRIVATE cxx_std_20)

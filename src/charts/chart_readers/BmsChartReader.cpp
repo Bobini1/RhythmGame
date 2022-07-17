@@ -69,19 +69,10 @@ struct WavXX : MetaTag<Filename, pegtl::seq<pegtl::istring<'W', 'A', 'V'>, pegtl
 
 } // namespace
 auto
-BmsChartReader::readBmsChart(std::string& chart) -> models::bms::BmsChart
+BmsChartReader::readBmsChart(std::string& chart) -> models::Chart
 {
     using namespace std::string_literals;
     using namespace std::chrono_literals;
-    return models::bms::BmsChart{ models::ChartInfo{
-      models::Title{ "" },
-      models::Artist{ "" },
-      models::Genre{ "" },
-      models::ChartType{ "BMS" },
-      models::Difficulty{ "" },
-      models::Level{ 0 },
-      models::NoteCount{ 0U },
-      boost::icl::interval_map<models::Offset, models::Bpm>{},
-      models::Offset{ 0s } } };
+    return models::Chart{  };
 };
 } // namespace charts::chart_readers::bms

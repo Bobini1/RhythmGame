@@ -7,13 +7,13 @@
 
 #include <string>
 #include <memory>
-#include "../../models/bms/BmsChart.h"
+#include "charts/models/Chart.h"
 
 namespace charts::chart_readers::bms {
 class BmsChartReader
 {
   public:
-    auto readBmsChart(std::string& chart) -> models::bms::BmsChart;
+    auto readBmsChart(std::string& chart) -> models::Chart;
 };
 } // namespace charts::chart_readers::bms
 

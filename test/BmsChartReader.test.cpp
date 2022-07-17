@@ -3,7 +3,7 @@
 //
 
 #include <catch2/catch_test_macros.hpp>
-#include <charts/chart_readers/bms/BmsChartReader.h>
+#include "charts/chart_readers/BmsChartReader.h"
 #include <string>
 
 TEST_CASE("Check if Title is parsed correctly", "[single-file]")
