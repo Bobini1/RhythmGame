@@ -63,7 +63,7 @@ struct subTitle : metaStringTag< pegtl::istring<'S', 'U', 'B', 'T', 'I', 'T', 'L
 
 struct filename : pegtl::plus<pegtl::utf8::any> {};
 
-struct WavXX : metaTag<filename, pegtl::seq<pegtl::istring<'W', 'A', 'V'>, pegtl::rep<2, pegtl::alnum>>> {};
+struct wavXX : metaTag<filename, pegtl::seq<pegtl::istring<'W', 'A', 'V'>, pegtl::rep<2, pegtl::alnum>>> {};
 
 // clang-format on
 
