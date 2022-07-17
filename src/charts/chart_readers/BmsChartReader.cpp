@@ -40,30 +40,30 @@ struct exponent : pegtl::seq< plus_minus, pegtl::plus< pegtl::digit > > {};
 struct decimal : pegtl::seq< number< pegtl::digit >, pegtl::opt< e, exponent > > {};
 struct hexadecimal : pegtl::seq< pegtl::one< '0' >, pegtl::one< 'x', 'X' >, number< pegtl::xdigit >, pegtl::opt< p, exponent > > {};
 
-struct Floating : pegtl::seq< plus_minus, pegtl::sor< hexadecimal, decimal, inf, nan, pegtl::opt<f> > > {};
+struct floating : pegtl::seq< plus_minus, pegtl::sor< hexadecimal, decimal, inf, nan, pegtl::opt<f> > > {};
 
 // double end
 
-using MetaString = pegtl::plus<pegtl::utf8::any>;
+struct metaString : pegtl::plus<pegtl::utf8::any>;
 
 template<typename AllowedValue, typename TagName>
-struct MetaTag : pegtl::seq<pegtl::bol, pegtl::one<'#'>, TagName, pegtl::one<' '>, AllowedValue, pegtl::eolf> {};
+struct metaTag : pegtl::seq<pegtl::bol, pegtl::one<'#'>, TagName, pegtl::one<' '>, AllowedValue, pegtl::eolf> {};
 
 template<typename TagName>
-struct MetaStringTag: MetaTag<MetaString, TagName> {};
+struct metaStringTag: metaTag<MetaString, TagName> {};
 
-struct PlayerValidDigit : pegtl::range<'1', '4'> {};
-struct Player : MetaTag<PlayerValidDigit, pegtl::istring<'P', 'L', 'A', 'Y', 'E', 'R'>> {};
-struct Bpm : MetaTag<Floating, pegtl::istring<'B', 'P', 'M'>> {};
-struct Genre : MetaStringTag< pegtl::istring<'G', 'E', 'N', 'R', 'E'>> {};
-struct Artist : MetaStringTag< pegtl::istring<'A', 'R', 'T', 'I', 'S', 'T'>> {};
-struct Title : MetaStringTag< pegtl::istring<'T', 'I', 'T', 'L', 'E'>> {};
-struct SubArtist : MetaStringTag< pegtl::istring<'S', 'U', 'B', 'A', 'R', 'T', 'I', 'S', 'T'>> {};
-struct SubTitle : MetaStringTag< pegtl::istring<'S', 'U', 'B', 'T', 'I', 'T', 'L', 'E'>> {};
+struct playerValidDigit : pegtl::range<'1', '4'> {};
+struct player : metaTag<playerValidDigit, pegtl::istring<'P', 'L', 'A', 'Y', 'E', 'R'>> {};
+struct bpm : metaTag<floating, pegtl::istring<'B', 'P', 'M'>> {};
+struct genre : metaStringTag< pegtl::istring<'G', 'E', 'N', 'R', 'E'>> {};
+struct artist : metaStringTag< pegtl::istring<'A', 'R', 'T', 'I', 'S', 'T'>> {};
+struct title : metaStringTag< pegtl::istring<'T', 'I', 'T', 'L', 'E'>> {};
+struct subArtist : metaStringTag< pegtl::istring<'S', 'U', 'B', 'A', 'R', 'T', 'I', 'S', 'T'>> {};
+struct subTitle : metaStringTag< pegtl::istring<'S', 'U', 'B', 'T', 'I', 'T', 'L', 'E'>> {};
 
-struct Filename : pegtl::plus<pegtl::utf8::any> {};
+struct filename : pegtl::plus<pegtl::utf8::any> {};
 
-struct WavXX : MetaTag<Filename, pegtl::seq<pegtl::istring<'W', 'A', 'V'>, pegtl::rep<2, pegtl::alnum>>> {};
+struct WavXX : metaTag<filename, pegtl::seq<pegtl::istring<'W', 'A', 'V'>, pegtl::rep<2, pegtl::alnum>>> {};
 
 // clang-format on
 
@@ -73,6 +73,6 @@ BmsChartReader::readBmsChart(std::string& chart) -> models::Chart
 {
     using namespace std::string_literals;
     using namespace std::chrono_literals;
-    return { "", "", "", BmsMeta{ ""s, ""s, ""s } };
+    return { "", "", "", std::variant<BmsMeta>{ BmsMeta{ ""s, ""s, ""s } } };
 };
 } // namespace charts::chart_readers::bms
