@@ -5,13 +5,9 @@
 #include "BmsChartReader.h"
 #include <tao/pegtl.hpp>
 #include <string>
+#include "charts/models/BmsMeta.h"
 
-namespace {
-
-} // namespace
-
-namespace charts::chart_readers::bms {
-namespace {
+namespace charts::chart_readers {
 namespace pegtl = tao::pegtl;
 // clang-format off
 // double
@@ -35,12 +31,13 @@ struct number : pegtl::if_then_else< dot,
 struct e : pegtl::one< 'e', 'E' > {};
 struct p : pegtl::one< 'p', 'P' > {};
 struct f : pegtl::one< 'f', 'F' > {};
+struct d : pegtl::one< 'd', 'D' > {};
 struct exponent : pegtl::seq< plus_minus, pegtl::plus< pegtl::digit > > {};
 
 struct decimal : pegtl::seq< number< pegtl::digit >, pegtl::opt< e, exponent > > {};
 struct hexadecimal : pegtl::seq< pegtl::one< '0' >, pegtl::one< 'x', 'X' >, number< pegtl::xdigit >, pegtl::opt< p, exponent > > {};
 
-struct floating : pegtl::seq< plus_minus, pegtl::sor< hexadecimal, decimal, inf, nan, pegtl::opt<f> > > {};
+struct floating : pegtl::seq< plus_minus, pegtl::sor< hexadecimal, decimal, inf, nan, pegtl::opt<pegtl::sor<f, d>> > > {};
 
 // double end
 
@@ -65,14 +62,33 @@ struct filename : pegtl::plus<pegtl::utf8::any> {};
 
 struct wavXX : metaTag<filename, pegtl::seq<pegtl::istring<'W', 'A', 'V'>, pegtl::rep<2, pegtl::alnum>>> {};
 
+struct file : pegtl::list<pegtl::sor<wavXX, player, bpm, genre, artist, title, subArtist, subTitle>, pegtl::eolf> {};
+
 // clang-format on
 
-} // namespace
+template<typename>
+struct action
+{
+};
+
+template<>
+struct action<title>
+{
+    template<typename ActionInput>
+    static void apply(const ActionInput& input, charts::models::Chart& chart)
+    {
+        chart.title = input.string();
+    }
+};
+
 auto
-BmsChartReader::readBmsChart(std::string& chart) -> models::Chart
+BmsChartReader::readBmsChart(std::string& chart) -> charts::models::Chart
 {
     using namespace std::string_literals;
     using namespace std::chrono_literals;
+
+    // auto parsed = pegtl::parse<file, action>(chart);
+
     return { "", "", "", BmsMeta{ "", "", "" } };
 };
-} // namespace charts::chart_readers::bms
+} // namespace charts::chart_readers

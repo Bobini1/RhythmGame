@@ -9,12 +9,12 @@
 #include <memory>
 #include "charts/models/Chart.h"
 
-namespace charts::chart_readers::bms {
+namespace charts::chart_readers {
 class BmsChartReader
 {
   public:
-    auto readBmsChart(std::string& chart) -> models::Chart;
+    auto readBmsChart(std::string& chart) -> charts::models::Chart;
 };
-} // namespace charts::chart_readers::bms
+} // namespace charts::chart_readers
 
 #endif // RHYTHMGAME_BMSCHARTREADER_H

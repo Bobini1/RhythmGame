@@ -6,8 +6,9 @@
 #define RHYTHMGAME_CHART_H
 
 #include <optional>
-#include "ChartInfo.h"
-#include "BmsMeta.h"
+#include <variant>
+#include <string>
+#include "charts/models/BmsMeta.h"
 
 namespace charts::models {
 class Chart
