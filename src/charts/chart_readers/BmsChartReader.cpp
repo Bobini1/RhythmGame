@@ -44,7 +44,7 @@ struct floating : pegtl::seq< plus_minus, pegtl::sor< hexadecimal, decimal, inf,
 
 // double end
 
-struct metaString : pegtl::plus<pegtl::utf8::any>;
+struct metaString : pegtl::plus<pegtl::utf8::any> {};
 
 template<typename AllowedValue, typename TagName>
 struct metaTag : pegtl::seq<pegtl::bol, pegtl::one<'#'>, TagName, pegtl::one<' '>, AllowedValue, pegtl::eolf> {};
