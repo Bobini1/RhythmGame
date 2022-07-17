@@ -7,6 +7,7 @@
 
 #include <optional>
 #include "ChartInfo.h"
+#include "BmsMeta.h"
 
 namespace charts::models {
 class Chart
@@ -20,7 +21,8 @@ class Chart
     std::string title;
     std::string artist;
     std::string bpm;
-    std::variant<BMSMeta, SMMeta> meta;
+    
+    std::variant<BmsMeta> meta;
 
   public:
 };
