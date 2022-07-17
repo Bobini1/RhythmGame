@@ -50,7 +50,7 @@ template<typename AllowedValue, typename TagName>
 struct metaTag : pegtl::seq<pegtl::bol, pegtl::one<'#'>, TagName, pegtl::one<' '>, AllowedValue, pegtl::eolf> {};
 
 template<typename TagName>
-struct metaStringTag: metaTag<MetaString, TagName> {};
+struct metaStringTag: metaTag<metaString, TagName> {};
 
 struct playerValidDigit : pegtl::range<'1', '4'> {};
 struct player : metaTag<playerValidDigit, pegtl::istring<'P', 'L', 'A', 'Y', 'E', 'R'>> {};
