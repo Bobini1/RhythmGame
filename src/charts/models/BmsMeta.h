@@ -8,6 +8,11 @@
 #include <string>
 #include <optional>
 
+namespace charts::chart_readers {
+template<typename>
+struct action;
+} // namespace charts::chart_readers
+
 class BmsMeta
 {
   public:
@@ -18,6 +23,9 @@ class BmsMeta
     [[nodiscard]] auto getSubtitle() const -> const std::optional<std::string>&;
     [[nodiscard]] auto getSubartist() const
       -> const std::optional<std::string>&;
+
+    template<typename>
+    friend struct charts::chart_readers::action;
 
   private:
     std::optional<std::string> genre;

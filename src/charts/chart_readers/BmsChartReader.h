@@ -13,7 +13,8 @@ namespace charts::chart_readers {
 class BmsChartReader
 {
   public:
-    auto readBmsChart(std::string& chart) -> charts::models::Chart;
+    [[nodiscard]] auto readBmsChart(std::string chart) const
+      -> charts::models::Chart;
 };
 } // namespace charts::chart_readers
 

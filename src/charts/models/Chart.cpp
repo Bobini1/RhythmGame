@@ -16,13 +16,13 @@ charts::models::Chart::getArtist() const -> const std::string&
     return artist;
 }
 auto
-charts::models::Chart::getBpm() const -> const std::string&
+charts::models::Chart::getBpm() const -> double
 {
     return bpm;
 }
 charts::models::Chart::Chart(std::string title,
                              std::string artist,
-                             std::string bpm,
+                             double bpm,
                              std::variant<BmsMeta> meta)
   : title(std::move(title))
   , artist(std::move(artist))
