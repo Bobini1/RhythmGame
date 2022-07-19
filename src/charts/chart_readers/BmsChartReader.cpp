@@ -109,8 +109,7 @@ struct metaTag
                pegtl::one<'#'>,
                TagName,
                pegtl::star<pegtl::space>,
-               AllowedValue,
-               pegtl::eolf>
+               AllowedValue>
 {
 };
 
