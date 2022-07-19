@@ -23,3 +23,13 @@ TEST_CASE("Check if Artist is parsed correctly", "[single-file]")
     auto res = reader.readBmsChart(testString);
     REQUIRE(res.getArtist() == "cres"s);
 }
+
+TEST_CASE("Multiple tags at once", "[single-file]")
+{
+    using namespace std::literals::string_literals;
+    auto reader = charts::chart_readers::BmsChartReader{};
+    auto testString = "#ARTIST cres\n#TITLE END TIME"s;
+    auto res = reader.readBmsChart(testString);
+    REQUIRE(res.getArtist() == "cres"s);
+    REQUIRE(res.getTitle() == "END TIME"s);
+}

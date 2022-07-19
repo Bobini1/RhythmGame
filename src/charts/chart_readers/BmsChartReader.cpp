@@ -99,7 +99,7 @@ struct floating
 
 // double end
 
-struct metaString : pegtl::plus<pegtl::utf8::any>
+struct metaString : pegtl::until<pegtl::at<pegtl::eolf>>
 {
 };
 
