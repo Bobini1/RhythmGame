@@ -164,8 +164,6 @@ struct wavXX
 //                      blockTag<pegtl::istring<'E', 'N', 'D', 'R', 'A', 'N',
 //                      'D', 'O', 'M'>>>> {};
 
-// clang-format on
-
 #define RHYTHMGAME_TAG_PARSER(                                                 \
   tag, tagstrlen, allowedValue, memberPointer, parser)                         \
     struct tag##_allowedValue : allowedValue                                   \
