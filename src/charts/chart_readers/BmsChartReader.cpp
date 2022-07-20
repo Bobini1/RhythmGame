@@ -11,6 +11,7 @@
 #include "charts/chart_readers/ToChars.h"
 #include <iostream>
 #include <tao/pegtl.hpp>
+#include <boost/algorithm/string/trim.hpp>
 
 namespace charts::chart_readers {
 namespace pegtl = tao::pegtl;
@@ -99,17 +100,24 @@ struct floating
 
 // double end
 
-struct metaString : pegtl::until<pegtl::at<pegtl::eolf>>
+struct spacesUntilEndOfLine
+  : pegtl::seq<pegtl::star<pegtl::minus<pegtl::space, pegtl::eolf>>,
+               pegtl::at<pegtl::eolf>>
+{
+};
+
+struct metaString : pegtl::until<spacesUntilEndOfLine>
 {
 };
 
 template<typename AllowedValue, typename TagName>
 struct metaTag
-  : pegtl::seq<pegtl::bol,
+  : pegtl::seq<pegtl::star<pegtl::space>,
                pegtl::one<'#'>,
                TagName,
                pegtl::star<pegtl::space>,
-               AllowedValue>
+               AllowedValue,
+               pegtl::star<pegtl::minus<pegtl::space, pegtl::eolf>>>
 {
 };
 
@@ -183,20 +191,23 @@ struct wavXX
 
 namespace {
 constexpr auto identity = std::identity();
+constexpr auto trimR = [](auto&& str) {
+    return std::string_view{ str }.substr(0, str.find_last_not_of(' ') + 1);
+};
 } // namespace
 
-RHYTHMGAME_TAG_PARSER(title, 5, metaString, &tags::title, identity);
-RHYTHMGAME_TAG_PARSER(artist, 6, metaString, &tags::artist, identity);
-RHYTHMGAME_TAG_PARSER(subArtist, 9, metaString, &tags::subArtist, identity);
-RHYTHMGAME_TAG_PARSER(subTitle, 8, metaString, &tags::subTitle, identity);
+RHYTHMGAME_TAG_PARSER(title, 5, metaString, &tags::title, trimR);
+RHYTHMGAME_TAG_PARSER(artist, 6, metaString, &tags::artist, trimR);
+RHYTHMGAME_TAG_PARSER(subArtist, 9, metaString, &tags::subArtist, trimR);
+RHYTHMGAME_TAG_PARSER(subTitle, 8, metaString, &tags::subTitle, trimR);
 RHYTHMGAME_TAG_PARSER(bpm, 3, floating, &tags::bpm, std::stod);
-RHYTHMGAME_TAG_PARSER(genre, 5, metaString, &tags::genre, identity);
+RHYTHMGAME_TAG_PARSER(genre, 5, metaString, &tags::genre, trimR);
 
 struct commonTag : pegtl::sor<title, subTitle, artist, subArtist, bpm, genre>
 {
 };
 
-struct file : pegtl::list<commonTag, pegtl::eolf>
+struct file : pegtl::list<commonTag, pegtl::plus<pegtl::space>>
 {
 };
 
