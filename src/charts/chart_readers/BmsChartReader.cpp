@@ -89,13 +89,12 @@ class TagsWriter
 
     void leaveRandom()
     {
-        randomStack.pop();
         auto ifs = std::move(randomStack.top().second);
         auto randomDistribution = randomStack.top().first;
         randomStack.pop();
         auto ifsMap = std::multimap<IfTag, std::unique_ptr<tags>>{};
         for (auto& ifTag : ifs) {
-            ifsMap.insert(std::make_pair(ifTag.first, std::move(ifTag.second)));
+            ifsMap.emplace(ifTag.first, std::move(ifTag.second));
         }
         ifStack.top().second->randomBlocks.emplace_back(randomDistribution,
                                                         std::move(ifsMap));
@@ -359,6 +358,10 @@ BmsChartReader::readBmsChart(std::string chart) const -> charts::models::Chart
     auto input = pegtl::string_input<>(std::move(chart), "BMS Chart"s);
     auto writer = TagsWriter{};
     auto parsed = pegtl::parse<file, action>(input, writer);
+
+    std::vector<
+      std::pair<RandomRange, std::multimap<IfTag, std::unique_ptr<tags>>>>
+      randomBlocks;
     auto tagsOut = writer.getTags();
     auto chartRes = charts::models::Chart{
         tagsOut.title.has_value() ? tagsOut.title.value() : "Untitled",
