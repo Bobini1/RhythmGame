@@ -55,3 +55,65 @@ TEST_CASE("Extra whitespace is ignored", "[single-file]")
     REQUIRE(res.getArtist() == "cres"s);
     REQUIRE(res.getTitle() == "END TIME"s);
 }
+
+TEST_CASE("Check if BPM is parsed correctly", "[single-file]")
+{
+    using namespace std::literals::string_literals;
+    auto reader = charts::chart_readers::BmsChartReader{};
+    auto testString = "#BPM 120.0"s;
+    constexpr auto expectedBpm = 120.0;
+    constexpr auto allowedError = 0.00001;
+    auto res = reader.readBmsChart(testString);
+
+    auto difference = res.getBpm() - expectedBpm;
+    REQUIRE(difference > -allowedError);
+    REQUIRE(difference < allowedError);
+
+    testString = "#BPM 120"s;
+    res = reader.readBmsChart(testString);
+    difference = res.getBpm() - expectedBpm;
+    REQUIRE(difference > -allowedError);
+    REQUIRE(difference < allowedError);
+
+    testString = "#BPM 120.";
+    res = reader.readBmsChart(testString);
+    difference = res.getBpm() - expectedBpm;
+    REQUIRE(difference > -allowedError);
+    REQUIRE(difference < allowedError);
+
+    testString = "#BPM 120.0F";
+    res = reader.readBmsChart(testString);
+    difference = res.getBpm() - expectedBpm;
+    REQUIRE(difference > -allowedError);
+    REQUIRE(difference < allowedError);
+
+    testString = "#BPM 120d";
+    res = reader.readBmsChart(testString);
+    difference = res.getBpm() - expectedBpm;
+    REQUIRE(difference > -allowedError);
+    REQUIRE(difference < allowedError);
+
+    testString = "#BPM 12E1d";
+    res = reader.readBmsChart(testString);
+    difference = res.getBpm() - expectedBpm;
+    REQUIRE(difference > -allowedError);
+    REQUIRE(difference < allowedError);
+
+    testString = "#BPM 1200E-1f";
+
+    res = reader.readBmsChart(testString);
+    difference = res.getBpm() - expectedBpm;
+    REQUIRE(difference > -allowedError);
+    REQUIRE(difference < allowedError);
+
+    res = reader.readBmsChart(testString);
+    difference = res.getBpm() - expectedBpm;
+    REQUIRE(difference > -allowedError);
+    REQUIRE(difference < allowedError);
+
+    testString = "#BPM -120.0";
+    res = reader.readBmsChart(testString);
+    difference = res.getBpm() + expectedBpm;
+    REQUIRE(difference > -allowedError);
+    REQUIRE(difference < allowedError);
+}
