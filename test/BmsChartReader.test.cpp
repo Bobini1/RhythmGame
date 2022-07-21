@@ -37,20 +37,6 @@ TEST_CASE("Multiple tags at once", "[single-file]")
     REQUIRE(res.getTitle() == "END TIME"s);
 }
 
-std::vector<std::string>
-split(const std::string& s, char delim)
-{
-    std::vector<std::string> result;
-    std::stringstream ss(s);
-    std::string item;
-
-    while (getline(ss, item, delim)) {
-        result.push_back(item);
-    }
-
-    return result;
-}
-
 TEST_CASE("Extra whitespace is ignored", "[single-file]")
 {
     using namespace std::literals::string_literals;
