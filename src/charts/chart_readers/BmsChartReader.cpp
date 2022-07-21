@@ -299,26 +299,30 @@ struct action<ifEnd>
 // TODO: change the entire "Chart" class to fit actual usage. This is unusable
 // atm.
 auto
-BmsChartReader::readBmsChart(std::string chart) const -> charts::models::Chart
+BmsChartReader::readBmsChart(std::string chart) const
+  -> std::optional<charts::models::Chart>
 {
-    auto tagsOut = readBmsChartTags(std::move(chart));
+    auto tagsOutRead = readBmsChartTags(std::move(chart));
+    if (!tagsOutRead)
+        return std::nullopt;
+    auto& tagsOut = tagsOutRead.value();
 
-    return charts::models::Chart{
-        tagsOut.title.has_value() ? tagsOut.title.value() : "Untitled",
-        tagsOut.artist.has_value() ? tagsOut.artist.value() : "Unknown",
-        tagsOut.bpm.has_value() ? tagsOut.bpm.value() : 0.0,
-        BmsMeta{ tagsOut.genre, tagsOut.subTitle, tagsOut.subArtist }
-    };
+    return std::optional<charts::models::Chart>{ charts::models::Chart{
+      tagsOut.title.has_value() ? tagsOut.title.value() : "Untitled",
+      tagsOut.artist.has_value() ? tagsOut.artist.value() : "Unknown",
+      tagsOut.bpm.has_value() ? tagsOut.bpm.value() : 0.0 } };
 }
 auto
-BmsChartReader::readBmsChartTags(std::string chart) const -> tags
+BmsChartReader::readBmsChartTags(std::string chart) const -> std::optional<tags>
 {
     using namespace std::string_literals;
     using namespace std::chrono_literals;
 
     auto input = pegtl::string_input<>(std::move(chart), "BMS Chart"s);
     auto writer = TagsWriter{};
-    std::ignore = pegtl::parse<file, action>(input, writer);
+    if (!pegtl::parse<file, action>(input, writer)) {
+        return std::nullopt;
+    }
 
     auto& tagsOut = writer.getTags();
 

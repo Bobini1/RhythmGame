@@ -13,7 +13,9 @@ TEST_CASE("Check if Title is parsed correctly", "[single-file]")
     using namespace std::literals::string_literals;
     auto reader = charts::chart_readers::BmsChartReader{};
     auto testString = "#TITLE END TIME"s;
-    auto res = reader.readBmsChart(testString);
+    auto resReader = reader.readBmsChart(testString);
+    REQUIRE(resReader.has_value());
+    auto& res = resReader.value();
     REQUIRE(res.getTitle() == "END TIME"s);
 }
 
@@ -22,7 +24,9 @@ TEST_CASE("Check if Artist is parsed correctly", "[single-file]")
     using namespace std::literals::string_literals;
     auto reader = charts::chart_readers::BmsChartReader{};
     auto testString = "#ARTIST cres"s;
-    auto res = reader.readBmsChart(testString);
+    auto resReader = reader.readBmsChart(testString);
+    REQUIRE(resReader.has_value());
+    auto& res = resReader.value();
     REQUIRE(res.getArtist() == "cres"s);
 }
 
@@ -31,7 +35,9 @@ TEST_CASE("Multiple tags at once", "[single-file]")
     using namespace std::literals::string_literals;
     auto reader = charts::chart_readers::BmsChartReader{};
     auto testString = "#ARTIST cres\n#TITLE END TIME"s;
-    auto res = reader.readBmsChart(testString);
+    auto resReader = reader.readBmsChart(testString);
+    REQUIRE(resReader.has_value());
+    auto& res = resReader.value();
     REQUIRE(res.getArtist() == "cres"s);
     REQUIRE(res.getTitle() == "END TIME"s);
 }
@@ -41,7 +47,9 @@ TEST_CASE("Extra whitespace is ignored", "[single-file]")
     using namespace std::literals::string_literals;
     auto reader = charts::chart_readers::BmsChartReader{};
     auto testString = " #ARTIST   cres   \n\n #TITLE     END TIME  \n"s;
-    auto res = reader.readBmsChart(testString);
+    auto resReader = reader.readBmsChart(testString);
+    REQUIRE(resReader.has_value());
+    auto& res = resReader.value();
     REQUIRE(res.getArtist() == "cres"s);
     REQUIRE(res.getTitle() == "END TIME"s);
 }
@@ -53,56 +61,74 @@ TEST_CASE("Check if BPM is parsed correctly", "[single-file]")
     auto testString = "#BPM 120.0"s;
     constexpr auto expectedBpm = 120.0;
     constexpr auto allowedError = 0.00001;
-    auto res = reader.readBmsChart(testString);
+    auto resReader = reader.readBmsChart(testString);
+    REQUIRE(resReader.has_value());
+    auto res = std::move(resReader.value());
 
     auto difference = res.getBpm() - expectedBpm;
     REQUIRE(difference > -allowedError);
     REQUIRE(difference < allowedError);
 
     testString = "#BPM 120"s;
-    res = reader.readBmsChart(testString);
+    resReader = reader.readBmsChart(testString);
+    REQUIRE(resReader.has_value());
+    res = resReader.value();
     difference = res.getBpm() - expectedBpm;
     REQUIRE(difference > -allowedError);
     REQUIRE(difference < allowedError);
 
     testString = "#BPM 120.";
-    res = reader.readBmsChart(testString);
+    resReader = reader.readBmsChart(testString);
+    REQUIRE(resReader.has_value());
+    res = resReader.value();
     difference = res.getBpm() - expectedBpm;
     REQUIRE(difference > -allowedError);
     REQUIRE(difference < allowedError);
 
     testString = "#BPM 120.0F";
-    res = reader.readBmsChart(testString);
+    resReader = reader.readBmsChart(testString);
+    REQUIRE(resReader.has_value());
+    res = resReader.value();
     difference = res.getBpm() - expectedBpm;
     REQUIRE(difference > -allowedError);
     REQUIRE(difference < allowedError);
 
     testString = "#BPM 120d";
-    res = reader.readBmsChart(testString);
+    resReader = reader.readBmsChart(testString);
+    REQUIRE(resReader.has_value());
+    res = resReader.value();
     difference = res.getBpm() - expectedBpm;
     REQUIRE(difference > -allowedError);
     REQUIRE(difference < allowedError);
 
     testString = "#BPM 12E1d";
-    res = reader.readBmsChart(testString);
+    resReader = reader.readBmsChart(testString);
+    REQUIRE(resReader.has_value());
+    res = resReader.value();
     difference = res.getBpm() - expectedBpm;
     REQUIRE(difference > -allowedError);
     REQUIRE(difference < allowedError);
 
     testString = "#BPM 1200E-1f";
 
-    res = reader.readBmsChart(testString);
+    resReader = reader.readBmsChart(testString);
+    REQUIRE(resReader.has_value());
+    res = resReader.value();
     difference = res.getBpm() - expectedBpm;
     REQUIRE(difference > -allowedError);
     REQUIRE(difference < allowedError);
 
-    res = reader.readBmsChart(testString);
+    resReader = reader.readBmsChart(testString);
+    REQUIRE(resReader.has_value());
+    res = resReader.value();
     difference = res.getBpm() - expectedBpm;
     REQUIRE(difference > -allowedError);
     REQUIRE(difference < allowedError);
 
     testString = "#BPM -120.0";
-    res = reader.readBmsChart(testString);
+    resReader = reader.readBmsChart(testString);
+    REQUIRE(resReader.has_value());
+    res = resReader.value();
     difference = res.getBpm() + expectedBpm;
     REQUIRE(difference > -allowedError);
     REQUIRE(difference < allowedError);
@@ -113,7 +139,9 @@ TEST_CASE("Random blocks get parsed correctly", "[single-file]")
     using namespace std::literals::string_literals;
     auto reader = charts::chart_readers::BmsChartReader{};
     auto testString = "#RANDOM 5\n#IF 5\n#TITLE 44river\n#ENDIF"s;
-    auto res = reader.readBmsChartTags(testString);
+    auto resReader = reader.readBmsChartTags(testString);
+    REQUIRE(resReader.has_value());
+    auto& res = resReader.value();
     REQUIRE(res.title == std::optional<std::string>{});
     REQUIRE(res.artist == std::optional<std::string>{});
     REQUIRE(res.bpm == std::optional<double>{});
@@ -131,7 +159,9 @@ TEST_CASE("Nested random blocks", "[single-file]")
     auto reader = charts::chart_readers::BmsChartReader{};
     auto testString =
       "#RANDOM 5\n#IF 5\n#TITLE 44river\n#RANDOM 1\n#IF 1\n#ARTIST -45\n#ENDIF\n#ENDRANDOM\n#ENDIF"s;
-    auto res = reader.readBmsChartTags(testString);
+    auto resReader = reader.readBmsChartTags(testString);
+    REQUIRE(resReader.has_value());
+    auto& res = resReader.value();
     REQUIRE(res.title == std::optional<std::string>{});
     REQUIRE(res.artist == std::optional<std::string>{});
     REQUIRE(res.bpm == std::optional<double>{});

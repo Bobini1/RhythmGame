@@ -20,18 +20,9 @@ charts::models::Chart::getBpm() const -> double
 {
     return bpm;
 }
-charts::models::Chart::Chart(std::string title,
-                             std::string artist,
-                             double bpm,
-                             std::variant<BmsMeta> meta)
+charts::models::Chart::Chart(std::string title, std::string artist, double bpm)
   : title(std::move(title))
   , artist(std::move(artist))
   , bpm(std::move(bpm))
-  , meta(std::move(meta))
 {
-}
-auto
-charts::models::Chart::getMeta() const -> const std::variant<BmsMeta>&
-{
-    return meta;
 }
