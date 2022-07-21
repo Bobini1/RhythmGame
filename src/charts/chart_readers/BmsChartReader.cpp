@@ -17,7 +17,7 @@
 namespace charts::chart_readers {
 namespace pegtl = tao::pegtl;
 
-using RandomRange = long;
+using RandomRange = std::uniform_int_distribution<long>;
 using IfTag = long;
 
 struct tags
