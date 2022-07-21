@@ -19,39 +19,35 @@ namespace pegtl = tao::pegtl;
 
 class TagsWriter
 {
-    std::stack<std::pair<IfTag, std::unique_ptr<tags>>> ifStack;
-    std::stack<std::pair<RandomRange,
-                         std::vector<std::pair<IfTag, std::unique_ptr<tags>>>>>
+    std::stack<std::pair<IfTag, tags>> ifStack;
+    std::stack<std::pair<RandomRange, std::vector<std::pair<IfTag, tags>>>>
       randomStack;
 
   public:
-    TagsWriter() { ifStack.push(std::make_pair(0, std::make_unique<tags>())); }
+    TagsWriter() { ifStack.push(std::make_pair(0, tags{})); }
     void setTitle(std::string title)
     {
-        ifStack.top().second->title = std::move(title);
+        ifStack.top().second.title = std::move(title);
     }
     void setArtist(std::string artist)
     {
-        ifStack.top().second->artist = std::move(artist);
+        ifStack.top().second.artist = std::move(artist);
     }
-    void setBpm(double bpm) { ifStack.top().second->bpm = bpm; }
+    void setBpm(double bpm) { ifStack.top().second.bpm = bpm; }
     void setSubTitle(std::string subTitle)
     {
-        ifStack.top().second->subTitle = std::move(subTitle);
+        ifStack.top().second.subTitle = std::move(subTitle);
     }
     void setSubArtist(std::string subArtist)
     {
-        ifStack.top().second->subArtist = std::move(subArtist);
+        ifStack.top().second.subArtist = std::move(subArtist);
     }
     void setGenre(std::string genre)
     {
-        ifStack.top().second->genre = std::move(genre);
+        ifStack.top().second.genre = std::move(genre);
     }
 
-    void enterIf(IfTag tag)
-    {
-        ifStack.push(std::make_pair(tag, std::make_unique<tags>()));
-    }
+    void enterIf(IfTag tag) { ifStack.push(std::make_pair(tag, tags{})); }
 
     void leaveIf()
     {
@@ -62,8 +58,8 @@ class TagsWriter
 
     void enterRandom(RandomRange range)
     {
-        randomStack.push(std::make_pair(
-          range, std::vector<std::pair<IfTag, std::unique_ptr<tags>>>{}));
+        randomStack.push(
+          std::make_pair(range, std::vector<std::pair<IfTag, tags>>{}));
     }
 
     void leaveRandom()
@@ -71,17 +67,16 @@ class TagsWriter
         auto ifs = std::move(randomStack.top().second);
         auto randomDistribution = randomStack.top().first;
         randomStack.pop();
-        auto ifsMap = std::multimap<IfTag, std::unique_ptr<tags>>{};
+        auto ifsMap = std::multimap<IfTag, tags>{};
         for (auto& ifTag : ifs) {
             ifsMap.emplace(ifTag.first, std::move(ifTag.second));
         }
-        ifStack.top().second->randomBlocks.emplace_back(std::make_pair(
+        ifStack.top().second.randomBlocks.emplace_back(std::make_pair(
           randomDistribution,
-          std::make_unique<std::multimap<IfTag, std::unique_ptr<tags>>>(
-            std::move(ifsMap))));
+          std::make_unique<std::multimap<IfTag, tags>>(std::move(ifsMap))));
     }
 
-    auto getTags() -> tags& { return *ifStack.top().second; }
+    auto getTags() -> tags& { return ifStack.top().second; }
 };
 // double
 
@@ -264,9 +259,7 @@ struct randomBlock
 };
 
 struct ifEnd
-  : pegtl::sor<pegtl::eof,
-               noValueTag<pegtl::istring<'E', 'N', 'D', 'I', 'F'>>,
-               pegtl::at<randomBlock>>
+  : pegtl::sor<pegtl::eof, noValueTag<pegtl::istring<'E', 'N', 'D', 'I', 'F'>>>
 {
 };
 

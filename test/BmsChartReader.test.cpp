@@ -121,7 +121,7 @@ TEST_CASE("Random blocks get parsed correctly", "[single-file]")
     REQUIRE(res.randomBlocks[0].first == std::uniform_int_distribution(0L, 5L));
     REQUIRE(res.randomBlocks[0].second->size() == 1);
     REQUIRE(res.randomBlocks[0].second->contains(5));
-    REQUIRE(res.randomBlocks[0].second->begin()->second->title == "44river"s);
+    REQUIRE(res.randomBlocks[0].second->begin()->second.title == "44river"s);
 }
 
 TEST_CASE("Nested random blocks", "[single-file]")
@@ -139,23 +139,22 @@ TEST_CASE("Nested random blocks", "[single-file]")
     REQUIRE(res.randomBlocks[0].first == std::uniform_int_distribution(0L, 5L));
     REQUIRE(res.randomBlocks[0].second->size() == 1);
     REQUIRE(res.randomBlocks[0].second->contains(5));
-    REQUIRE(res.randomBlocks[0].second->begin()->second->title == "44river"s);
-    REQUIRE(res.randomBlocks[0].second->begin()->second->randomBlocks.size() ==
+    REQUIRE(res.randomBlocks[0].second->begin()->second.title == "44river"s);
+    REQUIRE(res.randomBlocks[0].second->begin()->second.randomBlocks.size() ==
             1);
-    REQUIRE(
-      res.randomBlocks[0].second->begin()->second->randomBlocks[0].first ==
-      std::uniform_int_distribution(0L, 1L));
+    REQUIRE(res.randomBlocks[0].second->begin()->second.randomBlocks[0].first ==
+            std::uniform_int_distribution(0L, 1L));
     REQUIRE(res.randomBlocks[0]
               .second->begin()
-              ->second->randomBlocks[0]
+              ->second.randomBlocks[0]
               .second->size() == 1);
     REQUIRE(res.randomBlocks[0]
               .second->begin()
-              ->second->randomBlocks[0]
+              ->second.randomBlocks[0]
               .second->contains(1) == 1);
     REQUIRE(res.randomBlocks[0]
               .second->begin()
-              ->second->randomBlocks[0]
+              ->second.randomBlocks[0]
               .second->begin()
-              ->second->artist == "-45"s);
+              ->second.artist == "-45"s);
 }

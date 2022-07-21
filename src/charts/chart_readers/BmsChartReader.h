@@ -26,8 +26,7 @@ struct tags
     // we have to use std::unique_ptr<std::multimap> because otherwise this
     // doesn't compile on MSVC. :)
     std::vector<
-      std::pair<RandomRange,
-                std::unique_ptr<std::multimap<IfTag, std::unique_ptr<tags>>>>>
+      std::pair<RandomRange, std::unique_ptr<std::multimap<IfTag, tags>>>>
       randomBlocks;
 };
 class BmsChartReader
