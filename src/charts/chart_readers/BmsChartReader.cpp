@@ -2,7 +2,6 @@
 // Created by bobini on 07.07.2022.
 //
 
-#include "BmsChartReader.h"
 #include <string>
 #include <map>
 #include "charts/models/BmsMeta.h"
@@ -11,18 +10,14 @@
 #include "charts/chart_readers/ToChars.h"
 #include <tao/pegtl.hpp>
 #include <stack>
+#include "BmsChartReader.h"
 
 #define CALL_MEMBER_FN(object, ptrToMember) ((object).*(ptrToMember))
 
 namespace charts::chart_readers {
 namespace pegtl = tao::pegtl;
 
-template<typename>
-struct action
-{
-};
-
-using RandomRange = std::uniform_int_distribution<long>;
+using RandomRange = long;
 using IfTag = long;
 
 struct tags
@@ -33,8 +28,12 @@ struct tags
     std::optional<std::string> subTitle;
     std::optional<std::string> subArtist;
     std::optional<std::string> genre;
+
+    // we have to use std::unique_ptr<std::multimap> because otherwise this
+    // doesn't compile on MSVC. :)
     std::vector<
-      std::pair<RandomRange, std::multimap<IfTag, std::unique_ptr<tags>>>>
+      std::pair<RandomRange,
+                std::unique_ptr<std::multimap<IfTag, std::unique_ptr<tags>>>>>
       randomBlocks;
 };
 
@@ -96,8 +95,10 @@ class TagsWriter
         for (auto& ifTag : ifs) {
             ifsMap.emplace(ifTag.first, std::move(ifTag.second));
         }
-        ifStack.top().second->randomBlocks.emplace_back(randomDistribution,
-                                                        std::move(ifsMap));
+        ifStack.top().second->randomBlocks.emplace_back(std::make_pair(
+          randomDistribution,
+          std::make_unique<std::multimap<IfTag, std::unique_ptr<tags>>>(
+            std::move(ifsMap))));
     }
 
     auto getTags() -> const tags& { return *ifStack.top().second; }
@@ -216,6 +217,11 @@ struct wavXX
   : metaTag<
       filename,
       pegtl::seq<pegtl::istring<'W', 'A', 'V'>, pegtl::rep<2, pegtl::alnum>>>
+{
+};
+
+template<typename>
+struct action
 {
 };
 
@@ -357,19 +363,15 @@ BmsChartReader::readBmsChart(std::string chart) const -> charts::models::Chart
 
     auto input = pegtl::string_input<>(std::move(chart), "BMS Chart"s);
     auto writer = TagsWriter{};
-    auto parsed = pegtl::parse<file, action>(input, writer);
+    std::ignore = pegtl::parse<file, action>(input, writer);
 
-    std::vector<
-      std::pair<RandomRange, std::multimap<IfTag, std::unique_ptr<tags>>>>
-      randomBlocks;
-    auto tagsOut = writer.getTags();
-    auto chartRes = charts::models::Chart{
+    const auto& tagsOut = writer.getTags();
+
+    return charts::models::Chart{
         tagsOut.title.has_value() ? tagsOut.title.value() : "Untitled",
         tagsOut.artist.has_value() ? tagsOut.artist.value() : "Unknown",
         tagsOut.bpm.has_value() ? tagsOut.bpm.value() : 0.0,
         BmsMeta{ tagsOut.genre, tagsOut.subTitle, tagsOut.subArtist }
     };
-
-    return chartRes;
 }
 } // namespace charts::chart_readers
