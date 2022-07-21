@@ -7,7 +7,6 @@
 #include <string>
 #include <iostream>
 #include <regex>
-#include <sstream>
 
 TEST_CASE("Check if Title is parsed correctly", "[single-file]")
 {
@@ -116,4 +115,20 @@ TEST_CASE("Check if BPM is parsed correctly", "[single-file]")
     difference = res.getBpm() + expectedBpm;
     REQUIRE(difference > -allowedError);
     REQUIRE(difference < allowedError);
+}
+
+TEST_CASE("Random blocks get parsed correctly", "[single-file]")
+{
+    using namespace std::literals::string_literals;
+    auto reader = charts::chart_readers::BmsChartReader{};
+    auto testString = "#RANDOM 5\n#IF 5\n#TITLE 44river\n#ENDIF"s;
+    auto res = reader.readBmsChartTags(testString);
+    REQUIRE(res.title == std::optional<std::string>{});
+    REQUIRE(res.artist == std::optional<std::string>{});
+    REQUIRE(res.bpm == std::optional<double>{});
+    REQUIRE(res.randomBlocks.size() == 1);
+    REQUIRE(res.randomBlocks[0].first == std::uniform_int_distribution(0L, 5L));
+    REQUIRE(res.randomBlocks[0].second->size() == 1);
+    REQUIRE(res.randomBlocks[0].second->contains(5));
+    REQUIRE(res.randomBlocks[0].second->begin()->second->title == "44river"s);
 }

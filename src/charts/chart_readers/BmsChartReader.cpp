@@ -17,26 +17,6 @@
 namespace charts::chart_readers {
 namespace pegtl = tao::pegtl;
 
-using RandomRange = std::uniform_int_distribution<long>;
-using IfTag = long;
-
-struct tags
-{
-    std::optional<std::string> title;
-    std::optional<std::string> artist;
-    std::optional<double> bpm;
-    std::optional<std::string> subTitle;
-    std::optional<std::string> subArtist;
-    std::optional<std::string> genre;
-
-    // we have to use std::unique_ptr<std::multimap> because otherwise this
-    // doesn't compile on MSVC. :)
-    std::vector<
-      std::pair<RandomRange,
-                std::unique_ptr<std::multimap<IfTag, std::unique_ptr<tags>>>>>
-      randomBlocks;
-};
-
 class TagsWriter
 {
     std::stack<std::pair<IfTag, std::unique_ptr<tags>>> ifStack;
@@ -101,7 +81,7 @@ class TagsWriter
             std::move(ifsMap))));
     }
 
-    auto getTags() -> const tags& { return *ifStack.top().second; }
+    auto getTags() -> tags& { return *ifStack.top().second; }
 };
 // double
 
@@ -192,31 +172,15 @@ struct metaTag
 };
 
 template<typename TagName>
-struct blockTag
-  : pegtl::seq<pegtl::bol,
+struct noValueTag
+  : pegtl::seq<pegtl::star<pegtl::space>,
                pegtl::one<'#'>,
                TagName,
-               pegtl::star<pegtl::space>,
-               pegtl::eolf>
-{
-};
-
-template<typename TagName>
-struct metaStringTag : metaTag<metaString, TagName>
+               pegtl::star<pegtl::minus<pegtl::space, pegtl::eolf>>>
 {
 };
 
 struct playerValidDigit : pegtl::range<'1', '4'>
-{
-};
-struct filename : pegtl::plus<pegtl::utf8::any>
-{
-};
-
-struct wavXX
-  : metaTag<
-      filename,
-      pegtl::seq<pegtl::istring<'W', 'A', 'V'>, pegtl::rep<2, pegtl::alnum>>>
 {
 };
 
@@ -231,7 +195,7 @@ struct action
     {                                                                          \
     };                                                                         \
                                                                                \
-    struct tag                                                                 \
+    struct tag##_                                                              \
       : metaTag<tag##_allowedValue,                                            \
                 pegtl::istring<RHYTHMGAME_TO_CHARS(tagstrlen, #tag)>>          \
     {                                                                          \
@@ -244,7 +208,7 @@ struct action
         template<typename ActionInput>                                         \
         static auto apply(const ActionInput& input, TagsWriter& chart) -> void \
         {                                                                      \
-            CALL_MEMBER_FN(chart, memberFnPointer)(parser(input.string()));    \
+            CALL_MEMBER_FN(chart, memberFnPointer)((parser)(input.string()));  \
         }                                                                      \
     };
 
@@ -266,63 +230,57 @@ RHYTHMGAME_TAG_PARSER(subArtist,
 RHYTHMGAME_TAG_PARSER(subTitle, 8, metaString, &TagsWriter::setSubTitle, trimR);
 RHYTHMGAME_TAG_PARSER(bpm, 3, floating, &TagsWriter::setBpm, std::stod);
 RHYTHMGAME_TAG_PARSER(genre, 5, metaString, &TagsWriter::setGenre, trimR);
+RHYTHMGAME_TAG_PARSER(random,
+                      6,
+                      pegtl::plus<pegtl::digit>,
+                      &TagsWriter::enterRandom,
+                      ([](auto&& value) {
+                          return RandomRange{ 0, std::stol(trimR(value)) };
+                      }))
+RHYTHMGAME_TAG_PARSER(if,
+                      2,
+                      pegtl::plus<pegtl::digit>,
+                      &TagsWriter::enterIf,
+                      ([](auto&& value) { return std::stol(trimR(value)); }))
 
-struct commonTag : pegtl::sor<title, subTitle, artist, subArtist, bpm, genre>
-{
-};
-
-struct randomBegin : blockTag<pegtl::istring<'R', 'A', 'N', 'D', 'O', 'M'>>
+struct commonTag
+  : pegtl::sor<title_, subTitle_, artist_, subArtist_, bpm_, genre_>
 {
 };
 
 struct randomEnd
   : pegtl::sor<
-      pegtl::eof,
-      blockTag<pegtl::istring<'E', 'N', 'D', 'R', 'A', 'N', 'D', 'O', 'M'>>>
+      noValueTag<pegtl::istring<'E', 'N', 'D', 'R', 'A', 'N', 'D', 'O', 'M'>>,
+      pegtl::eof>
 {
 };
 
 struct ifBlock;
 
-struct randomAllowedValue
-  : pegtl::list<pegtl::sor<commonTag, ifBlock>, pegtl::eolf>
-{
-};
-
-struct randomBlock : pegtl::seq<randomBegin, randomAllowedValue, randomEnd>
-{
-};
-
-struct ifBegin : blockTag<pegtl::istring<'I', 'F'>>
+struct randomBlock
+  : pegtl::
+      seq<random_, pegtl::eol, pegtl::list<ifBlock, pegtl::eolf>, randomEnd>
 {
 };
 
 struct ifEnd
   : pegtl::sor<pegtl::eof,
-               blockTag<pegtl::istring<'E', 'N', 'D', 'I', 'F'>>,
+               noValueTag<pegtl::istring<'E', 'N', 'D', 'I', 'F'>>,
                pegtl::at<randomBlock>>
 {
 };
 
 struct ifBlock
-  : pegtl::seq<ifBegin,
+  : pegtl::seq<if_,
+               pegtl::eol,
                pegtl::list<pegtl::sor<commonTag, randomBlock>, pegtl::eolf>,
                ifEnd>
 {
 };
 
-struct file : pegtl::list<pegtl::sor<commonTag>, pegtl::plus<pegtl::space>>
+struct file
+  : pegtl::list<pegtl::sor<randomBlock, commonTag>, pegtl::plus<pegtl::space>>
 {
-};
-
-template<>
-struct action<randomBegin>
-{
-    template<typename ActionInput>
-    static auto apply(const ActionInput& /*input*/, TagsWriter& chart) -> void
-    {
-        chart.enterRandom(RandomRange{});
-    }
 };
 
 template<>
@@ -336,16 +294,6 @@ struct action<randomEnd>
 };
 
 template<>
-struct action<ifBegin>
-{
-    template<typename ActionInput>
-    static auto apply(const ActionInput& /*input*/, TagsWriter& chart) -> void
-    {
-        chart.enterIf(IfTag{});
-    }
-};
-
-template<>
 struct action<ifEnd>
 {
     template<typename ActionInput>
@@ -355,8 +303,22 @@ struct action<ifEnd>
     }
 };
 
+// TODO: change the entire "Chart" class to fit actual usage. This is unusable
+// atm.
 auto
 BmsChartReader::readBmsChart(std::string chart) const -> charts::models::Chart
+{
+    auto tagsOut = readBmsChartTags(std::move(chart));
+
+    return charts::models::Chart{
+        tagsOut.title.has_value() ? tagsOut.title.value() : "Untitled",
+        tagsOut.artist.has_value() ? tagsOut.artist.value() : "Unknown",
+        tagsOut.bpm.has_value() ? tagsOut.bpm.value() : 0.0,
+        BmsMeta{ tagsOut.genre, tagsOut.subTitle, tagsOut.subArtist }
+    };
+}
+auto
+BmsChartReader::readBmsChartTags(std::string chart) const -> tags
 {
     using namespace std::string_literals;
     using namespace std::chrono_literals;
@@ -365,13 +327,8 @@ BmsChartReader::readBmsChart(std::string chart) const -> charts::models::Chart
     auto writer = TagsWriter{};
     std::ignore = pegtl::parse<file, action>(input, writer);
 
-    const auto& tagsOut = writer.getTags();
+    auto& tagsOut = writer.getTags();
 
-    return charts::models::Chart{
-        tagsOut.title.has_value() ? tagsOut.title.value() : "Untitled",
-        tagsOut.artist.has_value() ? tagsOut.artist.value() : "Unknown",
-        tagsOut.bpm.has_value() ? tagsOut.bpm.value() : 0.0,
-        BmsMeta{ tagsOut.genre, tagsOut.subTitle, tagsOut.subArtist }
-    };
+    return std::move(tagsOut);
 }
 } // namespace charts::chart_readers
