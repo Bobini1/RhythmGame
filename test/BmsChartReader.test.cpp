@@ -14,8 +14,8 @@ TEST_CASE("Check if Title is parsed correctly", "[single-file]")
     auto reader = charts::chart_readers::BmsChartReader{};
     auto testString = "#TITLE END TIME"s;
     auto resReader = reader.readBmsChart(testString);
-    REQUIRE(resReader.has_value());
-    auto& res = resReader.value();
+    REQUIRE(resReader);
+    auto& res = *resReader;
     REQUIRE(res.getTitle() == "END TIME"s);
 }
 
@@ -25,8 +25,8 @@ TEST_CASE("Check if Artist is parsed correctly", "[single-file]")
     auto reader = charts::chart_readers::BmsChartReader{};
     auto testString = "#ARTIST cres"s;
     auto resReader = reader.readBmsChart(testString);
-    REQUIRE(resReader.has_value());
-    auto& res = resReader.value();
+    REQUIRE(resReader);
+    auto& res = *resReader;
     REQUIRE(res.getArtist() == "cres"s);
 }
 
@@ -36,8 +36,8 @@ TEST_CASE("Multiple tags at once", "[single-file]")
     auto reader = charts::chart_readers::BmsChartReader{};
     auto testString = "#ARTIST cres\n#TITLE END TIME"s;
     auto resReader = reader.readBmsChart(testString);
-    REQUIRE(resReader.has_value());
-    auto& res = resReader.value();
+    REQUIRE(resReader);
+    auto& res = *resReader;
     REQUIRE(res.getArtist() == "cres"s);
     REQUIRE(res.getTitle() == "END TIME"s);
 }
@@ -48,8 +48,8 @@ TEST_CASE("Extra whitespace is ignored", "[single-file]")
     auto reader = charts::chart_readers::BmsChartReader{};
     auto testString = " #ARTIST   cres   \n\n #TITLE     END TIME  \n"s;
     auto resReader = reader.readBmsChart(testString);
-    REQUIRE(resReader.has_value());
-    auto& res = resReader.value();
+    REQUIRE(resReader);
+    auto& res = *resReader;
     REQUIRE(res.getArtist() == "cres"s);
     REQUIRE(res.getTitle() == "END TIME"s);
 }
@@ -62,8 +62,8 @@ TEST_CASE("Check if BPM is parsed correctly", "[single-file]")
     constexpr auto expectedBpm = 120.0;
     constexpr auto allowedError = 0.00001;
     auto resReader = reader.readBmsChart(testString);
-    REQUIRE(resReader.has_value());
-    auto res = std::move(resReader.value());
+    REQUIRE(resReader);
+    auto& res = *resReader;
 
     auto difference = res.getBpm() - expectedBpm;
     REQUIRE(difference > -allowedError);
@@ -71,40 +71,40 @@ TEST_CASE("Check if BPM is parsed correctly", "[single-file]")
 
     testString = "#BPM 120"s;
     resReader = reader.readBmsChart(testString);
-    REQUIRE(resReader.has_value());
-    res = resReader.value();
+    REQUIRE(resReader);
+    res = *resReader;
     difference = res.getBpm() - expectedBpm;
     REQUIRE(difference > -allowedError);
     REQUIRE(difference < allowedError);
 
     testString = "#BPM 120.";
     resReader = reader.readBmsChart(testString);
-    REQUIRE(resReader.has_value());
-    res = resReader.value();
+    REQUIRE(resReader);
+    res = *resReader;
     difference = res.getBpm() - expectedBpm;
     REQUIRE(difference > -allowedError);
     REQUIRE(difference < allowedError);
 
     testString = "#BPM 120.0F";
     resReader = reader.readBmsChart(testString);
-    REQUIRE(resReader.has_value());
-    res = resReader.value();
+    REQUIRE(resReader);
+    res = *resReader;
     difference = res.getBpm() - expectedBpm;
     REQUIRE(difference > -allowedError);
     REQUIRE(difference < allowedError);
 
     testString = "#BPM 120d";
     resReader = reader.readBmsChart(testString);
-    REQUIRE(resReader.has_value());
-    res = resReader.value();
+    REQUIRE(resReader);
+    res = *resReader;
     difference = res.getBpm() - expectedBpm;
     REQUIRE(difference > -allowedError);
     REQUIRE(difference < allowedError);
 
     testString = "#BPM 12E1d";
     resReader = reader.readBmsChart(testString);
-    REQUIRE(resReader.has_value());
-    res = resReader.value();
+    REQUIRE(resReader);
+    res = *resReader;
     difference = res.getBpm() - expectedBpm;
     REQUIRE(difference > -allowedError);
     REQUIRE(difference < allowedError);
@@ -112,23 +112,23 @@ TEST_CASE("Check if BPM is parsed correctly", "[single-file]")
     testString = "#BPM 1200E-1f";
 
     resReader = reader.readBmsChart(testString);
-    REQUIRE(resReader.has_value());
-    res = resReader.value();
+    REQUIRE(resReader);
+    res = *resReader;
     difference = res.getBpm() - expectedBpm;
     REQUIRE(difference > -allowedError);
     REQUIRE(difference < allowedError);
 
     resReader = reader.readBmsChart(testString);
-    REQUIRE(resReader.has_value());
-    res = resReader.value();
+    REQUIRE(resReader);
+    res = *resReader;
     difference = res.getBpm() - expectedBpm;
     REQUIRE(difference > -allowedError);
     REQUIRE(difference < allowedError);
 
     testString = "#BPM -120.0";
     resReader = reader.readBmsChart(testString);
-    REQUIRE(resReader.has_value());
-    res = resReader.value();
+    REQUIRE(resReader);
+    res = *resReader;
     difference = res.getBpm() + expectedBpm;
     REQUIRE(difference > -allowedError);
     REQUIRE(difference < allowedError);

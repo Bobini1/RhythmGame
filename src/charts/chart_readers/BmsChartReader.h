@@ -33,7 +33,7 @@ class BmsChartReader
 {
   public:
     [[nodiscard]] auto readBmsChart(std::string chart) const
-      -> std::optional<charts::models::Chart>;
+      -> std::unique_ptr<charts::models::Chart>;
 
     [[nodiscard]] auto readBmsChartTags(std::string chart) const
       -> std::optional<tags>;

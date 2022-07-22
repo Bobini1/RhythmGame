@@ -4,7 +4,6 @@
 
 #include <string>
 #include <map>
-#include "charts/models/BmsMeta.h"
 #include <random>
 #include <utility>
 #include "charts/chart_readers/ToChars.h"
@@ -300,17 +299,18 @@ struct action<ifEnd>
 // atm.
 auto
 BmsChartReader::readBmsChart(std::string chart) const
-  -> std::optional<charts::models::Chart>
+  -> std::unique_ptr<charts::models::Chart>
 {
     auto tagsOutRead = readBmsChartTags(std::move(chart));
-    if (!tagsOutRead)
-        return std::nullopt;
+    if (!tagsOutRead) {
+        return nullptr;
+    }
     auto& tagsOut = tagsOutRead.value();
 
-    return std::optional<charts::models::Chart>{ charts::models::Chart{
+    return std::make_unique<charts::models::Chart>(charts::models::Chart{
       tagsOut.title.has_value() ? tagsOut.title.value() : "Untitled",
       tagsOut.artist.has_value() ? tagsOut.artist.value() : "Unknown",
-      tagsOut.bpm.has_value() ? tagsOut.bpm.value() : 0.0 } };
+      tagsOut.bpm.has_value() ? tagsOut.bpm.value() : 0.0 });
 }
 auto
 BmsChartReader::readBmsChartTags(std::string chart) const -> std::optional<tags>

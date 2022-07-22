@@ -7,21 +7,15 @@
 
 #include <optional>
 #include <string>
-#include "charts/models/BmsMeta.h"
+#include "charts/behaviour/SongDataWriter.h"
 
 namespace charts::models {
 class Chart
 {
   public:
-    Chart(std::string title, std::string artist, double bpm);
-    [[nodiscard]] auto getTitle() const -> const std::string&;
-    [[nodiscard]] auto getArtist() const -> const std::string&;
-    [[nodiscard]] auto getBpm() const -> double;
-
-  private:
-    std::string title;
-    std::string artist;
-    double bpm;
+    virtual ~Chart() = default;
+    virtual auto writeFullData(behaviour::SongDataWriter writer) const
+      -> void = 0;
 };
 } // namespace charts::models
 
