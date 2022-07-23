@@ -16,6 +16,7 @@ class Chart
     virtual ~Chart() = default;
     virtual auto writeFullData(behaviour::SongDataWriter writer) const
       -> void = 0;
+    // virtual auto saveToDb() const -> void = 0;
 };
 } // namespace charts::models
 

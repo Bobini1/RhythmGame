@@ -6,15 +6,41 @@
 
 #include <SQLiteCpp/SQLiteCpp.h>
 #include <SQLiteCpp/VariadicBind.h>
-auto
-db::sqlite_cpp_db::SqliteCppDb::get(const std::string& key) -> std::string
+
+#include <memory>
+
+thread_local std::unique_ptr<SQLite::Database>
+  db::sqlite_cpp_db::SqliteCppDb::db;
+
+db::sqlite_cpp_db::SqliteCppDb::SqliteCppDb(const std::string& dbPath)
 {
-    std::cout << "SqliteCppDb::get()" << std::endl;
-    return "";
+    if (!db) {
+        db = std::make_unique<SQLite::Database>(
+          dbPath, SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
+        db->exec("PRAGMA journal_mode=WAL;");
+        db->exec("PRAGMA synchronous=NORMAL;");
+        db->exec("PRAGMA foreign_keys=ON;");
+    }
 }
 auto
-db::sqlite_cpp_db::SqliteCppDb::insert(const std::string& key,
-                                       const std::string& value) -> void
+db::sqlite_cpp_db::SqliteCppDb::hasTable(const std::string& table) const -> bool
 {
-    std::cout << "SqliteCppDb::insert()" << std::endl;
+    return db->tableExists(table);
+}
+auto
+db::sqlite_cpp_db::SqliteCppDb::execute(const std::string& query) const -> void
+{
+    db->exec(query);
+}
+auto
+db::sqlite_cpp_db::SqliteCppDb::executeAndGet(const std::string& query) const
+  -> std::optional<std::any>
+{
+    return std::nullopt;
+}
+auto
+db::sqlite_cpp_db::SqliteCppDb::executeAndGetAll(const std::string& query) const
+  -> std::vector<std::any>
+{
+    return {};
 }

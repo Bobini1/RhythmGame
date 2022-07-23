@@ -5,16 +5,26 @@
 #ifndef RHYTHMGAME_SQLITECPPDB_H
 #define RHYTHMGAME_SQLITECPPDB_H
 #include "../Db.h"
+#include <SQLiteCpp/SQLiteCpp.h>
+#include <mutex>
 
 #include <iostream>
+
 namespace db::sqlite_cpp_db {
 
 class SqliteCppDb : public Db
 {
+    thread_local static std::unique_ptr<SQLite::Database> db;
+
   public:
-    auto insert(const std::string& key, const std::string& value)
-      -> void override;
-    auto get(const std::string& key) -> std::string override;
+    explicit SqliteCppDb(const std::string& dbPath);
+    [[nodiscard]] auto hasTable(const std::string& table) const
+      -> bool override;
+    auto execute(const std::string& query) const -> void override;
+    [[nodiscard]] auto executeAndGet(const std::string& query) const
+      -> std::optional<std::any> override;
+    [[nodiscard]] auto executeAndGetAll(const std::string& query) const
+      -> std::vector<std::any> override;
 };
 } // namespace db::sqlite_cpp_db
 

@@ -1,6 +1,10 @@
 {
  "options": [
   [
+   "boost:addr2line_location",
+   "/usr/bin/addr2line"
+  ],
+  [
    "boost:asio_no_deprecated",
    "False"
   ],
@@ -29,6 +33,10 @@
    "None"
   ],
   [
+   "boost:fPIC",
+   "True"
+  ],
+  [
    "boost:filesystem_no_deprecated",
    "False"
   ],
@@ -42,7 +50,7 @@
   ],
   [
    "boost:i18n_backend_iconv",
-   "off"
+   "libc"
   ],
   [
    "boost:i18n_backend_icu",
@@ -107,6 +115,10 @@
   [
    "boost:visibility",
    "hidden"
+  ],
+  [
+   "boost:with_stacktrace_backtrace",
+   "True"
   ],
   [
    "boost:without_atomic",
@@ -245,6 +257,10 @@
    "True"
   ],
   [
+   "bzip2:fPIC",
+   "True"
+  ],
+  [
    "bzip2:shared",
    "False"
   ],
@@ -253,8 +269,16 @@
    "None"
   ],
   [
+   "catch2:fPIC",
+   "True"
+  ],
+  [
    "catch2:with_prefix",
    "False"
+  ],
+  [
+   "fmt:fPIC",
+   "True"
   ],
   [
    "fmt:header_only",
@@ -273,6 +297,18 @@
    "True"
   ],
   [
+   "libbacktrace:fPIC",
+   "True"
+  ],
+  [
+   "libbacktrace:shared",
+   "False"
+  ],
+  [
+   "luajit:fPIC",
+   "True"
+  ],
+  [
    "luajit:shared",
    "False"
   ],
@@ -281,16 +317,12 @@
    "False"
   ],
   [
-   "openssl:capieng_dialog",
-   "False"
-  ],
-  [
-   "openssl:enable_capieng",
-   "False"
-  ],
-  [
    "openssl:enable_weak_ssl_ciphers",
    "False"
+  ],
+  [
+   "openssl:fPIC",
+   "True"
   ],
   [
    "openssl:no_aria",
@@ -577,6 +609,10 @@
    "True"
   ],
   [
+   "sqlite3:fPIC",
+   "True"
+  ],
+  [
    "sqlite3:max_blob_size",
    "None"
   ],
@@ -609,6 +645,10 @@
    "False"
   ],
   [
+   "sqlitecpp:fPIC",
+   "True"
+  ],
+  [
    "sqlitecpp:shared",
    "False"
   ],
@@ -623,6 +663,10 @@
   [
    "taocpp-pegtl:boost_filesystem",
    "False"
+  ],
+  [
+   "zlib:fPIC",
+   "True"
   ],
   [
    "zlib:shared",
