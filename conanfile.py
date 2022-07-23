@@ -19,6 +19,7 @@ class Recipe(ConanFile):
         self.requires("taocpp-pegtl/3.2.6")
         self.requires("ms-gsl/4.0.0")
         self.requires("type_safe/0.2.2")
+        self.requires("luajit/2.0.5")
 
         # Testing only dependencies below
         self.requires("catch2/3.0.1")
