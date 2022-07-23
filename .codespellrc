@@ -1,5 +1,5 @@
 [codespell]
-builtin = clear,rare,en-US_to_en-GB,names,informal,code
+builtin = clear,rare,names,informal,code
 check-filenames =
 check-hidden =
 skip = */.git,*/build,*/prefix,*/conan
