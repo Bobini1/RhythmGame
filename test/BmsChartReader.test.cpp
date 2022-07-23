@@ -7,6 +7,8 @@
 #include <string>
 #include <iostream>
 #include <regex>
+#include <sol/sol.hpp>
+#include <charts/behaviour/SongDataWriter.h>
 
 TEST_CASE("Check if Title is parsed correctly", "[single-file]")
 {
@@ -16,7 +18,9 @@ TEST_CASE("Check if Title is parsed correctly", "[single-file]")
     auto resReader = reader.readBmsChart(testString);
     REQUIRE(resReader);
     auto& res = *resReader;
-    REQUIRE(res.getTitle() == "END TIME"s);
+    sol::state lua;
+    res.writeFullData(charts::behaviour::SongDataWriter{ lua });
+    REQUIRE(lua["getTitle"].call<std::string>() == "END TIME"s);
 }
 
 TEST_CASE("Check if Artist is parsed correctly", "[single-file]")
@@ -27,7 +31,9 @@ TEST_CASE("Check if Artist is parsed correctly", "[single-file]")
     auto resReader = reader.readBmsChart(testString);
     REQUIRE(resReader);
     auto& res = *resReader;
-    REQUIRE(res.getArtist() == "cres"s);
+    sol::state lua;
+    res.writeFullData(charts::behaviour::SongDataWriter{ lua });
+    REQUIRE(lua["getArtist"].call<std::string>() == "cres"s);
 }
 
 TEST_CASE("Multiple tags at once", "[single-file]")
@@ -38,8 +44,10 @@ TEST_CASE("Multiple tags at once", "[single-file]")
     auto resReader = reader.readBmsChart(testString);
     REQUIRE(resReader);
     auto& res = *resReader;
-    REQUIRE(res.getArtist() == "cres"s);
-    REQUIRE(res.getTitle() == "END TIME"s);
+    sol::state lua;
+    res.writeFullData(charts::behaviour::SongDataWriter{ lua });
+    REQUIRE(lua["getArtist"].call<std::string>() == "cres"s);
+    REQUIRE(lua["getTitle"].call<std::string>() == "END TIME"s);
 }
 
 TEST_CASE("Extra whitespace is ignored", "[single-file]")
@@ -50,8 +58,10 @@ TEST_CASE("Extra whitespace is ignored", "[single-file]")
     auto resReader = reader.readBmsChart(testString);
     REQUIRE(resReader);
     auto& res = *resReader;
-    REQUIRE(res.getArtist() == "cres"s);
-    REQUIRE(res.getTitle() == "END TIME"s);
+    sol::state lua;
+    res.writeFullData(charts::behaviour::SongDataWriter{ lua });
+    REQUIRE(lua["getArtist"].call<std::string>() == "cres"s);
+    REQUIRE(lua["getTitle"].call<std::string>() == "END TIME"s);
 }
 
 TEST_CASE("Check if BPM is parsed correctly", "[single-file]")
@@ -63,49 +73,51 @@ TEST_CASE("Check if BPM is parsed correctly", "[single-file]")
     constexpr auto allowedError = 0.00001;
     auto resReader = reader.readBmsChart(testString);
     REQUIRE(resReader);
-    auto& res = *resReader;
+    sol::state lua;
+    auto writer = charts::behaviour::SongDataWriter{ lua };
+    resReader->writeFullData(writer);
 
-    auto difference = res.getBpm() - expectedBpm;
+    auto difference = lua["getBpm"].call<double>() - expectedBpm;
     REQUIRE(difference > -allowedError);
     REQUIRE(difference < allowedError);
 
     testString = "#BPM 120"s;
     resReader = reader.readBmsChart(testString);
     REQUIRE(resReader);
-    res = *resReader;
-    difference = res.getBpm() - expectedBpm;
+    resReader->writeFullData(writer);
+    difference = lua["getBpm"].call<double>() - expectedBpm;
     REQUIRE(difference > -allowedError);
     REQUIRE(difference < allowedError);
 
     testString = "#BPM 120.";
     resReader = reader.readBmsChart(testString);
     REQUIRE(resReader);
-    res = *resReader;
-    difference = res.getBpm() - expectedBpm;
+    resReader->writeFullData(charts::behaviour::SongDataWriter{ lua });
+    difference = lua["getBpm"].call<double>() - expectedBpm;
     REQUIRE(difference > -allowedError);
     REQUIRE(difference < allowedError);
 
     testString = "#BPM 120.0F";
     resReader = reader.readBmsChart(testString);
     REQUIRE(resReader);
-    res = *resReader;
-    difference = res.getBpm() - expectedBpm;
+    resReader->writeFullData(charts::behaviour::SongDataWriter{ lua });
+    difference = lua["getBpm"].call<double>() - expectedBpm;
     REQUIRE(difference > -allowedError);
     REQUIRE(difference < allowedError);
 
     testString = "#BPM 120d";
     resReader = reader.readBmsChart(testString);
     REQUIRE(resReader);
-    res = *resReader;
-    difference = res.getBpm() - expectedBpm;
+    resReader->writeFullData(charts::behaviour::SongDataWriter{ lua });
+    difference = lua["getBpm"].call<double>() - expectedBpm;
     REQUIRE(difference > -allowedError);
     REQUIRE(difference < allowedError);
 
     testString = "#BPM 12E1d";
     resReader = reader.readBmsChart(testString);
     REQUIRE(resReader);
-    res = *resReader;
-    difference = res.getBpm() - expectedBpm;
+    resReader->writeFullData(charts::behaviour::SongDataWriter{ lua });
+    difference = lua["getBpm"].call<double>() - expectedBpm;
     REQUIRE(difference > -allowedError);
     REQUIRE(difference < allowedError);
 
@@ -113,23 +125,23 @@ TEST_CASE("Check if BPM is parsed correctly", "[single-file]")
 
     resReader = reader.readBmsChart(testString);
     REQUIRE(resReader);
-    res = *resReader;
-    difference = res.getBpm() - expectedBpm;
+    resReader->writeFullData(charts::behaviour::SongDataWriter{ lua });
+    difference = lua["getBpm"].call<double>() - expectedBpm;
     REQUIRE(difference > -allowedError);
     REQUIRE(difference < allowedError);
 
     resReader = reader.readBmsChart(testString);
     REQUIRE(resReader);
-    res = *resReader;
-    difference = res.getBpm() - expectedBpm;
+    resReader->writeFullData(charts::behaviour::SongDataWriter{ lua });
+    difference = lua["getBpm"].call<double>() - expectedBpm;
     REQUIRE(difference > -allowedError);
     REQUIRE(difference < allowedError);
 
     testString = "#BPM -120.0";
     resReader = reader.readBmsChart(testString);
     REQUIRE(resReader);
-    res = *resReader;
-    difference = res.getBpm() + expectedBpm;
+    resReader->writeFullData(charts::behaviour::SongDataWriter{ lua });
+    difference = lua["getBpm"].call<double>() + expectedBpm;
     REQUIRE(difference > -allowedError);
     REQUIRE(difference < allowedError);
 }

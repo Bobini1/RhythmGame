@@ -14,7 +14,7 @@ WarningsAsErrors: ''
 CheckOptions:
   - key: 'bugprone-argument-comment.StrictMode'
     value: 'true'
-# Prefer using enum classes with 2 values for parameters instead of bools
+  # Prefer using enum classes with 2 values for parameters instead of bools
   - key: 'bugprone-argument-comment.CommentBoolLiterals'
     value: 'true'
   - key: 'bugprone-misplaced-widening-cast.CheckImplicitCasts'
@@ -43,7 +43,7 @@ CheckOptions:
     value: 'true'
   - key: 'readability-redundant-access-specifiers.CheckFirstDeclaration'
     value: 'true'
-# These seem to be the most common identifier styles
+  # These seem to be the most common identifier styles
   - key: 'readability-identifier-naming.AbstractClassCase'
     value: 'CamelCase'
   - key: 'readability-identifier-naming.ClassCase'
@@ -127,7 +127,7 @@ CheckOptions:
   - key: 'readability-identifier-naming.StaticVariableCase'
     value: 'camelBack'
   - key: 'readability-identifier-naming.StructCase'
-    value: 'camelBack'
+    value: 'CamelCase'
   - key: 'readability-identifier-naming.TemplateParameterCase'
     value: 'CamelCase'
   - key: 'readability-identifier-naming.TemplateTemplateParameterCase'

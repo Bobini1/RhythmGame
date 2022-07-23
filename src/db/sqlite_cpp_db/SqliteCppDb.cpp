@@ -7,14 +7,14 @@
 #include <SQLiteCpp/SQLiteCpp.h>
 #include <SQLiteCpp/VariadicBind.h>
 auto
-db::sql_db::SqliteCppDb::get(const std::string& key) -> std::string
+db::sqlite_cpp_db::SqliteCppDb::get(const std::string& key) -> std::string
 {
     std::cout << "SqliteCppDb::get()" << std::endl;
     return "";
 }
 auto
-db::sql_db::SqliteCppDb::insert(const std::string& key,
-                                const std::string& value) -> void
+db::sqlite_cpp_db::SqliteCppDb::insert(const std::string& key,
+                                       const std::string& value) -> void
 {
     std::cout << "SqliteCppDb::insert()" << std::endl;
 }

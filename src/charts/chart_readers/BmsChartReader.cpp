@@ -10,20 +10,25 @@
 #include <tao/pegtl.hpp>
 #include <stack>
 #include "BmsChartReader.h"
+#include "charts/models/BmsChart.h"
 
 #define CALL_MEMBER_FN(object, ptrToMember) ((object).*(ptrToMember))
 
 namespace charts::chart_readers {
 namespace pegtl = tao::pegtl;
 
+using IfTag = charts::models::BmsChart::IfTag;
+using RandomRange = charts::models::BmsChart::RandomRange;
+using Tags = charts::models::BmsChart::Tags;
+
 class TagsWriter
 {
-    std::stack<std::pair<IfTag, tags>> ifStack;
-    std::stack<std::pair<RandomRange, std::vector<std::pair<IfTag, tags>>>>
+    std::stack<std::pair<IfTag, Tags>> ifStack;
+    std::stack<std::pair<RandomRange, std::vector<std::pair<IfTag, Tags>>>>
       randomStack;
 
   public:
-    TagsWriter() { ifStack.push(std::make_pair(0, tags{})); }
+    TagsWriter() { ifStack.push(std::make_pair(0, Tags{})); }
     void setTitle(std::string title)
     {
         ifStack.top().second.title = std::move(title);
@@ -46,7 +51,7 @@ class TagsWriter
         ifStack.top().second.genre = std::move(genre);
     }
 
-    void enterIf(IfTag tag) { ifStack.push(std::make_pair(tag, tags{})); }
+    void enterIf(IfTag tag) { ifStack.push(std::make_pair(tag, Tags{})); }
 
     void leaveIf()
     {
@@ -58,7 +63,7 @@ class TagsWriter
     void enterRandom(RandomRange range)
     {
         randomStack.push(
-          std::make_pair(range, std::vector<std::pair<IfTag, tags>>{}));
+          std::make_pair(range, std::vector<std::pair<IfTag, Tags>>{}));
     }
 
     void leaveRandom()
@@ -66,33 +71,33 @@ class TagsWriter
         auto ifs = std::move(randomStack.top().second);
         auto randomDistribution = randomStack.top().first;
         randomStack.pop();
-        auto ifsMap = std::multimap<IfTag, tags>{};
+        auto ifsMap = std::multimap<IfTag, Tags>{};
         for (auto& ifTag : ifs) {
             ifsMap.emplace(ifTag.first, std::move(ifTag.second));
         }
         ifStack.top().second.randomBlocks.emplace_back(std::make_pair(
           randomDistribution,
-          std::make_unique<std::multimap<IfTag, tags>>(std::move(ifsMap))));
+          std::make_unique<std::multimap<IfTag, Tags>>(std::move(ifsMap))));
     }
 
-    auto getTags() -> tags& { return ifStack.top().second; }
+    auto getTags() -> Tags& { return ifStack.top().second; }
 };
 // double
 
-struct plusMinus : pegtl::opt<pegtl::one<'+', '-'>>
+struct PlusMinus : pegtl::opt<pegtl::one<'+', '-'>>
 {
 };
-struct dot : pegtl::one<'.'>
+struct Dot : pegtl::one<'.'>
 {
 };
 
-struct inf
+struct Inf
   : pegtl::seq<pegtl::istring<'i', 'n', 'f'>,
                pegtl::opt<pegtl::istring<'i', 'n', 'i', 't', 'y'>>>
 {
 };
 
-struct nan
+struct Nan
   : pegtl::seq<
       pegtl::istring<'n', 'a', 'n'>,
       pegtl::opt<pegtl::one<'('>, pegtl::plus<pegtl::alnum>, pegtl::one<')'>>>
@@ -100,57 +105,57 @@ struct nan
 };
 
 template<typename D>
-struct number
+struct Number
   : pegtl::if_then_else<
-      dot,
+      Dot,
       pegtl::plus<D>,
-      pegtl::seq<pegtl::plus<D>, pegtl::opt<dot, pegtl::star<D>>>>
+      pegtl::seq<pegtl::plus<D>, pegtl::opt<Dot, pegtl::star<D>>>>
 {
 };
 
-struct e : pegtl::one<'e', 'E'>
+struct E : pegtl::one<'e', 'E'>
 {
 };
-struct p : pegtl::one<'p', 'P'>
+struct P : pegtl::one<'p', 'P'>
 {
 };
-struct f : pegtl::one<'f', 'F'>
+struct F : pegtl::one<'f', 'F'>
 {
 };
-struct d : pegtl::one<'d', 'D'>
+struct D : pegtl::one<'d', 'D'>
 {
 };
-struct exponent : pegtl::seq<plusMinus, pegtl::plus<pegtl::digit>>
+struct Exponent : pegtl::seq<PlusMinus, pegtl::plus<pegtl::digit>>
 {
 };
 
-struct decimal : pegtl::seq<number<pegtl::digit>, pegtl::opt<e, exponent>>
+struct Decimal : pegtl::seq<Number<pegtl::digit>, pegtl::opt<E, Exponent>>
 {
 };
-struct hexadecimal
+struct Hexadecimal
   : pegtl::seq<pegtl::one<'0'>,
                pegtl::one<'x', 'X'>,
-               number<pegtl::xdigit>,
-               pegtl::opt<p, exponent>>
+               Number<pegtl::xdigit>,
+               pegtl::opt<P, Exponent>>
 {
 };
 
-struct floating
+struct Floating
   : pegtl::seq<
-      plusMinus,
-      pegtl::sor<hexadecimal, decimal, inf, nan, pegtl::opt<pegtl::sor<f, d>>>>
+      PlusMinus,
+      pegtl::sor<Hexadecimal, Decimal, Inf, Nan, pegtl::opt<pegtl::sor<F, D>>>>
 {
 };
 
 // double end
 
-struct spacesUntilEndOfLine
+struct SpacesUntilEndOfLine
   : pegtl::seq<pegtl::star<pegtl::minus<pegtl::space, pegtl::eolf>>,
                pegtl::at<pegtl::eolf>>
 {
 };
 
-struct metaString : pegtl::until<spacesUntilEndOfLine>
+struct MetaString : pegtl::until<SpacesUntilEndOfLine>
 {
 };
 
@@ -166,7 +171,7 @@ struct metaTag
 };
 
 template<typename TagName>
-struct noValueTag
+struct NoValueTag
   : pegtl::seq<pegtl::star<pegtl::space>,
                pegtl::one<'#'>,
                TagName,
@@ -174,7 +179,7 @@ struct noValueTag
 {
 };
 
-struct playerValidDigit : pegtl::range<'1', '4'>
+struct PlayerValidDigit : pegtl::range<'1', '4'>
 {
 };
 
@@ -189,7 +194,7 @@ struct action
     {                                                                          \
     };                                                                         \
                                                                                \
-    struct tag##_                                                              \
+    struct tag                                                                 \
       : metaTag<tag##_allowedValue,                                            \
                 pegtl::istring<RHYTHMGAME_TO_CHARS(tagstrlen, #tag)>>          \
     {                                                                          \
@@ -214,69 +219,67 @@ constexpr auto trimR = [](auto&& str) {
 };
 } // namespace
 
-RHYTHMGAME_TAG_PARSER(title, 5, metaString, &TagsWriter::setTitle, trimR);
-RHYTHMGAME_TAG_PARSER(artist, 6, metaString, &TagsWriter::setArtist, trimR);
-RHYTHMGAME_TAG_PARSER(subArtist,
+RHYTHMGAME_TAG_PARSER(Title, 5, MetaString, &TagsWriter::setTitle, trimR);
+RHYTHMGAME_TAG_PARSER(Artist, 6, MetaString, &TagsWriter::setArtist, trimR);
+RHYTHMGAME_TAG_PARSER(SubArtist,
                       9,
-                      metaString,
+                      MetaString,
                       &TagsWriter::setSubArtist,
                       trimR);
-RHYTHMGAME_TAG_PARSER(subTitle, 8, metaString, &TagsWriter::setSubTitle, trimR);
-RHYTHMGAME_TAG_PARSER(bpm, 3, floating, &TagsWriter::setBpm, std::stod);
-RHYTHMGAME_TAG_PARSER(genre, 5, metaString, &TagsWriter::setGenre, trimR);
-RHYTHMGAME_TAG_PARSER(random,
+RHYTHMGAME_TAG_PARSER(SubTitle, 8, MetaString, &TagsWriter::setSubTitle, trimR);
+RHYTHMGAME_TAG_PARSER(Bpm, 3, Floating, &TagsWriter::setBpm, std::stod);
+RHYTHMGAME_TAG_PARSER(Genre, 5, MetaString, &TagsWriter::setGenre, trimR);
+RHYTHMGAME_TAG_PARSER(Random,
                       6,
                       pegtl::plus<pegtl::digit>,
                       &TagsWriter::enterRandom,
                       ([](auto&& value) {
                           return RandomRange{ 0, std::stol(trimR(value)) };
                       }))
-RHYTHMGAME_TAG_PARSER(if,
+RHYTHMGAME_TAG_PARSER(If,
                       2,
                       pegtl::plus<pegtl::digit>,
                       &TagsWriter::enterIf,
                       ([](auto&& value) { return std::stol(trimR(value)); }))
 
-struct commonTag
-  : pegtl::sor<title_, subTitle_, artist_, subArtist_, bpm_, genre_>
+struct CommonTag : pegtl::sor<Title, SubTitle, Artist, SubArtist, Bpm, Genre>
 {
 };
 
-struct randomEnd
+struct RandomEnd
   : pegtl::sor<
-      noValueTag<pegtl::istring<'E', 'N', 'D', 'R', 'A', 'N', 'D', 'O', 'M'>>,
+      NoValueTag<pegtl::istring<'E', 'N', 'D', 'R', 'A', 'N', 'D', 'O', 'M'>>,
       pegtl::eof>
 {
 };
 
-struct ifBlock;
+struct IfBlock;
 
-struct randomBlock
-  : pegtl::
-      seq<random_, pegtl::eol, pegtl::list<ifBlock, pegtl::eolf>, randomEnd>
+struct RandomBlock
+  : pegtl::seq<Random, pegtl::eol, pegtl::list<IfBlock, pegtl::eolf>, RandomEnd>
 {
 };
 
-struct ifEnd
-  : pegtl::sor<pegtl::eof, noValueTag<pegtl::istring<'E', 'N', 'D', 'I', 'F'>>>
+struct IfEnd
+  : pegtl::sor<pegtl::eof, NoValueTag<pegtl::istring<'E', 'N', 'D', 'I', 'F'>>>
 {
 };
 
-struct ifBlock
-  : pegtl::seq<if_,
+struct IfBlock
+  : pegtl::seq<If,
                pegtl::eol,
-               pegtl::list<pegtl::sor<commonTag, randomBlock>, pegtl::eolf>,
-               ifEnd>
+               pegtl::list<pegtl::sor<CommonTag, RandomBlock>, pegtl::eolf>,
+               IfEnd>
 {
 };
 
-struct file
-  : pegtl::list<pegtl::sor<randomBlock, commonTag>, pegtl::plus<pegtl::space>>
+struct File
+  : pegtl::list<pegtl::sor<RandomBlock, CommonTag>, pegtl::plus<pegtl::space>>
 {
 };
 
 template<>
-struct action<randomEnd>
+struct action<RandomEnd>
 {
     template<typename ActionInput>
     static auto apply(const ActionInput& /*input*/, TagsWriter& chart) -> void
@@ -286,7 +289,7 @@ struct action<randomEnd>
 };
 
 template<>
-struct action<ifEnd>
+struct action<IfEnd>
 {
     template<typename ActionInput>
     static auto apply(const ActionInput& /*input*/, TagsWriter& chart) -> void
@@ -298,29 +301,26 @@ struct action<ifEnd>
 // TODO: change the entire "Chart" class to fit actual usage. This is unusable
 // atm.
 auto
-BmsChartReader::readBmsChart(std::string chart) const
-  -> std::unique_ptr<charts::models::Chart>
+BmsChartReader::readBmsChart(const std::string& chart) const
+  -> std::unique_ptr<charts::models::BmsChart>
 {
-    auto tagsOutRead = readBmsChartTags(std::move(chart));
+    auto tagsOutRead = readBmsChartTags(chart);
     if (!tagsOutRead) {
         return nullptr;
     }
-    auto& tagsOut = tagsOutRead.value();
-
-    return std::make_unique<charts::models::Chart>(charts::models::Chart{
-      tagsOut.title.has_value() ? tagsOut.title.value() : "Untitled",
-      tagsOut.artist.has_value() ? tagsOut.artist.value() : "Unknown",
-      tagsOut.bpm.has_value() ? tagsOut.bpm.value() : 0.0 });
+    return std::make_unique<charts::models::BmsChart>(
+      std::move(tagsOutRead.value()));
 }
 auto
-BmsChartReader::readBmsChartTags(std::string chart) const -> std::optional<tags>
+BmsChartReader::readBmsChartTags(std::string chart) const
+  -> std::optional<models::BmsChart::Tags>
 {
     using namespace std::string_literals;
     using namespace std::chrono_literals;
 
     auto input = pegtl::string_input<>(std::move(chart), "BMS Chart"s);
     auto writer = TagsWriter{};
-    if (!pegtl::parse<file, action>(input, writer)) {
+    if (!pegtl::parse<File, action>(input, writer)) {
         return std::nullopt;
     }
 

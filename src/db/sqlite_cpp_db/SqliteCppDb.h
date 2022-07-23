@@ -7,12 +7,11 @@
 #include "../Db.h"
 
 #include <iostream>
-namespace db::sql_db {
+namespace db::sqlite_cpp_db {
 
 class SqliteCppDb : public Db
 {
   public:
-    ~SqliteCppDb() override = default;
     auto insert(const std::string& key, const std::string& value)
       -> void override;
     auto get(const std::string& key) -> std::string override;

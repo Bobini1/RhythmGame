@@ -12,11 +12,11 @@ namespace charts::behaviour {
 
 class SongDataWriter
 {
-    sol::state_view lua;
+    sol::state& lua;
 
   public:
-    explicit SongDataWriter(sol::state_view lua);
-    auto writeVar(const std::string& key, auto var) -> void;
+    explicit SongDataWriter(sol::state& lua);
+    auto writeVar(const std::string& key, auto var) -> void { lua[key] = var; }
 };
 
 } // namespace charts::behaviour

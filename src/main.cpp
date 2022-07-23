@@ -6,7 +6,7 @@
 auto
 main() -> int
 {
-    auto gameDb = std::make_unique<db::sql_db::SqliteCppDb>();
+    auto gameDb = std::make_unique<db::sqlite_cpp_db::SqliteCppDb>();
     gameDb->insert("key", "value");
     std::cout << gameDb->get("key") << std::endl;
 }
