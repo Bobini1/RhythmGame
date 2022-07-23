@@ -6,6 +6,7 @@
 #define RHYTHMGAME_BMSCHART_H
 
 #include <map>
+#include <random>
 #include "charts/models/Chart.h"
 namespace charts::models {
 class BmsChart : public Chart
