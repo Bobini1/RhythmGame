@@ -205,7 +205,7 @@ struct action
     };                                                                         \
                                                                                \
     struct tag                                                                 \
-      : metaTag<tag##_allowedValue,                                            \
+      : MetaTag<tag##_allowedValue,                                            \
                 pegtl::istring<RHYTHMGAME_TO_CHARS(tagstrlen, #tag)>>          \
     {                                                                          \
     };                                                                         \
