@@ -156,7 +156,7 @@ struct MetaString : pegtl::until<SpacesUntilEndOfLine>
 };
 
 template<typename AllowedValue, typename TagName>
-struct metaTag
+struct MetaTag
   : pegtl::seq<pegtl::star<pegtl::space>,
                pegtl::one<'#'>,
                TagName,
