@@ -2,15 +2,11 @@
 // Created by bobini on 07.07.2022.
 //
 
-#include <string>
-#include <map>
-#include <random>
 #include <utility>
 #include "charts/chart_readers/ToChars.h"
 #include <tao/pegtl.hpp>
 #include <stack>
 #include "BmsChartReader.h"
-#include "charts/models/BmsChart.h"
 
 #define CALL_MEMBER_FN(object, ptrToMember) ((object).*(ptrToMember))
 
