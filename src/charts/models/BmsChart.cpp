@@ -3,6 +3,7 @@
 //
 
 #include "BmsChart.h"
+#include <sol/types.hpp>
 charts::models::BmsChart::BmsChart(Tags tags)
   : tags(std::move(tags))
 {
