@@ -13,9 +13,9 @@
 namespace charts::chart_readers {
 namespace pegtl = tao::pegtl;
 
-using IfTag = charts::models::BmsChart::IfTag;
-using RandomRange = charts::models::BmsChart::RandomRange;
-using Tags = charts::models::BmsChart::Tags;
+using IfTag = models::BmsChart::IfTag;
+using RandomRange = models::BmsChart::RandomRange;
+using Tags = models::BmsChart::Tags;
 
 class TagsWriter
 {
