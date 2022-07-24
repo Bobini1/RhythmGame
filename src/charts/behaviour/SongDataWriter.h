@@ -16,7 +16,11 @@ class SongDataWriter
 
   public:
     explicit SongDataWriter(sol::state& lua);
-    auto writeVar(const std::string& key, auto var) -> void { lua[key] = var; }
+    template<typename T>
+    auto writeVar(const std::string& key, T var) -> void
+    {
+        lua[key] = var;
+    }
 };
 
 } // namespace charts::behaviour
