@@ -20,6 +20,11 @@ target_link_libraries(
 target_compile_features(RhythmGame_test PRIVATE cxx_std_20)
 include(Catch)
 
+# MacOS luajit linker flags
+if (APPLE)
+    set_target_properties(RhythmGame_test PROPERTIES LINK_FLAGS "-pagezero_size 10000 -image_base 100000000")
+endif ()
+
 catch_discover_tests(RhythmGame_test)
 # ---- End-of-file commands ----
 
