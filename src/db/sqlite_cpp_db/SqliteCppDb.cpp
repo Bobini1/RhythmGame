@@ -4,10 +4,7 @@
 
 #include "SqliteCppDb.h"
 
-#include <SQLiteCpp/SQLiteCpp.h>
-#include <SQLiteCpp/VariadicBind.h>
-
-#include <memory>
+#include "SqliteCppDb.h"
 
 thread_local std::unique_ptr<SQLite::Database>
   db::sqlite_cpp_db::SqliteCppDb::db;
