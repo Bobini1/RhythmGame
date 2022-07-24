@@ -170,6 +170,9 @@ jobs:
           if [ ${{ matrix.os }} = ubuntu-latest ]; then
             conan profile update settings.compiler.libcxx=libstdc++11 default
           fi
+          if [ ${{ matrix.os }} = macos-latest ]; then
+            conan create ./recipes/luajit/all/ 2.0.5@ -s build_type=Debug
+          fi
           conan install . -b missing
 
       - name: Configure
