@@ -180,7 +180,7 @@ struct PlayerValidDigit : pegtl::range<'1', '4'>
 };
 
 template<typename>
-struct action
+struct Action
 {
 };
 
@@ -211,7 +211,7 @@ struct action
     };                                                                         \
                                                                                \
     template<>                                                                 \
-    struct action<tag##_allowedValue>                                          \
+    struct Action<tag##_allowedValue>                                          \
     {                                                                          \
                                                                                \
         template<typename ActionInput>                                         \
@@ -289,7 +289,7 @@ struct File
 };
 
 template<>
-struct action<RandomEnd>
+struct Action<RandomEnd>
 {
     template<typename ActionInput>
     static auto apply(const ActionInput& /*input*/, TagsWriter& chart) -> void
@@ -299,7 +299,7 @@ struct action<RandomEnd>
 };
 
 template<>
-struct action<IfEnd>
+struct Action<IfEnd>
 {
     template<typename ActionInput>
     static auto apply(const ActionInput& /*input*/, TagsWriter& chart) -> void
@@ -329,7 +329,7 @@ BmsChartReader::readBmsChartTags(const std::string& chart) const
 
     auto input = pegtl::string_input<>(chart, "BMS Chart"s);
     auto writer = TagsWriter{};
-    if (!pegtl::parse<File, action>(input, writer)) {
+    if (!pegtl::parse<File, Action>(input, writer)) {
         return std::nullopt;
     }
 
