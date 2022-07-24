@@ -5,8 +5,6 @@
 #ifndef RHYTHMGAME_CHART_H
 #define RHYTHMGAME_CHART_H
 
-#include <optional>
-#include <string>
 #include "charts/behaviour/SongDataWriter.h"
 
 namespace charts::models {
