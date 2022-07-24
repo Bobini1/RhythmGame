@@ -21,6 +21,11 @@ class Chart
 {
   public:
     virtual ~Chart() = default;
+    Chart() = default;
+    Chart(const Chart&) = default;
+    Chart(Chart&&) = default;
+    auto operator=(const Chart&) -> Chart& = default;
+    auto operator=(Chart&&) -> Chart& = default;
 
     /**
      * @brief Writes full chart data to lua.
