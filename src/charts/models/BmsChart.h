@@ -53,7 +53,7 @@ class BmsChart final : public Chart
     auto writeFullData(behaviour::SongDataWriter writer) const -> void override;
 
   private:
-    BmsChart::Tags tags;
+    Tags tags;
 };
 } // namespace charts::models
 #endif // RHYTHMGAME_BMSCHART_H
