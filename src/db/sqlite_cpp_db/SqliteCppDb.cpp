@@ -19,7 +19,9 @@ db::sqlite_cpp_db::SqliteCppDb::SqliteCppDb(const std::string& dbPath)
           dbPath, SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
         db->exec("PRAGMA journal_mode=WAL;");
         db->exec("PRAGMA synchronous=NORMAL;");
+#ifdef DEBUG
         db->exec("PRAGMA foreign_keys=ON;");
+#endif
     }
 }
 auto
