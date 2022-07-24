@@ -4,7 +4,7 @@
 
 #ifndef RHYTHMGAME_SQLITECPPDB_H
 #define RHYTHMGAME_SQLITECPPDB_H
-#include "../Db.h"
+#include "db/Db.h"
 #include <SQLiteCpp/SQLiteCpp.h>
 #include <mutex>
 
