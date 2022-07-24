@@ -9,7 +9,7 @@
 
 namespace db::sqlite_cpp_db {
 
-class SqliteCppDb : public Db
+class SqliteCppDb final : public Db
 {
     thread_local static std::unique_ptr<SQLite::Database> db;
 
