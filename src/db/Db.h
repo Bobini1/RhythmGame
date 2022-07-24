@@ -16,12 +16,18 @@ class Db
 {
   public:
     virtual ~Db() = default;
+    Db() = default;
+    Db(const Db&) = default;
+    auto operator=(const Db&) -> Db& = default;
+    Db(Db&&) = default;
+    auto operator=(Db&&) -> Db& = default;
+    
     [[nodiscard]] virtual auto hasTable(const std::string& table) const
       -> bool = 0;
     virtual auto execute(const std::string& query) const -> void = 0;
-    virtual auto executeAndGet(const std::string& query) const
+    [[nodiscard]] virtual auto executeAndGet(const std::string& query) const
       -> std::optional<std::any> = 0;
-    virtual auto executeAndGetAll(const std::string& query) const
+    [[nodiscard]] virtual auto executeAndGetAll(const std::string& query) const
       -> std::vector<std::any> = 0;
 };
 
