@@ -5,11 +5,8 @@
 #ifndef RHYTHMGAME_BMSCHARTREADER_H
 #define RHYTHMGAME_BMSCHARTREADER_H
 
-#include <string>
-#include <memory>
+#include <optional>
 #include "charts/models/BmsChart.h"
-#include <random>
-#include <map>
 
 namespace charts::chart_readers {
 
