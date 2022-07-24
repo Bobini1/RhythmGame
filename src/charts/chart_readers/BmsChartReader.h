@@ -16,7 +16,7 @@ namespace charts::chart_readers {
 /**
  * @brief Reads BMS charts.
  */
-class BmsChartReader
+class BmsChartReader final
 {
   public:
     /**
