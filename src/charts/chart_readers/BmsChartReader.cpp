@@ -326,13 +326,13 @@ BmsChartReader::readBmsChart(const std::string& chart) const
       std::move(tagsOutRead.value()));
 }
 auto
-BmsChartReader::readBmsChartTags(std::string chart) const
+BmsChartReader::readBmsChartTags(const std::string& chart) const
   -> std::optional<models::BmsChart::Tags>
 {
     using namespace std::string_literals;
     using namespace std::chrono_literals;
 
-    auto input = pegtl::string_input<>(std::move(chart), "BMS Chart"s);
+    auto input = pegtl::string_input<>(chart, "BMS Chart"s);
     auto writer = TagsWriter{};
     if (!pegtl::parse<File, action>(input, writer)) {
         return std::nullopt;
