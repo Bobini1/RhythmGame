@@ -188,6 +188,20 @@ struct action
 {
 };
 
+/**
+ * @brief defines a bms-style tag and an action to be performed when it is
+ * found.
+ * @param tag the tag to be searched for. It is both the name of the resulting
+ * class and the search pattern. Example: for tag **player**, the matching tag
+ * will be `#PLAYER <value>` (case-insensitive).
+ * @param strlen the length of the tag name provided in the first argument.
+ * Required for internal handling, sadly.
+ * @param allowedValue the pegtl parser for the value that is allowed for this
+ * tag.
+ * @param memberFnPointer the function to be called when the tag is found.
+ * @param parser the function to apply to the allowedValue when it is found.
+ * Kind of a preprocessor.
+ */
 #define RHYTHMGAME_TAG_PARSER(                                                 \
   tag, tagstrlen, allowedValue, memberFnPointer, parser)                       \
     struct tag##_allowedValue : allowedValue                                   \

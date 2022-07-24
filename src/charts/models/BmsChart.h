@@ -9,11 +9,19 @@
 #include <random>
 #include "charts/models/Chart.h"
 namespace charts::models {
+
+/**
+ * @brief Be-Music Source chart.
+ */
 class BmsChart : public Chart
 {
   public:
     using RandomRange = std::uniform_int_distribution<long>;
     using IfTag = long;
+
+    /**
+     * @brief Tags that a BMS chart can have.
+     */
     struct Tags
     {
         std::optional<std::string> title;
@@ -27,11 +35,22 @@ class BmsChart : public Chart
         // doesn't compile on MSVC. :)
         std::vector<
           std::pair<RandomRange, std::unique_ptr<std::multimap<IfTag, Tags>>>>
-          randomBlocks;
+          randomBlocks; /*< Random blocks can hold any tags, including ones that
+                           were already defined. */
     };
+
+    /**
+     * @brief Constructs a BMS chart from its tags. The BmsChart is able to
+     * manage random blocks on its own.
+     */
     explicit BmsChart(Tags tags);
-    virtual auto writeFullData(behaviour::SongDataWriter writer) const
-      -> void override;
+
+    /**
+     * @brief Writes the tags to lua. All randoms are resolved during this
+     * operation.
+     * @param writer
+     */
+    auto writeFullData(behaviour::SongDataWriter writer) const -> void override;
 
   private:
     BmsChart::Tags tags;

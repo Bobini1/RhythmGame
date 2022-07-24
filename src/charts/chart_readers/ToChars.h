@@ -19,6 +19,12 @@ getCh(char const (&str)[N], unsigned int index) -> char
 #define STRING_TO_CHARS(STRLEN, STR)                                           \
     BOOST_PP_REPEAT(STRLEN, STRING_TO_CHARS_EXTRACT, STR)
 
+/**
+ * @brief Converts string to sequence of chars.
+ * @param STRLEN Length of the string.
+ * @param STR String to convert.
+ * @return Char sequence.
+ */
 #define RHYTHMGAME_TO_CHARS(STRLEN, STR) STRING_TO_CHARS(STRLEN, STR)
 
 #endif // RHYTHMGAME_TOCHARS_H
