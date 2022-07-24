@@ -13,7 +13,7 @@ namespace charts::models {
 /**
  * @brief Be-Music Source chart.
  */
-class BmsChart : public Chart
+class BmsChart final : public Chart
 {
   public:
     using RandomRange = std::uniform_int_distribution<long>;
