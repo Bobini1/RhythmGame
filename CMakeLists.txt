@@ -15,6 +15,7 @@ include(cmake/variables.cmake)
 # <------------ lua support --------------->
 
 find_package(sol2 REQUIRED)
+find_package(luajit REQUIRED)
 
 # <------------ SQLiteCpp (db) --------------->
 
@@ -35,10 +36,6 @@ find_package(Boost REQUIRED)
 # <------------ type_safe --------------->
 
 find_package(type_safe REQUIRED)
-
-# <------------ luajit --------------->
-
-find_package(luajit REQUIRED)
 
 # ---- Load library ----
 
