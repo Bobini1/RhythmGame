@@ -5,7 +5,6 @@
 #ifndef RHYTHMGAME_SONGDATAWRITER_H
 #define RHYTHMGAME_SONGDATAWRITER_H
 #include <string>
-#include <any>
 #include <sol/sol.hpp>
 
 namespace charts::behaviour {
