@@ -212,7 +212,7 @@ struct action
     };
 
 namespace {
-constexpr auto identity = std::identity();
+// constexpr auto identity = std::identity();
 constexpr auto trimR = [](auto&& str) {
     return std::string(
       std::string_view{ str }.substr(0, str.find_last_not_of(' ') + 1));
