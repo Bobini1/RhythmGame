@@ -6,9 +6,6 @@
 #define RHYTHMGAME_SQLITECPPDB_H
 #include "db/Db.h"
 #include <SQLiteCpp/SQLiteCpp.h>
-#include <mutex>
-
-#include <iostream>
 
 namespace db::sqlite_cpp_db {
 
