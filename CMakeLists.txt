@@ -69,8 +69,8 @@ target_compile_features(RhythmGame_exe PRIVATE cxx_std_20)
 target_link_libraries(RhythmGame_exe PRIVATE RhythmGame_lib)
 
 # MacOS luajit linker flags
-if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-    target_compile_options(RhythmGame_exe PRIVATE -pagezero_size 10000 -image_base 100000000)
+if (APPLE)
+    set_target_properties(RhythmGame_exe PROPERTIES LINK_FLAGS "-pagezero_size 10000 -image_base 100000000")
 endif ()
 
 # ---- Install rules ----
