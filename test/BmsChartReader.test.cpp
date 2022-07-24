@@ -4,11 +4,7 @@
 
 #include <catch2/catch_test_macros.hpp>
 #include "charts/chart_readers/BmsChartReader.h"
-#include <string>
-#include <iostream>
-#include <regex>
 #include <sol/sol.hpp>
-#include <charts/behaviour/SongDataWriter.h>
 
 TEST_CASE("Check if Title is parsed correctly", "[single-file]")
 {
