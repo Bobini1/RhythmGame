@@ -5,7 +5,6 @@
 #ifndef RHYTHMGAME_DB_H
 #define RHYTHMGAME_DB_H
 
-#include <memory>
 #include <string>
 #include <any>
 #include <optional>
