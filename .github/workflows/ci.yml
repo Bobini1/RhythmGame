@@ -54,14 +54,12 @@ jobs:
           path: ~/.conan/data
           key: conan-packages-coverage
 
-      - name: Install extra deps
-        run: conan create ./recipes/cppcoro/all/ 20220713@ -s build_type=Debug
-
       - name: Install dependencies
         env: { CXX: clang++-12 }
         run: pip3 install "conan<2,!=1.49.0"
           && conan profile new default --detect
           && cp .github/clang-12.profile ~/.conan/profiles/default
+          && conan create ./recipes/cppcoro/all/ 20220713@ -s build_type=Debug
           && conan install . -b missing
 
       - name: Configure
@@ -105,14 +103,12 @@ jobs:
           path: ~/.conan/data
           key: conan-packages-sanitize
 
-      - name: Install extra deps
-        run: conan create ./recipes/cppcoro/all/ 20220713@ -s build_type=Debug
-
       - name: Install dependencies
         env: { CXX: clang++-12 }
         run: pip3 install "conan<2,!=1.49.0"
           && conan profile new default --detect
           && cp .github/clang-12.profile ~/.conan/profiles/default
+          && conan create ./recipes/cppcoro/all/ 20220713@ -s build_type=Debug
           && conan install . -b missing
 
       - name: Configure
