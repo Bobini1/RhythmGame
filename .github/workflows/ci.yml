@@ -35,7 +35,6 @@ jobs:
     runs-on: ubuntu-latest
 
     if: github.repository_owner == 'Bobini1'
-    if: github.repository_owner == 'Bobini1'
 
     steps:
       - uses: actions/checkout@v2
