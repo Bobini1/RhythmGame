@@ -5,21 +5,31 @@
 #ifndef RHYTHMGAME_DB_H
 #define RHYTHMGAME_DB_H
 
-#include <memory>
 #include <string>
+#include <any>
+#include <optional>
+#include <vector>
 
 namespace db {
 class Db
 {
   public:
     virtual ~Db() = default;
-    virtual auto insert(const std::string& key, const std::string& value)
-      -> void = 0;
-    virtual auto get(const std::string& key) -> std::string = 0;
+    Db() = default;
+    Db(const Db&) = default;
+    auto operator=(const Db&) -> Db& = default;
+    Db(Db&&) = default;
+    auto operator=(Db&&) -> Db& = default;
+    
+    [[nodiscard]] virtual auto hasTable(const std::string& table) const
+      -> bool = 0;
+    virtual auto execute(const std::string& query) const -> void = 0;
+    [[nodiscard]] virtual auto executeAndGet(const std::string& query) const
+      -> std::optional<std::any> = 0;
+    [[nodiscard]] virtual auto executeAndGetAll(const std::string& query) const
+      -> std::vector<std::any> = 0;
 };
 
-auto
-create_db() -> std::unique_ptr<Db>;
 } // namespace db
 
 #endif // RHYTHMGAME_DB_H

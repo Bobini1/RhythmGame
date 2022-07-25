@@ -11,7 +11,7 @@ find_package(Catch2 3 REQUIRED)
 
 # ---- Tests ----
 
-add_executable(RhythmGame_test RhythmGame_test.cpp BmsChartReader.test.cpp)
+add_executable(RhythmGame_test BmsChartReader.test.cpp)
 target_link_libraries(
         RhythmGame_test PRIVATE
         RhythmGame_lib
@@ -19,6 +19,11 @@ target_link_libraries(
 )
 target_compile_features(RhythmGame_test PRIVATE cxx_std_20)
 include(Catch)
+
+# MacOS luajit linker flags
+if (APPLE)
+    set_target_properties(RhythmGame_test PROPERTIES LINK_FLAGS "-pagezero_size 10000 -image_base 100000000")
+endif ()
 
 catch_discover_tests(RhythmGame_test)
 # ---- End-of-file commands ----

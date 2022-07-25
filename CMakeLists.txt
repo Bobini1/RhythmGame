@@ -15,7 +15,7 @@ include(cmake/variables.cmake)
 # <------------ lua support --------------->
 
 find_package(sol2 REQUIRED)
-#target_link_libraries(RhythmGame_lib PRIVATE sol2::sol2)
+find_package(luajit REQUIRED)
 
 # <------------ SQLiteCpp (db) --------------->
 
@@ -29,24 +29,22 @@ find_package(pegtl REQUIRED)
 
 find_package(fmt REQUIRED)
 
-
 # <------------ boost --------------->
 
 find_package(Boost REQUIRED)
 
 # <------------ type_safe --------------->
 
-
 find_package(type_safe REQUIRED)
-
 
 # ---- Load library ----
 
 add_library(RhythmGame_lib OBJECT src/db/Db.cpp src/db/sqlite_cpp_db/SqliteCppDb.cpp src/db/sqlite_cpp_db/SqliteCppDb.h
-        src/charts/chart_readers/bms/BmsChartReader.cpp src/charts/models/Chart.h src/charts/models/Chart.cpp src/charts/models/ChartInfo.cpp src/charts/models/ChartInfo.h src/charts/models/MetadataTypes.h src/charts/models/bms/BmsChart.cpp src/charts/models/bms/BmsChart.h)
-target_link_libraries(RhythmGame_lib PRIVATE SQLiteCpp taocpp::pegtl PUBLIC Boost::headers type_safe::type_safe)
+        src/charts/chart_readers/BmsChartReader.cpp src/charts/models/Chart.h src/charts/models/Chart.cpp src/charts/chart_readers/ToChars.h src/charts/behaviour/SongDataWriter.cpp src/charts/behaviour/SongDataWriter.h src/charts/models/BmsChart.cpp src/charts/models/BmsChart.h)
+target_link_libraries(RhythmGame_lib PRIVATE taocpp::pegtl PUBLIC Boost::headers type_safe::type_safe luajit::luajit sol2::sol2 SQLiteCpp)
 
 target_compile_features(RhythmGame_lib PRIVATE cxx_std_20)
+target_compile_definitions(RhythmGame_lib PUBLIC "$<$<CONFIG:DEBUG>:DEBUG>")
 target_include_directories(
         RhythmGame_lib ${warning_guard}
         PUBLIC
@@ -67,6 +65,11 @@ set_target_properties(
 target_compile_features(RhythmGame_exe PRIVATE cxx_std_20)
 
 target_link_libraries(RhythmGame_exe PRIVATE RhythmGame_lib)
+
+# MacOS luajit linker flags
+if (APPLE)
+    set_target_properties(RhythmGame_exe PROPERTIES LINK_FLAGS "-pagezero_size 10000 -image_base 100000000")
+endif ()
 
 # ---- Install rules ----
 
