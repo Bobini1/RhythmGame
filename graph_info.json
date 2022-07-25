@@ -277,6 +277,18 @@
    "False"
   ],
   [
+   "cmake:with_openssl",
+   "True"
+  ],
+  [
+   "double-conversion:fPIC",
+   "True"
+  ],
+  [
+   "double-conversion:shared",
+   "False"
+  ],
+  [
    "fmt:fPIC",
    "True"
   ],
@@ -297,6 +309,46 @@
    "True"
   ],
   [
+   "folly:fPIC",
+   "True"
+  ],
+  [
+   "folly:shared",
+   "False"
+  ],
+  [
+   "gflags:fPIC",
+   "True"
+  ],
+  [
+   "gflags:namespace",
+   "gflags"
+  ],
+  [
+   "gflags:nothreads",
+   "True"
+  ],
+  [
+   "gflags:shared",
+   "False"
+  ],
+  [
+   "glog:fPIC",
+   "True"
+  ],
+  [
+   "glog:shared",
+   "False"
+  ],
+  [
+   "glog:with_gflags",
+   "True"
+  ],
+  [
+   "glog:with_threads",
+   "True"
+  ],
+  [
    "libbacktrace:fPIC",
    "True"
   ],
@@ -305,11 +357,99 @@
    "False"
   ],
   [
+   "libdwarf:fPIC",
+   "True"
+  ],
+  [
+   "libdwarf:shared",
+   "False"
+  ],
+  [
+   "libelf:fPIC",
+   "True"
+  ],
+  [
+   "libelf:shared",
+   "False"
+  ],
+  [
+   "libevent:disable_threads",
+   "False"
+  ],
+  [
+   "libevent:fPIC",
+   "True"
+  ],
+  [
+   "libevent:shared",
+   "False"
+  ],
+  [
+   "libevent:with_openssl",
+   "True"
+  ],
+  [
+   "libiberty:fPIC",
+   "True"
+  ],
+  [
+   "libsodium:PIE",
+   "False"
+  ],
+  [
+   "libsodium:fPIC",
+   "True"
+  ],
+  [
+   "libsodium:shared",
+   "False"
+  ],
+  [
+   "libsodium:use_soname",
+   "True"
+  ],
+  [
+   "libunwind:coredump",
+   "True"
+  ],
+  [
+   "libunwind:fPIC",
+   "True"
+  ],
+  [
+   "libunwind:minidebuginfo",
+   "True"
+  ],
+  [
+   "libunwind:ptrace",
+   "True"
+  ],
+  [
+   "libunwind:setjmp",
+   "True"
+  ],
+  [
+   "libunwind:shared",
+   "False"
+  ],
+  [
+   "libunwind:zlibdebuginfo",
+   "True"
+  ],
+  [
    "luajit:fPIC",
    "True"
   ],
   [
    "luajit:shared",
+   "False"
+  ],
+  [
+   "lz4:fPIC",
+   "True"
+  ],
+  [
+   "lz4:shared",
    "False"
   ],
   [
@@ -537,6 +677,14 @@
    "False"
   ],
   [
+   "snappy:fPIC",
+   "True"
+  ],
+  [
+   "snappy:shared",
+   "False"
+  ],
+  [
    "sqlite3:build_executable",
    "True"
   ],
@@ -665,12 +813,32 @@
    "False"
   ],
   [
+   "xz_utils:fPIC",
+   "True"
+  ],
+  [
+   "xz_utils:shared",
+   "False"
+  ],
+  [
    "zlib:fPIC",
    "True"
   ],
   [
    "zlib:shared",
    "False"
+  ],
+  [
+   "zstd:fPIC",
+   "True"
+  ],
+  [
+   "zstd:shared",
+   "False"
+  ],
+  [
+   "zstd:threading",
+   "True"
   ]
  ],
  "root": {
