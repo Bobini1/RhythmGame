@@ -37,11 +37,15 @@ find_package(Boost REQUIRED)
 
 find_package(type_safe REQUIRED)
 
+# <------------ coost --------------->
+
+find_package(cocoyaxi REQUIRED CONFIG)
+
 # ---- Load library ----
 
 add_library(RhythmGame_lib OBJECT src/db/Db.cpp src/db/sqlite_cpp_db/SqliteCppDb.cpp src/db/sqlite_cpp_db/SqliteCppDb.h
         src/charts/chart_readers/BmsChartReader.cpp src/charts/models/Chart.h src/charts/models/Chart.cpp src/charts/chart_readers/ToChars.h src/charts/behaviour/SongDataWriter.cpp src/charts/behaviour/SongDataWriter.h src/charts/models/BmsChart.cpp src/charts/models/BmsChart.h)
-target_link_libraries(RhythmGame_lib PRIVATE taocpp::pegtl PUBLIC Boost::headers type_safe::type_safe luajit::luajit sol2::sol2 SQLiteCpp)
+target_link_libraries(RhythmGame_lib PRIVATE taocpp::pegtl PUBLIC Boost::headers type_safe::type_safe luajit::luajit sol2::sol2 SQLiteCpp cocoyaxi::co)
 
 target_compile_features(RhythmGame_lib PRIVATE cxx_std_20)
 target_compile_definitions(RhythmGame_lib PUBLIC "$<$<CONFIG:DEBUG>:DEBUG>")

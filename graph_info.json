@@ -277,6 +277,22 @@
    "False"
   ],
   [
+   "cocoyaxi:fPIC",
+   "True"
+  ],
+  [
+   "cocoyaxi:shared",
+   "False"
+  ],
+  [
+   "cocoyaxi:with_libcurl",
+   "False"
+  ],
+  [
+   "cocoyaxi:with_openssl",
+   "False"
+  ],
+  [
    "fmt:fPIC",
    "True"
   ],
