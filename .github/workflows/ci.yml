@@ -41,7 +41,7 @@ jobs:
 
       - name: Install llvm utils
         run: sudo apt-get update -q
-          && sudo apt-get install llvm-12 -q -y
+          && sudo apt-get install llvm-14 -q -y
 
       - name: Install Python
         uses: actions/setup-python@v2
@@ -55,15 +55,15 @@ jobs:
           key: conan-packages-coverage
 
       - name: Install dependencies
-        env: { CXX: clang++-12 }
+        env: { CXX: clang++-14 }
         run: pip3 install "conan<2,!=1.49.0"
           && conan profile new default --detect
-          && cp .github/clang-12.profile ~/.conan/profiles/default
+          && cp .github/clang-14.profile ~/.conan/profiles/default
           && conan create ./recipes/cppcoro/all/ 20220713@ -s build_type=Debug
           && conan install . -b missing
 
       - name: Configure
-        env: { CXX: clang++-12 }
+        env: { CXX: clang++-14 }
         run: cmake --preset=ci-coverage
 
       - name: Build
@@ -93,8 +93,8 @@ jobs:
         uses: actions/setup-python@v2
         with: { python-version: "3.8" }
 
-      - name: Install Clang 12
-        run: sudo apt update && sudo apt install clang-12
+      - name: Install Clang 14
+        run: sudo apt update && sudo apt install clang-14
 
       - name: Cache conan
         id: cache-conan
@@ -104,15 +104,15 @@ jobs:
           key: conan-packages-sanitize
 
       - name: Install dependencies
-        env: { CXX: clang++-12 }
+        env: { CXX: clang++-14 }
         run: pip3 install "conan<2,!=1.49.0"
           && conan profile new default --detect
-          && cp .github/clang-12.profile ~/.conan/profiles/default
+          && cp .github/clang-14.profile ~/.conan/profiles/default
           && conan create ./recipes/cppcoro/all/ 20220713@ -s build_type=Debug
           && conan install . -b missing
 
       - name: Configure
-        env: { CXX: clang++-12 }
+        env: { CXX: clang++-14 }
         run: cmake --preset=ci-sanitize
 
       - name: Build
