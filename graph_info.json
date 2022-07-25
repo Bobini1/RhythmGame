@@ -1,10 +1,6 @@
 {
  "options": [
   [
-   "boost:addr2line_location",
-   "/usr/bin/addr2line"
-  ],
-  [
    "boost:asio_no_deprecated",
    "False"
   ],
@@ -33,10 +29,6 @@
    "None"
   ],
   [
-   "boost:fPIC",
-   "True"
-  ],
-  [
    "boost:filesystem_no_deprecated",
    "False"
   ],
@@ -50,7 +42,7 @@
   ],
   [
    "boost:i18n_backend_iconv",
-   "libc"
+   "off"
   ],
   [
    "boost:i18n_backend_icu",
@@ -115,10 +107,6 @@
   [
    "boost:visibility",
    "hidden"
-  ],
-  [
-   "boost:with_stacktrace_backtrace",
-   "True"
   ],
   [
    "boost:without_atomic",
@@ -257,10 +245,6 @@
    "True"
   ],
   [
-   "bzip2:fPIC",
-   "True"
-  ],
-  [
    "bzip2:shared",
    "False"
   ],
@@ -269,28 +253,16 @@
    "None"
   ],
   [
-   "catch2:fPIC",
-   "True"
-  ],
-  [
    "catch2:with_prefix",
    "False"
   ],
   [
    "cmake:with_openssl",
-   "True"
-  ],
-  [
-   "double-conversion:fPIC",
-   "True"
+   "False"
   ],
   [
    "double-conversion:shared",
    "False"
-  ],
-  [
-   "fmt:fPIC",
-   "True"
   ],
   [
    "fmt:header_only",
@@ -309,16 +281,8 @@
    "True"
   ],
   [
-   "folly:fPIC",
-   "True"
-  ],
-  [
    "folly:shared",
    "False"
-  ],
-  [
-   "gflags:fPIC",
-   "True"
   ],
   [
    "gflags:namespace",
@@ -333,10 +297,6 @@
    "False"
   ],
   [
-   "glog:fPIC",
-   "True"
-  ],
-  [
    "glog:shared",
    "False"
   ],
@@ -349,36 +309,8 @@
    "True"
   ],
   [
-   "libbacktrace:fPIC",
-   "True"
-  ],
-  [
-   "libbacktrace:shared",
-   "False"
-  ],
-  [
-   "libdwarf:fPIC",
-   "True"
-  ],
-  [
-   "libdwarf:shared",
-   "False"
-  ],
-  [
-   "libelf:fPIC",
-   "True"
-  ],
-  [
-   "libelf:shared",
-   "False"
-  ],
-  [
    "libevent:disable_threads",
    "False"
-  ],
-  [
-   "libevent:fPIC",
-   "True"
   ],
   [
    "libevent:shared",
@@ -389,16 +321,8 @@
    "True"
   ],
   [
-   "libiberty:fPIC",
-   "True"
-  ],
-  [
    "libsodium:PIE",
    "False"
-  ],
-  [
-   "libsodium:fPIC",
-   "True"
   ],
   [
    "libsodium:shared",
@@ -409,44 +333,8 @@
    "True"
   ],
   [
-   "libunwind:coredump",
-   "True"
-  ],
-  [
-   "libunwind:fPIC",
-   "True"
-  ],
-  [
-   "libunwind:minidebuginfo",
-   "True"
-  ],
-  [
-   "libunwind:ptrace",
-   "True"
-  ],
-  [
-   "libunwind:setjmp",
-   "True"
-  ],
-  [
-   "libunwind:shared",
-   "False"
-  ],
-  [
-   "libunwind:zlibdebuginfo",
-   "True"
-  ],
-  [
-   "luajit:fPIC",
-   "True"
-  ],
-  [
    "luajit:shared",
    "False"
-  ],
-  [
-   "lz4:fPIC",
-   "True"
   ],
   [
    "lz4:shared",
@@ -457,12 +345,16 @@
    "False"
   ],
   [
-   "openssl:enable_weak_ssl_ciphers",
+   "openssl:capieng_dialog",
    "False"
   ],
   [
-   "openssl:fPIC",
-   "True"
+   "openssl:enable_capieng",
+   "False"
+  ],
+  [
+   "openssl:enable_weak_ssl_ciphers",
+   "False"
   ],
   [
    "openssl:no_aria",
@@ -677,10 +569,6 @@
    "False"
   ],
   [
-   "snappy:fPIC",
-   "True"
-  ],
-  [
    "snappy:shared",
    "False"
   ],
@@ -757,10 +645,6 @@
    "True"
   ],
   [
-   "sqlite3:fPIC",
-   "True"
-  ],
-  [
    "sqlite3:max_blob_size",
    "None"
   ],
@@ -793,10 +677,6 @@
    "False"
   ],
   [
-   "sqlitecpp:fPIC",
-   "True"
-  ],
-  [
    "sqlitecpp:shared",
    "False"
   ],
@@ -813,24 +693,12 @@
    "False"
   ],
   [
-   "xz_utils:fPIC",
-   "True"
-  ],
-  [
    "xz_utils:shared",
    "False"
   ],
   [
-   "zlib:fPIC",
-   "True"
-  ],
-  [
    "zlib:shared",
    "False"
-  ],
-  [
-   "zstd:fPIC",
-   "True"
   ],
   [
    "zstd:shared",
