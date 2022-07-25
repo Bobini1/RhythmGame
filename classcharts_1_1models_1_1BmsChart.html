@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>RhythmGame</title>
+  <title>charts::models::BmsChart class | RhythmGame</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,400i,600,600i%7CSource+Code+Pro:400,400i,600" />
   <link rel="stylesheet" href="m-dark+documentation.compiled.css" />
   <link rel="icon" href="favicon-dark.png" type="image/png" />
@@ -30,7 +30,7 @@
                 <li><a href="about.html">About</a></li>
               </ol>
             </li>
-            <li><a href="namespaces.html" id="m-navbar-current">Namespaces</a></li>
+            <li><a href="namespaces.html">Namespaces</a></li>
           </ol>
           <ol class="m-col-t-6 m-col-m-none" start="3">
             <li><a href="annotated.html">Classes</a></li>
@@ -48,40 +48,89 @@
   <div class="m-container m-container-inflatable">
     <div class="m-row">
       <div class="m-col-l-10 m-push-l-1">
-        <h1>Namespaces</h1>
-        <ul class="m-doc">
-          <li class="m-doc-collapsible">
-            <a href="#" onclick="return toggle(this)">namespace</a> <a href="namespacecharts.html" class="m-doc">charts</a> <span class="m-doc"><span></span></span>
-            <ul class="m-doc">
-              <li>namespace <a href="namespacecharts_1_1behaviour.html" class="m-doc">behaviour</a> <span class="m-doc"><span></span></span></li>
-              <li>namespace <a href="namespacecharts_1_1chart__readers.html" class="m-doc">chart_readers</a> <span class="m-doc"><span></span></span></li>
-              <li>namespace <a href="namespacecharts_1_1models.html" class="m-doc">models</a> <span class="m-doc"><span></span></span></li>
-            </ul>
-          </li>
-          <li>namespace <a href="namespacecharts_1_1chart__readers_1_1_0d2.html" class="m-doc">charts::chart_readers::@2</a> <span class="m-doc"><span></span></span></li>
-          <li class="m-doc-collapsible">
-            <a href="#" onclick="return toggle(this)">namespace</a> <a href="namespacedb.html" class="m-doc">db</a> <span class="m-doc"><span></span></span>
-            <ul class="m-doc">
-              <li>namespace <a href="namespacedb_1_1sqlite__cpp__db.html" class="m-doc">sqlite_cpp_db</a> <span class="m-doc"><span></span></span></li>
-            </ul>
-          </li>
-        </ul>
-        <script>
-        function toggle(e) {
-            e.parentElement.className = e.parentElement.className == 'm-doc-collapsible' ?
-                'm-doc-expansible' : 'm-doc-collapsible';
-            return false;
-        }
-        /* Collapse all nodes marked as such. Doing it via JS instead of
-           directly in markup so disabling it doesn't harm usability. The list
-           is somehow regenerated on every iteration and shrinks as I change
-           the classes. It's not documented anywhere and I'm not sure if this
-           is the same across browsers, so I am going backwards in that list to
-           be sure. */
-        var collapsed = document.getElementsByClassName("collapsed");
-        for(var i = collapsed.length - 1; i >= 0; --i)
-            collapsed[i].className = 'm-doc-expansible';
-        </script>
+        <h1>
+          <span class="m-breadcrumb"><a href="namespacecharts.html">charts</a>::<wbr/></span><span class="m-breadcrumb"><a href="namespacecharts_1_1models.html">models</a>::<wbr/></span>BmsChart <span class="m-thin">class</span> <span class="m-label m-flat m-warning">final</span>
+          <div class="m-doc-include m-code m-inverted m-text-right"><span class="cp">#include</span> <a class="cpf" href="BmsChart_8h.html">&lt;BmsChart.h&gt;</a></div>
+        </h1>
+        <p>Be-Music Source chart.</p>
+        <div class="m-block m-default">
+          <h3>Contents</h3>
+          <ul>
+            <li>
+              Reference
+              <ul>
+                <li><a href="#base-classes">Base classes</a></li>
+                <li><a href="#pub-types">Public types</a></li>
+                <li><a href="#typeless-methods">Constructors, destructors, conversion operators</a></li>
+                <li><a href="#pub-methods">Public functions</a></li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+        <section id="base-classes">
+          <h2><a href="#base-classes">Base classes</a></h2>
+          <dl class="m-doc">
+            <dt>
+              class <a href="classcharts_1_1models_1_1Chart.html" class="m-doc">Chart</a>
+            </dt>
+            <dd>Base class for all charts.</dd>
+          </dl>
+        </section>
+        <section id="pub-types">
+          <h2><a href="#pub-types">Public types</a></h2>
+          <dl class="m-doc">
+            <dt>
+              struct <a href="structcharts_1_1models_1_1BmsChart_1_1Tags.html" class="m-doc">Tags</a>
+            </dt>
+            <dd><a href="structcharts_1_1models_1_1BmsChart_1_1Tags.html" class="m-doc">Tags</a> that a BMS chart can have.</dd>
+            <dt id="a01e01c92d9de87f076b25f21cf6e456e">
+              using <a href="#a01e01c92d9de87f076b25f21cf6e456e" class="m-doc-self">RandomRange</a> = std::uniform_int_distribution&lt;long&gt;
+            </dt>
+            <dd><span></span></dd>
+            <dt id="a946e618ad5273c3573a41dd8cc194b1f">
+              using <a href="#a946e618ad5273c3573a41dd8cc194b1f" class="m-doc-self">IfTag</a> = long
+            </dt>
+            <dd><span></span></dd>
+          </dl>
+        </section>
+        <section id="typeless-methods">
+          <h2><a href="#typeless-methods">Constructors, destructors, conversion operators</a></h2>
+          <dl class="m-doc">
+            <dt id="aa2307427e7f7606a0888313f4320eca8">
+              <span class="m-doc-wrap-bumper"><a href="#aa2307427e7f7606a0888313f4320eca8" class="m-doc-self">BmsChart</a>(</span><span class="m-doc-wrap"><a href="structcharts_1_1models_1_1BmsChart_1_1Tags.html" class="m-doc">Tags</a> tags) <span class="m-label m-flat m-info">explicit</span> </span>
+            </dt>
+            <dd>Constructs a BMS chart from its tags. The <a href="classcharts_1_1models_1_1BmsChart.html" class="m-doc">BmsChart</a> is able to manage random blocks on its own.</dd>
+          </dl>
+        </section>
+        <section id="pub-methods">
+          <h2><a href="#pub-methods">Public functions</a></h2>
+          <dl class="m-doc">
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#ae7e61dbb0c218855014d4d0945ce1806" class="m-doc">writeFullData</a>(</span><span class="m-doc-wrap"><a href="classcharts_1_1behaviour_1_1SongDataWriter.html" class="m-doc">behaviour::<wbr />SongDataWriter</a> writer) const -&gt; void <span class="m-label m-flat m-warning">override</span></span>
+            </dt>
+            <dd>Writes the tags to lua. All randoms are resolved during this operation.</dd>
+          </dl>
+        </section>
+        <section>
+          <h2>Function documentation</h2>
+          <section class="m-doc-details" id="ae7e61dbb0c218855014d4d0945ce1806"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">auto charts::<wbr />models::<wbr />BmsChart::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#ae7e61dbb0c218855014d4d0945ce1806" class="m-doc-self">writeFullData</a>(</span><span class="m-doc-wrap"><a href="classcharts_1_1behaviour_1_1SongDataWriter.html" class="m-doc">behaviour::<wbr />SongDataWriter</a> writer) const -&gt; void <span class="m-label m-warning">override</span></span></span>
+            </h3>
+            <p>Writes the tags to lua. All randoms are resolved during this operation.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">writer</td>
+                  <td></td>
+                </tr>
+              </tbody>
+            </table>
+          </div></section>
+        </section>
       </div>
     </div>
   </div>

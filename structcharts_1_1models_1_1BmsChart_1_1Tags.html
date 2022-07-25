@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>RhythmGame</title>
+  <title>charts::models::BmsChart::Tags struct | RhythmGame</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,400i,600,600i%7CSource+Code+Pro:400,400i,600" />
   <link rel="stylesheet" href="m-dark+documentation.compiled.css" />
   <link rel="icon" href="favicon-dark.png" type="image/png" />
@@ -30,7 +30,7 @@
                 <li><a href="about.html">About</a></li>
               </ol>
             </li>
-            <li><a href="namespaces.html" id="m-navbar-current">Namespaces</a></li>
+            <li><a href="namespaces.html">Namespaces</a></li>
           </ol>
           <ol class="m-col-t-6 m-col-m-none" start="3">
             <li><a href="annotated.html">Classes</a></li>
@@ -48,40 +48,55 @@
   <div class="m-container m-container-inflatable">
     <div class="m-row">
       <div class="m-col-l-10 m-push-l-1">
-        <h1>Namespaces</h1>
-        <ul class="m-doc">
-          <li class="m-doc-collapsible">
-            <a href="#" onclick="return toggle(this)">namespace</a> <a href="namespacecharts.html" class="m-doc">charts</a> <span class="m-doc"><span></span></span>
-            <ul class="m-doc">
-              <li>namespace <a href="namespacecharts_1_1behaviour.html" class="m-doc">behaviour</a> <span class="m-doc"><span></span></span></li>
-              <li>namespace <a href="namespacecharts_1_1chart__readers.html" class="m-doc">chart_readers</a> <span class="m-doc"><span></span></span></li>
-              <li>namespace <a href="namespacecharts_1_1models.html" class="m-doc">models</a> <span class="m-doc"><span></span></span></li>
-            </ul>
-          </li>
-          <li>namespace <a href="namespacecharts_1_1chart__readers_1_1_0d2.html" class="m-doc">charts::chart_readers::@2</a> <span class="m-doc"><span></span></span></li>
-          <li class="m-doc-collapsible">
-            <a href="#" onclick="return toggle(this)">namespace</a> <a href="namespacedb.html" class="m-doc">db</a> <span class="m-doc"><span></span></span>
-            <ul class="m-doc">
-              <li>namespace <a href="namespacedb_1_1sqlite__cpp__db.html" class="m-doc">sqlite_cpp_db</a> <span class="m-doc"><span></span></span></li>
-            </ul>
-          </li>
-        </ul>
-        <script>
-        function toggle(e) {
-            e.parentElement.className = e.parentElement.className == 'm-doc-collapsible' ?
-                'm-doc-expansible' : 'm-doc-collapsible';
-            return false;
-        }
-        /* Collapse all nodes marked as such. Doing it via JS instead of
-           directly in markup so disabling it doesn't harm usability. The list
-           is somehow regenerated on every iteration and shrinks as I change
-           the classes. It's not documented anywhere and I'm not sure if this
-           is the same across browsers, so I am going backwards in that list to
-           be sure. */
-        var collapsed = document.getElementsByClassName("collapsed");
-        for(var i = collapsed.length - 1; i >= 0; --i)
-            collapsed[i].className = 'm-doc-expansible';
-        </script>
+        <h1>
+          <span class="m-breadcrumb"><a href="namespacecharts.html">charts</a>::<wbr/></span><span class="m-breadcrumb"><a href="namespacecharts_1_1models.html">models</a>::<wbr/></span><span class="m-breadcrumb"><a href="classcharts_1_1models_1_1BmsChart.html">BmsChart</a>::<wbr/></span>Tags <span class="m-thin">struct</span>
+          <div class="m-doc-include m-code m-inverted m-text-right"><span class="cp">#include</span> <a class="cpf" href="BmsChart_8h.html">&lt;BmsChart.h&gt;</a></div>
+        </h1>
+        <p><a href="structcharts_1_1models_1_1BmsChart_1_1Tags.html" class="m-doc">Tags</a> that a BMS chart can have.</p>
+        <div class="m-block m-default">
+          <h3>Contents</h3>
+          <ul>
+            <li>
+              Reference
+              <ul>
+                <li><a href="#pub-attribs">Public variables</a></li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+        <section id="pub-attribs">
+          <h2><a href="#pub-attribs">Public variables</a></h2>
+          <dl class="m-doc">
+            <dt id="ac476c6d3571738602b16f0592a053b71">
+              std::optional&lt;std::string&gt; <a href="#ac476c6d3571738602b16f0592a053b71" class="m-doc-self">title</a>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="abce8c042e9d0905268e46eaa9d695985">
+              std::optional&lt;std::string&gt; <a href="#abce8c042e9d0905268e46eaa9d695985" class="m-doc-self">artist</a>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="afd987de1220bdeb0199f1719dc31b7aa">
+              std::optional&lt;double&gt; <a href="#afd987de1220bdeb0199f1719dc31b7aa" class="m-doc-self">bpm</a>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="afa1a6c18b71fd4722a2e6f7d2755105d">
+              std::optional&lt;std::string&gt; <a href="#afa1a6c18b71fd4722a2e6f7d2755105d" class="m-doc-self">subTitle</a>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="a7408e802259b0c7008b2648f2f277dc1">
+              std::optional&lt;std::string&gt; <a href="#a7408e802259b0c7008b2648f2f277dc1" class="m-doc-self">subArtist</a>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="a1a0ae9d3dc272ad1e3292ad35a1cbc96">
+              std::optional&lt;std::string&gt; <a href="#a1a0ae9d3dc272ad1e3292ad35a1cbc96" class="m-doc-self">genre</a>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="a25e7f656f4cc9115dfa1d0b6716b2f5a">
+              std::vector&lt;std::pair&lt;<a href="classcharts_1_1models_1_1BmsChart.html#a01e01c92d9de87f076b25f21cf6e456e" class="m-doc">RandomRange</a>, std::unique_ptr&lt;std::multimap&lt;<a href="classcharts_1_1models_1_1BmsChart.html#a946e618ad5273c3573a41dd8cc194b1f" class="m-doc">IfTag</a>, <a href="structcharts_1_1models_1_1BmsChart_1_1Tags.html" class="m-doc">Tags</a>&gt;&gt;&gt;&gt; <a href="#a25e7f656f4cc9115dfa1d0b6716b2f5a" class="m-doc-self">randomBlocks</a>
+            </dt>
+            <dd><span></span></dd>
+          </dl>
+        </section>
       </div>
     </div>
   </div>
