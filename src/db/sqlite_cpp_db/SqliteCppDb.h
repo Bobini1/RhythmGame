@@ -21,7 +21,7 @@ class SqliteCppDb final : public Db
     [[nodiscard]] auto executeAndGet(const std::string& query) const
       -> std::optional<std::any> override;
     [[nodiscard]] auto executeAndGetAll(const std::string& query) const
-      -> std::vector<std::any> override;
+      -> cppcoro::generator<std::any> override;
 };
 } // namespace db::sqlite_cpp_db
 

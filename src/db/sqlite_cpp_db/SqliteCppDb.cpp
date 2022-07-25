@@ -39,7 +39,7 @@ db::sqlite_cpp_db::SqliteCppDb::executeAndGet(
 }
 auto
 db::sqlite_cpp_db::SqliteCppDb::executeAndGetAll(
-  const std::string& /*query*/) const -> std::vector<std::any>
+  const std::string& /*query*/) const -> cppcoro::generator<std::any>
 {
     return {};
 }
