@@ -10,7 +10,6 @@ class Recipe(ConanFile):
         self.folders.generators = "conan"
 
     def requirements(self):
-        self.requires("openssl/1.1.1o")
         self.requires("sol2/3.3.0")
         self.requires("sqlitecpp/3.1.1")
         self.requires("boost/1.79.0")
@@ -21,6 +20,7 @@ class Recipe(ConanFile):
         self.requires("type_safe/0.2.2")
         self.requires("luajit/2.0.5")
         self.requires("cocoyaxi/2.0.3")
+        self.requires("sfml/2.5.1")
 
         # Testing only dependencies below
         self.requires("catch2/3.0.1")

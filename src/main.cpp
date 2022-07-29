@@ -3,26 +3,27 @@
 #include <limits>
 #include <iostream>
 
-void
-f()
-{
-    int x{};
-    co::Chan<int> chan(1, std::numeric_limits<uint32_t>::max());
-    go([chan] { chan << 1; });
-    chan >> x;
-    std::cout << x << std::endl;
-}
-
 auto
 mainCo() -> int
 {
-    f();
+    auto chan = co::Chan<int>();
+    go([chan]() {
+        int message{};
+        chan >> message;
+        std::cout << message << std::endl;
+    });
+    go([chan]() {
+        chan << 123;
+        co::sleep(1000);
+        chan << 456;
+    });
     return 0;
 }
 
 auto
 main() -> int
 {
+    auto socket = co::socket(AF_INET, SOCK_STREAM, 0);
     co::WaitGroup wg;
     wg.add();
     int ret;
