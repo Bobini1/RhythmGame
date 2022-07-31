@@ -146,7 +146,7 @@ TEST_CASE("Random blocks get parsed correctly", "[single-file]")
 {
     using namespace std::literals::string_literals;
     auto reader = charts::chart_readers::BmsChartReader{};
-    auto testString = "#RANDOM 5\n#IF 5\n#TITLE 44river\n#ENDIF"s;
+    auto testString = "#RANDOM 5\n#IF 5\n#TITLE 44river\n#BPM 120\n#SUBTITLE testSubTitle\n#GENRE bicior\n#SUBARTIST MC BOBSON\n#ENDIF"s;
     auto resReader = reader.readBmsChartTags(testString);
     REQUIRE(resReader.has_value());
     auto& res = resReader.value();
@@ -158,11 +158,14 @@ TEST_CASE("Random blocks get parsed correctly", "[single-file]")
     REQUIRE(res.randomBlocks[0].second->size() == 1);
     REQUIRE(res.randomBlocks[0].second->contains(5));
     REQUIRE(res.randomBlocks[0].second->begin()->second.title == "44river"s);
+    REQUIRE(res.randomBlocks[0].second->begin()->second.bpm == 120);
+    REQUIRE(res.randomBlocks[0].second->begin()->second.subTitle == "testSubTitle"s);
+    REQUIRE(res.randomBlocks[0].second->begin()->second.genre == "bicior"s);
+    REQUIRE(res.randomBlocks[0].second->begin()->second.subArtist == "MC BOBSON"s);
 }
 
 TEST_CASE("Nested random blocks", "[single-file]")
 {
-
     using namespace std::literals::string_literals;
     auto reader = charts::chart_readers::BmsChartReader{};
     auto testString =
@@ -195,4 +198,31 @@ TEST_CASE("Nested random blocks", "[single-file]")
               ->second.randomBlocks[0]
               .second->begin()
               ->second.artist == "-45"s);
+}
+
+TEST_CASE("Test return values on failed parse", "[single-file]")
+{
+    using namespace std::literals::string_literals;
+    auto reader = charts::chart_readers::BmsChartReader{};
+    auto testString = ""s;
+    auto resReader = reader.readBmsChart(testString);
+    REQUIRE_FALSE(resReader);
+
+    testString = "#ARTST -44"s;
+    auto resReaderTags = reader.readBmsChartTags(testString);
+    REQUIRE(resReaderTags == std::nullopt);
+}
+
+TEST_CASE("Check if readBmsChart returns an actual chart", "[single-file]")
+{
+    using namespace std::literals::string_literals;
+    auto reader = charts::chart_readers::BmsChartReader{};
+    sol::state lua;
+    auto testString = " #ARTIST   cres   \n\n #TITLE     END TIME  \n   #BPM 180"s;
+    auto resReader = reader.readBmsChart(testString);
+    REQUIRE(resReader);
+    resReader->writeFullData(charts::behaviour::SongDataWriter{ lua });
+    REQUIRE(lua["getArtist"].call<std::string>() == "cres"s);
+    REQUIRE(lua["getTitle"].call<std::string>() == "END TIME"s);
+    REQUIRE(lua["getBpm"].call<double>() == 180);
 }
