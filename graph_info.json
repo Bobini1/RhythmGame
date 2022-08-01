@@ -301,6 +301,14 @@
    "False"
   ],
   [
+   "di:diagnostics_level",
+   "1"
+  ],
+  [
+   "di:with_extensions",
+   "False"
+  ],
+  [
    "flac:fPIC",
    "True"
   ],

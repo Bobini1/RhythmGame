@@ -11,7 +11,7 @@ find_package(Catch2 3 REQUIRED)
 
 # ---- Tests ----
 
-add_executable(RhythmGame_test BmsChartReader.test.cpp)
+add_executable(RhythmGame_test BmsChartReader.test.cpp SplashScreen.test.cpp)
 target_link_libraries(
         RhythmGame_test PRIVATE
         RhythmGame_lib

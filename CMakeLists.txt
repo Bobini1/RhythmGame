@@ -25,7 +25,7 @@ find_package(SQLiteCpp REQUIRED)
 
 find_package(pegtl REQUIRED)
 
-# <------------ fmt --------------->
+# <------------ fmt (text formatting) --------------->
 
 find_package(fmt REQUIRED)
 
@@ -33,11 +33,11 @@ find_package(fmt REQUIRED)
 
 find_package(Boost REQUIRED)
 
-# <------------ type_safe --------------->
+# <------------ type_safe (utils) --------------->
 
 find_package(type_safe REQUIRED)
 
-# <------------ coost --------------->
+# <------------ coost (communicating sequential processes and others) --------------->
 
 find_package(cocoyaxi REQUIRED CONFIG)
 
@@ -45,11 +45,15 @@ find_package(cocoyaxi REQUIRED CONFIG)
 
 find_package(SFML REQUIRED)
 
+# <----------- dependency injection --------------->
+
+find_package(di REQUIRED)
+
 # ---- Load library ----
 
 add_library(RhythmGame_lib OBJECT src/db/Db.cpp src/db/sqlite_cpp_db/SqliteCppDb.cpp src/db/sqlite_cpp_db/SqliteCppDb.h
-        src/charts/chart_readers/BmsChartReader.cpp src/charts/models/Chart.h src/charts/models/Chart.cpp src/charts/chart_readers/ToChars.h src/charts/behaviour/SongDataWriter.cpp src/charts/behaviour/SongDataWriter.h src/charts/models/BmsChart.cpp src/charts/models/BmsChart.h src/drawing/Renderer.cpp src/drawing/Renderer.h)
-target_link_libraries(RhythmGame_lib PRIVATE taocpp::pegtl PUBLIC Boost::headers type_safe::type_safe luajit::luajit sol2::sol2 SQLiteCpp cocoyaxi::co sfml::sfml)
+        src/charts/chart_readers/BmsChartReader.cpp src/charts/models/Chart.h src/charts/models/Chart.cpp src/charts/chart_readers/ToChars.h src/charts/behaviour/SongDataWriter.cpp src/charts/behaviour/SongDataWriter.h src/charts/models/BmsChart.cpp src/charts/models/BmsChart.h src/drawing/MainWindow.cpp src/drawing/MainWindow.h src/drawing/Actor.cpp src/drawing/Actor.h src/drawing/SplashWindow.cpp src/drawing/SplashWindow.h src/drawing/Scene.cpp src/drawing/Scene.h src/drawing/SplashScene.cpp src/drawing/SplashScene.h src/resource_locators/LuaScriptFinder.cpp src/resource_locators/LuaScriptFinder.h src/resource_locators/RootFinder.cpp src/resource_locators/RootFinder.h src/resource_locators/CurrentThemeFinder.cpp src/resource_locators/CurrentThemeFinder.h src/resource_locators/ThemeSectionsFinder.cpp src/resource_locators/ThemeSectionsFinder.h src/state_transitions/SceneStateMachine.cpp src/state_transitions/SceneStateMachine.h src/state_transitions/SceneStateMachineImpl.cpp src/state_transitions/SceneStateMachineImpl.h src/state_transitions/WindowStateMachine.cpp src/state_transitions/WindowStateMachine.h src/drawing/Window.cpp src/drawing/Window.h src/state_transitions/WindowStateMachineImpl.cpp src/state_transitions/WindowStateMachineImpl.h)
+target_link_libraries(RhythmGame_lib PRIVATE taocpp::pegtl PUBLIC Boost::headers type_safe::type_safe luajit::luajit sol2::sol2 SQLiteCpp cocoyaxi::co sfml::sfml di::di)
 
 target_compile_features(RhythmGame_lib PRIVATE cxx_std_20)
 target_compile_definitions(RhythmGame_lib PUBLIC "$<$<CONFIG:DEBUG>:DEBUG>")

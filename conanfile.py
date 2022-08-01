@@ -21,6 +21,7 @@ class Recipe(ConanFile):
         self.requires("luajit/2.0.5")
         self.requires("cocoyaxi/2.0.3")
         self.requires("sfml/2.5.1")
+        self.requires("di/1.2.0")
 
         # Testing only dependencies below
         self.requires("catch2/3.0.1")

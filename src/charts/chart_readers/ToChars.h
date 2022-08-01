@@ -20,7 +20,8 @@ getCh(char const (&str)[N], unsigned int index) -> char
     BOOST_PP_REPEAT(STRLEN, STRING_TO_CHARS_EXTRACT, STR)
 
 /**
- * @brief Converts string to sequence of chars.
+ * @brief Converts string to sequence of chars (which can be inserted as a
+ * template argument pack).
  * @param STRLEN Length of the string.
  * @param STR String to convert.
  * @return Char sequence.
