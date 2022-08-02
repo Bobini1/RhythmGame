@@ -1,4 +1,4 @@
-//
+﻿//
 // Created by bobini on 11.07.2022.
 //
 
@@ -225,4 +225,21 @@ TEST_CASE("Check if readBmsChart returns an actual chart", "[single-file]")
     REQUIRE(lua["getArtist"].call<std::string>() == "cres"s);
     REQUIRE(lua["getTitle"].call<std::string>() == "END TIME"s);
     REQUIRE(lua["getBpm"].call<double>() == 180);
+}
+
+TEST_CASE("Check if unicode is parsed correctly", "[unicode]")
+{
+    // note for using unicode - string literals MUST be used, otherwise sol will
+    // throw an exception
+    using namespace std::literals::string_literals;
+    auto reader = charts::chart_readers::BmsChartReader{};
+    sol::state lua;
+    auto testString =
+      "#ARTIST LUNEの右手と悠里おねぇちゃんの左脚 \n\n #TITLE どうか私を殺して下さい -もう、樹海しか見えない-\n   #BPM 166"s;
+    auto resReader = reader.readBmsChart(testString);
+    REQUIRE(resReader);
+    resReader->writeFullData(charts::behaviour::SongDataWriter{ lua });
+    REQUIRE(lua["getArtist"].call<std::string>() == "LUNEの右手と悠里おねぇちゃんの左脚"s);
+    REQUIRE(lua["getTitle"].call<std::string>() == "どうか私を殺して下さい -もう、樹海しか見えない-"s);
+    REQUIRE(lua["getBpm"].call<double>() == 166);
 }
