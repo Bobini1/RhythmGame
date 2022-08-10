@@ -16,6 +16,7 @@ class Window : public sf::RenderWindow
            const sf::Uint32& style,
            const sf::ContextSettings& settings = sf::ContextSettings());
     virtual auto update(std::chrono::nanoseconds delta) -> void = 0;
+    virtual auto draw() -> void = 0;
 };
-}
+} // namespace drawing
 #endif // RHYTHMGAME_WINDOW_H

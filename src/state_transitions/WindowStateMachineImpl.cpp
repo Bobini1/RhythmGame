@@ -2,10 +2,11 @@
 // Created by bobini on 01.08.2022.
 //
 
+#include <SFML/Window/Event.hpp>
 #include "WindowStateMachineImpl.h"
-void
+auto
 state_transitions::WindowStateMachineImpl::update(
-  std::chrono::nanoseconds delta)
+  std::chrono::nanoseconds delta) -> void
 {
     current->update(delta);
 }
@@ -24,4 +25,20 @@ auto
 state_transitions::WindowStateMachineImpl::isOpen() -> bool
 {
     return current->isOpen();
+}
+auto
+state_transitions::WindowStateMachineImpl::pollEvents() -> void
+{
+    sf::Event event{};
+    while (current->pollEvent(event)) {
+        // "close requested" event: we close the window
+        if (event.type == sf::Event::Closed) {
+            current->close();
+        }
+    }
+}
+auto
+state_transitions::WindowStateMachineImpl::draw() -> void
+{
+    current->draw();
 }

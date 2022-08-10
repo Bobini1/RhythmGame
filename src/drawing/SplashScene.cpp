@@ -3,6 +3,8 @@
 //
 
 #include "SplashScene.h"
+#include "Actor.h"
+#include <SFML/Graphics/RenderTarget.hpp>
 void
 drawing::SplashScene::update(std::chrono::nanoseconds delta)
 {
@@ -11,6 +13,11 @@ void
 drawing::SplashScene::draw(sf::RenderTarget& target,
                            sf::RenderStates states) const
 {
+    auto actorsFromLua = std::array<drawing::Actor*, 0>{};
+    std::for_each(
+      std::begin(actorsFromLua),
+      std::end(actorsFromLua),
+      [&target, &states](auto&& actor) { target.draw(*actor, states); });
 }
 drawing::SplashScene::SplashScene(
   std::unique_ptr<resource_locators::LuaScriptFinder> luaScriptFinder)

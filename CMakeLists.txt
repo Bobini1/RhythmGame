@@ -49,6 +49,7 @@ find_package(SFML REQUIRED)
 
 find_package(di REQUIRED)
 
+
 # ---- Load library ----
 
 add_library(RhythmGame_lib OBJECT src/db/Db.cpp src/db/sqlite_cpp_db/SqliteCppDb.cpp src/db/sqlite_cpp_db/SqliteCppDb.h

@@ -10,18 +10,18 @@
 #include "resource_locators/LuaScriptFinder.h"
 #include "Scene.h"
 #include "Window.h"
-#include <boost/di.hpp>
 namespace drawing {
 class SplashWindow : public Window
 {
     std::unique_ptr<Scene> splashScene;
+
   public:
-    BOOST_DI_INJECT(SplashWindow,
-      std::unique_ptr<Scene> splashScene,
-      const sf::VideoMode& mode,
-      (named = std::string("title")) const std::string& title,
-      const sf::ContextSettings& settings = sf::ContextSettings());
+    SplashWindow(std::unique_ptr<Scene> splashScene,
+                 const sf::VideoMode& mode,
+                 const std::string& title,
+                 const sf::ContextSettings& settings = sf::ContextSettings());
     auto update(std::chrono::nanoseconds delta) -> void override;
+    auto draw() -> void override;
 };
 } // namespace drawing
 #endif // RHYTHMGAME_SPLASHWINDOW_H
