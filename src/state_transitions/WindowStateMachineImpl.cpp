@@ -38,7 +38,7 @@ state_transitions::WindowStateMachineImpl::pollEvents() -> void
     }
 }
 auto
-state_transitions::WindowStateMachineImpl::draw() -> void
+state_transitions::WindowStateMachineImpl::draw() const -> void
 {
     current->draw();
 }

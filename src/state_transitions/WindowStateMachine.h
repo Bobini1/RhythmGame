@@ -17,7 +17,7 @@ class WindowStateMachine
     virtual auto changeWindow(std::shared_ptr<drawing::Window> window)
       -> void = 0;
     virtual auto update(std::chrono::nanoseconds delta) -> void = 0;
-    virtual auto draw() -> void = 0;
+    virtual auto draw() const -> void = 0;
     virtual auto pollEvents() -> void = 0;
     virtual auto isOpen() -> bool = 0;
 };

@@ -5,6 +5,7 @@
 #include "SplashScene.h"
 #include "Actor.h"
 #include <SFML/Graphics/RenderTarget.hpp>
+#include <execution>
 void
 drawing::SplashScene::update(std::chrono::nanoseconds delta)
 {
@@ -15,6 +16,7 @@ drawing::SplashScene::draw(sf::RenderTarget& target,
 {
     auto actorsFromLua = std::array<drawing::Actor*, 0>{};
     std::for_each(
+      std::execution::par,
       std::begin(actorsFromLua),
       std::end(actorsFromLua),
       [&target, &states](auto&& actor) { target.draw(*actor, states); });

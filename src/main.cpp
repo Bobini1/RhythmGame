@@ -29,6 +29,8 @@ class LuaLocatorImpl : public resource_locators::LuaScriptFinder
 
 using namespace std::literals;
 
+constexpr auto title = []{};
+
 namespace boost {
 inline namespace ext {
 namespace di {
@@ -38,7 +40,7 @@ struct ctor_traits<drawing::SplashWindow> {
     /*<<no intrusive way of defining named parameters>>*/
     BOOST_DI_INJECT_TRAITS(std::unique_ptr<drawing::Scene> splashScene,
                            const sf::VideoMode& mode,
-                           (named = "title"s) const std::string&,
+                           (named = title) const std::string&,
                            const sf::ContextSettings& settings = sf::ContextSettings());
 };
 
@@ -53,14 +55,15 @@ mainCo() -> int
       boost::di::bind<resource_locators::LuaScriptFinder>()
         .to<LuaLocatorImpl>(),
       boost::di::bind<sf::VideoMode>().to(sf::VideoMode{ 800, 600 }),
-      boost::di::bind<std::string>().named("title"s).to("RhythmGame"),
+      boost::di::bind<std::string>().named(title).to("RhythmGame"),
       boost::di::bind<drawing::Scene>().to<drawing::SplashScene>(),
       boost::di::bind<drawing::Window>.to<drawing::SplashWindow>(),
       boost::di::bind<state_transitions::SceneStateMachine>.to<state_transitions::SceneStateMachineImpl>(),
       boost::di::bind<state_transitions::WindowStateMachine>.to<state_transitions::WindowStateMachineImpl>());
+
     auto wiringStart = std::chrono::high_resolution_clock::now();
     auto windowManager =
-      injector.create<std::unique_ptr<state_transitions::WindowStateMachine>>();
+      injector.create<std::shared_ptr<state_transitions::WindowStateMachine>>();
 
     auto wiringDuration =
       std::chrono::high_resolution_clock::now() - wiringStart;

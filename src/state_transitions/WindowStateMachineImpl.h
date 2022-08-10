@@ -18,7 +18,7 @@ class WindowStateMachineImpl : public WindowStateMachine
     auto update(std::chrono::nanoseconds delta) -> void override;
     auto isOpen() -> bool override;
     auto pollEvents() -> void override;
-    auto draw() -> void override;
+    auto draw() const -> void override;
 };
 } // namespace state_transitions
 #endif // RHYTHMGAME_WINDOWSTATEMACHINEIMPL_H
