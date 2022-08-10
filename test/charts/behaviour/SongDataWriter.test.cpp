@@ -2,7 +2,7 @@
 #include <sol/sol.hpp>
 #include "charts/behaviour/SongDataWriter.h"
 
-TEST_CASE("Check if variables are correttly written to lua state", "[lua]")
+TEST_CASE("Check if variables are correttly written to lua state", "[SongDataWriter]")
 {
     // note for using unicode - string literals MUST be used, otherwise sol will
     // throw an exception

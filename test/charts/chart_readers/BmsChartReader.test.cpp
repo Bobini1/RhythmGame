@@ -6,7 +6,7 @@
 #include "charts/chart_readers/BmsChartReader.h"
 #include <sol/sol.hpp>
 
-TEST_CASE("Check if Title is parsed correctly", "[single-file]")
+TEST_CASE("Check if Title is parsed correctly", "[BmsChartReader]")
 {
     using namespace std::literals::string_literals;
     auto reader = charts::chart_readers::BmsChartReader{};
@@ -19,7 +19,7 @@ TEST_CASE("Check if Title is parsed correctly", "[single-file]")
     REQUIRE(lua["getTitle"].call<std::string>() == "END TIME"s);
 }
 
-TEST_CASE("Check if Artist is parsed correctly", "[single-file]")
+TEST_CASE("Check if Artist is parsed correctly", "[BmsChartReader]")
 {
     using namespace std::literals::string_literals;
     auto reader = charts::chart_readers::BmsChartReader{};
@@ -32,7 +32,7 @@ TEST_CASE("Check if Artist is parsed correctly", "[single-file]")
     REQUIRE(lua["getArtist"].call<std::string>() == "cres"s);
 }
 
-TEST_CASE("Multiple tags at once", "[single-file]")
+TEST_CASE("Multiple tags at once", "[BmsChartReader]")
 {
     using namespace std::literals::string_literals;
     auto reader = charts::chart_readers::BmsChartReader{};
@@ -46,7 +46,7 @@ TEST_CASE("Multiple tags at once", "[single-file]")
     REQUIRE(lua["getTitle"].call<std::string>() == "END TIME"s);
 }
 
-TEST_CASE("Extra whitespace is ignored", "[single-file]")
+TEST_CASE("Extra whitespace is ignored", "[BmsChartReader]")
 {
     using namespace std::literals::string_literals;
     auto reader = charts::chart_readers::BmsChartReader{};
@@ -60,7 +60,7 @@ TEST_CASE("Extra whitespace is ignored", "[single-file]")
     REQUIRE(lua["getTitle"].call<std::string>() == "END TIME"s);
 }
 
-TEST_CASE("Check if BPM is parsed correctly", "[single-file]")
+TEST_CASE("Check if BPM is parsed correctly", "[BmsChartReader]")
 {
     using namespace std::literals::string_literals;
     auto reader = charts::chart_readers::BmsChartReader{};
@@ -142,7 +142,7 @@ TEST_CASE("Check if BPM is parsed correctly", "[single-file]")
     REQUIRE(difference < allowedError);
 }
 
-TEST_CASE("Random blocks get parsed correctly", "[single-file]")
+TEST_CASE("Random blocks get parsed correctly", "[BmsChartReader]")
 {
     using namespace std::literals::string_literals;
     auto reader = charts::chart_readers::BmsChartReader{};
@@ -164,7 +164,7 @@ TEST_CASE("Random blocks get parsed correctly", "[single-file]")
     REQUIRE(res.randomBlocks[0].second->begin()->second.subArtist == "MC BOBSON"s);
 }
 
-TEST_CASE("Nested random blocks", "[single-file]")
+TEST_CASE("Nested random blocks", "[BmsChartReader]")
 {
     using namespace std::literals::string_literals;
     auto reader = charts::chart_readers::BmsChartReader{};
@@ -200,7 +200,7 @@ TEST_CASE("Nested random blocks", "[single-file]")
               ->second.artist == "-45"s);
 }
 
-TEST_CASE("Test return values on failed parse", "[single-file]")
+TEST_CASE("Test return values on failed parse", "[BmsChartReader]")
 {
     using namespace std::literals::string_literals;
     auto reader = charts::chart_readers::BmsChartReader{};
@@ -213,7 +213,7 @@ TEST_CASE("Test return values on failed parse", "[single-file]")
     REQUIRE(resReaderTags == std::nullopt);
 }
 
-TEST_CASE("Check if readBmsChart returns an actual chart", "[single-file]")
+TEST_CASE("Check if readBmsChart returns an actual chart", "[BmsChartReader]")
 {
     using namespace std::literals::string_literals;
     auto reader = charts::chart_readers::BmsChartReader{};
@@ -227,7 +227,7 @@ TEST_CASE("Check if readBmsChart returns an actual chart", "[single-file]")
     REQUIRE(lua["getBpm"].call<double>() == 180);
 }
 
-TEST_CASE("Check if unicode is parsed correctly", "[unicode]")
+TEST_CASE("Check if unicode is parsed correctly", "[BmsChartReader]")
 {
     // note for using unicode - string literals MUST be used, otherwise sol will
     // throw an exception
