@@ -146,7 +146,8 @@ TEST_CASE("Random blocks get parsed correctly", "[BmsChartReader]")
 {
     using namespace std::literals::string_literals;
     auto reader = charts::chart_readers::BmsChartReader{};
-    auto testString = "#RANDOM 5\n#IF 5\n#TITLE 44river\n#BPM 120\n#SUBTITLE testSubTitle\n#GENRE bicior\n#SUBARTIST MC BOBSON\n#ENDIF"s;
+    auto testString =
+      "#RANDOM 5\n#IF 5\n#TITLE 44river\n#BPM 120\n#SUBTITLE testSubTitle\n#GENRE bicior\n#SUBARTIST MC BOBSON\n#ENDIF"s;
     auto resReader = reader.readBmsChartTags(testString);
     REQUIRE(resReader.has_value());
     auto& res = resReader.value();
@@ -159,9 +160,11 @@ TEST_CASE("Random blocks get parsed correctly", "[BmsChartReader]")
     REQUIRE(res.randomBlocks[0].second->contains(5));
     REQUIRE(res.randomBlocks[0].second->begin()->second.title == "44river"s);
     REQUIRE(res.randomBlocks[0].second->begin()->second.bpm == 120);
-    REQUIRE(res.randomBlocks[0].second->begin()->second.subTitle == "testSubTitle"s);
+    REQUIRE(res.randomBlocks[0].second->begin()->second.subTitle ==
+            "testSubTitle"s);
     REQUIRE(res.randomBlocks[0].second->begin()->second.genre == "bicior"s);
-    REQUIRE(res.randomBlocks[0].second->begin()->second.subArtist == "MC BOBSON"s);
+    REQUIRE(res.randomBlocks[0].second->begin()->second.subArtist ==
+            "MC BOBSON"s);
 }
 
 TEST_CASE("Nested random blocks", "[BmsChartReader]")
@@ -218,7 +221,8 @@ TEST_CASE("Check if readBmsChart returns an actual chart", "[BmsChartReader]")
     using namespace std::literals::string_literals;
     auto reader = charts::chart_readers::BmsChartReader{};
     sol::state lua;
-    auto testString = " #ARTIST   cres   \n\n #TITLE     END TIME  \n   #BPM 180"s;
+    auto testString =
+      " #ARTIST   cres   \n\n #TITLE     END TIME  \n   #BPM 180"s;
     auto resReader = reader.readBmsChart(testString);
     REQUIRE(resReader);
     resReader->writeFullData(charts::behaviour::SongDataWriter{ lua });
@@ -239,7 +243,9 @@ TEST_CASE("Check if unicode is parsed correctly", "[BmsChartReader]")
     auto resReader = reader.readBmsChart(testString);
     REQUIRE(resReader);
     resReader->writeFullData(charts::behaviour::SongDataWriter{ lua });
-    REQUIRE(lua["getArtist"].call<std::string>() == "LUNEの右手と悠里おねぇちゃんの左脚"s);
-    REQUIRE(lua["getTitle"].call<std::string>() == "どうか私を殺して下さい -もう、樹海しか見えない-"s);
+    REQUIRE(lua["getArtist"].call<std::string>() ==
+            "LUNEの右手と悠里おねぇちゃんの左脚"s);
+    REQUIRE(lua["getTitle"].call<std::string>() ==
+            "どうか私を殺して下さい -もう、樹海しか見えない-"s);
     REQUIRE(lua["getBpm"].call<double>() == 166);
 }

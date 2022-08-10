@@ -2,7 +2,8 @@
 #include <sol/sol.hpp>
 #include "charts/behaviour/SongDataWriter.h"
 
-TEST_CASE("Check if variables are correttly written to lua state", "[SongDataWriter]")
+TEST_CASE("Check if variables are correctly written to lua state",
+          "[SongDataWriter]")
 {
     // note for using unicode - string literals MUST be used, otherwise sol will
     // throw an exception
@@ -14,5 +15,5 @@ TEST_CASE("Check if variables are correttly written to lua state", "[SongDataWri
     sdw.writeVar("sleepy", true);
     REQUIRE(lua["sleepy"] == true);
     sdw.writeVar("unicodeTest", "日本語"s);
-	REQUIRE(lua["unicodeTest"] == "日本語"s);
+    REQUIRE(lua["unicodeTest"] == "日本語"s);
 }

@@ -2,10 +2,9 @@
 #include "charts/models/BmsChart.h"
 #include <sol/sol.hpp>
 
-
 TEST_CASE("Check if incomplete tags are parsed correctly", "[BmsChart]")
 {
-	using namespace std::literals::string_literals;
+    using namespace std::literals::string_literals;
     sol::state lua;
     charts::behaviour::SongDataWriter writer(lua);
     charts::models::BmsChart::Tags tags;
