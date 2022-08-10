@@ -221,6 +221,8 @@ TEST_CASE("Check if readBmsChart returns an actual chart", "[BmsChartReader]")
     using namespace std::literals::string_literals;
     auto reader = charts::chart_readers::BmsChartReader{};
     sol::state lua;
+    constexpr auto expectedBpm = 180.0;
+    constexpr auto allowedError = 0.00001;
     auto testString =
       " #ARTIST   cres   \n\n #TITLE     END TIME  \n   #BPM 180"s;
     auto resReader = reader.readBmsChart(testString);
@@ -228,7 +230,9 @@ TEST_CASE("Check if readBmsChart returns an actual chart", "[BmsChartReader]")
     resReader->writeFullData(charts::behaviour::SongDataWriter{ lua });
     REQUIRE(lua["getArtist"].call<std::string>() == "cres"s);
     REQUIRE(lua["getTitle"].call<std::string>() == "END TIME"s);
-    REQUIRE(lua["getBpm"].call<double>() == 180);
+    auto difference = lua["getBpm"].call<double>() - expectedBpm;
+    REQUIRE(difference > -allowedError);
+    REQUIRE(difference < allowedError);
 }
 
 TEST_CASE("Check if unicode is parsed correctly", "[BmsChartReader]")
@@ -238,6 +242,8 @@ TEST_CASE("Check if unicode is parsed correctly", "[BmsChartReader]")
     using namespace std::literals::string_literals;
     auto reader = charts::chart_readers::BmsChartReader{};
     sol::state lua;
+    constexpr auto expectedBpm = 166.0;
+    constexpr auto allowedError = 0.00001;
     auto testString =
       "#ARTIST LUNEの右手と悠里おねぇちゃんの左脚 \n\n #TITLE どうか私を殺して下さい -もう、樹海しか見えない-\n   #BPM 166"s;
     auto resReader = reader.readBmsChart(testString);
@@ -247,5 +253,7 @@ TEST_CASE("Check if unicode is parsed correctly", "[BmsChartReader]")
             "LUNEの右手と悠里おねぇちゃんの左脚"s);
     REQUIRE(lua["getTitle"].call<std::string>() ==
             "どうか私を殺して下さい -もう、樹海しか見えない-"s);
-    REQUIRE(lua["getBpm"].call<double>() == 166);
+    auto difference = lua["getBpm"].call<double>() - expectedBpm;
+    REQUIRE(difference > -allowedError);
+    REQUIRE(difference < allowedError);
 }
