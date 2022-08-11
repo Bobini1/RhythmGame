@@ -1,5 +1,6 @@
 #include "charts/chart_readers/ToChars.h"
 #include <catch2/catch_test_macros.hpp>
+#include <utility>
 
 TEST_CASE("Check if getCh utility function returns the right char",
           "[single-file]")
