@@ -56,14 +56,14 @@ jobs:
 
       - name: Install dependencies
         env: { CXX: clang++-12 }
-        run: pip3 install "conan==1.51.0"
+        run: pip3 install "conan==1.50.0"
           && conan profile new default --detect
           && cp .github/clang-12.profile ~/.conan/profiles/default
           && conan install . -b missing
 
       - name: Configure
         env: { CXX: clang++-12 }
-        run: cmake --preset=ci-coverage -Wno-dev
+        run: cmake --preset=ci-coverage
 
       - name: Build
         run: cmake --build build/coverage -j 2
@@ -104,14 +104,14 @@ jobs:
 
       - name: Install dependencies
         env: { CXX: clang++-12 }
-        run: pip3 install "conan==1.51.0"
+        run: pip3 install "conan==1.50.0"
           && conan profile new default --detect
           && cp .github/clang-12.profile ~/.conan/profiles/default
           && conan install . -b missing
 
       - name: Configure
         env: { CXX: clang++-12 }
-        run: cmake --preset=ci-sanitize -Wno-dev
+        run: cmake --preset=ci-sanitize
 
       - name: Build
         run: cmake --build build/sanitize -j 2
@@ -165,7 +165,7 @@ jobs:
       - name: Install dependencies
         shell: bash
         run: |
-          pip3 install "conan==1.51.0"
+          pip3 install "conan==1.50.0"
           conan profile new default --detect --force
           if [ ${{ matrix.os }} = ubuntu-latest ]; then
             conan profile update settings.compiler.libcxx=libstdc++11 default
@@ -177,7 +177,7 @@ jobs:
 
       - name: Configure
         shell: pwsh
-        run: cmake "--preset=ci-$("${{ matrix.os }}".split("-")[0])" -Wno-dev
+        run: cmake "--preset=ci-$("${{ matrix.os }}".split("-")[0])"
 
       - name: Build
         run: cmake --build build --config Release -j 2
