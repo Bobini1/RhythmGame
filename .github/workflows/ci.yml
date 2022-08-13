@@ -39,10 +39,6 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Install llvm utils
-        run: sudo apt-get update -q
-          && sudo apt-get install llvm-12 -q -y
-
       - name: Install Python
         uses: actions/setup-python@v2
         with: { python-version: "3.8" }
@@ -55,14 +51,12 @@ jobs:
           key: conan-packages-coverage
 
       - name: Install dependencies
-        env: { CXX: clang++-12 }
         run: pip3 install "conan==1.50.0"
           && conan profile new default --detect
-          && cp .github/clang-12.profile ~/.conan/profiles/default
+          && conan profile update settings.compiler.libcxx=libstdc++11 default
           && conan install . -b missing
 
       - name: Configure
-        env: { CXX: clang++-12 }
         run: cmake --preset=ci-coverage
 
       - name: Build
@@ -73,7 +67,7 @@ jobs:
         run: ctest --output-on-failure -j 2
 
       - name: Process coverage info
-        run: ls -lR && cmake --build build/coverage -t coverage
+        run: cmake --build build/coverage -t coverage
 
       - name: Submit to codecov.io
         uses: codecov/codecov-action@v1
