@@ -17,7 +17,7 @@ getDb(const std::string& path)
 TEST_CASE("Test database query execution", "[SqliteCppDb]")
 {
     using namespace std::literals::string_literals;
-    auto db = getDb("path.db"s);
+    auto db = getDb("test.db"s);
     REQUIRE_FALSE(db.hasTable("Test"));
     db.execute("CREATE TABLE Test(ID int, Name VARCHAR(255))"s);
     REQUIRE(db.hasTable("Test"));
@@ -35,4 +35,17 @@ TEST_CASE("Test database query execution", "[SqliteCppDb]")
     row = rows[2];
     REQUIRE(std::get<0>(row.value()) == 69);
     REQUIRE(std::get<1>(row.value()) == "ThirdRowName"s);
+}
+
+TEST_CASE("Test failing query", "[SqliteCppDb]")
+{
+    using namespace std::literals::string_literals;
+    auto db = getDb("test2.db"s);
+    REQUIRE_FALSE(db.hasTable("Test"));
+    db.execute("CREATE TABLE Test(ID int, Name VARCHAR(255))"s);
+    auto row =
+      db.executeAndGet<int, std::string>("SELECT * FROM Test WHERE ID = 1"s);
+    REQUIRE_FALSE(row);
+    auto rows = db.executeAndGetAll<int, std::string>("SELECT * FROM Test"s);
+    REQUIRE(rows.empty());
 }

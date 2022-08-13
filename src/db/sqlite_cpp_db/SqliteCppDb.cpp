@@ -4,28 +4,31 @@
 
 #include "SqliteCppDb.h"
 
-thread_local std::unique_ptr<SQLite::Database>
-  db::sqlite_cpp_db::SqliteCppDb::db;
+thread_local std::map<std::string, SQLite::Database>
+  db::sqlite_cpp_db::SqliteCppDb::connections;
 
 db::sqlite_cpp_db::SqliteCppDb::SqliteCppDb(const std::string& dbPath)
 {
-    if (!db) {
-        db = std::make_unique<SQLite::Database>(
-          dbPath, SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
-        db->exec("PRAGMA journal_mode=WAL;");
-        db->exec("PRAGMA synchronous=NORMAL;");
+    if (!connections.contains(dbPath)) {
+        connections.emplace(
+          dbPath,
+          SQLite::Database(dbPath,
+                           SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE));
+        connections.at(dbPath).exec("PRAGMA journal_mode=WAL;");
+        connections.at(dbPath).exec("PRAGMA synchronous=NORMAL;");
 #ifdef DEBUG
-        db->exec("PRAGMA foreign_keys=ON;");
+        connections.at(dbPath).exec("PRAGMA foreign_keys=ON;");
 #endif
     }
+    connKey = dbPath;
 }
 auto
 db::sqlite_cpp_db::SqliteCppDb::hasTable(const std::string& table) const -> bool
 {
-    return db->tableExists(table);
+    return connections.at(connKey).tableExists(table);
 }
 auto
 db::sqlite_cpp_db::SqliteCppDb::execute(const std::string& query) const -> void
 {
-    db->exec(query);
+    connections.at(connKey).exec(query);
 }

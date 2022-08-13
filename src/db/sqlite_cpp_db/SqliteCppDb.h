@@ -7,12 +7,14 @@
 #include <SQLiteCpp/SQLiteCpp.h>
 #include <optional>
 #include <vector>
+#include <map>
 
 namespace db::sqlite_cpp_db {
 
 class SqliteCppDb
 {
-    thread_local static std::unique_ptr<SQLite::Database> db;
+    thread_local static std::map<std::string, SQLite::Database> connections;
+    std::string connKey;
 
   public:
     explicit SqliteCppDb(const std::string& dbPath);
@@ -23,7 +25,7 @@ class SqliteCppDb
     [[nodiscard]] auto executeAndGet(const std::string& query) const
       -> std::optional<std::tuple<Ret...>>
     {
-        SQLite::Statement statement(*db, query);
+        SQLite::Statement statement(connections.at(connKey), query);
         if (!statement.executeStep()) {
             return {};
         }
@@ -55,7 +57,7 @@ class SqliteCppDb
     [[nodiscard]] auto executeAndGetAll(const std::string& query) const
       -> std::vector<std::tuple<Ret...>>
     {
-        SQLite::Statement statement(*db, query);
+        SQLite::Statement statement(connections.at(connKey), query);
         std::vector<std::tuple<Ret...>> result;
         constexpr size_t tupleSize = std::tuple_size_v<std::tuple<Ret...>>;
         constexpr auto indices =
