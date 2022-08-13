@@ -32,9 +32,8 @@ class SqliteCppDb
         constexpr auto indices =
           std::make_integer_sequence<int, static_cast<int>(tupleSize)>();
 
-        auto lambda = [&statement](auto& elem, int index) {
-            elem = static_cast<std::remove_reference_t<decltype(elem)>>(
-              statement.getColumn(index));
+        auto lambda = [&statement]<typename Elem>(Elem& elem, int index) {
+            elem = static_cast<Elem>(statement.getColumn(index));
         };
         auto outerLambda =
           [&lambda, &result ]<int... N>(std::integer_sequence<int, N...>)
