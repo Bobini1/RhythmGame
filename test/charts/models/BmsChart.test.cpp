@@ -30,14 +30,16 @@ TEST_CASE("Check if unicode is parsed correctly", "[BmsChart]")
     tags.title = "😀"s;
     tags.artist = "🤣"s;
     tags.genre = "😇"s;
+    tags.subTitle = "日本語"s;
+    tags.subArtist = "愛してる"s;
     charts::models::BmsChart chart(std::move(tags));
     chart.writeFullData(writer);
     REQUIRE(lua["getTitle"].call<std::string>() == "😀"s);
     REQUIRE(lua["getArtist"].call<std::string>() == "🤣"s);
     REQUIRE(lua["getGenre"].call<std::string>() == "😇"s);
     REQUIRE_FALSE(lua["getBpm"].valid());
-    REQUIRE_FALSE(lua["getSubTitle"].valid());
-    REQUIRE_FALSE(lua["getSubArtist"].valid());
+    REQUIRE(lua["getSubTitle"].call<std::string>() == "日本語"s);
+    REQUIRE(lua["getSubArtist"].call<std::string>() == "愛してる"s);
 }
 
 TEST_CASE("Check no tags provided scenario", "[BmsChart]")

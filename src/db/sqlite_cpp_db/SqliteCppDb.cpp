@@ -4,8 +4,6 @@
 
 #include "SqliteCppDb.h"
 
-#include "SqliteCppDb.h"
-
 thread_local std::unique_ptr<SQLite::Database>
   db::sqlite_cpp_db::SqliteCppDb::db;
 
@@ -30,16 +28,4 @@ auto
 db::sqlite_cpp_db::SqliteCppDb::execute(const std::string& query) const -> void
 {
     db->exec(query);
-}
-auto
-db::sqlite_cpp_db::SqliteCppDb::executeAndGet(
-  const std::string& /*query*/) const -> std::optional<std::any>
-{
-    return std::nullopt;
-}
-auto
-db::sqlite_cpp_db::SqliteCppDb::executeAndGetAll(
-  const std::string& /*query*/) const -> std::vector<std::any>
-{
-    return {};
 }
