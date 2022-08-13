@@ -33,7 +33,12 @@ class SqliteCppDb
           std::make_integer_sequence<int, static_cast<int>(tupleSize)>();
 
         auto lambda = [&statement]<typename Elem>(Elem& elem, int index) {
-            elem = static_cast<Elem>(statement.getColumn(index));
+            // This if is necessary for MSVC (don't ask me why)
+            if constexpr (std::is_same_v<Elem, std::string>) {
+                elem = statement.getColumn(index).getString();
+            } else {
+                elem = static_cast<Elem>(statement.getColumn(index));
+            }
         };
         auto outerLambda =
           [&lambda, &result ]<int... N>(std::integer_sequence<int, N...>)
@@ -56,9 +61,13 @@ class SqliteCppDb
         constexpr auto indices =
           std::make_integer_sequence<int, static_cast<int>(tupleSize)>();
 
-        auto lambda = [&statement](auto& elem, int index) {
-            elem = static_cast<std::remove_reference_t<decltype(elem)>>(
-              statement.getColumn(index));
+        auto lambda = [&statement]<typename Elem>(Elem& elem, int index) {
+            // This if is necessary for MSVC (don't ask me why)
+            if constexpr (std::is_same_v<Elem, std::string>) {
+                elem = statement.getColumn(index).getString();
+            } else {
+                elem = static_cast<Elem>(statement.getColumn(index));
+            }
         };
         auto outerLambda =
           [&lambda, &result ]<int... N>(std::integer_sequence<int, N...>)
