@@ -24,17 +24,18 @@ TEST_CASE("Test database query execution", "[SqliteCppDb]")
     db.execute("INSERT INTO Test VALUES (1, 'TestName')"s);
     auto row =
       db.executeAndGet<int, std::string>("SELECT * FROM Test WHERE ID = 1"s);
-    REQUIRE(std::get<0>(row.value()) == 1);
-    REQUIRE(std::get<1>(row.value()) == "TestName"s);
+    auto& [x, y] = row.value();
+    REQUIRE(x == 1);
+    REQUIRE(y == "TestName"s);
     db.execute("INSERT INTO Test VALUES (2, 'SecondRowName')"s);
     db.execute("INSERT INTO Test VALUES (69, 'ThirdRowName')"s);
     auto rows = db.executeAndGetAll<int, std::string>("SELECT * FROM Test"s);
     row = rows[1];
-    REQUIRE(std::get<0>(row.value()) == 2);
-    REQUIRE(std::get<1>(row.value()) == "SecondRowName"s);
+    REQUIRE(x == 2);
+    REQUIRE(y == "SecondRowName"s);
     row = rows[2];
-    REQUIRE(std::get<0>(row.value()) == 69);
-    REQUIRE(std::get<1>(row.value()) == "ThirdRowName"s);
+    REQUIRE(x == 69);
+    REQUIRE(y == "ThirdRowName"s);
 }
 
 TEST_CASE("Test failing query", "[SqliteCppDb]")
