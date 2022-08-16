@@ -89,10 +89,6 @@
             </dt>
             <dd>Reads BMS charts.</dd>
             <dt>
-              struct <a href="structcharts_1_1chart__readers_1_1CommonTag.html" class="m-doc">CommonTag</a>
-            </dt>
-            <dd><span></span></dd>
-            <dt>
               struct <a href="structcharts_1_1chart__readers_1_1D.html" class="m-doc">D</a>
             </dt>
             <dd><span></span></dd>
@@ -214,59 +210,11 @@
           <h2><a href="#func-members">Functions</a></h2>
           <dl class="m-doc">
             <dt>
-              <span class="m-doc-wrap-bumper"><a href="#a7f666246ee7deaf6cbf6b60d03ebff50" class="m-doc">RHYTHMGAME_TAG_PARSER</a>(</span><span class="m-doc-wrap">Title,
-              5,
-              <a href="structcharts_1_1chart__readers_1_1MetaString.html" class="m-doc">MetaString</a>,
-              &amp;<a href="classcharts_1_1chart__readers_1_1TagsWriter.html#af4f29984447d1a6305e89291927657d2" class="m-doc">TagsWriter::<wbr />setTitle</a>,
-              trimR)</span>
-            </dt>
-            <dd><span></span></dd>
-            <dt>
-              <span class="m-doc-wrap-bumper"><a href="#a0abb16fdc8a4bf8c0777de786bde20c6" class="m-doc">RHYTHMGAME_TAG_PARSER</a>(</span><span class="m-doc-wrap">Artist,
-              6,
-              <a href="structcharts_1_1chart__readers_1_1MetaString.html" class="m-doc">MetaString</a>,
-              &amp;<a href="classcharts_1_1chart__readers_1_1TagsWriter.html#ae1e58f6dc5c244610b44b2e4afe91df3" class="m-doc">TagsWriter::<wbr />setArtist</a>,
-              trimR)</span>
-            </dt>
-            <dd><span></span></dd>
-            <dt>
-              <span class="m-doc-wrap-bumper"><a href="#a3de0d0300ef380089892749f2ce6c4f9" class="m-doc">RHYTHMGAME_TAG_PARSER</a>(</span><span class="m-doc-wrap">SubArtist,
+              <span class="m-doc-wrap-bumper"><a href="#a109b3b3d15538cec934d950fc03f22d0" class="m-doc">RHYTHMGAME_TAG_PARSER</a>(</span><span class="m-doc-wrap">SubArtist,
               9,
               <a href="structcharts_1_1chart__readers_1_1MetaString.html" class="m-doc">MetaString</a>,
               &amp;<a href="classcharts_1_1chart__readers_1_1TagsWriter.html#a9b036ed03d40be7cdca1fb469e1405a5" class="m-doc">TagsWriter::<wbr />setSubArtist</a>,
-              trimR)</span>
-            </dt>
-            <dd><span></span></dd>
-            <dt>
-              <span class="m-doc-wrap-bumper"><a href="#af061d36107409f8f1f585fb6f57b7e35" class="m-doc">RHYTHMGAME_TAG_PARSER</a>(</span><span class="m-doc-wrap">SubTitle,
-              8,
-              <a href="structcharts_1_1chart__readers_1_1MetaString.html" class="m-doc">MetaString</a>,
-              &amp;<a href="classcharts_1_1chart__readers_1_1TagsWriter.html#abcfcb7273e04343be2ad175e732ba41c" class="m-doc">TagsWriter::<wbr />setSubTitle</a>,
-              trimR)</span>
-            </dt>
-            <dd><span></span></dd>
-            <dt>
-              <span class="m-doc-wrap-bumper"><a href="#a15e5c05e6bee1c93d421206214fcd134" class="m-doc">RHYTHMGAME_TAG_PARSER</a>(</span><span class="m-doc-wrap">Bpm,
-              3,
-              <a href="structcharts_1_1chart__readers_1_1Floating.html" class="m-doc">Floating</a>,
-              &amp;<a href="classcharts_1_1chart__readers_1_1TagsWriter.html#a04c28dacc75698732bc6299474c84f6c" class="m-doc">TagsWriter::<wbr />setBpm</a>,
-              std::stod)</span>
-            </dt>
-            <dd><span></span></dd>
-            <dt>
-              <span class="m-doc-wrap-bumper"><a href="#a811234dbb5ee64ab19579b0cd84220e4" class="m-doc">RHYTHMGAME_TAG_PARSER</a>(</span><span class="m-doc-wrap">Genre,
-              5,
-              <a href="structcharts_1_1chart__readers_1_1MetaString.html" class="m-doc">MetaString</a>,
-              &amp;<a href="classcharts_1_1chart__readers_1_1TagsWriter.html#a06dc617439e764f208689f191c3f5e52" class="m-doc">TagsWriter::<wbr />setGenre</a>,
-              trimR)</span>
-            </dt>
-            <dd><span></span></dd>
-            <dt>
-              <span class="m-doc-wrap-bumper"><a href="#a0c8f032bd714f45cf20ec29e5870f827" class="m-doc">RHYTHMGAME_TAG_PARSER</a>(</span><span class="m-doc-wrap">Random,
-              6,
-              pegtl::plus&lt;pegtl::digit&gt;,
-              &amp;<a href="classcharts_1_1chart__readers_1_1TagsWriter.html#afdb0dee000db5f9b4a64e259ca1cd60d" class="m-doc">TagsWriter::<wbr />enterRandom</a>,
-              ([](auto &amp;&amp; <a href="namespacecharts_1_1chart__readers.html#ad9fad93c24fb5afec7334f65e317b16a" class="m-doc">value</a>) { return <a href="namespacecharts_1_1chart__readers.html#a7a149758e6606ad6ec42060c6548cd1d" class="m-doc">RandomRange</a>{ 0, std::stol(trimR(<a href="namespacecharts_1_1chart__readers.html#ad9fad93c24fb5afec7334f65e317b16a" class="m-doc">value</a>)) };})) RHYTHMGAME_TAG_PARSER(If</span>
+              trimR) RHYTHMGAME_TAG_PARSER(Random</span>
             </dt>
             <dd><span></span></dd>
           </dl>
@@ -306,79 +254,13 @@
         </section>
         <section>
           <h2>Function documentation</h2>
-          <section class="m-doc-details" id="a7f666246ee7deaf6cbf6b60d03ebff50"><div>
+          <section class="m-doc-details" id="a109b3b3d15538cec934d950fc03f22d0"><div>
             <h3>
-              <span class="m-doc-wrap-bumper"> charts::<wbr />chart_readers::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a7f666246ee7deaf6cbf6b60d03ebff50" class="m-doc-self">RHYTHMGAME_TAG_PARSER</a>(</span><span class="m-doc-wrap">Title,
-              5,
-              <a href="structcharts_1_1chart__readers_1_1MetaString.html" class="m-doc">MetaString</a>,
-              &amp;<a href="classcharts_1_1chart__readers_1_1TagsWriter.html#af4f29984447d1a6305e89291927657d2" class="m-doc">TagsWriter::<wbr />setTitle</a>,
-              trimR)</span></span>
-              <div class="m-doc-include m-code m-inverted m-text-right"><span class="cp">#include</span> <a class="cpf" href="BmsChartReader_8cpp.html">&lt;src/charts/chart_readers/BmsChartReader.cpp&gt;</a></div>
-            </h3>
-            <p><span></span></p>
-          </div></section>
-          <section class="m-doc-details" id="a0abb16fdc8a4bf8c0777de786bde20c6"><div>
-            <h3>
-              <span class="m-doc-wrap-bumper"> charts::<wbr />chart_readers::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a0abb16fdc8a4bf8c0777de786bde20c6" class="m-doc-self">RHYTHMGAME_TAG_PARSER</a>(</span><span class="m-doc-wrap">Artist,
-              6,
-              <a href="structcharts_1_1chart__readers_1_1MetaString.html" class="m-doc">MetaString</a>,
-              &amp;<a href="classcharts_1_1chart__readers_1_1TagsWriter.html#ae1e58f6dc5c244610b44b2e4afe91df3" class="m-doc">TagsWriter::<wbr />setArtist</a>,
-              trimR)</span></span>
-              <div class="m-doc-include m-code m-inverted m-text-right"><span class="cp">#include</span> <a class="cpf" href="BmsChartReader_8cpp.html">&lt;src/charts/chart_readers/BmsChartReader.cpp&gt;</a></div>
-            </h3>
-            <p><span></span></p>
-          </div></section>
-          <section class="m-doc-details" id="a3de0d0300ef380089892749f2ce6c4f9"><div>
-            <h3>
-              <span class="m-doc-wrap-bumper"> charts::<wbr />chart_readers::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a3de0d0300ef380089892749f2ce6c4f9" class="m-doc-self">RHYTHMGAME_TAG_PARSER</a>(</span><span class="m-doc-wrap">SubArtist,
+              <span class="m-doc-wrap-bumper"> charts::<wbr />chart_readers::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a109b3b3d15538cec934d950fc03f22d0" class="m-doc-self">RHYTHMGAME_TAG_PARSER</a>(</span><span class="m-doc-wrap">SubArtist,
               9,
               <a href="structcharts_1_1chart__readers_1_1MetaString.html" class="m-doc">MetaString</a>,
               &amp;<a href="classcharts_1_1chart__readers_1_1TagsWriter.html#a9b036ed03d40be7cdca1fb469e1405a5" class="m-doc">TagsWriter::<wbr />setSubArtist</a>,
-              trimR)</span></span>
-              <div class="m-doc-include m-code m-inverted m-text-right"><span class="cp">#include</span> <a class="cpf" href="BmsChartReader_8cpp.html">&lt;src/charts/chart_readers/BmsChartReader.cpp&gt;</a></div>
-            </h3>
-            <p><span></span></p>
-          </div></section>
-          <section class="m-doc-details" id="af061d36107409f8f1f585fb6f57b7e35"><div>
-            <h3>
-              <span class="m-doc-wrap-bumper"> charts::<wbr />chart_readers::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#af061d36107409f8f1f585fb6f57b7e35" class="m-doc-self">RHYTHMGAME_TAG_PARSER</a>(</span><span class="m-doc-wrap">SubTitle,
-              8,
-              <a href="structcharts_1_1chart__readers_1_1MetaString.html" class="m-doc">MetaString</a>,
-              &amp;<a href="classcharts_1_1chart__readers_1_1TagsWriter.html#abcfcb7273e04343be2ad175e732ba41c" class="m-doc">TagsWriter::<wbr />setSubTitle</a>,
-              trimR)</span></span>
-              <div class="m-doc-include m-code m-inverted m-text-right"><span class="cp">#include</span> <a class="cpf" href="BmsChartReader_8cpp.html">&lt;src/charts/chart_readers/BmsChartReader.cpp&gt;</a></div>
-            </h3>
-            <p><span></span></p>
-          </div></section>
-          <section class="m-doc-details" id="a15e5c05e6bee1c93d421206214fcd134"><div>
-            <h3>
-              <span class="m-doc-wrap-bumper"> charts::<wbr />chart_readers::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a15e5c05e6bee1c93d421206214fcd134" class="m-doc-self">RHYTHMGAME_TAG_PARSER</a>(</span><span class="m-doc-wrap">Bpm,
-              3,
-              <a href="structcharts_1_1chart__readers_1_1Floating.html" class="m-doc">Floating</a>,
-              &amp;<a href="classcharts_1_1chart__readers_1_1TagsWriter.html#a04c28dacc75698732bc6299474c84f6c" class="m-doc">TagsWriter::<wbr />setBpm</a>,
-              std::stod)</span></span>
-              <div class="m-doc-include m-code m-inverted m-text-right"><span class="cp">#include</span> <a class="cpf" href="BmsChartReader_8cpp.html">&lt;src/charts/chart_readers/BmsChartReader.cpp&gt;</a></div>
-            </h3>
-            <p><span></span></p>
-          </div></section>
-          <section class="m-doc-details" id="a811234dbb5ee64ab19579b0cd84220e4"><div>
-            <h3>
-              <span class="m-doc-wrap-bumper"> charts::<wbr />chart_readers::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a811234dbb5ee64ab19579b0cd84220e4" class="m-doc-self">RHYTHMGAME_TAG_PARSER</a>(</span><span class="m-doc-wrap">Genre,
-              5,
-              <a href="structcharts_1_1chart__readers_1_1MetaString.html" class="m-doc">MetaString</a>,
-              &amp;<a href="classcharts_1_1chart__readers_1_1TagsWriter.html#a06dc617439e764f208689f191c3f5e52" class="m-doc">TagsWriter::<wbr />setGenre</a>,
-              trimR)</span></span>
-              <div class="m-doc-include m-code m-inverted m-text-right"><span class="cp">#include</span> <a class="cpf" href="BmsChartReader_8cpp.html">&lt;src/charts/chart_readers/BmsChartReader.cpp&gt;</a></div>
-            </h3>
-            <p><span></span></p>
-          </div></section>
-          <section class="m-doc-details" id="a0c8f032bd714f45cf20ec29e5870f827"><div>
-            <h3>
-              <span class="m-doc-wrap-bumper"> charts::<wbr />chart_readers::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a0c8f032bd714f45cf20ec29e5870f827" class="m-doc-self">RHYTHMGAME_TAG_PARSER</a>(</span><span class="m-doc-wrap">Random,
-              6,
-              pegtl::plus&lt;pegtl::digit&gt;,
-              &amp;<a href="classcharts_1_1chart__readers_1_1TagsWriter.html#afdb0dee000db5f9b4a64e259ca1cd60d" class="m-doc">TagsWriter::<wbr />enterRandom</a>,
-              ([](auto &amp;&amp; <a href="namespacecharts_1_1chart__readers.html#ad9fad93c24fb5afec7334f65e317b16a" class="m-doc">value</a>) { return <a href="namespacecharts_1_1chart__readers.html#a7a149758e6606ad6ec42060c6548cd1d" class="m-doc">RandomRange</a>{ 0, std::stol(trimR(<a href="namespacecharts_1_1chart__readers.html#ad9fad93c24fb5afec7334f65e317b16a" class="m-doc">value</a>)) };})) RHYTHMGAME_TAG_PARSER(If</span></span>
+              trimR) RHYTHMGAME_TAG_PARSER(Random</span></span>
               <div class="m-doc-include m-code m-inverted m-text-right"><span class="cp">#include</span> <a class="cpf" href="BmsChartReader_8cpp.html">&lt;src/charts/chart_readers/BmsChartReader.cpp&gt;</a></div>
             </h3>
             <p><span></span></p>
