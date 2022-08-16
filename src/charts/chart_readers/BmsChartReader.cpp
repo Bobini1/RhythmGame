@@ -229,16 +229,16 @@ constexpr auto trimR = [](auto&& str) {
 };
 } // namespace
 
-RHYTHMGAME_TAG_PARSER(Title, 5, MetaString, &TagsWriter::setTitle, trimR);
-RHYTHMGAME_TAG_PARSER(Artist, 6, MetaString, &TagsWriter::setArtist, trimR);
+RHYTHMGAME_TAG_PARSER(Title, 5, MetaString, &TagsWriter::setTitle, trimR)
+RHYTHMGAME_TAG_PARSER(Artist, 6, MetaString, &TagsWriter::setArtist, trimR)
 RHYTHMGAME_TAG_PARSER(SubArtist,
                       9,
                       MetaString,
                       &TagsWriter::setSubArtist,
-                      trimR);
-RHYTHMGAME_TAG_PARSER(SubTitle, 8, MetaString, &TagsWriter::setSubTitle, trimR);
-RHYTHMGAME_TAG_PARSER(Bpm, 3, Floating, &TagsWriter::setBpm, std::stod);
-RHYTHMGAME_TAG_PARSER(Genre, 5, MetaString, &TagsWriter::setGenre, trimR);
+                      trimR)
+RHYTHMGAME_TAG_PARSER(SubTitle, 8, MetaString, &TagsWriter::setSubTitle, trimR)
+RHYTHMGAME_TAG_PARSER(Bpm, 3, Floating, &TagsWriter::setBpm, std::stod)
+RHYTHMGAME_TAG_PARSER(Genre, 5, MetaString, &TagsWriter::setGenre, trimR)
 RHYTHMGAME_TAG_PARSER(Random,
                       6,
                       pegtl::plus<pegtl::digit>,
