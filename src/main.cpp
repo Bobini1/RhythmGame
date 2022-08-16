@@ -1,33 +1,12 @@
-#include <utility>
-#include <co/co.h>
-#include <limits>
 #include <iostream>
-
-void
-f()
-{
-    int x{};
-    co::Chan<int> chan(1, std::numeric_limits<uint32_t>::max());
-    go([chan] { chan << 1; });
-    chan >> x;
-    std::cout << x << std::endl;
-}
-
-auto
-mainCo() -> int
-{
-    f();
-    return 0;
-}
+#include "db/sqlite_cpp_db/SqliteCppDb.h"
 
 auto
 main() -> int
 {
-    co::WaitGroup wg;
-    wg.add();
-    int ret;
-    go([&]() { ret = mainCo(); });
-    wg.wait();
-
-    return ret;
+    auto db = db::sqlite_cpp_db::SqliteCppDb{ "db.db" };
+    db.execute("INSERT INTO test VALUES(2, 'user')");
+    auto res = db.executeAndGetAll<int, std::string>("SELECT * FROM test");
+    for (auto& [index, name] : res)
+        std::cout << index << " " << name << "\n";
 }
