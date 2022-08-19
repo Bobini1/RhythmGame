@@ -39,9 +39,9 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Install llvm utils
+      - name: Install LCov
         run: sudo apt-get update -q
-          && sudo apt-get install llvm-12 -q -y
+          && sudo apt-get install lcov -q -y
 
       - name: Install Python
         uses: actions/setup-python@v2
@@ -55,14 +55,12 @@ jobs:
           key: conan-packages-coverage
 
       - name: Install dependencies
-        env: { CXX: clang++-12 }
-        run: pip3 install "conan<2,!=1.49.0"
+        run: pip3 install "conan==1.50.0"
           && conan profile new default --detect
-          && cp .github/clang-12.profile ~/.conan/profiles/default
+          && conan profile update settings.compiler.libcxx=libstdc++11 default
           && conan install . -b missing
 
       - name: Configure
-        env: { CXX: clang++-12 }
         run: cmake --preset=ci-coverage
 
       - name: Build
@@ -104,7 +102,7 @@ jobs:
 
       - name: Install dependencies
         env: { CXX: clang++-12 }
-        run: pip3 install "conan<2,!=1.49.0"
+        run: pip3 install "conan==1.50.0"
           && conan profile new default --detect
           && cp .github/clang-12.profile ~/.conan/profiles/default
           && conan install . -b missing
@@ -165,7 +163,7 @@ jobs:
       - name: Install dependencies
         shell: bash
         run: |
-          pip3 install "conan<2,!=1.49.0"
+          pip3 install "conan==1.50.0"
           conan profile new default --detect --force
           if [ ${{ matrix.os }} = ubuntu-latest ]; then
             conan profile update settings.compiler.libcxx=libstdc++11 default
