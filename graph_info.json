@@ -285,6 +285,10 @@
    "True"
   ],
   [
+   "libbacktrace:shared",
+   "False"
+  ],
+  [
    "luajit:shared",
    "False"
   ],
