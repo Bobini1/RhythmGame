@@ -82,6 +82,10 @@ jobs:
   sanitize:
     needs: [ lint ]
 
+    env:
+        CXX: clang++-12
+        CC: clang-12
+        
     runs-on: ubuntu-latest
 
     steps:
@@ -102,7 +106,6 @@ jobs:
           key: conan-packages-sanitize
 
       - name: Install dependencies
-        env: { CXX: clang++-12 }
         run: pip3 install "conan==1.50.0"
           && conan profile new default --detect
           && cp .github/clang-12.profile ~/.conan/profiles/default
@@ -110,7 +113,6 @@ jobs:
           && conan install . -b missing
 
       - name: Configure
-        env: { CXX: clang++-12 }
         run: cmake --preset=ci-sanitize
 
       - name: Build

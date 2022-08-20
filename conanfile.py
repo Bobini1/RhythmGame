@@ -21,7 +21,6 @@ class Recipe(ConanFile):
         self.requires("type_safe/0.2.2")
         self.requires("luajit/2.0.5")
         self.requires("cocoyaxi/2.0.3")
-        self.requires("libbacktrace/cci.20210118")
 
         # Testing only dependencies below
         self.requires("catch2/3.0.1")
