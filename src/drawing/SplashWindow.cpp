@@ -10,7 +10,7 @@ SplashWindow::update(std::chrono::nanoseconds delta) -> void
 {
     splashScene->update(delta);
 }
-SplashWindow::SplashWindow(std::unique_ptr<Scene> splashScene,
+SplashWindow::SplashWindow(std::shared_ptr<Scene> splashScene,
                            const sf::VideoMode& mode,
                            const std::string& title,
                            const sf::ContextSettings& settings)
@@ -25,4 +25,4 @@ SplashWindow::draw()
     sf::RenderWindow::draw(*splashScene);
     display();
 }
-} // namespace state_transitions
+} // namespace drawing

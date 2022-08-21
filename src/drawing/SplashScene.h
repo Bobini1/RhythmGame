@@ -17,6 +17,6 @@ class SplashScene : public Scene
     auto update(std::chrono::nanoseconds delta) -> void override;
     void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
 };
-} // namespace state_transitions
+} // namespace drawing
 
 #endif // RHYTHMGAME_SPLASHSCENE_H

@@ -13,15 +13,15 @@
 namespace drawing {
 class SplashWindow : public Window
 {
-    std::unique_ptr<Scene> splashScene;
+    std::shared_ptr<Scene> splashScene;
 
   public:
-    SplashWindow(std::unique_ptr<Scene> splashScene,
+    SplashWindow(std::shared_ptr<Scene> splashScene,
                  const sf::VideoMode& mode,
                  const std::string& title,
                  const sf::ContextSettings& settings = sf::ContextSettings());
     auto update(std::chrono::nanoseconds delta) -> void override;
     auto draw() -> void override;
 };
-} // namespace state_transitions
+} // namespace drawing
 #endif // RHYTHMGAME_SPLASHWINDOW_H

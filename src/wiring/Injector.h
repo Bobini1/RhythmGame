@@ -21,7 +21,7 @@ namespace di {
 template <>
 struct [[maybe_unused]] ctor_traits<drawing::SplashWindow> {
     /*<<no intrusive way of defining named parameters>>*/
-    BOOST_DI_INJECT_TRAITS(std::unique_ptr<drawing::Scene> splashScene,
+    BOOST_DI_INJECT_TRAITS(std::shared_ptr<drawing::Scene> splashScene,
                            const sf::VideoMode& mode,
                            (named = title) const std::string&,
                            const sf::ContextSettings& settings = sf::ContextSettings());

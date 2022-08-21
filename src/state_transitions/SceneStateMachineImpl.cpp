@@ -3,6 +3,7 @@
 //
 
 #include "SceneStateMachineImpl.h"
+#include <SFML/Graphics/RenderTarget.hpp>
 
 #include <utility>
 namespace state_transitions {
@@ -27,4 +28,10 @@ SceneStateMachineImpl::getCurrentScene() -> std::shared_ptr<drawing::Scene>
 {
     return current;
 }
+void
+SceneStateMachineImpl::draw(sf::RenderTarget& target,
+                            sf::RenderStates states) const
+{
+    target.draw(*current, states);
 }
+} // namespace state_transitions

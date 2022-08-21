@@ -11,7 +11,7 @@ find_package(Catch2 3 REQUIRED)
 
 # ---- Tests ----
 
-add_executable(RhythmGame_test charts/chart_readers/BmsChartReader.test.cpp charts/chart_readers/ToChars.test.cpp charts/behaviour/SongDataWriter.test.cpp charts/models/BmsChart.test.cpp db/sqlite_cpp_db/SqliteCppDb.test.cpp SplashScreen.test.cpp state_transitions/state_transitions.test.cpp wiring/Injector.test.cpp)
+add_executable(RhythmGame_test charts/chart_readers/BmsChartReader.test.cpp charts/chart_readers/ToChars.test.cpp charts/behaviour/SongDataWriter.test.cpp charts/models/BmsChart.test.cpp db/sqlite_cpp_db/SqliteCppDb.test.cpp state_transitions/state_transitions.test.cpp wiring/Injector.test.cpp drawing/splashWindow.test.cpp)
 target_link_libraries(
         RhythmGame_test PRIVATE
         RhythmGame_lib

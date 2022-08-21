@@ -12,8 +12,7 @@ class WindowStateMachineImpl : public WindowStateMachine
     std::shared_ptr<drawing::Window> current;
 
   public:
-    explicit WindowStateMachineImpl(
-      std::shared_ptr<drawing::Window> startingWindow);
+    explicit WindowStateMachineImpl();
     auto changeWindow(std::shared_ptr<drawing::Window> window) -> void override;
     auto update(std::chrono::nanoseconds delta) -> void override;
     auto isOpen() -> bool override;

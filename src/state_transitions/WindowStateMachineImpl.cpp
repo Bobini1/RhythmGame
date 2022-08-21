@@ -16,11 +16,7 @@ state_transitions::WindowStateMachineImpl::changeWindow(
 {
     current = std::move(window);
 }
-state_transitions::WindowStateMachineImpl::WindowStateMachineImpl(
-  std::shared_ptr<drawing::Window> startingWindow)
-  : current(std::move(startingWindow))
-{
-}
+state_transitions::WindowStateMachineImpl::WindowStateMachineImpl() {}
 auto
 state_transitions::WindowStateMachineImpl::isOpen() -> bool
 {

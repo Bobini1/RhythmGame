@@ -16,6 +16,9 @@ class SceneStateMachineImpl : public SceneStateMachine
     auto changeScene(std::shared_ptr<drawing::Scene> scene) -> void override;
     auto update(std::chrono::nanoseconds delta) -> void override;
     auto getCurrentScene() -> std::shared_ptr<drawing::Scene> override;
+
+  private:
+    void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
 };
 } // namespace state_transitions
 #endif // RHYTHMGAME_SCENESTATEMACHINEIMPL_H
