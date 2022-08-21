@@ -20,6 +20,7 @@ class WindowStateMachine
     virtual auto draw() const -> void = 0;
     virtual auto pollEvents() -> void = 0;
     virtual auto isOpen() -> bool = 0;
+    virtual auto getCurrentWindow() -> std::shared_ptr<drawing::Window> = 0;
 };
 } // namespace state_transitions
 #endif // RHYTHMGAME_WINDOWSTATEMACHINE_H

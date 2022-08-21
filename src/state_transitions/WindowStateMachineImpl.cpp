@@ -42,3 +42,9 @@ state_transitions::WindowStateMachineImpl::draw() const -> void
 {
     current->draw();
 }
+auto
+state_transitions::WindowStateMachineImpl::getCurrentWindow()
+  -> std::shared_ptr<drawing::Window>
+{
+    return current;
+}

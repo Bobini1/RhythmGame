@@ -14,6 +14,6 @@ class Scene : public sf::Drawable
   public:
     virtual auto update(std::chrono::nanoseconds delta) -> void = 0;
 };
-} // namespace drawing
+} // namespace state_transitions
 
 #endif // RHYTHMGAME_SCENE_H

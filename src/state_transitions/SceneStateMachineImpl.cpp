@@ -22,4 +22,9 @@ SceneStateMachineImpl::SceneStateMachineImpl(
   : current(std::move(startingScene))
 {
 }
+auto
+SceneStateMachineImpl::getCurrentScene() -> std::shared_ptr<drawing::Scene>
+{
+    return current;
+}
 }

@@ -19,6 +19,7 @@ class WindowStateMachineImpl : public WindowStateMachine
     auto isOpen() -> bool override;
     auto pollEvents() -> void override;
     auto draw() const -> void override;
+    auto getCurrentWindow() -> std::shared_ptr<drawing::Window> override;
 };
 } // namespace state_transitions
 #endif // RHYTHMGAME_WINDOWSTATEMACHINEIMPL_H

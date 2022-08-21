@@ -25,4 +25,4 @@ SplashWindow::draw()
     sf::RenderWindow::draw(*splashScene);
     display();
 }
-} // namespace drawing
+} // namespace state_transitions

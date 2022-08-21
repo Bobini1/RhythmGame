@@ -15,6 +15,5 @@ MainWindow::MainWindow(const sf::VideoMode& mode,
 void
 MainWindow::update(std::chrono::nanoseconds delta)
 {
-
 }
-} // namespace drawing
+} // namespace state_transitions

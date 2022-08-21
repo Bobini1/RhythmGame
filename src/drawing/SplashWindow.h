@@ -23,5 +23,5 @@ class SplashWindow : public Window
     auto update(std::chrono::nanoseconds delta) -> void override;
     auto draw() -> void override;
 };
-} // namespace drawing
+} // namespace state_transitions
 #endif // RHYTHMGAME_SPLASHWINDOW_H
