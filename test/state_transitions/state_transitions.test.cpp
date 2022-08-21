@@ -115,6 +115,6 @@ TEST_CASE("The window manager's updates get passed down", "[state_transitions]")
     REQUIRE(dummyWindow->getUpdateCount() == 1);
     REQUIRE(otherWindow->getUpdateCount() == 2);
     REQUIRE(dummyWindow->getDrawCount() == 1);
-    REQUIRE(otherWindow->getDrawCount() == 1);
+    REQUIRE(otherWindow->getDrawCount() == 2);
     REQUIRE(windowStateMachine->isOpen());
 }

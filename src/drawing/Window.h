@@ -18,5 +18,5 @@ class Window : public sf::RenderWindow
     virtual auto update(std::chrono::nanoseconds delta) -> void = 0;
     virtual auto draw() -> void = 0;
 };
-} // namespace state_transitions
+} // namespace drawing
 #endif // RHYTHMGAME_WINDOW_H
