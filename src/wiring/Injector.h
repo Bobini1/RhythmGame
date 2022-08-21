@@ -32,7 +32,7 @@ struct [[maybe_unused]] ctor_traits<drawing::SplashWindow> {
 }  // namespace boost
 
 namespace wiring {
-auto
+inline auto
 getInjector() -> auto
 {
     class LuaScriptFinderImpl : public resource_locators::LuaScriptFinder
