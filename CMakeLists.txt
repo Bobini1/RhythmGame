@@ -59,7 +59,8 @@ message(STATUS "CMake DL Libs: ${CMAKE_DL_LIBS}")
 find_package(Backtrace)
 
 find_package(Threads REQUIRED)
-target_link_libraries(RhythmGame_lib PRIVATE ${Backtrace_LIBRARIES} Threads::Threads taocpp::pegtl PUBLIC Boost::headers type_safe::type_safe luajit::luajit sol2::sol2 SQLiteCpp cocoyaxi::co sfml::sfml di::di ${CMAKE_DL_LIBS})
+target_link_libraries(RhythmGame_lib PRIVATE Threads::Threads taocpp::pegtl PUBLIC Boost::headers type_safe::type_safe luajit::luajit sol2::sol2 SQLiteCpp cocoyaxi::co sfml::sfml di::di ${CMAKE_DL_LIBS} ${Backtrace_LIBRARIES})
+target_include_directories(RhythmGame_lib PUBLIC ${Backtrace_INCLUDE_DIRS})
 
 target_compile_features(RhythmGame_lib PRIVATE cxx_std_20)
 target_compile_definitions(RhythmGame_lib PUBLIC "$<$<CONFIG:DEBUG>:DEBUG>")
