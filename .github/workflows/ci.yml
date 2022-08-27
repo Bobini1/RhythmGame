@@ -55,7 +55,7 @@ jobs:
           key: conan-packages-coverage
 
       - name: Install dependencies
-        run: pip3 install "conan==1.50.0"
+        run: pip3 install "conan==1.51.3"
           && conan profile new default --detect
           && conan profile update settings.compiler.libcxx=libstdc++11 default
           && conan install . -b missing
@@ -102,7 +102,7 @@ jobs:
 
       - name: Install dependencies
         env: { CXX: clang++-12 }
-        run: pip3 install "conan==1.50.0"
+        run: pip3 install "conan==1.51.3"
           && conan profile new default --detect
           && cp .github/clang-12.profile ~/.conan/profiles/default
           && conan install . -b missing
@@ -163,7 +163,7 @@ jobs:
       - name: Install dependencies
         shell: bash
         run: |
-          pip3 install "conan==1.50.0"
+          pip3 install "conan==1.51.3"
           conan profile new default --detect --force
           if [ ${{ matrix.os }} = ubuntu-latest ]; then
             conan profile update settings.compiler.libcxx=libstdc++11 default
