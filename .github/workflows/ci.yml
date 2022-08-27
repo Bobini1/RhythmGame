@@ -65,7 +65,7 @@ jobs:
           && conan profile new default --detect
           && conan profile update settings.compiler.libcxx=libstdc++11 default
           && conan create ./recipes/cocoyaxi/all/ 2.0.3@ -s build_type=Debug
-          && conan install . -b missing
+          && conan install . -b missing -c tools.system.package_manager:mode=install
 
       - name: Configure
         run: cmake --preset=ci-coverage
@@ -120,7 +120,7 @@ jobs:
           && conan profile new default --detect
           && cp .github/clang-12.profile ~/.conan/profiles/default
           && conan create ./recipes/cocoyaxi/all/ 2.0.3@ -s build_type=Debug
-          && conan install . -b missing
+          && conan install . -b missing -c tools.system.package_manager:mode=install
 
       - name: Configure
         run: cmake --preset=ci-sanitize
@@ -193,7 +193,7 @@ jobs:
             conan create ./recipes/luajit/all/ 2.0.5@ -s build_type=Debug
           fi
           conan create ./recipes/cocoyaxi/all/ 2.0.3@ -s build_type=Debug
-          conan install . -b missing
+          conan install . -b missing -c tools.system.package_manager:mode=install
 
       - name: Configure
         shell: pwsh
