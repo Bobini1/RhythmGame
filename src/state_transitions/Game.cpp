@@ -12,7 +12,7 @@ Game::run() -> void
 {
     std::atomic<bool> finished;
     auto eventManagement =
-      std::jthread{ [&windowManager = windowManager, &finished] {
+      std::thread{ [&windowManager = windowManager, &finished] {
           while (!finished.load(std::memory_order_acquire)) {
               windowManager->pollEvents();
           }
@@ -26,6 +26,7 @@ Game::run() -> void
         windowManager->draw();
     }
     finished.store(true, std::memory_order_release);
+    eventManagement.join();
 }
 Game::Game(
   std::shared_ptr<state_transitions::WindowStateMachine> windowStateMachine,
