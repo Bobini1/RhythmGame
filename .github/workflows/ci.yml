@@ -34,6 +34,9 @@ jobs:
 
     runs-on: ubuntu-latest
 
+    env:
+      CONAN_REVISIONS_ENABLED: 1
+
     if: github.repository_owner == 'Bobini1'
 
     steps:
@@ -58,7 +61,7 @@ jobs:
           key: conan-packages-coverage
 
       - name: Install dependencies
-        run: pip3 install "conan==1.51.3"
+        run: pip3 install "conan==1.50.0"
           && conan profile new default --detect
           && conan profile update settings.compiler.libcxx=libstdc++11 default
           && conan create ./recipes/cocoyaxi/all/ 2.0.3@ -s build_type=Debug
@@ -88,6 +91,7 @@ jobs:
     env:
       CXX: clang++-12
       CC: clang-12
+      CONAN_REVISIONS_ENABLED: 1
 
     runs-on: ubuntu-latest
 
@@ -112,7 +116,7 @@ jobs:
           key: conan-packages-sanitize
 
       - name: Install dependencies
-        run: pip3 install "conan==1.51.3"
+        run: pip3 install "conan==1.50.0"
           && conan profile new default --detect
           && cp .github/clang-12.profile ~/.conan/profiles/default
           && conan create ./recipes/cocoyaxi/all/ 2.0.3@ -s build_type=Debug
@@ -137,6 +141,9 @@ jobs:
 
   test:
     needs: [ lint ]
+
+    env:
+      CONAN_REVISIONS_ENABLED: 1
 
     strategy:
       matrix:
@@ -177,7 +184,7 @@ jobs:
       - name: Install dependencies
         shell: bash
         run: |
-          pip3 install "conan==1.51.3"
+          pip3 install "conan==1.50.0"
           conan profile new default --detect --force
           if [ ${{ matrix.os }} = ubuntu-latest ]; then
             conan profile update settings.compiler.libcxx=libstdc++11 default
