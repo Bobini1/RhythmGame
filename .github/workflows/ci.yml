@@ -48,7 +48,7 @@ jobs:
         with: { python-version: "3.8" }
 
       - name: Install system dependencies
-        run: sudo apt-get install libudev-dev
+        run: sudo apt-get install libudev-dev libgl-dev -y
 
       - name: Cache conan
         id: cache-conan
@@ -94,7 +94,7 @@ jobs:
         with: { python-version: "3.8" }
 
       - name: Install system dependencies
-        run: sudo apt-get install libudev-dev
+        run: sudo apt-get install libudev-dev libgl-dev -y
 
       - name: Install Clang 12
         run: sudo apt update && sudo apt install clang-12
@@ -153,7 +153,7 @@ jobs:
 
       - name: Install system dependencies
         if: matrix.os == 'ubuntu-latest'
-        run: sudo apt-get install libudev-dev
+        run: sudo apt-get install libudev-dev libgl-dev -y
 
       - name: Cache conan
         id: cache-conan
