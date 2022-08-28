@@ -16,7 +16,9 @@ drawing::SplashScene::draw(sf::RenderTarget& target,
 {
     auto actorsFromLua = std::array<drawing::Actor*, 0>{};
     std::for_each(
+#ifndef RHYTHMGAME_HAS_STD_EXECUTION
       std::execution::par,
+#endif
       std::begin(actorsFromLua),
       std::end(actorsFromLua),
       [&target, &states](auto&& actor) { target.draw(*actor, states); });
