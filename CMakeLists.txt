@@ -66,6 +66,9 @@ if (RHYTHMGAME_HAS_STD_EXECUTION)
 target_compile_definitions(RhythmGame_lib PUBLIC RHYTHMGAME_HAS_STD_EXECUTION)
 endif()
 
+# We all love MSVC.
+target_compile_definitions(RhythmGame_lib PUBLIC NOMINMAX)
+
 target_compile_features(RhythmGame_lib PRIVATE cxx_std_20)
 target_compile_definitions(RhythmGame_lib PUBLIC "$<$<CONFIG:DEBUG>:DEBUG>")
 target_include_directories(
