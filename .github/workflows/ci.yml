@@ -64,7 +64,6 @@ jobs:
         run: pip3 install "conan==1.50.0"
           && conan profile new default --detect
           && conan profile update settings.compiler.libcxx=libstdc++11 default
-          && conan create ./recipes/cocoyaxi/all/ 2.0.3@ -s build_type=Debug
           && conan install . -b missing -c tools.system.package_manager:mode=install -c tools.system.package_manager:sudo=True
 
       - name: Configure
@@ -119,7 +118,6 @@ jobs:
         run: pip3 install "conan==1.50.0"
           && conan profile new default --detect
           && cp .github/clang-12.profile ~/.conan/profiles/default
-          && conan create ./recipes/cocoyaxi/all/ 2.0.3@ -s build_type=Debug
           && conan install . -b missing -c tools.system.package_manager:mode=install -c tools.system.package_manager:sudo=True
 
       - name: Configure
@@ -193,7 +191,6 @@ jobs:
           if [ ${{ matrix.os }} = macos-latest ]; then
             conan create ./recipes/luajit/all/ 2.0.5@ -s build_type=Debug
           fi
-          conan create ./recipes/cocoyaxi/all/ 2.0.3@ -s build_type=Debug
           conan install . -b missing -c tools.system.package_manager:mode=install -c tools.system.package_manager:sudo=True
 
       - name: Configure
