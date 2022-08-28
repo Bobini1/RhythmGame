@@ -60,7 +60,7 @@ find_package(Threads REQUIRED)
 target_link_libraries(RhythmGame_lib PRIVATE Threads::Threads taocpp::pegtl PUBLIC Boost::headers type_safe::type_safe luajit::luajit sol2::sol2 SQLiteCpp cocoyaxi::co sfml::sfml di::di ${CMAKE_DL_LIBS})
 
 if (NOT MSVC)
-target_compile_options(RhythmGame_lib PUBLIC "-std=c++20")
+target_compile_options(RhythmGame_lib PUBLIC "-std=c++2a")
 endif()
 
 target_compile_features(RhythmGame_lib PRIVATE cxx_std_20)
