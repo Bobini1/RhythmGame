@@ -329,6 +329,10 @@
    "True"
   ],
   [
+   "libbacktrace:shared",
+   "False"
+  ],
+  [
    "libpng:api_prefix",
    ""
   ],
