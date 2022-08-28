@@ -37,10 +37,6 @@ find_package(Boost REQUIRED)
 
 find_package(type_safe REQUIRED)
 
-# <------------ coost (communicating sequential processes and others) --------------->
-
-find_package(cocoyaxi REQUIRED CONFIG)
-
 # <------------ sfml (game engine) --------------->
 
 find_package(SFML REQUIRED)
@@ -49,8 +45,6 @@ find_package(SFML REQUIRED)
 
 find_package(di REQUIRED)
 
-find_package(libbacktrace REQUIRED)
-
 # ---- Load library ----
 
 add_library(RhythmGame_lib OBJECT src/db/sqlite_cpp_db/SqliteCppDb.cpp src/db/sqlite_cpp_db/SqliteCppDb.h
@@ -58,7 +52,7 @@ add_library(RhythmGame_lib OBJECT src/db/sqlite_cpp_db/SqliteCppDb.cpp src/db/sq
 message(STATUS "CMake DL Libs: ${CMAKE_DL_LIBS}")
 
 find_package(Threads REQUIRED)
-target_link_libraries(RhythmGame_lib PRIVATE Threads::Threads taocpp::pegtl PUBLIC Boost::headers libbacktrace::libbacktrace type_safe::type_safe luajit::luajit sol2::sol2 SQLiteCpp cocoyaxi::co sfml::sfml di::di ${CMAKE_DL_LIBS})
+target_link_libraries(RhythmGame_lib PRIVATE Threads::Threads taocpp::pegtl PUBLIC Boost::headers type_safe::type_safe luajit::luajit sol2::sol2 SQLiteCpp sfml::sfml di::di ${CMAKE_DL_LIBS})
 
 include(CheckCXXSymbolExists)
 check_cxx_symbol_exists(std::execution::par "execution" RHYTHMGAME_HAS_STD_EXECUTION)
