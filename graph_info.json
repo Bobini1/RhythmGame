@@ -1,10 +1,6 @@
 {
  "options": [
   [
-   "boost:addr2line_location",
-   "/usr/bin/addr2line"
-  ],
-  [
    "boost:asio_no_deprecated",
    "False"
   ],
@@ -33,12 +29,12 @@
    "None"
   ],
   [
-   "boost:fPIC",
-   "True"
-  ],
-  [
    "boost:filesystem_no_deprecated",
    "False"
+  ],
+  [
+   "boost:filesystem_version",
+   "None"
   ],
   [
    "boost:header_only",
@@ -50,7 +46,7 @@
   ],
   [
    "boost:i18n_backend_iconv",
-   "libc"
+   "off"
   ],
   [
    "boost:i18n_backend_icu",
@@ -115,10 +111,6 @@
   [
    "boost:visibility",
    "hidden"
-  ],
-  [
-   "boost:with_stacktrace_backtrace",
-   "True"
   ],
   [
    "boost:without_atomic",
@@ -253,19 +245,11 @@
    "False"
   ],
   [
-   "brotli:fPIC",
-   "True"
-  ],
-  [
    "brotli:shared",
    "False"
   ],
   [
    "bzip2:build_executable",
-   "True"
-  ],
-  [
-   "bzip2:fPIC",
    "True"
   ],
   [
@@ -277,16 +261,8 @@
    "None"
   ],
   [
-   "catch2:fPIC",
-   "True"
-  ],
-  [
    "catch2:with_prefix",
    "False"
-  ],
-  [
-   "cocoyaxi:fPIC",
-   "True"
   ],
   [
    "cocoyaxi:shared",
@@ -309,16 +285,8 @@
    "False"
   ],
   [
-   "flac:fPIC",
-   "True"
-  ],
-  [
    "flac:shared",
    "False"
-  ],
-  [
-   "fmt:fPIC",
-   "True"
   ],
   [
    "fmt:header_only",
@@ -334,10 +302,6 @@
   ],
   [
    "fmt:with_os_api",
-   "True"
-  ],
-  [
-   "freetype:fPIC",
    "True"
   ],
   [
@@ -365,32 +329,8 @@
    "True"
   ],
   [
-   "libalsa:disable_python",
-   "True"
-  ],
-  [
-   "libalsa:fPIC",
-   "True"
-  ],
-  [
-   "libalsa:shared",
-   "False"
-  ],
-  [
-   "libbacktrace:fPIC",
-   "True"
-  ],
-  [
-   "libbacktrace:shared",
-   "False"
-  ],
-  [
    "libpng:api_prefix",
    ""
-  ],
-  [
-   "libpng:fPIC",
-   "True"
   ],
   [
    "libpng:shared",
@@ -401,24 +341,12 @@
    "True"
   ],
   [
-   "luajit:fPIC",
-   "True"
-  ],
-  [
    "luajit:shared",
    "False"
   ],
   [
-   "ogg:fPIC",
-   "True"
-  ],
-  [
    "ogg:shared",
    "False"
-  ],
-  [
-   "openal:fPIC",
-   "True"
   ],
   [
    "openal:shared",
@@ -426,10 +354,6 @@
   ],
   [
    "sfml:audio",
-   "True"
-  ],
-  [
-   "sfml:fPIC",
    "True"
   ],
   [
@@ -521,10 +445,6 @@
    "True"
   ],
   [
-   "sqlite3:fPIC",
-   "True"
-  ],
-  [
    "sqlite3:max_blob_size",
    "None"
   ],
@@ -557,10 +477,6 @@
    "False"
   ],
   [
-   "sqlitecpp:fPIC",
-   "True"
-  ],
-  [
    "sqlitecpp:shared",
    "False"
   ],
@@ -577,16 +493,8 @@
    "False"
   ],
   [
-   "vorbis:fPIC",
-   "True"
-  ],
-  [
    "vorbis:shared",
    "False"
-  ],
-  [
-   "zlib:fPIC",
-   "True"
   ],
   [
    "zlib:shared",
