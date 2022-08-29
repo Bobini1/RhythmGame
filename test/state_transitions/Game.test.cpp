@@ -49,7 +49,7 @@ class DummyWindowManager : public state_transitions::WindowStateMachine
 } // namespace
 
 TEST_CASE("The game can runs without issues for a few frames",
-          "[state_transitions][.window]")
+          "[state_transitions][window][!mayfail]")
 {
     auto game = state_transitions::Game{
         std::make_shared<DummyWindowManager>(),
