@@ -83,8 +83,7 @@ class DummyWindow : public drawing::Window
     auto getDrawCount() const -> unsigned { return drawCount; }
 };
 
-TEST_CASE("Windows can be added in the state machine and changed",
-          "[window][!mayfail]")
+TEST_CASE("Windows can be added in the state machine and changed", "[.window]")
 {
     auto dummyWindow = std::make_shared<DummyWindow>();
     auto windowStateMachine =
@@ -96,7 +95,7 @@ TEST_CASE("Windows can be added in the state machine and changed",
     REQUIRE(windowStateMachine->getCurrentWindow() == otherWindow);
 }
 
-TEST_CASE("The window manager's updates get passed down", "[window][!mayfail]")
+TEST_CASE("The window manager's updates get passed down", "[.window]")
 {
     auto dummyWindow = std::make_shared<DummyWindow>();
     auto windowStateMachine =
