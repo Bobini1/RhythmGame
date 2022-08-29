@@ -1,11 +1,9 @@
-#include <co/co.h>
-
 #include "wiring/Injector.h"
 
 #include "state_transitions/Game.h"
 
 auto
-mainCo() -> int
+main() -> int
 {
     auto injector = wiring::getInjector();
 
@@ -13,16 +11,4 @@ mainCo() -> int
     game.run();
 
     return 0;
-}
-
-auto
-main() -> int
-{
-    co::WaitGroup waitGroup;
-    waitGroup.add();
-    int ret{};
-    go([&]() { ret = mainCo(); });
-    waitGroup.wait();
-
-    return ret;
 }
