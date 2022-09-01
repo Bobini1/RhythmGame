@@ -8,12 +8,13 @@
 #include <drawing/Scene.h>
 #include <chrono>
 namespace state_transitions {
-class SceneStateMachine : sf::Drawable
+template<typename T>
+concept SceneStateMachine = requires(T sceneStateMachine, std::shared_ptr<drawing::Scene> scene, std::chrono::nanoseconds delta)
 {
-  public:
-    virtual auto changeScene(std::shared_ptr<drawing::Scene> scene) -> void = 0;
-    virtual auto update(std::chrono::nanoseconds delta) -> void = 0;
-    virtual auto getCurrentScene() -> std::shared_ptr<drawing::Scene> = 0;
+    std::is_base_of_v<sf::Drawable, T>;
+    {sceneStateMachine.changeScene(scene)} -> std::same_as<void>;
+    {sceneStateMachine.update(delta)} -> std::same_as<void>;
+    {sceneStateMachine.getCurrentScene()} -> std::convertible_to<std::shared_ptr<drawing::Scene>>;
 };
 } // namespace state_transitions
 #endif // RHYTHMGAME_SCENESTATEMACHINE_H

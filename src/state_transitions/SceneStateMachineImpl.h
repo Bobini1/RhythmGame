@@ -6,16 +6,16 @@
 #define RHYTHMGAME_SCENESTATEMACHINEIMPL_H
 #include "state_transitions/SceneStateMachine.h"
 namespace state_transitions {
-class SceneStateMachineImpl : public SceneStateMachine
+class SceneStateMachineImpl : public sf::Drawable
 {
     std::shared_ptr<drawing::Scene> current;
 
   public:
     explicit SceneStateMachineImpl(
       std::shared_ptr<drawing::Scene> startingScene);
-    auto changeScene(std::shared_ptr<drawing::Scene> scene) -> void override;
-    auto update(std::chrono::nanoseconds delta) -> void override;
-    auto getCurrentScene() -> std::shared_ptr<drawing::Scene> override;
+    auto changeScene(std::shared_ptr<drawing::Scene> scene) -> void;
+    auto update(std::chrono::nanoseconds delta) -> void;
+    auto getCurrentScene() -> std::shared_ptr<drawing::Scene>;
 
   private:
     void draw(sf::RenderTarget& target, sf::RenderStates states) const override;

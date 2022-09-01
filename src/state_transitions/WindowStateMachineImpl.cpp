@@ -18,7 +18,7 @@ state_transitions::WindowStateMachineImpl::changeWindow(
 }
 state_transitions::WindowStateMachineImpl::WindowStateMachineImpl() {}
 auto
-state_transitions::WindowStateMachineImpl::isOpen() -> bool
+state_transitions::WindowStateMachineImpl::isOpen() const -> bool
 {
     return current->isOpen();
 }
@@ -39,7 +39,7 @@ state_transitions::WindowStateMachineImpl::draw() const -> void
     current->draw();
 }
 auto
-state_transitions::WindowStateMachineImpl::getCurrentWindow()
+state_transitions::WindowStateMachineImpl::getCurrentWindow() const
   -> std::shared_ptr<drawing::Window>
 {
     return current;

@@ -11,12 +11,13 @@
 #include "Scene.h"
 #include "Window.h"
 namespace drawing {
+
 class SplashWindow : public Window
 {
-    std::shared_ptr<Scene> splashScene;
+    std::shared_ptr<drawing::Scene> splashScene;
 
   public:
-    SplashWindow(std::shared_ptr<Scene> splashScene,
+    SplashWindow(std::shared_ptr<drawing::Scene> splashScene,
                  const sf::VideoMode& mode,
                  const std::string& title,
                  const sf::ContextSettings& settings = sf::ContextSettings());

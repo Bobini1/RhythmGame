@@ -8,13 +8,10 @@
 #include <string>
 #include <filesystem>
 namespace resource_locators {
-class LuaScriptFinder
+template<typename T>
+concept LuaScriptFinder = requires(T luaScriptFinder, const std::string& screen)
 {
-  public:
-    virtual auto findHandlerScript(const std::string& screen)
-      -> std::string = 0;
-
-    virtual ~LuaScriptFinder() = default;
+    {luaScriptFinder.findHandlerScript(screen)} -> std::convertible_to<std::string>;
 };
 } // namespace resource_locators
 

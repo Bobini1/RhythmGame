@@ -5,16 +5,42 @@
 #ifndef RHYTHMGAME_GAME_H
 #define RHYTHMGAME_GAME_H
 #include "state_transitions/WindowStateMachineImpl.h"
+#include <future>
+#include <thread>
 namespace state_transitions {
+
+template<WindowStateMachine WindowStateMachineType>
 class Game
 {
-    std::shared_ptr<state_transitions::WindowStateMachine> windowManager;
+    WindowStateMachineType windowManager;
 
   public:
-    Game(
-      std::shared_ptr<state_transitions::WindowStateMachine> windowStateMachine,
-      std::shared_ptr<drawing::Window> startingWindow);
-    auto run() -> void;
+    Game(WindowStateMachineType windowStateMachine,
+         std::shared_ptr<drawing::Window> startingWindow)
+      : windowManager(std::move(windowStateMachine))
+    {
+        windowManager.changeWindow(std::move(startingWindow));
+    }
+    auto run() -> void
+    {
+        std::atomic<bool> finished;
+        auto eventManagement =
+          std::thread{ [&windowManager = windowManager, &finished] {
+              while (!finished.load(std::memory_order_acquire)) {
+                  windowManager.pollEvents();
+              }
+          } };
+        auto start = std::chrono::high_resolution_clock::now();
+        while (windowManager.isOpen()) {
+            auto now = std::chrono::high_resolution_clock::now();
+            auto delta = now - start;
+            start = now;
+            windowManager.update(std::chrono::nanoseconds{ delta });
+            windowManager.draw();
+        }
+        finished.store(true, std::memory_order_release);
+        eventManagement.join();
+    }
 };
 } // namespace state_transitions
 #endif // RHYTHMGAME_GAME_H

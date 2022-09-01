@@ -48,7 +48,7 @@ find_package(di REQUIRED)
 # ---- Load library ----
 
 add_library(RhythmGame_lib OBJECT src/db/sqlite_cpp_db/SqliteCppDb.cpp src/db/sqlite_cpp_db/SqliteCppDb.h
-        src/charts/chart_readers/BmsChartReader.cpp src/charts/models/Chart.h src/charts/models/Chart.cpp src/charts/chart_readers/ToChars.h src/charts/behaviour/SongDataWriter.cpp src/charts/behaviour/SongDataWriter.h src/charts/models/BmsChart.cpp src/charts/models/BmsChart.h src/drawing/MainWindow.cpp src/drawing/MainWindow.h src/drawing/Actor.cpp src/drawing/Actor.h src/drawing/SplashWindow.cpp src/drawing/SplashWindow.h src/drawing/Scene.cpp src/drawing/Scene.h src/drawing/SplashScene.cpp src/drawing/SplashScene.h src/resource_locators/LuaScriptFinder.cpp src/resource_locators/LuaScriptFinder.h src/resource_locators/CurrentThemeFinder.cpp src/resource_locators/CurrentThemeFinder.h src/resource_locators/ThemeSectionsFinder.cpp src/resource_locators/ThemeSectionsFinder.h src/state_transitions/SceneStateMachine.cpp src/state_transitions/SceneStateMachine.h src/state_transitions/SceneStateMachineImpl.cpp src/state_transitions/SceneStateMachineImpl.h src/state_transitions/WindowStateMachine.cpp src/state_transitions/WindowStateMachine.h src/drawing/Window.cpp src/drawing/Window.h src/state_transitions/WindowStateMachineImpl.cpp src/state_transitions/WindowStateMachineImpl.h src/lua/Bootstrapper.cpp src/lua/Bootstrapper.h src/wiring/Injector.h src/state_transitions/Game.cpp src/state_transitions/Game.h)
+        src/charts/chart_readers/BmsChartReader.cpp src/charts/models/Chart.h src/charts/models/Chart.cpp src/charts/chart_readers/ToChars.h src/charts/behaviour/SongDataWriter.cpp src/charts/behaviour/SongDataWriter.h src/charts/models/BmsChart.cpp src/charts/models/BmsChart.h src/drawing/MainWindow.cpp src/drawing/MainWindow.h src/drawing/Actor.cpp src/drawing/Actor.h src/drawing/SplashWindow.cpp src/drawing/SplashWindow.h src/drawing/Scene.cpp src/drawing/Scene.h src/drawing/SplashScene.cpp src/drawing/SplashScene.h src/resource_locators/LuaScriptFinder.cpp src/resource_locators/LuaScriptFinder.h src/state_transitions/SceneStateMachine.cpp src/state_transitions/SceneStateMachine.h src/state_transitions/SceneStateMachineImpl.cpp src/state_transitions/SceneStateMachineImpl.h src/state_transitions/WindowStateMachine.cpp src/state_transitions/WindowStateMachine.h src/drawing/Window.cpp src/drawing/Window.h src/state_transitions/WindowStateMachineImpl.cpp src/state_transitions/WindowStateMachineImpl.h src/lua/Bootstrapper.cpp src/lua/Bootstrapper.h src/wiring/Injector.h src/state_transitions/Game.cpp src/state_transitions/Game.h)
 message(STATUS "CMake DL Libs: ${CMAKE_DL_LIBS}")
 
 find_package(Threads REQUIRED)
@@ -58,8 +58,8 @@ include(CheckCXXSymbolExists)
 check_cxx_symbol_exists(std::execution::par "execution" RHYTHMGAME_HAS_STD_EXECUTION)
 
 if (RHYTHMGAME_HAS_STD_EXECUTION)
-target_compile_definitions(RhythmGame_lib PUBLIC RHYTHMGAME_HAS_STD_EXECUTION)
-endif()
+    target_compile_definitions(RhythmGame_lib PUBLIC RHYTHMGAME_HAS_STD_EXECUTION)
+endif ()
 
 # We all love MSVC.
 target_compile_definitions(RhythmGame_lib PUBLIC NOMINMAX)

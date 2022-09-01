@@ -8,19 +8,18 @@
 #include <memory>
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <chrono>
+#include <utility>
 #include "drawing/Window.h"
 namespace state_transitions {
-class WindowStateMachine
+template <typename T>
+concept WindowStateMachine = requires(T windowStateMachine, std::shared_ptr<drawing::Window> window, std::chrono::nanoseconds delta)
 {
-  public:
-    virtual ~WindowStateMachine() = default;
-    virtual auto changeWindow(std::shared_ptr<drawing::Window> window)
-      -> void = 0;
-    virtual auto update(std::chrono::nanoseconds delta) -> void = 0;
-    virtual auto draw() const -> void = 0;
-    virtual auto pollEvents() -> void = 0;
-    virtual auto isOpen() -> bool = 0;
-    virtual auto getCurrentWindow() -> std::shared_ptr<drawing::Window> = 0;
+    {windowStateMachine.changeWindow(window)} -> std::same_as<void>;
+    {windowStateMachine.update(delta)}  -> std::same_as<void>;
+    {std::as_const(windowStateMachine).draw()} -> std::same_as<void>;
+    {windowStateMachine.pollEvents()} -> std::same_as<void>;
+    {std::as_const(windowStateMachine).isOpen()} -> std::convertible_to<bool>;
+    {std::as_const(windowStateMachine).getCurrentWindow()} -> std::convertible_to<std::shared_ptr<drawing::Window>>;
 };
 } // namespace state_transitions
 #endif // RHYTHMGAME_WINDOWSTATEMACHINE_H

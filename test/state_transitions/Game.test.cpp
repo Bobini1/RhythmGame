@@ -25,23 +25,24 @@ class DummyWindow : public drawing::Window
     auto draw() -> void override {}
 };
 
-class DummyWindowManager : public state_transitions::WindowStateMachine
+class DummyWindowManager
 {
     std::shared_ptr<drawing::Window> current;
 
   public:
-    auto changeWindow(std::shared_ptr<drawing::Window> window) -> void override
+    auto changeWindow(std::shared_ptr<drawing::Window> window) -> void
     {
         current = std::move(window);
     }
-    auto update(std::chrono::nanoseconds delta) -> void override
+    auto update(std::chrono::nanoseconds delta) -> void
     {
         current->update(delta);
     }
-    auto draw() const -> void override { current->draw(); }
-    auto pollEvents() -> void override {}
-    auto isOpen() -> bool override { return current->isOpen(); }
-    auto getCurrentWindow() -> std::shared_ptr<drawing::Window> override
+    auto draw() const -> void { current->draw(); }
+    auto pollEvents() -> void {}
+    [[nodiscard]] auto isOpen() const -> bool { return current->isOpen(); }
+    [[nodiscard]] auto getCurrentWindow() const
+      -> std::shared_ptr<drawing::Window>
     {
         return current;
     }
@@ -52,7 +53,7 @@ TEST_CASE("The game can run without issues for a few frames",
           "[state_transitions][.window]")
 {
     auto game = state_transitions::Game{
-        std::make_shared<DummyWindowManager>(),
+        DummyWindowManager{},
         std::make_shared<DummyWindow>(),
     };
     REQUIRE_NOTHROW(game.run());

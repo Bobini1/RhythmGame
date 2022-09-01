@@ -15,6 +15,7 @@ namespace charts::models {
  * This class is used to represent a chart of any format. A class supports a set
  * of common operations related to obtaining metadata, saving, etc.
  */
+
 class Chart
 {
   public:

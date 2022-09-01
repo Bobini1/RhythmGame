@@ -7,18 +7,19 @@
 
 #include "WindowStateMachine.h"
 namespace state_transitions {
-class WindowStateMachineImpl : public WindowStateMachine
+class WindowStateMachineImpl
 {
     std::shared_ptr<drawing::Window> current;
 
   public:
     explicit WindowStateMachineImpl();
-    auto changeWindow(std::shared_ptr<drawing::Window> window) -> void override;
-    auto update(std::chrono::nanoseconds delta) -> void override;
-    auto isOpen() -> bool override;
-    auto pollEvents() -> void override;
-    auto draw() const -> void override;
-    auto getCurrentWindow() -> std::shared_ptr<drawing::Window> override;
+    auto changeWindow(std::shared_ptr<drawing::Window> window) -> void;
+    auto update(std::chrono::nanoseconds delta) -> void;
+    [[nodiscard]] auto isOpen() const -> bool;
+    auto pollEvents() -> void;
+    auto draw() const -> void;
+    [[nodiscard]] auto getCurrentWindow() const
+      -> std::shared_ptr<drawing::Window>;
 };
 } // namespace state_transitions
 #endif // RHYTHMGAME_WINDOWSTATEMACHINEIMPL_H
