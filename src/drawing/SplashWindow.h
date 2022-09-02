@@ -11,7 +11,9 @@
 #include "Scene.h"
 #include "Window.h"
 namespace drawing {
-
+/**
+ * @brief Window that displays the splash scene while the game is being loaded.
+ */
 class SplashWindow : public Window
 {
     std::shared_ptr<drawing::Scene> splashScene;

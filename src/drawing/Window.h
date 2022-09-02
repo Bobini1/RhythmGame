@@ -8,6 +8,10 @@
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <chrono>
 namespace drawing {
+/**
+ * @brief Base class for all windows, which are physical windows used for
+ * displaying the game. Can be managed by window managers.
+ */
 class Window : public sf::RenderWindow
 {
   public:

@@ -9,6 +9,10 @@
 #include <chrono>
 #include <sol/state.hpp>
 namespace drawing {
+/**
+ * @brief Base class for all scenes, which are window states holding actors and
+ * optionally managed by scene managers.
+ */
 class Scene : public sf::Drawable
 {
   public:

@@ -24,7 +24,8 @@ SceneStateMachineImpl::SceneStateMachineImpl(
 {
 }
 auto
-SceneStateMachineImpl::getCurrentScene() -> std::shared_ptr<drawing::Scene>
+SceneStateMachineImpl::getCurrentScene() const
+  -> std::shared_ptr<drawing::Scene>
 {
     return current;
 }

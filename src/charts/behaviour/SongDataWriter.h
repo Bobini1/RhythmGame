@@ -1,39 +1,23 @@
 //
-// Created by bobini on 22.07.2022.
+// Created by bobini on 02.09.22.
 //
 
 #ifndef RHYTHMGAME_SONGDATAWRITER_H
 #define RHYTHMGAME_SONGDATAWRITER_H
 #include <string>
-#include <sol/sol.hpp>
-
-namespace charts::behaviour {
 
 /**
- * @brief Writes song data to Lua state.
+ * @brief Writes song data to some destination.
  */
-class SongDataWriter
+template<typename T, typename Var>
+concept SongDataWriter = requires(T songDataWriter, const std::string& key, Var var)
 {
-    sol::state& lua;
-
-  public:
     /**
-     * @brief Constructs SongDataWriter with the lua state to write to.
-     * @param lua Lua state.
-     */
-    explicit SongDataWriter(sol::state& lua);
-
-    /**
-     * @brief Writes variable to Lua state.
+     * @brief Writes variable to some storage.
      * @param key Name of the variable.
      * @param var Value of the variable.
      */
-    template<typename T>
-    auto writeVar(const std::string& key, T var) -> void
-    {
-        lua[key] = var;
-    }
+    {songDataWriter.writeVar(key, var)} -> std::same_as<void>;
 };
 
-} // namespace charts::behaviour
 #endif // RHYTHMGAME_SONGDATAWRITER_H

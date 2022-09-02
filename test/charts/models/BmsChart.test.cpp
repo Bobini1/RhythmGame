@@ -6,7 +6,7 @@ TEST_CASE("Check if incomplete tags are parsed correctly", "[BmsChart]")
 {
     using namespace std::literals::string_literals;
     sol::state lua;
-    charts::behaviour::SongDataWriter writer(lua);
+    charts::behaviour::SongDataWriterToLua writer(lua);
     charts::models::BmsChart::Tags tags;
     tags.title = "END TIME"s;
     tags.artist = "cres"s;
@@ -25,7 +25,7 @@ TEST_CASE("Check if unicode is parsed correctly", "[BmsChart]")
 {
     using namespace std::literals::string_literals;
     sol::state lua;
-    charts::behaviour::SongDataWriter writer(lua);
+    charts::behaviour::SongDataWriterToLua writer(lua);
     charts::models::BmsChart::Tags tags;
     tags.title = "😀"s;
     tags.artist = "🤣"s;
@@ -46,7 +46,7 @@ TEST_CASE("Check no tags provided scenario", "[BmsChart]")
 {
     using namespace std::literals::string_literals;
     sol::state lua;
-    charts::behaviour::SongDataWriter writer(lua);
+    charts::behaviour::SongDataWriterToLua writer(lua);
     charts::models::BmsChart::Tags tags;
     charts::models::BmsChart chart(std::move(tags));
     chart.writeFullData(writer);

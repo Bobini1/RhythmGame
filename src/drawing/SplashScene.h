@@ -10,6 +10,9 @@
 #include <SFML/Graphics/RenderTarget.hpp>
 #include <execution>
 namespace drawing {
+/**
+ * @brief Scene that displays the splash screen while the game is being loaded.
+ */
 template<resource_locators::LuaScriptFinder LuaScriptFinderType>
 class SplashScene : public Scene
 {

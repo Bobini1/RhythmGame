@@ -15,12 +15,20 @@ class Game
     WindowStateMachineType windowManager;
 
   public:
+    /**
+     * @brief Constructs "the game". The RhythmGame. Or Whatever. The starting
+     * window is immediately inserted into the window state machine.
+     */
     Game(WindowStateMachineType windowStateMachine,
          std::shared_ptr<drawing::Window> startingWindow)
       : windowManager(std::move(windowStateMachine))
     {
         windowManager.changeWindow(std::move(startingWindow));
     }
+    /**
+     * @brief Runs the game, managing the update-draw loop. This function will
+     * block until the game is closed.
+     */
     auto run() -> void
     {
         std::atomic<bool> finished;

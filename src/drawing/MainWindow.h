@@ -9,6 +9,10 @@
 #include "Window.h"
 #include "Actor.h"
 namespace drawing {
+/**
+ * @brief The main window of the game, which is the window that is shown when
+ * the game is running.
+ */
 class MainWindow : public Window
 {
     std::stack<std::unique_ptr<drawing::Actor>> scenes;

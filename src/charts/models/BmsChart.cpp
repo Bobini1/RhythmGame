@@ -9,7 +9,7 @@ charts::models::BmsChart::BmsChart(Tags tags)
 }
 auto
 charts::models::BmsChart::writeFullData(
-  behaviour::SongDataWriter writer) const -> void
+  behaviour::SongDataWriterToLua writer) const -> void
 {
     if (tags.title) {
         writer.writeVar("getTitle", [this] { return *tags.title; });

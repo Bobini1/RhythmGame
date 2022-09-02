@@ -12,6 +12,10 @@
 #include <memory>
 #include <sol/state.hpp>
 namespace drawing {
+/**
+ * @brief Base class for all actors, which are things that get on the screen and
+ * updated.
+ */
 class Actor // NOLINT(fuchsia-multiple-inheritance)
   : public sf::Transformable
   , public sf::Drawable
