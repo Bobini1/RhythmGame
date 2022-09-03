@@ -30,10 +30,13 @@ class SceneStateMachineImpl : public sf::Drawable
      * @brief Returns the currently active scene.
      * @return
      */
-    auto getCurrentScene() const -> std::shared_ptr<drawing::Scene>;
+    [[nodiscard]] auto getCurrentScene() const
+      -> std::shared_ptr<drawing::Scene>;
 
   private:
     void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
 };
+
+static_assert(SceneStateMachine<SceneStateMachineImpl>);
 } // namespace state_transitions
 #endif // RHYTHMGAME_SCENESTATEMACHINEIMPL_H

@@ -45,5 +45,7 @@ class WindowStateMachineImpl
     [[nodiscard]] auto getCurrentWindow() const
       -> std::shared_ptr<drawing::Window>;
 };
+
+static_assert(WindowStateMachine<WindowStateMachineImpl>);
 } // namespace state_transitions
 #endif // RHYTHMGAME_WINDOWSTATEMACHINEIMPL_H

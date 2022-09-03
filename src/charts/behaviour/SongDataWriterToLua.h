@@ -6,6 +6,7 @@
 #define RHYTHMGAME_SONGDATAWRITERTOLUA_H
 #include <string>
 #include <sol/sol.hpp>
+#include <charts/behaviour/SongDataWriter.h>
 
 namespace charts::behaviour {
 
@@ -35,5 +36,6 @@ class SongDataWriterToLua
     }
 };
 
+static_assert(SongDataWriter<SongDataWriterToLua, int>);
 } // namespace charts::behaviour
 #endif // RHYTHMGAME_SONGDATAWRITERTOLUA_H
