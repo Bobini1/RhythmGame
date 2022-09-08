@@ -91,7 +91,7 @@ target_link_libraries(RhythmGame_exe PRIVATE RhythmGame_lib)
 if (APPLE)
     set_target_properties(RhythmGame_exe PROPERTIES LINK_FLAGS "-pagezero_size 10000 -image_base 100000000")
 endif ()
-# Get all propreties that cmake supports
+# Get all properties that cmake supports
 if (NOT CMAKE_PROPERTY_LIST)
     execute_process(COMMAND cmake --help-property-list OUTPUT_VARIABLE CMAKE_PROPERTY_LIST)
 
