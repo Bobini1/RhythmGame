@@ -100,7 +100,7 @@ if (NOT APPLE)
     endif ()
 endif ()
 
-if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
+if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang" AND NOT "${CMAKE_CXX_COMPILER_ID}" MATCHES "Apple-Clang")
     target_compile_options(RhythmGame_lib PUBLIC "-fconcepts")
 endif ()
 
