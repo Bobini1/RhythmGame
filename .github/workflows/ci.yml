@@ -89,8 +89,8 @@ jobs:
     needs: [ lint ]
 
     env:
-      CXX: clang++-12
-      CC: clang-12
+      CXX: clang++-13
+      CC: clang-13
       CONAN_REVISIONS_ENABLED: 1
 
     runs-on: ubuntu-22.04
@@ -105,8 +105,8 @@ jobs:
       - name: Install system dependencies
         run: sudo apt-get install libgl-dev libudev-dev -y
 
-      - name: Install Clang 12
-        run: sudo apt update && sudo apt install clang-12
+      - name: Install Clang 13
+        run: sudo apt update && sudo apt install clang-13
 
       - name: Cache conan
         id: cache-conan
@@ -118,7 +118,7 @@ jobs:
       - name: Install dependencies
         run: pip3 install "conan"
           && conan profile new default --detect
-          && cp .github/clang-12.profile ~/.conan/profiles/default
+          && cp .github/clang-13.profile ~/.conan/profiles/default
           && conan remove xorg/system -f
           && conan install . -b missing -c tools.system.package_manager:mode=install -c tools.system.package_manager:sudo=True
 
