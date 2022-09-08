@@ -93,7 +93,7 @@ if (APPLE)
 endif ()
 
 if (NOT APPLE)
-    if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU" OR "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
+    if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU")
         find_package(TBB REQUIRED)
         target_link_libraries(RhythmGame_lib PUBLIC TBB::tbb)
     endif ()
