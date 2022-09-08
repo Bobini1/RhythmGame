@@ -52,6 +52,7 @@ add_library(RhythmGame_lib OBJECT src/db/sqlite_cpp_db/SqliteCppDb.cpp src/db/sq
 message(STATUS "CMake DL Libs: ${CMAKE_DL_LIBS}")
 
 find_package(Threads REQUIRED)
+
 target_link_libraries(RhythmGame_lib PRIVATE Threads::Threads taocpp::pegtl PUBLIC Boost::headers type_safe::type_safe luajit::luajit sol2::sol2 SQLiteCpp sfml::sfml di::di ${CMAKE_DL_LIBS})
 
 include(CheckCXXSymbolExists)
@@ -97,6 +98,10 @@ if (NOT APPLE)
         find_package(TBB REQUIRED)
         target_link_libraries(RhythmGame_lib PUBLIC TBB::tbb)
     endif ()
+endif ()
+
+if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
+    target_compile_options(RhythmGame_lib "-fconcepts")
 endif ()
 
 # ---- Install rules ----

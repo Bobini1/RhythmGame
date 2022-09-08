@@ -145,7 +145,7 @@ jobs:
 
     strategy:
       matrix:
-        os: [ macos-latest, ubuntu-22.04, windows-latest ]
+        os: [ macos-12, ubuntu-22.04, windows-latest ]
       fail-fast: false
 
     runs-on: ${{ matrix.os }}
@@ -188,7 +188,7 @@ jobs:
           if [ ${{ matrix.os }} = ubuntu-22.04 ]; then
             conan profile update settings.compiler.libcxx=libstdc++11 default
           fi
-          if [ ${{ matrix.os }} = macos-latest ]; then
+          if [ ${{ matrix.os }} = macos-12 ]; then
             conan create ./recipes/luajit/all/ 2.0.5@
           fi
           conan install . -b missing -c tools.system.package_manager:mode=install -c tools.system.package_manager:sudo=True
@@ -214,7 +214,7 @@ jobs:
 
     strategy:
       matrix:
-        os: [ macos-latest, ubuntu-22.04, windows-latest ]
+        os: [ macos-12, ubuntu-22.04, windows-latest ]
       fail-fast: false
 
     runs-on: ${{ matrix.os }}
@@ -253,7 +253,7 @@ jobs:
           if [ ${{ matrix.os }} = ubuntu-22.04 ]; then
             conan profile update settings.compiler.libcxx=libstdc++11 default
           fi
-          if [ ${{ matrix.os }} = macos-latest ]; then
+          if [ ${{ matrix.os }} = macos-12 ]; then
             conan create ./recipes/luajit/all/ 2.0.5@
           fi
           if [ ${{ matrix.os }} = windows-latest ]; then
