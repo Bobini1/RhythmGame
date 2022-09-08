@@ -51,7 +51,7 @@ jobs:
         with: { python-version: "3.8" }
 
       - name: Install system dependencies
-        run: sudo apt-get install libtbb-dev libgl-dev libudev-dev libx11-xcb-dev libfontenc-dev -y
+        run: sudo apt-get install libtbb-dev libgl-dev libudev-dev -y
 
       - name: Cache conan
         id: cache-conan
@@ -64,6 +64,7 @@ jobs:
         run: pip3 install "conan"
           && conan profile new default --detect
           && conan profile update settings.compiler.libcxx=libstdc++11 default
+          && conan remove xorg/system -f
           && conan install . -b missing -c tools.system.package_manager:mode=install -c tools.system.package_manager:sudo=True
 
       - name: Configure
@@ -102,7 +103,7 @@ jobs:
         with: { python-version: "3.8" }
 
       - name: Install system dependencies
-        run: sudo apt-get install libtbb-dev libgl-dev libudev-dev libx11-xcb-dev libfontenc-dev -y
+        run: sudo apt-get install libtbb-dev libgl-dev libudev-dev -y
 
       - name: Install Clang 12
         run: sudo apt update && sudo apt install clang-12
@@ -118,6 +119,7 @@ jobs:
         run: pip3 install "conan"
           && conan profile new default --detect
           && cp .github/clang-12.profile ~/.conan/profiles/default
+          && conan remove xorg/system -f
           && conan install . -b missing -c tools.system.package_manager:mode=install -c tools.system.package_manager:sudo=True
 
       - name: Configure
@@ -163,7 +165,7 @@ jobs:
 
       - name: Install system dependencies
         if: matrix.os == 'ubuntu-22.04'
-        run: sudo apt-get install libtbb-dev libgl-dev libudev-dev libx11-xcb-dev libfontenc-dev -y
+        run: sudo apt-get install libtbb-dev libgl-dev libudev-dev -y
 
       - name: Cache conan
         id: cache-conan
@@ -187,6 +189,7 @@ jobs:
           conan profile new default --detect --force
           if [ ${{ matrix.os }} = ubuntu-22.04 ]; then
             conan profile update settings.compiler.libcxx=libstdc++11 default
+            conan remove xorg/system -f
           fi
           if [ ${{ matrix.os }} = macos-12 ]; then
             conan create ./recipes/luajit/all/ 2.0.5@
@@ -228,7 +231,7 @@ jobs:
 
       - name: Install system dependencies
         if: matrix.os == 'ubuntu-22.04'
-        run: sudo apt-get install libtbb-dev libgl-dev libudev-dev libx11-xcb-dev libfontenc-dev -y
+        run: sudo apt-get install libtbb-dev libgl-dev libudev-dev -y
 
       - name: Cache conan
         id: cache-conan
@@ -252,6 +255,7 @@ jobs:
           conan profile new default --detect --force
           if [ ${{ matrix.os }} = ubuntu-22.04 ]; then
             conan profile update settings.compiler.libcxx=libstdc++11 default
+            conan remove xorg/system -f
           fi
           if [ ${{ matrix.os }} = macos-12 ]; then
             conan create ./recipes/luajit/all/ 2.0.5@
