@@ -87,7 +87,6 @@ set_target_properties(
 target_compile_features(RhythmGame_exe PRIVATE cxx_std_20)
 
 target_link_libraries(RhythmGame_exe PRIVATE RhythmGame_lib)
-
 # MacOS luajit linker flags
 if (APPLE)
     set_target_properties(RhythmGame_exe PROPERTIES LINK_FLAGS "-pagezero_size 10000 -image_base 100000000")
@@ -96,6 +95,9 @@ endif ()
 if (NOT APPLE)
     if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU" OR "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
         find_package(TBB REQUIRED)
+        get_target_property(TBB_IMPORTED_LOCATION_RELEASE TBB::tbb IMPORTED_LOCATION_RELEASE)
+        set_target_properties(TBB::tbb PROPERTIES IMPORTED_LOCATION_COVERAGE ${TBB_IMPORTED_LOCATION_RELEASE})
+        set_target_properties(TBB::tbb PROPERTIES IMPORTED_LOCATION_SANITIZE ${TBB_IMPORTED_LOCATION_RELEASE})
         target_link_libraries(RhythmGame_lib PUBLIC TBB::tbb)
     endif ()
 endif ()
