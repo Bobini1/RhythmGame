@@ -101,7 +101,7 @@ if (NOT APPLE)
 endif ()
 
 if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
-    target_compile_options(RhythmGame_lib "-fconcepts")
+    target_compile_options(RhythmGame_lib PUBLIC "-fconcepts")
 endif ()
 
 # ---- Install rules ----
