@@ -253,7 +253,7 @@ jobs:
           fi
           if [ ${{ matrix.os }} = windows-latest ]; then
             winget install -e --id NSIS.NSIS
-          if
+          fi
           conan install . -b missing -c tools.system.package_manager:mode=install -c tools.system.package_manager:sudo=True
 
       - name: Configure
