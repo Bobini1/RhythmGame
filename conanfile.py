@@ -24,8 +24,5 @@ class Recipe(ConanFile):
         self.requires("sfml/2.5.1")
         self.requires("di/1.2.0")
 
-        if self.settings.compiler == "gcc":
-            self.requires("tbb/2020.3")
-
         # Testing only dependencies below
         self.requires("catch2/3.0.1")

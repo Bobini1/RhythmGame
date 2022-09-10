@@ -92,8 +92,9 @@ if (APPLE)
     set_target_properties(RhythmGame_exe PROPERTIES LINK_FLAGS "-pagezero_size 10000 -image_base 100000000")
 endif ()
 
-if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU")
-    target_compile_options(RhythmGame_exe PRIVATE -ltbb)
+if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU" OR "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
+    find_package(TBB REQUIRED)
+    target_link_libraries(RhythmGame_lib PUBLIC TBB::tbb)
 endif ()
 
 if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang" AND NOT "${CMAKE_CXX_COMPILER_ID}" MATCHES "AppleClang")

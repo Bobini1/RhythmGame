@@ -105,7 +105,7 @@
       "hidden": true,
       "cacheVariables": {
         "ENABLE_COVERAGE": "ON",
-        "CMAKE_BUILD_TYPE": "Coverage",
+        "CMAKE_BUILD_TYPE": "Debug",
         "CMAKE_CXX_FLAGS_COVERAGE": "-g -O0 -fprofile-arcs -ftest-coverage",
         "CMAKE_EXE_LINKER_FLAGS_COVERAGE": "-g -O0 -fprofile-arcs -ftest-coverage",
         "CMAKE_SHARED_LINKER_FLAGS_COVERAGE": "-g -O0 -fprofile-arcs -ftest-coverage",
@@ -132,7 +132,7 @@
         "conan"
       ],
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Sanitize",
+        "CMAKE_BUILD_TYPE": "Debug",
         "CMAKE_CXX_FLAGS_SANITIZE": "-O2 -g -fsanitize=address,undefined -fno-omit-frame-pointer -fno-common",
         "CMAKE_MAP_IMPORTED_CONFIG_SANITIZE": "Sanitize;RelWithDebInfo;Release;Debug;"
       }
