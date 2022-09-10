@@ -8,8 +8,6 @@
 #include <stack>
 #include "BmsChartReader.h"
 
-#define CALL_MEMBER_FN(object, ptrToMember) ((object).*(ptrToMember))
-
 namespace charts::chart_readers {
 namespace pegtl = tao::pegtl;
 
@@ -217,7 +215,7 @@ struct Action
         template<typename ActionInput>                                         \
         static auto apply(const ActionInput& input, TagsWriter& chart) -> void \
         {                                                                      \
-            CALL_MEMBER_FN(chart, memberFnPointer)((parser)(input.string()));  \
+            std::invoke(memberFnPointer, chart, (parser)(input.string()));     \
         }                                                                      \
     };
 

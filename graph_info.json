@@ -41,6 +41,10 @@
    "False"
   ],
   [
+   "boost:filesystem_version",
+   "None"
+  ],
+  [
    "boost:header_only",
    "False"
   ],
@@ -253,6 +257,38 @@
    "False"
   ],
   [
+   "brotli:enable_debug",
+   "False"
+  ],
+  [
+   "brotli:enable_log",
+   "False"
+  ],
+  [
+   "brotli:enable_portable",
+   "False"
+  ],
+  [
+   "brotli:enable_rbit",
+   "True"
+  ],
+  [
+   "brotli:endianness",
+   "None"
+  ],
+  [
+   "brotli:fPIC",
+   "True"
+  ],
+  [
+   "brotli:shared",
+   "False"
+  ],
+  [
+   "brotli:target_bits",
+   "None"
+  ],
+  [
    "bzip2:build_executable",
    "True"
   ],
@@ -277,6 +313,22 @@
    "False"
   ],
   [
+   "di:diagnostics_level",
+   "1"
+  ],
+  [
+   "di:with_extensions",
+   "False"
+  ],
+  [
+   "flac:fPIC",
+   "True"
+  ],
+  [
+   "flac:shared",
+   "False"
+  ],
+  [
    "fmt:fPIC",
    "True"
   ],
@@ -297,12 +349,68 @@
    "True"
   ],
   [
+   "freetype:fPIC",
+   "True"
+  ],
+  [
+   "freetype:shared",
+   "False"
+  ],
+  [
+   "freetype:subpixel",
+   "False"
+  ],
+  [
+   "freetype:with_brotli",
+   "True"
+  ],
+  [
+   "freetype:with_bzip2",
+   "True"
+  ],
+  [
+   "freetype:with_png",
+   "True"
+  ],
+  [
+   "freetype:with_zlib",
+   "True"
+  ],
+  [
+   "libalsa:disable_python",
+   "True"
+  ],
+  [
+   "libalsa:fPIC",
+   "True"
+  ],
+  [
+   "libalsa:shared",
+   "False"
+  ],
+  [
    "libbacktrace:fPIC",
    "True"
   ],
   [
    "libbacktrace:shared",
    "False"
+  ],
+  [
+   "libpng:api_prefix",
+   ""
+  ],
+  [
+   "libpng:fPIC",
+   "True"
+  ],
+  [
+   "libpng:shared",
+   "False"
+  ],
+  [
+   "libpng:sse",
+   "True"
   ],
   [
    "luajit:fPIC",
@@ -313,228 +421,44 @@
    "False"
   ],
   [
-   "openssl:386",
-   "False"
-  ],
-  [
-   "openssl:enable_weak_ssl_ciphers",
-   "False"
-  ],
-  [
-   "openssl:fPIC",
+   "ogg:fPIC",
    "True"
   ],
   [
-   "openssl:no_aria",
+   "ogg:shared",
    "False"
   ],
   [
-   "openssl:no_asm",
+   "openal:fPIC",
+   "True"
+  ],
+  [
+   "openal:shared",
    "False"
   ],
   [
-   "openssl:no_async",
+   "sfml:audio",
+   "True"
+  ],
+  [
+   "sfml:fPIC",
+   "True"
+  ],
+  [
+   "sfml:graphics",
+   "True"
+  ],
+  [
+   "sfml:network",
+   "True"
+  ],
+  [
+   "sfml:shared",
    "False"
   ],
   [
-   "openssl:no_bf",
-   "False"
-  ],
-  [
-   "openssl:no_blake2",
-   "False"
-  ],
-  [
-   "openssl:no_camellia",
-   "False"
-  ],
-  [
-   "openssl:no_cast",
-   "False"
-  ],
-  [
-   "openssl:no_chacha",
-   "False"
-  ],
-  [
-   "openssl:no_cms",
-   "False"
-  ],
-  [
-   "openssl:no_comp",
-   "False"
-  ],
-  [
-   "openssl:no_ct",
-   "False"
-  ],
-  [
-   "openssl:no_deprecated",
-   "False"
-  ],
-  [
-   "openssl:no_des",
-   "False"
-  ],
-  [
-   "openssl:no_dgram",
-   "False"
-  ],
-  [
-   "openssl:no_dh",
-   "False"
-  ],
-  [
-   "openssl:no_dsa",
-   "False"
-  ],
-  [
-   "openssl:no_dso",
-   "False"
-  ],
-  [
-   "openssl:no_ec",
-   "False"
-  ],
-  [
-   "openssl:no_ecdh",
-   "False"
-  ],
-  [
-   "openssl:no_ecdsa",
-   "False"
-  ],
-  [
-   "openssl:no_engine",
-   "False"
-  ],
-  [
-   "openssl:no_filenames",
-   "False"
-  ],
-  [
-   "openssl:no_gost",
-   "False"
-  ],
-  [
-   "openssl:no_hmac",
-   "False"
-  ],
-  [
-   "openssl:no_idea",
-   "False"
-  ],
-  [
-   "openssl:no_md4",
-   "False"
-  ],
-  [
-   "openssl:no_md5",
-   "False"
-  ],
-  [
-   "openssl:no_mdc2",
-   "False"
-  ],
-  [
-   "openssl:no_ocsp",
-   "False"
-  ],
-  [
-   "openssl:no_pinshared",
-   "False"
-  ],
-  [
-   "openssl:no_rc2",
-   "False"
-  ],
-  [
-   "openssl:no_rfc3779",
-   "False"
-  ],
-  [
-   "openssl:no_rmd160",
-   "False"
-  ],
-  [
-   "openssl:no_rsa",
-   "False"
-  ],
-  [
-   "openssl:no_seed",
-   "False"
-  ],
-  [
-   "openssl:no_sha",
-   "False"
-  ],
-  [
-   "openssl:no_sm2",
-   "False"
-  ],
-  [
-   "openssl:no_sm3",
-   "False"
-  ],
-  [
-   "openssl:no_sm4",
-   "False"
-  ],
-  [
-   "openssl:no_sock",
-   "False"
-  ],
-  [
-   "openssl:no_srp",
-   "False"
-  ],
-  [
-   "openssl:no_srtp",
-   "False"
-  ],
-  [
-   "openssl:no_sse2",
-   "False"
-  ],
-  [
-   "openssl:no_ssl",
-   "False"
-  ],
-  [
-   "openssl:no_ssl3",
-   "False"
-  ],
-  [
-   "openssl:no_stdio",
-   "False"
-  ],
-  [
-   "openssl:no_tests",
-   "False"
-  ],
-  [
-   "openssl:no_threads",
-   "False"
-  ],
-  [
-   "openssl:no_tls1",
-   "False"
-  ],
-  [
-   "openssl:no_ts",
-   "False"
-  ],
-  [
-   "openssl:no_whirlpool",
-   "False"
-  ],
-  [
-   "openssl:openssldir",
-   "None"
-  ],
-  [
-   "openssl:shared",
-   "False"
+   "sfml:window",
+   "True"
   ],
   [
    "sqlite3:build_executable",
@@ -662,6 +586,14 @@
   ],
   [
    "taocpp-pegtl:boost_filesystem",
+   "False"
+  ],
+  [
+   "vorbis:fPIC",
+   "True"
+  ],
+  [
+   "vorbis:shared",
    "False"
   ],
   [
