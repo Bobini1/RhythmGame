@@ -271,13 +271,25 @@ jobs:
         working-directory: build
         run: cpack -B artifacts --config CPackConfig.cmake
 
+      - name: Remove CPack folders
+        working-directory: build
+        shell: bash
+        run: |
+          if [ ${{ matrix.os }} = ubuntu-22.04 ]; then
+            rm -rf ./artifacts/_CPack_Packages
+          fi
+          if [ ${{ matrix.os }} = macos-12 ]; then
+            rm -rf ./artifacts/_CPack_Packages
+          fi
+          if [ ${{ matrix.os }} = windows-latest ]; then
+            rmdir /s /q ./artifacts/_CPack_Packages
+          fi
+
       - name: Upload Binary
         uses: actions/upload-artifact@v2
         with:
           name: ${{ matrix.os }}
-          path: |
-            ${{ github.workspace }}/build/artifacts/
-            !${{ github.workspace }}/build/_CPack_*
+          path: ${{ github.workspace }}/build/artifacts/
           if-no-files-found: error
   
   docs:
