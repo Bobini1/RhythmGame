@@ -216,6 +216,10 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      - name: Install static analyzers
+        if: matrix.os == 'ubuntu-22.04'
+        run: sudo apt-get install clang-tidy cppcheck -y -q
+
       - name: Install Python
         uses: actions/setup-python@v2
         with: { python-version: "3.8" }
