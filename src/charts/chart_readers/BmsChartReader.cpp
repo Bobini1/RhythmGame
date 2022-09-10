@@ -242,7 +242,7 @@ RHYTHMGAME_TAG_PARSER(Random,
                       pegtl::plus<pegtl::digit>,
                       &TagsWriter::enterRandom,
                       ([](auto&& value) {
-                          return RandomRange{ 0, std::stoul(trimR(value)) };
+                          return RandomRange{ 0, std::stol(trimR(value)) };
                       }))
 RHYTHMGAME_TAG_PARSER(If,
                       2,
