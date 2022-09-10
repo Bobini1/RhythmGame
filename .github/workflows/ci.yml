@@ -237,7 +237,7 @@ jobs:
         uses: actions/cache@v3.0.5
         with:
           path: C:/.conan
-          key: conan-exports-extra-windows
+          key: conan-exports-extra-windows-deploy
 
       - name: Install dependencies
         shell: bash
