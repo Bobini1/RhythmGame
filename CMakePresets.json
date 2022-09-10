@@ -106,9 +106,9 @@
       "cacheVariables": {
         "ENABLE_COVERAGE": "ON",
         "CMAKE_BUILD_TYPE": "Release",
-        "CMAKE_CXX_FLAGS_DEBUG": "-g -O0 -fprofile-arcs -ftest-coverage",
-        "CMAKE_EXE_LINKER_FLAGS_DEBUG": "-g -O0 -fprofile-arcs -ftest-coverage",
-        "CMAKE_SHARED_LINKER_FLAGS_DEBUG": "-g -O0 -fprofile-arcs -ftest-coverage",
+        "CMAKE_CXX_FLAGS_RELEASE": "-g -O0 -fprofile-arcs -ftest-coverage",
+        "CMAKE_EXE_LINKER_FLAGS_RELEASE": "-g -O0 -fprofile-arcs -ftest-coverage",
+        "CMAKE_SHARED_LINKER_FLAGS_RELEASE": "-g -O0 -fprofile-arcs -ftest-coverage",
         "CMAKE_MAP_IMPORTED_CONFIG_COVERAGE": "Coverage;RelWithDebInfo;Release;Debug;"
       }
     },
@@ -130,7 +130,7 @@
       ],
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
-        "CMAKE_CXX_FLAGS_DEBUG": "-O2 -g -fsanitize=address,undefined -fno-omit-frame-pointer -fno-common",
+        "CMAKE_CXX_FLAGS_RELEASE": "-O2 -g -fsanitize=address,undefined -fno-omit-frame-pointer -fno-common",
         "CMAKE_MAP_IMPORTED_CONFIG_SANITIZE": "Sanitize;RelWithDebInfo;Release;Debug;"
       }
     },
