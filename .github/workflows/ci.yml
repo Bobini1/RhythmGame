@@ -277,7 +277,7 @@ jobs:
           name: ${{ matrix.os }}
           path: |
             ${{ github.workspace }}/build/artifacts/
-            !${{ github.workspace }}build/_CPack_Packages/
+            !${{ github.workspace }}/build/_CPack_*
           if-no-files-found: error
   
   docs:
