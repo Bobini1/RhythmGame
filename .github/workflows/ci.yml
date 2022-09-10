@@ -257,6 +257,7 @@ jobs:
           conan install . -b missing -c tools.system.package_manager:mode=install -c tools.system.package_manager:sudo=True
 
       - name: Configure
+        shell: pwsh
         run: cmake "--preset=ci-$("${{ matrix.os }}".split("-")[0])"
 
       - name: Build
