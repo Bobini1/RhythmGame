@@ -16,7 +16,7 @@ state_transitions::WindowStateMachineImpl::changeWindow(
 {
     current = std::move(window);
 }
-state_transitions::WindowStateMachineImpl::WindowStateMachineImpl() {}
+state_transitions::WindowStateMachineImpl::WindowStateMachineImpl() = default;
 auto
 state_transitions::WindowStateMachineImpl::isOpen() const -> bool
 {

@@ -24,7 +24,7 @@ class SplashScene : public Scene
         lua.open_libraries(sol::lib::jit, sol::lib::base, sol::lib::io);
         lua.script(luaScriptFinder.findHandlerScript("splash"));
     }
-    void update(std::chrono::nanoseconds delta) final {}
+    void update(std::chrono::nanoseconds /* delta */) final {}
     void draw(sf::RenderTarget& target, sf::RenderStates states) const final
     {
         auto actorsFromLua = std::array<drawing::Actor*, 0>{};

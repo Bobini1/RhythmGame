@@ -23,5 +23,5 @@ class Actor // NOLINT(fuchsia-multiple-inheritance)
   public:
     virtual auto update(std::chrono::nanoseconds delta) -> void = 0;
 };
-} // namespace state_transitions
+} // namespace drawing
 #endif // RHYTHMGAME_ACTOR_H

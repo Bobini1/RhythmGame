@@ -16,8 +16,8 @@ namespace charts::models {
 class BmsChart final : public Chart
 {
   public:
-    using RandomRange = std::uniform_int_distribution<long>;
-    using IfTag = long;
+    using RandomRange = std::uniform_int_distribution<uint64_t>;
+    using IfTag = uint64_t;
 
     /**
      * @brief Tags that a BMS chart can have.

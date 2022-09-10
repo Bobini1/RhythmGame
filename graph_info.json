@@ -589,18 +589,6 @@
    "False"
   ],
   [
-   "tbb:shared",
-   "True"
-  ],
-  [
-   "tbb:tbbmalloc",
-   "False"
-  ],
-  [
-   "tbb:tbbproxy",
-   "False"
-  ],
-  [
    "vorbis:fPIC",
    "True"
   ],

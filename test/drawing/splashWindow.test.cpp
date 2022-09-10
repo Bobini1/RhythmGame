@@ -15,7 +15,8 @@ class DummyScene : public drawing::Scene
     mutable unsigned drawCount{};
 
   protected:
-    void draw(sf::RenderTarget& target, sf::RenderStates states) const override
+    void draw(sf::RenderTarget& /* target */,
+              sf::RenderStates /* states */) const override
     {
         drawCount++;
     }
