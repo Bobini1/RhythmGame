@@ -98,6 +98,9 @@ if (NOT APPLE)
     endif ()
 endif ()
 
+get_target_property(SQLITECPP_INCLUDE_DIRS SQLiteCpp INTERFACE_INCLUDE_DIRECTORIES)
+message(STATUS "SQLiteCpp include dirs: ${SQLITECPP_INCLUDE_DIRS}")
+
 # ---- Install rules ----
 
 if (NOT CMAKE_SKIP_INSTALL_RULES)
