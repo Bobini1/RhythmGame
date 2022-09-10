@@ -252,7 +252,7 @@ jobs:
             conan create ./recipes/luajit/all/ 2.0.5@
           fi
           if [ ${{ matrix.os }} = windows-latest ]; then
-            winget install -e --id NSIS.NSIS
+            choco install nsis
           fi
           conan install . -b missing -c tools.system.package_manager:mode=install -c tools.system.package_manager:sudo=True
 
