@@ -26,6 +26,6 @@ class MainWindow : public Window
   private:
     auto update(std::chrono::nanoseconds delta) -> void override;
 };
-} // namespace state_transitions
+} // namespace drawing
 
 #endif // RHYTHMGAME_MAINWINDOW_H
