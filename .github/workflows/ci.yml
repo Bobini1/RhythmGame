@@ -65,7 +65,7 @@ jobs:
           && conan profile new default --detect
           && conan profile update settings.compiler.libcxx=libstdc++11 default
           && conan remove xorg/system -f
-          && conan install . -b missing -c tools.system.package_manager:mode=install -c tools.system.package_manager:sudo=True
+          && conan install . -b missing -c tools.system.package_manager:mode=install -c tools.system.package_manager:sudo=True -pr:b=default
 
       - name: Configure
         run: cmake --preset=ci-coverage
@@ -120,7 +120,7 @@ jobs:
           && conan profile new default --detect
           && cp .github/clang-13.profile ~/.conan/profiles/default
           && conan remove xorg/system -f
-          && conan install . -b missing -c tools.system.package_manager:mode=install -c tools.system.package_manager:sudo=True
+          && conan install . -b missing -c tools.system.package_manager:mode=install -c tools.system.package_manager:sudo=True -pr:b=default
 
       - name: Configure
         run: cmake --preset=ci-sanitize
