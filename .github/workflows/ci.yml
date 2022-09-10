@@ -34,9 +34,6 @@ jobs:
 
     runs-on: ubuntu-22.04
 
-    env:
-      CONAN_REVISIONS_ENABLED: 1
-
     if: github.repository_owner == 'Bobini1'
 
     steps:
@@ -91,7 +88,6 @@ jobs:
     env:
       CXX: clang++-13
       CC: clang-13
-      CONAN_REVISIONS_ENABLED: 1
 
     runs-on: ubuntu-22.04
 
@@ -141,9 +137,6 @@ jobs:
 
   test:
     needs: [ lint ]
-
-    env:
-      CONAN_REVISIONS_ENABLED: 1
 
     strategy:
       matrix:
@@ -212,8 +205,6 @@ jobs:
 
   deploy:
     needs: [ sanitize, test ]
-    env:
-      CONAN_REVISIONS_ENABLED: 1
 
     strategy:
       matrix:
