@@ -229,7 +229,7 @@ jobs:
         uses: actions/cache@v3.0.5
         with:
           path: ~/.conan/data
-          key: conan-packages-deploy-${{ matrix.os }}
+          key: conan-packages-${{ matrix.os }}
 
       - name: Cache conan extra exports
         if: matrix.os == 'windows-latest'
@@ -237,7 +237,7 @@ jobs:
         uses: actions/cache@v3.0.5
         with:
           path: C:/.conan
-          key: conan-exports-extra-windows-deploy
+          key: conan-exports-extra-windows
 
       - name: Install dependencies
         shell: bash
