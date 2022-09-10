@@ -10,8 +10,6 @@ class Recipe(ConanFile):
         self.folders.generators = "conan"
 
     def requirements(self):
-        self.requires("freetype/2.11.1")
-        self.requires("libpng/1.6.37")
         self.requires("sol2/3.3.0")
         self.requires("sqlitecpp/3.1.1")
         self.requires("boost/1.79.0")
