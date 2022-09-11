@@ -56,7 +56,7 @@
               <li class="m-doc-collapsible collapsed">
                 <a href="#" onclick="return toggle(this)">namespace</a> <a href="namespacecharts_1_1behaviour.html" class="m-doc">behaviour</a> <span class="m-doc"><span></span></span>
                 <ul class="m-doc">
-                  <li>class <a href="classcharts_1_1behaviour_1_1SongDataWriter.html" class="m-doc">SongDataWriter</a> <span class="m-doc">Writes song data to Lua state.</span></li>
+                  <li>class <a href="classcharts_1_1behaviour_1_1SongDataWriterToLua.html" class="m-doc">SongDataWriterToLua</a> <span class="m-doc">Writes song data to Lua state.</span></li>
                 </ul>
               </li>
               <li class="m-doc-collapsible collapsed">
@@ -106,18 +106,52 @@
               </li>
             </ul>
           </li>
-          <li>namespace <a href="namespacecharts_1_1chart__readers_1_1_0d2.html" class="m-doc">charts::chart_readers::@2</a> <span class="m-doc"><span></span></span></li>
+          <li>namespace <a href="namespacecharts_1_1chart__readers_1_1_0d4.html" class="m-doc">charts::chart_readers::@4</a> <span class="m-doc"><span></span></span></li>
           <li class="m-doc-collapsible">
             <a href="#" onclick="return toggle(this)">namespace</a> <a href="namespacedb.html" class="m-doc">db</a> <span class="m-doc"><span></span></span>
             <ul class="m-doc">
               <li class="m-doc-collapsible collapsed">
                 <a href="#" onclick="return toggle(this)">namespace</a> <a href="namespacedb_1_1sqlite__cpp__db.html" class="m-doc">sqlite_cpp_db</a> <span class="m-doc"><span></span></span>
                 <ul class="m-doc">
-                  <li>class <a href="classdb_1_1sqlite__cpp__db_1_1SqliteCppDb.html" class="m-doc">SqliteCppDb</a> <span class="m-doc"><span></span></span></li>
+                  <li>class <a href="classdb_1_1sqlite__cpp__db_1_1SqliteCppDb.html" class="m-doc">SqliteCppDb</a> <span class="m-doc">Database wrapper for SQLiteCpp. The wrapper uses thread_local database connection objects to provide lock-free access. However, it must be constructed in the thread that is going to use it to guarantee the class invariants.</span></li>
                 </ul>
               </li>
             </ul>
           </li>
+          <li class="m-doc-collapsible">
+            <a href="#" onclick="return toggle(this)">namespace</a> <a href="namespacedrawing.html" class="m-doc">drawing</a> <span class="m-doc"><span></span></span>
+            <ul class="m-doc">
+              <li>class <a href="classdrawing_1_1Actor.html" class="m-doc">Actor</a> <span class="m-doc">Base class for all actors, which are things that get on the screen and updated.</span></li>
+              <li>class <a href="classdrawing_1_1MainWindow.html" class="m-doc">MainWindow</a> <span class="m-doc">The main window of the game, which is the window that is shown when the game is running.</span></li>
+              <li>class <a href="classdrawing_1_1Scene.html" class="m-doc">Scene</a> <span class="m-doc">Base class for all scenes, which are window states holding actors and optionally managed by scene managers.</span></li>
+              <li>class <a href="classdrawing_1_1SplashScene.html" class="m-doc">SplashScene</a> <span class="m-doc"><a href="classdrawing_1_1Scene.html" class="m-doc">Scene</a> that displays the splash screen while the game is being loaded.</span></li>
+              <li>class <a href="classdrawing_1_1SplashWindow.html" class="m-doc">SplashWindow</a> <span class="m-doc"><a href="classdrawing_1_1Window.html" class="m-doc">Window</a> that displays the splash scene while the game is being loaded.</span></li>
+              <li>class <a href="classdrawing_1_1Window.html" class="m-doc">Window</a> <span class="m-doc">Base class for all windows, which are physical windows used for displaying the game. Can be managed by window managers.</span></li>
+            </ul>
+          </li>
+          <li class="m-doc-collapsible">
+            <a href="#" onclick="return toggle(this)">namespace</a> <a href="namespacelua.html" class="m-doc">lua</a> <span class="m-doc"><span></span></span>
+            <ul class="m-doc">
+              <li>class <a href="classlua_1_1Bootstrapper.html" class="m-doc">Bootstrapper</a> <span class="m-doc"><span></span></span></li>
+            </ul>
+          </li>
+          <li>namespace <a href="namespaceresource__locators.html" class="m-doc">resource_locators</a> <span class="m-doc"><span></span></span></li>
+          <li>namespace <a href="namespacesf.html" class="m-doc">sf</a> <span class="m-doc"><span></span></span></li>
+          <li class="m-doc-collapsible">
+            <a href="#" onclick="return toggle(this)">namespace</a> <a href="namespacestate__transitions.html" class="m-doc">state_transitions</a> <span class="m-doc"><span></span></span>
+            <ul class="m-doc">
+              <li>class <a href="classstate__transitions_1_1Game.html" class="m-doc">Game</a> <span class="m-doc"><span></span></span></li>
+              <li>class <a href="classstate__transitions_1_1SceneStateMachineImpl.html" class="m-doc">SceneStateMachineImpl</a> <span class="m-doc">A basic scene manager that is only able to hold one scene.</span></li>
+              <li>class <a href="classstate__transitions_1_1WindowStateMachineImpl.html" class="m-doc">WindowStateMachineImpl</a> <span class="m-doc">A simple window manager that is only able to hold one window.</span></li>
+            </ul>
+          </li>
+          <li class="m-doc-collapsible">
+            <a href="#" onclick="return toggle(this)">namespace</a> <a href="namespacetao.html" class="m-doc">tao</a> <span class="m-doc"><span></span></span>
+            <ul class="m-doc">
+              <li>namespace <a href="namespacetao_1_1pegtl.html" class="m-doc">pegtl</a> <span class="m-doc"><span></span></span></li>
+            </ul>
+          </li>
+          <li>class <a href="classLuaScriptFinderImpl.html" class="m-doc">LuaScriptFinderImpl</a> <span class="m-doc"><span></span></span></li>
         </ul>
         <script>
         function toggle(e) {
@@ -179,7 +213,7 @@
   <div class="m-container">
     <div class="m-row">
       <div class="m-col-l-10 m-push-l-1">
-        <p>RhythmGame. Created with <a href="https://doxygen.org/">Doxygen</a> 1.8.17 and <a href="https://mcss.mosra.cz/">m.css</a>.</p>
+        <p>RhythmGame. Created with <a href="https://doxygen.org/">Doxygen</a> 1.9.1 and <a href="https://mcss.mosra.cz/">m.css</a>.</p>
       </div>
     </div>
   </div>

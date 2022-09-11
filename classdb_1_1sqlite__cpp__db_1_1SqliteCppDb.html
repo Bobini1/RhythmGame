@@ -52,7 +52,7 @@
           <span class="m-breadcrumb"><a href="namespacedb.html">db</a>::<wbr/></span><span class="m-breadcrumb"><a href="namespacedb_1_1sqlite__cpp__db.html">sqlite_cpp_db</a>::<wbr/></span>SqliteCppDb <span class="m-thin">class</span>
           <div class="m-doc-include m-code m-inverted m-text-right"><span class="cp">#include</span> <a class="cpf" href="SqliteCppDb_8h.html">&lt;SqliteCppDb.h&gt;</a></div>
         </h1>
-        <p><span></span></p>
+        <p>Database wrapper for SQLiteCpp. The wrapper uses thread_local database connection objects to provide lock-free access. However, it must be constructed in the thread that is going to use it to guarantee the class invariants.</p>
         <div class="m-block m-default">
           <h3>Contents</h3>
           <ul>
@@ -68,34 +68,138 @@
         <section id="typeless-methods">
           <h2><a href="#typeless-methods">Constructors, destructors, conversion operators</a></h2>
           <dl class="m-doc">
-            <dt id="af90ebaa281f6daad64b7b7234a04be16">
-              <span class="m-doc-wrap-bumper"><a href="#af90ebaa281f6daad64b7b7234a04be16" class="m-doc-self">SqliteCppDb</a>(</span><span class="m-doc-wrap">const std::string&amp; dbPath) <span class="m-label m-flat m-info">explicit</span> </span>
+            <dt>
+              <span class="m-doc-wrap-bumper"><a href="#af90ebaa281f6daad64b7b7234a04be16" class="m-doc">SqliteCppDb</a>(</span><span class="m-doc-wrap">const std::string&amp; dbPath) <span class="m-label m-flat m-info">explicit</span> </span>
             </dt>
-            <dd><span></span></dd>
+            <dd>Constructs a database wrapper.</dd>
           </dl>
         </section>
         <section id="pub-methods">
           <h2><a href="#pub-methods">Public functions</a></h2>
           <dl class="m-doc">
-            <dt id="ad12175fa7e04f7e4b7c7f524837e68b0">
-              <span class="m-doc-wrap-bumper">auto <a href="#ad12175fa7e04f7e4b7c7f524837e68b0" class="m-doc-self">hasTable</a>(</span><span class="m-doc-wrap">const std::string&amp; table) const -&gt; bool</span>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#ad12175fa7e04f7e4b7c7f524837e68b0" class="m-doc">hasTable</a>(</span><span class="m-doc-wrap">const std::string&amp; table) const -&gt; bool</span>
             </dt>
-            <dd><span></span></dd>
+            <dd>Queries the database to inspect whether the table with the provided name exists.</dd>
             <dt id="af28b2d2ee4b4dfd07577eb616d250e0e">
               <span class="m-doc-wrap-bumper">auto <a href="#af28b2d2ee4b4dfd07577eb616d250e0e" class="m-doc-self">execute</a>(</span><span class="m-doc-wrap">const std::string&amp; query) const -&gt; void</span>
             </dt>
             <dd><span></span></dd>
-            <dt id="a43a31d26c48ece63d6f3654cdfc1ebb0">
-              <div class="m-doc-template">template&lt;typename... Ret&gt;</div>
-              <span class="m-doc-wrap-bumper">auto <a href="#a43a31d26c48ece63d6f3654cdfc1ebb0" class="m-doc-self">executeAndGet</a>(</span><span class="m-doc-wrap">const std::string&amp; query) const -&gt; std::optional&lt; std::tuple&lt; Ret... &gt;&gt;</span>
+            <dt>
+              <div class="m-doc-template">template&lt;std::default_initializable... Ret&gt;</div>
+              <span class="m-doc-wrap-bumper">auto <a href="#a43a31d26c48ece63d6f3654cdfc1ebb0" class="m-doc">executeAndGet</a>(</span><span class="m-doc-wrap">const std::string&amp; query) const -&gt; std::optional&lt; std::tuple&lt; Ret... &gt;&gt;</span>
             </dt>
-            <dd><span></span></dd>
-            <dt id="a709e3010e7d7135dc15cd6943247f44b">
+            <dd>Executes a query that returns a single row.</dd>
+            <dt>
               <div class="m-doc-template">template&lt;typename... Ret&gt;</div>
-              <span class="m-doc-wrap-bumper">auto <a href="#a709e3010e7d7135dc15cd6943247f44b" class="m-doc-self">executeAndGetAll</a>(</span><span class="m-doc-wrap">const std::string&amp; query) const -&gt; std::vector&lt; std::tuple&lt; Ret... &gt;&gt;</span>
+              <span class="m-doc-wrap-bumper">auto <a href="#a709e3010e7d7135dc15cd6943247f44b" class="m-doc">executeAndGetAll</a>(</span><span class="m-doc-wrap">const std::string&amp; query) const -&gt; std::vector&lt; std::tuple&lt; Ret... &gt;&gt;</span>
             </dt>
-            <dd><span></span></dd>
+            <dd>Executes a query that returns any number of rows.</dd>
           </dl>
+        </section>
+        <section>
+          <h2>Function documentation</h2>
+          <section class="m-doc-details" id="af90ebaa281f6daad64b7b7234a04be16"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper"> db::<wbr />sqlite_cpp_db::<wbr />SqliteCppDb::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#af90ebaa281f6daad64b7b7234a04be16" class="m-doc-self">SqliteCppDb</a>(</span><span class="m-doc-wrap">const std::string&amp; dbPath) <span class="m-label m-info">explicit</span> </span></span>
+            </h3>
+            <p>Constructs a database wrapper.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">dbPath</td>
+                  <td>Path to the database file. The database file will be created if it does not exist.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div></section>
+          <section class="m-doc-details" id="ad12175fa7e04f7e4b7c7f524837e68b0"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">auto db::<wbr />sqlite_cpp_db::<wbr />SqliteCppDb::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#ad12175fa7e04f7e4b7c7f524837e68b0" class="m-doc-self">hasTable</a>(</span><span class="m-doc-wrap">const std::string&amp; table) const -&gt; bool</span></span>
+            </h3>
+            <p>Queries the database to inspect whether the table with the provided name exists.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <tfoot>
+                <tr>
+                  <th style="width: 1%">Returns</th>
+                  <td>True if the table exists, false otherwise.</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div></section>
+          <section class="m-doc-details" id="a43a31d26c48ece63d6f3654cdfc1ebb0"><div>
+            <h3>
+              <div class="m-doc-template">
+                template&lt;std::default_initializable... Ret&gt;
+              </div>
+              <span class="m-doc-wrap-bumper">auto db::<wbr />sqlite_cpp_db::<wbr />SqliteCppDb::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a43a31d26c48ece63d6f3654cdfc1ebb0" class="m-doc-self">executeAndGet</a>(</span><span class="m-doc-wrap">const std::string&amp; query) const -&gt; std::optional&lt; std::tuple&lt; Ret... &gt;&gt;</span></span>
+            </h3>
+            <p>Executes a query that returns a single row.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Template parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">Ret</td>
+                  <td>Types of the columns. Must be default constructible.</td>
+                </tr>
+              </tbody>
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>query</td>
+                  <td>Query to execute.</td>
+                </tr>
+              </tbody>
+              <tfoot>
+                <tr>
+                  <th>Returns</th>
+                  <td>An optional holding the result of the query. It will be empty if the query didn&#x27;t return anything. If the query returns fewer columns than specified in template parameters, they will be default initialized.</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div></section>
+          <section class="m-doc-details" id="a709e3010e7d7135dc15cd6943247f44b"><div>
+            <h3>
+              <div class="m-doc-template">
+                template&lt;typename... Ret&gt;
+              </div>
+              <span class="m-doc-wrap-bumper">auto db::<wbr />sqlite_cpp_db::<wbr />SqliteCppDb::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a709e3010e7d7135dc15cd6943247f44b" class="m-doc-self">executeAndGetAll</a>(</span><span class="m-doc-wrap">const std::string&amp; query) const -&gt; std::vector&lt; std::tuple&lt; Ret... &gt;&gt;</span></span>
+            </h3>
+            <p>Executes a query that returns any number of rows.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Template parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">Ret</td>
+                  <td>Types of the columns. Must be default constructible.</td>
+                </tr>
+              </tbody>
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>query</td>
+                  <td>Query to execute.</td>
+                </tr>
+              </tbody>
+              <tfoot>
+                <tr>
+                  <th>Returns</th>
+                  <td>A vector holding the result of the query. It will be empty if the query didn&#x27;t return anything. If the query returns fewer columns than specified in the template parameters, this method will throw.</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div></section>
         </section>
       </div>
     </div>
@@ -141,7 +245,7 @@
   <div class="m-container">
     <div class="m-row">
       <div class="m-col-l-10 m-push-l-1">
-        <p>RhythmGame. Created with <a href="https://doxygen.org/">Doxygen</a> 1.8.17 and <a href="https://mcss.mosra.cz/">m.css</a>.</p>
+        <p>RhythmGame. Created with <a href="https://doxygen.org/">Doxygen</a> 1.9.1 and <a href="https://mcss.mosra.cz/">m.css</a>.</p>
       </div>
     </div>
   </div>
