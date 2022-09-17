@@ -6,8 +6,8 @@
 #include <filesystem>
 #include <thread>
 
-db::sqlite_cpp_db::SqliteCppDb
-getDb(const std::string& path)
+auto
+getDb(const std::string& path) -> db::sqlite_cpp_db::SqliteCppDb
 {
     if (std::filesystem::exists(path)) {
         std::filesystem::remove(path);
