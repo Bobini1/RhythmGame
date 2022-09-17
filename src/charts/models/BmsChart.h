@@ -50,7 +50,8 @@ class BmsChart final : public Chart
      * operation.
      * @param writer
      */
-    auto writeFullData(behaviour::SongDataWriter writer) const -> void override;
+    auto writeFullData(behaviour::SongDataWriterToLua writer) const
+      -> void override;
 
   private:
     Tags tags;

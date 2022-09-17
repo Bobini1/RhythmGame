@@ -5,7 +5,7 @@
 #ifndef RHYTHMGAME_CHART_H
 #define RHYTHMGAME_CHART_H
 
-#include "charts/behaviour/SongDataWriter.h"
+#include "charts/behaviour/SongDataWriterToLua.h"
 
 namespace charts::models {
 
@@ -15,6 +15,7 @@ namespace charts::models {
  * This class is used to represent a chart of any format. A class supports a set
  * of common operations related to obtaining metadata, saving, etc.
  */
+
 class Chart
 {
   public:
@@ -29,7 +30,7 @@ class Chart
      * @brief Writes full chart data to lua.
      * @param writer Writer to write to.
      */
-    virtual auto writeFullData(behaviour::SongDataWriter writer) const
+    virtual auto writeFullData(behaviour::SongDataWriterToLua writer) const
       -> void = 0;
 
     // virtual auto saveToDb() const -> void = 0;

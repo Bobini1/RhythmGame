@@ -12,17 +12,44 @@
 
 namespace db::sqlite_cpp_db {
 
+/**
+ * @brief Database wrapper for SQLiteCpp.
+ * The wrapper uses thread_local database connection objects to provide
+ * lock-free access.
+ * However, it must be constructed in the thread that is going to use it
+ * to guarantee the class invariants.
+ */
 class SqliteCppDb
 {
     thread_local static DatabaseAccessPoint connections;
     std::string connKey;
 
   public:
+    /**
+     * @brief Constructs a database wrapper.
+     * @param dbPath Path to the database file.
+     * The database file will be created if it does not exist.
+     */
     explicit SqliteCppDb(std::string dbPath);
+
+    /**
+     * @brief Queries the database to inspect whether the table with the
+     * provided name exists.
+     * @param tableName Name of the table.
+     * @return True if the table exists, false otherwise.
+     */
     [[nodiscard]] auto hasTable(const std::string& table) const -> bool;
     auto execute(const std::string& query) const -> void;
 
-    template<typename... Ret>
+    /**
+     * @brief Executes a query that returns a single row.
+     * @param query Query to execute.
+     * @return An optional holding the result of the query. It will be empty if
+     * the query didn't return anything. If the query returns fewer columns than
+     * specified in template parameters, they will be default initialized.
+     * @tparam Ret Types of the columns. Must be default constructible.
+     */
+    template<std::default_initializable... Ret>
     [[nodiscard]] auto executeAndGet(const std::string& query) const
       -> std::optional<std::tuple<Ret...>>
     {
@@ -53,7 +80,14 @@ class SqliteCppDb
 
         return result;
     }
-
+    /**
+     * @brief Executes a query that returns any number of rows.
+     * @param query Query to execute.
+     * @return A vector holding the result of the query. It will be empty if
+     * the query didn't return anything. If the query returns fewer columns than
+     * specified in the template parameters, this method will throw.
+     * @tparam Ret Types of the columns. Must be default constructible.
+     */
     template<typename... Ret>
     [[nodiscard]] auto executeAndGetAll(const std::string& query) const
       -> std::vector<std::tuple<Ret...>>
