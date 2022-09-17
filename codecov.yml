@@ -8,3 +8,5 @@ coverage:
       default:
         target: 75%    # the required coverage value
         threshold: 1%  # the leniency in hitting the target
+ignore:
+  - "test"
