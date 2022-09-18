@@ -8,9 +8,9 @@
 #include <optional>
 #include <vector>
 #include <map>
-#include <db/sqlite_cpp_db/DatabaseAccessPoint.h>
+#include <db/DatabaseAccessPoint.h>
 
-namespace db::sqlite_cpp_db {
+namespace db {
 
 /**
  * @brief Database wrapper for SQLiteCpp.
@@ -119,6 +119,6 @@ class SqliteCppDb
         return result;
     }
 };
-} // namespace db::sqlite_cpp_db
+} // namespace db
 
 #endif // RHYTHMGAME_SQLITECPPDB_H

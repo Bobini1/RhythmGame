@@ -8,6 +8,8 @@
 #include <string>
 #include <map>
 #include <SQLiteCpp/Database.h>
+
+namespace db {
 class DatabaseAccessPoint
 {
     std::map<std::string, SQLite::Database> connections;
@@ -16,5 +18,6 @@ class DatabaseAccessPoint
     auto operator[](const std::string& dbPath) -> SQLite::Database&;
     auto at(const std::string& dbPath) const -> const SQLite::Database&;
 };
+} // namespace db
 
 #endif // RHYTHMGAME_DATABASEACCESSPOINT_H

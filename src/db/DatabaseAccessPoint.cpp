@@ -4,7 +4,8 @@
 
 #include "DatabaseAccessPoint.h"
 auto
-DatabaseAccessPoint::operator[](const std::string& dbPath) -> SQLite::Database&
+db::DatabaseAccessPoint::operator[](const std::string& dbPath)
+  -> SQLite::Database&
 {
     if (!connections.contains(dbPath)) {
         connections.emplace(
@@ -21,8 +22,9 @@ DatabaseAccessPoint::operator[](const std::string& dbPath) -> SQLite::Database&
     }
     return connections.at(dbPath);
 }
+
 auto
-DatabaseAccessPoint::at(const std::string& dbPath) const
+db::DatabaseAccessPoint::at(const std::string& dbPath) const
   -> const SQLite::Database&
 {
     return connections.at(dbPath);
