@@ -2,17 +2,17 @@
 // Created by satou on 13.08.22.
 //
 #include <catch2/catch_test_macros.hpp>
-#include "db/sqlite_cpp_db/SqliteCppDb.h"
+#include "db/SqliteCppDb.h"
 #include <filesystem>
 #include <thread>
 
 auto
-getDb(const std::string& path) -> db::sqlite_cpp_db::SqliteCppDb
+getDb(const std::string& path) -> db::SqliteCppDb
 {
     if (std::filesystem::exists(path)) {
         std::filesystem::remove(path);
     }
-    return db::sqlite_cpp_db::SqliteCppDb{ path };
+    return db::SqliteCppDb{ path };
 }
 
 TEST_CASE("Values can be inserted and retrieved from tables", "[SqliteCppDb]")
