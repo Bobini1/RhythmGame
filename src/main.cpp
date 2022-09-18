@@ -1,10 +1,7 @@
-#include "wiring/Injector.h"
 #include <drawing/SplashWindow.h>
 #include "drawing/SplashScene.h"
-#include <boost/di.hpp>
 #include <future>
 #include <thread>
-#include "state_transitions/SceneStateMachineImpl.h"
 #include "state_transitions/WindowStateMachineImpl.h"
 
 #include "state_transitions/Game.h"

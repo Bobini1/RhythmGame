@@ -9,7 +9,7 @@
 #include <vector>
 #include <map>
 
-namespace db::sqlite_cpp_db {
+namespace db {
 
 /**
  * @brief Database wrapper for SQLiteCpp.
@@ -118,6 +118,6 @@ class SqliteCppDb
         return result;
     }
 };
-} // namespace db::sqlite_cpp_db
+} // namespace db
 
 #endif // RHYTHMGAME_SQLITECPPDB_H

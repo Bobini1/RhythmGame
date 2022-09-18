@@ -5,9 +5,9 @@
 #include "SqliteCppDb.h"
 
 thread_local std::map<std::string, SQLite::Database>
-  db::sqlite_cpp_db::SqliteCppDb::connections;
+  db::SqliteCppDb::connections;
 
-db::sqlite_cpp_db::SqliteCppDb::SqliteCppDb(const std::string& dbPath)
+db::SqliteCppDb::SqliteCppDb(const std::string& dbPath)
 {
     if (!connections.contains(dbPath)) {
         connections.emplace(
@@ -23,12 +23,12 @@ db::sqlite_cpp_db::SqliteCppDb::SqliteCppDb(const std::string& dbPath)
     connKey = dbPath;
 }
 auto
-db::sqlite_cpp_db::SqliteCppDb::hasTable(const std::string& table) const -> bool
+db::SqliteCppDb::hasTable(const std::string& table) const -> bool
 {
     return connections.at(connKey).tableExists(table);
 }
 auto
-db::sqlite_cpp_db::SqliteCppDb::execute(const std::string& query) const -> void
+db::SqliteCppDb::execute(const std::string& query) const -> void
 {
     connections.at(connKey).exec(query);
 }
