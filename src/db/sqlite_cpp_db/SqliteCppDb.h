@@ -8,6 +8,7 @@
 #include <optional>
 #include <vector>
 #include <map>
+#include <db/sqlite_cpp_db/DatabaseAccessPoint.h>
 
 namespace db::sqlite_cpp_db {
 
@@ -20,7 +21,7 @@ namespace db::sqlite_cpp_db {
  */
 class SqliteCppDb
 {
-    thread_local static std::map<std::string, SQLite::Database> connections;
+    thread_local static DatabaseAccessPoint connections;
     std::string connKey;
 
   public:
@@ -29,7 +30,7 @@ class SqliteCppDb
      * @param dbPath Path to the database file.
      * The database file will be created if it does not exist.
      */
-    explicit SqliteCppDb(const std::string& dbPath);
+    explicit SqliteCppDb(std::string dbPath);
 
     /**
      * @brief Queries the database to inspect whether the table with the
@@ -52,7 +53,7 @@ class SqliteCppDb
     [[nodiscard]] auto executeAndGet(const std::string& query) const
       -> std::optional<std::tuple<Ret...>>
     {
-        SQLite::Statement statement(connections.at(connKey), query);
+        SQLite::Statement statement(connections[connKey], query);
         if (!statement.executeStep()) {
             return {};
         }
@@ -91,7 +92,7 @@ class SqliteCppDb
     [[nodiscard]] auto executeAndGetAll(const std::string& query) const
       -> std::vector<std::tuple<Ret...>>
     {
-        SQLite::Statement statement(connections.at(connKey), query);
+        SQLite::Statement statement(connections[connKey], query);
         std::vector<std::tuple<Ret...>> result;
         constexpr size_t tupleSize = std::tuple_size_v<std::tuple<Ret...>>;
         constexpr auto indices =

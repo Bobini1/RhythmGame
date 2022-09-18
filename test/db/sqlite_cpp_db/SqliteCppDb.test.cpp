@@ -4,9 +4,10 @@
 #include <catch2/catch_test_macros.hpp>
 #include "db/sqlite_cpp_db/SqliteCppDb.h"
 #include <filesystem>
+#include <thread>
 
-db::sqlite_cpp_db::SqliteCppDb
-getDb(const std::string& path)
+auto
+getDb(const std::string& path) -> db::sqlite_cpp_db::SqliteCppDb
 {
     if (std::filesystem::exists(path)) {
         std::filesystem::remove(path);
@@ -14,7 +15,7 @@ getDb(const std::string& path)
     return db::sqlite_cpp_db::SqliteCppDb{ path };
 }
 
-TEST_CASE("Test database query execution", "[SqliteCppDb]")
+TEST_CASE("Values can be inserted and retrieved from tables", "[SqliteCppDb]")
 {
     using namespace std::literals::string_literals;
     auto db = getDb("test.db"s);
@@ -38,7 +39,7 @@ TEST_CASE("Test database query execution", "[SqliteCppDb]")
     REQUIRE(y == "ThirdRowName"s);
 }
 
-TEST_CASE("Test failing query", "[SqliteCppDb]")
+TEST_CASE("Failing queries correctly return empty results", "[SqliteCppDb]")
 {
     using namespace std::literals::string_literals;
     auto db = getDb("test2.db"s);
@@ -49,4 +50,26 @@ TEST_CASE("Test failing query", "[SqliteCppDb]")
     REQUIRE_FALSE(row);
     auto rows = db.executeAndGetAll<int, std::string>("SELECT * FROM Test"s);
     REQUIRE(rows.empty());
+}
+
+TEST_CASE("Database wrapper can be passed to another thread", "[SqliteCppDb]")
+{
+    using namespace std::literals::string_literals;
+    auto db = getDb("test3.db"s);
+    REQUIRE_FALSE(db.hasTable("Test"));
+    db.execute("CREATE TABLE Test(ID int, Name VARCHAR(255))"s);
+    db.execute("INSERT INTO Test VALUES (1, 'TestName')"s);
+    auto row =
+      db.executeAndGet<int, std::string>("SELECT * FROM Test WHERE ID = 1"s);
+    auto& [x, y] = row.value();
+    REQUIRE(x == 1);
+    REQUIRE(y == "TestName"s);
+    auto thread = std::thread{ [&db]() {
+        auto row = db.executeAndGet<int, std::string>(
+          "SELECT * FROM Test WHERE ID = 1"s);
+        auto& [z, w] = row.value();
+        REQUIRE(z == 1);
+        REQUIRE(w == "TestName"s);
+    } };
+    thread.join();
 }
