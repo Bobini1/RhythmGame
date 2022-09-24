@@ -3,6 +3,8 @@
 //
 
 #include "EventManager.h"
+#include <stdexcept>
+
 auto
 events::eventNameToEnum(const std::string& event) -> events::Event
 {
