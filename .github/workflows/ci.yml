@@ -218,7 +218,7 @@ jobs:
 
       - name: Install static analyzers
         if: matrix.os == 'ubuntu-22.04'
-        run: sudo apt-get install clang-tidy cppcheck -y -q
+        run: sudo apt-get update && sudo apt-get install clang-tidy cppcheck -y -q
 
       - name: Install Python
         uses: actions/setup-python@v2
