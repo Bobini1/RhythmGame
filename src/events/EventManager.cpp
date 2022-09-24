@@ -8,25 +8,25 @@
 auto
 events::eventNameToEnum(const std::string& event) -> events::Event
 {
-    if (event == "init")
+    if (event == "Init")
         return Event::Init;
-    if (event == "exit")
+    if (event == "Exit")
         return Event::Exit;
-    if (event == "update")
+    if (event == "Update")
         return Event::Update;
-    if (event == "draw")
+    if (event == "Draw")
         return Event::Draw;
-    if (event == "keyPressed")
+    if (event == "KeyPressed")
         return Event::KeyPressed;
-    if (event == "keyReleased")
+    if (event == "KeyReleased")
         return Event::KeyReleased;
-    if (event == "mouseMoved")
+    if (event == "MouseMoved")
         return Event::MouseMoved;
-    if (event == "mouseButtonPressed")
+    if (event == "MouseButtonPressed")
         return Event::MouseButtonPressed;
-    if (event == "mouseButtonReleased")
+    if (event == "MouseButtonReleased")
         return Event::MouseButtonReleased;
-    if (event == "mouseWheelScrolled")
+    if (event == "MouseWheelScrolled")
         return Event::MouseWheelScrolled;
     throw std::invalid_argument{ "Unknown event type" };
 }
@@ -35,25 +35,25 @@ events::enumToEventName(events::Event event) -> std::string
 {
     switch (event) {
         case Event::Init:
-            return "init";
+            return "Init";
         case Event::Exit:
-            return "exit";
+            return "Exit";
         case Event::Update:
-            return "update";
+            return "Update";
         case Event::Draw:
-            return "draw";
+            return "Draw";
         case Event::KeyPressed:
-            return "keyPressed";
+            return "KeyPressed";
         case Event::KeyReleased:
-            return "keyReleased";
+            return "KeyReleased";
         case Event::MouseMoved:
-            return "mouseMoved";
+            return "MouseMoved";
         case Event::MouseButtonPressed:
-            return "mouseButtonPressed";
+            return "MouseButtonPressed";
         case Event::MouseButtonReleased:
-            return "mouseButtonReleased";
+            return "MouseButtonReleased";
         case Event::MouseWheelScrolled:
-            return "mouseWheelScrolled";
+            return "MouseWheelScrolled";
     }
     throw std::invalid_argument{ "Unknown event type" };
 }

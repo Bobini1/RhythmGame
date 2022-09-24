@@ -77,3 +77,42 @@ TEST_CASE("EventManager can call multiple listeners with arguments", "[events]")
                              std::any{ std::string{ "3" } } };
     eventManager.call(events::Event::Init, args);
 }
+
+TEST_CASE("Converting from string to enum", "[events]")
+{
+    REQUIRE(events::enumToEventName(events::Event::Init) == "Init");
+    REQUIRE(events::enumToEventName(events::Event::Exit) == "Exit");
+    REQUIRE(events::enumToEventName(events::Event::Update) == "Update");
+    REQUIRE(events::enumToEventName(events::Event::Draw) == "Draw");
+    REQUIRE(events::enumToEventName(events::Event::KeyPressed) == "KeyPressed");
+    REQUIRE(events::enumToEventName(events::Event::KeyReleased) ==
+            "KeyReleased");
+    REQUIRE(events::enumToEventName(events::Event::MouseMoved) == "MouseMoved");
+    REQUIRE(events::enumToEventName(events::Event::MouseButtonPressed) ==
+            "MouseButtonPressed");
+    REQUIRE(events::enumToEventName(events::Event::MouseButtonReleased) ==
+            "MouseButtonReleased");
+    REQUIRE(events::enumToEventName(events::Event::MouseWheelScrolled) ==
+            "MouseWheelScrolled");
+}
+
+TEST_CASE("Converting from enum to string", "[events]")
+{
+    using namespace std::string_literals;
+    REQUIRE("Init"s == events::enumToEventName(events::Event::Init));
+    REQUIRE("Exit"s == events::enumToEventName(events::Event::Exit));
+    REQUIRE("Update"s == events::enumToEventName(events::Event::Update));
+    REQUIRE("Draw"s == events::enumToEventName(events::Event::Draw));
+    REQUIRE("KeyPressed"s ==
+            events::enumToEventName(events::Event::KeyPressed));
+    REQUIRE("KeyReleased"s ==
+            events::enumToEventName(events::Event::KeyReleased));
+    REQUIRE("MouseMoved"s ==
+            events::enumToEventName(events::Event::MouseMoved));
+    REQUIRE("MouseButtonPressed"s ==
+            events::enumToEventName(events::Event::MouseButtonPressed));
+    REQUIRE("MouseButtonReleased"s ==
+            events::enumToEventName(events::Event::MouseButtonReleased));
+    REQUIRE("MouseWheelScrolled"s ==
+            events::enumToEventName(events::Event::MouseWheelScrolled));
+}
