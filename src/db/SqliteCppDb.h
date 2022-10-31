@@ -16,8 +16,6 @@ namespace db {
  * @brief Database wrapper for SQLiteCpp.
  * The wrapper uses thread_local database connection objects to provide
  * lock-free access.
- * However, it must be constructed in the thread that is going to use it
- * to guarantee the class invariants.
  */
 class SqliteCppDb
 {
