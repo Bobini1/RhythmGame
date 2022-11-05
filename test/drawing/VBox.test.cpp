@@ -20,9 +20,8 @@ TEST_CASE("Vbox is able to arrange its children", "[drawing][vbox]")
     vbox1->addChild(child2);
     vbox2->addChild(vbox1);
     vbox2->addChild(child3);
-    vbox2->setLayout({0, 0, 300, 300});
-    REQUIRE(child1->getLayout() == sf::FloatRect{0, 0, 100, 100});
-    REQUIRE(child2->getLayout() == sf::FloatRect{0, 100, 100, 100});
-    REQUIRE(child3->getLayout() == sf::FloatRect{0, 200, 100, 100});
-
+    vbox2->setLayout({ 0, 0, 300, 300 });
+    REQUIRE(child1->getLayout() == sf::FloatRect{ 0, 0, 100, 100 });
+    REQUIRE(child2->getLayout() == sf::FloatRect{ 0, 100, 100, 100 });
+    REQUIRE(child3->getLayout() == sf::FloatRect{ 0, 200, 100, 100 });
 }
