@@ -37,8 +37,8 @@ class Actor // NOLINT(fuchsia-multiple-inheritance)
     [[nodiscard]] virtual auto getMinHeight() const -> float = 0;
     [[nodiscard]] virtual auto getWidth() const -> float = 0;
     [[nodiscard]] virtual auto getHeight() const -> float = 0;
-    virtual auto setWidth(float width) -> void;
-    virtual auto setHeight(float height) -> void;
+    auto setWidth(float width) -> void;
+    auto setHeight(float height) -> void;
 
   private:
     virtual auto setWidthImpl(float width) -> void = 0;
