@@ -38,13 +38,11 @@ class AbstractVectorCollection : public Parent
     [[nodiscard]] auto crbegin() const noexcept -> const_reverse_iterator;
     [[nodiscard]] auto crend() const noexcept -> const_reverse_iterator;
 
-  protected:
-    ~AbstractVectorCollection() = default;
-
   private:
     std::vector<std::shared_ptr<Actor>> children;
     virtual void addChildImpl(std::shared_ptr<Actor> actor);
     virtual void removeChildImpl(const std::shared_ptr<Actor>& actor);
+    virtual void recalculateSize() = 0;
 };
 } // namespace drawing::actors
 #endif // RHYTHMGAME_ABSTRACTVECTORCOLLECTION_H

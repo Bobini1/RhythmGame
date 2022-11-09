@@ -64,7 +64,7 @@ class SplashScene : public Scene
     void update(std::chrono::nanoseconds /* delta */) final {}
     void draw(sf::RenderTarget& target, sf::RenderStates states) const final
     {
-        root->setLayout(sf::FloatRect(0, 0, target.getSize().x, target.getSize().y));
+        root->setTransform(sf::Transform::Identity);
         target.draw(*root, states);
     }
 };

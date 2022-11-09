@@ -9,23 +9,33 @@ namespace drawing::actors {
 class HBox : public AbstractVectorCollection
 {
   public:
-    [[nodiscard]] auto measure(MeasurementSpec widthSpec, MeasurementSpec heightSpec) const
-      -> sf::Vector2f override;
-    auto setLayout(sf::FloatRect layout) -> void override;
-    [[nodiscard]] auto getLayout() const -> sf::FloatRect override;
+    auto getMinWidth() const -> float override;
+    auto getMinHeight() const -> float override;
+    auto getWidth() const -> float override;
+    auto getHeight() const -> float override;
     auto update(std::chrono::nanoseconds delta) -> void override;
     [[nodiscard]] auto getLuaSelf(sol::state& lua) -> sol::object override;
     [[nodiscard]] auto matchParentWidth() const -> bool override;
     [[nodiscard]] auto matchParentHeight() const -> bool override;
 
+  private:
+    auto setWidthImpl(float width) -> void override;
+    auto setHeightImpl(float height) -> void override;
+
   protected:
     void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
 
+
   private:
-    sf::FloatRect layout;
-    auto getTotalSizeOfChildrenWithoutMatchParent(
-      drawing::MeasurementSpec widthSpec,
-      drawing::MeasurementSpec heightSpec) const -> sf::Vector2f;
+  public:
+    auto setTransform(sf::Transform transform) -> void override;
+    auto getTransform() const -> sf::Transform override;
+
+  private:
+    sf::Transform transform;
+    sf::Vector2f size;
+    auto getMinimumSizeOfChildren() const -> sf::Vector2f;
+    void recalculateSize() override;
 };
 } // namespace drawing::actors
 

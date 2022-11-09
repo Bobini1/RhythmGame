@@ -68,31 +68,6 @@ Quad::getLuaSelf(sol::state& lua) -> sol::object
              sharedFromBase<Quad>() };
 }
 auto
-Quad::measure(MeasurementSpec widthSpec, MeasurementSpec heightSpec) const
-  -> sf::Vector2f
-{
-    auto size = rect.getSize();
-    if (widthSpec.has_value()) {
-        size.x = std::min(size.x, widthSpec.value());
-    }
-    if (heightSpec.has_value()) {
-        size.y = std::min(size.y, heightSpec.value());
-    }
-
-    return size;
-}
-void
-Quad::setLayout(sf::FloatRect layout)
-{
-    rect.setPosition(layout.left, layout.top);
-    rect.setSize({ layout.width, layout.height });
-}
-auto
-Quad::getLayout() const -> sf::FloatRect
-{
-    return rect.getGlobalBounds();
-}
-auto
 Quad::matchParentWidth() const -> bool
 {
     return false;
@@ -101,5 +76,45 @@ auto
 Quad::matchParentHeight() const -> bool
 {
     return false;
+}
+void
+Quad::setTransform(sf::Transform newTransform)
+{
+    this->transform = newTransform;
+}
+auto
+Quad::getTransform() const -> sf::Transform
+{
+    return transform;
+}
+auto
+Quad::getMinWidth() const -> float
+{
+    return 0;
+}
+auto
+Quad::getMinHeight() const -> float
+{
+    return 0;
+}
+auto
+Quad::getWidth() const -> float
+{
+    return rect.getSize().x;
+}
+auto
+Quad::getHeight() const -> float
+{
+    return rect.getSize().y;
+}
+void
+Quad::setWidthImpl(float width)
+{
+    rect.setSize({ width, rect.getSize().y });
+}
+void
+Quad::setHeightImpl(float height)
+{
+    rect.setSize({ rect.getSize().x, height });
 }
 } // namespace drawing::actors

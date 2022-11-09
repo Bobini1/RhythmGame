@@ -29,12 +29,21 @@ class Actor // NOLINT(fuchsia-multiple-inheritance)
     virtual auto setParent(const std::shared_ptr<Parent>& parent) -> void;
     virtual auto update(std::chrono::nanoseconds delta) -> void = 0;
     [[nodiscard]] virtual auto getLuaSelf(sol::state& lua) -> sol::object = 0;
-    [[nodiscard]] virtual auto measure(MeasurementSpec widthSpec,
-                         MeasurementSpec heightSpec) const -> sf::Vector2f = 0;
-    virtual auto setLayout(sf::FloatRect layout) -> void = 0;
-    [[nodiscard]] virtual auto getLayout() const -> sf::FloatRect = 0;
+    virtual auto setTransform(sf::Transform transform) -> void = 0;
+    [[nodiscard]] virtual auto getTransform() const -> sf::Transform = 0;
     [[nodiscard]] virtual auto matchParentWidth() const -> bool = 0;
     [[nodiscard]] virtual auto matchParentHeight() const -> bool = 0;
+    [[nodiscard]] virtual auto getMinWidth() const -> float = 0;
+    [[nodiscard]] virtual auto getMinHeight() const -> float = 0;
+    [[nodiscard]] virtual auto getWidth() const -> float = 0;
+    [[nodiscard]] virtual auto getHeight() const -> float = 0;
+    virtual auto setWidth(float width) -> void;
+    virtual auto setHeight(float height) -> void;
+
+  private:
+    virtual auto setWidthImpl(float width) -> void = 0;
+    virtual auto setHeightImpl(float height) -> void = 0;
+
 };
 } // namespace drawing::actors
 #endif // RHYTHMGAME_ACTOR_H

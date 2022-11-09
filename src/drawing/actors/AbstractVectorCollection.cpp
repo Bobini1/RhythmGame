@@ -12,6 +12,8 @@ drawing::actors::AbstractVectorCollection::addChild(
     addChildImpl(actor);
     actor->setParent(sharedFromBase<Parent>());
     children.push_back(std::move(actor));
+
+    recalculateSize();
 }
 void
 drawing::actors::AbstractVectorCollection::removeChild(
@@ -25,6 +27,8 @@ drawing::actors::AbstractVectorCollection::removeChild(
     if (actor->getParent() == sharedFromBase<Parent>()) {
         actor->setParent(nullptr);
     }
+
+    recalculateSize();
 }
 auto
 drawing::actors::AbstractVectorCollection::begin() noexcept -> iterator

@@ -26,10 +26,17 @@ class Quad : public Actor
     [[nodiscard]] auto matchParentWidth() const -> bool override;
     [[nodiscard]] auto matchParentHeight() const -> bool override;
     [[nodiscard]] auto getLuaSelf(sol::state& lua) -> sol::object override;
-    [[nodiscard]] auto measure(MeasurementSpec widthSpec, MeasurementSpec heightSpec) const -> sf::Vector2f override;
-    auto setLayout(sf::FloatRect layout)
-      -> void override;
-    [[nodiscard]] auto getLayout() const -> sf::FloatRect override;
+    auto setTransform(sf::Transform transform) -> void override;
+    auto getTransform() const -> sf::Transform override;
+    auto getMinWidth() const -> float override;
+    auto getMinHeight() const -> float override;
+    auto getWidth() const -> float override;
+    auto getHeight() const -> float override;
+
+  private:
+    auto setWidthImpl(float width) -> void override;
+    auto setHeightImpl(float height) -> void override;
+    sf::Transform transform;
 
   protected:
     void draw(sf::RenderTarget& target, sf::RenderStates states) const override;

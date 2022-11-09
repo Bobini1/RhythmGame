@@ -3,6 +3,8 @@
 //
 
 #include "Parent.h"
+#include "Actor.h"
+
 auto
 drawing::actors::Actor::getParent() const -> std::shared_ptr<Parent>
 {
@@ -19,4 +21,20 @@ drawing::actors::Actor::setParent(const std::shared_ptr<Parent>& newParent)
     } else {
         this->parent = newParent;
     }
+}
+auto
+drawing::actors::Actor::setWidth(float width) -> void
+{
+    if (width < getMinWidth()) {
+        width = getMinWidth();
+    }
+    setWidthImpl(width);
+}
+auto
+drawing::actors::Actor::setHeight(float height) -> void
+{
+    if (height < getMinHeight()) {
+        height = getMinHeight();
+    }
+    setHeightImpl(height);
 }

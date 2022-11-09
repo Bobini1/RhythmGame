@@ -12,20 +12,20 @@
 
 TEST_CASE("Hbox is able to arrange its children", "[drawing][hbox]")
 {
-    auto HBox1 = std::make_shared<drawing::actors::HBox>();
-    auto HBox2 = std::make_shared<drawing::actors::HBox>();
+    auto hbox1 = std::make_shared<drawing::actors::HBox>();
+    auto hbox2 = std::make_shared<drawing::actors::HBox>();
     auto child1 = std::make_shared<drawing::actors::Quad>();
     auto child2 = std::make_shared<drawing::actors::Quad>();
     auto child3 = std::make_shared<drawing::actors::Quad>();
     child1->setSize({ 100, 100 });
     child2->setSize({ 100, 100 });
     child3->setSize({ 100, 100 });
-    HBox1->addChild(child1);
-    HBox1->addChild(child2);
-    HBox2->addChild(HBox1);
-    HBox2->addChild(child3);
-    HBox2->setLayout({ 0, 0, 300, 300 });
-    REQUIRE(child1->getLayout() == sf::FloatRect{ 0, 0, 100, 100 });
-    REQUIRE(child2->getLayout() == sf::FloatRect{ 100, 0, 100, 100 });
-    REQUIRE(child3->getLayout() == sf::FloatRect{ 200, 0, 100, 100 });
+    hbox1->addChild(child1);
+    hbox1->addChild(child2);
+    hbox2->addChild(hbox1);
+    hbox2->addChild(child3);
+    hbox2->setTransform(sf::Transform::Identity);
+    REQUIRE(child1->getTransform() == sf::Transform::Identity);
+    REQUIRE(child2->getTransform() == sf::Transform(sf::Transform::Identity).translate(100, 0));
+    REQUIRE(child3->getTransform() == sf::Transform(sf::Transform::Identity).translate(200, 0));
 }
