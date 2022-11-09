@@ -19,9 +19,12 @@ TEST_CASE("Vbox is able to arrange its children", "[drawing][vbox]")
     vbox1->addChild(child1);
     vbox1->addChild(child2);
     vbox2->addChild(vbox1);
-    vbox2->addChild(child3);;
+    vbox2->addChild(child3);
+    ;
     vbox2->setTransform(sf::Transform::Identity);
     REQUIRE(child1->getTransform() == sf::Transform::Identity);
-    REQUIRE(child2->getTransform() == sf::Transform(sf::Transform::Identity).translate(0, 100));
-    REQUIRE(child3->getTransform() == sf::Transform(sf::Transform::Identity).translate(0, 200));
+    REQUIRE(child2->getTransform() ==
+            sf::Transform(sf::Transform::Identity).translate(0, 100));
+    REQUIRE(child3->getTransform() ==
+            sf::Transform(sf::Transform::Identity).translate(0, 200));
 }
