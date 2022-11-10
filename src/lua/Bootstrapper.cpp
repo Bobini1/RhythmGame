@@ -44,9 +44,9 @@ lua::Bootstrapper::defineTypes(sol::state& target) const -> void
     };
     abstractVectorCollectionType["removeChild"] =
       &drawing::actors::AbstractVectorCollection::removeChild;
-    abstractVectorCollectionType[sol::meta_function::index] =
-      [&target](drawing::actors::AbstractVectorCollection& self, int index) {
-          return self[static_cast<std::size_t>(index)]->getLuaSelf(target);
+    abstractVectorCollectionType["getChild"] =
+      [&target](drawing::actors::AbstractVectorCollection* self, int index) {
+          return (*self)[static_cast<std::size_t>(index)-1]->getLuaSelf(target);
       };
     auto vBoxType = target.new_usertype<drawing::actors::VBox>(
       "VBox",

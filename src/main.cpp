@@ -24,6 +24,7 @@ constexpr auto luaScript = R"(
     root:addChild(quad)
     root:addChild(quad2)
     root:addChild(quad3)
+    root:getChild(1).width = 200
     return root
 )";
 auto
