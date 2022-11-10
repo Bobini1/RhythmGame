@@ -9,6 +9,7 @@ namespace drawing::actors {
 void
 Quad::draw(sf::RenderTarget& target, sf::RenderStates states) const
 {
+    states.transform *= getTransform();
     target.draw(rect, states);
 }
 void
@@ -18,7 +19,8 @@ Quad::update(std::chrono::nanoseconds delta)
 void
 Quad::setSize(const sf::Vector2f& size)
 {
-    rect.setSize(size);
+    setWidth(size.x);
+    setHeight(size.y);
 }
 auto
 Quad::getSize() const -> const sf::Vector2f&

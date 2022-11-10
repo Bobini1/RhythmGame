@@ -11,7 +11,7 @@ namespace lua {
 class Bootstrapper
 {
   public:
-    auto defineTypes(sol::state& target) const -> void {}
+    auto defineTypes(sol::state& target) const -> void;
 };
 } // namespace lua
 #endif // RHYTHMGAME_BOOTSTRAPPER_H

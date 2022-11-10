@@ -12,54 +12,21 @@
 #include <SFML/Graphics/RenderTarget.hpp>
 #include <execution>
 
-constexpr auto lua = R"(
-    local scene = {}
 
-    function scene:load()
-        self.quad = Quad.new()
-        self.quad:setFillColor(sf.Color.new(255, 0, 0, 255))
-        self.quad:setSize(sf.Vector2f.new(100, 100))
-        self:addChild(self.quad)
-    end
-
-    function scene:update(delta)
-        self.quad:setPosition(sf.Vector2f.new(self.quad:getPosition().x + 1, self.quad:getPosition().y))
-    end
-
-    return scene
-)";
 
 namespace drawing {
 /**
  * @brief Scene that displays the splash screen while the game is being loaded.
  */
-template<resource_locators::LuaScriptFinder LuaScriptFinderType>
 class SplashScene : public Scene
 {
     // sol::state lua;
     std::shared_ptr<actors::Actor> root;
 
   public:
-    explicit SplashScene(LuaScriptFinderType luaScriptFinder)
+    explicit SplashScene(std::shared_ptr<actors::Actor> root)
+        : root(std::move(root))
     {
-        // lua.open_libraries(sol::lib::jit, sol::lib::base, sol::lib::io);
-        // lua.script(luaScriptFinder.findHandlerScript("splash"));
-        auto quad = std::make_shared<actors::Quad>();
-        auto quad2 = std::make_shared<actors::Quad>();
-        quad2->setFillColor(sf::Color::Red);
-        quad2->setSize(sf::Vector2f(100, 100));
-        quad->setFillColor(sf::Color::Green);
-        quad->setSize({ 100, 100 });
-        auto vbox = std::make_shared<actors::VBox>();
-        vbox->addChild(quad);
-        vbox->addChild(quad2);
-        auto vbox2 = std::make_shared<actors::VBox>();
-        vbox2->addChild(vbox);
-        auto quad3 = std::make_shared<actors::Quad>();
-        quad3->setFillColor(sf::Color::Blue);
-        quad3->setSize({ 100, 100 });
-        vbox2->addChild(quad3);
-        root = vbox2;
     }
     void update(std::chrono::nanoseconds /* delta */) final {}
     void draw(sf::RenderTarget& target, sf::RenderStates states) const final

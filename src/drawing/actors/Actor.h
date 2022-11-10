@@ -12,7 +12,12 @@
 #include <memory>
 #include <sol/state.hpp>
 #include "support/EnableSharedFromBase.h"
-#include "drawing/MeasurementTypes.h"
+
+/**
+ * @namespace drawing::actors
+ * @brief Contains all the classes that are used to draw the game. The lua API
+ * is not defined here!
+ */
 namespace drawing::actors {
 class Parent;
 /**
@@ -39,11 +44,9 @@ class Actor // NOLINT(fuchsia-multiple-inheritance)
     [[nodiscard]] virtual auto getHeight() const -> float = 0;
     auto setWidth(float width) -> void;
     auto setHeight(float height) -> void;
-
   private:
     virtual auto setWidthImpl(float width) -> void = 0;
     virtual auto setHeightImpl(float height) -> void = 0;
-
 };
 } // namespace drawing::actors
 #endif // RHYTHMGAME_ACTOR_H
