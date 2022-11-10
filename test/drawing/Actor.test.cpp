@@ -1,0 +1,15 @@
+//
+// Created by bobini on 11.11.22.
+//
+
+#include "drawing/actors/Quad.h"
+#include <catch2/catch_test_macros.hpp>
+#include <catch2/catch_approx.hpp>
+
+TEST_CASE("Size of actor can't be changed below min size", "[drawing][actor]")
+{
+    auto quad = std::make_shared<drawing::actors::Quad>();
+    quad->setSize({ -100, -100 });
+    REQUIRE(quad->getHeight() == Catch::Approx(quad->getMinHeight()));
+    REQUIRE(quad->getWidth() == Catch::Approx(quad->getMinWidth()));
+}

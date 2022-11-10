@@ -30,4 +30,5 @@ TEST_CASE("Hbox is able to arrange its children", "[drawing][hbox]")
             sf::Transform(sf::Transform::Identity).translate(100, 0));
     REQUIRE(child3->getTransform() ==
             sf::Transform(sf::Transform::Identity).translate(200, 0));
+    REQUIRE(hbox1->getTransform() == sf::Transform::Identity);
 }
