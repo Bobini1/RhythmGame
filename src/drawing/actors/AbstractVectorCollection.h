@@ -24,6 +24,7 @@ class AbstractVectorCollection : public Parent
     void addChild(std::shared_ptr<Actor> actor);
     void removeChild(std::shared_ptr<Actor> actor) override;
     auto operator[](size_type index) const -> std::shared_ptr<Actor>;
+    auto getSize() const -> size_type;
 
     [[nodiscard]] auto begin() noexcept -> iterator;
     [[nodiscard]] auto end() noexcept -> iterator;

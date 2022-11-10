@@ -115,3 +115,9 @@ drawing::actors::AbstractVectorCollection::removeChildImpl(
   const std::shared_ptr<Actor>& actor)
 {
 }
+auto
+drawing::actors::AbstractVectorCollection::getSize() const
+  -> drawing::actors::AbstractVectorCollection::size_type
+{
+    return children.size();
+}
