@@ -8,7 +8,6 @@
 #include "drawing/actors/VBox.h"
 #include "drawing/actors/HBox.h"
 #include "drawing/actors/Quad.h"
-#include "support/LuaOverloadForAllActors.h"
 auto
 lua::Bootstrapper::defineTypes(sol::state& target) const -> void
 {
