@@ -6,7 +6,7 @@
 #define RHYTHMGAME_SPLASHWINDOW_H
 
 #include <SFML/Graphics/RenderWindow.hpp>
-#include "drawing/Actor.h"
+#include "drawing/actors/Actor.h"
 #include "resource_locators/LuaScriptFinder.h"
 #include "Scene.h"
 #include "Window.h"

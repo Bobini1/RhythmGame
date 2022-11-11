@@ -6,35 +6,33 @@
 #define RHYTHMGAME_SPLASHSCENE_H
 #include "drawing/Scene.h"
 #include "resource_locators/LuaScriptFinder.h"
-#include "Actor.h"
+#include "drawing/actors/Actor.h"
+#include "drawing/actors/Quad.h"
+#include "drawing/actors/VBox.h"
 #include <SFML/Graphics/RenderTarget.hpp>
 #include <execution>
+
+
+
 namespace drawing {
 /**
  * @brief Scene that displays the splash screen while the game is being loaded.
  */
-template<resource_locators::LuaScriptFinder LuaScriptFinderType>
 class SplashScene : public Scene
 {
-    sol::state lua;
+    // sol::state lua;
+    std::shared_ptr<actors::Actor> root;
 
   public:
-    explicit SplashScene(LuaScriptFinderType luaScriptFinder)
+    explicit SplashScene(std::shared_ptr<actors::Actor> root)
+        : root(std::move(root))
     {
-        lua.open_libraries(sol::lib::jit, sol::lib::base, sol::lib::io);
-        lua.script(luaScriptFinder.findHandlerScript("splash"));
     }
     void update(std::chrono::nanoseconds /* delta */) final {}
     void draw(sf::RenderTarget& target, sf::RenderStates states) const final
     {
-        auto actorsFromLua = std::array<drawing::Actor*, 0>{};
-        std::for_each(
-#ifdef RHYTHMGAME_HAS_STD_EXECUTION
-          std::execution::par,
-#endif
-          std::begin(actorsFromLua),
-          std::end(actorsFromLua),
-          [&target, &states](auto&& actor) { target.draw(*actor, states); });
+        root->setTransform(sf::Transform::Identity);
+        target.draw(*root, states);
     }
 };
 } // namespace drawing

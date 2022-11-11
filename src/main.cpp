@@ -5,34 +5,38 @@
 #include "state_transitions/WindowStateMachineImpl.h"
 
 #include "state_transitions/Game.h"
+#include "lua/Bootstrapper.h"
 
-class LuaScriptFinderImpl
-{
-  public:
-    auto findHandlerScript(const std::string& /*screen*/) -> std::string
-    {
-        return "    -- defines a factorial function\n"
-               "    function fact (n)\n"
-               "      if n == 0 then\n"
-               "        return 1\n"
-               "      else\n"
-               "        return n * fact(n-1)\n"
-               "      end\n"
-               "    end\n"
-               "    \n"
-               "    print(\"enter a number:\")\n"
-               "    a = 5\n"
-               "    print(fact(a))";
-    }
-};
-
+constexpr auto luaScript = R"(
+    local root = VBox.new()
+    local quad = Quad.new()
+    quad.width = 100
+    quad.height = 100
+    quad.fillColor = Color.new(255, 0, 0, 255)
+    local quad2 = Quad.new()
+    quad2.width = 100
+    quad2.height = 100
+    quad2.fillColor = Color.new(0, 255, 0, 255)
+    local quad3 = Quad.new()
+    quad3.width = 100
+    quad3.height = 100
+    quad3.fillColor = Color.new(0, 0, 255, 255)
+    root:addChild(quad)
+    root:addChild(quad2)
+    root:addChild(quad3)
+    root:getChild(1).width = 200
+    return root
+)";
 auto
 main() -> int
 {
-    auto luaScriptFinder = LuaScriptFinderImpl{};
+    sol::state state;
+    state.open_libraries(sol::lib::jit, sol::lib::base, sol::lib::io);
+    lua::Bootstrapper bootstrapper;
+    bootstrapper.defineTypes(state);
+    auto root = state.script(luaScript);
     auto startingScene =
-      std::make_shared<drawing::SplashScene<decltype(luaScriptFinder)>>(
-        luaScriptFinder);
+      std::make_shared<drawing::SplashScene>(root.get<drawing::actors::VBox*>()->shared_from_this());
     auto startingWindow = std::make_shared<drawing::SplashWindow>(
       std::move(startingScene), sf::VideoMode{ 800, 600 }, "RhythmGame");
     auto windowStateMachine = state_transitions::WindowStateMachineImpl{};

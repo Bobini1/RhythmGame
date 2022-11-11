@@ -6,12 +6,12 @@
 #define RHYTHMGAME_BOOTSTRAPPER_H
 
 #include <sol/state.hpp>
+
 namespace lua {
 class Bootstrapper
 {
   public:
-    virtual ~Bootstrapper() = default;
-    virtual auto defineTypes(sol::state& target) -> void = 0;
+    auto defineTypes(sol::state& target) const -> void;
 };
 } // namespace lua
 #endif // RHYTHMGAME_BOOTSTRAPPER_H

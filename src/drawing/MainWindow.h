@@ -7,7 +7,7 @@
 
 #include <stack>
 #include "Window.h"
-#include "Actor.h"
+#include "drawing/actors/Actor.h"
 namespace drawing {
 /**
  * @brief The main window of the game, which is the window that is shown when
@@ -15,7 +15,7 @@ namespace drawing {
  */
 class MainWindow : public Window
 {
-    std::stack<std::unique_ptr<drawing::Actor>> scenes;
+    std::stack<std::unique_ptr<drawing::actors::Actor>> scenes;
 
   public:
     MainWindow(const sf::VideoMode& mode,
