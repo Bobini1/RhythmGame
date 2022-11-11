@@ -10,6 +10,11 @@
 
 namespace drawing::actors {
 class Actor;
+/**
+ * An AbstractVectorCollection is an abstract base class that manages its
+ * children in an ordered vector. It supports insertion of any number of
+ * children.
+ */
 class AbstractVectorCollection : public Parent
 {
   public:
@@ -41,8 +46,9 @@ class AbstractVectorCollection : public Parent
 
   private:
     std::vector<std::shared_ptr<Actor>> children;
-    virtual void addChildImpl(std::shared_ptr<Actor> actor);
-    virtual void removeChildImpl(const std::shared_ptr<Actor>& actor);
+    /**
+     * @brief This function is called whenever a child is added or removed.
+     */
     virtual void recalculateSize() = 0;
 };
 } // namespace drawing::actors

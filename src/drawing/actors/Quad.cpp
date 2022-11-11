@@ -63,13 +63,6 @@ Quad::getOutlineThickness() const -> float
     return rect.getOutlineThickness();
 }
 auto
-Quad::getLuaSelf(sol::state& lua) -> sol::object
-{
-    return { lua,
-             sol::in_place_type_t<std::shared_ptr<Quad>>(),
-             sharedFromBase<Quad>() };
-}
-auto
 Quad::matchParentWidth() const -> bool
 {
     return false;

@@ -6,6 +6,9 @@
 #define RHYTHMGAME_HBOX_H
 #include "AbstractVectorCollection.h"
 namespace drawing::actors {
+/**
+ * A HBox is a parent that arranges its children horizontally.
+ */
 class HBox : public AbstractVectorCollection
 {
   public:
@@ -14,7 +17,6 @@ class HBox : public AbstractVectorCollection
     auto getWidth() const -> float override;
     auto getHeight() const -> float override;
     auto update(std::chrono::nanoseconds delta) -> void override;
-    [[nodiscard]] auto getLuaSelf(sol::state& lua) -> sol::object override;
     [[nodiscard]] auto matchParentWidth() const -> bool override;
     [[nodiscard]] auto matchParentHeight() const -> bool override;
 
@@ -24,7 +26,6 @@ class HBox : public AbstractVectorCollection
 
   protected:
     void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
-
 
   private:
   public:

@@ -9,7 +9,6 @@ void
 drawing::actors::AbstractVectorCollection::addChild(
   std::shared_ptr<Actor> actor)
 {
-    addChildImpl(actor);
     actor->setParent(sharedFromBase<Parent>());
     children.push_back(std::move(actor));
 
@@ -21,7 +20,6 @@ drawing::actors::AbstractVectorCollection::removeChild(
 {
     auto position = std::find(children.begin(), children.end(), actor);
     if (position != children.end()) {
-        removeChildImpl(actor);
         children.erase(position);
     }
     if (actor->getParent() == sharedFromBase<Parent>()) {
@@ -104,16 +102,6 @@ drawing::actors::AbstractVectorCollection::crend() const noexcept
   -> const_reverse_iterator
 {
     return children.crend();
-}
-void
-drawing::actors::AbstractVectorCollection::addChildImpl(
-  std::shared_ptr<Actor> actor)
-{
-}
-void
-drawing::actors::AbstractVectorCollection::removeChildImpl(
-  const std::shared_ptr<Actor>& actor)
-{
 }
 auto
 drawing::actors::AbstractVectorCollection::getSize() const

@@ -8,6 +8,9 @@
 #include "Parent.h"
 #include <SFML/Graphics/Texture.hpp>
 namespace drawing::actors {
+/**
+ * A VBox is a parent that arranges its children vertically.
+ */
 class VBox : public AbstractVectorCollection
 {
   public:
@@ -24,7 +27,6 @@ class VBox : public AbstractVectorCollection
     auto setTransform(sf::Transform newTransform) -> void override;
     [[nodiscard]] auto getTransform() const -> sf::Transform override;
     auto update(std::chrono::nanoseconds delta) -> void override;
-    [[nodiscard]] auto getLuaSelf(sol::state& lua) -> sol::object override;
     [[nodiscard]] auto matchParentWidth() const -> bool override;
     [[nodiscard]] auto matchParentHeight() const -> bool override;
 

@@ -8,6 +8,9 @@
 #include <SFML/Graphics/RectangleShape.hpp>
 #include "Actor.h"
 namespace drawing::actors {
+/**
+ * A quad is a simple rectangle that can be drawn to the screen.
+ */
 class Quad : public Actor
 {
     sf::RectangleShape rect;
@@ -25,7 +28,6 @@ class Quad : public Actor
     void update(std::chrono::nanoseconds delta) override;
     [[nodiscard]] auto matchParentWidth() const -> bool override;
     [[nodiscard]] auto matchParentHeight() const -> bool override;
-    [[nodiscard]] auto getLuaSelf(sol::state& lua) -> sol::object override;
     auto setTransform(sf::Transform transform) -> void override;
     auto getTransform() const -> sf::Transform override;
     auto getMinWidth() const -> float override;

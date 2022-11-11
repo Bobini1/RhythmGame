@@ -9,13 +9,6 @@ void
 drawing::actors::HBox::update(std::chrono::nanoseconds delta)
 {
 }
-auto
-drawing::actors::HBox::getLuaSelf(sol::state& lua) -> sol::object
-{
-    return { lua,
-             sol::in_place_type_t<std::shared_ptr<HBox>>(),
-             sharedFromBase<HBox>() };
-}
 void
 drawing::actors::HBox::draw(sf::RenderTarget& target,
                             sf::RenderStates states) const

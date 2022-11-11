@@ -13,9 +13,7 @@ lua::Bootstrapper::defineTypes(sol::state& target) const -> void
 {
     auto actorType =
       target.new_usertype<drawing::actors::Actor>("Actor", sol::no_constructor);
-    actorType["getParent"] = [&target](drawing::actors::Actor* self) {
-        return self->getParent()->getLuaSelf(target);
-    };
+    actorType["getParent"] = &drawing::actors::Actor::getParent;
 
     actorType["width"] = sol::property(&drawing::actors::Actor::getWidth,
                                        &drawing::actors::Actor::setWidth);
@@ -48,9 +46,8 @@ lua::Bootstrapper::defineTypes(sol::state& target) const -> void
     abstractVectorCollectionType["removeChild"] =
       &drawing::actors::AbstractVectorCollection::removeChild;
     abstractVectorCollectionType["getChild"] =
-      [&target](drawing::actors::AbstractVectorCollection* self, int index) {
-          return (*self)[static_cast<std::size_t>(index) - 1]->getLuaSelf(
-            target);
+      [](drawing::actors::AbstractVectorCollection* self, int index) {
+          return (*self)[static_cast<std::size_t>(index) - 1];
       };
     abstractVectorCollectionType["size"] =
       sol::property(&drawing::actors::AbstractVectorCollection::getSize);

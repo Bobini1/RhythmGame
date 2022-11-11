@@ -9,13 +9,6 @@ void
 drawing::actors::VBox::update(std::chrono::nanoseconds delta)
 {
 }
-auto
-drawing::actors::VBox::getLuaSelf(sol::state& lua) -> sol::object
-{
-    return { lua,
-             sol::in_place_type_t<std::shared_ptr<VBox>>(),
-             sharedFromBase<VBox>() };
-}
 void
 drawing::actors::VBox::draw(sf::RenderTarget& target,
                             sf::RenderStates states) const
