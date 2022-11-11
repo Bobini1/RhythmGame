@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>drawing::actors::AbstractVectorCollection class | RhythmGame</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,400i,600,600i%7CSource+Code+Pro:400,400i,600" />
+  <link rel="stylesheet" href="m-dark+documentation.compiled.css" />
+  <link rel="icon" href="favicon-dark.png" type="image/png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#22272e" />
+</head>
+<body>
+<header><nav id="navigation">
+  <div class="m-container">
+    <div class="m-row">
+      <a href="index.html" id="m-navbar-brand" class="m-col-t-8 m-col-m-none m-left-m">RhythmGame</a>
+      <div class="m-col-t-4 m-hide-m m-text-right m-nopadr">
+        <a href="#search" class="m-doc-search-icon" title="Search" onclick="return showSearch()"><svg style="height: 0.9rem;" viewBox="0 0 16 16">
+          <path id="m-doc-search-icon-path" d="m6 0c-3.31 0-6 2.69-6 6 0 3.31 2.69 6 6 6 1.49 0 2.85-0.541 3.89-1.44-0.0164 0.338 0.147 0.759 0.5 1.15l3.22 3.79c0.552 0.614 1.45 0.665 2 0.115 0.55-0.55 0.499-1.45-0.115-2l-3.79-3.22c-0.392-0.353-0.812-0.515-1.15-0.5 0.895-1.05 1.44-2.41 1.44-3.89 0-3.31-2.69-6-6-6zm0 1.56a4.44 4.44 0 0 1 4.44 4.44 4.44 4.44 0 0 1-4.44 4.44 4.44 4.44 0 0 1-4.44-4.44 4.44 4.44 0 0 1 4.44-4.44z"/>
+        </svg></a>
+        <a id="m-navbar-show" href="#navigation" title="Show navigation"></a>
+        <a id="m-navbar-hide" href="#" title="Hide navigation"></a>
+      </div>
+      <div id="m-navbar-collapse" class="m-col-t-12 m-show-m m-col-m-none m-right-m">
+        <div class="m-row">
+          <ol class="m-col-t-6 m-col-m-none">
+            <li>
+              <a href="pages.html">Pages</a>
+              <ol>
+                <li><a href="about.html">About</a></li>
+              </ol>
+            </li>
+            <li><a href="namespaces.html">Namespaces</a></li>
+          </ol>
+          <ol class="m-col-t-6 m-col-m-none" start="3">
+            <li><a href="annotated.html">Classes</a></li>
+            <li><a href="files.html">Files</a></li>
+            <li class="m-show-m"><a href="#search" class="m-doc-search-icon" title="Search" onclick="return showSearch()"><svg style="height: 0.9rem;" viewBox="0 0 16 16">
+              <use href="#m-doc-search-icon-path" />
+            </svg></a></li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav></header>
+<main><article>
+  <div class="m-container m-container-inflatable">
+    <div class="m-row">
+      <div class="m-col-l-10 m-push-l-1">
+        <h1>
+          <span class="m-breadcrumb"><a href="namespacedrawing.html">drawing</a>::<wbr/></span><span class="m-breadcrumb"><a href="namespacedrawing_1_1actors.html">actors</a>::<wbr/></span>AbstractVectorCollection <span class="m-thin">class</span>
+          <div class="m-doc-include m-code m-inverted m-text-right"><span class="cp">#include</span> <a class="cpf" href="AbstractVectorCollection_8h.html">&lt;AbstractVectorCollection.h&gt;</a></div>
+        </h1>
+        <div class="m-block m-default">
+          <h3>Contents</h3>
+          <ul>
+            <li>
+              Reference
+              <ul>
+                <li><a href="#base-classes">Base classes</a></li>
+                <li><a href="#derived-classes">Derived classes</a></li>
+                <li><a href="#pub-types">Public types</a></li>
+                <li><a href="#pub-methods">Public functions</a></li>
+                <li><a href="#pri-methods">Private functions</a></li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+<p>An <a href="classdrawing_1_1actors_1_1AbstractVectorCollection.html" class="m-doc">AbstractVectorCollection</a> is an abstract base class that manages its children in an ordered vector. It supports insertion of any number of children.</p>
+        <section id="base-classes">
+          <h2><a href="#base-classes">Base classes</a></h2>
+          <dl class="m-doc">
+            <dt>
+              class <a href="classdrawing_1_1actors_1_1Parent.html" class="m-doc">Parent</a>
+            </dt>
+            <dd></dd>
+          </dl>
+        </section>
+        <section id="derived-classes">
+          <h2><a href="#derived-classes">Derived classes</a></h2>
+          <dl class="m-doc">
+            <dt>
+              class <a href="classdrawing_1_1actors_1_1HBox.html" class="m-doc">HBox</a>
+            </dt>
+            <dd></dd>
+            <dt>
+              class <a href="classdrawing_1_1actors_1_1VBox.html" class="m-doc">VBox</a>
+            </dt>
+            <dd></dd>
+          </dl>
+        </section>
+        <section id="pub-types">
+          <h2><a href="#pub-types">Public types</a></h2>
+          <dl class="m-doc">
+            <dt id="ad8c97cc86f01fb2f0c39b6159d179ba2">
+              using <a href="#ad8c97cc86f01fb2f0c39b6159d179ba2" class="m-doc-self">iterator</a> = std::vector&lt;std::shared_ptr&lt;<a href="classdrawing_1_1actors_1_1Actor.html" class="m-doc">Actor</a>&gt;&gt;::<a href="classdrawing_1_1actors_1_1AbstractVectorCollection.html#ad8c97cc86f01fb2f0c39b6159d179ba2" class="m-doc">iterator</a>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="a060e5737058af84d84e990217f3ac650">
+              using <a href="#a060e5737058af84d84e990217f3ac650" class="m-doc-self">const_iterator</a> = std::vector&lt;std::shared_ptr&lt;<a href="classdrawing_1_1actors_1_1Actor.html" class="m-doc">Actor</a>&gt;&gt;::<a href="classdrawing_1_1actors_1_1AbstractVectorCollection.html#a060e5737058af84d84e990217f3ac650" class="m-doc">const_<wbr />iterator</a>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="a91cc18d84b8fb1e5d5d4a68a9a704392">
+              using <a href="#a91cc18d84b8fb1e5d5d4a68a9a704392" class="m-doc-self">reverse_iterator</a> = std::vector&lt;std::shared_ptr&lt;<a href="classdrawing_1_1actors_1_1Actor.html" class="m-doc">Actor</a>&gt;&gt;::<a href="classdrawing_1_1actors_1_1AbstractVectorCollection.html#a91cc18d84b8fb1e5d5d4a68a9a704392" class="m-doc">reverse_<wbr />iterator</a>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="a10ed99f860f22467c84eda9a17da7ebd">
+              using <a href="#a10ed99f860f22467c84eda9a17da7ebd" class="m-doc-self">const_reverse_iterator</a> = std::vector&lt;std::shared_ptr&lt;<a href="classdrawing_1_1actors_1_1Actor.html" class="m-doc">Actor</a>&gt;&gt;::<a href="classdrawing_1_1actors_1_1AbstractVectorCollection.html#a10ed99f860f22467c84eda9a17da7ebd" class="m-doc">const_<wbr />reverse_<wbr />iterator</a>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="a7fd92646fc760396cc087af732e3e110">
+              using <a href="#a7fd92646fc760396cc087af732e3e110" class="m-doc-self">size_type</a> = std::vector&lt;std::shared_ptr&lt;<a href="classdrawing_1_1actors_1_1Actor.html" class="m-doc">Actor</a>&gt;&gt;::<a href="classdrawing_1_1actors_1_1AbstractVectorCollection.html#a7fd92646fc760396cc087af732e3e110" class="m-doc">size_<wbr />type</a>
+            </dt>
+            <dd><span></span></dd>
+          </dl>
+        </section>
+        <section id="pub-methods">
+          <h2><a href="#pub-methods">Public functions</a></h2>
+          <dl class="m-doc">
+            <dt id="abe61a927f964ac5f4651ec265084a793">
+              <span class="m-doc-wrap-bumper">void <a href="#abe61a927f964ac5f4651ec265084a793" class="m-doc-self">addChild</a>(</span><span class="m-doc-wrap">std::shared_ptr&lt;<a href="classdrawing_1_1actors_1_1Actor.html" class="m-doc">Actor</a>&gt; actor)</span>
+            </dt>
+            <dd><span></span></dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">void <a href="#ad8b022cec2e56607446a4a3d4a4bc3c6" class="m-doc">removeChild</a>(</span><span class="m-doc-wrap">std::shared_ptr&lt;<a href="classdrawing_1_1actors_1_1Actor.html" class="m-doc">Actor</a>&gt; child) <span class="m-label m-flat m-warning">override</span></span>
+            </dt>
+            <dd>removes a child from the parent.</dd>
+            <dt id="a165cc360885f5a4ce4f3341119b1c9ce">
+              <span class="m-doc-wrap-bumper">auto <a href="#a165cc360885f5a4ce4f3341119b1c9ce" class="m-doc-self">operator[]</a>(</span><span class="m-doc-wrap"><a href="classdrawing_1_1actors_1_1AbstractVectorCollection.html#a7fd92646fc760396cc087af732e3e110" class="m-doc">size_<wbr />type</a> index) const -&gt; std::shared_ptr&lt; Actor &gt;</span>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="a35be77b51cab663061aaf12d7abaa1de">
+              <span class="m-doc-wrap-bumper">auto <a href="#a35be77b51cab663061aaf12d7abaa1de" class="m-doc-self">getSize</a>(</span><span class="m-doc-wrap">) const -&gt; size_type</span>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="a7d43b506cd9f46c90e71d3bef03310fc">
+              <span class="m-doc-wrap-bumper">auto <a href="#a7d43b506cd9f46c90e71d3bef03310fc" class="m-doc-self">begin</a>(</span><span class="m-doc-wrap">) noexcept -&gt; iterator</span>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="a459dae9fc5808df3ec21a1b7f22b442f">
+              <span class="m-doc-wrap-bumper">auto <a href="#a459dae9fc5808df3ec21a1b7f22b442f" class="m-doc-self">end</a>(</span><span class="m-doc-wrap">) noexcept -&gt; iterator</span>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="a8645b6840f6085dd9ae151fec3191c08">
+              <span class="m-doc-wrap-bumper">auto <a href="#a8645b6840f6085dd9ae151fec3191c08" class="m-doc-self">begin</a>(</span><span class="m-doc-wrap">) const noexcept -&gt; const_iterator</span>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="a074192b15dc57ba070f09ec0a19f054a">
+              <span class="m-doc-wrap-bumper">auto <a href="#a074192b15dc57ba070f09ec0a19f054a" class="m-doc-self">end</a>(</span><span class="m-doc-wrap">) const noexcept -&gt; const_iterator</span>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="ac10c1eaec62172d2387234488e554276">
+              <span class="m-doc-wrap-bumper">auto <a href="#ac10c1eaec62172d2387234488e554276" class="m-doc-self">cbegin</a>(</span><span class="m-doc-wrap">) const noexcept -&gt; const_iterator</span>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="a8c3f1e107d72ec55bea8564ca3c2c74a">
+              <span class="m-doc-wrap-bumper">auto <a href="#a8c3f1e107d72ec55bea8564ca3c2c74a" class="m-doc-self">cend</a>(</span><span class="m-doc-wrap">) const noexcept -&gt; const_iterator</span>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="a30c2acddcd9b3ffe8ce7ca8092847407">
+              <span class="m-doc-wrap-bumper">auto <a href="#a30c2acddcd9b3ffe8ce7ca8092847407" class="m-doc-self">rbegin</a>(</span><span class="m-doc-wrap">) noexcept -&gt; reverse_iterator</span>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="aacc2daa9c5d026ef7474e9f407150f96">
+              <span class="m-doc-wrap-bumper">auto <a href="#aacc2daa9c5d026ef7474e9f407150f96" class="m-doc-self">rend</a>(</span><span class="m-doc-wrap">) noexcept -&gt; reverse_iterator</span>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="ac2f6f00a4a5dd78a20440bd50329d966">
+              <span class="m-doc-wrap-bumper">auto <a href="#ac2f6f00a4a5dd78a20440bd50329d966" class="m-doc-self">rbegin</a>(</span><span class="m-doc-wrap">) const noexcept -&gt; const_reverse_iterator</span>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="a70f6c461e94a3660d4a501e2ebdd3de3">
+              <span class="m-doc-wrap-bumper">auto <a href="#a70f6c461e94a3660d4a501e2ebdd3de3" class="m-doc-self">rend</a>(</span><span class="m-doc-wrap">) const noexcept -&gt; const_reverse_iterator</span>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="a3a91fbd8247cc459457c0dca634cae6f">
+              <span class="m-doc-wrap-bumper">auto <a href="#a3a91fbd8247cc459457c0dca634cae6f" class="m-doc-self">crbegin</a>(</span><span class="m-doc-wrap">) const noexcept -&gt; const_reverse_iterator</span>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="a5fac119c8d8e79851188c5f816e957d9">
+              <span class="m-doc-wrap-bumper">auto <a href="#a5fac119c8d8e79851188c5f816e957d9" class="m-doc-self">crend</a>(</span><span class="m-doc-wrap">) const noexcept -&gt; const_reverse_iterator</span>
+            </dt>
+            <dd><span></span></dd>
+          </dl>
+        </section>
+        <section id="pri-methods">
+          <h2><a href="#pri-methods">Private functions</a></h2>
+          <dl class="m-doc">
+            <dt id="a2b6a0035e3ec2a919bfc64b6e9974fe7">
+              <span class="m-doc-wrap-bumper">void <a href="#a2b6a0035e3ec2a919bfc64b6e9974fe7" class="m-doc-self">recalculateSize</a>(</span><span class="m-doc-wrap">) <span class="m-label m-flat m-warning">pure virtual</span></span>
+            </dt>
+            <dd>This function is called whenever a child is added or removed.</dd>
+          </dl>
+        </section>
+        <section>
+          <h2>Function documentation</h2>
+          <section class="m-doc-details" id="ad8b022cec2e56607446a4a3d4a4bc3c6"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">void drawing::<wbr />actors::<wbr />AbstractVectorCollection::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#ad8b022cec2e56607446a4a3d4a4bc3c6" class="m-doc-self">removeChild</a>(</span><span class="m-doc-wrap">std::shared_ptr&lt;<a href="classdrawing_1_1actors_1_1Actor.html" class="m-doc">Actor</a>&gt; child) <span class="m-label m-warning">override</span></span></span>
+            </h3>
+            <p>removes a child from the parent.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">child</td>
+                  <td>The child to remove. This function is also called when a child is added to a new parent.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div></section>
+        </section>
+      </div>
+    </div>
+  </div>
+</article></main>
+<div class="m-doc-search" id="search">
+  <a href="#!" onclick="return hideSearch()"></a>
+  <div class="m-container">
+    <div class="m-row">
+      <div class="m-col-m-8 m-push-m-2">
+        <div class="m-doc-search-header m-text m-small">
+          <div><span class="m-label m-default">Tab</span> / <span class="m-label m-default">T</span> to search, <span class="m-label m-default">Esc</span> to close</div>
+          <div id="search-symbolcount">&hellip;</div>
+        </div>
+        <div class="m-doc-search-content">
+          <form>
+            <input type="search" name="q" id="search-input" placeholder="Loading &hellip;" disabled="disabled" autofocus="autofocus" autocomplete="off" spellcheck="false" />
+          </form>
+          <noscript class="m-text m-danger m-text-center">Unlike everything else in the docs, the search functionality <em>requires</em> JavaScript.</noscript>
+          <div id="search-help" class="m-text m-dim m-text-center">
+            <p class="m-noindent">Search for symbols, directories, files, pages or
+            modules. You can omit any prefix from the symbol or file path; adding a
+            <code>:</code> or <code>/</code> suffix lists all members of given symbol or
+            directory.</p>
+            <p class="m-noindent">Use <span class="m-label m-dim">&darr;</span>
+            / <span class="m-label m-dim">&uarr;</span> to navigate through the list,
+            <span class="m-label m-dim">Enter</span> to go.
+            <span class="m-label m-dim">Tab</span> autocompletes common prefix, you can
+            copy a link to the result using <span class="m-label m-dim">⌘</span>
+            <span class="m-label m-dim">L</span> while <span class="m-label m-dim">⌘</span>
+            <span class="m-label m-dim">M</span> produces a Markdown link.</p>
+          </div>
+          <div id="search-notfound" class="m-text m-warning m-text-center">Sorry, nothing was found.</div>
+          <ul id="search-results"></ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="search-v1.js"></script>
+<script src="searchdata-v1.js" async="async"></script>
+<footer><nav>
+  <div class="m-container">
+    <div class="m-row">
+      <div class="m-col-l-10 m-push-l-1">
+        <p>RhythmGame. Created with <a href="https://doxygen.org/">Doxygen</a> 1.9.1 and <a href="https://mcss.mosra.cz/">m.css</a>.</p>
+      </div>
+    </div>
+  </div>
+</nav></footer>
+</body>
+</html>
