@@ -14,6 +14,7 @@ namespace drawing::actors {
 class VBox : public AbstractVectorCollection
 {
   public:
+    auto getLuaSelf(sol::state& lua) -> sol::object override;
     auto getMinWidth() const -> float override;
     auto getMinHeight() const -> float override;
     auto getWidth() const -> float override;

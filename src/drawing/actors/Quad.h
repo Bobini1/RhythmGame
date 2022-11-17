@@ -16,6 +16,9 @@ class Quad : public Actor
     sf::RectangleShape rect;
 
   public:
+    explicit Quad(sf::Vector2f size = { 0, 0 },
+                  sf::Color color = sf::Color::White);
+    auto getLuaSelf(sol::state& lua) -> sol::object override;
     void setSize(const sf::Vector2f& size);
     [[nodiscard]] auto getSize() const -> const sf::Vector2f&;
     [[nodiscard]] auto getPoint(std::size_t index) const -> sf::Vector2f;

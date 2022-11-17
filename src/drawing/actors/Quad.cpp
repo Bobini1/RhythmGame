@@ -112,4 +112,16 @@ Quad::setHeightImpl(float height)
 {
     rect.setSize({ rect.getSize().x, height });
 }
+auto
+Quad::getLuaSelf(sol::state& lua) -> sol::object
+{
+    return { lua,
+             sol::in_place_type_t<std::shared_ptr<Quad>>(),
+             sharedFromBase<Quad>() };
+}
+Quad::Quad(sf::Vector2f size, sf::Color color)
+  : rect(size)
+{
+    rect.setFillColor(color);
+}
 } // namespace drawing::actors

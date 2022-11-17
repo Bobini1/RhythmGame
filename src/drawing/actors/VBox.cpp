@@ -113,3 +113,10 @@ drawing::actors::VBox::recalculateSize()
         setHeight(minimumSize.y);
     }
 }
+auto
+drawing::actors::VBox::getLuaSelf(sol::state& lua) -> sol::object
+{
+    return { lua,
+             sol::in_place_type_t<std::shared_ptr<VBox>>(),
+             sharedFromBase<VBox>() };
+}

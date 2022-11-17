@@ -24,5 +24,6 @@ SplashWindow::SplashWindow(std::shared_ptr<drawing::Scene> splashScene,
   : Window(mode, title, sf::Style::None, settings)
   , splashScene(std::move(splashScene))
 {
+    this->setPosition({ 0, 0 });
 }
 } // namespace drawing

@@ -27,9 +27,11 @@ class Actor // NOLINT(fuchsia-multiple-inheritance)
   : public sf::Drawable
   , public support::EnableSharedFromBase<Actor>
 {
-    std::weak_ptr<Parent> parent;
+    std::weak_ptr<Parent> parent{};
 
   public:
+    virtual auto getLuaSelf(sol::state& lua) -> sol::object = 0;
+
     /**
      * @brief The parent of this actor. Null for scene root or unattached
      * actors.
@@ -42,7 +44,7 @@ class Actor // NOLINT(fuchsia-multiple-inheritance)
      * This should only be called by the parent when this actor gets
      * added to it. Not exposed to Lua.
      */
-    virtual auto setParent(const std::shared_ptr<Parent>& parent) -> void;
+    virtual auto setParent(std::shared_ptr<Parent> parent) -> void;
     /**
      * @brief used by the engine to update an actor's internals every frame. Not
      * exposed to Lua.

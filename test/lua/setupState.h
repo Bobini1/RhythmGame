@@ -11,7 +11,7 @@ getStateWithAllDefinitions()
     sol::state state;
     state.open_libraries(sol::lib::jit, sol::lib::base, sol::lib::io);
     const lua::Bootstrapper bootstrapper;
-    bootstrapper.defineTypes(state);
+    bootstrapper.defineCommonTypes(state);
     return state;
 }
 

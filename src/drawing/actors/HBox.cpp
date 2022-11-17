@@ -114,3 +114,10 @@ drawing::actors::HBox::recalculateSize()
         setHeight(minimumSize.y);
     }
 }
+auto
+drawing::actors::HBox::getLuaSelf(sol::state& lua) -> sol::object
+{
+    return { lua,
+             sol::in_place_type_t<std::shared_ptr<HBox>>(),
+             sharedFromBase<HBox>() };
+}

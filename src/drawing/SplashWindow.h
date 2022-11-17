@@ -7,7 +7,7 @@
 
 #include <SFML/Graphics/RenderWindow.hpp>
 #include "drawing/actors/Actor.h"
-#include "resource_locators/LuaScriptFinder.h"
+#include "resource_managers/LuaScriptFinder.h"
 #include "Scene.h"
 #include "Window.h"
 namespace drawing {
