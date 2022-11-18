@@ -19,14 +19,14 @@ drawing::actors::HBox::draw(sf::RenderTarget& target,
 }
 
 auto
-drawing::actors::HBox::matchParentWidth() const -> bool
+drawing::actors::HBox::getIsWidthManaged() const -> bool
 {
-    return false;
+    return getHorizontalSizeMode() == SizeMode::Managed;
 }
 auto
-drawing::actors::HBox::matchParentHeight() const -> bool
+drawing::actors::HBox::getIsHeightManaged() const -> bool
 {
-    return false;
+    return getVerticalSizeMode() == SizeMode::Managed;
 }
 auto
 drawing::actors::HBox::getMinWidth() const -> float
@@ -66,10 +66,10 @@ drawing::actors::HBox::getMinimumSizeOfChildren() const -> sf::Vector2f
 
     for (const auto& child : *this) {
         height = std::max(height,
-                          child->matchParentHeight() ? child->getMinHeight()
-                                                     : child->getHeight());
+                          child->getIsHeightManaged() ? child->getMinHeight()
+                                                      : child->getHeight());
         width +=
-          child->matchParentWidth() ? child->getMinWidth() : child->getWidth();
+          child->getIsWidthManaged() ? child->getMinWidth() : child->getWidth();
     }
     return { width, height };
 }
@@ -82,19 +82,31 @@ drawing::actors::HBox::setTransform(sf::Transform newTransform)
 
     auto childrenMatchingParentWidth =
       std::count_if(cbegin(), cend(), [](const auto& child) {
-          return child->matchParentWidth();
+          return child->getIsWidthManaged();
       });
     auto growth = (size.x - minimumSize.x) /
                   static_cast<float>(childrenMatchingParentWidth);
     for (const auto& child : *this) {
-        if (child->matchParentWidth()) {
+        if (child->getIsWidthManaged()) {
             auto childMinWidth = child->getMinWidth();
             child->setHeight(childMinWidth + growth);
         }
-        if (child->matchParentHeight()) {
+        if (child->getIsHeightManaged()) {
             child->setHeight(size.y);
         }
-        child->setTransform(workingTransform);
+        auto childTransform = workingTransform;
+        switch (contentAlignment) {
+            case ContentAlignment::Top:
+                childTransform.translate(0, 0);
+                break;
+            case ContentAlignment::Center:
+                childTransform.translate(0, (size.y - child->getHeight()) / 2);
+                break;
+            case ContentAlignment::Bottom:
+                childTransform.translate(0, size.y - child->getHeight());
+                break;
+        }
+        child->setTransform(childTransform);
         workingTransform.translate(child->getWidth(), 0);
     }
 }
@@ -107,11 +119,15 @@ void
 drawing::actors::HBox::recalculateSize()
 {
     auto minimumSize = getMinimumSizeOfChildren();
-    if (minimumSize.x > size.x) {
-        setWidth(minimumSize.x);
+    if (getVerticalSizeMode() == SizeMode::WrapChildren) {
+        size.y = minimumSize.y;
+    } else {
+        size.y = std::max(size.y, minimumSize.y);
     }
-    if (minimumSize.y > size.y) {
-        setHeight(minimumSize.y);
+    if (getHorizontalSizeMode() == SizeMode::WrapChildren) {
+        size.x = minimumSize.x;
+    } else {
+        size.x = std::max(size.x, minimumSize.x);
     }
 }
 auto
@@ -120,4 +136,16 @@ drawing::actors::HBox::getLuaSelf(sol::state& lua) -> sol::object
     return { lua,
              sol::in_place_type_t<std::shared_ptr<HBox>>(),
              sharedFromBase<HBox>() };
+}
+auto
+drawing::actors::HBox::setContentAlignment(
+  drawing::actors::HBox::ContentAlignment alignment) -> void
+{
+    contentAlignment = alignment;
+}
+auto
+drawing::actors::HBox::getContentAlignment() const
+  -> drawing::actors::HBox::ContentAlignment
+{
+    return contentAlignment;
 }

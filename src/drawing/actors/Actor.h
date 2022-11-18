@@ -63,13 +63,13 @@ class Actor // NOLINT(fuchsia-multiple-inheritance)
      */
     [[nodiscard]] virtual auto getTransform() const -> sf::Transform = 0;
     /**
-     * @brief Does this actor want to match its parent's width?
+     * @brief Does this actor want to have its width managed by its parent?
      */
-    [[nodiscard]] virtual auto matchParentWidth() const -> bool = 0;
+    [[nodiscard]] virtual auto getIsWidthManaged() const -> bool = 0;
     /**
-     * @brief Does this actor want to match its parent's height?
+     * @brief Does this actor want to have its height managed by its parent?
      */
-    [[nodiscard]] virtual auto matchParentHeight() const -> bool = 0;
+    [[nodiscard]] virtual auto getIsHeightManaged() const -> bool = 0;
     /**
      * @brief Get the minimum width that this actor can get resized to.
      * @return The minimum width of the actor.

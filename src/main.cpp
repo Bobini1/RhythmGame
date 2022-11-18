@@ -10,19 +10,12 @@
 #include "resource_managers/FontLoaderImpl.h"
 
 constexpr auto luaScript = R"(
-    local root = VBox.new{
-        Text.new{text = "Hello world!", characterSize = 50, fillColor = Color.new(255, 255, 0, 255)},
-        Padding.new(
-            Quad.new{width = 100, height = 100, fillColor = Color.new(255, 0, 0, 255)},
-            {left = 10, right = 10, top = 10, bottom = 10}
-        ),
-        Align.new(
-            Quad.new{width = 100, height = 100, fillColor = Color.new(0, 255, 0, 255)},
-            AlignMode.Center
-        ),
-        Quad.new{width = 100, height = 100, fillColor = Color.new(0, 0, 255, 255)}
-    }
-    return root
+    local quad = Quad.new(100, 100)
+    quad.minWidth = 100
+    quad.minHeight = 100
+    quad.isWidthManaged = true
+    quad.isHeightManaged = true
+    return quad
 )";
 
 auto
@@ -41,7 +34,7 @@ main() -> int
 
     auto root = state.script(luaScript);
     auto startingScene = std::make_shared<drawing::SplashScene>(
-      root.get<drawing::actors::VBox*>()->shared_from_this());
+      root.get<drawing::actors::Actor*>()->shared_from_this());
     auto startingWindow = std::make_shared<drawing::SplashWindow>(
       std::move(startingScene), sf::VideoMode{ 800, 600 }, "RhythmGame");
     auto windowStateMachine = state_transitions::WindowStateMachineImpl{};

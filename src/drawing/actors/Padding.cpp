@@ -80,14 +80,14 @@ drawing::actors::Padding::getTransform() const -> sf::Transform
     return transform;
 }
 auto
-drawing::actors::Padding::matchParentWidth() const -> bool
+drawing::actors::Padding::getIsWidthManaged() const -> bool
 {
-    return false;
+    return child && child->getIsWidthManaged();
 }
 auto
-drawing::actors::Padding::matchParentHeight() const -> bool
+drawing::actors::Padding::getIsHeightManaged() const -> bool
 {
-    return false;
+    return child && child->getIsHeightManaged();
 }
 auto
 drawing::actors::Padding::getMinWidth() const -> float

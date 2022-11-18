@@ -7,9 +7,9 @@
 
 #include <SFML/Graphics/Color.hpp>
 #include <SFML/Graphics/Sprite.hpp>
-#include "Actor.h"
+#include "AbstractRectLeaf.h"
 namespace drawing::actors {
-class Sprite : public Actor
+class Sprite : public AbstractRectLeaf
 {
     sf::Sprite sprite;
     sf::Transform transform;
@@ -25,12 +25,8 @@ class Sprite : public Actor
     [[nodiscard]] auto getTextureRect() const -> const sf::IntRect&;
     [[nodiscard]] auto getColor() const -> const sf::Color&;
     void update(std::chrono::nanoseconds delta) override;
-    [[nodiscard]] auto matchParentWidth() const -> bool override;
-    [[nodiscard]] auto matchParentHeight() const -> bool override;
     auto setTransform(sf::Transform transform) -> void override;
     auto getTransform() const -> sf::Transform override;
-    auto getMinWidth() const -> float override;
-    auto getMinHeight() const -> float override;
     auto getWidth() const -> float override;
     auto getHeight() const -> float override;
 

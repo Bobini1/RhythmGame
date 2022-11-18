@@ -28,8 +28,9 @@ class AbstractVectorCollection : public Parent
 
     void addChild(std::shared_ptr<Actor> actor);
     void removeChild(std::shared_ptr<Actor> actor) override;
-    auto operator[](size_type index) const -> std::shared_ptr<Actor>;
-    auto getSize() const -> size_type;
+    [[nodiscard]] auto operator[](size_type index) const
+      -> std::shared_ptr<Actor>;
+    [[nodiscard]] auto getSize() const -> size_type;
 
     [[nodiscard]] auto begin() noexcept -> iterator;
     [[nodiscard]] auto end() noexcept -> iterator;
@@ -49,7 +50,6 @@ class AbstractVectorCollection : public Parent
     /**
      * @brief This function is called whenever a child is added or removed.
      */
-    virtual void recalculateSize() = 0;
 };
 } // namespace drawing::actors
 #endif // RHYTHMGAME_ABSTRACTVECTORCOLLECTION_H

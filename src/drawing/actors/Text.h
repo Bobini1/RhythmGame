@@ -4,11 +4,11 @@
 
 #ifndef RHYTHMGAME_TEXT_H
 #define RHYTHMGAME_TEXT_H
-#include "Actor.h"
+#include "AbstractRectLeaf.h"
 #include <SFML/Graphics/Text.hpp>
 
 namespace drawing::actors {
-class Text : public Actor
+class Text : public AbstractRectLeaf
 {
     sf::Text text;
     sf::Transform transform;
@@ -24,10 +24,6 @@ class Text : public Actor
     auto update(std::chrono::nanoseconds delta) -> void override;
     auto setTransform(sf::Transform transform) -> void override;
     auto getTransform() const -> sf::Transform override;
-    auto matchParentWidth() const -> bool override;
-    auto matchParentHeight() const -> bool override;
-    auto getMinWidth() const -> float override;
-    auto getMinHeight() const -> float override;
     auto getWidth() const -> float override;
     auto getHeight() const -> float override;
 

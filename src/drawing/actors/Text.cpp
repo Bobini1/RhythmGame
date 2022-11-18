@@ -20,26 +20,6 @@ drawing::actors::Text::getTransform() const -> sf::Transform
     return transform;
 }
 auto
-drawing::actors::Text::matchParentWidth() const -> bool
-{
-    return false;
-}
-auto
-drawing::actors::Text::matchParentHeight() const -> bool
-{
-    return false;
-}
-auto
-drawing::actors::Text::getMinWidth() const -> float
-{
-    return 0;
-}
-auto
-drawing::actors::Text::getMinHeight() const -> float
-{
-    return 0;
-}
-auto
 drawing::actors::Text::getWidth() const -> float
 {
 

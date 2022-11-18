@@ -4,12 +4,12 @@
 
 #ifndef RHYTHMGAME_HBOX_H
 #define RHYTHMGAME_HBOX_H
-#include "AbstractVectorCollection.h"
+#include "AbstractBox.h"
 namespace drawing::actors {
 /**
  * A HBox is a parent that arranges its children horizontally.
  */
-class HBox : public AbstractVectorCollection
+class HBox : public AbstractBox
 {
   public:
     auto getLuaSelf(sol::state& lua) -> sol::object override;
@@ -18,8 +18,16 @@ class HBox : public AbstractVectorCollection
     auto getWidth() const -> float override;
     auto getHeight() const -> float override;
     auto update(std::chrono::nanoseconds delta) -> void override;
-    [[nodiscard]] auto matchParentWidth() const -> bool override;
-    [[nodiscard]] auto matchParentHeight() const -> bool override;
+    [[nodiscard]] auto getIsWidthManaged() const -> bool override;
+    [[nodiscard]] auto getIsHeightManaged() const -> bool override;
+    enum class ContentAlignment
+    {
+        Top,
+        Center,
+        Bottom
+    };
+    auto setContentAlignment(ContentAlignment alignment) -> void;
+    auto getContentAlignment() const -> ContentAlignment;
 
   private:
     auto setWidthImpl(float width) -> void override;
@@ -36,8 +44,9 @@ class HBox : public AbstractVectorCollection
   private:
     sf::Transform transform;
     sf::Vector2f size;
+    ContentAlignment contentAlignment{};
     auto getMinimumSizeOfChildren() const -> sf::Vector2f;
-    void recalculateSize() override;
+    void recalculateSize();
 };
 } // namespace drawing::actors
 

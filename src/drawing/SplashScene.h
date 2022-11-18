@@ -29,6 +29,12 @@ class SplashScene : public Scene
     void update(std::chrono::nanoseconds /* delta */) final {}
     void draw(sf::RenderTarget& target, sf::RenderStates states) const final
     {
+        if (root->getIsWidthManaged()) {
+            root->setWidth(static_cast<float>(target.getSize().x));
+        }
+        if (root->getIsHeightManaged()) {
+            root->setHeight(static_cast<float>(target.getSize().y));
+        }
         root->setTransform(sf::Transform::Identity);
         target.draw(*root, states);
     }

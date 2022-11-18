@@ -11,6 +11,7 @@
 #include "drawing/actors/Quad.h"
 #include "drawing/actors/Padding.h"
 #include "drawing/actors/Align.h"
+#include "drawing/actors/AbstractRectLeaf.h"
 
 auto
 defineActor(sol::state& target) -> void
@@ -25,13 +26,6 @@ defineActor(sol::state& target) -> void
                                        &drawing::actors::Actor::setWidth);
     actorType["height"] = sol::property(&drawing::actors::Actor::getHeight,
                                         &drawing::actors::Actor::setHeight);
-    actorType["minWidth"] = sol::property(&drawing::actors::Actor::getMinWidth);
-    actorType["minHeight"] =
-      sol::property(&drawing::actors::Actor::getMinHeight);
-    actorType["matchParentWidth"] =
-      sol::property(&drawing::actors::Actor::matchParentWidth);
-    actorType["matchParentHeight"] =
-      sol::property(&drawing::actors::Actor::matchParentHeight);
 }
 
 auto
@@ -66,6 +60,30 @@ defineAbstractVectorCollection(sol::state& target) -> void
       };
     abstractVectorCollectionType["size"] =
       sol::property(&drawing::actors::AbstractVectorCollection::getSize);
+
+    lua::createActorBaseProperties(abstractVectorCollectionType);
+}
+
+auto
+defineAbstractBox(sol::state& target) -> void
+{
+    auto abstractBoxType = target.new_usertype<drawing::actors::AbstractBox>(
+      "Box",
+      sol::no_constructor,
+      sol::base_classes,
+      sol::bases<drawing::actors::Actor, drawing::actors::Parent>());
+    abstractBoxType["horizontalSizeMode"] =
+      sol::property(&drawing::actors::AbstractBox::getHorizontalSizeMode,
+                    &drawing::actors::AbstractBox::setHorizontalSizeMode);
+    abstractBoxType["verticalSizeMode"] =
+      sol::property(&drawing::actors::AbstractBox::getVerticalSizeMode,
+                    &drawing::actors::AbstractBox::setVerticalSizeMode);
+
+    auto sizeModeType = target.new_enum<drawing::actors::VBox::SizeMode>(
+      "SizeMode",
+      { { "Fixed", drawing::actors::VBox::SizeMode::Fixed },
+        { "Managed", drawing::actors::VBox::SizeMode::Managed },
+        { "WrapChildren", drawing::actors::VBox::SizeMode::WrapChildren } });
 }
 
 auto
@@ -73,19 +91,63 @@ defineVBox(sol::state& target) -> void
 {
     auto vBoxType = target.new_usertype<drawing::actors::VBox>(
       "VBox",
-      sol::factories([]() { return std::make_shared<drawing::actors::VBox>(); },
-                     [](std::vector<drawing::actors::Actor*> children) {
-                         auto result =
-                           std::make_shared<drawing::actors::VBox>();
-                         for (auto* child : children) {
-                             result->addChild(child->shared_from_this());
-                         }
-                         return result;
-                     }),
+      sol::factories(
+        []() { return std::make_shared<drawing::actors::VBox>(); },
+        [](std::vector<drawing::actors::Actor*>
+             children) { // NOLINT(performance-unnecessary-value-param)
+            auto result = std::make_shared<drawing::actors::VBox>();
+            for (auto* child : children) {
+                result->addChild(child->shared_from_this());
+            }
+            return result;
+        },
+        [](sol::table args) {
+            auto result = std::make_shared<drawing::actors::VBox>();
+            if (args["children"].valid()) {
+                auto children =
+                  args["children"].get<std::vector<drawing::actors::Actor*>>();
+                for (auto* child : children) {
+                    result->addChild(child->shared_from_this());
+                }
+            }
+            if (args["contentAlignment"].valid()) {
+                result->setContentAlignment(
+                  args["contentAlignment"]
+                    .get<drawing::actors::VBox::ContentAlignment>());
+            }
+            if (args["horizontalSizeMode"].valid()) {
+                result->setHorizontalSizeMode(
+                  args["horizontalSizeMode"]
+                    .get<drawing::actors::AbstractBox::SizeMode>());
+            }
+            if (args["verticalSizeMode"].valid()) {
+                result->setVerticalSizeMode(
+                  args["verticalSizeMode"]
+                    .get<drawing::actors::AbstractBox::SizeMode>());
+            }
+            if (args["width"].valid()) {
+                result->setWidth(args["width"].get<float>());
+            }
+            if (args["height"].valid()) {
+                result->setHeight(args["height"].get<float>());
+            }
+            return result;
+        }),
       sol::base_classes,
       sol::bases<drawing::actors::Actor,
                  drawing::actors::Parent,
-                 drawing::actors::AbstractVectorCollection>());
+                 drawing::actors::AbstractVectorCollection,
+                 drawing::actors::AbstractBox>());
+
+    vBoxType["contentAlignment"] =
+      sol::property(&drawing::actors::VBox::getContentAlignment,
+                    &drawing::actors::VBox::setContentAlignment);
+
+    auto alignType = target.new_enum<drawing::actors::VBox::ContentAlignment>(
+      "VBoxContentAlignment",
+      { { "Left", drawing::actors::VBox::ContentAlignment::Left },
+        { "Center", drawing::actors::VBox::ContentAlignment::Center },
+        { "Right", drawing::actors::VBox::ContentAlignment::Right } });
 }
 
 auto
@@ -93,19 +155,62 @@ defineHBox(sol::state& target) -> void
 {
     auto hBoxType = target.new_usertype<drawing::actors::HBox>(
       "HBox",
-      sol::factories([]() { return std::make_shared<drawing::actors::HBox>(); },
-                     [](std::vector<drawing::actors::Actor*> children) {
-                         auto result =
-                           std::make_shared<drawing::actors::HBox>();
-                         for (auto* child : children) {
-                             result->addChild(child->shared_from_this());
-                         }
-                         return result;
-                     }),
+      sol::factories(
+        []() { return std::make_shared<drawing::actors::HBox>(); },
+        [](std::vector<drawing::actors::Actor*>
+             children) { // NOLINT(performance-unnecessary-value-param)
+            auto result = std::make_shared<drawing::actors::HBox>();
+            for (auto* child : children) {
+                result->addChild(child->shared_from_this());
+            }
+            return result;
+        },
+        [](sol::table args) {
+            auto result = std::make_shared<drawing::actors::HBox>();
+            if (args["children"].valid()) {
+                auto children =
+                  args["children"].get<std::vector<drawing::actors::Actor*>>();
+                for (auto* child : children) {
+                    result->addChild(child->shared_from_this());
+                }
+            }
+            if (args["contentAlignment"].valid()) {
+                result->setContentAlignment(
+                  args["contentAlignment"]
+                    .get<drawing::actors::HBox::ContentAlignment>());
+            }
+            if (args["horizontalSizeMode"].valid()) {
+                result->setHorizontalSizeMode(
+                  args["horizontalSizeMode"]
+                    .get<drawing::actors::AbstractBox::SizeMode>());
+            }
+            if (args["verticalSizeMode"].valid()) {
+                result->setVerticalSizeMode(
+                  args["verticalSizeMode"]
+                    .get<drawing::actors::AbstractBox::SizeMode>());
+            }
+            if (args["width"].valid()) {
+                result->setWidth(args["width"].get<float>());
+            }
+            if (args["height"].valid()) {
+                result->setHeight(args["height"].get<float>());
+            }
+            return result;
+        }),
       sol::base_classes,
       sol::bases<drawing::actors::Actor,
                  drawing::actors::Parent,
-                 drawing::actors::AbstractVectorCollection>());
+                 drawing::actors::AbstractVectorCollection,
+                 drawing::actors::AbstractBox>());
+    hBoxType["contentAlignment"] =
+      sol::property(&drawing::actors::HBox::getContentAlignment,
+                    &drawing::actors::HBox::setContentAlignment);
+
+    auto alignType = target.new_enum<drawing::actors::HBox::ContentAlignment>(
+      "HBoxContentAlignment",
+      { { "Top", drawing::actors::HBox::ContentAlignment::Top },
+        { "Center", drawing::actors::HBox::ContentAlignment::Center },
+        { "Bottom", drawing::actors::HBox::ContentAlignment::Bottom } });
 }
 
 auto
@@ -119,12 +224,47 @@ defineVector2(sol::state& target) -> void
 }
 
 auto
+defineAbstractRectLeaf(sol::state& target) -> void
+{
+    auto abstractRectLeafType =
+      target.new_usertype<drawing::actors::AbstractRectLeaf>(
+        "AbstractRectLeaf",
+        sol::no_constructor,
+        sol::base_classes,
+        sol::bases<drawing::actors::Actor>());
+    abstractRectLeafType["minWidth"] =
+      sol::property(&drawing::actors::AbstractRectLeaf::getMinWidth,
+                    &drawing::actors::AbstractRectLeaf::setMinWidth);
+    abstractRectLeafType["minHeight"] =
+      sol::property(&drawing::actors::AbstractRectLeaf::getMinHeight,
+                    &drawing::actors::AbstractRectLeaf::setMinHeight);
+    abstractRectLeafType["isWidthManaged"] =
+      sol::property(&drawing::actors::AbstractRectLeaf::getIsWidthManaged,
+                    &drawing::actors::AbstractRectLeaf::setIsWidthManaged);
+    abstractRectLeafType["isHeightManaged"] =
+      sol::property(&drawing::actors::AbstractRectLeaf::getIsHeightManaged,
+                    &drawing::actors::AbstractRectLeaf::setIsHeightManaged);
+
+    lua::createActorBaseProperties(abstractRectLeafType);
+}
+
+auto
 defineQuad(sol::state& target) -> void
 {
     auto quadType = target.new_usertype<drawing::actors::Quad>(
       "Quad",
       sol::factories(
         []() { return std::make_shared<drawing::actors::Quad>(); },
+        [](float x, float y) {
+            auto result =
+              std::make_shared<drawing::actors::Quad>(sf::Vector2f{ x, y });
+            return result;
+        },
+        [](float x, float y, sf::Color color) {
+            auto result = std::make_shared<drawing::actors::Quad>(
+              sf::Vector2f{ x, y }, color);
+            return result;
+        },
         [](sol::table args) {
             auto result = std::make_shared<drawing::actors::Quad>(
               sf::Vector2f{ args.get_or("width", 0.F),
@@ -140,7 +280,7 @@ defineQuad(sol::state& target) -> void
             return result;
         }),
       sol::base_classes,
-      sol::bases<drawing::actors::Actor>());
+      sol::bases<drawing::actors::Actor, drawing::actors::AbstractRectLeaf>());
     quadType["fillColor"] = sol::property(&drawing::actors::Quad::getFillColor,
                                           &drawing::actors::Quad::setFillColor);
     quadType["outlineColor"] =
@@ -150,8 +290,6 @@ defineQuad(sol::state& target) -> void
       sol::property(&drawing::actors::Quad::getOutlineThickness,
                     &drawing::actors::Quad::setOutlineThickness);
     quadType["getPoint"] = &drawing::actors::Quad::getPoint;
-    quadType["size"] = sol::property(&drawing::actors::Quad::getSize,
-                                     &drawing::actors::Quad::setSize);
 }
 
 auto
@@ -219,6 +357,8 @@ definePadding(sol::state& target) -> void
       [](drawing::actors::Padding* self, drawing::actors::Actor* actor) {
           self->setChild(actor->shared_from_this());
       });
+
+    lua::createActorBaseProperties(paddingType);
 }
 
 auto
@@ -284,6 +424,8 @@ defineAlign(sol::state& target) -> void
       });
     alignType["mode"] = sol::property(&drawing::actors::Align::getMode,
                                       &drawing::actors::Align::setMode);
+
+    lua::createActorBaseProperties(alignType);
 }
 
 auto
@@ -292,9 +434,11 @@ lua::Bootstrapper::defineCommonTypes(sol::state& target) const -> void
     defineActor(target);
     defineParent(target);
     defineAbstractVectorCollection(target);
+    defineAbstractBox(target);
     defineVBox(target);
     defineHBox(target);
     defineVector2(target);
+    defineAbstractRectLeaf(target);
     defineQuad(target);
     defineColor(target);
     definePadding(target);

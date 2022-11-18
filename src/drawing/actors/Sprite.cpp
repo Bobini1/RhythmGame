@@ -21,16 +21,6 @@ void
 Sprite::update(std::chrono::nanoseconds delta)
 {
 }
-auto
-Sprite::matchParentWidth() const -> bool
-{
-    return false;
-}
-auto
-Sprite::matchParentHeight() const -> bool
-{
-    return false;
-}
 void
 Sprite::setTransform(sf::Transform newTransform)
 {
@@ -40,16 +30,6 @@ auto
 Sprite::getTransform() const -> sf::Transform
 {
     return transform;
-}
-auto
-Sprite::getMinWidth() const -> float
-{
-    return 0;
-}
-auto
-Sprite::getMinHeight() const -> float
-{
-    return 0;
 }
 auto
 Sprite::getLuaSelf(sol::state& lua) -> sol::object

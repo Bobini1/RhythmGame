@@ -8,7 +8,7 @@
 #include "Parent.h"
 namespace drawing::actors {
 /**
- * @brief An actor that adds padding around its child.
+ * @brief A parent that adds padding around its child.
  */
 class Padding : public Parent
 {
@@ -24,8 +24,8 @@ class Padding : public Parent
     auto update(std::chrono::nanoseconds delta) -> void override;
     auto setTransform(sf::Transform transform) -> void override;
     auto getTransform() const -> sf::Transform override;
-    auto matchParentWidth() const -> bool override;
-    auto matchParentHeight() const -> bool override;
+    auto getIsWidthManaged() const -> bool override;
+    auto getIsHeightManaged() const -> bool override;
     auto getMinWidth() const -> float override;
     auto getMinHeight() const -> float override;
     auto getWidth() const -> float override;

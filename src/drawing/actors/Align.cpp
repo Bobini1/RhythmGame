@@ -3,6 +3,8 @@
 //
 
 #include "Align.h"
+
+#include <utility>
 #include "SFML/Graphics/RenderTarget.hpp"
 void
 drawing::actors::Align::removeChild(std::shared_ptr<Actor> /* child */)
@@ -70,13 +72,13 @@ drawing::actors::Align::setTransform(sf::Transform newTransform)
             break;
     }
 }
-sf::Transform
-drawing::actors::Align::getTransform() const
+auto
+drawing::actors::Align::getTransform() const -> sf::Transform
 {
     return transform;
 }
-bool
-drawing::actors::Align::matchParentWidth() const
+auto
+drawing::actors::Align::getIsWidthManaged() const -> bool
 {
     switch (mode) {
         case Mode::TopLeft:
@@ -87,8 +89,8 @@ drawing::actors::Align::matchParentWidth() const
             return true;
     }
 }
-bool
-drawing::actors::Align::matchParentHeight() const
+auto
+drawing::actors::Align::getIsHeightManaged() const -> bool
 {
     switch (mode) {
         case Mode::TopLeft:
@@ -99,40 +101,40 @@ drawing::actors::Align::matchParentHeight() const
             return true;
     }
 }
-float
-drawing::actors::Align::getMinWidth() const
+auto
+drawing::actors::Align::getMinWidth() const -> float
 {
     if (!child) {
         return 0;
     }
     return child->getMinWidth();
 }
-float
-drawing::actors::Align::getMinHeight() const
+auto
+drawing::actors::Align::getMinHeight() const -> float
 {
     if (!child) {
         return 0;
     }
     return child->getMinHeight();
 }
-float
-drawing::actors::Align::getWidth() const
+auto
+drawing::actors::Align::getWidth() const -> float
 {
     if (!child) {
         return 0;
     }
-    if (child->matchParentWidth()) {
+    if (child->getIsWidthManaged()) {
         return child->getWidth();
     }
     return std::max(size.x, child->getWidth());
 }
-float
-drawing::actors::Align::getHeight() const
+auto
+drawing::actors::Align::getHeight() const -> float
 {
     if (!child) {
         return 0;
     }
-    if (child->matchParentHeight()) {
+    if (child->getIsHeightManaged()) {
         return child->getHeight();
     }
     return std::max(size.y, child->getHeight());
@@ -152,7 +154,7 @@ drawing::actors::Align::setWidthImpl(float width)
     if (child == nullptr) {
         return;
     }
-    if (child->matchParentWidth()) {
+    if (child->getIsWidthManaged()) {
         child->setWidth(width);
     } else {
         child->setWidth(std::min(width, child->getWidth()));
@@ -165,7 +167,7 @@ drawing::actors::Align::setHeightImpl(float height)
     if (child == nullptr) {
         return;
     }
-    if (child->matchParentHeight()) {
+    if (child->getIsHeightManaged()) {
         child->setHeight(height);
     } else {
         child->setHeight(std::min(height, child->getHeight()));
@@ -187,7 +189,7 @@ drawing::actors::Align::setChild(std::shared_ptr<Actor> newChild)
     if (this->child) {
         this->child->setParent(nullptr);
     }
-    this->child = newChild;
+    this->child = std::move(newChild);
     if (child) {
         child->setParent(sharedFromBase<Parent>());
     }
