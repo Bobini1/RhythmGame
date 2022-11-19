@@ -115,6 +115,4 @@ elseif (NOT PROJECT_IS_TOP_LEVEL)
     )
 endif ()
 
-target_precompile_headers(RhythmGame_lib PRIVATE "<memory>" "<vector>" "<chrono>")
-
 include(cmake/dev-mode.cmake)
