@@ -89,7 +89,7 @@ drawing::actors::HBox::setTransform(sf::Transform newTransform)
     for (const auto& child : *this) {
         if (child->getIsWidthManaged()) {
             auto childMinWidth = child->getMinWidth();
-            child->setHeight(childMinWidth + growth);
+            child->setWidth(childMinWidth + growth);
         }
         if (child->getIsHeightManaged()) {
             child->setHeight(size.y);

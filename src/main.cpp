@@ -10,12 +10,36 @@
 #include "resource_managers/FontLoaderImpl.h"
 
 constexpr auto luaScript = R"(
-    local quad = Quad.new(100, 100)
-    quad.minWidth = 100
-    quad.minHeight = 100
-    quad.isWidthManaged = true
-    quad.isHeightManaged = true
-    return quad
+local root = HBox.new{
+    contentAlignment = HBoxContentAlignment.Bottom,
+    horizontalSizeMode = SizeMode.Managed,
+    verticalSizeMode = SizeMode.Managed,
+    children = {
+        Quad.new{width = 100, isHeightManaged = true, fillColor = Color.new(255, 0, 255, 255)},
+        Align.new(
+            Padding.new{
+                child = Sprite.new{
+                    texture = "/home/bobini/Pulpit/300645106_5308977632548971_2330521311896357614_n.jpg",
+                    width = 200,
+                    height = 200
+                },
+                left = 250
+            },
+            AlignMode.Center
+        ),
+        VBox.new{
+            contentAlignment = VBoxContentAlignment.Right,
+            horizontalSizeMode = SizeMode.WrapChildren,
+            verticalSizeMode = SizeMode.Managed,
+            children = {
+                Text.new("Hello world!"),
+                Text.new{text = "Hello world!", characterSize = 20},
+                Text.new{text = "Hello world!", characterSize = 20, fillColor = Color.new(255, 0, 0, 255), isWidthManaged = true}
+            }
+        }
+    }
+}
+return root
 )";
 
 auto

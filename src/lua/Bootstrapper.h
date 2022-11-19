@@ -14,51 +14,6 @@
 
 namespace lua {
 
-template<typename T>
-concept HasWritableProperties = std::derived_from<T, drawing::actors::Actor> &&
-                                requires(T* actor, sol::object& self) {
-                                    {
-                                        actor->setMinHeight(0.F)
-                                    } -> std::same_as<void>;
-                                    {
-                                        actor->setMinWidth(0.F)
-                                    } -> std::same_as<void>;
-                                    {
-                                        actor->setIsWidthManaged(true)
-                                    } -> std::same_as<void>;
-                                    {
-                                        actor->setIsHeightManaged(true)
-                                    } -> std::same_as<void>;
-                                };
-
-/**
- * Since sol does not seem to allow overriding readonly properties from
- * base classes with read/write properties, we can't define those in the Actor
- * class directly. This function writes those properties as needed.
- */
-template<HasWritableProperties T>
-auto
-createActorBaseProperties(sol::usertype<T> actorType) -> void
-{
-    actorType["minWidth"] = sol::property(&T::getMinWidth, &T::setMinWidth);
-    actorType["minHeight"] = sol::property(&T::getMinHeight, &T::setMinHeight);
-    actorType["isWidthManaged"] =
-      sol::property(&T::getIsWidthManaged, &T::setIsWidthManaged);
-    actorType["isHeightManaged"] =
-      sol::property(&T::getIsHeightManaged, &T::setIsHeightManaged);
-}
-
-template<std::derived_from<drawing::actors::Actor> T>
-auto
-createActorBaseProperties(sol::usertype<T> actorType)
-    requires(!HasWritableProperties<T>)
-{
-    actorType["minWidth"] = sol::property(&T::getMinWidth);
-    actorType["minHeight"] = sol::property(&T::getMinHeight);
-    actorType["isWidthManaged"] = sol::property(&T::getIsWidthManaged);
-    actorType["isHeightManaged"] = sol::property(&T::getIsHeightManaged);
-}
-
 class Bootstrapper
 {
   public:
@@ -140,11 +95,30 @@ class Bootstrapper
                 if (args["letterSpacing"].valid()) {
                     result->setLetterSpacing(args.get<float>("letterSpacing"));
                 }
+                if (args["width"].valid()) {
+                    result->setWidth(args.get<float>("width"));
+                }
+                if (args["height"].valid()) {
+                    result->setHeight(args.get<float>("height"));
+                }
+                if (args["minWidth"].valid()) {
+                    result->setMinWidth(args.get<float>("minWidth"));
+                }
+                if (args["minHeight"].valid()) {
+                    result->setMinHeight(args.get<float>("minHeight"));
+                }
+                if (args["isWidthManaged"].valid()) {
+                    result->setIsWidthManaged(args.get<bool>("isWidthManaged"));
+                }
+                if (args["isHeightManaged"].valid()) {
+                    result->setIsHeightManaged(
+                      args.get<bool>("isHeightManaged"));
+                }
                 return result;
             }),
           sol::base_classes,
-          sol::bases<drawing::actors::Actor,
-                     drawing::actors::AbstractRectLeaf>());
+          sol::bases<drawing::actors::AbstractRectLeaf,
+                     drawing::actors::Actor>());
         textType["string"] = sol::property(&drawing::actors::Text::getString,
                                            &drawing::actors::Text::setString);
         textType["font"] = sol::property(&drawing::actors::Text::getFont,
@@ -209,10 +183,51 @@ class Bootstrapper
                     return std::shared_ptr<drawing::actors::Sprite>();
                 }
                 return std::make_shared<drawing::actors::Sprite>(*texture);
+            },
+            [&textureLoader](sol::table args) {
+                auto result = std::make_shared<drawing::actors::Sprite>();
+                if (args["texture"].valid()) {
+                    if (args["texture"].get_type() == sol::type::string) {
+                        auto* texture =
+                          textureLoader.load(args.get<std::string>("texture"));
+                        if (texture != nullptr) {
+                            result->setTexture(*texture);
+                        }
+                    } else {
+                        result->setTexture(args.get<sf::Texture>("texture"));
+                    }
+                }
+                if (args["textureRect"].valid()) {
+                    result->setTextureRect(
+                      args.get<sf::IntRect>("textureRect"));
+                }
+                if (args["color"].valid()) {
+                    result->setColor(args.get<sf::Color>("color"));
+                }
+                if (args["width"].valid()) {
+                    result->setWidth(args.get<float>("width"));
+                }
+                if (args["height"].valid()) {
+                    result->setHeight(args.get<float>("height"));
+                }
+                if (args["minWidth"].valid()) {
+                    result->setMinWidth(args.get<float>("minWidth"));
+                }
+                if (args["minHeight"].valid()) {
+                    result->setMinHeight(args.get<float>("minHeight"));
+                }
+                if (args["isWidthManaged"].valid()) {
+                    result->setIsWidthManaged(args.get<bool>("isWidthManaged"));
+                }
+                if (args["isHeightManaged"].valid()) {
+                    result->setIsHeightManaged(
+                      args.get<bool>("isHeightManaged"));
+                }
+                return result;
             }),
           sol::base_classes,
-          sol::bases<drawing::actors::Actor,
-                     drawing::actors::AbstractRectLeaf>());
+          sol::bases<drawing::actors::AbstractRectLeaf,
+                     drawing::actors::Actor>());
         spriteType["texture"] =
           sol::property(&drawing::actors::Sprite::getTexture,
                         &drawing::actors::Sprite::setTexture);

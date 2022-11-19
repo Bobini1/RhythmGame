@@ -26,6 +26,13 @@ defineActor(sol::state& target) -> void
                                        &drawing::actors::Actor::setWidth);
     actorType["height"] = sol::property(&drawing::actors::Actor::getHeight,
                                         &drawing::actors::Actor::setHeight);
+    actorType["minWidth"] = sol::property(&drawing::actors::Actor::getMinWidth);
+    actorType["minHeight"] =
+      sol::property(&drawing::actors::Actor::getMinHeight);
+    actorType["isWidthManaged"] =
+      sol::property(&drawing::actors::Actor::getIsWidthManaged);
+    actorType["isHeightManaged"] =
+      sol::property(&drawing::actors::Actor::getIsHeightManaged);
 }
 
 auto
@@ -60,8 +67,6 @@ defineAbstractVectorCollection(sol::state& target) -> void
       };
     abstractVectorCollectionType["size"] =
       sol::property(&drawing::actors::AbstractVectorCollection::getSize);
-
-    lua::createActorBaseProperties(abstractVectorCollectionType);
 }
 
 auto
@@ -79,11 +84,12 @@ defineAbstractBox(sol::state& target) -> void
       sol::property(&drawing::actors::AbstractBox::getVerticalSizeMode,
                     &drawing::actors::AbstractBox::setVerticalSizeMode);
 
-    auto sizeModeType = target.new_enum<drawing::actors::VBox::SizeMode>(
+    auto sizeModeType = target.new_enum<drawing::actors::AbstractBox::SizeMode>(
       "SizeMode",
-      { { "Fixed", drawing::actors::VBox::SizeMode::Fixed },
-        { "Managed", drawing::actors::VBox::SizeMode::Managed },
-        { "WrapChildren", drawing::actors::VBox::SizeMode::WrapChildren } });
+      { { "Fixed", drawing::actors::AbstractBox::SizeMode::Fixed },
+        { "Managed", drawing::actors::AbstractBox::SizeMode::Managed },
+        { "WrapChildren",
+          drawing::actors::AbstractBox::SizeMode::WrapChildren } });
 }
 
 auto
@@ -93,14 +99,6 @@ defineVBox(sol::state& target) -> void
       "VBox",
       sol::factories(
         []() { return std::make_shared<drawing::actors::VBox>(); },
-        [](std::vector<drawing::actors::Actor*>
-             children) { // NOLINT(performance-unnecessary-value-param)
-            auto result = std::make_shared<drawing::actors::VBox>();
-            for (auto* child : children) {
-                result->addChild(child->shared_from_this());
-            }
-            return result;
-        },
         [](sol::table args) {
             auto result = std::make_shared<drawing::actors::VBox>();
             if (args["children"].valid()) {
@@ -132,6 +130,14 @@ defineVBox(sol::state& target) -> void
                 result->setHeight(args["height"].get<float>());
             }
             return result;
+        },
+        [](std::vector<drawing::actors::Actor*>
+             children) { // NOLINT(performance-unnecessary-value-param)
+            auto result = std::make_shared<drawing::actors::VBox>();
+            for (auto* child : children) {
+                result->addChild(child->shared_from_this());
+            }
+            return result;
         }),
       sol::base_classes,
       sol::bases<drawing::actors::Actor,
@@ -157,14 +163,6 @@ defineHBox(sol::state& target) -> void
       "HBox",
       sol::factories(
         []() { return std::make_shared<drawing::actors::HBox>(); },
-        [](std::vector<drawing::actors::Actor*>
-             children) { // NOLINT(performance-unnecessary-value-param)
-            auto result = std::make_shared<drawing::actors::HBox>();
-            for (auto* child : children) {
-                result->addChild(child->shared_from_this());
-            }
-            return result;
-        },
         [](sol::table args) {
             auto result = std::make_shared<drawing::actors::HBox>();
             if (args["children"].valid()) {
@@ -194,6 +192,14 @@ defineHBox(sol::state& target) -> void
             }
             if (args["height"].valid()) {
                 result->setHeight(args["height"].get<float>());
+            }
+            return result;
+        },
+        [](std::vector<drawing::actors::Actor*>
+             children) { // NOLINT(performance-unnecessary-value-param)
+            auto result = std::make_shared<drawing::actors::HBox>();
+            for (auto* child : children) {
+                result->addChild(child->shared_from_this());
             }
             return result;
         }),
@@ -244,8 +250,6 @@ defineAbstractRectLeaf(sol::state& target) -> void
     abstractRectLeafType["isHeightManaged"] =
       sol::property(&drawing::actors::AbstractRectLeaf::getIsHeightManaged,
                     &drawing::actors::AbstractRectLeaf::setIsHeightManaged);
-
-    lua::createActorBaseProperties(abstractRectLeafType);
 }
 
 auto
@@ -277,10 +281,22 @@ defineQuad(sol::state& target) -> void
                 result->setOutlineThickness(
                   args.get<float>("outlineThickness"));
             }
+            if (args["minWidth"].valid()) {
+                result->setMinWidth(args.get<float>("minWidth"));
+            }
+            if (args["minHeight"].valid()) {
+                result->setMinHeight(args.get<float>("minHeight"));
+            }
+            if (args["isWidthManaged"].valid()) {
+                result->setIsWidthManaged(args.get<bool>("isWidthManaged"));
+            }
+            if (args["isHeightManaged"].valid()) {
+                result->setIsHeightManaged(args.get<bool>("isHeightManaged"));
+            }
             return result;
         }),
       sol::base_classes,
-      sol::bases<drawing::actors::Actor, drawing::actors::AbstractRectLeaf>());
+      sol::bases<drawing::actors::AbstractRectLeaf, drawing::actors::Actor>());
     quadType["fillColor"] = sol::property(&drawing::actors::Quad::getFillColor,
                                           &drawing::actors::Quad::setFillColor);
     quadType["outlineColor"] =
@@ -317,10 +333,10 @@ definePadding(sol::state& target) -> void
         },
         [](drawing::actors::Actor* actor, const sol::table& args) {
             auto returnVal = std::make_shared<drawing::actors::Padding>(
-              args.get_or("left", 0.F),
               args.get_or("top", 0.F),
-              args.get_or("right", 0.F),
-              args.get_or("bottom", 0.F));
+              args.get_or("bottom", 0.F),
+              args.get_or("left", 0.F),
+              args.get_or("right", 0.F));
             returnVal->setChild(actor->shared_from_this());
             return returnVal;
         },
@@ -333,10 +349,10 @@ definePadding(sol::state& target) -> void
                 return std::shared_ptr<drawing::actors::Actor>();
             }();
             auto returnVal = std::make_shared<drawing::actors::Padding>(
-              args.get_or("left", 0.F),
               args.get_or("top", 0.F),
-              args.get_or("right", 0.F),
-              args.get_or("bottom", 0.F));
+              args.get_or("bottom", 0.F),
+              args.get_or("left", 0.F),
+              args.get_or("right", 0.F));
             returnVal->setChild(child);
             return returnVal;
         }),
@@ -357,8 +373,6 @@ definePadding(sol::state& target) -> void
       [](drawing::actors::Padding* self, drawing::actors::Actor* actor) {
           self->setChild(actor->shared_from_this());
       });
-
-    lua::createActorBaseProperties(paddingType);
 }
 
 auto
@@ -424,8 +438,6 @@ defineAlign(sol::state& target) -> void
       });
     alignType["mode"] = sol::property(&drawing::actors::Align::getMode,
                                       &drawing::actors::Align::setMode);
-
-    lua::createActorBaseProperties(alignType);
 }
 
 auto

@@ -19,11 +19,17 @@ auto
 AbstractRectLeaf::setMinWidth(float newMinWidth) -> void
 {
     minWidth = newMinWidth;
+    if (minWidth > getWidth()) {
+        setWidth(minWidth);
+    }
 }
 auto
 AbstractRectLeaf::setMinHeight(float newMinHeight) -> void
 {
     minHeight = newMinHeight;
+    if (minHeight > getHeight()) {
+        setHeight(minHeight);
+    }
 }
 auto
 AbstractRectLeaf::getIsWidthManaged() const -> bool

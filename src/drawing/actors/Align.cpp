@@ -80,26 +80,12 @@ drawing::actors::Align::getTransform() const -> sf::Transform
 auto
 drawing::actors::Align::getIsWidthManaged() const -> bool
 {
-    switch (mode) {
-        case Mode::TopLeft:
-        case Mode::Left:
-        case Mode::BottomLeft:
-            return false;
-        default:
-            return true;
-    }
+    return true;
 }
 auto
 drawing::actors::Align::getIsHeightManaged() const -> bool
 {
-    switch (mode) {
-        case Mode::TopLeft:
-        case Mode::Top:
-        case Mode::TopRight:
-            return false;
-        default:
-            return true;
-    }
+    return true;
 }
 auto
 drawing::actors::Align::getMinWidth() const -> float
@@ -107,7 +93,10 @@ drawing::actors::Align::getMinWidth() const -> float
     if (!child) {
         return 0;
     }
-    return child->getMinWidth();
+    if (child->getIsWidthManaged()) {
+        return child->getMinWidth();
+    }
+    return child->getWidth();
 }
 auto
 drawing::actors::Align::getMinHeight() const -> float
@@ -115,7 +104,10 @@ drawing::actors::Align::getMinHeight() const -> float
     if (!child) {
         return 0;
     }
-    return child->getMinHeight();
+    if (child->getIsHeightManaged()) {
+        return child->getMinHeight();
+    }
+    return child->getHeight();
 }
 auto
 drawing::actors::Align::getWidth() const -> float
@@ -151,26 +143,16 @@ void
 drawing::actors::Align::setWidthImpl(float width)
 {
     size.x = width;
-    if (child == nullptr) {
-        return;
-    }
-    if (child->getIsWidthManaged()) {
+    if (child && child->getIsWidthManaged()) {
         child->setWidth(width);
-    } else {
-        child->setWidth(std::min(width, child->getWidth()));
     }
 }
 void
 drawing::actors::Align::setHeightImpl(float height)
 {
     size.y = height;
-    if (child == nullptr) {
-        return;
-    }
-    if (child->getIsHeightManaged()) {
+    if (child && child->getIsHeightManaged()) {
         child->setHeight(height);
-    } else {
-        child->setHeight(std::min(height, child->getHeight()));
     }
 }
 auto
