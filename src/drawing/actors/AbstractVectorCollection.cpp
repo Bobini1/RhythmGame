@@ -9,6 +9,9 @@ void
 drawing::actors::AbstractVectorCollection::addChild(
   std::shared_ptr<Actor> actor)
 {
+    if (!actor) {
+        return;
+    }
     if (std::find(children.begin(), children.end(), actor) == children.end()) {
         actor->setParent(sharedFromBase<Parent>());
         children.push_back(actor);

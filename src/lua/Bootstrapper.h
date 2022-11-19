@@ -120,8 +120,8 @@ class Bootstrapper
           sol::base_classes,
           sol::bases<drawing::actors::AbstractRectLeaf,
                      drawing::actors::Actor>());
-        textType["string"] = sol::property(&drawing::actors::Text::getString,
-                                           &drawing::actors::Text::setString);
+        textType["text"] = sol::property(&drawing::actors::Text::getText,
+                                         &drawing::actors::Text::setText);
         textType["font"] = sol::property(&drawing::actors::Text::getFont,
                                          &drawing::actors::Text::setFont);
         textType["characterSize"] =

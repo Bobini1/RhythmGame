@@ -6,7 +6,7 @@
 #include "drawing/actors/Quad.h"
 #include <catch2/catch_test_macros.hpp>
 
-TEST_CASE("Vbox is able to arrange its children", "[drawing][vbox]")
+TEST_CASE("Vbox is able to arrange its children", "[drawing][actors][vbox]")
 {
     auto vbox1 = drawing::actors::VBox::make();
     auto vbox2 = drawing::actors::VBox::make();
@@ -25,7 +25,7 @@ TEST_CASE("Vbox is able to arrange its children", "[drawing][vbox]")
             sf::Transform(sf::Transform::Identity).translate(0, 200));
 }
 
-TEST_CASE("VBox items can be removed and added", "[drawing][vbox]")
+TEST_CASE("VBox items can be removed and added", "[drawing][actors][vbox]")
 {
     auto vbox = drawing::actors::VBox::make();
     auto child1 = drawing::actors::Quad::make(sf::Vector2f{ 100.F, 100.F });

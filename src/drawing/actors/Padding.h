@@ -9,6 +9,8 @@
 namespace drawing::actors {
 /**
  * @brief A parent that adds padding around its child.
+ *
+ * If the child has managed size, padding also will.
  */
 class Padding : public Parent
 {

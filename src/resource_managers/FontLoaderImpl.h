@@ -18,7 +18,7 @@ class FontLoaderImpl
      * @param path Path to the font file.
      * @return Loaded font.
      */
-    auto load(const std::filesystem::path& path) -> const sf::Font*;
+    auto load(const std::string& path) -> const sf::Font*;
     auto getDefault() -> const sf::Font*;
 };
 } // namespace resource_managers

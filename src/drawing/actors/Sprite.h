@@ -9,6 +9,9 @@
 #include <SFML/Graphics/Sprite.hpp>
 #include "AbstractRectLeaf.h"
 namespace drawing::actors {
+/**
+ * @brief A sprite is a leaf actor that displays a texture.
+ */
 class Sprite : public AbstractRectLeaf
 {
     sf::Sprite sprite;

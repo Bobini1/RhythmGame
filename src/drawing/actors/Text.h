@@ -8,6 +8,14 @@
 #include <SFML/Graphics/Text.hpp>
 
 namespace drawing::actors {
+/**
+ * @brief Text is a leaf actor that displays a string of text.
+ *
+ * Text holds a non-owning pointer to its font.
+ *
+ * The best method to change the size of text is setCharacterSize().
+ * setWidth() and setHeight() will stretch the text.
+ */
 class Text : public AbstractRectLeaf
 {
     sf::Text text;
@@ -35,13 +43,13 @@ class Text : public AbstractRectLeaf
     [[nodiscard]] auto getOutlineColor() const -> const sf::Color&;
     [[nodiscard]] auto getOutlineThickness() const -> float;
 
-    void setString(const std::string& string);
+    void setText(const std::string& string);
     void setFont(const sf::Font& font);
     void setCharacterSize(unsigned int size);
     void setStyle(sf::Uint32 style);
     void setLineSpacing(float spacingFactor);
     void setLetterSpacing(float spacingFactor);
-    [[nodiscard]] auto getString() const -> const std::string;
+    [[nodiscard]] auto getText() const -> const std::string;
     [[nodiscard]] auto getFont() const -> const sf::Font*;
     [[nodiscard]] auto getCharacterSize() const -> unsigned int;
     [[nodiscard]] auto getStyle() const -> sf::Uint32;

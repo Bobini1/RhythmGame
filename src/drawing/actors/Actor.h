@@ -66,7 +66,12 @@ class Actor // NOLINT(fuchsia-multiple-inheritance)
     virtual auto update(std::chrono::nanoseconds delta) -> void = 0;
     /**
      * @brief set the transform of the actor and all its children. Not exposed
-     * to lua. Should be called every frame.
+     * to lua.
+     *
+     * Should be called every frame. This method is responsible for updating the
+     * entire state of a parent component according to the state of its
+     * children.
+     *
      * @param transform The new global transform of the actor.
      */
     virtual auto setTransform(sf::Transform transform) -> void = 0;

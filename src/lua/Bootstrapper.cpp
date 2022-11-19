@@ -454,6 +454,12 @@ defineLayers(sol::state& target) -> void
                   args.get<drawing::actors::Actor*>("mainLayer")
                     ->shared_from_this());
             }
+            if (args["width"].valid()) {
+                returnVal->setWidth(args.get<float>("width"));
+            }
+            if (args["height"].valid()) {
+                returnVal->setHeight(args.get<float>("height"));
+            }
             return returnVal;
         }),
       sol::base_classes,

@@ -3,10 +3,15 @@
 //
 
 #include "FontLoaderImpl.h"
+#include "boost/log/trivial.hpp"
 auto
-resource_managers::FontLoaderImpl::load(const std::filesystem::path& path)
+resource_managers::FontLoaderImpl::load(const std::string& path)
   -> const sf::Font*
 {
+    if (!std::filesystem::exists(path)) {
+        BOOST_LOG_TRIVIAL(error) << "Font file " << path << " does not exist";
+        return nullptr;
+    }
     auto pathAbs = std::filesystem::canonical(path);
     if (loadedFonts.find(pathAbs) == loadedFonts.end()) {
         auto font = sf::Font{};

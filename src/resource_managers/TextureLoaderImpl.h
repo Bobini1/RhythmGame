@@ -21,7 +21,7 @@ class TextureLoaderImpl
      * @param path Path to the texture file.
      * @return Loaded texture.
      */
-    auto load(const std::filesystem::path& path) -> const sf::Texture*;
+    auto load(const std::string& path) -> const sf::Texture*;
 };
 
 static_assert(resource_managers::TextureLoader<TextureLoaderImpl>);

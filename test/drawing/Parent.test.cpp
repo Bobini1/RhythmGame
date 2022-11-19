@@ -6,7 +6,7 @@
 #include "drawing/actors/Quad.h"
 #include <catch2/catch_test_macros.hpp>
 
-TEST_CASE("The parent's lifetime is not extended by child", "[drawing][parent]")
+TEST_CASE("The parent's lifetime is not extended by child", "[drawing][actors][parent]")
 {
     auto child = drawing::actors::Quad::make();
     {
@@ -17,7 +17,7 @@ TEST_CASE("The parent's lifetime is not extended by child", "[drawing][parent]")
     REQUIRE(child->getParent() == nullptr);
 }
 
-TEST_CASE("Parent can be reassigned", "[drawing][parent]")
+TEST_CASE("Parent can be reassigned", "[drawing][actors][parent]")
 {
     auto child = drawing::actors::Quad::make();
     auto parent1 = drawing::actors::VBox::make();

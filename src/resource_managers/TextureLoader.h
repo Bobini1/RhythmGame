@@ -12,16 +12,15 @@ namespace resource_managers {
  * @brief Loads textures from files.
  */
 template<typename T>
-concept TextureLoader =
-  requires(T textureLoader, const std::filesystem::path& path) {
-      /**
-       * @brief Loads a texture from a file.
-       * @param path Path to the texture file.
-       * @return Loaded texture.
-       */
-      {
-          textureLoader.load(path)
-      } -> std::convertible_to<const sf::Texture*>;
-  };
+concept TextureLoader = requires(T textureLoader, const std::string& path) {
+                            /**
+                             * @brief Loads a texture from a file.
+                             * @param path Path to the texture file.
+                             * @return Loaded texture.
+                             */
+                            {
+                                textureLoader.load(path)
+                            } -> std::convertible_to<const sf::Texture*>;
+                        };
 } // namespace resource_managers
 #endif // RHYTHMGAME_TEXTURELOADER_H

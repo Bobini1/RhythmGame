@@ -10,6 +10,9 @@
 namespace drawing::actors {
 /**
  * A VBox is a parent that arranges its children vertically.
+ *
+ * When height is managed, children with managed height are stretched equally to
+ * fill space.
  */
 class VBox : public AbstractBox
 {

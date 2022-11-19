@@ -6,10 +6,19 @@
 #define RHYTHMGAME_LAYERS_H
 #include "AbstractVectorCollection.h"
 namespace drawing::actors {
+/**
+ * @brief A Layers is a collection of actors that are drawn in a specific order.
+ *
+ * The order is determined by the order in which the actors are added to the
+ * layer. The size of Layers is the size of the largest child or the size of the
+ * main layer if it is set. If you set a main layer that was not also added as a
+ * child, it will be added to children at the top of the stack.
+ */
 class Layers : public AbstractVectorCollection
 {
     std::shared_ptr<Actor> mainLayer;
     sf::Transform transform;
+    sf::Vector2f size;
 
   public:
     static auto make() -> std::shared_ptr<Layers>;

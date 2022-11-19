@@ -20,8 +20,9 @@ void
 drawing::actors::Layers::setTransform(sf::Transform newTransform)
 {
     transform = newTransform;
-    setHeight(getHeight());
+
     setWidth(getWidth());
+    setHeight(getHeight());
 
     for (const auto& child : *this) {
         child->setTransform(transform);
@@ -73,6 +74,7 @@ drawing::actors::Layers::draw(sf::RenderTarget& target,
 void
 drawing::actors::Layers::setWidthImpl(float width)
 {
+    size.x = width;
     for (const auto& child : *this) {
         if (child->getIsWidthManaged()) {
             child->setWidth(width);
@@ -82,6 +84,7 @@ drawing::actors::Layers::setWidthImpl(float width)
 void
 drawing::actors::Layers::setHeightImpl(float height)
 {
+    size.y = height;
     for (const auto& child : *this) {
         if (child->getIsHeightManaged()) {
             child->setHeight(height);
@@ -94,6 +97,8 @@ drawing::actors::Layers::onChildRemoved(std::shared_ptr<Actor> child) -> void
     if (child == mainLayer) {
         mainLayer = nullptr;
     }
+    setWidth(getWidth());
+    setHeight(getHeight());
 }
 auto
 drawing::actors::Layers::setMainLayer(std::shared_ptr<Actor> layer) -> void
@@ -133,17 +138,17 @@ drawing::actors::Layers::getMinSize() const -> sf::Vector2f
 auto
 drawing::actors::Layers::getCurrentSize() const -> sf::Vector2f
 {
-    auto size = sf::Vector2f{ 0, 0 };
+    auto currentSize = size;
     if (mainLayer) {
-        size.x = mainLayer->getWidth();
-        size.y = mainLayer->getHeight();
+        currentSize.x = mainLayer->getWidth();
+        currentSize.y = mainLayer->getHeight();
     } else {
         for (const auto& child : *this) {
-            size.x = std::max(size.x, child->getWidth());
-            size.y = std::max(size.y, child->getHeight());
+            currentSize.x = std::max(currentSize.x, child->getWidth());
+            currentSize.y = std::max(currentSize.y, child->getHeight());
         }
     }
-    return size;
+    return currentSize;
 }
 auto
 drawing::actors::Layers::make() -> std::shared_ptr<Layers>

@@ -9,7 +9,7 @@
 #include <SFML/Graphics/Font.hpp>
 namespace resource_managers {
 template<typename T>
-concept FontLoader = requires(T fontLoader, const std::filesystem::path& path) {
+concept FontLoader = requires(T fontLoader, const std::string& path) {
                          {
                              fontLoader.load(path)
                          } -> std::convertible_to<const sf::Font*>;

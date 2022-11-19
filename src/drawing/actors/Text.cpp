@@ -92,7 +92,7 @@ drawing::actors::Text::setFont(const sf::Font& font)
     text.setFont(font);
 }
 void
-drawing::actors::Text::setString(const std::string& string)
+drawing::actors::Text::setText(const std::string& string)
 {
     text.setString(sf::String(string));
 }
@@ -117,7 +117,7 @@ drawing::actors::Text::setLetterSpacing(float spacingFactor)
     text.setLetterSpacing(spacingFactor);
 }
 auto
-drawing::actors::Text::getString() const -> const std::string
+drawing::actors::Text::getText() const -> const std::string
 {
     return text.getString().toAnsiString();
 }

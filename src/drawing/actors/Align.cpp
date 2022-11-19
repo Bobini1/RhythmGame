@@ -33,6 +33,8 @@ drawing::actors::Align::setTransform(sf::Transform newTransform)
     if (!child) {
         return;
     }
+    setWidth(getWidth());
+    setHeight(getHeight());
     switch (mode) {
         case Mode::TopLeft:
             child->setTransform(newTransform);
@@ -115,9 +117,6 @@ drawing::actors::Align::getWidth() const -> float
     if (!child) {
         return 0;
     }
-    if (child->getIsWidthManaged()) {
-        return child->getWidth();
-    }
     return std::max(size.x, child->getWidth());
 }
 auto
@@ -125,9 +124,6 @@ drawing::actors::Align::getHeight() const -> float
 {
     if (!child) {
         return 0;
-    }
-    if (child->getIsHeightManaged()) {
-        return child->getHeight();
     }
     return std::max(size.y, child->getHeight());
 }

@@ -8,6 +8,9 @@
 namespace drawing::actors {
 /**
  * A HBox is a parent that arranges its children horizontally.
+ *
+ * When width is managed, children with managed width are stretched equally to
+ * fill space.
  */
 class HBox : public AbstractBox
 {
