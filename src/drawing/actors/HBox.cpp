@@ -61,8 +61,8 @@ drawing::actors::HBox::setHeightImpl(float height)
 auto
 drawing::actors::HBox::getMinimumSizeOfChildren() const -> sf::Vector2f
 {
-    auto width = 0.F;
-    auto height = 0.F;
+    auto width = getLeftPadding() + getRightPadding();
+    auto height = getTopPadding() + getBottomPadding();
 
     for (const auto& child : *this) {
         height = std::max(height,
@@ -71,13 +71,17 @@ drawing::actors::HBox::getMinimumSizeOfChildren() const -> sf::Vector2f
         width +=
           child->getIsWidthManaged() ? child->getMinWidth() : child->getWidth();
     }
+    if (getSize() > 0) {
+        width += (static_cast<float>(getSize() - 1)) * getSpacing();
+    }
     return { width, height };
 }
 void
 drawing::actors::HBox::setTransform(sf::Transform newTransform)
 {
     transform = newTransform;
-    auto workingTransform = transform;
+    auto workingTransform =
+      transform.translate(getLeftPadding(), getTopPadding());
     auto minimumSize = getMinimumSizeOfChildren();
 
     auto childrenMatchingParentWidth =
@@ -107,7 +111,7 @@ drawing::actors::HBox::setTransform(sf::Transform newTransform)
                 break;
         }
         child->setTransform(childTransform);
-        workingTransform.translate(child->getWidth(), 0);
+        workingTransform.translate(child->getWidth() + getSpacing(), 0);
     }
 }
 auto

@@ -83,6 +83,21 @@ defineAbstractBox(sol::state& target) -> void
     abstractBoxType["verticalSizeMode"] =
       sol::property(&drawing::actors::AbstractBox::getVerticalSizeMode,
                     &drawing::actors::AbstractBox::setVerticalSizeMode);
+    abstractBoxType["topPadding"] =
+      sol::property(&drawing::actors::AbstractBox::getTopPadding,
+                    &drawing::actors::AbstractBox::setTopPadding);
+    abstractBoxType["bottomPadding"] =
+      sol::property(&drawing::actors::AbstractBox::getBottomPadding,
+                    &drawing::actors::AbstractBox::setBottomPadding);
+    abstractBoxType["leftPadding"] =
+      sol::property(&drawing::actors::AbstractBox::getLeftPadding,
+                    &drawing::actors::AbstractBox::setLeftPadding);
+    abstractBoxType["rightPadding"] =
+      sol::property(&drawing::actors::AbstractBox::getRightPadding,
+                    &drawing::actors::AbstractBox::setRightPadding);
+    abstractBoxType["spacing"] =
+      sol::property(&drawing::actors::AbstractBox::getSpacing,
+                    &drawing::actors::AbstractBox::setSpacing);
 
     auto sizeModeType = target.new_enum<drawing::actors::AbstractBox::SizeMode>(
       "SizeMode",
@@ -259,14 +274,14 @@ defineQuad(sol::state& target) -> void
       "Quad",
       sol::factories(
         []() { return std::make_shared<drawing::actors::Quad>(); },
-        [](float x, float y) {
-            auto result =
-              std::make_shared<drawing::actors::Quad>(sf::Vector2f{ x, y });
+        [](float width, float height) {
+            auto result = std::make_shared<drawing::actors::Quad>(
+              sf::Vector2f{ width, height });
             return result;
         },
-        [](float x, float y, sf::Color color) {
+        [](float width, float height, sf::Color color) {
             auto result = std::make_shared<drawing::actors::Quad>(
-              sf::Vector2f{ x, y }, color);
+              sf::Vector2f{ width, height }, color);
             return result;
         },
         [](sol::table args) {

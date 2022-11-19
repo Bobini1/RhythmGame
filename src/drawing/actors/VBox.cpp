@@ -22,7 +22,8 @@ drawing::actors::VBox::setTransform(sf::Transform newTransform)
 {
     recalculateSize();
     transform = newTransform;
-    auto workingTransform = transform;
+    auto workingTransform =
+      transform.translate(getLeftPadding(), getTopPadding());
     auto minimumSize = getMinimumSizeOfChildren();
 
     auto childrenMatchingParentHeight =
@@ -54,7 +55,7 @@ drawing::actors::VBox::setTransform(sf::Transform newTransform)
                 break;
         }
         child->setTransform(childTransform);
-        workingTransform.translate(0, child->getHeight());
+        workingTransform.translate(0, child->getHeight() + getSpacing());
     }
 }
 auto
@@ -65,8 +66,8 @@ drawing::actors::VBox::getTransform() const -> sf::Transform
 auto
 drawing::actors::VBox::getMinimumSizeOfChildren() const -> sf::Vector2f
 {
-    auto width = 0.F;
-    auto height = 0.F;
+    auto width = getLeftPadding() + getRightPadding();
+    auto height = getTopPadding() + getBottomPadding();
 
     for (const auto& child : *this) {
         height += child->getIsHeightManaged() ? child->getMinHeight()
@@ -75,6 +76,10 @@ drawing::actors::VBox::getMinimumSizeOfChildren() const -> sf::Vector2f
                          child->getIsWidthManaged() ? child->getMinWidth()
                                                     : child->getWidth());
     }
+    if (getSize() > 0) {
+        height += (static_cast<float>(getSize() - 1)) * getSpacing();
+    }
+
     return { width, height };
 }
 auto
@@ -90,12 +95,16 @@ drawing::actors::VBox::getIsHeightManaged() const -> bool
 auto
 drawing::actors::VBox::getMinWidth() const -> float
 {
-    return getHorizontalSizeMode() == SizeMode::Fixed ? 0 : getMinimumSizeOfChildren().x;
+    return getHorizontalSizeMode() == SizeMode::Fixed
+             ? 0
+             : getMinimumSizeOfChildren().x;
 }
 auto
 drawing::actors::VBox::getMinHeight() const -> float
 {
-    return getVerticalSizeMode() == SizeMode::Fixed ? 0 : getMinimumSizeOfChildren().y;
+    return getVerticalSizeMode() == SizeMode::Fixed
+             ? 0
+             : getMinimumSizeOfChildren().y;
 }
 auto
 drawing::actors::VBox::getWidth() const -> float
