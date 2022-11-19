@@ -21,13 +21,13 @@ class AbstractBox : public AbstractVectorCollection
     enum class SizeMode
     {
         /**
-         * The size of the box does not change.
-         */
-        Fixed,
-        /**
          * The size of the box is the sum of the sizes of its children.
          */
         WrapChildren,
+        /**
+         * The size of the box does not change.
+         */
+        Fixed,
         /**
          * The size of the box is managed by its parent.
          */

@@ -90,9 +90,10 @@ Quad::getLuaSelf(sol::state& lua) -> sol::object
              sharedFromBase<Quad>() };
 }
 Quad::Quad(sf::Vector2f size, sf::Color color)
-  : rect(size)
 {
     rect.setFillColor(color);
+    setWidth(size.x);
+    setHeight(size.y);
 }
 
 } // namespace drawing::actors

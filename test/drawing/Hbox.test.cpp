@@ -14,12 +14,12 @@ TEST_CASE("Hbox is able to arrange its children", "[drawing][hbox]")
 {
     auto hbox1 = std::make_shared<drawing::actors::HBox>();
     auto hbox2 = std::make_shared<drawing::actors::HBox>();
-    auto child1 = std::make_shared<drawing::actors::Quad>();
-    auto child2 = std::make_shared<drawing::actors::Quad>();
-    auto child3 = std::make_shared<drawing::actors::Quad>();
-    child1->setSize({ 100, 100 });
-    child2->setSize({ 100, 100 });
-    child3->setSize({ 100, 100 });
+    auto child1 =
+      std::make_shared<drawing::actors::Quad>(sf::Vector2f{ 100.F, 100.F });
+    auto child2 =
+      std::make_shared<drawing::actors::Quad>(sf::Vector2f{ 100.F, 100.F });
+    auto child3 =
+      std::make_shared<drawing::actors::Quad>(sf::Vector2f{ 100.F, 100.F });
     hbox1->addChild(child1);
     hbox1->addChild(child2);
     hbox2->addChild(hbox1);
