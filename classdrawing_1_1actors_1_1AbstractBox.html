@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>drawing::actors::Parent class | RhythmGame</title>
+  <title>drawing::actors::AbstractBox class | RhythmGame</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,400i,600,600i%7CSource+Code+Pro:400,400i,600" />
   <link rel="stylesheet" href="m-dark+documentation.compiled.css" />
   <link rel="icon" href="favicon-dark.png" type="image/png" />
@@ -49,9 +49,10 @@
     <div class="m-row">
       <div class="m-col-l-10 m-push-l-1">
         <h1>
-          <span class="m-breadcrumb"><a href="namespacedrawing.html">drawing</a>::<wbr/></span><span class="m-breadcrumb"><a href="namespacedrawing_1_1actors.html">actors</a>::<wbr/></span>Parent <span class="m-thin">class</span>
-          <div class="m-doc-include m-code m-inverted m-text-right"><span class="cp">#include</span> <a class="cpf" href="Parent_8h.html">&lt;Parent.h&gt;</a></div>
+          <span class="m-breadcrumb"><a href="namespacedrawing.html">drawing</a>::<wbr/></span><span class="m-breadcrumb"><a href="namespacedrawing_1_1actors.html">actors</a>::<wbr/></span>AbstractBox <span class="m-thin">class</span>
+          <div class="m-doc-include m-code m-inverted m-text-right"><span class="cp">#include</span> <a class="cpf" href="AbstractBox_8h.html">&lt;AbstractBox.h&gt;</a></div>
         </h1>
+        <p><a href="classdrawing_1_1actors_1_1AbstractBox.html" class="m-doc">AbstractBox</a> is an abstract base class for <a href="classdrawing_1_1actors_1_1VBox.html" class="m-doc">VBox</a> and <a href="classdrawing_1_1actors_1_1HBox.html" class="m-doc">HBox</a>. It provides the concept of a size mode, which determines how the size of the box is calculated.</p>
         <div class="m-block m-default">
           <h3>Contents</h3>
           <ul>
@@ -60,62 +61,101 @@
               <ul>
                 <li><a href="#base-classes">Base classes</a></li>
                 <li><a href="#derived-classes">Derived classes</a></li>
+                <li><a href="#pub-types">Public types</a></li>
                 <li><a href="#pub-methods">Public functions</a></li>
               </ul>
             </li>
           </ul>
         </div>
-<p>A parent is an actor that can contain other actors. It is responsible for managing the positioning of its children. There is no addChild method here because every parent can implement it differently (some parents may only allow one child, for example).</p>
         <section id="base-classes">
           <h2><a href="#base-classes">Base classes</a></h2>
           <dl class="m-doc">
             <dt>
-              class <a href="classdrawing_1_1actors_1_1Actor.html" class="m-doc">Actor</a>
+              class <a href="classdrawing_1_1actors_1_1AbstractVectorCollection.html" class="m-doc">AbstractVectorCollection</a>
             </dt>
-            <dd>Base class for all drawable objects.</dd>
+            <dd></dd>
           </dl>
         </section>
         <section id="derived-classes">
           <h2><a href="#derived-classes">Derived classes</a></h2>
           <dl class="m-doc">
             <dt>
-              class <a href="classdrawing_1_1actors_1_1AbstractVectorCollection.html" class="m-doc">AbstractVectorCollection</a>
+              class <a href="classdrawing_1_1actors_1_1HBox.html" class="m-doc">HBox</a>
             </dt>
             <dd></dd>
             <dt>
-              class <a href="classdrawing_1_1actors_1_1Align.html" class="m-doc">Align</a>
+              class <a href="classdrawing_1_1actors_1_1VBox.html" class="m-doc">VBox</a>
             </dt>
-            <dd><a href="classdrawing_1_1actors_1_1Align.html" class="m-doc">Align</a> fills its parent&#x27;s space and aligns its children according to the specified mode (center by default).</dd>
+            <dd></dd>
+          </dl>
+        </section>
+        <section id="pub-types">
+          <h2><a href="#pub-types">Public types</a></h2>
+          <dl class="m-doc">
             <dt>
-              class <a href="classdrawing_1_1actors_1_1Padding.html" class="m-doc">Padding</a>
+              <span class="m-doc-wrap-bumper">enum class <a href="#aeeb553bfd052a5cc7ced53701af42613" class="m-doc">SizeMode</a> { </span><span class="m-doc-wrap"><a href="#aeeb553bfd052a5cc7ced53701af42613a2c5f79d2c2f4f232104fbb7790d33517" class="m-doc">WrapChildren</a>,
+              <a href="#aeeb553bfd052a5cc7ced53701af42613a4457d440870ad6d42bab9082d9bf9b61" class="m-doc">Fixed</a>,
+              <a href="#aeeb553bfd052a5cc7ced53701af42613a80c202b1c3fd395a7bfe4d846c914bc3" class="m-doc">Managed</a> }</span>
             </dt>
-            <dd>A parent that adds padding around its child.</dd>
+            <dd>The size mode determines how the size of the box is calculated.</dd>
           </dl>
         </section>
         <section id="pub-methods">
           <h2><a href="#pub-methods">Public functions</a></h2>
           <dl class="m-doc">
-            <dt>
-              <span class="m-doc-wrap-bumper">auto <a href="#a35d5d1dd5552b47a23954210aceb0acf" class="m-doc">removeChild</a>(</span><span class="m-doc-wrap">std::shared_ptr&lt;<a href="classdrawing_1_1actors_1_1Actor.html" class="m-doc">Actor</a>&gt; child) -&gt; void <span class="m-label m-flat m-warning">pure virtual</span></span>
+            <dt id="ac803f4bd3ca4a0272b9e9c2472ca56f0">
+              <span class="m-doc-wrap-bumper">auto <a href="#ac803f4bd3ca4a0272b9e9c2472ca56f0" class="m-doc-self">setHorizontalSizeMode</a>(</span><span class="m-doc-wrap"><a href="classdrawing_1_1actors_1_1AbstractBox.html#aeeb553bfd052a5cc7ced53701af42613" class="m-doc">SizeMode</a> mode) -&gt; void</span>
             </dt>
-            <dd>removes a child from the parent.</dd>
+            <dd><span></span></dd>
+            <dt id="a7a0a8a983a4b090d02706bd67989eb8f">
+              <span class="m-doc-wrap-bumper">auto <a href="#a7a0a8a983a4b090d02706bd67989eb8f" class="m-doc-self">getHorizontalSizeMode</a>(</span><span class="m-doc-wrap">) const -&gt; SizeMode</span>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="a4ef5a07fa2508e9d776e4faac4d0573b">
+              <span class="m-doc-wrap-bumper">auto <a href="#a4ef5a07fa2508e9d776e4faac4d0573b" class="m-doc-self">setVerticalSizeMode</a>(</span><span class="m-doc-wrap"><a href="classdrawing_1_1actors_1_1AbstractBox.html#aeeb553bfd052a5cc7ced53701af42613" class="m-doc">SizeMode</a> mode) -&gt; void</span>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="a9143191bd7825a2117ac30c8654d68d7">
+              <span class="m-doc-wrap-bumper">auto <a href="#a9143191bd7825a2117ac30c8654d68d7" class="m-doc-self">getVerticalSizeMode</a>(</span><span class="m-doc-wrap">) const -&gt; SizeMode</span>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="ad7b4a19831fca57ce50ca0a3b5ebfb2f">
+              <span class="m-doc-wrap-bumper">auto <a href="#ad7b4a19831fca57ce50ca0a3b5ebfb2f" class="m-doc-self">setSpacing</a>(</span><span class="m-doc-wrap">float spacing) -&gt; void</span>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="adbbc2a8f156d54b9e3c62a8d3121c8df">
+              <span class="m-doc-wrap-bumper">auto <a href="#adbbc2a8f156d54b9e3c62a8d3121c8df" class="m-doc-self">getSpacing</a>(</span><span class="m-doc-wrap">) const -&gt; float</span>
+            </dt>
+            <dd><span></span></dd>
           </dl>
         </section>
         <section>
-          <h2>Function documentation</h2>
-          <section class="m-doc-details" id="a35d5d1dd5552b47a23954210aceb0acf"><div>
+          <h2>Enum documentation</h2>
+          <section class="m-doc-details" id="aeeb553bfd052a5cc7ced53701af42613"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">auto drawing::<wbr />actors::<wbr />Parent::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a35d5d1dd5552b47a23954210aceb0acf" class="m-doc-self">removeChild</a>(</span><span class="m-doc-wrap">std::shared_ptr&lt;<a href="classdrawing_1_1actors_1_1Actor.html" class="m-doc">Actor</a>&gt; child) -&gt; void <span class="m-label m-warning">pure virtual</span></span></span>
+              enum class drawing::<wbr />actors::<wbr />AbstractBox::<wbr /><a href="#aeeb553bfd052a5cc7ced53701af42613" class="m-doc-self">SizeMode</a>
             </h3>
-            <p>removes a child from the parent.</p>
-            <table class="m-table m-fullwidth m-flat">
-              <thead>
-                <tr><th colspan="2">Parameters</th></tr>
-              </thead>
+            <p>The size mode determines how the size of the box is calculated.</p>
+            <table class="m-table m-fullwidth m-flat m-doc">
+              <thead><tr><th style="width: 1%">Enumerators</th><th></th></tr></thead>
               <tbody>
                 <tr>
-                  <td style="width: 1%">child</td>
-                  <td>The child to remove. This function is also called when a child is added to a new parent.</td>
+                  <td><a href="#aeeb553bfd052a5cc7ced53701af42613a2c5f79d2c2f4f232104fbb7790d33517" class="m-doc-self" id="aeeb553bfd052a5cc7ced53701af42613a2c5f79d2c2f4f232104fbb7790d33517">WrapChildren</a></td>
+                  <td>
+<p>The size of the box is the sum of the sizes of its children.</p>
+                  </td>
+                </tr>
+                <tr>
+                  <td><a href="#aeeb553bfd052a5cc7ced53701af42613a4457d440870ad6d42bab9082d9bf9b61" class="m-doc-self" id="aeeb553bfd052a5cc7ced53701af42613a4457d440870ad6d42bab9082d9bf9b61">Fixed</a></td>
+                  <td>
+<p>The size of the box does not change.</p>
+                  </td>
+                </tr>
+                <tr>
+                  <td><a href="#aeeb553bfd052a5cc7ced53701af42613a80c202b1c3fd395a7bfe4d846c914bc3" class="m-doc-self" id="aeeb553bfd052a5cc7ced53701af42613a80c202b1c3fd395a7bfe4d846c914bc3">Managed</a></td>
+                  <td>
+<p>The size of the box is managed by its parent.</p>
+                  </td>
                 </tr>
               </tbody>
             </table>

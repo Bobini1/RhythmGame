@@ -59,6 +59,9 @@
               Reference
               <ul>
                 <li><a href="#base-classes">Base classes</a></li>
+                <li><a href="#pub-types">Public types</a></li>
+                <li><a href="#pub-static-methods">Public static functions</a></li>
+                <li><a href="#typeless-methods">Constructors, destructors, conversion operators</a></li>
                 <li><a href="#pub-methods">Public functions</a></li>
                 <li><a href="#pro-methods">Protected functions</a></li>
                 <li><a href="#pri-methods">Private functions</a></li>
@@ -66,19 +69,52 @@
             </li>
           </ul>
         </div>
-<p>A <a href="classdrawing_1_1actors_1_1HBox.html" class="m-doc">HBox</a> is a parent that arranges its children horizontally.</p>
+<p>A <a href="classdrawing_1_1actors_1_1HBox.html" class="m-doc">HBox</a> is a parent that arranges its children horizontally.</p><p>When width is managed, children with managed width are stretched equally to fill space.</p>
         <section id="base-classes">
           <h2><a href="#base-classes">Base classes</a></h2>
           <dl class="m-doc">
             <dt>
-              class <a href="classdrawing_1_1actors_1_1AbstractVectorCollection.html" class="m-doc">AbstractVectorCollection</a>
+              class <a href="classdrawing_1_1actors_1_1AbstractBox.html" class="m-doc">AbstractBox</a>
             </dt>
-            <dd></dd>
+            <dd><a href="classdrawing_1_1actors_1_1AbstractBox.html" class="m-doc">AbstractBox</a> is an abstract base class for <a href="classdrawing_1_1actors_1_1VBox.html" class="m-doc">VBox</a> and <a href="classdrawing_1_1actors_1_1HBox.html" class="m-doc">HBox</a>. It provides the concept of a size mode, which determines how the size of the box is calculated.</dd>
+          </dl>
+        </section>
+        <section id="pub-types">
+          <h2><a href="#pub-types">Public types</a></h2>
+          <dl class="m-doc">
+            <dt id="aad7d846bc10409cf154656deb13ce4cc">
+              <span class="m-doc-wrap-bumper">enum class <a href="#aad7d846bc10409cf154656deb13ce4cc" class="m-doc-self">ContentAlignment</a> { </span><span class="m-doc-wrap"><a href="#aad7d846bc10409cf154656deb13ce4ccaa4ffdcf0dc1f31b9acaf295d75b51d00" class="m-doc">Top</a>,
+              <a href="#aad7d846bc10409cf154656deb13ce4cca4f1f6016fc9f3f2353c0cc7c67b292bd" class="m-doc">Center</a>,
+              <a href="#aad7d846bc10409cf154656deb13ce4cca2ad9d63b69c4a10a5cc9cad923133bc4" class="m-doc">Bottom</a> }</span>
+            </dt>
+            <dd><span></span></dd>
+          </dl>
+        </section>
+        <section id="pub-static-methods">
+          <h2><a href="#pub-static-methods">Public static functions</a></h2>
+          <dl class="m-doc">
+            <dt id="a1d640fe2ef86149792458804ae13e06e">
+              <span class="m-doc-wrap-bumper">static auto <a href="#a1d640fe2ef86149792458804ae13e06e" class="m-doc-self">make</a>(</span><span class="m-doc-wrap">) -&gt; std::shared_ptr&lt; HBox &gt;</span>
+            </dt>
+            <dd><span></span></dd>
+          </dl>
+        </section>
+        <section id="typeless-methods">
+          <h2><a href="#typeless-methods">Constructors, destructors, conversion operators</a></h2>
+          <dl class="m-doc">
+            <dt id="ab1c531e60c3d71ce1b2dcfd481ff4624">
+              <span class="m-doc-wrap-bumper"><a href="#ab1c531e60c3d71ce1b2dcfd481ff4624" class="m-doc-self">HBox</a>(</span><span class="m-doc-wrap">) <span class="m-label m-flat m-warning">protected</span> <span class="m-label m-flat m-info">defaulted</span> <span class="m-label m-flat m-info">explicit</span> </span>
+            </dt>
+            <dd><span></span></dd>
           </dl>
         </section>
         <section id="pub-methods">
           <h2><a href="#pub-methods">Public functions</a></h2>
           <dl class="m-doc">
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#a9741500f5bd2ecb46889f70952188b7c" class="m-doc">getLuaSelf</a>(</span><span class="m-doc-wrap">sol::state&amp; lua) -&gt; sol::object <span class="m-label m-flat m-warning">override</span></span>
+            </dt>
+            <dd>Get the lua object of the type of this actor.</dd>
             <dt>
               <span class="m-doc-wrap-bumper">auto <a href="#a1f35dfdba8c669a369969536881f10d1" class="m-doc">getMinWidth</a>(</span><span class="m-doc-wrap">) const -&gt; float <span class="m-label m-flat m-warning">override</span></span>
             </dt>
@@ -99,18 +135,26 @@
               <span class="m-doc-wrap-bumper">auto <a href="#aae415a43c349e9b60726cd44999cc5b3" class="m-doc">update</a>(</span><span class="m-doc-wrap">std::chrono::nanoseconds delta) -&gt; void <span class="m-label m-flat m-warning">override</span></span>
             </dt>
             <dd>used by the engine to update an actor&#x27;s internals every frame. Not exposed to Lua.</dd>
-            <dt id="a16f28ac8d47f7022d249e48a481de1cf">
-              <span class="m-doc-wrap-bumper">auto <a href="#a16f28ac8d47f7022d249e48a481de1cf" class="m-doc-self">matchParentWidth</a>(</span><span class="m-doc-wrap">) const -&gt; bool <span class="m-label m-flat m-warning">override</span></span>
+            <dt id="aefd9da680fc245f9da4fcd5c64b42269">
+              <span class="m-doc-wrap-bumper">auto <a href="#aefd9da680fc245f9da4fcd5c64b42269" class="m-doc-self">getIsWidthManaged</a>(</span><span class="m-doc-wrap">) const -&gt; bool <span class="m-label m-flat m-warning">override</span></span>
             </dt>
-            <dd>Does this actor want to match its parent&#x27;s width?</dd>
-            <dt id="a52d240c1ad666c39f529b08e8a0aab95">
-              <span class="m-doc-wrap-bumper">auto <a href="#a52d240c1ad666c39f529b08e8a0aab95" class="m-doc-self">matchParentHeight</a>(</span><span class="m-doc-wrap">) const -&gt; bool <span class="m-label m-flat m-warning">override</span></span>
+            <dd>Does this actor want to have its width managed by its parent?</dd>
+            <dt id="a67ce01f4981002933dda5808d9949452">
+              <span class="m-doc-wrap-bumper">auto <a href="#a67ce01f4981002933dda5808d9949452" class="m-doc-self">getIsHeightManaged</a>(</span><span class="m-doc-wrap">) const -&gt; bool <span class="m-label m-flat m-warning">override</span></span>
             </dt>
-            <dd>Does this actor want to match its parent&#x27;s height?</dd>
+            <dd>Does this actor want to have its height managed by its parent?</dd>
+            <dt id="ac069a4c01643b85b10f9e2f3261008a7">
+              <span class="m-doc-wrap-bumper">auto <a href="#ac069a4c01643b85b10f9e2f3261008a7" class="m-doc-self">setContentAlignment</a>(</span><span class="m-doc-wrap"><a href="classdrawing_1_1actors_1_1HBox.html#aad7d846bc10409cf154656deb13ce4cc" class="m-doc">ContentAlignment</a> alignment) -&gt; void</span>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="a814dab601b8052f9888237c015e41ed4">
+              <span class="m-doc-wrap-bumper">auto <a href="#a814dab601b8052f9888237c015e41ed4" class="m-doc-self">getContentAlignment</a>(</span><span class="m-doc-wrap">) const -&gt; ContentAlignment</span>
+            </dt>
+            <dd><span></span></dd>
             <dt>
               <span class="m-doc-wrap-bumper">auto <a href="#a472a0117a02e740593b9861be7362bf8" class="m-doc">setTransform</a>(</span><span class="m-doc-wrap">sf::Transform transform) -&gt; void <span class="m-label m-flat m-warning">override</span></span>
             </dt>
-            <dd>set the transform of the actor and all its children. Not exposed to lua. Should be called every frame.</dd>
+            <dd>set the transform of the actor and all its children. Not exposed to lua.</dd>
             <dt>
               <span class="m-doc-wrap-bumper">auto <a href="#a21002f30cd50a96f1417a21e4d7c4ebf" class="m-doc">getTransform</a>(</span><span class="m-doc-wrap">) const -&gt; sf::Transform <span class="m-label m-flat m-warning">override</span></span>
             </dt>
@@ -138,14 +182,33 @@
               <span class="m-doc-wrap-bumper">auto <a href="#acdfbe1e1aabe9d4e16b754173e2c5a52" class="m-doc">setHeightImpl</a>(</span><span class="m-doc-wrap">float height) -&gt; void <span class="m-label m-flat m-warning">override</span></span>
             </dt>
             <dd>Actors need to override this to set their height. The contract is to always resize to the requested size.</dd>
-            <dt id="ad380a057af28e74d2c01fa40e9ec7f9c">
-              <span class="m-doc-wrap-bumper">void <a href="#ad380a057af28e74d2c01fa40e9ec7f9c" class="m-doc-self">recalculateSize</a>(</span><span class="m-doc-wrap">) <span class="m-label m-flat m-warning">override</span></span>
-            </dt>
-            <dd>This function is called whenever a child is added or removed.</dd>
           </dl>
         </section>
         <section>
           <h2>Function documentation</h2>
+          <section class="m-doc-details" id="a9741500f5bd2ecb46889f70952188b7c"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">auto drawing::<wbr />actors::<wbr />HBox::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a9741500f5bd2ecb46889f70952188b7c" class="m-doc-self">getLuaSelf</a>(</span><span class="m-doc-wrap">sol::state&amp; lua) -&gt; sol::object <span class="m-label m-warning">override</span></span></span>
+            </h3>
+            <p>Get the lua object of the type of this actor.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">lua</td>
+                  <td>The lua state to use.</td>
+                </tr>
+              </tbody>
+              <tfoot>
+                <tr>
+                  <th>Returns</th>
+                  <td>The lua object of the type of this actor.</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div></section>
           <section class="m-doc-details" id="a1f35dfdba8c669a369969536881f10d1"><div>
             <h3>
               <span class="m-doc-wrap-bumper">auto drawing::<wbr />actors::<wbr />HBox::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a1f35dfdba8c669a369969536881f10d1" class="m-doc-self">getMinWidth</a>(</span><span class="m-doc-wrap">) const -&gt; float <span class="m-label m-warning">override</span></span></span>
@@ -223,7 +286,7 @@
             <h3>
               <span class="m-doc-wrap-bumper">auto drawing::<wbr />actors::<wbr />HBox::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a472a0117a02e740593b9861be7362bf8" class="m-doc-self">setTransform</a>(</span><span class="m-doc-wrap">sf::Transform transform) -&gt; void <span class="m-label m-warning">override</span></span></span>
             </h3>
-            <p>set the transform of the actor and all its children. Not exposed to lua. Should be called every frame.</p>
+            <p>set the transform of the actor and all its children. Not exposed to lua.</p>
             <table class="m-table m-fullwidth m-flat">
               <thead>
                 <tr><th colspan="2">Parameters</th></tr>
@@ -235,6 +298,7 @@
                 </tr>
               </tbody>
             </table>
+<p>Should be called every frame. This method is responsible for updating the entire state of a parent component according to the state of its children.</p>
           </div></section>
           <section class="m-doc-details" id="a21002f30cd50a96f1417a21e4d7c4ebf"><div>
             <h3>

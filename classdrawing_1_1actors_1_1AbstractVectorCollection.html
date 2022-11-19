@@ -81,13 +81,13 @@
           <h2><a href="#derived-classes">Derived classes</a></h2>
           <dl class="m-doc">
             <dt>
-              class <a href="classdrawing_1_1actors_1_1HBox.html" class="m-doc">HBox</a>
+              class <a href="classdrawing_1_1actors_1_1AbstractBox.html" class="m-doc">AbstractBox</a>
             </dt>
-            <dd></dd>
+            <dd><a href="classdrawing_1_1actors_1_1AbstractBox.html" class="m-doc">AbstractBox</a> is an abstract base class for <a href="classdrawing_1_1actors_1_1VBox.html" class="m-doc">VBox</a> and <a href="classdrawing_1_1actors_1_1HBox.html" class="m-doc">HBox</a>. It provides the concept of a size mode, which determines how the size of the box is calculated.</dd>
             <dt>
-              class <a href="classdrawing_1_1actors_1_1VBox.html" class="m-doc">VBox</a>
+              class <a href="classdrawing_1_1actors_1_1Layers.html" class="m-doc">Layers</a>
             </dt>
-            <dd></dd>
+            <dd>A <a href="classdrawing_1_1actors_1_1Layers.html" class="m-doc">Layers</a> is a collection of actors that are drawn in a specific order.</dd>
           </dl>
         </section>
         <section id="pub-types">
@@ -187,10 +187,14 @@
         <section id="pri-methods">
           <h2><a href="#pri-methods">Private functions</a></h2>
           <dl class="m-doc">
-            <dt id="a2b6a0035e3ec2a919bfc64b6e9974fe7">
-              <span class="m-doc-wrap-bumper">void <a href="#a2b6a0035e3ec2a919bfc64b6e9974fe7" class="m-doc-self">recalculateSize</a>(</span><span class="m-doc-wrap">) <span class="m-label m-flat m-warning">pure virtual</span></span>
+            <dt id="a612ad028e90ce4eb86fd7c7ea026ad4e">
+              <span class="m-doc-wrap-bumper">auto <a href="#a612ad028e90ce4eb86fd7c7ea026ad4e" class="m-doc-self">onChildRemoved</a>(</span><span class="m-doc-wrap">std::shared_ptr&lt;<a href="classdrawing_1_1actors_1_1Actor.html" class="m-doc">Actor</a>&gt; child) -&gt; void <span class="m-label m-flat m-warning">virtual</span></span>
             </dt>
-            <dd>This function is called whenever a child is added or removed.</dd>
+            <dd>This function is called whenever a child is removed.</dd>
+            <dt id="a2d79f3f3d63e9c2247ccf014f674ef47">
+              <span class="m-doc-wrap-bumper">auto <a href="#a2d79f3f3d63e9c2247ccf014f674ef47" class="m-doc-self">onChildAdded</a>(</span><span class="m-doc-wrap">std::shared_ptr&lt;<a href="classdrawing_1_1actors_1_1Actor.html" class="m-doc">Actor</a>&gt; child) -&gt; void <span class="m-label m-flat m-warning">virtual</span></span>
+            </dt>
+            <dd>This function is called whenever a child is added.</dd>
           </dl>
         </section>
         <section>

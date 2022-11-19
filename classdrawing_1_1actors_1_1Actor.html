@@ -61,7 +61,9 @@
               <ul>
                 <li><a href="#base-classes">Base classes</a></li>
                 <li><a href="#derived-classes">Derived classes</a></li>
+                <li><a href="#typeless-methods">Constructors, destructors, conversion operators</a></li>
                 <li><a href="#pub-methods">Public functions</a></li>
+                <li><a href="#pro-methods">Protected functions</a></li>
                 <li><a href="#pri-methods">Private functions</a></li>
               </ul>
             </li>
@@ -81,24 +83,49 @@
           <h2><a href="#derived-classes">Derived classes</a></h2>
           <dl class="m-doc">
             <dt>
+              class <a href="classdrawing_1_1actors_1_1AbstractRectLeaf.html" class="m-doc">AbstractRectLeaf</a>
+            </dt>
+            <dd><span></span></dd>
+            <dt>
               class <a href="classdrawing_1_1actors_1_1Parent.html" class="m-doc">Parent</a>
             </dt>
             <dd></dd>
-            <dt>
-              class <a href="classdrawing_1_1actors_1_1Quad.html" class="m-doc">Quad</a>
+          </dl>
+        </section>
+        <section id="typeless-methods">
+          <h2><a href="#typeless-methods">Constructors, destructors, conversion operators</a></h2>
+          <dl class="m-doc">
+            <dt id="a0f94466265de3aa8c04d7aac7e86da4e">
+              <span class="m-doc-wrap-bumper"><a href="#a0f94466265de3aa8c04d7aac7e86da4e" class="m-doc-self">Actor</a>(</span><span class="m-doc-wrap">) <span class="m-label m-flat m-warning">protected</span> <span class="m-label m-flat m-info">defaulted</span></span>
             </dt>
-            <dd></dd>
+            <dd><span></span></dd>
+            <dt id="af72ea718602ba8de6157203955c48e80">
+              <span class="m-doc-wrap-bumper"><a href="#af72ea718602ba8de6157203955c48e80" class="m-doc-self">Actor</a>(</span><span class="m-doc-wrap">const <a href="classdrawing_1_1actors_1_1Actor.html" class="m-doc">Actor</a>&amp;) <span class="m-label m-flat m-warning">protected</span></span>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="a0938f535c740240424715fb545c8c89a">
+              <span class="m-doc-wrap-bumper"><a href="#a0938f535c740240424715fb545c8c89a" class="m-doc-self">Actor</a>(</span><span class="m-doc-wrap"><a href="classdrawing_1_1actors_1_1Actor.html" class="m-doc">Actor</a>&amp;&amp; otherActor) <span class="m-label m-flat m-danger">deleted</span> <span class="m-label m-flat m-success">noexcept</span></span>
+            </dt>
+            <dd><span></span></dd>
           </dl>
         </section>
         <section id="pub-methods">
           <h2><a href="#pub-methods">Public functions</a></h2>
           <dl class="m-doc">
+            <dt id="a9f7c13885595a286818db4b11a1b5242">
+              <span class="m-doc-wrap-bumper">auto <a href="#a9f7c13885595a286818db4b11a1b5242" class="m-doc-self">operator=</a>(</span><span class="m-doc-wrap"><a href="classdrawing_1_1actors_1_1Actor.html" class="m-doc">Actor</a>&amp;&amp; otherActor) noexcept -&gt; Actor &amp; <span class="m-label m-flat m-danger">deleted</span></span>
+            </dt>
+            <dd><span></span></dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#aa25f1cf3c8142edcd266f0c7fed11da1" class="m-doc">getLuaSelf</a>(</span><span class="m-doc-wrap">sol::state&amp; lua) -&gt; sol::object <span class="m-label m-flat m-warning">pure virtual</span></span>
+            </dt>
+            <dd>Get the lua object of the type of this actor.</dd>
             <dt id="a3042070a65892924a8c16725fdb1b59d">
               <span class="m-doc-wrap-bumper">auto <a href="#a3042070a65892924a8c16725fdb1b59d" class="m-doc-self">getParent</a>(</span><span class="m-doc-wrap">) const -&gt; std::shared_ptr&lt; Parent &gt; <span class="m-label m-flat m-warning">virtual</span></span>
             </dt>
             <dd>The parent of this actor. Null for scene root or unattached actors.</dd>
             <dt>
-              <span class="m-doc-wrap-bumper">auto <a href="#a06fac4714b1113b92c08b403abaf9cf5" class="m-doc">setParent</a>(</span><span class="m-doc-wrap">const std::shared_ptr&lt;<a href="classdrawing_1_1actors_1_1Parent.html" class="m-doc">Parent</a>&gt;&amp; parent) -&gt; void <span class="m-label m-flat m-warning">virtual</span></span>
+              <span class="m-doc-wrap-bumper">auto <a href="#abcc3c9b5c7f4f089c40a6847fae0bb50" class="m-doc">setParent</a>(</span><span class="m-doc-wrap">std::shared_ptr&lt;<a href="classdrawing_1_1actors_1_1Parent.html" class="m-doc">Parent</a>&gt; parent) -&gt; void <span class="m-label m-flat m-warning">virtual</span></span>
             </dt>
             <dd>Sets the parent of the actor.</dd>
             <dt>
@@ -108,19 +135,19 @@
             <dt>
               <span class="m-doc-wrap-bumper">auto <a href="#ab9bac033b53d1dcf7c3ac4df5b085c3a" class="m-doc">setTransform</a>(</span><span class="m-doc-wrap">sf::Transform transform) -&gt; void <span class="m-label m-flat m-warning">pure virtual</span></span>
             </dt>
-            <dd>set the transform of the actor and all its children. Not exposed to lua. Should be called every frame.</dd>
+            <dd>set the transform of the actor and all its children. Not exposed to lua.</dd>
             <dt>
               <span class="m-doc-wrap-bumper">auto <a href="#a24a816c20b9fff426564770b393ce91f" class="m-doc">getTransform</a>(</span><span class="m-doc-wrap">) const -&gt; sf::Transform <span class="m-label m-flat m-warning">pure virtual</span></span>
             </dt>
             <dd>Get the global transform of the actor. Not exposed to lua.</dd>
-            <dt id="acebcf7efdcc025d1e62cc9d720fd5f70">
-              <span class="m-doc-wrap-bumper">auto <a href="#acebcf7efdcc025d1e62cc9d720fd5f70" class="m-doc-self">matchParentWidth</a>(</span><span class="m-doc-wrap">) const -&gt; bool <span class="m-label m-flat m-warning">pure virtual</span></span>
+            <dt id="ab750f5d12f1e0bf3f3aea9678dcc253f">
+              <span class="m-doc-wrap-bumper">auto <a href="#ab750f5d12f1e0bf3f3aea9678dcc253f" class="m-doc-self">getIsWidthManaged</a>(</span><span class="m-doc-wrap">) const -&gt; bool <span class="m-label m-flat m-warning">pure virtual</span></span>
             </dt>
-            <dd>Does this actor want to match its parent&#x27;s width?</dd>
-            <dt id="a393730a4d61e4c4276d7cb796d74ed47">
-              <span class="m-doc-wrap-bumper">auto <a href="#a393730a4d61e4c4276d7cb796d74ed47" class="m-doc-self">matchParentHeight</a>(</span><span class="m-doc-wrap">) const -&gt; bool <span class="m-label m-flat m-warning">pure virtual</span></span>
+            <dd>Does this actor want to have its width managed by its parent?</dd>
+            <dt id="a6543865f0f7be22da02be277f93d504e">
+              <span class="m-doc-wrap-bumper">auto <a href="#a6543865f0f7be22da02be277f93d504e" class="m-doc-self">getIsHeightManaged</a>(</span><span class="m-doc-wrap">) const -&gt; bool <span class="m-label m-flat m-warning">pure virtual</span></span>
             </dt>
-            <dd>Does this actor want to match its parent&#x27;s height?</dd>
+            <dd>Does this actor want to have its height managed by its parent?</dd>
             <dt>
               <span class="m-doc-wrap-bumper">auto <a href="#a6f6452f5e669977ac17759aed2f5d280" class="m-doc">getMinWidth</a>(</span><span class="m-doc-wrap">) const -&gt; float <span class="m-label m-flat m-warning">pure virtual</span></span>
             </dt>
@@ -147,6 +174,15 @@
             <dd>Set the height of the actor. If used with a value below the minHeight of the actor, the minHeight will be used instead.</dd>
           </dl>
         </section>
+        <section id="pro-methods">
+          <h2><a href="#pro-methods">Protected functions</a></h2>
+          <dl class="m-doc">
+            <dt id="ae41034e1c785a26f90030723108ff790">
+              <span class="m-doc-wrap-bumper">auto <a href="#ae41034e1c785a26f90030723108ff790" class="m-doc-self">operator=</a>(</span><span class="m-doc-wrap">const <a href="classdrawing_1_1actors_1_1Actor.html" class="m-doc">Actor</a>&amp;) -&gt; Actor &amp;</span>
+            </dt>
+            <dd><span></span></dd>
+          </dl>
+        </section>
         <section id="pri-methods">
           <h2><a href="#pri-methods">Private functions</a></h2>
           <dl class="m-doc">
@@ -162,9 +198,32 @@
         </section>
         <section>
           <h2>Function documentation</h2>
-          <section class="m-doc-details" id="a06fac4714b1113b92c08b403abaf9cf5"><div>
+          <section class="m-doc-details" id="aa25f1cf3c8142edcd266f0c7fed11da1"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">auto drawing::<wbr />actors::<wbr />Actor::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a06fac4714b1113b92c08b403abaf9cf5" class="m-doc-self">setParent</a>(</span><span class="m-doc-wrap">const std::shared_ptr&lt;<a href="classdrawing_1_1actors_1_1Parent.html" class="m-doc">Parent</a>&gt;&amp; parent) -&gt; void <span class="m-label m-warning">virtual</span></span></span>
+              <span class="m-doc-wrap-bumper">auto drawing::<wbr />actors::<wbr />Actor::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#aa25f1cf3c8142edcd266f0c7fed11da1" class="m-doc-self">getLuaSelf</a>(</span><span class="m-doc-wrap">sol::state&amp; lua) -&gt; sol::object <span class="m-label m-warning">pure virtual</span></span></span>
+            </h3>
+            <p>Get the lua object of the type of this actor.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">lua</td>
+                  <td>The lua state to use.</td>
+                </tr>
+              </tbody>
+              <tfoot>
+                <tr>
+                  <th>Returns</th>
+                  <td>The lua object of the type of this actor.</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div></section>
+          <section class="m-doc-details" id="abcc3c9b5c7f4f089c40a6847fae0bb50"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">auto drawing::<wbr />actors::<wbr />Actor::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#abcc3c9b5c7f4f089c40a6847fae0bb50" class="m-doc-self">setParent</a>(</span><span class="m-doc-wrap">std::shared_ptr&lt;<a href="classdrawing_1_1actors_1_1Parent.html" class="m-doc">Parent</a>&gt; parent) -&gt; void <span class="m-label m-warning">virtual</span></span></span>
             </h3>
             <p>Sets the parent of the actor.</p>
             <table class="m-table m-fullwidth m-flat">
@@ -200,7 +259,7 @@
             <h3>
               <span class="m-doc-wrap-bumper">auto drawing::<wbr />actors::<wbr />Actor::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#ab9bac033b53d1dcf7c3ac4df5b085c3a" class="m-doc-self">setTransform</a>(</span><span class="m-doc-wrap">sf::Transform transform) -&gt; void <span class="m-label m-warning">pure virtual</span></span></span>
             </h3>
-            <p>set the transform of the actor and all its children. Not exposed to lua. Should be called every frame.</p>
+            <p>set the transform of the actor and all its children. Not exposed to lua.</p>
             <table class="m-table m-fullwidth m-flat">
               <thead>
                 <tr><th colspan="2">Parameters</th></tr>
@@ -212,6 +271,7 @@
                 </tr>
               </tbody>
             </table>
+<p>Should be called every frame. This method is responsible for updating the entire state of a parent component according to the state of its children.</p>
           </div></section>
           <section class="m-doc-details" id="a24a816c20b9fff426564770b393ce91f"><div>
             <h3>

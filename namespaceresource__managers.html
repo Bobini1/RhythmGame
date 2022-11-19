@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>lua::Bootstrapper class | RhythmGame</title>
+  <title>resource_managers namespace | RhythmGame</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,400i,600,600i%7CSource+Code+Pro:400,400i,600" />
   <link rel="stylesheet" href="m-dark+documentation.compiled.css" />
   <link rel="icon" href="favicon-dark.png" type="image/png" />
@@ -49,8 +49,7 @@
     <div class="m-row">
       <div class="m-col-l-10 m-push-l-1">
         <h1>
-          <span class="m-breadcrumb"><a href="namespacelua.html">lua</a>::<wbr/></span>Bootstrapper <span class="m-thin">class</span>
-          <div class="m-doc-include m-code m-inverted m-text-right"><span class="cp">#include</span> <a class="cpf" href="Bootstrapper_8h.html">&lt;Bootstrapper.h&gt;</a></div>
+          resource_managers <span class="m-thin">namespace</span>
         </h1>
         <p><span></span></p>
         <div class="m-block m-default">
@@ -59,43 +58,77 @@
             <li>
               Reference
               <ul>
-                <li><a href="#pub-methods">Public functions</a></li>
+                <li><a href="#nested-classes">Classes</a></li>
+                <li><a href="#var-members">Variables</a></li>
               </ul>
             </li>
           </ul>
         </div>
-        <section id="pub-methods">
-          <h2><a href="#pub-methods">Public functions</a></h2>
+        <section id="nested-classes">
+          <h2><a href="#nested-classes">Classes</a></h2>
           <dl class="m-doc">
-            <dt id="ac82c2a5ce1fdac0660da62a6489ef00b">
-              <span class="m-doc-wrap-bumper">auto <a href="#ac82c2a5ce1fdac0660da62a6489ef00b" class="m-doc-self">defineCommonTypes</a>(</span><span class="m-doc-wrap">sol::state&amp; target) const -&gt; void</span>
+            <dt>
+              class <a href="classresource__managers_1_1FontLoaderImpl.html" class="m-doc">FontLoaderImpl</a>
             </dt>
             <dd><span></span></dd>
-            <dt id="abf5438256980f3f51d70f269c9945970">
-              <div class="m-doc-template">template&lt;<a href="namespaceresource__managers.html#a38eddd67f196b5bbf07f4b2571f2d003" class="m-doc">resource_managers::<wbr />FontLoader</a> FontLoaderType&gt;</div>
-              <span class="m-doc-wrap-bumper">auto <a href="#abf5438256980f3f51d70f269c9945970" class="m-doc-self">bindFontLoader</a>(</span><span class="m-doc-wrap">sol::state&amp; target,
-              FontLoaderType&amp; loader) const -&gt; void</span>
-            </dt>
-            <dd><span></span></dd>
-            <dt id="a661b414a8fe254d6d0ff38a047773687">
-              <div class="m-doc-template">template&lt;<a href="namespaceresource__managers.html#a38eddd67f196b5bbf07f4b2571f2d003" class="m-doc">resource_managers::<wbr />FontLoader</a> FontLoaderType&gt;</div>
-              <span class="m-doc-wrap-bumper">auto <a href="#a661b414a8fe254d6d0ff38a047773687" class="m-doc-self">defineFont</a>(</span><span class="m-doc-wrap">sol::state&amp; target,
-              FontLoaderType&amp; fontLoader) const -&gt; void</span>
-            </dt>
-            <dd><span></span></dd>
-            <dt id="a48a872b9bdcf7ca5921046c94831506c">
-              <div class="m-doc-template">template&lt;<a href="namespaceresource__managers.html#a38eddd67f196b5bbf07f4b2571f2d003" class="m-doc">resource_managers::<wbr />FontLoader</a> FontLoaderType&gt;</div>
-              <span class="m-doc-wrap-bumper">auto <a href="#a48a872b9bdcf7ca5921046c94831506c" class="m-doc-self">defineText</a>(</span><span class="m-doc-wrap">sol::state&amp; target,
-              FontLoaderType&amp; fontLoader) const -&gt; void</span>
-            </dt>
-            <dd><span></span></dd>
-            <dt id="a24383a37865b6215e1069a646b2c930a">
-              <div class="m-doc-template">template&lt;<a href="namespaceresource__managers.html#af40c724bd11b4481e560c650021a2dbb" class="m-doc">resource_managers::<wbr />TextureLoader</a> TextureLoaderType&gt;</div>
-              <span class="m-doc-wrap-bumper">auto <a href="#a24383a37865b6215e1069a646b2c930a" class="m-doc-self">bindTextureLoader</a>(</span><span class="m-doc-wrap">sol::state&amp; target,
-              TextureLoaderType&amp; textureLoader) const -&gt; void</span>
+            <dt>
+              class <a href="classresource__managers_1_1TextureLoaderImpl.html" class="m-doc">TextureLoaderImpl</a>
             </dt>
             <dd><span></span></dd>
           </dl>
+        </section>
+        <section id="var-members">
+          <h2><a href="#var-members">Variables</a></h2>
+          <dl class="m-doc">
+            <dt>
+              <div class="m-doc-template">template&lt;typename T&gt;</div>
+              concept <a href="#a38eddd67f196b5bbf07f4b2571f2d003" class="m-doc">FontLoader</a>
+            </dt>
+            <dd><span></span></dd>
+            <dt>
+              <div class="m-doc-template">template&lt;typename T&gt;</div>
+              concept <a href="#a59e5f12a993917c6271112b0f22fd360" class="m-doc">LuaScriptFinder</a>
+            </dt>
+            <dd>Finds Lua screen paths for specific screens.</dd>
+            <dt>
+              <div class="m-doc-template">template&lt;typename T&gt;</div>
+              concept <a href="#af40c724bd11b4481e560c650021a2dbb" class="m-doc">TextureLoader</a>
+            </dt>
+            <dd>Loads textures from files.</dd>
+          </dl>
+        </section>
+        <section>
+          <h2>Variable documentation</h2>
+          <section class="m-doc-details" id="a38eddd67f196b5bbf07f4b2571f2d003"><div>
+            <h3>
+              <div class="m-doc-include m-code m-inverted m-right-m m-text-right"><span class="cp">#include</span> <a class="cpf" href="FontLoader_8h.html">&lt;src/resource_managers/FontLoader.h&gt;</a></div>
+              <div class="m-doc-template">
+                template&lt;typename T&gt;
+              </div>
+              concept resource_<wbr />managers::<wbr /><a href="#a38eddd67f196b5bbf07f4b2571f2d003" class="m-doc-self">FontLoader</a>
+            </h3>
+            <p><span></span></p>
+          </div></section>
+          <section class="m-doc-details" id="a59e5f12a993917c6271112b0f22fd360"><div>
+            <h3>
+              <div class="m-doc-include m-code m-inverted m-right-m m-text-right"><span class="cp">#include</span> <a class="cpf" href="LuaScriptFinder_8h.html">&lt;src/resource_managers/LuaScriptFinder.h&gt;</a></div>
+              <div class="m-doc-template">
+                template&lt;typename T&gt;
+              </div>
+              concept resource_<wbr />managers::<wbr /><a href="#a59e5f12a993917c6271112b0f22fd360" class="m-doc-self">LuaScriptFinder</a>
+            </h3>
+            <p>Finds Lua screen paths for specific screens.</p>
+          </div></section>
+          <section class="m-doc-details" id="af40c724bd11b4481e560c650021a2dbb"><div>
+            <h3>
+              <div class="m-doc-include m-code m-inverted m-right-m m-text-right"><span class="cp">#include</span> <a class="cpf" href="TextureLoader_8h.html">&lt;src/resource_managers/TextureLoader.h&gt;</a></div>
+              <div class="m-doc-template">
+                template&lt;typename T&gt;
+              </div>
+              concept resource_<wbr />managers::<wbr /><a href="#af40c724bd11b4481e560c650021a2dbb" class="m-doc-self">TextureLoader</a>
+            </h3>
+            <p>Loads textures from files.</p>
+          </div></section>
         </section>
       </div>
     </div>

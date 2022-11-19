@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>drawing::actors::Quad class | RhythmGame</title>
+  <title>drawing::actors::Sprite class | RhythmGame</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,400i,600,600i%7CSource+Code+Pro:400,400i,600" />
   <link rel="stylesheet" href="m-dark+documentation.compiled.css" />
   <link rel="icon" href="favicon-dark.png" type="image/png" />
@@ -49,9 +49,10 @@
     <div class="m-row">
       <div class="m-col-l-10 m-push-l-1">
         <h1>
-          <span class="m-breadcrumb"><a href="namespacedrawing.html">drawing</a>::<wbr/></span><span class="m-breadcrumb"><a href="namespacedrawing_1_1actors.html">actors</a>::<wbr/></span>Quad <span class="m-thin">class</span>
-          <div class="m-doc-include m-code m-inverted m-text-right"><span class="cp">#include</span> <a class="cpf" href="Quad_8h.html">&lt;Quad.h&gt;</a></div>
+          <span class="m-breadcrumb"><a href="namespacedrawing.html">drawing</a>::<wbr/></span><span class="m-breadcrumb"><a href="namespacedrawing_1_1actors.html">actors</a>::<wbr/></span>Sprite <span class="m-thin">class</span>
+          <div class="m-doc-include m-code m-inverted m-text-right"><span class="cp">#include</span> <a class="cpf" href="Sprite_8h.html">&lt;Sprite.h&gt;</a></div>
         </h1>
+        <p>A sprite is a leaf actor that displays a texture.</p>
         <div class="m-block m-default">
           <h3>Contents</h3>
           <ul>
@@ -68,7 +69,6 @@
             </li>
           </ul>
         </div>
-<p>A quad is a simple rectangle that can be drawn to the screen.</p>
         <section id="base-classes">
           <h2><a href="#base-classes">Base classes</a></h2>
           <dl class="m-doc">
@@ -81,9 +81,12 @@
         <section id="pub-static-methods">
           <h2><a href="#pub-static-methods">Public static functions</a></h2>
           <dl class="m-doc">
-            <dt id="a1e9bd595d1e4f024ff0520313bbb83e0">
-              <span class="m-doc-wrap-bumper">static auto <a href="#a1e9bd595d1e4f024ff0520313bbb83e0" class="m-doc-self">make</a>(</span><span class="m-doc-wrap">sf::Vector2f size = { 0, 0 },
-              sf::Color color = sf::Color::White) -&gt; std::shared_ptr&lt; Quad &gt;</span>
+            <dt id="ac854e2c4b4ada4303130ef7f77014e61">
+              <span class="m-doc-wrap-bumper">static auto <a href="#ac854e2c4b4ada4303130ef7f77014e61" class="m-doc-self">make</a>(</span><span class="m-doc-wrap">) -&gt; std::shared_ptr&lt; Sprite &gt;</span>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="aa927fdb9d05bd2c433d4a9479a061024">
+              <span class="m-doc-wrap-bumper">static auto <a href="#aa927fdb9d05bd2c433d4a9479a061024" class="m-doc-self">make</a>(</span><span class="m-doc-wrap">const sf::Texture&amp; texture) -&gt; std::shared_ptr&lt; Sprite &gt;</span>
             </dt>
             <dd><span></span></dd>
           </dl>
@@ -91,9 +94,12 @@
         <section id="typeless-methods">
           <h2><a href="#typeless-methods">Constructors, destructors, conversion operators</a></h2>
           <dl class="m-doc">
-            <dt id="a8df38c0724bc748a746a827f8aa45cd9">
-              <span class="m-doc-wrap-bumper"><a href="#a8df38c0724bc748a746a827f8aa45cd9" class="m-doc-self">Quad</a>(</span><span class="m-doc-wrap">sf::Vector2f size = { 0, 0 },
-              sf::Color color = sf::Color::White) <span class="m-label m-flat m-warning">protected</span> <span class="m-label m-flat m-info">explicit</span> </span>
+            <dt id="a4a454691b96cf7bfbed09fb244c4ea1b">
+              <span class="m-doc-wrap-bumper"><a href="#a4a454691b96cf7bfbed09fb244c4ea1b" class="m-doc-self">Sprite</a>(</span><span class="m-doc-wrap">) <span class="m-label m-flat m-warning">protected</span> <span class="m-label m-flat m-info">defaulted</span></span>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="ae0c1f751324f4de5c29514c1d7a0943b">
+              <span class="m-doc-wrap-bumper"><a href="#ae0c1f751324f4de5c29514c1d7a0943b" class="m-doc-self">Sprite</a>(</span><span class="m-doc-wrap">const sf::Texture&amp; texture) <span class="m-label m-flat m-warning">protected</span> <span class="m-label m-flat m-info">explicit</span> </span>
             </dt>
             <dd><span></span></dd>
           </dl>
@@ -102,55 +108,51 @@
           <h2><a href="#pub-methods">Public functions</a></h2>
           <dl class="m-doc">
             <dt>
-              <span class="m-doc-wrap-bumper">auto <a href="#a72ca9107a5d4745cd1f510b46c4b97eb" class="m-doc">getLuaSelf</a>(</span><span class="m-doc-wrap">sol::state&amp; lua) -&gt; sol::object <span class="m-label m-flat m-warning">override</span></span>
+              <span class="m-doc-wrap-bumper">auto <a href="#a2e6a8fd04fd5c11e243ffefc3d760c94" class="m-doc">getLuaSelf</a>(</span><span class="m-doc-wrap">sol::state&amp; lua) -&gt; sol::object <span class="m-label m-flat m-warning">override</span></span>
             </dt>
             <dd>Get the lua object of the type of this actor.</dd>
-            <dt id="ac0af97f6b3036c0fffd8818ebea02152">
-              <span class="m-doc-wrap-bumper">auto <a href="#ac0af97f6b3036c0fffd8818ebea02152" class="m-doc-self">getPoint</a>(</span><span class="m-doc-wrap">std::size_t index) const -&gt; sf::Vector2f</span>
+            <dt id="a1d016a7c82b37cfaba6a6868b47e2952">
+              <span class="m-doc-wrap-bumper">void <a href="#a1d016a7c82b37cfaba6a6868b47e2952" class="m-doc-self">setTexture</a>(</span><span class="m-doc-wrap">const sf::Texture&amp; texture)</span>
             </dt>
             <dd><span></span></dd>
-            <dt id="acd58c035547116ed09d126c6913f9dc7">
-              <span class="m-doc-wrap-bumper">void <a href="#acd58c035547116ed09d126c6913f9dc7" class="m-doc-self">setFillColor</a>(</span><span class="m-doc-wrap">const sf::Color&amp; color)</span>
+            <dt id="a0404e407a1c28ccc5dc2613432b9b7d3">
+              <span class="m-doc-wrap-bumper">void <a href="#a0404e407a1c28ccc5dc2613432b9b7d3" class="m-doc-self">setTextureRect</a>(</span><span class="m-doc-wrap">const sf::IntRect&amp; rect)</span>
             </dt>
             <dd><span></span></dd>
-            <dt id="af7282c3dd236face298323483975fc79">
-              <span class="m-doc-wrap-bumper">void <a href="#af7282c3dd236face298323483975fc79" class="m-doc-self">setOutlineColor</a>(</span><span class="m-doc-wrap">const sf::Color&amp; color)</span>
+            <dt id="abbd02dc0998285956aac2755499a3107">
+              <span class="m-doc-wrap-bumper">void <a href="#abbd02dc0998285956aac2755499a3107" class="m-doc-self">setColor</a>(</span><span class="m-doc-wrap">const sf::Color&amp; color)</span>
             </dt>
             <dd><span></span></dd>
-            <dt id="a810e43e2b78460a82e7b7e2d15caa7e1">
-              <span class="m-doc-wrap-bumper">void <a href="#a810e43e2b78460a82e7b7e2d15caa7e1" class="m-doc-self">setOutlineThickness</a>(</span><span class="m-doc-wrap">float thickness)</span>
+            <dt id="a4d5b68ac107a48a742e2399e961fe196">
+              <span class="m-doc-wrap-bumper">auto <a href="#a4d5b68ac107a48a742e2399e961fe196" class="m-doc-self">getTexture</a>(</span><span class="m-doc-wrap">) const -&gt; const sf::Texture *</span>
             </dt>
             <dd><span></span></dd>
-            <dt id="a8e8e1d77ea4f0137e36bbbb9c31d38db">
-              <span class="m-doc-wrap-bumper">auto <a href="#a8e8e1d77ea4f0137e36bbbb9c31d38db" class="m-doc-self">getFillColor</a>(</span><span class="m-doc-wrap">) const -&gt; const sf::Color &amp;</span>
+            <dt id="ab35380fc149d442d715bd0fe9219eef1">
+              <span class="m-doc-wrap-bumper">auto <a href="#ab35380fc149d442d715bd0fe9219eef1" class="m-doc-self">getTextureRect</a>(</span><span class="m-doc-wrap">) const -&gt; const sf::IntRect &amp;</span>
             </dt>
             <dd><span></span></dd>
-            <dt id="a8a64dc43c11bf174f4dd74537e0ec455">
-              <span class="m-doc-wrap-bumper">auto <a href="#a8a64dc43c11bf174f4dd74537e0ec455" class="m-doc-self">getOutlineColor</a>(</span><span class="m-doc-wrap">) const -&gt; const sf::Color &amp;</span>
-            </dt>
-            <dd><span></span></dd>
-            <dt id="a270ca9ece418e0c5c0a3f1e4e7bb6bc7">
-              <span class="m-doc-wrap-bumper">auto <a href="#a270ca9ece418e0c5c0a3f1e4e7bb6bc7" class="m-doc-self">getOutlineThickness</a>(</span><span class="m-doc-wrap">) const -&gt; float</span>
+            <dt id="a286724a95aecf07c9168d34b314992b8">
+              <span class="m-doc-wrap-bumper">auto <a href="#a286724a95aecf07c9168d34b314992b8" class="m-doc-self">getColor</a>(</span><span class="m-doc-wrap">) const -&gt; const sf::Color &amp;</span>
             </dt>
             <dd><span></span></dd>
             <dt>
-              <span class="m-doc-wrap-bumper">void <a href="#a2ee4b0736a139f1eac70366d4cacf65f" class="m-doc">update</a>(</span><span class="m-doc-wrap">std::chrono::nanoseconds delta) <span class="m-label m-flat m-warning">override</span></span>
+              <span class="m-doc-wrap-bumper">void <a href="#a9cbd8e4ffbedc8eaf51bd15d6cbd1b56" class="m-doc">update</a>(</span><span class="m-doc-wrap">std::chrono::nanoseconds delta) <span class="m-label m-flat m-warning">override</span></span>
             </dt>
             <dd>used by the engine to update an actor&#x27;s internals every frame. Not exposed to Lua.</dd>
             <dt>
-              <span class="m-doc-wrap-bumper">auto <a href="#aeb58988ba5b41be6d870c543697c9993" class="m-doc">setTransform</a>(</span><span class="m-doc-wrap">sf::Transform transform) -&gt; void <span class="m-label m-flat m-warning">override</span></span>
+              <span class="m-doc-wrap-bumper">auto <a href="#ae783088904190d7376cdf57e703e7945" class="m-doc">setTransform</a>(</span><span class="m-doc-wrap">sf::Transform transform) -&gt; void <span class="m-label m-flat m-warning">override</span></span>
             </dt>
             <dd>set the transform of the actor and all its children. Not exposed to lua.</dd>
             <dt>
-              <span class="m-doc-wrap-bumper">auto <a href="#a4dc8d670006acfd91ce3e3bda4d2a75d" class="m-doc">getTransform</a>(</span><span class="m-doc-wrap">) const -&gt; sf::Transform <span class="m-label m-flat m-warning">override</span></span>
+              <span class="m-doc-wrap-bumper">auto <a href="#a8a3250e674b9df676cae82ab18f4c796" class="m-doc">getTransform</a>(</span><span class="m-doc-wrap">) const -&gt; sf::Transform <span class="m-label m-flat m-warning">override</span></span>
             </dt>
             <dd>Get the global transform of the actor. Not exposed to lua.</dd>
             <dt>
-              <span class="m-doc-wrap-bumper">auto <a href="#a30b36e70ec0cb08bdb41f03076d34acb" class="m-doc">getWidth</a>(</span><span class="m-doc-wrap">) const -&gt; float <span class="m-label m-flat m-warning">override</span></span>
+              <span class="m-doc-wrap-bumper">auto <a href="#a689d79965689eeddf4e4384b918cd383" class="m-doc">getWidth</a>(</span><span class="m-doc-wrap">) const -&gt; float <span class="m-label m-flat m-warning">override</span></span>
             </dt>
             <dd>Get the current width of the actor.</dd>
             <dt>
-              <span class="m-doc-wrap-bumper">auto <a href="#a1a4ba4f1ce4214b8a3cf57a3af2cb1d4" class="m-doc">getHeight</a>(</span><span class="m-doc-wrap">) const -&gt; float <span class="m-label m-flat m-warning">override</span></span>
+              <span class="m-doc-wrap-bumper">auto <a href="#a3a9908fb2d0d0b85c5d52924999c4e88" class="m-doc">getHeight</a>(</span><span class="m-doc-wrap">) const -&gt; float <span class="m-label m-flat m-warning">override</span></span>
             </dt>
             <dd>Get the current height of the actor.</dd>
           </dl>
@@ -158,8 +160,8 @@
         <section id="pro-methods">
           <h2><a href="#pro-methods">Protected functions</a></h2>
           <dl class="m-doc">
-            <dt id="a1716e4ac83d359d9bbe5758261ca09fe">
-              <span class="m-doc-wrap-bumper">void <a href="#a1716e4ac83d359d9bbe5758261ca09fe" class="m-doc-self">draw</a>(</span><span class="m-doc-wrap">sf::RenderTarget&amp; target,
+            <dt id="a0deb0ec279cdc3624529396ce8150383">
+              <span class="m-doc-wrap-bumper">void <a href="#a0deb0ec279cdc3624529396ce8150383" class="m-doc-self">draw</a>(</span><span class="m-doc-wrap">sf::RenderTarget&amp; target,
               sf::RenderStates states) const <span class="m-label m-flat m-warning">override</span></span>
             </dt>
             <dd><span></span></dd>
@@ -169,20 +171,20 @@
           <h2><a href="#pri-methods">Private functions</a></h2>
           <dl class="m-doc">
             <dt>
-              <span class="m-doc-wrap-bumper">auto <a href="#af75f49efbbdc8cfbd9bf0fca20b766c0" class="m-doc">setWidthImpl</a>(</span><span class="m-doc-wrap">float width) -&gt; void <span class="m-label m-flat m-warning">override</span></span>
+              <span class="m-doc-wrap-bumper">auto <a href="#a8f906331ef2d39199df22dcfcf5e29f6" class="m-doc">setWidthImpl</a>(</span><span class="m-doc-wrap">float width) -&gt; void <span class="m-label m-flat m-warning">override</span></span>
             </dt>
             <dd>Actors need to override this to set their width. The contract is to always resize to the requested size.</dd>
             <dt>
-              <span class="m-doc-wrap-bumper">auto <a href="#a353f1a92653ced9d5ff73dd12a4b0cc2" class="m-doc">setHeightImpl</a>(</span><span class="m-doc-wrap">float height) -&gt; void <span class="m-label m-flat m-warning">override</span></span>
+              <span class="m-doc-wrap-bumper">auto <a href="#aa6101309d99f64606fdf23e8217d37ff" class="m-doc">setHeightImpl</a>(</span><span class="m-doc-wrap">float height) -&gt; void <span class="m-label m-flat m-warning">override</span></span>
             </dt>
             <dd>Actors need to override this to set their height. The contract is to always resize to the requested size.</dd>
           </dl>
         </section>
         <section>
           <h2>Function documentation</h2>
-          <section class="m-doc-details" id="a72ca9107a5d4745cd1f510b46c4b97eb"><div>
+          <section class="m-doc-details" id="a2e6a8fd04fd5c11e243ffefc3d760c94"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">auto drawing::<wbr />actors::<wbr />Quad::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a72ca9107a5d4745cd1f510b46c4b97eb" class="m-doc-self">getLuaSelf</a>(</span><span class="m-doc-wrap">sol::state&amp; lua) -&gt; sol::object <span class="m-label m-warning">override</span></span></span>
+              <span class="m-doc-wrap-bumper">auto drawing::<wbr />actors::<wbr />Sprite::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a2e6a8fd04fd5c11e243ffefc3d760c94" class="m-doc-self">getLuaSelf</a>(</span><span class="m-doc-wrap">sol::state&amp; lua) -&gt; sol::object <span class="m-label m-warning">override</span></span></span>
             </h3>
             <p>Get the lua object of the type of this actor.</p>
             <table class="m-table m-fullwidth m-flat">
@@ -203,9 +205,9 @@
               </tfoot>
             </table>
           </div></section>
-          <section class="m-doc-details" id="a2ee4b0736a139f1eac70366d4cacf65f"><div>
+          <section class="m-doc-details" id="a9cbd8e4ffbedc8eaf51bd15d6cbd1b56"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">void drawing::<wbr />actors::<wbr />Quad::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a2ee4b0736a139f1eac70366d4cacf65f" class="m-doc-self">update</a>(</span><span class="m-doc-wrap">std::chrono::nanoseconds delta) <span class="m-label m-warning">override</span></span></span>
+              <span class="m-doc-wrap-bumper">void drawing::<wbr />actors::<wbr />Sprite::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a9cbd8e4ffbedc8eaf51bd15d6cbd1b56" class="m-doc-self">update</a>(</span><span class="m-doc-wrap">std::chrono::nanoseconds delta) <span class="m-label m-warning">override</span></span></span>
             </h3>
             <p>used by the engine to update an actor&#x27;s internals every frame. Not exposed to Lua.</p>
             <table class="m-table m-fullwidth m-flat">
@@ -220,9 +222,9 @@
               </tbody>
             </table>
           </div></section>
-          <section class="m-doc-details" id="aeb58988ba5b41be6d870c543697c9993"><div>
+          <section class="m-doc-details" id="ae783088904190d7376cdf57e703e7945"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">auto drawing::<wbr />actors::<wbr />Quad::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#aeb58988ba5b41be6d870c543697c9993" class="m-doc-self">setTransform</a>(</span><span class="m-doc-wrap">sf::Transform transform) -&gt; void <span class="m-label m-warning">override</span></span></span>
+              <span class="m-doc-wrap-bumper">auto drawing::<wbr />actors::<wbr />Sprite::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#ae783088904190d7376cdf57e703e7945" class="m-doc-self">setTransform</a>(</span><span class="m-doc-wrap">sf::Transform transform) -&gt; void <span class="m-label m-warning">override</span></span></span>
             </h3>
             <p>set the transform of the actor and all its children. Not exposed to lua.</p>
             <table class="m-table m-fullwidth m-flat">
@@ -238,9 +240,9 @@
             </table>
 <p>Should be called every frame. This method is responsible for updating the entire state of a parent component according to the state of its children.</p>
           </div></section>
-          <section class="m-doc-details" id="a4dc8d670006acfd91ce3e3bda4d2a75d"><div>
+          <section class="m-doc-details" id="a8a3250e674b9df676cae82ab18f4c796"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">auto drawing::<wbr />actors::<wbr />Quad::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a4dc8d670006acfd91ce3e3bda4d2a75d" class="m-doc-self">getTransform</a>(</span><span class="m-doc-wrap">) const -&gt; sf::Transform <span class="m-label m-warning">override</span></span></span>
+              <span class="m-doc-wrap-bumper">auto drawing::<wbr />actors::<wbr />Sprite::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a8a3250e674b9df676cae82ab18f4c796" class="m-doc-self">getTransform</a>(</span><span class="m-doc-wrap">) const -&gt; sf::Transform <span class="m-label m-warning">override</span></span></span>
             </h3>
             <p>Get the global transform of the actor. Not exposed to lua.</p>
             <table class="m-table m-fullwidth m-flat">
@@ -252,9 +254,9 @@
               </tfoot>
             </table>
           </div></section>
-          <section class="m-doc-details" id="a30b36e70ec0cb08bdb41f03076d34acb"><div>
+          <section class="m-doc-details" id="a689d79965689eeddf4e4384b918cd383"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">auto drawing::<wbr />actors::<wbr />Quad::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a30b36e70ec0cb08bdb41f03076d34acb" class="m-doc-self">getWidth</a>(</span><span class="m-doc-wrap">) const -&gt; float <span class="m-label m-warning">override</span></span></span>
+              <span class="m-doc-wrap-bumper">auto drawing::<wbr />actors::<wbr />Sprite::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a689d79965689eeddf4e4384b918cd383" class="m-doc-self">getWidth</a>(</span><span class="m-doc-wrap">) const -&gt; float <span class="m-label m-warning">override</span></span></span>
             </h3>
             <p>Get the current width of the actor.</p>
             <table class="m-table m-fullwidth m-flat">
@@ -266,9 +268,9 @@
               </tfoot>
             </table>
           </div></section>
-          <section class="m-doc-details" id="a1a4ba4f1ce4214b8a3cf57a3af2cb1d4"><div>
+          <section class="m-doc-details" id="a3a9908fb2d0d0b85c5d52924999c4e88"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">auto drawing::<wbr />actors::<wbr />Quad::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a1a4ba4f1ce4214b8a3cf57a3af2cb1d4" class="m-doc-self">getHeight</a>(</span><span class="m-doc-wrap">) const -&gt; float <span class="m-label m-warning">override</span></span></span>
+              <span class="m-doc-wrap-bumper">auto drawing::<wbr />actors::<wbr />Sprite::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a3a9908fb2d0d0b85c5d52924999c4e88" class="m-doc-self">getHeight</a>(</span><span class="m-doc-wrap">) const -&gt; float <span class="m-label m-warning">override</span></span></span>
             </h3>
             <p>Get the current height of the actor.</p>
             <table class="m-table m-fullwidth m-flat">
@@ -280,9 +282,9 @@
               </tfoot>
             </table>
           </div></section>
-          <section class="m-doc-details" id="af75f49efbbdc8cfbd9bf0fca20b766c0"><div>
+          <section class="m-doc-details" id="a8f906331ef2d39199df22dcfcf5e29f6"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">auto drawing::<wbr />actors::<wbr />Quad::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#af75f49efbbdc8cfbd9bf0fca20b766c0" class="m-doc-self">setWidthImpl</a>(</span><span class="m-doc-wrap">float width) -&gt; void <span class="m-label m-warning">override</span> <span class="m-label m-danger">private</span></span></span>
+              <span class="m-doc-wrap-bumper">auto drawing::<wbr />actors::<wbr />Sprite::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a8f906331ef2d39199df22dcfcf5e29f6" class="m-doc-self">setWidthImpl</a>(</span><span class="m-doc-wrap">float width) -&gt; void <span class="m-label m-warning">override</span> <span class="m-label m-danger">private</span></span></span>
             </h3>
             <p>Actors need to override this to set their width. The contract is to always resize to the requested size.</p>
             <table class="m-table m-fullwidth m-flat">
@@ -297,9 +299,9 @@
               </tbody>
             </table>
           </div></section>
-          <section class="m-doc-details" id="a353f1a92653ced9d5ff73dd12a4b0cc2"><div>
+          <section class="m-doc-details" id="aa6101309d99f64606fdf23e8217d37ff"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">auto drawing::<wbr />actors::<wbr />Quad::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a353f1a92653ced9d5ff73dd12a4b0cc2" class="m-doc-self">setHeightImpl</a>(</span><span class="m-doc-wrap">float height) -&gt; void <span class="m-label m-warning">override</span> <span class="m-label m-danger">private</span></span></span>
+              <span class="m-doc-wrap-bumper">auto drawing::<wbr />actors::<wbr />Sprite::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#aa6101309d99f64606fdf23e8217d37ff" class="m-doc-self">setHeightImpl</a>(</span><span class="m-doc-wrap">float height) -&gt; void <span class="m-label m-warning">override</span> <span class="m-label m-danger">private</span></span></span>
             </h3>
             <p>Actors need to override this to set their height. The contract is to always resize to the requested size.</p>
             <table class="m-table m-fullwidth m-flat">
