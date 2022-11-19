@@ -6,7 +6,8 @@
 #include "drawing/actors/Quad.h"
 #include <catch2/catch_test_macros.hpp>
 
-TEST_CASE("The parent's lifetime is not extended by child", "[drawing][actors][parent]")
+TEST_CASE("The parent's lifetime is not extended by child",
+          "[drawing][actors][parent]")
 {
     auto child = drawing::actors::Quad::make();
     {
