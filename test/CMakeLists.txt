@@ -11,7 +11,7 @@ find_package(Catch2 3 REQUIRED)
 
 # ---- Tests ----
 
-add_executable(RhythmGame_test charts/chart_readers/BmsChartReader.test.cpp charts/chart_readers/ToChars.test.cpp charts/behaviour/SongDataWriter.test.cpp charts/models/BmsChart.test.cpp db/SqliteCppDb.test.cpp state_transitions/state_transitions.test.cpp drawing/splashWindow.test.cpp state_transitions/Game.test.cpp drawing/VBox.test.cpp drawing/Hbox.test.cpp lua/LuaVBox.test.cpp drawing/Parent.test.cpp drawing/Actor.test.cpp)
+add_executable(RhythmGame_test charts/chart_readers/BmsChartReader.test.cpp charts/chart_readers/ToChars.test.cpp charts/behaviour/SongDataWriter.test.cpp charts/models/BmsChart.test.cpp db/SqliteCppDb.test.cpp state_transitions/state_transitions.test.cpp drawing/splashWindow.test.cpp state_transitions/Game.test.cpp drawing/VBox.test.cpp drawing/Hbox.test.cpp lua/LuaVBox.test.cpp drawing/Parent.test.cpp drawing/Actor.test.cpp drawing/Padding.test.cpp drawing/Align.test.cpp drawing/Layers.test.cpp lua/LuaHBox.test.cpp lua/LuaAlign.test.cpp lua/LuaQuad.test.cpp lua/LuaPadding.test.cpp lua/LuaLayers.test.cpp lua/LuaSprite.cpp lua/LuaText.test.cpp)
 target_link_libraries(
         RhythmGame_test PRIVATE
         RhythmGame_lib

@@ -27,9 +27,24 @@ class Actor // NOLINT(fuchsia-multiple-inheritance)
   : public sf::Drawable
   , public support::EnableSharedFromBase<Actor>
 {
-    std::weak_ptr<Parent> parent;
+    std::weak_ptr<Parent> parent{};
+
+  protected:
+    Actor() = default;
+    Actor(const Actor& /*unused*/);
+    auto operator=(const Actor& /*unused*/) -> Actor&;
 
   public:
+    Actor(Actor&& otherActor) noexcept = delete;
+    auto operator=(Actor&& otherActor) noexcept -> Actor& = delete;
+
+    /**
+     * @brief Get the lua object of the type of this actor.
+     * @param lua The lua state to use.
+     * @return The lua object of the type of this actor.
+     */
+    [[nodiscard]] virtual auto getLuaSelf(sol::state& lua) -> sol::object = 0;
+
     /**
      * @brief The parent of this actor. Null for scene root or unattached
      * actors.
@@ -42,7 +57,7 @@ class Actor // NOLINT(fuchsia-multiple-inheritance)
      * This should only be called by the parent when this actor gets
      * added to it. Not exposed to Lua.
      */
-    virtual auto setParent(const std::shared_ptr<Parent>& parent) -> void;
+    virtual auto setParent(std::shared_ptr<Parent> parent) -> void;
     /**
      * @brief used by the engine to update an actor's internals every frame. Not
      * exposed to Lua.
@@ -51,7 +66,12 @@ class Actor // NOLINT(fuchsia-multiple-inheritance)
     virtual auto update(std::chrono::nanoseconds delta) -> void = 0;
     /**
      * @brief set the transform of the actor and all its children. Not exposed
-     * to lua. Should be called every frame.
+     * to lua.
+     *
+     * Should be called every frame. This method is responsible for updating the
+     * entire state of a parent component according to the state of its
+     * children.
+     *
      * @param transform The new global transform of the actor.
      */
     virtual auto setTransform(sf::Transform transform) -> void = 0;
@@ -61,13 +81,13 @@ class Actor // NOLINT(fuchsia-multiple-inheritance)
      */
     [[nodiscard]] virtual auto getTransform() const -> sf::Transform = 0;
     /**
-     * @brief Does this actor want to match its parent's width?
+     * @brief Does this actor want to have its width managed by its parent?
      */
-    [[nodiscard]] virtual auto matchParentWidth() const -> bool = 0;
+    [[nodiscard]] virtual auto getIsWidthManaged() const -> bool = 0;
     /**
-     * @brief Does this actor want to match its parent's height?
+     * @brief Does this actor want to have its height managed by its parent?
      */
-    [[nodiscard]] virtual auto matchParentHeight() const -> bool = 0;
+    [[nodiscard]] virtual auto getIsHeightManaged() const -> bool = 0;
     /**
      * @brief Get the minimum width that this actor can get resized to.
      * @return The minimum width of the actor.

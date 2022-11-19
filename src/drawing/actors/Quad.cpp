@@ -16,17 +16,6 @@ void
 Quad::update(std::chrono::nanoseconds delta)
 {
 }
-void
-Quad::setSize(const sf::Vector2f& size)
-{
-    setWidth(size.x);
-    setHeight(size.y);
-}
-auto
-Quad::getSize() const -> const sf::Vector2f&
-{
-    return rect.getSize();
-}
 auto
 Quad::getPoint(std::size_t index) const -> sf::Vector2f
 {
@@ -62,16 +51,7 @@ Quad::getOutlineThickness() const -> float
 {
     return rect.getOutlineThickness();
 }
-auto
-Quad::matchParentWidth() const -> bool
-{
-    return false;
-}
-auto
-Quad::matchParentHeight() const -> bool
-{
-    return false;
-}
+
 void
 Quad::setTransform(sf::Transform newTransform)
 {
@@ -81,16 +61,6 @@ auto
 Quad::getTransform() const -> sf::Transform
 {
     return transform;
-}
-auto
-Quad::getMinWidth() const -> float
-{
-    return 0;
-}
-auto
-Quad::getMinHeight() const -> float
-{
-    return 0;
 }
 auto
 Quad::getWidth() const -> float
@@ -112,4 +82,23 @@ Quad::setHeightImpl(float height)
 {
     rect.setSize({ rect.getSize().x, height });
 }
+auto
+Quad::getLuaSelf(sol::state& lua) -> sol::object
+{
+    return { lua,
+             sol::in_place_type_t<std::shared_ptr<Quad>>(),
+             sharedFromBase<Quad>() };
+}
+Quad::Quad(sf::Vector2f size, sf::Color color)
+{
+    rect.setFillColor(color);
+    setWidth(size.x);
+    setHeight(size.y);
+}
+auto
+Quad::make(sf::Vector2f size, sf::Color color) -> std::shared_ptr<Quad>
+{
+    return std::shared_ptr<Quad>(new Quad{ size, color });
+}
+
 } // namespace drawing::actors

@@ -6,22 +6,23 @@
 #include "drawing/actors/Quad.h"
 #include <catch2/catch_test_macros.hpp>
 
-TEST_CASE("The parent's lifetime is not extended by child", "[drawing][parent]")
+TEST_CASE("The parent's lifetime is not extended by child",
+          "[drawing][actors][parent]")
 {
-    auto child = std::make_shared<drawing::actors::Quad>();
+    auto child = drawing::actors::Quad::make();
     {
-        auto parent = std::make_shared<drawing::actors::VBox>();
+        auto parent = drawing::actors::VBox::make();
         parent->addChild(child);
     }
     REQUIRE(child.use_count() == 1);
     REQUIRE(child->getParent() == nullptr);
 }
 
-TEST_CASE("Parent can be reassigned", "[drawing][parent]")
+TEST_CASE("Parent can be reassigned", "[drawing][actors][parent]")
 {
-    auto child = std::make_shared<drawing::actors::Quad>();
-    auto parent1 = std::make_shared<drawing::actors::VBox>();
-    auto parent2 = std::make_shared<drawing::actors::VBox>();
+    auto child = drawing::actors::Quad::make();
+    auto parent1 = drawing::actors::VBox::make();
+    auto parent2 = drawing::actors::VBox::make();
     parent1->addChild(child);
     parent2->addChild(child);
     REQUIRE(child->getParent() == parent2);

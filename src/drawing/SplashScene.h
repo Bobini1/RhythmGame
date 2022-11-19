@@ -5,14 +5,12 @@
 #ifndef RHYTHMGAME_SPLASHSCENE_H
 #define RHYTHMGAME_SPLASHSCENE_H
 #include "drawing/Scene.h"
-#include "resource_locators/LuaScriptFinder.h"
+#include "resource_managers/LuaScriptFinder.h"
 #include "drawing/actors/Actor.h"
 #include "drawing/actors/Quad.h"
 #include "drawing/actors/VBox.h"
 #include <SFML/Graphics/RenderTarget.hpp>
 #include <execution>
-
-
 
 namespace drawing {
 /**
@@ -25,12 +23,18 @@ class SplashScene : public Scene
 
   public:
     explicit SplashScene(std::shared_ptr<actors::Actor> root)
-        : root(std::move(root))
+      : root(std::move(root))
     {
     }
     void update(std::chrono::nanoseconds /* delta */) final {}
     void draw(sf::RenderTarget& target, sf::RenderStates states) const final
     {
+        if (root->getIsWidthManaged()) {
+            root->setWidth(static_cast<float>(target.getSize().x));
+        }
+        if (root->getIsHeightManaged()) {
+            root->setHeight(static_cast<float>(target.getSize().y));
+        }
         root->setTransform(sf::Transform::Identity);
         target.draw(*root, states);
     }

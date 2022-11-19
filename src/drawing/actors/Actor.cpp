@@ -5,14 +5,15 @@
 #include "Parent.h"
 #include "Actor.h"
 
+#include <utility>
+
 auto
 drawing::actors::Actor::getParent() const -> std::shared_ptr<Parent>
 {
     return parent.lock();
 }
 auto
-drawing::actors::Actor::setParent(const std::shared_ptr<Parent>& newParent)
-  -> void
+drawing::actors::Actor::setParent(std::shared_ptr<Parent> newParent) -> void
 {
     // defensive programming
     if (auto parentPtr = parent.lock()) {
@@ -37,4 +38,12 @@ drawing::actors::Actor::setHeight(float height) -> void
         height = getMinHeight();
     }
     setHeightImpl(height);
+}
+
+drawing::actors::Actor::Actor(const Actor& /*unused*/) {} // do not default this
+auto
+drawing::actors::Actor::operator=(const Actor& /*unused*/)
+  -> Actor& // do not default this
+{
+    return *this;
 }
