@@ -37,24 +37,12 @@ class AbstractBox : public AbstractVectorCollection
     auto getHorizontalSizeMode() const -> SizeMode;
     auto setVerticalSizeMode(SizeMode mode) -> void;
     auto getVerticalSizeMode() const -> SizeMode;
-    auto setTopPadding(float padding) -> void;
-    auto getTopPadding() const -> float;
-    auto setBottomPadding(float padding) -> void;
-    auto getBottomPadding() const -> float;
-    auto setLeftPadding(float padding) -> void;
-    auto getLeftPadding() const -> float;
-    auto setRightPadding(float padding) -> void;
-    auto getRightPadding() const -> float;
     auto setSpacing(float spacing) -> void;
     auto getSpacing() const -> float;
 
   private:
     SizeMode verticalSizeMode{};
     SizeMode horizontalSizeMode{};
-    float topPadding{};
-    float bottomPadding{};
-    float leftPadding{};
-    float rightPadding{};
     float spacing{};
 };
 } // namespace drawing::actors

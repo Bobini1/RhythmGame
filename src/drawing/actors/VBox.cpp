@@ -22,8 +22,7 @@ drawing::actors::VBox::setTransform(sf::Transform newTransform)
 {
     recalculateSize();
     transform = newTransform;
-    auto workingTransform =
-      transform.translate(getLeftPadding(), getTopPadding());
+    auto workingTransform = transform.translate(0, 0);
     auto minimumSize = getMinimumSizeOfChildren();
 
     auto childrenMatchingParentHeight =
@@ -66,8 +65,8 @@ drawing::actors::VBox::getTransform() const -> sf::Transform
 auto
 drawing::actors::VBox::getMinimumSizeOfChildren() const -> sf::Vector2f
 {
-    auto width = getLeftPadding() + getRightPadding();
-    auto height = getTopPadding() + getBottomPadding();
+    auto width = 0.F;
+    auto height = 0.F;
 
     for (const auto& child : *this) {
         height += child->getIsHeightManaged() ? child->getMinHeight()

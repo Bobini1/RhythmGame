@@ -10,7 +10,7 @@
 #include "resource_managers/FontLoaderImpl.h"
 
 constexpr auto luaScript = R"(
-local root = HBox.new{
+local main = HBox.new{
     contentAlignment = HBoxContentAlignment.Bottom,
     horizontalSizeMode = SizeMode.Managed,
     verticalSizeMode = SizeMode.Managed,
@@ -27,19 +27,33 @@ local root = HBox.new{
             },
             AlignMode.Center
         ),
-        VBox.new{
-            contentAlignment = VBoxContentAlignment.Right,
-            horizontalSizeMode = SizeMode.WrapChildren,
-            verticalSizeMode = SizeMode.Managed,
+        Layers.new{
+            mainLayer = Padding.new{
+                child = VBox.new{
+                    contentAlignment = VBoxContentAlignment.Right,
+                    horizontalSizeMode = SizeMode.WrapChildren,
+                    verticalSizeMode = SizeMode.Managed,
+                    spacing = 10,
+                    children = {
+                        Text.new{text = "Hello world!", fillColor = Color.new(255, 0, 0, 255)},
+                        Text.new{text = "Hello world!", characterSize = 20},
+                        Text.new{text = "Hello world!", characterSize = 20, fillColor = Color.new(255, 0, 0, 255), isWidthManaged = true}
+                    }
+                },
+                left = 10,
+                top = 10,
+                right = 10,
+                bottom = 10
+            },
             children = {
-                Text.new("Hello world!"),
-                Text.new{text = "Hello world!", characterSize = 20},
-                Text.new{text = "Hello world!", characterSize = 20, fillColor = Color.new(255, 0, 0, 255), isWidthManaged = true}
+                Quad.new{isWidthManaged = true, isHeightManaged = true, fillColor = Color.new(0, 0, 0, 255)},
             }
         }
     }
 }
-return root
+local bg = Quad.new{isWidthManaged = true, isHeightManaged = true, fillColor = Color.new(255, 255, 255, 255)}
+local layers = Layers.new{mainLayer = main, children = {bg, main}}
+return layers
 )";
 
 auto

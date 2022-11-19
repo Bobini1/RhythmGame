@@ -11,7 +11,7 @@
 #include "drawing/actors/Quad.h"
 #include "drawing/actors/Padding.h"
 #include "drawing/actors/Align.h"
-#include "drawing/actors/AbstractRectLeaf.h"
+#include "drawing/actors/Layers.h"
 
 auto
 defineActor(sol::state& target) -> void
@@ -83,18 +83,6 @@ defineAbstractBox(sol::state& target) -> void
     abstractBoxType["verticalSizeMode"] =
       sol::property(&drawing::actors::AbstractBox::getVerticalSizeMode,
                     &drawing::actors::AbstractBox::setVerticalSizeMode);
-    abstractBoxType["topPadding"] =
-      sol::property(&drawing::actors::AbstractBox::getTopPadding,
-                    &drawing::actors::AbstractBox::setTopPadding);
-    abstractBoxType["bottomPadding"] =
-      sol::property(&drawing::actors::AbstractBox::getBottomPadding,
-                    &drawing::actors::AbstractBox::setBottomPadding);
-    abstractBoxType["leftPadding"] =
-      sol::property(&drawing::actors::AbstractBox::getLeftPadding,
-                    &drawing::actors::AbstractBox::setLeftPadding);
-    abstractBoxType["rightPadding"] =
-      sol::property(&drawing::actors::AbstractBox::getRightPadding,
-                    &drawing::actors::AbstractBox::setRightPadding);
     abstractBoxType["spacing"] =
       sol::property(&drawing::actors::AbstractBox::getSpacing,
                     &drawing::actors::AbstractBox::setSpacing);
@@ -144,13 +132,8 @@ defineVBox(sol::state& target) -> void
             if (args["height"].valid()) {
                 result->setHeight(args["height"].get<float>());
             }
-            return result;
-        },
-        [](std::vector<drawing::actors::Actor*>
-             children) { // NOLINT(performance-unnecessary-value-param)
-            auto result = std::make_shared<drawing::actors::VBox>();
-            for (auto* child : children) {
-                result->addChild(child->shared_from_this());
+            if (args["spacing"].valid()) {
+                result->setSpacing(args["spacing"].get<float>());
             }
             return result;
         }),
@@ -208,13 +191,8 @@ defineHBox(sol::state& target) -> void
             if (args["height"].valid()) {
                 result->setHeight(args["height"].get<float>());
             }
-            return result;
-        },
-        [](std::vector<drawing::actors::Actor*>
-             children) { // NOLINT(performance-unnecessary-value-param)
-            auto result = std::make_shared<drawing::actors::HBox>();
-            for (auto* child : children) {
-                result->addChild(child->shared_from_this());
+            if (args["spacing"].valid()) {
+                result->setSpacing(args["spacing"].get<float>());
             }
             return result;
         }),
@@ -456,6 +434,40 @@ defineAlign(sol::state& target) -> void
 }
 
 auto
+defineLayers(sol::state& target) -> void
+{
+    auto layerType = target.new_usertype<drawing::actors::Layers>(
+      "Layers",
+      sol::factories(
+        []() { return std::make_shared<drawing::actors::Layers>(); },
+        [](const sol::table& args) {
+            auto returnVal = std::make_shared<drawing::actors::Layers>();
+            if (args["children"].valid()) {
+                for (const auto& child :
+                     args.get<std::vector<drawing::actors::Actor*>>(
+                       "children")) {
+                    returnVal->addChild(child->shared_from_this());
+                }
+            }
+            if (args["mainLayer"].valid()) {
+                returnVal->setMainLayer(
+                  args.get<drawing::actors::Actor*>("mainLayer")
+                    ->shared_from_this());
+            }
+            return returnVal;
+        }),
+      sol::base_classes,
+      sol::bases<drawing::actors::Actor, drawing::actors::Parent>());
+    layerType["mainLayer"] = sol::property(
+      [&target](drawing::actors::Layers* self) {
+          return self->getMainLayer()->getLuaSelf(target);
+      },
+      [](drawing::actors::Layers* self, drawing::actors::Actor* actor) {
+          self->setMainLayer(actor->shared_from_this());
+      });
+}
+
+auto
 lua::Bootstrapper::defineCommonTypes(sol::state& target) const -> void
 {
     defineActor(target);
@@ -470,4 +482,5 @@ lua::Bootstrapper::defineCommonTypes(sol::state& target) const -> void
     defineColor(target);
     definePadding(target);
     defineAlign(target);
+    defineLayers(target);
 }

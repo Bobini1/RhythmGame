@@ -9,8 +9,11 @@ void
 drawing::actors::AbstractVectorCollection::addChild(
   std::shared_ptr<Actor> actor)
 {
-    actor->setParent(sharedFromBase<Parent>());
-    children.push_back(std::move(actor));
+    if (std::find(children.begin(), children.end(), actor) == children.end()) {
+        actor->setParent(sharedFromBase<Parent>());
+        children.push_back(actor);
+        onChildAdded(actor);
+    }
 }
 void
 drawing::actors::AbstractVectorCollection::removeChild(
@@ -23,6 +26,7 @@ drawing::actors::AbstractVectorCollection::removeChild(
     if (actor->getParent() == sharedFromBase<Parent>()) {
         actor->setParent(nullptr);
     }
+    onChildRemoved(actor);
 }
 auto
 drawing::actors::AbstractVectorCollection::begin() noexcept -> iterator
@@ -104,4 +108,14 @@ drawing::actors::AbstractVectorCollection::getSize() const
   -> drawing::actors::AbstractVectorCollection::size_type
 {
     return children.size();
+}
+auto
+drawing::actors::AbstractVectorCollection::onChildRemoved(
+  std::shared_ptr<Actor> child) -> void
+{
+}
+auto
+drawing::actors::AbstractVectorCollection::onChildAdded(
+  std::shared_ptr<Actor> child) -> void
+{
 }

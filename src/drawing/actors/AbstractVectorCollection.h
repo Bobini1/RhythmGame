@@ -48,8 +48,13 @@ class AbstractVectorCollection : public Parent
   private:
     std::vector<std::shared_ptr<Actor>> children;
     /**
-     * @brief This function is called whenever a child is added or removed.
+     * @brief This function is called whenever a child is removed.
      */
+    virtual auto onChildRemoved(std::shared_ptr<Actor> child) -> void;
+    /**
+     * @brief This function is called whenever a child is added.
+     */
+    virtual auto onChildAdded(std::shared_ptr<Actor> child) -> void;
 };
 } // namespace drawing::actors
 #endif // RHYTHMGAME_ABSTRACTVECTORCOLLECTION_H
