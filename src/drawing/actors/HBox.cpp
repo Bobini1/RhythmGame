@@ -153,3 +153,8 @@ drawing::actors::HBox::getContentAlignment() const
 {
     return contentAlignment;
 }
+auto
+drawing::actors::HBox::make() -> std::shared_ptr<HBox>
+{
+    return std::shared_ptr<HBox>(new HBox{});
+}

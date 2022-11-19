@@ -8,8 +8,7 @@
 
 TEST_CASE("Size of actor can't be changed below min size", "[drawing][actor]")
 {
-    auto quad =
-      std::make_shared<drawing::actors::Quad>(sf::Vector2f{ -100.F, -100.F });
+    auto quad = drawing::actors::Quad::make(sf::Vector2f{ -100.F, -100.F });
     REQUIRE(quad->getHeight() == Catch::Approx(quad->getMinHeight()));
     REQUIRE(quad->getWidth() == Catch::Approx(quad->getMinWidth()));
 }

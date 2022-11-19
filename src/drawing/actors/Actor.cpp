@@ -39,3 +39,11 @@ drawing::actors::Actor::setHeight(float height) -> void
     }
     setHeightImpl(height);
 }
+
+drawing::actors::Actor::Actor(const Actor& /*unused*/) {} // do not default this
+auto
+drawing::actors::Actor::operator=(const Actor& /*unused*/)
+  -> Actor& // do not default this
+{
+    return *this;
+}

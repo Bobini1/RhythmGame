@@ -153,3 +153,15 @@ drawing::actors::Text::getLuaSelf(sol::state& lua) -> sol::object
              sol::in_place_type_t<std::shared_ptr<Text>>(),
              sharedFromBase<Text>() };
 }
+auto
+drawing::actors::Text::make() -> std::shared_ptr<Text>
+{
+    return std::shared_ptr<Text>(new Text{});
+}
+auto
+drawing::actors::Text::make(const std::string& text,
+                            const sf::Font& font,
+                            unsigned int size) -> std::shared_ptr<Text>
+{
+    return std::shared_ptr<Text>(new Text{ text, font, size });
+}

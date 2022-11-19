@@ -12,6 +12,7 @@ class Layers : public AbstractVectorCollection
     sf::Transform transform;
 
   public:
+    static auto make() -> std::shared_ptr<Layers>;
     auto getLuaSelf(sol::state& lua) -> sol::object override;
     auto update(std::chrono::nanoseconds delta) -> void override;
     auto setTransform(sf::Transform transform) -> void override;
@@ -27,6 +28,7 @@ class Layers : public AbstractVectorCollection
 
   protected:
     void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
+    Layers() = default;
 
   private:
     auto setWidthImpl(float width) -> void override;

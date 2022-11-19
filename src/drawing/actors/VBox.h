@@ -14,6 +14,7 @@ namespace drawing::actors {
 class VBox : public AbstractBox
 {
   public:
+    static auto make() -> std::shared_ptr<VBox>;
     [[nodiscard]] auto getLuaSelf(sol::state& lua) -> sol::object override;
     [[nodiscard]] auto getMinWidth() const -> float override;
     [[nodiscard]] auto getMinHeight() const -> float override;
@@ -41,6 +42,7 @@ class VBox : public AbstractBox
 
   protected:
     void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
+    VBox() = default;
 
   private:
     sf::Transform transform;

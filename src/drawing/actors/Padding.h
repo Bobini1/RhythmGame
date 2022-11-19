@@ -20,6 +20,10 @@ class Padding : public Parent
     sf::Transform transform;
 
   public:
+    static auto make(float top = 0,
+                     float bottom = 0,
+                     float left = 0,
+                     float right = 0) -> std::shared_ptr<Padding>;
     [[nodiscard]] auto getLuaSelf(sol::state& lua) -> sol::object override;
     auto update(std::chrono::nanoseconds delta) -> void override;
     auto setTransform(sf::Transform transform) -> void override;
@@ -36,17 +40,16 @@ class Padding : public Parent
 
   protected:
     void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
+    explicit Padding(float top = 0,
+                     float bottom = 0,
+                     float left = 0,
+                     float right = 0);
 
   private:
     auto setWidthImpl(float width) -> void override;
     auto setHeightImpl(float height) -> void override;
 
   public:
-    explicit Padding(float top = 0,
-                     float bottom = 0,
-                     float left = 0,
-                     float right = 0);
-
     [[nodiscard]] auto getTop() const -> float;
     [[nodiscard]] auto getBottom() const -> float;
     [[nodiscard]] auto getLeft() const -> float;

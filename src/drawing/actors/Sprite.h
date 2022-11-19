@@ -15,8 +15,8 @@ class Sprite : public AbstractRectLeaf
     sf::Transform transform;
 
   public:
-    Sprite() = default;
-    explicit Sprite(const sf::Texture& texture);
+    static auto make() -> std::shared_ptr<Sprite>;
+    static auto make(const sf::Texture& texture) -> std::shared_ptr<Sprite>;
     [[nodiscard]] auto getLuaSelf(sol::state& lua) -> sol::object override;
     void setTexture(const sf::Texture& texture);
     void setTextureRect(const sf::IntRect& rect);
@@ -36,6 +36,8 @@ class Sprite : public AbstractRectLeaf
 
   protected:
     void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
+    Sprite() = default;
+    explicit Sprite(const sf::Texture& texture);
 };
 } // namespace drawing::actors
 #endif // RHYTHMGAME_SPRITE_H

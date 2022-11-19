@@ -16,8 +16,9 @@ class Quad : public AbstractRectLeaf
     sf::RectangleShape rect;
 
   public:
-    explicit Quad(sf::Vector2f size = { 0, 0 },
-                  sf::Color color = sf::Color::White);
+    static auto make(sf::Vector2f size = { 0, 0 },
+                     sf::Color color = sf::Color::White)
+      -> std::shared_ptr<Quad>;
     [[nodiscard]] auto getLuaSelf(sol::state& lua) -> sol::object override;
     [[nodiscard]] auto getPoint(std::size_t index) const -> sf::Vector2f;
     void setFillColor(const sf::Color& color);
@@ -39,6 +40,8 @@ class Quad : public AbstractRectLeaf
 
   protected:
     void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
+    explicit Quad(sf::Vector2f size = { 0, 0 },
+                  sf::Color color = sf::Color::White);
 };
 } // namespace drawing::actors
 #endif // RHYTHMGAME_QUAD_H

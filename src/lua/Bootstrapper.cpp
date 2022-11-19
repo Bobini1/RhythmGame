@@ -101,9 +101,9 @@ defineVBox(sol::state& target) -> void
     auto vBoxType = target.new_usertype<drawing::actors::VBox>(
       "VBox",
       sol::factories(
-        []() { return std::make_shared<drawing::actors::VBox>(); },
+        []() { return drawing::actors::VBox::make(); },
         [](sol::table args) {
-            auto result = std::make_shared<drawing::actors::VBox>();
+            auto result = drawing::actors::VBox::make();
             if (args["children"].valid()) {
                 auto children =
                   args["children"].get<std::vector<drawing::actors::Actor*>>();
@@ -160,9 +160,9 @@ defineHBox(sol::state& target) -> void
     auto hBoxType = target.new_usertype<drawing::actors::HBox>(
       "HBox",
       sol::factories(
-        []() { return std::make_shared<drawing::actors::HBox>(); },
+        []() { return drawing::actors::HBox::make(); },
         [](sol::table args) {
-            auto result = std::make_shared<drawing::actors::HBox>();
+            auto result = drawing::actors::HBox::make();
             if (args["children"].valid()) {
                 auto children =
                   args["children"].get<std::vector<drawing::actors::Actor*>>();
@@ -251,19 +251,19 @@ defineQuad(sol::state& target) -> void
     auto quadType = target.new_usertype<drawing::actors::Quad>(
       "Quad",
       sol::factories(
-        []() { return std::make_shared<drawing::actors::Quad>(); },
+        []() { return drawing::actors::Quad::make(); },
         [](float width, float height) {
-            auto result = std::make_shared<drawing::actors::Quad>(
-              sf::Vector2f{ width, height });
+            auto result =
+              drawing::actors::Quad::make(sf::Vector2f{ width, height });
             return result;
         },
         [](float width, float height, sf::Color color) {
-            auto result = std::make_shared<drawing::actors::Quad>(
-              sf::Vector2f{ width, height }, color);
+            auto result =
+              drawing::actors::Quad::make(sf::Vector2f{ width, height }, color);
             return result;
         },
         [](sol::table args) {
-            auto result = std::make_shared<drawing::actors::Quad>(
+            auto result = drawing::actors::Quad::make(
               sf::Vector2f{ args.get_or("width", 0.F),
                             args.get_or("height", 0.F) },
               args.get_or<sf::Color>("fillColor", sf::Color::White));
@@ -318,18 +318,18 @@ definePadding(sol::state& target) -> void
     auto paddingType = target.new_usertype<drawing::actors::Padding>(
       "Padding",
       sol::factories(
-        []() { return std::make_shared<drawing::actors::Padding>(); },
+        []() { return drawing::actors::Padding::make(); },
         [](drawing::actors::Actor* actor) {
-            auto returnVal = std::make_shared<drawing::actors::Padding>();
+            auto returnVal = drawing::actors::Padding::make();
             returnVal->setChild(actor->shared_from_this());
             return returnVal;
         },
         [](drawing::actors::Actor* actor, const sol::table& args) {
-            auto returnVal = std::make_shared<drawing::actors::Padding>(
-              args.get_or("top", 0.F),
-              args.get_or("bottom", 0.F),
-              args.get_or("left", 0.F),
-              args.get_or("right", 0.F));
+            auto returnVal =
+              drawing::actors::Padding::make(args.get_or("top", 0.F),
+                                             args.get_or("bottom", 0.F),
+                                             args.get_or("left", 0.F),
+                                             args.get_or("right", 0.F));
             returnVal->setChild(actor->shared_from_this());
             return returnVal;
         },
@@ -341,11 +341,11 @@ definePadding(sol::state& target) -> void
                 }
                 return std::shared_ptr<drawing::actors::Actor>();
             }();
-            auto returnVal = std::make_shared<drawing::actors::Padding>(
-              args.get_or("top", 0.F),
-              args.get_or("bottom", 0.F),
-              args.get_or("left", 0.F),
-              args.get_or("right", 0.F));
+            auto returnVal =
+              drawing::actors::Padding::make(args.get_or("top", 0.F),
+                                             args.get_or("bottom", 0.F),
+                                             args.get_or("left", 0.F),
+                                             args.get_or("right", 0.F));
             returnVal->setChild(child);
             return returnVal;
         }),
@@ -393,19 +393,19 @@ defineAlign(sol::state& target) -> void
     auto alignType = target.new_usertype<drawing::actors::Align>(
       "Align",
       sol::factories(
-        []() { return std::make_shared<drawing::actors::Align>(); },
+        []() { return drawing::actors::Align::make(); },
         [](drawing::actors::Actor* actor) {
-            auto returnVal = std::make_shared<drawing::actors::Align>();
+            auto returnVal = drawing::actors::Align::make();
             returnVal->setChild(actor->shared_from_this());
             return returnVal;
         },
         [](drawing::actors::Actor* actor, drawing::actors::Align::Mode mode) {
-            auto returnVal = std::make_shared<drawing::actors::Align>(mode);
+            auto returnVal = drawing::actors::Align::make(mode);
             returnVal->setChild(actor->shared_from_this());
             return returnVal;
         },
         [](drawing::actors::Align::Mode mode) {
-            return std::make_shared<drawing::actors::Align>(mode);
+            return drawing::actors::Align::make(mode);
         },
         [](const sol::table& args) {
             auto child = [&]() {
@@ -415,7 +415,7 @@ defineAlign(sol::state& target) -> void
                 }
                 return std::shared_ptr<drawing::actors::Actor>();
             }();
-            auto returnVal = std::make_shared<drawing::actors::Align>(
+            auto returnVal = drawing::actors::Align::make(
               args.get_or("mode", drawing::actors::Align::Mode::Center));
             returnVal->setChild(std::move(child));
             return returnVal;
@@ -439,9 +439,9 @@ defineLayers(sol::state& target) -> void
     auto layerType = target.new_usertype<drawing::actors::Layers>(
       "Layers",
       sol::factories(
-        []() { return std::make_shared<drawing::actors::Layers>(); },
+        []() { return drawing::actors::Layers::make(); },
         [](const sol::table& args) {
-            auto returnVal = std::make_shared<drawing::actors::Layers>();
+            auto returnVal = drawing::actors::Layers::make();
             if (args["children"].valid()) {
                 for (const auto& child :
                      args.get<std::vector<drawing::actors::Actor*>>(

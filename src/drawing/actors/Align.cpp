@@ -185,3 +185,9 @@ drawing::actors::Align::Align(drawing::actors::Align::Mode mode)
   : mode(mode)
 {
 }
+auto
+drawing::actors::Align::make(drawing::actors::Align::Mode mode)
+  -> std::shared_ptr<drawing::actors::Align>
+{
+    return std::shared_ptr<Align>(new Align{ mode });
+}

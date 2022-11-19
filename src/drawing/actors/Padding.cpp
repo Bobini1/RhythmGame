@@ -166,3 +166,11 @@ drawing::actors::Padding::getChild() const -> std::shared_ptr<Actor>
 {
     return child;
 }
+auto
+drawing::actors::Padding::make(float top,
+                                      float bottom,
+                                      float left,
+                                      float right) -> std::shared_ptr<Padding>
+{
+    return std::shared_ptr<Padding>(new Padding{ top, bottom, left, right });
+}

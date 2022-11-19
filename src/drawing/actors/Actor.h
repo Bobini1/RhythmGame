@@ -29,7 +29,15 @@ class Actor // NOLINT(fuchsia-multiple-inheritance)
 {
     std::weak_ptr<Parent> parent{};
 
+  protected:
+    Actor() = default;
+    Actor(const Actor& /*unused*/);
+    auto operator=(const Actor& /*unused*/) -> Actor&;
+
   public:
+    Actor(Actor&& otherActor) noexcept = delete;
+    auto operator=(Actor&& otherActor) noexcept -> Actor& = delete;
+
     /**
      * @brief Get the lua object of the type of this actor.
      * @param lua The lua state to use.

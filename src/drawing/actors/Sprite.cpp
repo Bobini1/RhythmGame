@@ -94,4 +94,14 @@ Sprite::Sprite(const sf::Texture& texture)
 {
     sprite.setTexture(texture);
 }
+auto
+Sprite::make() -> std::shared_ptr<Sprite>
+{
+    return std::shared_ptr<Sprite>(new Sprite());
+}
+auto
+Sprite::make(const sf::Texture& texture) -> std::shared_ptr<Sprite>
+{
+    return std::shared_ptr<Sprite>(new Sprite{ texture });
+}
 } // namespace drawing::actors

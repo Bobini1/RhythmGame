@@ -29,7 +29,7 @@ class Align : public Parent
         Bottom,
         BottomRight
     };
-    explicit Align(Mode mode = Mode::Center);
+    static auto make(Mode mode = Mode::Center) -> std::shared_ptr<Align>;
     void setChild(std::shared_ptr<Actor> child);
     [[nodiscard]] auto getChild() const -> std::shared_ptr<Actor>;
     [[nodiscard]] auto getLuaSelf(sol::state& lua) -> sol::object override;
@@ -47,6 +47,7 @@ class Align : public Parent
 
   protected:
     void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
+    explicit Align(Mode mode = Mode::Center);
 
   private:
     auto setWidthImpl(float width) -> void override;

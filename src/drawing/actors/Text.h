@@ -14,13 +14,14 @@ class Text : public AbstractRectLeaf
     sf::Transform transform;
 
   public:
+    static auto make() -> std::shared_ptr<Text>;
+    static auto make(const std::string& text,
+                     const sf::Font& font,
+                     unsigned int size = defaultFontSize)
+      -> std::shared_ptr<Text>;
     static constexpr unsigned int defaultFontSize = 30;
     [[nodiscard]] auto getLuaSelf(sol::state& lua) -> sol::object override;
 
-    Text() = default;
-    Text(const std::string& text,
-         const sf::Font& font,
-         unsigned int size = defaultFontSize);
     auto update(std::chrono::nanoseconds delta) -> void override;
     auto setTransform(sf::Transform transform) -> void override;
     [[nodiscard]] auto getTransform() const -> sf::Transform override;
@@ -49,6 +50,10 @@ class Text : public AbstractRectLeaf
 
   protected:
     void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
+    Text() = default;
+    Text(const std::string& text,
+         const sf::Font& font,
+         unsigned int size = defaultFontSize);
 
   private:
     auto setWidthImpl(float width) -> void override;

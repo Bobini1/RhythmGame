@@ -8,14 +8,11 @@
 
 TEST_CASE("Vbox is able to arrange its children", "[drawing][vbox]")
 {
-    auto vbox1 = std::make_shared<drawing::actors::VBox>();
-    auto vbox2 = std::make_shared<drawing::actors::VBox>();
-    auto child1 =
-      std::make_shared<drawing::actors::Quad>(sf::Vector2f{ 100.F, 100.F });
-    auto child2 =
-      std::make_shared<drawing::actors::Quad>(sf::Vector2f{ 100.F, 100.F });
-    auto child3 =
-      std::make_shared<drawing::actors::Quad>(sf::Vector2f{ 100.F, 100.F });
+    auto vbox1 = drawing::actors::VBox::make();
+    auto vbox2 = drawing::actors::VBox::make();
+    auto child1 = drawing::actors::Quad::make(sf::Vector2f{ 100.F, 100.F });
+    auto child2 = drawing::actors::Quad::make(sf::Vector2f{ 100.F, 100.F });
+    auto child3 = drawing::actors::Quad::make(sf::Vector2f{ 100.F, 100.F });
     vbox1->addChild(child1);
     vbox1->addChild(child2);
     vbox2->addChild(vbox1);
@@ -30,13 +27,10 @@ TEST_CASE("Vbox is able to arrange its children", "[drawing][vbox]")
 
 TEST_CASE("VBox items can be removed and added", "[drawing][vbox]")
 {
-    auto vbox = std::make_shared<drawing::actors::VBox>();
-    auto child1 =
-      std::make_shared<drawing::actors::Quad>(sf::Vector2f{ 100.F, 100.F });
-    auto child2 =
-      std::make_shared<drawing::actors::Quad>(sf::Vector2f{ 100.F, 100.F });
-    auto child3 =
-      std::make_shared<drawing::actors::Quad>(sf::Vector2f{ 100.F, 100.F });
+    auto vbox = drawing::actors::VBox::make();
+    auto child1 = drawing::actors::Quad::make(sf::Vector2f{ 100.F, 100.F });
+    auto child2 = drawing::actors::Quad::make(sf::Vector2f{ 100.F, 100.F });
+    auto child3 = drawing::actors::Quad::make(sf::Vector2f{ 100.F, 100.F });
     vbox->addChild(child1);
     vbox->addChild(child2);
     vbox->addChild(child3);

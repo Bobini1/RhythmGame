@@ -145,3 +145,8 @@ drawing::actors::Layers::getCurrentSize() const -> sf::Vector2f
     }
     return size;
 }
+auto
+drawing::actors::Layers::make() -> std::shared_ptr<Layers>
+{
+    return std::shared_ptr<Layers>(new Layers{});
+}

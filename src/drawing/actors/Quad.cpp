@@ -95,5 +95,10 @@ Quad::Quad(sf::Vector2f size, sf::Color color)
     setWidth(size.x);
     setHeight(size.y);
 }
+auto
+Quad::make(sf::Vector2f size, sf::Color color) -> std::shared_ptr<Quad>
+{
+    return std::shared_ptr<Quad>(new Quad{ size, color });
+}
 
 } // namespace drawing::actors

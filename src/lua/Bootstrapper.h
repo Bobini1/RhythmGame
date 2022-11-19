@@ -44,20 +44,21 @@ class Bootstrapper
         auto textType = target.new_usertype<drawing::actors::Text>(
           "Text",
           sol::factories(
-            []() { return std::make_shared<drawing::actors::Text>(); },
+            []() { return drawing::actors::Text::make(); },
             [&fontLoader](const std::string& text) {
                 auto* font = fontLoader.getDefault();
                 if (font == nullptr) {
                     throw std::runtime_error("Default font not found");
                 }
-                return std::make_shared<drawing::actors::Text>(text, *font);
+                return drawing::actors::Text::make(text, *font);
             },
             [](const std::string& text, sf::Font& font) {
-                return std::make_shared<drawing::actors::Text>(text, font);
+                return drawing::actors::Text::make(text, font);
             },
-            [](const std::string& text, sf::Font& font, int characterSize) {
-                return std::make_shared<drawing::actors::Text>(
-                  text, font, characterSize);
+            [](const std::string& text,
+               sf::Font& font,
+               unsigned int characterSize) {
+                return drawing::actors::Text::make(text, font, characterSize);
             },
             [&fontLoader](sol::table args) {
                 const auto* defaultFont = fontLoader.getDefault();
@@ -70,7 +71,7 @@ class Bootstrapper
                 if (font == nullptr) {
                     throw std::runtime_error("Default font not found");
                 }
-                auto result = std::make_shared<drawing::actors::Text>(
+                auto result = drawing::actors::Text::make(
                   args.get_or<std::string>("text", ""),
                   *font,
                   args.get_or("characterSize",
@@ -173,19 +174,19 @@ class Bootstrapper
         auto spriteType = target.new_usertype<drawing::actors::Sprite>(
           "Sprite",
           sol::factories(
-            []() { return std::make_shared<drawing::actors::Sprite>(); },
+            []() { return drawing::actors::Sprite::make(); },
             [](sf::Texture& texture) {
-                return std::make_shared<drawing::actors::Sprite>(texture);
+                return drawing::actors::Sprite::make(texture);
             },
             [&textureLoader](const std::string& path) {
                 auto* texture = textureLoader.load(path);
                 if (texture == nullptr) {
                     return std::shared_ptr<drawing::actors::Sprite>();
                 }
-                return std::make_shared<drawing::actors::Sprite>(*texture);
+                return drawing::actors::Sprite::make(*texture);
             },
             [&textureLoader](sol::table args) {
-                auto result = std::make_shared<drawing::actors::Sprite>();
+                auto result = drawing::actors::Sprite::make();
                 if (args["texture"].valid()) {
                     if (args["texture"].get_type() == sol::type::string) {
                         auto* texture =

@@ -12,6 +12,7 @@ namespace drawing::actors {
 class HBox : public AbstractBox
 {
   public:
+    static auto make() -> std::shared_ptr<HBox>;
     [[nodiscard]] auto getLuaSelf(sol::state& lua) -> sol::object override;
     [[nodiscard]] auto getMinWidth() const -> float override;
     [[nodiscard]] auto getMinHeight() const -> float override;
@@ -35,6 +36,7 @@ class HBox : public AbstractBox
 
   protected:
     void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
+    explicit HBox() = default;
 
   public:
     auto setTransform(sf::Transform transform) -> void override;

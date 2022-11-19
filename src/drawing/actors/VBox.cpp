@@ -164,3 +164,8 @@ drawing::actors::VBox::getContentAlignment() const
 {
     return contentAlignment;
 }
+auto
+drawing::actors::VBox::make() -> std::shared_ptr<VBox>
+{
+    return std::shared_ptr<VBox>(new VBox());
+}
