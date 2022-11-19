@@ -14,11 +14,11 @@ namespace drawing::actors {
 class VBox : public AbstractBox
 {
   public:
-    auto getLuaSelf(sol::state& lua) -> sol::object override;
-    auto getMinWidth() const -> float override;
-    auto getMinHeight() const -> float override;
-    auto getWidth() const -> float override;
-    auto getHeight() const -> float override;
+    [[nodiscard]] auto getLuaSelf(sol::state& lua) -> sol::object override;
+    [[nodiscard]] auto getMinWidth() const -> float override;
+    [[nodiscard]] auto getMinHeight() const -> float override;
+    [[nodiscard]] auto getWidth() const -> float override;
+    [[nodiscard]] auto getHeight() const -> float override;
     enum class ContentAlignment
     {
         Left,
@@ -26,7 +26,7 @@ class VBox : public AbstractBox
         Right
     };
     auto setContentAlignment(ContentAlignment alignment) -> void;
-    auto getContentAlignment() const -> ContentAlignment;
+    [[nodiscard]] auto getContentAlignment() const -> ContentAlignment;
 
   private:
     auto setWidthImpl(float width) -> void override;
@@ -46,7 +46,7 @@ class VBox : public AbstractBox
     sf::Transform transform;
     sf::Vector2f size;
     ContentAlignment contentAlignment{};
-    auto getMinimumSizeOfChildren() const -> sf::Vector2f;
+    [[nodiscard]] auto getMinimumSizeOfChildren() const -> sf::Vector2f;
     void recalculateSize();
 };
 } // namespace drawing::actors

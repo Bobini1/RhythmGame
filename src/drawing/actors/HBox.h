@@ -12,11 +12,11 @@ namespace drawing::actors {
 class HBox : public AbstractBox
 {
   public:
-    auto getLuaSelf(sol::state& lua) -> sol::object override;
-    auto getMinWidth() const -> float override;
-    auto getMinHeight() const -> float override;
-    auto getWidth() const -> float override;
-    auto getHeight() const -> float override;
+    [[nodiscard]] auto getLuaSelf(sol::state& lua) -> sol::object override;
+    [[nodiscard]] auto getMinWidth() const -> float override;
+    [[nodiscard]] auto getMinHeight() const -> float override;
+    [[nodiscard]] auto getWidth() const -> float override;
+    [[nodiscard]] auto getHeight() const -> float override;
     auto update(std::chrono::nanoseconds delta) -> void override;
     [[nodiscard]] auto getIsWidthManaged() const -> bool override;
     [[nodiscard]] auto getIsHeightManaged() const -> bool override;
@@ -27,7 +27,7 @@ class HBox : public AbstractBox
         Bottom
     };
     auto setContentAlignment(ContentAlignment alignment) -> void;
-    auto getContentAlignment() const -> ContentAlignment;
+    [[nodiscard]] auto getContentAlignment() const -> ContentAlignment;
 
   private:
     auto setWidthImpl(float width) -> void override;
@@ -36,16 +36,15 @@ class HBox : public AbstractBox
   protected:
     void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
 
-  private:
   public:
     auto setTransform(sf::Transform transform) -> void override;
-    auto getTransform() const -> sf::Transform override;
+    [[nodiscard]] auto getTransform() const -> sf::Transform override;
 
   private:
     sf::Transform transform;
     sf::Vector2f size;
     ContentAlignment contentAlignment{};
-    auto getMinimumSizeOfChildren() const -> sf::Vector2f;
+    [[nodiscard]] auto getMinimumSizeOfChildren() const -> sf::Vector2f;
     void recalculateSize();
 };
 } // namespace drawing::actors

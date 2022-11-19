@@ -122,9 +122,9 @@ drawing::actors::Text::getString() const -> const std::string
     return text.getString().toAnsiString();
 }
 auto
-drawing::actors::Text::getFont() const -> const sf::Font&
+drawing::actors::Text::getFont() const -> const sf::Font*
 {
-    return *text.getFont();
+    return text.getFont();
 }
 auto
 drawing::actors::Text::getCharacterSize() const -> unsigned int

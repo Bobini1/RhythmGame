@@ -79,6 +79,7 @@ drawing::actors::HBox::getMinimumSizeOfChildren() const -> sf::Vector2f
 void
 drawing::actors::HBox::setTransform(sf::Transform newTransform)
 {
+    recalculateSize();
     transform = newTransform;
     auto workingTransform = transform.translate(0, 0);
     auto minimumSize = getMinimumSizeOfChildren();

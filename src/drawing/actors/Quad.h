@@ -18,7 +18,7 @@ class Quad : public AbstractRectLeaf
   public:
     explicit Quad(sf::Vector2f size = { 0, 0 },
                   sf::Color color = sf::Color::White);
-    auto getLuaSelf(sol::state& lua) -> sol::object override;
+    [[nodiscard]] auto getLuaSelf(sol::state& lua) -> sol::object override;
     [[nodiscard]] auto getPoint(std::size_t index) const -> sf::Vector2f;
     void setFillColor(const sf::Color& color);
     void setOutlineColor(const sf::Color& color);
@@ -28,9 +28,9 @@ class Quad : public AbstractRectLeaf
     [[nodiscard]] auto getOutlineThickness() const -> float;
     void update(std::chrono::nanoseconds delta) override;
     auto setTransform(sf::Transform transform) -> void override;
-    auto getTransform() const -> sf::Transform override;
-    auto getWidth() const -> float override;
-    auto getHeight() const -> float override;
+    [[nodiscard]] auto getTransform() const -> sf::Transform override;
+    [[nodiscard]] auto getWidth() const -> float override;
+    [[nodiscard]] auto getHeight() const -> float override;
 
   private:
     auto setWidthImpl(float width) -> void override;

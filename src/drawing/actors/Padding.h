@@ -20,19 +20,19 @@ class Padding : public Parent
     sf::Transform transform;
 
   public:
-    auto getLuaSelf(sol::state& lua) -> sol::object override;
+    [[nodiscard]] auto getLuaSelf(sol::state& lua) -> sol::object override;
     auto update(std::chrono::nanoseconds delta) -> void override;
     auto setTransform(sf::Transform transform) -> void override;
-    auto getTransform() const -> sf::Transform override;
-    auto getIsWidthManaged() const -> bool override;
-    auto getIsHeightManaged() const -> bool override;
-    auto getMinWidth() const -> float override;
-    auto getMinHeight() const -> float override;
-    auto getWidth() const -> float override;
-    auto getHeight() const -> float override;
+    [[nodiscard]] auto getTransform() const -> sf::Transform override;
+    [[nodiscard]] auto getIsWidthManaged() const -> bool override;
+    [[nodiscard]] auto getIsHeightManaged() const -> bool override;
+    [[nodiscard]] auto getMinWidth() const -> float override;
+    [[nodiscard]] auto getMinHeight() const -> float override;
+    [[nodiscard]] auto getWidth() const -> float override;
+    [[nodiscard]] auto getHeight() const -> float override;
     auto removeChild(std::shared_ptr<Actor> child) -> void override;
     auto setChild(std::shared_ptr<Actor> child) -> void;
-    auto getChild() const -> std::shared_ptr<Actor>;
+    [[nodiscard]] auto getChild() const -> std::shared_ptr<Actor>;
 
   protected:
     void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
@@ -47,10 +47,10 @@ class Padding : public Parent
                      float left = 0,
                      float right = 0);
 
-    auto getTop() const -> float;
-    auto getBottom() const -> float;
-    auto getLeft() const -> float;
-    auto getRight() const -> float;
+    [[nodiscard]] auto getTop() const -> float;
+    [[nodiscard]] auto getBottom() const -> float;
+    [[nodiscard]] auto getLeft() const -> float;
+    [[nodiscard]] auto getRight() const -> float;
     auto setTop(float top) -> void;
     auto setBottom(float bottom) -> void;
     auto setLeft(float left) -> void;

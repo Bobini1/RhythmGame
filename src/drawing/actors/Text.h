@@ -15,7 +15,7 @@ class Text : public AbstractRectLeaf
 
   public:
     static constexpr unsigned int defaultFontSize = 30;
-    auto getLuaSelf(sol::state& lua) -> sol::object override;
+    [[nodiscard]] auto getLuaSelf(sol::state& lua) -> sol::object override;
 
     Text() = default;
     Text(const std::string& text,
@@ -23,9 +23,9 @@ class Text : public AbstractRectLeaf
          unsigned int size = defaultFontSize);
     auto update(std::chrono::nanoseconds delta) -> void override;
     auto setTransform(sf::Transform transform) -> void override;
-    auto getTransform() const -> sf::Transform override;
-    auto getWidth() const -> float override;
-    auto getHeight() const -> float override;
+    [[nodiscard]] auto getTransform() const -> sf::Transform override;
+    [[nodiscard]] auto getWidth() const -> float override;
+    [[nodiscard]] auto getHeight() const -> float override;
 
     void setFillColor(const sf::Color& color);
     void setOutlineColor(const sf::Color& color);
@@ -41,7 +41,7 @@ class Text : public AbstractRectLeaf
     void setLineSpacing(float spacingFactor);
     void setLetterSpacing(float spacingFactor);
     [[nodiscard]] auto getString() const -> const std::string;
-    [[nodiscard]] auto getFont() const -> const sf::Font&;
+    [[nodiscard]] auto getFont() const -> const sf::Font*;
     [[nodiscard]] auto getCharacterSize() const -> unsigned int;
     [[nodiscard]] auto getStyle() const -> sf::Uint32;
     [[nodiscard]] auto getLineSpacing() const -> float;

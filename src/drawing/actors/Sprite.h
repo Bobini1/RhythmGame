@@ -17,7 +17,7 @@ class Sprite : public AbstractRectLeaf
   public:
     Sprite() = default;
     explicit Sprite(const sf::Texture& texture);
-    auto getLuaSelf(sol::state& lua) -> sol::object override;
+    [[nodiscard]] auto getLuaSelf(sol::state& lua) -> sol::object override;
     void setTexture(const sf::Texture& texture);
     void setTextureRect(const sf::IntRect& rect);
     void setColor(const sf::Color& color);
@@ -26,9 +26,9 @@ class Sprite : public AbstractRectLeaf
     [[nodiscard]] auto getColor() const -> const sf::Color&;
     void update(std::chrono::nanoseconds delta) override;
     auto setTransform(sf::Transform transform) -> void override;
-    auto getTransform() const -> sf::Transform override;
-    auto getWidth() const -> float override;
-    auto getHeight() const -> float override;
+    [[nodiscard]] auto getTransform() const -> sf::Transform override;
+    [[nodiscard]] auto getWidth() const -> float override;
+    [[nodiscard]] auto getHeight() const -> float override;
 
   private:
     auto setWidthImpl(float width) -> void override;

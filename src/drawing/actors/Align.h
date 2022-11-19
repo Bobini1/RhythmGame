@@ -31,19 +31,19 @@ class Align : public Parent
     };
     explicit Align(Mode mode = Mode::Center);
     void setChild(std::shared_ptr<Actor> child);
-    auto getChild() const -> std::shared_ptr<Actor>;
-    auto getLuaSelf(sol::state& lua) -> sol::object override;
+    [[nodiscard]] auto getChild() const -> std::shared_ptr<Actor>;
+    [[nodiscard]] auto getLuaSelf(sol::state& lua) -> sol::object override;
     auto update(std::chrono::nanoseconds delta) -> void override;
     auto setTransform(sf::Transform transform) -> void override;
-    auto getTransform() const -> sf::Transform override;
-    auto getIsWidthManaged() const -> bool override;
-    auto getIsHeightManaged() const -> bool override;
-    auto getMinWidth() const -> float override;
-    auto getMinHeight() const -> float override;
-    auto getWidth() const -> float override;
-    auto getHeight() const -> float override;
+    [[nodiscard]] auto getTransform() const -> sf::Transform override;
+    [[nodiscard]] auto getIsWidthManaged() const -> bool override;
+    [[nodiscard]] auto getIsHeightManaged() const -> bool override;
+    [[nodiscard]] auto getMinWidth() const -> float override;
+    [[nodiscard]] auto getMinHeight() const -> float override;
+    [[nodiscard]] auto getWidth() const -> float override;
+    [[nodiscard]] auto getHeight() const -> float override;
     auto setMode(Mode mode) -> void;
-    auto getMode() const -> Mode;
+    [[nodiscard]] auto getMode() const -> Mode;
 
   protected:
     void draw(sf::RenderTarget& target, sf::RenderStates states) const override;

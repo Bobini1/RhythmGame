@@ -30,7 +30,12 @@ class Actor // NOLINT(fuchsia-multiple-inheritance)
     std::weak_ptr<Parent> parent{};
 
   public:
-    virtual auto getLuaSelf(sol::state& lua) -> sol::object = 0;
+    /**
+     * @brief Get the lua object of the type of this actor.
+     * @param lua The lua state to use.
+     * @return The lua object of the type of this actor.
+     */
+    [[nodiscard]] virtual auto getLuaSelf(sol::state& lua) -> sol::object = 0;
 
     /**
      * @brief The parent of this actor. Null for scene root or unattached
