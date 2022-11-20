@@ -36,6 +36,7 @@ Bootstrapper::defineActor(sol::state& target) const -> void
       sol::property(&drawing::actors::Actor::getIsWidthManaged);
     actorType["isHeightManaged"] =
       sol::property(&drawing::actors::Actor::getIsHeightManaged);
+    registerAllEventProperties(actorType);
 }
 
 auto
@@ -152,7 +153,6 @@ Bootstrapper::defineVBox(sol::state& target) const -> void
     vBoxType["contentAlignment"] =
       sol::property(&drawing::actors::VBox::getContentAlignment,
                     &drawing::actors::VBox::setContentAlignment);
-    registerAllEventProperties(vBoxType);
 
     auto alignType = target.new_enum<drawing::actors::VBox::ContentAlignment>(
       "VBoxContentAlignment",
@@ -214,7 +214,6 @@ Bootstrapper::defineHBox(sol::state& target) const -> void
     hBoxType["contentAlignment"] =
       sol::property(&drawing::actors::HBox::getContentAlignment,
                     &drawing::actors::HBox::setContentAlignment);
-    registerAllEventProperties(hBoxType);
 
     auto alignType = target.new_enum<drawing::actors::HBox::ContentAlignment>(
       "HBoxContentAlignment",
@@ -313,7 +312,6 @@ Bootstrapper::defineQuad(sol::state& target) const -> void
       sol::property(&drawing::actors::Quad::getOutlineThickness,
                     &drawing::actors::Quad::setOutlineThickness);
     quadType["getPoint"] = &drawing::actors::Quad::getPoint;
-    registerAllEventProperties(quadType);
 }
 
 auto
@@ -385,7 +383,6 @@ Bootstrapper::definePadding(sol::state& target) const -> void
       [](drawing::actors::Padding* self, drawing::actors::Actor* actor) {
           self->setChild(actor->shared_from_this());
       });
-    registerAllEventProperties(paddingType);
 }
 
 auto
@@ -456,7 +453,6 @@ Bootstrapper::defineAlign(sol::state& target) const -> void
       });
     alignType["mode"] = sol::property(&drawing::actors::Align::getMode,
                                       &drawing::actors::Align::setMode);
-    registerAllEventProperties(alignType);
 }
 
 auto
@@ -501,7 +497,6 @@ Bootstrapper::defineLayers(sol::state& target) const -> void
       [](drawing::actors::Layers* self, drawing::actors::Actor* actor) {
           self->setMainLayer(actor->shared_from_this());
       });
-    registerAllEventProperties(layerType);
 }
 
 auto

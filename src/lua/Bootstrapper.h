@@ -84,14 +84,14 @@ class Bootstrapper
           const sol::table& events) const -> void;
     };
 
-    template<std::derived_from<drawing::actors::Actor> ActorType>
-    auto registerAllEventProperties(sol::usertype<ActorType> actorType) const
+    auto registerAllEventProperties(
+      sol::usertype<drawing::actors::Actor> actorType) const
     {
         for (const auto& [name, registrator] : *eventRegistrators) {
             std::ignore = registrator;
             actorType[name] = sol::property(
               [name, eventAttacher = EventAttacher(eventRegistrators)](
-                ActorType* actor, const sol::object& callback) {
+                drawing::actors::Actor* actor, const sol::object& callback) {
                   if (callback.is<sol::function>()) {
                       eventAttacher.attachEvent(name,
                                                 actor->shared_from_this(),
@@ -240,8 +240,6 @@ class Bootstrapper
         textType["letterSpacing"] =
           sol::property(&drawing::actors::Text::getLetterSpacing,
                         &drawing::actors::Text::setLetterSpacing);
-
-        registerAllEventProperties(textType);
     }
 
   public:
@@ -341,7 +339,6 @@ class Bootstrapper
                         &drawing::actors::Sprite::setTextureRect);
         spriteType["color"] = sol::property(&drawing::actors::Sprite::getColor,
                                             &drawing::actors::Sprite::setColor);
-        registerAllEventProperties(spriteType);
     }
 };
 } // namespace lua

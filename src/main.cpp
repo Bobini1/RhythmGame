@@ -62,7 +62,7 @@ local main = HBox.new{
         }
     }
 }
-main.initEvent = nil
+main.initEvent = onInit2
 local bg = Quad.new{isWidthManaged = true, isHeightManaged = true, fillColor = Color.new(255, 255, 255, 255)}
 local layers = Layers.new{mainLayer = main, children = {bg, main}}
 return layers
