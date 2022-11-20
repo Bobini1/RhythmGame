@@ -3,6 +3,7 @@
 //
 
 #include <SFML/Graphics/Font.hpp>
+#include <boost/log/trivial.hpp>
 #include "Bootstrapper.h"
 #include "drawing/actors/Actor.h"
 #include "drawing/actors/Parent.h"
@@ -13,8 +14,10 @@
 #include "drawing/actors/Align.h"
 #include "drawing/actors/Layers.h"
 
+namespace lua {
+
 auto
-defineActor(sol::state& target) -> void
+Bootstrapper::defineActor(sol::state& target) const -> void
 {
     auto actorType =
       target.new_usertype<drawing::actors::Actor>("Actor", sol::no_constructor);
@@ -36,7 +39,7 @@ defineActor(sol::state& target) -> void
 }
 
 auto
-defineParent(sol::state& target) -> void
+Bootstrapper::defineParent(sol::state& target) const -> void
 {
     auto parentType = target.new_usertype<drawing::actors::Parent>(
       "Parent",
@@ -47,7 +50,7 @@ defineParent(sol::state& target) -> void
 }
 
 auto
-defineAbstractVectorCollection(sol::state& target) -> void
+Bootstrapper::defineAbstractVectorCollection(sol::state& target) const -> void
 {
     auto abstractVectorCollectionType =
       target.new_usertype<drawing::actors::AbstractVectorCollection>(
@@ -70,7 +73,7 @@ defineAbstractVectorCollection(sol::state& target) -> void
 }
 
 auto
-defineAbstractBox(sol::state& target) -> void
+Bootstrapper::defineAbstractBox(sol::state& target) const -> void
 {
     auto abstractBoxType = target.new_usertype<drawing::actors::AbstractBox>(
       "Box",
@@ -96,13 +99,13 @@ defineAbstractBox(sol::state& target) -> void
 }
 
 auto
-defineVBox(sol::state& target) -> void
+Bootstrapper::defineVBox(sol::state& target) const -> void
 {
     auto vBoxType = target.new_usertype<drawing::actors::VBox>(
       "VBox",
       sol::factories(
         []() { return drawing::actors::VBox::make(); },
-        [](sol::table args) {
+        [eventAttacher = EventAttacher(eventRegistrators)](sol::table args) {
             auto result = drawing::actors::VBox::make();
             if (args["children"].valid()) {
                 auto children =
@@ -135,6 +138,9 @@ defineVBox(sol::state& target) -> void
             if (args["spacing"].valid()) {
                 result->setSpacing(args["spacing"].get<float>());
             }
+            if (args["events"].valid()) {
+                eventAttacher.attachAllEvents(result, args["events"]);
+            }
             return result;
         }),
       sol::base_classes,
@@ -146,6 +152,7 @@ defineVBox(sol::state& target) -> void
     vBoxType["contentAlignment"] =
       sol::property(&drawing::actors::VBox::getContentAlignment,
                     &drawing::actors::VBox::setContentAlignment);
+    registerAllEventProperties(vBoxType);
 
     auto alignType = target.new_enum<drawing::actors::VBox::ContentAlignment>(
       "VBoxContentAlignment",
@@ -155,13 +162,13 @@ defineVBox(sol::state& target) -> void
 }
 
 auto
-defineHBox(sol::state& target) -> void
+Bootstrapper::defineHBox(sol::state& target) const -> void
 {
     auto hBoxType = target.new_usertype<drawing::actors::HBox>(
       "HBox",
       sol::factories(
         []() { return drawing::actors::HBox::make(); },
-        [](sol::table args) {
+        [eventAttacher = EventAttacher(eventRegistrators)](sol::table args) {
             auto result = drawing::actors::HBox::make();
             if (args["children"].valid()) {
                 auto children =
@@ -194,6 +201,9 @@ defineHBox(sol::state& target) -> void
             if (args["spacing"].valid()) {
                 result->setSpacing(args["spacing"].get<float>());
             }
+            if (args["events"].valid()) {
+                eventAttacher.attachAllEvents(result, args["events"]);
+            }
             return result;
         }),
       sol::base_classes,
@@ -204,6 +214,7 @@ defineHBox(sol::state& target) -> void
     hBoxType["contentAlignment"] =
       sol::property(&drawing::actors::HBox::getContentAlignment,
                     &drawing::actors::HBox::setContentAlignment);
+    registerAllEventProperties(hBoxType);
 
     auto alignType = target.new_enum<drawing::actors::HBox::ContentAlignment>(
       "HBoxContentAlignment",
@@ -213,7 +224,7 @@ defineHBox(sol::state& target) -> void
 }
 
 auto
-defineVector2(sol::state& target) -> void
+Bootstrapper::defineVector2(sol::state& target) const -> void
 {
     auto vector2fType = target.new_usertype<sf::Vector2f>(
       "Vector2",
@@ -223,7 +234,7 @@ defineVector2(sol::state& target) -> void
 }
 
 auto
-defineAbstractRectLeaf(sol::state& target) -> void
+Bootstrapper::defineAbstractRectLeaf(sol::state& target) const -> void
 {
     auto abstractRectLeafType =
       target.new_usertype<drawing::actors::AbstractRectLeaf>(
@@ -246,7 +257,7 @@ defineAbstractRectLeaf(sol::state& target) -> void
 }
 
 auto
-defineQuad(sol::state& target) -> void
+Bootstrapper::defineQuad(sol::state& target) const -> void
 {
     auto quadType = target.new_usertype<drawing::actors::Quad>(
       "Quad",
@@ -262,7 +273,7 @@ defineQuad(sol::state& target) -> void
               drawing::actors::Quad::make(sf::Vector2f{ width, height }, color);
             return result;
         },
-        [](sol::table args) {
+        [eventAttacher = EventAttacher(eventRegistrators)](sol::table args) {
             auto result = drawing::actors::Quad::make(
               sf::Vector2f{ args.get_or("width", 0.F),
                             args.get_or("height", 0.F) },
@@ -286,6 +297,9 @@ defineQuad(sol::state& target) -> void
             if (args["isHeightManaged"].valid()) {
                 result->setIsHeightManaged(args.get<bool>("isHeightManaged"));
             }
+            if (args["events"].valid()) {
+                eventAttacher.attachAllEvents(result, args["events"]);
+            }
             return result;
         }),
       sol::base_classes,
@@ -299,10 +313,11 @@ defineQuad(sol::state& target) -> void
       sol::property(&drawing::actors::Quad::getOutlineThickness,
                     &drawing::actors::Quad::setOutlineThickness);
     quadType["getPoint"] = &drawing::actors::Quad::getPoint;
+    registerAllEventProperties(quadType);
 }
 
 auto
-defineColor(sol::state& target) -> void
+Bootstrapper::defineColor(sol::state& target) const -> void
 {
     auto colorType = target.new_usertype<sf::Color>(
       "Color", sol::constructors<sf::Color(), sf::Color(int, int, int, int)>());
@@ -313,7 +328,7 @@ defineColor(sol::state& target) -> void
 }
 
 auto
-definePadding(sol::state& target) -> void
+Bootstrapper::definePadding(sol::state& target) const -> void
 {
     auto paddingType = target.new_usertype<drawing::actors::Padding>(
       "Padding",
@@ -333,7 +348,8 @@ definePadding(sol::state& target) -> void
             returnVal->setChild(actor->shared_from_this());
             return returnVal;
         },
-        [](const sol::table& args) {
+        [eventAttacher =
+           EventAttacher(eventRegistrators)](const sol::table& args) {
             auto child = [&]() {
                 if (args["child"].valid()) {
                     return args.get<drawing::actors::Actor*>("child")
@@ -347,6 +363,9 @@ definePadding(sol::state& target) -> void
                                              args.get_or("left", 0.F),
                                              args.get_or("right", 0.F));
             returnVal->setChild(child);
+            if (args["events"].valid()) {
+                eventAttacher.attachAllEvents(returnVal, args["events"]);
+            }
             return returnVal;
         }),
       sol::base_classes,
@@ -366,10 +385,11 @@ definePadding(sol::state& target) -> void
       [](drawing::actors::Padding* self, drawing::actors::Actor* actor) {
           self->setChild(actor->shared_from_this());
       });
+    registerAllEventProperties(paddingType);
 }
 
 auto
-defineAlign(sol::state& target) -> void
+Bootstrapper::defineAlign(sol::state& target) const -> void
 {
     auto modeType = target.new_enum("AlignMode",
                                     "TopLeft",
@@ -407,7 +427,8 @@ defineAlign(sol::state& target) -> void
         [](drawing::actors::Align::Mode mode) {
             return drawing::actors::Align::make(mode);
         },
-        [](const sol::table& args) {
+        [eventAttacher =
+           EventAttacher(eventRegistrators)](const sol::table& args) {
             auto child = [&]() {
                 if (args["child"].valid()) {
                     return args.get<drawing::actors::Actor*>("child")
@@ -418,6 +439,10 @@ defineAlign(sol::state& target) -> void
             auto returnVal = drawing::actors::Align::make(
               args.get_or("mode", drawing::actors::Align::Mode::Center));
             returnVal->setChild(std::move(child));
+
+            if (args["events"].valid()) {
+                eventAttacher.attachAllEvents(returnVal, args["events"]);
+            }
             return returnVal;
         }),
       sol::base_classes,
@@ -431,16 +456,18 @@ defineAlign(sol::state& target) -> void
       });
     alignType["mode"] = sol::property(&drawing::actors::Align::getMode,
                                       &drawing::actors::Align::setMode);
+    registerAllEventProperties(alignType);
 }
 
 auto
-defineLayers(sol::state& target) -> void
+Bootstrapper::defineLayers(sol::state& target) const -> void
 {
     auto layerType = target.new_usertype<drawing::actors::Layers>(
       "Layers",
       sol::factories(
         []() { return drawing::actors::Layers::make(); },
-        [](const sol::table& args) {
+        [eventAttacher =
+           EventAttacher(eventRegistrators)](const sol::table& args) {
             auto returnVal = drawing::actors::Layers::make();
             if (args["children"].valid()) {
                 for (const auto& child :
@@ -460,6 +487,9 @@ defineLayers(sol::state& target) -> void
             if (args["height"].valid()) {
                 returnVal->setHeight(args.get<float>("height"));
             }
+            if (args["events"].valid()) {
+                eventAttacher.attachAllEvents(returnVal, args["events"]);
+            }
             return returnVal;
         }),
       sol::base_classes,
@@ -471,10 +501,11 @@ defineLayers(sol::state& target) -> void
       [](drawing::actors::Layers* self, drawing::actors::Actor* actor) {
           self->setMainLayer(actor->shared_from_this());
       });
+    registerAllEventProperties(layerType);
 }
 
 auto
-lua::Bootstrapper::defineCommonTypes(sol::state& target) const -> void
+Bootstrapper::defineCommonTypes(sol::state& target) const -> void
 {
     defineActor(target);
     defineParent(target);
@@ -490,3 +521,37 @@ lua::Bootstrapper::defineCommonTypes(sol::state& target) const -> void
     defineAlign(target);
     defineLayers(target);
 }
+auto
+Bootstrapper::EventAttacher::attachAllEvents(
+  const std::shared_ptr<drawing::actors::Actor>& actor,
+  const sol::table& events) const -> void
+{
+    for (auto& [key, value] : events) {
+        if (value.get_type() != sol::type::function) {
+            BOOST_LOG_TRIVIAL(error)
+              << "Event handler " << key.as<std::string>()
+              << " is not a function, skipping";
+            continue;
+        }
+        attachEvent(key.as<std::string>(), actor, value.as<sol::function>());
+    }
+}
+auto
+Bootstrapper::EventAttacher::attachEvent(
+  std::string eventName,
+  std::shared_ptr<drawing::actors::Actor> actor,
+  sol::function function) const -> void
+{
+    if (eventRegistrators->find(eventName) == eventRegistrators->end()) {
+        BOOST_LOG_TRIVIAL(error) << "Event " << eventName << " not found";
+        return;
+    }
+    eventRegistrators->at(eventName)(std::move(actor), std::move(function));
+}
+Bootstrapper::EventAttacher::EventAttacher(
+  std::shared_ptr<std::map<std::string, CppEventInterface>> eventRegistrators)
+  : eventRegistrators(std::move(eventRegistrators))
+{
+}
+
+} // namespace lua

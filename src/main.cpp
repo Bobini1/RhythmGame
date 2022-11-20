@@ -10,7 +10,18 @@
 #include "resource_managers/FontLoaderImpl.h"
 
 constexpr auto luaScript = R"(
+function onInit(self)
+    print("Hello from lua!")
+end
+
+function onInit2(self)
+    print("Hello from lua2!")
+end
+
 local main = HBox.new{
+    events = {
+        initEvent = onInit
+    },
     contentAlignment = HBoxContentAlignment.Bottom,
     horizontalSizeMode = SizeMode.Managed,
     verticalSizeMode = SizeMode.Managed,
@@ -51,6 +62,7 @@ local main = HBox.new{
         }
     }
 }
+main.initEvent = nil
 local bg = Quad.new{isWidthManaged = true, isHeightManaged = true, fillColor = Color.new(255, 255, 255, 255)}
 local layers = Layers.new{mainLayer = main, children = {bg, main}}
 return layers
@@ -61,7 +73,12 @@ main() -> int
 {
     sol::state state;
     state.open_libraries(sol::lib::jit, sol::lib::base, sol::lib::io);
-    lua::Bootstrapper const bootstrapper;
+    lua::Bootstrapper bootstrapper;
+
+    auto startingScene = std::make_shared<drawing::SplashScene>();
+
+    startingScene->defineEvents(state, bootstrapper);
+
     bootstrapper.defineCommonTypes(state);
 
     auto textureLoader = resource_managers::TextureLoaderImpl{};
@@ -71,8 +88,10 @@ main() -> int
     bootstrapper.bindFontLoader(state, fontLoader);
 
     auto root = state.script(luaScript);
-    auto startingScene = std::make_shared<drawing::SplashScene>(
-      root.get<drawing::actors::Actor*>()->shared_from_this());
+
+    auto rootPtr = root.get<drawing::actors::Actor*>()->shared_from_this();
+    startingScene->setRoot(std::move(rootPtr));
+
     auto startingWindow = std::make_shared<drawing::SplashWindow>(
       std::move(startingScene), sf::VideoMode{ 800, 600 }, "RhythmGame");
     auto windowStateMachine = state_transitions::WindowStateMachineImpl{};

@@ -9,6 +9,7 @@
 #include "drawing/actors/Actor.h"
 #include "drawing/actors/Quad.h"
 #include "drawing/actors/VBox.h"
+#include "events/Signals2Event.h"
 #include <SFML/Graphics/RenderTarget.hpp>
 #include <execution>
 
@@ -20,11 +21,18 @@ class SplashScene : public Scene
 {
     // sol::state lua;
     std::shared_ptr<actors::Actor> root;
+    events::Signals2Event<> init{};
+    mutable bool initialized = false;
 
   public:
-    explicit SplashScene(std::shared_ptr<actors::Actor> root)
-      : root(std::move(root))
+    auto defineEvents(sol::state& target, lua::Bootstrapper& bootstrapper)
+      -> void override
     {
+        bootstrapper.addEvent(target, init, "init");
+    }
+    auto setRoot(std::shared_ptr<actors::Actor> newRoot) -> void override
+    {
+        this->root = std::move(newRoot);
     }
     void update(std::chrono::nanoseconds /* delta */) final {}
     void draw(sf::RenderTarget& target, sf::RenderStates states) const final
@@ -36,6 +44,12 @@ class SplashScene : public Scene
             root->setHeight(static_cast<float>(target.getSize().y));
         }
         root->setTransform(sf::Transform::Identity);
+
+        if (!initialized) {
+            init();
+            initialized = true;
+        }
+
         target.draw(*root, states);
     }
 };

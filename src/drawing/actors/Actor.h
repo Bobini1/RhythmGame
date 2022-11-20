@@ -8,10 +8,12 @@
 #include <SFML/Graphics/Drawable.hpp>
 #include <SFML/Graphics/Transformable.hpp>
 #include <chrono>
-#include <vector>
+#include <map>
 #include <memory>
 #include <sol/state.hpp>
 #include "support/EnableSharedFromBase.h"
+#include "events/Connection.h"
+#include <boost/signals2/connection.hpp>
 
 /**
  * @namespace drawing::actors
@@ -28,6 +30,8 @@ class Actor // NOLINT(fuchsia-multiple-inheritance)
   , public support::EnableSharedFromBase<Actor>
 {
     std::weak_ptr<Parent> parent{};
+    std::map<std::string, std::unique_ptr<events::Connection>>
+      eventSubscriptions{};
 
   protected:
     Actor() = default;
@@ -37,6 +41,11 @@ class Actor // NOLINT(fuchsia-multiple-inheritance)
   public:
     Actor(Actor&& otherActor) noexcept = delete;
     auto operator=(Actor&& otherActor) noexcept -> Actor& = delete;
+    ~Actor() override = default;
+
+    void addEventSubscription(const std::string& eventName,
+                              std::unique_ptr<events::Connection> connection);
+    auto removeEventSubscription(const std::string& eventName) -> void;
 
     /**
      * @brief Get the lua object of the type of this actor.

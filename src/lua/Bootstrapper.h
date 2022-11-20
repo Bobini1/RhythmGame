@@ -6,16 +6,107 @@
 #define RHYTHMGAME_BOOTSTRAPPER_H
 
 #include <sol/state.hpp>
+#include <utility>
+#include <boost/log/trivial.hpp>
 #include "resource_managers/TextureLoader.h"
 #include "resource_managers/FontLoader.h"
 #include "drawing/actors/Sprite.h"
 #include "SFML/Graphics/Font.hpp"
 #include "drawing/actors/Text.h"
+#include "events/Event.h"
 
 namespace lua {
 
 class Bootstrapper
 {
+    auto defineActor(sol::state& target) const -> void;
+    auto defineParent(sol::state& target) const -> void;
+    auto defineAbstractVectorCollection(sol::state& target) const -> void;
+    auto defineAbstractBox(sol::state& target) const -> void;
+    auto defineVBox(sol::state& target) const -> void;
+    auto defineHBox(sol::state& target) const -> void;
+    auto defineVector2(sol::state& target) const -> void;
+    auto defineAbstractRectLeaf(sol::state& target) const -> void;
+    auto defineQuad(sol::state& target) const -> void;
+    auto defineColor(sol::state& target) const -> void;
+    auto definePadding(sol::state& target) const -> void;
+    auto defineAlign(sol::state& target) const -> void;
+    auto defineLayers(sol::state& target) const -> void;
+
+  public:
+    using CppEventInterface =
+      std::function<void(std::shared_ptr<drawing::actors::Actor>,
+                         sol::function)>;
+
+  private:
+    std::shared_ptr<std::map<std::string, CppEventInterface>>
+      eventRegistrators =
+        std::make_shared<std::map<std::string, CppEventInterface>>();
+
+  public:
+    template<typename... Args,
+             events::Event<std::function<void(Args...)>, Args...> EventType>
+    auto addEvent(sol::state& target, EventType& event, std::string name)
+      -> void
+    {
+        (*eventRegistrators)[name + "Event"] =
+          [&target, &event, name](
+            const std::shared_ptr<drawing::actors::Actor>& actor,
+            sol::function function) {
+              actor->addEventSubscription(
+                name + "Event",
+                event.subscribe(
+                  [&target,
+                   actorWeak = std::weak_ptr<drawing::actors::Actor>(actor),
+                   function = std::move(function)](Args&&... args) {
+                      auto actor = actorWeak.lock();
+                      function(actor->getLuaSelf(target), args...);
+                  }));
+          };
+    }
+
+  private:
+    class EventAttacher
+    {
+        std::shared_ptr<std::map<std::string, CppEventInterface>>
+          eventRegistrators;
+
+      public:
+        explicit EventAttacher(
+          std::shared_ptr<std::map<std::string, CppEventInterface>>
+            eventRegistrators);
+        auto attachEvent(std::string eventName,
+                         std::shared_ptr<drawing::actors::Actor> actor,
+                         sol::function function) const -> void;
+
+        auto attachAllEvents(
+          const std::shared_ptr<drawing::actors::Actor>& actor,
+          const sol::table& events) const -> void;
+    };
+
+    template<std::derived_from<drawing::actors::Actor> ActorType>
+    auto registerAllEventProperties(sol::usertype<ActorType> actorType) const
+    {
+        for (const auto& [name, registrator] : *eventRegistrators) {
+            std::ignore = registrator;
+            actorType[name] = sol::property(
+              [name, eventAttacher = EventAttacher(eventRegistrators)](
+                ActorType* actor, const sol::object& callback) {
+                  if (callback.is<sol::function>()) {
+                      eventAttacher.attachEvent(name,
+                                                actor->shared_from_this(),
+                                                callback.as<sol::function>());
+                  } else if (callback.is<sol::lua_nil_t>()) {
+                      actor->removeEventSubscription(name);
+                  } else {
+                      BOOST_LOG_TRIVIAL(error)
+                        << "Invalid type for " << name
+                        << "Event. Function or nil expected";
+                  }
+              });
+        }
+    }
+
   public:
     auto defineCommonTypes(sol::state& target) const -> void;
 
@@ -27,6 +118,7 @@ class Bootstrapper
         defineText(target, loader);
     }
 
+  private:
     template<resource_managers::FontLoader FontLoaderType>
     auto defineFont(sol::state& target, FontLoaderType& fontLoader) const
       -> void
@@ -60,7 +152,8 @@ class Bootstrapper
                unsigned int characterSize) {
                 return drawing::actors::Text::make(text, font, characterSize);
             },
-            [&fontLoader](sol::table args) {
+            [&fontLoader, eventAttacher = EventAttacher(eventRegistrators)](
+              sol::table args) {
                 const auto* defaultFont = fontLoader.getDefault();
                 const auto* font = args.get<const sf::Font*>(
                   "font"); // get_or broken in this case as of 17.11.22.
@@ -115,6 +208,9 @@ class Bootstrapper
                     result->setIsHeightManaged(
                       args.get<bool>("isHeightManaged"));
                 }
+                if (args["events"].valid()) {
+                    eventAttacher.attachAllEvents(result, args["events"]);
+                }
                 return result;
             }),
           sol::base_classes,
@@ -144,8 +240,11 @@ class Bootstrapper
         textType["letterSpacing"] =
           sol::property(&drawing::actors::Text::getLetterSpacing,
                         &drawing::actors::Text::setLetterSpacing);
+
+        registerAllEventProperties(textType);
     }
 
+  public:
     template<resource_managers::TextureLoader TextureLoaderType>
     auto bindTextureLoader(sol::state& target,
                            TextureLoaderType& textureLoader) const -> void
@@ -185,7 +284,8 @@ class Bootstrapper
                 }
                 return drawing::actors::Sprite::make(*texture);
             },
-            [&textureLoader](sol::table args) {
+            [&textureLoader, eventAttacher = EventAttacher(eventRegistrators)](
+              sol::table args) {
                 auto result = drawing::actors::Sprite::make();
                 if (args["texture"].valid()) {
                     if (args["texture"].get_type() == sol::type::string) {
@@ -224,6 +324,10 @@ class Bootstrapper
                     result->setIsHeightManaged(
                       args.get<bool>("isHeightManaged"));
                 }
+                if (args["events"].valid()) {
+
+                    eventAttacher.attachAllEvents(result, args["events"]);
+                }
                 return result;
             }),
           sol::base_classes,
@@ -237,6 +341,7 @@ class Bootstrapper
                         &drawing::actors::Sprite::setTextureRect);
         spriteType["color"] = sol::property(&drawing::actors::Sprite::getColor,
                                             &drawing::actors::Sprite::setColor);
+        registerAllEventProperties(spriteType);
     }
 };
 } // namespace lua

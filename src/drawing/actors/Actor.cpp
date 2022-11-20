@@ -47,3 +47,16 @@ drawing::actors::Actor::operator=(const Actor& /*unused*/)
 {
     return *this;
 }
+void
+drawing::actors::Actor::addEventSubscription(
+  const std::string& eventName,
+  std::unique_ptr<events::Connection> connection)
+{
+    eventSubscriptions[eventName] = std::move(connection);
+}
+auto
+drawing::actors::Actor::removeEventSubscription(
+  const std::string& eventName) -> void
+{
+    eventSubscriptions.erase(eventName);
+}
