@@ -9,7 +9,7 @@ class Recipe(ConanFile):
     # change boost flags on windows
     def configure(self):
         if self.settings.os == "Windows":
-            self.default_options["boost"].extra_b2_flags = ["BOOST_USE_WINAPI_VERSION=0x0501"]
+            self.options["boost"].extra_b2_flags = ["BOOST_USE_WINAPI_VERSION=0x0501"]
 
     def layout(self):
         self.folders.generators = "conan"
