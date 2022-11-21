@@ -29,6 +29,10 @@ find_package(pegtl REQUIRED)
 
 find_package(fmt REQUIRED)
 
+# <------------ spdlog (logging) --------------->
+
+find_package(spdlog REQUIRED)
+
 # <------------ boost --------------->
 
 find_package(Boost REQUIRED)
@@ -49,7 +53,7 @@ find_package(Threads REQUIRED)
 
 find_package(Microsoft.GSL REQUIRED)
 
-target_link_libraries(RhythmGame_lib PUBLIC Threads::Threads taocpp::pegtl Boost::headers type_safe::type_safe luajit::luajit sol2::sol2 SQLiteCpp sfml::sfml Microsoft.GSL::GSL Boost::log)
+target_link_libraries(RhythmGame_lib PUBLIC Threads::Threads taocpp::pegtl Boost::headers type_safe::type_safe luajit::luajit sol2::sol2 SQLiteCpp sfml::sfml Microsoft.GSL::GSL spdlog::spdlog)
 
 include(CheckCXXSymbolExists)
 check_cxx_symbol_exists(std::execution::par "execution" RHYTHMGAME_HAS_STD_EXECUTION)

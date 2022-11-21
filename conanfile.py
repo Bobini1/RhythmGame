@@ -6,20 +6,13 @@ class Recipe(ConanFile):
     generators = "CMakeToolchain", "CMakeDeps", "VirtualRunEnv"
     build_requires = "cmake/3.22.0"
 
-    # change boost flags on windows
-    def configure(self):
-        if self.settings.os == "Windows":
-            self.options["boost"].extra_b2_flags = ["BOOST_USE_WINAPI_VERSION=0x0501"]
-
     def layout(self):
         self.folders.generators = "conan"
 
     def requirements(self):
-        self.requires("zlib/1.2.13")
         self.requires("sol2/3.3.0")
         self.requires("sqlitecpp/3.1.1")
         self.requires("boost/1.79.0")
-        self.requires("fmt/7.0.3")
         self.requires("stb/cci.20210910")
         self.requires("taocpp-pegtl/3.2.6")
         self.requires("ms-gsl/4.0.0")
@@ -27,6 +20,7 @@ class Recipe(ConanFile):
         self.requires("luajit/2.0.5")
         self.requires("sfml/2.5.1")
         self.requires("di/1.2.0")
+        self.requires("spdlog/1.11.0")
 
         # Testing only dependencies below
         self.requires("catch2/3.0.1")

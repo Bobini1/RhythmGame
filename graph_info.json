@@ -461,6 +461,30 @@
    "True"
   ],
   [
+   "spdlog:fPIC",
+   "True"
+  ],
+  [
+   "spdlog:header_only",
+   "False"
+  ],
+  [
+   "spdlog:no_exceptions",
+   "False"
+  ],
+  [
+   "spdlog:shared",
+   "False"
+  ],
+  [
+   "spdlog:wchar_filenames",
+   "False"
+  ],
+  [
+   "spdlog:wchar_support",
+   "False"
+  ],
+  [
    "sqlite3:build_executable",
    "True"
   ],

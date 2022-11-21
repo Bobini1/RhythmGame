@@ -3,21 +3,20 @@
 //
 
 #include "TextureLoaderImpl.h"
-#include <boost/log/trivial.hpp>
+#include <spdlog/spdlog.h>
 auto
 resource_managers::TextureLoaderImpl::load(const std::string& path)
   -> const sf::Texture*
 {
     if (!std::filesystem::exists(path)) {
-        BOOST_LOG_TRIVIAL(error) << "Texture file " << path << " does not exist";
+        spdlog::error("Texture file {} does not exist", path);
         return nullptr;
     }
     auto absPath = std::filesystem::canonical(path);
     if (loadedTextures.find(absPath) == loadedTextures.end()) {
         auto texture = std::make_unique<sf::Texture>();
         if (!texture->loadFromFile(absPath.string())) {
-            BOOST_LOG_TRIVIAL(error)
-              << "Failed to load texture from file " << path;
+            spdlog::error("Failed to load texture from file {}", path);
             return nullptr;
         }
         loadedTextures[absPath] = std::move(texture);

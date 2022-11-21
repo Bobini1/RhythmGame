@@ -3,7 +3,7 @@
 //
 
 #include <SFML/Graphics/Font.hpp>
-#include <boost/log/trivial.hpp>
+#include <spdlog/spdlog.h>
 #include "Bootstrapper.h"
 #include "drawing/actors/Actor.h"
 #include "drawing/actors/Parent.h"
@@ -523,9 +523,8 @@ Bootstrapper::EventAttacher::attachAllEvents(
 {
     for (auto& [key, value] : events) {
         if (value.get_type() != sol::type::function) {
-            BOOST_LOG_TRIVIAL(error)
-              << "Event handler " << key.as<std::string>()
-              << " is not a function, skipping";
+            spdlog::error("Event handler {} is not a function, skipping",
+                          key.as<std::string>());
             continue;
         }
         attachEvent(key.as<std::string>(), actor, value.as<sol::function>());
@@ -538,7 +537,7 @@ Bootstrapper::EventAttacher::attachEvent(
   sol::function function) const -> void
 {
     if (eventRegistrators->find(eventName) == eventRegistrators->end()) {
-        BOOST_LOG_TRIVIAL(error) << "Event " << eventName << " not found";
+        spdlog::error("Event {} not found", eventName);
         return;
     }
     eventRegistrators->at(eventName)(std::move(actor), std::move(function));

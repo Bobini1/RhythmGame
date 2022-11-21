@@ -6,8 +6,8 @@
 #define RHYTHMGAME_BOOTSTRAPPER_H
 
 #include <sol/state.hpp>
+#include <spdlog/spdlog.h>
 #include <utility>
-#include <boost/log/trivial.hpp>
 #include "resource_managers/TextureLoader.h"
 #include "resource_managers/FontLoader.h"
 #include "drawing/actors/Sprite.h"
@@ -114,9 +114,9 @@ class Bootstrapper
                   } else if (callback.is<sol::lua_nil_t>()) {
                       actor->removeEventSubscription(nameCopy);
                   } else {
-                      BOOST_LOG_TRIVIAL(error)
-                        << "Invalid type for " << nameCopy
-                        << "Event. Function or nil expected";
+                      spdlog::error(
+                        "Invalid type for {}. Function or nil expected",
+                        nameCopy);
                   }
               });
         }

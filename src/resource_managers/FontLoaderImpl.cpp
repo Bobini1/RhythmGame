@@ -2,14 +2,14 @@
 // Created by bobini on 16.11.22.
 //
 
+#include <spdlog/spdlog.h>
 #include "FontLoaderImpl.h"
-#include "boost/log/trivial.hpp"
 auto
 resource_managers::FontLoaderImpl::load(const std::string& path)
   -> const sf::Font*
 {
     if (!std::filesystem::exists(path)) {
-        BOOST_LOG_TRIVIAL(error) << "Font file " << path << " does not exist";
+        spdlog::error("Font file {} does not exist", path);
         return nullptr;
     }
     auto pathAbs = std::filesystem::canonical(path);
