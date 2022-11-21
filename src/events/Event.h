@@ -10,13 +10,12 @@
 #include <memory>
 namespace events {
 template<typename T, typename Fun, typename... Args>
-concept Event = std::invocable<Fun, Args...> &&
-                requires(T event, Fun&& callback, Args&&... args) {
+concept Event = requires(T event, Fun callback, Args... args) {
                     {
-                        event.subscribe(callback)
+                        event.subscribe(std::move(callback))
                     } -> std::convertible_to<std::unique_ptr<Connection>>;
                     {
-                        std::as_const(event)(args...)
+                        std::as_const(event)(std::forward<Args>(args)...)
                     };
                 };
 } // namespace events

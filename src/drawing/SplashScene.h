@@ -37,6 +37,8 @@ class SplashScene : public Scene
     void update(std::chrono::nanoseconds /* delta */) final {}
     void draw(sf::RenderTarget& target, sf::RenderStates states) const final
     {
+        static int count = 0;
+        static auto last = std::chrono::steady_clock::now();
         if (root->getIsWidthManaged()) {
             root->setWidth(static_cast<float>(target.getSize().x));
         }
@@ -45,10 +47,20 @@ class SplashScene : public Scene
         }
         root->setTransform(sf::Transform::Identity);
 
-        if (!initialized) {
-            init();
-            initialized = true;
+        if (count++ > 1000) {
+            count = 0;
+            auto now = std::chrono::steady_clock::now();
+            std::cout
+              << "FPS: "
+              << 1000.0 /
+                   std::chrono::duration_cast<std::chrono::duration<double>>(
+                     now - last)
+                     .count()
+              << std::endl;
+            last = now;
         }
+
+        init();
 
         target.draw(*root, states);
     }

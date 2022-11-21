@@ -5,7 +5,7 @@
 #include <catch2/catch_approx.hpp>
 #include "drawing/actors/Quad.h"
 #include "catch2/catch_test_macros.hpp"
-#include "setupState.h"
+#include "../setupState.h"
 
 static constexpr auto scriptWithArrayConstructor = R"(
     local quad = Quad.new{width = 100, height = 100, minWidth = 50, minHeight = 50,

@@ -5,7 +5,7 @@
 #include "drawing/actors/Sprite.h"
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/catch_approx.hpp>
-#include "setupState.h"
+#include "../setupState.h"
 
 // TODO: add other parameters when texture management is implemented
 static constexpr auto scriptWithArrayConstructor = R"(

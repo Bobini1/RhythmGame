@@ -6,7 +6,7 @@
 #include "drawing/actors/Quad.h"
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/catch_approx.hpp>
-#include "setupState.h"
+#include "../setupState.h"
 
 static constexpr auto luaScript = R"(
     local root = VBox.new()

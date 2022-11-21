@@ -15,7 +15,6 @@ function onInit(self)
 end
 
 function onInit2(self)
-    print("Hello from lua2!")
 end
 
 local main = HBox.new{

@@ -5,7 +5,7 @@
 #include <catch2/catch_approx.hpp>
 #include "drawing/actors/Align.h"
 #include "catch2/catch_test_macros.hpp"
-#include "setupState.h"
+#include "../setupState.h"
 
 static constexpr auto scriptWithArrayConstructor = R"(
     local align = Align.new{mode = AlignMode.TopLeft, child = Quad.new{}}

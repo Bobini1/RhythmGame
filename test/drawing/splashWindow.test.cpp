@@ -14,6 +14,15 @@ class DummyScene : public drawing::Scene
     unsigned updateCount{};
     mutable unsigned drawCount{};
 
+  public:
+    auto defineEvents(sol::state& target, lua::Bootstrapper& bootstrapper)
+      -> void override
+    {
+    }
+    auto setRoot(std::shared_ptr<drawing::actors::Actor> root) -> void override
+    {
+    }
+
   protected:
     void draw(sf::RenderTarget& /* target */,
               sf::RenderStates /* states */) const override

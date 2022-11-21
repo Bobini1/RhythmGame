@@ -5,7 +5,7 @@
 #include <catch2/catch_approx.hpp>
 #include "drawing/actors/Layers.h"
 #include "catch2/catch_test_macros.hpp"
-#include "setupState.h"
+#include "../setupState.h"
 
 static constexpr auto scriptWithArrayConstructor = R"(
     local layers = Layers.new{children = {Quad.new{}}, mainLayer = Quad.new{}}

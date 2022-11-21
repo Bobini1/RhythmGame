@@ -44,8 +44,8 @@ class Bootstrapper
         std::make_shared<std::map<std::string, CppEventInterface>>();
 
   public:
-    template<typename... Args,
-             events::Event<std::function<void(Args...)>, Args...> EventType>
+    template<typename EventType, typename... Args>
+        requires events::Event<EventType, std::function<void(Args...)>, Args...>
     auto addEvent(sol::state& target, EventType& event, std::string name)
       -> void
     {
