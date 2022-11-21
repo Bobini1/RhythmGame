@@ -59,43 +59,179 @@
             <li>
               Reference
               <ul>
+                <li><a href="#pub-types">Public types</a></li>
                 <li><a href="#pub-methods">Public functions</a></li>
               </ul>
             </li>
           </ul>
         </div>
-        <section id="pub-methods">
-          <h2><a href="#pub-methods">Public functions</a></h2>
+        <section id="pub-types">
+          <h2><a href="#pub-types">Public types</a></h2>
           <dl class="m-doc">
-            <dt id="ac82c2a5ce1fdac0660da62a6489ef00b">
-              <span class="m-doc-wrap-bumper">auto <a href="#ac82c2a5ce1fdac0660da62a6489ef00b" class="m-doc-self">defineCommonTypes</a>(</span><span class="m-doc-wrap">sol::state&amp; target) const -&gt; void</span>
-            </dt>
-            <dd><span></span></dd>
-            <dt id="abf5438256980f3f51d70f269c9945970">
-              <div class="m-doc-template">template&lt;<a href="namespaceresource__managers.html#a38eddd67f196b5bbf07f4b2571f2d003" class="m-doc">resource_managers::<wbr />FontLoader</a> FontLoaderType&gt;</div>
-              <span class="m-doc-wrap-bumper">auto <a href="#abf5438256980f3f51d70f269c9945970" class="m-doc-self">bindFontLoader</a>(</span><span class="m-doc-wrap">sol::state&amp; target,
-              FontLoaderType&amp; loader) const -&gt; void</span>
-            </dt>
-            <dd><span></span></dd>
-            <dt id="a661b414a8fe254d6d0ff38a047773687">
-              <div class="m-doc-template">template&lt;<a href="namespaceresource__managers.html#a38eddd67f196b5bbf07f4b2571f2d003" class="m-doc">resource_managers::<wbr />FontLoader</a> FontLoaderType&gt;</div>
-              <span class="m-doc-wrap-bumper">auto <a href="#a661b414a8fe254d6d0ff38a047773687" class="m-doc-self">defineFont</a>(</span><span class="m-doc-wrap">sol::state&amp; target,
-              FontLoaderType&amp; fontLoader) const -&gt; void</span>
-            </dt>
-            <dd><span></span></dd>
-            <dt id="a48a872b9bdcf7ca5921046c94831506c">
-              <div class="m-doc-template">template&lt;<a href="namespaceresource__managers.html#a38eddd67f196b5bbf07f4b2571f2d003" class="m-doc">resource_managers::<wbr />FontLoader</a> FontLoaderType&gt;</div>
-              <span class="m-doc-wrap-bumper">auto <a href="#a48a872b9bdcf7ca5921046c94831506c" class="m-doc-self">defineText</a>(</span><span class="m-doc-wrap">sol::state&amp; target,
-              FontLoaderType&amp; fontLoader) const -&gt; void</span>
-            </dt>
-            <dd><span></span></dd>
-            <dt id="a24383a37865b6215e1069a646b2c930a">
-              <div class="m-doc-template">template&lt;<a href="namespaceresource__managers.html#af40c724bd11b4481e560c650021a2dbb" class="m-doc">resource_managers::<wbr />TextureLoader</a> TextureLoaderType&gt;</div>
-              <span class="m-doc-wrap-bumper">auto <a href="#a24383a37865b6215e1069a646b2c930a" class="m-doc-self">bindTextureLoader</a>(</span><span class="m-doc-wrap">sol::state&amp; target,
-              TextureLoaderType&amp; textureLoader) const -&gt; void</span>
+            <dt id="a138415f0775c0b670a29742153db32df">
+              using <a href="#a138415f0775c0b670a29742153db32df" class="m-doc-self">CppEventInterface</a> = std::function&lt;void(std::shared_ptr&lt;<a href="classdrawing_1_1actors_1_1Actor.html" class="m-doc">drawing::<wbr />actors::<wbr />Actor</a>&gt;, sol::function)&gt;
             </dt>
             <dd><span></span></dd>
           </dl>
+        </section>
+        <section id="pub-methods">
+          <h2><a href="#pub-methods">Public functions</a></h2>
+          <dl class="m-doc">
+            <dt>
+              <div class="m-doc-template">template&lt;typename EventType, typename... Args&gt;</div>
+              <span class="m-doc-wrap-bumper">auto <a href="#a9d678f7e41179c82502314829916631f" class="m-doc">addEvent</a>(</span><span class="m-doc-wrap">sol::state&amp; target,
+              EventType&amp; event,
+              std::string name) -&gt; void -&gt; requires <a href="namespaceevents.html#a273581d980e9eb3b79a267ce15ad106f" class="m-doc">events::<wbr />Event</a>&lt;EventType, std::function&lt;void(Args...)&gt;, Args...&gt; auto</span>
+            </dt>
+            <dd>Registers an event in lua.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#ac82c2a5ce1fdac0660da62a6489ef00b" class="m-doc">defineCommonTypes</a>(</span><span class="m-doc-wrap">sol::state&amp; target) const -&gt; void</span>
+            </dt>
+            <dd>Define all actors that are not templated.</dd>
+            <dt>
+              <div class="m-doc-template">template&lt;<a href="namespaceresource__managers.html#a38eddd67f196b5bbf07f4b2571f2d003" class="m-doc">resource_managers::<wbr />FontLoader</a> FontLoaderType&gt;</div>
+              <span class="m-doc-wrap-bumper">auto <a href="#abf5438256980f3f51d70f269c9945970" class="m-doc">bindFontLoader</a>(</span><span class="m-doc-wrap">sol::state&amp; target,
+              FontLoaderType&amp; loader) const -&gt; void</span>
+            </dt>
+            <dd>Define the actors templated on the font loader type.</dd>
+            <dt>
+              <div class="m-doc-template">template&lt;<a href="namespaceresource__managers.html#af40c724bd11b4481e560c650021a2dbb" class="m-doc">resource_managers::<wbr />TextureLoader</a> TextureLoaderType&gt;</div>
+              <span class="m-doc-wrap-bumper">auto <a href="#a24383a37865b6215e1069a646b2c930a" class="m-doc">bindTextureLoader</a>(</span><span class="m-doc-wrap">sol::state&amp; target,
+              TextureLoaderType&amp; textureLoader) const -&gt; void</span>
+            </dt>
+            <dd>Defines the actors templated on the texture loader type.</dd>
+          </dl>
+        </section>
+        <section>
+          <h2>Function documentation</h2>
+          <section class="m-doc-details" id="a9d678f7e41179c82502314829916631f"><div>
+            <h3>
+              <div class="m-doc-template">
+                template&lt;typename EventType, typename... Args&gt;
+              </div>
+              <span class="m-doc-wrap-bumper">requires <a href="namespaceevents.html#a273581d980e9eb3b79a267ce15ad106f" class="m-doc">events::<wbr />Event</a>&lt;EventType, std::function&lt;void(Args...)&gt;, Args...&gt; auto lua::<wbr />Bootstrapper::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a9d678f7e41179c82502314829916631f" class="m-doc-self">addEvent</a>(</span><span class="m-doc-wrap">sol::state&amp; target,
+              EventType&amp; event,
+              std::string name) -&gt; void</span></span>
+            </h3>
+            <p>Registers an event in lua.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Template parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">EventType</td>
+                  <td>The event&#x27;s type.</td>
+                </tr>
+                <tr>
+                  <td>Args</td>
+                  <td>The event&#x27;s invocation arguments.</td>
+                </tr>
+              </tbody>
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>target</td>
+                  <td>The state to which the event should be added.</td>
+                </tr>
+                <tr>
+                  <td>event</td>
+                  <td>The event to be added.</td>
+                </tr>
+                <tr>
+                  <td>name</td>
+                  <td>The name of the event.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div></section>
+          <section class="m-doc-details" id="ac82c2a5ce1fdac0660da62a6489ef00b"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">auto lua::<wbr />Bootstrapper::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#ac82c2a5ce1fdac0660da62a6489ef00b" class="m-doc-self">defineCommonTypes</a>(</span><span class="m-doc-wrap">sol::state&amp; target) const -&gt; void</span></span>
+            </h3>
+            <p>Define all actors that are not templated.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">target</td>
+                  <td>The state to which the types should be added.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div></section>
+          <section class="m-doc-details" id="abf5438256980f3f51d70f269c9945970"><div>
+            <h3>
+              <div class="m-doc-template">
+                template&lt;<a href="namespaceresource__managers.html#a38eddd67f196b5bbf07f4b2571f2d003" class="m-doc">resource_managers::<wbr />FontLoader</a> FontLoaderType&gt;
+              </div>
+              <span class="m-doc-wrap-bumper">auto lua::<wbr />Bootstrapper::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#abf5438256980f3f51d70f269c9945970" class="m-doc-self">bindFontLoader</a>(</span><span class="m-doc-wrap">sol::state&amp; target,
+              FontLoaderType&amp; loader) const -&gt; void</span></span>
+            </h3>
+            <p>Define the actors templated on the font loader type.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Template parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">FontLoaderType</td>
+                  <td>The font loader type.</td>
+                </tr>
+              </tbody>
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>target</td>
+                  <td>The state to which the types should be added.</td>
+                </tr>
+                <tr>
+                  <td>loader</td>
+                  <td></td>
+                </tr>
+              </tbody>
+            </table>
+          </div></section>
+          <section class="m-doc-details" id="a24383a37865b6215e1069a646b2c930a"><div>
+            <h3>
+              <div class="m-doc-template">
+                template&lt;<a href="namespaceresource__managers.html#af40c724bd11b4481e560c650021a2dbb" class="m-doc">resource_managers::<wbr />TextureLoader</a> TextureLoaderType&gt;
+              </div>
+              <span class="m-doc-wrap-bumper">auto lua::<wbr />Bootstrapper::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a24383a37865b6215e1069a646b2c930a" class="m-doc-self">bindTextureLoader</a>(</span><span class="m-doc-wrap">sol::state&amp; target,
+              TextureLoaderType&amp; textureLoader) const -&gt; void</span></span>
+            </h3>
+            <p>Defines the actors templated on the texture loader type.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Template parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">TextureLoaderType</td>
+                  <td>The type of the texture loader.</td>
+                </tr>
+              </tbody>
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>target</td>
+                  <td>The target state to define the actor types in.</td>
+                </tr>
+                <tr>
+                  <td>textureLoader</td>
+                  <td>The texture loader to use.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div></section>
         </section>
       </div>
     </div>

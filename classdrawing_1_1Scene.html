@@ -81,7 +81,58 @@
               <span class="m-doc-wrap-bumper">auto <a href="#a98ce3af5b9be17bc5f5d47a1a824b402" class="m-doc-self">update</a>(</span><span class="m-doc-wrap">std::chrono::nanoseconds delta) -&gt; void <span class="m-label m-flat m-warning">pure virtual</span></span>
             </dt>
             <dd><span></span></dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#a86050fa1846d7eb43696171240958666" class="m-doc">defineEvents</a>(</span><span class="m-doc-wrap">sol::state&amp; target,
+              <a href="classlua_1_1Bootstrapper.html" class="m-doc">lua::<wbr />Bootstrapper</a>&amp; bootstrapper) -&gt; void <span class="m-label m-flat m-warning">pure virtual</span></span>
+            </dt>
+            <dd>Registers all events that this scene uses in lua.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#ac2d03e7819534461589189a460996038" class="m-doc">setRoot</a>(</span><span class="m-doc-wrap">std::shared_ptr&lt;<a href="classdrawing_1_1actors_1_1Actor.html" class="m-doc">actors::<wbr />Actor</a>&gt; root) -&gt; void <span class="m-label m-flat m-warning">pure virtual</span></span>
+            </dt>
+            <dd>Sets the root actor of this scene.</dd>
           </dl>
+        </section>
+        <section>
+          <h2>Function documentation</h2>
+          <section class="m-doc-details" id="a86050fa1846d7eb43696171240958666"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">auto drawing::<wbr />Scene::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a86050fa1846d7eb43696171240958666" class="m-doc-self">defineEvents</a>(</span><span class="m-doc-wrap">sol::state&amp; target,
+              <a href="classlua_1_1Bootstrapper.html" class="m-doc">lua::<wbr />Bootstrapper</a>&amp; bootstrapper) -&gt; void <span class="m-label m-warning">pure virtual</span></span></span>
+            </h3>
+            <p>Registers all events that this scene uses in lua.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">target</td>
+                  <td>The state to which the events should be added.</td>
+                </tr>
+                <tr>
+                  <td>bootstrapper</td>
+                  <td>The bootstrapper that adds the events.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div></section>
+          <section class="m-doc-details" id="ac2d03e7819534461589189a460996038"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">auto drawing::<wbr />Scene::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#ac2d03e7819534461589189a460996038" class="m-doc-self">setRoot</a>(</span><span class="m-doc-wrap">std::shared_ptr&lt;<a href="classdrawing_1_1actors_1_1Actor.html" class="m-doc">actors::<wbr />Actor</a>&gt; root) -&gt; void <span class="m-label m-warning">pure virtual</span></span></span>
+            </h3>
+            <p>Sets the root actor of this scene.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">root</td>
+                  <td></td>
+                </tr>
+              </tbody>
+            </table>
+          </div></section>
         </section>
       </div>
     </div>

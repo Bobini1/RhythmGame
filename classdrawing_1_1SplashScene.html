@@ -60,7 +60,6 @@
               Reference
               <ul>
                 <li><a href="#base-classes">Base classes</a></li>
-                <li><a href="#typeless-methods">Constructors, destructors, conversion operators</a></li>
                 <li><a href="#pub-methods">Public functions</a></li>
               </ul>
             </li>
@@ -75,18 +74,18 @@
             <dd>Base class for all scenes, which are window states holding actors and optionally managed by scene managers.</dd>
           </dl>
         </section>
-        <section id="typeless-methods">
-          <h2><a href="#typeless-methods">Constructors, destructors, conversion operators</a></h2>
-          <dl class="m-doc">
-            <dt id="ae2a206f8839c5e4b3d0df3d66dc2db04">
-              <span class="m-doc-wrap-bumper"><a href="#ae2a206f8839c5e4b3d0df3d66dc2db04" class="m-doc-self">SplashScene</a>(</span><span class="m-doc-wrap">std::shared_ptr&lt;<a href="classdrawing_1_1actors_1_1Actor.html" class="m-doc">actors::<wbr />Actor</a>&gt; root) <span class="m-label m-flat m-info">explicit</span> </span>
-            </dt>
-            <dd><span></span></dd>
-          </dl>
-        </section>
         <section id="pub-methods">
           <h2><a href="#pub-methods">Public functions</a></h2>
           <dl class="m-doc">
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#a366edd694525646b2d6883da2d74c9af" class="m-doc">defineEvents</a>(</span><span class="m-doc-wrap">sol::state&amp; target,
+              <a href="classlua_1_1Bootstrapper.html" class="m-doc">lua::<wbr />Bootstrapper</a>&amp; bootstrapper) -&gt; void <span class="m-label m-flat m-warning">override</span></span>
+            </dt>
+            <dd>Registers all events that this scene uses in lua.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#a95fe7812ffb46c8597e17f8e603a182d" class="m-doc">setRoot</a>(</span><span class="m-doc-wrap">std::shared_ptr&lt;<a href="classdrawing_1_1actors_1_1Actor.html" class="m-doc">actors::<wbr />Actor</a>&gt; root) -&gt; void <span class="m-label m-flat m-warning">override</span></span>
+            </dt>
+            <dd>Sets the root actor of this scene.</dd>
             <dt id="a79eed4363bb43d8966a119ba278bc572">
               <span class="m-doc-wrap-bumper">void <a href="#a79eed4363bb43d8966a119ba278bc572" class="m-doc-self">update</a>(</span><span class="m-doc-wrap">std::chrono::nanoseconds) <span class="m-label m-flat m-warning">final</span></span>
             </dt>
@@ -97,6 +96,48 @@
             </dt>
             <dd><span></span></dd>
           </dl>
+        </section>
+        <section>
+          <h2>Function documentation</h2>
+          <section class="m-doc-details" id="a366edd694525646b2d6883da2d74c9af"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">auto drawing::<wbr />SplashScene::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a366edd694525646b2d6883da2d74c9af" class="m-doc-self">defineEvents</a>(</span><span class="m-doc-wrap">sol::state&amp; target,
+              <a href="classlua_1_1Bootstrapper.html" class="m-doc">lua::<wbr />Bootstrapper</a>&amp; bootstrapper) -&gt; void <span class="m-label m-warning">override</span></span></span>
+            </h3>
+            <p>Registers all events that this scene uses in lua.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">target</td>
+                  <td>The state to which the events should be added.</td>
+                </tr>
+                <tr>
+                  <td>bootstrapper</td>
+                  <td>The bootstrapper that adds the events.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div></section>
+          <section class="m-doc-details" id="a95fe7812ffb46c8597e17f8e603a182d"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">auto drawing::<wbr />SplashScene::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a95fe7812ffb46c8597e17f8e603a182d" class="m-doc-self">setRoot</a>(</span><span class="m-doc-wrap">std::shared_ptr&lt;<a href="classdrawing_1_1actors_1_1Actor.html" class="m-doc">actors::<wbr />Actor</a>&gt; root) -&gt; void <span class="m-label m-warning">override</span></span></span>
+            </h3>
+            <p>Sets the root actor of this scene.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">root</td>
+                  <td></td>
+                </tr>
+              </tbody>
+            </table>
+          </div></section>
         </section>
       </div>
     </div>
