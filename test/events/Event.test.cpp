@@ -43,7 +43,7 @@ TEST_CASE("Events with args can be subscribed to in lua", "[actors][events]")
     events::Signals2Event<int> event;
     setup.addEventToState<int>(event, "init");
     auto state = sol::state(std::move(setup));
-    auto result = state.script(script);
+    auto result = state.script(scriptWithArgs);
     auto root = result.get<drawing::actors::Actor*>()->shared_from_this();
     auto quad = std::dynamic_pointer_cast<drawing::actors::Quad>(root);
     REQUIRE(quad != nullptr);
@@ -93,7 +93,7 @@ TEST_CASE("Subscriptions to invalid event names or not function don't crash",
     events::Signals2Event<int, int> event;
     setup.addEventToState<int, int>(event, "init");
     auto state = sol::state(std::move(setup));
-    auto result = state.script(scriptWithDeletedCallback);
+    auto result = state.script(scriptWithBadOperations);
     auto root = result.get<drawing::actors::Actor*>()->shared_from_this();
     auto quad = std::dynamic_pointer_cast<drawing::actors::Quad>(root);
     REQUIRE(quad != nullptr);
