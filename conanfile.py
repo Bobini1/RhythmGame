@@ -6,6 +6,11 @@ class Recipe(ConanFile):
     generators = "CMakeToolchain", "CMakeDeps", "VirtualRunEnv"
     build_requires = "cmake/3.22.0"
 
+    # change boost flags on windows
+    def package_id(self):
+        if self.settings.os == "Windows":
+            self.info["boost"].extra_b2_flags = ["BOOST_USE_WINAPI_VERSION=0x0501"]
+
     def layout(self):
         self.folders.generators = "conan"
 
