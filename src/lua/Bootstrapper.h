@@ -90,17 +90,18 @@ class Bootstrapper
         for (const auto& [name, registrator] : *eventRegistrators) {
             std::ignore = registrator;
             actorType[name] = sol::property(
-              [name, eventAttacher = EventAttacher(eventRegistrators)](
+              [nameCopy = name,
+               eventAttacher = EventAttacher(eventRegistrators)](
                 drawing::actors::Actor* actor, const sol::object& callback) {
                   if (callback.is<sol::function>()) {
-                      eventAttacher.attachEvent(name,
+                      eventAttacher.attachEvent(nameCopy,
                                                 actor->shared_from_this(),
                                                 callback.as<sol::function>());
                   } else if (callback.is<sol::lua_nil_t>()) {
-                      actor->removeEventSubscription(name);
+                      actor->removeEventSubscription(nameCopy);
                   } else {
                       BOOST_LOG_TRIVIAL(error)
-                        << "Invalid type for " << name
+                        << "Invalid type for " << nameCopy
                         << "Event. Function or nil expected";
                   }
               });
