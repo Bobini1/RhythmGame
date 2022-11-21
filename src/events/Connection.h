@@ -6,6 +6,9 @@
 #define RHYTHMGAME_CONNECTION_H
 
 namespace events {
+/**
+ * @brief A scoped connection object
+ */
 class Connection
 {
   public:

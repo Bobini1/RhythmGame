@@ -11,6 +11,9 @@
 namespace events {
 namespace priv {
 
+/**
+ * @brief An implementation for Signals2Event
+ */
 template<typename... Args>
 class Signals2Event
 {
@@ -32,6 +35,9 @@ class Signals2Event
 };
 } // namespace priv
 
+/**
+ * @brief The public interface for Signals2Event
+ */
 template<typename... Args>
     requires Event<priv::Signals2Event<Args...>,
                    decltype([](Args...) {}),

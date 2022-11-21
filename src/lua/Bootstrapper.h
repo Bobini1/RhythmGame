@@ -44,6 +44,14 @@ class Bootstrapper
         std::make_shared<std::map<std::string, CppEventInterface>>();
 
   public:
+    /**
+     * @brief Registers an event in lua.
+     * @tparam EventType The event's type.
+     * @tparam Args The event's invocation arguments.
+     * @param target The state to which the event should be added.
+     * @param event The event to be added.
+     * @param name The name of the event.
+     */
     template<typename EventType, typename... Args>
         requires events::Event<EventType, std::function<void(Args...)>, Args...>
     auto addEvent(sol::state& target, EventType& event, std::string name)
@@ -84,6 +92,12 @@ class Bootstrapper
           const sol::table& events) const -> void;
     };
 
+    /**
+     * @brief Goes through all registered events and adds them to the actor type
+     * as properties.
+     * @param actorType The actor type object to which the properties should be
+     * added
+     */
     auto registerAllEventProperties(
       sol::usertype<drawing::actors::Actor> actorType) const
     {
@@ -109,8 +123,18 @@ class Bootstrapper
     }
 
   public:
+    /**
+     * @brief Define all actors that are not templated.
+     * @param target The state to which the types should be added.
+     */
     auto defineCommonTypes(sol::state& target) const -> void;
 
+    /**
+     * @brief Define the actors templated on the font loader type.
+     * @tparam FontLoaderType The font loader type.
+     * @param target The state to which the types should be added.
+     * @param fontLoader The font loader to be used.
+     */
     template<resource_managers::FontLoader FontLoaderType>
     auto bindFontLoader(sol::state& target, FontLoaderType& loader) const
       -> void
@@ -244,6 +268,12 @@ class Bootstrapper
     }
 
   public:
+    /**
+     * @brief Defines the actors templated on the texture loader type.
+     * @tparam TextureLoaderType The type of the texture loader.
+     * @param target The target state to define the actor types in.
+     * @param textureLoader The texture loader to use.
+     */
     template<resource_managers::TextureLoader TextureLoaderType>
     auto bindTextureLoader(sol::state& target,
                            TextureLoaderType& textureLoader) const -> void

@@ -8,6 +8,9 @@
 #include <boost/signals2/connection.hpp>
 #include "Connection.h"
 namespace events {
+/**
+ * @brief A scoped connection object - signals2 implementation
+ */
 class Signals2Connection : public Connection
 {
   public:

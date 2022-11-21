@@ -9,6 +9,9 @@
 #include <utility>
 #include <memory>
 namespace events {
+/**
+ * @brief Concept for events that can be invoked and subscribed to.
+ */
 template<typename T, typename Fun, typename... Args>
 concept Event = requires(T event, Fun callback, Args... args) {
                     {
