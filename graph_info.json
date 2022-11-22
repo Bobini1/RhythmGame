@@ -309,6 +309,10 @@
    "True"
   ],
   [
+   "catch2:shared",
+   "False"
+  ],
+  [
    "catch2:with_prefix",
    "False"
   ],
