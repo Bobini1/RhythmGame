@@ -317,52 +317,51 @@ jobs:
           publish_dir: build/docs/html
 
   codeql:
-    deploy:
-      needs: [ sanitize, test ]
+    needs: [ sanitize, test ]
 
-      runs-on: windows-latest
+    runs-on: windows-latest
 
-      steps:
-        - uses: actions/checkout@v2
+    steps:
+      - uses: actions/checkout@v2
 
-        - name: Initialize CodeQL
-          uses: github/codeql-action/init@v2
-          with:
-            languages: 'cpp'
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v2
+        with:
+          languages: 'cpp'
 
-        - name: Install Python
-          uses: actions/setup-python@v2
-          with: { python-version: "3.8" }
+      - name: Install Python
+        uses: actions/setup-python@v2
+        with: { python-version: "3.8" }
 
-        - name: Cache conan
-          id: cache-conan
-          uses: actions/cache@v3.0.5
-          with:
-            path: ~/.conan/data
-            key: conan-packages-windows-latest
+      - name: Cache conan
+        id: cache-conan
+        uses: actions/cache@v3.0.5
+        with:
+          path: ~/.conan/data
+          key: conan-packages-windows-latest
 
-        - name: Cache conan extra exports
-          id: cache-conan-exports
-          uses: actions/cache@v3.0.5
-          with:
-            path: C:/.conan
-            key: conan-exports-extra-windows
+      - name: Cache conan extra exports
+        id: cache-conan-exports
+        uses: actions/cache@v3.0.5
+        with:
+          path: C:/.conan
+          key: conan-exports-extra-windows
 
-        - name: Install dependencies
-          shell: bash
-          run: |
-            pip3 install "conan"
-            conan profile new default --detect --force
-            conan install . -b missing -c tools.system.package_manager:mode=install -c tools.system.package_manager:sudo=True
+      - name: Install dependencies
+        shell: bash
+        run: |
+          pip3 install "conan"
+          conan profile new default --detect --force
+          conan install . -b missing -c tools.system.package_manager:mode=install -c tools.system.package_manager:sudo=True
 
-        - name: Configure
-          shell: pwsh
-          run: cmake --preset=ci-windows
+      - name: Configure
+        shell: pwsh
+        run: cmake --preset=ci-windows
 
-        - name: Build
-          run: cmake --build build --config Release -j 2
+      - name: Build
+        run: cmake --build build --config Release -j 2
 
-        - name: Perform CodeQL Analysis
-          uses: github/codeql-action/analyze@v2
-          with:
-            category: "/language:cpp"
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v2
+        with:
+          category: "/language:cpp"
