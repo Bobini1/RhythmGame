@@ -13,6 +13,7 @@
 #include "drawing/actors/Padding.h"
 #include "drawing/actors/Align.h"
 #include "drawing/actors/Layers.h"
+#include "drawing/animations/Linear.h"
 
 namespace lua {
 
@@ -497,6 +498,38 @@ Bootstrapper::defineLayers(sol::state& target) const -> void
       [](drawing::actors::Layers* self, drawing::actors::Actor* actor) {
           self->setMainLayer(actor->shared_from_this());
       });
+}
+
+
+
+auto
+Bootstrapper::defineAnimation(sol::state& target) const -> void
+{
+    auto animationType = target.new_usertype<drawing::animations::Animation>(
+      "Animation",
+      sol::no_constructor);
+    animationType["reset"] = &drawing::animations::Animation::reset;
+    animationType["isPlaying"] = &drawing::animations::Animation::getIsPlaying;
+    animationType["getIsLooping"] = &drawing::animations::Animation::getIsLooping;
+    animationType["setIsLooping"] = &drawing::animations::Animation::setIsLooping;
+    animationType["getDuration"] = &drawing::animations::Animation::getDuration;
+    animationType["getProgress"] = &drawing::animations::Animation::getProgress;
+    animationType["onFinished"] = sol::property(&drawing::animations::Animation::getOnFinished,
+                                                &drawing::animations::Animation::setOnFinished);
+}
+auto
+Bootstrapper::defineLinear(sol::state& target) const -> void
+{
+    auto linearType = target.new_usertype<drawing::animations::Linear>(
+      "Linear",
+      sol::factories(
+        [](sol::function updater, float seconds, float start, float end){
+            constexpr auto secondsToNanos = 1E9;
+            auto time = std::chrono::nanoseconds(static_cast<int64_t>(seconds * secondsToNanos));
+            return drawing::animations::Linear(std::move(updater), time, start, end);
+        }),
+      sol::base_classes,
+      sol::bases<drawing::animations::Animation>());
 }
 
 auto

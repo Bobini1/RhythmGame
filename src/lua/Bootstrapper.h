@@ -33,6 +33,9 @@ class Bootstrapper
     auto defineAlign(sol::state& target) const -> void;
     auto defineLayers(sol::state& target) const -> void;
 
+    auto defineAnimation(sol::state& target) const -> void;
+    auto defineLinear(sol::state& target) const -> void;
+
   public:
     using CppEventInterface =
       std::function<void(std::shared_ptr<drawing::actors::Actor>,

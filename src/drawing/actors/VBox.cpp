@@ -6,10 +6,6 @@
 #include <SFML/Graphics/RenderTarget.hpp>
 #include <set>
 void
-drawing::actors::VBox::update(std::chrono::nanoseconds delta)
-{
-}
-void
 drawing::actors::VBox::draw(sf::RenderTarget& target,
                             sf::RenderStates states) const
 {

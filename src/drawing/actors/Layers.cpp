@@ -13,10 +13,6 @@ drawing::actors::Layers::getLuaSelf(sol::state& lua) -> sol::object
              sharedFromBase<Layers>() };
 }
 void
-drawing::actors::Layers::update(std::chrono::nanoseconds delta)
-{
-}
-void
 drawing::actors::Layers::setTransform(sf::Transform newTransform)
 {
     transform = newTransform;

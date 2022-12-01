@@ -12,10 +12,6 @@ Quad::draw(sf::RenderTarget& target, sf::RenderStates states) const
     states.transform *= getTransform();
     target.draw(rect, states);
 }
-void
-Quad::update(std::chrono::nanoseconds delta)
-{
-}
 auto
 Quad::getPoint(std::size_t index) const -> sf::Vector2f
 {
