@@ -20,7 +20,6 @@ namespace drawing {
 template<animations::AnimationPlayer AnimationPlayerType>
 class SplashScene : public Scene
 {
-    // sol::state lua;
     std::shared_ptr<actors::Actor> root;
     events::Signals2Event<> init{};
     events::Signals2Event<float> onUpdate{};
@@ -28,7 +27,7 @@ class SplashScene : public Scene
     std::unique_ptr<AnimationPlayerType> animationPlayer;
 
   public:
-    SplashScene(std::unique_ptr<AnimationPlayerType> animationPlayer)
+    explicit SplashScene(std::unique_ptr<AnimationPlayerType> animationPlayer)
       : animationPlayer(std::move(animationPlayer))
     {
     }
