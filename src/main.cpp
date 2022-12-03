@@ -102,7 +102,8 @@ main() -> int
     bootstrapper.bindAnimationPlayer(state, *animationPlayer);
 
     auto startingScene = std::make_shared<
-      drawing::SplashScene<drawing::animations::AnimationPlayerImpl>>(
+      drawing::SplashScene<events::Signals2Event,
+                           drawing::animations::AnimationPlayerImpl>>(
       std::move(animationPlayer));
 
     startingScene->defineEvents(state, bootstrapper);

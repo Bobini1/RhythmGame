@@ -17,12 +17,13 @@ namespace drawing {
 /**
  * @brief Scene that displays the splash screen while the game is being loaded.
  */
-template<animations::AnimationPlayer AnimationPlayerType>
+template<template<typename... Args> typename EventType,
+         animations::AnimationPlayer AnimationPlayerType>
 class SplashScene : public Scene
 {
     std::shared_ptr<actors::Actor> root;
-    events::Signals2Event<> init{};
-    events::Signals2Event<float> onUpdate{};
+    EventType<> init{};
+    EventType<float> onUpdate{};
     mutable bool initialized = false;
     std::unique_ptr<AnimationPlayerType> animationPlayer;
 
