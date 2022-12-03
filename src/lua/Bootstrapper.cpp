@@ -500,34 +500,76 @@ Bootstrapper::defineLayers(sol::state& target) const -> void
       });
 }
 
-
-
 auto
 Bootstrapper::defineAnimation(sol::state& target) const -> void
 {
     auto animationType = target.new_usertype<drawing::animations::Animation>(
-      "Animation",
-      sol::no_constructor);
+      "Animation", sol::no_constructor);
     animationType["reset"] = &drawing::animations::Animation::reset;
-    animationType["isPlaying"] = &drawing::animations::Animation::getIsPlaying;
-    animationType["getIsLooping"] = &drawing::animations::Animation::getIsLooping;
-    animationType["setIsLooping"] = &drawing::animations::Animation::setIsLooping;
-    animationType["getDuration"] = &drawing::animations::Animation::getDuration;
-    animationType["getProgress"] = &drawing::animations::Animation::getProgress;
-    animationType["onFinished"] = sol::property(&drawing::animations::Animation::getOnFinished,
-                                                &drawing::animations::Animation::setOnFinished);
+    animationType["isLooping"] =
+      sol::property(&drawing::animations::Animation::getIsLooping,
+                    &drawing::animations::Animation::setIsLooping);
+    animationType["duration"] = sol::property(
+      [](drawing::animations::Animation* self) {
+          return static_cast<double>(self->getDuration().count()) * 1E-9;
+      },
+      [](drawing::animations::Animation* self, float duration) {
+          self->setDuration(
+            std::chrono::nanoseconds{ static_cast<int64_t>(duration * 1E9) });
+      });
+    animationType["getProgress"] =
+      sol::property(&drawing::animations::Animation::getProgress,
+                    &drawing::animations::Animation::setProgress);
+    animationType["onFinished"] = sol::property(
+      [&target](drawing::animations::Animation* self, sol::function callback) {
+          self->setOnFinished(
+            [callback, &target](std::shared_ptr<drawing::actors::Actor> actor) {
+                callback(actor->getLuaSelf(target));
+            });
+      });
+    animationType["isFinished"] =
+      sol::property(&drawing::animations::Animation::getIsFinished,
+                    [](drawing::animations::Animation* self, bool isFinished) {
+                        if (isFinished) {
+                            self->setProgress(1.0F);
+                        } else {
+                            self->setProgress(0.0F);
+                        }
+                    });
+    animationType["actor"] = sol::property(
+      [&target](drawing::animations::Animation* self) {
+          return self->getActor()->getLuaSelf(target);
+      },
+      [](drawing::animations::Animation* self, drawing::actors::Actor* actor) {
+          self->setActor(actor->weak_from_this());
+      });
 }
 auto
 Bootstrapper::defineLinear(sol::state& target) const -> void
 {
     auto linearType = target.new_usertype<drawing::animations::Linear>(
       "Linear",
-      sol::factories(
-        [](sol::function updater, float seconds, float start, float end){
-            constexpr auto secondsToNanos = 1E9;
-            auto time = std::chrono::nanoseconds(static_cast<int64_t>(seconds * secondsToNanos));
-            return drawing::animations::Linear(std::move(updater), time, start, end);
-        }),
+      sol::factories([&target](drawing::actors::Actor* actor,
+                               sol::function updater,
+                               float seconds,
+                               float start,
+                               float end) {
+          constexpr auto secondsToNanos = 1E9;
+          auto time = std::chrono::nanoseconds(
+            static_cast<int64_t>(seconds * secondsToNanos));
+          auto function = updater.as<std::function<void(sol::object, float)>>();
+          auto wrappedFunction =
+            [function, &target](std::shared_ptr<drawing::actors::Actor> actor,
+                                float value) {
+                function(actor->getLuaSelf(target), value);
+            };
+          return std::make_shared<drawing::animations::Linear>(
+            actor->weak_from_this(),
+            std::move(wrappedFunction),
+            time,
+            start,
+            end);
+      }),
       sol::base_classes,
       sol::bases<drawing::animations::Animation>());
 }
@@ -548,6 +590,8 @@ Bootstrapper::defineCommonTypes(sol::state& target) const -> void
     definePadding(target);
     defineAlign(target);
     defineLayers(target);
+    defineAnimation(target);
+    defineLinear(target);
 }
 auto
 Bootstrapper::EventAttacher::attachAllEvents(

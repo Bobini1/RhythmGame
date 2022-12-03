@@ -14,6 +14,8 @@
 #include "SFML/Graphics/Font.hpp"
 #include "drawing/actors/Text.h"
 #include "events/Event.h"
+#include "drawing/animations/Animation.h"
+#include "drawing/animations/AnimationPlayer.h"
 
 namespace lua {
 
@@ -64,7 +66,7 @@ class Bootstrapper
           [&target, &event, name](
             const std::shared_ptr<drawing::actors::Actor>& actor,
             sol::function function) {
-              actor->addEventSubscription(
+              actor->setEventSubscription(
                 name + "Event",
                 event.subscribe(
                   [&target,
@@ -115,7 +117,7 @@ class Bootstrapper
                                                 actor->shared_from_this(),
                                                 callback.as<sol::function>());
                   } else if (callback.is<sol::lua_nil_t>()) {
-                      actor->removeEventSubscription(nameCopy);
+                      actor->setEventSubscription(nameCopy, nullptr);
                   } else {
                       spdlog::error(
                         "Invalid type for {}. Function or nil expected",
@@ -126,6 +128,21 @@ class Bootstrapper
     }
 
   public:
+    template<drawing::animations::AnimationPlayer AnimationPlayerType>
+    auto bindAnimationPlayer(sol::state& target,
+                             AnimationPlayerType& animationsPlayer) const
+      -> void
+    {
+        target["playAnimation"] =
+          [&animationsPlayer](drawing::animations::Animation* animation) {
+              animationsPlayer.playAnimation(animation->shared_from_this());
+          };
+        target["stopAnimation"] =
+          [&animationsPlayer](drawing::animations::Animation* animation) {
+              animationsPlayer.stopAnimation(animation->shared_from_this());
+          };
+    }
+
     /**
      * @brief Define all actors that are not templated.
      * @param target The state to which the types should be added.

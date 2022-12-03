@@ -17,51 +17,51 @@ namespace drawing {
 /**
  * @brief Scene that displays the splash screen while the game is being loaded.
  */
+template<animations::AnimationPlayer AnimationPlayerType>
 class SplashScene : public Scene
 {
     // sol::state lua;
     std::shared_ptr<actors::Actor> root;
     events::Signals2Event<> init{};
+    events::Signals2Event<float> onUpdate{};
     mutable bool initialized = false;
+    std::unique_ptr<AnimationPlayerType> animationPlayer;
 
   public:
+    SplashScene(std::unique_ptr<AnimationPlayerType> animationPlayer)
+      : animationPlayer(std::move(animationPlayer))
+    {
+    }
     auto defineEvents(sol::state& target, lua::Bootstrapper& bootstrapper)
       -> void override
     {
         bootstrapper.addEvent(target, init, "init");
+        bootstrapper.addEvent<decltype(onUpdate), float>(
+          target, onUpdate, "update");
     }
     auto setRoot(std::shared_ptr<actors::Actor> newRoot) -> void override
     {
         this->root = std::move(newRoot);
     }
-    void update(std::chrono::nanoseconds /* delta */) final {}
+    void update(std::chrono::nanoseconds delta) final
+    {
+        if (!initialized) {
+            init();
+            initialized = true;
+        }
+        root->setTransform(sf::Transform::Identity);
+
+        onUpdate(delta.count() / 1e9f);
+        animationPlayer->update(delta);
+    }
     void draw(sf::RenderTarget& target, sf::RenderStates states) const final
     {
-        static int count = 0;
-        static auto last = std::chrono::steady_clock::now();
         if (root->getIsWidthManaged()) {
             root->setWidth(static_cast<float>(target.getSize().x));
         }
         if (root->getIsHeightManaged()) {
             root->setHeight(static_cast<float>(target.getSize().y));
         }
-        root->setTransform(sf::Transform::Identity);
-
-        if (count++ > 1000) {
-            count = 0;
-            auto now = std::chrono::steady_clock::now();
-            std::cout
-              << "FPS: "
-              << 1000.0 /
-                   std::chrono::duration_cast<std::chrono::duration<double>>(
-                     now - last)
-                     .count()
-              << std::endl;
-            last = now;
-        }
-
-        init();
-
         target.draw(*root, states);
     }
 };

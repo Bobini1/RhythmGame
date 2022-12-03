@@ -13,7 +13,6 @@
 #include <sol/state.hpp>
 #include "support/EnableSharedFromBase.h"
 #include "events/Connection.h"
-#include "drawing/animations/Animation.h"
 #include <boost/signals2/connection.hpp>
 
 /**
@@ -33,6 +32,7 @@ class Actor // NOLINT(fuchsia-multiple-inheritance)
     std::weak_ptr<Parent> parent{};
     std::map<std::string, std::unique_ptr<events::Connection>>
       eventSubscriptions{};
+
   protected:
     Actor() = default;
     Actor(const Actor& /*unused*/);
@@ -43,11 +43,8 @@ class Actor // NOLINT(fuchsia-multiple-inheritance)
     auto operator=(Actor&& otherActor) noexcept -> Actor& = delete;
     ~Actor() override = default;
 
-    void addEventSubscription(const std::string& eventName,
+    void setEventSubscription(const std::string& eventName,
                               std::unique_ptr<events::Connection> connection);
-    auto removeEventSubscription(const std::string& eventName) -> void;
-
-
 
     /**
      * @brief Get the lua object of the type of this actor.

@@ -7,32 +7,43 @@
 
 #include <chrono>
 #include <functional>
+#include <support/EnableSharedFromBase.h>
+namespace drawing::actors {
+class Actor;
+} // namespace drawing::actors
 namespace drawing::animations {
-class Animation
+class Animation : public support::EnableSharedFromBase<Animation>
 {
   public:
-    explicit Animation(std::chrono::nanoseconds duration);
+    explicit Animation(std::weak_ptr<actors::Actor> actor,
+                       std::chrono::nanoseconds duration);
     void update(std::chrono::nanoseconds delta);
     void reset();
-    void setOnFinished(std::function<void()> onFinished);
-    [[nodiscard]] auto getOnFinished() const -> const std::function<void()>&;
-    [[nodiscard]] auto getIsPlaying() const -> bool;
-    auto setIsPlaying() -> void;
+    void setOnFinished(
+      std::function<void(std::shared_ptr<actors::Actor>)> onFinished);
+    [[nodiscard]] auto getOnFinished() const
+      -> const std::function<void(std::shared_ptr<actors::Actor>)>&;
     [[nodiscard]] auto getIsLooping() const -> bool;
     auto setIsLooping() -> void;
     [[nodiscard]] auto getIsFinished() const -> bool;
     [[nodiscard]] auto getDuration() const -> std::chrono::nanoseconds;
-    [[nodiscard]] auto getElapsed() const -> std::chrono::nanoseconds;
+    auto setDuration(std::chrono::nanoseconds newDuration) -> void;
     [[nodiscard]] auto getProgress() const -> float;
+    auto setProgress(float progress) -> void;
+    void setActor(std::weak_ptr<actors::Actor> newActor);
+    [[nodiscard]] auto getActor() const -> std::shared_ptr<actors::Actor>;
     virtual ~Animation() = default;
+    [[nodiscard]] auto clone() const -> std::unique_ptr<Animation>;
+
   private:
     virtual void updateImpl(std::chrono::nanoseconds delta) = 0;
-    bool isPlaying = false;
-    bool isLooping = false;
-    bool isFinished = false;
+    [[nodiscard]] virtual auto cloneImpl() const -> Animation* = 0;
+    std::weak_ptr<actors::Actor> actor;
     std::chrono::nanoseconds duration{};
     std::chrono::nanoseconds elapsed{};
-    std::function<void()> onFinished{};
+    std::function<void(std::shared_ptr<actors::Actor>)> onFinished{};
+    bool isLooping = false;
+    bool isFinished = false;
 };
 } // namespace drawing::animations
 #endif // RHYTHMGAME_ANIMATION_H
