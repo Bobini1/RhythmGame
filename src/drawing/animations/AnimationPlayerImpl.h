@@ -14,7 +14,9 @@ class AnimationPlayerImpl
   public:
     void update(std::chrono::nanoseconds delta);
     void playAnimation(std::shared_ptr<Animation> animation);
-    void stopAnimation(std::shared_ptr<Animation> animation);
+    void stopAnimation(const std::shared_ptr<Animation>& animation);
+    [[nodiscard]] auto isPlaying(
+      const std::shared_ptr<Animation>& animation) const -> bool;
 
   private:
     std::set<std::shared_ptr<Animation>> animations;

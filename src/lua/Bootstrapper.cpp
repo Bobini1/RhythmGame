@@ -517,7 +517,7 @@ Bootstrapper::defineAnimation(sol::state& target) const -> void
           self->setDuration(
             std::chrono::nanoseconds{ static_cast<int64_t>(duration * 1E9) });
       });
-    animationType["getProgress"] =
+    animationType["progress"] =
       sol::property(&drawing::animations::Animation::getProgress,
                     &drawing::animations::Animation::setProgress);
     animationType["onFinished"] =

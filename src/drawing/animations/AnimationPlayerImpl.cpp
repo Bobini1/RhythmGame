@@ -7,10 +7,11 @@
 void
 drawing::animations::AnimationPlayerImpl::update(std::chrono::nanoseconds delta)
 {
-    erase_if(animations, [delta](const auto& animation) {
+    for (auto& animation : animations) {
         animation->update(delta);
-        return animation->getIsFinished();
-    });
+    }
+    erase_if(animations,
+             [](const auto& animation) { return animation->getIsFinished(); });
 }
 void
 drawing::animations::AnimationPlayerImpl::playAnimation(
@@ -20,7 +21,13 @@ drawing::animations::AnimationPlayerImpl::playAnimation(
 }
 void
 drawing::animations::AnimationPlayerImpl::stopAnimation(
-  std::shared_ptr<Animation> animation)
+  const std::shared_ptr<Animation>& animation)
 {
-    animations.erase(std::move(animation));
+    animations.erase(animation);
+}
+auto
+drawing::animations::AnimationPlayerImpl::isPlaying(
+  const std::shared_ptr<Animation>& animation) const -> bool
+{
+    return animations.contains(animation);
 }

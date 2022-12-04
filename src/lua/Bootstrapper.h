@@ -141,6 +141,10 @@ class Bootstrapper
           [&animationsPlayer](drawing::animations::Animation* animation) {
               animationsPlayer.stopAnimation(animation->shared_from_this());
           };
+        target["isPlaying"] =
+          [&animationsPlayer](drawing::animations::Animation* animation) {
+              return animationsPlayer.isPlaying(animation->shared_from_this());
+          };
     }
 
     /**

@@ -21,6 +21,9 @@ concept AnimationPlayer = requires(T animationPlayer,
                               {
                                   animationPlayer.stopAnimation(animation)
                               };
+                              {
+                                  animationPlayer.isPlaying(animation)
+                              } -> std::same_as<bool>;
                           };
 } // namespace drawing::animations
 
