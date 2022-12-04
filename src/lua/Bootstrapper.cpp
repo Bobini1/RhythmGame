@@ -520,8 +520,9 @@ Bootstrapper::defineAnimation(sol::state& target) const -> void
     animationType["getProgress"] =
       sol::property(&drawing::animations::Animation::getProgress,
                     &drawing::animations::Animation::setProgress);
-    animationType["onFinished"] = sol::property(
-      [&target](drawing::animations::Animation* self, sol::function callback) {
+    animationType["onFinished"] =
+      sol::property([&target](drawing::animations::Animation* self,
+                              std::function<void(sol::object)> callback) {
           self->setOnFinished(
             [callback, &target](std::shared_ptr<drawing::actors::Actor> actor) {
                 callback(actor->getLuaSelf(target));
@@ -550,18 +551,17 @@ Bootstrapper::defineLinear(sol::state& target) const -> void
     auto linearType = target.new_usertype<drawing::animations::Linear>(
       "Linear",
       sol::factories([&target](drawing::actors::Actor* actor,
-                               sol::function updater,
+                               std::function<void(sol::object, float)> updater,
                                float seconds,
                                float start,
                                float end) {
           constexpr auto secondsToNanos = 1E9;
           auto time = std::chrono::nanoseconds(
             static_cast<int64_t>(seconds * secondsToNanos));
-          auto function = updater.as<std::function<void(sol::object, float)>>();
           auto wrappedFunction =
-            [function, &target](std::shared_ptr<drawing::actors::Actor> actor,
-                                float value) {
-                function(actor->getLuaSelf(target), value);
+            [updater, &target](std::shared_ptr<drawing::actors::Actor> actor,
+                               float value) {
+                updater(actor->getLuaSelf(target), value);
             };
           return std::make_shared<drawing::animations::Linear>(
             actor->weak_from_this(),
