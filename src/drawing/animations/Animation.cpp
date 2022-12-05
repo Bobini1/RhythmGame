@@ -12,7 +12,7 @@ drawing::animations::Animation::setIsLooping() -> void
 }
 void
 drawing::animations::Animation::setOnFinished(
-  std::function<void(std::shared_ptr<actors::Actor>)> newOnFinished)
+  std::function<void()> newOnFinished)
 {
     onFinished = std::move(newOnFinished);
 }
@@ -37,20 +37,13 @@ drawing::animations::Animation::getProgress() const -> float
     return static_cast<float>(elapsed.count()) /
            static_cast<float>(duration.count());
 }
-drawing::animations::Animation::Animation(std::weak_ptr<actors::Actor> actor,
-                                          std::chrono::nanoseconds duration)
-  : actor(std::move(actor))
-  , duration(duration)
+drawing::animations::Animation::Animation(std::chrono::nanoseconds duration)
+  : duration(duration)
 {
 }
 void
 drawing::animations::Animation::update(std::chrono::nanoseconds delta)
 {
-    if (actor.expired()) {
-        isFinished = true;
-        return;
-    }
-
     elapsed += delta;
 
     if (elapsed >= duration) {
@@ -62,7 +55,7 @@ drawing::animations::Animation::update(std::chrono::nanoseconds delta)
             isFinished = true;
         }
         if (onFinished) {
-            onFinished(actor.lock());
+            onFinished();
         }
     } else {
         updateImpl(delta);
@@ -70,7 +63,7 @@ drawing::animations::Animation::update(std::chrono::nanoseconds delta)
 }
 auto
 drawing::animations::Animation::getOnFinished() const
-  -> const std::function<void(std::shared_ptr<actors::Actor>)>&
+  -> const std::function<void()>&
 {
     return onFinished;
 }
@@ -104,15 +97,4 @@ drawing::animations::Animation::clone() const
   -> std::shared_ptr<drawing::animations::Animation>
 {
     return std::unique_ptr<Animation>{ cloneImpl() };
-}
-void
-drawing::animations::Animation::setActor(std::weak_ptr<actors::Actor> newActor)
-{
-    actor = std::move(newActor);
-}
-auto
-drawing::animations::Animation::getActor() const
-  -> std::shared_ptr<actors::Actor>
-{
-    return actor.lock();
 }

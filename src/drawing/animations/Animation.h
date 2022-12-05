@@ -17,10 +17,8 @@ class Animation : public support::EnableSharedFromBase<Animation>
   public:
     void update(std::chrono::nanoseconds delta);
     void reset();
-    void setOnFinished(
-      std::function<void(std::shared_ptr<actors::Actor>)> onFinished);
-    [[nodiscard]] auto getOnFinished() const
-      -> const std::function<void(std::shared_ptr<actors::Actor>)>&;
+    void setOnFinished(std::function<void()> onFinished);
+    [[nodiscard]] auto getOnFinished() const -> const std::function<void()>&;
     [[nodiscard]] auto getIsLooping() const -> bool;
     auto setIsLooping() -> void;
     [[nodiscard]] auto getIsFinished() const -> bool;
@@ -28,22 +26,18 @@ class Animation : public support::EnableSharedFromBase<Animation>
     auto setDuration(std::chrono::nanoseconds newDuration) -> void;
     [[nodiscard]] auto getProgress() const -> float;
     auto setProgress(float progress) -> void;
-    void setActor(std::weak_ptr<actors::Actor> newActor);
-    [[nodiscard]] auto getActor() const -> std::shared_ptr<actors::Actor>;
     virtual ~Animation() = default;
     [[nodiscard]] auto clone() const -> std::shared_ptr<Animation>;
 
   protected:
-    explicit Animation(std::weak_ptr<actors::Actor> actor,
-                       std::chrono::nanoseconds duration);
+    explicit Animation(std::chrono::nanoseconds duration);
 
   private:
     virtual void updateImpl(std::chrono::nanoseconds delta) = 0;
     [[nodiscard]] virtual auto cloneImpl() const -> Animation* = 0;
-    std::weak_ptr<actors::Actor> actor;
     std::chrono::nanoseconds duration{};
     std::chrono::nanoseconds elapsed{};
-    std::function<void(std::shared_ptr<actors::Actor>)> onFinished{};
+    std::function<void()> onFinished{};
     bool isLooping = false;
     bool isFinished = false;
 };

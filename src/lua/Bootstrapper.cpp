@@ -521,13 +521,8 @@ Bootstrapper::defineAnimation(sol::state& target) const -> void
       sol::property(&drawing::animations::Animation::getProgress,
                     &drawing::animations::Animation::setProgress);
     animationType["onFinished"] =
-      sol::property([&target](drawing::animations::Animation* self,
-                              std::function<void(sol::object)> callback) {
-          self->setOnFinished(
-            [callback, &target](std::shared_ptr<drawing::actors::Actor> actor) {
-                callback(actor->getLuaSelf(target));
-            });
-      });
+      sol::property(&drawing::animations::Animation::getOnFinished,
+                    &drawing::animations::Animation::setOnFinished);
     animationType["isFinished"] =
       sol::property(&drawing::animations::Animation::getIsFinished,
                     [](drawing::animations::Animation* self, bool isFinished) {
@@ -537,13 +532,6 @@ Bootstrapper::defineAnimation(sol::state& target) const -> void
                             self->setProgress(0.0F);
                         }
                     });
-    animationType["actor"] = sol::property(
-      [&target](drawing::animations::Animation* self) {
-          return self->getActor()->getLuaSelf(target);
-      },
-      [](drawing::animations::Animation* self, drawing::actors::Actor* actor) {
-          self->setActor(actor->weak_from_this());
-      });
 }
 auto
 Bootstrapper::defineLinear(sol::state& target) const -> void
@@ -552,43 +540,25 @@ Bootstrapper::defineLinear(sol::state& target) const -> void
     auto linearType = target.new_usertype<drawing::animations::Linear>(
       "Linear",
       sol::factories(
-        [&target](drawing::actors::Actor* actor,
-                  std::function<void(sol::object, float)> updater,
-                  float seconds,
-                  float start,
-                  float end) {
+        [](std::function<void(float)> function,
+           float seconds,
+           float start,
+           float end) {
             auto time = std::chrono::nanoseconds(
               static_cast<int64_t>(seconds * secondsToNanos));
-            auto wrappedFunction =
-              [updater, &target](std::shared_ptr<drawing::actors::Actor> actor,
-                                 float value) {
-                  updater(actor->getLuaSelf(target), value);
-              };
-            return drawing::animations::Linear::make(actor->weak_from_this(),
-                                                     std::move(wrappedFunction),
-                                                     time,
-                                                     start,
-                                                     end);
+            return drawing::animations::Linear::make(
+              std::move(function), time, start, end);
         },
-        [&target](sol::table args) {
-            auto actor = args.get_or<drawing::actors::Actor*>("actor", nullptr);
-            auto updater = args.get_or(
-              "function", std::function<void(sol::object, float)>{});
+        [](sol::table args) {
+            auto function =
+              args.get_or("function", std::function<void(float)>{});
             auto seconds = args.get_or("seconds", 0.F);
             auto start = args.get_or("start", 0.F);
             auto end = args.get_or("end", 0.F);
-            auto wrappedFunction =
-              [updater, &target](std::shared_ptr<drawing::actors::Actor> actor,
-                                 float value) {
-                  updater(actor->getLuaSelf(target), value);
-              };
             auto time = std::chrono::nanoseconds(
               static_cast<int64_t>(seconds * secondsToNanos));
-            return drawing::animations::Linear::make(actor->weak_from_this(),
-                                                     std::move(wrappedFunction),
-                                                     time,
-                                                     start,
-                                                     end);
+            return drawing::animations::Linear::make(
+              std::move(function), time, start, end);
         }),
       sol::base_classes,
       sol::bases<drawing::animations::Animation>());
@@ -600,16 +570,9 @@ Bootstrapper::defineLinear(sol::state& target) const -> void
     linearType["end"] = sol::property(
       [](drawing::animations::Linear* self) { return self->getEnd(); },
       [](drawing::animations::Linear* self, float end) { self->setEnd(end); });
-    linearType["function"] = sol::property(
-      [&target](drawing::animations::Linear* self,
-                std::function<void(sol::object, float)> function) {
-          auto wrappedFunction =
-            [function, &target](std::shared_ptr<drawing::actors::Actor> actor,
-                                float value) {
-                function(actor->getLuaSelf(target), value);
-            };
-          self->setFunction(std::move(wrappedFunction));
-      });
+    linearType["function"] =
+      sol::property(&drawing::animations::Linear::getFunction,
+                    &drawing::animations::Linear::setFunction);
 }
 
 auto

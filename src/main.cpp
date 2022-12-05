@@ -28,10 +28,10 @@ local function onUpdate(self, delta)
         self.text = "FPS: " .. tostring(count)
         count = 0
         time = 0
-        local function currentSizeUpdater(self, value)
+        local function currentSizeUpdater(value)
             self.fillColor = Color.new(255, 255, 255, math.floor(value))
         end
-        local animation = Linear.new(self, currentSizeUpdater, 1, 0, 255)
+        local animation = Linear.new(currentSizeUpdater, 1, 0, 255)
         playAnimation(animation)
     end
 end
