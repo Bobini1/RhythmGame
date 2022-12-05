@@ -27,9 +27,9 @@ drawing::animations::Linear::Linear(
 }
 auto
 drawing::animations::Linear::clone() const
-  -> std::unique_ptr<drawing::animations::Linear>
+  -> std::shared_ptr<drawing::animations::Linear>
 {
-    return std::unique_ptr<Linear>{ cloneImpl() };
+    return std::shared_ptr<Linear>{ cloneImpl() };
 }
 auto
 drawing::animations::Linear::cloneImpl() const -> drawing::animations::Linear*
@@ -47,4 +47,15 @@ drawing::animations::Linear::getFunction() const
   -> std::function<void(std::shared_ptr<actors::Actor>, float)>
 {
     return updated;
+}
+auto
+drawing::animations::Linear::make(
+  std::weak_ptr<actors::Actor> actor,
+  std::function<void(std::shared_ptr<actors::Actor>, float)> updated,
+  std::chrono::nanoseconds duration,
+  float start,
+  float end) -> std::shared_ptr<Linear>
+{
+    return std::shared_ptr<Linear>{ new Linear(
+      std::move(actor), std::move(updated), duration, start, end) };
 }

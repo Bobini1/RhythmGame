@@ -563,12 +563,11 @@ Bootstrapper::defineLinear(sol::state& target) const -> void
                                float value) {
                 updater(actor->getLuaSelf(target), value);
             };
-          return std::make_shared<drawing::animations::Linear>(
-            actor->weak_from_this(),
-            std::move(wrappedFunction),
-            time,
-            start,
-            end);
+          return drawing::animations::Linear::make(actor->weak_from_this(),
+                                                   std::move(wrappedFunction),
+                                                   time,
+                                                   start,
+                                                   end);
       }),
       sol::base_classes,
       sol::bases<drawing::animations::Animation>());

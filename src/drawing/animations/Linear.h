@@ -10,17 +10,25 @@ namespace drawing::animations {
 class Linear : public Animation
 {
   public:
-    Linear(std::weak_ptr<actors::Actor> actor,
-           std::function<void(std::shared_ptr<actors::Actor>, float)> updated,
-           std::chrono::nanoseconds duration,
-           float start,
-           float end);
-    [[nodiscard]] auto clone() const -> std::unique_ptr<Linear>;
+    [[nodiscard]] auto clone() const -> std::shared_ptr<Linear>;
     auto setFunction(
       std::function<void(std::shared_ptr<actors::Actor>, float)> updated)
       -> void;
     auto getFunction() const
       -> std::function<void(std::shared_ptr<actors::Actor>, float)>;
+    static auto make(
+      std::weak_ptr<actors::Actor> actor,
+      std::function<void(std::shared_ptr<actors::Actor>, float)> updated,
+      std::chrono::nanoseconds duration,
+      float start,
+      float end) -> std::shared_ptr<Linear>;
+
+  protected:
+    Linear(std::weak_ptr<actors::Actor> actor,
+           std::function<void(std::shared_ptr<actors::Actor>, float)> updated,
+           std::chrono::nanoseconds duration,
+           float start,
+           float end);
 
   private:
     [[nodiscard]] auto cloneImpl() const -> Linear* override;

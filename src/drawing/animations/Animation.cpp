@@ -101,7 +101,7 @@ drawing::animations::Animation::setProgress(float progress) -> void
 }
 auto
 drawing::animations::Animation::clone() const
-  -> std::unique_ptr<drawing::animations::Animation>
+  -> std::shared_ptr<drawing::animations::Animation>
 {
     return std::unique_ptr<Animation>{ cloneImpl() };
 }

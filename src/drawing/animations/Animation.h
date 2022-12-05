@@ -15,8 +15,6 @@ namespace drawing::animations {
 class Animation : public support::EnableSharedFromBase<Animation>
 {
   public:
-    explicit Animation(std::weak_ptr<actors::Actor> actor,
-                       std::chrono::nanoseconds duration);
     void update(std::chrono::nanoseconds delta);
     void reset();
     void setOnFinished(
@@ -33,7 +31,11 @@ class Animation : public support::EnableSharedFromBase<Animation>
     void setActor(std::weak_ptr<actors::Actor> newActor);
     [[nodiscard]] auto getActor() const -> std::shared_ptr<actors::Actor>;
     virtual ~Animation() = default;
-    [[nodiscard]] auto clone() const -> std::unique_ptr<Animation>;
+    [[nodiscard]] auto clone() const -> std::shared_ptr<Animation>;
+
+  protected:
+    explicit Animation(std::weak_ptr<actors::Actor> actor,
+                       std::chrono::nanoseconds duration);
 
   private:
     virtual void updateImpl(std::chrono::nanoseconds delta) = 0;
