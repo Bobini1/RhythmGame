@@ -59,3 +59,23 @@ drawing::animations::Linear::make(
     return std::shared_ptr<Linear>{ new Linear(
       std::move(actor), std::move(updated), duration, start, end) };
 }
+auto
+drawing::animations::Linear::getStart() const -> float
+{
+    return start;
+}
+auto
+drawing::animations::Linear::getEnd() const -> float
+{
+    return end;
+}
+auto
+drawing::animations::Linear::setStart(float newStart) -> void
+{
+    start = newStart;
+}
+auto
+drawing::animations::Linear::setEnd(float newEnd) -> void
+{
+    end = newEnd;
+}

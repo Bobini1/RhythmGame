@@ -16,6 +16,10 @@ class Linear : public Animation
       -> void;
     auto getFunction() const
       -> std::function<void(std::shared_ptr<actors::Actor>, float)>;
+    auto getStart() const -> float;
+    auto getEnd() const -> float;
+    auto setStart(float start) -> void;
+    auto setEnd(float end) -> void;
     static auto make(
       std::weak_ptr<actors::Actor> actor,
       std::function<void(std::shared_ptr<actors::Actor>, float)> updated,
