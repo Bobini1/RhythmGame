@@ -39,13 +39,15 @@ drawing::animations::AnimationSequence::updateImpl(
         auto absoluteEnd = animationDuration + timePoint;
         if (!currentFound) {
             if (absoluteEnd >= elapsed) {
-                animation->setElapsed(elapsed - timePoint);
-                animation->update({});
+                animation->setElapsed(elapsed - timePoint - delta);
+                animation->update(delta);
                 currentFound = true;
             } else {
-                animation->setElapsed(animationDuration);
                 if (elapsed - delta <= absoluteEnd) {
-                    animation->update({});
+                    animation->setElapsed(animationDuration - delta);
+                    animation->update(delta);
+                } else {
+                    animation->setElapsed(animationDuration);
                 }
             }
         } else {
