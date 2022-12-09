@@ -24,36 +24,32 @@ drawing::animations::Animation::getIsLooping() const -> bool
 auto
 drawing::animations::Animation::getIsFinished() const -> bool
 {
-    return isFinished;
-}
-auto
-drawing::animations::Animation::getDuration() const -> std::chrono::nanoseconds
-{
-    return duration;
+    return getElapsed() >= getDuration();
 }
 auto
 drawing::animations::Animation::getProgress() const -> float
 {
+    auto duration = getDuration();
+    if (!duration.count()) {
+        return 1.0f;
+    }
     return static_cast<float>(elapsed.count()) /
-           static_cast<float>(duration.count());
-}
-drawing::animations::Animation::Animation(std::chrono::nanoseconds duration)
-  : duration(duration)
-{
+           static_cast<float>(getDuration().count());
 }
 void
 drawing::animations::Animation::update(std::chrono::nanoseconds delta)
 {
+    auto oldElapsed = elapsed;
     elapsed += delta;
+    auto duration = getDuration();
 
     if (elapsed >= duration) {
-        elapsed = duration;
-        updateImpl(delta);
         if (isLooping) {
-            elapsed = std::chrono::nanoseconds{};
+            elapsed = duration - oldElapsed;
         } else {
-            isFinished = true;
+            elapsed = duration;
         }
+        updateImpl(delta);
         if (onFinished) {
             onFinished();
         }
@@ -71,30 +67,48 @@ void
 drawing::animations::Animation::reset()
 {
     elapsed = std::chrono::nanoseconds();
-    isFinished = false;
-}
-auto
-drawing::animations::Animation::setDuration(
-  std::chrono::nanoseconds newDuration) -> void
-{
-    duration = newDuration;
 }
 auto
 drawing::animations::Animation::setProgress(float progress) -> void
 {
     if (progress >= 1.0F) {
-        elapsed = duration;
+        elapsed = getDuration();
     } else {
         progress = std::max(progress, 0.0F);
         elapsed =
           std::chrono::nanoseconds(static_cast<std::chrono::nanoseconds::rep>(
-            static_cast<float>(duration.count()) * progress));
+            static_cast<float>(getDuration().count()) * progress));
     }
-    update(std::chrono::nanoseconds{});
 }
 auto
 drawing::animations::Animation::clone() const
   -> std::shared_ptr<drawing::animations::Animation>
 {
     return std::unique_ptr<Animation>{ cloneImpl() };
+}
+auto
+drawing::animations::Animation::getElapsed() const -> std::chrono::nanoseconds
+{
+    return elapsed;
+}
+auto
+drawing::animations::Animation::setElapsed(std::chrono::nanoseconds newElapsed)
+  -> void
+{
+    auto duration = getDuration();
+    if (newElapsed >= duration) {
+        elapsed = duration;
+    } else {
+        elapsed = std::max(newElapsed, std::chrono::nanoseconds{});
+    }
+}
+auto
+drawing::animations::Animation::setDuration(
+  std::chrono::nanoseconds newDuration) -> void
+{
+    setDurationImpl(std::max(std::chrono::nanoseconds{}, newDuration));
+    auto duration = getDuration();
+    if (elapsed > duration) {
+        elapsed = duration;
+    }
 }

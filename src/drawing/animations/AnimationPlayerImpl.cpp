@@ -7,7 +7,7 @@
 void
 drawing::animations::AnimationPlayerImpl::update(std::chrono::nanoseconds delta)
 {
-    for (auto& animation : animations) {
+    for (const auto& animation : animations) {
         animation->update(delta);
     }
     erase_if(animations,

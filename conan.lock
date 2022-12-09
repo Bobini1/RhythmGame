@@ -259,7 +259,6 @@
     "options": "fPIC=True\nheader_only=False\nno_exceptions=False\nshared=False\nwchar_filenames=False\nwchar_support=False\nfmt:fPIC=True\nfmt:header_only=False\nfmt:shared=False\nfmt:with_fmt_alias=False\nfmt:with_os_api=True",
     "package_id": "a280fc3f8be23abe28a183333f4c18332536be09",
     "prev": "0",
-    "modified": true,
     "requires": [
      "29"
     ],
@@ -270,7 +269,6 @@
     "options": "fPIC=True\nheader_only=False\nshared=False\nwith_fmt_alias=False\nwith_os_api=True",
     "package_id": "e0e003fc38e6dcc03cdfbaf52057d71baa23adad",
     "prev": "0",
-    "modified": true,
     "context": "host"
    },
    "30": {

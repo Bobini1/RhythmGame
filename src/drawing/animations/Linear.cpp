@@ -17,7 +17,7 @@ drawing::animations::Linear::Linear(std::function<void(float)> updated,
                                     std::chrono::nanoseconds duration,
                                     float start,
                                     float end)
-  : Animation(duration)
+  : AbstractBasicAnimation(duration)
   , start(start)
   , end(end)
   , updated(std::move(updated))
@@ -32,7 +32,7 @@ drawing::animations::Linear::clone() const
 auto
 drawing::animations::Linear::cloneImpl() const -> drawing::animations::Linear*
 {
-    return new Linear(updated, getDuration(), start, end);
+    return new Linear(*this);
 }
 auto
 drawing::animations::Linear::setFunction(std::function<void(float)> newUpdated)

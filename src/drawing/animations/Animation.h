@@ -22,24 +22,27 @@ class Animation : public support::EnableSharedFromBase<Animation>
     [[nodiscard]] auto getIsLooping() const -> bool;
     auto setIsLooping() -> void;
     [[nodiscard]] auto getIsFinished() const -> bool;
-    [[nodiscard]] auto getDuration() const -> std::chrono::nanoseconds;
+    [[nodiscard]] virtual auto getDuration() const
+      -> std::chrono::nanoseconds = 0;
     auto setDuration(std::chrono::nanoseconds newDuration) -> void;
     [[nodiscard]] auto getProgress() const -> float;
     auto setProgress(float progress) -> void;
+    [[nodiscard]] auto getElapsed() const -> std::chrono::nanoseconds;
+    auto setElapsed(std::chrono::nanoseconds newElapsed) -> void;
     virtual ~Animation() = default;
     [[nodiscard]] auto clone() const -> std::shared_ptr<Animation>;
 
   protected:
-    explicit Animation(std::chrono::nanoseconds duration);
+    Animation() = default;
 
   private:
     virtual void updateImpl(std::chrono::nanoseconds delta) = 0;
+    virtual auto setDurationImpl(std::chrono::nanoseconds newDuration)
+      -> void = 0;
     [[nodiscard]] virtual auto cloneImpl() const -> Animation* = 0;
-    std::chrono::nanoseconds duration{};
     std::chrono::nanoseconds elapsed{};
     std::function<void()> onFinished{};
     bool isLooping = false;
-    bool isFinished = false;
 };
 } // namespace drawing::animations
 #endif // RHYTHMGAME_ANIMATION_H
