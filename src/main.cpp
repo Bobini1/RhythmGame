@@ -92,34 +92,24 @@ return layers
 auto
 main() -> int
 {
-    sol::state state;
+    auto state = sol::state{};
     state.open_libraries(
       sol::lib::jit, sol::lib::base, sol::lib::io, sol::lib::math);
-    lua::Bootstrapper bootstrapper;
 
-    auto animationPlayer =
-      std::make_unique<drawing::animations::AnimationPlayerImpl>();
-    bootstrapper.bindAnimationPlayer(state, *animationPlayer);
-
+    auto textureLoader =
+      std::make_shared<resource_managers::TextureLoaderImpl>();
+    auto fontLoader = std::make_shared<resource_managers::FontLoaderImpl>();
+    auto animationPlayer = drawing::animations::AnimationPlayerImpl{};
     auto startingScene = std::make_shared<
       drawing::SplashScene<events::Signals2Event,
-                           drawing::animations::AnimationPlayerImpl>>(
-      std::move(animationPlayer));
-
-    startingScene->defineEvents(state, bootstrapper);
-
-    bootstrapper.defineCommonTypes(state);
-
-    auto textureLoader = resource_managers::TextureLoaderImpl{};
-    bootstrapper.bindTextureLoader(state, textureLoader);
-
-    auto fontLoader = resource_managers::FontLoaderImpl{};
-    bootstrapper.bindFontLoader(state, fontLoader);
-
-    auto root = state.script(luaScript);
-
-    auto rootPtr = root.get<drawing::actors::Actor*>()->shared_from_this();
-    startingScene->setRoot(std::move(rootPtr));
+                           drawing::animations::AnimationPlayerImpl,
+                           resource_managers::TextureLoaderImpl,
+                           resource_managers::FontLoaderImpl>>(
+      std::move(state),
+      std::move(animationPlayer),
+      textureLoader,
+      fontLoader,
+      luaScript);
 
     auto startingWindow = std::make_shared<drawing::SplashWindow>(
       std::move(startingScene), sf::VideoMode{ 800, 600 }, "RhythmGame");

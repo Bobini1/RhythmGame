@@ -6,31 +6,19 @@
 #include "lua/Bootstrapper.h"
 #include "resource_managers/TextureLoaderImpl.h"
 #include "resource_managers/FontLoaderImpl.h"
-
-inline auto
-getStateWithAllDefinitions() -> sol::state
-{
-    sol::state state;
-    state.open_libraries(sol::lib::jit, sol::lib::base, sol::lib::io);
-    lua::Bootstrapper bootstrapper;
-    bootstrapper.defineCommonTypes(state);
-
-    auto textureLoader = resource_managers::TextureLoaderImpl{};
-    bootstrapper.bindTextureLoader(state, textureLoader);
-
-    auto fontLoader = resource_managers::FontLoaderImpl{};
-    bootstrapper.bindFontLoader(state, fontLoader);
-
-    return state;
-}
+#include "drawing/animations/AnimationPlayerImpl.h"
 
 class StateSetup
 {
     sol::state state;
-    lua::Bootstrapper bootstrapper;
+    lua::EventAttacher eventAttacher;
+    resource_managers::TextureLoaderImpl textureLoader;
+    resource_managers::FontLoaderImpl fontLoader = {};
+    drawing::animations::AnimationPlayerImpl animationPlayer = {};
 
   public:
     StateSetup()
+      : eventAttacher(&state)
     {
         state.open_libraries(sol::lib::jit, sol::lib::base, sol::lib::io);
     }
@@ -38,19 +26,14 @@ class StateSetup
     template<typename... Args>
     auto addEventToState(auto& event, std::string name) -> void
     {
-        bootstrapper.addEvent<decltype(event), Args...>(
-          state, event, std::move(name));
+        eventAttacher.addEvent<decltype(event), Args...>(
+          event, std::move(name));
     }
 
     explicit operator sol::state() &&
     {
-        bootstrapper.defineCommonTypes(state);
-
-        auto textureLoader = resource_managers::TextureLoaderImpl{};
-        bootstrapper.bindTextureLoader(state, textureLoader);
-
-        auto fontLoader = resource_managers::FontLoaderImpl{};
-        bootstrapper.bindFontLoader(state, fontLoader);
+        lua::defineAllTypes(
+          state, textureLoader, fontLoader, animationPlayer, eventAttacher);
 
         return std::move(state);
     }

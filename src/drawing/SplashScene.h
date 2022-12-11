@@ -17,31 +17,42 @@ namespace drawing {
 /**
  * @brief Scene that displays the splash screen while the game is being loaded.
  */
-template<template<typename... Args> typename EventType,
-         animations::AnimationPlayer AnimationPlayerType>
+template<template<typename...> typename EventType,
+         animations::AnimationPlayer AnimationPlayerType,
+         resource_managers::TextureLoader TextureLoaderType,
+         resource_managers::FontLoader FontLoaderType>
 class SplashScene : public Scene
 {
     std::shared_ptr<actors::Actor> root;
     EventType<> init{};
     EventType<float> onUpdate{};
     mutable bool initialized = false;
-    std::unique_ptr<AnimationPlayerType> animationPlayer;
+    AnimationPlayerType animationPlayer;
+    sol::state state;
+    std::shared_ptr<TextureLoaderType> textureLoader;
+    std::shared_ptr<FontLoaderType> fontLoader;
 
   public:
-    explicit SplashScene(std::unique_ptr<AnimationPlayerType> animationPlayer)
+    explicit SplashScene(sol::state state,
+                         AnimationPlayerType animationPlayer,
+                         std::shared_ptr<TextureLoaderType> textureLoader,
+                         std::shared_ptr<FontLoaderType> fontLoader,
+                         std::string_view script)
       : animationPlayer(std::move(animationPlayer))
+      , state(std::move(state))
+      , textureLoader(std::move(textureLoader))
+      , fontLoader(std::move(fontLoader))
     {
-    }
-    auto defineEvents(sol::state& target, lua::Bootstrapper& bootstrapper)
-      -> void override
-    {
-        bootstrapper.addEvent(target, init, "init");
-        bootstrapper.addEvent<decltype(onUpdate), float>(
-          target, onUpdate, "update");
-    }
-    auto setRoot(std::shared_ptr<actors::Actor> newRoot) -> void override
-    {
-        this->root = std::move(newRoot);
+        lua::EventAttacher eventAttacher(&this->state);
+        eventAttacher.addEvent(init, "init");
+        eventAttacher.addEvent<decltype(onUpdate), float>(onUpdate, "update");
+        lua::defineAllTypes(this->state,
+                            *this->textureLoader,
+                            *this->fontLoader,
+                            this->animationPlayer,
+                            eventAttacher);
+        auto luaRoot = this->state.script(script);
+        root = luaRoot.get<drawing::actors::Actor*>()->shared_from_this();
     }
     void update(std::chrono::nanoseconds delta) final
     {
@@ -51,8 +62,8 @@ class SplashScene : public Scene
         }
         root->setTransform(sf::Transform::Identity);
 
-        onUpdate(delta.count() / 1e9f);
-        animationPlayer->update(delta);
+        onUpdate(delta.count() / 1e9F);
+        animationPlayer.update(delta);
     }
     void draw(sf::RenderTarget& target, sf::RenderStates states) const final
     {

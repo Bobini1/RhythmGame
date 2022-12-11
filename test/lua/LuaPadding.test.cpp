@@ -15,7 +15,8 @@ static constexpr auto scriptWithArrayConstructor = R"(
 
 TEST_CASE("Padding can be constructed from lua", "[drawing][actors][padding]")
 {
-    auto state = getStateWithAllDefinitions();
+    auto stateSetup = StateSetup{};
+    auto state = sol::state(std::move(stateSetup));
     auto result = state.script(scriptWithArrayConstructor);
     auto root = result.get<drawing::actors::Actor*>()->shared_from_this();
     auto padding = std::dynamic_pointer_cast<drawing::actors::Padding>(root);
@@ -36,7 +37,8 @@ static constexpr auto scriptWithMixedConstructor = R"(
 TEST_CASE("Padding can be constructed from lua with mixed constructor",
           "[drawing][actors][padding]")
 {
-    auto state = getStateWithAllDefinitions();
+    auto stateSetup = StateSetup{};
+    auto state = sol::state(std::move(stateSetup));
     auto result = state.script(scriptWithMixedConstructor);
     auto root = result.get<drawing::actors::Actor*>()->shared_from_this();
     auto padding = std::dynamic_pointer_cast<drawing::actors::Padding>(root);

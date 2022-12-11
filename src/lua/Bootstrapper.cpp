@@ -19,7 +19,8 @@
 namespace lua {
 
 auto
-Bootstrapper::defineActor(sol::state& target) const -> void
+detail::defineActor(sol::state& target, const EventAttacher& eventAttacher)
+  -> void
 {
     auto actorType =
       target.new_usertype<drawing::actors::Actor>("Actor", sol::no_constructor);
@@ -38,11 +39,11 @@ Bootstrapper::defineActor(sol::state& target) const -> void
       sol::property(&drawing::actors::Actor::getIsWidthManaged);
     actorType["isHeightManaged"] =
       sol::property(&drawing::actors::Actor::getIsHeightManaged);
-    registerAllEventProperties(actorType);
+    eventAttacher.registerAllEventProperties(actorType);
 }
 
 auto
-Bootstrapper::defineParent(sol::state& target) const -> void
+detail::defineParent(sol::state& target) -> void
 {
     auto parentType = target.new_usertype<drawing::actors::Parent>(
       "Parent",
@@ -53,7 +54,7 @@ Bootstrapper::defineParent(sol::state& target) const -> void
 }
 
 auto
-Bootstrapper::defineAbstractVectorCollection(sol::state& target) const -> void
+detail::defineAbstractVectorCollection(sol::state& target) -> void
 {
     auto abstractVectorCollectionType =
       target.new_usertype<drawing::actors::AbstractVectorCollection>(
@@ -76,7 +77,7 @@ Bootstrapper::defineAbstractVectorCollection(sol::state& target) const -> void
 }
 
 auto
-Bootstrapper::defineAbstractBox(sol::state& target) const -> void
+detail::defineAbstractBox(sol::state& target) -> void
 {
     auto abstractBoxType = target.new_usertype<drawing::actors::AbstractBox>(
       "Box",
@@ -102,13 +103,14 @@ Bootstrapper::defineAbstractBox(sol::state& target) const -> void
 }
 
 auto
-Bootstrapper::defineVBox(sol::state& target) const -> void
+detail::defineVBox(sol::state& target, const EventAttacher& eventAttacher)
+  -> void
 {
     auto vBoxType = target.new_usertype<drawing::actors::VBox>(
       "VBox",
       sol::factories(
         []() { return drawing::actors::VBox::make(); },
-        [eventAttacher = EventAttacher(eventRegistrators)](sol::table args) {
+        [eventAttacher](sol::table args) {
             auto result = drawing::actors::VBox::make();
             if (args["children"].valid()) {
                 auto children =
@@ -164,13 +166,14 @@ Bootstrapper::defineVBox(sol::state& target) const -> void
 }
 
 auto
-Bootstrapper::defineHBox(sol::state& target) const -> void
+detail::defineHBox(sol::state& target, const EventAttacher& eventAttacher)
+  -> void
 {
     auto hBoxType = target.new_usertype<drawing::actors::HBox>(
       "HBox",
       sol::factories(
         []() { return drawing::actors::HBox::make(); },
-        [eventAttacher = EventAttacher(eventRegistrators)](sol::table args) {
+        [eventAttacher](sol::table args) {
             auto result = drawing::actors::HBox::make();
             if (args["children"].valid()) {
                 auto children =
@@ -225,7 +228,7 @@ Bootstrapper::defineHBox(sol::state& target) const -> void
 }
 
 auto
-Bootstrapper::defineVector2(sol::state& target) const -> void
+detail::defineVector2(sol::state& target) -> void
 {
     auto vector2fType = target.new_usertype<sf::Vector2f>(
       "Vector2",
@@ -235,7 +238,7 @@ Bootstrapper::defineVector2(sol::state& target) const -> void
 }
 
 auto
-Bootstrapper::defineAbstractRectLeaf(sol::state& target) const -> void
+detail::defineAbstractRectLeaf(sol::state& target) -> void
 {
     auto abstractRectLeafType =
       target.new_usertype<drawing::actors::AbstractRectLeaf>(
@@ -258,7 +261,8 @@ Bootstrapper::defineAbstractRectLeaf(sol::state& target) const -> void
 }
 
 auto
-Bootstrapper::defineQuad(sol::state& target) const -> void
+detail::defineQuad(sol::state& target, const EventAttacher& eventAttacher)
+  -> void
 {
     auto quadType = target.new_usertype<drawing::actors::Quad>(
       "Quad",
@@ -274,7 +278,7 @@ Bootstrapper::defineQuad(sol::state& target) const -> void
               drawing::actors::Quad::make(sf::Vector2f{ width, height }, color);
             return result;
         },
-        [eventAttacher = EventAttacher(eventRegistrators)](sol::table args) {
+        [eventAttacher](sol::table args) {
             auto result = drawing::actors::Quad::make(
               sf::Vector2f{ args.get_or("width", 0.F),
                             args.get_or("height", 0.F) },
@@ -317,7 +321,7 @@ Bootstrapper::defineQuad(sol::state& target) const -> void
 }
 
 auto
-Bootstrapper::defineColor(sol::state& target) const -> void
+detail::defineColor(sol::state& target) -> void
 {
     auto colorType = target.new_usertype<sf::Color>(
       "Color", sol::constructors<sf::Color(), sf::Color(int, int, int, int)>());
@@ -328,7 +332,8 @@ Bootstrapper::defineColor(sol::state& target) const -> void
 }
 
 auto
-Bootstrapper::definePadding(sol::state& target) const -> void
+detail::definePadding(sol::state& target, const EventAttacher& eventAttacher)
+  -> void
 {
     auto paddingType = target.new_usertype<drawing::actors::Padding>(
       "Padding",
@@ -348,8 +353,7 @@ Bootstrapper::definePadding(sol::state& target) const -> void
             returnVal->setChild(actor->shared_from_this());
             return returnVal;
         },
-        [eventAttacher =
-           EventAttacher(eventRegistrators)](const sol::table& args) {
+        [eventAttacher](const sol::table& args) {
             auto child = [&]() {
                 if (args["child"].valid()) {
                     return args.get<drawing::actors::Actor*>("child")
@@ -388,7 +392,8 @@ Bootstrapper::definePadding(sol::state& target) const -> void
 }
 
 auto
-Bootstrapper::defineAlign(sol::state& target) const -> void
+detail::defineAlign(sol::state& target, const EventAttacher& eventAttacher)
+  -> void
 {
     auto modeType = target.new_enum("AlignMode",
                                     "TopLeft",
@@ -426,8 +431,7 @@ Bootstrapper::defineAlign(sol::state& target) const -> void
         [](drawing::actors::Align::Mode mode) {
             return drawing::actors::Align::make(mode);
         },
-        [eventAttacher =
-           EventAttacher(eventRegistrators)](const sol::table& args) {
+        [eventAttacher](const sol::table& args) {
             auto child = [&]() {
                 if (args["child"].valid()) {
                     return args.get<drawing::actors::Actor*>("child")
@@ -458,14 +462,14 @@ Bootstrapper::defineAlign(sol::state& target) const -> void
 }
 
 auto
-Bootstrapper::defineLayers(sol::state& target) const -> void
+detail::defineLayers(sol::state& target, const EventAttacher& eventAttacher)
+  -> void
 {
     auto layerType = target.new_usertype<drawing::actors::Layers>(
       "Layers",
       sol::factories(
         []() { return drawing::actors::Layers::make(); },
-        [eventAttacher =
-           EventAttacher(eventRegistrators)](const sol::table& args) {
+        [eventAttacher](const sol::table& args) {
             auto returnVal = drawing::actors::Layers::make();
             if (args["children"].valid()) {
                 for (const auto& child :
@@ -502,7 +506,7 @@ Bootstrapper::defineLayers(sol::state& target) const -> void
 }
 
 auto
-Bootstrapper::defineAnimation(sol::state& target) const -> void
+detail::defineAnimation(sol::state& target) -> void
 {
     auto animationType = target.new_usertype<drawing::animations::Animation>(
       "Animation", sol::no_constructor);
@@ -528,7 +532,7 @@ Bootstrapper::defineAnimation(sol::state& target) const -> void
       sol::property(&drawing::animations::Animation::getIsFinished);
 }
 auto
-Bootstrapper::defineLinear(sol::state& target) const -> void
+detail::defineLinear(sol::state& target) -> void
 {
     constexpr auto secondsToNanos = 1E9;
     auto linearType = target.new_usertype<drawing::animations::Linear>(
@@ -578,27 +582,7 @@ Bootstrapper::defineLinear(sol::state& target) const -> void
 }
 
 auto
-Bootstrapper::defineCommonTypes(sol::state& target) const -> void
-{
-    defineActor(target);
-    defineParent(target);
-    defineAbstractVectorCollection(target);
-    defineAbstractBox(target);
-    defineVBox(target);
-    defineHBox(target);
-    defineVector2(target);
-    defineAbstractRectLeaf(target);
-    defineQuad(target);
-    defineColor(target);
-    definePadding(target);
-    defineAlign(target);
-    defineLayers(target);
-    defineAnimation(target);
-    defineLinear(target);
-    defineAnimationSequence(target);
-}
-auto
-Bootstrapper::defineAnimationSequence(sol::state& target) const -> void
+detail::defineAnimationSequence(sol::state& target) -> void
 {
     auto animationSequenceType =
       target.new_usertype<drawing::animations::AnimationSequence>(
@@ -627,35 +611,25 @@ Bootstrapper::defineAnimationSequence(sol::state& target) const -> void
         sol::bases<drawing::animations::Animation>());
 }
 auto
-Bootstrapper::EventAttacher::attachAllEvents(
-  const std::shared_ptr<drawing::actors::Actor>& actor,
-  const sol::table& events) const -> void
+detail::defineCommonTypes(sol::state& target,
+                          const EventAttacher& eventAttacher) -> void
 {
-    for (auto& [key, value] : events) {
-        if (value.get_type() != sol::type::function) {
-            spdlog::error("Event handler {} is not a function, skipping",
-                          key.as<std::string>());
-            continue;
-        }
-        attachEvent(key.as<std::string>(), actor, value.as<sol::function>());
-    }
-}
-auto
-Bootstrapper::EventAttacher::attachEvent(
-  std::string eventName,
-  std::shared_ptr<drawing::actors::Actor> actor,
-  sol::function function) const -> void
-{
-    if (eventRegistrators->find(eventName) == eventRegistrators->end()) {
-        spdlog::error("Event {} not found", eventName);
-        return;
-    }
-    eventRegistrators->at(eventName)(std::move(actor), std::move(function));
-}
-Bootstrapper::EventAttacher::EventAttacher(
-  std::shared_ptr<std::map<std::string, CppEventInterface>> eventRegistrators)
-  : eventRegistrators(std::move(eventRegistrators))
-{
+    defineActor(target, eventAttacher);
+    defineParent(target);
+    defineAbstractVectorCollection(target);
+    defineAbstractBox(target);
+    defineVBox(target, eventAttacher);
+    defineHBox(target, eventAttacher);
+    defineVector2(target);
+    defineAbstractRectLeaf(target);
+    defineQuad(target, eventAttacher);
+    defineColor(target);
+    definePadding(target, eventAttacher);
+    defineAlign(target, eventAttacher);
+    defineLayers(target, eventAttacher);
+    defineAnimation(target);
+    defineLinear(target);
+    defineAnimationSequence(target);
 }
 
 } // namespace lua
