@@ -17,6 +17,8 @@
 #include "drawing/animations/Animation.h"
 #include "drawing/animations/AnimationPlayer.h"
 #include "EventAttacher.h"
+#include "drawing/actors/AbstractVectorCollection.h"
+#include "drawing/actors/AbstractBox.h"
 
 namespace lua {
 
@@ -287,6 +289,21 @@ defineSprite(sol::state& target,
     spriteType["color"] = sol::property(&drawing::actors::Sprite::getColor,
                                         &drawing::actors::Sprite::setColor);
 }
+
+auto getBindActorProperties(const EventAttacher& eventAttacher)
+{
+    return [eventAttacher](const std::shared_ptr<drawing::actors::Actor>& actor, sol::table args){
+        if (args["width"].valid()) {
+            actor->setWidth(args["width"].get<float>());
+        }
+        if (args["height"].valid()) {
+            actor->setHeight(args["height"].get<float>());
+        }
+        if (args["events"].valid()) {
+            eventAttacher.attachAllEvents(actor, args["events"]);
+        }
+    };
+}
 } // namespace detail
 template<resource_managers::TextureLoader TextureLoaderType,
          resource_managers::FontLoader FontLoaderType, drawing::animations::AnimationPlayer AnimationPlayerType>
@@ -297,6 +314,54 @@ defineAllTypes(sol::state& target,
                AnimationPlayerType& animationPlayer,
                const EventAttacher& eventAttacher) -> void
 {
+    auto bindActorProperties = detail::getBindActorProperties(eventAttacher);
+    auto bindAbstractRectLeafProperties = [bindActorProperties](const std::shared_ptr<drawing::actors::AbstractRectLeaf>& actor, sol::table args){
+        bindActorProperties(actor, args);
+        if (args["minWidth"].valid()) {
+            actor->setMinWidth(args["minWidth"].get<float>());
+        }
+        if (args["minHeight"].valid()) {
+            actor->setMinHeight(args["minHeight"].get<float>());
+        }
+        if (args["isWidthManaged"].valid()) {
+            actor->setIsWidthManaged(args["isWidthManaged"].get<bool>());
+        }
+        if (args["isHeightManaged"].valid()) {
+            actor->setIsHeightManaged(args["isHeightManaged"].get<bool>());
+        }
+    };
+    auto bindAbstractVectorCollectionProperties = [bindActorProperties](const std::shared_ptr<drawing::actors::AbstractVectorCollection>& actor, sol::table args){
+        bindActorProperties(actor, args);
+        if (args["children"].valid()) {
+            auto children =
+              args["children"].get<std::vector<drawing::actors::Actor*>>();
+            for (auto* child : children) {
+                actor->addChild(child->shared_from_this());
+            }
+        }
+    };
+    auto bindAbstractBoxProperties = [bindAbstractVectorCollectionProperties](const std::shared_ptr<drawing::actors::AbstractBox>& actor, sol::table args){
+        bindAbstractVectorCollectionProperties(actor, args);
+        if (args["horizontalSizeMode"].valid()) {
+            actor->setHorizontalSizeMode(
+              args["horizontalSizeMode"]
+                .get<drawing::actors::AbstractBox::SizeMode>());
+        }
+        if (args["verticalSizeMode"].valid()) {
+            actor->setVerticalSizeMode(
+              args["verticalSizeMode"]
+                .get<drawing::actors::AbstractBox::SizeMode>());
+        }
+        if (args["width"].valid()) {
+            actor->setWidth(args["width"].get<float>());
+        }
+        if (args["height"].valid()) {
+            actor->setHeight(args["height"].get<float>());
+        }
+        if (args["spacing"].valid()) {
+            actor->setSpacing(args["spacing"].get<float>());
+        }
+    };
     detail::defineCommonTypes(target, eventAttacher);
     detail::defineFont(target, fontLoader);
     detail::defineText(target, eventAttacher, fontLoader);
