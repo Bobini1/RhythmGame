@@ -16,10 +16,7 @@ TEST_CASE("Animation uses a function to set a value",
       [&quad](float value) { quad->setWidth(value); }, time, 0, 100);
     SECTION("No change to properties")
     {
-        SECTION("Progress below 0")
-        {
-            animation->setProgress(-1.5f);
-        }
+        SECTION("Progress below 0") { animation->setProgress(-1.5f); }
         SECTION("Elapsed below 0")
         {
             animation->setElapsed(std::chrono::nanoseconds{ -1 });
@@ -45,10 +42,7 @@ TEST_CASE("Animation uses a function to set a value",
     }
     SECTION("Changed progress or elapsed")
     {
-        SECTION("Changed progress")
-        {
-            animation->setProgress(0.5F);
-        }
+        SECTION("Changed progress") { animation->setProgress(0.5F); }
         SECTION("Changed elapsed")
         {
             animation->setElapsed(animation->getDuration() / 2);
@@ -63,10 +57,7 @@ TEST_CASE("Animation uses a function to set a value",
     }
     SECTION("Values above allowed")
     {
-        SECTION("Progress above 1")
-        {
-            animation->setProgress(1.5F);
-        }
+        SECTION("Progress above 1") { animation->setProgress(1.5F); }
         SECTION("Elapsed above duration")
         {
             animation->setElapsed(animation->getDuration() +
