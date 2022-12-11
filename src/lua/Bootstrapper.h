@@ -37,6 +37,7 @@ class Bootstrapper
 
     auto defineAnimation(sol::state& target) const -> void;
     auto defineLinear(sol::state& target) const -> void;
+    auto defineAnimationSequence(sol::state& target) const -> void;
 
   public:
     using CppEventInterface =

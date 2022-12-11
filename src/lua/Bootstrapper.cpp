@@ -14,6 +14,7 @@
 #include "drawing/actors/Align.h"
 #include "drawing/actors/Layers.h"
 #include "drawing/animations/Linear.h"
+#include "drawing/animations/AnimationSequence.h"
 
 namespace lua {
 
@@ -524,14 +525,7 @@ Bootstrapper::defineAnimation(sol::state& target) const -> void
       sol::property(&drawing::animations::Animation::getOnFinished,
                     &drawing::animations::Animation::setOnFinished);
     animationType["isFinished"] =
-      sol::property(&drawing::animations::Animation::getIsFinished,
-                    [](drawing::animations::Animation* self, bool isFinished) {
-                        if (isFinished) {
-                            self->setProgress(1.0F);
-                        } else {
-                            self->setProgress(0.0F);
-                        }
-                    });
+      sol::property(&drawing::animations::Animation::getIsFinished);
 }
 auto
 Bootstrapper::defineLinear(sol::state& target) const -> void
@@ -552,13 +546,20 @@ Bootstrapper::defineLinear(sol::state& target) const -> void
         [](sol::table args) {
             auto function =
               args.get_or("function", std::function<void(float)>{});
-            auto seconds = args.get_or("seconds", 0.F);
+            auto seconds = args.get_or("duration", 0.F);
             auto start = args.get_or("start", 0.F);
             auto end = args.get_or("end", 0.F);
             auto time = std::chrono::nanoseconds(
               static_cast<int64_t>(seconds * secondsToNanos));
-            return drawing::animations::Linear::make(
+            auto result = drawing::animations::Linear::make(
               std::move(function), time, start, end);
+            if (args["onFinished"].valid()) {
+                result->setOnFinished(args["onFinished"]);
+            }
+            if (args["isLooping"].valid()) {
+                result->setIsLooping(args["isLooping"]);
+            }
+            return result;
         }),
       sol::base_classes,
       sol::bases<drawing::animations::Animation>());
@@ -593,6 +594,35 @@ Bootstrapper::defineCommonTypes(sol::state& target) const -> void
     defineLayers(target);
     defineAnimation(target);
     defineLinear(target);
+    defineAnimationSequence(target);
+}
+auto
+Bootstrapper::defineAnimationSequence(sol::state& target) const -> void
+{
+    auto animationSequenceType =
+      target.new_usertype<drawing::animations::AnimationSequence>(
+        "AnimationSequence",
+        sol::factories([](const sol::table& args) {
+            auto animations = args.get_or(
+              "animations", std::vector<drawing::animations::Animation*>{});
+            auto animationsShared =
+              std::vector<std::shared_ptr<drawing::animations::Animation>>{};
+            animationsShared.reserve(animations.size());
+            for (auto* animation : animations) {
+                animationsShared.push_back(animation->shared_from_this());
+            }
+            auto returnVal = drawing::animations::AnimationSequence::make(
+              std::move(animationsShared));
+            if (args["onFinished"].valid()) {
+                returnVal->setOnFinished(args["onFinished"]);
+            }
+            if (args["isLooping"].valid()) {
+                returnVal->setIsLooping(args["isLooping"]);
+            }
+            return returnVal;
+        }),
+        sol::base_classes,
+        sol::bases<drawing::animations::Animation>());
 }
 auto
 Bootstrapper::EventAttacher::attachAllEvents(

@@ -20,7 +20,7 @@ class Animation : public support::EnableSharedFromBase<Animation>
     void setOnFinished(std::function<void()> onFinished);
     [[nodiscard]] auto getOnFinished() const -> const std::function<void()>&;
     [[nodiscard]] auto getIsLooping() const -> bool;
-    auto setIsLooping() -> void;
+    auto setIsLooping(bool newIsLooping) -> void;
     [[nodiscard]] auto getIsFinished() const -> bool;
     [[nodiscard]] virtual auto getDuration() const
       -> std::chrono::nanoseconds = 0;

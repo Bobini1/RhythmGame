@@ -32,7 +32,7 @@ drawing::animations::Linear::clone() const
 auto
 drawing::animations::Linear::cloneImpl() const -> drawing::animations::Linear*
 {
-    return new Linear(*this);
+    return new Linear(*this); // NOLINT(cppcoreguidelines-owning-memory)
 }
 auto
 drawing::animations::Linear::setFunction(std::function<void(float)> newUpdated)

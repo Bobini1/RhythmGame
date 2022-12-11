@@ -6,9 +6,9 @@
 #include "Animation.h"
 #include "drawing/actors/Actor.h"
 auto
-drawing::animations::Animation::setIsLooping() -> void
+drawing::animations::Animation::setIsLooping(bool newIsLooping) -> void
 {
-    isLooping = true;
+    isLooping = newIsLooping;
 }
 void
 drawing::animations::Animation::setOnFinished(
