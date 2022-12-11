@@ -554,7 +554,8 @@ Bootstrapper::defineLinear(sol::state& target) const -> void
             auto result = drawing::animations::Linear::make(
               std::move(function), time, start, end);
             if (args["onFinished"].valid()) {
-                result->setOnFinished(args["onFinished"]);
+                result->setOnFinished(
+                  args["onFinished"].get<std::function<void()>>());
             }
             if (args["isLooping"].valid()) {
                 result->setIsLooping(args["isLooping"]);
@@ -614,7 +615,8 @@ Bootstrapper::defineAnimationSequence(sol::state& target) const -> void
             auto returnVal = drawing::animations::AnimationSequence::make(
               std::move(animationsShared));
             if (args["onFinished"].valid()) {
-                returnVal->setOnFinished(args["onFinished"]);
+                returnVal->setOnFinished(
+                  args["onFinished"].get<std::function<void()>>());
             }
             if (args["isLooping"].valid()) {
                 returnVal->setIsLooping(args["isLooping"]);
