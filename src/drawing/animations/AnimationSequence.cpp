@@ -3,6 +3,7 @@
 //
 
 #include <numeric>
+#include <algorithm>
 #include "AnimationSequence.h"
 auto
 drawing::animations::AnimationSequence::getDuration() const

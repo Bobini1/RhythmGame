@@ -6,6 +6,7 @@
 #define RHYTHMGAME_ANIMATIONSEQUENCE_H
 
 #include "Animation.h"
+#include <vector>
 namespace drawing::animations {
 class AnimationSequence : public Animation
 {
