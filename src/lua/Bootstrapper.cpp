@@ -611,9 +611,47 @@ detail::defineAnimationSequence(sol::state& target) -> void
         sol::bases<drawing::animations::Animation>());
 }
 auto
-detail::defineCommonTypes(sol::state& target,
-                          const EventAttacher& eventAttacher) -> void
+detail::defineCommonTypes(
+  sol::state& target,
+  const EventAttacher& eventAttacher,
+  std::function<void(const std::shared_ptr<drawing::actors::Actor>&,
+                     sol::table)> bindActorProperties,
+  std::function<void(const std::shared_ptr<drawing::actors::AbstractRectLeaf>&,
+                     sol::table)> bindAbstractRectLeafProperties) -> void
 {
+
+    auto bindAbstractVectorCollectionProperties = [bindActorProperties](const std::shared_ptr<drawing::actors::AbstractVectorCollection>& actor, sol::table args){
+        bindActorProperties(actor, args);
+        if (args["children"].valid()) {
+            auto children =
+              args["children"].get<std::vector<drawing::actors::Actor*>>();
+            for (auto* child : children) {
+                actor->addChild(child->shared_from_this());
+            }
+        }
+    };
+    auto bindAbstractBoxProperties = [bindAbstractVectorCollectionProperties](const std::shared_ptr<drawing::actors::AbstractBox>& actor, sol::table args){
+        bindAbstractVectorCollectionProperties(actor, args);
+        if (args["horizontalSizeMode"].valid()) {
+            actor->setHorizontalSizeMode(
+              args["horizontalSizeMode"]
+                .get<drawing::actors::AbstractBox::SizeMode>());
+        }
+        if (args["verticalSizeMode"].valid()) {
+            actor->setVerticalSizeMode(
+              args["verticalSizeMode"]
+                .get<drawing::actors::AbstractBox::SizeMode>());
+        }
+        if (args["width"].valid()) {
+            actor->setWidth(args["width"].get<float>());
+        }
+        if (args["height"].valid()) {
+            actor->setHeight(args["height"].get<float>());
+        }
+        if (args["spacing"].valid()) {
+            actor->setSpacing(args["spacing"].get<float>());
+        }
+    };
     defineActor(target, eventAttacher);
     defineParent(target);
     defineAbstractVectorCollection(target);

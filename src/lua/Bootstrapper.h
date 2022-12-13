@@ -59,8 +59,8 @@ defineAnimationSequence(sol::state& target) -> void;
 
 template<drawing::animations::AnimationPlayer AnimationPlayerType>
 auto
-bindAnimationPlayer(sol::state& target,
-                    AnimationPlayerType& animationsPlayer) -> void
+bindAnimationPlayer(sol::state& target, AnimationPlayerType& animationsPlayer)
+  -> void
 {
     target["playAnimation"] =
       [&animationsPlayer](drawing::animations::Animation* animation) {
@@ -81,8 +81,13 @@ bindAnimationPlayer(sol::state& target,
  * @param target The state to which the types should be added.
  */
 auto
-defineCommonTypes(sol::state& target, const EventAttacher& eventAttacher)
-  -> void;
+defineCommonTypes(
+  sol::state& target,
+  const EventAttacher& eventAttacher,
+  std::function<void(const std::shared_ptr<drawing::actors::Actor>&,
+                     sol::table)> bindActorProperties,
+  std::function<void(const std::shared_ptr<drawing::actors::AbstractRectLeaf>&,
+                     sol::table)> bindAbstractRectLeafProperties) -> void;
 
 template<resource_managers::FontLoader FontLoaderType>
 auto
@@ -98,7 +103,8 @@ template<resource_managers::FontLoader FontLoaderType>
 auto
 defineText(sol::state& target,
            const EventAttacher& eventAttacher,
-           FontLoaderType& fontLoader) -> void
+           FontLoaderType& fontLoader,
+           auto bindAbstractRectLeafProperties) -> void
 {
     auto textType = target.new_usertype<drawing::actors::Text>(
       "Text",
@@ -114,11 +120,11 @@ defineText(sol::state& target,
         [](const std::string& text, sf::Font& font) {
             return drawing::actors::Text::make(text, font);
         },
-        [](
+        [bindAbstractRectLeafProperties](
           const std::string& text, sf::Font& font, unsigned int characterSize) {
             return drawing::actors::Text::make(text, font, characterSize);
         },
-        [&fontLoader, eventAttacher](sol::table args) {
+        [&fontLoader, bindAbstractRectLeafProperties](sol::table args) {
             const auto* defaultFont = fontLoader.getDefault();
             const auto* font = args.get<const sf::Font*>(
               "font"); // get_or broken in this case as of 17.11.22.
@@ -134,6 +140,7 @@ defineText(sol::state& target,
               *font,
               args.get_or("characterSize",
                           drawing::actors::Text::defaultFontSize));
+            bindAbstractRectLeafProperties(result, args);
             if (args["fillColor"].valid()) {
                 result->setFillColor(args.get<sf::Color>("fillColor"));
             }
@@ -152,27 +159,6 @@ defineText(sol::state& target,
             }
             if (args["letterSpacing"].valid()) {
                 result->setLetterSpacing(args.get<float>("letterSpacing"));
-            }
-            if (args["width"].valid()) {
-                result->setWidth(args.get<float>("width"));
-            }
-            if (args["height"].valid()) {
-                result->setHeight(args.get<float>("height"));
-            }
-            if (args["minWidth"].valid()) {
-                result->setMinWidth(args.get<float>("minWidth"));
-            }
-            if (args["minHeight"].valid()) {
-                result->setMinHeight(args.get<float>("minHeight"));
-            }
-            if (args["isWidthManaged"].valid()) {
-                result->setIsWidthManaged(args.get<bool>("isWidthManaged"));
-            }
-            if (args["isHeightManaged"].valid()) {
-                result->setIsHeightManaged(args.get<bool>("isHeightManaged"));
-            }
-            if (args["events"].valid()) {
-                eventAttacher.attachAllEvents(result, args["events"]);
             }
             return result;
         }),
@@ -203,7 +189,6 @@ defineText(sol::state& target,
                     &drawing::actors::Text::setLetterSpacing);
 }
 
-
 template<resource_managers::TextureLoader TextureLoaderType>
 auto
 defineTexture(sol::state& target, TextureLoaderType& textureLoader) -> void
@@ -220,7 +205,8 @@ template<resource_managers::TextureLoader TextureLoaderType>
 auto
 defineSprite(sol::state& target,
              const EventAttacher& eventAttacher,
-             TextureLoaderType& textureLoader) -> void
+             TextureLoaderType& textureLoader,
+             auto bindAbstractRectLeafProperties) -> void
 {
     auto spriteType = target.new_usertype<drawing::actors::Sprite>(
       "Sprite",
@@ -236,7 +222,8 @@ defineSprite(sol::state& target,
             }
             return drawing::actors::Sprite::make(*texture);
         },
-        [&textureLoader, eventAttacher](sol::table args) {
+        [&textureLoader, eventAttacher, bindAbstractRectLeafProperties](
+          sol::table args) {
             auto result = drawing::actors::Sprite::make();
             if (args["texture"].valid()) {
                 if (args["texture"].get_type() == sol::type::string) {
@@ -255,28 +242,7 @@ defineSprite(sol::state& target,
             if (args["color"].valid()) {
                 result->setColor(args.get<sf::Color>("color"));
             }
-            if (args["width"].valid()) {
-                result->setWidth(args.get<float>("width"));
-            }
-            if (args["height"].valid()) {
-                result->setHeight(args.get<float>("height"));
-            }
-            if (args["minWidth"].valid()) {
-                result->setMinWidth(args.get<float>("minWidth"));
-            }
-            if (args["minHeight"].valid()) {
-                result->setMinHeight(args.get<float>("minHeight"));
-            }
-            if (args["isWidthManaged"].valid()) {
-                result->setIsWidthManaged(args.get<bool>("isWidthManaged"));
-            }
-            if (args["isHeightManaged"].valid()) {
-                result->setIsHeightManaged(args.get<bool>("isHeightManaged"));
-            }
-            if (args["events"].valid()) {
-
-                eventAttacher.attachAllEvents(result, args["events"]);
-            }
+            bindAbstractRectLeafProperties(result, args);
             return result;
         }),
       sol::base_classes,
@@ -290,9 +256,11 @@ defineSprite(sol::state& target,
                                         &drawing::actors::Sprite::setColor);
 }
 
-auto getBindActorProperties(const EventAttacher& eventAttacher)
+inline auto
+getBindActorProperties(const EventAttacher& eventAttacher)
 {
-    return [eventAttacher](const std::shared_ptr<drawing::actors::Actor>& actor, sol::table args){
+    return [eventAttacher](const std::shared_ptr<drawing::actors::Actor>& actor,
+                           sol::table args) {
         if (args["width"].valid()) {
             actor->setWidth(args["width"].get<float>());
         }
@@ -304,18 +272,13 @@ auto getBindActorProperties(const EventAttacher& eventAttacher)
         }
     };
 }
-} // namespace detail
-template<resource_managers::TextureLoader TextureLoaderType,
-         resource_managers::FontLoader FontLoaderType, drawing::animations::AnimationPlayer AnimationPlayerType>
-auto
-defineAllTypes(sol::state& target,
-               TextureLoaderType& textureLoader,
-               FontLoaderType& fontLoader,
-               AnimationPlayerType& animationPlayer,
-               const EventAttacher& eventAttacher) -> void
+
+inline auto
+getBindAbstractRectLeafProperties(auto bindActorProperties)
 {
-    auto bindActorProperties = detail::getBindActorProperties(eventAttacher);
-    auto bindAbstractRectLeafProperties = [bindActorProperties](const std::shared_ptr<drawing::actors::AbstractRectLeaf>& actor, sol::table args){
+    return [bindActorProperties](
+             const std::shared_ptr<drawing::actors::AbstractRectLeaf>& actor,
+             sol::table args) {
         bindActorProperties(actor, args);
         if (args["minWidth"].valid()) {
             actor->setMinWidth(args["minWidth"].get<float>());
@@ -330,43 +293,31 @@ defineAllTypes(sol::state& target,
             actor->setIsHeightManaged(args["isHeightManaged"].get<bool>());
         }
     };
-    auto bindAbstractVectorCollectionProperties = [bindActorProperties](const std::shared_ptr<drawing::actors::AbstractVectorCollection>& actor, sol::table args){
-        bindActorProperties(actor, args);
-        if (args["children"].valid()) {
-            auto children =
-              args["children"].get<std::vector<drawing::actors::Actor*>>();
-            for (auto* child : children) {
-                actor->addChild(child->shared_from_this());
-            }
-        }
-    };
-    auto bindAbstractBoxProperties = [bindAbstractVectorCollectionProperties](const std::shared_ptr<drawing::actors::AbstractBox>& actor, sol::table args){
-        bindAbstractVectorCollectionProperties(actor, args);
-        if (args["horizontalSizeMode"].valid()) {
-            actor->setHorizontalSizeMode(
-              args["horizontalSizeMode"]
-                .get<drawing::actors::AbstractBox::SizeMode>());
-        }
-        if (args["verticalSizeMode"].valid()) {
-            actor->setVerticalSizeMode(
-              args["verticalSizeMode"]
-                .get<drawing::actors::AbstractBox::SizeMode>());
-        }
-        if (args["width"].valid()) {
-            actor->setWidth(args["width"].get<float>());
-        }
-        if (args["height"].valid()) {
-            actor->setHeight(args["height"].get<float>());
-        }
-        if (args["spacing"].valid()) {
-            actor->setSpacing(args["spacing"].get<float>());
-        }
-    };
-    detail::defineCommonTypes(target, eventAttacher);
+}
+} // namespace detail
+template<resource_managers::TextureLoader TextureLoaderType,
+         resource_managers::FontLoader FontLoaderType,
+         drawing::animations::AnimationPlayer AnimationPlayerType>
+auto
+defineAllTypes(sol::state& target,
+               TextureLoaderType& textureLoader,
+               FontLoaderType& fontLoader,
+               AnimationPlayerType& animationPlayer,
+               const EventAttacher& eventAttacher) -> void
+{
+    auto bindActorProperties = detail::getBindActorProperties(eventAttacher);
+    auto bindAbstractRectLeafProperties =
+      detail::getBindAbstractRectLeafProperties(bindActorProperties);
+    detail::defineCommonTypes(target,
+                              eventAttacher,
+                              bindActorProperties,
+                              bindAbstractRectLeafProperties);
     detail::defineFont(target, fontLoader);
-    detail::defineText(target, eventAttacher, fontLoader);
+    detail::defineText(
+      target, eventAttacher, fontLoader, bindAbstractRectLeafProperties);
     detail::defineTexture(target, textureLoader);
-    detail::defineSprite(target, eventAttacher, textureLoader);
+    detail::defineSprite(
+      target, eventAttacher, textureLoader, bindAbstractRectLeafProperties);
     detail::bindAnimationPlayer(target, animationPlayer);
 }
 } // namespace lua
