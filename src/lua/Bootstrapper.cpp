@@ -19,8 +19,7 @@
 namespace lua {
 
 auto
-detail::defineActor(sol::state& target, const EventAttacher& eventAttacher)
-  -> void
+defineActor(sol::state& target, const EventAttacher& eventAttacher) -> void
 {
     auto actorType =
       target.new_usertype<drawing::actors::Actor>("Actor", sol::no_constructor);
@@ -43,7 +42,7 @@ detail::defineActor(sol::state& target, const EventAttacher& eventAttacher)
 }
 
 auto
-detail::defineParent(sol::state& target) -> void
+defineParent(sol::state& target) -> void
 {
     auto parentType = target.new_usertype<drawing::actors::Parent>(
       "Parent",
@@ -54,7 +53,7 @@ detail::defineParent(sol::state& target) -> void
 }
 
 auto
-detail::defineAbstractVectorCollection(sol::state& target) -> void
+defineAbstractVectorCollection(sol::state& target) -> void
 {
     auto abstractVectorCollectionType =
       target.new_usertype<drawing::actors::AbstractVectorCollection>(
@@ -77,7 +76,7 @@ detail::defineAbstractVectorCollection(sol::state& target) -> void
 }
 
 auto
-detail::defineAbstractBox(sol::state& target) -> void
+defineAbstractBox(sol::state& target) -> void
 {
     auto abstractBoxType = target.new_usertype<drawing::actors::AbstractBox>(
       "Box",
@@ -103,48 +102,19 @@ detail::defineAbstractBox(sol::state& target) -> void
 }
 
 auto
-detail::defineVBox(sol::state& target, const EventAttacher& eventAttacher)
-  -> void
+defineVBox(sol::state& target, auto bindAbstractBoxProperties) -> void
 {
     auto vBoxType = target.new_usertype<drawing::actors::VBox>(
       "VBox",
       sol::factories(
         []() { return drawing::actors::VBox::make(); },
-        [eventAttacher](sol::table args) {
+        [bindAbstractBoxProperties](sol::table args) {
             auto result = drawing::actors::VBox::make();
-            if (args["children"].valid()) {
-                auto children =
-                  args["children"].get<std::vector<drawing::actors::Actor*>>();
-                for (auto* child : children) {
-                    result->addChild(child->shared_from_this());
-                }
-            }
+            bindAbstractBoxProperties(result, args);
             if (args["contentAlignment"].valid()) {
                 result->setContentAlignment(
                   args["contentAlignment"]
                     .get<drawing::actors::VBox::ContentAlignment>());
-            }
-            if (args["horizontalSizeMode"].valid()) {
-                result->setHorizontalSizeMode(
-                  args["horizontalSizeMode"]
-                    .get<drawing::actors::AbstractBox::SizeMode>());
-            }
-            if (args["verticalSizeMode"].valid()) {
-                result->setVerticalSizeMode(
-                  args["verticalSizeMode"]
-                    .get<drawing::actors::AbstractBox::SizeMode>());
-            }
-            if (args["width"].valid()) {
-                result->setWidth(args["width"].get<float>());
-            }
-            if (args["height"].valid()) {
-                result->setHeight(args["height"].get<float>());
-            }
-            if (args["spacing"].valid()) {
-                result->setSpacing(args["spacing"].get<float>());
-            }
-            if (args["events"].valid()) {
-                eventAttacher.attachAllEvents(result, args["events"]);
             }
             return result;
         }),
@@ -166,48 +136,19 @@ detail::defineVBox(sol::state& target, const EventAttacher& eventAttacher)
 }
 
 auto
-detail::defineHBox(sol::state& target, const EventAttacher& eventAttacher)
-  -> void
+defineHBox(sol::state& target, auto bindAbstractBoxProperties) -> void
 {
     auto hBoxType = target.new_usertype<drawing::actors::HBox>(
       "HBox",
       sol::factories(
         []() { return drawing::actors::HBox::make(); },
-        [eventAttacher](sol::table args) {
+        [bindAbstractBoxProperties](sol::table args) {
             auto result = drawing::actors::HBox::make();
-            if (args["children"].valid()) {
-                auto children =
-                  args["children"].get<std::vector<drawing::actors::Actor*>>();
-                for (auto* child : children) {
-                    result->addChild(child->shared_from_this());
-                }
-            }
+            bindAbstractBoxProperties(result, args);
             if (args["contentAlignment"].valid()) {
                 result->setContentAlignment(
                   args["contentAlignment"]
                     .get<drawing::actors::HBox::ContentAlignment>());
-            }
-            if (args["horizontalSizeMode"].valid()) {
-                result->setHorizontalSizeMode(
-                  args["horizontalSizeMode"]
-                    .get<drawing::actors::AbstractBox::SizeMode>());
-            }
-            if (args["verticalSizeMode"].valid()) {
-                result->setVerticalSizeMode(
-                  args["verticalSizeMode"]
-                    .get<drawing::actors::AbstractBox::SizeMode>());
-            }
-            if (args["width"].valid()) {
-                result->setWidth(args["width"].get<float>());
-            }
-            if (args["height"].valid()) {
-                result->setHeight(args["height"].get<float>());
-            }
-            if (args["spacing"].valid()) {
-                result->setSpacing(args["spacing"].get<float>());
-            }
-            if (args["events"].valid()) {
-                eventAttacher.attachAllEvents(result, args["events"]);
             }
             return result;
         }),
@@ -228,7 +169,7 @@ detail::defineHBox(sol::state& target, const EventAttacher& eventAttacher)
 }
 
 auto
-detail::defineVector2(sol::state& target) -> void
+defineVector2(sol::state& target) -> void
 {
     auto vector2fType = target.new_usertype<sf::Vector2f>(
       "Vector2",
@@ -238,7 +179,7 @@ detail::defineVector2(sol::state& target) -> void
 }
 
 auto
-detail::defineAbstractRectLeaf(sol::state& target) -> void
+defineAbstractRectLeaf(sol::state& target) -> void
 {
     auto abstractRectLeafType =
       target.new_usertype<drawing::actors::AbstractRectLeaf>(
@@ -261,8 +202,7 @@ detail::defineAbstractRectLeaf(sol::state& target) -> void
 }
 
 auto
-detail::defineQuad(sol::state& target, const EventAttacher& eventAttacher)
-  -> void
+defineQuad(sol::state& target, auto bindAbstractRectLeafProperties) -> void
 {
     auto quadType = target.new_usertype<drawing::actors::Quad>(
       "Quad",
@@ -278,10 +218,9 @@ detail::defineQuad(sol::state& target, const EventAttacher& eventAttacher)
               drawing::actors::Quad::make(sf::Vector2f{ width, height }, color);
             return result;
         },
-        [eventAttacher](sol::table args) {
+        [bindAbstractRectLeafProperties](sol::table args) {
             auto result = drawing::actors::Quad::make(
-              sf::Vector2f{ args.get_or("width", 0.F),
-                            args.get_or("height", 0.F) },
+              sf::Vector2f{ 0, 0 },
               args.get_or<sf::Color>("fillColor", sf::Color::White));
             if (args["outlineColor"].valid()) {
                 result->setOutlineColor(args.get<sf::Color>("outlineColor"));
@@ -290,21 +229,7 @@ detail::defineQuad(sol::state& target, const EventAttacher& eventAttacher)
                 result->setOutlineThickness(
                   args.get<float>("outlineThickness"));
             }
-            if (args["minWidth"].valid()) {
-                result->setMinWidth(args.get<float>("minWidth"));
-            }
-            if (args["minHeight"].valid()) {
-                result->setMinHeight(args.get<float>("minHeight"));
-            }
-            if (args["isWidthManaged"].valid()) {
-                result->setIsWidthManaged(args.get<bool>("isWidthManaged"));
-            }
-            if (args["isHeightManaged"].valid()) {
-                result->setIsHeightManaged(args.get<bool>("isHeightManaged"));
-            }
-            if (args["events"].valid()) {
-                eventAttacher.attachAllEvents(result, args["events"]);
-            }
+            bindAbstractRectLeafProperties(result, args);
             return result;
         }),
       sol::base_classes,
@@ -321,10 +246,13 @@ detail::defineQuad(sol::state& target, const EventAttacher& eventAttacher)
 }
 
 auto
-detail::defineColor(sol::state& target) -> void
+defineColor(sol::state& target) -> void
 {
     auto colorType = target.new_usertype<sf::Color>(
-      "Color", sol::constructors<sf::Color(), sf::Color(int, int, int, int)>());
+      "Color",
+      sol::constructors<sf::Color(),
+                        sf::Color(
+                          sf::Uint8, sf::Uint8, sf::Uint8, sf::Uint8)>());
     colorType["r"] = sol::property(&sf::Color::r, &sf::Color::r);
     colorType["g"] = sol::property(&sf::Color::g, &sf::Color::g);
     colorType["b"] = sol::property(&sf::Color::b, &sf::Color::b);
@@ -332,8 +260,7 @@ detail::defineColor(sol::state& target) -> void
 }
 
 auto
-detail::definePadding(sol::state& target, const EventAttacher& eventAttacher)
-  -> void
+definePadding(sol::state& target, auto bindActorProperties) -> void
 {
     auto paddingType = target.new_usertype<drawing::actors::Padding>(
       "Padding",
@@ -353,7 +280,7 @@ detail::definePadding(sol::state& target, const EventAttacher& eventAttacher)
             returnVal->setChild(actor->shared_from_this());
             return returnVal;
         },
-        [eventAttacher](const sol::table& args) {
+        [bindActorProperties](const sol::table& args) {
             auto child = [&]() {
                 if (args["child"].valid()) {
                     return args.get<drawing::actors::Actor*>("child")
@@ -367,9 +294,7 @@ detail::definePadding(sol::state& target, const EventAttacher& eventAttacher)
                                              args.get_or("left", 0.F),
                                              args.get_or("right", 0.F));
             returnVal->setChild(child);
-            if (args["events"].valid()) {
-                eventAttacher.attachAllEvents(returnVal, args["events"]);
-            }
+            bindActorProperties(returnVal, args);
             return returnVal;
         }),
       sol::base_classes,
@@ -392,8 +317,7 @@ detail::definePadding(sol::state& target, const EventAttacher& eventAttacher)
 }
 
 auto
-detail::defineAlign(sol::state& target, const EventAttacher& eventAttacher)
-  -> void
+defineAlign(sol::state& target, auto bindActorProperties) -> void
 {
     auto modeType = target.new_enum("AlignMode",
                                     "TopLeft",
@@ -431,7 +355,7 @@ detail::defineAlign(sol::state& target, const EventAttacher& eventAttacher)
         [](drawing::actors::Align::Mode mode) {
             return drawing::actors::Align::make(mode);
         },
-        [eventAttacher](const sol::table& args) {
+        [bindActorProperties](const sol::table& args) {
             auto child = [&]() {
                 if (args["child"].valid()) {
                     return args.get<drawing::actors::Actor*>("child")
@@ -442,10 +366,7 @@ detail::defineAlign(sol::state& target, const EventAttacher& eventAttacher)
             auto returnVal = drawing::actors::Align::make(
               args.get_or("mode", drawing::actors::Align::Mode::Center));
             returnVal->setChild(std::move(child));
-
-            if (args["events"].valid()) {
-                eventAttacher.attachAllEvents(returnVal, args["events"]);
-            }
+            bindActorProperties(returnVal, args);
             return returnVal;
         }),
       sol::base_classes,
@@ -462,35 +383,20 @@ detail::defineAlign(sol::state& target, const EventAttacher& eventAttacher)
 }
 
 auto
-detail::defineLayers(sol::state& target, const EventAttacher& eventAttacher)
+defineLayers(sol::state& target, auto bindAbstractVectorCollectionProperties)
   -> void
 {
     auto layerType = target.new_usertype<drawing::actors::Layers>(
       "Layers",
       sol::factories(
         []() { return drawing::actors::Layers::make(); },
-        [eventAttacher](const sol::table& args) {
+        [bindAbstractVectorCollectionProperties](const sol::table& args) {
             auto returnVal = drawing::actors::Layers::make();
-            if (args["children"].valid()) {
-                for (const auto& child :
-                     args.get<std::vector<drawing::actors::Actor*>>(
-                       "children")) {
-                    returnVal->addChild(child->shared_from_this());
-                }
-            }
+            bindAbstractVectorCollectionProperties(returnVal, args);
             if (args["mainLayer"].valid()) {
                 returnVal->setMainLayer(
                   args.get<drawing::actors::Actor*>("mainLayer")
                     ->shared_from_this());
-            }
-            if (args["width"].valid()) {
-                returnVal->setWidth(args.get<float>("width"));
-            }
-            if (args["height"].valid()) {
-                returnVal->setHeight(args.get<float>("height"));
-            }
-            if (args["events"].valid()) {
-                eventAttacher.attachAllEvents(returnVal, args["events"]);
             }
             return returnVal;
         }),
@@ -506,7 +412,7 @@ detail::defineLayers(sol::state& target, const EventAttacher& eventAttacher)
 }
 
 auto
-detail::defineAnimation(sol::state& target) -> void
+defineAnimation(sol::state& target) -> void
 {
     auto animationType = target.new_usertype<drawing::animations::Animation>(
       "Animation", sol::no_constructor);
@@ -532,7 +438,7 @@ detail::defineAnimation(sol::state& target) -> void
       sol::property(&drawing::animations::Animation::getIsFinished);
 }
 auto
-detail::defineLinear(sol::state& target) -> void
+defineLinear(sol::state& target) -> void
 {
     constexpr auto secondsToNanos = 1E9;
     auto linearType = target.new_usertype<drawing::animations::Linear>(
@@ -582,7 +488,7 @@ detail::defineLinear(sol::state& target) -> void
 }
 
 auto
-detail::defineAnimationSequence(sol::state& target) -> void
+defineAnimationSequence(sol::state& target) -> void
 {
     auto animationSequenceType =
       target.new_usertype<drawing::animations::AnimationSequence>(
@@ -614,57 +520,63 @@ auto
 detail::defineCommonTypes(
   sol::state& target,
   const EventAttacher& eventAttacher,
-  std::function<void(const std::shared_ptr<drawing::actors::Actor>&,
-                     sol::table)> bindActorProperties,
-  std::function<void(const std::shared_ptr<drawing::actors::AbstractRectLeaf>&,
-                     sol::table)> bindAbstractRectLeafProperties) -> void
+  const std::function<void(const std::shared_ptr<drawing::actors::Actor>&,
+                           sol::table)>& bindActorProperties,
+  const std::function<void(const std::shared_ptr<drawing::actors::AbstractRectLeaf>&,
+                     sol::table)>& bindAbstractRectLeafProperties) -> void
 {
 
-    auto bindAbstractVectorCollectionProperties = [bindActorProperties](const std::shared_ptr<drawing::actors::AbstractVectorCollection>& actor, sol::table args){
-        bindActorProperties(actor, args);
-        if (args["children"].valid()) {
-            auto children =
-              args["children"].get<std::vector<drawing::actors::Actor*>>();
-            for (auto* child : children) {
-                actor->addChild(child->shared_from_this());
-            }
-        }
-    };
-    auto bindAbstractBoxProperties = [bindAbstractVectorCollectionProperties](const std::shared_ptr<drawing::actors::AbstractBox>& actor, sol::table args){
-        bindAbstractVectorCollectionProperties(actor, args);
-        if (args["horizontalSizeMode"].valid()) {
-            actor->setHorizontalSizeMode(
-              args["horizontalSizeMode"]
-                .get<drawing::actors::AbstractBox::SizeMode>());
-        }
-        if (args["verticalSizeMode"].valid()) {
-            actor->setVerticalSizeMode(
-              args["verticalSizeMode"]
-                .get<drawing::actors::AbstractBox::SizeMode>());
-        }
-        if (args["width"].valid()) {
-            actor->setWidth(args["width"].get<float>());
-        }
-        if (args["height"].valid()) {
-            actor->setHeight(args["height"].get<float>());
-        }
-        if (args["spacing"].valid()) {
-            actor->setSpacing(args["spacing"].get<float>());
-        }
-    };
+    auto bindAbstractVectorCollectionProperties =
+      [bindActorProperties](
+        const std::shared_ptr<drawing::actors::AbstractVectorCollection>& actor,
+        sol::table args) {
+          bindActorProperties(actor, args);
+          if (args["children"].valid()) {
+              auto children =
+                args["children"].get<std::vector<drawing::actors::Actor*>>();
+              for (auto* child : children) {
+                  actor->addChild(child->shared_from_this());
+              }
+          }
+      };
+    auto bindAbstractBoxProperties =
+      [bindAbstractVectorCollectionProperties](
+        const std::shared_ptr<drawing::actors::AbstractBox>& actor,
+        sol::table args) {
+          bindAbstractVectorCollectionProperties(actor, args);
+          if (args["horizontalSizeMode"].valid()) {
+              actor->setHorizontalSizeMode(
+                args["horizontalSizeMode"]
+                  .get<drawing::actors::AbstractBox::SizeMode>());
+          }
+          if (args["verticalSizeMode"].valid()) {
+              actor->setVerticalSizeMode(
+                args["verticalSizeMode"]
+                  .get<drawing::actors::AbstractBox::SizeMode>());
+          }
+          if (args["width"].valid()) {
+              actor->setWidth(args["width"].get<float>());
+          }
+          if (args["height"].valid()) {
+              actor->setHeight(args["height"].get<float>());
+          }
+          if (args["spacing"].valid()) {
+              actor->setSpacing(args["spacing"].get<float>());
+          }
+      };
     defineActor(target, eventAttacher);
     defineParent(target);
     defineAbstractVectorCollection(target);
     defineAbstractBox(target);
-    defineVBox(target, eventAttacher);
-    defineHBox(target, eventAttacher);
+    defineVBox(target, bindAbstractBoxProperties);
+    defineHBox(target, bindAbstractBoxProperties);
     defineVector2(target);
     defineAbstractRectLeaf(target);
-    defineQuad(target, eventAttacher);
+    defineQuad(target, bindAbstractRectLeafProperties);
     defineColor(target);
-    definePadding(target, eventAttacher);
-    defineAlign(target, eventAttacher);
-    defineLayers(target, eventAttacher);
+    definePadding(target, bindActorProperties);
+    defineAlign(target, bindActorProperties);
+    defineLayers(target, bindAbstractVectorCollectionProperties);
     defineAnimation(target);
     defineLinear(target);
     defineAnimationSequence(target);

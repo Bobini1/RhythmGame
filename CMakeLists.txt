@@ -108,6 +108,12 @@ if (NOT CMAKE_SKIP_INSTALL_RULES)
     include(cmake/install-rules.cmake)
 endif ()
 
+# Some object files are too big for MSVC in Debug mode
+if (MSVC)
+    target_compile_options(RhythmGame_lib PRIVATE /bigobj)
+endif ()
+
+
 # ---- Developer mode ----
 
 if (NOT RhythmGame_DEVELOPER_MODE)

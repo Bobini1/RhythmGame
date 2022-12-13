@@ -23,40 +23,6 @@
 namespace lua {
 
 namespace detail {
-auto
-defineActor(sol::state& target, const EventAttacher& eventAttacher) -> void;
-auto
-defineParent(sol::state& target) -> void;
-auto
-defineAbstractVectorCollection(sol::state& target) -> void;
-auto
-defineAbstractBox(sol::state& target) -> void;
-auto
-defineVBox(sol::state& target, const EventAttacher& eventAttacher) -> void;
-auto
-defineHBox(sol::state& target, const EventAttacher& eventAttacher) -> void;
-auto
-defineVector2(sol::state& target) -> void;
-auto
-defineAbstractRectLeaf(sol::state& target) -> void;
-auto
-defineQuad(sol::state& target, const EventAttacher& eventAttacher) -> void;
-auto
-defineColor(sol::state& target) -> void;
-auto
-definePadding(sol::state& target, const EventAttacher& eventAttacher) -> void;
-auto
-defineAlign(sol::state& target, const EventAttacher& eventAttacher) -> void;
-auto
-defineLayers(sol::state& target, const EventAttacher& eventAttacher) -> void;
-
-auto
-defineAnimation(sol::state& target) -> void;
-auto
-defineLinear(sol::state& target) -> void;
-auto
-defineAnimationSequence(sol::state& target) -> void;
-
 template<drawing::animations::AnimationPlayer AnimationPlayerType>
 auto
 bindAnimationPlayer(sol::state& target, AnimationPlayerType& animationsPlayer)
@@ -84,10 +50,11 @@ auto
 defineCommonTypes(
   sol::state& target,
   const EventAttacher& eventAttacher,
-  std::function<void(const std::shared_ptr<drawing::actors::Actor>&,
-                     sol::table)> bindActorProperties,
-  std::function<void(const std::shared_ptr<drawing::actors::AbstractRectLeaf>&,
-                     sol::table)> bindAbstractRectLeafProperties) -> void;
+  const std::function<void(const std::shared_ptr<drawing::actors::Actor>&,
+                           sol::table)>& bindActorProperties,
+  const std::function<
+    void(const std::shared_ptr<drawing::actors::AbstractRectLeaf>&,
+         sol::table)>& bindAbstractRectLeafProperties) -> void;
 
 template<resource_managers::FontLoader FontLoaderType>
 auto
@@ -102,7 +69,6 @@ defineFont(sol::state& target, FontLoaderType& fontLoader) -> void
 template<resource_managers::FontLoader FontLoaderType>
 auto
 defineText(sol::state& target,
-           const EventAttacher& eventAttacher,
            FontLoaderType& fontLoader,
            auto bindAbstractRectLeafProperties) -> void
 {
@@ -294,6 +260,7 @@ getBindAbstractRectLeafProperties(auto bindActorProperties)
         }
     };
 }
+
 } // namespace detail
 template<resource_managers::TextureLoader TextureLoaderType,
          resource_managers::FontLoader FontLoaderType,
@@ -313,8 +280,7 @@ defineAllTypes(sol::state& target,
                               bindActorProperties,
                               bindAbstractRectLeafProperties);
     detail::defineFont(target, fontLoader);
-    detail::defineText(
-      target, eventAttacher, fontLoader, bindAbstractRectLeafProperties);
+    detail::defineText(target, fontLoader, bindAbstractRectLeafProperties);
     detail::defineTexture(target, textureLoader);
     detail::defineSprite(
       target, eventAttacher, textureLoader, bindAbstractRectLeafProperties);
