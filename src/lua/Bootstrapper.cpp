@@ -474,14 +474,10 @@ defineLinear(sol::state& target) -> void
         }),
       sol::base_classes,
       sol::bases<drawing::animations::Animation>());
-    linearType["start"] = sol::property(
-      [](drawing::animations::Linear* self) { return self->getStart(); },
-      [](drawing::animations::Linear* self, float start) {
-          self->setStart(start);
-      });
-    linearType["end"] = sol::property(
-      [](drawing::animations::Linear* self) { return self->getEnd(); },
-      [](drawing::animations::Linear* self, float end) { self->setEnd(end); });
+    linearType["start"] = sol::property(&drawing::animations::Linear::getStart,
+                                        &drawing::animations::Linear::setStart);
+    linearType["end"] = sol::property(&drawing::animations::Linear::getEnd,
+                                      &drawing::animations::Linear::setEnd);
     linearType["function"] =
       sol::property(&drawing::animations::Linear::getFunction,
                     &drawing::animations::Linear::setFunction);
@@ -522,8 +518,9 @@ detail::defineCommonTypes(
   const EventAttacher& eventAttacher,
   const std::function<void(const std::shared_ptr<drawing::actors::Actor>&,
                            sol::table)>& bindActorProperties,
-  const std::function<void(const std::shared_ptr<drawing::actors::AbstractRectLeaf>&,
-                     sol::table)>& bindAbstractRectLeafProperties) -> void
+  const std::function<
+    void(const std::shared_ptr<drawing::actors::AbstractRectLeaf>&,
+         sol::table)>& bindAbstractRectLeafProperties) -> void
 {
 
     auto bindAbstractVectorCollectionProperties =
