@@ -52,7 +52,8 @@ class SplashScene : public Scene
                             this->animationPlayer,
                             eventAttacher);
         auto luaRoot = this->state.script(script);
-        root = luaRoot.get<drawing::actors::Actor*>()->shared_from_this();
+        root =
+          luaRoot.template get<drawing::actors::Actor*>()->shared_from_this();
     }
     void update(std::chrono::nanoseconds delta) final
     {
