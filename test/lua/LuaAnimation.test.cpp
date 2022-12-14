@@ -64,7 +64,8 @@ return function(quad)
 end
 )";
 
-TEST_CASE("AnimationPlayer updates animations", "[drawing][animations][animationplayer]")
+TEST_CASE("AnimationPlayer updates animations",
+          "[drawing][animations][animationplayer]")
 {
     auto stateSetup = StateSetup{};
     stateSetup.defineTypes();
@@ -79,14 +80,14 @@ TEST_CASE("AnimationPlayer updates animations", "[drawing][animations][animation
       std::dynamic_pointer_cast<drawing::animations::Linear>(funcResult);
     REQUIRE(linear != nullptr);
     REQUIRE(animationPlayer.isPlaying(linear));
-    animationPlayer.update(std::chrono::milliseconds { 500 });
+    animationPlayer.update(std::chrono::milliseconds{ 500 });
     REQUIRE(animationPlayer.isPlaying(linear));
 
     REQUIRE(linear->getProgress() == Catch::Approx(0.5));
     REQUIRE(linear->getIsFinished() == false);
     REQUIRE(animationPlayer.isPlaying(linear));
 
-    animationPlayer.update(std::chrono::milliseconds { 500 });
+    animationPlayer.update(std::chrono::milliseconds{ 500 });
     REQUIRE(linear->getProgress() == Catch::Approx(1));
     REQUIRE(linear->getIsFinished() == true);
     REQUIRE(animationPlayer.isPlaying(linear));
