@@ -1,5 +1,5 @@
 //
-// Created by PC on 14/12/2022.
+// Created by bobini on 14/12/2022.
 //
 
 #include <catch2/catch_approx.hpp>
@@ -29,8 +29,8 @@ return function(quad)
         end
     }
     sequence = AnimationSequence.new{animations = {linear, linear2}}
-    linear.progress = 0.5
-    linear.isLooping = false
+    sequence.duration = 4
+
     return sequence
 end
 )";
@@ -49,16 +49,16 @@ TEST_CASE("Animation sequence properties work",
       std::dynamic_pointer_cast<drawing::animations::AnimationSequence>(
         funcResult);
     REQUIRE(animationSequence != nullptr);
-    REQUIRE(animationSequence->getDuration() == std::chrono::seconds{ 2 });
+    REQUIRE(animationSequence->getDuration() == std::chrono::seconds{ 4 });
     REQUIRE(animationSequence->getProgress() == Catch::Approx(0));
     REQUIRE(animationSequence->getIsLooping() == false);
-    animationSequence->update(std::chrono::seconds{ 1 });
+    animationSequence->update(std::chrono::seconds{ 2 });
     REQUIRE(animationSequence->getProgress() == Catch::Approx(0.5));
     REQUIRE(animationSequence->getIsFinished() == false);
     REQUIRE(animationSequence->getIsLooping() == false);
     REQUIRE(quad->getWidth() == Catch::Approx(500));
     REQUIRE(quad->getHeight() == Catch::Approx(100));
-    animationSequence->update(std::chrono::seconds{ 1 });
+    animationSequence->update(std::chrono::seconds{ 2 });
     REQUIRE(animationSequence->getProgress() == Catch::Approx(1));
     REQUIRE(animationSequence->getIsFinished() == true);
     REQUIRE(animationSequence->getIsLooping() == false);
