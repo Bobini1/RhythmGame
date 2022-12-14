@@ -30,7 +30,7 @@ auto
 drawing::animations::Animation::getProgress() const -> float
 {
     auto duration = getDuration();
-    if (!duration.count()) {
+    if (duration.count() == 0) {
         return 1.0f;
     }
     return static_cast<float>(elapsed.count()) /

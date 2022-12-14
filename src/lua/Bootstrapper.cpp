@@ -438,7 +438,7 @@ defineAnimation(sol::state& target) -> void
       sol::property(&drawing::animations::Animation::getIsFinished);
 }
 auto
-defineLinear(sol::state& target) -> void
+defineLinear(sol::state& target, auto bindAnimationProperties) -> void
 {
     constexpr auto secondsToNanos = 1E9;
     auto linearType = target.new_usertype<drawing::animations::Linear>(
@@ -453,43 +453,37 @@ defineLinear(sol::state& target) -> void
             return drawing::animations::Linear::make(
               std::move(function), time, start, end);
         },
-        [](sol::table args) {
-            auto function =
-              args.get_or("function", std::function<void(float)>{});
+        [bindAnimationProperties](sol::table args) {
+            auto function = args.get_or(
+              "function", std::function<void(float)>{ [](float) {} });
             auto seconds = args.get_or("duration", 0.F);
-            auto start = args.get_or("start", 0.F);
-            auto end = args.get_or("end", 0.F);
+            auto start = args.get_or("from", 0.F);
+            auto end = args.get_or("to", 0.F);
             auto time = std::chrono::nanoseconds(
               static_cast<int64_t>(seconds * secondsToNanos));
             auto result = drawing::animations::Linear::make(
               std::move(function), time, start, end);
-            if (args["onFinished"].valid()) {
-                result->setOnFinished(
-                  args["onFinished"].get<std::function<void()>>());
-            }
-            if (args["isLooping"].valid()) {
-                result->setIsLooping(args["isLooping"]);
-            }
+            bindAnimationProperties(result, args);
             return result;
         }),
       sol::base_classes,
       sol::bases<drawing::animations::Animation>());
-    linearType["start"] = sol::property(&drawing::animations::Linear::getStart,
-                                        &drawing::animations::Linear::setStart);
-    linearType["end"] = sol::property(&drawing::animations::Linear::getEnd,
-                                      &drawing::animations::Linear::setEnd);
+    linearType["from"] = sol::property(&drawing::animations::Linear::getFrom,
+                                       &drawing::animations::Linear::setFrom);
+    linearType["to"] = sol::property(&drawing::animations::Linear::getTo,
+                                     &drawing::animations::Linear::setTo);
     linearType["function"] =
       sol::property(&drawing::animations::Linear::getFunction,
                     &drawing::animations::Linear::setFunction);
 }
 
 auto
-defineAnimationSequence(sol::state& target) -> void
+defineAnimationSequence(sol::state& target, auto bindAnimationProperties) -> void
 {
     auto animationSequenceType =
       target.new_usertype<drawing::animations::AnimationSequence>(
         "AnimationSequence",
-        sol::factories([](const sol::table& args) {
+        sol::factories([bindAnimationProperties](const sol::table& args) {
             auto animations = args.get_or(
               "animations", std::vector<drawing::animations::Animation*>{});
             auto animationsShared =
@@ -500,13 +494,7 @@ defineAnimationSequence(sol::state& target) -> void
             }
             auto returnVal = drawing::animations::AnimationSequence::make(
               std::move(animationsShared));
-            if (args["onFinished"].valid()) {
-                returnVal->setOnFinished(
-                  args["onFinished"].get<std::function<void()>>());
-            }
-            if (args["isLooping"].valid()) {
-                returnVal->setIsLooping(args["isLooping"]);
-            }
+            bindAnimationProperties(returnVal, args);
             return returnVal;
         }),
         sol::base_classes,
@@ -575,8 +563,18 @@ detail::defineCommonTypes(
     defineAlign(target, bindActorProperties);
     defineLayers(target, bindAbstractVectorCollectionProperties);
     defineAnimation(target);
-    defineLinear(target);
-    defineAnimationSequence(target);
+
+    auto bindAnimationProperties = [](const std::shared_ptr<drawing::animations::Animation>& animation, sol::table args) {
+        if (args["onFinished"].valid()) {
+            animation->setOnFinished(args["onFinished"].get<std::function<void()>>());
+        }
+        if (args["isLooping"].valid()) {
+            animation->setIsLooping(args["isLooping"]);
+        }
+    };
+
+    defineLinear(target, bindAnimationProperties);
+    defineAnimationSequence(target, bindAnimationProperties);
 }
 
 } // namespace lua

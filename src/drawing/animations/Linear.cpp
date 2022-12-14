@@ -10,16 +10,18 @@ void
 drawing::animations::Linear::updateImpl(std::chrono::nanoseconds /*delta*/)
 {
     auto progress = getProgress();
-    auto value = start + (end - start) * progress;
-    updated(value);
+    auto value = from + (to - from) * progress;
+    if (updated) {
+        updated(value);
+    }
 }
 drawing::animations::Linear::Linear(std::function<void(float)> updated,
                                     std::chrono::nanoseconds duration,
                                     float start,
                                     float end)
   : AbstractBasicAnimation(duration)
-  , start(start)
-  , end(end)
+  , from(start)
+  , to(end)
   , updated(std::move(updated))
 {
 }
@@ -55,22 +57,22 @@ drawing::animations::Linear::make(std::function<void(float)> updated,
       std::move(updated), duration, start, end) };
 }
 auto
-drawing::animations::Linear::getStart() const -> float
+drawing::animations::Linear::getFrom() const -> float
 {
-    return start;
+    return from;
 }
 auto
-drawing::animations::Linear::getEnd() const -> float
+drawing::animations::Linear::getTo() const -> float
 {
-    return end;
+    return to;
 }
 auto
-drawing::animations::Linear::setStart(float newStart) -> void
+drawing::animations::Linear::setFrom(float newFrom) -> void
 {
-    start = newStart;
+    from = newFrom;
 }
 auto
-drawing::animations::Linear::setEnd(float newEnd) -> void
+drawing::animations::Linear::setTo(float newTo) -> void
 {
-    end = newEnd;
+    to = newTo;
 }

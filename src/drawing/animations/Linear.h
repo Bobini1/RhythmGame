@@ -16,10 +16,10 @@ class Linear : public AbstractBasicAnimation
 #pragma clang diagnostic pop
     auto setFunction(std::function<void(float)> updated) -> void;
     auto getFunction() const -> std::function<void(float)>;
-    auto getStart() const -> float;
-    auto getEnd() const -> float;
-    auto setStart(float start) -> void;
-    auto setEnd(float end) -> void;
+    auto getFrom() const -> float;
+    auto getTo() const -> float;
+    auto setFrom(float from) -> void;
+    auto setTo(float to) -> void;
     static auto make(std::function<void(float)> updated,
                      std::chrono::nanoseconds duration,
                      float start,
@@ -34,8 +34,8 @@ class Linear : public AbstractBasicAnimation
   private:
     [[nodiscard]] auto cloneImpl() const -> Linear* override;
     void updateImpl(std::chrono::nanoseconds delta) override;
-    float start;
-    float end;
+    float from;
+    float to;
     std::function<void(float)> updated;
 };
 } // namespace drawing::animations

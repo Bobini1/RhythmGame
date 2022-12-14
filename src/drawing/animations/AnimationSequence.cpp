@@ -36,6 +36,7 @@ drawing::animations::AnimationSequence::updateImpl(
     auto elapsed = getElapsed();
     auto currentFound = false;
     for (const auto& animation : animations) {
+        animation->setIsLooping(/*newIsLooping=*/false);
         auto animationDuration = animation->getDuration();
         auto absoluteEnd = animationDuration + timePoint;
         if (!currentFound) {
