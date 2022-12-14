@@ -45,7 +45,7 @@ drawing::animations::Animation::update(std::chrono::nanoseconds delta)
 
     if (elapsed >= duration) {
         if (isLooping) {
-            elapsed = duration - oldElapsed;
+            elapsed = delta - (duration - oldElapsed);
         } else {
             elapsed = duration;
         }
