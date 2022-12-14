@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>src/events/Signals2Event.h file | RhythmGame</title>
+  <title>drawing::animations::Linear class | RhythmGame</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,400i,600,600i%7CSource+Code+Pro:400,400i,600" />
   <link rel="stylesheet" href="m-dark+documentation.compiled.css" />
   <link rel="icon" href="favicon-dark.png" type="image/png" />
@@ -49,7 +49,8 @@
     <div class="m-row">
       <div class="m-col-l-10 m-push-l-1">
         <h1>
-          <span class="m-breadcrumb"><a href="dir_68267d1309a1af8e8297ef4c3efbcdba.html">src</a>/</span><span class="m-breadcrumb"><a href="dir_14e1e259e8275dc0c459acef3bbf05ae.html">events</a>/</span>Signals2Event.h <span class="m-thin">file</span>
+          <span class="m-breadcrumb"><a href="namespacedrawing.html">drawing</a>::<wbr/></span><span class="m-breadcrumb"><a href="namespacedrawing_1_1animations.html">animations</a>::<wbr/></span>Linear <span class="m-thin">class</span>
+          <div class="m-doc-include m-code m-inverted m-text-right"><span class="cp">#include</span> <a class="cpf" href="Linear_8h.html">&lt;Linear.h&gt;</a></div>
         </h1>
         <p><span></span></p>
         <div class="m-block m-default">
@@ -58,29 +59,92 @@
             <li>
               Reference
               <ul>
-                <li><a href="#namespaces">Namespaces</a></li>
-                <li><a href="#nested-classes">Classes</a></li>
+                <li><a href="#base-classes">Base classes</a></li>
+                <li><a href="#pub-static-methods">Public static functions</a></li>
+                <li><a href="#typeless-methods">Constructors, destructors, conversion operators</a></li>
+                <li><a href="#pub-methods">Public functions</a></li>
+                <li><a href="#pri-methods">Private functions</a></li>
               </ul>
             </li>
           </ul>
         </div>
-        <section id="namespaces">
-          <h2><a href="#namespaces">Namespaces</a></h2>
+        <section id="base-classes">
+          <h2><a href="#base-classes">Base classes</a></h2>
           <dl class="m-doc">
-            <dt>namespace <a href="namespaceevents.html" class="m-doc">events</a></dt>
-            <dd><span></span></dd>
-            <dt>namespace <a href="namespaceevents_1_1detail.html" class="m-doc">events::detail</a></dt>
+            <dt>
+              class <a href="classdrawing_1_1animations_1_1AbstractBasicAnimation.html" class="m-doc">AbstractBasicAnimation</a>
+            </dt>
             <dd><span></span></dd>
           </dl>
         </section>
-        <section id="nested-classes">
-          <h2><a href="#nested-classes">Classes</a></h2>
+        <section id="pub-static-methods">
+          <h2><a href="#pub-static-methods">Public static functions</a></h2>
           <dl class="m-doc">
-            <dt>
-              <div class="m-doc-template">template&lt;typename... Args&gt;</div>
-              class <a href="classevents_1_1detail_1_1Signals2Event.html" class="m-doc">events::detail::Signals2Event</a>
+            <dt id="ae8385234b9b08b39630c7eb4a36833ab">
+              <span class="m-doc-wrap-bumper">static auto <a href="#ae8385234b9b08b39630c7eb4a36833ab" class="m-doc-self">make</a>(</span><span class="m-doc-wrap">std::function&lt;void(float)&gt; updated,
+              std::chrono::nanoseconds duration,
+              float start,
+              float end) -&gt; std::shared_ptr&lt; Linear &gt;</span>
             </dt>
-            <dd>An implementation for <a href="classevents_1_1detail_1_1Signals2Event.html" class="m-doc">Signals2Event</a>.</dd>
+            <dd><span></span></dd>
+          </dl>
+        </section>
+        <section id="typeless-methods">
+          <h2><a href="#typeless-methods">Constructors, destructors, conversion operators</a></h2>
+          <dl class="m-doc">
+            <dt id="a3c9287b118cf3f21e49a37b9340c6c54">
+              <span class="m-doc-wrap-bumper"><a href="#a3c9287b118cf3f21e49a37b9340c6c54" class="m-doc-self">Linear</a>(</span><span class="m-doc-wrap">std::function&lt;void(float)&gt; updated,
+              std::chrono::nanoseconds duration,
+              float start,
+              float end) <span class="m-label m-flat m-warning">protected</span></span>
+            </dt>
+            <dd><span></span></dd>
+          </dl>
+        </section>
+        <section id="pub-methods">
+          <h2><a href="#pub-methods">Public functions</a></h2>
+          <dl class="m-doc">
+            <dt id="a7850a6fc674e8a4ffc89540694a57b78">
+              <span class="m-doc-wrap-bumper">auto <a href="#a7850a6fc674e8a4ffc89540694a57b78" class="m-doc-self">clone</a>(</span><span class="m-doc-wrap">) const -&gt; std::shared_ptr&lt; Linear &gt;</span>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="a5fe1933223b8c97cb1cd9131c9672b17">
+              <span class="m-doc-wrap-bumper">auto <a href="#a5fe1933223b8c97cb1cd9131c9672b17" class="m-doc-self">setFunction</a>(</span><span class="m-doc-wrap">std::function&lt;void(float)&gt; updated) -&gt; void</span>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="ab0662b7c23a92fe58052175d73b66a41">
+              <span class="m-doc-wrap-bumper">auto <a href="#ab0662b7c23a92fe58052175d73b66a41" class="m-doc-self">getFunction</a>(</span><span class="m-doc-wrap">) &gt;</span>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="a3b9ea1148ad9c83886ccbd6a42eee995">
+              <span class="m-doc-wrap-bumper">auto <a href="#a3b9ea1148ad9c83886ccbd6a42eee995" class="m-doc-self">getFrom</a>(</span><span class="m-doc-wrap">) const -&gt; float</span>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="a3ea4d034f81d879997994a14b8d9646a">
+              <span class="m-doc-wrap-bumper">auto <a href="#a3ea4d034f81d879997994a14b8d9646a" class="m-doc-self">getTo</a>(</span><span class="m-doc-wrap">) const -&gt; float</span>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="abe0070cecb3fa4dd09e37e8e131a78ec">
+              <span class="m-doc-wrap-bumper">auto <a href="#abe0070cecb3fa4dd09e37e8e131a78ec" class="m-doc-self">setFrom</a>(</span><span class="m-doc-wrap">float from) -&gt; void</span>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="afd0feea5837c8fca838b1a598d3f15d7">
+              <span class="m-doc-wrap-bumper">auto <a href="#afd0feea5837c8fca838b1a598d3f15d7" class="m-doc-self">setTo</a>(</span><span class="m-doc-wrap">float to) -&gt; void</span>
+            </dt>
+            <dd><span></span></dd>
+          </dl>
+        </section>
+        <section id="pri-methods">
+          <h2><a href="#pri-methods">Private functions</a></h2>
+          <dl class="m-doc">
+            <dt id="a4d82aa3bb9df1338b462de8cb37773ab">
+              <span class="m-doc-wrap-bumper">auto <a href="#a4d82aa3bb9df1338b462de8cb37773ab" class="m-doc-self">cloneImpl</a>(</span><span class="m-doc-wrap">) const -&gt; Linear * <span class="m-label m-flat m-warning">override</span></span>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="acccc5a1d9b6d257064c36fe0efead6f9">
+              <span class="m-doc-wrap-bumper">void <a href="#acccc5a1d9b6d257064c36fe0efead6f9" class="m-doc-self">updateImpl</a>(</span><span class="m-doc-wrap">std::chrono::nanoseconds delta) <span class="m-label m-flat m-warning">override</span></span>
+            </dt>
+            <dd><span></span></dd>
           </dl>
         </section>
       </div>

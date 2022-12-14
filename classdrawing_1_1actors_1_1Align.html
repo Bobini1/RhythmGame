@@ -126,13 +126,9 @@
             </dt>
             <dd><span></span></dd>
             <dt>
-              <span class="m-doc-wrap-bumper">auto <a href="#a2602da9fefb95c56886b0bad705623cf" class="m-doc">getLuaSelf</a>(</span><span class="m-doc-wrap">sol::state&amp; lua) -&gt; sol::object <span class="m-label m-flat m-warning">override</span></span>
+              <span class="m-doc-wrap-bumper">auto <a href="#a58fa692bd80a24ab81ee35667b3b8e41" class="m-doc">getLuaSelf</a>(</span><span class="m-doc-wrap">sol::state&amp; lua) -&gt; sol::object <span class="m-label m-flat m-warning">override</span></span>
             </dt>
             <dd>Get the lua object of the type of this actor.</dd>
-            <dt>
-              <span class="m-doc-wrap-bumper">auto <a href="#a36b1b8698df87e73e0ae06beb4acf8a6" class="m-doc">update</a>(</span><span class="m-doc-wrap">std::chrono::nanoseconds delta) -&gt; void <span class="m-label m-flat m-warning">override</span></span>
-            </dt>
-            <dd>used by the engine to update an actor&#x27;s internals every frame. Not exposed to Lua.</dd>
             <dt>
               <span class="m-doc-wrap-bumper">auto <a href="#a6c7c31ef793c4c09667bd3b9ab86828a" class="m-doc">setTransform</a>(</span><span class="m-doc-wrap">sf::Transform transform) -&gt; void <span class="m-label m-flat m-warning">override</span></span>
             </dt>
@@ -204,9 +200,9 @@
         </section>
         <section>
           <h2>Function documentation</h2>
-          <section class="m-doc-details" id="a2602da9fefb95c56886b0bad705623cf"><div>
+          <section class="m-doc-details" id="a58fa692bd80a24ab81ee35667b3b8e41"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">auto drawing::<wbr />actors::<wbr />Align::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a2602da9fefb95c56886b0bad705623cf" class="m-doc-self">getLuaSelf</a>(</span><span class="m-doc-wrap">sol::state&amp; lua) -&gt; sol::object <span class="m-label m-warning">override</span></span></span>
+              <span class="m-doc-wrap-bumper">auto drawing::<wbr />actors::<wbr />Align::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a58fa692bd80a24ab81ee35667b3b8e41" class="m-doc-self">getLuaSelf</a>(</span><span class="m-doc-wrap">sol::state&amp; lua) -&gt; sol::object <span class="m-label m-warning">override</span></span></span>
             </h3>
             <p>Get the lua object of the type of this actor.</p>
             <table class="m-table m-fullwidth m-flat">
@@ -225,23 +221,6 @@
                   <td>The lua object of the type of this actor.</td>
                 </tr>
               </tfoot>
-            </table>
-          </div></section>
-          <section class="m-doc-details" id="a36b1b8698df87e73e0ae06beb4acf8a6"><div>
-            <h3>
-              <span class="m-doc-wrap-bumper">auto drawing::<wbr />actors::<wbr />Align::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a36b1b8698df87e73e0ae06beb4acf8a6" class="m-doc-self">update</a>(</span><span class="m-doc-wrap">std::chrono::nanoseconds delta) -&gt; void <span class="m-label m-warning">override</span></span></span>
-            </h3>
-            <p>used by the engine to update an actor&#x27;s internals every frame. Not exposed to Lua.</p>
-            <table class="m-table m-fullwidth m-flat">
-              <thead>
-                <tr><th colspan="2">Parameters</th></tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td style="width: 1%">delta</td>
-                  <td>the time difference between this frame and the previous one.</td>
-                </tr>
-              </tbody>
             </table>
           </div></section>
           <section class="m-doc-details" id="a6c7c31ef793c4c09667bd3b9ab86828a"><div>

@@ -120,13 +120,9 @@
               <span class="m-doc-wrap-bumper">auto <a href="#a9f7c13885595a286818db4b11a1b5242" class="m-doc-self">operator=</a>(</span><span class="m-doc-wrap"><a href="classdrawing_1_1actors_1_1Actor.html" class="m-doc">Actor</a>&amp;&amp; otherActor) noexcept -&gt; Actor &amp; <span class="m-label m-flat m-danger">deleted</span></span>
             </dt>
             <dd><span></span></dd>
-            <dt id="ae672842fa197da939b2c272dd8f7b37a">
-              <span class="m-doc-wrap-bumper">void <a href="#ae672842fa197da939b2c272dd8f7b37a" class="m-doc-self">addEventSubscription</a>(</span><span class="m-doc-wrap">const std::string&amp; eventName,
+            <dt id="afbc251e5458196a225d9e6a2b837349e">
+              <span class="m-doc-wrap-bumper">void <a href="#afbc251e5458196a225d9e6a2b837349e" class="m-doc-self">setEventSubscription</a>(</span><span class="m-doc-wrap">const std::string&amp; eventName,
               std::unique_ptr&lt;<a href="classevents_1_1Connection.html" class="m-doc">events::<wbr />Connection</a>&gt; connection)</span>
-            </dt>
-            <dd><span></span></dd>
-            <dt id="a0ce7eba1aea0abab04762e8a30776993">
-              <span class="m-doc-wrap-bumper">auto <a href="#a0ce7eba1aea0abab04762e8a30776993" class="m-doc-self">removeEventSubscription</a>(</span><span class="m-doc-wrap">const std::string&amp; eventName) -&gt; void</span>
             </dt>
             <dd><span></span></dd>
             <dt>
@@ -138,11 +134,11 @@
             </dt>
             <dd>The parent of this actor. Null for scene root or unattached actors.</dd>
             <dt>
-              <span class="m-doc-wrap-bumper">auto <a href="#abcc3c9b5c7f4f089c40a6847fae0bb50" class="m-doc">setParent</a>(</span><span class="m-doc-wrap">std::shared_ptr&lt;<a href="classdrawing_1_1actors_1_1Parent.html" class="m-doc">Parent</a>&gt; parent) -&gt; void <span class="m-label m-flat m-warning">virtual</span></span>
+              <span class="m-doc-wrap-bumper">auto <a href="#a06fac4714b1113b92c08b403abaf9cf5" class="m-doc">setParent</a>(</span><span class="m-doc-wrap">const std::shared_ptr&lt;<a href="classdrawing_1_1actors_1_1Parent.html" class="m-doc">Parent</a>&gt;&amp; parent) -&gt; void <span class="m-label m-flat m-warning">virtual</span></span>
             </dt>
             <dd>Sets the parent of the actor.</dd>
             <dt>
-              <span class="m-doc-wrap-bumper">auto <a href="#a1e0a4131ac9d2a29c13a9751a55a19cb" class="m-doc">update</a>(</span><span class="m-doc-wrap">std::chrono::nanoseconds delta) -&gt; void <span class="m-label m-flat m-warning">pure virtual</span></span>
+              <span class="m-doc-wrap-bumper">auto <a href="#ac0e4f4e2a9e510bd9326304804a48a47" class="m-doc">update</a>(</span><span class="m-doc-wrap">std::chrono::nanoseconds delta) -&gt; void</span>
             </dt>
             <dd>used by the engine to update an actor&#x27;s internals every frame. Not exposed to Lua.</dd>
             <dt>
@@ -234,9 +230,9 @@
               </tfoot>
             </table>
           </div></section>
-          <section class="m-doc-details" id="abcc3c9b5c7f4f089c40a6847fae0bb50"><div>
+          <section class="m-doc-details" id="a06fac4714b1113b92c08b403abaf9cf5"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">auto drawing::<wbr />actors::<wbr />Actor::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#abcc3c9b5c7f4f089c40a6847fae0bb50" class="m-doc-self">setParent</a>(</span><span class="m-doc-wrap">std::shared_ptr&lt;<a href="classdrawing_1_1actors_1_1Parent.html" class="m-doc">Parent</a>&gt; parent) -&gt; void <span class="m-label m-warning">virtual</span></span></span>
+              <span class="m-doc-wrap-bumper">auto drawing::<wbr />actors::<wbr />Actor::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a06fac4714b1113b92c08b403abaf9cf5" class="m-doc-self">setParent</a>(</span><span class="m-doc-wrap">const std::shared_ptr&lt;<a href="classdrawing_1_1actors_1_1Parent.html" class="m-doc">Parent</a>&gt;&amp; parent) -&gt; void <span class="m-label m-warning">virtual</span></span></span>
             </h3>
             <p>Sets the parent of the actor.</p>
             <table class="m-table m-fullwidth m-flat">
@@ -251,9 +247,9 @@
               </tbody>
             </table>
           </div></section>
-          <section class="m-doc-details" id="a1e0a4131ac9d2a29c13a9751a55a19cb"><div>
+          <section class="m-doc-details" id="ac0e4f4e2a9e510bd9326304804a48a47"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">auto drawing::<wbr />actors::<wbr />Actor::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a1e0a4131ac9d2a29c13a9751a55a19cb" class="m-doc-self">update</a>(</span><span class="m-doc-wrap">std::chrono::nanoseconds delta) -&gt; void <span class="m-label m-warning">pure virtual</span></span></span>
+              <span class="m-doc-wrap-bumper">auto drawing::<wbr />actors::<wbr />Actor::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#ac0e4f4e2a9e510bd9326304804a48a47" class="m-doc-self">update</a>(</span><span class="m-doc-wrap">std::chrono::nanoseconds delta) -&gt; void</span></span>
             </h3>
             <p>used by the engine to update an actor&#x27;s internals every frame. Not exposed to Lua.</p>
             <table class="m-table m-fullwidth m-flat">
