@@ -27,7 +27,6 @@ class Sprite : public AbstractRectLeaf
     [[nodiscard]] auto getTexture() const -> const sf::Texture*;
     [[nodiscard]] auto getTextureRect() const -> const sf::IntRect&;
     [[nodiscard]] auto getColor() const -> const sf::Color&;
-    void update(std::chrono::nanoseconds delta) override;
     auto setTransform(sf::Transform transform) -> void override;
     [[nodiscard]] auto getTransform() const -> sf::Transform override;
     [[nodiscard]] auto getWidth() const -> float override;

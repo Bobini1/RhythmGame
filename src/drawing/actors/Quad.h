@@ -27,7 +27,6 @@ class Quad : public AbstractRectLeaf
     [[nodiscard]] auto getFillColor() const -> const sf::Color&;
     [[nodiscard]] auto getOutlineColor() const -> const sf::Color&;
     [[nodiscard]] auto getOutlineThickness() const -> float;
-    void update(std::chrono::nanoseconds delta) override;
     auto setTransform(sf::Transform transform) -> void override;
     [[nodiscard]] auto getTransform() const -> sf::Transform override;
     [[nodiscard]] auto getWidth() const -> float override;

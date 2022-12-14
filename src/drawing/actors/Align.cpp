@@ -15,16 +15,12 @@ drawing::actors::Align::removeChild(std::shared_ptr<Actor> /* child */)
     this->child->setParent(nullptr);
     this->child = nullptr;
 }
-sol::object
-drawing::actors::Align::getLuaSelf(sol::state& lua)
+auto
+drawing::actors::Align::getLuaSelf(sol::state& lua) -> sol::object
 {
     return { lua,
              sol::in_place_type_t<std::shared_ptr<drawing::actors::Align>>{},
              sharedFromBase<Align>() };
-}
-void
-drawing::actors::Align::update(std::chrono::nanoseconds delta)
-{
 }
 void
 drawing::actors::Align::setTransform(sf::Transform newTransform)

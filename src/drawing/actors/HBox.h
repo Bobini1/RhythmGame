@@ -21,7 +21,6 @@ class HBox : public AbstractBox
     [[nodiscard]] auto getMinHeight() const -> float override;
     [[nodiscard]] auto getWidth() const -> float override;
     [[nodiscard]] auto getHeight() const -> float override;
-    auto update(std::chrono::nanoseconds delta) -> void override;
     [[nodiscard]] auto getIsWidthManaged() const -> bool override;
     [[nodiscard]] auto getIsHeightManaged() const -> bool override;
     enum class ContentAlignment

@@ -27,7 +27,6 @@ class Padding : public Parent
                      float left = 0,
                      float right = 0) -> std::shared_ptr<Padding>;
     [[nodiscard]] auto getLuaSelf(sol::state& lua) -> sol::object override;
-    auto update(std::chrono::nanoseconds delta) -> void override;
     auto setTransform(sf::Transform transform) -> void override;
     [[nodiscard]] auto getTransform() const -> sf::Transform override;
     [[nodiscard]] auto getIsWidthManaged() const -> bool override;

@@ -13,11 +13,13 @@
 #include "drawing/actors/Padding.h"
 #include "drawing/actors/Align.h"
 #include "drawing/actors/Layers.h"
+#include "drawing/animations/Linear.h"
+#include "drawing/animations/AnimationSequence.h"
 
 namespace lua {
 
 auto
-Bootstrapper::defineActor(sol::state& target) const -> void
+defineActor(sol::state& target, const EventAttacher& eventAttacher) -> void
 {
     auto actorType =
       target.new_usertype<drawing::actors::Actor>("Actor", sol::no_constructor);
@@ -36,11 +38,11 @@ Bootstrapper::defineActor(sol::state& target) const -> void
       sol::property(&drawing::actors::Actor::getIsWidthManaged);
     actorType["isHeightManaged"] =
       sol::property(&drawing::actors::Actor::getIsHeightManaged);
-    registerAllEventProperties(actorType);
+    eventAttacher.registerAllEventProperties(actorType);
 }
 
 auto
-Bootstrapper::defineParent(sol::state& target) const -> void
+defineParent(sol::state& target) -> void
 {
     auto parentType = target.new_usertype<drawing::actors::Parent>(
       "Parent",
@@ -51,7 +53,7 @@ Bootstrapper::defineParent(sol::state& target) const -> void
 }
 
 auto
-Bootstrapper::defineAbstractVectorCollection(sol::state& target) const -> void
+defineAbstractVectorCollection(sol::state& target) -> void
 {
     auto abstractVectorCollectionType =
       target.new_usertype<drawing::actors::AbstractVectorCollection>(
@@ -74,7 +76,7 @@ Bootstrapper::defineAbstractVectorCollection(sol::state& target) const -> void
 }
 
 auto
-Bootstrapper::defineAbstractBox(sol::state& target) const -> void
+defineAbstractBox(sol::state& target) -> void
 {
     auto abstractBoxType = target.new_usertype<drawing::actors::AbstractBox>(
       "Box",
@@ -100,47 +102,19 @@ Bootstrapper::defineAbstractBox(sol::state& target) const -> void
 }
 
 auto
-Bootstrapper::defineVBox(sol::state& target) const -> void
+defineVBox(sol::state& target, auto bindAbstractBoxProperties) -> void
 {
     auto vBoxType = target.new_usertype<drawing::actors::VBox>(
       "VBox",
       sol::factories(
         []() { return drawing::actors::VBox::make(); },
-        [eventAttacher = EventAttacher(eventRegistrators)](sol::table args) {
+        [bindAbstractBoxProperties](sol::table args) {
             auto result = drawing::actors::VBox::make();
-            if (args["children"].valid()) {
-                auto children =
-                  args["children"].get<std::vector<drawing::actors::Actor*>>();
-                for (auto* child : children) {
-                    result->addChild(child->shared_from_this());
-                }
-            }
+            bindAbstractBoxProperties(result, args);
             if (args["contentAlignment"].valid()) {
                 result->setContentAlignment(
                   args["contentAlignment"]
                     .get<drawing::actors::VBox::ContentAlignment>());
-            }
-            if (args["horizontalSizeMode"].valid()) {
-                result->setHorizontalSizeMode(
-                  args["horizontalSizeMode"]
-                    .get<drawing::actors::AbstractBox::SizeMode>());
-            }
-            if (args["verticalSizeMode"].valid()) {
-                result->setVerticalSizeMode(
-                  args["verticalSizeMode"]
-                    .get<drawing::actors::AbstractBox::SizeMode>());
-            }
-            if (args["width"].valid()) {
-                result->setWidth(args["width"].get<float>());
-            }
-            if (args["height"].valid()) {
-                result->setHeight(args["height"].get<float>());
-            }
-            if (args["spacing"].valid()) {
-                result->setSpacing(args["spacing"].get<float>());
-            }
-            if (args["events"].valid()) {
-                eventAttacher.attachAllEvents(result, args["events"]);
             }
             return result;
         }),
@@ -162,47 +136,19 @@ Bootstrapper::defineVBox(sol::state& target) const -> void
 }
 
 auto
-Bootstrapper::defineHBox(sol::state& target) const -> void
+defineHBox(sol::state& target, auto bindAbstractBoxProperties) -> void
 {
     auto hBoxType = target.new_usertype<drawing::actors::HBox>(
       "HBox",
       sol::factories(
         []() { return drawing::actors::HBox::make(); },
-        [eventAttacher = EventAttacher(eventRegistrators)](sol::table args) {
+        [bindAbstractBoxProperties](sol::table args) {
             auto result = drawing::actors::HBox::make();
-            if (args["children"].valid()) {
-                auto children =
-                  args["children"].get<std::vector<drawing::actors::Actor*>>();
-                for (auto* child : children) {
-                    result->addChild(child->shared_from_this());
-                }
-            }
+            bindAbstractBoxProperties(result, args);
             if (args["contentAlignment"].valid()) {
                 result->setContentAlignment(
                   args["contentAlignment"]
                     .get<drawing::actors::HBox::ContentAlignment>());
-            }
-            if (args["horizontalSizeMode"].valid()) {
-                result->setHorizontalSizeMode(
-                  args["horizontalSizeMode"]
-                    .get<drawing::actors::AbstractBox::SizeMode>());
-            }
-            if (args["verticalSizeMode"].valid()) {
-                result->setVerticalSizeMode(
-                  args["verticalSizeMode"]
-                    .get<drawing::actors::AbstractBox::SizeMode>());
-            }
-            if (args["width"].valid()) {
-                result->setWidth(args["width"].get<float>());
-            }
-            if (args["height"].valid()) {
-                result->setHeight(args["height"].get<float>());
-            }
-            if (args["spacing"].valid()) {
-                result->setSpacing(args["spacing"].get<float>());
-            }
-            if (args["events"].valid()) {
-                eventAttacher.attachAllEvents(result, args["events"]);
             }
             return result;
         }),
@@ -223,7 +169,7 @@ Bootstrapper::defineHBox(sol::state& target) const -> void
 }
 
 auto
-Bootstrapper::defineVector2(sol::state& target) const -> void
+defineVector2(sol::state& target) -> void
 {
     auto vector2fType = target.new_usertype<sf::Vector2f>(
       "Vector2",
@@ -233,7 +179,7 @@ Bootstrapper::defineVector2(sol::state& target) const -> void
 }
 
 auto
-Bootstrapper::defineAbstractRectLeaf(sol::state& target) const -> void
+defineAbstractRectLeaf(sol::state& target) -> void
 {
     auto abstractRectLeafType =
       target.new_usertype<drawing::actors::AbstractRectLeaf>(
@@ -256,7 +202,7 @@ Bootstrapper::defineAbstractRectLeaf(sol::state& target) const -> void
 }
 
 auto
-Bootstrapper::defineQuad(sol::state& target) const -> void
+defineQuad(sol::state& target, auto bindAbstractRectLeafProperties) -> void
 {
     auto quadType = target.new_usertype<drawing::actors::Quad>(
       "Quad",
@@ -272,10 +218,9 @@ Bootstrapper::defineQuad(sol::state& target) const -> void
               drawing::actors::Quad::make(sf::Vector2f{ width, height }, color);
             return result;
         },
-        [eventAttacher = EventAttacher(eventRegistrators)](sol::table args) {
+        [bindAbstractRectLeafProperties](sol::table args) {
             auto result = drawing::actors::Quad::make(
-              sf::Vector2f{ args.get_or("width", 0.F),
-                            args.get_or("height", 0.F) },
+              sf::Vector2f{ 0, 0 },
               args.get_or<sf::Color>("fillColor", sf::Color::White));
             if (args["outlineColor"].valid()) {
                 result->setOutlineColor(args.get<sf::Color>("outlineColor"));
@@ -284,21 +229,7 @@ Bootstrapper::defineQuad(sol::state& target) const -> void
                 result->setOutlineThickness(
                   args.get<float>("outlineThickness"));
             }
-            if (args["minWidth"].valid()) {
-                result->setMinWidth(args.get<float>("minWidth"));
-            }
-            if (args["minHeight"].valid()) {
-                result->setMinHeight(args.get<float>("minHeight"));
-            }
-            if (args["isWidthManaged"].valid()) {
-                result->setIsWidthManaged(args.get<bool>("isWidthManaged"));
-            }
-            if (args["isHeightManaged"].valid()) {
-                result->setIsHeightManaged(args.get<bool>("isHeightManaged"));
-            }
-            if (args["events"].valid()) {
-                eventAttacher.attachAllEvents(result, args["events"]);
-            }
+            bindAbstractRectLeafProperties(result, args);
             return result;
         }),
       sol::base_classes,
@@ -315,10 +246,13 @@ Bootstrapper::defineQuad(sol::state& target) const -> void
 }
 
 auto
-Bootstrapper::defineColor(sol::state& target) const -> void
+defineColor(sol::state& target) -> void
 {
     auto colorType = target.new_usertype<sf::Color>(
-      "Color", sol::constructors<sf::Color(), sf::Color(int, int, int, int)>());
+      "Color",
+      sol::constructors<sf::Color(),
+                        sf::Color(
+                          sf::Uint8, sf::Uint8, sf::Uint8, sf::Uint8)>());
     colorType["r"] = sol::property(&sf::Color::r, &sf::Color::r);
     colorType["g"] = sol::property(&sf::Color::g, &sf::Color::g);
     colorType["b"] = sol::property(&sf::Color::b, &sf::Color::b);
@@ -326,7 +260,7 @@ Bootstrapper::defineColor(sol::state& target) const -> void
 }
 
 auto
-Bootstrapper::definePadding(sol::state& target) const -> void
+definePadding(sol::state& target, auto bindActorProperties) -> void
 {
     auto paddingType = target.new_usertype<drawing::actors::Padding>(
       "Padding",
@@ -346,8 +280,7 @@ Bootstrapper::definePadding(sol::state& target) const -> void
             returnVal->setChild(actor->shared_from_this());
             return returnVal;
         },
-        [eventAttacher =
-           EventAttacher(eventRegistrators)](const sol::table& args) {
+        [bindActorProperties](const sol::table& args) {
             auto child = [&]() {
                 if (args["child"].valid()) {
                     return args.get<drawing::actors::Actor*>("child")
@@ -361,9 +294,7 @@ Bootstrapper::definePadding(sol::state& target) const -> void
                                              args.get_or("left", 0.F),
                                              args.get_or("right", 0.F));
             returnVal->setChild(child);
-            if (args["events"].valid()) {
-                eventAttacher.attachAllEvents(returnVal, args["events"]);
-            }
+            bindActorProperties(returnVal, args);
             return returnVal;
         }),
       sol::base_classes,
@@ -386,7 +317,7 @@ Bootstrapper::definePadding(sol::state& target) const -> void
 }
 
 auto
-Bootstrapper::defineAlign(sol::state& target) const -> void
+defineAlign(sol::state& target, auto bindActorProperties) -> void
 {
     auto modeType = target.new_enum("AlignMode",
                                     "TopLeft",
@@ -424,8 +355,7 @@ Bootstrapper::defineAlign(sol::state& target) const -> void
         [](drawing::actors::Align::Mode mode) {
             return drawing::actors::Align::make(mode);
         },
-        [eventAttacher =
-           EventAttacher(eventRegistrators)](const sol::table& args) {
+        [bindActorProperties](const sol::table& args) {
             auto child = [&]() {
                 if (args["child"].valid()) {
                     return args.get<drawing::actors::Actor*>("child")
@@ -436,10 +366,7 @@ Bootstrapper::defineAlign(sol::state& target) const -> void
             auto returnVal = drawing::actors::Align::make(
               args.get_or("mode", drawing::actors::Align::Mode::Center));
             returnVal->setChild(std::move(child));
-
-            if (args["events"].valid()) {
-                eventAttacher.attachAllEvents(returnVal, args["events"]);
-            }
+            bindActorProperties(returnVal, args);
             return returnVal;
         }),
       sol::base_classes,
@@ -456,35 +383,20 @@ Bootstrapper::defineAlign(sol::state& target) const -> void
 }
 
 auto
-Bootstrapper::defineLayers(sol::state& target) const -> void
+defineLayers(sol::state& target, auto bindAbstractVectorCollectionProperties)
+  -> void
 {
     auto layerType = target.new_usertype<drawing::actors::Layers>(
       "Layers",
       sol::factories(
         []() { return drawing::actors::Layers::make(); },
-        [eventAttacher =
-           EventAttacher(eventRegistrators)](const sol::table& args) {
+        [bindAbstractVectorCollectionProperties](const sol::table& args) {
             auto returnVal = drawing::actors::Layers::make();
-            if (args["children"].valid()) {
-                for (const auto& child :
-                     args.get<std::vector<drawing::actors::Actor*>>(
-                       "children")) {
-                    returnVal->addChild(child->shared_from_this());
-                }
-            }
+            bindAbstractVectorCollectionProperties(returnVal, args);
             if (args["mainLayer"].valid()) {
                 returnVal->setMainLayer(
                   args.get<drawing::actors::Actor*>("mainLayer")
                     ->shared_from_this());
-            }
-            if (args["width"].valid()) {
-                returnVal->setWidth(args.get<float>("width"));
-            }
-            if (args["height"].valid()) {
-                returnVal->setHeight(args.get<float>("height"));
-            }
-            if (args["events"].valid()) {
-                eventAttacher.attachAllEvents(returnVal, args["events"]);
             }
             return returnVal;
         }),
@@ -500,52 +412,169 @@ Bootstrapper::defineLayers(sol::state& target) const -> void
 }
 
 auto
-Bootstrapper::defineCommonTypes(sol::state& target) const -> void
+defineAnimation(sol::state& target) -> void
 {
-    defineActor(target);
+    auto animationType = target.new_usertype<drawing::animations::Animation>(
+      "Animation", sol::no_constructor);
+    animationType["reset"] = &drawing::animations::Animation::reset;
+    animationType["isLooping"] =
+      sol::property(&drawing::animations::Animation::getIsLooping,
+                    &drawing::animations::Animation::setIsLooping);
+    animationType["duration"] = sol::property(
+      [](drawing::animations::Animation* self) {
+          return static_cast<double>(self->getDuration().count()) * 1E-9;
+      },
+      [](drawing::animations::Animation* self, float duration) {
+          self->setDuration(
+            std::chrono::nanoseconds{ static_cast<int64_t>(duration * 1E9) });
+      });
+    animationType["progress"] =
+      sol::property(&drawing::animations::Animation::getProgress,
+                    &drawing::animations::Animation::setProgress);
+    animationType["onFinished"] =
+      sol::property(&drawing::animations::Animation::getOnFinished,
+                    &drawing::animations::Animation::setOnFinished);
+    animationType["isFinished"] =
+      sol::property(&drawing::animations::Animation::getIsFinished);
+}
+auto
+defineLinear(sol::state& target, auto bindAnimationProperties) -> void
+{
+    constexpr auto secondsToNanos = 1E9;
+    auto linearType = target.new_usertype<drawing::animations::Linear>(
+      "Linear",
+      sol::factories(
+        [](std::function<void(float)> function,
+           float seconds,
+           float start,
+           float end) {
+            auto time = std::chrono::nanoseconds(
+              static_cast<int64_t>(seconds * secondsToNanos));
+            return drawing::animations::Linear::make(
+              std::move(function), time, start, end);
+        },
+        [bindAnimationProperties](sol::table args) {
+            auto function = args.get_or(
+              "function", std::function<void(float)>{ [](float) {} });
+            auto seconds = args.get_or("duration", 0.F);
+            auto start = args.get_or("from", 0.F);
+            auto end = args.get_or("to", 0.F);
+            auto time = std::chrono::nanoseconds(
+              static_cast<int64_t>(seconds * secondsToNanos));
+            auto result = drawing::animations::Linear::make(
+              std::move(function), time, start, end);
+            bindAnimationProperties(result, args);
+            return result;
+        }),
+      sol::base_classes,
+      sol::bases<drawing::animations::Animation>());
+    linearType["from"] = sol::property(&drawing::animations::Linear::getFrom,
+                                       &drawing::animations::Linear::setFrom);
+    linearType["to"] = sol::property(&drawing::animations::Linear::getTo,
+                                     &drawing::animations::Linear::setTo);
+    linearType["function"] =
+      sol::property(&drawing::animations::Linear::getFunction,
+                    &drawing::animations::Linear::setFunction);
+}
+
+auto
+defineAnimationSequence(sol::state& target, auto bindAnimationProperties) -> void
+{
+    auto animationSequenceType =
+      target.new_usertype<drawing::animations::AnimationSequence>(
+        "AnimationSequence",
+        sol::factories([bindAnimationProperties](const sol::table& args) {
+            auto animations = args.get_or(
+              "animations", std::vector<drawing::animations::Animation*>{});
+            auto animationsShared =
+              std::vector<std::shared_ptr<drawing::animations::Animation>>{};
+            animationsShared.reserve(animations.size());
+            for (auto* animation : animations) {
+                animationsShared.push_back(animation->shared_from_this());
+            }
+            auto returnVal = drawing::animations::AnimationSequence::make(
+              std::move(animationsShared));
+            bindAnimationProperties(returnVal, args);
+            return returnVal;
+        }),
+        sol::base_classes,
+        sol::bases<drawing::animations::Animation>());
+}
+auto
+detail::defineCommonTypes(
+  sol::state& target,
+  const EventAttacher& eventAttacher,
+  const std::function<void(const std::shared_ptr<drawing::actors::Actor>&,
+                           sol::table)>& bindActorProperties,
+  const std::function<
+    void(const std::shared_ptr<drawing::actors::AbstractRectLeaf>&,
+         sol::table)>& bindAbstractRectLeafProperties) -> void
+{
+
+    auto bindAbstractVectorCollectionProperties =
+      [bindActorProperties](
+        const std::shared_ptr<drawing::actors::AbstractVectorCollection>& actor,
+        sol::table args) {
+          bindActorProperties(actor, args);
+          if (args["children"].valid()) {
+              auto children =
+                args["children"].get<std::vector<drawing::actors::Actor*>>();
+              for (auto* child : children) {
+                  actor->addChild(child->shared_from_this());
+              }
+          }
+      };
+    auto bindAbstractBoxProperties =
+      [bindAbstractVectorCollectionProperties](
+        const std::shared_ptr<drawing::actors::AbstractBox>& actor,
+        sol::table args) {
+          bindAbstractVectorCollectionProperties(actor, args);
+          if (args["horizontalSizeMode"].valid()) {
+              actor->setHorizontalSizeMode(
+                args["horizontalSizeMode"]
+                  .get<drawing::actors::AbstractBox::SizeMode>());
+          }
+          if (args["verticalSizeMode"].valid()) {
+              actor->setVerticalSizeMode(
+                args["verticalSizeMode"]
+                  .get<drawing::actors::AbstractBox::SizeMode>());
+          }
+          if (args["width"].valid()) {
+              actor->setWidth(args["width"].get<float>());
+          }
+          if (args["height"].valid()) {
+              actor->setHeight(args["height"].get<float>());
+          }
+          if (args["spacing"].valid()) {
+              actor->setSpacing(args["spacing"].get<float>());
+          }
+      };
+    defineActor(target, eventAttacher);
     defineParent(target);
     defineAbstractVectorCollection(target);
     defineAbstractBox(target);
-    defineVBox(target);
-    defineHBox(target);
+    defineVBox(target, bindAbstractBoxProperties);
+    defineHBox(target, bindAbstractBoxProperties);
     defineVector2(target);
     defineAbstractRectLeaf(target);
-    defineQuad(target);
+    defineQuad(target, bindAbstractRectLeafProperties);
     defineColor(target);
-    definePadding(target);
-    defineAlign(target);
-    defineLayers(target);
-}
-auto
-Bootstrapper::EventAttacher::attachAllEvents(
-  const std::shared_ptr<drawing::actors::Actor>& actor,
-  const sol::table& events) const -> void
-{
-    for (auto& [key, value] : events) {
-        if (value.get_type() != sol::type::function) {
-            spdlog::error("Event handler {} is not a function, skipping",
-                          key.as<std::string>());
-            continue;
+    definePadding(target, bindActorProperties);
+    defineAlign(target, bindActorProperties);
+    defineLayers(target, bindAbstractVectorCollectionProperties);
+    defineAnimation(target);
+
+    auto bindAnimationProperties = [](const std::shared_ptr<drawing::animations::Animation>& animation, sol::table args) {
+        if (args["onFinished"].valid()) {
+            animation->setOnFinished(args["onFinished"].get<std::function<void()>>());
         }
-        attachEvent(key.as<std::string>(), actor, value.as<sol::function>());
-    }
-}
-auto
-Bootstrapper::EventAttacher::attachEvent(
-  std::string eventName,
-  std::shared_ptr<drawing::actors::Actor> actor,
-  sol::function function) const -> void
-{
-    if (eventRegistrators->find(eventName) == eventRegistrators->end()) {
-        spdlog::error("Event {} not found", eventName);
-        return;
-    }
-    eventRegistrators->at(eventName)(std::move(actor), std::move(function));
-}
-Bootstrapper::EventAttacher::EventAttacher(
-  std::shared_ptr<std::map<std::string, CppEventInterface>> eventRegistrators)
-  : eventRegistrators(std::move(eventRegistrators))
-{
+        if (args["isLooping"].valid()) {
+            animation->setIsLooping(args["isLooping"]);
+        }
+    };
+
+    defineLinear(target, bindAnimationProperties);
+    defineAnimationSequence(target, bindAnimationProperties);
 }
 
 } // namespace lua

@@ -43,9 +43,8 @@ class Actor // NOLINT(fuchsia-multiple-inheritance)
     auto operator=(Actor&& otherActor) noexcept -> Actor& = delete;
     ~Actor() override = default;
 
-    void addEventSubscription(const std::string& eventName,
+    void setEventSubscription(const std::string& eventName,
                               std::unique_ptr<events::Connection> connection);
-    auto removeEventSubscription(const std::string& eventName) -> void;
 
     /**
      * @brief Get the lua object of the type of this actor.
@@ -66,13 +65,13 @@ class Actor // NOLINT(fuchsia-multiple-inheritance)
      * This should only be called by the parent when this actor gets
      * added to it. Not exposed to Lua.
      */
-    virtual auto setParent(std::shared_ptr<Parent> parent) -> void;
+    virtual auto setParent(const std::shared_ptr<Parent>& parent) -> void;
     /**
      * @brief used by the engine to update an actor's internals every frame. Not
      * exposed to Lua.
      * @param delta the time difference between this frame and the previous one.
      */
-    virtual auto update(std::chrono::nanoseconds delta) -> void = 0;
+    auto update(std::chrono::nanoseconds delta) -> void;
     /**
      * @brief set the transform of the actor and all its children. Not exposed
      * to lua.

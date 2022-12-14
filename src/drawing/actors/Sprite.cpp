@@ -3,11 +3,6 @@
 //
 
 #include "Sprite.h"
-//
-// Created by bobini on 26.09.22.
-//
-
-#include "Sprite.h"
 #include <SFML/Graphics/RenderTarget.hpp>
 
 namespace drawing::actors {
@@ -16,10 +11,6 @@ Sprite::draw(sf::RenderTarget& target, sf::RenderStates states) const
 {
     states.transform *= getTransform();
     target.draw(sprite, states);
-}
-void
-Sprite::update(std::chrono::nanoseconds delta)
-{
 }
 void
 Sprite::setTransform(sf::Transform newTransform)

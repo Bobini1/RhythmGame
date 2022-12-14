@@ -15,7 +15,8 @@ static constexpr auto scriptWithArrayConstructor = R"(
 
 TEST_CASE("Text can be constructed from lua", "[drawing][actors][text]")
 {
-    auto state = getStateWithAllDefinitions();
+    auto stateSetup = StateSetup{};
+    auto state = sol::state(std::move(stateSetup));
     auto result = state.script(scriptWithArrayConstructor);
     auto root = result.get<drawing::actors::Actor*>()->shared_from_this();
     auto text = std::dynamic_pointer_cast<drawing::actors::Text>(root);

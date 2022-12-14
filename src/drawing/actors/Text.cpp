@@ -6,10 +6,6 @@
 #include "SFML/Graphics/RenderTarget.hpp"
 
 void
-drawing::actors::Text::update(std::chrono::nanoseconds delta)
-{
-}
-void
 drawing::actors::Text::setTransform(sf::Transform newTransform)
 {
     transform = newTransform;

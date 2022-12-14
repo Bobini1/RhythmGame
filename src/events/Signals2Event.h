@@ -9,7 +9,7 @@
 #include "Signals2Connection.h"
 
 namespace events {
-namespace priv {
+namespace detail {
 
 /**
  * @brief An implementation for Signals2Event
@@ -39,10 +39,10 @@ class Signals2Event
  * @brief The public interface for Signals2Event
  */
 template<typename... Args>
-    requires Event<priv::Signals2Event<Args...>,
+    requires Event<detail::Signals2Event<Args...>,
                    decltype([](Args...) {}),
                    Args...>
-using Signals2Event = priv::Signals2Event<Args...>;
+using Signals2Event = detail::Signals2Event<Args...>;
 } // namespace events
 
 #endif // RHYTHMGAME_SIGNALS2EVENT_H

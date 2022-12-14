@@ -6,10 +6,6 @@
 #include <SFML/Graphics/RenderTarget.hpp>
 #include <set>
 void
-drawing::actors::HBox::update(std::chrono::nanoseconds delta)
-{
-}
-void
 drawing::actors::HBox::draw(sf::RenderTarget& target,
                             sf::RenderStates states) const
 {

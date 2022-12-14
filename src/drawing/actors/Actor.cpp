@@ -13,7 +13,8 @@ drawing::actors::Actor::getParent() const -> std::shared_ptr<Parent>
     return parent.lock();
 }
 auto
-drawing::actors::Actor::setParent(std::shared_ptr<Parent> newParent) -> void
+drawing::actors::Actor::setParent(const std::shared_ptr<Parent>& newParent)
+  -> void
 {
     // defensive programming
     if (auto parentPtr = parent.lock()) {
@@ -48,15 +49,13 @@ drawing::actors::Actor::operator=(const Actor& /*unused*/)
     return *this;
 }
 void
-drawing::actors::Actor::addEventSubscription(
+drawing::actors::Actor::setEventSubscription(
   const std::string& eventName,
   std::unique_ptr<events::Connection> connection)
 {
     eventSubscriptions[eventName] = std::move(connection);
 }
 auto
-drawing::actors::Actor::removeEventSubscription(
-  const std::string& eventName) -> void
+drawing::actors::Actor::update(std::chrono::nanoseconds delta) -> void
 {
-    eventSubscriptions.erase(eventName);
 }

@@ -38,7 +38,8 @@ static constexpr auto luaScript = R"(
 
 TEST_CASE("Lua Hbox is able to arrange its children", "[drawing][hbox][lua]")
 {
-    auto state = getStateWithAllDefinitions();
+    auto stateSetup = StateSetup{};
+    auto state = sol::state(std::move(stateSetup));
     auto result = state.script(luaScript);
     auto root = result.get<drawing::actors::Actor*>()->shared_from_this();
     auto hbox = std::dynamic_pointer_cast<drawing::actors::HBox>(root);
@@ -85,7 +86,8 @@ return HBox.new{spacing = 10, width = 100, height = 100,
 
 TEST_CASE("HBox constructor parameters get set correctly", "[drawing][hbox]")
 {
-    auto state = getStateWithAllDefinitions();
+    auto stateSetup = StateSetup{};
+    auto state = sol::state(std::move(stateSetup));
     auto result = state.script(scriptWithArrayConstructor);
     auto root = result.get<drawing::actors::Actor*>()->shared_from_this();
     auto hbox = std::dynamic_pointer_cast<drawing::actors::HBox>(root);

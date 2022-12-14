@@ -62,10 +62,6 @@ drawing::actors::Padding::getLuaSelf(sol::state& lua) -> sol::object
              sharedFromBase<Padding>() };
 }
 void
-drawing::actors::Padding::update(std::chrono::nanoseconds delta)
-{
-}
-void
 drawing::actors::Padding::setTransform(sf::Transform newTransform)
 {
     transform = newTransform;

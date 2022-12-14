@@ -14,7 +14,8 @@ static constexpr auto scriptWithArrayConstructor = R"(
 
 TEST_CASE("Align can be constructed from lua", "[drawing][actors][align]")
 {
-    auto state = getStateWithAllDefinitions();
+    auto stateSetup = StateSetup{};
+    auto state = sol::state(std::move(stateSetup));
     auto result = state.script(scriptWithArrayConstructor);
     auto root = result.get<drawing::actors::Actor*>()->shared_from_this();
     auto align = std::dynamic_pointer_cast<drawing::actors::Align>(root);
@@ -31,7 +32,8 @@ static constexpr auto scriptWithParensConstructor = R"(
 TEST_CASE("Align can be constructed from lua with parens",
           "[drawing][actors][align]")
 {
-    auto state = getStateWithAllDefinitions();
+    auto stateSetup = StateSetup{};
+    auto state = sol::state(std::move(stateSetup));
     auto result = state.script(scriptWithParensConstructor);
     auto root = result.get<drawing::actors::Actor*>()->shared_from_this();
     auto align = std::dynamic_pointer_cast<drawing::actors::Align>(root);
@@ -48,7 +50,8 @@ static constexpr auto scriptWithParensConstructorDefaultCenter = R"(
 TEST_CASE("Align can be constructed from lua with parens and default center",
           "[drawing][actors][align]")
 {
-    auto state = getStateWithAllDefinitions();
+    auto stateSetup = StateSetup{};
+    auto state = sol::state(std::move(stateSetup));
     auto result = state.script(scriptWithParensConstructorDefaultCenter);
     auto root = result.get<drawing::actors::Actor*>()->shared_from_this();
     auto align = std::dynamic_pointer_cast<drawing::actors::Align>(root);

@@ -39,7 +39,6 @@ class VBox : public AbstractBox
   public:
     auto setTransform(sf::Transform newTransform) -> void override;
     [[nodiscard]] auto getTransform() const -> sf::Transform override;
-    auto update(std::chrono::nanoseconds delta) -> void override;
     [[nodiscard]] auto getIsWidthManaged() const -> bool override;
     [[nodiscard]] auto getIsHeightManaged() const -> bool override;
 

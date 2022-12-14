@@ -17,51 +17,63 @@ namespace drawing {
 /**
  * @brief Scene that displays the splash screen while the game is being loaded.
  */
+template<template<typename...> typename EventType,
+         animations::AnimationPlayer AnimationPlayerType,
+         resource_managers::TextureLoader TextureLoaderType,
+         resource_managers::FontLoader FontLoaderType>
 class SplashScene : public Scene
 {
-    // sol::state lua;
     std::shared_ptr<actors::Actor> root;
-    events::Signals2Event<> init{};
+    EventType<> init{};
+    EventType<float> onUpdate{};
     mutable bool initialized = false;
+    AnimationPlayerType animationPlayer;
+    sol::state state;
+    std::shared_ptr<TextureLoaderType> textureLoader;
+    std::shared_ptr<FontLoaderType> fontLoader;
 
   public:
-    auto defineEvents(sol::state& target, lua::Bootstrapper& bootstrapper)
-      -> void override
+    explicit SplashScene(sol::state state,
+                         AnimationPlayerType animationPlayer,
+                         std::shared_ptr<TextureLoaderType> textureLoader,
+                         std::shared_ptr<FontLoaderType> fontLoader,
+                         std::string_view script)
+      : animationPlayer(std::move(animationPlayer))
+      , state(std::move(state))
+      , textureLoader(std::move(textureLoader))
+      , fontLoader(std::move(fontLoader))
     {
-        bootstrapper.addEvent(target, init, "init");
+        lua::EventAttacher eventAttacher(&this->state);
+        eventAttacher.addEvent(init, "init");
+        eventAttacher.addEvent<decltype(onUpdate), float>(onUpdate, "update");
+        lua::defineAllTypes(this->state,
+                            *this->textureLoader,
+                            *this->fontLoader,
+                            this->animationPlayer,
+                            eventAttacher);
+        auto luaRoot = this->state.script(script);
+        root =
+          luaRoot.template get<drawing::actors::Actor*>()->shared_from_this();
     }
-    auto setRoot(std::shared_ptr<actors::Actor> newRoot) -> void override
+    void update(std::chrono::nanoseconds delta) final
     {
-        this->root = std::move(newRoot);
+        if (!initialized) {
+            init();
+            initialized = true;
+        }
+        root->setTransform(sf::Transform::Identity);
+
+        onUpdate(delta.count() / 1e9F);
+        animationPlayer.update(delta);
     }
-    void update(std::chrono::nanoseconds /* delta */) final {}
     void draw(sf::RenderTarget& target, sf::RenderStates states) const final
     {
-        static int count = 0;
-        static auto last = std::chrono::steady_clock::now();
         if (root->getIsWidthManaged()) {
             root->setWidth(static_cast<float>(target.getSize().x));
         }
         if (root->getIsHeightManaged()) {
             root->setHeight(static_cast<float>(target.getSize().y));
         }
-        root->setTransform(sf::Transform::Identity);
-
-        if (count++ > 1000) {
-            count = 0;
-            auto now = std::chrono::steady_clock::now();
-            std::cout
-              << "FPS: "
-              << 1000.0 /
-                   std::chrono::duration_cast<std::chrono::duration<double>>(
-                     now - last)
-                     .count()
-              << std::endl;
-            last = now;
-        }
-
-        init();
-
         target.draw(*root, states);
     }
 };
