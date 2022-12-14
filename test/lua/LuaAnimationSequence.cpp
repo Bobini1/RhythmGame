@@ -35,7 +35,8 @@ return function(quad)
 end
 )";
 
-TEST_CASE("Animation sequence properties work", "[drawing][animations][animationsequence]")
+TEST_CASE("Animation sequence properties work",
+          "[drawing][animations][animationsequence]")
 {
     auto stateSetup = StateSetup{};
     auto state = sol::state(std::move(stateSetup));
@@ -45,7 +46,8 @@ TEST_CASE("Animation sequence properties work", "[drawing][animations][animation
       result = state.script(script);
     auto funcResult = result(quad)->shared_from_this();
     auto animationSequence =
-      std::dynamic_pointer_cast<drawing::animations::AnimationSequence>(funcResult);
+      std::dynamic_pointer_cast<drawing::animations::AnimationSequence>(
+        funcResult);
     REQUIRE(animationSequence != nullptr);
     REQUIRE(animationSequence->getDuration() == std::chrono::seconds{ 2 });
     REQUIRE(animationSequence->getProgress() == Catch::Approx(0));
