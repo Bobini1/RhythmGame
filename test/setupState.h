@@ -30,11 +30,26 @@ class StateSetup
           event, std::move(name));
     }
 
-    explicit operator sol::state() &&
+    drawing::animations::AnimationPlayerImpl& getAnimationPlayer()
+    {
+        return animationPlayer;
+    }
+
+    sol::state& getState()
+    {
+        return state;
+    }
+
+    void defineTypes()
     {
         lua::defineAllTypes(
           state, textureLoader, fontLoader, animationPlayer, eventAttacher);
 
+    }
+
+    explicit operator sol::state() &&
+    {
+        defineTypes();
         return std::move(state);
     }
 };

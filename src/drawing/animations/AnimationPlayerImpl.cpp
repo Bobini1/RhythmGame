@@ -11,7 +11,7 @@ drawing::animations::AnimationPlayerImpl::update(std::chrono::nanoseconds delta)
         animation->update(delta);
     }
     erase_if(animations,
-             [](const auto& animation) { return animation->getIsFinished(); });
+             [](const auto& animation) { return animation->getIsFinished() && !animation->getIsLooping(); });
 }
 void
 drawing::animations::AnimationPlayerImpl::playAnimation(
