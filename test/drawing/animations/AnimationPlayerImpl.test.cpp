@@ -2,14 +2,14 @@
 // Created by bobini on 14/12/2022.
 //
 
-
 #include "drawing/animations/Linear.h"
 #include "drawing/actors/Quad.h"
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/catch_approx.hpp>
 #include <drawing/animations/AnimationPlayerImpl.h>
 
-TEST_CASE("AnimationPlayerImpl updates animations", "[drawing][animations][animationplayerimpl]")
+TEST_CASE("AnimationPlayerImpl updates animations",
+          "[drawing][animations][animationplayerimpl]")
 {
     auto quad = drawing::actors::Quad::make(sf::Vector2f{ 100.F, 100.F });
     constexpr auto time = std::chrono::nanoseconds{ 1000 };
@@ -28,7 +28,8 @@ TEST_CASE("AnimationPlayerImpl updates animations", "[drawing][animations][anima
     REQUIRE(quad->getWidth() == Catch::Approx(100));
 }
 
-TEST_CASE("Animations can be stopped in AnimationPlayerImpl", "[drawing][animations][animationplayerimpl]")
+TEST_CASE("Animations can be stopped in AnimationPlayerImpl",
+          "[drawing][animations][animationplayerimpl]")
 {
     auto quad = drawing::actors::Quad::make(sf::Vector2f{ 100.F, 100.F });
     constexpr auto time = std::chrono::nanoseconds{ 1000 };
