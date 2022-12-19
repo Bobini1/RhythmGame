@@ -233,6 +233,9 @@ getBindActorProperties(const EventAttacher& eventAttacher)
         if (args["height"].valid()) {
             actor->setHeight(args["height"].get<float>());
         }
+        if (args["isObstructing"].valid()) {
+            actor->setIsObstructing(args["isObstructing"].get<bool>());
+        }
         if (args["events"].valid()) {
             eventAttacher.attachAllEvents(actor, args["events"]);
         }

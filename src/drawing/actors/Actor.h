@@ -32,6 +32,7 @@ class Actor // NOLINT(fuchsia-multiple-inheritance)
     std::weak_ptr<Parent> parent{};
     std::map<std::string, std::unique_ptr<events::Connection>>
       eventSubscriptions{};
+    bool isObstructing{ false };
 
   protected:
     Actor() = default;
@@ -66,12 +67,6 @@ class Actor // NOLINT(fuchsia-multiple-inheritance)
      * added to it. Not exposed to Lua.
      */
     virtual auto setParent(const std::shared_ptr<Parent>& parent) -> void;
-    /**
-     * @brief used by the engine to update an actor's internals every frame. Not
-     * exposed to Lua.
-     * @param delta the time difference between this frame and the previous one.
-     */
-    auto update(std::chrono::nanoseconds delta) -> void;
     /**
      * @brief set the transform of the actor and all its children. Not exposed
      * to lua.
@@ -128,6 +123,12 @@ class Actor // NOLINT(fuchsia-multiple-inheritance)
      * @param height The new height of the actor.
      */
     auto setHeight(float height) -> void;
+
+    [[nodiscard]] auto getGlobalBounds() const -> sf::FloatRect;
+
+    [[nodiscard]] auto getIsObstructing() const -> bool;
+
+    auto setIsObstructing(bool newIsObstructing) -> void;
 
   private:
     /**

@@ -56,6 +56,47 @@ drawing::actors::Actor::setEventSubscription(
     eventSubscriptions[eventName] = std::move(connection);
 }
 auto
-drawing::actors::Actor::update(std::chrono::nanoseconds delta) -> void
+drawing::actors::Actor::getGlobalBounds() const -> sf::FloatRect
 {
+    return getTransform().transformRect({ 0, 0, getWidth(), getHeight() });
+}
+auto
+drawing::actors::Actor::getIsObstructing() const -> bool
+{
+    return isObstructing;
+}
+auto
+drawing::actors::Actor::setIsObstructing(bool newIsObstructing) -> void
+{
+    isObstructing = newIsObstructing;
+}
+auto
+drawing::actors::Actor::setOnMouse1Down(std::function<void()> callback) -> void
+{
+    onMouse1Down = std::move(callback);
+}
+auto
+drawing::actors::Actor::setOnMouseEnter(std::function<void()> callback) -> void
+{
+    onMouseEnter = std::move(callback);
+}
+auto
+drawing::actors::Actor::setOnMouseLeave(std::function<void()> callback) -> void
+{
+    onMouseLeave = std::move(callback);
+}
+auto
+drawing::actors::Actor::getOnMouse1Down() const -> const std::function<void()>&
+{
+    return onMouse1Down;
+}
+auto
+drawing::actors::Actor::getOnMouseEnter() const -> const std::function<void()>&
+{
+    return onMouseEnter;
+}
+auto
+drawing::actors::Actor::getOnMouseLeave() const -> const std::function<void()>&
+{
+    return onMouseLeave;
 }

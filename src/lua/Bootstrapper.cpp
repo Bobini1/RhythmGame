@@ -38,6 +38,9 @@ defineActor(sol::state& target, const EventAttacher& eventAttacher) -> void
       sol::property(&drawing::actors::Actor::getIsWidthManaged);
     actorType["isHeightManaged"] =
       sol::property(&drawing::actors::Actor::getIsHeightManaged);
+    actorType["isObstructing"] =
+      sol::property(&drawing::actors::Actor::getIsObstructing,
+                    &drawing::actors::Actor::setIsObstructing);
     eventAttacher.registerAllEventProperties(actorType);
 }
 
@@ -478,7 +481,8 @@ defineLinear(sol::state& target, auto bindAnimationProperties) -> void
 }
 
 auto
-defineAnimationSequence(sol::state& target, auto bindAnimationProperties) -> void
+defineAnimationSequence(sol::state& target, auto bindAnimationProperties)
+  -> void
 {
     auto animationSequenceType =
       target.new_usertype<drawing::animations::AnimationSequence>(
@@ -564,14 +568,17 @@ detail::defineCommonTypes(
     defineLayers(target, bindAbstractVectorCollectionProperties);
     defineAnimation(target);
 
-    auto bindAnimationProperties = [](const std::shared_ptr<drawing::animations::Animation>& animation, sol::table args) {
-        if (args["onFinished"].valid()) {
-            animation->setOnFinished(args["onFinished"].get<std::function<void()>>());
-        }
-        if (args["isLooping"].valid()) {
-            animation->setIsLooping(args["isLooping"]);
-        }
-    };
+    auto bindAnimationProperties =
+      [](const std::shared_ptr<drawing::animations::Animation>& animation,
+         sol::table args) {
+          if (args["onFinished"].valid()) {
+              animation->setOnFinished(
+                args["onFinished"].get<std::function<void()>>());
+          }
+          if (args["isLooping"].valid()) {
+              animation->setIsLooping(args["isLooping"]);
+          }
+      };
 
     defineLinear(target, bindAnimationProperties);
     defineAnimationSequence(target, bindAnimationProperties);
