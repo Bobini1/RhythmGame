@@ -14,6 +14,7 @@
 #include "support/EnableSharedFromBase.h"
 #include "events/Connection.h"
 #include <boost/signals2/connection.hpp>
+#include <set>
 
 /**
  * @namespace drawing::actors
@@ -21,6 +22,15 @@
  * is not defined here!
  */
 namespace drawing::actors {
+enum class EventType
+{
+    MouseEnter,
+    MouseLeave,
+    Mouse1Down,
+    Mouse1Up,
+    Mouse2Down,
+    Mouse2Up,
+};
 class Parent;
 /**
  * @brief Base class for all drawable objects.
@@ -29,10 +39,6 @@ class Actor // NOLINT(fuchsia-multiple-inheritance)
   : public sf::Drawable
   , public support::EnableSharedFromBase<Actor>
 {
-    std::weak_ptr<Parent> parent{};
-    std::map<std::string, std::unique_ptr<events::Connection>>
-      eventSubscriptions{};
-    bool isObstructing{ false };
 
   protected:
     Actor() = default;
@@ -46,6 +52,8 @@ class Actor // NOLINT(fuchsia-multiple-inheritance)
 
     void setEventSubscription(const std::string& eventName,
                               std::unique_ptr<events::Connection> connection);
+    auto getEventSubscription(const std::string& eventName) const
+      -> std::optional<support::FunctionReference>;
 
     /**
      * @brief Get the lua object of the type of this actor.
@@ -130,6 +138,22 @@ class Actor // NOLINT(fuchsia-multiple-inheritance)
 
     auto setIsObstructing(bool newIsObstructing) -> void;
 
+    auto setEvent(
+      EventType eventType,
+      std::function<void(drawing::actors::Actor&, sf::Vector2f)> eventHandler)
+      -> void;
+    [[nodiscard]] auto getEvent(EventType eventType) const
+      -> std::function<void(drawing::actors::Actor&, sf::Vector2f)>;
+
+    auto handleEvent(sf::Vector2f position, EventType eventType) -> bool;
+
+    virtual auto getAllChildrenAtMousePosition(sf::Vector2f position,
+                                               std::set<Actor*>& result)
+      -> void;
+
+    void getAllActorsAtMousePosition(sf::Vector2f position,
+                                     std::set<Actor*>& result);
+
   private:
     /**
      * @brief Actors need to override this to set their width. The contract is
@@ -143,6 +167,15 @@ class Actor // NOLINT(fuchsia-multiple-inheritance)
      * @param height The new height of the actor.
      */
     virtual auto setHeightImpl(float height) -> void = 0;
+
+    std::unordered_map<
+      EventType,
+      std::function<void(drawing::actors::Actor&, sf::Vector2f)>>
+      eventHandlers;
+    std::weak_ptr<Parent> parent{};
+    std::map<std::string, std::unique_ptr<events::Connection>>
+      eventSubscriptions{};
+    bool isObstructing{ false };
 };
 } // namespace drawing::actors
 #endif // RHYTHMGAME_ACTOR_H

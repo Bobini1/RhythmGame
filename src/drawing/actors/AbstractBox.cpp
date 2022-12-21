@@ -35,3 +35,12 @@ drawing::actors::AbstractBox::getSpacing() const -> float
 {
     return spacing;
 }
+void
+drawing::actors::AbstractBox::getAllChildrenAtMousePosition(
+  sf::Vector2f position,
+  std::set<Actor*>& result)
+{
+    for (const auto& child : *this) {
+        child->getAllActorsAtMousePosition(position, result);
+    }
+}

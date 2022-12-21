@@ -43,6 +43,9 @@ class Align : public Parent
     [[nodiscard]] auto getHeight() const -> float override;
     auto setMode(Mode mode) -> void;
     [[nodiscard]] auto getMode() const -> Mode;
+    auto getAllChildrenAtMousePosition(sf::Vector2f position,
+                                       std::set<Actor*>& result)
+      -> void override;
 
   protected:
     void draw(sf::RenderTarget& target, sf::RenderStates states) const override;

@@ -10,7 +10,6 @@
 #include <functional>
 #include <sol/function.hpp>
 #include "drawing/actors/Actor.h"
-#include "events/Event.h"
 namespace lua {
 
 class EventAttacher
@@ -53,7 +52,6 @@ class EventAttacher
      * @param name The name of the event.
      */
     template<typename EventType, typename... Args>
-        requires events::Event<EventType, std::function<void(Args...)>, Args...>
     auto addEvent(EventType& event, std::string name) -> void
     {
         (*eventRegistrators)[name + "Event"] =
@@ -63,11 +61,12 @@ class EventAttacher
               actor->setEventSubscription(
                 name + "Event",
                 event.subscribe(
+                  actor,
                   [luaTarget,
-                   actorWeak = std::weak_ptr<drawing::actors::Actor>(actor),
-                   function = std::move(function)](Args&&... args) {
-                      auto actor = actorWeak.lock();
-                      function(actor->getLuaSelf(*luaTarget), args...);
+                   function =
+                     function.as<std::function<void(sol::object, Args...)>>()](
+                    drawing::actors::Actor& actor, Args&&... args) {
+                      function(actor.getLuaSelf(*luaTarget), args...);
                   }));
           };
     }

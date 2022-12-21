@@ -38,6 +38,9 @@ class Padding : public Parent
     auto removeChild(std::shared_ptr<Actor> child) -> void override;
     auto setChild(std::shared_ptr<Actor> child) -> void;
     [[nodiscard]] auto getChild() const -> std::shared_ptr<Actor>;
+    auto getAllChildrenAtMousePosition(sf::Vector2f position,
+                                       std::set<Actor*>& result)
+      -> void override;
 
   protected:
     void draw(sf::RenderTarget& target, sf::RenderStates states) const override;

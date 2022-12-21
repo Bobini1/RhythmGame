@@ -39,6 +39,9 @@ class AbstractBox : public AbstractVectorCollection
     auto getVerticalSizeMode() const -> SizeMode;
     auto setSpacing(float spacing) -> void;
     auto getSpacing() const -> float;
+    auto getAllChildrenAtMousePosition(sf::Vector2f position,
+                                       std::set<Actor*>& result)
+      -> void override;
 
   private:
     SizeMode verticalSizeMode{};

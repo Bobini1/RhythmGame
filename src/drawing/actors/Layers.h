@@ -33,6 +33,9 @@ class Layers : public AbstractVectorCollection
     [[nodiscard]] auto getHeight() const -> float override;
     auto setMainLayer(std::shared_ptr<Actor> layer) -> void;
     [[nodiscard]] auto getMainLayer() const -> std::shared_ptr<Actor>;
+    auto getAllChildrenAtMousePosition(
+      sf::Vector2f position,
+      std::set<Actor*>& result) -> void override;
 
   protected:
     void draw(sf::RenderTarget& target, sf::RenderStates states) const override;

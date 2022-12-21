@@ -13,7 +13,6 @@
 #include "drawing/actors/Sprite.h"
 #include "SFML/Graphics/Font.hpp"
 #include "drawing/actors/Text.h"
-#include "events/Event.h"
 #include "drawing/animations/Animation.h"
 #include "drawing/animations/AnimationPlayer.h"
 #include "EventAttacher.h"

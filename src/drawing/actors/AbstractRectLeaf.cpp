@@ -51,4 +51,4 @@ AbstractRectLeaf::getMinHeight() const -> float
 {
     return minHeight;
 }
-}
+} // namespace drawing::actors
