@@ -14,15 +14,10 @@ namespace events {
 class Signals2Connection : public Connection
 {
   public:
-    explicit Signals2Connection(boost::signals2::scoped_connection connection,
-                                support::FunctionReference function);
-
-    [[nodiscard]] auto getFunctionReference() const
-      -> support::FunctionReference override;
+    explicit Signals2Connection(boost::signals2::scoped_connection connection);
 
   private:
     boost::signals2::scoped_connection connection;
-    support::FunctionReference function;
 };
 } // namespace events
 #endif // RHYTHMGAME_SIGNALS2CONNECTION_H

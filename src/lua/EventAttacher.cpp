@@ -53,7 +53,7 @@ EventAttacher::registerAllEventProperties(
               } else if (callback.is<sol::lua_nil_t>()) {
                   actor->setEventSubscription(nameCopy, nullptr);
               } else {
-                  spdlog::error("Invalid type for {}. FunctionReference or nil expected",
+                  spdlog::error("Invalid type for {}. Function or nil expected",
                                 nameCopy);
               }
           });

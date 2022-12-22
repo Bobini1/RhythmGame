@@ -119,13 +119,3 @@ drawing::actors::Actor::getAllActorsAtMousePosition(sf::Vector2f position,
         getAllChildrenAtMousePosition(position, result);
     }
 }
-auto
-drawing::actors::Actor::getEventSubscription(const std::string& eventName) const
-  -> std::optional<support::FunctionReference>
-{
-    if (auto eventSubscription = eventSubscriptions.find(eventName);
-        eventSubscription != eventSubscriptions.end()) {
-        return { eventSubscription->second->getFunctionReference() };
-    }
-    return {};
-}

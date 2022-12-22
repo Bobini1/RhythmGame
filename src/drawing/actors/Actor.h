@@ -52,8 +52,6 @@ class Actor // NOLINT(fuchsia-multiple-inheritance)
 
     void setEventSubscription(const std::string& eventName,
                               std::unique_ptr<events::Connection> connection);
-    auto getEventSubscription(const std::string& eventName) const
-      -> std::optional<support::FunctionReference>;
 
     /**
      * @brief Get the lua object of the type of this actor.

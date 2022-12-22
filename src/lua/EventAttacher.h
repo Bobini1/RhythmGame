@@ -61,12 +61,11 @@ class EventAttacher
               actor->setEventSubscription(
                 name + "Event",
                 event.subscribe(
-                  actor,
                   [luaTarget,
-                   function =
-                     function.as<std::function<void(sol::object, Args...)>>()](
-                    drawing::actors::Actor& actor, Args&&... args) {
-                      function(actor.getLuaSelf(*luaTarget), args...);
+                   actorWeak = std::weak_ptr<drawing::actors::Actor>(actor),
+                   function = std::move(function)](Args&&... args) {
+                      auto actor = actorWeak.lock();
+                      function(actor->getLuaSelf(*luaTarget), args...);
                   }));
           };
     }
