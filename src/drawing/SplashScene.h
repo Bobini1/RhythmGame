@@ -24,12 +24,12 @@ class SplashScene : public Scene
 {
     std::shared_ptr<actors::Actor> root;
     mutable bool initialized = false;
-    AnimationPlayerType animationPlayer;
     sol::state state;
-    events::Event<> init;
-    events::Event<float> onUpdate;
+    AnimationPlayerType animationPlayer;
     std::shared_ptr<TextureLoaderType> textureLoader;
     std::shared_ptr<FontLoaderType> fontLoader;
+    events::Event<> init;
+    events::Event<float> onUpdate;
 
   public:
     explicit SplashScene(sol::state state,
@@ -37,8 +37,8 @@ class SplashScene : public Scene
                          std::shared_ptr<TextureLoaderType> textureLoader,
                          std::shared_ptr<FontLoaderType> fontLoader,
                          std::string_view script)
-      : animationPlayer(std::move(animationPlayer))
-      , state(std::move(state))
+      : state(std::move(state))
+      , animationPlayer(std::move(animationPlayer))
       , textureLoader(std::move(textureLoader))
       , fontLoader(std::move(fontLoader))
       , init(&this->state)
@@ -64,7 +64,7 @@ class SplashScene : public Scene
         }
         root->setTransform(sf::Transform::Identity);
 
-        onUpdate(delta.count() / 1e9F);
+        onUpdate(static_cast<float>(delta.count()) / 1e9F);
         animationPlayer.update(delta);
     }
     void draw(sf::RenderTarget& target, sf::RenderStates states) const final

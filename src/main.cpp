@@ -92,30 +92,38 @@ return layers
 auto
 main() -> int
 {
-    auto state = sol::state{};
-    state.open_libraries(
-      sol::lib::jit, sol::lib::base, sol::lib::io, sol::lib::math);
+    try {
+        auto state = sol::state{};
+        state.open_libraries(
+          sol::lib::jit, sol::lib::base, sol::lib::io, sol::lib::math);
 
-    auto textureLoader =
-      std::make_shared<resource_managers::TextureLoaderImpl>();
-    auto fontLoader = std::make_shared<resource_managers::FontLoaderImpl>();
-    auto animationPlayer = drawing::animations::AnimationPlayerImpl{};
-    auto startingScene = std::make_shared<
-      drawing::SplashScene<drawing::animations::AnimationPlayerImpl,
-                           resource_managers::TextureLoaderImpl,
-                           resource_managers::FontLoaderImpl>>(
-      std::move(state),
-      std::move(animationPlayer),
-      textureLoader,
-      fontLoader,
-      luaScript);
+        auto textureLoader =
+          std::make_shared<resource_managers::TextureLoaderImpl>();
+        auto fontLoader = std::make_shared<resource_managers::FontLoaderImpl>();
+        auto animationPlayer = drawing::animations::AnimationPlayerImpl{};
+        auto startingScene = std::make_shared<
+          drawing::SplashScene<drawing::animations::AnimationPlayerImpl,
+                               resource_managers::TextureLoaderImpl,
+                               resource_managers::FontLoaderImpl>>(
+          std::move(state),
+          std::move(animationPlayer),
+          textureLoader,
+          fontLoader,
+          luaScript);
 
-    auto startingWindow = std::make_shared<drawing::SplashWindow>(
-      std::move(startingScene), sf::VideoMode{ 800, 600 }, "RhythmGame");
-    auto windowStateMachine = state_transitions::WindowStateMachineImpl{};
-    auto game = state_transitions::Game{ std::move(windowStateMachine),
-                                         std::move(startingWindow) };
-    game.run();
+        auto startingWindow = std::make_shared<drawing::SplashWindow>(
+          std::move(startingScene), sf::VideoMode{ 800, 600 }, "RhythmGame");
+        auto windowStateMachine = state_transitions::WindowStateMachineImpl{};
+        auto game = state_transitions::Game{ std::move(windowStateMachine),
+                                             std::move(startingWindow) };
+        game.run();
+    } catch (const std::exception& e) {
+        spdlog::error("Fatal error: {}", e.what());
+        return 1;
+    } catch (...) {
+        spdlog::error("Fatal error: unknown");
+        return 1;
+    }
 
     return 0;
 }
