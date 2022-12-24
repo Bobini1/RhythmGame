@@ -13,9 +13,10 @@ SceneStateMachineImpl::changeScene(std::shared_ptr<drawing::Scene> scene)
     current = std::move(scene);
 }
 auto
-SceneStateMachineImpl::update(std::chrono::nanoseconds delta) -> void
+SceneStateMachineImpl::update(std::chrono::nanoseconds delta,
+                              drawing::Window& window) -> void
 {
-    current->update(delta);
+    current->update(delta, window);
 }
 
 SceneStateMachineImpl::SceneStateMachineImpl(

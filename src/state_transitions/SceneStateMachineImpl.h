@@ -25,7 +25,8 @@ class SceneStateMachineImpl : public sf::Drawable
      * @brief Updates the active scene.
      * @param delta
      */
-    auto update(std::chrono::nanoseconds delta) -> void;
+    auto update(std::chrono::nanoseconds delta, drawing::Window& window)
+      -> void;
     /**
      * @brief Returns the currently active scene.
      * @return

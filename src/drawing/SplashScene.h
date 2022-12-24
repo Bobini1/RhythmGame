@@ -9,9 +9,12 @@
 #include "drawing/actors/Actor.h"
 #include "drawing/actors/Quad.h"
 #include "drawing/actors/VBox.h"
-#include "events/Event.h"
+#include "events/GlobalEvent.h"
+#include "events/MouseClickEvent.h"
+#include "events/MouseHoverEvents.h"
 #include <SFML/Graphics/RenderTarget.hpp>
 #include <execution>
+#include <SFML/Window/Event.hpp>
 
 namespace drawing {
 /**
@@ -23,13 +26,16 @@ template<animations::AnimationPlayer AnimationPlayerType,
 class SplashScene : public Scene
 {
     std::shared_ptr<actors::Actor> root;
-    mutable bool initialized = false;
+    bool initialized = false;
     sol::state state;
     AnimationPlayerType animationPlayer;
     std::shared_ptr<TextureLoaderType> textureLoader;
     std::shared_ptr<FontLoaderType> fontLoader;
-    events::Event<> init;
-    events::Event<float> onUpdate;
+    events::GlobalEvent<> init;
+    events::GlobalEvent<float> onUpdate;
+    events::MouseClickEvent leftClick;
+    events::MouseClickEvent rightClick;
+    events::MouseHoverEvents mouseHover;
 
   public:
     explicit SplashScene(sol::state state,
@@ -43,10 +49,21 @@ class SplashScene : public Scene
       , fontLoader(std::move(fontLoader))
       , init(&this->state)
       , onUpdate(&this->state)
+      , leftClick(&this->state)
+      , rightClick(&this->state)
+      , mouseHover(&this->state)
     {
         lua::EventAttacher eventAttacher(&this->state);
         eventAttacher.addEvent(init, "init");
         eventAttacher.addEvent<decltype(onUpdate), float>(onUpdate, "update");
+        eventAttacher.addEvent<decltype(leftClick), sf::Vector2f>(leftClick,
+                                                                  "leftClick");
+        eventAttacher.addEvent<decltype(rightClick), sf::Vector2f>(
+          rightClick, "rightClick");
+        eventAttacher.addEvent<decltype(mouseHover.onMouseEnter), sf::Vector2f>(
+          mouseHover.onMouseEnter, "mouseEnter");
+        eventAttacher.addEvent<decltype(mouseHover.onMouseLeave), sf::Vector2f>(
+          mouseHover.onMouseLeave, "mouseLeave");
         lua::defineAllTypes(this->state,
                             *this->textureLoader,
                             *this->fontLoader,
@@ -56,25 +73,59 @@ class SplashScene : public Scene
         root =
           luaRoot.template get<drawing::actors::Actor*>()->shared_from_this();
     }
-    void update(std::chrono::nanoseconds delta) final
+    void update(std::chrono::nanoseconds delta, drawing::Window& window) final
     {
         if (!initialized) {
             init();
             initialized = true;
         }
+        if (root->getIsWidthManaged()) {
+            root->setWidth(static_cast<float>(window.getSize().x));
+        }
+        if (root->getIsHeightManaged()) {
+            root->setHeight(static_cast<float>(window.getSize().y));
+        }
         root->setTransform(sf::Transform::Identity);
 
         onUpdate(static_cast<float>(delta.count()) / 1e9F);
         animationPlayer.update(delta);
+        sf::Event event{};
+        while (window.pollEvent(event)) {
+            switch (event.type) {
+                case sf::Event::Closed:
+                    window.close();
+                    break;
+                case sf::Event::MouseButtonPressed:
+                    switch (event.mouseButton.button) {
+                        case sf::Mouse::Left:
+                            leftClick(
+                              *root,
+                              window.mapPixelToCoords(
+                                { event.mouseButton.x, event.mouseButton.y }));
+                            break;
+                        case sf::Mouse::Right:
+                            rightClick(
+                              *root,
+                              window.mapPixelToCoords(
+                                { event.mouseButton.x, event.mouseButton.y }));
+                            break;
+                        default:
+                            break;
+                    }
+                    break;
+                case sf::Event::MouseMoved:
+                    mouseHover.update(
+                      *root,
+                      window.mapPixelToCoords(
+                        { event.mouseMove.x, event.mouseMove.y }));
+                    break;
+                default:
+                    break;
+            }
+        }
     }
     void draw(sf::RenderTarget& target, sf::RenderStates states) const final
     {
-        if (root->getIsWidthManaged()) {
-            root->setWidth(static_cast<float>(target.getSize().x));
-        }
-        if (root->getIsHeightManaged()) {
-            root->setHeight(static_cast<float>(target.getSize().y));
-        }
         target.draw(*root, states);
     }
 };

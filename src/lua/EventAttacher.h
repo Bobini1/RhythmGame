@@ -8,8 +8,7 @@
 #include <memory>
 #include <map>
 #include <functional>
-#include <sol/function.hpp>
-#include "drawing/actors/Actor.h"
+#include "events/Event.h"
 namespace lua {
 
 class EventAttacher
@@ -57,6 +56,7 @@ class EventAttacher
      */
     template<typename EventType, typename... Args>
     auto addEvent(EventType& event, std::string name) -> void
+        requires events::Event<EventType>
     {
         (*eventRegistrators)[name + "Event"] = {
             [&event, name](drawing::actors::Actor* actor) -> sol::function {

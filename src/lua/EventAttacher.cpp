@@ -13,7 +13,7 @@ EventAttacher::attachAllEvents(
 {
     for (auto& [key, value] : events) {
         if (value.get_type() != sol::type::function) {
-            spdlog::error("Event handler {} is not a function, skipping",
+            spdlog::error("GlobalEvent handler {} is not a function, skipping",
                           key.as<std::string>());
             continue;
         }
@@ -26,7 +26,7 @@ EventAttacher::attachEvent(std::string eventName,
                            sol::function function) const -> void
 {
     if (eventRegistrators->find(eventName) == eventRegistrators->end()) {
-        spdlog::error("Event {} not found", eventName);
+        spdlog::error("GlobalEvent {} not found", eventName);
         return;
     }
     eventRegistrators->at(eventName).second(std::move(actor),

@@ -114,11 +114,11 @@ drawing::actors::AbstractVectorCollection::getSize() const
 }
 auto
 drawing::actors::AbstractVectorCollection::onChildRemoved(
-  std::shared_ptr<Actor> child) -> void
+  std::shared_ptr<Actor> /* child */) -> void
 {
 }
 auto
 drawing::actors::AbstractVectorCollection::onChildAdded(
-  std::shared_ptr<Actor> child) -> void
+  std::shared_ptr<Actor> /* child */) -> void
 {
 }

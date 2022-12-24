@@ -100,15 +100,19 @@ drawing::actors::Actor::getEvent(drawing::actors::EventType eventType) const
 auto
 drawing::actors::Actor::getAllChildrenAtMousePosition(
   sf::Vector2f /*position*/,
-  std::set<Actor*>& /*result*/) -> void
+  std::set<std::weak_ptr<const Actor>,
+           std::owner_less<std::weak_ptr<const Actor>>>& /*result*/) const
+  -> void
 {
 }
 void
-drawing::actors::Actor::getAllActorsAtMousePosition(sf::Vector2f position,
-                                                    std::set<Actor*>& result)
+drawing::actors::Actor::getAllActorsAtMousePosition(
+  sf::Vector2f position,
+  std::set<std::weak_ptr<const Actor>,
+           std::owner_less<std::weak_ptr<const Actor>>>& result) const
 {
     if (getGlobalBounds().contains(position)) {
-        result.insert(this);
+        result.insert(weak_from_this());
         getAllChildrenAtMousePosition(position, result);
     }
 }

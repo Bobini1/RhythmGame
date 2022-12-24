@@ -2,7 +2,7 @@
 #include "drawing/SplashScene.h"
 #include <future>
 #include <thread>
-#include "state_transitions/WindowStateMachineImpl.h"
+#include "drawing/Window.h"
 #include "resource_managers/TextureLoaderImpl.h"
 
 #include "state_transitions/Game.h"
@@ -68,13 +68,30 @@ local main = HBox.new{
                     children = {
                         fps,
                         Text.new{text = "Hello world!", characterSize = 20},
-                        Text.new{text = "Hello world!", characterSize = 20, fillColor = Color.new(255, 0, 0, 255), isWidthManaged = true}
+                        Text.new{text = "Hello world!", characterSize = 20, fillColor = Color.new(255, 0, 0, 255), isWidthManaged = true,
+                        events = {
+                            mouseEnterEvent = function(self)
+                            print("Hovered")
+                            end,
+                            leftClickEvent = function(self)
+                            print("Clicked")
+                            end
+                            }
+                        }
                     }
                 },
                 left = 10,
                 top = 10,
                 right = 10,
-                bottom = 10
+                bottom = 10,
+                events = {
+                    mouseEnterEvent = function(self)
+                        print("Hovered")
+                    end,
+                    leftClickEvent = function(self)
+                        print("Clicked")
+                    end
+                }
             },
             children = {
                 Quad.new{isWidthManaged = true, isHeightManaged = true, fillColor = Color.new(0, 0, 0, 255)},
@@ -113,9 +130,7 @@ main() -> int
 
         auto startingWindow = std::make_shared<drawing::SplashWindow>(
           std::move(startingScene), sf::VideoMode{ 800, 600 }, "RhythmGame");
-        auto windowStateMachine = state_transitions::WindowStateMachineImpl{};
-        auto game = state_transitions::Game{ std::move(windowStateMachine),
-                                             std::move(startingWindow) };
+        auto game = state_transitions::Game{ std::move(startingWindow) };
         game.run();
     } catch (const std::exception& e) {
         spdlog::error("Fatal error: {}", e.what());

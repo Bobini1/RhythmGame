@@ -11,6 +11,7 @@
 #include <any>
 #include "lua/Bootstrapper.h"
 namespace drawing {
+class Window;
 /**
  * @brief Base class for all scenes, which are window states holding actors and
  * optionally managed by scene managers.
@@ -18,7 +19,8 @@ namespace drawing {
 class Scene : public sf::Drawable
 {
   public:
-    virtual auto update(std::chrono::nanoseconds delta) -> void = 0;
+    virtual auto update(std::chrono::nanoseconds delta, drawing::Window& window)
+      -> void = 0;
 };
 } // namespace drawing
 

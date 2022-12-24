@@ -6,7 +6,7 @@
 #include "../setupState.h"
 #include "catch2/catch_test_macros.hpp"
 #include "drawing/actors/Quad.h"
-#include "events/Event.h"
+#include "events/GlobalEvent.h"
 
 static constexpr auto script = R"(
     local quad = Quad.new{
@@ -18,7 +18,7 @@ static constexpr auto script = R"(
 TEST_CASE("Events can be subscribed to in lua", "[actors][events]")
 {
     StateSetup setup;
-    events::Event<> event{ &setup.getState() };
+    events::GlobalEvent<> event{ &setup.getState() };
     setup.addEventToState<>(event, "init");
     setup.defineTypes();
     auto& state = setup.getState();
@@ -41,7 +41,7 @@ static constexpr auto scriptWithArgs = R"(
 TEST_CASE("Events with args can be subscribed to in lua", "[actors][events]")
 {
     StateSetup setup;
-    events::Event<int> event{ &setup.getState() };
+    events::GlobalEvent<int> event{ &setup.getState() };
     setup.addEventToState<int>(event, "init");
     setup.defineTypes();
     auto& state = setup.getState();
@@ -66,7 +66,7 @@ TEST_CASE("Events with args can be subscribed to in lua and deleted",
           "[actors][events]")
 {
     StateSetup setup;
-    events::Event<int, int> event{ &setup.getState() };
+    events::GlobalEvent<int, int> event{ &setup.getState() };
     setup.addEventToState<int, int>(event, "init");
     setup.defineTypes();
     auto& state = setup.getState();
@@ -85,7 +85,7 @@ static constexpr auto scriptWithBadOperations =
                     events = {initEvent = 1,
                               invalid = function(self, val, val2) self.width = val + val2 end}
                 }
-    quad.initEvent = nil
+    quad.initEvent = 1
     return quad
 )";
 
@@ -93,7 +93,7 @@ TEST_CASE("Subscriptions to invalid event names or not function don't crash",
           "[actors][events]")
 {
     StateSetup setup;
-    events::Event<int, int> event{ &setup.getState() };
+    events::GlobalEvent<int, int> event{ &setup.getState() };
     setup.addEventToState<int, int>(event, "init");
     setup.defineTypes();
     auto& state = setup.getState();
@@ -103,5 +103,85 @@ TEST_CASE("Subscriptions to invalid event names or not function don't crash",
     REQUIRE(quad != nullptr);
 }
 
-// TODO: local function test
-// TODO: getter test
+static constexpr auto scriptWithLocalFunction = R"(
+    local quad = Quad.new{
+                    events = {initEvent = function(self, val, val2) self.width = val + val2 end}
+                }
+    local getFunc = function()
+        local function localFunc(self, val, val2)
+            self.width = val + val2
+        end
+        return localFunc
+    end
+
+    quad.initEvent = getFunc()
+    return quad
+)";
+
+TEST_CASE("Subscribing with local functions works", "[actors][events]")
+{
+    StateSetup setup;
+    events::GlobalEvent<int, int> event{ &setup.getState() };
+    setup.addEventToState<int, int>(event, "init");
+    setup.defineTypes();
+    auto& state = setup.getState();
+    auto result = state.script(scriptWithLocalFunction);
+    auto root = result.get<drawing::actors::Actor*>()->shared_from_this();
+    auto quad = std::dynamic_pointer_cast<drawing::actors::Quad>(root);
+    REQUIRE(quad != nullptr);
+    REQUIRE(quad->getWidth() == Catch::Approx(0));
+    event(100, 200);
+    REQUIRE(quad->getWidth() == Catch::Approx(300));
+}
+
+static constexpr auto scriptWithGetter = R"(
+    local quad = Quad.new{
+                    events = {initEvent = function(self, val, val2) self.width = val + val2 end}
+                }
+    local otherQuad = Quad.new{
+                    events = {initEvent = function(self, val, val2) self.width = val * val2 end}
+                }
+    otherQuad.initEvent = quad.initEvent
+    return otherQuad
+)";
+
+TEST_CASE("Subscriptions can be copied from one actor to another",
+          "[actors][events]")
+{
+    StateSetup setup;
+    events::GlobalEvent<int, int> event{ &setup.getState() };
+    setup.addEventToState<int, int>(event, "init");
+    setup.defineTypes();
+    auto& state = setup.getState();
+    auto result = state.script(scriptWithGetter);
+    auto root = result.get<drawing::actors::Actor*>()->shared_from_this();
+    auto quad = std::dynamic_pointer_cast<drawing::actors::Quad>(root);
+    REQUIRE(quad != nullptr);
+    REQUIRE(quad->getWidth() == Catch::Approx(0));
+    event(100, 200);
+    REQUIRE(quad->getWidth() == Catch::Approx(300));
+}
+
+static constexpr auto scriptWithUnsubscribe = R"(
+    local quad = Quad.new{
+                    events = {initEvent = function(self, val, val2) self.width = val + val2 end}
+                }
+    quad.initEvent = nil
+    return quad
+)";
+
+TEST_CASE("Subscriptions can be unsubscribed from with nil", "[actors][events]")
+{
+    StateSetup setup;
+    events::GlobalEvent<int, int> event{ &setup.getState() };
+    setup.addEventToState<int, int>(event, "init");
+    setup.defineTypes();
+    auto& state = setup.getState();
+    auto result = state.script(scriptWithUnsubscribe);
+    auto root = result.get<drawing::actors::Actor*>()->shared_from_this();
+    auto quad = std::dynamic_pointer_cast<drawing::actors::Quad>(root);
+    REQUIRE(quad != nullptr);
+    REQUIRE(quad->getWidth() == Catch::Approx(0));
+    event(100, 200);
+    REQUIRE(quad->getWidth() == Catch::Approx(0));
+}

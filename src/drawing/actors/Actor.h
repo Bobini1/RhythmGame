@@ -140,12 +140,10 @@ class Actor // NOLINT(fuchsia-multiple-inheritance)
 
     auto handleEvent(sf::Vector2f position, EventType eventType) -> bool;
 
-    virtual auto getAllChildrenAtMousePosition(sf::Vector2f position,
-                                               std::set<Actor*>& result)
-      -> void;
-
-    void getAllActorsAtMousePosition(sf::Vector2f position,
-                                     std::set<Actor*>& result);
+    void getAllActorsAtMousePosition(
+      sf::Vector2f position,
+      std::set<std::weak_ptr<const Actor>,
+               std::owner_less<std::weak_ptr<const Actor>>>& result) const;
 
   private:
     /**
@@ -160,6 +158,13 @@ class Actor // NOLINT(fuchsia-multiple-inheritance)
      * @param height The new height of the actor.
      */
     virtual auto setHeightImpl(float height) -> void = 0;
+
+
+    virtual auto getAllChildrenAtMousePosition(
+      sf::Vector2f position,
+      std::set<std::weak_ptr<const Actor>,
+               std::owner_less<std::weak_ptr<const Actor>>>& result) const
+      -> void;
 
     std::unordered_map<
       EventType,

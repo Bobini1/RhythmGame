@@ -153,12 +153,13 @@ drawing::actors::Layers::make() -> std::shared_ptr<Layers>
     return std::shared_ptr<Layers>(new Layers{});
 }
 auto
-drawing::actors::Layers::getAllChildrenAtMousePosition(sf::Vector2f position,
-                                                       std::set<Actor*>& result)
-  -> void
+drawing::actors::Layers::getAllChildrenAtMousePosition(
+  sf::Vector2f position,
+  std::set<std::weak_ptr<const Actor>,
+           std::owner_less<std::weak_ptr<const Actor>>>& result) const -> void
 {
     for (const auto& child : std::ranges::reverse_view(*this)) {
-        child->getAllChildrenAtMousePosition(position, result);
+        child->getAllActorsAtMousePosition(position, result);
         if (child->getIsObstructing()) {
             break;
         }

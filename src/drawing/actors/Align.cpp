@@ -184,11 +184,12 @@ drawing::actors::Align::make(drawing::actors::Align::Mode mode)
     return std::shared_ptr<Align>(new Align{ mode });
 }
 auto
-drawing::actors::Align::getAllChildrenAtMousePosition(sf::Vector2f position,
-                                                      std::set<Actor*>& result)
-  -> void
+drawing::actors::Align::getAllChildrenAtMousePosition(
+  sf::Vector2f position,
+  std::set<std::weak_ptr<const Actor>,
+           std::owner_less<std::weak_ptr<const Actor>>>& result) const -> void
 {
     if (child) {
-        child->getAllChildrenAtMousePosition(position, result);
+        child->getAllActorsAtMousePosition(position, result);
     }
 }

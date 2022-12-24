@@ -171,9 +171,10 @@ drawing::actors::Padding::make(float top, float bottom, float left, float right)
 auto
 drawing::actors::Padding::getAllChildrenAtMousePosition(
   sf::Vector2f position,
-  std::set<Actor*>& result) -> void
+  std::set<std::weak_ptr<const Actor>,
+           std::owner_less<std::weak_ptr<const Actor>>>& result) const -> void
 {
     if (child) {
-        child->getAllChildrenAtMousePosition(position, result);
+        child->getAllActorsAtMousePosition(position, result);
     }
 }

@@ -3,7 +3,7 @@
 //
 
 #include "state_transitions/SceneStateMachineImpl.h"
-#include "state_transitions/WindowStateMachineImpl.h"
+#include "drawing/Window.h"
 
 #include <catch2/catch_test_macros.hpp>
 
@@ -81,38 +81,3 @@ class DummyWindow : public drawing::Window
     auto draw() -> void override { drawCount++; }
     auto getDrawCount() const -> unsigned { return drawCount; }
 };
-
-TEST_CASE("Windows can be added in the state machine and changed", "[.window]")
-{
-    auto dummyWindow = std::make_shared<DummyWindow>();
-    auto windowStateMachine =
-      std::make_shared<state_transitions::WindowStateMachineImpl>();
-    windowStateMachine->changeWindow(dummyWindow);
-    REQUIRE(windowStateMachine->getCurrentWindow() == dummyWindow);
-    auto otherWindow = std::make_shared<DummyWindow>();
-    windowStateMachine->changeWindow(otherWindow);
-    REQUIRE(windowStateMachine->getCurrentWindow() == otherWindow);
-}
-
-TEST_CASE("The window manager's updates get passed down", "[.window]")
-{
-    auto dummyWindow = std::make_shared<DummyWindow>();
-    auto windowStateMachine = state_transitions::WindowStateMachineImpl{};
-    windowStateMachine.changeWindow(dummyWindow);
-    REQUIRE(windowStateMachine.isOpen());
-    REQUIRE(windowStateMachine.getCurrentWindow() == dummyWindow);
-    windowStateMachine.update(std::chrono::nanoseconds(1));
-    windowStateMachine.draw();
-    auto otherWindow = std::make_shared<DummyWindow>();
-    windowStateMachine.changeWindow(otherWindow);
-    REQUIRE(windowStateMachine.getCurrentWindow() == otherWindow);
-    windowStateMachine.update(std::chrono::nanoseconds(1));
-    windowStateMachine.draw();
-    windowStateMachine.update(std::chrono::nanoseconds(1));
-    windowStateMachine.draw();
-    REQUIRE(dummyWindow->getUpdateCount() == 1);
-    REQUIRE(otherWindow->getUpdateCount() == 2);
-    REQUIRE(dummyWindow->getDrawCount() == 1);
-    REQUIRE(otherWindow->getDrawCount() == 2);
-    REQUIRE(windowStateMachine.isOpen());
-}
