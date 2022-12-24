@@ -27,7 +27,8 @@ class Event
         }
     }
 
-    auto getSubscription(std::weak_ptr<drawing::actors::Actor> actor) -> sol::function
+    auto getSubscription(std::weak_ptr<drawing::actors::Actor> actor)
+      -> sol::function
     {
         if (listeners.find(actor) != listeners.end()) {
             return listeners.at(actor);
