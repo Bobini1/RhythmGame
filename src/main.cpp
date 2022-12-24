@@ -101,8 +101,7 @@ main() -> int
     auto fontLoader = std::make_shared<resource_managers::FontLoaderImpl>();
     auto animationPlayer = drawing::animations::AnimationPlayerImpl{};
     auto startingScene = std::make_shared<
-      drawing::SplashScene<events::Signals2Event,
-                           drawing::animations::AnimationPlayerImpl,
+      drawing::SplashScene<drawing::animations::AnimationPlayerImpl,
                            resource_managers::TextureLoaderImpl,
                            resource_managers::FontLoaderImpl>>(
       std::move(state),

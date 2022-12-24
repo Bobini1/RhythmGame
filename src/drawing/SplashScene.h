@@ -9,7 +9,7 @@
 #include "drawing/actors/Actor.h"
 #include "drawing/actors/Quad.h"
 #include "drawing/actors/VBox.h"
-#include "events/Signals2Event.h"
+#include "events/Event.h"
 #include <SFML/Graphics/RenderTarget.hpp>
 #include <execution>
 
@@ -17,18 +17,17 @@ namespace drawing {
 /**
  * @brief Scene that displays the splash screen while the game is being loaded.
  */
-template<template<typename...> typename EventType,
-         animations::AnimationPlayer AnimationPlayerType,
+template<animations::AnimationPlayer AnimationPlayerType,
          resource_managers::TextureLoader TextureLoaderType,
          resource_managers::FontLoader FontLoaderType>
 class SplashScene : public Scene
 {
     std::shared_ptr<actors::Actor> root;
-    EventType<> init{};
-    EventType<float> onUpdate{};
     mutable bool initialized = false;
     AnimationPlayerType animationPlayer;
     sol::state state;
+    events::Event<> init;
+    events::Event<float> onUpdate;
     std::shared_ptr<TextureLoaderType> textureLoader;
     std::shared_ptr<FontLoaderType> fontLoader;
 
@@ -42,6 +41,8 @@ class SplashScene : public Scene
       , state(std::move(state))
       , textureLoader(std::move(textureLoader))
       , fontLoader(std::move(fontLoader))
+      , init(&this->state)
+      , onUpdate(&this->state)
     {
         lua::EventAttacher eventAttacher(&this->state);
         eventAttacher.addEvent(init, "init");

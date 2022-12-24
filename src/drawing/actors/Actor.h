@@ -12,8 +12,6 @@
 #include <memory>
 #include <sol/state.hpp>
 #include "support/EnableSharedFromBase.h"
-#include "events/Connection.h"
-#include <boost/signals2/connection.hpp>
 #include <set>
 
 /**
@@ -49,9 +47,6 @@ class Actor // NOLINT(fuchsia-multiple-inheritance)
     Actor(Actor&& otherActor) noexcept = delete;
     auto operator=(Actor&& otherActor) noexcept -> Actor& = delete;
     ~Actor() override = default;
-
-    void setEventSubscription(const std::string& eventName,
-                              std::unique_ptr<events::Connection> connection);
 
     /**
      * @brief Get the lua object of the type of this actor.
@@ -171,8 +166,6 @@ class Actor // NOLINT(fuchsia-multiple-inheritance)
       std::function<void(drawing::actors::Actor&, sf::Vector2f)>>
       eventHandlers;
     std::weak_ptr<Parent> parent{};
-    std::map<std::string, std::unique_ptr<events::Connection>>
-      eventSubscriptions{};
     bool isObstructing{ false };
 };
 } // namespace drawing::actors

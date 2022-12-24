@@ -6,7 +6,7 @@
 #include "../setupState.h"
 #include "catch2/catch_test_macros.hpp"
 #include "drawing/actors/Quad.h"
-#include "events/Signals2Event.h"
+#include "events/Event.h"
 
 static constexpr auto script = R"(
     local quad = Quad.new{
@@ -18,7 +18,7 @@ static constexpr auto script = R"(
 TEST_CASE("Events can be subscribed to in lua", "[actors][events]")
 {
     StateSetup setup;
-    events::Signals2Event<> event;
+    events::Event<> event{&setup.getState()};
     setup.addEventToState<>(event, "init");
     auto state = sol::state(std::move(setup));
     auto result = state.script(script);
@@ -40,7 +40,7 @@ static constexpr auto scriptWithArgs = R"(
 TEST_CASE("Events with args can be subscribed to in lua", "[actors][events]")
 {
     StateSetup setup;
-    events::Signals2Event<int> event;
+    events::Event<int> event;
     setup.addEventToState<int>(event, "init");
     auto state = sol::state(std::move(setup));
     auto result = state.script(scriptWithArgs);
@@ -64,7 +64,7 @@ TEST_CASE("Events with args can be subscribed to in lua and deleted",
           "[actors][events]")
 {
     StateSetup setup;
-    events::Signals2Event<int, int> event;
+    events::Event<int, int> event;
     setup.addEventToState<int, int>(event, "init");
     auto state = sol::state(std::move(setup));
     auto result = state.script(scriptWithDeletedCallback);
@@ -90,7 +90,7 @@ TEST_CASE("Subscriptions to invalid event names or not function don't crash",
           "[actors][events]")
 {
     StateSetup setup;
-    events::Signals2Event<int, int> event;
+    events::Event<int, int> event;
     setup.addEventToState<int, int>(event, "init");
     auto state = sol::state(std::move(setup));
     auto result = state.script(scriptWithBadOperations);

@@ -48,13 +48,6 @@ drawing::actors::Actor::operator=(const Actor& /*unused*/)
 {
     return *this;
 }
-void
-drawing::actors::Actor::setEventSubscription(
-  const std::string& eventName,
-  std::unique_ptr<events::Connection> connection)
-{
-    eventSubscriptions[eventName] = std::move(connection);
-}
 auto
 drawing::actors::Actor::getGlobalBounds() const -> sf::FloatRect
 {
