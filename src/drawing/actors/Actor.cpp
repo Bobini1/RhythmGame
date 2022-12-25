@@ -64,40 +64,6 @@ drawing::actors::Actor::setIsObstructing(bool newIsObstructing) -> void
     isObstructing = newIsObstructing;
 }
 auto
-drawing::actors::Actor::handleEvent(sf::Vector2f position,
-                                    drawing::actors::EventType eventType)
-  -> bool
-{
-    if (auto eventHandler = eventHandlers.find(eventType);
-        eventHandler != eventHandlers.end() && eventHandler->second) {
-        eventHandler->second(*this, position);
-        return true;
-    }
-    return false;
-}
-auto
-drawing::actors::Actor::setEvent(
-  drawing::actors::EventType eventType,
-  std::function<void(drawing::actors::Actor&, sf::Vector2f)> eventHandler)
-  -> void
-{
-    if (!eventHandler) {
-        // remove event
-        eventHandlers.erase(eventType);
-    }
-    eventHandlers[eventType] = std::move(eventHandler);
-}
-auto
-drawing::actors::Actor::getEvent(drawing::actors::EventType eventType) const
-  -> std::function<void(drawing::actors::Actor&, sf::Vector2f)>
-{
-    if (auto eventHandler = eventHandlers.find(eventType);
-        eventHandler != eventHandlers.end()) {
-        return eventHandler->second;
-    }
-    return nullptr;
-}
-auto
 drawing::actors::Actor::getAllChildrenAtMousePosition(
   sf::Vector2f /*position*/,
   std::set<std::weak_ptr<const Actor>,

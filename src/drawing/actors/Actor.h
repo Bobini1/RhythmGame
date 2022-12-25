@@ -20,15 +20,6 @@
  * is not defined here!
  */
 namespace drawing::actors {
-enum class EventType
-{
-    MouseEnter,
-    MouseLeave,
-    Mouse1Down,
-    Mouse1Up,
-    Mouse2Down,
-    Mouse2Up,
-};
 class Parent;
 /**
  * @brief Base class for all drawable objects.
@@ -131,15 +122,6 @@ class Actor // NOLINT(fuchsia-multiple-inheritance)
 
     auto setIsObstructing(bool newIsObstructing) -> void;
 
-    auto setEvent(
-      EventType eventType,
-      std::function<void(drawing::actors::Actor&, sf::Vector2f)> eventHandler)
-      -> void;
-    [[nodiscard]] auto getEvent(EventType eventType) const
-      -> std::function<void(drawing::actors::Actor&, sf::Vector2f)>;
-
-    auto handleEvent(sf::Vector2f position, EventType eventType) -> bool;
-
     void getAllActorsAtMousePosition(
       sf::Vector2f position,
       std::set<std::weak_ptr<const Actor>,
@@ -159,17 +141,12 @@ class Actor // NOLINT(fuchsia-multiple-inheritance)
      */
     virtual auto setHeightImpl(float height) -> void = 0;
 
-
     virtual auto getAllChildrenAtMousePosition(
       sf::Vector2f position,
       std::set<std::weak_ptr<const Actor>,
                std::owner_less<std::weak_ptr<const Actor>>>& result) const
       -> void;
 
-    std::unordered_map<
-      EventType,
-      std::function<void(drawing::actors::Actor&, sf::Vector2f)>>
-      eventHandlers;
     std::weak_ptr<Parent> parent{};
     bool isObstructing{ false };
 };
