@@ -109,5 +109,5 @@ TEST_CASE("VBox returns nil on out of bounds access", "[drawing][vbox]")
     auto stateSetup = StateSetup{};
     auto state = sol::state(std::move(stateSetup));
     auto result = state.script(scriptWithOutOfBoundsAccess);
-    REQUIRE(result.get_type() == sol::type::nil);
+    REQUIRE(result.get_type() == sol::type::lua_nil);
 }
