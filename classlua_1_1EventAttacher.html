@@ -69,8 +69,12 @@
         <section id="pub-types">
           <h2><a href="#pub-types">Public types</a></h2>
           <dl class="m-doc">
-            <dt id="afc9a6733143df1e77307f0ee6559a36b">
-              using <a href="#afc9a6733143df1e77307f0ee6559a36b" class="m-doc-self">CppEventInterface</a> = std::function&lt;void(std::shared_ptr&lt;<a href="classdrawing_1_1actors_1_1Actor.html" class="m-doc">drawing::<wbr />actors::<wbr />Actor</a>&gt;, sol::function)&gt;
+            <dt id="a063dfe26936020fc71a041f7906f50f0">
+              using <a href="#a063dfe26936020fc71a041f7906f50f0" class="m-doc-self">SetterFunction</a> = std::function&lt;void(std::weak_ptr&lt;<a href="classdrawing_1_1actors_1_1Actor.html" class="m-doc">drawing::<wbr />actors::<wbr />Actor</a>&gt;, sol::function)&gt;
+            </dt>
+            <dd><span></span></dd>
+            <dt id="a552915738c4539960b2c8ecb914d863c">
+              using <a href="#a552915738c4539960b2c8ecb914d863c" class="m-doc-self">GetterFunction</a> = std::function&lt;sol::function(<a href="classdrawing_1_1actors_1_1Actor.html" class="m-doc">drawing::<wbr />actors::<wbr />Actor</a>*)&gt;
             </dt>
             <dd><span></span></dd>
           </dl>
@@ -98,8 +102,8 @@
             <dd>Goes through all registered events and adds them to the actor type as properties.</dd>
             <dt>
               <div class="m-doc-template">template&lt;typename EventType, typename... Args&gt;</div>
-              <span class="m-doc-wrap-bumper">auto <a href="#a9dd872a1fcd3b941d49add02d326cb01" class="m-doc">addEvent</a>(</span><span class="m-doc-wrap">EventType&amp; event,
-              std::string name) -&gt; void -&gt; requires <a href="namespaceevents.html#a273581d980e9eb3b79a267ce15ad106f" class="m-doc">events::<wbr />Event</a>&lt;EventType, std::function&lt;void(Args...)&gt;, Args...&gt; auto</span>
+              <span class="m-doc-wrap-bumper">auto <a href="#ad15036eecc6375c6a28b724366ab5b77" class="m-doc">addEvent</a>(</span><span class="m-doc-wrap">EventType&amp; event,
+              std::string name) -&gt; void requires events::Event&lt; EventType &gt;</span>
             </dt>
             <dd>Registers an event in lua.</dd>
           </dl>
@@ -123,13 +127,13 @@
               </tbody>
             </table>
           </div></section>
-          <section class="m-doc-details" id="a9dd872a1fcd3b941d49add02d326cb01"><div>
+          <section class="m-doc-details" id="ad15036eecc6375c6a28b724366ab5b77"><div>
             <h3>
               <div class="m-doc-template">
                 template&lt;typename EventType, typename... Args&gt;
               </div>
-              <span class="m-doc-wrap-bumper">requires <a href="namespaceevents.html#a273581d980e9eb3b79a267ce15ad106f" class="m-doc">events::<wbr />Event</a>&lt;EventType, std::function&lt;void(Args...)&gt;, Args...&gt; auto lua::<wbr />EventAttacher::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a9dd872a1fcd3b941d49add02d326cb01" class="m-doc-self">addEvent</a>(</span><span class="m-doc-wrap">EventType&amp; event,
-              std::string name) -&gt; void</span></span>
+              <span class="m-doc-wrap-bumper">auto lua::<wbr />EventAttacher::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#ad15036eecc6375c6a28b724366ab5b77" class="m-doc-self">addEvent</a>(</span><span class="m-doc-wrap">EventType&amp; event,
+              std::string name) -&gt; void requires events::Event&lt; EventType &gt;</span></span>
             </h3>
             <p>Registers an event in lua.</p>
             <table class="m-table m-fullwidth m-flat">

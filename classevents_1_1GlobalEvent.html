@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>events::Connection class | RhythmGame</title>
+  <title>events::GlobalEvent class | RhythmGame</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,400i,600,600i%7CSource+Code+Pro:400,400i,600" />
   <link rel="stylesheet" href="m-dark+documentation.compiled.css" />
   <link rel="icon" href="favicon-dark.png" type="image/png" />
@@ -49,36 +49,46 @@
     <div class="m-row">
       <div class="m-col-l-10 m-push-l-1">
         <h1>
-          <span class="m-breadcrumb"><a href="namespaceevents.html">events</a>::<wbr/></span>Connection <span class="m-thin">class</span>
-          <div class="m-doc-include m-code m-inverted m-text-right"><span class="cp">#include</span> <a class="cpf" href="Connection_8h.html">&lt;Connection.h&gt;</a></div>
+          <div class="m-doc-include m-code m-inverted m-right-m m-text-right"><span class="cp">#include</span> <a class="cpf" href="GlobalEvent_8h.html">&lt;GlobalEvent.h&gt;</a></div>
+          <div class="m-doc-template">template&lt;typename... Args&gt;</div>
+          <span class="m-breadcrumb"><a href="namespaceevents.html">events</a>::<wbr/></span>GlobalEvent <span class="m-thin">class</span>
         </h1>
-        <p>A scoped connection object.</p>
+        <p><span></span></p>
         <div class="m-block m-default">
           <h3>Contents</h3>
           <ul>
             <li>
               Reference
               <ul>
-                <li><a href="#derived-classes">Derived classes</a></li>
                 <li><a href="#typeless-methods">Constructors, destructors, conversion operators</a></li>
+                <li><a href="#pub-methods">Public functions</a></li>
               </ul>
             </li>
           </ul>
         </div>
-        <section id="derived-classes">
-          <h2><a href="#derived-classes">Derived classes</a></h2>
-          <dl class="m-doc">
-            <dt>
-              class <a href="classevents_1_1Signals2Connection.html" class="m-doc">Signals2Connection</a>
-            </dt>
-            <dd>A scoped connection object - signals2 implementation.</dd>
-          </dl>
-        </section>
         <section id="typeless-methods">
           <h2><a href="#typeless-methods">Constructors, destructors, conversion operators</a></h2>
           <dl class="m-doc">
-            <dt id="ace19ea6147b8e7584a2b86049c9935c3">
-              <span class="m-doc-wrap-bumper"><a href="#ace19ea6147b8e7584a2b86049c9935c3" class="m-doc-self">~Connection</a>(</span><span class="m-doc-wrap">) <span class="m-label m-flat m-info">defaulted</span> <span class="m-label m-flat m-warning">virtual</span></span>
+            <dt id="a2576c6f1342ab59fabeed30b9d07469f">
+              <span class="m-doc-wrap-bumper"><a href="#a2576c6f1342ab59fabeed30b9d07469f" class="m-doc-self">GlobalEvent</a>(</span><span class="m-doc-wrap">sol::state* target) <span class="m-label m-flat m-info">explicit</span> </span>
+            </dt>
+            <dd><span></span></dd>
+          </dl>
+        </section>
+        <section id="pub-methods">
+          <h2><a href="#pub-methods">Public functions</a></h2>
+          <dl class="m-doc">
+            <dt id="a0977b404a400be3747d2d6dbc6ccbcc9">
+              <span class="m-doc-wrap-bumper">auto <a href="#a0977b404a400be3747d2d6dbc6ccbcc9" class="m-doc-self">subscribe</a>(</span><span class="m-doc-wrap">const std::weak_ptr&lt;<a href="classdrawing_1_1actors_1_1Actor.html" class="m-doc">drawing::<wbr />actors::<wbr />Actor</a>&gt;&amp; actor,
+              sol::function callback) -&gt; void</span>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="a37277f7bcc8c9a9b6c30558f63535e4d">
+              <span class="m-doc-wrap-bumper">auto <a href="#a37277f7bcc8c9a9b6c30558f63535e4d" class="m-doc-self">getSubscription</a>(</span><span class="m-doc-wrap">const std::weak_ptr&lt;<a href="classdrawing_1_1actors_1_1Actor.html" class="m-doc">drawing::<wbr />actors::<wbr />Actor</a>&gt;&amp; actor) const -&gt; sol::function</span>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="aad395455a7393b464b56799e085ed837">
+              <span class="m-doc-wrap-bumper">auto <a href="#aad395455a7393b464b56799e085ed837" class="m-doc-self">operator()</a>(</span><span class="m-doc-wrap">Args &amp;&amp; ... args) -&gt; void</span>
             </dt>
             <dd><span></span></dd>
           </dl>

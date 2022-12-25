@@ -120,11 +120,6 @@
               <span class="m-doc-wrap-bumper">auto <a href="#a9f7c13885595a286818db4b11a1b5242" class="m-doc-self">operator=</a>(</span><span class="m-doc-wrap"><a href="classdrawing_1_1actors_1_1Actor.html" class="m-doc">Actor</a>&amp;&amp; otherActor) noexcept -&gt; Actor &amp; <span class="m-label m-flat m-danger">deleted</span></span>
             </dt>
             <dd><span></span></dd>
-            <dt id="afbc251e5458196a225d9e6a2b837349e">
-              <span class="m-doc-wrap-bumper">void <a href="#afbc251e5458196a225d9e6a2b837349e" class="m-doc-self">setEventSubscription</a>(</span><span class="m-doc-wrap">const std::string&amp; eventName,
-              std::unique_ptr&lt;<a href="classevents_1_1Connection.html" class="m-doc">events::<wbr />Connection</a>&gt; connection)</span>
-            </dt>
-            <dd><span></span></dd>
             <dt>
               <span class="m-doc-wrap-bumper">auto <a href="#aa25f1cf3c8142edcd266f0c7fed11da1" class="m-doc">getLuaSelf</a>(</span><span class="m-doc-wrap">sol::state&amp; lua) -&gt; sol::object <span class="m-label m-flat m-warning">pure virtual</span></span>
             </dt>
@@ -137,10 +132,6 @@
               <span class="m-doc-wrap-bumper">auto <a href="#a06fac4714b1113b92c08b403abaf9cf5" class="m-doc">setParent</a>(</span><span class="m-doc-wrap">const std::shared_ptr&lt;<a href="classdrawing_1_1actors_1_1Parent.html" class="m-doc">Parent</a>&gt;&amp; parent) -&gt; void <span class="m-label m-flat m-warning">virtual</span></span>
             </dt>
             <dd>Sets the parent of the actor.</dd>
-            <dt>
-              <span class="m-doc-wrap-bumper">auto <a href="#ac0e4f4e2a9e510bd9326304804a48a47" class="m-doc">update</a>(</span><span class="m-doc-wrap">std::chrono::nanoseconds delta) -&gt; void</span>
-            </dt>
-            <dd>used by the engine to update an actor&#x27;s internals every frame. Not exposed to Lua.</dd>
             <dt>
               <span class="m-doc-wrap-bumper">auto <a href="#ab9bac033b53d1dcf7c3ac4df5b085c3a" class="m-doc">setTransform</a>(</span><span class="m-doc-wrap">sf::Transform transform) -&gt; void <span class="m-label m-flat m-warning">pure virtual</span></span>
             </dt>
@@ -181,6 +172,23 @@
               <span class="m-doc-wrap-bumper">auto <a href="#a485be8e32563449c41c0ba4ceed0b008" class="m-doc">setHeight</a>(</span><span class="m-doc-wrap">float height) -&gt; void</span>
             </dt>
             <dd>Set the height of the actor. If used with a value below the minHeight of the actor, the minHeight will be used instead.</dd>
+            <dt id="a7f00f1bbe582254ed69e2ae25a2dd8c6">
+              <span class="m-doc-wrap-bumper">auto <a href="#a7f00f1bbe582254ed69e2ae25a2dd8c6" class="m-doc-self">getGlobalBounds</a>(</span><span class="m-doc-wrap">) const -&gt; sf::FloatRect</span>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="a37d8eca23362f40f316d9166db006be1">
+              <span class="m-doc-wrap-bumper">auto <a href="#a37d8eca23362f40f316d9166db006be1" class="m-doc-self">getIsObstructing</a>(</span><span class="m-doc-wrap">) const -&gt; bool</span>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="a4d7c61572e759232ce9dc471ac48da1c">
+              <span class="m-doc-wrap-bumper">auto <a href="#a4d7c61572e759232ce9dc471ac48da1c" class="m-doc-self">setIsObstructing</a>(</span><span class="m-doc-wrap">bool newIsObstructing) -&gt; void</span>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="a38aa725fe44c0493067c7c08525c2dd0">
+              <span class="m-doc-wrap-bumper">void <a href="#a38aa725fe44c0493067c7c08525c2dd0" class="m-doc-self">getAllActorsAtMousePosition</a>(</span><span class="m-doc-wrap">sf::Vector2f position,
+              std::set&lt;std::weak_ptr&lt;const <a href="classdrawing_1_1actors_1_1Actor.html" class="m-doc">Actor</a>&gt;, std::owner_less&lt;std::weak_ptr&lt;const <a href="classdrawing_1_1actors_1_1Actor.html" class="m-doc">Actor</a>&gt;&gt;&gt;&amp; result) const</span>
+            </dt>
+            <dd><span></span></dd>
           </dl>
         </section>
         <section id="pro-methods">
@@ -203,6 +211,11 @@
               <span class="m-doc-wrap-bumper">auto <a href="#a46a8c969aa48d44843a264f8e12e6f98" class="m-doc">setHeightImpl</a>(</span><span class="m-doc-wrap">float height) -&gt; void <span class="m-label m-flat m-warning">pure virtual</span></span>
             </dt>
             <dd>Actors need to override this to set their height. The contract is to always resize to the requested size.</dd>
+            <dt id="a9f7b0a6f519622abb8e59d41ca81e36d">
+              <span class="m-doc-wrap-bumper">auto <a href="#a9f7b0a6f519622abb8e59d41ca81e36d" class="m-doc-self">getAllChildrenAtMousePosition</a>(</span><span class="m-doc-wrap">sf::Vector2f position,
+              std::set&lt;std::weak_ptr&lt;const <a href="classdrawing_1_1actors_1_1Actor.html" class="m-doc">Actor</a>&gt;, std::owner_less&lt;std::weak_ptr&lt;const <a href="classdrawing_1_1actors_1_1Actor.html" class="m-doc">Actor</a>&gt;&gt;&gt;&amp; result) const -&gt; void <span class="m-label m-flat m-warning">virtual</span></span>
+            </dt>
+            <dd><span></span></dd>
           </dl>
         </section>
         <section>
@@ -243,23 +256,6 @@
                 <tr>
                   <td style="width: 1%">parent</td>
                   <td>The new parent. This should only be called by the parent when this actor gets added to it. Not exposed to Lua.</td>
-                </tr>
-              </tbody>
-            </table>
-          </div></section>
-          <section class="m-doc-details" id="ac0e4f4e2a9e510bd9326304804a48a47"><div>
-            <h3>
-              <span class="m-doc-wrap-bumper">auto drawing::<wbr />actors::<wbr />Actor::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#ac0e4f4e2a9e510bd9326304804a48a47" class="m-doc-self">update</a>(</span><span class="m-doc-wrap">std::chrono::nanoseconds delta) -&gt; void</span></span>
-            </h3>
-            <p>used by the engine to update an actor&#x27;s internals every frame. Not exposed to Lua.</p>
-            <table class="m-table m-fullwidth m-flat">
-              <thead>
-                <tr><th colspan="2">Parameters</th></tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td style="width: 1%">delta</td>
-                  <td>the time difference between this frame and the previous one.</td>
                 </tr>
               </tbody>
             </table>

@@ -49,9 +49,8 @@
     <div class="m-row">
       <div class="m-col-l-10 m-push-l-1">
         <h1>
-          <div class="m-doc-include m-code m-inverted m-right-m m-text-right"><span class="cp">#include</span> <a class="cpf" href="Game_8h.html">&lt;Game.h&gt;</a></div>
-          <div class="m-doc-template">template&lt;<a href="namespacestate__transitions.html#a72422c3491f9de1a0056b4e04d533b86" class="m-doc">WindowStateMachine</a> WindowStateMachineType&gt;</div>
           <span class="m-breadcrumb"><a href="namespacestate__transitions.html">state_transitions</a>::<wbr/></span>Game <span class="m-thin">class</span>
+          <div class="m-doc-include m-code m-inverted m-text-right"><span class="cp">#include</span> <a class="cpf" href="Game_8h.html">&lt;Game.h&gt;</a></div>
         </h1>
         <p><span></span></p>
         <div class="m-block m-default">
@@ -62,6 +61,7 @@
               <ul>
                 <li><a href="#typeless-methods">Constructors, destructors, conversion operators</a></li>
                 <li><a href="#pub-methods">Public functions</a></li>
+                <li><a href="#pub-attribs">Public variables</a></li>
               </ul>
             </li>
           </ul>
@@ -69,9 +69,8 @@
         <section id="typeless-methods">
           <h2><a href="#typeless-methods">Constructors, destructors, conversion operators</a></h2>
           <dl class="m-doc">
-            <dt id="a5e1bb514c39693c6b8a5a1bffc251bab">
-              <span class="m-doc-wrap-bumper"><a href="#a5e1bb514c39693c6b8a5a1bffc251bab" class="m-doc-self">Game</a>(</span><span class="m-doc-wrap">WindowStateMachineType windowStateMachine,
-              std::shared_ptr&lt;<a href="classdrawing_1_1Window.html" class="m-doc">drawing::<wbr />Window</a>&gt; startingWindow)</span>
+            <dt id="ae2bfce7cb3bf3af722d636310cb1959c">
+              <span class="m-doc-wrap-bumper"><a href="#ae2bfce7cb3bf3af722d636310cb1959c" class="m-doc-self">Game</a>(</span><span class="m-doc-wrap">std::shared_ptr&lt;<a href="classdrawing_1_1Window.html" class="m-doc">drawing::<wbr />Window</a>&gt; startingWindow) <span class="m-label m-flat m-info">explicit</span> </span>
             </dt>
             <dd>Constructs &quot;the game&quot;. The RhythmGame. Or Whatever. The starting window is immediately inserted into the window state machine.</dd>
           </dl>
@@ -79,10 +78,19 @@
         <section id="pub-methods">
           <h2><a href="#pub-methods">Public functions</a></h2>
           <dl class="m-doc">
-            <dt id="a54d5254c617dc3fc4355d11bf464bb21">
-              <span class="m-doc-wrap-bumper">auto <a href="#a54d5254c617dc3fc4355d11bf464bb21" class="m-doc-self">run</a>(</span><span class="m-doc-wrap">) -&gt; void</span>
+            <dt id="a694a74f72aec0ec2dcd9ea14d4468f35">
+              <span class="m-doc-wrap-bumper">auto <a href="#a694a74f72aec0ec2dcd9ea14d4468f35" class="m-doc-self">run</a>(</span><span class="m-doc-wrap">) -&gt; void</span>
             </dt>
             <dd>Runs the game, managing the update-draw loop. This function will block until the game is closed.</dd>
+          </dl>
+        </section>
+        <section id="pub-attribs">
+          <h2><a href="#pub-attribs">Public variables</a></h2>
+          <dl class="m-doc">
+            <dt id="ac857015663469c344a94143dacb382a0">
+              std::shared_ptr&lt;<a href="classdrawing_1_1Window.html" class="m-doc">drawing::<wbr />Window</a>&gt; <a href="#ac857015663469c344a94143dacb382a0" class="m-doc-self">window</a>
+            </dt>
+            <dd><span></span></dd>
           </dl>
         </section>
       </div>

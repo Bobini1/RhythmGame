@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>events::detail::Signals2Event class | RhythmGame</title>
+  <title>events::MouseHoverEvents class | RhythmGame</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,400i,600,600i%7CSource+Code+Pro:400,400i,600" />
   <link rel="stylesheet" href="m-dark+documentation.compiled.css" />
   <link rel="icon" href="favicon-dark.png" type="image/png" />
@@ -49,32 +49,65 @@
     <div class="m-row">
       <div class="m-col-l-10 m-push-l-1">
         <h1>
-          <div class="m-doc-include m-code m-inverted m-right-m m-text-right"><span class="cp">#include</span> <a class="cpf" href="Signals2Event_8h.html">&lt;Signals2Event.h&gt;</a></div>
-          <div class="m-doc-template">template&lt;typename... Args&gt;</div>
-          <span class="m-breadcrumb"><a href="namespaceevents.html">events</a>::<wbr/></span><span class="m-breadcrumb"><a href="namespaceevents_1_1detail.html">detail</a>::<wbr/></span>Signals2Event <span class="m-thin">class</span>
+          <span class="m-breadcrumb"><a href="namespaceevents.html">events</a>::<wbr/></span>MouseHoverEvents <span class="m-thin">class</span>
+          <div class="m-doc-include m-code m-inverted m-text-right"><span class="cp">#include</span> <a class="cpf" href="MouseHoverEvents_8h.html">&lt;MouseHoverEvents.h&gt;</a></div>
         </h1>
-        <p>An implementation for <a href="classevents_1_1detail_1_1Signals2Event.html" class="m-doc">Signals2Event</a>.</p>
+        <p><span></span></p>
         <div class="m-block m-default">
           <h3>Contents</h3>
           <ul>
             <li>
               Reference
               <ul>
+                <li><a href="#pub-types">Public types</a></li>
+                <li><a href="#typeless-methods">Constructors, destructors, conversion operators</a></li>
                 <li><a href="#pub-methods">Public functions</a></li>
+                <li><a href="#pub-attribs">Public variables</a></li>
               </ul>
             </li>
           </ul>
         </div>
+        <section id="pub-types">
+          <h2><a href="#pub-types">Public types</a></h2>
+          <dl class="m-doc">
+            <dt>
+              class <a href="classevents_1_1MouseHoverEvents_1_1OnMouseEnter.html" class="m-doc">OnMouseEnter</a>
+            </dt>
+            <dd><span></span></dd>
+            <dt>
+              class <a href="classevents_1_1MouseHoverEvents_1_1OnMouseLeave.html" class="m-doc">OnMouseLeave</a>
+            </dt>
+            <dd><span></span></dd>
+          </dl>
+        </section>
+        <section id="typeless-methods">
+          <h2><a href="#typeless-methods">Constructors, destructors, conversion operators</a></h2>
+          <dl class="m-doc">
+            <dt id="ace0c0247f913b41b78786753ebb14953">
+              <span class="m-doc-wrap-bumper"><a href="#ace0c0247f913b41b78786753ebb14953" class="m-doc-self">MouseHoverEvents</a>(</span><span class="m-doc-wrap">sol::state* target) <span class="m-label m-flat m-info">explicit</span> </span>
+            </dt>
+            <dd><span></span></dd>
+          </dl>
+        </section>
         <section id="pub-methods">
           <h2><a href="#pub-methods">Public functions</a></h2>
           <dl class="m-doc">
-            <dt id="a9c81a9c69b348c77dd508fb1f1ed28f4">
-              <div class="m-doc-template">template&lt;std::invocable&lt;Args...&gt; Fun&gt;</div>
-              <span class="m-doc-wrap-bumper">auto <a href="#a9c81a9c69b348c77dd508fb1f1ed28f4" class="m-doc-self">subscribe</a>(</span><span class="m-doc-wrap">Fun callback) -&gt; std::unique_ptr&lt; Connection &gt;</span>
+            <dt id="a11ec88ddabbb992e923a53d507f804c9">
+              <span class="m-doc-wrap-bumper">void <a href="#a11ec88ddabbb992e923a53d507f804c9" class="m-doc-self">update</a>(</span><span class="m-doc-wrap"><a href="classdrawing_1_1actors_1_1Actor.html" class="m-doc">drawing::<wbr />actors::<wbr />Actor</a>&amp; root,
+              sf::Vector2f position)</span>
             </dt>
             <dd><span></span></dd>
-            <dt id="aeb181b467f2ab918fe9cc04799915970">
-              <span class="m-doc-wrap-bumper">auto <a href="#aeb181b467f2ab918fe9cc04799915970" class="m-doc-self">operator()</a>(</span><span class="m-doc-wrap">Args &amp;&amp; ... args) const -&gt; void</span>
+          </dl>
+        </section>
+        <section id="pub-attribs">
+          <h2><a href="#pub-attribs">Public variables</a></h2>
+          <dl class="m-doc">
+            <dt id="a033065ba78dda604dcfe00debf841e80">
+              <a href="classevents_1_1MouseHoverEvents_1_1OnMouseEnter.html" class="m-doc">OnMouseEnter</a> <a href="#a033065ba78dda604dcfe00debf841e80" class="m-doc-self">onMouseEnter</a>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="a5ddbecd2d9811d39cb003a4b23b68a1d">
+              <a href="classevents_1_1MouseHoverEvents_1_1OnMouseLeave.html" class="m-doc">OnMouseLeave</a> <a href="#a5ddbecd2d9811d39cb003a4b23b68a1d" class="m-doc-self">onMouseLeave</a>
             </dt>
             <dd><span></span></dd>
           </dl>
