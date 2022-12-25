@@ -12,7 +12,7 @@
 #include "events/GlobalEvent.h"
 #include "events/MouseClickEvent.h"
 #include "events/MouseHoverEvents.h"
-#include <SFML/Graphics/RenderTarget.hpp>
+#include "drawing/Window.h"
 #include <execution>
 #include <SFML/Window/Event.hpp>
 
