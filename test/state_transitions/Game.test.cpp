@@ -25,35 +25,12 @@ class DummyWindow : public drawing::Window
     auto draw() -> void override {}
 };
 
-class DummyWindowManager
-{
-    std::shared_ptr<drawing::Window> current;
-
-  public:
-    auto changeWindow(std::shared_ptr<drawing::Window> window) -> void
-    {
-        current = std::move(window);
-    }
-    auto update(std::chrono::nanoseconds delta) -> void
-    {
-        current->update(delta);
-    }
-    auto draw() const -> void { current->draw(); }
-    auto pollEvents() -> void {}
-    [[nodiscard]] auto isOpen() const -> bool { return current->isOpen(); }
-    [[nodiscard]] auto getCurrentWindow() const
-      -> std::shared_ptr<drawing::Window>
-    {
-        return current;
-    }
-};
 } // namespace
 
 TEST_CASE("The game can run without issues for a few frames",
           "[state_transitions][.window]")
 {
     auto game = state_transitions::Game{
-        DummyWindowManager{},
         std::make_shared<DummyWindow>(),
     };
     REQUIRE_NOTHROW(game.run());

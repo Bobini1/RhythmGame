@@ -11,6 +11,19 @@
 #include "drawing/animations/AnimationPlayerImpl.h"
 
 constexpr auto luaScript = R"(
+function dump(o)
+   if type(o) == 'table' then
+      local s = '{ '
+      for k,v in pairs(o) do
+         if type(k) ~= 'number' then k = '"'..k..'"' end
+         s = s .. '['..k..'] = ' .. dump(v) .. ','
+      end
+      return s .. '} '
+   else
+      return tostring(o)
+   end
+end
+
 function onInit(self)
     print("Hello from lua!")
 end
@@ -71,10 +84,13 @@ local main = HBox.new{
                         Text.new{text = "Hello world!", characterSize = 20, fillColor = Color.new(255, 0, 0, 255), isWidthManaged = true,
                         events = {
                             mouseEnterEvent = function(self)
-                            print("Hovered")
+                                self.text = "Mouse entered!"
+                            end,
+                            mouseLeaveEvent = function(self)
+                                self.text = "Mouse left!"
                             end,
                             leftClickEvent = function(self)
-                            print("Clicked")
+                                self.text = "Mouse clicked!"
                             end
                             }
                         }
@@ -89,7 +105,7 @@ local main = HBox.new{
                         print("Hovered")
                     end,
                     leftClickEvent = function(self)
-                        print("Clicked")
+                        self.parent:getChild(1).fillColor = Color.new(0, 255, 0, 255)
                     end
                 }
             },

@@ -46,7 +46,10 @@ auto
 drawing::actors::AbstractVectorCollection::operator[](size_type index) const
   -> std::shared_ptr<Actor>
 {
-    return children[index];
+    if (index < children.size()) {
+        return children[index];
+    }
+    return nullptr;
 }
 auto
 drawing::actors::AbstractVectorCollection::begin() const noexcept

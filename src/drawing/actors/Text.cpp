@@ -18,7 +18,6 @@ drawing::actors::Text::getTransform() const -> sf::Transform
 auto
 drawing::actors::Text::getWidth() const -> float
 {
-
     return text.getGlobalBounds().width + text.getGlobalBounds().left;
 }
 auto

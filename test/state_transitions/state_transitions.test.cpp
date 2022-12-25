@@ -7,15 +7,15 @@
 
 #include <catch2/catch_test_macros.hpp>
 
+namespace {
 class DummyScene : public drawing::Scene
 {
     unsigned updateCount{};
-
-  private:
     mutable unsigned drawCount{};
 
   public:
-    auto update(std::chrono::nanoseconds /*delta*/) -> void override
+    auto update(std::chrono::nanoseconds /*delta*/, drawing::Window& /*window*/)
+      -> void override
     {
         updateCount++;
     }
@@ -28,6 +28,7 @@ class DummyScene : public drawing::Scene
         drawCount++;
     }
 };
+} // namespace
 
 TEST_CASE("Scenes can be permanently switched in the scene state machine",
           "[state_transitions]")
@@ -43,26 +44,7 @@ TEST_CASE("Scenes can be permanently switched in the scene state machine",
     REQUIRE(sceneStateMachine->getCurrentScene() == otherScene);
 }
 
-TEST_CASE("Only the current scene gets updated and drawn",
-          "[state_transitions]")
-{
-    auto dummyScene = std::make_shared<DummyScene>();
-    auto sceneStateMachine =
-      state_transitions::SceneStateMachineImpl{ dummyScene };
-    REQUIRE(sceneStateMachine.getCurrentScene() == dummyScene);
-    sceneStateMachine.changeScene(dummyScene);
-    REQUIRE(sceneStateMachine.getCurrentScene() == dummyScene);
-    sceneStateMachine.update(std::chrono::nanoseconds(1));
-    auto otherScene = std::make_shared<DummyScene>();
-    sceneStateMachine.changeScene(otherScene);
-    REQUIRE(sceneStateMachine.getCurrentScene() == otherScene);
-    sceneStateMachine.update(std::chrono::nanoseconds(1));
-
-    sceneStateMachine.update(std::chrono::nanoseconds(1));
-    REQUIRE(dummyScene->getUpdateCount() == 1);
-    REQUIRE(otherScene->getUpdateCount() == 2);
-}
-
+namespace {
 class DummyWindow : public drawing::Window
 {
     unsigned updateCount{};
@@ -81,3 +63,24 @@ class DummyWindow : public drawing::Window
     auto draw() -> void override { drawCount++; }
     auto getDrawCount() const -> unsigned { return drawCount; }
 };
+} // namespace
+
+TEST_CASE("Only the current scene gets updated and drawn",
+          "[state_transitions]")
+{
+    auto dummyScene = std::make_shared<DummyScene>();
+    auto sceneStateMachine =
+      state_transitions::SceneStateMachineImpl{ dummyScene };
+    auto dummyWindow = DummyWindow{};
+    REQUIRE(sceneStateMachine.getCurrentScene() == dummyScene);
+    sceneStateMachine.changeScene(dummyScene);
+    REQUIRE(sceneStateMachine.getCurrentScene() == dummyScene);
+    sceneStateMachine.update(std::chrono::nanoseconds(1), dummyWindow);
+    auto otherScene = std::make_shared<DummyScene>();
+    sceneStateMachine.changeScene(otherScene);
+    REQUIRE(sceneStateMachine.getCurrentScene() == otherScene);
+    sceneStateMachine.update(std::chrono::nanoseconds(1), dummyWindow);
+    sceneStateMachine.update(std::chrono::nanoseconds(1), dummyWindow);
+    REQUIRE(dummyScene->getUpdateCount() == 1);
+    REQUIRE(otherScene->getUpdateCount() == 2);
+}
