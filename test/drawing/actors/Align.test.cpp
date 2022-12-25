@@ -149,3 +149,31 @@ TEST_CASE("Align resizes the child to full width if the sizes are managed",
                 sf::Transform(sf::Transform::Identity).translate(0, 0));
     }
 }
+
+TEST_CASE("Align reports the element at the mouse position",
+          "[drawing][actors][align]")
+{
+    auto align = drawing::actors::Align::make();
+    auto child = drawing::actors::Quad::make({ 100, 100 });
+    align->setMode(drawing::actors::Align::Mode::Center);
+    align->setChild(child);
+    align->setWidth(200);
+    align->setHeight(200);
+    align->setTransform(sf::Transform::Identity);
+    std::set<std::weak_ptr<const drawing::actors::Actor>,
+             std::owner_less<std::weak_ptr<const drawing::actors::Actor>>>
+      result;
+    SECTION("mouse inside")
+    {
+        align->getAllActorsAtMousePosition({ 50, 50 }, result);
+        REQUIRE(result.size() == 2);
+        REQUIRE(result.contains(align));
+        REQUIRE(result.contains(child));
+    }
+    SECTION("mouse outside")
+    {
+        align->getAllActorsAtMousePosition({ 25, 25 }, result);
+        REQUIRE(result.size() == 1);
+        REQUIRE(result.contains(align));
+    }
+}
