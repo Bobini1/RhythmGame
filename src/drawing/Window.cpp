@@ -10,3 +10,7 @@ drawing::Window::Window(const sf::VideoMode& mode,
   : sf::RenderWindow(mode, title, style, settings)
 {
 }
+drawing::Window::Window()
+  : sf::RenderWindow()
+{
+}

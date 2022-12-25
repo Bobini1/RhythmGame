@@ -11,10 +11,7 @@ class DummyWindow : public drawing::Window
     unsigned count{};
 
   public:
-    DummyWindow()
-      : drawing::Window(sf::VideoMode(1, 1), "", sf::Style::None)
-    {
-    }
+    DummyWindow() {}
     void update(std::chrono::nanoseconds /*delta*/) override
     {
         count++;
@@ -28,7 +25,7 @@ class DummyWindow : public drawing::Window
 } // namespace
 
 TEST_CASE("The game can run without issues for a few frames",
-          "[state_transitions][.window]")
+          "[state_transitions]")
 {
     auto game = state_transitions::Game{
         std::make_shared<DummyWindow>(),

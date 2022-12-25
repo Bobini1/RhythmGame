@@ -19,6 +19,7 @@ class Window : public sf::RenderWindow
            const std::string& title,
            const sf::Uint32& style,
            const sf::ContextSettings& settings = sf::ContextSettings());
+    Window();
     virtual auto update(std::chrono::nanoseconds delta) -> void = 0;
     virtual auto draw() -> void = 0;
 };

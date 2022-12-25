@@ -51,10 +51,6 @@ class DummyWindow : public drawing::Window
     unsigned drawCount{};
 
   public:
-    DummyWindow()
-      : drawing::Window(sf::VideoMode(1, 1), "", sf::Style::None)
-    {
-    }
     auto getUpdateCount() const -> unsigned { return updateCount; }
     auto update(std::chrono::nanoseconds /*delta*/) -> void override
     {
@@ -66,7 +62,7 @@ class DummyWindow : public drawing::Window
 } // namespace
 
 TEST_CASE("Only the current scene gets updated and drawn",
-          "[state_transitions][.window]")
+          "[state_transitions]")
 {
     auto dummyScene = std::make_shared<DummyScene>();
     auto sceneStateMachine =
