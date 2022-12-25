@@ -4,6 +4,7 @@
 
 #include "Layers.h"
 #include "SFML/Graphics/RenderTarget.hpp"
+#include <ranges>
 
 auto
 drawing::actors::Layers::getLuaSelf(sol::state& lua) -> sol::object
@@ -150,4 +151,17 @@ auto
 drawing::actors::Layers::make() -> std::shared_ptr<Layers>
 {
     return std::shared_ptr<Layers>(new Layers{});
+}
+auto
+drawing::actors::Layers::getAllChildrenAtMousePosition(
+  sf::Vector2f position,
+  std::set<std::weak_ptr<const Actor>,
+           std::owner_less<std::weak_ptr<const Actor>>>& result) const -> void
+{
+    for (auto child = crbegin(); child < crend(); ++child) {
+        (*child)->getAllActorsAtMousePosition(position, result);
+        if ((*child)->getIsObstructing()) {
+            break;
+        }
+    }
 }

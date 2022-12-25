@@ -41,6 +41,11 @@ class AbstractBox : public AbstractVectorCollection
     auto getSpacing() const -> float;
 
   private:
+    auto getAllChildrenAtMousePosition(
+      sf::Vector2f position,
+      std::set<std::weak_ptr<const Actor>,
+               std::owner_less<std::weak_ptr<const Actor>>>& result) const
+      -> void override;
     SizeMode verticalSizeMode{};
     SizeMode horizontalSizeMode{};
     float spacing{};

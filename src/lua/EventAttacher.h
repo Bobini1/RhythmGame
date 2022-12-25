@@ -8,17 +8,17 @@
 #include <memory>
 #include <map>
 #include <functional>
-#include <sol/function.hpp>
-#include "drawing/actors/Actor.h"
 #include "events/Event.h"
 namespace lua {
 
 class EventAttacher
 {
   public:
-    using CppEventInterface =
-      std::function<void(std::shared_ptr<drawing::actors::Actor>,
-                         sol::function)>;
+    using SetterFunction =
+      std::function<void(std::weak_ptr<drawing::actors::Actor>, sol::function)>;
+
+    using GetterFunction =
+      std::function<sol::function(drawing::actors::Actor*)>;
 
     auto attachAllEvents(const std::shared_ptr<drawing::actors::Actor>& actor,
                          const sol::table& events) const -> void;
@@ -33,10 +33,12 @@ class EventAttacher
       sol::usertype<drawing::actors::Actor> actorType) const -> void;
 
   private:
-    std::shared_ptr<std::map<std::string, CppEventInterface>> eventRegistrators;
+    std::shared_ptr<
+      std::map<std::string, std::pair<GetterFunction, SetterFunction>>>
+      eventRegistrators;
 
     auto attachEvent(std::string eventName,
-                     std::shared_ptr<drawing::actors::Actor> actor,
+                     std::weak_ptr<drawing::actors::Actor> actor,
                      sol::function function) const -> void;
 
     sol::state* target;
@@ -53,23 +55,18 @@ class EventAttacher
      * @param name The name of the event.
      */
     template<typename EventType, typename... Args>
-        requires events::Event<EventType, std::function<void(Args...)>, Args...>
     auto addEvent(EventType& event, std::string name) -> void
+        requires events::Event<EventType>
     {
-        (*eventRegistrators)[name + "Event"] =
-          [luaTarget = target, &event, name](
-            const std::shared_ptr<drawing::actors::Actor>& actor,
-            sol::function function) {
-              actor->setEventSubscription(
-                name + "Event",
-                event.subscribe(
-                  [luaTarget,
-                   actorWeak = std::weak_ptr<drawing::actors::Actor>(actor),
-                   function = std::move(function)](Args&&... args) {
-                      auto actor = actorWeak.lock();
-                      function(actor->getLuaSelf(*luaTarget), args...);
-                  }));
-          };
+        (*eventRegistrators)[name + "Event"] = {
+            [&event, name](drawing::actors::Actor* actor) -> sol::function {
+                return event.getSubscription(actor->weak_from_this());
+            },
+            [&event, name](const std::weak_ptr<drawing::actors::Actor>& actor,
+                           sol::function function) {
+                event.subscribe(actor, function);
+            }
+        };
     }
 };
 } // namespace lua

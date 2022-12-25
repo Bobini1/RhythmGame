@@ -163,10 +163,18 @@ drawing::actors::Padding::getChild() const -> std::shared_ptr<Actor>
     return child;
 }
 auto
-drawing::actors::Padding::make(float top,
-                                      float bottom,
-                                      float left,
-                                      float right) -> std::shared_ptr<Padding>
+drawing::actors::Padding::make(float top, float bottom, float left, float right)
+  -> std::shared_ptr<Padding>
 {
     return std::shared_ptr<Padding>(new Padding{ top, bottom, left, right });
+}
+auto
+drawing::actors::Padding::getAllChildrenAtMousePosition(
+  sf::Vector2f position,
+  std::set<std::weak_ptr<const Actor>,
+           std::owner_less<std::weak_ptr<const Actor>>>& result) const -> void
+{
+    if (child) {
+        child->getAllActorsAtMousePosition(position, result);
+    }
 }

@@ -23,9 +23,6 @@ defineActor(sol::state& target, const EventAttacher& eventAttacher) -> void
 {
     auto actorType =
       target.new_usertype<drawing::actors::Actor>("Actor", sol::no_constructor);
-    actorType["getParent"] = [&target](drawing::actors::Actor& self) {
-        return self.getParent()->getLuaSelf(target);
-    };
 
     actorType["width"] = sol::property(&drawing::actors::Actor::getWidth,
                                        &drawing::actors::Actor::setWidth);
@@ -38,6 +35,13 @@ defineActor(sol::state& target, const EventAttacher& eventAttacher) -> void
       sol::property(&drawing::actors::Actor::getIsWidthManaged);
     actorType["isHeightManaged"] =
       sol::property(&drawing::actors::Actor::getIsHeightManaged);
+    actorType["isObstructing"] =
+      sol::property(&drawing::actors::Actor::getIsObstructing,
+                    &drawing::actors::Actor::setIsObstructing);
+    actorType["parent"] =
+      sol::property([&target](drawing::actors::Actor& self) {
+          return self.getParent()->getLuaSelf(target);
+      });
     eventAttacher.registerAllEventProperties(actorType);
 }
 
@@ -67,10 +71,14 @@ defineAbstractVectorCollection(sol::state& target) -> void
           self->addChild(child->shared_from_this());
       };
     abstractVectorCollectionType["getChild"] =
-      [&target](drawing::actors::AbstractVectorCollection* self, int index) {
-          return (*self)[static_cast<std::size_t>(index) - 1]->getLuaSelf(
-            target);
-      };
+      [&target](drawing::actors::AbstractVectorCollection* self,
+                int index) -> sol::object {
+        auto child = (*self)[static_cast<std::size_t>(index) - 1];
+        if (child) {
+            return child->getLuaSelf(target);
+        }
+        return sol::lua_nil;
+    };
     abstractVectorCollectionType["size"] =
       sol::property(&drawing::actors::AbstractVectorCollection::getSize);
 }
@@ -401,7 +409,9 @@ defineLayers(sol::state& target, auto bindAbstractVectorCollectionProperties)
             return returnVal;
         }),
       sol::base_classes,
-      sol::bases<drawing::actors::Actor, drawing::actors::Parent>());
+      sol::bases<drawing::actors::Actor,
+                 drawing::actors::Parent,
+                 drawing::actors::AbstractVectorCollection>());
     layerType["mainLayer"] = sol::property(
       [&target](drawing::actors::Layers* self) {
           return self->getMainLayer()->getLuaSelf(target);
@@ -478,7 +488,8 @@ defineLinear(sol::state& target, auto bindAnimationProperties) -> void
 }
 
 auto
-defineAnimationSequence(sol::state& target, auto bindAnimationProperties) -> void
+defineAnimationSequence(sol::state& target, auto bindAnimationProperties)
+  -> void
 {
     auto animationSequenceType =
       target.new_usertype<drawing::animations::AnimationSequence>(
@@ -564,14 +575,17 @@ detail::defineCommonTypes(
     defineLayers(target, bindAbstractVectorCollectionProperties);
     defineAnimation(target);
 
-    auto bindAnimationProperties = [](const std::shared_ptr<drawing::animations::Animation>& animation, sol::table args) {
-        if (args["onFinished"].valid()) {
-            animation->setOnFinished(args["onFinished"].get<std::function<void()>>());
-        }
-        if (args["isLooping"].valid()) {
-            animation->setIsLooping(args["isLooping"]);
-        }
-    };
+    auto bindAnimationProperties =
+      [](const std::shared_ptr<drawing::animations::Animation>& animation,
+         sol::table args) {
+          if (args["onFinished"].valid()) {
+              animation->setOnFinished(
+                args["onFinished"].get<std::function<void()>>());
+          }
+          if (args["isLooping"].valid()) {
+              animation->setIsLooping(args["isLooping"]);
+          }
+      };
 
     defineLinear(target, bindAnimationProperties);
     defineAnimationSequence(target, bindAnimationProperties);

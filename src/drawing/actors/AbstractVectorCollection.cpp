@@ -46,7 +46,10 @@ auto
 drawing::actors::AbstractVectorCollection::operator[](size_type index) const
   -> std::shared_ptr<Actor>
 {
-    return children[index];
+    if (index < children.size()) {
+        return children[index];
+    }
+    return nullptr;
 }
 auto
 drawing::actors::AbstractVectorCollection::begin() const noexcept
@@ -114,11 +117,11 @@ drawing::actors::AbstractVectorCollection::getSize() const
 }
 auto
 drawing::actors::AbstractVectorCollection::onChildRemoved(
-  std::shared_ptr<Actor> child) -> void
+  std::shared_ptr<Actor> /* child */) -> void
 {
 }
 auto
 drawing::actors::AbstractVectorCollection::onChildAdded(
-  std::shared_ptr<Actor> child) -> void
+  std::shared_ptr<Actor> /* child */) -> void
 {
 }

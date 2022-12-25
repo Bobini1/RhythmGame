@@ -13,7 +13,6 @@
 #include "drawing/actors/Sprite.h"
 #include "SFML/Graphics/Font.hpp"
 #include "drawing/actors/Text.h"
-#include "events/Event.h"
 #include "drawing/animations/Animation.h"
 #include "drawing/animations/AnimationPlayer.h"
 #include "EventAttacher.h"
@@ -232,6 +231,9 @@ getBindActorProperties(const EventAttacher& eventAttacher)
         }
         if (args["height"].valid()) {
             actor->setHeight(args["height"].get<float>());
+        }
+        if (args["isObstructing"].valid()) {
+            actor->setIsObstructing(args["isObstructing"].get<bool>());
         }
         if (args["events"].valid()) {
             eventAttacher.attachAllEvents(actor, args["events"]);

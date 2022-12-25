@@ -1,25 +1,25 @@
 //
-// Created by bobini on 20.11.22.
+// Created by bobini on 24.12.22.
 //
 
 #ifndef RHYTHMGAME_EVENT_H
 #define RHYTHMGAME_EVENT_H
 
-#include "events/Connection.h"
-#include <utility>
 #include <memory>
+#include <sol/function.hpp>
+#include "drawing/actors/Actor.h"
 namespace events {
-/**
- * @brief Concept for events that can be invoked and subscribed to.
- */
-template<typename T, typename Fun, typename... Args>
-concept Event = requires(T event, Fun callback, Args... args) {
+template<typename T>
+concept Event = requires(T event,
+                         const std::weak_ptr<drawing::actors::Actor> actor,
+                         sol::function callback) {
                     {
-                        event.subscribe(std::move(callback))
-                    } -> std::convertible_to<std::unique_ptr<Connection>>;
-                    {
-                        std::as_const(event)(std::forward<Args>(args)...)
+                        event.subscribe(actor, callback)
                     };
+                    {
+                        event.getSubscription(actor)
+                    } -> std::same_as<sol::function>;
                 };
 } // namespace events
+
 #endif // RHYTHMGAME_EVENT_H

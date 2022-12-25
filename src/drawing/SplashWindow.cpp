@@ -15,7 +15,7 @@ SplashWindow::draw() -> void
 auto
 SplashWindow::update(std::chrono::nanoseconds delta) -> void
 {
-    splashScene->update(delta);
+    splashScene->update(delta, *this);
 }
 SplashWindow::SplashWindow(std::shared_ptr<drawing::Scene> splashScene,
                            const sf::VideoMode& mode,

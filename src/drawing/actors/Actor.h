@@ -12,8 +12,7 @@
 #include <memory>
 #include <sol/state.hpp>
 #include "support/EnableSharedFromBase.h"
-#include "events/Connection.h"
-#include <boost/signals2/connection.hpp>
+#include <set>
 
 /**
  * @namespace drawing::actors
@@ -29,9 +28,6 @@ class Actor // NOLINT(fuchsia-multiple-inheritance)
   : public sf::Drawable
   , public support::EnableSharedFromBase<Actor>
 {
-    std::weak_ptr<Parent> parent{};
-    std::map<std::string, std::unique_ptr<events::Connection>>
-      eventSubscriptions{};
 
   protected:
     Actor() = default;
@@ -42,9 +38,6 @@ class Actor // NOLINT(fuchsia-multiple-inheritance)
     Actor(Actor&& otherActor) noexcept = delete;
     auto operator=(Actor&& otherActor) noexcept -> Actor& = delete;
     ~Actor() override = default;
-
-    void setEventSubscription(const std::string& eventName,
-                              std::unique_ptr<events::Connection> connection);
 
     /**
      * @brief Get the lua object of the type of this actor.
@@ -66,12 +59,6 @@ class Actor // NOLINT(fuchsia-multiple-inheritance)
      * added to it. Not exposed to Lua.
      */
     virtual auto setParent(const std::shared_ptr<Parent>& parent) -> void;
-    /**
-     * @brief used by the engine to update an actor's internals every frame. Not
-     * exposed to Lua.
-     * @param delta the time difference between this frame and the previous one.
-     */
-    auto update(std::chrono::nanoseconds delta) -> void;
     /**
      * @brief set the transform of the actor and all its children. Not exposed
      * to lua.
@@ -129,6 +116,17 @@ class Actor // NOLINT(fuchsia-multiple-inheritance)
      */
     auto setHeight(float height) -> void;
 
+    [[nodiscard]] auto getGlobalBounds() const -> sf::FloatRect;
+
+    [[nodiscard]] auto getIsObstructing() const -> bool;
+
+    auto setIsObstructing(bool newIsObstructing) -> void;
+
+    void getAllActorsAtMousePosition(
+      sf::Vector2f position,
+      std::set<std::weak_ptr<const Actor>,
+               std::owner_less<std::weak_ptr<const Actor>>>& result) const;
+
   private:
     /**
      * @brief Actors need to override this to set their width. The contract is
@@ -142,6 +140,15 @@ class Actor // NOLINT(fuchsia-multiple-inheritance)
      * @param height The new height of the actor.
      */
     virtual auto setHeightImpl(float height) -> void = 0;
+
+    virtual auto getAllChildrenAtMousePosition(
+      sf::Vector2f position,
+      std::set<std::weak_ptr<const Actor>,
+               std::owner_less<std::weak_ptr<const Actor>>>& result) const
+      -> void;
+
+    std::weak_ptr<Parent> parent{};
+    bool isObstructing{ false };
 };
 } // namespace drawing::actors
 #endif // RHYTHMGAME_ACTOR_H

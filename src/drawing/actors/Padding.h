@@ -49,6 +49,11 @@ class Padding : public Parent
   private:
     auto setWidthImpl(float width) -> void override;
     auto setHeightImpl(float height) -> void override;
+    auto getAllChildrenAtMousePosition(
+      sf::Vector2f position,
+      std::set<std::weak_ptr<const Actor>,
+               std::owner_less<std::weak_ptr<const Actor>>>& result) const
+      -> void override;
 
   public:
     [[nodiscard]] auto getTop() const -> float;

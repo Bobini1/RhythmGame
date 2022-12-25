@@ -23,7 +23,8 @@ class DummyScene : public drawing::Scene
     }
 
   public:
-    auto update(std::chrono::nanoseconds /*delta*/) -> void override
+    auto update(std::chrono::nanoseconds /*delta*/, drawing::Window& /*window*/)
+      -> void override
     {
         updateCount++;
     }
@@ -35,10 +36,10 @@ class DummyScene : public drawing::Scene
 TEST_CASE("the splash window draws its scene", "[drawing][.window]")
 {
     auto dummyScene = std::make_shared<DummyScene>();
-    auto sceneStateMachine = std::make_shared<drawing::SplashWindow>(
+    auto splashWindow = std::make_shared<drawing::SplashWindow>(
       dummyScene, sf::VideoMode{ 800, 600 }, "Splash Window");
-    sceneStateMachine->draw();
+    splashWindow->draw();
     REQUIRE(dummyScene->getDrawCount() == 1);
-    sceneStateMachine->update(std::chrono::nanoseconds(1));
+    splashWindow->update(std::chrono::nanoseconds(1));
     REQUIRE(dummyScene->getUpdateCount() == 1);
 }

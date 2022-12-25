@@ -2,7 +2,7 @@
 #include "drawing/SplashScene.h"
 #include <future>
 #include <thread>
-#include "state_transitions/WindowStateMachineImpl.h"
+#include "drawing/Window.h"
 #include "resource_managers/TextureLoaderImpl.h"
 
 #include "state_transitions/Game.h"
@@ -11,6 +11,19 @@
 #include "drawing/animations/AnimationPlayerImpl.h"
 
 constexpr auto luaScript = R"(
+function dump(o)
+   if type(o) == 'table' then
+      local s = '{ '
+      for k,v in pairs(o) do
+         if type(k) ~= 'number' then k = '"'..k..'"' end
+         s = s .. '['..k..'] = ' .. dump(v) .. ','
+      end
+      return s .. '} '
+   else
+      return tostring(o)
+   end
+end
+
 function onInit(self)
     print("Hello from lua!")
 end
@@ -68,13 +81,33 @@ local main = HBox.new{
                     children = {
                         fps,
                         Text.new{text = "Hello world!", characterSize = 20},
-                        Text.new{text = "Hello world!", characterSize = 20, fillColor = Color.new(255, 0, 0, 255), isWidthManaged = true}
+                        Text.new{text = "Hello world!", characterSize = 20, fillColor = Color.new(255, 0, 0, 255), isWidthManaged = true,
+                        events = {
+                            mouseEnterEvent = function(self)
+                                self.text = "Mouse entered!"
+                            end,
+                            mouseLeaveEvent = function(self)
+                                self.text = "Mouse left!"
+                            end,
+                            leftClickEvent = function(self)
+                                self.text = "Mouse clicked!"
+                            end
+                            }
+                        }
                     }
                 },
                 left = 10,
                 top = 10,
                 right = 10,
-                bottom = 10
+                bottom = 10,
+                events = {
+                    mouseEnterEvent = function(self)
+                        print("Hovered")
+                    end,
+                    leftClickEvent = function(self)
+                        self.parent:getChild(1).fillColor = Color.new(0, 255, 0, 255)
+                    end
+                }
             },
             children = {
                 Quad.new{isWidthManaged = true, isHeightManaged = true, fillColor = Color.new(0, 0, 0, 255)},
@@ -92,31 +125,36 @@ return layers
 auto
 main() -> int
 {
-    auto state = sol::state{};
-    state.open_libraries(
-      sol::lib::jit, sol::lib::base, sol::lib::io, sol::lib::math);
+    try {
+        auto state = sol::state{};
+        state.open_libraries(
+          sol::lib::jit, sol::lib::base, sol::lib::io, sol::lib::math);
 
-    auto textureLoader =
-      std::make_shared<resource_managers::TextureLoaderImpl>();
-    auto fontLoader = std::make_shared<resource_managers::FontLoaderImpl>();
-    auto animationPlayer = drawing::animations::AnimationPlayerImpl{};
-    auto startingScene = std::make_shared<
-      drawing::SplashScene<events::Signals2Event,
-                           drawing::animations::AnimationPlayerImpl,
-                           resource_managers::TextureLoaderImpl,
-                           resource_managers::FontLoaderImpl>>(
-      std::move(state),
-      std::move(animationPlayer),
-      textureLoader,
-      fontLoader,
-      luaScript);
+        auto textureLoader =
+          std::make_shared<resource_managers::TextureLoaderImpl>();
+        auto fontLoader = std::make_shared<resource_managers::FontLoaderImpl>();
+        auto animationPlayer = drawing::animations::AnimationPlayerImpl{};
+        auto startingScene = std::make_shared<
+          drawing::SplashScene<drawing::animations::AnimationPlayerImpl,
+                               resource_managers::TextureLoaderImpl,
+                               resource_managers::FontLoaderImpl>>(
+          std::move(state),
+          std::move(animationPlayer),
+          textureLoader,
+          fontLoader,
+          luaScript);
 
-    auto startingWindow = std::make_shared<drawing::SplashWindow>(
-      std::move(startingScene), sf::VideoMode{ 800, 600 }, "RhythmGame");
-    auto windowStateMachine = state_transitions::WindowStateMachineImpl{};
-    auto game = state_transitions::Game{ std::move(windowStateMachine),
-                                         std::move(startingWindow) };
-    game.run();
+        auto startingWindow = std::make_shared<drawing::SplashWindow>(
+          std::move(startingScene), sf::VideoMode{ 800, 600 }, "RhythmGame");
+        auto game = state_transitions::Game{ std::move(startingWindow) };
+        game.run();
+    } catch (const std::exception& e) {
+        spdlog::error("Fatal error: {}", e.what());
+        return 1;
+    } catch (...) {
+        spdlog::error("Fatal error: unknown");
+        return 1;
+    }
 
     return 0;
 }

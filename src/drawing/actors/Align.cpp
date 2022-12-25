@@ -111,7 +111,7 @@ auto
 drawing::actors::Align::getWidth() const -> float
 {
     if (!child) {
-        return 0;
+        return size.x;
     }
     return std::max(size.x, child->getWidth());
 }
@@ -119,7 +119,7 @@ auto
 drawing::actors::Align::getHeight() const -> float
 {
     if (!child) {
-        return 0;
+        return size.y;
     }
     return std::max(size.y, child->getHeight());
 }
@@ -182,4 +182,14 @@ drawing::actors::Align::make(drawing::actors::Align::Mode mode)
   -> std::shared_ptr<drawing::actors::Align>
 {
     return std::shared_ptr<Align>(new Align{ mode });
+}
+auto
+drawing::actors::Align::getAllChildrenAtMousePosition(
+  sf::Vector2f position,
+  std::set<std::weak_ptr<const Actor>,
+           std::owner_less<std::weak_ptr<const Actor>>>& result) const -> void
+{
+    if (child) {
+        child->getAllActorsAtMousePosition(position, result);
+    }
 }

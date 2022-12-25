@@ -96,3 +96,18 @@ TEST_CASE("VBox constructor parameters get set correctly", "[drawing][hbox]")
     REQUIRE(vbox->getContentAlignment() ==
             drawing::actors::VBox::ContentAlignment::Center);
 }
+
+// out of bounds access
+
+static constexpr auto scriptWithOutOfBoundsAccess = R"(
+    local root = VBox.new()
+    return root:getChild(1)
+)";
+
+TEST_CASE("VBox returns nil on out of bounds access", "[drawing][vbox]")
+{
+    auto stateSetup = StateSetup{};
+    auto state = sol::state(std::move(stateSetup));
+    auto result = state.script(scriptWithOutOfBoundsAccess);
+    REQUIRE(result.get_type() == sol::type::lua_nil);
+}

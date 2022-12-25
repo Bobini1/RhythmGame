@@ -48,14 +48,37 @@ drawing::actors::Actor::operator=(const Actor& /*unused*/)
 {
     return *this;
 }
-void
-drawing::actors::Actor::setEventSubscription(
-  const std::string& eventName,
-  std::unique_ptr<events::Connection> connection)
+auto
+drawing::actors::Actor::getGlobalBounds() const -> sf::FloatRect
 {
-    eventSubscriptions[eventName] = std::move(connection);
+    return getTransform().transformRect({ 0, 0, getWidth(), getHeight() });
 }
 auto
-drawing::actors::Actor::update(std::chrono::nanoseconds delta) -> void
+drawing::actors::Actor::getIsObstructing() const -> bool
 {
+    return isObstructing;
+}
+auto
+drawing::actors::Actor::setIsObstructing(bool newIsObstructing) -> void
+{
+    isObstructing = newIsObstructing;
+}
+auto
+drawing::actors::Actor::getAllChildrenAtMousePosition(
+  sf::Vector2f /*position*/,
+  std::set<std::weak_ptr<const Actor>,
+           std::owner_less<std::weak_ptr<const Actor>>>& /*result*/) const
+  -> void
+{
+}
+void
+drawing::actors::Actor::getAllActorsAtMousePosition(
+  sf::Vector2f position,
+  std::set<std::weak_ptr<const Actor>,
+           std::owner_less<std::weak_ptr<const Actor>>>& result) const
+{
+    if (getGlobalBounds().contains(position)) {
+        result.insert(weak_from_this());
+        getAllChildrenAtMousePosition(position, result);
+    }
 }

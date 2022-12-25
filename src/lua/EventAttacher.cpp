@@ -13,7 +13,7 @@ EventAttacher::attachAllEvents(
 {
     for (auto& [key, value] : events) {
         if (value.get_type() != sol::type::function) {
-            spdlog::error("Event handler {} is not a function, skipping",
+            spdlog::error("GlobalEvent handler {} is not a function, skipping",
                           key.as<std::string>());
             continue;
         }
@@ -22,18 +22,20 @@ EventAttacher::attachAllEvents(
 }
 auto
 EventAttacher::attachEvent(std::string eventName,
-                           std::shared_ptr<drawing::actors::Actor> actor,
+                           std::weak_ptr<drawing::actors::Actor> actor,
                            sol::function function) const -> void
 {
     if (eventRegistrators->find(eventName) == eventRegistrators->end()) {
-        spdlog::error("Event {} not found", eventName);
+        spdlog::error("GlobalEvent {} not found", eventName);
         return;
     }
-    eventRegistrators->at(eventName)(std::move(actor), std::move(function));
+    eventRegistrators->at(eventName).second(std::move(actor),
+                                            std::move(function));
 }
 EventAttacher::EventAttacher(sol::state* target)
   : eventRegistrators(
-      std::make_shared<std::map<std::string, CppEventInterface>>())
+      std::make_shared<
+        std::map<std::string, std::pair<GetterFunction, SetterFunction>>>())
   , target(target)
 {
 }
@@ -48,14 +50,19 @@ EventAttacher::registerAllEventProperties(
             drawing::actors::Actor* actor, const sol::object& callback) {
               if (callback.is<sol::function>()) {
                   eventAttacher.attachEvent(nameCopy,
-                                            actor->shared_from_this(),
+                                            actor->weak_from_this(),
                                             callback.as<sol::function>());
               } else if (callback.is<sol::lua_nil_t>()) {
-                  actor->setEventSubscription(nameCopy, nullptr);
+                  eventAttacher.attachEvent(
+                    nameCopy, actor->weak_from_this(), sol::lua_nil);
               } else {
                   spdlog::error("Invalid type for {}. Function or nil expected",
                                 nameCopy);
               }
+          },
+          [nameCopy = name,
+           eventAttacher = *this](drawing::actors::Actor* actor) {
+              return eventAttacher.eventRegistrators->at(nameCopy).first(actor);
           });
     }
 }
