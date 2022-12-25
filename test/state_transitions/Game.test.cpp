@@ -11,7 +11,6 @@ class DummyWindow : public drawing::Window
     unsigned count{};
 
   public:
-    DummyWindow() {}
     void update(std::chrono::nanoseconds /*delta*/) override
     {
         count++;
