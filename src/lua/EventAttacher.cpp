@@ -54,7 +54,7 @@ EventAttacher::registerAllEventProperties(
                                             callback.as<sol::function>());
               } else if (callback.is<sol::lua_nil_t>()) {
                   eventAttacher.attachEvent(
-                    nameCopy, actor->weak_from_this(), sol::nil);
+                    nameCopy, actor->weak_from_this(), sol::lua_nil);
               } else {
                   spdlog::error("Invalid type for {}. Function or nil expected",
                                 nameCopy);
