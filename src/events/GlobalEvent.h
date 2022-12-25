@@ -32,7 +32,7 @@ class GlobalEvent
         if (listeners.find(actor) != listeners.end()) {
             return listeners.at(actor);
         }
-        return sol::nil;
+        return sol::lua_nil;
     }
 
     auto operator()(Args&&... args) -> void
