@@ -60,9 +60,6 @@ class EventAttacher
     {
         (*eventRegistrators)[name + "Event"] = {
             [&event, name](drawing::actors::Actor* actor) -> sol::function {
-                if (!actor) {
-                    return sol::nil;
-                }
                 return event.getSubscription(actor->weak_from_this());
             },
             [&event, name](const std::weak_ptr<drawing::actors::Actor>& actor,
