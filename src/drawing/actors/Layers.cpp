@@ -158,9 +158,9 @@ drawing::actors::Layers::getAllChildrenAtMousePosition(
   std::set<std::weak_ptr<const Actor>,
            std::owner_less<std::weak_ptr<const Actor>>>& result) const -> void
 {
-    for (const auto& child : std::ranges::reverse_view(*this)) {
-        child->getAllActorsAtMousePosition(position, result);
-        if (child->getIsObstructing()) {
+    for (auto child = crbegin(); child < crend(); ++child) {
+        (*child)->getAllActorsAtMousePosition(position, result);
+        if ((*child)->getIsObstructing()) {
             break;
         }
     }
