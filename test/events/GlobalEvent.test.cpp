@@ -10,7 +10,7 @@
 
 static constexpr auto script = R"(
     local quad = Quad.new{
-                    events = {initEvent = function(self) self.width = 100 end}
+                    onInit = function(self) self.width = 100 end
                 }
     return quad
 )";
@@ -33,7 +33,7 @@ TEST_CASE("Events can be subscribed to in lua", "[actors][events]")
 
 static constexpr auto scriptWithArgs = R"(
     local quad = Quad.new{
-                    events = {initEvent = function(self, val) self.width = val end}
+                    onInit = function(self, val) self.width = val end
                 }
     return quad
 )";
@@ -42,7 +42,7 @@ TEST_CASE("Events with args can be subscribed to in lua", "[actors][events]")
 {
     StateSetup setup;
     events::GlobalEvent<int> event{ &setup.getState() };
-    setup.addEventToState<int>(event, "init");
+    setup.addEventToState(event, "init");
     setup.defineTypes();
     auto& state = setup.getState();
     auto result = state.script(scriptWithArgs);
@@ -56,9 +56,9 @@ TEST_CASE("Events with args can be subscribed to in lua", "[actors][events]")
 
 static constexpr auto scriptWithDeletedCallback = R"(
     local quad = Quad.new{
-                    events = {initEvent = function(self, val, val2) self.width = val + val2 end}
+                    onInit = function(self, val, val2) self.width = val + val2 end
                 }
-    quad.initEvent = nil
+    quad.onInit = nil
     return quad
 )";
 
@@ -67,7 +67,7 @@ TEST_CASE("Events with args can be subscribed to in lua and deleted",
 {
     StateSetup setup;
     events::GlobalEvent<int, int> event{ &setup.getState() };
-    setup.addEventToState<int, int>(event, "init");
+    setup.addEventToState(event, "init");
     setup.defineTypes();
     auto& state = setup.getState();
     auto result = state.script(scriptWithDeletedCallback);
@@ -82,10 +82,10 @@ TEST_CASE("Events with args can be subscribed to in lua and deleted",
 static constexpr auto scriptWithBadOperations =
   R"(
     local quad = Quad.new{
-                    events = {initEvent = 1,
-                              invalid = function(self, val, val2) self.width = val + val2 end}
+                    initEvent = 1,
+                    onInvalid = function(self, val, val2) self.width = val + val2 end
                 }
-    quad.initEvent = 1
+    quad.onInit = 1
     return quad
 )";
 
@@ -94,7 +94,7 @@ TEST_CASE("Subscriptions to invalid event names or not function don't crash",
 {
     StateSetup setup;
     events::GlobalEvent<int, int> event{ &setup.getState() };
-    setup.addEventToState<int, int>(event, "init");
+    setup.addEventToState(event, "init");
     setup.defineTypes();
     auto& state = setup.getState();
     auto result = state.script(scriptWithBadOperations);
@@ -105,7 +105,7 @@ TEST_CASE("Subscriptions to invalid event names or not function don't crash",
 
 static constexpr auto scriptWithLocalFunction = R"(
     local quad = Quad.new{
-                    events = {initEvent = function(self, val, val2) self.width = val + val2 end}
+                    onInit = function(self, val, val2) self.width = val + val2 end
                 }
     local getFunc = function()
         local function localFunc(self, val, val2)
@@ -114,7 +114,7 @@ static constexpr auto scriptWithLocalFunction = R"(
         return localFunc
     end
 
-    quad.initEvent = getFunc()
+    quad.onInit = getFunc()
     return quad
 )";
 
@@ -122,7 +122,7 @@ TEST_CASE("Subscribing with local functions works", "[actors][events]")
 {
     StateSetup setup;
     events::GlobalEvent<int, int> event{ &setup.getState() };
-    setup.addEventToState<int, int>(event, "init");
+    setup.addEventToState(event, "init");
     setup.defineTypes();
     auto& state = setup.getState();
     auto result = state.script(scriptWithLocalFunction);
@@ -136,12 +136,12 @@ TEST_CASE("Subscribing with local functions works", "[actors][events]")
 
 static constexpr auto scriptWithGetter = R"(
     local quad = Quad.new{
-                    events = {initEvent = function(self, val, val2) self.width = val + val2 end}
+                    onInit = function(self, val, val2) self.width = val + val2 end
                 }
     local otherQuad = Quad.new{
-                    events = {initEvent = function(self, val, val2) self.width = val * val2 end}
+                    onInit = function(self, val, val2) self.width = val * val2 end
                 }
-    otherQuad.initEvent = quad.initEvent
+    otherQuad.onInit = quad.onInit
     return otherQuad
 )";
 
@@ -150,7 +150,7 @@ TEST_CASE("Subscriptions can be copied from one actor to another",
 {
     StateSetup setup;
     events::GlobalEvent<int, int> event{ &setup.getState() };
-    setup.addEventToState<int, int>(event, "init");
+    setup.addEventToState(event, "init");
     setup.defineTypes();
     auto& state = setup.getState();
     auto result = state.script(scriptWithGetter);
@@ -164,9 +164,9 @@ TEST_CASE("Subscriptions can be copied from one actor to another",
 
 static constexpr auto scriptWithUnsubscribe = R"(
     local quad = Quad.new{
-                    events = {initEvent = function(self, val, val2) self.width = val + val2 end}
+                    onInit = function(self, val, val2) self.width = val + val2 end
                 }
-    quad.initEvent = nil
+    quad.onInit = nil
     return quad
 )";
 
@@ -174,7 +174,7 @@ TEST_CASE("Subscriptions can be unsubscribed from with nil", "[actors][events]")
 {
     StateSetup setup;
     events::GlobalEvent<int, int> event{ &setup.getState() };
-    setup.addEventToState<int, int>(event, "init");
+    setup.addEventToState(event, "init");
     setup.defineTypes();
     auto& state = setup.getState();
     auto result = state.script(scriptWithUnsubscribe);

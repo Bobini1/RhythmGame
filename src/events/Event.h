@@ -6,7 +6,7 @@
 #define RHYTHMGAME_EVENT_H
 
 #include <memory>
-#include <sol/function.hpp>
+#include "lua/Lua.h"
 #include "drawing/actors/Actor.h"
 namespace events {
 template<typename T>

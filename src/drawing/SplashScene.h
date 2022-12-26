@@ -55,15 +55,11 @@ class SplashScene : public Scene
     {
         lua::EventAttacher eventAttacher(&this->state);
         eventAttacher.addEvent(init, "init");
-        eventAttacher.addEvent<decltype(onUpdate), float>(onUpdate, "update");
-        eventAttacher.addEvent<decltype(leftClick), sf::Vector2f>(leftClick,
-                                                                  "leftClick");
-        eventAttacher.addEvent<decltype(rightClick), sf::Vector2f>(
-          rightClick, "rightClick");
-        eventAttacher.addEvent<decltype(mouseHover.onMouseEnter), sf::Vector2f>(
-          mouseHover.onMouseEnter, "mouseEnter");
-        eventAttacher.addEvent<decltype(mouseHover.onMouseLeave), sf::Vector2f>(
-          mouseHover.onMouseLeave, "mouseLeave");
+        eventAttacher.addEvent(onUpdate, "update");
+        eventAttacher.addEvent(leftClick, "leftClick");
+        eventAttacher.addEvent(rightClick, "rightClick");
+        eventAttacher.addEvent(mouseHover.onMouseEnter, "mouseEnter");
+        eventAttacher.addEvent(mouseHover.onMouseLeave, "mouseLeave");
         lua::defineAllTypes(this->state,
                             *this->textureLoader,
                             *this->fontLoader,

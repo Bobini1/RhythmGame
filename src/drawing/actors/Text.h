@@ -54,6 +54,8 @@ class Text : public AbstractRectLeaf
     [[nodiscard]] auto getLineSpacing() const -> float;
     [[nodiscard]] auto getLetterSpacing() const -> float;
 
+    [[nodiscard]] auto getGlobalBounds() const -> sf::FloatRect final;
+
   protected:
     void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
     Text() = default;

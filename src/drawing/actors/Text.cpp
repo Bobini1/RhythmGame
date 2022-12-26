@@ -160,3 +160,11 @@ drawing::actors::Text::make(const std::string& text,
 {
     return std::shared_ptr<Text>(new Text{ text, font, size });
 }
+auto
+drawing::actors::Text::getGlobalBounds() const -> sf::FloatRect
+{
+    const auto& textBounds = text.getGlobalBounds();
+    return getTransform()
+      .translate(textBounds.left, textBounds.top)
+      .transformRect({ 0, 0, getWidth(), getHeight() });
+}

@@ -1,5 +1,5 @@
 ﻿#include <catch2/catch_test_macros.hpp>
-#include <sol/sol.hpp>
+#include "lua/Lua.h"
 #include "charts/behaviour/SongDataWriterToLua.h"
 
 TEST_CASE("Check if variables are correctly written to lua state",

@@ -14,13 +14,11 @@ static constexpr auto scriptWithMouseEvent = R"(
     local quad = Quad.new{
                     width = 1,
                     height = 1,
-                    events = {
-                        leftClickEvent = function(self)
-                                self.width = self.width + 100
-                        end
-                    }
+                    onLeftClick = function(self)
+                            self.width = self.width + 100
+                    end
                 }
-    local padding = Padding.new{child = quad, events = {leftClickEvent = function(self) self.top = self.top + 100 end}}
+    local padding = Padding.new{child = quad, onLeftClick = function(self) self.top = self.top + 100 end}
     return padding
 )";
 
@@ -55,20 +53,16 @@ static constexpr auto scriptWithObstructingLayer = R"(
     local quad1 = Quad.new{
                     width = 1,
                     height = 1,
-                    events = {
-                        leftClickEvent = function(self)
-                                self.width = self.width + 100
-                        end
-                    }
+                    onLeftClick = function(self)
+                            self.width = self.width + 100
+                    end
                 }
     local quad2 = Quad.new{
                     width = 1,
                     height = 1,
-                    events = {
-                        leftClickEvent = function(self)
-                                self.width = self.width + 100
-                        end
-                    },
+                    onLeftClick = function(self)
+                            self.width = self.width + 100
+                    end,
                     isObstructing = true
                 }
     local layers = Layers.new{children = {quad1, quad2}}

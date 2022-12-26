@@ -7,20 +7,17 @@
 #include "catch2/catch_test_macros.hpp"
 #include "drawing/actors/Quad.h"
 #include "events/MouseHoverEvents.h"
-#include "drawing/actors/Padding.h"
 
 static constexpr auto scriptWithMouseEnterAndLeftEvent = R"(
     local quad = Quad.new{
                     width = 1,
                     height = 1,
-                    events = {
-                        mouseEnterEvent = function(self)
-                                self.height = 100
-                        end,
-                        mouseLeftEvent = function(self)
-                                self.height = 200
-                        end
-                    }
+                    onMouseEnter = function(self)
+                            self.height = 100
+                    end,
+                    onMouseLeft = function(self)
+                            self.height = 200
+                    end
                 }
     return quad
 )";

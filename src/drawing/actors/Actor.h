@@ -5,12 +5,12 @@
 #ifndef RHYTHMGAME_ACTOR_H
 #define RHYTHMGAME_ACTOR_H
 
+#include "lua/Lua.h"
 #include <SFML/Graphics/Drawable.hpp>
 #include <SFML/Graphics/Transformable.hpp>
 #include <chrono>
 #include <map>
 #include <memory>
-#include <sol/state.hpp>
 #include "support/EnableSharedFromBase.h"
 #include <set>
 
@@ -116,7 +116,7 @@ class Actor // NOLINT(fuchsia-multiple-inheritance)
      */
     auto setHeight(float height) -> void;
 
-    [[nodiscard]] auto getGlobalBounds() const -> sf::FloatRect;
+    [[nodiscard]] virtual auto getGlobalBounds() const -> sf::FloatRect;
 
     [[nodiscard]] auto getIsObstructing() const -> bool;
 
