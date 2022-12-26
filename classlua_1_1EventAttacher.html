@@ -69,8 +69,8 @@
         <section id="pub-types">
           <h2><a href="#pub-types">Public types</a></h2>
           <dl class="m-doc">
-            <dt id="a063dfe26936020fc71a041f7906f50f0">
-              using <a href="#a063dfe26936020fc71a041f7906f50f0" class="m-doc-self">SetterFunction</a> = std::function&lt;void(std::weak_ptr&lt;<a href="classdrawing_1_1actors_1_1Actor.html" class="m-doc">drawing::<wbr />actors::<wbr />Actor</a>&gt;, sol::function)&gt;
+            <dt id="ab7882aa36219ac16e93fe9491ae55e86">
+              using <a href="#ab7882aa36219ac16e93fe9491ae55e86" class="m-doc-self">SetterFunction</a> = std::function&lt;void(<a href="classdrawing_1_1actors_1_1Actor.html" class="m-doc">drawing::<wbr />actors::<wbr />Actor</a>*, sol::function)&gt;
             </dt>
             <dd><span></span></dd>
             <dt id="a552915738c4539960b2c8ecb914d863c">
@@ -91,8 +91,8 @@
         <section id="pub-methods">
           <h2><a href="#pub-methods">Public functions</a></h2>
           <dl class="m-doc">
-            <dt id="a7c408c99ee326857896304b7fcce91f3">
-              <span class="m-doc-wrap-bumper">auto <a href="#a7c408c99ee326857896304b7fcce91f3" class="m-doc-self">attachAllEvents</a>(</span><span class="m-doc-wrap">const std::shared_ptr&lt;<a href="classdrawing_1_1actors_1_1Actor.html" class="m-doc">drawing::<wbr />actors::<wbr />Actor</a>&gt;&amp; actor,
+            <dt id="a12dcf334113866a525f43a5e71128c83">
+              <span class="m-doc-wrap-bumper">auto <a href="#a12dcf334113866a525f43a5e71128c83" class="m-doc-self">attachAllEvents</a>(</span><span class="m-doc-wrap"><a href="classdrawing_1_1actors_1_1Actor.html" class="m-doc">drawing::<wbr />actors::<wbr />Actor</a>* actor,
               const sol::table&amp; events) const -&gt; void</span>
             </dt>
             <dd><span></span></dd>
@@ -101,9 +101,9 @@
             </dt>
             <dd>Goes through all registered events and adds them to the actor type as properties.</dd>
             <dt>
-              <div class="m-doc-template">template&lt;typename EventType, typename... Args&gt;</div>
-              <span class="m-doc-wrap-bumper">auto <a href="#ad15036eecc6375c6a28b724366ab5b77" class="m-doc">addEvent</a>(</span><span class="m-doc-wrap">EventType&amp; event,
-              std::string name) -&gt; void requires events::Event&lt; EventType &gt;</span>
+              <div class="m-doc-template">template&lt;typename EventType&gt;</div>
+              <span class="m-doc-wrap-bumper">auto <a href="#aca73dff849ee42172aca4e2843e65dad" class="m-doc">addEvent</a>(</span><span class="m-doc-wrap">EventType&amp; event,
+              const std::string&amp; name) -&gt; void requires events::Event&lt; EventType &gt;</span>
             </dt>
             <dd>Registers an event in lua.</dd>
           </dl>
@@ -127,13 +127,13 @@
               </tbody>
             </table>
           </div></section>
-          <section class="m-doc-details" id="ad15036eecc6375c6a28b724366ab5b77"><div>
+          <section class="m-doc-details" id="aca73dff849ee42172aca4e2843e65dad"><div>
             <h3>
               <div class="m-doc-template">
-                template&lt;typename EventType, typename... Args&gt;
+                template&lt;typename EventType&gt;
               </div>
-              <span class="m-doc-wrap-bumper">auto lua::<wbr />EventAttacher::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#ad15036eecc6375c6a28b724366ab5b77" class="m-doc-self">addEvent</a>(</span><span class="m-doc-wrap">EventType&amp; event,
-              std::string name) -&gt; void requires events::Event&lt; EventType &gt;</span></span>
+              <span class="m-doc-wrap-bumper">auto lua::<wbr />EventAttacher::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#aca73dff849ee42172aca4e2843e65dad" class="m-doc-self">addEvent</a>(</span><span class="m-doc-wrap">EventType&amp; event,
+              const std::string&amp; name) -&gt; void requires events::Event&lt; EventType &gt;</span></span>
             </h3>
             <p>Registers an event in lua.</p>
             <table class="m-table m-fullwidth m-flat">
@@ -144,10 +144,6 @@
                 <tr>
                   <td style="width: 1%">EventType</td>
                   <td>The event&#x27;s type.</td>
-                </tr>
-                <tr>
-                  <td>Args</td>
-                  <td>The event&#x27;s invocation arguments.</td>
                 </tr>
               </tbody>
               <thead>

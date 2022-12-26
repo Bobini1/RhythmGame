@@ -58,20 +58,12 @@
             <li>
               Reference
               <ul>
-                <li><a href="#namespaces">Namespaces</a></li>
                 <li><a href="#nested-classes">Classes</a></li>
                 <li><a href="#func-members">Functions</a></li>
               </ul>
             </li>
           </ul>
         </div>
-        <section id="namespaces">
-          <h2><a href="#namespaces">Namespaces</a></h2>
-          <dl class="m-doc">
-            <dt>namespace <a href="namespacelua_1_1detail.html" class="m-doc">detail</a></dt>
-            <dd><span></span></dd>
-          </dl>
-        </section>
         <section id="nested-classes">
           <h2><a href="#nested-classes">Classes</a></h2>
           <dl class="m-doc">
@@ -155,6 +147,54 @@
             <dt>
               <span class="m-doc-wrap-bumper">auto <a href="#a7a41619a29cce70b29eb779ff7faf8ce" class="m-doc">defineAnimationSequence</a>(</span><span class="m-doc-wrap">sol::state&amp; target,
               auto bindAnimationProperties) -&gt; void</span>
+            </dt>
+            <dd><span></span></dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#aec0fcac9fa013147faa53620c0e9ee3c" class="m-doc">defineCommonTypes</a>(</span><span class="m-doc-wrap">sol::state&amp; target,
+              const <a href="classlua_1_1EventAttacher.html" class="m-doc">EventAttacher</a>&amp; eventAttacher,
+              const std::function&lt;void(const std::shared_ptr&lt;<a href="classdrawing_1_1actors_1_1Actor.html" class="m-doc">drawing::<wbr />actors::<wbr />Actor</a>&gt;&amp;, sol::table)&gt;&amp; bindActorProperties,
+              const std::function&lt;void(const std::shared_ptr&lt;<a href="classdrawing_1_1actors_1_1AbstractRectLeaf.html" class="m-doc">drawing::<wbr />actors::<wbr />AbstractRectLeaf</a>&gt;&amp;, sol::table)&gt;&amp; bindAbstractRectLeafProperties) -&gt; void</span>
+            </dt>
+            <dd>Define all actors that are not templated.</dd>
+            <dt>
+              <div class="m-doc-template">template&lt;<a href="namespacedrawing_1_1animations.html#abe2f6c9f981c9f60b7d358f5e0192a73" class="m-doc">drawing::<wbr />animations::<wbr />AnimationPlayer</a> AnimationPlayerType&gt;</div>
+              <span class="m-doc-wrap-bumper">auto <a href="#a04ef95dc9b50779c389c747124648c92" class="m-doc">bindAnimationPlayer</a>(</span><span class="m-doc-wrap">sol::state&amp; target,
+              AnimationPlayerType&amp; animationsPlayer) -&gt; void</span>
+            </dt>
+            <dd><span></span></dd>
+            <dt>
+              <div class="m-doc-template">template&lt;<a href="namespaceresource__managers.html#a38eddd67f196b5bbf07f4b2571f2d003" class="m-doc">resource_managers::<wbr />FontLoader</a> FontLoaderType&gt;</div>
+              <span class="m-doc-wrap-bumper">auto <a href="#a6fee82bc83974237ed567ea6b333ba6d" class="m-doc">defineFont</a>(</span><span class="m-doc-wrap">sol::state&amp; target,
+              FontLoaderType&amp; fontLoader) -&gt; void</span>
+            </dt>
+            <dd><span></span></dd>
+            <dt>
+              <div class="m-doc-template">template&lt;<a href="namespaceresource__managers.html#a38eddd67f196b5bbf07f4b2571f2d003" class="m-doc">resource_managers::<wbr />FontLoader</a> FontLoaderType&gt;</div>
+              <span class="m-doc-wrap-bumper">auto <a href="#ab5e035472260682a6ebf86a8535d4c96" class="m-doc">defineText</a>(</span><span class="m-doc-wrap">sol::state&amp; target,
+              FontLoaderType&amp; fontLoader,
+              auto bindAbstractRectLeafProperties) -&gt; void</span>
+            </dt>
+            <dd><span></span></dd>
+            <dt>
+              <div class="m-doc-template">template&lt;<a href="namespaceresource__managers.html#af40c724bd11b4481e560c650021a2dbb" class="m-doc">resource_managers::<wbr />TextureLoader</a> TextureLoaderType&gt;</div>
+              <span class="m-doc-wrap-bumper">auto <a href="#a8af6a9c52a2fd3deee06b2b79f8ebfe4" class="m-doc">defineTexture</a>(</span><span class="m-doc-wrap">sol::state&amp; target,
+              TextureLoaderType&amp; textureLoader) -&gt; void</span>
+            </dt>
+            <dd><span></span></dd>
+            <dt>
+              <div class="m-doc-template">template&lt;<a href="namespaceresource__managers.html#af40c724bd11b4481e560c650021a2dbb" class="m-doc">resource_managers::<wbr />TextureLoader</a> TextureLoaderType&gt;</div>
+              <span class="m-doc-wrap-bumper">auto <a href="#aa054a5a7450ab0e44609ede43a480336" class="m-doc">defineSprite</a>(</span><span class="m-doc-wrap">sol::state&amp; target,
+              const <a href="classlua_1_1EventAttacher.html" class="m-doc">EventAttacher</a>&amp; eventAttacher,
+              TextureLoaderType&amp; textureLoader,
+              auto bindAbstractRectLeafProperties) -&gt; void</span>
+            </dt>
+            <dd><span></span></dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#a55363ebaf73bd0237407a3856dc17593" class="m-doc">getBindActorProperties</a>(</span><span class="m-doc-wrap">const <a href="classlua_1_1EventAttacher.html" class="m-doc">EventAttacher</a>&amp; eventAttacher)</span>
+            </dt>
+            <dd><span></span></dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#a1df0e6f746356eb9142976206ef08bfb" class="m-doc">getBindAbstractRectLeafProperties</a>(</span><span class="m-doc-wrap">auto bindActorProperties)</span>
             </dt>
             <dd><span></span></dd>
             <dt>
@@ -288,6 +328,111 @@
               <span class="m-doc-wrap-bumper">auto lua::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a7a41619a29cce70b29eb779ff7faf8ce" class="m-doc-self">defineAnimationSequence</a>(</span><span class="m-doc-wrap">sol::state&amp; target,
               auto bindAnimationProperties) -&gt; void</span></span>
               <div class="m-doc-include m-code m-inverted m-text-right"><span class="cp">#include</span> <a class="cpf" href="Bootstrapper_8cpp.html">&lt;src/lua/Bootstrapper.cpp&gt;</a></div>
+            </h3>
+            <p><span></span></p>
+          </div></section>
+          <section class="m-doc-details" id="aec0fcac9fa013147faa53620c0e9ee3c"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">auto lua::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#aec0fcac9fa013147faa53620c0e9ee3c" class="m-doc-self">defineCommonTypes</a>(</span><span class="m-doc-wrap">sol::state&amp; target,
+              const <a href="classlua_1_1EventAttacher.html" class="m-doc">EventAttacher</a>&amp; eventAttacher,
+              const std::function&lt;void(const std::shared_ptr&lt;<a href="classdrawing_1_1actors_1_1Actor.html" class="m-doc">drawing::<wbr />actors::<wbr />Actor</a>&gt;&amp;, sol::table)&gt;&amp; bindActorProperties,
+              const std::function&lt;void(const std::shared_ptr&lt;<a href="classdrawing_1_1actors_1_1AbstractRectLeaf.html" class="m-doc">drawing::<wbr />actors::<wbr />AbstractRectLeaf</a>&gt;&amp;, sol::table)&gt;&amp; bindAbstractRectLeafProperties) -&gt; void</span></span>
+              <div class="m-doc-include m-code m-inverted m-text-right"><span class="cp">#include</span> <a class="cpf" href="Bootstrapper_8h.html">&lt;src/lua/Bootstrapper.h&gt;</a></div>
+            </h3>
+            <p>Define all actors that are not templated.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">target</td>
+                  <td>The state to which the types should be added.</td>
+                </tr>
+                <tr>
+                  <td>eventAttacher</td>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td>bindActorProperties</td>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td>bindAbstractRectLeafProperties</td>
+                  <td></td>
+                </tr>
+              </tbody>
+            </table>
+          </div></section>
+          <section class="m-doc-details" id="a04ef95dc9b50779c389c747124648c92"><div>
+            <h3>
+              <div class="m-doc-include m-code m-inverted m-right-m m-text-right"><span class="cp">#include</span> <a class="cpf" href="Bootstrapper_8h.html">&lt;src/lua/Bootstrapper.h&gt;</a></div>
+              <div class="m-doc-template">
+                template&lt;<a href="namespacedrawing_1_1animations.html#abe2f6c9f981c9f60b7d358f5e0192a73" class="m-doc">drawing::<wbr />animations::<wbr />AnimationPlayer</a> AnimationPlayerType&gt;
+              </div>
+              <span class="m-doc-wrap-bumper">auto lua::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a04ef95dc9b50779c389c747124648c92" class="m-doc-self">bindAnimationPlayer</a>(</span><span class="m-doc-wrap">sol::state&amp; target,
+              AnimationPlayerType&amp; animationsPlayer) -&gt; void</span></span>
+            </h3>
+            <p><span></span></p>
+          </div></section>
+          <section class="m-doc-details" id="a6fee82bc83974237ed567ea6b333ba6d"><div>
+            <h3>
+              <div class="m-doc-include m-code m-inverted m-right-m m-text-right"><span class="cp">#include</span> <a class="cpf" href="Bootstrapper_8h.html">&lt;src/lua/Bootstrapper.h&gt;</a></div>
+              <div class="m-doc-template">
+                template&lt;<a href="namespaceresource__managers.html#a38eddd67f196b5bbf07f4b2571f2d003" class="m-doc">resource_managers::<wbr />FontLoader</a> FontLoaderType&gt;
+              </div>
+              <span class="m-doc-wrap-bumper">auto lua::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a6fee82bc83974237ed567ea6b333ba6d" class="m-doc-self">defineFont</a>(</span><span class="m-doc-wrap">sol::state&amp; target,
+              FontLoaderType&amp; fontLoader) -&gt; void</span></span>
+            </h3>
+            <p><span></span></p>
+          </div></section>
+          <section class="m-doc-details" id="ab5e035472260682a6ebf86a8535d4c96"><div>
+            <h3>
+              <div class="m-doc-include m-code m-inverted m-right-m m-text-right"><span class="cp">#include</span> <a class="cpf" href="Bootstrapper_8h.html">&lt;src/lua/Bootstrapper.h&gt;</a></div>
+              <div class="m-doc-template">
+                template&lt;<a href="namespaceresource__managers.html#a38eddd67f196b5bbf07f4b2571f2d003" class="m-doc">resource_managers::<wbr />FontLoader</a> FontLoaderType&gt;
+              </div>
+              <span class="m-doc-wrap-bumper">auto lua::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#ab5e035472260682a6ebf86a8535d4c96" class="m-doc-self">defineText</a>(</span><span class="m-doc-wrap">sol::state&amp; target,
+              FontLoaderType&amp; fontLoader,
+              auto bindAbstractRectLeafProperties) -&gt; void</span></span>
+            </h3>
+            <p><span></span></p>
+          </div></section>
+          <section class="m-doc-details" id="a8af6a9c52a2fd3deee06b2b79f8ebfe4"><div>
+            <h3>
+              <div class="m-doc-include m-code m-inverted m-right-m m-text-right"><span class="cp">#include</span> <a class="cpf" href="Bootstrapper_8h.html">&lt;src/lua/Bootstrapper.h&gt;</a></div>
+              <div class="m-doc-template">
+                template&lt;<a href="namespaceresource__managers.html#af40c724bd11b4481e560c650021a2dbb" class="m-doc">resource_managers::<wbr />TextureLoader</a> TextureLoaderType&gt;
+              </div>
+              <span class="m-doc-wrap-bumper">auto lua::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a8af6a9c52a2fd3deee06b2b79f8ebfe4" class="m-doc-self">defineTexture</a>(</span><span class="m-doc-wrap">sol::state&amp; target,
+              TextureLoaderType&amp; textureLoader) -&gt; void</span></span>
+            </h3>
+            <p><span></span></p>
+          </div></section>
+          <section class="m-doc-details" id="aa054a5a7450ab0e44609ede43a480336"><div>
+            <h3>
+              <div class="m-doc-include m-code m-inverted m-right-m m-text-right"><span class="cp">#include</span> <a class="cpf" href="Bootstrapper_8h.html">&lt;src/lua/Bootstrapper.h&gt;</a></div>
+              <div class="m-doc-template">
+                template&lt;<a href="namespaceresource__managers.html#af40c724bd11b4481e560c650021a2dbb" class="m-doc">resource_managers::<wbr />TextureLoader</a> TextureLoaderType&gt;
+              </div>
+              <span class="m-doc-wrap-bumper">auto lua::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#aa054a5a7450ab0e44609ede43a480336" class="m-doc-self">defineSprite</a>(</span><span class="m-doc-wrap">sol::state&amp; target,
+              const <a href="classlua_1_1EventAttacher.html" class="m-doc">EventAttacher</a>&amp; eventAttacher,
+              TextureLoaderType&amp; textureLoader,
+              auto bindAbstractRectLeafProperties) -&gt; void</span></span>
+            </h3>
+            <p><span></span></p>
+          </div></section>
+          <section class="m-doc-details" id="a55363ebaf73bd0237407a3856dc17593"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">auto lua::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a55363ebaf73bd0237407a3856dc17593" class="m-doc-self">getBindActorProperties</a>(</span><span class="m-doc-wrap">const <a href="classlua_1_1EventAttacher.html" class="m-doc">EventAttacher</a>&amp; eventAttacher)</span></span>
+              <div class="m-doc-include m-code m-inverted m-text-right"><span class="cp">#include</span> <a class="cpf" href="Bootstrapper_8h.html">&lt;src/lua/Bootstrapper.h&gt;</a></div>
+            </h3>
+            <p><span></span></p>
+          </div></section>
+          <section class="m-doc-details" id="a1df0e6f746356eb9142976206ef08bfb"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">auto lua::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a1df0e6f746356eb9142976206ef08bfb" class="m-doc-self">getBindAbstractRectLeafProperties</a>(</span><span class="m-doc-wrap">auto bindActorProperties)</span></span>
+              <div class="m-doc-include m-code m-inverted m-text-right"><span class="cp">#include</span> <a class="cpf" href="Bootstrapper_8h.html">&lt;src/lua/Bootstrapper.h&gt;</a></div>
             </h3>
             <p><span></span></p>
           </div></section>
