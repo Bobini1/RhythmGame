@@ -5,7 +5,7 @@
 #ifndef RHYTHMGAME_SONGDATAWRITERTOLUA_H
 #define RHYTHMGAME_SONGDATAWRITERTOLUA_H
 #include <string>
-#include <sol/sol.hpp>
+#include "lua/Lua.h"
 #include <charts/behaviour/SongDataWriter.h>
 
 namespace charts::behaviour {

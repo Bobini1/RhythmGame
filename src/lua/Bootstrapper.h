@@ -5,7 +5,7 @@
 #ifndef RHYTHMGAME_BOOTSTRAPPER_H
 #define RHYTHMGAME_BOOTSTRAPPER_H
 
-#include <sol/state.hpp>
+#include "lua/Lua.h"
 #include <spdlog/spdlog.h>
 #include <utility>
 #include "resource_managers/TextureLoader.h"
@@ -21,7 +21,6 @@
 
 namespace lua {
 
-namespace detail {
 template<drawing::animations::AnimationPlayer AnimationPlayerType>
 auto
 bindAnimationPlayer(sol::state& target, AnimationPlayerType& animationsPlayer)
@@ -235,9 +234,7 @@ getBindActorProperties(const EventAttacher& eventAttacher)
         if (args["isObstructing"].valid()) {
             actor->setIsObstructing(args["isObstructing"].get<bool>());
         }
-        if (args["events"].valid()) {
-            eventAttacher.attachAllEvents(actor, args["events"]);
-        }
+        eventAttacher.attachAllEvents(actor.get(), args);
     };
 }
 
@@ -263,7 +260,6 @@ getBindAbstractRectLeafProperties(auto bindActorProperties)
     };
 }
 
-} // namespace detail
 template<resource_managers::TextureLoader TextureLoaderType,
          resource_managers::FontLoader FontLoaderType,
          drawing::animations::AnimationPlayer AnimationPlayerType>
@@ -274,19 +270,19 @@ defineAllTypes(sol::state& target,
                AnimationPlayerType& animationPlayer,
                const EventAttacher& eventAttacher) -> void
 {
-    auto bindActorProperties = detail::getBindActorProperties(eventAttacher);
+    auto bindActorProperties = getBindActorProperties(eventAttacher);
     auto bindAbstractRectLeafProperties =
-      detail::getBindAbstractRectLeafProperties(bindActorProperties);
-    detail::defineCommonTypes(target,
-                              eventAttacher,
-                              bindActorProperties,
-                              bindAbstractRectLeafProperties);
-    detail::defineFont(target, fontLoader);
-    detail::defineText(target, fontLoader, bindAbstractRectLeafProperties);
-    detail::defineTexture(target, textureLoader);
-    detail::defineSprite(
+      getBindAbstractRectLeafProperties(bindActorProperties);
+    defineCommonTypes(target,
+                      eventAttacher,
+                      bindActorProperties,
+                      bindAbstractRectLeafProperties);
+    defineFont(target, fontLoader);
+    defineText(target, fontLoader, bindAbstractRectLeafProperties);
+    defineTexture(target, textureLoader);
+    defineSprite(
       target, eventAttacher, textureLoader, bindAbstractRectLeafProperties);
-    detail::bindAnimationPlayer(target, animationPlayer);
+    bindAnimationPlayer(target, animationPlayer);
 }
 } // namespace lua
 #endif // RHYTHMGAME_BOOTSTRAPPER_H

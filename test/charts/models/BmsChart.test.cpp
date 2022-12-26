@@ -1,6 +1,6 @@
 ﻿#include <catch2/catch_test_macros.hpp>
 #include "charts/models/BmsChart.h"
-#include <sol/sol.hpp>
+#include "lua/Lua.h"
 
 TEST_CASE("Check if incomplete tags are parsed correctly", "[BmsChart]")
 {

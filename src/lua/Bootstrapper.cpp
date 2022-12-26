@@ -2,9 +2,8 @@
 // Created by bobini on 10.08.2022.
 //
 
-#include <SFML/Graphics/Font.hpp>
-#include <spdlog/spdlog.h>
 #include "Bootstrapper.h"
+#include <SFML/Graphics/Font.hpp>
 #include "drawing/actors/Actor.h"
 #include "drawing/actors/Parent.h"
 #include "drawing/actors/VBox.h"
@@ -181,9 +180,13 @@ defineVector2(sol::state& target) -> void
 {
     auto vector2fType = target.new_usertype<sf::Vector2f>(
       "Vector2",
-      sol::constructors<sf::Vector2f(), sf::Vector2f(float, float)>());
+      sol::constructors<sf::Vector2f(),
+                        sf::Vector2f(float, float),
+                        sf::Vector2f(const sf::Vector2f&)>());
     vector2fType["x"] = sol::property(&sf::Vector2f::x, &sf::Vector2f::x);
     vector2fType["y"] = sol::property(&sf::Vector2f::y, &sf::Vector2f::y);
+    vector2fType[1] = sol::property(&sf::Vector2f::x, &sf::Vector2f::x);
+    vector2fType[2] = sol::property(&sf::Vector2f::y, &sf::Vector2f::y);
 }
 
 auto
@@ -250,7 +253,15 @@ defineQuad(sol::state& target, auto bindAbstractRectLeafProperties) -> void
     quadType["outlineThickness"] =
       sol::property(&drawing::actors::Quad::getOutlineThickness,
                     &drawing::actors::Quad::setOutlineThickness);
-    quadType["getPoint"] = &drawing::actors::Quad::getPoint;
+    quadType["getPoint"] = [](drawing::actors::Quad& self,
+                              int index) -> sf::Vector2f {
+        if (index < 1 || index > 4) {
+            spdlog::error(
+              "Quad.getPoint index must be between 1 and 4, was: {}", index);
+            return {};
+        }
+        return self.getPoint(static_cast<size_t>(index - 1));
+    };
 }
 
 auto
@@ -259,12 +270,16 @@ defineColor(sol::state& target) -> void
     auto colorType = target.new_usertype<sf::Color>(
       "Color",
       sol::constructors<sf::Color(),
-                        sf::Color(
-                          sf::Uint8, sf::Uint8, sf::Uint8, sf::Uint8)>());
+                        sf::Color(sf::Uint8, sf::Uint8, sf::Uint8, sf::Uint8),
+                        sf::Color(const sf::Color&)>());
     colorType["r"] = sol::property(&sf::Color::r, &sf::Color::r);
     colorType["g"] = sol::property(&sf::Color::g, &sf::Color::g);
     colorType["b"] = sol::property(&sf::Color::b, &sf::Color::b);
     colorType["a"] = sol::property(&sf::Color::a, &sf::Color::a);
+    colorType[1] = sol::property(&sf::Color::r, &sf::Color::r);
+    colorType[2] = sol::property(&sf::Color::g, &sf::Color::g);
+    colorType[3] = sol::property(&sf::Color::b, &sf::Color::b);
+    colorType[4] = sol::property(&sf::Color::a, &sf::Color::a);
 }
 
 auto
@@ -430,14 +445,9 @@ defineAnimation(sol::state& target) -> void
     animationType["isLooping"] =
       sol::property(&drawing::animations::Animation::getIsLooping,
                     &drawing::animations::Animation::setIsLooping);
-    animationType["duration"] = sol::property(
-      [](drawing::animations::Animation* self) {
-          return static_cast<double>(self->getDuration().count()) * 1E-9;
-      },
-      [](drawing::animations::Animation* self, float duration) {
-          self->setDuration(
-            std::chrono::nanoseconds{ static_cast<int64_t>(duration * 1E9) });
-      });
+    animationType["duration"] =
+      sol::property(&drawing::animations::Animation::getDuration,
+                    &drawing::animations::Animation::setDuration);
     animationType["progress"] =
       sol::property(&drawing::animations::Animation::getProgress,
                     &drawing::animations::Animation::setProgress);
@@ -450,27 +460,22 @@ defineAnimation(sol::state& target) -> void
 auto
 defineLinear(sol::state& target, auto bindAnimationProperties) -> void
 {
-    constexpr auto secondsToNanos = 1E9;
     auto linearType = target.new_usertype<drawing::animations::Linear>(
       "Linear",
       sol::factories(
         [](std::function<void(float)> function,
-           float seconds,
+           std::chrono::nanoseconds time,
            float start,
            float end) {
-            auto time = std::chrono::nanoseconds(
-              static_cast<int64_t>(seconds * secondsToNanos));
             return drawing::animations::Linear::make(
               std::move(function), time, start, end);
         },
         [bindAnimationProperties](sol::table args) {
             auto function = args.get_or(
               "function", std::function<void(float)>{ [](float) {} });
-            auto seconds = args.get_or("duration", 0.F);
+            auto time = args.get_or("duration", std::chrono::nanoseconds{});
             auto start = args.get_or("from", 0.F);
             auto end = args.get_or("to", 0.F);
-            auto time = std::chrono::nanoseconds(
-              static_cast<int64_t>(seconds * secondsToNanos));
             auto result = drawing::animations::Linear::make(
               std::move(function), time, start, end);
             bindAnimationProperties(result, args);
@@ -512,7 +517,7 @@ defineAnimationSequence(sol::state& target, auto bindAnimationProperties)
         sol::bases<drawing::animations::Animation>());
 }
 auto
-detail::defineCommonTypes(
+defineCommonTypes(
   sol::state& target,
   const EventAttacher& eventAttacher,
   const std::function<void(const std::shared_ptr<drawing::actors::Actor>&,

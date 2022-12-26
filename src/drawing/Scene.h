@@ -7,7 +7,7 @@
 
 #include <SFML/Graphics/Drawable.hpp>
 #include <chrono>
-#include <sol/state.hpp>
+#include "lua/Lua.h"
 #include <any>
 #include "lua/Bootstrapper.h"
 namespace drawing {

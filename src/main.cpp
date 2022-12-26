@@ -42,24 +42,21 @@ local function onUpdate(self, delta)
         count = 0
         time = 0
         local function currentSizeUpdater(value)
-            self.fillColor = Color.new(255, 255, 255, math.floor(value))
+            self.fillColor = {r=255, g=255, b=255, a=math.floor(value)}
         end
         local animation = Linear.new(currentSizeUpdater, 1, 0, 255)
         playAnimation(animation)
     end
 end
-
-local fps = Text.new{text = "FPS: 0", fillColor = Color.new(255, 0, 0, 255), events = {updateEvent = onUpdate}, isWidthManaged = true}
+local fps = Text.new{text = "FPS: 0", fillColor = {r=255, g=0, b=0, a=255}, onUpdate = onUpdate, isWidthManaged = true}
 
 local main = HBox.new{
-    events = {
-        initEvent = onInit
-    },
+    onInit = onInit,
     contentAlignment = HBoxContentAlignment.Bottom,
     horizontalSizeMode = SizeMode.Managed,
     verticalSizeMode = SizeMode.Managed,
     children = {
-        Quad.new{width = 100, isHeightManaged = true, fillColor = Color.new(255, 0, 255, 255)},
+        Quad.new{width = 100, isHeightManaged = true, fillColor = {r=255, g=0, b=255, a=255}},
         Align.new(
             Padding.new{
                 child = Sprite.new{
@@ -81,18 +78,16 @@ local main = HBox.new{
                     children = {
                         fps,
                         Text.new{text = "Hello world!", characterSize = 20},
-                        Text.new{text = "Hello world!", characterSize = 20, fillColor = Color.new(255, 0, 0, 255), isWidthManaged = true,
-                        events = {
-                            mouseEnterEvent = function(self)
+                        Text.new{text = "Hello world!", characterSize = 20, fillColor = {r=255, g=0, b=0, a=255}, isWidthManaged = true,
+                            onMouseEnter = function(self)
                                 self.text = "Mouse entered!"
                             end,
-                            mouseLeaveEvent = function(self)
+                            onMouseLeave = function(self)
                                 self.text = "Mouse left!"
                             end,
-                            leftClickEvent = function(self)
+                            onLeftClick = function(self)
                                 self.text = "Mouse clicked!"
                             end
-                            }
                         }
                     }
                 },
@@ -100,23 +95,21 @@ local main = HBox.new{
                 top = 10,
                 right = 10,
                 bottom = 10,
-                events = {
-                    mouseEnterEvent = function(self)
-                        print("Hovered")
-                    end,
-                    leftClickEvent = function(self)
-                        self.parent:getChild(1).fillColor = Color.new(0, 255, 0, 255)
-                    end
-                }
+                onMouseEnter = function(self)
+                    print("Hovered")
+                end,
+                onLeftClick = function(self)
+                    self.parent:getChild(1).fillColor = {r=0, g=255, b=0, a=255}
+                end
             },
             children = {
-                Quad.new{isWidthManaged = true, isHeightManaged = true, fillColor = Color.new(0, 0, 0, 255)},
+                Quad.new{isWidthManaged = true, isHeightManaged = true, fillColor = {r=0, g=0, b=0, a=255}},
             }
         }
     }
 }
-main.initEvent = onInit2
-local bg = Quad.new{isWidthManaged = true, isHeightManaged = true, fillColor = Color.new(255, 255, 255, 255)}
+main.onInit = onInit2
+local bg = Quad.new{isWidthManaged = true, isHeightManaged = true, fillColor = {255, 255, b=255, a=255}}
 local layers = Layers.new{mainLayer = main, children = {bg, main}}
 
 return layers

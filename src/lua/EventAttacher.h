@@ -9,18 +9,19 @@
 #include <map>
 #include <functional>
 #include "events/Event.h"
+#include "support/Capitalize.h"
 namespace lua {
 
 class EventAttacher
 {
   public:
     using SetterFunction =
-      std::function<void(std::weak_ptr<drawing::actors::Actor>, sol::function)>;
+      std::function<void(drawing::actors::Actor*, sol::function)>;
 
     using GetterFunction =
       std::function<sol::function(drawing::actors::Actor*)>;
 
-    auto attachAllEvents(const std::shared_ptr<drawing::actors::Actor>& actor,
+    auto attachAllEvents(drawing::actors::Actor* actor,
                          const sol::table& events) const -> void;
 
     /**
@@ -37,8 +38,8 @@ class EventAttacher
       std::map<std::string, std::pair<GetterFunction, SetterFunction>>>
       eventRegistrators;
 
-    auto attachEvent(std::string eventName,
-                     std::weak_ptr<drawing::actors::Actor> actor,
+    auto attachEvent(const std::string& eventName,
+                     drawing::actors::Actor* actor,
                      sol::function function) const -> void;
 
     sol::state* target;
@@ -50,21 +51,22 @@ class EventAttacher
      * @brief Registers an event in lua.
      * @tparam EventType The event's type.
      * @tparam Args The event's invocation arguments.
-     * @param target The state to which the event should be added.
      * @param event The event to be added.
      * @param name The name of the event.
      */
-    template<typename EventType, typename... Args>
-    auto addEvent(EventType& event, std::string name) -> void
+    template<typename EventType>
+    auto addEvent(EventType& event, const std::string& name) -> void
         requires events::Event<EventType>
     {
-        (*eventRegistrators)[name + "Event"] = {
+        // init -> onInit
+        constexpr auto eventPrefix = "on";
+        (*eventRegistrators)[eventPrefix + support::capitalize(name)] = {
             [&event, name](drawing::actors::Actor* actor) -> sol::function {
                 return event.getSubscription(actor->weak_from_this());
             },
-            [&event, name](const std::weak_ptr<drawing::actors::Actor>& actor,
+            [&event, name](drawing::actors::Actor* actor,
                            sol::function function) {
-                event.subscribe(actor, function);
+                event.subscribe(actor->weak_from_this(), function);
             }
         };
     }

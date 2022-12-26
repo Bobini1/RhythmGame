@@ -4,7 +4,7 @@
 
 #include <catch2/catch_test_macros.hpp>
 #include "charts/chart_readers/BmsChartReader.h"
-#include <sol/sol.hpp>
+#include "lua/Lua.h"
 
 TEST_CASE("Check if Title is parsed correctly", "[BmsChartReader]")
 {
