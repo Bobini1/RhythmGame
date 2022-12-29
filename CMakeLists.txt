@@ -82,7 +82,7 @@ set_target_properties(
         RhythmGame_exe PROPERTIES
         OUTPUT_NAME RhythmGame
         EXPORT_NAME exe
-        RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/bin"
+        RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/bin/$<0:>"
 )
 
 add_custom_command(TARGET RhythmGame_exe POST_BUILD

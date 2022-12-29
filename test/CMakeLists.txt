@@ -18,6 +18,10 @@ target_link_libraries(
         Catch2::Catch2WithMain
 )
 target_compile_features(RhythmGame_test PRIVATE cxx_std_20)
+set_target_properties(
+        RhythmGame_test PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/bin/$<0:>"
+)
 include(Catch)
 
 # boolean cache variable "sanitize"
