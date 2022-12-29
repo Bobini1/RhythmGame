@@ -14,7 +14,8 @@ static constexpr auto scriptWithArrayConstructor = R"(
     return sprite
 )";
 
-TEST_CASE("Sprite can be constructed from lua", "[drawing][actors][sprite]")
+TEST_CASE("Sprite can be constructed from lua",
+          "[drawing][actors][sprite][.window]")
 {
     auto stateSetup = StateSetup{};
     auto state = sol::state(std::move(stateSetup));

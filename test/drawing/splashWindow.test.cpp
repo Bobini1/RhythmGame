@@ -33,7 +33,7 @@ class DummyScene : public drawing::Scene
 };
 } // namespace
 
-TEST_CASE("the splash window draws its scene", "[drawing]")
+TEST_CASE("the splash window draws its scene", "[drawing][.window]")
 {
     auto dummyScene = std::make_shared<DummyScene>();
     auto splashWindow = std::make_shared<drawing::SplashWindow>(

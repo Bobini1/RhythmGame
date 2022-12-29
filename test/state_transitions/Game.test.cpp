@@ -24,7 +24,7 @@ class DummyWindow : public drawing::Window
 } // namespace
 
 TEST_CASE("The game can run without issues for a few frames",
-          "[state_transitions]")
+          "[state_transitions][.window]")
 {
     auto game = state_transitions::Game{
         std::make_shared<DummyWindow>(),
