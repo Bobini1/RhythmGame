@@ -34,7 +34,7 @@ endif ()
 
 add_custom_command(TARGET RhythmGame_test POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E create_symlink
-        ${CMAKE_SOURCE_DIR}/assets ${CMAKE_BINARY_DIR}/${CMAKE_CFG_INTDIR}/assets)
+        ${CMAKE_SOURCE_DIR}/assets assets)
 
 catch_discover_tests(RhythmGame_test)
 # ---- End-of-file commands ----
