@@ -25,9 +25,9 @@ if (APPLE)
     set_target_properties(RhythmGame_test PROPERTIES LINK_FLAGS "-pagezero_size 10000 -image_base 100000000")
 endif ()
 
-add_custom_command(TARGET RhythmGame_test
+add_custom_command(TARGET RhythmGame_test POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E create_symlink
-        ${CMAKE_SOURCE_DIR}/assets ${CMAKE_BINARY_DIR}/assets)
+        ${CMAKE_SOURCE_DIR}/assets ${CMAKE_BINARY_DIR}/${CMAKE_CFG_INTDIR}/assets)
 
 catch_discover_tests(RhythmGame_test)
 # ---- End-of-file commands ----

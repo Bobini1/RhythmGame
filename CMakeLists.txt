@@ -85,11 +85,11 @@ set_target_properties(
         RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/bin"
 )
 
-add_custom_command(TARGET RhythmGame_exe
+add_custom_command(TARGET RhythmGame_exe POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E create_symlink
-        ${CMAKE_SOURCE_DIR}/assets ${CMAKE_BINARY_DIR}/assets)
+        ${CMAKE_SOURCE_DIR}/assets ${CMAKE_BINARY_DIR}/${CMAKE_CFG_INTDIR}/assets)
 
-message(STATUS "Installing assets to ${CMAKE_BINARY_DIR}/assets")
+message(STATUS "Installing assets to ${CMAKE_BINARY_DIR}/${CMAKE_CFG_INTDIR}/assets")
 
 target_compile_features(RhythmGame_exe PRIVATE cxx_std_20)
 
