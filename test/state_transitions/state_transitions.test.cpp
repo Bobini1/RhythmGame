@@ -62,7 +62,7 @@ class DummyWindow : public drawing::Window
 } // namespace
 
 TEST_CASE("Only the current scene gets updated and drawn",
-          "[state_transitions][.window]")
+          "[state_transitions]")
 {
     auto dummyScene = std::make_shared<DummyScene>();
     auto sceneStateMachine =

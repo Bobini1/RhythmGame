@@ -89,6 +89,7 @@ add_custom_command(TARGET RhythmGame_exe
         COMMAND ${CMAKE_COMMAND} -E create_symlink
         ${CMAKE_SOURCE_DIR}/assets ${CMAKE_BINARY_DIR}/assets)
 
+message(STATUS "Installing assets to ${CMAKE_BINARY_DIR}/assets")
 
 target_compile_features(RhythmGame_exe PRIVATE cxx_std_20)
 
