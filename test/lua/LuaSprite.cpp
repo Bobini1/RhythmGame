@@ -33,7 +33,7 @@ static constexpr auto scriptWithSimpleCtor = R"(
     return sprite
 )";
 
-TEST_CASE("Sprite simple contructor works", "[drawing][actors][sprite]")
+TEST_CASE("Sprite simple constructor works", "[drawing][actors][sprite]")
 {
     auto stateSetup = StateSetup{};
     auto state = sol::state(std::move(stateSetup));
