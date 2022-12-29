@@ -37,7 +37,7 @@ TEST_CASE("Sprite simple contructor works", "[drawing][actors][sprite]")
 {
     auto stateSetup = StateSetup{};
     auto state = sol::state(std::move(stateSetup));
-    auto result = state.script("return Sprite.new()");
+    auto result = state.script(scriptWithGetPoint);
     auto root = result.get<drawing::actors::Actor*>()->shared_from_this();
     auto sprite = std::dynamic_pointer_cast<drawing::actors::Sprite>(root);
     REQUIRE(sprite != nullptr);
