@@ -14,8 +14,8 @@ static constexpr auto scriptWithArrayConstructor = R"(
     return sprite
 )";
 
-TEST_CASE("Sprite can be constructed from lua",
-          "[drawing][actors][sprite][.window]")
+#ifndef DISABLE_WINDOW_TESTS
+TEST_CASE("Sprite can be constructed from lua", "[drawing][actors][sprite]")
 {
     auto stateSetup = StateSetup{};
     auto state = sol::state(std::move(stateSetup));
@@ -27,3 +27,4 @@ TEST_CASE("Sprite can be constructed from lua",
     REQUIRE(sprite->getMinHeight() == Catch::Approx(100));
     REQUIRE(sprite->getColor() == sf::Color(255, 0, 0, 255));
 }
+#endif

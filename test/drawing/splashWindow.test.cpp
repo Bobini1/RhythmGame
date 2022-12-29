@@ -33,6 +33,7 @@ class DummyScene : public drawing::Scene
 };
 } // namespace
 
+#ifndef DISABLE_WINDOW_TESTS
 TEST_CASE("the splash window draws its scene", "[drawing][.window]")
 {
     auto dummyScene = std::make_shared<DummyScene>();
@@ -43,3 +44,4 @@ TEST_CASE("the splash window draws its scene", "[drawing][.window]")
     splashWindow->update(std::chrono::nanoseconds(1));
     REQUIRE(dummyScene->getUpdateCount() == 1);
 }
+#endif
