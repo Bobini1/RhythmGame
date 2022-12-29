@@ -34,3 +34,20 @@ TEST_CASE("Text can be constructed from lua", "[drawing][actors][text]")
     REQUIRE(text->getLetterSpacing() == Catch::Approx(33));
     REQUIRE(text->getFont() != nullptr);
 }
+
+static constexpr auto scriptWithSimpleTextConstructor = R"(
+    local text = Text.new("Hello")
+    return text
+)";
+
+TEST_CASE("Text can be constructed from lua with simple constructor",
+          "[drawing][actors][text]")
+{
+    auto stateSetup = StateSetup{};
+    auto state = sol::state(std::move(stateSetup));
+    auto result = state.script(scriptWithSimpleTextConstructor);
+    auto root = result.get<drawing::actors::Actor*>()->shared_from_this();
+    auto text = std::dynamic_pointer_cast<drawing::actors::Text>(root);
+    REQUIRE(text != nullptr);
+    REQUIRE(text->getText() == "Hello");
+}
