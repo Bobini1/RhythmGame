@@ -73,7 +73,6 @@ defineText(sol::state& target,
     auto textType = target.new_usertype<drawing::actors::Text>(
       "Text",
       sol::factories(
-        []() { return drawing::actors::Text::make(); },
         [&fontLoader](const std::string& text) {
             const auto* font = fontLoader.getDefault();
             if (font == nullptr) {
