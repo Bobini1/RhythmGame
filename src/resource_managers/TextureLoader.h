@@ -21,6 +21,9 @@ concept TextureLoader = requires(T textureLoader, const std::string& path) {
                             {
                                 textureLoader.load(path)
                             } -> std::convertible_to<const sf::Texture*>;
+                            {
+                                textureLoader.getFallback()
+                            } -> std::convertible_to<const sf::Texture*>;
                         };
 } // namespace resource_managers
 #endif // RHYTHMGAME_TEXTURELOADER_H

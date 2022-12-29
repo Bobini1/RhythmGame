@@ -40,13 +40,13 @@ class SplashScene : public Scene
   public:
     explicit SplashScene(sol::state state,
                          AnimationPlayerType animationPlayer,
-                         std::shared_ptr<TextureLoaderType> textureLoader,
-                         std::shared_ptr<FontLoaderType> fontLoader,
-                         std::string_view script)
+                         TextureLoaderType* textureLoader,
+                         FontLoaderType* fontLoader,
+                         const std::filesystem::path& script)
       : state(std::move(state))
       , animationPlayer(std::move(animationPlayer))
-      , textureLoader(std::move(textureLoader))
-      , fontLoader(std::move(fontLoader))
+      , textureLoader(textureLoader)
+      , fontLoader(fontLoader)
       , init(&this->state)
       , onUpdate(&this->state)
       , leftClick(&this->state)
@@ -65,10 +65,11 @@ class SplashScene : public Scene
                             *this->fontLoader,
                             this->animationPlayer,
                             eventAttacher);
-        auto luaRoot = this->state.script(script);
+        auto luaRoot = this->state.script_file(script.string());
         root =
           luaRoot.template get<drawing::actors::Actor*>()->shared_from_this();
     }
+
     void update(std::chrono::nanoseconds delta, drawing::Window& window) final
     {
         if (!initialized) {

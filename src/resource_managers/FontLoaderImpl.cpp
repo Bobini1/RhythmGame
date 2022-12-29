@@ -5,26 +5,39 @@
 #include <spdlog/spdlog.h>
 #include "FontLoaderImpl.h"
 auto
-resource_managers::FontLoaderImpl::load(const std::string& path)
-  -> const sf::Font*
+resource_managers::FontLoaderImpl::load(std::string path) -> const sf::Font*
 {
-    if (!std::filesystem::exists(path)) {
-        spdlog::error("Font file {} does not exist", path);
+    if (redirects.contains(path)) {
+        path = redirects.at(path);
+    }
+    auto fullPath = fontFolder / path;
+    if (!std::filesystem::exists(fullPath)) {
+        spdlog::error("Font file {} does not exist", fullPath.string());
         return nullptr;
     }
-    auto pathAbs = std::filesystem::canonical(path);
-    if (loadedFonts.find(pathAbs) == loadedFonts.end()) {
-        auto font = sf::Font{};
-        if (!font.loadFromFile(pathAbs.string())) {
-            return nullptr;
-        }
-        loadedFonts[pathAbs] = std::make_unique<sf::Font>(std::move(font));
+    auto pathAbs = std::filesystem::canonical(fullPath);
+    if (const auto& font = loadedFonts.find(pathAbs);
+        font != loadedFonts.end()) {
+        return font->second.get();
     }
+
+    auto font = sf::Font{};
+    if (!font.loadFromFile(pathAbs.string())) {
+        return nullptr;
+    }
+    loadedFonts[pathAbs] = std::make_unique<sf::Font>(std::move(font));
     return loadedFonts[pathAbs].get();
 }
 
 auto
 resource_managers::FontLoaderImpl::getDefault() -> const sf::Font*
 {
-    return load("/home/bobini/RhythmGame/Roboto/Roboto-Regular.ttf");
+    return load("Common");
+}
+resource_managers::FontLoaderImpl::FontLoaderImpl(
+  std::filesystem::path fontFolder,
+  std::map<std::string, std::string> redirects)
+  : redirects(std::move(redirects))
+  , fontFolder(std::move(fontFolder))
+{
 }
