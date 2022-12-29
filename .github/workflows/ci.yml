@@ -202,11 +202,6 @@ jobs:
       - name: Build
         run: cmake --build build --config Release -j 2
 
-      - name: Print build info
-        if: matrix.os == 'windows-latest'
-        shell: bash
-        run: find
-
       - name: Install
         run: cmake --install build --config Release --prefix prefix
 
