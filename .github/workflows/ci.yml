@@ -74,7 +74,7 @@ jobs:
         working-directory: build/coverage
         run: |
           export DISPLAY=:99
-          sudo Xvfb -ac :99 -screen 0 1280x1024x24 > /dev/null 2>&1 &
+          sudo Xvfb -ac :99 -screen 0 1280x1024x24 -noreset > /dev/null 2>&1 &
           ctest --output-on-failure -j 2
 
       - name: Process coverage info
@@ -138,7 +138,7 @@ jobs:
           UBSAN_OPTIONS: print_stacktrace=1
         run: |
           export DISPLAY=:99
-          sudo Xvfb -ac :99 -screen 0 1280x1024x24 > /dev/null 2>&1 &
+          sudo Xvfb -ac :99 -screen 0 1280x1024x24 -noreset > /dev/null 2>&1 &
           ctest --output-on-failure -j 2
 
   test:
@@ -211,7 +211,7 @@ jobs:
         run: |
           if [ ${{ matrix.os }} = ubuntu-22.04 ]; then
             export DISPLAY=:99
-            sudo Xvfb -ac :99 -screen 0 1280x1024x24 > /dev/null 2>&1 &
+            sudo Xvfb -ac :99 -screen 0 1280x1024x24 -noreset > /dev/null 2>&1 &
             ctest --output-on-failure -C Release -j 2
           else
             ctest --output-on-failure -C Release -j 2
