@@ -1,7 +1,5 @@
 #include <drawing/SplashWindow.h>
 #include "drawing/SplashScene.h"
-#include <future>
-#include <thread>
 #include "drawing/Window.h"
 #include "resource_managers/TextureLoaderImpl.h"
 
@@ -12,13 +10,6 @@
 #include "resource_managers/FindAssetsFolderBoost.h"
 #include "resource_managers/LoadConfig.h"
 #include "resource_managers/LuaScriptFinderImpl.h"
-
-#include <boost/property_tree/ptree.hpp>
-#include <boost/property_tree/ini_parser.hpp>
-
-constexpr auto luaScript = R"(
-
-)";
 
 auto
 loadGame(resource_managers::LuaScriptFinder auto luaScriptFinder,
