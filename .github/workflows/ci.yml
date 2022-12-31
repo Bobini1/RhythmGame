@@ -72,7 +72,10 @@ jobs:
 
       - name: Test
         working-directory: build/coverage
-        run: ctest --output-on-failure -j 2
+        run: |
+          export DISPLAY=:99
+          sudo Xvfb -ac :99 -screen 0 1280x1024x24 -noreset > /dev/null 2>&1 &
+          ctest --output-on-failure -j 2
 
       - name: Process coverage info
         run: cmake --build build/coverage -t coverage
@@ -133,7 +136,10 @@ jobs:
           strict_init_order=1:\
           detect_leaks=1"
           UBSAN_OPTIONS: print_stacktrace=1
-        run: ctest --output-on-failure -j 2
+        run: |
+          export DISPLAY=:99
+          sudo Xvfb -ac :99 -screen 0 1280x1024x24 -noreset > /dev/null 2>&1 &
+          ctest --output-on-failure -j 2
 
   test:
     needs: [ lint ]
@@ -201,7 +207,15 @@ jobs:
 
       - name: Test
         working-directory: build
-        run: ctest --output-on-failure -C Release -j 2
+        shell: bash
+        run: |
+          if [ ${{ matrix.os }} = ubuntu-22.04 ]; then
+            export DISPLAY=:99
+            sudo Xvfb -ac :99 -screen 0 1280x1024x24 -noreset > /dev/null 2>&1 &
+            ctest --output-on-failure -C Release -j 2
+          else
+            ctest --output-on-failure -C Release -j 2
+          fi
 
   deploy:
     needs: [ sanitize, test ]

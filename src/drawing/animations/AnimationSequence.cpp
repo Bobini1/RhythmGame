@@ -21,7 +21,7 @@ void
 drawing::animations::AnimationSequence::setDurationImpl(
   std::chrono::nanoseconds newDuration)
 {
-    auto oldDuration = getDuration();
+    const auto oldDuration = getDuration();
     auto ratio = newDuration / oldDuration;
     std::for_each(
       animations.begin(), animations.end(), [ratio](const auto& animation) {
@@ -33,19 +33,19 @@ drawing::animations::AnimationSequence::updateImpl(
   std::chrono::nanoseconds delta)
 {
     auto timePoint = std::chrono::nanoseconds{};
-    auto elapsed = getElapsed();
+    const auto currentTime = getElapsed();
     auto currentFound = false;
     for (const auto& animation : animations) {
         animation->setIsLooping(/*newIsLooping=*/false);
         auto animationDuration = animation->getDuration();
         auto absoluteEnd = animationDuration + timePoint;
         if (!currentFound) {
-            if (absoluteEnd >= elapsed) {
-                animation->setElapsed(elapsed - timePoint - delta);
+            if (absoluteEnd >= currentTime) {
+                animation->setElapsed(currentTime - timePoint - delta);
                 animation->update(delta);
                 currentFound = true;
             } else {
-                if (elapsed - delta <= absoluteEnd) {
+                if (currentTime - delta <= absoluteEnd) {
                     animation->setElapsed(animationDuration - delta);
                     animation->update(delta);
                 } else {

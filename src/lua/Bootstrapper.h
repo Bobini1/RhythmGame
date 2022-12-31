@@ -73,27 +73,19 @@ defineText(sol::state& target,
     auto textType = target.new_usertype<drawing::actors::Text>(
       "Text",
       sol::factories(
-        []() { return drawing::actors::Text::make(); },
         [&fontLoader](const std::string& text) {
-            auto* font = fontLoader.getDefault();
+            const auto* font = fontLoader.getDefault();
             if (font == nullptr) {
                 throw std::runtime_error("Default font not found");
             }
             return drawing::actors::Text::make(text, *font);
         },
-        [](const std::string& text, sf::Font& font) {
-            return drawing::actors::Text::make(text, font);
-        },
-        [bindAbstractRectLeafProperties](
-          const std::string& text, sf::Font& font, unsigned int characterSize) {
-            return drawing::actors::Text::make(text, font, characterSize);
-        },
         [&fontLoader, bindAbstractRectLeafProperties](sol::table args) {
-            const auto* defaultFont = fontLoader.getDefault();
             const auto* font = args.get<const sf::Font*>(
               "font"); // get_or broken in this case as of 17.11.22.
                        // (https://github.com/ThePhD/sol2/issues/1421)
             if (font == nullptr) {
+                const auto* defaultFont = fontLoader.getDefault();
                 font = defaultFont;
             }
             if (font == nullptr) {
@@ -175,31 +167,42 @@ defineSprite(sol::state& target,
     auto spriteType = target.new_usertype<drawing::actors::Sprite>(
       "Sprite",
       sol::factories(
-        []() { return drawing::actors::Sprite::make(); },
         [](sf::Texture& texture) {
             return drawing::actors::Sprite::make(texture);
         },
-        [&textureLoader](const std::string& path) {
+        [&textureLoader](
+          const std::string& path) -> std::shared_ptr<drawing::actors::Sprite> {
             auto* texture = textureLoader.load(path);
             if (texture == nullptr) {
-                return std::shared_ptr<drawing::actors::Sprite>();
+                texture = textureLoader.getFallback();
+            }
+            if (texture == nullptr) {
+                spdlog::error("Fallback texture not found");
+                return nullptr;
             }
             return drawing::actors::Sprite::make(*texture);
         },
         [&textureLoader, eventAttacher, bindAbstractRectLeafProperties](
-          sol::table args) {
-            auto result = drawing::actors::Sprite::make();
+          sol::table args) -> std::shared_ptr<drawing::actors::Sprite> {
+            const auto* texture = static_cast<sf::Texture*>(nullptr);
             if (args["texture"].valid()) {
                 if (args["texture"].get_type() == sol::type::string) {
-                    auto* texture =
+                    texture =
                       textureLoader.load(args.get<std::string>("texture"));
-                    if (texture != nullptr) {
-                        result->setTexture(*texture);
-                    }
                 } else {
-                    result->setTexture(args.get<sf::Texture>("texture"));
+                    texture = args.get<const sf::Texture*>("texture");
                 }
             }
+
+            if (texture == nullptr) {
+                texture = textureLoader.getFallback();
+            }
+            if (texture == nullptr) {
+                spdlog::error("Default texture not found");
+                return nullptr;
+            }
+
+            auto result = drawing::actors::Sprite::make(*texture);
             if (args["textureRect"].valid()) {
                 result->setTextureRect(args.get<sf::IntRect>("textureRect"));
             }

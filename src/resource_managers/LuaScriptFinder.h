@@ -9,20 +9,11 @@
 #include <filesystem>
 namespace resource_managers {
 /**
- * @brief Finds Lua screen paths for specific screens.
+ * @brief Finds Lua script paths for specific screens.
  */
 template<typename T>
 concept LuaScriptFinder =
-  requires(T luaScriptFinder, const std::string& screen) {
-      /**
-       * @brief Finds Lua script path for a screen.
-       * @param screen Name of the screen.
-       * @return Path to the Lua script.
-       */
-      {
-          luaScriptFinder.findHandlerScript(screen)
-      } -> std::convertible_to<std::string>;
-  };
+  std::is_same_v<std::invoke_result_t<T, std::string>, std::filesystem::path>;
 } // namespace resource_managers
 
 #endif // RHYTHMGAME_LUASCRIPTFINDER_H

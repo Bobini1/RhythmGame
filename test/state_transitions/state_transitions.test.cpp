@@ -61,8 +61,9 @@ class DummyWindow : public drawing::Window
 };
 } // namespace
 
+#ifndef DISABLE_WINDOW_TESTS
 TEST_CASE("Only the current scene gets updated and drawn",
-          "[state_transitions][.window]")
+          "[state_transitions]")
 {
     auto dummyScene = std::make_shared<DummyScene>();
     auto sceneStateMachine =
@@ -80,3 +81,4 @@ TEST_CASE("Only the current scene gets updated and drawn",
     REQUIRE(dummyScene->getUpdateCount() == 1);
     REQUIRE(otherScene->getUpdateCount() == 2);
 }
+#endif
