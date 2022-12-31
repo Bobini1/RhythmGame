@@ -59,6 +59,7 @@
               Reference
               <ul>
                 <li><a href="#nested-classes">Classes</a></li>
+                <li><a href="#func-members">Functions</a></li>
                 <li><a href="#var-members">Variables</a></li>
               </ul>
             </li>
@@ -72,7 +73,24 @@
             </dt>
             <dd><span></span></dd>
             <dt>
+              class <a href="classresource__managers_1_1LuaScriptFinderImpl.html" class="m-doc">LuaScriptFinderImpl</a>
+            </dt>
+            <dd><span></span></dd>
+            <dt>
               class <a href="classresource__managers_1_1TextureLoaderImpl.html" class="m-doc">TextureLoaderImpl</a>
+            </dt>
+            <dd><span></span></dd>
+          </dl>
+        </section>
+        <section id="func-members">
+          <h2><a href="#func-members">Functions</a></h2>
+          <dl class="m-doc">
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#ae7f2e06bccd108de7061c63358c87b19" class="m-doc">findAssetsFolder</a>(</span><span class="m-doc-wrap">) -&gt; std::filesystem::path</span>
+            </dt>
+            <dd><span></span></dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#af65c459e17bf27b30a0ccc47fbf1f870" class="m-doc">loadConfig</a>(</span><span class="m-doc-wrap">const std::filesystem::path&amp; path) -&gt; std::map&lt; std::string, std::map&lt; std::string, std::string &gt;&gt;</span>
             </dt>
             <dd><span></span></dd>
           </dl>
@@ -82,6 +100,11 @@
           <dl class="m-doc">
             <dt>
               <div class="m-doc-template">template&lt;typename T&gt;</div>
+              concept <a href="#a06f89eb6b5b87ddb2d30c07f8db38adf" class="m-doc">AssetsFolderFinder</a>
+            </dt>
+            <dd><span></span></dd>
+            <dt>
+              <div class="m-doc-template">template&lt;typename T&gt;</div>
               concept <a href="#a38eddd67f196b5bbf07f4b2571f2d003" class="m-doc">FontLoader</a>
             </dt>
             <dd><span></span></dd>
@@ -89,7 +112,7 @@
               <div class="m-doc-template">template&lt;typename T&gt;</div>
               concept <a href="#a59e5f12a993917c6271112b0f22fd360" class="m-doc">LuaScriptFinder</a>
             </dt>
-            <dd>Finds Lua screen paths for specific screens.</dd>
+            <dd>Finds Lua script paths for specific screens.</dd>
             <dt>
               <div class="m-doc-template">template&lt;typename T&gt;</div>
               concept <a href="#af40c724bd11b4481e560c650021a2dbb" class="m-doc">TextureLoader</a>
@@ -98,7 +121,34 @@
           </dl>
         </section>
         <section>
+          <h2>Function documentation</h2>
+          <section class="m-doc-details" id="ae7f2e06bccd108de7061c63358c87b19"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">auto resource_<wbr />managers::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#ae7f2e06bccd108de7061c63358c87b19" class="m-doc-self">findAssetsFolder</a>(</span><span class="m-doc-wrap">) -&gt; std::filesystem::path</span></span>
+              <div class="m-doc-include m-code m-inverted m-text-right"><span class="cp">#include</span> <a class="cpf" href="FindAssetsFolderBoost_8h.html">&lt;src/resource_managers/FindAssetsFolderBoost.h&gt;</a></div>
+            </h3>
+            <p><span></span></p>
+          </div></section>
+          <section class="m-doc-details" id="af65c459e17bf27b30a0ccc47fbf1f870"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">auto resource_<wbr />managers::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#af65c459e17bf27b30a0ccc47fbf1f870" class="m-doc-self">loadConfig</a>(</span><span class="m-doc-wrap">const std::filesystem::path&amp; path) -&gt; std::map&lt; std::string, std::map&lt; std::string, std::string &gt;&gt;</span></span>
+              <div class="m-doc-include m-code m-inverted m-text-right"><span class="cp">#include</span> <a class="cpf" href="LoadConfig_8h.html">&lt;src/resource_managers/LoadConfig.h&gt;</a></div>
+            </h3>
+            <p><span></span></p>
+          </div></section>
+        </section>
+        <section>
           <h2>Variable documentation</h2>
+          <section class="m-doc-details" id="a06f89eb6b5b87ddb2d30c07f8db38adf"><div>
+            <h3>
+              <div class="m-doc-include m-code m-inverted m-right-m m-text-right"><span class="cp">#include</span> <a class="cpf" href="AssetsFolderFinder_8h.html">&lt;src/resource_managers/AssetsFolderFinder.h&gt;</a></div>
+              <div class="m-doc-template">
+                template&lt;typename T&gt;
+              </div>
+              concept resource_<wbr />managers::<wbr /><a href="#a06f89eb6b5b87ddb2d30c07f8db38adf" class="m-doc-self">AssetsFolderFinder</a>
+            </h3>
+            <p><span></span></p>
+          </div></section>
           <section class="m-doc-details" id="a38eddd67f196b5bbf07f4b2571f2d003"><div>
             <h3>
               <div class="m-doc-include m-code m-inverted m-right-m m-text-right"><span class="cp">#include</span> <a class="cpf" href="FontLoader_8h.html">&lt;src/resource_managers/FontLoader.h&gt;</a></div>
@@ -117,7 +167,7 @@
               </div>
               concept resource_<wbr />managers::<wbr /><a href="#a59e5f12a993917c6271112b0f22fd360" class="m-doc-self">LuaScriptFinder</a>
             </h3>
-            <p>Finds Lua screen paths for specific screens.</p>
+            <p>Finds Lua script paths for specific screens.</p>
           </div></section>
           <section class="m-doc-details" id="af40c724bd11b4481e560c650021a2dbb"><div>
             <h3>
