@@ -2,8 +2,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include <utility>
 
-TEST_CASE("Check if getCh utility function returns the right char",
-          "[single-file]")
+TEST_CASE("Check if getCh utility function returns the right char", "[ToChars]")
 {
     REQUIRE(getCh("testString", 0) == 't');
     REQUIRE(getCh("aBCdEf", 5) == 'f');

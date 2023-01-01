@@ -3,6 +3,7 @@
 //
 
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/catch_approx.hpp>
 #include "charts/chart_readers/BmsChartReader.h"
 #include "lua/Lua.h"
 
@@ -14,9 +15,8 @@ TEST_CASE("Check if Title is parsed correctly", "[BmsChartReader]")
     auto resReader = reader.readBmsChart(testString);
     REQUIRE(resReader);
     auto& res = *resReader;
-    sol::state lua;
-    res.writeFullData(charts::behaviour::SongDataWriterToLua{ lua });
-    REQUIRE(lua["getTitle"].call<std::string>() == "END TIME"s);
+    REQUIRE(res.title);
+    REQUIRE(res.title.value() == "END TIME"s);
 }
 
 TEST_CASE("Check if Artist is parsed correctly", "[BmsChartReader]")
@@ -27,9 +27,8 @@ TEST_CASE("Check if Artist is parsed correctly", "[BmsChartReader]")
     auto resReader = reader.readBmsChart(testString);
     REQUIRE(resReader);
     auto& res = *resReader;
-    sol::state lua;
-    res.writeFullData(charts::behaviour::SongDataWriterToLua{ lua });
-    REQUIRE(lua["getArtist"].call<std::string>() == "cres"s);
+    REQUIRE(res.artist);
+    REQUIRE(res.artist.value() == "cres"s);
 }
 
 TEST_CASE("Multiple tags at once", "[BmsChartReader]")
@@ -40,10 +39,10 @@ TEST_CASE("Multiple tags at once", "[BmsChartReader]")
     auto resReader = reader.readBmsChart(testString);
     REQUIRE(resReader);
     auto& res = *resReader;
-    sol::state lua;
-    res.writeFullData(charts::behaviour::SongDataWriterToLua{ lua });
-    REQUIRE(lua["getArtist"].call<std::string>() == "cres"s);
-    REQUIRE(lua["getTitle"].call<std::string>() == "END TIME"s);
+    REQUIRE(res.artist);
+    REQUIRE(res.artist.value() == "cres"s);
+    REQUIRE(res.title);
+    REQUIRE(res.title.value() == "END TIME"s);
 }
 
 TEST_CASE("Extra whitespace is ignored", "[BmsChartReader]")
@@ -54,10 +53,10 @@ TEST_CASE("Extra whitespace is ignored", "[BmsChartReader]")
     auto resReader = reader.readBmsChart(testString);
     REQUIRE(resReader);
     auto& res = *resReader;
-    sol::state lua;
-    res.writeFullData(charts::behaviour::SongDataWriterToLua{ lua });
-    REQUIRE(lua["getArtist"].call<std::string>() == "cres"s);
-    REQUIRE(lua["getTitle"].call<std::string>() == "END TIME"s);
+    REQUIRE(res.artist);
+    REQUIRE(res.artist.value() == "cres"s);
+    REQUIRE(res.title);
+    REQUIRE(res.title.value() == "END TIME"s);
 }
 
 TEST_CASE("Check if BPM is parsed correctly", "[BmsChartReader]")
@@ -69,77 +68,61 @@ TEST_CASE("Check if BPM is parsed correctly", "[BmsChartReader]")
     constexpr auto allowedError = 0.00001;
     auto resReader = reader.readBmsChart(testString);
     REQUIRE(resReader);
-    sol::state lua;
-    auto writer = charts::behaviour::SongDataWriterToLua{ lua };
-    resReader->writeFullData(writer);
 
-    auto difference = lua["getBpm"].call<double>() - expectedBpm;
-    REQUIRE(difference > -allowedError);
-    REQUIRE(difference < allowedError);
+    auto& res = *resReader;
+    REQUIRE(res.bpm);
+    REQUIRE(res.bpm.value() ==
+            Catch::Approx(expectedBpm).epsilon(allowedError));
 
     testString = "#BPM 120"s;
     resReader = reader.readBmsChart(testString);
     REQUIRE(resReader);
-    resReader->writeFullData(writer);
-    difference = lua["getBpm"].call<double>() - expectedBpm;
-    REQUIRE(difference > -allowedError);
-    REQUIRE(difference < allowedError);
+    REQUIRE(res.bpm);
+    REQUIRE(res.bpm.value() ==
+            Catch::Approx(expectedBpm).epsilon(allowedError));
 
     testString = "#BPM 120.";
     resReader = reader.readBmsChart(testString);
     REQUIRE(resReader);
-    resReader->writeFullData(charts::behaviour::SongDataWriterToLua{ lua });
-    difference = lua["getBpm"].call<double>() - expectedBpm;
-    REQUIRE(difference > -allowedError);
-    REQUIRE(difference < allowedError);
+    REQUIRE(res.bpm);
+    REQUIRE(res.bpm.value() ==
+            Catch::Approx(expectedBpm).epsilon(allowedError));
 
     testString = "#BPM 120.0F";
     resReader = reader.readBmsChart(testString);
     REQUIRE(resReader);
-    resReader->writeFullData(charts::behaviour::SongDataWriterToLua{ lua });
-    difference = lua["getBpm"].call<double>() - expectedBpm;
-    REQUIRE(difference > -allowedError);
-    REQUIRE(difference < allowedError);
+    REQUIRE(res.bpm);
+    REQUIRE(res.bpm.value() ==
+            Catch::Approx(expectedBpm).epsilon(allowedError));
 
     testString = "#BPM 120d";
     resReader = reader.readBmsChart(testString);
     REQUIRE(resReader);
-    resReader->writeFullData(charts::behaviour::SongDataWriterToLua{ lua });
-    difference = lua["getBpm"].call<double>() - expectedBpm;
-    REQUIRE(difference > -allowedError);
-    REQUIRE(difference < allowedError);
+    REQUIRE(res.bpm);
+    REQUIRE(res.bpm.value() ==
+            Catch::Approx(expectedBpm).epsilon(allowedError));
 
     testString = "#BPM 12E1d";
     resReader = reader.readBmsChart(testString);
     REQUIRE(resReader);
-    resReader->writeFullData(charts::behaviour::SongDataWriterToLua{ lua });
-    difference = lua["getBpm"].call<double>() - expectedBpm;
-    REQUIRE(difference > -allowedError);
-    REQUIRE(difference < allowedError);
+    REQUIRE(res.bpm);
+    REQUIRE(res.bpm.value() ==
+            Catch::Approx(expectedBpm).epsilon(allowedError));
 
     testString = "#BPM 1200E-1f";
 
     resReader = reader.readBmsChart(testString);
     REQUIRE(resReader);
-    resReader->writeFullData(charts::behaviour::SongDataWriterToLua{ lua });
-    difference = lua["getBpm"].call<double>() - expectedBpm;
-    REQUIRE(difference > -allowedError);
-    REQUIRE(difference < allowedError);
-
-    resReader = reader.readBmsChart(testString);
-    REQUIRE(resReader);
-    resReader->writeFullData(charts::behaviour::SongDataWriterToLua{ lua });
-    difference = lua["getBpm"].call<double>() - expectedBpm;
-    REQUIRE(difference > -allowedError);
-    REQUIRE(difference < allowedError);
+    REQUIRE(res.bpm);
+    REQUIRE(res.bpm.value() ==
+            Catch::Approx(expectedBpm).epsilon(allowedError));
 
     testString = "#BPM -120.0";
     resReader = reader.readBmsChart(testString);
     REQUIRE(resReader);
-    resReader->writeFullData(charts::behaviour::SongDataWriterToLua{ lua });
-    difference = lua["getBpm"].call<double>() + expectedBpm;
-    REQUIRE(difference > -allowedError);
-    REQUIRE(difference < allowedError);
+    REQUIRE(res.bpm);
+    REQUIRE(res.bpm.value() ==
+            Catch::Approx(-expectedBpm).epsilon(allowedError));
 }
 
 TEST_CASE("Random blocks get parsed correctly", "[BmsChartReader]")
@@ -148,7 +131,7 @@ TEST_CASE("Random blocks get parsed correctly", "[BmsChartReader]")
     auto reader = charts::chart_readers::BmsChartReader{};
     auto testString =
       "#RANDOM 5\n#IF 5\n#TITLE 44river\n#BPM 120\n#SUBTITLE testSubTitle\n#GENRE bicior\n#SUBARTIST MC BOBSON\n#ENDIF"s;
-    auto resReader = reader.readBmsChartTags(testString);
+    auto resReader = reader.readBmsChart(testString);
     REQUIRE(resReader.has_value());
     auto& res = resReader.value();
     REQUIRE(res.title == std::optional<std::string>{});
@@ -173,7 +156,7 @@ TEST_CASE("Nested random blocks", "[BmsChartReader]")
     auto reader = charts::chart_readers::BmsChartReader{};
     auto testString =
       "#RANDOM 5\n#IF 5\n#TITLE 44river\n#RANDOM 1\n#IF 1\n#ARTIST -45\n#ENDIF\n#ENDRANDOM\n#ENDIF"s;
-    auto resReader = reader.readBmsChartTags(testString);
+    auto resReader = reader.readBmsChart(testString);
     REQUIRE(resReader.has_value());
     auto& res = resReader.value();
     REQUIRE(res.title == std::optional<std::string>{});
@@ -212,7 +195,7 @@ TEST_CASE("Test return values on failed parse", "[BmsChartReader]")
     REQUIRE_FALSE(resReader);
 
     testString = "#ARTST -44"s;
-    auto resReaderTags = reader.readBmsChartTags(testString);
+    auto resReaderTags = reader.readBmsChart(testString);
     REQUIRE(resReaderTags == std::nullopt);
 }
 
@@ -227,12 +210,15 @@ TEST_CASE("Check if readBmsChart returns an actual chart", "[BmsChartReader]")
       " #ARTIST   cres   \n\n #TITLE     END TIME  \n   #BPM 180"s;
     auto resReader = reader.readBmsChart(testString);
     REQUIRE(resReader);
-    resReader->writeFullData(charts::behaviour::SongDataWriterToLua{ lua });
-    REQUIRE(lua["getArtist"].call<std::string>() == "cres"s);
-    REQUIRE(lua["getTitle"].call<std::string>() == "END TIME"s);
-    auto difference = lua["getBpm"].call<double>() - expectedBpm;
-    REQUIRE(difference > -allowedError);
-    REQUIRE(difference < allowedError);
+    auto& res = resReader.value();
+
+    REQUIRE(res.title);
+    REQUIRE(res.title == "END TIME"s);
+    REQUIRE(res.artist);
+    REQUIRE(res.artist == "cres"s);
+    REQUIRE(res.bpm);
+    REQUIRE(res.bpm.value() ==
+            Catch::Approx(expectedBpm).epsilon(allowedError));
 }
 
 TEST_CASE("Check if unicode is parsed correctly", "[BmsChartReader]")
@@ -248,12 +234,95 @@ TEST_CASE("Check if unicode is parsed correctly", "[BmsChartReader]")
       "#ARTIST LUNEの右手と悠里おねぇちゃんの左脚 \n\n #TITLE どうか私を殺して下さい -もう、樹海しか見えない-\n   #BPM 166"s;
     auto resReader = reader.readBmsChart(testString);
     REQUIRE(resReader);
-    resReader->writeFullData(charts::behaviour::SongDataWriterToLua{ lua });
-    REQUIRE(lua["getArtist"].call<std::string>() ==
-            "LUNEの右手と悠里おねぇちゃんの左脚"s);
-    REQUIRE(lua["getTitle"].call<std::string>() ==
-            "どうか私を殺して下さい -もう、樹海しか見えない-"s);
-    auto difference = lua["getBpm"].call<double>() - expectedBpm;
-    REQUIRE(difference > -allowedError);
-    REQUIRE(difference < allowedError);
+    auto& res = resReader.value();
+    REQUIRE(res.title);
+    REQUIRE(res.title == "どうか私を殺して下さい -もう、樹海しか見えない-"s);
+    REQUIRE(res.artist);
+    REQUIRE(res.artist == "LUNEの右手と悠里おねぇちゃんの左脚"s);
+    REQUIRE(res.bpm);
+    REQUIRE(res.bpm.value() ==
+            Catch::Approx(expectedBpm).epsilon(allowedError));
+}
+
+TEST_CASE("Notes get read from a chart correctly", "[BmsChartReader]")
+{
+    using namespace std::literals::string_literals;
+    const auto chart = "#00111:00"s;
+    auto reader = charts::chart_readers::BmsChartReader{};
+    auto resReader = reader.readBmsChart(chart);
+    REQUIRE(resReader);
+    auto& res = resReader.value();
+    REQUIRE(res.measures.size() == 1);
+    REQUIRE(res.measures[1].p1VisibleNotes[1].size() == 1);
+    REQUIRE(res.measures[1].p1VisibleNotes[1][0] == "00"s);
+}
+
+TEST_CASE("Notes get read from a chart correctly with multiple notes",
+          "[BmsChartReader]")
+{
+    using namespace std::literals::string_literals;
+    const auto chart = "#00111:00010203"s;
+    auto reader = charts::chart_readers::BmsChartReader{};
+    auto resReader = reader.readBmsChart(chart);
+    REQUIRE(resReader);
+    auto& res = resReader.value();
+    REQUIRE(res.measures.size() == 1);
+    REQUIRE(res.measures[1].p1VisibleNotes[1].size() == 4);
+    REQUIRE(res.measures[1].p1VisibleNotes[1][0] == "00"s);
+    REQUIRE(res.measures[1].p1VisibleNotes[1][1] == "01"s);
+    REQUIRE(res.measures[1].p1VisibleNotes[1][2] == "02"s);
+    REQUIRE(res.measures[1].p1VisibleNotes[1][3] == "03"s);
+}
+
+TEST_CASE("Notes get read from a chart correctly with multiple lanes",
+          "[BmsChartReader]")
+{
+    using namespace std::literals::string_literals;
+    const auto chart = "#00111:00010203\n#00112:04050607"s;
+    auto reader = charts::chart_readers::BmsChartReader{};
+    auto resReader = reader.readBmsChart(chart);
+    REQUIRE(resReader);
+    auto& res = resReader.value();
+    REQUIRE(res.measures.size() == 1);
+    REQUIRE(res.measures[1].p1VisibleNotes[1].size() == 4);
+    REQUIRE(res.measures[1].p1VisibleNotes[1][0] == "00"s);
+    REQUIRE(res.measures[1].p1VisibleNotes[1][1] == "01"s);
+    REQUIRE(res.measures[1].p1VisibleNotes[1][2] == "02"s);
+    REQUIRE(res.measures[1].p1VisibleNotes[1][3] == "03"s);
+    REQUIRE(res.measures[1].p1VisibleNotes[2].size() == 4);
+    REQUIRE(res.measures[1].p1VisibleNotes[2][0] == "04"s);
+    REQUIRE(res.measures[1].p1VisibleNotes[2][1] == "05"s);
+    REQUIRE(res.measures[1].p1VisibleNotes[2][2] == "06"s);
+    REQUIRE(res.measures[1].p1VisibleNotes[2][3] == "07"s);
+}
+
+TEST_CASE("Bgm notes get parsed correctly", "[BmsChartReader]")
+{
+    using namespace std::literals::string_literals;
+    const auto chart = "#00101:00010203\n#00101:04050607"s;
+    auto reader = charts::chart_readers::BmsChartReader{};
+    auto resReader = reader.readBmsChart(chart);
+    REQUIRE(resReader);
+    auto& res = resReader.value();
+    REQUIRE(res.measures.size() == 1);
+    REQUIRE(res.measures[1].bgmNotes.size() == 2);
+    REQUIRE(res.measures[1].bgmNotes[0].size() == 4);
+    REQUIRE(res.measures[1].bgmNotes[0][0] == "00"s);
+    REQUIRE(res.measures[1].bgmNotes[0][1] == "01"s);
+    REQUIRE(res.measures[1].bgmNotes[0][2] == "02"s);
+    REQUIRE(res.measures[1].bgmNotes[0][3] == "03"s);
+    REQUIRE(res.measures[1].bgmNotes[1].size() == 4);
+    REQUIRE(res.measures[1].bgmNotes[1][0] == "04"s);
+    REQUIRE(res.measures[1].bgmNotes[1][1] == "05"s);
+    REQUIRE(res.measures[1].bgmNotes[1][2] == "06"s);
+    REQUIRE(res.measures[1].bgmNotes[1][3] == "07"s);
+}
+
+TEST_CASE("Invalid chart doesn't get parsed")
+{
+    using namespace std::literals::string_literals;
+    const auto chart = "#00101:00010203\n#00101:0405060"s;
+    auto reader = charts::chart_readers::BmsChartReader{};
+    auto resReader = reader.readBmsChart(chart);
+    REQUIRE(!resReader);
 }

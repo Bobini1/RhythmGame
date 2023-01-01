@@ -17,19 +17,11 @@ class BmsChartReader final
 {
   public:
     /**
-     * @brief Reads BMS chart from string.
-     * @param chart String to read.
-     * @return BMS chart.
-     */
-    [[nodiscard]] auto readBmsChart(const std::string& chart) const
-      -> std::unique_ptr<charts::models::BmsChart>;
-
-    /**
-     * @brief Used for testing, gives raw tag data.
+     * @brief Reads a BMS chart from a string.
      * @param chart String to read.
      * @return Raw tag data.
      */
-    [[nodiscard]] auto readBmsChartTags(const std::string& chart) const
+    [[nodiscard]] auto readBmsChart(const std::string& chart) const
       -> std::optional<models::BmsChart::Tags>;
 };
 } // namespace charts::chart_readers
