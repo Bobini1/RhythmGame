@@ -26,9 +26,14 @@ class BmsChart
     {
         static constexpr auto columnNumber = 9;
         std::array<std::vector<std::string>, columnNumber> p1VisibleNotes;
+        std::array<std::vector<std::string>, columnNumber> p2VisibleNotes;
+        std::array<std::vector<std::string>, columnNumber> p1InvisibleNotes;
+        std::array<std::vector<std::string>, columnNumber> p2InvisibleNotes;
+        std::array<std::vector<std::string>, columnNumber> p1LongNotes;
+        std::array<std::vector<std::string>, columnNumber> p2LongNotes;
+        std::array<std::vector<std::string>, columnNumber> bpmChanges;
         std::vector<std::vector<std::string>> bgmNotes;
-
-        std::vector<std::string> bgaNotes;
+        double meter = 1;
     };
 
     /**

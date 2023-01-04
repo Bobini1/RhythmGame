@@ -21,6 +21,7 @@ class Recipe(ConanFile):
         self.requires("sfml/2.5.1")
         self.requires("di/1.2.0")
         self.requires("spdlog/1.11.0")
+        self.requires("foonathan-lexy/2022.12.00")
 
         # Testing only dependencies below
         self.requires("catch2/3.0.1")

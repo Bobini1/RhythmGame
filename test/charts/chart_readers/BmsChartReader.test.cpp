@@ -318,11 +318,50 @@ TEST_CASE("Bgm notes get parsed correctly", "[BmsChartReader]")
     REQUIRE(res.measures[1].bgmNotes[1][3] == "07"s);
 }
 
-TEST_CASE("Invalid chart doesn't get parsed")
+TEST_CASE("Invalid chart doesn't get parsed", "[BmsChartReader]")
 {
     using namespace std::literals::string_literals;
     const auto chart = "#00101:00010203\n#00101:0405060"s;
     auto reader = charts::chart_readers::BmsChartReader{};
     auto resReader = reader.readBmsChart(chart);
     REQUIRE(!resReader);
+}
+
+TEST_CASE("All basic note types get parsed", "[BmsChartReader]")
+{
+    using namespace std::literals::string_literals;
+    const auto chart =
+      "#00101:00010203\n  #00101:04050607 \n#00511:0405\n#01021:00\n"
+      "#99935:123456\n#88844:01\n#77753:10\n#66662:11 "s;
+    auto reader = charts::chart_readers::BmsChartReader{};
+    auto resReader = reader.readBmsChart(chart);
+    REQUIRE(resReader);
+    auto& res = resReader.value();
+    REQUIRE(res.measures.size() == 7);
+    REQUIRE(res.measures[1].bgmNotes.size() == 2);
+    REQUIRE(res.measures[1].bgmNotes[0].size() == 4);
+    REQUIRE(res.measures[1].bgmNotes[0][0] == "00"s);
+    REQUIRE(res.measures[1].bgmNotes[0][1] == "01"s);
+    REQUIRE(res.measures[1].bgmNotes[0][2] == "02"s);
+    REQUIRE(res.measures[1].bgmNotes[0][3] == "03"s);
+    REQUIRE(res.measures[1].bgmNotes[1].size() == 4);
+    REQUIRE(res.measures[1].bgmNotes[1][0] == "04"s);
+    REQUIRE(res.measures[1].bgmNotes[1][1] == "05"s);
+    REQUIRE(res.measures[1].bgmNotes[1][2] == "06"s);
+    REQUIRE(res.measures[1].bgmNotes[1][3] == "07"s);
+    REQUIRE(res.measures[5].p1VisibleNotes[1].size() == 2);
+    REQUIRE(res.measures[5].p1VisibleNotes[1][0] == "04"s);
+    REQUIRE(res.measures[5].p1VisibleNotes[1][1] == "05"s);
+    REQUIRE(res.measures[10].p2VisibleNotes[1].size() == 1);
+    REQUIRE(res.measures[10].p2VisibleNotes[1][0] == "00"s);
+    REQUIRE(res.measures[999].p1InvisibleNotes[5].size() == 3);
+    REQUIRE(res.measures[999].p1InvisibleNotes[5][0] == "12"s);
+    REQUIRE(res.measures[999].p1InvisibleNotes[5][1] == "34"s);
+    REQUIRE(res.measures[999].p1InvisibleNotes[5][2] == "56"s);
+    REQUIRE(res.measures[888].p2InvisibleNotes[4].size() == 1);
+    REQUIRE(res.measures[888].p2InvisibleNotes[4][0] == "01"s);
+    REQUIRE(res.measures[777].p1LongNotes[3].size() == 1);
+    REQUIRE(res.measures[777].p1LongNotes[3][0] == "10"s);
+    REQUIRE(res.measures[666].p2LongNotes[2].size() == 1);
+    REQUIRE(res.measures[666].p2LongNotes[2][0] == "11"s);
 }
