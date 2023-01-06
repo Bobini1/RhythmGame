@@ -47,7 +47,7 @@ class BmsChart
         std::optional<std::string> subTitle;
         std::optional<std::string> subArtist;
         std::optional<std::string> genre;
-        std::map<int64_t, Measure> measures;
+        std::map<uint64_t, Measure> measures;
 
         // we have to use std::unique_ptr<std::multimap> because otherwise
         // this doesn't compile on MSVC. :)
