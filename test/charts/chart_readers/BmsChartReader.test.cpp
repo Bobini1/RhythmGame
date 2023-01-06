@@ -1,4 +1,4 @@
-﻿//
+//
 // Created by bobini on 11.07.2022.
 //
 
@@ -227,7 +227,6 @@ TEST_CASE("Check if unicode is parsed correctly", "[BmsChartReader]")
     // throw an exception
     using namespace std::literals::string_literals;
     auto reader = charts::chart_readers::BmsChartReader{};
-    sol::state lua;
     constexpr auto expectedBpm = 166.0;
     constexpr auto allowedError = 0.00001;
     auto testString =
@@ -364,4 +363,15 @@ TEST_CASE("All basic note types get parsed", "[BmsChartReader]")
     REQUIRE(res.measures[777].p1LongNotes[2][0] == "10"s);
     REQUIRE(res.measures[666].p2LongNotes[1].size() == 1);
     REQUIRE(res.measures[666].p2LongNotes[1][0] == "11"s);
+}
+
+TEST_CASE("Error recovery on bad value", "[BmsChartReader]")
+{
+    using namespace std::literals::string_literals;
+    const auto chart = "#BPM 120\n#BPM %sdalk"s;
+    auto reader = charts::chart_readers::BmsChartReader{};
+    auto resReader = reader.readBmsChart(chart);
+    REQUIRE(resReader);
+    auto& res = resReader.value();
+    REQUIRE(res.bpm == 120);
 }

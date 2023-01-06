@@ -307,10 +307,11 @@ struct Production
 {
     static constexpr auto whitespace = dsl::whitespace(dsl::unicode::space);
     static constexpr auto rule = [] {
-        return dsl::list(dsl::p<TitleTag> | dsl::p<ArtistTag> |
-                         dsl::p<GenreTag> | dsl::p<SubtitleTag> |
-                         dsl::p<SubartistTag> | dsl::p<BpmTag> |
-                         dsl::p<MeasureBasedTag>) +
+        return dsl::list(dsl::try_(
+                 dsl::p<TitleTag> | dsl::p<ArtistTag> | dsl::p<GenreTag> |
+                   dsl::p<SubtitleTag> | dsl::p<SubartistTag> | dsl::p<BpmTag> |
+                   dsl::p<MeasureBasedTag>,
+                 dsl::until(dsl::unicode::newline).or_eof())) +
                dsl::eof;
     }();
     static constexpr auto value = TagsSink{};
