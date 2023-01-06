@@ -53,7 +53,7 @@ struct FloatingPoint
         auto integerPart = dsl::sign + dsl::digits<>;
         auto fraction = dsl::period >> dsl::if_(dsl::digits<>);
         auto exponent =
-          dsl::lit_c<'e'> / dsl::lit_c<'E'> >> dsl::sign + dsl::digits<>;
+          dsl::lit_c<'e'> / dsl::lit_c<'E'> >> (dsl::sign + dsl::digits<>);
         auto suffix =
           dsl::lit_c<'f'> / dsl::lit_c<'F'> / dsl::lit_c<'d'> / dsl::lit_c<'D'>;
 
@@ -82,7 +82,7 @@ struct Measure
 {
     static constexpr auto rule =
       dsl::peek(dsl::hash_sign >> dsl::digit<>) >>
-      dsl::hash_sign + dsl::capture(dsl::token(dsl::times<3>(dsl::digit<>)));
+      (dsl::hash_sign + dsl::capture(dsl::token(dsl::times<3>(dsl::digit<>))));
     static constexpr auto value =
       lexy::as_string<std::string> | lexy::callback<int>([](std::string&& str) {
           constexpr auto base = 10;
@@ -330,11 +330,10 @@ struct MainTags
 
 struct IfBlock
 {
-    static constexpr auto rule = [] {
-        return dsl::ascii::case_folding(LEXY_LIT("#if")) >>
-               dsl::integer<uint64_t>(dsl::digits<>) + dsl::p<MainTags> +
-                 dsl::ascii::case_folding(LEXY_LIT("#endif"));
-    }();
+    static constexpr auto rule =
+      dsl::ascii::case_folding(LEXY_LIT("#if")) >>
+      (dsl::integer<models::BmsChart::IfTag>(dsl::digits<>) + dsl::p<MainTags> +
+       dsl::ascii::case_folding(LEXY_LIT("#endif")));
     static constexpr auto value = lexy::construct<
       std::pair<models::BmsChart::IfTag, models::BmsChart::Tags>>;
 };
@@ -355,8 +354,9 @@ struct RandomBlock
 {
     static constexpr auto rule = [] {
         return dsl::ascii::case_folding(LEXY_LIT("#random")) >>
-               dsl::integer<uint64_t>(dsl::digits<>) + dsl::p<IfList> +
-                 (dsl::ascii::case_folding(LEXY_LIT("#endrandom")) | dsl::eof);
+               (dsl::integer<models::BmsChart::RandomRange>(dsl::digits<>) +
+                dsl::p<IfList> +
+                (dsl::ascii::case_folding(LEXY_LIT("#endrandom")) | dsl::eof));
     }();
     static constexpr auto value = lexy::construct<std::pair<
       models::BmsChart::RandomRange,
