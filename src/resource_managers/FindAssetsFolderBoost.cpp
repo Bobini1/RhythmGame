@@ -7,10 +7,10 @@
 auto
 resource_managers::findAssetsFolder() -> std::filesystem::path
 {
-    static const auto assetsFolder = boost::dll::program_location()
-                                       .parent_path()
-                                       .parent_path()
-                                       .append("assets")
-                                       .string();
+    static const auto assetsFolder =
+      std::filesystem::path(boost::dll::program_location().c_str())
+        .parent_path()
+        .parent_path() /
+      "assets";
     return assetsFolder;
 }
