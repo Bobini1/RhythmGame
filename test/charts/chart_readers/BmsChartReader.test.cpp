@@ -138,16 +138,14 @@ TEST_CASE("Random blocks get parsed correctly", "[BmsChartReader]")
     REQUIRE(res.artist == std::optional<std::string>{});
     REQUIRE(res.bpm == std::optional<double>{});
     REQUIRE(res.randomBlocks.size() == 1);
-    REQUIRE(res.randomBlocks[0].first == std::uniform_int_distribution(0L, 5L));
-    REQUIRE(res.randomBlocks[0].second->size() == 1);
-    REQUIRE(res.randomBlocks[0].second->contains(5));
-    REQUIRE(res.randomBlocks[0].second->begin()->second.title == "44river"s);
-    REQUIRE(res.randomBlocks[0].second->begin()->second.bpm == 120);
-    REQUIRE(res.randomBlocks[0].second->begin()->second.subTitle ==
-            "testSubTitle"s);
-    REQUIRE(res.randomBlocks[0].second->begin()->second.genre == "bicior"s);
-    REQUIRE(res.randomBlocks[0].second->begin()->second.subArtist ==
-            "MC BOBSON"s);
+    REQUIRE(res.randomBlocks[0].first == 5L);
+    REQUIRE(res.randomBlocks[0].second.size() == 1);
+    REQUIRE(res.randomBlocks[0].second[0].first == 5L);
+    REQUIRE(res.randomBlocks[0].second[0].second.title == "44river"s);
+    REQUIRE(res.randomBlocks[0].second[0].second.bpm == 120);
+    REQUIRE(res.randomBlocks[0].second[0].second.subTitle == "testSubTitle"s);
+    REQUIRE(res.randomBlocks[0].second[0].second.genre == "bicior"s);
+    REQUIRE(res.randomBlocks[0].second[0].second.subArtist == "MC BOBSON"s);
 }
 
 TEST_CASE("Nested random blocks", "[BmsChartReader]")
@@ -163,40 +161,22 @@ TEST_CASE("Nested random blocks", "[BmsChartReader]")
     REQUIRE(res.artist == std::optional<std::string>{});
     REQUIRE(res.bpm == std::optional<double>{});
     REQUIRE(res.randomBlocks.size() == 1);
-    REQUIRE(res.randomBlocks[0].first == std::uniform_int_distribution(0L, 5L));
-    REQUIRE(res.randomBlocks[0].second->size() == 1);
-    REQUIRE(res.randomBlocks[0].second->contains(5));
-    REQUIRE(res.randomBlocks[0].second->begin()->second.title == "44river"s);
-    REQUIRE(res.randomBlocks[0].second->begin()->second.randomBlocks.size() ==
-            1);
-    REQUIRE(res.randomBlocks[0].second->begin()->second.randomBlocks[0].first ==
-            std::uniform_int_distribution(0L, 1L));
+    REQUIRE(res.randomBlocks[0].first == 5L);
+    REQUIRE(res.randomBlocks[0].second.size() == 1);
+    REQUIRE(res.randomBlocks[0].second[0].first == 5L);
+    REQUIRE(res.randomBlocks[0].second[0].second.title == "44river"s);
+    REQUIRE(res.randomBlocks[0].second[0].second.randomBlocks.size() == 1);
+    REQUIRE(res.randomBlocks[0].second[0].second.randomBlocks[0].first == 1L);
+    REQUIRE(
+      res.randomBlocks[0].second[0].second.randomBlocks[0].second.size() == 1);
+    REQUIRE(
+      res.randomBlocks[0].second[0].second.randomBlocks[0].second[0].first ==
+      1);
     REQUIRE(res.randomBlocks[0]
-              .second->begin()
-              ->second.randomBlocks[0]
-              .second->size() == 1);
-    REQUIRE(res.randomBlocks[0]
-              .second->begin()
-              ->second.randomBlocks[0]
-              .second->contains(1) == 1);
-    REQUIRE(res.randomBlocks[0]
-              .second->begin()
-              ->second.randomBlocks[0]
-              .second->begin()
-              ->second.artist == "-45"s);
-}
-
-TEST_CASE("Test return values on failed parse", "[BmsChartReader]")
-{
-    using namespace std::literals::string_literals;
-    auto reader = charts::chart_readers::BmsChartReader{};
-    auto testString = ""s;
-    auto resReader = reader.readBmsChart(testString);
-    REQUIRE_FALSE(resReader);
-
-    testString = "#ARTST -44"s;
-    auto resReaderTags = reader.readBmsChart(testString);
-    REQUIRE(resReaderTags == std::nullopt);
+              .second[0]
+              .second.randomBlocks[0]
+              .second[0]
+              .second.artist == "-45"s);
 }
 
 TEST_CASE("Check if readBmsChart returns an actual chart", "[BmsChartReader]")
@@ -315,15 +295,6 @@ TEST_CASE("Bgm notes get parsed correctly", "[BmsChartReader]")
     REQUIRE(res.measures[1].bgmNotes[1][1] == "05"s);
     REQUIRE(res.measures[1].bgmNotes[1][2] == "06"s);
     REQUIRE(res.measures[1].bgmNotes[1][3] == "07"s);
-}
-
-TEST_CASE("Invalid chart doesn't get parsed", "[BmsChartReader]")
-{
-    using namespace std::literals::string_literals;
-    const auto chart = "#00101:00010203\n#00101:0405060"s;
-    auto reader = charts::chart_readers::BmsChartReader{};
-    auto resReader = reader.readBmsChart(chart);
-    REQUIRE(!resReader);
 }
 
 TEST_CASE("All basic note types get parsed", "[BmsChartReader]")

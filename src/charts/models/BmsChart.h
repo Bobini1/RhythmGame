@@ -19,7 +19,7 @@ namespace charts::models {
 class BmsChart
 {
   public:
-    using RandomRange = std::uniform_int_distribution<int64_t>;
+    using RandomRange = int64_t;
     using IfTag = int64_t;
 
     struct Measure
@@ -49,10 +49,7 @@ class BmsChart
         std::optional<std::string> genre;
         std::map<uint64_t, Measure> measures;
 
-        // we have to use std::unique_ptr<std::multimap> because otherwise
-        // this doesn't compile on MSVC. :)
-        std::vector<
-          std::pair<RandomRange, std::unique_ptr<std::multimap<IfTag, Tags>>>>
+        std::vector<std::pair<RandomRange, std::vector<std::pair<IfTag, Tags>>>>
           randomBlocks; /*< Random blocks can hold any tags, including ones
                            that were already defined. */
     };

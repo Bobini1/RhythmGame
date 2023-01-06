@@ -227,6 +227,14 @@ struct TagsSink
         {
             state.bpm = static_cast<double>(bpm);
         }
+        auto operator()(
+          std::pair<models::BmsChart::RandomRange,
+                    std::vector<std::pair<models::BmsChart::IfTag,
+                                          models::BmsChart::Tags>>>&&
+            randomBlock)
+        {
+            state.randomBlocks.emplace_back(std::move(randomBlock));
+        }
 
         auto operator()(
           std::tuple<uint64_t, int, std::vector<std::string>>&& measureBasedTag)
@@ -303,27 +311,65 @@ struct TagsSink
     auto sink() const -> SinkCallback { return SinkCallback{}; }
 };
 
-struct Production
+struct RandomBlock;
+
+struct MainTags
 {
     static constexpr auto whitespace = dsl::whitespace(dsl::unicode::space);
     static constexpr auto rule = [] {
-        return dsl::list(dsl::try_(
-                 dsl::p<TitleTag> | dsl::p<ArtistTag> | dsl::p<GenreTag> |
-                   dsl::p<SubtitleTag> | dsl::p<SubartistTag> | dsl::p<BpmTag> |
-                   dsl::p<MeasureBasedTag>,
-                 dsl::until(dsl::unicode::newline).or_eof())) +
-               dsl::eof;
+        auto term = dsl::terminator(
+          dsl::eof | dsl::peek(dsl::ascii::case_folding(LEXY_LIT("#endif"))));
+        return term.list(dsl::try_(
+          dsl::p<TitleTag> | dsl::p<ArtistTag> | dsl::p<GenreTag> |
+            dsl::p<SubtitleTag> | dsl::p<SubartistTag> | dsl::p<BpmTag> |
+            dsl::p<MeasureBasedTag> | dsl::recurse_branch<RandomBlock>,
+          dsl::until(dsl::unicode::newline).or_eof()));
     }();
     static constexpr auto value = TagsSink{};
+};
+
+struct IfBlock
+{
+    static constexpr auto rule = [] {
+        return dsl::ascii::case_folding(LEXY_LIT("#if")) >>
+               dsl::integer<uint64_t>(dsl::digits<>) + dsl::p<MainTags> +
+                 dsl::ascii::case_folding(LEXY_LIT("#endif"));
+    }();
+    static constexpr auto value = lexy::construct<
+      std::pair<models::BmsChart::IfTag, models::BmsChart::Tags>>;
+};
+
+struct IfList
+{
+    static constexpr auto rule = [] {
+        auto delims = dsl::terminator(
+          dsl::eof |
+          dsl::peek(dsl::ascii::case_folding(LEXY_LIT("#endrandom"))));
+        return delims.list(dsl::p<IfBlock>);
+    }();
+    static constexpr auto value = lexy::as_list<
+      std::vector<std::pair<models::BmsChart::IfTag, models::BmsChart::Tags>>>;
+};
+
+struct RandomBlock
+{
+    static constexpr auto rule = [] {
+        return dsl::ascii::case_folding(LEXY_LIT("#random")) >>
+               dsl::integer<uint64_t>(dsl::digits<>) + dsl::p<IfList> +
+                 (dsl::ascii::case_folding(LEXY_LIT("#endrandom")) | dsl::eof);
+    }();
+    static constexpr auto value = lexy::construct<std::pair<
+      models::BmsChart::RandomRange,
+      std::vector<std::pair<models::BmsChart::IfTag, models::BmsChart::Tags>>>>;
 };
 
 auto
 BmsChartReader::readBmsChart(const std::string& chart) const
   -> std::optional<models::BmsChart::Tags>
 {
-    auto result = lexy::parse<Production>(
-      lexy::string_input<lexy::utf8_char_encoding>(chart),
-      lexy_ext::report_error);
+    auto result =
+      lexy::parse<MainTags>(lexy::string_input<lexy::utf8_char_encoding>(chart),
+                            lexy_ext::report_error);
     if (result.has_value()) {
         return std::move(result).value();
     }
