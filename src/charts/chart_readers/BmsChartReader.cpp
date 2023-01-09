@@ -129,6 +129,16 @@ struct Bpm : type_safe::strong_typedef<Bpm, double>
     using strong_typedef::strong_typedef;
 };
 
+struct ExBpm : type_safe::strong_typedef<ExBpm, std::pair<std::string, double>>
+{
+    using strong_typedef::strong_typedef;
+};
+
+struct Meter : type_safe::strong_typedef<Meter, std::pair<uint64_t, double>>
+{
+    using strong_typedef::strong_typedef;
+};
+
 struct TitleTag
 {
     static constexpr auto rule = [] {
@@ -196,6 +206,32 @@ struct BpmTag
       lexy::callback<Bpm>([](double num) { return Bpm{ num }; });
 };
 
+struct ExBpmTag
+{
+    static constexpr auto rule = [] {
+        auto exBpmTag =
+          dsl::hash_sign + dsl::if_(dsl::ascii::case_folding(LEXY_LIT("ex"))) +
+          dsl::ascii::case_folding(LEXY_LIT("bpm")) + dsl::p<Identifier>;
+        return dsl::peek(exBpmTag) >> (exBpmTag + dsl::p<FloatingPoint>);
+    }();
+    static constexpr auto value =
+      lexy::callback<ExBpm>([](std::string id, double num) {
+          return ExBpm{ { std::move(id), num } };
+      });
+};
+
+struct MeterTag
+{
+    static constexpr auto rule = [] {
+        auto start = (dsl::p<Measure> + LEXY_LIT("02"));
+        return dsl::peek(start) >> start >> dsl::colon >> dsl::p<FloatingPoint>;
+    }();
+    static constexpr auto value =
+      lexy::callback<Meter>([](uint64_t measure, double num) {
+          return Meter{ { measure, num } };
+      });
+};
+
 struct TagsSink
 {
     struct SinkCallback
@@ -227,6 +263,11 @@ struct TagsSink
         {
             state.bpm = static_cast<double>(bpm);
         }
+        auto operator()(ExBpm&& bpm) -> void
+        {
+            state.exBpms.push_back(
+              static_cast<std::pair<std::string, double>>(bpm));
+        }
         auto operator()(
           std::pair<models::BmsChart::RandomRange,
                     std::vector<std::pair<models::BmsChart::IfTag,
@@ -234,6 +275,13 @@ struct TagsSink
             randomBlock)
         {
             state.randomBlocks.emplace_back(std::move(randomBlock));
+        }
+
+        auto operator()(Meter&& meter) -> void
+        {
+            auto [measure, value] =
+              static_cast<std::pair<uint64_t, double>>(meter);
+            state.measures[measure].meter = value;
         }
 
         auto operator()(
@@ -254,7 +302,15 @@ struct TagsSink
             };
             enum GeneralSubcategories
             {
-                Bgm = 1
+                Bgm = 1,
+                /* Meter = 2, */
+                Bpm = 3,
+                BgaBase = 4,
+                ExtendedObject = 5,
+                SeekObject = 6,
+                BgaLayer = 7,
+                ExBpm = 8,
+                Stop = 9,
             };
             constexpr auto base = 36;
             auto channelCategory =
@@ -266,6 +322,14 @@ struct TagsSink
                         case Bgm:
                             state.measures[measure].bgmNotes.push_back(
                               std::move(identifiers));
+                            break;
+                        case Bpm:
+                            state.measures[measure].bpmChanges =
+                              std::move(identifiers);
+                            break;
+                        case ExBpm:
+                            state.measures[measure].exBpmChanges =
+                              std::move(identifiers);
                             break;
                         default:
                             spdlog::error("Unknown channel: {}", channel);
@@ -321,8 +385,9 @@ struct MainTags
           dsl::eof | dsl::peek(dsl::ascii::case_folding(LEXY_LIT("#endif"))));
         return term.list(dsl::try_(
           dsl::p<TitleTag> | dsl::p<ArtistTag> | dsl::p<GenreTag> |
-            dsl::p<SubtitleTag> | dsl::p<SubartistTag> | dsl::p<BpmTag> |
-            dsl::p<MeasureBasedTag> | dsl::recurse_branch<RandomBlock>,
+            dsl::p<SubtitleTag> | dsl::p<SubartistTag> | dsl::p<ExBpmTag> |
+            dsl::p<BpmTag> | dsl::p<MeterTag> | dsl::p<MeasureBasedTag> |
+            dsl::recurse_branch<RandomBlock>,
           dsl::until(dsl::unicode::newline).or_eof()));
     }();
     static constexpr auto value = TagsSink{};
@@ -365,14 +430,11 @@ struct RandomBlock
 
 auto
 BmsChartReader::readBmsChart(const std::string& chart) const
-  -> std::optional<models::BmsChart::Tags>
+  -> models::BmsChart::Tags
 {
     auto result =
       lexy::parse<MainTags>(lexy::string_input<lexy::utf8_char_encoding>(chart),
                             lexy_ext::report_error);
-    if (result.has_value()) {
-        return std::move(result).value();
-    }
-    return std::nullopt;
+    return std::move(result).value();
 }
 } // namespace charts::chart_readers

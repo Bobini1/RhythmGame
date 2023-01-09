@@ -31,8 +31,9 @@ class BmsChart
         std::array<std::vector<std::string>, columnNumber> p2InvisibleNotes;
         std::array<std::vector<std::string>, columnNumber> p1LongNotes;
         std::array<std::vector<std::string>, columnNumber> p2LongNotes;
-        std::array<std::vector<std::string>, columnNumber> bpmChanges;
         std::vector<std::vector<std::string>> bgmNotes;
+        std::vector<std::string> bpmChanges;   // old-school, FF = BPM is 255
+        std::vector<std::string> exBpmChanges; // new, FF = #BPMFF
         double meter = 1;
     };
 
@@ -47,6 +48,7 @@ class BmsChart
         std::optional<std::string> subTitle;
         std::optional<std::string> subArtist;
         std::optional<std::string> genre;
+        std::vector<std::pair<std::string, double>> exBpms;
         std::map<uint64_t, Measure> measures;
 
         std::vector<std::pair<RandomRange, std::vector<std::pair<IfTag, Tags>>>>
