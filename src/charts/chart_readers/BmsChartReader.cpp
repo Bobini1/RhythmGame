@@ -3,7 +3,6 @@
 //
 
 #include <utility>
-#include "charts/chart_readers/ToChars.h"
 #include <lexy/action/parse.hpp>
 #include <lexy/dsl.hpp>
 #include <lexy/callback.hpp>
@@ -400,7 +399,7 @@ struct TagsSink
             }
         }
     };
-    static auto sink() -> SinkCallback { return SinkCallback{}; }
+    auto sink() -> SinkCallback { return SinkCallback{}; }
 };
 
 struct RandomBlock;
