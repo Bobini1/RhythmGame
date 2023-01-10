@@ -31,7 +31,7 @@ struct TextTag
       lexy::as_string<std::string> >>
       lexy::callback<std::string>(trimR<std::string_view>);
     static constexpr auto rule = [] {
-        auto limits = dsl::delimited(dsl::lit<"">, dsl::eol);
+        auto limits = dsl::delimited(LEXY_LIT(""), dsl::eol);
         return limits(dsl::code_point);
     }();
 };
@@ -149,7 +149,7 @@ struct Meter : type_safe::strong_typedef<Meter, std::pair<uint64_t, double>>
 struct TitleTag
 {
     static constexpr auto rule = [] {
-        auto titleTag = dsl::ascii::case_folding(dsl::lit<"#title">);
+        auto titleTag = dsl::ascii::case_folding(LEXY_LIT("#title"));
         return titleTag >> dsl::p<TextTag>;
     }();
     static constexpr auto value =
@@ -160,7 +160,7 @@ struct TitleTag
 struct ArtistTag
 {
     static constexpr auto rule = [] {
-        auto artistTag = dsl::ascii::case_folding(dsl::lit<"#artist">);
+        auto artistTag = dsl::ascii::case_folding(LEXY_LIT("#artist"));
         return artistTag >> dsl::p<TextTag>;
     }();
     static constexpr auto value =
@@ -171,7 +171,7 @@ struct ArtistTag
 struct GenreTag
 {
     static constexpr auto rule = [] {
-        auto genreTag = dsl::ascii::case_folding(dsl::lit<"#genre">);
+        auto genreTag = dsl::ascii::case_folding(LEXY_LIT("#genre"));
         return genreTag >> dsl::p<TextTag>;
     }();
     static constexpr auto value =
@@ -182,7 +182,7 @@ struct GenreTag
 struct SubtitleTag
 {
     static constexpr auto rule = [] {
-        auto subtitleTag = dsl::ascii::case_folding(dsl::lit<"#subtitle">);
+        auto subtitleTag = dsl::ascii::case_folding(LEXY_LIT("#subtitle"));
         return subtitleTag >> dsl::p<TextTag>;
     }();
     static constexpr auto value =
@@ -194,7 +194,7 @@ struct SubtitleTag
 struct SubartistTag
 {
     static constexpr auto rule = [] {
-        auto subartistTag = dsl::ascii::case_folding(dsl::lit<"#subartist">);
+        auto subartistTag = dsl::ascii::case_folding(LEXY_LIT("#subartist"));
         return subartistTag >> dsl::p<TextTag>;
     }();
     static constexpr auto value =
@@ -206,7 +206,7 @@ struct SubartistTag
 struct BpmTag
 {
     static constexpr auto rule = [] {
-        auto bpmTag = dsl::ascii::case_folding(dsl::lit<"#bpm">);
+        auto bpmTag = dsl::ascii::case_folding(LEXY_LIT("#bpm"));
         return bpmTag >> dsl::p<FloatingPoint>;
     }();
     static constexpr auto value =
@@ -216,7 +216,7 @@ struct BpmTag
 struct WavTag
 {
     static constexpr auto rule = [] {
-        auto wavTag = dsl::ascii::case_folding(dsl::lit<"#wav">);
+        auto wavTag = dsl::ascii::case_folding(LEXY_LIT("#wav"));
         return wavTag >> (dsl::p<Identifier> + dsl::p<TextTag>);
     }();
     static constexpr auto value =
@@ -229,8 +229,8 @@ struct ExBpmTag
 {
     static constexpr auto rule = [] {
         auto exBpmTag =
-          dsl::hash_sign + dsl::if_(dsl::ascii::case_folding(dsl::lit<"ex">)) +
-          dsl::ascii::case_folding(dsl::lit<"bpm">) + dsl::p<Identifier>;
+          dsl::hash_sign + dsl::if_(dsl::ascii::case_folding(LEXY_LIT("ex"))) +
+          dsl::ascii::case_folding(LEXY_LIT("bpm")) + dsl::p<Identifier>;
         return dsl::peek(exBpmTag) >> (exBpmTag + dsl::p<FloatingPoint>);
     }();
     static constexpr auto value =
@@ -242,7 +242,7 @@ struct ExBpmTag
 struct MeterTag
 {
     static constexpr auto rule = [] {
-        auto start = (dsl::p<Measure> + dsl::lit<"02">);
+        auto start = (dsl::p<Measure> + LEXY_LIT("02"));
         return dsl::peek(start) >> start >> dsl::colon >> dsl::p<FloatingPoint>;
     }();
     static constexpr auto value =
@@ -410,7 +410,7 @@ struct MainTags
     static constexpr auto whitespace = dsl::whitespace(dsl::unicode::space);
     static constexpr auto rule = [] {
         auto term = dsl::terminator(
-          dsl::eof | dsl::peek(dsl::ascii::case_folding(dsl::lit<"#endif">)));
+          dsl::eof | dsl::peek(dsl::ascii::case_folding(LEXY_LIT("#endif"))));
         return term.list(dsl::try_(
           dsl::p<TitleTag> | dsl::p<ArtistTag> | dsl::p<GenreTag> |
             dsl::p<SubtitleTag> | dsl::p<SubartistTag> | dsl::p<ExBpmTag> |
@@ -424,9 +424,9 @@ struct MainTags
 struct IfBlock
 {
     static constexpr auto rule =
-      dsl::ascii::case_folding(dsl::lit<"#if">) >>
+      dsl::ascii::case_folding(LEXY_LIT("#if")) >>
       (dsl::integer<models::BmsChart::IfTag>(dsl::digits<>) + dsl::p<MainTags> +
-       dsl::ascii::case_folding(dsl::lit<"#endif">));
+       dsl::ascii::case_folding(LEXY_LIT("#endif")));
     static constexpr auto value = lexy::construct<
       std::pair<models::BmsChart::IfTag, models::BmsChart::Tags>>;
 };
@@ -436,7 +436,7 @@ struct IfList
     static constexpr auto rule = [] {
         auto delims = dsl::terminator(
           dsl::eof |
-          dsl::peek(dsl::ascii::case_folding(dsl::lit<"#endrandom">)));
+          dsl::peek(dsl::ascii::case_folding(LEXY_LIT("#endrandom"))));
         return delims.list(dsl::p<IfBlock>);
     }();
     static constexpr auto value = lexy::as_list<
@@ -446,10 +446,10 @@ struct IfList
 struct RandomBlock
 {
     static constexpr auto rule = [] {
-        return dsl::ascii::case_folding(dsl::lit<"#random">) >>
+        return dsl::ascii::case_folding(LEXY_LIT("#random")) >>
                (dsl::integer<models::BmsChart::RandomRange>(dsl::digits<>) +
                 dsl::p<IfList> +
-                (dsl::ascii::case_folding(dsl::lit<"#endrandom">) | dsl::eof));
+                (dsl::ascii::case_folding(LEXY_LIT("#endrandom")) | dsl::eof));
     }();
     static constexpr auto value = lexy::construct<std::pair<
       models::BmsChart::RandomRange,
