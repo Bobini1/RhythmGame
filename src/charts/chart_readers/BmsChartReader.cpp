@@ -19,7 +19,7 @@ namespace charts::chart_readers {
 namespace dsl = lexy::dsl;
 
 namespace {
-auto
+[[nodiscard]] auto
 trimR(auto&& str) -> std::string
 {
     return std::string(
