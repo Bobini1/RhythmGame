@@ -21,9 +21,8 @@ find_package(luajit REQUIRED)
 
 find_package(SQLiteCpp REQUIRED)
 
-# <------------ pegtl (parsing) --------------->
+# <------------ lexy (parsing) --------------->
 
-find_package(pegtl REQUIRED)
 find_package(lexy REQUIRED)
 
 # <------------ fmt (text formatting) --------------->
@@ -54,7 +53,7 @@ find_package(Threads REQUIRED)
 
 find_package(Microsoft.GSL REQUIRED)
 
-target_link_libraries(RhythmGame_lib PUBLIC Threads::Threads taocpp::pegtl Boost::headers Boost::dynamic_linking Boost::filesystem type_safe::type_safe luajit::luajit sol2::sol2 SQLiteCpp sfml::sfml Microsoft.GSL::GSL spdlog::spdlog foonathan::lexy)
+target_link_libraries(RhythmGame_lib PUBLIC Threads::Threads Boost::headers Boost::dynamic_linking Boost::filesystem type_safe::type_safe luajit::luajit sol2::sol2 SQLiteCpp sfml::sfml Microsoft.GSL::GSL spdlog::spdlog foonathan::lexy)
 
 include(CheckCXXSymbolExists)
 check_cxx_symbol_exists(std::execution::par "execution" RHYTHMGAME_HAS_STD_EXECUTION)

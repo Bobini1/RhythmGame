@@ -48,7 +48,8 @@ class BmsChart
         std::optional<std::string> subTitle;
         std::optional<std::string> subArtist;
         std::optional<std::string> genre;
-        std::vector<std::pair<std::string, double>> exBpms;
+        std::map<std::string, double> exBpms;
+        std::map<std::string, std::string> wavs;
         std::map<uint64_t, Measure> measures;
 
         std::vector<std::pair<RandomRange, std::vector<std::pair<IfTag, Tags>>>>

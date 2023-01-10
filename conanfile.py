@@ -14,7 +14,6 @@ class Recipe(ConanFile):
         self.requires("sqlitecpp/3.1.1")
         self.requires("boost/1.79.0")
         self.requires("stb/cci.20210910")
-        self.requires("taocpp-pegtl/3.2.6")
         self.requires("ms-gsl/4.0.0")
         self.requires("type_safe/0.2.2")
         self.requires("luajit/2.0.5")

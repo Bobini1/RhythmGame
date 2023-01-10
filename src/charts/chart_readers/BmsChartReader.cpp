@@ -19,15 +19,17 @@ namespace charts::chart_readers {
 namespace dsl = lexy::dsl;
 
 namespace {
-constexpr auto trimR = [](auto&& str) {
+auto
+trimR(auto&& str) -> std::string
+{
     return std::string(
       std::string_view{ str }.substr(0, str.find_last_not_of(' ') + 1));
 };
-} // namespace
 struct TextTag
 {
-    static constexpr auto value = lexy::as_string<std::string> >>
-                                  lexy::callback<std::string>(trimR);
+    static constexpr auto value =
+      lexy::as_string<std::string> >>
+      lexy::callback<std::string>(trimR<std::string_view>);
     static constexpr auto rule = [] {
         auto limits = dsl::delimited(LEXY_LIT(""), dsl::eol);
         return limits(dsl::code_point);
@@ -129,6 +131,11 @@ struct Bpm : type_safe::strong_typedef<Bpm, double>
     using strong_typedef::strong_typedef;
 };
 
+struct Wav : type_safe::strong_typedef<Wav, std::pair<std::string, std::string>>
+{
+    using strong_typedef::strong_typedef;
+};
+
 struct ExBpm : type_safe::strong_typedef<ExBpm, std::pair<std::string, double>>
 {
     using strong_typedef::strong_typedef;
@@ -206,6 +213,18 @@ struct BpmTag
       lexy::callback<Bpm>([](double num) { return Bpm{ num }; });
 };
 
+struct WavTag
+{
+    static constexpr auto rule = [] {
+        auto wavTag = dsl::ascii::case_folding(LEXY_LIT("#wav"));
+        return wavTag >> (dsl::p<Identifier> + dsl::p<TextTag>);
+    }();
+    static constexpr auto value =
+      lexy::callback<Wav>([](std::string&& identifier, std::string&& filename) {
+          return Wav{ { std::move(identifier), std::move(filename) } };
+      });
+};
+
 struct ExBpmTag
 {
     static constexpr auto rule = [] {
@@ -215,8 +234,8 @@ struct ExBpmTag
         return dsl::peek(exBpmTag) >> (exBpmTag + dsl::p<FloatingPoint>);
     }();
     static constexpr auto value =
-      lexy::callback<ExBpm>([](std::string id, double num) {
-          return ExBpm{ { std::move(id), num } };
+      lexy::callback<ExBpm>([](std::string identifier, double num) {
+          return ExBpm{ { std::move(identifier), num } };
       });
 };
 
@@ -236,28 +255,29 @@ struct TagsSink
 {
     struct SinkCallback
     {
-        using return_type = models::BmsChart::Tags;
+        using return_type = // NOLINT(readability-identifier-naming)
+          models::BmsChart::Tags;
         models::BmsChart::Tags state;
         auto finish() && -> return_type { return std::move(state); }
         auto operator()(Title&& title) -> void
         {
-            state.title = static_cast<std::string>(title);
+            state.title = std::move(static_cast<std::string&>(title));
         }
         auto operator()(Artist&& artist) -> void
         {
-            state.artist = static_cast<std::string>(artist);
+            state.artist = std::move(static_cast<std::string&>(artist));
         }
         auto operator()(Genre&& genre) -> void
         {
-            state.genre = static_cast<std::string>(genre);
+            state.genre = std::move(static_cast<std::string&>(genre));
         }
         auto operator()(Subtitle&& subtitle) -> void
         {
-            state.subTitle = static_cast<std::string>(subtitle);
+            state.subTitle = std::move(static_cast<std::string&>(subtitle));
         }
         auto operator()(Subartist&& subartist) -> void
         {
-            state.subArtist = static_cast<std::string>(subartist);
+            state.subArtist = std::move(static_cast<std::string&>(subartist));
         }
         auto operator()(Bpm&& bpm) -> void
         {
@@ -265,8 +285,9 @@ struct TagsSink
         }
         auto operator()(ExBpm&& bpm) -> void
         {
-            state.exBpms.push_back(
-              static_cast<std::pair<std::string, double>>(bpm));
+            auto& [identifier, value] =
+              static_cast<std::pair<std::string, double>&>(bpm);
+            state.exBpms[identifier] = value;
         }
         auto operator()(
           std::pair<models::BmsChart::RandomRange,
@@ -282,6 +303,13 @@ struct TagsSink
             auto [measure, value] =
               static_cast<std::pair<uint64_t, double>>(meter);
             state.measures[measure].meter = value;
+        }
+
+        auto operator()(Wav&& wav) -> void
+        {
+            auto& [identifier, filename] =
+              static_cast<std::pair<std::string, std::string>&>(wav);
+            state.wavs[identifier] = std::move(filename);
         }
 
         auto operator()(
@@ -303,14 +331,14 @@ struct TagsSink
             enum GeneralSubcategories
             {
                 Bgm = 1,
-                /* Meter = 2, */
+                /* Meter = 2, // handled elsewhere */
                 Bpm = 3,
-                BgaBase = 4,
+                /* BgaBase = 4, // unimplemented
                 ExtendedObject = 5,
                 SeekObject = 6,
-                BgaLayer = 7,
+                BgaLayer = 7, */
                 ExBpm = 8,
-                Stop = 9,
+                /* Stop = 9, // unimplemented */
             };
             constexpr auto base = 36;
             auto channelCategory =
@@ -372,7 +400,7 @@ struct TagsSink
             }
         }
     };
-    auto sink() const -> SinkCallback { return SinkCallback{}; }
+    static auto sink() -> SinkCallback { return SinkCallback{}; }
 };
 
 struct RandomBlock;
@@ -386,8 +414,8 @@ struct MainTags
         return term.list(dsl::try_(
           dsl::p<TitleTag> | dsl::p<ArtistTag> | dsl::p<GenreTag> |
             dsl::p<SubtitleTag> | dsl::p<SubartistTag> | dsl::p<ExBpmTag> |
-            dsl::p<BpmTag> | dsl::p<MeterTag> | dsl::p<MeasureBasedTag> |
-            dsl::recurse_branch<RandomBlock>,
+            dsl::p<BpmTag> | dsl::p<MeterTag> | dsl::p<WavTag> |
+            dsl::p<MeasureBasedTag> | dsl::recurse_branch<RandomBlock>,
           dsl::until(dsl::unicode::newline).or_eof()));
     }();
     static constexpr auto value = TagsSink{};
@@ -427,6 +455,7 @@ struct RandomBlock
       models::BmsChart::RandomRange,
       std::vector<std::pair<models::BmsChart::IfTag, models::BmsChart::Tags>>>>;
 };
+} // namespace
 
 auto
 BmsChartReader::readBmsChart(const std::string& chart) const

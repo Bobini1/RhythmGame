@@ -8,7 +8,7 @@
 #include "lua/Lua.h"
 
 using namespace std::literals::string_literals;
-TEST_CASE("Check if Title is parsed correctly", "[BmsChartReader]")
+TEST_CASE("Parse title", "[BmsChartReader]")
 {
     auto reader = charts::chart_readers::BmsChartReader{};
     auto testString = "#TITLE END TIME"s;
@@ -17,7 +17,7 @@ TEST_CASE("Check if Title is parsed correctly", "[BmsChartReader]")
     REQUIRE(res.title.value() == "END TIME"s);
 }
 
-TEST_CASE("Check if Artist is parsed correctly", "[BmsChartReader]")
+TEST_CASE("Parse artist", "[BmsChartReader]")
 {
     auto reader = charts::chart_readers::BmsChartReader{};
     auto testString = "#ARTIST cres"s;
@@ -26,7 +26,7 @@ TEST_CASE("Check if Artist is parsed correctly", "[BmsChartReader]")
     REQUIRE(res.artist.value() == "cres"s);
 }
 
-TEST_CASE("Multiple tags at once", "[BmsChartReader]")
+TEST_CASE("Parse multiple tags at once", "[BmsChartReader]")
 {
     auto reader = charts::chart_readers::BmsChartReader{};
     auto testString = "#ARTIST cres\n#TITLE END TIME"s;
@@ -48,7 +48,7 @@ TEST_CASE("Extra whitespace is ignored", "[BmsChartReader]")
     REQUIRE(res.title.value() == "END TIME"s);
 }
 
-TEST_CASE("Check if BPM is parsed correctly", "[BmsChartReader]")
+TEST_CASE("Parse BPM", "[BmsChartReader]")
 {
     auto reader = charts::chart_readers::BmsChartReader{};
     auto testString = "#BPM 120.0"s;
@@ -151,25 +151,7 @@ TEST_CASE("Nested random blocks", "[BmsChartReader]")
               .second.artist == "-45"s);
 }
 
-TEST_CASE("Check if readBmsChart returns an actual chart", "[BmsChartReader]")
-{
-    auto reader = charts::chart_readers::BmsChartReader{};
-    constexpr auto expectedBpm = 180.0;
-    constexpr auto allowedError = 0.00001;
-    auto testString =
-      " #ARTIST   cres   \n\n #TITLE     END TIME  \n   #BPM 180"s;
-    auto res = reader.readBmsChart(testString);
-
-    REQUIRE(res.title);
-    REQUIRE(res.title == "END TIME"s);
-    REQUIRE(res.artist);
-    REQUIRE(res.artist == "cres"s);
-    REQUIRE(res.bpm);
-    REQUIRE(res.bpm.value() ==
-            Catch::Approx(expectedBpm).epsilon(allowedError));
-}
-
-TEST_CASE("Check if unicode is parsed correctly", "[BmsChartReader]")
+TEST_CASE("Parse unicode", "[BmsChartReader]")
 {
     auto reader = charts::chart_readers::BmsChartReader{};
     constexpr auto expectedBpm = 166.0;
@@ -186,7 +168,7 @@ TEST_CASE("Check if unicode is parsed correctly", "[BmsChartReader]")
             Catch::Approx(expectedBpm).epsilon(allowedError));
 }
 
-TEST_CASE("Notes get read from a chart correctly", "[BmsChartReader]")
+TEST_CASE("Parse notes", "[BmsChartReader]")
 {
     using namespace std::literals::string_literals;
     const auto chart = "#00111:00"s;
@@ -197,8 +179,7 @@ TEST_CASE("Notes get read from a chart correctly", "[BmsChartReader]")
     REQUIRE(res.measures[1].p1VisibleNotes[0][0] == "00"s);
 }
 
-TEST_CASE("Notes get read from a chart correctly with multiple notes",
-          "[BmsChartReader]")
+TEST_CASE("Parse notes from a chart with multiple notes", "[BmsChartReader]")
 {
     const auto chart = "#00111:00010203"s;
     auto reader = charts::chart_readers::BmsChartReader{};
@@ -211,8 +192,7 @@ TEST_CASE("Notes get read from a chart correctly with multiple notes",
     REQUIRE(res.measures[1].p1VisibleNotes[0][3] == "03"s);
 }
 
-TEST_CASE("Notes get read from a chart correctly with multiple lanes",
-          "[BmsChartReader]")
+TEST_CASE("Parse notes from a chart with multiple lanes", "[BmsChartReader]")
 {
     const auto chart = "#00111:00010203\n#00112:04050607"s;
     auto reader = charts::chart_readers::BmsChartReader{};
@@ -249,7 +229,7 @@ TEST_CASE("Bgm notes get parsed correctly", "[BmsChartReader]")
     REQUIRE(res.measures[1].bgmNotes[1][3] == "07"s);
 }
 
-TEST_CASE("All basic note types get parsed", "[BmsChartReader]")
+TEST_CASE("Parse all basic note types get", "[BmsChartReader]")
 {
     const auto chart =
       "#00101:00010203\n  #00101:04050607 \n#00511:0405\n#01021:00\n"
@@ -318,8 +298,18 @@ TEST_CASE("Parse new-style bpm changes", "[BmsChartReader]")
     REQUIRE(res.measures[1].exBpmChanges.size() == 1);
     REQUIRE(res.measures[1].exBpmChanges[0] == "12");
     REQUIRE(res.exBpms.size() == 2);
-    REQUIRE(res.exBpms[0].first == "20");
-    REQUIRE(res.exBpms[0].second == Catch::Approx(120));
-    REQUIRE(res.exBpms[1].first == "FF");
-    REQUIRE(res.exBpms[1].second == Catch::Approx(12));
+    REQUIRE(res.exBpms.find("20") != res.exBpms.end());
+    REQUIRE(res.exBpms.find("20")->second == Catch::Approx(120));
+    REQUIRE(res.exBpms.find("FF") != res.exBpms.end());
+    REQUIRE(res.exBpms.find("FF")->second == Catch::Approx(12));
+}
+
+TEST_CASE("Parse WAVXX", "[BmsChartReader]")
+{
+    const auto chart = "#WAV01 01.wav"s;
+    auto reader = charts::chart_readers::BmsChartReader{};
+    auto res = reader.readBmsChart(chart);
+    REQUIRE(res.wavs.size() == 1);
+    REQUIRE(res.wavs.find("01") != res.wavs.end());
+    REQUIRE(res.wavs["01"] == "01.wav"s);
 }
