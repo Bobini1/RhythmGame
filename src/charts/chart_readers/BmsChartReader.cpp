@@ -400,7 +400,7 @@ struct TagsSink
             }
         }
     };
-    static auto sink() -> SinkCallback { return SinkCallback{}; }
+    [[nodiscard]] auto sink() const -> SinkCallback { return SinkCallback{}; }
 };
 
 struct RandomBlock;
