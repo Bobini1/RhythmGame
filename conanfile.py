@@ -4,7 +4,6 @@ from conan import ConanFile
 class Recipe(ConanFile):
     settings = "os", "compiler", "build_type", "arch"
     generators = "CMakeToolchain", "CMakeDeps", "VirtualRunEnv"
-    build_requires = "cmake/3.22.0"
 
     def layout(self):
         self.folders.generators = "conan"
@@ -21,6 +20,30 @@ class Recipe(ConanFile):
         self.requires("di/1.2.0")
         self.requires("spdlog/1.11.0")
         self.requires("foonathan-lexy/2022.12.00")
+        self.requires("gst-libav/1.19.1")
+        self.requires("zlib/1.2.13")
+        self.requires("libalsa/1.2.7.2")
+        self.requires("libffi/3.4.3")
+        self.requires("freetype/2.12.1")
+        self.requires("libpng/1.6.39")
+        self.requires("expat/2.5.0")
+        self.requires("glib/2.75.0")
 
         # Testing only dependencies below
         self.requires("catch2/3.0.1")
+
+    def configure(self):
+        # https://www.ffmpeg.org/legal.html
+        self.options["ffmpeg"].shared = True
+        self.options["gstreamer"].shared = True
+        self.options["glib"].shared = True
+        self.options["gst-plugins-base"].shared = True
+        self.options["gst-libav"].shared = True
+        self.options["ffmpeg"].shared = True
+        self.options["ffmpeg"].shared = True
+        self.options["ffmpeg"].with_libx264 = False
+        self.options["ffmpeg"].with_libx265 = False
+        self.options["ffmpeg"].postproc = False
+        self.options["ffmpeg"].with_libfdk_aac = False
+
+        self.options["ffmpeg"].with_zlib = False
