@@ -33,6 +33,14 @@
    "False"
   ],
   [
+   "boost:filesystem_use_std_fs",
+   "False"
+  ],
+  [
+   "boost:filesystem_version",
+   "None"
+  ],
+  [
    "boost:header_only",
    "False"
   ],
@@ -241,8 +249,32 @@
    "False"
   ],
   [
+   "brotli:enable_debug",
+   "False"
+  ],
+  [
+   "brotli:enable_log",
+   "False"
+  ],
+  [
+   "brotli:enable_portable",
+   "False"
+  ],
+  [
+   "brotli:enable_rbit",
+   "True"
+  ],
+  [
+   "brotli:endianness",
+   "None"
+  ],
+  [
    "brotli:shared",
    "False"
+  ],
+  [
+   "brotli:target_bits",
+   "None"
   ],
   [
    "bzip2:build_executable",
@@ -253,8 +285,16 @@
    "False"
   ],
   [
+   "catch2:console_width",
+   "80"
+  ],
+  [
    "catch2:default_reporter",
    "None"
+  ],
+  [
+   "catch2:shared",
+   "False"
   ],
   [
    "catch2:with_prefix",
