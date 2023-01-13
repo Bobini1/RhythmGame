@@ -2,7 +2,7 @@
  "graph_lock": {
   "nodes": {
    "0": {
-    "options": "boost:addr2line_location=/usr/bin/addr2line\nboost:asio_no_deprecated=False\nboost:buildid=None\nboost:bzip2=True\nboost:debug_level=0\nboost:diagnostic_definitions=False\nboost:error_code_header_only=False\nboost:extra_b2_flags=None\nboost:fPIC=True\nboost:filesystem_no_deprecated=False\nboost:filesystem_version=None\nboost:header_only=False\nboost:i18n_backend=deprecated\nboost:i18n_backend_iconv=libc\nboost:i18n_backend_icu=False\nboost:layout=system\nboost:lzma=False\nboost:magic_autolink=False\nboost:multithreading=True\nboost:namespace=boost\nboost:namespace_alias=False\nboost:numa=True\nboost:pch=True\nboost:python_executable=None\nboost:python_version=None\nboost:segmented_stacks=False\nboost:shared=False\nboost:system_no_deprecated=False\nboost:system_use_utf8=False\nboost:visibility=hidden\nboost:with_stacktrace_backtrace=True\nboost:without_atomic=False\nboost:without_chrono=False\nboost:without_container=False\nboost:without_context=False\nboost:without_contract=False\nboost:without_coroutine=False\nboost:without_date_time=False\nboost:without_exception=False\nboost:without_fiber=False\nboost:without_filesystem=False\nboost:without_graph=False\nboost:without_graph_parallel=True\nboost:without_iostreams=False\nboost:without_json=False\nboost:without_locale=False\nboost:without_log=False\nboost:without_math=False\nboost:without_mpi=True\nboost:without_nowide=False\nboost:without_program_options=False\nboost:without_python=True\nboost:without_random=False\nboost:without_regex=False\nboost:without_serialization=False\nboost:without_stacktrace=False\nboost:without_system=False\nboost:without_test=False\nboost:without_thread=False\nboost:without_timer=False\nboost:without_type_erasure=False\nboost:without_wave=False\nboost:zlib=True\nboost:zstd=False\nbrotli:enable_debug=False\nbrotli:enable_log=False\nbrotli:enable_portable=False\nbrotli:enable_rbit=True\nbrotli:endianness=None\nbrotli:fPIC=True\nbrotli:shared=False\nbrotli:target_bits=None\nbzip2:build_executable=True\nbzip2:fPIC=True\nbzip2:shared=False\ncatch2:default_reporter=None\ncatch2:fPIC=True\ncatch2:with_prefix=False\ndi:diagnostics_level=1\ndi:with_extensions=False\nflac:fPIC=True\nflac:shared=False\nfmt:fPIC=True\nfmt:header_only=False\nfmt:shared=False\nfmt:with_fmt_alias=False\nfmt:with_os_api=True\nfoonathan-lexy:fPIC=True\nfreetype:fPIC=True\nfreetype:shared=False\nfreetype:subpixel=False\nfreetype:with_brotli=True\nfreetype:with_bzip2=True\nfreetype:with_png=True\nfreetype:with_zlib=True\nlibalsa:disable_python=True\nlibalsa:fPIC=True\nlibalsa:shared=False\nlibbacktrace:fPIC=True\nlibbacktrace:shared=False\nlibpng:api_prefix=\nlibpng:fPIC=True\nlibpng:shared=False\nlibpng:sse=True\nluajit:fPIC=True\nluajit:shared=False\nogg:fPIC=True\nogg:shared=False\nopenal:fPIC=True\nopenal:shared=False\nsfml:audio=True\nsfml:fPIC=True\nsfml:graphics=True\nsfml:network=True\nsfml:shared=False\nsfml:window=True\nspdlog:fPIC=True\nspdlog:header_only=False\nspdlog:no_exceptions=False\nspdlog:shared=False\nspdlog:wchar_filenames=False\nspdlog:wchar_support=False\nsqlite3:build_executable=True\nsqlite3:disable_gethostuuid=False\nsqlite3:enable_column_metadata=True\nsqlite3:enable_dbpage_vtab=False\nsqlite3:enable_dbstat_vtab=False\nsqlite3:enable_default_secure_delete=False\nsqlite3:enable_default_vfs=True\nsqlite3:enable_explain_comments=False\nsqlite3:enable_fts3=False\nsqlite3:enable_fts3_parenthesis=False\nsqlite3:enable_fts4=False\nsqlite3:enable_fts5=False\nsqlite3:enable_json1=False\nsqlite3:enable_math_functions=True\nsqlite3:enable_preupdate_hook=False\nsqlite3:enable_rtree=True\nsqlite3:enable_soundex=False\nsqlite3:enable_unlock_notify=True\nsqlite3:fPIC=True\nsqlite3:max_blob_size=None\nsqlite3:max_column=None\nsqlite3:max_variable_number=None\nsqlite3:omit_deprecated=False\nsqlite3:omit_load_extension=False\nsqlite3:shared=False\nsqlite3:threadsafe=1\nsqlite3:use_alloca=False\nsqlitecpp:fPIC=True\nsqlitecpp:shared=False\nsqlitecpp:stack_protection=True\nstb:with_deprecated=True\ntaocpp-pegtl:boost_filesystem=False\nvorbis:fPIC=True\nvorbis:shared=False\nzlib:fPIC=True\nzlib:shared=False",
+    "options": "boost:addr2line_location=/usr/bin/addr2line\nboost:asio_no_deprecated=False\nboost:buildid=None\nboost:bzip2=True\nboost:debug_level=0\nboost:diagnostic_definitions=False\nboost:error_code_header_only=False\nboost:extra_b2_flags=None\nboost:fPIC=True\nboost:filesystem_no_deprecated=False\nboost:filesystem_version=None\nboost:header_only=False\nboost:i18n_backend=deprecated\nboost:i18n_backend_iconv=libc\nboost:i18n_backend_icu=False\nboost:layout=system\nboost:lzma=False\nboost:magic_autolink=False\nboost:multithreading=True\nboost:namespace=boost\nboost:namespace_alias=False\nboost:numa=True\nboost:pch=True\nboost:python_executable=None\nboost:python_version=None\nboost:segmented_stacks=False\nboost:shared=False\nboost:system_no_deprecated=False\nboost:system_use_utf8=False\nboost:visibility=hidden\nboost:with_stacktrace_backtrace=True\nboost:without_atomic=False\nboost:without_chrono=False\nboost:without_container=False\nboost:without_context=False\nboost:without_contract=False\nboost:without_coroutine=False\nboost:without_date_time=False\nboost:without_exception=False\nboost:without_fiber=False\nboost:without_filesystem=False\nboost:without_graph=False\nboost:without_graph_parallel=True\nboost:without_iostreams=False\nboost:without_json=False\nboost:without_locale=False\nboost:without_log=False\nboost:without_math=False\nboost:without_mpi=True\nboost:without_nowide=False\nboost:without_program_options=False\nboost:without_python=True\nboost:without_random=False\nboost:without_regex=False\nboost:without_serialization=False\nboost:without_stacktrace=False\nboost:without_system=False\nboost:without_test=False\nboost:without_thread=False\nboost:without_timer=False\nboost:without_type_erasure=False\nboost:without_wave=False\nboost:zlib=True\nboost:zstd=False\nbrotli:enable_debug=False\nbrotli:enable_log=False\nbrotli:enable_portable=False\nbrotli:enable_rbit=True\nbrotli:endianness=None\nbrotli:fPIC=True\nbrotli:shared=False\nbrotli:target_bits=None\nbzip2:build_executable=True\nbzip2:fPIC=True\nbzip2:shared=False\ncairo:fPIC=True\ncairo:shared=False\ncairo:tee=True\ncairo:with_fontconfig=True\ncairo:with_freetype=True\ncairo:with_glib=True\ncairo:with_lzo=True\ncairo:with_opengl=desktop\ncairo:with_png=True\ncairo:with_symbol_lookup=False\ncairo:with_xcb=True\ncairo:with_xlib=True\ncairo:with_xlib_xrender=True\ncairo:with_zlib=True\ncatch2:default_reporter=None\ncatch2:fPIC=True\ncatch2:with_prefix=False\ndi:diagnostics_level=1\ndi:with_extensions=False\nexpat:char_type=char\nexpat:fPIC=True\nexpat:shared=False\nflac:fPIC=True\nflac:shared=False\nfmt:fPIC=True\nfmt:header_only=False\nfmt:shared=False\nfmt:with_fmt_alias=False\nfmt:with_os_api=True\nfontconfig:fPIC=True\nfontconfig:shared=False\nfoonathan-lexy:fPIC=True\nfreetype:fPIC=True\nfreetype:shared=False\nfreetype:subpixel=False\nfreetype:with_brotli=True\nfreetype:with_bzip2=True\nfreetype:with_png=True\nfreetype:with_zlib=True\nfribidi:fPIC=True\nfribidi:shared=False\nfribidi:with_deprecated=True\nglib:shared=True\nglib:with_elf=True\nglib:with_mount=True\nglib:with_pcre=True\nglib:with_selinux=True\ngraphene:fPIC=True\ngraphene:shared=False\ngraphene:with_glib=True\ngst-plugins-base:shared=True\ngst-plugins-base:with_egl=True\ngst-plugins-base:with_gl=True\ngst-plugins-base:with_graphene=True\ngst-plugins-base:with_introspection=False\ngst-plugins-base:with_libalsa=True\ngst-plugins-base:with_libjpeg=libjpeg\ngst-plugins-base:with_libpng=True\ngst-plugins-base:with_ogg=True\ngst-plugins-base:with_opus=True\ngst-plugins-base:with_pango=True\ngst-plugins-base:with_theora=True\ngst-plugins-base:with_vorbis=True\ngst-plugins-base:with_wayland=True\ngst-plugins-base:with_xorg=True\ngst-plugins-good:shared=True\ngst-plugins-good:with_introspection=False\ngstreamer:shared=True\ngstreamer:with_introspection=False\nharfbuzz:fPIC=True\nharfbuzz:shared=False\nharfbuzz:with_freetype=True\nharfbuzz:with_glib=True\nharfbuzz:with_icu=False\nharfbuzz:with_subset=False\nlibalsa:disable_python=True\nlibalsa:fPIC=True\nlibalsa:shared=False\nlibbacktrace:fPIC=True\nlibbacktrace:shared=False\nlibelf:fPIC=True\nlibelf:shared=False\nlibffi:fPIC=True\nlibffi:shared=False\nlibiconv:fPIC=True\nlibiconv:shared=False\nlibjpeg:fPIC=True\nlibjpeg:shared=False\nlibmount:fPIC=True\nlibmount:shared=False\nlibpng:api_prefix=\nlibpng:fPIC=True\nlibpng:shared=False\nlibpng:sse=True\nlibselinux:fPIC=True\nlibselinux:shared=False\nlibuuid:fPIC=True\nlibuuid:shared=False\nlibxft:fPIC=True\nlibxft:shared=False\nlibxml2:c14n=True\nlibxml2:catalog=True\nlibxml2:fPIC=True\nlibxml2:ftp=True\nlibxml2:html=True\nlibxml2:http=True\nlibxml2:iconv=True\nlibxml2:icu=False\nlibxml2:include_utils=True\nlibxml2:iso8859x=True\nlibxml2:legacy=True\nlibxml2:lzma=False\nlibxml2:mem-debug=False\nlibxml2:output=True\nlibxml2:pattern=True\nlibxml2:push=True\nlibxml2:python=False\nlibxml2:reader=True\nlibxml2:regexps=True\nlibxml2:run-debug=False\nlibxml2:sax1=True\nlibxml2:schemas=True\nlibxml2:schematron=True\nlibxml2:shared=False\nlibxml2:threads=True\nlibxml2:tree=True\nlibxml2:valid=True\nlibxml2:writer=True\nlibxml2:xinclude=True\nlibxml2:xpath=True\nlibxml2:xptr=True\nlibxml2:zlib=True\nluajit:fPIC=True\nluajit:shared=False\nlzo:fPIC=True\nlzo:shared=False\nogg:fPIC=True\nogg:shared=False\nopenal:fPIC=True\nopenal:shared=False\nopus:fPIC=True\nopus:fixed_point=False\nopus:shared=False\npango:fPIC=True\npango:shared=False\npango:with_cairo=True\npango:with_fontconfig=True\npango:with_freetype=True\npango:with_libthai=False\npango:with_xft=True\npcre2:build_pcre2_16=True\npcre2:build_pcre2_32=True\npcre2:build_pcre2_8=True\npcre2:build_pcre2grep=True\npcre2:fPIC=True\npcre2:grep_support_callout_fork=True\npcre2:shared=False\npcre2:support_jit=False\npcre2:with_bzip2=True\npcre2:with_zlib=True\npixman:fPIC=True\npixman:shared=False\nsfml:audio=True\nsfml:fPIC=True\nsfml:graphics=True\nsfml:network=True\nsfml:shared=False\nsfml:window=True\nspdlog:fPIC=True\nspdlog:header_only=False\nspdlog:no_exceptions=False\nspdlog:shared=False\nspdlog:wchar_filenames=False\nspdlog:wchar_support=False\nsqlite3:build_executable=True\nsqlite3:disable_gethostuuid=False\nsqlite3:enable_column_metadata=True\nsqlite3:enable_dbpage_vtab=False\nsqlite3:enable_dbstat_vtab=False\nsqlite3:enable_default_secure_delete=False\nsqlite3:enable_default_vfs=True\nsqlite3:enable_explain_comments=False\nsqlite3:enable_fts3=False\nsqlite3:enable_fts3_parenthesis=False\nsqlite3:enable_fts4=False\nsqlite3:enable_fts5=False\nsqlite3:enable_json1=False\nsqlite3:enable_math_functions=True\nsqlite3:enable_preupdate_hook=False\nsqlite3:enable_rtree=True\nsqlite3:enable_soundex=False\nsqlite3:enable_unlock_notify=True\nsqlite3:fPIC=True\nsqlite3:max_blob_size=None\nsqlite3:max_column=None\nsqlite3:max_variable_number=None\nsqlite3:omit_deprecated=False\nsqlite3:omit_load_extension=False\nsqlite3:shared=False\nsqlite3:threadsafe=1\nsqlite3:use_alloca=False\nsqlitecpp:fPIC=True\nsqlitecpp:shared=False\nsqlitecpp:stack_protection=True\nstb:with_deprecated=True\ntheora:fPIC=True\ntheora:shared=False\nvorbis:fPIC=True\nvorbis:shared=False\nwayland:enable_dtd_validation=True\nwayland:enable_libraries=True\nwayland:fPIC=True\nwayland:shared=False\nzlib:fPIC=True\nzlib:shared=False",
     "requires": [
      "1",
      "3",
@@ -10,16 +10,20 @@
      "9",
      "10",
      "11",
-     "12",
+     "13",
      "14",
-     "15",
+     "26",
      "27",
-     "28",
+     "29",
      "30",
-     "31"
-    ],
-    "build_requires": [
-     "32"
+     "6",
+     "24",
+     "32",
+     "18",
+     "19",
+     "43",
+     "31",
+     "58"
     ],
     "path": "conanfile.py",
     "context": "host"
@@ -71,7 +75,7 @@
     "context": "host"
    },
    "6": {
-    "ref": "zlib/1.2.12",
+    "ref": "zlib/1.2.13",
     "options": "fPIC=True\nshared=False",
     "package_id": "d13c97721d7bdc192ca6529684f2b79beeae8a7c",
     "prev": "0",
@@ -99,96 +103,89 @@
     "context": "host"
    },
    "10": {
-    "ref": "taocpp-pegtl/3.2.6",
-    "options": "boost_filesystem=False",
-    "package_id": "5ab84d6acfe1f23c4fae0ab88f26e3a396351ac9",
-    "prev": "0",
-    "context": "host"
-   },
-   "11": {
     "ref": "ms-gsl/4.0.0",
     "options": "",
     "package_id": "5ab84d6acfe1f23c4fae0ab88f26e3a396351ac9",
     "prev": "0",
     "context": "host"
    },
-   "12": {
+   "11": {
     "ref": "type_safe/0.2.2",
     "options": "",
     "package_id": "5ab84d6acfe1f23c4fae0ab88f26e3a396351ac9",
     "prev": "0",
     "requires": [
-     "13"
+     "12"
     ],
     "context": "host"
    },
-   "13": {
+   "12": {
     "ref": "debug_assert/1.3.3",
     "options": "",
     "package_id": "5ab84d6acfe1f23c4fae0ab88f26e3a396351ac9",
     "prev": "0",
     "context": "host"
    },
-   "14": {
+   "13": {
     "ref": "luajit/2.0.5",
     "options": "fPIC=True\nshared=False",
     "package_id": "d13c97721d7bdc192ca6529684f2b79beeae8a7c",
     "prev": "0",
     "context": "host"
    },
-   "15": {
+   "14": {
     "ref": "sfml/2.5.1",
     "options": "audio=True\nfPIC=True\ngraphics=True\nnetwork=True\nshared=False\nwindow=True\nbrotli:enable_debug=False\nbrotli:enable_log=False\nbrotli:enable_portable=False\nbrotli:enable_rbit=True\nbrotli:endianness=None\nbrotli:fPIC=True\nbrotli:shared=False\nbrotli:target_bits=None\nbzip2:build_executable=True\nbzip2:fPIC=True\nbzip2:shared=False\nflac:fPIC=True\nflac:shared=False\nfreetype:fPIC=True\nfreetype:shared=False\nfreetype:subpixel=False\nfreetype:with_brotli=True\nfreetype:with_bzip2=True\nfreetype:with_png=True\nfreetype:with_zlib=True\nlibalsa:disable_python=True\nlibalsa:fPIC=True\nlibalsa:shared=False\nlibpng:api_prefix=\nlibpng:fPIC=True\nlibpng:shared=False\nlibpng:sse=True\nogg:fPIC=True\nogg:shared=False\nopenal:fPIC=True\nopenal:shared=False\nstb:with_deprecated=True\nvorbis:fPIC=True\nvorbis:shared=False\nzlib:fPIC=True\nzlib:shared=False",
     "package_id": "8c725b9a48d15986d670001801d4f5f3c09d097d",
     "prev": "0",
     "requires": [
+     "15",
      "16",
      "17",
      "18",
-     "19",
      "9",
-     "22",
-     "24",
-     "26"
+     "21",
+     "23",
+     "25"
     ],
     "context": "host"
    },
-   "16": {
+   "15": {
     "ref": "opengl/system",
     "options": "",
     "package_id": "5ab84d6acfe1f23c4fae0ab88f26e3a396351ac9",
     "prev": "0",
     "context": "host"
    },
-   "17": {
+   "16": {
     "ref": "libudev/system",
     "options": "",
     "package_id": "5ab84d6acfe1f23c4fae0ab88f26e3a396351ac9",
     "prev": "0",
     "context": "host"
    },
-   "18": {
+   "17": {
     "ref": "xorg/system",
     "options": "",
     "package_id": "5ab84d6acfe1f23c4fae0ab88f26e3a396351ac9",
     "prev": "0",
     "context": "host"
    },
-   "19": {
-    "ref": "freetype/2.11.1",
+   "18": {
+    "ref": "freetype/2.12.1",
     "options": "fPIC=True\nshared=False\nsubpixel=False\nwith_brotli=True\nwith_bzip2=True\nwith_png=True\nwith_zlib=True\nbrotli:enable_debug=False\nbrotli:enable_log=False\nbrotli:enable_portable=False\nbrotli:enable_rbit=True\nbrotli:endianness=None\nbrotli:fPIC=True\nbrotli:shared=False\nbrotli:target_bits=None\nbzip2:build_executable=True\nbzip2:fPIC=True\nbzip2:shared=False\nlibpng:api_prefix=\nlibpng:fPIC=True\nlibpng:shared=False\nlibpng:sse=True\nzlib:fPIC=True\nzlib:shared=False",
     "package_id": "56e097ea75d61915d9669e57839a1be17facbb06",
     "prev": "0",
     "requires": [
-     "20",
+     "19",
      "6",
      "7",
-     "21"
+     "20"
     ],
     "context": "host"
    },
-   "20": {
-    "ref": "libpng/1.6.37",
+   "19": {
+    "ref": "libpng/1.6.39",
     "options": "api_prefix=\nfPIC=True\nshared=False\nsse=True\nzlib:fPIC=True\nzlib:shared=False",
     "package_id": "4c328c90f20afba7214fd1730e20f318c27e7964",
     "prev": "0",
@@ -197,111 +194,433 @@
     ],
     "context": "host"
    },
-   "21": {
+   "20": {
     "ref": "brotli/1.0.9",
     "options": "enable_debug=False\nenable_log=False\nenable_portable=False\nenable_rbit=True\nendianness=None\nfPIC=True\nshared=False\ntarget_bits=None",
     "package_id": "4879f27bf128b2d43deb204671742e45ff21472d",
     "prev": "0",
     "context": "host"
    },
-   "22": {
+   "21": {
     "ref": "flac/1.3.3",
     "options": "fPIC=True\nshared=False\nogg:fPIC=True\nogg:shared=False",
     "package_id": "5283c87d9a927bcde1e533204bdb3f55bb57dae4",
     "prev": "0",
     "requires": [
-     "23"
+     "22"
     ],
     "context": "host"
    },
-   "23": {
+   "22": {
     "ref": "ogg/1.3.5",
     "options": "fPIC=True\nshared=False",
     "package_id": "d13c97721d7bdc192ca6529684f2b79beeae8a7c",
     "prev": "0",
     "context": "host"
    },
-   "24": {
+   "23": {
     "ref": "openal/1.21.1",
     "options": "fPIC=True\nshared=False\nlibalsa:disable_python=True\nlibalsa:fPIC=True\nlibalsa:shared=False",
     "package_id": "3206e3113fd27a3cbcd8a3d9cf33d7828855b9ec",
     "prev": "0",
     "requires": [
-     "25"
+     "24"
     ],
     "context": "host"
    },
-   "25": {
-    "ref": "libalsa/1.2.5.1",
+   "24": {
+    "ref": "libalsa/1.2.7.2",
     "options": "disable_python=True\nfPIC=True\nshared=False",
     "package_id": "e01c0e0863dd806686e29ee6cd2b7479763e9f6d",
     "prev": "0",
     "context": "host"
    },
-   "26": {
+   "25": {
     "ref": "vorbis/1.3.7",
     "options": "fPIC=True\nshared=False\nogg:fPIC=True\nogg:shared=False",
     "package_id": "f692c4ba9c4f7620ed1dc82ed4b766f983d34058",
     "prev": "0",
     "requires": [
-     "23"
+     "22"
     ],
     "context": "host"
    },
-   "27": {
+   "26": {
     "ref": "di/1.2.0",
     "options": "diagnostics_level=1\nwith_extensions=False",
     "package_id": "5ab84d6acfe1f23c4fae0ab88f26e3a396351ac9",
     "prev": "0",
     "context": "host"
    },
-   "28": {
+   "27": {
     "ref": "spdlog/1.11.0",
     "options": "fPIC=True\nheader_only=False\nno_exceptions=False\nshared=False\nwchar_filenames=False\nwchar_support=False\nfmt:fPIC=True\nfmt:header_only=False\nfmt:shared=False\nfmt:with_fmt_alias=False\nfmt:with_os_api=True",
     "package_id": "a280fc3f8be23abe28a183333f4c18332536be09",
     "prev": "0",
     "requires": [
-     "29"
+     "28"
     ],
     "context": "host"
    },
-   "29": {
+   "28": {
     "ref": "fmt/9.1.0",
     "options": "fPIC=True\nheader_only=False\nshared=False\nwith_fmt_alias=False\nwith_os_api=True",
     "package_id": "e0e003fc38e6dcc03cdfbaf52057d71baa23adad",
     "prev": "0",
     "context": "host"
    },
-   "30": {
+   "29": {
     "ref": "foonathan-lexy/2022.12.00",
     "options": "fPIC=True",
     "package_id": "071470b18c728723c20969eb9ab7b271a4a0ef59",
     "prev": "0",
+    "context": "host"
+   },
+   "30": {
+    "ref": "gst-plugins-good/1.19.1",
+    "options": "shared=True\nwith_introspection=False\nbrotli:enable_debug=False\nbrotli:enable_log=False\nbrotli:enable_portable=False\nbrotli:enable_rbit=True\nbrotli:endianness=None\nbrotli:fPIC=True\nbrotli:shared=False\nbrotli:target_bits=None\nbzip2:build_executable=True\nbzip2:fPIC=True\nbzip2:shared=False\ncairo:fPIC=True\ncairo:shared=False\ncairo:tee=True\ncairo:with_fontconfig=True\ncairo:with_freetype=True\ncairo:with_glib=True\ncairo:with_lzo=True\ncairo:with_opengl=desktop\ncairo:with_png=True\ncairo:with_symbol_lookup=False\ncairo:with_xcb=True\ncairo:with_xlib=True\ncairo:with_xlib_xrender=True\ncairo:with_zlib=True\nexpat:char_type=char\nexpat:fPIC=True\nexpat:shared=False\nfontconfig:fPIC=True\nfontconfig:shared=False\nfreetype:fPIC=True\nfreetype:shared=False\nfreetype:subpixel=False\nfreetype:with_brotli=True\nfreetype:with_bzip2=True\nfreetype:with_png=True\nfreetype:with_zlib=True\nfribidi:fPIC=True\nfribidi:shared=False\nfribidi:with_deprecated=True\nglib:shared=True\nglib:with_elf=True\nglib:with_mount=True\nglib:with_pcre=True\nglib:with_selinux=True\ngraphene:fPIC=True\ngraphene:shared=False\ngraphene:with_glib=True\ngst-plugins-base:shared=True\ngst-plugins-base:with_egl=True\ngst-plugins-base:with_gl=True\ngst-plugins-base:with_graphene=True\ngst-plugins-base:with_introspection=False\ngst-plugins-base:with_libalsa=True\ngst-plugins-base:with_libjpeg=libjpeg\ngst-plugins-base:with_libpng=True\ngst-plugins-base:with_ogg=True\ngst-plugins-base:with_opus=True\ngst-plugins-base:with_pango=True\ngst-plugins-base:with_theora=True\ngst-plugins-base:with_vorbis=True\ngst-plugins-base:with_wayland=True\ngst-plugins-base:with_xorg=True\ngstreamer:shared=True\ngstreamer:with_introspection=False\nharfbuzz:fPIC=True\nharfbuzz:shared=False\nharfbuzz:with_freetype=True\nharfbuzz:with_glib=True\nharfbuzz:with_icu=False\nharfbuzz:with_subset=False\nlibalsa:disable_python=True\nlibalsa:fPIC=True\nlibalsa:shared=False\nlibelf:fPIC=True\nlibelf:shared=False\nlibffi:fPIC=True\nlibffi:shared=False\nlibiconv:fPIC=True\nlibiconv:shared=False\nlibjpeg:fPIC=True\nlibjpeg:shared=False\nlibmount:fPIC=True\nlibmount:shared=False\nlibpng:api_prefix=\nlibpng:fPIC=True\nlibpng:shared=False\nlibpng:sse=True\nlibselinux:fPIC=True\nlibselinux:shared=False\nlibuuid:fPIC=True\nlibuuid:shared=False\nlibxft:fPIC=True\nlibxft:shared=False\nlibxml2:c14n=True\nlibxml2:catalog=True\nlibxml2:fPIC=True\nlibxml2:ftp=True\nlibxml2:html=True\nlibxml2:http=True\nlibxml2:iconv=True\nlibxml2:icu=False\nlibxml2:include_utils=True\nlibxml2:iso8859x=True\nlibxml2:legacy=True\nlibxml2:lzma=False\nlibxml2:mem-debug=False\nlibxml2:output=True\nlibxml2:pattern=True\nlibxml2:push=True\nlibxml2:python=False\nlibxml2:reader=True\nlibxml2:regexps=True\nlibxml2:run-debug=False\nlibxml2:sax1=True\nlibxml2:schemas=True\nlibxml2:schematron=True\nlibxml2:shared=False\nlibxml2:threads=True\nlibxml2:tree=True\nlibxml2:valid=True\nlibxml2:writer=True\nlibxml2:xinclude=True\nlibxml2:xpath=True\nlibxml2:xptr=True\nlibxml2:zlib=True\nlzo:fPIC=True\nlzo:shared=False\nogg:fPIC=True\nogg:shared=False\nopus:fPIC=True\nopus:fixed_point=False\nopus:shared=False\npango:fPIC=True\npango:shared=False\npango:with_cairo=True\npango:with_fontconfig=True\npango:with_freetype=True\npango:with_libthai=False\npango:with_xft=True\npcre2:build_pcre2_16=True\npcre2:build_pcre2_32=True\npcre2:build_pcre2_8=True\npcre2:build_pcre2grep=True\npcre2:fPIC=True\npcre2:grep_support_callout_fork=True\npcre2:shared=False\npcre2:support_jit=False\npcre2:with_bzip2=True\npcre2:with_zlib=True\npixman:fPIC=True\npixman:shared=False\ntheora:fPIC=True\ntheora:shared=False\nvorbis:fPIC=True\nvorbis:shared=False\nwayland:enable_dtd_validation=True\nwayland:enable_libraries=True\nwayland:fPIC=True\nwayland:shared=False\nzlib:fPIC=True\nzlib:shared=False",
+    "package_id": "208e40dc0ccf4b7cf492ec838de673e3a738a5de",
+    "prev": "0",
     "modified": true,
+    "requires": [
+     "31",
+     "37",
+     "38"
+    ],
+    "build_requires": [
+     "59",
+     "61",
+     "63"
+    ],
     "context": "host"
    },
    "31": {
-    "ref": "catch2/3.0.1",
-    "options": "default_reporter=None\nfPIC=True\nwith_prefix=False",
-    "package_id": "071470b18c728723c20969eb9ab7b271a4a0ef59",
+    "ref": "glib/2.75.0",
+    "options": "shared=True\nwith_elf=True\nwith_mount=True\nwith_pcre=True\nwith_selinux=True\nbzip2:build_executable=True\nbzip2:fPIC=True\nbzip2:shared=False\nlibelf:fPIC=True\nlibelf:shared=False\nlibffi:fPIC=True\nlibffi:shared=False\nlibmount:fPIC=True\nlibmount:shared=False\nlibselinux:fPIC=True\nlibselinux:shared=False\npcre2:build_pcre2_16=True\npcre2:build_pcre2_32=True\npcre2:build_pcre2_8=True\npcre2:build_pcre2grep=True\npcre2:fPIC=True\npcre2:grep_support_callout_fork=True\npcre2:shared=False\npcre2:support_jit=False\npcre2:with_bzip2=True\npcre2:with_zlib=True\nzlib:fPIC=True\nzlib:shared=False",
+    "package_id": "b89cd07e0e1f791bafb28e0a723aaa8e8913e432",
     "prev": "0",
+    "requires": [
+     "6",
+     "32",
+     "33",
+     "34",
+     "35",
+     "36"
+    ],
     "context": "host"
    },
    "32": {
-    "ref": "cmake/3.22.0",
-    "options": "with_openssl=True\nopenssl:386=False\nopenssl:enable_weak_ssl_ciphers=False\nopenssl:fPIC=True\nopenssl:no_aria=False\nopenssl:no_asm=False\nopenssl:no_async=False\nopenssl:no_bf=False\nopenssl:no_blake2=False\nopenssl:no_camellia=False\nopenssl:no_cast=False\nopenssl:no_chacha=False\nopenssl:no_cms=False\nopenssl:no_comp=False\nopenssl:no_ct=False\nopenssl:no_deprecated=False\nopenssl:no_des=False\nopenssl:no_dgram=False\nopenssl:no_dh=False\nopenssl:no_dsa=False\nopenssl:no_dso=False\nopenssl:no_ec=False\nopenssl:no_ecdh=False\nopenssl:no_ecdsa=False\nopenssl:no_engine=False\nopenssl:no_filenames=False\nopenssl:no_gost=False\nopenssl:no_hmac=False\nopenssl:no_idea=False\nopenssl:no_md4=False\nopenssl:no_md5=False\nopenssl:no_mdc2=False\nopenssl:no_ocsp=False\nopenssl:no_pinshared=False\nopenssl:no_rc2=False\nopenssl:no_rfc3779=False\nopenssl:no_rmd160=False\nopenssl:no_rsa=False\nopenssl:no_seed=False\nopenssl:no_sha=False\nopenssl:no_sm2=False\nopenssl:no_sm3=False\nopenssl:no_sm4=False\nopenssl:no_sock=False\nopenssl:no_srp=False\nopenssl:no_srtp=False\nopenssl:no_sse2=False\nopenssl:no_ssl=False\nopenssl:no_ssl3=False\nopenssl:no_stdio=False\nopenssl:no_tests=False\nopenssl:no_threads=False\nopenssl:no_tls1=False\nopenssl:no_ts=False\nopenssl:no_whirlpool=False\nopenssl:openssldir=None\nopenssl:shared=False",
-    "package_id": "d236921d4854b1409aaf5c280132cd46839056aa",
+    "ref": "libffi/3.4.3",
+    "options": "fPIC=True\nshared=False",
+    "package_id": "d13c97721d7bdc192ca6529684f2b79beeae8a7c",
+    "prev": "0",
+    "context": "host"
+   },
+   "33": {
+    "ref": "pcre2/10.40",
+    "options": "build_pcre2_16=True\nbuild_pcre2_32=True\nbuild_pcre2_8=True\nbuild_pcre2grep=True\nfPIC=True\ngrep_support_callout_fork=True\nshared=False\nsupport_jit=False\nwith_bzip2=True\nwith_zlib=True\nbzip2:build_executable=True\nbzip2:fPIC=True\nbzip2:shared=False\nzlib:fPIC=True\nzlib:shared=False",
+    "package_id": "7e82c9c8d32cbe0951c733288be673b1886fa50a",
+    "prev": "0",
+    "requires": [
+     "6",
+     "7"
+    ],
+    "context": "host"
+   },
+   "34": {
+    "ref": "libelf/0.8.13",
+    "options": "fPIC=True\nshared=False",
+    "package_id": "d13c97721d7bdc192ca6529684f2b79beeae8a7c",
+    "prev": "0",
+    "context": "host"
+   },
+   "35": {
+    "ref": "libmount/2.36.2",
+    "options": "fPIC=True\nshared=False",
+    "package_id": "d13c97721d7bdc192ca6529684f2b79beeae8a7c",
+    "prev": "0",
+    "context": "host"
+   },
+   "36": {
+    "ref": "libselinux/3.3",
+    "options": "fPIC=True\nshared=False\nbzip2:build_executable=True\nbzip2:fPIC=True\nbzip2:shared=False\npcre2:build_pcre2_16=True\npcre2:build_pcre2_32=True\npcre2:build_pcre2_8=True\npcre2:build_pcre2grep=True\npcre2:fPIC=True\npcre2:grep_support_callout_fork=True\npcre2:shared=False\npcre2:support_jit=False\npcre2:with_bzip2=True\npcre2:with_zlib=True\nzlib:fPIC=True\nzlib:shared=False",
+    "package_id": "8c6c9e6ae1f4f254a8b94054c1146c7652c54203",
     "prev": "0",
     "requires": [
      "33"
     ],
     "context": "host"
    },
-   "33": {
-    "ref": "openssl/1.1.1o",
-    "options": "386=False\nenable_weak_ssl_ciphers=False\nfPIC=True\nno_aria=False\nno_asm=False\nno_async=False\nno_bf=False\nno_blake2=False\nno_camellia=False\nno_cast=False\nno_chacha=False\nno_cms=False\nno_comp=False\nno_ct=False\nno_deprecated=False\nno_des=False\nno_dgram=False\nno_dh=False\nno_dsa=False\nno_dso=False\nno_ec=False\nno_ecdh=False\nno_ecdsa=False\nno_engine=False\nno_filenames=False\nno_gost=False\nno_hmac=False\nno_idea=False\nno_md4=False\nno_md5=False\nno_mdc2=False\nno_ocsp=False\nno_pinshared=False\nno_rc2=False\nno_rfc3779=False\nno_rmd160=False\nno_rsa=False\nno_seed=False\nno_sha=False\nno_sm2=False\nno_sm3=False\nno_sm4=False\nno_sock=False\nno_srp=False\nno_srtp=False\nno_sse2=False\nno_ssl=False\nno_ssl3=False\nno_stdio=False\nno_tests=False\nno_threads=False\nno_tls1=False\nno_ts=False\nno_whirlpool=False\nopenssldir=None\nshared=False",
+   "37": {
+    "ref": "gstreamer/1.19.1",
+    "options": "shared=True\nwith_introspection=False\nbzip2:build_executable=True\nbzip2:fPIC=True\nbzip2:shared=False\nglib:shared=True\nglib:with_elf=True\nglib:with_mount=True\nglib:with_pcre=True\nglib:with_selinux=True\nlibelf:fPIC=True\nlibelf:shared=False\nlibffi:fPIC=True\nlibffi:shared=False\nlibmount:fPIC=True\nlibmount:shared=False\nlibselinux:fPIC=True\nlibselinux:shared=False\npcre2:build_pcre2_16=True\npcre2:build_pcre2_32=True\npcre2:build_pcre2_8=True\npcre2:build_pcre2grep=True\npcre2:fPIC=True\npcre2:grep_support_callout_fork=True\npcre2:shared=False\npcre2:support_jit=False\npcre2:with_bzip2=True\npcre2:with_zlib=True\nzlib:fPIC=True\nzlib:shared=False",
+    "package_id": "4ef67a750c99cee344eaf5c27deb96b9df516501",
+    "prev": "0",
+    "requires": [
+     "31"
+    ],
+    "context": "host"
+   },
+   "38": {
+    "ref": "gst-plugins-base/1.19.1",
+    "options": "shared=True\nwith_egl=True\nwith_gl=True\nwith_graphene=True\nwith_introspection=False\nwith_libalsa=True\nwith_libjpeg=libjpeg\nwith_libpng=True\nwith_ogg=True\nwith_opus=True\nwith_pango=True\nwith_theora=True\nwith_vorbis=True\nwith_wayland=True\nwith_xorg=True\nbrotli:enable_debug=False\nbrotli:enable_log=False\nbrotli:enable_portable=False\nbrotli:enable_rbit=True\nbrotli:endianness=None\nbrotli:fPIC=True\nbrotli:shared=False\nbrotli:target_bits=None\nbzip2:build_executable=True\nbzip2:fPIC=True\nbzip2:shared=False\ncairo:fPIC=True\ncairo:shared=False\ncairo:tee=True\ncairo:with_fontconfig=True\ncairo:with_freetype=True\ncairo:with_glib=True\ncairo:with_lzo=True\ncairo:with_opengl=desktop\ncairo:with_png=True\ncairo:with_symbol_lookup=False\ncairo:with_xcb=True\ncairo:with_xlib=True\ncairo:with_xlib_xrender=True\ncairo:with_zlib=True\nexpat:char_type=char\nexpat:fPIC=True\nexpat:shared=False\nfontconfig:fPIC=True\nfontconfig:shared=False\nfreetype:fPIC=True\nfreetype:shared=False\nfreetype:subpixel=False\nfreetype:with_brotli=True\nfreetype:with_bzip2=True\nfreetype:with_png=True\nfreetype:with_zlib=True\nfribidi:fPIC=True\nfribidi:shared=False\nfribidi:with_deprecated=True\nglib:shared=True\nglib:with_elf=True\nglib:with_mount=True\nglib:with_pcre=True\nglib:with_selinux=True\ngraphene:fPIC=True\ngraphene:shared=False\ngraphene:with_glib=True\ngstreamer:shared=True\ngstreamer:with_introspection=False\nharfbuzz:fPIC=True\nharfbuzz:shared=False\nharfbuzz:with_freetype=True\nharfbuzz:with_glib=True\nharfbuzz:with_icu=False\nharfbuzz:with_subset=False\nlibalsa:disable_python=True\nlibalsa:fPIC=True\nlibalsa:shared=False\nlibelf:fPIC=True\nlibelf:shared=False\nlibffi:fPIC=True\nlibffi:shared=False\nlibiconv:fPIC=True\nlibiconv:shared=False\nlibjpeg:fPIC=True\nlibjpeg:shared=False\nlibmount:fPIC=True\nlibmount:shared=False\nlibpng:api_prefix=\nlibpng:fPIC=True\nlibpng:shared=False\nlibpng:sse=True\nlibselinux:fPIC=True\nlibselinux:shared=False\nlibuuid:fPIC=True\nlibuuid:shared=False\nlibxft:fPIC=True\nlibxft:shared=False\nlibxml2:c14n=True\nlibxml2:catalog=True\nlibxml2:fPIC=True\nlibxml2:ftp=True\nlibxml2:html=True\nlibxml2:http=True\nlibxml2:iconv=True\nlibxml2:icu=False\nlibxml2:include_utils=True\nlibxml2:iso8859x=True\nlibxml2:legacy=True\nlibxml2:lzma=False\nlibxml2:mem-debug=False\nlibxml2:output=True\nlibxml2:pattern=True\nlibxml2:push=True\nlibxml2:python=False\nlibxml2:reader=True\nlibxml2:regexps=True\nlibxml2:run-debug=False\nlibxml2:sax1=True\nlibxml2:schemas=True\nlibxml2:schematron=True\nlibxml2:shared=False\nlibxml2:threads=True\nlibxml2:tree=True\nlibxml2:valid=True\nlibxml2:writer=True\nlibxml2:xinclude=True\nlibxml2:xpath=True\nlibxml2:xptr=True\nlibxml2:zlib=True\nlzo:fPIC=True\nlzo:shared=False\nogg:fPIC=True\nogg:shared=False\nopus:fPIC=True\nopus:fixed_point=False\nopus:shared=False\npango:fPIC=True\npango:shared=False\npango:with_cairo=True\npango:with_fontconfig=True\npango:with_freetype=True\npango:with_libthai=False\npango:with_xft=True\npcre2:build_pcre2_16=True\npcre2:build_pcre2_32=True\npcre2:build_pcre2_8=True\npcre2:build_pcre2grep=True\npcre2:fPIC=True\npcre2:grep_support_callout_fork=True\npcre2:shared=False\npcre2:support_jit=False\npcre2:with_bzip2=True\npcre2:with_zlib=True\npixman:fPIC=True\npixman:shared=False\ntheora:fPIC=True\ntheora:shared=False\nvorbis:fPIC=True\nvorbis:shared=False\nwayland:enable_dtd_validation=True\nwayland:enable_libraries=True\nwayland:fPIC=True\nwayland:shared=False\nzlib:fPIC=True\nzlib:shared=False",
+    "package_id": "9d59729c05a6a358b4dc5ae8c474d0ace0372c17",
+    "prev": "0",
+    "requires": [
+     "6",
+     "31",
+     "37",
+     "24",
+     "17",
+     "15",
+     "39",
+     "40",
+     "44",
+     "45",
+     "19",
+     "46",
+     "22",
+     "47",
+     "48",
+     "25",
+     "49"
+    ],
+    "context": "host"
+   },
+   "39": {
+    "ref": "egl/system",
+    "options": "",
+    "package_id": "5ab84d6acfe1f23c4fae0ab88f26e3a396351ac9",
+    "prev": "0",
+    "context": "host"
+   },
+   "40": {
+    "ref": "wayland/1.20.0",
+    "options": "enable_dtd_validation=True\nenable_libraries=True\nfPIC=True\nshared=False\nexpat:char_type=char\nexpat:fPIC=True\nexpat:shared=False\nlibffi:fPIC=True\nlibffi:shared=False\nlibiconv:fPIC=True\nlibiconv:shared=False\nlibxml2:c14n=True\nlibxml2:catalog=True\nlibxml2:fPIC=True\nlibxml2:ftp=True\nlibxml2:html=True\nlibxml2:http=True\nlibxml2:iconv=True\nlibxml2:icu=False\nlibxml2:include_utils=True\nlibxml2:iso8859x=True\nlibxml2:legacy=True\nlibxml2:lzma=False\nlibxml2:mem-debug=False\nlibxml2:output=True\nlibxml2:pattern=True\nlibxml2:push=True\nlibxml2:python=False\nlibxml2:reader=True\nlibxml2:regexps=True\nlibxml2:run-debug=False\nlibxml2:sax1=True\nlibxml2:schemas=True\nlibxml2:schematron=True\nlibxml2:shared=False\nlibxml2:threads=True\nlibxml2:tree=True\nlibxml2:valid=True\nlibxml2:writer=True\nlibxml2:xinclude=True\nlibxml2:xpath=True\nlibxml2:xptr=True\nlibxml2:zlib=True\nzlib:fPIC=True\nzlib:shared=False",
+    "package_id": "b7420412cde532571d175c75165067909f090733",
+    "prev": "0",
+    "requires": [
+     "32",
+     "41",
+     "43"
+    ],
+    "context": "host"
+   },
+   "41": {
+    "ref": "libxml2/2.10.3",
+    "options": "c14n=True\ncatalog=True\nfPIC=True\nftp=True\nhtml=True\nhttp=True\niconv=True\nicu=False\ninclude_utils=True\niso8859x=True\nlegacy=True\nlzma=False\nmem-debug=False\noutput=True\npattern=True\npush=True\npython=False\nreader=True\nregexps=True\nrun-debug=False\nsax1=True\nschemas=True\nschematron=True\nshared=False\nthreads=True\ntree=True\nvalid=True\nwriter=True\nxinclude=True\nxpath=True\nxptr=True\nzlib=True\nlibiconv:fPIC=True\nlibiconv:shared=False\nzlib:fPIC=True\nzlib:shared=False",
+    "package_id": "e8da74e8ec6d1875f4d021d49ec841df6e311500",
+    "prev": "0",
+    "requires": [
+     "6",
+     "42"
+    ],
+    "context": "host"
+   },
+   "42": {
+    "ref": "libiconv/1.17",
+    "options": "fPIC=True\nshared=False",
     "package_id": "d13c97721d7bdc192ca6529684f2b79beeae8a7c",
     "prev": "0",
+    "context": "host"
+   },
+   "43": {
+    "ref": "expat/2.5.0",
+    "options": "char_type=char\nfPIC=True\nshared=False",
+    "package_id": "2eb4223757563f932114c3351417cbe8392e690e",
+    "prev": "0",
+    "context": "host"
+   },
+   "44": {
+    "ref": "wayland-protocols/1.25",
+    "options": "",
+    "package_id": "5ab84d6acfe1f23c4fae0ab88f26e3a396351ac9",
+    "prev": "0",
+    "context": "host"
+   },
+   "45": {
+    "ref": "graphene/1.10.8",
+    "options": "fPIC=True\nshared=False\nwith_glib=True\nbzip2:build_executable=True\nbzip2:fPIC=True\nbzip2:shared=False\nglib:shared=True\nglib:with_elf=True\nglib:with_mount=True\nglib:with_pcre=True\nglib:with_selinux=True\nlibelf:fPIC=True\nlibelf:shared=False\nlibffi:fPIC=True\nlibffi:shared=False\nlibmount:fPIC=True\nlibmount:shared=False\nlibselinux:fPIC=True\nlibselinux:shared=False\npcre2:build_pcre2_16=True\npcre2:build_pcre2_32=True\npcre2:build_pcre2_8=True\npcre2:build_pcre2grep=True\npcre2:fPIC=True\npcre2:grep_support_callout_fork=True\npcre2:shared=False\npcre2:support_jit=False\npcre2:with_bzip2=True\npcre2:with_zlib=True\nzlib:fPIC=True\nzlib:shared=False",
+    "package_id": "8b18b703eaf2b95cf84e3111b253620945df5f7f",
+    "prev": "0",
+    "requires": [
+     "31"
+    ],
+    "context": "host"
+   },
+   "46": {
+    "ref": "libjpeg/9d",
+    "options": "fPIC=True\nshared=False",
+    "package_id": "d13c97721d7bdc192ca6529684f2b79beeae8a7c",
+    "prev": "0",
+    "context": "host"
+   },
+   "47": {
+    "ref": "opus/1.3.1",
+    "options": "fPIC=True\nfixed_point=False\nshared=False",
+    "package_id": "d13c97721d7bdc192ca6529684f2b79beeae8a7c",
+    "prev": "0",
+    "context": "host"
+   },
+   "48": {
+    "ref": "theora/1.1.1",
+    "options": "fPIC=True\nshared=False\nogg:fPIC=True\nogg:shared=False",
+    "package_id": "f692c4ba9c4f7620ed1dc82ed4b766f983d34058",
+    "prev": "0",
+    "requires": [
+     "22"
+    ],
+    "context": "host"
+   },
+   "49": {
+    "ref": "pango/1.49.3",
+    "options": "fPIC=True\nshared=False\nwith_cairo=True\nwith_fontconfig=True\nwith_freetype=True\nwith_libthai=False\nwith_xft=True\nbrotli:enable_debug=False\nbrotli:enable_log=False\nbrotli:enable_portable=False\nbrotli:enable_rbit=True\nbrotli:endianness=None\nbrotli:fPIC=True\nbrotli:shared=False\nbrotli:target_bits=None\nbzip2:build_executable=True\nbzip2:fPIC=True\nbzip2:shared=False\ncairo:fPIC=True\ncairo:shared=False\ncairo:tee=True\ncairo:with_fontconfig=True\ncairo:with_freetype=True\ncairo:with_glib=True\ncairo:with_lzo=True\ncairo:with_opengl=desktop\ncairo:with_png=True\ncairo:with_symbol_lookup=False\ncairo:with_xcb=True\ncairo:with_xlib=True\ncairo:with_xlib_xrender=True\ncairo:with_zlib=True\nexpat:char_type=char\nexpat:fPIC=True\nexpat:shared=False\nfontconfig:fPIC=True\nfontconfig:shared=False\nfreetype:fPIC=True\nfreetype:shared=False\nfreetype:subpixel=False\nfreetype:with_brotli=True\nfreetype:with_bzip2=True\nfreetype:with_png=True\nfreetype:with_zlib=True\nfribidi:fPIC=True\nfribidi:shared=False\nfribidi:with_deprecated=True\nglib:shared=True\nglib:with_elf=True\nglib:with_mount=True\nglib:with_pcre=True\nglib:with_selinux=True\nharfbuzz:fPIC=True\nharfbuzz:shared=False\nharfbuzz:with_freetype=True\nharfbuzz:with_glib=True\nharfbuzz:with_icu=False\nharfbuzz:with_subset=False\nlibelf:fPIC=True\nlibelf:shared=False\nlibffi:fPIC=True\nlibffi:shared=False\nlibmount:fPIC=True\nlibmount:shared=False\nlibpng:api_prefix=\nlibpng:fPIC=True\nlibpng:shared=False\nlibpng:sse=True\nlibselinux:fPIC=True\nlibselinux:shared=False\nlibuuid:fPIC=True\nlibuuid:shared=False\nlibxft:fPIC=True\nlibxft:shared=False\nlzo:fPIC=True\nlzo:shared=False\npcre2:build_pcre2_16=True\npcre2:build_pcre2_32=True\npcre2:build_pcre2_8=True\npcre2:build_pcre2grep=True\npcre2:fPIC=True\npcre2:grep_support_callout_fork=True\npcre2:shared=False\npcre2:support_jit=False\npcre2:with_bzip2=True\npcre2:with_zlib=True\npixman:fPIC=True\npixman:shared=False\nzlib:fPIC=True\nzlib:shared=False",
+    "package_id": "1f5d327a9c5d96772a9992eb812fd65be94fd993",
+    "prev": "0",
+    "requires": [
+     "18",
+     "50",
+     "52",
+     "17",
+     "53",
+     "56",
+     "31",
+     "57"
+    ],
+    "context": "host"
+   },
+   "50": {
+    "ref": "fontconfig/2.13.93",
+    "options": "fPIC=True\nshared=False\nbrotli:enable_debug=False\nbrotli:enable_log=False\nbrotli:enable_portable=False\nbrotli:enable_rbit=True\nbrotli:endianness=None\nbrotli:fPIC=True\nbrotli:shared=False\nbrotli:target_bits=None\nbzip2:build_executable=True\nbzip2:fPIC=True\nbzip2:shared=False\nexpat:char_type=char\nexpat:fPIC=True\nexpat:shared=False\nfreetype:fPIC=True\nfreetype:shared=False\nfreetype:subpixel=False\nfreetype:with_brotli=True\nfreetype:with_bzip2=True\nfreetype:with_png=True\nfreetype:with_zlib=True\nlibpng:api_prefix=\nlibpng:fPIC=True\nlibpng:shared=False\nlibpng:sse=True\nlibuuid:fPIC=True\nlibuuid:shared=False\nzlib:fPIC=True\nzlib:shared=False",
+    "package_id": "127cf5365ae26216554195e16b6b37c9f6f19b2e",
+    "prev": "0",
+    "requires": [
+     "18",
+     "43",
+     "51"
+    ],
+    "context": "host"
+   },
+   "51": {
+    "ref": "libuuid/1.0.3",
+    "options": "fPIC=True\nshared=False",
+    "package_id": "d13c97721d7bdc192ca6529684f2b79beeae8a7c",
+    "prev": "0",
+    "context": "host"
+   },
+   "52": {
+    "ref": "libxft/2.3.4",
+    "options": "fPIC=True\nshared=False\nbrotli:enable_debug=False\nbrotli:enable_log=False\nbrotli:enable_portable=False\nbrotli:enable_rbit=True\nbrotli:endianness=None\nbrotli:fPIC=True\nbrotli:shared=False\nbrotli:target_bits=None\nbzip2:build_executable=True\nbzip2:fPIC=True\nbzip2:shared=False\nexpat:char_type=char\nexpat:fPIC=True\nexpat:shared=False\nfontconfig:fPIC=True\nfontconfig:shared=False\nfreetype:fPIC=True\nfreetype:shared=False\nfreetype:subpixel=False\nfreetype:with_brotli=True\nfreetype:with_bzip2=True\nfreetype:with_png=True\nfreetype:with_zlib=True\nlibpng:api_prefix=\nlibpng:fPIC=True\nlibpng:shared=False\nlibpng:sse=True\nlibuuid:fPIC=True\nlibuuid:shared=False\nzlib:fPIC=True\nzlib:shared=False",
+    "package_id": "27b1451a3826f3974531065ea5e9f3b734347a89",
+    "prev": "0",
+    "requires": [
+     "17",
+     "18",
+     "50"
+    ],
+    "context": "host"
+   },
+   "53": {
+    "ref": "cairo/1.17.4",
+    "options": "fPIC=True\nshared=False\ntee=True\nwith_fontconfig=True\nwith_freetype=True\nwith_glib=True\nwith_lzo=True\nwith_opengl=desktop\nwith_png=True\nwith_symbol_lookup=False\nwith_xcb=True\nwith_xlib=True\nwith_xlib_xrender=True\nwith_zlib=True\nbrotli:enable_debug=False\nbrotli:enable_log=False\nbrotli:enable_portable=False\nbrotli:enable_rbit=True\nbrotli:endianness=None\nbrotli:fPIC=True\nbrotli:shared=False\nbrotli:target_bits=None\nbzip2:build_executable=True\nbzip2:fPIC=True\nbzip2:shared=False\nexpat:char_type=char\nexpat:fPIC=True\nexpat:shared=False\nfontconfig:fPIC=True\nfontconfig:shared=False\nfreetype:fPIC=True\nfreetype:shared=False\nfreetype:subpixel=False\nfreetype:with_brotli=True\nfreetype:with_bzip2=True\nfreetype:with_png=True\nfreetype:with_zlib=True\nglib:shared=True\nglib:with_elf=True\nglib:with_mount=True\nglib:with_pcre=True\nglib:with_selinux=True\nlibelf:fPIC=True\nlibelf:shared=False\nlibffi:fPIC=True\nlibffi:shared=False\nlibmount:fPIC=True\nlibmount:shared=False\nlibpng:api_prefix=\nlibpng:fPIC=True\nlibpng:shared=False\nlibpng:sse=True\nlibselinux:fPIC=True\nlibselinux:shared=False\nlibuuid:fPIC=True\nlibuuid:shared=False\nlzo:fPIC=True\nlzo:shared=False\npcre2:build_pcre2_16=True\npcre2:build_pcre2_32=True\npcre2:build_pcre2_8=True\npcre2:build_pcre2grep=True\npcre2:fPIC=True\npcre2:grep_support_callout_fork=True\npcre2:shared=False\npcre2:support_jit=False\npcre2:with_bzip2=True\npcre2:with_zlib=True\npixman:fPIC=True\npixman:shared=False\nzlib:fPIC=True\nzlib:shared=False",
+    "package_id": "abe0b45dc65aeaa6ba5b4cc9675f8075fc6edda1",
+    "prev": "0",
+    "requires": [
+     "54",
+     "43",
+     "55",
+     "6",
+     "18",
+     "50",
+     "19",
+     "31",
+     "17",
+     "15",
+     "39"
+    ],
+    "context": "host"
+   },
+   "54": {
+    "ref": "pixman/0.40.0",
+    "options": "fPIC=True\nshared=False",
+    "package_id": "d13c97721d7bdc192ca6529684f2b79beeae8a7c",
+    "prev": "0",
+    "context": "host"
+   },
+   "55": {
+    "ref": "lzo/2.10",
+    "options": "fPIC=True\nshared=False",
+    "package_id": "d13c97721d7bdc192ca6529684f2b79beeae8a7c",
+    "prev": "0",
+    "context": "host"
+   },
+   "56": {
+    "ref": "harfbuzz/5.1.0",
+    "options": "fPIC=True\nshared=False\nwith_freetype=True\nwith_glib=True\nwith_icu=False\nwith_subset=False\nbrotli:enable_debug=False\nbrotli:enable_log=False\nbrotli:enable_portable=False\nbrotli:enable_rbit=True\nbrotli:endianness=None\nbrotli:fPIC=True\nbrotli:shared=False\nbrotli:target_bits=None\nbzip2:build_executable=True\nbzip2:fPIC=True\nbzip2:shared=False\nfreetype:fPIC=True\nfreetype:shared=False\nfreetype:subpixel=False\nfreetype:with_brotli=True\nfreetype:with_bzip2=True\nfreetype:with_png=True\nfreetype:with_zlib=True\nglib:shared=True\nglib:with_elf=True\nglib:with_mount=True\nglib:with_pcre=True\nglib:with_selinux=True\nlibelf:fPIC=True\nlibelf:shared=False\nlibffi:fPIC=True\nlibffi:shared=False\nlibmount:fPIC=True\nlibmount:shared=False\nlibpng:api_prefix=\nlibpng:fPIC=True\nlibpng:shared=False\nlibpng:sse=True\nlibselinux:fPIC=True\nlibselinux:shared=False\npcre2:build_pcre2_16=True\npcre2:build_pcre2_32=True\npcre2:build_pcre2_8=True\npcre2:build_pcre2grep=True\npcre2:fPIC=True\npcre2:grep_support_callout_fork=True\npcre2:shared=False\npcre2:support_jit=False\npcre2:with_bzip2=True\npcre2:with_zlib=True\nzlib:fPIC=True\nzlib:shared=False",
+    "package_id": "1020a88c71d689ee1aaa833556518fc95e42cdea",
+    "prev": "0",
+    "requires": [
+     "18",
+     "31"
+    ],
+    "context": "host"
+   },
+   "57": {
+    "ref": "fribidi/1.0.12",
+    "options": "fPIC=True\nshared=False\nwith_deprecated=True",
+    "package_id": "ab2ef72bca965b7e6b5ecca73dcdf24edd7b1835",
+    "prev": "0",
+    "context": "host"
+   },
+   "58": {
+    "ref": "catch2/3.0.1",
+    "options": "default_reporter=None\nfPIC=True\nwith_prefix=False",
+    "package_id": "071470b18c728723c20969eb9ab7b271a4a0ef59",
+    "prev": "0",
+    "context": "host"
+   },
+   "59": {
+    "ref": "meson/0.54.2",
+    "options": "",
+    "package_id": "5ab84d6acfe1f23c4fae0ab88f26e3a396351ac9",
+    "prev": "0",
+    "requires": [
+     "60"
+    ],
+    "context": "host"
+   },
+   "60": {
+    "ref": "ninja/1.10.2",
+    "options": "",
+    "package_id": "cc9f9b2b9f92fc82888026414560bf79d8c3a052",
+    "prev": "0",
+    "context": "host"
+   },
+   "61": {
+    "ref": "bison/3.7.6",
+    "options": "fPIC=True",
+    "package_id": "ccf9e4c80fae656bb4bb76f19bc659f3753456f7",
+    "prev": "0",
+    "requires": [
+     "62"
+    ],
+    "context": "host"
+   },
+   "62": {
+    "ref": "m4/1.4.19",
+    "options": "",
+    "package_id": "cc9f9b2b9f92fc82888026414560bf79d8c3a052",
+    "prev": "0",
+    "context": "host"
+   },
+   "63": {
+    "ref": "flex/2.6.4",
+    "options": "fPIC=True\nshared=False",
+    "package_id": "ccf9e4c80fae656bb4bb76f19bc659f3753456f7",
+    "prev": "0",
+    "requires": [
+     "62"
+    ],
     "context": "host"
    }
   },

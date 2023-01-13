@@ -1,3 +1,5 @@
+from conan.tools.cmake import CMakeToolchain
+
 from conan import ConanFile
 
 
@@ -7,6 +9,8 @@ class Recipe(ConanFile):
 
     def layout(self):
         self.folders.generators = "conan"
+
+    # enable the runenv_info from gst-plugins-good
 
     def requirements(self):
         self.requires("sol2/3.3.0")
@@ -20,7 +24,7 @@ class Recipe(ConanFile):
         self.requires("di/1.2.0")
         self.requires("spdlog/1.11.0")
         self.requires("foonathan-lexy/2022.12.00")
-        self.requires("gst-libav/1.19.1")
+        self.requires("gst-plugins-good/1.19.1")
         self.requires("zlib/1.2.13")
         self.requires("libalsa/1.2.7.2")
         self.requires("libffi/3.4.3")
@@ -34,12 +38,11 @@ class Recipe(ConanFile):
 
     def configure(self):
         # https://www.ffmpeg.org/legal.html
-        self.options["ffmpeg"].shared = True
         self.options["gstreamer"].shared = True
         self.options["glib"].shared = True
         self.options["gst-plugins-base"].shared = True
+        self.options["gst-plugins-good"].shared = True
         self.options["gst-libav"].shared = True
-        self.options["ffmpeg"].shared = True
         self.options["ffmpeg"].shared = True
         self.options["ffmpeg"].with_libx264 = False
         self.options["ffmpeg"].with_libx265 = False
