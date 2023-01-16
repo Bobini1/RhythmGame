@@ -10,8 +10,7 @@
 #include "resource_managers/FindAssetsFolderBoost.h"
 #include "resource_managers/LoadConfig.h"
 #include "resource_managers/LuaScriptFinderImpl.h"
-
-#include <gstreamer-1.0/gst/gst.h>
+#include "sounds/FFmpegOpenAlSound.h"
 
 auto
 loadGame(resource_managers::LuaScriptFinder auto luaScriptFinder,
@@ -44,27 +43,12 @@ loadGame(resource_managers::LuaScriptFinder auto luaScriptFinder,
 auto
 main() -> int
 {
-    gst_init(nullptr, nullptr);
-    // install plugins
-    gst_registry_scan_path(gst_registry_get(), "/usr/lib/gstreamer-1.0");
-
-    // get loaded plugins
-    auto plugins = gst_registry_get_plugin_list(gst_registry_get());
-    for (auto plugin = plugins; plugin != nullptr;
-         plugin = g_list_next(plugin)) {
-        auto pluginName = gst_plugin_get_name(GST_PLUGIN(plugin->data));
-        std::cout << "Plugin: " << pluginName << std::endl;
-    }
-    g_list_free(plugins);
-    std::cout << "Done" << std::endl;
-    // print GST_PLUGIN_PATH
-    auto pluginPath = g_getenv("GST_PLUGIN_PATH");
-    if (pluginPath != nullptr) {
-        std::cout << "GST_PLUGIN_PATH: " << pluginPath << std::endl;
-    } else {
-        std::cout << "GST_PLUGIN_PATH not set" << std::endl;
-    }
     try {
+        sounds::FFmpegOpenALSound sound2{
+            "/home/bobini/RhythmGame/assets/stereo-test.mp3"
+        };
+        sounds::FFmpegOpenALSound sound3{ std::move(sound2) };
+        sound3.play();
         auto assetsFolder = resource_managers::findAssetsFolder();
         auto textureConfig = resource_managers::loadConfig(
           assetsFolder / "themes" / "Default" / "textures" / "textures.ini");

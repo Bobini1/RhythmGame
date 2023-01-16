@@ -15,7 +15,7 @@ return function(quad)
         onFinished = function()
             if not linear then return nil end
             if linear.isFinished then
-                linear.isLooping = true
+                linear.getIsLooping = true
                 quad.width = 500
             end
         end

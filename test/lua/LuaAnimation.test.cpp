@@ -20,7 +20,7 @@ return function(quad)
         end
     }
     linear.progress = 0.5
-    linear.isLooping = false
+    linear.getIsLooping = false
     return linear
 end
 )";
@@ -54,7 +54,7 @@ return function(quad)
     linear = Linear.new{duration = 1, from = 0, to = 1,
         onFinished = function()
             if linear.isFinished then
-                linear.isLooping = true
+                linear.getIsLooping = true
                 quad.width = 500
             end
         end

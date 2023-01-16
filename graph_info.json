@@ -41,6 +41,10 @@
    "False"
   ],
   [
+   "boost:filesystem_use_std_fs",
+   "False"
+  ],
+  [
    "boost:filesystem_version",
    "None"
   ],
@@ -301,60 +305,8 @@
    "False"
   ],
   [
-   "cairo:fPIC",
-   "True"
-  ],
-  [
-   "cairo:shared",
-   "False"
-  ],
-  [
-   "cairo:tee",
-   "True"
-  ],
-  [
-   "cairo:with_fontconfig",
-   "True"
-  ],
-  [
-   "cairo:with_freetype",
-   "True"
-  ],
-  [
-   "cairo:with_glib",
-   "True"
-  ],
-  [
-   "cairo:with_lzo",
-   "True"
-  ],
-  [
-   "cairo:with_opengl",
-   "desktop"
-  ],
-  [
-   "cairo:with_png",
-   "True"
-  ],
-  [
-   "cairo:with_symbol_lookup",
-   "False"
-  ],
-  [
-   "cairo:with_xcb",
-   "True"
-  ],
-  [
-   "cairo:with_xlib",
-   "True"
-  ],
-  [
-   "cairo:with_xlib_xrender",
-   "True"
-  ],
-  [
-   "cairo:with_zlib",
-   "True"
+   "catch2:console_width",
+   "80"
   ],
   [
    "catch2:default_reporter",
@@ -363,6 +315,10 @@
   [
    "catch2:fPIC",
    "True"
+  ],
+  [
+   "catch2:shared",
+   "False"
   ],
   [
    "catch2:with_prefix",
@@ -377,16 +333,280 @@
    "False"
   ],
   [
-   "expat:char_type",
-   "char"
-  ],
-  [
-   "expat:fPIC",
+   "ffmpeg:avcodec",
    "True"
   ],
   [
-   "expat:shared",
+   "ffmpeg:avdevice",
+   "True"
+  ],
+  [
+   "ffmpeg:avfilter",
+   "True"
+  ],
+  [
+   "ffmpeg:avformat",
+   "True"
+  ],
+  [
+   "ffmpeg:disable_all_bitstream_filters",
    "False"
+  ],
+  [
+   "ffmpeg:disable_all_decoders",
+   "False"
+  ],
+  [
+   "ffmpeg:disable_all_demuxers",
+   "False"
+  ],
+  [
+   "ffmpeg:disable_all_devices",
+   "False"
+  ],
+  [
+   "ffmpeg:disable_all_encoders",
+   "False"
+  ],
+  [
+   "ffmpeg:disable_all_filters",
+   "False"
+  ],
+  [
+   "ffmpeg:disable_all_hardware_accelerators",
+   "False"
+  ],
+  [
+   "ffmpeg:disable_all_input_devices",
+   "False"
+  ],
+  [
+   "ffmpeg:disable_all_muxers",
+   "False"
+  ],
+  [
+   "ffmpeg:disable_all_output_devices",
+   "False"
+  ],
+  [
+   "ffmpeg:disable_all_parsers",
+   "False"
+  ],
+  [
+   "ffmpeg:disable_all_protocols",
+   "False"
+  ],
+  [
+   "ffmpeg:disable_bitstream_filters",
+   "None"
+  ],
+  [
+   "ffmpeg:disable_decoders",
+   "None"
+  ],
+  [
+   "ffmpeg:disable_demuxers",
+   "None"
+  ],
+  [
+   "ffmpeg:disable_encoders",
+   "None"
+  ],
+  [
+   "ffmpeg:disable_everything",
+   "False"
+  ],
+  [
+   "ffmpeg:disable_filters",
+   "None"
+  ],
+  [
+   "ffmpeg:disable_hardware_accelerators",
+   "None"
+  ],
+  [
+   "ffmpeg:disable_input_devices",
+   "None"
+  ],
+  [
+   "ffmpeg:disable_muxers",
+   "None"
+  ],
+  [
+   "ffmpeg:disable_output_devices",
+   "None"
+  ],
+  [
+   "ffmpeg:disable_parsers",
+   "None"
+  ],
+  [
+   "ffmpeg:disable_protocols",
+   "None"
+  ],
+  [
+   "ffmpeg:enable_bitstream_filters",
+   "None"
+  ],
+  [
+   "ffmpeg:enable_decoders",
+   "None"
+  ],
+  [
+   "ffmpeg:enable_demuxers",
+   "None"
+  ],
+  [
+   "ffmpeg:enable_encoders",
+   "None"
+  ],
+  [
+   "ffmpeg:enable_filters",
+   "None"
+  ],
+  [
+   "ffmpeg:enable_hardware_accelerators",
+   "None"
+  ],
+  [
+   "ffmpeg:enable_input_devices",
+   "None"
+  ],
+  [
+   "ffmpeg:enable_muxers",
+   "None"
+  ],
+  [
+   "ffmpeg:enable_output_devices",
+   "None"
+  ],
+  [
+   "ffmpeg:enable_parsers",
+   "None"
+  ],
+  [
+   "ffmpeg:enable_protocols",
+   "None"
+  ],
+  [
+   "ffmpeg:postproc",
+   "False"
+  ],
+  [
+   "ffmpeg:shared",
+   "True"
+  ],
+  [
+   "ffmpeg:swresample",
+   "True"
+  ],
+  [
+   "ffmpeg:swscale",
+   "True"
+  ],
+  [
+   "ffmpeg:with_asm",
+   "True"
+  ],
+  [
+   "ffmpeg:with_bzip2",
+   "True"
+  ],
+  [
+   "ffmpeg:with_freetype",
+   "True"
+  ],
+  [
+   "ffmpeg:with_libalsa",
+   "True"
+  ],
+  [
+   "ffmpeg:with_libfdk_aac",
+   "False"
+  ],
+  [
+   "ffmpeg:with_libiconv",
+   "True"
+  ],
+  [
+   "ffmpeg:with_libmp3lame",
+   "True"
+  ],
+  [
+   "ffmpeg:with_libvpx",
+   "True"
+  ],
+  [
+   "ffmpeg:with_libwebp",
+   "True"
+  ],
+  [
+   "ffmpeg:with_libx264",
+   "False"
+  ],
+  [
+   "ffmpeg:with_libx265",
+   "False"
+  ],
+  [
+   "ffmpeg:with_lzma",
+   "True"
+  ],
+  [
+   "ffmpeg:with_openh264",
+   "True"
+  ],
+  [
+   "ffmpeg:with_openjpeg",
+   "True"
+  ],
+  [
+   "ffmpeg:with_opus",
+   "True"
+  ],
+  [
+   "ffmpeg:with_programs",
+   "True"
+  ],
+  [
+   "ffmpeg:with_pulse",
+   "True"
+  ],
+  [
+   "ffmpeg:with_sdl",
+   "False"
+  ],
+  [
+   "ffmpeg:with_ssl",
+   "openssl"
+  ],
+  [
+   "ffmpeg:with_vaapi",
+   "True"
+  ],
+  [
+   "ffmpeg:with_vdpau",
+   "True"
+  ],
+  [
+   "ffmpeg:with_vorbis",
+   "True"
+  ],
+  [
+   "ffmpeg:with_vulkan",
+   "True"
+  ],
+  [
+   "ffmpeg:with_xcb",
+   "True"
+  ],
+  [
+   "ffmpeg:with_zeromq",
+   "False"
+  ],
+  [
+   "ffmpeg:with_zlib",
+   "True"
   ],
   [
    "flac:fPIC",
@@ -415,14 +635,6 @@
   [
    "fmt:with_os_api",
    "True"
-  ],
-  [
-   "fontconfig:fPIC",
-   "True"
-  ],
-  [
-   "fontconfig:shared",
-   "False"
   ],
   [
    "foonathan-lexy:fPIC",
@@ -457,150 +669,6 @@
    "True"
   ],
   [
-   "fribidi:fPIC",
-   "True"
-  ],
-  [
-   "fribidi:shared",
-   "False"
-  ],
-  [
-   "fribidi:with_deprecated",
-   "True"
-  ],
-  [
-   "glib:shared",
-   "True"
-  ],
-  [
-   "glib:with_elf",
-   "True"
-  ],
-  [
-   "glib:with_mount",
-   "True"
-  ],
-  [
-   "glib:with_pcre",
-   "True"
-  ],
-  [
-   "glib:with_selinux",
-   "True"
-  ],
-  [
-   "graphene:fPIC",
-   "True"
-  ],
-  [
-   "graphene:shared",
-   "False"
-  ],
-  [
-   "graphene:with_glib",
-   "True"
-  ],
-  [
-   "gst-plugins-base:shared",
-   "True"
-  ],
-  [
-   "gst-plugins-base:with_egl",
-   "True"
-  ],
-  [
-   "gst-plugins-base:with_gl",
-   "True"
-  ],
-  [
-   "gst-plugins-base:with_graphene",
-   "True"
-  ],
-  [
-   "gst-plugins-base:with_introspection",
-   "False"
-  ],
-  [
-   "gst-plugins-base:with_libalsa",
-   "True"
-  ],
-  [
-   "gst-plugins-base:with_libjpeg",
-   "libjpeg"
-  ],
-  [
-   "gst-plugins-base:with_libpng",
-   "True"
-  ],
-  [
-   "gst-plugins-base:with_ogg",
-   "True"
-  ],
-  [
-   "gst-plugins-base:with_opus",
-   "True"
-  ],
-  [
-   "gst-plugins-base:with_pango",
-   "True"
-  ],
-  [
-   "gst-plugins-base:with_theora",
-   "True"
-  ],
-  [
-   "gst-plugins-base:with_vorbis",
-   "True"
-  ],
-  [
-   "gst-plugins-base:with_wayland",
-   "True"
-  ],
-  [
-   "gst-plugins-base:with_xorg",
-   "True"
-  ],
-  [
-   "gst-plugins-good:shared",
-   "True"
-  ],
-  [
-   "gst-plugins-good:with_introspection",
-   "False"
-  ],
-  [
-   "gstreamer:shared",
-   "True"
-  ],
-  [
-   "gstreamer:with_introspection",
-   "False"
-  ],
-  [
-   "harfbuzz:fPIC",
-   "True"
-  ],
-  [
-   "harfbuzz:shared",
-   "False"
-  ],
-  [
-   "harfbuzz:with_freetype",
-   "True"
-  ],
-  [
-   "harfbuzz:with_glib",
-   "True"
-  ],
-  [
-   "harfbuzz:with_icu",
-   "False"
-  ],
-  [
-   "harfbuzz:with_subset",
-   "False"
-  ],
-  [
    "libalsa:disable_python",
    "True"
   ],
@@ -621,11 +689,15 @@
    "False"
   ],
   [
-   "libelf:fPIC",
+   "libcap:fPIC",
    "True"
   ],
   [
-   "libelf:shared",
+   "libcap:psx_syscals",
+   "False"
+  ],
+  [
+   "libcap:shared",
    "False"
   ],
   [
@@ -645,19 +717,11 @@
    "False"
   ],
   [
-   "libjpeg:fPIC",
+   "libmp3lame:fPIC",
    "True"
   ],
   [
-   "libjpeg:shared",
-   "False"
-  ],
-  [
-   "libmount:fPIC",
-   "True"
-  ],
-  [
-   "libmount:shared",
+   "libmp3lame:shared",
    "False"
   ],
   [
@@ -677,155 +741,99 @@
    "True"
   ],
   [
-   "libselinux:fPIC",
-   "True"
-  ],
-  [
-   "libselinux:shared",
+   "libsndfile:experimental",
    "False"
   ],
   [
-   "libuuid:fPIC",
+   "libsndfile:fPIC",
    "True"
   ],
   [
-   "libuuid:shared",
+   "libsndfile:programs",
+   "True"
+  ],
+  [
+   "libsndfile:shared",
    "False"
   ],
   [
-   "libxft:fPIC",
-   "True"
-  ],
-  [
-   "libxft:shared",
+   "libsndfile:with_alsa",
    "False"
   ],
   [
-   "libxml2:c14n",
+   "libsndfile:with_external_libs",
    "True"
   ],
   [
-   "libxml2:catalog",
+   "libtool:fPIC",
    "True"
   ],
   [
-   "libxml2:fPIC",
-   "True"
-  ],
-  [
-   "libxml2:ftp",
-   "True"
-  ],
-  [
-   "libxml2:html",
-   "True"
-  ],
-  [
-   "libxml2:http",
-   "True"
-  ],
-  [
-   "libxml2:iconv",
-   "True"
-  ],
-  [
-   "libxml2:icu",
+   "libtool:shared",
    "False"
   ],
   [
-   "libxml2:include_utils",
-   "True"
-  ],
-  [
-   "libxml2:iso8859x",
-   "True"
-  ],
-  [
-   "libxml2:legacy",
-   "True"
-  ],
-  [
-   "libxml2:lzma",
+   "libvpx:avx",
    "False"
   ],
   [
-   "libxml2:mem-debug",
+   "libvpx:avx2",
    "False"
   ],
   [
-   "libxml2:output",
-   "True"
-  ],
-  [
-   "libxml2:pattern",
-   "True"
-  ],
-  [
-   "libxml2:push",
-   "True"
-  ],
-  [
-   "libxml2:python",
+   "libvpx:avx512",
    "False"
   ],
   [
-   "libxml2:reader",
+   "libvpx:fPIC",
    "True"
   ],
   [
-   "libxml2:regexps",
+   "libvpx:mmx",
    "True"
   ],
   [
-   "libxml2:run-debug",
+   "libvpx:shared",
    "False"
   ],
   [
-   "libxml2:sax1",
+   "libvpx:sse",
    "True"
   ],
   [
-   "libxml2:schemas",
+   "libvpx:sse2",
    "True"
   ],
   [
-   "libxml2:schematron",
+   "libvpx:sse3",
    "True"
   ],
   [
-   "libxml2:shared",
+   "libvpx:sse4_1",
+   "True"
+  ],
+  [
+   "libvpx:ssse3",
+   "True"
+  ],
+  [
+   "libwebp:fPIC",
+   "True"
+  ],
+  [
+   "libwebp:near_lossless",
+   "True"
+  ],
+  [
+   "libwebp:shared",
    "False"
   ],
   [
-   "libxml2:threads",
-   "True"
+   "libwebp:swap_16bit_csp",
+   "False"
   ],
   [
-   "libxml2:tree",
-   "True"
-  ],
-  [
-   "libxml2:valid",
-   "True"
-  ],
-  [
-   "libxml2:writer",
-   "True"
-  ],
-  [
-   "libxml2:xinclude",
-   "True"
-  ],
-  [
-   "libxml2:xpath",
-   "True"
-  ],
-  [
-   "libxml2:xptr",
-   "True"
-  ],
-  [
-   "libxml2:zlib",
+   "libwebp:with_simd",
    "True"
   ],
   [
@@ -834,14 +842,6 @@
   ],
   [
    "luajit:shared",
-   "False"
-  ],
-  [
-   "lzo:fPIC",
-   "True"
-  ],
-  [
-   "lzo:shared",
    "False"
   ],
   [
@@ -861,6 +861,250 @@
    "False"
   ],
   [
+   "openh264:fPIC",
+   "True"
+  ],
+  [
+   "openh264:shared",
+   "False"
+  ],
+  [
+   "openjpeg:build_codec",
+   "False"
+  ],
+  [
+   "openjpeg:fPIC",
+   "True"
+  ],
+  [
+   "openjpeg:shared",
+   "False"
+  ],
+  [
+   "openssl:386",
+   "False"
+  ],
+  [
+   "openssl:enable_weak_ssl_ciphers",
+   "False"
+  ],
+  [
+   "openssl:fPIC",
+   "True"
+  ],
+  [
+   "openssl:no_aria",
+   "False"
+  ],
+  [
+   "openssl:no_asm",
+   "False"
+  ],
+  [
+   "openssl:no_async",
+   "False"
+  ],
+  [
+   "openssl:no_bf",
+   "False"
+  ],
+  [
+   "openssl:no_blake2",
+   "False"
+  ],
+  [
+   "openssl:no_camellia",
+   "False"
+  ],
+  [
+   "openssl:no_cast",
+   "False"
+  ],
+  [
+   "openssl:no_chacha",
+   "False"
+  ],
+  [
+   "openssl:no_cms",
+   "False"
+  ],
+  [
+   "openssl:no_comp",
+   "False"
+  ],
+  [
+   "openssl:no_ct",
+   "False"
+  ],
+  [
+   "openssl:no_deprecated",
+   "False"
+  ],
+  [
+   "openssl:no_des",
+   "False"
+  ],
+  [
+   "openssl:no_dgram",
+   "False"
+  ],
+  [
+   "openssl:no_dh",
+   "False"
+  ],
+  [
+   "openssl:no_dsa",
+   "False"
+  ],
+  [
+   "openssl:no_dso",
+   "False"
+  ],
+  [
+   "openssl:no_ec",
+   "False"
+  ],
+  [
+   "openssl:no_ecdh",
+   "False"
+  ],
+  [
+   "openssl:no_ecdsa",
+   "False"
+  ],
+  [
+   "openssl:no_engine",
+   "False"
+  ],
+  [
+   "openssl:no_filenames",
+   "False"
+  ],
+  [
+   "openssl:no_gost",
+   "False"
+  ],
+  [
+   "openssl:no_hmac",
+   "False"
+  ],
+  [
+   "openssl:no_idea",
+   "False"
+  ],
+  [
+   "openssl:no_md4",
+   "False"
+  ],
+  [
+   "openssl:no_md5",
+   "False"
+  ],
+  [
+   "openssl:no_mdc2",
+   "False"
+  ],
+  [
+   "openssl:no_ocsp",
+   "False"
+  ],
+  [
+   "openssl:no_pinshared",
+   "False"
+  ],
+  [
+   "openssl:no_rc2",
+   "False"
+  ],
+  [
+   "openssl:no_rfc3779",
+   "False"
+  ],
+  [
+   "openssl:no_rmd160",
+   "False"
+  ],
+  [
+   "openssl:no_rsa",
+   "False"
+  ],
+  [
+   "openssl:no_seed",
+   "False"
+  ],
+  [
+   "openssl:no_sha",
+   "False"
+  ],
+  [
+   "openssl:no_sm2",
+   "False"
+  ],
+  [
+   "openssl:no_sm3",
+   "False"
+  ],
+  [
+   "openssl:no_sm4",
+   "False"
+  ],
+  [
+   "openssl:no_sock",
+   "False"
+  ],
+  [
+   "openssl:no_srp",
+   "False"
+  ],
+  [
+   "openssl:no_srtp",
+   "False"
+  ],
+  [
+   "openssl:no_sse2",
+   "False"
+  ],
+  [
+   "openssl:no_ssl",
+   "False"
+  ],
+  [
+   "openssl:no_ssl3",
+   "False"
+  ],
+  [
+   "openssl:no_stdio",
+   "False"
+  ],
+  [
+   "openssl:no_tests",
+   "False"
+  ],
+  [
+   "openssl:no_threads",
+   "False"
+  ],
+  [
+   "openssl:no_tls1",
+   "False"
+  ],
+  [
+   "openssl:no_ts",
+   "False"
+  ],
+  [
+   "openssl:no_whirlpool",
+   "False"
+  ],
+  [
+   "openssl:openssldir",
+   "None"
+  ],
+  [
+   "openssl:shared",
+   "False"
+  ],
+  [
    "opus:fPIC",
    "True"
   ],
@@ -873,80 +1117,32 @@
    "False"
   ],
   [
-   "pango:fPIC",
+   "pulseaudio:fPIC",
    "True"
   ],
   [
-   "pango:shared",
+   "pulseaudio:shared",
    "False"
   ],
   [
-   "pango:with_cairo",
+   "pulseaudio:with_alsa",
    "True"
   ],
   [
-   "pango:with_fontconfig",
-   "True"
-  ],
-  [
-   "pango:with_freetype",
-   "True"
-  ],
-  [
-   "pango:with_libthai",
+   "pulseaudio:with_dbus",
    "False"
   ],
   [
-   "pango:with_xft",
-   "True"
-  ],
-  [
-   "pcre2:build_pcre2_16",
-   "True"
-  ],
-  [
-   "pcre2:build_pcre2_32",
-   "True"
-  ],
-  [
-   "pcre2:build_pcre2_8",
-   "True"
-  ],
-  [
-   "pcre2:build_pcre2grep",
-   "True"
-  ],
-  [
-   "pcre2:fPIC",
-   "True"
-  ],
-  [
-   "pcre2:grep_support_callout_fork",
-   "True"
-  ],
-  [
-   "pcre2:shared",
+   "pulseaudio:with_glib",
    "False"
   ],
   [
-   "pcre2:support_jit",
-   "False"
-  ],
-  [
-   "pcre2:with_bzip2",
+   "pulseaudio:with_openssl",
    "True"
   ],
   [
-   "pcre2:with_zlib",
+   "pulseaudio:with_x11",
    "True"
-  ],
-  [
-   "pixman:fPIC",
-   "True"
-  ],
-  [
-   "pixman:shared",
-   "False"
   ],
   [
    "sfml:audio",
@@ -1121,14 +1317,6 @@
    "True"
   ],
   [
-   "theora:fPIC",
-   "True"
-  ],
-  [
-   "theora:shared",
-   "False"
-  ],
-  [
    "vorbis:fPIC",
    "True"
   ],
@@ -1137,19 +1325,31 @@
    "False"
   ],
   [
-   "wayland:enable_dtd_validation",
+   "vulkan-loader:shared",
    "True"
   ],
   [
-   "wayland:enable_libraries",
+   "vulkan-loader:with_wsi_directfb",
+   "False"
+  ],
+  [
+   "vulkan-loader:with_wsi_wayland",
    "True"
   ],
   [
-   "wayland:fPIC",
+   "vulkan-loader:with_wsi_xcb",
    "True"
   ],
   [
-   "wayland:shared",
+   "vulkan-loader:with_wsi_xlib",
+   "True"
+  ],
+  [
+   "xz_utils:fPIC",
+   "True"
+  ],
+  [
+   "xz_utils:shared",
    "False"
   ],
   [

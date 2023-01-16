@@ -442,7 +442,7 @@ defineAnimation(sol::state& target) -> void
     auto animationType = target.new_usertype<drawing::animations::Animation>(
       "Animation", sol::no_constructor);
     animationType["reset"] = &drawing::animations::Animation::reset;
-    animationType["isLooping"] =
+    animationType["getIsLooping"] =
       sol::property(&drawing::animations::Animation::getIsLooping,
                     &drawing::animations::Animation::setIsLooping);
     animationType["duration"] =
@@ -587,8 +587,8 @@ defineCommonTypes(
               animation->setOnFinished(
                 args["onFinished"].get<std::function<void()>>());
           }
-          if (args["isLooping"].valid()) {
-              animation->setIsLooping(args["isLooping"]);
+          if (args["getIsLooping"].valid()) {
+              animation->setIsLooping(args["getIsLooping"]);
           }
       };
 
