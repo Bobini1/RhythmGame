@@ -149,19 +149,15 @@ sounds::FFmpegOpenALSound::FFmpegOpenALSound(const char* filename)
 {
     auto* formatContext = avformat_alloc_context();
     avformat_open_input(&formatContext, filename, nullptr, nullptr);
-
-    const auto streams =
-      std::span(formatContext->streams, formatContext->nb_streams);
-
+    
     avformat_find_stream_info(formatContext, nullptr);
-    const auto audioStream =
-      std::find_if(streams.begin(), streams.end(), [](const AVStream* stream) {
-          return stream->codecpar->codec_type == AVMEDIA_TYPE_AUDIO;
-      });
-    if (audioStream == streams.end()) {
+    const auto audioStreamIndex = av_find_best_stream(
+      formatContext, AVMEDIA_TYPE_AUDIO, -1, -1, nullptr, 0);
+    if (audioStreamIndex < 0) {
         throw std::runtime_error("Could not find audio stream");
     }
-    const auto* codecParameters = (*audioStream)->codecpar;
+    const auto* audioStream = formatContext->streams[audioStreamIndex];
+    const auto* codecParameters = audioStream->codecpar;
     const auto* codec = avcodec_find_decoder(codecParameters->codec_id);
     if (codec == nullptr) {
         throw std::runtime_error("Unsupported codec");
@@ -179,7 +175,7 @@ sounds::FFmpegOpenALSound::FFmpegOpenALSound(const char* filename)
     spdlog::info("Sample rate: {}", codecContext->sample_rate);
     spdlog::info("Channels: {}", codecContext->channels);
 
-    auto samples = decodeFile(*formatContext, **audioStream, *codecContext);
+    auto samples = decodeFile(*formatContext, *audioStream, *codecContext);
     alcMakeContextCurrent(getALContext());
     // load samples into openal
     ALuint buffer{};
