@@ -48,7 +48,7 @@ jobs:
         with: { python-version: "3.8" }
 
       - name: Install system dependencies
-        run: sudo apt-get install libtbb-dev libgl-dev libudev-dev -y
+        run: sudo apt-get install libtbb-dev libgl-dev libudev-dev libopenjp2-7-dev -y
 
       - name: Cache conan
         id: cache-conan
@@ -102,7 +102,7 @@ jobs:
         with: { python-version: "3.8" }
 
       - name: Install system dependencies
-        run: sudo apt-get update && sudo apt-get install libtbb-dev libgl-dev libudev-dev -y
+        run: sudo apt-get update && sudo apt-get install libtbb-dev libgl-dev libudev-dev libopenjp2-7-dev -y
 
       - name: Install Clang 13
         run: sudo apt install clang-13
@@ -164,7 +164,7 @@ jobs:
 
       - name: Install system dependencies
         if: matrix.os == 'ubuntu-22.04'
-        run: sudo apt-get install libtbb-dev libgl-dev libudev-dev -y
+        run: sudo apt-get install libtbb-dev libgl-dev libudev-dev libopenjp2-7-dev -y
 
       - name: Cache conan
         id: cache-conan
@@ -240,7 +240,7 @@ jobs:
 
       - name: Install system dependencies
         if: matrix.os == 'ubuntu-22.04'
-        run: sudo apt-get install libtbb-dev libgl-dev libudev-dev -y
+        run: sudo apt-get install libtbb-dev libgl-dev libudev-dev libopenjp2-7-dev -y
 
       - name: Cache conan
         id: cache-conan
