@@ -29,8 +29,8 @@ class SplashScene : public Scene
     bool initialized = false;
     sol::state state;
     AnimationPlayerType animationPlayer;
-    std::shared_ptr<TextureLoaderType> textureLoader;
-    std::shared_ptr<FontLoaderType> fontLoader;
+    TextureLoaderType* textureLoader;
+    FontLoaderType* fontLoader;
     events::GlobalEvent<> init;
     events::GlobalEvent<float> onUpdate;
     events::MouseClickEvent leftClick;
