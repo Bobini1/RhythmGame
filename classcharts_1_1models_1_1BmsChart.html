@@ -49,7 +49,7 @@
     <div class="m-row">
       <div class="m-col-l-10 m-push-l-1">
         <h1>
-          <span class="m-breadcrumb"><a href="namespacecharts.html">charts</a>::<wbr/></span><span class="m-breadcrumb"><a href="namespacecharts_1_1models.html">models</a>::<wbr/></span>BmsChart <span class="m-thin">class</span> <span class="m-label m-flat m-warning">final</span>
+          <span class="m-breadcrumb"><a href="namespacecharts.html">charts</a>::<wbr/></span><span class="m-breadcrumb"><a href="namespacecharts_1_1models.html">models</a>::<wbr/></span>BmsChart <span class="m-thin">class</span>
           <div class="m-doc-include m-code m-inverted m-text-right"><span class="cp">#include</span> <a class="cpf" href="BmsChart_8h.html">&lt;BmsChart.h&gt;</a></div>
         </h1>
         <p>Be-Music Source chart.</p>
@@ -59,36 +59,29 @@
             <li>
               Reference
               <ul>
-                <li><a href="#base-classes">Base classes</a></li>
                 <li><a href="#pub-types">Public types</a></li>
                 <li><a href="#typeless-methods">Constructors, destructors, conversion operators</a></li>
-                <li><a href="#pub-methods">Public functions</a></li>
               </ul>
             </li>
           </ul>
         </div>
-        <section id="base-classes">
-          <h2><a href="#base-classes">Base classes</a></h2>
-          <dl class="m-doc">
-            <dt>
-              class <a href="classcharts_1_1models_1_1Chart.html" class="m-doc">Chart</a>
-            </dt>
-            <dd>Base class for all charts.</dd>
-          </dl>
-        </section>
         <section id="pub-types">
           <h2><a href="#pub-types">Public types</a></h2>
           <dl class="m-doc">
             <dt>
+              struct <a href="structcharts_1_1models_1_1BmsChart_1_1Measure.html" class="m-doc">Measure</a>
+            </dt>
+            <dd><span></span></dd>
+            <dt>
               struct <a href="structcharts_1_1models_1_1BmsChart_1_1Tags.html" class="m-doc">Tags</a>
             </dt>
             <dd><a href="structcharts_1_1models_1_1BmsChart_1_1Tags.html" class="m-doc">Tags</a> that a BMS chart can have.</dd>
-            <dt id="a01e01c92d9de87f076b25f21cf6e456e">
-              using <a href="#a01e01c92d9de87f076b25f21cf6e456e" class="m-doc-self">RandomRange</a> = std::uniform_int_distribution&lt;long&gt;
+            <dt id="a5f9929bfd88e43091d4c3d6d9d8b3f5a">
+              using <a href="#a5f9929bfd88e43091d4c3d6d9d8b3f5a" class="m-doc-self">RandomRange</a> = int64_t
             </dt>
             <dd><span></span></dd>
-            <dt id="a946e618ad5273c3573a41dd8cc194b1f">
-              using <a href="#a946e618ad5273c3573a41dd8cc194b1f" class="m-doc-self">IfTag</a> = long
+            <dt id="ada06c6b9a28f2d63cbf4046603d2cb41">
+              using <a href="#ada06c6b9a28f2d63cbf4046603d2cb41" class="m-doc-self">IfTag</a> = int64_t
             </dt>
             <dd><span></span></dd>
           </dl>
@@ -101,35 +94,6 @@
             </dt>
             <dd>Constructs a BMS chart from its tags. The <a href="classcharts_1_1models_1_1BmsChart.html" class="m-doc">BmsChart</a> is able to manage random blocks on its own.</dd>
           </dl>
-        </section>
-        <section id="pub-methods">
-          <h2><a href="#pub-methods">Public functions</a></h2>
-          <dl class="m-doc">
-            <dt>
-              <span class="m-doc-wrap-bumper">auto <a href="#a8356ddd70e40ca7b6792f75aaff2824d" class="m-doc">writeFullData</a>(</span><span class="m-doc-wrap"><a href="classcharts_1_1behaviour_1_1SongDataWriterToLua.html" class="m-doc">behaviour::<wbr />SongDataWriterToLua</a> writer) const -&gt; void <span class="m-label m-flat m-warning">override</span></span>
-            </dt>
-            <dd>Writes the tags to lua. All randoms are resolved during this operation.</dd>
-          </dl>
-        </section>
-        <section>
-          <h2>Function documentation</h2>
-          <section class="m-doc-details" id="a8356ddd70e40ca7b6792f75aaff2824d"><div>
-            <h3>
-              <span class="m-doc-wrap-bumper">auto charts::<wbr />models::<wbr />BmsChart::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a8356ddd70e40ca7b6792f75aaff2824d" class="m-doc-self">writeFullData</a>(</span><span class="m-doc-wrap"><a href="classcharts_1_1behaviour_1_1SongDataWriterToLua.html" class="m-doc">behaviour::<wbr />SongDataWriterToLua</a> writer) const -&gt; void <span class="m-label m-warning">override</span></span></span>
-            </h3>
-            <p>Writes the tags to lua. All randoms are resolved during this operation.</p>
-            <table class="m-table m-fullwidth m-flat">
-              <thead>
-                <tr><th colspan="2">Parameters</th></tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td style="width: 1%">writer</td>
-                  <td></td>
-                </tr>
-              </tbody>
-            </table>
-          </div></section>
         </section>
       </div>
     </div>
