@@ -301,6 +301,10 @@
    "False"
   ],
   [
+   "catch2:console_width",
+   "80"
+  ],
+  [
    "catch2:default_reporter",
    "None"
   ],
