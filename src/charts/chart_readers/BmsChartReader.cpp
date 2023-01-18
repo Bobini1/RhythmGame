@@ -3,336 +3,466 @@
 //
 
 #include <utility>
-#include "charts/chart_readers/ToChars.h"
-#include <tao/pegtl.hpp>
-#include <stack>
+#include <lexy/action/parse.hpp>
+#include <lexy/dsl.hpp>
+#include <lexy/callback.hpp>
+#include <functional>
+#include <lexy/input/string_input.hpp>
+#include <spdlog/spdlog.h>
+#include <type_safe/strong_typedef.hpp>
 #include "BmsChartReader.h"
 
+#include <lexy_ext/report_error.hpp>
+
 namespace charts::chart_readers {
-namespace pegtl = tao::pegtl;
-
-using IfTag = models::BmsChart::IfTag;
-using RandomRange = models::BmsChart::RandomRange;
-using Tags = models::BmsChart::Tags;
-
-class TagsWriter
-{
-    std::stack<std::pair<IfTag, Tags>> ifStack;
-    std::stack<std::pair<RandomRange, std::vector<std::pair<IfTag, Tags>>>>
-      randomStack;
-
-  public:
-    TagsWriter() { ifStack.push(std::make_pair(0, Tags{})); }
-    void setTitle(std::string title)
-    {
-        ifStack.top().second.title = std::move(title);
-    }
-    void setArtist(std::string artist)
-    {
-        ifStack.top().second.artist = std::move(artist);
-    }
-    void setBpm(double bpm) { ifStack.top().second.bpm = bpm; }
-    void setSubTitle(std::string subTitle)
-    {
-        ifStack.top().second.subTitle = std::move(subTitle);
-    }
-    void setSubArtist(std::string subArtist)
-    {
-        ifStack.top().second.subArtist = std::move(subArtist);
-    }
-    void setGenre(std::string genre)
-    {
-        ifStack.top().second.genre = std::move(genre);
-    }
-
-    void enterIf(IfTag tag) { ifStack.push(std::make_pair(tag, Tags{})); }
-
-    void leaveIf()
-    {
-        randomStack.top().second.emplace_back(ifStack.top().first,
-                                              std::move(ifStack.top().second));
-        ifStack.pop();
-    }
-
-    void enterRandom(RandomRange range)
-    {
-        randomStack.push(
-          std::make_pair(range, std::vector<std::pair<IfTag, Tags>>{}));
-    }
-
-    void leaveRandom()
-    {
-        auto ifs = std::move(randomStack.top().second);
-        auto randomDistribution = randomStack.top().first;
-        randomStack.pop();
-        auto ifsMap = std::multimap<IfTag, Tags>{};
-        for (auto& ifTag : ifs) {
-            ifsMap.emplace(ifTag.first, std::move(ifTag.second));
-        }
-        ifStack.top().second.randomBlocks.emplace_back(std::make_pair(
-          randomDistribution,
-          std::make_unique<std::multimap<IfTag, Tags>>(std::move(ifsMap))));
-    }
-
-    auto getTags() -> Tags& { return ifStack.top().second; }
-};
-// double
-
-struct PlusMinus : pegtl::opt<pegtl::one<'+', '-'>>
-{
-};
-struct Dot : pegtl::one<'.'>
-{
-};
-
-struct Inf
-  : pegtl::seq<pegtl::istring<'i', 'n', 'f'>,
-               pegtl::opt<pegtl::istring<'i', 'n', 'i', 't', 'y'>>>
-{
-};
-
-struct Nan
-  : pegtl::seq<
-      pegtl::istring<'n', 'a', 'n'>,
-      pegtl::opt<pegtl::one<'('>, pegtl::plus<pegtl::alnum>, pegtl::one<')'>>>
-{
-};
-
-template<typename D>
-struct Number
-  : pegtl::if_then_else<
-      Dot,
-      pegtl::plus<D>,
-      pegtl::seq<pegtl::plus<D>, pegtl::opt<Dot, pegtl::star<D>>>>
-{
-};
-
-struct E : pegtl::one<'e', 'E'>
-{
-};
-struct P : pegtl::one<'p', 'P'>
-{
-};
-struct F : pegtl::one<'f', 'F'>
-{
-};
-struct D : pegtl::one<'d', 'D'>
-{
-};
-struct Exponent : pegtl::seq<PlusMinus, pegtl::plus<pegtl::digit>>
-{
-};
-
-struct Decimal : pegtl::seq<Number<pegtl::digit>, pegtl::opt<E, Exponent>>
-{
-};
-struct Hexadecimal
-  : pegtl::seq<pegtl::one<'0'>,
-               pegtl::one<'x', 'X'>,
-               Number<pegtl::xdigit>,
-               pegtl::opt<P, Exponent>>
-{
-};
-
-struct Floating
-  : pegtl::seq<
-      PlusMinus,
-      pegtl::sor<Hexadecimal, Decimal, Inf, Nan, pegtl::opt<pegtl::sor<F, D>>>>
-{
-};
-
-// double end
-
-struct SpacesUntilEndOfLine
-  : pegtl::seq<pegtl::star<pegtl::minus<pegtl::space, pegtl::eolf>>,
-               pegtl::at<pegtl::eolf>>
-{
-};
-
-struct MetaString : pegtl::until<SpacesUntilEndOfLine>
-{
-};
-
-template<typename AllowedValue, typename TagName>
-struct MetaTag
-  : pegtl::seq<pegtl::star<pegtl::space>,
-               pegtl::one<'#'>,
-               TagName,
-               pegtl::star<pegtl::space>,
-               AllowedValue,
-               pegtl::star<pegtl::minus<pegtl::space, pegtl::eolf>>>
-{
-};
-
-template<typename TagName>
-struct NoValueTag
-  : pegtl::seq<pegtl::star<pegtl::space>,
-               pegtl::one<'#'>,
-               TagName,
-               pegtl::star<pegtl::minus<pegtl::space, pegtl::eolf>>>
-{
-};
-
-struct PlayerValidDigit : pegtl::range<'1', '4'>
-{
-};
-
-template<typename>
-struct Action
-{
-};
-
-/**
- * @brief defines a bms-style tag and an action to be performed when it is
- * found.
- * @param tag the tag to be searched for. It is both the name of the resulting
- * class and the search pattern. Example: for tag **player**, the matching tag
- * will be `#PLAYER <value>` (case-insensitive).
- * @param strlen the length of the tag name provided in the first argument.
- * Required for internal handling, sadly.
- * @param allowedValue the pegtl parser for the value that is allowed for this
- * tag.
- * @param memberFnPointer the function to be called when the tag is found.
- * @param parser the function to apply to the allowedValue when it is found.
- * Kind of a preprocessor.
- */
-#define RHYTHMGAME_TAG_PARSER(                                                 \
-  tag, tagstrlen, allowedValue, memberFnPointer, parser)                       \
-    struct tag##_allowedValue : allowedValue                                   \
-    {                                                                          \
-    };                                                                         \
-                                                                               \
-    struct tag                                                                 \
-      : MetaTag<tag##_allowedValue,                                            \
-                pegtl::istring<RHYTHMGAME_TO_CHARS(tagstrlen, #tag)>>          \
-    {                                                                          \
-    };                                                                         \
-                                                                               \
-    template<>                                                                 \
-    struct Action<tag##_allowedValue>                                          \
-    {                                                                          \
-                                                                               \
-        template<typename ActionInput>                                         \
-        static auto apply(const ActionInput& input, TagsWriter& chart) -> void \
-        {                                                                      \
-            std::invoke(memberFnPointer, chart, (parser)(input.string()));     \
-        }                                                                      \
-    };
+namespace dsl = lexy::dsl;
 
 namespace {
-// constexpr auto identity = std::identity();
-constexpr auto trimR = [](auto&& str) {
+[[nodiscard]] auto
+trimR(auto&& str) -> std::string
+{
     return std::string(
       std::string_view{ str }.substr(0, str.find_last_not_of(' ') + 1));
 };
-} // namespace
-
-RHYTHMGAME_TAG_PARSER(Title, 5, MetaString, &TagsWriter::setTitle, trimR)
-RHYTHMGAME_TAG_PARSER(Artist, 6, MetaString, &TagsWriter::setArtist, trimR)
-RHYTHMGAME_TAG_PARSER(SubArtist,
-                      9,
-                      MetaString,
-                      &TagsWriter::setSubArtist,
-                      trimR)
-RHYTHMGAME_TAG_PARSER(SubTitle, 8, MetaString, &TagsWriter::setSubTitle, trimR)
-RHYTHMGAME_TAG_PARSER(Bpm, 3, Floating, &TagsWriter::setBpm, std::stod)
-RHYTHMGAME_TAG_PARSER(Genre, 5, MetaString, &TagsWriter::setGenre, trimR)
-RHYTHMGAME_TAG_PARSER(Random,
-                      6,
-                      pegtl::plus<pegtl::digit>,
-                      &TagsWriter::enterRandom,
-                      ([](auto&& value) {
-                          return RandomRange{ 0, std::stol(trimR(value)) };
-                      }))
-RHYTHMGAME_TAG_PARSER(If,
-                      2,
-                      pegtl::plus<pegtl::digit>,
-                      &TagsWriter::enterIf,
-                      ([](auto&& value) { return std::stol(trimR(value)); }))
-
-struct CommonTag : pegtl::sor<Title, SubTitle, Artist, SubArtist, Bpm, Genre>
+struct TextTag
 {
+    static constexpr auto value =
+      lexy::as_string<std::string> >>
+      lexy::callback<std::string>(trimR<std::string_view>);
+    static constexpr auto rule = [] {
+        auto limits = dsl::delimited(LEXY_LIT(""), dsl::eol);
+        return limits(dsl::code_point);
+    }();
 };
 
-struct RandomEnd
-  : pegtl::sor<
-      NoValueTag<pegtl::istring<'E', 'N', 'D', 'R', 'A', 'N', 'D', 'O', 'M'>>,
-      pegtl::eof>
+struct Identifier
 {
+    static constexpr auto value = lexy::as_string<std::string>;
+    static constexpr auto rule =
+      dsl::capture(dsl::token(dsl::twice(dsl::ascii::alnum)));
 };
 
-struct IfBlock;
-
-struct RandomBlock
-  : pegtl::seq<Random, pegtl::eol, pegtl::list<IfBlock, pegtl::eolf>, RandomEnd>
+struct IdentifierChain
 {
+    static constexpr auto value = lexy::as_list<std::vector<std::string>>;
+    static constexpr auto rule = list(dsl::p<Identifier>);
 };
 
-struct IfEnd
-  : pegtl::sor<pegtl::eof, NoValueTag<pegtl::istring<'E', 'N', 'D', 'I', 'F'>>>
+struct FloatingPoint
 {
+    static constexpr auto rule = [] {
+        auto integerPart = dsl::sign + dsl::digits<>;
+        auto fraction = dsl::period >> dsl::if_(dsl::digits<>);
+        auto exponent =
+          dsl::lit_c<'e'> / dsl::lit_c<'E'> >> (dsl::sign + dsl::digits<>);
+        auto suffix =
+          dsl::lit_c<'f'> / dsl::lit_c<'F'> / dsl::lit_c<'d'> / dsl::lit_c<'D'>;
+
+        auto realNumber = dsl::token(integerPart + dsl::if_(fraction) +
+                                     dsl::if_(exponent) + dsl::if_(suffix));
+        return dsl::capture(realNumber);
+    }();
+
+    static constexpr auto value =
+      lexy::as_string<std::string> |
+      lexy::callback<double>([](std::string&& str) { return std::stod(str); });
+};
+
+struct Channel
+{
+    static constexpr auto rule =
+      dsl::capture(dsl::token(dsl::times<2>(dsl::ascii::alnum)));
+    static constexpr auto value =
+      lexy::as_string<std::string> | lexy::callback<int>([](std::string&& str) {
+          constexpr auto base = 36;
+          return std::stoi(str, nullptr, base);
+      });
+};
+
+struct Measure
+{
+    static constexpr auto rule =
+      dsl::peek(dsl::hash_sign >> dsl::digit<>) >>
+      (dsl::hash_sign + dsl::capture(dsl::token(dsl::times<3>(dsl::digit<>))));
+    static constexpr auto value =
+      lexy::as_string<std::string> | lexy::callback<int>([](std::string&& str) {
+          constexpr auto base = 10;
+          return std::stoi(str, nullptr, base);
+      });
+};
+
+struct MeasureBasedTag
+{
+    static constexpr auto rule = dsl::p<Measure> >>
+                                 (dsl::p<Channel> + dsl::colon +
+                                  dsl::p<IdentifierChain>);
+    static constexpr auto value =
+      lexy::construct<std::tuple<uint64_t, int, std::vector<std::string>>>;
+};
+
+struct Title : type_safe::strong_typedef<Title, std::string>
+{
+    using strong_typedef::strong_typedef;
+};
+
+struct Artist : type_safe::strong_typedef<Artist, std::string>
+{
+    using strong_typedef::strong_typedef;
+};
+
+struct Genre : type_safe::strong_typedef<Genre, std::string>
+{
+    using strong_typedef::strong_typedef;
+};
+
+struct Subtitle : type_safe::strong_typedef<Subtitle, std::string>
+{
+    using strong_typedef::strong_typedef;
+};
+
+struct Subartist : type_safe::strong_typedef<Subartist, std::string>
+{
+    using strong_typedef::strong_typedef;
+};
+
+struct Bpm : type_safe::strong_typedef<Bpm, double>
+{
+    using strong_typedef::strong_typedef;
+};
+
+struct Wav : type_safe::strong_typedef<Wav, std::pair<std::string, std::string>>
+{
+    using strong_typedef::strong_typedef;
+};
+
+struct ExBpm : type_safe::strong_typedef<ExBpm, std::pair<std::string, double>>
+{
+    using strong_typedef::strong_typedef;
+};
+
+struct Meter : type_safe::strong_typedef<Meter, std::pair<uint64_t, double>>
+{
+    using strong_typedef::strong_typedef;
+};
+
+struct TitleTag
+{
+    static constexpr auto rule = [] {
+        auto titleTag = dsl::ascii::case_folding(LEXY_LIT("#title"));
+        return titleTag >> dsl::p<TextTag>;
+    }();
+    static constexpr auto value =
+      lexy::as_string<std::string> |
+      lexy::callback<Title>([](std::string&& str) { return Title{ str }; });
+};
+
+struct ArtistTag
+{
+    static constexpr auto rule = [] {
+        auto artistTag = dsl::ascii::case_folding(LEXY_LIT("#artist"));
+        return artistTag >> dsl::p<TextTag>;
+    }();
+    static constexpr auto value =
+      lexy::as_string<std::string> |
+      lexy::callback<Artist>([](std::string&& str) { return Artist{ str }; });
+};
+
+struct GenreTag
+{
+    static constexpr auto rule = [] {
+        auto genreTag = dsl::ascii::case_folding(LEXY_LIT("#genre"));
+        return genreTag >> dsl::p<TextTag>;
+    }();
+    static constexpr auto value =
+      lexy::as_string<std::string> |
+      lexy::callback<Genre>([](std::string&& str) { return Genre{ str }; });
+};
+
+struct SubtitleTag
+{
+    static constexpr auto rule = [] {
+        auto subtitleTag = dsl::ascii::case_folding(LEXY_LIT("#subtitle"));
+        return subtitleTag >> dsl::p<TextTag>;
+    }();
+    static constexpr auto value =
+      lexy::as_string<std::string> |
+      lexy::callback<Subtitle>(
+        [](std::string&& str) { return Subtitle{ str }; });
+};
+
+struct SubartistTag
+{
+    static constexpr auto rule = [] {
+        auto subartistTag = dsl::ascii::case_folding(LEXY_LIT("#subartist"));
+        return subartistTag >> dsl::p<TextTag>;
+    }();
+    static constexpr auto value =
+      lexy::as_string<std::string> |
+      lexy::callback<Subartist>(
+        [](std::string&& str) { return Subartist{ str }; });
+};
+
+struct BpmTag
+{
+    static constexpr auto rule = [] {
+        auto bpmTag = dsl::ascii::case_folding(LEXY_LIT("#bpm"));
+        return bpmTag >> dsl::p<FloatingPoint>;
+    }();
+    static constexpr auto value =
+      lexy::callback<Bpm>([](double num) { return Bpm{ num }; });
+};
+
+struct WavTag
+{
+    static constexpr auto rule = [] {
+        auto wavTag = dsl::ascii::case_folding(LEXY_LIT("#wav"));
+        return wavTag >> (dsl::p<Identifier> + dsl::p<TextTag>);
+    }();
+    static constexpr auto value =
+      lexy::callback<Wav>([](std::string&& identifier, std::string&& filename) {
+          return Wav{ { std::move(identifier), std::move(filename) } };
+      });
+};
+
+struct ExBpmTag
+{
+    static constexpr auto rule = [] {
+        auto exBpmTag =
+          dsl::hash_sign + dsl::if_(dsl::ascii::case_folding(LEXY_LIT("ex"))) +
+          dsl::ascii::case_folding(LEXY_LIT("bpm")) + dsl::p<Identifier>;
+        return dsl::peek(exBpmTag) >> (exBpmTag + dsl::p<FloatingPoint>);
+    }();
+    static constexpr auto value =
+      lexy::callback<ExBpm>([](std::string identifier, double num) {
+          return ExBpm{ { std::move(identifier), num } };
+      });
+};
+
+struct MeterTag
+{
+    static constexpr auto rule = [] {
+        auto start = (dsl::p<Measure> + LEXY_LIT("02"));
+        return dsl::peek(start) >> start >> dsl::colon >> dsl::p<FloatingPoint>;
+    }();
+    static constexpr auto value =
+      lexy::callback<Meter>([](uint64_t measure, double num) {
+          return Meter{ { measure, num } };
+      });
+};
+
+struct TagsSink
+{
+    struct SinkCallback
+    {
+        using return_type = // NOLINT(readability-identifier-naming)
+          models::BmsChart::Tags;
+        models::BmsChart::Tags state;
+        auto finish() && -> return_type { return std::move(state); }
+        auto operator()(Title&& title) -> void
+        {
+            state.title = std::move(static_cast<std::string&>(title));
+        }
+        auto operator()(Artist&& artist) -> void
+        {
+            state.artist = std::move(static_cast<std::string&>(artist));
+        }
+        auto operator()(Genre&& genre) -> void
+        {
+            state.genre = std::move(static_cast<std::string&>(genre));
+        }
+        auto operator()(Subtitle&& subtitle) -> void
+        {
+            state.subTitle = std::move(static_cast<std::string&>(subtitle));
+        }
+        auto operator()(Subartist&& subartist) -> void
+        {
+            state.subArtist = std::move(static_cast<std::string&>(subartist));
+        }
+        auto operator()(Bpm&& bpm) -> void
+        {
+            state.bpm = static_cast<double>(bpm);
+        }
+        auto operator()(ExBpm&& bpm) -> void
+        {
+            auto& [identifier, value] =
+              static_cast<std::pair<std::string, double>&>(bpm);
+            state.exBpms[identifier] = value;
+        }
+        auto operator()(
+          std::pair<models::BmsChart::RandomRange,
+                    std::vector<std::pair<models::BmsChart::IfTag,
+                                          models::BmsChart::Tags>>>&&
+            randomBlock)
+        {
+            state.randomBlocks.emplace_back(std::move(randomBlock));
+        }
+
+        auto operator()(Meter&& meter) -> void
+        {
+            auto [measure, value] =
+              static_cast<std::pair<uint64_t, double>>(meter);
+            state.measures[measure].meter = value;
+        }
+
+        auto operator()(Wav&& wav) -> void
+        {
+            auto& [identifier, filename] =
+              static_cast<std::pair<std::string, std::string>&>(wav);
+            state.wavs[identifier] = std::move(filename);
+        }
+
+        auto operator()(
+          std::tuple<uint64_t, int, std::vector<std::string>>&& measureBasedTag)
+          -> void
+        {
+            auto [measure, channel, identifiers] = std::move(measureBasedTag);
+
+            enum ChannelCategories
+            {
+                General = 0,
+                P1Visible = 1,
+                P2Visible = 2,
+                P1Invisible = 3,
+                P2Invisible = 4,
+                P1LongNote = 5,
+                P2LongNote = 6,
+            };
+            enum GeneralSubcategories
+            {
+                Bgm = 1,
+                /* Meter = 2, // handled elsewhere */
+                Bpm = 3,
+                /* BgaBase = 4, // unimplemented
+                ExtendedObject = 5,
+                SeekObject = 6,
+                BgaLayer = 7, */
+                ExBpm = 8,
+                /* Stop = 9, // unimplemented */
+            };
+            constexpr auto base = 36;
+            auto channelCategory =
+              static_cast<ChannelCategories>(channel / base);
+            auto channelSubcategory = static_cast<unsigned>(channel % base);
+            switch (channelCategory) {
+                case General:
+                    switch (channelSubcategory) {
+                        case Bgm:
+                            state.measures[measure].bgmNotes.push_back(
+                              std::move(identifiers));
+                            break;
+                        case Bpm:
+                            state.measures[measure].bpmChanges =
+                              std::move(identifiers);
+                            break;
+                        case ExBpm:
+                            state.measures[measure].exBpmChanges =
+                              std::move(identifiers);
+                            break;
+                        default:
+                            spdlog::error("Unknown channel: {}", channel);
+                            break;
+                    }
+                    break;
+                case P1Visible:
+                    state.measures[measure]
+                      .p1VisibleNotes[channelSubcategory - 1] =
+                      std::move(identifiers);
+                    break;
+                case P2Visible:
+                    state.measures[measure]
+                      .p2VisibleNotes[channelSubcategory - 1] =
+                      std::move(identifiers);
+                    break;
+                case P1Invisible:
+                    state.measures[measure]
+                      .p1InvisibleNotes[channelSubcategory - 1] =
+                      std::move(identifiers);
+                    break;
+                case P2Invisible:
+                    state.measures[measure]
+                      .p2InvisibleNotes[channelSubcategory - 1] =
+                      std::move(identifiers);
+                    break;
+                case P1LongNote:
+                    state.measures[measure]
+                      .p1LongNotes[channelSubcategory - 1] =
+                      std::move(identifiers);
+                    break;
+                case P2LongNote:
+                    state.measures[measure]
+                      .p2LongNotes[channelSubcategory - 1] =
+                      std::move(identifiers);
+                    break;
+                default:
+                    spdlog::error("Unknown channel: {}", channel);
+                    break;
+            }
+        }
+    };
+    [[nodiscard]] auto sink() const -> SinkCallback { return SinkCallback{}; }
+};
+
+struct RandomBlock;
+
+struct MainTags
+{
+    static constexpr auto whitespace = dsl::whitespace(dsl::unicode::space);
+    static constexpr auto rule = [] {
+        auto term = dsl::terminator(
+          dsl::eof | dsl::peek(dsl::ascii::case_folding(LEXY_LIT("#endif"))));
+        return term.list(dsl::try_(
+          dsl::p<TitleTag> | dsl::p<ArtistTag> | dsl::p<GenreTag> |
+            dsl::p<SubtitleTag> | dsl::p<SubartistTag> | dsl::p<ExBpmTag> |
+            dsl::p<BpmTag> | dsl::p<MeterTag> | dsl::p<WavTag> |
+            dsl::p<MeasureBasedTag> | dsl::recurse_branch<RandomBlock>,
+          dsl::until(dsl::unicode::newline).or_eof()));
+    }();
+    static constexpr auto value = TagsSink{};
 };
 
 struct IfBlock
-  : pegtl::seq<If,
-               pegtl::eol,
-               pegtl::list<pegtl::sor<CommonTag, RandomBlock>, pegtl::eolf>,
-               IfEnd>
 {
+    static constexpr auto rule =
+      dsl::ascii::case_folding(LEXY_LIT("#if")) >>
+      (dsl::integer<models::BmsChart::IfTag>(dsl::digits<>) + dsl::p<MainTags> +
+       dsl::ascii::case_folding(LEXY_LIT("#endif")));
+    static constexpr auto value = lexy::construct<
+      std::pair<models::BmsChart::IfTag, models::BmsChart::Tags>>;
 };
 
-struct File
-  : pegtl::list<pegtl::sor<RandomBlock, CommonTag>, pegtl::plus<pegtl::space>>
+struct IfList
 {
+    static constexpr auto rule = [] {
+        auto delims = dsl::terminator(
+          dsl::eof |
+          dsl::peek(dsl::ascii::case_folding(LEXY_LIT("#endrandom"))));
+        return delims.list(dsl::p<IfBlock>);
+    }();
+    static constexpr auto value = lexy::as_list<
+      std::vector<std::pair<models::BmsChart::IfTag, models::BmsChart::Tags>>>;
 };
 
-template<>
-struct Action<RandomEnd>
+struct RandomBlock
 {
-    template<typename ActionInput>
-    static auto apply(const ActionInput& /*input*/, TagsWriter& chart) -> void
-    {
-        chart.leaveRandom();
-    }
+    static constexpr auto rule = [] {
+        return dsl::ascii::case_folding(LEXY_LIT("#random")) >>
+               (dsl::integer<models::BmsChart::RandomRange>(dsl::digits<>) +
+                dsl::p<IfList> +
+                (dsl::ascii::case_folding(LEXY_LIT("#endrandom")) | dsl::eof));
+    }();
+    static constexpr auto value = lexy::construct<std::pair<
+      models::BmsChart::RandomRange,
+      std::vector<std::pair<models::BmsChart::IfTag, models::BmsChart::Tags>>>>;
 };
+} // namespace
 
-template<>
-struct Action<IfEnd>
-{
-    template<typename ActionInput>
-    static auto apply(const ActionInput& /*input*/, TagsWriter& chart) -> void
-    {
-        chart.leaveIf();
-    }
-};
-
-// TODO: change the entire "Chart" class to fit actual usage. This is unusable
-// atm.
 auto
 BmsChartReader::readBmsChart(const std::string& chart) const
-  -> std::unique_ptr<charts::models::BmsChart>
+  -> models::BmsChart::Tags
 {
-    auto tagsOutRead = readBmsChartTags(chart);
-    if (!tagsOutRead) {
-        return nullptr;
-    }
-    return std::make_unique<charts::models::BmsChart>(
-      std::move(tagsOutRead.value()));
-}
-auto
-BmsChartReader::readBmsChartTags(const std::string& chart) const
-  -> std::optional<models::BmsChart::Tags>
-{
-    using namespace std::string_literals;
-
-    auto input = pegtl::string_input<>(chart, "BMS Chart"s);
-    auto writer = TagsWriter{};
-    if (!pegtl::parse<File, Action>(input, writer)) {
-        return std::nullopt;
-    }
-
-    auto& tagsOut = writer.getTags();
-
-    return std::move(tagsOut);
+    auto result =
+      lexy::parse<MainTags>(lexy::string_input<lexy::utf8_char_encoding>(chart),
+                            lexy_ext::report_error);
+    return std::move(result).value();
 }
 } // namespace charts::chart_readers

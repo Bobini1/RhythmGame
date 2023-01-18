@@ -7,17 +7,35 @@
 
 #include <map>
 #include <random>
-#include "charts/models/Chart.h"
+#include <optional>
+#include <memory>
+#include <array>
 namespace charts::models {
 
 /**
  * @brief Be-Music Source chart.
  */
-class BmsChart final : public Chart
+
+class BmsChart
 {
   public:
-    using RandomRange = std::uniform_int_distribution<long>;
-    using IfTag = long;
+    using RandomRange = int64_t;
+    using IfTag = int64_t;
+
+    struct Measure
+    {
+        static constexpr auto columnNumber = 9;
+        std::array<std::vector<std::string>, columnNumber> p1VisibleNotes;
+        std::array<std::vector<std::string>, columnNumber> p2VisibleNotes;
+        std::array<std::vector<std::string>, columnNumber> p1InvisibleNotes;
+        std::array<std::vector<std::string>, columnNumber> p2InvisibleNotes;
+        std::array<std::vector<std::string>, columnNumber> p1LongNotes;
+        std::array<std::vector<std::string>, columnNumber> p2LongNotes;
+        std::vector<std::vector<std::string>> bgmNotes;
+        std::vector<std::string> bpmChanges;   // old-school, FF = BPM is 255
+        std::vector<std::string> exBpmChanges; // new, FF = #BPMFF
+        double meter = 1;
+    };
 
     /**
      * @brief Tags that a BMS chart can have.
@@ -30,13 +48,13 @@ class BmsChart final : public Chart
         std::optional<std::string> subTitle;
         std::optional<std::string> subArtist;
         std::optional<std::string> genre;
+        std::map<std::string, double> exBpms;
+        std::map<std::string, std::string> wavs;
+        std::map<uint64_t, Measure> measures;
 
-        // we have to use std::unique_ptr<std::multimap> because otherwise this
-        // doesn't compile on MSVC. :)
-        std::vector<
-          std::pair<RandomRange, std::unique_ptr<std::multimap<IfTag, Tags>>>>
-          randomBlocks; /*< Random blocks can hold any tags, including ones that
-                           were already defined. */
+        std::vector<std::pair<RandomRange, std::vector<std::pair<IfTag, Tags>>>>
+          randomBlocks; /*< Random blocks can hold any tags, including ones
+                           that were already defined. */
     };
 
     /**
@@ -44,14 +62,6 @@ class BmsChart final : public Chart
      * manage random blocks on its own.
      */
     explicit BmsChart(Tags tags);
-
-    /**
-     * @brief Writes the tags to lua. All randoms are resolved during this
-     * operation.
-     * @param writer
-     */
-    auto writeFullData(behaviour::SongDataWriterToLua writer) const
-      -> void override;
 
   private:
     Tags tags;
