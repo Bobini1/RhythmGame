@@ -442,7 +442,7 @@ defineAnimation(sol::state& target) -> void
     auto animationType = target.new_usertype<drawing::animations::Animation>(
       "Animation", sol::no_constructor);
     animationType["reset"] = &drawing::animations::Animation::reset;
-    animationType["getIsLooping"] =
+    animationType["isLooping"] =
       sol::property(&drawing::animations::Animation::getIsLooping,
                     &drawing::animations::Animation::setIsLooping);
     animationType["duration"] =
