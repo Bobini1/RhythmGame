@@ -148,9 +148,14 @@ getALContext() -> ALCcontext*
 sounds::FFmpegOpenALSound::FFmpegOpenALSound(const char* filename)
 {
     auto* formatContext = avformat_alloc_context();
-    avformat_open_input(&formatContext, filename, nullptr, nullptr);
-    
-    avformat_find_stream_info(formatContext, nullptr);
+    if (avformat_open_input(&formatContext, filename, nullptr, nullptr)) {
+        throw std::runtime_error("Could not open file " +
+                                 std::string(filename));
+    }
+
+    if (avformat_find_stream_info(formatContext, nullptr) < 0) {
+        throw std::runtime_error("Could not find stream info");
+    }
     const auto audioStreamIndex = av_find_best_stream(
       formatContext, AVMEDIA_TYPE_AUDIO, -1, -1, nullptr, 0);
     if (audioStreamIndex < 0) {
