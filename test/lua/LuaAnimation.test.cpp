@@ -20,7 +20,7 @@ return function(quad)
         end
     }
     linear.progress = 0.5
-    linear.getIsLooping = false
+    linear.isLooping = false
     return linear
 end
 )";
