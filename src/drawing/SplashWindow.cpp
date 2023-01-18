@@ -21,7 +21,7 @@ SplashWindow::SplashWindow(std::shared_ptr<drawing::Scene> splashScene,
                            const sf::VideoMode& mode,
                            const std::string& title,
                            const sf::ContextSettings& settings)
-  : Window(mode, title, sf::Style::None, settings)
+  : Window(mode, title, sf::Style::Default, settings)
   , splashScene(std::move(splashScene))
 {
     this->setPosition({ 0, 0 });
