@@ -27,7 +27,8 @@ class Recipe(ConanFile):
         self.requires("ffmpeg/5.0")
 
         self.requires("zlib/1.2.13")
-        self.requires("libalsa/1.2.7.2")
+        if (self.settings.os == "Linux"):
+            self.requires("libalsa/1.2.7.2")
         self.requires("libffi/3.4.3")
         self.requires("freetype/2.12.1")
 
