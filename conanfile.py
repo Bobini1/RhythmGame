@@ -26,11 +26,12 @@ class Recipe(ConanFile):
         self.requires("foonathan-lexy/2022.12.00")
         self.requires("ffmpeg/5.0")
 
+        # version overrides
         self.requires("zlib/1.2.13")
+        self.requires("freetype/2.12.1")
         if (self.settings.os == "Linux"):
             self.requires("libalsa/1.2.7.2")
-        self.requires("libffi/3.4.3")
-        self.requires("freetype/2.12.1")
+            self.requires("libffi/3.4.3")
 
         # Testing only dependencies below
         self.requires("catch2/3.0.1")
