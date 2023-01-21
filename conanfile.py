@@ -29,7 +29,7 @@ class Recipe(ConanFile):
         # version overrides
         self.requires("zlib/1.2.13")
         self.requires("freetype/2.12.1")
-        if (self.settings.os == "Linux"):
+        if self.settings.os == "Linux":
             self.requires("libalsa/1.2.7.2")
             self.requires("libffi/3.4.3")
 
@@ -43,3 +43,4 @@ class Recipe(ConanFile):
         self.options["ffmpeg"].with_libx265 = False
         self.options["ffmpeg"].postproc = False
         self.options["ffmpeg"].with_libfdk_aac = False
+        self.options["ffmpeg"].with_openjpeg = False
