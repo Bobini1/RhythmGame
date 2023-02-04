@@ -56,7 +56,7 @@ find_package(Threads REQUIRED)
 
 find_package(Microsoft.GSL REQUIRED)
 
-target_link_libraries(RhythmGame_lib PUBLIC Threads::Threads Boost::headers Boost::dynamic_linking Boost::filesystem type_safe::type_safe luajit::luajit sol2::sol2 SQLiteCpp sfml::sfml Microsoft.GSL::GSL spdlog::spdlog foonathan::lexy ffmpeg::ffmpeg ffmpeg::swresample)
+target_link_libraries(RhythmGame_lib PUBLIC Threads::Threads Boost::headers Boost::dynamic_linking Boost::filesystem type_safe::type_safe luajit::luajit sol2::sol2 SQLiteCpp sfml::sfml Microsoft.GSL::GSL spdlog::spdlog foonathan::lexy ffmpeg::ffmpeg)
 
 include(CheckCXXSymbolExists)
 check_cxx_symbol_exists(std::execution::par "execution" RHYTHMGAME_HAS_STD_EXECUTION)
