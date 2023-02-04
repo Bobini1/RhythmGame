@@ -64,9 +64,6 @@ jobs:
           && conan remove xorg/system -f
           && conan install . -b missing -c tools.system.package_manager:mode=install -c tools.system.package_manager:sudo=True -pr:b=default
 
-      - name: run conanbuild.sh
-        run: source conan/conanbuild.sh
-
       - name: Configure
         run: cmake --preset=ci-coverage
 

@@ -5,7 +5,7 @@ from conan import ConanFile
 
 class Recipe(ConanFile):
     settings = "os", "compiler", "build_type", "arch"
-    generators = "CMakeToolchain", "CMakeDeps", "VirtualRunEnv", "VirtualBuildEnv"
+    generators = "CMakeToolchain", "CMakeDeps", "VirtualRunEnv"
 
     def layout(self):
         self.folders.generators = "conan"
@@ -38,7 +38,7 @@ class Recipe(ConanFile):
 
     def configure(self):
         # https://www.ffmpeg.org/legal.html
-        self.options["ffmpeg"].shared = True
+        self.options["ffmpeg"].shared = False
         self.options["ffmpeg"].with_libx264 = False
         self.options["ffmpeg"].with_libx265 = False
         self.options["ffmpeg"].postproc = False
