@@ -62,6 +62,7 @@ jobs:
           && conan profile new default --detect
           && conan profile update settings.compiler.libcxx=libstdc++11 default
           && conan remove xorg/system -f
+          && conan remove vaapi/system -f
           && conan install . -b missing -c tools.system.package_manager:mode=install -c tools.system.package_manager:sudo=True -pr:b=default
 
       - name: Configure
@@ -119,6 +120,7 @@ jobs:
           && conan profile new default --detect
           && cp .github/clang-13.profile ~/.conan/profiles/default
           && conan remove xorg/system -f
+          && conan remove vaapi/system -f
           && conan install . -b missing -c tools.system.package_manager:mode=install -c tools.system.package_manager:sudo=True -pr:b=default
 
       - name: Configure
@@ -189,6 +191,7 @@ jobs:
           if [ ${{ matrix.os }} = ubuntu-22.04 ]; then
             conan profile update settings.compiler.libcxx=libstdc++11 default
             conan remove xorg/system -f
+            conan remove vaapi/system -f
           fi
           if [ ${{ matrix.os }} = macos-12 ]; then
             conan create ./recipes/luajit/all/ 2.0.5@
@@ -265,6 +268,7 @@ jobs:
           if [ ${{ matrix.os }} = ubuntu-22.04 ]; then
             conan profile update settings.compiler.libcxx=libstdc++11 default
             conan remove xorg/system -f
+            conan remove vaapi/system -f
           fi
           if [ ${{ matrix.os }} = macos-12 ]; then
             conan create ./recipes/luajit/all/ 2.0.5@
