@@ -64,8 +64,8 @@ jobs:
           && conan remove xorg/system -f
           && conan install . -b missing -c tools.system.package_manager:mode=install -c tools.system.package_manager:sudo=True -pr:b=default
 
-      - name: Check ffmpeg bin
-        run: ls -l /home/runner/.conan/data/ffmpeg/5.0/_/_/package/28429ce02b3ee6eb289abba474dde7e6813e7232/lib
+      - name: run conanbuild.sh
+        run: source conan/conanbuild.sh
 
       - name: Configure
         run: cmake --preset=ci-coverage

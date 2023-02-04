@@ -5,7 +5,7 @@ from conan import ConanFile
 
 class Recipe(ConanFile):
     settings = "os", "compiler", "build_type", "arch"
-    generators = "CMakeToolchain", "CMakeDeps", "VirtualRunEnv"
+    generators = "CMakeToolchain", "CMakeDeps", "VirtualRunEnv", "VirtualBuildEnv"
 
     def layout(self):
         self.folders.generators = "conan"
