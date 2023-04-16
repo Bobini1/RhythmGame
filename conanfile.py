@@ -29,6 +29,7 @@ class Recipe(ConanFile):
         # version overrides
         self.requires("zlib/1.2.13")
         self.requires("freetype/2.12.1")
+        self.requires("flac/1.4.2")
         if self.settings.os == "Linux":
             self.requires("libalsa/1.2.7.2")
             self.requires("libffi/3.4.3")
