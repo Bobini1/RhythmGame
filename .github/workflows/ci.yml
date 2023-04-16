@@ -58,7 +58,7 @@ jobs:
           key: conan-packages-coverage
 
       - name: Install dependencies
-        run: pip3 install "conan"
+        run: pip3 install "conan==1.59"
           && conan profile new default --detect
           && conan profile update settings.compiler.libcxx=libstdc++11 default
           && conan remove xorg/system -f
@@ -117,7 +117,7 @@ jobs:
           key: conan-packages-sanitize
 
       - name: Install dependencies
-        run: pip3 install "conan"
+        run: pip3 install "conan==1.59"
           && conan profile new default --detect
           && cp .github/clang-13.profile ~/.conan/profiles/default
           && conan remove xorg/system -f
@@ -188,7 +188,7 @@ jobs:
       - name: Install dependencies
         shell: bash
         run: |
-          pip3 install "conan"
+          pip3 install "conan==1.59"
           conan profile new default --detect --force
           if [ ${{ matrix.os }} = ubuntu-22.04 ]; then
             conan profile update settings.compiler.libcxx=libstdc++11 default
@@ -266,7 +266,7 @@ jobs:
       - name: Install dependencies
         shell: bash
         run: |
-          pip3 install "conan"
+          pip3 install "conan==1.59"
           conan profile new default --detect --force
           if [ ${{ matrix.os }} = ubuntu-22.04 ]; then
             conan profile update settings.compiler.libcxx=libstdc++11 default

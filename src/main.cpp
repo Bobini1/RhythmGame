@@ -10,7 +10,7 @@
 #include "resource_managers/FindAssetsFolderBoost.h"
 #include "resource_managers/LoadConfig.h"
 #include "resource_managers/LuaScriptFinderImpl.h"
-#include "sounds/FFmpegOpenAlSound.h"
+#include "sounds/OpenAlSound.h"
 
 auto
 loadGame(resource_managers::LuaScriptFinder auto luaScriptFinder,
@@ -44,11 +44,6 @@ auto
 main() -> int
 {
     try {
-        sounds::FFmpegOpenALSound sound2{
-            "/home/bobini/RhythmGame/assets/stereo-test.mp3"
-        };
-        sounds::FFmpegOpenALSound sound3{ std::move(sound2) };
-        sound3.play();
         auto assetsFolder = resource_managers::findAssetsFolder();
         auto textureConfig = resource_managers::loadConfig(
           assetsFolder / "themes" / "Default" / "textures" / "textures.ini");
