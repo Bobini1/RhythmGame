@@ -29,10 +29,11 @@ class Recipe(ConanFile):
         # version overrides
         self.requires("zlib/1.2.13")
         self.requires("freetype/2.12.1")
-        self.requires("flac/1.4.2")
         if self.settings.os == "Linux":
             self.requires("libalsa/1.2.7.2")
             self.requires("libffi/3.4.3")
+            self.requires("flac/1.4.2")
+            self.requires("libsndfile/1.2.0")
 
         # Testing only dependencies below
         self.requires("catch2/3.0.1")
@@ -45,3 +46,6 @@ class Recipe(ConanFile):
         self.options["ffmpeg"].postproc = False
         self.options["ffmpeg"].with_libfdk_aac = False
         self.options["ffmpeg"].with_openjpeg = False
+        if self.settings.os == "Linux":
+            # mpg123 broken on clang as of 17/04/2023
+            self.options["libsndfile"].with_mpeg = False
