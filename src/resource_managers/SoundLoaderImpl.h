@@ -28,7 +28,7 @@ class SoundLoaderImpl
      * @param path Path to the sound file.
      * @return Loaded sound. Always crates a new source but will reuse buffers.
      */
-    auto load(std::string path) -> std::optional<sounds::OpenALSound>;
+    auto load(const std::string& path) -> std::optional<sounds::OpenALSound>;
 };
 
 static_assert(SoundLoader<SoundLoaderImpl>);

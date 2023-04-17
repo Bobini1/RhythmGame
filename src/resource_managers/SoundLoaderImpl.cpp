@@ -13,19 +13,19 @@ resource_managers::SoundLoaderImpl::SoundLoaderImpl(
 {
 }
 auto
-resource_managers::SoundLoaderImpl::load(std::string path)
+resource_managers::SoundLoaderImpl::load(const std::string& path)
   -> std::optional<sounds::OpenALSound>
 {
     try {
         auto canonical = std::filesystem::canonical(soundFolder / path);
         if (redirects.contains(canonical)) {
-            path = redirects.at(canonical);
+            canonical = redirects.at(canonical);
         }
         if (!loadedSounds.contains(canonical)) {
             loadedSounds.emplace(
               canonical,
               std::make_shared<const sounds::OpenALSoundBuffer>(
-                (soundFolder / path).string().c_str()));
+                canonical.string().c_str()));
         }
         return sounds::OpenALSound(loadedSounds.at(canonical));
     } catch (std::exception& e) {
