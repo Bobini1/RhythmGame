@@ -50,9 +50,6 @@ jobs:
       - name: Install system dependencies
         run: sudo apt-get install libtbb-dev libgl-dev libudev-dev -y
 
-      - name: Install dummy sound card
-        run: modprobe snd-dummy
-
       - name: Cache conan
         id: cache-conan
         uses: actions/cache@v3.0.5
@@ -108,9 +105,6 @@ jobs:
 
       - name: Install system dependencies
         run: sudo apt-get update && sudo apt-get install libtbb-dev libgl-dev libudev-dev -y
-
-      - name: Install dummy sound card
-        run: modprobe snd-dummy
 
       - name: Install Clang 13
         run: sudo apt install clang-13
@@ -175,10 +169,6 @@ jobs:
       - name: Install system dependencies
         if: matrix.os == 'ubuntu-22.04'
         run: sudo apt-get install libtbb-dev libgl-dev libudev-dev -y
-
-      - name: Install dummy sound card
-        if: matrix.os == 'ubuntu-22.04'
-        run: modprobe snd-dummy
 
       - name: Cache conan
         id: cache-conan
