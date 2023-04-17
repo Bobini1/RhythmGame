@@ -22,9 +22,10 @@ resource_managers::SoundLoaderImpl::load(std::string path)
             path = redirects.at(canonical);
         }
         if (!loadedSounds.contains(canonical)) {
-            loadedSounds.emplace(canonical,
-                                 std::make_shared<sounds::OpenALSoundBuffer>(
-                                   (soundFolder / path).string().c_str()));
+            loadedSounds.emplace(
+              canonical,
+              std::make_shared<const sounds::OpenALSoundBuffer>(
+                (soundFolder / path).string().c_str()));
         }
         return sounds::OpenALSound(loadedSounds.at(canonical));
     } catch (std::exception& e) {

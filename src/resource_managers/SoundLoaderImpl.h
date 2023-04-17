@@ -14,7 +14,7 @@
 namespace resource_managers {
 class SoundLoaderImpl
 {
-    std::map<std::string, std::shared_ptr<sounds::OpenALSoundBuffer>>
+    std::map<std::string, std::shared_ptr<const sounds::OpenALSoundBuffer>>
       loadedSounds;
     std::map<std::string, std::string> redirects;
     std::filesystem::path soundFolder;
