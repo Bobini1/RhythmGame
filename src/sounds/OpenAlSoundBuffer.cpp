@@ -111,18 +111,6 @@ setSampleFormat(AVCodecContext& context, const AVCodec& codec) -> AVSampleFormat
     return context.request_sample_fmt;
 }
 
-void
-deletePacket(AVPacket* packet)
-{
-    av_packet_free(&packet);
-}
-
-void
-deleteFrame(AVFrame* frame)
-{
-    av_frame_free(&frame);
-}
-
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "cppcoreguidelines-pro-type-reinterpret-cast"
 #pragma ide diagnostic ignored "cppcoreguidelines-pro-bounds-pointer-arithmetic"
@@ -226,6 +214,29 @@ decodePlanar(size_t& sampleCount,
     }
 }
 #pragma clang diagnostic pop
+void
+deletePacket(AVPacket* packet)
+{
+    av_packet_free(&packet);
+}
+
+auto
+createPacket() -> std::unique_ptr<AVPacket, decltype(&deletePacket)>
+{
+    return { av_packet_alloc(), &deletePacket };
+}
+
+void
+deleteFrame(AVFrame* frame)
+{
+    av_frame_free(&frame);
+}
+
+auto
+createFrame() -> std::unique_ptr<AVFrame, decltype(&deleteFrame)>
+{
+    return { av_frame_alloc(), &deleteFrame };
+}
 
 auto
 decodeFile(AVFormatContext& formatContext,
@@ -238,11 +249,8 @@ decodeFile(AVFormatContext& formatContext,
     const auto channels = static_cast<size_t>(codecContext.channels);
 
     std::vector<unsigned char> samples;
-    std::unique_ptr<AVPacket, decltype(&deletePacket)> packet = {
-        av_packet_alloc(), &deletePacket
-    };
-    std::unique_ptr<AVFrame, decltype(&deleteFrame)> frame = { av_frame_alloc(),
-                                                               &deleteFrame };
+    auto packet = createPacket();
+    auto frame = createFrame();
     while (av_read_frame(&formatContext, packet.get()) >= 0) {
         if (packet->stream_index == audioStream.index) {
             avcodec_send_packet(&codecContext, packet.get());
