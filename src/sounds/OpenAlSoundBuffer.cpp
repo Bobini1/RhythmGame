@@ -357,9 +357,15 @@ sounds::OpenALSoundBuffer::getDuration() const -> std::chrono::nanoseconds
     alGetBufferi(sampleBuffer, AL_CHANNELS, &channels);
     ALint bits{};
     alGetBufferi(sampleBuffer, AL_BITS, &bits);
+    auto denominator = frequency * channels * bits;
+    if (denominator == 0) {
+        spdlog::error("Could not calculate the duration of a sound"
+                      "Does your device have a sound card?");
+        return std::chrono::nanoseconds::zero();
+    }
     return std::chrono::nanoseconds(static_cast<std::chrono::nanoseconds::rep>(
       1'000'000'000ULL * static_cast<unsigned long long int>(size) * CHAR_BIT /
-      (static_cast<unsigned long long int>(frequency * channels * bits))));
+      (static_cast<unsigned long long int>(denominator))));
 }
 auto
 sounds::OpenALSoundBuffer::getFrequency() const -> int

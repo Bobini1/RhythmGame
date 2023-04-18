@@ -21,10 +21,5 @@ TEST_CASE("OpenAlSound supports formats", "[sounds][FFmpegOpenAlSound]")
         auto sound = loader.load(filename);
         INFO("Failed to load sound format: " << filename);
         CHECK(sound.has_value());
-        /*if (sound.has_value()) {
-            CHECK(sound->getDuration().count() > 0);
-            CHECK(sound->getFrequency() > 0);
-            CHECK(sound->getChannels() > 0);
-        }*/
     }
 }
