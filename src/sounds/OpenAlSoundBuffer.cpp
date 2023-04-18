@@ -227,6 +227,7 @@ decodeFile(AVFormatContext& formatContext,
            const AVStream& audioStream,
            AVCodecContext& codecContext) -> std::vector<unsigned char>
 {
+    return {};
     size_t sampleCount = 0;
     const auto bytesPerSample =
       static_cast<size_t>(av_get_bytes_per_sample(codecContext.sample_fmt));
