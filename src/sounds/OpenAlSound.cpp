@@ -168,4 +168,15 @@ sounds::OpenALSound::getTimePoint() const -> std::chrono::nanoseconds
       static_cast<unsigned long long int>(samples) * 1'000'000'000ULL /
       static_cast<unsigned long long int>(denominator)));
 }
+auto
+sounds::OpenALSound::getSource() const -> ALuint
+{
+    return source;
+}
+auto
+sounds::OpenALSound::getBuffer() const
+  -> const std::shared_ptr<const OpenALSoundBuffer>&
+{
+    return sampleBuffer;
+}
 #pragma clang diagnostic pop

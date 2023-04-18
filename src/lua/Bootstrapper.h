@@ -229,9 +229,31 @@ auto
 defineSound(sol::state& target, SoundLoaderType& soundLoader) -> void
 {
     auto soundType = target.new_usertype<sounds::OpenALSound>(
-      "Sound", sol::factories([&soundLoader](const std::string& path) {
-          return soundLoader.load(path);
-      }));
+      "Sound",
+      sol::factories(
+        [&soundLoader](const std::string& path) {
+            return soundLoader.load(path);
+        },
+        [&soundLoader](sol::table args) {
+            auto result = soundLoader.load(args.get<std::string>("path"));
+            if (!result.has_value()) {
+                return result;
+            }
+            if (args["looping"].valid()) {
+                result->setIsLooping(args.get<bool>("looping"));
+            }
+            if (args["volume"].valid()) {
+                result->setVolume(args.get<float>("volume"));
+            }
+            if (args["rate"].valid()) {
+                result->setRate(args.get<float>("rate"));
+            }
+            if (args["timePoint"].valid()) {
+                result->setTimePoint(
+                  args.get<std::chrono::nanoseconds>("timePoint"));
+            }
+            return result;
+        }));
     soundType["play"] = &sounds::OpenALSound::play;
     soundType["pause"] = &sounds::OpenALSound::pause;
     soundType["stop"] = &sounds::OpenALSound::stop;

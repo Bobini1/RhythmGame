@@ -37,3 +37,15 @@ TEST_CASE("Non-existent sound returns nil", "[lua][sound]")
     auto state = sol::state(std::move(stateSetup));
     REQUIRE(state.script("return nil == Sound.new('non-existent.wav')"));
 }
+
+static constexpr auto scriptWithArrayConstructor = R"(
+    return Sound.new{path="click.wav", rate=2, volume=0.5, timePoint=0.1}
+
+)";
+
+TEST_CASE("Sound properties work with array constructor", "[lua][sound]")
+{
+    auto stateSetup = StateSetup{};
+    auto state = sol::state(std::move(stateSetup));
+    const sounds::OpenALSound result = state.script(scriptWithArrayConstructor);
+}
