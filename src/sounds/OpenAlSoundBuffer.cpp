@@ -316,7 +316,7 @@ sounds::OpenALSoundBuffer::OpenALSoundBuffer(const char* filename)
                  static_cast<ALsizei>(samples.size()),
                  codecContext->sample_rate);
 
-    avcodec_close(codecContext);
+    avcodec_free_context(&codecContext);
     avformat_close_input(&formatContext);
 }
 sounds::OpenALSoundBuffer::~OpenALSoundBuffer()
