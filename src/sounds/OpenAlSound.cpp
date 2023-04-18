@@ -157,8 +157,15 @@ sounds::OpenALSound::getTimePoint() const -> std::chrono::nanoseconds
 {
     ALint samples{};
     alGetSourcei(source, AL_SAMPLE_OFFSET, &samples);
+
+    auto denominator = getFrequency();
+    if (denominator == 0) {
+        spdlog::error("Error determining sound frequency. "
+                      "Does your device have a sound card?");
+        return std::chrono::nanoseconds::zero();
+    }
     return std::chrono::nanoseconds(static_cast<std::chrono::nanoseconds::rep>(
       static_cast<unsigned long long int>(samples) * 1'000'000'000ULL /
-      static_cast<unsigned long long int>(getFrequency())));
+      static_cast<unsigned long long int>(denominator)));
 }
 #pragma clang diagnostic pop

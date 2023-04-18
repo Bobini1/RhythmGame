@@ -308,7 +308,6 @@ createCodecContext(const AVCodec* codec)
 
 sounds::OpenALSoundBuffer::OpenALSoundBuffer(const char* filename)
 {
-
     auto formatContext = createFormatContext(filename);
     if (avformat_find_stream_info(formatContext.get(), nullptr) < 0) {
         throw std::runtime_error("Could not find stream info");
@@ -389,7 +388,7 @@ sounds::OpenALSoundBuffer::getDuration() const -> std::chrono::nanoseconds
     alGetBufferi(sampleBuffer, AL_BITS, &bits);
     auto denominator = frequency * channels * bits;
     if (denominator == 0) {
-        spdlog::error("Could not calculate the duration of a sound"
+        spdlog::error("Could not calculate the duration of a sound. "
                       "Does your device have a sound card?");
         return std::chrono::nanoseconds::zero();
     }
