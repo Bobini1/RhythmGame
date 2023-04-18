@@ -322,11 +322,16 @@ createCodecContext(const AVCodec* codec)
 sounds::OpenALSoundBuffer::OpenALSoundBuffer(const char* filename)
 {
     auto formatContext = createFormatContext(filename);
-    if (avformat_find_stream_info(formatContext.get(), nullptr) < 0) {
+    if (avformat_find_stream_info(formatContext.get(), /*options=*/nullptr) <
+        0) {
         throw std::runtime_error("Could not find stream info");
     }
-    const auto audioStreamIndex = av_find_best_stream(
-      formatContext.get(), AVMEDIA_TYPE_AUDIO, -1, -1, nullptr, 0);
+    const auto audioStreamIndex = av_find_best_stream(formatContext.get(),
+                                                      AVMEDIA_TYPE_AUDIO,
+                                                      /*wanted_stream_nb=*/-1,
+                                                      /*related_stream=*/-1,
+                                                      /*decoder_ret=*/nullptr,
+                                                      /*flags=*/0);
     if (audioStreamIndex < 0) {
         throw std::runtime_error("Could not find audio stream");
     }
@@ -342,7 +347,7 @@ sounds::OpenALSoundBuffer::OpenALSoundBuffer(const char* filename)
         0) {
         throw std::runtime_error("Couldn't copy codec context");
     }
-    if (avcodec_open2(codecContext.get(), codec, nullptr) < 0) {
+    if (avcodec_open2(codecContext.get(), codec, /*options=*/nullptr) < 0) {
         throw std::runtime_error("Could not open codec");
     }
     auto format = setSampleFormat(*codecContext, *codec);
