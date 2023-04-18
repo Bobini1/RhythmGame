@@ -13,8 +13,11 @@ static constexpr auto script = R"(
     local isPaused = sound.isPaused
     local isStopped = sound.isStopped
     local volume = sound.volume
+    sound.volume = 0.5
     local rate = sound.rate
+    sound.rate = 2
     local timePoint = sound.timePoint
+    sound.timePoint = 0.1
     local frequency = sound.frequency
     local duration = sound.duration
     local channels = sound.channels
@@ -25,7 +28,7 @@ TEST_CASE("Sound properties work", "[lua][sound]")
 {
     auto stateSetup = StateSetup{};
     auto state = sol::state(std::move(stateSetup));
-    sounds::OpenALSound result = state.script(script);
+    const sounds::OpenALSound result = state.script(script);
 }
 
 TEST_CASE("Non-existent sound returns nil", "[lua][sound]")
