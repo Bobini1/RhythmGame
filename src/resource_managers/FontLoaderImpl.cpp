@@ -21,11 +21,11 @@ resource_managers::FontLoaderImpl::load(std::string path) -> const sf::Font*
         return font->second.get();
     }
 
-    auto font = sf::Font{};
-    if (!font.loadFromFile(pathAbs.string())) {
+    auto font = std::make_unique<sf::Font>();
+    if (!font->loadFromFile(pathAbs.string())) {
         return nullptr;
     }
-    loadedFonts[pathAbs] = std::make_unique<sf::Font>(std::move(font));
+    loadedFonts[pathAbs] = std::move(font);
     return loadedFonts[pathAbs].get();
 }
 

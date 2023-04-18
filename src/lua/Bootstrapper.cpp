@@ -587,8 +587,8 @@ defineCommonTypes(
               animation->setOnFinished(
                 args["onFinished"].get<std::function<void()>>());
           }
-          if (args["isLooping"].valid()) {
-              animation->setIsLooping(args["isLooping"]);
+          if (args["getIsLooping"].valid()) {
+              animation->setIsLooping(args["getIsLooping"]);
           }
       };
 

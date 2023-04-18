@@ -10,6 +10,7 @@
 #include <utility>
 #include "resource_managers/TextureLoader.h"
 #include "resource_managers/FontLoader.h"
+#include "resource_managers/SoundLoader.h"
 #include "drawing/actors/Sprite.h"
 #include "SFML/Graphics/Font.hpp"
 #include "drawing/actors/Text.h"
@@ -223,6 +224,55 @@ defineSprite(sol::state& target,
                                         &drawing::actors::Sprite::setColor);
 }
 
+template<resource_managers::SoundLoader SoundLoaderType>
+auto
+defineSound(sol::state& target, SoundLoaderType& soundLoader) -> void
+{
+    auto soundType = target.new_usertype<sounds::OpenALSound>(
+      "Sound",
+      sol::factories(
+        [&soundLoader](const std::string& path) {
+            return soundLoader.load(path);
+        },
+        [&soundLoader](sol::table args) {
+            auto result = soundLoader.load(args.get<std::string>("path"));
+            if (!result.has_value()) {
+                return result;
+            }
+            if (args["looping"].valid()) {
+                result->setIsLooping(args.get<bool>("looping"));
+            }
+            if (args["volume"].valid()) {
+                result->setVolume(args.get<float>("volume"));
+            }
+            if (args["rate"].valid()) {
+                result->setRate(args.get<float>("rate"));
+            }
+            if (args["timePoint"].valid()) {
+                result->setTimePoint(
+                  args.get<std::chrono::nanoseconds>("timePoint"));
+            }
+            return result;
+        }));
+    soundType["play"] = &sounds::OpenALSound::play;
+    soundType["pause"] = &sounds::OpenALSound::pause;
+    soundType["stop"] = &sounds::OpenALSound::stop;
+    soundType["isPlaying"] = &sounds::OpenALSound::isPlaying;
+    soundType["isPaused"] = &sounds::OpenALSound::isPaused;
+    soundType["isStopped"] = &sounds::OpenALSound::isStopped;
+    soundType["looping"] = sol::property(&sounds::OpenALSound::getIsLooping,
+                                         &sounds::OpenALSound::setIsLooping);
+    soundType["volume"] = sol::property(&sounds::OpenALSound::getVolume,
+                                        &sounds::OpenALSound::setVolume);
+    soundType["rate"] = sol::property(&sounds::OpenALSound::getRate,
+                                      &sounds::OpenALSound::setRate);
+    soundType["timePoint"] = sol::property(&sounds::OpenALSound::getTimePoint,
+                                           &sounds::OpenALSound::setTimePoint);
+    soundType["duration"] = sol::property(&sounds::OpenALSound::getDuration);
+    soundType["frequency"] = sol::property(&sounds::OpenALSound::getFrequency);
+    soundType["channels"] = sol::property(&sounds::OpenALSound::getChannels);
+}
+
 inline auto
 getBindActorProperties(const EventAttacher& eventAttacher)
 {
@@ -265,11 +315,13 @@ getBindAbstractRectLeafProperties(auto bindActorProperties)
 
 template<resource_managers::TextureLoader TextureLoaderType,
          resource_managers::FontLoader FontLoaderType,
+         resource_managers::SoundLoader SoundLoaderType,
          drawing::animations::AnimationPlayer AnimationPlayerType>
 auto
 defineAllTypes(sol::state& target,
                TextureLoaderType& textureLoader,
                FontLoaderType& fontLoader,
+               SoundLoaderType& soundLoader,
                AnimationPlayerType& animationPlayer,
                const EventAttacher& eventAttacher) -> void
 {
@@ -283,6 +335,7 @@ defineAllTypes(sol::state& target,
     defineFont(target, fontLoader);
     defineText(target, fontLoader, bindAbstractRectLeafProperties);
     defineTexture(target, textureLoader);
+    defineSound(target, soundLoader);
     defineSprite(
       target, eventAttacher, textureLoader, bindAbstractRectLeafProperties);
     bindAnimationPlayer(target, animationPlayer);

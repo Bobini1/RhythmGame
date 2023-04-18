@@ -2,6 +2,8 @@
 // Created by bobini on 19.11.22.
 //
 
+#ifndef DISABLE_WINDOW_TESTS
+
 #include "drawing/actors/Sprite.h"
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/catch_approx.hpp>
@@ -14,7 +16,6 @@ static constexpr auto scriptWithArrayConstructor = R"(
     return sprite
 )";
 
-#ifndef DISABLE_WINDOW_TESTS
 TEST_CASE("Sprite can be constructed from lua", "[drawing][actors][sprite]")
 {
     auto stateSetup = StateSetup{};

@@ -1,30 +1,35 @@
 include(cmake/folders.cmake)
 
 include(CTest)
-if(BUILD_TESTING)
-  add_subdirectory(test)
-endif()
+if (BUILD_TESTING)
+    add_subdirectory(test)
+endif ()
 
 add_custom_target(
-    run-exe
-    COMMAND RhythmGame_exe
-    VERBATIM
+        run-exe
+        COMMAND RhythmGame_exe
+        VERBATIM
 )
 add_dependencies(run-exe RhythmGame_exe)
 
 option(BUILD_MCSS_DOCS "Build documentation using Doxygen and m.css" OFF)
-if(BUILD_MCSS_DOCS)
-  include(cmake/docs.cmake)
-endif()
+if (BUILD_MCSS_DOCS)
+    include(cmake/docs.cmake)
+endif ()
 
 option(ENABLE_COVERAGE "Enable coverage support separate from CTest's" OFF)
-if(ENABLE_COVERAGE)
-  include(cmake/coverage.cmake)
-endif()
+if (ENABLE_COVERAGE)
+    include(cmake/coverage.cmake)
+endif ()
 
-if(CMAKE_HOST_SYSTEM_NAME STREQUAL "Windows")
-  include(cmake/open-cpp-coverage.cmake OPTIONAL)
-endif()
+option(ENABLE_INCLUDE_WHAT_YOU_USE "Enable include-what-you-use" OFF)
+if (ENABLE_INCLUDE_WHAT_YOU_USE)
+    include(cmake/include-what-you-use.cmake)
+endif ()
+
+if (CMAKE_HOST_SYSTEM_NAME STREQUAL "Windows")
+    include(cmake/open-cpp-coverage.cmake OPTIONAL)
+endif ()
 
 
 include(cmake/lint-targets.cmake)
