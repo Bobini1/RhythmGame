@@ -33,7 +33,7 @@ getALFormat(AVSampleFormat AVFormat, int channels) -> ALenum
                 case AV_SAMPLE_FMT_DBL:
                     return AL_FORMAT_MONO_DOUBLE_EXT;
                 default:
-                    throw std::runtime_error("Unsupported format");
+                    break;
             }
         case 2:
             switch (AVFormat) {
@@ -52,11 +52,12 @@ getALFormat(AVSampleFormat AVFormat, int channels) -> ALenum
                 case AV_SAMPLE_FMT_DBLP:
                     return AL_FORMAT_STEREO_DOUBLE_EXT;
                 default:
-                    throw std::runtime_error("Unsupported format");
+                    break;
             }
         default:
-            throw std::runtime_error("Unsupported format");
+            break;
     }
+    throw std::runtime_error("Unsupported format");
 }
 
 auto
