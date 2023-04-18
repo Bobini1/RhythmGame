@@ -190,6 +190,12 @@
             </dt>
             <dd><span></span></dd>
             <dt>
+              <div class="m-doc-template">template&lt;<a href="namespaceresource__managers.html#af1dabb9782c137ed88f2df2bc73e6092" class="m-doc">resource_managers::<wbr />SoundLoader</a> SoundLoaderType&gt;</div>
+              <span class="m-doc-wrap-bumper">auto <a href="#adf05cd31c1a4ac885ca6ad7167631c93" class="m-doc">defineSound</a>(</span><span class="m-doc-wrap"><a href="BmsChartReader_8cpp.html#aae1c56e6a6f5c819ee80d0a956f0d8d3" class="m-doc">sol::<wbr />state</a>&amp; target,
+              SoundLoaderType&amp; soundLoader) -&gt; void</span>
+            </dt>
+            <dd><span></span></dd>
+            <dt>
               <span class="m-doc-wrap-bumper">auto <a href="#a55363ebaf73bd0237407a3856dc17593" class="m-doc">getBindActorProperties</a>(</span><span class="m-doc-wrap">const <a href="classlua_1_1EventAttacher.html" class="m-doc">EventAttacher</a>&amp; eventAttacher)</span>
             </dt>
             <dd><span></span></dd>
@@ -198,10 +204,11 @@
             </dt>
             <dd><span></span></dd>
             <dt>
-              <div class="m-doc-template">template&lt;<a href="namespaceresource__managers.html#af40c724bd11b4481e560c650021a2dbb" class="m-doc">resource_managers::<wbr />TextureLoader</a> TextureLoaderType, <a href="namespaceresource__managers.html#a38eddd67f196b5bbf07f4b2571f2d003" class="m-doc">resource_managers::<wbr />FontLoader</a> FontLoaderType, <a href="namespacedrawing_1_1animations.html#abe2f6c9f981c9f60b7d358f5e0192a73" class="m-doc">drawing::<wbr />animations::<wbr />AnimationPlayer</a> AnimationPlayerType&gt;</div>
-              <span class="m-doc-wrap-bumper">auto <a href="#af5315795934129693d9da8f90ca22b52" class="m-doc">defineAllTypes</a>(</span><span class="m-doc-wrap"><a href="BmsChartReader_8cpp.html#aae1c56e6a6f5c819ee80d0a956f0d8d3" class="m-doc">sol::<wbr />state</a>&amp; target,
+              <div class="m-doc-template">template&lt;<a href="namespaceresource__managers.html#af40c724bd11b4481e560c650021a2dbb" class="m-doc">resource_managers::<wbr />TextureLoader</a> TextureLoaderType, <a href="namespaceresource__managers.html#a38eddd67f196b5bbf07f4b2571f2d003" class="m-doc">resource_managers::<wbr />FontLoader</a> FontLoaderType, <a href="namespaceresource__managers.html#af1dabb9782c137ed88f2df2bc73e6092" class="m-doc">resource_managers::<wbr />SoundLoader</a> SoundLoaderType, <a href="namespacedrawing_1_1animations.html#abe2f6c9f981c9f60b7d358f5e0192a73" class="m-doc">drawing::<wbr />animations::<wbr />AnimationPlayer</a> AnimationPlayerType&gt;</div>
+              <span class="m-doc-wrap-bumper">auto <a href="#aee3b9693f776cee94e5046da0582bf90" class="m-doc">defineAllTypes</a>(</span><span class="m-doc-wrap"><a href="BmsChartReader_8cpp.html#aae1c56e6a6f5c819ee80d0a956f0d8d3" class="m-doc">sol::<wbr />state</a>&amp; target,
               TextureLoaderType&amp; textureLoader,
               FontLoaderType&amp; fontLoader,
+              SoundLoaderType&amp; soundLoader,
               AnimationPlayerType&amp; animationPlayer,
               const <a href="classlua_1_1EventAttacher.html" class="m-doc">EventAttacher</a>&amp; eventAttacher) -&gt; void</span>
             </dt>
@@ -422,6 +429,17 @@
             </h3>
             <p><span></span></p>
           </div></section>
+          <section class="m-doc-details" id="adf05cd31c1a4ac885ca6ad7167631c93"><div>
+            <h3>
+              <div class="m-doc-include m-code m-inverted m-right-m m-text-right"><span class="cp">#include</span> <a class="cpf" href="Bootstrapper_8h.html">&lt;src/lua/Bootstrapper.h&gt;</a></div>
+              <div class="m-doc-template">
+                template&lt;<a href="namespaceresource__managers.html#af1dabb9782c137ed88f2df2bc73e6092" class="m-doc">resource_managers::<wbr />SoundLoader</a> SoundLoaderType&gt;
+              </div>
+              <span class="m-doc-wrap-bumper">auto lua::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#adf05cd31c1a4ac885ca6ad7167631c93" class="m-doc-self">defineSound</a>(</span><span class="m-doc-wrap"><a href="BmsChartReader_8cpp.html#aae1c56e6a6f5c819ee80d0a956f0d8d3" class="m-doc">sol::<wbr />state</a>&amp; target,
+              SoundLoaderType&amp; soundLoader) -&gt; void</span></span>
+            </h3>
+            <p><span></span></p>
+          </div></section>
           <section class="m-doc-details" id="a55363ebaf73bd0237407a3856dc17593"><div>
             <h3>
               <span class="m-doc-wrap-bumper">auto lua::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a55363ebaf73bd0237407a3856dc17593" class="m-doc-self">getBindActorProperties</a>(</span><span class="m-doc-wrap">const <a href="classlua_1_1EventAttacher.html" class="m-doc">EventAttacher</a>&amp; eventAttacher)</span></span>
@@ -436,15 +454,16 @@
             </h3>
             <p><span></span></p>
           </div></section>
-          <section class="m-doc-details" id="af5315795934129693d9da8f90ca22b52"><div>
+          <section class="m-doc-details" id="aee3b9693f776cee94e5046da0582bf90"><div>
             <h3>
               <div class="m-doc-include m-code m-inverted m-right-m m-text-right"><span class="cp">#include</span> <a class="cpf" href="Bootstrapper_8h.html">&lt;src/lua/Bootstrapper.h&gt;</a></div>
               <div class="m-doc-template">
-                template&lt;<a href="namespaceresource__managers.html#af40c724bd11b4481e560c650021a2dbb" class="m-doc">resource_managers::<wbr />TextureLoader</a> TextureLoaderType, <a href="namespaceresource__managers.html#a38eddd67f196b5bbf07f4b2571f2d003" class="m-doc">resource_managers::<wbr />FontLoader</a> FontLoaderType, <a href="namespacedrawing_1_1animations.html#abe2f6c9f981c9f60b7d358f5e0192a73" class="m-doc">drawing::<wbr />animations::<wbr />AnimationPlayer</a> AnimationPlayerType&gt;
+                template&lt;<a href="namespaceresource__managers.html#af40c724bd11b4481e560c650021a2dbb" class="m-doc">resource_managers::<wbr />TextureLoader</a> TextureLoaderType, <a href="namespaceresource__managers.html#a38eddd67f196b5bbf07f4b2571f2d003" class="m-doc">resource_managers::<wbr />FontLoader</a> FontLoaderType, <a href="namespaceresource__managers.html#af1dabb9782c137ed88f2df2bc73e6092" class="m-doc">resource_managers::<wbr />SoundLoader</a> SoundLoaderType, <a href="namespacedrawing_1_1animations.html#abe2f6c9f981c9f60b7d358f5e0192a73" class="m-doc">drawing::<wbr />animations::<wbr />AnimationPlayer</a> AnimationPlayerType&gt;
               </div>
-              <span class="m-doc-wrap-bumper">auto lua::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#af5315795934129693d9da8f90ca22b52" class="m-doc-self">defineAllTypes</a>(</span><span class="m-doc-wrap"><a href="BmsChartReader_8cpp.html#aae1c56e6a6f5c819ee80d0a956f0d8d3" class="m-doc">sol::<wbr />state</a>&amp; target,
+              <span class="m-doc-wrap-bumper">auto lua::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#aee3b9693f776cee94e5046da0582bf90" class="m-doc-self">defineAllTypes</a>(</span><span class="m-doc-wrap"><a href="BmsChartReader_8cpp.html#aae1c56e6a6f5c819ee80d0a956f0d8d3" class="m-doc">sol::<wbr />state</a>&amp; target,
               TextureLoaderType&amp; textureLoader,
               FontLoaderType&amp; fontLoader,
+              SoundLoaderType&amp; soundLoader,
               AnimationPlayerType&amp; animationPlayer,
               const <a href="classlua_1_1EventAttacher.html" class="m-doc">EventAttacher</a>&amp; eventAttacher) -&gt; void</span></span>
             </h3>

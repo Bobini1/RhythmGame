@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>src/drawing/SplashScene.h file | RhythmGame</title>
+  <title>resource_managers::SoundLoaderImpl class | RhythmGame</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,400i,600,600i%7CSource+Code+Pro:400,400i,600" />
   <link rel="stylesheet" href="m-dark+documentation.compiled.css" />
   <link rel="icon" href="favicon-dark.png" type="image/png" />
@@ -49,7 +49,8 @@
     <div class="m-row">
       <div class="m-col-l-10 m-push-l-1">
         <h1>
-          <span class="m-breadcrumb"><a href="dir_68267d1309a1af8e8297ef4c3efbcdba.html">src</a>/</span><span class="m-breadcrumb"><a href="dir_293a14b3b142cd5cbb21c318d1966e61.html">drawing</a>/</span>SplashScene.h <span class="m-thin">file</span>
+          <span class="m-breadcrumb"><a href="namespaceresource__managers.html">resource_managers</a>::<wbr/></span>SoundLoaderImpl <span class="m-thin">class</span>
+          <div class="m-doc-include m-code m-inverted m-text-right"><span class="cp">#include</span> <a class="cpf" href="SoundLoaderImpl_8h.html">&lt;SoundLoaderImpl.h&gt;</a></div>
         </h1>
         <p><span></span></p>
         <div class="m-block m-default">
@@ -58,28 +59,56 @@
             <li>
               Reference
               <ul>
-                <li><a href="#namespaces">Namespaces</a></li>
-                <li><a href="#nested-classes">Classes</a></li>
+                <li><a href="#typeless-methods">Constructors, destructors, conversion operators</a></li>
+                <li><a href="#pub-methods">Public functions</a></li>
               </ul>
             </li>
           </ul>
         </div>
-        <section id="namespaces">
-          <h2><a href="#namespaces">Namespaces</a></h2>
+        <section id="typeless-methods">
+          <h2><a href="#typeless-methods">Constructors, destructors, conversion operators</a></h2>
           <dl class="m-doc">
-            <dt>namespace <a href="namespacedrawing.html" class="m-doc">drawing</a></dt>
+            <dt id="abe6d80242e712bbe608e92cd4f5f4ef0">
+              <span class="m-doc-wrap-bumper"><a href="#abe6d80242e712bbe608e92cd4f5f4ef0" class="m-doc-self">SoundLoaderImpl</a>(</span><span class="m-doc-wrap">std::filesystem::path soundFolder,
+              std::map&lt;std::string, std::string&gt; redirects) <span class="m-label m-flat m-info">explicit</span> </span>
+            </dt>
             <dd><span></span></dd>
           </dl>
         </section>
-        <section id="nested-classes">
-          <h2><a href="#nested-classes">Classes</a></h2>
+        <section id="pub-methods">
+          <h2><a href="#pub-methods">Public functions</a></h2>
           <dl class="m-doc">
             <dt>
-              <div class="m-doc-template">template&lt;<a href="namespacedrawing_1_1animations.html#abe2f6c9f981c9f60b7d358f5e0192a73" class="m-doc">animations::<wbr />AnimationPlayer</a> AnimationPlayerType, <a href="namespaceresource__managers.html#af40c724bd11b4481e560c650021a2dbb" class="m-doc">resource_managers::<wbr />TextureLoader</a> TextureLoaderType, <a href="namespaceresource__managers.html#a38eddd67f196b5bbf07f4b2571f2d003" class="m-doc">resource_managers::<wbr />FontLoader</a> FontLoaderType, <a href="namespaceresource__managers.html#af1dabb9782c137ed88f2df2bc73e6092" class="m-doc">resource_managers::<wbr />SoundLoader</a> SoundLoaderType&gt;</div>
-              class <a href="classdrawing_1_1SplashScene.html" class="m-doc">drawing::SplashScene</a>
+              <span class="m-doc-wrap-bumper">auto <a href="#a33f85c4e674a4fcbbc1424561b0735c8" class="m-doc">load</a>(</span><span class="m-doc-wrap">std::string path) -&gt; std::optional&lt; sounds::OpenALSound &gt;</span>
             </dt>
-            <dd><a href="classdrawing_1_1Scene.html" class="m-doc">Scene</a> that displays the splash screen while the game is being loaded.</dd>
+            <dd>Loads a sound from a file.</dd>
           </dl>
+        </section>
+        <section>
+          <h2>Function documentation</h2>
+          <section class="m-doc-details" id="a33f85c4e674a4fcbbc1424561b0735c8"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">auto resource_managers::<wbr />SoundLoaderImpl::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a33f85c4e674a4fcbbc1424561b0735c8" class="m-doc-self">load</a>(</span><span class="m-doc-wrap">std::string path) -&gt; std::optional&lt; sounds::OpenALSound &gt;</span></span>
+            </h3>
+            <p>Loads a sound from a file.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">path</td>
+                  <td>Path to the sound file.</td>
+                </tr>
+              </tbody>
+              <tfoot>
+                <tr>
+                  <th>Returns</th>
+                  <td>Loaded sound. Always crates a new source but will reuse buffers.</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div></section>
         </section>
       </div>
     </div>

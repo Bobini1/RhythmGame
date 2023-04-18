@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>sounds::OpenALSound class | RhythmGame</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,400i,600,600i%7CSource+Code+Pro:400,400i,600" />
+  <link rel="stylesheet" href="m-dark+documentation.compiled.css" />
+  <link rel="icon" href="favicon-dark.png" type="image/png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#22272e" />
+</head>
+<body>
+<header><nav id="navigation">
+  <div class="m-container">
+    <div class="m-row">
+      <a href="index.html" id="m-navbar-brand" class="m-col-t-8 m-col-m-none m-left-m">RhythmGame</a>
+      <div class="m-col-t-4 m-hide-m m-text-right m-nopadr">
+        <a href="#search" class="m-doc-search-icon" title="Search" onclick="return showSearch()"><svg style="height: 0.9rem;" viewBox="0 0 16 16">
+          <path id="m-doc-search-icon-path" d="m6 0c-3.31 0-6 2.69-6 6 0 3.31 2.69 6 6 6 1.49 0 2.85-0.541 3.89-1.44-0.0164 0.338 0.147 0.759 0.5 1.15l3.22 3.79c0.552 0.614 1.45 0.665 2 0.115 0.55-0.55 0.499-1.45-0.115-2l-3.79-3.22c-0.392-0.353-0.812-0.515-1.15-0.5 0.895-1.05 1.44-2.41 1.44-3.89 0-3.31-2.69-6-6-6zm0 1.56a4.44 4.44 0 0 1 4.44 4.44 4.44 4.44 0 0 1-4.44 4.44 4.44 4.44 0 0 1-4.44-4.44 4.44 4.44 0 0 1 4.44-4.44z"/>
+        </svg></a>
+        <a id="m-navbar-show" href="#navigation" title="Show navigation"></a>
+        <a id="m-navbar-hide" href="#" title="Hide navigation"></a>
+      </div>
+      <div id="m-navbar-collapse" class="m-col-t-12 m-show-m m-col-m-none m-right-m">
+        <div class="m-row">
+          <ol class="m-col-t-6 m-col-m-none">
+            <li>
+              <a href="pages.html">Pages</a>
+              <ol>
+                <li><a href="about.html">About</a></li>
+              </ol>
+            </li>
+            <li><a href="namespaces.html">Namespaces</a></li>
+          </ol>
+          <ol class="m-col-t-6 m-col-m-none" start="3">
+            <li><a href="annotated.html">Classes</a></li>
+            <li><a href="files.html">Files</a></li>
+            <li class="m-show-m"><a href="#search" class="m-doc-search-icon" title="Search" onclick="return showSearch()"><svg style="height: 0.9rem;" viewBox="0 0 16 16">
+              <use href="#m-doc-search-icon-path" />
+            </svg></a></li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav></header>
+<main><article>
+  <div class="m-container m-container-inflatable">
+    <div class="m-row">
+      <div class="m-col-l-10 m-push-l-1">
+        <h1>
+          <span class="m-breadcrumb"><a href="namespacesounds.html">sounds</a>::<wbr/></span>OpenALSound <span class="m-thin">class</span>
+          <div class="m-doc-include m-code m-inverted m-text-right"><span class="cp">#include</span> <a class="cpf" href="OpenAlSound_8h.html">&lt;OpenAlSound.h&gt;</a></div>
+        </h1>
+        <p>A sound that can be played. Wraps an OpenAL source. The underlying data buffer can be shared between multiple sounds. This means that you can have multiple instances of the same sound playing at the same time, while only loading the file once.</p>
+        <div class="m-block m-default">
+          <h3>Contents</h3>
+          <ul>
+            <li>
+              Reference
+              <ul>
+                <li><a href="#typeless-methods">Constructors, destructors, conversion operators</a></li>
+                <li><a href="#pub-methods">Public functions</a></li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+        <section id="typeless-methods">
+          <h2><a href="#typeless-methods">Constructors, destructors, conversion operators</a></h2>
+          <dl class="m-doc">
+            <dt>
+              <span class="m-doc-wrap-bumper"><a href="#a8412713a34f59be496296ad11b4ec0bd" class="m-doc">OpenALSound</a>(</span><span class="m-doc-wrap">std::shared_ptr&lt;const <a href="classsounds_1_1OpenALSoundBuffer.html" class="m-doc">OpenALSoundBuffer</a>&gt; sampleBuffer) <span class="m-label m-flat m-info">explicit</span> </span>
+            </dt>
+            <dd>Creates a new sound from a buffer.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper"><a href="#a745c79e6cd96b79113efd9334c6515fc" class="m-doc">OpenALSound</a>(</span><span class="m-doc-wrap">const <a href="classsounds_1_1OpenALSound.html" class="m-doc">OpenALSound</a>&amp; other)</span>
+            </dt>
+            <dd>Creates a new sound that shares the buffer with another sound.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper"><a href="#a6b70acfce9036f16f2b3826f00527ef0" class="m-doc">OpenALSound</a>(</span><span class="m-doc-wrap"><a href="classsounds_1_1OpenALSound.html" class="m-doc">OpenALSound</a>&amp;&amp; other) <span class="m-label m-flat m-success">noexcept</span></span>
+            </dt>
+            <dd>Moves the buffer and playback state from another sound.</dd>
+            <dt id="a8925977ece277467b10afd437da6636e">
+              <span class="m-doc-wrap-bumper"><a href="#a8925977ece277467b10afd437da6636e" class="m-doc-self">~OpenALSound</a>(</span><span class="m-doc-wrap">)</span>
+            </dt>
+            <dd><span></span></dd>
+          </dl>
+        </section>
+        <section id="pub-methods">
+          <h2><a href="#pub-methods">Public functions</a></h2>
+          <dl class="m-doc">
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#a6d7611b0c96c43400f7a84fa0175669e" class="m-doc">operator=</a>(</span><span class="m-doc-wrap">const <a href="classsounds_1_1OpenALSound.html" class="m-doc">OpenALSound</a>&amp; other) -&gt; OpenALSound &amp;</span>
+            </dt>
+            <dd>Copies the buffer of other sound and resets the playback state.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#a4b8c925d76e3f580af1047b3f2b20f10" class="m-doc">operator=</a>(</span><span class="m-doc-wrap"><a href="classsounds_1_1OpenALSound.html" class="m-doc">OpenALSound</a>&amp;&amp; other) noexcept -&gt; OpenALSound &amp;</span>
+            </dt>
+            <dd>Moves the buffer and playback state from another sound.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#a4b1c04359bcd92959b8780ca28ff25f8" class="m-doc">getSource</a>(</span><span class="m-doc-wrap">) const -&gt; ALuint</span>
+            </dt>
+            <dd>Gets the underlying OpenAL source.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#af87c460ef68ca1f3957fe0f3bc46a455" class="m-doc">getBuffer</a>(</span><span class="m-doc-wrap">) const -&gt; const std::shared_ptr&lt; const OpenALSoundBuffer &gt; &amp;</span>
+            </dt>
+            <dd>Gets the underlying buffer.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">void <a href="#aa07aa56b4aace442e3f8160027e68826" class="m-doc">play</a>(</span><span class="m-doc-wrap">)</span>
+            </dt>
+            <dd>Plays the sound.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">void <a href="#ad052972deb272ee8d375cea16e10da72" class="m-doc">stop</a>(</span><span class="m-doc-wrap">)</span>
+            </dt>
+            <dd>Stops the sound.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">void <a href="#a4132e5e1c10e078febe11fe1a4c49812" class="m-doc">pause</a>(</span><span class="m-doc-wrap">)</span>
+            </dt>
+            <dd>Pauses the sound.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">void <a href="#a639370d09284bab3a1990d895d9c4e25" class="m-doc">setVolume</a>(</span><span class="m-doc-wrap">float volume)</span>
+            </dt>
+            <dd>Sets the volume of the sound.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">void <a href="#a98ef356f7f614033bddb4061169ee12e" class="m-doc">setIsLooping</a>(</span><span class="m-doc-wrap">bool looping)</span>
+            </dt>
+            <dd>Sets whether the sound should loop.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">void <a href="#a4d1bfe7f28afcd9532613e8745640e73" class="m-doc">setRate</a>(</span><span class="m-doc-wrap">float rate)</span>
+            </dt>
+            <dd>Sets the playback rate.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">void <a href="#adb3e5c092ac769e034e9bb944cb644a8" class="m-doc">setTimePoint</a>(</span><span class="m-doc-wrap">std::chrono::nanoseconds offset)</span>
+            </dt>
+            <dd>Sets the playback position.</dd>
+            <dt id="a2b2e484df9187d2945892862ca68ca19">
+              <span class="m-doc-wrap-bumper">auto <a href="#a2b2e484df9187d2945892862ca68ca19" class="m-doc-self">isPlaying</a>(</span><span class="m-doc-wrap">) const -&gt; bool</span>
+            </dt>
+            <dd>Is the sound playing right now?</dd>
+            <dt id="a2d1cf79c6a047d7b287815e73e316851">
+              <span class="m-doc-wrap-bumper">auto <a href="#a2d1cf79c6a047d7b287815e73e316851" class="m-doc-self">isPaused</a>(</span><span class="m-doc-wrap">) const -&gt; bool</span>
+            </dt>
+            <dd>Is the sound paused right now?</dd>
+            <dt id="acc90113bcfa906d08abaa01c13788c5a">
+              <span class="m-doc-wrap-bumper">auto <a href="#acc90113bcfa906d08abaa01c13788c5a" class="m-doc-self">isStopped</a>(</span><span class="m-doc-wrap">) const -&gt; bool</span>
+            </dt>
+            <dd>Is the sound stopped right now?</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#a977388d8b50ba20c48fb36600b4e29a1" class="m-doc">getVolume</a>(</span><span class="m-doc-wrap">) const -&gt; float</span>
+            </dt>
+            <dd>Gets the volume of the sound.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#a1cc279d0d928ea5a50dfaddfa4419a00" class="m-doc">getRate</a>(</span><span class="m-doc-wrap">) const -&gt; float</span>
+            </dt>
+            <dd>Gets the playback rate.</dd>
+            <dt id="a726d663a740eaca334a707f1bd0a0e3d">
+              <span class="m-doc-wrap-bumper">auto <a href="#a726d663a740eaca334a707f1bd0a0e3d" class="m-doc-self">getIsLooping</a>(</span><span class="m-doc-wrap">) const -&gt; bool</span>
+            </dt>
+            <dd>Is the sound looping?</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#a28afe926233e5b5549b8c623418a5669" class="m-doc">getTimePoint</a>(</span><span class="m-doc-wrap">) const -&gt; std::chrono::nanoseconds</span>
+            </dt>
+            <dd>Gets the playback position.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#a45e02317fee2bdb66da30ea5cff5ca92" class="m-doc">getDuration</a>(</span><span class="m-doc-wrap">) const -&gt; std::chrono::nanoseconds</span>
+            </dt>
+            <dd>Gets the duration of the sound.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#a91393f290449236f567a00b88a335afd" class="m-doc">getFrequency</a>(</span><span class="m-doc-wrap">) const -&gt; int</span>
+            </dt>
+            <dd>Gets the sampling frequency of the sound.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#adbcf2dea46066db95df27465ad783434" class="m-doc">getChannels</a>(</span><span class="m-doc-wrap">) const -&gt; int</span>
+            </dt>
+            <dd>Gets the number of channels of the sound.</dd>
+          </dl>
+        </section>
+        <section>
+          <h2>Function documentation</h2>
+          <section class="m-doc-details" id="a8412713a34f59be496296ad11b4ec0bd"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper"> sounds::<wbr />OpenALSound::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a8412713a34f59be496296ad11b4ec0bd" class="m-doc-self">OpenALSound</a>(</span><span class="m-doc-wrap">std::shared_ptr&lt;const <a href="classsounds_1_1OpenALSoundBuffer.html" class="m-doc">OpenALSoundBuffer</a>&gt; sampleBuffer) <span class="m-label m-info">explicit</span> </span></span>
+            </h3>
+            <p>Creates a new sound from a buffer.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">sampleBuffer</td>
+                  <td>The buffer to use.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div></section>
+          <section class="m-doc-details" id="a745c79e6cd96b79113efd9334c6515fc"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper"> sounds::<wbr />OpenALSound::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a745c79e6cd96b79113efd9334c6515fc" class="m-doc-self">OpenALSound</a>(</span><span class="m-doc-wrap">const <a href="classsounds_1_1OpenALSound.html" class="m-doc">OpenALSound</a>&amp; other)</span></span>
+            </h3>
+            <p>Creates a new sound that shares the buffer with another sound.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">other</td>
+                  <td>The sound to share the buffer with.</td>
+                </tr>
+              </tbody>
+            </table>
+<p>The playback state of the other sound is not copied.</p>
+          </div></section>
+          <section class="m-doc-details" id="a6b70acfce9036f16f2b3826f00527ef0"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper"> sounds::<wbr />OpenALSound::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a6b70acfce9036f16f2b3826f00527ef0" class="m-doc-self">OpenALSound</a>(</span><span class="m-doc-wrap"><a href="classsounds_1_1OpenALSound.html" class="m-doc">OpenALSound</a>&amp;&amp; other) <span class="m-label m-success">noexcept</span></span></span>
+            </h3>
+            <p>Moves the buffer and playback state from another sound.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">other</td>
+                  <td>The sound to move the buffer from.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div></section>
+          <section class="m-doc-details" id="a6d7611b0c96c43400f7a84fa0175669e"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">auto sounds::<wbr />OpenALSound::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a6d7611b0c96c43400f7a84fa0175669e" class="m-doc-self">operator=</a>(</span><span class="m-doc-wrap">const <a href="classsounds_1_1OpenALSound.html" class="m-doc">OpenALSound</a>&amp; other) -&gt; OpenALSound &amp;</span></span>
+            </h3>
+            <p>Copies the buffer of other sound and resets the playback state.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">other</td>
+                  <td>The sound to copy the buffer from.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div></section>
+          <section class="m-doc-details" id="a4b8c925d76e3f580af1047b3f2b20f10"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">auto sounds::<wbr />OpenALSound::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a4b8c925d76e3f580af1047b3f2b20f10" class="m-doc-self">operator=</a>(</span><span class="m-doc-wrap"><a href="classsounds_1_1OpenALSound.html" class="m-doc">OpenALSound</a>&amp;&amp; other) noexcept -&gt; OpenALSound &amp;</span></span>
+            </h3>
+            <p>Moves the buffer and playback state from another sound.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">other</td>
+                  <td>The sound to move the buffer from.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div></section>
+          <section class="m-doc-details" id="a4b1c04359bcd92959b8780ca28ff25f8"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">auto sounds::<wbr />OpenALSound::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a4b1c04359bcd92959b8780ca28ff25f8" class="m-doc-self">getSource</a>(</span><span class="m-doc-wrap">) const -&gt; ALuint</span></span>
+            </h3>
+            <p>Gets the underlying OpenAL source.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <tfoot>
+                <tr>
+                  <th style="width: 1%">Returns</th>
+                  <td>The underlying OpenAL source.</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div></section>
+          <section class="m-doc-details" id="af87c460ef68ca1f3957fe0f3bc46a455"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">auto sounds::<wbr />OpenALSound::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#af87c460ef68ca1f3957fe0f3bc46a455" class="m-doc-self">getBuffer</a>(</span><span class="m-doc-wrap">) const -&gt; const std::shared_ptr&lt; const OpenALSoundBuffer &gt; &amp;</span></span>
+            </h3>
+            <p>Gets the underlying buffer.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <tfoot>
+                <tr>
+                  <th style="width: 1%">Returns</th>
+                  <td>The underlying buffer.</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div></section>
+          <section class="m-doc-details" id="aa07aa56b4aace442e3f8160027e68826"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">void sounds::<wbr />OpenALSound::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#aa07aa56b4aace442e3f8160027e68826" class="m-doc-self">play</a>(</span><span class="m-doc-wrap">)</span></span>
+            </h3>
+            <p>Plays the sound.</p>
+<p>This does not block, obviously. Make sure the sound object stays alive.</p>
+          </div></section>
+          <section class="m-doc-details" id="ad052972deb272ee8d375cea16e10da72"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">void sounds::<wbr />OpenALSound::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#ad052972deb272ee8d375cea16e10da72" class="m-doc-self">stop</a>(</span><span class="m-doc-wrap">)</span></span>
+            </h3>
+            <p>Stops the sound.</p>
+<p>Does not block. The sound can be played again.</p>
+          </div></section>
+          <section class="m-doc-details" id="a4132e5e1c10e078febe11fe1a4c49812"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">void sounds::<wbr />OpenALSound::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a4132e5e1c10e078febe11fe1a4c49812" class="m-doc-self">pause</a>(</span><span class="m-doc-wrap">)</span></span>
+            </h3>
+            <p>Pauses the sound.</p>
+<p>Does not block. The sound can be played again.</p>
+          </div></section>
+          <section class="m-doc-details" id="a639370d09284bab3a1990d895d9c4e25"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">void sounds::<wbr />OpenALSound::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a639370d09284bab3a1990d895d9c4e25" class="m-doc-self">setVolume</a>(</span><span class="m-doc-wrap">float volume)</span></span>
+            </h3>
+            <p>Sets the volume of the sound.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">volume</td>
+                  <td>The volume. 1 is normal, 0 is silent, 2 is twice as loud.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div></section>
+          <section class="m-doc-details" id="a98ef356f7f614033bddb4061169ee12e"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">void sounds::<wbr />OpenALSound::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a98ef356f7f614033bddb4061169ee12e" class="m-doc-self">setIsLooping</a>(</span><span class="m-doc-wrap">bool looping)</span></span>
+            </h3>
+            <p>Sets whether the sound should loop.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">looping</td>
+                  <td>Whether the sound should loop.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div></section>
+          <section class="m-doc-details" id="a4d1bfe7f28afcd9532613e8745640e73"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">void sounds::<wbr />OpenALSound::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a4d1bfe7f28afcd9532613e8745640e73" class="m-doc-self">setRate</a>(</span><span class="m-doc-wrap">float rate)</span></span>
+            </h3>
+            <p>Sets the playback rate.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">rate</td>
+                  <td>The playback rate.</td>
+                </tr>
+              </tbody>
+            </table>
+<p>1 is normal speed, 2 is twice as fast, 0.5 is half as fast.</p>
+          </div></section>
+          <section class="m-doc-details" id="adb3e5c092ac769e034e9bb944cb644a8"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">void sounds::<wbr />OpenALSound::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#adb3e5c092ac769e034e9bb944cb644a8" class="m-doc-self">setTimePoint</a>(</span><span class="m-doc-wrap">std::chrono::nanoseconds offset)</span></span>
+            </h3>
+            <p>Sets the playback position.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">offset</td>
+                  <td>The playback position.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div></section>
+          <section class="m-doc-details" id="a977388d8b50ba20c48fb36600b4e29a1"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">auto sounds::<wbr />OpenALSound::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a977388d8b50ba20c48fb36600b4e29a1" class="m-doc-self">getVolume</a>(</span><span class="m-doc-wrap">) const -&gt; float</span></span>
+            </h3>
+            <p>Gets the volume of the sound.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <tfoot>
+                <tr>
+                  <th style="width: 1%">Returns</th>
+                  <td>The volume. 1 is normal, 0 is silent, 2 is twice as loud.</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div></section>
+          <section class="m-doc-details" id="a1cc279d0d928ea5a50dfaddfa4419a00"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">auto sounds::<wbr />OpenALSound::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a1cc279d0d928ea5a50dfaddfa4419a00" class="m-doc-self">getRate</a>(</span><span class="m-doc-wrap">) const -&gt; float</span></span>
+            </h3>
+            <p>Gets the playback rate.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <tfoot>
+                <tr>
+                  <th style="width: 1%">Returns</th>
+                  <td>The playback rate.</td>
+                </tr>
+              </tfoot>
+            </table>
+<p>1 is normal speed, 2 is twice as fast, 0.5 is half as fast.</p>
+          </div></section>
+          <section class="m-doc-details" id="a28afe926233e5b5549b8c623418a5669"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">auto sounds::<wbr />OpenALSound::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a28afe926233e5b5549b8c623418a5669" class="m-doc-self">getTimePoint</a>(</span><span class="m-doc-wrap">) const -&gt; std::chrono::nanoseconds</span></span>
+            </h3>
+            <p>Gets the playback position.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <tfoot>
+                <tr>
+                  <th style="width: 1%">Returns</th>
+                  <td>The playback position.</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div></section>
+          <section class="m-doc-details" id="a45e02317fee2bdb66da30ea5cff5ca92"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">auto sounds::<wbr />OpenALSound::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a45e02317fee2bdb66da30ea5cff5ca92" class="m-doc-self">getDuration</a>(</span><span class="m-doc-wrap">) const -&gt; std::chrono::nanoseconds</span></span>
+            </h3>
+            <p>Gets the duration of the sound.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <tfoot>
+                <tr>
+                  <th style="width: 1%">Returns</th>
+                  <td>The duration of the sound. Not affected by the playback rate.</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div></section>
+          <section class="m-doc-details" id="a91393f290449236f567a00b88a335afd"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">auto sounds::<wbr />OpenALSound::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a91393f290449236f567a00b88a335afd" class="m-doc-self">getFrequency</a>(</span><span class="m-doc-wrap">) const -&gt; int</span></span>
+            </h3>
+            <p>Gets the sampling frequency of the sound.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <tfoot>
+                <tr>
+                  <th style="width: 1%">Returns</th>
+                  <td>The sampling frequency of the sound.</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div></section>
+          <section class="m-doc-details" id="adbcf2dea46066db95df27465ad783434"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">auto sounds::<wbr />OpenALSound::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#adbcf2dea46066db95df27465ad783434" class="m-doc-self">getChannels</a>(</span><span class="m-doc-wrap">) const -&gt; int</span></span>
+            </h3>
+            <p>Gets the number of channels of the sound.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <tfoot>
+                <tr>
+                  <th style="width: 1%">Returns</th>
+                  <td>The number of channels of the sound.</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div></section>
+        </section>
+      </div>
+    </div>
+  </div>
+</article></main>
+<div class="m-doc-search" id="search">
+  <a href="#!" onclick="return hideSearch()"></a>
+  <div class="m-container">
+    <div class="m-row">
+      <div class="m-col-m-8 m-push-m-2">
+        <div class="m-doc-search-header m-text m-small">
+          <div><span class="m-label m-default">Tab</span> / <span class="m-label m-default">T</span> to search, <span class="m-label m-default">Esc</span> to close</div>
+          <div id="search-symbolcount">&hellip;</div>
+        </div>
+        <div class="m-doc-search-content">
+          <form>
+            <input type="search" name="q" id="search-input" placeholder="Loading &hellip;" disabled="disabled" autofocus="autofocus" autocomplete="off" spellcheck="false" />
+          </form>
+          <noscript class="m-text m-danger m-text-center">Unlike everything else in the docs, the search functionality <em>requires</em> JavaScript.</noscript>
+          <div id="search-help" class="m-text m-dim m-text-center">
+            <p class="m-noindent">Search for symbols, directories, files, pages or
+            modules. You can omit any prefix from the symbol or file path; adding a
+            <code>:</code> or <code>/</code> suffix lists all members of given symbol or
+            directory.</p>
+            <p class="m-noindent">Use <span class="m-label m-dim">&darr;</span>
+            / <span class="m-label m-dim">&uarr;</span> to navigate through the list,
+            <span class="m-label m-dim">Enter</span> to go.
+            <span class="m-label m-dim">Tab</span> autocompletes common prefix, you can
+            copy a link to the result using <span class="m-label m-dim">⌘</span>
+            <span class="m-label m-dim">L</span> while <span class="m-label m-dim">⌘</span>
+            <span class="m-label m-dim">M</span> produces a Markdown link.</p>
+          </div>
+          <div id="search-notfound" class="m-text m-warning m-text-center">Sorry, nothing was found.</div>
+          <ul id="search-results"></ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="search-v1.js"></script>
+<script src="searchdata-v1.js" async="async"></script>
+<footer><nav>
+  <div class="m-container">
+    <div class="m-row">
+      <div class="m-col-l-10 m-push-l-1">
+        <p>RhythmGame. Created with <a href="https://doxygen.org/">Doxygen</a> 1.9.1 and <a href="https://mcss.mosra.cz/">m.css</a>.</p>
+      </div>
+    </div>
+  </div>
+</nav></footer>
+</body>
+</html>
