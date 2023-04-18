@@ -22,7 +22,8 @@ namespace drawing {
  */
 template<animations::AnimationPlayer AnimationPlayerType,
          resource_managers::TextureLoader TextureLoaderType,
-         resource_managers::FontLoader FontLoaderType>
+         resource_managers::FontLoader FontLoaderType,
+         resource_managers::SoundLoader SoundLoaderType>
 class SplashScene : public Scene
 {
     std::shared_ptr<actors::Actor> root;
@@ -31,6 +32,7 @@ class SplashScene : public Scene
     AnimationPlayerType animationPlayer;
     TextureLoaderType* textureLoader;
     FontLoaderType* fontLoader;
+    SoundLoaderType* soundLoader;
     events::GlobalEvent<> init;
     events::GlobalEvent<float> onUpdate;
     events::MouseClickEvent leftClick;
@@ -42,11 +44,13 @@ class SplashScene : public Scene
                          AnimationPlayerType animationPlayer,
                          TextureLoaderType* textureLoader,
                          FontLoaderType* fontLoader,
+                         SoundLoaderType* soundLoader,
                          const std::filesystem::path& script)
       : state(std::move(state))
       , animationPlayer(std::move(animationPlayer))
       , textureLoader(textureLoader)
       , fontLoader(fontLoader)
+      , soundLoader(soundLoader)
       , init(&this->state)
       , onUpdate(&this->state)
       , leftClick(&this->state)
@@ -63,6 +67,7 @@ class SplashScene : public Scene
         lua::defineAllTypes(this->state,
                             *this->textureLoader,
                             *this->fontLoader,
+                            *this->soundLoader,
                             this->animationPlayer,
                             eventAttacher);
         auto luaRoot = this->state.script_file(script.string());

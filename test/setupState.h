@@ -8,6 +8,7 @@
 #include "drawing/animations/AnimationPlayerImpl.h"
 #include "resource_managers/FindAssetsFolderBoost.h"
 #include "resource_managers/LoadConfig.h"
+#include "resource_managers/SoundLoaderImpl.h"
 
 class StateSetup
 {
@@ -17,6 +18,7 @@ class StateSetup
     lua::EventAttacher eventAttacher;
     resource_managers::TextureLoaderImpl textureLoader;
     resource_managers::FontLoaderImpl fontLoader;
+    resource_managers::SoundLoaderImpl soundLoader;
     drawing::animations::AnimationPlayerImpl animationPlayer = {};
 
   public:
@@ -29,6 +31,9 @@ class StateSetup
       , fontLoader(assetsFolder / "fonts",
                    resource_managers::loadConfig(assetsFolder / "fonts" /
                                                  "fonts.ini")["FontNames"])
+      , soundLoader(assetsFolder / "sounds",
+                    resource_managers::loadConfig(assetsFolder / "sounds" /
+                                                  "sounds.ini")["SoundNames"])
     {
         state.open_libraries(sol::lib::jit, sol::lib::base, sol::lib::io);
     }
@@ -47,8 +52,12 @@ class StateSetup
 
     void defineTypes()
     {
-        lua::defineAllTypes(
-          state, textureLoader, fontLoader, animationPlayer, eventAttacher);
+        lua::defineAllTypes(state,
+                            textureLoader,
+                            fontLoader,
+                            soundLoader,
+                            animationPlayer,
+                            eventAttacher);
     }
 
     explicit operator sol::state() &&

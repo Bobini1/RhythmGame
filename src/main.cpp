@@ -11,11 +11,13 @@
 #include "resource_managers/LoadConfig.h"
 #include "resource_managers/LuaScriptFinderImpl.h"
 #include "sounds/OpenAlSound.h"
+#include "resource_managers/SoundLoaderImpl.h"
 
 auto
 loadGame(resource_managers::LuaScriptFinder auto luaScriptFinder,
          resource_managers::FontLoader auto fontLoader,
-         resource_managers::TextureLoader auto textureLoader) -> void
+         resource_managers::TextureLoader auto textureLoader,
+         resource_managers::SoundLoader auto soundLoader) -> void
 {
     auto state = sol::state{};
     state.open_libraries(
@@ -27,11 +29,13 @@ loadGame(resource_managers::LuaScriptFinder auto luaScriptFinder,
     auto startingScene =
       std::make_shared<drawing::SplashScene<decltype(animationPlayer),
                                             decltype(textureLoader),
-                                            decltype(fontLoader)>>(
+                                            decltype(fontLoader),
+                                            decltype(soundLoader)>>(
         std::move(state),
         std::move(animationPlayer),
         &textureLoader,
         &fontLoader,
+        &soundLoader,
         std::move(scriptPath));
 
     auto startingWindow = std::make_shared<drawing::SplashWindow>(
@@ -49,6 +53,8 @@ main() -> int
           assetsFolder / "themes" / "Default" / "textures" / "textures.ini");
         auto fontConfig = resource_managers::loadConfig(
           assetsFolder / "themes" / "Default" / "fonts" / "fonts.ini");
+        auto soundConfig = resource_managers::loadConfig(
+          assetsFolder / "themes" / "Default" / "sounds" / "sounds.ini");
         auto scriptConfig = resource_managers::loadConfig(
           assetsFolder / "themes" / "Default" / "scripts" / "scripts.ini");
         auto fontManager =
@@ -59,13 +65,18 @@ main() -> int
           resource_managers::TextureLoaderImpl{ assetsFolder / "themes" /
                                                   "Default" / "textures",
                                                 textureConfig["TextureNames"] };
+        auto soundManager =
+          resource_managers::SoundLoaderImpl{ assetsFolder / "themes" /
+                                                "Default" / "sounds",
+                                              soundConfig["SoundNames"] };
         auto luaScriptFinder =
           resource_managers::LuaScriptFinderImpl{ assetsFolder / "themes" /
                                                     "Default" / "scripts",
                                                   scriptConfig["ScriptNames"] };
         loadGame(std::move(luaScriptFinder),
                  std::move(fontManager),
-                 std::move(textureManager));
+                 std::move(textureManager),
+                 std::move(soundManager));
 
     } catch (const std::exception& e) {
         spdlog::error("Fatal error: {}", e.what());

@@ -39,7 +39,6 @@ local function onUpdate(self, delta)
 end
 local fps = Text.new { text = "FPS: 0", fillColor = { r = 255, g = 0, b = 0, a = 255 }, onUpdate = onUpdate, isWidthManaged = true }
 
-
 local main = HBox.new {
     onInit = onInit,
     contentAlignment = HBoxContentAlignment.Bottom,
@@ -77,6 +76,8 @@ local main = HBox.new {
                                    end,
                                    onLeftClick = function(self)
                                        self.text = "Mouse clicked!"
+                                       sound = Sound.new("click.wav")
+                                       sound:play()
                                    end
                         }
                     }
