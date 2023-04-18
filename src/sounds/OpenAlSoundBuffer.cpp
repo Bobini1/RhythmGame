@@ -389,6 +389,7 @@ sounds::OpenALSoundBuffer::operator=(sounds::OpenALSoundBuffer&& other) noexcept
     if (this == &other) {
         return *this;
     }
+    alDeleteBuffers(1, &sampleBuffer);
     sampleBuffer = other.sampleBuffer;
     other.sampleBuffer = 0;
     return *this;
