@@ -272,7 +272,7 @@ auto
 getALDevice() -> ALCdevice*
 {
     static auto device = std::unique_ptr<ALCdevice, decltype(&alcCloseDevice)>(
-      alcOpenDevice(nullptr), &alcCloseDevice);
+      alcOpenDevice(/*devicename=*/nullptr), &alcCloseDevice);
     return device.get();
 }
 auto
@@ -280,7 +280,8 @@ getALContext() -> ALCcontext*
 {
     static auto context =
       std::unique_ptr<ALCcontext, decltype(&alcDestroyContext)>(
-        alcCreateContext(getALDevice(), nullptr), &alcDestroyContext);
+        alcCreateContext(getALDevice(), /*attrlist=*/nullptr),
+        &alcDestroyContext);
     return context.get();
 }
 
