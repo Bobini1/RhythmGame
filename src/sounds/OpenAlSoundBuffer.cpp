@@ -271,19 +271,50 @@ getALContext() -> ALCcontext*
     return context.get();
 }
 
-sounds::OpenALSoundBuffer::OpenALSoundBuffer(const char* filename)
+void
+deleteFormatContext(AVFormatContext* formatContext)
 {
-    auto* formatContext = avformat_alloc_context();
+    avformat_close_input(&formatContext);
+}
+
+auto
+createFormatContext(const char* filename)
+  -> std::unique_ptr<AVFormatContext, decltype(&deleteFormatContext)>
+{
+    auto* formatContext = (AVFormatContext*)nullptr;
     if (avformat_open_input(&formatContext, filename, nullptr, nullptr)) {
         throw std::runtime_error("Could not open file " +
                                  std::string(filename));
     }
+    return { formatContext, &deleteFormatContext };
+}
 
-    if (avformat_find_stream_info(formatContext, nullptr) < 0) {
+void
+deleteCodecContext(AVCodecContext* codecContext)
+{
+    avcodec_free_context(&codecContext);
+};
+
+auto
+createCodecContext(const AVCodec* codec)
+  -> std::unique_ptr<AVCodecContext, decltype(&deleteCodecContext)>
+{
+    auto* codecContext = avcodec_alloc_context3(codec);
+    if (codecContext == nullptr) {
+        throw std::runtime_error("Could not allocate codec context");
+    }
+    return { codecContext, &deleteCodecContext };
+}
+
+sounds::OpenALSoundBuffer::OpenALSoundBuffer(const char* filename)
+{
+
+    auto formatContext = createFormatContext(filename);
+    if (avformat_find_stream_info(formatContext.get(), nullptr) < 0) {
         throw std::runtime_error("Could not find stream info");
     }
     const auto audioStreamIndex = av_find_best_stream(
-      formatContext, AVMEDIA_TYPE_AUDIO, -1, -1, nullptr, 0);
+      formatContext.get(), AVMEDIA_TYPE_AUDIO, -1, -1, nullptr, 0);
     if (audioStreamIndex < 0) {
         throw std::runtime_error("Could not find audio stream");
     }
@@ -293,11 +324,13 @@ sounds::OpenALSoundBuffer::OpenALSoundBuffer(const char* filename)
     if (codec == nullptr) {
         throw std::runtime_error("Unsupported codec");
     }
-    AVCodecContext* codecContext = avcodec_alloc_context3(codec);
-    if (avcodec_parameters_to_context(codecContext, codecParameters) < 0) {
+    auto codecContext = createCodecContext(codec);
+
+    if (avcodec_parameters_to_context(codecContext.get(), codecParameters) <
+        0) {
         throw std::runtime_error("Couldn't copy codec context");
     }
-    if (avcodec_open2(codecContext, codec, nullptr) < 0) {
+    if (avcodec_open2(codecContext.get(), codec, nullptr) < 0) {
         throw std::runtime_error("Could not open codec");
     }
     auto format = setSampleFormat(*codecContext, *codec);
@@ -315,9 +348,6 @@ sounds::OpenALSoundBuffer::OpenALSoundBuffer(const char* filename)
                  samples.data(),
                  static_cast<ALsizei>(samples.size()),
                  codecContext->sample_rate);
-
-    avcodec_free_context(&codecContext);
-    avformat_close_input(&formatContext);
 }
 sounds::OpenALSoundBuffer::~OpenALSoundBuffer()
 {
