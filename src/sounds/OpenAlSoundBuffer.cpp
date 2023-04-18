@@ -186,6 +186,9 @@ decodeInterleaved(size_t& sampleCount,
     }
 }
 
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "cppcoreguidelines-pro-type-reinterpret-cast"
+#pragma ide diagnostic ignored "cppcoreguidelines-pro-bounds-pointer-arithmetic"
 // Decoding planar formats is a bit more complicated.
 // We need to manually interleave samples in the output buffer.
 // This is because OpenAL does not support planar formats.
@@ -222,6 +225,7 @@ decodePlanar(size_t& sampleCount,
         currentOffset += bytesPerSample;
     }
 }
+#pragma clang diagnostic pop
 
 auto
 decodeFile(AVFormatContext& formatContext,
@@ -243,7 +247,7 @@ decodeFile(AVFormatContext& formatContext,
         if (packet->stream_index == audioStream.index) {
             avcodec_send_packet(&codecContext, packet.get());
             while (avcodec_receive_frame(&codecContext, frame.get()) == 0) {
-                if (av_sample_fmt_is_planar(codecContext.sample_fmt)) {
+                if (av_sample_fmt_is_planar(codecContext.sample_fmt) != 0) {
                     decodePlanar(
                       sampleCount, bytesPerSample, channels, samples, *frame);
                 } else {
@@ -282,8 +286,8 @@ auto
 createFormatContext(const char* filename)
   -> std::unique_ptr<AVFormatContext, decltype(&deleteFormatContext)>
 {
-    auto* formatContext = (AVFormatContext*)nullptr;
-    if (avformat_open_input(&formatContext, filename, nullptr, nullptr)) {
+    auto* formatContext = static_cast<AVFormatContext*>(nullptr);
+    if (avformat_open_input(&formatContext, filename, nullptr, nullptr) != 0) {
         throw std::runtime_error("Could not open file " +
                                  std::string(filename));
     }
