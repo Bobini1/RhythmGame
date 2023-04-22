@@ -73,7 +73,7 @@ drawing::actors::Frame::draw(sf::RenderTarget& target,
                              sf::RenderStates states) const -> void
 {
     if (child) {
-        // is this cheap? TODO: benchmark
+        sf::RenderTexture texture;
         texture.create(static_cast<unsigned int>(size.x),
                        static_cast<unsigned int>(size.y));
         texture.clear(sf::Color::Transparent);

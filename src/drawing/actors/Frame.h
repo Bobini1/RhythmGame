@@ -23,7 +23,6 @@ class Frame : public Parent
     sf::Transform transform{};
     bool isWidthManaged{};
     bool isHeightManaged{};
-    mutable sf::RenderTexture texture;
 
   public:
     /**
