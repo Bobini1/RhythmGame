@@ -57,7 +57,7 @@ class SplashScene : public Scene
       , rightClick(&this->state)
       , mouseHover(&this->state)
     {
-        lua::EventAttacher eventAttacher(&this->state);
+        auto eventAttacher = lua::EventAttacher{};
         eventAttacher.addEvent(init, "init");
         eventAttacher.addEvent(onUpdate, "update");
         eventAttacher.addEvent(leftClick, "leftClick");

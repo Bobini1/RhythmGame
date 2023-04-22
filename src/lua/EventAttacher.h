@@ -42,10 +42,8 @@ class EventAttacher
                      drawing::actors::Actor* actor,
                      sol::function function) const -> void;
 
-    sol::state* target;
-
   public:
-    explicit EventAttacher(sol::state* target);
+    EventAttacher();
 
     /**
      * @brief Registers an event in lua.

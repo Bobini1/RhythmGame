@@ -12,6 +12,7 @@
 #include "drawing/actors/Padding.h"
 #include "drawing/actors/Align.h"
 #include "drawing/actors/Layers.h"
+#include "drawing/actors/Frame.h"
 #include "drawing/animations/Linear.h"
 #include "drawing/animations/AnimationSequence.h"
 
@@ -437,6 +438,71 @@ defineLayers(sol::state& target, auto bindAbstractVectorCollectionProperties)
 }
 
 auto
+defineFrame(sol::state& target, auto bindActorProperties) -> void
+{
+    auto frameType = target.new_usertype<drawing::actors::Frame>(
+      "Frame",
+      sol::factories(
+        []() { return drawing::actors::Frame::make(); },
+        [](drawing::actors::Actor* actor) {
+            auto returnVal = drawing::actors::Frame::make();
+            returnVal->setChild(actor->shared_from_this());
+            return returnVal;
+        },
+        [bindActorProperties](const sol::table& args) {
+            auto child = [&]() {
+                if (args["child"].valid()) {
+                    return args.get<drawing::actors::Actor*>("child")
+                      ->shared_from_this();
+                }
+                return std::shared_ptr<drawing::actors::Actor>();
+            }();
+            auto returnVal = drawing::actors::Frame::make();
+            returnVal->setChild(std::move(child));
+            if (args["offset"].valid()) {
+                returnVal->setOffset(args.get<sf::Vector2f>("offset"));
+            }
+            if (args["isWidthManaged"].valid()) {
+                returnVal->setIsWidthManaged(args.get<bool>("isWidthManaged"));
+            }
+            if (args["isHeightManaged"].valid()) {
+                returnVal->setIsHeightManaged(
+                  args.get<bool>("isHeightManaged"));
+            }
+            if (args["minWidth"].valid()) {
+                returnVal->setMinWidth(args.get<float>("minWidth"));
+            }
+            if (args["minHeight"].valid()) {
+                returnVal->setMinHeight(args.get<float>("minHeight"));
+            }
+            bindActorProperties(returnVal, args);
+            return returnVal;
+        }),
+      sol::base_classes,
+      sol::bases<drawing::actors::Actor, drawing::actors::Parent>());
+    frameType["child"] = sol::property(
+      [&target](drawing::actors::Frame* self) {
+          return self->getChild()->getLuaSelf(target);
+      },
+      [](drawing::actors::Frame* self, drawing::actors::Actor* actor) {
+          self->setChild(actor->shared_from_this());
+      });
+    frameType["offset"] = sol::property(&drawing::actors::Frame::getOffset,
+                                        &drawing::actors::Frame::setOffset);
+    frameType["isWidthManaged"] =
+      sol::property(&drawing::actors::Frame::getIsWidthManaged,
+                    &drawing::actors::Frame::setIsWidthManaged);
+    frameType["isHeightManaged"] =
+      sol::property(&drawing::actors::Frame::getIsHeightManaged,
+                    &drawing::actors::Frame::setIsHeightManaged);
+    frameType["minWidth"] = sol::property(&drawing::actors::Frame::getMinWidth,
+                                          &drawing::actors::Frame::setMinWidth);
+    frameType["minHeight"] =
+      sol::property(&drawing::actors::Frame::getMinHeight,
+                    &drawing::actors::Frame::setMinHeight);
+}
+
+auto
 defineAnimation(sol::state& target) -> void
 {
     auto animationType = target.new_usertype<drawing::animations::Animation>(
@@ -516,6 +582,7 @@ defineAnimationSequence(sol::state& target, auto bindAnimationProperties)
         sol::base_classes,
         sol::bases<drawing::animations::Animation>());
 }
+
 auto
 defineCommonTypes(
   sol::state& target,
@@ -578,6 +645,7 @@ defineCommonTypes(
     definePadding(target, bindActorProperties);
     defineAlign(target, bindActorProperties);
     defineLayers(target, bindAbstractVectorCollectionProperties);
+    defineFrame(target, bindActorProperties);
     defineAnimation(target);
 
     auto bindAnimationProperties =

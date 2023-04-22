@@ -23,8 +23,7 @@ class StateSetup
 
   public:
     StateSetup()
-      : eventAttacher(&state)
-      , textureLoader(
+      : textureLoader(
           assetsFolder / "textures",
           resource_managers::loadConfig(assetsFolder / "textures" /
                                         "textures.ini")["TextureNames"])
