@@ -60,12 +60,6 @@ class Frame : public Parent
      * corner).
      */
     auto getOffset() const -> sf::Vector2f;
-    /**
-     * @brief Sets the child node that this
-     * @param size Size.
-     * @details The size is the size of the frame's render target. The child
-     * will be drawn within this size.
-     */
     auto setChild(std::shared_ptr<Actor> child) -> void;
     auto getChild() const -> const std::shared_ptr<Actor>&;
     auto removeChild(std::shared_ptr<Actor> child) -> void override;
