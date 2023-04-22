@@ -21,7 +21,7 @@ frame.minHeight = 1
 return frame
 )";
 
-TEST_CASE("Frame", "[drawing][actors][Frame]")
+TEST_CASE("Frame can be constructed in lua", "[drawing][actors][Frame]")
 {
     auto stateSetup = StateSetup{};
     auto state = sol::state(std::move(stateSetup));
