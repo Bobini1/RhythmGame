@@ -18,7 +18,7 @@ class OpenALSoundBuffer;
 
 /**
  * @brief A sound that can be played. Wraps an OpenAL source.
- * The underlying data buffer can be shared between multiple sounds.
+ * @details The underlying data buffer can be shared between multiple sounds.
  * This means that you can have multiple instances of the same sound playing at
  * the same time, while only loading the file once.
  */

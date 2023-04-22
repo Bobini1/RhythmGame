@@ -32,11 +32,10 @@ EventAttacher::attachEvent(const std::string& eventName,
 {
     eventRegistrators->at(eventName).second(actor, std::move(function));
 }
-EventAttacher::EventAttacher(sol::state* target)
+EventAttacher::EventAttacher()
   : eventRegistrators(
       std::make_shared<
         std::map<std::string, std::pair<GetterFunction, SetterFunction>>>())
-  , target(target)
 {
 }
 auto

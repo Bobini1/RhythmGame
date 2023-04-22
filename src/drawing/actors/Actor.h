@@ -148,7 +148,7 @@ class Actor // NOLINT(fuchsia-multiple-inheritance)
       -> void;
 
     std::weak_ptr<Parent> parent{};
-    bool isObstructing{ false };
+    bool isObstructing{ true };
 };
 } // namespace drawing::actors
 #endif // RHYTHMGAME_ACTOR_H

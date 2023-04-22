@@ -79,6 +79,15 @@ local main = HBox.new {
                                        sound = Sound.new("click.wav")
                                        sound:play()
                                    end
+                        },
+                        Frame.new {
+                            child = Sprite.new {
+                                texture = "mascot.png",
+                                width = 200,
+                                height = 200
+                            },
+                            isWidthManaged = true,
+                            height = 100,
                         }
                     }
                 },
