@@ -151,6 +151,6 @@ drawing::actors::Frame::getAllChildrenAtMousePosition(
            std::owner_less<std::weak_ptr<const Actor>>>& result) const -> void
 {
     if (child) {
-        child->getAllChildrenAtMousePosition(position, result);
+        child->getAllActorsAtMousePosition(position, result);
     }
 }
