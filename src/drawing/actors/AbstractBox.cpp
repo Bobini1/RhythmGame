@@ -35,13 +35,15 @@ drawing::actors::AbstractBox::getSpacing() const -> float
 {
     return spacing;
 }
-void
+auto
 drawing::actors::AbstractBox::getAllChildrenAtMousePosition(
   sf::Vector2f position,
   std::set<std::weak_ptr<const Actor>,
-           std::owner_less<std::weak_ptr<const Actor>>>& result) const
+           std::owner_less<std::weak_ptr<const Actor>>>& result) const -> bool
 {
+    auto blocked = false;
     for (const auto& child : *this) {
-        child->getAllActorsAtMousePosition(position, result);
+        blocked |= child->getAllActorsAtMousePosition(position, result);
     }
+    return blocked;
 }

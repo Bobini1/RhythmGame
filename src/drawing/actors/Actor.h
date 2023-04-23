@@ -122,10 +122,11 @@ class Actor // NOLINT(fuchsia-multiple-inheritance)
 
     auto setIsObstructing(bool newIsObstructing) -> void;
 
-    void getAllActorsAtMousePosition(
+    auto getAllActorsAtMousePosition(
       sf::Vector2f position,
       std::set<std::weak_ptr<const Actor>,
-               std::owner_less<std::weak_ptr<const Actor>>>& result) const;
+               std::owner_less<std::weak_ptr<const Actor>>>& result) const
+      -> bool;
 
   private:
     /**
@@ -145,7 +146,7 @@ class Actor // NOLINT(fuchsia-multiple-inheritance)
       sf::Vector2f position,
       std::set<std::weak_ptr<const Actor>,
                std::owner_less<std::weak_ptr<const Actor>>>& result) const
-      -> void;
+      -> bool;
 
     std::weak_ptr<Parent> parent{};
     bool isObstructing{ true };

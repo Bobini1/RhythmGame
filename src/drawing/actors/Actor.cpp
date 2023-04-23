@@ -68,17 +68,23 @@ drawing::actors::Actor::getAllChildrenAtMousePosition(
   sf::Vector2f /*position*/,
   std::set<std::weak_ptr<const Actor>,
            std::owner_less<std::weak_ptr<const Actor>>>& /*result*/) const
-  -> void
+  -> bool
 {
+    return false;
 }
-void
+auto
 drawing::actors::Actor::getAllActorsAtMousePosition(
   sf::Vector2f position,
   std::set<std::weak_ptr<const Actor>,
-           std::owner_less<std::weak_ptr<const Actor>>>& result) const
+           std::owner_less<std::weak_ptr<const Actor>>>& result) const -> bool
 {
     if (getGlobalBounds().contains(position)) {
-        result.insert(weak_from_this());
-        getAllChildrenAtMousePosition(position, result);
+        if (getAllChildrenAtMousePosition(position, result)) {
+            return true;
+        } else {
+            result.insert(weak_from_this());
+            return getIsObstructing();
+        }
     }
+    return false;
 }

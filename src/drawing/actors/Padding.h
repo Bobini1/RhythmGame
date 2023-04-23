@@ -53,7 +53,7 @@ class Padding : public Parent
       sf::Vector2f position,
       std::set<std::weak_ptr<const Actor>,
                std::owner_less<std::weak_ptr<const Actor>>>& result) const
-      -> void override;
+      -> bool override;
 
   public:
     [[nodiscard]] auto getTop() const -> float;

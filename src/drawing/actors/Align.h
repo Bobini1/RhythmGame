@@ -43,6 +43,7 @@ class Align : public Parent
     [[nodiscard]] auto getHeight() const -> float override;
     auto setMode(Mode mode) -> void;
     [[nodiscard]] auto getMode() const -> Mode;
+
   protected:
     void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
     explicit Align(Mode mode = Mode::Center);
@@ -54,8 +55,7 @@ class Align : public Parent
       sf::Vector2f position,
       std::set<std::weak_ptr<const Actor>,
                std::owner_less<std::weak_ptr<const Actor>>>& result) const
-      -> void override;
-
+      -> bool override;
 
   public:
     auto removeChild(std::shared_ptr<Actor> child) -> void override;
