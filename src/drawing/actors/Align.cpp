@@ -187,9 +187,10 @@ auto
 drawing::actors::Align::getAllChildrenAtMousePosition(
   sf::Vector2f position,
   std::set<std::weak_ptr<const Actor>,
-           std::owner_less<std::weak_ptr<const Actor>>>& result) const -> void
+           std::owner_less<std::weak_ptr<const Actor>>>& result) const -> bool
 {
     if (child) {
-        child->getAllActorsAtMousePosition(position, result);
+        return child->getAllActorsAtMousePosition(position, result);
     }
+    return false;
 }

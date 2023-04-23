@@ -155,6 +155,7 @@ TEST_CASE("Align reports the element at the mouse position",
 {
     auto align = drawing::actors::Align::make();
     auto child = drawing::actors::Quad::make({ 100, 100 });
+    child->setIsObstructing(false);
     align->setMode(drawing::actors::Align::Mode::Center);
     align->setChild(child);
     align->setWidth(200);

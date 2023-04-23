@@ -14,6 +14,7 @@ static constexpr auto scriptWithMouseEvent = R"(
     local quad = Quad.new{
                     width = 1,
                     height = 1,
+                    isObstructing = false,
                     onLeftClick = function(self)
                             self.width = self.width + 100
                     end

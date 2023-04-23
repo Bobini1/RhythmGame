@@ -64,6 +64,7 @@ local main = HBox.new {
                     horizontalSizeMode = SizeMode.WrapChildren,
                     verticalSizeMode = SizeMode.Managed,
                     spacing = 10,
+                    isObstructing = false,
                     children = {
                         fps,
                         Text.new { text = "Hello world!", characterSize = 20 },

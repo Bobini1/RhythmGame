@@ -45,7 +45,7 @@ class Layers : public AbstractVectorCollection
       sf::Vector2f position,
       std::set<std::weak_ptr<const Actor>,
                std::owner_less<std::weak_ptr<const Actor>>>& result) const
-      -> void override;
+      -> bool override;
     auto onChildRemoved(std::shared_ptr<Actor> child) -> void override;
     [[nodiscard]] auto getMinSize() const -> sf::Vector2f;
     [[nodiscard]] auto getCurrentSize() const -> sf::Vector2f;

@@ -48,6 +48,7 @@ TEST_CASE("VBox reports the element at the mouse position",
 {
     auto vbox = drawing::actors::VBox::make();
     auto child1 = drawing::actors::Quad::make(sf::Vector2f{ 100.F, 100.F });
+    child1->setIsObstructing(false);
     auto child2 = drawing::actors::Quad::make(sf::Vector2f{ 100.F, 100.F });
     auto child3 = drawing::actors::Quad::make(sf::Vector2f{ 100.F, 100.F });
     vbox->addChild(child1);
