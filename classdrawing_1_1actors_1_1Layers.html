@@ -167,11 +167,11 @@
               <span class="m-doc-wrap-bumper">auto <a href="#ab81a071658378a22f1852c5b7124ae38" class="m-doc">setHeightImpl</a>(</span><span class="m-doc-wrap">float height) -&gt; void <span class="m-label m-flat m-warning">override</span></span>
             </dt>
             <dd>Actors need to override this to set their height. The contract is to always resize to the requested size.</dd>
-            <dt id="aff1f2ee06f5b59b30e5644a52e6ad07d">
-              <span class="m-doc-wrap-bumper">auto <a href="#aff1f2ee06f5b59b30e5644a52e6ad07d" class="m-doc-self">getAllChildrenAtMousePosition</a>(</span><span class="m-doc-wrap">sf::Vector2f position,
-              std::set&lt;std::weak_ptr&lt;const <a href="classdrawing_1_1actors_1_1Actor.html" class="m-doc">Actor</a>&gt;, std::owner_less&lt;std::weak_ptr&lt;const <a href="classdrawing_1_1actors_1_1Actor.html" class="m-doc">Actor</a>&gt;&gt;&gt;&amp; result) const -&gt; void <span class="m-label m-flat m-warning">override</span></span>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#a64539dcf3d1f3769e31aeb4b025af4fb" class="m-doc">getAllChildrenAtMousePosition</a>(</span><span class="m-doc-wrap">sf::Vector2f position,
+              std::set&lt;std::weak_ptr&lt;const <a href="classdrawing_1_1actors_1_1Actor.html" class="m-doc">Actor</a>&gt;, std::owner_less&lt;std::weak_ptr&lt;const <a href="classdrawing_1_1actors_1_1Actor.html" class="m-doc">Actor</a>&gt;&gt;&gt;&amp; result) const -&gt; bool <span class="m-label m-flat m-warning">override</span></span>
             </dt>
-            <dd><span></span></dd>
+            <dd>Get all children of this actor that are at the given position.</dd>
             <dt id="a65e6b10f46dc625434c54d34aad29c1a">
               <span class="m-doc-wrap-bumper">auto <a href="#a65e6b10f46dc625434c54d34aad29c1a" class="m-doc-self">onChildRemoved</a>(</span><span class="m-doc-wrap">std::shared_ptr&lt;<a href="classdrawing_1_1actors_1_1Actor.html" class="m-doc">Actor</a>&gt; child) -&gt; void <span class="m-label m-flat m-warning">override</span></span>
             </dt>
@@ -323,6 +323,34 @@
                   <td>The new height of the actor.</td>
                 </tr>
               </tbody>
+            </table>
+          </div></section>
+          <section class="m-doc-details" id="a64539dcf3d1f3769e31aeb4b025af4fb"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">auto drawing::<wbr />actors::<wbr />Layers::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a64539dcf3d1f3769e31aeb4b025af4fb" class="m-doc-self">getAllChildrenAtMousePosition</a>(</span><span class="m-doc-wrap">sf::Vector2f position,
+              std::set&lt;std::weak_ptr&lt;const <a href="classdrawing_1_1actors_1_1Actor.html" class="m-doc">Actor</a>&gt;, std::owner_less&lt;std::weak_ptr&lt;const <a href="classdrawing_1_1actors_1_1Actor.html" class="m-doc">Actor</a>&gt;&gt;&gt;&amp; result) const -&gt; bool <span class="m-label m-warning">override</span> <span class="m-label m-danger">private</span></span></span>
+            </h3>
+            <p>Get all children of this actor that are at the given position.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">position</td>
+                  <td>The position to check.</td>
+                </tr>
+                <tr>
+                  <td>result</td>
+                  <td>The set to add the children to.</td>
+                </tr>
+              </tbody>
+              <tfoot>
+                <tr>
+                  <th>Returns</th>
+                  <td>True if this actor or its children obstructed the position, blocking actors behind it from receiving the event.</td>
+                </tr>
+              </tfoot>
             </table>
           </div></section>
         </section>

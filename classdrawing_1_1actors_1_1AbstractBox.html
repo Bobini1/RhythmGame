@@ -133,11 +133,11 @@
         <section id="pri-methods">
           <h2><a href="#pri-methods">Private functions</a></h2>
           <dl class="m-doc">
-            <dt id="a7033d85a838e820acbcc50d824ad2fc8">
-              <span class="m-doc-wrap-bumper">auto <a href="#a7033d85a838e820acbcc50d824ad2fc8" class="m-doc-self">getAllChildrenAtMousePosition</a>(</span><span class="m-doc-wrap">sf::Vector2f position,
-              std::set&lt;std::weak_ptr&lt;const <a href="classdrawing_1_1actors_1_1Actor.html" class="m-doc">Actor</a>&gt;, std::owner_less&lt;std::weak_ptr&lt;const <a href="classdrawing_1_1actors_1_1Actor.html" class="m-doc">Actor</a>&gt;&gt;&gt;&amp; result) const -&gt; void <span class="m-label m-flat m-warning">override</span></span>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#a4cfcd1684a150c0706ae753afd54d082" class="m-doc">getAllChildrenAtMousePosition</a>(</span><span class="m-doc-wrap">sf::Vector2f position,
+              std::set&lt;std::weak_ptr&lt;const <a href="classdrawing_1_1actors_1_1Actor.html" class="m-doc">Actor</a>&gt;, std::owner_less&lt;std::weak_ptr&lt;const <a href="classdrawing_1_1actors_1_1Actor.html" class="m-doc">Actor</a>&gt;&gt;&gt;&amp; result) const -&gt; bool <span class="m-label m-flat m-warning">override</span></span>
             </dt>
-            <dd><span></span></dd>
+            <dd>Get all children of this actor that are at the given position.</dd>
           </dl>
         </section>
         <section>
@@ -169,6 +169,37 @@
                   </td>
                 </tr>
               </tbody>
+            </table>
+          </div></section>
+        </section>
+        <section>
+          <h2>Function documentation</h2>
+          <section class="m-doc-details" id="a4cfcd1684a150c0706ae753afd54d082"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">auto drawing::<wbr />actors::<wbr />AbstractBox::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a4cfcd1684a150c0706ae753afd54d082" class="m-doc-self">getAllChildrenAtMousePosition</a>(</span><span class="m-doc-wrap">sf::Vector2f position,
+              std::set&lt;std::weak_ptr&lt;const <a href="classdrawing_1_1actors_1_1Actor.html" class="m-doc">Actor</a>&gt;, std::owner_less&lt;std::weak_ptr&lt;const <a href="classdrawing_1_1actors_1_1Actor.html" class="m-doc">Actor</a>&gt;&gt;&gt;&amp; result) const -&gt; bool <span class="m-label m-warning">override</span> <span class="m-label m-danger">private</span></span></span>
+            </h3>
+            <p>Get all children of this actor that are at the given position.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">position</td>
+                  <td>The position to check.</td>
+                </tr>
+                <tr>
+                  <td>result</td>
+                  <td>The set to add the children to.</td>
+                </tr>
+              </tbody>
+              <tfoot>
+                <tr>
+                  <th>Returns</th>
+                  <td>True if this actor or its children obstructed the position, blocking actors behind it from receiving the event.</td>
+                </tr>
+              </tfoot>
             </table>
           </div></section>
         </section>

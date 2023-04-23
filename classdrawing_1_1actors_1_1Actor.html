@@ -184,11 +184,11 @@
               <span class="m-doc-wrap-bumper">auto <a href="#a4d7c61572e759232ce9dc471ac48da1c" class="m-doc-self">setIsObstructing</a>(</span><span class="m-doc-wrap">bool newIsObstructing) -&gt; void</span>
             </dt>
             <dd><span></span></dd>
-            <dt id="a38aa725fe44c0493067c7c08525c2dd0">
-              <span class="m-doc-wrap-bumper">void <a href="#a38aa725fe44c0493067c7c08525c2dd0" class="m-doc-self">getAllActorsAtMousePosition</a>(</span><span class="m-doc-wrap">sf::Vector2f position,
-              std::set&lt;std::weak_ptr&lt;const <a href="classdrawing_1_1actors_1_1Actor.html" class="m-doc">Actor</a>&gt;, std::owner_less&lt;std::weak_ptr&lt;const <a href="classdrawing_1_1actors_1_1Actor.html" class="m-doc">Actor</a>&gt;&gt;&gt;&amp; result) const</span>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#a6f15d742f33cd8409f1dcc2193af4f79" class="m-doc">getAllActorsAtMousePosition</a>(</span><span class="m-doc-wrap">sf::Vector2f position,
+              std::set&lt;std::weak_ptr&lt;const <a href="classdrawing_1_1actors_1_1Actor.html" class="m-doc">Actor</a>&gt;, std::owner_less&lt;std::weak_ptr&lt;const <a href="classdrawing_1_1actors_1_1Actor.html" class="m-doc">Actor</a>&gt;&gt;&gt;&amp; result) const -&gt; bool</span>
             </dt>
-            <dd><span></span></dd>
+            <dd>Get all actors at the given position (this one and its children).</dd>
           </dl>
         </section>
         <section id="pro-methods">
@@ -211,11 +211,11 @@
               <span class="m-doc-wrap-bumper">auto <a href="#a46a8c969aa48d44843a264f8e12e6f98" class="m-doc">setHeightImpl</a>(</span><span class="m-doc-wrap">float height) -&gt; void <span class="m-label m-flat m-warning">pure virtual</span></span>
             </dt>
             <dd>Actors need to override this to set their height. The contract is to always resize to the requested size.</dd>
-            <dt id="a9f7b0a6f519622abb8e59d41ca81e36d">
-              <span class="m-doc-wrap-bumper">auto <a href="#a9f7b0a6f519622abb8e59d41ca81e36d" class="m-doc-self">getAllChildrenAtMousePosition</a>(</span><span class="m-doc-wrap">sf::Vector2f position,
-              std::set&lt;std::weak_ptr&lt;const <a href="classdrawing_1_1actors_1_1Actor.html" class="m-doc">Actor</a>&gt;, std::owner_less&lt;std::weak_ptr&lt;const <a href="classdrawing_1_1actors_1_1Actor.html" class="m-doc">Actor</a>&gt;&gt;&gt;&amp; result) const -&gt; void <span class="m-label m-flat m-warning">virtual</span></span>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#ae307cfd0992c38c928c3366c6d5ebed1" class="m-doc">getAllChildrenAtMousePosition</a>(</span><span class="m-doc-wrap">sf::Vector2f position,
+              std::set&lt;std::weak_ptr&lt;const <a href="classdrawing_1_1actors_1_1Actor.html" class="m-doc">Actor</a>&gt;, std::owner_less&lt;std::weak_ptr&lt;const <a href="classdrawing_1_1actors_1_1Actor.html" class="m-doc">Actor</a>&gt;&gt;&gt;&amp; result) const -&gt; bool <span class="m-label m-flat m-warning">virtual</span></span>
             </dt>
-            <dd><span></span></dd>
+            <dd>Get all children of this actor that are at the given position.</dd>
           </dl>
         </section>
         <section>
@@ -382,6 +382,34 @@
               </tbody>
             </table>
           </div></section>
+          <section class="m-doc-details" id="a6f15d742f33cd8409f1dcc2193af4f79"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">auto drawing::<wbr />actors::<wbr />Actor::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a6f15d742f33cd8409f1dcc2193af4f79" class="m-doc-self">getAllActorsAtMousePosition</a>(</span><span class="m-doc-wrap">sf::Vector2f position,
+              std::set&lt;std::weak_ptr&lt;const <a href="classdrawing_1_1actors_1_1Actor.html" class="m-doc">Actor</a>&gt;, std::owner_less&lt;std::weak_ptr&lt;const <a href="classdrawing_1_1actors_1_1Actor.html" class="m-doc">Actor</a>&gt;&gt;&gt;&amp; result) const -&gt; bool</span></span>
+            </h3>
+            <p>Get all actors at the given position (this one and its children).</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">position</td>
+                  <td>The position to check.</td>
+                </tr>
+                <tr>
+                  <td>result</td>
+                  <td>The set to add the actors to.</td>
+                </tr>
+              </tbody>
+              <tfoot>
+                <tr>
+                  <th>Returns</th>
+                  <td>True if this actor or its children obstructed the position, blocking actors behind it from receiving the event.</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div></section>
           <section class="m-doc-details" id="a3055daaa97113931602a75564289b5ba"><div>
             <h3>
               <span class="m-doc-wrap-bumper">auto drawing::<wbr />actors::<wbr />Actor::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a3055daaa97113931602a75564289b5ba" class="m-doc-self">setWidthImpl</a>(</span><span class="m-doc-wrap">float width) -&gt; void <span class="m-label m-warning">pure virtual</span> <span class="m-label m-danger">private</span></span></span>
@@ -414,6 +442,34 @@
                   <td>The new height of the actor.</td>
                 </tr>
               </tbody>
+            </table>
+          </div></section>
+          <section class="m-doc-details" id="ae307cfd0992c38c928c3366c6d5ebed1"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">auto drawing::<wbr />actors::<wbr />Actor::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#ae307cfd0992c38c928c3366c6d5ebed1" class="m-doc-self">getAllChildrenAtMousePosition</a>(</span><span class="m-doc-wrap">sf::Vector2f position,
+              std::set&lt;std::weak_ptr&lt;const <a href="classdrawing_1_1actors_1_1Actor.html" class="m-doc">Actor</a>&gt;, std::owner_less&lt;std::weak_ptr&lt;const <a href="classdrawing_1_1actors_1_1Actor.html" class="m-doc">Actor</a>&gt;&gt;&gt;&amp; result) const -&gt; bool <span class="m-label m-warning">virtual</span> <span class="m-label m-danger">private</span></span></span>
+            </h3>
+            <p>Get all children of this actor that are at the given position.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">position</td>
+                  <td>The position to check.</td>
+                </tr>
+                <tr>
+                  <td>result</td>
+                  <td>The set to add the children to.</td>
+                </tr>
+              </tbody>
+              <tfoot>
+                <tr>
+                  <th>Returns</th>
+                  <td>True if this actor or its children obstructed the position, blocking actors behind it from receiving the event.</td>
+                </tr>
+              </tfoot>
             </table>
           </div></section>
         </section>
