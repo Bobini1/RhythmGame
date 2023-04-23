@@ -122,6 +122,13 @@ class Actor // NOLINT(fuchsia-multiple-inheritance)
 
     auto setIsObstructing(bool newIsObstructing) -> void;
 
+    /**
+     * @brief Get all actors at the given position (this one and its children).
+     * @param position The position to check.
+     * @param result The set to add the actors to.
+     * @return True if this actor or its children obstructed the position,
+     * blocking actors behind it from receiving the event.
+     */
     auto getAllActorsAtMousePosition(
       sf::Vector2f position,
       std::set<std::weak_ptr<const Actor>,
@@ -142,6 +149,13 @@ class Actor // NOLINT(fuchsia-multiple-inheritance)
      */
     virtual auto setHeightImpl(float height) -> void = 0;
 
+    /**
+     * @brief Get all children of this actor that are at the given position.
+     * @param position The position to check.
+     * @param result The set to add the children to.
+     * @return True if this actor or its children obstructed the position,
+     * blocking actors behind it from receiving the event.
+     */
     virtual auto getAllChildrenAtMousePosition(
       sf::Vector2f position,
       std::set<std::weak_ptr<const Actor>,
