@@ -153,7 +153,7 @@ class Actor // NOLINT(fuchsia-multiple-inheritance)
      * @brief Get all children of this actor that are at the given position.
      * @param position The position to check.
      * @param result The set to add the children to.
-     * @return True if this actor or its children obstructed the position,
+     * @return True if any child obstructed the position,
      * blocking actors behind it from receiving the event.
      */
     virtual auto getAllChildrenAtMousePosition(
