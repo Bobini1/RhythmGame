@@ -34,4 +34,3 @@ class Recipe(ConanFile):
         self.options["ffmpeg"].with_libx265 = False
         self.options["ffmpeg"].postproc = False
         self.options["ffmpeg"].with_libfdk_aac = False
-        self.options["ffmpeg"].with_openjpeg = False
