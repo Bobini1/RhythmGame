@@ -24,13 +24,13 @@ TEST_CASE("Values can be inserted and retrieved from tables", "[SqliteCppDb]")
     REQUIRE(db.hasTable("Test"));
     db.execute("INSERT INTO Test VALUES (1, 'TestName')"s);
     auto row =
-      db.executeAndGet<int, std::string>("SELECT * FROM Test WHERE ID = 1"s);
+      db.executeAndGet<std::tuple<int, std::string>>("SELECT * FROM Test WHERE ID = 1"s);
     auto& [x, y] = row.value();
     REQUIRE(x == 1);
     REQUIRE(y == "TestName"s);
     db.execute("INSERT INTO Test VALUES (2, 'SecondRowName')"s);
     db.execute("INSERT INTO Test VALUES (69, 'ThirdRowName')"s);
-    auto rows = db.executeAndGetAll<int, std::string>("SELECT * FROM Test"s);
+    auto rows = db.executeAndGetAll<std::tuple<int, std::string>>("SELECT * FROM Test"s);
     row = rows[1];
     REQUIRE(x == 2);
     REQUIRE(y == "SecondRowName"s);
@@ -46,9 +46,9 @@ TEST_CASE("Failing queries correctly return empty results", "[SqliteCppDb]")
     REQUIRE_FALSE(db.hasTable("Test"));
     db.execute("CREATE TABLE Test(ID int, Name VARCHAR(255))"s);
     auto row =
-      db.executeAndGet<int, std::string>("SELECT * FROM Test WHERE ID = 1"s);
+      db.executeAndGet<std::tuple<int, std::string>>("SELECT * FROM Test WHERE ID = 1"s);
     REQUIRE_FALSE(row);
-    auto rows = db.executeAndGetAll<int, std::string>("SELECT * FROM Test"s);
+    auto rows = db.executeAndGetAll<std::tuple<int, std::string>>("SELECT * FROM Test"s);
     REQUIRE(rows.empty());
 }
 
@@ -60,16 +60,42 @@ TEST_CASE("Database wrapper can be passed to another thread", "[SqliteCppDb]")
     db.execute("CREATE TABLE Test(ID int, Name VARCHAR(255))"s);
     db.execute("INSERT INTO Test VALUES (1, 'TestName')"s);
     auto row =
-      db.executeAndGet<int, std::string>("SELECT * FROM Test WHERE ID = 1"s);
+      db.executeAndGet<std::tuple<int, std::string>>("SELECT * FROM Test WHERE ID = 1"s);
     auto& [x, y] = row.value();
     REQUIRE(x == 1);
     REQUIRE(y == "TestName"s);
     auto thread = std::thread{ [&db]() {
-        auto row = db.executeAndGet<int, std::string>(
+        auto row = db.executeAndGet<std::tuple<int, std::string>>(
           "SELECT * FROM Test WHERE ID = 1"s);
         auto& [z, w] = row.value();
         REQUIRE(z == 1);
         REQUIRE(w == "TestName"s);
     } };
     thread.join();
+}
+
+TEST_CASE("Values can be inserted into custom aggregate structs", "[SqliteCppDb]")
+{
+    using namespace std::string_literals;
+    struct TestStruct
+    {
+        int x;
+        std::string y;
+    };
+    static_assert(std::is_aggregate_v<TestStruct>);
+    auto db = getDb("test4.db"s);
+    REQUIRE_FALSE(db.hasTable("Test"));
+    db.execute("CREATE TABLE Test(ID int, Name VARCHAR(255))"s);
+    db.execute("INSERT INTO Test VALUES (1, 'TestName')"s);
+    auto row = db.executeAndGet<TestStruct>("SELECT * FROM Test WHERE ID = 1"s);
+    REQUIRE(row);
+    auto& [x, y] = row.value();
+    REQUIRE(x == 1);
+    REQUIRE(y == "TestName"s);
+
+    auto rows = db.executeAndGetAll<TestStruct>("SELECT * FROM Test"s);
+    REQUIRE(rows.size() == 1);
+    row = rows[0];
+    REQUIRE(x == 1);
+    REQUIRE(y == "TestName"s);
 }

@@ -9,6 +9,9 @@
 #include <vector>
 #include <map>
 #include <db/DatabaseAccessPoint.h>
+#include <type_traits>
+#include "support/get.h"
+#include "support/TupleSize.h"
 
 namespace db {
 
@@ -47,16 +50,17 @@ class SqliteCppDb
      * specified in template parameters, they will be default initialized.
      * @tparam Ret Types of the columns. Must be default constructible.
      */
-    template<std::default_initializable... Ret>
+    template<typename Ret>
     [[nodiscard]] auto executeAndGet(const std::string& query) const
-      -> std::optional<std::tuple<Ret...>>
+      -> std::optional<Ret>
+        requires std::is_default_constructible_v<Ret>
     {
         SQLite::Statement statement(connections[connKey], query);
         if (!statement.executeStep()) {
             return {};
         }
-        std::tuple<Ret...> result;
-        constexpr size_t tupleSize = std::tuple_size_v<std::tuple<Ret...>>;
+        Ret result;
+        constexpr size_t tupleSize = support::tupleSizeV<Ret>;
         constexpr auto indices =
           std::make_integer_sequence<int, static_cast<int>(tupleSize)>();
 
@@ -69,10 +73,9 @@ class SqliteCppDb
             }
         };
         auto outerLambda =
-          [&lambda, &result ]<int... N>(std::integer_sequence<int, N...>)
-        {
-            (lambda(std::get<N>(result), N), ...);
-        };
+          [&lambda, &result]<int... N>(std::integer_sequence<int, N...>) {
+              (lambda(support::get<N>(result), N), ...);
+          };
 
         outerLambda(indices);
 
@@ -86,13 +89,14 @@ class SqliteCppDb
      * specified in the template parameters, this method will throw.
      * @tparam Ret Types of the columns. Must be default constructible.
      */
-    template<typename... Ret>
+    template<typename Ret>
     [[nodiscard]] auto executeAndGetAll(const std::string& query) const
-      -> std::vector<std::tuple<Ret...>>
+      -> std::vector<Ret>
+        requires std::is_default_constructible_v<Ret>
     {
         SQLite::Statement statement(connections[connKey], query);
-        std::vector<std::tuple<Ret...>> result;
-        constexpr size_t tupleSize = std::tuple_size_v<std::tuple<Ret...>>;
+        std::vector<Ret> result;
+        constexpr size_t tupleSize = support::tupleSizeV<Ret>;
         constexpr auto indices =
           std::make_integer_sequence<int, static_cast<int>(tupleSize)>();
 
@@ -105,10 +109,9 @@ class SqliteCppDb
             }
         };
         auto outerLambda =
-          [&lambda, &result ]<int... N>(std::integer_sequence<int, N...>)
-        {
-            (lambda(std::get<N>(result.back()), N), ...);
-        };
+          [&lambda, &result]<int... N>(std::integer_sequence<int, N...>) {
+              (lambda(support::get<N>(result.back()), N), ...);
+          };
         while (statement.executeStep()) {
             result.emplace_back();
             outerLambda(indices);
