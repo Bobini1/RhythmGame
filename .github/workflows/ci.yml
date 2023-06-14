@@ -59,6 +59,7 @@ jobs:
 
       - name: Install dependencies
         run: pip3 install "conan"
+          && conan profile detect
           && cp .github/ubuntu.profile ~/.conan2/profiles/default
           && conan remove xorg/system -c
           && conan remove vaapi/system -c
@@ -117,6 +118,7 @@ jobs:
 
       - name: Install dependencies
         run: pip3 install "conan"
+          && conan profile detect
           && cp .github/clang-13.profile ~/.conan2/profiles/default
           && conan remove xorg/system -c
           && conan remove vaapi/system -c
@@ -187,6 +189,7 @@ jobs:
         shell: bash
         run: |
           pip3 install "conan"
+          conan profile detect
           cp .github/$("${{ matrix.os }}".split("-")[0]).profile ~/.conan2/profiles/default
           if [ ${{ matrix.os }} = ubuntu-22.04 ]; then
             conan remove xorg/system -c
@@ -261,6 +264,7 @@ jobs:
         shell: bash
         run: |
           pip3 install "conan"
+          conan profile detect
           cp .github/$("${{ matrix.os }}".split("-")[0]).profile ~/.conan2/profiles/default
           if [ ${{ matrix.os }} = ubuntu-22.04 ]; then
             conan remove xorg/system -c
