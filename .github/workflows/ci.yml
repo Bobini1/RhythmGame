@@ -54,16 +54,16 @@ jobs:
         id: cache-conan
         uses: actions/cache@v3.0.5
         with:
-          path: ~/.conan/data
+          path: ~/.conan2/p
           key: conan-packages-coverage
 
       - name: Install dependencies
-        run: pip3 install "conan==1.59"
-          && conan profile new default --detect
-          && conan profile update settings.compiler.libcxx=libstdc++11 default
-          && conan remove xorg/system -f
-          && conan remove vaapi/system -f
-          && conan remove vdpau/system -f
+        run: pip3 install "conan"
+          && conan profile detect
+          && cp .github/ubuntu.profile ~/.conan2/profiles/default
+          && conan remove xorg/system -c
+          && conan remove vaapi/system -c
+          && conan remove vdpau/system -c
           && conan install . -b missing -c tools.system.package_manager:mode=install -c tools.system.package_manager:sudo=True -pr:b=default
 
       - name: Configure
@@ -83,9 +83,9 @@ jobs:
         run: cmake --build build/coverage -t coverage
 
       - name: Submit to codecov.io
-        uses: codecov/codecov-action@v1
+        uses: codecov/codecov-action@v3
         with:
-          file: build/coverage/coverage.info
+          files: build/coverage/coverage.info
 
   sanitize:
     needs: [ lint ]
@@ -113,16 +113,16 @@ jobs:
         id: cache-conan
         uses: actions/cache@v3.0.5
         with:
-          path: ~/.conan/data
+          path: ~/.conan2/p
           key: conan-packages-sanitize
 
       - name: Install dependencies
-        run: pip3 install "conan==1.59"
-          && conan profile new default --detect
-          && cp .github/clang-13.profile ~/.conan/profiles/default
-          && conan remove xorg/system -f
-          && conan remove vaapi/system -f
-          && conan remove vdpau/system -f
+        run: pip3 install "conan"
+          && conan profile detect
+          && cp .github/clang-13.profile ~/.conan2/profiles/default
+          && conan remove xorg/system -c
+          && conan remove vaapi/system -c
+          && conan remove vdpau/system -c
           && conan install . -b missing -c tools.system.package_manager:mode=install -c tools.system.package_manager:sudo=True -pr:b=default
 
       - name: Configure
@@ -174,7 +174,7 @@ jobs:
         id: cache-conan
         uses: actions/cache@v3.0.5
         with:
-          path: ~/.conan/data
+          path: ~/.conan2/p
           key: conan-packages-${{ matrix.os }}-v2
 
       - name: Cache conan extra exports
@@ -182,22 +182,23 @@ jobs:
         id: cache-conan-exports
         uses: actions/cache@v3.0.5
         with:
-          path: C:/.conan
+          path: C:/.conan2
           key: conan-exports-extra-windows
+
+      - name: Copy profile
+        shell: pwsh
+        run: |
+          pip3 install "conan"
+          conan profile detect
+          cp .github/$("${{ matrix.os }}".split("-")[0]).profile ~/.conan2/profiles/default
 
       - name: Install dependencies
         shell: bash
         run: |
-          pip3 install "conan==1.59"
-          conan profile new default --detect --force
           if [ ${{ matrix.os }} = ubuntu-22.04 ]; then
-            conan profile update settings.compiler.libcxx=libstdc++11 default
-            conan remove xorg/system -f
-            conan remove vaapi/system -f
-            conan remove vdpau/system -f
-          fi
-          if [ ${{ matrix.os }} = macos-12 ]; then
-            conan create ./recipes/luajit/all/ 2.0.5@
+            conan remove xorg/system -c
+            conan remove vaapi/system -c
+            conan remove vdpau/system -c
           fi
           conan install . -b missing -c tools.system.package_manager:mode=install -c tools.system.package_manager:sudo=True
 
@@ -252,7 +253,7 @@ jobs:
         id: cache-conan
         uses: actions/cache@v3.0.5
         with:
-          path: ~/.conan/data
+          path: ~/.conan2/p
           key: conan-packages-${{ matrix.os }}
 
       - name: Cache conan extra exports
@@ -260,22 +261,23 @@ jobs:
         id: cache-conan-exports
         uses: actions/cache@v3.0.5
         with:
-          path: C:/.conan
+          path: C:/.conan2
           key: conan-exports-extra-windows
+
+      - name: Copy profile
+        shell: pwsh
+        run: |
+          pip3 install "conan"
+          conan profile detect
+          cp .github/$("${{ matrix.os }}".split("-")[0]).profile ~/.conan2/profiles/default
 
       - name: Install dependencies
         shell: bash
         run: |
-          pip3 install "conan==1.59"
-          conan profile new default --detect --force
           if [ ${{ matrix.os }} = ubuntu-22.04 ]; then
-            conan profile update settings.compiler.libcxx=libstdc++11 default
-            conan remove xorg/system -f
-            conan remove vaapi/system -f
-            conan remove vdpau/system -f
-          fi
-          if [ ${{ matrix.os }} = macos-12 ]; then
-            conan create ./recipes/luajit/all/ 2.0.5@
+            conan remove xorg/system -c
+            conan remove vaapi/system -c
+            conan remove vdpau/system -c
           fi
           if [ ${{ matrix.os }} = windows-latest ]; then
             choco install nsis
