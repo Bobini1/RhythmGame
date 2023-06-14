@@ -22,6 +22,7 @@ class Recipe(ConanFile):
         self.requires("spdlog/1.11.0")
         self.requires("foonathan-lexy/2022.12.00")
         self.requires("ffmpeg/5.0")
+        self.requires("openal/1.22.2")
 
         # version overrides
         self.requires("zlib/1.2.13")
