@@ -24,6 +24,7 @@ class SqliteCppDb
 {
     thread_local static DatabaseAccessPoint connections;
     std::string connKey;
+
   public:
     /**
      * @brief Constructs a database wrapper.
@@ -52,7 +53,7 @@ class SqliteCppDb
     template<std::default_initializable Ret>
     [[nodiscard]] auto executeAndGet(const std::string& query) const
       -> std::optional<Ret>
-        requires (!std::convertible_to<SQLite::Column, Ret>)
+        requires(!std::convertible_to<SQLite::Column, Ret>)
     {
         SQLite::Statement statement(connections[connKey], query);
         if (!statement.executeStep()) {
@@ -61,7 +62,7 @@ class SqliteCppDb
         Ret result{};
         writeRow(statement, result);
 
-        return {std::move(result)};
+        return { std::move(result) };
     }
     /**
      * @brief Executes a query that returns any number of rows.
@@ -74,7 +75,7 @@ class SqliteCppDb
     template<std::default_initializable Ret>
     [[nodiscard]] auto executeAndGetAll(const std::string& query) const
       -> std::vector<Ret>
-        requires (!std::convertible_to<SQLite::Column, Ret>)
+        requires(!std::convertible_to<SQLite::Column, Ret>)
     {
         SQLite::Statement statement(connections[connKey], query);
         std::vector<Ret> result;
@@ -89,18 +90,18 @@ class SqliteCppDb
 
     template<typename Ret>
     auto executeAndGet(const std::string& query) const -> std::optional<Ret>
-    requires std::convertible_to<SQLite::Column, Ret>
+        requires std::convertible_to<SQLite::Column, Ret>
     {
         SQLite::Statement statement(connections[connKey], query);
         if (!statement.executeStep()) {
             return {};
         }
-        return {statement.getColumn(0)};
+        return { statement.getColumn(0) };
     }
 
     template<typename Ret>
     auto executeAndGetAll(const std::string& query) const -> std::vector<Ret>
-    requires std::convertible_to<SQLite::Column, Ret>
+        requires std::convertible_to<SQLite::Column, Ret>
     {
         SQLite::Statement statement(connections[connKey], query);
         std::vector<Ret> result;
@@ -111,6 +112,7 @@ class SqliteCppDb
 
         return result;
     }
+
   private:
     template<typename ElemType>
     static auto getElem(SQLite::Statement& statement, int index) -> ElemType
