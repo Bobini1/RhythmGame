@@ -17,7 +17,7 @@ class Recipe(ConanFile):
         self.requires("sqlitecpp/3.1.1")
         self.requires("boost/1.79.0")
         self.requires("ms-gsl/4.0.0")
-        self.requires("luajit/2.0.5")
+        self.requires("luajit/2.1.0-beta3")
         self.requires("sfml/2.5.1")
         self.requires("spdlog/1.11.0")
         self.requires("foonathan-lexy/2022.12.00")
