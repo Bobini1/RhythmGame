@@ -185,12 +185,16 @@ jobs:
           path: C:/.conan2
           key: conan-exports-extra-windows
 
-      - name: Install dependencies
-        shell: bash
+      - name: Copy profile
+        shell: pwsh
         run: |
           pip3 install "conan"
           conan profile detect
           cp .github/$("${{ matrix.os }}".split("-")[0]).profile ~/.conan2/profiles/default
+
+      - name: Install dependencies
+        shell: bash
+        run: |
           if [ ${{ matrix.os }} = ubuntu-22.04 ]; then
             conan remove xorg/system -c
             conan remove vaapi/system -c
@@ -260,12 +264,16 @@ jobs:
           path: C:/.conan2
           key: conan-exports-extra-windows
 
-      - name: Install dependencies
-        shell: bash
+      - name: Copy profile
+        shell: pwsh
         run: |
           pip3 install "conan"
           conan profile detect
           cp .github/$("${{ matrix.os }}".split("-")[0]).profile ~/.conan2/profiles/default
+
+      - name: Install dependencies
+        shell: bash
+        run: |
           if [ ${{ matrix.os }} = ubuntu-22.04 ]; then
             conan remove xorg/system -c
             conan remove vaapi/system -c
