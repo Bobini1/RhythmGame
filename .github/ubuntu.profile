@@ -1,10 +1,10 @@
 [settings]
 arch=x86_64
 build_type=Release
-compiler=clang
+compiler=gcc
 compiler.cppstd=gnu20
 compiler.libcxx=libstdc++11
-compiler.version=13
+compiler.version=11
 os=Linux
 [conf]
 tools.system.package_manager:mode=install
