@@ -96,7 +96,7 @@ class SqliteCppDb
         if (!statement.executeStep()) {
             return {};
         }
-        return { statement.getColumn(0) };
+        return { getElem<Ret>(statement, 0) };
     }
 
     template<typename Ret>
@@ -107,7 +107,7 @@ class SqliteCppDb
         std::vector<Ret> result;
 
         while (statement.executeStep()) {
-            result.emplace_back(statement.getColumn(0));
+            result.emplace_back(getElem<Ret>(statement, 0));
         }
 
         return result;
