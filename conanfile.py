@@ -15,7 +15,7 @@ class Recipe(ConanFile):
     def requirements(self):
         self.requires("sol2/3.3.0")
         self.requires("sqlitecpp/3.1.1")
-        self.requires("boost/1.79.0")
+        self.requires("boost/1.82.0")
         self.requires("ms-gsl/4.0.0")
         self.requires("luajit/2.1.0-beta3")
         self.requires("sfml/2.5.1")
