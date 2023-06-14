@@ -9,7 +9,7 @@
 #include <functional>
 #include <lexy/input/string_input.hpp>
 #include <spdlog/spdlog.h>
-#include <type_safe/strong_typedef.hpp>
+#include <boost/serialization/strong_typedef.hpp>
 #include "BmsChartReader.h"
 
 #include <lexy_ext/report_error.hpp>
@@ -100,50 +100,18 @@ struct MeasureBasedTag
       lexy::construct<std::tuple<uint64_t, int, std::vector<std::string>>>;
 };
 
-struct Title : type_safe::strong_typedef<Title, std::string>
-{
-    using strong_typedef::strong_typedef;
-};
-
-struct Artist : type_safe::strong_typedef<Artist, std::string>
-{
-    using strong_typedef::strong_typedef;
-};
-
-struct Genre : type_safe::strong_typedef<Genre, std::string>
-{
-    using strong_typedef::strong_typedef;
-};
-
-struct Subtitle : type_safe::strong_typedef<Subtitle, std::string>
-{
-    using strong_typedef::strong_typedef;
-};
-
-struct Subartist : type_safe::strong_typedef<Subartist, std::string>
-{
-    using strong_typedef::strong_typedef;
-};
-
-struct Bpm : type_safe::strong_typedef<Bpm, double>
-{
-    using strong_typedef::strong_typedef;
-};
-
-struct Wav : type_safe::strong_typedef<Wav, std::pair<std::string, std::string>>
-{
-    using strong_typedef::strong_typedef;
-};
-
-struct ExBpm : type_safe::strong_typedef<ExBpm, std::pair<std::string, double>>
-{
-    using strong_typedef::strong_typedef;
-};
-
-struct Meter : type_safe::strong_typedef<Meter, std::pair<uint64_t, double>>
-{
-    using strong_typedef::strong_typedef;
-};
+BOOST_STRONG_TYPEDEF(std::string, Title);
+BOOST_STRONG_TYPEDEF(std::string, Artist)
+BOOST_STRONG_TYPEDEF(std::string, Genre);
+BOOST_STRONG_TYPEDEF(std::string, Subtitle);
+BOOST_STRONG_TYPEDEF(std::string, Subartist);
+BOOST_STRONG_TYPEDEF(double, Bpm);
+using wav_t = std::pair<std::string, std::string>;
+BOOST_STRONG_TYPEDEF(wav_t, Wav);
+using pair_t = std::pair<std::string, double>;
+BOOST_STRONG_TYPEDEF(pair_t, ExBpm);
+using meter_t = std::pair<uint64_t, double>;
+BOOST_STRONG_TYPEDEF(meter_t, Meter);
 
 struct TitleTag
 {

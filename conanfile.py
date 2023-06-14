@@ -16,19 +16,15 @@ class Recipe(ConanFile):
         self.requires("sol2/3.3.0")
         self.requires("sqlitecpp/3.1.1")
         self.requires("boost/1.79.0")
-        self.requires("stb/cci.20210910")
         self.requires("ms-gsl/4.0.0")
-        self.requires("type_safe/0.2.2")
         self.requires("luajit/2.0.5")
         self.requires("sfml/2.5.1")
-        self.requires("di/1.2.0")
         self.requires("spdlog/1.11.0")
         self.requires("foonathan-lexy/2022.12.00")
         self.requires("ffmpeg/5.0")
 
         # version overrides
         self.requires("zlib/1.2.13")
-        self.requires("freetype/2.12.1")
         if self.settings.os == "Linux":
             self.requires("libalsa/1.2.7.2")
             self.requires("libffi/3.4.3")
@@ -36,7 +32,7 @@ class Recipe(ConanFile):
             self.requires("libsndfile/1.2.0")
 
         # Testing only dependencies below
-        self.requires("catch2/3.0.1")
+        self.requires("catch2/3.3.2")
 
     def configure(self):
         # https://www.ffmpeg.org/legal.html
@@ -46,6 +42,3 @@ class Recipe(ConanFile):
         self.options["ffmpeg"].postproc = False
         self.options["ffmpeg"].with_libfdk_aac = False
         self.options["ffmpeg"].with_openjpeg = False
-        if self.settings.os == "Linux":
-            # mpg123 broken on clang as of 17/04/2023
-            self.options["libsndfile"].with_mpeg = False
