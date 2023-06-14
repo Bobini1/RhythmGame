@@ -52,6 +52,8 @@ find_package(Threads REQUIRED)
 
 find_package(Microsoft.GSL REQUIRED)
 
+find_package(OpenAL MODULE REQUIRED)
+
 target_link_libraries(RhythmGame_lib PUBLIC Threads::Threads Boost::headers Boost::serialization Boost::dynamic_linking Boost::filesystem luajit::luajit sol2::sol2 SQLiteCpp sfml::sfml Microsoft.GSL::GSL spdlog::spdlog foonathan::lexy ffmpeg::ffmpeg OpenAL::OpenAL)
 
 include(CheckCXXSymbolExists)
