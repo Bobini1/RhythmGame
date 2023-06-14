@@ -103,7 +103,8 @@ TEST_CASE("Values can be inserted into custom aggregate structs",
     REQUIRE(y == "TestName"s);
 }
 
-TEST_CASE("Simple scalar types don't need to be wrapped in structs or tuples", "[SqliteCppDb]")
+TEST_CASE("Simple scalar types don't need to be wrapped in structs or tuples",
+          "[SqliteCppDb]")
 {
     using namespace std::string_literals;
     auto db = getDb("test5.db"s);
