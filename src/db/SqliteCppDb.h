@@ -24,7 +24,6 @@ class SqliteCppDb
 {
     thread_local static DatabaseAccessPoint connections;
     std::string connKey;
-
   public:
     /**
      * @brief Constructs a database wrapper.
@@ -53,32 +52,16 @@ class SqliteCppDb
     template<std::default_initializable Ret>
     [[nodiscard]] auto executeAndGet(const std::string& query) const
       -> std::optional<Ret>
+        requires (!std::convertible_to<SQLite::Column, Ret>)
     {
         SQLite::Statement statement(connections[connKey], query);
         if (!statement.executeStep()) {
             return {};
         }
         Ret result{};
-        constexpr size_t tupleSize = support::tupleSizeV<Ret>;
-        constexpr auto indices =
-          std::make_integer_sequence<int, static_cast<int>(tupleSize)>();
+        writeRow(statement, result);
 
-        auto lambda = [&statement]<typename Elem>(Elem& elem, int index) {
-            // This if is necessary for MSVC (don't ask me why)
-            if constexpr (std::is_same_v<Elem, std::string>) {
-                elem = statement.getColumn(index).getString();
-            } else {
-                elem = static_cast<Elem>(statement.getColumn(index));
-            }
-        };
-        auto outerLambda =
-          [&lambda, &result]<int... N>(std::integer_sequence<int, N...>) {
-              (lambda(support::get<N>(result), N), ...);
-          };
-
-        outerLambda(indices);
-
-        return result;
+        return {std::move(result)};
     }
     /**
      * @brief Executes a query that returns any number of rows.
@@ -91,31 +74,68 @@ class SqliteCppDb
     template<std::default_initializable Ret>
     [[nodiscard]] auto executeAndGetAll(const std::string& query) const
       -> std::vector<Ret>
+        requires (!std::convertible_to<SQLite::Column, Ret>)
     {
         SQLite::Statement statement(connections[connKey], query);
         std::vector<Ret> result;
+
+        while (statement.executeStep()) {
+            result.emplace_back();
+            writeRow(statement, result.back());
+        }
+
+        return result;
+    }
+
+    template<typename Ret>
+    auto executeAndGet(const std::string& query) const -> std::optional<Ret>
+    requires std::convertible_to<SQLite::Column, Ret>
+    {
+        SQLite::Statement statement(connections[connKey], query);
+        if (!statement.executeStep()) {
+            return {};
+        }
+        return {statement.getColumn(0)};
+    }
+
+    template<typename Ret>
+    auto executeAndGetAll(const std::string& query) const -> std::vector<Ret>
+    requires std::convertible_to<SQLite::Column, Ret>
+    {
+        SQLite::Statement statement(connections[connKey], query);
+        std::vector<Ret> result;
+
+        while (statement.executeStep()) {
+            result.emplace_back(statement.getColumn(0));
+        }
+
+        return result;
+    }
+  private:
+    template<typename ElemType>
+    static auto getElem(SQLite::Statement& statement, int index) -> ElemType
+    {
+        // This if is necessary for MSVC (don't ask me why)
+        if constexpr (std::is_same_v<ElemType, std::string>) {
+            return statement.getColumn(index).getString();
+        } else {
+            return static_cast<ElemType>(statement.getColumn(index));
+        }
+    }
+
+    template<std::default_initializable Ret>
+    auto writeRow(SQLite::Statement& statement, Ret& ret) const -> void
+    {
         constexpr size_t tupleSize = support::tupleSizeV<Ret>;
         constexpr auto indices =
           std::make_integer_sequence<int, static_cast<int>(tupleSize)>();
 
-        auto lambda = [&statement]<typename Elem>(Elem& elem, int index) {
-            // This if is necessary for MSVC (don't ask me why)
-            if constexpr (std::is_same_v<Elem, std::string>) {
-                elem = statement.getColumn(index).getString();
-            } else {
-                elem = static_cast<Elem>(statement.getColumn(index));
-            }
-        };
-        auto outerLambda =
-          [&lambda, &result]<int... N>(std::integer_sequence<int, N...>) {
-              (lambda(support::get<N>(result.back()), N), ...);
-          };
-        while (statement.executeStep()) {
-            result.emplace_back();
-            outerLambda(indices);
-        }
-
-        return result;
+        [&statement, &ret]<int... N>(std::integer_sequence<int, N...>) {
+            ((support::get<N>(ret) =
+                getElem<std::remove_cvref_t<decltype(support::get<N>(ret))>>(
+                  statement, N)),
+             ...);
+        }(indices);
     }
 };
 } // namespace db

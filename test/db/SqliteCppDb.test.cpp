@@ -102,3 +102,21 @@ TEST_CASE("Values can be inserted into custom aggregate structs",
     REQUIRE(x == 1);
     REQUIRE(y == "TestName"s);
 }
+
+TEST_CASE("Simple scalar types don't need to be wrapped in structs or tuples", "[SqliteCppDb]")
+{
+    using namespace std::string_literals;
+    auto db = getDb("test5.db"s);
+    REQUIRE_FALSE(db.hasTable("Test"));
+    db.execute("CREATE TABLE Test(ID int, Name VARCHAR(255))"s);
+    db.execute("INSERT INTO Test VALUES (1, 'TestName')"s);
+    auto row = db.executeAndGet<int>("SELECT ID FROM Test WHERE ID = 1"s);
+    REQUIRE(row);
+    auto& x = row.value();
+    REQUIRE(x == 1);
+
+    auto rows = db.executeAndGetAll<int>("SELECT ID FROM Test"s);
+    REQUIRE(rows.size() == 1);
+    row = rows[0];
+    REQUIRE(x == 1);
+}
