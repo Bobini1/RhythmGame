@@ -60,9 +60,9 @@ jobs:
       - name: Install dependencies
         run: pip3 install "conan"
           && conan profile detect
-          && conan remove xorg/system -f
-          && conan remove vaapi/system -f
-          && conan remove vdpau/system -f
+          && conan remove xorg/system -c
+          && conan remove vaapi/system -c
+          && conan remove vdpau/system -c
           && conan install . -b missing -c tools.system.package_manager:mode=install -c tools.system.package_manager:sudo=True -pr:b=default
 
       - name: Configure
@@ -119,9 +119,9 @@ jobs:
         run: pip3 install "conan"
           && conan profile detect
           && cp .github/clang-13.profile ~/.conan2/profiles/default
-          && conan remove xorg/system -f
-          && conan remove vaapi/system -f
-          && conan remove vdpau/system -f
+          && conan remove xorg/system -c
+          && conan remove vaapi/system -c
+          && conan remove vdpau/system -c
           && conan install . -b missing -c tools.system.package_manager:mode=install -c tools.system.package_manager:sudo=True -pr:b=default
 
       - name: Configure
@@ -190,9 +190,9 @@ jobs:
           pip3 install "conan"
           conan profile detect --force
           if [ ${{ matrix.os }} = ubuntu-22.04 ]; then
-            conan remove xorg/system -f
-            conan remove vaapi/system -f
-            conan remove vdpau/system -f
+            conan remove xorg/system -c
+            conan remove vaapi/system -c
+            conan remove vdpau/system -c
           fi
           conan install . -b missing -c tools.system.package_manager:mode=install -c tools.system.package_manager:sudo=True
 
@@ -264,9 +264,9 @@ jobs:
           pip3 install "conan"
           conan profile detect --force
           if [ ${{ matrix.os }} = ubuntu-22.04 ]; then
-            conan remove xorg/system -f
-            conan remove vaapi/system -f
-            conan remove vdpau/system -f
+            conan remove xorg/system -c
+            conan remove vaapi/system -c
+            conan remove vdpau/system -c
           fi
           if [ ${{ matrix.os }} = windows-latest ]; then
             choco install nsis
