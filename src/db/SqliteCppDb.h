@@ -9,6 +9,9 @@
 #include <vector>
 #include <map>
 #include <db/DatabaseAccessPoint.h>
+#include <type_traits>
+#include "support/get.h"
+#include "support/TupleSize.h"
 
 namespace db {
 
@@ -45,38 +48,22 @@ class SqliteCppDb
      * @return An optional holding the result of the query. It will be empty if
      * the query didn't return anything. If the query returns fewer columns than
      * specified in template parameters, they will be default initialized.
-     * @tparam Ret Types of the columns. Must be default constructible.
+     * @tparam Ret The type that the result will be stored in can be a tuple
+     * or an aggregate. Must be default constructible.
      */
-    template<std::default_initializable... Ret>
+    template<std::default_initializable Ret>
     [[nodiscard]] auto executeAndGet(const std::string& query) const
-      -> std::optional<std::tuple<Ret...>>
+      -> std::optional<Ret>
+        requires(!std::convertible_to<SQLite::Column, Ret>)
     {
         SQLite::Statement statement(connections[connKey], query);
         if (!statement.executeStep()) {
             return {};
         }
-        std::tuple<Ret...> result;
-        constexpr size_t tupleSize = std::tuple_size_v<std::tuple<Ret...>>;
-        constexpr auto indices =
-          std::make_integer_sequence<int, static_cast<int>(tupleSize)>();
+        Ret result{};
+        writeRow(statement, result);
 
-        auto lambda = [&statement]<typename Elem>(Elem& elem, int index) {
-            // This if is necessary for MSVC (don't ask me why)
-            if constexpr (std::is_same_v<Elem, std::string>) {
-                elem = statement.getColumn(index).getString();
-            } else {
-                elem = static_cast<Elem>(statement.getColumn(index));
-            }
-        };
-        auto outerLambda =
-          [&lambda, &result ]<int... N>(std::integer_sequence<int, N...>)
-        {
-            (lambda(std::get<N>(result), N), ...);
-        };
-
-        outerLambda(indices);
-
-        return result;
+        return { std::move(result) };
     }
     /**
      * @brief Executes a query that returns any number of rows.
@@ -84,37 +71,90 @@ class SqliteCppDb
      * @return A vector holding the result of the query. It will be empty if
      * the query didn't return anything. If the query returns fewer columns than
      * specified in the template parameters, this method will throw.
-     * @tparam Ret Types of the columns. Must be default constructible.
+     * @tparam Ret The type that the result will be stored in can be a tuple
+     * or an aggregate. Must be default constructible.
      */
-    template<typename... Ret>
+    template<std::default_initializable Ret>
     [[nodiscard]] auto executeAndGetAll(const std::string& query) const
-      -> std::vector<std::tuple<Ret...>>
+      -> std::vector<Ret>
+        requires(!std::convertible_to<SQLite::Column, Ret>)
     {
         SQLite::Statement statement(connections[connKey], query);
-        std::vector<std::tuple<Ret...>> result;
-        constexpr size_t tupleSize = std::tuple_size_v<std::tuple<Ret...>>;
-        constexpr auto indices =
-          std::make_integer_sequence<int, static_cast<int>(tupleSize)>();
+        std::vector<Ret> result;
 
-        auto lambda = [&statement]<typename Elem>(Elem& elem, int index) {
-            // This if is necessary for MSVC (don't ask me why)
-            if constexpr (std::is_same_v<Elem, std::string>) {
-                elem = statement.getColumn(index).getString();
-            } else {
-                elem = static_cast<Elem>(statement.getColumn(index));
-            }
-        };
-        auto outerLambda =
-          [&lambda, &result ]<int... N>(std::integer_sequence<int, N...>)
-        {
-            (lambda(std::get<N>(result.back()), N), ...);
-        };
         while (statement.executeStep()) {
             result.emplace_back();
-            outerLambda(indices);
+            writeRow(statement, result.back());
         }
 
         return result;
+    }
+
+    /**
+     * @brief Executes a query that returns a single value in a single column.
+     * @tparam Ret Type of the value to return.
+     * @param query Query to execute.
+     * @return An optional holding the result of the query. It will be empty if
+     * the query didn't return anything.
+     */
+    template<typename Ret>
+    auto executeAndGet(const std::string& query) const -> std::optional<Ret>
+        requires std::convertible_to<SQLite::Column, Ret>
+    {
+        SQLite::Statement statement(connections[connKey], query);
+        if (!statement.executeStep()) {
+            return {};
+        }
+        return { getElem<Ret>(statement, 0) };
+    }
+
+    /**
+     * @brief Executes a query that returns any number of values in a single
+     * column.
+     * @tparam Ret Type of the values to return.
+     * @param query Query to execute.
+     * @return A vector holding the result of the query. It will be empty if
+     * the query didn't return anything.
+     */
+    template<typename Ret>
+    auto executeAndGetAll(const std::string& query) const -> std::vector<Ret>
+        requires std::convertible_to<SQLite::Column, Ret>
+    {
+        SQLite::Statement statement(connections[connKey], query);
+        std::vector<Ret> result;
+
+        while (statement.executeStep()) {
+            result.emplace_back(getElem<Ret>(statement, 0));
+        }
+
+        return result;
+    }
+
+  private:
+    template<typename ElemType>
+    static auto getElem(SQLite::Statement& statement, int index) -> ElemType
+    {
+        // This if is necessary for MSVC (don't ask me why)
+        if constexpr (std::is_same_v<ElemType, std::string>) {
+            return statement.getColumn(index).getString();
+        } else {
+            return static_cast<ElemType>(statement.getColumn(index));
+        }
+    }
+
+    template<std::default_initializable Ret>
+    auto writeRow(SQLite::Statement& statement, Ret& ret) const -> void
+    {
+        constexpr size_t tupleSize = support::tupleSizeV<Ret>;
+        constexpr auto indices =
+          std::make_integer_sequence<int, static_cast<int>(tupleSize)>();
+
+        [&statement, &ret]<int... N>(std::integer_sequence<int, N...>) {
+            ((support::get<N>(ret) =
+                getElem<std::remove_cvref_t<decltype(support::get<N>(ret))>>(
+                  statement, N)),
+             ...);
+        }(indices);
     }
 };
 } // namespace db
