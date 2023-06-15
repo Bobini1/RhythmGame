@@ -60,6 +60,7 @@
               <ul>
                 <li><a href="#nested-classes">Classes</a></li>
                 <li><a href="#func-members">Functions</a></li>
+                <li><a href="#var-members">Variables</a></li>
               </ul>
             </li>
           </ul>
@@ -72,6 +73,10 @@
               class <a href="classsupport_1_1EnableSharedFromBase.html" class="m-doc">EnableSharedFromBase</a>
             </dt>
             <dd>A helper class for creating a shared pointer to self.</dd>
+            <dt>
+              class <a href="classsupport_1_1TupleSize.html" class="m-doc">TupleSize</a>
+            </dt>
+            <dd><span></span></dd>
           </dl>
         </section>
         <section id="func-members">
@@ -79,6 +84,26 @@
           <dl class="m-doc">
             <dt>
               <span class="m-doc-wrap-bumper">auto <a href="#ab82bf022148f50c7b1f211722a03bc55" class="m-doc">capitalize</a>(</span><span class="m-doc-wrap">std::string_view str) -&gt; std::string</span>
+            </dt>
+            <dd><span></span></dd>
+            <dt>
+              <div class="m-doc-template">template&lt;std::size_t N, typename T&gt;</div>
+              <span class="m-doc-wrap-bumper">auto <a href="#a2a12b147cc43b217f21c43889eb0e217" class="m-doc">get</a>(</span><span class="m-doc-wrap">T&amp;&amp; t) -&gt; auto &amp;requires requires <span class="m-label m-flat m-primary">constexpr</span></span>
+            </dt>
+            <dd>Returns the nth element of a type that supports std::get.</dd>
+          </dl>
+        </section>
+        <section id="var-members">
+          <h2><a href="#var-members">Variables</a></h2>
+          <dl class="m-doc">
+            <dt>
+              <div class="m-doc-template">template&lt;typename T&gt;</div>
+              requires <a href="#a741bdc4f0cd806cea6cc345835180943" class="m-doc">requires</a>
+            </dt>
+            <dd>Used to get the size of a tuple or an aggregate.</dd>
+            <dt>
+              <div class="m-doc-template">template&lt;typename T&gt;</div>
+              auto <a href="#a30de9f53b3c7cdc7f6ff8eac5fe678ef" class="m-doc">tupleSizeV</a> <span class="m-label m-flat m-primary">constexpr</span>
             </dt>
             <dd><span></span></dd>
           </dl>
@@ -89,6 +114,81 @@
             <h3>
               <span class="m-doc-wrap-bumper">auto support::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#ab82bf022148f50c7b1f211722a03bc55" class="m-doc-self">capitalize</a>(</span><span class="m-doc-wrap">std::string_view str) -&gt; std::string</span></span>
               <div class="m-doc-include m-code m-inverted m-text-right"><span class="cp">#include</span> <a class="cpf" href="Capitalize_8h.html">&lt;src/support/Capitalize.h&gt;</a></div>
+            </h3>
+            <p><span></span></p>
+          </div></section>
+          <section class="m-doc-details" id="a2a12b147cc43b217f21c43889eb0e217"><div>
+            <h3>
+              <div class="m-doc-include m-code m-inverted m-right-m m-text-right"><span class="cp">#include</span> <a class="cpf" href="get_8h.html">&lt;src/support/get.h&gt;</a></div>
+              <div class="m-doc-template">
+                template&lt;std::size_t N, typename T&gt;
+              </div>
+              <span class="m-doc-wrap-bumper">auto support::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a2a12b147cc43b217f21c43889eb0e217" class="m-doc-self">get</a>(</span><span class="m-doc-wrap">T&amp;&amp; t) -&gt; auto &amp;requires requires <span class="m-label m-primary">constexpr</span></span></span>
+            </h3>
+            <p>Returns the nth element of a type that supports std::get.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Template parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">N</td>
+                  <td>Index of the element to get.</td>
+                </tr>
+                <tr>
+                  <td>T</td>
+                  <td>Type of the aggregate.</td>
+                </tr>
+              </tbody>
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>t</td>
+                  <td>Object to get the element from.</td>
+                </tr>
+              </tbody>
+              <tfoot>
+                <tr>
+                  <th>Returns</th>
+                  <td>A reference to nth element of the object.</td>
+                </tr>
+              </tfoot>
+            </table>
+<p>Returns the nth member of an aggregate.</p>
+          </div></section>
+        </section>
+        <section>
+          <h2>Variable documentation</h2>
+          <section class="m-doc-details" id="a741bdc4f0cd806cea6cc345835180943"><div>
+            <h3>
+              <div class="m-doc-include m-code m-inverted m-right-m m-text-right"><span class="cp">#include</span> <a class="cpf" href="TupleSize_8h.html">&lt;src/support/TupleSize.h&gt;</a></div>
+              <div class="m-doc-template">
+                template&lt;typename T&gt;
+              </div>
+              requires support::<wbr /><a href="#a741bdc4f0cd806cea6cc345835180943" class="m-doc-self">requires</a>
+            </h3>
+            <p>Used to get the size of a tuple or an aggregate.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Template parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">T</td>
+                  <td>Type of the tuple or aggregate to check.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div></section>
+          <section class="m-doc-details" id="a30de9f53b3c7cdc7f6ff8eac5fe678ef"><div>
+            <h3>
+              <div class="m-doc-include m-code m-inverted m-right-m m-text-right"><span class="cp">#include</span> <a class="cpf" href="TupleSize_8h.html">&lt;src/support/TupleSize.h&gt;</a></div>
+              <div class="m-doc-template">
+                template&lt;typename T&gt;
+              </div>
+              auto support::<wbr /><a href="#a30de9f53b3c7cdc7f6ff8eac5fe678ef" class="m-doc-self">tupleSizeV</a> <span class="m-label m-primary">constexpr</span>
             </h3>
             <p><span></span></p>
           </div></section>

@@ -86,15 +86,25 @@
             </dt>
             <dd><span></span></dd>
             <dt>
-              <div class="m-doc-template">template&lt;std::default_initializable... Ret&gt;</div>
-              <span class="m-doc-wrap-bumper">auto <a href="#a1a186bf6c4543b51ee4c061cb834387d" class="m-doc">executeAndGet</a>(</span><span class="m-doc-wrap">const std::string&amp; query) const -&gt; std::optional&lt; std::tuple&lt; Ret... &gt;&gt;</span>
+              <div class="m-doc-template">template&lt;std::default_initializable Ret&gt;</div>
+              <span class="m-doc-wrap-bumper">auto <a href="#ac079ef7b257983ff1d46585047485f70" class="m-doc">executeAndGet</a>(</span><span class="m-doc-wrap">const std::string&amp; query)</span>
             </dt>
             <dd>Executes a query that returns a single row.</dd>
             <dt>
-              <div class="m-doc-template">template&lt;typename... Ret&gt;</div>
-              <span class="m-doc-wrap-bumper">auto <a href="#a56829aa1c322681bd93e81b5ff19b1fd" class="m-doc">executeAndGetAll</a>(</span><span class="m-doc-wrap">const std::string&amp; query) const -&gt; std::vector&lt; std::tuple&lt; Ret... &gt;&gt;</span>
+              <div class="m-doc-template">template&lt;std::default_initializable Ret&gt;</div>
+              <span class="m-doc-wrap-bumper">auto <a href="#a2a931f11f0206fa1bdb87857748994e7" class="m-doc">executeAndGetAll</a>(</span><span class="m-doc-wrap">const std::string&amp; query)</span>
             </dt>
             <dd>Executes a query that returns any number of rows.</dd>
+            <dt>
+              <div class="m-doc-template">template&lt;typename Ret&gt;</div>
+              <span class="m-doc-wrap-bumper">auto <a href="#abc641d06b21aba952284934d4d3de38f" class="m-doc">executeAndGet</a>(</span><span class="m-doc-wrap">const std::string&amp; query) const -&gt; std::optional&lt; Ret &gt; requires std::convertible_to&lt; SQLite::Column, Ret &gt;</span>
+            </dt>
+            <dd>Executes a query that returns a single value in a single column.</dd>
+            <dt>
+              <div class="m-doc-template">template&lt;typename Ret&gt;</div>
+              <span class="m-doc-wrap-bumper">auto <a href="#afe172fb64605c7403739d6b6adb26098" class="m-doc">executeAndGetAll</a>(</span><span class="m-doc-wrap">const std::string&amp; query) const -&gt; std::vector&lt; Ret &gt; requires std::convertible_to&lt; SQLite::Column, Ret &gt;</span>
+            </dt>
+            <dd>Executes a query that returns any number of values in a single column.</dd>
           </dl>
         </section>
         <section>
@@ -130,12 +140,12 @@
               </tfoot>
             </table>
           </div></section>
-          <section class="m-doc-details" id="a1a186bf6c4543b51ee4c061cb834387d"><div>
+          <section class="m-doc-details" id="ac079ef7b257983ff1d46585047485f70"><div>
             <h3>
               <div class="m-doc-template">
-                template&lt;std::default_initializable... Ret&gt;
+                template&lt;std::default_initializable Ret&gt;
               </div>
-              <span class="m-doc-wrap-bumper">auto db::<wbr />SqliteCppDb::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a1a186bf6c4543b51ee4c061cb834387d" class="m-doc-self">executeAndGet</a>(</span><span class="m-doc-wrap">const std::string&amp; query) const -&gt; std::optional&lt; std::tuple&lt; Ret... &gt;&gt;</span></span>
+              <span class="m-doc-wrap-bumper">auto db::<wbr />SqliteCppDb::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#ac079ef7b257983ff1d46585047485f70" class="m-doc-self">executeAndGet</a>(</span><span class="m-doc-wrap">const std::string&amp; query)</span></span>
             </h3>
             <p>Executes a query that returns a single row.</p>
             <table class="m-table m-fullwidth m-flat">
@@ -145,7 +155,7 @@
               <tbody>
                 <tr>
                   <td style="width: 1%">Ret</td>
-                  <td>Types of the columns. Must be default constructible.</td>
+                  <td>The type that the result will be stored in can be a tuple or an aggregate. Must be default constructible.</td>
                 </tr>
               </tbody>
               <thead>
@@ -165,12 +175,12 @@
               </tfoot>
             </table>
           </div></section>
-          <section class="m-doc-details" id="a56829aa1c322681bd93e81b5ff19b1fd"><div>
+          <section class="m-doc-details" id="a2a931f11f0206fa1bdb87857748994e7"><div>
             <h3>
               <div class="m-doc-template">
-                template&lt;typename... Ret&gt;
+                template&lt;std::default_initializable Ret&gt;
               </div>
-              <span class="m-doc-wrap-bumper">auto db::<wbr />SqliteCppDb::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a56829aa1c322681bd93e81b5ff19b1fd" class="m-doc-self">executeAndGetAll</a>(</span><span class="m-doc-wrap">const std::string&amp; query) const -&gt; std::vector&lt; std::tuple&lt; Ret... &gt;&gt;</span></span>
+              <span class="m-doc-wrap-bumper">auto db::<wbr />SqliteCppDb::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a2a931f11f0206fa1bdb87857748994e7" class="m-doc-self">executeAndGetAll</a>(</span><span class="m-doc-wrap">const std::string&amp; query)</span></span>
             </h3>
             <p>Executes a query that returns any number of rows.</p>
             <table class="m-table m-fullwidth m-flat">
@@ -180,7 +190,7 @@
               <tbody>
                 <tr>
                   <td style="width: 1%">Ret</td>
-                  <td>Types of the columns. Must be default constructible.</td>
+                  <td>The type that the result will be stored in can be a tuple or an aggregate. Must be default constructible.</td>
                 </tr>
               </tbody>
               <thead>
@@ -196,6 +206,76 @@
                 <tr>
                   <th>Returns</th>
                   <td>A vector holding the result of the query. It will be empty if the query didn&#x27;t return anything. If the query returns fewer columns than specified in the template parameters, this method will throw.</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div></section>
+          <section class="m-doc-details" id="abc641d06b21aba952284934d4d3de38f"><div>
+            <h3>
+              <div class="m-doc-template">
+                template&lt;typename Ret&gt;
+              </div>
+              <span class="m-doc-wrap-bumper">auto db::<wbr />SqliteCppDb::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#abc641d06b21aba952284934d4d3de38f" class="m-doc-self">executeAndGet</a>(</span><span class="m-doc-wrap">const std::string&amp; query) const -&gt; std::optional&lt; Ret &gt; requires std::convertible_to&lt; SQLite::Column, Ret &gt;</span></span>
+            </h3>
+            <p>Executes a query that returns a single value in a single column.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Template parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">Ret</td>
+                  <td>Type of the value to return.</td>
+                </tr>
+              </tbody>
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>query</td>
+                  <td>Query to execute.</td>
+                </tr>
+              </tbody>
+              <tfoot>
+                <tr>
+                  <th>Returns</th>
+                  <td>An optional holding the result of the query. It will be empty if the query didn&#x27;t return anything.</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div></section>
+          <section class="m-doc-details" id="afe172fb64605c7403739d6b6adb26098"><div>
+            <h3>
+              <div class="m-doc-template">
+                template&lt;typename Ret&gt;
+              </div>
+              <span class="m-doc-wrap-bumper">auto db::<wbr />SqliteCppDb::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#afe172fb64605c7403739d6b6adb26098" class="m-doc-self">executeAndGetAll</a>(</span><span class="m-doc-wrap">const std::string&amp; query) const -&gt; std::vector&lt; Ret &gt; requires std::convertible_to&lt; SQLite::Column, Ret &gt;</span></span>
+            </h3>
+            <p>Executes a query that returns any number of values in a single column.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Template parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">Ret</td>
+                  <td>Type of the values to return.</td>
+                </tr>
+              </tbody>
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>query</td>
+                  <td>Query to execute.</td>
+                </tr>
+              </tbody>
+              <tfoot>
+                <tr>
+                  <th>Returns</th>
+                  <td>A vector holding the result of the query. It will be empty if the query didn&#x27;t return anything.</td>
                 </tr>
               </tfoot>
             </table>
