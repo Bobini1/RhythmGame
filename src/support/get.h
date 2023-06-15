@@ -8,15 +8,18 @@
 #include <boost/pfr/tuple_size.hpp>
 #include <boost/pfr/core.hpp>
 namespace support {
+template<std::size_t N, typename T>
+constexpr auto stdGettable() -> bool
+{
+    using std::get;
+    return requires {
+        get<N>(std::declval<T>());
+    };
+}
 
 template<std::size_t N, typename T>
 constexpr auto
-get(T&& t) -> auto& requires ([]{
-            using std::get;
-            return requires {
-                get<N>(t);
-            };
-        }())
+get(T&& t) -> auto& requires (stdGettable<N, T>())
 {
     using std::get;
     return get<N>(t);
