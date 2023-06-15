@@ -48,7 +48,8 @@ class SqliteCppDb
      * @return An optional holding the result of the query. It will be empty if
      * the query didn't return anything. If the query returns fewer columns than
      * specified in template parameters, they will be default initialized.
-     * @tparam Ret Types of the columns. Must be default constructible.
+     * @tparam Ret The type that the result will be stored in can be a tuple
+     * or an aggregate. Must be default constructible.
      */
     template<std::default_initializable Ret>
     [[nodiscard]] auto executeAndGet(const std::string& query) const
@@ -70,7 +71,8 @@ class SqliteCppDb
      * @return A vector holding the result of the query. It will be empty if
      * the query didn't return anything. If the query returns fewer columns than
      * specified in the template parameters, this method will throw.
-     * @tparam Ret Types of the columns. Must be default constructible.
+     * @tparam Ret The type that the result will be stored in can be a tuple
+     * or an aggregate. Must be default constructible.
      */
     template<std::default_initializable Ret>
     [[nodiscard]] auto executeAndGetAll(const std::string& query) const
@@ -88,6 +90,13 @@ class SqliteCppDb
         return result;
     }
 
+    /**
+     * @brief Executes a query that returns a single value in a single column.
+     * @tparam Ret Type of the value to return.
+     * @param query Query to execute.
+     * @return An optional holding the result of the query. It will be empty if
+     * the query didn't return anything.
+     */
     template<typename Ret>
     auto executeAndGet(const std::string& query) const -> std::optional<Ret>
         requires std::convertible_to<SQLite::Column, Ret>
@@ -99,6 +108,14 @@ class SqliteCppDb
         return { getElem<Ret>(statement, 0) };
     }
 
+    /**
+     * @brief Executes a query that returns any number of values in a single
+     * column.
+     * @tparam Ret Type of the values to return.
+     * @param query Query to execute.
+     * @return A vector holding the result of the query. It will be empty if
+     * the query didn't return anything.
+     */
     template<typename Ret>
     auto executeAndGetAll(const std::string& query) const -> std::vector<Ret>
         requires std::convertible_to<SQLite::Column, Ret>

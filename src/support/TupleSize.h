@@ -8,6 +8,10 @@
 #include <boost/pfr/tuple_size.hpp>
 namespace support {
 
+/**
+ * @brief Used to get the size of a tuple or an aggregate.
+ * @tparam T Type of the tuple or aggregate to check.
+ */
 template<typename T>
     requires requires {
         {
