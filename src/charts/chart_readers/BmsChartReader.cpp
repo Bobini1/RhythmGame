@@ -223,8 +223,8 @@ struct TagsSink
     struct SinkCallback
     {
         using return_type = // NOLINT(readability-identifier-naming)
-          models::BmsChart::Tags;
-        models::BmsChart::Tags state;
+          parser_models::ParsedBmsChart::Tags;
+        parser_models::ParsedBmsChart::Tags state;
         auto finish() && -> return_type { return std::move(state); }
         auto operator()(Title&& title) -> void
         {
@@ -257,9 +257,9 @@ struct TagsSink
             state.exBpms[identifier] = value;
         }
         auto operator()(
-          std::pair<models::BmsChart::RandomRange,
-                    std::vector<std::pair<models::BmsChart::IfTag,
-                                          models::BmsChart::Tags>>>&&
+          std::pair<parser_models::ParsedBmsChart::RandomRange,
+                    std::vector<std::pair<parser_models::ParsedBmsChart::IfTag,
+                                          parser_models::ParsedBmsChart::Tags>>>&&
             randomBlock)
         {
             state.randomBlocks.emplace_back(std::move(randomBlock));
@@ -392,10 +392,10 @@ struct IfBlock
 {
     static constexpr auto rule =
       dsl::ascii::case_folding(LEXY_LIT("#if")) >>
-      (dsl::integer<models::BmsChart::IfTag>(dsl::digits<>) + dsl::p<MainTags> +
+      (dsl::integer<parser_models::ParsedBmsChart::IfTag>(dsl::digits<>) + dsl::p<MainTags> +
        dsl::ascii::case_folding(LEXY_LIT("#endif")));
     static constexpr auto value = lexy::construct<
-      std::pair<models::BmsChart::IfTag, models::BmsChart::Tags>>;
+      std::pair<parser_models::ParsedBmsChart::IfTag, parser_models::ParsedBmsChart::Tags>>;
 };
 
 struct IfList
@@ -407,26 +407,26 @@ struct IfList
         return delims.list(dsl::p<IfBlock>);
     }();
     static constexpr auto value = lexy::as_list<
-      std::vector<std::pair<models::BmsChart::IfTag, models::BmsChart::Tags>>>;
+      std::vector<std::pair<parser_models::ParsedBmsChart::IfTag, parser_models::ParsedBmsChart::Tags>>>;
 };
 
 struct RandomBlock
 {
     static constexpr auto rule = [] {
         return dsl::ascii::case_folding(LEXY_LIT("#random")) >>
-               (dsl::integer<models::BmsChart::RandomRange>(dsl::digits<>) +
+               (dsl::integer<parser_models::ParsedBmsChart::RandomRange>(dsl::digits<>) +
                 dsl::p<IfList> +
                 (dsl::ascii::case_folding(LEXY_LIT("#endrandom")) | dsl::eof));
     }();
-    static constexpr auto value = lexy::construct<std::pair<
-      models::BmsChart::RandomRange,
-      std::vector<std::pair<models::BmsChart::IfTag, models::BmsChart::Tags>>>>;
+    static constexpr auto value = lexy::construct<std::pair<parser_models::ParsedBmsChart::RandomRange,
+      std::vector<std::pair<parser_models::ParsedBmsChart::IfTag,
+                                      parser_models::ParsedBmsChart::Tags>>>>;
 };
 } // namespace
 
 auto
 BmsChartReader::readBmsChart(const std::string& chart) const
-  -> models::BmsChart::Tags
+  -> parser_models::ParsedBmsChart::Tags
 {
     auto result =
       lexy::parse<MainTags>(lexy::string_input<lexy::utf8_char_encoding>(chart),

@@ -2,29 +2,27 @@
 // Created by bobini on 22.07.2022.
 //
 
-#ifndef RHYTHMGAME_BMSCHART_H
-#define RHYTHMGAME_BMSCHART_H
+#ifndef RHYTHMGAME_PARSEDBMSCHART_H
+#define RHYTHMGAME_PARSEDBMSCHART_H
 
 #include <map>
 #include <random>
 #include <optional>
 #include <memory>
 #include <array>
-namespace charts::models {
-
+namespace charts::parser_models {
 /**
  * @brief Be-Music Source chart.
  */
 
-class BmsChart
+struct ParsedBmsChart
 {
-  public:
     using RandomRange = int64_t;
     using IfTag = int64_t;
 
     struct Measure
     {
-        static constexpr auto columnNumber = 9;
+        static constexpr auto columnNumber = 8;
         std::array<std::vector<std::string>, columnNumber> p1VisibleNotes;
         std::array<std::vector<std::string>, columnNumber> p2VisibleNotes;
         std::array<std::vector<std::string>, columnNumber> p1InvisibleNotes;
@@ -57,14 +55,7 @@ class BmsChart
                            that were already defined. */
     };
 
-    /**
-     * @brief Constructs a BMS chart from its tags. The BmsChart is able to
-     * manage random blocks on its own.
-     */
-    explicit BmsChart(Tags tags);
-
-  private:
     Tags tags;
 };
-} // namespace charts::models
-#endif // RHYTHMGAME_BMSCHART_H
+} // namespace charts::parser_models
+#endif // RHYTHMGAME_PARSEDBMSCHART_H
