@@ -151,8 +151,8 @@ charts::gameplay_models::BmsChart::calculateOffsetsForColumn(
         }
         auto [timestamp, soundPointer, fraction] =
           createNoteInfo(notes, bpmChangesInMeasure, index, note);
-        target.emplace_back(timestamp,
-                            Note{ soundPointer, { fraction, meter * 4 } });
+        target.emplace_back(
+          timestamp, Note{ soundPointer, { fraction * meter * 4, meter * 4 } });
     }
 }
 
