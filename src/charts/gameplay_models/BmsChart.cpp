@@ -39,6 +39,36 @@ charts::gameplay_models::BmsChart::generateMeasures(
         auto index = -1;
         auto lastTimestamp = measureStart;
         auto lastFraction = 0.0;
+        if (!measure.exBpmChanges.empty() && !measure.bpmChanges.empty()) {
+            throw std::runtime_error(
+              "Both exBpmChanges and bpmChanges are present in measure " +
+              std::to_string(measureIndex) +
+              ". That is not supported at the moment.");
+        }
+        for (const auto& bpmChange : measure.bpmChanges) {
+            index++;
+            if (bpmChange == "00") {
+                continue;
+            }
+            auto idx = size_t{ 0 };
+            auto bpmChangeNum = std::stoi(bpmChange, &idx, 16);
+            if (idx != 2) {
+                spdlog::warn("Invalid bpm change: {}", bpmChange);
+                continue;
+            }
+            auto fraction = static_cast<double>(index) /
+                            static_cast<double>(measure.bpmChanges.size());
+            auto timestamp =
+              lastTimestamp + std::chrono::nanoseconds(static_cast<int64_t>(
+                                (fraction - lastFraction) * 4 * measure.meter *
+                                60 * 1000 * 1000 * 1000 / lastBpm));
+            bpmChanges.emplace_back(timestamp, bpmChangeNum);
+            bpmChangesInMeasure.emplace(fraction,
+                                        std::pair{ bpmChangeNum, timestamp });
+            lastTimestamp = timestamp;
+            lastFraction = fraction;
+            lastBpm = bpmChangeNum;
+        }
         for (const auto& bpmChange : measure.exBpmChanges) {
             index++;
             if (bpmChange == "00") {
@@ -51,9 +81,9 @@ charts::gameplay_models::BmsChart::generateMeasures(
             auto fraction = static_cast<double>(index) /
                             static_cast<double>(measure.exBpmChanges.size());
             auto timestamp =
-              lastTimestamp +
-              std::chrono::nanoseconds(static_cast<int64_t>(
-                (fraction - lastFraction) * 4 * measure.meter * 60 * 1000 * 1000 * 1000 / lastBpm));
+              lastTimestamp + std::chrono::nanoseconds(static_cast<int64_t>(
+                                (fraction - lastFraction) * 4 * measure.meter *
+                                60 * 1000 * 1000 * 1000 / lastBpm));
             bpmChanges.emplace_back(timestamp, bpmValue->second);
             bpmChangesInMeasure.emplace(
               fraction, std::pair{ bpmValue->second, timestamp });
@@ -63,9 +93,9 @@ charts::gameplay_models::BmsChart::generateMeasures(
         }
         // add last bpm change
         auto timestamp =
-          lastTimestamp +
-          std::chrono::nanoseconds(static_cast<int64_t>(
-            (1.0 - lastFraction) * 60 * 1000 * 1000 * 1000 / lastBpm));
+          lastTimestamp + std::chrono::nanoseconds(static_cast<int64_t>(
+                            (1.0 - lastFraction) * 4 * measure.meter * 60 *
+                            1000 * 1000 * 1000 / lastBpm));
         barLines.emplace_back(timestamp);
         for (int i = 0; i < measure.columnNumber; i++) {
             calculateOffsetsForColumn(measure.p1VisibleNotes[i],
