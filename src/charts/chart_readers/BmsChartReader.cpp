@@ -425,7 +425,7 @@ struct RandomBlock
 } // namespace
 
 auto
-BmsChartReader::readBmsChart(const std::string& chart) const
+BmsChartReader::readBmsChart(std::string_view chart) const
   -> parser_models::ParsedBmsChart::Tags
 {
     auto result =

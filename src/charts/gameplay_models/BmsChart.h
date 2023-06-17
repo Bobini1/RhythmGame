@@ -32,13 +32,12 @@ struct BmsChart
     std::vector<std::pair<std::chrono::nanoseconds, double>> bpmChanges;
     std::vector<std::chrono::nanoseconds> barLines;
     static constexpr auto defaultBpm = 120.0;
-    BmsChart(const parser_models::ParsedBmsChart& chart,
-             const std::string& path);
+    BmsChart(
+      const parser_models::ParsedBmsChart& chart,
+      std::unordered_map<std::string, sounds::OpenALSound> sounds);
 
   private:
     std::unordered_map<std::string, sounds::OpenALSound> sounds;
-    void loadSounds(const std::map<std::string, std::string>& wavs,
-                    const std::string& path);
     void generateMeasures(
       double baseBpm,
       const std::map<std::string, double>& bpms,
@@ -46,7 +45,7 @@ struct BmsChart
         measures);
     void fillEmptyMeasures(uint64_t lastMeasure,
                            uint64_t& measureIndex,
-                           std::chrono::nanoseconds measureStart,
+                           std::chrono::nanoseconds& measureStart,
                            double lastBpm);
     void calculateOffsetsForColumn(
       const std::vector<std::string>& notes,
@@ -59,13 +58,15 @@ struct BmsChart
       std::vector<std::pair<std::chrono::nanoseconds, sounds::OpenALSound*>>&
         target,
       const std::map<double, std::pair<double, std::chrono::nanoseconds>>&
-        bpmChangesInMeasure);
+        bpmChangesInMeasure,
+      double meter);
     auto createNoteInfo(
       const std::vector<std::string>& notes,
       const std::map<double, std::pair<double, std::chrono::nanoseconds>>&
         bpmChangesInMeasure,
       int index,
-      const std::string& note)
+      const std::string& note,
+      double meter)
       -> std::tuple<std::chrono::nanoseconds, sounds::OpenALSound*, double>;
 };
 } // namespace charts::gameplay_models
