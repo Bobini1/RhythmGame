@@ -96,7 +96,7 @@ TEST_CASE("Multiple BPM changes mid-measure are handled correctly",
     auto tags = reader.readBmsChart("#00111:00110011\n#00103:3c78");
     auto parsedChart = charts::parser_models::ParsedBmsChart{ std::move(tags) };
     auto chart = charts::gameplay_models::BmsChart(parsedChart, {});
-    static constexpr auto bpm = 120.0;
+    static constexpr auto bpm = charts::gameplay_models::BmsChart::defaultBpm;
     static constexpr auto bpm2 = 60.0;
     static constexpr auto bpm3 = 120.0;
     static constexpr auto measureLength = std::chrono::nanoseconds(
@@ -122,4 +122,24 @@ TEST_CASE("Multiple BPM changes mid-measure are handled correctly",
     REQUIRE(chart.bpmChanges[1].second == Catch::Approx(bpm2));
     REQUIRE(chart.bpmChanges[2].first == measureLength + halvedBpmPeriod);
     REQUIRE(chart.bpmChanges[2].second == Catch::Approx(bpm3));
+}
+
+TEST_CASE("Bgm notes have the right timestamps", "[BmsChart]")
+{
+    auto reader = charts::chart_readers::BmsChartReader();
+    auto tags = reader.readBmsChart("#00101:0011\n#00101:1111\n#00103:3c");
+    auto parsedChart = charts::parser_models::ParsedBmsChart{ std::move(tags) };
+    auto chart = charts::gameplay_models::BmsChart(parsedChart, {});
+    static constexpr auto bpm = charts::gameplay_models::BmsChart::defaultBpm;
+    static constexpr auto bpm2 = 60.0;
+    static constexpr auto measureLength = std::chrono::nanoseconds(
+      static_cast<int64_t>(60.0 * 4 * 1000 * 1000 * 1000 / bpm));
+    static constexpr auto halvedBpmPeriod =
+      std::chrono::nanoseconds(
+        static_cast<int64_t>(60.0 * 4 * 1000 * 1000 * 1000 / bpm2)) /
+      2;
+    REQUIRE(chart.bgmNotes.size() == 3);
+    REQUIRE(chart.bgmNotes[0].first == measureLength);
+    REQUIRE(chart.bgmNotes[1].first == measureLength + halvedBpmPeriod);
+    REQUIRE(chart.bgmNotes[2].first == measureLength + halvedBpmPeriod);
 }

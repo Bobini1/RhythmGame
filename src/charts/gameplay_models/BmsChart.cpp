@@ -124,6 +124,7 @@ charts::gameplay_models::BmsChart::generateMeasures(
         lastMeasure = currentMeasure;
         measureStart = timestamp;
     }
+    std::sort(bgmNotes.begin(), bgmNotes.end());
 }
 
 void
