@@ -2,7 +2,7 @@
 // Created by bobini on 18.06.23.
 //
 
-#include <format>
+#include <fmt/format.h>
 
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/catch_approx.hpp>
@@ -17,7 +17,7 @@ TEST_CASE("Sounds are loaded from a folder according to the bms file",
     auto folder = findTestAssetsFolder() / "supportedSoundFormats";
     auto path =
       (folder / "8BIT_audiocheck.net_sin_1000Hz_-3dBFS_0.2s_8.0k.wav").string();
-    const auto bmsFile = std::format("#WAV01 {}\n#WAV02 {}", path, path);
+    const auto bmsFile = fmt::format("#WAV01 {}\n#WAV02 {}", path, path);
     auto reader = charts::chart_readers::BmsChartReader();
     auto tags = reader.readBmsChart(bmsFile);
     auto sounds = charts::helper_functions::loadBmsSounds(tags.wavs, folder);
@@ -39,7 +39,7 @@ TEST_CASE("Even when the extension says wav, allow loading other extensions",
                        return path.replace_extension("wav").string();
                    });
     const auto bmsFile =
-      std::format("#WAV01 {}\n#WAV02 {}\n#WAV03 {}\n#WAV04 {}",
+      fmt::format("#WAV01 {}\n#WAV02 {}\n#WAV03 {}\n#WAV04 {}",
                   paths[0],
                   paths[1],
                   paths[2],
