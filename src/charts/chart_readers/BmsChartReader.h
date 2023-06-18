@@ -6,7 +6,7 @@
 #define RHYTHMGAME_BMSCHARTREADER_H
 
 #include <optional>
-#include "charts/models/BmsChart.h"
+#include "charts/parser_models/ParsedBmsChart.h"
 
 namespace charts::chart_readers {
 
@@ -21,8 +21,8 @@ class BmsChartReader final
      * @param chart String to read.
      * @return Raw tag data.
      */
-    [[nodiscard]] auto readBmsChart(const std::string& chart) const
-      -> models::BmsChart::Tags;
+    [[nodiscard]] auto readBmsChart(std::string_view chart) const
+      -> parser_models::ParsedBmsChart::Tags;
 };
 } // namespace charts::chart_readers
 
