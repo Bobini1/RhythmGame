@@ -8,30 +8,60 @@
 namespace charts::helper_functions {
 
 auto
+getActualPath(std::filesystem::path filePath) -> std::optional<std::filesystem::path>
+{
+    if (std::filesystem::exists(filePath)) {
+        return filePath;
+    }
+    filePath.replace_extension(".ogg");
+    if (std::filesystem::exists(filePath)) {
+        return filePath;
+    }
+    filePath.replace_extension(".wav");
+    if (std::filesystem::exists(filePath)) {
+        return filePath;
+    }
+    filePath.replace_extension(".mp3");
+    if (std::filesystem::exists(filePath)) {
+        return filePath;
+    }
+    return std::nullopt;
+}
+
+auto
 loadBmsSounds(const std::map<std::string, std::string>& wavs,
               const std::string& path)
   -> std::unordered_map<std::string, sounds::OpenALSound>
 {
     auto sounds = std::unordered_map<std::string, sounds::OpenALSound>();
     sounds.reserve(wavs.size());
-    std::unordered_map<std::filesystem::path,
+    std::unordered_map<std::string,
                        std::shared_ptr<const sounds::OpenALSoundBuffer>>
       buffers;
     auto rootPath = std::filesystem::path(path).parent_path();
     for (const auto& [key, value] : wavs) {
         auto filePath = rootPath / value;
-        auto buffer = buffers.find(filePath);
-        auto bufferPointer = [&buffer, &buffers, &filePath] {
+        auto actualPath = getActualPath(filePath);
+        if (!actualPath) {
+            spdlog::warn("File {} not found.", filePath.string());
+            continue;
+        }
+        auto bufferPointer = [&buffers, &actualPath] {
+            auto buffer = buffers.find(actualPath->c_str());
             if (buffer != buffers.end()) {
-                return buffers.emplace(filePath, buffer->second).first->second;
+                return buffers.emplace(actualPath->c_str(), buffer->second)
+                  .first->second;
             }
+
             return buffers
-              .emplace(filePath,
+              .emplace(actualPath->c_str(),
                        std::make_shared<const sounds::OpenALSoundBuffer>(
-                         filePath.c_str()))
+                         actualPath->c_str()))
               .first->second;
         }();
         sounds.emplace(key, sounds::OpenALSound(bufferPointer));
     }
+    return sounds;
 }
+
 } // namespace charts::helper_functions
