@@ -88,3 +88,39 @@ TEST_CASE("A chart with a bpm change and a note is created successfully",
     REQUIRE(chart.bpmChanges[1].first == measureLength * 3 / 2);
     REQUIRE(chart.bpmChanges[1].second == Catch::Approx(bpm2));
 }
+
+TEST_CASE("Multiple BPM changes mid-measure are handled correctly",
+          "[BmsChart]")
+{
+    auto reader = charts::chart_readers::BmsChartReader();
+    auto tags = reader.readBmsChart("#00111:00110011\n#00103:3c78");
+    auto parsedChart = charts::parser_models::ParsedBmsChart(std::move(tags));
+    auto chart = charts::gameplay_models::BmsChart(parsedChart, {});
+    static constexpr auto bpm = 120.0;
+    static constexpr auto bpm2 = 60.0;
+    static constexpr auto bpm3 = 120.0;
+    static constexpr auto measureLength = std::chrono::nanoseconds(
+      static_cast<int64_t>(60.0 * 4 * 1000 * 1000 * 1000 / bpm));
+    static constexpr auto halvedBpmPeriod =
+      std::chrono::nanoseconds(
+        static_cast<int64_t>(60.0 * 4 * 1000 * 1000 * 1000 / bpm2)) /
+      2;
+    static constexpr auto measureLength2 = halvedBpmPeriod + measureLength / 2;
+    REQUIRE(chart.bgmNotes.empty());
+    REQUIRE(chart.visibleNotes[0].size() == 2);
+    REQUIRE(chart.visibleNotes[0][0].first ==
+            measureLength + halvedBpmPeriod / 2);
+    REQUIRE(chart.visibleNotes[0][1].first ==
+            measureLength + halvedBpmPeriod + measureLength / 4);
+    REQUIRE(chart.barLines.size() == 2);
+    REQUIRE(chart.barLines[0] == measureLength);
+    REQUIRE(chart.barLines[1] == measureLength + measureLength2);
+    REQUIRE(chart.bpmChanges.size() == 3);
+    REQUIRE(chart.bpmChanges[0].first == std::chrono::nanoseconds(0));
+    REQUIRE(chart.bpmChanges[0].second == Catch::Approx(bpm));
+    REQUIRE(chart.bpmChanges[1].first == measureLength);
+    REQUIRE(chart.bpmChanges[1].second == Catch::Approx(bpm2));
+    REQUIRE(chart.bpmChanges[2].first == measureLength + halvedBpmPeriod);
+    REQUIRE(chart.bpmChanges[2].second == Catch::Approx(bpm3));
+}
+
