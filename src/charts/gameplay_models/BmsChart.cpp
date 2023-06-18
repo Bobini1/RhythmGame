@@ -63,8 +63,8 @@ charts::gameplay_models::BmsChart::generateMeasures(
                                 (fraction - lastFraction) * 4 * measure.meter *
                                 60 * 1000 * 1000 * 1000 / lastBpm));
             bpmChanges.emplace_back(timestamp, bpmChangeNum);
-            bpmChangesInMeasure.emplace(fraction,
-                                        std::pair{ bpmChangeNum, timestamp });
+            bpmChangesInMeasure[fraction] =
+                                        std::pair{ bpmChangeNum, timestamp };
             lastTimestamp = timestamp;
             lastFraction = fraction;
             lastBpm = bpmChangeNum;
@@ -85,8 +85,7 @@ charts::gameplay_models::BmsChart::generateMeasures(
                                 (fraction - lastFraction) * 4 * measure.meter *
                                 60 * 1000 * 1000 * 1000 / lastBpm));
             bpmChanges.emplace_back(timestamp, bpmValue->second);
-            bpmChangesInMeasure.emplace(
-              fraction, std::pair{ bpmValue->second, timestamp });
+            bpmChangesInMeasure[fraction] = std::pair{ bpmValue->second, timestamp };
             lastTimestamp = timestamp;
             lastFraction = fraction;
             lastBpm = bpmValue->second;
