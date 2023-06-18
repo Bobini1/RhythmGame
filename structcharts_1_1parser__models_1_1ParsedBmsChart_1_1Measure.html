@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>charts::models::BmsChart::Tags struct | RhythmGame</title>
+  <title>charts::parser_models::ParsedBmsChart::Measure struct | RhythmGame</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,400i,600,600i%7CSource+Code+Pro:400,400i,600" />
   <link rel="stylesheet" href="m-dark+documentation.compiled.css" />
   <link rel="icon" href="favicon-dark.png" type="image/png" />
@@ -49,62 +49,72 @@
     <div class="m-row">
       <div class="m-col-l-10 m-push-l-1">
         <h1>
-          <span class="m-breadcrumb"><a href="namespacecharts.html">charts</a>::<wbr/></span><span class="m-breadcrumb"><a href="namespacecharts_1_1models.html">models</a>::<wbr/></span><span class="m-breadcrumb"><a href="classcharts_1_1models_1_1BmsChart.html">BmsChart</a>::<wbr/></span>Tags <span class="m-thin">struct</span>
-          <div class="m-doc-include m-code m-inverted m-text-right"><span class="cp">#include</span> <a class="cpf" href="BmsChart_8h.html">&lt;BmsChart.h&gt;</a></div>
+          <span class="m-breadcrumb"><a href="namespacecharts.html">charts</a>::<wbr/></span><span class="m-breadcrumb"><a href="namespacecharts_1_1parser__models.html">parser_models</a>::<wbr/></span><span class="m-breadcrumb"><a href="structcharts_1_1parser__models_1_1ParsedBmsChart.html">ParsedBmsChart</a>::<wbr/></span>Measure <span class="m-thin">struct</span>
+          <div class="m-doc-include m-code m-inverted m-text-right"><span class="cp">#include</span> <a class="cpf" href="ParsedBmsChart_8h.html">&lt;ParsedBmsChart.h&gt;</a></div>
         </h1>
-        <p><a href="structcharts_1_1models_1_1BmsChart_1_1Tags.html" class="m-doc">Tags</a> that a BMS chart can have.</p>
+        <p><span></span></p>
         <div class="m-block m-default">
           <h3>Contents</h3>
           <ul>
             <li>
               Reference
               <ul>
+                <li><a href="#pub-static-attribs">Public static variables</a></li>
                 <li><a href="#pub-attribs">Public variables</a></li>
               </ul>
             </li>
           </ul>
         </div>
+        <section id="pub-static-attribs">
+          <h2><a href="#pub-static-attribs">Public static variables</a></h2>
+          <dl class="m-doc">
+            <dt id="a6acaac8adee05bf863bc3475d1966038">
+              static auto <a href="#a6acaac8adee05bf863bc3475d1966038" class="m-doc-self">columnNumber</a> <span class="m-label m-flat m-primary">constexpr</span>
+            </dt>
+            <dd><span></span></dd>
+          </dl>
+        </section>
         <section id="pub-attribs">
           <h2><a href="#pub-attribs">Public variables</a></h2>
           <dl class="m-doc">
-            <dt id="ac476c6d3571738602b16f0592a053b71">
-              std::optional&lt;std::string&gt; <a href="#ac476c6d3571738602b16f0592a053b71" class="m-doc-self">title</a>
+            <dt id="a67d7da47e6b457d839577d19c76fef97">
+              std::array&lt;std::vector&lt;std::string&gt;, <a href="structcharts_1_1parser__models_1_1ParsedBmsChart_1_1Measure.html#a6acaac8adee05bf863bc3475d1966038" class="m-doc">columnNumber</a>&gt; <a href="#a67d7da47e6b457d839577d19c76fef97" class="m-doc-self">p1VisibleNotes</a>
             </dt>
             <dd><span></span></dd>
-            <dt id="abce8c042e9d0905268e46eaa9d695985">
-              std::optional&lt;std::string&gt; <a href="#abce8c042e9d0905268e46eaa9d695985" class="m-doc-self">artist</a>
+            <dt id="ae7cde60fce35ca44fa1f9f4c7141ad6a">
+              std::array&lt;std::vector&lt;std::string&gt;, <a href="structcharts_1_1parser__models_1_1ParsedBmsChart_1_1Measure.html#a6acaac8adee05bf863bc3475d1966038" class="m-doc">columnNumber</a>&gt; <a href="#ae7cde60fce35ca44fa1f9f4c7141ad6a" class="m-doc-self">p2VisibleNotes</a>
             </dt>
             <dd><span></span></dd>
-            <dt id="afd987de1220bdeb0199f1719dc31b7aa">
-              std::optional&lt;double&gt; <a href="#afd987de1220bdeb0199f1719dc31b7aa" class="m-doc-self">bpm</a>
+            <dt id="a5e2be708fa6d93f866ecd32a1b0d1cef">
+              std::array&lt;std::vector&lt;std::string&gt;, <a href="structcharts_1_1parser__models_1_1ParsedBmsChart_1_1Measure.html#a6acaac8adee05bf863bc3475d1966038" class="m-doc">columnNumber</a>&gt; <a href="#a5e2be708fa6d93f866ecd32a1b0d1cef" class="m-doc-self">p1InvisibleNotes</a>
             </dt>
             <dd><span></span></dd>
-            <dt id="afa1a6c18b71fd4722a2e6f7d2755105d">
-              std::optional&lt;std::string&gt; <a href="#afa1a6c18b71fd4722a2e6f7d2755105d" class="m-doc-self">subTitle</a>
+            <dt id="a0ef20f0fc924eb5b7c23627bc11cf98f">
+              std::array&lt;std::vector&lt;std::string&gt;, <a href="structcharts_1_1parser__models_1_1ParsedBmsChart_1_1Measure.html#a6acaac8adee05bf863bc3475d1966038" class="m-doc">columnNumber</a>&gt; <a href="#a0ef20f0fc924eb5b7c23627bc11cf98f" class="m-doc-self">p2InvisibleNotes</a>
             </dt>
             <dd><span></span></dd>
-            <dt id="a7408e802259b0c7008b2648f2f277dc1">
-              std::optional&lt;std::string&gt; <a href="#a7408e802259b0c7008b2648f2f277dc1" class="m-doc-self">subArtist</a>
+            <dt id="a2bb424bf4af4223331959dcaaed95bcf">
+              std::array&lt;std::vector&lt;std::string&gt;, <a href="structcharts_1_1parser__models_1_1ParsedBmsChart_1_1Measure.html#a6acaac8adee05bf863bc3475d1966038" class="m-doc">columnNumber</a>&gt; <a href="#a2bb424bf4af4223331959dcaaed95bcf" class="m-doc-self">p1LongNotes</a>
             </dt>
             <dd><span></span></dd>
-            <dt id="a1a0ae9d3dc272ad1e3292ad35a1cbc96">
-              std::optional&lt;std::string&gt; <a href="#a1a0ae9d3dc272ad1e3292ad35a1cbc96" class="m-doc-self">genre</a>
+            <dt id="a5084993fb4c007065a207b5474ff85cd">
+              std::array&lt;std::vector&lt;std::string&gt;, <a href="structcharts_1_1parser__models_1_1ParsedBmsChart_1_1Measure.html#a6acaac8adee05bf863bc3475d1966038" class="m-doc">columnNumber</a>&gt; <a href="#a5084993fb4c007065a207b5474ff85cd" class="m-doc-self">p2LongNotes</a>
             </dt>
             <dd><span></span></dd>
-            <dt id="acef9b0ba113fe6d2e016be12d58af7f1">
-              std::map&lt;std::string, double&gt; <a href="#acef9b0ba113fe6d2e016be12d58af7f1" class="m-doc-self">exBpms</a>
+            <dt id="a6f803ef187dcd33bb9a889f3777af0d2">
+              std::vector&lt;std::vector&lt;std::string&gt;&gt; <a href="#a6f803ef187dcd33bb9a889f3777af0d2" class="m-doc-self">bgmNotes</a>
             </dt>
             <dd><span></span></dd>
-            <dt id="a96b5e9cb840a5dbcb982d8b38640ee19">
-              std::map&lt;std::string, std::string&gt; <a href="#a96b5e9cb840a5dbcb982d8b38640ee19" class="m-doc-self">wavs</a>
+            <dt id="acd227d2d4dbc754ba231e397c30f8069">
+              std::vector&lt;std::string&gt; <a href="#acd227d2d4dbc754ba231e397c30f8069" class="m-doc-self">bpmChanges</a>
             </dt>
             <dd><span></span></dd>
-            <dt id="a0ba3a764e8e8d6938c31d81f447975ab">
-              std::map&lt;uint64_t, <a href="structcharts_1_1models_1_1BmsChart_1_1Measure.html" class="m-doc">Measure</a>&gt; <a href="#a0ba3a764e8e8d6938c31d81f447975ab" class="m-doc-self">measures</a>
+            <dt id="a15b674ce335ed8cf43cc0ef907030328">
+              std::vector&lt;std::string&gt; <a href="#a15b674ce335ed8cf43cc0ef907030328" class="m-doc-self">exBpmChanges</a>
             </dt>
             <dd><span></span></dd>
-            <dt id="a941addad8742f68d4b920fc5c712926b">
-              std::vector&lt;std::pair&lt;<a href="classcharts_1_1models_1_1BmsChart.html#a5f9929bfd88e43091d4c3d6d9d8b3f5a" class="m-doc">RandomRange</a>, std::vector&lt;std::pair&lt;<a href="classcharts_1_1models_1_1BmsChart.html#ada06c6b9a28f2d63cbf4046603d2cb41" class="m-doc">IfTag</a>, <a href="structcharts_1_1models_1_1BmsChart_1_1Tags.html" class="m-doc">Tags</a>&gt;&gt;&gt;&gt; <a href="#a941addad8742f68d4b920fc5c712926b" class="m-doc-self">randomBlocks</a>
+            <dt id="aafaad7fac67021ed27cf1004e63f1655">
+              double <a href="#aafaad7fac67021ed27cf1004e63f1655" class="m-doc-self">meter</a>
             </dt>
             <dd><span></span></dd>
           </dl>

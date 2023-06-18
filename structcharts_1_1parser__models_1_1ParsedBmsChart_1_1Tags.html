@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>charts namespace | RhythmGame</title>
+  <title>charts::parser_models::ParsedBmsChart::Tags struct | RhythmGame</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,400i,600,600i%7CSource+Code+Pro:400,400i,600" />
   <link rel="stylesheet" href="m-dark+documentation.compiled.css" />
   <link rel="icon" href="favicon-dark.png" type="image/png" />
@@ -49,30 +49,63 @@
     <div class="m-row">
       <div class="m-col-l-10 m-push-l-1">
         <h1>
-          charts <span class="m-thin">namespace</span>
+          <span class="m-breadcrumb"><a href="namespacecharts.html">charts</a>::<wbr/></span><span class="m-breadcrumb"><a href="namespacecharts_1_1parser__models.html">parser_models</a>::<wbr/></span><span class="m-breadcrumb"><a href="structcharts_1_1parser__models_1_1ParsedBmsChart.html">ParsedBmsChart</a>::<wbr/></span>Tags <span class="m-thin">struct</span>
+          <div class="m-doc-include m-code m-inverted m-text-right"><span class="cp">#include</span> <a class="cpf" href="ParsedBmsChart_8h.html">&lt;ParsedBmsChart.h&gt;</a></div>
         </h1>
-        <p><span></span></p>
+        <p><a href="structcharts_1_1parser__models_1_1ParsedBmsChart_1_1Tags.html" class="m-doc">Tags</a> that a BMS chart can have.</p>
         <div class="m-block m-default">
           <h3>Contents</h3>
           <ul>
             <li>
               Reference
               <ul>
-                <li><a href="#namespaces">Namespaces</a></li>
+                <li><a href="#pub-attribs">Public variables</a></li>
               </ul>
             </li>
           </ul>
         </div>
-        <section id="namespaces">
-          <h2><a href="#namespaces">Namespaces</a></h2>
+        <section id="pub-attribs">
+          <h2><a href="#pub-attribs">Public variables</a></h2>
           <dl class="m-doc">
-            <dt>namespace <a href="namespacecharts_1_1chart__readers.html" class="m-doc">chart_readers</a></dt>
+            <dt id="a29aab3e1a141ac8bafd8b453f368eb01">
+              std::optional&lt;std::string&gt; <a href="#a29aab3e1a141ac8bafd8b453f368eb01" class="m-doc-self">title</a>
+            </dt>
             <dd><span></span></dd>
-            <dt>namespace <a href="namespacecharts_1_1gameplay__models.html" class="m-doc">gameplay_models</a></dt>
+            <dt id="a440010bfe307605b876c974b31813f00">
+              std::optional&lt;std::string&gt; <a href="#a440010bfe307605b876c974b31813f00" class="m-doc-self">artist</a>
+            </dt>
             <dd><span></span></dd>
-            <dt>namespace <a href="namespacecharts_1_1helper__functions.html" class="m-doc">helper_functions</a></dt>
+            <dt id="aa439335c2a4127c38908c28951c94380">
+              std::optional&lt;double&gt; <a href="#aa439335c2a4127c38908c28951c94380" class="m-doc-self">bpm</a>
+            </dt>
             <dd><span></span></dd>
-            <dt>namespace <a href="namespacecharts_1_1parser__models.html" class="m-doc">parser_models</a></dt>
+            <dt id="a6799d32ab249c36c2660c6936c98367c">
+              std::optional&lt;std::string&gt; <a href="#a6799d32ab249c36c2660c6936c98367c" class="m-doc-self">subTitle</a>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="a951235441a4219ec6dbfd4bc9df242fb">
+              std::optional&lt;std::string&gt; <a href="#a951235441a4219ec6dbfd4bc9df242fb" class="m-doc-self">subArtist</a>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="aa3bd25abf1cff531d309dc00c3597622">
+              std::optional&lt;std::string&gt; <a href="#aa3bd25abf1cff531d309dc00c3597622" class="m-doc-self">genre</a>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="a25812d57f97ec805d02cd5a1188e58d3">
+              std::map&lt;std::string, double&gt; <a href="#a25812d57f97ec805d02cd5a1188e58d3" class="m-doc-self">exBpms</a>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="ad30f128656d00a49ebf3da7b7ce7836e">
+              std::map&lt;std::string, std::string&gt; <a href="#ad30f128656d00a49ebf3da7b7ce7836e" class="m-doc-self">wavs</a>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="a8493bee04e425c4ed24e00afccfd078f">
+              std::map&lt;uint64_t, <a href="structcharts_1_1parser__models_1_1ParsedBmsChart_1_1Measure.html" class="m-doc">Measure</a>&gt; <a href="#a8493bee04e425c4ed24e00afccfd078f" class="m-doc-self">measures</a>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="a90fc6fb457ba311e8e169777d405a183">
+              std::vector&lt;std::pair&lt;<a href="structcharts_1_1parser__models_1_1ParsedBmsChart.html#a22ce810254ed432e0bb2c86a6b542b67" class="m-doc">RandomRange</a>, std::vector&lt;std::pair&lt;<a href="structcharts_1_1parser__models_1_1ParsedBmsChart.html#a2eddb85caa33e4ca46d730b2cd736ba1" class="m-doc">IfTag</a>, <a href="structcharts_1_1parser__models_1_1ParsedBmsChart_1_1Tags.html" class="m-doc">Tags</a>&gt;&gt;&gt;&gt; <a href="#a90fc6fb457ba311e8e169777d405a183" class="m-doc-self">randomBlocks</a>
+            </dt>
             <dd><span></span></dd>
           </dl>
         </section>

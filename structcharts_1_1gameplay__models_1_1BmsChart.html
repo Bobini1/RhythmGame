@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>charts namespace | RhythmGame</title>
+  <title>charts::gameplay_models::BmsChart struct | RhythmGame</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,400i,600,600i%7CSource+Code+Pro:400,400i,600" />
   <link rel="stylesheet" href="m-dark+documentation.compiled.css" />
   <link rel="icon" href="favicon-dark.png" type="image/png" />
@@ -49,7 +49,8 @@
     <div class="m-row">
       <div class="m-col-l-10 m-push-l-1">
         <h1>
-          charts <span class="m-thin">namespace</span>
+          <span class="m-breadcrumb"><a href="namespacecharts.html">charts</a>::<wbr/></span><span class="m-breadcrumb"><a href="namespacecharts_1_1gameplay__models.html">gameplay_models</a>::<wbr/></span>BmsChart <span class="m-thin">struct</span>
+          <div class="m-doc-include m-code m-inverted m-text-right"><span class="cp">#include</span> <a class="cpf" href="BmsChart_8h.html">&lt;BmsChart.h&gt;</a></div>
         </h1>
         <p><span></span></p>
         <div class="m-block m-default">
@@ -58,21 +59,68 @@
             <li>
               Reference
               <ul>
-                <li><a href="#namespaces">Namespaces</a></li>
+                <li><a href="#pub-types">Public types</a></li>
+                <li><a href="#pub-static-attribs">Public static variables</a></li>
+                <li><a href="#typeless-methods">Constructors, destructors, conversion operators</a></li>
+                <li><a href="#pub-attribs">Public variables</a></li>
               </ul>
             </li>
           </ul>
         </div>
-        <section id="namespaces">
-          <h2><a href="#namespaces">Namespaces</a></h2>
+        <section id="pub-types">
+          <h2><a href="#pub-types">Public types</a></h2>
           <dl class="m-doc">
-            <dt>namespace <a href="namespacecharts_1_1chart__readers.html" class="m-doc">chart_readers</a></dt>
+            <dt>
+              struct <a href="structcharts_1_1gameplay__models_1_1BmsChart_1_1Note.html" class="m-doc">Note</a>
+            </dt>
             <dd><span></span></dd>
-            <dt>namespace <a href="namespacecharts_1_1gameplay__models.html" class="m-doc">gameplay_models</a></dt>
+          </dl>
+        </section>
+        <section id="pub-static-attribs">
+          <h2><a href="#pub-static-attribs">Public static variables</a></h2>
+          <dl class="m-doc">
+            <dt id="ac74b5b218728e73c1082f643b4ff1326">
+              static auto <a href="#ac74b5b218728e73c1082f643b4ff1326" class="m-doc-self">columnNumber</a> <span class="m-label m-flat m-primary">constexpr</span>
+            </dt>
             <dd><span></span></dd>
-            <dt>namespace <a href="namespacecharts_1_1helper__functions.html" class="m-doc">helper_functions</a></dt>
+            <dt id="a238abefcd5f435432e454879b2cbb33a">
+              static auto <a href="#a238abefcd5f435432e454879b2cbb33a" class="m-doc-self">defaultBpm</a> <span class="m-label m-flat m-primary">constexpr</span>
+            </dt>
             <dd><span></span></dd>
-            <dt>namespace <a href="namespacecharts_1_1parser__models.html" class="m-doc">parser_models</a></dt>
+          </dl>
+        </section>
+        <section id="typeless-methods">
+          <h2><a href="#typeless-methods">Constructors, destructors, conversion operators</a></h2>
+          <dl class="m-doc">
+            <dt id="afb6cdb433a416acf6326751c83e44237">
+              <span class="m-doc-wrap-bumper"><a href="#afb6cdb433a416acf6326751c83e44237" class="m-doc-self">BmsChart</a>(</span><span class="m-doc-wrap">const <a href="structcharts_1_1parser__models_1_1ParsedBmsChart.html" class="m-doc">parser_models::<wbr />ParsedBmsChart</a>&amp; chart,
+              std::unordered_map&lt;std::string, <a href="classsounds_1_1OpenALSound.html" class="m-doc">sounds::<wbr />OpenALSound</a>&gt; sounds)</span>
+            </dt>
+            <dd><span></span></dd>
+          </dl>
+        </section>
+        <section id="pub-attribs">
+          <h2><a href="#pub-attribs">Public variables</a></h2>
+          <dl class="m-doc">
+            <dt id="ad0c9e5c48fdb5539970fc0349000a372">
+              std::array&lt;std::vector&lt;std::pair&lt;std::chrono::nanoseconds, <a href="structcharts_1_1gameplay__models_1_1BmsChart_1_1Note.html" class="m-doc">Note</a>&gt;&gt;, <a href="structcharts_1_1gameplay__models_1_1BmsChart.html#ac74b5b218728e73c1082f643b4ff1326" class="m-doc">columnNumber</a>&gt; <a href="#ad0c9e5c48fdb5539970fc0349000a372" class="m-doc-self">visibleNotes</a>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="a529aa9bf31359e756dd221915850f9c8">
+              std::array&lt;std::vector&lt;std::pair&lt;std::chrono::nanoseconds, <a href="structcharts_1_1gameplay__models_1_1BmsChart_1_1Note.html" class="m-doc">Note</a>&gt;&gt;, <a href="structcharts_1_1gameplay__models_1_1BmsChart.html#ac74b5b218728e73c1082f643b4ff1326" class="m-doc">columnNumber</a>&gt; <a href="#a529aa9bf31359e756dd221915850f9c8" class="m-doc-self">invisibleNotes</a>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="ae796c81c3dcba9d5174e509a9d7ead40">
+              std::vector&lt;std::pair&lt;std::chrono::nanoseconds, <a href="classsounds_1_1OpenALSound.html" class="m-doc">sounds::<wbr />OpenALSound</a>*&gt;&gt; <a href="#ae796c81c3dcba9d5174e509a9d7ead40" class="m-doc-self">bgmNotes</a>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="accabe25f4f247a9ef5c2d89ed227dbc1">
+              std::vector&lt;std::pair&lt;std::chrono::nanoseconds, double&gt;&gt; <a href="#accabe25f4f247a9ef5c2d89ed227dbc1" class="m-doc-self">bpmChanges</a>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="af547a228aaa41bed8ada54174287ec7d">
+              std::vector&lt;std::chrono::nanoseconds&gt; <a href="#af547a228aaa41bed8ada54174287ec7d" class="m-doc-self">barLines</a>
+            </dt>
             <dd><span></span></dd>
           </dl>
         </section>
