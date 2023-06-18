@@ -15,11 +15,15 @@ getActualPath(std::filesystem::path filePath)
     if (std::filesystem::exists(filePath)) {
         return filePath;
     }
-    filePath.replace_extension(".ogg");
+    filePath.replace_extension(".wav");
     if (std::filesystem::exists(filePath)) {
         return filePath;
     }
-    filePath.replace_extension(".wav");
+    filePath.replace_extension(".flac");
+    if (std::filesystem::exists(filePath)) {
+        return filePath;
+    }
+    filePath.replace_extension(".ogg");
     if (std::filesystem::exists(filePath)) {
         return filePath;
     }
@@ -32,7 +36,7 @@ getActualPath(std::filesystem::path filePath)
 
 auto
 loadBmsSounds(const std::map<std::string, std::string>& wavs,
-              const std::string& path)
+              const std::filesystem::path& path)
   -> std::unordered_map<std::string, sounds::OpenALSound>
 {
     auto sounds = std::unordered_map<std::string, sounds::OpenALSound>();
@@ -40,9 +44,8 @@ loadBmsSounds(const std::map<std::string, std::string>& wavs,
     std::unordered_map<std::string,
                        std::shared_ptr<const sounds::OpenALSoundBuffer>>
       buffers;
-    auto rootPath = std::filesystem::path(path).parent_path();
     for (const auto& [key, value] : wavs) {
-        auto filePath = rootPath / value;
+        auto filePath = path / value;
         auto actualPath = getActualPath(filePath);
         if (!actualPath) {
             spdlog::warn("File {} not found.", filePath.string());
