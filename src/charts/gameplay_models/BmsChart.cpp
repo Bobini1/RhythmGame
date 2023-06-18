@@ -5,6 +5,7 @@
 #include <filesystem>
 #include "BmsChart.h"
 #include "sounds/OpenAlSoundBuffer.h"
+#include <utility>
 
 charts::gameplay_models::BmsChart::BmsChart(
   const charts::parser_models::ParsedBmsChart& chart,
@@ -64,7 +65,7 @@ charts::gameplay_models::BmsChart::generateMeasures(
                                 60 * 1000 * 1000 * 1000 / lastBpm));
             bpmChanges.emplace_back(timestamp, bpmChangeNum);
             bpmChangesInMeasure[fraction] =
-                                        std::pair{ bpmChangeNum, timestamp };
+              std::pair{ bpmChangeNum, timestamp };
             lastTimestamp = timestamp;
             lastFraction = fraction;
             lastBpm = bpmChangeNum;
@@ -85,7 +86,8 @@ charts::gameplay_models::BmsChart::generateMeasures(
                                 (fraction - lastFraction) * 4 * measure.meter *
                                 60 * 1000 * 1000 * 1000 / lastBpm));
             bpmChanges.emplace_back(timestamp, bpmValue->second);
-            bpmChangesInMeasure[fraction] = std::pair{ bpmValue->second, timestamp };
+            bpmChangesInMeasure[fraction] =
+              std::pair{ bpmValue->second, timestamp };
             lastTimestamp = timestamp;
             lastFraction = fraction;
             lastBpm = bpmValue->second;
