@@ -93,8 +93,7 @@ TEST_CASE("Multiple BPM changes mid-measure are handled correctly",
           "[BmsChart]")
 {
     auto reader = charts::chart_readers::BmsChartReader();
-    auto tags =
-      reader.readBmsChart("#00111:00110011\n#00103:3c78");
+    auto tags = reader.readBmsChart("#00111:00110011\n#00103:3c78");
     auto parsedChart = charts::parser_models::ParsedBmsChart(std::move(tags));
     auto chart = charts::gameplay_models::BmsChart(parsedChart, {});
     static constexpr auto bpm = 120.0;
@@ -106,8 +105,7 @@ TEST_CASE("Multiple BPM changes mid-measure are handled correctly",
       std::chrono::nanoseconds(
         static_cast<int64_t>(60.0 * 4 * 1000 * 1000 * 1000 / bpm2)) /
       2;
-    static constexpr auto measureLength2 =
-      halvedBpmPeriod + measureLength / 2;
+    static constexpr auto measureLength2 = halvedBpmPeriod + measureLength / 2;
     REQUIRE(chart.bgmNotes.empty());
     REQUIRE(chart.visibleNotes[0].size() == 2);
     REQUIRE(chart.visibleNotes[0][0].first ==
