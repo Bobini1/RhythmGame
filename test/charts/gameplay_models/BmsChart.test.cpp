@@ -17,7 +17,7 @@ TEST_CASE("An empty chart is created successfully", "[BmsChart]")
 {
     auto reader = charts::chart_readers::BmsChartReader();
     auto tags = reader.readBmsChart("");
-    auto parsedChart = charts::parser_models::ParsedBmsChart(std::move(tags));
+    auto parsedChart = charts::parser_models::ParsedBmsChart{ std::move(tags) };
     auto chart = charts::gameplay_models::BmsChart(parsedChart, {});
     REQUIRE(chart.bgmNotes.empty());
     for (const auto& column : chart.visibleNotes) {
@@ -36,7 +36,7 @@ TEST_CASE("A chart with a single note is created successfully", "[BmsChart]")
 {
     auto reader = charts::chart_readers::BmsChartReader();
     auto tags = reader.readBmsChart("#00111:0011");
-    auto parsedChart = charts::parser_models::ParsedBmsChart(std::move(tags));
+    auto parsedChart = charts::parser_models::ParsedBmsChart{ std::move(tags) };
     auto chart = charts::gameplay_models::BmsChart(parsedChart, {});
     REQUIRE(chart.bgmNotes.empty());
     REQUIRE(chart.visibleNotes[0].size() == 1);
@@ -64,7 +64,7 @@ TEST_CASE("A chart with a bpm change and a note is created successfully",
     auto reader = charts::chart_readers::BmsChartReader();
     auto tags =
       reader.readBmsChart("#BPM 240\n#BPM11 60\n#00111:0011\n#00108:0011");
-    auto parsedChart = charts::parser_models::ParsedBmsChart(std::move(tags));
+    auto parsedChart = charts::parser_models::ParsedBmsChart{ std::move(tags) };
     auto chart = charts::gameplay_models::BmsChart(parsedChart, {});
     REQUIRE(chart.bgmNotes.empty());
     REQUIRE(chart.visibleNotes[0].size() == 1);
@@ -94,7 +94,7 @@ TEST_CASE("Multiple BPM changes mid-measure are handled correctly",
 {
     auto reader = charts::chart_readers::BmsChartReader();
     auto tags = reader.readBmsChart("#00111:00110011\n#00103:3c78");
-    auto parsedChart = charts::parser_models::ParsedBmsChart(std::move(tags));
+    auto parsedChart = charts::parser_models::ParsedBmsChart{ std::move(tags) };
     auto chart = charts::gameplay_models::BmsChart(parsedChart, {});
     static constexpr auto bpm = 120.0;
     static constexpr auto bpm2 = 60.0;
