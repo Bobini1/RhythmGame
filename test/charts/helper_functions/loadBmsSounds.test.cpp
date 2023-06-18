@@ -28,7 +28,7 @@ TEST_CASE("Sounds are loaded from a folder according to the bms file",
 TEST_CASE("Even when the extension says wav, allow loading other extensions",
           "[loadBmsSounds]")
 {
-    auto folder = findTestAssetsFolder() / "supportedSoundFormats";
+    auto folder = findTestAssetsFolder() / "bmsFallbackExtensions";
     auto pathIterator = std::filesystem::directory_iterator(folder);
     auto paths = std::vector<std::string>();
     std::transform(pathIterator,
