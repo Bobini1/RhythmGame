@@ -11,7 +11,7 @@ charts::gameplay_models::BmsChart::BmsChart(
   std::unordered_map<std::string, sounds::OpenALSound> sounds)
   : sounds(std::move(sounds))
 {
-    if (!chart.tags.randomBlocks.empty()) {
+    if (chart.tags.randomBlocks.size() != 0) {
         throw std::runtime_error("Random blocks are not supported.");
     }
     generateMeasures(chart.tags.bpm.value_or(defaultBpm),
