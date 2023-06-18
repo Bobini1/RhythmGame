@@ -4,11 +4,13 @@
 
 #include "loadBmsSounds.h"
 #include "sounds/OpenAlSoundBuffer.h"
+#include <optional>
 
 namespace charts::helper_functions {
 
 auto
-getActualPath(std::filesystem::path filePath) -> std::optional<std::filesystem::path>
+getActualPath(std::filesystem::path filePath)
+  -> std::optional<std::filesystem::path>
 {
     if (std::filesystem::exists(filePath)) {
         return filePath;
