@@ -10,6 +10,8 @@
 #include <optional>
 #include <memory>
 #include <array>
+#include <utility>
+
 namespace charts::parser_models {
 /**
  * @brief Be-Music Source chart.

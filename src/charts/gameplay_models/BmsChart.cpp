@@ -5,7 +5,6 @@
 #include <filesystem>
 #include "BmsChart.h"
 #include "sounds/OpenAlSoundBuffer.h"
-#include <utility>
 
 charts::gameplay_models::BmsChart::BmsChart(
   const charts::parser_models::ParsedBmsChart& chart,
