@@ -51,17 +51,18 @@ loadBmsSounds(const std::map<std::string, std::string>& wavs,
             spdlog::warn("File {} not found.", filePath.string());
             continue;
         }
-        auto bufferPointer = [&buffers, &actualPath] {
-            auto buffer = buffers.find(actualPath->c_str());
+        auto actualPathString = actualPath->string();
+        auto bufferPointer = [&buffers, &actualPathString] {
+            auto buffer = buffers.find(actualPathString);
             if (buffer != buffers.end()) {
-                return buffers.emplace(actualPath->c_str(), buffer->second)
+                return buffers.emplace(actualPathString, buffer->second)
                   .first->second;
             }
 
             return buffers
-              .emplace(actualPath->c_str(),
+              .emplace(actualPathString,
                        std::make_shared<const sounds::OpenALSoundBuffer>(
-                         actualPath->c_str()))
+                         actualPathString.c_str()))
               .first->second;
         }();
         sounds.emplace(key, sounds::OpenALSound(bufferPointer));
