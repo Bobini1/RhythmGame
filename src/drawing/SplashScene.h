@@ -91,8 +91,8 @@ class SplashScene : public Scene
 
         onUpdate(static_cast<float>(delta.count()) / 1e9F);
         animationPlayer.update(delta);
-        sf::Event event{};
-        while (window.pollEvent(event)) {
+        while (auto timestampedEvent = window.popEvent()) {
+            auto [timestamp, event] = *timestampedEvent;
             switch (event.type) {
                 case sf::Event::Closed:
                     window.close();

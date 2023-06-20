@@ -27,8 +27,18 @@ class Game
      */
     auto run() -> void
     {
-        auto start = std::chrono::high_resolution_clock::now();
+        // input thread must be the main thread
+        auto drawThread = std::jthread{ &Game::drawLoop, this };
         while (window->isOpen()) {
+            updateInput();
+        }
+    }
+
+    auto updateInput() -> void { window->updateInput(); }
+    auto drawLoop(std::stop_token stopToken) -> void
+    {
+        auto start = std::chrono::high_resolution_clock::now();
+        while (!stopToken.stop_requested()) {
             auto now = std::chrono::high_resolution_clock::now();
             auto delta = now - start;
             start = now;

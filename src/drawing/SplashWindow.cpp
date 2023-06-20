@@ -8,9 +8,9 @@ namespace drawing {
 auto
 SplashWindow::draw() -> void
 {
-    clear();
-    sf::RenderWindow::draw(*splashScene);
-    display();
+    window.clear();
+    window.draw(*splashScene);
+    window.display();
 }
 auto
 SplashWindow::update(std::chrono::nanoseconds delta) -> void
@@ -24,6 +24,6 @@ SplashWindow::SplashWindow(std::shared_ptr<drawing::Scene> splashScene,
   : Window(mode, title, sf::Style::Default, settings)
   , splashScene(std::move(splashScene))
 {
-    this->setPosition({ 0, 0 });
+    window.setPosition({ 0, 0 });
 }
 } // namespace drawing
