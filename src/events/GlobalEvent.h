@@ -35,7 +35,7 @@ class GlobalEvent
         return sol::lua_nil;
     }
 
-    auto operator()(Args&&... args) -> void
+    auto operator()(Args... args) -> void
     {
         for (const auto& [listener, callback] : listeners) {
             if (auto actor = listener.lock()) {

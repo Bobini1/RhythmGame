@@ -34,7 +34,7 @@ class SplashScene : public Scene
     FontLoaderType* fontLoader;
     SoundLoaderType* soundLoader;
     events::GlobalEvent<> init;
-    events::GlobalEvent<float> onUpdate;
+    events::GlobalEvent<std::chrono::nanoseconds> onUpdate;
     events::MouseClickEvent leftClick;
     events::MouseClickEvent rightClick;
     events::MouseHoverEvents mouseHover;
@@ -89,8 +89,18 @@ class SplashScene : public Scene
         }
         root->setTransform(sf::Transform::Identity);
 
-        onUpdate(static_cast<float>(delta.count()) / 1e9F);
+        onUpdate(delta);
         animationPlayer.update(delta);
+        readEvents(window);
+    }
+    void draw(sf::RenderTarget& target, sf::RenderStates states) const final
+    {
+        target.draw(*root, states);
+    }
+
+  private:
+    void readEvents(Window& window)
+    {
         while (auto timestampedEvent = window.popEvent()) {
             auto [timestamp, event] = *timestampedEvent;
             switch (event.type) {
@@ -125,10 +135,6 @@ class SplashScene : public Scene
                     break;
             }
         }
-    }
-    void draw(sf::RenderTarget& target, sf::RenderStates states) const final
-    {
-        target.draw(*root, states);
     }
 };
 } // namespace drawing

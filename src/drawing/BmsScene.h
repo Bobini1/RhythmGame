@@ -5,10 +5,16 @@
 #ifndef RHYTHMGAME_BMSSCENE_H
 #define RHYTHMGAME_BMSSCENE_H
 
+#include <SFML/Graphics/RenderTarget.hpp>
+
 #include "Scene.h"
 #include "events/GlobalEvent.h"
 #include "events/MouseClickEvent.h"
 #include "events/MouseHoverEvents.h"
+#include "input/InputQueue.h"
+#include "drawing/Window.h"
+#include "charts/gameplay_models/BmsChart.h"
+
 namespace drawing {
 template<animations::AnimationPlayer AnimationPlayerType,
          resource_managers::TextureLoader TextureLoaderType,
@@ -23,32 +29,54 @@ class BmsScene : public Scene
     TextureLoaderType* textureLoader;
     FontLoaderType* fontLoader;
     SoundLoaderType* soundLoader;
+    input::InputQueue* inputQueue;
+    gameplay_logic::BmsGameReferee* referee;
     events::GlobalEvent<sol::table> init;
-    events::GlobalEvent<float> onUpdate;
+    events::GlobalEvent<std::chrono::nanoseconds> onUpdate;
     events::MouseClickEvent leftClick;
     events::MouseClickEvent rightClick;
     events::MouseHoverEvents mouseHover;
 
   public:
     void update(std::chrono::nanoseconds delta,
-                drawing::Window& window) override;
+                drawing::Window& window) override
+    {
+        if (!initialized) {
+            init();
+            initialized = true;
+        }
+        if (root->getIsWidthManaged()) {
+            root->setWidth(static_cast<float>(window.getSize().x));
+        }
+        if (root->getIsHeightManaged()) {
+            root->setHeight(static_cast<float>(window.getSize().y));
+        }
+        root->setTransform(sf::Transform::Identity);
+
+        onUpdate(delta);
+        animationPlayer.update(delta);
+    }
 
     explicit BmsScene(sol::state state,
                       AnimationPlayerType animationPlayer,
                       TextureLoaderType* textureLoader,
                       FontLoaderType* fontLoader,
                       SoundLoaderType* soundLoader,
-                      const std::filesystem::path& script)
+                      input::InputQueue* inputQueue,
+                      const std::filesystem::path& script,
+                      charts::gameplay_models::BmsChart* chart)
       : state(std::move(state))
       , animationPlayer(std::move(animationPlayer))
       , textureLoader(textureLoader)
       , fontLoader(fontLoader)
       , soundLoader(soundLoader)
+      , inputQueue(inputQueue)
       , init(&this->state)
       , onUpdate(&this->state)
       , leftClick(&this->state)
       , rightClick(&this->state)
       , mouseHover(&this->state)
+      , referee(chart)
     {
         auto eventAttacher = lua::EventAttacher{};
         eventAttacher.addEvent(init, "init");
@@ -66,6 +94,12 @@ class BmsScene : public Scene
         auto luaRoot = this->state.script_file(script.string());
         root =
           luaRoot.template get<drawing::actors::Actor*>()->shared_from_this();
+    }
+
+  protected:
+    void draw(sf::RenderTarget& target, sf::RenderStates states) const override
+    {
+        target.draw(*root, states);
     }
 };
 } // namespace drawing

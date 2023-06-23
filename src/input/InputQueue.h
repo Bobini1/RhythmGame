@@ -9,6 +9,8 @@
 #include <boost/lockfree/spsc_queue.hpp>
 #include <SFML/Window/Event.hpp>
 #include <chrono>
+#include <queue>
+#include "gameplay_logic/TimePoint.h"
 
 /**
  * @brief namespace input provides classes for managing input events
@@ -25,17 +27,14 @@ class InputQueue
     static constexpr auto maxEventsStored = 1024;
 
   private:
-    boost::lockfree::spsc_queue<
-      std::pair<std::chrono::time_point<std::chrono::high_resolution_clock>,
-                sf::Event>,
-      boost::lockfree::capacity<maxEventsStored>>
+    boost::lockfree::spsc_queue<std::pair<gameplay_logic::TimePoint, sf::Event>,
+                                boost::lockfree::capacity<maxEventsStored>>
       queue;
 
   public:
     void update(sf::Window& window);
-    auto pop() -> std::optional<
-      std::pair<std::chrono::time_point<std::chrono::high_resolution_clock>,
-                sf::Event>>;
+    auto pop()
+      -> std::optional<std::pair<gameplay_logic::TimePoint, sf::Event>>;
 };
 } // namespace input
 

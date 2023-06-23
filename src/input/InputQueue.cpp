@@ -13,13 +13,10 @@ input::InputQueue::update(sf::Window& window)
     }
 }
 auto
-input::InputQueue::pop() -> std::optional<
-  std::pair<std::chrono::time_point<std::chrono::high_resolution_clock>,
-            sf::Event>>
+input::InputQueue::pop()
+  -> std::optional<std::pair<gameplay_logic::TimePoint, sf::Event>>
 {
-    auto value =
-      std::pair<std::chrono::time_point<std::chrono::high_resolution_clock>,
-                sf::Event>{};
+    auto value = std::pair<gameplay_logic::TimePoint, sf::Event>{};
     if (queue.pop(value)) {
         return value;
     }
