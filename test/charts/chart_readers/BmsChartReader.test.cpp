@@ -5,7 +5,6 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/catch_approx.hpp>
 #include "charts/chart_readers/BmsChartReader.h"
-#include "lua/Lua.h"
 
 using namespace std::literals::string_literals;
 TEST_CASE("Parse title", "[BmsChartReader]")

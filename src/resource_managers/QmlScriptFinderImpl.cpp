@@ -2,8 +2,8 @@
 // Created by bobini on 28.12.22.
 //
 
-#include "LuaScriptFinderImpl.h"
-resource_managers::LuaScriptFinderImpl::LuaScriptFinderImpl(
+#include "QmlScriptFinderImpl.h"
+resource_managers::QmlScriptFinderImpl::QmlScriptFinderImpl(
   std::filesystem::path rootFolder,
   std::map<std::string, std::string> redirects)
   : rootFolder(std::move(rootFolder))
@@ -11,7 +11,7 @@ resource_managers::LuaScriptFinderImpl::LuaScriptFinderImpl(
 {
 }
 auto
-resource_managers::LuaScriptFinderImpl::operator()(std::string scriptName) const
+resource_managers::QmlScriptFinderImpl::operator()(std::string scriptName) const
   -> std::filesystem::path
 {
     if (redirects.contains(scriptName)) {

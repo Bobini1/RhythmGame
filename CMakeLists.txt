@@ -12,11 +12,6 @@ project(
 include(cmake/project-is-top-level.cmake)
 include(cmake/variables.cmake)
 
-# <------------ lua support --------------->
-
-find_package(sol2 REQUIRED)
-find_package(luajit REQUIRED)
-
 # <------------ SQLiteCpp (db) --------------->
 
 find_package(SQLiteCpp REQUIRED)
@@ -49,16 +44,20 @@ find_package(FFmpeg REQUIRED)
 
 find_package(OpenAL REQUIRED)
 
+# <------------ Qt (gui) --------------->
+
+find_package(Qt6 COMPONENTS Quick Gui Widgets REQUIRED)
+
 
 # ---- Load library ----
 
-add_library(RhythmGame_lib OBJECT src/db/SqliteCppDb.cpp src/db/SqliteCppDb.h src/charts/chart_readers/BmsChartReader.cpp src/charts/parser_models/ParsedBmsChart.cpp src/charts/parser_models/ParsedBmsChart.h src/drawing/MainWindow.cpp src/drawing/MainWindow.h src/drawing/actors/Actor.cpp src/drawing/actors/Actor.h src/drawing/SplashWindow.cpp src/drawing/SplashWindow.h src/drawing/Scene.cpp src/drawing/Scene.h src/drawing/SplashScene.cpp src/drawing/SplashScene.h src/resource_managers/LuaScriptFinder.cpp src/resource_managers/LuaScriptFinder.h src/state_transitions/SceneStateMachine.cpp src/state_transitions/SceneStateMachine.h src/state_transitions/SceneStateMachineImpl.cpp src/state_transitions/SceneStateMachineImpl.h src/drawing/Window.cpp src/drawing/Window.h src/lua/Bootstrapper.cpp src/lua/Bootstrapper.h src/state_transitions/Game.cpp src/state_transitions/Game.h src/db/DatabaseAccessPoint.cpp src/db/DatabaseAccessPoint.h src/drawing/actors/Quad.cpp src/drawing/actors/Quad.h src/drawing/actors/VBox.cpp src/drawing/actors/VBox.h src/drawing/actors/AbstractVectorCollection.cpp src/drawing/actors/AbstractVectorCollection.h src/drawing/actors/Parent.cpp src/drawing/actors/Parent.h src/support/EnableSharedFromBase.cpp src/support/EnableSharedFromBase.h src/drawing/actors/HBox.cpp src/drawing/actors/HBox.h src/drawing/actors/Text.cpp src/drawing/actors/Text.h src/drawing/actors/Sprite.cpp src/drawing/actors/Sprite.h src/resource_managers/TextureLoaderImpl.cpp src/resource_managers/TextureLoaderImpl.h src/resource_managers/TextureLoader.cpp src/resource_managers/TextureLoader.h src/resource_managers/TextureLoaderImpl.cpp src/resource_managers/TextureLoaderImpl.h src/resource_managers/FontLoader.cpp src/resource_managers/FontLoader.h src/resource_managers/FontLoaderImpl.cpp src/resource_managers/FontLoaderImpl.h src/drawing/actors/Padding.cpp src/drawing/actors/Padding.h src/drawing/actors/Align.cpp src/drawing/actors/Align.h src/drawing/actors/AbstractBox.cpp src/drawing/actors/AbstractBox.h src/drawing/actors/AbstractRectLeaf.cpp src/drawing/actors/AbstractRectLeaf.h src/drawing/actors/Layers.cpp src/drawing/actors/Layers.h src/events/GlobalEvent.cpp src/events/GlobalEvent.h src/drawing/animations/Animation.cpp src/drawing/animations/Animation.h src/drawing/animations/Linear.cpp src/drawing/animations/Linear.h src/drawing/animations/AnimationPlayerImpl.cpp src/drawing/animations/AnimationPlayerImpl.h src/drawing/animations/AnimationPlayer.cpp src/drawing/animations/AnimationPlayer.h src/drawing/animations/AbstractBasicAnimation.cpp src/drawing/animations/AbstractBasicAnimation.h src/drawing/animations/AnimationSequence.cpp src/drawing/animations/AnimationSequence.h src/lua/EventAttacher.cpp src/lua/EventAttacher.h src/events/MouseClickEvent.cpp src/events/MouseClickEvent.h src/events/MouseHoverEvents.cpp src/events/MouseHoverEvents.h src/events/Event.cpp src/events/Event.h src/support/Capitalize.cpp src/support/Capitalize.h src/lua/Lua.h src/resource_managers/AssetsFolderFinder.cpp src/resource_managers/AssetsFolderFinder.h src/resource_managers/FindAssetsFolderBoost.cpp src/resource_managers/FindAssetsFolderBoost.h src/resource_managers/LuaScriptFinderImpl.cpp src/resource_managers/LuaScriptFinderImpl.h src/resource_managers/LoadConfig.cpp src/resource_managers/LoadConfig.h src/sounds/OpenAlSound.cpp src/sounds/OpenAlSound.h src/sounds/OpenAlSoundBuffer.h src/sounds/OpenAlSoundBuffer.cpp src/resource_managers/SoundLoaderImpl.h src/resource_managers/SoundLoaderImpl.cpp src/resource_managers/SoundLoader.h src/resource_managers/SoundLoader.cpp src/drawing/actors/Frame.h src/drawing/actors/Frame.cpp src/charts/gameplay_models/BmsChart.cpp src/charts/gameplay_models/BmsChart.h src/charts/gameplay_models/Snap.cpp src/charts/gameplay_models/Snap.h src/charts/helper_functions/loadBmsSounds.cpp src/charts/helper_functions/loadBmsSounds.h)
+add_library(RhythmGame_lib OBJECT src/db/SqliteCppDb.cpp src/db/SqliteCppDb.h src/charts/chart_readers/BmsChartReader.cpp src/charts/parser_models/ParsedBmsChart.cpp src/charts/parser_models/ParsedBmsChart.h src/resource_managers/QmlScriptFinder.cpp src/resource_managers/QmlScriptFinder.h src/db/DatabaseAccessPoint.cpp src/db/DatabaseAccessPoint.h src/support/EnableSharedFromBase.cpp src/support/EnableSharedFromBase.h src/resource_managers/TextureLoaderImpl.cpp src/resource_managers/TextureLoaderImpl.h src/resource_managers/TextureLoader.cpp src/resource_managers/TextureLoader.h src/resource_managers/TextureLoaderImpl.cpp src/resource_managers/TextureLoaderImpl.h src/resource_managers/FontLoader.cpp src/resource_managers/FontLoader.h src/resource_managers/FontLoaderImpl.cpp src/resource_managers/FontLoaderImpl.h src/support/Capitalize.cpp src/support/Capitalize.h src/resource_managers/AssetsFolderFinder.cpp src/resource_managers/AssetsFolderFinder.h src/resource_managers/FindAssetsFolderBoost.cpp src/resource_managers/FindAssetsFolderBoost.h src/resource_managers/QmlScriptFinderImpl.cpp src/resource_managers/QmlScriptFinderImpl.h src/resource_managers/LoadConfig.cpp src/resource_managers/LoadConfig.h src/sounds/OpenAlSound.cpp src/sounds/OpenAlSound.h src/sounds/OpenAlSoundBuffer.h src/sounds/OpenAlSoundBuffer.cpp src/resource_managers/SoundLoaderImpl.h src/resource_managers/SoundLoaderImpl.cpp src/resource_managers/SoundLoader.h src/resource_managers/SoundLoader.cpp src/charts/gameplay_models/BmsChart.cpp src/charts/gameplay_models/BmsChart.h src/charts/gameplay_models/Snap.cpp src/charts/gameplay_models/Snap.h src/charts/helper_functions/loadBmsSounds.cpp src/charts/helper_functions/loadBmsSounds.h)
 
 find_package(Threads REQUIRED)
 
 find_package(Microsoft.GSL REQUIRED)
 
-target_link_libraries(RhythmGame_lib PUBLIC Threads::Threads Boost::headers Boost::serialization Boost::dynamic_linking Boost::filesystem luajit::luajit sol2::sol2 SQLiteCpp sfml::sfml Microsoft.GSL::GSL spdlog::spdlog foonathan::lexy ffmpeg::ffmpeg OpenAL::OpenAL)
+target_link_libraries(RhythmGame_lib PUBLIC Qt6::Gui Qt6::Quick Qt6::OpenGL Threads::Threads Boost::headers Boost::serialization Boost::dynamic_linking Boost::filesystem SQLiteCpp sfml::sfml Microsoft.GSL::GSL spdlog::spdlog foonathan::lexy ffmpeg::ffmpeg OpenAL::OpenAL)
 
 include(CheckCXXSymbolExists)
 check_cxx_symbol_exists(std::execution::par "execution" RHYTHMGAME_HAS_STD_EXECUTION)
@@ -103,10 +102,6 @@ add_custom_command(TARGET RhythmGame_exe POST_BUILD
 target_compile_features(RhythmGame_exe PRIVATE cxx_std_20)
 
 target_link_libraries(RhythmGame_exe PRIVATE RhythmGame_lib)
-# MacOS luajit linker flags
-if (APPLE)
-    set_target_properties(RhythmGame_exe PROPERTIES LINK_FLAGS "-pagezero_size 10000 -image_base 100000000")
-endif ()
 
 if (NOT APPLE)
     if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU" OR "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")

@@ -1,51 +1,20 @@
-#include <drawing/SplashWindow.h>
-#include "drawing/SplashScene.h"
-#include "drawing/Window.h"
 #include "resource_managers/TextureLoaderImpl.h"
 
-#include "state_transitions/Game.h"
-#include "lua/Bootstrapper.h"
 #include "resource_managers/FontLoaderImpl.h"
-#include "drawing/animations/AnimationPlayerImpl.h"
 #include "resource_managers/FindAssetsFolderBoost.h"
 #include "resource_managers/LoadConfig.h"
-#include "resource_managers/LuaScriptFinderImpl.h"
+#include "resource_managers/QmlScriptFinderImpl.h"
 #include "sounds/OpenAlSound.h"
 #include "resource_managers/SoundLoaderImpl.h"
 
-auto
-loadGame(resource_managers::LuaScriptFinder auto luaScriptFinder,
-         resource_managers::FontLoader auto fontLoader,
-         resource_managers::TextureLoader auto textureLoader,
-         resource_managers::SoundLoader auto soundLoader) -> void
-{
-    auto state = sol::state{};
-    state.open_libraries(
-      sol::lib::jit, sol::lib::base, sol::lib::io, sol::lib::math);
-
-    auto scriptPath = luaScriptFinder("Main");
-
-    auto animationPlayer = drawing::animations::AnimationPlayerImpl{};
-    auto startingScene =
-      std::make_shared<drawing::SplashScene<decltype(animationPlayer),
-                                            decltype(textureLoader),
-                                            decltype(fontLoader),
-                                            decltype(soundLoader)>>(
-        std::move(state),
-        std::move(animationPlayer),
-        &textureLoader,
-        &fontLoader,
-        &soundLoader,
-        std::move(scriptPath));
-
-    auto startingWindow = std::make_shared<drawing::SplashWindow>(
-      std::move(startingScene), sf::VideoMode{ 800, 600 }, "RhythmGame");
-    auto game = state_transitions::Game{ std::move(startingWindow) };
-    game.run();
-}
+#include <QWindow>
+#include <QGuiApplication>
+#include <QQmlApplicationEngine>
+#include <QScreen>
+#include <QTimer>
 
 auto
-main() -> int
+main(int argc, char* argv[]) -> int
 {
     try {
         auto assetsFolder = resource_managers::findAssetsFolder();
@@ -70,14 +39,35 @@ main() -> int
                                                 "Default" / "sounds",
                                               soundConfig["SoundNames"] };
         auto luaScriptFinder =
-          resource_managers::LuaScriptFinderImpl{ assetsFolder / "themes" /
+          resource_managers::QmlScriptFinderImpl{ assetsFolder / "themes" /
                                                     "Default" / "scripts",
                                                   scriptConfig["ScriptNames"] };
-        loadGame(std::move(luaScriptFinder),
-                 std::move(fontManager),
-                 std::move(textureManager),
-                 std::move(soundManager));
 
+#if defined(Q_OS_WIN)
+        QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
+#endif
+
+        QSurfaceFormat format = QSurfaceFormat::defaultFormat();
+        format.setSwapInterval(0);
+        QSurfaceFormat::setDefaultFormat(format);
+
+        QGuiApplication app(argc, argv);
+
+        QQmlApplicationEngine engine;
+
+        auto pathToStartQml = luaScriptFinder("HelloWorld.qml");
+
+        // load the main qml file
+        engine.load(QUrl::fromLocalFile(pathToStartQml.string().c_str()));
+        if (engine.rootObjects().isEmpty())
+            return -1;
+
+        // set width and height of the window
+        auto window = qobject_cast<QWindow*>(engine.rootObjects().first());
+        window->setWidth(800);
+        window->setHeight(600);
+
+        return app.exec();
     } catch (const std::exception& e) {
         spdlog::error("Fatal error: {}", e.what());
         return 1;
