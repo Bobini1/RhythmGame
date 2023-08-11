@@ -46,8 +46,10 @@ find_package(OpenAL REQUIRED)
 
 # <------------ Qt (gui) --------------->
 
-find_package(Qt6 COMPONENTS Quick Gui Widgets REQUIRED)
+find_package(Qt6 REQUIRED COMPONENTS Quick Gui Widgets)
 set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTORCC ON)
+set(CMAKE_AUTOUIC ON)
 
 # ---- Load library ----
 

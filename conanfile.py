@@ -21,7 +21,7 @@ class Recipe(ConanFile):
         self.requires("foonathan-lexy/2022.12.00")
         self.requires("ffmpeg/5.0")
         self.requires("openal-soft/1.22.2")
-        # self.requires("qt/6.5.1")
+        self.requires("qt/6.5.2")
         self.requires("sqlite3/3.42.0", override=True)
 
         # Testing only dependencies below
@@ -35,6 +35,6 @@ class Recipe(ConanFile):
         self.options["ffmpeg"].postproc = False
         self.options["ffmpeg"].with_libfdk_aac = False
         self.options["ffmpeg"].with_openjpeg = False
-        # self.options["qt"].shared = True
-        # self.options["qt"].qtshadertools = True
-        # self.options["qt"].qtdeclarative = True
+        self.options["qt"].shared = True
+        self.options["qt"].qtshadertools = True
+        self.options["qt"].qtdeclarative = True

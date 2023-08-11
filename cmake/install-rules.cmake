@@ -6,7 +6,7 @@ install(
 install(DIRECTORY assets/ DESTINATION assets/
         COMPONENT RhythmGame_Runtime)
 
-qt_generate_deploy_app_script(
+qt_generate_deploy_qml_app_script(
         TARGET RhythmGame_exe
         OUTPUT_SCRIPT deploy_script
         NO_UNSUPPORTED_PLATFORM_ERROR

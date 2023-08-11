@@ -1,6 +1,6 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
-import RhythmGame.SceneSwitcher
+import RhythmGameQml
 
 Item {
     id: screen

@@ -12,6 +12,8 @@
 #include <QQmlEngine>
 #include <QtQml/QQmlExtensionPlugin>
 
+Q_IMPORT_QML_PLUGIN(RhythmGameQmlPlugin)
+
 auto
 main(int argc, char* argv[]) -> int
 {
@@ -33,17 +35,9 @@ main(int argc, char* argv[]) -> int
         QSurfaceFormat::setDefaultFormat(format);
 
         const auto app = QGuiApplication(argc, argv);
-        Q_IMPORT_QML_PLUGIN(RhythmGameQmlPlugin);
 
         auto engine = QQmlApplicationEngine{};
-        auto sceneSwitcher =
-          QScopedPointer(new qml_components::SceneSwitcher{ qmlScriptFinder });
-        // register singleton instance
-        qmlRegisterSingletonInstance("RhythmGame.SceneSwitcher",
-                                     1,
-                                     0,
-                                     "SceneSwitcher",
-                                     sceneSwitcher.get());
+        qml_components::SceneSwitcher::setQmlScriptFinder(qmlScriptFinder);
         auto pathToStartQml = qmlScriptFinder("Main");
 
         auto view = QQuickView(&engine, nullptr);
