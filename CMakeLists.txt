@@ -47,11 +47,11 @@ find_package(OpenAL REQUIRED)
 # <------------ Qt (gui) --------------->
 
 find_package(Qt6 COMPONENTS Quick Gui Widgets REQUIRED)
-
+set(CMAKE_AUTOMOC ON)
 
 # ---- Load library ----
 
-add_library(RhythmGame_lib OBJECT src/db/SqliteCppDb.cpp src/db/SqliteCppDb.h src/charts/chart_readers/BmsChartReader.cpp src/charts/parser_models/ParsedBmsChart.cpp src/charts/parser_models/ParsedBmsChart.h src/resource_managers/QmlScriptFinder.cpp src/resource_managers/QmlScriptFinder.h src/db/DatabaseAccessPoint.cpp src/db/DatabaseAccessPoint.h src/support/EnableSharedFromBase.cpp src/support/EnableSharedFromBase.h src/resource_managers/TextureLoaderImpl.cpp src/resource_managers/TextureLoaderImpl.h src/resource_managers/TextureLoader.cpp src/resource_managers/TextureLoader.h src/resource_managers/TextureLoaderImpl.cpp src/resource_managers/TextureLoaderImpl.h src/resource_managers/FontLoader.cpp src/resource_managers/FontLoader.h src/resource_managers/FontLoaderImpl.cpp src/resource_managers/FontLoaderImpl.h src/support/Capitalize.cpp src/support/Capitalize.h src/resource_managers/AssetsFolderFinder.cpp src/resource_managers/AssetsFolderFinder.h src/resource_managers/FindAssetsFolderBoost.cpp src/resource_managers/FindAssetsFolderBoost.h src/resource_managers/QmlScriptFinderImpl.cpp src/resource_managers/QmlScriptFinderImpl.h src/resource_managers/LoadConfig.cpp src/resource_managers/LoadConfig.h src/sounds/OpenAlSound.cpp src/sounds/OpenAlSound.h src/sounds/OpenAlSoundBuffer.h src/sounds/OpenAlSoundBuffer.cpp src/resource_managers/SoundLoaderImpl.h src/resource_managers/SoundLoaderImpl.cpp src/resource_managers/SoundLoader.h src/resource_managers/SoundLoader.cpp src/charts/gameplay_models/BmsChart.cpp src/charts/gameplay_models/BmsChart.h src/charts/gameplay_models/Snap.cpp src/charts/gameplay_models/Snap.h src/charts/helper_functions/loadBmsSounds.cpp src/charts/helper_functions/loadBmsSounds.h)
+qt_add_library(RhythmGame_lib OBJECT src/db/SqliteCppDb.cpp src/db/SqliteCppDb.h src/charts/chart_readers/BmsChartReader.cpp src/charts/parser_models/ParsedBmsChart.cpp src/charts/parser_models/ParsedBmsChart.h src/resource_managers/QmlScriptFinder.cpp src/resource_managers/QmlScriptFinder.h src/db/DatabaseAccessPoint.cpp src/db/DatabaseAccessPoint.h src/support/EnableSharedFromBase.cpp src/support/EnableSharedFromBase.h src/support/Capitalize.cpp src/support/Capitalize.h src/resource_managers/AssetsFolderFinder.cpp src/resource_managers/AssetsFolderFinder.h src/resource_managers/FindAssetsFolderBoost.cpp src/resource_managers/FindAssetsFolderBoost.h src/resource_managers/QmlScriptFinderImpl.cpp src/resource_managers/QmlScriptFinderImpl.h src/resource_managers/LoadConfig.cpp src/resource_managers/LoadConfig.h src/sounds/OpenAlSound.cpp src/sounds/OpenAlSound.h src/sounds/OpenAlSoundBuffer.h src/sounds/OpenAlSoundBuffer.cpp src/charts/gameplay_models/BmsChart.cpp src/charts/gameplay_models/BmsChart.h src/charts/gameplay_models/Snap.cpp src/charts/gameplay_models/Snap.h src/charts/helper_functions/loadBmsSounds.cpp src/charts/helper_functions/loadBmsSounds.h RhythmGameQml/SceneSwitcher.cpp RhythmGameQml/SceneSwitcher.h)
 
 find_package(Threads REQUIRED)
 
@@ -77,9 +77,12 @@ target_include_directories(
         "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src>"
 )
 
+# ---- Declare QML module ----
+add_subdirectory(RhythmGameQml)
+
 # ---- Declare executable ----
 
-add_executable(RhythmGame_exe src/main.cpp)
+qt_add_executable(RhythmGame_exe src/main.cpp)
 add_executable(RhythmGame::exe ALIAS RhythmGame_exe)
 
 set_target_properties(
@@ -88,6 +91,7 @@ set_target_properties(
         EXPORT_NAME exe
         RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/bin/$<0:>"
 )
+
 
 add_custom_command(TARGET RhythmGame_exe POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E create_symlink
@@ -101,7 +105,7 @@ add_custom_command(TARGET RhythmGame_exe POST_BUILD
 
 target_compile_features(RhythmGame_exe PRIVATE cxx_std_20)
 
-target_link_libraries(RhythmGame_exe PRIVATE RhythmGame_lib)
+target_link_libraries(RhythmGame_exe PRIVATE RhythmGame_lib RhythmGame_qmlplugin)
 
 if (NOT APPLE)
     if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU" OR "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")

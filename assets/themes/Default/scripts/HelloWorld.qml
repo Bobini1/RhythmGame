@@ -1,88 +1,81 @@
 import QtQuick
 import QtQuick.Window
 
-Window {
-    height: 480
-    title: qsTr("Hello World")
-    visible: true
-    width: 320
+Rectangle {
+    id: page
 
-    Rectangle {
-        id: page
+    color: "lightgray"
+    height: 600
+    width: 800
 
-        color: "lightgray"
-        height: parent.height
-        width: parent.width
+    Text {
+        id: helloText
 
-        Text {
-            id: helloText
+        anchors.horizontalCenter: page.horizontalCenter
+        font.bold: true
+        font.pointSize: 24
+        text: "Hello world!"
+        y: 30
+    }
+    FpsCounter {
+        id: fpsCounter
 
-            anchors.horizontalCenter: page.horizontalCenter
-            font.bold: true
-            font.pointSize: 24
-            text: "Hello world!"
-            y: 30
+        // upper right corner
+        anchors.right: page.right
+        anchors.rightMargin: 4
+        anchors.top: page.top
+        anchors.topMargin: 4
+    }
+    Grid {
+        id: colorPicker
+
+        anchors.bottom: page.bottom
+        anchors.bottomMargin: 4
+        columns: 3
+        rows: 2
+        spacing: 3
+        x: 4
+
+        Cell {
+            cellColor: "red"
+
+            onClicked: function (cellColor) {
+                helloText.color = cellColor;
+            }
         }
-        FpsCounter {
-            id: fpsCounter
+        Cell {
+            cellColor: "green"
 
-            // upper right corner
-            anchors.right: page.right
-            anchors.rightMargin: 4
-            anchors.top: page.top
-            anchors.topMargin: 4
+            onClicked: function (cellColor) {
+                helloText.color = cellColor;
+            }
         }
-        Grid {
-            id: colorPicker
+        Cell {
+            cellColor: "blue"
 
-            anchors.bottom: page.bottom
-            anchors.bottomMargin: 4
-            columns: 3
-            rows: 2
-            spacing: 3
-            x: 4
-
-            Cell {
-                cellColor: "red"
-
-                onClicked: function (cellColor) {
-                    helloText.color = cellColor;
-                }
+            onClicked: function (cellColor) {
+                helloText.color = cellColor;
             }
-            Cell {
-                cellColor: "green"
+        }
+        Cell {
+            cellColor: "yellow"
 
-                onClicked: function (cellColor) {
-                    helloText.color = cellColor;
-                }
+            onClicked: function (cellColor) {
+                helloText.color = cellColor;
             }
-            Cell {
-                cellColor: "blue"
+        }
+        Cell {
+            cellColor: "steelblue"
 
-                onClicked: function (cellColor) {
-                    helloText.color = cellColor;
-                }
+            onClicked: function (cellColor) {
+                helloText.color = cellColor;
             }
-            Cell {
-                cellColor: "yellow"
+        }
+        Cell {
+            cellColor: "black"
 
-                onClicked: function (cellColor) {
-                    helloText.color = cellColor;
-                }
-            }
-            Cell {
-                cellColor: "steelblue"
-
-                onClicked: function (cellColor) {
-                    helloText.color = cellColor;
-                }
-            }
-            Cell {
-                cellColor: "black"
-
-                onClicked: function (cellColor) {
-                    helloText.color = cellColor;
-                }
+            onClicked: function (cellColor) {
+                helloText.color = cellColor;
             }
         }
     }

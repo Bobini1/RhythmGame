@@ -1,44 +1,25 @@
-#include "resource_managers/TextureLoaderImpl.h"
-
-#include "resource_managers/FontLoaderImpl.h"
 #include "resource_managers/FindAssetsFolderBoost.h"
 #include "resource_managers/LoadConfig.h"
 #include "resource_managers/QmlScriptFinderImpl.h"
 #include "sounds/OpenAlSound.h"
-#include "resource_managers/SoundLoaderImpl.h"
+#include "../RhythmGameQml/SceneSwitcher.h"
 
-#include <QWindow>
+#include <QOpenGLWindow>
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
-#include <QScreen>
 #include <QTimer>
+#include <QQuickView>
+#include <QQmlEngine>
+#include <QtQml/QQmlExtensionPlugin>
 
 auto
 main(int argc, char* argv[]) -> int
 {
     try {
         auto assetsFolder = resource_managers::findAssetsFolder();
-        auto textureConfig = resource_managers::loadConfig(
-          assetsFolder / "themes" / "Default" / "textures" / "textures.ini");
-        auto fontConfig = resource_managers::loadConfig(
-          assetsFolder / "themes" / "Default" / "fonts" / "fonts.ini");
-        auto soundConfig = resource_managers::loadConfig(
-          assetsFolder / "themes" / "Default" / "sounds" / "sounds.ini");
         auto scriptConfig = resource_managers::loadConfig(
           assetsFolder / "themes" / "Default" / "scripts" / "scripts.ini");
-        auto fontManager =
-          resource_managers::FontLoaderImpl{ assetsFolder / "themes" /
-                                               "Default" / "fonts",
-                                             fontConfig["FontNames"] };
-        auto textureManager =
-          resource_managers::TextureLoaderImpl{ assetsFolder / "themes" /
-                                                  "Default" / "textures",
-                                                textureConfig["TextureNames"] };
-        auto soundManager =
-          resource_managers::SoundLoaderImpl{ assetsFolder / "themes" /
-                                                "Default" / "sounds",
-                                              soundConfig["SoundNames"] };
-        auto luaScriptFinder =
+        auto qmlScriptFinder =
           resource_managers::QmlScriptFinderImpl{ assetsFolder / "themes" /
                                                     "Default" / "scripts",
                                                   scriptConfig["ScriptNames"] };
@@ -47,25 +28,32 @@ main(int argc, char* argv[]) -> int
         QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
 #endif
 
-        QSurfaceFormat format = QSurfaceFormat::defaultFormat();
+        auto format = QSurfaceFormat::defaultFormat();
         format.setSwapInterval(0);
         QSurfaceFormat::setDefaultFormat(format);
 
-        QGuiApplication app(argc, argv);
+        const auto app = QGuiApplication(argc, argv);
+        Q_IMPORT_QML_PLUGIN(RhythmGameQmlPlugin);
 
-        QQmlApplicationEngine engine;
+        auto engine = QQmlApplicationEngine{};
+        auto sceneSwitcher =
+          QScopedPointer(new qml_components::SceneSwitcher{ qmlScriptFinder });
+        // register singleton instance
+        qmlRegisterSingletonInstance("RhythmGame.SceneSwitcher",
+                                     1,
+                                     0,
+                                     "SceneSwitcher",
+                                     sceneSwitcher.get());
+        auto pathToStartQml = qmlScriptFinder("Main");
 
-        auto pathToStartQml = luaScriptFinder("HelloWorld.qml");
+        auto view = QQuickView(&engine, nullptr);
 
-        // load the main qml file
-        engine.load(QUrl::fromLocalFile(pathToStartQml.string().c_str()));
-        if (engine.rootObjects().isEmpty())
-            return -1;
+        view.setSource(QUrl::fromLocalFile(pathToStartQml.string().c_str()));
 
-        // set width and height of the window
-        auto window = qobject_cast<QWindow*>(engine.rootObjects().first());
-        window->setWidth(800);
-        window->setHeight(600);
+        view.show();
+
+        view.setWidth(800);
+        view.setHeight(600);
 
         return app.exec();
     } catch (const std::exception& e) {
@@ -75,6 +63,4 @@ main(int argc, char* argv[]) -> int
         spdlog::error("Fatal error: unknown");
         return 1;
     }
-
-    return 0;
 }
