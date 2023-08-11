@@ -6,9 +6,6 @@
 #include <spdlog/spdlog.h>
 #include <QJSEngine>
 
-std::function<std::filesystem::path(std::string)>
-  qml_components::SceneSwitcher::qmlScriptFinderStatic;
-
 void
 qml_components::SceneSwitcher::switchToMain()
 {
@@ -24,17 +21,11 @@ qml_components::SceneSwitcher::switchToSongWheel()
 {
     spdlog::info("Switched to Song Wheel scene");
 }
-void
-qml_components::SceneSwitcher::setQmlScriptFinder(
-  std::function<std::filesystem::path(std::string)> qmlScriptFinder)
-{
-    qmlScriptFinderStatic = std::move(qmlScriptFinder);
-}
 auto
 qml_components::SceneSwitcher::create(QQmlEngine* /*engine*/, QJSEngine* engine)
   -> qml_components::SceneSwitcher*
 {
-    static auto* instance = new SceneSwitcher{ qmlScriptFinderStatic };
+    Q_ASSERT(instance);
     // The engine has to have the same thread affinity as the singleton.
     Q_ASSERT(engine->thread() == instance->thread());
     QJSEngine::setObjectOwnership(instance, QJSEngine::CppOwnership);
@@ -44,4 +35,10 @@ qml_components::SceneSwitcher::SceneSwitcher(
   std::function<std::filesystem::path(std::string)> qmlScriptFinder)
   : qmlScriptFinder(std::move(qmlScriptFinder))
 {
+}
+void
+qml_components::SceneSwitcher::setInstance(
+  qml_components::SceneSwitcher* newInstance)
+{
+    SceneSwitcher::instance = newInstance;
 }

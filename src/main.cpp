@@ -37,7 +37,8 @@ main(int argc, char* argv[]) -> int
         const auto app = QGuiApplication(argc, argv);
 
         auto engine = QQmlApplicationEngine{};
-        qml_components::SceneSwitcher::setQmlScriptFinder(qmlScriptFinder);
+        qml_components::SceneSwitcher::setInstance(
+          new qml_components::SceneSwitcher{ qmlScriptFinder });
         auto pathToStartQml = qmlScriptFinder("Main");
 
         auto view = QQuickView(&engine, nullptr);

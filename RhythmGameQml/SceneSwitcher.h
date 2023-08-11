@@ -15,13 +15,12 @@ class SceneSwitcher : public QObject
     QML_ELEMENT
     QML_SINGLETON
 
-    static std::function<std::filesystem::path(std::string)>
-      qmlScriptFinderStatic;
     std::function<std::filesystem::path(std::string)> qmlScriptFinder;
 
+    static inline SceneSwitcher* instance;
+
   public:
-    static void setQmlScriptFinder(
-      std::function<std::filesystem::path(std::string)> qmlScriptFinder);
+    static void setInstance(SceneSwitcher* instance);
     explicit SceneSwitcher(
       std::function<std::filesystem::path(std::string)> qmlScriptFinder);
     static auto create(QQmlEngine*, QJSEngine* engine) -> SceneSwitcher*;
