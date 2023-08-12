@@ -3,12 +3,17 @@
 //
 
 #include "SceneSwitcher.h"
+#include "ChartList.h"
 #include <spdlog/spdlog.h>
 #include <QJSEngine>
+#include <QQmlEngine>
+#include <qqmlcontext.h>
 
 void
 qml_components::SceneSwitcher::switchToMain()
 {
+    auto mainPath = SceneSwitcher::instance->qmlScriptFinder("Main");
+    view->setView(mainPath.string().c_str());
     spdlog::info("Switched to Main scene");
 }
 void
@@ -19,7 +24,12 @@ qml_components::SceneSwitcher::switchToGameplay()
 void
 qml_components::SceneSwitcher::switchToSongWheel()
 {
-    spdlog::info("Switched to Song Wheel scene");
+    auto songWheelPath = SceneSwitcher::instance->qmlScriptFinder("SongWheel");
+    auto* chartList = new ChartList{};
+    auto* context = new QQmlContext{ qmlEngine(this) };
+    view->setView(songWheelPath.string().c_str(), context);
+
+    spdlog::info("Switched to SongWheel scene");
 }
 auto
 qml_components::SceneSwitcher::create(QQmlEngine* /*engine*/, QJSEngine* engine)
@@ -32,8 +42,10 @@ qml_components::SceneSwitcher::create(QQmlEngine* /*engine*/, QJSEngine* engine)
     return instance;
 }
 qml_components::SceneSwitcher::SceneSwitcher(
+  ViewManager* view,
   std::function<std::filesystem::path(std::string)> qmlScriptFinder)
   : qmlScriptFinder(std::move(qmlScriptFinder))
+  , view(view)
 {
 }
 void

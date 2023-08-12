@@ -5,8 +5,10 @@
 #ifndef RHYTHMGAME_SCENESWITCHER_H
 #define RHYTHMGAME_SCENESWITCHER_H
 #include "resource_managers/QmlScriptFinder.h"
+#include "ViewManager.h"
 #include <QObject>
 #include <qqml.h>
+#include <QQuickView>
 namespace qml_components {
 
 class SceneSwitcher : public QObject
@@ -16,12 +18,14 @@ class SceneSwitcher : public QObject
     QML_SINGLETON
 
     std::function<std::filesystem::path(std::string)> qmlScriptFinder;
+    ViewManager* view;
 
     static inline SceneSwitcher* instance;
 
   public:
     static void setInstance(SceneSwitcher* instance);
     explicit SceneSwitcher(
+      ViewManager* view,
       std::function<std::filesystem::path(std::string)> qmlScriptFinder);
     static auto create(QQmlEngine*, QJSEngine* engine) -> SceneSwitcher*;
     Q_INVOKABLE void switchToMain();

@@ -3,6 +3,7 @@
 #include "resource_managers/QmlScriptFinderImpl.h"
 #include "sounds/OpenAlSound.h"
 #include "../RhythmGameQml/SceneSwitcher.h"
+#include "ViewManager.h"
 
 #include <QOpenGLWindow>
 #include <QGuiApplication>
@@ -37,18 +38,15 @@ main(int argc, char* argv[]) -> int
         const auto app = QGuiApplication(argc, argv);
 
         auto engine = QQmlApplicationEngine{};
-        qml_components::SceneSwitcher::setInstance(
-          new qml_components::SceneSwitcher{ qmlScriptFinder });
-        auto pathToStartQml = qmlScriptFinder("Main");
-
-        auto view = QQuickView(&engine, nullptr);
-
-        view.setSource(QUrl::fromLocalFile(pathToStartQml.string().c_str()));
-
+        auto view = ViewManager(&engine, nullptr);
+        auto* sceneSwitcher =
+          new qml_components::SceneSwitcher{ &view, qmlScriptFinder };
+        qml_components::SceneSwitcher::setInstance(sceneSwitcher);
+        sceneSwitcher->switchToMain();
         view.show();
 
-        view.setWidth(800);
-        view.setHeight(600);
+        view.setWidth(1920);
+        view.setHeight(1080);
 
         return app.exec();
     } catch (const std::exception& e) {
