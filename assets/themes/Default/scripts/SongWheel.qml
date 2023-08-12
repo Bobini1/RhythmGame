@@ -2,6 +2,7 @@ import QtQuick
 
 ListView {
     height: 200
+    model: chartList
     width: 200
 
     delegate: Rectangle {
@@ -13,20 +14,6 @@ ListView {
 
         Text {
             text: artist + " - " + title
-        }
-    }
-    model: ListModel {
-        ListElement {
-            artist: "The Beatles"
-            title: "Yesterday"
-        }
-        ListElement {
-            artist: "The Rolling Stones"
-            title: "Angie"
-        }
-        ListElement {
-            artist: "The Doors"
-            title: "Light My Fire"
         }
     }
 }

@@ -26,14 +26,15 @@ ChartList::data(const QModelIndex& index, int role) const -> QVariant
     }
 
     // FIXME: Implement me!
-    if (role == Qt::DisplayRole) {
-        if (index.column() == 0) {
-            return chartList[index.row()].first;
-        }
-        if (index.column() == 1) {
-            return chartList[index.row()].second;
-        }
+    switch (role) {
+        case Qt::DisplayRole:
+        case TitleRole:
+            return chartList[row].first;
+        case ArtistRole:
+            return chartList[row].second;
     }
+
+    return {};
 }
 auto
 ChartList::roleNames() const -> QHash<int, QByteArray>

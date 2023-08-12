@@ -25,8 +25,9 @@ void
 qml_components::SceneSwitcher::switchToSongWheel()
 {
     auto songWheelPath = SceneSwitcher::instance->qmlScriptFinder("SongWheel");
-    auto* chartList = new ChartList{};
     auto* context = new QQmlContext{ qmlEngine(this) };
+    auto* chartList = new ChartList{ context };
+    context->setContextProperty("chartList", QVariant::fromValue(chartList));
     view->setView(songWheelPath.string().c_str(), context);
 
     spdlog::info("Switched to SongWheel scene");

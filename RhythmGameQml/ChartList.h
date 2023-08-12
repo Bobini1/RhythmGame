@@ -16,15 +16,12 @@ class ChartList : public QAbstractListModel
         ArtistRole,
     };
 
-    // Basic functionality:
-    [[nodiscard]] auto rowCount(const QModelIndex& parent = QModelIndex()) const
+    [[nodiscard]] auto rowCount(const QModelIndex& parent) const
       -> int override;
 
-    auto data(const QModelIndex& index, int role = Qt::DisplayRole) const
-      -> QVariant override;
+    auto data(const QModelIndex& index, int role) const -> QVariant override;
 
-    auto columnCount(const QModelIndex& parent = QModelIndex()) const
-      -> int override;
+    auto columnCount(const QModelIndex& parent) const -> int override;
 
     auto roleNames() const -> QHash<int, QByteArray> override;
 
