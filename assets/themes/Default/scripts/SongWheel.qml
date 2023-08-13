@@ -1,11 +1,16 @@
 import QtQuick
+import RhythmGameQml
 
 ListView {
     height: 200
-    model: chartList
+    model: ListView {
+        
+    }
     width: 200
 
     delegate: Rectangle {
+        id: listItem
+
         required property string artist
         required property string title
 
@@ -13,7 +18,7 @@ ListView {
         width: parent.width
 
         Text {
-            text: artist + " - " + title
+            text: listItem.artist + " - " + listItem.title
         }
     }
 }

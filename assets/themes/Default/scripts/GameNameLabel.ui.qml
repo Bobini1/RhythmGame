@@ -39,10 +39,6 @@ Item {
                 anchors.right: parent.right
                 anchors.rightMargin: 0
                 text: qsTr("Button")
-
-                onClicked: {
-                    SceneSwitcher.switchToSongWheel();
-                }
             }
             Button {
                 id: button1

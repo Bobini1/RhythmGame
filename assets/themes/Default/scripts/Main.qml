@@ -1,4 +1,0 @@
-Item {
-    GameNameLabel {
-    }
-}

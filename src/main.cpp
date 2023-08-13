@@ -1,8 +1,8 @@
 #include "resource_managers/FindAssetsFolderBoost.h"
 #include "resource_managers/LoadConfig.h"
-#include "resource_managers/QmlScriptFinderImpl.h"
+#include "resource_managers/models/ThemeConfig.h"
 #include "sounds/OpenAlSound.h"
-#include "../RhythmGameQml/SceneSwitcher.h"
+#include "../RhythmGameQml/SceneUrls.h"
 #include "ViewManager.h"
 
 #include <QOpenGLWindow>
@@ -20,12 +20,6 @@ main(int argc, char* argv[]) -> int
 {
     try {
         auto assetsFolder = resource_managers::findAssetsFolder();
-        auto scriptConfig = resource_managers::loadConfig(
-          assetsFolder / "themes" / "Default" / "scripts" / "scripts.ini");
-        auto qmlScriptFinder =
-          resource_managers::QmlScriptFinderImpl{ assetsFolder / "themes" /
-                                                    "Default" / "scripts",
-                                                  scriptConfig["ScriptNames"] };
 
 #if defined(Q_OS_WIN)
         QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
@@ -38,15 +32,40 @@ main(int argc, char* argv[]) -> int
         const auto app = QGuiApplication(argc, argv);
 
         auto engine = QQmlApplicationEngine{};
-        auto view = ViewManager(&engine, nullptr);
+
+        auto themeConfigLoader = [assetsFolder] {
+            try {
+                const auto configMap = resource_managers::loadConfig(
+                  assetsFolder / "themes" / "Default" / "scripts" /
+                  "scripts.ini")["ScriptNames"];
+                const auto scriptsFolder = QUrl::fromLocalFile(
+                  QString::fromStdString(assetsFolder / "themes" / "Default" /
+                                         "scripts") +
+                  '/');
+                return resource_managers::models::ThemeConfig{
+                    scriptsFolder.resolved(
+                      QString::fromStdString(configMap.at("Main"))),
+                    scriptsFolder.resolved(
+                      QString::fromStdString(configMap.at("Gameplay"))),
+                    scriptsFolder.resolved(
+                      QString::fromStdString(configMap.at("SongWheel"))),
+                };
+            } catch (const std::exception& e) {
+                spdlog::error("Failed to load theme config: {}", e.what());
+                throw;
+            }
+        };
+
         auto* sceneSwitcher =
-          new qml_components::SceneSwitcher{ &view, qmlScriptFinder };
-        qml_components::SceneSwitcher::setInstance(sceneSwitcher);
-        sceneSwitcher->switchToMain();
-        view.show();
+          new qml_components::SceneUrls{ themeConfigLoader };
+        qml_components::SceneUrls::setInstance(sceneSwitcher);
+
+        auto view = ViewManager(&engine, nullptr);
 
         view.setWidth(1920);
         view.setHeight(1080);
+
+        view.show();
 
         return app.exec();
     } catch (const std::exception& e) {
