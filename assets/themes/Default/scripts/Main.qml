@@ -39,6 +39,10 @@ Item {
                 anchors.right: parent.right
                 anchors.rightMargin: 0
                 text: qsTr("Button")
+
+                onClicked: {
+                    sceneStack.push(root.songWheelComponent);
+                }
             }
             Button {
                 id: button1

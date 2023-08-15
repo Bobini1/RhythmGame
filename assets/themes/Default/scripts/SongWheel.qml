@@ -3,9 +3,6 @@ import RhythmGameQml
 
 ListView {
     height: 200
-    model: ListView {
-        
-    }
     width: 200
 
     delegate: Rectangle {
@@ -19,6 +16,19 @@ ListView {
 
         Text {
             text: listItem.artist + " - " + listItem.title
+        }
+
+        // switch to gameplay on click
+        MouseArea {
+            anchors.fill: parent
+
+            onClicked: root.openChart(".")
+        }
+    }
+    model: ListModel {
+        ListElement {
+            artist: "Artist 1"
+            title: "Title 1"
         }
     }
 }

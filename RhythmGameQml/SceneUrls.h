@@ -23,7 +23,7 @@ class SceneUrls : public QObject
     Q_PROPERTY(QUrl mainSceneUrl READ mainSceneUrl NOTIFY mainSceneUrlChanged)
     Q_PROPERTY(QUrl gameplaySceneUrl READ gameplaySceneUrl NOTIFY
                  gameplaySceneUrlChanged)
-    Q_PROPERTY(QUrl songWheelUrlScene READ songWheelSceneUrl NOTIFY
+    Q_PROPERTY(QUrl songWheelSceneUrl READ songWheelSceneUrl NOTIFY
                  songWheelSceneUrlChanged)
 
     static inline SceneUrls* instance;
