@@ -97,23 +97,25 @@ charts::gameplay_models::BmsChart::generateMeasures(
                             (1.0 - lastFraction) * 4 * measure.meter * 60 *
                             1000 * 1000 * 1000 / lastBpm));
         barLines.emplace_back(timestamp);
-        for (int i = 0; i < measure.columnNumber; i++) {
+        for (auto i = 0; i < columnMapping.size(); i++) {
             calculateOffsetsForColumn(measure.p1VisibleNotes[i],
-                                      visibleNotes[i],
+                                      visibleNotes[columnMapping[i]],
                                       bpmChangesInMeasure,
                                       measure.meter);
             calculateOffsetsForColumn(measure.p1InvisibleNotes[i],
-                                      invisibleNotes[i],
+                                      invisibleNotes[columnMapping[i]],
                                       bpmChangesInMeasure,
                                       measure.meter);
-            calculateOffsetsForColumn(measure.p2VisibleNotes[i],
-                                      visibleNotes[i + measure.columnNumber],
-                                      bpmChangesInMeasure,
-                                      measure.meter);
-            calculateOffsetsForColumn(measure.p2InvisibleNotes[i],
-                                      invisibleNotes[i + measure.columnNumber],
-                                      bpmChangesInMeasure,
-                                      measure.meter);
+            calculateOffsetsForColumn(
+              measure.p2VisibleNotes[i],
+              visibleNotes[columnMapping[i] + columnNumber / 2],
+              bpmChangesInMeasure,
+              measure.meter);
+            calculateOffsetsForColumn(
+              measure.p2InvisibleNotes[i],
+              invisibleNotes[columnMapping[i] + columnNumber / 2],
+              bpmChangesInMeasure,
+              measure.meter);
         }
 
         for (const auto& bgmNotes : measure.bgmNotes) {

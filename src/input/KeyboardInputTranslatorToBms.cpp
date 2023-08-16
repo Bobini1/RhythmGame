@@ -3,3 +3,13 @@
 //
 
 #include "KeyboardInputTranslatorToBms.h"
+auto
+input::KeyboardInputTranslatorToBms::translate(sf::Keyboard::Key key)
+  -> std::optional<BmsKey>
+{
+    auto elem = keyMap.find(key);
+    if (elem != keyMap.end()) {
+        return elem->second;
+    }
+    return std::nullopt;
+}

@@ -45,7 +45,7 @@ TEST_CASE("A chart with a single note is created successfully", "[BmsChart]")
       static_cast<int64_t>(60.0 * 4 * 1000 * 1000 * 1000 / bpm));
     REQUIRE(chart.visibleNotes[0][0].first == measureLength * 3 / 2);
     auto index =
-      GENERATE(range(1, charts::gameplay_models::BmsChart::columnNumber));
+      GENERATE(range(1ul, charts::gameplay_models::BmsChart::columnNumber));
     REQUIRE(chart.visibleNotes[index].empty());
     for (const auto& column : chart.invisibleNotes) {
         REQUIRE(column.empty());

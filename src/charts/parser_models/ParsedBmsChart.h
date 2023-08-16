@@ -24,7 +24,7 @@ struct ParsedBmsChart
 
     struct Measure
     {
-        static constexpr auto columnNumber = 8;
+        static constexpr auto columnNumber = 9;
         std::array<std::vector<std::string>, columnNumber> p1VisibleNotes;
         std::array<std::vector<std::string>, columnNumber> p2VisibleNotes;
         std::array<std::vector<std::string>, columnNumber> p1InvisibleNotes;

@@ -6,38 +6,54 @@
 #define RHYTHMGAME_BMSGAMEREFEREE_H
 
 #include <SFML/Window/Keyboard.hpp>
+#include <list>
+#include <span>
+#include <boost/container/flat_map.hpp>
 #include "charts/gameplay_models/BmsChart.h"
 #include "BmsRules.h"
+#include "input/BmsKeys.h"
+#include "BmsScore.h"
 namespace gameplay_logic {
 class BmsGameReferee
 {
-    using NoteType = decltype(charts::gameplay_models::BmsChart::visibleNotes)::
-      value_type::value_type;
-    using BgmType =
-      decltype(charts::gameplay_models::BmsChart::bgmNotes)::value_type;
+    using BgmType = std::pair<std::chrono::nanoseconds, sounds::OpenALSound*>;
 
-    std::array<std::span<const NoteType>,
+    std::array<std::vector<BmsRules::NoteType>,
                charts::gameplay_models::BmsChart::columnNumber>
       visibleNotes;
-    std::array<std::span<const NoteType>,
+    std::array<std::vector<BmsRules::NoteType>,
                charts::gameplay_models::BmsChart::columnNumber>
       invisibleNotes;
-    std::span<const BgmType> bgms;
+    std::array<std::span<BmsRules::NoteType>,
+               charts::gameplay_models::BmsChart::columnNumber>
+      currentVisibleNotes;
+    std::array<std::span<BmsRules::NoteType>,
+               charts::gameplay_models::BmsChart::columnNumber>
+      currentInvisibleNotes;
+    std::vector<BgmType> bgms;
     BmsRules rules;
-    gameplay_logic::TimePoint startTime;
-    std::chrono::nanoseconds timePassed;
+    gameplay_logic::TimePoint startTime{};
+    std::chrono::nanoseconds timePassed{};
+    BmsScore score;
+
+    boost::container::flat_map<Judgement, int> judgements;
+    double totalPoints = 0;
 
   public:
     explicit BmsGameReferee(const charts::gameplay_models::BmsChart* chart,
-                            BmsRules rules);
-    void start(gameplay_logic::TimePoint time);
+                            gameplay_logic::BmsRules rules);
     /**
      * Update the position of the chart
      * @param delta time since last update
-     * @warning Call **BEFORE** passing inputs
+     * @warning Call **AFTER** passing inputs.
      */
     void update(std::chrono::nanoseconds delta);
-    void passInput(sf::Keyboard::Key key);
+
+    auto passInput(gameplay_logic::TimePoint timePoint, input::BmsKey key)
+      -> std::optional<int>;
+    void start(gameplay_logic::TimePoint newStartTime);
+    auto isOver() const -> bool;
+    auto getScore() const -> const BmsScore&;
 };
 } // namespace gameplay_logic
 

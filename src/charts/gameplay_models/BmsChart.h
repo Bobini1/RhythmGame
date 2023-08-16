@@ -20,7 +20,9 @@ struct BmsChart
         sounds::OpenALSound* sound;
         Snap snap;
     };
-    static constexpr auto columnNumber = 16;
+    static constexpr auto columnMapping =
+      std::array{ 0, 1, 2, 3, 4, 7, 8, 5 }; // ignore "foot pedal"
+    static constexpr auto columnNumber = columnMapping.size() * 2;
     std::array<std::vector<std::pair<std::chrono::nanoseconds, Note>>,
                columnNumber>
       visibleNotes;
@@ -32,9 +34,8 @@ struct BmsChart
     std::vector<std::pair<std::chrono::nanoseconds, double>> bpmChanges;
     std::vector<std::chrono::nanoseconds> barLines;
     static constexpr auto defaultBpm = 120.0;
-    BmsChart(
-      const parser_models::ParsedBmsChart& chart,
-      std::unordered_map<std::string, sounds::OpenALSound> sounds);
+    BmsChart(const parser_models::ParsedBmsChart& chart,
+             std::unordered_map<std::string, sounds::OpenALSound> sounds);
 
   private:
     std::unordered_map<std::string, sounds::OpenALSound> sounds;

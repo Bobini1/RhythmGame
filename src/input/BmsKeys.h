@@ -6,7 +6,7 @@
 #define RHYTHMGAME_BMSKEYS_H
 
 namespace input {
-enum class BmsKeys
+enum class BmsKey
 {
     Col11 = 0,
     Col12 = 1,

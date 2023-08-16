@@ -7,71 +7,38 @@
 #include <iterator>
 #include <optional>
 #include <chrono>
+#include <list>
 #include "BmsPoints.h"
 #include "TimePoint.h"
+#include "charts/gameplay_models/BmsChart.h"
 
 namespace gameplay_logic {
 class BmsRules
 {
   public:
-    auto judgeHit(gameplay_logic::TimePoint noteTime,
-                  gameplay_logic::TimePoint hitTime) -> std::optional<BmsPoints>
+    struct NoteType
     {
-        using namespace std::chrono_literals;
-        if (hitTime < noteTime - 135ms) {
-            return std::nullopt;
-        }
-        if (hitTime > noteTime + 135ms) {
-            return std::nullopt;
-        }
-        return BmsPoints{ 1.0 };
-    }
-    template<std::ranges::input_range Range>
-    auto getMisses(Range&& notes, gameplay_logic::TimePoint time)
-      -> std::vector<gameplay_logic::TimePoint>
-        requires std::same_as<std::ranges::range_value_t<Range>,
-                              gameplay_logic::TimePoint>
-    {
-        using namespace std::chrono_literals;
-        auto misses = std::vector<gameplay_logic::TimePoint>{};
-        for (auto&& noteTime : notes) {
-            if (noteTime < time - 135ms) {
-                misses.push_back(noteTime - 135ms);
-            } else {
-                break;
-            }
-        }
-        return misses;
-    }
-    auto invisibleNoteHit(gameplay_logic::TimePoint noteTime,
-                          gameplay_logic::TimePoint hitTime) -> bool
-    {
-        using namespace std::chrono_literals;
-        if (hitTime < noteTime - 135ms) {
-            return false;
-        }
-        if (hitTime > noteTime + 135ms) {
-            return false;
-        }
-        return true;
-    }
-    template<std::ranges::input_range Range>
-    auto countInvisibleSkipped(Range&& range, gameplay_logic::TimePoint time)
-      -> int
-        requires std::same_as<std::ranges::range_value_t<Range>,
-                              gameplay_logic::TimePoint>
-    {
-        using namespace std::chrono_literals;
-        auto count = 0;
-        for (auto&& noteTime : range) {
-            if (noteTime < time - 135ms) {
-                count++;
-            } else {
-                break;
-            }
-        }
-        return count;
-    }
+        sounds::OpenALSound* sound;
+        std::chrono::nanoseconds time;
+        bool hit = false;
+    };
+
+    auto visibleNoteHit(std::span<NoteType>& notes,
+                        gameplay_logic::TimePoint hitTime,
+                        gameplay_logic::TimePoint chartStart)
+      -> std::optional<std::pair<BmsPoints, std::span<NoteType>::iterator>>;
+
+    auto getMisses(std::span<NoteType> notes,
+                   gameplay_logic::TimePoint time,
+                   gameplay_logic::TimePoint chartStart)
+      -> std::vector<gameplay_logic::TimePoint>;
+
+    void invisibleNoteHit(std::span<NoteType>& notes,
+                          gameplay_logic::TimePoint hitTime,
+                          gameplay_logic::TimePoint chartStart);
+    auto skipInvisible(std::span<NoteType> notes,
+                       gameplay_logic::TimePoint time,
+                       gameplay_logic::TimePoint chartStart) -> int;
 };
 } // namespace gameplay_logic
 

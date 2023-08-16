@@ -6,6 +6,7 @@
 #define RHYTHMGAME_BMSSCENE_H
 
 #include <SFML/Graphics/RenderTarget.hpp>
+#include <utility>
 
 #include "Scene.h"
 #include "events/GlobalEvent.h"
@@ -14,6 +15,7 @@
 #include "input/InputQueue.h"
 #include "drawing/Window.h"
 #include "charts/gameplay_models/BmsChart.h"
+#include "gameplay_logic/BmsGameReferee.h"
 
 namespace drawing {
 template<animations::AnimationPlayer AnimationPlayerType,
@@ -30,8 +32,8 @@ class BmsScene : public Scene
     FontLoaderType* fontLoader;
     SoundLoaderType* soundLoader;
     input::InputQueue* inputQueue;
-    gameplay_logic::BmsGameReferee* referee;
-    events::GlobalEvent<sol::table> init;
+    gameplay_logic::BmsGameReferee referee;
+    events::GlobalEvent<> init;
     events::GlobalEvent<std::chrono::nanoseconds> onUpdate;
     events::MouseClickEvent leftClick;
     events::MouseClickEvent rightClick;
@@ -43,8 +45,10 @@ class BmsScene : public Scene
     {
         if (!initialized) {
             init();
+            
             initialized = true;
         }
+
         if (root->getIsWidthManaged()) {
             root->setWidth(static_cast<float>(window.getSize().x));
         }
@@ -52,6 +56,8 @@ class BmsScene : public Scene
             root->setHeight(static_cast<float>(window.getSize().y));
         }
         root->setTransform(sf::Transform::Identity);
+
+        referee.update(delta);
 
         onUpdate(delta);
         animationPlayer.update(delta);
@@ -64,7 +70,7 @@ class BmsScene : public Scene
                       SoundLoaderType* soundLoader,
                       input::InputQueue* inputQueue,
                       const std::filesystem::path& script,
-                      charts::gameplay_models::BmsChart* chart)
+                      gameplay_logic::BmsGameReferee referee)
       : state(std::move(state))
       , animationPlayer(std::move(animationPlayer))
       , textureLoader(textureLoader)
@@ -76,7 +82,7 @@ class BmsScene : public Scene
       , leftClick(&this->state)
       , rightClick(&this->state)
       , mouseHover(&this->state)
-      , referee(chart)
+      , referee(std::move(referee))
     {
         auto eventAttacher = lua::EventAttacher{};
         eventAttacher.addEvent(init, "init");
