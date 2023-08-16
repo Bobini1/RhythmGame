@@ -1,83 +1,73 @@
-#include <drawing/SplashWindow.h>
-#include "drawing/SplashScene.h"
-#include "drawing/Window.h"
-#include "resource_managers/TextureLoaderImpl.h"
-
-#include "state_transitions/Game.h"
-#include "lua/Bootstrapper.h"
-#include "resource_managers/FontLoaderImpl.h"
-#include "drawing/animations/AnimationPlayerImpl.h"
 #include "resource_managers/FindAssetsFolderBoost.h"
 #include "resource_managers/LoadConfig.h"
-#include "resource_managers/LuaScriptFinderImpl.h"
+#include "resource_managers/models/ThemeConfig.h"
 #include "sounds/OpenAlSound.h"
-#include "resource_managers/SoundLoaderImpl.h"
+#include "../RhythmGameQml/SceneUrls.h"
+#include "ViewManager.h"
+
+#include <QOpenGLWindow>
+#include <QGuiApplication>
+#include <QQmlApplicationEngine>
+#include <QTimer>
+#include <QQuickView>
+#include <QQmlEngine>
+#include <QtQml/QQmlExtensionPlugin>
+
+Q_IMPORT_QML_PLUGIN(RhythmGameQmlPlugin)
 
 auto
-loadGame(resource_managers::LuaScriptFinder auto luaScriptFinder,
-         resource_managers::FontLoader auto fontLoader,
-         resource_managers::TextureLoader auto textureLoader,
-         resource_managers::SoundLoader auto soundLoader) -> void
-{
-    auto state = sol::state{};
-    state.open_libraries(
-      sol::lib::jit, sol::lib::base, sol::lib::io, sol::lib::math);
-
-    auto scriptPath = luaScriptFinder("Main");
-
-    auto animationPlayer = drawing::animations::AnimationPlayerImpl{};
-    auto startingScene =
-      std::make_shared<drawing::SplashScene<decltype(animationPlayer),
-                                            decltype(textureLoader),
-                                            decltype(fontLoader),
-                                            decltype(soundLoader)>>(
-        std::move(state),
-        std::move(animationPlayer),
-        &textureLoader,
-        &fontLoader,
-        &soundLoader,
-        std::move(scriptPath));
-
-    auto startingWindow = std::make_shared<drawing::SplashWindow>(
-      std::move(startingScene), sf::VideoMode{ 800, 600 }, "RhythmGame");
-    auto game = state_transitions::Game{ std::move(startingWindow) };
-    game.run();
-}
-
-auto
-main() -> int
+main(int argc, char* argv[]) -> int
 {
     try {
         auto assetsFolder = resource_managers::findAssetsFolder();
-        auto textureConfig = resource_managers::loadConfig(
-          assetsFolder / "themes" / "Default" / "textures" / "textures.ini");
-        auto fontConfig = resource_managers::loadConfig(
-          assetsFolder / "themes" / "Default" / "fonts" / "fonts.ini");
-        auto soundConfig = resource_managers::loadConfig(
-          assetsFolder / "themes" / "Default" / "sounds" / "sounds.ini");
-        auto scriptConfig = resource_managers::loadConfig(
-          assetsFolder / "themes" / "Default" / "scripts" / "scripts.ini");
-        auto fontManager =
-          resource_managers::FontLoaderImpl{ assetsFolder / "themes" /
-                                               "Default" / "fonts",
-                                             fontConfig["FontNames"] };
-        auto textureManager =
-          resource_managers::TextureLoaderImpl{ assetsFolder / "themes" /
-                                                  "Default" / "textures",
-                                                textureConfig["TextureNames"] };
-        auto soundManager =
-          resource_managers::SoundLoaderImpl{ assetsFolder / "themes" /
-                                                "Default" / "sounds",
-                                              soundConfig["SoundNames"] };
-        auto luaScriptFinder =
-          resource_managers::LuaScriptFinderImpl{ assetsFolder / "themes" /
-                                                    "Default" / "scripts",
-                                                  scriptConfig["ScriptNames"] };
-        loadGame(std::move(luaScriptFinder),
-                 std::move(fontManager),
-                 std::move(textureManager),
-                 std::move(soundManager));
 
+#if defined(Q_OS_WIN)
+        QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
+#endif
+
+        auto format = QSurfaceFormat::defaultFormat();
+        format.setSwapInterval(0);
+        QSurfaceFormat::setDefaultFormat(format);
+
+        const auto app = QGuiApplication(argc, argv);
+
+        auto engine = QQmlApplicationEngine{};
+
+        auto themeConfigLoader = [assetsFolder] {
+            try {
+                const auto configMap = resource_managers::loadConfig(
+                  assetsFolder / "themes" / "Default" / "scripts" /
+                  "scripts.ini")["ScriptNames"];
+                const auto scriptsFolder = QUrl::fromLocalFile(
+                  QString::fromStdString(assetsFolder / "themes" / "Default" /
+                                         "scripts") +
+                  '/');
+                return resource_managers::models::ThemeConfig{
+                    scriptsFolder.resolved(
+                      QString::fromStdString(configMap.at("Main"))),
+                    scriptsFolder.resolved(
+                      QString::fromStdString(configMap.at("Gameplay"))),
+                    scriptsFolder.resolved(
+                      QString::fromStdString(configMap.at("SongWheel"))),
+                };
+            } catch (const std::exception& e) {
+                spdlog::error("Failed to load theme config: {}", e.what());
+                throw;
+            }
+        };
+
+        auto* sceneSwitcher =
+          new qml_components::SceneUrls{ themeConfigLoader };
+        qml_components::SceneUrls::setInstance(sceneSwitcher);
+
+        auto view = ViewManager(&engine, nullptr);
+
+        view.setWidth(1920);
+        view.setHeight(1080);
+
+        view.show();
+
+        return app.exec();
     } catch (const std::exception& e) {
         spdlog::error("Fatal error: {}", e.what());
         return 1;
@@ -85,6 +75,4 @@ main() -> int
         spdlog::error("Fatal error: unknown");
         return 1;
     }
-
-    return 0;
 }
