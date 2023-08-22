@@ -32,10 +32,6 @@ find_package(spdlog REQUIRED)
 
 find_package(Boost REQUIRED)
 
-# <------------ sfml (game engine) --------------->
-
-find_package(SFML REQUIRED)
-
 # <------------ FFmpeg (audio decoding) --------------->
 
 find_package(FFmpeg REQUIRED)
@@ -52,18 +48,35 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
 find_package(CryptoPP REQUIRED)
+find_package(magic_enum REQUIRED)
 
 
 # ---- Load library ----
 
-qt_add_library(RhythmGame_lib OBJECT src/db/SqliteCppDb.cpp src/db/SqliteCppDb.h src/charts/chart_readers/BmsChartReader.cpp src/charts/parser_models/ParsedBmsChart.cpp src/charts/parser_models/ParsedBmsChart.h src/db/DatabaseAccessPoint.cpp src/db/DatabaseAccessPoint.h src/support/EnableSharedFromBase.cpp src/support/EnableSharedFromBase.h src/support/Capitalize.cpp src/support/Capitalize.h src/resource_managers/AssetsFolderFinder.cpp src/resource_managers/AssetsFolderFinder.h src/resource_managers/FindAssetsFolderBoost.cpp src/resource_managers/FindAssetsFolderBoost.h src/resource_managers/LoadConfig.cpp src/resource_managers/LoadConfig.h src/sounds/OpenAlSound.cpp src/sounds/OpenAlSound.h src/sounds/OpenAlSoundBuffer.h src/sounds/OpenAlSoundBuffer.cpp src/charts/gameplay_models/BmsChart.cpp src/charts/gameplay_models/BmsChart.h src/charts/gameplay_models/Snap.cpp src/charts/gameplay_models/Snap.h src/charts/helper_functions/loadBmsSounds.cpp src/charts/helper_functions/loadBmsSounds.h src/ViewManager.cpp src/ViewManager.h
-        src/resource_managers/models/ThemeConfig.h)
+qt_add_library(RhythmGame_lib OBJECT src/db/SqliteCppDb.cpp src/db/SqliteCppDb.h src/charts/chart_readers/BmsChartReader.cpp src/charts/parser_models/ParsedBmsChart.cpp src/charts/parser_models/ParsedBmsChart.h src/db/DatabaseAccessPoint.cpp src/db/DatabaseAccessPoint.h src/support/EnableSharedFromBase.cpp src/support/EnableSharedFromBase.h src/support/Capitalize.cpp src/support/Capitalize.h src/resource_managers/AssetsFolderFinder.cpp src/resource_managers/AssetsFolderFinder.h src/resource_managers/FindAssetsFolderBoost.cpp src/resource_managers/FindAssetsFolderBoost.h src/resource_managers/LoadConfig.cpp src/resource_managers/LoadConfig.h src/sounds/OpenAlSound.cpp src/sounds/OpenAlSound.h src/sounds/OpenAlSoundBuffer.h src/sounds/OpenAlSoundBuffer.cpp src/charts/gameplay_models/BmsChart.cpp src/charts/gameplay_models/BmsChart.h src/charts/gameplay_models/Snap.cpp src/charts/gameplay_models/Snap.h src/charts/helper_functions/loadBmsSounds.cpp src/charts/helper_functions/loadBmsSounds.h
+        src/resource_managers/models/ThemeConfig.h src/gameplay_logic/BmsMetadata.cpp src/gameplay_logic/BmsMetadata.h src/gameplay_logic/BmsPoints.cpp src/gameplay_logic/BmsPoints.h src/gameplay_logic/BmsRules.cpp src/gameplay_logic/BmsRules.h src/gameplay_logic/Judgement.cpp src/gameplay_logic/Judgement.h src/gameplay_logic/TimePoint.cpp src/gameplay_logic/TimePoint.h src/support/Sha256.cpp src/support/Sha256.h
+        src/input/KeyboardInputTranslatorToBms.cpp
+        src/input/BmsKeys.cpp
+        src/gameplay_logic/BmsScore.h
+        src/gameplay_logic/BmsScore.cpp
+        src/gameplay_logic/BmsGameReferee.cpp
+        src/gameplay_logic/BmsGameReferee.h
+        src/gameplay_logic/ChartData.cpp
+        src/gameplay_logic/ChartData.h
+        src/gameplay_logic/Chart.cpp
+        src/gameplay_logic/Chart.h
+        src/resource_managers/BmsChartLoader.cpp
+        src/resource_managers/BmsChartLoader.h
+        src/gameplay_logic/Tap.cpp
+        src/gameplay_logic/Tap.h
+        src/gameplay_logic/Miss.cpp
+        src/gameplay_logic/Miss.h)
 
 find_package(Threads REQUIRED)
 
 find_package(Microsoft.GSL REQUIRED)
 
-target_link_libraries(RhythmGame_lib PUBLIC Qt6::Gui Qt6::Quick Qt6::OpenGL Threads::Threads Boost::headers Boost::serialization Boost::dynamic_linking Boost::filesystem SQLiteCpp sfml::sfml Microsoft.GSL::GSL spdlog::spdlog foonathan::lexy ffmpeg::ffmpeg OpenAL::OpenAL)
+target_link_libraries(RhythmGame_lib PUBLIC Qt6::Gui Qt6::Quick Qt6::OpenGL Threads::Threads Boost::headers Boost::serialization Boost::dynamic_linking Boost::filesystem SQLiteCpp Microsoft.GSL::GSL spdlog::spdlog foonathan::lexy ffmpeg::ffmpeg OpenAL::OpenAL cryptopp::cryptopp magic_enum::magic_enum)
 
 include(CheckCXXSymbolExists)
 check_cxx_symbol_exists(std::execution::par "execution" RHYTHMGAME_HAS_STD_EXECUTION)

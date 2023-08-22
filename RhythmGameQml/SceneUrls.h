@@ -4,7 +4,6 @@
 
 #ifndef RHYTHMGAME_SCENEURLS_H
 #define RHYTHMGAME_SCENEURLS_H
-#include "ViewManager.h"
 #include "resource_managers/models/ThemeConfig.h"
 #include <QObject>
 #include <qqml.h>

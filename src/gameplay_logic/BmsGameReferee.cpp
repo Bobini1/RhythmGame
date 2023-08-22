@@ -7,6 +7,8 @@
 #include "BmsGameReferee.h"
 gameplay_logic::BmsGameReferee::BmsGameReferee(
   const charts::gameplay_models::BmsChart* chart,
+  BmsScore* score,
+  std::map<std::string, sounds::OpenALSound>* sounds,
   gameplay_logic::BmsRules rules)
   : rules(rules)
 {
@@ -15,63 +17,73 @@ gameplay_logic::BmsGameReferee::BmsGameReferee(
           chart->visibleNotes[i].begin(),
           chart->visibleNotes[i].end(),
           std::back_inserter(visibleNotes[i]),
-          [](auto& note) {
-              return BmsRules::NoteType{ note.second.sound, note.first };
+          [&sounds](auto& note) {
+              auto soundId = note.second.sound;
+              if (auto sound = sounds->find(soundId); sound != sounds->end()) {
+                  return BmsRules::NoteType{ &sound->second, note.first };
+              }
+              return BmsRules::NoteType{ nullptr, note.first };
           });
         currentVisibleNotes[i] = visibleNotes[i];
         std::transform(
           chart->invisibleNotes[i].begin(),
           chart->invisibleNotes[i].end(),
           std::back_inserter(invisibleNotes[i]),
-          [](auto& note) {
-              return BmsRules::NoteType{ note.second.sound, note.first };
+          [&sounds](auto& note) {
+              auto soundId = note.second.sound;
+              if (auto sound = sounds->find(soundId); sound != sounds->end()) {
+                  return BmsRules::NoteType{ &sound->second, note.first };
+              }
+              return BmsRules::NoteType{ nullptr, note.first };
           });
         currentInvisibleNotes[i] = invisibleNotes[i];
     }
-    bgms = chart->bgmNotes;
-    score.maxHits = std::accumulate(
-      chart->visibleNotes.begin(),
-      chart->visibleNotes.end(),
-      0,
-      [](int acc, auto& column) { return acc + column.size(); });
-    score.maxPoints = score.maxHits * BmsPoints::maxValue;
+    std::transform(chart->bgmNotes.begin(),
+                   chart->bgmNotes.end(),
+                   std::back_inserter(bgms),
+                   [&sounds](auto& note) {
+                       auto soundId = note.second;
+                       if (auto sound = sounds->find(soundId);
+                           sound != sounds->end()) {
+                           return BgmType{ note.first, &sound->second };
+                       }
+                       return BgmType{ note.first, nullptr };
+                   });
+    currentBgms = bgms;
 }
 void
-gameplay_logic::BmsGameReferee::update(std::chrono::nanoseconds delta)
+gameplay_logic::BmsGameReferee::update(std::chrono::nanoseconds offsetFromStart)
 {
-    if (startTime == gameplay_logic::TimePoint{}) {
-        return;
-    }
-    timePassed += delta;
-    for (auto& column : currentVisibleNotes) {
-        auto newMisses =
-          rules.getMisses(column, startTime + timePassed, startTime);
+
+    for (auto columnIndex = 0; columnIndex < currentVisibleNotes.size();
+         columnIndex++) {
+        auto& column = currentVisibleNotes[columnIndex];
+        auto newMisses = rules.getMisses(column, offsetFromStart);
         column = column.subspan(newMisses.size());
         for (auto miss : newMisses) {
-            score.addMiss(miss);
+            score->addMiss({ miss.count(), columnIndex });
         }
     }
     for (auto& column : currentInvisibleNotes) {
-        auto skipped =
-          rules.skipInvisible(column, startTime + timePassed, startTime);
+        auto skipped = rules.skipInvisible(column, offsetFromStart);
         column = column.subspan(skipped);
     }
-    for (const auto& bgm : bgms) {
-        if (bgm.first < timePassed) {
+    for (const auto& bgm : currentBgms) {
+        auto played = 0;
+        if (bgm.first < offsetFromStart) {
             bgm.second->play();
+            played++;
         } else {
             break;
         }
+        currentBgms = currentBgms.subspan(played);
     }
 }
 auto
-gameplay_logic::BmsGameReferee::passInput(gameplay_logic::TimePoint timePoint,
-                                          input::BmsKey key)
-  -> std::optional<int>
+gameplay_logic::BmsGameReferee::passInput(
+  std::chrono::nanoseconds offsetFromStart,
+  input::BmsKey key) -> std::optional<int>
 {
-    if (startTime == gameplay_logic::TimePoint{}) {
-        return std::nullopt;
-    }
     auto columnIndex = static_cast<int>(key);
     if (columnIndex < 0 ||
         columnIndex >= charts::gameplay_models::BmsChart::columnNumber) {
@@ -79,20 +91,17 @@ gameplay_logic::BmsGameReferee::passInput(gameplay_logic::TimePoint timePoint,
     }
     auto& column = currentVisibleNotes[columnIndex];
     auto& invisibleColumn = currentInvisibleNotes[columnIndex];
-    auto res = rules.visibleNoteHit(column, timePoint, startTime);
+    auto res = rules.visibleNoteHit(column, offsetFromStart);
     if (!res) {
-        rules.invisibleNoteHit(invisibleColumn, timePoint, startTime);
-        score.addHit(timePoint);
+        rules.invisibleNoteHit(invisibleColumn, offsetFromStart);
+        score->addTap(
+          { columnIndex, std::nullopt, offsetFromStart.count(), std::nullopt });
         return std::nullopt;
     }
     auto [points, iter] = *res;
-    score.addHit(timePoint, points);
+    score->addTap(
+      { columnIndex, iter - column.begin(), offsetFromStart.count(), points });
     return iter - column.begin();
-}
-void
-gameplay_logic::BmsGameReferee::start(gameplay_logic::TimePoint newStartTime)
-{
-    startTime = newStartTime;
 }
 auto
 gameplay_logic::BmsGameReferee::isOver() const -> bool
@@ -102,10 +111,4 @@ gameplay_logic::BmsGameReferee::isOver() const -> bool
     }
     return !std::ranges::any_of(
       currentVisibleNotes, [](const auto& column) { return !column.empty(); });
-}
-
-auto
-gameplay_logic::BmsGameReferee::getScore() const -> const BmsScore&
-{
-    return score;
 }

@@ -3,13 +3,13 @@
 //
 
 #include "ChartLoader.h"
+#include "gameplay_logic/Chart.h"
 
 namespace qml_components {
 auto
-ChartLoader::loadChart(const QString& filename) -> ChartData*
+ChartLoader::loadChart(const QString& filename) -> gameplay_logic::Chart*
 {
-    auto* chartData = new ChartData("title", "artist", "level");
-    return chartData;
+    return nullptr;
 }
 ChartLoader::ChartLoader(QObject* parent)
   : QObject(parent)

@@ -3,14 +3,12 @@
 #include "resource_managers/models/ThemeConfig.h"
 #include "sounds/OpenAlSound.h"
 #include "../RhythmGameQml/SceneUrls.h"
-#include "ViewManager.h"
+#include "../RhythmGameQml/ProgramSettings.h"
 
 #include <QOpenGLWindow>
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
-#include <QTimer>
 #include <QQuickView>
-#include <QQmlEngine>
 #include <QtQml/QQmlExtensionPlugin>
 
 Q_IMPORT_QML_PLUGIN(RhythmGameQmlPlugin)
@@ -60,7 +58,16 @@ main(int argc, char* argv[]) -> int
           new qml_components::SceneUrls{ themeConfigLoader };
         qml_components::SceneUrls::setInstance(sceneSwitcher);
 
-        auto view = ViewManager(&engine, nullptr);
+        auto chartPath = QUrl{};
+        if (argc > 1) {
+            chartPath = QUrl::fromLocalFile(argv[1]);
+        }
+
+        auto* programSettings =
+          new qml_components::ProgramSettings{ chartPath };
+        qml_components::ProgramSettings::setInstance(programSettings);
+
+        auto view = QQuickView(&engine, nullptr);
 
         view.setWidth(1920);
         view.setHeight(1080);

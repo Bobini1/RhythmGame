@@ -14,7 +14,8 @@
 
 namespace gameplay_logic {
 
-struct BmsMetadata
+// todo: merge this with ChartData
+class BmsMetadata
 {
     std::filesystem::path path;
     support::Sha256 hash;

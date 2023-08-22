@@ -8,7 +8,7 @@
 #include <chrono>
 namespace gameplay_logic {
 
-using TimePoint = std::chrono::time_point<std::chrono::high_resolution_clock>;
+using TimePoint = std::chrono::time_point<std::chrono::steady_clock>;
 
 } // namespace gameplay_logic
 

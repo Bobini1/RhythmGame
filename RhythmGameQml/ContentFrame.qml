@@ -6,13 +6,24 @@ import QtQuick.Controls 2.15
 Item {
     id: contentContainer
 
+    Component.OnCompleted: {
+        if (ProgramSettings.chartPath) {
+            root.openChart(ProgramSettings.chartPath);
+        }
+    }
     anchors.fill: parent
 
     Component {
         id: chartContext
 
         Item {
-            required property ChartData chartData
+            required property Chart chart
+
+            Keys.onPressed: event => {
+                if (event.key === Qt.Key_Escape) {
+                    sceneStack.pop();
+                }
+            }
 
             Loader {
                 id: loader
@@ -42,7 +53,7 @@ Item {
             id: sceneStack
 
             anchors.fill: parent
-            initialItem: root.mainComponent
+            initialItem: ProgramSettings.chartPath ? null : root.mainComponent
         }
     }
 }

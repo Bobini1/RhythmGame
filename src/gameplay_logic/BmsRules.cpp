@@ -5,8 +5,7 @@
 #include "BmsRules.h"
 auto
 gameplay_logic::BmsRules::visibleNoteHit(std::span<NoteType>& notes,
-                                         gameplay_logic::TimePoint hitTime,
-                                         gameplay_logic::TimePoint chartStart)
+                                         std::chrono::nanoseconds hitOffset)
   -> std::optional<std::pair<BmsPoints, std::span<NoteType>::iterator>>
 {
     using namespace std::chrono_literals;
@@ -15,37 +14,35 @@ gameplay_logic::BmsRules::visibleNoteHit(std::span<NoteType>& notes,
         if (hit) {
             continue;
         }
-        if (hitTime < chartStart + noteTime - 135ms) {
+        if (hitOffset < noteTime - 135ms) {
             continue;
         }
-        if (hitTime > chartStart + noteTime + 135ms) {
+        if (hitOffset > noteTime + 135ms) {
             return std::nullopt;
         }
         hit = true;
         if (sound != nullptr) {
             sound->play();
         }
-        return { { BmsPoints{
-                     1.0, Judgement::PERFECT, chartStart + noteTime - hitTime },
+        return { { BmsPoints(
+                     1.0, Judgement::PERFECT, (hitOffset - noteTime).count()),
                    iter } };
     }
     return std::nullopt;
 }
 auto
 gameplay_logic::BmsRules::getMisses(std::span<NoteType> notes,
-                                    gameplay_logic::TimePoint time,
-                                    gameplay_logic::TimePoint chartStart)
-  -> std::vector<gameplay_logic::TimePoint>
+                                    std::chrono::nanoseconds offsetFromStart)
+  -> std::vector<std::chrono::nanoseconds>
 {
     using namespace std::chrono_literals;
-    auto misses = std::vector<gameplay_logic::TimePoint>{};
+    auto misses = std::vector<std::chrono::nanoseconds>{};
     for (auto& [sound, noteTime, hit] : notes) {
         if (hit) {
             continue;
         }
-        auto timePoint = chartStart + noteTime;
-        if (timePoint < time - 135ms) {
-            misses.push_back(timePoint - 135ms);
+        if (offsetFromStart > noteTime + 135ms) {
+            misses.push_back(noteTime + 135ms);
         } else {
             hit = true;
             break;
@@ -55,18 +52,17 @@ gameplay_logic::BmsRules::getMisses(std::span<NoteType> notes,
 }
 void
 gameplay_logic::BmsRules::invisibleNoteHit(std::span<NoteType>& notes,
-                                           gameplay_logic::TimePoint hitTime,
-                                           gameplay_logic::TimePoint chartStart)
+                                           std::chrono::nanoseconds hitOffset)
 {
     using namespace std::chrono_literals;
     for (auto& [sound, noteTime, hit] : notes) {
         if (hit) {
             continue;
         }
-        if (hitTime < chartStart + noteTime - 135ms) {
+        if (hitOffset < noteTime - 135ms) {
             continue;
         }
-        if (hitTime > chartStart + noteTime + 135ms) {
+        if (hitOffset > noteTime + 135ms) {
             return;
         }
         hit = true;
@@ -77,10 +73,9 @@ gameplay_logic::BmsRules::invisibleNoteHit(std::span<NoteType>& notes,
     }
 }
 auto
-gameplay_logic::BmsRules::skipInvisible(std::span<NoteType> notes,
-                                        gameplay_logic::TimePoint time,
-                                        gameplay_logic::TimePoint chartStart)
-  -> int
+gameplay_logic::BmsRules::skipInvisible(
+  std::span<NoteType> notes,
+  std::chrono::nanoseconds offsetFromStart) -> int
 {
     using namespace std::chrono_literals;
     auto count = 0;
@@ -88,7 +83,7 @@ gameplay_logic::BmsRules::skipInvisible(std::span<NoteType> notes,
         if (hit) {
             continue;
         }
-        if (chartStart + noteTime < time - 135ms) {
+        if (noteTime < offsetFromStart - 135ms) {
             count++;
         } else {
             break;

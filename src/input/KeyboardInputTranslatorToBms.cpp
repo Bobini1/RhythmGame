@@ -4,7 +4,7 @@
 
 #include "KeyboardInputTranslatorToBms.h"
 auto
-input::KeyboardInputTranslatorToBms::translate(sf::Keyboard::Key key)
+input::KeyboardInputTranslatorToBms::translate(Qt::Key key)
   -> std::optional<BmsKey>
 {
     auto elem = keyMap.find(key);

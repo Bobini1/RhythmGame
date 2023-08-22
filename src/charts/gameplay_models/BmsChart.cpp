@@ -7,9 +7,7 @@
 #include "sounds/OpenAlSoundBuffer.h"
 
 charts::gameplay_models::BmsChart::BmsChart(
-  const charts::parser_models::ParsedBmsChart& chart,
-  std::unordered_map<std::string, sounds::OpenALSound> sounds)
-  : sounds(std::move(sounds))
+  const charts::parser_models::ParsedBmsChart& chart)
 {
     if (chart.tags.randomBlocks.size() != 0) {
         throw std::runtime_error("Random blocks are not supported.");
@@ -61,7 +59,7 @@ charts::gameplay_models::BmsChart::generateMeasures(
             auto timestamp =
               lastTimestamp + std::chrono::nanoseconds(static_cast<int64_t>(
                                 (fraction - lastFraction) * 4 * measure.meter *
-                                60 * 1000 * 1000 * 1000 / lastBpm));
+                                60 * 1'000'000'000 / lastBpm));
             bpmChanges.emplace_back(timestamp, bpmChangeNum);
             bpmChangesInMeasure[fraction] =
               std::pair{ bpmChangeNum, timestamp };
@@ -83,7 +81,7 @@ charts::gameplay_models::BmsChart::generateMeasures(
             auto timestamp =
               lastTimestamp + std::chrono::nanoseconds(static_cast<int64_t>(
                                 (fraction - lastFraction) * 4 * measure.meter *
-                                60 * 1000 * 1000 * 1000 / lastBpm));
+                                60 * 1'000'000'000 / lastBpm));
             bpmChanges.emplace_back(timestamp, bpmValue->second);
             bpmChangesInMeasure[fraction] =
               std::pair{ bpmValue->second, timestamp };
@@ -95,7 +93,7 @@ charts::gameplay_models::BmsChart::generateMeasures(
         auto timestamp =
           lastTimestamp + std::chrono::nanoseconds(static_cast<int64_t>(
                             (1.0 - lastFraction) * 4 * measure.meter * 60 *
-                            1000 * 1000 * 1000 / lastBpm));
+                            1'000'000'000 / lastBpm));
         barLines.emplace_back(timestamp);
         for (auto i = 0; i < columnMapping.size(); i++) {
             calculateOffsetsForColumn(measure.p1VisibleNotes[i],
@@ -138,7 +136,7 @@ charts::gameplay_models::BmsChart::fillEmptyMeasures(
 {
     for (; lastMeasure < measureIndex; ++lastMeasure) {
         auto measureLength = std::chrono::nanoseconds(
-          static_cast<int64_t>(60.0 * 4 * 1000 * 1000 * 1000 / lastBpm));
+          static_cast<int64_t>(60.0 * 4 * 1'000'000'000 / lastBpm));
         auto measureEnd = measureStart + measureLength;
         barLines.push_back(measureEnd);
         measureStart = measureEnd;
@@ -168,8 +166,7 @@ charts::gameplay_models::BmsChart::calculateOffsetsForColumn(
 void
 charts::gameplay_models::BmsChart::calculateOffsetsForBgm(
   const std::vector<std::string>& notes,
-  std::vector<std::pair<std::chrono::nanoseconds, sounds::OpenALSound*>>&
-    target,
+  std::vector<std::pair<std::chrono::nanoseconds, std::string>>& target,
   const std::map<double, std::pair<double, std::chrono::nanoseconds>>&
     bpmChangesInMeasure,
   double meter)
@@ -192,11 +189,8 @@ charts::gameplay_models::BmsChart::createNoteInfo(
     bpmChangesInMeasure,
   int index,
   const std::string& note,
-  double meter)
-  -> std::tuple<std::chrono::nanoseconds, sounds::OpenALSound*, double>
+  double meter) -> std::tuple<std::chrono::nanoseconds, std::string, double>
 {
-    auto sound = sounds.find(note);
-    auto* soundPointer = sound != sounds.end() ? &sound->second : nullptr;
     auto fraction =
       static_cast<double>(index) / static_cast<double>(notes.size());
     // https://stackoverflow.com/q/45426556
@@ -206,6 +200,6 @@ charts::gameplay_models::BmsChart::createNoteInfo(
     auto timestamp =
       bpmTimestamp +
       std::chrono::nanoseconds(static_cast<int64_t>(
-        (fraction - bpmFraction) * meter * 4 * 60 * 1000 * 1000 * 1000 / bpm));
-    return { timestamp, soundPointer, fraction };
+        (fraction - bpmFraction) * meter * 4 * 60 * 1'000'000'000 / bpm));
+    return { timestamp, note, fraction };
 }

@@ -9,12 +9,11 @@
 #include <QtQmlIntegration>
 #include <QQmlEngine>
 #include <QJSEngine>
-namespace qml_components {
+namespace gameplay_logic {
 
 class ChartData : public QObject
 {
     Q_OBJECT
-    QML_ELEMENT
 
     // use constant properties
     Q_PROPERTY(QString title READ getTitle CONSTANT)
@@ -22,11 +21,10 @@ class ChartData : public QObject
     Q_PROPERTY(QString level READ getLevel CONSTANT)
 
   public:
-    explicit ChartData(QObject* parent = nullptr);
-    explicit ChartData(QString title,
-                       QString artist,
-                       QString level,
-                       QObject* parent = nullptr);
+    ChartData(QString title,
+              QString artist,
+              QString level,
+              QObject* parent = nullptr);
 
     [[nodiscard]] auto getTitle() const -> QString;
     [[nodiscard]] auto getArtist() const -> QString;
@@ -38,6 +36,6 @@ class ChartData : public QObject
     QString level;
 };
 
-} // namespace qml_components
+} // namespace gameplay_logic
 
 #endif // RHYTHMGAME_CHARTDATA_H

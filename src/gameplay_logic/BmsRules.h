@@ -24,21 +24,17 @@ class BmsRules
     };
 
     auto visibleNoteHit(std::span<NoteType>& notes,
-                        gameplay_logic::TimePoint hitTime,
-                        gameplay_logic::TimePoint chartStart)
+                        std::chrono::nanoseconds hitOffset)
       -> std::optional<std::pair<BmsPoints, std::span<NoteType>::iterator>>;
 
     auto getMisses(std::span<NoteType> notes,
-                   gameplay_logic::TimePoint time,
-                   gameplay_logic::TimePoint chartStart)
-      -> std::vector<gameplay_logic::TimePoint>;
+                   std::chrono::nanoseconds offsetFromStart)
+      -> std::vector<std::chrono::nanoseconds>;
 
     void invisibleNoteHit(std::span<NoteType>& notes,
-                          gameplay_logic::TimePoint hitTime,
-                          gameplay_logic::TimePoint chartStart);
+                          std::chrono::nanoseconds hitOffset);
     auto skipInvisible(std::span<NoteType> notes,
-                       gameplay_logic::TimePoint time,
-                       gameplay_logic::TimePoint chartStart) -> int;
+                       std::chrono::nanoseconds offsetFromStart) -> int;
 };
 } // namespace gameplay_logic
 

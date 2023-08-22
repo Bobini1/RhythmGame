@@ -5,4 +5,4 @@
 #include "BmsMetadata.h"
 
 namespace gameplay_logic {
-} // gameplay_logic
+} // namespace gameplay_logic

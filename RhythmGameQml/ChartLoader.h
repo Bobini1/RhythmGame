@@ -7,7 +7,9 @@
 
 #include <QObject>
 #include <QtQmlIntegration>
-#include "ChartData.h"
+#include "gameplay_logic/ChartData.h"
+#include "gameplay_logic/Chart.h"
+
 namespace qml_components {
 
 class ChartLoader : public QObject
@@ -21,7 +23,7 @@ class ChartLoader : public QObject
   public:
     explicit ChartLoader(QObject* parent = nullptr);
 
-    Q_INVOKABLE qml_components::ChartData* loadChart(const QString& filename);
+    Q_INVOKABLE gameplay_logic::Chart* loadChart(const QString& filename);
 
     static void setInstance(ChartLoader* newInstance);
 

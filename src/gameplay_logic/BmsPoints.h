@@ -8,12 +8,22 @@
 #include <chrono>
 #include "Judgement.h"
 namespace gameplay_logic {
-struct BmsPoints
+class BmsPoints
 {
+    Q_GADGET
+    Q_PROPERTY(double value READ getValue CONSTANT)
+    Q_PROPERTY(Judgement judgement READ getJudgement CONSTANT)
+    Q_PROPERTY(int64_t deviation READ getDeviation CONSTANT)
     double value;
-    static constexpr auto maxValue = 1.0;
     Judgement judgement;
-    std::chrono::nanoseconds deviation;
+    int64_t deviation;
+
+  public:
+    static constexpr auto maxValue = 1.0;
+    BmsPoints(double value, Judgement judgement, int64_t deviation);
+    [[nodiscard]] auto getValue() const -> double;
+    [[nodiscard]] auto getJudgement() const -> Judgement;
+    [[nodiscard]] auto getDeviation() const -> int64_t;
 };
 } // namespace gameplay_logic
 

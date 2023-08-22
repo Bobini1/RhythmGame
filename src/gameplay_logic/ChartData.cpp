@@ -6,7 +6,7 @@
 
 #include <utility>
 
-qml_components::ChartData::ChartData(QString title,
+gameplay_logic::ChartData::ChartData(QString title,
                                      QString artist,
                                      QString level,
                                      QObject* parent)
@@ -16,22 +16,18 @@ qml_components::ChartData::ChartData(QString title,
   , level(std::move(level))
 {
 }
-qml_components::ChartData::ChartData(QObject* parent)
-  : QObject(parent)
-{
-}
 auto
-qml_components::ChartData::getTitle() const -> QString
+gameplay_logic::ChartData::getTitle() const -> QString
 {
     return title;
 }
 auto
-qml_components::ChartData::getArtist() const -> QString
+gameplay_logic::ChartData::getArtist() const -> QString
 {
     return artist;
 }
 auto
-qml_components::ChartData::getLevel() const -> QString
+gameplay_logic::ChartData::getLevel() const -> QString
 {
     return level;
 }

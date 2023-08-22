@@ -6,11 +6,9 @@
 #define RHYTHMGAME_SHA256_H
 
 #include <string>
-
-#include <boost/serialization/strong_typedef.hpp>
 #include <cryptopp/sha.h>
 namespace support {
-BOOST_STRONG_TYPEDEF(std::string, Sha256);
+using Sha256 = std::string;
 
 auto
 sha256(std::string_view str) -> Sha256;
