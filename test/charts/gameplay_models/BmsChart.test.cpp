@@ -4,7 +4,7 @@
 
 #include "charts/helper_functions/loadBmsSounds.h"
 #include "sounds/OpenAlSoundBuffer.h"
-#include "charts/gameplay_models/BmsChart.h"
+#include "charts/gameplay_models/BmsNotesData.h"
 #include "charts/parser_models/ParsedBmsChart.h"
 #include "charts/chart_readers/BmsChartReader.h"
 
@@ -13,12 +13,12 @@
 #include <catch2/generators/catch_generators.hpp>
 #include <catch2/generators/catch_generators_range.hpp>
 
-TEST_CASE("An empty chart is created successfully", "[BmsChart]")
+TEST_CASE("An empty chart is created successfully", "[BmsNotesData]")
 {
     auto reader = charts::chart_readers::BmsChartReader();
     auto tags = reader.readBmsChart("");
     auto parsedChart = charts::parser_models::ParsedBmsChart{ std::move(tags) };
-    auto chart = charts::gameplay_models::BmsChart(parsedChart, {});
+    auto chart = charts::gameplay_models::BmsNotesData(parsedChart, {});
     REQUIRE(chart.bgmNotes.empty());
     for (const auto& column : chart.visibleNotes) {
         REQUIRE(column.empty());
@@ -32,12 +32,13 @@ TEST_CASE("An empty chart is created successfully", "[BmsChart]")
     REQUIRE(chart.barLines.empty());
 }
 
-TEST_CASE("A chart with a single note is created successfully", "[BmsChart]")
+TEST_CASE("A chart with a single note is created successfully",
+          "[BmsNotesData]")
 {
     auto reader = charts::chart_readers::BmsChartReader();
     auto tags = reader.readBmsChart("#00111:0011");
     auto parsedChart = charts::parser_models::ParsedBmsChart{ std::move(tags) };
-    auto chart = charts::gameplay_models::BmsChart(parsedChart, {});
+    auto chart = charts::gameplay_models::BmsNotesData(parsedChart, {});
     REQUIRE(chart.bgmNotes.empty());
     REQUIRE(chart.visibleNotes[0].size() == 1);
     static constexpr auto bpm = chart.defaultBpm;
@@ -45,7 +46,7 @@ TEST_CASE("A chart with a single note is created successfully", "[BmsChart]")
       static_cast<int64_t>(60.0 * 4 * 1000 * 1000 * 1000 / bpm));
     REQUIRE(chart.visibleNotes[0][0].first == measureLength * 3 / 2);
     auto index =
-      GENERATE(range(1ul, charts::gameplay_models::BmsChart::columnNumber));
+      GENERATE(range(1ul, charts::gameplay_models::BmsNotesData::columnNumber));
     REQUIRE(chart.visibleNotes[index].empty());
     for (const auto& column : chart.invisibleNotes) {
         REQUIRE(column.empty());
@@ -59,13 +60,13 @@ TEST_CASE("A chart with a single note is created successfully", "[BmsChart]")
 }
 
 TEST_CASE("A chart with a bpm change and a note is created successfully",
-          "[BmsChart]")
+          "[BmsNotesData]")
 {
     auto reader = charts::chart_readers::BmsChartReader();
     auto tags =
       reader.readBmsChart("#BPM 240\n#BPM11 60\n#00111:0011\n#00108:0011");
     auto parsedChart = charts::parser_models::ParsedBmsChart{ std::move(tags) };
-    auto chart = charts::gameplay_models::BmsChart(parsedChart, {});
+    auto chart = charts::gameplay_models::BmsNotesData(parsedChart, {});
     REQUIRE(chart.bgmNotes.empty());
     REQUIRE(chart.visibleNotes[0].size() == 1);
     static constexpr auto bpm = 240.0;
@@ -90,13 +91,14 @@ TEST_CASE("A chart with a bpm change and a note is created successfully",
 }
 
 TEST_CASE("Multiple BPM changes mid-measure are handled correctly",
-          "[BmsChart]")
+          "[BmsNotesData]")
 {
     auto reader = charts::chart_readers::BmsChartReader();
     auto tags = reader.readBmsChart("#00111:00110011\n#00103:3c78");
     auto parsedChart = charts::parser_models::ParsedBmsChart{ std::move(tags) };
-    auto chart = charts::gameplay_models::BmsChart(parsedChart, {});
-    static constexpr auto bpm = charts::gameplay_models::BmsChart::defaultBpm;
+    auto chart = charts::gameplay_models::BmsNotesData(parsedChart, {});
+    static constexpr auto bpm =
+      charts::gameplay_models::BmsNotesData::defaultBpm;
     static constexpr auto bpm2 = 60.0;
     static constexpr auto bpm3 = 120.0;
     static constexpr auto measureLength = std::chrono::nanoseconds(
@@ -124,13 +126,14 @@ TEST_CASE("Multiple BPM changes mid-measure are handled correctly",
     REQUIRE(chart.bpmChanges[2].second == Catch::Approx(bpm3));
 }
 
-TEST_CASE("Bgm notes have the right timestamps", "[BmsChart]")
+TEST_CASE("Bgm notes have the right timestamps", "[BmsNotesData]")
 {
     auto reader = charts::chart_readers::BmsChartReader();
     auto tags = reader.readBmsChart("#00101:0011\n#00101:1111\n#00103:3c");
     auto parsedChart = charts::parser_models::ParsedBmsChart{ std::move(tags) };
-    auto chart = charts::gameplay_models::BmsChart(parsedChart, {});
-    static constexpr auto bpm = charts::gameplay_models::BmsChart::defaultBpm;
+    auto chart = charts::gameplay_models::BmsNotesData(parsedChart, {});
+    static constexpr auto bpm =
+      charts::gameplay_models::BmsNotesData::defaultBpm;
     static constexpr auto bpm2 = 60.0;
     static constexpr auto measureLength = std::chrono::nanoseconds(
       static_cast<int64_t>(60.0 * 4 * 1000 * 1000 * 1000 / bpm));

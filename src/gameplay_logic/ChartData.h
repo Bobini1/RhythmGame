@@ -9,6 +9,7 @@
 #include <QtQmlIntegration>
 #include <QQmlEngine>
 #include <QJSEngine>
+#include "BmsScore.h"
 namespace gameplay_logic {
 
 class ChartData : public QObject
@@ -19,21 +20,35 @@ class ChartData : public QObject
     Q_PROPERTY(QString title READ getTitle CONSTANT)
     Q_PROPERTY(QString artist READ getArtist CONSTANT)
     Q_PROPERTY(QString level READ getLevel CONSTANT)
+    Q_PROPERTY(int noteCount READ getNoteCount CONSTANT)
+    Q_PROPERTY(int length READ getLength CONSTANT)
+    Q_PROPERTY(QUrl directory READ getDirectory CONSTANT)
 
   public:
     ChartData(QString title,
               QString artist,
               QString level,
+              int noteCount,
+              int length,
+              QUrl directory,
               QObject* parent = nullptr);
 
     [[nodiscard]] auto getTitle() const -> QString;
     [[nodiscard]] auto getArtist() const -> QString;
     [[nodiscard]] auto getLevel() const -> QString;
+    [[nodiscard]] auto getNoteCount() const -> int;
+    [[nodiscard]] auto getLength() const -> int;
+    [[nodiscard]] auto getDirectory() const -> QUrl;
+
+    [[nodiscard]] auto createEmptyScore() const -> BmsScore*;
 
   private:
     QString title;
     QString artist;
     QString level;
+    int noteCount;
+    int length;
+    QUrl directory;
 };
 
 } // namespace gameplay_logic

@@ -257,9 +257,10 @@ struct TagsSink
             state.exBpms[identifier] = value;
         }
         auto operator()(
-          std::pair<parser_models::ParsedBmsChart::RandomRange,
-                    std::vector<std::pair<parser_models::ParsedBmsChart::IfTag,
-                                          parser_models::ParsedBmsChart::Tags>>>&&
+          std::pair<
+            parser_models::ParsedBmsChart::RandomRange,
+            std::vector<std::pair<parser_models::ParsedBmsChart::IfTag,
+                                  parser_models::ParsedBmsChart::Tags>>>&&
             randomBlock)
         {
             state.randomBlocks.emplace_back(std::move(randomBlock));
@@ -392,10 +393,11 @@ struct IfBlock
 {
     static constexpr auto rule =
       dsl::ascii::case_folding(LEXY_LIT("#if")) >>
-      (dsl::integer<parser_models::ParsedBmsChart::IfTag>(dsl::digits<>) + dsl::p<MainTags> +
-       dsl::ascii::case_folding(LEXY_LIT("#endif")));
-    static constexpr auto value = lexy::construct<
-      std::pair<parser_models::ParsedBmsChart::IfTag, parser_models::ParsedBmsChart::Tags>>;
+      (dsl::integer<parser_models::ParsedBmsChart::IfTag>(dsl::digits<>) +
+       dsl::p<MainTags> + dsl::ascii::case_folding(LEXY_LIT("#endif")));
+    static constexpr auto value =
+      lexy::construct<std::pair<parser_models::ParsedBmsChart::IfTag,
+                                parser_models::ParsedBmsChart::Tags>>;
 };
 
 struct IfList
@@ -407,30 +409,33 @@ struct IfList
         return delims.list(dsl::p<IfBlock>);
     }();
     static constexpr auto value = lexy::as_list<
-      std::vector<std::pair<parser_models::ParsedBmsChart::IfTag, parser_models::ParsedBmsChart::Tags>>>;
+      std::vector<std::pair<parser_models::ParsedBmsChart::IfTag,
+                            parser_models::ParsedBmsChart::Tags>>>;
 };
 
 struct RandomBlock
 {
     static constexpr auto rule = [] {
         return dsl::ascii::case_folding(LEXY_LIT("#random")) >>
-               (dsl::integer<parser_models::ParsedBmsChart::RandomRange>(dsl::digits<>) +
+               (dsl::integer<parser_models::ParsedBmsChart::RandomRange>(
+                  dsl::digits<>) +
                 dsl::p<IfList> +
                 (dsl::ascii::case_folding(LEXY_LIT("#endrandom")) | dsl::eof));
     }();
-    static constexpr auto value = lexy::construct<std::pair<parser_models::ParsedBmsChart::RandomRange,
-      std::vector<std::pair<parser_models::ParsedBmsChart::IfTag,
+    static constexpr auto value = lexy::construct<
+      std::pair<parser_models::ParsedBmsChart::RandomRange,
+                std::vector<std::pair<parser_models::ParsedBmsChart::IfTag,
                                       parser_models::ParsedBmsChart::Tags>>>>;
 };
 } // namespace
 
 auto
 BmsChartReader::readBmsChart(std::string_view chart) const
-  -> parser_models::ParsedBmsChart::Tags
+  -> parser_models::ParsedBmsChart
 {
     auto result =
       lexy::parse<MainTags>(lexy::string_input<lexy::utf8_char_encoding>(chart),
                             lexy_ext::report_error);
-    return std::move(result).value();
+    return parser_models::ParsedBmsChart(std::move(result).value());
 }
 } // namespace charts::chart_readers

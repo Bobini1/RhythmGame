@@ -9,10 +9,12 @@ namespace qml_components {
 auto
 ChartLoader::loadChart(const QString& filename) -> gameplay_logic::Chart*
 {
-    return nullptr;
+    return chartFactory->createChart(filename);
 }
-ChartLoader::ChartLoader(QObject* parent)
+ChartLoader::ChartLoader(resource_managers::ChartFactory* chartFactory,
+                         QObject* parent)
   : QObject(parent)
+  , chartFactory(chartFactory)
 {
 }
 void

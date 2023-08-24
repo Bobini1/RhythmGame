@@ -10,7 +10,7 @@
 #include <list>
 #include "BmsPoints.h"
 #include "TimePoint.h"
-#include "charts/gameplay_models/BmsChart.h"
+#include "charts/gameplay_models/BmsNotesData.h"
 
 namespace gameplay_logic {
 class BmsRules

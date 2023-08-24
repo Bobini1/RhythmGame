@@ -9,6 +9,7 @@
 #include <QtQmlIntegration>
 #include "BmsGameReferee.h"
 #include "input/KeyboardInputTranslatorToBms.h"
+#include "ChartData.h"
 namespace gameplay_logic {
 
 class Chart : public QObject
@@ -17,12 +18,16 @@ class Chart : public QObject
 
     Q_PROPERTY(int elapsed READ getElapsed NOTIFY elapsedChanged)
     Q_PROPERTY(bool over READ isOver NOTIFY overChanged)
+    Q_PROPERTY(ChartData* chartData READ getChartData CONSTANT)
+    Q_PROPERTY(BmsScore* score READ getScore CONSTANT)
 
     QTimer propertyUpdateTimer;
     std::chrono::time_point<std::chrono::steady_clock> startTimepoint;
     quint64 startTimestamp{};
     gameplay_logic::BmsGameReferee gameReferee;
     input::KeyboardInputTranslatorToBms inputTranslator;
+    std::unordered_map<std::string, sounds::OpenALSound> sounds;
+    ChartData* chartData;
     int elapsed = 0;
     bool over = false;
 
@@ -30,6 +35,8 @@ class Chart : public QObject
 
   public:
     explicit Chart(gameplay_logic::BmsGameReferee gameReferee,
+                   ChartData* chartData,
+                   std::unordered_map<std::string, sounds::OpenALSound> sounds,
                    QObject* parent = nullptr);
 
     Q_INVOKABLE void start();
@@ -39,6 +46,10 @@ class Chart : public QObject
     auto isOver() const -> bool;
 
     [[nodiscard]] auto getElapsed() const -> int;
+
+    [[nodiscard]] auto getChartData() const -> ChartData*;
+
+    [[nodiscard]] auto getScore() const -> BmsScore*;
 
   signals:
     void elapsedChanged();

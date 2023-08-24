@@ -3,10 +3,10 @@
 //
 
 #include <filesystem>
-#include "BmsChart.h"
+#include "BmsNotesData.h"
 #include "sounds/OpenAlSoundBuffer.h"
 
-charts::gameplay_models::BmsChart::BmsChart(
+charts::gameplay_models::BmsNotesData::BmsNotesData(
   const charts::parser_models::ParsedBmsChart& chart)
 {
     if (chart.tags.randomBlocks.size() != 0) {
@@ -18,7 +18,7 @@ charts::gameplay_models::BmsChart::BmsChart(
 }
 
 void
-charts::gameplay_models::BmsChart::generateMeasures(
+charts::gameplay_models::BmsNotesData::generateMeasures(
   double baseBpm,
   const std::map<std::string, double>& bpms,
   const std::map<uint64_t, parser_models::ParsedBmsChart::Measure>& measures)
@@ -128,7 +128,7 @@ charts::gameplay_models::BmsChart::generateMeasures(
 }
 
 void
-charts::gameplay_models::BmsChart::fillEmptyMeasures(
+charts::gameplay_models::BmsNotesData::fillEmptyMeasures(
   uint64_t lastMeasure,
   uint64_t& measureIndex,
   std::chrono::nanoseconds& measureStart,
@@ -143,7 +143,7 @@ charts::gameplay_models::BmsChart::fillEmptyMeasures(
     }
 }
 void
-charts::gameplay_models::BmsChart::calculateOffsetsForColumn(
+charts::gameplay_models::BmsNotesData::calculateOffsetsForColumn(
   const std::vector<std::string>& notes,
   std::vector<std::pair<std::chrono::nanoseconds, Note>>& target,
   const std::map<double, std::pair<double, std::chrono::nanoseconds>>&
@@ -164,7 +164,7 @@ charts::gameplay_models::BmsChart::calculateOffsetsForColumn(
 }
 
 void
-charts::gameplay_models::BmsChart::calculateOffsetsForBgm(
+charts::gameplay_models::BmsNotesData::calculateOffsetsForBgm(
   const std::vector<std::string>& notes,
   std::vector<std::pair<std::chrono::nanoseconds, std::string>>& target,
   const std::map<double, std::pair<double, std::chrono::nanoseconds>>&
@@ -183,7 +183,7 @@ charts::gameplay_models::BmsChart::calculateOffsetsForBgm(
     }
 }
 auto
-charts::gameplay_models::BmsChart::createNoteInfo(
+charts::gameplay_models::BmsNotesData::createNoteInfo(
   const std::vector<std::string>& notes,
   const std::map<double, std::pair<double, std::chrono::nanoseconds>>&
     bpmChangesInMeasure,

@@ -2,8 +2,8 @@
 // Created by bobini on 15.06.23.
 //
 
-#ifndef RHYTHMGAME_BMSCHART_H
-#define RHYTHMGAME_BMSCHART_H
+#ifndef RHYTHMGAME_BMSNOTESDATA_H
+#define RHYTHMGAME_BMSNOTESDATA_H
 
 #include <string>
 #include <vector>
@@ -13,7 +13,7 @@
 #include "charts/parser_models/ParsedBmsChart.h"
 
 namespace charts::gameplay_models {
-struct BmsChart
+struct BmsNotesData
 {
     struct Note
     {
@@ -33,7 +33,8 @@ struct BmsChart
     std::vector<std::pair<std::chrono::nanoseconds, double>> bpmChanges;
     std::vector<std::chrono::nanoseconds> barLines;
     static constexpr auto defaultBpm = 120.0;
-    explicit BmsChart(const parser_models::ParsedBmsChart& chart);
+    explicit BmsNotesData(const parser_models::ParsedBmsChart& chart);
+    BmsNotesData() = default;
 
   private:
     void generateMeasures(
@@ -67,4 +68,4 @@ struct BmsChart
       -> std::tuple<std::chrono::nanoseconds, std::string, double>;
 };
 } // namespace charts::gameplay_models
-#endif // RHYTHMGAME_BMSCHART_H
+#endif // RHYTHMGAME_BMSNOTESDATA_H

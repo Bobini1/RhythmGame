@@ -7,9 +7,14 @@
 #include "Chart.h"
 
 namespace gameplay_logic {
-Chart::Chart(gameplay_logic::BmsGameReferee gameReferee, QObject* parent)
+Chart::Chart(gameplay_logic::BmsGameReferee gameReferee,
+             ChartData* chartData,
+             std::unordered_map<std::string, sounds::OpenALSound> sounds,
+             QObject* parent)
   : QObject(parent)
   , gameReferee(std::move(gameReferee))
+  , sounds(std::move(sounds))
+  , chartData(chartData)
 {
 }
 
@@ -64,5 +69,15 @@ auto
 Chart::isOver() const -> bool
 {
     return over;
+}
+auto
+Chart::getChartData() const -> ChartData*
+{
+    return chartData;
+}
+auto
+Chart::getScore() const -> BmsScore*
+{
+    return nullptr;
 }
 } // namespace gameplay_logic

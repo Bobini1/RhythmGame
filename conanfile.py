@@ -25,6 +25,7 @@ class Recipe(ConanFile):
         self.requires("sqlite3/3.42.0", override=True)
         self.requires("cryptopp/8.7.0")
         self.requires("magic_enum/0.9.3")
+        self.requires("uchardet/0.0.7")
 
         # Testing only dependencies below
         self.requires("catch2/3.3.2")

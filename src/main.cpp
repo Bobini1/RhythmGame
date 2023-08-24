@@ -4,6 +4,7 @@
 #include "sounds/OpenAlSound.h"
 #include "../RhythmGameQml/SceneUrls.h"
 #include "../RhythmGameQml/ProgramSettings.h"
+#include "../RhythmGameQml/ChartLoader.h"
 
 #include <QOpenGLWindow>
 #include <QGuiApplication>
@@ -54,20 +55,25 @@ main(int argc, char* argv[]) -> int
             }
         };
 
-        auto* sceneSwitcher =
-          new qml_components::SceneUrls{ themeConfigLoader };
-        qml_components::SceneUrls::setInstance(sceneSwitcher);
+        auto sceneUrls = qml_components::SceneUrls{ themeConfigLoader };
+        qml_components::SceneUrls::setInstance(&sceneUrls);
 
         auto chartPath = QUrl{};
         if (argc > 1) {
             chartPath = QUrl::fromLocalFile(argv[1]);
         }
 
-        auto* programSettings =
-          new qml_components::ProgramSettings{ chartPath };
-        qml_components::ProgramSettings::setInstance(programSettings);
+        auto programSettings = qml_components::ProgramSettings{ chartPath };
+        qml_components::ProgramSettings::setInstance(&programSettings);
+
+        auto chartDataFactory = resource_managers::ChartDataFactory{};
+        auto chartFactory =
+          resource_managers::ChartFactory{ &chartDataFactory };
+        auto chartLoader = qml_components::ChartLoader{ &chartFactory };
+        qml_components::ChartLoader::setInstance(&chartLoader);
 
         auto view = QQuickView(&engine, nullptr);
+        view.setSource(QUrl("qrc:///qt/qml/RhythmGameQml/ContentFrame.qml"));
 
         view.setWidth(1920);
         view.setHeight(1080);

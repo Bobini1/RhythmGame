@@ -6,23 +6,21 @@ import QtQuick.Controls 2.15
 Item {
     id: contentContainer
 
-    Component.OnCompleted: {
-        if (ProgramSettings.chartPath) {
-            root.openChart(ProgramSettings.chartPath);
-        }
-    }
     anchors.fill: parent
 
     Component {
         id: chartContext
 
         Item {
-            required property Chart chart
+            required property var chart
+
+            focus: true
 
             Keys.onPressed: event => {
                 if (event.key === Qt.Key_Escape) {
                     sceneStack.pop();
                 }
+                event.accepted = true;
             }
 
             Loader {
@@ -42,18 +40,32 @@ Item {
 
         function openChart(path: URL) {
             let chart = ChartLoader.loadChart(path);
+            if (!chart) {
+                console.error("Failed to load chart");
+                return;
+            }
             sceneStack.push(gameplayComponent, {
-                    "chartData": chart
+                    "chart": chart
                 });
         }
 
         anchors.fill: parent
+
+        Component.onCompleted: {
+            if (ProgramSettings.chartPath) {
+                openChart(ProgramSettings.chartPath);
+            }
+        }
 
         StackView {
             id: sceneStack
 
             anchors.fill: parent
             initialItem: ProgramSettings.chartPath ? null : root.mainComponent
+
+            onCurrentItemChanged: {
+                currentItem.forceActiveFocus();
+            }
         }
     }
 }

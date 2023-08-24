@@ -6,45 +6,46 @@
 #include <algorithm>
 #include "BmsGameReferee.h"
 gameplay_logic::BmsGameReferee::BmsGameReferee(
-  const charts::gameplay_models::BmsChart* chart,
+  const charts::gameplay_models::BmsNotesData& notesData,
   BmsScore* score,
-  std::map<std::string, sounds::OpenALSound>* sounds,
+  std::unordered_map<std::string, sounds::OpenALSound>& sounds,
   gameplay_logic::BmsRules rules)
   : rules(rules)
 {
-    for (int i = 0; i < charts::gameplay_models::BmsChart::columnNumber; i++) {
+    for (int i = 0; i < charts::gameplay_models::BmsNotesData::columnNumber;
+         i++) {
         std::transform(
-          chart->visibleNotes[i].begin(),
-          chart->visibleNotes[i].end(),
+          notesData.visibleNotes[i].begin(),
+          notesData.visibleNotes[i].end(),
           std::back_inserter(visibleNotes[i]),
           [&sounds](auto& note) {
               auto soundId = note.second.sound;
-              if (auto sound = sounds->find(soundId); sound != sounds->end()) {
+              if (auto sound = sounds.find(soundId); sound != sounds.end()) {
                   return BmsRules::NoteType{ &sound->second, note.first };
               }
               return BmsRules::NoteType{ nullptr, note.first };
           });
         currentVisibleNotes[i] = visibleNotes[i];
         std::transform(
-          chart->invisibleNotes[i].begin(),
-          chart->invisibleNotes[i].end(),
+          notesData.invisibleNotes[i].begin(),
+          notesData.invisibleNotes[i].end(),
           std::back_inserter(invisibleNotes[i]),
           [&sounds](auto& note) {
               auto soundId = note.second.sound;
-              if (auto sound = sounds->find(soundId); sound != sounds->end()) {
+              if (auto sound = sounds.find(soundId); sound != sounds.end()) {
                   return BmsRules::NoteType{ &sound->second, note.first };
               }
               return BmsRules::NoteType{ nullptr, note.first };
           });
         currentInvisibleNotes[i] = invisibleNotes[i];
     }
-    std::transform(chart->bgmNotes.begin(),
-                   chart->bgmNotes.end(),
+    std::transform(notesData.bgmNotes.begin(),
+                   notesData.bgmNotes.end(),
                    std::back_inserter(bgms),
                    [&sounds](auto& note) {
                        auto soundId = note.second;
-                       if (auto sound = sounds->find(soundId);
-                           sound != sounds->end()) {
+                       if (auto sound = sounds.find(soundId);
+                           sound != sounds.end()) {
                            return BgmType{ note.first, &sound->second };
                        }
                        return BgmType{ note.first, nullptr };
@@ -86,7 +87,7 @@ gameplay_logic::BmsGameReferee::passInput(
 {
     auto columnIndex = static_cast<int>(key);
     if (columnIndex < 0 ||
-        columnIndex >= charts::gameplay_models::BmsChart::columnNumber) {
+        columnIndex >= charts::gameplay_models::BmsNotesData::columnNumber) {
         return std::nullopt;
     }
     auto& column = currentVisibleNotes[columnIndex];

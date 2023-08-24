@@ -9,6 +9,7 @@
 #include <QtQmlIntegration>
 #include "gameplay_logic/ChartData.h"
 #include "gameplay_logic/Chart.h"
+#include "resource_managers/ChartFactory.h"
 
 namespace qml_components {
 
@@ -20,8 +21,11 @@ class ChartLoader : public QObject
 
     static inline ChartLoader* instance;
 
+    resource_managers::ChartFactory* chartFactory;
+
   public:
-    explicit ChartLoader(QObject* parent = nullptr);
+    explicit ChartLoader(resource_managers::ChartFactory* chartFactory,
+                         QObject* parent = nullptr);
 
     Q_INVOKABLE gameplay_logic::Chart* loadChart(const QString& filename);
 
