@@ -442,14 +442,8 @@ auto
 BmsChartReader::readBmsChart(std::string_view chart) const
   -> parser_models::ParsedBmsChart
 {
-    auto start = std::chrono::high_resolution_clock::now();
     auto result = lexy::parse<MainTags>(
       lexy::string_input<lexy::utf8_char_encoding>(chart), ReportError{});
     auto end = std::chrono::high_resolution_clock::now();
-    spdlog::info(
-      "Parsing took {} nanos",
-      std::chrono::duration_cast<std::chrono::nanoseconds>(end - start)
-        .count());
-    return parser_models::ParsedBmsChart(std::move(result).value());
 }
 } // namespace charts::chart_readers

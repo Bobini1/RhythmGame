@@ -41,6 +41,7 @@ loadBmsSounds(const std::map<std::string, std::string>& wavs,
               const std::filesystem::path& path)
   -> std::unordered_map<std::string, sounds::OpenALSound>
 {
+    auto start = std::chrono::high_resolution_clock::now();
     auto wavsActualPaths = std::unordered_map<std::string, std::string>{};
     wavsActualPaths.reserve(wavs.size());
     auto uniqueSoundPaths = std::unordered_set<std::string>{};
@@ -94,6 +95,15 @@ loadBmsSounds(const std::map<std::string, std::string>& wavs,
             sounds.emplace(key, sounds::OpenALSound(buffer->second));
         }
     }
+    for (auto& sound : sounds) {
+        sound.second.setVolume(0.5);
+    }
+    auto end = std::chrono::high_resolution_clock::now();
+    spdlog::info(
+      "Loading {} sounds took: {} ms",
+      buffers.size(),
+      std::chrono::duration_cast<std::chrono::milliseconds>(end - start)
+        .count());
     return sounds;
 }
 
