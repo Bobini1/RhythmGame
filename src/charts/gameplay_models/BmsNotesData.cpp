@@ -134,6 +134,7 @@ charts::gameplay_models::BmsNotesData::fillEmptyMeasures(
   std::chrono::nanoseconds& measureStart,
   double lastBpm)
 {
+    lastMeasure++;
     for (; lastMeasure < measureIndex; ++lastMeasure) {
         auto measureLength = std::chrono::nanoseconds(
           static_cast<int64_t>(60.0 * 4 * 1'000'000'000 / lastBpm));

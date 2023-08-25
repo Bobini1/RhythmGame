@@ -6,6 +6,6 @@ Rectangle {
 
     Text {
         anchors.centerIn: parent
-        text: chart.chartData.title
+        text: chart.start()
     }
 }

@@ -11,6 +11,7 @@ gameplay_logic::BmsGameReferee::BmsGameReferee(
   std::unordered_map<std::string, sounds::OpenALSound>& sounds,
   gameplay_logic::BmsRules rules)
   : rules(rules)
+  , score(score)
 {
     for (int i = 0; i < charts::gameplay_models::BmsNotesData::columnNumber;
          i++) {
@@ -55,12 +56,11 @@ gameplay_logic::BmsGameReferee::BmsGameReferee(
 void
 gameplay_logic::BmsGameReferee::update(std::chrono::nanoseconds offsetFromStart)
 {
-
     for (auto columnIndex = 0; columnIndex < currentVisibleNotes.size();
          columnIndex++) {
         auto& column = currentVisibleNotes[columnIndex];
-        auto newMisses = rules.getMisses(column, offsetFromStart);
-        column = column.subspan(newMisses.size());
+        auto [newMisses, skipCount] = rules.getMisses(column, offsetFromStart);
+        column = column.subspan(skipCount);
         for (auto miss : newMisses) {
             score->addMiss({ miss.count(), columnIndex });
         }

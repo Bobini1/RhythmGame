@@ -51,7 +51,7 @@ BmsScore::getPoints() const -> double
     return points;
 }
 auto
-BmsScore::getJudgementCounts() const -> const QVariantMap&
+BmsScore::getJudgementCounts() const -> QVariantMap
 {
     auto map = QVariantMap{};
     for (const auto& [judgement, count] : judgementCounts) {

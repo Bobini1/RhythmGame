@@ -47,7 +47,7 @@ class BmsScore : public QObject
     auto getMaxPoints() const -> double;
     auto getMaxHits() const -> int;
     auto getPoints() const -> double;
-    auto getJudgementCounts() const -> const QVariantMap&;
+    auto getJudgementCounts() const -> QVariantMap;
 
   signals:
     void pointsChanged();

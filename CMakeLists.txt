@@ -42,7 +42,7 @@ find_package(OpenAL REQUIRED)
 
 # <------------ Qt (gui) --------------->
 
-find_package(Qt6 REQUIRED COMPONENTS Quick Gui Widgets Core5Compat)
+find_package(Qt6 REQUIRED COMPONENTS Quick Gui Widgets Core5Compat Concurrent)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
@@ -66,8 +66,6 @@ qt_add_library(RhythmGame_lib OBJECT src/db/SqliteCppDb.cpp src/db/SqliteCppDb.h
         src/gameplay_logic/ChartData.h
         src/gameplay_logic/Chart.cpp
         src/gameplay_logic/Chart.h
-        src/resource_managers/BmsChartLoader.cpp
-        src/resource_managers/BmsChartLoader.h
         src/gameplay_logic/Tap.cpp
         src/gameplay_logic/Tap.h
         src/gameplay_logic/Miss.cpp
@@ -83,7 +81,7 @@ find_package(Threads REQUIRED)
 
 find_package(Microsoft.GSL REQUIRED)
 
-target_link_libraries(RhythmGame_lib PUBLIC Qt6::Gui Qt6::Quick Qt6::OpenGL Qt6::Core5Compat Threads::Threads Boost::headers Boost::locale Boost::serialization Boost::dynamic_linking Boost::filesystem SQLiteCpp Microsoft.GSL::GSL spdlog::spdlog foonathan::lexy ffmpeg::ffmpeg OpenAL::OpenAL cryptopp::cryptopp magic_enum::magic_enum uchardet::uchardet)
+target_link_libraries(RhythmGame_lib PUBLIC Qt6::Gui Qt6::Quick Qt6::OpenGL Qt6::Concurrent Qt6::Core5Compat Threads::Threads Boost::headers Boost::locale Boost::serialization Boost::dynamic_linking Boost::filesystem SQLiteCpp Microsoft.GSL::GSL spdlog::spdlog foonathan::lexy ffmpeg::ffmpeg OpenAL::OpenAL cryptopp::cryptopp magic_enum::magic_enum uchardet::uchardet)
 
 include(CheckCXXSymbolExists)
 check_cxx_symbol_exists(std::execution::par "execution" RHYTHMGAME_HAS_STD_EXECUTION)

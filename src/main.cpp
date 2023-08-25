@@ -11,6 +11,7 @@
 #include <QQmlApplicationEngine>
 #include <QQuickView>
 #include <QtQml/QQmlExtensionPlugin>
+#include "sounds/OpenAlSoundBuffer.h"
 
 Q_IMPORT_QML_PLUGIN(RhythmGameQmlPlugin)
 

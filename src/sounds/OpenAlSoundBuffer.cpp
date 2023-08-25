@@ -352,10 +352,6 @@ sounds::OpenALSoundBuffer::OpenALSoundBuffer(const char* filename)
         throw std::runtime_error("Could not open codec");
     }
     auto format = setSampleFormat(*codecContext, *codec);
-    spdlog::info("Format: {}", formatContext->iformat->long_name);
-    spdlog::info("Sample format: {}", av_get_sample_fmt_name(format));
-    spdlog::info("Sample rate: {}", codecContext->sample_rate);
-    spdlog::info("Channels: {}", codecContext->channels);
 
     auto samples = decodeFile(*formatContext, *audioStream, *codecContext);
     alcMakeContextCurrent(getALContext());

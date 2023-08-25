@@ -19,7 +19,7 @@ class Recipe(ConanFile):
         self.requires("sfml/2.6.0")
         self.requires("spdlog/1.11.0")
         self.requires("foonathan-lexy/2022.12.00")
-        self.requires("ffmpeg/5.0")
+        self.requires("ffmpeg/6.0")
         self.requires("openal-soft/1.22.2")
         self.requires("qt/6.5.2")
         self.requires("sqlite3/3.42.0", override=True)
@@ -38,6 +38,7 @@ class Recipe(ConanFile):
         self.options["ffmpeg"].postproc = False
         self.options["ffmpeg"].with_libfdk_aac = False
         self.options["ffmpeg"].with_openjpeg = False
+        self.options["ffmpeg"].with_asm = False
         self.options["qt"].shared = True
         self.options["qt"].qtshadertools = True
         self.options["qt"].qtdeclarative = True
