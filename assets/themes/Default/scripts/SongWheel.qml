@@ -21,8 +21,6 @@ ListView {
         // switch to gameplay on click
         MouseArea {
             anchors.fill: parent
-
-            onClicked: root.openChart(".")
         }
     }
     model: ListModel {
