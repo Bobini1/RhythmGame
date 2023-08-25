@@ -5,6 +5,8 @@
 #include "loadBmsSounds.h"
 #include "sounds/OpenAlSoundBuffer.h"
 #include <optional>
+#include <unordered_set>
+#include <QtConcurrent>
 
 namespace charts::helper_functions {
 
@@ -39,33 +41,65 @@ loadBmsSounds(const std::map<std::string, std::string>& wavs,
               const std::filesystem::path& path)
   -> std::unordered_map<std::string, sounds::OpenALSound>
 {
-    auto sounds = std::unordered_map<std::string, sounds::OpenALSound>();
-    sounds.reserve(wavs.size());
+    auto wavsActualPaths = std::unordered_map<std::string, std::string>{};
+    wavsActualPaths.reserve(wavs.size());
+    auto uniqueSoundPaths = std::unordered_set<std::string>{};
+    for (const auto& [key, value] : wavs) {
+        {
+            auto filePath = path / value;
+            auto actualPath = getActualPath(filePath);
+            if (!actualPath) {
+                spdlog::warn("File {} not found.", filePath.string());
+                continue;
+            }
+            auto actualPathString = actualPath->string();
+            wavsActualPaths.emplace(key, actualPathString);
+            uniqueSoundPaths.emplace(std::move(actualPathString));
+        }
+    }
     std::unordered_map<std::string,
                        std::shared_ptr<const sounds::OpenALSoundBuffer>>
       buffers;
-    for (const auto& [key, value] : wavs) {
-        auto filePath = path / value;
-        auto actualPath = getActualPath(filePath);
-        if (!actualPath) {
-            spdlog::warn("File {} not found.", filePath.string());
-            continue;
-        }
-        auto actualPathString = actualPath->string();
-        auto bufferPointer = [&buffers, &actualPathString] {
-            auto buffer = buffers.find(actualPathString);
-            if (buffer != buffers.end()) {
-                return buffers.emplace(actualPathString, buffer->second)
-                  .first->second;
-            }
+    buffers.reserve(uniqueSoundPaths.size());
 
-            return buffers
-              .emplace(actualPathString,
-                       std::make_shared<const sounds::OpenALSoundBuffer>(
-                         actualPathString.c_str()))
-              .first->second;
-        }();
-        sounds.emplace(key, sounds::OpenALSound(bufferPointer));
+    buffers = QtConcurrent::blockingMappedReduced<
+      std::unordered_map<std::string,
+                         std::shared_ptr<const sounds::OpenALSoundBuffer>>>(
+      uniqueSoundPaths,
+      [](const auto& path)
+        -> std::optional<
+          std::pair<std::string,
+                    std::shared_ptr<const sounds::OpenALSoundBuffer>>> {
+          try {
+              return { { path,
+                         std::make_shared<const sounds::OpenALSoundBuffer>(
+                           path.c_str()) } };
+          } catch (const std::exception& e) {
+              spdlog::warn("Failed to load sound {}: {}", path, e.what());
+              return std::nullopt;
+          }
+      },
+      [](auto& container, const auto& pair) -> void {
+          if (pair) {
+              container.emplace(pair->first, pair->second);
+          }
+      },
+      std::move(buffers));
+
+    auto sounds = std::unordered_map<std::string, sounds::OpenALSound>();
+    sounds.reserve(wavsActualPaths.size());
+    for (const auto& [key, actualPath] : wavsActualPaths) {
+        auto buffer = buffers.find(actualPath);
+        if (buffer != buffers.end()) {
+            sounds.emplace(key, sounds::OpenALSound(buffer->second));
+        }
+    }
+    for (auto& sound : sounds) {
+        sound.second.play();
+        spdlog::info("playing {}", sound.first);
+        while (sound.second.isPlaying())
+            ;
+        std::this_thread::sleep_for(std::chrono::seconds{ 1 });
     }
     return sounds;
 }
