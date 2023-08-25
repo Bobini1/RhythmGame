@@ -94,13 +94,6 @@ loadBmsSounds(const std::map<std::string, std::string>& wavs,
             sounds.emplace(key, sounds::OpenALSound(buffer->second));
         }
     }
-    for (auto& sound : sounds) {
-        sound.second.play();
-        spdlog::info("playing {}", sound.first);
-        while (sound.second.isPlaying())
-            ;
-        std::this_thread::sleep_for(std::chrono::seconds{ 1 });
-    }
     return sounds;
 }
 
