@@ -10,6 +10,15 @@ Rectangle {
 
     Text {
         anchors.centerIn: parent
-        text: chart.chartData
+        text: {
+            let text = "";
+            for (let column in chart.chartData.noteData.visibleNotes) {
+                for (let note of chart.chartData.noteData.visibleNotes[column]) {
+                    text += note + ", ";
+                }
+                text += "\n";
+            }
+            return text;
+        }
     }
 }

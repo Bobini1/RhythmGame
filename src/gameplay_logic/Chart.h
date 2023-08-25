@@ -28,6 +28,7 @@ class Chart : public QObject
     input::KeyboardInputTranslatorToBms inputTranslator;
     std::unordered_map<std::string, sounds::OpenALSound> sounds;
     ChartData* chartData;
+    BmsScore* score;
     int elapsed = 0;
     bool over = false;
 
@@ -36,12 +37,13 @@ class Chart : public QObject
   public:
     explicit Chart(gameplay_logic::BmsGameReferee gameReferee,
                    ChartData* chartData,
+                   BmsScore* score,
                    std::unordered_map<std::string, sounds::OpenALSound> sounds,
                    QObject* parent = nullptr);
 
     Q_INVOKABLE void start();
 
-    Q_INVOKABLE void passKey(QKeyEvent* event);
+    Q_INVOKABLE void passKey(int key);
 
     auto isOver() const -> bool;
 

@@ -32,8 +32,10 @@ class ChartFactory
                                          chartData->createEmptyScore(),
                                          sounds,
                                          gameplay_logic::BmsRules{});
-        return new gameplay_logic::Chart(
-          std::move(referee), chartData, std::move(sounds));
+        return new gameplay_logic::Chart(std::move(referee),
+                                         chartData,
+                                         chartData->createEmptyScore(),
+                                         std::move(sounds));
     }
 };
 

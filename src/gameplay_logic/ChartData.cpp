@@ -12,6 +12,7 @@ gameplay_logic::ChartData::ChartData(QString title,
                                      int noteCount,
                                      int length,
                                      QUrl directory,
+                                     BmsNotes* noteData,
                                      QObject* parent)
   : QObject(parent)
   , title(std::move(title))
@@ -20,7 +21,9 @@ gameplay_logic::ChartData::ChartData(QString title,
   , noteCount(noteCount)
   , length(length)
   , directory(std::move(directory))
+  , noteData(noteData)
 {
+    noteData->setParent(this);
 }
 auto
 gameplay_logic::ChartData::getTitle() const -> QString
@@ -56,4 +59,9 @@ auto
 gameplay_logic::ChartData::getDirectory() const -> QUrl
 {
     return directory;
+}
+auto
+gameplay_logic::ChartData::getNoteData() const -> gameplay_logic::BmsNotes*
+{
+    return noteData;
 }

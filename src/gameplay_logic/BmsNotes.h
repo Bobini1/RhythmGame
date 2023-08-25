@@ -10,20 +10,22 @@ namespace gameplay_logic {
 class BmsNotes : public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(QList<QList<int>> visibleNotes READ getVisibleNotes CONSTANT)
-    Q_PROPERTY(QList<QList<int>> invisibleNotes READ getInvisibleNotes CONSTANT)
+    Q_PROPERTY(QList<QList<int64_t>> visibleNotes READ getVisibleNotes CONSTANT)
+    Q_PROPERTY(
+      QList<QList<int64_t>> invisibleNotes READ getInvisibleNotes CONSTANT)
 
-    QList<QList<int>> visibleNotes;
-    QList<QList<int>> invisibleNotes;
+    QList<QList<int64_t>> visibleNotes;
+    QList<QList<int64_t>> invisibleNotes;
 
   public:
-    explicit BmsNotes(QList<QList<int>> visibleNotes,
-                      QList<QList<int>> invisibleNotes,
+    explicit BmsNotes(QList<QList<int64_t>> visibleNotes,
+                      QList<QList<int64_t>> invisibleNotes,
                       QObject* parent = nullptr);
 
-    [[nodiscard]] auto getVisibleNotes() const -> const QList<QList<int>>&;
+    [[nodiscard]] auto getVisibleNotes() const -> const QList<QList<int64_t>>&;
 
-    [[nodiscard]] auto getInvisibleNotes() const -> const QList<QList<int>>&;
+    [[nodiscard]] auto getInvisibleNotes() const
+      -> const QList<QList<int64_t>>&;
 };
 } // namespace gameplay_logic
 

@@ -49,24 +49,28 @@ class ChartDataFactory
                      std::istreambuf_iterator<char>{});
         return chart;
     }
-
-  public:
     auto makeNotes(charts::gameplay_models::BmsNotesData& calculatedNotesData)
       const -> gameplay_logic::BmsNotes*
     {
-        auto visibleNotes = QList<QList<int>>{};
+        auto visibleNotes = QList<QList<int64_t>>{};
         for (const auto& column : calculatedNotesData.visibleNotes) {
-            auto columnNotes = QList<int>{};
+            auto columnNotes = QList<int64_t>{};
             for (const auto& note : column) {
-                columnNotes.append(note.first.count());
+                columnNotes.append(
+                  std::chrono::duration_cast<std::chrono::milliseconds>(
+                    note.first)
+                    .count());
             }
             visibleNotes.append(std::move(columnNotes));
         }
-        auto invisibleNotes = QList<QList<int>>{};
+        auto invisibleNotes = QList<QList<int64_t>>{};
         for (const auto& column : calculatedNotesData.invisibleNotes) {
-            auto columnNotes = QList<int>{};
+            auto columnNotes = QList<int64_t>{};
             for (const auto& note : column) {
-                columnNotes.append(note.first.count());
+                columnNotes.append(
+                  std::chrono::duration_cast<std::chrono::milliseconds>(
+                    note.first)
+                    .count());
             }
             invisibleNotes.append(std::move(columnNotes));
         }
@@ -75,6 +79,7 @@ class ChartDataFactory
         return notes;
     }
 
+  public:
     struct ChartComponents
     {
         gameplay_logic::ChartData* chartData;
@@ -98,6 +103,7 @@ class ChartDataFactory
         for (const auto& column : calculatedNotesData.visibleNotes) {
             noteCount += column.size();
         }
+        auto* noteData = makeNotes(calculatedNotesData);
         // todo: length
         auto* chartData = new gameplay_logic::ChartData{
             QString::fromStdString(parsedChart.tags.title.value_or("")),
@@ -105,7 +111,8 @@ class ChartDataFactory
             QString::fromStdString(parsedChart.tags.genre.value_or("")),
             noteCount,
             120'000,
-            QFileInfo{ chartPath.toLocalFile() }.absolutePath()
+            QFileInfo{ chartPath.toLocalFile() }.absolutePath(),
+            noteData
         };
         return { chartData,
                  std::move(calculatedNotesData),

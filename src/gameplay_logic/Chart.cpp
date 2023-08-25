@@ -9,13 +9,16 @@
 namespace gameplay_logic {
 Chart::Chart(gameplay_logic::BmsGameReferee gameReferee,
              ChartData* chartData,
+             BmsScore* score,
              std::unordered_map<std::string, sounds::OpenALSound> sounds,
              QObject* parent)
   : QObject(parent)
   , gameReferee(std::move(gameReferee))
   , sounds(std::move(sounds))
   , chartData(chartData)
+  , score(score)
 {
+    chartData->setParent(this);
 }
 
 void
@@ -54,14 +57,12 @@ Chart::getElapsed() const -> int
 }
 
 void
-Chart::passKey(QKeyEvent* event)
+Chart::passKey(int key)
 {
-    if (auto bmsKey =
-          inputTranslator.translate(static_cast<Qt::Key>(event->key()));
+    auto timestamp = std::chrono::steady_clock::now();
+    if (auto bmsKey = inputTranslator.translate(static_cast<Qt::Key>(key));
         bmsKey.has_value()) {
-        gameReferee.passInput(
-          std::chrono::milliseconds(event->timestamp() - startTimestamp),
-          *bmsKey);
+        gameReferee.passInput(timestamp - startTimepoint, *bmsKey);
     }
 }
 
@@ -78,6 +79,6 @@ Chart::getChartData() const -> ChartData*
 auto
 Chart::getScore() const -> BmsScore*
 {
-    return nullptr;
+    return score;
 }
 } // namespace gameplay_logic

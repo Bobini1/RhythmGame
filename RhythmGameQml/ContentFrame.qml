@@ -19,6 +19,7 @@ Item {
             Keys.onPressed: event => {
                 if (event.key === Qt.Key_Escape) {
                     sceneStack.pop();
+                    chart.passInput(event.key);
                 }
                 event.accepted = true;
             }
