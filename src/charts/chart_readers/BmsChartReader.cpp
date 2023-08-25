@@ -442,7 +442,8 @@ auto
 BmsChartReader::readBmsChart(std::string_view chart) const
   -> parser_models::ParsedBmsChart
 {
-    return lexy::parse<MainTags>(
+    auto result = lexy::parse<MainTags>(
       lexy::string_input<lexy::utf8_char_encoding>(chart), ReportError{});
+    return parser_models::ParsedBmsChart(std::move(result).value());
 }
 } // namespace charts::chart_readers
