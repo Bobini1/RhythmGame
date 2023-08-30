@@ -104,14 +104,15 @@ charts::gameplay_models::BmsNotesData::generateMeasures(
                 (1.0 - lastFraction) * defaultBeatsPerMeasure * measure.meter };
         barLines.emplace_back(timestamp);
         for (auto i = 0; i < columnMapping.size(); i++) {
-            calculateOffsetsForColumn(measure.p1VisibleNotes[i],
-                                      visibleNotes[columnMapping[i]],
+            calculateOffsetsForColumn(measure.p1VisibleNotes[columnMapping[i]],
+                                      visibleNotes[i],
                                       bpmChangesInMeasure,
                                       measure.meter);
-            calculateOffsetsForColumn(measure.p1InvisibleNotes[i],
-                                      invisibleNotes[columnMapping[i]],
-                                      bpmChangesInMeasure,
-                                      measure.meter);
+            calculateOffsetsForColumn(
+              measure.p1InvisibleNotes[columnMapping[i]],
+              invisibleNotes[i],
+              bpmChangesInMeasure,
+              measure.meter);
             calculateOffsetsForColumn(
               measure.p2VisibleNotes[i],
               visibleNotes[columnMapping[i] + columnNumber / 2],
