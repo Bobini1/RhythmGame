@@ -18,26 +18,11 @@ Rectangle {
 
             Repeater {
                 model: chart.chartData.noteData.visibleNotes
+                width: 100
 
-                Column {
-                    id: column
-
-                    property int columnIndex: index
-                    property var notes: modelData
-
-                    Repeater {
-                        model: column.notes
-
-                        Rectangle {
-                            border.width: 1
-                            color: "red"
-                            height: 4
-                            width: 8
-                        }
-                        Text {
-                            text: modelData.snap.numerator + "/" + modelData.snap.denominator
-                        }
-                    }
+                NoteColumn {
+                    notes: modelData
+                    y: chart.elapsed / 100
                 }
             }
             Repeater {
