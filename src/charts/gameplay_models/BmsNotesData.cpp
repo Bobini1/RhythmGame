@@ -62,7 +62,7 @@ charts::gameplay_models::BmsNotesData::generateMeasures(
                       (fraction - lastFraction) * defaultBeatsPerMeasure *
                       measure.meter * 60 * 1'000'000'000 / lastBpm)),
                     (fraction - lastFraction) * defaultBeatsPerMeasure *
-                      measure.meter * 60 * 1'000'000'000 };
+                      measure.meter };
             bpmChanges.emplace_back(timestamp, bpmChangeNum);
             bpmChangesInMeasure[fraction] =
               std::pair{ bpmChangeNum, timestamp };
