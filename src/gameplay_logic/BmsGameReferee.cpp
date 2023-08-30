@@ -20,11 +20,12 @@ gameplay_logic::BmsGameReferee::BmsGameReferee(
           notesData.visibleNotes[i].end(),
           std::back_inserter(visibleNotes[i]),
           [&sounds](auto& note) {
-              auto soundId = note.second.sound;
+              auto soundId = note.sound;
               if (auto sound = sounds.find(soundId); sound != sounds.end()) {
-                  return BmsRules::NoteType{ &sound->second, note.first };
+                  return BmsRules::NoteType{ &sound->second,
+                                             note.time.timestamp };
               }
-              return BmsRules::NoteType{ nullptr, note.first };
+              return BmsRules::NoteType{ nullptr, note.time.timestamp };
           });
         currentVisibleNotes[i] = visibleNotes[i];
         std::transform(
@@ -32,25 +33,26 @@ gameplay_logic::BmsGameReferee::BmsGameReferee(
           notesData.invisibleNotes[i].end(),
           std::back_inserter(invisibleNotes[i]),
           [&sounds](auto& note) {
-              auto soundId = note.second.sound;
+              auto soundId = note.sound;
               if (auto sound = sounds.find(soundId); sound != sounds.end()) {
-                  return BmsRules::NoteType{ &sound->second, note.first };
+                  return BmsRules::NoteType{ &sound->second,
+                                             note.time.timestamp };
               }
-              return BmsRules::NoteType{ nullptr, note.first };
+              return BmsRules::NoteType{ nullptr, note.time.timestamp };
           });
         currentInvisibleNotes[i] = invisibleNotes[i];
     }
-    std::transform(notesData.bgmNotes.begin(),
-                   notesData.bgmNotes.end(),
-                   std::back_inserter(bgms),
-                   [&sounds](auto& note) {
-                       auto soundId = note.second;
-                       if (auto sound = sounds.find(soundId);
-                           sound != sounds.end()) {
-                           return BgmType{ note.first, &sound->second };
-                       }
-                       return BgmType{ note.first, nullptr };
-                   });
+    std::transform(
+      notesData.bgmNotes.begin(),
+      notesData.bgmNotes.end(),
+      std::back_inserter(bgms),
+      [&sounds](auto& note) {
+          auto soundId = note.second;
+          if (auto sound = sounds.find(soundId); sound != sounds.end()) {
+              return BgmType{ note.first.timestamp, &sound->second };
+          }
+          return BgmType{ note.first.timestamp, nullptr };
+      });
     currentBgms = bgms;
 }
 void

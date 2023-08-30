@@ -19,6 +19,7 @@ Chart::Chart(gameplay_logic::BmsGameReferee gameReferee,
   , score(score)
 {
     chartData->setParent(this);
+    score->setParent(this);
 }
 
 void
@@ -27,10 +28,7 @@ Chart::start()
     propertyUpdateTimer.start(0);
     connect(
       &propertyUpdateTimer, &QTimer::timeout, this, &Chart::updateElapsed);
-    startTimestamp =
-      QKeyEvent(QEvent::KeyPress, Qt::Key_A, Qt::NoModifier).timestamp();
     startTimepoint = std::chrono::steady_clock::now();
-    spdlog::info("startTimestamp: {}", startTimestamp);
 }
 
 void

@@ -38,7 +38,7 @@ Item {
                 anchors.leftMargin: 0
                 anchors.right: parent.right
                 anchors.rightMargin: 0
-                text: qsTr(ProgramSettings.getTestClass().testString)
+                text: qsTr("Button")
 
                 onClicked: {
                     sceneStack.push(root.songWheelComponent);

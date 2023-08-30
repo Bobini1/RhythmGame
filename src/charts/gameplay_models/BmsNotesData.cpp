@@ -6,6 +6,7 @@
 #include "BmsNotesData.h"
 #include "sounds/OpenAlSoundBuffer.h"
 
+using namespace std::chrono_literals;
 charts::gameplay_models::BmsNotesData::BmsNotesData(
   const charts::parser_models::ParsedBmsChart& chart)
 {
@@ -25,15 +26,14 @@ charts::gameplay_models::BmsNotesData::generateMeasures(
 {
     auto lastBpm = baseBpm;
     auto lastMeasure = uint64_t{ 0 };
-    auto measureStart = std::chrono::nanoseconds(0);
+    auto measureStart = Time{ 0ns, 0.0 };
     bpmChanges.emplace_back(measureStart, baseBpm);
     for (const auto& [measureIndex, measure] : measures) {
         auto currentMeasure = measureIndex;
         fillEmptyMeasures(lastMeasure, currentMeasure, measureStart, lastBpm);
-        auto bpmChangesInMeasure =
-          std::map<double, std::pair<double, std::chrono::nanoseconds>>{
-              { 0.0, { lastBpm, measureStart } }
-          };
+        auto bpmChangesInMeasure = std::map<double, std::pair<double, Time>>{
+            { 0.0, { lastBpm, measureStart } }
+        };
         auto index = -1;
         auto lastTimestamp = measureStart;
         auto lastFraction = 0.0;
@@ -57,9 +57,12 @@ charts::gameplay_models::BmsNotesData::generateMeasures(
             auto fraction = static_cast<double>(index) /
                             static_cast<double>(measure.bpmChanges.size());
             auto timestamp =
-              lastTimestamp + std::chrono::nanoseconds(static_cast<int64_t>(
-                                (fraction - lastFraction) * 4 * measure.meter *
-                                60 * 1'000'000'000 / lastBpm));
+              lastTimestamp +
+              Time{ std::chrono::nanoseconds(static_cast<int64_t>(
+                      (fraction - lastFraction) * defaultBeatsPerMeasure *
+                      measure.meter * 60 * 1'000'000'000 / lastBpm)),
+                    (fraction - lastFraction) * defaultBeatsPerMeasure *
+                      measure.meter * 60 * 1'000'000'000 };
             bpmChanges.emplace_back(timestamp, bpmChangeNum);
             bpmChangesInMeasure[fraction] =
               std::pair{ bpmChangeNum, timestamp };
@@ -79,9 +82,12 @@ charts::gameplay_models::BmsNotesData::generateMeasures(
             auto fraction = static_cast<double>(index) /
                             static_cast<double>(measure.exBpmChanges.size());
             auto timestamp =
-              lastTimestamp + std::chrono::nanoseconds(static_cast<int64_t>(
-                                (fraction - lastFraction) * 4 * measure.meter *
-                                60 * 1'000'000'000 / lastBpm));
+              lastTimestamp +
+              Time{ std::chrono::nanoseconds(static_cast<int64_t>(
+                      (fraction - lastFraction) * defaultBeatsPerMeasure *
+                      measure.meter * 60 * 1'000'000'000 / lastBpm)),
+                    (fraction - lastFraction) * defaultBeatsPerMeasure *
+                      measure.meter };
             bpmChanges.emplace_back(timestamp, bpmValue->second);
             bpmChangesInMeasure[fraction] =
               std::pair{ bpmValue->second, timestamp };
@@ -91,9 +97,11 @@ charts::gameplay_models::BmsNotesData::generateMeasures(
         }
         // add last bpm change
         auto timestamp =
-          lastTimestamp + std::chrono::nanoseconds(static_cast<int64_t>(
-                            (1.0 - lastFraction) * 4 * measure.meter * 60 *
-                            1'000'000'000 / lastBpm));
+          lastTimestamp +
+          Time{ std::chrono::nanoseconds(static_cast<int64_t>(
+                  (1.0 - lastFraction) * defaultBeatsPerMeasure *
+                  measure.meter * 60 * 1'000'000'000 / lastBpm)),
+                (1.0 - lastFraction) * defaultBeatsPerMeasure * measure.meter };
         barLines.emplace_back(timestamp);
         for (auto i = 0; i < columnMapping.size(); i++) {
             calculateOffsetsForColumn(measure.p1VisibleNotes[i],
@@ -128,16 +136,17 @@ charts::gameplay_models::BmsNotesData::generateMeasures(
 }
 
 void
-charts::gameplay_models::BmsNotesData::fillEmptyMeasures(
-  uint64_t lastMeasure,
-  uint64_t& measureIndex,
-  std::chrono::nanoseconds& measureStart,
-  double lastBpm)
+charts::gameplay_models::BmsNotesData::fillEmptyMeasures(uint64_t lastMeasure,
+                                                         uint64_t& measureIndex,
+                                                         Time& measureStart,
+                                                         double lastBpm)
 {
     lastMeasure++;
     for (; lastMeasure < measureIndex; ++lastMeasure) {
-        auto measureLength = std::chrono::nanoseconds(
-          static_cast<int64_t>(60.0 * 4 * 1'000'000'000 / lastBpm));
+        auto measureLength =
+          Time{ std::chrono::nanoseconds(static_cast<int64_t>(
+                  60.0 * defaultBeatsPerMeasure * 1'000'000'000 / lastBpm)),
+                defaultBeatsPerMeasure };
         auto measureEnd = measureStart + measureLength;
         barLines.push_back(measureEnd);
         measureStart = measureEnd;
@@ -146,9 +155,8 @@ charts::gameplay_models::BmsNotesData::fillEmptyMeasures(
 void
 charts::gameplay_models::BmsNotesData::calculateOffsetsForColumn(
   const std::vector<std::string>& notes,
-  std::vector<std::pair<std::chrono::nanoseconds, Note>>& target,
-  const std::map<double, std::pair<double, std::chrono::nanoseconds>>&
-    bpmChangesInMeasure,
+  std::vector<Note>& target,
+  const std::map<double, std::pair<double, Time>>& bpmChangesInMeasure,
   double meter)
 {
     auto index = -1;
@@ -159,17 +167,18 @@ charts::gameplay_models::BmsNotesData::calculateOffsetsForColumn(
         }
         auto [timestamp, soundPointer, fraction] =
           createNoteInfo(notes, bpmChangesInMeasure, index, note, meter);
-        target.emplace_back(
-          timestamp, Note{ soundPointer, { fraction * meter * 4, meter * 4 } });
+        target.emplace_back(Note{ timestamp,
+                                  soundPointer,
+                                  { fraction * meter * defaultBeatsPerMeasure,
+                                    meter * defaultBeatsPerMeasure } });
     }
 }
 
 void
 charts::gameplay_models::BmsNotesData::calculateOffsetsForBgm(
   const std::vector<std::string>& notes,
-  std::vector<std::pair<std::chrono::nanoseconds, std::string>>& target,
-  const std::map<double, std::pair<double, std::chrono::nanoseconds>>&
-    bpmChangesInMeasure,
+  std::vector<std::pair<Time, std::string>>& target,
+  const std::map<double, std::pair<double, Time>>& bpmChangesInMeasure,
   double meter)
 {
     auto index = -1;
@@ -180,17 +189,16 @@ charts::gameplay_models::BmsNotesData::calculateOffsetsForBgm(
         }
         auto [timestamp, soundPointer, fraction] =
           createNoteInfo(notes, bpmChangesInMeasure, index, note, meter);
-        target.emplace_back(timestamp, soundPointer);
+        target.emplace_back(timestamp.timestamp, soundPointer);
     }
 }
 auto
 charts::gameplay_models::BmsNotesData::createNoteInfo(
   const std::vector<std::string>& notes,
-  const std::map<double, std::pair<double, std::chrono::nanoseconds>>&
-    bpmChangesInMeasure,
+  const std::map<double, std::pair<double, Time>>& bpmChangesInMeasure,
   int index,
   const std::string& note,
-  double meter) -> std::tuple<std::chrono::nanoseconds, std::string, double>
+  double meter) -> std::tuple<Time, std::string, double>
 {
     auto fraction =
       static_cast<double>(index) / static_cast<double>(notes.size());
@@ -200,7 +208,9 @@ charts::gameplay_models::BmsNotesData::createNoteInfo(
     auto [bpm, bpmTimestamp] = bpmWithTimestamp;
     auto timestamp =
       bpmTimestamp +
-      std::chrono::nanoseconds(static_cast<int64_t>(
-        (fraction - bpmFraction) * meter * 4 * 60 * 1'000'000'000 / bpm));
+      Time{ std::chrono::nanoseconds(static_cast<int64_t>(
+              (fraction - bpmFraction) * meter * defaultBeatsPerMeasure * 60 *
+              1'000'000'000 / bpm)),
+            (fraction - bpmFraction) * meter * defaultBeatsPerMeasure };
     return { timestamp, note, fraction };
 }

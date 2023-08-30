@@ -15,23 +15,35 @@
 namespace charts::gameplay_models {
 struct BmsNotesData
 {
+    using Position = double;
+    struct Time
+    {
+        std::chrono::nanoseconds timestamp;
+        Position position;
+
+        auto operator+(const Time& other) const -> Time
+        {
+            return { timestamp + other.timestamp, position + other.position };
+        }
+
+        auto operator<=>(const Time& other) const = default;
+    };
+
     struct Note
     {
+        Time time;
         std::string sound;
         Snap snap;
     };
+    static constexpr auto defaultBeatsPerMeasure = 4;
     static constexpr auto columnMapping =
       std::array{ 0, 1, 2, 3, 4, 7, 8, 5 }; // ignore "foot pedal"
     static constexpr auto columnNumber = columnMapping.size() * 2;
-    std::array<std::vector<std::pair<std::chrono::nanoseconds, Note>>,
-               columnNumber>
-      visibleNotes;
-    std::array<std::vector<std::pair<std::chrono::nanoseconds, Note>>,
-               columnNumber>
-      invisibleNotes;
-    std::vector<std::pair<std::chrono::nanoseconds, std::string>> bgmNotes;
-    std::vector<std::pair<std::chrono::nanoseconds, double>> bpmChanges;
-    std::vector<std::chrono::nanoseconds> barLines;
+    std::array<std::vector<Note>, columnNumber> visibleNotes;
+    std::array<std::vector<Note>, columnNumber> invisibleNotes;
+    std::vector<std::pair<Time, std::string>> bgmNotes;
+    std::vector<std::pair<Time, double>> bpmChanges;
+    std::vector<Time> barLines;
     static constexpr auto defaultBpm = 120.0;
     explicit BmsNotesData(const parser_models::ParsedBmsChart& chart);
     BmsNotesData() = default;
@@ -44,28 +56,24 @@ struct BmsNotesData
         measures);
     void fillEmptyMeasures(uint64_t lastMeasure,
                            uint64_t& measureIndex,
-                           std::chrono::nanoseconds& measureStart,
+                           Time& measureStart,
                            double lastBpm);
     void calculateOffsetsForColumn(
       const std::vector<std::string>& notes,
-      std::vector<std::pair<std::chrono::nanoseconds, Note>>& target,
-      const std::map<double, std::pair<double, std::chrono::nanoseconds>>&
-        bpmChangesInMeasure,
+      std::vector<Note>& target,
+      const std::map<double, std::pair<double, Time>>& bpmChangesInMeasure,
       double meter);
     void calculateOffsetsForBgm(
       const std::vector<std::string>& notes,
-      std::vector<std::pair<std::chrono::nanoseconds, std::string>>& target,
-      const std::map<double, std::pair<double, std::chrono::nanoseconds>>&
-        bpmChangesInMeasure,
+      std::vector<std::pair<Time, std::string>>& target,
+      const std::map<double, std::pair<double, Time>>& bpmChangesInMeasure,
       double meter);
     auto createNoteInfo(
       const std::vector<std::string>& notes,
-      const std::map<double, std::pair<double, std::chrono::nanoseconds>>&
-        bpmChangesInMeasure,
+      const std::map<double, std::pair<double, Time>>& bpmChangesInMeasure,
       int index,
       const std::string& note,
-      double meter)
-      -> std::tuple<std::chrono::nanoseconds, std::string, double>;
+      double meter) -> std::tuple<Time, std::string, double>;
 };
 } // namespace charts::gameplay_models
 #endif // RHYTHMGAME_BMSNOTESDATA_H

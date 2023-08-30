@@ -23,7 +23,6 @@ class Chart : public QObject
 
     QTimer propertyUpdateTimer;
     std::chrono::time_point<std::chrono::steady_clock> startTimepoint;
-    quint64 startTimestamp{}; // fixme: it's always 0!
     gameplay_logic::BmsGameReferee gameReferee;
     input::KeyboardInputTranslatorToBms inputTranslator;
     std::unordered_map<std::string, sounds::OpenALSound> sounds;
