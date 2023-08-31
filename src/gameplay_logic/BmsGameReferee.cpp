@@ -89,7 +89,9 @@ gameplay_logic::BmsGameReferee::passInput(
     auto& invisibleColumn = currentInvisibleNotes[columnIndex];
     auto res = rules.visibleNoteHit(column, offsetFromStart);
     if (!res) {
-        rules.invisibleNoteHit(invisibleColumn, offsetFromStart);
+        if (!rules.invisibleNoteHit(invisibleColumn, offsetFromStart)) {
+            playLastKeysound(columnIndex, offsetFromStart);
+        }
         score->addTap(
           { columnIndex, std::nullopt, offsetFromStart.count(), std::nullopt });
         return std::nullopt;
@@ -130,4 +132,58 @@ gameplay_logic::BmsGameReferee::getPosition(
     currentBpmChanges =
       currentBpmChanges.subspan(bpmChange - currentBpmChanges.begin());
     return bpmChangePosition + bpmChangeOffsetBeats;
+}
+void
+gameplay_logic::BmsGameReferee::playLastKeysound(
+  int index,
+  std::chrono::nanoseconds offsetFromStart)
+{
+    using namespace std::chrono_literals;
+    auto& visibleColumn = currentVisibleNotes[index];
+    auto& invisibleColumn = currentInvisibleNotes[index];
+    auto lastNote = std::ranges::find_if(
+      visibleColumn, [offsetFromStart](const BmsRules::NoteType& note) {
+          return note.time > offsetFromStart - 135ms;
+      });
+    auto lastInvisibleNote = std::ranges::find_if(
+      invisibleColumn, [offsetFromStart](const BmsRules::NoteType& note) {
+          return note.time > offsetFromStart - 135ms;
+      });
+    if (lastNote == visibleColumn.begin() &&
+        lastInvisibleNote == invisibleColumn.begin()) {
+        if (lastNote != visibleColumn.end()) {
+            if (lastNote->sound != nullptr) {
+                lastNote->sound->play();
+            }
+        } else if (lastInvisibleNote != invisibleColumn.end()) {
+            lastInvisibleNote->sound->play();
+        }
+        return;
+    }
+    if (lastNote == visibleColumn.begin()) {
+        lastInvisibleNote--;
+        lastInvisibleNote->sound->play();
+        return;
+    }
+    if (lastInvisibleNote == invisibleColumn.begin()) {
+        do {
+            lastNote--;
+        } while (lastNote->sound == nullptr &&
+                 lastNote != visibleColumn.begin());
+        if (lastNote->sound != nullptr) {
+            lastNote->sound->play();
+        }
+        return;
+    }
+
+    do {
+        lastNote--;
+    } while (lastNote->sound == nullptr && lastNote != visibleColumn.begin());
+    lastInvisibleNote--;
+    if (lastNote->time > lastInvisibleNote->time &&
+        lastNote->sound != nullptr) {
+        lastNote->sound->play();
+    } else {
+        lastInvisibleNote->sound->play();
+    }
 }

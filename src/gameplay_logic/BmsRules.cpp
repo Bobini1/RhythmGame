@@ -56,9 +56,10 @@ gameplay_logic::BmsRules::getMisses(std::span<NoteType> notes,
     }
     return { std::move(misses), count };
 }
-void
+auto
 gameplay_logic::BmsRules::invisibleNoteHit(std::span<NoteType>& notes,
                                            std::chrono::nanoseconds hitOffset)
+  -> bool
 {
     using namespace std::chrono_literals;
     for (auto& [sound, noteTime, hit] : notes) {
@@ -69,14 +70,13 @@ gameplay_logic::BmsRules::invisibleNoteHit(std::span<NoteType>& notes,
             continue;
         }
         if (hitOffset > noteTime + 135ms) {
-            return;
+            return false;
         }
         hit = true;
-        if (sound != nullptr) {
-            sound->play();
-        }
-        return;
+        sound->play();
+        return true;
     }
+    return false;
 }
 auto
 gameplay_logic::BmsRules::skipInvisible(
@@ -87,6 +87,7 @@ gameplay_logic::BmsRules::skipInvisible(
     auto count = 0;
     for (auto& [sound, noteTime, hit] : notes) {
         if (hit) {
+            count++;
             continue;
         }
         if (noteTime < offsetFromStart - 135ms) {

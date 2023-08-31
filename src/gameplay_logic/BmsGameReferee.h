@@ -51,6 +51,7 @@ class BmsGameReferee
      * @return The position in the chart, expressed in beats
      */
     auto getPosition(std::chrono::nanoseconds offsetFromStart) -> Position;
+    void playLastKeysound(int index, std::chrono::nanoseconds offsetFromStart);
 
   public:
     explicit BmsGameReferee(

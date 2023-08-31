@@ -31,8 +31,8 @@ class BmsRules
                    std::chrono::nanoseconds offsetFromStart)
       -> std::pair<std::vector<std::chrono::nanoseconds>, int>;
 
-    void invisibleNoteHit(std::span<NoteType>& notes,
-                          std::chrono::nanoseconds hitOffset);
+    auto invisibleNoteHit(std::span<NoteType>& notes,
+                          std::chrono::nanoseconds hitOffset) -> bool;
     auto skipInvisible(std::span<NoteType> notes,
                        std::chrono::nanoseconds offsetFromStart) -> int;
 };

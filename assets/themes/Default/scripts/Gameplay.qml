@@ -23,15 +23,22 @@ Rectangle {
         anchors.top: parent.top
     }
     Item {
+        id: playfield
+
+        anchors.bottom: parent.bottom
+        height: children.height
+
         BarLinePositioner {
             barLines: chart.chartData.noteData.barLines
             heightMultiplier: root.greenNumber
             width: notesRow.width
-            y: chart.position * root.greenNumber
+            // start from bottom
+            y: chart.position * root.greenNumber - playfield.height
         }
         Row {
             id: notesRow
 
+            anchors.bottom: parent.bottom
             spacing: 10
 
             Repeater {
@@ -41,7 +48,7 @@ Rectangle {
                 NoteColumn {
                     heightMultiplier: root.greenNumber
                     notes: modelData
-                    y: chart.position * root.greenNumber
+                    y: chart.position * root.greenNumber - playfield.height
                 }
             }
         }
