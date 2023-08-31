@@ -35,7 +35,6 @@ gameplay_logic::BmsGameReferee::BmsGameReferee(
                                                note.time.timestamp);
             }
         }
-
         currentInvisibleNotes[i] = invisibleNotes[i];
     }
     for (const auto& bgmNote : notesData.bgmNotes) {
