@@ -166,19 +166,14 @@ gameplay_logic::BmsGameReferee::playLastKeysound(
         return;
     }
     if (lastInvisibleNote == invisibleColumn.begin()) {
-        do {
-            lastNote--;
-        } while (lastNote->sound == nullptr &&
-                 lastNote != visibleColumn.begin());
+        lastNote--;
         if (lastNote->sound != nullptr) {
             lastNote->sound->play();
         }
         return;
     }
 
-    do {
-        lastNote--;
-    } while (lastNote->sound == nullptr && lastNote != visibleColumn.begin());
+    lastNote--;
     lastInvisibleNote--;
     if (lastNote->time > lastInvisibleNote->time &&
         lastNote->sound != nullptr) {
