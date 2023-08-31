@@ -22,10 +22,7 @@ gameplay_logic::BmsRules::visibleNoteHit(std::span<NoteType>& notes,
         }
         hit = true;
         if (sound != nullptr) {
-            sound->stop();
             sound->play();
-        } else {
-            spdlog::warn("Sound is null");
         }
         return { { BmsPoints(
                      1.0, Judgement::PERFECT, (hitOffset - noteTime).count()),
@@ -51,10 +48,7 @@ gameplay_logic::BmsRules::getMisses(std::span<NoteType> notes,
             misses.push_back(noteTime);
             count++;
             if (sound != nullptr) {
-                sound->stop();
                 sound->play();
-            } else {
-                spdlog::info("Sound is null");
             }
         } else {
             break;

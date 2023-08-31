@@ -17,6 +17,7 @@ Chart::Chart(gameplay_logic::BmsGameReferee gameReferee,
   , sounds(std::move(sounds))
   , chartData(chartData)
   , score(score)
+  , bpmChanges(chartData->getNoteData()->getBpmChanges())
 {
     chartData->setParent(this);
     score->setParent(this);
@@ -29,6 +30,7 @@ Chart::start()
     connect(
       &propertyUpdateTimer, &QTimer::timeout, this, &Chart::updateElapsed);
     startTimepoint = std::chrono::steady_clock::now();
+    updateBpm();
 }
 
 void
@@ -37,10 +39,16 @@ Chart::updateElapsed()
     auto offset = std::chrono::duration_cast<std::chrono::milliseconds>(
       std::chrono::steady_clock::now() - startTimepoint);
     if (auto millis = offset.count(); millis != elapsed) {
+        auto delta = millis - elapsed;
         elapsed = millis;
-        emit elapsedChanged();
+        emit elapsedChanged(delta);
     }
-    gameReferee.update(offset);
+    auto newPosition = gameReferee.update(offset);
+    if (newPosition != position) {
+        auto delta = newPosition - position;
+        position = newPosition;
+        emit positionChanged(delta);
+    }
     if (gameReferee.isOver()) {
         propertyUpdateTimer.stop();
         over = true;
@@ -78,5 +86,25 @@ auto
 Chart::getScore() const -> BmsScore*
 {
     return score;
+}
+void
+Chart::updateBpm()
+{
+    auto bpmChange = bpmChanges.begin();
+    while (bpmChange != bpmChanges.end() &&
+           bpmChange->time.timestamp <= elapsed) {
+        emit bpmChanged(*bpmChange);
+        bpmChange++;
+    }
+    if (bpmChange != bpmChanges.end()) {
+        auto nextTimestamp = bpmChange->time.timestamp - elapsed;
+        QTimer::singleShot(nextTimestamp, this, &Chart::updateBpm);
+    }
+    bpmChanges = std::span(bpmChange, bpmChanges.end());
+}
+auto
+Chart::getPosition() const -> double
+{
+    return position;
 }
 } // namespace gameplay_logic

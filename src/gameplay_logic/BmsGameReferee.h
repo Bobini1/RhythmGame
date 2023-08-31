@@ -31,8 +31,26 @@ class BmsGameReferee
       currentInvisibleNotes;
     std::vector<BgmType> bgms;
     std::span<BgmType> currentBgms;
+    std::vector<std::pair<charts::gameplay_models::BmsNotesData::Time, double>>
+      bpmChanges;
+    std::span<std::pair<charts::gameplay_models::BmsNotesData::Time, double>>
+      currentBpmChanges;
     BmsRules rules;
     BmsScore* score;
+
+  public:
+    using Position = double;
+
+  private:
+    /**
+     * @brief Get the position in the chart, expressed in beats
+     * @warning This function mutates the internal state of the referee. It is
+     * not const for a reason!
+     * @param offsetFromStart The current time offset from the start of the
+     * chart
+     * @return The position in the chart, expressed in beats
+     */
+    auto getPosition(std::chrono::nanoseconds offsetFromStart) -> Position;
 
   public:
     explicit BmsGameReferee(
@@ -40,7 +58,13 @@ class BmsGameReferee
       BmsScore* score,
       std::unordered_map<std::string, sounds::OpenALSound>& sounds,
       gameplay_logic::BmsRules rules);
-    void update(std::chrono::nanoseconds offsetFromStart);
+    /**
+     * @brief Update the internal state of the referee
+     * @param offsetFromStart The current time offset from the start of the
+     * chart
+     * @return The position in the chart, expressed in beats
+     */
+    auto update(std::chrono::nanoseconds offsetFromStart) -> Position;
 
     auto passInput(std::chrono::nanoseconds offsetFromStart, input::BmsKey key)
       -> std::optional<int>;

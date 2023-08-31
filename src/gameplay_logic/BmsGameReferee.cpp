@@ -12,51 +12,44 @@ gameplay_logic::BmsGameReferee::BmsGameReferee(
   gameplay_logic::BmsRules rules)
   : rules(rules)
   , score(score)
+  , bpmChanges(notesData.bpmChanges)
 {
     for (int i = 0; i < charts::gameplay_models::BmsNotesData::columnNumber;
          i++) {
-        std::transform(
-          notesData.visibleNotes[i].begin(),
-          notesData.visibleNotes[i].end(),
-          std::back_inserter(visibleNotes[i]),
-          [&sounds](auto& note) {
-              auto soundId = note.sound;
-              if (auto sound = sounds.find(soundId); sound != sounds.end()) {
-                  return BmsRules::NoteType{ &sound->second,
-                                             note.time.timestamp };
-              }
-              return BmsRules::NoteType{ nullptr, note.time.timestamp };
-          });
+        for (const auto& note : notesData.visibleNotes[i]) {
+            auto soundId = note.sound;
+            if (auto sound = sounds.find(soundId); sound != sounds.end()) {
+                visibleNotes[i].emplace_back(&sound->second,
+                                             note.time.timestamp);
+            } else {
+                // we still want to be able to hit those notes, even if they
+                // don't make a sound
+                visibleNotes[i].emplace_back(nullptr, note.time.timestamp);
+            }
+        }
         currentVisibleNotes[i] = visibleNotes[i];
-        std::transform(
-          notesData.invisibleNotes[i].begin(),
-          notesData.invisibleNotes[i].end(),
-          std::back_inserter(invisibleNotes[i]),
-          [&sounds](auto& note) {
-              auto soundId = note.sound;
-              if (auto sound = sounds.find(soundId); sound != sounds.end()) {
-                  return BmsRules::NoteType{ &sound->second,
-                                             note.time.timestamp };
-              }
-              return BmsRules::NoteType{ nullptr, note.time.timestamp };
-          });
+        for (const auto& note : notesData.invisibleNotes[i]) {
+            auto soundId = note.sound;
+            if (auto sound = sounds.find(soundId); sound != sounds.end()) {
+                invisibleNotes[i].emplace_back(&sound->second,
+                                               note.time.timestamp);
+            }
+        }
+
         currentInvisibleNotes[i] = invisibleNotes[i];
     }
-    std::transform(
-      notesData.bgmNotes.begin(),
-      notesData.bgmNotes.end(),
-      std::back_inserter(bgms),
-      [&sounds](auto& note) {
-          auto soundId = note.second;
-          if (auto sound = sounds.find(soundId); sound != sounds.end()) {
-              return BgmType{ note.first.timestamp, &sound->second };
-          }
-          return BgmType{ note.first.timestamp, nullptr };
-      });
+    for (const auto& bgmNote : notesData.bgmNotes) {
+        auto soundId = bgmNote.second;
+        if (auto sound = sounds.find(soundId); sound != sounds.end()) {
+            bgms.emplace_back(bgmNote.first.timestamp, &sound->second);
+        }
+    }
     currentBgms = bgms;
+    currentBpmChanges = bpmChanges;
 }
-void
+auto
 gameplay_logic::BmsGameReferee::update(std::chrono::nanoseconds offsetFromStart)
+  -> Position
 {
     for (auto columnIndex = 0; columnIndex < currentVisibleNotes.size();
          columnIndex++) {
@@ -81,6 +74,7 @@ gameplay_logic::BmsGameReferee::update(std::chrono::nanoseconds offsetFromStart)
         }
         currentBgms = currentBgms.subspan(played);
     }
+    return getPosition(offsetFromStart);
 }
 auto
 gameplay_logic::BmsGameReferee::passInput(
@@ -114,4 +108,27 @@ gameplay_logic::BmsGameReferee::isOver() const -> bool
     }
     return !std::ranges::any_of(
       currentVisibleNotes, [](const auto& column) { return !column.empty(); });
+}
+auto
+gameplay_logic::BmsGameReferee::getPosition(
+  std::chrono::nanoseconds offsetFromStart) -> Position
+{
+    // find the last bpm change that happened before the current time
+    auto bpmChange = std::ranges::find_if(
+      currentBpmChanges, [offsetFromStart](const auto& bpmChange) {
+          return bpmChange.first.timestamp >= offsetFromStart;
+      });
+    bpmChange--;
+    auto bpm = bpmChange->second;
+    auto bpmChangeTime = bpmChange->first.timestamp;
+    auto bpmChangePosition = bpmChange->first.position;
+    auto bpmChangeOffset = offsetFromStart - bpmChangeTime;
+    auto bpmChangeOffsetSeconds =
+      std::chrono::duration_cast<std::chrono::duration<double>>(
+        bpmChangeOffset);
+    auto bpmChangeOffsetBeats = bpmChangeOffsetSeconds.count() * bpm / 60.0;
+    // update the current bpm changes
+    currentBpmChanges =
+      currentBpmChanges.subspan(bpmChange - currentBpmChanges.begin());
+    return bpmChangePosition + bpmChangeOffsetBeats;
 }

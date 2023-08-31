@@ -3,8 +3,8 @@ import QtQuick 2.0
 Item {
     id: column
 
+    property int heightMultiplier: 20
     property var notes: []
-    readonly property int heightMultiplier: 20
 
     width: 100
 
@@ -31,10 +31,10 @@ Item {
         Rectangle {
             id: note
 
+            border.width: 1
             color: "red"
             height: 20
             width: 100
-            border.width: 1
         }
     }
 }

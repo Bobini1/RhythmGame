@@ -29,9 +29,9 @@ class ChartDataFactory
     static auto makeNotes(
       charts::gameplay_models::BmsNotesData& calculatedNotesData)
       -> gameplay_logic::BmsNotes*;
-    static auto convertToQList(
+    static auto convertToQVector(
       const std::vector<charts::gameplay_models::BmsNotesData::Note>& column)
-      -> QList<gameplay_logic::Note>;
+      -> QVector<gameplay_logic::Note>;
 
   public:
     struct ChartComponents

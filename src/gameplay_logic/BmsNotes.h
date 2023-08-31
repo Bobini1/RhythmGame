@@ -61,31 +61,33 @@ class Note
 class BmsNotes : public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(QList<QList<Note>> visibleNotes READ getVisibleNotes CONSTANT)
     Q_PROPERTY(
-      QList<QList<Note>> invisibleNotes READ getInvisibleNotes CONSTANT)
-    Q_PROPERTY(QList<BpmChange> bpmChanges READ getBpmChanges CONSTANT)
-    Q_PROPERTY(QList<Time> barLines READ getBarLines CONSTANT)
+      QVector<QVector<Note>> visibleNotes READ getVisibleNotes CONSTANT)
+    Q_PROPERTY(
+      QVector<QVector<Note>> invisibleNotes READ getInvisibleNotes CONSTANT)
+    Q_PROPERTY(QVector<BpmChange> bpmChanges READ getBpmChanges CONSTANT)
+    Q_PROPERTY(QVector<Time> barLines READ getBarLines CONSTANT)
 
-    QList<QList<Note>> visibleNotes;
-    QList<QList<Note>> invisibleNotes;
-    QList<BpmChange> bpmChanges;
-    QList<Time> barLines;
+    QVector<QVector<Note>> visibleNotes;
+    QVector<QVector<Note>> invisibleNotes;
+    QVector<BpmChange> bpmChanges;
+    QVector<Time> barLines;
 
   public:
-    explicit BmsNotes(QList<QList<Note>> visibleNotes,
-                      QList<QList<Note>> invisibleNotes,
-                      QList<BpmChange> bpmChanges,
-                      QList<Time> barLines,
+    explicit BmsNotes(QVector<QVector<Note>> visibleNotes,
+                      QVector<QVector<Note>> invisibleNotes,
+                      QVector<BpmChange> bpmChanges,
+                      QVector<Time> barLines,
                       QObject* parent = nullptr);
 
-    [[nodiscard]] auto getVisibleNotes() const -> const QList<QList<Note>>&;
+    [[nodiscard]] auto getVisibleNotes() const -> const QVector<QVector<Note>>&;
 
-    [[nodiscard]] auto getInvisibleNotes() const -> const QList<QList<Note>>&;
+    [[nodiscard]] auto getInvisibleNotes() const
+      -> const QVector<QVector<Note>>&;
 
-    [[nodiscard]] auto getBarLines() const -> const QList<Time>&;
+    [[nodiscard]] auto getBarLines() const -> const QVector<Time>&;
 
-    [[nodiscard]] auto getBpmChanges() const -> const QList<BpmChange>&;
+    [[nodiscard]] auto getBpmChanges() const -> const QVector<BpmChange>&;
 };
 } // namespace gameplay_logic
 

@@ -15,28 +15,9 @@ class ChartFactory
     ChartDataFactory* chartDataFactory;
 
   public:
-    explicit ChartFactory(ChartDataFactory* chartDataFactory)
-      : chartDataFactory(chartDataFactory)
-    {
-    }
+    explicit ChartFactory(ChartDataFactory* chartDataFactory);
 
-    auto createChart(const QString& filename) -> gameplay_logic::Chart*
-    {
-        auto [chartData, notesData, wavs] =
-          chartDataFactory->loadChartData(filename);
-        auto path = chartData->getDirectory().toString().toStdString();
-        auto sounds =
-          charts::helper_functions::loadBmsSounds(wavs, std::move(path));
-        auto referee =
-          gameplay_logic::BmsGameReferee(notesData,
-                                         chartData->createEmptyScore(),
-                                         sounds,
-                                         gameplay_logic::BmsRules{});
-        return new gameplay_logic::Chart(std::move(referee),
-                                         chartData,
-                                         chartData->createEmptyScore(),
-                                         std::move(sounds));
-    }
+    auto createChart(const QString& filename) -> gameplay_logic::Chart*;
 };
 
 } // namespace resource_managers

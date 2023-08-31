@@ -37,15 +37,15 @@ ChartDataFactory::makeNotes(
   charts::gameplay_models::BmsNotesData& calculatedNotesData)
   -> gameplay_logic::BmsNotes*
 {
-    auto visibleNotes = QList<QList<gameplay_logic::Note>>{};
+    auto visibleNotes = QVector<QVector<gameplay_logic::Note>>{};
     for (const auto& column : calculatedNotesData.visibleNotes) {
-        visibleNotes.append(convertToQList(column));
+        visibleNotes.append(convertToQVector(column));
     }
-    auto invisibleNotes = QList<QList<gameplay_logic::Note>>{};
+    auto invisibleNotes = QVector<QVector<gameplay_logic::Note>>{};
     for (const auto& column : calculatedNotesData.invisibleNotes) {
-        invisibleNotes.append(convertToQList(column));
+        invisibleNotes.append(convertToQVector(column));
     }
-    auto bpmChanges = QList<gameplay_logic::BpmChange>{};
+    auto bpmChanges = QVector<gameplay_logic::BpmChange>{};
     for (const auto& bpmChange : calculatedNotesData.bpmChanges) {
         bpmChanges.append(
           { { std::chrono::duration_cast<std::chrono::milliseconds>(
@@ -54,7 +54,7 @@ ChartDataFactory::makeNotes(
               bpmChange.first.position },
             bpmChange.second });
     }
-    auto barLines = QList<gameplay_logic::Time>{};
+    auto barLines = QVector<gameplay_logic::Time>{};
     for (const auto& barLine : calculatedNotesData.barLines) {
         barLines.append({ std::chrono::duration_cast<std::chrono::milliseconds>(
                             barLine.timestamp)
@@ -68,11 +68,11 @@ ChartDataFactory::makeNotes(
     return notes;
 }
 auto
-ChartDataFactory::convertToQList(
+ChartDataFactory::convertToQVector(
   const std::vector<charts::gameplay_models::BmsNotesData::Note>& column)
-  -> QList<gameplay_logic::Note>
+  -> QVector<gameplay_logic::Note>
 {
-    auto columnNotes = QList<gameplay_logic::Note>{};
+    auto columnNotes = QVector<gameplay_logic::Note>{};
     columnNotes.reserve(column.size());
     for (const auto& note : column) {
         columnNotes.append(gameplay_logic::Note{
