@@ -6,6 +6,8 @@ Item {
     property var barLines: []
     property int heightMultiplier: 20
 
+    anchors.bottom: parent.bottom
+
     // position barLines according to their timestamp
     Component.onCompleted: {
         if (barLines.length === 0) {

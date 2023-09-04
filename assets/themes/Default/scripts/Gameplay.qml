@@ -9,55 +9,31 @@ Rectangle {
     property double notePosition: 0
 
     anchors.fill: parent
+    border.color: "black"
+    border.width: 10
 
     Component.onCompleted: {
         chart.start();
     }
 
-    Text {
-        anchors.centerIn: parent
-        text: chart.elapsed
+    // FpsCounter {
+    //     anchors.right: parent.right
+    //     anchors.top: parent.top
+    // }
+    Playfield {
+        anchors.left: parent.left
+        border.color: "black"
+        border.width: 10
+        columns: [7, 0, 1, 2, 3, 4, 5, 6]
+        width: 400
+        y: chart.position * root.greenNumber
     }
-    FpsCounter {
-        anchors.right: parent.right
-        anchors.top: parent.top
-    }
-    Item {
-        id: playfield
-
-        anchors.bottom: parent.bottom
-        height: children.height
-
-        BarLinePositioner {
-            barLines: chart.chartData.noteData.barLines
-            heightMultiplier: root.greenNumber
-            width: notesRow.width
-            // start from bottom
-            y: chart.position * root.greenNumber - playfield.height
-        }
-        Row {
-            id: notesRow
-
-            anchors.bottom: parent.bottom
-            spacing: 10
-
-            Repeater {
-                model: chart.chartData.noteData.visibleNotes
-                width: 100
-
-                NoteColumn {
-                    heightMultiplier: root.greenNumber
-                    notes: modelData
-                    y: chart.position * root.greenNumber - playfield.height
-                }
-            }
-        }
-    }
-    Connections {
-        function onBpmChanged(bpmChange) {
-            root.bpm = bpmChange.bpm;
-        }
-
-        target: chart
-    }
+    // Playfield {
+    //     anchors.right: parent.right
+    //     border.color: "black"
+    //     border.width: 10
+    //     columns: [8, 9, 10, 11, 12, 13, 14, 15]
+    //     width: 400
+    //     y: chart.position * root.greenNumber
+    // }
 }

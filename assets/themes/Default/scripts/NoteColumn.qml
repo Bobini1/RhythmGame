@@ -1,4 +1,5 @@
 import QtQuick 2.0
+import QtQuick.Layouts
 
 Item {
     id: column
@@ -6,7 +7,8 @@ Item {
     property int heightMultiplier: 20
     property var notes: []
 
-    width: 100
+    Layout.alignment: Qt.AlignBottom
+    Layout.bottomMargin: 8
 
     // position notes according to their timestamp
     Component.onCompleted: {
@@ -34,7 +36,7 @@ Item {
             border.width: 1
             color: "red"
             height: 20
-            width: 100
+            width: parent.width
         }
     }
 }

@@ -43,13 +43,9 @@ gameplay_logic::BmsRules::getMisses(std::span<NoteType> notes,
             count++;
             continue;
         }
-        // todo: +135
-        if (offsetFromStart > noteTime) {
+        if (offsetFromStart > noteTime + 135ms) {
             misses.push_back(noteTime);
             count++;
-            if (sound != nullptr) {
-                sound->play();
-            }
         } else {
             break;
         }
