@@ -21,6 +21,7 @@ IniImageProvider::requestPixmap(const QString& id,
     QString pathToIni = path;
     pathToIni.append(".ini");
     auto settings = QSettings(pathToIni, QSettings::IniFormat);
+    qWarning() << settings.allKeys();
     // get the key identified by the last part of the url
     QString key = id;
     key.remove(0, key.lastIndexOf('/') + 1);
@@ -29,6 +30,8 @@ IniImageProvider::requestPixmap(const QString& id,
     if (size) {
         *size = rect.size();
     }
+    // crop the image
+    pixmap = pixmap.copy(rect);
     // resize if requested
     if (requestedSize.isValid()) {
         pixmap = pixmap.scaled(requestedSize);

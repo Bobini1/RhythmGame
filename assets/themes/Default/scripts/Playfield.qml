@@ -32,7 +32,19 @@ Rectangle {
                 })
 
             NoteColumn {
+                id: noteColumn
+
                 heightMultiplier: root.greenNumber
+                image: {
+                    let column = playfield.columns[index];
+                    if (column === 7 || column === 15)
+                        return root.imagesUrl + "default.png/note_red";
+                    else if (column % 2 === 0)
+                        return root.imagesUrl + "default.png/note_white";
+                    else
+                        return root.imagesUrl + "default.png/note_black";
+                }
+                noteHeight: 20
                 notes: modelData
                 width: notesRow.columnWidth
             }

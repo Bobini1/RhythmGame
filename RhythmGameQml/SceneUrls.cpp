@@ -17,12 +17,12 @@ qml_components::SceneUrls::create(QQmlEngine* /*engine*/, QJSEngine* engine)
     Q_ASSERT(instance);
     // The engine has to have the same thread affinity as the singleton.
     Q_ASSERT(engine->thread() == instance->thread());
-    QJSEngine::setObjectOwnership(instance, QJSEngine::CppOwnership);
     return instance;
 }
 void
 qml_components::SceneUrls::setInstance(qml_components::SceneUrls* newInstance)
 {
+    QJSEngine::setObjectOwnership(newInstance, QQmlEngine::CppOwnership);
     SceneUrls::instance = newInstance;
 }
 auto

@@ -20,6 +20,7 @@ ChartLoader::ChartLoader(resource_managers::ChartFactory* chartFactory,
 void
 ChartLoader::setInstance(ChartLoader* newInstance)
 {
+    QJSEngine::setObjectOwnership(newInstance, QQmlEngine::CppOwnership);
     instance = newInstance;
 }
 auto

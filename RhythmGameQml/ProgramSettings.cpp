@@ -15,6 +15,7 @@ ProgramSettings::getChartPath() const -> QUrl
 void
 ProgramSettings::setInstance(ProgramSettings* newInstance)
 {
+    QJSEngine::setObjectOwnership(newInstance, QQmlEngine::CppOwnership);
     instance = newInstance;
 }
 auto

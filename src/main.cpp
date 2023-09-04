@@ -57,7 +57,8 @@ main(int argc, char* argv[]) -> int
             }
         };
 
-        auto sceneUrls = qml_components::SceneUrls{ themeConfigLoader };
+        auto sceneUrls =
+          qml_components::SceneUrls{ std::move(themeConfigLoader) };
         qml_components::SceneUrls::setInstance(&sceneUrls);
 
         auto chartPath = QUrl{};

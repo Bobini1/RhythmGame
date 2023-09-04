@@ -5,6 +5,8 @@ Item {
     id: column
 
     property int heightMultiplier: 20
+    property string image: ""
+    property double noteHeight: 20
     property var notes: []
 
     Layout.alignment: Qt.AlignBottom
@@ -30,12 +32,11 @@ Item {
 
         model: column.notes
 
-        Rectangle {
+        Image {
             id: note
 
-            border.width: 1
-            color: "red"
-            height: 20
+            height: column.noteHeight
+            source: column.image
             width: parent.width
         }
     }
