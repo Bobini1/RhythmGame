@@ -5,24 +5,24 @@ Item {
     id: column
 
     property int heightMultiplier: 20
-    property string image: ""
-    property double noteHeight: 20
+    property string image
+    property int noteHeight: 36
     property var notes: []
 
     Layout.alignment: Qt.AlignBottom
-    Layout.bottomMargin: 8
+    Layout.bottomMargin: 16
 
     // position notes according to their timestamp
     Component.onCompleted: {
         if (notes.length === 0) {
             return;
         }
-        column.height = notes[notes.length - 1].time.position + heightMultiplier;
+        column.height = notes[notes.length - 1].time.position * heightMultiplier;
         for (let i = 0; i < noteRepeater.count; i++) {
             let note = noteRepeater.itemAt(i);
             let notePosition = notes[i].time.position * heightMultiplier;
             // we need to start from the bottom
-            note.y = column.height - notePosition;
+            note.y = Math.floor(column.height - notePosition);
         }
     }
 
@@ -36,6 +36,7 @@ Item {
             id: note
 
             height: column.noteHeight
+            smooth: false
             source: column.image
             width: parent.width
         }

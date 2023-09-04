@@ -7,10 +7,10 @@
 
 namespace resource_managers {
 
-QPixmap
+auto
 IniImageProvider::requestPixmap(const QString& id,
                                 QSize* size,
-                                const QSize& requestedSize)
+                                const QSize& requestedSize) -> QPixmap
 {
     // remove the last part of the url
     QString path = id;
@@ -37,7 +37,9 @@ IniImageProvider::requestPixmap(const QString& id,
     }();
     // resize if requested
     if (requestedSize.isValid()) {
-        pixmap = pixmap.scaled(requestedSize);
+        // do not interpolate
+        pixmap = pixmap.scaled(
+          requestedSize, Qt::KeepAspectRatio, Qt::FastTransformation);
     }
     return pixmap;
 }

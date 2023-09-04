@@ -28,7 +28,6 @@ Rectangle {
         border.color: "black"
         border.width: 10
         columns: [7, 0, 1, 2, 3, 4, 5, 6]
-        width: 400
         y: chart.position * root.greenNumber
     }
     // Playfield {
