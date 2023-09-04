@@ -7,7 +7,7 @@ Rectangle {
 
     property double bpm
     property double greenNumber: 400
-    property url imagesUrl: rootUrl + "Images/"
+    property url imagesUrl: rootUrl + "../Images/"
     property double notePosition: 0
     property url rootUrl: Qt.resolvedUrl(".").toString().replace("file://", "image://ini/")
 
