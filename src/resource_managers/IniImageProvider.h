@@ -10,6 +10,8 @@ namespace resource_managers {
 
 class IniImageProvider : public QQuickImageProvider
 {
+    QHash<QString, QPixmap> pixmaps;
+
   public:
     IniImageProvider();
     auto requestPixmap(const QString& id,

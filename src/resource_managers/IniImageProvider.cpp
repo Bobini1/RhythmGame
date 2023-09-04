@@ -15,13 +15,10 @@ IniImageProvider::requestPixmap(const QString& id,
     // remove the last part of the url
     QString path = id;
     path.remove(path.lastIndexOf('/'), path.length());
-    // load the image
-    auto pixmap = QPixmap(path);
     // load the ini file
     QString pathToIni = path;
     pathToIni.append(".ini");
     auto settings = QSettings(pathToIni, QSettings::IniFormat);
-    qWarning() << settings.allKeys();
     // get the key identified by the last part of the url
     QString key = id;
     key.remove(0, key.lastIndexOf('/') + 1);
@@ -30,8 +27,14 @@ IniImageProvider::requestPixmap(const QString& id,
     if (size) {
         *size = rect.size();
     }
-    // crop the image
-    pixmap = pixmap.copy(rect);
+    auto pixmap = [this, rect, &path] {
+        auto cachedPixmap = pixmaps.find(path);
+        if (cachedPixmap == pixmaps.end()) {
+            auto pixmap = pixmaps.emplace(path, QPixmap(path));
+            return pixmap->copy(rect);
+        }
+        return cachedPixmap->copy(rect);
+    }();
     // resize if requested
     if (requestedSize.isValid()) {
         pixmap = pixmap.scaled(requestedSize);
