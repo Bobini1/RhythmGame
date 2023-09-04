@@ -33,6 +33,8 @@ main(int argc, char* argv[]) -> int
         const auto app = QGuiApplication(argc, argv);
 
         auto engine = QQmlApplicationEngine{};
+        engine.addImageProvider("ini",
+                                new resource_managers::IniImageProvider{});
 
         auto themeConfigLoader = [assetsFolder] {
             try {
@@ -74,9 +76,6 @@ main(int argc, char* argv[]) -> int
           resource_managers::ChartFactory{ &chartDataFactory };
         auto chartLoader = qml_components::ChartLoader{ &chartFactory };
         qml_components::ChartLoader::setInstance(&chartLoader);
-
-        auto iniImageProvider = resource_managers::IniImageProvider{};
-        engine.addImageProvider("ini", &iniImageProvider);
 
         auto view = QQuickView(&engine, nullptr);
         view.setSource(QUrl("qrc:///qt/qml/RhythmGameQml/ContentFrame.qml"));
