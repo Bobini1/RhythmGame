@@ -75,7 +75,9 @@ qt_add_library(RhythmGame_lib OBJECT src/db/SqliteCppDb.cpp src/db/SqliteCppDb.h
         src/gameplay_logic/BmsNotes.cpp
         src/gameplay_logic/BmsNotes.h
         src/resource_managers/ChartFactory.cpp
-        src/resource_managers/ChartFactory.h)
+        src/resource_managers/ChartFactory.h
+        src/resource_managers/IniImageProvider.cpp
+        src/resource_managers/IniImageProvider.h)
 
 find_package(Threads REQUIRED)
 
