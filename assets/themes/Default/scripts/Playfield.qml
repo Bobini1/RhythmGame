@@ -5,8 +5,12 @@ import QtQuick.Layouts
 Rectangle {
     id: playfield
 
-    property list<int> columns: []
-    readonly property int totalWidthAbs: 3 * 48 + 4 * 60 + 108 + notesRow.spacing * 6
+    property list<int> columns
+    property int spacing
+
+    function removeNote(column: int, index: int) {
+        notesRow.children[column].removeNoteAt(index);
+    }
 
     color: "black"
     width: totalWidthAbs
@@ -20,13 +24,9 @@ Rectangle {
     RowLayout {
         id: notesRow
 
-        property double blackWidth: 48.0 / playfield.totalWidthAbs * parent.width
-        property double redWidth: 108.0 / playfield.totalWidthAbs * parent.width
-        property double whiteWidth: 60.0 / playfield.totalWidthAbs * parent.width
-
         anchors.bottom: parent.bottom
         height: children.height
-        spacing: 2
+        spacing: playfield.spacing
         width: parent.width
 
         Repeater {
@@ -39,31 +39,10 @@ Rectangle {
                 id: noteColumn
 
                 heightMultiplier: root.greenNumber
-                image: {
-                    let column = playfield.columns[index];
-                    if (column === 7 || column === 15)
-                        return root.imagesUrl + "default.png/note_red";
-                    else if (column % 2 === 0)
-                        return root.imagesUrl + "default.png/note_white";
-                    else
-                        return root.imagesUrl + "default.png/note_black";
-                }
+                image: root.noteImages[playfield.columns[index]]
                 noteHeight: 36
                 notes: modelData
-                width: {
-                    let column = playfield.columns[index];
-                    if (column === 7 || column === 15)
-                        return notesRow.redWidth;
-                    else if (column % 2 === 0)
-                        return notesRow.whiteWidth;
-                    else
-                        return notesRow.blackWidth;
-                }
-
-                Component.onCompleted:
-                //console.log(note);
-                {
-                }
+                width: root.columnSizes[playfield.columns[index]]
             }
         }
     }

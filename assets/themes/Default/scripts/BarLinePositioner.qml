@@ -32,7 +32,7 @@ Item {
             id: note
 
             border.width: 1
-            color: "black"
+            color: "darkslategray"
             height: 5
             width: column.width
         }

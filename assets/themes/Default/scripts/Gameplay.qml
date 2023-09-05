@@ -1,19 +1,57 @@
 import QtQuick
 import QtQuick.Window
 import QtQml
+import QtQuick.Layouts
 
 Rectangle {
     id: root
 
     property double bpm
+    property list<int> columnSizes: {
+        let sizes = [];
+        for (let i = 0; i < 16; i++) {
+            if (i == 7 || i == 15) {
+                sizes.push(108);
+            } else if (i % 2 == 0)
+                sizes.push(60);
+            else {
+                sizes.push(48);
+            }
+        }
+        return sizes;
+    }
     property double greenNumber: 400
     property url imagesUrl: rootUrl + "../Images/"
-    property double notePosition: 0
+    property list<string> laserImages: {
+        let images = [];
+        for (let i = 0; i < 16; i++) {
+            if (i === 7 || i === 15)
+                images.push(imagesUrl + "laser.png/laser_s");
+            else if (i % 2 === 0)
+                images.push(imagesUrl + "laser.png/laser_w");
+            else
+                images.push(imagesUrl + "laser.png/laser_b");
+        }
+        return images;
+    }
+    property list<string> noteImages: {
+        let images = [];
+        for (let i = 0; i < 16; i++) {
+            if (i === 7 || i === 15)
+                images.push(imagesUrl + "default.png/note_red");
+            else if (i % 2 === 0)
+                images.push(imagesUrl + "default.png/note_white");
+            else
+                images.push(imagesUrl + "default.png/note_black");
+        }
+        return images;
+    }
     property url rootUrl: Qt.resolvedUrl(".").toString().replace("file://", "image://ini/")
 
     anchors.fill: parent
-    border.color: "black"
+    border.color: "darkslategray"
     border.width: 10
+    color: "black"
 
     Component.onCompleted: {
         chart.start();
@@ -23,19 +61,8 @@ Rectangle {
     //     anchors.right: parent.right
     //     anchors.top: parent.top
     // }
-    Playfield {
+    PlayArea {
         anchors.left: parent.left
-        border.color: "black"
-        border.width: 10
         columns: [7, 0, 1, 2, 3, 4, 5, 6]
-        y: chart.position * root.greenNumber
     }
-    // Playfield {
-    //     anchors.right: parent.right
-    //     border.color: "black"
-    //     border.width: 10
-    //     columns: [8, 9, 10, 11, 12, 13, 14, 15]
-    //     width: 400
-    //     y: chart.position * root.greenNumber
-    // }
 }

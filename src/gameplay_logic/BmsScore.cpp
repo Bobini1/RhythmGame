@@ -20,6 +20,7 @@ BmsScore::addTap(Tap tap) -> void
         hitsWithoutPoints.push_back(tap);
         emit hitsWithoutPointsChanged();
     }
+    emit hit(tap);
 }
 auto
 BmsScore::addMiss(Miss miss) -> void

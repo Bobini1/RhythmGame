@@ -9,6 +9,10 @@ Item {
     property int noteHeight: 36
     property var notes: []
 
+    function removeNote(index: int) {
+        noteRepeater.itemAt(index).destroy();
+    }
+
     Layout.alignment: Qt.AlignBottom
     Layout.bottomMargin: 16
 
@@ -36,7 +40,6 @@ Item {
             id: note
 
             height: column.noteHeight
-            smooth: false
             source: column.image
             width: parent.width
         }
