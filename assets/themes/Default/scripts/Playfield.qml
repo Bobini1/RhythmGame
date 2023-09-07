@@ -6,10 +6,18 @@ Rectangle {
     id: playfield
 
     property list<int> columns
+    property list<int> columnsReversedMapping: {
+        var mapping = [];
+        for (var i = 0; i < columns.length; i++) {
+            mapping[columns[i]] = i;
+        }
+        return mapping;
+    }
     property int spacing
 
-    function removeNote(column: int, index: int) {
-        notesRow.children[column].removeNoteAt(index);
+    function removeNote(column: int, noteIndex: int) {
+        let col = noteColumnRepeater.itemAt(playfield.columnsReversedMapping[column]);
+        col.removeNote(noteIndex);
     }
 
     color: "black"
@@ -30,6 +38,8 @@ Rectangle {
         width: parent.width
 
         Repeater {
+            id: noteColumnRepeater
+
             // take only the columns specified in the columns property
             model: playfield.columns.map(function (column) {
                     return chart.chartData.noteData.visibleNotes[column];

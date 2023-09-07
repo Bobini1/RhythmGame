@@ -26,10 +26,6 @@ main(int argc, char* argv[]) -> int
         QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
 #endif
 
-        auto format = QSurfaceFormat::defaultFormat();
-        format.setSwapInterval(0);
-        QSurfaceFormat::setDefaultFormat(format);
-
         const auto app = QGuiApplication(argc, argv);
 
         auto engine = QQmlApplicationEngine{};

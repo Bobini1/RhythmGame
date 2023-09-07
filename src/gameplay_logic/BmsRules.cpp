@@ -33,10 +33,13 @@ gameplay_logic::BmsRules::visibleNoteHit(std::span<NoteType>& notes,
 auto
 gameplay_logic::BmsRules::getMisses(std::span<NoteType> notes,
                                     std::chrono::nanoseconds offsetFromStart)
-  -> std::pair<std::vector<std::chrono::nanoseconds>, int>
+  -> std::pair<std::vector<std::pair<std::chrono::nanoseconds,
+                                     std::span<NoteType>::iterator>>,
+               int>
 {
     using namespace std::chrono_literals;
-    auto misses = std::vector<std::chrono::nanoseconds>{};
+    auto misses = std::vector<
+      std::pair<std::chrono::nanoseconds, std::span<NoteType>::iterator>>{};
     auto count = 0;
     for (auto& [sound, noteTime, hit] : notes) {
         if (hit) {
@@ -44,7 +47,7 @@ gameplay_logic::BmsRules::getMisses(std::span<NoteType> notes,
             continue;
         }
         if (offsetFromStart > noteTime + 135ms) {
-            misses.push_back(noteTime);
+            misses.emplace_back(noteTime, notes.begin() + count);
             count++;
         } else {
             break;

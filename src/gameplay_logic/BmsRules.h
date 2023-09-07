@@ -29,7 +29,9 @@ class BmsRules
 
     auto getMisses(std::span<NoteType> notes,
                    std::chrono::nanoseconds offsetFromStart)
-      -> std::pair<std::vector<std::chrono::nanoseconds>, int>;
+      -> std::pair<std::vector<std::pair<std::chrono::nanoseconds,
+                                         std::span<NoteType>::iterator>>,
+                   int>;
 
     auto invisibleNoteHit(std::span<NoteType>& notes,
                           std::chrono::nanoseconds hitOffset) -> bool;

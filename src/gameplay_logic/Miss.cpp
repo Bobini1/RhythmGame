@@ -5,9 +5,10 @@
 #include "Miss.h"
 
 namespace gameplay_logic {
-Miss::Miss(DeltaTime offsetFromStart, int column)
+Miss::Miss(DeltaTime offsetFromStart, int column, int noteIndex)
   : offsetFromStart(offsetFromStart)
   , column(column)
+  , noteIndex(noteIndex)
 {
 }
 auto
@@ -20,4 +21,9 @@ Miss::getColumn() const -> int
 {
     return column;
 }
-} // gameplay_logic
+auto
+Miss::getNoteIndex() const -> int
+{
+    return noteIndex;
+}
+} // namespace gameplay_logic

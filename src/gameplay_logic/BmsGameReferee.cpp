@@ -10,9 +10,9 @@ gameplay_logic::BmsGameReferee::BmsGameReferee(
   BmsScore* score,
   std::unordered_map<std::string, sounds::OpenALSound>& sounds,
   gameplay_logic::BmsRules rules)
-  : rules(rules)
+  : bpmChanges(notesData.bpmChanges)
+  , rules(rules)
   , score(score)
-  , bpmChanges(notesData.bpmChanges)
 {
     for (int i = 0; i < charts::gameplay_models::BmsNotesData::columnNumber;
          i++) {
@@ -54,10 +54,14 @@ gameplay_logic::BmsGameReferee::update(std::chrono::nanoseconds offsetFromStart)
          columnIndex++) {
         auto& column = currentVisibleNotes[columnIndex];
         auto [newMisses, skipCount] = rules.getMisses(column, offsetFromStart);
-        column = column.subspan(skipCount);
-        for (auto miss : newMisses) {
-            score->addMiss({ miss.count(), columnIndex });
+        for (auto [offset, iter] : newMisses) {
+            score->addMiss(
+              { offset.count(),
+                columnIndex,
+                static_cast<int>(iter.base() -
+                                 visibleNotes[columnIndex].begin().base()) });
         }
+        column = column.subspan(skipCount);
     }
     for (auto& column : currentInvisibleNotes) {
         auto skipped = rules.skipInvisible(column, offsetFromStart);
@@ -78,12 +82,12 @@ gameplay_logic::BmsGameReferee::update(std::chrono::nanoseconds offsetFromStart)
 auto
 gameplay_logic::BmsGameReferee::passInput(
   std::chrono::nanoseconds offsetFromStart,
-  input::BmsKey key) -> std::optional<int>
+  input::BmsKey key) -> void
 {
     auto columnIndex = static_cast<int>(key);
     if (columnIndex < 0 ||
         columnIndex >= charts::gameplay_models::BmsNotesData::columnNumber) {
-        return std::nullopt;
+        return;
     }
     auto& column = currentVisibleNotes[columnIndex];
     auto& invisibleColumn = currentInvisibleNotes[columnIndex];
@@ -94,12 +98,13 @@ gameplay_logic::BmsGameReferee::passInput(
         }
         score->addTap(
           { columnIndex, std::nullopt, offsetFromStart.count(), std::nullopt });
-        return std::nullopt;
+        return;
     }
     auto [points, iter] = *res;
-    score->addTap(
-      { columnIndex, iter - column.begin(), offsetFromStart.count(), points });
-    return iter - column.begin();
+    score->addTap({ columnIndex,
+                    iter.base() - visibleNotes[columnIndex].begin().base(),
+                    offsetFromStart.count(),
+                    points });
 }
 auto
 gameplay_logic::BmsGameReferee::isOver() const -> bool

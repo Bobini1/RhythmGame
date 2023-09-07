@@ -68,7 +68,7 @@ class BmsGameReferee
     auto update(std::chrono::nanoseconds offsetFromStart) -> Position;
 
     auto passInput(std::chrono::nanoseconds offsetFromStart, input::BmsKey key)
-      -> std::optional<int>;
+      -> void;
     auto isOver() const -> bool;
 };
 } // namespace gameplay_logic

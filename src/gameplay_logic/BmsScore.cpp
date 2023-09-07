@@ -29,6 +29,7 @@ BmsScore::addMiss(Miss miss) -> void
     judgementCounts[Judgement::MISS]++;
     emit missesChanged();
     emit judgementCountsChanged();
+    emit this->miss(miss);
 }
 BmsScore::BmsScore(int maxHits, QObject* parent)
   : QObject(parent)

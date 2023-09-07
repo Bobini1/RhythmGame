@@ -36,9 +36,10 @@ Chart::start()
 void
 Chart::updateElapsed()
 {
-    auto offset = std::chrono::duration_cast<std::chrono::milliseconds>(
-      std::chrono::steady_clock::now() - startTimepoint);
-    if (auto millis = offset.count(); millis != elapsed) {
+    auto offset = std::chrono::steady_clock::now() - startTimepoint;
+    if (auto millis =
+          std::chrono::duration_cast<std::chrono::milliseconds>(offset).count();
+        millis != elapsed) {
         auto delta = millis - elapsed;
         elapsed = millis;
         emit elapsedChanged(delta);

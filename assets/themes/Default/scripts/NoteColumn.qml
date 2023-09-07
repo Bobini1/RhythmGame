@@ -10,7 +10,7 @@ Item {
     property var notes: []
 
     function removeNote(index: int) {
-        noteRepeater.itemAt(index).destroy();
+        noteRepeater.itemAt(index).visible = false;
     }
 
     Layout.alignment: Qt.AlignBottom
