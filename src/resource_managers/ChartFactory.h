@@ -13,9 +13,12 @@ namespace resource_managers {
 class ChartFactory
 {
     ChartDataFactory* chartDataFactory;
+    std::chrono::nanoseconds timeBeforeChartStart;
 
   public:
-    explicit ChartFactory(ChartDataFactory* chartDataFactory);
+    explicit ChartFactory(ChartDataFactory* chartDataFactory,
+                          std::chrono::nanoseconds timeBeforeChartStart =
+                            std::chrono::seconds{ 1 });
 
     auto createChart(const QString& filename) -> gameplay_logic::Chart*;
 };

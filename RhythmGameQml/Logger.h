@@ -15,19 +15,19 @@ class Logger : public QObject
     QML_ELEMENT
     QML_SINGLETON
 
-    Q_PROPERTY(QVector<QString> history READ getHistory NOTIFY logged)
+    Q_PROPERTY(QStringListModel* history READ getHistory CONSTANT)
 
     static inline Logger* instance{};
-    QVector<QString> history;
+    QStringListModel* history{};
 
   public:
-    // Use nullptr as parent. Default ctor must not exist for Qt to preffer
+    // Use nullptr as parent. Default ctor must not exist for Qt to prefer
     // create().
     explicit Logger(QObject* parent);
     static void setInstance(Logger* instance);
     static auto create(QQmlEngine* engine, QJSEngine* scriptEngine) -> Logger*;
     Q_INVOKABLE void addLog(const QString& msg);
-    auto getHistory() const -> const QVector<QString>&;
+    auto getHistory() const -> QStringListModel*;
 
   signals:
     void logged(const QString& msg);

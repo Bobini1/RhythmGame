@@ -62,5 +62,10 @@ BmsScore::getJudgementCounts() const -> QVariantMap
     }
     return map;
 }
+auto
+BmsScore::sendVisualOnlyTap(Tap tap) -> void
+{
+    emit hit(tap);
+}
 
 } // namespace gameplay_logic

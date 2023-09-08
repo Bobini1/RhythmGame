@@ -25,6 +25,12 @@ struct BmsNotesData
         {
             return { timestamp + other.timestamp, position + other.position };
         }
+        auto operator-=(const Time& other) -> Time&
+        {
+            timestamp -= other.timestamp;
+            position -= other.position;
+            return *this;
+        }
 
         auto operator<=>(const Time& other) const = default;
     };

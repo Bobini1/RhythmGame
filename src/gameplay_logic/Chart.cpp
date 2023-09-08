@@ -7,25 +7,36 @@
 #include "Chart.h"
 
 namespace gameplay_logic {
-Chart::Chart(gameplay_logic::BmsGameReferee gameReferee,
+Chart::Chart(QFuture<gameplay_logic::BmsGameReferee> refereeFuture,
              ChartData* chartData,
-             BmsScore* score,
-             std::unordered_map<std::string, sounds::OpenALSound> sounds,
+             QSharedPointer<BmsScore> score,
+             charts::gameplay_models::BmsNotesData::Time timeBeforeChartStart,
              QObject* parent)
   : QObject(parent)
-  , gameReferee(std::move(gameReferee))
-  , sounds(std::move(sounds))
-  , chartData(chartData)
-  , score(score)
   , bpmChanges(chartData->getNoteData()->getBpmChanges())
+  , chartData(chartData)
+  , score(std::move(score))
+  , refereeFuture(std::move(refereeFuture))
+  , elapsed(-std::chrono::duration_cast<std::chrono::milliseconds>(
+               timeBeforeChartStart.timestamp)
+               .count())
+  , position(-timeBeforeChartStart.position)
 {
-    chartData->setParent(this);
-    score->setParent(this);
+    connect(&refereeFutureWatcher,
+            &QFutureWatcher<gameplay_logic::BmsGameReferee>::finished,
+            this,
+            &Chart::setReferee);
+    refereeFutureWatcher.setFuture(this->refereeFuture);
 }
 
 void
 Chart::start()
 {
+    if (!gameReferee) {
+        startRequested = true;
+        return;
+    }
+    emit started();
     propertyUpdateTimer.start(0);
     connect(
       &propertyUpdateTimer, &QTimer::timeout, this, &Chart::updateElapsed);
@@ -44,15 +55,14 @@ Chart::updateElapsed()
         elapsed = millis;
         emit elapsedChanged(delta);
     }
-    auto newPosition = gameReferee.update(offset);
+    auto newPosition = gameReferee->update(offset);
     if (newPosition != position) {
         auto delta = newPosition - position;
         position = newPosition;
         emit positionChanged(delta);
     }
-    if (gameReferee.isOver()) {
+    if (gameReferee->isOver()) {
         propertyUpdateTimer.stop();
-        over = true;
         emit overChanged();
     }
 }
@@ -69,15 +79,20 @@ Chart::passKey(int key)
     auto timestamp = std::chrono::steady_clock::now();
     if (auto bmsKey = inputTranslator.translate(static_cast<Qt::Key>(key));
         bmsKey.has_value()) {
-        gameReferee.passInput(timestamp - startTimepoint, *bmsKey);
+        if (!gameReferee) {
+            emit score->sendVisualOnlyTap(
+              { static_cast<int>(bmsKey.value()),
+                std::nullopt,
+                std::chrono::duration_cast<std::chrono::milliseconds>(
+                  timestamp - startTimepoint)
+                  .count(),
+                std::nullopt });
+        } else {
+            gameReferee->passInput(timestamp - startTimepoint, *bmsKey);
+        }
     }
 }
 
-auto
-Chart::isOver() const -> bool
-{
-    return over;
-}
 auto
 Chart::getChartData() const -> ChartData*
 {
@@ -86,7 +101,7 @@ Chart::getChartData() const -> ChartData*
 auto
 Chart::getScore() const -> BmsScore*
 {
-    return score;
+    return score.get();
 }
 void
 Chart::updateBpm()
@@ -107,5 +122,13 @@ auto
 Chart::getPosition() const -> double
 {
     return position;
+}
+void
+Chart::setReferee()
+{
+    gameReferee = refereeFuture.takeResult();
+    if (startRequested) {
+        start();
+    }
 }
 } // namespace gameplay_logic

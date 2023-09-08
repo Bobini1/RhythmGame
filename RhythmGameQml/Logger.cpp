@@ -9,6 +9,7 @@
 namespace qml_components {
 Logger::Logger(QObject* parent)
   : QObject(parent)
+  , history(new QStringListModel(this))
 {
 }
 void
@@ -20,11 +21,12 @@ Logger::setInstance(Logger* newInstance)
 void
 Logger::addLog(const QString& msg)
 {
-    history.append(msg);
+    history->insertRows(history->rowCount(), 1);
+    history->setData(history->index(history->rowCount() - 1), msg);
     emit logged(msg);
 }
 auto
-Logger::getHistory() const -> const QVector<QString>&
+Logger::getHistory() const -> QStringListModel*
 {
     return history;
 }

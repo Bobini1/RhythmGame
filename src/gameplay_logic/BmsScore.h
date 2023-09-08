@@ -40,6 +40,7 @@ class BmsScore : public QObject
 
   public:
     auto addTap(Tap tap) -> void;
+    auto sendVisualOnlyTap(Tap tap) -> void;
     auto addMiss(Miss miss) -> void;
 
     explicit BmsScore(int maxHits, QObject* parent = nullptr);

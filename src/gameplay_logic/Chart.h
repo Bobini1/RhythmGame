@@ -17,38 +17,38 @@ class Chart : public QObject
     Q_OBJECT
 
     Q_PROPERTY(int elapsed READ getElapsed NOTIFY elapsedChanged)
-    Q_PROPERTY(bool over READ isOver NOTIFY overChanged)
     Q_PROPERTY(ChartData* chartData READ getChartData CONSTANT)
     Q_PROPERTY(BmsScore* score READ getScore CONSTANT)
     Q_PROPERTY(double position READ getPosition NOTIFY positionChanged)
 
     QTimer propertyUpdateTimer;
     std::chrono::time_point<std::chrono::steady_clock> startTimepoint;
-    gameplay_logic::BmsGameReferee gameReferee;
+    std::optional<gameplay_logic::BmsGameReferee> gameReferee;
     input::KeyboardInputTranslatorToBms inputTranslator;
-    std::unordered_map<std::string, sounds::OpenALSound> sounds;
-    ChartData* chartData;
-    BmsScore* score;
-    int elapsed = 0;
-    double position = 0;
-    bool over = false;
     std::span<const BpmChange> bpmChanges;
+    ChartData* chartData;
+    QSharedPointer<BmsScore> score;
+    QFuture<gameplay_logic::BmsGameReferee> refereeFuture;
+    QFutureWatcher<gameplay_logic::BmsGameReferee> refereeFutureWatcher;
+    int elapsed;
+    double position;
+    bool startRequested = false;
 
     void updateElapsed();
     void updateBpm();
+    void setReferee();
 
   public:
-    explicit Chart(gameplay_logic::BmsGameReferee gameReferee,
-                   ChartData* chartData,
-                   BmsScore* score,
-                   std::unordered_map<std::string, sounds::OpenALSound> sounds,
-                   QObject* parent = nullptr);
+    explicit Chart(
+      QFuture<gameplay_logic::BmsGameReferee> refereeFuture,
+      ChartData* chartData,
+      QSharedPointer<BmsScore> score,
+      charts::gameplay_models::BmsNotesData::Time timeBeforeChartStart,
+      QObject* parent = nullptr);
 
     Q_INVOKABLE void start();
 
     Q_INVOKABLE void passKey(int key);
-
-    auto isOver() const -> bool;
 
     [[nodiscard]] auto getElapsed() const -> int;
 
@@ -63,6 +63,7 @@ class Chart : public QObject
     void positionChanged(double delta);
     void overChanged();
     void bpmChanged(BpmChange bpmChange);
+    void started();
 };
 
 } // namespace gameplay_logic

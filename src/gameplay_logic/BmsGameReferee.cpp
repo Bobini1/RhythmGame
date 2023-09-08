@@ -7,18 +7,23 @@
 #include "BmsGameReferee.h"
 gameplay_logic::BmsGameReferee::BmsGameReferee(
   const charts::gameplay_models::BmsNotesData& notesData,
-  BmsScore* score,
-  std::unordered_map<std::string, sounds::OpenALSound>& sounds,
-  gameplay_logic::BmsRules rules)
+  QSharedPointer<BmsScore> score,
+  std::unordered_map<std::string, sounds::OpenALSound> sounds,
+  gameplay_logic::BmsRules rules,
+  charts::gameplay_models::BmsNotesData::Time timeBeforeChartStart)
   : bpmChanges(notesData.bpmChanges)
+  , sounds(std::move(sounds))
+  , timeBeforeChartStart(timeBeforeChartStart)
   , rules(rules)
-  , score(score)
+  , score(std::move(score))
 {
+    bpmChanges[0].first -= timeBeforeChartStart;
     for (int i = 0; i < charts::gameplay_models::BmsNotesData::columnNumber;
          i++) {
         for (const auto& note : notesData.visibleNotes[i]) {
             auto soundId = note.sound;
-            if (auto sound = sounds.find(soundId); sound != sounds.end()) {
+            if (auto sound = this->sounds.find(soundId);
+                sound != this->sounds.end()) {
                 visibleNotes[i].emplace_back(&sound->second,
                                              note.time.timestamp);
             } else {
@@ -30,7 +35,8 @@ gameplay_logic::BmsGameReferee::BmsGameReferee(
         currentVisibleNotes[i] = visibleNotes[i];
         for (const auto& note : notesData.invisibleNotes[i]) {
             auto soundId = note.sound;
-            if (auto sound = sounds.find(soundId); sound != sounds.end()) {
+            if (auto sound = this->sounds.find(soundId);
+                sound != this->sounds.end()) {
                 invisibleNotes[i].emplace_back(&sound->second,
                                                note.time.timestamp);
             }
@@ -39,7 +45,8 @@ gameplay_logic::BmsGameReferee::BmsGameReferee(
     }
     for (const auto& bgmNote : notesData.bgmNotes) {
         auto soundId = bgmNote.second;
-        if (auto sound = sounds.find(soundId); sound != sounds.end()) {
+        if (auto sound = this->sounds.find(soundId);
+            sound != this->sounds.end()) {
             bgms.emplace_back(bgmNote.first.timestamp, &sound->second);
         }
     }
@@ -50,6 +57,7 @@ auto
 gameplay_logic::BmsGameReferee::update(std::chrono::nanoseconds offsetFromStart)
   -> Position
 {
+    offsetFromStart -= timeBeforeChartStart.timestamp;
     for (auto columnIndex = 0; columnIndex < currentVisibleNotes.size();
          columnIndex++) {
         auto& column = currentVisibleNotes[columnIndex];
@@ -84,6 +92,7 @@ gameplay_logic::BmsGameReferee::passInput(
   std::chrono::nanoseconds offsetFromStart,
   input::BmsKey key) -> void
 {
+    offsetFromStart -= timeBeforeChartStart.timestamp;
     auto columnIndex = static_cast<int>(key);
     if (columnIndex < 0 ||
         columnIndex >= charts::gameplay_models::BmsNotesData::columnNumber) {

@@ -40,7 +40,7 @@ Item {
         readonly property Component mainComponent: Qt.createComponent(SceneUrls.mainSceneUrl)
         readonly property Component songWheelComponent: Qt.createComponent(SceneUrls.songWheelSceneUrl)
 
-        function openChart(path: URL) {
+        function openChart(path: url) {
             let chart = ChartLoader.loadChart(path);
             if (!chart) {
                 console.error("Failed to load chart");
@@ -70,68 +70,89 @@ Item {
             }
         }
 
-        // create a rectangle that shows when you click f12 that shows debug logs
-        Rectangle {
-            id: debugLog
+        // create a rectangle that shows when you click f11 that shows debug logs
+        Loader {
+            id: debugLogLoader
 
+            active: false
             anchors.fill: parent
-            color: "black"
-            opacity: 0.5
-            visible: false
+            sourceComponent: debugLogComponent
+        }
+        Component {
+            id: debugLogComponent
 
-            // make it scrollable
-            ScrollView {
-                id: logScroll
+            Rectangle {
+                id: debugLog
 
-                function isAtBottom() {
-                    return logScroll.ScrollBar.vertical.position === 1.0 - logScroll.ScrollBar.vertical.size;
-                }
                 function scrollToBottom() {
                     logScroll.ScrollBar.vertical.position = 1.0 - logScroll.ScrollBar.vertical.size;
                 }
 
                 anchors.fill: parent
+                color: "black"
+                opacity: 0.5
+
+                states: State {
+                    id: flick
+
+                    name: "autoscroll"
+
+                    PropertyChanges {
+                        position: 1.0 - logScroll.ScrollBar.vertical.size
+                        target: logScroll.ScrollBar.vertical
+                    }
+                }
 
                 Component.onCompleted: {
                     scrollToBottom();
                 }
 
-                TextEdit {
-                    id: debugLogText
-
-                    anchors.fill: parent
-                    color: "yellow"
-                    font.family: "Courier"
-                    font.pixelSize: 20
-                    readOnly: true
-                    text: ""
-                    wrapMode: Text.WordWrap
-
-                    Connections {
-                        function onLogged(message) {
-                            let wasAtBottom = logScroll.isAtBottom();
-                            // get current selection
-                            let selectionStart = debugLogText.selectionStart;
-                            let selectionEnd = debugLogText.selectionEnd;
-                            debugLogText.text += message + "\n";
-                            // restore selection
-                            debugLogText.select(selectionStart, selectionEnd);
-                            if (wasAtBottom) {
-                                logScroll.scrollToBottom();
+                Connections {
+                    function onPositionChanged() {
+                        if (1.0 - logScroll.ScrollBar.vertical.size - logScroll.ScrollBar.vertical.position < 0.01) {
+                            //change state
+                            if (state !== "autoscroll") {
+                                state = "autoscroll";
+                            }
+                        } else {
+                            if (state === "") {
+                                state = "";
                             }
                         }
+                    }
 
-                        target: Logger
+                    target: logScroll.ScrollBar.vertical
+                }
+                ScrollView {
+                    id: logScroll
+
+                    anchors.fill: parent
+
+                    ListView {
+                        id: debugLogText
+
+                        anchors.fill: parent
+                        model: Logger.history
+
+                        delegate: TextEdit {
+                            color: "yellow"
+                            font.family: "Courier"
+                            font.pixelSize: 20
+                            readOnly: true
+                            text: display
+                            textFormat: TextEdit.PlainText
+                            wrapMode: Text.WordWrap
+                        }
                     }
                 }
             }
         }
         Shortcut {
-            context: Qt.ApplicationShortcut
+            autoRepeat: false
             sequence: "F11"
 
             onActivated: {
-                debugLog.visible = !debugLog.visible;
+                debugLogLoader.active = !debugLogLoader.active;
             }
         }
     }
