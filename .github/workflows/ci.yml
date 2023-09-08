@@ -52,7 +52,7 @@ jobs:
 
       - name: Cache conan
         id: cache-conan
-        uses: actions/cache@v3.0.5
+        uses: actions/cache@v3.3.2
         with:
           path: ~/.conan2/p
           key: conan-packages-coverage
@@ -111,7 +111,7 @@ jobs:
 
       - name: Cache conan
         id: cache-conan
-        uses: actions/cache@v3.0.5
+        uses: actions/cache@v3.3.2
         with:
           path: ~/.conan2/p
           key: conan-packages-sanitize
@@ -172,7 +172,7 @@ jobs:
 
       - name: Cache conan
         id: cache-conan
-        uses: actions/cache@v3.0.5
+        uses: actions/cache@v3.3.2
         with:
           path: ~/.conan2/p
           key: conan-packages-${{ matrix.os }}-v2
@@ -180,7 +180,7 @@ jobs:
       - name: Cache conan extra exports
         if: matrix.os == 'windows-latest'
         id: cache-conan-exports
-        uses: actions/cache@v3.0.5
+        uses: actions/cache@v3.3.2
         with:
           path: C:/.conan2
           key: conan-exports-extra-windows
@@ -251,7 +251,7 @@ jobs:
 
       - name: Cache conan
         id: cache-conan
-        uses: actions/cache@v3.0.5
+        uses: actions/cache@v3.3.2
         with:
           path: ~/.conan2/p
           key: conan-packages-${{ matrix.os }}
@@ -259,7 +259,7 @@ jobs:
       - name: Cache conan extra exports
         if: matrix.os == 'windows-latest'
         id: cache-conan-exports
-        uses: actions/cache@v3.0.5
+        uses: actions/cache@v3.3.2
         with:
           path: C:/.conan2
           key: conan-exports-extra-windows
