@@ -96,20 +96,26 @@ Item {
                     scrollToBottom();
                 }
 
-                Text {
+                TextEdit {
                     id: debugLogText
 
                     anchors.fill: parent
                     color: "yellow"
                     font.family: "Courier"
                     font.pixelSize: 20
+                    readOnly: true
                     text: ""
                     wrapMode: Text.WordWrap
 
                     Connections {
                         function onLogged(message) {
                             let wasAtBottom = logScroll.isAtBottom();
+                            // get current selection
+                            let selectionStart = debugLogText.selectionStart;
+                            let selectionEnd = debugLogText.selectionEnd;
                             debugLogText.text += message + "\n";
+                            // restore selection
+                            debugLogText.select(selectionStart, selectionEnd);
                             if (wasAtBottom) {
                                 logScroll.scrollToBottom();
                             }
