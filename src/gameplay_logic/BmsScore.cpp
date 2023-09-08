@@ -23,13 +23,19 @@ BmsScore::addTap(Tap tap) -> void
     emit hit(tap);
 }
 auto
-BmsScore::addMiss(Miss miss) -> void
+BmsScore::addMisses(QVector<Miss> newMisses) -> void
 {
-    misses.push_back(miss);
-    judgementCounts[Judgement::MISS]++;
+    for (const auto& miss : newMisses) {
+        misses.append(miss);
+        judgementCounts[Judgement::MISS]++;
+    }
     emit missesChanged();
     emit judgementCountsChanged();
-    emit this->miss(miss);
+    auto newMissesVariantList = QVariantList{};
+    for (const auto& miss : newMisses) {
+        newMissesVariantList.append(QVariant::fromValue(miss));
+    }
+    emit missed(std::move(newMissesVariantList));
 }
 BmsScore::BmsScore(int maxHits, QObject* parent)
   : QObject(parent)

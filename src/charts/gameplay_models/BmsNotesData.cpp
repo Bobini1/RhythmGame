@@ -18,6 +18,58 @@ charts::gameplay_models::BmsNotesData::BmsNotesData(
                      chart.tags.measures);
 }
 
+struct BpmChangeDef
+{
+    double fraction;
+    double bpm;
+};
+
+auto
+combineBpmChanges(const std::vector<std::string>& bpmChanges,
+                  const std::vector<std::string>& exBpmChanges,
+                  const std::map<std::string, double>& bpms)
+  -> std::vector<BpmChangeDef>
+{
+    auto index = -1;
+    auto combinedBpmChanges = std::vector<BpmChangeDef>{};
+    for (const auto& bpmChange : bpmChanges) {
+        index++;
+        if (bpmChange == "00") {
+            continue;
+        }
+        auto bpmValue = bpms.find(bpmChange);
+        if (bpmValue == bpms.end()) {
+            continue;
+        }
+        auto fraction =
+          static_cast<double>(index) / static_cast<double>(bpmChanges.size());
+        combinedBpmChanges.emplace_back(
+          BpmChangeDef{ fraction, bpmValue->second });
+    }
+    index = -1;
+    for (const auto& bpmChange : exBpmChanges) {
+        index++;
+        if (bpmChange == "00") {
+            continue;
+        }
+        auto idx = size_t{ 0 };
+        auto bpmChangeNum = std::stoi(bpmChange, &idx, 16);
+        if (idx != 2) {
+            spdlog::warn("Invalid bpmChange change: {}", bpmChange);
+            continue;
+        }
+        auto fraction =
+          static_cast<double>(index) / static_cast<double>(exBpmChanges.size());
+        combinedBpmChanges.emplace_back(
+          BpmChangeDef{ fraction, static_cast<double>(bpmChangeNum) });
+    }
+    std::sort(
+      combinedBpmChanges.begin(),
+      combinedBpmChanges.end(),
+      [](const auto& a, const auto& b) { return a.fraction < b.fraction; });
+    return combinedBpmChanges;
+}
+
 void
 charts::gameplay_models::BmsNotesData::generateMeasures(
   double baseBpm,
@@ -34,28 +86,13 @@ charts::gameplay_models::BmsNotesData::generateMeasures(
         auto bpmChangesInMeasure = std::map<double, std::pair<double, Time>>{
             { 0.0, { lastBpm, measureStart } }
         };
-        auto index = -1;
         auto lastTimestamp = measureStart;
         auto lastFraction = 0.0;
-        if (!measure.exBpmChanges.empty() && !measure.bpmChanges.empty()) {
-            throw std::runtime_error(
-              "Both exBpmChanges and bpmChanges are present in measure " +
-              std::to_string(measureIndex) +
-              ". That is not supported at the moment.");
-        }
-        for (const auto& bpmChange : measure.bpmChanges) {
-            index++;
-            if (bpmChange == "00") {
-                continue;
-            }
-            auto idx = size_t{ 0 };
-            auto bpmChangeNum = std::stoi(bpmChange, &idx, 16);
-            if (idx != 2) {
-                spdlog::warn("Invalid bpm change: {}", bpmChange);
-                continue;
-            }
-            auto fraction = static_cast<double>(index) /
-                            static_cast<double>(measure.bpmChanges.size());
+        auto combinedBpmChanges =
+          combineBpmChanges(measure.exBpmChanges, measure.bpmChanges, bpms);
+        for (const auto& bpmChange : combinedBpmChanges) {
+            auto fraction = bpmChange.fraction;
+            auto bpmChangeNum = bpmChange.bpm;
             auto timestamp =
               lastTimestamp +
               Time{ std::chrono::nanoseconds(static_cast<int64_t>(
@@ -69,31 +106,6 @@ charts::gameplay_models::BmsNotesData::generateMeasures(
             lastTimestamp = timestamp;
             lastFraction = fraction;
             lastBpm = bpmChangeNum;
-        }
-        for (const auto& bpmChange : measure.exBpmChanges) {
-            index++;
-            if (bpmChange == "00") {
-                continue;
-            }
-            auto bpmValue = bpms.find(bpmChange);
-            if (bpmValue == bpms.end()) {
-                continue;
-            }
-            auto fraction = static_cast<double>(index) /
-                            static_cast<double>(measure.exBpmChanges.size());
-            auto timestamp =
-              lastTimestamp +
-              Time{ std::chrono::nanoseconds(static_cast<int64_t>(
-                      (fraction - lastFraction) * defaultBeatsPerMeasure *
-                      measure.meter * 60 * 1'000'000'000 / lastBpm)),
-                    (fraction - lastFraction) * defaultBeatsPerMeasure *
-                      measure.meter };
-            bpmChanges.emplace_back(timestamp, bpmValue->second);
-            bpmChangesInMeasure[fraction] =
-              std::pair{ bpmValue->second, timestamp };
-            lastTimestamp = timestamp;
-            lastFraction = fraction;
-            lastBpm = bpmValue->second;
         }
         // add last bpm change
         auto timestamp =

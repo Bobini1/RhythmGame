@@ -71,11 +71,19 @@ Item {
                 judgementAnimation.start();
             }
         }
-        function onMiss(miss) {
-            if (playArea.columns.indexOf(miss.column) === -1) {
+        function onMissed(misses) {
+            let anyMissed = false;
+            // print all field keys of object misses
+            for (let miss in misses) {
+                if (playArea.columns.indexOf(misses[miss].column) === -1) {
+                    continue;
+                }
+                anyMissed = true;
+                playfield.removeNote(misses[miss].column, misses[miss].noteIndex);
+            }
+            if (!anyMissed) {
                 return;
             }
-            playfield.removeNote(miss.column, miss.noteIndex);
             judgementText.text = "MISS";
             // play animation
             judgementAnimation.complete();

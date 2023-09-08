@@ -58,18 +58,22 @@ gameplay_logic::BmsGameReferee::update(std::chrono::nanoseconds offsetFromStart)
   -> Position
 {
     offsetFromStart -= timeBeforeChartStart.timestamp;
+    auto misses = QVector<Miss>{};
     for (auto columnIndex = 0; columnIndex < currentVisibleNotes.size();
          columnIndex++) {
         auto& column = currentVisibleNotes[columnIndex];
         auto [newMisses, skipCount] = rules.getMisses(column, offsetFromStart);
         for (auto [offset, iter] : newMisses) {
-            score->addMiss(
+            misses.append(
               { offset.count(),
                 columnIndex,
                 static_cast<int>(iter.base() -
                                  visibleNotes[columnIndex].begin().base()) });
         }
         column = column.subspan(skipCount);
+    }
+    if (!misses.empty()) {
+        score->addMisses(std::move(misses));
     }
     for (auto& column : currentInvisibleNotes) {
         auto skipped = rules.skipInvisible(column, offsetFromStart);

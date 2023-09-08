@@ -14,6 +14,10 @@ ChartDataFactory::detectEncoding(std::string_view string) const -> std::string
     uchardet_handle_data(detector.get(), string.data(), string.size());
     uchardet_data_end(detector.get());
     encoding = uchardet_get_charset(detector.get());
+    // shift jis if empty
+    if (encoding.empty()) {
+        encoding = "SHIFT-JIS";
+    }
     return encoding;
 }
 auto
