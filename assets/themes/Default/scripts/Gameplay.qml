@@ -46,7 +46,7 @@ Rectangle {
         }
         return images;
     }
-    property double playfieldHeight: 600
+    property double playfieldHeight: 800
     property string rootUrl: Qt.resolvedUrl(".").toString()
 
     anchors.fill: parent
@@ -60,10 +60,24 @@ Rectangle {
         anchors.right: parent.right
         anchors.top: parent.top
     }
-    PlayArea {
-        anchors.bottomMargin: 200
-        anchors.left: parent.left
-        columns: [7, 0, 1, 2, 3, 4, 5, 6]
-        height: root.playfieldHeight
+    Rectangle {
+        id: playAreaBorder
+
+        anchors.bottom: parent.bottom
+        anchors.bottomMargin: parent.height - height
+        color: "white"
+        height: root.playfieldHeight + 2
+        width: playArea.width + 2
+        z: 1
+
+        PlayArea {
+            id: playArea
+
+            anchors.bottomMargin: 1
+            anchors.left: parent.left
+            anchors.leftMargin: 1
+            columns: [7, 0, 1, 2, 3, 4, 5, 6]
+            height: root.playfieldHeight
+        }
     }
 }

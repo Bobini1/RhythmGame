@@ -9,5 +9,7 @@ qt_add_qml_module(RhythmGame_qml URI RhythmGameQml VERSION 1.0 SOURCES SceneUrls
         ChartLoader.h
         ProgramSettings.cpp
         ProgramSettings.h
+        Logger.cpp
+        Logger.h
         QML_FILES ContentFrame.qml)
 

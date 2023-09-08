@@ -17,7 +17,7 @@ Item {
     }
     property double redWidth: 108.0 / totalWidthAbs * parent.width
     readonly property int spacing: 2
-    readonly property int totalWidthAbs: 3 * 48 + 4 * 60 + 108 + spacing * 6
+    readonly property int totalWidthAbs: 3 * 48 + 4 * 60 + 108 + spacing * 7
     property double whiteWidth: 60.0 / totalWidthAbs * parent.width
 
     anchors.bottom: parent.bottom
@@ -91,7 +91,7 @@ Item {
         color: "white"
         font.pixelSize: 48
     }
-    // judgement animation (appear instantly and start fading out)
+    // judgement animation (appear instantly and start getting smaller)
     PropertyAnimation {
         id: judgementAnimation
 
@@ -102,60 +102,71 @@ Item {
         target: judgementText
         to: 0.0
     }
+    Item {
+        id: playAreaBg
+
+        anchors.fill: parent
+        // this is so that we can blend with glow
+        layer.enabled: true
+        z: -1
+
+        Repeater {
+            id: columnSeparators
+
+            model: playArea.columns.length - 1
+
+            Rectangle {
+                anchors.bottom: parent.bottom
+                color: "#1e1e1e"
+                height: parent.height
+                width: playArea.spacing
+                x: {
+                    let cpos = 0;
+                    for (let i = 0; i < index + 1; i++) {
+                        cpos += root.columnSizes[playfield.columns[i]];
+                    }
+                    return cpos + index * playArea.spacing;
+                }
+                z: -2
+            }
+        }
+        Repeater {
+            id: columnBgs
+
+            model: playArea.columns.length
+
+            Rectangle {
+                anchors.bottom: parent.bottom
+                color: playfield.columns[index] % 2 === 0 ? "#050505" : "#000000"
+                height: parent.height
+                width: root.columnSizes[playfield.columns[index]]
+                x: {
+                    let cpos = 0;
+                    for (let i = 0; i < index; i++) {
+                        cpos += root.columnSizes[playfield.columns[i]];
+                    }
+                    return cpos + index * playArea.spacing;
+                }
+                z: -2
+            }
+        }
+    }
     Image {
         id: glow
 
         anchors.bottom: parent.bottom
-        opacity: 0.5
         source: root.imagesUrl + "glow.png"
+        visible: false
+        width: parent.width
         z: -1
     }
     Blend {
         anchors.fill: glow
         foregroundSource: glow
         mode: "addition"
-        source: playfield
+        opacity: 0.1
+        source: playAreaBg
         z: -1
-    }
-    Repeater {
-        id: columnSeparators
-
-        model: playArea.columns.length - 2
-
-        Rectangle {
-            anchors.bottom: parent.bottom
-            color: "#1e1e1e"
-            height: parent.height
-            width: playArea.spacing
-            x: {
-                let cpos = 0;
-                for (let i = 0; i < index + 1; i++) {
-                    cpos += root.columnSizes[playfield.columns[i]] + playArea.spacing;
-                }
-                return cpos;
-            }
-            z: -2
-        }
-    }
-    Repeater {
-        id: columnBgs
-
-        model: playArea.columns.length
-
-        Rectangle {
-            anchors.bottom: parent.bottom
-            color: playfield.columns[index] % 2 === 0 ? "#050505" : "#000000"
-            height: parent.height
-            width: root.columnSizes[playfield.columns[index]]
-            x: {
-                let cpos = 0;
-                for (let i = 0; i < index; i++) {
-                    cpos += root.columnSizes[playfield.columns[i]] + playArea.spacing;
-                }
-                return cpos;
-            }
-            z: -2
-        }
     }
 }
 

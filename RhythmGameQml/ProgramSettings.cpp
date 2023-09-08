@@ -30,4 +30,4 @@ ProgramSettings::ProgramSettings(QUrl chartPath, QObject* parent)
   , chartPath(std::move(chartPath))
 {
 }
-} // qml_components
+} // namespace qml_components

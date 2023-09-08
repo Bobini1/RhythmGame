@@ -1,4 +1,4 @@
-import QtQuick 2.0
+import QtQuick
 import QtQml
 import RhythmGameQml
 import QtQuick.Controls 2.15
@@ -67,6 +67,65 @@ Item {
 
             onCurrentItemChanged: {
                 currentItem.forceActiveFocus();
+            }
+        }
+
+        // create a rectangle that shows when you click f12 that shows debug logs
+        Rectangle {
+            id: debugLog
+
+            anchors.fill: parent
+            color: "black"
+            opacity: 0.5
+            visible: false
+
+            // make it scrollable
+            ScrollView {
+                id: logScroll
+
+                function isAtBottom() {
+                    return logScroll.ScrollBar.vertical.position === 1.0 - logScroll.ScrollBar.vertical.size;
+                }
+                function scrollToBottom() {
+                    logScroll.ScrollBar.vertical.position = 1.0 - logScroll.ScrollBar.vertical.size;
+                }
+
+                anchors.fill: parent
+
+                Component.onCompleted: {
+                    scrollToBottom();
+                }
+
+                Text {
+                    id: debugLogText
+
+                    anchors.fill: parent
+                    color: "yellow"
+                    font.family: "Courier"
+                    font.pixelSize: 20
+                    text: ""
+                    wrapMode: Text.WordWrap
+
+                    Connections {
+                        function onLogged(message) {
+                            let wasAtBottom = logScroll.isAtBottom();
+                            debugLogText.text += message + "\n";
+                            if (wasAtBottom) {
+                                logScroll.scrollToBottom();
+                            }
+                        }
+
+                        target: Logger
+                    }
+                }
+            }
+        }
+        Shortcut {
+            context: Qt.ApplicationShortcut
+            sequence: "F11"
+
+            onActivated: {
+                debugLog.visible = !debugLog.visible;
             }
         }
     }
