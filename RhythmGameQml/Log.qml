@@ -57,6 +57,7 @@ Rectangle {
             model: Logger.history
 
             delegate: TextEdit {
+                activeFocusOnPress: false
                 color: "yellow"
                 font.family: "Courier"
                 font.pixelSize: 20
