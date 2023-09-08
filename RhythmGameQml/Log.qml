@@ -27,7 +27,6 @@ Rectangle {
 
     Component.onCompleted: {
         scrollToBottom();
-        console.log("Debug log initialized");
     }
 
     Connections {
