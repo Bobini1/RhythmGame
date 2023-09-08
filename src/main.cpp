@@ -109,7 +109,7 @@ main(int argc, char* argv[]) -> int
         auto log = qml_components::Logger{ nullptr };
         qml_components::Logger::setInstance(&log);
 
-        auto logger = spdlog::qt_logger_mt("qt", &log, "addLog");
+        auto logger = spdlog::qt_logger_mt("log", &log, "addLog");
 
 #ifdef DEBUG
         // combine with console logger
