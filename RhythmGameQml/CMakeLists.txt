@@ -11,5 +11,5 @@ qt_add_qml_module(RhythmGame_qml URI RhythmGameQml VERSION 1.0 SOURCES SceneUrls
         ProgramSettings.h
         Logger.cpp
         Logger.h
-        QML_FILES ContentFrame.qml)
+        QML_FILES ContentFrame.qml Log.qml)
 
