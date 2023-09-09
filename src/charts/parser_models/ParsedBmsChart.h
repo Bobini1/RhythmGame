@@ -25,6 +25,7 @@ struct ParsedBmsChart
     struct Measure
     {
         static constexpr auto columnNumber = 9;
+        static constexpr auto defaultMeter = 1.0;
         std::array<std::vector<std::string>, columnNumber> p1VisibleNotes;
         std::array<std::vector<std::string>, columnNumber> p2VisibleNotes;
         std::array<std::vector<std::string>, columnNumber> p1InvisibleNotes;
@@ -34,7 +35,7 @@ struct ParsedBmsChart
         std::vector<std::vector<std::string>> bgmNotes;
         std::vector<std::string> bpmChanges;   // old-school, FF = BPM is 255
         std::vector<std::string> exBpmChanges; // new, FF = #BPMFF
-        double meter = 1;
+        double meter = defaultMeter;
     };
 
     /**
@@ -50,7 +51,7 @@ struct ParsedBmsChart
         std::optional<std::string> genre;
         std::map<std::string, double> exBpms;
         std::map<std::string, std::string> wavs;
-        std::map<uint64_t, Measure> measures;
+        std::map<int64_t, Measure> measures;
 
         std::vector<std::pair<RandomRange, std::vector<std::pair<IfTag, Tags>>>>
           randomBlocks; /*< Random blocks can hold any tags, including ones
