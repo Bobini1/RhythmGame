@@ -74,10 +74,10 @@ void
 charts::gameplay_models::BmsNotesData::generateMeasures(
   double baseBpm,
   const std::map<std::string, double>& bpms,
-  const std::map<uint64_t, parser_models::ParsedBmsChart::Measure>& measures)
+  const std::map<int64_t, parser_models::ParsedBmsChart::Measure>& measures)
 {
     auto lastBpm = baseBpm;
-    auto lastMeasure = uint64_t{ 0 };
+    auto lastMeasure = int64_t{ -1 };
     auto measureStart = Time{ 0ns, 0.0 };
     bpmChanges.emplace_back(measureStart, baseBpm);
     for (const auto& [measureIndex, measure] : measures) {
@@ -149,8 +149,8 @@ charts::gameplay_models::BmsNotesData::generateMeasures(
 }
 
 void
-charts::gameplay_models::BmsNotesData::fillEmptyMeasures(uint64_t lastMeasure,
-                                                         uint64_t& measureIndex,
+charts::gameplay_models::BmsNotesData::fillEmptyMeasures(int64_t lastMeasure,
+                                                         int64_t& measureIndex,
                                                          Time& measureStart,
                                                          double lastBpm)
 {

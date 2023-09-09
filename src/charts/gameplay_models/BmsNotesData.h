@@ -58,10 +58,10 @@ struct BmsNotesData
     void generateMeasures(
       double baseBpm,
       const std::map<std::string, double>& bpms,
-      const std::map<uint64_t, parser_models::ParsedBmsChart::Measure>&
+      const std::map<int64_t, parser_models::ParsedBmsChart::Measure>&
         measures);
-    void fillEmptyMeasures(uint64_t lastMeasure,
-                           uint64_t& measureIndex,
+    void fillEmptyMeasures(int64_t lastMeasure,
+                           int64_t& measureIndex,
                            Time& measureStart,
                            double lastBpm);
     void calculateOffsetsForColumn(
