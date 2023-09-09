@@ -65,7 +65,14 @@ struct FloatingPoint
 
     static constexpr auto value =
       lexy::as_string<std::string> |
-      lexy::callback<double>([](std::string&& str) { return std::stod(str); });
+      lexy::callback<double>([](std::string&& str) {
+          auto val = parser_models::ParsedBmsChart::Measure::defaultMeter;
+          auto err = std::from_chars(str.c_str(), str.end().base(), val);
+          if (err.ec != std::errc{}) {
+              spdlog::error("Failed to parse meter: {}", str);
+          }
+          return val;
+      });
 };
 
 struct Channel
@@ -97,7 +104,7 @@ struct MeasureBasedTag
                                  (dsl::p<Channel> + dsl::colon +
                                   dsl::p<IdentifierChain>);
     static constexpr auto value =
-      lexy::construct<std::tuple<uint64_t, int, std::vector<std::string>>>;
+      lexy::construct<std::tuple<int64_t, int, std::vector<std::string>>>;
 };
 
 BOOST_STRONG_TYPEDEF(std::string, Title);
@@ -110,7 +117,7 @@ using wav_t = std::pair<std::string, std::string>;
 BOOST_STRONG_TYPEDEF(wav_t, Wav);
 using pair_t = std::pair<std::string, double>;
 BOOST_STRONG_TYPEDEF(pair_t, ExBpm);
-using meter_t = std::pair<uint64_t, double>;
+using meter_t = std::pair<int64_t, double>;
 BOOST_STRONG_TYPEDEF(meter_t, Meter);
 
 struct TitleTag
@@ -213,7 +220,7 @@ struct MeterTag
         return dsl::peek(start) >> start >> dsl::colon >> dsl::p<FloatingPoint>;
     }();
     static constexpr auto value =
-      lexy::callback<Meter>([](uint64_t measure, double num) {
+      lexy::callback<Meter>([](int64_t measure, double num) {
           return Meter{ { measure, num } };
       });
 };
@@ -269,7 +276,7 @@ struct TagsSink
         auto operator()(Meter&& meter) -> void
         {
             auto [measure, value] =
-              static_cast<std::pair<uint64_t, double>>(meter);
+              static_cast<std::pair<int64_t, double>>(meter);
             state.measures[measure].meter = value;
         }
 
@@ -281,7 +288,7 @@ struct TagsSink
         }
 
         auto operator()(
-          std::tuple<uint64_t, int, std::vector<std::string>>&& measureBasedTag)
+          std::tuple<int64_t, int, std::vector<std::string>>&& measureBasedTag)
           -> void
         {
             auto [measure, channel, identifiers] = std::move(measureBasedTag);
@@ -380,10 +387,10 @@ struct MainTags
         auto term = dsl::terminator(
           dsl::eof | dsl::peek(dsl::ascii::case_folding(LEXY_LIT("#endif"))));
         return term.list(dsl::try_(
-          dsl::p<MeasureBasedTag> | dsl::p<WavTag> | dsl::p<TitleTag> |
-            dsl::p<ArtistTag> | dsl::p<GenreTag> | dsl::p<SubtitleTag> |
-            dsl::p<SubartistTag> | dsl::p<ExBpmTag> | dsl::p<BpmTag> |
-            dsl::p<MeterTag> | dsl::recurse_branch<RandomBlock>,
+          dsl::p<MeterTag> | dsl::p<MeasureBasedTag> | dsl::p<WavTag> |
+            dsl::p<TitleTag> | dsl::p<ArtistTag> | dsl::p<GenreTag> |
+            dsl::p<SubtitleTag> | dsl::p<SubartistTag> | dsl::p<ExBpmTag> |
+            dsl::p<BpmTag> | dsl::recurse_branch<RandomBlock>,
           dsl::until(dsl::unicode::newline).or_eof()));
     }();
     static constexpr auto value = TagsSink{};
