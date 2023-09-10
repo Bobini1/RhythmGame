@@ -71,7 +71,6 @@ gameplay_logic::BmsGameReferee::update(std::chrono::nanoseconds offsetFromStart)
                                  visibleNotes[columnIndex].begin().base()) });
         }
         column = column.subspan(skipCount);
-        notes->getVisibleNotes()[columnIndex]->removeRows(0, newMisses.size());
     }
     if (!misses.empty()) {
         score->addMisses(std::move(misses));
