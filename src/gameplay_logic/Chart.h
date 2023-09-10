@@ -27,7 +27,7 @@ class Chart : public QObject
     input::KeyboardInputTranslatorToBms inputTranslator;
     std::span<const BpmChange> bpmChanges;
     ChartData* chartData;
-    QSharedPointer<BmsScore> score;
+    BmsScore* score;
     QFuture<gameplay_logic::BmsGameReferee> refereeFuture;
     QFutureWatcher<gameplay_logic::BmsGameReferee> refereeFutureWatcher;
     int elapsed;
@@ -42,7 +42,7 @@ class Chart : public QObject
     explicit Chart(
       QFuture<gameplay_logic::BmsGameReferee> refereeFuture,
       ChartData* chartData,
-      QSharedPointer<BmsScore> score,
+      BmsScore* score,
       charts::gameplay_models::BmsNotesData::Time timeBeforeChartStart,
       QObject* parent = nullptr);
 

@@ -12,6 +12,7 @@
 #include "gameplay_logic/BmsRules.h"
 #include "input/BmsKeys.h"
 #include "BmsScore.h"
+#include "BmsNotes.h"
 namespace gameplay_logic {
 class BmsGameReferee
 {
@@ -38,7 +39,7 @@ class BmsGameReferee
     std::unordered_map<std::string, sounds::OpenALSound> sounds;
     charts::gameplay_models::BmsNotesData::Time timeBeforeChartStart;
     BmsRules rules;
-    QSharedPointer<BmsScore> score;
+    BmsScore* score;
 
   public:
     using Position = double;
@@ -58,7 +59,7 @@ class BmsGameReferee
   public:
     explicit BmsGameReferee(
       const charts::gameplay_models::BmsNotesData& notesData,
-      QSharedPointer<BmsScore> score,
+      BmsScore* score,
       std::unordered_map<std::string, sounds::OpenALSound> sounds,
       gameplay_logic::BmsRules rules,
       charts::gameplay_models::BmsNotesData::Time timeBeforeChartStart);

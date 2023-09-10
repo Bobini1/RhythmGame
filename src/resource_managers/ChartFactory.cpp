@@ -12,8 +12,7 @@ ChartFactory::createChart(const QString& filename) -> gameplay_logic::Chart*
     auto [chartData, notesData, wavs] =
       chartDataFactory->loadChartData(filename);
     auto path = chartData->getDirectory().toString().toStdString();
-    auto score =
-      QSharedPointer<gameplay_logic::BmsScore>(chartData->createEmptyScore());
+    auto* score = chartData->createEmptyScore();
     auto beatsBeforeChartStart =
       std::chrono::duration<double>(timeBeforeChartStart).count() *
       chartData->getNoteData()->getBpmChanges().first().bpm / 60;

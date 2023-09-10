@@ -9,7 +9,7 @@
 namespace gameplay_logic {
 Chart::Chart(QFuture<gameplay_logic::BmsGameReferee> refereeFuture,
              ChartData* chartData,
-             QSharedPointer<BmsScore> score,
+             BmsScore* score,
              charts::gameplay_models::BmsNotesData::Time timeBeforeChartStart,
              QObject* parent)
   : QObject(parent)
@@ -22,6 +22,8 @@ Chart::Chart(QFuture<gameplay_logic::BmsGameReferee> refereeFuture,
                .count())
   , position(-timeBeforeChartStart.position)
 {
+    chartData->setParent(this);
+    score->setParent(this);
     connect(&refereeFutureWatcher,
             &QFutureWatcher<gameplay_logic::BmsGameReferee>::finished,
             this,
@@ -101,7 +103,7 @@ Chart::getChartData() const -> ChartData*
 auto
 Chart::getScore() const -> BmsScore*
 {
-    return score.get();
+    return score;
 }
 void
 Chart::updateBpm()

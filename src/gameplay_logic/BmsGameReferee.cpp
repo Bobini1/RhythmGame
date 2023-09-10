@@ -7,7 +7,7 @@
 #include "BmsGameReferee.h"
 gameplay_logic::BmsGameReferee::BmsGameReferee(
   const charts::gameplay_models::BmsNotesData& notesData,
-  QSharedPointer<BmsScore> score,
+  BmsScore* score,
   std::unordered_map<std::string, sounds::OpenALSound> sounds,
   gameplay_logic::BmsRules rules,
   charts::gameplay_models::BmsNotesData::Time timeBeforeChartStart)
@@ -15,7 +15,7 @@ gameplay_logic::BmsGameReferee::BmsGameReferee(
   , sounds(std::move(sounds))
   , timeBeforeChartStart(timeBeforeChartStart)
   , rules(rules)
-  , score(std::move(score))
+  , score(score)
 {
     bpmChanges[0].first -= timeBeforeChartStart;
     for (int i = 0; i < charts::gameplay_models::BmsNotesData::columnNumber;
@@ -71,6 +71,7 @@ gameplay_logic::BmsGameReferee::update(std::chrono::nanoseconds offsetFromStart)
                                  visibleNotes[columnIndex].begin().base()) });
         }
         column = column.subspan(skipCount);
+        notes->getVisibleNotes()[columnIndex]->removeRows(0, newMisses.size());
     }
     if (!misses.empty()) {
         score->addMisses(std::move(misses));
