@@ -17,7 +17,7 @@ Rectangle {
 
     function removeNote(column: int, index: int) {
         var noteColumn = noteColumnRepeater.itemAt(columnsReversedMapping[column]);
-        noteColumn.removeNoteAt(index);
+        noteColumn.removeNote(index);
     }
 
     color: "black"
