@@ -409,8 +409,8 @@ sounds::OpenALSoundBuffer::getDuration() const -> std::chrono::nanoseconds
         return std::chrono::nanoseconds::zero();
     }
     return std::chrono::nanoseconds(static_cast<std::chrono::nanoseconds::rep>(
-      1'000'000'000ULL * static_cast<unsigned long long int>(size) * CHAR_BIT /
-      (static_cast<unsigned long long int>(denominator))));
+      1'000'000'000ULL * static_cast<uint64_t>(size) * CHAR_BIT /
+      (static_cast<uint64_t>(denominator))));
 }
 auto
 sounds::OpenALSoundBuffer::getFrequency() const -> int
