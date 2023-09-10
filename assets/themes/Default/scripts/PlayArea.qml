@@ -8,7 +8,7 @@ Item {
 
     property double blackWidth: 48.0 / totalWidthAbs * parent.width
     property list<int> columns: []
-    property list<int> columnsReversedMapping: {
+    readonly property list<int> columnsReversedMapping: {
         var mapping = [];
         for (var i = 0; i < columns.length; i++) {
             mapping[columns[i]] = i;
@@ -66,26 +66,22 @@ Item {
             if (tap.noteIndex !== -1) {
                 playfield.removeNote(tap.column, tap.noteIndex);
                 judgementText.text = "HIT";
-                // play animation
                 judgementAnimation.complete();
                 judgementAnimation.start();
             }
         }
         function onMissed(misses) {
             let anyMissed = false;
-            // print all field keys of object misses
             for (let miss in misses) {
                 if (playArea.columns.indexOf(misses[miss].column) === -1) {
                     continue;
                 }
                 anyMissed = true;
-                playfield.removeNote(misses[miss].column, misses[miss].noteIndex);
             }
             if (!anyMissed) {
                 return;
             }
             judgementText.text = "MISS";
-            // play animation
             judgementAnimation.complete();
             judgementAnimation.start();
         }

@@ -6,7 +6,7 @@ Rectangle {
     id: playfield
 
     property list<int> columns
-    property list<int> columnsReversedMapping: {
+    readonly property list<int> columnsReversedMapping: {
         var mapping = [];
         for (var i = 0; i < columns.length; i++) {
             mapping[columns[i]] = i;
@@ -15,9 +15,9 @@ Rectangle {
     }
     property int spacing
 
-    function removeNote(column: int, noteIndex: int) {
-        let col = noteColumnRepeater.itemAt(playfield.columnsReversedMapping[column]);
-        col.removeNote(noteIndex);
+    function removeNote(column: int, index: int) {
+        var noteColumn = noteColumnRepeater.itemAt(columnsReversedMapping[column]);
+        noteColumn.removeNoteAt(index);
     }
 
     color: "black"

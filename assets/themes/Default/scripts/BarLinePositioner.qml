@@ -8,21 +8,6 @@ Item {
 
     anchors.bottom: parent.bottom
 
-    // position barLines according to their timestamp
-    Component.onCompleted: {
-        if (barLines.length === 0) {
-            return;
-        }
-        column.height = barLines[barLines.length - 1].position + heightMultiplier;
-        for (let i = 0; i < barLineRepeater.count; i++) {
-            let note = barLineRepeater.itemAt(i);
-            let notePosition = barLines[i].position * heightMultiplier;
-            // we need to start from the bottom
-            note.y = column.height - notePosition;
-        }
-    }
-
-    // create rectangle for each note
     Repeater {
         id: barLineRepeater
 
@@ -35,6 +20,7 @@ Item {
             color: "darkslategray"
             height: 5
             width: column.width
+            y: -column.barLines[index].position * column.heightMultiplier - height / 2
         }
     }
 }
