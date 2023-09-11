@@ -80,8 +80,21 @@ Rectangle {
             height: root.playfieldHeight
         }
     }
-    Gauge {
+    Row {
         anchors.horizontalCenter: playAreaBorder.horizontalCenter
         anchors.top: playAreaBorder.bottom
+
+        Gauge {
+            id: gauge
+
+        }
+        Item {
+            id: lifeNumberContainer
+
+        }
+        LifeNumber {
+            anchors.verticalCenter: gauge.verticalCenter
+            width: 80
+        }
     }
 }

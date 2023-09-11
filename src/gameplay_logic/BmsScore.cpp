@@ -12,13 +12,16 @@ BmsScore::addTap(Tap tap) -> void
     if (auto points = tap.getPointsOptional()) {
         hitsWithPoints.emplace_back(tap);
         this->points += points->getValue();
-        judgementCounts[points->getJudgementEnum()]++;
+        auto judgement = points->getJudgementEnum();
+        judgementCounts[judgement]++;
+        emit judgementCountsChanged();
         for (auto* gauge : gauges) {
             gauge->addHit(std::chrono::nanoseconds(tap.getOffsetFromStart()),
                           std::chrono::nanoseconds(points->getDeviation()));
         }
-        emit pointsChanged();
-        auto judgement = points->getJudgementEnum();
+        if (points->getValue() != 0.0) {
+            emit pointsChanged();
+        }
         if (judgement == Judgement::Bad) {
             resetCombo();
         } else {
@@ -36,8 +39,14 @@ BmsScore::addMisses(QVector<Miss> newMisses) -> void
         return;
     }
     resetCombo();
+    auto newPointSum = 0.0;
     for (const auto& miss : newMisses) {
         misses.append(miss);
+        points += miss.getPoints().getValue();
+        newPointSum += miss.getPoints().getValue();
+    }
+    if (newPointSum != 0) {
+        emit pointsChanged();
     }
     judgementCounts[Judgement::Poor] += newMisses.size();
     emit judgementCountsChanged();
