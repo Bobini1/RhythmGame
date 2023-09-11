@@ -45,6 +45,9 @@ class BmsScore : public QObject
     int combo = 0;
     int maxCombo = 0;
 
+    void resetCombo();
+    void increaseCombo();
+
   public:
     auto addTap(Tap tap) -> void;
     // for when the chart isn't loaded yet

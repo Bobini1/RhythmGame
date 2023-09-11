@@ -18,6 +18,12 @@ BmsScore::addTap(Tap tap) -> void
                           std::chrono::nanoseconds(points->getDeviation()));
         }
         emit pointsChanged();
+        auto judgement = points->getJudgementEnum();
+        if (judgement == Judgement::Bad) {
+            resetCombo();
+        } else {
+            increaseCombo();
+        }
     } else {
         hitsWithoutPoints.push_back(tap);
     }
@@ -26,6 +32,10 @@ BmsScore::addTap(Tap tap) -> void
 auto
 BmsScore::addMisses(QVector<Miss> newMisses) -> void
 {
+    if (newMisses.empty()) {
+        return;
+    }
+    resetCombo();
     for (const auto& miss : newMisses) {
         misses.append(miss);
     }
@@ -98,6 +108,22 @@ auto
 BmsScore::getGauges() const -> QList<rules::BmsGauge*>
 {
     return gauges;
+}
+void
+BmsScore::increaseCombo()
+{
+    combo++;
+    if (combo > maxCombo) {
+        maxCombo = combo;
+        emit maxComboChanged();
+    }
+    emit comboChanged();
+}
+void
+BmsScore::resetCombo()
+{
+    combo = 0;
+    emit comboChanged();
 }
 
 } // namespace gameplay_logic

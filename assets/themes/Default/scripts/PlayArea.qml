@@ -57,6 +57,9 @@ Item {
             }
         }
     }
+    Judgements {
+        anchors.centerIn: parent
+    }
     Connections {
         function onHit(tap) {
             if (playArea.columns.indexOf(tap.column) === -1) {
@@ -67,47 +70,10 @@ Item {
                 if (tap.removesNote) {
                     playfield.removeNote(tap.column, tap.noteIndex);
                 }
-                console.log(tap.points.judgement);
-                judgementText.text = tap.points.value;
-                judgementAnimation.complete();
-                judgementAnimation.start();
             }
-        }
-        function onMissed(misses) {
-            let anyMissed = false;
-            for (let miss in misses) {
-                if (playArea.columns.indexOf(misses[miss].column) === -1) {
-                    continue;
-                }
-                anyMissed = true;
-            }
-            if (!anyMissed) {
-                return;
-            }
-            judgementText.text = "MISS";
-            judgementAnimation.complete();
-            judgementAnimation.start();
         }
 
         target: chart.score
-    }
-    Text {
-        id: judgementText
-
-        anchors.centerIn: parent
-        color: "white"
-        font.pixelSize: 48
-    }
-    // judgement animation (appear instantly and start getting smaller)
-    PropertyAnimation {
-        id: judgementAnimation
-
-        duration: 500
-        easing.type: Easing.InOutQuad
-        from: 1.0
-        property: "opacity"
-        target: judgementText
-        to: 0.0
     }
     Item {
         id: playAreaBg
