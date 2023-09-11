@@ -52,7 +52,6 @@ struct BmsNotesData
     std::vector<Time> barLines;
     static constexpr auto defaultBpm = 120.0;
     explicit BmsNotesData(const parser_models::ParsedBmsChart& chart);
-    BmsNotesData() = default;
 
   private:
     void generateMeasures(
@@ -62,24 +61,8 @@ struct BmsNotesData
         measures);
     void fillEmptyMeasures(int64_t lastMeasure,
                            int64_t& measureIndex,
-                           Time& measureStart,
+                           BmsNotesData::Time& measureStart,
                            double lastBpm);
-    void calculateOffsetsForColumn(
-      const std::vector<std::string>& notes,
-      std::vector<Note>& target,
-      const std::map<double, std::pair<double, Time>>& bpmChangesInMeasure,
-      double meter);
-    void calculateOffsetsForBgm(
-      const std::vector<std::string>& notes,
-      std::vector<std::pair<Time, std::string>>& target,
-      const std::map<double, std::pair<double, Time>>& bpmChangesInMeasure,
-      double meter);
-    auto createNoteInfo(
-      const std::vector<std::string>& notes,
-      const std::map<double, std::pair<double, Time>>& bpmChangesInMeasure,
-      int index,
-      const std::string& note,
-      double meter) -> std::tuple<Time, std::string, double>;
 };
 } // namespace charts::gameplay_models
 #endif // RHYTHMGAME_BMSNOTESDATA_H

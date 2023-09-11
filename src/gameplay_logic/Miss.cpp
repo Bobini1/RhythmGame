@@ -5,8 +5,12 @@
 #include "Miss.h"
 
 namespace gameplay_logic {
-Miss::Miss(DeltaTime offsetFromStart, int column, int noteIndex)
+Miss::Miss(DeltaTime offsetFromStart,
+           BmsPoints points,
+           int column,
+           int noteIndex)
   : offsetFromStart(offsetFromStart)
+  , points(points)
   , column(column)
   , noteIndex(noteIndex)
 {
@@ -25,5 +29,10 @@ auto
 Miss::getNoteIndex() const -> int
 {
     return noteIndex;
+}
+auto
+Miss::getPoints() const -> BmsPoints
+{
+    return points;
 }
 } // namespace gameplay_logic

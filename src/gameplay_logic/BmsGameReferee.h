@@ -9,25 +9,25 @@
 #include <span>
 #include <boost/container/flat_map.hpp>
 #include "charts/gameplay_models/BmsNotesData.h"
-#include "gameplay_logic/BmsRules.h"
 #include "input/BmsKeys.h"
 #include "BmsScore.h"
 #include "BmsNotes.h"
+#include "gameplay_logic/rules/BmsHitRules.h"
 namespace gameplay_logic {
 class BmsGameReferee
 {
     using BgmType = std::pair<std::chrono::nanoseconds, sounds::OpenALSound*>;
 
-    std::array<std::vector<BmsRules::NoteType>,
+    std::array<std::vector<rules::BmsHitRules::NoteType>,
                charts::gameplay_models::BmsNotesData::columnNumber>
       visibleNotes;
-    std::array<std::vector<BmsRules::NoteType>,
+    std::array<std::vector<rules::BmsHitRules::NoteType>,
                charts::gameplay_models::BmsNotesData::columnNumber>
       invisibleNotes;
-    std::array<std::span<BmsRules::NoteType>,
+    std::array<std::span<rules::BmsHitRules::NoteType>,
                charts::gameplay_models::BmsNotesData::columnNumber>
       currentVisibleNotes;
-    std::array<std::span<BmsRules::NoteType>,
+    std::array<std::span<rules::BmsHitRules::NoteType>,
                charts::gameplay_models::BmsNotesData::columnNumber>
       currentInvisibleNotes;
     std::vector<BgmType> bgms;
@@ -38,7 +38,7 @@ class BmsGameReferee
       currentBpmChanges;
     std::unordered_map<std::string, sounds::OpenALSound> sounds;
     charts::gameplay_models::BmsNotesData::Time timeBeforeChartStart;
-    BmsRules rules;
+    std::unique_ptr<rules::BmsHitRules> hitRules;
     BmsScore* score;
 
   public:
@@ -61,7 +61,7 @@ class BmsGameReferee
       const charts::gameplay_models::BmsNotesData& notesData,
       BmsScore* score,
       std::unordered_map<std::string, sounds::OpenALSound> sounds,
-      gameplay_logic::BmsRules rules,
+      std::unique_ptr<rules::BmsHitRules> hitRules,
       charts::gameplay_models::BmsNotesData::Time timeBeforeChartStart);
     /**
      * @brief Update the internal state of the referee

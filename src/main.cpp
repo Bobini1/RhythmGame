@@ -3,6 +3,7 @@
 #include "resource_managers/models/ThemeConfig.h"
 #include "resource_managers/IniImageProvider.h"
 #include "sounds/OpenAlSound.h"
+#include "gameplay_logic/rules/Lr2TimingWindows.h"
 #include "../RhythmGameQml/SceneUrls.h"
 #include "../RhythmGameQml/ProgramSettings.h"
 #include "../RhythmGameQml/ChartLoader.h"
@@ -15,6 +16,9 @@
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include "sounds/OpenAlSoundBuffer.h"
 #include "../RhythmGameQml/Logger.h"
+#include "gameplay_logic/rules/StandardBmsHitRules.h"
+#include "gameplay_logic/rules/Lr2Gauge.h"
+#include "gameplay_logic/rules/Lr2HitValues.h"
 
 extern "C" {
 #include <libavutil/log.h>
@@ -157,10 +161,26 @@ main(int argc, char* argv[]) -> int
         auto programSettings = qml_components::ProgramSettings{ chartPath };
         qml_components::ProgramSettings::setInstance(&programSettings);
 
+        using namespace std::chrono_literals;
+
         auto chartDataFactory = resource_managers::ChartDataFactory{};
-        auto chartFactory =
-          resource_managers::ChartFactory{ &chartDataFactory };
-        auto chartLoader = qml_components::ChartLoader{ &chartFactory };
+        auto chartFactory = resource_managers::ChartFactory{};
+        auto hitRulesFactory =
+          [](gameplay_logic::rules::TimingWindows timingWindows,
+             std::function<double(std::chrono::nanoseconds)> hitValuesFactory) {
+              return std::make_unique<
+                gameplay_logic::rules::StandardBmsHitRules>(
+                std::move(timingWindows), std::move(hitValuesFactory));
+          };
+        auto chartLoader = qml_components::ChartLoader{
+            &chartDataFactory,
+            &gameplay_logic::rules::lr2_timing_windows::getTimingWindows,
+            std::move(hitRulesFactory),
+            &gameplay_logic::rules::lr2_hit_values::getLr2HitValue,
+            &gameplay_logic::rules::Lr2Gauge::getGauges,
+            &chartFactory,
+            2.0
+        };
         qml_components::ChartLoader::setInstance(&chartLoader);
 
         engine.addImageProvider("ini",

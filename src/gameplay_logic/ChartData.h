@@ -17,10 +17,15 @@ class ChartData : public QObject
 {
     Q_OBJECT
 
-    // use constant properties
     Q_PROPERTY(QString title READ getTitle CONSTANT)
     Q_PROPERTY(QString artist READ getArtist CONSTANT)
-    Q_PROPERTY(QString level READ getLevel CONSTANT)
+    Q_PROPERTY(QString subtitle READ getSubtitle CONSTANT)
+    Q_PROPERTY(QString subartist READ getSubartist CONSTANT)
+    Q_PROPERTY(QString genre READ getGenre CONSTANT)
+    Q_PROPERTY(int rank READ getRank CONSTANT)
+    Q_PROPERTY(double total READ getTotal CONSTANT)
+    Q_PROPERTY(int playLevel READ getPlayLevel CONSTANT)
+    Q_PROPERTY(int difficulty READ getDifficulty CONSTANT)
     Q_PROPERTY(int noteCount READ getNoteCount CONSTANT)
     Q_PROPERTY(int length READ getLength CONSTANT)
     Q_PROPERTY(QUrl directory READ getDirectory CONSTANT)
@@ -29,7 +34,13 @@ class ChartData : public QObject
   public:
     ChartData(QString title,
               QString artist,
-              QString level,
+              QString subtitle,
+              QString subartist,
+              QString genre,
+              int rank,
+              double total,
+              int playLevel,
+              int difficulty,
               int noteCount,
               int length,
               QUrl directory,
@@ -38,18 +49,29 @@ class ChartData : public QObject
 
     [[nodiscard]] auto getTitle() const -> QString;
     [[nodiscard]] auto getArtist() const -> QString;
-    [[nodiscard]] auto getLevel() const -> QString;
+    [[nodiscard]] auto getSubtitle() const -> QString;
+    [[nodiscard]] auto getSubartist() const -> QString;
+    [[nodiscard]] auto getGenre() const -> QString;
     [[nodiscard]] auto getNoteCount() const -> int;
     [[nodiscard]] auto getLength() const -> int;
     [[nodiscard]] auto getDirectory() const -> QUrl;
     [[nodiscard]] auto getNoteData() const -> BmsNotes*;
-
-    [[nodiscard]] auto createEmptyScore() const -> BmsScore*;
+    [[nodiscard]] auto getRank() const -> int;
+    [[nodiscard]] auto getTotal() const -> double;
+    [[nodiscard]] auto getPlayLevel() const -> int;
+    [[nodiscard]] auto getDifficulty() const -> int;
 
   private:
     QString title;
     QString artist;
     QString level;
+    QString subtitle;
+    QString subartist;
+    QString genre;
+    int rank;
+    double total;
+    int playLevel;
+    int difficulty;
     int noteCount;
     int length;
     QUrl directory;

@@ -8,7 +8,13 @@
 
 gameplay_logic::ChartData::ChartData(QString title,
                                      QString artist,
-                                     QString level,
+                                     QString subtitle,
+                                     QString subartist,
+                                     QString genre,
+                                     int rank,
+                                     double total,
+                                     int playLevel,
+                                     int difficulty,
                                      int noteCount,
                                      int length,
                                      QUrl directory,
@@ -17,7 +23,13 @@ gameplay_logic::ChartData::ChartData(QString title,
   : QObject(parent)
   , title(std::move(title))
   , artist(std::move(artist))
-  , level(std::move(level))
+  , subtitle(std::move(subtitle))
+  , subartist(std::move(subartist))
+  , genre(std::move(genre))
+  , rank(rank)
+  , total(total)
+  , playLevel(playLevel)
+  , difficulty(difficulty)
   , noteCount(noteCount)
   , length(length)
   , directory(std::move(directory))
@@ -34,16 +46,6 @@ auto
 gameplay_logic::ChartData::getArtist() const -> QString
 {
     return artist;
-}
-auto
-gameplay_logic::ChartData::getLevel() const -> QString
-{
-    return level;
-}
-auto
-gameplay_logic::ChartData::createEmptyScore() const -> gameplay_logic::BmsScore*
-{
-    return new gameplay_logic::BmsScore(noteCount);
 }
 auto
 gameplay_logic::ChartData::getNoteCount() const -> int
@@ -64,4 +66,39 @@ auto
 gameplay_logic::ChartData::getNoteData() const -> gameplay_logic::BmsNotes*
 {
     return noteData;
+}
+auto
+gameplay_logic::ChartData::getRank() const -> int
+{
+    return rank;
+}
+auto
+gameplay_logic::ChartData::getTotal() const -> double
+{
+    return total;
+}
+auto
+gameplay_logic::ChartData::getPlayLevel() const -> int
+{
+    return playLevel;
+}
+auto
+gameplay_logic::ChartData::getDifficulty() const -> int
+{
+    return difficulty;
+}
+auto
+gameplay_logic::ChartData::getSubtitle() const -> QString
+{
+    return subtitle;
+}
+auto
+gameplay_logic::ChartData::getSubartist() const -> QString
+{
+    return subartist;
+}
+auto
+gameplay_logic::ChartData::getGenre() const -> QString
+{
+    return genre;
 }

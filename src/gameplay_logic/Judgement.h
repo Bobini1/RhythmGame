@@ -10,11 +10,12 @@ namespace gameplay_logic {
 Q_NAMESPACE
 enum class Judgement
 {
-    PERFECT,
-    GREAT,
-    GOOD,
-    BAD,
-    MISS
+    Poor,
+    EmptyPoor,
+    Bad,
+    Good,
+    Great,
+    Perfect
 };
 Q_ENUM_NS(Judgement)
 } // namespace gameplay_logic

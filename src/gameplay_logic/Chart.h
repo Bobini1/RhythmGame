@@ -16,7 +16,7 @@ class Chart : public QObject
 {
     Q_OBJECT
 
-    Q_PROPERTY(int elapsed READ getElapsed NOTIFY elapsedChanged)
+    Q_PROPERTY(int64_t elapsed READ getElapsed NOTIFY elapsedChanged)
     Q_PROPERTY(ChartData* chartData READ getChartData CONSTANT)
     Q_PROPERTY(BmsScore* score READ getScore CONSTANT)
     Q_PROPERTY(double position READ getPosition NOTIFY positionChanged)
@@ -30,7 +30,7 @@ class Chart : public QObject
     BmsScore* score;
     QFuture<gameplay_logic::BmsGameReferee> refereeFuture;
     QFutureWatcher<gameplay_logic::BmsGameReferee> refereeFutureWatcher;
-    int elapsed;
+    int64_t elapsed;
     double position;
     bool startRequested = false;
 
@@ -50,7 +50,7 @@ class Chart : public QObject
 
     Q_INVOKABLE void passKey(int key);
 
-    [[nodiscard]] auto getElapsed() const -> int;
+    [[nodiscard]] auto getElapsed() const -> int64_t;
 
     [[nodiscard]] auto getChartData() const -> ChartData*;
 

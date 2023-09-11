@@ -107,13 +107,31 @@ ChartDataFactory::loadChartData(const QUrl& chartPath) const
         noteCount += column.size();
     }
     auto* noteData = makeNotes(calculatedNotesData);
-    // todo: length
+
+    auto lastNoteTimestamp = std::chrono::nanoseconds{ 0 };
+    for (const auto& column : calculatedNotesData.visibleNotes) {
+        if (column.empty()) {
+            continue;
+        }
+        auto lastNote = column.back();
+        if (lastNote.time.timestamp > lastNoteTimestamp) {
+            lastNoteTimestamp = lastNote.time.timestamp;
+        }
+    }
     auto* chartData = new gameplay_logic::ChartData{
         QString::fromStdString(parsedChart.tags.title.value_or("")),
         QString::fromStdString(parsedChart.tags.artist.value_or("")),
+        QString::fromStdString(parsedChart.tags.subTitle.value_or("")),
+        QString::fromStdString(parsedChart.tags.subArtist.value_or("")),
         QString::fromStdString(parsedChart.tags.genre.value_or("")),
+        parsedChart.tags.rank.value_or(2),
+        parsedChart.tags.total.value_or(160.0),
+        parsedChart.tags.playLevel.value_or(1),
+        parsedChart.tags.difficulty.value_or(1),
         noteCount,
-        120'000,
+        static_cast<int>(std::chrono::duration_cast<std::chrono::milliseconds>(
+                           lastNoteTimestamp)
+                           .count()),
         QFileInfo{ chartPath.toLocalFile() }.absolutePath(),
         noteData
     };

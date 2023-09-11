@@ -7,12 +7,16 @@
 
 namespace resource_managers {
 auto
-ChartFactory::createChart(const QString& filename) -> gameplay_logic::Chart*
+ChartFactory::createChart(
+  ChartDataFactory::ChartComponents chartComponents,
+  std::unique_ptr<gameplay_logic::rules::BmsHitRules> hitRules,
+  QList<gameplay_logic::rules::BmsGauge*> gauges,
+  double maxHitValue) -> gameplay_logic::Chart*
 {
-    auto [chartData, notesData, wavs] =
-      chartDataFactory->loadChartData(filename);
+    auto& [chartData, notesData, wavs] = chartComponents;
     auto path = chartData->getDirectory().toString().toStdString();
-    auto* score = chartData->createEmptyScore();
+    auto* score = new gameplay_logic::BmsScore(
+      chartData->getNoteCount(), maxHitValue, std::move(gauges));
     auto beatsBeforeChartStart =
       std::chrono::duration<double>(timeBeforeChartStart).count() *
       chartData->getNoteData()->getBpmChanges().first().bpm / 60;
@@ -23,23 +27,22 @@ ChartFactory::createChart(const QString& filename) -> gameplay_logic::Chart*
                  combinedTimeBeforeChartStart,
                  wavs = std::move(wavs),
                  notesData = std::move(notesData),
-                 score] {
+                 score,
+                 hitRules = std::move(hitRules)]() mutable {
         auto sounds =
           charts::helper_functions::loadBmsSounds(wavs, std::move(path));
         return gameplay_logic::BmsGameReferee(notesData,
                                               score,
                                               std::move(sounds),
-                                              gameplay_logic::BmsRules{},
+                                              std::move(hitRules),
                                               combinedTimeBeforeChartStart);
     };
     auto referee = QtConcurrent::run(std::move(task));
     return new gameplay_logic::Chart(
       std::move(referee), chartData, score, combinedTimeBeforeChartStart);
 }
-ChartFactory::ChartFactory(ChartDataFactory* chartDataFactory,
-                           std::chrono::nanoseconds timeBeforeChartStart)
-  : chartDataFactory(chartDataFactory)
-  , timeBeforeChartStart(timeBeforeChartStart)
+ChartFactory::ChartFactory(std::chrono::nanoseconds timeBeforeChartStart)
+  : timeBeforeChartStart(timeBeforeChartStart)
 {
 }
 } // namespace resource_managers

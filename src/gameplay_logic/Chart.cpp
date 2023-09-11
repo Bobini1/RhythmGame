@@ -17,9 +17,7 @@ Chart::Chart(QFuture<gameplay_logic::BmsGameReferee> refereeFuture,
   , chartData(chartData)
   , score(std::move(score))
   , refereeFuture(std::move(refereeFuture))
-  , elapsed(-std::chrono::duration_cast<std::chrono::milliseconds>(
-               timeBeforeChartStart.timestamp)
-               .count())
+  , elapsed(-timeBeforeChartStart.timestamp.count())
   , position(-timeBeforeChartStart.position)
 {
     chartData->setParent(this);
@@ -70,7 +68,7 @@ Chart::updateElapsed()
 }
 
 auto
-Chart::getElapsed() const -> int
+Chart::getElapsed() const -> int64_t
 {
     return elapsed;
 }

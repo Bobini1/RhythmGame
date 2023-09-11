@@ -12,13 +12,14 @@ BmsScore::addTap(Tap tap) -> void
     if (auto points = tap.getPointsOptional()) {
         hitsWithPoints.emplace_back(tap);
         this->points += points->getValue();
-        judgementCounts[points->getJudgement()]++;
+        judgementCounts[points->getJudgementEnum()]++;
+        for (auto* gauge : gauges) {
+            gauge->addHit(std::chrono::nanoseconds(tap.getOffsetFromStart()),
+                          std::chrono::nanoseconds(points->getDeviation()));
+        }
         emit pointsChanged();
-        emit judgementCountsChanged();
-        emit hitsWithPointsChanged();
     } else {
         hitsWithoutPoints.push_back(tap);
-        emit hitsWithoutPointsChanged();
     }
     emit hit(tap);
 }
@@ -27,20 +28,30 @@ BmsScore::addMisses(QVector<Miss> newMisses) -> void
 {
     for (const auto& miss : newMisses) {
         misses.append(miss);
-        judgementCounts[Judgement::MISS]++;
     }
-    emit missesChanged();
+    judgementCounts[Judgement::Poor] += newMisses.size();
     emit judgementCountsChanged();
     auto newMissesVariantList = QVariantList{};
     for (const auto& miss : newMisses) {
         newMissesVariantList.append(QVariant::fromValue(miss));
     }
+    for (auto* gauge : gauges) {
+        for (const auto& miss : newMisses) {
+            gauge->addHit(
+              std::chrono::nanoseconds(miss.getOffsetFromStart()),
+              std::chrono::nanoseconds(miss.getPoints().getDeviation()));
+        }
+    }
     emit missed(std::move(newMissesVariantList));
 }
-BmsScore::BmsScore(int maxHits, QObject* parent)
+BmsScore::BmsScore(int maxHits,
+                   double maxHitValue,
+                   QList<rules::BmsGauge*> gauges,
+                   QObject* parent)
   : QObject(parent)
-  , maxPoints(maxHits * BmsPoints::maxValue)
+  , maxPoints(maxHits * maxHitValue)
   , maxHits(maxHits)
+  , gauges(std::move(gauges))
 {
 }
 auto
@@ -72,6 +83,21 @@ auto
 BmsScore::sendVisualOnlyTap(Tap tap) -> void
 {
     emit hit(tap);
+}
+auto
+BmsScore::getCombo() const -> int
+{
+    return combo;
+}
+auto
+BmsScore::getMaxCombo() const -> int
+{
+    return maxCombo;
+}
+auto
+BmsScore::getGauges() const -> QList<rules::BmsGauge*>
+{
+    return gauges;
 }
 
 } // namespace gameplay_logic

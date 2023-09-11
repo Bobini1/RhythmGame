@@ -64,8 +64,11 @@ Item {
             }
             laserRow.shootLaser(tap.column);
             if (tap.noteIndex !== -1) {
-                playfield.removeNote(tap.column, tap.noteIndex);
-                judgementText.text = "HIT";
+                if (tap.removesNote) {
+                    playfield.removeNote(tap.column, tap.noteIndex);
+                }
+                console.log(tap.points.judgement);
+                judgementText.text = tap.points.value;
                 judgementAnimation.complete();
                 judgementAnimation.start();
             }

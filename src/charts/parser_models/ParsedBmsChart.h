@@ -45,10 +45,14 @@ struct ParsedBmsChart
     {
         std::optional<std::string> title;
         std::optional<std::string> artist;
-        std::optional<double> bpm;
         std::optional<std::string> subTitle;
         std::optional<std::string> subArtist;
         std::optional<std::string> genre;
+        std::optional<double> bpm;
+        std::optional<double> total;
+        std::optional<int> rank;
+        std::optional<int> playLevel;
+        std::optional<int> difficulty;
         std::map<std::string, double> exBpms;
         std::map<std::string, std::string> wavs;
         std::map<int64_t, Measure> measures;
