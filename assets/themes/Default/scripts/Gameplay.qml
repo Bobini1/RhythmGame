@@ -97,4 +97,28 @@ Rectangle {
             width: 80
         }
     }
+    Rectangle {
+        anchors.bottom: playAreaBorder.bottom
+        anchors.left: playAreaBorder.right
+        color: "darkslategray"
+        height: childrenRect.height
+        width: 120
+
+        Column {
+            anchors.leftMargin: 8
+            anchors.left: parent.left
+            Repeater {
+                id: judgementCounts
+
+                model: ["Perfect", "Great", "Good", "Bad", "Poor", "EmptyPoor"]
+
+                delegate: Text {
+                    color: "white"
+                    text: modelData + ": " + ((chart.score.judgementCounts[modelData] !== undefined) ? chart.score.judgementCounts[modelData] : 0)
+
+                    font.pixelSize: 16
+                }
+            }
+        }
+    }
 }
