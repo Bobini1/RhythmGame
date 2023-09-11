@@ -16,11 +16,9 @@ gameplay_logic::rules::Lr2Gauge::addHit(
         return;
     }
     auto judgement = timingWindows.find(hitOffset);
-    if (judgement == timingWindows.end()) {
-        return;
-    }
-    auto judgementValue =
-      judgementValueFactory(currentGauge, judgement->second);
+    auto judgementValue = judgementValueFactory(
+      currentGauge,
+      judgement == timingWindows.end() ? Judgement::Poor : judgement->second);
     auto newGauge =
       std::clamp(currentGauge + judgementValue, 0.0, getGaugeMax());
     if (newGauge != currentGauge) {
@@ -100,7 +98,7 @@ gameplay_logic::rules::Lr2Gauge::getGauges(
                    100,
                    0,
                    true,
-                   [totalRatio](double currentGauge, Judgement judgement) {
+                   [](double currentGauge, Judgement judgement) {
                        switch (judgement) {
                            case Judgement::Perfect:
                                return 0.1;
@@ -109,11 +107,11 @@ gameplay_logic::rules::Lr2Gauge::getGauges(
                            case Judgement::Good:
                                return 0.05;
                            case Judgement::Bad:
-                               return -6.0;
+                               return (currentGauge > 30) ? -6.0 : -3.6;
                            case Judgement::Poor:
-                               return -10.0;
+                               return (currentGauge > 30) ? -10.0 : -6.0;
                            case Judgement::EmptyPoor:
-                               return -2.0;
+                               return (currentGauge > 30) ? -2.0 : -1.2;
                        }
                        throw std::runtime_error("Invalid judgement");
                    });
@@ -181,11 +179,11 @@ gameplay_logic::rules::Lr2Gauge::getGauges(
                    [totalRatio](double currentGauge, Judgement judgement) {
                        switch (judgement) {
                            case Judgement::Perfect:
-                               return totalRatio * 0.5;
+                               return totalRatio;
                            case Judgement::Great:
-                               return totalRatio * 0.5;
+                               return totalRatio;
                            case Judgement::Good:
-                               return totalRatio * 0.25;
+                               return totalRatio * 0.5;
                            case Judgement::Bad:
                                return -1.5;
                            case Judgement::Poor:
