@@ -17,6 +17,9 @@ Item {
             focus: true
 
             Keys.onPressed: event => {
+                if (event.isAutoRepeat) {
+                    return;
+                }
                 if (event.key === Qt.Key_Escape) {
                     sceneStack.pop();
                 } else {
