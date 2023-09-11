@@ -137,7 +137,7 @@ Item {
         anchors.fill: glow
         foregroundSource: glow
         mode: "addition"
-        opacity: ((chart.position % 1) > 0.5 ? (chart.position % 1) : 1 - (chart.position % 1)) * 0.2 + 0.1
+        opacity: (Math.abs(chart.position % 1) > 0.5 ? Math.abs(chart.position % 1) : 1 - Math.abs(chart.position % 1)) * 0.2 + 0.1
         source: playAreaBg
         z: -1
     }
