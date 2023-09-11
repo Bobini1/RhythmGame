@@ -20,8 +20,8 @@ Rectangle {
         return sizes;
     }
     property double greenNumber: 400
-    property string imagesUrl: rootUrl + "../Images/"
-    property string iniImagesUrl: rootUrl.replace("file://", "image://ini/") + "../Images/"
+    readonly property string imagesUrl: rootUrl + "../Images/"
+    readonly property string iniImagesUrl: rootUrl.replace("file://", "image://ini/") + "../Images/"
     property list<string> laserImages: {
         let images = [];
         for (let i = 0; i < 16; i++) {
@@ -79,5 +79,9 @@ Rectangle {
             columns: [7, 0, 1, 2, 3, 4, 5, 6]
             height: root.playfieldHeight
         }
+    }
+    Gauge {
+        anchors.horizontalCenter: playAreaBorder.horizontalCenter
+        anchors.top: playAreaBorder.bottom
     }
 }
