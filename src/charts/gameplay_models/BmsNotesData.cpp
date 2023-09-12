@@ -199,12 +199,12 @@ BmsNotesData::generateMeasures(
               measure.meter);
             calculateOffsetsForColumn(
               measure.p2VisibleNotes[i],
-              visibleNotes[columnMapping[i] + columnNumber / 2],
+              visibleNotes[columnMapping[i] + columnMapping.size() / 2],
               bpmChangesInMeasure,
               measure.meter);
             calculateOffsetsForColumn(
               measure.p2InvisibleNotes[i],
-              invisibleNotes[columnMapping[i] + columnNumber / 2],
+              invisibleNotes[columnMapping[i] + columnMapping.size() / 2],
               bpmChangesInMeasure,
               measure.meter);
         }
