@@ -26,10 +26,10 @@ class BmsGameReferee
       invisibleNotes;
     std::array<int,
                charts::gameplay_models::BmsNotesData::columnNumber>
-      currentVisibleNotes;
+      currentVisibleNotes{};
     std::array<int,
                charts::gameplay_models::BmsNotesData::columnNumber>
-      currentInvisibleNotes;
+      currentInvisibleNotes{};
     std::vector<BgmType> bgms;
     std::span<BgmType> currentBgms;
     std::vector<std::pair<charts::gameplay_models::BmsNotesData::Time, double>>
