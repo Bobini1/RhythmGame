@@ -32,7 +32,6 @@ gameplay_logic::BmsGameReferee::BmsGameReferee(
                 visibleNotes[i].emplace_back(nullptr, note.time.timestamp);
             }
         }
-        currentVisibleNotes[i] = visibleNotes[i];
         for (const auto& note : notesData.invisibleNotes[i]) {
             auto soundId = note.sound;
             if (auto sound = this->sounds.find(soundId);
@@ -41,7 +40,6 @@ gameplay_logic::BmsGameReferee::BmsGameReferee(
                                                note.time.timestamp);
             }
         }
-        currentInvisibleNotes[i] = invisibleNotes[i];
     }
     for (const auto& bgmNote : notesData.bgmNotes) {
         auto soundId = bgmNote.second;
@@ -61,25 +59,22 @@ gameplay_logic::BmsGameReferee::update(std::chrono::nanoseconds offsetFromStart)
     auto misses = QVector<Miss>{};
     for (auto columnIndex = 0; columnIndex < currentVisibleNotes.size();
          columnIndex++) {
-        auto& column = currentVisibleNotes[columnIndex];
-        auto [newMisses, skipCount] =
-          hitRules->getMisses(column, offsetFromStart);
-        for (auto [offset, points, iter] : newMisses) {
+        auto column = visibleNotes[columnIndex];
+        auto newMisses =
+          hitRules->getMisses(column, currentVisibleNotes[columnIndex], offsetFromStart);
+        for (auto [offset, points, noteIndex] : newMisses) {
             misses.append(
               { offset.count(),
                 points,
-                columnIndex,
-                static_cast<int>(iter.base() -
-                                 visibleNotes[columnIndex].begin().base()) });
+                columnIndex, noteIndex });
         }
-        column = column.subspan(skipCount);
     }
     if (!misses.empty()) {
         score->addMisses(std::move(misses));
     }
-    for (auto& column : currentInvisibleNotes) {
-        auto skipped = hitRules->skipInvisible(column, offsetFromStart);
-        column = column.subspan(skipped);
+    for (auto columnIndex = 0; columnIndex < currentInvisibleNotes.size();
+         columnIndex++) {
+        hitRules->skipInvisible(invisibleNotes[columnIndex], currentInvisibleNotes[columnIndex], offsetFromStart);
     }
     for (const auto& bgm : currentBgms) {
         auto played = 0;
@@ -104,28 +99,31 @@ gameplay_logic::BmsGameReferee::passInput(
         columnIndex >= charts::gameplay_models::BmsNotesData::columnNumber) {
         return;
     }
-    auto& column = currentVisibleNotes[columnIndex];
-    auto& invisibleColumn = currentInvisibleNotes[columnIndex];
-    auto res = hitRules->visibleNoteHit(column, offsetFromStart);
+    auto res = hitRules->visibleNoteHit(visibleNotes[columnIndex],  currentVisibleNotes[columnIndex], offsetFromStart);
     if (!res) {
-        if (!hitRules->invisibleNoteHit(invisibleColumn, offsetFromStart)) {
+        if (!hitRules->invisibleNoteHit(invisibleNotes[columnIndex], currentInvisibleNotes[columnIndex], offsetFromStart)) {
             playLastKeysound(columnIndex, offsetFromStart);
         }
         score->addTap(
           { columnIndex, std::nullopt, offsetFromStart.count(), std::nullopt });
         return;
     }
-    auto [points, iter] = *res;
+    auto [points, noteIndex] = *res;
     score->addTap({ columnIndex,
-                    iter.base() - visibleNotes[columnIndex].begin().base(),
+                    noteIndex,
                     offsetFromStart.count(),
                     points });
 }
 auto
 gameplay_logic::BmsGameReferee::isOver() const -> bool
 {
-    return !std::ranges::any_of(
-      currentVisibleNotes, [](const auto& column) { return !column.empty(); });
+    for (auto column = 0; column < visibleNotes.size(); column++)
+    {
+        if (visibleNotes[column].size() != currentVisibleNotes[column]) {
+            return false;
+        }
+    }
+    return true;
 }
 auto
 gameplay_logic::BmsGameReferee::getPosition(
@@ -156,8 +154,8 @@ gameplay_logic::BmsGameReferee::playLastKeysound(
   std::chrono::nanoseconds offsetFromStart)
 {
     using namespace std::chrono_literals;
-    auto& visibleColumn = currentVisibleNotes[index];
-    auto& invisibleColumn = currentInvisibleNotes[index];
+    auto visibleColumn = std::span(visibleNotes[index]).subspan(currentVisibleNotes[index]);
+    auto invisibleColumn = std::span(invisibleNotes[index]).subspan(currentInvisibleNotes[index]);
     auto lastNote = std::ranges::find_if(
       visibleColumn,
       [offsetFromStart](const rules::BmsHitRules::NoteType& note) {

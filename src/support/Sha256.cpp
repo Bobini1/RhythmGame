@@ -3,6 +3,7 @@
 //
 
 #include "Sha256.h"
+#include <array>
 namespace support {
 auto
 sha256(std::string_view str) -> Sha256

@@ -132,8 +132,8 @@ main(int argc, char* argv[]) -> int
                   assetsFolder / "themes" / "Default" / "scripts" /
                   "scripts.ini")["ScriptNames"];
                 const auto scriptsFolder = QUrl::fromLocalFile(
-                  QString::fromStdString(assetsFolder / "themes" / "Default" /
-                                         "scripts") +
+                  QString::fromStdString((assetsFolder / "themes" / "Default" /
+                                         "scripts").string()) +
                   '/');
                 return resource_managers::models::ThemeConfig{
                     scriptsFolder.resolved(

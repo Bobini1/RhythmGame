@@ -25,30 +25,33 @@ class BmsHitRules
     struct HitResult
     {
         BmsPoints points;
-        std::span<NoteType>::iterator note;
+        int noteIndex;
     };
     struct MissData
     {
         std::chrono::nanoseconds offsetFromStart;
         BmsPoints points;
-        std::span<NoteType>::iterator note;
+        int noteIndex;
     };
     virtual ~BmsHitRules() = default;
 
-    virtual auto visibleNoteHit(std::span<NoteType>& notes,
+    virtual auto visibleNoteHit(std::span<NoteType> notes,
+                                int currentNoteIndex,
                                 std::chrono::nanoseconds hitOffset)
       -> std::optional<HitResult> = 0;
 
     virtual auto getMisses(std::span<NoteType> notes,
+                           int& currentNoteIndex,
                            std::chrono::nanoseconds offsetFromStart)
-      -> std::pair<std::vector<MissData>, int> = 0;
+      -> std::vector<MissData> = 0;
 
-    virtual auto invisibleNoteHit(std::span<NoteType>& notes,
+    virtual auto invisibleNoteHit(std::span<NoteType> notes,
+                                  int currentNoteIndex,
                                   std::chrono::nanoseconds hitOffset)
       -> bool = 0;
-    virtual auto skipInvisible(std::span<NoteType> notes,
-                               std::chrono::nanoseconds offsetFromStart)
-      -> int = 0;
+    virtual void skipInvisible(std::span<NoteType> notes,
+                               int& currentNoteIndex,
+                               std::chrono::nanoseconds offsetFromStart) = 0;
 };
 
 } // namespace gameplay_logic::rules

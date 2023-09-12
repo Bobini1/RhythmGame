@@ -24,10 +24,10 @@ class BmsGameReferee
     std::array<std::vector<rules::BmsHitRules::NoteType>,
                charts::gameplay_models::BmsNotesData::columnNumber>
       invisibleNotes;
-    std::array<std::span<rules::BmsHitRules::NoteType>,
+    std::array<int,
                charts::gameplay_models::BmsNotesData::columnNumber>
       currentVisibleNotes;
-    std::array<std::span<rules::BmsHitRules::NoteType>,
+    std::array<int,
                charts::gameplay_models::BmsNotesData::columnNumber>
       currentInvisibleNotes;
     std::vector<BgmType> bgms;

@@ -5,11 +5,13 @@
 #include "StandardBmsHitRules.h"
 auto
 gameplay_logic::rules::StandardBmsHitRules::visibleNoteHit(
-  std::span<NoteType>& notes,
+  std::span<NoteType> notes,
+  int currentNoteIndex,
   std::chrono::nanoseconds hitOffset) -> std::optional<HitResult>
 {
     auto emptyPoor = std::optional<HitResult>{};
-    for (auto iter = notes.begin(); iter != notes.end(); iter++) {
+    notes = notes.subspan(currentNoteIndex);
+    for (auto iter = notes.begin(); iter < notes.end(); iter++) {
         auto& [sound, noteTime, hit] = *iter;
         if (hit) {
             continue;
@@ -30,28 +32,29 @@ gameplay_logic::rules::StandardBmsHitRules::visibleNoteHit(
                                  result,
                                  (hitOffset - noteTime).count(),
                                  /*noteRemoved=*/true),
-                       iter } };
+                       static_cast<int>(iter - notes.begin() + currentNoteIndex )} };
         }
         emptyPoor = { { BmsPoints(hitValueFactory(hitOffset - noteTime),
                                   result,
                                   (hitOffset - noteTime).count(),
                                   /*noteRemoved=*/false),
-                        iter } };
+                        static_cast<int>(iter - notes.begin() + currentNoteIndex ) } };
     }
     return emptyPoor;
 }
 auto
 gameplay_logic::rules::StandardBmsHitRules::getMisses(
   std::span<NoteType> notes,
+  int& currentNoteIndex,
   std::chrono::nanoseconds offsetFromStart)
-  -> std::pair<std::vector<MissData>, int>
+  -> std::vector<MissData>
 {
     auto misses = std::vector<MissData>{};
-    auto count = 0;
+    notes = notes.subspan(currentNoteIndex);
     auto upperBound = timingWindows.rbegin()->first.upper();
     for (auto& [sound, noteTime, hit] : notes) {
         if (hit) {
-            count++;
+            currentNoteIndex++;
             continue;
         }
         if (offsetFromStart >= noteTime + upperBound) {
@@ -60,19 +63,21 @@ gameplay_logic::rules::StandardBmsHitRules::getMisses(
                                           Judgement::Poor,
                                           (noteTime + upperBound).count(),
                                           /*noteRemoved=*/true),
-                                notes.begin() + count);
-            count++;
+                                currentNoteIndex);
+            currentNoteIndex++;
         } else {
             break;
         }
     }
-    return { std::move(misses), count };
+    return misses;
 }
 auto
 gameplay_logic::rules::StandardBmsHitRules::invisibleNoteHit(
-  std::span<NoteType>& notes,
+  std::span<NoteType> notes,
+  int currentNoteIndex,
   std::chrono::nanoseconds hitOffset) -> bool
 {
+    notes = notes.subspan(currentNoteIndex);
     for (auto& [sound, noteTime, hit] : notes) {
         if (hit) {
             continue;
@@ -89,25 +94,25 @@ gameplay_logic::rules::StandardBmsHitRules::invisibleNoteHit(
     }
     return false;
 }
-auto
+void
 gameplay_logic::rules::StandardBmsHitRules::skipInvisible(
   std::span<NoteType> notes,
-  std::chrono::nanoseconds offsetFromStart) -> int
+  int& currentNoteIndex,
+  std::chrono::nanoseconds offsetFromStart)
 {
-    auto count = 0;
+    notes = notes.subspan(currentNoteIndex);
     for (auto& [sound, noteTime, hit] : notes) {
         if (hit) {
-            count++;
+            currentNoteIndex++;
             continue;
         }
         if (noteTime <=
             offsetFromStart - timingWindows.begin()->first.lower()) {
-            count++;
+            currentNoteIndex++;
         } else {
             break;
         }
     }
-    return count;
 }
 gameplay_logic::rules::StandardBmsHitRules::StandardBmsHitRules(
   gameplay_logic::rules::TimingWindows timingWindows,

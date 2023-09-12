@@ -82,6 +82,7 @@ getTimingWindows(BmsRank type) -> TimingWindows
         case BmsRank::VeryHard:
             return judgeVeryHard();
     }
+    throw std::invalid_argument("Invalid rank");
 }
 
 } // namespace gameplay_logic::rules::lr2_timing_windows

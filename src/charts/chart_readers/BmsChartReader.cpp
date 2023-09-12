@@ -67,7 +67,7 @@ struct FloatingPoint
       lexy::as_string<std::string> |
       lexy::callback<double>([](std::string&& str) {
           auto val = parser_models::ParsedBmsChart::Measure::defaultMeter;
-          auto err = std::from_chars(str.c_str(), str.end().base(), val);
+          auto err = std::from_chars(str.c_str(), str.c_str() + str.size(), val);
           if (err.ec != std::errc{}) {
               spdlog::error("Failed to parse meter: {}", str);
           }

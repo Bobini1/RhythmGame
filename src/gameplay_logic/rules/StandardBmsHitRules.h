@@ -25,19 +25,22 @@ class StandardBmsHitRules : public BmsHitRules
     explicit StandardBmsHitRules(
       TimingWindows timingWindows,
       std::function<double(std::chrono::nanoseconds)> hitValueFactory);
-    auto visibleNoteHit(std::span<NoteType>& notes,
+    auto visibleNoteHit(std::span<NoteType> notes,
+                        int currentNoteIndex,
                         std::chrono::nanoseconds hitOffset)
       -> std::optional<HitResult> override;
 
     auto getMisses(std::span<NoteType> notes,
+                   int& currentNoteIndex,
                    std::chrono::nanoseconds offsetFromStart)
-      -> std::pair<std::vector<MissData>, int> override;
+      -> std::vector<MissData> override;
 
-    auto invisibleNoteHit(std::span<NoteType>& notes,
+    auto invisibleNoteHit(std::span<NoteType> notes,
+                          int currentNoteIndex,
                           std::chrono::nanoseconds hitOffset) -> bool override;
-    auto skipInvisible(std::span<NoteType> notes,
-                       std::chrono::nanoseconds offsetFromStart)
-      -> int override;
+    void skipInvisible(std::span<NoteType> notes,
+                       int& currentNoteIndex,
+                       std::chrono::nanoseconds offsetFromStart) override;
 };
 } // namespace gameplay_logic::rules
 
