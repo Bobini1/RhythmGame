@@ -98,7 +98,12 @@ ChartDataFactory::loadChartData(const QUrl& chartPath) const
     if (encodingName.empty()) {
         throw std::runtime_error{ "Failed to detect encoding" };
     }
-    auto chartUtf = boost::locale::conv::to_utf<char>(chart, encodingName);
+    auto chartUtf = [&]{
+        if (encodingName == "ASCII") {
+            return chart;
+        }
+        return boost::locale::conv::to_utf<char>(chart, encodingName);
+    }();
     auto parsedChart = chartReader.readBmsChart(chartUtf);
     auto calculatedNotesData =
       charts::gameplay_models::BmsNotesData{ parsedChart };
