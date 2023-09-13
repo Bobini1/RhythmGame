@@ -95,6 +95,7 @@
       ],
       "generator": "Visual Studio 17 2022",
       "architecture": "x64",
+      "toolset": "v143",
       "hidden": true
     },
     {
