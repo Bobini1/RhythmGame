@@ -9,9 +9,9 @@
 namespace resource_managers::models {
 struct ThemeConfig
 {
-    QUrl mainScene;
-    QUrl gameplayScene;
-    QUrl songWheelScene;
+    QString mainScene;
+    QString gameplayScene;
+    QString songWheelScene;
 };
 } // namespace resource_managers::models
 

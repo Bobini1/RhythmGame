@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Window
 import QtQml
 import QtQuick.Layouts
+import RhythmGameQml
 
 Rectangle {
     id: root
@@ -21,7 +22,7 @@ Rectangle {
     }
     property double greenNumber: 400
     readonly property string imagesUrl: rootUrl + "../Images/"
-    readonly property string iniImagesUrl: rootUrl.replace("file://", "image://ini/") + "../Images/"
+    readonly property string iniImagesUrl: "image://ini/" + rootUrl + "../Images/"
     property list<string> laserImages: {
         let images = [];
         for (let i = 0; i < 16; i++) {
@@ -47,7 +48,15 @@ Rectangle {
         return images;
     }
     property double playfieldHeight: 800
-    property string rootUrl: Qt.resolvedUrl(".").toString()
+    property string rootUrl: {
+        let thisFile = SceneUrls.gameplaySceneUrl;
+        // convert to string
+        thisFile = thisFile.toString();
+        console.log(thisFile);
+        let url = thisFile.substring(0, thisFile.lastIndexOf("/") + 1);
+        let rootUrl = url.substring(0, url.lastIndexOf("/") + 1);
+        return rootUrl;
+    }
 
     anchors.fill: parent
     color: "black"
@@ -105,8 +114,9 @@ Rectangle {
         width: 120
 
         Column {
-            anchors.leftMargin: 8
             anchors.left: parent.left
+            anchors.leftMargin: 8
+
             Repeater {
                 id: judgementCounts
 
@@ -114,9 +124,8 @@ Rectangle {
 
                 delegate: Text {
                     color: "white"
-                    text: modelData + ": " + ((chart.score.judgementCounts[modelData] !== undefined) ? chart.score.judgementCounts[modelData] : 0)
-
                     font.pixelSize: 16
+                    text: modelData + ": " + ((chart.score.judgementCounts[modelData] !== undefined) ? chart.score.judgementCounts[modelData] : 0)
                 }
             }
         }

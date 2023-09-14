@@ -46,20 +46,20 @@ qml_components::SceneUrls::refreshThemeConfig()
     auto newThemeConfig = themeConfigFactory();
     if (newThemeConfig.gameplayScene != themeConfig.gameplayScene) {
         spdlog::info("Gameplay scene changed from {} to {}",
-                     themeConfig.gameplayScene.toString().toStdString(),
-                     newThemeConfig.gameplayScene.toString().toStdString());
+                     themeConfig.gameplayScene.toStdString(),
+                     newThemeConfig.gameplayScene.toStdString());
         emit gameplaySceneUrlChanged();
     }
     if (newThemeConfig.mainScene != themeConfig.mainScene) {
         spdlog::info("Main scene changed from {} to {}",
-                     themeConfig.mainScene.toString().toStdString(),
-                     newThemeConfig.mainScene.toString().toStdString());
+                     themeConfig.mainScene.toStdString(),
+                     newThemeConfig.mainScene.toStdString());
         emit mainSceneUrlChanged();
     }
     if (newThemeConfig.songWheelScene != themeConfig.songWheelScene) {
         spdlog::info("Song wheel scene changed from {} to {}",
-                     themeConfig.songWheelScene.toString().toStdString(),
-                     newThemeConfig.songWheelScene.toString().toStdString());
+                     themeConfig.songWheelScene.toStdString(),
+                     newThemeConfig.songWheelScene.toStdString());
         emit songWheelSceneUrlChanged();
     }
     themeConfig = std::move(newThemeConfig);

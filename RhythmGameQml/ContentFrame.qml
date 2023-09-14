@@ -32,7 +32,7 @@ Item {
                 id: loader
 
                 anchors.fill: parent
-                source: SceneUrls.gameplaySceneUrl
+                source: "file://" + SceneUrls.gameplaySceneUrl
             }
         }
     }
@@ -40,8 +40,8 @@ Item {
         id: root
 
         readonly property Component gameplayComponent: chartContext
-        readonly property Component mainComponent: Qt.createComponent(SceneUrls.mainSceneUrl)
-        readonly property Component songWheelComponent: Qt.createComponent(SceneUrls.songWheelSceneUrl)
+        readonly property Component mainComponent: Qt.createComponent("file://" + SceneUrls.mainSceneUrl)
+        readonly property Component songWheelComponent: Qt.createComponent("file://" + SceneUrls.songWheelSceneUrl)
 
         function openChart(path: url) {
             let chart = ChartLoader.loadChart(path);

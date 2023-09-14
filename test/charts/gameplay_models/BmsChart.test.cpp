@@ -45,8 +45,9 @@ TEST_CASE("A chart with a single note is created successfully",
     static constexpr auto measureLength = std::chrono::nanoseconds(
       static_cast<int64_t>(60.0 * 4 * 1000 * 1000 * 1000 / bpm));
     REQUIRE(chart.visibleNotes[0][0].time.timestamp == measureLength * 3 / 2);
-    for (auto index = 1ul; index < charts::gameplay_models::BmsNotesData::columnNumber; index++)
-    {
+    for (auto index = 1ul;
+         index < charts::gameplay_models::BmsNotesData::columnNumber;
+         index++) {
         REQUIRE(chart.visibleNotes[index].empty());
     }
     for (const auto& column : chart.invisibleNotes) {
@@ -123,7 +124,8 @@ TEST_CASE("Multiple BPM changes mid-measure are handled correctly",
     REQUIRE(chart.bpmChanges[0].second == Catch::Approx(bpm));
     REQUIRE(chart.bpmChanges[1].first.timestamp == measureLength);
     REQUIRE(chart.bpmChanges[1].second == Catch::Approx(bpm2));
-    REQUIRE(chart.bpmChanges[2].first.timestamp == measureLength + halvedBpmPeriod);
+    REQUIRE(chart.bpmChanges[2].first.timestamp ==
+            measureLength + halvedBpmPeriod);
     REQUIRE(chart.bpmChanges[2].second == Catch::Approx(bpm3));
 }
 
@@ -144,6 +146,8 @@ TEST_CASE("Bgm notes have the right timestamps", "[BmsNotesData]")
       2;
     REQUIRE(chart.bgmNotes.size() == 3);
     REQUIRE(chart.bgmNotes[0].first.timestamp == measureLength);
-    REQUIRE(chart.bgmNotes[1].first.timestamp == measureLength + halvedBpmPeriod);
-    REQUIRE(chart.bgmNotes[2].first.timestamp == measureLength + halvedBpmPeriod);
+    REQUIRE(chart.bgmNotes[1].first.timestamp ==
+            measureLength + halvedBpmPeriod);
+    REQUIRE(chart.bgmNotes[2].first.timestamp ==
+            measureLength + halvedBpmPeriod);
 }

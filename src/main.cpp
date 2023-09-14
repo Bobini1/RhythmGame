@@ -131,17 +131,15 @@ main(int argc, char* argv[]) -> int
                 const auto configMap = resource_managers::loadConfig(
                   assetsFolder / "themes" / "Default" / "scripts" /
                   "scripts.ini")["ScriptNames"];
-                const auto scriptsFolder = QUrl::fromLocalFile(
-                  QString::fromStdString((assetsFolder / "themes" / "Default" /
-                                         "scripts").string()) +
-                  '/');
+                const auto scriptsFolder =
+                  assetsFolder / "themes" / "Default" / "scripts";
                 return resource_managers::models::ThemeConfig{
-                    scriptsFolder.resolved(
-                      QString::fromStdString(configMap.at("Main"))),
-                    scriptsFolder.resolved(
-                      QString::fromStdString(configMap.at("Gameplay"))),
-                    scriptsFolder.resolved(
-                      QString::fromStdString(configMap.at("SongWheel"))),
+                    QString::fromStdString(scriptsFolder /
+                                           configMap.at("Main")),
+                    QString::fromStdString(scriptsFolder /
+                                           configMap.at("Gameplay")),
+                    QString::fromStdString(scriptsFolder /
+                                           configMap.at("SongWheel"))
                 };
             } catch (const std::exception& e) {
                 spdlog::error("Failed to load theme config: {}", e.what());
