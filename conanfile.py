@@ -15,8 +15,6 @@ class Recipe(ConanFile):
     def requirements(self):
         self.requires("sqlitecpp/3.3.0")
         self.requires("boost/1.82.0")
-        self.requires("ms-gsl/4.0.0")
-        self.requires("sfml/2.6.0")
         self.requires("spdlog/1.11.0")
         self.requires("foonathan-lexy/2022.12.00")
         self.requires("ffmpeg/6.0")
