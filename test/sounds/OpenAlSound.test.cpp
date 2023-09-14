@@ -8,18 +8,14 @@
 #include "sounds/OpenAlSound.h"
 #include "../findTestAssetsFolder.h"
 #include "sounds/OpenAlSoundBuffer.h"
-#include "resource_managers/SoundLoaderImpl.h"
 
 TEST_CASE("OpenAlSound supports formats", "[sounds][FFmpegOpenAlSound]")
 {
     auto root = findTestAssetsFolder();
     auto soundFolder = root / "supportedSoundFormats";
-    auto loader = resource_managers::SoundLoaderImpl(soundFolder.string(), {});
     // load all files in folder
     for (const auto& entry : std::filesystem::directory_iterator(soundFolder)) {
         auto filename = entry.path().filename().string();
-        auto sound = loader.load(filename);
-        INFO("Failed to load sound format: " << filename);
-        CHECK(sound.has_value());
+        auto sound = sounds::OpenALSoundBuffer(filename.c_str());
     }
 }

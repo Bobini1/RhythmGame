@@ -17,7 +17,6 @@
         "systemVars": false
       },
       "errors": {
-        "dev": true,
         "deprecated": true
       }
     },
@@ -96,6 +95,7 @@
       ],
       "generator": "Visual Studio 17 2022",
       "architecture": "x64",
+      "toolset": "v143",
       "hidden": true
     },
     {
@@ -132,6 +132,8 @@
         "CMAKE_BUILD_TYPE": "Release",
         "CMAKE_CXX_FLAGS_RELEASE": "-O2 -g -fsanitize=address,undefined -fno-omit-frame-pointer -fno-common",
         "CMAKE_MAP_IMPORTED_CONFIG_SANITIZE": "Sanitize;RelWithDebInfo;Release;Debug;",
+        "CONAN_CMAKE_CXX_FLAGS": "-stdlib=libc++",
+        "CONAN_EXE_LINKER_FLAGS": "-stdlib=libc++",
         "DISABLE_WINDOW_TESTS": "ON"
       }
     },

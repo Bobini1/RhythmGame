@@ -11,7 +11,7 @@ find_package(Catch2 3 REQUIRED)
 
 # ---- Tests ----
 
-add_executable(RhythmGame_test setupState.h charts/chart_readers/BmsChartReader.test.cpp db/SqliteCppDb.test.cpp state_transitions/state_transitions.test.cpp drawing/splashWindow.test.cpp state_transitions/Game.test.cpp drawing/actors/VBox.test.cpp drawing/actors/Hbox.test.cpp lua/LuaVBox.test.cpp drawing/actors/Parent.test.cpp drawing/actors/Actor.test.cpp drawing/actors/Padding.test.cpp drawing/actors/Align.test.cpp drawing/actors/Layers.test.cpp lua/LuaHBox.test.cpp lua/LuaAlign.test.cpp lua/LuaQuad.test.cpp lua/LuaPadding.test.cpp lua/LuaLayers.test.cpp lua/LuaSprite.test.cpp lua/LuaText.test.cpp events/GlobalEvent.test.cpp drawing/animations/Animation.test.cpp drawing/animations/Linear.test.cpp drawing/animations/AnimationSequence.test.cpp lua/LuaLinear.test.cpp lua/LuaAnimation.test.cpp lua/LuaAnimationSequence.test.cpp drawing/animations/AnimationPlayerImpl.test.cpp events/MouseClickEvent.test.cpp events/MouseHoverEvents.test.cpp resource_managers/LuaScriptFinder.test.cpp sounds/OpenAlSound.test.cpp findTestAssetsFolder.h lua/LuaSound.test.cpp lua/LuaFrame.test.cpp drawing/actors/Frame.test.cpp charts/gameplay_models/BmsChart.test.cpp charts/helper_functions/loadBmsSounds.test.cpp)
+add_executable(RhythmGame_test setupState.h charts/chart_readers/BmsChartReader.test.cpp db/SqliteCppDb.test.cpp sounds/OpenAlSound.test.cpp findTestAssetsFolder.h charts/gameplay_models/BmsChart.test.cpp charts/helper_functions/loadBmsSounds.test.cpp)
 target_link_libraries(
         RhythmGame_test PRIVATE
         RhythmGame_lib
@@ -29,11 +29,6 @@ option(DISABLE_WINDOW_TESTS "Disable tests that launch windows and fail at the s
 if (DISABLE_WINDOW_TESTS)
     message("Disabling window tests")
     target_compile_definitions(RhythmGame_test PRIVATE DISABLE_WINDOW_TESTS)
-endif ()
-
-# MacOS luajit linker flags
-if (APPLE)
-    set_target_properties(RhythmGame_test PROPERTIES LINK_FLAGS "-pagezero_size 10000 -image_base 100000000")
 endif ()
 
 add_custom_command(TARGET RhythmGame_test POST_BUILD

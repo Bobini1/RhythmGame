@@ -22,7 +22,7 @@ class BmsChartReader final
      * @return Raw tag data.
      */
     [[nodiscard]] auto readBmsChart(std::string_view chart) const
-      -> parser_models::ParsedBmsChart::Tags;
+      -> parser_models::ParsedBmsChart;
 };
 } // namespace charts::chart_readers
 

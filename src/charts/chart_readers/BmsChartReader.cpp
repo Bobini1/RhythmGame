@@ -65,7 +65,14 @@ struct FloatingPoint
 
     static constexpr auto value =
       lexy::as_string<std::string> |
-      lexy::callback<double>([](std::string&& str) { return std::stod(str); });
+      lexy::callback<double>([](std::string&& str) {
+          auto val = parser_models::ParsedBmsChart::Measure::defaultMeter;
+          auto err = std::from_chars(str.c_str(), str.c_str() + str.size(), val);
+          if (err.ec != std::errc{}) {
+              spdlog::error("Failed to parse meter: {}", str);
+          }
+          return val;
+      });
 };
 
 struct Channel
@@ -97,7 +104,7 @@ struct MeasureBasedTag
                                  (dsl::p<Channel> + dsl::colon +
                                   dsl::p<IdentifierChain>);
     static constexpr auto value =
-      lexy::construct<std::tuple<uint64_t, int, std::vector<std::string>>>;
+      lexy::construct<std::tuple<int64_t, int, std::vector<std::string>>>;
 };
 
 BOOST_STRONG_TYPEDEF(std::string, Title);
@@ -105,12 +112,16 @@ BOOST_STRONG_TYPEDEF(std::string, Artist)
 BOOST_STRONG_TYPEDEF(std::string, Genre);
 BOOST_STRONG_TYPEDEF(std::string, Subtitle);
 BOOST_STRONG_TYPEDEF(std::string, Subartist);
+BOOST_STRONG_TYPEDEF(double, Total);
+BOOST_STRONG_TYPEDEF(int, Rank);
 BOOST_STRONG_TYPEDEF(double, Bpm);
+BOOST_STRONG_TYPEDEF(int, PlayLevel);
+BOOST_STRONG_TYPEDEF(int, Difficulty);
 using wav_t = std::pair<std::string, std::string>;
 BOOST_STRONG_TYPEDEF(wav_t, Wav);
 using pair_t = std::pair<std::string, double>;
 BOOST_STRONG_TYPEDEF(pair_t, ExBpm);
-using meter_t = std::pair<uint64_t, double>;
+using meter_t = std::pair<int64_t, double>;
 BOOST_STRONG_TYPEDEF(meter_t, Meter);
 
 struct TitleTag
@@ -170,6 +181,26 @@ struct SubartistTag
         [](std::string&& str) { return Subartist{ str }; });
 };
 
+struct TotalTag
+{
+    static constexpr auto rule = [] {
+        auto totalTag = dsl::ascii::case_folding(LEXY_LIT("#total"));
+        return totalTag >> dsl::p<FloatingPoint>;
+    }();
+    static constexpr auto value =
+      lexy::callback<Total>([](double num) { return Total{ num }; });
+};
+
+struct RankTag
+{
+    static constexpr auto rule = [] {
+        auto rankTag = dsl::ascii::case_folding(LEXY_LIT("#rank"));
+        return rankTag >> dsl::integer<int>(dsl::digits<>);
+    }();
+    static constexpr auto value =
+      lexy::callback<Rank>([](int num) { return Rank{ num }; });
+};
+
 struct BpmTag
 {
     static constexpr auto rule = [] {
@@ -178,6 +209,26 @@ struct BpmTag
     }();
     static constexpr auto value =
       lexy::callback<Bpm>([](double num) { return Bpm{ num }; });
+};
+
+struct PlayLevelTag
+{
+    static constexpr auto rule = [] {
+        auto playLevelTag = dsl::ascii::case_folding(LEXY_LIT("#playlevel"));
+        return playLevelTag >> dsl::integer<int>(dsl::digits<>);
+    }();
+    static constexpr auto value =
+      lexy::callback<PlayLevel>([](int num) { return PlayLevel{ num }; });
+};
+
+struct DifficultyTag
+{
+    static constexpr auto rule = [] {
+        auto difficultyTag = dsl::ascii::case_folding(LEXY_LIT("#difficulty"));
+        return difficultyTag >> dsl::integer<int>(dsl::digits<>);
+    }();
+    static constexpr auto value =
+      lexy::callback<Difficulty>([](int num) { return Difficulty{ num }; });
 };
 
 struct WavTag
@@ -213,7 +264,7 @@ struct MeterTag
         return dsl::peek(start) >> start >> dsl::colon >> dsl::p<FloatingPoint>;
     }();
     static constexpr auto value =
-      lexy::callback<Meter>([](uint64_t measure, double num) {
+      lexy::callback<Meter>([](int64_t measure, double num) {
           return Meter{ { measure, num } };
       });
 };
@@ -246,9 +297,25 @@ struct TagsSink
         {
             state.subArtist = std::move(static_cast<std::string&>(subartist));
         }
+        auto operator()(Total&& total) -> void
+        {
+            state.total = static_cast<double>(total);
+        }
+        auto operator()(Rank&& rank) -> void
+        {
+            state.rank = static_cast<int>(rank);
+        }
         auto operator()(Bpm&& bpm) -> void
         {
             state.bpm = static_cast<double>(bpm);
+        }
+        auto operator()(PlayLevel&& playLevel) -> void
+        {
+            state.playLevel = static_cast<int>(playLevel);
+        }
+        auto operator()(Difficulty&& difficulty) -> void
+        {
+            state.difficulty = static_cast<int>(difficulty);
         }
         auto operator()(ExBpm&& bpm) -> void
         {
@@ -257,9 +324,10 @@ struct TagsSink
             state.exBpms[identifier] = value;
         }
         auto operator()(
-          std::pair<parser_models::ParsedBmsChart::RandomRange,
-                    std::vector<std::pair<parser_models::ParsedBmsChart::IfTag,
-                                          parser_models::ParsedBmsChart::Tags>>>&&
+          std::pair<
+            parser_models::ParsedBmsChart::RandomRange,
+            std::vector<std::pair<parser_models::ParsedBmsChart::IfTag,
+                                  parser_models::ParsedBmsChart::Tags>>>&&
             randomBlock)
         {
             state.randomBlocks.emplace_back(std::move(randomBlock));
@@ -268,7 +336,7 @@ struct TagsSink
         auto operator()(Meter&& meter) -> void
         {
             auto [measure, value] =
-              static_cast<std::pair<uint64_t, double>>(meter);
+              static_cast<std::pair<int64_t, double>>(meter);
             state.measures[measure].meter = value;
         }
 
@@ -280,7 +348,7 @@ struct TagsSink
         }
 
         auto operator()(
-          std::tuple<uint64_t, int, std::vector<std::string>>&& measureBasedTag)
+          std::tuple<int64_t, int, std::vector<std::string>>&& measureBasedTag)
           -> void
         {
             auto [measure, channel, identifiers] = std::move(measureBasedTag);
@@ -327,7 +395,7 @@ struct TagsSink
                               std::move(identifiers);
                             break;
                         default:
-                            spdlog::error("Unknown channel: {}", channel);
+                            spdlog::debug("Unknown channel: {:02d}", channel);
                             break;
                     }
                     break;
@@ -362,7 +430,7 @@ struct TagsSink
                       std::move(identifiers);
                     break;
                 default:
-                    spdlog::error("Unknown channel: {}", channel);
+                    spdlog::debug("Unknown channel: {:02d}", channel);
                     break;
             }
         }
@@ -379,10 +447,12 @@ struct MainTags
         auto term = dsl::terminator(
           dsl::eof | dsl::peek(dsl::ascii::case_folding(LEXY_LIT("#endif"))));
         return term.list(dsl::try_(
-          dsl::p<TitleTag> | dsl::p<ArtistTag> | dsl::p<GenreTag> |
-            dsl::p<SubtitleTag> | dsl::p<SubartistTag> | dsl::p<ExBpmTag> |
-            dsl::p<BpmTag> | dsl::p<MeterTag> | dsl::p<WavTag> |
-            dsl::p<MeasureBasedTag> | dsl::recurse_branch<RandomBlock>,
+          dsl::p<MeterTag> | dsl::p<MeasureBasedTag> | dsl::p<WavTag> |
+            dsl::p<TitleTag> | dsl::p<ArtistTag> | dsl::p<GenreTag> |
+            dsl::p<SubtitleTag> | dsl::p<SubartistTag> | dsl::p<TotalTag> |
+            dsl::p<RankTag> | dsl::p<PlayLevelTag> | dsl::p<DifficultyTag> |
+            dsl::p<ExBpmTag> | dsl::p<BpmTag> |
+            dsl::recurse_branch<RandomBlock>,
           dsl::until(dsl::unicode::newline).or_eof()));
     }();
     static constexpr auto value = TagsSink{};
@@ -392,10 +462,11 @@ struct IfBlock
 {
     static constexpr auto rule =
       dsl::ascii::case_folding(LEXY_LIT("#if")) >>
-      (dsl::integer<parser_models::ParsedBmsChart::IfTag>(dsl::digits<>) + dsl::p<MainTags> +
-       dsl::ascii::case_folding(LEXY_LIT("#endif")));
-    static constexpr auto value = lexy::construct<
-      std::pair<parser_models::ParsedBmsChart::IfTag, parser_models::ParsedBmsChart::Tags>>;
+      (dsl::integer<parser_models::ParsedBmsChart::IfTag>(dsl::digits<>) +
+       dsl::p<MainTags> + dsl::ascii::case_folding(LEXY_LIT("#endif")));
+    static constexpr auto value =
+      lexy::construct<std::pair<parser_models::ParsedBmsChart::IfTag,
+                                parser_models::ParsedBmsChart::Tags>>;
 };
 
 struct IfList
@@ -407,30 +478,41 @@ struct IfList
         return delims.list(dsl::p<IfBlock>);
     }();
     static constexpr auto value = lexy::as_list<
-      std::vector<std::pair<parser_models::ParsedBmsChart::IfTag, parser_models::ParsedBmsChart::Tags>>>;
+      std::vector<std::pair<parser_models::ParsedBmsChart::IfTag,
+                            parser_models::ParsedBmsChart::Tags>>>;
 };
 
 struct RandomBlock
 {
     static constexpr auto rule = [] {
         return dsl::ascii::case_folding(LEXY_LIT("#random")) >>
-               (dsl::integer<parser_models::ParsedBmsChart::RandomRange>(dsl::digits<>) +
+               (dsl::integer<parser_models::ParsedBmsChart::RandomRange>(
+                  dsl::digits<>) +
                 dsl::p<IfList> +
                 (dsl::ascii::case_folding(LEXY_LIT("#endrandom")) | dsl::eof));
     }();
-    static constexpr auto value = lexy::construct<std::pair<parser_models::ParsedBmsChart::RandomRange,
-      std::vector<std::pair<parser_models::ParsedBmsChart::IfTag,
+    static constexpr auto value = lexy::construct<
+      std::pair<parser_models::ParsedBmsChart::RandomRange,
+                std::vector<std::pair<parser_models::ParsedBmsChart::IfTag,
                                       parser_models::ParsedBmsChart::Tags>>>>;
 };
 } // namespace
 
+struct ReportError
+{
+    using return_type = void;
+    template<typename... Args>
+    void operator()(Args&&...) const
+    {
+    }
+};
+
 auto
 BmsChartReader::readBmsChart(std::string_view chart) const
-  -> parser_models::ParsedBmsChart::Tags
+  -> parser_models::ParsedBmsChart
 {
-    auto result =
-      lexy::parse<MainTags>(lexy::string_input<lexy::utf8_char_encoding>(chart),
-                            lexy_ext::report_error);
-    return std::move(result).value();
+    auto result = lexy::parse<MainTags>(
+      lexy::string_input<lexy::utf8_char_encoding>(chart), ReportError{});
+    return parser_models::ParsedBmsChart(std::move(result).value());
 }
 } // namespace charts::chart_readers

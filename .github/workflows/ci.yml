@@ -9,6 +9,9 @@ on:
     branches:
       - master
 
+env:
+  NOT_ON_C3I: 1
+
 jobs:
   lint:
     runs-on: ubuntu-22.04
@@ -52,7 +55,7 @@ jobs:
 
       - name: Cache conan
         id: cache-conan
-        uses: actions/cache@v3.0.5
+        uses: actions/cache@v3.3.2
         with:
           path: ~/.conan2/p
           key: conan-packages-coverage
@@ -107,11 +110,11 @@ jobs:
         run: sudo apt-get update && sudo apt-get install libtbb-dev libgl-dev libudev-dev -y
 
       - name: Install Clang 13
-        run: sudo apt install clang-13
+        run: sudo apt-get install clang-13 libc++-dev -y
 
       - name: Cache conan
         id: cache-conan
-        uses: actions/cache@v3.0.5
+        uses: actions/cache@v3.3.2
         with:
           path: ~/.conan2/p
           key: conan-packages-sanitize
@@ -172,7 +175,7 @@ jobs:
 
       - name: Cache conan
         id: cache-conan
-        uses: actions/cache@v3.0.5
+        uses: actions/cache@v3.3.2
         with:
           path: ~/.conan2/p
           key: conan-packages-${{ matrix.os }}-v2
@@ -180,7 +183,7 @@ jobs:
       - name: Cache conan extra exports
         if: matrix.os == 'windows-latest'
         id: cache-conan-exports
-        uses: actions/cache@v3.0.5
+        uses: actions/cache@v3.3.2
         with:
           path: C:/.conan2
           key: conan-exports-extra-windows
@@ -251,7 +254,7 @@ jobs:
 
       - name: Cache conan
         id: cache-conan
-        uses: actions/cache@v3.0.5
+        uses: actions/cache@v3.3.2
         with:
           path: ~/.conan2/p
           key: conan-packages-${{ matrix.os }}
@@ -259,7 +262,7 @@ jobs:
       - name: Cache conan extra exports
         if: matrix.os == 'windows-latest'
         id: cache-conan-exports
-        uses: actions/cache@v3.0.5
+        uses: actions/cache@v3.3.2
         with:
           path: C:/.conan2
           key: conan-exports-extra-windows

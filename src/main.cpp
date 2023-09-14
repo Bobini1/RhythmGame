@@ -1,83 +1,198 @@
-#include <drawing/SplashWindow.h>
-#include "drawing/SplashScene.h"
-#include "drawing/Window.h"
-#include "resource_managers/TextureLoaderImpl.h"
-
-#include "state_transitions/Game.h"
-#include "lua/Bootstrapper.h"
-#include "resource_managers/FontLoaderImpl.h"
-#include "drawing/animations/AnimationPlayerImpl.h"
 #include "resource_managers/FindAssetsFolderBoost.h"
 #include "resource_managers/LoadConfig.h"
-#include "resource_managers/LuaScriptFinderImpl.h"
+#include "resource_managers/models/ThemeConfig.h"
+#include "resource_managers/IniImageProvider.h"
 #include "sounds/OpenAlSound.h"
-#include "resource_managers/SoundLoaderImpl.h"
+#include "gameplay_logic/rules/Lr2TimingWindows.h"
+#include "../RhythmGameQml/SceneUrls.h"
+#include "../RhythmGameQml/ProgramSettings.h"
+#include "../RhythmGameQml/ChartLoader.h"
 
-auto
-loadGame(resource_managers::LuaScriptFinder auto luaScriptFinder,
-         resource_managers::FontLoader auto fontLoader,
-         resource_managers::TextureLoader auto textureLoader,
-         resource_managers::SoundLoader auto soundLoader) -> void
+#include <QGuiApplication>
+#include <QQmlApplicationEngine>
+#include <QQuickView>
+#include <QtQml/QQmlExtensionPlugin>
+#include <spdlog/sinks/qt_sinks.h>
+#include <spdlog/sinks/stdout_color_sinks.h>
+#include "sounds/OpenAlSoundBuffer.h"
+#include "../RhythmGameQml/Logger.h"
+#include "gameplay_logic/rules/StandardBmsHitRules.h"
+#include "gameplay_logic/rules/Lr2Gauge.h"
+#include "gameplay_logic/rules/Lr2HitValues.h"
+
+extern "C" {
+#include <libavutil/log.h>
+}
+
+Q_IMPORT_QML_PLUGIN(RhythmGameQmlPlugin)
+
+void
+qtLogHandler(QtMsgType type,
+             const QMessageLogContext& context,
+             const QString& msg)
 {
-    auto state = sol::state{};
-    state.open_libraries(
-      sol::lib::jit, sol::lib::base, sol::lib::io, sol::lib::math);
+    QByteArray loc = msg.toUtf8();
 
-    auto scriptPath = luaScriptFinder("Main");
+    switch (type) {
+        case QtDebugMsg:
+            spdlog::debug("{}", loc.constData());
+            break;
+        case QtInfoMsg:
+            spdlog::info("{}", loc.constData());
+            break;
+        case QtWarningMsg:
+            spdlog::warn("{}", loc.constData());
+            break;
+        case QtCriticalMsg:
+            spdlog::critical("{}", loc.constData());
+            break;
+        case QtFatalMsg:
+            spdlog::critical("{}", loc.constData());
+            break;
+    }
+}
 
-    auto animationPlayer = drawing::animations::AnimationPlayerImpl{};
-    auto startingScene =
-      std::make_shared<drawing::SplashScene<decltype(animationPlayer),
-                                            decltype(textureLoader),
-                                            decltype(fontLoader),
-                                            decltype(soundLoader)>>(
-        std::move(state),
-        std::move(animationPlayer),
-        &textureLoader,
-        &fontLoader,
-        &soundLoader,
-        std::move(scriptPath));
+void
+libavLogHandler(void* ptr, int level, const char* fmt, va_list vl)
+{
+    if (level > av_log_get_level()) {
+        return;
+    }
 
-    auto startingWindow = std::make_shared<drawing::SplashWindow>(
-      std::move(startingScene), sf::VideoMode{ 800, 600 }, "RhythmGame");
-    auto game = state_transitions::Game{ std::move(startingWindow) };
-    game.run();
+    static char message[8192];
+    auto ret = vsnprintf(message, sizeof(message), fmt, vl);
+    if (ret < 0) {
+        return;
+    }
+    switch (level) {
+        case AV_LOG_DEBUG:
+            spdlog::debug("{}", message);
+            break;
+        case AV_LOG_VERBOSE:
+            spdlog::info("{}", message);
+            break;
+        case AV_LOG_INFO:
+            spdlog::info("{}", message);
+            break;
+        case AV_LOG_WARNING:
+            spdlog::warn("{}", message);
+            break;
+        case AV_LOG_ERROR:
+            spdlog::error("{}", message);
+            break;
+        case AV_LOG_FATAL:
+            spdlog::critical("{}", message);
+            break;
+        case AV_LOG_PANIC:
+            spdlog::critical("{}", message);
+            break;
+        default:
+            spdlog::info("{}", message);
+            break;
+    }
 }
 
 auto
-main() -> int
+main(int argc, char* argv[]) -> int
 {
     try {
         auto assetsFolder = resource_managers::findAssetsFolder();
-        auto textureConfig = resource_managers::loadConfig(
-          assetsFolder / "themes" / "Default" / "textures" / "textures.ini");
-        auto fontConfig = resource_managers::loadConfig(
-          assetsFolder / "themes" / "Default" / "fonts" / "fonts.ini");
-        auto soundConfig = resource_managers::loadConfig(
-          assetsFolder / "themes" / "Default" / "sounds" / "sounds.ini");
-        auto scriptConfig = resource_managers::loadConfig(
-          assetsFolder / "themes" / "Default" / "scripts" / "scripts.ini");
-        auto fontManager =
-          resource_managers::FontLoaderImpl{ assetsFolder / "themes" /
-                                               "Default" / "fonts",
-                                             fontConfig["FontNames"] };
-        auto textureManager =
-          resource_managers::TextureLoaderImpl{ assetsFolder / "themes" /
-                                                  "Default" / "textures",
-                                                textureConfig["TextureNames"] };
-        auto soundManager =
-          resource_managers::SoundLoaderImpl{ assetsFolder / "themes" /
-                                                "Default" / "sounds",
-                                              soundConfig["SoundNames"] };
-        auto luaScriptFinder =
-          resource_managers::LuaScriptFinderImpl{ assetsFolder / "themes" /
-                                                    "Default" / "scripts",
-                                                  scriptConfig["ScriptNames"] };
-        loadGame(std::move(luaScriptFinder),
-                 std::move(fontManager),
-                 std::move(textureManager),
-                 std::move(soundManager));
 
+#if defined(Q_OS_WIN)
+        QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
+#endif
+
+        const auto app = QGuiApplication(argc, argv);
+
+        auto engine = QQmlApplicationEngine{};
+
+        av_log_set_callback(libavLogHandler);
+
+        qInstallMessageHandler(qtLogHandler);
+
+        auto log = qml_components::Logger{ nullptr };
+        qml_components::Logger::setInstance(&log);
+
+        auto logger = spdlog::qt_logger_mt("log", &log, "addLog");
+
+#ifdef DEBUG
+        // combine with console logger
+        logger->sinks().push_back(
+          std::make_shared<spdlog::sinks::stdout_color_sink_mt>());
+
+        // set global log level to debug
+        spdlog::set_level(spdlog::level::debug);
+#endif
+
+        spdlog::set_default_logger(logger);
+
+        auto themeConfigLoader = [assetsFolder] {
+            try {
+                const auto configMap = resource_managers::loadConfig(
+                  assetsFolder / "themes" / "Default" / "scripts" /
+                  "scripts.ini")["ScriptNames"];
+                const auto scriptsFolder =
+                  assetsFolder / "themes" / "Default" / "scripts";
+                return resource_managers::models::ThemeConfig{
+                    QString::fromStdString(scriptsFolder /
+                                           configMap.at("Main")),
+                    QString::fromStdString(scriptsFolder /
+                                           configMap.at("Gameplay")),
+                    QString::fromStdString(scriptsFolder /
+                                           configMap.at("SongWheel"))
+                };
+            } catch (const std::exception& e) {
+                spdlog::error("Failed to load theme config: {}", e.what());
+                throw;
+            }
+        };
+
+        auto sceneUrls =
+          qml_components::SceneUrls{ std::move(themeConfigLoader) };
+        qml_components::SceneUrls::setInstance(&sceneUrls);
+
+        auto chartPath = QUrl{};
+        if (argc > 1) {
+            chartPath = QUrl::fromLocalFile(argv[1]);
+        }
+
+        auto programSettings = qml_components::ProgramSettings{ chartPath };
+        qml_components::ProgramSettings::setInstance(&programSettings);
+
+        using namespace std::chrono_literals;
+
+        auto chartDataFactory = resource_managers::ChartDataFactory{};
+        auto chartFactory = resource_managers::ChartFactory{};
+        auto hitRulesFactory =
+          [](gameplay_logic::rules::TimingWindows timingWindows,
+             std::function<double(std::chrono::nanoseconds)> hitValuesFactory) {
+              return std::make_unique<
+                gameplay_logic::rules::StandardBmsHitRules>(
+                std::move(timingWindows), std::move(hitValuesFactory));
+          };
+        auto chartLoader = qml_components::ChartLoader{
+            &chartDataFactory,
+            &gameplay_logic::rules::lr2_timing_windows::getTimingWindows,
+            std::move(hitRulesFactory),
+            &gameplay_logic::rules::lr2_hit_values::getLr2HitValue,
+            &gameplay_logic::rules::Lr2Gauge::getGauges,
+            &chartFactory,
+            2.0
+        };
+        qml_components::ChartLoader::setInstance(&chartLoader);
+
+        engine.addImageProvider("ini",
+                                new resource_managers::IniImageProvider{});
+
+        auto view = QQuickView(&engine, nullptr);
+        view.setSource(QUrl("qrc:///qt/qml/RhythmGameQml/ContentFrame.qml"));
+
+        view.setWidth(1920);
+        view.setHeight(1080);
+
+        view.show();
+
+        return app.exec();
     } catch (const std::exception& e) {
         spdlog::error("Fatal error: {}", e.what());
         return 1;
@@ -85,6 +200,4 @@ main() -> int
         spdlog::error("Fatal error: unknown");
         return 1;
     }
-
-    return 0;
 }

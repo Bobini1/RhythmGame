@@ -352,10 +352,6 @@ sounds::OpenALSoundBuffer::OpenALSoundBuffer(const char* filename)
         throw std::runtime_error("Could not open codec");
     }
     auto format = setSampleFormat(*codecContext, *codec);
-    spdlog::info("Format: {}", formatContext->iformat->long_name);
-    spdlog::info("Sample format: {}", av_get_sample_fmt_name(format));
-    spdlog::info("Sample rate: {}", codecContext->sample_rate);
-    spdlog::info("Channels: {}", codecContext->channels);
 
     auto samples = decodeFile(*formatContext, *audioStream, *codecContext);
     alcMakeContextCurrent(getALContext());
@@ -413,8 +409,8 @@ sounds::OpenALSoundBuffer::getDuration() const -> std::chrono::nanoseconds
         return std::chrono::nanoseconds::zero();
     }
     return std::chrono::nanoseconds(static_cast<std::chrono::nanoseconds::rep>(
-      1'000'000'000ULL * static_cast<unsigned long long int>(size) * CHAR_BIT /
-      (static_cast<unsigned long long int>(denominator))));
+      1'000'000'000ULL * static_cast<uint64_t>(size) * CHAR_BIT /
+      (static_cast<uint64_t>(denominator))));
 }
 auto
 sounds::OpenALSoundBuffer::getFrequency() const -> int
