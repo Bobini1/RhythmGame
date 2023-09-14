@@ -23,6 +23,7 @@ class Recipe(ConanFile):
         self.requires("openal-soft/1.22.2")
         self.requires("qt/6.5.2")
         self.requires("sqlite3/3.42.0", override=True)
+        self.requires("brotli/1.1.0", override=True)
         self.requires("cryptopp/8.7.0")
         self.requires("magic_enum/0.9.3")
         self.requires("uchardet/0.0.7")
