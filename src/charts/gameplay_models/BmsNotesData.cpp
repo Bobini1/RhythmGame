@@ -48,7 +48,7 @@ combineBpmChanges(const std::vector<std::string>& bpmChanges,
         auto idx = size_t{ 0 };
         auto bpmChangeNum = std::stoi(bpmChange, &idx, 16);
         if (idx != 2) {
-            spdlog::warn("Invalid bpmChange change: {}", bpmChange);
+            spdlog::warn("Invalid bpm change: {}", bpmChange);
             continue;
         }
         auto fraction =
