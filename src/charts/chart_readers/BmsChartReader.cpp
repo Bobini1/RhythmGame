@@ -21,8 +21,7 @@ namespace {
 [[nodiscard]] auto
 trimR(std::string str) -> std::string
 {
-    // use resize
-    auto pos = str.find_last_not_of(' ');
+    auto pos = str.find_last_not_of(" \t\r\n");
     if (pos != std::string::npos) {
         str.resize(pos + 1);
     }
@@ -32,11 +31,8 @@ trimR(std::string str) -> std::string
 struct TextTag
 {
     static constexpr auto value = lexy::as_string<std::string>;
-    static constexpr auto rule = [] {
-        // match everything until eol
-        auto text = dsl::capture(dsl::until(dsl::unicode::newline).or_eof());
-        return text;
-    }();
+    static constexpr auto rule =
+      dsl::capture(dsl::until(dsl::unicode::newline).or_eof());
 };
 
 struct Identifier
@@ -458,16 +454,17 @@ struct RandomBlock;
 
 struct MainTags
 {
-    static constexpr auto whitespace = dsl::whitespace(dsl::unicode::space);
+    static constexpr auto whitespace =
+      dsl::whitespace(dsl::unicode::space - dsl::unicode::newline);
     static constexpr auto rule = [] {
         auto term = dsl::terminator(
           dsl::eof | dsl::peek(dsl::ascii::case_folding(LEXY_LIT("#endif"))));
         return term.list(dsl::try_(
-          dsl::p<MeterTag> | dsl::p<MeasureBasedTag> | dsl::p<WavTag> |
-            dsl::p<TitleTag> | dsl::p<ArtistTag> | dsl::p<GenreTag> |
-            dsl::p<SubtitleTag> | dsl::p<SubartistTag> | dsl::p<TotalTag> |
-            dsl::p<RankTag> | dsl::p<PlayLevelTag> | dsl::p<DifficultyTag> |
-            dsl::p<ExBpmTag> | dsl::p<BpmTag> |
+          dsl::unicode::newline | dsl::p<MeterTag> | dsl::p<MeasureBasedTag> |
+            dsl::p<WavTag> | dsl::p<TitleTag> | dsl::p<ArtistTag> |
+            dsl::p<GenreTag> | dsl::p<SubtitleTag> | dsl::p<SubartistTag> |
+            dsl::p<TotalTag> | dsl::p<RankTag> | dsl::p<PlayLevelTag> |
+            dsl::p<DifficultyTag> | dsl::p<ExBpmTag> | dsl::p<BpmTag> |
             dsl::recurse_branch<RandomBlock>,
           dsl::until(dsl::unicode::newline).or_eof()));
     }();
