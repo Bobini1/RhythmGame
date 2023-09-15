@@ -19,19 +19,29 @@ namespace dsl = lexy::dsl;
 
 namespace {
 [[nodiscard]] auto
-trimR(auto&& str) -> std::string
+trimR(std::string str) -> std::string
 {
-    return std::string(
-      std::string_view{ str }.substr(0, str.find_last_not_of(' ') + 1));
+    // use resize
+    auto pos = str.find_last_not_of(' ');
+    if (pos != std::string::npos) {
+        str.resize(pos + 1);
+    }
+    return str;
+};
+
+template<typename... T>
+constexpr std::string
+dummy(T... args)
+{
+    return std::string();
 };
 struct TextTag
 {
-    static constexpr auto value =
-      lexy::as_string<std::string> >>
-      lexy::callback<std::string>(trimR<std::string_view>);
+    static constexpr auto value = lexy::as_string<std::string>;
     static constexpr auto rule = [] {
-        auto limits = dsl::delimited(LEXY_LIT(""), dsl::eol);
-        return limits(dsl::code_point);
+        // match everything until eol
+        auto text = dsl::capture(dsl::until(dsl::unicode::newline).or_eof());
+        return text;
     }();
 };
 
@@ -67,7 +77,8 @@ struct FloatingPoint
       lexy::as_string<std::string> |
       lexy::callback<double>([](std::string&& str) {
           auto val = parser_models::ParsedBmsChart::Measure::defaultMeter;
-          auto err = std::from_chars(str.c_str(), str.c_str() + str.size(), val);
+          auto err =
+            std::from_chars(str.c_str(), str.c_str() + str.size(), val);
           if (err.ec != std::errc{}) {
               spdlog::error("Failed to parse meter: {}", str);
           }
@@ -279,23 +290,25 @@ struct TagsSink
         auto finish() && -> return_type { return std::move(state); }
         auto operator()(Title&& title) -> void
         {
-            state.title = std::move(static_cast<std::string&>(title));
+            state.title = trimR(std::move(static_cast<std::string&>(title)));
         }
         auto operator()(Artist&& artist) -> void
         {
-            state.artist = std::move(static_cast<std::string&>(artist));
+            state.artist = trimR(std::move(static_cast<std::string&>(artist)));
         }
         auto operator()(Genre&& genre) -> void
         {
-            state.genre = std::move(static_cast<std::string&>(genre));
+            state.genre = trimR(std::move(static_cast<std::string&>(genre)));
         }
         auto operator()(Subtitle&& subtitle) -> void
         {
-            state.subTitle = std::move(static_cast<std::string&>(subtitle));
+            state.subTitle =
+              trimR(std::move(static_cast<std::string&>(subtitle)));
         }
         auto operator()(Subartist&& subartist) -> void
         {
-            state.subArtist = std::move(static_cast<std::string&>(subartist));
+            state.subArtist =
+              trimR(std::move(static_cast<std::string&>(subartist)));
         }
         auto operator()(Total&& total) -> void
         {
@@ -353,7 +366,7 @@ struct TagsSink
         {
             auto [measure, channel, identifiers] = std::move(measureBasedTag);
 
-            enum ChannelCategories
+            enum ChannelCategory
             {
                 General = 0,
                 P1Visible = 1,
@@ -363,7 +376,7 @@ struct TagsSink
                 P1LongNote = 5,
                 P2LongNote = 6,
             };
-            enum GeneralSubcategories
+            enum GeneralSubcategory
             {
                 Bgm = 1,
                 /* Meter = 2, // handled elsewhere */
@@ -376,9 +389,18 @@ struct TagsSink
                 /* Stop = 9, // unimplemented */
             };
             constexpr auto base = 36;
-            auto channelCategory =
-              static_cast<ChannelCategories>(channel / base);
+            auto channelCategory = static_cast<ChannelCategory>(channel / base);
             auto channelSubcategory = static_cast<unsigned>(channel % base);
+
+            auto addNote = [](auto noteArray,
+                              unsigned column,
+                              std::vector<std::string> identifiers) {
+                if (column < 1 || column >= noteArray.size()) {
+                    return;
+                }
+                noteArray[column - 1] = std::move(identifiers);
+            };
+
             switch (channelCategory) {
                 case General:
                     switch (channelSubcategory) {
@@ -400,34 +422,34 @@ struct TagsSink
                     }
                     break;
                 case P1Visible:
-                    state.measures[measure]
-                      .p1VisibleNotes[channelSubcategory - 1] =
-                      std::move(identifiers);
+                    addNote(state.measures[measure].p1VisibleNotes,
+                            channelSubcategory,
+                            std::move(identifiers));
                     break;
                 case P2Visible:
-                    state.measures[measure]
-                      .p2VisibleNotes[channelSubcategory - 1] =
-                      std::move(identifiers);
+                    addNote(state.measures[measure].p2VisibleNotes,
+                            channelSubcategory,
+                            std::move(identifiers));
                     break;
                 case P1Invisible:
-                    state.measures[measure]
-                      .p1InvisibleNotes[channelSubcategory - 1] =
-                      std::move(identifiers);
+                    addNote(state.measures[measure].p1InvisibleNotes,
+                            channelSubcategory,
+                            std::move(identifiers));
                     break;
                 case P2Invisible:
-                    state.measures[measure]
-                      .p2InvisibleNotes[channelSubcategory - 1] =
-                      std::move(identifiers);
+                    addNote(state.measures[measure].p2InvisibleNotes,
+                            channelSubcategory,
+                            std::move(identifiers));
                     break;
                 case P1LongNote:
-                    state.measures[measure]
-                      .p1LongNotes[channelSubcategory - 1] =
-                      std::move(identifiers);
+                    addNote(state.measures[measure].p1LongNotes,
+                            channelSubcategory,
+                            std::move(identifiers));
                     break;
                 case P2LongNote:
-                    state.measures[measure]
-                      .p2LongNotes[channelSubcategory - 1] =
-                      std::move(identifiers);
+                    addNote(state.measures[measure].p2LongNotes,
+                            channelSubcategory,
+                            std::move(identifiers));
                     break;
                 default:
                     spdlog::debug("Unknown channel: {:02d}", channel);
