@@ -6,21 +6,6 @@
 
 namespace resource_managers {
 auto
-ChartDataFactory::detectEncoding(std::string_view string) const -> std::string
-{
-
-    auto encoding = std::string{};
-
-    uchardet_handle_data(detector.get(), string.data(), string.size());
-    uchardet_data_end(detector.get());
-    encoding = uchardet_get_charset(detector.get());
-    // shift jis if empty
-    if (encoding.empty()) {
-        encoding = "SHIFT-JIS";
-    }
-    return encoding;
-}
-auto
 ChartDataFactory::loadFile(const QUrl& chartPath) -> std::string
 {
     auto chartFile = std::ifstream{ chartPath.toLocalFile().toStdString() };
@@ -94,16 +79,8 @@ ChartDataFactory::loadChartData(const QUrl& chartPath) const
 {
     auto chart = loadFile(chartPath);
     auto hash = support::sha256(chart);
-    auto encodingName = detectEncoding(chart);
-    if (encodingName.empty()) {
-        throw std::runtime_error{ "Failed to detect encoding" };
-    }
-    auto chartUtf = [&]{
-        if (encodingName == "ASCII") {
-            return chart;
-        }
-        return boost::locale::conv::to_utf<char>(chart, encodingName);
-    }();
+
+    auto chartUtf = boost::locale::conv::to_utf<char>(chart, "SHIFT-JIS");
     auto parsedChart = chartReader.readBmsChart(chartUtf);
     auto calculatedNotesData =
       charts::gameplay_models::BmsNotesData{ parsedChart };
@@ -137,7 +114,7 @@ ChartDataFactory::loadChartData(const QUrl& chartPath) const
         static_cast<int>(std::chrono::duration_cast<std::chrono::milliseconds>(
                            lastNoteTimestamp)
                            .count()),
-        QFileInfo{ chartPath.toLocalFile() }.absolutePath(),
+        QFileInfo{ chartPath.toLocalFile() }.absoluteFilePath(),
         noteData
     };
     return { chartData, std::move(calculatedNotesData), parsedChart.tags.wavs };

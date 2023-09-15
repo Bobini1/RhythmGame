@@ -3,23 +3,59 @@
 //
 
 #include "SqliteCppDb.h"
+#include <sqlite3.h>
 
 #include <utility>
 
-thread_local db::DatabaseAccessPoint db::SqliteCppDb::connections;
-
 db::SqliteCppDb::SqliteCppDb(std::string dbPath)
-  : connKey(std::move(dbPath))
+  : db(dbPath,
+       SQLite::OPEN_READWRITE | // NOLINT(hicpp-signed-bitwise)
+         SQLite::OPEN_CREATE)
 {
+    db.exec("PRAGMA journal_mode=WAL;");
+    db.exec("PRAGMA synchronous=NORMAL;");
+#ifdef DEBUG
+    db.exec("PRAGMA foreign_keys=ON;");
+#endif
+    auto* handle = db.getHandle();
+    sqlite3_busy_handler(
+      handle, [](void*, int) { return 1; }, nullptr);
 }
 
 auto
 db::SqliteCppDb::hasTable(const std::string& table) const -> bool
 {
-    return connections[connKey].tableExists(table);
+    return db.tableExists(table);
+}
+void
+db::SqliteCppDb::execute(const std::string& query)
+{
+    std::lock_guard lock(dbMutex);
+    db.exec(query);
 }
 auto
-db::SqliteCppDb::execute(const std::string& query) const -> void
+db::SqliteCppDb::createStatement(const std::string& query)
+  -> db::SqliteCppDb::Statement
 {
-    connections[connKey].exec(query);
+    std::lock_guard lock(dbMutex);
+    return Statement{ SQLite::Statement(db, query), &dbMutex };
+}
+void
+db::SqliteCppDb::Statement::execute()
+{
+    std::lock_guard lock(*dbMutex);
+    statement.exec();
+}
+void
+db::SqliteCppDb::Statement::reset()
+{
+    std::lock_guard lock(*dbMutex);
+    statement.reset();
+    statement.clearBindings();
+}
+db::SqliteCppDb::Statement::Statement(SQLite::Statement statement,
+                                      std::mutex* dbMutex)
+  : statement(std::move(statement))
+  , dbMutex(dbMutex)
+{
 }

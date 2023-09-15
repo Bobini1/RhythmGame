@@ -17,7 +17,7 @@ gameplay_logic::ChartData::ChartData(QString title,
                                      int difficulty,
                                      int noteCount,
                                      int length,
-                                     QUrl directory,
+                                     QString path,
                                      BmsNotes* noteData,
                                      QObject* parent)
   : QObject(parent)
@@ -32,7 +32,7 @@ gameplay_logic::ChartData::ChartData(QString title,
   , difficulty(difficulty)
   , noteCount(noteCount)
   , length(length)
-  , directory(std::move(directory))
+  , path(std::move(path))
   , noteData(noteData)
 {
     noteData->setParent(this);
@@ -58,9 +58,9 @@ gameplay_logic::ChartData::getLength() const -> int
     return length;
 }
 auto
-gameplay_logic::ChartData::getDirectory() const -> QUrl
+gameplay_logic::ChartData::getPath() const -> QString
 {
-    return directory;
+    return path;
 }
 auto
 gameplay_logic::ChartData::getNoteData() const -> gameplay_logic::BmsNotes*
@@ -101,4 +101,27 @@ auto
 gameplay_logic::ChartData::getGenre() const -> QString
 {
     return genre;
+}
+auto
+gameplay_logic::ChartData::save(db::SqliteCppDb& db) const -> void
+{
+    static thread_local auto query = db.createStatement(
+      "INSERT INTO charts (title, artist, subtitle, subartist, genre, rank, "
+      "total, play_level, difficulty, note_count, length, path) VALUES "
+      "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);");
+    query.reset();
+    query.bind(1, title.toStdString());
+    query.bind(2, artist.toStdString());
+    query.bind(3, subtitle.toStdString());
+    query.bind(4, subartist.toStdString());
+    query.bind(5, genre.toStdString());
+    query.bind(6, rank);
+    query.bind(7, total);
+    query.bind(8, playLevel);
+    query.bind(9, difficulty);
+    query.bind(10, noteCount);
+    query.bind(11, length);
+    query.bind(12, path.toStdString());
+
+    query.execute();
 }

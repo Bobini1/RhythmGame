@@ -14,7 +14,8 @@ ChartFactory::createChart(
   double maxHitValue) -> gameplay_logic::Chart*
 {
     auto& [chartData, notesData, wavs] = chartComponents;
-    auto path = chartData->getDirectory().toString().toStdString();
+    auto path =
+      std::filesystem::path(chartData->getPath().toStdString()).parent_path();
     auto* score = new gameplay_logic::BmsScore(
       chartData->getNoteCount(), maxHitValue, std::move(gauges));
     auto beatsBeforeChartStart =

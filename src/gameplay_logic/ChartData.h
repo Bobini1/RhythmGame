@@ -11,6 +11,7 @@
 #include <QJSEngine>
 #include "BmsScore.h"
 #include "BmsNotes.h"
+#include "db/SqliteCppDb.h"
 namespace gameplay_logic {
 
 class ChartData : public QObject
@@ -28,7 +29,7 @@ class ChartData : public QObject
     Q_PROPERTY(int difficulty READ getDifficulty CONSTANT)
     Q_PROPERTY(int noteCount READ getNoteCount CONSTANT)
     Q_PROPERTY(int length READ getLength CONSTANT)
-    Q_PROPERTY(QUrl directory READ getDirectory CONSTANT)
+    Q_PROPERTY(QString path READ getPath CONSTANT)
     Q_PROPERTY(BmsNotes* noteData READ getNoteData CONSTANT)
 
   public:
@@ -43,7 +44,7 @@ class ChartData : public QObject
               int difficulty,
               int noteCount,
               int length,
-              QUrl directory,
+              QString path,
               BmsNotes* noteData,
               QObject* parent = nullptr);
 
@@ -54,12 +55,14 @@ class ChartData : public QObject
     [[nodiscard]] auto getGenre() const -> QString;
     [[nodiscard]] auto getNoteCount() const -> int;
     [[nodiscard]] auto getLength() const -> int;
-    [[nodiscard]] auto getDirectory() const -> QUrl;
+    [[nodiscard]] auto getPath() const -> QString;
     [[nodiscard]] auto getNoteData() const -> BmsNotes*;
     [[nodiscard]] auto getRank() const -> int;
     [[nodiscard]] auto getTotal() const -> double;
     [[nodiscard]] auto getPlayLevel() const -> int;
     [[nodiscard]] auto getDifficulty() const -> int;
+
+    auto save(db::SqliteCppDb& db) const -> void;
 
   private:
     QString title;
@@ -74,7 +77,7 @@ class ChartData : public QObject
     int difficulty;
     int noteCount;
     int length;
-    QUrl directory;
+    QString path;
     BmsNotes* noteData;
 };
 

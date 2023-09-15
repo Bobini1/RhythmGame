@@ -10,7 +10,6 @@
 #include "charts/chart_readers/BmsChartReader.h"
 #include "charts/gameplay_models/BmsNotesData.h"
 #include "gameplay_logic/BmsNotes.h"
-#include <uchardet/uchardet.h>
 #include <fstream>
 #include <boost/locale/encoding.hpp>
 
@@ -18,10 +17,6 @@ namespace resource_managers {
 
 class ChartDataFactory
 {
-    std::unique_ptr<uchardet, decltype(&uchardet_delete)> detector{
-        uchardet_new(),
-        &uchardet_delete
-    };
     charts::chart_readers::BmsChartReader chartReader;
     auto detectEncoding(std::string_view string) const -> std::string;
 

@@ -7,6 +7,7 @@
 #include "Chart.h"
 
 namespace gameplay_logic {
+
 Chart::Chart(QFuture<gameplay_logic::BmsGameReferee> refereeFuture,
              ChartData* chartData,
              BmsScore* score,
@@ -15,7 +16,7 @@ Chart::Chart(QFuture<gameplay_logic::BmsGameReferee> refereeFuture,
   : QObject(parent)
   , bpmChanges(chartData->getNoteData()->getBpmChanges())
   , chartData(chartData)
-  , score(std::move(score))
+  , score(score)
   , refereeFuture(std::move(refereeFuture))
   , elapsed(-timeBeforeChartStart.timestamp.count())
   , position(-timeBeforeChartStart.position)
