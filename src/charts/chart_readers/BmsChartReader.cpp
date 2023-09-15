@@ -382,9 +382,9 @@ struct TagsSink
             auto channelCategory = static_cast<ChannelCategory>(channel / base);
             auto channelSubcategory = static_cast<unsigned>(channel % base);
 
-            auto addNote = [](auto noteArray,
-                              unsigned column,
-                              std::vector<std::string> identifiers) {
+            auto addNotes = [](auto& noteArray,
+                               unsigned column,
+                               std::vector<std::string> identifiers) {
                 if (column < 1 || column >= noteArray.size()) {
                     return;
                 }
@@ -412,34 +412,34 @@ struct TagsSink
                     }
                     break;
                 case P1Visible:
-                    addNote(state.measures[measure].p1VisibleNotes,
-                            channelSubcategory,
-                            std::move(identifiers));
+                    addNotes(state.measures[measure].p1VisibleNotes,
+                             channelSubcategory,
+                             std::move(identifiers));
                     break;
                 case P2Visible:
-                    addNote(state.measures[measure].p2VisibleNotes,
-                            channelSubcategory,
-                            std::move(identifiers));
+                    addNotes(state.measures[measure].p2VisibleNotes,
+                             channelSubcategory,
+                             std::move(identifiers));
                     break;
                 case P1Invisible:
-                    addNote(state.measures[measure].p1InvisibleNotes,
-                            channelSubcategory,
-                            std::move(identifiers));
+                    addNotes(state.measures[measure].p1InvisibleNotes,
+                             channelSubcategory,
+                             std::move(identifiers));
                     break;
                 case P2Invisible:
-                    addNote(state.measures[measure].p2InvisibleNotes,
-                            channelSubcategory,
-                            std::move(identifiers));
+                    addNotes(state.measures[measure].p2InvisibleNotes,
+                             channelSubcategory,
+                             std::move(identifiers));
                     break;
                 case P1LongNote:
-                    addNote(state.measures[measure].p1LongNotes,
-                            channelSubcategory,
-                            std::move(identifiers));
+                    addNotes(state.measures[measure].p1LongNotes,
+                             channelSubcategory,
+                             std::move(identifiers));
                     break;
                 case P2LongNote:
-                    addNote(state.measures[measure].p2LongNotes,
-                            channelSubcategory,
-                            std::move(identifiers));
+                    addNotes(state.measures[measure].p2LongNotes,
+                             channelSubcategory,
+                             std::move(identifiers));
                     break;
                 default:
                     spdlog::debug("Unknown channel: {:02d}", channel);
