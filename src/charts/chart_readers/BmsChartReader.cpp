@@ -324,7 +324,9 @@ struct TagsSink
         {
             auto& [identifier, value] =
               static_cast<std::pair<std::string, double>&>(bpm);
-            state.exBpms[identifier] = value;
+            if (value != 0.0) {
+                state.exBpms[identifier] = value;
+            }
         }
         auto operator()(
           std::pair<
