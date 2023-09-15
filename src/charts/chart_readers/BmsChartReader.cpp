@@ -29,12 +29,6 @@ trimR(std::string str) -> std::string
     return str;
 };
 
-template<typename... T>
-constexpr std::string
-dummy(T... args)
-{
-    return std::string();
-};
 struct TextTag
 {
     static constexpr auto value = lexy::as_string<std::string>;
