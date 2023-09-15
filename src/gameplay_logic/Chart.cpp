@@ -49,11 +49,9 @@ void
 Chart::updateElapsed()
 {
     auto offset = std::chrono::steady_clock::now() - startTimepoint;
-    if (auto millis =
-          std::chrono::duration_cast<std::chrono::milliseconds>(offset).count();
-        millis != elapsed) {
-        auto delta = millis - elapsed;
-        elapsed = millis;
+    if (auto nanos = offset.count(); nanos != elapsed) {
+        auto delta = nanos - elapsed;
+        elapsed = nanos;
         emit elapsedChanged(delta);
     }
     auto newPosition = gameReferee->update(offset);

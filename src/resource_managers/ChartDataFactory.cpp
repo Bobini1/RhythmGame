@@ -111,9 +111,7 @@ ChartDataFactory::loadChartData(const QUrl& chartPath) const
         parsedChart.tags.playLevel.value_or(1),
         parsedChart.tags.difficulty.value_or(1),
         noteCount,
-        static_cast<int>(std::chrono::duration_cast<std::chrono::milliseconds>(
-                           lastNoteTimestamp)
-                           .count()),
+        lastNoteTimestamp.count(),
         QFileInfo{ chartPath.toLocalFile() }.absoluteFilePath(),
         noteData
     };

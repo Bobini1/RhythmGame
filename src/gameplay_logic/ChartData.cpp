@@ -16,7 +16,7 @@ gameplay_logic::ChartData::ChartData(QString title,
                                      int playLevel,
                                      int difficulty,
                                      int noteCount,
-                                     int length,
+                                     int64_t length,
                                      QString path,
                                      BmsNotes* noteData,
                                      QObject* parent)
@@ -53,7 +53,7 @@ gameplay_logic::ChartData::getNoteCount() const -> int
     return noteCount;
 }
 auto
-gameplay_logic::ChartData::getLength() const -> int
+gameplay_logic::ChartData::getLength() const -> int64_t
 {
     return length;
 }

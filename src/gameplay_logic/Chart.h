@@ -59,7 +59,7 @@ class Chart : public QObject
     [[nodiscard]] auto getPosition() const -> double;
 
   signals:
-    void elapsedChanged(int delta);
+    void elapsedChanged(int64_t delta);
     void positionChanged(double delta);
     void overChanged();
     void bpmChanged(BpmChange bpmChange);

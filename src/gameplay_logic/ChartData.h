@@ -28,7 +28,7 @@ class ChartData : public QObject
     Q_PROPERTY(int playLevel READ getPlayLevel CONSTANT)
     Q_PROPERTY(int difficulty READ getDifficulty CONSTANT)
     Q_PROPERTY(int noteCount READ getNoteCount CONSTANT)
-    Q_PROPERTY(int length READ getLength CONSTANT)
+    Q_PROPERTY(int64_t length READ getLength CONSTANT)
     Q_PROPERTY(QString path READ getPath CONSTANT)
     Q_PROPERTY(BmsNotes* noteData READ getNoteData CONSTANT)
 
@@ -43,7 +43,7 @@ class ChartData : public QObject
               int playLevel,
               int difficulty,
               int noteCount,
-              int length,
+              int64_t length,
               QString path,
               BmsNotes* noteData,
               QObject* parent = nullptr);
@@ -54,7 +54,7 @@ class ChartData : public QObject
     [[nodiscard]] auto getSubartist() const -> QString;
     [[nodiscard]] auto getGenre() const -> QString;
     [[nodiscard]] auto getNoteCount() const -> int;
-    [[nodiscard]] auto getLength() const -> int;
+    [[nodiscard]] auto getLength() const -> int64_t;
     [[nodiscard]] auto getPath() const -> QString;
     [[nodiscard]] auto getNoteData() const -> BmsNotes*;
     [[nodiscard]] auto getRank() const -> int;
@@ -76,7 +76,7 @@ class ChartData : public QObject
     int playLevel;
     int difficulty;
     int noteCount;
-    int length;
+    int64_t length;
     QString path;
     BmsNotes* noteData;
 };
