@@ -8,7 +8,12 @@ namespace resource_managers {
 auto
 ChartDataFactory::loadFile(const QUrl& chartPath) -> std::string
 {
-    auto chartFile = std::ifstream{ chartPath.toLocalFile().toStdString() };
+#if defined(_WIN32)
+    auto fileUtf = chartPath.toLocalFile().toStdWString();
+#else
+    auto fileUtf = chartPath.toLocalFile().toStdString();
+#endif
+    auto chartFile = std::ifstream{ fileUtf };
     if (!chartFile.is_open()) {
         throw std::runtime_error{ "Failed to open chart file" };
     }

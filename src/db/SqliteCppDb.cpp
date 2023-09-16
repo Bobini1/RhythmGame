@@ -3,7 +3,6 @@
 //
 
 #include "SqliteCppDb.h"
-#include <sqlite3.h>
 
 #include <utility>
 
@@ -17,9 +16,6 @@ db::SqliteCppDb::SqliteCppDb(std::string dbPath)
 #ifdef DEBUG
     db.exec("PRAGMA foreign_keys=ON;");
 #endif
-    auto* handle = db.getHandle();
-    sqlite3_busy_handler(
-      handle, [](void*, int) { return 1; }, nullptr);
 }
 
 auto

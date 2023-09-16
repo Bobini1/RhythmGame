@@ -7,6 +7,7 @@
 #include "SongDbScanner.h"
 #include <boost/lockfree/stack.hpp>
 #include "db/SqliteCppDb.h"
+#include <fmt/xchar.h>
 
 namespace resource_managers {
 SongDbScanner::SongDbScanner(db::SqliteCppDb* db)
@@ -34,23 +35,22 @@ scanFolder(std::filesystem::path directory,
                 continue;
             }
             auto url =
+#if defined(_WIN32)
+              QUrl::fromLocalFile(QString::fromStdWString(path.wstring()));
+#else
               QUrl::fromLocalFile(QString::fromStdString(path.string()));
-            threadPool.start(
+#endif
               [&db, url = std::move(url)] {
-                  static thread_local const ChartDataFactory chartDataFactory;
-                  try {
-                      auto chartComponents =
-                        chartDataFactory.loadChartData(url);
-                      chartComponents.chartData->save(db);
-                  } catch (const std::exception& e) {
-                      //                spdlog::error("Error while loading chart
-                      //                {}:
-                      //                {}",
-                      //                              url.toString().toStdString(),
-                      //                              e.what());
-                  }
-              },
-              QThread::HighPriority);
+                try {
+                    static thread_local const ChartDataFactory chartDataFactory;
+                    auto chartComponents = chartDataFactory.loadChartData(url);
+                    chartComponents.chartData->save(db);
+                } catch (const std::exception& e) {
+                    spdlog::error("Failed to load chart data for {}: {}",
+                                  url.toString().toStdString(),
+                                  e.what());
+                }
+              }();
         }
     }
     for (const auto& entry : directoriesToScan) {
@@ -64,7 +64,7 @@ SongDbScanner::scanDirectories(std::span<const std::string> directories)
     auto threadPool = QThreadPool{};
     for (const auto& entry : directories) {
         if (std::filesystem::is_directory(entry)) {
-            threadPool.start([&] { scanFolder(entry, threadPool, *db); });
+            [&] { scanFolder(entry, threadPool, *db); }();
         } else {
             spdlog::error("Resource path {} is not a directory", entry);
         }
