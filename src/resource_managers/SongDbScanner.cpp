@@ -40,7 +40,7 @@ scanFolder(std::filesystem::path directory,
 #else
               QUrl::fromLocalFile(QString::fromStdString(path.string()));
 #endif
-              [&db, url = std::move(url)] {
+            threadPool.start([&db, url = std::move(url)] {
                 try {
                     static thread_local const ChartDataFactory chartDataFactory;
                     auto chartComponents = chartDataFactory.loadChartData(url);
@@ -50,11 +50,11 @@ scanFolder(std::filesystem::path directory,
                                   url.toString().toStdString(),
                                   e.what());
                 }
-              }();
+            });
         }
     }
     for (const auto& entry : directoriesToScan) {
-        [entry, &threadPool, &db] { scanFolder(entry, threadPool, db); }();
+        scanFolder(entry, threadPool, db);
     }
 }
 
