@@ -14,7 +14,6 @@
 #include <QtQml/QQmlExtensionPlugin>
 #include <spdlog/sinks/qt_sinks.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
-#include <sqlite3.h>
 #include "sounds/OpenAlSoundBuffer.h"
 #include "../RhythmGameQml/Logger.h"
 #include "gameplay_logic/rules/StandardBmsHitRules.h"
@@ -128,7 +127,7 @@ main(int argc, char* argv[]) -> int
         spdlog::set_default_logger(logger);
 
         std::filesystem::remove(assetsFolder / "song_db.sqlite");
-        auto db = db::SqliteCppDb{ assetsFolder / "song_db.sqlite" };
+        auto db = db::SqliteCppDb{ (assetsFolder / "song_db.sqlite").string() };
         // create charts table if it doesn't exist
         db.execute("CREATE TABLE IF NOT EXISTS charts ("
                    "id INTEGER PRIMARY KEY AUTOINCREMENT,"
@@ -173,12 +172,12 @@ main(int argc, char* argv[]) -> int
                 const auto scriptsFolder =
                   assetsFolder / "themes" / "Default" / "scripts";
                 return resource_managers::models::ThemeConfig{
-                    QString::fromStdString(scriptsFolder /
-                                           configMap.at("Main")),
-                    QString::fromStdString(scriptsFolder /
-                                           configMap.at("Gameplay")),
-                    QString::fromStdString(scriptsFolder /
-                                           configMap.at("SongWheel"))
+                    QString::fromStdString((scriptsFolder /
+                                           configMap.at("Main")).string()),
+                    QString::fromStdString((scriptsFolder /
+                                           configMap.at("Gameplay")).string()),
+                    QString::fromStdString((scriptsFolder /
+                                           configMap.at("SongWheel")).string())
                 };
             } catch (const std::exception& e) {
                 spdlog::error("Failed to load theme config: {}", e.what());
