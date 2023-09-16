@@ -5,6 +5,8 @@
 #include <stack>
 #include <iostream>
 #include "SongDbScanner.h"
+#include <boost/lockfree/stack.hpp>
+#include "db/SqliteCppDb.h"
 
 namespace resource_managers {
 SongDbScanner::SongDbScanner(db::SqliteCppDb* db)
@@ -13,68 +15,60 @@ SongDbScanner::SongDbScanner(db::SqliteCppDb* db)
 }
 
 void
+scanFolder(std::filesystem::path directory,
+           QThreadPool& threadPool,
+           db::SqliteCppDb& db)
+{
+    auto directoriesToScan = std::vector<std::filesystem::path>{};
+    auto isSongDirectory = false;
+    for (const auto& entry : std::filesystem::directory_iterator(directory)) {
+        auto path = entry.path();
+        if (std::filesystem::is_directory(entry) && !isSongDirectory) {
+            directoriesToScan.push_back(path);
+        } else if (auto extension = path.extension();
+                   extension == ".bms" || extension == ".bme" ||
+                   extension == ".bml" || extension == ".pms") {
+            isSongDirectory = true;
+            directoriesToScan.clear();
+            if (extension == ".pms") {
+                continue;
+            }
+            auto url =
+              QUrl::fromLocalFile(QString::fromStdString(path.string()));
+            threadPool.start(
+              [&db, url = std::move(url)] {
+                  static thread_local const ChartDataFactory chartDataFactory;
+                  try {
+                      auto chartComponents =
+                        chartDataFactory.loadChartData(url);
+                      chartComponents.chartData->save(db);
+                  } catch (const std::exception& e) {
+                      //                spdlog::error("Error while loading chart
+                      //                {}:
+                      //                {}",
+                      //                              url.toString().toStdString(),
+                      //                              e.what());
+                  }
+              },
+              QThread::HighPriority);
+        }
+    }
+    for (const auto& entry : directoriesToScan) {
+        [entry, &threadPool, &db] { scanFolder(entry, threadPool, db); }();
+    }
+}
+
+void
 SongDbScanner::scanDirectories(std::span<const std::string> directories)
 {
-    struct DirStatus
-    {
-        std::vector<std::filesystem::path> directoriesToScan;
-        bool isSongDirectory = false;
-    };
-    auto directoriesToScan = std::stack<DirStatus>{};
-    // create a stack of directories to scan
+    auto threadPool = QThreadPool{};
     for (const auto& entry : directories) {
         if (std::filesystem::is_directory(entry)) {
-            directoriesToScan.push({ { entry }, false });
+            threadPool.start([&] { scanFolder(entry, threadPool, *db); });
         } else {
             spdlog::error("Resource path {} is not a directory", entry);
         }
     }
-    // create a local thread pool
-    auto threadPool = QThreadPool{};
-
-    // scan directories
-    while (!directoriesToScan.empty()) {
-        auto& dirStatus = directoriesToScan.top();
-        if (dirStatus.directoriesToScan.empty()) {
-            directoriesToScan.pop();
-            continue;
-        }
-        auto directory = std::move(dirStatus.directoriesToScan.back());
-        dirStatus.directoriesToScan.pop_back();
-        directoriesToScan.emplace();
-        auto& newDirStatus = directoriesToScan.top();
-        for (const auto& entry :
-             std::filesystem::directory_iterator(directory)) {
-            if (std::filesystem::is_directory(entry) &&
-                !dirStatus.isSongDirectory) {
-                newDirStatus.directoriesToScan.push_back(entry.path());
-            } else if (entry.path().extension() == ".bms" ||
-                       entry.path().extension() == ".bme" ||
-                       entry.path().extension() == ".bml" ||
-                       entry.path().extension() == ".pms") {
-                dirStatus.isSongDirectory = true;
-                newDirStatus.directoriesToScan.clear();
-                if (entry.path().extension() == ".pms") {
-                    continue;
-                }
-                auto url = QUrl::fromLocalFile(
-                  QString::fromStdString(entry.path().string()));
-                threadPool.start([this, url = std::move(url)] {
-                    static thread_local ChartDataFactory chartDataFactory;
-                    try {
-                        auto chartComponents =
-                          chartDataFactory.loadChartData(url);
-                        chartComponents.chartData->save(*db);
-                        std::cout << url.toString().toStdString() << std::endl;
-                    } catch (const std::exception& e) {
-                        //                        spdlog::error("Error while
-                        //                        loading chart {}: {}",
-                        //                                      url.toString().toStdString(),
-                        //                                      e.what());
-                    }
-                });
-            }
-        }
-    }
+    threadPool.waitForDone();
 }
-} // resource_managers
+} // namespace resource_managers

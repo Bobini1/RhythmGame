@@ -79,9 +79,7 @@ ChartDataFactory::loadChartData(const QUrl& chartPath) const
 {
     auto chart = loadFile(chartPath);
     auto hash = support::sha256(chart);
-
-    auto chartUtf = boost::locale::conv::to_utf<char>(chart, "SHIFT-JIS");
-    auto parsedChart = chartReader.readBmsChart(chartUtf);
+    auto parsedChart = chartReader.readBmsChart(chart);
     auto calculatedNotesData =
       charts::gameplay_models::BmsNotesData{ parsedChart };
     auto noteCount = 0;

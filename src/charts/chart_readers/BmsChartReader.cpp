@@ -13,6 +13,7 @@
 #include "BmsChartReader.h"
 
 #include <lexy_ext/report_error.hpp>
+#include <boost/locale/encoding.hpp>
 
 namespace charts::chart_readers {
 namespace dsl = lexy::dsl;
@@ -280,25 +281,30 @@ struct TagsSink
         auto finish() && -> return_type { return std::move(state); }
         auto operator()(Title&& title) -> void
         {
-            state.title = trimR(std::move(static_cast<std::string&>(title)));
+            state.title = boost::locale::conv::to_utf<char>(
+              trimR(std::move(static_cast<std::string&>(title))), "SHIFT-JIS");
         }
         auto operator()(Artist&& artist) -> void
         {
-            state.artist = trimR(std::move(static_cast<std::string&>(artist)));
+            state.artist = boost::locale::conv::to_utf<char>(
+              trimR(std::move(static_cast<std::string&>(artist))), "SHIFT-JIS");
         }
         auto operator()(Genre&& genre) -> void
         {
-            state.genre = trimR(std::move(static_cast<std::string&>(genre)));
+            state.genre = boost::locale::conv::to_utf<char>(
+              trimR(std::move(static_cast<std::string&>(genre))), "SHIFT-JIS");
         }
         auto operator()(Subtitle&& subtitle) -> void
         {
-            state.subTitle =
-              trimR(std::move(static_cast<std::string&>(subtitle)));
+            state.subTitle = boost::locale::conv::to_utf<char>(
+              trimR(std::move(static_cast<std::string&>(subtitle))),
+              "SHIFT-JIS");
         }
         auto operator()(Subartist&& subartist) -> void
         {
-            state.subArtist =
-              trimR(std::move(static_cast<std::string&>(subartist)));
+            state.subArtist = boost::locale::conv::to_utf<char>(
+              trimR(std::move(static_cast<std::string&>(subartist))),
+              "SHIFT-JIS");
         }
         auto operator()(Total&& total) -> void
         {
@@ -387,7 +393,7 @@ struct TagsSink
             auto addNotes = [](auto& noteArray,
                                unsigned column,
                                std::vector<std::string> identifiers) {
-                if (column < 1 || column >= noteArray.size()) {
+                if (column < 1 || column >= noteArray.size()) [[unlikely]] {
                     return;
                 }
                 noteArray[column - 1] = std::move(identifiers);
