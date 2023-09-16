@@ -14,11 +14,15 @@
 #include <QtQml/QQmlExtensionPlugin>
 #include <spdlog/sinks/qt_sinks.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
+#include <sqlite3.h>
 #include "sounds/OpenAlSoundBuffer.h"
 #include "../RhythmGameQml/Logger.h"
 #include "gameplay_logic/rules/StandardBmsHitRules.h"
 #include "gameplay_logic/rules/Lr2Gauge.h"
 #include "gameplay_logic/rules/Lr2HitValues.h"
+#include "resource_managers/SongDbScanner.h"
+
+#include <iostream>
 
 extern "C" {
 #include <libavutil/log.h>
@@ -115,16 +119,51 @@ main(int argc, char* argv[]) -> int
 
         auto logger = spdlog::qt_logger_mt("log", &log, "addLog");
 
-#ifdef DEBUG
         // combine with console logger
         logger->sinks().push_back(
           std::make_shared<spdlog::sinks::stdout_color_sink_mt>());
 
         // set global log level to debug
-        spdlog::set_level(spdlog::level::debug);
-#endif
-
+        // spdlog::set_level(spdlog::level::debug);
         spdlog::set_default_logger(logger);
+
+        std::filesystem::remove(assetsFolder / "song_db.sqlite");
+        auto db = db::SqliteCppDb{ assetsFolder / "song_db.sqlite" };
+        // create charts table if it doesn't exist
+        db.execute("CREATE TABLE IF NOT EXISTS charts ("
+                   "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+                   "title TEXT NOT NULL,"
+                   "artist TEXT NOT NULL,"
+                   "subtitle TEXT NOT NULL,"
+                   "subartist TEXT NOT NULL,"
+                   "genre TEXT NOT NULL,"
+                   "rank INTEGER NOT NULL,"
+                   "total REAL NOT NULL,"
+                   "play_level INTEGER NOT NULL,"
+                   "difficulty INTEGER NOT NULL,"
+                   "note_count INTEGER NOT NULL,"
+                   "length INTEGER NOT NULL,"
+                   "path TEXT NOT NULL"
+                   ");");
+        auto songDbScanner = resource_managers::SongDbScanner{ &db };
+        auto start = std::chrono::high_resolution_clock::now();
+        songDbScanner.scanDirectories(
+          { { "/run/media/bobini/Elements/BMS/" } });
+        auto end = std::chrono::high_resolution_clock::now();
+        spdlog::info(
+          "Database created in {} us",
+          std::chrono::duration_cast<std::chrono::microseconds>(end - start)
+            .count());
+        // query for charts table size
+        auto query = db.createStatement("SELECT COUNT(*) FROM charts");
+        auto count = query.executeAndGet<int>();
+        spdlog::info("Found {} charts in database", *count);
+        // time per chart
+        spdlog::info(
+          "Time per chart: {} us",
+          std::chrono::duration_cast<std::chrono::microseconds>(end - start)
+              .count() /
+            *count);
 
         auto themeConfigLoader = [assetsFolder] {
             try {
