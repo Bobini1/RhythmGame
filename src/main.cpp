@@ -253,10 +253,10 @@ main(int argc, char* argv[]) -> int
 
         return app.exec();
     } catch (const std::exception& e) {
-        spdlog::error("Fatal error: {}", e.what());
-        return 1;
+        std::cerr << "Fatal error: " << e.what() << std::endl;
+        throw;
     } catch (...) {
-        spdlog::error("Fatal error: unknown");
-        return 1;
+        std::cerr << "Fatal error: unknown" << std::endl;
+        throw;
     }
 }
