@@ -18,7 +18,8 @@ SongDbScanner::SongDbScanner(db::SqliteCppDb* db)
 void
 scanFolder(std::filesystem::path directory,
            QThreadPool& threadPool,
-           db::SqliteCppDb& db)
+           db::SqliteCppDb& db,
+           QString directoryInDb)
 {
     auto directoriesToScan = std::vector<std::filesystem::path>{};
     auto isSongDirectory = false;
@@ -40,10 +41,21 @@ scanFolder(std::filesystem::path directory,
 #else
               QUrl::fromLocalFile(QString::fromStdString(path.string()));
 #endif
-            threadPool.start([&db, url = std::move(url)] {
+            threadPool.start([&db,
+                              url = std::move(url),
+                              directoryInDb]() mutable {
                 try {
                     static thread_local const ChartDataFactory chartDataFactory;
-                    auto chartComponents = chartDataFactory.loadChartData(url);
+                    // remove the last part of directoryInDb
+                    directoryInDb.remove(directoryInDb.size() - 1, 1);
+                    auto lastSlashIndex = directoryInDb.lastIndexOf("/");
+                    if (lastSlashIndex != -1) {
+                        directoryInDb.remove(lastSlashIndex + 1,
+                                             directoryInDb.size() -
+                                               lastSlashIndex - 1);
+                    }
+                    auto chartComponents =
+                      chartDataFactory.loadChartData(url, directoryInDb);
                     chartComponents.chartData->save(db);
                 } catch (const std::exception& e) {
                     spdlog::error("Failed to load chart data for {}: {}",
@@ -54,7 +66,10 @@ scanFolder(std::filesystem::path directory,
         }
     }
     for (const auto& entry : directoriesToScan) {
-        scanFolder(entry, threadPool, db);
+        auto nextDirectoryInDb = directoryInDb;
+        nextDirectoryInDb +=
+          QString::fromStdString(entry.filename().string() + "/");
+        scanFolder(entry, threadPool, db, std::move(nextDirectoryInDb));
     }
 }
 
@@ -64,7 +79,10 @@ SongDbScanner::scanDirectories(std::span<const std::string> directories)
     auto threadPool = QThreadPool{};
     for (const auto& entry : directories) {
         if (std::filesystem::is_directory(entry)) {
-            [&] { scanFolder(entry, threadPool, *db); }();
+            // pass only the last part of the entry directory as directoryInDb
+            auto directoryInDb = QString::fromStdString(
+              std::filesystem::path(entry).filename().string() + "/");
+            scanFolder(entry, threadPool, *db, directoryInDb);
         } else {
             spdlog::error("Resource path {} is not a directory", entry);
         }

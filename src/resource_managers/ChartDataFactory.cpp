@@ -4,6 +4,8 @@
 
 #include "ChartDataFactory.h"
 
+#include <utility>
+
 namespace resource_managers {
 auto
 ChartDataFactory::loadFile(const QUrl& chartPath) -> std::string
@@ -79,7 +81,8 @@ ChartDataFactory::convertToQVector(
     return columnNotes;
 }
 auto
-ChartDataFactory::loadChartData(const QUrl& chartPath) const
+ChartDataFactory::loadChartData(const QUrl& chartPath,
+                                QString directoryInDb) const
   -> ChartDataFactory::ChartComponents
 {
     auto chart = loadFile(chartPath);
@@ -116,6 +119,8 @@ ChartDataFactory::loadChartData(const QUrl& chartPath) const
         noteCount,
         lastNoteTimestamp.count(),
         QFileInfo{ chartPath.toLocalFile() }.absoluteFilePath(),
+        std::move(directoryInDb),
+        QString::fromStdString(hash),
         noteData
     };
     return { chartData, std::move(calculatedNotesData), parsedChart.tags.wavs };

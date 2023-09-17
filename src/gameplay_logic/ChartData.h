@@ -30,7 +30,10 @@ class ChartData : public QObject
     Q_PROPERTY(int noteCount READ getNoteCount CONSTANT)
     Q_PROPERTY(int64_t length READ getLength CONSTANT)
     Q_PROPERTY(QString path READ getPath CONSTANT)
+    Q_PROPERTY(QString directoryInDb READ getPath CONSTANT)
+    Q_PROPERTY(QString sha256 READ getSha256 CONSTANT)
     Q_PROPERTY(BmsNotes* noteData READ getNoteData CONSTANT)
+    ChartData() = default;
 
   public:
     ChartData(QString title,
@@ -45,6 +48,8 @@ class ChartData : public QObject
               int noteCount,
               int64_t length,
               QString path,
+              QString directoryInDb,
+              QString sha256,
               BmsNotes* noteData,
               QObject* parent = nullptr);
 
@@ -56,13 +61,36 @@ class ChartData : public QObject
     [[nodiscard]] auto getNoteCount() const -> int;
     [[nodiscard]] auto getLength() const -> int64_t;
     [[nodiscard]] auto getPath() const -> QString;
+    [[nodiscard]] auto getDirectoryInDb() const -> QString;
     [[nodiscard]] auto getNoteData() const -> BmsNotes*;
     [[nodiscard]] auto getRank() const -> int;
     [[nodiscard]] auto getTotal() const -> double;
     [[nodiscard]] auto getPlayLevel() const -> int;
     [[nodiscard]] auto getDifficulty() const -> int;
+    [[nodiscard]] auto getSha256() const -> QString;
+
+    struct DTO
+    {
+        int id;
+        std::string title;
+        std::string artist;
+        std::string subtitle;
+        std::string subartist;
+        std::string genre;
+        int rank;
+        double total;
+        int playLevel;
+        int difficulty;
+        int noteCount;
+        int64_t length;
+        std::string path;
+        std::string directoryInDb;
+        std::string sha256;
+        std::string noteData;
+    };
 
     auto save(db::SqliteCppDb& db) const -> void;
+    static auto load(DTO chartDataDto) -> ChartData*;
 
   private:
     QString title;
@@ -78,6 +106,8 @@ class ChartData : public QObject
     int noteCount;
     int64_t length;
     QString path;
+    QString directoryInDb;
+    QString sha256;
     BmsNotes* noteData;
 };
 

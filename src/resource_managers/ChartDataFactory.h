@@ -18,7 +18,6 @@ namespace resource_managers {
 class ChartDataFactory
 {
     charts::chart_readers::BmsChartReader chartReader;
-    auto detectEncoding(std::string_view string) const -> std::string;
 
     static auto loadFile(const QUrl& chartPath) -> std::string;
     static auto makeNotes(
@@ -36,7 +35,9 @@ class ChartDataFactory
         std::map<std::string, std::string> wavs;
     };
 
-    auto loadChartData(const QUrl& chartPath) const -> ChartComponents;
+    auto loadChartData(const QUrl& chartPath,
+                       QString directoryInDb = QString()) const
+      -> ChartComponents;
 };
 
 } // namespace resource_managers

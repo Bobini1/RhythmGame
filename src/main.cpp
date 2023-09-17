@@ -142,12 +142,15 @@ main(int argc, char* argv[]) -> int
                    "difficulty INTEGER NOT NULL,"
                    "note_count INTEGER NOT NULL,"
                    "length INTEGER NOT NULL,"
-                   "path TEXT NOT NULL"
+                   "path TEXT NOT NULL UNIQUE,"
+                   "directory_in_db TEXT NOT NULL,"
+                   "sha256 TEXT NOT NULL,"
+                   "note_data BLOB NOT NULL"
                    ");");
         auto songDbScanner = resource_managers::SongDbScanner{ &db };
         auto start = std::chrono::high_resolution_clock::now();
         songDbScanner.scanDirectories(
-          { { "/run/media/bobini/Elements/BMS/" } });
+          { { "/run/media/bobini/Elements/BMS/_spackage" } });
         auto end = std::chrono::high_resolution_clock::now();
         spdlog::info(
           "Database created in {} us",
@@ -164,6 +167,24 @@ main(int argc, char* argv[]) -> int
               .count() /
             *count);
 
+        // get all inserted charts
+        start = std::chrono::high_resolution_clock::now();
+        auto selectQuery = db.createStatement("SELECT * FROM charts");
+        auto result =
+          selectQuery.executeAndGetAll<gameplay_logic::ChartData::DTO>();
+        for (const auto& chartDataDto : result) {
+            auto* noteData = new gameplay_logic::BmsNotes{};
+            auto buffer = QByteArray::fromStdString(chartDataDto.noteData);
+            auto stream = QDataStream{ &buffer, QIODevice::ReadOnly };
+            stream >> *noteData;
+        }
+        end = std::chrono::high_resolution_clock::now();
+        spdlog::info(
+          "Charts loaded in {} us",
+          std::chrono::duration_cast<std::chrono::microseconds>(end - start)
+              .count() /
+            result.size());
+
         auto themeConfigLoader = [assetsFolder] {
             try {
                 const auto configMap = resource_managers::loadConfig(
@@ -172,12 +193,12 @@ main(int argc, char* argv[]) -> int
                 const auto scriptsFolder =
                   assetsFolder / "themes" / "Default" / "scripts";
                 return resource_managers::models::ThemeConfig{
-                    QString::fromStdString((scriptsFolder /
-                                           configMap.at("Main")).string()),
-                    QString::fromStdString((scriptsFolder /
-                                           configMap.at("Gameplay")).string()),
-                    QString::fromStdString((scriptsFolder /
-                                           configMap.at("SongWheel")).string())
+                    QString::fromStdString(
+                      (scriptsFolder / configMap.at("Main")).string()),
+                    QString::fromStdString(
+                      (scriptsFolder / configMap.at("Gameplay")).string()),
+                    QString::fromStdString(
+                      (scriptsFolder / configMap.at("SongWheel")).string())
                 };
             } catch (const std::exception& e) {
                 spdlog::error("Failed to load theme config: {}", e.what());
