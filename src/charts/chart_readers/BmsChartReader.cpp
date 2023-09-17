@@ -503,7 +503,7 @@ struct IfList
 {
     static constexpr auto rule = [] {
         auto delims = dsl::terminator(
-          dsl::eof |
+          dsl::eof | dsl::peek(dsl::ascii::case_folding(LEXY_LIT("#random"))) |
           dsl::peek(dsl::ascii::case_folding(LEXY_LIT("#endrandom"))));
         return delims.list(dsl::p<IfBlock>);
     }();
@@ -519,7 +519,8 @@ struct RandomBlock
                (dsl::integer<parser_models::ParsedBmsChart::RandomRange>(
                   dsl::digits<>) +
                 dsl::p<IfList> +
-                (dsl::ascii::case_folding(LEXY_LIT("#endrandom")) | dsl::eof));
+                (dsl::peek(dsl::ascii::case_folding(LEXY_LIT("#random"))) |
+                 dsl::ascii::case_folding(LEXY_LIT("#endrandom")) | dsl::eof));
     }();
     static constexpr auto value = lexy::construct<std::pair<
       parser_models::ParsedBmsChart::RandomRange,
