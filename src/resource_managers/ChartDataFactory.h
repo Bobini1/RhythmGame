@@ -30,14 +30,16 @@ class ChartDataFactory
   public:
     struct ChartComponents
     {
-        gameplay_logic::ChartData* chartData;
+        std::unique_ptr<gameplay_logic::ChartData> chartData;
         charts::gameplay_models::BmsNotesData notesData;
         std::map<std::string, std::string> wavs;
     };
 
-    auto loadChartData(const QUrl& chartPath,
-                       QString directoryInDb = QString()) const
-      -> ChartComponents;
+    auto loadChartData(
+      const QUrl& chartPath,
+      std::function<charts::parser_models::ParsedBmsChart::RandomRange(
+        charts::parser_models::ParsedBmsChart::RandomRange)> randomGenerator,
+      QString directoryInDb = QString()) const -> ChartComponents;
 };
 
 } // namespace resource_managers

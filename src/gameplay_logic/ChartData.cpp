@@ -16,6 +16,7 @@ gameplay_logic::ChartData::ChartData(QString title,
                                      double total,
                                      int playLevel,
                                      int difficulty,
+                                     bool isRandom,
                                      int noteCount,
                                      int64_t length,
                                      QString path,
@@ -33,6 +34,7 @@ gameplay_logic::ChartData::ChartData(QString title,
   , total(total)
   , playLevel(playLevel)
   , difficulty(difficulty)
+  , isRandom(isRandom)
   , noteCount(noteCount)
   , length(length)
   , path(std::move(path))
@@ -112,9 +114,9 @@ gameplay_logic::ChartData::save(db::SqliteCppDb& db) const -> void
 {
     static thread_local auto query = db.createStatement(
       "INSERT OR REPLACE INTO charts (title, artist, subtitle, subartist, "
-      "genre, rank, total, play_level, difficulty, note_count, length, path, "
-      "directory_in_db, sha256, note_data) "
-      "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);");
+      "genre, rank, total, play_level, difficulty, is_random, note_count, "
+      "length, path, directory_in_db, sha256, note_data) "
+      "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);");
     query.reset();
     query.bind(1, title.toStdString());
     query.bind(2, artist.toStdString());
@@ -125,16 +127,17 @@ gameplay_logic::ChartData::save(db::SqliteCppDb& db) const -> void
     query.bind(7, total);
     query.bind(8, playLevel);
     query.bind(9, difficulty);
-    query.bind(10, noteCount);
-    query.bind(11, length);
-    query.bind(12, path.toStdString());
-    query.bind(13, directoryInDb.toStdString());
-    query.bind(14, sha256.toStdString());
+    query.bind(10, isRandom);
+    query.bind(11, noteCount);
+    query.bind(12, length);
+    query.bind(13, path.toStdString());
+    query.bind(14, directoryInDb.toStdString());
+    query.bind(15, sha256.toStdString());
     // serialize into a buffer
     auto buffer = QByteArray{};
     auto stream = QDataStream{ &buffer, QIODevice::WriteOnly };
     stream << *noteData;
-    query.bind(15, buffer.toStdString());
+    query.bind(16, buffer.toStdString());
 
     query.execute();
 }
@@ -153,7 +156,7 @@ auto
 gameplay_logic::ChartData::load(gameplay_logic::ChartData::DTO chartDataDto)
   -> gameplay_logic::ChartData*
 {
-    auto noteData = new BmsNotes{};
+    auto* noteData = new BmsNotes{};
     auto buffer = QByteArray::fromStdString(chartDataDto.noteData);
     auto stream = QDataStream{ &buffer, QIODevice::ReadOnly };
     stream >> *noteData;
@@ -166,6 +169,7 @@ gameplay_logic::ChartData::load(gameplay_logic::ChartData::DTO chartDataDto)
                           chartDataDto.total,
                           chartDataDto.playLevel,
                           chartDataDto.difficulty,
+                          chartDataDto.isRandom,
                           chartDataDto.noteCount,
                           chartDataDto.length,
                           QString::fromStdString(chartDataDto.path),

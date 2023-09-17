@@ -39,8 +39,10 @@ ChartFactory::createChart(
                                               combinedTimeBeforeChartStart);
     };
     auto referee = QtConcurrent::run(std::move(task));
-    return new gameplay_logic::Chart(
-      std::move(referee), chartData, score, combinedTimeBeforeChartStart);
+    return new gameplay_logic::Chart(std::move(referee),
+                                     chartData.release(),
+                                     score,
+                                     combinedTimeBeforeChartStart);
 }
 ChartFactory::ChartFactory(std::chrono::nanoseconds timeBeforeChartStart)
   : timeBeforeChartStart(timeBeforeChartStart)

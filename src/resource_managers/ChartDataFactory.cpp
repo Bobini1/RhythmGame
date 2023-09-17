@@ -81,13 +81,15 @@ ChartDataFactory::convertToQVector(
     return columnNotes;
 }
 auto
-ChartDataFactory::loadChartData(const QUrl& chartPath,
-                                QString directoryInDb) const
-  -> ChartDataFactory::ChartComponents
+ChartDataFactory::loadChartData(
+  const QUrl& chartPath,
+  std::function<charts::parser_models::ParsedBmsChart::RandomRange(
+    charts::parser_models::ParsedBmsChart::RandomRange)> randomGenerator,
+  QString directoryInDb) const -> ChartDataFactory::ChartComponents
 {
     auto chart = loadFile(chartPath);
     auto hash = support::sha256(chart);
-    auto parsedChart = chartReader.readBmsChart(chart);
+    auto parsedChart = chartReader.readBmsChart(chart, randomGenerator);
     auto calculatedNotesData =
       charts::gameplay_models::BmsNotesData{ parsedChart };
     auto noteCount = 0;
@@ -106,23 +108,25 @@ ChartDataFactory::loadChartData(const QUrl& chartPath,
             lastNoteTimestamp = lastNote.time.timestamp;
         }
     }
-    auto* chartData = new gameplay_logic::ChartData{
-        QString::fromStdString(parsedChart.tags.title.value_or("")),
-        QString::fromStdString(parsedChart.tags.artist.value_or("")),
-        QString::fromStdString(parsedChart.tags.subTitle.value_or("")),
-        QString::fromStdString(parsedChart.tags.subArtist.value_or("")),
-        QString::fromStdString(parsedChart.tags.genre.value_or("")),
-        parsedChart.tags.rank.value_or(2),
-        parsedChart.tags.total.value_or(160.0),
-        parsedChart.tags.playLevel.value_or(1),
-        parsedChart.tags.difficulty.value_or(1),
-        noteCount,
-        lastNoteTimestamp.count(),
-        QFileInfo{ chartPath.toLocalFile() }.absoluteFilePath(),
-        std::move(directoryInDb),
-        QString::fromStdString(hash),
-        noteData
-    };
-    return { chartData, std::move(calculatedNotesData), parsedChart.tags.wavs };
+    auto chartData = std::make_unique<gameplay_logic::ChartData>(
+      QString::fromStdString(parsedChart.tags.title.value_or("")),
+      QString::fromStdString(parsedChart.tags.artist.value_or("")),
+      QString::fromStdString(parsedChart.tags.subTitle.value_or("")),
+      QString::fromStdString(parsedChart.tags.subArtist.value_or("")),
+      QString::fromStdString(parsedChart.tags.genre.value_or("")),
+      parsedChart.tags.rank.value_or(2),
+      parsedChart.tags.total.value_or(160.0),
+      parsedChart.tags.playLevel.value_or(1),
+      parsedChart.tags.difficulty.value_or(1),
+      parsedChart.tags.isRandom,
+      noteCount,
+      lastNoteTimestamp.count(),
+      QFileInfo{ chartPath.toLocalFile() }.absoluteFilePath(),
+      std::move(directoryInDb),
+      QString::fromStdString(hash),
+      noteData);
+    return { std::move(chartData),
+             std::move(calculatedNotesData),
+             parsedChart.tags.wavs };
 }
 } // namespace resource_managers

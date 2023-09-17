@@ -46,16 +46,25 @@ scanFolder(std::filesystem::path directory,
                               directoryInDb]() mutable {
                 try {
                     static thread_local const ChartDataFactory chartDataFactory;
+                    auto randomGenerator = [](charts::parser_models::
+                                                ParsedBmsChart::RandomRange
+                                                  randomRange) {
+                        static thread_local auto randomEngine =
+                          std::default_random_engine{ std::random_device{}() };
+                        return std::uniform_int_distribution{
+                            charts::parser_models::ParsedBmsChart::RandomRange{
+                              1 },
+                            randomRange
+                        }(randomEngine);
+                    };
                     // remove the last part of directoryInDb
                     directoryInDb.remove(directoryInDb.size() - 1, 1);
                     auto lastSlashIndex = directoryInDb.lastIndexOf("/");
-                    if (lastSlashIndex != -1) {
-                        directoryInDb.remove(lastSlashIndex + 1,
-                                             directoryInDb.size() -
-                                               lastSlashIndex - 1);
-                    }
-                    auto chartComponents =
-                      chartDataFactory.loadChartData(url, directoryInDb);
+                    directoryInDb.remove(lastSlashIndex + 1,
+                                         directoryInDb.size() - lastSlashIndex -
+                                           1);
+                    auto chartComponents = chartDataFactory.loadChartData(
+                      url, randomGenerator, directoryInDb);
                     chartComponents.chartData->save(db);
                 } catch (const std::exception& e) {
                     spdlog::error("Failed to load chart data for {}: {}",
@@ -81,7 +90,7 @@ SongDbScanner::scanDirectories(std::span<const std::string> directories)
         if (std::filesystem::is_directory(entry)) {
             // pass only the last part of the entry directory as directoryInDb
             auto directoryInDb = QString::fromStdString(
-              std::filesystem::path(entry).filename().string() + "/");
+              "/" + std::filesystem::path(entry).filename().string() + "/");
             scanFolder(entry, threadPool, *db, directoryInDb);
         } else {
             spdlog::error("Resource path {} is not a directory", entry);

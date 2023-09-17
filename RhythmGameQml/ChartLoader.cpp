@@ -13,7 +13,17 @@ auto
 ChartLoader::loadChart(const QString& filename) -> gameplay_logic::Chart*
 {
     try {
-        auto chartComponents = chartDataFactory->loadChartData(filename);
+        auto randomGenerator =
+          [](charts::parser_models::ParsedBmsChart::RandomRange randomRange) {
+              static thread_local auto randomEngine =
+                std::default_random_engine{ std::random_device{}() };
+              return std::uniform_int_distribution{
+                  charts::parser_models::ParsedBmsChart::RandomRange{ 1 },
+                  randomRange
+              }(randomEngine);
+          };
+        auto chartComponents =
+          chartDataFactory->loadChartData(filename, randomGenerator);
         auto rankInt = chartComponents.chartData->getRank();
         auto rank =
           magic_enum::enum_cast<gameplay_logic::rules::BmsRank>(rankInt)

@@ -45,6 +45,7 @@ class ChartData : public QObject
               double total,
               int playLevel,
               int difficulty,
+              bool isRandom,
               int noteCount,
               int64_t length,
               QString path,
@@ -81,6 +82,7 @@ class ChartData : public QObject
         double total;
         int playLevel;
         int difficulty;
+        int isRandom;
         int noteCount;
         int64_t length;
         std::string path;
@@ -103,6 +105,7 @@ class ChartData : public QObject
     double total;
     int playLevel;
     int difficulty;
+    bool isRandom;
     int noteCount;
     int64_t length;
     QString path;

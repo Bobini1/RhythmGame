@@ -135,9 +135,6 @@ calculateOffsetsForBgm(
 
 BmsNotesData::BmsNotesData(const charts::parser_models::ParsedBmsChart& chart)
 {
-    if (chart.tags.randomBlocks.size() != 0) {
-        throw std::runtime_error("Random blocks are not supported.");
-    }
     generateMeasures(chart.tags.bpm.value_or(defaultBpm),
                      chart.tags.exBpms,
                      chart.tags.measures);

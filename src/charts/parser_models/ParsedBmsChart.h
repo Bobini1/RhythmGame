@@ -20,7 +20,6 @@ namespace charts::parser_models {
 struct ParsedBmsChart
 {
     using RandomRange = int64_t;
-    using IfTag = int64_t;
 
     struct Measure
     {
@@ -56,11 +55,10 @@ struct ParsedBmsChart
         std::map<std::string, double> exBpms;
         std::map<std::string, std::string> wavs;
         std::map<int64_t, Measure> measures;
-
-        std::vector<std::pair<RandomRange, std::vector<std::pair<IfTag, Tags>>>>
-          randomBlocks; /*< Random blocks can hold any tags, including ones
-                           that were already defined. */
+        bool isRandom = false;
     };
+
+    static auto mergeTags(Tags& first, Tags second) -> void;
 
     Tags tags;
 };
