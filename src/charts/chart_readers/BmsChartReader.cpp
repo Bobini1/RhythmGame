@@ -282,29 +282,27 @@ struct TagsSink
         auto operator()(Title&& title) -> void
         {
             state.title = boost::locale::conv::to_utf<char>(
-              trimR(std::move(static_cast<std::string&>(title))), "SHIFT-JIS");
+              trimR(std::move(static_cast<std::string&>(title))), "CP932");
         }
         auto operator()(Artist&& artist) -> void
         {
             state.artist = boost::locale::conv::to_utf<char>(
-              trimR(std::move(static_cast<std::string&>(artist))), "SHIFT-JIS");
+              trimR(std::move(static_cast<std::string&>(artist))), "CP932");
         }
         auto operator()(Genre&& genre) -> void
         {
             state.genre = boost::locale::conv::to_utf<char>(
-              trimR(std::move(static_cast<std::string&>(genre))), "SHIFT-JIS");
+              trimR(std::move(static_cast<std::string&>(genre))), "CP932");
         }
         auto operator()(Subtitle&& subtitle) -> void
         {
             state.subTitle = boost::locale::conv::to_utf<char>(
-              trimR(std::move(static_cast<std::string&>(subtitle))),
-              "SHIFT-JIS");
+              trimR(std::move(static_cast<std::string&>(subtitle))), "CP932");
         }
         auto operator()(Subartist&& subartist) -> void
         {
             state.subArtist = boost::locale::conv::to_utf<char>(
-              trimR(std::move(static_cast<std::string&>(subartist))),
-              "SHIFT-JIS");
+              trimR(std::move(static_cast<std::string&>(subartist))), "CP932");
         }
         auto operator()(Total&& total) -> void
         {
