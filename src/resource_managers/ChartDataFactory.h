@@ -22,7 +22,7 @@ class ChartDataFactory
     static auto loadFile(const QUrl& chartPath) -> std::string;
     static auto makeNotes(
       charts::gameplay_models::BmsNotesData& calculatedNotesData)
-      -> gameplay_logic::BmsNotes*;
+      -> std::unique_ptr<gameplay_logic::BmsNotes>;
     static auto convertToQVector(
       const std::vector<charts::gameplay_models::BmsNotesData::Note>& column)
       -> QVector<gameplay_logic::Note>;

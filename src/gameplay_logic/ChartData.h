@@ -51,7 +51,7 @@ class ChartData : public QObject
               QString path,
               QString directoryInDb,
               QString sha256,
-              BmsNotes* noteData,
+              std::unique_ptr<BmsNotes> noteData,
               QObject* parent = nullptr);
 
     [[nodiscard]] auto getTitle() const -> QString;
@@ -92,7 +92,7 @@ class ChartData : public QObject
     };
 
     auto save(db::SqliteCppDb& db) const -> void;
-    static auto load(DTO chartDataDto) -> ChartData*;
+    static auto load(DTO chartDataDto) -> std::unique_ptr<ChartData>;
 
   private:
     QString title;

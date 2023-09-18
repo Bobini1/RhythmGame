@@ -50,6 +50,9 @@ set(CMAKE_AUTOUIC ON)
 find_package(CryptoPP REQUIRED)
 find_package(magic_enum REQUIRED)
 
+# <------------ zstd (compression) --------------->
+
+find_package(zstd REQUIRED)
 
 # ---- Load library ----
 
@@ -94,7 +97,7 @@ qt_add_library(RhythmGame_lib OBJECT src/db/SqliteCppDb.cpp src/db/SqliteCppDb.h
 
 find_package(Threads REQUIRED)
 
-target_link_libraries(RhythmGame_lib PUBLIC Qt6::Gui Qt6::Quick Qt6::OpenGL Qt6::Widgets Qt6::Concurrent Qt6::Core5Compat Threads::Threads Boost::headers Boost::locale Boost::serialization Boost::dynamic_linking Boost::filesystem SQLiteCpp spdlog::spdlog foonathan::lexy ffmpeg::ffmpeg OpenAL::OpenAL cryptopp::cryptopp magic_enum::magic_enum)
+target_link_libraries(RhythmGame_lib PUBLIC Qt6::Gui Qt6::Quick Qt6::OpenGL Qt6::Widgets Qt6::Concurrent Qt6::Core5Compat Threads::Threads Boost::headers Boost::locale Boost::serialization Boost::dynamic_linking Boost::filesystem SQLiteCpp spdlog::spdlog foonathan::lexy ffmpeg::ffmpeg OpenAL::OpenAL cryptopp::cryptopp magic_enum::magic_enum zstd::libzstd_static)
 
 include(CheckCXXSymbolExists)
 check_cxx_symbol_exists(std::execution::par "execution" RHYTHMGAME_HAS_STD_EXECUTION)
@@ -119,7 +122,9 @@ add_subdirectory(RhythmGameQml)
 
 # ---- Declare executable ----
 
-qt_add_executable(RhythmGame_exe src/main.cpp)
+qt_add_executable(RhythmGame_exe src/main.cpp
+        src/DefineDb.cpp
+        src/DefineDb.h)
 add_executable(RhythmGame::exe ALIAS RhythmGame_exe)
 
 set_target_properties(

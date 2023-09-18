@@ -24,6 +24,7 @@ class Recipe(ConanFile):
         self.requires("brotli/1.1.0", override=True)
         self.requires("cryptopp/8.7.0")
         self.requires("magic_enum/0.9.3")
+        self.requires("zstd/1.5.5")
 
         # Testing only dependencies below
         self.requires("catch2/3.3.2")

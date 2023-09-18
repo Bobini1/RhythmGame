@@ -2,12 +2,19 @@ import QtQuick
 import QtQml
 import RhythmGameQml
 import QtQuick.Controls 2.15
+import QtCore
 
-Item {
+ApplicationWindow {
     id: contentContainer
 
-    anchors.fill: parent
+    height: 720
+    visible: true
+    width: 1280
 
+    Settings {
+        property alias height: contentContainer.height
+        property alias width: contentContainer.width
+    }
     Component {
         id: chartContext
 

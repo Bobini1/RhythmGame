@@ -31,7 +31,7 @@ ChartDataFactory::loadFile(const QUrl& chartPath) -> std::string
 auto
 ChartDataFactory::makeNotes(
   charts::gameplay_models::BmsNotesData& calculatedNotesData)
-  -> gameplay_logic::BmsNotes*
+  -> std::unique_ptr<gameplay_logic::BmsNotes>
 {
     auto visibleNotes = QVector<QVector<gameplay_logic::Note>>{};
     for (const auto& column : calculatedNotesData.visibleNotes) {
@@ -57,11 +57,10 @@ ChartDataFactory::makeNotes(
                             .count(),
                           barLine.position });
     }
-    auto* notes = new gameplay_logic::BmsNotes{ std::move(visibleNotes),
-                                                std::move(invisibleNotes),
-                                                std::move(bpmChanges),
-                                                std::move(barLines) };
-    return notes;
+    return std::make_unique<gameplay_logic::BmsNotes>(std::move(visibleNotes),
+                                                      std::move(invisibleNotes),
+                                                      std::move(bpmChanges),
+                                                      std::move(barLines));
 }
 auto
 ChartDataFactory::convertToQVector(
@@ -96,7 +95,7 @@ ChartDataFactory::loadChartData(
     for (const auto& column : calculatedNotesData.visibleNotes) {
         noteCount += column.size();
     }
-    auto* noteData = makeNotes(calculatedNotesData);
+    auto noteData = makeNotes(calculatedNotesData);
 
     auto lastNoteTimestamp = std::chrono::nanoseconds{ 0 };
     for (const auto& column : calculatedNotesData.visibleNotes) {
@@ -124,7 +123,7 @@ ChartDataFactory::loadChartData(
       QFileInfo{ chartPath.toLocalFile() }.absoluteFilePath(),
       std::move(directoryInDb),
       QString::fromStdString(hash),
-      noteData);
+      std::move(noteData));
     return { std::move(chartData),
              std::move(calculatedNotesData),
              parsedChart.tags.wavs };

@@ -6,6 +6,7 @@
 
 #include <utility>
 #include <spdlog/spdlog.h>
+#include <zstd.h>
 
 gameplay_logic::ChartData::ChartData(QString title,
                                      QString artist,
@@ -22,7 +23,7 @@ gameplay_logic::ChartData::ChartData(QString title,
                                      QString path,
                                      QString directoryInDb,
                                      QString sha256,
-                                     BmsNotes* noteData,
+                                     std::unique_ptr<BmsNotes> noteData,
                                      QObject* parent)
   : QObject(parent)
   , title(std::move(title))
@@ -40,9 +41,9 @@ gameplay_logic::ChartData::ChartData(QString title,
   , path(std::move(path))
   , directoryInDb(std::move(directoryInDb))
   , sha256(std::move(sha256))
-  , noteData(noteData)
+  , noteData(noteData.release())
 {
-    noteData->setParent(this);
+    this->noteData->setParent(this);
 }
 auto
 gameplay_logic::ChartData::getTitle() const -> QString
@@ -137,7 +138,18 @@ gameplay_logic::ChartData::save(db::SqliteCppDb& db) const -> void
     auto buffer = QByteArray{};
     auto stream = QDataStream{ &buffer, QIODevice::WriteOnly };
     stream << *noteData;
-    query.bind(16, buffer.toStdString());
+    // compress it!
+    auto compressedBuffer = QByteArray{};
+    compressedBuffer.resize(ZSTD_compressBound(buffer.size()));
+    auto compressedSize = ZSTD_compress(compressedBuffer.data(),
+                                        compressedBuffer.size(),
+                                        buffer.data(),
+                                        buffer.size(),
+                                        1);
+    if (ZSTD_isError(compressedSize)) {
+        throw std::runtime_error{ "Failed to compress chart data" };
+    }
+    query.bind(16, compressedBuffer.left(compressedSize).toStdString());
 
     query.execute();
 }
@@ -154,26 +166,48 @@ gameplay_logic::ChartData::getDirectoryInDb() const -> QString
 
 auto
 gameplay_logic::ChartData::load(gameplay_logic::ChartData::DTO chartDataDto)
-  -> gameplay_logic::ChartData*
+  -> std::unique_ptr<gameplay_logic::ChartData>
 {
-    auto* noteData = new BmsNotes{};
-    auto buffer = QByteArray::fromStdString(chartDataDto.noteData);
-    auto stream = QDataStream{ &buffer, QIODevice::ReadOnly };
+    using namespace std::string_literals;
+    auto decompressedBuffer = QByteArray{};
+    auto decompressedSize = ZSTD_getFrameContentSize(
+      chartDataDto.noteData.data(), chartDataDto.noteData.size());
+    if (ZSTD_isError(decompressedSize)) {
+        const auto* error = ZSTD_getErrorName(decompressedSize);
+        throw std::runtime_error{ "Failed to decompress chart data: "s +
+                                  error };
+    }
+    decompressedBuffer.resize(decompressedSize);
+    decompressedSize = ZSTD_decompress(decompressedBuffer.data(),
+                                       decompressedBuffer.size(),
+                                       chartDataDto.noteData.data(),
+                                       chartDataDto.noteData.size());
+    if (ZSTD_isError(decompressedSize)) {
+        // what error?
+        const auto* error = ZSTD_getErrorName(decompressedSize);
+        throw std::runtime_error{ "Failed to decompress chart data: "s +
+                                  error };
+    }
+    decompressedBuffer.resize(decompressedSize);
+    auto noteData = std::make_unique<BmsNotes>();
+    auto stream = QDataStream{ &decompressedBuffer, QIODevice::ReadOnly };
     stream >> *noteData;
-    return new ChartData{ QString::fromStdString(chartDataDto.title),
-                          QString::fromStdString(chartDataDto.artist),
-                          QString::fromStdString(chartDataDto.subtitle),
-                          QString::fromStdString(chartDataDto.subartist),
-                          QString::fromStdString(chartDataDto.genre),
-                          chartDataDto.rank,
-                          chartDataDto.total,
-                          chartDataDto.playLevel,
-                          chartDataDto.difficulty,
-                          chartDataDto.isRandom,
-                          chartDataDto.noteCount,
-                          chartDataDto.length,
-                          QString::fromStdString(chartDataDto.path),
-                          QString::fromStdString(chartDataDto.directoryInDb),
-                          QString::fromStdString(chartDataDto.sha256),
-                          noteData };
+
+    return std::make_unique<ChartData>(
+      QString::fromStdString(chartDataDto.title),
+      QString::fromStdString(chartDataDto.artist),
+      QString::fromStdString(chartDataDto.subtitle),
+      QString::fromStdString(chartDataDto.subartist),
+      QString::fromStdString(chartDataDto.genre),
+      chartDataDto.rank,
+      chartDataDto.total,
+      chartDataDto.playLevel,
+      chartDataDto.difficulty,
+      static_cast<bool>(chartDataDto.isRandom),
+      chartDataDto.noteCount,
+      chartDataDto.length,
+      QString::fromStdString(chartDataDto.path),
+      QString::fromStdString(chartDataDto.directoryInDb),
+      QString::fromStdString(chartDataDto.sha256),
+      std::move(noteData));
 }

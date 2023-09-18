@@ -20,6 +20,7 @@
 #include "gameplay_logic/rules/Lr2Gauge.h"
 #include "gameplay_logic/rules/Lr2HitValues.h"
 #include "resource_managers/SongDbScanner.h"
+#include "DefineDb.h"
 
 #include <iostream>
 
@@ -111,6 +112,10 @@ main(int argc, char* argv[]) -> int
 
         const auto app = QGuiApplication(argc, argv);
 
+        QGuiApplication::setOrganizationName("Tomasz Kalisiak");
+        QGuiApplication::setOrganizationDomain("bemani.pl");
+        QGuiApplication::setApplicationName("RhythmGame");
+
         auto engine = QQmlApplicationEngine{};
 
         av_log_set_callback(libavLogHandler);
@@ -132,60 +137,20 @@ main(int argc, char* argv[]) -> int
 
         std::filesystem::remove(assetsFolder / "song_db.sqlite");
         auto db = db::SqliteCppDb{ (assetsFolder / "song_db.sqlite").string() };
-        // create charts table if it doesn't exist
-        db.execute("CREATE TABLE IF NOT EXISTS charts ("
-                   "id INTEGER PRIMARY KEY AUTOINCREMENT,"
-                   "title TEXT NOT NULL,"
-                   "artist TEXT NOT NULL,"
-                   "subtitle TEXT NOT NULL,"
-                   "subartist TEXT NOT NULL,"
-                   "genre TEXT NOT NULL,"
-                   "rank INTEGER NOT NULL,"
-                   "total REAL NOT NULL,"
-                   "play_level INTEGER NOT NULL,"
-                   "difficulty INTEGER NOT NULL,"
-                   "is_random INTEGER NOT NULL,"
-                   "note_count INTEGER NOT NULL,"
-                   "length INTEGER NOT NULL,"
-                   "path TEXT NOT NULL UNIQUE,"
-                   "directory_in_db TEXT NOT NULL,"
-                   "sha256 TEXT NOT NULL,"
-                   "note_data BLOB NOT NULL"
-                   ");");
+
+        defineDb(db);
+
         auto songDbScanner = resource_managers::SongDbScanner{ &db };
-        auto start = std::chrono::high_resolution_clock::now();
         songDbScanner.scanDirectories(
-          { { "/run/media/bobini/Elements/BMS/_spackage" } });
-        auto end = std::chrono::high_resolution_clock::now();
-        spdlog::info(
-          "Database created in {} us",
-          std::chrono::duration_cast<std::chrono::microseconds>(end - start)
-            .count());
-        // query for charts table size
-        auto query = db.createStatement("SELECT COUNT(*) FROM charts");
-        auto count = query.executeAndGet<int>();
-        spdlog::info("Found {} charts in database", *count);
-        // time per chart
-        spdlog::info(
-          "Time per chart: {} us",
-          std::chrono::duration_cast<std::chrono::microseconds>(end - start)
-              .count() /
-            *count);
+          { { "/run/media/bobini/Elements/BMS/_spackage/" } });
 
         // get all unique directory_in_db
-        query =
+        auto query =
           db.createStatement("SELECT DISTINCT directory_in_db FROM charts");
         auto directories = query.executeAndGetAll<std::string>();
-        // create a parent_dir table if it doesn't exist
-        db.execute("CREATE TABLE IF NOT EXISTS parent_dir ("
-                   "id INTEGER PRIMARY KEY AUTOINCREMENT,"
-                   "parent_dir TEXT NOT NULL,"
-                   "path TEXT NOT NULL UNIQUE"
-                   ");");
         auto insertQuery = db.createStatement(
           "INSERT OR IGNORE INTO parent_dir (parent_dir, path) "
           "VALUES (:parent_dir, :path)");
-        start = std::chrono::high_resolution_clock::now();
         for (auto directory : directories) {
             while (directory.size() != 1) {
                 auto parentDirectory = directory;
@@ -201,29 +166,6 @@ main(int argc, char* argv[]) -> int
                 directory = std::move(parentDirectory);
             }
         }
-        end = std::chrono::high_resolution_clock::now();
-        spdlog::info(
-          "Parent directories inserted in {} us",
-          std::chrono::duration_cast<std::chrono::microseconds>(end - start)
-            .count());
-
-        // get all inserted charts
-        start = std::chrono::high_resolution_clock::now();
-        auto selectQuery = db.createStatement("SELECT * FROM charts");
-        auto result =
-          selectQuery.executeAndGetAll<gameplay_logic::ChartData::DTO>();
-        for (const auto& chartDataDto : result) {
-            auto* noteData = new gameplay_logic::BmsNotes{};
-            auto buffer = QByteArray::fromStdString(chartDataDto.noteData);
-            auto stream = QDataStream{ &buffer, QIODevice::ReadOnly };
-            stream >> *noteData;
-        }
-        end = std::chrono::high_resolution_clock::now();
-        spdlog::info(
-          "Charts loaded in {} us",
-          std::chrono::duration_cast<std::chrono::microseconds>(end - start)
-              .count() /
-            result.size());
 
         auto themeConfigLoader = [assetsFolder] {
             try {
@@ -289,13 +231,11 @@ main(int argc, char* argv[]) -> int
         engine.addImageProvider("ini",
                                 new resource_managers::IniImageProvider{});
 
-        auto view = QQuickView(&engine, nullptr);
-        view.setSource(QUrl("qrc:///qt/qml/RhythmGameQml/ContentFrame.qml"));
-
-        view.setWidth(1920);
-        view.setHeight(1080);
-
-        view.show();
+        // use qqmlapplicationengine instead of qquickview
+        engine.load(QUrl("qrc:///qt/qml/RhythmGameQml/ContentFrame.qml"));
+        if (engine.rootObjects().isEmpty()) {
+            return -1;
+        }
 
         return app.exec();
     } catch (const std::exception& e) {

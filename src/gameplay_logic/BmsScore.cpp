@@ -72,6 +72,9 @@ BmsScore::BmsScore(int maxHits,
   , maxHits(maxHits)
   , gauges(std::move(gauges))
 {
+    for (auto* gauge : this->gauges) {
+        gauge->setParent(this);
+    }
 }
 auto
 BmsScore::getMaxPoints() const -> double
