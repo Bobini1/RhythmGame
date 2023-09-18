@@ -96,7 +96,11 @@ libavLogHandler(void* ptr, int level, const char* fmt, va_list vl)
 }
 
 auto
+#if defined(WIN32)
+wmain(int argc, wchar_t* argv[]) -> int
+#else
 main(int argc, char* argv[]) -> int
+#endif
 {
     try {
         auto assetsFolder = resource_managers::findAssetsFolder();
@@ -140,6 +144,7 @@ main(int argc, char* argv[]) -> int
                    "total REAL NOT NULL,"
                    "play_level INTEGER NOT NULL,"
                    "difficulty INTEGER NOT NULL,"
+                   "is_random INTEGER NOT NULL,"
                    "note_count INTEGER NOT NULL,"
                    "length INTEGER NOT NULL,"
                    "path TEXT NOT NULL UNIQUE,"
@@ -193,12 +198,14 @@ main(int argc, char* argv[]) -> int
                 const auto scriptsFolder =
                   assetsFolder / "themes" / "Default" / "scripts";
                 return resource_managers::models::ThemeConfig{
-                    QString::fromStdString(
-                      (scriptsFolder / configMap.at("Main")).string()),
-                    QString::fromStdString(
-                      (scriptsFolder / configMap.at("Gameplay")).string()),
-                    QString::fromStdString(
-                      (scriptsFolder / configMap.at("SongWheel")).string())
+                    QString::fromStdWString(
+                      (scriptsFolder / configMap.at("Main")).wstring()),
+                    QString::fromStdWString(
+                      (scriptsFolder / configMap.at("Gameplay")).wstring()),
+                    QString::fromStdWString(
+                      (scriptsFolder / configMap.at("SongWheel")).wstring()),
+                    QString::fromStdWString(
+                      (scriptsFolder / configMap.at("Settings")).wstring())
                 };
             } catch (const std::exception& e) {
                 spdlog::error("Failed to load theme config: {}", e.what());
@@ -210,9 +217,13 @@ main(int argc, char* argv[]) -> int
           qml_components::SceneUrls{ std::move(themeConfigLoader) };
         qml_components::SceneUrls::setInstance(&sceneUrls);
 
-        auto chartPath = QUrl{};
+        auto chartPath = QString{};
         if (argc > 1) {
-            chartPath = QUrl::fromLocalFile(argv[1]);
+#if defined(WIN32)
+            chartPath = QString::fromStdWString(argv[1]);
+#else
+            chartPath = QString::fromStdString(argv[1]);
+#endif
         }
 
         auto programSettings = qml_components::ProgramSettings{ chartPath };
