@@ -58,7 +58,7 @@ Item {
         anchors.fill: parent
 
         Component.onCompleted: {
-            if (ProgramSettings.chartPath) {
+            if (ProgramSettings.chartPath != "") {
                 openChart(ProgramSettings.chartPath);
             }
         }
@@ -67,7 +67,7 @@ Item {
             id: sceneStack
 
             anchors.fill: parent
-            initialItem: ProgramSettings.chartPath ? null : root.mainComponent
+            initialItem: (ProgramSettings.chartPath != "") ? null : root.mainComponent
 
             onCurrentItemChanged: {
                 currentItem.forceActiveFocus();
