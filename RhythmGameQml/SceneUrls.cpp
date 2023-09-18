@@ -62,6 +62,12 @@ qml_components::SceneUrls::refreshThemeConfig()
                      newThemeConfig.songWheelScene.toStdString());
         emit songWheelSceneUrlChanged();
     }
+    if (newThemeConfig.SettingScene != themeConfig.SettingScene) {
+        spdlog::info("Settings scene changed from {} to {}",
+                     themeConfig.SettingScene.toStdString(),
+                     newThemeConfig.SettingScene.toStdString());
+        emit settingsSceneUrlChanged();
+    }
     themeConfig = std::move(newThemeConfig);
     spdlog::info("Refreshed theme config");
 }
@@ -70,4 +76,9 @@ qml_components::SceneUrls::SceneUrls(
   : themeConfigFactory{ std::move(themeConfigFactory) }
   , themeConfig{ this->themeConfigFactory() }
 {
+}
+auto
+qml_components::SceneUrls::settingsSceneUrl() const -> QUrl
+{
+    return themeConfig.SettingScene;
 }

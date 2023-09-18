@@ -41,6 +41,7 @@ Item {
 
         readonly property Component gameplayComponent: chartContext
         readonly property Component mainComponent: Qt.createComponent("file://" + SceneUrls.mainSceneUrl)
+        readonly property Component settingsComponent: Qt.createComponent("file://" + SceneUrls.settingsSceneUrl)
         readonly property Component songWheelComponent: Qt.createComponent("file://" + SceneUrls.songWheelSceneUrl)
 
         function openChart(path: url) {

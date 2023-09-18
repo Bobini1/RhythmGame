@@ -172,6 +172,41 @@ main(int argc, char* argv[]) -> int
               .count() /
             *count);
 
+        // get all unique directory_in_db
+        query =
+          db.createStatement("SELECT DISTINCT directory_in_db FROM charts");
+        auto directories = query.executeAndGetAll<std::string>();
+        // create a parent_dir table if it doesn't exist
+        db.execute("CREATE TABLE IF NOT EXISTS parent_dir ("
+                   "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+                   "parent_dir TEXT NOT NULL,"
+                   "path TEXT NOT NULL UNIQUE"
+                   ");");
+        auto insertQuery = db.createStatement(
+          "INSERT OR IGNORE INTO parent_dir (parent_dir, path) "
+          "VALUES (:parent_dir, :path)");
+        start = std::chrono::high_resolution_clock::now();
+        for (auto directory : directories) {
+            while (directory.size() != 1) {
+                auto parentDirectory = directory;
+                parentDirectory.resize(parentDirectory.size() - 1);
+                auto lastSlashIndex = parentDirectory.find_last_of("/");
+                parentDirectory.erase(lastSlashIndex + 1,
+                                      parentDirectory.size() - lastSlashIndex -
+                                        1);
+                insertQuery.bind(":parent_dir", parentDirectory);
+                insertQuery.bind(":path", directory);
+                insertQuery.execute();
+                insertQuery.reset();
+                directory = std::move(parentDirectory);
+            }
+        }
+        end = std::chrono::high_resolution_clock::now();
+        spdlog::info(
+          "Parent directories inserted in {} us",
+          std::chrono::duration_cast<std::chrono::microseconds>(end - start)
+            .count());
+
         // get all inserted charts
         start = std::chrono::high_resolution_clock::now();
         auto selectQuery = db.createStatement("SELECT * FROM charts");
