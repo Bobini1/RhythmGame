@@ -90,7 +90,9 @@ SongDbScanner::scanDirectories(std::span<const std::string> directories)
         if (std::filesystem::is_directory(entry)) {
             // pass only the last part of the entry directory as directoryInDb
             auto directoryInDb = QString::fromStdString(
-              "/" + std::filesystem::path(entry).filename().string() + "/");
+              "/" +
+              std::filesystem::path(entry).parent_path().filename().string() +
+              "/");
             scanFolder(entry, threadPool, *db, directoryInDb);
         } else {
             spdlog::error("Resource path {} is not a directory", entry);
