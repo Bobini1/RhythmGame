@@ -165,7 +165,8 @@ gameplay_logic::ChartData::getDirectoryInDb() const -> QString
 }
 
 auto
-gameplay_logic::ChartData::load(gameplay_logic::ChartData::DTO chartDataDto)
+gameplay_logic::ChartData::load(
+  const gameplay_logic::ChartData::DTO& chartDataDto)
   -> std::unique_ptr<gameplay_logic::ChartData>
 {
     using namespace std::string_literals;

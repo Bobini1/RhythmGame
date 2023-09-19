@@ -92,7 +92,7 @@ class ChartData : public QObject
     };
 
     auto save(db::SqliteCppDb& db) const -> void;
-    static auto load(DTO chartDataDto) -> std::unique_ptr<ChartData>;
+    static auto load(const DTO& chartDataDto) -> std::unique_ptr<ChartData>;
 
   private:
     QString title;
