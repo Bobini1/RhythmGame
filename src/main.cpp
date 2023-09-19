@@ -10,7 +10,6 @@
 
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
-#include <QQuickView>
 #include <QtQml/QQmlExtensionPlugin>
 #include <spdlog/sinks/qt_sinks.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
@@ -32,7 +31,7 @@ Q_IMPORT_QML_PLUGIN(RhythmGameQmlPlugin)
 
 void
 qtLogHandler(QtMsgType type,
-             const QMessageLogContext& context,
+             const QMessageLogContext& /*context*/,
              const QString& msg)
 {
     QByteArray loc = msg.toUtf8();
@@ -57,7 +56,7 @@ qtLogHandler(QtMsgType type,
 }
 
 void
-libavLogHandler(void* ptr, int level, const char* fmt, va_list vl)
+libavLogHandler(void* /*ptr*/, int level, const char* fmt, va_list vl)
 {
     if (level > av_log_get_level()) {
         return;
