@@ -60,13 +60,10 @@ gameplay_logic::BmsGameReferee::update(std::chrono::nanoseconds offsetFromStart)
     for (auto columnIndex = 0; columnIndex < currentVisibleNotes.size();
          columnIndex++) {
         auto column = visibleNotes[columnIndex];
-        auto newMisses =
-          hitRules->getMisses(column, currentVisibleNotes[columnIndex], offsetFromStart);
+        auto newMisses = hitRules->getMisses(
+          column, currentVisibleNotes[columnIndex], offsetFromStart);
         for (auto [offset, points, noteIndex] : newMisses) {
-            misses.append(
-              { offset.count(),
-                points,
-                columnIndex, noteIndex });
+            misses.append({ offset.count(), points, columnIndex, noteIndex });
         }
     }
     if (!misses.empty()) {
@@ -74,7 +71,9 @@ gameplay_logic::BmsGameReferee::update(std::chrono::nanoseconds offsetFromStart)
     }
     for (auto columnIndex = 0; columnIndex < currentInvisibleNotes.size();
          columnIndex++) {
-        hitRules->skipInvisible(invisibleNotes[columnIndex], currentInvisibleNotes[columnIndex], offsetFromStart);
+        hitRules->skipInvisible(invisibleNotes[columnIndex],
+                                currentInvisibleNotes[columnIndex],
+                                offsetFromStart);
     }
     for (const auto& bgm : currentBgms) {
         auto played = 0;
@@ -99,9 +98,13 @@ gameplay_logic::BmsGameReferee::passInput(
         columnIndex >= charts::gameplay_models::BmsNotesData::columnNumber) {
         return;
     }
-    auto res = hitRules->visibleNoteHit(visibleNotes[columnIndex],  currentVisibleNotes[columnIndex], offsetFromStart);
+    auto res = hitRules->visibleNoteHit(visibleNotes[columnIndex],
+                                        currentVisibleNotes[columnIndex],
+                                        offsetFromStart);
     if (!res) {
-        if (!hitRules->invisibleNoteHit(invisibleNotes[columnIndex], currentInvisibleNotes[columnIndex], offsetFromStart)) {
+        if (!hitRules->invisibleNoteHit(invisibleNotes[columnIndex],
+                                        currentInvisibleNotes[columnIndex],
+                                        offsetFromStart)) {
             playLastKeysound(columnIndex, offsetFromStart);
         }
         score->addTap(
@@ -109,16 +112,12 @@ gameplay_logic::BmsGameReferee::passInput(
         return;
     }
     auto [points, noteIndex] = *res;
-    score->addTap({ columnIndex,
-                    noteIndex,
-                    offsetFromStart.count(),
-                    points });
+    score->addTap({ columnIndex, noteIndex, offsetFromStart.count(), points });
 }
 auto
 gameplay_logic::BmsGameReferee::isOver() const -> bool
 {
-    for (auto column = 0; column < visibleNotes.size(); column++)
-    {
+    for (auto column = 0; column < visibleNotes.size(); column++) {
         if (visibleNotes[column].size() != currentVisibleNotes[column]) {
             return false;
         }
@@ -143,7 +142,7 @@ gameplay_logic::BmsGameReferee::getPosition(
       std::chrono::duration_cast<std::chrono::duration<double>>(
         bpmChangeOffset);
     auto bpmChangeOffsetBeats = bpmChangeOffsetSeconds.count() * bpm / 60.0;
-    // update the current bpm changes
+    // scanNew the current bpm changes
     currentBpmChanges =
       currentBpmChanges.subspan(bpmChange - currentBpmChanges.begin());
     return bpmChangePosition + bpmChangeOffsetBeats;
@@ -154,8 +153,10 @@ gameplay_logic::BmsGameReferee::playLastKeysound(
   std::chrono::nanoseconds offsetFromStart)
 {
     using namespace std::chrono_literals;
-    auto visibleColumn = std::span(visibleNotes[index]).subspan(currentVisibleNotes[index]);
-    auto invisibleColumn = std::span(invisibleNotes[index]).subspan(currentInvisibleNotes[index]);
+    auto visibleColumn =
+      std::span(visibleNotes[index]).subspan(currentVisibleNotes[index]);
+    auto invisibleColumn =
+      std::span(invisibleNotes[index]).subspan(currentInvisibleNotes[index]);
     auto lastNote = std::ranges::find_if(
       visibleColumn,
       [offsetFromStart](const rules::BmsHitRules::NoteType& note) {

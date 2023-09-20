@@ -1,66 +1,131 @@
 import QtQuick 2.15
-import QtQuick.Controls 2.15
 import RhythmGameQml
+import QtQuick.Dialogs
+import QtQuick.Layouts
+import QtQuick.Controls.Basic 2.12
 
-Item {
+Pane {
     id: screen
 
-    height: 1080
-    width: 1920
+    ListModel {
+        id: songFolders
 
-    Image {
-        id: image
-
-        anchors.fill: parent
-        fillMode: Image.PreserveAspectFit
-        source: "lataia.jpg"
-
-        Rectangle {
-            id: rectangle
-
-            anchors.fill: parent
-            color: "#323b7c"
-            layer.enabled: false
-            z: -1
+        Component.onCompleted: {
+            for (let folder of RootSongFoldersConfig.folders) {
+                songFolders.append({
+                        "text": folder
+                    });
+            }
         }
-        Column {
-            id: column
+    }
+    FolderDialog {
+        id: folderDialog
 
-            height: 435
-            width: 477
-            x: 241
-            y: 288
+        function getSelectedFolders() {
+            let folders = [];
+            for (let item = 0; item < songFolders.count; item++) {
+                folders.push(songFolders.get(item).text);
+            }
+            return folders;
+        }
 
-            Button {
-                id: button
+        title: qsTr("Add song folder")
 
-                anchors.left: parent.left
-                anchors.leftMargin: 0
-                anchors.right: parent.right
-                anchors.rightMargin: 0
-                text: qsTr("Button")
+        onAccepted: {
+            songFolders.append({
+                    "text": root.urlToPath(folderDialog.selectedFolder.toString())
+                });
+            RootSongFoldersConfig.folders = getSelectedFolders();
+        }
+    }
+    ColumnLayout {
+        anchors.fill: parent
 
-                onClicked: {
-                    sceneStack.push(root.songWheelComponent);
+        TabBar {
+            id: tabView
+
+            Layout.fillWidth: true
+            height: childrenRect.height
+
+            TabButton {
+                text: qsTr("Song directories")
+            }
+            TabButton {
+                text: qsTr("Stuff")
+            }
+        }
+        StackLayout {
+            id: stackView
+
+            currentIndex: tabView.currentIndex
+
+            ColumnLayout {
+                Layout.fillWidth: true
+                Layout.preferredHeight: parent.height - tabView.height
+
+                Frame {
+                    id: songListFrame
+
+                    Layout.fillWidth: true
+                    // take 50% of the height
+                    Layout.preferredHeight: parent.height / 2
+
+                    ColumnLayout {
+                        anchors.fill: parent
+
+                        ScrollView {
+                            Layout.fillHeight: true
+                            Layout.fillWidth: true
+
+                            ListView {
+                                id: songList
+
+                                clip: true
+                                model: songFolders
+
+                                delegate: RowLayout {
+                                    Layout.fillWidth: true
+
+                                    Text {
+                                        Layout.alignment: Qt.AlignLeft
+                                        Layout.fillWidth: true
+                                        color: "white"
+                                        text: modelData
+                                    }
+                                    Button {
+                                        id: selectFoldersButton
+
+                                        // align to the right
+                                        Layout.alignment: Qt.AlignRight
+                                        text: qsTr("Remove")
+
+                                        onClicked: {
+                                            songFolders.remove(index);
+                                            RootSongFoldersConfig.folders = folderDialog.getSelectedFolders();
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        Button {
+                            id: selectFoldersButton
+
+                            text: qsTr("Select song folders")
+
+                            onClicked: {
+                                folderDialog.open();
+                            }
+                        }
+                    }
                 }
             }
-            Button {
-                id: button1
+            Item {
+                Layout.fillHeight: true
+                Layout.fillWidth: true
 
-                anchors.left: parent.left
-                anchors.leftMargin: 0
-                anchors.right: parent.right
-                anchors.rightMargin: 0
-                text: qsTr("Button")
-            }
-            Button {
-                id: button2
-
-                anchors.left: parent.left
-                anchors.leftMargin: 0
-                anchors.right: parent.right
-                anchors.rightMargin: 0
-                text: qsTr("Button")
+                Button {
+                    text: "Stuff"
+                }
             }
         }
     }

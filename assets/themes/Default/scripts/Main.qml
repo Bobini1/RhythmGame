@@ -1,67 +1,41 @@
 import QtQuick 2.15
-import QtQuick.Controls 2.15
 import RhythmGameQml
+import QtQuick.Controls.Basic 2.15
+import QtQuick.Layouts
 
-Item {
+Pane {
     id: screen
 
-    height: 1080
-    width: 1920
+    ColumnLayout {
+        id: column
 
-    Image {
-        id: image
+        width: parent.width * 0.4
 
-        anchors.fill: parent
-        fillMode: Image.PreserveAspectFit
-        source: "lataia.jpg"
+        Button {
+            id: button
 
-        Rectangle {
-            id: rectangle
+            Layout.preferredHeight: 50
+            text: qsTr("Song Wheel")
 
-            anchors.fill: parent
-            color: "#323b7c"
-            layer.enabled: false
-            z: -1
+            onClicked: {
+                sceneStack.push(root.songWheelComponent);
+            }
         }
-        Column {
-            id: column
+        Button {
+            id: button1
 
-            height: 435
-            width: 477
-            x: 241
-            y: 288
+            Layout.preferredHeight: 50
+            text: qsTr("Settings")
 
-            Button {
-                id: button
-
-                anchors.left: parent.left
-                anchors.leftMargin: 0
-                anchors.right: parent.right
-                anchors.rightMargin: 0
-                text: qsTr("Button")
-
-                onClicked: {
-                    sceneStack.push(root.songWheelComponent);
-                }
+            onClicked: {
+                sceneStack.push(root.settingsComponent);
             }
-            Button {
-                id: button1
+        }
+        Button {
+            id: button2
 
-                anchors.left: parent.left
-                anchors.leftMargin: 0
-                anchors.right: parent.right
-                anchors.rightMargin: 0
-                text: qsTr("Button")
-            }
-            Button {
-                id: button2
-
-                anchors.left: parent.left
-                anchors.leftMargin: 0
-                anchors.right: parent.right
-                anchors.rightMargin: 0
-                text: qsTr("Button")
-            }
+            Layout.preferredHeight: 50
+            text: qsTr("Button")
         }
     }
 }

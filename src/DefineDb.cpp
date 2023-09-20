@@ -33,4 +33,16 @@ defineDb(db::SqliteCppDb& db)
                "parent_dir TEXT NOT NULL,"
                "path TEXT NOT NULL UNIQUE"
                ");");
+
+    // create a root_dir table if it doesn't exist
+    db.execute("CREATE TABLE IF NOT EXISTS root_dir ("
+               "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+               "path TEXT NOT NULL UNIQUE"
+               ");");
+
+    // pending root dirs
+    db.execute("CREATE TABLE IF NOT EXISTS pending_root_dir ("
+               "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+               "path TEXT NOT NULL UNIQUE"
+               ");");
 }

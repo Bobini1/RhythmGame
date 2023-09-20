@@ -93,7 +93,15 @@ qt_add_library(RhythmGame_lib OBJECT src/db/SqliteCppDb.cpp src/db/SqliteCppDb.h
         src/gameplay_logic/rules/Lr2Gauge.cpp
         src/gameplay_logic/rules/Lr2Gauge.h
         src/resource_managers/SongDbScanner.cpp
-        src/resource_managers/SongDbScanner.h)
+        src/resource_managers/SongDbScanner.h
+        src/support/PathToQString.cpp
+        src/support/PathToQString.h
+        src/support/QStringToPath.cpp
+        src/support/QStringToPath.h
+        src/support/PathToUtfString.cpp
+        src/support/PathToUtfString.h
+        src/support/UtfStringToPath.cpp
+        src/support/UtfStringToPath.h)
 
 find_package(Threads REQUIRED)
 

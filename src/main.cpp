@@ -20,6 +20,8 @@
 #include "gameplay_logic/rules/Lr2HitValues.h"
 #include "resource_managers/SongDbScanner.h"
 #include "DefineDb.h"
+#include "../RhythmGameQml/RootSongFoldersConfig.h"
+#include "../RhythmGameQml/RootSongFolder.h"
 
 #include <iostream>
 
@@ -134,37 +136,11 @@ main(int argc, char* argv[]) -> int
         // spdlog::set_level(spdlog::level::debug);
         spdlog::set_default_logger(logger);
 
-        std::filesystem::remove(assetsFolder / "song_db.sqlite");
         auto db = db::SqliteCppDb{ (assetsFolder / "song_db.sqlite").string() };
 
         defineDb(db);
 
         auto songDbScanner = resource_managers::SongDbScanner{ &db };
-        songDbScanner.scanDirectories(
-          { { "/run/media/bobini/Elements/BMS/_spackage/" } });
-
-        // get all unique directory_in_db
-        auto query =
-          db.createStatement("SELECT DISTINCT directory_in_db FROM charts");
-        auto directories = query.executeAndGetAll<std::string>();
-        auto insertQuery = db.createStatement(
-          "INSERT OR IGNORE INTO parent_dir (parent_dir, path) "
-          "VALUES (:parent_dir, :path)");
-        for (auto directory : directories) {
-            while (directory.size() != 1) {
-                auto parentDirectory = directory;
-                parentDirectory.resize(parentDirectory.size() - 1);
-                auto lastSlashIndex = parentDirectory.find_last_of("/");
-                parentDirectory.erase(lastSlashIndex + 1,
-                                      parentDirectory.size() - lastSlashIndex -
-                                        1);
-                insertQuery.bind(":parent_dir", parentDirectory);
-                insertQuery.bind(":path", directory);
-                insertQuery.execute();
-                insertQuery.reset();
-                directory = std::move(parentDirectory);
-            }
-        }
 
         auto themeConfigLoader = [assetsFolder] {
             try {
@@ -227,10 +203,17 @@ main(int argc, char* argv[]) -> int
         };
         qml_components::ChartLoader::setInstance(&chartLoader);
 
+        auto rootSongFoldersConfig =
+          qml_components::RootSongFoldersConfig{ &db, songDbScanner };
+        qml_components::RootSongFoldersConfig::setInstance(
+          &rootSongFoldersConfig);
+
+        auto rootSongFolder = qml_components::RootSongFolder{ &db };
+        qml_components::RootSongFolder::setInstance(&rootSongFolder);
+
         engine.addImageProvider("ini",
                                 new resource_managers::IniImageProvider{});
 
-        // use qqmlapplicationengine instead of qquickview
         engine.load(QUrl("qrc:///qt/qml/RhythmGameQml/ContentFrame.qml"));
         if (engine.rootObjects().isEmpty()) {
             return -1;
