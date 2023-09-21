@@ -117,9 +117,13 @@ calculateOffsetsForColumn(
         }
         return;
     }
-    // I'm assuming that there are no floating point rounding errors. That is
-    // wrong, of course. But who cares, it's rare anyway.
-    auto notesMap = std::map<BmsNotesData::Time, BmsNotesData::Note>{};
+
+    // When the same channel in the same <measure> duplicates, both are
+    // compounded.
+    // Priority is given to a side with a large line number. But 00 does not
+    // overwrite an old place.
+    // https://hitkey.nekokan.dyndns.info/cmds.htm#BEHAVIOR-IN-GENERAL-IMPLEMENTATION
+    auto notesMap = std::map<std::pair<int, int>, BmsNotesData::Note>{};
     for (const auto& definition : notes) {
         auto index = -1;
         for (const auto& note : definition) {
@@ -127,14 +131,31 @@ calculateOffsetsForColumn(
             if (note == "00") {
                 continue;
             }
+            auto gcd = std::gcd(index, static_cast<int>(definition.size()));
             auto [timestamp, soundPointer, fraction] = createNoteInfo(
               definition, bpmChangesInMeasure, index, note, meter);
-            notesMap[timestamp] = BmsNotesData::Note{
-                timestamp,
-                soundPointer,
-                { fraction * meter * BmsNotesData::defaultBeatsPerMeasure,
-                  meter * BmsNotesData::defaultBeatsPerMeasure }
-            };
+            notesMap[{ index / gcd,
+                       static_cast<int>(definition.size()) / gcd }] =
+              BmsNotesData::Note{
+                  timestamp,
+                  soundPointer,
+                  { fraction * meter * BmsNotesData::defaultBeatsPerMeasure,
+                    meter * BmsNotesData::defaultBeatsPerMeasure }
+              };
+        }
+        std::vector<BmsNotesData::Note> notesVector;
+        for (const auto& [timestamp, note] : notesMap) {
+            notesVector.push_back(note);
+        }
+        // sort by timestamp
+        std::sort(notesVector.begin(),
+                  notesVector.end(),
+                  [](const auto& a, const auto& b) {
+                      return a.time.timestamp < b.time.timestamp;
+                  });
+        // add to target
+        for (const auto& note : notesVector) {
+            target.push_back(note);
         }
     }
     for (const auto& [timestamp, note] : notesMap) {
