@@ -105,5 +105,13 @@ ApplicationWindow {
                 debugLogLoader.active = !debugLogLoader.active;
             }
         }
+        Shortcut {
+            enabled: true
+            sequence: "Esc"
+
+            onActivated: {
+                sceneStack.pop();
+            }
+        }
     }
 }
