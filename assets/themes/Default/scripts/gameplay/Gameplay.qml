@@ -54,8 +54,6 @@ Rectangle {
     color: "black"
 
     Component.onCompleted: {
-        console.info("urlToPath: " + globalRoot.urlToPath);
-        console.info("rootUrl: " + rootUrl);
         chart.start();
     }
 
