@@ -178,7 +178,8 @@ main(int argc, char* argv[]) -> int
 #endif
         }
 
-        auto programSettings = qml_components::ProgramSettings{ chartPath };
+        auto programSettings =
+          qml_components::ProgramSettings{ QUrl::fromLocalFile(chartPath) };
         qml_components::ProgramSettings::setInstance(&programSettings);
 
         using namespace std::chrono_literals;

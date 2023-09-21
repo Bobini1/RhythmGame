@@ -44,7 +44,7 @@ ApplicationWindow {
         }
     }
     Item {
-        id: root
+        id: globalRoot
 
         readonly property Component gameplayComponent: chartContext
         readonly property Component mainComponent: Qt.createComponent("file://" + SceneUrls.mainSceneUrl)
@@ -84,7 +84,7 @@ ApplicationWindow {
             id: sceneStack
 
             anchors.fill: parent
-            initialItem: (ProgramSettings.chartPath != "") ? null : root.mainComponent
+            initialItem: (ProgramSettings.chartPath != "") ? null : globalRoot.mainComponent
 
             onCurrentItemChanged: {
                 currentItem.forceActiveFocus();

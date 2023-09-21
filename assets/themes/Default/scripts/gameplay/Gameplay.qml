@@ -21,8 +21,8 @@ Rectangle {
         return sizes;
     }
     property double greenNumber: 400
-    readonly property string imagesUrl: rootUrl + "../Images/"
-    readonly property string iniImagesUrl: "image://ini/" + rootUrl + "../Images/"
+    readonly property string imagesUrl: rootUrl + "Images/"
+    readonly property string iniImagesUrl: "image://ini/" + rootUrl + "Images/"
     property list<string> laserImages: {
         let images = [];
         for (let i = 0; i < 16; i++) {
@@ -48,20 +48,14 @@ Rectangle {
         return images;
     }
     property double playfieldHeight: 800
-    property string rootUrl: {
-        let thisFile = SceneUrls.gameplaySceneUrl;
-        // convert to string
-        thisFile = thisFile.toString();
-        console.log(thisFile);
-        let url = thisFile.substring(0, thisFile.lastIndexOf("/") + 1);
-        let rootUrl = url.substring(0, url.lastIndexOf("/") + 1);
-        return rootUrl;
-    }
+    property string rootUrl: globalRoot.urlToPath(Qt.resolvedUrl(".").toString())
 
     anchors.fill: parent
     color: "black"
 
     Component.onCompleted: {
+        console.info("urlToPath: " + globalRoot.urlToPath);
+        console.info("rootUrl: " + rootUrl);
         chart.start();
     }
 

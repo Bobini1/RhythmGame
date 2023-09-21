@@ -18,7 +18,7 @@ Pane {
             text: qsTr("Song Wheel")
 
             onClicked: {
-                sceneStack.push(root.songWheelComponent);
+                sceneStack.push(globalRoot.songWheelComponent);
             }
         }
         Button {
@@ -28,7 +28,7 @@ Pane {
             text: qsTr("Settings")
 
             onClicked: {
-                sceneStack.push(root.settingsComponent);
+                sceneStack.push(globalRoot.settingsComponent);
             }
         }
         Button {

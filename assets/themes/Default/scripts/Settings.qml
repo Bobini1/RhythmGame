@@ -33,7 +33,7 @@ Pane {
 
         onAccepted: {
             songFolders.append({
-                    "text": root.urlToPath(folderDialog.selectedFolder.toString())
+                    "text": globalRoot.urlToPath(folderDialog.selectedFolder.toString())
                 });
             RootSongFoldersConfig.folders = getSelectedFolders();
         }
@@ -49,9 +49,6 @@ Pane {
 
             TabButton {
                 text: qsTr("Song directories")
-            }
-            TabButton {
-                text: qsTr("Stuff")
             }
         }
         StackLayout {
@@ -110,21 +107,13 @@ Pane {
                         Button {
                             id: selectFoldersButton
 
-                            text: qsTr("Select song folders")
+                            text: qsTr("Add song folder")
 
                             onClicked: {
                                 folderDialog.open();
                             }
                         }
                     }
-                }
-            }
-            Item {
-                Layout.fillHeight: true
-                Layout.fillWidth: true
-
-                Button {
-                    text: "Stuff"
                 }
             }
         }
