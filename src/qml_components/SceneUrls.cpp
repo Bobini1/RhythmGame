@@ -3,10 +3,8 @@
 //
 
 #include "SceneUrls.h"
-#include "ChartList.h"
 #include <spdlog/spdlog.h>
 #include <QJSEngine>
-#include <QQmlEngine>
 #include <utility>
 #include <qqmlcontext.h>
 
