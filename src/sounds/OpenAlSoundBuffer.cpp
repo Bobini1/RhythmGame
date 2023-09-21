@@ -246,7 +246,8 @@ decodeFile(AVFormatContext& formatContext,
     size_t sampleCount = 0;
     const auto bytesPerSample =
       static_cast<size_t>(av_get_bytes_per_sample(codecContext.sample_fmt));
-    const auto channels = static_cast<size_t>(codecContext.channels);
+    const auto channels =
+      static_cast<size_t>(codecContext.ch_layout.nb_channels);
 
     std::vector<unsigned char> samples;
     auto packet = createPacket();
@@ -358,7 +359,7 @@ sounds::OpenALSoundBuffer::OpenALSoundBuffer(const char* filename)
     // load samples into openal
     alGenBuffers(1, &sampleBuffer);
     alBufferData(sampleBuffer,
-                 getALFormat(format, codecContext->channels),
+                 getALFormat(format, codecContext->ch_layout.nb_channels),
                  samples.data(),
                  static_cast<ALsizei>(samples.size()),
                  codecContext->sample_rate);
