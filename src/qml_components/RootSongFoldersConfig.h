@@ -17,7 +17,6 @@ class RootSongFoldersConfig : public QObject
 {
     Q_OBJECT
     QML_ELEMENT
-    QML_SINGLETON
 
   public:
     enum class Status
@@ -30,7 +29,6 @@ class RootSongFoldersConfig : public QObject
     Q_PROPERTY(Status status READ getStatus NOTIFY statusChanged)
     Q_PROPERTY(QStringList folders READ getFolders WRITE setFolders NOTIFY
                  foldersChanged)
-    static inline RootSongFoldersConfig* instance = nullptr;
     db::SqliteCppDb* db;
     std::atomic<Status> status = Status::Ready;
     QStringList folders;
@@ -61,9 +59,6 @@ class RootSongFoldersConfig : public QObject
     explicit RootSongFoldersConfig(db::SqliteCppDb* db,
                                    resource_managers::SongDbScanner scanner,
                                    QObject* parent = nullptr);
-    static void setInstance(RootSongFoldersConfig* instance);
-    static auto create(QQmlEngine* engine, QJSEngine* scriptEngine)
-      -> RootSongFoldersConfig*;
     auto getStatus() const -> Status;
     auto getFolders() const -> QStringList;
     void setFolders(QStringList folders);

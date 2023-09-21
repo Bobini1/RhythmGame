@@ -17,7 +17,6 @@ class SceneUrls : public QObject
 {
     Q_OBJECT
     QML_ELEMENT
-    QML_SINGLETON
 
     Q_PROPERTY(QUrl mainSceneUrl READ mainSceneUrl NOTIFY mainSceneUrlChanged)
     Q_PROPERTY(QUrl gameplaySceneUrl READ gameplaySceneUrl NOTIFY
@@ -27,7 +26,6 @@ class SceneUrls : public QObject
     Q_PROPERTY(QUrl settingsSceneUrl READ settingsSceneUrl NOTIFY
                  settingsSceneUrlChanged)
 
-    static inline SceneUrls* instance;
     std::function<resource_managers::models::ThemeConfig()> themeConfigFactory;
     resource_managers::models::ThemeConfig themeConfig;
 
@@ -41,11 +39,6 @@ class SceneUrls : public QObject
     [[nodiscard]] auto settingsSceneUrl() const -> QUrl;
 
     Q_INVOKABLE void refreshThemeConfig();
-
-    static void setInstance(SceneUrls* newInstance);
-
-    static auto create(QQmlEngine* engine, QJSEngine* scriptEngine)
-      -> SceneUrls*;
 
   signals:
     void mainSceneUrlChanged();

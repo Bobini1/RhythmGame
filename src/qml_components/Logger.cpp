@@ -13,12 +13,6 @@ Logger::Logger(QObject* parent)
 {
 }
 void
-Logger::setInstance(Logger* newInstance)
-{
-    instance = newInstance;
-    QJSEngine::setObjectOwnership(instance, QJSEngine::CppOwnership);
-}
-void
 Logger::addLog(const QString& msg)
 {
     history->insertRows(history->rowCount(), 1);
@@ -29,11 +23,5 @@ auto
 Logger::getHistory() const -> QStringListModel*
 {
     return history;
-}
-auto
-Logger::create(QQmlEngine* engine, QJSEngine* scriptEngine) -> Logger*
-{
-    Q_ASSERT(instance);
-    return instance;
 }
 } // namespace qml_components

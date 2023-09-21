@@ -4,9 +4,9 @@
 #include "resource_managers/IniImageProvider.h"
 #include "sounds/OpenAlSound.h"
 #include "gameplay_logic/rules/Lr2TimingWindows.h"
-#include "../RhythmGameQml/SceneUrls.h"
-#include "../RhythmGameQml/ProgramSettings.h"
-#include "../RhythmGameQml/ChartLoader.h"
+#include "qml_components/SceneUrls.h"
+#include "qml_components/ProgramSettings.h"
+#include "qml_components/ChartLoader.h"
 
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
@@ -14,14 +14,14 @@
 #include <spdlog/sinks/qt_sinks.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include "sounds/OpenAlSoundBuffer.h"
-#include "../RhythmGameQml/Logger.h"
+#include "qml_components/Logger.h"
 #include "gameplay_logic/rules/StandardBmsHitRules.h"
 #include "gameplay_logic/rules/Lr2Gauge.h"
 #include "gameplay_logic/rules/Lr2HitValues.h"
 #include "resource_managers/SongDbScanner.h"
 #include "DefineDb.h"
-#include "../RhythmGameQml/RootSongFoldersConfig.h"
-#include "../RhythmGameQml/RootSongFolder.h"
+#include "qml_components/RootSongFoldersConfig.h"
+#include "qml_components/RootSongFolder.h"
 
 #include <iostream>
 
@@ -124,7 +124,7 @@ main(int argc, char* argv[]) -> int
         qInstallMessageHandler(qtLogHandler);
 
         auto log = qml_components::Logger{ nullptr };
-        qml_components::Logger::setInstance(&log);
+        qmlRegisterSingletonInstance("RhythmGameQml", 1, 0, "Logger", &log);
 
         auto logger = spdlog::qt_logger_mt("log", &log, "addLog");
 
@@ -167,7 +167,8 @@ main(int argc, char* argv[]) -> int
 
         auto sceneUrls =
           qml_components::SceneUrls{ std::move(themeConfigLoader) };
-        qml_components::SceneUrls::setInstance(&sceneUrls);
+        qmlRegisterSingletonInstance(
+          "RhythmGameQml", 1, 0, "SceneUrls", &sceneUrls);
 
         auto chartPath = QString{};
         if (argc > 1) {
@@ -180,9 +181,8 @@ main(int argc, char* argv[]) -> int
 
         auto programSettings =
           qml_components::ProgramSettings{ QUrl::fromLocalFile(chartPath) };
-        qml_components::ProgramSettings::setInstance(&programSettings);
-
-        using namespace std::chrono_literals;
+        qmlRegisterSingletonInstance(
+          "RhythmGameQml", 1, 0, "ProgramSettings", &programSettings);
 
         auto chartDataFactory = resource_managers::ChartDataFactory{};
         auto chartFactory = resource_managers::ChartFactory{};
@@ -202,15 +202,20 @@ main(int argc, char* argv[]) -> int
             &chartFactory,
             2.0
         };
-        qml_components::ChartLoader::setInstance(&chartLoader);
+        qmlRegisterSingletonInstance(
+          "RhythmGameQml", 1, 0, "ChartLoader", &chartLoader);
 
         auto rootSongFoldersConfig =
           qml_components::RootSongFoldersConfig{ &db, songDbScanner };
-        qml_components::RootSongFoldersConfig::setInstance(
-          &rootSongFoldersConfig);
+        qmlRegisterSingletonInstance("RhythmGameQml",
+                                     1,
+                                     0,
+                                     "RootSongFoldersConfig",
+                                     &rootSongFoldersConfig);
 
         auto rootSongFolder = qml_components::RootSongFolder{ &db };
-        qml_components::RootSongFolder::setInstance(&rootSongFolder);
+        qmlRegisterSingletonInstance(
+          "RhythmGameQml", 1, 0, "RootSongFolder", &rootSongFolder);
 
         engine.addImageProvider("ini",
                                 new resource_managers::IniImageProvider{});

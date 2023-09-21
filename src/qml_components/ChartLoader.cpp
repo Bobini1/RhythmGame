@@ -76,16 +76,4 @@ ChartLoader::ChartLoader(
 
 {
 }
-void
-ChartLoader::setInstance(ChartLoader* newInstance)
-{
-    QJSEngine::setObjectOwnership(newInstance, QQmlEngine::CppOwnership);
-    instance = newInstance;
-}
-auto
-ChartLoader::create(QQmlEngine* engine, QJSEngine* scriptEngine) -> ChartLoader*
-{
-    Q_ASSERT(instance);
-    return instance;
-}
 } // namespace qml_components

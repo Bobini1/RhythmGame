@@ -9,19 +9,6 @@
 #include <QtConcurrentRun>
 
 namespace qml_components {
-void
-RootSongFoldersConfig::setInstance(RootSongFoldersConfig* instance)
-{
-    RootSongFoldersConfig::instance = instance;
-    QJSEngine::setObjectOwnership(instance, QJSEngine::CppOwnership);
-}
-auto
-RootSongFoldersConfig::create(QQmlEngine* engine, QJSEngine* scriptEngine)
-  -> RootSongFoldersConfig*
-{
-    Q_ASSERT(instance);
-    return instance;
-}
 auto
 RootSongFoldersConfig::getStatus() const -> RootSongFoldersConfig::Status
 {

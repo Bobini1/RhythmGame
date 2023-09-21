@@ -21,9 +21,6 @@ class ChartLoader : public QObject
 {
     Q_OBJECT
     QML_ELEMENT
-    QML_SINGLETON
-
-    static inline ChartLoader* instance;
 
     resource_managers::ChartDataFactory* chartDataFactory;
     std::function<gameplay_logic::rules::TimingWindows(
@@ -63,11 +60,6 @@ class ChartLoader : public QObject
       QObject* parent = nullptr);
 
     Q_INVOKABLE gameplay_logic::Chart* loadChart(const QString& filename);
-
-    static void setInstance(ChartLoader* newInstance);
-
-    static auto create(QQmlEngine* engine, QJSEngine* scriptEngine)
-      -> ChartLoader*;
 };
 
 } // namespace qml_components

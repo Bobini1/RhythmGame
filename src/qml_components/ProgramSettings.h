@@ -15,20 +15,14 @@ class ProgramSettings : public QObject
 {
     Q_OBJECT
     QML_ELEMENT
-    QML_SINGLETON
 
     // will be empty if not set
     Q_PROPERTY(QUrl chartPath READ getChartPath CONSTANT)
 
     QUrl chartPath;
 
-    static inline ProgramSettings* instance{};
-
   public:
     explicit ProgramSettings(QUrl chartPath, QObject* parent = nullptr);
-    static void setInstance(ProgramSettings* instance);
-    static auto create(QQmlEngine* engine, QJSEngine* scriptEngine)
-      -> ProgramSettings*;
     [[nodiscard]] auto getChartPath() const -> QUrl;
 };
 

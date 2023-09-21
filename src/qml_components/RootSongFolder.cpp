@@ -29,17 +29,4 @@ RootSongFolder::RootSongFolder(db::SqliteCppDb* db, QObject* parent)
   , db(db)
 {
 }
-auto
-RootSongFolder::create(QQmlEngine* engine, QJSEngine* scriptEngine)
-  -> RootSongFolder*
-{
-    Q_ASSERT(instance);
-    return instance;
-}
-void
-RootSongFolder::setInstance(RootSongFolder* newInstance)
-{
-    RootSongFolder::instance = newInstance;
-    QJSEngine::setObjectOwnership(instance, QJSEngine::CppOwnership);
-}
 } // namespace qml_components

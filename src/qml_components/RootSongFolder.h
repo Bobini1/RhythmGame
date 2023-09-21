@@ -14,15 +14,10 @@ class RootSongFolder : public QObject
 {
     Q_OBJECT
     QML_ELEMENT
-    QML_SINGLETON
     db::SqliteCppDb* db;
-    static inline RootSongFolder* instance = nullptr;
 
   public:
     explicit RootSongFolder(db::SqliteCppDb* db, QObject* parent = nullptr);
-    static auto create(QQmlEngine* engine, QJSEngine* scriptEngine)
-      -> RootSongFolder*;
-    static void setInstance(RootSongFolder* newInstance);
     Q_INVOKABLE Folder* get();
 };
 

@@ -101,7 +101,23 @@ qt_add_library(RhythmGame_lib OBJECT src/db/SqliteCppDb.cpp src/db/SqliteCppDb.h
         src/support/PathToUtfString.cpp
         src/support/PathToUtfString.h
         src/support/UtfStringToPath.cpp
-        src/support/UtfStringToPath.h)
+        src/support/UtfStringToPath.h
+        src/qml_components/Folder.cpp
+        src/qml_components/Folder.h
+        src/qml_components/RootSongFolder.cpp
+        src/qml_components/RootSongFolder.h
+        src/qml_components/ChartList.h
+        src/qml_components/ChartList.cpp
+        src/qml_components/ChartLoader.cpp
+        src/qml_components/ChartLoader.h
+        src/qml_components/ProgramSettings.cpp
+        src/qml_components/ProgramSettings.h
+        src/qml_components/Logger.cpp
+        src/qml_components/Logger.h
+        src/qml_components/RootSongFoldersConfig.cpp
+        src/qml_components/RootSongFoldersConfig.h
+        src/qml_components/SceneUrls.cpp
+        src/qml_components/SceneUrls.h)
 
 find_package(Threads REQUIRED)
 
