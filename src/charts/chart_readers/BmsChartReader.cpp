@@ -35,7 +35,10 @@ thread_local std::function<parser_models::ParsedBmsChart::RandomRange(
 
 struct TextTag
 {
-    static constexpr auto value = lexy::as_string<std::string>;
+    static constexpr auto value = lexy::callback<std::string>([](auto&& str) {
+        return boost::locale::conv::to_utf<char>(
+          trimR(std::string(str.begin(), str.end())), "CP932");
+    });
     static constexpr auto rule =
       dsl::capture(dsl::until(dsl::unicode::newline).or_eof());
 };
@@ -351,28 +354,23 @@ struct TagsSink
         auto finish() && -> return_type { return std::move(state); }
         auto operator()(Title&& title) -> void
         {
-            state.title = boost::locale::conv::to_utf<char>(
-              trimR(std::move(static_cast<std::string&>(title))), "CP932");
+            state.title = std::move(static_cast<std::string&>(title));
         }
         auto operator()(Artist&& artist) -> void
         {
-            state.artist = boost::locale::conv::to_utf<char>(
-              trimR(std::move(static_cast<std::string&>(artist))), "CP932");
+            state.artist = std::move(static_cast<std::string&>(artist));
         }
         auto operator()(Genre&& genre) -> void
         {
-            state.genre = boost::locale::conv::to_utf<char>(
-              trimR(std::move(static_cast<std::string&>(genre))), "CP932");
+            state.genre = std::move(static_cast<std::string&>(genre));
         }
         auto operator()(Subtitle&& subtitle) -> void
         {
-            state.subTitle = boost::locale::conv::to_utf<char>(
-              trimR(std::move(static_cast<std::string&>(subtitle))), "CP932");
+            state.subTitle = std::move(static_cast<std::string&>(subtitle));
         }
         auto operator()(Subartist&& subartist) -> void
         {
-            state.subArtist = boost::locale::conv::to_utf<char>(
-              trimR(std::move(static_cast<std::string&>(subartist))), "CP932");
+            state.subArtist = std::move(static_cast<std::string&>(subartist));
         }
         auto operator()(Total&& total) -> void
         {
