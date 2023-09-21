@@ -217,6 +217,20 @@ main(int argc, char* argv[]) -> int
         qmlRegisterSingletonInstance(
           "RhythmGameQml", 1, 0, "RootSongFolder", &rootSongFolder);
 
+        // add all other common types
+
+        qmlRegisterType<gameplay_logic::Chart>("RhythmGameQml", 1, 0, "Chart");
+        qmlRegisterType<gameplay_logic::ChartData>(
+          "RhythmGameQml", 1, 0, "ChartData");
+        qmlRegisterType<gameplay_logic::rules::BmsGauge>(
+          "RhythmGameQml", 1, 0, "BmsGauge");
+        qmlRegisterType<gameplay_logic::BmsScore>(
+          "RhythmGameQml", 1, 0, "BmsScore");
+        qmlRegisterType<gameplay_logic::BmsNotes>(
+          "RhythmGameQml", 1, 0, "BmsNotes");
+        qmlRegisterType<qml_components::Folder>(
+          "RhythmGameQml", 1, 0, "Folder");
+
         engine.addImageProvider("ini",
                                 new resource_managers::IniImageProvider{});
 
