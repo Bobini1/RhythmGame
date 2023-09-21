@@ -12,8 +12,6 @@ Pane {
         width: parent.width * 0.4
 
         Button {
-            id: button
-
             Layout.preferredHeight: 50
             text: qsTr("Song Wheel")
 
@@ -22,8 +20,6 @@ Pane {
             }
         }
         Button {
-            id: button1
-
             Layout.preferredHeight: 50
             text: qsTr("Settings")
 
@@ -32,10 +28,12 @@ Pane {
             }
         }
         Button {
-            id: button2
-
             Layout.preferredHeight: 50
-            text: qsTr("Button")
+            text: qsTr("Quit")
+
+            onClicked: {
+                Qt.quit();
+            }
         }
     }
 }
