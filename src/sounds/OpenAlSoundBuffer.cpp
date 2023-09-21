@@ -28,8 +28,7 @@ getALContext() -> ALCcontext*
 
 sounds::OpenALSoundBuffer::OpenALSoundBuffer(const char* filename)
 {
-    // libsndfile version
-    auto sndFile = SndfileHandle{ filename };
+    auto sndFile = SndfileHandle{ filename, SFM_READ };
     // throw if the file is not readable
     if (sndFile.error() != 0) {
         spdlog::error("Could not open sound file {}", filename);
