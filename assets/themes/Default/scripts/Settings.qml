@@ -63,9 +63,8 @@ Pane {
                 Frame {
                     id: songListFrame
 
+                    Layout.fillHeight: true
                     Layout.fillWidth: true
-                    // take 50% of the height
-                    Layout.preferredHeight: parent.height / 2
 
                     ColumnLayout {
                         anchors.fill: parent
@@ -84,7 +83,6 @@ Pane {
                                     Layout.fillWidth: true
 
                                     Text {
-                                        Layout.alignment: Qt.AlignLeft
                                         Layout.fillWidth: true
                                         color: "white"
                                         text: modelData
@@ -92,8 +90,6 @@ Pane {
                                     Button {
                                         id: selectFoldersButton
 
-                                        // align to the right
-                                        Layout.alignment: Qt.AlignRight
                                         text: qsTr("Remove")
 
                                         onClicked: {
@@ -104,13 +100,38 @@ Pane {
                                 }
                             }
                         }
-                        Button {
-                            id: selectFoldersButton
+                        RowLayout {
+                            Button {
+                                Layout.fillWidth: true
+                                text: qsTr("Add song folder")
 
-                            text: qsTr("Add song folder")
+                                onClicked: {
+                                    folderDialog.open();
+                                }
+                            }
+                            Button {
+                                Layout.fillWidth: true
+                                text: qsTr("Scan new")
 
-                            onClicked: {
-                                folderDialog.open();
+                                onClicked: {
+                                    RootSongFoldersConfig.scanNew();
+                                }
+                            }
+                            Button {
+                                Layout.fillWidth: true
+                                text: qsTr("Scan all")
+
+                                onClicked: {
+                                    RootSongFoldersConfig.scanAll();
+                                }
+                            }
+                            Button {
+                                Layout.fillWidth: true
+                                text: qsTr("Clear database")
+
+                                onClicked: {
+                                    RootSongFoldersConfig.clear();
+                                }
                             }
                         }
                     }

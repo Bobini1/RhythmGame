@@ -69,6 +69,7 @@ class RootSongFoldersConfig : public QObject
     void setFolders(QStringList folders);
     Q_INVOKABLE void scanNew();
     Q_INVOKABLE void scanAll();
+    Q_INVOKABLE void clear();
 
   signals:
     void statusChanged();

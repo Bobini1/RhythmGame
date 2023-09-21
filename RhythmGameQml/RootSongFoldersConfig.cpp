@@ -45,14 +45,17 @@ void
 RootSongFoldersConfig::scanNew()
 {
     if (status == Status::Loading) {
+        spdlog::warn("Can't scan - already scanning");
         return;
     }
     status = Status::Loading;
     emit statusChanged();
+    spdlog::info("Scanning new folders");
     scanFuture = QtConcurrent::run([this] {
         scanNewImpl();
         status = Status::Ready;
         emit statusChanged();
+        spdlog::info("Scanning new folders finished");
     });
 }
 auto
@@ -78,14 +81,17 @@ void
 RootSongFoldersConfig::scanAll()
 {
     if (status == Status::Loading) {
+        spdlog::warn("Can't scan - already scanning");
         return;
     }
     status = Status::Loading;
     emit statusChanged();
+    spdlog::info("Scanning all folders");
     scanFuture = QtConcurrent::run([this] {
         scanAllImpl();
         status = Status::Ready;
         emit statusChanged();
+        spdlog::info("Scanning all folders finished");
     });
 }
 void
@@ -186,5 +192,24 @@ RootSongFoldersConfig::scanAllImpl()
         foldersVector.emplace_back(support::qStringToPath(folder));
     }
     scanner.scanDirectories(foldersVector);
+}
+void
+RootSongFoldersConfig::clear()
+{
+    if (status == Status::Loading) {
+        spdlog::warn("Can't clear - already scanning");
+        return;
+    }
+    status = Status::Loading;
+    emit statusChanged();
+    spdlog::info("Clearing database");
+    scanFuture = QtConcurrent::run([this] {
+        db->execute("DELETE FROM charts");
+        db->execute("DELETE FROM parent_dir");
+        db->execute("DELETE FROM root_dir");
+        status = Status::Ready;
+        emit statusChanged();
+        spdlog::info("Clearing database finished");
+    });
 }
 } // namespace qml_components
