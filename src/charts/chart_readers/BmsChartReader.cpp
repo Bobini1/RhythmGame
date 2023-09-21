@@ -469,7 +469,7 @@ struct TagsSink
                 if (column < 1 || column >= noteArray.size()) [[unlikely]] {
                     return;
                 }
-                noteArray[column - 1] = std::move(identifiers);
+                noteArray[column - 1].push_back(std::move(identifiers));
             };
 
             switch (channelCategory) {

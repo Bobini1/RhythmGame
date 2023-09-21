@@ -24,19 +24,19 @@ charts::parser_models::ParsedBmsChart::mergeTags(
         first.genre = std::move(second.genre);
     }
     if (second.bpm.has_value()) {
-        first.bpm = std::move(second.bpm);
+        first.bpm = second.bpm;
     }
     if (second.total.has_value()) {
-        first.total = std::move(second.total);
+        first.total = second.total;
     }
     if (second.rank.has_value()) {
-        first.rank = std::move(second.rank);
+        first.rank = second.rank;
     }
     if (second.playLevel.has_value()) {
-        first.playLevel = std::move(second.playLevel);
+        first.playLevel = second.playLevel;
     }
     if (second.difficulty.has_value()) {
-        first.difficulty = std::move(second.difficulty);
+        first.difficulty = second.difficulty;
     }
     for (auto& [key, value] : second.exBpms) {
         first.exBpms[key] = value;
@@ -44,7 +44,59 @@ charts::parser_models::ParsedBmsChart::mergeTags(
     for (auto& [key, value] : second.wavs) {
         first.wavs[key] = std::move(value);
     }
-    for (auto& [key, value] : second.measures) {
-        first.measures[key] = std::move(value);
+    for (auto& [key, measure] : second.measures) {
+        auto& firstMeasure = first.measures[key];
+        for (auto column = 0; column < measure.p1VisibleNotes.size();
+             ++column) {
+            for (auto& definition : measure.p1VisibleNotes[column]) {
+                firstMeasure.p1VisibleNotes[column].push_back(
+                  std::move(definition));
+            }
+        }
+        for (auto column = 0; column < measure.p2VisibleNotes.size();
+             ++column) {
+            for (auto& definition : measure.p2VisibleNotes[column]) {
+                firstMeasure.p2VisibleNotes[column].push_back(
+                  std::move(definition));
+            }
+        }
+        for (auto column = 0; column < measure.p1InvisibleNotes.size();
+             ++column) {
+            for (auto& definition : measure.p1InvisibleNotes[column]) {
+                firstMeasure.p1InvisibleNotes[column].push_back(
+                  std::move(definition));
+            }
+        }
+        for (auto column = 0; column < measure.p2InvisibleNotes.size();
+             ++column) {
+            for (auto& definition : measure.p2InvisibleNotes[column]) {
+                firstMeasure.p2InvisibleNotes[column].push_back(
+                  std::move(definition));
+            }
+        }
+        for (auto column = 0; column < measure.p1LongNotes.size(); ++column) {
+            for (auto& definition : measure.p1LongNotes[column]) {
+                firstMeasure.p1LongNotes[column].push_back(
+                  std::move(definition));
+            }
+        }
+        for (auto column = 0; column < measure.p2LongNotes.size(); ++column) {
+            for (auto& definition : measure.p2LongNotes[column]) {
+                firstMeasure.p2LongNotes[column].push_back(
+                  std::move(definition));
+            }
+        }
+        for (auto& definition : measure.bgmNotes) {
+            firstMeasure.bgmNotes.push_back(std::move(definition));
+        }
+        for (auto& definition : measure.bpmChanges) {
+            firstMeasure.bpmChanges.push_back(std::move(definition));
+        }
+        for (auto& definition : measure.exBpmChanges) {
+            firstMeasure.exBpmChanges.push_back(std::move(definition));
+        }
+        if (measure.meter.has_value()) {
+            firstMeasure.meter = measure.meter;
+        }
     }
 }

@@ -25,16 +25,22 @@ struct ParsedBmsChart
     {
         static constexpr auto columnNumber = 9;
         static constexpr auto defaultMeter = 1.0;
-        std::array<std::vector<std::string>, columnNumber> p1VisibleNotes;
-        std::array<std::vector<std::string>, columnNumber> p2VisibleNotes;
-        std::array<std::vector<std::string>, columnNumber> p1InvisibleNotes;
-        std::array<std::vector<std::string>, columnNumber> p2InvisibleNotes;
-        std::array<std::vector<std::string>, columnNumber> p1LongNotes;
-        std::array<std::vector<std::string>, columnNumber> p2LongNotes;
+        std::array<std::vector<std::vector<std::string>>, columnNumber>
+          p1VisibleNotes;
+        std::array<std::vector<std::vector<std::string>>, columnNumber>
+          p2VisibleNotes;
+        std::array<std::vector<std::vector<std::string>>, columnNumber>
+          p1InvisibleNotes;
+        std::array<std::vector<std::vector<std::string>>, columnNumber>
+          p2InvisibleNotes;
+        std::array<std::vector<std::vector<std::string>>, columnNumber>
+          p1LongNotes;
+        std::array<std::vector<std::vector<std::string>>, columnNumber>
+          p2LongNotes;
         std::vector<std::vector<std::string>> bgmNotes;
         std::vector<std::string> bpmChanges;   // old-school, FF = BPM is 255
         std::vector<std::string> exBpmChanges; // new, FF = #BPMFF
-        double meter = defaultMeter;
+        std::optional<double> meter;
     };
 
     /**
