@@ -37,7 +37,8 @@ sounds::OpenALSoundBuffer::OpenALSoundBuffer(const char* filename)
     auto sndFileSamples = std::vector<float>{};
     sndFileSamples.resize(sndFile.frames() * sndFile.channels());
     sndFile.read(sndFileSamples.data(), sndFileSamples.size());
-    alcMakeContextCurrent(getALContext());
+    static auto once = std::once_flag{};
+    std::call_once(once, alcMakeContextCurrent, getALContext());
     alGenBuffers(1, &sampleBuffer);
     alBufferData(sampleBuffer,
                  sndFile.channels() == 1 ? AL_FORMAT_MONO_FLOAT32
