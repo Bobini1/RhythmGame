@@ -17,12 +17,13 @@ void
 addDirToParentDirs(QThreadPool& threadPool,
                    db::SqliteCppDb& db,
                    QString directoryInDb)
-{ // add to parent_dir
+{
     threadPool.start([&db, directoryInDb]() mutable {
         try {
-            static thread_local auto insertQuery = db.createStatement(
-              "INSERT INTO parent_dir (parent_dir, path) VALUES (:parent_dir, "
-              ":path)");
+            static thread_local auto insertQuery =
+              db.createStatement("INSERT OR IGNORE INTO parent_dir "
+                                 "(parent_dir, path) VALUES (:parent_dir, "
+                                 ":path)");
             while (directoryInDb.size() != 1) {
                 auto parentDirectory = directoryInDb;
                 parentDirectory.resize(parentDirectory.size() - 1);
@@ -107,7 +108,7 @@ scanFolder(std::filesystem::path directory,
                    extension == ".bms" || extension == ".bme" ||
                    extension == ".bml" || extension == ".pms") {
             if (!isSongDirectory) {
-                addDirToParentDirs(threadPool, db, directoryInDb);
+                addDirToParentDirs(threadPool, db, parentDirectoryInDb);
             }
             isSongDirectory = true;
             directoriesToScan.clear();
@@ -134,10 +135,9 @@ SongDbScanner::scanDirectories(
         if (is_directory(entry)) {
             // pass only the last part of the entry directory as
             // directoryInDb
-            auto directoryInDb =
-              QStringLiteral("/") +
-              support::pathToQString(entry.parent_path().filename()) +
-              QStringLiteral("/");
+            auto directoryInDb = QStringLiteral("/") +
+                                 support::pathToQString(entry.filename()) +
+                                 QStringLiteral("/");
             scanFolder(
               entry, threadPool, *db, directoryInDb, QStringLiteral("/"));
         } else {
