@@ -50,12 +50,7 @@ loadChart(QThreadPool& threadPool,
           QString& directoryInDb,
           const std::filesystem::path& path)
 {
-    auto url =
-#if defined(_WIN32)
-      QUrl::fromLocalFile(QString::fromStdWString(path.wstring()));
-#else
-      QUrl::fromLocalFile(QString::fromStdString(path.string()));
-#endif
+    auto url = support::pathToQString(path);
     threadPool.start([&db, url = std::move(url), directoryInDb]() mutable {
         try {
             static thread_local const ChartDataFactory chartDataFactory;
@@ -75,7 +70,7 @@ loadChart(QThreadPool& threadPool,
             chartComponents.chartData->save(db);
         } catch (const std::exception& e) {
             spdlog::error("Failed to load chart data for {}: {}",
-                          url.toString().toStdString(),
+                          url.toStdString(),
                           e.what());
         }
     });

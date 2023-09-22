@@ -81,12 +81,13 @@ ChartDataFactory::convertToQVector(
 }
 auto
 ChartDataFactory::loadChartData(
-  const QUrl& chartPath,
+  const QString& chartPath,
   std::function<charts::parser_models::ParsedBmsChart::RandomRange(
     charts::parser_models::ParsedBmsChart::RandomRange)> randomGenerator,
   QString directoryInDb) const -> ChartDataFactory::ChartComponents
 {
-    auto chart = loadFile(chartPath);
+    auto url = QUrl::fromLocalFile(chartPath);
+    auto chart = loadFile(url);
     auto hash = support::sha256(chart);
     auto parsedChart = chartReader.readBmsChart(chart, randomGenerator);
     auto calculatedNotesData =
@@ -120,7 +121,7 @@ ChartDataFactory::loadChartData(
       parsedChart.tags.isRandom,
       noteCount,
       lastNoteTimestamp.count(),
-      QFileInfo{ chartPath.toLocalFile() }.absoluteFilePath(),
+      QFileInfo{ chartPath }.absoluteFilePath(),
       std::move(directoryInDb),
       QString::fromStdString(hash),
       std::move(noteData));

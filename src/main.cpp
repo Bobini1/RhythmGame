@@ -21,7 +21,7 @@
 #include "resource_managers/SongDbScanner.h"
 #include "DefineDb.h"
 #include "qml_components/RootSongFoldersConfig.h"
-#include "qml_components/RootSongFolder.h"
+#include "qml_components/SongFolderFactory.h"
 
 #include <iostream>
 
@@ -179,8 +179,7 @@ main(int argc, char* argv[]) -> int
 #endif
         }
 
-        auto programSettings =
-          qml_components::ProgramSettings{ QUrl::fromLocalFile(chartPath) };
+        auto programSettings = qml_components::ProgramSettings{ chartPath };
         qmlRegisterSingletonInstance(
           "RhythmGameQml", 1, 0, "ProgramSettings", &programSettings);
 
@@ -213,9 +212,9 @@ main(int argc, char* argv[]) -> int
                                      "RootSongFoldersConfig",
                                      &rootSongFoldersConfig);
 
-        auto rootSongFolder = qml_components::RootSongFolder{ &db };
+        auto songFolderFactory = qml_components::SongFolderFactory{ &db };
         qmlRegisterSingletonInstance(
-          "RhythmGameQml", 1, 0, "RootSongFolder", &rootSongFolder);
+          "RhythmGameQml", 1, 0, "SongFolderFactory", &songFolderFactory);
 
         // add all other common types
 

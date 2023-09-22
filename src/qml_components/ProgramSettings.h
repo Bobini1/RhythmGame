@@ -17,13 +17,13 @@ class ProgramSettings : public QObject
     QML_ELEMENT
 
     // will be empty if not set
-    Q_PROPERTY(QUrl chartPath READ getChartPath CONSTANT)
+    Q_PROPERTY(QString chartPath READ getChartPath CONSTANT)
 
-    QUrl chartPath;
+    QString chartPath;
 
   public:
-    explicit ProgramSettings(QUrl chartPath, QObject* parent = nullptr);
-    [[nodiscard]] auto getChartPath() const -> QUrl;
+    explicit ProgramSettings(QString chartPath, QObject* parent = nullptr);
+    [[nodiscard]] auto getChartPath() const -> QString;
 };
 
 } // namespace qml_components

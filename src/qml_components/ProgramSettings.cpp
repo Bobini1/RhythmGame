@@ -8,11 +8,11 @@
 
 namespace qml_components {
 auto
-ProgramSettings::getChartPath() const -> QUrl
+ProgramSettings::getChartPath() const -> QString
 {
     return chartPath;
 }
-ProgramSettings::ProgramSettings(QUrl chartPath, QObject* parent)
+ProgramSettings::ProgramSettings(QString chartPath, QObject* parent)
   : QObject(parent)
   , chartPath(std::move(chartPath))
 {

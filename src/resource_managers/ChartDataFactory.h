@@ -36,7 +36,7 @@ class ChartDataFactory
     };
 
     auto loadChartData(
-      const QUrl& chartPath,
+      const QString& chartPath,
       std::function<charts::parser_models::ParsedBmsChart::RandomRange(
         charts::parser_models::ParsedBmsChart::RandomRange)> randomGenerator,
       QString directoryInDb = QString()) const -> ChartComponents;
