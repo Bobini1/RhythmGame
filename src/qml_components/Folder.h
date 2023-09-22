@@ -18,11 +18,15 @@ class Folder : public QAbstractListModel
     QML_UNCREATABLE("Folder is not creatable from QML")
 
     Q_PROPERTY(QString path READ getPath CONSTANT)
+    Q_PROPERTY(int minimumAmount READ getMinimumAmount WRITE setMinimumAmount
+                 NOTIFY minimumAmountChanged)
+    Q_PROPERTY(QString parentFolder READ parentFolder CONSTANT)
 
     QString path;
     db::SqliteCppDb* db;
     QList<QString> childrenFolders;
     std::vector<gameplay_logic::ChartData*> chartData;
+    int minimumAmount = 0;
 
   public:
     explicit Folder(QString path,
@@ -36,8 +40,13 @@ class Folder : public QAbstractListModel
       -> QVariant override;
     auto roleNames() const -> QHash<int, QByteArray> override;
     auto getPath() const -> QString;
-    Q_INVOKABLE Folder* openFolder(QString path);
-    Q_INVOKABLE Folder* parentFolder();
+    auto parentFolder() -> QString;
+    Q_INVOKABLE QVariant at(int index);
+    void setMinimumAmount(int amount);
+    auto getMinimumAmount() const -> int;
+
+  signals:
+    void minimumAmountChanged();
 };
 
 } // namespace qml_components

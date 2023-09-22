@@ -17,30 +17,40 @@ Folder::Folder(QString path,
   , childrenFolders(std::move(childrenDirs))
   , chartData(QtConcurrent::blockingMapped(
       childrenCharts,
-      [](const gameplay_logic::ChartData::DTO& dto) {
-          return gameplay_logic::ChartData::load(dto).release();
+      [this](const gameplay_logic::ChartData::DTO& dto) {
+          auto chartData = gameplay_logic::ChartData::load(dto);
+          chartData->moveToThread(thread());
+          return chartData.release();
       }))
 {
     for (auto& chart : chartData) {
-        chart->moveToThread(QThread::currentThread());
         chart->setParent(this);
     }
 }
 auto
 Folder::rowCount(const QModelIndex& parent) const -> int
 {
-    return childrenFolders.size() + chartData.size();
+    return (childrenFolders.size() + chartData.size() > 0)
+             ? std::max(
+                 minimumAmount,
+                 static_cast<int>(childrenFolders.size() + chartData.size()))
+             : 0;
 }
 auto
 Folder::data(const QModelIndex& index, int role) const -> QVariant
 {
     if (role == Qt::DisplayRole) {
-        if (index.row() < childrenFolders.size()) {
-            return childrenFolders.at(index.row());
+        auto idx = index.row();
+        if (idx >= childrenFolders.size() + chartData.size()) {
+            // if minimumAmount is set, do modulo
+            idx %= childrenFolders.size() + chartData.size();
         }
-        if (index.row() < childrenFolders.size() + chartData.size()) {
+        if (idx < childrenFolders.size()) {
+            return childrenFolders.at(idx);
+        }
+        if (idx < childrenFolders.size() + chartData.size()) {
             return QVariant::fromValue(
-              chartData.at(index.row() - childrenFolders.size()));
+              chartData.at(idx - childrenFolders.size()));
         }
     }
     return {};
@@ -51,41 +61,41 @@ Folder::roleNames() const -> QHash<int, QByteArray>
     return { { Qt::DisplayRole, "display" } };
 }
 auto
-Folder::openFolder(QString path) -> Folder*
+Folder::parentFolder() -> QString
 {
-    auto children = QList<QString>{};
-    auto query =
-      db->createStatement("SELECT path FROM parent_dir WHERE parent_dir = ?");
-    query.bind(1, path.toStdString());
-    auto result = query.executeAndGetAll<std::string>();
-    for (const auto& row : result) {
-        children.append(QString::fromStdString(row));
-    }
-    auto chartQuery =
-      db->createStatement("SELECT * FROM charts WHERE directory_in_db "
-                          "= ? ORDER BY title ASC");
-    chartQuery.bind(1, path.toStdString());
-    auto chartResult =
-      chartQuery.executeAndGetAll<gameplay_logic::ChartData::DTO>();
-    return new Folder{
-        std::move(path), std::move(children), std::move(chartResult), db
-    };
-}
-auto
-Folder::parentFolder() -> Folder*
-{
-    if (path == "/") {
-        return nullptr;
+    if (path == QStringLiteral("/")) {
+        return QStringLiteral("");
     }
     auto parent = path;
     parent.resize(parent.size() - 1);
     auto lastSlashIndex = parent.lastIndexOf("/");
     parent.remove(lastSlashIndex + 1, parent.size() - lastSlashIndex - 1);
-    return openFolder(parent);
+    return parent;
 }
 auto
 Folder::getPath() const -> QString
 {
     return path;
+}
+void
+Folder::setMinimumAmount(int amount)
+{
+    minimumAmount = amount;
+    if (minimumAmount > childrenFolders.size() + chartData.size()) {
+        beginInsertRows(
+          {}, childrenFolders.size() + chartData.size(), minimumAmount - 1);
+        endInsertRows();
+    }
+    emit minimumAmountChanged();
+}
+auto
+Folder::getMinimumAmount() const -> int
+{
+    return minimumAmount;
+}
+auto
+Folder::at(int index) -> QVariant
+{
+    return data(createIndex(index, 0));
 }
 } // namespace qml_components
