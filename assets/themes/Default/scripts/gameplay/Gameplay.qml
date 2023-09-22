@@ -57,6 +57,11 @@ Rectangle {
         chart.start();
     }
 
+    // destroy chart when this component is unloaded
+    Component.onDestruction: {
+        chart.destroy();
+    }
+
     FpsCounter {
         anchors.right: parent.right
         anchors.top: parent.top
