@@ -212,3 +212,20 @@ gameplay_logic::ChartData::load(
       QString::fromStdString(chartDataDto.sha256),
       std::move(noteData));
 }
+auto
+gameplay_logic::ChartData::getIsRandom() const -> bool
+{
+    return isRandom;
+}
+auto
+gameplay_logic::ChartData::getKeymode() const
+  -> gameplay_logic::ChartData::Keymode
+{
+    auto startIndex = noteData->getVisibleNotes().size() / 2;
+    for (auto i = startIndex; i < noteData->getVisibleNotes().size(); ++i) {
+        if (noteData->getVisibleNotes()[i].size() > 0) {
+            return Keymode::K14;
+        }
+    }
+    return Keymode::K7;
+}

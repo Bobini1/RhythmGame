@@ -18,6 +18,15 @@ class ChartData : public QObject
 {
     Q_OBJECT
 
+  public:
+    enum class Keymode
+    {
+        K7,
+        K14
+    };
+    Q_ENUM(Keymode)
+
+  private:
     Q_PROPERTY(QString title READ getTitle CONSTANT)
     Q_PROPERTY(QString artist READ getArtist CONSTANT)
     Q_PROPERTY(QString subtitle READ getSubtitle CONSTANT)
@@ -33,6 +42,9 @@ class ChartData : public QObject
     Q_PROPERTY(QString directoryInDb READ getPath CONSTANT)
     Q_PROPERTY(QString sha256 READ getSha256 CONSTANT)
     Q_PROPERTY(BmsNotes* noteData READ getNoteData CONSTANT)
+    Q_PROPERTY(bool isRandom READ getIsRandom CONSTANT)
+    Q_PROPERTY(Keymode keymode READ getKeymode CONSTANT)
+
     ChartData() = default;
 
   public:
@@ -69,6 +81,8 @@ class ChartData : public QObject
     [[nodiscard]] auto getPlayLevel() const -> int;
     [[nodiscard]] auto getDifficulty() const -> int;
     [[nodiscard]] auto getSha256() const -> QString;
+    [[nodiscard]] auto getIsRandom() const -> bool;
+    [[nodiscard]] auto getKeymode() const -> Keymode;
 
     struct DTO
     {
