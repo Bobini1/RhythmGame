@@ -36,6 +36,10 @@ combineBpmChanges(const std::vector<std::string>& bpmChanges,
         if (bpmValue == bpms.end()) {
             continue;
         }
+        if (bpmValue->second <= 0.0) {
+            throw std::runtime_error{ "Bpm must be positive, was: " +
+                                      std::to_string(bpmValue->second) };
+        }
         auto fraction =
           static_cast<double>(index) / static_cast<double>(bpmChanges.size());
         combinedBpmChanges.emplace_back(
