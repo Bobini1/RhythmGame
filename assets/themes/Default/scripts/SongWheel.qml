@@ -1,32 +1,105 @@
 import QtQuick
 import RhythmGameQml
+import QtQuick.Layouts
+import QtQuick.Controls.Basic
 
-ListView {
-    height: 200
-    width: 200
+Pane {
+    RowLayout {
+        anchors.fill: parent
 
-    delegate: Rectangle {
-        id: listItem
+        PathView {
+            id: pathView
 
-        required property string artist
-        required property string title
+            function decrementCurrentIndex() {
+                currentIndex = (currentIndex - 1) % count;
+            }
+            function incrementCurrentIndex() {
+                currentIndex = (currentIndex + 1) % count;
+            }
+            function open() {
+                let item = model.at(currentIndex);
+                if (item instanceof ChartData) {
+                    console.info("Opening chart " + item.path);
+                    globalRoot.openChart(item.path);
+                } else {
+                    model = SongFolderFactory.open(item);
+                }
+            }
 
-        height: 25
-        width: parent.width
+            Layout.alignment: Qt.AlignRight
+            Layout.fillHeight: true
+            Layout.preferredWidth: parent.width / 2
+            dragMargin: 200
+            focus: true
+            highlightMoveDuration: 100
+            model: SongFolderFactory.open("/")
+            pathItemCount: 20
 
-        Text {
-            text: listItem.artist + " - " + listItem.title
-        }
+            // selected item should be in the middle of the arc
+            preferredHighlightBegin: 0.5
+            preferredHighlightEnd: 0.5
+            snapMode: PathView.SnapToItem
 
-        // switch to gameplay on click
-        MouseArea {
-            anchors.fill: parent
-        }
-    }
-    model: ListModel {
-        ListElement {
-            artist: "Artist 1"
-            title: "Title 1"
+            delegate: Text {
+                // selected item should be yellow
+                color: PathView.isCurrentItem ? "yellow" : "white"
+                text: display instanceof ChartData ? display.title : display
+
+                Component.onCompleted: {
+                    if (display instanceof ChartData && display.keymode === ChartData.Keymode.K14) {
+                        color = "red";
+                    }
+                }
+
+                MouseArea {
+                    anchors.fill: parent
+                }
+            }
+            path: Path {
+                startX: 120
+                startY: -100
+
+                PathLine {
+                    x: 0
+                    y: pathView.height + 100
+                }
+            }
+
+            Keys.onDownPressed: {
+                incrementCurrentIndex();
+            }
+            Keys.onLeftPressed: {
+                if (model.parentFolder) {
+                    model = SongFolderFactory.open(model.parentFolder);
+                } else {
+                    sceneStack.pop();
+                }
+            }
+            Keys.onReturnPressed: {
+                open();
+            }
+            Keys.onRightPressed: {
+                open();
+            }
+            Keys.onUpPressed: {
+                decrementCurrentIndex();
+            }
+            onModelChanged: {
+                model.minimumAmount = pathItemCount;
+            }
+
+            MouseArea {
+                id: mouse
+
+                anchors.fill: parent
+
+                onWheel: {
+                    if (wheel.angleDelta.y > 0)
+                        pathView.decrementCurrentIndex();
+                    else
+                        pathView.incrementCurrentIndex();
+                }
+            }
         }
     }
 }
