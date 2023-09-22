@@ -456,7 +456,7 @@ struct TagsSink
             auto addNotes = [](auto& noteArray,
                                unsigned column,
                                std::vector<std::string> identifiers) {
-                if (column < 1 || column >= noteArray.size()) [[unlikely]] {
+                if (column < 1 || column > noteArray.size()) [[unlikely]] {
                     return;
                 }
                 noteArray[column - 1].push_back(std::move(identifiers));
