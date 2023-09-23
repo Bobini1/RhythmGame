@@ -19,7 +19,7 @@ ApplicationWindow {
         id: chartContext
 
         Item {
-            required property var chart
+            required property Chart chart
 
             focus: true
 
@@ -43,11 +43,28 @@ ApplicationWindow {
             }
         }
     }
+    Component {
+        id: resultContext
+
+        Item {
+            required property var result
+
+            focus: true
+
+            Loader {
+                id: loader
+
+                anchors.fill: parent
+                source: "file://" + SceneUrls.resultSceneUrl
+            }
+        }
+    }
     Item {
         id: globalRoot
 
         readonly property Component gameplayComponent: chartContext
         readonly property Component mainComponent: Qt.createComponent("file://" + SceneUrls.mainSceneUrl)
+        readonly property Component resultComponent: resultContext
         readonly property Component settingsComponent: Qt.createComponent("file://" + SceneUrls.settingsSceneUrl)
         readonly property Component songWheelComponent: Qt.createComponent("file://" + SceneUrls.songWheelSceneUrl)
 
@@ -59,6 +76,11 @@ ApplicationWindow {
             }
             sceneStack.push(gameplayComponent, {
                     "chart": chart
+                });
+        }
+        function openResult(result) {
+            sceneStack.replace(resultComponent, {
+                    "result": result
                 });
         }
         function urlToPath(urlString) {

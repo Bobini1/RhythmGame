@@ -25,6 +25,8 @@ class SceneUrls : public QObject
                  songWheelSceneUrlChanged)
     Q_PROPERTY(QUrl settingsSceneUrl READ settingsSceneUrl NOTIFY
                  settingsSceneUrlChanged)
+    Q_PROPERTY(
+      QUrl resultSceneUrl READ resultSceneUrl NOTIFY resultSceneUrlChanged)
 
     std::function<resource_managers::models::ThemeConfig()> themeConfigFactory;
     resource_managers::models::ThemeConfig themeConfig;
@@ -37,6 +39,7 @@ class SceneUrls : public QObject
     [[nodiscard]] auto gameplaySceneUrl() const -> QUrl;
     [[nodiscard]] auto songWheelSceneUrl() const -> QUrl;
     [[nodiscard]] auto settingsSceneUrl() const -> QUrl;
+    [[nodiscard]] auto resultSceneUrl() const -> QUrl;
 
     Q_INVOKABLE void refreshThemeConfig();
 
@@ -45,6 +48,7 @@ class SceneUrls : public QObject
     void gameplaySceneUrlChanged();
     void songWheelSceneUrlChanged();
     void settingsSceneUrlChanged();
+    void resultSceneUrlChanged();
 };
 
 } // namespace qml_components

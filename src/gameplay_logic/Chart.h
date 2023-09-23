@@ -61,7 +61,7 @@ class Chart : public QObject
   signals:
     void elapsedChanged(int64_t delta);
     void positionChanged(double delta);
-    void overChanged();
+    void over();
     void bpmChanged(BpmChange bpmChange);
     void started();
 };

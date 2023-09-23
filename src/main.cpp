@@ -157,7 +157,9 @@ main(int argc, char* argv[]) -> int
                     QString::fromStdWString(
                       (scriptsFolder / configMap.at("SongWheel")).wstring()),
                     QString::fromStdWString(
-                      (scriptsFolder / configMap.at("Settings")).wstring())
+                      (scriptsFolder / configMap.at("Settings")).wstring()),
+                    QString::fromStdWString(
+                      (scriptsFolder / configMap.at("Result")).wstring())
                 };
             } catch (const std::exception& e) {
                 spdlog::error("Failed to load theme config: {}", e.what());

@@ -62,6 +62,13 @@ Rectangle {
         chart.destroy();
     }
 
+    Connections {
+        function onOver() {
+            globalRoot.openResult(chart.score);
+        }
+
+        target: chart
+    }
     FpsCounter {
         anchors.right: parent.right
         anchors.top: parent.top

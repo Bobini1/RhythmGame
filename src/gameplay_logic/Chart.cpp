@@ -62,7 +62,7 @@ Chart::updateElapsed()
     }
     if (gameReferee->isOver()) {
         propertyUpdateTimer.stop();
-        emit overChanged();
+        emit over();
     }
 }
 
