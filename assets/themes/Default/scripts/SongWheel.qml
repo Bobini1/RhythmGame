@@ -16,8 +16,7 @@ Pane {
             function incrementCurrentIndex() {
                 currentIndex = (currentIndex + 1) % count;
             }
-            function open() {
-                let item = model.at(currentIndex);
+            function open(item) {
                 if (item instanceof ChartData) {
                     console.info("Opening chart " + item.path);
                     globalRoot.openChart(item.path);
@@ -53,6 +52,11 @@ Pane {
 
                 MouseArea {
                     anchors.fill: parent
+
+                    onClicked: {
+                        pathView.open(display);
+                        pathView.currentIndex = index;
+                    }
                 }
             }
             path: Path {
@@ -76,10 +80,10 @@ Pane {
                 }
             }
             Keys.onReturnPressed: {
-                open();
+                open(model.at(currentIndex));
             }
             Keys.onRightPressed: {
-                open();
+                open(model.at(currentIndex));
             }
             Keys.onUpPressed: {
                 decrementCurrentIndex();
