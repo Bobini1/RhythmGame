@@ -115,7 +115,9 @@ qt_add_library(RhythmGame_lib OBJECT src/db/SqliteCppDb.cpp src/db/SqliteCppDb.h
         src/qml_components/RootSongFoldersConfig.cpp
         src/qml_components/RootSongFoldersConfig.h
         src/qml_components/SceneUrls.cpp
-        src/qml_components/SceneUrls.h)
+        src/qml_components/SceneUrls.h
+        src/support/toLower.cpp
+        src/support/toLower.h)
 
 find_package(Threads REQUIRED)
 
