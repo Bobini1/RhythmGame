@@ -80,6 +80,9 @@ Folder::getPath() const -> QString
 void
 Folder::setMinimumAmount(int amount)
 {
+    if (minimumAmount == amount) {
+        return;
+    }
     minimumAmount = amount;
     if (minimumAmount > childrenFolders.size() + chartData.size()) {
         beginInsertRows(
