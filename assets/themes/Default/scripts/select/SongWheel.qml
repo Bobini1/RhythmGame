@@ -28,6 +28,7 @@ Pane {
             Layout.alignment: Qt.AlignRight
             Layout.fillHeight: true
             Layout.preferredWidth: parent.width / 2
+            cacheItemCount: 1000
             dragMargin: 200
             focus: true
             highlightMoveDuration: 100
