@@ -4,21 +4,31 @@ import QtQuick.Layouts
 Item {
     id: column
 
+    property int erasedNoteIndex: 0
     property int heightMultiplier: 20
     property string image
     property int noteHeight: 36
     property var notes
 
     function removeNote(index: int) {
-        noteRepeater.itemAt(index).visible = false;
+        noteRepeater.itemAt(index - column.erasedNoteIndex).visible = false;
     }
 
     Layout.alignment: Qt.AlignBottom
 
+    ListModel {
+        id: notesModel
+
+        Component.onCompleted: {
+            for (let i = 0; i < column.notes.length; i++) {
+                notesModel.append({"note": i});
+            }
+        }
+    }
     Repeater {
         id: noteRepeater
 
-        model: column.notes
+        model: notesModel
 
         Image {
             id: noteImg
@@ -26,23 +36,22 @@ Item {
             height: column.noteHeight
             source: column.image
             width: parent.width
-            y: Math.floor(-column.notes[index].time.position * column.heightMultiplier) - height / 2
+            y: Math.floor(-column.notes[note].time.position * column.heightMultiplier) - height / 2
         }
     }
     Connections {
         function onPositionChanged(_) {
-            if (column.notes.length === 0) {
-                return;
-            }
-            let index = 0;
-            while (index < column.notes.length) {
-                let note = column.notes[index];
-                let noteImage = noteRepeater.itemAt(index);
+            let count = 0;
+            while (column.erasedNoteIndex < column.notes.length) {
+                let note = column.notes[column.erasedNoteIndex];
                 if (note.time.position > chart.position) {
+                    if (count > 0) {
+                        notesModel.remove(0, count);
+                    }
                     return;
                 }
-                noteImage.visible = false;
-                index++;
+                count++;
+                column.erasedNoteIndex++;
             }
         }
 
