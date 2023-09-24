@@ -7,9 +7,6 @@
 #include <optional>
 #include <unordered_set>
 #include <QtConcurrent>
-#ifdef _WIN32
-#include <boost/locale/encoding_utf.hpp>
-#endif
 
 namespace charts::helper_functions {
 
@@ -107,8 +104,7 @@ loadBmsSounds(const std::map<std::string, std::string>& wavs,
     for (const auto& [key, value] : wavs) {
         {
 #ifdef _WIN32
-            auto filePath =
-              path / boost::locale::conv::utf_to_utf<wchar_t>(value.c_str());
+            auto filePath = path / QString::fromStdString(value).toWString();
             auto actualPath = getActualPathWindows(filePath);
 #else
             // convert to lowercase first
