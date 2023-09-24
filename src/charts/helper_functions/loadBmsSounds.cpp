@@ -55,7 +55,7 @@ getActualPath(
         it != lowerCaseFilesMap.end()) {
         return std::filesystem::path{ it->second };
     }
-    filePath.replace(filePath.end() - 3, filePath.end(), "ogg");
+    filePath.replace(filePath.end() - 4, filePath.end(), "ogg");
     if (auto it = lowerCaseFilesMap.find(filePath);
         it != lowerCaseFilesMap.end()) {
         return std::filesystem::path{ it->second };
