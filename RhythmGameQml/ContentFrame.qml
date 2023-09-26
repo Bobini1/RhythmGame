@@ -117,6 +117,7 @@ ApplicationWindow {
 
             active: false
             anchors.fill: parent
+            asynchronous: true
             source: "Log.qml"
         }
         Shortcut {
