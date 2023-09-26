@@ -237,7 +237,7 @@ main(int argc, char* argv[]) -> int
 
         engine.load(QUrl("qrc:///qt/qml/RhythmGameQml/ContentFrame.qml"));
         if (engine.rootObjects().isEmpty()) {
-            return -1;
+            throw std::runtime_error{ "Failed to load main qml" };
         }
 
         return app.exec();
