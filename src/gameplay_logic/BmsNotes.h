@@ -5,6 +5,8 @@
 #ifndef RHYTHMGAME_BMSNOTES_H
 #define RHYTHMGAME_BMSNOTES_H
 #include <QObject>
+#include "support/Sha256.h"
+#include "db/SqliteCppDb.h"
 
 namespace gameplay_logic {
 
@@ -153,6 +155,11 @@ class BmsNotes : public QObject
         return stream >> notes.visibleNotes >> notes.invisibleNotes >>
                notes.bpmChanges >> notes.barLines;
     }
+
+    static auto load(const std::string& serializedData)
+      -> std::unique_ptr<BmsNotes>;
+    auto serialize() const -> std::string;
+    auto save(db::SqliteCppDb& db, const support::Sha256& sha256) const -> void;
 };
 } // namespace gameplay_logic
 
