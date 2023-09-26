@@ -23,24 +23,26 @@ db::SqliteCppDb::hasTable(const std::string& table) const -> bool
 {
     return db.tableExists(table);
 }
-void
-db::SqliteCppDb::execute(const std::string& query)
+auto
+db::SqliteCppDb::execute(const std::string& query) -> int64_t
 {
     std::lock_guard lock(dbMutex);
     db.exec(query);
+    return db.getLastInsertRowid();
 }
 auto
 db::SqliteCppDb::createStatement(const std::string& query)
   -> db::SqliteCppDb::Statement
 {
     std::lock_guard lock(dbMutex);
-    return Statement{ SQLite::Statement(db, query), &dbMutex };
+    return Statement{ SQLite::Statement(db, query), &dbMutex, &db };
 }
-void
-db::SqliteCppDb::Statement::execute()
+auto
+db::SqliteCppDb::Statement::execute() -> int64_t
 {
     std::lock_guard lock(*dbMutex);
     statement.exec();
+    return db->getLastInsertRowid();
 }
 void
 db::SqliteCppDb::Statement::reset()
@@ -50,8 +52,10 @@ db::SqliteCppDb::Statement::reset()
     statement.clearBindings();
 }
 db::SqliteCppDb::Statement::Statement(SQLite::Statement statement,
-                                      std::mutex* dbMutex)
+                                      std::mutex* dbMutex,
+                                      SQLite::Database* db)
   : statement(std::move(statement))
   , dbMutex(dbMutex)
+  , db(db)
 {
 }

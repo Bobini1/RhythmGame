@@ -16,7 +16,7 @@ namespace db {
 
 /**
  * @brief Database wrapper for SQLiteCpp.
- * This class is thread safe.
+ * @note This class is thread safe.
  */
 class SqliteCppDb
 {
@@ -26,15 +26,18 @@ class SqliteCppDb
   public:
     /**
      * @brief Wrapper for SQLiteCpp::Statement.
-     * This class is thread safe.
+     * @note This class is thread safe.
      */
     class Statement
     {
         SQLite::Statement statement;
         std::mutex* dbMutex;
+        SQLite::Database* db;
 
       public:
-        Statement(SQLite::Statement statement, std::mutex* dbMutex);
+        Statement(SQLite::Statement statement,
+                  std::mutex* dbMutex,
+                  SQLite::Database* db);
         template<typename T>
         auto bind(int index, T&& value) -> void
         {
@@ -49,7 +52,7 @@ class SqliteCppDb
         }
         void reset();
 
-        void execute();
+        auto execute() -> int64_t;
 
         /**
          * @brief Executes a query that returns a single row.
@@ -176,8 +179,9 @@ class SqliteCppDb
      * @brief Executes a query.
      * @note Good for single-use queries. Use Statement otherwise.
      * @param query Query to execute.
+     * @return The last inserted row id.
      */
-    void execute(const std::string& query);
+    auto execute(const std::string& query) -> int64_t;
     auto createStatement(const std::string& query) -> Statement;
     /**
      * @brief Queries the database to inspect whether the table with the
