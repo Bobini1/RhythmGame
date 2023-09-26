@@ -18,6 +18,7 @@ class Chart : public QObject
 
     Q_PROPERTY(int64_t elapsed READ getElapsed NOTIFY elapsedChanged)
     Q_PROPERTY(ChartData* chartData READ getChartData CONSTANT)
+    Q_PROPERTY(BmsNotes* notes READ getNotes CONSTANT)
     Q_PROPERTY(BmsScore* score READ getScore CONSTANT)
     Q_PROPERTY(double position READ getPosition NOTIFY positionChanged)
 
@@ -27,6 +28,7 @@ class Chart : public QObject
     input::KeyboardInputTranslatorToBms inputTranslator;
     std::span<const BpmChange> bpmChanges;
     ChartData* chartData;
+    BmsNotes* notes;
     BmsScore* score;
     QFuture<gameplay_logic::BmsGameReferee> refereeFuture;
     QFutureWatcher<gameplay_logic::BmsGameReferee> refereeFutureWatcher;
@@ -42,6 +44,7 @@ class Chart : public QObject
     explicit Chart(
       QFuture<gameplay_logic::BmsGameReferee> refereeFuture,
       ChartData* chartData,
+      BmsNotes* notes,
       BmsScore* score,
       charts::gameplay_models::BmsNotesData::Time timeBeforeChartStart,
       QObject* parent = nullptr);
@@ -53,6 +56,8 @@ class Chart : public QObject
     [[nodiscard]] auto getElapsed() const -> int64_t;
 
     [[nodiscard]] auto getChartData() const -> ChartData*;
+
+    [[nodiscard]] auto getNotes() const -> BmsNotes*;
 
     [[nodiscard]] auto getScore() const -> BmsScore*;
 

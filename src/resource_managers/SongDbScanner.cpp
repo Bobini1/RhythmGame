@@ -68,6 +68,8 @@ loadChart(QThreadPool& threadPool,
             auto chartComponents = chartDataFactory.loadChartData(
               url, randomGenerator, directoryInDb);
             chartComponents.chartData->save(db);
+            chartComponents.bmsNotes->save(
+              db, chartComponents.chartData->getSha256().toStdString());
         } catch (const std::exception& e) {
             spdlog::error("Failed to load chart data for {}: {}",
                           url.toStdString(),

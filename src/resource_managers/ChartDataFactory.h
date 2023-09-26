@@ -31,6 +31,7 @@ class ChartDataFactory
     struct ChartComponents
     {
         std::unique_ptr<gameplay_logic::ChartData> chartData;
+        std::unique_ptr<gameplay_logic::BmsNotes> bmsNotes;
         charts::gameplay_models::BmsNotesData notesData;
         std::map<std::string, std::string> wavs;
     };

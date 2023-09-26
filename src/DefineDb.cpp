@@ -24,6 +24,13 @@ defineDb(db::SqliteCppDb& db)
                "path TEXT NOT NULL UNIQUE,"
                "directory_in_db TEXT NOT NULL,"
                "sha256 TEXT NOT NULL,"
+               "keymode INTEGER NOT NULL"
+               ");");
+
+    // table for note_data
+    db.execute("CREATE TABLE IF NOT EXISTS note_data ("
+               "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+               "sha256 TEXT NOT NULL UNIQUE,"
                "note_data BLOB NOT NULL"
                ");");
 

@@ -10,18 +10,21 @@ namespace gameplay_logic {
 
 Chart::Chart(QFuture<gameplay_logic::BmsGameReferee> refereeFuture,
              ChartData* chartData,
+             BmsNotes* notes,
              BmsScore* score,
              charts::gameplay_models::BmsNotesData::Time timeBeforeChartStart,
              QObject* parent)
   : QObject(parent)
-  , bpmChanges(chartData->getNoteData()->getBpmChanges())
+  , bpmChanges(notes->getBpmChanges())
   , chartData(chartData)
+  , notes(notes)
   , score(score)
   , refereeFuture(std::move(refereeFuture))
   , elapsed(-timeBeforeChartStart.timestamp.count())
   , position(-timeBeforeChartStart.position)
 {
     chartData->setParent(this);
+    notes->setParent(this);
     score->setParent(this);
     connect(&refereeFutureWatcher,
             &QFutureWatcher<gameplay_logic::BmsGameReferee>::finished,
@@ -38,7 +41,7 @@ Chart::start()
         return;
     }
     emit started();
-    propertyUpdateTimer.start(0);
+    propertyUpdateTimer.start(1);
     connect(
       &propertyUpdateTimer, &QTimer::timeout, this, &Chart::updateElapsed);
     startTimepoint = std::chrono::steady_clock::now();
@@ -96,6 +99,12 @@ auto
 Chart::getChartData() const -> ChartData*
 {
     return chartData;
+}
+
+auto
+Chart::getNotes() const -> BmsNotes*
+{
+    return notes;
 }
 auto
 Chart::getScore() const -> BmsScore*

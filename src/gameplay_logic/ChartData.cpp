@@ -23,7 +23,7 @@ gameplay_logic::ChartData::ChartData(QString title,
                                      QString path,
                                      QString directoryInDb,
                                      QString sha256,
-                                     std::unique_ptr<BmsNotes> noteData,
+                                     Keymode keymode,
                                      QObject* parent)
   : QObject(parent)
   , title(std::move(title))
@@ -41,9 +41,8 @@ gameplay_logic::ChartData::ChartData(QString title,
   , path(std::move(path))
   , directoryInDb(std::move(directoryInDb))
   , sha256(std::move(sha256))
-  , noteData(noteData.release())
+  , keymode(keymode)
 {
-    this->noteData->setParent(this);
 }
 auto
 gameplay_logic::ChartData::getTitle() const -> QString
@@ -69,11 +68,6 @@ auto
 gameplay_logic::ChartData::getPath() const -> QString
 {
     return path;
-}
-auto
-gameplay_logic::ChartData::getNoteData() const -> gameplay_logic::BmsNotes*
-{
-    return noteData;
 }
 auto
 gameplay_logic::ChartData::getRank() const -> int
@@ -116,7 +110,7 @@ gameplay_logic::ChartData::save(db::SqliteCppDb& db) const -> void
     static thread_local auto query = db.createStatement(
       "INSERT OR REPLACE INTO charts (title, artist, subtitle, subartist, "
       "genre, rank, total, play_level, difficulty, is_random, note_count, "
-      "length, path, directory_in_db, sha256, note_data) "
+      "length, path, directory_in_db, sha256, keymode) "
       "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);");
     query.reset();
     query.bind(1, title.toStdString());
@@ -134,23 +128,7 @@ gameplay_logic::ChartData::save(db::SqliteCppDb& db) const -> void
     query.bind(13, path.toStdString());
     query.bind(14, directoryInDb.toStdString());
     query.bind(15, sha256.toStdString());
-    // serialize into a buffer
-    auto buffer = QByteArray{};
-    auto stream = QDataStream{ &buffer, QIODevice::WriteOnly };
-    stream << *noteData;
-    // compress it!
-    auto compressedBuffer = QByteArray{};
-    compressedBuffer.resize(ZSTD_compressBound(buffer.size()));
-    auto compressedSize = ZSTD_compress(compressedBuffer.data(),
-                                        compressedBuffer.size(),
-                                        buffer.data(),
-                                        buffer.size(),
-                                        1);
-    if (ZSTD_isError(compressedSize)) {
-        throw std::runtime_error{ "Failed to compress chart data" };
-    }
-    query.bind(16, compressedBuffer.left(compressedSize).toStdString());
-
+    query.bind(16, static_cast<int>(keymode));
     query.execute();
 }
 auto
@@ -169,31 +147,6 @@ gameplay_logic::ChartData::load(
   const gameplay_logic::ChartData::DTO& chartDataDto)
   -> std::unique_ptr<gameplay_logic::ChartData>
 {
-    using namespace std::string_literals;
-    auto decompressedBuffer = QByteArray{};
-    auto decompressedSize = ZSTD_getFrameContentSize(
-      chartDataDto.noteData.data(), chartDataDto.noteData.size());
-    if (ZSTD_isError(decompressedSize)) {
-        const auto* error = ZSTD_getErrorName(decompressedSize);
-        throw std::runtime_error{ "Failed to decompress chart data: "s +
-                                  error };
-    }
-    decompressedBuffer.resize(decompressedSize);
-    decompressedSize = ZSTD_decompress(decompressedBuffer.data(),
-                                       decompressedBuffer.size(),
-                                       chartDataDto.noteData.data(),
-                                       chartDataDto.noteData.size());
-    if (ZSTD_isError(decompressedSize)) {
-        // what error?
-        const auto* error = ZSTD_getErrorName(decompressedSize);
-        throw std::runtime_error{ "Failed to decompress chart data: "s +
-                                  error };
-    }
-    decompressedBuffer.resize(decompressedSize);
-    auto noteData = std::make_unique<BmsNotes>();
-    auto stream = QDataStream{ &decompressedBuffer, QIODevice::ReadOnly };
-    stream >> *noteData;
-
     return std::make_unique<ChartData>(
       QString::fromStdString(chartDataDto.title),
       QString::fromStdString(chartDataDto.artist),
@@ -210,7 +163,7 @@ gameplay_logic::ChartData::load(
       QString::fromStdString(chartDataDto.path),
       QString::fromStdString(chartDataDto.directoryInDb),
       QString::fromStdString(chartDataDto.sha256),
-      std::move(noteData));
+      static_cast<Keymode>(chartDataDto.keymode));
 }
 auto
 gameplay_logic::ChartData::getIsRandom() const -> bool
@@ -221,11 +174,5 @@ auto
 gameplay_logic::ChartData::getKeymode() const
   -> gameplay_logic::ChartData::Keymode
 {
-    auto startIndex = noteData->getVisibleNotes().size() / 2;
-    for (auto i = startIndex; i < noteData->getVisibleNotes().size(); ++i) {
-        if (noteData->getVisibleNotes()[i].size() > 0) {
-            return Keymode::K14;
-        }
-    }
-    return Keymode::K7;
+    return keymode;
 }

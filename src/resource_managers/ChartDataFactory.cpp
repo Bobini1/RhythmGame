@@ -108,6 +108,17 @@ ChartDataFactory::loadChartData(
             lastNoteTimestamp = lastNote.time.timestamp;
         }
     }
+    // find keymode
+    auto keymode = gameplay_logic::ChartData::Keymode::K7;
+    const auto startColumn = calculatedNotesData.visibleNotes.size() / 2;
+    for (auto columnIndex = startColumn;
+         columnIndex < calculatedNotesData.visibleNotes.size();
+         columnIndex++) {
+        if (!calculatedNotesData.visibleNotes[columnIndex].empty()) {
+            keymode = gameplay_logic::ChartData::Keymode::K14;
+            break;
+        }
+    }
     auto chartData = std::make_unique<gameplay_logic::ChartData>(
       QString::fromStdString(parsedChart.tags.title.value_or("")),
       QString::fromStdString(parsedChart.tags.artist.value_or("")),
@@ -124,8 +135,9 @@ ChartDataFactory::loadChartData(
       QFileInfo{ chartPath }.absoluteFilePath(),
       std::move(directoryInDb),
       QString::fromStdString(hash),
-      std::move(noteData));
+      keymode);
     return { std::move(chartData),
+             std::move(noteData),
              std::move(calculatedNotesData),
              parsedChart.tags.wavs };
 }

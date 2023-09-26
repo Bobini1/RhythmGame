@@ -13,14 +13,14 @@ ChartFactory::createChart(
   QList<gameplay_logic::rules::BmsGauge*> gauges,
   double maxHitValue) -> gameplay_logic::Chart*
 {
-    auto& [chartData, notesData, wavs] = chartComponents;
+    auto& [chartData, notes, notesData, wavs] = chartComponents;
     auto path =
       std::filesystem::path(chartData->getPath().toStdString()).parent_path();
     auto* score = new gameplay_logic::BmsScore(
       chartData->getNoteCount(), maxHitValue, std::move(gauges));
     auto beatsBeforeChartStart =
       std::chrono::duration<double>(timeBeforeChartStart).count() *
-      chartData->getNoteData()->getBpmChanges().first().bpm / 60;
+      notes->getBpmChanges().first().bpm / 60;
     auto combinedTimeBeforeChartStart =
       charts::gameplay_models::BmsNotesData::Time{ timeBeforeChartStart,
                                                    beatsBeforeChartStart };
@@ -41,6 +41,7 @@ ChartFactory::createChart(
     auto referee = QtConcurrent::run(std::move(task));
     return new gameplay_logic::Chart(std::move(referee),
                                      chartData.release(),
+                                     notes.release(),
                                      score,
                                      combinedTimeBeforeChartStart);
 }

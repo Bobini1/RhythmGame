@@ -25,7 +25,7 @@ Rectangle {
 
     BarLinePositioner {
         anchors.bottom: parent.bottom
-        barLines: chart.chartData.noteData.barLines
+        barLines: chart.notes.barLines
         heightMultiplier: root.greenNumber
         width: parent.width
     }
@@ -42,7 +42,7 @@ Rectangle {
 
             // take only the columns specified in the columns property
             model: playfield.columns.map(function (column) {
-                    return chart.chartData.noteData.visibleNotes[column];
+                    return chart.notes.visibleNotes[column];
                 })
 
             NoteColumn {

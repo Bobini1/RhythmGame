@@ -21,8 +21,8 @@ class ChartData : public QObject
   public:
     enum class Keymode
     {
-        K7,
-        K14
+        K7 = 7,
+        K14 = 14
     };
     Q_ENUM(Keymode)
 
@@ -41,7 +41,6 @@ class ChartData : public QObject
     Q_PROPERTY(QString path READ getPath CONSTANT)
     Q_PROPERTY(QString directoryInDb READ getPath CONSTANT)
     Q_PROPERTY(QString sha256 READ getSha256 CONSTANT)
-    Q_PROPERTY(BmsNotes* noteData READ getNoteData CONSTANT)
     Q_PROPERTY(bool isRandom READ getIsRandom CONSTANT)
     Q_PROPERTY(Keymode keymode READ getKeymode CONSTANT)
 
@@ -63,7 +62,7 @@ class ChartData : public QObject
               QString path,
               QString directoryInDb,
               QString sha256,
-              std::unique_ptr<BmsNotes> noteData,
+              Keymode keymode,
               QObject* parent = nullptr);
 
     [[nodiscard]] auto getTitle() const -> QString;
@@ -75,7 +74,6 @@ class ChartData : public QObject
     [[nodiscard]] auto getLength() const -> int64_t;
     [[nodiscard]] auto getPath() const -> QString;
     [[nodiscard]] auto getDirectoryInDb() const -> QString;
-    [[nodiscard]] auto getNoteData() const -> BmsNotes*;
     [[nodiscard]] auto getRank() const -> int;
     [[nodiscard]] auto getTotal() const -> double;
     [[nodiscard]] auto getPlayLevel() const -> int;
@@ -102,7 +100,7 @@ class ChartData : public QObject
         std::string path;
         std::string directoryInDb;
         std::string sha256;
-        std::string noteData;
+        int keymode;
     };
 
     auto save(db::SqliteCppDb& db) const -> void;
@@ -125,7 +123,7 @@ class ChartData : public QObject
     QString path;
     QString directoryInDb;
     QString sha256;
-    BmsNotes* noteData;
+    Keymode keymode;
 };
 
 } // namespace gameplay_logic
