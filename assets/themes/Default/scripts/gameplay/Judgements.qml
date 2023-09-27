@@ -18,8 +18,10 @@ Item {
     }
     Connections {
         function onComboChanged() {
-            judgement.visible = true;
-            hidingTimer.restart();
+            Qt.callLater(function () {
+                    judgement.visible = true;
+                    hidingTimer.restart();
+                });
         }
 
         target: chart.score
@@ -96,32 +98,36 @@ Item {
             if (tap.noteIndex === -1) {
                 return;
             }
-            switch (tap.points.judgement) {
-            case "Perfect":
-                judgementAnimation.frameCount = 3;
-                judgementAnimation.source = root.iniImagesUrl + "judge.png/pgreat";
-                break;
-            case "Great":
-                judgementAnimation.frameCount = 1;
-                judgementAnimation.source = root.iniImagesUrl + "judge.png/great";
-                break;
-            case "Good":
-                judgementAnimation.frameCount = 1;
-                judgementAnimation.source = root.iniImagesUrl + "judge.png/good";
-                break;
-            case "Bad":
-                judgementAnimation.frameCount = 1;
-                judgementAnimation.source = root.iniImagesUrl + "judge.png/bad";
-                break;
-            default:
-                judgementAnimation.frameCount = 1;
-                judgementAnimation.source = root.iniImagesUrl + "judge.png/poor";
-                break;
-            }
+            Qt.callLater(function () {
+                    switch (tap.points.judgement) {
+                    case "Perfect":
+                        judgementAnimation.frameCount = 3;
+                        judgementAnimation.source = root.iniImagesUrl + "judge.png/pgreat";
+                        break;
+                    case "Great":
+                        judgementAnimation.frameCount = 1;
+                        judgementAnimation.source = root.iniImagesUrl + "judge.png/great";
+                        break;
+                    case "Good":
+                        judgementAnimation.frameCount = 1;
+                        judgementAnimation.source = root.iniImagesUrl + "judge.png/good";
+                        break;
+                    case "Bad":
+                        judgementAnimation.frameCount = 1;
+                        judgementAnimation.source = root.iniImagesUrl + "judge.png/bad";
+                        break;
+                    default:
+                        judgementAnimation.frameCount = 1;
+                        judgementAnimation.source = root.iniImagesUrl + "judge.png/poor";
+                        break;
+                    }
+                });
         }
         function onMissed(misses) {
-            judgementAnimation.frameCount = 1;
-            judgementAnimation.source = root.iniImagesUrl + "judge.png/poor";
+            Qt.callLater(function () {
+                    judgementAnimation.frameCount = 1;
+                    judgementAnimation.source = root.iniImagesUrl + "judge.png/poor";
+                });
         }
 
         target: chart.score

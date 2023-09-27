@@ -124,12 +124,13 @@ Rectangle {
             Repeater {
                 id: judgementCounts
 
-                model: ["Perfect", "Great", "Good", "Bad", "Poor", "EmptyPoor"]
+                model: [["Perfect", 5], ["Great", 4], ["Good", 3], ["Bad", 2], ["Poor", 0], ["EmptyPoor", 1]]
 
                 delegate: Text {
                     color: "white"
                     font.pixelSize: 16
-                    text: modelData + ": " + ((chart.score.judgementCounts[modelData] !== undefined) ? chart.score.judgementCounts[modelData] : 0)
+                    text: modelData[0] + ": " + chart.score.judgementCounts[modelData[1]]
+                    textFormat: Text.PlainText
                 }
             }
         }
