@@ -231,6 +231,12 @@ main(int argc, char* argv[]) -> int
           "RhythmGameQml", 1, 0, "BmsNotes");
         qmlRegisterType<qml_components::Folder>(
           "RhythmGameQml", 1, 0, "Folder");
+        qmlRegisterUncreatableMetaObject(gameplay_logic::staticMetaObject,
+                                         "RhythmGameQml",
+                                         1,
+                                         0,
+                                         "Judgement",
+                                         "Access to enums & flags only");
 
         engine.addImageProvider("ini",
                                 new resource_managers::IniImageProvider{});

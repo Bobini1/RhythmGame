@@ -13,7 +13,7 @@ BmsScore::addTap(Tap tap) -> void
         hitsWithPoints.emplace_back(tap);
         this->points += points->getValue();
         auto judgement = points->getJudgementEnum();
-        judgementCounts[judgement]++;
+        judgementCounts[static_cast<int>(judgement)]++;
         emit judgementCountsChanged();
         for (auto* gauge : gauges) {
             gauge->addHit(std::chrono::nanoseconds(tap.getOffsetFromStart()),
@@ -48,7 +48,7 @@ BmsScore::addMisses(QVector<Miss> newMisses) -> void
     if (newPointSum != 0) {
         emit pointsChanged();
     }
-    judgementCounts[Judgement::Poor] += newMisses.size();
+    judgementCounts[static_cast<int>(Judgement::Poor)] += newMisses.size();
     emit judgementCountsChanged();
     auto newMissesVariantList = QVariantList{};
     for (const auto& miss : newMisses) {
@@ -92,14 +92,9 @@ BmsScore::getPoints() const -> double
     return points;
 }
 auto
-BmsScore::getJudgementCounts() const -> QVariantMap
+BmsScore::getJudgementCounts() const -> QVector<int>
 {
-    auto map = QVariantMap{};
-    for (const auto& [judgement, count] : judgementCounts) {
-        auto judgementName = std::string{ magic_enum::enum_name(judgement) };
-        map[QString::fromStdString(judgementName)] = count;
-    }
-    return map;
+    return judgementCounts;
 }
 auto
 BmsScore::sendVisualOnlyTap(Tap tap) -> void

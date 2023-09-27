@@ -8,6 +8,7 @@
 #include <boost/container/flat_map.hpp>
 #include <QObject>
 #include <QtQmlIntegration>
+#include <magic_enum.hpp>
 #include "gameplay_logic/TimePoint.h"
 #include "gameplay_logic/BmsPoints.h"
 #include "gameplay_logic/rules/BmsGauge.h"
@@ -30,7 +31,7 @@ class BmsScore : public QObject
     Q_PROPERTY(double points READ getPoints NOTIFY pointsChanged)
     Q_PROPERTY(int combo READ getCombo NOTIFY comboChanged)
     Q_PROPERTY(int maxCombo READ getMaxCombo NOTIFY maxComboChanged)
-    Q_PROPERTY(QVariantMap judgementCounts READ getJudgementCounts NOTIFY
+    Q_PROPERTY(QVector<int> judgementCounts READ getJudgementCounts NOTIFY
                  judgementCountsChanged)
     Q_PROPERTY(QList<rules::BmsGauge*> gauges READ getGauges CONSTANT)
 
@@ -40,7 +41,8 @@ class BmsScore : public QObject
     QList<Tap> hitsWithPoints;
     QList<Tap> hitsWithoutPoints;
     QList<rules::BmsGauge*> gauges;
-    boost::container::flat_map<Judgement, int> judgementCounts;
+    QVector<int> judgementCounts =
+      QVector<int>(magic_enum::enum_count<Judgement>());
     double points = 0;
     int combo = 0;
     int maxCombo = 0;
@@ -62,7 +64,7 @@ class BmsScore : public QObject
     auto getMaxPoints() const -> double;
     auto getMaxHits() const -> int;
     auto getPoints() const -> double;
-    auto getJudgementCounts() const -> QVariantMap;
+    auto getJudgementCounts() const -> QVector<int>;
     auto getCombo() const -> int;
     auto getMaxCombo() const -> int;
     auto getGauges() const -> QList<rules::BmsGauge*>;
