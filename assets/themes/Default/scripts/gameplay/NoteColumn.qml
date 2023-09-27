@@ -21,7 +21,9 @@ Item {
 
         Component.onCompleted: {
             for (let i = 0; i < column.notes.length; i++) {
-                notesModel.append({"note": i});
+                notesModel.append({
+                        "note": i
+                    });
             }
         }
     }
@@ -45,13 +47,13 @@ Item {
             while (column.erasedNoteIndex < column.notes.length) {
                 let note = column.notes[column.erasedNoteIndex];
                 if (note.time.position > chart.position) {
-                    if (count > 0) {
-                        notesModel.remove(0, count);
-                    }
-                    return;
+                    break;
                 }
                 count++;
                 column.erasedNoteIndex++;
+            }
+            if (count > 0) {
+                notesModel.remove(0, count);
             }
         }
 
