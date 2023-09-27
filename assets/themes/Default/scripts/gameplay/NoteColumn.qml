@@ -44,14 +44,16 @@ Item {
     Connections {
         function onPositionChanged(_) {
             let count = 0;
-            while (column.erasedNoteIndex < column.notes.length) {
-                let note = column.notes[column.erasedNoteIndex];
-                if (note.time.position > chart.position) {
+            let erasedNoteIndex = column.erasedNoteIndex;
+            let chartPosition = chart.position;
+            while (erasedNoteIndex + count < column.notes.length) {
+                let note = column.notes[erasedNoteIndex + count];
+                if (note.time.position > chartPosition) {
                     break;
                 }
                 count++;
-                column.erasedNoteIndex++;
             }
+            column.erasedNoteIndex += count;
             if (count > 0) {
                 notesModel.remove(0, count);
             }
