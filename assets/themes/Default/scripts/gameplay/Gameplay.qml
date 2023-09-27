@@ -124,15 +124,45 @@ Rectangle {
             Repeater {
                 id: judgementCounts
 
-                model: [["Perfect", 5], ["Great", 4], ["Good", 3], ["Bad", 2], ["Poor", 0], ["EmptyPoor", 1]]
+                model: ["Perfect", "Great", "Good", "Bad", "Poor", "EmptyPoor"]
 
                 delegate: Text {
+                    property int num: 0
+
                     color: "white"
                     font.pixelSize: 16
-                    text: modelData[0] + ": " + chart.score.judgementCounts[modelData[1]]
+                    text: modelData[0] + ": " + num
                     textFormat: Text.PlainText
                 }
             }
+        }
+        Connections {
+            function onHit(tap) {
+                if (!tap.points)
+                    return;
+                switch (tap.points.judgement) {
+                case Judgement.Perfect:
+                    judgementCounts.itemAt(0).num++;
+                    break;
+                case Judgement.Great:
+                    judgementCounts.itemAt(1).num++;
+                    break;
+                case Judgement.Good:
+                    judgementCounts.itemAt(2).num++;
+                    break;
+                case Judgement.Bad:
+                    judgementCounts.itemAt(3).num++;
+                    break;
+                case Judgement.EmptyPoor:
+                    judgementCounts.itemAt(5).num++;
+                    break;
+                }
+            }
+            function onMissed() {
+                judgementCounts.itemAt(4).num++;
+            }
+
+            target: chart.score
         }
     }
 }
