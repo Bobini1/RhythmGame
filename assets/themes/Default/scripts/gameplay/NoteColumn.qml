@@ -58,7 +58,6 @@ Item {
             column.erasedNoteIndex += count;
             column.visibleNoteIndex -= count;
             column.visibleNoteIndex = Math.max(0, column.visibleNoteIndex);
-
             if (count > 0) {
                 notesModel.remove(0, count);
             }
@@ -66,10 +65,8 @@ Item {
             count = 0;
             while (visibleNoteIndex + count < noteRepeater.count) {
                 let noteImage = noteRepeater.itemAt(visibleNoteIndex + count);
-                // console.info(column.parent.parent.parent)
-                // show note if it is visible
-                let globalPos = noteImage.mapToItem(column.parent.parent.parent, 0, 0)
-                globalPos.y += noteImage.height
+                let globalPos = noteImage.mapToItem(column.parent.parent.parent, 0, 0);
+                globalPos.y += noteImage.height;
                 if (globalPos.y > 0) {
                     noteImage.visible = true;
                     count++;
