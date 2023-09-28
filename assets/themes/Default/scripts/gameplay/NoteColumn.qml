@@ -65,7 +65,7 @@ Item {
             count = 0;
             while (visibleNoteIndex + count < noteRepeater.count) {
                 let noteImage = noteRepeater.itemAt(visibleNoteIndex + count);
-                let globalPos = noteImage.mapToItem(column.parent.parent.parent, 0, 0);
+                let globalPos = noteImage.mapToGlobal(0, 0);
                 globalPos.y += noteImage.height;
                 if (globalPos.y > 0) {
                     noteImage.visible = true;
