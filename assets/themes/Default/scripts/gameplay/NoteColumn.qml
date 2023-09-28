@@ -9,6 +9,7 @@ Item {
     property string image
     property int noteHeight: 36
     property var notes
+    property int visibleNoteIndex: 0
 
     function removeNote(index: int) {
         noteRepeater.itemAt(index - column.erasedNoteIndex).visible = false;
@@ -37,6 +38,7 @@ Item {
 
             height: column.noteHeight
             source: column.image
+            visible: false
             width: parent.width
             y: Math.floor(-column.notes[note].time.position * column.heightMultiplier) - height / 2
         }
@@ -54,9 +56,28 @@ Item {
                 count++;
             }
             column.erasedNoteIndex += count;
+            column.visibleNoteIndex -= count;
+            column.visibleNoteIndex = Math.max(0, column.visibleNoteIndex);
+
             if (count > 0) {
                 notesModel.remove(0, count);
             }
+            let visibleNoteIndex = column.visibleNoteIndex;
+            count = 0;
+            while (visibleNoteIndex + count < noteRepeater.count) {
+                let noteImage = noteRepeater.itemAt(visibleNoteIndex + count);
+                // console.info(column.parent.parent.parent)
+                // show note if it is visible
+                let globalPos = noteImage.mapToItem(column.parent.parent.parent, 0, 0)
+                globalPos.y += noteImage.height
+                if (globalPos.y > 0) {
+                    noteImage.visible = true;
+                    count++;
+                } else {
+                    break;
+                }
+            }
+            column.visibleNoteIndex += count;
         }
 
         target: chart
