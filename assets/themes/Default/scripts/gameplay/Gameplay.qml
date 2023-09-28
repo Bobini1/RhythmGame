@@ -131,7 +131,7 @@ Rectangle {
 
                     color: "white"
                     font.pixelSize: 16
-                    text: modelData[0] + ": " + num
+                    text: modelData + ": " + num
                     textFormat: Text.PlainText
                 }
             }
