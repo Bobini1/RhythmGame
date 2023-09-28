@@ -108,6 +108,43 @@ ApplicationWindow {
             anchors.fill: parent
             initialItem: (ProgramSettings.chartPath != "") ? null : globalRoot.mainComponent
 
+            popEnter: Transition {
+                PropertyAnimation {
+                    duration: 0
+                    property: "opacity"
+                }
+            }
+            popExit: Transition {
+                PropertyAnimation {
+                    duration: 0
+                    property: "opacity"
+                }
+            }
+            pushEnter: Transition {
+                PropertyAnimation {
+                    duration: 0
+                    property: "opacity"
+                }
+            }
+            pushExit: Transition {
+                PropertyAnimation {
+                    duration: 0
+                    property: "opacity"
+                }
+            }
+            replaceEnter: Transition {
+                PropertyAnimation {
+                    duration: 0
+                    property: "opacity"
+                }
+            }
+            replaceExit: Transition {
+                PropertyAnimation {
+                    duration: 0
+                    property: "opacity"
+                }
+            }
+
             onCurrentItemChanged: {
                 currentItem.forceActiveFocus();
             }
