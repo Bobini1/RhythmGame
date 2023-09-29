@@ -22,6 +22,7 @@
 #include "DefineDb.h"
 #include "qml_components/RootSongFoldersConfig.h"
 #include "qml_components/SongFolderFactory.h"
+#include "support/PathToQString.h"
 
 #include <iostream>
 
@@ -136,7 +137,9 @@ main(int argc, char* argv[]) -> int
         // spdlog::set_level(spdlog::level::debug);
         spdlog::set_default_logger(logger);
 
-        auto db = db::SqliteCppDb{ (assetsFolder / "song_db.sqlite").string() };
+        auto db = db::SqliteCppDb{ support::pathToQString(
+                                     (assetsFolder / "song_db.sqlite"))
+                                     .toStdString() };
 
         defineDb(db);
 

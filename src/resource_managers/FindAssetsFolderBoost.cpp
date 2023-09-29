@@ -8,7 +8,11 @@ auto
 resource_managers::findAssetsFolder() -> std::filesystem::path
 {
     static const auto assetsFolder =
-      std::filesystem::path(boost::dll::program_location().c_str())
+#ifdef _WIN32
+      std::filesystem::path(boost::dll::program_location().wstring())
+#else
+      std::filesystem::path(boost::dll::program_location().string())
+#endif
         .parent_path()
         .parent_path() /
       "assets";
