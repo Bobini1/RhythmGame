@@ -117,7 +117,21 @@ qt_add_library(RhythmGame_lib OBJECT src/db/SqliteCppDb.cpp src/db/SqliteCppDb.h
         src/qml_components/SceneUrls.cpp
         src/qml_components/SceneUrls.h
         src/support/toLower.cpp
-        src/support/toLower.h)
+        src/support/toLower.h
+        src/resource_managers/Profile.cpp
+        src/resource_managers/Profile.h
+        src/gameplay_logic/BmsResult.cpp
+        src/gameplay_logic/BmsResult.h
+        src/gameplay_logic/BmsReplayData.cpp
+        src/gameplay_logic/BmsReplayData.h
+        src/gameplay_logic/BmsGaugeHistory.cpp
+        src/gameplay_logic/BmsGaugeHistory.h
+        src/support/Compress.cpp
+        src/support/Compress.h
+        src/gameplay_logic/BmsScoreAftermath.cpp
+        src/gameplay_logic/BmsScoreAftermath.h
+        src/qml_components/ProfileList.cpp
+        src/qml_components/ProfileList.h)
 
 find_package(Threads REQUIRED)
 

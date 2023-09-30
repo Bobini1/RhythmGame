@@ -28,6 +28,7 @@ class Tap
         std::optional<int> noteIndex,
         DeltaTime offsetFromStart,
         std::optional<BmsPoints> points);
+    Tap() = default;
 
     auto getOffsetFromStart() const -> DeltaTime;
     // if the tap did not hit a note, this returns null
@@ -36,6 +37,9 @@ class Tap
     auto getColumn() const -> int;
     // if the tap did not hit a note, this returns -1
     auto getNoteIndex() const -> int;
+
+    friend auto operator<<(QDataStream& stream, const Tap& tap) -> QDataStream&;
+    friend auto operator>>(QDataStream& stream, Tap& tap) -> QDataStream&;
 };
 } // namespace gameplay_logic
 

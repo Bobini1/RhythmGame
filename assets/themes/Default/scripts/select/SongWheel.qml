@@ -98,13 +98,22 @@ Pane {
 
                 anchors.fill: parent
 
-                onWheel: (wheel) => {
+                onWheel: wheel => {
                     if (wheel.angleDelta.y > 0)
                         pathView.decrementCurrentIndex();
                     else
                         pathView.incrementCurrentIndex();
                 }
             }
+        }
+    }
+    Shortcut {
+        enabled: true
+        sequence: "Esc"
+
+        onActivated: {
+            sceneStack.pop();
+            sceneStack.pop();
         }
     }
 }

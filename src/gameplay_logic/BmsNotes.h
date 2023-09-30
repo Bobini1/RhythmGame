@@ -156,9 +156,9 @@ class BmsNotes : public QObject
                notes.bpmChanges >> notes.barLines;
     }
 
-    static auto load(const std::string& serializedData)
+    static auto load(db::SqliteCppDb& db, const support::Sha256& sha256)
       -> std::unique_ptr<BmsNotes>;
-    auto serialize() const -> std::string;
+    auto serialize() const -> QByteArray;
     auto save(db::SqliteCppDb& db, const support::Sha256& sha256) const -> void;
 };
 } // namespace gameplay_logic

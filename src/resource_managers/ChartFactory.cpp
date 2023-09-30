@@ -43,10 +43,13 @@ ChartFactory::createChart(
                                      chartData.release(),
                                      notes.release(),
                                      score,
-                                     combinedTimeBeforeChartStart);
+                                     combinedTimeBeforeChartStart,
+                                     scoreDb);
 }
-ChartFactory::ChartFactory(std::chrono::nanoseconds timeBeforeChartStart)
+ChartFactory::ChartFactory(std::function<db::SqliteCppDb&()> scoreDb,
+                           std::chrono::nanoseconds timeBeforeChartStart)
   : timeBeforeChartStart(timeBeforeChartStart)
+  , scoreDb(std::move(scoreDb))
 {
 }
 } // namespace resource_managers

@@ -23,6 +23,7 @@
 #include "qml_components/RootSongFoldersConfig.h"
 #include "qml_components/SongFolderFactory.h"
 #include "support/PathToQString.h"
+#include "qml_components/ProfileList.h"
 
 #include <iostream>
 
@@ -188,8 +189,17 @@ main(int argc, char* argv[]) -> int
         qmlRegisterSingletonInstance(
           "RhythmGameQml", 1, 0, "ProgramSettings", &programSettings);
 
-        auto chartDataFactory = resource_managers::ChartDataFactory{};
-        auto chartFactory = resource_managers::ChartFactory{};
+        auto profileList =
+          qml_components::ProfileList{ &db, assetsFolder / "profiles" };
+        qmlRegisterSingletonInstance(
+          "RhythmGameQml", 1, 0, "ProfileList", &profileList);
+
+        auto scoreDb = [&profileList]() -> db::SqliteCppDb& {
+            return profileList.getCurrentProfile()->getDb();
+        };
+
+        auto chartFactory =
+          resource_managers::ChartFactory{ std::move(scoreDb) };
         auto hitRulesFactory =
           [](gameplay_logic::rules::TimingWindows timingWindows,
              std::function<double(std::chrono::nanoseconds)> hitValuesFactory) {
@@ -197,6 +207,7 @@ main(int argc, char* argv[]) -> int
                 gameplay_logic::rules::StandardBmsHitRules>(
                 std::move(timingWindows), std::move(hitValuesFactory));
           };
+        auto chartDataFactory = resource_managers::ChartDataFactory{};
         auto chartLoader = qml_components::ChartLoader{
             &chartDataFactory,
             &gameplay_logic::rules::lr2_timing_windows::getTimingWindows,
@@ -234,6 +245,16 @@ main(int argc, char* argv[]) -> int
           "RhythmGameQml", 1, 0, "BmsNotes");
         qmlRegisterType<qml_components::Folder>(
           "RhythmGameQml", 1, 0, "Folder");
+        qmlRegisterType<resource_managers::Profile>(
+          "RhythmGameQml", 1, 0, "BmsProfile");
+        qmlRegisterType<gameplay_logic::BmsScoreAftermath>(
+          "RhythmGameQml", 1, 0, "BmsScoreAftermath");
+        qmlRegisterType<gameplay_logic::BmsResult>(
+          "RhythmGameQml", 1, 0, "BmsResult");
+        qmlRegisterType<gameplay_logic::BmsReplayData>(
+          "RhythmGameQml", 1, 0, "BmsReplayData");
+        qmlRegisterType<gameplay_logic::BmsGaugeHistory>(
+          "RhythmGameQml", 1, 0, "BmsGaugeHistory");
         qmlRegisterUncreatableMetaObject(gameplay_logic::staticMetaObject,
                                          "RhythmGameQml",
                                          1,

@@ -64,7 +64,7 @@ Rectangle {
 
     Connections {
         function onOver() {
-            globalRoot.openResult(chart.score);
+            globalRoot.openResult(chart.finish());
         }
 
         target: chart
@@ -163,6 +163,14 @@ Rectangle {
             }
 
             target: chart.score
+        }
+    }
+    Shortcut {
+        enabled: true
+        sequence: "Esc"
+
+        onActivated: {
+            sceneStack.pop();
         }
     }
 }

@@ -139,4 +139,13 @@ Pane {
             }
         }
     }
+    Shortcut {
+        enabled: true
+        sequence: "Esc"
+
+        onActivated: {
+            sceneStack.pop();
+            sceneStack.pop();
+        }
+    }
 }

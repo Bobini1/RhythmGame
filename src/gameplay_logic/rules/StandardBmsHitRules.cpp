@@ -32,13 +32,15 @@ gameplay_logic::rules::StandardBmsHitRules::visibleNoteHit(
                                  result,
                                  (hitOffset - noteTime).count(),
                                  /*noteRemoved=*/true),
-                       static_cast<int>(iter - notes.begin() + currentNoteIndex )} };
+                       static_cast<int>(iter - notes.begin() +
+                                        currentNoteIndex) } };
         }
         emptyPoor = { { BmsPoints(hitValueFactory(hitOffset - noteTime),
                                   result,
                                   (hitOffset - noteTime).count(),
                                   /*noteRemoved=*/false),
-                        static_cast<int>(iter - notes.begin() + currentNoteIndex ) } };
+                        static_cast<int>(iter - notes.begin() +
+                                         currentNoteIndex) } };
     }
     return emptyPoor;
 }
@@ -46,8 +48,7 @@ auto
 gameplay_logic::rules::StandardBmsHitRules::getMisses(
   std::span<NoteType> notes,
   int& currentNoteIndex,
-  std::chrono::nanoseconds offsetFromStart)
-  -> std::vector<MissData>
+  std::chrono::nanoseconds offsetFromStart) -> std::vector<MissData>
 {
     auto misses = std::vector<MissData>{};
     notes = notes.subspan(currentNoteIndex);

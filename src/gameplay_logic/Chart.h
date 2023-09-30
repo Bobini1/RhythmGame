@@ -10,6 +10,7 @@
 #include "BmsGameReferee.h"
 #include "input/KeyboardInputTranslatorToBms.h"
 #include "ChartData.h"
+#include "BmsScoreAftermath.h"
 namespace gameplay_logic {
 
 class Chart : public QObject
@@ -32,6 +33,7 @@ class Chart : public QObject
     BmsScore* score;
     QFuture<gameplay_logic::BmsGameReferee> refereeFuture;
     QFutureWatcher<gameplay_logic::BmsGameReferee> refereeFutureWatcher;
+    std::function<db::SqliteCppDb&()> scoreDb;
     int64_t elapsed;
     double position;
     bool startRequested = false;
@@ -47,11 +49,14 @@ class Chart : public QObject
       BmsNotes* notes,
       BmsScore* score,
       charts::gameplay_models::BmsNotesData::Time timeBeforeChartStart,
+      std::function<db::SqliteCppDb&()> scoreDb,
       QObject* parent = nullptr);
 
     Q_INVOKABLE void start();
 
     Q_INVOKABLE void passKey(int key);
+
+    Q_INVOKABLE BmsScoreAftermath* finish();
 
     [[nodiscard]] auto getElapsed() const -> int64_t;
 

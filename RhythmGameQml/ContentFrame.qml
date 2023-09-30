@@ -79,7 +79,7 @@ ApplicationWindow {
                 });
         }
         function openResult(result) {
-            sceneStack.replace(resultComponent, {
+            sceneStack.push(resultComponent, {
                     "result": result
                 });
         }
@@ -163,14 +163,6 @@ ApplicationWindow {
 
             onActivated: {
                 debugLogLoader.active = !debugLogLoader.active;
-            }
-        }
-        Shortcut {
-            enabled: true
-            sequence: "Esc"
-
-            onActivated: {
-                sceneStack.pop();
             }
         }
     }

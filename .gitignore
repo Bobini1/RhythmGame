@@ -13,3 +13,6 @@ conanbuildinfo.txt
 conaninfo.txt
 graph_info.json
 conan.lock
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal

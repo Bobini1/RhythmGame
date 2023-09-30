@@ -14,6 +14,15 @@ Item {
         anchors.centerIn: parent
         color: "white"
         font.pixelSize: 50
-        text: result.points
+        text: result.result.points
+    }
+    Shortcut {
+        enabled: true
+        sequence: "Esc"
+
+        onActivated: {
+            sceneStack.pop();
+            sceneStack.pop();
+        }
     }
 }

@@ -13,9 +13,11 @@ namespace resource_managers {
 class ChartFactory
 {
     std::chrono::nanoseconds timeBeforeChartStart;
+    std::function<db::SqliteCppDb&()> scoreDb;
 
   public:
-    explicit ChartFactory(std::chrono::nanoseconds timeBeforeChartStart =
+    explicit ChartFactory(std::function<db::SqliteCppDb&()> scoreDb,
+                          std::chrono::nanoseconds timeBeforeChartStart =
                             std::chrono::seconds{ 1 });
 
     auto createChart(

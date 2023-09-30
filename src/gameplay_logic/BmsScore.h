@@ -15,17 +15,16 @@
 #include "input/BmsKeys.h"
 #include "Tap.h"
 #include "Miss.h"
+#include "BmsResult.h"
+#include "BmsGaugeHistory.h"
+#include "BmsReplayData.h"
 
 namespace gameplay_logic {
 
 class BmsScore : public QObject
 {
     Q_OBJECT
-  public:
-    // nanoseconds
-    using DeltaTime = uint64_t;
 
-  private:
     Q_PROPERTY(double maxPoints READ getMaxPoints CONSTANT)
     Q_PROPERTY(int maxHits READ getMaxHits CONSTANT)
     Q_PROPERTY(double points READ getPoints NOTIFY pointsChanged)
@@ -41,8 +40,8 @@ class BmsScore : public QObject
     QList<Tap> hitsWithPoints;
     QList<Tap> hitsWithoutPoints;
     QList<rules::BmsGauge*> gauges;
-    QVector<int> judgementCounts =
-      QVector<int>(magic_enum::enum_count<Judgement>());
+    QList<int> judgementCounts =
+      QList<int>(magic_enum::enum_count<Judgement>());
     double points = 0;
     int combo = 0;
     int maxCombo = 0;
@@ -68,6 +67,10 @@ class BmsScore : public QObject
     auto getCombo() const -> int;
     auto getMaxCombo() const -> int;
     auto getGauges() const -> QList<rules::BmsGauge*>;
+
+    auto getResult() const -> std::unique_ptr<BmsResult>;
+    auto getReplayData() const -> std::unique_ptr<BmsReplayData>;
+    auto getGaugeHistory() const -> std::unique_ptr<BmsGaugeHistory>;
 
   signals:
     void pointsChanged();

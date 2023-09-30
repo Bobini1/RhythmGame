@@ -52,4 +52,10 @@ defineDb(db::SqliteCppDb& db)
                "id INTEGER PRIMARY KEY AUTOINCREMENT,"
                "path TEXT NOT NULL UNIQUE"
                ");");
+
+    // current_profile
+    db.execute("CREATE TABLE IF NOT EXISTS current_profile ("
+               "id INTEGER PRIMARY KEY CHECK (id = 1),"
+               "path TEXT NOT NULL UNIQUE"
+               ");");
 }

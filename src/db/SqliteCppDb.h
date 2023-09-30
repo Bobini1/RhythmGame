@@ -38,17 +38,17 @@ class SqliteCppDb
         Statement(SQLite::Statement statement,
                   std::mutex* dbMutex,
                   SQLite::Database* db);
-        template<typename T>
-        auto bind(int index, T&& value) -> void
+        template<typename... T>
+        auto bind(int index, T&&... values) -> void
         {
             std::lock_guard lock(*dbMutex);
-            statement.bind(index, std::forward<T>(value));
+            statement.bind(index, std::forward<T>(values)...);
         }
-        template<typename T>
-        auto bind(const std::string& name, T&& value) -> void
+        template<typename... T>
+        auto bind(const std::string& name, T&&... values) -> void
         {
             std::lock_guard lock(*dbMutex);
-            statement.bind(name, std::forward<T>(value));
+            statement.bind(name, std::forward<T>(values)...);
         }
         void reset();
 

@@ -1,4 +1,5 @@
 import QtQuick
+import RhythmGameQml
 
 Item {
     id: judgement
@@ -100,19 +101,19 @@ Item {
             }
             Qt.callLater(function () {
                     switch (tap.points.judgement) {
-                    case "Perfect":
+                    case Judgement.Perfect:
                         judgementAnimation.frameCount = 3;
                         judgementAnimation.source = root.iniImagesUrl + "judge.png/pgreat";
                         break;
-                    case "Great":
+                    case Judgement.Great:
                         judgementAnimation.frameCount = 1;
                         judgementAnimation.source = root.iniImagesUrl + "judge.png/great";
                         break;
-                    case "Good":
+                    case Judgement.Good:
                         judgementAnimation.frameCount = 1;
                         judgementAnimation.source = root.iniImagesUrl + "judge.png/good";
                         break;
-                    case "Bad":
+                    case Judgement.Bad:
                         judgementAnimation.frameCount = 1;
                         judgementAnimation.source = root.iniImagesUrl + "judge.png/bad";
                         break;

@@ -13,6 +13,7 @@ Chart::Chart(QFuture<gameplay_logic::BmsGameReferee> refereeFuture,
              BmsNotes* notes,
              BmsScore* score,
              charts::gameplay_models::BmsNotesData::Time timeBeforeChartStart,
+             std::function<db::SqliteCppDb&()> scoreDb,
              QObject* parent)
   : QObject(parent)
   , bpmChanges(notes->getBpmChanges())
@@ -20,6 +21,7 @@ Chart::Chart(QFuture<gameplay_logic::BmsGameReferee> refereeFuture,
   , notes(notes)
   , score(score)
   , refereeFuture(std::move(refereeFuture))
+  , scoreDb(std::move(scoreDb))
   , elapsed(-timeBeforeChartStart.timestamp.count())
   , position(-timeBeforeChartStart.position)
 {
@@ -137,6 +139,37 @@ Chart::setReferee()
     gameReferee = refereeFuture.takeResult();
     if (startRequested) {
         start();
+    }
+}
+auto
+Chart::finish() -> BmsScoreAftermath*
+{
+    startRequested = false;
+    propertyUpdateTimer.stop();
+    // update
+    if (!gameReferee) {
+        return nullptr;
+    }
+
+    auto chartLength = chartData->getLength();
+    if (elapsed < chartLength) {
+        gameReferee->update(std::chrono::nanoseconds(chartLength));
+    }
+    try {
+        auto result = score->getResult();
+        auto replayData = score->getReplayData();
+        auto gaugeHistory = score->getGaugeHistory();
+        auto& currentScoreDb = scoreDb();
+        auto scoreId =
+          result->save(currentScoreDb, chartData->getSha256().toStdString());
+        replayData->save(currentScoreDb, scoreId);
+        gaugeHistory->save(currentScoreDb, scoreId);
+        return new BmsScoreAftermath{ std::move(result),
+                                      std::move(replayData),
+                                      std::move(gaugeHistory) };
+    } catch (const std::exception& e) {
+        spdlog::error("Failed to save score: {}", e.what());
+        return nullptr;
     }
 }
 } // namespace gameplay_logic
