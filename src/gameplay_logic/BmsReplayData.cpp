@@ -44,7 +44,7 @@ operator>>(QDataStream& stream, BmsReplayData& data) -> QDataStream&
     stream >> data.misses >> data.hitsWithPoints >> data.hitsWithoutPoints;
 }
 void
-BmsReplayData::save(db::SqliteCppDb& db, int scoreId)
+BmsReplayData::save(db::SqliteCppDb& db, int64_t scoreId)
 {
     auto statement = db.createStatement(
       "INSERT INTO replay_data (score_id, replay_data) VALUES (?, ?)");
@@ -57,7 +57,7 @@ BmsReplayData::save(db::SqliteCppDb& db, int scoreId)
     statement.execute();
 }
 auto
-BmsReplayData::load(db::SqliteCppDb& db, int scoreId)
+BmsReplayData::load(db::SqliteCppDb& db, int64_t scoreId)
   -> std::unique_ptr<BmsReplayData>
 {
     auto statement = db.createStatement(

@@ -31,7 +31,7 @@ operator>>(QDataStream& stream, BmsGaugeHistory& gaugeHistory) -> QDataStream&
     return stream;
 }
 void
-BmsGaugeHistory::save(db::SqliteCppDb& db, int scoreId)
+BmsGaugeHistory::save(db::SqliteCppDb& db, int64_t scoreId)
 {
     auto statement =
       db.createStatement("INSERT INTO gauge_history (score_id, gauge_history) "
@@ -45,7 +45,7 @@ BmsGaugeHistory::save(db::SqliteCppDb& db, int scoreId)
     statement.execute();
 }
 auto
-BmsGaugeHistory::load(db::SqliteCppDb& db, int scoreId)
+BmsGaugeHistory::load(db::SqliteCppDb& db, int64_t scoreId)
   -> std::unique_ptr<BmsGaugeHistory>
 {
     auto statement = db.createStatement(

@@ -4,6 +4,7 @@ import QtQuick.Layouts
 import QtQuick.Controls.Basic
 
 Pane {
+    readonly property bool active: StackView.status === StackView.Active
     RowLayout {
         anchors.fill: parent
 
@@ -108,11 +109,10 @@ Pane {
         }
     }
     Shortcut {
-        enabled: true
+        enabled: active
         sequence: "Esc"
 
         onActivated: {
-            sceneStack.pop();
             sceneStack.pop();
         }
     }

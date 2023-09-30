@@ -24,7 +24,7 @@ class Chart : public QObject
     Q_PROPERTY(double position READ getPosition NOTIFY positionChanged)
 
     QTimer propertyUpdateTimer;
-    std::chrono::time_point<std::chrono::steady_clock> startTimepoint;
+    std::chrono::steady_clock::time_point startTimepoint;
     std::optional<gameplay_logic::BmsGameReferee> gameReferee;
     input::KeyboardInputTranslatorToBms inputTranslator;
     std::span<const BpmChange> bpmChanges;

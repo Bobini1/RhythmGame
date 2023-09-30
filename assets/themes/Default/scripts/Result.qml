@@ -17,7 +17,7 @@ Item {
         text: result.result.points
     }
     Shortcut {
-        enabled: true
+        enabled: active
         sequence: "Esc"
 
         onActivated: {

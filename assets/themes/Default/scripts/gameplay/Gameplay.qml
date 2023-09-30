@@ -166,7 +166,7 @@ Rectangle {
         }
     }
     Shortcut {
-        enabled: true
+        enabled: active
         sequence: "Esc"
 
         onActivated: {

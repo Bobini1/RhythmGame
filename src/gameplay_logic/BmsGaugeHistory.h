@@ -37,8 +37,8 @@ class BmsGaugeHistory : public QObject
     friend auto operator>>(QDataStream& stream, BmsGaugeHistory& gaugeHistory)
       -> QDataStream&;
 
-    void save(db::SqliteCppDb& db, int scoreId);
-    static auto load(db::SqliteCppDb& db, int scoreId)
+    void save(db::SqliteCppDb& db, int64_t scoreId);
+    static auto load(db::SqliteCppDb& db, int64_t scoreId)
       -> std::unique_ptr<BmsGaugeHistory>;
 };
 } // namespace gameplay_logic

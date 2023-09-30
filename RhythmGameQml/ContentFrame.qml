@@ -18,23 +18,18 @@ ApplicationWindow {
     Component {
         id: chartContext
 
-        Item {
+        FocusScope {
+            id: chartFocusScope
+
+            readonly property bool active: StackView.status === StackView.Active
             required property Chart chart
 
-            focus: true
+            InputItem {
+                id: inputItem
 
-            Keys.onPressed: event => {
-                if (event.isAutoRepeat) {
-                    return;
-                }
-                if (event.key === Qt.Key_Escape) {
-                    sceneStack.pop();
-                } else {
-                    chart.passKey(event.key);
-                }
-                event.accepted = true;
+                chart: chartFocusScope.chart
+                focus: true
             }
-
             Loader {
                 id: loader
 
@@ -46,10 +41,9 @@ ApplicationWindow {
     Component {
         id: resultContext
 
-        Item {
+        FocusScope {
+            readonly property bool active: StackView.status === StackView.Active
             required property var result
-
-            focus: true
 
             Loader {
                 id: loader
@@ -143,10 +137,6 @@ ApplicationWindow {
                     duration: 0
                     property: "opacity"
                 }
-            }
-
-            onCurrentItemChanged: {
-                currentItem.forceActiveFocus();
             }
         }
         Loader {

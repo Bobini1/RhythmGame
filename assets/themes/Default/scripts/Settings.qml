@@ -145,7 +145,6 @@ Pane {
 
         onActivated: {
             sceneStack.pop();
-            sceneStack.pop();
         }
     }
 }

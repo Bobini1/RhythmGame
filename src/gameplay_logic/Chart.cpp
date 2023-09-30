@@ -95,9 +95,7 @@ Chart::passKey(QKeyEvent* keyEvent)
             emit score->sendVisualOnlyTap(
               { static_cast<int>(bmsKey.value()),
                 std::nullopt,
-                std::chrono::duration_cast<std::chrono::milliseconds>(
-                  timestamp - startTimepoint)
-                  .count(),
+                (timestamp - startTimepoint).count(),
                 std::nullopt });
         } else {
             gameReferee->passInput(timestamp - startTimepoint, *bmsKey);
