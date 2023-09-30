@@ -78,10 +78,18 @@ Chart::getElapsed() const -> int64_t
 }
 
 void
-Chart::passKey(int key)
+Chart::passKey(QKeyEvent* keyEvent)
 {
-    auto timestamp = std::chrono::steady_clock::now();
-    if (auto bmsKey = inputTranslator.translate(static_cast<Qt::Key>(key));
+    if (keyEvent->isAutoRepeat()) {
+        keyEvent->ignore();
+        return;
+    }
+    auto timestampQint = keyEvent->timestamp();
+    auto timestamp = std::chrono::steady_clock::time_point{
+        std::chrono::milliseconds{ timestampQint }
+    };
+    if (auto bmsKey =
+          inputTranslator.translate(static_cast<Qt::Key>(keyEvent->key()));
         bmsKey.has_value()) {
         if (!gameReferee) {
             emit score->sendVisualOnlyTap(
@@ -94,7 +102,9 @@ Chart::passKey(int key)
         } else {
             gameReferee->passInput(timestamp - startTimepoint, *bmsKey);
         }
+        return;
     }
+    keyEvent->ignore();
 }
 
 auto

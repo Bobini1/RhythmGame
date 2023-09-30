@@ -54,7 +54,7 @@ class Chart : public QObject
 
     Q_INVOKABLE void start();
 
-    Q_INVOKABLE void passKey(int key);
+    void passKey(QKeyEvent* keyEvent);
 
     Q_INVOKABLE BmsScoreAftermath* finish();
 

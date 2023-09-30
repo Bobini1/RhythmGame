@@ -24,6 +24,7 @@
 #include "qml_components/SongFolderFactory.h"
 #include "support/PathToQString.h"
 #include "qml_components/ProfileList.h"
+#include "qml_components/InputItem.h"
 
 #include <iostream>
 
@@ -255,6 +256,8 @@ main(int argc, char* argv[]) -> int
           "RhythmGameQml", 1, 0, "BmsReplayData");
         qmlRegisterType<gameplay_logic::BmsGaugeHistory>(
           "RhythmGameQml", 1, 0, "BmsGaugeHistory");
+        qmlRegisterType<qml_components::InputItem>(
+          "RhythmGameQml", 1, 0, "InputItem");
         qmlRegisterUncreatableMetaObject(gameplay_logic::staticMetaObject,
                                          "RhythmGameQml",
                                          1,
