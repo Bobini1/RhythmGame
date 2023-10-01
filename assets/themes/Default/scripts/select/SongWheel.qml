@@ -4,19 +4,19 @@ import QtQuick.Layouts
 import QtQuick.Controls.Basic
 
 Pane {
+    id: root
+
     readonly property bool active: StackView.status === StackView.Active
+    readonly property string imagesUrl: rootUrl + "images/"
+    readonly property string iniImagesUrl: "image://ini/" + rootUrl + "images/"
+    property string rootUrl: globalRoot.urlToPath(Qt.resolvedUrl(".").toString())
+
     RowLayout {
         anchors.fill: parent
 
         PathView {
             id: pathView
 
-            function decrementCurrentIndex() {
-                currentIndex = (currentIndex - 1) % count;
-            }
-            function incrementCurrentIndex() {
-                currentIndex = (currentIndex + 1) % count;
-            }
             function open(item) {
                 if (item instanceof ChartData) {
                     console.info("Opening chart " + item.path);
@@ -29,40 +29,24 @@ Pane {
             Layout.alignment: Qt.AlignRight
             Layout.fillHeight: true
             Layout.preferredWidth: parent.width / 2
-            cacheItemCount: 1000
             dragMargin: 200
             focus: true
             highlightMoveDuration: 100
             model: SongFolderFactory.open("/")
-            pathItemCount: 20
+            pathItemCount: 15
 
             // selected item should be in the middle of the arc
             preferredHighlightBegin: 0.5
             preferredHighlightEnd: 0.5
             snapMode: PathView.SnapToItem
 
-            delegate: Text {
-                // selected item should be yellow
-                color: PathView.isCurrentItem ? "yellow" : "white"
-                text: display instanceof ChartData ? display.title : display
+            delegate: Loader {
+                property bool isCurrentItem: PathView.isCurrentItem
 
-                Component.onCompleted: {
-                    if (display instanceof ChartData && display.keymode === ChartData.Keymode.K14) {
-                        color = "red";
-                    }
-                }
-
-                MouseArea {
-                    anchors.fill: parent
-
-                    onClicked: {
-                        pathView.open(display);
-                        pathView.currentIndex = index;
-                    }
-                }
+                source: display instanceof ChartData ? "Chart.qml" : "Folder.qml"
             }
             path: Path {
-                startX: 120
+                startX: 250
                 startY: -100
 
                 PathLine {
@@ -71,6 +55,9 @@ Pane {
                 }
             }
 
+            Component.onCompleted: {
+                positionViewAtIndex(0, PathView.Center);
+            }
             Keys.onDownPressed: {
                 incrementCurrentIndex();
             }
