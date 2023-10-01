@@ -3,12 +3,9 @@ import QtQuick 2.0
 Image {
     source: root.iniImagesUrl + "folders.png/folder_green"
 
-    Text {
-        anchors.right: parent.right
-        anchors.rightMargin: 30
-        anchors.verticalCenter: parent.verticalCenter
+    NameLabel {
         color: isCurrentItem ? "yellow" : "black"
-        font.pixelSize: 20
+        scrolling: isCurrentItem
         text: display
     }
     MouseArea {

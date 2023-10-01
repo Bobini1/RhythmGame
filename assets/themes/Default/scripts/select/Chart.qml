@@ -1,23 +1,16 @@
-import QtQuick 2.0
+import QtQuick
+import QtQuick.Layouts
 import RhythmGameQml
 
 Image {
+    id: image
+
     source: root.iniImagesUrl + "folders.png/white"
 
-    Text {
-        anchors.right: parent.right
-        anchors.rightMargin: 30
-        anchors.verticalCenter: parent.verticalCenter
-        clip: true
-        color: isCurrentItem ? "yellow" : "black"
-        font.pixelSize: 20
+    NameLabel {
+        color: (display.keymode === ChartData.Keymode.K14) ? "red" : (isCurrentItem ? "yellow" : "black")
+        scrolling: isCurrentItem
         text: display.title + (display.subtitle ? (" " + display.subtitle) : "")
-
-        Component.onCompleted: {
-            if (display.keymode === ChartData.Keymode.K14) {
-                color = "red";
-            }
-        }
     }
     MouseArea {
         anchors.fill: parent

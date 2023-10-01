@@ -41,6 +41,8 @@ Pane {
             snapMode: PathView.SnapToItem
 
             delegate: Loader {
+                id: selectItemLoader
+
                 property bool isCurrentItem: PathView.isCurrentItem
 
                 source: display instanceof ChartData ? "Chart.qml" : "Folder.qml"
@@ -49,6 +51,20 @@ Pane {
                 startX: 250
                 startY: -100
 
+                PathLine {
+                    x: 125
+                    y: pathView.height / 2
+                }
+                PathPercent {
+                    value: 0.5
+                }
+                PathLine {
+                    x: 125 - 250 / pathView.pathItemCount
+                    y: pathView.height / 2 + (pathView.height + 200) / pathView.pathItemCount
+                }
+                PathPercent {
+                    value: 0.5 + 1 / pathView.pathItemCount
+                }
                 PathLine {
                     x: 0
                     y: pathView.height + 100
