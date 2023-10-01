@@ -161,7 +161,7 @@ Chart::finish() -> BmsScoreAftermath*
 
     auto chartLength = chartData->getLength();
     if (elapsed < chartLength) {
-        gameReferee->update(std::chrono::nanoseconds(chartLength));
+        gameReferee->update(std::chrono::nanoseconds(chartLength), true);
     }
     try {
         auto result = score->getResult();

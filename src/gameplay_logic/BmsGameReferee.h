@@ -24,11 +24,9 @@ class BmsGameReferee
     std::array<std::vector<rules::BmsHitRules::NoteType>,
                charts::gameplay_models::BmsNotesData::columnNumber>
       invisibleNotes;
-    std::array<int,
-               charts::gameplay_models::BmsNotesData::columnNumber>
+    std::array<int, charts::gameplay_models::BmsNotesData::columnNumber>
       currentVisibleNotes{};
-    std::array<int,
-               charts::gameplay_models::BmsNotesData::columnNumber>
+    std::array<int, charts::gameplay_models::BmsNotesData::columnNumber>
       currentInvisibleNotes{};
     std::vector<BgmType> bgms;
     std::span<BgmType> currentBgms;
@@ -69,7 +67,8 @@ class BmsGameReferee
      * chart
      * @return The position in the chart, expressed in beats
      */
-    auto update(std::chrono::nanoseconds offsetFromStart) -> Position;
+    auto update(std::chrono::nanoseconds offsetFromStart,
+                bool lastUpdate = false) -> Position;
 
     auto passInput(std::chrono::nanoseconds offsetFromStart, input::BmsKey key)
       -> void;

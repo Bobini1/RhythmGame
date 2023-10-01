@@ -52,8 +52,8 @@ gameplay_logic::BmsGameReferee::BmsGameReferee(
     currentBpmChanges = bpmChanges;
 }
 auto
-gameplay_logic::BmsGameReferee::update(std::chrono::nanoseconds offsetFromStart)
-  -> Position
+gameplay_logic::BmsGameReferee::update(std::chrono::nanoseconds offsetFromStart,
+                                       bool lastUpdate) -> Position
 {
     offsetFromStart -= timeBeforeChartStart.timestamp;
     auto misses = QVector<Miss>{};
@@ -75,10 +75,14 @@ gameplay_logic::BmsGameReferee::update(std::chrono::nanoseconds offsetFromStart)
                                 currentInvisibleNotes[columnIndex],
                                 offsetFromStart);
     }
+    if (lastUpdate) {
+        currentBgms = {};
+    }
     for (const auto& bgm : currentBgms) {
         auto played = 0;
         if (bgm.first < offsetFromStart) {
             bgm.second->play();
+
             played++;
         } else {
             break;
