@@ -9,6 +9,7 @@ Image {
 
     Text {
         id: playlevelText
+
         anchors.bottom: parent.bottom
         anchors.bottomMargin: 10
         anchors.left: parent.left
@@ -25,7 +26,6 @@ Image {
             font: playlevelText.font
             text: "00"
         }
-
         TextMetrics {
             id: myTextMetrics
 
@@ -36,7 +36,7 @@ Image {
     NameLabel {
         anchors.right: parent.right
         anchors.rightMargin: 30
-        color: (display.keymode === ChartData.Keymode.K14) ? "red" : (isCurrentItem ? "yellow" : "black")
+        color: (display.keymode === ChartData.Keymode.K14) ? "red" : "black"
         height: parent.height
         scrolling: isCurrentItem
         text: display.title + (display.subtitle ? (" " + display.subtitle) : "")

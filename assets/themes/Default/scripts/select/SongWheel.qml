@@ -48,26 +48,26 @@ Pane {
                 source: display instanceof ChartData ? "Chart.qml" : "Folder.qml"
             }
             path: Path {
-                startX: 250
+                startX: pathView.width - 350
                 startY: -100
 
                 PathLine {
-                    x: 125
+                    x: pathView.width - 475
                     y: pathView.height / 2
                 }
                 PathPercent {
                     value: 0.5
                 }
                 PathLine {
-                    x: 125 - 250 / pathView.pathItemCount
-                    y: pathView.height / 2 + (pathView.height + 200) / pathView.pathItemCount
+                    x: pathView.width - 350 - 125 - (250 / pathView.pathItemCount) * 1.75
+                    y: pathView.height / 2 + ((pathView.height + 200) / pathView.pathItemCount) * 1.75
                 }
                 PathPercent {
-                    value: 0.5 + 1 / pathView.pathItemCount
+                    value: 0.5 + (1 / pathView.pathItemCount)
                 }
                 PathLine {
-                    x: 0
-                    y: pathView.height + 100
+                    x: pathView.width - 350 - 250 - (250 / pathView.pathItemCount) * 0.75
+                    y: (pathView.height + 100) + ((pathView.height + 200) / pathView.pathItemCount) * 0.75
                 }
             }
 
@@ -97,6 +97,14 @@ Pane {
                 model.minimumAmount = pathItemCount;
             }
 
+            Image {
+                id: selector
+
+                anchors.centerIn: parent
+                anchors.verticalCenterOffset: 30
+                source: iniImagesUrl + "folders.png/frame"
+                z: pathView.count + 1
+            }
             MouseArea {
                 id: mouse
 

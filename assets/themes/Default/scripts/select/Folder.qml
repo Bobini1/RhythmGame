@@ -6,7 +6,7 @@ Image {
     NameLabel {
         anchors.right: parent.right
         anchors.rightMargin: 30
-        color: isCurrentItem ? "yellow" : "black"
+        color: "black"
         height: parent.height
         scrolling: isCurrentItem
         text: display
