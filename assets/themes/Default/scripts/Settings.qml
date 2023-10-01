@@ -7,6 +7,8 @@ import QtQuick.Controls.Basic 2.12
 Pane {
     id: screen
 
+    readonly property bool active: StackView.status === StackView.Active
+
     ListModel {
         id: songFolders
 
@@ -140,7 +142,7 @@ Pane {
         }
     }
     Shortcut {
-        enabled: true
+        enabled: active
         sequence: "Esc"
 
         onActivated: {

@@ -28,7 +28,7 @@ ApplicationWindow {
                 id: inputItem
 
                 chart: chartFocusScope.chart
-                focus: true
+                focus: chartFocusScope.active
             }
             Loader {
                 id: loader
@@ -42,6 +42,8 @@ ApplicationWindow {
         id: resultContext
 
         FocusScope {
+            id: resultFocusScope
+
             readonly property bool active: StackView.status === StackView.Active
             required property var result
 

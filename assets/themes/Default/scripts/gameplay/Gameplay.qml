@@ -166,10 +166,11 @@ Rectangle {
         }
     }
     Shortcut {
-        enabled: active
+        enabled: chartFocusScope.active
         sequence: "Esc"
 
         onActivated: {
+            console.info("gameplay exit");
             sceneStack.pop();
         }
     }
