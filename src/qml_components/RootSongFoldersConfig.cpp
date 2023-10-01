@@ -99,6 +99,9 @@ RootSongFoldersConfig::scanNewImpl()
                         foldersVector.end(),
                         std::back_inserter(removedFolders));
     for (const auto& removedFolder : removedFolders) {
+        removeNoteDataStartingWith.reset();
+        removeNoteDataStartingWith.bind(":path", removedFolder);
+        removeNoteDataStartingWith.execute();
         removeSongsStartingWith.reset();
         removeSongsStartingWith.bind(":path", removedFolder);
         removeSongsStartingWith.execute();
@@ -108,6 +111,7 @@ RootSongFoldersConfig::scanNewImpl()
     db->execute("DELETE FROM parent_dir");
 
     // rebuild parent dirs from what was left
+    getDistinctDirectoryInDb.reset();
     auto directoryInDbResult =
       getDistinctDirectoryInDb.executeAndGetAll<std::string>();
     for (const auto& row : directoryInDbResult) {
@@ -171,6 +175,7 @@ RootSongFoldersConfig::scanAllImpl()
 
     // remove all songs
     db->execute("DELETE FROM charts");
+    db->execute("DELETE FROM note_data");
 
     // scan all folders
     auto foldersVector = std::vector<std::filesystem::path>{};
@@ -192,6 +197,7 @@ RootSongFoldersConfig::clear()
     spdlog::info("Clearing database");
     scanFuture = QtConcurrent::run([this] {
         db->execute("DELETE FROM charts");
+        db->execute("DELETE FROM note_data");
         db->execute("DELETE FROM parent_dir");
         db->execute("DELETE FROM root_dir");
         status = Status::Ready;
