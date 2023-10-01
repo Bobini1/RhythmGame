@@ -8,11 +8,7 @@ Item {
     property bool scrolling: false
     property alias text: label.text
 
-    anchors.right: parent.right
-    anchors.rightMargin: 30
     clip: true
-    height: parent.height
-    width: parent.width * 0.7
 
     Text {
         id: label
