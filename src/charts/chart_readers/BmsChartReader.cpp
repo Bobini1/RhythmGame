@@ -522,10 +522,11 @@ struct MainTags
           dsl::eof | dsl::peek(dsl::ascii::case_folding(LEXY_LIT("#endif"))));
         return term.list(dsl::try_(
           dsl::unicode::newline | dsl::p<MeterTag> | dsl::p<MeasureBasedTag> |
-            dsl::p<WavTag> | dsl::p<TitleTag> | dsl::p<ArtistTag> |
-            dsl::p<GenreTag> | dsl::p<SubtitleTag> | dsl::p<SubartistTag> |
-            dsl::p<TotalTag> | dsl::p<RankTag> | dsl::p<PlayLevelTag> |
-            dsl::p<DifficultyTag> | dsl::p<ExBpmTag> | dsl::p<BpmTag> |
+            dsl::p<WavTag> | dsl::p<ExBpmTag> | dsl::p<TitleTag> |
+            dsl::p<ArtistTag> | dsl::p<GenreTag> | dsl::p<StageFileTag> |
+            dsl::p<BannerTag> | dsl::p<BackBmpTag> | dsl::p<SubtitleTag> |
+            dsl::p<SubartistTag> | dsl::p<TotalTag> | dsl::p<RankTag> |
+            dsl::p<PlayLevelTag> | dsl::p<DifficultyTag> | dsl::p<BpmTag> |
             dsl::recurse_branch<RandomBlock>,
           dsl::until(dsl::unicode::newline).or_eof()));
     }();
