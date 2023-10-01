@@ -125,9 +125,12 @@ struct MeasureBasedTag
 
 BOOST_STRONG_TYPEDEF(std::string, Title);
 BOOST_STRONG_TYPEDEF(std::string, Artist)
-BOOST_STRONG_TYPEDEF(std::string, Genre);
 BOOST_STRONG_TYPEDEF(std::string, Subtitle);
 BOOST_STRONG_TYPEDEF(std::string, Subartist);
+BOOST_STRONG_TYPEDEF(std::string, Genre);
+BOOST_STRONG_TYPEDEF(std::string, StageFile);
+BOOST_STRONG_TYPEDEF(std::string, Banner);
+BOOST_STRONG_TYPEDEF(std::string, BackBmp);
 BOOST_STRONG_TYPEDEF(double, Total);
 BOOST_STRONG_TYPEDEF(int, Rank);
 BOOST_STRONG_TYPEDEF(double, Bpm);
@@ -162,17 +165,6 @@ struct ArtistTag
       lexy::callback<Artist>([](std::string&& str) { return Artist{ str }; });
 };
 
-struct GenreTag
-{
-    static constexpr auto rule = [] {
-        auto genreTag = dsl::ascii::case_folding(LEXY_LIT("#genre"));
-        return genreTag >> dsl::p<TextTag>;
-    }();
-    static constexpr auto value =
-      lexy::as_string<std::string> |
-      lexy::callback<Genre>([](std::string&& str) { return Genre{ str }; });
-};
-
 struct SubtitleTag
 {
     static constexpr auto rule = [] {
@@ -195,6 +187,51 @@ struct SubartistTag
       lexy::as_string<std::string> |
       lexy::callback<Subartist>(
         [](std::string&& str) { return Subartist{ str }; });
+};
+
+struct GenreTag
+{
+    static constexpr auto rule = [] {
+        auto genreTag = dsl::ascii::case_folding(LEXY_LIT("#genre"));
+        return genreTag >> dsl::p<TextTag>;
+    }();
+    static constexpr auto value =
+      lexy::as_string<std::string> |
+      lexy::callback<Genre>([](std::string&& str) { return Genre{ str }; });
+};
+
+struct StageFileTag
+{
+    static constexpr auto rule = [] {
+        auto stageFileTag = dsl::ascii::case_folding(LEXY_LIT("#stagefile"));
+        return stageFileTag >> dsl::p<TextTag>;
+    }();
+    static constexpr auto value =
+      lexy::as_string<std::string> |
+      lexy::callback<StageFile>(
+        [](std::string&& str) { return StageFile{ str }; });
+};
+
+struct BannerTag
+{
+    static constexpr auto rule = [] {
+        auto bannerTag = dsl::ascii::case_folding(LEXY_LIT("#banner"));
+        return bannerTag >> dsl::p<TextTag>;
+    }();
+    static constexpr auto value =
+      lexy::as_string<std::string> |
+      lexy::callback<Banner>([](std::string&& str) { return Banner{ str }; });
+};
+
+struct BackBmpTag
+{
+    static constexpr auto rule = [] {
+        auto backBmpTag = dsl::ascii::case_folding(LEXY_LIT("#backbmp"));
+        return backBmpTag >> dsl::p<TextTag>;
+    }();
+    static constexpr auto value =
+      lexy::as_string<std::string> |
+      lexy::callback<BackBmp>([](std::string&& str) { return BackBmp{ str }; });
 };
 
 struct TotalTag
@@ -301,10 +338,6 @@ struct TagsSink
         {
             state.artist = std::move(static_cast<std::string&>(artist));
         }
-        auto operator()(Genre&& genre) -> void
-        {
-            state.genre = std::move(static_cast<std::string&>(genre));
-        }
         auto operator()(Subtitle&& subtitle) -> void
         {
             state.subTitle = std::move(static_cast<std::string&>(subtitle));
@@ -312,6 +345,22 @@ struct TagsSink
         auto operator()(Subartist&& subartist) -> void
         {
             state.subArtist = std::move(static_cast<std::string&>(subartist));
+        }
+        auto operator()(Genre&& genre) -> void
+        {
+            state.genre = std::move(static_cast<std::string&>(genre));
+        }
+        auto operator()(StageFile&& stageFile) -> void
+        {
+            state.stageFile = std::move(static_cast<std::string&>(stageFile));
+        }
+        auto operator()(Banner&& banner) -> void
+        {
+            state.banner = std::move(static_cast<std::string&>(banner));
+        }
+        auto operator()(BackBmp&& backBmp) -> void
+        {
+            state.backBmp = std::move(static_cast<std::string&>(backBmp));
         }
         auto operator()(Total&& total) -> void
         {
@@ -492,14 +541,16 @@ struct OrphanizedRandomCommonPart
           dsl::peek(dsl::ascii::case_folding(LEXY_LIT("#random"))) |
           dsl::peek(dsl::ascii::case_folding(LEXY_LIT("#if"))));
         return dsl::peek_not(dsl::ascii::case_folding(LEXY_LIT("#if"))) >>
-               term.list(dsl::try_(
-                 dsl::unicode::newline | dsl::p<MeterTag> |
-                   dsl::p<MeasureBasedTag> | dsl::p<WavTag> | dsl::p<TitleTag> |
-                   dsl::p<ArtistTag> | dsl::p<GenreTag> | dsl::p<SubtitleTag> |
-                   dsl::p<SubartistTag> | dsl::p<TotalTag> | dsl::p<RankTag> |
-                   dsl::p<PlayLevelTag> | dsl::p<DifficultyTag> |
-                   dsl::p<ExBpmTag> | dsl::p<BpmTag>,
-                 dsl::until(dsl::unicode::newline).or_eof()));
+               term.list(dsl::try_(dsl::unicode::newline | dsl::p<MeterTag> |
+                                     dsl::p<MeasureBasedTag> | dsl::p<WavTag> |
+                                     dsl::p<ExBpmTag> | dsl::p<TitleTag> |
+                                     dsl::p<ArtistTag> | dsl::p<GenreTag> |
+                                     dsl::p<StageFileTag> | dsl::p<BannerTag> |
+                                     dsl::p<BackBmpTag> | dsl::p<SubtitleTag> |
+                                     dsl::p<SubartistTag> | dsl::p<TotalTag> |
+                                     dsl::p<RankTag> | dsl::p<PlayLevelTag> |
+                                     dsl::p<DifficultyTag> | dsl::p<BpmTag>,
+                                   dsl::until(dsl::unicode::newline).or_eof()));
     }();
     static constexpr auto value = TagsSink{};
 };

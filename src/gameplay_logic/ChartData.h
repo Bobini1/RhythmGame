@@ -32,6 +32,9 @@ class ChartData : public QObject
     Q_PROPERTY(QString subtitle READ getSubtitle CONSTANT)
     Q_PROPERTY(QString subartist READ getSubartist CONSTANT)
     Q_PROPERTY(QString genre READ getGenre CONSTANT)
+    Q_PROPERTY(QString stageFile READ getStageFile CONSTANT)
+    Q_PROPERTY(QString banner READ getBanner CONSTANT)
+    Q_PROPERTY(QString backBmp READ getBackBmp CONSTANT)
     Q_PROPERTY(int rank READ getRank CONSTANT)
     Q_PROPERTY(double total READ getTotal CONSTANT)
     Q_PROPERTY(int playLevel READ getPlayLevel CONSTANT)
@@ -52,6 +55,9 @@ class ChartData : public QObject
               QString subtitle,
               QString subartist,
               QString genre,
+              QString stageFile,
+              QString banner,
+              QString backBmp,
               int rank,
               double total,
               int playLevel,
@@ -70,6 +76,9 @@ class ChartData : public QObject
     [[nodiscard]] auto getSubtitle() const -> QString;
     [[nodiscard]] auto getSubartist() const -> QString;
     [[nodiscard]] auto getGenre() const -> QString;
+    [[nodiscard]] auto getStageFile() const -> QString;
+    [[nodiscard]] auto getBanner() const -> QString;
+    [[nodiscard]] auto getBackBmp() const -> QString;
     [[nodiscard]] auto getNoteCount() const -> int;
     [[nodiscard]] auto getLength() const -> int64_t;
     [[nodiscard]] auto getPath() const -> QString;
@@ -90,6 +99,9 @@ class ChartData : public QObject
         std::string subtitle;
         std::string subartist;
         std::string genre;
+        std::string stageFile;
+        std::string banner;
+        std::string backBmp;
         int rank;
         double total;
         int playLevel;
@@ -113,6 +125,9 @@ class ChartData : public QObject
     QString subtitle;
     QString subartist;
     QString genre;
+    QString stageFile;
+    QString banner;
+    QString backBmp;
     int rank;
     double total;
     int playLevel;

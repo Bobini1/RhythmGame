@@ -40,8 +40,14 @@ class RootSongFoldersConfig : public QObject
     db::SqliteCppDb::Statement addRootDir =
       db->createStatement("INSERT INTO root_dir (path) VALUES (:path)");
     // delete all songs where path starts with :path
+    db::SqliteCppDb::Statement getSha256OfSongsStartingWith =
+      db->createStatement("SELECT sha256 FROM charts WHERE path LIKE :path || "
+                          "'%'");
     db::SqliteCppDb::Statement removeSongsStartingWith =
       db->createStatement("DELETE FROM charts WHERE path LIKE :path || '%'");
+    db::SqliteCppDb::Statement removeNoteDataStartingWith = db->createStatement(
+      "DELETE FROM note_data WHERE sha256 IN (SELECT sha256 "
+      "FROM charts WHERE path LIKE :path || '%')");
     db::SqliteCppDb::Statement getDistinctDirectoryInDb =
       db->createStatement("SELECT DISTINCT directory_in_db FROM charts");
     db::SqliteCppDb::Statement addParentDir =

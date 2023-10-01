@@ -13,6 +13,9 @@ gameplay_logic::ChartData::ChartData(QString title,
                                      QString subtitle,
                                      QString subartist,
                                      QString genre,
+                                     QString stageFile,
+                                     QString banner,
+                                     QString backBmp,
                                      int rank,
                                      double total,
                                      int playLevel,
@@ -31,6 +34,9 @@ gameplay_logic::ChartData::ChartData(QString title,
   , subtitle(std::move(subtitle))
   , subartist(std::move(subartist))
   , genre(std::move(genre))
+  , stageFile(std::move(stageFile))
+  , banner(std::move(banner))
+  , backBmp(std::move(backBmp))
   , rank(rank)
   , total(total)
   , playLevel(playLevel)
@@ -109,26 +115,30 @@ gameplay_logic::ChartData::save(db::SqliteCppDb& db) const -> void
 {
     static thread_local auto query = db.createStatement(
       "INSERT OR REPLACE INTO charts (title, artist, subtitle, subartist, "
-      "genre, rank, total, play_level, difficulty, is_random, note_count, "
-      "length, path, directory_in_db, sha256, keymode) "
-      "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);");
+      "genre, stage_file, banner, back_bmp, rank, total, play_level, "
+      "difficulty, is_random, note_count, length, path, directory_in_db, "
+      "sha256, keymode) "
+      "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);");
     query.reset();
     query.bind(1, title.toStdString());
     query.bind(2, artist.toStdString());
     query.bind(3, subtitle.toStdString());
     query.bind(4, subartist.toStdString());
     query.bind(5, genre.toStdString());
-    query.bind(6, rank);
-    query.bind(7, total);
-    query.bind(8, playLevel);
-    query.bind(9, difficulty);
-    query.bind(10, isRandom);
-    query.bind(11, noteCount);
-    query.bind(12, length);
-    query.bind(13, path.toStdString());
-    query.bind(14, directoryInDb.toStdString());
-    query.bind(15, sha256.toStdString());
-    query.bind(16, static_cast<int>(keymode));
+    query.bind(6, stageFile.toStdString());
+    query.bind(7, banner.toStdString());
+    query.bind(8, backBmp.toStdString());
+    query.bind(9, rank);
+    query.bind(10, total);
+    query.bind(11, playLevel);
+    query.bind(12, difficulty);
+    query.bind(13, isRandom);
+    query.bind(14, noteCount);
+    query.bind(15, length);
+    query.bind(16, path.toStdString());
+    query.bind(17, directoryInDb.toStdString());
+    query.bind(18, sha256.toStdString());
+    query.bind(19, static_cast<int>(keymode));
     query.execute();
 }
 auto
@@ -153,6 +163,9 @@ gameplay_logic::ChartData::load(
       QString::fromStdString(chartDataDto.subtitle),
       QString::fromStdString(chartDataDto.subartist),
       QString::fromStdString(chartDataDto.genre),
+      QString::fromStdString(chartDataDto.stageFile),
+      QString::fromStdString(chartDataDto.banner),
+      QString::fromStdString(chartDataDto.backBmp),
       chartDataDto.rank,
       chartDataDto.total,
       chartDataDto.playLevel,
@@ -175,4 +188,19 @@ gameplay_logic::ChartData::getKeymode() const
   -> gameplay_logic::ChartData::Keymode
 {
     return keymode;
+}
+auto
+gameplay_logic::ChartData::getStageFile() const -> QString
+{
+    return stageFile;
+}
+auto
+gameplay_logic::ChartData::getBanner() const -> QString
+{
+    return banner;
+}
+auto
+gameplay_logic::ChartData::getBackBmp() const -> QString
+{
+    return backBmp;
 }

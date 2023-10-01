@@ -23,6 +23,15 @@ charts::parser_models::ParsedBmsChart::mergeTags(
     if (second.genre.has_value()) {
         first.genre = std::move(second.genre);
     }
+    if (second.stageFile.has_value()) {
+        first.stageFile = std::move(second.stageFile);
+    }
+    if (second.banner.has_value()) {
+        first.banner = std::move(second.banner);
+    }
+    if (second.backBmp.has_value()) {
+        first.backBmp = std::move(second.backBmp);
+    }
     if (second.bpm.has_value()) {
         first.bpm = second.bpm;
     }

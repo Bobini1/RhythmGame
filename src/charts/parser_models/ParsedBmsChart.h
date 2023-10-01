@@ -53,6 +53,9 @@ struct ParsedBmsChart
         std::optional<std::string> subTitle;
         std::optional<std::string> subArtist;
         std::optional<std::string> genre;
+        std::optional<std::string> stageFile;
+        std::optional<std::string> banner;
+        std::optional<std::string> backBmp;
         std::optional<double> bpm;
         std::optional<double> total;
         std::optional<int> rank;

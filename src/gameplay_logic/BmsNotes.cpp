@@ -71,8 +71,9 @@ auto
 BmsNotes::save(db::SqliteCppDb& db, const support::Sha256& sha256) const -> void
 {
     auto serializedData = serialize();
-    static thread_local auto insertQuery = db.createStatement(
-      "INSERT INTO note_data (sha256, note_data) VALUES (:sha256, :note_data)");
+    static thread_local auto insertQuery =
+      db.createStatement("INSERT OR REPLACE INTO note_data (sha256, note_data) "
+                         "VALUES (:sha256, :note_data)");
     insertQuery.bind(":sha256", sha256);
     insertQuery.bind(
       ":note_data", serializedData.data(), serializedData.size());
