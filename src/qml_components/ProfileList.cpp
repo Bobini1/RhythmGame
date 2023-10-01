@@ -53,8 +53,9 @@ qml_components::ProfileList::ProfileList(db::SqliteCppDb* songDb,
     }
     auto profilePath =
       support::qStringToPath(QString::fromStdString(currentProfile.value()));
+    auto absoluteProfilePath = this->profilesFolder / profilePath;
     for (auto* profile : profiles) {
-        if (profile->getPath() == profilePath) {
+        if (profile->getPath() == absoluteProfilePath) {
             setCurrentProfile(profile);
             break;
         }
@@ -150,19 +151,21 @@ qml_components::ProfileList::setCurrentProfile(
         throw std::runtime_error(
           "Failed to get count of rows in current_profile table");
     }
+    auto profilePath = profile->getPath();
+    auto relativePath = std::filesystem::relative(profilePath, profilesFolder);
     if (result.value() == 0) {
         // insert new row
         auto statement =
           songDb->createStatement("INSERT INTO current_profile (path) "
                                   "VALUES (:path)");
-        statement.bind(":path", support::pathToUtfString(profile->getPath()));
+        statement.bind(":path", support::pathToUtfString(relativePath));
         statement.execute();
         emit currentProfileChanged(profile);
         return;
     }
     auto statement =
       songDb->createStatement("UPDATE current_profile SET path = :path");
-    statement.bind(":path", support::pathToUtfString(profile->getPath()));
+    statement.bind(":path", support::pathToUtfString(relativePath));
     statement.execute();
     emit currentProfileChanged(profile);
 }
