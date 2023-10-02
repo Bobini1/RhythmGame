@@ -16,20 +16,23 @@ Pane {
 
         Image {
             Layout.alignment: Qt.AlignLeft
-            Layout.fillHeight: true
-            Layout.preferredWidth: parent.width / 2
+            Layout.preferredWidth: 512
+            Layout.preferredHeight: 512
+            sourceSize.width: 512
+            sourceSize.height: 512
+            asynchronous: true
             source: {
                 let currentItem = songList.model.at(songList.currentIndex);
                 if (!(currentItem instanceof ChartData) || currentItem.stageFile === "") {
                     return "";
                 }
-                return "file://" + currentItem.directory + "/" + currentItem.stageFile;
+                return "file://" + currentItem.directory + currentItem.stageFile;
             }
 
             onStatusChanged: {
                 if (status === Image.Error) {
                     let currentItem = songList.model.at(songList.currentIndex);
-                    console.error("Could not load stagefile for " + currentItem.path + ":", currentItem.stageFile);
+                    console.warn("Could not load stagefile for " + currentItem.path + ":", currentItem.stageFile);
                 }
             }
         }
