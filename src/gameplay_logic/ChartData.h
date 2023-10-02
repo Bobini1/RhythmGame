@@ -42,7 +42,7 @@ class ChartData : public QObject
     Q_PROPERTY(int noteCount READ getNoteCount CONSTANT)
     Q_PROPERTY(int64_t length READ getLength CONSTANT)
     Q_PROPERTY(QString path READ getPath CONSTANT)
-    Q_PROPERTY(QString directoryInDb READ getPath CONSTANT)
+    Q_PROPERTY(QString directoryInDb READ getDirectoryInDb CONSTANT)
     Q_PROPERTY(QString sha256 READ getSha256 CONSTANT)
     Q_PROPERTY(bool isRandom READ getIsRandom CONSTANT)
     Q_PROPERTY(Keymode keymode READ getKeymode CONSTANT)
