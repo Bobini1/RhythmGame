@@ -204,3 +204,8 @@ gameplay_logic::ChartData::getBackBmp() const -> QString
 {
     return backBmp;
 }
+auto
+gameplay_logic::ChartData::getDirectory() const -> QString
+{
+    return QUrl::fromLocalFile(path).adjusted(QUrl::RemoveFilename).path();
+}

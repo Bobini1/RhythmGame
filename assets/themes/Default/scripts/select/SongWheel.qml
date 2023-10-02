@@ -14,7 +14,28 @@ Pane {
     RowLayout {
         anchors.fill: parent
 
+        Image {
+            Layout.alignment: Qt.AlignLeft
+            Layout.fillHeight: true
+            Layout.preferredWidth: parent.width / 2
+            source: {
+                let currentItem = songList.model.at(songList.currentIndex);
+                if (!(currentItem instanceof ChartData) || currentItem.stageFile === "") {
+                    return "";
+                }
+                return "file://" + currentItem.directory + "/" + currentItem.stageFile;
+            }
+
+            onStatusChanged: {
+                if (status === Image.Error) {
+                    let currentItem = songList.model.at(songList.currentIndex);
+                    console.error("Could not load stagefile for " + currentItem.path + ":", currentItem.stageFile);
+                }
+            }
+        }
         List {
+            id: songList
+
             Layout.alignment: Qt.AlignRight
             Layout.fillHeight: true
             Layout.preferredWidth: parent.width / 2

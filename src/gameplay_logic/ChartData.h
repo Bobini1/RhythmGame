@@ -47,6 +47,8 @@ class ChartData : public QObject
     Q_PROPERTY(bool isRandom READ getIsRandom CONSTANT)
     Q_PROPERTY(Keymode keymode READ getKeymode CONSTANT)
 
+    Q_PROPERTY(QString directory READ getDirectory CONSTANT)
+
     ChartData() = default;
 
   public:
@@ -90,6 +92,8 @@ class ChartData : public QObject
     [[nodiscard]] auto getSha256() const -> QString;
     [[nodiscard]] auto getIsRandom() const -> bool;
     [[nodiscard]] auto getKeymode() const -> Keymode;
+
+    [[nodiscard]] auto getDirectory() const -> QString;
 
     struct DTO
     {
