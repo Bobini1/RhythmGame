@@ -14,27 +14,10 @@ Pane {
     RowLayout {
         anchors.fill: parent
 
-        Image {
+        StageFile {
             Layout.alignment: Qt.AlignLeft
-            Layout.preferredWidth: 512
-            Layout.preferredHeight: 512
-            sourceSize.width: 512
-            sourceSize.height: 512
-            asynchronous: true
-            source: {
-                let currentItem = songList.model.at(songList.currentIndex);
-                if (!(currentItem instanceof ChartData) || currentItem.stageFile === "") {
-                    return "";
-                }
-                return "file://" + currentItem.directory + currentItem.stageFile;
-            }
-
-            onStatusChanged: {
-                if (status === Image.Error) {
-                    let currentItem = songList.model.at(songList.currentIndex);
-                    console.warn("Could not load stagefile for " + currentItem.path + ":", currentItem.stageFile);
-                }
-            }
+            Layout.preferredHeight: 480
+            Layout.preferredWidth: 640
         }
         List {
             id: songList
