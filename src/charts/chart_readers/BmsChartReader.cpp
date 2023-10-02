@@ -26,6 +26,8 @@ trimR(std::string str) -> std::string
     auto pos = str.find_last_not_of(" \t\r\n");
     if (pos != std::string::npos) {
         str.resize(pos + 1);
+    } else {
+        str.clear();
     }
     return str;
 };
