@@ -17,6 +17,7 @@ Item {
         property int spacing: 30
 
         anchors.verticalCenter: parent.verticalCenter
+        elide: (label.longText && !wrapper.scrolling) ? Text.ElideRight : Text.ElideNone
         font.pixelSize: 20
         // align right if there is enough space
         horizontalAlignment: longText ? Text.AlignLeft : Text.AlignRight
