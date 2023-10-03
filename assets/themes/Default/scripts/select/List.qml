@@ -56,14 +56,14 @@ PathView {
             value: 0.5
         }
         PathLine {
-            x: pathView.width - 375 - 100 - (200 / pathView.pathItemCount) * 1.75 + 4 // why 4?
+            x: pathView.width - 375 - 100 - (200 / pathView.pathItemCount) * 1.75
             y: pathView.height / 2 + ((pathView.height + 200) / pathView.pathItemCount) * 1.75
         }
         PathPercent {
             value: 0.5 + (1 / pathView.pathItemCount)
         }
         PathLine {
-            x: pathView.width - 375 - 200 - (200 / pathView.pathItemCount) * 0.75 + 4
+            x: pathView.width - 375 - 200 - (200 / pathView.pathItemCount) * 0.75
             y: (pathView.height + 100) + ((pathView.height + 200) / pathView.pathItemCount) * 0.75
         }
     }
