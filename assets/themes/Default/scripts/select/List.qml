@@ -4,6 +4,19 @@ import RhythmGameQml
 PathView {
     id: pathView
 
+    readonly property bool movingInAnyWay: movingManually || flicking || moving || dragging
+    property bool movingManually: false
+
+    function decrementViewIndex() {
+        decrementCurrentIndex();
+        movingTimer.restart();
+        movingManually = true;
+    }
+    function incrementViewIndex() {
+        incrementCurrentIndex();
+        movingTimer.restart();
+        movingManually = true;
+    }
     function open(item) {
         if (item instanceof ChartData) {
             console.info("Opening chart " + item.path);
@@ -59,7 +72,7 @@ PathView {
         positionViewAtIndex(0, PathView.Center);
     }
     Keys.onDownPressed: {
-        incrementCurrentIndex();
+        incrementViewIndex();
     }
     Keys.onLeftPressed: {
         if (model.parentFolder) {
@@ -75,12 +88,21 @@ PathView {
         open(model.at(currentIndex));
     }
     Keys.onUpPressed: {
-        decrementCurrentIndex();
+        decrementViewIndex();
     }
     onModelChanged: {
         model.minimumAmount = pathItemCount;
     }
 
+    Timer {
+        id: movingTimer
+
+        interval: pathView.highlightMoveDuration
+
+        onTriggered: {
+            pathView.movingManually = false;
+        }
+    }
     Image {
         id: selector
 
@@ -96,9 +118,9 @@ PathView {
 
         onWheel: wheel => {
             if (wheel.angleDelta.y > 0)
-                pathView.decrementCurrentIndex();
+                pathView.decrementViewIndex();
             else
-                pathView.incrementCurrentIndex();
+                pathView.incrementViewIndex();
         }
     }
 }
