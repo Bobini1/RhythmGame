@@ -32,6 +32,16 @@ Pane {
             Layout.topMargin: 200
         }
     }
+    Image {
+        id: selector
+
+        anchors.right: parent.right
+        anchors.rightMargin: 42
+        anchors.verticalCenter: parent.verticalCenter
+        anchors.verticalCenterOffset: 30
+        source: iniImagesUrl + "folders.png/frame"
+        z: pathView.count + 1
+    }
     List {
         id: songList
 

@@ -117,15 +117,6 @@ PathView {
             pathView.movingManually = false;
         }
     }
-    Image {
-        id: selector
-
-        anchors.centerIn: parent
-        anchors.horizontalCenterOffset: 75
-        anchors.verticalCenterOffset: 30
-        source: iniImagesUrl + "folders.png/frame"
-        z: pathView.count + 1
-    }
     MouseArea {
         id: mouse
 
