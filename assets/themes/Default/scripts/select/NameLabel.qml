@@ -17,7 +17,6 @@ Item {
         property int spacing: 30
 
         anchors.verticalCenter: parent.verticalCenter
-        color: selectItemLoader.isCurrentItem ? "yellow" : "black"
         font.pixelSize: 20
         // align right if there is enough space
         horizontalAlignment: longText ? Text.AlignLeft : Text.AlignRight
@@ -45,11 +44,11 @@ Item {
         PropertyAnimation {
             id: longTextAnimation
 
-            duration: 3000
+            duration: 4000
             from: 0
             loops: Animation.Infinite
             property: "x"
-            running: label.longText && selectItemLoader.isCurrentItem
+            running: label.longText && wrapper.scrolling
             target: label
             to: -textMetrics.width - label.spacing
 

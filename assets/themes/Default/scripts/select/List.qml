@@ -6,6 +6,7 @@ PathView {
 
     readonly property bool movingInAnyWay: movingManually || flicking || moving || dragging
     property bool movingManually: false
+    property bool scrollingText: false
 
     function decrementViewIndex() {
         decrementCurrentIndex();
@@ -90,10 +91,23 @@ PathView {
     Keys.onUpPressed: {
         decrementViewIndex();
     }
+    onCurrentItemChanged: {
+        scrollingTextTimer.restart();
+        scrollingText = false;
+    }
     onModelChanged: {
         model.minimumAmount = pathItemCount;
     }
 
+    Timer {
+        id: scrollingTextTimer
+
+        interval: 500
+
+        onTriggered: {
+            scrollingText = true;
+        }
+    }
     Timer {
         id: movingTimer
 

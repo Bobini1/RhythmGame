@@ -8,7 +8,7 @@ Image {
         anchors.rightMargin: 30
         color: "black"
         height: parent.height
-        scrolling: isCurrentItem
+        scrolling: isCurrentItem && pathView.scrollingText
         text: display
         width: parent.width * 0.7
     }
