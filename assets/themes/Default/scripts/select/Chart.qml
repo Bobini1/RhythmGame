@@ -38,7 +38,7 @@ Image {
         anchors.rightMargin: 30
         color: (display.keymode === ChartData.Keymode.K14) ? "red" : "black"
         height: parent.height
-        scrolling: isCurrentItem
+        scrolling: isCurrentItem && !pathView.movingInAnyWay
         text: display.title + (display.subtitle ? (" " + display.subtitle) : "")
         width: parent.width * 0.7
     }
