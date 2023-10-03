@@ -12,20 +12,32 @@ Pane {
     property string rootUrl: globalRoot.urlToPath(Qt.resolvedUrl(".").toString())
 
     RowLayout {
-        anchors.fill: parent
+        anchors.left: parent.left
+        anchors.top: parent.top
+        height: parent.height
+        width: parent.width / 2
 
         StageFile {
-            Layout.alignment: Qt.AlignLeft
+            Layout.alignment: Qt.AlignLeft | Qt.AlignTop
+            Layout.leftMargin: 80
             Layout.preferredHeight: 480
             Layout.preferredWidth: 640
+            Layout.topMargin: 120
         }
-        List {
-            id: songList
+        Banner {
+            Layout.alignment: Qt.AlignLeft | Qt.AlignTop
+            Layout.leftMargin: 80
+            Layout.preferredHeight: 80
+            Layout.preferredWidth: 300
+            Layout.topMargin: 200
+        }
+    }
+    List {
+        id: songList
 
-            Layout.alignment: Qt.AlignRight
-            Layout.fillHeight: true
-            Layout.preferredWidth: parent.width / 2
-        }
+        anchors.right: parent.right
+        height: parent.height
+        width: parent.width / 2
     }
     Shortcut {
         enabled: active
