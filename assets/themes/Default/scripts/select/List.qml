@@ -45,25 +45,25 @@ PathView {
         source: display instanceof ChartData ? "Chart.qml" : "Folder.qml"
     }
     path: Path {
-        startX: pathView.width - 350
+        startX: pathView.width - 300
         startY: -100
 
         PathLine {
-            x: pathView.width - 475
+            x: pathView.width - 400
             y: pathView.height / 2
         }
         PathPercent {
             value: 0.5
         }
         PathLine {
-            x: pathView.width - 375 - 100 - (200 / pathView.pathItemCount) * 1.75
+            x: pathView.width - 300 - 100 - (200 / pathView.pathItemCount) * 1.75
             y: pathView.height / 2 + ((pathView.height + 200) / pathView.pathItemCount) * 1.75
         }
         PathPercent {
             value: 0.5 + (1 / pathView.pathItemCount)
         }
         PathLine {
-            x: pathView.width - 375 - 200 - (200 / pathView.pathItemCount) * 0.75
+            x: pathView.width - 300 - 200 - (200 / pathView.pathItemCount) * 0.75
             y: (pathView.height + 100) + ((pathView.height + 200) / pathView.pathItemCount) * 0.75
         }
     }
@@ -107,6 +107,7 @@ PathView {
         id: selector
 
         anchors.centerIn: parent
+        anchors.horizontalCenterOffset: 75
         anchors.verticalCenterOffset: 30
         source: iniImagesUrl + "folders.png/frame"
         z: pathView.count + 1
