@@ -23,6 +23,9 @@ gameplay_logic::ChartData::ChartData(QString title,
                                      bool isRandom,
                                      int noteCount,
                                      int64_t length,
+                                     double bpm,
+                                     double maxBpm,
+                                     double minBpm,
                                      QString path,
                                      QString directoryInDb,
                                      QString sha256,
@@ -44,6 +47,9 @@ gameplay_logic::ChartData::ChartData(QString title,
   , isRandom(isRandom)
   , noteCount(noteCount)
   , length(length)
+  , initialBpm(bpm)
+  , maxBpm(maxBpm)
+  , minBpm(minBpm)
   , path(std::move(path))
   , directoryInDb(std::move(directoryInDb))
   , sha256(std::move(sha256))
@@ -116,9 +122,10 @@ gameplay_logic::ChartData::save(db::SqliteCppDb& db) const -> void
     static thread_local auto query = db.createStatement(
       "INSERT OR REPLACE INTO charts (title, artist, subtitle, subartist, "
       "genre, stage_file, banner, back_bmp, rank, total, play_level, "
-      "difficulty, is_random, note_count, length, path, directory_in_db, "
-      "sha256, keymode) "
-      "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);");
+      "difficulty, is_random, note_count, length, initial_bpm, max_bpm, "
+      "min_bpm, path, directory_in_db, sha256, keymode) "
+      "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, "
+      "?);");
     query.reset();
     query.bind(1, title.toStdString());
     query.bind(2, artist.toStdString());
@@ -135,10 +142,13 @@ gameplay_logic::ChartData::save(db::SqliteCppDb& db) const -> void
     query.bind(13, isRandom);
     query.bind(14, noteCount);
     query.bind(15, length);
-    query.bind(16, path.toStdString());
-    query.bind(17, directoryInDb.toStdString());
-    query.bind(18, sha256.toStdString());
-    query.bind(19, static_cast<int>(keymode));
+    query.bind(16, initialBpm);
+    query.bind(17, maxBpm);
+    query.bind(18, minBpm);
+    query.bind(19, path.toStdString());
+    query.bind(20, directoryInDb.toStdString());
+    query.bind(21, sha256.toStdString());
+    query.bind(22, static_cast<int>(keymode));
     query.execute();
 }
 auto
@@ -173,6 +183,9 @@ gameplay_logic::ChartData::load(
       static_cast<bool>(chartDataDto.isRandom),
       chartDataDto.noteCount,
       chartDataDto.length,
+      chartDataDto.initialBpm,
+      chartDataDto.maxBpm,
+      chartDataDto.minBpm,
       QString::fromStdString(chartDataDto.path),
       QString::fromStdString(chartDataDto.directoryInDb),
       QString::fromStdString(chartDataDto.sha256),
@@ -208,4 +221,19 @@ auto
 gameplay_logic::ChartData::getDirectory() const -> QString
 {
     return QUrl::fromLocalFile(path).adjusted(QUrl::RemoveFilename).path();
+}
+auto
+gameplay_logic::ChartData::getInitialBpm() const -> double
+{
+    return initialBpm;
+}
+auto
+gameplay_logic::ChartData::getMaxBpm() const -> double
+{
+    return maxBpm;
+}
+auto
+gameplay_logic::ChartData::getMinBpm() const -> double
+{
+    return minBpm;
 }

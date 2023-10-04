@@ -119,6 +119,22 @@ ChartDataFactory::loadChartData(
             break;
         }
     }
+    // get initial bpm
+    auto initialBpm = calculatedNotesData.bpmChanges[0]; // guaranteed to exist
+    // get max bpm
+    auto maxBpm = initialBpm;
+    for (const auto& bpmChange : calculatedNotesData.bpmChanges) {
+        if (bpmChange.second > maxBpm.second) {
+            maxBpm = bpmChange;
+        }
+    }
+    // get min bpm
+    auto minBpm = initialBpm;
+    for (const auto& bpmChange : calculatedNotesData.bpmChanges) {
+        if (bpmChange.second < minBpm.second) {
+            minBpm = bpmChange;
+        }
+    }
     auto chartData = std::make_unique<gameplay_logic::ChartData>(
       QString::fromStdString(parsedChart.tags.title.value_or("")),
       QString::fromStdString(parsedChart.tags.artist.value_or("")),
@@ -135,6 +151,9 @@ ChartDataFactory::loadChartData(
       parsedChart.tags.isRandom,
       noteCount,
       lastNoteTimestamp.count(),
+      initialBpm.second,
+      maxBpm.second,
+      minBpm.second,
       QFileInfo{ chartPath }.absoluteFilePath(),
       std::move(directoryInDb),
       QString::fromStdString(hash),

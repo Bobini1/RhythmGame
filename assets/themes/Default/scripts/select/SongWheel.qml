@@ -42,6 +42,11 @@ Pane {
     }
     Image {
         anchors.left: parent.left
+        anchors.leftMargin: -20
+        anchors.top: parent.top
+        height: 1080
+        source: iniImagesUrl + "parts.png/containers"
+        width: 1920
 
         anchors.right: parent.right
         anchors.rightMargin: 42
