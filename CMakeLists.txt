@@ -133,7 +133,9 @@ qt_add_library(RhythmGame_lib OBJECT src/db/SqliteCppDb.cpp src/db/SqliteCppDb.h
         src/qml_components/ProfileList.cpp
         src/qml_components/ProfileList.h
         src/qml_components/InputItem.cpp
-        src/qml_components/InputItem.h)
+        src/qml_components/InputItem.h
+        src/qml_components/PreviewFilePathFetcher.cpp
+        src/qml_components/PreviewFilePathFetcher.h)
 
 find_package(Threads REQUIRED)
 

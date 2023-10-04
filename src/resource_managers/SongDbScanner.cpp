@@ -6,6 +6,8 @@
 #include "SongDbScanner.h"
 #include "db/SqliteCppDb.h"
 #include "support/PathToQString.h"
+#include "support/PathToUtfString.h"
+#include "support/toLower.h"
 
 namespace resource_managers {
 SongDbScanner::SongDbScanner(db::SqliteCppDb* db)
@@ -78,14 +80,18 @@ loadChart(QThreadPool& threadPool,
     });
 }
 
-auto
-getParentDirectory(const QString& dir) -> QString
+void
+addPreviewFileToDb(db::SqliteCppDb& db,
+                   const std::filesystem::path& directory,
+                   const std::filesystem::path& path)
 {
-    auto lastSlashIndex = dir.lastIndexOf("/");
-    auto parentDirectory = dir;
-    parentDirectory.remove(lastSlashIndex + 1,
-                           parentDirectory.size() - lastSlashIndex - 1);
-    return parentDirectory;
+    thread_local static auto statement = db.createStatement(
+      "INSERT OR REPLACE INTO preview_files (path, directory) "
+      "VALUES (?, ?)");
+    statement.reset();
+    statement.bind(1, support::pathToUtfString(path));
+    statement.bind(2, support::pathToUtfString(directory / ""));
+    statement.execute();
 }
 
 void
@@ -113,6 +119,14 @@ scanFolder(std::filesystem::path directory,
                 continue;
             }
             loadChart(threadPool, db, parentDirectoryInDb, path);
+            // converting to string should break stuff even on windows in this
+            // case
+        } else if (path.filename().string().starts_with("preview") &&
+                   (extension == ".mp3" || extension == ".ogg" ||
+                    extension == ".wav" || extension == ".flac")) {
+            threadPool.start([&db, directory, path] {
+                addPreviewFileToDb(db, directory, path);
+            });
         }
     }
     for (const auto& entry : directoriesToScan) {

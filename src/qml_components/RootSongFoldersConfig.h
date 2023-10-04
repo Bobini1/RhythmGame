@@ -48,6 +48,9 @@ class RootSongFoldersConfig : public QObject
     db::SqliteCppDb::Statement removeNoteDataStartingWith = db->createStatement(
       "DELETE FROM note_data WHERE sha256 IN (SELECT sha256 "
       "FROM charts WHERE path LIKE :path || '%')");
+    db::SqliteCppDb::Statement removePreviewFilesStartingWith =
+      db->createStatement("DELETE FROM preview_files WHERE path LIKE :path || "
+                          "'%'");
     db::SqliteCppDb::Statement getDistinctDirectoryInDb =
       db->createStatement("SELECT DISTINCT directory_in_db FROM charts");
     db::SqliteCppDb::Statement addParentDir =

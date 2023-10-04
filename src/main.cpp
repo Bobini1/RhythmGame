@@ -25,6 +25,7 @@
 #include "support/PathToQString.h"
 #include "qml_components/ProfileList.h"
 #include "qml_components/InputItem.h"
+#include "qml_components/PreviewFilePathFetcher.h"
 
 #include <iostream>
 
@@ -228,6 +229,14 @@ main(int argc, char* argv[]) -> int
         auto songFolderFactory = qml_components::SongFolderFactory{ &db };
         qmlRegisterSingletonInstance(
           "RhythmGameQml", 1, 0, "SongFolderFactory", &songFolderFactory);
+
+        auto previewFilePathFetcher =
+          qml_components::PreviewFilePathFetcher{ &db };
+        qmlRegisterSingletonInstance("RhythmGameQml",
+                                     1,
+                                     0,
+                                     "PreviewFilePathFetcher",
+                                     &previewFilePathFetcher);
 
         // add all other common types
 

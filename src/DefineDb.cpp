@@ -64,4 +64,11 @@ defineDb(db::SqliteCppDb& db)
                "id INTEGER PRIMARY KEY CHECK (id = 1),"
                "path TEXT NOT NULL UNIQUE"
                ");");
+
+    // preview files
+    db.execute("CREATE TABLE IF NOT EXISTS preview_files ("
+               "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+               "path TEXT NOT NULL,"
+               "directory TEXT NOT NULL UNIQUE"
+               ");");
 }

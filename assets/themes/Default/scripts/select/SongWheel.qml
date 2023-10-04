@@ -2,6 +2,7 @@ import QtQuick
 import RhythmGameQml
 import QtQuick.Layouts
 import QtQuick.Controls.Basic
+import QtMultimedia
 
 Pane {
     id: root
@@ -76,6 +77,23 @@ Pane {
 
         onActivated: {
             sceneStack.pop();
+        }
+    }
+    MediaPlayer {
+        id: playMusic
+
+        source: songList.current instanceof ChartData ? PreviewFilePathFetcher.getPreviewFilePath(songList.current.directory) : ""
+
+        audioOutput: AudioOutput {
+            id: audioOutput
+
+        }
+
+        onSourceChanged: {
+            if (playMusic.source !== "") {
+                playMusic.play();
+            }
+            console.info("playMusic.source: " + playMusic.source);
         }
     }
 }

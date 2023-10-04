@@ -105,6 +105,9 @@ RootSongFoldersConfig::scanNewImpl()
         removeSongsStartingWith.reset();
         removeSongsStartingWith.bind(":path", removedFolder);
         removeSongsStartingWith.execute();
+        removePreviewFilesStartingWith.reset();
+        removePreviewFilesStartingWith.bind(":path", removedFolder);
+        removePreviewFilesStartingWith.execute();
     }
 
     // remove everything from parent_dir
@@ -176,6 +179,7 @@ RootSongFoldersConfig::scanAllImpl()
     // remove all songs
     db->execute("DELETE FROM charts");
     db->execute("DELETE FROM note_data");
+    db->execute("DELETE FROM preview_files");
 
     // scan all folders
     auto foldersVector = std::vector<std::filesystem::path>{};
@@ -200,6 +204,7 @@ RootSongFoldersConfig::clear()
         db->execute("DELETE FROM note_data");
         db->execute("DELETE FROM parent_dir");
         db->execute("DELETE FROM root_dir");
+        db->execute("DELETE FROM preview_files");
         status = Status::Ready;
         emit statusChanged();
         spdlog::info("Clearing database finished");
