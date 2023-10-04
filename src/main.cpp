@@ -39,7 +39,7 @@ qtLogHandler(QtMsgType type,
              const QMessageLogContext& /*context*/,
              const QString& msg)
 {
-    QByteArray loc = msg.toUtf8();
+    auto loc = msg.toUtf8();
 
     switch (type) {
         case QtDebugMsg:
@@ -77,8 +77,6 @@ libavLogHandler(void* /*ptr*/, int level, const char* fmt, va_list vl)
             spdlog::debug("{}", message);
             break;
         case AV_LOG_VERBOSE:
-            spdlog::info("{}", message);
-            break;
         case AV_LOG_INFO:
             spdlog::info("{}", message);
             break;
@@ -89,8 +87,6 @@ libavLogHandler(void* /*ptr*/, int level, const char* fmt, va_list vl)
             spdlog::error("{}", message);
             break;
         case AV_LOG_FATAL:
-            spdlog::critical("{}", message);
-            break;
         case AV_LOG_PANIC:
             spdlog::critical("{}", message);
             break;
