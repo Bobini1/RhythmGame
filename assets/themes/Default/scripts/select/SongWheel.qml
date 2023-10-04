@@ -32,8 +32,16 @@ Pane {
             Layout.topMargin: 200
         }
     }
+    Selector {
+        anchors.right: parent.right
+        anchors.rightMargin: 42
+        anchors.verticalCenter: parent.verticalCenter
+        anchors.verticalCenterOffset: -50
+        currentItem: songList.current
+        z: songList.count + 1
+    }
     Image {
-        id: selector
+        anchors.left: parent.left
 
         anchors.right: parent.right
         anchors.rightMargin: 42
@@ -46,6 +54,8 @@ Pane {
         id: songList
 
         anchors.right: parent.right
+        anchors.top: parent.top
+        anchors.topMargin: -40
         height: parent.height
         width: parent.width / 2
     }
