@@ -49,15 +49,10 @@ PathView {
     path: Path {
         id: path
 
-        property double gap: 0.87
+        property double gap: 0.88
 
         startX: pathView.width - 300
         startY: pathView.y - 100
-
-        Component.onCompleted: {
-            console.info(startX, startY);
-            console.info(pathView.x + pathView.width - 400, pathView.y + pathView.height / 2);
-        }
 
         PathLine {
             x: pathView.width - 400
