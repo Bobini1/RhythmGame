@@ -47,13 +47,19 @@ Pane {
         height: 1080
         source: iniImagesUrl + "parts.png/containers"
         width: 1920
+    }
+    ScrollBar {
+        id: vbar
 
+        active: true
+        anchors.bottom: parent.bottom
+        anchors.bottomMargin: 0
         anchors.right: parent.right
-        anchors.rightMargin: 42
-        anchors.verticalCenter: parent.verticalCenter
-        anchors.verticalCenterOffset: 30
-        source: iniImagesUrl + "folders.png/frame"
-        z: pathView.count + 1
+        anchors.rightMargin: 0
+        anchors.top: parent.top
+        hoverEnabled: true
+        orientation: Qt.Vertical
+        size: songList.height
     }
     List {
         id: songList

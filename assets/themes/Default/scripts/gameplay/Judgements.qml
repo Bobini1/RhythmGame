@@ -133,4 +133,17 @@ Item {
 
         target: chart.score
     }
+    // preload images
+    Image {
+        height: 0
+        source: root.iniImagesUrl + "judge.png/pgreat"
+        visible: false
+        width: 0
+    }
+    Image {
+        height: 0
+        source: root.iniImagesUrl + "judge.png/pgreat_0"
+        visible: false
+        width: 0
+    }
 }
