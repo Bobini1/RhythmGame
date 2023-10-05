@@ -29,7 +29,7 @@ Item {
 
             Text {
                 color: label.color
-                font.pixelSize: 20
+                font.pixelSize: label.font.pixelSize
                 horizontalAlignment: Text.AlignLeft
                 leftPadding: 5
                 text: label.text

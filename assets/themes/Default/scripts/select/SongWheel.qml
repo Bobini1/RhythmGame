@@ -50,6 +50,7 @@ Pane {
         anchors.verticalCenter: parent.verticalCenter
         anchors.verticalCenterOffset: -50
         currentItem: songList.current
+        scrollingText: songList.scrollingText
         z: songList.count + 1
     }
     Image {

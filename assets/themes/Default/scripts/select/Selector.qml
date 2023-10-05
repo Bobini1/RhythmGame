@@ -5,6 +5,7 @@ Image {
     id: selector
 
     property var currentItem: null
+    property bool scrollingText: false
 
     source: iniImagesUrl + "folders.png/frame"
 
@@ -66,10 +67,9 @@ Image {
                 }
                 Image {
                     anchors.bottom: parent.bottom
+                    anchors.bottomMargin: 3
                     anchors.left: valuesColumn.right
                     anchors.leftMargin: 20
-                    anchors.bottomMargin: 3
-
                     source: {
                         let rank = songList.current.rank;
                         rank = Math.min(3, Math.max(0, rank));
@@ -83,6 +83,48 @@ Image {
                         case 3:
                             return root.iniImagesUrl + "parts.png/easy";
                         }
+                    }
+                }
+                Column {
+                    id: artistInfo
+
+                    anchors.bottom: parent.bottom
+                    anchors.bottomMargin: 5
+                    anchors.right: parent.right
+                    anchors.rightMargin: 60
+                    spacing: 5
+
+                    NameLabel {
+                        id: artist
+
+                        anchors.right: parent.right
+                        font.pixelSize: 20
+                        height: metrics.height
+                        scrolling: selector.scrollingText
+                        text: songList.current.artist
+                        width: 330
+                    }
+                    NameLabel {
+                        id: subartist
+
+                        anchors.right: parent.right
+                        font.pixelSize: 15
+                        height: metricsSmall.height
+                        scrolling: selector.scrollingText
+                        text: songList.current.subartist
+                        width: 330
+                    }
+                    TextMetrics {
+                        id: metrics
+
+                        font: artist.font
+                        text: "z"
+                    }
+                    TextMetrics {
+                        id: metricsSmall
+
+                        font: subartist.font
+                        text: "z"
                     }
                 }
             }
