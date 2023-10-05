@@ -19,8 +19,6 @@ Image {
                 anchors.bottomMargin: 10
                 anchors.fill: parent
                 anchors.leftMargin: 50
-                height: childrenRect.height
-                width: childrenRect.width
 
                 Column {
                     id: labels
