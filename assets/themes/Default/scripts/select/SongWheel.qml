@@ -13,6 +13,16 @@ Pane {
     readonly property string iniImagesUrl: "image://ini/" + rootUrl + "images/"
     property string rootUrl: globalRoot.urlToPath(Qt.resolvedUrl(".").toString())
 
+    onActiveChanged: {
+        if (active) {
+            previewDelayTimer.restart();
+        } else {
+            playMusic.stop();
+            previewDelayTimer.stop();
+            playMusic.waitingForStop = false;
+        }
+    }
+
     RowLayout {
         anchors.left: parent.left
         anchors.top: parent.top
@@ -83,6 +93,8 @@ Pane {
     MediaPlayer {
         id: playMusic
 
+        property bool waitingForStop: false
+
         loops: MediaPlayer.Infinite
         source: songList.current instanceof ChartData ? PreviewFilePathFetcher.getPreviewFilePath(songList.current.directory) : ""
 
@@ -96,16 +108,15 @@ Pane {
             previewDelayTimer.stop();
             waitingForStop = playMusic.source !== "";
         }
-
-        property bool waitingForStop: false
     }
     Connections {
-        target: songList
         function onMovingInAnyWayChanged() {
             if (playMusic.waitingForStop) {
                 previewDelayTimer.restart();
             }
         }
+
+        target: songList
     }
     Timer {
         id: previewDelayTimer
