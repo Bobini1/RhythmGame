@@ -23,8 +23,8 @@ Image {
                 Column {
                     id: labels
 
-                    anchors.left: parent.left
                     anchors.bottom: parent.bottom
+                    anchors.left: parent.left
                     spacing: 0
 
                     Text {
@@ -64,29 +64,24 @@ Image {
                         text: songList.current.keymode
                     }
                 }
-                Item {
+                Image {
                     anchors.bottom: parent.bottom
                     anchors.left: valuesColumn.right
-                    width: 200
-                    height: parent.height / 4
-                    anchors.leftMargin: 10
+                    anchors.leftMargin: 20
+                    anchors.bottomMargin: 3
 
-                    Image {
-                        anchors.centerIn: parent
-                        anchors.verticalCenterOffset: 4
-                        source: {
-                            let rank = songList.current.rank;
-                            rank = Math.min(3, Math.max(0, rank));
-                            switch (rank) {
-                            case 0:
-                                return root.iniImagesUrl + "parts.png/very_hard";
-                            case 1:
-                                return root.iniImagesUrl + "parts.png/hard";
-                            case 2:
-                                return root.iniImagesUrl + "parts.png/normal";
-                            case 3:
-                                return root.iniImagesUrl + "parts.png/easy";
-                            }
+                    source: {
+                        let rank = songList.current.rank;
+                        rank = Math.min(3, Math.max(0, rank));
+                        switch (rank) {
+                        case 0:
+                            return root.iniImagesUrl + "parts.png/very_hard";
+                        case 1:
+                            return root.iniImagesUrl + "parts.png/hard";
+                        case 2:
+                            return root.iniImagesUrl + "parts.png/normal";
+                        case 3:
+                            return root.iniImagesUrl + "parts.png/easy";
                         }
                     }
                 }
