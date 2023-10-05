@@ -45,7 +45,7 @@ Item {
         PropertyAnimation {
             id: longTextAnimation
 
-            duration: 10 * textMetrics.width + label.spacing
+            duration: 10 * (textMetrics.width + label.spacing)
             from: 0
             loops: Animation.Infinite
             property: "x"
