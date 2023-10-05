@@ -92,8 +92,8 @@ Pane {
         onSourceChanged: {
             if (playMusic.source !== "") {
                 playMusic.play();
+                console.info("length", playMusic.duration);
             }
-            console.info("playMusic.source: " + playMusic.source);
         }
     }
 }
