@@ -3,6 +3,7 @@ import RhythmGameQml
 import QtQuick.Layouts
 import QtQuick.Controls.Basic
 import QtMultimedia
+import QtQml
 
 Pane {
     id: root
@@ -82,6 +83,7 @@ Pane {
     MediaPlayer {
         id: playMusic
 
+        loops: MediaPlayer.Infinite
         source: songList.current instanceof ChartData ? PreviewFilePathFetcher.getPreviewFilePath(songList.current.directory) : ""
 
         audioOutput: AudioOutput {
@@ -90,10 +92,28 @@ Pane {
         }
 
         onSourceChanged: {
-            if (playMusic.source !== "") {
-                playMusic.play();
-                console.info("length", playMusic.duration);
+            playMusic.stop();
+            previewDelayTimer.stop();
+            waitingForStop = playMusic.source !== "";
+        }
+
+        property bool waitingForStop: false
+    }
+    Connections {
+        target: songList
+        function onMovingInAnyWayChanged() {
+            if (playMusic.waitingForStop) {
+                previewDelayTimer.restart();
             }
+        }
+    }
+    Timer {
+        id: previewDelayTimer
+
+        interval: 300
+
+        onTriggered: {
+            playMusic.play();
         }
     }
 }
