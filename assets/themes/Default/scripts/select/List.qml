@@ -33,8 +33,6 @@ PathView {
     highlightMoveDuration: 100
     model: SongFolderFactory.open("/")
     pathItemCount: 16
-
-    // selected item should be in the middle of the arc
     preferredHighlightBegin: 0.5
     preferredHighlightEnd: 0.5
     snapMode: PathView.SnapToItem
