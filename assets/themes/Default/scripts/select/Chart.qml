@@ -5,8 +5,33 @@ import RhythmGameQml
 Image {
     id: image
 
+    readonly property string clearType: {
+        let scores = ScoreDb.getScoresForChart(display.sha256);
+        let clearTypePriorities = ["NOPLAY", "FAILED", "AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC"];
+        let clearType = "NOPLAY";
+        for (let i = 0; i < scores.length; i++) {
+            let score = scores[i];
+            if (score.clearType === "FC") {
+                return "FC";
+            }
+            if (clearTypePriorities.indexOf(score.clearType) > clearTypePriorities.indexOf(clearType)) {
+                clearType = score.clearType;
+            }
+        }
+        return clearType;
+    }
+
     source: root.iniImagesUrl + "folders.png/white"
 
+    Image {
+        id: clearImage
+
+        anchors.left: parent.left
+        anchors.leftMargin: 18
+        anchors.top: parent.top
+        anchors.topMargin: 9
+        source: root.iniImagesUrl + "parts.png/" + image.clearType
+    }
     Text {
         id: playlevelText
 
