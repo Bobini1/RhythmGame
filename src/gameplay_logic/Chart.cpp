@@ -65,7 +65,7 @@ Chart::updateElapsed()
         position = newPosition;
         emit positionChanged(delta);
     }
-    if (gameReferee->isOver()) {
+    if (chartData->getLength() <= elapsed) {
         propertyUpdateTimer.stop();
         emit over();
     }

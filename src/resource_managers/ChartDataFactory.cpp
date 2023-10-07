@@ -108,6 +108,7 @@ ChartDataFactory::loadChartData(
             lastNoteTimestamp = lastNote.time.timestamp;
         }
     }
+    auto endTimestamp = lastNoteTimestamp + std::chrono::seconds{ 3 };
     // find keymode
     auto keymode = gameplay_logic::ChartData::Keymode::K7;
     const auto startColumn = calculatedNotesData.visibleNotes.size() / 2;
@@ -150,7 +151,7 @@ ChartDataFactory::loadChartData(
       parsedChart.tags.difficulty.value_or(1),
       parsedChart.tags.isRandom,
       noteCount,
-      lastNoteTimestamp.count(),
+      endTimestamp.count(),
       initialBpm.second,
       maxBpm.second,
       minBpm.second,
