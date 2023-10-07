@@ -89,18 +89,7 @@ auto
 gameplay_logic::BmsResult::load(db::SqliteCppDb& db, int64_t scoreId)
   -> std::unique_ptr<BmsResult>
 {
-    auto statement = db.createStatement("SELECT "
-                                        "max_points, "
-                                        "max_hits, "
-                                        "clear_type, "
-                                        "points, "
-                                        "max_combo, "
-                                        "poor, "
-                                        "empty_poor, "
-                                        "bad, "
-                                        "good, "
-                                        "great, "
-                                        "perfect "
+    auto statement = db.createStatement("SELECT * "
                                         "FROM score_results "
                                         "WHERE score_id = ?");
     statement.bind(1, scoreId);
@@ -124,4 +113,14 @@ gameplay_logic::BmsResult::load(db::SqliteCppDb& db, int64_t scoreId)
       judgementCounts,
       result->points,
       result->maxCombo);
+}
+auto
+gameplay_logic::BmsResult::setId(int64_t newId) -> void
+{
+    id = newId;
+}
+auto
+gameplay_logic::BmsResult::getId() const -> int64_t
+{
+    return id;
 }

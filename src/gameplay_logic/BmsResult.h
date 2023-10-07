@@ -21,7 +21,9 @@ class BmsResult : public QObject
     Q_PROPERTY(int maxCombo READ getMaxCombo CONSTANT)
     Q_PROPERTY(QList<int> judgementCounts READ getJudgementCounts CONSTANT)
     Q_PROPERTY(QString clearType READ getClearType CONSTANT)
+    Q_PROPERTY(int64_t id READ getId CONSTANT)
 
+    int64_t id = -1;
     double maxPoints;
     int maxHits;
     QString clearType;
@@ -32,6 +34,7 @@ class BmsResult : public QObject
 
     struct BmsResultDto
     {
+        int64_t id;
         double maxPoints;
         int maxHits;
         std::string clearType;
@@ -60,6 +63,8 @@ class BmsResult : public QObject
     auto getMaxCombo() const -> int;
     auto getJudgementCounts() const -> QList<int>;
     auto getClearType() const -> QString;
+    auto setId(int64_t id) -> void;
+    auto getId() const -> int64_t;
 
     auto save(db::SqliteCppDb& db, support::Sha256 sha256) const -> int64_t;
     static auto load(db::SqliteCppDb& db, int64_t scoreId)
