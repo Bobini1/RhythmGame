@@ -12,7 +12,6 @@ Chart::Chart(QFuture<gameplay_logic::BmsGameReferee> refereeFuture,
              ChartData* chartData,
              BmsNotes* notes,
              BmsScore* score,
-             charts::gameplay_models::BmsNotesData::Time timeBeforeChartStart,
              std::function<db::SqliteCppDb&()> scoreDb,
              QObject* parent)
   : QObject(parent)
@@ -22,8 +21,6 @@ Chart::Chart(QFuture<gameplay_logic::BmsGameReferee> refereeFuture,
   , score(score)
   , refereeFuture(std::move(refereeFuture))
   , scoreDb(std::move(scoreDb))
-  , elapsed(-timeBeforeChartStart.timestamp.count())
-  , position(-timeBeforeChartStart.position)
 {
     chartData->setParent(this);
     notes->setParent(this);
@@ -33,6 +30,14 @@ Chart::Chart(QFuture<gameplay_logic::BmsGameReferee> refereeFuture,
             this,
             &Chart::setReferee);
     refereeFutureWatcher.setFuture(this->refereeFuture);
+
+    setTimeBeforeChartStart(
+      std::chrono::duration_cast<std::chrono::nanoseconds>(
+        std::chrono::seconds{ 1 })
+        .count());
+    setTimeAfterChartEnd(std::chrono::duration_cast<std::chrono::nanoseconds>(
+                           std::chrono::seconds{ 3 })
+                           .count());
 }
 
 void
@@ -54,18 +59,11 @@ void
 Chart::updateElapsed()
 {
     auto offset = std::chrono::steady_clock::now() - startTimepoint;
-    if (auto nanos = offset.count(); nanos != elapsed) {
-        auto delta = nanos - elapsed;
-        elapsed = nanos;
-        emit elapsedChanged(delta);
-    }
+    offset -= std::chrono::nanoseconds(timeBeforeChartStart);
+    setElapsed(offset.count());
     auto newPosition = gameReferee->update(offset);
-    if (newPosition != position) {
-        auto delta = newPosition - position;
-        position = newPosition;
-        emit positionChanged(delta);
-    }
-    if (chartData->getLength() <= elapsed) {
+    setPosition(newPosition);
+    if (chartData->getLength() + timeAfterChartEnd <= elapsed) {
         propertyUpdateTimer.stop();
         emit over();
     }
@@ -98,7 +96,10 @@ Chart::passKey(QKeyEvent* keyEvent)
                 (timestamp - startTimepoint).count(),
                 std::nullopt });
         } else {
-            gameReferee->passInput(timestamp - startTimepoint, *bmsKey);
+            gameReferee->passInput(
+              timestamp - startTimepoint -
+                std::chrono::nanoseconds(timeBeforeChartStart),
+              *bmsKey);
         }
         return;
     }
@@ -179,6 +180,68 @@ Chart::finish() -> BmsScoreAftermath*
     } catch (const std::exception& e) {
         spdlog::error("Failed to save score: {}", e.what());
         return nullptr;
+    }
+}
+auto
+Chart::getTimeBeforeChartStart() const -> int64_t
+{
+    return timeBeforeChartStart;
+}
+auto
+Chart::getTimeAfterChartEnd() const -> int64_t
+{
+    return timeAfterChartEnd;
+}
+void
+Chart::setTimeBeforeChartStart(int64_t timeBeforeChartStart)
+{
+    if (timeBeforeChartStart < 0) {
+        spdlog::warn("Time before chart start cannot be negative");
+        return;
+    }
+    if (startRequested) {
+        spdlog::warn("Cannot change time before chart start after starting");
+        return;
+    }
+    if (timeBeforeChartStart == this->timeBeforeChartStart) {
+        return;
+    }
+    this->timeBeforeChartStart = timeBeforeChartStart;
+    auto beatsBeforeChartStart =
+      std::chrono::duration<double>(timeBeforeChartStart).count() *
+      notes->getBpmChanges().first().bpm / 60;
+    setElapsed(-timeBeforeChartStart);
+    setPosition(-beatsBeforeChartStart);
+}
+void
+Chart::setTimeAfterChartEnd(int64_t newTimeAfterChartEnd)
+{
+    if (newTimeAfterChartEnd < 0) {
+        spdlog::warn("Time after chart end cannot be negative");
+        return;
+    }
+    if (newTimeAfterChartEnd == timeAfterChartEnd) {
+        return;
+    }
+    timeAfterChartEnd = newTimeAfterChartEnd;
+    emit timeAfterChartEndChanged();
+}
+void
+Chart::setElapsed(int64_t newElapsed)
+{
+    if (newElapsed != elapsed) {
+        auto delta = newElapsed - elapsed;
+        elapsed = newElapsed;
+        emit elapsedChanged(delta);
+    }
+}
+void
+Chart::setPosition(double newPosition)
+{
+    if (newPosition != position) {
+        auto delta = newPosition - position;
+        position = newPosition;
+        emit positionChanged(delta);
     }
 }
 } // namespace gameplay_logic

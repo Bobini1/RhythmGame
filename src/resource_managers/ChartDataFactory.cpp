@@ -89,7 +89,8 @@ ChartDataFactory::loadChartData(
     auto url = QUrl::fromLocalFile(chartPath);
     auto chart = loadFile(url);
     auto hash = support::sha256(chart);
-    auto parsedChart = chartReader.readBmsChart(chart, randomGenerator);
+    auto parsedChart =
+      chartReader.readBmsChart(chart, std::move(randomGenerator));
     auto calculatedNotesData =
       charts::gameplay_models::BmsNotesData{ parsedChart };
     auto noteCount = 0;
@@ -108,7 +109,6 @@ ChartDataFactory::loadChartData(
             lastNoteTimestamp = lastNote.time.timestamp;
         }
     }
-    auto endTimestamp = lastNoteTimestamp + std::chrono::seconds{ 3 };
     // find keymode
     auto keymode = gameplay_logic::ChartData::Keymode::K7;
     const auto startColumn = calculatedNotesData.visibleNotes.size() / 2;
@@ -151,7 +151,7 @@ ChartDataFactory::loadChartData(
       parsedChart.tags.difficulty.value_or(1),
       parsedChart.tags.isRandom,
       noteCount,
-      endTimestamp.count(),
+      lastNoteTimestamp.count(),
       initialBpm.second,
       maxBpm.second,
       minBpm.second,

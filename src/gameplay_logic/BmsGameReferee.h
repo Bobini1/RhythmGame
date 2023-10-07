@@ -35,7 +35,6 @@ class BmsGameReferee
     std::span<std::pair<charts::gameplay_models::BmsNotesData::Time, double>>
       currentBpmChanges;
     std::unordered_map<std::string, sounds::OpenALSound> sounds;
-    charts::gameplay_models::BmsNotesData::Time timeBeforeChartStart;
     std::unique_ptr<rules::BmsHitRules> hitRules;
     BmsScore* score;
 
@@ -59,8 +58,7 @@ class BmsGameReferee
       const charts::gameplay_models::BmsNotesData& notesData,
       BmsScore* score,
       std::unordered_map<std::string, sounds::OpenALSound> sounds,
-      std::unique_ptr<rules::BmsHitRules> hitRules,
-      charts::gameplay_models::BmsNotesData::Time timeBeforeChartStart);
+      std::unique_ptr<rules::BmsHitRules> hitRules);
     /**
      * @brief Update the internal state of the referee
      * @param offsetFromStart The current time offset from the start of the

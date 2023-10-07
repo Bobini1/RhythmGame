@@ -9,15 +9,12 @@ gameplay_logic::BmsGameReferee::BmsGameReferee(
   const charts::gameplay_models::BmsNotesData& notesData,
   BmsScore* score,
   std::unordered_map<std::string, sounds::OpenALSound> sounds,
-  std::unique_ptr<rules::BmsHitRules> hitRules,
-  charts::gameplay_models::BmsNotesData::Time timeBeforeChartStart)
+  std::unique_ptr<rules::BmsHitRules> hitRules)
   : bpmChanges(notesData.bpmChanges)
   , sounds(std::move(sounds))
-  , timeBeforeChartStart(timeBeforeChartStart)
   , hitRules(std::move(hitRules))
   , score(score)
 {
-    bpmChanges[0].first -= timeBeforeChartStart;
     for (int i = 0; i < charts::gameplay_models::BmsNotesData::columnNumber;
          i++) {
         for (const auto& note : notesData.visibleNotes[i]) {
@@ -55,7 +52,6 @@ auto
 gameplay_logic::BmsGameReferee::update(std::chrono::nanoseconds offsetFromStart,
                                        bool lastUpdate) -> Position
 {
-    offsetFromStart -= timeBeforeChartStart.timestamp;
     auto misses = QVector<Miss>{};
     for (auto columnIndex = 0; columnIndex < currentVisibleNotes.size();
          columnIndex++) {
@@ -96,7 +92,6 @@ gameplay_logic::BmsGameReferee::passInput(
   std::chrono::nanoseconds offsetFromStart,
   input::BmsKey key) -> void
 {
-    offsetFromStart -= timeBeforeChartStart.timestamp;
     auto columnIndex = static_cast<int>(key);
     if (columnIndex < 0 ||
         columnIndex >= charts::gameplay_models::BmsNotesData::columnNumber) {
@@ -138,6 +133,9 @@ gameplay_logic::BmsGameReferee::getPosition(
           return bpmChange.first.timestamp >= offsetFromStart;
       });
     bpmChange--;
+    if (offsetFromStart.count() < 0) {
+        bpmChange = currentBpmChanges.begin();
+    }
     auto bpm = bpmChange->second;
     auto bpmChangeTime = bpmChange->first.timestamp;
     auto bpmChangePosition = bpmChange->first.position;

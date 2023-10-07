@@ -18,38 +18,22 @@ ChartFactory::createChart(
       std::filesystem::path(chartData->getPath().toStdString()).parent_path();
     auto* score = new gameplay_logic::BmsScore(
       chartData->getNoteCount(), maxHitValue, std::move(gauges));
-    auto beatsBeforeChartStart =
-      std::chrono::duration<double>(timeBeforeChartStart).count() *
-      notes->getBpmChanges().first().bpm / 60;
-    auto combinedTimeBeforeChartStart =
-      charts::gameplay_models::BmsNotesData::Time{ timeBeforeChartStart,
-                                                   beatsBeforeChartStart };
     auto task = [path,
-                 combinedTimeBeforeChartStart,
                  wavs = std::move(wavs),
                  notesData = std::move(notesData),
                  score,
                  hitRules = std::move(hitRules)]() mutable {
         auto sounds =
           charts::helper_functions::loadBmsSounds(wavs, std::move(path));
-        return gameplay_logic::BmsGameReferee(notesData,
-                                              score,
-                                              std::move(sounds),
-                                              std::move(hitRules),
-                                              combinedTimeBeforeChartStart);
+        return gameplay_logic::BmsGameReferee(
+          notesData, score, std::move(sounds), std::move(hitRules));
     };
     auto referee = QtConcurrent::run(std::move(task));
-    return new gameplay_logic::Chart(std::move(referee),
-                                     chartData.release(),
-                                     notes.release(),
-                                     score,
-                                     combinedTimeBeforeChartStart,
-                                     scoreDb);
+    return new gameplay_logic::Chart(
+      std::move(referee), chartData.release(), notes.release(), score, scoreDb);
 }
-ChartFactory::ChartFactory(std::function<db::SqliteCppDb&()> scoreDb,
-                           std::chrono::nanoseconds timeBeforeChartStart)
-  : timeBeforeChartStart(timeBeforeChartStart)
-  , scoreDb(std::move(scoreDb))
+ChartFactory::ChartFactory(std::function<db::SqliteCppDb&()> scoreDb)
+  : scoreDb(std::move(scoreDb))
 {
 }
 } // namespace resource_managers
