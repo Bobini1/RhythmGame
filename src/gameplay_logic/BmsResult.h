@@ -32,23 +32,23 @@ class BmsResult : public QObject
     double points;
     int maxCombo;
 
+  public:
     struct BmsResultDto
     {
         int64_t id;
+        std::string sha256;
+        double points;
         double maxPoints;
         int maxHits;
-        std::string clearType;
+        int maxCombo;
         int poorCount;
         int emptyPoorCount;
         int badCount;
         int goodCount;
         int greatCount;
         int perfectCount;
-        double points;
-        int maxCombo;
+        std::string clearType;
     };
-
-  public:
     explicit BmsResult(double maxPoints,
                        int maxHits,
                        QString clearType,
@@ -67,8 +67,7 @@ class BmsResult : public QObject
     auto getId() const -> int64_t;
 
     auto save(db::SqliteCppDb& db, support::Sha256 sha256) const -> int64_t;
-    static auto load(db::SqliteCppDb& db, int64_t scoreId)
-      -> std::unique_ptr<BmsResult>;
+    static auto load(const BmsResultDto& dto) -> std::unique_ptr<BmsResult>;
 };
 
 } // namespace gameplay_logic

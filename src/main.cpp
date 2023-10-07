@@ -26,6 +26,7 @@
 #include "qml_components/ProfileList.h"
 #include "qml_components/InputItem.h"
 #include "qml_components/PreviewFilePathFetcher.h"
+#include "qml_components/ScoreDb.h"
 
 #include <iostream>
 
@@ -196,8 +197,7 @@ main(int argc, char* argv[]) -> int
             return profileList.getCurrentProfile()->getDb();
         };
 
-        auto chartFactory =
-          resource_managers::ChartFactory{ std::move(scoreDb) };
+        auto chartFactory = resource_managers::ChartFactory{ scoreDb };
         auto hitRulesFactory =
           [](gameplay_logic::rules::TimingWindows timingWindows,
              std::function<double(std::chrono::nanoseconds)> hitValuesFactory) {
@@ -237,6 +237,10 @@ main(int argc, char* argv[]) -> int
                                      0,
                                      "PreviewFilePathFetcher",
                                      &previewFilePathFetcher);
+
+        auto scoreDbSingleton = qml_components::ScoreDb{ scoreDb };
+        qmlRegisterSingletonInstance(
+          "RhythmGameQml", 1, 0, "ScoreDb", &scoreDbSingleton);
 
         // add all other common types
 

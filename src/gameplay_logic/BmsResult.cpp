@@ -86,33 +86,23 @@ gameplay_logic::BmsResult::save(db::SqliteCppDb& db,
     return statement.execute();
 }
 auto
-gameplay_logic::BmsResult::load(db::SqliteCppDb& db, int64_t scoreId)
+gameplay_logic::BmsResult::load(const BmsResultDto& dto)
   -> std::unique_ptr<BmsResult>
 {
-    auto statement = db.createStatement("SELECT * "
-                                        "FROM score_results "
-                                        "WHERE score_id = ?");
-    statement.bind(1, scoreId);
-    auto result = statement.executeAndGet<BmsResultDto>();
-    if (!result.has_value()) {
-        throw std::runtime_error("Failed to load score result");
-    }
     auto judgementCounts = QList<int>(magic_enum::enum_count<Judgement>());
-    judgementCounts[static_cast<int>(Judgement::Poor)] = result->poorCount;
+    judgementCounts[static_cast<int>(Judgement::Poor)] = dto.poorCount;
     judgementCounts[static_cast<int>(Judgement::EmptyPoor)] =
-      result->emptyPoorCount;
-    judgementCounts[static_cast<int>(Judgement::Bad)] = result->badCount;
-    judgementCounts[static_cast<int>(Judgement::Good)] = result->goodCount;
-    judgementCounts[static_cast<int>(Judgement::Great)] = result->greatCount;
-    judgementCounts[static_cast<int>(Judgement::Perfect)] =
-      result->perfectCount;
-    return std::make_unique<BmsResult>(
-      result->maxPoints,
-      result->maxHits,
-      QString::fromStdString(result->clearType),
-      judgementCounts,
-      result->points,
-      result->maxCombo);
+      dto.emptyPoorCount;
+    judgementCounts[static_cast<int>(Judgement::Bad)] = dto.badCount;
+    judgementCounts[static_cast<int>(Judgement::Good)] = dto.goodCount;
+    judgementCounts[static_cast<int>(Judgement::Great)] = dto.greatCount;
+    judgementCounts[static_cast<int>(Judgement::Perfect)] = dto.perfectCount;
+    return std::make_unique<BmsResult>(dto.maxPoints,
+                                       dto.maxHits,
+                                       QString::fromStdString(dto.clearType),
+                                       judgementCounts,
+                                       dto.points,
+                                       dto.maxCombo);
 }
 auto
 gameplay_logic::BmsResult::setId(int64_t newId) -> void
