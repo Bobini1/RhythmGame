@@ -22,10 +22,9 @@ class Chart : public QObject
     Q_PROPERTY(BmsNotes* notes READ getNotes CONSTANT)
     Q_PROPERTY(BmsScore* score READ getScore CONSTANT)
     Q_PROPERTY(double position READ getPosition NOTIFY positionChanged)
-    Q_PROPERTY(int64_t timeBeforeChartStart READ getTimeBeforeChartStart WRITE
-                 setTimeBeforeChartStart NOTIFY timeBeforeChartStartChanged)
-    Q_PROPERTY(int64_t timeAfterChartEnd READ getTimeAfterChartEnd WRITE
-                 setTimeAfterChartEnd NOTIFY timeAfterChartEndChanged)
+    Q_PROPERTY(
+      int64_t timeBeforeChartStart READ getTimeBeforeChartStart CONSTANT)
+    Q_PROPERTY(int64_t timeAfterChartEnd READ getTimeAfterChartEnd CONSTANT)
 
     QTimer propertyUpdateTimer;
     std::chrono::steady_clock::time_point startTimepoint;
@@ -49,6 +48,9 @@ class Chart : public QObject
     void setReferee();
     void setElapsed(int64_t elapsed);
     void setPosition(double position);
+
+    void setTimeBeforeChartStart(int64_t timeBeforeChartStart);
+    void setTimeAfterChartEnd(int64_t timeAfterChartEnd);
 
   public:
     explicit Chart(QFuture<gameplay_logic::BmsGameReferee> refereeFuture,
@@ -78,18 +80,12 @@ class Chart : public QObject
 
     [[nodiscard]] auto getTimeAfterChartEnd() const -> int64_t;
 
-    void setTimeBeforeChartStart(int64_t timeBeforeChartStart);
-
-    void setTimeAfterChartEnd(int64_t timeAfterChartEnd);
-
   signals:
     void elapsedChanged(int64_t delta);
     void positionChanged(double delta);
     void over();
     void bpmChanged(BpmChange bpmChange);
     void started();
-    void timeBeforeChartStartChanged();
-    void timeAfterChartEndChanged();
 };
 
 } // namespace gameplay_logic

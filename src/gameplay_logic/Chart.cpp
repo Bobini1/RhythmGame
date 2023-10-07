@@ -224,7 +224,6 @@ Chart::setTimeAfterChartEnd(int64_t newTimeAfterChartEnd)
         return;
     }
     timeAfterChartEnd = newTimeAfterChartEnd;
-    emit timeAfterChartEndChanged();
 }
 void
 Chart::setElapsed(int64_t newElapsed)
