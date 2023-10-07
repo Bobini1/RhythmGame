@@ -55,14 +55,14 @@ Image {
 
                         anchors.horizontalCenter: parent.horizontalCenter
                         font.pixelSize: 20
-                        text: songList.current.initialBpm
+                        text: currentItem.initialBpm
                     }
                     Text {
                         id: keysValue
 
                         anchors.horizontalCenter: parent.horizontalCenter
                         font.pixelSize: 20
-                        text: songList.current.keymode
+                        text: currentItem.keymode
                     }
                 }
                 Image {
@@ -71,7 +71,7 @@ Image {
                     anchors.left: valuesColumn.right
                     anchors.leftMargin: 20
                     source: {
-                        let rank = songList.current.rank;
+                        let rank = currentItem.rank;
                         rank = Math.min(3, Math.max(0, rank));
                         switch (rank) {
                         case 0:
@@ -101,7 +101,7 @@ Image {
                         font.pixelSize: 20
                         height: metrics.height
                         scrolling: selector.scrollingText
-                        text: songList.current.artist
+                        text: currentItem.artist
                         width: 330
                     }
                     NameLabel {
@@ -111,7 +111,7 @@ Image {
                         font.pixelSize: 15
                         height: metricsSmall.height
                         scrolling: selector.scrollingText
-                        text: songList.current.subartist
+                        text: currentItem.subartist
                         width: 330
                     }
                     TextMetrics {
