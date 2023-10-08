@@ -104,7 +104,7 @@ loadBmsSounds(const std::map<std::string, std::string>& wavs,
     for (const auto& [key, value] : wavs) {
         {
 #ifdef _WIN32
-            auto filePath = path / QString::fromStdString(value).toWString();
+            auto filePath = path / QString::fromStdString(value).toStdWString();
             auto actualPath = getActualPathWindows(filePath);
 #else
             // convert to lowercase first

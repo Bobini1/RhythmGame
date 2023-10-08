@@ -3,6 +3,7 @@
 //
 
 #include <utility>
+#include <variant>
 #include <lexy/action/parse.hpp>
 #include <lexy/dsl.hpp>
 #include <lexy/callback.hpp>

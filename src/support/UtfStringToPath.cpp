@@ -3,6 +3,7 @@
 //
 
 #include "UtfStringToPath.h"
+#include <QString>
 auto
 support::utfStringToPath(const std::string& utfString) -> std::filesystem::path
 {

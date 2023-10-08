@@ -3,6 +3,7 @@
 //
 
 #include "PathToUtfString.h"
+#include <QString>
 
 namespace support {
 auto
