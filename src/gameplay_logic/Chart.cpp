@@ -52,6 +52,9 @@ Chart::start()
     connect(
       &propertyUpdateTimer, &QTimer::timeout, this, &Chart::updateElapsed);
     startTimepoint = std::chrono::steady_clock::now();
+#ifdef _WIN32
+      startTimepointClk = clock();
+#endif
     updateBpm();
 }
 
@@ -83,9 +86,11 @@ Chart::passKey(QKeyEvent* keyEvent)
         return;
     }
     auto timestampQint = keyEvent->timestamp();
-    auto timestamp = std::chrono::steady_clock::time_point{
-        std::chrono::milliseconds{ timestampQint }
-    };
+#ifdef _WIN32
+    auto offset = std::chrono::nanoseconds(std::chrono::milliseconds{ timestampQint - startTimepointClk });
+#else
+    auto offset = std::chrono::steady_clock::time_point(std::chrono::milliseconds{ timestampQint }) - startTimepoint;
+#endif
     if (auto bmsKey =
           inputTranslator.translate(static_cast<Qt::Key>(keyEvent->key()));
         bmsKey.has_value()) {
@@ -93,11 +98,11 @@ Chart::passKey(QKeyEvent* keyEvent)
             emit score->sendVisualOnlyTap(
               { static_cast<int>(bmsKey.value()),
                 std::nullopt,
-                (timestamp - startTimepoint).count(),
+                offset.count(),
                 std::nullopt });
         } else {
             gameReferee->passInput(
-              timestamp - startTimepoint -
+              offset -
                 std::chrono::nanoseconds(timeBeforeChartStart),
               *bmsKey);
         }

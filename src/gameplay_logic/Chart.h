@@ -27,6 +27,9 @@ class Chart : public QObject
     Q_PROPERTY(int64_t timeAfterChartEnd READ getTimeAfterChartEnd CONSTANT)
 
     QTimer propertyUpdateTimer;
+#ifdef _WIN32
+    clock_t startTimepointClk;
+#endif
     std::chrono::steady_clock::time_point startTimepoint;
     std::optional<gameplay_logic::BmsGameReferee> gameReferee;
     input::KeyboardInputTranslatorToBms inputTranslator;
