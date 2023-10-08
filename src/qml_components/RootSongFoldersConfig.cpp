@@ -87,7 +87,7 @@ RootSongFoldersConfig::scanNewImpl()
     auto foldersVector = std::vector<std::string>{};
     foldersVector.reserve(folders.size());
     for (const auto& folder : folders) {
-        foldersVector.emplace_back(support::qStringToPath(folder));
+        foldersVector.emplace_back(folder.toStdString());
     }
     getRootFolders.reset();
     auto currentRootFolders = getRootFolders.executeAndGetAll<std::string>();

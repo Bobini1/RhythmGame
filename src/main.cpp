@@ -99,20 +99,18 @@ libavLogHandler(void* /*ptr*/, int level, const char* fmt, va_list vl)
 }
 
 auto
-#if defined(WIN32)
-wmain(int argc, wchar_t* argv[]) -> int
-#else
-main(int argc, char* argv[]) -> int
-#endif
+main(int argc, [[maybe_unused]] char* argv[]) -> int
 {
     try {
         auto assetsFolder = resource_managers::findAssetsFolder();
 
 #if defined(Q_OS_WIN)
         QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
-#endif
 
-        const auto app = QGuiApplication(argc, argv);
+        const auto app = QGuiApplication{__argc, __argv};
+#else
+        const auto app = QGuiApplication{argc, argv};
+#endif
 
         QGuiApplication::setOrganizationName("Tomasz Kalisiak");
         QGuiApplication::setOrganizationDomain("bemani.pl");
@@ -178,7 +176,7 @@ main(int argc, char* argv[]) -> int
         auto chartPath = QString{};
         if (argc > 1) {
 #if defined(WIN32)
-            chartPath = QString::fromStdWString(argv[1]);
+            chartPath = QString::fromStdWString(__wargv[1]);
 #else
             chartPath = QString::fromStdString(argv[1]);
 #endif

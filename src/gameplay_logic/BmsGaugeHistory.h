@@ -7,6 +7,7 @@
 
 #include <QObject>
 #include <QMap>
+#include <QVariant>
 #include "db/SqliteCppDb.h"
 namespace gameplay_logic {
 class BmsGaugeHistory : public QObject

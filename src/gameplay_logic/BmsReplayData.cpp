@@ -41,7 +41,7 @@ operator<<(QDataStream& stream, const BmsReplayData& data) -> QDataStream&
 auto
 operator>>(QDataStream& stream, BmsReplayData& data) -> QDataStream&
 {
-    stream >> data.misses >> data.hitsWithPoints >> data.hitsWithoutPoints;
+    return stream >> data.misses >> data.hitsWithPoints >> data.hitsWithoutPoints;
 }
 void
 BmsReplayData::save(db::SqliteCppDb& db, int64_t scoreId)

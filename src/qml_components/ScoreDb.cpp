@@ -29,11 +29,11 @@ ScoreDb::getScoresForChart(QString sha256) -> QList<gameplay_logic::BmsResult*>
 auto
 ScoreDb::getGaugeHistory(int64_t scoreId) -> gameplay_logic::BmsGaugeHistory*
 {
-    gameplay_logic::BmsGaugeHistory::load(scoreDb(), scoreId);
+    return gameplay_logic::BmsGaugeHistory::load(scoreDb(), scoreId).release();
 }
 auto
 ScoreDb::getReplayData(int64_t scoreId) -> gameplay_logic::BmsReplayData*
 {
-    gameplay_logic::BmsReplayData::load(scoreDb(), scoreId);
+    return gameplay_logic::BmsReplayData::load(scoreDb(), scoreId).release();
 }
 } // namespace qml_components

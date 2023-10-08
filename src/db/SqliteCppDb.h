@@ -65,7 +65,8 @@ class SqliteCppDb
          */
         template<std::default_initializable Ret>
         [[nodiscard]] auto executeAndGet() -> std::optional<Ret>
-            requires(!std::convertible_to<SQLite::Column, Ret>)
+            requires(!std::convertible_to<SQLite::Column, Ret> &&
+                     !std::is_same_v<Ret, std::string>)
         {
             std::lock_guard lock(*dbMutex);
             if (!statement.executeStep()) {
@@ -86,7 +87,8 @@ class SqliteCppDb
          */
         template<std::default_initializable Ret>
         [[nodiscard]] auto executeAndGetAll() -> std::vector<Ret>
-            requires(!std::convertible_to<SQLite::Column, Ret>)
+            requires(!std::convertible_to<SQLite::Column, Ret> &&
+                     !std::is_same_v<Ret, std::string>)
         {
             std::lock_guard lock(*dbMutex);
             std::vector<Ret> result;
@@ -109,7 +111,8 @@ class SqliteCppDb
          */
         template<typename Ret>
         auto executeAndGet() -> std::optional<Ret>
-            requires std::convertible_to<SQLite::Column, Ret>
+            requires std::convertible_to<SQLite::Column, Ret> ||
+              std::is_same_v<Ret, std::string>
         {
 
             std::lock_guard lock(*dbMutex);
@@ -129,7 +132,8 @@ class SqliteCppDb
          */
         template<typename Ret>
         auto executeAndGetAll() -> std::vector<Ret>
-            requires std::convertible_to<SQLite::Column, Ret>
+            requires std::convertible_to<SQLite::Column, Ret> ||
+              std::is_same_v<Ret, std::string>
         {
             std::lock_guard lock(*dbMutex);
             std::vector<Ret> result;

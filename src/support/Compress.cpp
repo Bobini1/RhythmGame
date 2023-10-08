@@ -4,6 +4,7 @@
 
 #include <zstd.h>
 #include "Compress.h"
+#include <stdexcept>
 
 namespace support {
 auto
