@@ -10,7 +10,8 @@ Image {
         if (!(currentItem instanceof ChartData) || currentItem.banner === "") {
             return "";
         }
-        return "file://" + currentItem.directory + currentItem.banner;
+        let banner = "file://" + currentItem.directory + currentItem.banner;
+        return FileValidator.exists(banner) ? banner : "";
     }
     sourceSize.height: 80
     sourceSize.width: 300

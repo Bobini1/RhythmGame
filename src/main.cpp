@@ -27,6 +27,7 @@
 #include "qml_components/InputItem.h"
 #include "qml_components/PreviewFilePathFetcher.h"
 #include "qml_components/ScoreDb.h"
+#include "qml_components/FileValidator.h"
 
 #include <iostream>
 
@@ -239,6 +240,10 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
         auto scoreDbSingleton = qml_components::ScoreDb{ scoreDb };
         qmlRegisterSingletonInstance(
           "RhythmGameQml", 1, 0, "ScoreDb", &scoreDbSingleton);
+
+        auto fileValidator = qml_components::FileValidator{};
+        qmlRegisterSingletonInstance(
+          "RhythmGameQml", 1, 0, "FileValidator", &fileValidator);
 
         // add all other common types
 
