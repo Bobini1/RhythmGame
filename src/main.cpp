@@ -148,10 +148,10 @@ main(int argc, char* argv[]) -> int
         auto themeConfigLoader = [assetsFolder] {
             try {
                 const auto configMap = resource_managers::loadConfig(
-                  assetsFolder / "themes" / "Default" / "scripts" /
-                  "scripts.ini")["ScriptNames"];
+                  assetsFolder / "themes" / "Default" /
+                  "theme.ini")["ScriptNames"];
                 const auto scriptsFolder =
-                  assetsFolder / "themes" / "Default" / "scripts";
+                  assetsFolder / "themes" / "Default";
                 return resource_managers::models::ThemeConfig{
                     QString::fromStdWString(
                       (scriptsFolder / configMap.at("Main")).wstring()),
