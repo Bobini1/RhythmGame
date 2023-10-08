@@ -9,7 +9,7 @@ Pane {
     id: root
 
     readonly property bool active: StackView.status === StackView.Active
-    readonly property string imagesUrl: rootUrl + "images/"
+    readonly property string imagesUrl: Qt.resolvedUrl(".") + "images/"
     readonly property string iniImagesUrl: "image://ini/" + rootUrl + "images/"
     property string rootUrl: globalRoot.urlToPath(Qt.resolvedUrl(".").toString())
 

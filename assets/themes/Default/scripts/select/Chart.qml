@@ -29,7 +29,7 @@ Image {
         anchors.leftMargin: 18
         anchors.top: parent.top
         anchors.topMargin: 9
-        source: root.iniImagesUrl + "parts.png/" + image.clearType
+        source: root.iniImagesUrl + "parts.png/C_" + image.clearType
     }
     Text {
         id: playlevelText
