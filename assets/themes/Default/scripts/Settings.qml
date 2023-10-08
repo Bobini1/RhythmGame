@@ -4,8 +4,10 @@ import QtQuick.Dialogs
 import QtQuick.Layouts
 import QtQuick.Controls.Basic 2.12
 
-Pane {
+Rectangle {
     id: screen
+
+    color: "darkslategray"
 
     readonly property bool active: StackView.status === StackView.Active
 

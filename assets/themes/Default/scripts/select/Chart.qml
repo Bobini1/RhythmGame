@@ -6,6 +6,7 @@ Image {
     id: image
 
     property string clearType: getClearType()
+    property bool scrollingText;
 
     function getClearType() {
         let scores = ScoreDb.getScoresForChart(display.sha256);
@@ -62,7 +63,7 @@ Image {
         anchors.rightMargin: 30
         color: (display.keymode === ChartData.Keymode.K14) ? "red" : "black"
         height: parent.height
-        scrolling: isCurrentItem && pathView.scrollingText
+        scrolling: isCurrentItem && parent.scrollingText
         text: display.title + (display.subtitle ? (" " + display.subtitle) : "")
         width: parent.width * 0.7
     }

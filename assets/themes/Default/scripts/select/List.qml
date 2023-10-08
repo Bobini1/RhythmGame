@@ -41,6 +41,7 @@ PathView {
         id: selectItemLoader
 
         property bool isCurrentItem: PathView.isCurrentItem
+        property bool scrollingText: pathView.scrollingText
 
         source: display instanceof ChartData ? "Chart.qml" : "Folder.qml"
     }

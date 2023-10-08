@@ -5,8 +5,9 @@ import QtQuick.Controls.Basic
 import QtMultimedia
 import QtQml
 
-Pane {
+Rectangle {
     id: root
+    color: "darkslategray"
 
     readonly property bool active: StackView.status === StackView.Active
     readonly property string imagesUrl: Qt.resolvedUrl(".") + "images/"
