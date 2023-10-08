@@ -5,13 +5,22 @@ import RhythmGameQml
 Image {
     id: image
 
-    readonly property string clearType: {
+    property string clearType: getClearType()
+
+    function getClearType() {
         let scores = ScoreDb.getScoresForChart(display.sha256);
         let clearTypePriorities = ["NOPLAY", "FAILED", "AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC"];
         let clearType = "NOPLAY";
         for (let i = 0; i < scores.length; i++) {
             let score = scores[i];
             if (score.clearType === "FC") {
+                if (score.points === score.maxPoints) {
+                    return "MAX";
+                }
+                let judgementCounts = score.judgementCounts;
+                if (judgementCounts[Judgement.Perfect] + judgementCounts[Judgement.Great] === score.maxHits) {
+                    return "PERFECT";
+                }
                 return "FC";
             }
             if (clearTypePriorities.indexOf(score.clearType) > clearTypePriorities.indexOf(clearType)) {
