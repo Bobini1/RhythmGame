@@ -48,7 +48,7 @@ Chart::start()
         return;
     }
     emit started();
-    propertyUpdateTimer.start(0);
+    propertyUpdateTimer.start(1);
     connect(
       &propertyUpdateTimer, &QTimer::timeout, this, &Chart::updateElapsed);
     startTimepoint = std::chrono::steady_clock::now();
