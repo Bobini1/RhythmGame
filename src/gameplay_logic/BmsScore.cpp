@@ -142,6 +142,14 @@ BmsScore::getResult() const -> std::unique_ptr<BmsResult>
             break;
         }
     }
+    if (points == maxPoints) {
+        clearType = QStringLiteral("MAX");
+    }
+    if (judgementCounts[static_cast<int>(Judgement::Perfect)] +
+          judgementCounts[static_cast<int>(Judgement::Great)] ==
+        maxHits) {
+        clearType = QStringLiteral("PERFECT");
+    }
     return std::make_unique<BmsResult>(
       maxPoints, maxHits, clearType, judgementCounts, points, maxCombo);
 }
