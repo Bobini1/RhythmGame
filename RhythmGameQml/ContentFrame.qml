@@ -35,7 +35,7 @@ ApplicationWindow {
                 id: loader
 
                 anchors.fill: parent
-                source: "file://" + SceneUrls.gameplaySceneUrl
+                source: SceneUrls.gameplayScene
             }
         }
     }
@@ -52,7 +52,7 @@ ApplicationWindow {
                 id: loader
 
                 anchors.fill: parent
-                source: "file://" + SceneUrls.resultSceneUrl
+                source: SceneUrls.resultScene
             }
         }
     }
@@ -60,10 +60,10 @@ ApplicationWindow {
         id: globalRoot
 
         readonly property Component gameplayComponent: chartContext
-        readonly property Component mainComponent: Qt.createComponent("file://" + SceneUrls.mainSceneUrl)
+        readonly property Component mainComponent: Qt.createComponent(SceneUrls.mainScene)
         readonly property Component resultComponent: resultContext
-        readonly property Component settingsComponent: Qt.createComponent("file://" + SceneUrls.settingsSceneUrl)
-        readonly property Component songWheelComponent: Qt.createComponent("file://" + SceneUrls.songWheelSceneUrl)
+        readonly property Component settingsComponent: Qt.createComponent(SceneUrls.settingsScene)
+        readonly property Component songWheelComponent: Qt.createComponent(SceneUrls.songWheelScene)
 
         function openChart(path: url) {
             let chart = ChartLoader.loadChart(path);

@@ -9,19 +9,19 @@
 #include <qqmlcontext.h>
 
 auto
-qml_components::SceneUrls::mainSceneUrl() const -> QUrl
+qml_components::SceneUrls::mainScene() const -> QUrl
 {
-    return themeConfig.mainScene;
+    return QUrl::fromLocalFile(themeConfig.mainScene);
 }
 auto
-qml_components::SceneUrls::gameplaySceneUrl() const -> QUrl
+qml_components::SceneUrls::gameplayScene() const -> QUrl
 {
-    return themeConfig.gameplayScene;
+    return QUrl::fromLocalFile(themeConfig.gameplayScene);
 }
 auto
-qml_components::SceneUrls::songWheelSceneUrl() const -> QUrl
+qml_components::SceneUrls::songWheelScene() const -> QUrl
 {
-    return themeConfig.songWheelScene;
+    return QUrl::fromLocalFile(themeConfig.songWheelScene);
 }
 void
 qml_components::SceneUrls::refreshThemeConfig()
@@ -31,31 +31,31 @@ qml_components::SceneUrls::refreshThemeConfig()
         spdlog::info("Gameplay scene changed from {} to {}",
                      themeConfig.gameplayScene.toStdString(),
                      newThemeConfig.gameplayScene.toStdString());
-        emit gameplaySceneUrlChanged();
+        emit gameplaySceneChanged();
     }
     if (newThemeConfig.mainScene != themeConfig.mainScene) {
         spdlog::info("Main scene changed from {} to {}",
                      themeConfig.mainScene.toStdString(),
                      newThemeConfig.mainScene.toStdString());
-        emit mainSceneUrlChanged();
+        emit mainSceneChanged();
     }
     if (newThemeConfig.songWheelScene != themeConfig.songWheelScene) {
         spdlog::info("Song wheel scene changed from {} to {}",
                      themeConfig.songWheelScene.toStdString(),
                      newThemeConfig.songWheelScene.toStdString());
-        emit songWheelSceneUrlChanged();
+        emit songWheelSceneChanged();
     }
     if (newThemeConfig.SettingScene != themeConfig.SettingScene) {
         spdlog::info("Settings scene changed from {} to {}",
                      themeConfig.SettingScene.toStdString(),
                      newThemeConfig.SettingScene.toStdString());
-        emit settingsSceneUrlChanged();
+        emit settingsSceneChanged();
     }
     if (newThemeConfig.resultScene != themeConfig.resultScene) {
         spdlog::info("Result scene changed from {} to {}",
                      themeConfig.resultScene.toStdString(),
                      newThemeConfig.resultScene.toStdString());
-        emit resultSceneUrlChanged();
+        emit resultSceneChanged();
     }
     themeConfig = std::move(newThemeConfig);
     spdlog::info("Refreshed theme config");
@@ -67,12 +67,12 @@ qml_components::SceneUrls::SceneUrls(
 {
 }
 auto
-qml_components::SceneUrls::settingsSceneUrl() const -> QUrl
+qml_components::SceneUrls::settingsScene() const -> QUrl
 {
-    return themeConfig.SettingScene;
+    return QUrl::fromLocalFile(themeConfig.SettingScene);
 }
 auto
-qml_components::SceneUrls::resultSceneUrl() const -> QUrl
+qml_components::SceneUrls::resultScene() const -> QUrl
 {
-    return themeConfig.resultScene;
+    return QUrl::fromLocalFile(themeConfig.resultScene);
 }

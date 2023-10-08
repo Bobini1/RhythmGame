@@ -132,9 +132,10 @@ gameplay_logic::BmsGameReferee::getPosition(
       currentBpmChanges, [offsetFromStart](const auto& bpmChange) {
           return bpmChange.first.timestamp >= offsetFromStart;
       });
-    bpmChange--;
     if (offsetFromStart.count() < 0) {
         bpmChange = currentBpmChanges.begin();
+    } else {
+        bpmChange--;
     }
     auto bpm = bpmChange->second;
     auto bpmChangeTime = bpmChange->first.timestamp;

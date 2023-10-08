@@ -10,7 +10,7 @@ Image {
         if (!(currentItem instanceof ChartData) || currentItem.stageFile === "") {
             return "";
         }
-        return "file://" + currentItem.directory + currentItem.stageFile;
+        return "file:/" + currentItem.directory + currentItem.stageFile;
     }
     sourceSize.height: 450
     sourceSize.width: 600

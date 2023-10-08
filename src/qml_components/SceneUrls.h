@@ -16,17 +16,16 @@ namespace qml_components {
 class SceneUrls : public QObject
 {
     Q_OBJECT
-    QML_ELEMENT
 
-    Q_PROPERTY(QUrl mainSceneUrl READ mainSceneUrl NOTIFY mainSceneUrlChanged)
-    Q_PROPERTY(QUrl gameplaySceneUrl READ gameplaySceneUrl NOTIFY
-                 gameplaySceneUrlChanged)
-    Q_PROPERTY(QUrl songWheelSceneUrl READ songWheelSceneUrl NOTIFY
-                 songWheelSceneUrlChanged)
-    Q_PROPERTY(QUrl settingsSceneUrl READ settingsSceneUrl NOTIFY
-                 settingsSceneUrlChanged)
+    Q_PROPERTY(QUrl mainScene READ mainScene NOTIFY mainSceneChanged)
+    Q_PROPERTY(QUrl gameplayScene READ gameplayScene NOTIFY
+                 gameplaySceneChanged)
+    Q_PROPERTY(QUrl songWheelScene READ songWheelScene NOTIFY
+                 songWheelSceneChanged)
+    Q_PROPERTY(QUrl settingsScene READ settingsScene NOTIFY
+                 settingsSceneChanged)
     Q_PROPERTY(
-      QUrl resultSceneUrl READ resultSceneUrl NOTIFY resultSceneUrlChanged)
+      QUrl resultScene READ resultScene NOTIFY resultSceneChanged)
 
     std::function<resource_managers::models::ThemeConfig()> themeConfigFactory;
     resource_managers::models::ThemeConfig themeConfig;
@@ -35,20 +34,20 @@ class SceneUrls : public QObject
     explicit SceneUrls(std::function<resource_managers::models::ThemeConfig()>
                          themeConfigFactory);
 
-    [[nodiscard]] auto mainSceneUrl() const -> QUrl;
-    [[nodiscard]] auto gameplaySceneUrl() const -> QUrl;
-    [[nodiscard]] auto songWheelSceneUrl() const -> QUrl;
-    [[nodiscard]] auto settingsSceneUrl() const -> QUrl;
-    [[nodiscard]] auto resultSceneUrl() const -> QUrl;
+    [[nodiscard]] auto mainScene() const -> QUrl;
+    [[nodiscard]] auto gameplayScene() const -> QUrl;
+    [[nodiscard]] auto songWheelScene() const -> QUrl;
+    [[nodiscard]] auto settingsScene() const -> QUrl;
+    [[nodiscard]] auto resultScene() const -> QUrl;
 
     Q_INVOKABLE void refreshThemeConfig();
 
   signals:
-    void mainSceneUrlChanged();
-    void gameplaySceneUrlChanged();
-    void songWheelSceneUrlChanged();
-    void settingsSceneUrlChanged();
-    void resultSceneUrlChanged();
+    void mainSceneChanged();
+    void gameplaySceneChanged();
+    void songWheelSceneChanged();
+    void settingsSceneChanged();
+    void resultSceneChanged();
 };
 
 } // namespace qml_components

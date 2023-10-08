@@ -21,7 +21,7 @@ Rectangle {
         return sizes;
     }
     property double greenNumber: 400
-    readonly property string imagesUrl: rootUrl + "images/"
+    readonly property string imagesUrl: "file://" + rootUrl + "images/"
     readonly property string iniImagesUrl: "image://ini/" + rootUrl + "images/"
     property list<string> laserImages: {
         let images = [];

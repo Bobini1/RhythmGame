@@ -3,8 +3,9 @@ import RhythmGameQml
 import QtQuick.Controls.Basic 2.15
 import QtQuick.Layouts
 
-Pane {
+Rectangle {
     id: screen
+    color: "darkslategray"
 
     ColumnLayout {
         id: column

@@ -4,6 +4,7 @@
 
 #include <QtConcurrent>
 #include "ChartFactory.h"
+#include "support/QStringToPath.h"
 
 namespace resource_managers {
 auto
@@ -15,7 +16,7 @@ ChartFactory::createChart(
 {
     auto& [chartData, notes, notesData, wavs] = chartComponents;
     auto path =
-      std::filesystem::path(chartData->getPath().toStdString()).parent_path();
+      support::qStringToPath(chartData->getPath()).parent_path();
     auto* score = new gameplay_logic::BmsScore(
       chartData->getNoteCount(), maxHitValue, std::move(gauges));
     auto task = [path,
