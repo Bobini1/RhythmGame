@@ -10,7 +10,7 @@ Image {
         if (!(currentItem instanceof ChartData) || currentItem.stageFile === "") {
             return "";
         }
-        let stageFile = "file:/" + currentItem.directory + currentItem.stageFile;
+        let stageFile = "file://" + currentItem.directory + currentItem.stageFile;
         return FileValidator.exists(stageFile) ? stageFile : "";
     }
     sourceSize.height: 450
