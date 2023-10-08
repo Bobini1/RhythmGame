@@ -58,6 +58,7 @@ gameplay_logic::rules::Lr2Gauge::getGauges(
                        switch (judgement) {
                            case Judgement::Perfect:
                            case Judgement::Great:
+                           case Judgement::EmptyPoor:
                                return 0.0;
                            default:
                                return -std::numeric_limits<double>::infinity();
