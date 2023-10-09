@@ -31,8 +31,7 @@ TEST_CASE("Values can be inserted and retrieved from tables", "[SqliteCppDb]")
     db.execute("INSERT INTO Test VALUES (2, 'SecondRowName')"s);
     db.execute("INSERT INTO Test VALUES (69, 'ThirdRowName')"s);
     stmt = db.createStatement("SELECT * FROM Test"s);
-    auto rows =
-      stmt.executeAndGetAll<std::tuple<int, std::string>>();
+    auto rows = stmt.executeAndGetAll<std::tuple<int, std::string>>();
     row = rows[1];
     REQUIRE(x == 2);
     REQUIRE(y == "SecondRowName"s);
@@ -51,8 +50,7 @@ TEST_CASE("Failing queries correctly return empty results", "[SqliteCppDb]")
     auto row = stmt.executeAndGet<std::tuple<int, std::string>>();
     REQUIRE_FALSE(row);
     stmt = db.createStatement("SELECT * FROM Test"s);
-    auto rows =
-      stmt.executeAndGetAll<std::tuple<int, std::string>>();
+    auto rows = stmt.executeAndGetAll<std::tuple<int, std::string>>();
     REQUIRE(rows.empty());
 }
 

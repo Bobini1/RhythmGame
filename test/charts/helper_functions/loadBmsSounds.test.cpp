@@ -11,11 +11,11 @@
 #include "../../findTestAssetsFolder.h"
 #include "charts/chart_readers/BmsChartReader.h"
 
-
 namespace {
-auto randomGenerator = [](charts::parser_models::ParsedBmsChart::RandomRange range) {
-    return range;
-};
+auto randomGenerator =
+  [](charts::parser_models::ParsedBmsChart::RandomRange range) {
+      return range;
+  };
 } // namespace
 
 TEST_CASE("Sounds are loaded from a folder according to the bms file",

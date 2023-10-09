@@ -7,9 +7,10 @@
 #include "charts/chart_readers/BmsChartReader.h"
 
 namespace {
-auto randomGenerator = [](charts::parser_models::ParsedBmsChart::RandomRange range) {
-    return range;
-};
+auto randomGenerator =
+  [](charts::parser_models::ParsedBmsChart::RandomRange range) {
+      return range;
+  };
 } // namespace
 
 using namespace std::literals::string_literals;
@@ -113,11 +114,11 @@ TEST_CASE("Random blocks get parsed correctly", "[BmsChartReader]")
 {
     auto reader = charts::chart_readers::BmsChartReader{};
     auto testString =
-      "#RANDOM 5\n#IF 5\n#TITLE 44river\n#BPM 120\n#SUBTITLE testSubTitle\n#GENRE bicior\n#SUBARTIST MC BOBSON\n#ENDIF"s;
-    auto res = reader.readBmsChart(testString, randomGenerator);
-    REQUIRE(res.tags.title == std::optional<std::string>{});
-    REQUIRE(res.tags.artist == std::optional<std::string>{});
-    REQUIRE(res.tags.bpm == std::optional<double>{});
+      "#RANDOM 5\n#IF 5\n#TITLE 44river\n#BPM 120\n#SUBTITLE
+testSubTitle\n#GENRE bicior\n#SUBARTIST MC BOBSON\n#ENDIF"s; auto res =
+reader.readBmsChart(testString, randomGenerator); REQUIRE(res.tags.title ==
+std::optional<std::string>{}); REQUIRE(res.tags.artist ==
+std::optional<std::string>{}); REQUIRE(res.tags.bpm == std::optional<double>{});
     REQUIRE(res.tags.randomBlocks.size() == 1);
     REQUIRE(res.tags.randomBlocks[0].first == 5L);
     REQUIRE(res.tags.randomBlocks[0].second.size() == 1);
@@ -135,9 +136,9 @@ TEST_CASE("Nested random blocks", "[BmsChartReader]")
 {
     auto reader = charts::chart_readers::BmsChartReader{};
     auto testString =
-      "#RANDOM 5\n#IF 5\n#TITLE 44river\n#RANDOM 1\n#IF 1\n#ARTIST -45\n#ENDIF\n#ENDRANDOM\n#ENDIF"s;
-    auto res = reader.readBmsChart(testString, randomGenerator);
-    REQUIRE(res.tags.title == std::optional<std::string>{});
+      "#RANDOM 5\n#IF 5\n#TITLE 44river\n#RANDOM 1\n#IF 1\n#ARTIST
+-45\n#ENDIF\n#ENDRANDOM\n#ENDIF"s; auto res = reader.readBmsChart(testString,
+randomGenerator); REQUIRE(res.tags.title == std::optional<std::string>{});
     REQUIRE(res.tags.artist == std::optional<std::string>{});
     REQUIRE(res.tags.bpm == std::optional<double>{});
     REQUIRE(res.tags.randomBlocks.size() == 1);
