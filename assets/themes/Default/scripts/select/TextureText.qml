@@ -7,6 +7,8 @@ Row {
     property string srcAfterDecimal: ""
     property string srcBeforeDecimal: ""
 
+    spacing: 0
+
     Repeater {
         id: beforeDecimal
 
