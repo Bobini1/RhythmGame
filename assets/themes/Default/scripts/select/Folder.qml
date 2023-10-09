@@ -1,8 +1,9 @@
 import QtQuick 2.0
 
 Image {
+    property bool scrollingText: parent.scrollingText
+
     source: root.iniImagesUrl + "folders.png/folder_green"
-    property bool scrollingText;
 
     NameLabel {
         anchors.right: parent.right

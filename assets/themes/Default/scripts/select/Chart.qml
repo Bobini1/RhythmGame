@@ -6,7 +6,7 @@ Image {
     id: image
 
     property string clearType: getClearType()
-    property bool scrollingText
+    property bool scrollingText: parent.scrollingText
 
     function getClearType() {
         let scores = ScoreDb.getScoresForChart(display.sha256);
