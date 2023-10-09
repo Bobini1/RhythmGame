@@ -144,10 +144,9 @@ BmsScore::getResult() const -> std::unique_ptr<BmsResult>
     }
     if (points == maxPoints) {
         clearType = QStringLiteral("MAX");
-    }
-    if (judgementCounts[static_cast<int>(Judgement::Perfect)] +
-          judgementCounts[static_cast<int>(Judgement::Great)] ==
-        maxHits) {
+    } else if (judgementCounts[static_cast<int>(Judgement::Perfect)] +
+                 judgementCounts[static_cast<int>(Judgement::Great)] ==
+               maxHits) {
         clearType = QStringLiteral("PERFECT");
     }
     return std::make_unique<BmsResult>(
