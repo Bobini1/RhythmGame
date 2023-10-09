@@ -18,8 +18,6 @@ class Folder : public QAbstractListModel
     QML_UNCREATABLE("Folder is not creatable from QML")
 
     Q_PROPERTY(QString path READ getPath CONSTANT)
-    Q_PROPERTY(int minimumAmount READ getMinimumAmount WRITE setMinimumAmount
-                 NOTIFY minimumAmountChanged)
     Q_PROPERTY(QString parentFolder READ parentFolder CONSTANT)
 
     QString path;
@@ -42,8 +40,6 @@ class Folder : public QAbstractListModel
     auto getPath() const -> QString;
     auto parentFolder() -> QString;
     Q_INVOKABLE QVariant at(int index);
-    void setMinimumAmount(int amount);
-    auto getMinimumAmount() const -> int;
 
   signals:
     void minimumAmountChanged();

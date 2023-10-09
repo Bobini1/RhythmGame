@@ -28,7 +28,7 @@
 #include "qml_components/PreviewFilePathFetcher.h"
 #include "qml_components/ScoreDb.h"
 #include "qml_components/FileValidator.h"
-
+#include "qml_components/CycleModel.h"
 #include <iostream>
 
 extern "C" {
@@ -108,9 +108,9 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
 #if defined(Q_OS_WIN)
         QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
 
-        const auto app = QGuiApplication{__argc, __argv};
+        const auto app = QGuiApplication{ __argc, __argv };
 #else
-        const auto app = QGuiApplication{argc, argv};
+        const auto app = QGuiApplication{ argc, argv };
 #endif
 
         QGuiApplication::setOrganizationName("Tomasz Kalisiak");
@@ -149,8 +149,7 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
                 const auto configMap = resource_managers::loadConfig(
                   assetsFolder / "themes" / "Default" /
                   "theme.ini")["ScriptNames"];
-                const auto scriptsFolder =
-                  assetsFolder / "themes" / "Default";
+                const auto scriptsFolder = assetsFolder / "themes" / "Default";
                 return resource_managers::models::ThemeConfig{
                     QString::fromStdWString(
                       (scriptsFolder / configMap.at("Main")).wstring()),
@@ -270,6 +269,8 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
           "RhythmGameQml", 1, 0, "BmsGaugeHistory");
         qmlRegisterType<qml_components::InputItem>(
           "RhythmGameQml", 1, 0, "InputItem");
+        qmlRegisterType<qml_components::CycleModel>(
+          "RhythmGameQml", 1, 0, "CycleModel");
         qmlRegisterUncreatableMetaObject(gameplay_logic::staticMetaObject,
                                          "RhythmGameQml",
                                          1,

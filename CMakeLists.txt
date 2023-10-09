@@ -139,7 +139,9 @@ qt_add_library(RhythmGame_lib OBJECT src/db/SqliteCppDb.cpp src/db/SqliteCppDb.h
         src/qml_components/ScoreDb.cpp
         src/qml_components/ScoreDb.h
         src/qml_components/FileValidator.cpp
-        src/qml_components/FileValidator.h)
+        src/qml_components/FileValidator.h
+        src/qml_components/CycleModel.cpp
+        src/qml_components/CycleModel.h)
 
 find_package(Threads REQUIRED)
 

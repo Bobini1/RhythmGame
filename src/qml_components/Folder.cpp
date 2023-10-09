@@ -41,10 +41,6 @@ Folder::data(const QModelIndex& index, int role) const -> QVariant
 {
     if (role == Qt::DisplayRole) {
         auto idx = index.row();
-        if (idx >= childrenFolders.size() + chartData.size()) {
-            // if minimumAmount is set, do modulo
-            idx %= childrenFolders.size() + chartData.size();
-        }
         if (idx < childrenFolders.size()) {
             return childrenFolders.at(idx);
         }
@@ -76,25 +72,6 @@ auto
 Folder::getPath() const -> QString
 {
     return path;
-}
-void
-Folder::setMinimumAmount(int amount)
-{
-    if (minimumAmount == amount) {
-        return;
-    }
-    minimumAmount = amount;
-    if (minimumAmount > childrenFolders.size() + chartData.size()) {
-        beginInsertRows(
-          {}, childrenFolders.size() + chartData.size(), minimumAmount - 1);
-        endInsertRows();
-    }
-    emit minimumAmountChanged();
-}
-auto
-Folder::getMinimumAmount() const -> int
-{
-    return minimumAmount;
 }
 auto
 Folder::at(int index) -> QVariant

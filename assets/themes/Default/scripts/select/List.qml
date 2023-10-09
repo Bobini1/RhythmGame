@@ -5,7 +5,6 @@ PathView {
     id: pathView
 
     property var current: model.at(currentIndex)
-    property list<BmsScore> currentScores: current instanceof ChartData ? currentItem : []
     readonly property bool movingInAnyWay: movingManually || flicking || moving || dragging
     property bool movingManually: false
     property bool scrollingText: false
@@ -25,14 +24,13 @@ PathView {
             console.info("Opening chart " + item.path);
             globalRoot.openChart(item.path);
         } else {
-            model = SongFolderFactory.open(item);
+            model.model = SongFolderFactory.open(item);
         }
     }
 
     dragMargin: 200
     focus: true
     highlightMoveDuration: 100
-    model: SongFolderFactory.open("/")
     pathItemCount: 16
     preferredHighlightBegin: 0.5
     preferredHighlightEnd: 0.5
@@ -45,6 +43,10 @@ PathView {
         property bool scrollingText: pathView.scrollingText
 
         source: display instanceof ChartData ? "Chart.qml" : "Folder.qml"
+    }
+    model: CycleModel {
+        minimumAmount: pathItemCount
+        model: SongFolderFactory.open("/")
     }
     path: Path {
         id: path
@@ -81,8 +83,8 @@ PathView {
         incrementViewIndex();
     }
     Keys.onLeftPressed: {
-        if (model.parentFolder) {
-            model = SongFolderFactory.open(model.parentFolder);
+        if (model.model.parentFolder) {
+            model.model = SongFolderFactory.open(model.parentFolder);
         } else {
             sceneStack.pop();
         }
@@ -99,9 +101,6 @@ PathView {
     onCurrentItemChanged: {
         scrollingTextTimer.restart();
         scrollingText = false;
-    }
-    onModelChanged: {
-        model.minimumAmount = pathItemCount;
     }
 
     Timer {
