@@ -7,6 +7,7 @@
 
 #include <optional>
 #include "charts/parser_models/ParsedBmsChart.h"
+#include <functional>
 
 namespace charts::chart_readers {
 
