@@ -5,6 +5,7 @@
 #include "BmsResult.h"
 #include <QIODevice>
 #include <QDataStream>
+#include <QDateTime>
 auto
 gameplay_logic::BmsResult::getMaxPoints() const -> double
 {
@@ -49,6 +50,7 @@ gameplay_logic::BmsResult::BmsResult(double maxPoints,
   , judgementCounts(std::move(judgementCounts))
   , points(points)
   , maxCombo(maxCombo)
+  , unixTimestamp(QDateTime::currentSecsSinceEpoch())
 {
 }
 auto
@@ -68,9 +70,10 @@ gameplay_logic::BmsResult::save(db::SqliteCppDb& db,
                          "good, "
                          "great, "
                          "perfect,"
-                         "sha256"
+                         "sha256,"
+                         "unix_timestamp"
                          ")"
-                         "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                         "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
     statement.bind(1, maxPoints);
     statement.bind(2, maxHits);
     statement.bind(3, clearType.toStdString());
@@ -83,6 +86,7 @@ gameplay_logic::BmsResult::save(db::SqliteCppDb& db,
     statement.bind(10, judgementCounts[static_cast<int>(Judgement::Great)]);
     statement.bind(11, judgementCounts[static_cast<int>(Judgement::Perfect)]);
     statement.bind(12, sha256);
+    statement.bind(13, unixTimestamp);
     return statement.execute();
 }
 auto
@@ -97,12 +101,16 @@ gameplay_logic::BmsResult::load(const BmsResultDto& dto)
     judgementCounts[static_cast<int>(Judgement::Good)] = dto.goodCount;
     judgementCounts[static_cast<int>(Judgement::Great)] = dto.greatCount;
     judgementCounts[static_cast<int>(Judgement::Perfect)] = dto.perfectCount;
-    return std::make_unique<BmsResult>(dto.maxPoints,
-                                       dto.maxHits,
-                                       QString::fromStdString(dto.clearType),
-                                       judgementCounts,
-                                       dto.points,
-                                       dto.maxCombo);
+    auto result =
+      std::make_unique<BmsResult>(dto.maxPoints,
+                                  dto.maxHits,
+                                  QString::fromStdString(dto.clearType),
+                                  judgementCounts,
+                                  dto.points,
+                                  dto.maxCombo);
+    result->setId(dto.id);
+    result->unixTimestamp = dto.unixTimestamp;
+    return result;
 }
 auto
 gameplay_logic::BmsResult::setId(int64_t newId) -> void
@@ -113,4 +121,9 @@ auto
 gameplay_logic::BmsResult::getId() const -> int64_t
 {
     return id;
+}
+auto
+gameplay_logic::BmsResult::getUnixTimestamp() const -> int64_t
+{
+    return unixTimestamp;
 }

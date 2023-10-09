@@ -22,6 +22,7 @@ class BmsResult : public QObject
     Q_PROPERTY(QList<int> judgementCounts READ getJudgementCounts CONSTANT)
     Q_PROPERTY(QString clearType READ getClearType CONSTANT)
     Q_PROPERTY(int64_t id READ getId CONSTANT)
+    Q_PROPERTY(int64_t unixTimestamp READ getUnixTimestamp CONSTANT)
 
     int64_t id = -1;
     double maxPoints;
@@ -31,6 +32,7 @@ class BmsResult : public QObject
       QList<int>(magic_enum::enum_count<Judgement>());
     double points;
     int maxCombo;
+    int64_t unixTimestamp;
 
   public:
     struct BmsResultDto
@@ -48,6 +50,7 @@ class BmsResult : public QObject
         int greatCount;
         int perfectCount;
         std::string clearType;
+        int64_t unixTimestamp;
     };
     explicit BmsResult(double maxPoints,
                        int maxHits,
@@ -65,6 +68,7 @@ class BmsResult : public QObject
     auto getClearType() const -> QString;
     auto setId(int64_t id) -> void;
     auto getId() const -> int64_t;
+    auto getUnixTimestamp() const -> int64_t;
 
     auto save(db::SqliteCppDb& db, support::Sha256 sha256) const -> int64_t;
     static auto load(const BmsResultDto& dto) -> std::unique_ptr<BmsResult>;

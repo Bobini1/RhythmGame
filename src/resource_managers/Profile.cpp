@@ -116,7 +116,8 @@ Profile::Profile(std::filesystem::path dbPath, QObject* parent)
                "good INTEGER NOT NULL,"
                "great INTEGER NOT NULL,"
                "perfect INTEGER NOT NULL,"
-               "clear_type TEXT NOT NULL"
+               "clear_type TEXT NOT NULL,"
+               "unix_timestamp INTEGER NOT NULL"
                ");");
     db.execute("CREATE TABLE IF NOT EXISTS replay_data ("
                "id INTEGER PRIMARY KEY AUTOINCREMENT,"
