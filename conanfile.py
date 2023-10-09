@@ -25,7 +25,7 @@ class Recipe(ConanFile):
         self.requires("cryptopp/8.7.0")
         self.requires("magic_enum/0.9.3")
         self.requires("zstd/1.5.5")
-        self.requires("libsndfile/1.2.0")
+        self.requires("libsndfile/1.2.2")
         self.requires("opus/1.4", override=True)
 
         # Testing only dependencies below
