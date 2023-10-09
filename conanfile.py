@@ -28,6 +28,7 @@ class Recipe(ConanFile):
         self.requires("libsndfile/1.2.2")
         self.requires("opus/1.4", override=True)
         self.requires("libalsa/1.2.10", override=True)
+        self.requires("zlib/1.3", override=True)
 
         # Testing only dependencies below
         self.requires("catch2/3.3.2")
