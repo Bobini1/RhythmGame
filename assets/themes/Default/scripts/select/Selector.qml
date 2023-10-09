@@ -75,13 +75,13 @@ Image {
                         rank = Math.min(3, Math.max(0, rank));
                         switch (rank) {
                         case 0:
-                            return root.iniImagesUrl + "parts.png/very_hard";
+                            return root.iniImagesUrl + "parts.png/r_very_hard";
                         case 1:
-                            return root.iniImagesUrl + "parts.png/hard";
+                            return root.iniImagesUrl + "parts.png/r_hard";
                         case 2:
-                            return root.iniImagesUrl + "parts.png/normal";
+                            return root.iniImagesUrl + "parts.png/r_normal";
                         case 3:
-                            return root.iniImagesUrl + "parts.png/easy";
+                            return root.iniImagesUrl + "parts.png/r_easy";
                         }
                     }
                 }

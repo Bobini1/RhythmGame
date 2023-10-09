@@ -114,6 +114,34 @@ Pane {
             waitingForStop = playMusic.source !== "";
         }
     }
+    Row {
+        anchors.left: parent.left
+        anchors.leftMargin: 80
+        anchors.verticalCenter: parent.verticalCenter
+        anchors.verticalCenterOffset: 170
+        spacing: 30
+
+        NoteImage {
+            active: songList.current instanceof ChartData && songList.current.difficulty === 1
+            name: "beginner"
+        }
+        NoteImage {
+            active: songList.current instanceof ChartData && songList.current.difficulty === 2
+            name: "normal"
+        }
+        NoteImage {
+            active: songList.current instanceof ChartData && songList.current.difficulty === 3
+            name: "hyper"
+        }
+        NoteImage {
+            active: songList.current instanceof ChartData && songList.current.difficulty === 4
+            name: "another"
+        }
+        NoteImage {
+            active: songList.current instanceof ChartData && songList.current.difficulty === 5
+            name: "insane"
+        }
+    }
     Connections {
         function onMovingInAnyWayChanged() {
             if (playMusic.waitingForStop) {
