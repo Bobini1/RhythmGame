@@ -143,38 +143,13 @@ Pane {
             waitingForStop = playMusic.source !== "";
         }
     }
-    Row {
+    Difficulty {
         anchors.left: parent.left
         anchors.leftMargin: 80
         anchors.verticalCenter: parent.verticalCenter
         anchors.verticalCenterOffset: 170
+        current: songList.current
         spacing: 30
-
-        NoteImage {
-            active: songList.current instanceof ChartData && songList.current.difficulty === 1
-            name: "beginner"
-            playLevel: songList.current instanceof ChartData ? songList.current.playLevel : 0
-        }
-        NoteImage {
-            active: songList.current instanceof ChartData && songList.current.difficulty === 2
-            name: "normal"
-            playLevel: songList.current instanceof ChartData ? songList.current.playLevel : 0
-        }
-        NoteImage {
-            active: songList.current instanceof ChartData && songList.current.difficulty === 3
-            name: "hyper"
-            playLevel: songList.current instanceof ChartData ? songList.current.playLevel : 0
-        }
-        NoteImage {
-            active: songList.current instanceof ChartData && songList.current.difficulty === 4
-            name: "another"
-            playLevel: songList.current instanceof ChartData ? songList.current.playLevel : 0
-        }
-        NoteImage {
-            active: songList.current instanceof ChartData && songList.current.difficulty === 5
-            name: "insane"
-            playLevel: songList.current instanceof ChartData ? songList.current.playLevel : 0
-        }
     }
     Connections {
         function onMovingInAnyWayChanged() {
