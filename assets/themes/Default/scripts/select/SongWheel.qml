@@ -17,7 +17,6 @@ Pane {
         if (active) {
             previewDelayTimer.restart();
             let currentChart = songList.currentItem.children[0];
-            console.info(currentChart);
             if (typeof currentChart.getClearType === 'function') {
                 currentChart.clearType = currentChart.getClearType();
             }
