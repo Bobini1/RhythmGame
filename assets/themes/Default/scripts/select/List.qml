@@ -4,7 +4,8 @@ import RhythmGameQml
 PathView {
     id: pathView
 
-    property var current: model.at(songList.currentIndex)
+    property var current: model.at(currentIndex)
+    property list<BmsScore> currentScores: current instanceof ChartData ? currentItem : []
     readonly property bool movingInAnyWay: movingManually || flicking || moving || dragging
     property bool movingManually: false
     property bool scrollingText: false

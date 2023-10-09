@@ -6,10 +6,10 @@ Image {
     id: image
 
     property string clearType: getClearType()
+    property list<BmsResult> scores: ScoreDb.getScoresForChart(display.sha256)
     property bool scrollingText: parent.scrollingText
 
     function getClearType() {
-        let scores = ScoreDb.getScoresForChart(display.sha256);
         let clearTypePriorities = ["NOPLAY", "FAILED", "AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC", "PERFECT", "MAX"];
         let clearType = "NOPLAY";
         for (let i = 0; i < scores.length; i++) {
@@ -19,6 +19,10 @@ Image {
             }
         }
         return clearType;
+    }
+    function refreshScores() {
+        scores = ScoreDb.getScoresForChart(display.sha256);
+        clearType = getClearType();
     }
 
     source: root.iniImagesUrl + "folders.png/white"

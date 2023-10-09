@@ -12,6 +12,22 @@ Pane {
     readonly property string imagesUrl: Qt.resolvedUrl(".") + "images/"
     readonly property string iniImagesUrl: "image://ini/" + rootUrl + "images/"
     property string rootUrl: globalRoot.urlToPath(Qt.resolvedUrl(".").toString())
+    property BmsResult scoreWithBestPoints: {
+        let scores = songList.current instanceof ChartData ? songList.currentItem.children[0].scores : [];
+        let bestPoints = 0;
+        let bestScore = null;
+        for (let score of scores) {
+            if (score.maxPoints === 0) {
+                continue;
+            }
+            let percent = score.points / score.maxPoints;
+            if (percent > bestPoints) {
+                bestPoints = percent;
+                bestScore = score;
+            }
+        }
+        return bestScore;
+    }
 
     function getDiffColor(diff) {
         switch (diff) {
@@ -49,8 +65,8 @@ Pane {
         if (active) {
             previewDelayTimer.restart();
             let currentChart = songList.currentItem.children[0];
-            if (typeof currentChart.getClearType === 'function') {
-                currentChart.clearType = currentChart.getClearType();
+            if (typeof currentChart.refreshScores === 'function') {
+                currentChart.refreshScores();
             }
         } else {
             playMusic.stop();
@@ -59,10 +75,9 @@ Pane {
         }
     }
 
-
     Pane {
-        focus: true
         anchors.centerIn: parent
+        focus: true
         height: 1080
         scale: Math.min(parent.width / 1920, parent.height / 1080)
         width: 1920
@@ -161,6 +176,49 @@ Pane {
             anchors.verticalCenterOffset: 170
             current: songList.current
             spacing: 30
+        }
+        Loader {
+            id: grade
+
+            function getGrade(points, maxPoints) {
+                if (points === maxPoints) {
+                    return "max";
+                }
+                let percent = points / maxPoints;
+                if (percent >= 0.88) {
+                    return "aaa";
+                } else if (percent >= 0.77) {
+                    return "aa";
+                } else if (percent >= 0.66) {
+                    return "a";
+                } else if (percent >= 0.55) {
+                    return "b";
+                } else if (percent >= 0.44) {
+                    return "c";
+                } else if (percent >= 0.33) {
+                    return "d";
+                } else if (percent >= 0.22) {
+                    return "e";
+                } else {
+                    return "f";
+                }
+            }
+
+            active: root.scoreWithBestPoints !== null
+            anchors.centerIn: parent
+            sourceComponent: gradeComponent
+
+            Component {
+                id: gradeComponent
+
+                Image {
+                    id: gradeImage
+
+                    anchors.centerIn: parent
+                    anchors.verticalCenterOffset: 90
+                    source: root.iniImagesUrl + "parts.png/" + grade.getGrade(root.scoreWithBestPoints.points, root.scoreWithBestPoints.maxPoints)
+                }
+            }
         }
         Connections {
             function onMovingInAnyWayChanged() {
