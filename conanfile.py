@@ -31,7 +31,7 @@ class Recipe(ConanFile):
         self.requires("zlib/1.3", override=True)
 
         # Testing only dependencies below
-        self.requires("catch2/3.3.2")
+        self.requires("catch2/3.4.0")
 
     def configure(self):
         # https://www.ffmpeg.org/legal.html
