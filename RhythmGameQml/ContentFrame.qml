@@ -91,10 +91,7 @@ ApplicationWindow {
             return decodeURIComponent(s);
         }
 
-        anchors.centerIn: parent
-        height: 1080
-        scale: Math.min(parent.width / 1920, parent.height / 1080)
-        width: 1920
+        anchors.fill: parent
 
         Component.onCompleted: {
             if (ProgramSettings.chartPath != "") {

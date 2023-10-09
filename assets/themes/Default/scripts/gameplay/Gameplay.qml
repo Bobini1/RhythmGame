@@ -3,9 +3,11 @@ import QtQuick.Window
 import QtQml
 import QtQuick.Layouts
 import RhythmGameQml
+import QtQuick.Controls.Basic
 
 Rectangle {
     id: root
+    color: "black"
 
     property list<int> columnSizes: {
         let sizes = [];
@@ -50,9 +52,6 @@ Rectangle {
     property double playfieldHeight: 800
     property string rootUrl: globalRoot.urlToPath(Qt.resolvedUrl(".").toString())
 
-    anchors.fill: parent
-    color: "black"
-
     Component.onCompleted: {
         chart.start();
     }
@@ -69,100 +68,108 @@ Rectangle {
 
         target: chart
     }
-    FpsCounter {
-        anchors.right: parent.right
-        anchors.top: parent.top
-    }
     Rectangle {
-        id: playAreaBorder
+        anchors.centerIn: parent
+        color: "black"
+        height: 1080
+        scale: Math.min(globalRoot.width / 1920, globalRoot.height / 1080)
+        width: 1920
 
-        anchors.bottom: parent.bottom
-        anchors.bottomMargin: parent.height - height
-        color: "white"
-        height: root.playfieldHeight + 2
-        width: playArea.width + 2
-        z: 1
-
-        PlayArea {
-            id: playArea
-
-            anchors.bottomMargin: 1
-            anchors.left: parent.left
-            anchors.leftMargin: 1
-            columns: [7, 0, 1, 2, 3, 4, 5, 6]
-            height: root.playfieldHeight
+        FpsCounter {
+            anchors.right: parent.right
+            anchors.top: parent.top
         }
-    }
-    Row {
-        anchors.horizontalCenter: playAreaBorder.horizontalCenter
-        anchors.top: playAreaBorder.bottom
+        Rectangle {
+            id: playAreaBorder
 
-        Gauge {
-            id: gauge
+            anchors.bottom: parent.bottom
+            anchors.bottomMargin: parent.height - height
+            color: "white"
+            height: root.playfieldHeight + 2
+            width: playArea.width + 2
+            z: 1
 
+            PlayArea {
+                id: playArea
+
+                anchors.bottomMargin: 1
+                anchors.left: parent.left
+                anchors.leftMargin: 1
+                columns: [7, 0, 1, 2, 3, 4, 5, 6]
+                height: root.playfieldHeight
+            }
         }
-        Item {
-            id: lifeNumberContainer
+        Row {
+            anchors.horizontalCenter: playAreaBorder.horizontalCenter
+            anchors.top: playAreaBorder.bottom
 
+            Gauge {
+                id: gauge
+
+            }
+            Item {
+                id: lifeNumberContainer
+
+            }
+            LifeNumber {
+                anchors.verticalCenter: gauge.verticalCenter
+                width: 80
+            }
         }
-        LifeNumber {
-            anchors.verticalCenter: gauge.verticalCenter
-            width: 80
-        }
-    }
-    Rectangle {
-        anchors.bottom: playAreaBorder.bottom
-        anchors.left: playAreaBorder.right
-        color: "darkslategray"
-        height: childrenRect.height
-        width: 120
+        Rectangle {
+            anchors.bottom: playAreaBorder.bottom
+            anchors.left: playAreaBorder.right
+            color: "darkslategray"
+            height: childrenRect.height
+            width: 120
 
-        Column {
-            anchors.left: parent.left
-            anchors.leftMargin: 8
+            Column {
+                anchors.left: parent.left
+                anchors.leftMargin: 8
 
-            Repeater {
-                id: judgementCounts
+                Repeater {
+                    id: judgementCounts
 
-                model: ["Perfect", "Great", "Good", "Bad", "Poor", "EmptyPoor"]
+                    model: ["Perfect", "Great", "Good", "Bad", "Poor", "EmptyPoor"]
 
-                delegate: Text {
-                    property int num: 0
+                    delegate: Text {
+                        property int num: 0
 
-                    color: "white"
-                    font.pixelSize: 16
-                    text: modelData + ": " + num
-                    textFormat: Text.PlainText
+                        color: "white"
+                        font.pixelSize: 16
+                        text: modelData + ": " + num
+                        textFormat: Text.PlainText
+                    }
                 }
             }
-        }
-        Connections {
-            function onHit(tap) {
-                if (!tap.points)
-                    return;
-                switch (tap.points.judgement) {
-                case Judgement.Perfect:
-                    judgementCounts.itemAt(0).num++;
-                    break;
-                case Judgement.Great:
-                    judgementCounts.itemAt(1).num++;
-                    break;
-                case Judgement.Good:
-                    judgementCounts.itemAt(2).num++;
-                    break;
-                case Judgement.Bad:
-                    judgementCounts.itemAt(3).num++;
-                    break;
-                case Judgement.EmptyPoor:
-                    judgementCounts.itemAt(5).num++;
-                    break;
+            Connections {
+                function onHit(tap) {
+                    if (!tap.points)
+                        return;
+                    switch (tap.points.judgement) {
+                    case Judgement.Perfect:
+                        judgementCounts.itemAt(0).num++;
+                        break;
+                    case Judgement.Great:
+                        judgementCounts.itemAt(1).num++;
+                        break;
+                    case Judgement.Good:
+                        judgementCounts.itemAt(2).num++;
+                        break;
+                    case Judgement.Bad:
+                        judgementCounts.itemAt(3).num++;
+                        break;
+                    case Judgement.EmptyPoor:
+                        judgementCounts.itemAt(5).num++;
+                        break;
+                    }
                 }
-            }
-            function onMissed() {
-                judgementCounts.itemAt(4).num++;
-            }
+                function onMissed() {
+                    judgementCounts.itemAt(4).num++;
+                }
 
-            target: chart.score
+                target: chart.score
+            }
         }
     }
     Shortcut {
