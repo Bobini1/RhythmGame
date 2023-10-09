@@ -6,7 +6,7 @@ Image {
     id: image
 
     property string clearType: getClearType()
-    property bool scrollingText;
+    property bool scrollingText
 
     function getClearType() {
         let scores = ScoreDb.getScoresForChart(display.sha256);
@@ -32,31 +32,15 @@ Image {
         anchors.topMargin: 9
         source: root.iniImagesUrl + "parts.png/C_" + image.clearType
     }
-    Text {
+    TextureText {
         id: playlevelText
 
         anchors.bottom: parent.bottom
         anchors.bottomMargin: 10
-        anchors.left: parent.left
-        anchors.leftMargin: 23
-        color: "black"
-        font.pixelSize: 20
-        horizontalAlignment: Text.AlignHCenter
-        text: display.playLevel
-        width: normalTextMetrics.width
-
-        TextMetrics {
-            id: normalTextMetrics
-
-            font: playlevelText.font
-            text: "00"
-        }
-        TextMetrics {
-            id: myTextMetrics
-
-            font: playlevelText.font
-            text: playlevelText.text
-        }
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.horizontalCenterOffset: -270
+        number: Math.min(display.playLevel, 99)
+        srcBeforeDecimal: root.iniImagesUrl + "parts.png/s_" + root.getDiffColorInt(display.difficulty) + "_"
     }
     NameLabel {
         anchors.right: parent.right

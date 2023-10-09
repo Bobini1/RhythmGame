@@ -6,6 +6,7 @@ Item {
 
     property bool active: false
     property string name: "beginner"
+    property int playLevel
 
     height: 74
     width: 105
@@ -35,6 +36,12 @@ Item {
 
                 anchors.bottom: parent.bottom
                 source: root.iniImagesUrl + "parts.png/" + noteImage.name + "_text"
+            }
+            TextureText {
+                anchors.horizontalCenter: circle.horizontalCenter
+                anchors.top: circle.bottom
+                number: noteImage.playLevel
+                srcBeforeDecimal: root.iniImagesUrl + "parts.png/l_" + root.getDiffColor(noteImage.name) + "_"
             }
         }
     }

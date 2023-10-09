@@ -13,6 +13,35 @@ Pane {
     readonly property string iniImagesUrl: "image://ini/" + rootUrl + "images/"
     property string rootUrl: globalRoot.urlToPath(Qt.resolvedUrl(".").toString())
 
+    function getDiffColor(diff) {
+        switch (diff) {
+        case "beginner":
+            return "green";
+        case "normal":
+            return "blue";
+        case "hyper":
+            return "orange";
+        case "another":
+            return "red";
+        case "insane":
+            return "purple";
+        }
+    }
+    function getDiffColorInt(diff) {
+        switch (diff) {
+        case 1:
+            return "green";
+        case 2:
+            return "blue";
+        case 3:
+            return "orange";
+        case 4:
+            return "red";
+        case 5:
+            return "purple";
+        }
+    }
+
     onActiveChanged: {
         if (active) {
             previewDelayTimer.restart();
@@ -124,22 +153,27 @@ Pane {
         NoteImage {
             active: songList.current instanceof ChartData && songList.current.difficulty === 1
             name: "beginner"
+            playLevel: songList.current instanceof ChartData ? songList.current.playLevel : 0
         }
         NoteImage {
             active: songList.current instanceof ChartData && songList.current.difficulty === 2
             name: "normal"
+            playLevel: songList.current instanceof ChartData ? songList.current.playLevel : 0
         }
         NoteImage {
             active: songList.current instanceof ChartData && songList.current.difficulty === 3
             name: "hyper"
+            playLevel: songList.current instanceof ChartData ? songList.current.playLevel : 0
         }
         NoteImage {
             active: songList.current instanceof ChartData && songList.current.difficulty === 4
             name: "another"
+            playLevel: songList.current instanceof ChartData ? songList.current.playLevel : 0
         }
         NoteImage {
             active: songList.current instanceof ChartData && songList.current.difficulty === 5
             name: "insane"
+            playLevel: songList.current instanceof ChartData ? songList.current.playLevel : 0
         }
     }
     Connections {
