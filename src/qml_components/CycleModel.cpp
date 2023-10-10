@@ -24,12 +24,10 @@ CycleModel::setModel(QAbstractListModel* newModel)
         model = newModel;
         if (model != nullptr) {
             model->setParent(this);
-            if (model->rowCount() > 0) {
-            }
         }
         endResetModel();
+        emit modelChanged();
     }
-    emit modelChanged();
 }
 auto
 CycleModel::getMinimumAmount() const -> int
@@ -52,7 +50,8 @@ CycleModel::data(const QModelIndex& index, int role) const -> QVariant
     if (model == nullptr || !index.isValid()) {
         return {};
     }
-    auto modelIndex = index.row() % model->rowCount();
+    auto rowCount = model->rowCount();
+    auto modelIndex = index.row() % rowCount;
     return model->data(model->index(modelIndex), role);
 }
 auto
@@ -73,7 +72,9 @@ CycleModel::at(int index)
     if (model == nullptr) {
         return {};
     }
-    return data(this->index(index));
+    auto rowCount = model->rowCount();
+    auto modelIndex = index % rowCount;
+    return model->data(model->index(modelIndex));
 }
 auto
 CycleModel::roleNames() const -> QHash<int, QByteArray>
@@ -83,4 +84,5 @@ CycleModel::roleNames() const -> QHash<int, QByteArray>
     }
     return model->roleNames();
 }
+
 } // namespace qml_components

@@ -24,7 +24,6 @@ class Folder : public QAbstractListModel
     db::SqliteCppDb* db;
     QList<QString> childrenFolders;
     std::vector<gameplay_logic::ChartData*> chartData;
-    int minimumAmount = 0;
 
   public:
     explicit Folder(QString path,

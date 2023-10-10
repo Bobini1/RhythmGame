@@ -34,7 +34,7 @@ class CycleModel : public QAbstractListModel
     auto getMinimumAmount() const -> int;
     void setMinimumAmount(int count);
 
-    QAbstractListModel* getModel() const;
+    auto getModel() const -> QAbstractListModel*;
     void setModel(QAbstractListModel* model);
 
     Q_INVOKABLE QVariant at(int index);

@@ -47,6 +47,13 @@ PathView {
     model: CycleModel {
         minimumAmount: pathItemCount
         model: SongFolderFactory.open("/")
+
+        onModelChanged: {
+            pathView.positionViewAtIndex(0, PathView.Center);
+            pathView.current = Qt.binding(function () {
+                    return model.at(currentIndex);
+                });
+        }
     }
     path: Path {
         id: path
@@ -84,7 +91,7 @@ PathView {
     }
     Keys.onLeftPressed: {
         if (model.model.parentFolder) {
-            model.model = SongFolderFactory.open(model.parentFolder);
+            open(model.model.parentFolder);
         } else {
             sceneStack.pop();
         }

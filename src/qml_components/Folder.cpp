@@ -30,11 +30,7 @@ Folder::Folder(QString path,
 auto
 Folder::rowCount(const QModelIndex& parent) const -> int
 {
-    return (childrenFolders.size() + chartData.size() > 0)
-             ? std::max(
-                 minimumAmount,
-                 static_cast<int>(childrenFolders.size() + chartData.size()))
-             : 0;
+    return childrenFolders.size() + chartData.size();
 }
 auto
 Folder::data(const QModelIndex& index, int role) const -> QVariant
