@@ -22,6 +22,7 @@ Item {
 
                 anchors.bottom: parent.bottom
                 anchors.bottomMargin: -3
+                asynchronous: true
                 source: root.iniImagesUrl + "parts.png/" + noteImage.name
             }
             Image {
@@ -29,12 +30,14 @@ Item {
 
                 anchors.bottom: parent.bottom
                 anchors.bottomMargin: 2
+                asynchronous: true
                 source: root.iniImagesUrl + "parts.png/" + noteImage.name + "_note"
             }
             Image {
                 id: text
 
                 anchors.bottom: parent.bottom
+                asynchronous: true
                 source: root.iniImagesUrl + "parts.png/" + noteImage.name + "_text"
             }
             TextureText {
@@ -52,6 +55,7 @@ Item {
             id: circle
 
             anchors.bottom: parent.bottom
+            asynchronous: true
             source: root.iniImagesUrl + "parts.png/" + noteImage.name + "_inactive"
         }
     }

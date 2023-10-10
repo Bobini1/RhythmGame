@@ -25,6 +25,7 @@ Image {
         clearType = getClearType();
     }
 
+    asynchronous: true
     source: root.iniImagesUrl + "folders.png/white"
 
     Image {
@@ -34,6 +35,7 @@ Image {
         anchors.leftMargin: 18
         anchors.top: parent.top
         anchors.topMargin: 9
+        asynchronous: true
         source: root.iniImagesUrl + "parts.png/C_" + image.clearType
     }
     TextureText {

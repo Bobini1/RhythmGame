@@ -3,6 +3,7 @@ import QtQuick 2.0
 Image {
     property bool scrollingText: parent.scrollingText
 
+    asynchronous: true
     source: root.iniImagesUrl + "folders.png/folder_green"
 
     NameLabel {

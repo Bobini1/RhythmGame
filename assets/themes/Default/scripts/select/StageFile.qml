@@ -34,6 +34,7 @@ Image {
         id: shadow
 
         active: false
+        asynchronous: true
 
         sourceComponent: Component {
             Image {
