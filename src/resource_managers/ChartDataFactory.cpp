@@ -162,6 +162,7 @@ ChartDataFactory::loadChartData(
     return { std::move(chartData),
              std::move(noteData),
              std::move(calculatedNotesData),
-             parsedChart.tags.wavs };
+             std::move(parsedChart.tags.wavs),
+             std::move(parsedChart.tags.bmps) };
 }
 } // namespace resource_managers

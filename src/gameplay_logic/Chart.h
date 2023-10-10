@@ -11,6 +11,7 @@
 #include "input/KeyboardInputTranslatorToBms.h"
 #include "ChartData.h"
 #include "BmsScoreAftermath.h"
+#include "qml_components/Bga.h"
 namespace gameplay_logic {
 
 class Chart : public QObject
@@ -25,6 +26,7 @@ class Chart : public QObject
     Q_PROPERTY(
       int64_t timeBeforeChartStart READ getTimeBeforeChartStart CONSTANT)
     Q_PROPERTY(int64_t timeAfterChartEnd READ getTimeAfterChartEnd CONSTANT)
+    Q_PROPERTY(qml_components::BgaContainer* bga READ getBga NOTIFY loaded)
 
     QTimer propertyUpdateTimer;
 #ifdef _WIN32
@@ -39,6 +41,9 @@ class Chart : public QObject
     BmsScore* score;
     QFuture<gameplay_logic::BmsGameReferee> refereeFuture;
     QFutureWatcher<gameplay_logic::BmsGameReferee> refereeFutureWatcher;
+    qml_components::BgaContainer* bga{};
+    QFuture<qml_components::BgaContainer*> bgaFuture;
+    QFutureWatcher<qml_components::BgaContainer*> bgaFutureWatcher;
     std::function<db::SqliteCppDb&()> scoreDb;
     int64_t elapsed;
     int64_t timeBeforeChartStart{};
@@ -48,7 +53,8 @@ class Chart : public QObject
 
     void updateElapsed();
     void updateBpm();
-    void setReferee();
+    int numberOfSetupCalls = 0;
+    void setup();
     void setElapsed(int64_t elapsed);
     void setPosition(double position);
 
@@ -57,6 +63,7 @@ class Chart : public QObject
 
   public:
     explicit Chart(QFuture<gameplay_logic::BmsGameReferee> refereeFuture,
+                   QFuture<qml_components::BgaContainer*> bgaFuture,
                    ChartData* chartData,
                    BmsNotes* notes,
                    BmsScore* score,
@@ -83,12 +90,15 @@ class Chart : public QObject
 
     [[nodiscard]] auto getTimeAfterChartEnd() const -> int64_t;
 
+    [[nodiscard]] auto getBga() const -> qml_components::BgaContainer*;
+
   signals:
     void elapsedChanged(int64_t delta);
     void positionChanged(double delta);
     void over();
     void bpmChanged(BpmChange bpmChange);
     void started();
+    void loaded();
 };
 
 } // namespace gameplay_logic

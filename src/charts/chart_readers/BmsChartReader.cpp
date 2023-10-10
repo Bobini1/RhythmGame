@@ -141,6 +141,8 @@ BOOST_STRONG_TYPEDEF(int, PlayLevel);
 BOOST_STRONG_TYPEDEF(int, Difficulty);
 using wav_t = std::pair<std::string, std::string>;
 BOOST_STRONG_TYPEDEF(wav_t, Wav);
+using bmp_t = std::pair<std::string, std::string>;
+BOOST_STRONG_TYPEDEF(bmp_t, Bmp);
 using pair_t = std::pair<std::string, double>;
 BOOST_STRONG_TYPEDEF(pair_t, ExBpm);
 using meter_t = std::pair<int64_t, double>;
@@ -299,6 +301,18 @@ struct WavTag
       });
 };
 
+struct BmpTag
+{
+    static constexpr auto rule = [] {
+        auto bmpTag = dsl::ascii::case_folding(LEXY_LIT("#bmp"));
+        return bmpTag >> (dsl::p<Identifier> + dsl::p<TextTag>);
+    }();
+    static constexpr auto value =
+      lexy::callback<Bmp>([](std::string&& identifier, std::string&& filename) {
+          return Bmp{ { std::move(identifier), std::move(filename) } };
+      });
+};
+
 struct ExBpmTag
 {
     static constexpr auto rule = [] {
@@ -412,6 +426,13 @@ struct TagsSink
             auto& [identifier, filename] =
               static_cast<std::pair<std::string, std::string>&>(wav);
             state.wavs[identifier] = std::move(filename);
+        }
+
+        auto operator()(Bmp&& bmp) -> void
+        {
+            auto& [identifier, filename] =
+              static_cast<std::pair<std::string, std::string>&>(bmp);
+            state.bmps[identifier] = std::move(filename);
         }
 
         auto operator()(
@@ -542,12 +563,12 @@ struct MainTags
           dsl::eof | dsl::peek(dsl::ascii::case_folding(LEXY_LIT("#endif"))));
         return term.list(dsl::try_(
           dsl::unicode::newline | dsl::p<MeterTag> | dsl::p<MeasureBasedTag> |
-            dsl::p<WavTag> | dsl::p<ExBpmTag> | dsl::p<TitleTag> |
-            dsl::p<ArtistTag> | dsl::p<GenreTag> | dsl::p<StageFileTag> |
-            dsl::p<BannerTag> | dsl::p<BackBmpTag> | dsl::p<SubtitleTag> |
-            dsl::p<SubartistTag> | dsl::p<TotalTag> | dsl::p<RankTag> |
-            dsl::p<PlayLevelTag> | dsl::p<DifficultyTag> | dsl::p<BpmTag> |
-            dsl::recurse_branch<RandomBlock>,
+            dsl::p<WavTag> | dsl::p<BmpTag> | dsl::p<ExBpmTag> |
+            dsl::p<TitleTag> | dsl::p<ArtistTag> | dsl::p<GenreTag> |
+            dsl::p<StageFileTag> | dsl::p<BannerTag> | dsl::p<BackBmpTag> |
+            dsl::p<SubtitleTag> | dsl::p<SubartistTag> | dsl::p<TotalTag> |
+            dsl::p<RankTag> | dsl::p<PlayLevelTag> | dsl::p<DifficultyTag> |
+            dsl::p<BpmTag> | dsl::recurse_branch<RandomBlock>,
           dsl::until(dsl::unicode::newline).or_eof()));
     }();
     static constexpr auto value = TagsSink{};
@@ -562,16 +583,16 @@ struct OrphanizedRandomCommonPart
           dsl::peek(dsl::ascii::case_folding(LEXY_LIT("#random"))) |
           dsl::peek(dsl::ascii::case_folding(LEXY_LIT("#if"))));
         return dsl::peek_not(dsl::ascii::case_folding(LEXY_LIT("#if"))) >>
-               term.list(dsl::try_(dsl::unicode::newline | dsl::p<MeterTag> |
-                                     dsl::p<MeasureBasedTag> | dsl::p<WavTag> |
-                                     dsl::p<ExBpmTag> | dsl::p<TitleTag> |
-                                     dsl::p<ArtistTag> | dsl::p<GenreTag> |
-                                     dsl::p<StageFileTag> | dsl::p<BannerTag> |
-                                     dsl::p<BackBmpTag> | dsl::p<SubtitleTag> |
-                                     dsl::p<SubartistTag> | dsl::p<TotalTag> |
-                                     dsl::p<RankTag> | dsl::p<PlayLevelTag> |
-                                     dsl::p<DifficultyTag> | dsl::p<BpmTag>,
-                                   dsl::until(dsl::unicode::newline).or_eof()));
+               term.list(dsl::try_(
+                 dsl::unicode::newline | dsl::p<MeterTag> |
+                   dsl::p<MeasureBasedTag> | dsl::p<WavTag> | dsl::p<BmpTag> |
+                   dsl::p<ExBpmTag> | dsl::p<TitleTag> | dsl::p<ArtistTag> |
+                   dsl::p<GenreTag> | dsl::p<StageFileTag> | dsl::p<BannerTag> |
+                   dsl::p<BackBmpTag> | dsl::p<SubtitleTag> |
+                   dsl::p<SubartistTag> | dsl::p<TotalTag> | dsl::p<RankTag> |
+                   dsl::p<PlayLevelTag> | dsl::p<DifficultyTag> |
+                   dsl::p<BpmTag>,
+                 dsl::until(dsl::unicode::newline).or_eof()));
     }();
     static constexpr auto value = TagsSink{};
 };

@@ -6,47 +6,56 @@
 #include <algorithm>
 #include "BmsGameReferee.h"
 gameplay_logic::BmsGameReferee::BmsGameReferee(
-  const charts::gameplay_models::BmsNotesData& notesData,
+  std::array<std::vector<charts::gameplay_models::BmsNotesData::Note>,
+             charts::gameplay_models::BmsNotesData::columnNumber> visibleNotes,
+  std::array<std::vector<charts::gameplay_models::BmsNotesData::Note>,
+             charts::gameplay_models::BmsNotesData::columnNumber>
+    invisibleNotes,
+  std::vector<std::pair<charts::gameplay_models::BmsNotesData::Time,
+                        std::string>> bgmNotes,
+  std::vector<std::pair<charts::gameplay_models::BmsNotesData::Time, double>>
+    bpmChanges,
   BmsScore* score,
   std::unordered_map<std::string, sounds::OpenALSound> sounds,
   std::unique_ptr<rules::BmsHitRules> hitRules)
-  : bpmChanges(notesData.bpmChanges)
+  : bpmChanges(std::move(bpmChanges))
   , sounds(std::move(sounds))
   , hitRules(std::move(hitRules))
   , score(score)
 {
     for (int i = 0; i < charts::gameplay_models::BmsNotesData::columnNumber;
          i++) {
-        for (const auto& note : notesData.visibleNotes[i]) {
+        for (const auto& note : visibleNotes[i]) {
             auto soundId = note.sound;
             if (auto sound = this->sounds.find(soundId);
                 sound != this->sounds.end()) {
-                visibleNotes[i].emplace_back(&sound->second,
-                                             note.time.timestamp);
+                this->visibleNotes[i].emplace_back(&sound->second,
+                                                   note.time.timestamp);
             } else {
                 // we still want to be able to hit those notes, even if they
                 // don't make a sound
-                visibleNotes[i].emplace_back(nullptr, note.time.timestamp);
+                this->visibleNotes[i].emplace_back(nullptr,
+                                                   note.time.timestamp);
             }
         }
-        for (const auto& note : notesData.invisibleNotes[i]) {
+        for (const auto& note : invisibleNotes[i]) {
             auto soundId = note.sound;
             if (auto sound = this->sounds.find(soundId);
                 sound != this->sounds.end()) {
-                invisibleNotes[i].emplace_back(&sound->second,
-                                               note.time.timestamp);
+                this->invisibleNotes[i].emplace_back(&sound->second,
+                                                     note.time.timestamp);
             }
         }
     }
-    for (const auto& bgmNote : notesData.bgmNotes) {
+    for (const auto& bgmNote : bgmNotes) {
         auto soundId = bgmNote.second;
         if (auto sound = this->sounds.find(soundId);
             sound != this->sounds.end()) {
-            bgms.emplace_back(bgmNote.first.timestamp, &sound->second);
+            this->bgms.emplace_back(bgmNote.first.timestamp, &sound->second);
         }
     }
     currentBgms = bgms;
-    currentBpmChanges = bpmChanges;
+    currentBpmChanges = this->bpmChanges;
 }
 auto
 gameplay_logic::BmsGameReferee::update(std::chrono::nanoseconds offsetFromStart,

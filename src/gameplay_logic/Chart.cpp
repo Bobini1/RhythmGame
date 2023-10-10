@@ -9,6 +9,7 @@
 namespace gameplay_logic {
 
 Chart::Chart(QFuture<gameplay_logic::BmsGameReferee> refereeFuture,
+             QFuture<qml_components::BgaContainer*> bgaFuture,
              ChartData* chartData,
              BmsNotes* notes,
              BmsScore* score,
@@ -20,6 +21,7 @@ Chart::Chart(QFuture<gameplay_logic::BmsGameReferee> refereeFuture,
   , notes(notes)
   , score(score)
   , refereeFuture(std::move(refereeFuture))
+  , bgaFuture(std::move(bgaFuture))
   , scoreDb(std::move(scoreDb))
 {
     chartData->setParent(this);
@@ -28,8 +30,13 @@ Chart::Chart(QFuture<gameplay_logic::BmsGameReferee> refereeFuture,
     connect(&refereeFutureWatcher,
             &QFutureWatcher<gameplay_logic::BmsGameReferee>::finished,
             this,
-            &Chart::setReferee);
+            &Chart::setup);
     refereeFutureWatcher.setFuture(this->refereeFuture);
+    connect(&bgaFutureWatcher,
+            &QFutureWatcher<qml_components::Bga*>::finished,
+            this,
+            &Chart::setup);
+    bgaFutureWatcher.setFuture(this->bgaFuture);
 
     setTimeBeforeChartStart(
       std::chrono::duration_cast<std::chrono::nanoseconds>(
@@ -66,6 +73,7 @@ Chart::updateElapsed()
     setElapsed(offset.count());
     auto newPosition = gameReferee->update(offset);
     setPosition(newPosition);
+    bga->update(offset);
     if (chartData->getLength() + timeAfterChartEnd <= elapsed) {
         propertyUpdateTimer.stop();
         emit over();
@@ -148,9 +156,15 @@ Chart::getPosition() const -> double
     return position;
 }
 void
-Chart::setReferee()
+Chart::setup()
 {
+    if (++numberOfSetupCalls < 2) {
+        return;
+    }
     gameReferee = refereeFuture.takeResult();
+    bga = bgaFuture.takeResult();
+    bga->setParent(this);
+    emit loaded();
     if (startRequested) {
         start();
     }
@@ -162,6 +176,13 @@ Chart::finish() -> BmsScoreAftermath*
     propertyUpdateTimer.stop();
     if (!gameReferee) {
         return nullptr;
+    }
+    // if we didn't get bga yet, wait for it
+    if (bga == nullptr) {
+        bgaFutureWatcher.cancel();
+        bgaFuture.waitForFinished();
+        bga = bgaFuture.result();
+        bga->deleteLater();
     }
 
     auto chartLength = chartData->getLength();
@@ -247,5 +268,10 @@ Chart::setPosition(double newPosition)
         position = newPosition;
         emit positionChanged(delta);
     }
+}
+auto
+Chart::getBga() const -> qml_components::BgaContainer*
+{
+    return bga;
 }
 } // namespace gameplay_logic

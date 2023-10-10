@@ -53,6 +53,9 @@ charts::parser_models::ParsedBmsChart::mergeTags(
     for (auto& [key, value] : second.wavs) {
         first.wavs[key] = std::move(value);
     }
+    for (auto& [key, value] : second.bmps) {
+        first.bmps[key] = std::move(value);
+    }
     for (auto& [key, measure] : second.measures) {
         auto& firstMeasure = first.measures[key];
         for (auto column = 0; column < measure.p1VisibleNotes.size();

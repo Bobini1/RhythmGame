@@ -67,6 +67,7 @@ struct ParsedBmsChart
         std::optional<int> difficulty;
         std::map<std::string, double> exBpms;
         std::map<std::string, std::string> wavs;
+        std::map<std::string, std::string> bmps;
         std::map<int64_t, Measure> measures;
         bool isRandom = false;
     };

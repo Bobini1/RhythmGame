@@ -42,7 +42,7 @@ find_package(OpenAL REQUIRED)
 
 # <------------ Qt (gui) --------------->
 
-find_package(Qt6 REQUIRED COMPONENTS Quick Gui Widgets Core5Compat Concurrent)
+find_package(Qt6 REQUIRED COMPONENTS Quick Gui Widgets Core5Compat Concurrent Multimedia)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
@@ -141,13 +141,15 @@ qt_add_library(RhythmGame_lib OBJECT src/db/SqliteCppDb.cpp src/db/SqliteCppDb.h
         src/qml_components/FileValidator.cpp
         src/qml_components/FileValidator.h
         src/qml_components/CycleModel.cpp
-        src/qml_components/CycleModel.h)
+        src/qml_components/CycleModel.h
+        src/qml_components/Bga.cpp
+        src/qml_components/Bga.h)
 
 find_package(Threads REQUIRED)
 
 find_package(SndFile REQUIRED)
 
-target_link_libraries(RhythmGame_lib PUBLIC Qt6::Gui Qt6::Quick Qt6::OpenGL Qt6::Widgets Qt6::Concurrent Qt6::Core5Compat Threads::Threads Boost::headers Boost::locale Boost::serialization Boost::dynamic_linking Boost::filesystem SQLiteCpp spdlog::spdlog foonathan::lexy ffmpeg::ffmpeg OpenAL::OpenAL cryptopp::cryptopp magic_enum::magic_enum zstd::libzstd_static SndFile::sndfile)
+target_link_libraries(RhythmGame_lib PUBLIC Qt6::Gui Qt6::Quick Qt6::OpenGL Qt6::Widgets Qt6::Concurrent Qt6::Core5Compat Qt6::Multimedia Threads::Threads Boost::headers Boost::locale Boost::serialization Boost::dynamic_linking Boost::filesystem SQLiteCpp spdlog::spdlog foonathan::lexy ffmpeg::ffmpeg OpenAL::OpenAL cryptopp::cryptopp magic_enum::magic_enum zstd::libzstd_static SndFile::sndfile)
 
 include(CheckCXXSymbolExists)
 check_cxx_symbol_exists(std::execution::par "execution" RHYTHMGAME_HAS_STD_EXECUTION)

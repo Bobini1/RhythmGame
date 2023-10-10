@@ -34,6 +34,7 @@ class ChartDataFactory
         std::unique_ptr<gameplay_logic::BmsNotes> bmsNotes;
         charts::gameplay_models::BmsNotesData notesData;
         std::map<std::string, std::string> wavs;
+        std::map<std::string, std::string> bmps;
     };
 
     auto loadChartData(

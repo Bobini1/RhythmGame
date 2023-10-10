@@ -4,6 +4,7 @@ import QtQml
 import QtQuick.Layouts
 import RhythmGameQml
 import QtQuick.Controls.Basic
+import QtMultimedia
 
 Rectangle {
     id: root
@@ -53,16 +54,29 @@ Rectangle {
 
     color: "black"
 
-    Component.onCompleted: {
-        chart.start();
-    }
-
     // destroy chart when this component is unloaded
     Component.onDestruction: {
         chart.destroy();
+        gc();
     }
 
+    Timer {
+        id: poorLayerTimer
+
+        interval: 400
+
+        onTriggered: {
+            poorLayer.visible = false;
+        }
+    }
     Connections {
+        function onLoaded() {
+            chart.bga.layers[0].videoSink = videoOutput.videoSink;
+            chart.bga.layers[2].videoSink = videoLayer.videoSink;
+            chart.bga.layers[3].videoSink = videoLayer2.videoSink;
+            chart.bga.layers[1].videoSink = poorLayer.videoSink;
+            chart.start();
+        }
         function onOver() {
             globalRoot.openResult(chart.finish());
         }
@@ -118,6 +132,8 @@ Rectangle {
             }
         }
         Rectangle {
+            id: judgementCountsContainer
+
             anchors.bottom: playAreaBorder.bottom
             anchors.left: playAreaBorder.right
             color: "darkslategray"
@@ -159,18 +175,53 @@ Rectangle {
                         break;
                     case Judgement.Bad:
                         judgementCounts.itemAt(3).num++;
+                        poorLayer.visible = true;
+                        poorLayerTimer.restart();
                         break;
                     case Judgement.EmptyPoor:
                         judgementCounts.itemAt(5).num++;
+                        poorLayer.visible = true;
+                        poorLayerTimer.restart();
                         break;
                     }
                 }
                 function onMissed() {
                     judgementCounts.itemAt(4).num++;
+                    poorLayer.visible = true;
+                    poorLayerTimer.restart();
                 }
 
                 target: chart.score
             }
+        }
+        VideoOutput {
+            id: videoOutput
+
+            anchors.left: judgementCountsContainer.right
+            anchors.top: parent.top
+            height: 800
+            width: 800
+        }
+        VideoOutput {
+            id: videoLayer
+            visible: true
+
+            anchors.fill: videoOutput
+            z: videoOutput.z + 1
+        }
+        VideoOutput {
+            id: videoLayer2
+            visible: false
+
+            anchors.fill: videoOutput
+            z: videoLayer.z + 1
+        }
+        VideoOutput {
+            id: poorLayer
+            visible: false
+
+            anchors.fill: videoOutput
+            z: videoLayer2.z + 1
         }
     }
     Shortcut {
