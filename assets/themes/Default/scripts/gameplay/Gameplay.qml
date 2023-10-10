@@ -7,7 +7,6 @@ import QtQuick.Controls.Basic
 
 Rectangle {
     id: root
-    color: "black"
 
     property list<int> columnSizes: {
         let sizes = [];
@@ -22,7 +21,7 @@ Rectangle {
         }
         return sizes;
     }
-    property double greenNumber: 400
+    property double greenNumber: 200
     readonly property string imagesUrl: Qt.resolvedUrl(".") + "images/"
     readonly property string iniImagesUrl: "image://ini/" + rootUrl + "images/"
     property list<string> laserImages: {
@@ -51,6 +50,8 @@ Rectangle {
     }
     property double playfieldHeight: 800
     property string rootUrl: globalRoot.urlToPath(Qt.resolvedUrl(".").toString())
+
+    color: "black"
 
     Component.onCompleted: {
         chart.start();
