@@ -2,7 +2,6 @@
 // Created by bobini on 19.09.23.
 //
 
-#include <QtConcurrentMap>
 #include "Folder.h"
 
 namespace qml_components {
@@ -15,16 +14,12 @@ Folder::Folder(QString path,
   , path(std::move(path))
   , db(db)
   , childrenFolders(std::move(childrenDirs))
-  , chartData(QtConcurrent::blockingMapped(
-      childrenCharts,
-      [this](const gameplay_logic::ChartData::DTO& dto) {
-          auto chartData = gameplay_logic::ChartData::load(dto);
-          chartData->moveToThread(thread());
-          return chartData.release();
-      }))
 {
-    for (auto& chart : chartData) {
-        chart->setParent(this);
+    chartData.reserve(childrenCharts.size());
+    for (auto& chart : childrenCharts) {
+        auto loadedChart = gameplay_logic::ChartData::load(chart);
+        loadedChart->setParent(this);
+        chartData.push_back(loadedChart.release());
     }
 }
 auto
