@@ -32,7 +32,7 @@ PathView {
     focus: true
     highlightMoveDuration: 100
     pathItemCount: 16
-    preferredHighlightBegin: 0.5
+    preferredHighlightBegin: 0.499999999
     preferredHighlightEnd: 0.5
     snapMode: PathView.SnapToItem
 
