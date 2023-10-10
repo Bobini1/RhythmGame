@@ -167,7 +167,7 @@ calculateOffsetsForColumn(
 }
 
 void
-calculateOffsetsForBgm(
+calculateOffsetsForBgmOrBga(
   const std::vector<std::string>& notes,
   std::vector<std::pair<BmsNotesData::Time, std::string>>& target,
   const std::map<double, std::pair<double, BmsNotesData::Time>>&
@@ -263,8 +263,24 @@ BmsNotesData::generateMeasures(
         }
 
         for (const auto& bgmNotes : measure.bgmNotes) {
-            calculateOffsetsForBgm(
+            calculateOffsetsForBgmOrBga(
               bgmNotes, this->bgmNotes, bpmChangesInMeasure, meter);
+        }
+        for (const auto& bgaBase : measure.bgaBase) {
+            calculateOffsetsForBgmOrBga(
+              bgaBase, this->bgaBase, bpmChangesInMeasure, meter);
+        }
+        for (const auto& bgaPoor : measure.bgaPoor) {
+            calculateOffsetsForBgmOrBga(
+              bgaPoor, this->bgaPoor, bpmChangesInMeasure, meter);
+        }
+        for (const auto& bgaLayer : measure.bgaLayer) {
+            calculateOffsetsForBgmOrBga(
+              bgaLayer, this->bgaLayer, bpmChangesInMeasure, meter);
+        }
+        for (const auto& bgaLayer2 : measure.bgaLayer2) {
+            calculateOffsetsForBgmOrBga(
+              bgaLayer2, this->bgaLayer2, bpmChangesInMeasure, meter);
         }
 
         lastMeasure = currentMeasure;

@@ -435,12 +435,13 @@ struct TagsSink
                 Bgm = 1,
                 /* Meter = 2, // handled elsewhere */
                 Bpm = 3,
-                /* BgaBase = 4, // unimplemented
+                BgaBase = 4, // unimplemented
                 ExtendedObject = 5,
-                SeekObject = 6,
-                BgaLayer = 7, */
+                BgaPoor = 6,
+                BgaLayer = 7,
                 ExBpm = 8,
-                /* Stop = 9, // unimplemented */
+                Stop = 9,
+                BgaLayer2 = 0xA
             };
             constexpr auto base = 36;
             auto channelCategory = static_cast<ChannelCategory>(channel / base);
@@ -469,6 +470,22 @@ struct TagsSink
                         case ExBpm:
                             state.measures[measure].exBpmChanges =
                               std::move(identifiers);
+                            break;
+                        case BgaBase:
+                            state.measures[measure].bgaBase.push_back(
+                              std::move(identifiers));
+                            break;
+                        case BgaPoor:
+                            state.measures[measure].bgaPoor.push_back(
+                              std::move(identifiers));
+                            break;
+                        case BgaLayer:
+                            state.measures[measure].bgaLayer.push_back(
+                              std::move(identifiers));
+                            break;
+                        case BgaLayer2:
+                            state.measures[measure].bgaLayer2.push_back(
+                              std::move(identifiers));
                             break;
                         default:
                             spdlog::debug("Unknown channel: {:02d}", channel);

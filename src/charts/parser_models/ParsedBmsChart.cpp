@@ -95,6 +95,18 @@ charts::parser_models::ParsedBmsChart::mergeTags(
                   std::move(definition));
             }
         }
+        for (auto& definition : measure.bgaBase) {
+            firstMeasure.bgaBase.push_back(std::move(definition));
+        }
+        for (auto& definition : measure.bgaPoor) {
+            firstMeasure.bgaPoor.push_back(std::move(definition));
+        }
+        for (auto& definition : measure.bgaLayer) {
+            firstMeasure.bgaLayer.push_back(std::move(definition));
+        }
+        for (auto& definition : measure.bgaLayer2) {
+            firstMeasure.bgaLayer2.push_back(std::move(definition));
+        }
         for (auto& definition : measure.bgmNotes) {
             firstMeasure.bgmNotes.push_back(std::move(definition));
         }

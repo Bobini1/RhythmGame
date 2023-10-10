@@ -37,6 +37,10 @@ struct ParsedBmsChart
           p1LongNotes;
         std::array<std::vector<std::vector<std::string>>, columnNumber>
           p2LongNotes;
+        std::vector<std::vector<std::string>> bgaBase;
+        std::vector<std::vector<std::string>> bgaPoor;
+        std::vector<std::vector<std::string>> bgaLayer;
+        std::vector<std::vector<std::string>> bgaLayer2;
         std::vector<std::vector<std::string>> bgmNotes;
         std::vector<std::string> bpmChanges;   // old-school, FF = BPM is 255
         std::vector<std::string> exBpmChanges; // new, FF = #BPMFF
