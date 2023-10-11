@@ -13,24 +13,11 @@
 
 namespace resource_managers {
 
-void
-blackToTransparency(QImage& image)
-{
-    for (int y = 0; y < image.height(); ++y) {
-        for (int x = 0; x < image.width(); ++x) {
-            auto pixel = image.pixel(x, y);
-            if (qRed(pixel) == 0 && qGreen(pixel) == 0 && qBlue(pixel) == 0) {
-                image.setPixel(x, y, qRgba(0, 0, 0, 0));
-            }
-        }
-    }
-}
-
 auto
 convertImageToFrame(const QImage& image) -> std::unique_ptr<QVideoFrame>
 {
     auto frame = std::make_unique<QVideoFrame>(
-      QVideoFrameFormat(QSize(256, 256), QVideoFrameFormat::Format_RGBA8888));
+      QVideoFrameFormat(image.size(), QVideoFrameFormat::Format_RGBA8888));
     frame->map(QVideoFrame::WriteOnly);
     std::copy(image.bits(), image.bits() + image.sizeInBytes(), frame->bits(0));
     frame->unmap();
@@ -52,6 +39,22 @@ loadBmp(const std::filesystem::path& path) -> QImage
         return {};
     }
     image.convertTo(QImage::Format_RGBA8888);
+    auto size = image.size();
+    // if smaller than 256x256, center on x axis and put on top
+    if (size.height() < 256) {
+        size.setHeight(256);
+    }
+    auto widthDiff = size.width() - image.width();
+    if (widthDiff < 0) {
+        widthDiff = 0;
+    }
+    if (size.width() < 256) {
+        size.setWidth(256);
+    }
+    if (size != image.size()) {
+        return image.copy(
+          QRect{ -widthDiff / 2, 0, size.width(), size.height() });
+    }
     return image;
 }
 
@@ -106,38 +109,36 @@ ChartFactory::createChart(
         struct Request
         {
             std::string path;
-            bool normal;
-            bool makeTransparent;
+            bool requested;
         };
 
         auto requested = std::unordered_map<std::string, Request>{};
         for (auto& bmp : bmps) {
-            requested.emplace(bmp.first,
-                              Request(std::move(bmp.second), false, false));
+            requested.emplace(bmp.first, Request(std::move(bmp.second), false));
         }
 
         for (const auto& bga : bgaBase) {
             if (auto entry = requested.find(bga.second);
                 entry != requested.end()) {
-                entry->second.normal = true;
+                entry->second.requested = true;
             }
         }
         for (const auto& bga : bgaLayer) {
             if (auto entry = requested.find(bga.second);
                 entry != requested.end()) {
-                entry->second.makeTransparent = true;
+                entry->second.requested = true;
             }
         }
         for (const auto& bga : bgaLayer2) {
             if (auto entry = requested.find(bga.second);
                 entry != requested.end()) {
-                entry->second.makeTransparent = true;
+                entry->second.requested = true;
             }
         }
         for (const auto& bga : bgaPoor) {
             if (auto entry = requested.find(bga.second);
                 entry != requested.end()) {
-                entry->second.normal = true;
+                entry->second.requested = true;
             }
         }
 
@@ -145,8 +146,7 @@ ChartFactory::createChart(
         {
             std::string id;
             std::filesystem::path path;
-            std::array<QVideoFrame*, 2> frames;
-            bool normalRequested;
+            QVideoFrame* frame;
         };
 
         // load all images first
@@ -155,40 +155,26 @@ ChartFactory::createChart(
             requested, [path](auto bmp) -> FrameLoadingResult {
                 auto filePath =
                   path / support::utfStringToPath(bmp.second.path);
+                auto ret = FrameLoadingResult{ bmp.first, filePath, {} };
+                if (!bmp.second.requested) {
+                    return ret;
+                }
                 auto image = loadBmp(filePath);
-                auto ret = FrameLoadingResult{
-                    bmp.first, filePath, {}, bmp.second.normal
-                };
                 if (image.isNull()) {
                     return ret;
                 }
-                if (bmp.second.normal) {
-                    ret.frames[0] = convertImageToFrame(image).release();
-                }
-                if (bmp.second.makeTransparent) {
-                    auto image2 = QImage{};
-                    if (bmp.second.normal) {
-                        image2 = image.copy();
-                    } else {
-                        image2 = image;
-                    }
-                    blackToTransparency(image2);
-                    ret.frames[1] = convertImageToFrame(image2).release();
-                }
+                ret.frame = convertImageToFrame(image).release();
                 return ret;
             });
         // create unordered_maps
         auto frames =
-          std::unordered_map<std::string,
-                             std::array<std::unique_ptr<QVideoFrame>, 2>>{};
+          std::unordered_map<std::string, std::unique_ptr<QVideoFrame>>{};
         auto videos = std::unordered_map<std::string, QMediaPlayer*>{};
         for (auto& frame : loadedBgaFrames) {
-            if (frame.frames[0] || frame.frames[1]) {
-                frames.emplace(
-                  frame.id,
-                  std::array{ std::unique_ptr<QVideoFrame>(frame.frames[0]),
-                              std::unique_ptr<QVideoFrame>(frame.frames[1]) });
-            } else if (frame.normalRequested) {
+            if (frame.frame) {
+                frames.emplace(frame.id,
+                               std::unique_ptr<QVideoFrame>(frame.frame));
+            } else {
                 auto video = loadBmpVideo(frame.path);
                 if (video) {
                     videos.emplace(frame.id, video.release());
@@ -203,7 +189,7 @@ ChartFactory::createChart(
         for (const auto& bga : bgaBase) {
             if (auto entry = frames.find(bga.second); entry != frames.end()) {
                 baseFrames.emplace_back(bga.first.timestamp,
-                                        entry->second[0].get());
+                                        entry->second.get());
             } else if (auto entry = videos.find(bga.second);
                        entry != videos.end()) {
                 baseVideos.emplace_back(bga.first.timestamp, entry->second);
@@ -219,7 +205,7 @@ ChartFactory::createChart(
         for (const auto& bga : bgaPoor) {
             if (auto entry = frames.find(bga.second); entry != frames.end()) {
                 poorFrames.emplace_back(bga.first.timestamp,
-                                        entry->second[0].get());
+                                        entry->second.get());
             } else if (auto entry = videos.find(bga.second);
                        entry != videos.end()) {
                 poorVideos.emplace_back(bga.first.timestamp, entry->second);
@@ -233,7 +219,7 @@ ChartFactory::createChart(
         for (const auto& bga : bgaLayer) {
             if (auto entry = frames.find(bga.second); entry != frames.end()) {
                 layerFrames.emplace_back(bga.first.timestamp,
-                                         entry->second[1].get());
+                                         entry->second.get());
             } else {
                 layerFrames.emplace_back(bga.first.timestamp, nullptr);
             }
@@ -243,7 +229,7 @@ ChartFactory::createChart(
         for (const auto& bga : bgaLayer2) {
             if (auto entry = frames.find(bga.second); entry != frames.end()) {
                 layer2Frames.emplace_back(bga.first.timestamp,
-                                          entry->second[1].get());
+                                          entry->second.get());
             } else {
                 layer2Frames.emplace_back(bga.first.timestamp, nullptr);
             }
@@ -267,11 +253,8 @@ ChartFactory::createChart(
         }
         auto framesVector = std::vector<std::unique_ptr<QVideoFrame>>{};
         for (auto& frame : frames) {
-            if (frame.second[0]) {
-                framesVector.emplace_back(std::move(frame.second[0]));
-            }
-            if (frame.second[1]) {
-                framesVector.emplace_back(std::move(frame.second[1]));
+            if (frame.second) {
+                framesVector.emplace_back(std::move(frame.second));
             }
         }
         auto bgaContainer = std::make_unique<qml_components::BgaContainer>(
