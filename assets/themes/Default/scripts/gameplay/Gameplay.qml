@@ -175,19 +175,19 @@ Rectangle {
                         break;
                     case Judgement.Bad:
                         judgementCounts.itemAt(3).num++;
-                        poorLayer.visible = true;
+                        poorLayer.visible = false;
                         poorLayerTimer.restart();
                         break;
                     case Judgement.EmptyPoor:
                         judgementCounts.itemAt(5).num++;
-                        poorLayer.visible = true;
+                        poorLayer.visible = false;
                         poorLayerTimer.restart();
                         break;
                     }
                 }
                 function onMissed() {
                     judgementCounts.itemAt(4).num++;
-                    poorLayer.visible = true;
+                    poorLayer.visible = false;
                     poorLayerTimer.restart();
                 }
 
@@ -208,7 +208,6 @@ Rectangle {
 
             anchors.fill: videoOutput
             fillMode: VideoOutput.PreserveAspectCrop
-            visible: true
             z: videoOutput.z + 1
         }
         VideoOutput {
@@ -216,8 +215,31 @@ Rectangle {
 
             anchors.fill: videoOutput
             fillMode: VideoOutput.PreserveAspectCrop
-            visible: false
             z: videoLayer.z + 1
+        }
+        ColorChanger {
+            anchors.fill: videoLayer
+            from: "black"
+            to: "transparent"
+            tolerance: 0.001
+            z: videoLayer.z
+
+            source: ShaderEffectSource {
+                hideSource: true
+                sourceItem: videoLayer
+            }
+        }
+        ColorChanger {
+            anchors.fill: videoLayer2
+            from: "black"
+            to: "transparent"
+            tolerance: 0.001
+            z: videoLayer2.z
+
+            source: ShaderEffectSource {
+                hideSource: true
+                sourceItem: videoLayer
+            }
         }
         VideoOutput {
             id: poorLayer

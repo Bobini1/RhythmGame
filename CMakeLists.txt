@@ -42,7 +42,7 @@ find_package(OpenAL REQUIRED)
 
 # <------------ Qt (gui) --------------->
 
-find_package(Qt6 REQUIRED COMPONENTS Quick Gui Widgets Core5Compat Concurrent Multimedia)
+find_package(Qt6 REQUIRED COMPONENTS Quick Gui Widgets Core5Compat Concurrent Multimedia ShaderTools)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
