@@ -175,19 +175,19 @@ Rectangle {
                         break;
                     case Judgement.Bad:
                         judgementCounts.itemAt(3).num++;
-                        poorLayer.visible = false;
+                        poorLayer.visible = true;
                         poorLayerTimer.restart();
                         break;
                     case Judgement.EmptyPoor:
                         judgementCounts.itemAt(5).num++;
-                        poorLayer.visible = false;
+                        poorLayer.visible = true;
                         poorLayerTimer.restart();
                         break;
                     }
                 }
                 function onMissed() {
                     judgementCounts.itemAt(4).num++;
-                    poorLayer.visible = false;
+                    poorLayer.visible = true;
                     poorLayerTimer.restart();
                 }
 
