@@ -7,11 +7,34 @@
 qml_components::Bga::Bga(
   std::vector<std::pair<std::chrono::nanoseconds, QMediaPlayer*>> videoFiles,
   std::vector<std::pair<std::chrono::nanoseconds, QVideoFrame*>> images,
+  bool flushOnError,
   QObject* parent)
   : QObject(parent)
   , videoFiles(std::move(videoFiles))
   , images(std::move(images))
+  , flushOnError(flushOnError)
 {
+}
+
+auto
+getEmptyVideoFrame() -> QVideoFrame*
+{
+    static auto frame = []() {
+        auto format = QVideoFrameFormat{ QSize{ 256, 256 },
+                                         QVideoFrameFormat::Format_RGBA8888 };
+        auto frame = QVideoFrame{ format };
+        frame.map(QVideoFrame::WriteOnly);
+        auto* data = frame.bits(0);
+        for (int i = 0; i < 256 * 256; i++) {
+            data[i * 4 + 0] = 0;
+            data[i * 4 + 1] = 0;
+            data[i * 4 + 2] = 0;
+            data[i * 4 + 3] = 0;
+        }
+        frame.unmap();
+        return frame;
+    }();
+    return &frame;
 }
 auto
 qml_components::Bga::getVideoSink() const -> QVideoSink*
@@ -39,12 +62,26 @@ qml_components::Bga::update(std::chrono::nanoseconds offsetFromStart)
             currentVideoFile->second->setPosition(
               (currentVideoFile->first - offset).count() / 1000000);
         }
+        if (playedVideo != nullptr) {
+            playedVideo->stop();
+            playedVideo->setVideoOutput(nullptr);
+        }
         currentVideoFile->second->setVideoOutput(videoSink);
         currentVideoFile->second->play();
+        playedVideo = currentVideoFile->second;
         currentVideoFile++;
     }
     while (currentImage != images.end() && currentImage->first < offset) {
-        videoSink->setVideoFrame(*currentImage->second);
+        if (playedVideo != nullptr) {
+            playedVideo->stop();
+            playedVideo->setVideoOutput(nullptr);
+        }
+        if (currentImage->second) {
+            videoSink->setVideoFrame(*currentImage->second);
+        } else if (flushOnError) {
+            videoSink->setVideoFrame(*getEmptyVideoFrame());
+        }
+
         currentImage++;
     }
 }
@@ -64,6 +101,7 @@ qml_components::BgaContainer::BgaContainer(
     for (auto& videoFile : this->videoFiles) {
         videoFile->setParent(this);
     }
+    getEmptyVideoFrame();
 }
 auto
 qml_components::BgaContainer::getLayers() const -> const QList<Bga*>&

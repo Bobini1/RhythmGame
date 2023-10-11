@@ -72,9 +72,9 @@ Rectangle {
     Connections {
         function onLoaded() {
             chart.bga.layers[0].videoSink = videoOutput.videoSink;
-            chart.bga.layers[2].videoSink = videoLayer.videoSink;
-            chart.bga.layers[3].videoSink = videoLayer2.videoSink;
-            chart.bga.layers[1].videoSink = poorLayer.videoSink;
+            chart.bga.layers[1].videoSink = videoLayer.videoSink;
+            chart.bga.layers[2].videoSink = videoLayer2.videoSink;
+            chart.bga.layers[3].videoSink = poorLayer.videoSink;
             chart.start();
         }
         function onOver() {
@@ -199,28 +199,32 @@ Rectangle {
 
             anchors.left: judgementCountsContainer.right
             anchors.top: parent.top
+            fillMode: VideoOutput.PreserveAspectCrop
             height: 800
             width: 800
         }
         VideoOutput {
             id: videoLayer
-            visible: true
 
             anchors.fill: videoOutput
+            fillMode: VideoOutput.PreserveAspectCrop
+            visible: true
             z: videoOutput.z + 1
         }
         VideoOutput {
             id: videoLayer2
-            visible: false
 
             anchors.fill: videoOutput
+            fillMode: VideoOutput.PreserveAspectCrop
+            visible: false
             z: videoLayer.z + 1
         }
         VideoOutput {
             id: poorLayer
-            visible: false
 
             anchors.fill: videoOutput
+            fillMode: VideoOutput.PreserveAspectCrop
+            visible: false
             z: videoLayer2.z + 1
         }
     }

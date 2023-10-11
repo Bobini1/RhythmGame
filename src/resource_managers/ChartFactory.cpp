@@ -13,58 +13,59 @@
 
 namespace resource_managers {
 
-struct LoadedImages
+void
+blackToTransparency(QImage& image)
 {
-    std::unordered_map<std::string, QMediaPlayer*> videos;
-    std::unordered_map<std::string, std::unique_ptr<QVideoFrame>> images;
-};
-
-auto
-loadImages(const std::map<std::string, std::string>& imagePaths,
-           const std::filesystem::path& path,
-           bool blackToTransparency) -> LoadedImages
-{
-    auto videos = std::unordered_map<std::string, QMediaPlayer*>{};
-    auto images =
-      std::unordered_map<std::string, std::unique_ptr<QVideoFrame>>{};
-    for (const auto& [key, value] : imagePaths) {
-        auto valuePath = support::utfStringToPath(value);
-        auto fullPath = path / valuePath;
-        // check if the file exists
-        if (!std::filesystem::exists(fullPath)) {
-            continue;
-        }
-        // check if it is a valid image
-        auto pathQString = support::pathToQString(fullPath);
-        auto image = QImage(pathQString);
-        if (!image.isNull()) {
-            auto frame = std::make_unique<QVideoFrame>(QVideoFrameFormat(
-              QSize(256, 256), QVideoFrameFormat::Format_RGBA8888));
-            frame->map(QVideoFrame::WriteOnly);
-            image.convertTo(QImage::Format_RGBA8888);
-            if (blackToTransparency) {
-                for (int y = 0; y < image.height(); ++y) {
-                    for (int x = 0; x < image.width(); ++x) {
-                        auto pixel = image.pixel(x, y);
-                        if (qRed(pixel) == 0 && qGreen(pixel) == 0 &&
-                            qBlue(pixel) == 0) {
-                            image.setPixel(x, y, qRgba(0, 0, 0, 0));
-                        }
-                    }
-                }
+    for (int y = 0; y < image.height(); ++y) {
+        for (int x = 0; x < image.width(); ++x) {
+            auto pixel = image.pixel(x, y);
+            if (qRed(pixel) == 0 && qGreen(pixel) == 0 && qBlue(pixel) == 0) {
+                image.setPixel(x, y, qRgba(0, 0, 0, 0));
             }
-            std::copy(
-              image.bits(), image.bits() + image.sizeInBytes(), frame->bits(0));
-            frame->unmap();
-            images.emplace(key, std::move(frame));
-        } else {
-            auto* player = new QMediaPlayer;
-            player->setSource(QUrl::fromLocalFile(pathQString));
-            videos.emplace(key, player);
         }
     }
-    return { std::move(videos), std::move(images) };
 }
+
+auto
+convertImageToFrame(const QImage& image) -> std::unique_ptr<QVideoFrame>
+{
+    auto frame = std::make_unique<QVideoFrame>(
+      QVideoFrameFormat(QSize(256, 256), QVideoFrameFormat::Format_RGBA8888));
+    frame->map(QVideoFrame::WriteOnly);
+    std::copy(image.bits(), image.bits() + image.sizeInBytes(), frame->bits(0));
+    frame->unmap();
+    return frame;
+}
+
+auto
+loadBmp(const std::filesystem::path& path) -> QImage
+{
+    if (!std::filesystem::exists(path)) {
+        spdlog::warn("Bga file does not exist: {}", path.string());
+        return {};
+    }
+    // check if it is a valid image
+    auto pathQString = support::pathToQString(path);
+    auto image = QImage(pathQString);
+    if (image.isNull()) {
+        spdlog::warn("Failed to load bga file: {}", path.string());
+        return {};
+    }
+    image.convertTo(QImage::Format_RGBA8888);
+    return image;
+}
+
+auto
+loadBmpVideo(const std::filesystem::path& path) -> std::unique_ptr<QMediaPlayer>
+{
+    auto player = std::make_unique<QMediaPlayer>();
+    auto pathQString = support::pathToQString(path);
+    player->setSource(QUrl::fromLocalFile(pathQString));
+    if (player->mediaStatus() == QMediaPlayer::InvalidMedia) {
+        return nullptr;
+    }
+    return player;
+};
 
 auto
 ChartFactory::createChart(
@@ -102,73 +103,183 @@ ChartFactory::createChart(
                     bmps = std::move(bmps),
                     thread = QApplication::instance()->thread(),
                     path]() {
-        auto bga = QList<qml_components::Bga*>{};
-        auto [videos, images] = loadImages(bmps, path, false);
-        auto bgaBaseImages =
-          std::vector<std::pair<std::chrono::nanoseconds, QVideoFrame*>>{};
-        auto bgaBaseVideos =
-          std::vector<std::pair<std::chrono::nanoseconds, QMediaPlayer*>>{};
-        for (const auto& [time, key] : bgaBase) {
-            if (auto it = images.find(key); it != images.end()) {
-                bgaBaseImages.emplace_back(time.timestamp, it->second.get());
-            } else if (auto it = videos.find(key); it != videos.end()) {
-                bgaBaseVideos.emplace_back(time.timestamp, it->second);
+        struct Request
+        {
+            std::string path;
+            bool normal;
+            bool makeTransparent;
+        };
+
+        auto requested = std::unordered_map<std::string, Request>{};
+        for (auto& bmp : bmps) {
+            requested.emplace(bmp.first,
+                              Request(std::move(bmp.second), false, false));
+        }
+
+        for (const auto& bga : bgaBase) {
+            if (auto entry = requested.find(bga.second);
+                entry != requested.end()) {
+                entry->second.normal = true;
             }
         }
-        auto bgaPoorImages =
-          std::vector<std::pair<std::chrono::nanoseconds, QVideoFrame*>>{};
-        auto bgaPoorVideos =
-          std::vector<std::pair<std::chrono::nanoseconds, QMediaPlayer*>>{};
-        for (const auto& [time, key] : bgaPoor) {
-            if (auto it = images.find(key); it != images.end()) {
-                bgaPoorImages.emplace_back(time.timestamp, it->second.get());
-            } else if (auto it = videos.find(key); it != videos.end()) {
-                bgaPoorVideos.emplace_back(time.timestamp, it->second);
+        for (const auto& bga : bgaLayer) {
+            if (auto entry = requested.find(bga.second);
+                entry != requested.end()) {
+                entry->second.makeTransparent = true;
             }
         }
-        auto bgaLayerImages =
-          std::vector<std::pair<std::chrono::nanoseconds, QVideoFrame*>>{};
-        auto bgaLayerVideos =
-          std::vector<std::pair<std::chrono::nanoseconds, QMediaPlayer*>>{};
-        for (const auto& [time, key] : bgaLayer) {
-            if (auto it = images.find(key); it != images.end()) {
-                bgaLayerImages.emplace_back(time.timestamp, it->second.get());
-            } else if (auto it = videos.find(key); it != videos.end()) {
-                bgaLayerVideos.emplace_back(time.timestamp, it->second);
+        for (const auto& bga : bgaLayer2) {
+            if (auto entry = requested.find(bga.second);
+                entry != requested.end()) {
+                entry->second.makeTransparent = true;
             }
         }
-        auto bgaLayer2Images =
-          std::vector<std::pair<std::chrono::nanoseconds, QVideoFrame*>>{};
-        auto bgaLayer2Videos =
-          std::vector<std::pair<std::chrono::nanoseconds, QMediaPlayer*>>{};
-        for (const auto& [time, key] : bgaLayer2) {
-            if (auto it = images.find(key); it != images.end()) {
-                bgaLayer2Images.emplace_back(time.timestamp, it->second.get());
-            } else if (auto it = videos.find(key); it != videos.end()) {
-                bgaLayer2Videos.emplace_back(time.timestamp, it->second);
+        for (const auto& bga : bgaPoor) {
+            if (auto entry = requested.find(bga.second);
+                entry != requested.end()) {
+                entry->second.normal = true;
             }
         }
-        bga.append(new qml_components::Bga(std::move(bgaBaseVideos),
-                                           std::move(bgaBaseImages)));
-        bga.append(new qml_components::Bga(std::move(bgaPoorVideos),
-                                           std::move(bgaPoorImages)));
-        bga.append(new qml_components::Bga(std::move(bgaLayerVideos),
-                                           std::move(bgaLayerImages)));
-        bga.append(new qml_components::Bga(std::move(bgaLayer2Videos),
-                                           std::move(bgaLayer2Images)));
-        auto videos2 = std::vector<QMediaPlayer*>{};
-        auto images2 = std::vector<std::unique_ptr<QVideoFrame>>{};
-        for (auto& [key, value] : images) {
-            images2.emplace_back(std::move(value));
+
+        struct FrameLoadingResult
+        {
+            std::string id;
+            std::filesystem::path path;
+            std::array<QVideoFrame*, 2> frames;
+            bool normalRequested;
+        };
+
+        // load all images first
+        auto loadedBgaFrames =
+          QtConcurrent::blockingMapped<QList<FrameLoadingResult>>(
+            requested, [path](auto bmp) -> FrameLoadingResult {
+                auto filePath =
+                  path / support::utfStringToPath(bmp.second.path);
+                auto image = loadBmp(filePath);
+                auto ret = FrameLoadingResult{
+                    bmp.first, filePath, {}, bmp.second.normal
+                };
+                if (image.isNull()) {
+                    return ret;
+                }
+                if (bmp.second.normal) {
+                    ret.frames[0] = convertImageToFrame(image).release();
+                }
+                if (bmp.second.makeTransparent) {
+                    auto image2 = QImage{};
+                    if (bmp.second.normal) {
+                        image2 = image.copy();
+                    } else {
+                        image2 = image;
+                    }
+                    blackToTransparency(image2);
+                    ret.frames[1] = convertImageToFrame(image2).release();
+                }
+                return ret;
+            });
+        // create unordered_maps
+        auto frames =
+          std::unordered_map<std::string,
+                             std::array<std::unique_ptr<QVideoFrame>, 2>>{};
+        auto videos = std::unordered_map<std::string, QMediaPlayer*>{};
+        for (auto& frame : loadedBgaFrames) {
+            if (frame.frames[0] || frame.frames[1]) {
+                frames.emplace(
+                  frame.id,
+                  std::array{ std::unique_ptr<QVideoFrame>(frame.frames[0]),
+                              std::unique_ptr<QVideoFrame>(frame.frames[1]) });
+            } else if (frame.normalRequested) {
+                auto video = loadBmpVideo(frame.path);
+                if (video) {
+                    videos.emplace(frame.id, video.release());
+                }
+            }
         }
-        for (const auto& [key, value] : videos) {
-            videos2.emplace_back(value);
+
+        auto baseFrames =
+          std::vector<std::pair<std::chrono::nanoseconds, QVideoFrame*>>{};
+        auto baseVideos =
+          std::vector<std::pair<std::chrono::nanoseconds, QMediaPlayer*>>{};
+        for (const auto& bga : bgaBase) {
+            if (auto entry = frames.find(bga.second); entry != frames.end()) {
+                baseFrames.emplace_back(bga.first.timestamp,
+                                        entry->second[0].get());
+            } else if (auto entry = videos.find(bga.second);
+                       entry != videos.end()) {
+                baseVideos.emplace_back(bga.first.timestamp, entry->second);
+            } else {
+                baseFrames.emplace_back(bga.first.timestamp, nullptr);
+            }
         }
-        auto* bgaContainer = new qml_components::BgaContainer(
-          bga, std::move(videos2), std::move(images2));
+
+        auto poorFrames =
+          std::vector<std::pair<std::chrono::nanoseconds, QVideoFrame*>>{};
+        auto poorVideos =
+          std::vector<std::pair<std::chrono::nanoseconds, QMediaPlayer*>>{};
+        for (const auto& bga : bgaPoor) {
+            if (auto entry = frames.find(bga.second); entry != frames.end()) {
+                poorFrames.emplace_back(bga.first.timestamp,
+                                        entry->second[0].get());
+            } else if (auto entry = videos.find(bga.second);
+                       entry != videos.end()) {
+                poorVideos.emplace_back(bga.first.timestamp, entry->second);
+            } else {
+                poorFrames.emplace_back(bga.first.timestamp, nullptr);
+            }
+        }
+
+        auto layerFrames =
+          std::vector<std::pair<std::chrono::nanoseconds, QVideoFrame*>>{};
+        for (const auto& bga : bgaLayer) {
+            if (auto entry = frames.find(bga.second); entry != frames.end()) {
+                layerFrames.emplace_back(bga.first.timestamp,
+                                         entry->second[1].get());
+            } else {
+                layerFrames.emplace_back(bga.first.timestamp, nullptr);
+            }
+        }
+        auto layer2Frames =
+          std::vector<std::pair<std::chrono::nanoseconds, QVideoFrame*>>{};
+        for (const auto& bga : bgaLayer2) {
+            if (auto entry = frames.find(bga.second); entry != frames.end()) {
+                layer2Frames.emplace_back(bga.first.timestamp,
+                                          entry->second[1].get());
+            } else {
+                layer2Frames.emplace_back(bga.first.timestamp, nullptr);
+            }
+        }
+
+        auto bgas = QList<qml_components::Bga*>{};
+        bgas.emplace_back(new qml_components::Bga(
+          std::move(baseVideos), std::move(baseFrames), /*flushOnError=*/true));
+        bgas.emplace_back(new qml_components::Bga(
+          {}, std::move(layerFrames), /*flushOnError=*/false));
+        bgas.emplace_back(new qml_components::Bga(
+          {}, std::move(layer2Frames), /*flushOnError=*/false));
+        bgas.emplace_back(new qml_components::Bga(
+          std::move(poorVideos), std::move(poorFrames), /*flushOnError=*/true));
+
+        // move resources to vectors
+        auto videosVector = std::vector<QMediaPlayer*>{};
+        videosVector.reserve(videos.size());
+        for (auto& video : videos) {
+            videosVector.emplace_back(video.second);
+        }
+        auto framesVector = std::vector<std::unique_ptr<QVideoFrame>>{};
+        for (auto& frame : frames) {
+            if (frame.second[0]) {
+                framesVector.emplace_back(std::move(frame.second[0]));
+            }
+            if (frame.second[1]) {
+                framesVector.emplace_back(std::move(frame.second[1]));
+            }
+        }
+        auto bgaContainer = std::make_unique<qml_components::BgaContainer>(
+          std::move(bgas), std::move(videosVector), std::move(framesVector));
         bgaContainer->moveToThread(thread);
         return bgaContainer;
     };
+
     auto bga = QtConcurrent::run(std::move(bgaTask));
     auto referee = QtConcurrent::run(std::move(task));
     return new gameplay_logic::Chart(std::move(referee),

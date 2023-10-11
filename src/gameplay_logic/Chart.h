@@ -42,8 +42,9 @@ class Chart : public QObject
     QFuture<gameplay_logic::BmsGameReferee> refereeFuture;
     QFutureWatcher<gameplay_logic::BmsGameReferee> refereeFutureWatcher;
     qml_components::BgaContainer* bga{};
-    QFuture<qml_components::BgaContainer*> bgaFuture;
-    QFutureWatcher<qml_components::BgaContainer*> bgaFutureWatcher;
+    QFuture<std::unique_ptr<qml_components::BgaContainer>> bgaFuture;
+    QFutureWatcher<std::unique_ptr<qml_components::BgaContainer>>
+      bgaFutureWatcher;
     std::function<db::SqliteCppDb&()> scoreDb;
     int64_t elapsed;
     int64_t timeBeforeChartStart{};
@@ -62,13 +63,14 @@ class Chart : public QObject
     void setTimeAfterChartEnd(int64_t timeAfterChartEnd);
 
   public:
-    explicit Chart(QFuture<gameplay_logic::BmsGameReferee> refereeFuture,
-                   QFuture<qml_components::BgaContainer*> bgaFuture,
-                   ChartData* chartData,
-                   BmsNotes* notes,
-                   BmsScore* score,
-                   std::function<db::SqliteCppDb&()> scoreDb,
-                   QObject* parent = nullptr);
+    explicit Chart(
+      QFuture<gameplay_logic::BmsGameReferee> refereeFuture,
+      QFuture<std::unique_ptr<qml_components::BgaContainer>> bgaFuture,
+      ChartData* chartData,
+      BmsNotes* notes,
+      BmsScore* score,
+      std::function<db::SqliteCppDb&()> scoreDb,
+      QObject* parent = nullptr);
 
     Q_INVOKABLE void start();
 

@@ -9,7 +9,7 @@
 namespace gameplay_logic {
 
 Chart::Chart(QFuture<gameplay_logic::BmsGameReferee> refereeFuture,
-             QFuture<qml_components::BgaContainer*> bgaFuture,
+             QFuture<std::unique_ptr<qml_components::BgaContainer>> bgaFuture,
              ChartData* chartData,
              BmsNotes* notes,
              BmsScore* score,
@@ -162,7 +162,7 @@ Chart::setup()
         return;
     }
     gameReferee = refereeFuture.takeResult();
-    bga = bgaFuture.takeResult();
+    bga = bgaFuture.takeResult().release();
     bga->setParent(this);
     emit loaded();
     if (startRequested) {
@@ -177,12 +177,10 @@ Chart::finish() -> BmsScoreAftermath*
     if (!gameReferee) {
         return nullptr;
     }
-    // if we didn't get bga yet, wait for it
+    // if we didn't get bga yet, cancel
     if (bga == nullptr) {
         bgaFutureWatcher.cancel();
-        bgaFuture.waitForFinished();
-        bga = bgaFuture.result();
-        bga->deleteLater();
+        bgaFuture.cancel();
     }
 
     auto chartLength = chartData->getLength();

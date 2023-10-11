@@ -147,7 +147,7 @@ calculateOffsetsForColumn(
               };
         }
         std::vector<BmsNotesData::Note> notesVector;
-        for (const auto& [timestamp, note] : notesMap) {
+        for (const auto& [fractionDec, note] : notesMap) {
             notesVector.push_back(note);
         }
         // sort by timestamp
@@ -167,7 +167,7 @@ calculateOffsetsForColumn(
 }
 
 void
-calculateOffsetsForBgmOrBga(
+calculateOffsetsForBgm(
   const std::vector<std::string>& notes,
   std::vector<std::pair<BmsNotesData::Time, std::string>>& target,
   const std::map<double, std::pair<double, BmsNotesData::Time>>&
@@ -183,6 +183,64 @@ calculateOffsetsForBgmOrBga(
         auto [timestamp, soundPointer, fraction] =
           createNoteInfo(notes, bpmChangesInMeasure, index, note, meter);
         target.emplace_back(timestamp.timestamp, soundPointer);
+    }
+}
+
+void
+calculateOffsetsForBga(
+  const std::vector<std::vector<std::string>>& notes,
+  std::vector<std::pair<BmsNotesData::Time, std::string>>& target,
+  const std::map<double, std::pair<double, BmsNotesData::Time>>&
+    bpmChangesInMeasure,
+  double meter)
+{
+    if (notes.size() == 0) {
+        return;
+    }
+    if (notes.size() == 1) {
+        auto index = -1;
+        for (const auto& note : notes[0]) {
+            index++;
+            if (note == "00") {
+                continue;
+            }
+            auto [timestamp, soundPointer, fraction] =
+              createNoteInfo(notes[0], bpmChangesInMeasure, index, note, meter);
+            target.emplace_back(timestamp.timestamp, soundPointer);
+        }
+        return;
+    }
+    auto notesMap = std::map<std::pair<int, int>,
+                             std::pair<std::string, BmsNotesData::Time>>{};
+    for (const auto& definition : notes) {
+        auto index = -1;
+        for (const auto& note : definition) {
+            index++;
+            if (note == "00") {
+                continue;
+            }
+            auto gcd = std::gcd(index, static_cast<int>(definition.size()));
+            auto [timestamp, soundPointer, fraction] = createNoteInfo(
+              definition, bpmChangesInMeasure, index, note, meter);
+            notesMap[{ index / gcd,
+                       static_cast<int>(definition.size()) / gcd }] = {
+                soundPointer, timestamp
+            };
+        }
+        std::vector<std::pair<BmsNotesData::Time, std::string>> notesVector;
+        for (const auto& [fractionDec, note] : notesMap) {
+            notesVector.emplace_back(note.second, note.first);
+        }
+        // sort by timestamp
+        std::sort(notesVector.begin(),
+                  notesVector.end(),
+                  [](const auto& a, const auto& b) {
+                      return a.first.timestamp < b.first.timestamp;
+                  });
+        // add to target
+        for (const auto& note : notesVector) {
+            target.push_back(note);
+        }
     }
 }
 
@@ -263,23 +321,23 @@ BmsNotesData::generateMeasures(
         }
 
         for (const auto& bgmNotes : measure.bgmNotes) {
-            calculateOffsetsForBgmOrBga(
+            calculateOffsetsForBgm(
               bgmNotes, this->bgmNotes, bpmChangesInMeasure, meter);
         }
         for (const auto& bgaBase : measure.bgaBase) {
-            calculateOffsetsForBgmOrBga(
+            calculateOffsetsForBgm(
               bgaBase, this->bgaBase, bpmChangesInMeasure, meter);
         }
         for (const auto& bgaPoor : measure.bgaPoor) {
-            calculateOffsetsForBgmOrBga(
+            calculateOffsetsForBgm(
               bgaPoor, this->bgaPoor, bpmChangesInMeasure, meter);
         }
         for (const auto& bgaLayer : measure.bgaLayer) {
-            calculateOffsetsForBgmOrBga(
+            calculateOffsetsForBgm(
               bgaLayer, this->bgaLayer, bpmChangesInMeasure, meter);
         }
         for (const auto& bgaLayer2 : measure.bgaLayer2) {
-            calculateOffsetsForBgmOrBga(
+            calculateOffsetsForBgm(
               bgaLayer2, this->bgaLayer2, bpmChangesInMeasure, meter);
         }
 
