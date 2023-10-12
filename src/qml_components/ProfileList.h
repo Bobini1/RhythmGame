@@ -36,9 +36,10 @@ class ProfileList : public QAbstractListModel
     auto data(const QModelIndex& index, int role = Qt::DisplayRole) const
       -> QVariant override;
     auto roleNames() const -> QHash<int, QByteArray> override;
-    Q_INVOKABLE resource_managers::Profile* getCurrentProfile() const;
-    Q_INVOKABLE void setCurrentProfile(resource_managers::Profile* profile);
+    resource_managers::Profile* getCurrentProfile() const;
+    void setCurrentProfile(resource_managers::Profile* profile);
 
+    Q_INVOKABLE resource_managers::Profile* at(int index) const;
     Q_INVOKABLE resource_managers::Profile* createProfile();
     Q_INVOKABLE void removeProfile(resource_managers::Profile* profile);
 

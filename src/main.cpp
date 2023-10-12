@@ -182,7 +182,9 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
 #endif
         }
 
-        auto programSettings = qml_components::ProgramSettings{ chartPath };
+        auto programSettings = qml_components::ProgramSettings{
+            chartPath, support::pathToQString(assetsFolder / "avatars/")
+        };
         qmlRegisterSingletonInstance(
           "RhythmGameQml", 1, 0, "ProgramSettings", &programSettings);
 

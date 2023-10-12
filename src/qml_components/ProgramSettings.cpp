@@ -12,9 +12,17 @@ ProgramSettings::getChartPath() const -> QString
 {
     return chartPath;
 }
-ProgramSettings::ProgramSettings(QString chartPath, QObject* parent)
+ProgramSettings::ProgramSettings(QString chartPath,
+                                 QString avatarFolder,
+                                 QObject* parent)
   : QObject(parent)
   , chartPath(std::move(chartPath))
+  , avatarFolder(std::move(avatarFolder))
 {
+}
+auto
+ProgramSettings::getAvatarFolder() const -> QString
+{
+    return avatarFolder;
 }
 } // namespace qml_components

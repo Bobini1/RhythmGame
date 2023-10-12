@@ -169,3 +169,8 @@ qml_components::ProfileList::setCurrentProfile(
     statement.execute();
     emit currentProfileChanged(profile);
 }
+resource_managers::Profile*
+qml_components::ProfileList::at(int index) const
+{
+    return profiles.at(index);
+}
