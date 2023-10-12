@@ -324,22 +324,14 @@ BmsNotesData::generateMeasures(
             calculateOffsetsForBgm(
               bgmNotes, this->bgmNotes, bpmChangesInMeasure, meter);
         }
-        for (const auto& bgaBase : measure.bgaBase) {
-            calculateOffsetsForBgm(
-              bgaBase, this->bgaBase, bpmChangesInMeasure, meter);
-        }
-        for (const auto& bgaPoor : measure.bgaPoor) {
-            calculateOffsetsForBgm(
-              bgaPoor, this->bgaPoor, bpmChangesInMeasure, meter);
-        }
-        for (const auto& bgaLayer : measure.bgaLayer) {
-            calculateOffsetsForBgm(
-              bgaLayer, this->bgaLayer, bpmChangesInMeasure, meter);
-        }
-        for (const auto& bgaLayer2 : measure.bgaLayer2) {
-            calculateOffsetsForBgm(
-              bgaLayer2, this->bgaLayer2, bpmChangesInMeasure, meter);
-        }
+        calculateOffsetsForBga(
+          measure.bgaBase, this->bgaBase, bpmChangesInMeasure, meter);
+        calculateOffsetsForBga(
+          measure.bgaLayer, this->bgaLayer, bpmChangesInMeasure, meter);
+        calculateOffsetsForBga(
+          measure.bgaLayer2, this->bgaLayer2, bpmChangesInMeasure, meter);
+        calculateOffsetsForBga(
+          measure.bgaPoor, this->bgaPoor, bpmChangesInMeasure, meter);
 
         lastMeasure = currentMeasure;
         measureStart = timestamp;
