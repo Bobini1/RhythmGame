@@ -143,6 +143,8 @@ using wav_t = std::pair<std::string, std::string>;
 BOOST_STRONG_TYPEDEF(wav_t, Wav);
 using bmp_t = std::pair<std::string, std::string>;
 BOOST_STRONG_TYPEDEF(bmp_t, Bmp);
+BOOST_STRONG_TYPEDEF(std::string, LnObj);
+BOOST_STRONG_TYPEDEF(int, LnType);
 using pair_t = std::pair<std::string, double>;
 BOOST_STRONG_TYPEDEF(pair_t, ExBpm);
 using meter_t = std::pair<int64_t, double>;
@@ -313,6 +315,28 @@ struct BmpTag
       });
 };
 
+struct LnObjTag
+{
+    static constexpr auto rule = [] {
+        auto lnObjTag = dsl::ascii::case_folding(LEXY_LIT("#lnobj"));
+        return lnObjTag >> dsl::p<Identifier>;
+    }();
+    static constexpr auto value =
+      lexy::callback<LnObj>([](std::string&& identifier) {
+          return LnObj{ { std::move(identifier) } };
+      });
+};
+
+struct LnTypeTag
+{
+    static constexpr auto rule = [] {
+        auto lnTypeTag = dsl::ascii::case_folding(LEXY_LIT("#lntype"));
+        return lnTypeTag >> dsl::capture(dsl::lit_c<'1'> / dsl::lit_c<'2'>);
+    }();
+    static constexpr auto value = lexy::callback<LnType>(
+      [](char num) { return LnType{ static_cast<int>(num - '0') }; });
+};
+
 struct ExBpmTag
 {
     static constexpr auto rule = [] {
@@ -398,6 +422,14 @@ struct TagsSink
         auto operator()(Difficulty&& difficulty) -> void
         {
             state.difficulty = static_cast<int>(difficulty);
+        }
+        auto operator()(LnObj&& lnObj) -> void
+        {
+            state.lnObj = std::move(static_cast<std::string&>(lnObj));
+        }
+        auto operator()(LnType&& lnType) -> void
+        {
+            state.lnType = static_cast<int>(lnType);
         }
         auto operator()(ExBpm&& bpm) -> void
         {

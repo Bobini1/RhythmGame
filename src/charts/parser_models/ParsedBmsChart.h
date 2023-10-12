@@ -65,6 +65,8 @@ struct ParsedBmsChart
         std::optional<int> rank;
         std::optional<int> playLevel;
         std::optional<int> difficulty;
+        std::optional<std::string> lnObj;
+        std::optional<int> lnType;
         std::map<std::string, double> exBpms;
         std::map<std::string, std::string> wavs;
         std::map<std::string, std::string> bmps;
