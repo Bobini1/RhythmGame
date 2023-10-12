@@ -5,7 +5,7 @@ ShaderEffect {
     property color from: "black"
     property variant source
     property color to: "transparent"
-    property double tolerance: 0.10
+    property real tolerance: 0.03125
 
     fragmentShader: "qrc:/ColorChanger.frag.qsb"
 }

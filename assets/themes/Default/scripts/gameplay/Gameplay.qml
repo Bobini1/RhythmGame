@@ -221,7 +221,6 @@ Rectangle {
             anchors.fill: videoLayer
             from: "black"
             to: "transparent"
-            tolerance: 0.001
             z: videoLayer.z
 
             source: ShaderEffectSource {
@@ -233,7 +232,6 @@ Rectangle {
             anchors.fill: videoLayer2
             from: "black"
             to: "transparent"
-            tolerance: 0.001
             z: videoLayer2.z
 
             source: ShaderEffectSource {

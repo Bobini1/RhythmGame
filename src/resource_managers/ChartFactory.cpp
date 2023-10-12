@@ -216,34 +216,44 @@ ChartFactory::createChart(
 
         auto layerFrames =
           std::vector<std::pair<std::chrono::nanoseconds, QVideoFrame*>>{};
+        auto layerVideos =
+          std::vector<std::pair<std::chrono::nanoseconds, QMediaPlayer*>>{};
         for (const auto& bga : bgaLayer) {
             if (auto entry = frames.find(bga.second); entry != frames.end()) {
                 layerFrames.emplace_back(bga.first.timestamp,
                                          entry->second.get());
+            } else if (auto entry = videos.find(bga.second);
+                       entry != videos.end()) {
+                layerVideos.emplace_back(bga.first.timestamp, entry->second);
             } else {
                 layerFrames.emplace_back(bga.first.timestamp, nullptr);
             }
         }
         auto layer2Frames =
           std::vector<std::pair<std::chrono::nanoseconds, QVideoFrame*>>{};
+        auto layer2Videos =
+          std::vector<std::pair<std::chrono::nanoseconds, QMediaPlayer*>>{};
         for (const auto& bga : bgaLayer2) {
             if (auto entry = frames.find(bga.second); entry != frames.end()) {
                 layer2Frames.emplace_back(bga.first.timestamp,
                                           entry->second.get());
+            } else if (auto entry = videos.find(bga.second);
+                       entry != videos.end()) {
+                layer2Videos.emplace_back(bga.first.timestamp, entry->second);
             } else {
                 layer2Frames.emplace_back(bga.first.timestamp, nullptr);
             }
         }
 
         auto bgas = QList<qml_components::Bga*>{};
-        bgas.emplace_back(new qml_components::Bga(
-          std::move(baseVideos), std::move(baseFrames), /*flushOnError=*/true));
-        bgas.emplace_back(new qml_components::Bga(
-          {}, std::move(layerFrames), /*flushOnError=*/false));
-        bgas.emplace_back(new qml_components::Bga(
-          {}, std::move(layer2Frames), /*flushOnError=*/false));
-        bgas.emplace_back(new qml_components::Bga(
-          std::move(poorVideos), std::move(poorFrames), /*flushOnError=*/true));
+        bgas.emplace_back(new qml_components::Bga(std::move(baseVideos),
+                                                  std::move(baseFrames)));
+        bgas.emplace_back(new qml_components::Bga(std::move(layerVideos),
+                                                  std::move(layerFrames)));
+        bgas.emplace_back(new qml_components::Bga(std::move(layer2Videos),
+                                                  std::move(layer2Frames)));
+        bgas.emplace_back(new qml_components::Bga(std::move(poorVideos),
+                                                  std::move(poorFrames)));
 
         // move resources to vectors
         auto videosVector = std::vector<QMediaPlayer*>{};

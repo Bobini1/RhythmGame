@@ -7,12 +7,10 @@
 qml_components::Bga::Bga(
   std::vector<std::pair<std::chrono::nanoseconds, QMediaPlayer*>> videoFiles,
   std::vector<std::pair<std::chrono::nanoseconds, QVideoFrame*>> images,
-  bool flushOnError,
   QObject* parent)
   : QObject(parent)
   , videoFiles(std::move(videoFiles))
   , images(std::move(images))
-  , flushOnError(flushOnError)
 {
 }
 
@@ -30,27 +28,6 @@ getEmptyVideoFrame() -> QVideoFrame*
             data[i * 4 + 1] = 0;
             data[i * 4 + 2] = 0;
             data[i * 4 + 3] = 255;
-        }
-        frame.unmap();
-        return frame;
-    }();
-    return &frame;
-}
-
-auto
-getTransparentVideoFrame() -> QVideoFrame*
-{
-    static auto frame = []() {
-        auto format = QVideoFrameFormat{ QSize{ 256, 256 },
-                                         QVideoFrameFormat::Format_RGBA8888 };
-        auto frame = QVideoFrame{ format };
-        frame.map(QVideoFrame::WriteOnly);
-        auto* data = frame.bits(0);
-        for (int i = 0; i < 256 * 256; i++) {
-            data[i * 4 + 0] = 0;
-            data[i * 4 + 1] = 0;
-            data[i * 4 + 2] = 0;
-            data[i * 4 + 3] = 0;
         }
         frame.unmap();
         return frame;
@@ -100,10 +77,8 @@ qml_components::Bga::update(std::chrono::nanoseconds offsetFromStart)
         }
         if (currentImage->second) {
             videoSink->setVideoFrame(*currentImage->second);
-        } else if (flushOnError) {
-            videoSink->setVideoFrame(*getEmptyVideoFrame());
         } else {
-            videoSink->setVideoFrame(*getTransparentVideoFrame());
+            videoSink->setVideoFrame(*getEmptyVideoFrame());
         }
 
         currentImage++;

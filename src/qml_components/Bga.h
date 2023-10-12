@@ -26,14 +26,12 @@ class Bga : public QObject
     std::vector<std::pair<std::chrono::nanoseconds, QVideoFrame*>> images;
     decltype(images)::iterator currentImage = images.begin();
     QMediaPlayer* playedVideo = nullptr;
-    bool flushOnError;
 
   public:
     explicit Bga(
       std::vector<std::pair<std::chrono::nanoseconds, QMediaPlayer*>>
         videoFiles,
       std::vector<std::pair<std::chrono::nanoseconds, QVideoFrame*>> images,
-      bool flushOnError,
       QObject* parent = nullptr);
     auto getVideoSink() const -> QVideoSink*;
     void setVideoSink(QVideoSink* newVideoSink);
