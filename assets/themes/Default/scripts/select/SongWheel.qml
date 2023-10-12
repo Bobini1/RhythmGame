@@ -39,7 +39,7 @@ Pane {
             return "orange";
         case "another":
             return "red";
-        case "insane":
+        default:
             return "purple";
         }
     }
@@ -53,7 +53,7 @@ Pane {
             return "orange";
         case 4:
             return "red";
-        case 5:
+        default:
             return "purple";
         }
     }
