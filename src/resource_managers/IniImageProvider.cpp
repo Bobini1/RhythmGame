@@ -27,6 +27,9 @@ IniImageProvider::requestPixmap(const QString& id,
     if (size) {
         *size = rect.size();
     }
+    if (rect.isNull()) {
+        return {};
+    }
     auto pixmap = [this, rect, &path] {
         auto cachedPixmap = pixmaps.find(path);
         if (cachedPixmap == pixmaps.end()) {
