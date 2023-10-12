@@ -11,6 +11,13 @@
 #include "../../findTestAssetsFolder.h"
 #include "charts/chart_readers/BmsChartReader.h"
 
+namespace {
+auto randomGenerator =
+  [](charts::parser_models::ParsedBmsChart::RandomRange range) {
+      return range;
+  };
+} // namespace
+
 TEST_CASE("Sounds are loaded from a folder according to the bms file",
           "[loadBmsSounds]")
 {
@@ -19,7 +26,7 @@ TEST_CASE("Sounds are loaded from a folder according to the bms file",
       (folder / "8BIT_audiocheck.net_sin_1000Hz_-3dBFS_0.2s_8.0k.wav").string();
     const auto bmsFile = fmt::format("#WAV01 {}\n#WAV02 {}", path, path);
     auto reader = charts::chart_readers::BmsChartReader();
-    auto tags = reader.readBmsChart(bmsFile).tags;
+    auto tags = reader.readBmsChart(bmsFile, randomGenerator).tags;
     auto sounds = charts::helper_functions::loadBmsSounds(tags.wavs, folder);
     REQUIRE(sounds.size() == 2);
     REQUIRE(sounds.at("01").getBuffer() == sounds.at("02").getBuffer());
@@ -45,7 +52,7 @@ TEST_CASE("Even when the extension says wav, allow loading other extensions",
                   paths[2],
                   paths[3]);
     auto reader = charts::chart_readers::BmsChartReader();
-    auto tags = reader.readBmsChart(bmsFile).tags;
+    auto tags = reader.readBmsChart(bmsFile, randomGenerator).tags;
     auto sounds = charts::helper_functions::loadBmsSounds(tags.wavs, folder);
     REQUIRE(sounds.size() == 4);
 }

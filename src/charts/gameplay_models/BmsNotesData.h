@@ -48,6 +48,10 @@ struct BmsNotesData
     std::array<std::vector<Note>, columnNumber> visibleNotes;
     std::array<std::vector<Note>, columnNumber> invisibleNotes;
     std::vector<std::pair<Time, std::string>> bgmNotes;
+    std::vector<std::pair<Time, std::string>> bgaBase;
+    std::vector<std::pair<Time, std::string>> bgaPoor;
+    std::vector<std::pair<Time, std::string>> bgaLayer;
+    std::vector<std::pair<Time, std::string>> bgaLayer2;
     std::vector<std::pair<Time, double>> bpmChanges;
     std::vector<Time> barLines;
     static constexpr auto defaultBpm = 120.0;

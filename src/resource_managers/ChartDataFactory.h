@@ -10,7 +10,6 @@
 #include "charts/chart_readers/BmsChartReader.h"
 #include "charts/gameplay_models/BmsNotesData.h"
 #include "gameplay_logic/BmsNotes.h"
-#include <uchardet/uchardet.h>
 #include <fstream>
 #include <boost/locale/encoding.hpp>
 
@@ -18,17 +17,12 @@ namespace resource_managers {
 
 class ChartDataFactory
 {
-    std::unique_ptr<uchardet, decltype(&uchardet_delete)> detector{
-        uchardet_new(),
-        &uchardet_delete
-    };
     charts::chart_readers::BmsChartReader chartReader;
-    auto detectEncoding(std::string_view string) const -> std::string;
 
     static auto loadFile(const QUrl& chartPath) -> std::string;
     static auto makeNotes(
       charts::gameplay_models::BmsNotesData& calculatedNotesData)
-      -> gameplay_logic::BmsNotes*;
+      -> std::unique_ptr<gameplay_logic::BmsNotes>;
     static auto convertToQVector(
       const std::vector<charts::gameplay_models::BmsNotesData::Note>& column)
       -> QVector<gameplay_logic::Note>;
@@ -36,12 +30,18 @@ class ChartDataFactory
   public:
     struct ChartComponents
     {
-        gameplay_logic::ChartData* chartData;
+        std::unique_ptr<gameplay_logic::ChartData> chartData;
+        std::unique_ptr<gameplay_logic::BmsNotes> bmsNotes;
         charts::gameplay_models::BmsNotesData notesData;
         std::map<std::string, std::string> wavs;
+        std::map<std::string, std::string> bmps;
     };
 
-    auto loadChartData(const QUrl& chartPath) const -> ChartComponents;
+    auto loadChartData(
+      const QString& chartPath,
+      std::function<charts::parser_models::ParsedBmsChart::RandomRange(
+        charts::parser_models::ParsedBmsChart::RandomRange)> randomGenerator,
+      QString directoryInDb = QString()) const -> ChartComponents;
 };
 
 } // namespace resource_managers

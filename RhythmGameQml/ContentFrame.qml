@@ -2,46 +2,68 @@ import QtQuick
 import QtQml
 import RhythmGameQml
 import QtQuick.Controls 2.15
+import QtCore
 
-Item {
+ApplicationWindow {
     id: contentContainer
 
-    anchors.fill: parent
+    height: 720
+    visibility: Window.FullScreen
+    visible: true
+    width: 1280
 
+    Settings {
+        property alias height: contentContainer.height
+        property alias width: contentContainer.width
+    }
     Component {
         id: chartContext
 
-        Item {
-            required property var chart
+        FocusScope {
+            id: chartFocusScope
 
-            focus: true
+            readonly property bool active: StackView.status === StackView.Active
+            required property Chart chart
 
-            Keys.onPressed: event => {
-                if (event.isAutoRepeat) {
-                    return;
-                }
-                if (event.key === Qt.Key_Escape) {
-                    sceneStack.pop();
-                } else {
-                    chart.passKey(event.key);
-                }
-                event.accepted = true;
+            InputItem {
+                id: inputItem
+
+                chart: chartFocusScope.chart
+                focus: chartFocusScope.active
             }
+            Loader {
+                id: loader
+
+                anchors.fill: parent
+                source: SceneUrls.gameplayScene
+            }
+        }
+    }
+    Component {
+        id: resultContext
+
+        FocusScope {
+            id: resultFocusScope
+
+            readonly property bool active: StackView.status === StackView.Active
+            required property var result
 
             Loader {
                 id: loader
 
                 anchors.fill: parent
-                source: "file://" + SceneUrls.gameplaySceneUrl
+                source: SceneUrls.resultScene
             }
         }
     }
     Item {
-        id: root
+        id: globalRoot
 
         readonly property Component gameplayComponent: chartContext
-        readonly property Component mainComponent: Qt.createComponent("file://" + SceneUrls.mainSceneUrl)
-        readonly property Component songWheelComponent: Qt.createComponent("file://" + SceneUrls.songWheelSceneUrl)
+        readonly property Component mainComponent: Qt.createComponent(SceneUrls.mainScene)
+        readonly property Component resultComponent: resultContext
+        readonly property Component settingsComponent: Qt.createComponent(SceneUrls.settingsScene)
+        readonly property Component songWheelComponent: Qt.createComponent(SceneUrls.songWheelScene)
 
         function openChart(path: url) {
             let chart = ChartLoader.loadChart(path);
@@ -53,11 +75,26 @@ Item {
                     "chart": chart
                 });
         }
+        function openResult(result) {
+            sceneStack.push(resultComponent, {
+                    "result": result
+                });
+        }
+        function urlToPath(urlString) {
+            let s;
+            if (urlString.startsWith("file:///")) {
+                let k = urlString.charAt(9) === ':' ? 8 : 7;
+                s = urlString.substring(k);
+            } else {
+                s = urlString;
+            }
+            return decodeURIComponent(s);
+        }
 
         anchors.fill: parent
 
         Component.onCompleted: {
-            if (ProgramSettings.chartPath) {
+            if (ProgramSettings.chartPath != "") {
                 openChart(ProgramSettings.chartPath);
             }
         }
@@ -66,10 +103,43 @@ Item {
             id: sceneStack
 
             anchors.fill: parent
-            initialItem: ProgramSettings.chartPath ? null : root.mainComponent
+            initialItem: (ProgramSettings.chartPath != "") ? null : globalRoot.mainComponent
 
-            onCurrentItemChanged: {
-                currentItem.forceActiveFocus();
+            popEnter: Transition {
+                PropertyAnimation {
+                    duration: 0
+                    property: "opacity"
+                }
+            }
+            popExit: Transition {
+                PropertyAnimation {
+                    duration: 0
+                    property: "opacity"
+                }
+            }
+            pushEnter: Transition {
+                PropertyAnimation {
+                    duration: 0
+                    property: "opacity"
+                }
+            }
+            pushExit: Transition {
+                PropertyAnimation {
+                    duration: 0
+                    property: "opacity"
+                }
+            }
+            replaceEnter: Transition {
+                PropertyAnimation {
+                    duration: 0
+                    property: "opacity"
+                }
+            }
+            replaceExit: Transition {
+                PropertyAnimation {
+                    duration: 0
+                    property: "opacity"
+                }
             }
         }
         Loader {
@@ -77,6 +147,7 @@ Item {
 
             active: false
             anchors.fill: parent
+            asynchronous: true
             source: "Log.qml"
         }
         Shortcut {

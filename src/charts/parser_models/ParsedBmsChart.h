@@ -20,22 +20,31 @@ namespace charts::parser_models {
 struct ParsedBmsChart
 {
     using RandomRange = int64_t;
-    using IfTag = int64_t;
 
     struct Measure
     {
         static constexpr auto columnNumber = 9;
         static constexpr auto defaultMeter = 1.0;
-        std::array<std::vector<std::string>, columnNumber> p1VisibleNotes;
-        std::array<std::vector<std::string>, columnNumber> p2VisibleNotes;
-        std::array<std::vector<std::string>, columnNumber> p1InvisibleNotes;
-        std::array<std::vector<std::string>, columnNumber> p2InvisibleNotes;
-        std::array<std::vector<std::string>, columnNumber> p1LongNotes;
-        std::array<std::vector<std::string>, columnNumber> p2LongNotes;
+        std::array<std::vector<std::vector<std::string>>, columnNumber>
+          p1VisibleNotes;
+        std::array<std::vector<std::vector<std::string>>, columnNumber>
+          p2VisibleNotes;
+        std::array<std::vector<std::vector<std::string>>, columnNumber>
+          p1InvisibleNotes;
+        std::array<std::vector<std::vector<std::string>>, columnNumber>
+          p2InvisibleNotes;
+        std::array<std::vector<std::vector<std::string>>, columnNumber>
+          p1LongNotes;
+        std::array<std::vector<std::vector<std::string>>, columnNumber>
+          p2LongNotes;
+        std::vector<std::vector<std::string>> bgaBase;
+        std::vector<std::vector<std::string>> bgaPoor;
+        std::vector<std::vector<std::string>> bgaLayer;
+        std::vector<std::vector<std::string>> bgaLayer2;
         std::vector<std::vector<std::string>> bgmNotes;
         std::vector<std::string> bpmChanges;   // old-school, FF = BPM is 255
         std::vector<std::string> exBpmChanges; // new, FF = #BPMFF
-        double meter = defaultMeter;
+        std::optional<double> meter;
     };
 
     /**
@@ -48,6 +57,9 @@ struct ParsedBmsChart
         std::optional<std::string> subTitle;
         std::optional<std::string> subArtist;
         std::optional<std::string> genre;
+        std::optional<std::string> stageFile;
+        std::optional<std::string> banner;
+        std::optional<std::string> backBmp;
         std::optional<double> bpm;
         std::optional<double> total;
         std::optional<int> rank;
@@ -55,12 +67,12 @@ struct ParsedBmsChart
         std::optional<int> difficulty;
         std::map<std::string, double> exBpms;
         std::map<std::string, std::string> wavs;
+        std::map<std::string, std::string> bmps;
         std::map<int64_t, Measure> measures;
-
-        std::vector<std::pair<RandomRange, std::vector<std::pair<IfTag, Tags>>>>
-          randomBlocks; /*< Random blocks can hold any tags, including ones
-                           that were already defined. */
+        bool isRandom = false;
     };
+
+    static auto mergeTags(Tags& first, Tags second) -> void;
 
     Tags tags;
 };

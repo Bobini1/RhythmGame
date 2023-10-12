@@ -35,4 +35,20 @@ Miss::getPoints() const -> BmsPoints
 {
     return points;
 }
+auto
+operator<<(QDataStream& stream, const Miss& miss) -> QDataStream&
+{
+    stream << static_cast<qint64>(miss.offsetFromStart) << miss.points
+           << miss.column << miss.noteIndex;
+    return stream;
+}
+auto
+operator>>(QDataStream& stream, Miss& miss) -> QDataStream&
+{
+    qint64 offsetFromStart;
+    stream >> offsetFromStart >> miss.points >> miss.column >> miss.noteIndex;
+    miss.offsetFromStart = offsetFromStart;
+    return stream;
+}
+
 } // namespace gameplay_logic

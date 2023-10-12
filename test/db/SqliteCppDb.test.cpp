@@ -23,15 +23,15 @@ TEST_CASE("Values can be inserted and retrieved from tables", "[SqliteCppDb]")
     db.execute("CREATE TABLE Test(ID int, Name VARCHAR(255))"s);
     REQUIRE(db.hasTable("Test"));
     db.execute("INSERT INTO Test VALUES (1, 'TestName')"s);
-    auto row = db.executeAndGet<std::tuple<int, std::string>>(
-      "SELECT * FROM Test WHERE ID = 1"s);
+    auto stmt = db.createStatement("SELECT * FROM Test WHERE ID = 1"s);
+    auto row = stmt.executeAndGet<std::tuple<int, std::string>>();
     auto& [x, y] = row.value();
     REQUIRE(x == 1);
     REQUIRE(y == "TestName"s);
     db.execute("INSERT INTO Test VALUES (2, 'SecondRowName')"s);
     db.execute("INSERT INTO Test VALUES (69, 'ThirdRowName')"s);
-    auto rows =
-      db.executeAndGetAll<std::tuple<int, std::string>>("SELECT * FROM Test"s);
+    stmt = db.createStatement("SELECT * FROM Test"s);
+    auto rows = stmt.executeAndGetAll<std::tuple<int, std::string>>();
     row = rows[1];
     REQUIRE(x == 2);
     REQUIRE(y == "SecondRowName"s);
@@ -46,11 +46,11 @@ TEST_CASE("Failing queries correctly return empty results", "[SqliteCppDb]")
     auto db = getDb("test2.db"s);
     REQUIRE_FALSE(db.hasTable("Test"));
     db.execute("CREATE TABLE Test(ID int, Name VARCHAR(255))"s);
-    auto row = db.executeAndGet<std::tuple<int, std::string>>(
-      "SELECT * FROM Test WHERE ID = 1"s);
+    auto stmt = db.createStatement("SELECT * FROM Test WHERE ID = 1"s);
+    auto row = stmt.executeAndGet<std::tuple<int, std::string>>();
     REQUIRE_FALSE(row);
-    auto rows =
-      db.executeAndGetAll<std::tuple<int, std::string>>("SELECT * FROM Test"s);
+    stmt = db.createStatement("SELECT * FROM Test"s);
+    auto rows = stmt.executeAndGetAll<std::tuple<int, std::string>>();
     REQUIRE(rows.empty());
 }
 
@@ -61,14 +61,14 @@ TEST_CASE("Database wrapper can be passed to another thread", "[SqliteCppDb]")
     REQUIRE_FALSE(db.hasTable("Test"));
     db.execute("CREATE TABLE Test(ID int, Name VARCHAR(255))"s);
     db.execute("INSERT INTO Test VALUES (1, 'TestName')"s);
-    auto row = db.executeAndGet<std::tuple<int, std::string>>(
-      "SELECT * FROM Test WHERE ID = 1"s);
+    auto stmt = db.createStatement("SELECT * FROM Test WHERE ID = 1"s);
+    auto row = stmt.executeAndGet<std::tuple<int, std::string>>();
     auto& [x, y] = row.value();
     REQUIRE(x == 1);
     REQUIRE(y == "TestName"s);
     auto thread = std::thread{ [&db]() {
-        auto row = db.executeAndGet<std::tuple<int, std::string>>(
-          "SELECT * FROM Test WHERE ID = 1"s);
+        auto stmt = db.createStatement("SELECT * FROM Test WHERE ID = 1"s);
+        auto row = stmt.executeAndGet<std::tuple<int, std::string>>();
         auto& [z, w] = row.value();
         REQUIRE(z == 1);
         REQUIRE(w == "TestName"s);
@@ -90,13 +90,15 @@ TEST_CASE("Values can be inserted into custom aggregate structs",
     REQUIRE_FALSE(db.hasTable("Test"));
     db.execute("CREATE TABLE Test(ID int, Name VARCHAR(255))"s);
     db.execute("INSERT INTO Test VALUES (1, 'TestName')"s);
-    auto row = db.executeAndGet<TestStruct>("SELECT * FROM Test WHERE ID = 1"s);
+    auto stmt = db.createStatement("SELECT * FROM Test WHERE ID = 1"s);
+    auto row = stmt.executeAndGet<TestStruct>();
     REQUIRE(row);
     auto& [x, y] = row.value();
     REQUIRE(x == 1);
     REQUIRE(y == "TestName"s);
 
-    auto rows = db.executeAndGetAll<TestStruct>("SELECT * FROM Test"s);
+    stmt = db.createStatement("SELECT * FROM Test"s);
+    auto rows = stmt.executeAndGetAll<TestStruct>();
     REQUIRE(rows.size() == 1);
     row = rows[0];
     REQUIRE(x == 1);
@@ -111,12 +113,14 @@ TEST_CASE("Simple scalar types don't need to be wrapped in structs or tuples",
     REQUIRE_FALSE(db.hasTable("Test"));
     db.execute("CREATE TABLE Test(ID int, Name VARCHAR(255))"s);
     db.execute("INSERT INTO Test VALUES (1, 'TestName')"s);
-    auto row = db.executeAndGet<int>("SELECT ID FROM Test WHERE ID = 1"s);
+    auto stmt = db.createStatement("SELECT ID FROM Test WHERE ID = 1"s);
+    auto row = stmt.executeAndGet<int>();
     REQUIRE(row);
     auto& x = row.value();
     REQUIRE(x == 1);
 
-    auto rows = db.executeAndGetAll<int>("SELECT ID FROM Test"s);
+    stmt = db.createStatement("SELECT ID FROM Test"s);
+    auto rows = stmt.executeAndGetAll<int>();
     REQUIRE(rows.size() == 1);
     row = rows[0];
     REQUIRE(x == 1);

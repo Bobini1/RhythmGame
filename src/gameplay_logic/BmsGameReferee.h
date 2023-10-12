@@ -24,11 +24,9 @@ class BmsGameReferee
     std::array<std::vector<rules::BmsHitRules::NoteType>,
                charts::gameplay_models::BmsNotesData::columnNumber>
       invisibleNotes;
-    std::array<int,
-               charts::gameplay_models::BmsNotesData::columnNumber>
+    std::array<int, charts::gameplay_models::BmsNotesData::columnNumber>
       currentVisibleNotes{};
-    std::array<int,
-               charts::gameplay_models::BmsNotesData::columnNumber>
+    std::array<int, charts::gameplay_models::BmsNotesData::columnNumber>
       currentInvisibleNotes{};
     std::vector<BgmType> bgms;
     std::span<BgmType> currentBgms;
@@ -37,7 +35,6 @@ class BmsGameReferee
     std::span<std::pair<charts::gameplay_models::BmsNotesData::Time, double>>
       currentBpmChanges;
     std::unordered_map<std::string, sounds::OpenALSound> sounds;
-    charts::gameplay_models::BmsNotesData::Time timeBeforeChartStart;
     std::unique_ptr<rules::BmsHitRules> hitRules;
     BmsScore* score;
 
@@ -58,18 +55,27 @@ class BmsGameReferee
 
   public:
     explicit BmsGameReferee(
-      const charts::gameplay_models::BmsNotesData& notesData,
+      std::array<std::vector<charts::gameplay_models::BmsNotesData::Note>,
+                 charts::gameplay_models::BmsNotesData::columnNumber>
+        visibleNotes,
+      std::array<std::vector<charts::gameplay_models::BmsNotesData::Note>,
+                 charts::gameplay_models::BmsNotesData::columnNumber>
+        invisibleNotes,
+      std::vector<std::pair<charts::gameplay_models::BmsNotesData::Time,
+                            std::string>> bgmNotes,
+      std::vector<std::pair<charts::gameplay_models::BmsNotesData::Time,
+                            double>> bpmChanges,
       BmsScore* score,
       std::unordered_map<std::string, sounds::OpenALSound> sounds,
-      std::unique_ptr<rules::BmsHitRules> hitRules,
-      charts::gameplay_models::BmsNotesData::Time timeBeforeChartStart);
+      std::unique_ptr<rules::BmsHitRules> hitRules);
     /**
      * @brief Update the internal state of the referee
      * @param offsetFromStart The current time offset from the start of the
      * chart
      * @return The position in the chart, expressed in beats
      */
-    auto update(std::chrono::nanoseconds offsetFromStart) -> Position;
+    auto update(std::chrono::nanoseconds offsetFromStart,
+                bool lastUpdate = false) -> Position;
 
     auto passInput(std::chrono::nanoseconds offsetFromStart, input::BmsKey key)
       -> void;

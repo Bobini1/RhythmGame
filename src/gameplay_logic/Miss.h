@@ -28,11 +28,16 @@ class Miss
          BmsPoints points,
          int column,
          int noteIndex);
+    Miss() = default;
 
     auto getOffsetFromStart() const -> DeltaTime;
     auto getPoints() const -> BmsPoints;
     auto getColumn() const -> int;
     auto getNoteIndex() const -> int;
+
+    friend auto operator<<(QDataStream& stream, const Miss& miss)
+      -> QDataStream&;
+    friend auto operator>>(QDataStream& stream, Miss& miss) -> QDataStream&;
 };
 
 } // namespace gameplay_logic

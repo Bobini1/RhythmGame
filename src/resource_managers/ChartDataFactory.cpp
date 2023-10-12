@@ -4,26 +4,18 @@
 
 #include "ChartDataFactory.h"
 
+#include <utility>
+
 namespace resource_managers {
-auto
-ChartDataFactory::detectEncoding(std::string_view string) const -> std::string
-{
-
-    auto encoding = std::string{};
-
-    uchardet_handle_data(detector.get(), string.data(), string.size());
-    uchardet_data_end(detector.get());
-    encoding = uchardet_get_charset(detector.get());
-    // shift jis if empty
-    if (encoding.empty()) {
-        encoding = "SHIFT-JIS";
-    }
-    return encoding;
-}
 auto
 ChartDataFactory::loadFile(const QUrl& chartPath) -> std::string
 {
-    auto chartFile = std::ifstream{ chartPath.toLocalFile().toStdString() };
+#if defined(_WIN32)
+    auto fileUtf = chartPath.toLocalFile().toStdWString();
+#else
+    auto fileUtf = chartPath.toLocalFile().toStdString();
+#endif
+    auto chartFile = std::ifstream{ fileUtf };
     if (!chartFile.is_open()) {
         throw std::runtime_error{ "Failed to open chart file" };
     }
@@ -39,7 +31,7 @@ ChartDataFactory::loadFile(const QUrl& chartPath) -> std::string
 auto
 ChartDataFactory::makeNotes(
   charts::gameplay_models::BmsNotesData& calculatedNotesData)
-  -> gameplay_logic::BmsNotes*
+  -> std::unique_ptr<gameplay_logic::BmsNotes>
 {
     auto visibleNotes = QVector<QVector<gameplay_logic::Note>>{};
     for (const auto& column : calculatedNotesData.visibleNotes) {
@@ -65,11 +57,10 @@ ChartDataFactory::makeNotes(
                             .count(),
                           barLine.position });
     }
-    auto* notes = new gameplay_logic::BmsNotes{ std::move(visibleNotes),
-                                                std::move(invisibleNotes),
-                                                std::move(bpmChanges),
-                                                std::move(barLines) };
-    return notes;
+    return std::make_unique<gameplay_logic::BmsNotes>(std::move(visibleNotes),
+                                                      std::move(invisibleNotes),
+                                                      std::move(bpmChanges),
+                                                      std::move(barLines));
 }
 auto
 ChartDataFactory::convertToQVector(
@@ -89,29 +80,24 @@ ChartDataFactory::convertToQVector(
     return columnNotes;
 }
 auto
-ChartDataFactory::loadChartData(const QUrl& chartPath) const
-  -> ChartDataFactory::ChartComponents
+ChartDataFactory::loadChartData(
+  const QString& chartPath,
+  std::function<charts::parser_models::ParsedBmsChart::RandomRange(
+    charts::parser_models::ParsedBmsChart::RandomRange)> randomGenerator,
+  QString directoryInDb) const -> ChartDataFactory::ChartComponents
 {
-    auto chart = loadFile(chartPath);
+    auto url = QUrl::fromLocalFile(chartPath);
+    auto chart = loadFile(url);
     auto hash = support::sha256(chart);
-    auto encodingName = detectEncoding(chart);
-    if (encodingName.empty()) {
-        throw std::runtime_error{ "Failed to detect encoding" };
-    }
-    auto chartUtf = [&]{
-        if (encodingName == "ASCII") {
-            return chart;
-        }
-        return boost::locale::conv::to_utf<char>(chart, encodingName);
-    }();
-    auto parsedChart = chartReader.readBmsChart(chartUtf);
+    auto parsedChart =
+      chartReader.readBmsChart(chart, std::move(randomGenerator));
     auto calculatedNotesData =
       charts::gameplay_models::BmsNotesData{ parsedChart };
     auto noteCount = 0;
     for (const auto& column : calculatedNotesData.visibleNotes) {
         noteCount += column.size();
     }
-    auto* noteData = makeNotes(calculatedNotesData);
+    auto noteData = makeNotes(calculatedNotesData);
 
     auto lastNoteTimestamp = std::chrono::nanoseconds{ 0 };
     for (const auto& column : calculatedNotesData.visibleNotes) {
@@ -123,23 +109,60 @@ ChartDataFactory::loadChartData(const QUrl& chartPath) const
             lastNoteTimestamp = lastNote.time.timestamp;
         }
     }
-    auto* chartData = new gameplay_logic::ChartData{
-        QString::fromStdString(parsedChart.tags.title.value_or("")),
-        QString::fromStdString(parsedChart.tags.artist.value_or("")),
-        QString::fromStdString(parsedChart.tags.subTitle.value_or("")),
-        QString::fromStdString(parsedChart.tags.subArtist.value_or("")),
-        QString::fromStdString(parsedChart.tags.genre.value_or("")),
-        parsedChart.tags.rank.value_or(2),
-        parsedChart.tags.total.value_or(160.0),
-        parsedChart.tags.playLevel.value_or(1),
-        parsedChart.tags.difficulty.value_or(1),
-        noteCount,
-        static_cast<int>(std::chrono::duration_cast<std::chrono::milliseconds>(
-                           lastNoteTimestamp)
-                           .count()),
-        QFileInfo{ chartPath.toLocalFile() }.absolutePath(),
-        noteData
-    };
-    return { chartData, std::move(calculatedNotesData), parsedChart.tags.wavs };
+    // find keymode
+    auto keymode = gameplay_logic::ChartData::Keymode::K7;
+    const auto startColumn = calculatedNotesData.visibleNotes.size() / 2;
+    for (auto columnIndex = startColumn;
+         columnIndex < calculatedNotesData.visibleNotes.size();
+         columnIndex++) {
+        if (!calculatedNotesData.visibleNotes[columnIndex].empty()) {
+            keymode = gameplay_logic::ChartData::Keymode::K14;
+            break;
+        }
+    }
+    // get initial bpm
+    auto initialBpm = calculatedNotesData.bpmChanges[0]; // guaranteed to exist
+    // get max bpm
+    auto maxBpm = initialBpm;
+    for (const auto& bpmChange : calculatedNotesData.bpmChanges) {
+        if (bpmChange.second > maxBpm.second) {
+            maxBpm = bpmChange;
+        }
+    }
+    // get min bpm
+    auto minBpm = initialBpm;
+    for (const auto& bpmChange : calculatedNotesData.bpmChanges) {
+        if (bpmChange.second < minBpm.second) {
+            minBpm = bpmChange;
+        }
+    }
+    auto chartData = std::make_unique<gameplay_logic::ChartData>(
+      QString::fromStdString(parsedChart.tags.title.value_or("")),
+      QString::fromStdString(parsedChart.tags.artist.value_or("")),
+      QString::fromStdString(parsedChart.tags.subTitle.value_or("")),
+      QString::fromStdString(parsedChart.tags.subArtist.value_or("")),
+      QString::fromStdString(parsedChart.tags.genre.value_or("")),
+      QString::fromStdString(parsedChart.tags.stageFile.value_or("")),
+      QString::fromStdString(parsedChart.tags.banner.value_or("")),
+      QString::fromStdString(parsedChart.tags.backBmp.value_or("")),
+      parsedChart.tags.rank.value_or(2),
+      parsedChart.tags.total.value_or(160.0),
+      parsedChart.tags.playLevel.value_or(1),
+      parsedChart.tags.difficulty.value_or(1),
+      parsedChart.tags.isRandom,
+      noteCount,
+      lastNoteTimestamp.count(),
+      initialBpm.second,
+      maxBpm.second,
+      minBpm.second,
+      QFileInfo{ chartPath }.absoluteFilePath(),
+      std::move(directoryInDb),
+      QString::fromStdString(hash),
+      keymode);
+    return { std::move(chartData),
+             std::move(noteData),
+             std::move(calculatedNotesData),
+             std::move(parsedChart.tags.wavs),
+             std::move(parsedChart.tags.bmps) };
 }
 } // namespace resource_managers

@@ -24,10 +24,14 @@ class Recipe(ConanFile):
         self.requires("brotli/1.1.0", override=True)
         self.requires("cryptopp/8.7.0")
         self.requires("magic_enum/0.9.3")
-        self.requires("uchardet/0.0.7")
+        self.requires("zstd/1.5.5")
+        self.requires("libsndfile/1.2.2")
+        self.requires("opus/1.4", override=True)
+        self.requires("libalsa/1.2.10", override=True)
+        self.requires("zlib/1.3", override=True)
 
         # Testing only dependencies below
-        self.requires("catch2/3.3.2")
+        self.requires("catch2/3.4.0")
 
     def configure(self):
         # https://www.ffmpeg.org/legal.html

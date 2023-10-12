@@ -6,6 +6,7 @@
 #define RHYTHMGAME_TUPLESIZE_H
 
 #include <boost/pfr/tuple_size.hpp>
+#include <tuple>
 namespace support {
 
 /**

@@ -35,6 +35,7 @@ Rectangle {
                 //change state
                 if (state !== "autoscroll") {
                     state = "autoscroll";
+                    debugLog.scrollToBottom();
                 }
             } else {
                 if (state === "") {
@@ -53,7 +54,6 @@ Rectangle {
         ListView {
             id: debugLogText
 
-            anchors.fill: parent
             model: Logger.history
 
             delegate: TextEdit {

@@ -7,6 +7,7 @@
 
 #include <optional>
 #include "charts/parser_models/ParsedBmsChart.h"
+#include <functional>
 
 namespace charts::chart_readers {
 
@@ -21,7 +22,10 @@ class BmsChartReader final
      * @param chart String to read.
      * @return Raw tag data.
      */
-    [[nodiscard]] auto readBmsChart(std::string_view chart) const
+    [[nodiscard]] auto readBmsChart(
+      std::string_view chart,
+      std::function<parser_models::ParsedBmsChart::RandomRange(
+        parser_models::ParsedBmsChart::RandomRange)> randomGenerator) const
       -> parser_models::ParsedBmsChart;
 };
 } // namespace charts::chart_readers

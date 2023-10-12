@@ -12,7 +12,7 @@ class BmsPoints
 {
     Q_GADGET
     Q_PROPERTY(double value READ getValue CONSTANT)
-    Q_PROPERTY(QString judgement READ getJudgement CONSTANT)
+    Q_PROPERTY(Judgement judgement READ getJudgement CONSTANT)
     Q_PROPERTY(int64_t deviation READ getDeviation CONSTANT)
     Q_PROPERTY(bool noteRemoved READ getNoteRemoved CONSTANT)
     double value;
@@ -25,11 +25,16 @@ class BmsPoints
               Judgement judgement,
               int64_t deviation,
               bool noteRemoved);
+    BmsPoints() = default;
     [[nodiscard]] auto getValue() const -> double;
-    [[nodiscard]] auto getJudgementEnum() const -> Judgement;
-    [[nodiscard]] auto getJudgement() const -> QString;
+    [[nodiscard]] auto getJudgement() const -> Judgement;
     [[nodiscard]] auto getDeviation() const -> int64_t;
     auto getNoteRemoved() const -> bool;
+
+    friend auto operator<<(QDataStream& stream, const BmsPoints& points)
+      -> QDataStream&;
+    friend auto operator>>(QDataStream& stream, BmsPoints& points)
+      -> QDataStream&;
 };
 } // namespace gameplay_logic
 

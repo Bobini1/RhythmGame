@@ -5,6 +5,8 @@
 #ifndef RHYTHMGAME_BMSNOTES_H
 #define RHYTHMGAME_BMSNOTES_H
 #include <QObject>
+#include "support/Sha256.h"
+#include "db/SqliteCppDb.h"
 
 namespace gameplay_logic {
 
@@ -25,6 +27,21 @@ class Time
     auto operator<=>(const Time& other) const = default;
 };
 
+inline auto
+operator<<(QDataStream& stream, const Time& time) -> QDataStream&
+{
+    return stream << static_cast<qint64>(time.timestamp) << time.position;
+}
+
+inline auto
+operator>>(QDataStream& stream, Time& time) -> QDataStream&
+{
+    auto timestamp = qint64{};
+    auto& ret = stream >> timestamp >> time.position;
+    time.timestamp = timestamp;
+    return ret;
+}
+
 class BpmChange
 {
     Q_GADGET
@@ -35,6 +52,18 @@ class BpmChange
     double bpm;
     auto operator<=>(const BpmChange& other) const = default;
 };
+
+inline auto
+operator<<(QDataStream& stream, const BpmChange& bpmChange) -> QDataStream&
+{
+    return stream << bpmChange.time << bpmChange.bpm;
+}
+
+inline auto
+operator>>(QDataStream& stream, BpmChange& bpmChange) -> QDataStream&
+{
+    return stream >> bpmChange.time >> bpmChange.bpm;
+}
 
 class Snap
 {
@@ -47,6 +76,18 @@ class Snap
     auto operator<=>(const Snap& other) const = default;
 };
 
+inline auto
+operator<<(QDataStream& stream, const Snap& snap) -> QDataStream&
+{
+    return stream << snap.numerator << snap.denominator;
+}
+
+inline auto
+operator>>(QDataStream& stream, Snap& snap) -> QDataStream&
+{
+    return stream >> snap.numerator >> snap.denominator;
+}
+
 class Note
 {
     Q_GADGET
@@ -57,6 +98,18 @@ class Note
     Snap snap;
     auto operator<=>(const Note& other) const = default;
 };
+
+inline auto
+operator<<(QDataStream& stream, const Note& note) -> QDataStream&
+{
+    return stream << note.time << note.snap;
+}
+
+inline auto
+operator>>(QDataStream& stream, Note& note) -> QDataStream&
+{
+    return stream >> note.time >> note.snap;
+}
 
 class BmsNotes : public QObject
 {
@@ -74,6 +127,7 @@ class BmsNotes : public QObject
     QVector<Time> barLines;
 
   public:
+    BmsNotes() = default;
     explicit BmsNotes(QVector<QVector<Note>> visibleNotes,
                       QVector<QVector<Note>> invisibleNotes,
                       QVector<BpmChange> bpmChanges,
@@ -88,6 +142,24 @@ class BmsNotes : public QObject
     [[nodiscard]] auto getBarLines() const -> const QVector<Time>&;
 
     [[nodiscard]] auto getBpmChanges() const -> const QVector<BpmChange>&;
+
+    friend auto operator<<(QDataStream& stream, const BmsNotes& notes)
+      -> QDataStream&
+    {
+        return stream << notes.visibleNotes << notes.invisibleNotes
+                      << notes.bpmChanges << notes.barLines;
+    }
+
+    friend auto operator>>(QDataStream& stream, BmsNotes& notes) -> QDataStream&
+    {
+        return stream >> notes.visibleNotes >> notes.invisibleNotes >>
+               notes.bpmChanges >> notes.barLines;
+    }
+
+    static auto load(db::SqliteCppDb& db, const support::Sha256& sha256)
+      -> std::unique_ptr<BmsNotes>;
+    auto serialize() const -> QByteArray;
+    auto save(db::SqliteCppDb& db, const support::Sha256& sha256) const -> void;
 };
 } // namespace gameplay_logic
 

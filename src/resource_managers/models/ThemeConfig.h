@@ -12,6 +12,8 @@ struct ThemeConfig
     QString mainScene;
     QString gameplayScene;
     QString songWheelScene;
+    QString SettingScene;
+    QString resultScene;
 };
 } // namespace resource_managers::models
 

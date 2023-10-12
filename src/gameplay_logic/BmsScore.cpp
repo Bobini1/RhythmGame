@@ -12,8 +12,8 @@ BmsScore::addTap(Tap tap) -> void
     if (auto points = tap.getPointsOptional()) {
         hitsWithPoints.emplace_back(tap);
         this->points += points->getValue();
-        auto judgement = points->getJudgementEnum();
-        judgementCounts[judgement]++;
+        auto judgement = points->getJudgement();
+        judgementCounts[static_cast<int>(judgement)]++;
         emit judgementCountsChanged();
         for (auto* gauge : gauges) {
             gauge->addHit(std::chrono::nanoseconds(tap.getOffsetFromStart()),
@@ -33,7 +33,7 @@ BmsScore::addTap(Tap tap) -> void
     emit hit(tap);
 }
 auto
-BmsScore::addMisses(QVector<Miss> newMisses) -> void
+BmsScore::addMisses(QList<Miss> newMisses) -> void
 {
     if (newMisses.empty()) {
         return;
@@ -48,7 +48,7 @@ BmsScore::addMisses(QVector<Miss> newMisses) -> void
     if (newPointSum != 0) {
         emit pointsChanged();
     }
-    judgementCounts[Judgement::Poor] += newMisses.size();
+    judgementCounts[static_cast<int>(Judgement::Poor)] += newMisses.size();
     emit judgementCountsChanged();
     auto newMissesVariantList = QVariantList{};
     for (const auto& miss : newMisses) {
@@ -72,6 +72,9 @@ BmsScore::BmsScore(int maxHits,
   , maxHits(maxHits)
   , gauges(std::move(gauges))
 {
+    for (auto* gauge : this->gauges) {
+        gauge->setParent(this);
+    }
 }
 auto
 BmsScore::getMaxPoints() const -> double
@@ -89,14 +92,9 @@ BmsScore::getPoints() const -> double
     return points;
 }
 auto
-BmsScore::getJudgementCounts() const -> QVariantMap
+BmsScore::getJudgementCounts() const -> QList<int>
 {
-    auto map = QVariantMap{};
-    for (const auto& [judgement, count] : judgementCounts) {
-        auto judgementName = std::string{ magic_enum::enum_name(judgement) };
-        map[QString::fromStdString(judgementName)] = count;
-    }
-    return map;
+    return judgementCounts;
 }
 auto
 BmsScore::sendVisualOnlyTap(Tap tap) -> void
@@ -133,6 +131,41 @@ BmsScore::resetCombo()
 {
     combo = 0;
     emit comboChanged();
+}
+auto
+BmsScore::getResult() const -> std::unique_ptr<BmsResult>
+{
+    auto clearType = QStringLiteral("FAILED");
+    for (auto* gauge : gauges) {
+        if (gauge->getGauge() > gauge->getThreshold()) {
+            clearType = gauge->objectName();
+            break;
+        }
+    }
+    if (points == maxPoints) {
+        clearType = QStringLiteral("MAX");
+    } else if (judgementCounts[static_cast<int>(Judgement::Perfect)] +
+                 judgementCounts[static_cast<int>(Judgement::Great)] ==
+               maxHits) {
+        clearType = QStringLiteral("PERFECT");
+    }
+    return std::make_unique<BmsResult>(
+      maxPoints, maxHits, clearType, judgementCounts, points, maxCombo);
+}
+auto
+BmsScore::getReplayData() const -> std::unique_ptr<BmsReplayData>
+{
+    return std::make_unique<BmsReplayData>(
+      misses, hitsWithPoints, hitsWithoutPoints);
+}
+auto
+BmsScore::getGaugeHistory() const -> std::unique_ptr<BmsGaugeHistory>
+{
+    auto gaugeHistory = QVariantMap{};
+    for (auto* gauge : gauges) {
+        gaugeHistory[gauge->objectName()] = gauge->getGaugeHistory();
+    }
+    return std::make_unique<BmsGaugeHistory>(gaugeHistory);
 }
 
 } // namespace gameplay_logic

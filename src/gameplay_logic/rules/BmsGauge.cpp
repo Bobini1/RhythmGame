@@ -63,4 +63,20 @@ GaugeHistoryEntry::getGauge() const -> double
 {
     return gauge;
 }
+auto
+operator<<(QDataStream& stream, const GaugeHistoryEntry& entry) -> QDataStream&
+{
+    stream << static_cast<qint64>(entry.offsetFromStart) << entry.gauge;
+    return stream;
+}
+auto
+operator>>(QDataStream& stream, GaugeHistoryEntry& entry) -> QDataStream&
+{
+    qint64 offsetFromStart;
+    double gauge;
+    stream >> offsetFromStart >> gauge;
+    entry.offsetFromStart = offsetFromStart;
+    entry.gauge = gauge;
+    return stream;
+}
 } // namespace gameplay_logic::rules

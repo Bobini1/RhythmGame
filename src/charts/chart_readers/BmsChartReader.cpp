@@ -3,6 +3,7 @@
 //
 
 #include <utility>
+#include <variant>
 #include <lexy/action/parse.hpp>
 #include <lexy/dsl.hpp>
 #include <lexy/callback.hpp>
@@ -11,33 +12,50 @@
 #include <spdlog/spdlog.h>
 #include <boost/serialization/strong_typedef.hpp>
 #include "BmsChartReader.h"
+#include "support/toLower.h"
 
 #include <lexy_ext/report_error.hpp>
+#include <boost/locale/encoding.hpp>
 
 namespace charts::chart_readers {
 namespace dsl = lexy::dsl;
 
 namespace {
 [[nodiscard]] auto
-trimR(auto&& str) -> std::string
+trimR(std::string str) -> std::string
 {
-    return std::string(
-      std::string_view{ str }.substr(0, str.find_last_not_of(' ') + 1));
+    auto pos = str.find_last_not_of(" \t\r\n");
+    if (pos != std::string::npos) {
+        str.resize(pos + 1);
+    } else {
+        str.clear();
+    }
+    return str;
 };
+
+thread_local std::function<parser_models::ParsedBmsChart::RandomRange(
+  parser_models::ParsedBmsChart::RandomRange)>
+  randomGenerator;
+
 struct TextTag
 {
-    static constexpr auto value =
-      lexy::as_string<std::string> >>
-      lexy::callback<std::string>(trimR<std::string_view>);
-    static constexpr auto rule = [] {
-        auto limits = dsl::delimited(LEXY_LIT(""), dsl::eol);
-        return limits(dsl::code_point);
-    }();
+    static constexpr auto value = lexy::callback<std::string>([](auto&& str) {
+        return boost::locale::conv::to_utf<char>(
+          trimR(std::string(str.begin(), str.end())), "CP932");
+    });
+    static constexpr auto rule =
+      dsl::capture(dsl::until(dsl::unicode::newline).or_eof());
 };
 
 struct Identifier
 {
-    static constexpr auto value = lexy::as_string<std::string>;
+    static constexpr auto value = lexy::callback<std::string>([](auto&& str) {
+        auto strLower = std::string{};
+        strLower.resize(str.size());
+        std::transform(
+          str.begin(), str.end(), strLower.begin(), support::toLower);
+        return strLower;
+    });
     static constexpr auto rule =
       dsl::capture(dsl::token(dsl::twice(dsl::ascii::alnum)));
 };
@@ -67,7 +85,8 @@ struct FloatingPoint
       lexy::as_string<std::string> |
       lexy::callback<double>([](std::string&& str) {
           auto val = parser_models::ParsedBmsChart::Measure::defaultMeter;
-          auto err = std::from_chars(str.c_str(), str.c_str() + str.size(), val);
+          auto err =
+            std::from_chars(str.c_str(), str.c_str() + str.size(), val);
           if (err.ec != std::errc{}) {
               spdlog::error("Failed to parse meter: {}", str);
           }
@@ -109,9 +128,12 @@ struct MeasureBasedTag
 
 BOOST_STRONG_TYPEDEF(std::string, Title);
 BOOST_STRONG_TYPEDEF(std::string, Artist)
-BOOST_STRONG_TYPEDEF(std::string, Genre);
 BOOST_STRONG_TYPEDEF(std::string, Subtitle);
 BOOST_STRONG_TYPEDEF(std::string, Subartist);
+BOOST_STRONG_TYPEDEF(std::string, Genre);
+BOOST_STRONG_TYPEDEF(std::string, StageFile);
+BOOST_STRONG_TYPEDEF(std::string, Banner);
+BOOST_STRONG_TYPEDEF(std::string, BackBmp);
 BOOST_STRONG_TYPEDEF(double, Total);
 BOOST_STRONG_TYPEDEF(int, Rank);
 BOOST_STRONG_TYPEDEF(double, Bpm);
@@ -119,6 +141,8 @@ BOOST_STRONG_TYPEDEF(int, PlayLevel);
 BOOST_STRONG_TYPEDEF(int, Difficulty);
 using wav_t = std::pair<std::string, std::string>;
 BOOST_STRONG_TYPEDEF(wav_t, Wav);
+using bmp_t = std::pair<std::string, std::string>;
+BOOST_STRONG_TYPEDEF(bmp_t, Bmp);
 using pair_t = std::pair<std::string, double>;
 BOOST_STRONG_TYPEDEF(pair_t, ExBpm);
 using meter_t = std::pair<int64_t, double>;
@@ -146,17 +170,6 @@ struct ArtistTag
       lexy::callback<Artist>([](std::string&& str) { return Artist{ str }; });
 };
 
-struct GenreTag
-{
-    static constexpr auto rule = [] {
-        auto genreTag = dsl::ascii::case_folding(LEXY_LIT("#genre"));
-        return genreTag >> dsl::p<TextTag>;
-    }();
-    static constexpr auto value =
-      lexy::as_string<std::string> |
-      lexy::callback<Genre>([](std::string&& str) { return Genre{ str }; });
-};
-
 struct SubtitleTag
 {
     static constexpr auto rule = [] {
@@ -179,6 +192,51 @@ struct SubartistTag
       lexy::as_string<std::string> |
       lexy::callback<Subartist>(
         [](std::string&& str) { return Subartist{ str }; });
+};
+
+struct GenreTag
+{
+    static constexpr auto rule = [] {
+        auto genreTag = dsl::ascii::case_folding(LEXY_LIT("#genre"));
+        return genreTag >> dsl::p<TextTag>;
+    }();
+    static constexpr auto value =
+      lexy::as_string<std::string> |
+      lexy::callback<Genre>([](std::string&& str) { return Genre{ str }; });
+};
+
+struct StageFileTag
+{
+    static constexpr auto rule = [] {
+        auto stageFileTag = dsl::ascii::case_folding(LEXY_LIT("#stagefile"));
+        return stageFileTag >> dsl::p<TextTag>;
+    }();
+    static constexpr auto value =
+      lexy::as_string<std::string> |
+      lexy::callback<StageFile>(
+        [](std::string&& str) { return StageFile{ str }; });
+};
+
+struct BannerTag
+{
+    static constexpr auto rule = [] {
+        auto bannerTag = dsl::ascii::case_folding(LEXY_LIT("#banner"));
+        return bannerTag >> dsl::p<TextTag>;
+    }();
+    static constexpr auto value =
+      lexy::as_string<std::string> |
+      lexy::callback<Banner>([](std::string&& str) { return Banner{ str }; });
+};
+
+struct BackBmpTag
+{
+    static constexpr auto rule = [] {
+        auto backBmpTag = dsl::ascii::case_folding(LEXY_LIT("#backbmp"));
+        return backBmpTag >> dsl::p<TextTag>;
+    }();
+    static constexpr auto value =
+      lexy::as_string<std::string> |
+      lexy::callback<BackBmp>([](std::string&& str) { return BackBmp{ str }; });
 };
 
 struct TotalTag
@@ -243,6 +301,18 @@ struct WavTag
       });
 };
 
+struct BmpTag
+{
+    static constexpr auto rule = [] {
+        auto bmpTag = dsl::ascii::case_folding(LEXY_LIT("#bmp"));
+        return bmpTag >> (dsl::p<Identifier> + dsl::p<TextTag>);
+    }();
+    static constexpr auto value =
+      lexy::callback<Bmp>([](std::string&& identifier, std::string&& filename) {
+          return Bmp{ { std::move(identifier), std::move(filename) } };
+      });
+};
+
 struct ExBpmTag
 {
     static constexpr auto rule = [] {
@@ -285,10 +355,6 @@ struct TagsSink
         {
             state.artist = std::move(static_cast<std::string&>(artist));
         }
-        auto operator()(Genre&& genre) -> void
-        {
-            state.genre = std::move(static_cast<std::string&>(genre));
-        }
         auto operator()(Subtitle&& subtitle) -> void
         {
             state.subTitle = std::move(static_cast<std::string&>(subtitle));
@@ -296,6 +362,22 @@ struct TagsSink
         auto operator()(Subartist&& subartist) -> void
         {
             state.subArtist = std::move(static_cast<std::string&>(subartist));
+        }
+        auto operator()(Genre&& genre) -> void
+        {
+            state.genre = std::move(static_cast<std::string&>(genre));
+        }
+        auto operator()(StageFile&& stageFile) -> void
+        {
+            state.stageFile = std::move(static_cast<std::string&>(stageFile));
+        }
+        auto operator()(Banner&& banner) -> void
+        {
+            state.banner = std::move(static_cast<std::string&>(banner));
+        }
+        auto operator()(BackBmp&& backBmp) -> void
+        {
+            state.backBmp = std::move(static_cast<std::string&>(backBmp));
         }
         auto operator()(Total&& total) -> void
         {
@@ -321,16 +403,15 @@ struct TagsSink
         {
             auto& [identifier, value] =
               static_cast<std::pair<std::string, double>&>(bpm);
-            state.exBpms[identifier] = value;
+            if (value != 0.0) {
+                state.exBpms[identifier] = value;
+            }
         }
-        auto operator()(
-          std::pair<
-            parser_models::ParsedBmsChart::RandomRange,
-            std::vector<std::pair<parser_models::ParsedBmsChart::IfTag,
-                                  parser_models::ParsedBmsChart::Tags>>>&&
-            randomBlock)
+        auto operator()(parser_models::ParsedBmsChart::Tags&& randomBlock)
         {
-            state.randomBlocks.emplace_back(std::move(randomBlock));
+            state.isRandom = true;
+            parser_models::ParsedBmsChart::mergeTags(state,
+                                                     std::move(randomBlock));
         }
 
         auto operator()(Meter&& meter) -> void
@@ -347,13 +428,20 @@ struct TagsSink
             state.wavs[identifier] = std::move(filename);
         }
 
+        auto operator()(Bmp&& bmp) -> void
+        {
+            auto& [identifier, filename] =
+              static_cast<std::pair<std::string, std::string>&>(bmp);
+            state.bmps[identifier] = std::move(filename);
+        }
+
         auto operator()(
           std::tuple<int64_t, int, std::vector<std::string>>&& measureBasedTag)
           -> void
         {
             auto [measure, channel, identifiers] = std::move(measureBasedTag);
 
-            enum ChannelCategories
+            enum ChannelCategory
             {
                 General = 0,
                 P1Visible = 1,
@@ -363,22 +451,32 @@ struct TagsSink
                 P1LongNote = 5,
                 P2LongNote = 6,
             };
-            enum GeneralSubcategories
+            enum GeneralSubcategory
             {
                 Bgm = 1,
                 /* Meter = 2, // handled elsewhere */
                 Bpm = 3,
-                /* BgaBase = 4, // unimplemented
+                BgaBase = 4, // unimplemented
                 ExtendedObject = 5,
-                SeekObject = 6,
-                BgaLayer = 7, */
+                BgaPoor = 6,
+                BgaLayer = 7,
                 ExBpm = 8,
-                /* Stop = 9, // unimplemented */
+                Stop = 9,
+                BgaLayer2 = 0xA
             };
             constexpr auto base = 36;
-            auto channelCategory =
-              static_cast<ChannelCategories>(channel / base);
+            auto channelCategory = static_cast<ChannelCategory>(channel / base);
             auto channelSubcategory = static_cast<unsigned>(channel % base);
+
+            auto addNotes = [](auto& noteArray,
+                               unsigned column,
+                               std::vector<std::string> identifiers) {
+                if (column < 1 || column > noteArray.size()) [[unlikely]] {
+                    return;
+                }
+                noteArray[column - 1].push_back(std::move(identifiers));
+            };
+
             switch (channelCategory) {
                 case General:
                     switch (channelSubcategory) {
@@ -394,40 +492,56 @@ struct TagsSink
                             state.measures[measure].exBpmChanges =
                               std::move(identifiers);
                             break;
+                        case BgaBase:
+                            state.measures[measure].bgaBase.push_back(
+                              std::move(identifiers));
+                            break;
+                        case BgaPoor:
+                            state.measures[measure].bgaPoor.push_back(
+                              std::move(identifiers));
+                            break;
+                        case BgaLayer:
+                            state.measures[measure].bgaLayer.push_back(
+                              std::move(identifiers));
+                            break;
+                        case BgaLayer2:
+                            state.measures[measure].bgaLayer2.push_back(
+                              std::move(identifiers));
+                            break;
                         default:
                             spdlog::debug("Unknown channel: {:02d}", channel);
                             break;
                     }
                     break;
                 case P1Visible:
-                    state.measures[measure]
-                      .p1VisibleNotes[channelSubcategory - 1] =
-                      std::move(identifiers);
+                    addNotes(state.measures[measure].p1VisibleNotes,
+                             channelSubcategory,
+                             std::move(identifiers));
                     break;
                 case P2Visible:
-                    state.measures[measure]
-                      .p2VisibleNotes[channelSubcategory - 1] =
-                      std::move(identifiers);
+                    addNotes(state.measures[measure].p2VisibleNotes,
+                             channelSubcategory,
+                             std::move(identifiers));
                     break;
                 case P1Invisible:
-                    state.measures[measure]
-                      .p1InvisibleNotes[channelSubcategory - 1] =
-                      std::move(identifiers);
+                    addNotes(state.measures[measure].p1InvisibleNotes,
+                             channelSubcategory,
+                             std::move(identifiers));
                     break;
                 case P2Invisible:
-                    state.measures[measure]
-                      .p2InvisibleNotes[channelSubcategory - 1] =
-                      std::move(identifiers);
+                    addNotes(state.measures[measure].p2InvisibleNotes,
+                             channelSubcategory,
+                             std::move(identifiers));
                     break;
                 case P1LongNote:
-                    state.measures[measure]
-                      .p1LongNotes[channelSubcategory - 1] =
-                      std::move(identifiers);
+                    addNotes(state.measures[measure].p1LongNotes,
+                             channelSubcategory,
+                             std::move(identifiers));
                     break;
                 case P2LongNote:
-                    state.measures[measure]
-                      .p2LongNotes[channelSubcategory - 1] =
-                      std::move(identifiers);
+                    addNotes(state.measures[measure].p2LongNotes,
+                             channelSubcategory,
+                             std::move(identifiers));
                     break;
                 default:
                     spdlog::debug("Unknown channel: {:02d}", channel);
@@ -442,60 +556,138 @@ struct RandomBlock;
 
 struct MainTags
 {
-    static constexpr auto whitespace = dsl::whitespace(dsl::unicode::space);
+    static constexpr auto whitespace =
+      dsl::whitespace(dsl::unicode::space - dsl::unicode::newline);
     static constexpr auto rule = [] {
         auto term = dsl::terminator(
           dsl::eof | dsl::peek(dsl::ascii::case_folding(LEXY_LIT("#endif"))));
         return term.list(dsl::try_(
-          dsl::p<MeterTag> | dsl::p<MeasureBasedTag> | dsl::p<WavTag> |
+          dsl::unicode::newline | dsl::p<MeterTag> | dsl::p<MeasureBasedTag> |
+            dsl::p<WavTag> | dsl::p<BmpTag> | dsl::p<ExBpmTag> |
             dsl::p<TitleTag> | dsl::p<ArtistTag> | dsl::p<GenreTag> |
+            dsl::p<StageFileTag> | dsl::p<BannerTag> | dsl::p<BackBmpTag> |
             dsl::p<SubtitleTag> | dsl::p<SubartistTag> | dsl::p<TotalTag> |
             dsl::p<RankTag> | dsl::p<PlayLevelTag> | dsl::p<DifficultyTag> |
-            dsl::p<ExBpmTag> | dsl::p<BpmTag> |
-            dsl::recurse_branch<RandomBlock>,
+            dsl::p<BpmTag> | dsl::recurse_branch<RandomBlock>,
           dsl::until(dsl::unicode::newline).or_eof()));
     }();
     static constexpr auto value = TagsSink{};
+};
+
+struct OrphanizedRandomCommonPart
+{
+    static constexpr auto rule = [] {
+        auto term = dsl::terminator(
+          dsl::eof |
+          dsl::peek(dsl::ascii::case_folding(LEXY_LIT("#endrandom"))) |
+          dsl::peek(dsl::ascii::case_folding(LEXY_LIT("#random"))) |
+          dsl::peek(dsl::ascii::case_folding(LEXY_LIT("#if"))));
+        return dsl::peek_not(dsl::ascii::case_folding(LEXY_LIT("#if"))) >>
+               term.list(dsl::try_(
+                 dsl::unicode::newline | dsl::p<MeterTag> |
+                   dsl::p<MeasureBasedTag> | dsl::p<WavTag> | dsl::p<BmpTag> |
+                   dsl::p<ExBpmTag> | dsl::p<TitleTag> | dsl::p<ArtistTag> |
+                   dsl::p<GenreTag> | dsl::p<StageFileTag> | dsl::p<BannerTag> |
+                   dsl::p<BackBmpTag> | dsl::p<SubtitleTag> |
+                   dsl::p<SubartistTag> | dsl::p<TotalTag> | dsl::p<RankTag> |
+                   dsl::p<PlayLevelTag> | dsl::p<DifficultyTag> |
+                   dsl::p<BpmTag>,
+                 dsl::until(dsl::unicode::newline).or_eof()));
+    }();
+    static constexpr auto value = TagsSink{};
+};
+
+struct IfData
+{
+    parser_models::ParsedBmsChart::RandomRange number;
+    parser_models::ParsedBmsChart::Tags tags;
 };
 
 struct IfBlock
 {
     static constexpr auto rule =
       dsl::ascii::case_folding(LEXY_LIT("#if")) >>
-      (dsl::integer<parser_models::ParsedBmsChart::IfTag>(dsl::digits<>) +
+      (dsl::integer<parser_models::ParsedBmsChart::RandomRange>(dsl::digits<>) +
        dsl::p<MainTags> + dsl::ascii::case_folding(LEXY_LIT("#endif")));
-    static constexpr auto value =
-      lexy::construct<std::pair<parser_models::ParsedBmsChart::IfTag,
-                                parser_models::ParsedBmsChart::Tags>>;
+    static constexpr auto value = lexy::construct<IfData>;
+};
+
+struct RandomSink
+{
+    struct RandomSinkCallback
+    {
+        using return_type = // NOLINT(readability-identifier-naming)
+          std::vector<
+            std::variant<IfData, parser_models::ParsedBmsChart::Tags>>;
+        return_type state;
+
+        auto finish() && -> return_type { return std::move(state); }
+        auto operator()(IfData&& ifBlock) -> void
+        {
+            state.push_back(std::move(ifBlock));
+        }
+        auto operator()(parser_models::ParsedBmsChart::Tags&& orphanTags)
+          -> void
+        {
+            state.push_back(std::move(orphanTags));
+        }
+    };
+    template<typename... Args>
+    [[nodiscard]] auto sink(Args&&...) const -> RandomSinkCallback
+    {
+        return RandomSinkCallback{};
+    }
 };
 
 struct IfList
 {
     static constexpr auto rule = [] {
         auto delims = dsl::terminator(
-          dsl::eof |
+          dsl::eof | dsl::peek(dsl::ascii::case_folding(LEXY_LIT("#random"))) |
           dsl::peek(dsl::ascii::case_folding(LEXY_LIT("#endrandom"))));
-        return delims.list(dsl::p<IfBlock>);
+        return delims.list(dsl::p<IfBlock> |
+                           dsl::p<OrphanizedRandomCommonPart>);
     }();
-    static constexpr auto value = lexy::as_list<
-      std::vector<std::pair<parser_models::ParsedBmsChart::IfTag,
-                            parser_models::ParsedBmsChart::Tags>>>;
+    static constexpr auto value = RandomSink{};
 };
+
+auto
+resolveIfs(
+  parser_models::ParsedBmsChart::RandomRange randomRange,
+  std::vector<std::variant<IfData, parser_models::ParsedBmsChart::Tags>>
+    randomContents) -> parser_models::ParsedBmsChart::Tags
+{
+    auto tags = parser_models::ParsedBmsChart::Tags{};
+    auto randomNumber = randomGenerator(randomRange);
+    for (auto& randomContent : randomContents) {
+        if (std::holds_alternative<IfData>(randomContent)) {
+            auto& ifData = std::get<IfData>(randomContent);
+            if (ifData.number == randomNumber) {
+                parser_models::ParsedBmsChart::mergeTags(
+                  tags, std::move(ifData.tags));
+            }
+        } else {
+            parser_models::ParsedBmsChart::mergeTags(
+              tags,
+              std::move(
+                std::get<parser_models::ParsedBmsChart::Tags>(randomContent)));
+        }
+    }
+    return tags;
+}
 
 struct RandomBlock
 {
-    static constexpr auto rule = [] {
-        return dsl::ascii::case_folding(LEXY_LIT("#random")) >>
-               (dsl::integer<parser_models::ParsedBmsChart::RandomRange>(
-                  dsl::digits<>) +
-                dsl::p<IfList> +
-                (dsl::ascii::case_folding(LEXY_LIT("#endrandom")) | dsl::eof));
-    }();
-    static constexpr auto value = lexy::construct<
-      std::pair<parser_models::ParsedBmsChart::RandomRange,
-                std::vector<std::pair<parser_models::ParsedBmsChart::IfTag,
-                                      parser_models::ParsedBmsChart::Tags>>>>;
+    static constexpr auto rule =
+      dsl::ascii::case_folding(LEXY_LIT("#random")) >>
+      (dsl::integer<parser_models::ParsedBmsChart::RandomRange>(dsl::digits<>) +
+       dsl::p<IfList> +
+       (dsl::peek(dsl::ascii::case_folding(LEXY_LIT("#random"))) |
+        dsl::ascii::case_folding(LEXY_LIT("#endrandom")) | dsl::eof));
+    static constexpr auto value =
+      lexy::callback<parser_models::ParsedBmsChart::Tags>(resolveIfs);
 };
+
 } // namespace
 
 struct ReportError
@@ -508,9 +700,13 @@ struct ReportError
 };
 
 auto
-BmsChartReader::readBmsChart(std::string_view chart) const
+BmsChartReader::readBmsChart(
+  std::string_view chart,
+  std::function<parser_models::ParsedBmsChart::RandomRange(
+    parser_models::ParsedBmsChart::RandomRange)> randomGenerator) const
   -> parser_models::ParsedBmsChart
 {
+    charts::chart_readers::randomGenerator = std::move(randomGenerator);
     auto result = lexy::parse<MainTags>(
       lexy::string_input<lexy::utf8_char_encoding>(chart), ReportError{});
     return parser_models::ParsedBmsChart(std::move(result).value());

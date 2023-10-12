@@ -2,7 +2,8 @@
 // Created by bobini on 15.06.23.
 //
 
-#include <filesystem>
+#include <unordered_set>
+#include <numeric>
 #include "BmsNotesData.h"
 #include "sounds/OpenAlSoundBuffer.h"
 
@@ -34,6 +35,10 @@ combineBpmChanges(const std::vector<std::string>& bpmChanges,
         if (bpmValue == bpms.end()) {
             continue;
         }
+        if (bpmValue->second <= 0.0) {
+            throw std::runtime_error{ "Bpm must be positive, was: " +
+                                      std::to_string(bpmValue->second) };
+        }
         auto fraction =
           static_cast<double>(index) / static_cast<double>(bpmChanges.size());
         combinedBpmChanges.emplace_back(
@@ -48,7 +53,7 @@ combineBpmChanges(const std::vector<std::string>& bpmChanges,
         auto idx = size_t{ 0 };
         auto bpmChangeNum = std::stoi(bpmChange, &idx, 16);
         if (idx != 2) {
-            spdlog::warn("Invalid bpmChange change: {}", bpmChange);
+            spdlog::warn("Invalid bpm change: {}", bpmChange);
             continue;
         }
         auto fraction =
@@ -89,25 +94,75 @@ createNoteInfo(const std::vector<std::string>& notes,
 
 void
 calculateOffsetsForColumn(
-  const std::vector<std::string>& notes,
+  std::span<const std::vector<std::string>> notes,
   std::vector<BmsNotesData::Note>& target,
   const std::map<double, std::pair<double, BmsNotesData::Time>>&
     bpmChangesInMeasure,
   double meter)
 {
-    auto index = -1;
-    for (const auto& note : notes) {
-        index++;
-        if (note == "00") {
-            continue;
+    if (notes.size() == 0) {
+        return;
+    }
+    if (notes.size() == 1) {
+        auto index = -1;
+        for (const auto& note : notes[0]) {
+            index++;
+            if (note == "00") {
+                continue;
+            }
+            auto [timestamp, soundPointer, fraction] =
+              createNoteInfo(notes[0], bpmChangesInMeasure, index, note, meter);
+            target.emplace_back(BmsNotesData::Note{
+              timestamp,
+              soundPointer,
+              { fraction * meter * BmsNotesData::defaultBeatsPerMeasure,
+                meter * BmsNotesData::defaultBeatsPerMeasure } });
         }
-        auto [timestamp, soundPointer, fraction] =
-          createNoteInfo(notes, bpmChangesInMeasure, index, note, meter);
-        target.emplace_back(BmsNotesData::Note{
-          timestamp,
-          soundPointer,
-          { fraction * meter * BmsNotesData::defaultBeatsPerMeasure,
-            meter * BmsNotesData::defaultBeatsPerMeasure } });
+        return;
+    }
+
+    // When the same channel in the same <measure> duplicates, both are
+    // compounded.
+    // Priority is given to a side with a large line number. But 00 does not
+    // overwrite an old place.
+    // https://hitkey.nekokan.dyndns.info/cmds.htm#BEHAVIOR-IN-GENERAL-IMPLEMENTATION
+    auto notesMap = std::map<std::pair<int, int>, BmsNotesData::Note>{};
+    for (const auto& definition : notes) {
+        auto index = -1;
+        for (const auto& note : definition) {
+            index++;
+            if (note == "00") {
+                continue;
+            }
+            auto gcd = std::gcd(index, static_cast<int>(definition.size()));
+            auto [timestamp, soundPointer, fraction] = createNoteInfo(
+              definition, bpmChangesInMeasure, index, note, meter);
+            notesMap[{ index / gcd,
+                       static_cast<int>(definition.size()) / gcd }] =
+              BmsNotesData::Note{
+                  timestamp,
+                  soundPointer,
+                  { fraction * meter * BmsNotesData::defaultBeatsPerMeasure,
+                    meter * BmsNotesData::defaultBeatsPerMeasure }
+              };
+        }
+        std::vector<BmsNotesData::Note> notesVector;
+        for (const auto& [fractionDec, note] : notesMap) {
+            notesVector.push_back(note);
+        }
+        // sort by timestamp
+        std::sort(notesVector.begin(),
+                  notesVector.end(),
+                  [](const auto& a, const auto& b) {
+                      return a.time.timestamp < b.time.timestamp;
+                  });
+        // add to target
+        for (const auto& note : notesVector) {
+            target.push_back(note);
+        }
+    }
+    for (const auto& [timestamp, note] : notesMap) {
+        target.push_back(note);
     }
 }
 
@@ -131,13 +186,68 @@ calculateOffsetsForBgm(
     }
 }
 
+void
+calculateOffsetsForBga(
+  const std::vector<std::vector<std::string>>& notes,
+  std::vector<std::pair<BmsNotesData::Time, std::string>>& target,
+  const std::map<double, std::pair<double, BmsNotesData::Time>>&
+    bpmChangesInMeasure,
+  double meter)
+{
+    if (notes.size() == 0) {
+        return;
+    }
+    if (notes.size() == 1) {
+        auto index = -1;
+        for (const auto& note : notes[0]) {
+            index++;
+            if (note == "00") {
+                continue;
+            }
+            auto [timestamp, soundPointer, fraction] =
+              createNoteInfo(notes[0], bpmChangesInMeasure, index, note, meter);
+            target.emplace_back(timestamp.timestamp, soundPointer);
+        }
+        return;
+    }
+    auto notesMap = std::map<std::pair<int, int>,
+                             std::pair<std::string, BmsNotesData::Time>>{};
+    for (const auto& definition : notes) {
+        auto index = -1;
+        for (const auto& note : definition) {
+            index++;
+            if (note == "00") {
+                continue;
+            }
+            auto gcd = std::gcd(index, static_cast<int>(definition.size()));
+            auto [timestamp, soundPointer, fraction] = createNoteInfo(
+              definition, bpmChangesInMeasure, index, note, meter);
+            notesMap[{ index / gcd,
+                       static_cast<int>(definition.size()) / gcd }] = {
+                soundPointer, timestamp
+            };
+        }
+        std::vector<std::pair<BmsNotesData::Time, std::string>> notesVector;
+        for (const auto& [fractionDec, note] : notesMap) {
+            notesVector.emplace_back(note.second, note.first);
+        }
+        // sort by timestamp
+        std::sort(notesVector.begin(),
+                  notesVector.end(),
+                  [](const auto& a, const auto& b) {
+                      return a.first.timestamp < b.first.timestamp;
+                  });
+        // add to target
+        for (const auto& note : notesVector) {
+            target.push_back(note);
+        }
+    }
+}
+
 } // namespace
 
 BmsNotesData::BmsNotesData(const charts::parser_models::ParsedBmsChart& chart)
 {
-    if (chart.tags.randomBlocks.size() != 0) {
-        throw std::runtime_error("Random blocks are not supported.");
-    }
     generateMeasures(chart.tags.bpm.value_or(defaultBpm),
                      chart.tags.exBpms,
                      chart.tags.measures);
@@ -162,16 +272,17 @@ BmsNotesData::generateMeasures(
         auto lastFraction = 0.0;
         auto combinedBpmChanges =
           combineBpmChanges(measure.exBpmChanges, measure.bpmChanges, bpms);
+        auto meter = measure.meter.value_or(
+          charts::parser_models::ParsedBmsChart::Measure::defaultMeter);
         for (const auto& bpmChange : combinedBpmChanges) {
             auto fraction = bpmChange.fraction;
             auto bpmChangeNum = bpmChange.bpm;
-            auto timestamp =
-              lastTimestamp +
-              Time{ std::chrono::nanoseconds(static_cast<int64_t>(
-                      (fraction - lastFraction) * defaultBeatsPerMeasure *
-                      measure.meter * 60 * 1'000'000'000 / lastBpm)),
-                    (fraction - lastFraction) * defaultBeatsPerMeasure *
-                      measure.meter };
+            auto timestamp = lastTimestamp + Time{
+                std::chrono::nanoseconds(static_cast<int64_t>(
+                  (fraction - lastFraction) * defaultBeatsPerMeasure * meter *
+                  60 * 1'000'000'000 / lastBpm)),
+                (fraction - lastFraction) * defaultBeatsPerMeasure * meter
+            };
             bpmChanges.emplace_back(timestamp, bpmChangeNum);
             bpmChangesInMeasure[fraction] =
               std::pair{ bpmChangeNum, timestamp };
@@ -183,35 +294,51 @@ BmsNotesData::generateMeasures(
         auto timestamp =
           lastTimestamp +
           Time{ std::chrono::nanoseconds(static_cast<int64_t>(
-                  (1.0 - lastFraction) * defaultBeatsPerMeasure *
-                  measure.meter * 60 * 1'000'000'000 / lastBpm)),
-                (1.0 - lastFraction) * defaultBeatsPerMeasure * measure.meter };
+                  (1.0 - lastFraction) * defaultBeatsPerMeasure * meter * 60 *
+                  1'000'000'000 / lastBpm)),
+                (1.0 - lastFraction) * defaultBeatsPerMeasure * meter };
         barLines.emplace_back(timestamp);
         for (auto i = 0; i < columnMapping.size(); i++) {
             calculateOffsetsForColumn(measure.p1VisibleNotes[columnMapping[i]],
                                       visibleNotes[i],
                                       bpmChangesInMeasure,
-                                      measure.meter);
+                                      meter);
             calculateOffsetsForColumn(
               measure.p1InvisibleNotes[columnMapping[i]],
               invisibleNotes[i],
               bpmChangesInMeasure,
-              measure.meter);
+              meter);
             calculateOffsetsForColumn(
               measure.p2VisibleNotes[i],
               visibleNotes[columnMapping[i] + columnMapping.size() / 2],
               bpmChangesInMeasure,
-              measure.meter);
+              meter);
             calculateOffsetsForColumn(
               measure.p2InvisibleNotes[i],
               invisibleNotes[columnMapping[i] + columnMapping.size() / 2],
               bpmChangesInMeasure,
-              measure.meter);
+              meter);
         }
 
         for (const auto& bgmNotes : measure.bgmNotes) {
             calculateOffsetsForBgm(
-              bgmNotes, this->bgmNotes, bpmChangesInMeasure, measure.meter);
+              bgmNotes, this->bgmNotes, bpmChangesInMeasure, meter);
+        }
+        for (const auto& bgaBase : measure.bgaBase) {
+            calculateOffsetsForBgm(
+              bgaBase, this->bgaBase, bpmChangesInMeasure, meter);
+        }
+        for (const auto& bgaPoor : measure.bgaPoor) {
+            calculateOffsetsForBgm(
+              bgaPoor, this->bgaPoor, bpmChangesInMeasure, meter);
+        }
+        for (const auto& bgaLayer : measure.bgaLayer) {
+            calculateOffsetsForBgm(
+              bgaLayer, this->bgaLayer, bpmChangesInMeasure, meter);
+        }
+        for (const auto& bgaLayer2 : measure.bgaLayer2) {
+            calculateOffsetsForBgm(
+              bgaLayer2, this->bgaLayer2, bpmChangesInMeasure, meter);
         }
 
         lastMeasure = currentMeasure;

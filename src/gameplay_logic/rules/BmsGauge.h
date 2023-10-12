@@ -21,6 +21,11 @@ class GaugeHistoryEntry
     GaugeHistoryEntry(int64_t offsetFromStart, double gauge);
     [[nodiscard]] auto getOffsetFromStart() const -> int64_t;
     [[nodiscard]] auto getGauge() const -> double;
+
+    friend auto operator<<(QDataStream& stream, const GaugeHistoryEntry& entry)
+      -> QDataStream&;
+    friend auto operator>>(QDataStream& stream, GaugeHistoryEntry& entry)
+      -> QDataStream&;
 };
 
 class BmsGauge : public QObject
