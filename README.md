@@ -6,7 +6,7 @@
 
 # RhythmGame
 
-A fast and portable rhythm game. (work in progress)
+A flexible and portable rhythm game. (work in progress)
 
 # Building and installing
 
