@@ -106,6 +106,7 @@ ChartFactory::createChart(
                     bmps = std::move(bmps),
                     thread = QApplication::instance()->thread(),
                     path]() {
+        auto start = std::chrono::high_resolution_clock::now();
         struct Request
         {
             std::string path;
@@ -270,6 +271,14 @@ ChartFactory::createChart(
         auto bgaContainer = std::make_unique<qml_components::BgaContainer>(
           std::move(bgas), std::move(videosVector), std::move(framesVector));
         bgaContainer->moveToThread(thread);
+
+        auto end = std::chrono::high_resolution_clock::now();
+        spdlog::info(
+          "Loading {} images and {} videos took {} ms",
+          frames.size(),
+          videos.size(),
+          std::chrono::duration_cast<std::chrono::milliseconds>(end - start)
+            .count());
         return bgaContainer;
     };
 
