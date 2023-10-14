@@ -85,6 +85,13 @@ struct BmsNotesData
                            int64_t& measureIndex,
                            BmsNotesData::Time& measureStart,
                            double lastBpm);
+    void adjustRdmLongNotes(
+      const std::array<std::optional<size_t>,
+                       parser_models::ParsedBmsChart::Measure::columnNumber>&
+        lastInsertedRdmNoteP1,
+      const std::array<std::optional<size_t>,
+                       parser_models::ParsedBmsChart::Measure::columnNumber>&
+        lastInsertedRdmNoteP2);
 };
 } // namespace charts::gameplay_models
 #endif // RHYTHMGAME_BMSNOTESDATA_H
