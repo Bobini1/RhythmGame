@@ -35,12 +35,28 @@ struct BmsNotesData
         auto operator<=>(const Time& other) const = default;
     };
 
+    enum class NoteType
+    {
+        Normal,
+        LongNoteEnd,
+        LongNoteBegin,
+        Landmine
+    };
+
     struct Note
     {
         Time time;
         std::string sound;
         Snap snap;
+        NoteType noteType;
     };
+
+    enum class LnType
+    {
+        RDM = 1,
+        MGQ = 2
+    };
+
     static constexpr auto defaultBeatsPerMeasure = 4;
     static constexpr auto columnMapping =
       std::array{ 0, 1, 2, 3, 4, 7, 8, 5 }; // ignore "foot pedal"
@@ -55,14 +71,16 @@ struct BmsNotesData
     std::vector<std::pair<Time, double>> bpmChanges;
     std::vector<Time> barLines;
     static constexpr auto defaultBpm = 120.0;
+    static constexpr auto defaultLnType = LnType::RDM;
     explicit BmsNotesData(const parser_models::ParsedBmsChart& chart);
 
   private:
     void generateMeasures(
       double baseBpm,
       const std::map<std::string, double>& bpms,
-      const std::map<int64_t, parser_models::ParsedBmsChart::Measure>&
-        measures);
+      const std::map<int64_t, parser_models::ParsedBmsChart::Measure>& measures,
+      LnType lnType,
+      std::optional<std::string> lnObj);
     void fillEmptyMeasures(int64_t lastMeasure,
                            int64_t& measureIndex,
                            BmsNotesData::Time& measureStart,

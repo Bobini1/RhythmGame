@@ -104,6 +104,18 @@ charts::parser_models::ParsedBmsChart::mergeTags(
                   std::move(definition));
             }
         }
+        for (auto column = 0; column < measure.p1Landmines.size(); ++column) {
+            for (auto& definition : measure.p1Landmines[column]) {
+                firstMeasure.p1Landmines[column].push_back(
+                  std::move(definition));
+            }
+        }
+        for (auto column = 0; column < measure.p2Landmines.size(); ++column) {
+            for (auto& definition : measure.p2Landmines[column]) {
+                firstMeasure.p2Landmines[column].push_back(
+                  std::move(definition));
+            }
+        }
         for (auto& definition : measure.bgaBase) {
             firstMeasure.bgaBase.push_back(std::move(definition));
         }

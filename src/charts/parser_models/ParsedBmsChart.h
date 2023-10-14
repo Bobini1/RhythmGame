@@ -37,6 +37,10 @@ struct ParsedBmsChart
           p1LongNotes;
         std::array<std::vector<std::vector<std::string>>, columnNumber>
           p2LongNotes;
+        std::array<std::vector<std::vector<std::string>>, columnNumber>
+          p1Landmines;
+        std::array<std::vector<std::vector<std::string>>, columnNumber>
+          p2Landmines;
         std::vector<std::vector<std::string>> bgaBase;
         std::vector<std::vector<std::string>> bgaPoor;
         std::vector<std::vector<std::string>> bgaLayer;

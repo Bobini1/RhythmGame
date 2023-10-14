@@ -482,6 +482,8 @@ struct TagsSink
                 P2Invisible = 4,
                 P1LongNote = 5,
                 P2LongNote = 6,
+                P1Landmine = 0xD,
+                P2Landmine = 0xE
             };
             enum GeneralSubcategory
             {
@@ -572,6 +574,16 @@ struct TagsSink
                     break;
                 case P2LongNote:
                     addNotes(state.measures[measure].p2LongNotes,
+                             channelSubcategory,
+                             std::move(identifiers));
+                    break;
+                case P1Landmine:
+                    addNotes(state.measures[measure].p1Landmines,
+                             channelSubcategory,
+                             std::move(identifiers));
+                    break;
+                case P2Landmine:
+                    addNotes(state.measures[measure].p2Landmines,
                              channelSubcategory,
                              std::move(identifiers));
                     break;

@@ -98,9 +98,107 @@ calculateOffsetsForColumn(
   std::vector<BmsNotesData::Note>& target,
   const std::map<double, std::pair<double, BmsNotesData::Time>>&
     bpmChangesInMeasure,
-  double meter)
+  double meter,
+  std::optional<std::string> lnObj)
 {
-    if (notes.size() == 0) {
+    if (notes.empty()) {
+        return;
+    }
+    if (notes.size() == 1) {
+        auto index = -1;
+        for (const auto& note : notes[0]) {
+            index++;
+            if (note == "00") {
+                continue;
+            }
+            auto [timestamp, soundPointer, fraction] =
+              createNoteInfo(notes[0], bpmChangesInMeasure, index, note, meter);
+            auto noteType = BmsNotesData::NoteType::Normal;
+            if (lnObj.has_value() && note == lnObj.value()) {
+                // we don't ever want two ln ends in a row
+                if (auto lastNote = target.rend();
+                    lastNote != target.rbegin() &&
+                    lastNote->noteType != BmsNotesData::NoteType::LongNoteEnd) {
+                    noteType = BmsNotesData::NoteType::LongNoteEnd;
+                    lastNote->noteType = BmsNotesData::NoteType::LongNoteBegin;
+                }
+            }
+            target.emplace_back(BmsNotesData::Note{
+              timestamp,
+              soundPointer,
+              { fraction * meter * BmsNotesData::defaultBeatsPerMeasure,
+                meter * BmsNotesData::defaultBeatsPerMeasure },
+              noteType });
+        }
+        return;
+    }
+
+    // When the same channel in the same <measure> duplicates, both are
+    // compounded.
+    // Priority is given to a side with a large line number. But 00 does not
+    // overwrite an old place.
+    // https://hitkey.nekokan.dyndns.info/cmds.htm#BEHAVIOR-IN-GENERAL-IMPLEMENTATION
+    auto notesMap = std::map<std::pair<int, int>, BmsNotesData::Note>{};
+    for (const auto& definition : notes) {
+        auto index = -1;
+        for (const auto& note : definition) {
+            index++;
+            if (note == "00") {
+                continue;
+            }
+            auto gcd = std::gcd(index, static_cast<int>(definition.size()));
+            auto [timestamp, soundPointer, fraction] = createNoteInfo(
+              definition, bpmChangesInMeasure, index, note, meter);
+            auto noteType = BmsNotesData::NoteType::Normal;
+            notesMap[{ index / gcd,
+                       static_cast<int>(definition.size()) / gcd }] =
+              BmsNotesData::Note{
+                  timestamp,
+                  soundPointer,
+                  { fraction * meter * BmsNotesData::defaultBeatsPerMeasure,
+                    meter * BmsNotesData::defaultBeatsPerMeasure },
+                  noteType
+              };
+        }
+        std::vector<BmsNotesData::Note> notesVector;
+        for (const auto& [fractionDec, note] : notesMap) {
+            notesVector.push_back(note);
+        }
+        // sort by timestamp
+        std::sort(notesVector.begin(),
+                  notesVector.end(),
+                  [](const auto& a, const auto& b) {
+                      return a.time.timestamp < b.time.timestamp;
+                  });
+        // add to target
+        for (const auto& note : notesVector) {
+            target.push_back(note);
+        }
+    }
+    for (auto& [timestamp, note] : notesMap) {
+        if (lnObj.has_value() && note.sound == lnObj.value()) {
+            // we don't ever want two ln ends in a row
+            if (auto lastNote = target.rend();
+                lastNote != target.rbegin() &&
+                lastNote->noteType != BmsNotesData::NoteType::LongNoteEnd) {
+                note.noteType = BmsNotesData::NoteType::LongNoteEnd;
+                lastNote->noteType = BmsNotesData::NoteType::LongNoteBegin;
+            }
+        }
+        target.push_back(note);
+    }
+}
+
+void
+calculateOffsetsForLnRdm(
+  std::span<const std::vector<std::string>> notes,
+  std::vector<BmsNotesData::Note>& target,
+  const std::map<double, std::pair<double, BmsNotesData::Time>>&
+    bpmChangesInMeasure,
+  double meter,
+  bool& insideLn)
+{
+    if (notes.empty()) {
         return;
     }
     if (notes.size() == 1) {
@@ -116,7 +214,10 @@ calculateOffsetsForColumn(
               timestamp,
               soundPointer,
               { fraction * meter * BmsNotesData::defaultBeatsPerMeasure,
-                meter * BmsNotesData::defaultBeatsPerMeasure } });
+                meter * BmsNotesData::defaultBeatsPerMeasure },
+              insideLn ? BmsNotesData::NoteType::LongNoteEnd
+                       : BmsNotesData::NoteType::LongNoteBegin });
+            insideLn = !insideLn;
         }
         return;
     }
@@ -144,6 +245,142 @@ calculateOffsetsForColumn(
                   soundPointer,
                   { fraction * meter * BmsNotesData::defaultBeatsPerMeasure,
                     meter * BmsNotesData::defaultBeatsPerMeasure }
+              };
+        }
+        std::vector<BmsNotesData::Note> notesVector;
+        for (const auto& [fractionDec, note] : notesMap) {
+            notesVector.push_back(note);
+        }
+        // sort by timestamp
+        std::sort(notesVector.begin(),
+                  notesVector.end(),
+                  [](const auto& a, const auto& b) {
+                      return a.time.timestamp < b.time.timestamp;
+                  });
+        // add to target
+        for (auto& note : notesVector) {
+            note.noteType = insideLn ? BmsNotesData::NoteType::LongNoteEnd
+                                     : BmsNotesData::NoteType::LongNoteBegin;
+            insideLn = !insideLn;
+            target.push_back(note);
+        }
+    }
+    for (const auto& [timestamp, note] : notesMap) {
+        target.push_back(note);
+    }
+}
+
+void
+calculateOffsetsForLnMgq(
+  std::span<const std::vector<std::string>> notes,
+  std::vector<BmsNotesData::Note>& target,
+  const std::map<double, std::pair<double, BmsNotesData::Time>>&
+    bpmChangesInMeasure,
+  double meter,
+  bool& insideLn,
+  bool last)
+{
+    if (notes.empty()) {
+        return;
+    }
+    if (notes.size() != 1) {
+        spdlog::warn("MGQ type LN multiple definitions compounding is not "
+                     "supported. Picking the last valid definition.");
+    }
+
+    auto index = -1;
+    for (const auto& note : notes.back()) {
+        index++;
+        if (note == "00" && insideLn) {
+            auto [timestamp, soundPointer, fraction] =
+              createNoteInfo(notes[0], bpmChangesInMeasure, index, note, meter);
+            target.emplace_back(BmsNotesData::Note{
+              timestamp,
+              soundPointer,
+              { fraction * meter * BmsNotesData::defaultBeatsPerMeasure,
+                meter * BmsNotesData::defaultBeatsPerMeasure },
+              BmsNotesData::NoteType::LongNoteEnd });
+            insideLn = false;
+        } else if (note != "00" && !insideLn) {
+            auto [timestamp, soundPointer, fraction] =
+              createNoteInfo(notes[0], bpmChangesInMeasure, index, note, meter);
+            target.emplace_back(BmsNotesData::Note{
+              timestamp,
+              soundPointer,
+              { fraction * meter * BmsNotesData::defaultBeatsPerMeasure,
+                meter * BmsNotesData::defaultBeatsPerMeasure },
+              BmsNotesData::NoteType::LongNoteBegin });
+            insideLn = true;
+        }
+    }
+    if (insideLn && last) {
+        auto [timestamp, soundPointer, fraction] =
+          createNoteInfo(notes[0], bpmChangesInMeasure, index + 1, "00", meter);
+        target.emplace_back(BmsNotesData::Note{
+          timestamp,
+          soundPointer,
+          { fraction * meter * BmsNotesData::defaultBeatsPerMeasure,
+            meter * BmsNotesData::defaultBeatsPerMeasure },
+          BmsNotesData::NoteType::LongNoteEnd });
+        insideLn = false;
+    }
+}
+
+void
+calculateOffsetsForLandmine(
+  std::span<const std::vector<std::string>> notes,
+  std::vector<BmsNotesData::Note>& target,
+  const std::map<double, std::pair<double, BmsNotesData::Time>>&
+    bpmChangesInMeasure,
+  double meter)
+{
+    if (notes.empty()) {
+        return;
+    }
+    if (notes.size() == 1) {
+        auto index = -1;
+        for (const auto& note : notes[0]) {
+            index++;
+            if (note == "00") {
+                continue;
+            }
+            auto [timestamp, soundPointer, fraction] =
+              createNoteInfo(notes[0], bpmChangesInMeasure, index, note, meter);
+            target.emplace_back(BmsNotesData::Note{
+              timestamp,
+              soundPointer,
+              { fraction * meter * BmsNotesData::defaultBeatsPerMeasure,
+                meter * BmsNotesData::defaultBeatsPerMeasure },
+              BmsNotesData::NoteType::Landmine });
+        }
+        return;
+    }
+
+    // When the same channel in the same <measure> duplicates, both are
+    // compounded.
+    // Priority is given to a side with a large line number. But 00 does not
+    // overwrite an old place.
+    // https://hitkey.nekokan.dyndns.info/cmds.htm#BEHAVIOR-IN-GENERAL-IMPLEMENTATION
+    auto notesMap = std::map<std::pair<int, int>, BmsNotesData::Note>{};
+    for (const auto& definition : notes) {
+        auto index = -1;
+        for (const auto& note : definition) {
+            index++;
+            if (note == "00") {
+                continue;
+            }
+            auto gcd = std::gcd(index, static_cast<int>(definition.size()));
+            auto [timestamp, soundPointer, fraction] = createNoteInfo(
+              definition, bpmChangesInMeasure, index, note, meter);
+            auto noteType = BmsNotesData::NoteType::Normal;
+            notesMap[{ index / gcd,
+                       static_cast<int>(definition.size()) / gcd }] =
+              BmsNotesData::Note{
+                  timestamp,
+                  soundPointer,
+                  { fraction * meter * BmsNotesData::defaultBeatsPerMeasure,
+                    meter * BmsNotesData::defaultBeatsPerMeasure },
+                  BmsNotesData::NoteType::Landmine
               };
         }
         std::vector<BmsNotesData::Note> notesVector;
@@ -194,7 +431,7 @@ calculateOffsetsForBga(
     bpmChangesInMeasure,
   double meter)
 {
-    if (notes.size() == 0) {
+    if (notes.empty()) {
         return;
     }
     if (notes.size() == 1) {
@@ -248,20 +485,51 @@ calculateOffsetsForBga(
 
 BmsNotesData::BmsNotesData(const charts::parser_models::ParsedBmsChart& chart)
 {
+    auto lnType = defaultLnType;
+    if (chart.tags.lnType.has_value()) {
+        lnType = static_cast<LnType>(chart.tags.lnType.value());
+    }
     generateMeasures(chart.tags.bpm.value_or(defaultBpm),
                      chart.tags.exBpms,
-                     chart.tags.measures);
+                     chart.tags.measures,
+                     lnType,
+                     chart.tags.lnObj);
 }
 void
 BmsNotesData::generateMeasures(
   double baseBpm,
   const std::map<std::string, double>& bpms,
-  const std::map<int64_t, parser_models::ParsedBmsChart::Measure>& measures)
+  const std::map<int64_t, parser_models::ParsedBmsChart::Measure>& measures,
+  LnType lnType,
+  std::optional<std::string> lnObj)
 {
     auto lastBpm = baseBpm;
     auto lastMeasure = int64_t{ -1 };
     auto measureStart = Time{ 0ns, 0.0 };
     bpmChanges.emplace_back(measureStart, baseBpm);
+    auto insideLn = std::array<bool, columnNumber>{};
+
+    auto lastMeasureWithLnP1 =
+      std::array<int64_t,
+                 parser_models::ParsedBmsChart::Measure::columnNumber>{};
+    auto lastMeasureWithLnP2 =
+      std::array<int64_t,
+                 parser_models::ParsedBmsChart::Measure::columnNumber>{};
+    if (lnType == LnType::MGQ) {
+        // find the last measure containing ln
+        for (const auto& [measureIndex, measure] : measures) {
+            for (auto i = 0;
+                 i < parser_models::ParsedBmsChart::Measure::columnNumber;
+                 i++) {
+                if (!measure.p1LongNotes[i].empty()) {
+                    lastMeasureWithLnP1[i] = measureIndex;
+                }
+                if (!measure.p2LongNotes[i].empty()) {
+                    lastMeasureWithLnP1[i] = measureIndex;
+                }
+            }
+        }
+    }
     for (const auto& [measureIndex, measure] : measures) {
         auto currentMeasure = measureIndex;
         fillEmptyMeasures(lastMeasure, currentMeasure, measureStart, lastBpm);
@@ -302,20 +570,62 @@ BmsNotesData::generateMeasures(
             calculateOffsetsForColumn(measure.p1VisibleNotes[columnMapping[i]],
                                       visibleNotes[i],
                                       bpmChangesInMeasure,
-                                      meter);
+                                      meter,
+                                      lnObj);
             calculateOffsetsForColumn(
               measure.p1InvisibleNotes[columnMapping[i]],
               invisibleNotes[i],
               bpmChangesInMeasure,
-              meter);
+              meter,
+              std::nullopt);
             calculateOffsetsForColumn(
               measure.p2VisibleNotes[i],
-              visibleNotes[columnMapping[i] + columnMapping.size() / 2],
+              visibleNotes[columnMapping[i] + columnMapping.size()],
               bpmChangesInMeasure,
-              meter);
+              meter,
+              lnObj);
             calculateOffsetsForColumn(
               measure.p2InvisibleNotes[i],
-              invisibleNotes[columnMapping[i] + columnMapping.size() / 2],
+              invisibleNotes[columnMapping[i] + columnMapping.size()],
+              bpmChangesInMeasure,
+              meter,
+              std::nullopt);
+            if (lnType == LnType::RDM) {
+                calculateOffsetsForLnRdm(measure.p1LongNotes[columnMapping[i]],
+                                         visibleNotes[i],
+                                         bpmChangesInMeasure,
+                                         meter,
+                                         insideLn[i]);
+                calculateOffsetsForLnRdm(
+                  measure.p2LongNotes[i],
+                  visibleNotes[columnMapping[i] + columnMapping.size()],
+                  bpmChangesInMeasure,
+                  meter,
+                  insideLn[columnMapping[i] + columnMapping.size()]);
+            } else if (lnType == LnType::MGQ) {
+                calculateOffsetsForLnMgq(
+                  measure.p1LongNotes[columnMapping[i]],
+                  visibleNotes[i],
+                  bpmChangesInMeasure,
+                  meter,
+                  insideLn[i],
+                  lastMeasureWithLnP1[columnMapping[i]] == currentMeasure);
+                calculateOffsetsForLnMgq(
+                  measure.p2LongNotes[i],
+                  visibleNotes[columnMapping[i] + columnMapping.size()],
+                  bpmChangesInMeasure,
+                  meter,
+                  insideLn[columnMapping[i] + columnMapping.size()],
+                  lastMeasureWithLnP2[columnMapping[i] +
+                                      columnMapping.size()] == currentMeasure);
+            }
+            calculateOffsetsForLandmine(measure.p1Landmines[columnMapping[i]],
+                                        visibleNotes[i],
+                                        bpmChangesInMeasure,
+                                        meter);
+            calculateOffsetsForLandmine(
+              measure.p2Landmines[i],
+              visibleNotes[columnMapping[i] + columnMapping.size()],
               bpmChangesInMeasure,
               meter);
         }
@@ -337,6 +647,25 @@ BmsNotesData::generateMeasures(
         measureStart = timestamp;
     }
     std::sort(bgmNotes.begin(), bgmNotes.end());
+    for (auto& column : visibleNotes) {
+        std::sort(
+          column.begin(), column.end(), [](const auto& a, const auto& b) {
+              return a.time.timestamp < b.time.timestamp;
+          });
+    }
+    // remove invalid notes
+    for (auto& column : visibleNotes) {
+        auto insideLn = false;
+        std::erase_if(column, [&insideLn](const auto& note) {
+            auto valid = (note.noteType == NoteType::LongNoteEnd) || !insideLn;
+            if (valid && note.noteType == NoteType::LongNoteBegin) {
+                insideLn = true;
+            } else if (valid && note.noteType == NoteType::LongNoteEnd) {
+                insideLn = false;
+            }
+            return !valid;
+        });
+    }
 }
 
 void
