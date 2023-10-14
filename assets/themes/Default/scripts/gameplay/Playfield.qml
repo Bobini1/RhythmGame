@@ -49,7 +49,7 @@ Rectangle {
                 id: noteColumn
 
                 heightMultiplier: root.greenNumber
-                image: root.noteImages[playfield.columns[index]]
+                color: root.noteColors[playfield.columns[index]]
                 noteHeight: 36
                 notes: modelData
                 width: root.columnSizes[playfield.columns[index]]

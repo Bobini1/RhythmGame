@@ -196,7 +196,8 @@ calculateOffsetsForLnRdm(
   const std::map<double, std::pair<double, BmsNotesData::Time>>&
     bpmChangesInMeasure,
   double meter,
-  bool& insideLn)
+  bool& insideLn,
+  BmsNotesData::Note*& lastInsertedRdmNote)
 {
     if (notes.empty()) {
         return;
@@ -218,6 +219,7 @@ calculateOffsetsForLnRdm(
               insideLn ? BmsNotesData::NoteType::LongNoteEnd
                        : BmsNotesData::NoteType::LongNoteBegin });
             insideLn = !insideLn;
+            lastInsertedRdmNote = &target.back();
         }
         return;
     }
@@ -507,7 +509,8 @@ BmsNotesData::generateMeasures(
     auto lastMeasure = int64_t{ -1 };
     auto measureStart = Time{ 0ns, 0.0 };
     bpmChanges.emplace_back(measureStart, baseBpm);
-    auto insideLn = std::array<bool, columnNumber>{};
+    auto insideLn =
+      std::array<bool, parser_models::ParsedBmsChart::Measure::columnNumber>{};
 
     auto lastMeasureWithLnP1 =
       std::array<int64_t,
@@ -530,6 +533,8 @@ BmsNotesData::generateMeasures(
             }
         }
     }
+    auto lastInsertedRdmNote =
+      std::array<Note*, parser_models::ParsedBmsChart::Measure::columnNumber>{};
     for (const auto& [measureIndex, measure] : measures) {
         auto currentMeasure = measureIndex;
         fillEmptyMeasures(lastMeasure, currentMeasure, measureStart, lastBpm);
@@ -578,15 +583,14 @@ BmsNotesData::generateMeasures(
               bpmChangesInMeasure,
               meter,
               std::nullopt);
+            calculateOffsetsForColumn(measure.p2VisibleNotes[columnMapping[i]],
+                                      visibleNotes[i + columnMapping.size()],
+                                      bpmChangesInMeasure,
+                                      meter,
+                                      lnObj);
             calculateOffsetsForColumn(
-              measure.p2VisibleNotes[i],
-              visibleNotes[columnMapping[i] + columnMapping.size()],
-              bpmChangesInMeasure,
-              meter,
-              lnObj);
-            calculateOffsetsForColumn(
-              measure.p2InvisibleNotes[i],
-              invisibleNotes[columnMapping[i] + columnMapping.size()],
+              measure.p2InvisibleNotes[columnMapping[i]],
+              invisibleNotes[i + columnMapping.size()],
               bpmChangesInMeasure,
               meter,
               std::nullopt);
@@ -595,10 +599,11 @@ BmsNotesData::generateMeasures(
                                          visibleNotes[i],
                                          bpmChangesInMeasure,
                                          meter,
-                                         insideLn[i]);
+                                         insideLn[columnMapping[i]],
+                                         lastInsertedRdmNote[columnMapping[i]]);
                 calculateOffsetsForLnRdm(
-                  measure.p2LongNotes[i],
-                  visibleNotes[columnMapping[i] + columnMapping.size()],
+                  measure.p2LongNotes[columnMapping[i]],
+                  visibleNotes[i + columnMapping.size()],
                   bpmChangesInMeasure,
                   meter,
                   insideLn[columnMapping[i] + columnMapping.size()]);
@@ -611,8 +616,8 @@ BmsNotesData::generateMeasures(
                   insideLn[i],
                   lastMeasureWithLnP1[columnMapping[i]] == currentMeasure);
                 calculateOffsetsForLnMgq(
-                  measure.p2LongNotes[i],
-                  visibleNotes[columnMapping[i] + columnMapping.size()],
+                  measure.p2LongNotes[columnMapping[i]],
+                  visibleNotes[i + columnMapping.size()],
                   bpmChangesInMeasure,
                   meter,
                   insideLn[columnMapping[i] + columnMapping.size()],
@@ -652,6 +657,12 @@ BmsNotesData::generateMeasures(
           column.begin(), column.end(), [](const auto& a, const auto& b) {
               return a.time.timestamp < b.time.timestamp;
           });
+    }
+    for (auto* lastNote : lastInsertedRdmNote) {
+        if (lastNote != nullptr &&
+            lastNote->noteType == BmsNotesData::NoteType::LongNoteBegin) {
+            lastNote->noteType = BmsNotesData::NoteType::Normal;
+        }
     }
     // remove invalid notes
     for (auto& column : visibleNotes) {

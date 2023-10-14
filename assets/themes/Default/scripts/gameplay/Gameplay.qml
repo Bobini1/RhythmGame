@@ -37,15 +37,15 @@ Rectangle {
         }
         return images;
     }
-    property list<string> noteImages: {
+    property list<string> noteColors: {
         let images = [];
         for (let i = 0; i < 16; i++) {
             if (i === 7 || i === 15)
-                images.push(iniImagesUrl + "default.png/note_red");
+                images.push("red");
             else if (i % 2 === 0)
-                images.push(iniImagesUrl + "default.png/note_white");
+                images.push("white");
             else
-                images.push(iniImagesUrl + "default.png/note_black");
+                images.push("black");
         }
         return images;
     }

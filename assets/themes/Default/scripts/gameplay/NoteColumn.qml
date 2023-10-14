@@ -1,12 +1,13 @@
 import QtQuick 2.0
 import QtQuick.Layouts
+import RhythmGameQml
 
 Item {
     id: column
 
     property int erasedNoteIndex: 0
     property int heightMultiplier: 20
-    property string image
+    property string color
     property int noteHeight: 36
     property var notes
     property int visibleNoteIndex: 0
@@ -36,11 +37,34 @@ Item {
         Image {
             id: noteImg
 
+            function getTypeString() {
+                let type = column.notes[note].type;
+                switch (type) {
+                case Note.Type.Normal:
+                    return "note_";
+                case Note.Type.LongNoteBegin:
+                    return "ln_start_";
+                case Note.Type.LongNoteEnd:
+                    return "ln_end_";
+                case Note.Type.Landmine:
+                    return "note_";
+                default:
+                    console.info("Unknown note type: " + type);
+                }
+            }
+
             height: column.noteHeight
-            source: column.image
+            source: root.iniImagesUrl + "default.png/" + getTypeString() + column.color
             visible: false
             width: parent.width
             y: Math.floor(-column.notes[note].time.position * column.heightMultiplier) - height / 2
+
+            // Loader {
+            //     id: lnBodyLoader
+            //
+            //     anchors.fill: parent
+            //     source:
+            // }
         }
     }
     Connections {
