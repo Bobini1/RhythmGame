@@ -251,8 +251,8 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
         qmlRegisterType<gameplay_logic::Chart>("RhythmGameQml", 1, 0, "Chart");
         qmlRegisterType<gameplay_logic::ChartData>(
           "RhythmGameQml", 1, 0, "ChartData");
-        qmlRegisterType<gameplay_logic::rules::BmsGauge>(
-          "RhythmGameQml", 1, 0, "BmsGauge");
+        qmlRegisterUncreatableType<gameplay_logic::rules::BmsGauge>(
+          "RhythmGameQml", 1, 0, "BmsGauge", "BmsGauge is abstract");
         qmlRegisterType<gameplay_logic::BmsScore>(
           "RhythmGameQml", 1, 0, "BmsScore");
         qmlRegisterType<gameplay_logic::BmsNotes>(
