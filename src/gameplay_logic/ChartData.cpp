@@ -21,7 +21,9 @@ gameplay_logic::ChartData::ChartData(QString title,
                                      int playLevel,
                                      int difficulty,
                                      bool isRandom,
-                                     int noteCount,
+                                     int normalNoteCount,
+                                     int lnCount,
+                                     int mineCount,
                                      int64_t length,
                                      double bpm,
                                      double maxBpm,
@@ -45,7 +47,9 @@ gameplay_logic::ChartData::ChartData(QString title,
   , playLevel(playLevel)
   , difficulty(difficulty)
   , isRandom(isRandom)
-  , noteCount(noteCount)
+  , normalNoteCount(normalNoteCount)
+  , lnCount(lnCount)
+  , mineCount(mineCount)
   , length(length)
   , initialBpm(bpm)
   , maxBpm(maxBpm)
@@ -67,9 +71,9 @@ gameplay_logic::ChartData::getArtist() const -> QString
     return artist;
 }
 auto
-gameplay_logic::ChartData::getNoteCount() const -> int
+gameplay_logic::ChartData::getNormalNoteCount() const -> int
 {
-    return noteCount;
+    return normalNoteCount;
 }
 auto
 gameplay_logic::ChartData::getLength() const -> int64_t
@@ -122,10 +126,11 @@ gameplay_logic::ChartData::save(db::SqliteCppDb& db) const -> void
     static thread_local auto query = db.createStatement(
       "INSERT OR REPLACE INTO charts (title, artist, subtitle, subartist, "
       "genre, stage_file, banner, back_bmp, rank, total, play_level, "
-      "difficulty, is_random, note_count, length, initial_bpm, max_bpm, "
+      "difficulty, is_random, normal_note_count, ln_count, mine_count, length, "
+      "initial_bpm, max_bpm, "
       "min_bpm, path, directory_in_db, sha256, keymode) "
       "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, "
-      "?);");
+      "?, ?, ?);");
     query.reset();
     query.bind(1, title.toStdString());
     query.bind(2, artist.toStdString());
@@ -140,15 +145,17 @@ gameplay_logic::ChartData::save(db::SqliteCppDb& db) const -> void
     query.bind(11, playLevel);
     query.bind(12, difficulty);
     query.bind(13, isRandom);
-    query.bind(14, noteCount);
-    query.bind(15, length);
-    query.bind(16, initialBpm);
-    query.bind(17, maxBpm);
-    query.bind(18, minBpm);
-    query.bind(19, path.toStdString());
-    query.bind(20, directoryInDb.toStdString());
-    query.bind(21, sha256.toStdString());
-    query.bind(22, static_cast<int>(keymode));
+    query.bind(14, normalNoteCount);
+    query.bind(15, lnCount);
+    query.bind(16, mineCount);
+    query.bind(17, length);
+    query.bind(18, initialBpm);
+    query.bind(19, maxBpm);
+    query.bind(20, minBpm);
+    query.bind(21, path.toStdString());
+    query.bind(22, directoryInDb.toStdString());
+    query.bind(23, sha256.toStdString());
+    query.bind(24, static_cast<int>(keymode));
     query.execute();
 }
 auto
@@ -181,7 +188,9 @@ gameplay_logic::ChartData::load(
       chartDataDto.playLevel,
       chartDataDto.difficulty,
       static_cast<bool>(chartDataDto.isRandom),
-      chartDataDto.noteCount,
+      chartDataDto.normalNoteCount,
+      chartDataDto.lnCount,
+      chartDataDto.mineCount,
       chartDataDto.length,
       chartDataDto.initialBpm,
       chartDataDto.maxBpm,
@@ -236,4 +245,14 @@ auto
 gameplay_logic::ChartData::getMinBpm() const -> double
 {
     return minBpm;
+}
+auto
+gameplay_logic::ChartData::getLnCount() const -> int
+{
+    return lnCount;
+}
+auto
+gameplay_logic::ChartData::getMineCount() const -> int
+{
+    return mineCount;
 }

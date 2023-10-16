@@ -5,8 +5,7 @@
 #ifndef RHYTHMGAME_BMSREPLAYDATA_H
 #define RHYTHMGAME_BMSREPLAYDATA_H
 
-#include "Miss.h"
-#include "Tap.h"
+#include "HitEvent.h"
 #include "gameplay_logic/rules/BmsGauge.h"
 #include "db/SqliteCppDb.h"
 namespace gameplay_logic {
@@ -15,22 +14,23 @@ class BmsReplayData : public QObject
 {
     Q_OBJECT
 
-    Q_PROPERTY(QList<Miss> misses READ getMisses CONSTANT)
-    Q_PROPERTY(QList<Tap> hitsWithPoints READ getHitsWithPoints CONSTANT)
-    Q_PROPERTY(QList<Tap> hitsWithoutPoints READ getHitsWithoutPoints CONSTANT)
+    Q_PROPERTY(QList<HitEvent> misses READ getMisses CONSTANT)
+    Q_PROPERTY(QList<HitEvent> hitsWithPoints READ getHitsWithPoints CONSTANT)
+    Q_PROPERTY(
+      QList<HitEvent> hitsWithoutPoints READ getHitsWithoutPoints CONSTANT)
 
-    QList<Miss> misses;
-    QList<Tap> hitsWithPoints;
-    QList<Tap> hitsWithoutPoints;
+    QList<HitEvent> misses;
+    QList<HitEvent> hitsWithPoints;
+    QList<HitEvent> hitsWithoutPoints;
 
   public:
-    BmsReplayData(QList<Miss> misses,
-                  QList<Tap> hitsWithPoints,
-                  QList<Tap> hitsWithoutPoints);
+    BmsReplayData(QList<HitEvent> misses,
+                  QList<HitEvent> hitsWithPoints,
+                  QList<HitEvent> hitsWithoutPoints);
     BmsReplayData() = default;
-    auto getMisses() const -> QList<Miss>;
-    auto getHitsWithPoints() const -> QList<Tap>;
-    auto getHitsWithoutPoints() const -> QList<Tap>;
+    auto getMisses() const -> QList<HitEvent>;
+    auto getHitsWithPoints() const -> QList<HitEvent>;
+    auto getHitsWithoutPoints() const -> QList<HitEvent>;
 
     friend auto operator<<(QDataStream& stream, const BmsReplayData& data)
       -> QDataStream&;

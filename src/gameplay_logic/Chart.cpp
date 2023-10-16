@@ -87,7 +87,7 @@ Chart::getElapsed() const -> int64_t
 }
 
 void
-Chart::passKey(QKeyEvent* keyEvent)
+Chart::passKey(QKeyEvent* keyEvent, EventType eventType)
 {
     if (keyEvent->isAutoRepeat()) {
         keyEvent->ignore();
@@ -105,14 +105,29 @@ Chart::passKey(QKeyEvent* keyEvent)
     if (auto bmsKey =
           inputTranslator.translate(static_cast<Qt::Key>(keyEvent->key()));
         bmsKey.has_value()) {
+        keyEvent->accept();
         if (!gameReferee) {
-            emit score->sendVisualOnlyTap({ static_cast<int>(bmsKey.value()),
-                                            std::nullopt,
-                                            offset.count(),
-                                            std::nullopt });
+            if (eventType == EventType::KeyPress) {
+                score->sendVisualOnlyTap({ static_cast<int>(bmsKey.value()),
+                                           std::nullopt,
+                                           offset.count(),
+                                           std::nullopt });
+            } else {
+                score->sendVisualOnlyRelease({ static_cast<int>(bmsKey.value()),
+                                               std::nullopt,
+                                               offset.count(),
+                                               std::nullopt });
+            }
         } else {
-            gameReferee->passInput(
-              offset - std::chrono::nanoseconds(timeBeforeChartStart), *bmsKey);
+            if (eventType == EventType::KeyPress) {
+                gameReferee->passPressed(
+                  offset - std::chrono::nanoseconds(timeBeforeChartStart),
+                  *bmsKey);
+            } else {
+                gameReferee->passReleased(
+                  offset - std::chrono::nanoseconds(timeBeforeChartStart),
+                  *bmsKey);
+            }
         }
         return;
     }

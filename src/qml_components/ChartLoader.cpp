@@ -34,9 +34,10 @@ ChartLoader::loadChart(const QString& filename) -> gameplay_logic::Chart*
             std::chrono::nanoseconds offset) {
               return hitValueFactory(timingWindows, offset);
           };
-        auto gauges = gaugeFactory(timingWindows,
-                                   chartComponents.chartData->getTotal(),
-                                   chartComponents.chartData->getNoteCount());
+        auto gauges =
+          gaugeFactory(timingWindows,
+                       chartComponents.chartData->getTotal(),
+                       chartComponents.chartData->getNormalNoteCount());
         auto hitRules =
           hitRulesFactory(timingWindows, std::move(hitValuesFactoryPartial));
 

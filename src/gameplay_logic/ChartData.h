@@ -39,7 +39,9 @@ class ChartData : public QObject
     Q_PROPERTY(double total READ getTotal CONSTANT)
     Q_PROPERTY(int playLevel READ getPlayLevel CONSTANT)
     Q_PROPERTY(int difficulty READ getDifficulty CONSTANT)
-    Q_PROPERTY(int noteCount READ getNoteCount CONSTANT)
+    Q_PROPERTY(int normalNoteCount READ getNormalNoteCount CONSTANT)
+    Q_PROPERTY(int lnCount READ getLnCount CONSTANT)
+    Q_PROPERTY(int mineCount READ getMineCount CONSTANT)
     Q_PROPERTY(int64_t length READ getLength CONSTANT)
     Q_PROPERTY(QString path READ getPath CONSTANT)
     Q_PROPERTY(QString directoryInDb READ getDirectoryInDb CONSTANT)
@@ -68,7 +70,9 @@ class ChartData : public QObject
               int playLevel,
               int difficulty,
               bool isRandom,
-              int noteCount,
+              int normalNoteCount,
+              int lnCount,
+              int mineCount,
               int64_t length,
               double initialBpm,
               double maxBpm,
@@ -87,7 +91,9 @@ class ChartData : public QObject
     [[nodiscard]] auto getStageFile() const -> QString;
     [[nodiscard]] auto getBanner() const -> QString;
     [[nodiscard]] auto getBackBmp() const -> QString;
-    [[nodiscard]] auto getNoteCount() const -> int;
+    [[nodiscard]] auto getNormalNoteCount() const -> int;
+    [[nodiscard]] auto getLnCount() const -> int;
+    [[nodiscard]] auto getMineCount() const -> int;
     [[nodiscard]] auto getLength() const -> int64_t;
     [[nodiscard]] auto getInitialBpm() const -> double;
     [[nodiscard]] auto getMaxBpm() const -> double;
@@ -120,7 +126,9 @@ class ChartData : public QObject
         int playLevel;
         int difficulty;
         int isRandom;
-        int noteCount;
+        int normalNoteCount;
+        int lnCount;
+        int mineCount;
         int64_t length;
         double initialBpm;
         double maxBpm;
@@ -149,7 +157,9 @@ class ChartData : public QObject
     int playLevel;
     int difficulty;
     bool isRandom;
-    int noteCount;
+    int normalNoteCount;
+    int lnCount;
+    int mineCount;
     int64_t length;
     double initialBpm;
     double maxBpm;

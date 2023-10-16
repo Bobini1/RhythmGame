@@ -34,11 +34,20 @@ class StandardBmsHitRules : public BmsHitRules
                    int& currentNoteIndex,
                    std::chrono::nanoseconds offsetFromStart)
       -> std::vector<MissData> override;
+    auto mineHit(std::span<NoteType> notes,
+                 int currentNoteIndex,
+                 std::chrono::nanoseconds offsetFromStart)
+      -> std::vector<MineHitData> override;
+    auto lnReleaseHit(std::span<NoteType> notes,
+                      int currentNoteIndex,
+                      std::chrono::nanoseconds hitOffset)
+      -> std::optional<HitResult> override;
 
-    auto invisibleNoteHit(std::span<NoteType> notes,
+    auto invisibleNoteHit(std::span<Note> notes,
                           int currentNoteIndex,
-                          std::chrono::nanoseconds hitOffset) -> bool override;
-    void skipInvisible(std::span<NoteType> notes,
+                          std::chrono::nanoseconds hitOffset)
+      -> std::optional<int> override;
+    void skipInvisible(std::span<Note> notes,
                        int& currentNoteIndex,
                        std::chrono::nanoseconds offsetFromStart) override;
 };

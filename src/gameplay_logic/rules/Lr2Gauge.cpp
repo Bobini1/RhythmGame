@@ -199,3 +199,54 @@ gameplay_logic::rules::Lr2Gauge::getGauges(
 
     return gauges;
 }
+void
+gameplay_logic::rules::Lr2Gauge::addMineHit(
+  std::chrono::nanoseconds offsetFromStart,
+  double penalty)
+{
+    auto currentGauge = getGauge();
+    if (permanentDeath &&
+        (currentGauge == 0 || currentGauge < getThreshold())) {
+        return;
+    }
+    auto newGauge = std::clamp(currentGauge + penalty, 0.0, getGaugeMax());
+    if (newGauge != currentGauge) {
+        addGaugeHistoryEntry(offsetFromStart, newGauge);
+    }
+}
+void
+gameplay_logic::rules::Lr2Gauge::addHoldEndHit(
+  std::chrono::nanoseconds offsetFromStart,
+  std::chrono::nanoseconds hitOffset)
+{
+    auto currentGauge = getGauge();
+    if (permanentDeath &&
+        (currentGauge == 0 || currentGauge < getThreshold())) {
+        return;
+    }
+    auto judgement = timingWindows.find(hitOffset)->second;
+    if (judgement == Judgement::Perfect || judgement == Judgement::Great ||
+        judgement == Judgement::Good || judgement == Judgement::Bad) {
+        return;
+    }
+    auto value = judgementValueFactory(currentGauge, Judgement::Poor);
+    auto newGauge = std::clamp(currentGauge - value, 0.0, getGaugeMax());
+    if (newGauge != currentGauge) {
+        addGaugeHistoryEntry(offsetFromStart, newGauge);
+    }
+}
+void
+gameplay_logic::rules::Lr2Gauge::addHoldEndMiss(
+  std::chrono::nanoseconds offsetFromStart)
+{
+    auto currentGauge = getGauge();
+    if (permanentDeath &&
+        (currentGauge == 0 || currentGauge < getThreshold())) {
+        return;
+    }
+    auto value = judgementValueFactory(currentGauge, Judgement::Poor);
+    auto newGauge = std::clamp(currentGauge - value, 0.0, getGaugeMax());
+    if (newGauge != currentGauge) {
+        addGaugeHistoryEntry(offsetFromStart, newGauge);
+    }
+}

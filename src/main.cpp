@@ -283,7 +283,7 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
                                          "Judgement",
                                          "Access to enums & flags only");
         qmlRegisterUncreatableType<gameplay_logic::Note>(
-          "RhythmGameQml", 1, 0, "Note", "Note is created in C++");
+          "RhythmGameQml", 1, 0, "note", "Note is created in C++");
 
         engine.addImageProvider("ini",
                                 new resource_managers::IniImageProvider{});

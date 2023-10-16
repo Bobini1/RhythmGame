@@ -80,7 +80,12 @@ ChartFactory::createChart(
     auto& [chartData, notes, notesData, wavs, bmps] = chartComponents;
     auto path = support::qStringToPath(chartData->getPath()).parent_path();
     auto* score = new gameplay_logic::BmsScore(
-      chartData->getNoteCount(), maxHitValue, std::move(gauges));
+      chartData->getNormalNoteCount(),
+      chartData->getLnCount(),
+      chartData->getMineCount(),
+      chartData->getLnCount() + chartData->getNormalNoteCount(),
+      maxHitValue,
+      std::move(gauges));
     auto task = [path,
                  wavs = std::move(wavs),
                  visibleNotes = std::move(notesData.visibleNotes),
@@ -91,10 +96,15 @@ ChartFactory::createChart(
                  hitRules = std::move(hitRules)]() mutable {
         auto sounds =
           charts::helper_functions::loadBmsSounds(wavs, std::move(path));
+        sounds::OpenALSound* mineHitSound = nullptr;
+        if (auto sound = sounds.find("00"); sound != sounds.end()) {
+            mineHitSound = &sound->second;
+        }
         return gameplay_logic::BmsGameReferee(std::move(visibleNotes),
                                               std::move(invisibleNotes),
                                               std::move(bgmNotes),
                                               std::move(bpmChanges),
+                                              mineHitSound,
                                               score,
                                               std::move(sounds),
                                               std::move(hitRules));

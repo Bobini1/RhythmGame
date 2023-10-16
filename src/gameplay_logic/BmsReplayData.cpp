@@ -7,26 +7,26 @@
 #include <QIODevice>
 
 namespace gameplay_logic {
-BmsReplayData::BmsReplayData(QList<Miss> misses,
-                             QList<Tap> hitsWithPoints,
-                             QList<Tap> hitsWithoutPoints)
+BmsReplayData::BmsReplayData(QList<HitEvent> misses,
+                             QList<HitEvent> hitsWithPoints,
+                             QList<HitEvent> hitsWithoutPoints)
   : misses(std::move(misses))
   , hitsWithPoints(std::move(hitsWithPoints))
   , hitsWithoutPoints(std::move(hitsWithoutPoints))
 {
 }
 auto
-BmsReplayData::getMisses() const -> QList<Miss>
+BmsReplayData::getMisses() const -> QList<HitEvent>
 {
     return misses;
 }
 auto
-BmsReplayData::getHitsWithPoints() const -> QList<Tap>
+BmsReplayData::getHitsWithPoints() const -> QList<HitEvent>
 {
     return hitsWithPoints;
 }
 auto
-BmsReplayData::getHitsWithoutPoints() const -> QList<Tap>
+BmsReplayData::getHitsWithoutPoints() const -> QList<HitEvent>
 {
     return hitsWithoutPoints;
 }
@@ -41,7 +41,8 @@ operator<<(QDataStream& stream, const BmsReplayData& data) -> QDataStream&
 auto
 operator>>(QDataStream& stream, BmsReplayData& data) -> QDataStream&
 {
-    return stream >> data.misses >> data.hitsWithPoints >> data.hitsWithoutPoints;
+    return stream >> data.misses >> data.hitsWithPoints >>
+           data.hitsWithoutPoints;
 }
 void
 BmsReplayData::save(db::SqliteCppDb& db, int64_t scoreId)

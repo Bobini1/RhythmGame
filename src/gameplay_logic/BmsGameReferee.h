@@ -21,13 +21,15 @@ class BmsGameReferee
     std::array<std::vector<rules::BmsHitRules::NoteType>,
                charts::gameplay_models::BmsNotesData::columnNumber>
       visibleNotes;
-    std::array<std::vector<rules::BmsHitRules::NoteType>,
+    std::array<std::vector<rules::BmsHitRules::Note>,
                charts::gameplay_models::BmsNotesData::columnNumber>
       invisibleNotes;
     std::array<int, charts::gameplay_models::BmsNotesData::columnNumber>
       currentVisibleNotes{};
     std::array<int, charts::gameplay_models::BmsNotesData::columnNumber>
       currentInvisibleNotes{};
+    std::array<int, charts::gameplay_models::BmsNotesData::columnNumber>
+      firstNoteWithSound;
     std::vector<BgmType> bgms;
     std::span<BgmType> currentBgms;
     std::vector<std::pair<charts::gameplay_models::BmsNotesData::Time, double>>
@@ -37,6 +39,9 @@ class BmsGameReferee
     std::unordered_map<std::string, sounds::OpenALSound> sounds;
     std::unique_ptr<rules::BmsHitRules> hitRules;
     BmsScore* score;
+    sounds::OpenALSound* mineHitSound;
+    std::array<bool, charts::gameplay_models::BmsNotesData::columnNumber>
+      pressedState;
 
   public:
     using Position = double;
@@ -65,6 +70,7 @@ class BmsGameReferee
                             std::string>> bgmNotes,
       std::vector<std::pair<charts::gameplay_models::BmsNotesData::Time,
                             double>> bpmChanges,
+      sounds::OpenALSound* defaultMineHitSound,
       BmsScore* score,
       std::unordered_map<std::string, sounds::OpenALSound> sounds,
       std::unique_ptr<rules::BmsHitRules> hitRules);
@@ -77,9 +83,13 @@ class BmsGameReferee
     auto update(std::chrono::nanoseconds offsetFromStart,
                 bool lastUpdate = false) -> Position;
 
-    auto passInput(std::chrono::nanoseconds offsetFromStart, input::BmsKey key)
-      -> void;
-    auto isOver() const -> bool;
+    auto passPressed(std::chrono::nanoseconds offsetFromStart,
+                     input::BmsKey key) -> void;
+    auto passReleased(std::chrono::nanoseconds offsetFromStart,
+                      input::BmsKey key) -> void;
+    void addVisibleNote(
+      int i,
+      const charts::gameplay_models::BmsNotesData::Note& note);
 };
 } // namespace gameplay_logic
 

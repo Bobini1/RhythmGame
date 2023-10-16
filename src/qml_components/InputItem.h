@@ -21,6 +21,7 @@ class InputItem : public QQuickItem
     explicit InputItem(QQuickItem* parent = nullptr);
     void focusInEvent(QFocusEvent* event) override;
     void keyPressEvent(QKeyEvent* event) override;
+    void keyReleaseEvent(QKeyEvent* event) override;
 
     auto getChart() const -> gameplay_logic::Chart*;
     void setChart(gameplay_logic::Chart* chart);

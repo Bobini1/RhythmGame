@@ -2,28 +2,28 @@
 // Created by bobini on 22.08.23.
 //
 
-#include "Tap.h"
+#include "HitEvent.h"
 namespace gameplay_logic {
 auto
-Tap::getOffsetFromStart() const -> DeltaTime
+HitEvent::getOffsetFromStart() const -> DeltaTime
 {
     return offsetFromStart;
 }
 auto
-Tap::getPoints() const -> QVariant
+HitEvent::getPoints() const -> QVariant
 {
     return points.has_value() ? QVariant::fromValue(points.value())
                               : QVariant();
 }
 auto
-Tap::getColumn() const -> int
+HitEvent::getColumn() const -> int
 {
     return column;
 }
-Tap::Tap(int column,
-         std::optional<int> noteIndex,
-         DeltaTime offsetFromStart,
-         std::optional<BmsPoints> points)
+HitEvent::HitEvent(int column,
+                   std::optional<int> noteIndex,
+                   DeltaTime offsetFromStart,
+                   std::optional<BmsPoints> points)
   : offsetFromStart(offsetFromStart)
   , points(points)
   , noteIndex(noteIndex)
@@ -31,25 +31,25 @@ Tap::Tap(int column,
 {
 }
 auto
-Tap::getNoteIndex() const -> int
+HitEvent::getNoteIndex() const -> int
 {
     return noteIndex.value_or(-1);
 }
 auto
-Tap::getPointsOptional() const -> std::optional<BmsPoints>
+HitEvent::getPointsOptional() const -> std::optional<BmsPoints>
 {
     return points;
 }
 auto
-operator<<(QDataStream& stream, const Tap& tap) -> QDataStream&
+operator<<(QDataStream& stream, const HitEvent& tap) -> QDataStream&
 {
-    QVariant points = tap.getPoints();
+    auto points = tap.getPoints();
     stream << static_cast<qint64>(tap.offsetFromStart) << points << tap.column
            << tap.getNoteIndex();
     return stream;
 }
 auto
-operator>>(QDataStream& stream, Tap& tap) -> QDataStream&
+operator>>(QDataStream& stream, HitEvent& tap) -> QDataStream&
 {
     qint64 offsetFromStart;
     QVariant points;

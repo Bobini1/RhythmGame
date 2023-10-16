@@ -56,6 +56,11 @@ class BmsGauge : public QObject
     auto getGaugeHistoryVector() const -> const std::vector<GaugeHistoryEntry>&;
     virtual void addHit(std::chrono::nanoseconds offsetFromStart,
                         std::chrono::nanoseconds hitOffset) = 0;
+    virtual void addMineHit(std::chrono::nanoseconds offsetFromStart,
+                            double penalty) = 0;
+    virtual void addHoldEndHit(std::chrono::nanoseconds offsetFromStart,
+                               std::chrono::nanoseconds hitOffset) = 0;
+    virtual void addHoldEndMiss(std::chrono::nanoseconds offsetFromStart) = 0;
 
   protected:
     void addGaugeHistoryEntry(std::chrono::nanoseconds offsetFromStart,

@@ -505,6 +505,28 @@ removeInvalidNotes(
     }
 }
 
+void
+initializeLastMeasureWithLn(
+  const std::map<int64_t, parser_models::ParsedBmsChart::Measure>& measures,
+  std::array<int64_t, parser_models::ParsedBmsChart::Measure::columnNumber>&
+    lastMeasureWithLnP1,
+  std::array<int64_t, parser_models::ParsedBmsChart::Measure::columnNumber>&
+    lastMeasureWithLnP2)
+{
+    for (const auto& [measureIndex, measure] : measures) {
+        for (auto i = 0;
+             i < parser_models::ParsedBmsChart::Measure::columnNumber;
+             i++) {
+            if (!measure.p1LongNotes[i].empty()) {
+                lastMeasureWithLnP1[i] = measureIndex;
+            }
+            if (!measure.p2LongNotes[i].empty()) {
+                lastMeasureWithLnP2[i] = measureIndex;
+            }
+        }
+    }
+}
+
 } // namespace
 
 BmsNotesData::BmsNotesData(const charts::parser_models::ParsedBmsChart& chart)
@@ -543,19 +565,8 @@ BmsNotesData::generateMeasures(
       std::array<int64_t,
                  parser_models::ParsedBmsChart::Measure::columnNumber>{};
     if (lnType == LnType::MGQ) {
-        // find the last measure containing ln
-        for (const auto& [measureIndex, measure] : measures) {
-            for (auto i = 0;
-                 i < parser_models::ParsedBmsChart::Measure::columnNumber;
-                 i++) {
-                if (!measure.p1LongNotes[i].empty()) {
-                    lastMeasureWithLnP1[i] = measureIndex;
-                }
-                if (!measure.p2LongNotes[i].empty()) {
-                    lastMeasureWithLnP1[i] = measureIndex;
-                }
-            }
-        }
+        initializeLastMeasureWithLn(
+          measures, lastMeasureWithLnP1, lastMeasureWithLnP2);
     }
     auto lastInsertedRdmNoteP1 =
       std::array<std::optional<size_t>,
@@ -698,15 +709,15 @@ BmsNotesData::adjustRdmLongNotes(
                    parser_models::ParsedBmsChart::Measure::columnNumber>&
     lastInsertedRdmNoteP2)
 {
-    for (int i = 0; i < lastInsertedRdmNoteP1.size(); i++) {
-        auto lastNote = lastInsertedRdmNoteP1[i];
+    for (int i = 0; i < columnMapping.size(); i++) {
+        auto lastNote = lastInsertedRdmNoteP1[columnMapping[i]];
         if (!lastNote.has_value()) {
             continue;
         }
         if (visibleNotes[i][*lastNote].noteType == NoteType::LongNoteBegin) {
             visibleNotes[i][*lastNote].noteType = NoteType::Normal;
         }
-        lastNote = lastInsertedRdmNoteP2[i];
+        lastNote = lastInsertedRdmNoteP2[columnMapping[i]];
         if (!lastNote.has_value()) {
             continue;
         }
