@@ -28,8 +28,6 @@ class BmsGameReferee
       currentVisibleNotes{};
     std::array<int, charts::gameplay_models::BmsNotesData::columnNumber>
       currentInvisibleNotes{};
-    std::array<int, charts::gameplay_models::BmsNotesData::columnNumber>
-      firstNoteWithSound;
     std::vector<BgmType> bgms;
     std::span<BgmType> currentBgms;
     std::vector<std::pair<charts::gameplay_models::BmsNotesData::Time, double>>
@@ -42,6 +40,10 @@ class BmsGameReferee
     sounds::OpenALSound* mineHitSound;
     std::array<bool, charts::gameplay_models::BmsNotesData::columnNumber>
       pressedState;
+    std::array<
+      std::optional<std::pair<std::chrono::nanoseconds, sounds::OpenALSound*>>,
+      charts::gameplay_models::BmsNotesData::columnNumber>
+      lastKeysound;
 
   public:
     using Position = double;
@@ -56,7 +58,11 @@ class BmsGameReferee
      * @return The position in the chart, expressed in beats
      */
     auto getPosition(std::chrono::nanoseconds offsetFromStart) -> Position;
-    void playLastKeysound(int index, std::chrono::nanoseconds offsetFromStart);
+    void playLastKeysound(int index);
+
+    void assignLastKeysound(
+      int columnIndex,
+      const gameplay_logic::rules::BmsHitRules::NoteType& note);
 
   public:
     explicit BmsGameReferee(
