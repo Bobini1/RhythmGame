@@ -28,6 +28,7 @@ BmsScore::addNoteHit(HitEvent tap) -> void
         increaseCombo();
     }
     emit noteHit(tap);
+    emit pressed(tap.getColumn());
 }
 auto
 BmsScore::addMisses(QList<HitEvent> newMisses) -> void
@@ -99,6 +100,7 @@ auto
 BmsScore::sendVisualOnlyTap(HitEvent tap) -> void
 {
     emit emptyHit(tap);
+    emit pressed(tap.getColumn());
 }
 auto
 BmsScore::getCombo() const -> int
@@ -184,6 +186,7 @@ BmsScore::addLnEndHit(HitEvent lnEndHit)
 {
     lnEndHits.append(lnEndHit);
     emit this->lnEndHit(lnEndHit);
+    emit released(lnEndHit.getColumn());
 }
 void
 BmsScore::addLnEndMisses(QList<HitEvent> lnEndMisses)
@@ -191,6 +194,11 @@ BmsScore::addLnEndMisses(QList<HitEvent> lnEndMisses)
     lnEndMisses.append(lnEndMisses);
     emit lnEndMissed(lnEndMisses);
     resetCombo();
+    for (const auto& miss : lnEndMisses) {
+        if (miss.getPointsOptional()->getDeviation() < 0.0) {
+            emit released(miss.getColumn());
+        }
+    }
 }
 void
 BmsScore::addLnEndSkips(QList<HitEvent> lnEndSkips)
@@ -203,17 +211,20 @@ BmsScore::addEmptyHit(HitEvent tap) -> void
 {
     hitsWithoutPoints.append(tap);
     emit emptyHit(tap);
+    emit pressed(tap.getColumn());
 }
 auto
 BmsScore::sendVisualOnlyRelease(HitEvent release) -> void
 {
     emit emptyRelease(release);
+    emit released(release.getColumn());
 }
 auto
 BmsScore::addEmptyRelease(HitEvent release) -> void
 {
     releasesWithoutPoints.append(release);
     emit emptyRelease(release);
+    emit released(release.getColumn());
 }
 auto
 BmsScore::getMineHits() const -> int

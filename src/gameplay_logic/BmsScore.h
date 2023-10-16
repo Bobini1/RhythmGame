@@ -112,6 +112,9 @@ class BmsScore : public QObject
     void lnEndHit(HitEvent lnEndHit);
     void lnEndMissed(QList<HitEvent> lnEndMiss);
     void lnEndSkipped(QList<HitEvent> lnEndSkip);
+
+    void pressed(int column);
+    void released(int column);
 };
 
 } // namespace gameplay_logic

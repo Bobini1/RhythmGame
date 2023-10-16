@@ -65,38 +65,21 @@ Item {
         anchors.centerIn: parent
     }
     Connections {
-        function onEmptyHit(hit) {
-            laserRow.shootLaser(hit.column);
-        }
-        function onEmptyRelease(release) {
-            laserRow.hideLaser(release.column);
-        }
-        function onLnEndHit(hit) {
-            laserRow.hideLaser(hit.column);
-        }
-        function onLnEndMissed(misses) {
-            for (let miss of misses) {
-                if (miss.points.deviation > 0.0) {
-                    continue;
-                }
-                laserRow.hideLaser(miss.column);
-            }
-        }
-        function onLnEndSkipped(skips) {
-            for (let skip of skips) {
-                laserRow.hideLaser(skip.column);
-            }
-        }
         function onNoteHit(tap) {
             if (playArea.columns.indexOf(tap.column) === -1) {
                 return;
             }
-            laserRow.shootLaser(tap.column);
             if (tap.noteIndex !== -1) {
                 if (tap.removesNote) {
                     playfield.removeNote(tap.column, tap.noteIndex);
                 }
             }
+        }
+        function onPressed(columnIndex) {
+            laserRow.shootLaser(columnIndex);
+        }
+        function onReleased(columnIndex) {
+            laserRow.hideLaser(columnIndex);
         }
 
         target: chart.score
