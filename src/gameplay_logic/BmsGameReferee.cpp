@@ -256,15 +256,8 @@ gameplay_logic::BmsGameReferee::passPressed(
                            visibleNotes[columnIndex][res->noteIndex]);
     }
     auto [points, noteIndex] = *res;
-    if (std::holds_alternative<rules::BmsHitRules::LnBegin>(
-          visibleNotes[columnIndex][noteIndex])) {
-        score->addNoteHit(
-          { columnIndex, noteIndex, offsetFromStart.count(), points });
-    } else if (std::holds_alternative<rules::BmsHitRules::Note>(
-                 visibleNotes[columnIndex][noteIndex])) {
-        score->addNoteHit(
-          { columnIndex, noteIndex, offsetFromStart.count(), points });
-    }
+    score->addNoteHit(
+      { columnIndex, noteIndex, offsetFromStart.count(), points });
 }
 auto
 gameplay_logic::BmsGameReferee::getPosition(
