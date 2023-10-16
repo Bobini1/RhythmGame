@@ -204,12 +204,14 @@ gameplay_logic::BmsGameReferee::passPressed(
                                         currentVisibleNotes[columnIndex],
                                         offsetFromStart);
     if (!res) {
-        if (!hitRules->invisibleNoteHit(invisibleNotes[columnIndex],
-                                        currentInvisibleNotes[columnIndex],
-                                        offsetFromStart)) {
+        if (auto invisibleNoteIndex =
+              hitRules->invisibleNoteHit(invisibleNotes[columnIndex],
+                                         currentInvisibleNotes[columnIndex],
+                                         offsetFromStart)) {
+            invisibleNotes[columnIndex][res->noteIndex].sound->play();
+        } else {
             playLastKeysound(columnIndex, offsetFromStart);
         }
-        invisibleNotes[columnIndex][res->noteIndex].sound->play();
         score->addEmptyHit(
           { columnIndex, std::nullopt, offsetFromStart.count(), std::nullopt });
         return;
@@ -279,21 +281,11 @@ gameplay_logic::BmsGameReferee::playLastKeysound(
       invisibleColumn, [offsetFromStart](const rules::BmsHitRules::Note& note) {
           return note.time > offsetFromStart - 135ms;
       });
-    if (firstNoteWithSoundIndex != -1 &&
-        lastNote <= (visibleColumn.begin() + firstNoteWithSoundIndex) &&
-        lastInvisibleNote == invisibleColumn.begin()) {
-        lastNote = visibleColumn.begin() + firstNoteWithSoundIndex;
-        if (std::holds_alternative<rules::BmsHitRules::LnBegin>(*lastNote)) {
-            auto lnBegin = std::get<rules::BmsHitRules::LnBegin>(*lastNote);
-            if (lnBegin.sound != nullptr) {
-                lnBegin.sound->play();
-            }
-        } else if (std::holds_alternative<rules::BmsHitRules::Note>(
-                     *lastNote)) {
-            auto note = std::get<rules::BmsHitRules::Note>(*lastNote);
-            if (note.sound != nullptr) {
-                note.sound->play();
-            }
+    if (lastInvisibleNote == invisibleColumn.begin() &&
+        (firstNoteWithSoundIndex != -1 ||
+         lastNote <= (visibleColumn.begin() + firstNoteWithSoundIndex))) {
+        if (firstNoteWithSoundIndex != -1) {
+            playSound(*(visibleColumn.begin() + firstNoteWithSoundIndex));
         }
         return;
     }
@@ -308,18 +300,7 @@ gameplay_logic::BmsGameReferee::playLastKeysound(
             lastNote--;
         } while (std::holds_alternative<rules::BmsHitRules::LnEnd>(*lastNote) ||
                  std::holds_alternative<rules::BmsHitRules::Mine>(*lastNote));
-        if (std::holds_alternative<rules::BmsHitRules::LnBegin>(*lastNote)) {
-            auto lnBegin = std::get<rules::BmsHitRules::LnBegin>(*lastNote);
-            if (lnBegin.sound != nullptr) {
-                lnBegin.sound->play();
-            }
-        } else if (std::holds_alternative<rules::BmsHitRules::Note>(
-                     *lastNote)) {
-            auto note = std::get<rules::BmsHitRules::Note>(*lastNote);
-            if (note.sound != nullptr) {
-                note.sound->play();
-            }
-        }
+        playSound(*lastNote);
         return;
     }
 
@@ -330,18 +311,7 @@ gameplay_logic::BmsGameReferee::playLastKeysound(
     lastInvisibleNote--;
     if (std::visit([](const auto& note) { return note.time; }, *lastNote) >
         lastInvisibleNote->time) {
-        if (std::holds_alternative<rules::BmsHitRules::LnBegin>(*lastNote)) {
-            auto lnBegin = std::get<rules::BmsHitRules::LnBegin>(*lastNote);
-            if (lnBegin.sound != nullptr) {
-                lnBegin.sound->play();
-            }
-        } else if (std::holds_alternative<rules::BmsHitRules::Note>(
-                     *lastNote)) {
-            auto note = std::get<rules::BmsHitRules::Note>(*lastNote);
-            if (note.sound != nullptr) {
-                note.sound->play();
-            }
-        }
+        playSound(*lastNote);
     } else {
         lastInvisibleNote->sound->play();
     }
