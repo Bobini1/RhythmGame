@@ -37,6 +37,9 @@ Item {
     Row {
         id: laserRow
 
+        function hideLaser(index) {
+            laserRow.children[playArea.columnsReversedMapping[index]].stop();
+        }
         function shootLaser(index) {
             laserRow.children[playArea.columnsReversedMapping[index]].start();
         }
@@ -62,7 +65,29 @@ Item {
         anchors.centerIn: parent
     }
     Connections {
-        function onHit(tap) {
+        function onEmptyHit(hit) {
+            laserRow.shootLaser(hit.column);
+        }
+        function onEmptyRelease(release) {
+            laserRow.hideLaser(release.column);
+        }
+        function onLnEndHit(hit) {
+            laserRow.hideLaser(hit.column);
+        }
+        function onLnEndMissed(misses) {
+            for (let miss of misses) {
+                if (miss.points.deviation > 0.0) {
+                    continue;
+                }
+                laserRow.hideLaser(miss.column);
+            }
+        }
+        function onLnEndSkipped(skips) {
+            for (let skip of skips) {
+                laserRow.hideLaser(skip.column);
+            }
+        }
+        function onNoteHit(tap) {
             if (playArea.columns.indexOf(tap.column) === -1) {
                 return;
             }

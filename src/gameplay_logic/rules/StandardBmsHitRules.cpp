@@ -67,8 +67,7 @@ gameplay_logic::rules::StandardBmsHitRules::getMisses(
         }
         auto noteTime = std::visit([](auto& note) { return note.time; }, *iter);
         if (offsetFromStart >= noteTime + upperBound) {
-            if (std::holds_alternative<rules::BmsHitRules::Mine>(*iter) ||
-                std::holds_alternative<rules::BmsHitRules::LnEnd>(*iter)) {
+            if (std::holds_alternative<rules::BmsHitRules::Mine>(*iter)) {
                 currentNoteIndex++;
                 continue;
             }

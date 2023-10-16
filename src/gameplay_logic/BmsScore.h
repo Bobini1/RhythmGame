@@ -71,7 +71,7 @@ class BmsScore : public QObject
     void addMisses(QList<HitEvent> misses);
     void addMineHits(QList<MineHit> mineHits);
     void addLnEndHit(HitEvent lnEndHit);
-    void addLnEndMiss(HitEvent lnEndMiss);
+    void addLnEndMisses(QList<HitEvent> lnEndMiss);
     void addLnEndSkips(QList<HitEvent> lnEndSkips);
 
     explicit BmsScore(int normalNoteCount,
@@ -110,7 +110,7 @@ class BmsScore : public QObject
     void emptyRelease(HitEvent release);
     void noteHit(HitEvent hit);
     void lnEndHit(HitEvent lnEndHit);
-    void lnEndMissed(HitEvent lnEndMiss);
+    void lnEndMissed(QList<HitEvent> lnEndMiss);
     void lnEndSkipped(QList<HitEvent> lnEndSkip);
 };
 

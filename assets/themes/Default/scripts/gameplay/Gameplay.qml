@@ -160,9 +160,7 @@ Rectangle {
                 }
             }
             Connections {
-                function onHit(tap) {
-                    if (!tap.points)
-                        return;
+                function onNoteHit(tap) {
                     switch (tap.points.judgement) {
                     case Judgement.Perfect:
                         judgementCounts.itemAt(0).num++;

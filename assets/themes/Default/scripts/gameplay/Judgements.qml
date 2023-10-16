@@ -95,10 +95,7 @@ Item {
         }
     }
     Connections {
-        function onHit(tap) {
-            if (tap.noteIndex === -1) {
-                return;
-            }
+        function onNoteHit(tap) {
             Qt.callLater(function () {
                     switch (tap.points.judgement) {
                     case Judgement.Perfect:

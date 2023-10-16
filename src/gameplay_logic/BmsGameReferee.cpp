@@ -142,6 +142,7 @@ gameplay_logic::BmsGameReferee::update(std::chrono::nanoseconds offsetFromStart,
 {
     auto misses = QVector<HitEvent>{};
     auto lnEndSkips = QVector<HitEvent>{};
+    auto lnEndMisses = QVector<HitEvent>{};
     auto mineHits = QVector<MineHit>{};
     for (auto columnIndex = 0; columnIndex < currentVisibleNotes.size();
          columnIndex++) {
@@ -151,10 +152,19 @@ gameplay_logic::BmsGameReferee::update(std::chrono::nanoseconds offsetFromStart,
         for (auto [points, noteIndex, lnEndSkip] : newMisses) {
             auto noteTime = std::visit([](auto& note) { return note.time; },
                                        visibleNotes[columnIndex][noteIndex]);
-            misses.append({ columnIndex, noteIndex, noteTime.count(), points });
-            if (lnEndSkip) {
-                lnEndSkips.append(
-                  { columnIndex, noteIndex + 1, noteTime.count(), *lnEndSkip });
+            if (std::holds_alternative<rules::BmsHitRules::LnEnd>(
+                  visibleNotes[columnIndex][noteIndex])) {
+                lnEndMisses.append(
+                  { columnIndex, noteIndex, noteTime.count(), points });
+            } else {
+                misses.append(
+                  { columnIndex, noteIndex, noteTime.count(), points });
+                if (lnEndSkip) {
+                    lnEndSkips.append({ columnIndex,
+                                        noteIndex + 1,
+                                        noteTime.count(),
+                                        *lnEndSkip });
+                }
             }
         }
         if (pressedState[columnIndex]) {
@@ -188,6 +198,9 @@ gameplay_logic::BmsGameReferee::update(std::chrono::nanoseconds offsetFromStart,
     }
     if (!lnEndSkips.empty()) {
         score->addLnEndSkips(std::move(lnEndSkips));
+    }
+    if (!lnEndMisses.empty()) {
+        score->addLnEndMisses(std::move(lnEndMisses));
     }
     for (auto columnIndex = 0; columnIndex < currentInvisibleNotes.size();
          columnIndex++) {
@@ -319,8 +332,8 @@ gameplay_logic::BmsGameReferee::passReleased(
     auto [points, noteIndex] = *res;
     auto judgement = points.getJudgement();
     if (judgement == Judgement::Poor) {
-        score->addLnEndMiss(
-          { columnIndex, noteIndex, offsetFromStart.count(), points });
+        score->addLnEndMisses(
+          { { columnIndex, noteIndex, offsetFromStart.count(), points } });
     } else {
         score->addLnEndHit(
           { columnIndex, noteIndex, offsetFromStart.count(), points });

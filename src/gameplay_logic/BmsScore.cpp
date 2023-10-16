@@ -186,10 +186,10 @@ BmsScore::addLnEndHit(HitEvent lnEndHit)
     emit this->lnEndHit(lnEndHit);
 }
 void
-BmsScore::addLnEndMiss(HitEvent lnEndMiss)
+BmsScore::addLnEndMisses(QList<HitEvent> lnEndMisses)
 {
-    lnEndMisses.append(lnEndMiss);
-    emit lnEndMissed(lnEndMiss);
+    lnEndMisses.append(lnEndMisses);
+    emit lnEndMissed(lnEndMisses);
     resetCombo();
 }
 void
