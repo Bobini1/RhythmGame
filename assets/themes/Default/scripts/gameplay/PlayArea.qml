@@ -29,7 +29,6 @@ Item {
         id: playfield
 
         columns: playArea.columns
-        judgeLineGlobalPos: playArea.mapToItem(scaledRoot, 0, playArea.y + playArea.height).y
         spacing: playArea.spacing
         y: Math.floor(chart.position * root.greenNumber + parent.height)
         z: 1

@@ -13,7 +13,6 @@ Rectangle {
         }
         return mapping;
     }
-    property double judgeLineGlobalPos
     property int spacing
 
     function activateLn(column: int, index: int) {
@@ -63,7 +62,6 @@ Rectangle {
 
                 color: root.noteColors[playfield.columns[index]]
                 heightMultiplier: root.greenNumber
-                judgeLineGlobalPos: playfield.judgeLineGlobalPos
                 noteHeight: 36
                 notes: modelData
                 width: root.columnSizes[playfield.columns[index]]

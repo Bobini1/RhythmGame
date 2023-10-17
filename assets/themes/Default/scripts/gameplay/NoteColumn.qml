@@ -9,7 +9,6 @@ Item {
     property string color
     property int erasedNoteIndex: 0
     property int heightMultiplier: 20
-    property double judgeLineGlobalPos
     property var missedLnEnds: {
         return {};
     }
