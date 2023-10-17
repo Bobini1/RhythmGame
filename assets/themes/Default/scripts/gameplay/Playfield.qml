@@ -16,6 +16,14 @@ Rectangle {
     property double judgeLineGlobalPos
     property int spacing
 
+    function activateLn(column: int, index: int) {
+        let noteColumn = noteColumnRepeater.itemAt(columnsReversedMapping[column]);
+        noteColumn.activateLn(index);
+    }
+    function deactivateLn(column: int, index: int) {
+        let noteColumn = noteColumnRepeater.itemAt(columnsReversedMapping[column]);
+        noteColumn.deactivateLn(index);
+    }
     function markLnEndAsMissed(column: int, index: int) {
         let noteColumn = noteColumnRepeater.itemAt(columnsReversedMapping[column]);
         noteColumn.markLnEndAsMissed(index);

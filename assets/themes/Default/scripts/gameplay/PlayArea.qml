@@ -32,6 +32,7 @@ Item {
         judgeLineGlobalPos: playArea.mapToItem(scaledRoot, 0, playArea.y + playArea.height).y
         spacing: playArea.spacing
         y: Math.floor(chart.position * root.greenNumber + parent.height)
+        z: 1
     }
     Row {
         id: laserRow
@@ -57,7 +58,6 @@ Item {
             LaserBeam {
                 columnIndex: playArea.columns[index]
                 image: root.laserImages[index]
-                z: -1
             }
         }
     }
@@ -76,6 +76,7 @@ Item {
                 if (playArea.columns.indexOf(miss.column) === -1) {
                     continue;
                 }
+                playfield.deactivateLn(miss.column, miss.noteIndex - 1);
                 if (miss.points.noteRemoved) {
                     playfield.removeNote(miss.column, miss.noteIndex);
                 } else {
@@ -111,6 +112,7 @@ Item {
             if (playArea.columns.indexOf(tap.column) === -1) {
                 return;
             }
+            playfield.activateLn(tap.column, tap.noteIndex);
             if (tap.points.noteRemoved) {
                 playfield.removeNote(tap.column, tap.noteIndex);
             }

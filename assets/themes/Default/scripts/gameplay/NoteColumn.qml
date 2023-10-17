@@ -17,6 +17,14 @@ Item {
     property var notes
     property int visibleNoteIndex: 0
 
+    function activateLn(index: int) {
+        let item = noteRepeater.itemAt(index - column.erasedNoteIndex);
+        item.held = true;
+    }
+    function deactivateLn(index: int) {
+        let item = noteRepeater.itemAt(index - column.erasedNoteIndex);
+        item.held = false;
+    }
     function markLnEndAsMissed(index: int) {
         missedLnEnds[index] = true;
     }
