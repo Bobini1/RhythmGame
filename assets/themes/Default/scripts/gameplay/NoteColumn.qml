@@ -5,9 +5,9 @@ import RhythmGameQml
 Item {
     id: column
 
+    property string color
     property int erasedNoteIndex: 0
     property int heightMultiplier: 20
-    property string color
     property int noteHeight: 36
     property var notes
     property int visibleNoteIndex: 0
@@ -37,6 +37,9 @@ Item {
         Image {
             id: noteImg
 
+            // for ln begin only
+            property bool held: false
+
             function getTypeString() {
                 let type = column.notes[note].type;
                 switch (type) {
@@ -59,12 +62,31 @@ Item {
             width: parent.width
             y: Math.floor(-column.notes[note].time.position * column.heightMultiplier) - height / 2
 
-            // Loader {
-            //     id: lnBodyLoader
-            //
-            //     anchors.fill: parent
-            //     source:
-            // }
+            Loader {
+                id: lnBodyLoader
+
+                active: column.notes[note].type === Note.Type.LongNoteBegin
+
+                sourceComponent: Component {
+                    Image {
+                        height: Math.floor((column.notes[note + 1].time.position - column.notes[note].time.position) * column.heightMultiplier)
+                        source: {
+                            if (!noteImg.held) {
+                                return root.iniImagesUrl + "default.png/ln_body_inactive_" + column.color;
+                            }
+                            let flashing = Math.abs(chart.position % 1) > 0.5;
+                            return root.iniImagesUrl + "default.png/ln_body_" + (flashing ? "flash" : "active") + "_" + column.color;
+                        }
+                        visible: noteImg.visible
+                        width: sourceSize.width
+                        y: -height
+
+                        Component.onCompleted: {
+                            console.info(y);
+                        }
+                    }
+                }
+            }
         }
     }
     Connections {
@@ -78,6 +100,9 @@ Item {
                     break;
                 }
                 count++;
+            }
+            if (count > 0 && column.notes[erasedNoteIndex + count - 1].type === Note.Type.LongNoteBegin) {
+                count--;
             }
             column.erasedNoteIndex += count;
             column.visibleNoteIndex -= count;
