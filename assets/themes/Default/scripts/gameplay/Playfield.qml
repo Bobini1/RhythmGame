@@ -13,10 +13,15 @@ Rectangle {
         }
         return mapping;
     }
+    property double judgeLineGlobalPos
     property int spacing
 
+    function markLnEndAsMissed(column: int, index: int) {
+        let noteColumn = noteColumnRepeater.itemAt(columnsReversedMapping[column]);
+        noteColumn.markLnEndAsMissed(index);
+    }
     function removeNote(column: int, index: int) {
-        var noteColumn = noteColumnRepeater.itemAt(columnsReversedMapping[column]);
+        let noteColumn = noteColumnRepeater.itemAt(columnsReversedMapping[column]);
         noteColumn.removeNote(index);
     }
 
@@ -48,8 +53,9 @@ Rectangle {
             NoteColumn {
                 id: noteColumn
 
-                heightMultiplier: root.greenNumber
                 color: root.noteColors[playfield.columns[index]]
+                heightMultiplier: root.greenNumber
+                judgeLineGlobalPos: playfield.judgeLineGlobalPos
                 noteHeight: 36
                 notes: modelData
                 width: root.columnSizes[playfield.columns[index]]

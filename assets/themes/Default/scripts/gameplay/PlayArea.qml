@@ -28,11 +28,10 @@ Item {
     Playfield {
         id: playfield
 
-        border.color: "black"
-        border.width: 10
         columns: playArea.columns
+        judgeLineGlobalPos: playArea.mapToItem(scaledRoot, 0, playArea.y + playArea.height).y
         spacing: playArea.spacing
-        y: chart.position * root.greenNumber + parent.height
+        y: Math.floor(chart.position * root.greenNumber + parent.height)
     }
     Row {
         id: laserRow
@@ -58,6 +57,7 @@ Item {
             LaserBeam {
                 columnIndex: playArea.columns[index]
                 image: root.laserImages[index]
+                z: -1
             }
         }
     }
@@ -65,20 +65,66 @@ Item {
         anchors.centerIn: parent
     }
     Connections {
+        function onLnEndHit(tap) {
+            if (playArea.columns.indexOf(tap.column) === -1) {
+                return;
+            }
+            playfield.markLnEndAsMissed(tap.column, tap.noteIndex);
+        }
+        function onLnEndMissed(misses) {
+            for (let miss of misses) {
+                if (playArea.columns.indexOf(miss.column) === -1) {
+                    continue;
+                }
+                if (miss.points.noteRemoved) {
+                    playfield.removeNote(miss.column, miss.noteIndex);
+                } else {
+                    playfield.markLnEndAsMissed(miss.column, miss.noteIndex);
+                }
+            }
+        }
+        function onLnEndSkipped(skips) {
+            for (let skip of skips) {
+                if (playArea.columns.indexOf(skip.column) === -1) {
+                    continue;
+                }
+                playfield.markLnEndAsMissed(skip.column, skip.noteIndex);
+            }
+        }
+        function onMinesHit(hits) {
+            for (let hit of hits) {
+                if (playArea.columns.indexOf(hit.column) === -1) {
+                    continue;
+                }
+                playfield.removeNote(hit.column, hit.noteIndex);
+            }
+        }
+        function onMissed(misses) {
+            for (let miss of misses) {
+                if (playArea.columns.indexOf(miss.column) === -1) {
+                    continue;
+                }
+                playfield.removeNote(miss.column, miss.noteIndex);
+            }
+        }
         function onNoteHit(tap) {
             if (playArea.columns.indexOf(tap.column) === -1) {
                 return;
             }
-            if (tap.noteIndex !== -1) {
-                if (tap.removesNote) {
-                    playfield.removeNote(tap.column, tap.noteIndex);
-                }
+            if (tap.points.noteRemoved) {
+                playfield.removeNote(tap.column, tap.noteIndex);
             }
         }
         function onPressed(columnIndex) {
+            if (playArea.columns.indexOf(columnIndex) === -1) {
+                return;
+            }
             laserRow.shootLaser(columnIndex);
         }
         function onReleased(columnIndex) {
+            if (playArea.columns.indexOf(columnIndex) === -1) {
+                return;
+            }
             laserRow.hideLaser(columnIndex);
         }
 

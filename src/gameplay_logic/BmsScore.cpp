@@ -4,6 +4,7 @@
 
 #include "BmsScore.h"
 #include <magic_enum.hpp>
+#include <spdlog/spdlog.h>
 
 namespace gameplay_logic {
 auto
@@ -191,7 +192,7 @@ BmsScore::addLnEndHit(HitEvent lnEndHit)
 void
 BmsScore::addLnEndMisses(QList<HitEvent> lnEndMisses)
 {
-    lnEndMisses.append(lnEndMisses);
+    this->lnEndMisses.append(lnEndMisses);
     emit lnEndMissed(lnEndMisses);
     resetCombo();
     for (const auto& miss : lnEndMisses) {

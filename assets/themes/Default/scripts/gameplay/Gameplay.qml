@@ -84,6 +84,8 @@ Rectangle {
         target: chart
     }
     Rectangle {
+        id: scaledRoot
+
         anchors.centerIn: parent
         color: "black"
         height: 1080
@@ -160,6 +162,11 @@ Rectangle {
                 }
             }
             Connections {
+                function onMissed() {
+                    judgementCounts.itemAt(4).num++;
+                    bga.poorVisible = true;
+                    poorLayerTimer.restart();
+                }
                 function onNoteHit(tap) {
                     switch (tap.points.judgement) {
                     case Judgement.Perfect:
@@ -182,11 +189,6 @@ Rectangle {
                         poorLayerTimer.restart();
                         break;
                     }
-                }
-                function onMissed() {
-                    judgementCounts.itemAt(4).num++;
-                    bga.poorVisible = true;
-                    poorLayerTimer.restart();
                 }
 
                 target: chart.score

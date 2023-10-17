@@ -80,7 +80,7 @@ gameplay_logic::rules::StandardBmsHitRules::getMisses(
                   BmsPoints(hitValueFactory(upperBound),
                             Judgement::Poor,
                             (nextNoteTime - noteTime + upperBound).count(),
-                            /*noteRemoved=*/true);
+                            /*noteRemoved=*/false);
                 std::visit([](auto& note) { note.hit = true; }, *nextNote);
             }
             misses.emplace_back(BmsPoints(hitValueFactory(upperBound),
@@ -231,16 +231,22 @@ gameplay_logic::rules::StandardBmsHitRules::lnReleaseHit(
         }
         auto& lnEnd = std::get<rules::BmsHitRules::LnEnd>(*iter);
         auto noteTime = lnEnd.time;
-        if (hitOffset <= noteTime + windowLow) {
-            continue;
-        }
-        if (hitOffset >= noteTime + windowHigh) {
-            return std::nullopt;
-        };
         auto& lnBegin = std::get<rules::BmsHitRules::LnBegin>(*(iter - 1));
         if (!lnBegin.hit) {
             continue;
         }
+        if (hitOffset <= noteTime + windowLow) {
+            hit = true;
+            return { { BmsPoints(0.0,
+                                 Judgement::Poor,
+                                 (hitOffset - noteTime).count(),
+                                 /*noteRemoved=*/false),
+                       static_cast<int>(iter - notes.begin() +
+                                        currentNoteIndex) } };
+        }
+        if (hitOffset >= noteTime + windowHigh) {
+            return std::nullopt;
+        };
         auto result = timingWindows.find(hitOffset - noteTime)->second;
         hit = true;
         return { { BmsPoints(0.0,
