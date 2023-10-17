@@ -69,7 +69,8 @@ Item {
 
                 sourceComponent: Component {
                     Image {
-                        height: Math.floor((column.notes[note + 1].time.position - column.notes[note].time.position) * column.heightMultiplier)
+                        fillMode: Image.TileVertically
+                        height: Math.floor((column.notes[note + 1].time.position - column.notes[note].time.position) * column.heightMultiplier) - noteImg.height / 2
                         source: {
                             if (!noteImg.held) {
                                 return root.iniImagesUrl + "default.png/ln_body_inactive_" + column.color;
@@ -77,7 +78,7 @@ Item {
                             let flashing = Math.abs(chart.position % 1) > 0.5;
                             return root.iniImagesUrl + "default.png/ln_body_" + (flashing ? "flash" : "active") + "_" + column.color;
                         }
-                        visible: noteImg.visible
+                        visible: noteImg.visible || noteImg.held
                         width: sourceSize.width
                         y: -height
 
