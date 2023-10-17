@@ -57,7 +57,6 @@ Rectangle {
     // destroy chart when this component is unloaded
     Component.onDestruction: {
         chart.destroy();
-        gc();
     }
 
     Timer {
