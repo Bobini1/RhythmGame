@@ -110,7 +110,7 @@ Item {
                             if (!noteImg.held) {
                                 return root.iniImagesUrl + "default.png/ln_body_inactive_" + column.color;
                             }
-                            let flashing = Math.abs(chart.position % 1) > 0.5;
+                            let flashing = Math.abs(chart.position % 0.5) > 0.25;
                             return root.iniImagesUrl + "default.png/ln_body_" + (flashing ? "flash" : "active") + "_" + column.color;
                         }
                         visible: noteImg.visible
