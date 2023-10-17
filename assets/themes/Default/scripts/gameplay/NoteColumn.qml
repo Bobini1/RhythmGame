@@ -97,11 +97,8 @@ Item {
                     Image {
                         id: lnImg
 
-                        readonly property double normalHeight: Math.floor((column.notes[note + 1].time.position - column.notes[note].time.position) * column.heightMultiplier) - noteImg.height / 2
-                        readonly property double smallHeight: Math.floor((column.notes[note + 1].time.position - chart.position) * column.heightMultiplier) - noteImg.height / 2
-
                         fillMode: Image.TileVertically
-                        height: Math.min(normalHeight, smallHeight)
+                        height: Math.floor(column.notes[note + 1].time.position * column.heightMultiplier) + noteImg.y
                         source: {
                             if (!noteImg.held) {
                                 return root.iniImagesUrl + "default.png/ln_body_inactive_" + column.color;
