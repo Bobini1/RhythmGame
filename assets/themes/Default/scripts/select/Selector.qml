@@ -7,7 +7,7 @@ Image {
     property var currentItem: null
     property bool scrollingText: false
 
-    source: iniImagesUrl + "folders.png/frame"
+    source: root.iniImagesUrl + "folders.png/frame"
 
     Loader {
         id: loader
