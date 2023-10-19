@@ -110,7 +110,7 @@ FocusScope {
             }
             Selector {
                 anchors.right: parent.right
-                anchors.rightMargin: 82
+                anchors.rightMargin: 80
                 anchors.verticalCenter: parent.verticalCenter
                 anchors.verticalCenterOffset: -50
                 currentItem: songList.current
@@ -138,11 +138,18 @@ FocusScope {
                 orientation: Qt.Vertical
                 size: songList.height
             }
+            Image {
+                id: stageFileFrame
+
+                anchors.centerIn: parent
+                anchors.horizontalCenterOffset: -22
+                source: root.imagesUrl + "stageFileFrame.png"
+            }
             List {
                 id: songList
 
                 anchors.right: parent.right
-                anchors.rightMargin: 40
+                anchors.rightMargin: 43
                 anchors.top: parent.top
                 anchors.topMargin: -40
                 height: parent.height

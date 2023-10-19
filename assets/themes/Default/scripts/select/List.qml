@@ -58,28 +58,30 @@ PathView {
     path: Path {
         id: path
 
-        property double gap: 0.88
+        property int extra: 90
+        property double gap: 0.90
+        property int w: 190
 
         startX: pathView.width - 300
-        startY: pathView.y - 100
+        startY: pathView.y - extra
 
         PathLine {
-            x: pathView.width - 400
+            x: pathView.width - 300 - path.w / 2
             y: pathView.y + pathView.height / 2
         }
         PathPercent {
             value: 0.5
         }
         PathLine {
-            x: pathView.width - 300 - 100 - (200 / (pathView.pathItemCount + path.gap)) * (1 + path.gap)
-            y: pathView.y + pathView.height / 2 + ((pathView.height + 200) / (pathView.pathItemCount + path.gap)) * (1 + path.gap)
+            x: pathView.width - 300 - path.w / 2 - (path.w / (pathView.pathItemCount + path.gap)) * (1 + path.gap)
+            y: pathView.y + pathView.height / 2 + ((pathView.height + path.extra * 2) / (pathView.pathItemCount + path.gap)) * (1 + path.gap)
         }
         PathPercent {
             value: 0.5 + (1 / pathView.pathItemCount)
         }
         PathLine {
-            x: pathView.width - 300 - 200 - (200 / (pathView.pathItemCount + path.gap)) * path.gap
-            y: pathView.y + (pathView.height + 100) + ((pathView.height + 200) / (pathView.pathItemCount + path.gap)) * path.gap
+            x: pathView.width - 300 - path.w - (path.w / (pathView.pathItemCount + path.gap)) * path.gap
+            y: pathView.y + (pathView.height + path.extra) + ((pathView.height + path.extra * 2) / (pathView.pathItemCount + path.gap)) * path.gap
         }
     }
 
