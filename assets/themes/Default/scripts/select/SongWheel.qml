@@ -117,7 +117,7 @@ Pane {
             anchors.leftMargin: -20
             anchors.top: parent.top
             height: 1080
-            source: iniImagesUrl + "parts.png/containers"
+            source: root.iniImagesUrl + "parts.png/containers"
             width: 1920
         }
         ScrollBar {
