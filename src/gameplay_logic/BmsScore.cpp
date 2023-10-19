@@ -151,14 +151,28 @@ BmsScore::getResult() const -> std::unique_ptr<BmsResult>
                maxHits) {
         clearType = QStringLiteral("PERFECT");
     }
-    return std::make_unique<BmsResult>(
-      maxPoints, maxHits, clearType, judgementCounts, points, maxCombo);
+    return std::make_unique<BmsResult>(maxPoints,
+                                       maxHits,
+                                       normalNoteCount,
+                                       lnCount,
+                                       mineCount,
+                                       clearType,
+                                       judgementCounts,
+                                       mineHits.size(),
+                                       points,
+                                       maxCombo);
 }
 auto
 BmsScore::getReplayData() const -> std::unique_ptr<BmsReplayData>
 {
-    return std::make_unique<BmsReplayData>(
-      misses, hitsWithPoints, hitsWithoutPoints);
+    return std::make_unique<BmsReplayData>(misses,
+                                           hitsWithPoints,
+                                           hitsWithoutPoints,
+                                           releasesWithoutPoints,
+                                           mineHits,
+                                           lnEndHits,
+                                           lnEndMisses,
+                                           lnEndSkips);
 }
 auto
 BmsScore::getGaugeHistory() const -> std::unique_ptr<BmsGaugeHistory>

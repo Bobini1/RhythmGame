@@ -109,6 +109,9 @@ Profile::Profile(std::filesystem::path dbPath, QObject* parent)
                "points INTEGER NOT NULL,"
                "max_points INTEGER NOT NULL,"
                "max_hits INTEGER NOT NULL,"
+               "normal_note_count INTEGER NOT NULL,"
+               "ln_count INTEGER NOT NULL,"
+               "mine_count INTEGER NOT NULL,"
                "max_combo INTEGER NOT NULL,"
                "poor INTEGER NOT NULL,"
                "empty_poor INTEGER NOT NULL,"
@@ -116,6 +119,7 @@ Profile::Profile(std::filesystem::path dbPath, QObject* parent)
                "good INTEGER NOT NULL,"
                "great INTEGER NOT NULL,"
                "perfect INTEGER NOT NULL,"
+               "mine_hits INTEGER NOT NULL,"
                "clear_type TEXT NOT NULL,"
                "unix_timestamp INTEGER NOT NULL"
                ");");

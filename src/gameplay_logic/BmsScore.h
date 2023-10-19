@@ -83,9 +83,9 @@ class BmsScore : public QObject
                       QObject* parent = nullptr);
 
     auto getMaxPoints() const -> double;
+    auto getMaxHits() const -> int;
     auto getNormalNoteCount() const -> int;
     auto getLnCount() const -> int;
-    auto getMaxHits() const -> int;
     auto getMineCount() const -> int;
     auto getPoints() const -> double;
     auto getJudgementCounts() const -> QVector<int>;

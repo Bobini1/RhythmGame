@@ -51,6 +51,9 @@ CycleModel::data(const QModelIndex& index, int role) const -> QVariant
         return {};
     }
     auto rowCount = model->rowCount();
+    if (rowCount == 0) {
+        return {};
+    }
     auto modelIndex = index.row() % rowCount;
     return model->data(model->index(modelIndex), role);
 }
@@ -73,6 +76,9 @@ CycleModel::at(int index)
         return {};
     }
     auto rowCount = model->rowCount();
+    if (rowCount == 0) {
+        return {};
+    }
     auto modelIndex = index % rowCount;
     return model->data(model->index(modelIndex));
 }

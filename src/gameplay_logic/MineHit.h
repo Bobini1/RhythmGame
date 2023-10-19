@@ -34,6 +34,10 @@ class MineHit
     auto getPenalty() const -> double;
     auto getColumn() const -> int;
     auto getNoteIndex() const -> int;
+
+    friend auto operator<<(QDataStream& stream, const MineHit& hit)
+      -> QDataStream&;
+    friend auto operator>>(QDataStream& stream, MineHit& hit) -> QDataStream&;
 };
 } // namespace gameplay_logic
 

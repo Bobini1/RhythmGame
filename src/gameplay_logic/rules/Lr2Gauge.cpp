@@ -209,7 +209,8 @@ gameplay_logic::rules::Lr2Gauge::addMineHit(
         (currentGauge == 0 || currentGauge < getThreshold())) {
         return;
     }
-    auto newGauge = std::clamp(currentGauge + penalty, 0.0, getGaugeMax());
+    auto newGauge =
+      std::clamp(currentGauge + penalty * 100, 0.0, getGaugeMax());
     if (newGauge != currentGauge) {
         addGaugeHistoryEntry(offsetFromStart, newGauge);
     }

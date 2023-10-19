@@ -40,3 +40,23 @@ gameplay_logic::MineHit::getNoteIndex() const -> int
 {
     return noteIndex;
 }
+auto
+gameplay_logic::operator<<(QDataStream& stream,
+                           const gameplay_logic::MineHit& hit) -> QDataStream&
+{
+    return stream << static_cast<qint64>(hit.offsetFromStart)
+                  << static_cast<qint64>(hit.hitOffset) << hit.penalty
+                  << hit.column << hit.noteIndex;
+}
+auto
+gameplay_logic::operator>>(QDataStream& stream, gameplay_logic::MineHit& hit)
+  -> QDataStream&
+{
+    qint64 offsetFromStart;
+    qint64 hitOffset;
+    stream >> offsetFromStart >> hitOffset >> hit.penalty >> hit.column >>
+      hit.noteIndex;
+    hit.offsetFromStart = offsetFromStart;
+    hit.hitOffset = hitOffset;
+    return stream;
+}
