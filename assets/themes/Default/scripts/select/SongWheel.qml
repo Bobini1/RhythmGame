@@ -13,7 +13,7 @@ FocusScope {
     Image {
         id: root
 
-        readonly property bool active: StackView.status === StackView.Active
+        readonly property bool active: parent.focus
         readonly property string imagesUrl: Qt.resolvedUrl(".") + "images/"
         readonly property string iniImagesUrl: "image://ini/" + rootUrl + "images/"
         property string rootUrl: globalRoot.urlToPath(Qt.resolvedUrl(".").toString())
