@@ -292,11 +292,11 @@ calculateOffsetsForLnMgq(
     for (const auto& note : notes.back()) {
         index++;
         if (note == "00" && insideLn) {
-            auto [timestamp, soundPointer, fraction] =
+            auto [timestamp, fraction] =
               createNoteInfo(notes[0], bpmChangesInMeasure, index, meter);
             target.emplace_back(BmsNotesData::Note{
               timestamp,
-              soundPointer,
+              note,
               { fraction * meter * BmsNotesData::defaultBeatsPerMeasure,
                 meter * BmsNotesData::defaultBeatsPerMeasure },
               BmsNotesData::NoteType::LongNoteEnd });
@@ -344,11 +344,11 @@ calculateOffsetsForLandmine(
             if (note == "00") {
                 continue;
             }
-            auto [timestamp, soundPointer, fraction] =
-              createNoteInfo(notes[0], bpmChangesInMeasure, index, note, meter);
+            auto [timestamp, fraction] =
+              createNoteInfo(notes[0], bpmChangesInMeasure, index, meter);
             target.emplace_back(BmsNotesData::Note{
               timestamp,
-              soundPointer,
+              note,
               { fraction * meter * BmsNotesData::defaultBeatsPerMeasure,
                 meter * BmsNotesData::defaultBeatsPerMeasure },
               BmsNotesData::NoteType::Landmine });
