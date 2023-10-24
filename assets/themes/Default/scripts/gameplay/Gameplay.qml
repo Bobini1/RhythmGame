@@ -5,6 +5,7 @@ import QtQuick.Layouts
 import RhythmGameQml
 import QtQuick.Controls.Basic
 import QtMultimedia
+import Qt5Compat.GraphicalEffects
 
 Rectangle {
     id: root

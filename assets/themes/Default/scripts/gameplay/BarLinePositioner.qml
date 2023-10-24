@@ -6,8 +6,6 @@ Item {
     property var barLines: []
     property int heightMultiplier: 20
 
-    anchors.bottom: parent.bottom
-
     Repeater {
         id: barLineRepeater
 
@@ -17,9 +15,9 @@ Item {
             id: note
 
             border.width: 1
-            color: "darkslategray"
-            height: 5
-            width: column.width
+            color: "gray"
+            height: 3
+            width: parent.width
             y: -column.barLines[index].position * column.heightMultiplier - height / 2
         }
     }

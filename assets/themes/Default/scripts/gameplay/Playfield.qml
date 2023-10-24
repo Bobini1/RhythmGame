@@ -35,12 +35,6 @@ Rectangle {
     color: "black"
     width: totalWidthAbs
 
-    BarLinePositioner {
-        anchors.bottom: parent.bottom
-        barLines: chart.notes.barLines
-        heightMultiplier: root.greenNumber
-        width: parent.width
-    }
     RowLayout {
         id: notesRow
 
