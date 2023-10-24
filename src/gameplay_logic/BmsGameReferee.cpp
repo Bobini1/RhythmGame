@@ -102,8 +102,16 @@ gameplay_logic::BmsGameReferee::addVisibleNote(
         }
     } else if (note.noteType ==
                charts::gameplay_models::BmsNotesData::NoteType::LongNoteEnd) {
-        visibleNotes[i].emplace_back(
-          rules::BmsHitRules::LnEnd{ note.time.timestamp });
+        auto soundId = note.sound;
+        if (auto sound = sounds.find(soundId); sound != sounds.end()) {
+            visibleNotes[i].emplace_back(
+              rules::BmsHitRules::LnEnd{ &sound->second, note.time.timestamp });
+        } else {
+            // we still want to be able to hit those notes, even if they
+            // don't make a sound
+            visibleNotes[i].emplace_back(
+              rules::BmsHitRules::LnEnd{ nullptr, note.time.timestamp });
+        }
     } else if (note.noteType ==
                charts::gameplay_models::BmsNotesData::NoteType::Landmine) {
         auto idx = std::size_t{ 0 };
@@ -133,6 +141,12 @@ playSound(const gameplay_logic::rules::BmsHitRules::NoteType& note)
         if (lnBegin.sound != nullptr) {
             lnBegin.sound->play();
         }
+    } else if (std::holds_alternative<
+                 gameplay_logic::rules::BmsHitRules::LnEnd>(note)) {
+        auto& lnEnd = std::get<gameplay_logic::rules::BmsHitRules::LnEnd>(note);
+        if (lnEnd.sound != nullptr) {
+            lnEnd.sound->play();
+        }
     }
 }
 
@@ -143,13 +157,14 @@ gameplay_logic::BmsGameReferee::update(std::chrono::nanoseconds offsetFromStart,
     auto misses = QVector<HitEvent>{};
     auto lnEndSkips = QVector<HitEvent>{};
     auto lnEndMisses = QVector<HitEvent>{};
+    auto lnEndHits = QVector<HitEvent>{};
     auto mineHits = QVector<MineHit>{};
     for (auto columnIndex = 0; columnIndex < currentVisibleNotes.size();
          columnIndex++) {
         auto column = visibleNotes[columnIndex];
-        auto newMisses = hitRules->getMisses(
+        auto newMisses = hitRules->getMissesAndLnEndHits(
           column, currentVisibleNotes[columnIndex], offsetFromStart);
-        for (auto [points, noteIndex, lnEndSkip] : newMisses) {
+        for (auto [points, noteIndex, lnEndSkip] : newMisses.first) {
             auto noteTime = std::visit([](auto& note) { return note.time; },
                                        visibleNotes[columnIndex][noteIndex]);
             if (std::holds_alternative<rules::BmsHitRules::LnEnd>(
@@ -166,6 +181,12 @@ gameplay_logic::BmsGameReferee::update(std::chrono::nanoseconds offsetFromStart,
                                         *lnEndSkip });
                 }
             }
+        }
+        for (auto [points, noteIndex] : newMisses.second) {
+            auto noteTime = std::visit([](auto& note) { return note.time; },
+                                       visibleNotes[columnIndex][noteIndex]);
+            lnEndHits.append(
+              { columnIndex, noteIndex, noteTime.count(), points });
         }
         if (pressedState[columnIndex]) {
             auto res = hitRules->mineHit(visibleNotes[columnIndex],
@@ -201,6 +222,9 @@ gameplay_logic::BmsGameReferee::update(std::chrono::nanoseconds offsetFromStart,
     }
     if (!lnEndMisses.empty()) {
         score->addLnEndMisses(std::move(lnEndMisses));
+    }
+    for (const auto& lnEndHit : lnEndHits) {
+        score->addLnEndHit(lnEndHit);
     }
     for (auto columnIndex = 0; columnIndex < currentInvisibleNotes.size();
          columnIndex++) {

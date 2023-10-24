@@ -143,7 +143,9 @@ qt_add_library(RhythmGame_lib OBJECT src/db/SqliteCppDb.cpp src/db/SqliteCppDb.h
         src/qml_components/Bga.cpp
         src/qml_components/Bga.h
         src/gameplay_logic/MineHit.cpp
-        src/gameplay_logic/MineHit.h)
+        src/gameplay_logic/MineHit.h
+        src/gameplay_logic/rules/CnHitRules.cpp
+        src/gameplay_logic/rules/CnHitRules.h)
 
 find_package(Threads REQUIRED)
 

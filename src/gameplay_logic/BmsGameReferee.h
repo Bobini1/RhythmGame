@@ -76,7 +76,7 @@ class BmsGameReferee
                             std::string>> bgmNotes,
       std::vector<std::pair<charts::gameplay_models::BmsNotesData::Time,
                             double>> bpmChanges,
-      sounds::OpenALSound* defaultMineHitSound,
+      sounds::OpenALSound* mineHitSound,
       BmsScore* score,
       std::unordered_map<std::string, sounds::OpenALSound> sounds,
       std::unique_ptr<rules::BmsHitRules> hitRules);

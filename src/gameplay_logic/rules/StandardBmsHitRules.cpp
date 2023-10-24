@@ -50,12 +50,14 @@ gameplay_logic::rules::StandardBmsHitRules::visibleNoteHit(
     return emptyPoor;
 }
 auto
-gameplay_logic::rules::StandardBmsHitRules::getMisses(
+gameplay_logic::rules::StandardBmsHitRules::getMissesAndLnEndHits(
   std::span<NoteType> notes,
   int& currentNoteIndex,
-  std::chrono::nanoseconds offsetFromStart) -> std::vector<MissData>
+  std::chrono::nanoseconds offsetFromStart)
+  -> std::pair<std::vector<MissData>, std::vector<HitResult>>
 {
     auto misses = std::vector<MissData>{};
+    auto lnEndHits = std::vector<HitResult>{};
     notes = notes.subspan(currentNoteIndex);
     auto upperBound = timingWindows.rbegin()->first.upper();
     for (auto iter = notes.begin(); iter < notes.end(); iter++) {
@@ -66,35 +68,48 @@ gameplay_logic::rules::StandardBmsHitRules::getMisses(
             continue;
         }
         auto noteTime = std::visit([](auto& note) { return note.time; }, *iter);
-        if (offsetFromStart >= noteTime + upperBound) {
-            if (std::holds_alternative<rules::BmsHitRules::Mine>(*iter)) {
-                currentNoteIndex++;
-                continue;
-            }
-            auto lnEndSkip = std::optional<BmsPoints>{};
-            if (std::holds_alternative<rules::BmsHitRules::LnBegin>(*iter)) {
-                auto nextNote = std::next(iter);
-                auto nextNoteTime =
-                  std::visit([](auto& note) { return note.time; }, *nextNote);
-                lnEndSkip =
-                  BmsPoints(hitValueFactory(upperBound),
-                            Judgement::Poor,
-                            (nextNoteTime - noteTime + upperBound).count(),
-                            /*noteRemoved=*/false);
-                std::visit([](auto& note) { note.hit = true; }, *nextNote);
-            }
-            misses.emplace_back(BmsPoints(hitValueFactory(upperBound),
-                                          Judgement::Poor,
-                                          upperBound.count(),
-                                          /*noteRemoved=*/true),
-                                currentNoteIndex,
-                                lnEndSkip);
-            currentNoteIndex++;
-        } else {
+        if (offsetFromStart < noteTime + upperBound) {
             break;
         }
+        if (std::holds_alternative<rules::BmsHitRules::Mine>(*iter)) {
+            currentNoteIndex++;
+            continue;
+        }
+        if (std::holds_alternative<rules::BmsHitRules::LnEnd>(*iter) &&
+            offsetFromStart >= noteTime) {
+            auto result =
+              timingWindows.find(std::chrono::nanoseconds{ 0 })->second;
+            hit = true;
+            lnEndHits.emplace_back(HitResult{
+              BmsPoints(hitValueFactory(std::chrono::nanoseconds{ 0 }),
+                        result,
+                        0,
+                        /*noteRemoved=*/true),
+              static_cast<int>(iter - notes.begin() + currentNoteIndex) });
+            currentNoteIndex++;
+            continue;
+        }
+        auto lnEndSkip = std::optional<BmsPoints>{};
+        if (std::holds_alternative<rules::BmsHitRules::LnBegin>(*iter)) {
+            auto nextNote = std::next(iter);
+            auto nextNoteTime =
+              std::visit([](auto& note) { return note.time; }, *nextNote);
+            lnEndSkip =
+              BmsPoints(hitValueFactory(upperBound),
+                        Judgement::Poor,
+                        (nextNoteTime - noteTime + upperBound).count(),
+                        /*noteRemoved=*/false);
+            std::visit([](auto& note) { note.hit = true; }, *nextNote);
+        }
+        misses.emplace_back(BmsPoints(hitValueFactory(upperBound),
+                                      Judgement::Poor,
+                                      upperBound.count(),
+                                      /*noteRemoved=*/true),
+                            currentNoteIndex,
+                            lnEndSkip);
+        currentNoteIndex++;
     }
-    return misses;
+    return { std::move(misses), std::move(lnEndHits) };
 }
 auto
 gameplay_logic::rules::StandardBmsHitRules::invisibleNoteHit(
