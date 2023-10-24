@@ -114,8 +114,8 @@ calculateOffsetsForColumn(
             auto noteType = BmsNotesData::NoteType::Normal;
             if (lnObj.has_value() && note == lnObj.value()) {
                 // we don't ever want two ln ends in a row
-                if (auto lastNote = target.rend();
-                    lastNote != target.rbegin() &&
+                if (auto lastNote = target.rbegin();
+                    lastNote != target.rend() &&
                     lastNote->noteType != BmsNotesData::NoteType::LongNoteEnd) {
                     noteType = BmsNotesData::NoteType::LongNoteEnd;
                     lastNote->noteType = BmsNotesData::NoteType::LongNoteBegin;

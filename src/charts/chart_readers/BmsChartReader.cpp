@@ -612,7 +612,8 @@ struct MainTags
             dsl::p<StageFileTag> | dsl::p<BannerTag> | dsl::p<BackBmpTag> |
             dsl::p<SubtitleTag> | dsl::p<SubartistTag> | dsl::p<TotalTag> |
             dsl::p<RankTag> | dsl::p<PlayLevelTag> | dsl::p<DifficultyTag> |
-            dsl::p<BpmTag> | dsl::recurse_branch<RandomBlock>,
+            dsl::p<BpmTag> | dsl::p<LnObjTag> |
+            dsl::recurse_branch<RandomBlock>,
           dsl::until(dsl::unicode::newline).or_eof()));
     }();
     static constexpr auto value = TagsSink{};
@@ -635,7 +636,7 @@ struct OrphanizedRandomCommonPart
                    dsl::p<BackBmpTag> | dsl::p<SubtitleTag> |
                    dsl::p<SubartistTag> | dsl::p<TotalTag> | dsl::p<RankTag> |
                    dsl::p<PlayLevelTag> | dsl::p<DifficultyTag> |
-                   dsl::p<BpmTag>,
+                   dsl::p<BpmTag> | dsl::p<LnObjTag>,
                  dsl::until(dsl::unicode::newline).or_eof()));
     }();
     static constexpr auto value = TagsSink{};
