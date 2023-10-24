@@ -6,6 +6,7 @@ Item {
 
     height: childrenRect.height
     width: childrenRect.width
+    z: 3
 
     // turn invisible after one second of no notes
     Timer {
