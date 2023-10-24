@@ -358,6 +358,13 @@ gameplay_logic::BmsGameReferee::passReleased(
     if (judgement == Judgement::Poor) {
         score->addLnEndMisses(
           { { columnIndex, noteIndex, offsetFromStart.count(), points } });
+        
+        auto prevNoteIndex = noteIndex - 1;
+        auto& prevNote = std::get<rules::BmsHitRules::LnBegin>(
+          visibleNotes[columnIndex][prevNoteIndex]);
+        if (prevNote.sound) {
+            prevNote.sound->stop();
+        }
     } else {
         score->addLnEndHit(
           { columnIndex, noteIndex, offsetFromStart.count(), points });
