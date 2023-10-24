@@ -73,9 +73,7 @@ createNoteInfo(const std::vector<std::string>& notes,
                const std::map<double, std::pair<double, BmsNotesData::Time>>&
                  bpmChangesInMeasure,
                int index,
-               const std::string& note,
-               double meter)
-  -> std::tuple<BmsNotesData::Time, std::string, double>
+               double meter) -> std::tuple<BmsNotesData::Time, double>
 {
     auto fraction =
       static_cast<double>(index) / static_cast<double>(notes.size());
@@ -89,7 +87,7 @@ createNoteInfo(const std::vector<std::string>& notes,
           BmsNotesData::defaultBeatsPerMeasure * 60 * 1'000'000'000 / bpm)),
         (fraction - bpmFraction) * meter * BmsNotesData::defaultBeatsPerMeasure
     };
-    return { timestamp, note, fraction };
+    return { timestamp, fraction };
 }
 
 void
@@ -111,8 +109,8 @@ calculateOffsetsForColumn(
             if (note == "00") {
                 continue;
             }
-            auto [timestamp, soundPointer, fraction] =
-              createNoteInfo(notes[0], bpmChangesInMeasure, index, note, meter);
+            auto [timestamp, fraction] =
+              createNoteInfo(notes[0], bpmChangesInMeasure, index, meter);
             auto noteType = BmsNotesData::NoteType::Normal;
             if (lnObj.has_value() && note == lnObj.value()) {
                 // we don't ever want two ln ends in a row
@@ -125,7 +123,7 @@ calculateOffsetsForColumn(
             }
             target.emplace_back(BmsNotesData::Note{
               timestamp,
-              soundPointer,
+              note,
               { fraction * meter * BmsNotesData::defaultBeatsPerMeasure,
                 meter * BmsNotesData::defaultBeatsPerMeasure },
               noteType });
@@ -147,14 +145,14 @@ calculateOffsetsForColumn(
                 continue;
             }
             auto gcd = std::gcd(index, static_cast<int>(definition.size()));
-            auto [timestamp, soundPointer, fraction] = createNoteInfo(
-              definition, bpmChangesInMeasure, index, note, meter);
+            auto [timestamp, fraction] =
+              createNoteInfo(definition, bpmChangesInMeasure, index, meter);
             auto noteType = BmsNotesData::NoteType::Normal;
             notesMap[{ index / gcd,
                        static_cast<int>(definition.size()) / gcd }] =
               BmsNotesData::Note{
                   timestamp,
-                  soundPointer,
+                  note,
                   { fraction * meter * BmsNotesData::defaultBeatsPerMeasure,
                     meter * BmsNotesData::defaultBeatsPerMeasure },
                   noteType
@@ -209,11 +207,11 @@ calculateOffsetsForLnRdm(
             if (note == "00") {
                 continue;
             }
-            auto [timestamp, soundPointer, fraction] =
-              createNoteInfo(notes[0], bpmChangesInMeasure, index, note, meter);
+            auto [timestamp, fraction] =
+              createNoteInfo(notes[0], bpmChangesInMeasure, index, meter);
             target.emplace_back(BmsNotesData::Note{
               timestamp,
-              soundPointer,
+              note,
               { fraction * meter * BmsNotesData::defaultBeatsPerMeasure,
                 meter * BmsNotesData::defaultBeatsPerMeasure },
               insideLn ? BmsNotesData::NoteType::LongNoteEnd
@@ -238,13 +236,13 @@ calculateOffsetsForLnRdm(
                 continue;
             }
             auto gcd = std::gcd(index, static_cast<int>(definition.size()));
-            auto [timestamp, soundPointer, fraction] = createNoteInfo(
-              definition, bpmChangesInMeasure, index, note, meter);
+            auto [timestamp, fraction] =
+              createNoteInfo(definition, bpmChangesInMeasure, index, meter);
             notesMap[{ index / gcd,
                        static_cast<int>(definition.size()) / gcd }] =
               BmsNotesData::Note{
                   timestamp,
-                  soundPointer,
+                  note,
                   { fraction * meter * BmsNotesData::defaultBeatsPerMeasure,
                     meter * BmsNotesData::defaultBeatsPerMeasure }
               };
@@ -295,7 +293,7 @@ calculateOffsetsForLnMgq(
         index++;
         if (note == "00" && insideLn) {
             auto [timestamp, soundPointer, fraction] =
-              createNoteInfo(notes[0], bpmChangesInMeasure, index, note, meter);
+              createNoteInfo(notes[0], bpmChangesInMeasure, index, meter);
             target.emplace_back(BmsNotesData::Note{
               timestamp,
               soundPointer,
@@ -304,11 +302,11 @@ calculateOffsetsForLnMgq(
               BmsNotesData::NoteType::LongNoteEnd });
             insideLn = false;
         } else if (note != "00" && !insideLn) {
-            auto [timestamp, soundPointer, fraction] =
-              createNoteInfo(notes[0], bpmChangesInMeasure, index, note, meter);
+            auto [timestamp, fraction] =
+              createNoteInfo(notes[0], bpmChangesInMeasure, index, meter);
             target.emplace_back(BmsNotesData::Note{
               timestamp,
-              soundPointer,
+              note,
               { fraction * meter * BmsNotesData::defaultBeatsPerMeasure,
                 meter * BmsNotesData::defaultBeatsPerMeasure },
               BmsNotesData::NoteType::LongNoteBegin });
@@ -316,11 +314,11 @@ calculateOffsetsForLnMgq(
         }
     }
     if (insideLn && last) {
-        auto [timestamp, soundPointer, fraction] =
-          createNoteInfo(notes[0], bpmChangesInMeasure, index + 1, "00", meter);
+        auto [timestamp, fraction] =
+          createNoteInfo(notes[0], bpmChangesInMeasure, index + 1, meter);
         target.emplace_back(BmsNotesData::Note{
           timestamp,
-          soundPointer,
+          "00",
           { fraction * meter * BmsNotesData::defaultBeatsPerMeasure,
             meter * BmsNotesData::defaultBeatsPerMeasure },
           BmsNotesData::NoteType::LongNoteEnd });
@@ -372,14 +370,14 @@ calculateOffsetsForLandmine(
                 continue;
             }
             auto gcd = std::gcd(index, static_cast<int>(definition.size()));
-            auto [timestamp, soundPointer, fraction] = createNoteInfo(
-              definition, bpmChangesInMeasure, index, note, meter);
+            auto [timestamp, fraction] =
+              createNoteInfo(definition, bpmChangesInMeasure, index, meter);
             auto noteType = BmsNotesData::NoteType::Normal;
             notesMap[{ index / gcd,
                        static_cast<int>(definition.size()) / gcd }] =
               BmsNotesData::Note{
                   timestamp,
-                  soundPointer,
+                  note,
                   { fraction * meter * BmsNotesData::defaultBeatsPerMeasure,
                     meter * BmsNotesData::defaultBeatsPerMeasure },
                   BmsNotesData::NoteType::Landmine
@@ -419,9 +417,9 @@ calculateOffsetsForBgm(
         if (note == "00") {
             continue;
         }
-        auto [timestamp, soundPointer, fraction] =
-          createNoteInfo(notes, bpmChangesInMeasure, index, note, meter);
-        target.emplace_back(timestamp.timestamp, soundPointer);
+        auto [timestamp, fraction] =
+          createNoteInfo(notes, bpmChangesInMeasure, index, meter);
+        target.emplace_back(timestamp.timestamp, note);
     }
 }
 
@@ -443,9 +441,9 @@ calculateOffsetsForBga(
             if (note == "00") {
                 continue;
             }
-            auto [timestamp, soundPointer, fraction] =
-              createNoteInfo(notes[0], bpmChangesInMeasure, index, note, meter);
-            target.emplace_back(timestamp.timestamp, soundPointer);
+            auto [timestamp, fraction] =
+              createNoteInfo(notes[0], bpmChangesInMeasure, index, meter);
+            target.emplace_back(timestamp.timestamp, note);
         }
         return;
     }
@@ -459,11 +457,11 @@ calculateOffsetsForBga(
                 continue;
             }
             auto gcd = std::gcd(index, static_cast<int>(definition.size()));
-            auto [timestamp, soundPointer, fraction] = createNoteInfo(
-              definition, bpmChangesInMeasure, index, note, meter);
+            auto [timestamp, fraction] =
+              createNoteInfo(definition, bpmChangesInMeasure, index, meter);
             notesMap[{ index / gcd,
                        static_cast<int>(definition.size()) / gcd }] = {
-                soundPointer, timestamp
+                note, timestamp
             };
         }
         std::vector<std::pair<BmsNotesData::Time, std::string>> notesVector;
