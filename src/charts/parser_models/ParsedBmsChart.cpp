@@ -56,6 +56,9 @@ charts::parser_models::ParsedBmsChart::mergeTags(
     for (auto& [key, value] : second.exBpms) {
         first.exBpms[key] = value;
     }
+    for (auto& [key, value] : second.stops) {
+        first.exBpms[key] = value;
+    }
     for (auto& [key, value] : second.wavs) {
         first.wavs[key] = std::move(value);
     }
@@ -136,6 +139,9 @@ charts::parser_models::ParsedBmsChart::mergeTags(
         }
         for (auto& definition : measure.exBpmChanges) {
             firstMeasure.exBpmChanges.push_back(std::move(definition));
+        }
+        for (auto& definition : measure.stops) {
+            firstMeasure.stops.push_back(std::move(definition));
         }
         if (measure.meter.has_value()) {
             firstMeasure.meter = measure.meter;

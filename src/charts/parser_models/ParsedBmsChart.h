@@ -48,6 +48,7 @@ struct ParsedBmsChart
         std::vector<std::vector<std::string>> bgmNotes;
         std::vector<std::string> bpmChanges;   // old-school, FF = BPM is 255
         std::vector<std::string> exBpmChanges; // new, FF = #BPMFF
+        std::vector<std::string> stops;
         std::optional<double> meter;
     };
 
@@ -72,6 +73,7 @@ struct ParsedBmsChart
         std::optional<std::string> lnObj;
         std::optional<int> lnType;
         std::map<std::string, double> exBpms;
+        std::map<std::string, double> stops;
         std::map<std::string, std::string> wavs;
         std::map<std::string, std::string> bmps;
         std::map<int64_t, Measure> measures;
