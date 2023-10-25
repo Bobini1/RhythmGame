@@ -33,12 +33,11 @@ Item {
         if (column.notes[index].type === Note.Type.LongNoteBegin || column.notes[index].type === Note.Type.LongNoteEnd) {
             return;
         }
-        let count = 1;
         let offset = index - column.erasedNoteIndex;
-        column.erasedNoteIndex += count;
-        column.visibleNoteIndex -= count;
-        column.visibleNoteIndex = Math.max(0, column.visibleNoteIndex);
-        notesModel.remove(offset, count);
+        let item = noteRepeater.itemAt(offset);
+        if (item) {
+            item.visible = false;
+        }
     }
 
     Layout.alignment: Qt.AlignBottom
@@ -123,6 +122,18 @@ Item {
                     break;
                 }
                 if (column.missedLnEnds[column.erasedNoteIndex + count]) {
+                    notesModel.remove(count, 1);
+                    column.erasedNoteIndex += 1;
+                    column.visibleNoteIndex -= 1;
+                    continue;
+                }
+                if (!noteRepeater.itemAt(count).visible) {
+                    notesModel.remove(count, 1);
+                    column.erasedNoteIndex += 1;
+                    column.visibleNoteIndex -= 1;
+                    continue;
+                }
+                if (note.type === Note.Type.Landmine) {
                     notesModel.remove(count, 1);
                     column.erasedNoteIndex += 1;
                     column.visibleNoteIndex -= 1;

@@ -78,6 +78,7 @@ struct BmsNotesData
     void generateMeasures(
       double baseBpm,
       const std::map<std::string, double>& bpms,
+      const std::map<std::string, double>& stops,
       const std::map<int64_t, parser_models::ParsedBmsChart::Measure>& measures,
       LnType lnType,
       std::optional<std::string> lnObj);

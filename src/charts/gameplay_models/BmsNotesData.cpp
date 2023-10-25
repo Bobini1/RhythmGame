@@ -15,13 +15,24 @@ namespace {
 struct BpmChangeDef
 {
     double fraction;
+    bool isStop;
+    std::pair<int, int> fractionDec;
     double bpm;
+};
+
+enum class BpmChangeType
+{
+    Normal = 0,
+    Stop = 1,
+    AfterStop = 2
 };
 
 auto
 combineBpmChanges(const std::vector<std::string>& bpmChanges,
                   const std::vector<std::string>& exBpmChanges,
-                  const std::map<std::string, double>& bpms)
+                  const std::vector<std::string>& stops,
+                  const std::map<std::string, double>& bpms,
+                  const std::map<std::string, double>& stopDefs)
   -> std::vector<BpmChangeDef>
 {
     auto index = -1;
@@ -41,8 +52,11 @@ combineBpmChanges(const std::vector<std::string>& bpmChanges,
         }
         auto fraction =
           static_cast<double>(index) / static_cast<double>(bpmChanges.size());
+        auto gcd = std::gcd(index, static_cast<int>(bpmChanges.size()));
+        auto fractionDec =
+          std::pair{ index / gcd, static_cast<int>(bpmChanges.size()) / gcd };
         combinedBpmChanges.emplace_back(
-          BpmChangeDef{ fraction, bpmValue->second });
+          BpmChangeDef{ fraction, false, fractionDec, bpmValue->second });
     }
     index = -1;
     for (const auto& bpmChange : exBpmChanges) {
@@ -58,28 +72,62 @@ combineBpmChanges(const std::vector<std::string>& bpmChanges,
         }
         auto fraction =
           static_cast<double>(index) / static_cast<double>(exBpmChanges.size());
-        combinedBpmChanges.emplace_back(
-          BpmChangeDef{ fraction, static_cast<double>(bpmChangeNum) });
+        auto gcd = std::gcd(index, static_cast<int>(exBpmChanges.size()));
+        auto fractionDec =
+          std::pair{ index / gcd, static_cast<int>(exBpmChanges.size()) / gcd };
+        combinedBpmChanges.emplace_back(BpmChangeDef{
+          fraction, false, fractionDec, static_cast<double>(bpmChangeNum) });
     }
-    std::sort(
-      combinedBpmChanges.begin(),
-      combinedBpmChanges.end(),
-      [](const auto& a, const auto& b) { return a.fraction < b.fraction; });
+    index = -1;
+    for (const auto& stop : stops) {
+        index++;
+        if (stop == "00") {
+            continue;
+        }
+        auto stopValue = stopDefs.find(stop);
+        if (stopValue == stopDefs.end()) {
+            continue;
+        }
+        if (stopValue->second <= 0.0) {
+            spdlog::warn("Stop must be positive, was: {}",
+                         std::to_string(stopValue->second));
+            continue;
+        }
+        auto fraction =
+          static_cast<double>(index) / static_cast<double>(stops.size());
+        auto gcd = std::gcd(index, static_cast<int>(stops.size()));
+        auto fractionDec =
+          std::pair{ index / gcd, static_cast<int>(stops.size()) / gcd };
+        combinedBpmChanges.emplace_back(
+          BpmChangeDef{ fraction, true, fractionDec, stopValue->second });
+    }
+    std::sort(combinedBpmChanges.begin(),
+              combinedBpmChanges.end(),
+              [](const auto& a, const auto& b) {
+                  if (a.fractionDec == b.fractionDec) {
+                      return a.isStop < b.isStop;
+                  }
+                  return a.fraction < b.fraction;
+              });
     return combinedBpmChanges;
 }
 
 auto
-createNoteInfo(const std::vector<std::string>& notes,
-               const std::map<double, std::pair<double, BmsNotesData::Time>>&
-                 bpmChangesInMeasure,
-               int index,
-               double meter) -> std::tuple<BmsNotesData::Time, double>
+createNoteInfo(
+  const std::vector<std::string>& notes,
+  const std::map<std::pair<double, BpmChangeType>,
+                 std::pair<double, BmsNotesData::Time>>& bpmChangesInMeasure,
+  int index,
+  double meter) -> std::tuple<BmsNotesData::Time, double>
 {
     auto fraction =
       static_cast<double>(index) / static_cast<double>(notes.size());
     // https://stackoverflow.com/q/45426556
-    auto lastBpmChange = bpmChangesInMeasure.upper_bound(fraction);
-    auto [bpmFraction, bpmWithTimestamp] = *std::prev(lastBpmChange);
+    auto lastBpmChange =
+      bpmChangesInMeasure.upper_bound({ fraction, BpmChangeType::Normal });
+    auto iter = std::prev(lastBpmChange);
+    auto [bpmFractionAndType, bpmWithTimestamp] = *iter;
+    auto [bpmFraction, bpmChangeType] = bpmFractionAndType;
     auto [bpm, bpmTimestamp] = bpmWithTimestamp;
     auto timestamp = bpmTimestamp + BmsNotesData::Time{
         std::chrono::nanoseconds(static_cast<int64_t>(
@@ -94,8 +142,8 @@ void
 calculateOffsetsForColumn(
   std::span<const std::vector<std::string>> notes,
   std::vector<BmsNotesData::Note>& target,
-  const std::map<double, std::pair<double, BmsNotesData::Time>>&
-    bpmChangesInMeasure,
+  const std::map<std::pair<double, BpmChangeType>,
+                 std::pair<double, BmsNotesData::Time>>& bpmChangesInMeasure,
   double meter,
   std::optional<std::string> lnObj)
 {
@@ -193,8 +241,8 @@ void
 calculateOffsetsForLnRdm(
   std::span<const std::vector<std::string>> notes,
   std::vector<BmsNotesData::Note>& target,
-  const std::map<double, std::pair<double, BmsNotesData::Time>>&
-    bpmChangesInMeasure,
+  const std::map<std::pair<double, BpmChangeType>,
+                 std::pair<double, BmsNotesData::Time>>& bpmChangesInMeasure,
   double meter,
   bool& insideLn,
   std::optional<size_t>& lastInsertedRdmNote)
@@ -276,8 +324,8 @@ void
 calculateOffsetsForLnMgq(
   std::span<const std::vector<std::string>> notes,
   std::vector<BmsNotesData::Note>& target,
-  const std::map<double, std::pair<double, BmsNotesData::Time>>&
-    bpmChangesInMeasure,
+  const std::map<std::pair<double, BpmChangeType>,
+                 std::pair<double, BmsNotesData::Time>>& bpmChangesInMeasure,
   double meter,
   bool& insideLn,
   bool last)
@@ -332,8 +380,8 @@ void
 calculateOffsetsForLandmine(
   std::span<const std::vector<std::string>> notes,
   std::vector<BmsNotesData::Note>& target,
-  const std::map<double, std::pair<double, BmsNotesData::Time>>&
-    bpmChangesInMeasure,
+  const std::map<std::pair<double, BpmChangeType>,
+                 std::pair<double, BmsNotesData::Time>>& bpmChangesInMeasure,
   double meter)
 {
     if (notes.empty()) {
@@ -409,8 +457,8 @@ void
 calculateOffsetsForBgm(
   const std::vector<std::string>& notes,
   std::vector<std::pair<BmsNotesData::Time, std::string>>& target,
-  const std::map<double, std::pair<double, BmsNotesData::Time>>&
-    bpmChangesInMeasure,
+  const std::map<std::pair<double, BpmChangeType>,
+                 std::pair<double, BmsNotesData::Time>>& bpmChangesInMeasure,
   double meter)
 {
     auto index = -1;
@@ -429,8 +477,8 @@ void
 calculateOffsetsForBga(
   const std::vector<std::vector<std::string>>& notes,
   std::vector<std::pair<BmsNotesData::Time, std::string>>& target,
-  const std::map<double, std::pair<double, BmsNotesData::Time>>&
-    bpmChangesInMeasure,
+  const std::map<std::pair<double, BpmChangeType>,
+                 std::pair<double, BmsNotesData::Time>>& bpmChangesInMeasure,
   double meter)
 {
     if (notes.empty()) {
@@ -537,6 +585,7 @@ BmsNotesData::BmsNotesData(const charts::parser_models::ParsedBmsChart& chart)
     }
     generateMeasures(chart.tags.bpm.value_or(defaultBpm),
                      chart.tags.exBpms,
+                     chart.tags.stops,
                      chart.tags.measures,
                      lnType,
                      chart.tags.lnObj);
@@ -545,6 +594,7 @@ void
 BmsNotesData::generateMeasures(
   double baseBpm,
   const std::map<std::string, double>& bpms,
+  const std::map<std::string, double>& stops,
   const std::map<int64_t, parser_models::ParsedBmsChart::Measure>& measures,
   LnType lnType,
   std::optional<std::string> lnObj)
@@ -577,13 +627,14 @@ BmsNotesData::generateMeasures(
     for (const auto& [measureIndex, measure] : measures) {
         auto currentMeasure = measureIndex;
         fillEmptyMeasures(lastMeasure, currentMeasure, measureStart, lastBpm);
-        auto bpmChangesInMeasure = std::map<double, std::pair<double, Time>>{
-            { 0.0, { lastBpm, measureStart } }
-        };
+        auto bpmChangesInMeasure =
+          std::map<std::pair<double, BpmChangeType>, std::pair<double, Time>>{
+              { { 0.0, BpmChangeType::Normal }, { lastBpm, measureStart } }
+          };
         auto lastTimestamp = measureStart;
         auto lastFraction = 0.0;
-        auto combinedBpmChanges =
-          combineBpmChanges(measure.exBpmChanges, measure.bpmChanges, bpms);
+        auto combinedBpmChanges = combineBpmChanges(
+          measure.exBpmChanges, measure.bpmChanges, measure.stops, bpms, stops);
         auto meter = measure.meter.value_or(
           charts::parser_models::ParsedBmsChart::Measure::defaultMeter);
         for (const auto& bpmChange : combinedBpmChanges) {
@@ -595,12 +646,28 @@ BmsNotesData::generateMeasures(
                   60 * 1'000'000'000 / lastBpm)),
                 (fraction - lastFraction) * defaultBeatsPerMeasure * meter
             };
-            bpmChanges.emplace_back(timestamp, bpmChangeNum);
-            bpmChangesInMeasure[fraction] =
+            bpmChanges.emplace_back(timestamp,
+                                    bpmChange.isStop ? 0 : bpmChangeNum);
+            bpmChangesInMeasure[{ fraction,
+                                  bpmChange.isStop ? BpmChangeType::Stop
+                                                   : BpmChangeType::Normal }] =
               std::pair{ bpmChangeNum, timestamp };
+            if (bpmChange.isStop) {
+                // add another bpm change at the end of the stop
+                timestamp =
+                  timestamp +
+                  Time{ std::chrono::nanoseconds(static_cast<int64_t>(
+                          (bpmChangeNum / 192) * defaultBeatsPerMeasure * 60 *
+                          1'000'000'000 / lastBpm)),
+                        0 };
+                bpmChanges.emplace_back(timestamp, lastBpm);
+                bpmChangesInMeasure[{ fraction, BpmChangeType::AfterStop }] =
+                  std::pair{ lastBpm, timestamp };
+            } else {
+                lastBpm = bpmChangeNum;
+            }
             lastTimestamp = timestamp;
             lastFraction = fraction;
-            lastBpm = bpmChangeNum;
         }
         // add last bpm change
         auto timestamp =
