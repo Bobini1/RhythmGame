@@ -112,9 +112,9 @@ Item {
             if (playArea.columns.indexOf(tap.column) === -1) {
                 return;
             }
-            playfield.activateLn(tap.column, tap.noteIndex);
             if (tap.points.noteRemoved) {
                 playfield.removeNote(tap.column, tap.noteIndex);
+                playfield.activateLn(tap.column, tap.noteIndex);
             }
         }
         function onPressed(columnIndex) {

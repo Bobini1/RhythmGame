@@ -119,6 +119,8 @@ calculateOffsetsForColumn(
                     lastNote->noteType != BmsNotesData::NoteType::LongNoteEnd) {
                     noteType = BmsNotesData::NoteType::LongNoteEnd;
                     lastNote->noteType = BmsNotesData::NoteType::LongNoteBegin;
+                } else {
+                    spdlog::error("Two LN endings in a row");
                 }
             }
             target.emplace_back(BmsNotesData::Note{

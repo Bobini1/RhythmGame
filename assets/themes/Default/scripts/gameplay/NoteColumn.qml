@@ -18,7 +18,9 @@ Item {
 
     function activateLn(index: int) {
         let item = noteRepeater.itemAt(index - column.erasedNoteIndex);
-        item.held = true;
+        if (item) {
+            item.held = true;
+        }
     }
     function deactivateLn(index: int) {
         let item = noteRepeater.itemAt(index - column.erasedNoteIndex);
@@ -83,15 +85,10 @@ Item {
                     console.info("Unknown note type: " + type);
                 }
             }
-            function hideLnBody() {
-                if (column.notes[note].type === Note.Type.LongNoteBegin) {
-                    lnBodyLoader.children[0].visible = false;
-                }
-            }
 
             height: column.noteHeight
             source: root.iniImagesUrl + "default.png/" + getTypeString() + column.color
-            visible: false
+            visible: column.notes[note].type === Note.Type.LongNoteBegin || column.notes[note].type === Note.Type.LongNoteEnd
             width: parent.width
             y: notePosition - height / 2
 
@@ -113,7 +110,6 @@ Item {
                             let flashing = Math.abs(chart.position % 0.5) > 0.25;
                             return root.iniImagesUrl + "default.png/ln_body_" + (flashing ? "flash" : "active") + "_" + column.color;
                         }
-                        visible: noteImg.visible
                         width: sourceSize.width
                         y: -height
                     }
@@ -136,7 +132,7 @@ Item {
                     continue;
                 }
                 let item = noteRepeater.itemAt(count);
-                item.y = Math.min(column.chartPosition, item.notePosition) - item.height / 2;
+                item.y = Math.min(column.chartPosition - item.height / 2, item.y);
                 count++;
             }
             let visibleNoteIndex = column.visibleNoteIndex;
