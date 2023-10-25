@@ -216,10 +216,6 @@ Item {
             }
             z: 1
 
-            onLnChanged: {
-                console.log("ln changed", ln);
-            }
-
             AnimatedSprite {
                 id: bomb
 
