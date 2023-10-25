@@ -77,11 +77,7 @@ Item {
                     continue;
                 }
                 playfield.deactivateLn(miss.column, miss.noteIndex - 1);
-                if (miss.points.noteRemoved) {
-                    playfield.removeNote(miss.column, miss.noteIndex);
-                } else {
-                    playfield.markLnEndAsMissed(miss.column, miss.noteIndex);
-                }
+                playfield.markLnEndAsMissed(miss.column, miss.noteIndex);
             }
         }
         function onLnEndSkipped(skips) {

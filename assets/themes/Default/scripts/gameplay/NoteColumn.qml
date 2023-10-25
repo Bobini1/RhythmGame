@@ -30,15 +30,11 @@ Item {
         missedLnEnds[index] = true;
     }
     function removeNote(index: int) {
-        if (column.notes[index].type === Note.Type.LongNoteBegin) {
+        if (column.notes[index].type === Note.Type.LongNoteBegin || column.notes[index].type === Note.Type.LongNoteEnd) {
             return;
         }
         let count = 1;
         let offset = index - column.erasedNoteIndex;
-        if (column.notes[index].type === Note.Type.LongNoteEnd) {
-            count = 2;
-            offset--;
-        }
         column.erasedNoteIndex += count;
         column.visibleNoteIndex -= count;
         column.visibleNoteIndex = Math.max(0, column.visibleNoteIndex);
@@ -88,7 +84,7 @@ Item {
 
             height: column.noteHeight
             source: root.iniImagesUrl + "default.png/" + getTypeString() + column.color
-            visible: column.notes[note].type === Note.Type.LongNoteBegin || column.notes[note].type === Note.Type.LongNoteEnd
+            visible: false
             width: parent.width
             y: notePosition - height / 2
 
@@ -127,14 +123,16 @@ Item {
                     break;
                 }
                 if (column.missedLnEnds[column.erasedNoteIndex + count]) {
-                    notesModel.remove(count - 1, 2);
-                    column.erasedNoteIndex += 2;
+                    notesModel.remove(count, 1);
+                    column.erasedNoteIndex += 1;
+                    column.visibleNoteIndex -= 1;
                     continue;
                 }
                 let item = noteRepeater.itemAt(count);
                 item.y = Math.min(column.chartPosition - item.height / 2, item.y);
                 count++;
             }
+            column.visibleNoteIndex = Math.max(0, column.visibleNoteIndex - count);
             let visibleNoteIndex = column.visibleNoteIndex;
             count = 0;
             while (visibleNoteIndex + count < noteRepeater.count) {
