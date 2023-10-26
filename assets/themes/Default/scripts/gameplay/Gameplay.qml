@@ -52,6 +52,8 @@ Rectangle {
     }
     property double playfieldHeight: 800
     property string rootUrl: globalRoot.urlToPath(Qt.resolvedUrl(".").toString())
+    // copying visibleNotes to js array is faster than accessing it directly
+    readonly property var visibleNotes: chart.notes.visibleNotes
 
     color: "black"
 

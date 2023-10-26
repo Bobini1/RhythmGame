@@ -48,7 +48,7 @@ Rectangle {
 
             // take only the columns specified in the columns property
             model: playfield.columns.map(function (column) {
-                    return chart.notes.visibleNotes[column];
+                    return root.visibleNotes[column];
                 })
 
             NoteColumn {

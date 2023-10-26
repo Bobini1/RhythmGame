@@ -81,26 +81,4 @@ BmsNotes::save(db::SqliteCppDb& db, const support::Sha256& sha256) const -> void
     insertQuery.execute();
     insertQuery.reset();
 }
-auto
-BmsNotes::getVisibleNoteAt(int column, int row) const -> QVariant
-{
-    if (column < 0 || column >= visibleNotes.size()) {
-        return {};
-    }
-    if (row < 0 || row >= visibleNotes[column].size()) {
-        return {};
-    }
-    return QVariant::fromValue(visibleNotes[column][row]);
-}
-auto
-BmsNotes::getInvisibleNoteAt(int column, int row) const -> QVariant
-{
-    if (column < 0 || column >= invisibleNotes.size()) {
-        return {};
-    }
-    if (row < 0 || row >= invisibleNotes[column].size()) {
-        return {};
-    }
-    return QVariant::fromValue(invisibleNotes[column][row]);
-}
 } // namespace gameplay_logic
