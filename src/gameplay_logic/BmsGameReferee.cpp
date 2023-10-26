@@ -161,7 +161,7 @@ gameplay_logic::BmsGameReferee::update(std::chrono::nanoseconds offsetFromStart,
     auto mineHits = QVector<MineHit>{};
     for (auto columnIndex = 0; columnIndex < currentVisibleNotes.size();
          columnIndex++) {
-        auto column = visibleNotes[columnIndex];
+        auto& column = visibleNotes[columnIndex];
         auto newMisses = hitRules->getMissesAndLnEndHits(
           column, currentVisibleNotes[columnIndex], offsetFromStart);
         for (auto [points, noteIndex, lnEndSkip] : newMisses.first) {
