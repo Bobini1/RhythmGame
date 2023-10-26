@@ -138,6 +138,17 @@ createNoteInfo(
     return { timestamp, fraction };
 }
 
+auto
+getLastNote(std::vector<BmsNotesData::Note>& target)
+{
+    auto last = target.rbegin();
+    while (last != target.rend() &&
+           last->noteType == BmsNotesData::NoteType::Landmine) {
+        last++;
+    }
+    return last;
+}
+
 void
 calculateOffsetsForColumn(
   std::span<const std::vector<std::string>> notes,
@@ -162,7 +173,7 @@ calculateOffsetsForColumn(
             auto noteType = BmsNotesData::NoteType::Normal;
             if (lnObj.has_value() && note == lnObj.value()) {
                 // we don't ever want two ln ends in a row
-                if (auto lastNote = target.rbegin();
+                if (auto lastNote = getLastNote(target);
                     lastNote != target.rend() &&
                     lastNote->noteType != BmsNotesData::NoteType::LongNoteEnd) {
                     noteType = BmsNotesData::NoteType::LongNoteEnd;
@@ -321,14 +332,36 @@ calculateOffsetsForLnRdm(
 }
 
 void
+addLnEndsMgq(
+  std::vector<BmsNotesData::Note>& target,
+  const std::map<std::pair<double, BpmChangeType>,
+                 std::pair<double, BmsNotesData::Time>>& bpmChangesInMeasure,
+  double meter,
+  bool& insideLn)
+{
+    if (insideLn) {
+        if (insideLn) {
+            auto [timestamp, fraction] =
+              createNoteInfo({ "00" }, bpmChangesInMeasure, 0, meter);
+            target.emplace_back(BmsNotesData::Note{
+              timestamp,
+              "00",
+              { fraction * meter * BmsNotesData::defaultBeatsPerMeasure,
+                meter * BmsNotesData::defaultBeatsPerMeasure },
+              BmsNotesData::NoteType::LongNoteEnd });
+            insideLn = false;
+        }
+    }
+}
+
+void
 calculateOffsetsForLnMgq(
   std::span<const std::vector<std::string>> notes,
   std::vector<BmsNotesData::Note>& target,
   const std::map<std::pair<double, BpmChangeType>,
                  std::pair<double, BmsNotesData::Time>>& bpmChangesInMeasure,
   double meter,
-  bool& insideLn,
-  bool last)
+  bool& insideLn)
 {
     if (notes.empty()) {
         return;
@@ -362,17 +395,6 @@ calculateOffsetsForLnMgq(
               BmsNotesData::NoteType::LongNoteBegin });
             insideLn = true;
         }
-    }
-    if (insideLn && last) {
-        auto [timestamp, fraction] =
-          createNoteInfo(notes[0], bpmChangesInMeasure, index + 1, meter);
-        target.emplace_back(BmsNotesData::Note{
-          timestamp,
-          "00",
-          { fraction * meter * BmsNotesData::defaultBeatsPerMeasure,
-            meter * BmsNotesData::defaultBeatsPerMeasure },
-          BmsNotesData::NoteType::LongNoteEnd });
-        insideLn = false;
     }
 }
 
@@ -422,7 +444,6 @@ calculateOffsetsForLandmine(
             auto gcd = std::gcd(index, static_cast<int>(definition.size()));
             auto [timestamp, fraction] =
               createNoteInfo(definition, bpmChangesInMeasure, index, meter);
-            auto noteType = BmsNotesData::NoteType::Normal;
             notesMap[{ index / gcd,
                        static_cast<int>(definition.size()) / gcd }] =
               BmsNotesData::Note{
@@ -535,7 +556,8 @@ void
 removeInvalidNotes(
   std::array<std::vector<BmsNotesData::Note>, BmsNotesData::columnNumber> notes)
 {
-    for (auto& column : notes) {
+    for (auto columnIndex = 0; columnIndex < notes.size(); columnIndex++) {
+        auto& column = notes[columnIndex];
         auto insideLn = false;
         std::erase_if(column, [&insideLn](const auto& note) {
             auto valid =
@@ -550,28 +572,6 @@ removeInvalidNotes(
             }
             return !valid;
         });
-    }
-}
-
-void
-initializeLastMeasureWithLn(
-  const std::map<int64_t, parser_models::ParsedBmsChart::Measure>& measures,
-  std::array<int64_t, parser_models::ParsedBmsChart::Measure::columnNumber>&
-    lastMeasureWithLnP1,
-  std::array<int64_t, parser_models::ParsedBmsChart::Measure::columnNumber>&
-    lastMeasureWithLnP2)
-{
-    for (const auto& [measureIndex, measure] : measures) {
-        for (auto i = 0;
-             i < parser_models::ParsedBmsChart::Measure::columnNumber;
-             i++) {
-            if (!measure.p1LongNotes[i].empty()) {
-                lastMeasureWithLnP1[i] = measureIndex;
-            }
-            if (!measure.p2LongNotes[i].empty()) {
-                lastMeasureWithLnP2[i] = measureIndex;
-            }
-        }
     }
 }
 
@@ -607,17 +607,6 @@ BmsNotesData::generateMeasures(
       std::array<bool, parser_models::ParsedBmsChart::Measure::columnNumber>{};
     auto insideLnP2 =
       std::array<bool, parser_models::ParsedBmsChart::Measure::columnNumber>{};
-
-    auto lastMeasureWithLnP1 =
-      std::array<int64_t,
-                 parser_models::ParsedBmsChart::Measure::columnNumber>{};
-    auto lastMeasureWithLnP2 =
-      std::array<int64_t,
-                 parser_models::ParsedBmsChart::Measure::columnNumber>{};
-    if (lnType == LnType::MGQ) {
-        initializeLastMeasureWithLn(
-          measures, lastMeasureWithLnP1, lastMeasureWithLnP2);
-    }
     auto lastInsertedRdmNoteP1 =
       std::array<std::optional<size_t>,
                  parser_models::ParsedBmsChart::Measure::columnNumber>{};
@@ -626,6 +615,9 @@ BmsNotesData::generateMeasures(
                  parser_models::ParsedBmsChart::Measure::columnNumber>{};
     for (const auto& [measureIndex, measure] : measures) {
         auto currentMeasure = measureIndex;
+        if (lnType == LnType::MGQ && currentMeasure > lastMeasure + 1) {
+            adjustMgqLnEnds(lastBpm, measureStart, insideLnP1, insideLnP2);
+        }
         fillEmptyMeasures(lastMeasure, currentMeasure, measureStart, lastBpm);
         auto bpmChangesInMeasure =
           std::map<std::pair<double, BpmChangeType>, std::pair<double, Time>>{
@@ -716,20 +708,16 @@ BmsNotesData::generateMeasures(
                   insideLnP2[columnMapping[i]],
                   lastInsertedRdmNoteP2[columnMapping[i]]);
             } else if (lnType == LnType::MGQ) {
-                calculateOffsetsForLnMgq(
-                  measure.p1LongNotes[columnMapping[i]],
-                  visibleNotes[i],
-                  bpmChangesInMeasure,
-                  meter,
-                  insideLnP1[columnMapping[i]],
-                  lastMeasureWithLnP1[columnMapping[i]] == currentMeasure);
-                calculateOffsetsForLnMgq(
-                  measure.p2LongNotes[columnMapping[i]],
-                  visibleNotes[i + columnMapping.size()],
-                  bpmChangesInMeasure,
-                  meter,
-                  insideLnP2[columnMapping[i]],
-                  lastMeasureWithLnP2[columnMapping[i]] == currentMeasure);
+                calculateOffsetsForLnMgq(measure.p1LongNotes[columnMapping[i]],
+                                         visibleNotes[i],
+                                         bpmChangesInMeasure,
+                                         meter,
+                                         insideLnP1[columnMapping[i]]);
+                calculateOffsetsForLnMgq(measure.p2LongNotes[columnMapping[i]],
+                                         visibleNotes[i + columnMapping.size()],
+                                         bpmChangesInMeasure,
+                                         meter,
+                                         insideLnP2[columnMapping[i]]);
             }
             calculateOffsetsForLandmine(measure.p1Landmines[columnMapping[i]],
                                         visibleNotes[i],
@@ -758,17 +746,48 @@ BmsNotesData::generateMeasures(
         measureStart = timestamp;
     }
     std::sort(bgmNotes.begin(), bgmNotes.end());
-    adjustRdmLongNotes(lastInsertedRdmNoteP1, lastInsertedRdmNoteP2);
+    if (lnType == LnType::RDM) {
+        adjustRdmLnEnds(lastInsertedRdmNoteP1, lastInsertedRdmNoteP2);
+    } else {
+        adjustMgqLnEnds(lastBpm, measureStart, insideLnP1, insideLnP2);
+    }
     for (auto& column : visibleNotes) {
         std::sort(
           column.begin(), column.end(), [](const auto& a, const auto& b) {
+              if (a.time.timestamp == b.time.timestamp) {
+                  return a.noteType < b.noteType;
+              }
               return a.time.timestamp < b.time.timestamp;
           });
     }
     removeInvalidNotes(visibleNotes);
 }
 void
-BmsNotesData::adjustRdmLongNotes(
+BmsNotesData::adjustMgqLnEnds(
+  double lastBpm,
+  BmsNotesData::Time measureStart,
+  std::array<bool, parser_models::ParsedBmsChart::Measure::columnNumber>&
+    insideLnP1,
+  std::array<bool, parser_models::ParsedBmsChart::Measure::columnNumber>&
+    insideLnP2)
+{
+    auto bpmChangesInMeasureTemp =
+      std::map<std::pair<double, BpmChangeType>, std::pair<double, Time>>{
+          { { 0.0, BpmChangeType::Normal }, { lastBpm, measureStart } }
+      };
+    for (auto i = 0; i < columnMapping.size(); i++) {
+        addLnEndsMgq(this->visibleNotes[i],
+                     bpmChangesInMeasureTemp,
+                     1,
+                     insideLnP1[columnMapping[i]]);
+        addLnEndsMgq(this->visibleNotes[i + columnMapping.size()],
+                     bpmChangesInMeasureTemp,
+                     1,
+                     insideLnP2[columnMapping[i]]);
+    }
+}
+void
+BmsNotesData::adjustRdmLnEnds(
   const std::array<std::optional<size_t>,
                    parser_models::ParsedBmsChart::Measure::columnNumber>&
     lastInsertedRdmNoteP1,
@@ -798,7 +817,7 @@ BmsNotesData::adjustRdmLongNotes(
 
 void
 BmsNotesData::fillEmptyMeasures(int64_t lastMeasure,
-                                int64_t& measureIndex,
+                                int64_t measureIndex,
                                 BmsNotesData::Time& measureStart,
                                 double lastBpm)
 {

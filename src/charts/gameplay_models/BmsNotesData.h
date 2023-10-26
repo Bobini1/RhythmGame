@@ -37,9 +37,9 @@ struct BmsNotesData
 
     enum class NoteType
     {
-        Normal,
-        LongNoteEnd,
         LongNoteBegin,
+        LongNoteEnd,
+        Normal,
         Landmine
     };
 
@@ -83,16 +83,23 @@ struct BmsNotesData
       LnType lnType,
       std::optional<std::string> lnObj);
     void fillEmptyMeasures(int64_t lastMeasure,
-                           int64_t& measureIndex,
+                           int64_t measureIndex,
                            BmsNotesData::Time& measureStart,
                            double lastBpm);
-    void adjustRdmLongNotes(
+    void adjustRdmLnEnds(
       const std::array<std::optional<size_t>,
                        parser_models::ParsedBmsChart::Measure::columnNumber>&
         lastInsertedRdmNoteP1,
       const std::array<std::optional<size_t>,
                        parser_models::ParsedBmsChart::Measure::columnNumber>&
         lastInsertedRdmNoteP2);
+    void adjustMgqLnEnds(
+      double lastBpm,
+      BmsNotesData::Time measureStart,
+      std::array<bool, parser_models::ParsedBmsChart::Measure::columnNumber>&
+        insideLnP1,
+      std::array<bool, parser_models::ParsedBmsChart::Measure::columnNumber>&
+        insideLnP2);
 };
 } // namespace charts::gameplay_models
 #endif // RHYTHMGAME_BMSNOTESDATA_H
