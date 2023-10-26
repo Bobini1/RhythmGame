@@ -106,8 +106,6 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
         auto assetsFolder = resource_managers::findAssetsFolder();
 
 #if defined(Q_OS_WIN)
-        QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
-
         const auto app = QGuiApplication{ __argc, __argv };
 #else
         const auto app = QGuiApplication{ argc, argv };
