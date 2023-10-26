@@ -148,6 +148,9 @@ class BmsNotes : public QObject
 
     [[nodiscard]] auto getVisibleNotes() const -> const QVector<QVector<Note>>&;
 
+    Q_INVOKABLE QVariant getVisibleNoteAt(int column, int row) const;
+    Q_INVOKABLE QVariant getInvisibleNoteAt(int column, int row) const;
+
     [[nodiscard]] auto getInvisibleNotes() const
       -> const QVector<QVector<Note>>&;
 

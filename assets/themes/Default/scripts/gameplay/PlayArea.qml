@@ -259,7 +259,7 @@ Item {
             }
             if (tap.points.noteRemoved) {
                 let item = explosions.itemAt(playArea.columnsReversedMapping[tap.column]);
-                if (chart.notes.visibleNotes[tap.column][tap.noteIndex].type === Note.Type.LongNoteBegin) {
+                if (chart.notes.getVisibleNoteAt(tap.column, tap.noteIndex).type === Note.Type.LongNoteBegin) {
                     item.ln = true;
                 }
                 item.restart();
