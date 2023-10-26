@@ -242,7 +242,7 @@ gameplay_logic::rules::StandardBmsHitRules::lnReleaseHit(
             continue;
         }
         if (!std::holds_alternative<rules::BmsHitRules::LnEnd>(*iter)) {
-            continue;
+            return std::nullopt;
         }
         auto& lnEnd = std::get<rules::BmsHitRules::LnEnd>(*iter);
         auto noteTime = lnEnd.time;
