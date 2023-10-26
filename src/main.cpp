@@ -133,7 +133,7 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
           std::make_shared<spdlog::sinks::stdout_color_sink_mt>());
 
         // set global log level to debug
-        // spdlog::set_level(spdlog::level::debug);
+        spdlog::set_level(spdlog::level::debug);
         spdlog::set_default_logger(logger);
 
         auto db = db::SqliteCppDb{ support::pathToQString(
