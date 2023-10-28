@@ -6,6 +6,7 @@ PathView {
     id: pathView
 
     property var current: model[currentIndex]
+    property string currentFolder: "/"
     // we need to keep a reference to ChartDatas, otherwise they will be garbage collected
     property var folder: []
     readonly property bool movingInAnyWay: movingManually || flicking || moving || dragging
@@ -34,6 +35,7 @@ PathView {
                 folder.push(folder[i % length]);
             }
             pathView.folder = folder;
+            pathView.currentFolder = item;
             pathView.positionViewAtIndex(0, PathView.Center);
         }
     }
@@ -92,7 +94,7 @@ PathView {
         incrementViewIndex();
     }
     Keys.onLeftPressed: {
-        let parentFolder = SongFolderFactory.parentFolder(current);
+        let parentFolder = SongFolderFactory.parentFolder(currentFolder);
         if (parentFolder) {
             open(parentFolder);
         } else {
