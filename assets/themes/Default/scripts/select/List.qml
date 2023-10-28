@@ -7,8 +7,8 @@ PathView {
 
     property var current: model[currentIndex]
     property string currentFolder: "/"
-    // we need to keep a reference to ChartDatas, otherwise they will be garbage collected
-    property var folder: []
+    // we need to keep references to ChartDatas, otherwise they will be garbage collected
+    property var folderContents: []
     readonly property bool movingInAnyWay: movingManually || flicking || moving || dragging
     property bool movingManually: false
     property bool scrollingText: false
@@ -29,13 +29,15 @@ PathView {
             globalRoot.openChart(item.path);
         } else {
             let folder = SongFolderFactory.open(item);
+            pathView.folderContents = folder;
+            folder = folder.slice();
             let length = folder.length;
             let limit = Math.max(length, pathItemCount);
             for (let i = length; i < limit; i++) {
                 folder.push(folder[i % length]);
             }
-            pathView.folder = folder;
             pathView.currentFolder = item;
+            pathView.model = folder;
             pathView.positionViewAtIndex(0, PathView.Center);
         }
     }
@@ -43,7 +45,6 @@ PathView {
     dragMargin: 200
     focus: true
     highlightMoveDuration: 100
-    model: folder
     pathItemCount: 16
     preferredHighlightBegin: 0.499999999
     preferredHighlightEnd: 0.5

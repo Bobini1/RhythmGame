@@ -21,7 +21,7 @@ Image {
         return clearType;
     }
     function refreshScores() {
-        scores = ScoreDb.getScoresForChart(display.sha256);
+        scores = ScoreDb.getScoresForChart(modelData.sha256);
         clearType = getClearType();
     }
 

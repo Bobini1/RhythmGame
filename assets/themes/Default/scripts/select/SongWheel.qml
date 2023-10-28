@@ -68,7 +68,7 @@ FocusScope {
         onActiveChanged: {
             if (active) {
                 previewDelayTimer.restart();
-                let currentChart = songList.currentItem;
+                let currentChart = songList.currentItem.children[0];
                 if (typeof currentChart.refreshScores === 'function') {
                     currentChart.refreshScores();
                 }
