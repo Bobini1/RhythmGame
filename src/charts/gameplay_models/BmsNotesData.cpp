@@ -569,6 +569,8 @@ removeInvalidNotes(
             } else if (valid &&
                        note.noteType == BmsNotesData::NoteType::LongNoteEnd) {
                 insideLn = false;
+            } else if (!valid) {
+                spdlog::warn("Invalid: note inside LN");
             }
             return !valid;
         });
