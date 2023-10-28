@@ -1,10 +1,13 @@
 import QtQuick
 import RhythmGameQml
+import QtQml.Models
 
 PathView {
     id: pathView
 
-    property var current: model.at(currentIndex)
+    property var current: model[currentIndex]
+    // we need to keep a reference to ChartDatas, otherwise they will be garbage collected
+    property var folder: []
     readonly property bool movingInAnyWay: movingManually || flicking || moving || dragging
     property bool movingManually: false
     property bool scrollingText: false
@@ -24,13 +27,21 @@ PathView {
             console.info("Opening chart " + item.path);
             globalRoot.openChart(item.path);
         } else {
-            model.model = SongFolderFactory.open(item);
+            let folder = SongFolderFactory.open(item);
+            let length = folder.length;
+            let limit = Math.max(length, pathItemCount);
+            for (let i = length; i < limit; i++) {
+                folder.push(folder[i % length]);
+            }
+            pathView.folder = folder;
+            pathView.positionViewAtIndex(0, PathView.Center);
         }
     }
 
     dragMargin: 200
     focus: true
     highlightMoveDuration: 100
+    model: folder
     pathItemCount: 16
     preferredHighlightBegin: 0.499999999
     preferredHighlightEnd: 0.5
@@ -42,18 +53,7 @@ PathView {
         property bool isCurrentItem: PathView.isCurrentItem
         property bool scrollingText: pathView.scrollingText
 
-        source: display instanceof ChartData ? "Chart.qml" : "Folder.qml"
-    }
-    model: CycleModel {
-        minimumAmount: pathItemCount
-        model: SongFolderFactory.open("/")
-
-        onModelChanged: {
-            pathView.positionViewAtIndex(0, PathView.Center);
-            pathView.current = Qt.binding(function () {
-                    return model.at(currentIndex);
-                });
-        }
+        source: modelData instanceof ChartData ? "Chart.qml" : "Folder.qml"
     }
     path: Path {
         id: path
@@ -86,23 +86,24 @@ PathView {
     }
 
     Component.onCompleted: {
-        positionViewAtIndex(0, PathView.Center);
+        open("/");
     }
     Keys.onDownPressed: {
         incrementViewIndex();
     }
     Keys.onLeftPressed: {
-        if (model.model.parentFolder) {
-            open(model.model.parentFolder);
+        let parentFolder = SongFolderFactory.parentFolder(current);
+        if (parentFolder) {
+            open(parentFolder);
         } else {
             sceneStack.pop();
         }
     }
     Keys.onReturnPressed: {
-        open(model.at(currentIndex));
+        open(current);
     }
     Keys.onRightPressed: {
-        open(model.at(currentIndex));
+        open(current);
     }
     Keys.onUpPressed: {
         decrementViewIndex();
@@ -118,7 +119,7 @@ PathView {
         interval: 500
 
         onTriggered: {
-            scrollingText = true;
+            pathView.scrollingText = true;
         }
     }
     Timer {

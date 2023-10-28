@@ -255,8 +255,6 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
           "RhythmGameQml", 1, 0, "BmsScore");
         qmlRegisterType<gameplay_logic::BmsNotes>(
           "RhythmGameQml", 1, 0, "BmsNotes");
-        qmlRegisterType<qml_components::Folder>(
-          "RhythmGameQml", 1, 0, "Folder");
         qmlRegisterType<resource_managers::Profile>(
           "RhythmGameQml", 1, 0, "BmsProfile");
         qmlRegisterType<gameplay_logic::BmsScoreAftermath>(

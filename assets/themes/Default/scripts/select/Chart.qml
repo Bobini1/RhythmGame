@@ -6,7 +6,7 @@ Image {
     id: image
 
     property string clearType: getClearType()
-    property list<BmsResult> scores: ScoreDb.getScoresForChart(display.sha256)
+    property list<BmsResult> scores: ScoreDb.getScoresForChart(modelData.sha256)
     property bool scrollingText: parent.scrollingText
 
     function getClearType() {
@@ -45,16 +45,16 @@ Image {
         anchors.bottomMargin: 10
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.horizontalCenterOffset: -270
-        number: Math.min(display.playLevel, 99)
-        srcBeforeDecimal: root.iniImagesUrl + "parts.png/s_" + root.getDiffColorInt(display.difficulty) + "_"
+        number: Math.min(modelData.playLevel, 99)
+        srcBeforeDecimal: root.iniImagesUrl + "parts.png/s_" + root.getDiffColorInt(modelData.difficulty) + "_"
     }
     NameLabel {
         anchors.right: parent.right
         anchors.rightMargin: 30
-        color: (display.keymode === ChartData.Keymode.K14) ? "red" : "black"
+        color: (modelData.keymode === ChartData.Keymode.K14) ? "red" : "black"
         height: parent.height
         scrolling: isCurrentItem && parent.scrollingText
-        text: display.title + (display.subtitle ? (" " + display.subtitle) : "")
+        text: modelData.title + (modelData.subtitle ? (" " + modelData.subtitle) : "")
         width: parent.width * 0.7
     }
     MouseArea {

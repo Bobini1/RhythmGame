@@ -100,8 +100,6 @@ qt_add_library(RhythmGame_lib OBJECT src/db/SqliteCppDb.cpp src/db/SqliteCppDb.h
         src/support/PathToUtfString.h
         src/support/UtfStringToPath.cpp
         src/support/UtfStringToPath.h
-        src/qml_components/Folder.cpp
-        src/qml_components/Folder.h
         src/qml_components/SongFolderFactory.cpp
         src/qml_components/SongFolderFactory.h
         src/qml_components/ChartLoader.cpp

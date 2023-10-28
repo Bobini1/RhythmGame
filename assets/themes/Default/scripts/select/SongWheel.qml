@@ -7,8 +7,6 @@ import QtQml
 
 FocusScope {
     focus: StackView.status === StackView.Active
-    height: parent.height
-    width: parent.width
 
     Image {
         id: root
@@ -18,7 +16,7 @@ FocusScope {
         readonly property string iniImagesUrl: "image://ini/" + rootUrl + "images/"
         property string rootUrl: globalRoot.urlToPath(Qt.resolvedUrl(".").toString())
         property BmsResult scoreWithBestPoints: {
-            let scores = songList.current instanceof ChartData ? songList.currentItem.children[0].scores : [];
+            let scores = songList.current instanceof ChartData && songList.currentItem ? songList.currentItem.children[0].scores : [];
             let bestPoints = 0;
             let bestScore = null;
             for (let score of scores) {
@@ -70,7 +68,7 @@ FocusScope {
         onActiveChanged: {
             if (active) {
                 previewDelayTimer.restart();
-                let currentChart = songList.currentItem.children[0];
+                let currentChart = songList.currentItem;
                 if (typeof currentChart.refreshScores === 'function') {
                     currentChart.refreshScores();
                 }

@@ -6,7 +6,7 @@ Image {
 
     asynchronous: true
     source: {
-        let currentItem = songList.model.at(songList.currentIndex);
+        let currentItem = songList.currentItem
         if (!(currentItem instanceof ChartData) || currentItem.stageFile === "") {
             return "";
         }
