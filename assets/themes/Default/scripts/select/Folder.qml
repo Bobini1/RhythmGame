@@ -20,7 +20,7 @@ Image {
 
         onClicked: {
             pathView.currentIndex = index;
-            pathView.open(display);
+            pathView.open(modelData);
         }
     }
 }
