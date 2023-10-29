@@ -61,6 +61,7 @@ FocusScope {
             }
         }
 
+        fillMode: Image.PreserveAspectCrop
         height: parent.height
         source: root.imagesUrl + "bg.png"
         width: parent.width
