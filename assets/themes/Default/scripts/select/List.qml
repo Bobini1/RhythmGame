@@ -7,12 +7,21 @@ PathView {
 
     property var current: model[currentIndex]
     property string currentFolder: "/"
+    property var filter: null
     // we need to keep references to ChartDatas, otherwise they will be garbage collected
     property var folderContents: []
     readonly property bool movingInAnyWay: movingManually || flicking || moving || dragging
     property bool movingManually: false
     property bool scrollingText: false
+    property var sort: null
 
+    function addToMinimumCount(input) {
+        let length = input.length;
+        let limit = Math.max(length, pathItemCount);
+        for (let i = length; i < limit; i++) {
+            input.push(input[i % length]);
+        }
+    }
     function decrementViewIndex() {
         decrementCurrentIndex();
         movingTimer.restart();
@@ -27,18 +36,57 @@ PathView {
         if (item instanceof ChartData) {
             console.info("Opening chart " + item.path);
             globalRoot.openChart(item.path);
-        } else {
+        } else if (item) {
             let folder = SongFolderFactory.open(item);
             pathView.folderContents = folder;
-            folder = folder.slice();
-            let length = folder.length;
-            let limit = Math.max(length, pathItemCount);
-            for (let i = length; i < limit; i++) {
-                folder.push(folder[i % length]);
-            }
+            folder = sortFilter(folder);
+            addToMinimumCount(folder);
             pathView.currentFolder = item;
             pathView.model = folder;
-            pathView.positionViewAtIndex(0, PathView.Center);
+            pathView.positionViewAtIndex(1, PathView.Center);
+        }
+    }
+    function search(query) {
+        let results = SongFolderFactory.search(query);
+        if (!results.length) {
+            console.info("Search returned no results");
+            return;
+        }
+        pathView.folderContents = results;
+        results = sortFilter(results);
+        addToMinimumCount(results);
+        pathView.currentFolder = pathView.currentFolder + "search/";
+        pathView.model = results;
+        pathView.positionViewAtIndex(1, PathView.Center);
+    }
+    function sortFilter(input) {
+        let resultFolders = [];
+        let resultCharts = [];
+        for (let item of input) {
+            if (item instanceof ChartData) {
+                if (filter && !filter(item))
+                    continue;
+                resultCharts.push(item);
+            } else {
+                resultFolders.push(item);
+            }
+        }
+        if (sort) {
+            resultCharts.sort(sort);
+        }
+        return resultFolders.concat(resultCharts);
+    }
+    function sortOrFilterChanged() {
+        if (folderContents.length) {
+            let old = pathView.current;
+            let sortedFiltered = sortFilter(folderContents);
+            addToMinimumCount(sortedFiltered);
+            let currentIdx = sortedFiltered.indexOf(old);
+            pathView.model = sortedFiltered;
+            if (currentIdx >= 0)
+                pathView.positionViewAtIndex(currentIdx + 1, PathView.Center);
+            else
+                pathView.positionViewAtIndex(1, PathView.Center);
         }
     }
 
@@ -113,6 +161,12 @@ PathView {
     onCurrentItemChanged: {
         scrollingTextTimer.restart();
         scrollingText = false;
+    }
+    onFilterChanged: {
+        sortOrFilterChanged();
+    }
+    onSortChanged: {
+        sortOrFilterChanged();
     }
 
     Timer {

@@ -6,11 +6,11 @@ Image {
 
     asynchronous: true
     source: {
-        let currentItem = songList.currentItem
-        if (!(currentItem instanceof ChartData) || currentItem.stageFile === "") {
+        let current = songList.current;
+        if (!(current instanceof ChartData) || current.stageFile === "") {
             return "";
         }
-        let stageFile = "file://" + currentItem.directory + currentItem.stageFile;
+        let stageFile = "file://" + current.directory + current.stageFile;
         return FileValidator.exists(stageFile) ? stageFile : "";
     }
     sourceSize.height: 450

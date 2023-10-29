@@ -56,4 +56,28 @@ SongFolderFactory::parentFolder(QString path)
     parent.remove(lastSlashIndex + 1, parent.size() - lastSlashIndex - 1);
     return parent;
 }
+QVariantList
+SongFolderFactory::search(QString query)
+{
+    auto folder = QVariantList{};
+    auto queryStd = query.toStdString();
+    auto queryLike = "%" + queryStd + "%";
+    searchFolders.reset();
+    searchFolders.bind(1, queryLike);
+    auto result = searchFolders.executeAndGetAll<std::string>();
+    for (const auto& row : result) {
+        folder.append(QString::fromStdString(row));
+    }
+    searchCharts.reset();
+    searchCharts.bind(":query", queryLike);
+    auto chartResult =
+      searchCharts.executeAndGetAll<gameplay_logic::ChartData::DTO>();
+    for (const auto& row : chartResult) {
+        auto loadedChart = gameplay_logic::ChartData::load(row);
+        QQmlEngine::setObjectOwnership(loadedChart.get(),
+                                       QQmlEngine::JavaScriptOwnership);
+        folder.append(QVariant::fromValue(loadedChart.release()));
+    }
+    return folder;
+}
 } // namespace qml_components

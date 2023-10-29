@@ -5,24 +5,13 @@ import RhythmGameQml
 Image {
     id: image
 
-    property string clearType: getClearType()
+    property string clearType: root.getClearType(scores)
     property list<BmsResult> scores: ScoreDb.getScoresForChart(modelData.sha256)
     property bool scrollingText: parent.scrollingText
 
-    function getClearType() {
-        let clearTypePriorities = ["NOPLAY", "FAILED", "AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC", "PERFECT", "MAX"];
-        let clearType = "NOPLAY";
-        for (let i = 0; i < scores.length; i++) {
-            let score = scores[i];
-            if (clearTypePriorities.indexOf(score.clearType) > clearTypePriorities.indexOf(clearType)) {
-                clearType = score.clearType;
-            }
-        }
-        return clearType;
-    }
     function refreshScores() {
         scores = ScoreDb.getScoresForChart(modelData.sha256);
-        clearType = getClearType();
+        clearType = root.getClearType(scores);
     }
 
     asynchronous: true

@@ -12,7 +12,7 @@ Image {
         color: "black"
         height: parent.height
         scrolling: isCurrentItem && parent.scrollingText
-        text: modelData
+        text: modelData || "- EMPTY -"
         width: parent.width * 0.7
     }
     MouseArea {
