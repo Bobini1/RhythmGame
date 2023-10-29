@@ -41,6 +41,23 @@ PathView {
             pathView.positionViewAtIndex(0, PathView.Center);
         }
     }
+    function search(query) {
+        let results = SongFolderFactory.search(query);
+        if (!results.length) {
+            console.info("Search returned no results");
+            return;
+        }
+        pathView.folderContents = results;
+        results = results.slice();
+        let length = results.length;
+        let limit = Math.max(length, pathItemCount);
+        for (let i = length; i < limit; i++) {
+            results.push(results[i % length]);
+        }
+        pathView.currentFolder = pathView.currentFolder + "search/";
+        pathView.model = results;
+        pathView.positionViewAtIndex(0, PathView.Center);
+    }
 
     dragMargin: 200
     highlightMoveDuration: 100

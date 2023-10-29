@@ -243,6 +243,12 @@ FocusScope {
                     font.pixelSize: 20
                     height: 25
                     width: 540
+
+                    Keys.onReturnPressed: {
+                        songList.search(searchEdit.text);
+                        searchEdit.text = "";
+                        songList.focus = true;
+                    }
                 }
             }
             MouseArea {
