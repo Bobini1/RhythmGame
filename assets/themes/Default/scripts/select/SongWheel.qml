@@ -150,6 +150,7 @@ FocusScope {
                 anchors.rightMargin: 43
                 anchors.top: parent.top
                 anchors.topMargin: -40
+                focus: true
                 height: parent.height
                 width: parent.width / 2
             }
@@ -221,6 +222,39 @@ FocusScope {
                 anchors.left: parent.left
                 anchors.leftMargin: 80
                 spacing: 40
+            }
+            Image {
+                id: search
+
+                anchors.bottom: parent.bottom
+                anchors.bottomMargin: 5
+                anchors.left: parent.left
+                anchors.leftMargin: 48
+                source: root.iniImagesUrl + "parts.png/search"
+
+                TextEdit {
+                    id: searchEdit
+
+                    anchors.bottom: parent.bottom
+                    anchors.bottomMargin: 17
+                    anchors.left: parent.left
+                    anchors.leftMargin: 48
+                    color: "white"
+                    font.pixelSize: 20
+                    height: 25
+                    width: 540
+                }
+            }
+            MouseArea {
+                id: focusList
+
+                anchors.fill: parent
+                enabled: root.active
+                z: -1
+
+                onClicked: {
+                    songList.focus = true;
+                }
             }
         }
     }

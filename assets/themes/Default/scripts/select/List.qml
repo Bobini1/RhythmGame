@@ -43,7 +43,6 @@ PathView {
     }
 
     dragMargin: 200
-    focus: true
     highlightMoveDuration: 100
     pathItemCount: 16
     preferredHighlightBegin: 0.499999999
