@@ -5,7 +5,7 @@ Image {
     id: sortButton
 
     property int current: 0
-    property var options: ["Title", "Artist", "BPM", "Clear", "Score"]
+    property var options: ["Title", "Artist", "BPM", "Clear", "Score", "Level", "Total"]
 
     source: root.iniImagesUrl + "option.png/button_big"
 
@@ -59,6 +59,15 @@ Image {
                     return (score2.points / score2.maxPoints) - (score1.points / score1.maxPoints);
                 };
                 break;
+            case "Level":
+                songList.sort = function (a, b) {
+                    return a.playLevel - b.playLevel;
+                };
+                break;
+            case "Total":
+                songList.sort = function (a, b) {
+                    return a.total - b.total;
+                };
             default:
                 console.log("Unknown sort type: " + currentSort);
             }
