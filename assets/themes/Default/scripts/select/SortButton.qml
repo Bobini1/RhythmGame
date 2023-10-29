@@ -16,6 +16,13 @@ Image {
         text: "Sort: " + sortButton.options[sortButton.current]
     }
     MouseArea {
+        function compareByTitle(a, b) {
+            let res = a.title.localeCompare(b.title);
+            if (res !== 0) {
+                return res;
+            }
+            return a.subtitle.localeCompare(b.subtitle);
+        }
         function setSort() {
             let currentSort = sortButton.options[sortButton.current];
             switch (currentSort) {
@@ -24,12 +31,24 @@ Image {
                 break;
             case "Artist":
                 songList.sort = function (a, b) {
-                    return a.artist.localeCompare(b.artist);
+                    let res = a.artist.localeCompare(b.artist);
+                    if (res !== 0) {
+                        return res;
+                    }
+                    res = a.subartist.localeCompare(b.subartist);
+                    if (res !== 0) {
+                        return res;
+                    }
+                    return compareByTitle(a, b);
                 };
                 break;
             case "BPM":
                 songList.sort = function (a, b) {
-                    return a.initialBpm - b.initialBpm;
+                    let res = a.initialBpm - b.initialBpm;
+                    if (res !== 0) {
+                        return res;
+                    }
+                    return compareByTitle(a, b);
                 };
                 break;
             case "Clear":
@@ -38,7 +57,11 @@ Image {
                     let scores2 = ScoreDb.getScoresForChart(b.sha256);
                     let clearType1 = root.getClearType(scores1);
                     let clearType2 = root.getClearType(scores2);
-                    return root.clearTypePriorities.indexOf(clearType2) - root.clearTypePriorities.indexOf(clearType1);
+                    let res = root.clearTypePriorities.indexOf(clearType2) - root.clearTypePriorities.indexOf(clearType1);
+                    if (res !== 0) {
+                        return res;
+                    }
+                    return compareByTitle(a, b);
                 };
                 break;
             case "Score":
@@ -56,20 +79,30 @@ Image {
                     if (!score2) {
                         return -1;
                     }
-                    return (score2.points / score2.maxPoints) - (score1.points / score1.maxPoints);
+                    let res = (score2.points / score2.maxPoints) - (score1.points / score1.maxPoints);
+                    if (res !== 0) {
+                        return res;
+                    }
+                    return compareByTitle(a, b);
                 };
                 break;
             case "Level":
                 songList.sort = function (a, b) {
-                    return a.playLevel - b.playLevel;
+                    let res = a.playLevel - b.playLevel;
+                    if (res !== 0) {
+                        return res;
+                    }
+                    return compareByTitle(a, b);
                 };
                 break;
             case "Total":
                 songList.sort = function (a, b) {
-                    return a.total - b.total;
+                    let res = a.total - b.total;
+                    if (res !== 0) {
+                        return res;
+                    }
+                    return compareByTitle(a, b);
                 };
-            default:
-                console.log("Unknown sort type: " + currentSort);
             }
         }
 
