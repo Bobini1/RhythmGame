@@ -38,7 +38,7 @@ Row {
         }
         ScoreInfoLine {
             source: root.iniImagesUrl + "parts.png/total_notes"
-            text: songList.current instanceof ChartData ? songList.current.noteCount : 0
+            text: songList.current instanceof ChartData ? songList.current.normalNoteCount + songList.current.lnCount : 0
         }
         ScoreInfoLine {
             source: root.iniImagesUrl + "parts.png/miss_count"

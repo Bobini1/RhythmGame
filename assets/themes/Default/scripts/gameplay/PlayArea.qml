@@ -3,6 +3,7 @@ import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
 import Qt5Compat.GraphicalEffects
+import RhythmGameQml
 
 Item {
     id: playArea
@@ -28,15 +29,17 @@ Item {
     Playfield {
         id: playfield
 
-        border.color: "black"
-        border.width: 10
         columns: playArea.columns
         spacing: playArea.spacing
-        y: chart.position * root.greenNumber + parent.height
+        y: Math.floor(chart.position * root.greenNumber + parent.height)
+        z: 1
     }
     Row {
         id: laserRow
 
+        function hideLaser(index) {
+            laserRow.children[playArea.columnsReversedMapping[index]].stop();
+        }
         function shootLaser(index) {
             laserRow.children[playArea.columnsReversedMapping[index]].start();
         }
@@ -62,16 +65,65 @@ Item {
         anchors.centerIn: parent
     }
     Connections {
-        function onHit(tap) {
+        function onLnEndHit(tap) {
             if (playArea.columns.indexOf(tap.column) === -1) {
                 return;
             }
-            laserRow.shootLaser(tap.column);
-            if (tap.noteIndex !== -1) {
-                if (tap.removesNote) {
-                    playfield.removeNote(tap.column, tap.noteIndex);
+            playfield.markLnEndAsMissed(tap.column, tap.noteIndex);
+        }
+        function onLnEndMissed(misses) {
+            for (let miss of misses) {
+                if (playArea.columns.indexOf(miss.column) === -1) {
+                    continue;
                 }
+                playfield.deactivateLn(miss.column, miss.noteIndex - 1);
+                playfield.markLnEndAsMissed(miss.column, miss.noteIndex);
             }
+        }
+        function onLnEndSkipped(skips) {
+            for (let skip of skips) {
+                if (playArea.columns.indexOf(skip.column) === -1) {
+                    continue;
+                }
+                playfield.markLnEndAsMissed(skip.column, skip.noteIndex);
+            }
+        }
+        function onMinesHit(hits) {
+            for (let hit of hits) {
+                if (playArea.columns.indexOf(hit.column) === -1) {
+                    continue;
+                }
+                playfield.removeNote(hit.column, hit.noteIndex);
+            }
+        }
+        function onMissed(misses) {
+            for (let miss of misses) {
+                if (playArea.columns.indexOf(miss.column) === -1) {
+                    continue;
+                }
+                playfield.removeNote(miss.column, miss.noteIndex);
+            }
+        }
+        function onNoteHit(tap) {
+            if (playArea.columns.indexOf(tap.column) === -1) {
+                return;
+            }
+            if (tap.points.noteRemoved) {
+                playfield.removeNote(tap.column, tap.noteIndex);
+                playfield.activateLn(tap.column, tap.noteIndex);
+            }
+        }
+        function onPressed(columnIndex) {
+            if (playArea.columns.indexOf(columnIndex) === -1) {
+                return;
+            }
+            laserRow.shootLaser(columnIndex);
+        }
+        function onReleased(columnIndex) {
+            if (playArea.columns.indexOf(columnIndex) === -1) {
+                return;
+            }
+            laserRow.hideLaser(columnIndex);
         }
 
         target: chart.score
@@ -80,10 +132,14 @@ Item {
         id: playAreaBg
 
         anchors.fill: parent
-        // this is so that we can blend with glow
-        layer.enabled: true
         z: -1
 
+        BarLinePositioner {
+            barLines: chart.notes.barLines
+            heightMultiplier: root.greenNumber
+            width: parent.width
+            y: Math.floor(chart.position * root.greenNumber + parent.height)
+        }
         Repeater {
             id: columnSeparators
 
@@ -129,18 +185,88 @@ Item {
         id: glow
 
         anchors.bottom: parent.bottom
+        opacity: (Math.abs(chart.position % 1) > 0.5 ? Math.abs(chart.position % 1) : 1 - Math.abs(chart.position % 1)) * 0.2 + 0.1
         source: root.imagesUrl + "glow.png"
-        visible: false
+        visible: true
         width: parent.width
         z: -1
     }
-    Blend {
-        anchors.fill: glow
-        foregroundSource: glow
-        mode: "addition"
-        opacity: (Math.abs(chart.position % 1) > 0.5 ? Math.abs(chart.position % 1) : 1 - Math.abs(chart.position % 1)) * 0.2 + 0.1
-        source: playAreaBg
-        z: -1
+    Repeater {
+        id: explosions
+
+        model: playArea.columns.length
+
+        Item {
+            id: bombWrapper
+
+            property bool ln: false
+
+            function restart() {
+                bomb.restart();
+            }
+
+            anchors.bottom: parent.bottom
+            width: root.columnSizes[playfield.columns[index]]
+            x: {
+                let cpos = 0;
+                for (let i = 0; i < index; i++) {
+                    cpos += root.columnSizes[playfield.columns[i]];
+                }
+                return cpos + index * playArea.spacing;
+            }
+            z: 1
+
+            AnimatedSprite {
+                id: bomb
+
+                anchors.centerIn: parent
+                finishBehavior: AnimatedSprite.FinishAtFinalFrame
+                frameCount: bombWrapper.ln ? 8 : 16
+                frameDuration: 25
+                frameHeight: 600
+                frameWidth: 600
+                frameY: bombWrapper.ln ? 0 : 600
+                height: 300
+                loops: bombWrapper.ln ? AnimatedSprite.Infinite : 1
+                running: false
+                source: root.imagesUrl + "explosion.png"
+                visible: running
+                width: 300
+            }
+        }
+    }
+    Connections {
+        function onLnEndHit(hit) {
+            if (playArea.columns.indexOf(hit.column) === -1) {
+                return;
+            }
+            let item = explosions.itemAt(playArea.columnsReversedMapping[hit.column]);
+            item.ln = false;
+            item.restart();
+        }
+        function onLnEndMissed(misses) {
+            for (let miss of misses) {
+                if (playArea.columns.indexOf(miss.column) === -1) {
+                    continue;
+                }
+                let item = explosions.itemAt(playArea.columnsReversedMapping[miss.column]);
+                item.ln = false;
+            }
+        }
+        function onNoteHit(tap) {
+            if (playArea.columns.indexOf(tap.column) === -1) {
+                return;
+            }
+            if (tap.points.noteRemoved) {
+                let item = explosions.itemAt(playArea.columnsReversedMapping[tap.column]);
+                if (root.visibleNotes[tap.column][tap.noteIndex].type === Note.Type.LongNoteBegin) {
+                    item.ln = true;
+                }
+                item.restart();
+            }
+        }
+
+        target: chart.score
     }
 }
 

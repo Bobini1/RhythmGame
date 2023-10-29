@@ -47,7 +47,16 @@ charts::parser_models::ParsedBmsChart::mergeTags(
     if (second.difficulty.has_value()) {
         first.difficulty = second.difficulty;
     }
+    if (second.lnObj.has_value()) {
+        first.lnObj = std::move(second.lnObj);
+    }
+    if (second.lnType.has_value()) {
+        first.lnType = second.lnType;
+    }
     for (auto& [key, value] : second.exBpms) {
+        first.exBpms[key] = value;
+    }
+    for (auto& [key, value] : second.stops) {
         first.exBpms[key] = value;
     }
     for (auto& [key, value] : second.wavs) {
@@ -98,6 +107,18 @@ charts::parser_models::ParsedBmsChart::mergeTags(
                   std::move(definition));
             }
         }
+        for (auto column = 0; column < measure.p1Landmines.size(); ++column) {
+            for (auto& definition : measure.p1Landmines[column]) {
+                firstMeasure.p1Landmines[column].push_back(
+                  std::move(definition));
+            }
+        }
+        for (auto column = 0; column < measure.p2Landmines.size(); ++column) {
+            for (auto& definition : measure.p2Landmines[column]) {
+                firstMeasure.p2Landmines[column].push_back(
+                  std::move(definition));
+            }
+        }
         for (auto& definition : measure.bgaBase) {
             firstMeasure.bgaBase.push_back(std::move(definition));
         }
@@ -118,6 +139,9 @@ charts::parser_models::ParsedBmsChart::mergeTags(
         }
         for (auto& definition : measure.exBpmChanges) {
             firstMeasure.exBpmChanges.push_back(std::move(definition));
+        }
+        for (auto& definition : measure.stops) {
+            firstMeasure.stops.push_back(std::move(definition));
         }
         if (measure.meter.has_value()) {
             firstMeasure.meter = measure.meter;

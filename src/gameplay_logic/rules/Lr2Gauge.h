@@ -26,6 +26,11 @@ class Lr2Gauge : public BmsGauge
       QObject* parent = nullptr);
     void addHit(std::chrono::nanoseconds offsetFromStart,
                 std::chrono::nanoseconds hitOffset) override;
+    void addMineHit(std::chrono::nanoseconds offsetFromStart,
+                    double penalty) override;
+    void addHoldEndHit(std::chrono::nanoseconds offsetFromStart,
+                       std::chrono::nanoseconds hitOffset) override;
+    void addHoldEndMiss(std::chrono::nanoseconds offsetFromStart) override;
 
     static auto getGauges(gameplay_logic::rules::TimingWindows timingWindows,
                           double total,

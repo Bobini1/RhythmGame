@@ -106,8 +106,6 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
         auto assetsFolder = resource_managers::findAssetsFolder();
 
 #if defined(Q_OS_WIN)
-        QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
-
         const auto app = QGuiApplication{ __argc, __argv };
 #else
         const auto app = QGuiApplication{ argc, argv };
@@ -133,7 +131,7 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
           std::make_shared<spdlog::sinks::stdout_color_sink_mt>());
 
         // set global log level to debug
-        // spdlog::set_level(spdlog::level::debug);
+        spdlog::set_level(spdlog::level::debug);
         spdlog::set_default_logger(logger);
 
         auto db = db::SqliteCppDb{ support::pathToQString(
@@ -251,14 +249,12 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
         qmlRegisterType<gameplay_logic::Chart>("RhythmGameQml", 1, 0, "Chart");
         qmlRegisterType<gameplay_logic::ChartData>(
           "RhythmGameQml", 1, 0, "ChartData");
-        qmlRegisterType<gameplay_logic::rules::BmsGauge>(
-          "RhythmGameQml", 1, 0, "BmsGauge");
+        qmlRegisterUncreatableType<gameplay_logic::rules::BmsGauge>(
+          "RhythmGameQml", 1, 0, "BmsGauge", "BmsGauge is abstract");
         qmlRegisterType<gameplay_logic::BmsScore>(
           "RhythmGameQml", 1, 0, "BmsScore");
         qmlRegisterType<gameplay_logic::BmsNotes>(
           "RhythmGameQml", 1, 0, "BmsNotes");
-        qmlRegisterType<qml_components::Folder>(
-          "RhythmGameQml", 1, 0, "Folder");
         qmlRegisterType<resource_managers::Profile>(
           "RhythmGameQml", 1, 0, "BmsProfile");
         qmlRegisterType<gameplay_logic::BmsScoreAftermath>(
@@ -282,6 +278,8 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
                                          0,
                                          "Judgement",
                                          "Access to enums & flags only");
+        qmlRegisterUncreatableType<gameplay_logic::Note>(
+          "RhythmGameQml", 1, 0, "Note", "Note is created in C++");
 
         engine.addImageProvider("ini",
                                 new resource_managers::IniImageProvider{});

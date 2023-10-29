@@ -7,7 +7,8 @@
 
 #include <QObject>
 #include <QtQmlIntegration>
-#include "Folder.h"
+#include "db/SqliteCppDb.h"
+
 namespace qml_components {
 
 class SongFolderFactory : public QObject
@@ -29,8 +30,9 @@ class SongFolderFactory : public QObject
 
   public:
     explicit SongFolderFactory(db::SqliteCppDb* db, QObject* parent = nullptr);
-    Q_INVOKABLE Folder* open(QString path);
+    Q_INVOKABLE QVariantList open(QString path);
     Q_INVOKABLE int folderSize(QString path);
+    Q_INVOKABLE QString parentFolder(QString path);
 };
 
 } // namespace qml_components

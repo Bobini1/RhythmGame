@@ -18,6 +18,7 @@
 namespace gameplay_logic::rules {
 class StandardBmsHitRules : public BmsHitRules
 {
+  protected:
     TimingWindows timingWindows;
     std::function<double(std::chrono::nanoseconds)> hitValueFactory;
 
@@ -30,15 +31,24 @@ class StandardBmsHitRules : public BmsHitRules
                         std::chrono::nanoseconds hitOffset)
       -> std::optional<HitResult> override;
 
-    auto getMisses(std::span<NoteType> notes,
-                   int& currentNoteIndex,
-                   std::chrono::nanoseconds offsetFromStart)
-      -> std::vector<MissData> override;
+    auto getMissesAndLnEndHits(std::span<NoteType> notes,
+                               int& currentNoteIndex,
+                               std::chrono::nanoseconds offsetFromStart)
+      -> std::pair<std::vector<MissData>, std::vector<HitResult>> override;
+    auto mineHit(std::span<NoteType> notes,
+                 int currentNoteIndex,
+                 std::chrono::nanoseconds offsetFromStart)
+      -> std::vector<MineHitData> override;
+    auto lnReleaseHit(std::span<NoteType> notes,
+                      int currentNoteIndex,
+                      std::chrono::nanoseconds hitOffset)
+      -> std::optional<HitResult> override;
 
-    auto invisibleNoteHit(std::span<NoteType> notes,
+    auto invisibleNoteHit(std::span<Note> notes,
                           int currentNoteIndex,
-                          std::chrono::nanoseconds hitOffset) -> bool override;
-    void skipInvisible(std::span<NoteType> notes,
+                          std::chrono::nanoseconds hitOffset)
+      -> std::optional<int> override;
+    void skipInvisible(std::span<Note> notes,
                        int& currentNoteIndex,
                        std::chrono::nanoseconds offsetFromStart) override;
 };

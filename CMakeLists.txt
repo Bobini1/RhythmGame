@@ -68,10 +68,8 @@ qt_add_library(RhythmGame_lib OBJECT src/db/SqliteCppDb.cpp src/db/SqliteCppDb.h
         src/gameplay_logic/ChartData.h
         src/gameplay_logic/Chart.cpp
         src/gameplay_logic/Chart.h
-        src/gameplay_logic/Tap.cpp
-        src/gameplay_logic/Tap.h
-        src/gameplay_logic/Miss.cpp
-        src/gameplay_logic/Miss.h
+        src/gameplay_logic/HitEvent.cpp
+        src/gameplay_logic/HitEvent.h
         src/resource_managers/ChartDataFactory.cpp
         src/resource_managers/ChartDataFactory.h
         src/gameplay_logic/BmsNotes.cpp
@@ -102,8 +100,6 @@ qt_add_library(RhythmGame_lib OBJECT src/db/SqliteCppDb.cpp src/db/SqliteCppDb.h
         src/support/PathToUtfString.h
         src/support/UtfStringToPath.cpp
         src/support/UtfStringToPath.h
-        src/qml_components/Folder.cpp
-        src/qml_components/Folder.h
         src/qml_components/SongFolderFactory.cpp
         src/qml_components/SongFolderFactory.h
         src/qml_components/ChartLoader.cpp
@@ -143,7 +139,11 @@ qt_add_library(RhythmGame_lib OBJECT src/db/SqliteCppDb.cpp src/db/SqliteCppDb.h
         src/qml_components/CycleModel.cpp
         src/qml_components/CycleModel.h
         src/qml_components/Bga.cpp
-        src/qml_components/Bga.h)
+        src/qml_components/Bga.h
+        src/gameplay_logic/MineHit.cpp
+        src/gameplay_logic/MineHit.h
+        src/gameplay_logic/rules/CnHitRules.cpp
+        src/gameplay_logic/rules/CnHitRules.h)
 
 find_package(Threads REQUIRED)
 

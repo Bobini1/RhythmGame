@@ -143,8 +143,12 @@ using wav_t = std::pair<std::string, std::string>;
 BOOST_STRONG_TYPEDEF(wav_t, Wav);
 using bmp_t = std::pair<std::string, std::string>;
 BOOST_STRONG_TYPEDEF(bmp_t, Bmp);
+BOOST_STRONG_TYPEDEF(std::string, LnObj);
+BOOST_STRONG_TYPEDEF(int, LnType);
 using pair_t = std::pair<std::string, double>;
 BOOST_STRONG_TYPEDEF(pair_t, ExBpm);
+using stop_t = std::pair<std::string, double>;
+BOOST_STRONG_TYPEDEF(stop_t, Stop);
 using meter_t = std::pair<int64_t, double>;
 BOOST_STRONG_TYPEDEF(meter_t, Meter);
 
@@ -313,6 +317,28 @@ struct BmpTag
       });
 };
 
+struct LnObjTag
+{
+    static constexpr auto rule = [] {
+        auto lnObjTag = dsl::ascii::case_folding(LEXY_LIT("#lnobj"));
+        return lnObjTag >> dsl::p<Identifier>;
+    }();
+    static constexpr auto value =
+      lexy::callback<LnObj>([](std::string&& identifier) {
+          return LnObj{ { std::move(identifier) } };
+      });
+};
+
+struct LnTypeTag
+{
+    static constexpr auto rule = [] {
+        auto lnTypeTag = dsl::ascii::case_folding(LEXY_LIT("#lntype"));
+        return lnTypeTag >> dsl::capture(dsl::lit_c<'1'> / dsl::lit_c<'2'>);
+    }();
+    static constexpr auto value = lexy::callback<LnType>(
+      [](auto&& num) { return LnType{ static_cast<int>(num[0] - '0') }; });
+};
+
 struct ExBpmTag
 {
     static constexpr auto rule = [] {
@@ -324,6 +350,19 @@ struct ExBpmTag
     static constexpr auto value =
       lexy::callback<ExBpm>([](std::string identifier, double num) {
           return ExBpm{ { std::move(identifier), num } };
+      });
+};
+
+struct StopTag
+{
+    static constexpr auto rule = [] {
+        auto stopTag =
+          dsl::ascii::case_folding(LEXY_LIT("#stop")) + dsl::p<Identifier>;
+        return dsl::peek(stopTag) >> (stopTag + dsl::p<FloatingPoint>);
+    }();
+    static constexpr auto value =
+      lexy::callback<Stop>([](std::string identifier, double num) {
+          return Stop{ { std::move(identifier), num } };
       });
 };
 
@@ -399,12 +438,28 @@ struct TagsSink
         {
             state.difficulty = static_cast<int>(difficulty);
         }
+        auto operator()(LnObj&& lnObj) -> void
+        {
+            state.lnObj = std::move(static_cast<std::string&>(lnObj));
+        }
+        auto operator()(LnType&& lnType) -> void
+        {
+            state.lnType = static_cast<int>(lnType);
+        }
         auto operator()(ExBpm&& bpm) -> void
         {
             auto& [identifier, value] =
               static_cast<std::pair<std::string, double>&>(bpm);
             if (value != 0.0) {
                 state.exBpms[identifier] = value;
+            }
+        }
+        auto operator()(Stop&& stop) -> void
+        {
+            auto& [identifier, value] =
+              static_cast<std::pair<std::string, double>&>(stop);
+            if (value != 0.0) {
+                state.stops[identifier] = value;
             }
         }
         auto operator()(parser_models::ParsedBmsChart::Tags&& randomBlock)
@@ -450,6 +505,8 @@ struct TagsSink
                 P2Invisible = 4,
                 P1LongNote = 5,
                 P2LongNote = 6,
+                P1Landmine = 0xD,
+                P2Landmine = 0xE
             };
             enum GeneralSubcategory
             {
@@ -490,6 +547,10 @@ struct TagsSink
                             break;
                         case ExBpm:
                             state.measures[measure].exBpmChanges =
+                              std::move(identifiers);
+                            break;
+                        case Stop:
+                            state.measures[measure].stops =
                               std::move(identifiers);
                             break;
                         case BgaBase:
@@ -543,6 +604,16 @@ struct TagsSink
                              channelSubcategory,
                              std::move(identifiers));
                     break;
+                case P1Landmine:
+                    addNotes(state.measures[measure].p1Landmines,
+                             channelSubcategory,
+                             std::move(identifiers));
+                    break;
+                case P2Landmine:
+                    addNotes(state.measures[measure].p2Landmines,
+                             channelSubcategory,
+                             std::move(identifiers));
+                    break;
                 default:
                     spdlog::debug("Unknown channel: {:02d}", channel);
                     break;
@@ -564,11 +635,12 @@ struct MainTags
         return term.list(dsl::try_(
           dsl::unicode::newline | dsl::p<MeterTag> | dsl::p<MeasureBasedTag> |
             dsl::p<WavTag> | dsl::p<BmpTag> | dsl::p<ExBpmTag> |
-            dsl::p<TitleTag> | dsl::p<ArtistTag> | dsl::p<GenreTag> |
-            dsl::p<StageFileTag> | dsl::p<BannerTag> | dsl::p<BackBmpTag> |
-            dsl::p<SubtitleTag> | dsl::p<SubartistTag> | dsl::p<TotalTag> |
-            dsl::p<RankTag> | dsl::p<PlayLevelTag> | dsl::p<DifficultyTag> |
-            dsl::p<BpmTag> | dsl::recurse_branch<RandomBlock>,
+            dsl::p<StopTag> | dsl::p<TitleTag> | dsl::p<ArtistTag> |
+            dsl::p<GenreTag> | dsl::p<StageFileTag> | dsl::p<BannerTag> |
+            dsl::p<BackBmpTag> | dsl::p<SubtitleTag> | dsl::p<SubartistTag> |
+            dsl::p<TotalTag> | dsl::p<RankTag> | dsl::p<PlayLevelTag> |
+            dsl::p<DifficultyTag> | dsl::p<BpmTag> | dsl::p<LnObjTag> |
+            dsl::p<LnTypeTag> | dsl::recurse_branch<RandomBlock>,
           dsl::until(dsl::unicode::newline).or_eof()));
     }();
     static constexpr auto value = TagsSink{};
@@ -586,12 +658,13 @@ struct OrphanizedRandomCommonPart
                term.list(dsl::try_(
                  dsl::unicode::newline | dsl::p<MeterTag> |
                    dsl::p<MeasureBasedTag> | dsl::p<WavTag> | dsl::p<BmpTag> |
-                   dsl::p<ExBpmTag> | dsl::p<TitleTag> | dsl::p<ArtistTag> |
-                   dsl::p<GenreTag> | dsl::p<StageFileTag> | dsl::p<BannerTag> |
-                   dsl::p<BackBmpTag> | dsl::p<SubtitleTag> |
-                   dsl::p<SubartistTag> | dsl::p<TotalTag> | dsl::p<RankTag> |
-                   dsl::p<PlayLevelTag> | dsl::p<DifficultyTag> |
-                   dsl::p<BpmTag>,
+                   dsl::p<ExBpmTag> | dsl::p<StopTag> | dsl::p<TitleTag> |
+                   dsl::p<ArtistTag> | dsl::p<GenreTag> | dsl::p<StageFileTag> |
+                   dsl::p<BannerTag> | dsl::p<BackBmpTag> |
+                   dsl::p<SubtitleTag> | dsl::p<SubartistTag> |
+                   dsl::p<TotalTag> | dsl::p<RankTag> | dsl::p<PlayLevelTag> |
+                   dsl::p<DifficultyTag> | dsl::p<BpmTag> | dsl::p<LnObjTag> |
+                   dsl::p<LnTypeTag>,
                  dsl::until(dsl::unicode::newline).or_eof()));
     }();
     static constexpr auto value = TagsSink{};

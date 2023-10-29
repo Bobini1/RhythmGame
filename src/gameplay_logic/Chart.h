@@ -28,6 +28,8 @@ class Chart : public QObject
     Q_PROPERTY(int64_t timeAfterChartEnd READ getTimeAfterChartEnd CONSTANT)
     Q_PROPERTY(qml_components::BgaContainer* bga READ getBga NOTIFY loaded)
 
+    std::array<bool, charts::gameplay_models::BmsNotesData::columnNumber>
+      keyStates;
     QTimer propertyUpdateTimer;
 #ifdef _WIN32
     clock_t startTimepointClk;
@@ -74,7 +76,12 @@ class Chart : public QObject
 
     Q_INVOKABLE void start();
 
-    void passKey(QKeyEvent* keyEvent);
+    enum class EventType
+    {
+        KeyPress,
+        KeyRelease
+    };
+    void passKey(QKeyEvent* keyEvent, EventType eventType);
 
     Q_INVOKABLE BmsScoreAftermath* finish();
 

@@ -2,13 +2,13 @@
 // Created by bobini on 22.08.23.
 //
 
-#ifndef RHYTHMGAME_TAP_H
-#define RHYTHMGAME_TAP_H
+#ifndef RHYTHMGAME_HITEVENT_H
+#define RHYTHMGAME_HITEVENT_H
 #include <QObject>
 #include <QVariant>
 #include "BmsPoints.h"
 namespace gameplay_logic {
-class Tap
+class HitEvent
 {
     // nanoseconds
     using DeltaTime = int64_t;
@@ -24,11 +24,11 @@ class Tap
     int column;
 
   public:
-    Tap(int column,
-        std::optional<int> noteIndex,
-        DeltaTime offsetFromStart,
-        std::optional<BmsPoints> points);
-    Tap() = default;
+    HitEvent(int column,
+             std::optional<int> noteIndex,
+             DeltaTime offsetFromStart,
+             std::optional<BmsPoints> points);
+    HitEvent() = default;
 
     auto getOffsetFromStart() const -> DeltaTime;
     // if the tap did not hit a note, this returns null
@@ -38,9 +38,10 @@ class Tap
     // if the tap did not hit a note, this returns -1
     auto getNoteIndex() const -> int;
 
-    friend auto operator<<(QDataStream& stream, const Tap& tap) -> QDataStream&;
-    friend auto operator>>(QDataStream& stream, Tap& tap) -> QDataStream&;
+    friend auto operator<<(QDataStream& stream, const HitEvent& tap)
+      -> QDataStream&;
+    friend auto operator>>(QDataStream& stream, HitEvent& tap) -> QDataStream&;
 };
 } // namespace gameplay_logic
 
-#endif // RHYTHMGAME_TAP_H
+#endif // RHYTHMGAME_HITEVENT_H

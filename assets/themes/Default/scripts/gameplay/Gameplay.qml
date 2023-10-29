@@ -5,6 +5,7 @@ import QtQuick.Layouts
 import RhythmGameQml
 import QtQuick.Controls.Basic
 import QtMultimedia
+import Qt5Compat.GraphicalEffects
 
 Rectangle {
     id: root
@@ -37,27 +38,28 @@ Rectangle {
         }
         return images;
     }
-    property list<string> noteImages: {
+    property list<string> noteColors: {
         let images = [];
         for (let i = 0; i < 16; i++) {
             if (i === 7 || i === 15)
-                images.push(iniImagesUrl + "default.png/note_red");
+                images.push("red");
             else if (i % 2 === 0)
-                images.push(iniImagesUrl + "default.png/note_white");
+                images.push("white");
             else
-                images.push(iniImagesUrl + "default.png/note_black");
+                images.push("black");
         }
         return images;
     }
     property double playfieldHeight: 800
     property string rootUrl: globalRoot.urlToPath(Qt.resolvedUrl(".").toString())
+    // copying visibleNotes to js array is faster than accessing it directly
+    readonly property var visibleNotes: chart.notes.visibleNotes
 
     color: "black"
 
     // destroy chart when this component is unloaded
     Component.onDestruction: {
         chart.destroy();
-        gc();
     }
 
     Timer {
@@ -66,15 +68,15 @@ Rectangle {
         interval: 400
 
         onTriggered: {
-            poorLayer.visible = false;
+            bga.poorVisible = false;
         }
     }
     Connections {
         function onLoaded() {
-            chart.bga.layers[0].videoSink = videoOutput.videoSink;
-            chart.bga.layers[1].videoSink = videoLayer.videoSink;
-            chart.bga.layers[2].videoSink = videoLayer2.videoSink;
-            chart.bga.layers[3].videoSink = poorLayer.videoSink;
+            chart.bga.layers[0].videoSink = bga.baseSink;
+            chart.bga.layers[1].videoSink = bga.layerSink;
+            chart.bga.layers[2].videoSink = bga.layer2Sink;
+            chart.bga.layers[3].videoSink = bga.poorSink;
             chart.start();
         }
         function onOver() {
@@ -84,6 +86,8 @@ Rectangle {
         target: chart
     }
     Rectangle {
+        id: scaledRoot
+
         anchors.centerIn: parent
         color: "black"
         height: 1080
@@ -160,9 +164,12 @@ Rectangle {
                 }
             }
             Connections {
-                function onHit(tap) {
-                    if (!tap.points)
-                        return;
+                function onMissed() {
+                    judgementCounts.itemAt(4).num++;
+                    bga.poorVisible = true;
+                    poorLayerTimer.restart();
+                }
+                function onNoteHit(tap) {
                     switch (tap.points.judgement) {
                     case Judgement.Perfect:
                         judgementCounts.itemAt(0).num++;
@@ -175,77 +182,27 @@ Rectangle {
                         break;
                     case Judgement.Bad:
                         judgementCounts.itemAt(3).num++;
-                        poorLayer.visible = true;
+                        bga.poorVisible = true;
                         poorLayerTimer.restart();
                         break;
                     case Judgement.EmptyPoor:
                         judgementCounts.itemAt(5).num++;
-                        poorLayer.visible = true;
+                        bga.poorVisible = true;
                         poorLayerTimer.restart();
                         break;
                     }
-                }
-                function onMissed() {
-                    judgementCounts.itemAt(4).num++;
-                    poorLayer.visible = true;
-                    poorLayerTimer.restart();
                 }
 
                 target: chart.score
             }
         }
-        VideoOutput {
-            id: videoOutput
+        BgaRenderer {
+            id: bga
 
             anchors.left: judgementCountsContainer.right
             anchors.top: parent.top
-            fillMode: VideoOutput.PreserveAspectCrop
             height: 800
             width: 800
-        }
-        VideoOutput {
-            id: videoLayer
-
-            anchors.fill: videoOutput
-            fillMode: VideoOutput.PreserveAspectCrop
-            z: videoOutput.z + 1
-        }
-        VideoOutput {
-            id: videoLayer2
-
-            anchors.fill: videoOutput
-            fillMode: VideoOutput.PreserveAspectCrop
-            z: videoLayer.z + 1
-        }
-        ColorChanger {
-            anchors.fill: videoLayer
-            from: "black"
-            to: "transparent"
-            z: videoLayer.z
-
-            source: ShaderEffectSource {
-                hideSource: true
-                sourceItem: videoLayer
-            }
-        }
-        ColorChanger {
-            anchors.fill: videoLayer2
-            from: "black"
-            to: "transparent"
-            z: videoLayer2.z
-
-            source: ShaderEffectSource {
-                hideSource: true
-                sourceItem: videoLayer
-            }
-        }
-        VideoOutput {
-            id: poorLayer
-
-            anchors.fill: videoOutput
-            fillMode: VideoOutput.PreserveAspectCrop
-            visible: false
-            z: videoLayer2.z + 1
         }
     }
     Shortcut {

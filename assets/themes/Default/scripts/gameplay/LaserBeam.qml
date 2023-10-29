@@ -9,7 +9,12 @@ Item {
     property url image
 
     function start() {
-        laserBeamAnimation.complete();
+        laserBeamAnimation.stop();
+        laserBeam.width = wrapper.width;
+        laserBeam.height = wrapper.height;
+    }
+    function stop() {
+        laserBeam.duration = (laserBeam.width * 1.0 / wrapper.width) * 100;
         laserBeamAnimation.start();
     }
 
@@ -20,6 +25,8 @@ Item {
     Image {
         id: laserBeam
 
+        property int duration: 100
+
         anchors.bottom: parent.bottom
         anchors.horizontalCenter: parent.horizontalCenter
         height: 0
@@ -29,30 +36,15 @@ Item {
         SequentialAnimation {
             id: laserBeamAnimation
 
-            PropertyAction {
-                property: "width"
-                target: laserBeam
-                value: wrapper.width
-            }
-            PropertyAction {
-                property: "height"
-                target: laserBeam
-                value: wrapper.height
-            }
-            PauseAnimation {
-                duration: 100
-            }
             ParallelAnimation {
                 NumberAnimation {
-                    duration: 100
-                    from: wrapper.width
+                    duration: laserBeam.duration
                     property: "width"
                     target: laserBeam
                     to: 0
                 }
                 NumberAnimation {
-                    duration: 100
-                    from: wrapper.height
+                    duration: laserBeam.duration
                     property: "height"
                     target: laserBeam
                     to: 0

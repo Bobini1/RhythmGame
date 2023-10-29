@@ -35,12 +35,28 @@ struct BmsNotesData
         auto operator<=>(const Time& other) const = default;
     };
 
+    enum class NoteType
+    {
+        LongNoteBegin,
+        LongNoteEnd,
+        Normal,
+        Landmine
+    };
+
     struct Note
     {
         Time time;
         std::string sound;
         Snap snap;
+        NoteType noteType;
     };
+
+    enum class LnType
+    {
+        RDM = 1,
+        MGQ = 2
+    };
+
     static constexpr auto defaultBeatsPerMeasure = 4;
     static constexpr auto columnMapping =
       std::array{ 0, 1, 2, 3, 4, 7, 8, 5 }; // ignore "foot pedal"
@@ -55,18 +71,35 @@ struct BmsNotesData
     std::vector<std::pair<Time, double>> bpmChanges;
     std::vector<Time> barLines;
     static constexpr auto defaultBpm = 120.0;
+    static constexpr auto defaultLnType = LnType::RDM;
     explicit BmsNotesData(const parser_models::ParsedBmsChart& chart);
 
   private:
     void generateMeasures(
       double baseBpm,
       const std::map<std::string, double>& bpms,
-      const std::map<int64_t, parser_models::ParsedBmsChart::Measure>&
-        measures);
+      const std::map<std::string, double>& stops,
+      const std::map<int64_t, parser_models::ParsedBmsChart::Measure>& measures,
+      LnType lnType,
+      std::optional<std::string> lnObj);
     void fillEmptyMeasures(int64_t lastMeasure,
-                           int64_t& measureIndex,
+                           int64_t measureIndex,
                            BmsNotesData::Time& measureStart,
                            double lastBpm);
+    void adjustRdmLnEnds(
+      const std::array<std::optional<size_t>,
+                       parser_models::ParsedBmsChart::Measure::columnNumber>&
+        lastInsertedRdmNoteP1,
+      const std::array<std::optional<size_t>,
+                       parser_models::ParsedBmsChart::Measure::columnNumber>&
+        lastInsertedRdmNoteP2);
+    void adjustMgqLnEnds(
+      double lastBpm,
+      BmsNotesData::Time measureStart,
+      std::array<bool, parser_models::ParsedBmsChart::Measure::columnNumber>&
+        insideLnP1,
+      std::array<bool, parser_models::ParsedBmsChart::Measure::columnNumber>&
+        insideLnP2);
 };
 } // namespace charts::gameplay_models
 #endif // RHYTHMGAME_BMSNOTESDATA_H

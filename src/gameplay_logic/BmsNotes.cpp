@@ -6,6 +6,7 @@
 #include "BmsNotes.h"
 #include "support/Compress.h"
 #include <QIODevice>
+#include <QVariant>
 
 namespace gameplay_logic {
 auto

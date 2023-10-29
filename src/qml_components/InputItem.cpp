@@ -41,5 +41,13 @@ qml_components::InputItem::keyPressEvent(QKeyEvent* event)
     if (chart == nullptr) {
         return;
     }
-    chart->passKey(event);
+    chart->passKey(event, gameplay_logic::Chart::EventType::KeyPress);
+}
+void
+qml_components::InputItem::keyReleaseEvent(QKeyEvent* event)
+{
+    if (chart == nullptr) {
+        return;
+    }
+    chart->passKey(event, gameplay_logic::Chart::EventType::KeyRelease);
 }

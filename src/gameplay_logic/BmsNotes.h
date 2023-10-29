@@ -91,24 +91,36 @@ operator>>(QDataStream& stream, Snap& snap) -> QDataStream&
 class Note
 {
     Q_GADGET
+  public:
+    enum class Type
+    {
+        Normal,
+        LongNoteBegin,
+        LongNoteEnd,
+        Landmine
+    };
+    Q_ENUM(Type)
+  private:
     Q_PROPERTY(Time time MEMBER time)
     Q_PROPERTY(Snap snap MEMBER snap)
+    Q_PROPERTY(Type type MEMBER type)
   public:
     Time time;
     Snap snap;
+    Type type;
     auto operator<=>(const Note& other) const = default;
 };
 
 inline auto
 operator<<(QDataStream& stream, const Note& note) -> QDataStream&
 {
-    return stream << note.time << note.snap;
+    return stream << note.time << note.snap << note.type;
 }
 
 inline auto
 operator>>(QDataStream& stream, Note& note) -> QDataStream&
 {
-    return stream >> note.time >> note.snap;
+    return stream >> note.time >> note.snap >> note.type;
 }
 
 class BmsNotes : public QObject

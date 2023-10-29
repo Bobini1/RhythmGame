@@ -70,12 +70,28 @@ ChartDataFactory::convertToQVector(
     auto columnNotes = QVector<gameplay_logic::Note>{};
     columnNotes.reserve(column.size());
     for (const auto& note : column) {
+        auto type = gameplay_logic::Note::Type::Normal;
+        switch (note.noteType) {
+            case charts::gameplay_models::BmsNotesData::NoteType::Normal:
+                type = gameplay_logic::Note::Type::Normal;
+                break;
+            case charts::gameplay_models::BmsNotesData::NoteType::LongNoteEnd:
+                type = gameplay_logic::Note::Type::LongNoteEnd;
+                break;
+            case charts::gameplay_models::BmsNotesData::NoteType::LongNoteBegin:
+                type = gameplay_logic::Note::Type::LongNoteBegin;
+                break;
+            case charts::gameplay_models::BmsNotesData::NoteType::Landmine:
+                type = gameplay_logic::Note::Type::Landmine;
+                break;
+        }
         columnNotes.append(gameplay_logic::Note{
           { std::chrono::duration_cast<std::chrono::milliseconds>(
               note.time.timestamp)
               .count(),
             note.time.position },
-          { note.snap.numerator, note.snap.denominator } });
+          { note.snap.numerator, note.snap.denominator },
+          type });
     }
     return columnNotes;
 }
@@ -93,10 +109,6 @@ ChartDataFactory::loadChartData(
       chartReader.readBmsChart(chart, std::move(randomGenerator));
     auto calculatedNotesData =
       charts::gameplay_models::BmsNotesData{ parsedChart };
-    auto noteCount = 0;
-    for (const auto& column : calculatedNotesData.visibleNotes) {
-        noteCount += column.size();
-    }
     auto noteData = makeNotes(calculatedNotesData);
 
     auto lastNoteTimestamp = std::chrono::nanoseconds{ 0 };
@@ -136,6 +148,25 @@ ChartDataFactory::loadChartData(
             minBpm = bpmChange;
         }
     }
+    auto normalNotes = 0;
+    auto lnNotes = 0;
+    auto mineNotes = 0;
+    for (const auto& column : calculatedNotesData.visibleNotes) {
+        for (const auto& note : column) {
+            switch (note.noteType) {
+                case charts::gameplay_models::BmsNotesData::NoteType::Normal:
+                    normalNotes++;
+                    break;
+                case charts::gameplay_models::BmsNotesData::NoteType::
+                  LongNoteBegin:
+                    lnNotes++;
+                    break;
+                case charts::gameplay_models::BmsNotesData::NoteType::Landmine:
+                    mineNotes++;
+                    break;
+            }
+        }
+    }
     auto chartData = std::make_unique<gameplay_logic::ChartData>(
       QString::fromStdString(parsedChart.tags.title.value_or("")),
       QString::fromStdString(parsedChart.tags.artist.value_or("")),
@@ -150,7 +181,9 @@ ChartDataFactory::loadChartData(
       parsedChart.tags.playLevel.value_or(1),
       parsedChart.tags.difficulty.value_or(1),
       parsedChart.tags.isRandom,
-      noteCount,
+      normalNotes,
+      lnNotes,
+      mineNotes,
       lastNoteTimestamp.count(),
       initialBpm.second,
       maxBpm.second,

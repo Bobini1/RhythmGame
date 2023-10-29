@@ -12,7 +12,7 @@ Image {
         color: "black"
         height: parent.height
         scrolling: isCurrentItem && parent.scrollingText
-        text: display
+        text: modelData
         width: parent.width * 0.7
     }
     MouseArea {
@@ -20,7 +20,7 @@ Image {
 
         onClicked: {
             pathView.currentIndex = index;
-            pathView.open(display);
+            pathView.open(modelData);
         }
     }
 }

@@ -29,7 +29,6 @@ ApplicationWindow {
                 id: inputItem
 
                 chart: chartFocusScope.chart
-                focus: chartFocusScope.active
             }
             Loader {
                 id: loader

@@ -16,12 +16,31 @@ namespace gameplay_logic::rules {
 class BmsHitRules
 {
   public:
-    struct NoteType
+    struct Note
     {
         sounds::OpenALSound* sound;
         std::chrono::nanoseconds time;
         bool hit = false;
     };
+    struct Mine
+    {
+        std::chrono::nanoseconds time;
+        double penalty;
+        bool hit = false;
+    };
+    struct LnBegin
+    {
+        sounds::OpenALSound* sound;
+        std::chrono::nanoseconds time;
+        bool hit = false;
+    };
+    struct LnEnd
+    {
+        sounds::OpenALSound* sound;
+        std::chrono::nanoseconds time;
+        bool hit = false;
+    };
+    using NoteType = std::variant<Note, Mine, LnBegin, LnEnd>;
     struct HitResult
     {
         BmsPoints points;
@@ -29,9 +48,15 @@ class BmsHitRules
     };
     struct MissData
     {
-        std::chrono::nanoseconds offsetFromStart;
         BmsPoints points;
         int noteIndex;
+        std::optional<BmsPoints> lnEndSkip;
+    };
+    struct MineHitData
+    {
+        std::chrono::nanoseconds offsetFromStart;
+        int noteIndex;
+        double penalty;
     };
     virtual ~BmsHitRules() = default;
 
@@ -40,16 +65,27 @@ class BmsHitRules
                                 std::chrono::nanoseconds hitOffset)
       -> std::optional<HitResult> = 0;
 
-    virtual auto getMisses(std::span<NoteType> notes,
-                           int& currentNoteIndex,
-                           std::chrono::nanoseconds offsetFromStart)
-      -> std::vector<MissData> = 0;
+    virtual auto getMissesAndLnEndHits(std::span<NoteType> notes,
+                                       int& currentNoteIndex,
+                                       std::chrono::nanoseconds offsetFromStart)
+      -> std::pair<std::vector<MissData>, std::vector<HitResult>> = 0;
 
-    virtual auto invisibleNoteHit(std::span<NoteType> notes,
+    virtual auto invisibleNoteHit(std::span<Note> notes,
                                   int currentNoteIndex,
                                   std::chrono::nanoseconds hitOffset)
-      -> bool = 0;
-    virtual void skipInvisible(std::span<NoteType> notes,
+      -> std::optional<int> = 0;
+
+    virtual auto mineHit(std::span<NoteType> notes,
+                         int currentNoteIndex,
+                         std::chrono::nanoseconds hitOffset)
+      -> std::vector<MineHitData> = 0;
+
+    virtual auto lnReleaseHit(std::span<NoteType> notes,
+                              int currentNoteIndex,
+                              std::chrono::nanoseconds hitOffset)
+      -> std::optional<HitResult> = 0;
+
+    virtual void skipInvisible(std::span<Note> notes,
                                int& currentNoteIndex,
                                std::chrono::nanoseconds offsetFromStart) = 0;
 };

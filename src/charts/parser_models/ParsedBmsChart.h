@@ -37,6 +37,10 @@ struct ParsedBmsChart
           p1LongNotes;
         std::array<std::vector<std::vector<std::string>>, columnNumber>
           p2LongNotes;
+        std::array<std::vector<std::vector<std::string>>, columnNumber>
+          p1Landmines;
+        std::array<std::vector<std::vector<std::string>>, columnNumber>
+          p2Landmines;
         std::vector<std::vector<std::string>> bgaBase;
         std::vector<std::vector<std::string>> bgaPoor;
         std::vector<std::vector<std::string>> bgaLayer;
@@ -44,6 +48,7 @@ struct ParsedBmsChart
         std::vector<std::vector<std::string>> bgmNotes;
         std::vector<std::string> bpmChanges;   // old-school, FF = BPM is 255
         std::vector<std::string> exBpmChanges; // new, FF = #BPMFF
+        std::vector<std::string> stops;
         std::optional<double> meter;
     };
 
@@ -65,7 +70,10 @@ struct ParsedBmsChart
         std::optional<int> rank;
         std::optional<int> playLevel;
         std::optional<int> difficulty;
+        std::optional<std::string> lnObj;
+        std::optional<int> lnType;
         std::map<std::string, double> exBpms;
+        std::map<std::string, double> stops;
         std::map<std::string, std::string> wavs;
         std::map<std::string, std::string> bmps;
         std::map<int64_t, Measure> measures;
