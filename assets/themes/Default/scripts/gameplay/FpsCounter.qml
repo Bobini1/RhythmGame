@@ -12,19 +12,18 @@ Rectangle {
     property int frameCounterAvg: 0
 
     color: "black"
-    height: childrenRect.height + 10 * dp
+    height: (36 + 10) * dp
     width: childrenRect.width + 10 * dp
 
     Image {
         id: spinnerImage
 
         anchors.verticalCenter: parent.verticalCenter
-        height: width
-        source: "images/spinner.png"
+        height: 36 * dp
         width: 36 * dp
         x: 4 * dp
 
-        NumberAnimation on rotation  {
+        NumberAnimation on rotation {
             duration: 800
             loops: Animation.Infinite
             to: 360
