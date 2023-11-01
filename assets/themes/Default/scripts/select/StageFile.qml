@@ -25,7 +25,7 @@ Image {
             return;
         }
         if (status === Image.Error) {
-            let currentItem = songList.model.at(songList.currentIndex);
+            let currentItem = songList.current;
             console.warn("Could not load stagefile for " + currentItem.path + ":", currentItem.stageFile);
         }
     }

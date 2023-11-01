@@ -1,17 +1,18 @@
 import QtQuick
 import QtQuick.Layouts
 import RhythmGameQml
+import "../common/helpers.js" as Helpers
 
 Image {
     id: image
 
-    property string clearType: root.getClearType(scores)
+    property string clearType: Helpers.getClearType(scores)
     property list<BmsResult> scores: ScoreDb.getScoresForChart(modelData.sha256)
     property bool scrollingText: parent.scrollingText
 
     function refreshScores() {
         scores = ScoreDb.getScoresForChart(modelData.sha256);
-        clearType = root.getClearType(scores);
+        clearType = Helpers.getClearType(scores);
     }
 
     asynchronous: true

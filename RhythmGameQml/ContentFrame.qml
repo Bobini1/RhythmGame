@@ -45,7 +45,8 @@ ApplicationWindow {
             id: resultFocusScope
 
             readonly property bool active: StackView.status === StackView.Active
-            required property var result
+            required property ChartData chartData
+            required property BmsScoreAftermath result
 
             Loader {
                 id: loader
@@ -74,9 +75,10 @@ ApplicationWindow {
                     "chart": chart
                 });
         }
-        function openResult(result) {
+        function openResult(result, chartData) {
             sceneStack.push(resultComponent, {
-                    "result": result
+                    "result": result,
+                    "chartData": chartData
                 });
         }
         function urlToPath(urlString) {
