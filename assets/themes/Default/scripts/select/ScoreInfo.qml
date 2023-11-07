@@ -34,7 +34,7 @@ Row {
         }
         ScoreInfoLine {
             source: root.iniImagesUrl + "parts.png/combo"
-            text: root.scoreWithBestPoints !== null ? root.scoreWithBestPoints.maxCombo : 0
+            text: root.bestStats !== null ? root.bestStats.maxCombo : 0
         }
         ScoreInfoLine {
             source: root.iniImagesUrl + "parts.png/total_notes"
@@ -42,7 +42,7 @@ Row {
         }
         ScoreInfoLine {
             source: root.iniImagesUrl + "parts.png/miss_count"
-            text: root.scoreWithBestPoints !== null ? root.scoreWithBestPoints.judgementCounts[Judgement.Poor] + root.scoreWithBestPoints.judgementCounts[Judgement.EmptyPoor] : 0
+            text: root.bestStats !== null ? root.bestStats.missCount : 0
         }
     }
 }

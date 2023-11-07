@@ -13,6 +13,10 @@ FocusScope {
         id: root
 
         readonly property bool active: parent.focus
+        readonly property var bestStats: {
+            let scores = songList.current instanceof ChartData && songList.currentItem ? songList.currentItem.children[0].scores : [];
+            return Helpers.getBestStats(scores);
+        }
         readonly property string imagesUrl: Qt.resolvedUrl(".") + "images/"
         readonly property string iniImagesUrl: "image://ini/" + rootUrl + "images/"
         property string rootUrl: globalRoot.urlToPath(Qt.resolvedUrl(".").toString())

@@ -10,12 +10,31 @@
 #include <QVariant>
 #include "db/SqliteCppDb.h"
 namespace gameplay_logic {
+
+class BmsGaugeInfo
+{
+    Q_GADGET
+    Q_PROPERTY(double maxGauge MEMBER maxGauge)
+    Q_PROPERTY(double threshold MEMBER threshold)
+
+  public:
+    double maxGauge;
+    double threshold;
+
+    friend auto operator<<(QDataStream& stream,
+                           const BmsGaugeInfo& gaugeHistory) -> QDataStream&;
+    friend auto operator>>(QDataStream& stream, BmsGaugeInfo& gaugeHistory)
+      -> QDataStream&;
+};
+
 class BmsGaugeHistory : public QObject
 {
     Q_OBJECT
 
     Q_PROPERTY(QVariantMap gaugeHistory READ getGaugeHistory CONSTANT)
+    Q_PROPERTY(QVariantMap gaugeInfo READ getGaugeInfo CONSTANT)
     QVariantMap gaugeHistory;
+    QVariantMap gaugeInfo;
 
   public:
     /**
@@ -24,6 +43,7 @@ class BmsGaugeHistory : public QObject
      * @param parent QObject parent
      */
     explicit BmsGaugeHistory(QVariantMap gaugeHistory,
+                             QVariantMap gaugeInfo,
                              QObject* parent = nullptr);
     BmsGaugeHistory() = default;
 
@@ -32,6 +52,13 @@ class BmsGaugeHistory : public QObject
      * @return A map of gauge name to QList of gauge history entries
      */
     auto getGaugeHistory() const -> QVariantMap;
+
+    /**
+     *
+     * @brief Get info about gauges - maxGauge and threshold
+     * @return A map of gauge name to BmsGaugeInfo
+     */
+    auto getGaugeInfo() const -> QVariantMap;
 
     friend auto operator<<(QDataStream& stream,
                            const BmsGaugeHistory& gaugeHistory) -> QDataStream&;

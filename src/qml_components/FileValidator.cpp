@@ -8,6 +8,7 @@ bool
 FileValidator::exists(const QString& path)
 {
     auto url = QUrl(path);
-    return url.isLocalFile() && QFile::exists(url.toLocalFile());
+    return url.isLocalFile() && QFile::exists(url.toLocalFile()) &&
+           !url.fileName().isEmpty();
 }
 } // namespace qml_components

@@ -210,11 +210,7 @@ Rectangle {
         sequence: "Esc"
 
         onActivated: {
-            if (chart.score.points === 0) {
-                sceneStack.pop();
-            } else {
-                globalRoot.openResult(chart.finish(), chart.chartData);
-            }
+            globalRoot.openResult(chart.finish(), chart.chartData);
         }
     }
 }

@@ -178,10 +178,14 @@ auto
 BmsScore::getGaugeHistory() const -> std::unique_ptr<BmsGaugeHistory>
 {
     auto gaugeHistory = QVariantMap{};
+    auto gaugeInfo = QVariantMap{};
     for (auto* gauge : gauges) {
         gaugeHistory[gauge->objectName()] = gauge->getGaugeHistory();
+        gaugeInfo[gauge->objectName()] = QVariant::fromValue(
+          BmsGaugeInfo{ gauge->getGaugeMax(), gauge->getThreshold() });
     }
-    return std::make_unique<BmsGaugeHistory>(gaugeHistory);
+    return std::make_unique<BmsGaugeHistory>(std::move(gaugeHistory),
+                                             std::move(gaugeInfo));
 }
 void
 BmsScore::addMineHits(QVector<MineHit> mineHits)
