@@ -39,7 +39,6 @@ Item {
         font.pixelSize: 25
         horizontalAlignment: Text.AlignLeft
         text: {
-            let earlyLate = root.earlyLate;
             let early = "0000".slice(0, 4 - hitStatLine.earlyCount.toString().length) + "<font color='black'>" + hitStatLine.earlyCount + "/</font>";
             let late = "0000".slice(0, 4 - hitStatLine.lateCount.toString().length) + "<font color='black'>" + hitStatLine.lateCount + "</font>";
             return early + late;
