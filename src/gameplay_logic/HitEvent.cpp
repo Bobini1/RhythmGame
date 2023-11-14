@@ -63,4 +63,12 @@ operator>>(QDataStream& stream, HitEvent& tap) -> QDataStream&
     tap.noteIndex = noteIndex == -1 ? std::nullopt : std::optional(noteIndex);
     return stream;
 }
+auto
+HitEvent::getHitOffset() const -> HitEvent::DeltaTime
+{
+    if (points.has_value()) {
+        return offsetFromStart + points->getDeviation();
+    }
+    return offsetFromStart;
+}
 } // namespace gameplay_logic

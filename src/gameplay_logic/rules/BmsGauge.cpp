@@ -28,7 +28,8 @@ BmsGauge::BmsGauge(double gaugeMax,
   , gaugeMax(gaugeMax)
   , threshold(threshold)
 {
-    addGaugeHistoryEntry(std::chrono::nanoseconds(0), initialValue);
+    // todo: pass -1 in constructor
+    addGaugeHistoryEntry(std::chrono::seconds(-1), initialValue);
 }
 auto
 BmsGauge::getGaugeHistory() const -> QVariantList

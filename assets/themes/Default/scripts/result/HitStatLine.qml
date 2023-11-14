@@ -22,25 +22,30 @@ Item {
         id: count
 
         anchors.baseline: parent.bottom
-        anchors.left: judgementImage.right
-        anchors.leftMargin: 40
+        anchors.right: judgementImage.right
+        anchors.rightMargin: -120
         color: "lightgray"
         font.pixelSize: 34
         horizontalAlignment: Text.AlignRight
-        text: "0000".slice(0, 4 - hitStatLine.judgementCount.toString().length) + "<font color='black'>" + hitStatLine.judgementCount + "</font>"
+        text: "0000".slice(0, Math.max(0, 4 - hitStatLine.judgementCount.toString().length)) + "<font color='black'>" + hitStatLine.judgementCount + "</font>"
     }
     Text {
         id: earlyLate
 
         anchors.baseline: parent.bottom
-        anchors.left: count.right
-        anchors.leftMargin: 68
+        anchors.horizontalCenter: judgementImage.right
+        anchors.horizontalCenterOffset: 250
         color: "lightgray"
         font.pixelSize: 25
-        horizontalAlignment: Text.AlignLeft
+        horizontalAlignment: Text.AlignHCenter
         text: {
-            let early = "0000".slice(0, 4 - hitStatLine.earlyCount.toString().length) + "<font color='black'>" + hitStatLine.earlyCount + "/</font>";
-            let late = "0000".slice(0, 4 - hitStatLine.lateCount.toString().length) + "<font color='black'>" + hitStatLine.lateCount + "</font>";
+            let len = Math.max(hitStatLine.earlyCount.toString().length, hitStatLine.lateCount.toString().length, 4);
+            let zeroes = "";
+            for (let i = 0; i < len; i++) {
+                zeroes += "0";
+            }
+            let early = zeroes.slice(0, Math.max(0, len - hitStatLine.earlyCount.toString().length)) + "<font color='black'>" + hitStatLine.earlyCount + "/</font>";
+            let late = zeroes.slice(0, Math.max(0, len - hitStatLine.lateCount.toString().length)) + "<font color='black'>" + hitStatLine.lateCount + "</font>";
             return early + late;
         }
     }

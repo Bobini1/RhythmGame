@@ -32,31 +32,24 @@ BmsScore::addNoteHit(HitEvent tap) -> void
     emit pressed(tap.getColumn());
 }
 auto
-BmsScore::addMisses(QList<HitEvent> newMisses) -> void
+BmsScore::addMiss(HitEvent miss) -> void
 {
-    if (newMisses.empty()) {
-        return;
-    }
     resetCombo();
     auto newPointSum = 0.0;
-    for (const auto& miss : newMisses) {
-        misses.append(miss);
-        points += miss.getPointsOptional()->getValue();
-        newPointSum += miss.getPointsOptional()->getValue();
-    }
+    misses.append(miss);
+    points += miss.getPointsOptional()->getValue();
+    newPointSum += miss.getPointsOptional()->getValue();
     if (newPointSum != 0) {
         emit pointsChanged();
     }
-    judgementCounts[static_cast<int>(Judgement::Poor)] += newMisses.size();
+    judgementCounts[static_cast<int>(Judgement::Poor)] += misses.size();
     emit judgementCountsChanged();
     for (auto* gauge : gauges) {
-        for (const auto& miss : newMisses) {
-            gauge->addHit(std::chrono::nanoseconds(miss.getOffsetFromStart()),
-                          std::chrono::nanoseconds(
-                            miss.getPointsOptional()->getDeviation()));
-        }
+        gauge->addHit(
+          std::chrono::nanoseconds(miss.getOffsetFromStart()),
+          std::chrono::nanoseconds(miss.getPointsOptional()->getDeviation()));
     }
-    emit missed(newMisses);
+    emit missed(miss);
 }
 BmsScore::BmsScore(int normalNoteCount,
                    int lnCount,
@@ -188,17 +181,15 @@ BmsScore::getGaugeHistory() const -> std::unique_ptr<BmsGaugeHistory>
                                              std::move(gaugeInfo));
 }
 void
-BmsScore::addMineHits(QVector<MineHit> mineHits)
+BmsScore::addMineHit(MineHit mineHit)
 {
-    for (const auto& mineHit : mineHits) {
-        for (auto* gauge : gauges) {
-            gauge->addMineHit(
-              std::chrono::nanoseconds(mineHit.getOffsetFromStart()),
-              mineHit.getPenalty());
-        }
+    for (auto* gauge : gauges) {
+        gauge->addMineHit(
+          std::chrono::nanoseconds(mineHit.getOffsetFromStart()),
+          mineHit.getPenalty());
     }
-    this->mineHits.append(mineHits);
-    emit minesHit(mineHits);
+    mineHits.append(mineHit);
+    emit this->mineHit(mineHit);
 }
 void
 BmsScore::addLnEndHit(HitEvent lnEndHit)
@@ -208,22 +199,20 @@ BmsScore::addLnEndHit(HitEvent lnEndHit)
     emit released(lnEndHit.getColumn());
 }
 void
-BmsScore::addLnEndMisses(QList<HitEvent> lnEndMisses)
+BmsScore::addLnEndMiss(HitEvent lnEndMiss)
 {
-    this->lnEndMisses.append(lnEndMisses);
-    emit lnEndMissed(lnEndMisses);
+    lnEndMisses.append(lnEndMiss);
+    emit lnEndMissed(lnEndMiss);
     resetCombo();
-    for (const auto& miss : lnEndMisses) {
-        if (miss.getPointsOptional()->getDeviation() < 0.0) {
-            emit released(miss.getColumn());
-        }
+    if (lnEndMiss.getPointsOptional()->getDeviation() < 0) {
+        emit released(lnEndMiss.getColumn());
     }
 }
 void
-BmsScore::addLnEndSkips(QList<HitEvent> lnEndSkips)
+BmsScore::addLnEndSkip(HitEvent lnEndSkip)
 {
-    this->lnEndSkips.append(lnEndSkips);
-    emit lnEndSkipped(lnEndSkips);
+    lnEndSkips.append(lnEndSkip);
+    emit lnEndSkipped(lnEndSkip);
 }
 auto
 BmsScore::addEmptyHit(HitEvent tap) -> void

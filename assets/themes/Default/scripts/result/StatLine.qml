@@ -26,7 +26,7 @@ Item {
         color: "lightgray"
         font.pixelSize: 25
         horizontalAlignment: Text.AlignRight
-        text: "0000".slice(0, 4 - statLine.oldVal.toString().length) + "<font color='black'>" + statLine.oldVal + "</font>"
+        text: "0000".slice(0, Math.max(0, 4 - statLine.oldVal.toString().length)) + "<font color='black'>" + statLine.oldVal + "</font>"
     }
     Image {
         id: arrow
@@ -45,7 +45,7 @@ Item {
         color: "lightgray"
         font.pixelSize: 34
         horizontalAlignment: Text.AlignLeft
-        text: "0000".slice(0, 4 - statLine.newVal.toString().length) + "<font color='black'>" + statLine.newVal + "</font>"
+        text: "0000".slice(0, Math.max(0, 4 - statLine.newVal.toString().length)) + "<font color='black'>" + statLine.newVal + "</font>"
     }
     Text {
         id: deltaText

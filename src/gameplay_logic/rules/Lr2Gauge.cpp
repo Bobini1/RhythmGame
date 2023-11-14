@@ -25,14 +25,14 @@ gameplay_logic::rules::Lr2Gauge::addHit(
         addGaugeHistoryEntry(offsetFromStart, newGauge);
     }
 }
-gameplay_logic::rules::Lr2Gauge::Lr2Gauge(
-  gameplay_logic::rules::TimingWindows timingWindows,
-  double gaugeMax,
-  double initialValue,
-  double threshold,
-  bool permanentDeath,
-  std::function<double(double, Judgement)> judgementValueFactory,
-  QObject* parent)
+gameplay_logic::rules::Lr2Gauge::
+Lr2Gauge(gameplay_logic::rules::TimingWindows timingWindows,
+         double gaugeMax,
+         double initialValue,
+         double threshold,
+         bool permanentDeath,
+         std::function<double(double, Judgement)> judgementValueFactory,
+         QObject* parent)
   : BmsGauge(gaugeMax, initialValue, threshold, parent)
   , timingWindows(std::move(timingWindows))
   , permanentDeath(permanentDeath)
@@ -58,6 +58,7 @@ gameplay_logic::rules::Lr2Gauge::getGauges(
                        switch (judgement) {
                            case Judgement::Perfect:
                            case Judgement::Great:
+                           case Judgement::Good:
                            case Judgement::EmptyPoor:
                                return 0.0;
                            default:
