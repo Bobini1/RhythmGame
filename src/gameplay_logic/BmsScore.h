@@ -35,7 +35,7 @@ class BmsScore : public QObject
     Q_PROPERTY(int maxCombo READ getMaxCombo NOTIFY maxComboChanged)
     Q_PROPERTY(QVector<int> judgementCounts READ getJudgementCounts NOTIFY
                  judgementCountsChanged)
-    Q_PROPERTY(int mineHits READ getMineHits NOTIFY minesHit)
+    Q_PROPERTY(int mineHits READ getMineHits NOTIFY mineHit)
     Q_PROPERTY(QList<rules::BmsGauge*> gauges READ getGauges CONSTANT)
 
     double maxPoints;
@@ -68,11 +68,11 @@ class BmsScore : public QObject
     auto sendVisualOnlyRelease(HitEvent release) -> void;
     auto addEmptyHit(HitEvent tap) -> void;
     auto addEmptyRelease(HitEvent release) -> void;
-    void addMisses(QList<HitEvent> misses);
-    void addMineHits(QList<MineHit> mineHits);
+    void addMiss(HitEvent misses);
+    void addMineHit(MineHit mineHits);
     void addLnEndHit(HitEvent lnEndHit);
-    void addLnEndMisses(QList<HitEvent> lnEndMiss);
-    void addLnEndSkips(QList<HitEvent> lnEndSkips);
+    void addLnEndMiss(HitEvent lnEndMiss);
+    void addLnEndSkip(HitEvent lnEndSkips);
 
     explicit BmsScore(int normalNoteCount,
                       int lnCount,
@@ -104,14 +104,14 @@ class BmsScore : public QObject
     void comboChanged();
     void maxComboChanged();
 
-    void missed(QList<HitEvent> misses);
-    void minesHit(QList<MineHit> mineHits);
+    void missed(HitEvent misses);
+    void mineHit(MineHit mineHits);
     void emptyHit(HitEvent hit);
     void emptyRelease(HitEvent release);
     void noteHit(HitEvent hit);
     void lnEndHit(HitEvent lnEndHit);
-    void lnEndMissed(QList<HitEvent> lnEndMiss);
-    void lnEndSkipped(QList<HitEvent> lnEndSkip);
+    void lnEndMissed(HitEvent lnEndMiss);
+    void lnEndSkipped(HitEvent lnEndSkip);
 
     void pressed(int column);
     void released(int column);

@@ -154,11 +154,15 @@ auto
 gameplay_logic::BmsGameReferee::update(std::chrono::nanoseconds offsetFromStart,
                                        bool lastUpdate) -> Position
 {
-    auto misses = QVector<HitEvent>{};
-    auto lnEndSkips = QVector<HitEvent>{};
-    auto lnEndMisses = QVector<HitEvent>{};
-    auto lnEndHits = QVector<HitEvent>{};
-    auto mineHits = QVector<MineHit>{};
+    enum Type
+    {
+        Miss,
+        LnEndSkip,
+        LnEndMiss,
+        LnEndHit,
+        Mine
+    };
+    auto events = QVector<std::pair<Type, std::variant<HitEvent, MineHit>>>{};
     for (auto columnIndex = 0; columnIndex < currentVisibleNotes.size();
          columnIndex++) {
         auto& column = visibleNotes[columnIndex];
@@ -169,62 +173,77 @@ gameplay_logic::BmsGameReferee::update(std::chrono::nanoseconds offsetFromStart,
                                        visibleNotes[columnIndex][noteIndex]);
             if (std::holds_alternative<rules::BmsHitRules::LnEnd>(
                   visibleNotes[columnIndex][noteIndex])) {
-                lnEndMisses.append(
-                  { columnIndex, noteIndex, noteTime.count(), points });
+                events.append(
+                  { Type::LnEndMiss,
+                    HitEvent{
+                      columnIndex, noteIndex, noteTime.count(), points } });
             } else {
-                misses.append(
-                  { columnIndex, noteIndex, noteTime.count(), points });
+                events.append(
+                  { Miss,
+                    HitEvent{
+                      columnIndex, noteIndex, noteTime.count(), points } });
                 if (lnEndSkip) {
-                    lnEndSkips.append({ columnIndex,
-                                        noteIndex + 1,
-                                        noteTime.count(),
-                                        *lnEndSkip });
+                    events.append({ Type::LnEndSkip,
+                                    HitEvent{ columnIndex,
+                                              noteIndex + 1,
+                                              noteTime.count(),
+                                              *lnEndSkip } });
                 }
             }
         }
         for (auto [points, noteIndex] : newMisses.second) {
             auto noteTime = std::visit([](auto& note) { return note.time; },
                                        visibleNotes[columnIndex][noteIndex]);
-            lnEndHits.append(
-              { columnIndex, noteIndex, noteTime.count(), points });
+            events.append(
+              { Type::LnEndHit,
+                HitEvent{ columnIndex, noteIndex, noteTime.count(), points } });
         }
         if (pressedState[columnIndex]) {
             auto res = hitRules->mineHit(visibleNotes[columnIndex],
                                          currentVisibleNotes[columnIndex],
                                          offsetFromStart);
             for (auto [offset, noteIndex, penalty] : res) {
-                mineHits.append({ offsetFromStart.count(),
-                                  offset.count(),
-                                  penalty,
-                                  columnIndex,
-                                  noteIndex });
+                events.append({ Type::Mine,
+                                MineHit{ offsetFromStart.count(),
+                                         offset.count(),
+                                         penalty,
+                                         columnIndex,
+                                         noteIndex } });
             }
         }
     }
-    if (!misses.empty()) {
-        for (const auto& miss : std::ranges::reverse_view(misses)) {
-            auto columnIndex = miss.getColumn();
-            auto noteIndex = miss.getNoteIndex();
+    std::sort(
+      events.begin(), events.end(), [](const auto& left, const auto& right) {
+          auto getOffset = [](const auto& event) {
+              return event.getHitOffset();
+          };
+          return std::visit(getOffset, left.second) <
+                 std::visit(getOffset, right.second);
+      });
+    for (const auto& event : events) {
+        if (event.first == Type::Mine) {
+            const auto& mineHit = std::get<MineHit>(event.second);
+            score->addMineHit(mineHit);
+            if (mineHitSound != nullptr) {
+                mineHitSound->play();
+            }
+            continue;
+        }
+        const auto& hitEvent = std::get<HitEvent>(event.second);
+        if (event.first == Type::Miss) {
+            auto columnIndex = hitEvent.getColumn();
+            auto noteIndex = hitEvent.getNoteIndex();
             assignLastKeysound(columnIndex,
                                visibleNotes[columnIndex][noteIndex]);
-        }
 
-        score->addMisses(std::move(misses));
-    }
-    if (!mineHits.empty()) {
-        score->addMineHits(std::move(mineHits));
-        if (mineHitSound != nullptr) {
-            mineHitSound->play();
+            score->addMiss(hitEvent);
+        } else if (event.first == Type::LnEndSkip) {
+            score->addLnEndSkip(hitEvent);
+        } else if (event.first == Type::LnEndSkip) {
+            score->addLnEndMiss(hitEvent);
+        } else if (event.first == Type::LnEndHit) {
+            score->addLnEndHit(hitEvent);
         }
-    }
-    if (!lnEndSkips.empty()) {
-        score->addLnEndSkips(std::move(lnEndSkips));
-    }
-    if (!lnEndMisses.empty()) {
-        score->addLnEndMisses(std::move(lnEndMisses));
-    }
-    for (const auto& lnEndHit : lnEndHits) {
-        score->addLnEndHit(lnEndHit);
     }
     for (auto columnIndex = 0; columnIndex < currentInvisibleNotes.size();
          columnIndex++) {
@@ -366,8 +385,8 @@ gameplay_logic::BmsGameReferee::passReleased(
         auto [points, noteIndex] = *res;
         auto judgement = points.getJudgement();
         if (judgement == Judgement::Poor) {
-            score->addLnEndMisses(
-              { { columnIndex, noteIndex, offsetFromStart.count(), points } });
+            score->addLnEndMiss(
+              { columnIndex, noteIndex, offsetFromStart.count(), points });
 
             auto prevNoteIndex = noteIndex - 1;
             auto& prevNote = std::get<rules::BmsHitRules::LnBegin>(

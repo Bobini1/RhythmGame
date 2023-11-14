@@ -1,5 +1,6 @@
 import RhythmGameQml
 import QtQuick 2.0
+import "../common/helpers.js" as Helpers
 
 Image {
     id: sortButton
@@ -55,9 +56,9 @@ Image {
                 songList.sort = function (a, b) {
                     let scores1 = ScoreDb.getScoresForChart(a.sha256);
                     let scores2 = ScoreDb.getScoresForChart(b.sha256);
-                    let clearType1 = root.getClearType(scores1);
-                    let clearType2 = root.getClearType(scores2);
-                    let res = root.clearTypePriorities.indexOf(clearType2) - root.clearTypePriorities.indexOf(clearType1);
+                    let clearType1 = Helpers.getClearType(scores1);
+                    let clearType2 = Helpers.getClearType(scores2);
+                    let res = Helpers.clearTypePriorities.indexOf(clearType2) - Helpers.clearTypePriorities.indexOf(clearType1);
                     if (res !== 0) {
                         return res;
                     }

@@ -19,7 +19,6 @@ class Recipe(ConanFile):
         self.requires("foonathan-lexy/2022.12.00")
         self.requires("ffmpeg/6.0")
         self.requires("openal-soft/1.22.2")
-        self.requires("qt/6.5.2")
         self.requires("sqlite3/3.42.0", override=True)
         self.requires("brotli/1.1.0", override=True)
         self.requires("cryptopp/8.7.0")

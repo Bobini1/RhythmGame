@@ -80,7 +80,7 @@ Rectangle {
             chart.start();
         }
         function onOver() {
-            globalRoot.openResult(chart.finish());
+            globalRoot.openResult(chart.finish(), chart.chartData);
         }
 
         target: chart
@@ -210,11 +210,7 @@ Rectangle {
         sequence: "Esc"
 
         onActivated: {
-            if (chart.score.points === 0) {
-                sceneStack.pop();
-            } else {
-                globalRoot.openResult(chart.finish());
-            }
+            globalRoot.openResult(chart.finish(), chart.chartData);
         }
     }
 }

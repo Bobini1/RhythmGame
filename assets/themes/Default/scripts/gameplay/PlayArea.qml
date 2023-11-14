@@ -71,38 +71,30 @@ Item {
             }
             playfield.markLnEndAsMissed(tap.column, tap.noteIndex);
         }
-        function onLnEndMissed(misses) {
-            for (let miss of misses) {
-                if (playArea.columns.indexOf(miss.column) === -1) {
-                    continue;
-                }
-                playfield.deactivateLn(miss.column, miss.noteIndex - 1);
-                playfield.markLnEndAsMissed(miss.column, miss.noteIndex);
+        function onLnEndMissed(miss) {
+            if (playArea.columns.indexOf(miss.column) === -1) {
+                return;
             }
+            playfield.deactivateLn(miss.column, miss.noteIndex - 1);
+            playfield.markLnEndAsMissed(miss.column, miss.noteIndex);
         }
-        function onLnEndSkipped(skips) {
-            for (let skip of skips) {
-                if (playArea.columns.indexOf(skip.column) === -1) {
-                    continue;
-                }
-                playfield.markLnEndAsMissed(skip.column, skip.noteIndex);
+        function onLnEndSkipped(skip) {
+            if (playArea.columns.indexOf(skip.column) === -1) {
+                return;
             }
+            playfield.markLnEndAsMissed(skip.column, skip.noteIndex);
         }
-        function onMinesHit(hits) {
-            for (let hit of hits) {
-                if (playArea.columns.indexOf(hit.column) === -1) {
-                    continue;
-                }
-                playfield.removeNote(hit.column, hit.noteIndex);
+        function onMineHit(hit) {
+            if (playArea.columns.indexOf(hit.column) === -1) {
+                return;
             }
+            playfield.removeNote(hit.column, hit.noteIndex);
         }
-        function onMissed(misses) {
-            for (let miss of misses) {
-                if (playArea.columns.indexOf(miss.column) === -1) {
-                    continue;
-                }
-                playfield.removeNote(miss.column, miss.noteIndex);
+        function onMissed(miss) {
+            if (playArea.columns.indexOf(miss.column) === -1) {
+                return;
             }
+            playfield.removeNote(miss.column, miss.noteIndex);
         }
         function onNoteHit(tap) {
             if (playArea.columns.indexOf(tap.column) === -1) {
@@ -244,14 +236,12 @@ Item {
             item.ln = false;
             item.restart();
         }
-        function onLnEndMissed(misses) {
-            for (let miss of misses) {
-                if (playArea.columns.indexOf(miss.column) === -1) {
-                    continue;
-                }
-                let item = explosions.itemAt(playArea.columnsReversedMapping[miss.column]);
-                item.ln = false;
+        function onLnEndMissed(miss) {
+            if (playArea.columns.indexOf(miss.column) === -1) {
+                return;
             }
+            let item = explosions.itemAt(playArea.columnsReversedMapping[miss.column]);
+            item.ln = false;
         }
         function onNoteHit(tap) {
             if (playArea.columns.indexOf(tap.column) === -1) {

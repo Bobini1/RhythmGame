@@ -43,6 +43,8 @@ class BmsGauge : public QObject
     QVariantList gaugeHistory;
     std::vector<GaugeHistoryEntry> gaugeHistoryList;
 
+    BmsGauge() = default;
+
   public:
     explicit BmsGauge(double gaugeMax,
                       double initialValue,

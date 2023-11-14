@@ -4,6 +4,7 @@ import QtQuick.Layouts
 import QtQuick.Controls.Basic
 import QtMultimedia
 import QtQml
+import "../common/helpers.js" as Helpers
 
 FocusScope {
     focus: StackView.status === StackView.Active
@@ -12,25 +13,18 @@ FocusScope {
         id: root
 
         readonly property bool active: parent.focus
-        readonly property var clearTypePriorities: ["NOPLAY", "FAILED", "AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC", "PERFECT", "MAX"]
+        readonly property var bestStats: {
+            let scores = songList.current instanceof ChartData && songList.currentItem ? songList.currentItem.children[0].scores : [];
+            return Helpers.getBestStats(scores);
+        }
         readonly property string imagesUrl: Qt.resolvedUrl(".") + "images/"
         readonly property string iniImagesUrl: "image://ini/" + rootUrl + "images/"
         property string rootUrl: globalRoot.urlToPath(Qt.resolvedUrl(".").toString())
         property BmsResult scoreWithBestPoints: {
             let scores = songList.current instanceof ChartData && songList.currentItem ? songList.currentItem.children[0].scores : [];
-            return getScoreWithBestPoints(scores);
+            return Helpers.getScoreWithBestPoints(scores);
         }
 
-        function getClearType(scores) {
-            let clearType = "NOPLAY";
-            for (let i = 0; i < scores.length; i++) {
-                let score = scores[i];
-                if (root.clearTypePriorities.indexOf(score.clearType) > root.clearTypePriorities.indexOf(clearType)) {
-                    clearType = score.clearType;
-                }
-            }
-            return clearType;
-        }
         function getDiffColor(diff) {
             switch (diff) {
             case "beginner":
@@ -58,21 +52,6 @@ FocusScope {
             default:
                 return "purple";
             }
-        }
-        function getScoreWithBestPoints(scores) {
-            let bestPoints = 0;
-            let bestScore = null;
-            for (let score of scores) {
-                if (score.maxPoints === 0) {
-                    continue;
-                }
-                let percent = score.points / score.maxPoints;
-                if (percent > bestPoints) {
-                    bestPoints = percent;
-                    bestScore = score;
-                }
-            }
-            return bestScore;
         }
 
         fillMode: Image.PreserveAspectCrop
@@ -268,6 +247,7 @@ FocusScope {
             }
             KeymodeButton {
                 id: keymodeButton
+
                 anchors.left: parent.left
                 anchors.leftMargin: 900
                 anchors.top: parent.top
