@@ -42,7 +42,7 @@ BmsScore::addMiss(HitEvent miss) -> void
     if (newPointSum != 0) {
         emit pointsChanged();
     }
-    judgementCounts[static_cast<int>(Judgement::Poor)] += misses.size();
+    judgementCounts[static_cast<int>(Judgement::Poor)]++;
     emit judgementCountsChanged();
     for (auto* gauge : gauges) {
         gauge->addHit(
@@ -51,13 +51,14 @@ BmsScore::addMiss(HitEvent miss) -> void
     }
     emit missed(miss);
 }
-BmsScore::BmsScore(int normalNoteCount,
-                   int lnCount,
-                   int mineCount,
-                   int maxHits,
-                   double maxHitValue,
-                   QList<rules::BmsGauge*> gauges,
-                   QObject* parent)
+BmsScore::
+BmsScore(int normalNoteCount,
+         int lnCount,
+         int mineCount,
+         int maxHits,
+         double maxHitValue,
+         QList<rules::BmsGauge*> gauges,
+         QObject* parent)
   : QObject(parent)
   , maxPoints(maxHitValue * maxHits)
   , mineCount(mineCount)
