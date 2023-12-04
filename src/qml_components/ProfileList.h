@@ -8,6 +8,7 @@
 #include <QAbstractListModel>
 #include "resource_managers/Profile.h"
 namespace qml_components {
+class ThemeFamily;
 class ProfileList : public QAbstractListModel
 {
     Q_OBJECT
@@ -16,6 +17,7 @@ class ProfileList : public QAbstractListModel
     QList<resource_managers::Profile*> profiles;
     resource_managers::Profile* currentProfile = nullptr;
     db::SqliteCppDb* songDb;
+    QMap<QString, ThemeFamily> themeFamilies;
 
     Q_PROPERTY(resource_managers::Profile* currentProfile READ getCurrentProfile
                  NOTIFY currentProfileChanged)
@@ -28,6 +30,7 @@ class ProfileList : public QAbstractListModel
     };
 
     explicit ProfileList(db::SqliteCppDb* songDb,
+                         const QMap<QString, ThemeFamily>& themeFamilies,
                          std::filesystem::path profilesFolder,
                          QObject* parent = nullptr);
 

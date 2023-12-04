@@ -3,6 +3,9 @@
 //
 
 #include "Profile.h"
+
+#include "ScanThemes.h"
+#include "SerializeConfig.h"
 #include "support/PathToQString.h"
 
 namespace resource_managers {
@@ -10,13 +13,25 @@ namespace resource_managers {
 auto
 createDb(const std::filesystem::path& dbPath) -> db::SqliteCppDb
 {
-    std::filesystem::create_directories(dbPath.parent_path());
+    create_directories(dbPath.parent_path());
 #ifdef _WIN32
     return db::SqliteCppDb(
       QString::fromStdWString(dbPath.wstring()).toStdString());
 #else
     return db::SqliteCppDb(dbPath);
 #endif
+}
+
+auto
+createConfig(const QMap<QString, qml_components::ThemeFamily>& availableThemes,
+             const std::filesystem::path& themeConfig)
+  -> std::unique_ptr<QQmlPropertyMap>
+{
+    auto config = std::make_unique<QQmlPropertyMap>();
+    fillWithDefaults(*config, availableThemes);
+    readConfig(themeConfig, *config, availableThemes);
+    config->freeze();
+    return config;
 }
 
 auto
@@ -76,11 +91,26 @@ Profile::setAvatar(QString newAvatar)
     save();
     emit avatarChanged(avatar);
 }
-Profile::Profile(std::filesystem::path dbPath, QObject* parent)
+Profile::
+Profile(const std::filesystem::path& dbPath,
+        const QMap<QString, qml_components::ThemeFamily>& themeFamilies,
+        QObject* parent)
   : QObject(parent)
   , db(createDb(dbPath))
-  , dbPath(std::move(dbPath))
+  , dbPath(dbPath)
+  , themeConfig(
+      createConfig(themeFamilies, dbPath.parent_path() / "theme_config.json")
+        .release())
 {
+    this->themeConfig->setParent(this);
+    auto configPath = dbPath.parent_path() / "theme_config.json";
+    connect(themeConfig,
+            &QQmlPropertyMap::valueChanged,
+            this,
+            [this, configPath](const QString&, const QVariant&) {
+                writeConfig(configPath, *themeConfig);
+            });
+    writeConfig(configPath, *themeConfig);
     if (!db.hasTable("profiles")) {
         db.execute("CREATE TABLE profiles ("
                    "id INTEGER PRIMARY KEY CHECK (id = 1),"
@@ -150,5 +180,10 @@ auto
 Profile::getDb() -> db::SqliteCppDb&
 {
     return db;
+}
+auto
+Profile::getThemeConfig() const -> QQmlPropertyMap*
+{
+    return themeConfig;
 }
 } // namespace resource_managers

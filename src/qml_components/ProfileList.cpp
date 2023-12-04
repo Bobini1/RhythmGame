@@ -3,23 +3,28 @@
 //
 
 #include "ProfileList.h"
+
 #include "support/QStringToPath.h"
 #include "support/PathToUtfString.h"
 
 #include <utility>
 #include <spdlog/spdlog.h>
 #include <QUuid>
-qml_components::ProfileList::ProfileList(db::SqliteCppDb* songDb,
-                                         std::filesystem::path profilesFolder,
-                                         QObject* parent)
+
+qml_components::ProfileList::
+ProfileList(db::SqliteCppDb* songDb,
+            const QMap<QString, ThemeFamily>& themeFamilies,
+            std::filesystem::path profilesFolder,
+            QObject* parent)
   : QAbstractListModel(parent)
   , profilesFolder(std::move(profilesFolder))
   , songDb(songDb)
+  , themeFamilies(themeFamilies)
 {
-    if (!std::filesystem::exists(this->profilesFolder)) {
-        std::filesystem::create_directory(this->profilesFolder);
+    if (!exists(this->profilesFolder)) {
+        create_directory(this->profilesFolder);
     }
-    if (!std::filesystem::is_directory(this->profilesFolder)) {
+    if (!is_directory(this->profilesFolder)) {
         throw std::runtime_error("profiles folder is not a directory");
     }
     for (const auto& entry :
@@ -27,7 +32,7 @@ qml_components::ProfileList::ProfileList(db::SqliteCppDb* songDb,
         if (entry.is_directory()) {
             try {
                 auto* profile = new resource_managers::Profile(
-                  entry.path() / "profile.sqlite");
+                  entry.path() / "profile.sqlite", themeFamilies);
                 profile->setParent(this);
                 profiles.append(profile);
             } catch (const std::exception& e) {
@@ -40,7 +45,7 @@ qml_components::ProfileList::ProfileList(db::SqliteCppDb* songDb,
     if (profiles.empty()) {
         spdlog::info("No profiles found, creating default profile");
         auto* profile = new resource_managers::Profile(
-          this->profilesFolder / "default" / "profile.sqlite");
+          this->profilesFolder / "default" / "profile.sqlite", themeFamilies);
         profile->setParent(this);
         profiles.append(profile);
     }
@@ -102,7 +107,8 @@ qml_components::ProfileList::createProfile() -> resource_managers::Profile*
     try {
         profile = new resource_managers::Profile(
           profilesFolder / QUuid::createUuid().toString().toStdString() /
-          "profile.sqlite");
+            "profile.sqlite",
+          themeFamilies);
         profile->setParent(this);
     } catch (const std::exception& e) {
         spdlog::error("Failed to create profile: {}", e.what());
@@ -127,8 +133,8 @@ qml_components::ProfileList::removeProfile(resource_managers::Profile* profile)
     beginRemoveRows(QModelIndex(), index, index);
     profiles.removeAt(index);
     endRemoveRows();
-    delete profile;
-    std::filesystem::remove_all(profile->getPath().parent_path());
+    profile->deleteLater();
+    remove_all(profile->getPath().parent_path());
 }
 void
 qml_components::ProfileList::setCurrentProfile(
@@ -152,7 +158,7 @@ qml_components::ProfileList::setCurrentProfile(
           "Failed to get count of rows in current_profile table");
     }
     auto profilePath = profile->getPath();
-    auto relativePath = std::filesystem::relative(profilePath, profilesFolder);
+    auto relativePath = relative(profilePath, profilesFolder);
     if (result.value() == 0) {
         // insert new row
         auto statement =
