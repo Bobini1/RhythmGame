@@ -16,7 +16,8 @@ writeConfig(const std::filesystem::path& path, QQmlPropertyMap& object) -> void;
 auto
 readConfig(const std::filesystem::path& path,
            QQmlPropertyMap& object,
-           QMap<QString, qml_components::ThemeFamily> theme_families) -> void;
+           const QMap<QString, qml_components::ThemeFamily>& theme_families)
+  -> void;
 
 } // namespace resource_managers
 

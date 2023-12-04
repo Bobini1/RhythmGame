@@ -99,9 +99,6 @@ ApplicationWindow {
                 openChart(ProgramSettings.chartPath);
             }
         }
-        onMainComponentChanged: {
-            console.log("Main component changed");
-        }
 
         StackView {
             id: sceneStack

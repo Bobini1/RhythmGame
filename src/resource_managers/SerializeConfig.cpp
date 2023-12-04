@@ -34,7 +34,8 @@ writeConfig(const std::filesystem::path& path, QQmlPropertyMap& object) -> void
 auto
 readConfig(const std::filesystem::path& path,
            QQmlPropertyMap& object,
-           QMap<QString, qml_components::ThemeFamily> theme_families) -> void
+           const QMap<QString, qml_components::ThemeFamily>& themeFamilies)
+  -> void
 {
     auto file = QFile{ path };
     if (!file.exists()) {
@@ -50,9 +51,8 @@ readConfig(const std::filesystem::path& path,
                                           .toVariantMap()
                                           .asKeyValueRange()) {
             if (object.contains(key)) {
-                if (theme_families.contains(value.toString()) &&
-                    theme_families[value.toString()].getThemes().contains(
-                      key)) {
+                if (themeFamilies.contains(value.toString()) &&
+                    themeFamilies[value.toString()].getThemes().contains(key)) {
                     object.insert(key, value);
                 }
             }
