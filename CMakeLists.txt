@@ -56,7 +56,7 @@ find_package(zstd REQUIRED)
 
 # ---- Load library ----
 
-qt_add_library(RhythmGame_lib OBJECT src/db/SqliteCppDb.cpp src/db/SqliteCppDb.h src/charts/chart_readers/BmsChartReader.cpp src/charts/parser_models/ParsedBmsChart.cpp src/charts/parser_models/ParsedBmsChart.h src/support/EnableSharedFromBase.cpp src/support/EnableSharedFromBase.h src/support/Capitalize.cpp src/support/Capitalize.h src/resource_managers/AssetsFolderFinder.cpp src/resource_managers/AssetsFolderFinder.h src/resource_managers/FindAssetsFolderBoost.cpp src/resource_managers/FindAssetsFolderBoost.h src/resource_managers/LoadConfig.cpp src/resource_managers/LoadConfig.h src/sounds/OpenAlSound.cpp src/sounds/OpenAlSound.h src/sounds/OpenAlSoundBuffer.h src/sounds/OpenAlSoundBuffer.cpp src/charts/gameplay_models/BmsNotesData.cpp src/charts/gameplay_models/BmsNotesData.h src/charts/gameplay_models/Snap.cpp src/charts/gameplay_models/Snap.h src/charts/helper_functions/loadBmsSounds.cpp src/charts/helper_functions/loadBmsSounds.h
+qt_add_library(RhythmGame_lib OBJECT src/db/SqliteCppDb.cpp src/db/SqliteCppDb.h src/charts/chart_readers/BmsChartReader.cpp src/charts/parser_models/ParsedBmsChart.cpp src/charts/parser_models/ParsedBmsChart.h src/support/EnableSharedFromBase.cpp src/support/EnableSharedFromBase.h src/support/Capitalize.cpp src/support/Capitalize.h src/resource_managers/AssetsFolderFinder.cpp src/resource_managers/AssetsFolderFinder.h src/resource_managers/FindAssetsFolderBoost.cpp src/resource_managers/FindAssetsFolderBoost.h src/sounds/OpenAlSound.cpp src/sounds/OpenAlSound.h src/sounds/OpenAlSoundBuffer.h src/sounds/OpenAlSoundBuffer.cpp src/charts/gameplay_models/BmsNotesData.cpp src/charts/gameplay_models/BmsNotesData.h src/charts/gameplay_models/Snap.cpp src/charts/gameplay_models/Snap.h src/charts/helper_functions/loadBmsSounds.cpp src/charts/helper_functions/loadBmsSounds.h
         src/resource_managers/models/ThemeConfig.h src/gameplay_logic/BmsPoints.cpp src/gameplay_logic/BmsPoints.h src/gameplay_logic/rules/StandardBmsHitRules.cpp src/gameplay_logic/rules/StandardBmsHitRules.h src/gameplay_logic/Judgement.cpp src/gameplay_logic/Judgement.h src/gameplay_logic/TimePoint.cpp src/gameplay_logic/TimePoint.h src/support/Sha256.cpp src/support/Sha256.h
         src/input/KeyboardInputTranslatorToBms.cpp
         src/input/BmsKeys.cpp
@@ -110,8 +110,6 @@ qt_add_library(RhythmGame_lib OBJECT src/db/SqliteCppDb.cpp src/db/SqliteCppDb.h
         src/qml_components/Logger.h
         src/qml_components/RootSongFoldersConfig.cpp
         src/qml_components/RootSongFoldersConfig.h
-        src/qml_components/SceneUrls.cpp
-        src/qml_components/SceneUrls.h
         src/support/toLower.cpp
         src/support/toLower.h
         src/resource_managers/Profile.cpp
@@ -143,7 +141,15 @@ qt_add_library(RhythmGame_lib OBJECT src/db/SqliteCppDb.cpp src/db/SqliteCppDb.h
         src/gameplay_logic/MineHit.cpp
         src/gameplay_logic/MineHit.h
         src/gameplay_logic/rules/CnHitRules.cpp
-        src/gameplay_logic/rules/CnHitRules.h)
+        src/gameplay_logic/rules/CnHitRules.h
+        src/qml_components/ThemeFamily.cpp
+        src/qml_components/ThemeFamily.h
+        src/resource_managers/ScanThemes.cpp
+        src/resource_managers/ScanThemes.h
+        src/qml_components/Themes.cpp
+        src/qml_components/Themes.h
+        src/resource_managers/SerializeConfig.cpp
+        src/resource_managers/SerializeConfig.h)
 
 find_package(Threads REQUIRED)
 

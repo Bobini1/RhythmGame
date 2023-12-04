@@ -5,8 +5,10 @@
 #ifndef RHYTHMGAME_PROFILE_H
 #define RHYTHMGAME_PROFILE_H
 
-#include <QObject>
 #include "db/SqliteCppDb.h"
+
+#include <QQmlPropertyMap>
+#include "qml_components/ThemeFamily.h"
 namespace resource_managers {
 
 class Profile : public QObject
@@ -16,10 +18,12 @@ class Profile : public QObject
     Q_PROPERTY(
       QString avatar READ getAvatar WRITE setAvatar NOTIFY avatarChanged)
     Q_PROPERTY(QString path READ getPathQString CONSTANT)
+    Q_PROPERTY(QQmlPropertyMap* themeConfig READ getThemeConfig CONSTANT)
     QString name;
     QString avatar;
     db::SqliteCppDb db;
     std::filesystem::path dbPath;
+    QQmlPropertyMap* themeConfig;
 
     struct ProfileDTO
     {
@@ -37,7 +41,10 @@ class Profile : public QObject
      * @param dbPath Path to the database file. Doesn't have to exist.
      * @param parent QObject parent.
      */
-    explicit Profile(std::filesystem::path dbPath, QObject* parent = nullptr);
+    explicit Profile(
+      const std::filesystem::path& dbPath,
+      const QMap<QString, qml_components::ThemeFamily>& themeFamilies,
+      QObject* parent = nullptr);
 
     auto getName() const -> QString;
     auto getAvatar() const -> QString;
@@ -46,6 +53,7 @@ class Profile : public QObject
     auto getPath() const -> std::filesystem::path;
     auto getPathQString() const -> QString;
     auto getDb() -> db::SqliteCppDb&;
+    auto getThemeConfig() const -> QQmlPropertyMap*;
 
   signals:
     void nameChanged(QString name);

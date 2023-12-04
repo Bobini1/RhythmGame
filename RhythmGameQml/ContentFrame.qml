@@ -34,7 +34,7 @@ ApplicationWindow {
                 id: loader
 
                 anchors.fill: parent
-                source: SceneUrls.gameplayScene
+                source: "file://" + Themes.availableThemeFamilies[ProfileList.currentProfile.themeConfig.gameplay].themes.gameplay
             }
         }
     }
@@ -52,7 +52,7 @@ ApplicationWindow {
                 id: loader
 
                 anchors.fill: parent
-                source: SceneUrls.resultScene
+                source: "file://" + Themes.availableThemeFamilies[ProfileList.currentProfile.themeConfig.result].themes.result
             }
         }
     }
@@ -60,10 +60,10 @@ ApplicationWindow {
         id: globalRoot
 
         readonly property Component gameplayComponent: chartContext
-        readonly property Component mainComponent: Qt.createComponent(SceneUrls.mainScene)
+        readonly property Component mainComponent: Qt.createComponent("file://" + Themes.availableThemeFamilies[ProfileList.currentProfile.themeConfig.main].themes.main)
         readonly property Component resultComponent: resultContext
-        readonly property Component settingsComponent: Qt.createComponent(SceneUrls.settingsScene)
-        readonly property Component songWheelComponent: Qt.createComponent(SceneUrls.songWheelScene)
+        readonly property Component settingsComponent: Qt.createComponent("file://" + Themes.availableThemeFamilies[ProfileList.currentProfile.themeConfig.settings].themes.settings)
+        readonly property Component songWheelComponent: Qt.createComponent("file://" + Themes.availableThemeFamilies[ProfileList.currentProfile.themeConfig.songWheel].themes.songWheel)
 
         function openChart(path: url) {
             let chart = ChartLoader.loadChart(path);

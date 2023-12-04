@@ -1,10 +1,7 @@
 #include "resource_managers/FindAssetsFolderBoost.h"
-#include "resource_managers/LoadConfig.h"
-#include "resource_managers/models/ThemeConfig.h"
 #include "resource_managers/IniImageProvider.h"
 #include "sounds/OpenAlSound.h"
 #include "gameplay_logic/rules/Lr2TimingWindows.h"
-#include "qml_components/SceneUrls.h"
 #include "qml_components/ProgramSettings.h"
 #include "qml_components/ChartLoader.h"
 
@@ -13,7 +10,6 @@
 #include <QtQml/QQmlExtensionPlugin>
 #include <spdlog/sinks/qt_sinks.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
-#include "sounds/OpenAlSoundBuffer.h"
 #include "qml_components/Logger.h"
 #include "gameplay_logic/rules/StandardBmsHitRules.h"
 #include "gameplay_logic/rules/Lr2Gauge.h"
@@ -29,6 +25,9 @@
 #include "qml_components/ScoreDb.h"
 #include "qml_components/FileValidator.h"
 #include "qml_components/CycleModel.h"
+#include "qml_components/Themes.h"
+#include "resource_managers/ScanThemes.h"
+
 #include <iostream>
 
 extern "C" {
@@ -142,35 +141,6 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
 
         auto songDbScanner = resource_managers::SongDbScanner{ &db };
 
-        auto themeConfigLoader = [assetsFolder] {
-            try {
-                const auto configMap = resource_managers::loadConfig(
-                  assetsFolder / "themes" / "Default" /
-                  "theme.ini")["ScriptNames"];
-                const auto scriptsFolder = assetsFolder / "themes" / "Default";
-                return resource_managers::models::ThemeConfig{
-                    QString::fromStdWString(
-                      (scriptsFolder / configMap.at("Main")).wstring()),
-                    QString::fromStdWString(
-                      (scriptsFolder / configMap.at("Gameplay")).wstring()),
-                    QString::fromStdWString(
-                      (scriptsFolder / configMap.at("SongWheel")).wstring()),
-                    QString::fromStdWString(
-                      (scriptsFolder / configMap.at("Settings")).wstring()),
-                    QString::fromStdWString(
-                      (scriptsFolder / configMap.at("Result")).wstring())
-                };
-            } catch (const std::exception& e) {
-                spdlog::error("Failed to load theme config: {}", e.what());
-                throw;
-            }
-        };
-
-        auto sceneUrls =
-          qml_components::SceneUrls{ std::move(themeConfigLoader) };
-        qmlRegisterSingletonInstance(
-          "RhythmGameQml", 1, 0, "SceneUrls", &sceneUrls);
-
         auto chartPath = QString{};
         if (argc > 1) {
 #if defined(WIN32)
@@ -186,8 +156,14 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
         qmlRegisterSingletonInstance(
           "RhythmGameQml", 1, 0, "ProgramSettings", &programSettings);
 
-        auto profileList =
-          qml_components::ProfileList{ &db, assetsFolder / "profiles" };
+        auto availableThemes =
+          resource_managers::scanThemes(assetsFolder / "themes");
+
+        auto themes = qml_components::Themes{ availableThemes };
+        qmlRegisterSingletonInstance("RhythmGameQml", 1, 0, "Themes", &themes);
+        auto profileList = qml_components::ProfileList{
+            &db, availableThemes, assetsFolder / "profiles"
+        };
         qmlRegisterSingletonInstance(
           "RhythmGameQml", 1, 0, "ProfileList", &profileList);
 

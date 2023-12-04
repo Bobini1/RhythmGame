@@ -14,20 +14,17 @@ class Recipe(ConanFile):
 
     def requirements(self):
         self.requires("sqlitecpp/3.3.0")
+        self.requires("sqlite3/3.44.0", override=True)
         self.requires("boost/1.82.0")
         self.requires("spdlog/1.11.0")
         self.requires("foonathan-lexy/2022.12.00")
         self.requires("ffmpeg/6.0")
         self.requires("openal-soft/1.22.2")
-        self.requires("sqlite3/3.42.0", override=True)
-        self.requires("brotli/1.1.0", override=True)
         self.requires("cryptopp/8.7.0")
         self.requires("magic_enum/0.9.3")
         self.requires("zstd/1.5.5")
-        self.requires("libsndfile/1.2.2")
-        self.requires("opus/1.4", override=True)
-        self.requires("libalsa/1.2.10", override=True)
-        self.requires("zlib/1.3", override=True)
+        self.requires("freetype/2.13.2", override=True)
+        self.requires("qt/6.6.0")
 
         # Testing only dependencies below
         self.requires("catch2/3.4.0")
