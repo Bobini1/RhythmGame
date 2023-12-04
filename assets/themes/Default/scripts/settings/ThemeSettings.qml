@@ -24,7 +24,7 @@ RowLayout {
         }
 
         Repeater {
-            model: themesFrame.themeConfig.keys()
+            model: ProfileList.currentProfile.themeConfig.keys()
 
             TabButton {
                 text: modelData
@@ -35,14 +35,12 @@ RowLayout {
     StackLayout {
         id: themesFrame
 
-        readonly property var themeConfig: ProfileList.currentProfile.themeConfig
-
         Layout.fillHeight: true
         Layout.fillWidth: true
         currentIndex: themeTabView.currentIndex
 
         Repeater {
-            model: themesFrame.themeConfig.keys()
+            model: ProfileList.currentProfile.themeConfig.keys()
 
             Frame {
                 ComboBox {
@@ -70,13 +68,13 @@ RowLayout {
                                 themeNames.push(name);
                             }
                         }
-                        let index = themeNames.indexOf(themesFrame.themeConfig[modelData]);
+                        let index = themeNames.indexOf(ProfileList.currentProfile.themeConfig[modelData]);
                         currentIndex = index;
                         loaded = true;
                     }
                     onCurrentTextChanged: {
                         if (themeComboBox.loaded) {
-                            themesFrame.themeConfig[modelData] = themeComboBox.currentText;
+                            ProfileList.currentProfile.themeConfig[modelData] = themeComboBox.currentText;
                         }
                     }
                 }
