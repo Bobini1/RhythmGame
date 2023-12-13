@@ -101,11 +101,7 @@ libavLogHandler(void* /*ptr*/, int level, const char* fmt, va_list vl)
 auto
 main(int argc, [[maybe_unused]] char* argv[]) -> int
 {
-#if defined(Q_OS_WIN)
-    const auto app = QGuiApplication{ __argc, __argv };
-#else
     const auto app = QGuiApplication{ argc, argv };
-#endif
 
     QGuiApplication::setOrganizationName("Tomasz Kalisiak");
     QGuiApplication::setOrganizationDomain("bemani.pl");
