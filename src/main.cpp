@@ -101,37 +101,37 @@ libavLogHandler(void* /*ptr*/, int level, const char* fmt, va_list vl)
 auto
 main(int argc, [[maybe_unused]] char* argv[]) -> int
 {
+#if defined(Q_OS_WIN)
+    const auto app = QGuiApplication{ __argc, __argv };
+#else
+    const auto app = QGuiApplication{ argc, argv };
+#endif
+
+    QGuiApplication::setOrganizationName("Tomasz Kalisiak");
+    QGuiApplication::setOrganizationDomain("bemani.pl");
+    QGuiApplication::setApplicationName("RhythmGame");
+
+    av_log_set_callback(libavLogHandler);
+
+    qInstallMessageHandler(qtLogHandler);
+
+    auto log = qml_components::Logger{ nullptr };
+    qmlRegisterSingletonInstance("RhythmGameQml", 1, 0, "Logger", &log);
+
+    auto logger = spdlog::qt_logger_mt("log", &log, "addLog");
+
+    // combine with console logger
+    logger->sinks().push_back(
+      std::make_shared<spdlog::sinks::stdout_color_sink_mt>());
+
+    // set global log level to debug
+    spdlog::set_level(spdlog::level::debug);
+    set_default_logger(logger);
+
     try {
         auto assetsFolder = resource_managers::findAssetsFolder();
 
-#if defined(Q_OS_WIN)
-        const auto app = QGuiApplication{ __argc, __argv };
-#else
-        const auto app = QGuiApplication{ argc, argv };
-#endif
-
-        QGuiApplication::setOrganizationName("Tomasz Kalisiak");
-        QGuiApplication::setOrganizationDomain("bemani.pl");
-        QGuiApplication::setApplicationName("RhythmGame");
-
         auto engine = QQmlApplicationEngine{};
-
-        av_log_set_callback(libavLogHandler);
-
-        qInstallMessageHandler(qtLogHandler);
-
-        auto log = qml_components::Logger{ nullptr };
-        qmlRegisterSingletonInstance("RhythmGameQml", 1, 0, "Logger", &log);
-
-        auto logger = spdlog::qt_logger_mt("log", &log, "addLog");
-
-        // combine with console logger
-        logger->sinks().push_back(
-          std::make_shared<spdlog::sinks::stdout_color_sink_mt>());
-
-        // set global log level to debug
-        spdlog::set_level(spdlog::level::debug);
-        spdlog::set_default_logger(logger);
 
         auto db = db::SqliteCppDb{ support::pathToQString(
                                      (assetsFolder / "song_db.sqlite"))
@@ -267,10 +267,10 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
 
         return app.exec();
     } catch (const std::exception& e) {
-        std::cerr << "Fatal error: " << e.what() << std::endl;
+        spdlog::critical("Fatal error: {}", e.what());
         throw;
     } catch (...) {
-        std::cerr << "Fatal error: unknown" << std::endl;
+        spdlog::critical("Fatal error: unknown");
         throw;
     }
 }
