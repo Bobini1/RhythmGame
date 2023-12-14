@@ -275,6 +275,7 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
         if (engine.rootObjects().isEmpty()) {
             throw std::runtime_error{ "Failed to load main qml" };
         }
+        engine.rootObjects()[0]->installEventFilter(&inputTranslator);
 
         return app.exec();
     } catch (const std::exception& e) {

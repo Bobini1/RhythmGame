@@ -6,6 +6,7 @@
 
 #include "GamepadManager.h"
 
+#include <QKeyEvent>
 #include <QVariant>
 
 namespace input {
@@ -97,272 +98,281 @@ Mapping::fromVariantMap(const QVariantMap& map) -> Mapping
 void
 InputTranslator::pressButton(BmsKey button, double value, uint32_t time)
 {
-    emit buttonPressed(button, value, time);
     auto& state = buttons[static_cast<int>(button)];
+    const auto oldState = state;
     switch (button) {
         case BmsKey::Col11:
-            if (!state) {
+            state = true;
+            if (!oldState) {
                 emit col11Changed();
             }
-            state = true;
             break;
         case BmsKey::Col12:
-            if (!state) {
+            state = true;
+            if (!oldState) {
                 emit col12Changed();
             }
-            state = true;
             break;
 
         case BmsKey::Col13:
-            if (!state) {
+            state = true;
+            if (!oldState) {
                 emit col13Changed();
             }
-            state = true;
             break;
 
         case BmsKey::Col14:
-            if (!state) {
+            state = true;
+            if (!oldState) {
                 emit col14Changed();
             }
-            state = true;
             break;
 
         case BmsKey::Col15:
-            if (!state) {
+            state = true;
+            if (!oldState) {
                 emit col15Changed();
             }
-            state = true;
             break;
 
         case BmsKey::Col16:
-            if (!state) {
+            state = true;
+            if (!oldState) {
                 emit col16Changed();
             }
-            state = true;
             break;
 
         case BmsKey::Col17:
-            if (!state) {
+            state = true;
+            if (!oldState) {
                 emit col17Changed();
             }
-            state = true;
             break;
 
         case BmsKey::Col1s:
-            if (!state) {
+            state = true;
+            if (!oldState) {
                 emit col1sChanged();
             }
-            state = true;
             break;
 
         case BmsKey::Col21:
-            if (!state) {
+            state = true;
+            if (!oldState) {
                 emit col21Changed();
             }
-            state = true;
             break;
 
         case BmsKey::Col22:
-            if (!state) {
+            state = true;
+            if (!oldState) {
                 emit col22Changed();
             }
-            state = true;
             break;
 
         case BmsKey::Col23:
-            if (!state) {
+            state = true;
+            if (!oldState) {
                 emit col23Changed();
             }
-            state = true;
             break;
 
         case BmsKey::Col24:
-            if (!state) {
+            if (!oldState) {
                 emit col24Changed();
             }
             state = true;
             break;
 
         case BmsKey::Col25:
-            if (!state) {
+            state = true;
+            if (!oldState) {
                 emit col25Changed();
             }
-            state = true;
             break;
 
         case BmsKey::Col26:
-            if (!state) {
+            state = true;
+            if (!oldState) {
                 emit col26Changed();
             }
-            state = true;
             break;
 
         case BmsKey::Col27:
-            if (!state) {
+            state = true;
+            if (!oldState) {
                 emit col27Changed();
             }
-            state = true;
             break;
 
         case BmsKey::Col2s:
-            if (!state) {
+            state = true;
+            if (!oldState) {
                 emit col2sChanged();
             }
-            state = true;
             break;
 
         case BmsKey::Start:
-            if (!state) {
+            state = true;
+            if (!oldState) {
                 emit startChanged();
             }
-            state = true;
             break;
 
         case BmsKey::Select:
-            if (!state) {
+            state = true;
+            if (!oldState) {
                 emit selectChanged();
             }
-            state = true;
             break;
     }
+    emit buttonPressed(button, value, time);
 }
 void
 InputTranslator::releaseButton(BmsKey button, uint32_t time)
 {
-    emit buttonReleased(button, time);
     auto& state = buttons[static_cast<int>(button)];
+    const auto oldState = state;
     switch (button) {
         case BmsKey::Col11:
-            if (state) {
+            state = false;
+            if (oldState) {
                 emit col11Changed();
             }
-            state = false;
             break;
         case BmsKey::Col12:
-            if (state) {
+            state = false;
+            if (oldState) {
                 emit col12Changed();
             }
-            state = false;
             break;
 
         case BmsKey::Col13:
-            if (state) {
+            state = false;
+            if (oldState) {
                 emit col13Changed();
             }
-            state = false;
             break;
 
         case BmsKey::Col14:
-            if (state) {
+            state = false;
+            if (oldState) {
                 emit col14Changed();
             }
-            state = false;
             break;
 
         case BmsKey::Col15:
-            if (state) {
+            state = false;
+            if (oldState) {
                 emit col15Changed();
             }
-            state = false;
             break;
 
         case BmsKey::Col16:
-            if (state) {
+            state = false;
+            if (oldState) {
                 emit col16Changed();
             }
-            state = false;
             break;
 
         case BmsKey::Col17:
-            if (state) {
+            state = false;
+            if (oldState) {
                 emit col17Changed();
             }
-            state = false;
             break;
 
         case BmsKey::Col1s:
-            if (state) {
+            state = false;
+            if (oldState) {
                 emit col1sChanged();
             }
-            state = false;
             break;
 
         case BmsKey::Col21:
-            if (state) {
+            state = false;
+            if (oldState) {
                 emit col21Changed();
             }
-            state = false;
             break;
 
         case BmsKey::Col22:
-            if (state) {
+            state = false;
+            if (oldState) {
                 emit col22Changed();
             }
-            state = false;
             break;
 
         case BmsKey::Col23:
-            if (state) {
+            state = false;
+            if (oldState) {
                 emit col23Changed();
             }
-            state = false;
             break;
 
         case BmsKey::Col24:
-            if (state) {
+            state = false;
+            if (oldState) {
                 emit col24Changed();
             }
-            state = false;
             break;
 
         case BmsKey::Col25:
-            if (state) {
+            state = false;
+            if (oldState) {
                 emit col25Changed();
             }
-            state = false;
             break;
 
         case BmsKey::Col26:
-            if (state) {
+            state = false;
+            if (oldState) {
                 emit col26Changed();
             }
-            state = false;
             break;
 
         case BmsKey::Col27:
-            if (state) {
+            state = false;
+            if (oldState) {
                 emit col27Changed();
             }
-            state = false;
             break;
 
         case BmsKey::Col2s:
-            if (state) {
+            state = false;
+            if (oldState) {
                 emit col2sChanged();
             }
-            state = false;
             break;
 
         case BmsKey::Start:
-            if (state) {
+            state = false;
+            if (oldState) {
                 emit startChanged();
             }
-            state = false;
             break;
 
         case BmsKey::Select:
-            if (state) {
+            state = false;
+            if (oldState) {
                 emit selectChanged();
             }
-            state = false;
             break;
     }
+    emit buttonReleased(button, time);
 }
 void
 InputTranslator::unpressCurrentKey(const Key& key, uint32_t time)
 {
     if (auto found = config.find(key); found != config.end()) {
         releaseButton(*found, time);
+    }
+    // go through config to find configuredButton
+    for (auto it = config.begin(); it != config.end(); it++) {
+        if (it.value() == *configuredButton) {
+            config.erase(it);
+            break;
+        }
     }
 }
 InputTranslator::
@@ -380,14 +390,13 @@ InputTranslator(const GamepadManager* source, QObject* parent)
           }
           auto direction =
             value > scratch.value ? Key::Direction::Up : Key::Direction::Down;
-          if (1 - std::abs(scratch.value - value) > 1 - scratchSensitivity) {
+          if (2 - std::abs(scratch.value - value) > 2 - scratchSensitivity) {
               direction = direction == Key::Direction::Up ? Key::Direction::Down
                                                           : Key::Direction::Up;
           }
-          auto keyLookup = Key{ QVariant::fromValue(std::move(gamepad)),
-                                Key::Device::Axis,
-                                axis,
-                                direction };
+          auto keyLookup = Key{
+              QVariant::fromValue(gamepad), Key::Device::Axis, axis, direction
+          };
           if (isConfiguring()) {
               unpressCurrentKey(keyLookup, time);
               config[keyLookup] = *configuredButton;
@@ -398,7 +407,6 @@ InputTranslator(const GamepadManager* source, QObject* parent)
               if (key == config.end()) {
                   return;
               }
-              scratch.direction = direction;
               scratch.value = value;
               scratch.timer = std::make_unique<QTimer>();
               scratch.timer->setSingleShot(true);
@@ -406,15 +414,11 @@ InputTranslator(const GamepadManager* source, QObject* parent)
               connect(
                 scratch.timer.get(),
                 &QTimer::timeout,
-                [this, key = *key, scratchKey = std::move(scratchKey), time] {
-                    auto& scratch = scratches[scratchKey];
-                    scratch.direction = Key::Direction::None;
-                    releaseButton(key, time + 100);
-                });
+                [this, key = *key, time] { releaseButton(key, time + 100); });
               scratch.timer->start();
               pressButton(*key, value, time);
               // find key with opposite direction
-              auto oppositeKey = config.find(
+              const auto oppositeKey = config.find(
                 Key{ QVariant::fromValue(std::move(gamepad)),
                      Key::Device::Axis,
                      axis,
@@ -608,6 +612,36 @@ auto
 InputTranslator::select() const -> bool
 {
     return buttons[static_cast<int>(BmsKey::Select)];
+}
+bool
+InputTranslator::eventFilter(QObject* watched, QEvent* event)
+{
+    if (event->type() == QEvent::KeyPress) {
+        const auto key = static_cast<QKeyEvent*>(event);
+        const auto keyLookup = Key{
+            QVariant(), Key::Device::Keyboard, key->key(), Key::Direction::None
+        };
+        if (isConfiguring()) {
+            unpressCurrentKey(keyLookup, key->timestamp());
+            config[keyLookup] = *configuredButton;
+            emit keyConfigModified();
+            setConfiguredButton({});
+        } else {
+            if (const auto found = config.find(keyLookup);
+                found != config.end()) {
+                pressButton(*found, 1.0, key->timestamp());
+            }
+        }
+    } else if (event->type() == QEvent::KeyRelease) {
+        const auto key = static_cast<QKeyEvent*>(event);
+        const auto keyLookup = Key{
+            QVariant(), Key::Device::Keyboard, key->key(), Key::Direction::None
+        };
+        if (const auto found = config.find(keyLookup); found != config.end()) {
+            releaseButton(*found, key->timestamp());
+        }
+    }
+    return false;
 }
 
 } // namespace input

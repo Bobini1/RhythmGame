@@ -113,7 +113,6 @@ class InputTranslator : public QObject
     struct Scratch
     {
         std::unique_ptr<QTimer> timer;
-        Key::Direction direction{};
         double value{};
     };
 
@@ -163,6 +162,8 @@ class InputTranslator : public QObject
     auto col2s() const -> bool;
     auto start() const -> bool;
     auto select() const -> bool;
+
+    bool eventFilter(QObject* watched, QEvent* event) override;
 
   signals:
     void buttonPressed(BmsKey button, double value, uint32_t time);
