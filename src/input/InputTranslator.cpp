@@ -58,7 +58,10 @@ Key::operator<=>(const Key& key) const -> std::weak_ordering
     auto gp1 = gamepad.canConvert<Gamepad>();
     auto gp2 = key.gamepad.canConvert<Gamepad>();
     if (gp1 && gp2) {
-        return gamepad.value<Gamepad>() <=> key.gamepad.value<Gamepad>();
+        auto gp1obj = gamepad.value<Gamepad>();
+        auto gp2obj = key.gamepad.value<Gamepad>();
+        return std::tie(gp1obj, device, code, direction) <=>
+               std::tie(gp2obj, key.device, key.code, key.direction);
     }
     if (gp1) {
         return std::strong_ordering::less;
@@ -66,7 +69,8 @@ Key::operator<=>(const Key& key) const -> std::weak_ordering
     if (gp2) {
         return std::strong_ordering::greater;
     }
-    return code <=> key.code;
+    return std::tie(device, code, direction) <=>
+           std::tie(key.device, key.code, key.direction);
 }
 
 auto
@@ -375,93 +379,104 @@ InputTranslator::unpressCurrentKey(const Key& key, uint32_t time)
         }
     }
 }
+void
+InputTranslator::handleAxis(Gamepad gamepad,
+                            Uint8 axis,
+                            double value,
+                            uint32_t time)
+{
+    auto scratchKey = std::pair{ gamepad, axis };
+    auto& scratch = scratches[scratchKey];
+    if (std::abs(scratch.value - value) < scratchSensitivity) {
+        return;
+    }
+    scratch.value = value;
+    auto direction =
+      value > scratch.value ? Key::Direction::Up : Key::Direction::Down;
+    if (2 - std::abs(scratch.value - value) > 2 - scratchSensitivity) {
+        direction = direction == Key::Direction::Up ? Key::Direction::Down
+                                                    : Key::Direction::Up;
+    }
+    auto keyLookup =
+      Key{ QVariant::fromValue(gamepad), Key::Device::Axis, axis, direction };
+    if (isConfiguring()) {
+        unpressCurrentKey(keyLookup, time);
+        config[keyLookup] = *configuredButton;
+        emit keyConfigModified();
+        setConfiguredButton({});
+    } else {
+        auto key = config.find(keyLookup);
+        if (key == config.end()) {
+            return;
+        }
+        pressButton(*key, value, time);
+        scratch.timer = std::make_unique<QTimer>();
+        scratch.timer->setSingleShot(true);
+        scratch.timer->setInterval(100);
+        connect(
+          scratch.timer.get(), &QTimer::timeout, [this, key = *key, time] {
+              int i;
+              releaseButton(key, time + 100);
+          });
+        scratch.timer->start();
+        // find key with opposite direction
+        const auto oppositeKey = config.find(
+          Key{ QVariant::fromValue(std::move(gamepad)),
+               Key::Device::Axis,
+               axis,
+               direction == Key::Direction::Up ? Key::Direction::Down
+                                               : Key::Direction::Up });
+        if (oppositeKey != config.end()) {
+            releaseButton(*oppositeKey, time);
+        }
+    }
+}
+void
+InputTranslator::handlePress(Gamepad gamepad,
+                             Uint8 button,
+                             double x,
+                             Uint32 time)
+{
+    if (isConfiguring()) {
+        auto keyLookup = Key{ QVariant::fromValue(std::move(gamepad)),
+                              Key::Device::Button,
+                              button };
+        unpressCurrentKey(keyLookup, time);
+        config[keyLookup] = *configuredButton;
+        emit keyConfigModified();
+        setConfiguredButton({});
+    } else {
+        auto key = config.find(Key{ QVariant::fromValue(std::move(gamepad)),
+                                    Key::Device::Button,
+                                    button });
+        if (key != config.end()) {
+            pressButton(*key, 1.0, time);
+        }
+    }
+}
+void
+InputTranslator::handleRelease(Gamepad gamepad, Uint8 button, Uint32 time)
+{
+    auto key = config.find(Key{
+      QVariant::fromValue(std::move(gamepad)), Key::Device::Button, button });
+    if (key != config.end()) {
+        releaseButton(*key, time);
+    }
+}
 InputTranslator::
 InputTranslator(const GamepadManager* source, QObject* parent)
   : QObject(parent)
 {
     connect(
-      source,
-      &GamepadManager::axisMoved,
-      [this](Gamepad gamepad, Uint8 axis, double value, uint32_t time) {
-          auto scratchKey = std::pair{ gamepad, axis };
-          auto& scratch = scratches[scratchKey];
-          if (std::abs(scratch.value - value) < scratchSensitivity) {
-              return;
-          }
-          auto direction =
-            value > scratch.value ? Key::Direction::Up : Key::Direction::Down;
-          if (2 - std::abs(scratch.value - value) > 2 - scratchSensitivity) {
-              direction = direction == Key::Direction::Up ? Key::Direction::Down
-                                                          : Key::Direction::Up;
-          }
-          auto keyLookup = Key{
-              QVariant::fromValue(gamepad), Key::Device::Axis, axis, direction
-          };
-          if (isConfiguring()) {
-              unpressCurrentKey(keyLookup, time);
-              config[keyLookup] = *configuredButton;
-              emit keyConfigModified();
-              setConfiguredButton({});
-          } else {
-              auto key = config.find(keyLookup);
-              if (key == config.end()) {
-                  return;
-              }
-              scratch.value = value;
-              scratch.timer = std::make_unique<QTimer>();
-              scratch.timer->setSingleShot(true);
-              scratch.timer->setInterval(100);
-              connect(
-                scratch.timer.get(),
-                &QTimer::timeout,
-                [this, key = *key, time] { releaseButton(key, time + 100); });
-              scratch.timer->start();
-              pressButton(*key, value, time);
-              // find key with opposite direction
-              const auto oppositeKey = config.find(
-                Key{ QVariant::fromValue(std::move(gamepad)),
-                     Key::Device::Axis,
-                     axis,
-                     direction == Key::Direction::Up ? Key::Direction::Down
-                                                     : Key::Direction::Up });
-              if (oppositeKey != config.end()) {
-                  releaseButton(*oppositeKey, time);
-              }
-          }
-      });
+      source, &GamepadManager::axisMoved, this, &InputTranslator::handleAxis);
     connect(source,
             &GamepadManager::buttonPressed,
-            [this](Gamepad gamepad, Uint8 button, double x, Uint32 time) {
-                if (isConfiguring()) {
-                    auto keyLookup =
-                      Key{ QVariant::fromValue(std::move(gamepad)),
-                           Key::Device::Button,
-                           button };
-                    unpressCurrentKey(keyLookup, time);
-                    config[keyLookup] = *configuredButton;
-                    emit keyConfigModified();
-                    setConfiguredButton({});
-                } else {
-                    auto key =
-                      config.find(Key{ QVariant::fromValue(std::move(gamepad)),
-                                       Key::Device::Button,
-                                       button });
-                    if (key != config.end()) {
-                        pressButton(*key, 1.0, time);
-                    }
-                }
-            });
+            this,
+            &InputTranslator::handlePress);
     connect(source,
             &GamepadManager::buttonReleased,
-            [this](Gamepad gamepad, Uint8 button, Uint32 time) {
-                auto key =
-                  config.find(Key{ QVariant::fromValue(std::move(gamepad)),
-                                   Key::Device::Button,
-                                   button });
-                if (key != config.end()) {
-                    releaseButton(*key, time);
-                }
-            });
+            this,
+            &InputTranslator::handleRelease);
 }
 void
 InputTranslator::setConfiguredButton(QVariant button)

@@ -133,6 +133,9 @@ class InputTranslator : public QObject
     void pressButton(BmsKey button, double value, uint32_t time);
     void releaseButton(BmsKey button, uint32_t time);
     void unpressCurrentKey(const Key& key, uint32_t time);
+    void handleAxis(Gamepad gamepad, Uint8 axis, double value, uint32_t time);
+    void handlePress(Gamepad gamepad, Uint8 button, double x, Uint32 time);
+    void handleRelease(Gamepad gamepad, Uint8 button, Uint32 time);
 
     static constexpr auto scratchSensitivity = 0.1;
 
