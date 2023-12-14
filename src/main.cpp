@@ -5,9 +5,10 @@
 #include "qml_components/ProgramSettings.h"
 #include "qml_components/ChartLoader.h"
 
+#include <QQmlExtensionPlugin>
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
-#include <QtQml/QQmlExtensionPlugin>
+#include <QObject>
 #include <spdlog/sinks/qt_sinks.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include "qml_components/Logger.h"
@@ -16,6 +17,8 @@
 #include "gameplay_logic/rules/Lr2HitValues.h"
 #include "resource_managers/SongDbScanner.h"
 #include "DefineDb.h"
+#include "input/GamepadManager.h"
+#include "input/InputTranslator.h"
 #include "qml_components/RootSongFoldersConfig.h"
 #include "qml_components/SongFolderFactory.h"
 #include "support/PathToQString.h"
@@ -162,10 +165,16 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
         };
         qmlRegisterSingletonInstance(
           "RhythmGameQml", 1, 0, "ProfileList", &profileList);
-
         auto scoreDb = [&profileList]() -> db::SqliteCppDb& {
             return profileList.getCurrentProfile()->getDb();
         };
+
+        auto gamepadManager = input::GamepadManager{};
+        qmlRegisterSingletonInstance(
+          "RhythmGameQml", 1, 0, "GamepadManager", &gamepadManager);
+        auto inputTranslator = input::InputTranslator{ &gamepadManager };
+        qmlRegisterSingletonInstance(
+          "RhythmGameQml", 1, 0, "InputTranslator", &inputTranslator);
 
         auto chartFactory = resource_managers::ChartFactory{ scoreDb };
         auto hitRulesFactory =
@@ -249,6 +258,12 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
                                          1,
                                          0,
                                          "Judgement",
+                                         "Access to enums & flags only");
+        qmlRegisterUncreatableMetaObject(input::staticMetaObject,
+                                         "RhythmGameQml",
+                                         1,
+                                         0,
+                                         "BmsKey",
                                          "Access to enums & flags only");
         qmlRegisterUncreatableType<gameplay_logic::Note>(
           "RhythmGameQml", 1, 0, "Note", "Note is created in C++");

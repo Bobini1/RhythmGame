@@ -6,6 +6,7 @@
 #define RHYTHMGAME_PROFILE_H
 
 #include "db/SqliteCppDb.h"
+#include "input/InputTranslator.h"
 
 #include <QQmlPropertyMap>
 #include "qml_components/ThemeFamily.h"
@@ -19,11 +20,14 @@ class Profile : public QObject
       QString avatar READ getAvatar WRITE setAvatar NOTIFY avatarChanged)
     Q_PROPERTY(QString path READ getPathQString CONSTANT)
     Q_PROPERTY(QQmlPropertyMap* themeConfig READ getThemeConfig CONSTANT)
+    Q_PROPERTY(QList<input::Mapping> keyConfig READ getKeyConfig NOTIFY
+                 keyConfigChanged)
     QString name;
     QString avatar;
     db::SqliteCppDb db;
     std::filesystem::path dbPath;
     QQmlPropertyMap* themeConfig;
+    QList<input::Mapping> keyConfig;
 
     struct ProfileDTO
     {
@@ -54,10 +58,13 @@ class Profile : public QObject
     auto getPathQString() const -> QString;
     auto getDb() -> db::SqliteCppDb&;
     auto getThemeConfig() const -> QQmlPropertyMap*;
+    auto getKeyConfig() const -> QList<input::Mapping>;
+    auto setKeyConfig(const QList<input::Mapping>& keyConfig) -> void;
 
   signals:
     void nameChanged(QString name);
     void avatarChanged(QString avatar);
+    void keyConfigChanged();
 };
 
 } // namespace resource_managers

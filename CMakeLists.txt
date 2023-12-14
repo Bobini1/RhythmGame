@@ -149,13 +149,19 @@ qt_add_library(RhythmGame_lib OBJECT src/db/SqliteCppDb.cpp src/db/SqliteCppDb.h
         src/qml_components/Themes.cpp
         src/qml_components/Themes.h
         src/resource_managers/SerializeConfig.cpp
-        src/resource_managers/SerializeConfig.h)
+        src/resource_managers/SerializeConfig.h
+        src/input/GamepadManager.cpp
+        src/input/GamepadManager.h
+        src/input/InputTranslator.cpp
+        src/input/InputTranslator.h)
 
 find_package(Threads REQUIRED)
 
 find_package(SndFile REQUIRED)
 
-target_link_libraries(RhythmGame_lib PUBLIC Qt6::Gui Qt6::Quick Qt6::OpenGL Qt6::Widgets Qt6::Concurrent Qt6::Core5Compat Qt6::Multimedia Threads::Threads Boost::headers Boost::locale Boost::serialization Boost::dynamic_linking Boost::filesystem SQLiteCpp spdlog::spdlog foonathan::lexy ffmpeg::ffmpeg OpenAL::OpenAL cryptopp::cryptopp magic_enum::magic_enum zstd::libzstd_static SndFile::sndfile)
+find_package(SDL2 REQUIRED)
+
+target_link_libraries(RhythmGame_lib PUBLIC SDL2::SDL2 Qt6::Gui Qt6::Quick Qt6::OpenGL Qt6::Widgets Qt6::Concurrent Qt6::Core5Compat Qt6::Multimedia Threads::Threads Boost::headers Boost::locale Boost::serialization Boost::dynamic_linking Boost::filesystem SQLiteCpp spdlog::spdlog foonathan::lexy ffmpeg::ffmpeg OpenAL::OpenAL cryptopp::cryptopp magic_enum::magic_enum zstd::libzstd_static SndFile::sndfile)
 
 include(CheckCXXSymbolExists)
 check_cxx_symbol_exists(std::execution::par "execution" RHYTHMGAME_HAS_STD_EXECUTION)
@@ -177,6 +183,7 @@ target_include_directories(
 
 # ---- Declare QML module ----
 add_subdirectory(RhythmGameQml)
+qt_import_qml_plugins(RhythmGame_qmlplugin)
 
 # ---- Declare executable ----
 

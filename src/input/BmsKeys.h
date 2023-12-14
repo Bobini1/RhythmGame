@@ -5,7 +5,9 @@
 #ifndef RHYTHMGAME_BMSKEYS_H
 #define RHYTHMGAME_BMSKEYS_H
 
+#include <QObject>
 namespace input {
+Q_NAMESPACE
 enum class BmsKey
 {
     Col11 = 0,
@@ -24,7 +26,10 @@ enum class BmsKey
     Col26 = 13,
     Col27 = 14,
     Col2s = 15,
+    Start = 16,
+    Select = 17,
 };
+Q_ENUM_NS(BmsKey);
 } // namespace input
 
 #endif // RHYTHMGAME_BMSKEYS_H

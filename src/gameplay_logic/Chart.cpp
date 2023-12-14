@@ -8,13 +8,14 @@
 
 namespace gameplay_logic {
 
-Chart::Chart(QFuture<gameplay_logic::BmsGameReferee> refereeFuture,
-             QFuture<std::unique_ptr<qml_components::BgaContainer>> bgaFuture,
-             ChartData* chartData,
-             BmsNotes* notes,
-             BmsScore* score,
-             std::function<db::SqliteCppDb&()> scoreDb,
-             QObject* parent)
+Chart::
+Chart(QFuture<gameplay_logic::BmsGameReferee> refereeFuture,
+      QFuture<std::unique_ptr<qml_components::BgaContainer>> bgaFuture,
+      ChartData* chartData,
+      BmsNotes* notes,
+      BmsScore* score,
+      std::function<db::SqliteCppDb&()> scoreDb,
+      QObject* parent)
   : QObject(parent)
   , bpmChanges(notes->getBpmChanges())
   , chartData(chartData)
@@ -94,14 +95,21 @@ Chart::passKey(QKeyEvent* keyEvent, EventType eventType)
         return;
     }
     auto timestampQint = keyEvent->timestamp();
+    auto offset = [&] {
+        if (timestampQint != 0) {
 #ifdef _WIN32
-    auto offset = std::chrono::nanoseconds(
-      std::chrono::milliseconds{ timestampQint - startTimepointClk });
+            return std::chrono::nanoseconds(
+              std::chrono::milliseconds{ timestampQint - startTimepointClk });
 #else
-    auto offset = std::chrono::steady_clock::time_point(
-                    std::chrono::milliseconds{ timestampQint }) -
-                  startTimepoint;
+            return std::chrono::steady_clock::time_point(
+                     std::chrono::milliseconds{ timestampQint }) -
+                   startTimepoint;
 #endif
+        }
+        // TODO: modify QtGamepadLegacy to report timestamps! We shouldn't do
+        // this!
+        return std::chrono::steady_clock::now() - startTimepoint;
+    }();
     if (auto bmsKey =
           inputTranslator.translate(static_cast<Qt::Key>(keyEvent->key()));
         bmsKey.has_value()) {

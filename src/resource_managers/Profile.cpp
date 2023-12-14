@@ -186,4 +186,16 @@ Profile::getThemeConfig() const -> QQmlPropertyMap*
 {
     return themeConfig;
 }
+auto
+Profile::getKeyConfig() const -> QList<input::Mapping>
+{
+    return keyConfig;
+}
+auto
+Profile::setKeyConfig(const QList<input::Mapping>& keyConfig) -> void
+{
+    if (this->keyConfig == keyConfig) {
+        return;
+    }
+}
 } // namespace resource_managers

@@ -24,7 +24,10 @@ class Recipe(ConanFile):
         self.requires("magic_enum/0.9.3")
         self.requires("zstd/1.5.5")
         self.requires("freetype/2.13.2", override=True)
-        self.requires("qt/6.6.0")
+        self.requires("xkbcommon/1.6.0", override=True)
+        self.requires("xz_utils/5.4.5", override=True)
+        self.requires("qt/6.6.1")
+        self.requires("sdl/2.28.5")
 
         # Testing only dependencies below
         self.requires("catch2/3.4.0")
