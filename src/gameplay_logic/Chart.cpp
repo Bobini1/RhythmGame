@@ -59,17 +59,14 @@ Chart::start()
     propertyUpdateTimer.start(1);
     connect(
       &propertyUpdateTimer, &QTimer::timeout, this, &Chart::updateElapsed);
-    startTimepoint = std::chrono::steady_clock::now();
-#ifdef _WIN32
-    startTimepointClk = clock();
-#endif
+    startTimepoint = std::chrono::system_clock::now();
     updateBpm();
 }
 
 void
 Chart::updateElapsed()
 {
-    auto offset = std::chrono::steady_clock::now() - startTimepoint;
+    auto offset = std::chrono::system_clock::now() - startTimepoint;
     offset -= std::chrono::nanoseconds(timeBeforeChartStart);
     setElapsed(offset.count());
     auto newPosition = gameReferee->update(offset);
@@ -88,58 +85,31 @@ Chart::getElapsed() const -> int64_t
 }
 
 void
-Chart::passKey(QKeyEvent* keyEvent, EventType eventType)
+Chart::passKey(input::BmsKey key, const EventType eventType, const int64_t time)
 {
-    if (keyEvent->isAutoRepeat()) {
-        keyEvent->ignore();
-        return;
-    }
-    auto timestampQint = keyEvent->timestamp();
-    auto offset = [&] {
-        if (timestampQint != 0) {
-#ifdef _WIN32
-            return std::chrono::nanoseconds(
-              std::chrono::milliseconds{ timestampQint - startTimepointClk });
-#else
-            return std::chrono::steady_clock::time_point(
-                     std::chrono::milliseconds{ timestampQint }) -
-                   startTimepoint;
-#endif
-        }
-        // TODO: modify QtGamepadLegacy to report timestamps! We shouldn't do
-        // this!
-        return std::chrono::steady_clock::now() - startTimepoint;
-    }();
-    if (auto bmsKey =
-          inputTranslator.translate(static_cast<Qt::Key>(keyEvent->key()));
-        bmsKey.has_value()) {
-        keyEvent->accept();
-        if (!gameReferee) {
-            if (eventType == EventType::KeyPress) {
-                score->sendVisualOnlyTap({ static_cast<int>(bmsKey.value()),
+    auto offset =
+      std::chrono::milliseconds{ time } - startTimepoint.time_since_epoch();
+    if (!gameReferee) {
+        if (eventType == EventType::KeyPress) {
+            score->sendVisualOnlyTap({ static_cast<int>(key),
+                                       std::nullopt,
+                                       offset.count(),
+                                       std::nullopt });
+        } else {
+            score->sendVisualOnlyRelease({ static_cast<int>(key),
                                            std::nullopt,
                                            offset.count(),
                                            std::nullopt });
-            } else {
-                score->sendVisualOnlyRelease({ static_cast<int>(bmsKey.value()),
-                                               std::nullopt,
-                                               offset.count(),
-                                               std::nullopt });
-            }
-        } else {
-            if (eventType == EventType::KeyPress) {
-                gameReferee->passPressed(
-                  offset - std::chrono::nanoseconds(timeBeforeChartStart),
-                  *bmsKey);
-            } else {
-                gameReferee->passReleased(
-                  offset - std::chrono::nanoseconds(timeBeforeChartStart),
-                  *bmsKey);
-            }
         }
-        return;
+    } else {
+        if (eventType == EventType::KeyPress) {
+            gameReferee->passPressed(
+              offset - std::chrono::nanoseconds(timeBeforeChartStart), key);
+        } else {
+            gameReferee->passReleased(
+              offset - std::chrono::nanoseconds(timeBeforeChartStart), key);
+        }
     }
-    keyEvent->ignore();
 }
 
 auto
@@ -165,7 +135,7 @@ Chart::updateBpm()
     while (bpmChange != bpmChanges.end() &&
            bpmChange->time.timestamp <= elapsed) {
         emit bpmChanged(*bpmChange);
-        bpmChange++;
+        ++bpmChange;
     }
     if (bpmChange != bpmChanges.end()) {
         auto nextTimestamp = bpmChange->time.timestamp - elapsed;

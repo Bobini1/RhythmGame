@@ -5,7 +5,8 @@
 #include <ranges>
 #include <algorithm>
 #include "BmsGameReferee.h"
-gameplay_logic::BmsGameReferee::BmsGameReferee(
+gameplay_logic::BmsGameReferee::
+BmsGameReferee(
   std::array<std::vector<charts::gameplay_models::BmsNotesData::Note>,
              charts::gameplay_models::BmsNotesData::columnNumber> visibleNotes,
   std::array<std::vector<charts::gameplay_models::BmsNotesData::Note>,
@@ -278,48 +279,48 @@ gameplay_logic::BmsGameReferee::passPressed(
   std::chrono::nanoseconds offsetFromStart,
   input::BmsKey key) -> void
 {
-    try {
-        auto columnIndex = static_cast<int>(key);
-        if (columnIndex < 0 ||
-            columnIndex >=
-              charts::gameplay_models::BmsNotesData::columnNumber) {
+    if (key == input::BmsKey::Col1sDown) {
+        key = input::BmsKey::Col1sUp;
+    }
+    if (key == input::BmsKey::Col2sDown) {
+        key = input::BmsKey::Col2sUp;
+    }
+    auto columnIndex = static_cast<int>(key);
+    if (columnIndex < 0 ||
+        columnIndex >= charts::gameplay_models::BmsNotesData::columnNumber) {
+        return;
+    }
+    pressedState[columnIndex] = true;
+    auto res = hitRules->visibleNoteHit(visibleNotes[columnIndex],
+                                        currentVisibleNotes[columnIndex],
+                                        offsetFromStart);
+    if (!res || !res->points.getNoteRemoved()) {
+        if (auto invisibleNoteIndex =
+              hitRules->invisibleNoteHit(invisibleNotes[columnIndex],
+                                         currentInvisibleNotes[columnIndex],
+                                         offsetFromStart)) {
+            invisibleNotes[columnIndex][res->noteIndex].sound->play();
+            assignLastKeysound(
+              columnIndex, invisibleNotes[columnIndex][*invisibleNoteIndex]);
+        } else {
+            playLastKeysound(columnIndex);
+        }
+        if (!res) {
+            score->addEmptyHit({ columnIndex,
+                                 std::nullopt,
+                                 offsetFromStart.count(),
+                                 std::nullopt });
             return;
         }
-        pressedState[columnIndex] = true;
-        auto res = hitRules->visibleNoteHit(visibleNotes[columnIndex],
-                                            currentVisibleNotes[columnIndex],
-                                            offsetFromStart);
-        if (!res || !res->points.getNoteRemoved()) {
-            if (auto invisibleNoteIndex =
-                  hitRules->invisibleNoteHit(invisibleNotes[columnIndex],
-                                             currentInvisibleNotes[columnIndex],
-                                             offsetFromStart)) {
-                invisibleNotes[columnIndex][res->noteIndex].sound->play();
-                assignLastKeysound(
-                  columnIndex,
-                  invisibleNotes[columnIndex][*invisibleNoteIndex]);
-            } else {
-                playLastKeysound(columnIndex);
-            }
-            if (!res) {
-                score->addEmptyHit({ columnIndex,
-                                     std::nullopt,
-                                     offsetFromStart.count(),
-                                     std::nullopt });
-                return;
-            }
-        }
-        if (res->points.getNoteRemoved()) {
-            playSound(visibleNotes[columnIndex][res->noteIndex]);
-            assignLastKeysound(columnIndex,
-                               visibleNotes[columnIndex][res->noteIndex]);
-        }
-        auto [points, noteIndex] = *res;
-        score->addNoteHit(
-          { columnIndex, noteIndex, offsetFromStart.count(), points });
-    } catch (std::exception& e) {
-        spdlog::error("{}", e.what());
     }
+    if (res->points.getNoteRemoved()) {
+        playSound(visibleNotes[columnIndex][res->noteIndex]);
+        assignLastKeysound(columnIndex,
+                           visibleNotes[columnIndex][res->noteIndex]);
+    }
+    auto [points, noteIndex] = *res;
+    score->addNoteHit(
+      { columnIndex, noteIndex, offsetFromStart.count(), points });
 }
 auto
 gameplay_logic::BmsGameReferee::getPosition(
@@ -333,7 +334,7 @@ gameplay_logic::BmsGameReferee::getPosition(
     if (offsetFromStart.count() < 0) {
         bpmChange = currentBpmChanges.begin();
     } else {
-        bpmChange--;
+        --bpmChange;
     }
     auto bpm = bpmChange->second;
     auto bpmChangeTime = bpmChange->first.timestamp;
@@ -364,42 +365,41 @@ gameplay_logic::BmsGameReferee::passReleased(
   std::chrono::nanoseconds offsetFromStart,
   input::BmsKey key) -> void
 {
-    try {
-        auto columnIndex = static_cast<int>(key);
-        if (columnIndex < 0 ||
-            columnIndex >=
-              charts::gameplay_models::BmsNotesData::columnNumber) {
-            return;
-        }
-        pressedState[columnIndex] = false;
-        auto res = hitRules->lnReleaseHit(visibleNotes[columnIndex],
-                                          currentVisibleNotes[columnIndex],
-                                          offsetFromStart);
-        if (!res) {
-            score->addEmptyRelease({ columnIndex,
-                                     std::nullopt,
-                                     offsetFromStart.count(),
-                                     std::nullopt });
-            return;
-        }
-        auto [points, noteIndex] = *res;
-        auto judgement = points.getJudgement();
-        if (judgement == Judgement::Poor) {
-            score->addLnEndMiss(
-              { columnIndex, noteIndex, offsetFromStart.count(), points });
+    if (key == input::BmsKey::Col1sDown) {
+        key = input::BmsKey::Col1sUp;
+    }
+    if (key == input::BmsKey::Col2sDown) {
+        key = input::BmsKey::Col2sUp;
+    }
+    auto columnIndex = static_cast<int>(key);
+    if (columnIndex < 0 ||
+        columnIndex >= charts::gameplay_models::BmsNotesData::columnNumber) {
+        return;
+    }
+    pressedState[columnIndex] = false;
+    auto res = hitRules->lnReleaseHit(visibleNotes[columnIndex],
+                                      currentVisibleNotes[columnIndex],
+                                      offsetFromStart);
+    if (!res) {
+        score->addEmptyRelease(
+          { columnIndex, std::nullopt, offsetFromStart.count(), std::nullopt });
+        return;
+    }
+    auto [points, noteIndex] = *res;
+    auto judgement = points.getJudgement();
+    if (judgement == Judgement::Poor) {
+        score->addLnEndMiss(
+          { columnIndex, noteIndex, offsetFromStart.count(), points });
 
-            auto prevNoteIndex = noteIndex - 1;
-            auto& prevNote = std::get<rules::BmsHitRules::LnBegin>(
-              visibleNotes[columnIndex][prevNoteIndex]);
-            if (prevNote.sound) {
-                prevNote.sound->stop();
-            }
-        } else {
-            score->addLnEndHit(
-              { columnIndex, noteIndex, offsetFromStart.count(), points });
+        auto prevNoteIndex = noteIndex - 1;
+        auto& prevNote = std::get<rules::BmsHitRules::LnBegin>(
+          visibleNotes[columnIndex][prevNoteIndex]);
+        if (prevNote.sound) {
+            prevNote.sound->stop();
         }
-    } catch (std::exception& e) {
-        spdlog::error("{}", e.what());
+    } else {
+        score->addLnEndHit(
+          { columnIndex, noteIndex, offsetFromStart.count(), points });
     }
 }
 void

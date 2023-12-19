@@ -6,7 +6,9 @@
 
 #include "ScanThemes.h"
 #include "SerializeConfig.h"
+#include "support/Compress.h"
 #include "support/PathToQString.h"
+#include "input/GamepadManager.h"
 
 namespace resource_managers {
 
@@ -35,32 +37,6 @@ createConfig(const QMap<QString, qml_components::ThemeFamily>& availableThemes,
 }
 
 auto
-Profile::save() -> void
-{
-    // get count of rows in profiles table
-    auto countStatement = db.createStatement("SELECT COUNT(*) FROM profiles");
-    auto result = countStatement.executeAndGet<int>();
-    if (!result.has_value()) {
-        throw std::runtime_error(
-          "Failed to get count of rows in profiles table");
-    }
-    if (result.value() == 0) {
-        // insert new row
-        auto statement =
-          db.createStatement("INSERT INTO profiles (id, name, avatar) "
-                             "VALUES (1, ?, ?)");
-        statement.bind(1, name.toStdString());
-        statement.bind(2, avatar.toStdString());
-        statement.execute();
-        return;
-    }
-    auto statement =
-      db.createStatement("UPDATE profiles SET name = ?, avatar = ? "
-                         "WHERE id = 1");
-    statement.bind(1, name.toStdString());
-    statement.bind(2, avatar.toStdString());
-}
-auto
 Profile::getName() const -> QString
 {
     return name;
@@ -78,8 +54,13 @@ Profile::setName(QString newName)
         return;
     }
     name = std::move(newName);
-    save();
-    emit nameChanged(name);
+    auto updateProperty =
+      db.createStatement("INSERT OR REPLACE INTO properties "
+                         "(key, value) VALUES (?, ?)");
+    updateProperty.bind(1, "name");
+    updateProperty.bind(2, name.toStdString());
+    updateProperty.execute();
+    emit nameChanged();
 }
 void
 Profile::setAvatar(QString newAvatar)
@@ -88,8 +69,13 @@ Profile::setAvatar(QString newAvatar)
         return;
     }
     avatar = std::move(newAvatar);
-    save();
-    emit avatarChanged(avatar);
+    auto updateProperty =
+      db.createStatement("INSERT OR REPLACE INTO properties "
+                         "(key, value) VALUES (?, ?)");
+    updateProperty.bind(1, "avatar");
+    updateProperty.bind(2, avatar.toStdString());
+    updateProperty.execute();
+    emit avatarChanged();
 }
 Profile::
 Profile(const std::filesystem::path& dbPath,
@@ -111,26 +97,32 @@ Profile(const std::filesystem::path& dbPath,
                 writeConfig(configPath, *themeConfig);
             });
     writeConfig(configPath, *themeConfig);
-    if (!db.hasTable("profiles")) {
-        db.execute("CREATE TABLE profiles ("
-                   "id INTEGER PRIMARY KEY CHECK (id = 1),"
-                   "name TEXT NOT NULL,"
-                   "avatar TEXT NOT NULL"
+    if (!db.hasTable("properties")) {
+        db.execute("CREATE TABLE properties ("
+                   "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+                   "key TEXT NOT NULL UNIQUE,"
+                   "value"
                    ");");
         name = "Player";
         avatar = "mascot.png";
-        save();
     } else {
-        auto statement = db.createStatement("SELECT * FROM profiles");
-        auto result = statement.executeAndGet<ProfileDTO>();
-        if (!result.has_value()) {
-            // this is very unlikely to happen
-            name = "Player";
-            avatar = "mascot.png";
-            save();
-        } else {
-            name = QString::fromStdString(result->name);
-            avatar = QString::fromStdString(result->avatar);
+        auto statement = db.createStatement(
+          "SELECT value FROM properties WHERE key = 'avatar'");
+        auto av = statement.executeAndGet<std::string>();
+        avatar = QString::fromStdString(av.value_or(""));
+        statement =
+          db.createStatement("SELECT value FROM properties WHERE key = "
+                             "'name'");
+        auto n = statement.executeAndGet<std::string>();
+        name = QString::fromStdString(n.value_or(""));
+        statement = db.createStatement("SELECT value FROM properties WHERE "
+                                       "key = 'key_config'");
+        if (auto config = statement.executeAndGet<std::string>()) {
+            auto serializedData = QByteArray::fromStdString(*config);
+            auto decompressedBuffer = support::decompress(serializedData);
+            auto stream =
+              QDataStream{ &decompressedBuffer, QIODevice::ReadOnly };
+            stream >> keyConfig;
         }
     }
     db.execute("CREATE TABLE IF NOT EXISTS score ("
@@ -197,5 +189,17 @@ Profile::setKeyConfig(const QList<input::Mapping>& keyConfig) -> void
     if (this->keyConfig == keyConfig) {
         return;
     }
+    this->keyConfig = keyConfig;
+    auto serializedData = QByteArray{};
+    auto stream = QDataStream{ &serializedData, QIODevice::WriteOnly };
+    stream << keyConfig;
+    auto compressedData = support::compress(serializedData);
+    auto updateProperty =
+      db.createStatement("INSERT OR REPLACE INTO properties "
+                         "(key, value) VALUES (?, ?)");
+    updateProperty.bind(1, "key_config");
+    updateProperty.bind(2, compressedData.data(), compressedData.size());
+    updateProperty.execute();
+    emit keyConfigChanged();
 }
 } // namespace resource_managers

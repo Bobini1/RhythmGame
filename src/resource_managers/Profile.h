@@ -20,23 +20,14 @@ class Profile : public QObject
       QString avatar READ getAvatar WRITE setAvatar NOTIFY avatarChanged)
     Q_PROPERTY(QString path READ getPathQString CONSTANT)
     Q_PROPERTY(QQmlPropertyMap* themeConfig READ getThemeConfig CONSTANT)
-    Q_PROPERTY(QList<input::Mapping> keyConfig READ getKeyConfig NOTIFY
-                 keyConfigChanged)
+    Q_PROPERTY(
+      QList<input::Mapping> keyConfig READ getKeyConfig NOTIFY keyConfigChanged)
     QString name;
     QString avatar;
     db::SqliteCppDb db;
     std::filesystem::path dbPath;
     QQmlPropertyMap* themeConfig;
     QList<input::Mapping> keyConfig;
-
-    struct ProfileDTO
-    {
-        int64_t id;
-        std::string name;
-        std::string avatar;
-    };
-
-    auto save() -> void;
 
   public:
     /**
@@ -62,8 +53,8 @@ class Profile : public QObject
     auto setKeyConfig(const QList<input::Mapping>& keyConfig) -> void;
 
   signals:
-    void nameChanged(QString name);
-    void avatarChanged(QString avatar);
+    void nameChanged();
+    void avatarChanged();
     void keyConfigChanged();
 };
 

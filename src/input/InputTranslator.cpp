@@ -8,50 +8,9 @@
 
 #include <QKeyEvent>
 #include <QVariant>
+#include <spdlog/spdlog.h>
 
 namespace input {
-auto
-Key::toVariantMap() const -> QVariantMap
-{
-    if (gamepad.isNull()) {
-        return { { "gamepad", QVariant() },
-                 { "device",
-                   QString::fromStdString(
-                     std::string(magic_enum::enum_name(device))) },
-                 { "code", code },
-                 { "direction",
-                   QString::fromStdString(
-                     std::string(magic_enum::enum_name(direction))) } };
-    }
-    auto gp = gamepad.value<Gamepad>();
-    return { { "gamepad", gp.toVariantMap() },
-             { "device",
-               QString::fromStdString(
-                 std::string(magic_enum::enum_name(device))) },
-             { "code", code },
-             { "direction",
-               QString::fromStdString(
-                 std::string(magic_enum::enum_name(direction))) } };
-}
-auto
-Key::fromVariantMap(const QVariantMap& map) -> Key
-{
-    auto key = map["device"].toString().toStdString();
-    auto keyEnum = magic_enum::enum_cast<Device>(key);
-    auto dir = map["direction"].toString().toStdString();
-    auto dirEnum = magic_enum::enum_cast<Direction>(dir);
-    auto gp = map["gamepad"];
-    if (gp.isNull()) {
-        return { QVariant(),
-                 keyEnum ? *keyEnum : Device::Keyboard,
-                 map["code"].toInt(),
-                 dirEnum ? *dirEnum : Direction::None };
-    }
-    return { QVariant::fromValue(Gamepad::fromVariantMap(gp.toMap())),
-             keyEnum ? *keyEnum : Device::Keyboard,
-             map["code"].toInt(),
-             dirEnum ? *dirEnum : Direction::None };
-}
 auto
 Key::operator<=>(const Key& key) const -> std::weak_ordering
 {
@@ -83,24 +42,9 @@ Key::operator!=(const Key& key) const -> bool
 {
     return !(*this == key);
 }
-auto
-Mapping::toVariantMap() const -> QVariantMap
-{
-    return { { "key", key.toVariantMap() },
-             { "button",
-               QString::fromStdString(
-                 std::string(magic_enum::enum_name(button))) } };
-}
-auto
-Mapping::fromVariantMap(const QVariantMap& map) -> Mapping
-{
-    return { Key::fromVariantMap(map["key"].toMap()),
-             magic_enum::enum_cast<BmsKey>(
-               map["button"].toString().toStdString())
-               .value() };
-}
+
 void
-InputTranslator::pressButton(BmsKey button, double value, uint32_t time)
+InputTranslator::pressButton(BmsKey button, double value, uint64_t time)
 {
     auto& state = buttons[static_cast<int>(button)];
     const auto oldState = state;
@@ -153,10 +97,17 @@ InputTranslator::pressButton(BmsKey button, double value, uint32_t time)
             }
             break;
 
-        case BmsKey::Col1s:
+        case BmsKey::Col1sUp:
             state = true;
             if (!oldState) {
-                emit col1sChanged();
+                emit col1sUpChanged();
+            }
+            break;
+
+        case BmsKey::Col1sDown:
+            state = true;
+            if (!oldState) {
+                emit col1sDownChanged();
             }
             break;
 
@@ -209,10 +160,17 @@ InputTranslator::pressButton(BmsKey button, double value, uint32_t time)
             }
             break;
 
-        case BmsKey::Col2s:
+        case BmsKey::Col2sUp:
             state = true;
             if (!oldState) {
-                emit col2sChanged();
+                emit col2sUpChanged();
+            }
+            break;
+
+        case BmsKey::Col2sDown:
+            state = true;
+            if (!oldState) {
+                emit col2sDownChanged();
             }
             break;
 
@@ -230,10 +188,13 @@ InputTranslator::pressButton(BmsKey button, double value, uint32_t time)
             }
             break;
     }
-    emit buttonPressed(button, value, time);
+    if (!oldState) {
+        emit buttonPressed(button, value, time);
+        spdlog::info("pressed {}", (int)button);
+    }
 }
 void
-InputTranslator::releaseButton(BmsKey button, uint32_t time)
+InputTranslator::releaseButton(BmsKey button, uint64_t time)
 {
     auto& state = buttons[static_cast<int>(button)];
     const auto oldState = state;
@@ -286,10 +247,17 @@ InputTranslator::releaseButton(BmsKey button, uint32_t time)
             }
             break;
 
-        case BmsKey::Col1s:
+        case BmsKey::Col1sUp:
             state = false;
             if (oldState) {
-                emit col1sChanged();
+                emit col1sUpChanged();
+            }
+            break;
+
+        case BmsKey::Col1sDown:
+            state = false;
+            if (oldState) {
+                emit col1sDownChanged();
             }
             break;
 
@@ -342,10 +310,17 @@ InputTranslator::releaseButton(BmsKey button, uint32_t time)
             }
             break;
 
-        case BmsKey::Col2s:
+        case BmsKey::Col2sUp:
             state = false;
             if (oldState) {
-                emit col2sChanged();
+                emit col2sUpChanged();
+            }
+            break;
+
+        case BmsKey::Col2sDown:
+            state = false;
+            if (oldState) {
+                emit col2sDownChanged();
             }
             break;
 
@@ -363,10 +338,13 @@ InputTranslator::releaseButton(BmsKey button, uint32_t time)
             }
             break;
     }
-    emit buttonReleased(button, time);
+    if (oldState) {
+        emit buttonReleased(button, time);
+        spdlog::info("released {}", (int)button);
+    }
 }
 void
-InputTranslator::unpressCurrentKey(const Key& key, uint32_t time)
+InputTranslator::unpressCurrentKey(const Key& key, uint64_t time)
 {
     if (auto found = config.find(key); found != config.end()) {
         releaseButton(*found, time);
@@ -383,20 +361,20 @@ void
 InputTranslator::handleAxis(Gamepad gamepad,
                             Uint8 axis,
                             double value,
-                            uint32_t time)
+                            int64_t time)
 {
     auto scratchKey = std::pair{ gamepad, axis };
     auto& scratch = scratches[scratchKey];
     if (std::abs(scratch.value - value) < scratchSensitivity) {
         return;
     }
-    scratch.value = value;
     auto direction =
       value > scratch.value ? Key::Direction::Up : Key::Direction::Down;
     if (2 - std::abs(scratch.value - value) > 2 - scratchSensitivity) {
         direction = direction == Key::Direction::Up ? Key::Direction::Down
                                                     : Key::Direction::Up;
     }
+    scratch.value = value;
     auto keyLookup =
       Key{ QVariant::fromValue(gamepad), Key::Device::Axis, axis, direction };
     if (isConfiguring()) {
@@ -405,20 +383,6 @@ InputTranslator::handleAxis(Gamepad gamepad,
         emit keyConfigModified();
         setConfiguredButton({});
     } else {
-        auto key = config.find(keyLookup);
-        if (key == config.end()) {
-            return;
-        }
-        pressButton(*key, value, time);
-        scratch.timer = std::make_unique<QTimer>();
-        scratch.timer->setSingleShot(true);
-        scratch.timer->setInterval(100);
-        connect(
-          scratch.timer.get(), &QTimer::timeout, [this, key = *key, time] {
-              int i;
-              releaseButton(key, time + 100);
-          });
-        scratch.timer->start();
         // find key with opposite direction
         const auto oppositeKey = config.find(
           Key{ QVariant::fromValue(std::move(gamepad)),
@@ -429,13 +393,22 @@ InputTranslator::handleAxis(Gamepad gamepad,
         if (oppositeKey != config.end()) {
             releaseButton(*oppositeKey, time);
         }
+        auto key = config.find(keyLookup);
+        if (key == config.end()) {
+            return;
+        }
+        pressButton(*key, value, time);
+        scratch.timer = std::make_unique<QTimer>();
+        scratch.timer->setSingleShot(true);
+        scratch.timer->setInterval(150);
+        connect(scratch.timer.get(),
+                &QTimer::timeout,
+                [this, key = *key, time] { releaseButton(key, time + 150); });
+        scratch.timer->start();
     }
 }
 void
-InputTranslator::handlePress(Gamepad gamepad,
-                             Uint8 button,
-                             double x,
-                             Uint32 time)
+InputTranslator::handlePress(Gamepad gamepad, Uint8 button, int64_t time)
 {
     if (isConfiguring()) {
         auto keyLookup = Key{ QVariant::fromValue(std::move(gamepad)),
@@ -450,12 +423,12 @@ InputTranslator::handlePress(Gamepad gamepad,
                                     Key::Device::Button,
                                     button });
         if (key != config.end()) {
-            pressButton(*key, 1.0, time);
+            pressButton(*key, 0.0, time);
         }
     }
 }
 void
-InputTranslator::handleRelease(Gamepad gamepad, Uint8 button, Uint32 time)
+InputTranslator::handleRelease(Gamepad gamepad, Uint8 button, int64_t time)
 {
     auto key = config.find(Key{
       QVariant::fromValue(std::move(gamepad)), Key::Device::Button, button });
@@ -463,6 +436,31 @@ InputTranslator::handleRelease(Gamepad gamepad, Uint8 button, Uint32 time)
         releaseButton(*key, time);
     }
 }
+auto
+toSystem(std::chrono::steady_clock::time_point tp)
+  -> std::chrono::system_clock::time_point
+{
+    using namespace std::chrono;
+    auto sys_now = system_clock::now();
+    auto sdy_now = steady_clock::now();
+    return time_point_cast<system_clock::duration>(tp - sdy_now + sys_now);
+}
+
+auto
+InputTranslator::getTime(const QKeyEvent& event) -> int64_t
+{
+    auto timestampQint = event.timestamp();
+#ifdef _WIN32
+    return std::chrono::milliseconds{ timestampQint - startTimeClk }.count();
+#else
+    return std::chrono::duration_cast<std::chrono::milliseconds>(
+             toSystem(std::chrono::steady_clock::time_point{
+                        std::chrono::milliseconds{ timestampQint } })
+               .time_since_epoch())
+      .count();
+#endif
+}
+
 InputTranslator::
 InputTranslator(const GamepadManager* source, QObject* parent)
   : QObject(parent)
@@ -477,6 +475,14 @@ InputTranslator(const GamepadManager* source, QObject* parent)
             &GamepadManager::buttonReleased,
             this,
             &InputTranslator::handleRelease);
+
+    auto now = std::chrono::duration_cast<std::chrono::milliseconds>(
+      std::chrono::system_clock::now().time_since_epoch());
+#ifdef _WIN32
+    startTimeClk =
+      (now - std::chrono::milliseconds{ clock() / (CLOCKS_PER_SEC / 1000) })
+        .count();
+#endif
 }
 void
 InputTranslator::setConfiguredButton(QVariant button)
@@ -564,9 +570,14 @@ InputTranslator::col17() const -> bool
 }
 
 auto
-InputTranslator::col1s() const -> bool
+InputTranslator::col1sUp() const -> bool
 {
-    return buttons[static_cast<int>(BmsKey::Col1s)];
+    return buttons[static_cast<int>(BmsKey::Col1sUp)];
+}
+auto
+InputTranslator::col1sDown() const -> bool
+{
+    return buttons[static_cast<int>(BmsKey::Col1sDown)];
 }
 
 auto
@@ -612,9 +623,15 @@ InputTranslator::col27() const -> bool
 }
 
 auto
-InputTranslator::col2s() const -> bool
+InputTranslator::col2sUp() const -> bool
 {
-    return buttons[static_cast<int>(BmsKey::Col2s)];
+    return buttons[static_cast<int>(BmsKey::Col2sUp)];
+}
+
+auto
+InputTranslator::col2sDown() const -> bool
+{
+    return buttons[static_cast<int>(BmsKey::Col2sDown)];
 }
 
 auto
@@ -628,11 +645,16 @@ InputTranslator::select() const -> bool
 {
     return buttons[static_cast<int>(BmsKey::Select)];
 }
+
 bool
 InputTranslator::eventFilter(QObject* watched, QEvent* event)
 {
     if (event->type() == QEvent::KeyPress) {
         const auto key = static_cast<QKeyEvent*>(event);
+        if (key->isAutoRepeat()) {
+            return false;
+        }
+        const auto time = getTime(*key);
         const auto keyLookup = Key{
             QVariant(), Key::Device::Keyboard, key->key(), Key::Direction::None
         };
@@ -644,19 +666,43 @@ InputTranslator::eventFilter(QObject* watched, QEvent* event)
         } else {
             if (const auto found = config.find(keyLookup);
                 found != config.end()) {
-                pressButton(*found, 1.0, key->timestamp());
+                pressButton(*found, 0.0, time);
             }
         }
     } else if (event->type() == QEvent::KeyRelease) {
         const auto key = static_cast<QKeyEvent*>(event);
+        if (key->isAutoRepeat()) {
+            return false;
+        }
+        const auto time = getTime(*key);
         const auto keyLookup = Key{
             QVariant(), Key::Device::Keyboard, key->key(), Key::Direction::None
         };
         if (const auto found = config.find(keyLookup); found != config.end()) {
-            releaseButton(*found, key->timestamp());
+            releaseButton(*found, time);
         }
     }
     return false;
 }
 
+auto
+operator>>(QDataStream& stream, Key& key) -> QDataStream&
+{
+    return stream >> key.gamepad >> key.device >> key.code >> key.direction;
+}
+auto
+operator<<(QDataStream& stream, const Key& key) -> QDataStream&
+{
+    return stream << key.gamepad << key.device << key.code << key.direction;
+}
+auto
+operator<<(QDataStream& stream, const Mapping& mapping) -> QDataStream&
+{
+    return stream << mapping.key << mapping.button;
+}
+auto
+operator>>(QDataStream& stream, Mapping& mapping) -> QDataStream&
+{
+    return stream >> mapping.key >> mapping.button;
+}
 } // namespace input

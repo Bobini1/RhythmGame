@@ -35,9 +35,16 @@ class Gamepad
                std::tie(gamepad.name, gamepad.guid, gamepad.index);
     }
 
-    auto toVariantMap() const -> QVariantMap;
-
-    static auto fromVariantMap(const QVariantMap& map) -> Gamepad;
+    friend auto operator>>(QDataStream& stream, Gamepad& gamepad)
+      -> QDataStream&
+    {
+        return stream >> gamepad.name >> gamepad.guid >> gamepad.index;
+    }
+    friend auto operator<<(QDataStream& stream, const Gamepad& gamepad)
+      -> QDataStream&
+    {
+        return stream << gamepad.name << gamepad.guid << gamepad.index;
+    }
 };
 } // namespace input
 
@@ -58,22 +65,23 @@ class GamepadManager : public QObject
     QTimer loopTimer;
     std::unordered_map<
       SDL_JoystickID,
-      std::unique_ptr<SDL_GameController, decltype(&SDL_GameControllerClose)>>
+      std::unique_ptr<SDL_Joystick, decltype(&SDL_JoystickClose)>>
       controllers;
     std::unordered_map<SDL_JoystickID, Gamepad> gamepads;
+    uint64_t startTime;
 
     void addController(int index);
     void loop();
 
   public:
     ~GamepadManager() override;
-    GamepadManager(QObject* parent = nullptr);
+    explicit GamepadManager(QObject* parent = nullptr);
 
   signals:
 
-    void axisMoved(Gamepad gamepad, Uint8 axis, double value, uint32_t time);
-    void buttonPressed(Gamepad gamepad, Uint8 uint8, double x, Uint32 time);
-    void buttonReleased(Gamepad gamepad, Uint8 uint8, Uint32 time);
+    void axisMoved(Gamepad gamepad, Uint8 axis, double value, uint64_t time);
+    void buttonPressed(Gamepad gamepad, Uint8 uint8, uint64_t time);
+    void buttonReleased(Gamepad gamepad, Uint8 uint8, uint64_t time);
     void gamepadRemoved(Gamepad gamepad);
     void gamepadAdded(Gamepad gamepad);
 };

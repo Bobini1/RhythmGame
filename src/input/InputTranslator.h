@@ -7,6 +7,7 @@
 #include "BmsKeys.h"
 #include "GamepadManager.h"
 
+#include <QKeyEvent>
 #include <QObject>
 #include <QMap>
 #include <QVariant>
@@ -42,9 +43,8 @@ class Key
     int code;
     Direction direction{};
 
-    auto toVariantMap() const -> QVariantMap;
-
-    static auto fromVariantMap(const QVariantMap& map) -> Key;
+    friend auto operator>>(QDataStream& stream, Key& key) -> QDataStream&;
+    friend auto operator<<(QDataStream& stream, const Key& key) -> QDataStream&;
 
     auto operator<=>(const Key& key) const -> std::weak_ordering;
     auto operator==(const Key& key) const -> bool;
@@ -77,9 +77,12 @@ class Mapping
     Key key;
     BmsKey button;
 
-    auto toVariantMap() const -> QVariantMap;
-    static auto fromVariantMap(const QVariantMap& map) -> Mapping;
     auto operator<=>(const Mapping&) const = default;
+
+    friend auto operator<<(QDataStream& stream, const Mapping& mapping)
+      -> QDataStream&;
+    friend auto operator>>(QDataStream& stream, Mapping& mapping)
+      -> QDataStream&;
 };
 
 class InputTranslator : public QObject
@@ -97,7 +100,8 @@ class InputTranslator : public QObject
     Q_PROPERTY(bool Col15 READ col15 NOTIFY col15Changed)
     Q_PROPERTY(bool Col16 READ col16 NOTIFY col16Changed)
     Q_PROPERTY(bool Col17 READ col17 NOTIFY col17Changed)
-    Q_PROPERTY(bool Col1s READ col1s NOTIFY col1sChanged)
+    Q_PROPERTY(bool Col1sUp READ col1sUp NOTIFY col1sUpChanged)
+    Q_PROPERTY(bool Col1sDown READ col1sDown NOTIFY col1sDownChanged)
     Q_PROPERTY(bool Col21 READ col21 NOTIFY col21Changed)
     Q_PROPERTY(bool Col22 READ col22 NOTIFY col22Changed)
     Q_PROPERTY(bool Col23 READ col23 NOTIFY col23Changed)
@@ -105,7 +109,8 @@ class InputTranslator : public QObject
     Q_PROPERTY(bool Col25 READ col25 NOTIFY col25Changed)
     Q_PROPERTY(bool Col26 READ col26 NOTIFY col26Changed)
     Q_PROPERTY(bool Col27 READ col27 NOTIFY col27Changed)
-    Q_PROPERTY(bool Col2s READ col2s NOTIFY col2sChanged)
+    Q_PROPERTY(bool Col2sUp READ col2sUp NOTIFY col2sUpChanged)
+    Q_PROPERTY(bool Col2sDown READ col2sDown NOTIFY col2sDownChanged)
     Q_PROPERTY(bool Start READ start NOTIFY startChanged)
     Q_PROPERTY(bool Select READ select NOTIFY selectChanged)
 
@@ -130,14 +135,20 @@ class InputTranslator : public QObject
     std::optional<BmsKey> configuredButton;
     QHash<Key, BmsKey> config;
     std::array<bool, magic_enum::enum_count<BmsKey>()> buttons{};
-    void pressButton(BmsKey button, double value, uint32_t time);
-    void releaseButton(BmsKey button, uint32_t time);
-    void unpressCurrentKey(const Key& key, uint32_t time);
-    void handleAxis(Gamepad gamepad, Uint8 axis, double value, uint32_t time);
-    void handlePress(Gamepad gamepad, Uint8 button, double x, Uint32 time);
-    void handleRelease(Gamepad gamepad, Uint8 button, Uint32 time);
 
-    static constexpr auto scratchSensitivity = 0.1;
+#ifdef _WIN32
+    clock_t startTimeClk;
+#endif
+
+    void pressButton(BmsKey button, double value, uint64_t time);
+    void releaseButton(BmsKey button, uint64_t time);
+    void unpressCurrentKey(const Key& key, uint64_t time);
+    void handleAxis(Gamepad gamepad, Uint8 axis, double value, int64_t time);
+    void handlePress(Gamepad gamepad, Uint8 button, int64_t time);
+    void handleRelease(Gamepad gamepad, Uint8 button, int64_t time);
+    auto getTime(const QKeyEvent& event) -> int64_t;
+
+    static constexpr auto scratchSensitivity = 0.01;
 
   public:
     explicit InputTranslator(const GamepadManager* source,
@@ -154,7 +165,8 @@ class InputTranslator : public QObject
     auto col15() const -> bool;
     auto col16() const -> bool;
     auto col17() const -> bool;
-    auto col1s() const -> bool;
+    auto col1sUp() const -> bool;
+    auto col1sDown() const -> bool;
     auto col21() const -> bool;
     auto col22() const -> bool;
     auto col23() const -> bool;
@@ -162,15 +174,16 @@ class InputTranslator : public QObject
     auto col25() const -> bool;
     auto col26() const -> bool;
     auto col27() const -> bool;
-    auto col2s() const -> bool;
+    auto col2sUp() const -> bool;
+    auto col2sDown() const -> bool;
     auto start() const -> bool;
     auto select() const -> bool;
 
     bool eventFilter(QObject* watched, QEvent* event) override;
 
   signals:
-    void buttonPressed(BmsKey button, double value, uint32_t time);
-    void buttonReleased(BmsKey button, uint32_t time);
+    void buttonPressed(BmsKey button, double value, int64_t time);
+    void buttonReleased(BmsKey button, int64_t time);
     void keyConfigModified();
     void configuringChanged();
     void configuredButtonChanged();
@@ -181,7 +194,8 @@ class InputTranslator : public QObject
     void col15Changed();
     void col16Changed();
     void col17Changed();
-    void col1sChanged();
+    void col1sUpChanged();
+    void col1sDownChanged();
     void col21Changed();
     void col22Changed();
     void col23Changed();
@@ -189,7 +203,8 @@ class InputTranslator : public QObject
     void col25Changed();
     void col26Changed();
     void col27Changed();
-    void col2sChanged();
+    void col2sUpChanged();
+    void col2sDownChanged();
     void startChanged();
     void selectChanged();
 };

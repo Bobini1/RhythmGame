@@ -23,7 +23,6 @@
 #include "qml_components/SongFolderFactory.h"
 #include "support/PathToQString.h"
 #include "qml_components/ProfileList.h"
-#include "qml_components/InputItem.h"
 #include "qml_components/PreviewFilePathFetcher.h"
 #include "qml_components/ScoreDb.h"
 #include "qml_components/FileValidator.h"
@@ -155,6 +154,8 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
         qmlRegisterSingletonInstance(
           "RhythmGameQml", 1, 0, "ProgramSettings", &programSettings);
 
+        qRegisterMetaType<input::Gamepad>("input::Gamepad");
+
         auto availableThemes =
           resource_managers::scanThemes(assetsFolder / "themes");
 
@@ -175,8 +176,23 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
         auto inputTranslator = input::InputTranslator{ &gamepadManager };
         qmlRegisterSingletonInstance(
           "RhythmGameQml", 1, 0, "InputTranslator", &inputTranslator);
+        QObject::connect(&inputTranslator,
+                         &input::InputTranslator::keyConfigModified,
+                         [&inputTranslator, &profileList] {
+                             profileList.getCurrentProfile()->setKeyConfig(
+                               inputTranslator.getKeyConfig());
+                         });
+        auto saveConfig = [&inputTranslator, &profileList] {
+            inputTranslator.setKeyConfig(
+              profileList.getCurrentProfile()->getKeyConfig());
+        };
+        saveConfig();
+        QObject::connect(&profileList,
+                         &qml_components::ProfileList::currentProfileChanged,
+                         saveConfig);
 
-        auto chartFactory = resource_managers::ChartFactory{ scoreDb };
+        auto chartFactory =
+          resource_managers::ChartFactory{ scoreDb, &inputTranslator };
         auto hitRulesFactory =
           [](gameplay_logic::rules::TimingWindows timingWindows,
              std::function<double(std::chrono::nanoseconds)> hitValuesFactory) {
@@ -246,8 +262,6 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
           "RhythmGameQml", 1, 0, "BmsReplayData");
         qmlRegisterType<gameplay_logic::BmsGaugeHistory>(
           "RhythmGameQml", 1, 0, "BmsGaugeHistory");
-        qmlRegisterType<qml_components::InputItem>(
-          "RhythmGameQml", 1, 0, "InputItem");
         qmlRegisterType<qml_components::CycleModel>(
           "RhythmGameQml", 1, 0, "CycleModel");
         qmlRegisterType<qml_components::Bga>("RhythmGameQml", 1, 0, "Bga");

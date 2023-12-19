@@ -27,12 +27,6 @@ ApplicationWindow {
             readonly property bool active: StackView.status === StackView.Active
             required property Chart chart
 
-            InputItem {
-                id: inputItem
-
-                chart: chartFocusScope.chart
-            }
-
             Loader {
                 id: loader
 
