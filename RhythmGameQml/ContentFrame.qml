@@ -3,6 +3,7 @@ import QtQml
 import RhythmGameQml
 import QtQuick.Controls 2.15
 import QtCore
+import QtGamepadLegacy
 
 ApplicationWindow {
     id: contentContainer
@@ -16,6 +17,7 @@ ApplicationWindow {
         property alias height: contentContainer.height
         property alias width: contentContainer.width
     }
+
     Component {
         id: chartContext
 
@@ -25,19 +27,17 @@ ApplicationWindow {
             readonly property bool active: StackView.status === StackView.Active
             required property Chart chart
 
-            InputItem {
-                id: inputItem
-
-                chart: chartFocusScope.chart
-            }
             Loader {
                 id: loader
 
                 anchors.fill: parent
                 source: "file://" + Themes.availableThemeFamilies[ProfileList.currentProfile.themeConfig.gameplay].themes.gameplay
             }
+
         }
+
     }
+
     Component {
         id: resultContext
 
@@ -54,8 +54,11 @@ ApplicationWindow {
                 anchors.fill: parent
                 source: "file://" + Themes.availableThemeFamilies[ProfileList.currentProfile.themeConfig.result].themes.result
             }
+
         }
+
     }
+
     Item {
         id: globalRoot
 
@@ -69,18 +72,20 @@ ApplicationWindow {
             let chart = ChartLoader.loadChart(path);
             if (!chart) {
                 console.error("Failed to load chart");
-                return;
+                return ;
             }
             sceneStack.push(gameplayComponent, {
-                    "chart": chart
-                });
+                "chart": chart
+            });
         }
+
         function openResult(result, chartData) {
             sceneStack.push(resultComponent, {
-                    "result": result,
-                    "chartData": chartData
-                });
+                "result": result,
+                "chartData": chartData
+            });
         }
+
         function urlToPath(urlString) {
             let s;
             if (urlString.startsWith("file:///")) {
@@ -93,11 +98,10 @@ ApplicationWindow {
         }
 
         anchors.fill: parent
-
         Component.onCompleted: {
-            if (ProgramSettings.chartPath != "") {
+            if (ProgramSettings.chartPath != "")
                 openChart(ProgramSettings.chartPath);
-            }
+
         }
 
         StackView {
@@ -111,38 +115,51 @@ ApplicationWindow {
                     duration: 0
                     property: "opacity"
                 }
+
             }
+
             popExit: Transition {
                 PropertyAnimation {
                     duration: 0
                     property: "opacity"
                 }
+
             }
+
             pushEnter: Transition {
                 PropertyAnimation {
                     duration: 0
                     property: "opacity"
                 }
+
             }
+
             pushExit: Transition {
                 PropertyAnimation {
                     duration: 0
                     property: "opacity"
                 }
+
             }
+
             replaceEnter: Transition {
                 PropertyAnimation {
                     duration: 0
                     property: "opacity"
                 }
+
             }
+
             replaceExit: Transition {
                 PropertyAnimation {
                     duration: 0
                     property: "opacity"
                 }
+
             }
+
         }
+
         Loader {
             id: debugLogLoader
 
@@ -151,13 +168,15 @@ ApplicationWindow {
             asynchronous: true
             source: "Log.qml"
         }
+
         Shortcut {
             autoRepeat: false
             sequence: "F11"
-
             onActivated: {
                 debugLogLoader.active = !debugLogLoader.active;
             }
         }
+
     }
+
 }

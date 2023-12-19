@@ -17,11 +17,12 @@ Rectangle {
         Component.onCompleted: {
             for (let folder of RootSongFoldersConfig.folders) {
                 songFolders.append({
-                        "text": folder
-                    });
+                    "text": folder
+                });
             }
         }
     }
+
     FolderDialog {
         id: folderDialog
 
@@ -34,14 +35,14 @@ Rectangle {
         }
 
         title: qsTr("Add song folder")
-
         onAccepted: {
             songFolders.append({
-                    "text": globalRoot.urlToPath(folderDialog.selectedFolder.toString())
-                });
+                "text": globalRoot.urlToPath(folderDialog.selectedFolder.toString())
+            });
             RootSongFoldersConfig.folders = getSelectedFolders();
         }
     }
+
     ColumnLayout {
         anchors.fill: parent
 
@@ -54,10 +55,17 @@ Rectangle {
             TabButton {
                 text: qsTr("Song directories")
             }
+
             TabButton {
                 text: qsTr("Themes")
             }
+
+            TabButton {
+                text: qsTr("Key config")
+            }
+
         }
+
         StackLayout {
             id: stackView
 
@@ -67,21 +75,30 @@ Rectangle {
                 Layout.fillWidth: true
                 Layout.preferredHeight: parent.height - tabView.height
             }
+
             ThemeSettings {
                 Layout.fillWidth: true
                 Layout.preferredHeight: parent.height - tabView.height
             }
+
+            KeySettings {
+                Layout.fillWidth: true
+                Layout.preferredHeight: parent.height - tabView.height
+            }
+
         }
+
     }
+
     Shortcut {
         enabled: active
         sequence: "Esc"
-
         onActivated: {
             sceneStack.pop();
-            if (sceneStack.depth === 1) {
+            if (sceneStack.depth === 1)
                 sceneStack.replace(0, globalRoot.mainComponent);
-            }
+
         }
     }
+
 }

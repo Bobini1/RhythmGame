@@ -7,15 +7,17 @@
 
 #include "ChartDataFactory.h"
 #include "gameplay_logic/Chart.h"
-#include "charts/helper_functions/loadBmsSounds.h"
+#include "input/InputTranslator.h"
 namespace resource_managers {
 
 class ChartFactory
 {
     std::function<db::SqliteCppDb&()> scoreDb;
+    input::InputTranslator* inputTranslator;
 
   public:
-    explicit ChartFactory(std::function<db::SqliteCppDb&()> scoreDb);
+    explicit ChartFactory(std::function<db::SqliteCppDb&()> scoreDb,
+                          input::InputTranslator* inputTranslator);
 
     auto createChart(
       ChartDataFactory::ChartComponents chartComponents,

@@ -3,7 +3,10 @@
 //
 
 #include <QtConcurrent>
+#include <QObject>
 #include "ChartFactory.h"
+
+#include "charts/helper_functions/loadBmsSounds.h"
 #include "support/QStringToPath.h"
 #include "support/PathToQString.h"
 #include "support/UtfStringToPath.h"
@@ -294,15 +297,35 @@ ChartFactory::createChart(
 
     auto bga = QtConcurrent::run(std::move(bgaTask));
     auto referee = QtConcurrent::run(std::move(task));
-    return new gameplay_logic::Chart(std::move(referee),
-                                     std::move(bga),
-                                     chartData.release(),
-                                     notes.release(),
-                                     score,
-                                     scoreDb);
+    auto* chart = new gameplay_logic::Chart(std::move(referee),
+                                            std::move(bga),
+                                            chartData.release(),
+                                            notes.release(),
+                                            score,
+                                            scoreDb);
+    QObject::connect(
+      inputTranslator,
+      &input::InputTranslator::buttonPressed,
+      chart,
+      [chart](input::BmsKey button, double /*value*/, int64_t time) {
+          chart->passKey(
+            button, gameplay_logic::Chart::EventType::KeyPress, time);
+      });
+    QObject::connect(
+      inputTranslator,
+      &input::InputTranslator::buttonReleased,
+      chart,
+      [chart](input::BmsKey button, int64_t time) {
+          chart->passKey(
+            button, gameplay_logic::Chart::EventType::KeyRelease, time);
+      });
+    return chart;
 }
-ChartFactory::ChartFactory(std::function<db::SqliteCppDb&()> scoreDb)
+ChartFactory::
+ChartFactory(std::function<db::SqliteCppDb&()> scoreDb,
+             input::InputTranslator* inputTranslator)
   : scoreDb(std::move(scoreDb))
+  , inputTranslator(inputTranslator)
 {
 }
 } // namespace resource_managers

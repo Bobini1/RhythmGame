@@ -58,7 +58,6 @@ find_package(zstd REQUIRED)
 
 qt_add_library(RhythmGame_lib OBJECT src/db/SqliteCppDb.cpp src/db/SqliteCppDb.h src/charts/chart_readers/BmsChartReader.cpp src/charts/parser_models/ParsedBmsChart.cpp src/charts/parser_models/ParsedBmsChart.h src/support/EnableSharedFromBase.cpp src/support/EnableSharedFromBase.h src/support/Capitalize.cpp src/support/Capitalize.h src/resource_managers/AssetsFolderFinder.cpp src/resource_managers/AssetsFolderFinder.h src/resource_managers/FindAssetsFolderBoost.cpp src/resource_managers/FindAssetsFolderBoost.h src/sounds/OpenAlSound.cpp src/sounds/OpenAlSound.h src/sounds/OpenAlSoundBuffer.h src/sounds/OpenAlSoundBuffer.cpp src/charts/gameplay_models/BmsNotesData.cpp src/charts/gameplay_models/BmsNotesData.h src/charts/gameplay_models/Snap.cpp src/charts/gameplay_models/Snap.h src/charts/helper_functions/loadBmsSounds.cpp src/charts/helper_functions/loadBmsSounds.h
         src/resource_managers/models/ThemeConfig.h src/gameplay_logic/BmsPoints.cpp src/gameplay_logic/BmsPoints.h src/gameplay_logic/rules/StandardBmsHitRules.cpp src/gameplay_logic/rules/StandardBmsHitRules.h src/gameplay_logic/Judgement.cpp src/gameplay_logic/Judgement.h src/gameplay_logic/TimePoint.cpp src/gameplay_logic/TimePoint.h src/support/Sha256.cpp src/support/Sha256.h
-        src/input/KeyboardInputTranslatorToBms.cpp
         src/input/BmsKeys.cpp
         src/gameplay_logic/BmsScore.h
         src/gameplay_logic/BmsScore.cpp
@@ -126,8 +125,6 @@ qt_add_library(RhythmGame_lib OBJECT src/db/SqliteCppDb.cpp src/db/SqliteCppDb.h
         src/gameplay_logic/BmsScoreAftermath.h
         src/qml_components/ProfileList.cpp
         src/qml_components/ProfileList.h
-        src/qml_components/InputItem.cpp
-        src/qml_components/InputItem.h
         src/qml_components/PreviewFilePathFetcher.cpp
         src/qml_components/PreviewFilePathFetcher.h
         src/qml_components/ScoreDb.cpp
@@ -149,13 +146,19 @@ qt_add_library(RhythmGame_lib OBJECT src/db/SqliteCppDb.cpp src/db/SqliteCppDb.h
         src/qml_components/Themes.cpp
         src/qml_components/Themes.h
         src/resource_managers/SerializeConfig.cpp
-        src/resource_managers/SerializeConfig.h)
+        src/resource_managers/SerializeConfig.h
+        src/input/GamepadManager.cpp
+        src/input/GamepadManager.h
+        src/input/InputTranslator.cpp
+        src/input/InputTranslator.h)
 
 find_package(Threads REQUIRED)
 
 find_package(SndFile REQUIRED)
 
-target_link_libraries(RhythmGame_lib PUBLIC Qt6::Gui Qt6::Quick Qt6::OpenGL Qt6::Widgets Qt6::Concurrent Qt6::Core5Compat Qt6::Multimedia Threads::Threads Boost::headers Boost::locale Boost::serialization Boost::dynamic_linking Boost::filesystem SQLiteCpp spdlog::spdlog foonathan::lexy ffmpeg::ffmpeg OpenAL::OpenAL cryptopp::cryptopp magic_enum::magic_enum zstd::libzstd_static SndFile::sndfile)
+find_package(SDL2 REQUIRED)
+
+target_link_libraries(RhythmGame_lib PUBLIC SDL2::SDL2 Qt6::Gui Qt6::Quick Qt6::OpenGL Qt6::Widgets Qt6::Concurrent Qt6::Core5Compat Qt6::Multimedia Threads::Threads Boost::headers Boost::locale Boost::serialization Boost::dynamic_linking Boost::filesystem SQLiteCpp spdlog::spdlog foonathan::lexy ffmpeg::ffmpeg OpenAL::OpenAL cryptopp::cryptopp magic_enum::magic_enum zstd::libzstd_static SndFile::sndfile)
 
 include(CheckCXXSymbolExists)
 check_cxx_symbol_exists(std::execution::par "execution" RHYTHMGAME_HAS_STD_EXECUTION)
@@ -177,6 +180,7 @@ target_include_directories(
 
 # ---- Declare QML module ----
 add_subdirectory(RhythmGameQml)
+qt_import_qml_plugins(RhythmGame_qmlplugin)
 
 # ---- Declare executable ----
 

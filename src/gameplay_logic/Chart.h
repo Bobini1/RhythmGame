@@ -8,7 +8,6 @@
 #include <QObject>
 #include <QtQmlIntegration>
 #include "BmsGameReferee.h"
-#include "input/KeyboardInputTranslatorToBms.h"
 #include "ChartData.h"
 #include "BmsScoreAftermath.h"
 #include "qml_components/Bga.h"
@@ -31,18 +30,14 @@ class Chart : public QObject
     std::array<bool, charts::gameplay_models::BmsNotesData::columnNumber>
       keyStates;
     QTimer propertyUpdateTimer;
-#ifdef _WIN32
-    clock_t startTimepointClk;
-#endif
-    std::chrono::steady_clock::time_point startTimepoint;
-    std::optional<gameplay_logic::BmsGameReferee> gameReferee;
-    input::KeyboardInputTranslatorToBms inputTranslator;
+    std::chrono::system_clock::time_point startTimepoint;
+    std::optional<BmsGameReferee> gameReferee;
     std::span<const BpmChange> bpmChanges;
     ChartData* chartData;
     BmsNotes* notes;
     BmsScore* score;
-    QFuture<gameplay_logic::BmsGameReferee> refereeFuture;
-    QFutureWatcher<gameplay_logic::BmsGameReferee> refereeFutureWatcher;
+    QFuture<BmsGameReferee> refereeFuture;
+    QFutureWatcher<BmsGameReferee> refereeFutureWatcher;
     qml_components::BgaContainer* bga{};
     QFuture<std::unique_ptr<qml_components::BgaContainer>> bgaFuture;
     QFutureWatcher<std::unique_ptr<qml_components::BgaContainer>>
@@ -66,7 +61,7 @@ class Chart : public QObject
 
   public:
     explicit Chart(
-      QFuture<gameplay_logic::BmsGameReferee> refereeFuture,
+      QFuture<BmsGameReferee> refereeFuture,
       QFuture<std::unique_ptr<qml_components::BgaContainer>> bgaFuture,
       ChartData* chartData,
       BmsNotes* notes,
@@ -81,7 +76,9 @@ class Chart : public QObject
         KeyPress,
         KeyRelease
     };
-    void passKey(QKeyEvent* keyEvent, EventType eventType);
+    Q_ENUM(EventType);
+
+    void passKey(input::BmsKey key, EventType eventType, int64_t time);
 
     Q_INVOKABLE BmsScoreAftermath* finish();
 
