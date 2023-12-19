@@ -8,7 +8,6 @@
 
 #include <QKeyEvent>
 #include <QVariant>
-#include <spdlog/spdlog.h>
 
 namespace input {
 auto
@@ -190,7 +189,6 @@ InputTranslator::pressButton(BmsKey button, double value, uint64_t time)
     }
     if (!oldState) {
         emit buttonPressed(button, value, time);
-        spdlog::info("pressed {}", (int)button);
     }
 }
 void
@@ -340,7 +338,6 @@ InputTranslator::releaseButton(BmsKey button, uint64_t time)
     }
     if (oldState) {
         emit buttonReleased(button, time);
-        spdlog::info("released {}", (int)button);
     }
 }
 void
@@ -349,13 +346,7 @@ InputTranslator::unpressCurrentKey(const Key& key, uint64_t time)
     if (auto found = config.find(key); found != config.end()) {
         releaseButton(*found, time);
     }
-    // go through config to find configuredButton
-    for (auto it = config.begin(); it != config.end(); it++) {
-        if (it.value() == *configuredButton) {
-            config.erase(it);
-            break;
-        }
-    }
+    resetButton(*configuredButton);
 }
 void
 InputTranslator::handleAxis(Gamepad gamepad,
@@ -441,9 +432,9 @@ toSystem(std::chrono::steady_clock::time_point tp)
   -> std::chrono::system_clock::time_point
 {
     using namespace std::chrono;
-    auto sys_now = system_clock::now();
-    auto sdy_now = steady_clock::now();
-    return time_point_cast<system_clock::duration>(tp - sdy_now + sys_now);
+    const auto systemNow = system_clock::now();
+    const auto steadyNow = steady_clock::now();
+    return time_point_cast<system_clock::duration>(tp - steadyNow + systemNow);
 }
 
 auto
@@ -527,6 +518,17 @@ InputTranslator::getKeyConfig() -> QList<Mapping>
         result.append({ key, button });
     }
     return result;
+}
+void
+InputTranslator::resetButton(BmsKey key)
+{
+    for (auto it = config.begin(); it != config.end(); it++) {
+        if (it.value() == key) {
+            config.erase(it);
+            emit keyConfigModified();
+            break;
+        }
+    }
 }
 auto
 InputTranslator::col11() const -> bool

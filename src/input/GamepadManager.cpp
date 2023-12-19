@@ -24,8 +24,6 @@ GamepadManager(QObject* parent)
     startTime = (now - std::chrono::milliseconds{ SDL_GetTicks64() }).count();
 
     loopTimer.start(1);
-    for (int i = 0; i < SDL_NumJoysticks(); i++)
-        addController(i);
 }
 
 void
@@ -97,7 +95,7 @@ GamepadManager::addController(int index)
 
     const char* name = SDL_JoystickName(joystick);
 
-    auto gamepad = Gamepad{ name, guid, index };
+    auto gamepad = Gamepad{ name, guid, 0 };
     for (const auto& [name, guid, index] :
          std::ranges::views::values(gamepads)) {
         if (gamepad.guid == guid) {

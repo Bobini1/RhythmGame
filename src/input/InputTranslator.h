@@ -9,7 +9,6 @@
 
 #include <QKeyEvent>
 #include <QObject>
-#include <QMap>
 #include <QVariant>
 #include <magic_enum.hpp>
 #include <functional>
@@ -158,6 +157,7 @@ class InputTranslator : public QObject
     auto isConfiguring() const -> bool;
     void setKeyConfig(const QList<Mapping>& config);
     auto getKeyConfig() -> QList<Mapping>;
+    Q_INVOKABLE void resetButton(BmsKey key);
     auto col11() const -> bool;
     auto col12() const -> bool;
     auto col13() const -> bool;
