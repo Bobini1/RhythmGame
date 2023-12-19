@@ -44,4 +44,3 @@ class Recipe(ConanFile):
         self.options["qt"].shared = True
         self.options["qt"].qtshadertools = True
         self.options["qt"].qtdeclarative = True
-        self.options["qt"].with_gstreamer = True
