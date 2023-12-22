@@ -2,7 +2,6 @@ import QtQuick 2.15
 import RhythmGameQml
 import QtQuick.Controls.Basic 2.15
 import QtQuick.Layouts
-import QtGamepadLegacy
 
 Rectangle {
     id: screen
