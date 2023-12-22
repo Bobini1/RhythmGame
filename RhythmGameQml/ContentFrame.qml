@@ -3,7 +3,6 @@ import QtQml
 import RhythmGameQml
 import QtQuick.Controls 2.15
 import QtCore
-import QtGamepadLegacy
 
 ApplicationWindow {
     id: contentContainer
