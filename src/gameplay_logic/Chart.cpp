@@ -67,7 +67,7 @@ void
 Chart::updateElapsed()
 {
     auto offset = std::chrono::system_clock::now() - startTimepoint;
-    offset -= std::chrono::nanoseconds(timeBeforeChartStart);
+    offset -= std::chrono::duration_cast<decltype(offset)>(std::chrono::nanoseconds(timeBeforeChartStart));
     setElapsed(offset.count());
     auto newPosition = gameReferee->update(offset);
     setPosition(newPosition);
