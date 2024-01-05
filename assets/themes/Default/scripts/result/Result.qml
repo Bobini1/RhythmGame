@@ -22,9 +22,8 @@ FocusScope {
         property string rootUrl: globalRoot.urlToPath(Qt.resolvedUrl(".").toString())
         readonly property var scores: {
             let scores = ScoreDb.getScoresForChart(chartData.sha256);
-            // remove the score with the same id
             scores = scores.filter(function (score) {
-                    return score.id !== result.id;
+                    return score.id !== result.result.id;
                 });
             return scores;
         }
