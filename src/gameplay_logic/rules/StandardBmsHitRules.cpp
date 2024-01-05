@@ -255,8 +255,7 @@ gameplay_logic::rules::StandardBmsHitRules::lnReleaseHit(
                                  Judgement::Poor,
                                  (hitOffset - noteTime).count(),
                                  /*noteRemoved=*/false),
-                       static_cast<int>(iter - notes.begin() +
-                                        currentNoteIndex) } };
+                       static_cast<int>(iter - notes.begin()) } };
         }
         if (hitOffset >= noteTime + windowHigh) {
             return std::nullopt;
