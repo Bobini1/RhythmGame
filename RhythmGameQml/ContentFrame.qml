@@ -30,7 +30,7 @@ ApplicationWindow {
                 id: loader
 
                 anchors.fill: parent
-                source: "file://" + Themes.availableThemeFamilies[ProfileList.currentProfile.themeConfig.gameplay].themes.gameplay
+                source: Themes.availableThemeFamilies[ProfileList.currentProfile.themeConfig.gameplay].themes.gameplay
             }
 
         }
@@ -51,7 +51,7 @@ ApplicationWindow {
                 id: loader
 
                 anchors.fill: parent
-                source: "file://" + Themes.availableThemeFamilies[ProfileList.currentProfile.themeConfig.result].themes.result
+                source: Themes.availableThemeFamilies[ProfileList.currentProfile.themeConfig.result].themes.result
             }
 
         }
@@ -62,10 +62,10 @@ ApplicationWindow {
         id: globalRoot
 
         readonly property Component gameplayComponent: chartContext
-        readonly property Component mainComponent: Qt.createComponent("file://" + Themes.availableThemeFamilies[ProfileList.currentProfile.themeConfig.main].themes.main)
+        readonly property Component mainComponent: Qt.createComponent(Themes.availableThemeFamilies[ProfileList.currentProfile.themeConfig.main].themes.main)
         readonly property Component resultComponent: resultContext
-        readonly property Component settingsComponent: Qt.createComponent("file://" + Themes.availableThemeFamilies[ProfileList.currentProfile.themeConfig.settings].themes.settings)
-        readonly property Component songWheelComponent: Qt.createComponent("file://" + Themes.availableThemeFamilies[ProfileList.currentProfile.themeConfig.songWheel].themes.songWheel)
+        readonly property Component settingsComponent: Qt.createComponent(Themes.availableThemeFamilies[ProfileList.currentProfile.themeConfig.settings].themes.settings)
+        readonly property Component songWheelComponent: Qt.createComponent(Themes.availableThemeFamilies[ProfileList.currentProfile.themeConfig.songWheel].themes.songWheel)
 
         function openChart(path: url) {
             let chart = ChartLoader.loadChart(path);
@@ -100,6 +100,7 @@ ApplicationWindow {
         Component.onCompleted: {
             if (ProgramSettings.chartPath != "")
                 openChart(ProgramSettings.chartPath);
+            console.info("file://" + Themes.availableThemeFamilies[ProfileList.currentProfile.themeConfig.main].themes.main)
 
         }
 

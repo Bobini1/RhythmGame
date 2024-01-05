@@ -2,7 +2,6 @@ import QtQuick 2.5
 import QtQuick.Controls.Basic
 import QtQuick.Layouts 1.2
 import QtQuick.Window 2.0
-import QtGamepadLegacy
 import RhythmGameQml
 
 Item {

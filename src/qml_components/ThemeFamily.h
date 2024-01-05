@@ -18,7 +18,7 @@ class ThemeFamily
     auto getPath() const -> QString;
     auto getThemes() const -> QVariantMap;
     ThemeFamily() = default; // necessary for Qt
-    ThemeFamily(QString path, QMap<QString, QString> themes);
+    ThemeFamily(QString path, QMap<QString, QUrl> themes);
 
   private:
     QString path;
