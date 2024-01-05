@@ -17,7 +17,9 @@ sounds::OpenALSound::OpenALSound(
 }
 sounds::OpenALSound::~OpenALSound()
 {
-    alDeleteSources(1, &source);
+    if (source != 0) {
+        alDeleteSources(1, &source);
+    }
 }
 auto
 sounds::OpenALSound::isPlaying() const -> bool

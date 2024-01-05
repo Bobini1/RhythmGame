@@ -8,6 +8,9 @@
 
 #include <QKeyEvent>
 #include <QVariant>
+#ifdef _WIN32
+#include <windows.h>
+#endif
 
 namespace input {
 auto
@@ -438,11 +441,21 @@ toSystem(std::chrono::steady_clock::time_point tp)
 }
 
 auto
+toSystem(std::chrono::file_clock::time_point tp)
+  -> std::chrono::system_clock::time_point
+{
+    using namespace std::chrono;
+    const auto systemNow = system_clock::now();
+    const auto steadyNow = file_clock ::now();
+    return time_point_cast<system_clock::duration>(tp - steadyNow + systemNow);
+}
+
+auto
 InputTranslator::getTime(const QKeyEvent& event) -> int64_t
 {
     auto timestampQint = event.timestamp();
 #ifdef _WIN32
-    return std::chrono::milliseconds{ timestampQint - startTimeClk }.count();
+    return std::chrono::milliseconds{ timestampQint + startTimeClk }.count();
 #else
     return std::chrono::duration_cast<std::chrono::milliseconds>(
              toSystem(std::chrono::steady_clock::time_point{
@@ -467,12 +480,21 @@ InputTranslator(const GamepadManager* source, QObject* parent)
             this,
             &InputTranslator::handleRelease);
 
-    auto now = std::chrono::duration_cast<std::chrono::milliseconds>(
-      std::chrono::system_clock::now().time_since_epoch());
 #ifdef _WIN32
-    startTimeClk =
-      (now - std::chrono::milliseconds{ clock() / (CLOCKS_PER_SEC / 1000) })
-        .count();
+    FILETIME lpCreationTime;
+    FILETIME lpExitTime;
+    FILETIME lpKernelTime;
+    FILETIME lpUserTime;
+    GetProcessTimes(GetCurrentProcess(),
+                    &lpCreationTime,
+                    &lpExitTime,
+                    &lpKernelTime,
+                    &lpUserTime);
+    std::chrono::file_clock::duration d{(static_cast<int64_t>(lpCreationTime.dwHighDateTime) << 32)
+                                         | lpCreationTime.dwLowDateTime};
+    std::chrono::file_clock::time_point tp{d};
+    auto fileNow = toSystem(tp);
+    startTimeClk = std::chrono::duration_cast<std::chrono::milliseconds>(fileNow.time_since_epoch()).count();
 #endif
 }
 void

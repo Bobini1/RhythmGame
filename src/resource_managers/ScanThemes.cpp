@@ -37,16 +37,16 @@ resource_managers::scanThemes(std::filesystem::path themesFolder)
                 continue;
             }
 
-            auto themeMap = QMap<QString, QString>();
+            auto themeMap = QMap<QString, QUrl>();
             for (const auto& [key, value] :
                  themes.toObject().toVariantMap().asKeyValueRange()) {
-                themeMap[key] = support::pathToQString(path / value.toString().
+                themeMap[key] = QUrl::fromLocalFile(support::pathToQString(path / value.toString().
 #ifdef _WIN32
                                                               toStdWString()
 #else
                                                               toStdString()
 #endif
-                );
+                ));
             }
             auto themeName = support::pathToQString(path.filename());
             auto themeFamily =

@@ -28,7 +28,6 @@ ColumnLayout {
 
                         Text {
                             Layout.fillWidth: true
-                            color: "white"
                             text: modelData
                         }
                         Button {

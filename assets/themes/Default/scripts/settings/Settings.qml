@@ -9,7 +9,7 @@ Rectangle {
 
     readonly property bool active: StackView.status === StackView.Active
 
-    color: "darkslategray"
+    color: "white"
 
     ListModel {
         id: songFolders

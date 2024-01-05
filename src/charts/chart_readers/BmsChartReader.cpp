@@ -33,10 +33,6 @@ trimR(std::string str) -> std::string
     return str;
 };
 
-thread_local std::function<parser_models::ParsedBmsChart::RandomRange(
-  parser_models::ParsedBmsChart::RandomRange)>
-  randomGenerator;
-
 struct TextTag
 {
     static constexpr auto value = lexy::callback<std::string>([](auto&& str) {
@@ -385,6 +381,7 @@ struct TagsSink
         using return_type = // NOLINT(readability-identifier-naming)
           parser_models::ParsedBmsChart::Tags;
         parser_models::ParsedBmsChart::Tags state;
+
         auto finish() && -> return_type { return std::move(state); }
         auto operator()(Title&& title) -> void
         {
@@ -705,8 +702,7 @@ struct RandomSink
             state.push_back(std::move(orphanTags));
         }
     };
-    template<typename... Args>
-    [[nodiscard]] auto sink(Args&&...) const -> RandomSinkCallback
+    [[nodiscard]] auto sink() const -> RandomSinkCallback
     {
         return RandomSinkCallback{};
     }
@@ -728,7 +724,9 @@ auto
 resolveIfs(
   parser_models::ParsedBmsChart::RandomRange randomRange,
   std::vector<std::variant<IfData, parser_models::ParsedBmsChart::Tags>>
-    randomContents) -> parser_models::ParsedBmsChart::Tags
+    randomContents,
+  std::function<parser_models::ParsedBmsChart::RandomRange(
+    parser_models::ParsedBmsChart::RandomRange)> randomGenerator) -> parser_models::ParsedBmsChart::Tags
 {
     auto tags = parser_models::ParsedBmsChart::Tags{};
     auto randomNumber = randomGenerator(randomRange);
@@ -758,7 +756,7 @@ struct RandomBlock
        (dsl::peek(dsl::ascii::case_folding(LEXY_LIT("#random"))) |
         dsl::ascii::case_folding(LEXY_LIT("#endrandom")) | dsl::eof));
     static constexpr auto value =
-      lexy::callback<parser_models::ParsedBmsChart::Tags>(resolveIfs);
+      lexy::bind(lexy::callback<parser_models::ParsedBmsChart::Tags>(resolveIfs), lexy::values, lexy::parse_state);
 };
 
 } // namespace
@@ -779,9 +777,8 @@ BmsChartReader::readBmsChart(
     parser_models::ParsedBmsChart::RandomRange)> randomGenerator) const
   -> parser_models::ParsedBmsChart
 {
-    charts::chart_readers::randomGenerator = std::move(randomGenerator);
     auto result = lexy::parse<MainTags>(
-      lexy::string_input<lexy::utf8_char_encoding>(chart), ReportError{});
+      lexy::string_input<lexy::utf8_char_encoding>(chart), randomGenerator, ReportError{});
     return parser_models::ParsedBmsChart(std::move(result).value());
 }
 } // namespace charts::chart_readers

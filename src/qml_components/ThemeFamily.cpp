@@ -6,6 +6,7 @@
 
 #include <utility>
 #include <QVariant>
+#include <QUrl>
 namespace qml_components {
 auto
 ThemeFamily::getPath() const -> QString
@@ -18,7 +19,7 @@ ThemeFamily::getThemes() const -> QVariantMap
     return themes;
 }
 ThemeFamily::
-ThemeFamily(QString path, QMap<QString, QString> themes)
+ThemeFamily(QString path, QMap<QString, QUrl> themes)
   : path(std::move(path))
 {
     for (const auto& [key, value] : themes.asKeyValueRange()) {

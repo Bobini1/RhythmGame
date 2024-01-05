@@ -49,14 +49,6 @@ GamepadManager::loop()
             emit buttonReleased(gamepads[buttonEvent.which],
                                 buttonEvent.button,
                                 buttonEvent.timestamp + startTime);
-        } else if (event.type == SDL_CONTROLLERDEVICEADDED) {
-            const auto deviceEvent = event.jdevice;
-            addController(deviceEvent.which);
-        } else if (event.type == SDL_CONTROLLERDEVICEREMOVED) {
-            const auto deviceEvent = event.jdevice;
-            emit gamepadRemoved(gamepads[deviceEvent.which]);
-            controllers.erase(deviceEvent.which);
-            gamepads.erase(deviceEvent.which);
         } else if (event.type == SDL_JOYDEVICEADDED) {
             const auto deviceEvent = event.jdevice;
             addController(deviceEvent.which);

@@ -136,7 +136,7 @@ class InputTranslator : public QObject
     std::array<bool, magic_enum::enum_count<BmsKey>()> buttons{};
 
 #ifdef _WIN32
-    clock_t startTimeClk;
+    int64_t startTimeClk;
 #endif
 
     void pressButton(BmsKey button, double value, uint64_t time);
