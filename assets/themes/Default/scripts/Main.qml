@@ -6,7 +6,7 @@ import QtQuick.Layouts
 Rectangle {
     id: screen
 
-    color: "darkslategray"
+    color: "white"
 
     ColumnLayout {
         id: column
