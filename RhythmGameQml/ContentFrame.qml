@@ -100,8 +100,6 @@ ApplicationWindow {
         Component.onCompleted: {
             if (ProgramSettings.chartPath != "")
                 openChart(ProgramSettings.chartPath);
-            console.info("file://" + Themes.availableThemeFamilies[ProfileList.currentProfile.themeConfig.main].themes.main)
-
         }
 
         StackView {
