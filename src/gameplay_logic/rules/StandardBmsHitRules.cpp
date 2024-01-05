@@ -218,7 +218,6 @@ gameplay_logic::rules::StandardBmsHitRules::lnReleaseHit(
   int currentNoteIndex,
   std::chrono::nanoseconds hitOffset) -> std::optional<HitResult>
 {
-    notes = notes.subspan(currentNoteIndex);
     auto windowLow = [&] {
         for (auto& [window, judgement] : timingWindows) {
             if (judgement != Judgement::EmptyPoor) {
@@ -235,7 +234,7 @@ gameplay_logic::rules::StandardBmsHitRules::lnReleaseHit(
         }
         return std::chrono::nanoseconds{ 0 };
     }();
-    for (auto iter = notes.begin(); iter < notes.end(); iter++) {
+    for (auto iter = notes.begin() + currentNoteIndex; iter < notes.end(); iter++) {
         auto& hit =
           std::visit([](auto& note) -> bool& { return note.hit; }, *iter);
         if (hit) {
@@ -268,8 +267,7 @@ gameplay_logic::rules::StandardBmsHitRules::lnReleaseHit(
                              result,
                              (hitOffset - noteTime).count(),
                              /*noteRemoved=*/true),
-                   static_cast<int>(iter - notes.begin() +
-                                    currentNoteIndex) } };
+                   static_cast<int>(iter - notes.begin()) } };
     }
     return std::nullopt;
 }
