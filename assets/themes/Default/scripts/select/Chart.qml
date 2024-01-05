@@ -51,7 +51,7 @@ Image {
         anchors.fill: parent
 
         onClicked: {
-            pathView.open(display);
+            pathView.open(modelData);
             pathView.currentIndex = index;
         }
     }
