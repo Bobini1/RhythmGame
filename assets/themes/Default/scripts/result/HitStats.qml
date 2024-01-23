@@ -41,17 +41,17 @@ WindowBg {
                 img: {
                     switch (modelData) {
                     case Judgement.Perfect:
-                        return root.iniImagesUrl + "parts.png/perfect";
+                        return root.iniImagesUrl + "parts.png/j_perfect";
                     case Judgement.Great:
-                        return root.iniImagesUrl + "parts.png/great";
+                        return root.iniImagesUrl + "parts.png/j_great";
                     case Judgement.Good:
-                        return root.iniImagesUrl + "parts.png/good";
+                        return root.iniImagesUrl + "parts.png/j_good";
                     case Judgement.Bad:
-                        return root.iniImagesUrl + "parts.png/bad";
+                        return root.iniImagesUrl + "parts.png/j_bad";
                     case Judgement.Poor:
-                        return root.iniImagesUrl + "parts.png/poor";
+                        return root.iniImagesUrl + "parts.png/j_poor";
                     case Judgement.EmptyPoor:
-                        return root.iniImagesUrl + "parts.png/empty_poor";
+                        return root.iniImagesUrl + "parts.png/j_empty_poor";
                     }
                 }
                 judgementCount: result.result.judgementCounts[modelData]
