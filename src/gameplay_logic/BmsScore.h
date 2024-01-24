@@ -7,7 +7,6 @@
 #include <vector>
 #include <boost/container/flat_map.hpp>
 #include <QObject>
-#include <QtQmlIntegration>
 #include <magic_enum.hpp>
 #include "gameplay_logic/TimePoint.h"
 #include "gameplay_logic/BmsPoints.h"

@@ -5,7 +5,6 @@
 #ifndef RHYTHMGAME_SCOREDB_H
 #define RHYTHMGAME_SCOREDB_H
 
-#include <QObject>
 #include <functional>
 #include "db/SqliteCppDb.h"
 #include "gameplay_logic/BmsResult.h"

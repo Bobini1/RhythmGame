@@ -5,8 +5,6 @@
 #ifndef RHYTHMGAME_CHARTLOADER_H
 #define RHYTHMGAME_CHARTLOADER_H
 
-#include <QObject>
-#include <QtQmlIntegration>
 #include <memory>
 #include "gameplay_logic/ChartData.h"
 #include "gameplay_logic/Chart.h"

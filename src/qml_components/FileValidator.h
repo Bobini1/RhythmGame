@@ -5,7 +5,6 @@
 #ifndef RHYTHMGAME_FILEVALIDATOR_H
 #define RHYTHMGAME_FILEVALIDATOR_H
 
-#include <QObject>
 #include <QUrl>
 #include <QFile>
 namespace qml_components {

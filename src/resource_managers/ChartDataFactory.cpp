@@ -5,6 +5,8 @@
 #include "ChartDataFactory.h"
 
 #include <utility>
+#include <fstream>
+#include <qfileinfo.h>
 
 namespace resource_managers {
 auto

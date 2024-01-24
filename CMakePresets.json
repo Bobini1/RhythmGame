@@ -37,13 +37,6 @@
       }
     },
     {
-      "name": "cppcheck",
-      "hidden": true,
-      "cacheVariables": {
-        "CMAKE_CXX_CPPCHECK": "cppcheck;--inline-suppr"
-      }
-    },
-    {
       "name": "clang-tidy",
       "hidden": true,
       "cacheVariables": {
@@ -158,7 +151,6 @@
         "ci-unix",
         "clang-tidy",
         "conan",
-        "cppcheck",
         "dev-mode"
       ]
     },

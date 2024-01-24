@@ -6,11 +6,14 @@
 #define RHYTHMGAME_CHART_H
 
 #include <QObject>
-#include <QtQmlIntegration>
 #include "BmsGameReferee.h"
 #include "ChartData.h"
 #include "BmsScoreAftermath.h"
 #include "qml_components/Bga.h"
+
+#include <QTimer>
+#include <qfuture.h>
+#include <qfuturewatcher.h>
 namespace gameplay_logic {
 
 class Chart : public QObject

@@ -5,19 +5,18 @@
 #ifndef RHYTHMGAME_BGA_H
 #define RHYTHMGAME_BGA_H
 
-#include <QObject>
-#include <QtQmlIntegration>
 #include <QVideoSink>
 #include <QMediaPlayer>
 #include <QPixmap>
 #include <QVideoFrame>
+#include <qpointer.h>
 
 namespace qml_components {
 
 class Bga : public QObject
 {
     Q_OBJECT
-    QML_ELEMENT
+
     Q_PROPERTY(QVideoSink* videoSink READ getVideoSink WRITE setVideoSink NOTIFY
                  videoSinkChanged)
     QPointer<QVideoSink> videoSink = nullptr;
@@ -44,7 +43,7 @@ class Bga : public QObject
 class BgaContainer : public QObject
 {
     Q_OBJECT
-    QML_ELEMENT
+
     Q_PROPERTY(QList<Bga*> layers READ getLayers CONSTANT)
     QList<Bga*> layers;
 

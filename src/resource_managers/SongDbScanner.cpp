@@ -9,6 +9,8 @@
 #include "support/PathToUtfString.h"
 #include "support/toLower.h"
 
+#include <qthreadpool.h>
+
 namespace resource_managers {
 SongDbScanner::SongDbScanner(db::SqliteCppDb* db)
   : db(db)

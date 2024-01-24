@@ -6,7 +6,6 @@
 #define RHYTHMGAME_CHARTDATA_H
 
 #include <QObject>
-#include <QtQmlIntegration>
 #include <QQmlEngine>
 #include <QJSEngine>
 #include "BmsScore.h"

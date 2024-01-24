@@ -6,7 +6,6 @@
 #define RHYTHMGAME_SONGFOLDERFACTORY_H
 
 #include <QObject>
-#include <QtQmlIntegration>
 #include "db/SqliteCppDb.h"
 
 namespace qml_components {
@@ -14,7 +13,7 @@ namespace qml_components {
 class SongFolderFactory : public QObject
 {
     Q_OBJECT
-    QML_ELEMENT
+
     db::SqliteCppDb* db;
     db::SqliteCppDb::Statement getCharts =
       db->createStatement("SELECT * FROM charts WHERE directory_in_db "

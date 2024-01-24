@@ -6,12 +6,9 @@
 #define RHYTHMGAME_CHARTDATAFACTORY_H
 
 #include "gameplay_logic/ChartData.h"
-#include "support/Sha256.h"
 #include "charts/chart_readers/BmsChartReader.h"
 #include "charts/gameplay_models/BmsNotesData.h"
 #include "gameplay_logic/BmsNotes.h"
-#include <fstream>
-#include <boost/locale/encoding.hpp>
 
 namespace resource_managers {
 

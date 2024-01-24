@@ -4,8 +4,7 @@
 
 #ifndef RHYTHMGAME_BMSPOINTS_H
 #define RHYTHMGAME_BMSPOINTS_H
-#include <boost/serialization/strong_typedef.hpp>
-#include <chrono>
+#include <QObject>
 #include "Judgement.h"
 namespace gameplay_logic {
 class BmsPoints

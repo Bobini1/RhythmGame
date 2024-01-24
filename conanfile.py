@@ -26,6 +26,7 @@ class Recipe(ConanFile):
         self.requires("freetype/2.13.2", override=True)
         self.requires("xkbcommon/1.6.0", override=True)
         self.requires("xz_utils/5.4.5", override=True)
+        self.requires("libxml2/2.12.3", override=True)
         self.requires("qt/6.6.1")
         self.requires("sdl/2.28.5")
 
@@ -44,3 +45,5 @@ class Recipe(ConanFile):
         self.options["qt"].shared = True
         self.options["qt"].qtshadertools = True
         self.options["qt"].qtdeclarative = True
+        self.options["qt"].qt5compat = True
+        self.options["qt"].qtmultimedia = True

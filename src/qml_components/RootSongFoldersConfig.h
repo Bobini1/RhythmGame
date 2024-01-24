@@ -5,18 +5,15 @@
 #ifndef RHYTHMGAME_ROOTSONGFOLDERSCONFIG_H
 #define RHYTHMGAME_ROOTSONGFOLDERSCONFIG_H
 
-#include <QObject>
-#include <QtQmlIntegration>
-#include <QJSEngine>
-#include <QQmlEngine>
 #include "db/SqliteCppDb.h"
 #include "resource_managers/SongDbScanner.h"
+
+#include <qfuture.h>
 namespace qml_components {
 
 class RootSongFoldersConfig : public QObject
 {
     Q_OBJECT
-    QML_ELEMENT
 
   public:
     enum class Status

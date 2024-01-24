@@ -6,7 +6,7 @@
 #define RHYTHMGAME_LOGGER_H
 
 #include <QObject>
-#include <QtQmlIntegration>
+#include <qstringlistmodel.h>
 namespace qml_components {
 
 class Logger : public QObject
