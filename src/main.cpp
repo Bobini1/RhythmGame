@@ -31,10 +31,6 @@
 
 #include <iostream>
 
-extern "C" {
-#include <libavutil/log.h>
-}
-
 Q_IMPORT_QML_PLUGIN(RhythmGameQmlPlugin)
 
 void
@@ -63,42 +59,6 @@ qtLogHandler(QtMsgType type,
     }
 }
 
-void
-libavLogHandler(void* /*ptr*/, int level, const char* fmt, va_list vl)
-{
-    if (level > av_log_get_level()) {
-        return;
-    }
-
-    static char message[8192];
-    auto ret = vsnprintf(message, sizeof(message), fmt, vl);
-    if (ret < 0) {
-        return;
-    }
-    switch (level) {
-        case AV_LOG_DEBUG:
-            spdlog::debug("{}", message);
-            break;
-        case AV_LOG_VERBOSE:
-        case AV_LOG_INFO:
-            spdlog::info("{}", message);
-            break;
-        case AV_LOG_WARNING:
-            spdlog::warn("{}", message);
-            break;
-        case AV_LOG_ERROR:
-            spdlog::error("{}", message);
-            break;
-        case AV_LOG_FATAL:
-        case AV_LOG_PANIC:
-            spdlog::critical("{}", message);
-            break;
-        default:
-            spdlog::info("{}", message);
-            break;
-    }
-}
-
 auto
 main(int argc, [[maybe_unused]] char* argv[]) -> int
 {
@@ -107,8 +67,6 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
     QGuiApplication::setOrganizationName("Tomasz Kalisiak");
     QGuiApplication::setOrganizationDomain("bemani.pl");
     QGuiApplication::setApplicationName("RhythmGame");
-
-    av_log_set_callback(libavLogHandler);
 
     qInstallMessageHandler(qtLogHandler);
 
@@ -125,7 +83,6 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
     spdlog::set_level(spdlog::level::debug);
     set_default_logger(logger);
 
-    try {
         auto assetsFolder = resource_managers::findAssetsFolder();
 
         auto engine = QQmlApplicationEngine{};
@@ -291,11 +248,4 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
         engine.rootObjects()[0]->installEventFilter(&inputTranslator);
 
         return app.exec();
-    } catch (const std::exception& e) {
-        spdlog::critical("Fatal error: {}", e.what());
-        throw;
-    } catch (...) {
-        spdlog::critical("Fatal error: unknown");
-        throw;
-    }
 }

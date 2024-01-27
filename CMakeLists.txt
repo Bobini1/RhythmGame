@@ -30,11 +30,7 @@ find_package(spdlog REQUIRED)
 
 # <------------ boost --------------->
 
-find_package(Boost REQUIRED)
-
-# <------------ FFmpeg (audio decoding) --------------->
-
-find_package(FFmpeg REQUIRED)
+find_package(Boost REQUIRED COMPONENTS  locale serialization  filesystem)
 
 # <------------ OpenAL (audio playback) --------------->
 
@@ -42,7 +38,7 @@ find_package(OpenAL REQUIRED)
 
 # <------------ Qt (gui) --------------->
 
-find_package(Qt6 REQUIRED COMPONENTS ShaderTools Quick Gui Widgets Core5Compat Concurrent Multimedia)
+find_package(Qt6 COMPONENTS ShaderTools Quick Gui Widgets Core5Compat Concurrent Multimedia REQUIRED)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
@@ -156,7 +152,7 @@ find_package(SndFile REQUIRED)
 
 find_package(SDL2 REQUIRED)
 
-target_link_libraries(RhythmGame_lib PUBLIC SDL2::SDL2 Qt6::Gui Qt6::Quick Qt6::OpenGL Qt6::Widgets Qt6::Concurrent Qt6::Core5Compat Qt6::Multimedia Threads::Threads Boost::headers Boost::locale Boost::serialization Boost::dynamic_linking Boost::filesystem SQLiteCpp spdlog::spdlog foonathan::lexy ffmpeg::ffmpeg OpenAL::OpenAL cryptopp::cryptopp magic_enum::magic_enum zstd::libzstd_static SndFile::sndfile)
+target_link_libraries(RhythmGame_lib PUBLIC Qt6::QWindowsIntegrationPlugin SDL2::SDL2 Qt6::Gui Qt6::Quick Qt6::OpenGL Qt6::Widgets Qt6::Concurrent Qt6::Core5Compat Qt6::Multimedia Threads::Threads Boost::headers Boost::locale Boost::serialization Boost::dynamic_linking Boost::filesystem SQLiteCpp spdlog::spdlog foonathan::lexy OpenAL::OpenAL cryptopp::cryptopp magic_enum::magic_enum zstd::libzstd_static SndFile::sndfile)
 
 include(CheckCXXSymbolExists)
 check_cxx_symbol_exists(std::execution::par "execution" RHYTHMGAME_HAS_STD_EXECUTION)
@@ -194,16 +190,24 @@ set_target_properties(
         RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/bin/$<0:>"
 )
 
+qt_import_qml_plugins(RhythmGame_exe)
+
 
 add_custom_command(TARGET RhythmGame_exe POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E create_symlink
         ${CMAKE_SOURCE_DIR}/assets assets)
 
+if (WIN32)
+    set(alsoft_ext "ini")
+else ()
+    set(alsoft_ext "conf")
+endif ()
 
-#add_custom_command(TARGET RhythmGame_exe POST_BUILD
-#        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_RUNTIME_DLLS:RhythmGame_exe> $<TARGET_FILE_DIR:RhythmGame_exe>
-#        COMMAND_EXPAND_LISTS
-#        )
+# copy alsoft.ini
+add_custom_command(TARGET RhythmGame_exe POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy
+        ${CMAKE_SOURCE_DIR}/alsoft.ini
+        ${CMAKE_BINARY_DIR}/bin/$<0:>/alsoft.${alsoft_ext})
 
 target_compile_features(RhythmGame_exe PRIVATE cxx_std_20)
 

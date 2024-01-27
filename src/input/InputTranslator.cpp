@@ -454,8 +454,10 @@ auto
 InputTranslator::getTime(const QKeyEvent& event) -> int64_t
 {
     auto timestampQint = event.timestamp();
+    auto timestampNormal = std::chrono::system_clock::now();
+    auto timestampThis = timestampQint + startTimeClk;
 #ifdef _WIN32
-    return std::chrono::milliseconds{ timestampQint + startTimeClk }.count();
+    return std::chrono::milliseconds{ timestampThis }.count();
 #else
     return std::chrono::duration_cast<std::chrono::milliseconds>(
              toSystem(std::chrono::steady_clock::time_point{
@@ -481,20 +483,8 @@ InputTranslator(const GamepadManager* source, QObject* parent)
             &InputTranslator::handleRelease);
 
 #ifdef _WIN32
-    FILETIME lpCreationTime;
-    FILETIME lpExitTime;
-    FILETIME lpKernelTime;
-    FILETIME lpUserTime;
-    GetProcessTimes(GetCurrentProcess(),
-                    &lpCreationTime,
-                    &lpExitTime,
-                    &lpKernelTime,
-                    &lpUserTime);
-    std::chrono::file_clock::duration d{(static_cast<int64_t>(lpCreationTime.dwHighDateTime) << 32)
-                                         | lpCreationTime.dwLowDateTime};
-    std::chrono::file_clock::time_point tp{d};
-    auto fileNow = toSystem(tp);
-    startTimeClk = std::chrono::duration_cast<std::chrono::milliseconds>(fileNow.time_since_epoch()).count();
+    auto clk = std::chrono::milliseconds(clock() * 1000 / CLOCKS_PER_SEC);
+    startTimeClk = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch() - clk).count();
 #endif
 }
 void
