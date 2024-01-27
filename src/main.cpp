@@ -83,6 +83,7 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
     spdlog::set_level(spdlog::level::debug);
     set_default_logger(logger);
 
+    try {
         auto assetsFolder = resource_managers::findAssetsFolder();
 
         auto engine = QQmlApplicationEngine{};
@@ -220,9 +221,8 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
           "RhythmGameQml", 1, 0, "BmsGaugeHistory");
         qmlRegisterType<qml_components::Bga>("RhythmGameQml", 1, 0, "Bga");
         qmlRegisterType<qml_components::BgaContainer>(
-        "RhythmGameQml", 1, 0, "BgaContainer");
-        qmlRegisterType<input::Key>(
-          "RhythmGameQml", 1, 0, "Key");
+          "RhythmGameQml", 1, 0, "BgaContainer");
+        qmlRegisterType<input::Key>("RhythmGameQml", 1, 0, "Key");
         qmlRegisterUncreatableMetaObject(gameplay_logic::staticMetaObject,
                                          "RhythmGameQml",
                                          1,
@@ -248,4 +248,11 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
         engine.rootObjects()[0]->installEventFilter(&inputTranslator);
 
         return app.exec();
+    } catch (const std::exception& e) {
+        spdlog::critical("Fatal error: {}", e.what());
+        throw;
+    } catch (...) {
+        spdlog::critical("Fatal error: unknown exception");
+        throw;
+    }
 }
