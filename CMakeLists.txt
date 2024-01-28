@@ -43,7 +43,7 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
-find_package(CryptoPP REQUIRED)
+find_package(cryptopp REQUIRED)
 find_package(magic_enum REQUIRED)
 
 # <------------ zstd (compression) --------------->
@@ -152,7 +152,7 @@ find_package(SndFile REQUIRED)
 
 find_package(SDL2 REQUIRED)
 
-target_link_libraries(RhythmGame_lib PUBLIC Qt6::QWindowsIntegrationPlugin SDL2::SDL2 Qt6::Gui Qt6::Quick Qt6::OpenGL Qt6::Widgets Qt6::Concurrent Qt6::Core5Compat Qt6::Multimedia Threads::Threads Boost::headers Boost::locale Boost::serialization Boost::dynamic_linking Boost::filesystem SQLiteCpp spdlog::spdlog foonathan::lexy OpenAL::OpenAL cryptopp::cryptopp magic_enum::magic_enum zstd::libzstd_static SndFile::sndfile)
+target_link_libraries(RhythmGame_lib PUBLIC SDL2::SDL2 Qt6::Gui Qt6::Quick Qt6::OpenGL Qt6::Widgets Qt6::Concurrent Qt6::Core5Compat Qt6::Multimedia Threads::Threads Boost::headers Boost::locale Boost::serialization Boost::dynamic_linking Boost::filesystem SQLiteCpp spdlog::spdlog foonathan::lexy OpenAL::OpenAL cryptopp::cryptopp magic_enum::magic_enum zstd::libzstd_static SndFile::sndfile)
 
 include(CheckCXXSymbolExists)
 check_cxx_symbol_exists(std::execution::par "execution" RHYTHMGAME_HAS_STD_EXECUTION)
