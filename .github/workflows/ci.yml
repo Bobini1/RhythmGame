@@ -48,7 +48,7 @@ jobs:
 
       - name: Install vcpkg
         uses: friendlyanon/setup-vcpkg@v1
-        with: { committish: "${{ env.VCPKG_COMMIT }}" }
+        with: { committish: "${{ env.VCPKG_COMMIT }}", path: "../../vcpkg" }
 
       - name: Install system dependencies
         run: sudo apt-get install libtbb-dev libgl-dev libudev-dev nasm gperf jinja2 -y
@@ -88,7 +88,7 @@ jobs:
 
       - name: Install vcpkg
         uses: friendlyanon/setup-vcpkg@v1
-        with: { committish: "${{ env.VCPKG_COMMIT }}" }
+        with: { committish: "${{ env.VCPKG_COMMIT }}", path: "../../vcpkg"  }
 
       - name: Install system dependencies
         run: sudo apt-get update && sudo apt-get install libtbb-dev libgl-dev libudev-dev nasm gperf jinja2 -y
@@ -140,7 +140,7 @@ jobs:
 
       - name: Install vcpkg
         uses: friendlyanon/setup-vcpkg@v1
-        with: { committish: "${{ env.VCPKG_COMMIT }}" }
+        with: { committish: "${{ env.VCPKG_COMMIT }}", path: "../../vcpkg"  }
 
       - name: Setup MultiToolTask
         if: matrix.os == 'windows-2022'
@@ -198,7 +198,7 @@ jobs:
 
       - name: Install vcpkg
         uses: friendlyanon/setup-vcpkg@v1
-        with: { committish: "${{ env.VCPKG_COMMIT }}" }
+        with: { committish: "${{ env.VCPKG_COMMIT }}", path: "../../vcpkg"  }
 
       - name: Install system dependencies
         if: matrix.os == 'ubuntu-22.04'
