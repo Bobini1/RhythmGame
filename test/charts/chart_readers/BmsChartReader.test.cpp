@@ -174,15 +174,15 @@ TEST_CASE("Parse CP932", "[BmsChartReader]")
     constexpr auto allowedError = 0.00001;
     auto testString =
       L"#ARTIST LUNEの右手と悠里おねぇちゃんの左脚 \n\n #TITLE どうか私を殺して下さい -もう、樹海しか見えない-\n   #BPM 166"s;
-    auto CP932String = boost::locale::conv::from_utf<wchar_t>(testString, "CP932");
+    auto CP932String =
+      boost::locale::conv::from_utf<wchar_t>(testString, "CP932");
     auto res = reader.readBmsChart(CP932String, randomGenerator);
     auto title = L"どうか私を殺して下さい -もう、樹海しか見えない-"s;
     auto artist = L"LUNEの右手と悠里おねぇちゃんの左脚"s;
     auto utf8Title = boost::locale::conv::utf_to_utf<char, wchar_t>(title);
     auto utf8Artist = boost::locale::conv::utf_to_utf<char, wchar_t>(artist);
     REQUIRE(res.tags.title);
-    REQUIRE(res.tags.title ==
-            utf8Title);
+    REQUIRE(res.tags.title == utf8Title);
     REQUIRE(res.tags.artist);
     REQUIRE(res.tags.artist == utf8Artist);
     REQUIRE(res.tags.bpm);
