@@ -51,7 +51,7 @@ jobs:
         with: { committish: "${{ env.VCPKG_COMMIT }}", path: "../../vcpkg" }
 
       - name: Install system dependencies
-        run: sudo apt-get install libtbb-dev libgl-dev libudev-dev nasm gperf python3-jinja2 '^libxcb.*-dev' -y
+        run: sudo apt-get install libtbb-dev libgl-dev libudev-dev nasm autoconf gperf python3-jinja2 '^libxcb.*-dev' -y
 
       - name: Configure
         run: cmake --preset=ci-coverage
@@ -91,7 +91,7 @@ jobs:
         with: { committish: "${{ env.VCPKG_COMMIT }}", path: "../../vcpkg"  }
 
       - name: Install system dependencies
-        run: sudo apt-get update && sudo apt-get install libtbb-dev libgl-dev libudev-dev nasm gperf python3-jinja2 '^libxcb.*-dev' -y
+        run: sudo apt-get update && sudo apt-get install libtbb-dev libgl-dev libudev-dev nasm autoconf gperf python3-jinja2 '^libxcb.*-dev' -y
 
       - name: Install Clang 13
         run: sudo apt-get install clang-13 libc++-dev -y
@@ -150,7 +150,7 @@ jobs:
 
       - name: Install system dependencies
         if: matrix.os == 'ubuntu-22.04'
-        run: sudo apt-get install libtbb-dev libgl-dev libudev-dev nasm gperf python3-jinja2 '^libxcb.*-dev' -y
+        run: sudo apt-get install libtbb-dev libgl-dev libudev-dev nasm autoconf gperf python3-jinja2 '^libxcb.*-dev' -y
 
       - name: Configure
         shell: pwsh
@@ -202,7 +202,7 @@ jobs:
 
       - name: Install system dependencies
         if: matrix.os == 'ubuntu-22.04'
-        run: sudo apt-get install libtbb-dev libgl-dev libudev-dev nasm gperf python3-jinja2 '^libxcb.*-dev' -y
+        run: sudo apt-get install libtbb-dev libgl-dev libudev-dev nasm autoconf gperf python3-jinja2 '^libxcb.*-dev' -y
 
       - name: Configure
         shell: pwsh
