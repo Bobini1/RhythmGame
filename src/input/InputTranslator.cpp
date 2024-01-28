@@ -455,8 +455,8 @@ InputTranslator::getTime(const QKeyEvent& event) -> int64_t
 {
     auto timestampQint = event.timestamp();
     auto timestampNormal = std::chrono::system_clock::now();
-    auto timestampThis = timestampQint + startTimeClk;
 #ifdef _WIN32
+    auto timestampThis = timestampQint + startTimeClk;
     return std::chrono::milliseconds{ timestampThis }.count();
 #else
     return std::chrono::duration_cast<std::chrono::milliseconds>(
