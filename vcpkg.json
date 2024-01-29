@@ -61,7 +61,14 @@
     {
       "name": "qtmultimedia",
       "version>=": "6.6.1",
-      "features": ["qml"]
+      "features": ["qml", "gstreamer"],
+      "platform": "linux"
+    },
+    {
+      "name": "qtmultimedia",
+      "version>=": "6.6.1",
+      "features": ["qml"],
+      "platform": "!linux"
     },
     {
       "name": "qttools",
