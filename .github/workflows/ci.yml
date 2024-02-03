@@ -244,7 +244,7 @@ jobs:
         with: { python-version: "3.8" }
 
       - name: Install m.css dependencies
-        run: pip3 install python3-jinja2 '^libxcb.*-dev' Pygments
+        run: pip3 install jinja2 pygments
 
       - name: Install Doxygen
         run: sudo apt-get update -q
