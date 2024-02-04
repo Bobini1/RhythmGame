@@ -163,14 +163,13 @@ jobs:
         run: sudo apt-get install libtbb-dev libgl-dev libudev-dev nasm autoconf gperf pkg-config python3-jinja2 '^libxcb.*-dev' -y
 
       - name: Get OS name
-        id: vars
         shell: pwsh
-        run: echo ::set-output name=OS_NAME::"$("${{ matrix.os }}".split("-")[0])"
+        run: Add-Content "$env:GITHUB_ENV" "OS_NAME=$("${{ matrix.os }}".split("-")[0])"
 
       - name: Configure
         uses: lukka/run-cmake@v10
         with:
-          configurePreset: "ci-${{ steps.vars.outputs.OS_NAME }}"
+          configurePreset: "ci-$env:OS_NAME"
 
       - name: Build
         run: cmake --build build --config Release -j 2
@@ -223,14 +222,13 @@ jobs:
         run: sudo apt-get install libtbb-dev libgl-dev libudev-dev nasm autoconf gperf pkg-config python3-jinja2 '^libxcb.*-dev' -y
 
       - name: Get OS name
-        id: vars
         shell: pwsh
-        run: echo ::set-output name=OS_NAME::"$("${{ matrix.os }}".split("-")[0])"
+        run: Add-Content "$env:GITHUB_ENV" "OS_NAME=$("${{ matrix.os }}".split("-")[0])"
 
       - name: Configure
         uses: lukka/run-cmake@v10
         with:
-          configurePreset: "ci-${{ steps.vars.outputs.OS_NAME }}"
+          configurePreset: "ci-$env:OS_NAME"
 
       - name: Build
         run: cmake --build build --config Release -j 2
