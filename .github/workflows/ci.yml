@@ -169,7 +169,7 @@ jobs:
 
       - name: Print errors
         if: always()
-        run: cat /v/buildtrees/qtbase/config-x64-linux-out.log
+        run: cat /home/runner/v/buildtrees/qtbase/config-x64-linux-out.log
 
       - name: Build
         run: cmake --build build --config Release -j 2
