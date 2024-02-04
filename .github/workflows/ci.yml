@@ -51,7 +51,7 @@ jobs:
         with: { committish: "${{ env.VCPKG_COMMIT }}", path: "../../../v" }
 
       - name: Install system dependencies
-        run: sudo apt-get install libtbb-dev libgl-dev libudev-dev nasm autoconf automake autoconf-archive gperf pkg-config python3-jinja2 '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev -y
+        run: sudo apt-get install libtbb-dev libgl-dev libdrm-dev libgles2-mesa-dev libudev-dev nasm autoconf automake autoconf-archive gperf pkg-config python3-jinja2 '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev -y
 
       - name: Configure
         run: cmake --preset=ci-coverage
@@ -91,7 +91,7 @@ jobs:
         with: { committish: "${{ env.VCPKG_COMMIT }}", path: "../../../v"  }
 
       - name: Install system dependencies
-        run: sudo apt-get update && sudo apt-get install libtbb-dev libgl-dev libudev-dev nasm autoconf automake autoconf-archive gperf pkg-config python3-jinja2 '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev -y
+        run: sudo apt-get update && sudo apt-get install libtbb-dev libgl-dev libdrm-dev libgles2-mesa-dev libudev-dev nasm autoconf automake autoconf-archive gperf pkg-config python3-jinja2 '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev -y
 
       - name: Install Clang 13
         run: sudo apt-get install clang-13 libc++-dev -y
@@ -158,7 +158,7 @@ jobs:
         shell: bash
         run: |
           if [ ${{ matrix.os }} = ubuntu-22.04 ]; then
-            sudo apt-get update && sudo apt-get install libtbb-dev libgl-dev libudev-dev nasm autoconf automake autoconf-archive gperf pkg-config python3-jinja2 '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev -y
+            sudo apt-get update && sudo apt-get install libtbb-dev libgl-dev libdrm-dev libgles2-mesa-dev libudev-dev nasm autoconf automake autoconf-archive gperf pkg-config python3-jinja2 '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev -y
           else
             brew install autoconf automake autoconf-archive
           fi
@@ -225,7 +225,7 @@ jobs:
         shell: bash
         run: |
           if [ ${{ matrix.os }} = ubuntu-22.04 ]; then
-            sudo apt-get update && sudo apt-get install libtbb-dev libgl-dev libudev-dev nasm autoconf automake autoconf-archive gperf pkg-config python3-jinja2 '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev -y
+            sudo apt-get update && sudo apt-get install libtbb-dev libgl-dev libdrm-dev libgles2-mesa-dev libudev-dev nasm autoconf automake autoconf-archive gperf pkg-config python3-jinja2 '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev -y
           else
             brew install autoconf automake autoconf-archive
           fi
