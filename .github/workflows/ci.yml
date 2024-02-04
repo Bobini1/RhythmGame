@@ -167,6 +167,10 @@ jobs:
         shell: pwsh
         run: cmake "--preset=ci-$("${{ matrix.os }}".split("-")[0])"
 
+      - name: Print errors
+        if: always()
+        run: cat /v/buildtrees/qtbase/config-x64-linux-out.log
+
       - name: Build
         run: cmake --build build --config Release -j 2
 
@@ -225,10 +229,6 @@ jobs:
           else
             brew install autoconf automake autoconf-archive
           fi
-
-      - name: Print errors
-        if: always()
-        run: cat /v/buildtrees/qtbase/config-x64-linux-out.log
 
       - name: Configure
         shell: pwsh
