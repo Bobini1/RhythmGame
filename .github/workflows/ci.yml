@@ -161,7 +161,7 @@ jobs:
             sudo apt-get update && sudo apt-get install libtbb-dev libgl-dev libdrm-dev libgles2-mesa-dev libudev-dev nasm autoconf automake autoconf-archive gperf pkg-config python3-jinja2 '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev -y
           else
             brew install autoconf automake autoconf-archive
-          fi
+          fi  
 
       - name: Configure
         shell: pwsh
@@ -169,7 +169,9 @@ jobs:
 
       - name: Print errors
         if: always()
-        run: cat /home/runner/v/buildtrees/qtbase/config-x64-linux-out.log
+        run: |
+          cat /home/runner/v/buildtrees/qtbase/config-x64-linux-out.log
+          cat /home/runner/work/RhythmGame/RhythmGame/build/vcpkg-manifest-install.log
 
       - name: Build
         run: cmake --build build --config Release -j 2
