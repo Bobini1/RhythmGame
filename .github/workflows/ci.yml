@@ -48,7 +48,7 @@ jobs:
 
       - name: Install vcpkg
         uses: friendlyanon/setup-vcpkg@v1
-        with: { committish: "${{ env.VCPKG_COMMIT }}", path: "../../../../v" }
+        with: { committish: "${{ env.VCPKG_COMMIT }}", path: "../../../v" }
 
       - name: Install system dependencies
         run: sudo apt-get install libtbb-dev libgl-dev libudev-dev nasm autoconf automake autoconf-archive gperf pkg-config python3-jinja2 '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev -y
@@ -88,7 +88,7 @@ jobs:
 
       - name: Install vcpkg
         uses: friendlyanon/setup-vcpkg@v1
-        with: { committish: "${{ env.VCPKG_COMMIT }}", path: "../../../../v"  }
+        with: { committish: "${{ env.VCPKG_COMMIT }}", path: "../../../v"  }
 
       - name: Install system dependencies
         run: sudo apt-get update && sudo apt-get install libtbb-dev libgl-dev libudev-dev nasm autoconf automake autoconf-archive gperf pkg-config python3-jinja2 '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev -y
@@ -140,7 +140,7 @@ jobs:
 
       - name: Install vcpkg
         uses: friendlyanon/setup-vcpkg@v1
-        with: { committish: "${{ env.VCPKG_COMMIT }}", path: "../../../../v"  }
+        with: { committish: "${{ env.VCPKG_COMMIT }}", path: "../../../v"  }
 
       - name: Setup MultiToolTask
         if: matrix.os == 'windows-2022'
@@ -209,7 +209,7 @@ jobs:
 
       - name: Install vcpkg
         uses: friendlyanon/setup-vcpkg@v1
-        with: { committish: "${{ env.VCPKG_COMMIT }}", path: "../../../../v"  }
+        with: { committish: "${{ env.VCPKG_COMMIT }}", path: "../../../v"  }
 
       - name: Install WMF
         if: matrix.os == 'windows-latest'
