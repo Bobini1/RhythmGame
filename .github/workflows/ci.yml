@@ -148,6 +148,11 @@ jobs:
           Add-Content "$env:GITHUB_ENV" 'UseMultiToolTask=true'
           Add-Content "$env:GITHUB_ENV" 'EnforceProcessCountAcrossBuilds=true'
 
+      - name: Install WMF
+        if: matrix.os == 'windows-latest'
+        shell: pwsh
+        run: Install-WindowsFeature Server-Media-Foundation
+      
       - name: Install system dependencies
         if: matrix.os == 'ubuntu-22.04' || matrix.os == 'macos-12'
         shell: bash
@@ -206,6 +211,11 @@ jobs:
         uses: friendlyanon/setup-vcpkg@v1
         with: { committish: "${{ env.VCPKG_COMMIT }}", path: "../../vcpkg"  }
 
+      - name: Install WMF
+        if: matrix.os == 'windows-latest'
+        shell: pwsh
+        run: Install-WindowsFeature Server-Media-Foundation
+
       - name: Install system dependencies
         if: matrix.os == 'ubuntu-22.04' || matrix.os == 'macos-12'
         shell: bash
@@ -215,7 +225,7 @@ jobs:
           else
             brew install autoconf automake autoconf-archive
           fi
-      
+
       - name: Configure
         shell: pwsh
         run: cmake "--preset=ci-$("${{ matrix.os }}".split("-")[0])"
