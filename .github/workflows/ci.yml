@@ -156,6 +156,12 @@ jobs:
         shell: pwsh
         run: cmake "--preset=ci-$("${{ matrix.os }}".split("-")[0])"
 
+      - name: Print vcpkg log
+        if: always()
+        run: |
+          cat /home/runner/work/vcpkg/buildtrees/python3/autoconf-x64-linux-err.log
+          cat /home/runner/work/RhythmGame/RhythmGame/build/coverage/vcpkg-manifest-install.log
+
       - name: Build
         run: cmake --build build --config Release -j 2
 
