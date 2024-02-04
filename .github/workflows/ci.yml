@@ -149,18 +149,18 @@ jobs:
           Add-Content "$env:GITHUB_ENV" 'EnforceProcessCountAcrossBuilds=true'
 
       - name: Install system dependencies
-        if: matrix.os == 'ubuntu-22.04'
-        run: sudo apt-get install libtbb-dev libgl-dev libudev-dev nasm autoconf automake autoconf-archive gperf pkg-config python3-jinja2 '^libxcb.*-dev' -y
+        if: matrix.os == 'ubuntu-22.04' || matrix.os == 'macos-12'
+        shell: bash
+        run: |
+          if [ ${{ matrix.os }} = ubuntu-22.04 ]; then
+            sudo apt-get update && sudo apt-get install libtbb-dev libgl-dev libudev-dev nasm autoconf automake autoconf-archive gperf pkg-config python3-jinja2 '^libxcb.*-dev' -y
+          else
+            brew install autoconf automake autoconf-archive
+          fi
 
       - name: Configure
         shell: pwsh
         run: cmake "--preset=ci-$("${{ matrix.os }}".split("-")[0])"
-
-      - name: Print vcpkg log
-        if: always()
-        run: |
-          cat /home/runner/work/vcpkg/buildtrees/python3/autoconf automake autoconf-archive-x64-linux-err.log
-          cat /home/runner/work/RhythmGame/RhythmGame/build/coverage/vcpkg-manifest-install.log
 
       - name: Build
         run: cmake --build build --config Release -j 2
@@ -207,9 +207,15 @@ jobs:
         with: { committish: "${{ env.VCPKG_COMMIT }}", path: "../../vcpkg"  }
 
       - name: Install system dependencies
-        if: matrix.os == 'ubuntu-22.04'
-        run: sudo apt-get install libtbb-dev libgl-dev libudev-dev nasm autoconf automake autoconf-archive gperf pkg-config python3-jinja2 '^libxcb.*-dev' -y
-
+        if: matrix.os == 'ubuntu-22.04' || matrix.os == 'macos-12'
+        shell: bash
+        run: |
+          if [ ${{ matrix.os }} = ubuntu-22.04 ]; then
+            sudo apt-get update && sudo apt-get install libtbb-dev libgl-dev libudev-dev nasm autoconf automake autoconf-archive gperf pkg-config python3-jinja2 '^libxcb.*-dev' -y
+          else
+            brew install autoconf automake autoconf-archive
+          fi
+      
       - name: Configure
         shell: pwsh
         run: cmake "--preset=ci-$("${{ matrix.os }}".split("-")[0])"
