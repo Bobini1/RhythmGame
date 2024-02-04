@@ -226,6 +226,10 @@ jobs:
             brew install autoconf automake autoconf-archive
           fi
 
+      - name: Print errors
+        if: always()
+        run: cat /home/runner/work/vcpkg/buildtrees/qtbase/config-x64-linux-out.log
+
       - name: Configure
         shell: pwsh
         run: cmake "--preset=ci-$("${{ matrix.os }}".split("-")[0])"
