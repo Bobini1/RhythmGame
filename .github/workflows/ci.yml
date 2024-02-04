@@ -47,14 +47,18 @@ jobs:
           && sudo apt-get install lcov -q -y
 
       - name: Install vcpkg
-        uses: friendlyanon/setup-vcpkg@v1
-        with: { committish: "${{ env.VCPKG_COMMIT }}", path: "../../vcpkg" }
+        uses: lukka/run-vcpkg@v11
+        with:
+          vcpkgDirectory: "../../vcpkg"
+          vcpkgGitCommitId: "${{ env.VCPKG_COMMIT }}"
 
       - name: Install system dependencies
         run: sudo apt-get install libtbb-dev libgl-dev libudev-dev nasm autoconf gperf pkg-config python3-jinja2 '^libxcb.*-dev' -y
 
       - name: Configure
-        run: cmake --preset=ci-coverage
+        uses: lukka/run-cmake@v10
+        with:
+          configurePreset: "ci-coverage"
 
       - name: Build
         run: cmake --build build/coverage -j 2
@@ -87,8 +91,10 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Install vcpkg
-        uses: friendlyanon/setup-vcpkg@v1
-        with: { committish: "${{ env.VCPKG_COMMIT }}", path: "../../vcpkg"  }
+        uses: lukka/run-vcpkg@v11
+        with:
+          vcpkgDirectory: "../../vcpkg"
+          vcpkgGitCommitId: "${{ env.VCPKG_COMMIT }}"
 
       - name: Install system dependencies
         run: sudo apt-get update && sudo apt-get install libtbb-dev libgl-dev libudev-dev nasm autoconf gperf pkg-config python3-jinja2 '^libxcb.*-dev' -y
@@ -97,7 +103,9 @@ jobs:
         run: sudo apt-get install clang-13 libc++-dev -y
 
       - name: Configure
-        run: cmake --preset=ci-sanitize
+        uses: lukka/run-cmake@v10
+        with:
+          configurePreset: "ci-sanitize"
 
       - name: Build
         run: cmake --build build/sanitize -j 2
@@ -139,8 +147,10 @@ jobs:
           /usr/bin/clang-tidy-14 140
 
       - name: Install vcpkg
-        uses: friendlyanon/setup-vcpkg@v1
-        with: { committish: "${{ env.VCPKG_COMMIT }}", path: "../../vcpkg"  }
+        uses: lukka/run-vcpkg@v11
+        with:
+          vcpkgDirectory: "../../vcpkg"
+          vcpkgGitCommitId: "${{ env.VCPKG_COMMIT }}"
 
       - name: Setup MultiToolTask
         if: matrix.os == 'windows-2022'
@@ -152,9 +162,14 @@ jobs:
         if: matrix.os == 'ubuntu-22.04'
         run: sudo apt-get install libtbb-dev libgl-dev libudev-dev nasm autoconf gperf pkg-config python3-jinja2 '^libxcb.*-dev' -y
 
-      - name: Configure
+      - name: Get OS name
         shell: pwsh
-        run: cmake "--preset=ci-$("${{ matrix.os }}".split("-")[0])"
+        run: Add-Content "$env:GITHUB_ENV" "OS_NAME=$("${{ matrix.os }}".split("-")[0])"
+
+      - name: Configure
+        uses: lukka/run-cmake@v10
+        with:
+          configurePreset: "ci-$env:OS_NAME"
 
       - name: Build
         run: cmake --build build --config Release -j 2
@@ -197,16 +212,23 @@ jobs:
           /usr/bin/clang-tidy-14 140
 
       - name: Install vcpkg
-        uses: friendlyanon/setup-vcpkg@v1
-        with: { committish: "${{ env.VCPKG_COMMIT }}", path: "../../vcpkg"  }
+        uses: lukka/run-vcpkg@v11
+        with:
+          vcpkgDirectory: "../../vcpkg"
+          vcpkgGitCommitId: "${{ env.VCPKG_COMMIT }}"
 
       - name: Install system dependencies
         if: matrix.os == 'ubuntu-22.04'
         run: sudo apt-get install libtbb-dev libgl-dev libudev-dev nasm autoconf gperf pkg-config python3-jinja2 '^libxcb.*-dev' -y
 
-      - name: Configure
+      - name: Get OS name
         shell: pwsh
-        run: cmake "--preset=ci-$("${{ matrix.os }}".split("-")[0])"
+        run: Add-Content "$env:GITHUB_ENV" "OS_NAME=$("${{ matrix.os }}".split("-")[0])"
+
+      - name: Configure
+        uses: lukka/run-cmake@v10
+        with:
+          configurePreset: "ci-$env:OS_NAME"
 
       - name: Build
         run: cmake --build build --config Release -j 2
