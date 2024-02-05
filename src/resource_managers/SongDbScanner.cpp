@@ -96,7 +96,7 @@ addPreviewFileToDb(db::SqliteCppDb& db,
     statement.execute();
 }
 
-void
+bool
 scanFolder(std::filesystem::path directory,
            QThreadPool& threadPool,
            db::SqliteCppDb& db,
@@ -134,9 +134,13 @@ scanFolder(std::filesystem::path directory,
     for (const auto& entry : directoriesToScan) {
         auto nextDirectoryInDb = directoryInDb;
         nextDirectoryInDb += support::pathToQString(entry.filename()) + "/";
-        scanFolder(
+        isSongDirectory |= scanFolder(
           entry, threadPool, db, std::move(nextDirectoryInDb), directoryInDb);
     }
+    if (isSongDirectory) {
+        addDirToParentDirs(threadPool, db, parentDirectoryInDb);
+    }
+    return isSongDirectory;
 }
 
 void
