@@ -112,9 +112,6 @@ scanFolder(std::filesystem::path directory,
         } else if (auto extension = path.extension();
                    extension == ".bms" || extension == ".bme" ||
                    extension == ".bml" || extension == ".pms") {
-            if (!isSongDirectory) {
-                addDirToParentDirs(threadPool, db, parentDirectoryInDb);
-            }
             isSongDirectory = true;
             directoriesToScan.clear();
             if (extension == ".pms") {
