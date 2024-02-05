@@ -163,16 +163,17 @@ jobs:
             brew install autoconf automake autoconf-archive
           fi  
 
+      - name: Remove large files
+        if: matrix.os == 'ubuntu-22.04'
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/ghc
+          sudo rm -rf "/usr/local/share/boost"
+
       - name: Configure
         shell: pwsh
         run: cmake "--preset=ci-$("${{ matrix.os }}".split("-")[0])"
-
-      - name: Print errors
-        if: always()
-        run: |
-          cat /home/runner/v/buildtrees/qtbase/install-x64-linux-dbg-out.log
-          cat /home/runner/work/RhythmGame/RhythmGame/build/vcpkg-manifest-install.log
-
+        
       - name: Build
         run: cmake --build build --config Release -j 2
 
@@ -231,6 +232,13 @@ jobs:
           else
             brew install autoconf automake autoconf-archive
           fi
+
+      - name: Remove large files
+        if: matrix.os == 'ubuntu-22.04'
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/ghc
+          sudo rm -rf "/usr/local/share/boost"
 
       - name: Configure
         shell: pwsh
