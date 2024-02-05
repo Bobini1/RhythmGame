@@ -173,7 +173,12 @@ jobs:
       - name: Configure
         shell: pwsh
         run: cmake "--preset=ci-$("${{ matrix.os }}".split("-")[0])"
-        
+
+      - name: Print errors
+        if: always()
+        run: |
+          cat /home/runner/v/buildtrees/qtbase/install-x64-linux-dbg-out.log
+
       - name: Build
         run: cmake --build build --config Release -j 2
 
