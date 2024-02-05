@@ -144,7 +144,9 @@ qt_add_library(RhythmGame_lib OBJECT src/db/SqliteCppDb.cpp src/db/SqliteCppDb.h
         src/input/GamepadManager.cpp
         src/input/GamepadManager.h
         src/input/InputTranslator.cpp
-        src/input/InputTranslator.h)
+        src/input/InputTranslator.h
+        src/db/DefineDb.cpp
+        src/db/DefineDb.h)
 
 find_package(Threads REQUIRED)
 
@@ -178,9 +180,7 @@ qt_import_qml_plugins(RhythmGame_qmlplugin)
 
 # ---- Declare executable ----
 
-qt_add_executable(RhythmGame_exe src/main.cpp
-        src/DefineDb.cpp
-        src/DefineDb.h)
+qt_add_executable(RhythmGame_exe src/main.cpp)
 add_executable(RhythmGame::exe ALIAS RhythmGame_exe)
 
 set_target_properties(
