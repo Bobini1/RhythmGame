@@ -145,8 +145,8 @@ qt_add_library(RhythmGame_lib OBJECT src/db/SqliteCppDb.cpp src/db/SqliteCppDb.h
         src/input/GamepadManager.h
         src/input/InputTranslator.cpp
         src/input/InputTranslator.h
-        src/db/DefineDb.cpp
-        src/db/DefineDb.h)
+        src/resource_managers/DefineDb.cpp
+        src/resource_managers/DefineDb.h)
 
 find_package(Threads REQUIRED)
 

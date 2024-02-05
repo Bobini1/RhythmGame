@@ -6,8 +6,8 @@
 #define RHYTHMGAME_DEFINEDB_H
 
 #include "db/SqliteCppDb.h"
-namespace db {
+namespace resource_managers {
 void
-defineDb(SqliteCppDb& db);
-} // namespace db
+defineDb(db::SqliteCppDb& db);
+} // namespace resource_managers
 #endif // RHYTHMGAME_DEFINEDB_H

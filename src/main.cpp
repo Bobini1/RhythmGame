@@ -16,7 +16,7 @@
 #include "gameplay_logic/rules/Lr2Gauge.h"
 #include "gameplay_logic/rules/Lr2HitValues.h"
 #include "resource_managers/SongDbScanner.h"
-#include "db/DefineDb.h"
+#include "resource_managers/DefineDb.h"
 #include "input/GamepadManager.h"
 #include "input/InputTranslator.h"
 #include "qml_components/RootSongFoldersConfig.h"
@@ -92,7 +92,7 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
                                      (assetsFolder / "song_db.sqlite"))
                                      .toStdString() };
 
-        db::defineDb(db);
+        resource_managers::defineDb(db);
 
         auto songDbScanner = resource_managers::SongDbScanner{ &db };
 

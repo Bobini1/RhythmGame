@@ -3,9 +3,9 @@
 //
 
 #include "DefineDb.h"
-namespace db {
+namespace resource_managers {
 void
-defineDb(SqliteCppDb& db)
+defineDb(db::SqliteCppDb& db)
 {
     // create charts table if it doesn't exist
     db.execute("CREATE TABLE IF NOT EXISTS charts ("
@@ -75,4 +75,4 @@ defineDb(SqliteCppDb& db)
                "directory TEXT NOT NULL UNIQUE"
                ");");
 }
-} // namespace db
+} // namespace resource_managers
