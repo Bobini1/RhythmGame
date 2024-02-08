@@ -29,8 +29,6 @@
 #include "qml_components/Themes.h"
 #include "resource_managers/ScanThemes.h"
 
-#include <iostream>
-
 Q_IMPORT_QML_PLUGIN(RhythmGameQmlPlugin)
 
 void
