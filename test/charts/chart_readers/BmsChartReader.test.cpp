@@ -5,6 +5,8 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/catch_approx.hpp>
 #include "charts/chart_readers/BmsChartReader.h"
+// convert to CP932
+#include <boost/locale/encoding.hpp>
 
 namespace {
 auto randomGenerator =
@@ -165,19 +167,24 @@ randomGenerator); REQUIRE(res.tags.title == std::optional<std::string>{});
 }
 */
 
-TEST_CASE("Parse unicode", "[BmsChartReader]")
+TEST_CASE("Parse CP932", "[BmsChartReader]")
 {
     auto reader = charts::chart_readers::BmsChartReader{};
     constexpr auto expectedBpm = 166.0;
     constexpr auto allowedError = 0.00001;
     auto testString =
-      "#ARTIST LUNEの右手と悠里おねぇちゃんの左脚 \n\n #TITLE どうか私を殺して下さい -もう、樹海しか見えない-\n   #BPM 166"s;
-    auto res = reader.readBmsChart(testString, randomGenerator);
+      L"#ARTIST LUNEの右手と悠里おねぇちゃんの左脚 \n\n #TITLE どうか私を殺して下さい -もう、樹海しか見えない-\n   #BPM 166"s;
+    auto CP932String =
+      boost::locale::conv::from_utf<wchar_t>(testString, "CP932");
+    auto res = reader.readBmsChart(CP932String, randomGenerator);
+    auto title = L"どうか私を殺して下さい -もう、樹海しか見えない-"s;
+    auto artist = L"LUNEの右手と悠里おねぇちゃんの左脚"s;
+    auto utf8Title = boost::locale::conv::utf_to_utf<char, wchar_t>(title);
+    auto utf8Artist = boost::locale::conv::utf_to_utf<char, wchar_t>(artist);
     REQUIRE(res.tags.title);
-    REQUIRE(res.tags.title ==
-            "どうか私を殺して下さい -もう、樹海しか見えない-"s);
+    REQUIRE(res.tags.title == utf8Title);
     REQUIRE(res.tags.artist);
-    REQUIRE(res.tags.artist == "LUNEの右手と悠里おねぇちゃんの左脚"s);
+    REQUIRE(res.tags.artist == utf8Artist);
     REQUIRE(res.tags.bpm);
     REQUIRE(res.tags.bpm.value() ==
             Catch::Approx(expectedBpm).epsilon(allowedError));
@@ -200,7 +207,7 @@ TEST_CASE("Parse notes from a chart with multiple notes", "[BmsChartReader]")
     auto reader = charts::chart_readers::BmsChartReader{};
     auto res = reader.readBmsChart(chart, randomGenerator);
     REQUIRE(res.tags.measures.size() == 1);
-    REQUIRE(res.tags.measures[1].p1VisibleNotes[0].size() == 4);
+    REQUIRE(res.tags.measures[1].p1VisibleNotes[0][0].size() == 4);
     REQUIRE(res.tags.measures[1].p1VisibleNotes[0][0][0] == "00"s);
     REQUIRE(res.tags.measures[1].p1VisibleNotes[0][0][1] == "01"s);
     REQUIRE(res.tags.measures[1].p1VisibleNotes[0][0][2] == "02"s);
@@ -213,12 +220,12 @@ TEST_CASE("Parse notes from a chart with multiple lanes", "[BmsChartReader]")
     auto reader = charts::chart_readers::BmsChartReader{};
     auto res = reader.readBmsChart(chart, randomGenerator);
     REQUIRE(res.tags.measures.size() == 1);
-    REQUIRE(res.tags.measures[1].p1VisibleNotes[0].size() == 4);
+    REQUIRE(res.tags.measures[1].p1VisibleNotes[0][0].size() == 4);
     REQUIRE(res.tags.measures[1].p1VisibleNotes[0][0][0] == "00"s);
     REQUIRE(res.tags.measures[1].p1VisibleNotes[0][0][1] == "01"s);
     REQUIRE(res.tags.measures[1].p1VisibleNotes[0][0][2] == "02"s);
     REQUIRE(res.tags.measures[1].p1VisibleNotes[0][0][3] == "03"s);
-    REQUIRE(res.tags.measures[1].p1VisibleNotes[1].size() == 4);
+    REQUIRE(res.tags.measures[1].p1VisibleNotes[1][0].size() == 4);
     REQUIRE(res.tags.measures[1].p1VisibleNotes[1][0][0] == "04"s);
     REQUIRE(res.tags.measures[1].p1VisibleNotes[1][0][1] == "05"s);
     REQUIRE(res.tags.measures[1].p1VisibleNotes[1][0][2] == "06"s);
@@ -263,20 +270,20 @@ TEST_CASE("Parse all basic note types get", "[BmsChartReader]")
     REQUIRE(res.tags.measures[1].bgmNotes[1][1] == "05"s);
     REQUIRE(res.tags.measures[1].bgmNotes[1][2] == "06"s);
     REQUIRE(res.tags.measures[1].bgmNotes[1][3] == "07"s);
-    REQUIRE(res.tags.measures[5].p1VisibleNotes[0].size() == 2);
+    REQUIRE(res.tags.measures[5].p1VisibleNotes[0][0].size() == 2);
     REQUIRE(res.tags.measures[5].p1VisibleNotes[0][0][0] == "04"s);
     REQUIRE(res.tags.measures[5].p1VisibleNotes[0][0][1] == "05"s);
-    REQUIRE(res.tags.measures[10].p2VisibleNotes[0].size() == 1);
+    REQUIRE(res.tags.measures[10].p2VisibleNotes[0][0].size() == 1);
     REQUIRE(res.tags.measures[10].p2VisibleNotes[0][0][0] == "00"s);
-    REQUIRE(res.tags.measures[999].p1InvisibleNotes[4].size() == 3);
+    REQUIRE(res.tags.measures[999].p1InvisibleNotes[4][0].size() == 3);
     REQUIRE(res.tags.measures[999].p1InvisibleNotes[4][0][0] == "12"s);
     REQUIRE(res.tags.measures[999].p1InvisibleNotes[4][0][1] == "34"s);
     REQUIRE(res.tags.measures[999].p1InvisibleNotes[4][0][2] == "56"s);
-    REQUIRE(res.tags.measures[888].p2InvisibleNotes[3].size() == 1);
+    REQUIRE(res.tags.measures[888].p2InvisibleNotes[3][0].size() == 1);
     REQUIRE(res.tags.measures[888].p2InvisibleNotes[3][0][0] == "01"s);
-    REQUIRE(res.tags.measures[777].p1LongNotes[2].size() == 1);
+    REQUIRE(res.tags.measures[777].p1LongNotes[2][0].size() == 1);
     REQUIRE(res.tags.measures[777].p1LongNotes[2][0][0] == "10"s);
-    REQUIRE(res.tags.measures[666].p2LongNotes[1].size() == 1);
+    REQUIRE(res.tags.measures[666].p2LongNotes[1][0].size() == 1);
     REQUIRE(res.tags.measures[666].p2LongNotes[1][0][0] == "11"s);
 }
 
@@ -315,8 +322,8 @@ TEST_CASE("Parse new-style bpm changes", "[BmsChartReader]")
     REQUIRE(res.tags.exBpms.size() == 2);
     REQUIRE(res.tags.exBpms.find("20") != res.tags.exBpms.end());
     REQUIRE(res.tags.exBpms.find("20")->second == Catch::Approx(120));
-    REQUIRE(res.tags.exBpms.find("FF") != res.tags.exBpms.end());
-    REQUIRE(res.tags.exBpms.find("FF")->second == Catch::Approx(12));
+    REQUIRE(res.tags.exBpms.find("ff") != res.tags.exBpms.end());
+    REQUIRE(res.tags.exBpms.find("ff")->second == Catch::Approx(12));
 }
 
 TEST_CASE("Parse WAVXX", "[BmsChartReader]")

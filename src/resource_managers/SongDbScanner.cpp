@@ -24,7 +24,7 @@ addDirToParentDirs(QThreadPool& threadPool,
 {
     threadPool.start([&db, directoryInDb]() mutable {
         try {
-            static thread_local auto insertQuery =
+            thread_local auto insertQuery =
               db.createStatement("INSERT OR IGNORE INTO parent_dir "
                                  "(parent_dir, path) VALUES (:parent_dir, "
                                  ":path)");
@@ -57,7 +57,7 @@ loadChart(QThreadPool& threadPool,
     auto url = support::pathToQString(path);
     threadPool.start([&db, url = std::move(url), directoryInDb]() mutable {
         try {
-            static thread_local const ChartDataFactory chartDataFactory;
+            thread_local const ChartDataFactory chartDataFactory;
             auto randomGenerator =
               [](charts::parser_models::ParsedBmsChart::RandomRange
                    randomRange) {
@@ -96,7 +96,7 @@ addPreviewFileToDb(db::SqliteCppDb& db,
     statement.execute();
 }
 
-void
+bool
 scanFolder(std::filesystem::path directory,
            QThreadPool& threadPool,
            db::SqliteCppDb& db,
@@ -107,22 +107,19 @@ scanFolder(std::filesystem::path directory,
     auto isSongDirectory = false;
     for (const auto& entry : std::filesystem::directory_iterator(directory)) {
         auto path = entry.path();
-        if (std::filesystem::is_directory(entry) && !isSongDirectory) {
+        if (is_directory(entry) && !isSongDirectory) {
             directoriesToScan.push_back(path);
         } else if (auto extension = path.extension();
                    extension == ".bms" || extension == ".bme" ||
                    extension == ".bml" || extension == ".pms") {
-            if (!isSongDirectory) {
-                addDirToParentDirs(threadPool, db, parentDirectoryInDb);
-            }
             isSongDirectory = true;
             directoriesToScan.clear();
             if (extension == ".pms") {
                 continue;
             }
             loadChart(threadPool, db, parentDirectoryInDb, path);
-            // converting to string should break stuff even on windows in this
-            // case
+            // converting to string should not break stuff even on windows in
+            // this case
         } else if (path.filename().string().starts_with("preview") &&
                    (extension == ".mp3" || extension == ".ogg" ||
                     extension == ".wav" || extension == ".flac")) {
@@ -134,9 +131,13 @@ scanFolder(std::filesystem::path directory,
     for (const auto& entry : directoriesToScan) {
         auto nextDirectoryInDb = directoryInDb;
         nextDirectoryInDb += support::pathToQString(entry.filename()) + "/";
-        scanFolder(
+        isSongDirectory |= scanFolder(
           entry, threadPool, db, std::move(nextDirectoryInDb), directoryInDb);
     }
+    if (isSongDirectory) {
+        addDirToParentDirs(threadPool, db, parentDirectoryInDb);
+    }
+    return isSongDirectory;
 }
 
 void

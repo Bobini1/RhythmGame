@@ -40,7 +40,7 @@ struct TextTag
           trimR(std::string(str.begin(), str.end())), "CP932");
     });
     static constexpr auto rule =
-      dsl::capture(dsl::until(dsl::unicode::newline).or_eof());
+      capture(until(dsl::unicode::newline).or_eof());
 };
 
 struct Identifier
@@ -52,8 +52,7 @@ struct Identifier
           str.begin(), str.end(), strLower.begin(), support::toLower);
         return strLower;
     });
-    static constexpr auto rule =
-      dsl::capture(dsl::token(dsl::twice(dsl::ascii::alnum)));
+    static constexpr auto rule = capture(token(twice(dsl::ascii::alnum)));
 };
 
 struct IdentifierChain
@@ -72,9 +71,8 @@ struct FloatingPoint
         auto suffix =
           dsl::lit_c<'f'> / dsl::lit_c<'F'> / dsl::lit_c<'d'> / dsl::lit_c<'D'>;
 
-        auto realNumber = dsl::token(integerPart + dsl::if_(fraction) +
-                                     dsl::if_(exponent) + dsl::if_(suffix));
-        return dsl::capture(realNumber);
+        auto realNumber = token(integerPart + if_(fraction) + if_(exponent) + if_(suffix));
+        return capture(realNumber);
     }();
 
     static constexpr auto value =
@@ -93,7 +91,7 @@ struct FloatingPoint
 struct Channel
 {
     static constexpr auto rule =
-      dsl::capture(dsl::token(dsl::times<2>(dsl::ascii::alnum)));
+      capture(token(dsl::times<2>(dsl::ascii::alnum)));
     static constexpr auto value =
       lexy::as_string<std::string> | lexy::callback<int>([](std::string&& str) {
           constexpr auto base = 36;
@@ -103,9 +101,8 @@ struct Channel
 
 struct Measure
 {
-    static constexpr auto rule =
-      dsl::peek(dsl::hash_sign >> dsl::digit<>) >>
-      (dsl::hash_sign + dsl::capture(dsl::token(dsl::times<3>(dsl::digit<>))));
+    static constexpr auto rule = peek(dsl::hash_sign >> dsl::digit<>) >>
+      (dsl::hash_sign + capture(token(dsl::times<3>(dsl::digit<>))));
     static constexpr auto value =
       lexy::as_string<std::string> | lexy::callback<int>([](std::string&& str) {
           constexpr auto base = 10;
@@ -329,7 +326,7 @@ struct LnTypeTag
 {
     static constexpr auto rule = [] {
         auto lnTypeTag = dsl::ascii::case_folding(LEXY_LIT("#lntype"));
-        return lnTypeTag >> dsl::capture(dsl::lit_c<'1'> / dsl::lit_c<'2'>);
+        return lnTypeTag >> capture(dsl::lit_c<'1'> / dsl::lit_c<'2'>);
     }();
     static constexpr auto value = lexy::callback<LnType>(
       [](auto&& num) { return LnType{ static_cast<int>(num[0] - '0') }; });
@@ -341,7 +338,7 @@ struct ExBpmTag
         auto exBpmTag =
           dsl::hash_sign + dsl::if_(dsl::ascii::case_folding(LEXY_LIT("ex"))) +
           dsl::ascii::case_folding(LEXY_LIT("bpm")) + dsl::p<Identifier>;
-        return dsl::peek(exBpmTag) >> (exBpmTag + dsl::p<FloatingPoint>);
+        return peek(exBpmTag) >> (exBpmTag + dsl::p<FloatingPoint>);
     }();
     static constexpr auto value =
       lexy::callback<ExBpm>([](std::string identifier, double num) {
@@ -354,7 +351,7 @@ struct StopTag
     static constexpr auto rule = [] {
         auto stopTag =
           dsl::ascii::case_folding(LEXY_LIT("#stop")) + dsl::p<Identifier>;
-        return dsl::peek(stopTag) >> (stopTag + dsl::p<FloatingPoint>);
+        return peek(stopTag) >> (stopTag + dsl::p<FloatingPoint>);
     }();
     static constexpr auto value =
       lexy::callback<Stop>([](std::string identifier, double num) {
@@ -366,7 +363,7 @@ struct MeterTag
 {
     static constexpr auto rule = [] {
         auto start = (dsl::p<Measure> + LEXY_LIT("02"));
-        return dsl::peek(start) >> start >> dsl::colon >> dsl::p<FloatingPoint>;
+        return peek(start) >> start >> dsl::colon >> dsl::p<FloatingPoint>;
     }();
     static constexpr auto value =
       lexy::callback<Meter>([](int64_t measure, double num) {
@@ -627,9 +624,9 @@ struct MainTags
     static constexpr auto whitespace =
       dsl::whitespace(dsl::unicode::space - dsl::unicode::newline);
     static constexpr auto rule = [] {
-        auto term = dsl::terminator(
-          dsl::eof | dsl::peek(dsl::ascii::case_folding(LEXY_LIT("#endif"))));
-        return term.list(dsl::try_(
+        auto term = terminator(
+          dsl::eof | peek(dsl::ascii::case_folding(LEXY_LIT("#endif"))));
+        return term.list(try_(
           dsl::unicode::newline | dsl::p<MeterTag> | dsl::p<MeasureBasedTag> |
             dsl::p<WavTag> | dsl::p<BmpTag> | dsl::p<ExBpmTag> |
             dsl::p<StopTag> | dsl::p<TitleTag> | dsl::p<ArtistTag> |
@@ -638,7 +635,7 @@ struct MainTags
             dsl::p<TotalTag> | dsl::p<RankTag> | dsl::p<PlayLevelTag> |
             dsl::p<DifficultyTag> | dsl::p<BpmTag> | dsl::p<LnObjTag> |
             dsl::p<LnTypeTag> | dsl::recurse_branch<RandomBlock>,
-          dsl::until(dsl::unicode::newline).or_eof()));
+          until(dsl::unicode::newline).or_eof()));
     }();
     static constexpr auto value = TagsSink{};
 };
@@ -647,12 +644,11 @@ struct OrphanizedRandomCommonPart
 {
     static constexpr auto rule = [] {
         auto term = dsl::terminator(
-          dsl::eof |
-          dsl::peek(dsl::ascii::case_folding(LEXY_LIT("#endrandom"))) |
-          dsl::peek(dsl::ascii::case_folding(LEXY_LIT("#random"))) |
-          dsl::peek(dsl::ascii::case_folding(LEXY_LIT("#if"))));
+          dsl::eof | peek(dsl::ascii::case_folding(LEXY_LIT("#endrandom"))) |
+          peek(dsl::ascii::case_folding(LEXY_LIT("#random"))) |
+          peek(dsl::ascii::case_folding(LEXY_LIT("#if"))));
         return dsl::peek_not(dsl::ascii::case_folding(LEXY_LIT("#if"))) >>
-               term.list(dsl::try_(
+               term.list(try_(
                  dsl::unicode::newline | dsl::p<MeterTag> |
                    dsl::p<MeasureBasedTag> | dsl::p<WavTag> | dsl::p<BmpTag> |
                    dsl::p<ExBpmTag> | dsl::p<StopTag> | dsl::p<TitleTag> |
@@ -662,7 +658,7 @@ struct OrphanizedRandomCommonPart
                    dsl::p<TotalTag> | dsl::p<RankTag> | dsl::p<PlayLevelTag> |
                    dsl::p<DifficultyTag> | dsl::p<BpmTag> | dsl::p<LnObjTag> |
                    dsl::p<LnTypeTag>,
-                 dsl::until(dsl::unicode::newline).or_eof()));
+                 until(dsl::unicode::newline).or_eof()));
     }();
     static constexpr auto value = TagsSink{};
 };

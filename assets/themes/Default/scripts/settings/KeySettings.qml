@@ -60,12 +60,14 @@ Item {
 
                                 Label {
                                     text: modelData
+                                    color: "black"
                                     horizontalAlignment: Text.AlignRight
                                 }
 
                                 Label {
                                     Layout.fillWidth: true
                                     horizontalAlignment: Text.AlignRight
+                                    color: "black"
                                     text: {
                                         for (let i = 0; i < keyLayout.keyConfig.length; i++) {
                                             if (keyLayout.keyConfig[i].button === index) {

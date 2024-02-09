@@ -1,0 +1,91 @@
+{
+  "name": "vcpkg-test",
+  "version-semver": "0.1.0",
+  "dependencies": [
+    {
+      "name": "fmt",
+      "version>=": "10.1.0"
+    },
+    {
+      "name": "sqlitecpp",
+      "version>=": "3.3.1"
+    },
+    {
+      "name": "boost",
+      "version>=": "1.82.0"
+    },
+    {
+      "name": "spdlog",
+      "version>=": "1.11.0"
+    },
+    {
+      "name": "foonathan-lexy",
+      "version>=": "2022.12.1"
+    },
+    {
+      "name": "openal-soft",
+      "version>=": "1.22.2"
+    },
+    {
+      "name": "cryptopp",
+      "version>=": "8.7.0"
+    },
+    {
+      "name": "magic-enum",
+      "version>=": "0.9.3"
+    },
+    {
+      "name": "zstd",
+      "version>=": "1.5.5"
+    },
+    {
+      "name": "libsndfile",
+      "version>=": "1.2.2"
+    },
+    {
+      "name": "sdl2",
+      "version>=": "2.28.5"
+    },
+    {
+      "name": "qtdeclarative",
+      "version>=": "6.6.1"
+    },
+    {
+      "name": "qtshadertools",
+      "version>=": "6.6.1"
+    },
+    {
+      "name": "qt5compat",
+      "version>=": "6.6.1"
+    },
+    {
+      "name": "qtmultimedia",
+      "version>=": "6.6.1",
+      "features": ["qml", "gstreamer"],
+      "platform": "linux"
+    },
+    {
+      "name": "qtmultimedia",
+      "version>=": "6.6.1",
+      "features": ["qml"],
+      "platform": "!linux"
+    },
+    {
+      "name": "qttools",
+      "version>=": "6.6.1"
+    }
+  ],
+  "default-features": [],
+  "features": {
+    "test": {
+      "description": "Dependencies for testing",
+      "dependencies": [
+        {
+          "name": "catch2",
+          "version>=": "3.4.0"
+        }
+      ]
+    }
+  },
+  "builtin-baseline": "16ee2ecb31788c336ace8bb14c21801efb6836e4"
+}

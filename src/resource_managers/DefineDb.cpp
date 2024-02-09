@@ -3,6 +3,7 @@
 //
 
 #include "DefineDb.h"
+namespace resource_managers {
 void
 defineDb(db::SqliteCppDb& db)
 {
@@ -74,3 +75,4 @@ defineDb(db::SqliteCppDb& db)
                "directory TEXT NOT NULL UNIQUE"
                ");");
 }
+} // namespace resource_managers

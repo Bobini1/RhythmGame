@@ -16,7 +16,7 @@
 #include "gameplay_logic/rules/Lr2Gauge.h"
 #include "gameplay_logic/rules/Lr2HitValues.h"
 #include "resource_managers/SongDbScanner.h"
-#include "DefineDb.h"
+#include "resource_managers/DefineDb.h"
 #include "input/GamepadManager.h"
 #include "input/InputTranslator.h"
 #include "qml_components/RootSongFoldersConfig.h"
@@ -28,12 +28,6 @@
 #include "qml_components/FileValidator.h"
 #include "qml_components/Themes.h"
 #include "resource_managers/ScanThemes.h"
-
-#include <iostream>
-
-extern "C" {
-#include <libavutil/log.h>
-}
 
 Q_IMPORT_QML_PLUGIN(RhythmGameQmlPlugin)
 
@@ -63,42 +57,6 @@ qtLogHandler(QtMsgType type,
     }
 }
 
-void
-libavLogHandler(void* /*ptr*/, int level, const char* fmt, va_list vl)
-{
-    if (level > av_log_get_level()) {
-        return;
-    }
-
-    static char message[8192];
-    auto ret = vsnprintf(message, sizeof(message), fmt, vl);
-    if (ret < 0) {
-        return;
-    }
-    switch (level) {
-        case AV_LOG_DEBUG:
-            spdlog::debug("{}", message);
-            break;
-        case AV_LOG_VERBOSE:
-        case AV_LOG_INFO:
-            spdlog::info("{}", message);
-            break;
-        case AV_LOG_WARNING:
-            spdlog::warn("{}", message);
-            break;
-        case AV_LOG_ERROR:
-            spdlog::error("{}", message);
-            break;
-        case AV_LOG_FATAL:
-        case AV_LOG_PANIC:
-            spdlog::critical("{}", message);
-            break;
-        default:
-            spdlog::info("{}", message);
-            break;
-    }
-}
-
 auto
 main(int argc, [[maybe_unused]] char* argv[]) -> int
 {
@@ -107,8 +65,6 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
     QGuiApplication::setOrganizationName("Tomasz Kalisiak");
     QGuiApplication::setOrganizationDomain("bemani.pl");
     QGuiApplication::setApplicationName("RhythmGame");
-
-    av_log_set_callback(libavLogHandler);
 
     qInstallMessageHandler(qtLogHandler);
 
@@ -134,7 +90,7 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
                                      (assetsFolder / "song_db.sqlite"))
                                      .toStdString() };
 
-        defineDb(db);
+        resource_managers::defineDb(db);
 
         auto songDbScanner = resource_managers::SongDbScanner{ &db };
 
@@ -263,9 +219,8 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
           "RhythmGameQml", 1, 0, "BmsGaugeHistory");
         qmlRegisterType<qml_components::Bga>("RhythmGameQml", 1, 0, "Bga");
         qmlRegisterType<qml_components::BgaContainer>(
-        "RhythmGameQml", 1, 0, "BgaContainer");
-        qmlRegisterType<input::Key>(
-          "RhythmGameQml", 1, 0, "Key");
+          "RhythmGameQml", 1, 0, "BgaContainer");
+        qmlRegisterType<input::Key>("RhythmGameQml", 1, 0, "Key");
         qmlRegisterUncreatableMetaObject(gameplay_logic::staticMetaObject,
                                          "RhythmGameQml",
                                          1,
@@ -295,7 +250,7 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
         spdlog::critical("Fatal error: {}", e.what());
         throw;
     } catch (...) {
-        spdlog::critical("Fatal error: unknown");
+        spdlog::critical("Fatal error: unknown exception");
         throw;
     }
 }

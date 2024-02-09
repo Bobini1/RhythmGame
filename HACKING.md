@@ -41,7 +41,7 @@ the project:
     {
       "name": "dev",
       "binaryDir": "${sourceDir}/build/dev",
-      "inherits": ["dev-mode", "conan", "ci-<os>"],
+      "inherits": ["dev-mode", "vcpkg", "ci-<os>"],
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug"
       }
@@ -68,30 +68,35 @@ the project:
 ```
 
 You should replace `<os>` in your newly created presets file with the name of
-the operating system you have, which may be `win64` or `unix`. You can see what
-these correspond to in the [`CMakePresets.json`](CMakePresets.json) file.
+the operating system you have, which may be `win64`, `linux` or `darwin`. You
+can see what these correspond to in the
+[`CMakePresets.json`](CMakePresets.json) file.
 
 `CMakeUserPresets.json` is also the perfect place in which you can put all
 sorts of things that you would otherwise want to pass to the configure command
 in the terminal.
 
+> **Note**
+> Some editors are pretty greedy with how they open projects with presets.
+> Some just randomly pick a preset and start configuring without your consent,
+> which can be confusing. Make sure that your editor configures when you
+> actually want it to, for example in CLion you have to make sure only the
+> `dev-dev preset` has `Enable profile` ticked in
+> `File > Settings... > Build, Execution, Deployment > CMake` and in Visual
+> Studio you have to set the option `Never run configure step automatically`
+> in `Tools > Options > CMake` **prior to opening the project**, after which
+> you can manually configure using `Project > Configure Cache`.
+
 ### Dependency manager
 
-The above preset will make use of the [conan][conan] dependency manager. After
-installing it, download the dependencies and generate the necessary CMake
-files by running this command in the project root:
+The above preset will make use of the [vcpkg][vcpkg] dependency manager. After
+installing it, make sure the `VCPKG_ROOT` environment variable is pointing at
+the directory where the vcpkg executable is. On Windows, you might also want
+to inherit from the `vcpkg-win64-static` preset, which will make vcpkg install
+the dependencies as static libraries. This is only necessary if you don't want
+to setup `PATH` to run tests.
 
-```sh
-conan install . -s build_type=Debug -b missing
-```
-
-Note that if your conan profiles does not specify the same compiler used by
-CMake, then that could potentially cause issues. See the [conan docs][profiles]
-on profiles.
-
-[conan]: https://conan.io/
-
-[profiles]: https://docs.conan.io/en/latest/using_packages/using_profiles.html
+[vcpkg]: https://github.com/microsoft/vcpkg
 
 ### Configure, build and test
 
@@ -126,7 +131,7 @@ the previously run tests when built with coverage configuration. The commands
 this target runs can be found in the `COVERAGE_TRACE_COMMAND` and
 `COVERAGE_HTML_COMMAND` cache variables. The trace command produces an info
 file by default, which can be submitted to services with CI integration. The
-HTML command uses the trace command's output to generate a HTML document to
+HTML command uses the trace command's output to generate an HTML document to
 `<binary-dir>/coverage_html` by default.
 
 #### `docs`
@@ -152,5 +157,4 @@ them respectively. Customization available using the `SPELL_COMMAND` cache
 variable.
 
 [1]: https://cmake.org/cmake/help/latest/manual/cmake-presets.7.html
-
 [2]: https://cmake.org/download/

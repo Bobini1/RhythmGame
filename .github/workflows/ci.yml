@@ -10,16 +10,16 @@ on:
       - master
 
 env:
-  NOT_ON_C3I: 1
+  VCPKG_COMMIT: "16ee2ecb31788c336ace8bb14c21801efb6836e4"
 
 jobs:
   lint:
     runs-on: ubuntu-22.04
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v2
+      - uses: actions/setup-python@v4
         with: { python-version: "3.8" }
 
       - name: Install codespell
@@ -40,34 +40,18 @@ jobs:
     if: github.repository_owner == 'Bobini1'
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       - name: Install LCov
         run: sudo apt-get update -q
           && sudo apt-get install lcov -q -y
 
-      - name: Install Python
-        uses: actions/setup-python@v2
-        with: { python-version: "3.8" }
+      - name: Install vcpkg
+        uses: friendlyanon/setup-vcpkg@v1
+        with: { committish: "${{ env.VCPKG_COMMIT }}", path: "../../../v" }
 
       - name: Install system dependencies
-        run: sudo apt-get install libtbb-dev libgl-dev libudev-dev -y
-
-      - name: Cache conan
-        id: cache-conan
-        uses: actions/cache@v3.3.2
-        with:
-          path: ~/.conan2/p
-          key: conan-packages-coverage
-
-      - name: Install dependencies
-        run: pip3 install "conan"
-          && conan profile detect
-          && cp .github/ubuntu.profile ~/.conan2/profiles/default
-          && conan remove xorg/system -c
-          && conan remove vaapi/system -c
-          && conan remove vdpau/system -c
-          && conan install . -b missing -c tools.system.package_manager:mode=install -c tools.system.package_manager:sudo=True -pr:b=default
+        run: sudo apt-get install libtbb-dev libgl-dev libdrm-dev libgles2-mesa-dev libudev-dev nasm autoconf automake autoconf-archive gperf pkg-config python3-jinja2 '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev -y
 
       - name: Configure
         run: cmake --preset=ci-coverage
@@ -100,33 +84,17 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
-      - name: Install Python
-        uses: actions/setup-python@v2
-        with: { python-version: "3.8" }
+      - name: Install vcpkg
+        uses: friendlyanon/setup-vcpkg@v1
+        with: { committish: "${{ env.VCPKG_COMMIT }}", path: "../../../v"  }
 
       - name: Install system dependencies
-        run: sudo apt-get update && sudo apt-get install libtbb-dev libgl-dev libudev-dev -y
+        run: sudo apt-get update && sudo apt-get install libtbb-dev libgl-dev libdrm-dev libgles2-mesa-dev libudev-dev nasm autoconf automake autoconf-archive gperf pkg-config python3-jinja2 '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev -y
 
       - name: Install Clang 13
         run: sudo apt-get install clang-13 libc++-dev -y
-
-      - name: Cache conan
-        id: cache-conan
-        uses: actions/cache@v3.3.2
-        with:
-          path: ~/.conan2/p
-          key: conan-packages-sanitize
-
-      - name: Install dependencies
-        run: pip3 install "conan"
-          && conan profile detect
-          && cp .github/clang-13.profile ~/.conan2/profiles/default
-          && conan remove xorg/system -c
-          && conan remove vaapi/system -c
-          && conan remove vdpau/system -c
-          && conan install . -b missing -c tools.system.package_manager:mode=install -c tools.system.package_manager:sudo=True -pr:b=default
 
       - name: Configure
         run: cmake --preset=ci-sanitize
@@ -159,55 +127,57 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       - name: Install static analyzers
         if: matrix.os == 'ubuntu-22.04'
-        run: sudo apt-get update && sudo apt-get install clang-tidy cppcheck -y -q
+        run: >-
+          sudo apt-get install clang-tidy-14 cppcheck -y -q
+  
+          sudo update-alternatives --install
+          /usr/bin/clang-tidy clang-tidy
+          /usr/bin/clang-tidy-14 140
 
-      - name: Install Python
-        uses: actions/setup-python@v2
-        with: { python-version: "3.8" }
+      - name: Install vcpkg
+        uses: friendlyanon/setup-vcpkg@v1
+        with: { committish: "${{ env.VCPKG_COMMIT }}", path: "../../../v"  }
+
+      - name: Setup MultiToolTask
+        if: matrix.os == 'windows-2022'
+        run: |
+          Add-Content "$env:GITHUB_ENV" 'UseMultiToolTask=true'
+          Add-Content "$env:GITHUB_ENV" 'EnforceProcessCountAcrossBuilds=true'
+
+      - name: Install WMF
+        if: matrix.os == 'windows-latest'
+        shell: pwsh
+        run: Install-WindowsFeature Server-Media-Foundation
 
       - name: Install system dependencies
-        if: matrix.os == 'ubuntu-22.04'
-        run: sudo apt-get install libtbb-dev libgl-dev libudev-dev -y
-
-      - name: Cache conan
-        id: cache-conan
-        uses: actions/cache@v3.3.2
-        with:
-          path: ~/.conan2/p
-          key: conan-packages-${{ matrix.os }}-v2
-
-      - name: Cache conan extra exports
-        if: matrix.os == 'windows-latest'
-        id: cache-conan-exports
-        uses: actions/cache@v3.3.2
-        with:
-          path: C:/.conan2
-          key: conan-exports-extra-windows
-
-      - name: Copy profile
-        shell: pwsh
-        run: |
-          pip3 install "conan"
-          conan profile detect
-          cp .github/$("${{ matrix.os }}".split("-")[0]).profile ~/.conan2/profiles/default
-
-      - name: Install dependencies
+        if: matrix.os == 'ubuntu-22.04' || matrix.os == 'macos-12'
         shell: bash
         run: |
           if [ ${{ matrix.os }} = ubuntu-22.04 ]; then
-            conan remove xorg/system -c
-            conan remove vaapi/system -c
-            conan remove vdpau/system -c
-          fi
-          conan install . -b missing -c tools.system.package_manager:mode=install -c tools.system.package_manager:sudo=True
+            sudo apt-get update && sudo apt-get install libtbb-dev libgl-dev libdrm-dev libgles2-mesa-dev libudev-dev nasm autoconf automake autoconf-archive gperf pkg-config python3-jinja2 '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev -y
+          else
+            brew install autoconf automake autoconf-archive
+          fi  
+
+      - name: Remove large files
+        if: matrix.os == 'ubuntu-22.04'
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/ghc
+          sudo rm -rf "/usr/local/share/boost"
 
       - name: Configure
         shell: pwsh
         run: cmake "--preset=ci-$("${{ matrix.os }}".split("-")[0])"
+
+      - name: Print errors
+        if: always()
+        run: |
+          cat /home/runner/v/buildtrees/qtbase/install-x64-linux-dbg-out.log
 
       - name: Build
         run: cmake --build build --config Release -j 2
@@ -238,54 +208,42 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       - name: Install static analyzers
         if: matrix.os == 'ubuntu-22.04'
-        run: sudo apt-get update && sudo apt-get install clang-tidy cppcheck -y -q
+        run: >-
+          sudo apt-get install clang-tidy-14 cppcheck -y -q
+          
+          sudo update-alternatives --install
+          /usr/bin/clang-tidy clang-tidy
+          /usr/bin/clang-tidy-14 140
 
-      - name: Install Python
-        uses: actions/setup-python@v2
-        with: { python-version: "3.8" }
+      - name: Install vcpkg
+        uses: friendlyanon/setup-vcpkg@v1
+        with: { committish: "${{ env.VCPKG_COMMIT }}", path: "../../../v"  }
+
+      - name: Install WMF
+        if: matrix.os == 'windows-latest'
+        shell: pwsh
+        run: Install-WindowsFeature Server-Media-Foundation
 
       - name: Install system dependencies
-        if: matrix.os == 'ubuntu-22.04'
-        run: sudo apt-get install libtbb-dev libgl-dev libudev-dev -y
-
-      - name: Cache conan
-        id: cache-conan
-        uses: actions/cache@v3.3.2
-        with:
-          path: ~/.conan2/p
-          key: conan-packages-${{ matrix.os }}
-
-      - name: Cache conan extra exports
-        if: matrix.os == 'windows-latest'
-        id: cache-conan-exports
-        uses: actions/cache@v3.3.2
-        with:
-          path: C:/.conan2
-          key: conan-exports-extra-windows
-
-      - name: Copy profile
-        shell: pwsh
-        run: |
-          pip3 install "conan"
-          conan profile detect
-          cp .github/$("${{ matrix.os }}".split("-")[0]).profile ~/.conan2/profiles/default
-
-      - name: Install dependencies
+        if: matrix.os == 'ubuntu-22.04' || matrix.os == 'macos-12'
         shell: bash
         run: |
           if [ ${{ matrix.os }} = ubuntu-22.04 ]; then
-            conan remove xorg/system -c
-            conan remove vaapi/system -c
-            conan remove vdpau/system -c
+            sudo apt-get update && sudo apt-get install libtbb-dev libgl-dev libdrm-dev libgles2-mesa-dev libudev-dev nasm autoconf automake autoconf-archive gperf pkg-config python3-jinja2 '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev -y
+          else
+            brew install autoconf automake autoconf-archive
           fi
-          if [ ${{ matrix.os }} = windows-latest ]; then
-            choco install nsis
-          fi
-          conan install . -b missing -c tools.system.package_manager:mode=install -c tools.system.package_manager:sudo=True
+
+      - name: Remove large files
+        if: matrix.os == 'ubuntu-22.04'
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/ghc
+          sudo rm -rf "/usr/local/share/boost"
 
       - name: Configure
         shell: pwsh
@@ -321,13 +279,7 @@ jobs:
       && github.repository_owner == 'Bobini1'
 
     steps:
-      - uses: actions/checkout@v2
-
-      - uses: actions/setup-python@v2
-        with: { python-version: "3.8" }
-
-      - name: Install m.css dependencies
-        run: pip3 install jinja2 Pygments
+      - uses: actions/checkout@v4
 
       - name: Install Doxygen
         run: sudo apt-get update -q
