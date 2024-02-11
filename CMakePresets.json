@@ -154,7 +154,10 @@
         "ci-darwin",
         "dev-mode",
         "vcpkg"
-      ]
+      ],
+      "cacheVariables": {
+        "VCPKG_INSTALL_OPTIONS": "--clean-after-build"
+      }
     },
     {
       "name": "ci-ubuntu",
@@ -164,7 +167,10 @@
         "clang-tidy",
         "vcpkg",
         "dev-mode"
-      ]
+      ],
+      "cacheVariables": {
+        "VCPKG_INSTALL_OPTIONS": "--clean-after-build"
+      }
     },
     {
       "name": "ci-windows",
@@ -174,7 +180,10 @@
         "dev-mode",
         "vcpkg",
         "vcpkg-win64-static"
-      ]
+      ],
+      "cacheVariables": {
+        "VCPKG_INSTALL_OPTIONS": "--clean-after-build"
+      }
     }
   ]
 }
