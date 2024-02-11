@@ -59,6 +59,10 @@
       "version>=": "6.6.1"
     },
     {
+      "name": "qtsvg",
+      "version>=": "6.6.1"
+    },
+    {
       "name": "qtmultimedia",
       "version>=": "6.6.1",
       "features": ["qml", "gstreamer"],
