@@ -127,7 +127,14 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Maximize build space
+        uses: easimon/maximize-build-space@master
+        with:
+          root-reserve-mb: 512
+          swap-size-mb: 1024
+          remove-dotnet: 'true'
+      - name: checkout
+        uses: actions/checkout@v4
 
       - name: Install static analyzers
         if: matrix.os == 'ubuntu-22.04'
@@ -208,7 +215,14 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Maximize build space
+        uses: easimon/maximize-build-space@master
+        with:
+          root-reserve-mb: 512
+          swap-size-mb: 1024
+          remove-dotnet: 'true'
+      - name: checkout
+        uses: actions/checkout@v4
 
       - name: Install static analyzers
         if: matrix.os == 'ubuntu-22.04'
