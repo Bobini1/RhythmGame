@@ -39,16 +39,15 @@ jobs:
 
     if: github.repository_owner == 'Bobini1'
 
+    env:
+      VCPKG_ROOT: /home/bobini/vcpkg
+
     steps:
       - uses: actions/checkout@v4
 
       - name: Install LCov
         run: sudo apt-get update -q
           && sudo apt-get install lcov -q -y
-
-      - name: Install vcpkg
-        uses: friendlyanon/setup-vcpkg@v1
-        with: { committish: "${{ env.VCPKG_COMMIT }}", path: "v" }
 
       - name: Install system dependencies
         run: sudo apt-get install libtbb-dev libgl-dev libdrm-dev libgles2-mesa-dev libudev-dev nasm autoconf automake autoconf-archive gperf pkg-config python3-jinja2 '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev -y
@@ -80,6 +79,7 @@ jobs:
     env:
       CXX: clang++-13
       CC: clang-13
+      VCPKG_ROOT: /home/bobini/vcpkg
 
     runs-on: ubuntu-bobini
 
@@ -139,8 +139,19 @@ jobs:
           /usr/bin/clang-tidy-14 140
 
       - name: Install vcpkg
+        if: matrix.os == 'macos-12'
         uses: friendlyanon/setup-vcpkg@v1
         with: { committish: "${{ env.VCPKG_COMMIT }}"  }
+
+      - name: Set VCPKG_ROOT
+        shell: bash
+        run: |
+          if [ ${{ matrix.os }} = ubuntu-bobini ]; then
+            echo "VCPKG_ROOT=/home/bobini/vcpkg" >> $GITHUB_ENV
+          elif [ ${{ matrix.os }} = macos-12 ]; then
+            echo "VCPKG_ROOT=M:/v" >> $GITHUB_ENV
+          fi
+      
 
       - name: Setup MultiToolTask
         if: matrix.os == 'windows-bobini'
@@ -203,8 +214,18 @@ jobs:
           /usr/bin/clang-tidy-14 140
 
       - name: Install vcpkg
+        if: matrix.os == 'macos-12'
         uses: friendlyanon/setup-vcpkg@v1
         with: { committish: "${{ env.VCPKG_COMMIT }}"  }
+
+      - name: Set VCPKG_ROOT
+        shell: bash
+        run: |
+          if [ ${{ matrix.os }} = ubuntu-bobini ]; then
+            echo "VCPKG_ROOT=/home/bobini/vcpkg" >> $GITHUB_ENV
+          elif [ ${{ matrix.os }} = macos-12 ]; then
+            echo "VCPKG_ROOT=M:/v" >> $GITHUB_ENV
+          fi
 
       - name: Install system dependencies
         if: matrix.os == 'ubuntu-bobini' || matrix.os == 'macos-12'
