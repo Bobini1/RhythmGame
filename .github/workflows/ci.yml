@@ -143,16 +143,14 @@ jobs:
         uses: friendlyanon/setup-vcpkg@v1
         with: { committish: "${{ env.VCPKG_COMMIT }}"  }
 
-      - name: Set VCPKG_ROOT
-        shell: bash
-        run: |
-          if [ ${{ matrix.os }} = ubuntu-bobini ]; then
-            echo "VCPKG_ROOT=/home/bobini/vcpkg" >> $GITHUB_ENV
-          elif [ ${{ matrix.os }} = windows-bobini ]; then
-            echo "VCPKG_ROOT=M:/v" >> $GITHUB_ENV
-          fi
-      
+      - name: Set VCPKG_ROOT Windows
+        if: matrix.os == 'windows-bobini'
+        run: echo "VCPKG_ROOT=M:/v" >> $GITHUB_ENV
 
+      - name: Set VCPKG_ROOT Ubuntu
+        if: matrix.os == 'ubuntu-bobini'
+        run: echo "VCPKG_ROOT=/home/bobini/vcpkg" >> $GITHUB_ENV
+      
       - name: Setup MultiToolTask
         if: matrix.os == 'windows-bobini'
         run: |
@@ -218,14 +216,13 @@ jobs:
         uses: friendlyanon/setup-vcpkg@v1
         with: { committish: "${{ env.VCPKG_COMMIT }}"  }
 
-      - name: Set VCPKG_ROOT
-        shell: bash
-        run: |
-          if [ ${{ matrix.os }} = ubuntu-bobini ]; then
-            echo "VCPKG_ROOT=/home/bobini/vcpkg" >> $GITHUB_ENV
-          elif [ ${{ matrix.os }} = windows-bobini ]; then
-            echo "VCPKG_ROOT=M:/v" >> $GITHUB_ENV
-          fi
+      - name: Set VCPKG_ROOT Windows
+        if: matrix.os == 'windows-bobini'
+        run: echo "VCPKG_ROOT=M:/v" >> $GITHUB_ENV
+
+      - name: Set VCPKG_ROOT Ubuntu
+        if: matrix.os == 'ubuntu-bobini'
+        run: echo "VCPKG_ROOT=/home/bobini/vcpkg" >> $GITHUB_ENV
 
       - name: Install system dependencies
         if: matrix.os == 'ubuntu-bobini' || matrix.os == 'macos-12'
