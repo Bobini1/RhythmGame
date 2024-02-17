@@ -148,7 +148,7 @@ jobs:
         run: |
           if [ ${{ matrix.os }} = ubuntu-bobini ]; then
             echo "VCPKG_ROOT=/home/bobini/vcpkg" >> $GITHUB_ENV
-          elif [ ${{ matrix.os }} = macos-12 ]; then
+          elif [ ${{ matrix.os }} = windows-bobini ]; then
             echo "VCPKG_ROOT=M:/v" >> $GITHUB_ENV
           fi
       
@@ -223,7 +223,7 @@ jobs:
         run: |
           if [ ${{ matrix.os }} = ubuntu-bobini ]; then
             echo "VCPKG_ROOT=/home/bobini/vcpkg" >> $GITHUB_ENV
-          elif [ ${{ matrix.os }} = macos-12 ]; then
+          elif [ ${{ matrix.os }} = windows-bobini ]; then
             echo "VCPKG_ROOT=M:/v" >> $GITHUB_ENV
           fi
 
