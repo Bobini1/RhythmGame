@@ -147,6 +147,12 @@ jobs:
         if: matrix.os == 'ubuntu-bobini'
         run: echo "VCPKG_ROOT=/home/bobini/vcpkg" >> $GITHUB_ENV
 
+      - name: Setup MultiToolTask
+        if: matrix.os == 'windows-bobini'
+        run: |
+          Add-Content "$env:GITHUB_ENV" 'UseMultiToolTask=true'
+          Add-Content "$env:GITHUB_ENV" 'EnforceProcessCountAcrossBuilds=true'
+
       - name: Install system dependencies
         if: matrix.os == 'ubuntu-bobini' || matrix.os == 'macos-12'
         shell: bash
