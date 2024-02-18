@@ -86,10 +86,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install vcpkg
-        uses: friendlyanon/setup-vcpkg@v1
-        with: { committish: "${{ env.VCPKG_COMMIT }}"  }
-
       - name: Install system dependencies
         run: sudo apt-get update && sudo apt-get install libtbb-dev libgl-dev libdrm-dev libgles2-mesa-dev libudev-dev nasm autoconf automake autoconf-archive gperf pkg-config python3-jinja2 '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev -y
 
@@ -150,7 +146,7 @@ jobs:
       - name: Set VCPKG_ROOT Ubuntu
         if: matrix.os == 'ubuntu-bobini'
         run: echo "VCPKG_ROOT=/home/bobini/vcpkg" >> $GITHUB_ENV
-      
+
       - name: Setup MultiToolTask
         if: matrix.os == 'windows-bobini'
         run: |
