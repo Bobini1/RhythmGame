@@ -129,8 +129,7 @@
       "name": "ci-coverage",
       "inherits": ["coverage-linux", "dev-mode", "vcpkg"],
       "cacheVariables": {
-        "COVERAGE_HTML_COMMAND": "",
-        "VCPKG_INSTALL_OPTIONS": "--clean-after-build"
+        "COVERAGE_HTML_COMMAND": ""
       }
     },
     {
@@ -140,8 +139,7 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Sanitize",
         "CMAKE_CXX_FLAGS_SANITIZE": "-U_FORTIFY_SOURCE -O2 -g -fsanitize=address,undefined -fno-omit-frame-pointer -fno-common",
-        "CMAKE_MAP_IMPORTED_CONFIG_SANITIZE": "Sanitize;RelWithDebInfo;Release;Debug;",
-        "VCPKG_INSTALL_OPTIONS": "--clean-after-build"
+        "CMAKE_MAP_IMPORTED_CONFIG_SANITIZE": "Sanitize;RelWithDebInfo;Release;Debug;"
       }
     },
     {
@@ -169,10 +167,7 @@
         "clang-tidy",
         "vcpkg",
         "dev-mode"
-      ],
-      "cacheVariables": {
-        "VCPKG_INSTALL_OPTIONS": "--clean-after-build"
-      }
+      ]
     },
     {
       "name": "ci-windows",
@@ -182,10 +177,7 @@
         "dev-mode",
         "vcpkg",
         "vcpkg-win64-static"
-      ],
-      "cacheVariables": {
-        "VCPKG_INSTALL_OPTIONS": "--clean-after-build"
-      }
+      ]
     }
   ]
 }
