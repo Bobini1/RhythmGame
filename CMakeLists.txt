@@ -6,7 +6,7 @@ project(
         VERSION 0.0.0
         DESCRIPTION "A performant and portable rhythm game engine"
         HOMEPAGE_URL "https://github.com/Bobini1"
-        LANGUAGES CXX
+        LANGUAGES C CXX
 )
 
 include(cmake/project-is-top-level.cmake)
