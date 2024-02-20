@@ -1,6 +1,6 @@
 {
   "scriptNames": {
-    "main": "scripts/Main.qml",
+    "main": "scripts/main/Main.qml",
     "songWheel": "scripts/select/SongWheel.qml",
     "gameplay": "scripts/gameplay/Gameplay.qml",
     "settings": "scripts/settings/Settings.qml",

@@ -14,7 +14,7 @@ env:
 
 jobs:
   lint:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v4
@@ -35,9 +35,12 @@ jobs:
   coverage:
     needs: [ lint ]
 
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-bobini
 
     if: github.repository_owner == 'Bobini1'
+
+    env:
+      VCPKG_ROOT: /home/bobini/vcpkg
 
     steps:
       - uses: actions/checkout@v4
@@ -45,10 +48,6 @@ jobs:
       - name: Install LCov
         run: sudo apt-get update -q
           && sudo apt-get install lcov -q -y
-
-      - name: Install vcpkg
-        uses: friendlyanon/setup-vcpkg@v1
-        with: { committish: "${{ env.VCPKG_COMMIT }}", path: "../../../v" }
 
       - name: Install system dependencies
         run: sudo apt-get install libtbb-dev libgl-dev libdrm-dev libgles2-mesa-dev libudev-dev nasm autoconf automake autoconf-archive gperf pkg-config python3-jinja2 '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev -y
@@ -80,15 +79,12 @@ jobs:
     env:
       CXX: clang++-13
       CC: clang-13
+      VCPKG_ROOT: /home/bobini/vcpkg
 
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-bobini
 
     steps:
       - uses: actions/checkout@v4
-
-      - name: Install vcpkg
-        uses: friendlyanon/setup-vcpkg@v1
-        with: { committish: "${{ env.VCPKG_COMMIT }}", path: "../../../v"  }
 
       - name: Install system dependencies
         run: sudo apt-get update && sudo apt-get install libtbb-dev libgl-dev libdrm-dev libgles2-mesa-dev libudev-dev nasm autoconf automake autoconf-archive gperf pkg-config python3-jinja2 '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev -y
@@ -121,7 +117,7 @@ jobs:
 
     strategy:
       matrix:
-        os: [ macos-12, ubuntu-22.04, windows-latest ]
+        os: [ macos-12, ubuntu-bobini, windows-bobini ]
       fail-fast: false
 
     runs-on: ${{ matrix.os }}
@@ -130,7 +126,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Install static analyzers
-        if: matrix.os == 'ubuntu-22.04'
+        if: matrix.os == 'ubuntu-bobini'
         run: >-
           sudo apt-get install clang-tidy-14 cppcheck -y -q
   
@@ -139,45 +135,37 @@ jobs:
           /usr/bin/clang-tidy-14 140
 
       - name: Install vcpkg
+        if: matrix.os == 'macos-12'
         uses: friendlyanon/setup-vcpkg@v1
-        with: { committish: "${{ env.VCPKG_COMMIT }}", path: "../../../v"  }
+        with: { committish: "${{ env.VCPKG_COMMIT }}"  }
+
+      - name: Set VCPKG_ROOT Windows
+        if: matrix.os == 'windows-bobini'
+        run: echo "VCPKG_ROOT=K:/v" >> $GITHUB_ENV
+
+      - name: Set VCPKG_ROOT Ubuntu
+        if: matrix.os == 'ubuntu-bobini'
+        run: echo "VCPKG_ROOT=/home/bobini/vcpkg" >> $GITHUB_ENV
 
       - name: Setup MultiToolTask
-        if: matrix.os == 'windows-2022'
+        if: matrix.os == 'windows-bobini'
         run: |
           Add-Content "$env:GITHUB_ENV" 'UseMultiToolTask=true'
           Add-Content "$env:GITHUB_ENV" 'EnforceProcessCountAcrossBuilds=true'
 
-      - name: Install WMF
-        if: matrix.os == 'windows-latest'
-        shell: pwsh
-        run: Install-WindowsFeature Server-Media-Foundation
-
       - name: Install system dependencies
-        if: matrix.os == 'ubuntu-22.04' || matrix.os == 'macos-12'
+        if: matrix.os == 'ubuntu-bobini' || matrix.os == 'macos-12'
         shell: bash
         run: |
-          if [ ${{ matrix.os }} = ubuntu-22.04 ]; then
+          if [ ${{ matrix.os }} = ubuntu-bobini ]; then
             sudo apt-get update && sudo apt-get install libtbb-dev libgl-dev libdrm-dev libgles2-mesa-dev libudev-dev nasm autoconf automake autoconf-archive gperf pkg-config python3-jinja2 '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev -y
           else
             brew install autoconf automake autoconf-archive
-          fi  
-
-      - name: Remove large files
-        if: matrix.os == 'ubuntu-22.04'
-        run: |
-          sudo rm -rf /usr/share/dotnet
-          sudo rm -rf /opt/ghc
-          sudo rm -rf "/usr/local/share/boost"
+          fi
 
       - name: Configure
         shell: pwsh
         run: cmake "--preset=ci-$("${{ matrix.os }}".split("-")[0])"
-
-      - name: Print errors
-        if: always()
-        run: |
-          cat /home/runner/v/buildtrees/qtbase/install-x64-linux-dbg-out.log
 
       - name: Build
         run: cmake --build build --config Release -j 2
@@ -189,7 +177,7 @@ jobs:
         working-directory: build
         shell: bash
         run: |
-          if [ ${{ matrix.os }} = ubuntu-22.04 ]; then
+          if [ ${{ matrix.os }} = ubuntu-bobini ]; then
             export DISPLAY=:99
             sudo Xvfb -ac :99 -screen 0 1280x1024x24 -noreset > /dev/null 2>&1 &
             ctest --output-on-failure -C Release -j 2
@@ -202,7 +190,7 @@ jobs:
 
     strategy:
       matrix:
-        os: [ macos-12, ubuntu-22.04, windows-latest ]
+        os: [ macos-12, ubuntu-bobini, windows-bobini ]
       fail-fast: false
 
     runs-on: ${{ matrix.os }}
@@ -211,7 +199,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Install static analyzers
-        if: matrix.os == 'ubuntu-22.04'
+        if: matrix.os == 'ubuntu-bobini'
         run: >-
           sudo apt-get install clang-tidy-14 cppcheck -y -q
           
@@ -220,30 +208,27 @@ jobs:
           /usr/bin/clang-tidy-14 140
 
       - name: Install vcpkg
+        if: matrix.os == 'macos-12'
         uses: friendlyanon/setup-vcpkg@v1
-        with: { committish: "${{ env.VCPKG_COMMIT }}", path: "../../../v"  }
+        with: { committish: "${{ env.VCPKG_COMMIT }}"  }
 
-      - name: Install WMF
-        if: matrix.os == 'windows-latest'
-        shell: pwsh
-        run: Install-WindowsFeature Server-Media-Foundation
+      - name: Set VCPKG_ROOT Windows
+        if: matrix.os == 'windows-bobini'
+        run: echo "VCPKG_ROOT=K:/v" >> $GITHUB_ENV
+
+      - name: Set VCPKG_ROOT Ubuntu
+        if: matrix.os == 'ubuntu-bobini'
+        run: echo "VCPKG_ROOT=/home/bobini/vcpkg" >> $GITHUB_ENV
 
       - name: Install system dependencies
-        if: matrix.os == 'ubuntu-22.04' || matrix.os == 'macos-12'
+        if: matrix.os == 'ubuntu-bobini' || matrix.os == 'macos-12'
         shell: bash
         run: |
-          if [ ${{ matrix.os }} = ubuntu-22.04 ]; then
+          if [ ${{ matrix.os }} = ubuntu-bobini ]; then
             sudo apt-get update && sudo apt-get install libtbb-dev libgl-dev libdrm-dev libgles2-mesa-dev libudev-dev nasm autoconf automake autoconf-archive gperf pkg-config python3-jinja2 '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev -y
           else
             brew install autoconf automake autoconf-archive
           fi
-
-      - name: Remove large files
-        if: matrix.os == 'ubuntu-22.04'
-        run: |
-          sudo rm -rf /usr/share/dotnet
-          sudo rm -rf /opt/ghc
-          sudo rm -rf "/usr/local/share/boost"
 
       - name: Configure
         shell: pwsh
@@ -272,7 +257,7 @@ jobs:
     # Deploy docs only when builds succeed
     needs: [ sanitize, test ]
 
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-bobini
 
     if: github.ref == 'refs/heads/master'
       && github.event_name == 'push'

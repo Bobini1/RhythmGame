@@ -154,7 +154,10 @@
         "ci-darwin",
         "dev-mode",
         "vcpkg"
-      ]
+      ],
+      "cacheVariables": {
+        "VCPKG_INSTALL_OPTIONS": "--clean-after-build"
+      }
     },
     {
       "name": "ci-ubuntu",

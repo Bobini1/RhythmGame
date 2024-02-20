@@ -8,7 +8,6 @@ ApplicationWindow {
     id: contentContainer
 
     height: 720
-    visibility: Window.FullScreen
     visible: true
     width: 1280
 
