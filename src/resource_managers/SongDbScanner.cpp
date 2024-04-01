@@ -3,11 +3,11 @@
 //
 
 #include <stack>
+#include <utility>
 #include "SongDbScanner.h"
 #include "db/SqliteCppDb.h"
 #include "support/PathToQString.h"
 #include "support/PathToUtfString.h"
-#include "support/toLower.h"
 
 #include <qthreadpool.h>
 
@@ -20,48 +20,53 @@ SongDbScanner::SongDbScanner(db::SqliteCppDb* db)
 void
 addDirToParentDirs(QThreadPool& threadPool,
                    db::SqliteCppDb& db,
-                   QString directoryInDb)
+                   QString root,
+                   QString folder)
 {
-    threadPool.start([&db, directoryInDb]() mutable {
-        try {
-            thread_local auto insertQuery =
-              db.createStatement("INSERT OR IGNORE INTO parent_dir "
-                                 "(parent_dir, path) VALUES (:parent_dir, "
-                                 ":path)");
-            while (directoryInDb.size() != 1) {
-                auto parentDirectory = directoryInDb;
-                parentDirectory.resize(parentDirectory.size() - 1);
-                auto lastSlashIndex = parentDirectory.lastIndexOf("/");
-                parentDirectory.remove(lastSlashIndex + 1,
-                                       parentDirectory.size() - lastSlashIndex -
-                                         1);
-                insertQuery.bind(":parent_dir", parentDirectory.toStdString());
-                insertQuery.bind(":path", directoryInDb.toStdString());
-                insertQuery.execute();
-                insertQuery.reset();
-                directoryInDb = std::move(parentDirectory);
+    threadPool.start([&db, root, folder]() mutable {
+        thread_local auto insert =
+          db.createStatement("INSERT OR IGNORE INTO parent_dir "
+                             "(parent_dir, dir) VALUES (:parent_dir, "
+                             ":dir)");
+        thread_local auto getIdQuery =
+          db.createStatement("SELECT id FROM parent_dir WHERE dir = :dir");
+        auto parent = int64_t{ -1 };
+        auto current = root;
+        auto rest = folder.right(folder.size() - root.size() - 1);
+        while (true) {
+            insert.reset();
+            if (parent == int64_t{ -1 }) {
+                insert.bind(":parent_dir");
+            } else {
+                insert.bind(std::string(":parent_dir"), parent);
             }
-        } catch (const std::exception& e) {
-            spdlog::error("Failed to add {} to parent_dir: {}",
-                          directoryInDb.toStdString(),
-                          e.what());
+            insert.bind(":dir", current.toStdString());
+            insert.execute();
+            if (current == folder) {
+                break;
+            }
+            getIdQuery.reset();
+            getIdQuery.bind(":dir", current.toStdString());
+            parent = getIdQuery.executeAndGet<int64_t>().value();
+            current = current + rest.left(rest.indexOf('/'));
+            rest = rest.right(rest.size() - rest.indexOf('/') - 1);
         }
     });
 }
 void
 loadChart(QThreadPool& threadPool,
           db::SqliteCppDb& db,
-          QString& directoryInDb,
+          const QString& directory,
           const std::filesystem::path& path)
 {
     auto url = support::pathToQString(path);
-    threadPool.start([&db, url = std::move(url), directoryInDb]() mutable {
+    threadPool.start([&db, url = std::move(url), directory]() mutable {
         try {
-            thread_local const ChartDataFactory chartDataFactory;
+            thread_local constexpr ChartDataFactory chartDataFactory;
             auto randomGenerator =
               [](charts::parser_models::ParsedBmsChart::RandomRange
                    randomRange) {
-                  static thread_local auto randomEngine =
+                  thread_local auto randomEngine =
                     std::default_random_engine{ std::random_device{}() };
                   return std::uniform_int_distribution{
                       charts::parser_models::ParsedBmsChart::RandomRange{ 1 },
@@ -69,8 +74,8 @@ loadChart(QThreadPool& threadPool,
                   }(randomEngine);
               };
 
-            auto chartComponents = chartDataFactory.loadChartData(
-              url, randomGenerator, directoryInDb);
+            const auto chartComponents =
+              chartDataFactory.loadChartData(url, randomGenerator, directory);
             chartComponents.chartData->save(db);
             chartComponents.bmsNotes->save(
               db, chartComponents.chartData->getSha256().toStdString());
@@ -87,7 +92,7 @@ addPreviewFileToDb(db::SqliteCppDb& db,
                    const std::filesystem::path& directory,
                    const std::filesystem::path& path)
 {
-    thread_local static auto statement = db.createStatement(
+    thread_local auto statement = db.createStatement(
       "INSERT OR REPLACE INTO preview_files (path, directory) "
       "VALUES (?, ?)");
     statement.reset();
@@ -96,17 +101,23 @@ addPreviewFileToDb(db::SqliteCppDb& db,
     statement.execute();
 }
 
-bool
+void
 scanFolder(std::filesystem::path directory,
+           std::filesystem::path parentDirectory,
            QThreadPool& threadPool,
            db::SqliteCppDb& db,
-           QString directoryInDb,
-           QString parentDirectoryInDb)
+           const QString& root,
+           std::function<void(QString)> updateCurrentScannedFolder,
+           std::atomic_bool* stop)
 {
+    updateCurrentScannedFolder(support::pathToQString(directory));
     auto directoriesToScan = std::vector<std::filesystem::path>{};
     auto isSongDirectory = false;
     for (const auto& entry : std::filesystem::directory_iterator(directory)) {
-        auto path = entry.path();
+        if (*stop) {
+            break;
+        }
+        const auto& path = entry.path();
         if (is_directory(entry) && !isSongDirectory) {
             directoriesToScan.push_back(path);
         } else if (auto extension = path.extension();
@@ -117,9 +128,10 @@ scanFolder(std::filesystem::path directory,
             if (extension == ".pms") {
                 continue;
             }
-            loadChart(threadPool, db, parentDirectoryInDb, path);
-            // converting to string should not break stuff even on windows in
-            // this case
+            loadChart(
+              threadPool, db, support::pathToQString(parentDirectory), path);
+            // converting to string should not break stuff even on windows
+            // in this case
         } else if (path.filename().string().starts_with("preview") &&
                    (extension == ".mp3" || extension == ".ogg" ||
                     extension == ".wav" || extension == ".flac")) {
@@ -129,36 +141,49 @@ scanFolder(std::filesystem::path directory,
         }
     }
     for (const auto& entry : directoriesToScan) {
-        auto nextDirectoryInDb = directoryInDb;
-        nextDirectoryInDb += support::pathToQString(entry.filename()) + "/";
-        isSongDirectory |= scanFolder(
-          entry, threadPool, db, std::move(nextDirectoryInDb), directoryInDb);
+        if (*stop) {
+            break;
+        }
+        scanFolder(entry,
+                   directory,
+                   threadPool,
+                   db,
+                   root,
+                   updateCurrentScannedFolder,
+                   stop);
     }
     if (isSongDirectory) {
-        addDirToParentDirs(threadPool, db, parentDirectoryInDb);
+        addDirToParentDirs(
+          threadPool, db, root, support::pathToQString(parentDirectory));
     }
-    return isSongDirectory;
 }
 
 void
-SongDbScanner::scanDirectories(
-  std::span<const std::filesystem::path> directories)
+SongDbScanner::scanDirectory(
+  std::filesystem::path directory,
+  std::function<void(QString)> updateCurrentScannedFolder,
+  std::atomic_bool* stop) const
 {
     auto threadPool = QThreadPool{};
-    for (const auto& entry : directories) {
-        if (is_directory(entry)) {
-            // pass only the last part of the entry directory as
-            // directoryInDb
-            auto directoryInDb = QStringLiteral("/") +
-                                 support::pathToQString(entry.filename()) +
-                                 QStringLiteral("/");
-            scanFolder(
-              entry, threadPool, *db, directoryInDb, QStringLiteral("/"));
-        } else {
-            spdlog::error("Resource path {} is not a directory",
-                          entry.string());
-        }
+    if (is_directory(directory)) {
+        const auto root = support::pathToQString(directory);
+        scanFolder(std::move(directory),
+                   {},
+                   threadPool,
+                   *db,
+                   root,
+                   updateCurrentScannedFolder,
+                   stop);
+    } else {
+#ifdef _WIN32
+        spdlog::error(L"Resource path {} is not a directory",
+                      directory.wstring());
+#else
+        spdlog::error("Resource path {} is not a directory",
+                      directory.string());
+#endif
     }
     threadPool.waitForDone();
+    updateCurrentScannedFolder("");
 }
 } // namespace resource_managers

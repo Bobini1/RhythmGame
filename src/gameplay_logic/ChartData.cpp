@@ -8,31 +8,32 @@
 #include <spdlog/spdlog.h>
 #include <zstd.h>
 
-gameplay_logic::ChartData::ChartData(QString title,
-                                     QString artist,
-                                     QString subtitle,
-                                     QString subartist,
-                                     QString genre,
-                                     QString stageFile,
-                                     QString banner,
-                                     QString backBmp,
-                                     int rank,
-                                     double total,
-                                     int playLevel,
-                                     int difficulty,
-                                     bool isRandom,
-                                     int normalNoteCount,
-                                     int lnCount,
-                                     int mineCount,
-                                     int64_t length,
-                                     double bpm,
-                                     double maxBpm,
-                                     double minBpm,
-                                     QString path,
-                                     QString directoryInDb,
-                                     QString sha256,
-                                     Keymode keymode,
-                                     QObject* parent)
+gameplay_logic::ChartData::
+ChartData(QString title,
+          QString artist,
+          QString subtitle,
+          QString subartist,
+          QString genre,
+          QString stageFile,
+          QString banner,
+          QString backBmp,
+          int rank,
+          double total,
+          int playLevel,
+          int difficulty,
+          bool isRandom,
+          int normalNoteCount,
+          int lnCount,
+          int mineCount,
+          int64_t length,
+          double bpm,
+          double maxBpm,
+          double minBpm,
+          QString path,
+          QString directoryInDb,
+          QString sha256,
+          Keymode keymode,
+          QObject* parent)
   : QObject(parent)
   , title(std::move(title))
   , artist(std::move(artist))
@@ -123,12 +124,12 @@ gameplay_logic::ChartData::getGenre() const -> QString
 auto
 gameplay_logic::ChartData::save(db::SqliteCppDb& db) const -> void
 {
-    static thread_local auto query = db.createStatement(
+    thread_local auto query = db.createStatement(
       "INSERT OR REPLACE INTO charts (title, artist, subtitle, subartist, "
       "genre, stage_file, banner, back_bmp, rank, total, play_level, "
       "difficulty, is_random, normal_note_count, ln_count, mine_count, length, "
       "initial_bpm, max_bpm, "
-      "min_bpm, path, directory_in_db, sha256, keymode) "
+      "min_bpm, path, directory, sha256, keymode) "
       "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, "
       "?, ?, ?);");
     query.reset();
@@ -153,7 +154,11 @@ gameplay_logic::ChartData::save(db::SqliteCppDb& db) const -> void
     query.bind(19, maxBpm);
     query.bind(20, minBpm);
     query.bind(21, path.toStdString());
-    query.bind(22, directoryInDb.toStdString());
+    if (directoryInDb.isEmpty()) {
+        query.bind(22);
+    } else {
+        query.bind(22, directoryInDb.toStdString());
+    }
     query.bind(23, sha256.toStdString());
     query.bind(24, static_cast<int>(keymode));
     query.execute();
@@ -170,9 +175,8 @@ gameplay_logic::ChartData::getDirectoryInDb() const -> QString
 }
 
 auto
-gameplay_logic::ChartData::load(
-  const gameplay_logic::ChartData::DTO& chartDataDto)
-  -> std::unique_ptr<gameplay_logic::ChartData>
+gameplay_logic::ChartData::load(const DTO& chartDataDto)
+  -> std::unique_ptr<ChartData>
 {
     return std::make_unique<ChartData>(
       QString::fromStdString(chartDataDto.title),
@@ -196,7 +200,7 @@ gameplay_logic::ChartData::load(
       chartDataDto.maxBpm,
       chartDataDto.minBpm,
       QString::fromStdString(chartDataDto.path),
-      QString::fromStdString(chartDataDto.directoryInDb),
+      QString::fromStdString(chartDataDto.directory),
       QString::fromStdString(chartDataDto.sha256),
       static_cast<Keymode>(chartDataDto.keymode));
 }

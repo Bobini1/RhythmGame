@@ -7,7 +7,6 @@ namespace resource_managers {
 void
 defineDb(db::SqliteCppDb& db)
 {
-    // create charts table if it doesn't exist
     db.execute("CREATE TABLE IF NOT EXISTS charts ("
                "id INTEGER PRIMARY KEY AUTOINCREMENT,"
                "title TEXT NOT NULL,"
@@ -31,44 +30,35 @@ defineDb(db::SqliteCppDb& db)
                "max_bpm REAL NOT NULL,"
                "min_bpm REAL NOT NULL,"
                "path TEXT NOT NULL UNIQUE,"
-               "directory_in_db TEXT NOT NULL,"
+               "directory TEXT NOT NULL,"
                "sha256 TEXT NOT NULL,"
                "keymode INTEGER NOT NULL"
                ");");
 
-    // table for note_data
     db.execute("CREATE TABLE IF NOT EXISTS note_data ("
                "id INTEGER PRIMARY KEY AUTOINCREMENT,"
                "sha256 TEXT NOT NULL UNIQUE,"
                "note_data BLOB NOT NULL"
                ");");
 
-    // create a parent_dir table if it doesn't exist
     db.execute("CREATE TABLE IF NOT EXISTS parent_dir ("
                "id INTEGER PRIMARY KEY AUTOINCREMENT,"
-               "parent_dir TEXT NOT NULL,"
-               "path TEXT NOT NULL UNIQUE"
+               "parent_dir INTEGER,"
+               "dir TEXT NOT NULL UNIQUE"
                ");");
 
-    // create a root_dir table if it doesn't exist
     db.execute("CREATE TABLE IF NOT EXISTS root_dir ("
                "id INTEGER PRIMARY KEY AUTOINCREMENT,"
-               "path TEXT NOT NULL UNIQUE"
+               "path TEXT NOT NULL UNIQUE,"
+               "status INTEGER DEFAULT 0 NOT NULL" // 0 = not scanned, 1 =
+                                                   // scanning, 2 = scanned
                ");");
 
-    // pending root dirs
-    db.execute("CREATE TABLE IF NOT EXISTS pending_root_dir ("
-               "id INTEGER PRIMARY KEY AUTOINCREMENT,"
-               "path TEXT NOT NULL UNIQUE"
-               ");");
-
-    // current_profile
     db.execute("CREATE TABLE IF NOT EXISTS current_profile ("
                "id INTEGER PRIMARY KEY CHECK (id = 1),"
                "path TEXT NOT NULL UNIQUE"
                ");");
 
-    // preview files
     db.execute("CREATE TABLE IF NOT EXISTS preview_files ("
                "id INTEGER PRIMARY KEY AUTOINCREMENT,"
                "path TEXT NOT NULL,"
