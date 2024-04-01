@@ -12,13 +12,21 @@ SongFolderFactory::open(QString path)
     auto folder = QVariantList{};
     auto pathStd = path.toStdString();
     getFolders.reset();
-    getFolders.bind(1, pathStd);
+    if (path.isEmpty()) {
+        getFolders.bind(1);
+    } else {
+        getFolders.bind(1, pathStd);
+    }
     auto result = getFolders.executeAndGetAll<std::string>();
     for (const auto& row : result) {
         folder.append(QString::fromStdString(row));
     }
     getCharts.reset();
-    getCharts.bind(1, pathStd);
+    if (path.isEmpty()) {
+        getCharts.bind(1);
+    } else {
+        getCharts.bind(1, pathStd);
+    }
     auto chartResult =
       getCharts.executeAndGetAll<gameplay_logic::ChartData::DTO>();
     for (const auto& row : chartResult) {
@@ -47,14 +55,15 @@ SongFolderFactory::folderSize(QString path) -> int
 QString
 SongFolderFactory::parentFolder(QString path)
 {
-    if (path == QStringLiteral("/")) {
-        return QStringLiteral("");
+
+    auto pathStd = path.toStdString();
+    getParentFolder.reset();
+    getParentFolder.bind(1, pathStd);
+    auto result = getParentFolder.executeAndGet<std::string>();
+    if (!result.has_value() || result.value().empty()) {
+        return "";
     }
-    auto parent = path;
-    parent.resize(parent.size() - 1);
-    auto lastSlashIndex = parent.lastIndexOf("/");
-    parent.remove(lastSlashIndex + 1, parent.size() - lastSlashIndex - 1);
-    return parent;
+    return QString::fromStdString(result.value());
 }
 QVariantList
 SongFolderFactory::search(QString query)

@@ -79,7 +79,7 @@ class Chart : public QObject
         KeyPress,
         KeyRelease
     };
-    Q_ENUM(EventType);
+    Q_ENUM(EventType)
 
     void passKey(input::BmsKey key, EventType eventType, int64_t time);
 

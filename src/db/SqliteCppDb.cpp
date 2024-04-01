@@ -6,7 +6,8 @@
 
 #include <utility>
 
-db::SqliteCppDb::SqliteCppDb(std::string dbPath)
+db::SqliteCppDb::
+SqliteCppDb(std::string dbPath)
   : db(dbPath,
        SQLite::OPEN_READWRITE | // NOLINT(hicpp-signed-bitwise)
          SQLite::OPEN_CREATE)
@@ -31,8 +32,7 @@ db::SqliteCppDb::execute(const std::string& query) -> int64_t
     return db.getLastInsertRowid();
 }
 auto
-db::SqliteCppDb::createStatement(const std::string& query)
-  -> db::SqliteCppDb::Statement
+db::SqliteCppDb::createStatement(const std::string& query) -> Statement
 {
     std::lock_guard lock(dbMutex);
     return Statement{ SQLite::Statement(db, query), &dbMutex, &db };
@@ -51,9 +51,10 @@ db::SqliteCppDb::Statement::reset()
     statement.reset();
     statement.clearBindings();
 }
-db::SqliteCppDb::Statement::Statement(SQLite::Statement statement,
-                                      std::mutex* dbMutex,
-                                      SQLite::Database* db)
+db::SqliteCppDb::Statement::
+Statement(SQLite::Statement statement,
+          std::mutex* dbMutex,
+          SQLite::Database* db)
   : statement(std::move(statement))
   , dbMutex(dbMutex)
   , db(db)

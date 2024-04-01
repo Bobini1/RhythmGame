@@ -133,7 +133,7 @@ class ChartData : public QObject
         double maxBpm;
         double minBpm;
         std::string path;
-        std::string directoryInDb;
+        std::string directory;
         std::string sha256;
         int keymode;
     };

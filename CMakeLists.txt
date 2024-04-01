@@ -27,10 +27,15 @@ find_package(fmt REQUIRED)
 # <------------ spdlog (logging) --------------->
 
 find_package(spdlog REQUIRED)
+target_compile_definitions(spdlog::spdlog INTERFACE SPDLOG_WCHAR_FILENAMES)
+if (WIN32)
+    target_compile_definitions(spdlog::spdlog INTERFACE SPDLOG_WCHAR_TO_UTF8_SUPPORT)
+endif ()
+
 
 # <------------ boost --------------->
 
-find_package(Boost REQUIRED COMPONENTS  locale serialization  filesystem)
+find_package(Boost REQUIRED COMPONENTS locale serialization filesystem)
 
 # <------------ OpenAL (audio playback) --------------->
 

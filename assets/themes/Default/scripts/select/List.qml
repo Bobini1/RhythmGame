@@ -6,7 +6,7 @@ PathView {
     id: pathView
 
     property var current: model[currentIndex]
-    property string currentFolder: "/"
+    property string currentFolder: ""
     property var filter: null
     // we need to keep references to ChartDatas, otherwise they will be garbage collected
     property var folderContents: []
@@ -36,7 +36,7 @@ PathView {
         if (item instanceof ChartData) {
             console.info("Opening chart " + item.path);
             globalRoot.openChart(item.path);
-        } else if (item) {
+        } else {
             let folder = SongFolderFactory.open(item);
             pathView.folderContents = folder;
             folder = sortFilter(folder);
@@ -136,18 +136,17 @@ PathView {
     }
 
     Component.onCompleted: {
-        open("/");
+        open("");
     }
     Keys.onDownPressed: {
         incrementViewIndex();
     }
     Keys.onLeftPressed: {
-        let parentFolder = SongFolderFactory.parentFolder(currentFolder);
-        if (parentFolder) {
-            open(parentFolder);
-        } else {
+        if (!currentFolder) {
             sceneStack.pop();
         }
+        let parentFolder = SongFolderFactory.parentFolder(currentFolder);
+        open(parentFolder);
     }
     Keys.onReturnPressed: {
         open(current);

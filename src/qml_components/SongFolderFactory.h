@@ -16,23 +16,25 @@ class SongFolderFactory : public QObject
 
     db::SqliteCppDb* db;
     db::SqliteCppDb::Statement getCharts =
-      db->createStatement("SELECT * FROM charts WHERE directory_in_db "
-                          "= ? ORDER BY title, subtitle ASC");
+      db->createStatement("SELECT * FROM charts WHERE directory "
+                          "IS ? ORDER BY title, subtitle ASC");
     db::SqliteCppDb::Statement getFolders =
-      db->createStatement("SELECT path FROM parent_dir WHERE parent_dir = ? "
-                          "ORDER BY path ASC");
+      db->createStatement("SELECT dir FROM parent_dir WHERE parent_dir IS ? "
+                          "ORDER BY dir ASC");
     // query to get count of charts and subfolders
     db::SqliteCppDb::Statement getSize =
-      db->createStatement("SELECT COUNT(*) FROM parent_dir WHERE parent_dir = "
+      db->createStatement("SELECT COUNT(*) FROM parent_dir WHERE parent_dir IS "
                           "? UNION SELECT COUNT(*) FROM charts WHERE "
-                          "directory_in_db = ?");
+                          "directory IS ?");
     db::SqliteCppDb::Statement searchFolders =
-      db->createStatement("SELECT path FROM parent_dir WHERE path LIKE ? "
-                          "ORDER BY path ASC");
+      db->createStatement("SELECT dir FROM parent_dir WHERE dir LIKE ? "
+                          "ORDER BY dir ASC");
     db::SqliteCppDb::Statement searchCharts = db->createStatement(
       "SELECT * FROM charts WHERE title LIKE :query OR "
       "artist LIKE :query OR subtitle LIKE :query or subartist LIKE "
       ":query or genre LIKE :query ORDER BY title, subtitle ASC");
+    db::SqliteCppDb::Statement getParentFolder =
+      db->createStatement("SELECT parent_dir FROM parent_dir WHERE dir IS ?");
 
   public:
     explicit SongFolderFactory(db::SqliteCppDb* db, QObject* parent = nullptr);
