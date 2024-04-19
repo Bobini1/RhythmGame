@@ -53,7 +53,7 @@ RowLayout {
                         let themeFamilies = Themes.availableThemeFamilies;
                         let themeNames = [];
                         for (let [name, family] of Object.entries(themeFamilies)) {
-                            if (family.themes[modelData]) {
+                            if (family.screens[modelData]) {
                                 themeNames.push(name);
                             }
                         }
@@ -64,7 +64,7 @@ RowLayout {
                         let themeFamilies = Themes.availableThemeFamilies;
                         let themeNames = [];
                         for (let [name, family] of Object.entries(themeFamilies)) {
-                            if (family.themes[modelData]) {
+                            if (family.screens[modelData]) {
                                 themeNames.push(name);
                             }
                         }

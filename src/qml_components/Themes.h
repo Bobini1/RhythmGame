@@ -19,7 +19,7 @@ class Themes : public QObject
     QVariantMap themes;
 
   public:
-    auto getAvailableThemeFamilies() const -> QVariantMap;
+    auto getAvailableThemeFamilies() const -> const QVariantMap&;
 
     explicit Themes(QMap<QString, ThemeFamily> themes);
 };

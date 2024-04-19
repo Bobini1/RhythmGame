@@ -77,10 +77,10 @@ Profile::setAvatar(QString newAvatar)
     updateProperty.execute();
     emit avatarChanged();
 }
-Profile::
-Profile(const std::filesystem::path& dbPath,
-        const QMap<QString, qml_components::ThemeFamily>& themeFamilies,
-        QObject* parent)
+Profile::Profile(
+  const std::filesystem::path& dbPath,
+  const QMap<QString, qml_components::ThemeFamily>& themeFamilies,
+  QObject* parent)
   : QObject(parent)
   , db(createDb(dbPath))
   , dbPath(dbPath)
@@ -103,8 +103,6 @@ Profile(const std::filesystem::path& dbPath,
                    "key TEXT NOT NULL UNIQUE,"
                    "value"
                    ");");
-        name = "Player";
-        avatar = "mascot.png";
     } else {
         auto statement = db.createStatement(
           "SELECT value FROM properties WHERE key = 'avatar'");

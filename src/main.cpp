@@ -28,6 +28,7 @@
 #include "qml_components/FileValidator.h"
 #include "qml_components/Themes.h"
 #include "resource_managers/ScanThemes.h"
+#include "resource_managers/Vars.h"
 
 Q_IMPORT_QML_PLUGIN(RhythmGameQmlPlugin)
 
@@ -190,6 +191,11 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
     auto fileValidator = qml_components::FileValidator{};
     qmlRegisterSingletonInstance(
       "RhythmGameQml", 1, 0, "FileValidator", &fileValidator);
+
+    auto vars = resource_managers::Vars{
+        &profileList,
+    };
+    qmlRegisterSingletonInstance("RhythmGameQml", 1, 0, "Vars", &vars);
 
     // add all other common types
 

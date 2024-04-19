@@ -40,7 +40,11 @@
     },
     {
       "name": "libsndfile",
-      "version>=": "1.2.2"
+      "version>=": "1.2.2",
+      "features": [
+        "external-libs",
+        "mpeg"
+      ]
     },
     {
       "name": "sdl2",
@@ -65,18 +69,19 @@
     {
       "name": "qtmultimedia",
       "version>=": "6.6.1",
-      "features": ["qml", "gstreamer"],
+      "features": [
+        "qml",
+        "gstreamer"
+      ],
       "platform": "linux"
     },
     {
       "name": "qtmultimedia",
       "version>=": "6.6.1",
-      "features": ["qml"],
+      "features": [
+        "qml"
+      ],
       "platform": "!linux"
-    },
-    {
-      "name": "qttools",
-      "version>=": "6.6.1"
     }
   ],
   "default-features": [],
@@ -91,5 +96,5 @@
       ]
     }
   },
-  "builtin-baseline": "16ee2ecb31788c336ace8bb14c21801efb6836e4"
+  "builtin-baseline": "13766fcd1292a973fea53fba731a0fb90c7ee310"
 }

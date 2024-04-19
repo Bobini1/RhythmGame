@@ -1,0 +1,49 @@
+[
+  {
+    "name": "Play Area Settings",
+    "type": "group",
+    "items": [
+      {
+        "id": "blackColumnWidth",
+        "name": "Black Column Width",
+        "type": "range",
+        "min": 0,
+        "max": 100,
+        "default": 20
+      },
+      {
+        "id": "whiteColumnWidth",
+        "name": "White Column Width",
+        "type": "range",
+        "min": 0,
+        "max": 100,
+        "default": 30
+      },
+      {
+        "id": "laneBrightness",
+        "displayName": "Lane Brightness",
+        "type": "range",
+        "min": 0,
+        "max": 100,
+        "default": 50
+      },
+      {
+        "id": "laneCoverImage",
+        "name": "Lane Cover Image",
+        "type": "file",
+        "path": "scripts/gameplay/images/laneCover"
+      },
+      {
+        "displayName": "Empty Group",
+        "type": "group",
+        "items": []
+      }
+    ]
+  },
+  {
+    "id": "fontColor",
+    "displayName": "Font color",
+    "type": "color",
+    "default": "#FFFFFF"
+  }
+]
