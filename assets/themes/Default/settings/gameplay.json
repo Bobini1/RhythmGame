@@ -32,11 +32,6 @@
         "name": "Lane Cover Image",
         "type": "file",
         "path": "scripts/gameplay/images/laneCover"
-      },
-      {
-        "displayName": "Empty Group",
-        "type": "group",
-        "items": []
       }
     ]
   },

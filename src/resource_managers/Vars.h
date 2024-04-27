@@ -5,6 +5,8 @@
 #ifndef RHYTHMGAME_VARS_H
 #define RHYTHMGAME_VARS_H
 
+#include "qml_components/ThemeFamily.h"
+
 #include <QObject>
 #include <QQmlPropertyMap>
 
@@ -15,26 +17,29 @@ class ProfileList;
 namespace resource_managers {
 class Profile;
 
-class Vars : public QObject
+class Vars final : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(
       QQmlPropertyMap* globalVars READ getGlobalVars NOTIFY globalVarsChanged)
     Q_PROPERTY(
       QQmlPropertyMap* themeVars READ getThemeVars NOTIFY themeVarsChanged)
-    std::unique_ptr<QQmlPropertyMap> globalVars;
-    std::unique_ptr<QQmlPropertyMap> themeVars;
-    qml_components::ProfileList* profileList;
-    QMetaObject::Connection currentThemeConfigConnection;
+    QQmlPropertyMap globalVars;
+    QQmlPropertyMap themeVars;
+    const Profile* profile;
+    QMap<QString, qml_components::ThemeFamily> availableThemeFamilies;
+    QHash<QString, QHash<QString, QHash<QString, QVariant>>> loadedThemeVars;
 
-    void onProfileChanged(resource_managers::Profile* profile);
     void onThemeConfigChanged(const QString& key, const QVariant& value);
 
   public:
-    explicit Vars(qml_components::ProfileList* profileList,
-                  QObject* parent = nullptr);
+    explicit Vars(
+      const Profile* profile,
+      QMap<QString, qml_components::ThemeFamily> availableThemeFamilies,
+      QObject* parent = nullptr);
     auto getGlobalVars() -> QQmlPropertyMap*;
     auto getThemeVars() -> QQmlPropertyMap*;
+    Q_INVOKABLE
 
   signals:
     void globalVarsChanged();

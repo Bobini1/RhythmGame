@@ -77,16 +77,17 @@ Profile::setAvatar(QString newAvatar)
     updateProperty.execute();
     emit avatarChanged();
 }
-Profile::Profile(
-  const std::filesystem::path& dbPath,
-  const QMap<QString, qml_components::ThemeFamily>& themeFamilies,
-  QObject* parent)
+Profile::
+Profile(const std::filesystem::path& dbPath,
+        const QMap<QString, qml_components::ThemeFamily>& themeFamilies,
+        QObject* parent)
   : QObject(parent)
   , db(createDb(dbPath))
   , dbPath(dbPath)
   , themeConfig(
       createConfig(themeFamilies, dbPath.parent_path() / "theme_config.json")
         .release())
+  , vars(this, themeFamilies)
 {
     this->themeConfig->setParent(this);
     auto configPath = dbPath.parent_path() / "theme_config.json";
@@ -199,5 +200,10 @@ Profile::setKeyConfig(const QList<input::Mapping>& keyConfig) -> void
     updateProperty.bind(2, compressedData.data(), compressedData.size());
     updateProperty.execute();
     emit keyConfigChanged();
+}
+auto
+Profile::getVars() -> Vars*
+{
+    return &vars;
 }
 } // namespace resource_managers

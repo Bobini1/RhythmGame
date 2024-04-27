@@ -5,6 +5,7 @@
 #ifndef RHYTHMGAME_PROFILE_H
 #define RHYTHMGAME_PROFILE_H
 
+#include "Vars.h"
 #include "db/SqliteCppDb.h"
 #include "input/InputTranslator.h"
 
@@ -22,12 +23,14 @@ class Profile : public QObject
     Q_PROPERTY(QQmlPropertyMap* themeConfig READ getThemeConfig CONSTANT)
     Q_PROPERTY(
       QList<input::Mapping> keyConfig READ getKeyConfig NOTIFY keyConfigChanged)
+    Q_PROPERTY(Vars* vars READ getVars CONSTANT)
     QString name;
     QString avatar;
     db::SqliteCppDb db;
     std::filesystem::path dbPath;
     QQmlPropertyMap* themeConfig;
     QList<input::Mapping> keyConfig;
+    Vars vars;
 
   public:
     /**
@@ -51,6 +54,7 @@ class Profile : public QObject
     auto getThemeConfig() const -> QQmlPropertyMap*;
     auto getKeyConfig() const -> QList<input::Mapping>;
     auto setKeyConfig(const QList<input::Mapping>& keyConfig) -> void;
+    auto getVars() -> Vars*;
 
   signals:
     void nameChanged();

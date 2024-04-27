@@ -43,39 +43,48 @@ RowLayout {
             model: ProfileList.currentProfile.themeConfig.keys()
 
             Frame {
-                ComboBox {
-                    id: themeComboBox
+                RowLayout {
+                    ComboBox {
+                        id: themeComboBox
 
-                    property bool loaded: false
+                        property bool loaded: false
 
-                    Layout.fillWidth: true
-                    model: {
-                        let themeFamilies = Themes.availableThemeFamilies;
-                        let themeNames = [];
-                        for (let [name, family] of Object.entries(themeFamilies)) {
-                            if (family.screens[modelData]) {
-                                themeNames.push(name);
+                        Layout.fillWidth: true
+                        model: {
+                            let themeFamilies = Themes.availableThemeFamilies;
+                            let themeNames = [];
+                            for (let [name, family] of Object.entries(themeFamilies)) {
+                                if (family.screens[modelData]) {
+                                    themeNames.push(name);
+                                }
+                            }
+                            return themeNames;
+                        }
+
+                        Component.onCompleted: {
+                            let themeFamilies = Themes.availableThemeFamilies;
+                            let themeNames = [];
+                            for (let [name, family] of Object.entries(themeFamilies)) {
+                                if (family.screens[modelData]) {
+                                    themeNames.push(name);
+                                }
+                            }
+                            let index = themeNames.indexOf(ProfileList.currentProfile.themeConfig[modelData]);
+                            currentIndex = index;
+                            loaded = true;
+                        }
+                        onCurrentTextChanged: {
+                            if (themeComboBox.loaded) {
+                                ProfileList.currentProfile.themeConfig[modelData] = themeComboBox.currentText;
                             }
                         }
-                        return themeNames;
                     }
+                    ScreenSettings {
+                        id: screenSettings
 
-                    Component.onCompleted: {
-                        let themeFamilies = Themes.availableThemeFamilies;
-                        let themeNames = [];
-                        for (let [name, family] of Object.entries(themeFamilies)) {
-                            if (family.screens[modelData]) {
-                                themeNames.push(name);
-                            }
-                        }
-                        let index = themeNames.indexOf(ProfileList.currentProfile.themeConfig[modelData]);
-                        currentIndex = index;
-                        loaded = true;
-                    }
-                    onCurrentTextChanged: {
-                        if (themeComboBox.loaded) {
-                            ProfileList.currentProfile.themeConfig[modelData] = themeComboBox.currentText;
-                        }
+                        Layout.fillHeight: true
+                        Layout.fillWidth: true
+                        screen: modelData
                     }
                 }
             }
