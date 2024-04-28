@@ -45,7 +45,6 @@ class Vars final : public QObject
       QObject* parent = nullptr);
     auto getGlobalVars() -> QQmlPropertyMap*;
     auto getThemeVars() -> QQmlPropertyMap*;
-    Q_INVOKABLE
 
   signals:
     void globalVarsChanged();
