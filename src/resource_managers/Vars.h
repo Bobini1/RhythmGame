@@ -9,6 +9,7 @@
 
 #include <QObject>
 #include <QQmlPropertyMap>
+#include <filesystem>
 
 namespace qml_components {
 class ProfileList;
@@ -31,6 +32,11 @@ class Vars final : public QObject
     QHash<QString, QHash<QString, QHash<QString, QVariant>>> loadedThemeVars;
 
     void onThemeConfigChanged(const QString& key, const QVariant& value);
+    void populateThemePropertyMap(
+      QQmlPropertyMap& themeVars,
+      QHash<QString, QHash<QString, QHash<QString, QVariant>>> themeVarsData,
+      const std::filesystem::path& themeVarsPath,
+      const QQmlPropertyMap& themeConfig);
 
   public:
     explicit Vars(

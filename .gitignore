@@ -17,3 +17,4 @@ conan.lock
 *.sqlite
 *.sqlite-shm
 *.sqlite-wal
+assets/profiles/default/*.json

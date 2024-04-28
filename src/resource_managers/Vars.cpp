@@ -2,12 +2,12 @@
 // Created by bobini on 05.04.24.
 //
 
+#include <memory>
 #include <spdlog/spdlog.h>
 #include <QFile>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonArray>
-#include <QJSEngine>
 #include "Vars.h"
 #include "qml_components/ProfileList.h"
 #include "qml_components/ThemeFamily.h"
@@ -26,12 +26,7 @@ writeGlobalVars(const QQmlPropertyMap& globalVars,
 {
     auto json = QJsonObject();
     for (const auto& key : globalVars.keys()) {
-        try {
-            json[key] = globalVars[key].toJsonValue();
-        } catch (const std::exception& exception) {
-            spdlog::error("Can't save global var with key {}",
-                          key.toStdString());
-        }
+        json[key] = globalVars[key].toJsonValue();
     }
     auto file = QFile{ profileFolder / "globalVars.json" };
     if (!file.open(QIODevice::WriteOnly)) {
@@ -45,9 +40,9 @@ writeGlobalVars(const QQmlPropertyMap& globalVars,
 }
 
 void
-writeThemeVarsForTheme(const QQmlPropertyMap& themeVars,
-                       const std::filesystem::path& path,
-                       std::span<const QString> screens)
+writeThemeVarsForTheme(
+  const QHash<QString, QHash<QString, QVariant>>& themeVars,
+  const std::filesystem::path& path)
 {
     auto file = QFile{ path };
     if (!file.open(QIODevice::ReadWrite)) {
@@ -56,28 +51,51 @@ writeThemeVarsForTheme(const QQmlPropertyMap& themeVars,
         return;
     }
     auto jsonDocument = QJsonDocument::fromJson(file.readAll());
-    if (!jsonDocument.isObject()) {
-        jsonDocument.setObject(QJsonObject());
-    }
     auto json = jsonDocument.object();
-    for (const auto& screen : screens) {
+    for (const auto& [screen, vars] : themeVars.asKeyValueRange()) {
         auto screenObject = QJsonObject();
-        const auto* screenPropertyMap =
-          themeVars[screen].value<QQmlPropertyMap*>();
-        if (screenPropertyMap == nullptr) {
-            json[screen] = screenObject;
-            continue;
-        }
-        for (const auto& key : screenPropertyMap->keys()) {
-            try {
-                screenObject[key] = screenPropertyMap->value(key).toJsonValue();
-            } catch (std::exception& exception) {
-                spdlog::error("{}", exception.what());
-            }
+        for (const auto& [key, value] : vars.asKeyValueRange()) {
+            screenObject[key] = QJsonValue::fromVariant(value);
         }
         json[screen] = screenObject;
     }
-    file.reset();
+    jsonDocument.setObject(json);
+    file.resize(0);
+    file.write(jsonDocument.toJson());
+}
+
+void
+writeThemeVars(
+  const QHash<QString, QHash<QString, QHash<QString, QVariant>>>& themeVars,
+  const std::filesystem::path& profileFolder)
+{
+    for (const auto& [name, vars] : themeVars.asKeyValueRange()) {
+        writeThemeVarsForTheme(
+          vars,
+          profileFolder /
+            support::qStringToPath(name + QStringLiteral("-vars.json")));
+    }
+}
+
+void
+writeSingleThemeVar(const QString& screen,
+                    const QString& key,
+                    const QVariant& value,
+                    const std::filesystem::path& path)
+{
+    auto file = QFile{ path };
+    if (!file.open(QIODevice::ReadWrite)) {
+        spdlog::error("Failed to open config for reading + writing: {}. The "
+                      "var {} will not be written.",
+                      path.string(),
+                      key.toStdString());
+        return;
+    }
+    auto jsonDocument = QJsonDocument::fromJson(file.readAll());
+    auto json = jsonDocument.object();
+    json[screen].toObject()[key] = QJsonValue::fromVariant(value);
+    jsonDocument.setObject(json);
+    file.resize(0);
     file.write(jsonDocument.toJson());
 }
 
@@ -142,7 +160,7 @@ createFileProperty(QHash<QString, QVariant>& screenVars,
     if (files.empty()) {
         spdlog::debug("No files found for property of type file: {}",
                       jsonValueToString(object));
-        screenVars[object["id"].toString()] = QJsonValue::Null;
+        screenVars[object["id"].toString()] = QVariant();
     } else {
         screenVars[object["id"].toString()] =
           QVariant(support::pathToQString(relative(files.front(), themePath)));
@@ -260,8 +278,14 @@ createHiddenProperty(QHash<QString, QVariant>& screenVars,
       object["default"].isUndefined() ? QJsonValue::Null : object["default"];
 }
 
+struct ScreenVarsPopulationResult
+{
+    QHash<QString, QVariant> screenVars;
+    QSet<QString> fileTypeProperties;
+};
+
 void
-createProperty(QHash<QString, QVariant>& screenVars,
+createProperty(ScreenVarsPopulationResult& result,
                const std::filesystem::path& themePath,
                const QJsonObject& object)
 {
@@ -276,19 +300,20 @@ createProperty(QHash<QString, QVariant>& screenVars,
                       jsonValueToString(object)));
     }
     if (object["type"] == "file") {
-        createFileProperty(screenVars, object, themePath);
+        createFileProperty(result.screenVars, object, themePath);
+        result.fileTypeProperties.insert(object["id"].toString());
     } else if (object["type"] == "color") {
-        createColorProperty(screenVars, object);
+        createColorProperty(result.screenVars, object);
     } else if (object["type"] == "choice") {
-        createChoiceProperty(screenVars, object);
+        createChoiceProperty(result.screenVars, object);
     } else if (object["type"] == "checkbox") {
-        createCheckBoxProperty(screenVars, object);
+        createCheckBoxProperty(result.screenVars, object);
     } else if (object["type"] == "string") {
-        createStringProperty(screenVars, object);
+        createStringProperty(result.screenVars, object);
     } else if (object["type"] == "range") {
-        createRangeProperty(screenVars, object);
+        createRangeProperty(result.screenVars, object);
     } else if (object["type"] == "hidden") {
-        createHiddenProperty(screenVars, object);
+        createHiddenProperty(result.screenVars, object);
     } else {
         throw support::Exception(std::format("Property has unknown type: {}",
                                              jsonValueToString(object)));
@@ -297,7 +322,7 @@ createProperty(QHash<QString, QVariant>& screenVars,
 
 void
 populateScreenVarsRecursive( // NOLINT(*-no-recursion)
-  QHash<QString, QVariant>& screenVars,
+  ScreenVarsPopulationResult& screenVars,
   const std::filesystem::path& themePath,
   const QJsonArray& array)
 {
@@ -326,32 +351,24 @@ populateScreenVarsRecursive( // NOLINT(*-no-recursion)
 auto
 populateScreenVars(const std::filesystem::path& themePath,
                    const std::filesystem::path& settingsPath)
-  -> QHash<QString, QVariant>
-
+  -> ScreenVarsPopulationResult
 {
-    auto vars = QHash<QString, QVariant>{};
-    try {
-        auto file = QFile{ settingsPath };
-        if (!file.exists()) {
-            return {};
-        }
-        if (!file.open(QIODevice::ReadOnly)) {
-            spdlog::error("Failed to open config for reading: {}",
-                          settingsPath.string());
-        }
-        const auto contents = QJsonDocument::fromJson(file.readAll());
-        if (!contents.isArray()) {
-            throw support::Exception(std::format(
-              "Settings file is not an array: {}", settingsPath.string()));
-        }
-        populateScreenVarsRecursive(vars, themePath, contents.array());
-    } catch (const std::exception& exception) {
-        throw support::Exception(
-          std::format("Failed to populate screen vars for screen {}: {}",
-                      settingsPath.string(),
-                      exception.what()));
+    auto result = ScreenVarsPopulationResult{};
+    auto file = QFile{ settingsPath };
+    if (!file.exists()) {
+        return {};
     }
-    return vars;
+    if (!file.open(QIODevice::ReadOnly)) {
+        spdlog::error("Failed to open config for reading: {}",
+                      settingsPath.string());
+    }
+    const auto contents = QJsonDocument::fromJson(file.readAll());
+    if (!contents.isArray()) {
+        throw support::Exception(std::format(
+          "Settings file is not an array: {}", settingsPath.string()));
+    }
+    populateScreenVarsRecursive(result, themePath, contents.array());
+    return result;
 }
 
 void
@@ -384,8 +401,7 @@ readThemeVarsForTheme(const std::filesystem::path& themeVarsPath,
                       const qml_components::ThemeFamily& themeFamily)
   -> QHash<QString, QHash<QString, QVariant>>
 {
-    auto file = QFile{ themeVarsPath };
-    auto vars = QHash<QString, QHash<QString, QVariant>>{};
+    auto vars = QHash<QString, ScreenVarsPopulationResult>{};
     for (const auto& screen : themeFamily.getScreens().keys()) {
         auto settingsUrl = themeFamily.getScreens()[screen]
                              .value<qml_components::Screen>()
@@ -396,23 +412,48 @@ readThemeVarsForTheme(const std::filesystem::path& themeVarsPath,
         auto settingsPath = support::qStringToPath(settingsUrl.toLocalFile());
         vars[screen] = populateScreenVars(themePath, settingsPath);
     }
+    auto result = QHash<QString, QHash<QString, QVariant>>{};
+    for (const auto& [screen, screenVars] : vars.asKeyValueRange()) {
+        result[screen] = screenVars.screenVars;
+    }
+    auto file = QFile{ themeVarsPath };
     if (!file.exists()) {
-        return vars;
+        return result;
     }
     if (!file.open(QIODevice::ReadOnly)) {
         spdlog::error("Failed to open config for reading: {}",
                       themeVarsPath.string());
-        return vars;
+        return result;
     }
-    try {
-        auto contents = QJsonDocument::fromJson(file.readAll()).object();
-        for (const auto& screen : themeFamily.getScreens().keys()) {
-            vars[screen].insert(contents[screen].toObject().toVariantHash());
+    auto contents = QJsonDocument::fromJson(file.readAll()).object();
+    for (const auto& screen : themeFamily.getScreens().keys()) {
+        for (const auto& [key, value] :
+             contents[screen].toObject().toVariantHash().asKeyValueRange()) {
+            if (vars[screen].fileTypeProperties.contains(key)) {
+                if (value.isNull()) {
+                    continue;
+                }
+                if (exists(themePath /
+                           support::qStringToPath(value.toString()))) {
+                    result[screen][key] = value;
+                } else {
+                    spdlog::debug(
+                      "The saved file property {} of screen {} of theme {} "
+                      "({}) does not point to an existing file, will use the "
+                      "default instead ({}).",
+                      key.toStdString(),
+                      screen.toStdString(),
+                      themePath.string(),
+                      contents[screen].toObject()[key].toString().toStdString(),
+                      result[screen][key].toString().toStdString());
+                }
+            } else {
+                result[screen][key] =
+                  contents[screen].toObject()[key].toVariant();
+            }
         }
-    } catch (std::exception& exception) {
-        spdlog::error("{}", exception.what());
     }
-    return vars;
+    return result;
 }
 
 auto
@@ -433,7 +474,7 @@ readThemeVars(const std::filesystem::path& profileFolder,
 }
 
 void
-populateThemePropertyMap(
+resource_managers::Vars::populateThemePropertyMap(
   QQmlPropertyMap& themeVars,
   QHash<QString, QHash<QString, QHash<QString, QVariant>>> themeVarsData,
   const std::filesystem::path& themeVarsPath,
@@ -447,13 +488,20 @@ populateThemePropertyMap(
         auto propertyMap = std::make_unique<QQmlPropertyMap>(&themeVars);
         propertyMap->insert(themeVarsData[value][key]);
         propertyMap->freeze();
-        QObject::connect(
-          propertyMap.get(),
-          &QQmlPropertyMap::valueChanged,
-          [propertyMap, themeVarsPath, screens = QList<QString>(key)](
-            const QString& key, const QVariant& value) {
-              writeThemeVarsForTheme(*propertyMap, themeVarsPath, screens);
-          });
+        connect(propertyMap.get(),
+                &QQmlPropertyMap::valueChanged,
+                this,
+                [this, themeVarsPath, screen = key, themeFamily = value](
+                  const QString& key, const QVariant& value) {
+                    loadedThemeVars[themeFamily][screen][key] = value;
+                    writeSingleThemeVar(
+                      screen,
+                      key,
+                      value,
+                      themeVarsPath /
+                        support::qStringToPath(themeFamily +
+                                               QStringLiteral("-vars.json")));
+                });
         themeVars.insert(key, QVariant::fromValue(propertyMap.release()));
     }
     themeVars.freeze();
@@ -470,10 +518,13 @@ Vars(const Profile* profile,
                                   this->availableThemeFamilies))
 {
     const auto* themeConfig = profile->getThemeConfig();
+    writeThemeVars(loadedThemeVars, profile->getPath().parent_path());
     populateThemePropertyMap(themeVars,
                              loadedThemeVars,
                              profile->getPath().parent_path(),
                              *themeConfig);
+    readGlobalVars(globalVars, profile->getPath().parent_path());
+    writeGlobalVars(globalVars, profile->getPath().parent_path());
     connect(themeConfig,
             &QQmlPropertyMap::valueChanged,
             this,
@@ -486,7 +537,6 @@ Vars(const Profile* profile,
                                 this->profile->getPath().parent_path() /
                                   "globalVars.json");
             });
-    readGlobalVars(globalVars, profile->getPath().parent_path());
 }
 auto
 resource_managers::Vars::getGlobalVars() -> QQmlPropertyMap*
@@ -508,11 +558,20 @@ resource_managers::Vars::onThemeConfigChanged(const QString& key,
     propertyMap->freeze();
     connect(propertyMap.get(),
             &QQmlPropertyMap::valueChanged,
-            [propertyMap,
+            this,
+            [this,
              themeVarsPath = profile->getPath().parent_path(),
-             screens = QList<QString>(key)](const QString& key,
-                                            const QVariant& value) {
-                writeThemeVarsForTheme(*propertyMap, themeVarsPath, screens);
+             screen = key,
+             themeFamily = value.toString()](const QString& key,
+                                             const QVariant& value) {
+                loadedThemeVars[themeFamily][screen][key] = value;
+                writeSingleThemeVar(
+                  screen,
+                  key,
+                  value,
+                  themeVarsPath /
+                    support::qStringToPath(themeFamily +
+                                           QStringLiteral("-vars.json")));
             });
     themeVars.insert(key, QVariant::fromValue(propertyMap.release()));
 }
