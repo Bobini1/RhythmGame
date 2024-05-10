@@ -52,23 +52,23 @@
     },
     {
       "name": "qtdeclarative",
-      "version>=": "6.6.1"
+      "version>=": "6.7.0"
     },
     {
       "name": "qtshadertools",
-      "version>=": "6.6.1"
+      "version>=": "6.7.0"
     },
     {
       "name": "qt5compat",
-      "version>=": "6.6.1"
+      "version>=": "6.7.0"
     },
     {
       "name": "qtsvg",
-      "version>=": "6.6.1"
+      "version>=": "6.7.0"
     },
     {
       "name": "qtmultimedia",
-      "version>=": "6.6.1",
+      "version>=": "6.7.0",
       "features": [
         "qml",
         "gstreamer"
@@ -77,7 +77,7 @@
     },
     {
       "name": "qtmultimedia",
-      "version>=": "6.6.1",
+      "version>=": "6.7.0",
       "features": [
         "qml"
       ],
@@ -96,5 +96,5 @@
       ]
     }
   },
-  "builtin-baseline": "13766fcd1292a973fea53fba731a0fb90c7ee310"
+  "builtin-baseline": "a1212c93cabaa9c5c36c1ffdb4bddd59fdf31e43"
 }
