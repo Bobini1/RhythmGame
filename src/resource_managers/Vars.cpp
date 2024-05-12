@@ -93,7 +93,9 @@ writeSingleThemeVar(const QString& screen,
     }
     auto jsonDocument = QJsonDocument::fromJson(file.readAll());
     auto json = jsonDocument.object();
-    json[screen].toObject()[key] = QJsonValue::fromVariant(value);
+    auto object = json[screen].toObject();
+    object[key] = QJsonValue::fromVariant(value);
+    json[screen] = object;
     jsonDocument.setObject(json);
     file.resize(0);
     file.write(jsonDocument.toJson());
