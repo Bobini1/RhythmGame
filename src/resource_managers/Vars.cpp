@@ -300,7 +300,7 @@ createHiddenProperty(QHash<QString, QVariant>& screenVars,
 struct ScreenVarsPopulationResult
 {
     QHash<QString, QVariant> screenVars;
-    QSet<QString> fileTypeProperties;
+    QHash<QString, QString> fileTypeProperties;
 };
 
 void
@@ -320,7 +320,8 @@ createProperty(ScreenVarsPopulationResult& result,
     }
     if (object["type"] == "file") {
         createFileProperty(result.screenVars, object, themePath);
-        result.fileTypeProperties.insert(object["id"].toString());
+        result.fileTypeProperties.insert(object["id"].toString(),
+                                         object["path"].toString());
     } else if (object["type"] == "color") {
         createColorProperty(result.screenVars, object);
     } else if (object["type"] == "choice") {
@@ -453,6 +454,8 @@ readThemeVarsForTheme(const std::filesystem::path& themeVarsPath,
                     continue;
                 }
                 if (exists(themePath /
+                           support::qStringToPath(
+                             vars[screen].fileTypeProperties[key]) /
                            support::qStringToPath(value.toString()))) {
                     result[screen][key] = value;
                 } else {
@@ -463,7 +466,11 @@ readThemeVarsForTheme(const std::filesystem::path& themeVarsPath,
                       key.toStdString(),
                       screen.toStdString(),
                       themePath.string(),
-                      contents[screen].toObject()[key].toString().toStdString(),
+                      (themePath /
+                       support::qStringToPath(
+                         vars[screen].fileTypeProperties[key]) /
+                       support::qStringToPath(value.toString()))
+                        .string(),
                       result[screen][key].toString().toStdString());
                 }
             } else {
