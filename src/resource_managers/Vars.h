@@ -45,6 +45,8 @@ class Vars final : public QObject
       QObject* parent = nullptr);
     auto getGlobalVars() -> QQmlPropertyMap*;
     auto getThemeVars() -> QQmlPropertyMap*;
+    Q_INVOKABLE QList<QString> getSelectableFilesForDirectory(
+      QString directory) const;
 
   signals:
     void globalVarsChanged();

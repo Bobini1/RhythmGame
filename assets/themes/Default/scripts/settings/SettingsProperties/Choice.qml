@@ -4,14 +4,14 @@ import QtQuick.Controls.Basic
 import RhythmGameQml
 
 ComboBox {
-    id: fileComboBox
-    model: ProfileList.currentProfile.vars.getSelectableFilesForDirectory(Themes.availableThemeFamilies[ProfileList.currentProfile.themeConfig[screen]].path + "/" + props.path)
+    id: choiceComboBox
+    model: props.choices
     delegate: ItemDelegate {
         text: modelData
         width: parent.width
         Component.onCompleted: {
             if (destination[props.id] === modelData) {
-                fileComboBox.currentIndex = index;
+                choiceComboBox.currentIndex = index;
             }
         }
     }

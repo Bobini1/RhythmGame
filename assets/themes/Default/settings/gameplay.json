@@ -5,10 +5,10 @@
     "items": [
       {
         "id": "blackColumnWidth",
-        "name": "Black Column Width",
+        "name": "Black Column Width this is a very long string that is going to fill the screen. What to do about it? I don't know.",
         "type": "range",
         "min": 0,
-        "max": 100,
+        "max": 10000,
         "default": 20
       },
       {
@@ -21,7 +21,7 @@
       },
       {
         "id": "laneBrightness",
-        "displayName": "Lane Brightness",
+        "name": "Lane Brightness",
         "type": "range",
         "min": 0,
         "max": 100,
@@ -32,13 +32,117 @@
         "name": "Lane Cover Image",
         "type": "file",
         "path": "scripts/gameplay/images/laneCover"
+      },
+      {
+        "id": "fontColor2",
+        "name": "Font color 2",
+        "type": "color",
+        "default": "#FFFFFF"
       }
     ]
   },
   {
-    "id": "fontColor",
-    "displayName": "Font color",
+    "id": "fontColor3",
+    "name": "Font color",
     "type": "color",
     "default": "#FFFFFF"
+  },
+  {
+    "id": "fontColor4",
+    "name": "Font color",
+    "type": "color",
+    "default": "#FFFFFF"
+  },
+  {
+    "id": "fontColor5",
+    "name": "Font color",
+    "type": "color",
+    "default": "#FFFFFF"
+  },
+  {
+    "id": "fontColor6",
+    "name": "Font color",
+    "type": "color",
+    "default": "#FFFFFF"
+  },
+  {
+    "id": "fontColor7",
+    "name": "Font color",
+    "type": "color",
+    "default": "#FFFFFF"
+  },
+  {
+    "id": "fontColor8",
+    "name": "Font color",
+    "type": "color",
+    "default": "#FFFFFF"
+  },
+  {
+    "id": "fontColor9",
+    "name": "Font color",
+    "type": "color",
+    "default": "#FFFFFF"
+  },
+  {
+    "id": "fontColor10",
+    "name": "Font color",
+    "type": "color",
+    "default": "#FFFFFF"
+  },
+  {
+    "id": "blackColumnWidth2",
+    "name": "Black Column Width this is a very long string that is going to fill the screen. What to do about it? I don't know.",
+    "type": "range",
+    "min": 0,
+    "max": 100,
+    "default": 20
+  },
+  {
+    "id": "blackColumnWidth3",
+    "name": "Black Column Width this is a very long string that is going to fill the screen. What to do about it? I don't know.",
+    "type": "range",
+    "min": 0,
+    "max": 100,
+    "default": 20
+  },
+  {
+    "id": "blackColumnWidth4",
+    "name": "Black Column Width this is a very long string that is going to fill the screen. What to do about it? I don't know.",
+    "type": "range",
+    "min": 0,
+    "max": 100,
+    "default": 20
+  },
+  {
+    "id": "blackColumnWidth5",
+    "name": "Black Column Width this is a very long string that is going to fill the screen. What to do about it? I don't know.",
+    "type": "range",
+    "min": 0,
+    "max": 100,
+    "default": 20
+  },
+  {
+    "id": "blackColumnWidth6",
+    "name": "Black Column Width this is a very long string that is going to fill the screen. What to do about it? I don't know.",
+    "type": "range",
+    "min": 0,
+    "max": 100,
+    "default": 20
+  },
+  {
+    "id": "blackColumnWidth7",
+    "name": "Black Column Width this is a very long string that is going to fill the screen. What to do about it? I don't know.",
+    "type": "range",
+    "min": 0,
+    "max": 100,
+    "default": 20
+  },
+  {
+    "id": "blackColumnWidth8",
+    "name": "Black Column Width this is a very long string that is going to fill the screen. What to do about it? I don't know.",
+    "type": "range",
+    "min": 0,
+    "max": 100,
+    "default": 20
   }
 ]

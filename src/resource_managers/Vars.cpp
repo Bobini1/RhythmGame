@@ -115,6 +115,27 @@ jsonValueToString(const QJsonValue& value) -> std::string
     return QJsonDocument(value.toObject()).toJson().toStdString();
 }
 
+auto
+getSelectableFilesForDirectory(const std::filesystem::path& path)
+  -> QList<QString>
+{
+    auto files = QList<QString>{};
+    for (const auto& file : std::filesystem::directory_iterator(path)) {
+        if (!file.is_regular_file()) {
+            continue;
+        }
+        if (file.path().extension() == ".ini") {
+            continue;
+        }
+        // ignore files starting with dot
+        if (file.path().filename().string().front() == '.') {
+            continue;
+        }
+        files.push_back(support::pathToQString(file.path().filename()));
+    }
+    return files;
+}
+
 void
 createFileProperty(QHash<QString, QVariant>& screenVars,
                    const QJsonObject& object,
@@ -152,18 +173,14 @@ createFileProperty(QHash<QString, QVariant>& screenVars,
             return;
         }
     }
-    std::vector<std::filesystem::path> files;
-    for (const auto& file : std::filesystem::directory_iterator(
-           themePath / support::qStringToPath(path.toString()))) {
-        files.push_back(file.path());
-    }
-    if (files.empty()) {
+    if (const auto files = getSelectableFilesForDirectory(
+          themePath / support::qStringToPath(path.toString()));
+        !files.empty()) {
+        screenVars[object["id"].toString()] = QVariant(files.first());
+    } else {
         spdlog::debug("No files found for property of type file: {}",
                       jsonValueToString(object));
         screenVars[object["id"].toString()] = QVariant();
-    } else {
-        screenVars[object["id"].toString()] =
-          QVariant(support::pathToQString(relative(files.front(), themePath)));
     }
 }
 
@@ -216,7 +233,7 @@ createChoiceProperty(QHash<QString, QVariant>& screenVars,
           "{}",
           jsonValueToString(object)));
     }
-    screenVars[object["id"].toString()] = object["default"].toString();
+    screenVars[object["id"].toString()] = object["default"].toVariant();
 }
 
 void
@@ -547,6 +564,11 @@ auto
 resource_managers::Vars::getThemeVars() -> QQmlPropertyMap*
 {
     return &themeVars;
+}
+QList<QString>
+resource_managers::Vars::getSelectableFilesForDirectory(QString directory) const
+{
+    return ::getSelectableFilesForDirectory(support::qStringToPath(directory));
 }
 void
 resource_managers::Vars::onThemeConfigChanged(const QString& key,

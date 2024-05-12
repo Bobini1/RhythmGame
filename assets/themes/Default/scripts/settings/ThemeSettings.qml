@@ -43,13 +43,16 @@ RowLayout {
             model: ProfileList.currentProfile.themeConfig.keys()
 
             Frame {
+                Layout.fillHeight: true
+                Layout.fillWidth: true
                 RowLayout {
+                    anchors.fill: parent
                     ComboBox {
                         id: themeComboBox
 
                         property bool loaded: false
-
-                        Layout.fillWidth: true
+                        Layout.alignment: Qt.AlignTop
+                        Layout.preferredWidth: 200
                         model: {
                             let themeFamilies = Themes.availableThemeFamilies;
                             let themeNames = [];
@@ -79,12 +82,17 @@ RowLayout {
                             }
                         }
                     }
-                    ScreenSettings {
-                        id: screenSettings
-
+                    ScrollView {
+                        id: scrollView
                         Layout.fillHeight: true
                         Layout.fillWidth: true
-                        screen: modelData
+                        clip: true
+                        contentWidth: Math.max(width, 450)
+                        ScreenSettings {
+                            id: screenSettings
+                            screen: modelData
+                            width: scrollView.contentWidth
+                        }
                     }
                 }
             }

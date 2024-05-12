@@ -16,7 +16,7 @@ Rectangle {
             id: tabView
 
             Layout.fillWidth: true
-            height: childrenRect.height
+            Layout.preferredHeight: childrenRect.height
 
             TabButton {
                 text: qsTr("Song directories")
@@ -30,6 +30,8 @@ Rectangle {
         }
         StackLayout {
             id: stackView
+            Layout.fillWidth: true
+            Layout.fillHeight: true
 
             currentIndex: tabView.currentIndex
 

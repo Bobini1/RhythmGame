@@ -4,6 +4,8 @@
 
 #include <QSettings>
 #include "IniImageProvider.h"
+#include <QFile>
+#include <spdlog/spdlog.h>
 
 namespace resource_managers {
 
@@ -18,22 +20,33 @@ IniImageProvider::requestPixmap(const QString& id,
     // load the ini file
     QString pathToIni = path;
     pathToIni.append(".ini");
-    auto settings = QSettings(pathToIni, QSettings::IniFormat);
+    if (!QFile(pathToIni).exists()) {
+        // use folder.ini if the file does not exist
+        path.remove(path.lastIndexOf('/'), path.length());
+        pathToIni = path;
+        pathToIni.append("/folder.ini");
+        if (!QFile(pathToIni).exists()) {
+            spdlog::warn("Could not find the ini file for {}",
+                         id.toStdString());
+            return {};
+        }
+    }
+    const auto settings = QSettings(pathToIni, QSettings::IniFormat);
     // get the key identified by the last part of the url
     QString key = id;
     key.remove(0, key.lastIndexOf('/') + 1);
     // get the size and position of the image
     auto rect = settings.value(key).toRect();
-    if (size) {
+    if (size != nullptr) {
         *size = rect.size();
     }
     if (rect.isNull()) {
         return {};
     }
     auto pixmap = [this, rect, &path] {
-        auto cachedPixmap = pixmaps.find(path);
+        const auto cachedPixmap = pixmaps.find(path);
         if (cachedPixmap == pixmaps.end()) {
-            auto pixmap = pixmaps.emplace(path, QPixmap(path));
+            const auto pixmap = pixmaps.emplace(path, QPixmap(path));
             return pixmap->copy(rect);
         }
         return cachedPixmap->copy(rect);
@@ -46,7 +59,8 @@ IniImageProvider::requestPixmap(const QString& id,
     }
     return pixmap;
 }
-IniImageProvider::IniImageProvider()
+IniImageProvider::
+IniImageProvider()
   : QQuickImageProvider(QQuickImageProvider::Pixmap)
 {
 }
