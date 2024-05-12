@@ -21,6 +21,19 @@ Frame {
             font.bold: true
             readOnly: true
         }
+        TextEdit {
+            wrapMode: TextEdit.Wrap
+            Layout.fillWidth: true
+            text: groupFrame._props.description || ""
+            font.pixelSize: 16
+            readOnly: true
+        }
+        // empty space separator
+        Rectangle {
+            Layout.fillWidth: true
+            Layout.preferredHeight: 10
+            color: "transparent"
+        }
         Repeater {
             model: groupFrame._props.items
             RowLayout {
@@ -40,6 +53,11 @@ Frame {
                             font.bold: true
                             wrapMode: TextEdit.Wrap
                             readOnly: true
+                            HoverHandler {
+                                id: hoverHandler
+                            }
+                            ToolTip.visible: hoverHandler.hovered && (modelData.description || false)
+                            ToolTip.text: modelData.description || ""
                         }
                     }
                 }

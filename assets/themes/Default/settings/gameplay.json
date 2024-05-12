@@ -2,6 +2,7 @@
   {
     "name": "Play Area Settings",
     "type": "group",
+    "description": "This is a description of the group. It is a very long string.",
     "items": [
       {
         "id": "blackColumnWidth",
@@ -9,6 +10,7 @@
         "type": "range",
         "min": 0,
         "max": 10000,
+        "description": "This is a description of the black column width. It is a very long string.",
         "default": 20
       },
       {
