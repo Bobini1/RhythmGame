@@ -82,6 +82,11 @@
         "qml"
       ],
       "platform": "!linux"
+    },
+    {
+      "name": "qtwayland",
+      "version>=": "6.7.0",
+      "platform": "linux"
     }
   ],
   "default-features": [],
