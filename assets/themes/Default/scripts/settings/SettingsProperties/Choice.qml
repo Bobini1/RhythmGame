@@ -9,13 +9,18 @@ ComboBox {
     delegate: ItemDelegate {
         text: modelData
         width: parent.width
-        Component.onCompleted: {
-            if (destination[props.id] === modelData) {
-                choiceComboBox.currentIndex = index;
+    }
+    Component.onCompleted: {
+        let index = 0;
+        for (let choice of props.choices) {
+            if (destination[props.id] === choice) {
+                currentIndex = index;
+                break;
             }
+            index++;
         }
     }
-    onCurrentIndexChanged: {
-        destination[props.id] = currentText;
+    onAccepted: (index) => {
+        destination[props.id] = choiceComboBox.currentText;
     }
 }
