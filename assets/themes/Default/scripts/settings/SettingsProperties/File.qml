@@ -15,7 +15,7 @@ ComboBox {
             }
         }
     }
-    onCurrentIndexChanged: {
+    onCurrentTextChanged: {
         destination[props.id] = currentText;
     }
 }
