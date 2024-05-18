@@ -1,5 +1,5 @@
 {
-  "name": "vcpkg-test",
+  "name": "RhythmGame",
   "version-semver": "0.1.0",
   "dependencies": [
     {
