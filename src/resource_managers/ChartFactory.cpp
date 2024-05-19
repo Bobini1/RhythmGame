@@ -28,17 +28,15 @@ convertImageToFrame(const QImage& image) -> std::unique_ptr<QVideoFrame>
 }
 
 auto
-loadBmp(const std::filesystem::path& path) -> QImage
+loadBmp(std::filesystem::path path) -> QImage
 {
-    if (!std::filesystem::exists(path)) {
-        spdlog::warn("Bga file does not exist: {}", path.string());
-        return {};
-    }
-    // check if it is a valid image
-    auto pathQString = support::pathToQString(path);
+    auto original = path;
+    // remove extension
+    const auto pathQString = support::pathToQString(path.replace_extension());
+    // QImage will try out a few different extensions
     auto image = QImage(pathQString);
     if (image.isNull()) {
-        spdlog::warn("Failed to load bga file: {}", path.string());
+        spdlog::warn("Failed to load bga file: {}", original.string());
         return {};
     }
     image.convertTo(QImage::Format_RGBA8888);
