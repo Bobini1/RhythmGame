@@ -59,7 +59,7 @@ ApplicationWindow {
         readonly property Component settingsComponent: Qt.createComponent(Themes.availableThemeFamilies[ProfileList.currentProfile.themeConfig.settings].screens.settings.script)
         readonly property Component songWheelComponent: Qt.createComponent(Themes.availableThemeFamilies[ProfileList.currentProfile.themeConfig.songWheel].screens.songWheel.script)
 
-        function openChart(path: url) {
+        function openChart(path) {
             let chart = ChartLoader.loadChart(path);
             if (!chart) {
                 console.error("Failed to load chart");
