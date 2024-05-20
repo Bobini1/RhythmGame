@@ -69,19 +69,11 @@
     {
       "name": "qtmultimedia",
       "version>=": "6.7.0",
+      "default-features": false,
       "features": [
         "qml",
-        "gstreamer"
-      ],
-      "platform": "linux"
-    },
-    {
-      "name": "qtmultimedia",
-      "version>=": "6.7.0",
-      "features": [
-        "qml"
-      ],
-      "platform": "!linux"
+        "ffmpeg"
+      ]
     },
     {
       "name": "qtwayland",

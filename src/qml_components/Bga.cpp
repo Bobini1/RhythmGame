@@ -68,7 +68,7 @@ qml_components::Bga::update(std::chrono::nanoseconds offsetFromStart)
         currentVideoFile->second->setVideoOutput(videoSink);
         currentVideoFile->second->play();
         playedVideo = currentVideoFile->second;
-        currentVideoFile++;
+        ++currentVideoFile;
     }
     while (currentImage != images.end() && currentImage->first < offset) {
         if (playedVideo != nullptr) {
@@ -81,14 +81,14 @@ qml_components::Bga::update(std::chrono::nanoseconds offsetFromStart)
             videoSink->setVideoFrame(*getEmptyVideoFrame());
         }
 
-        currentImage++;
+        ++currentImage;
     }
 }
-qml_components::BgaContainer::BgaContainer(
-  QList<Bga*> layers,
-  std::vector<QMediaPlayer*> videoFiles,
-  std::vector<std::unique_ptr<QVideoFrame>> images,
-  QObject* parent)
+qml_components::BgaContainer::
+BgaContainer(QList<Bga*> layers,
+             std::vector<QMediaPlayer*> videoFiles,
+             std::vector<std::unique_ptr<QVideoFrame>> images,
+             QObject* parent)
   : QObject(parent)
   , layers(std::move(layers))
   , videoFiles(std::move(videoFiles))

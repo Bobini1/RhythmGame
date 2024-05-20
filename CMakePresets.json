@@ -33,14 +33,29 @@
       "name": "vcpkg",
       "hidden": true,
       "cacheVariables": {
-        "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
+        "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+        "VCPKG_OVERLAY_TRIPLETS": "${sourceDir}/vcpkgTriplets"
       }
     },
     {
-      "name": "vcpkg-win64-static",
+      "name": "vcpkg-osx-sharedqt",
       "hidden": true,
       "cacheVariables": {
-        "VCPKG_TARGET_TRIPLET": "x64-windows-static-md"
+        "VCPKG_TARGET_TRIPLET": "x64-osx-sharedqt"
+      }
+    },
+    {
+      "name": "vcpkg-linux-sharedqt",
+      "hidden": true,
+      "cacheVariables": {
+        "VCPKG_TARGET_TRIPLET": "x64-linux-sharedqt"
+      }
+    },
+    {
+      "name": "vcpkg-win64-sharedqt",
+      "hidden": true,
+      "cacheVariables": {
+        "VCPKG_TARGET_TRIPLET": "x64-windows-static-md-sharedqt"
       }
     },
     {
@@ -90,7 +105,10 @@
       "name": "ci-linux",
       "generator": "Unix Makefiles",
       "hidden": true,
-      "inherits": ["flags-gcc-clang", "ci-std"],
+      "inherits": [
+        "flags-gcc-clang",
+        "ci-std"
+      ],
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release"
       }
@@ -99,14 +117,20 @@
       "name": "ci-darwin",
       "generator": "Unix Makefiles",
       "hidden": true,
-      "inherits": ["flags-appleclang", "ci-std"],
+      "inherits": [
+        "flags-appleclang",
+        "ci-std"
+      ],
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release"
       }
     },
     {
       "name": "ci-win64",
-      "inherits": ["flags-msvc", "ci-std"],
+      "inherits": [
+        "flags-msvc",
+        "ci-std"
+      ],
       "generator": "Visual Studio 17 2022",
       "architecture": "x64",
       "hidden": true
@@ -127,7 +151,11 @@
     },
     {
       "name": "ci-coverage",
-      "inherits": ["coverage-linux", "dev-mode", "vcpkg"],
+      "inherits": [
+        "coverage-linux",
+        "dev-mode",
+        "vcpkg"
+      ],
       "cacheVariables": {
         "COVERAGE_HTML_COMMAND": ""
       }
@@ -135,7 +163,11 @@
     {
       "name": "ci-sanitize",
       "binaryDir": "${sourceDir}/build/sanitize",
-      "inherits": ["ci-linux", "dev-mode", "vcpkg"],
+      "inherits": [
+        "ci-linux",
+        "dev-mode",
+        "vcpkg"
+      ],
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Sanitize",
         "CMAKE_CXX_FLAGS_SANITIZE": "-U_FORTIFY_SOURCE -O2 -g -fsanitize=address,undefined -fno-omit-frame-pointer -fno-common",
@@ -153,7 +185,8 @@
         "ci-build",
         "ci-darwin",
         "dev-mode",
-        "vcpkg"
+        "vcpkg",
+        "vcpkg-osx-sharedqt"
       ],
       "cacheVariables": {
         "VCPKG_INSTALL_OPTIONS": "--clean-after-build"
@@ -166,7 +199,8 @@
         "ci-linux",
         "clang-tidy",
         "vcpkg",
-        "dev-mode"
+        "dev-mode",
+        "vcpkg-linux-sharedqt"
       ]
     },
     {
@@ -176,7 +210,7 @@
         "ci-win64",
         "dev-mode",
         "vcpkg",
-        "vcpkg-win64-static"
+        "vcpkg-win64-sharedqt"
       ]
     }
   ]
