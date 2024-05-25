@@ -25,9 +25,9 @@ RowLayout {
         id: textField
         horizontalAlignment: Text.AlignHCenter
         Layout.preferredWidth: textMetrics.width + 20
-        text: Qt.locale().toString(destination[props.id], "f", 3)
+        text: Qt.locale().toString(destination[props.id], "f", -128)
         Layout.fillHeight: true
-        color: acceptableInput ? "blackn8" : "red"
+        color: acceptableInput ? "black" : "red"
         validator: DoubleValidator {
             id: doubleValidator
             bottom: props.min !== undefined ? props.min : -Infinity; top: props.max !== undefined ? props.max : Infinity
