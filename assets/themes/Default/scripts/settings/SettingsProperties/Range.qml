@@ -8,9 +8,9 @@ RowLayout {
     height: 30
     Loader {
         active: props.min !== undefined && props.max !== undefined
+        Layout.fillWidth: active
         sourceComponent: Component {
             Slider {
-                Layout.fillWidth: true
                 stepSize: props.max <= 1.0 ? 0.01 : 1
                 from: props.min
                 to: props.max
