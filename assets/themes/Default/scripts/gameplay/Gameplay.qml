@@ -14,11 +14,11 @@ Rectangle {
         let sizes = [];
         for (let i = 0; i < 16; i++) {
             if (i == 7 || i == 15) {
-                sizes.push(ProfileList.currentProfile.vars.themeVars[screen].scratchColumnWidth);
+                sizes.push(ProfileList.currentProfile.vars.themeVars["gameplay"].scratchColumnWidth);
             } else if (i % 2 == 0)
-                sizes.push(ProfileList.currentProfile.vars.themeVars[screen].whiteColumnWidth);
+                sizes.push(ProfileList.currentProfile.vars.themeVars["gameplay"].whiteColumnWidth);
             else {
-                sizes.push(ProfileList.currentProfile.vars.themeVars[screen].blackColumnWidth);
+                sizes.push(ProfileList.currentProfile.vars.themeVars["gameplay"].blackColumnWidth);
             }
         }
         return sizes;
