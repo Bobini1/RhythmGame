@@ -56,7 +56,7 @@ PathView {
             return;
         }
         pathView.folderContents.length = 0;
-        for (let item of folder) {
+        for (let item of results) {
             pathView.folderContents.push(item);
         }
         results = sortFilter(results);
