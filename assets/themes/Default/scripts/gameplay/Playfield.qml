@@ -33,7 +33,6 @@ Rectangle {
     }
 
     color: "black"
-    width: totalWidthAbs
 
     RowLayout {
         id: notesRow

@@ -29,6 +29,14 @@
         "description": "The width of scratch columns."
       },
       {
+        "id": "spacing",
+        "name": "Column Spacing",
+        "type": "range",
+        "min": 0,
+        "default": 2,
+        "description": "The number of pixels between note columns."
+      },
+      {
         "id": "laneBrightness",
         "name": "Lane Brightness",
         "type": "range",

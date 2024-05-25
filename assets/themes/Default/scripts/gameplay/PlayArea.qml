@@ -8,7 +8,6 @@ import RhythmGameQml
 Item {
     id: playArea
 
-    property double blackWidth: 48.0 / totalWidthAbs * parent.width
     property list<int> columns: []
     readonly property list<int> columnsReversedMapping: {
         var mapping = [];
@@ -17,17 +16,15 @@ Item {
         }
         return mapping;
     }
-    property double redWidth: 108.0 / totalWidthAbs * parent.width
-    readonly property int spacing: 2
-    readonly property int totalWidthAbs: 3 * 48 + 4 * 60 + 108 + spacing * 7
-    property double whiteWidth: 60.0 / totalWidthAbs * parent.width
+    readonly property int spacing: ProfileList.currentProfile.vars.themeVars["gameplay"].spacing
 
     anchors.bottom: parent.bottom
     anchors.top: parent.top
-    width: totalWidthAbs
+    width: columns.reduce((a, b) => a + root.columnSizes[b], 0) + (columns.length - 1) * spacing
 
     Playfield {
         id: playfield
+        width: parent.width
 
         columns: playArea.columns
         spacing: playArea.spacing
