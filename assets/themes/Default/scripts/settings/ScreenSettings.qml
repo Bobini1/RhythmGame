@@ -10,7 +10,7 @@ Loader {
     active: true
     property var destination: ProfileList.currentProfile.vars.themeVars[screen]
     property var props: {
-        "items": screenSettings,
+        "items": screenSettings.filter((item) => item.type !== "hidden"),
         "name": Helpers.capitalizeFirstLetter(screen) + " Settings",
         "type": "group"
     }
