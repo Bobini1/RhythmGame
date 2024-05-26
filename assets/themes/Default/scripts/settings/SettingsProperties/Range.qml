@@ -11,13 +11,13 @@ RowLayout {
         Layout.fillWidth: active
         sourceComponent: Component {
             Slider {
-                stepSize: props.max <= 1.0 ? 0.01 : 1
+                stepSize: props.max <= 1.0 ? 0.1 : 1
                 from: props.min
                 to: props.max
                 Layout.fillHeight: true
                 value: destination[props.id]
 
-                onValueChanged: destination[props.id] = value
+                onMoved: destination[props.id] = Math.round(value * 10) / 10
             }
         }
     }
