@@ -291,8 +291,14 @@ createRangeProperty(QHash<QString, QVariant>& screenVars,
 
 void
 createHiddenProperty(QHash<QString, QVariant>& screenVars,
-                     const QJsonObject& object)
+                     const QJsonObject& object,
+                     int level)
 {
+    if (level != 0) {
+        throw support::Exception(
+          std::format("Hidden properties are not allowed in groups: {}",
+                      jsonValueToString(object)));
+    }
     screenVars[object["id"].toString()] =
       object["default"].isUndefined() ? QJsonValue::Null : object["default"];
 }
@@ -306,7 +312,8 @@ struct ScreenVarsPopulationResult
 void
 createProperty(ScreenVarsPopulationResult& result,
                const std::filesystem::path& themePath,
-               const QJsonObject& object)
+               const QJsonObject& object,
+               int level)
 {
     if (!object["id"].isString()) {
         throw support::Exception(
@@ -333,7 +340,7 @@ createProperty(ScreenVarsPopulationResult& result,
     } else if (object["type"] == "range") {
         createRangeProperty(result.screenVars, object);
     } else if (object["type"] == "hidden") {
-        createHiddenProperty(result.screenVars, object);
+        createHiddenProperty(result.screenVars, object, level);
     } else {
         throw support::Exception(std::format("Property has unknown type: {}",
                                              jsonValueToString(object)));
@@ -344,7 +351,8 @@ void
 populateScreenVarsRecursive( // NOLINT(*-no-recursion)
   ScreenVarsPopulationResult& screenVars,
   const std::filesystem::path& themePath,
-  const QJsonArray& array)
+  const QJsonArray& array,
+  int level = 0)
 {
     for (const auto& property : array) {
         const auto object = property.toObject();
@@ -361,9 +369,9 @@ populateScreenVarsRecursive( // NOLINT(*-no-recursion)
                   jsonValueToString(object)));
             }
             populateScreenVarsRecursive(
-              screenVars, themePath, object["items"].toArray());
+              screenVars, themePath, object["items"].toArray(), level + 1);
         } else {
-            createProperty(screenVars, themePath, object);
+            createProperty(screenVars, themePath, object, level);
         }
     }
 }
