@@ -10,6 +10,7 @@ import Qt5Compat.GraphicalEffects
 Rectangle {
     id: root
 
+    property bool customizeMode: false
     property list<int> columnSizes: {
         let sizes = [];
         for (let i = 0; i < 16; i++) {
@@ -211,6 +212,14 @@ Rectangle {
 
         onActivated: {
             globalRoot.openResult(chart.finish(), chart.chartData);
+        }
+    }
+    Shortcut {
+        enabled: chartFocusScope.active
+        sequence: "F2"
+
+        onActivated: {
+            root.customizeMode = !root.customizeMode;
         }
     }
 }
