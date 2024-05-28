@@ -73,6 +73,22 @@ Frame {
                     // Priority
                     Layout.preferredWidth: 1
                 }
+                Loader {
+                    active: modelData.type !== "group"
+                    Layout.fillWidth: active
+                    Layout.minimumWidth: active ? 50 : -1
+                    sourceComponent: Component {
+                        Button {
+                            text: "Reset"
+                            enabled: groupFrame._destination[modelData.id] !== modelData.default
+
+                            implicitWidth: 50
+                            onClicked: {
+                                groupFrame._destination[modelData.id] = modelData.default
+                            }
+                        }
+                    }
+                }
             }
         }
     }
