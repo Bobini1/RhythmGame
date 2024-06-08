@@ -5,8 +5,7 @@ import QtQuick
 
 TextArea {
     id: textEdit
-
-    anchors.fill: parent
+    implicitWidth: 200
     text: destination[props.id]
 
     onTextChanged: {
