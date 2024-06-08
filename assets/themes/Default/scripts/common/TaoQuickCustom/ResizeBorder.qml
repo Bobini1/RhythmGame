@@ -14,9 +14,8 @@ Item {
     property bool leftBorderResizable: true
     property bool rightBorderResizable: true
     property bool bottomBorderResizable: true
-
-    property real minimumWidth: 0
-    property real minimumHeight: 0
+    
+    property bool keepAspectRatio: false
 
     property bool borderPressed: leftTopHandle.pressed || rightTopHandle.pressed || leftBottomHandle.pressed || rightBottomHandle.pressed || posTopItem.pressed || posLeftItem.pressed || posRightItem.pressed || posBottomItem.pressed
 
@@ -28,14 +27,23 @@ Item {
         height: borderWidth
         enabled: topBorderResizable && leftBorderResizable
         onPosChange: function(xOffset, yOffset){
+            if (root.keepAspectRatio) {
+                let aspectRatio = control.width / control.height;
+                if (xOffset > yOffset) {
+                    xOffset = yOffset * aspectRatio;
+                } else {
+                    yOffset = xOffset / aspectRatio;
+                }
+            }
+
             //不要简化这个判断条件，化简之后不容易看懂. Qml引擎会自动简化
-            if (control.x + xOffset < control.x + control.width - root.minimumWidth)
+            if (control.x + xOffset < control.x + control.width)
                 control.x += xOffset;
-            if (control.y + yOffset < control.y + control.height - root.minimumHeight)
+            if (control.y + yOffset < control.y + control.height)
                 control.y += yOffset;
-            if (control.width - xOffset > root.minimumWidth)
+            if (control.width - xOffset > 0)
                 control.width-= xOffset;
-            if (control.height -yOffset > root.minimumHeight)
+            if (control.height -yOffset > 0)
                 control.height -= yOffset;
         }
     }
@@ -48,12 +56,21 @@ Item {
         height: borderWidth
         enabled: topBorderResizable && rightBorderResizable
         onPosChange: function(xOffset, yOffset){
+            if (root.keepAspectRatio) {
+                let aspectRatio = control.width / control.height;
+                if (xOffset > yOffset) {
+                    xOffset = yOffset * aspectRatio;
+                } else {
+                    yOffset = xOffset / aspectRatio;
+                }
+            }
+
             //向左拖动时，xOffset为负数
-            if (control.width + xOffset > root.minimumWidth)
+            if (control.width + xOffset > 0)
                 control.width += xOffset;
-            if (control.height - yOffset > root.minimumHeight)
+            if (control.height - yOffset > 0)
                 control.height -= yOffset;
-            if (control.y + yOffset < control.y + control.height - root.minimumHeight)
+            if (control.y + yOffset < control.y + control.height)
                 control.y += yOffset;
         }
     }
@@ -66,11 +83,20 @@ Item {
         height: borderWidth
         enabled: leftBorderResizable && bottomBorderResizable
         onPosChange:function(xOffset, yOffset){
-            if (control.x + xOffset < control.x + control.width - root.minimumWidth)
+            if (root.keepAspectRatio) {
+                let aspectRatio = control.width / control.height;
+                if (xOffset > yOffset) {
+                    xOffset = yOffset * aspectRatio;
+                } else {
+                    yOffset = xOffset / aspectRatio;
+                }
+            }
+
+            if (control.x + xOffset < control.x + control.width)
                 control.x += xOffset;
-            if (control.width - xOffset > root.minimumWidth)
+            if (control.width - xOffset > 0)
                 control.width-= xOffset;
-            if (control.height + yOffset > root.minimumHeight)
+            if (control.height + yOffset > 0)
                 control.height += yOffset;
         }
     }
@@ -84,9 +110,18 @@ Item {
         height: borderWidth
         enabled: rightBorderResizable && bottomBorderResizable
         onPosChange: function(xOffset, yOffset) {
-            if (control.width + xOffset > root.minimumWidth)
+            if (root.keepAspectRatio) {
+                let aspectRatio = control.width / control.height;
+                if (xOffset > yOffset) {
+                    xOffset = yOffset * aspectRatio;
+                } else {
+                    yOffset = xOffset / aspectRatio;
+                }
+            }
+
+            if (control.width + xOffset > 0)
                 control.width += xOffset;
-            if (control.height + yOffset > root.minimumHeight)
+            if (control.height + yOffset > 0)
                 control.height += yOffset;
         }
     }
@@ -97,11 +132,11 @@ Item {
         width: parent.width - leftTopHandle.width - rightTopHandle.width
         height: borderWidth
         x: leftBottomHandle.width
-        enabled: topBorderResizable
+        enabled: topBorderResizable && !root.keepAspectRatio
         onPosChange: function(xOffset, yOffset){
-            if (control.y + yOffset < control.y + control.height - root.minimumHeight)
+            if (control.y + yOffset < control.y + control.height)
                 control.y += yOffset;
-            if (control.height - yOffset > root.minimumHeight)
+            if (control.height - yOffset > 0)
                 control.height -= yOffset;
         }
     }
@@ -114,11 +149,11 @@ Item {
         width: borderWidth
 
         y: leftTopHandle.height
-        enabled: leftBorderResizable
+        enabled: leftBorderResizable && !root.keepAspectRatio
         onPosChange: function(xOffset, yOffset){
-            if (control.x + xOffset < control.x + control.width - root.minimumWidth)
+            if (control.x + xOffset < control.x + control.width)
                 control.x += xOffset;
-            if (control.width - xOffset > root.minimumWidth)
+            if (control.width - xOffset > 0)
                 control.width-= xOffset;
         }
     }
@@ -131,9 +166,9 @@ Item {
         width: borderWidth
 
         y: rightTopHandle.height
-        enabled: rightBorderResizable
+        enabled: rightBorderResizable && !root.keepAspectRatio
         onPosChange: function(xOffset, yOffset) {
-            if (control.width + xOffset > root.minimumWidth)
+            if (control.width + xOffset > 0)
                 control.width += xOffset;
         }
     }
@@ -145,9 +180,9 @@ Item {
         y: parent.height - height
         width: parent.width - leftBottomHandle.width - rightBottomHandle.width
         height: borderWidth
-        enabled: bottomBorderResizable
+        enabled: bottomBorderResizable && !root.keepAspectRatio
         onPosChange: function(xOffset, yOffset){
-            if (control.height + yOffset > root.minimumHeight)
+            if (control.height + yOffset > 0)
                 control.height += yOffset;
         }
     }

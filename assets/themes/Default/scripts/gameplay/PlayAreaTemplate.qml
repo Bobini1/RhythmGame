@@ -14,7 +14,6 @@ Item {
         id: template
         visible: root.customizeMode
         topBorderResizable: false
-        minimumWidth: ProfileList.currentProfile.vars.themeVars["gameplay"].spacing * 7 + 1 + borderMargin
         onBorderPressedChanged: {
             if (borderPressed) {
                 // remove the binding

@@ -46,7 +46,7 @@ ResizeBorder {
     }
     //top
     Rectangle {
-        visible: cusBorder.topBorderResizable
+        visible: cusBorder.topBorderResizable && !cusBorder.keepAspectRatio
         border.color: CusConfig.controlBorderColor
         border.width: 1
         color: CusConfig.backgroundColor
@@ -60,7 +60,7 @@ ResizeBorder {
     }
     //bottom
     Rectangle {
-        visible: cusBorder.bottomBorderResizable
+        visible: cusBorder.bottomBorderResizable && !cusBorder.keepAspectRatio
         border.color: CusConfig.controlBorderColor
         border.width: 1
         color: CusConfig.backgroundColor
@@ -74,7 +74,7 @@ ResizeBorder {
     }
     //left
     Rectangle {
-        visible: cusBorder.leftBorderResizable
+        visible: cusBorder.leftBorderResizable && !cusBorder.keepAspectRatio
         border.color: CusConfig.controlBorderColor
         border.width: 1
         color: CusConfig.backgroundColor
@@ -88,7 +88,7 @@ ResizeBorder {
     }
     //right
     Rectangle {
-        visible: cusBorder.rightBorderResizable
+        visible: cusBorder.rightBorderResizable && !cusBorder.keepAspectRatio
         border.color: CusConfig.controlBorderColor
         border.width: 1
         color: CusConfig.backgroundColor

@@ -7,6 +7,8 @@ Item {
     signal posChange(int xOffset, int yOffset)
     implicitWidth: 12
     implicitHeight: 12
+    property real minimumWidth: 0
+    property real minimumHeight: 0
     property int posType: Qt.ArrowCursor
 
     //5.10之前, qml是不能定义枚举的，用只读的int属性代替一下。
