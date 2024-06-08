@@ -101,15 +101,21 @@ writeSingleThemeVar(const QString& screen,
     file.write(jsonDocument.toJson());
 }
 
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "*-avoid-magic-numbers"
 void
 populateGlobalVars(QQmlPropertyMap& globalVars)
 {
-    globalVars.insert({ { "greenNumber", 200 },
-                        { "whiteNumber", 200 },
-                        { "liftOn", false },
-                        { "liftHeight", 0 },
-                        { "sudden", true } });
+    globalVars.insert({
+      { "greenNumber", 200 },
+      { "laneCoverOn", false },
+      { "laneCoverRatio", 0.1 },
+      { "liftOn", false },
+      { "liftRatio", 0.1 },
+      { "bgaOn", true },
+    });
 }
+#pragma clang diagnostic pop
 
 auto
 jsonValueToString(const QJsonValue& value) -> std::string
