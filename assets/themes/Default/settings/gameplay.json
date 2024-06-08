@@ -1,48 +1,93 @@
 [
   {
-    "name": "Play Area Settings",
+    "name": "General Settings",
     "type": "group",
-    "description": "Note-related settings.",
+    "description": "Miscellaneous.",
     "items": [
-      {
-        "id": "blackColumnWidth",
-        "name": "Black Column Width",
-        "type": "range",
-        "min": 1,
-        "default": 48,
-        "description": "The width of odd columns."
-      },
-      {
-        "id": "whiteColumnWidth",
-        "name": "White Column Width",
-        "type": "range",
-        "min": 1,
-        "default": 60,
-        "description": "The width of even columns."
-      },
-      {
-        "id": "scratchColumnWidth",
-        "name": "Scratch Column Width",
-        "type": "range",
-        "min": 1,
-        "default": 108,
-        "description": "The width of scratch columns."
-      },
-      {
-        "id": "spacing",
-        "name": "Column Spacing",
-        "type": "range",
-        "min": 0,
-        "default": 2,
-        "description": "The number of pixels between note columns."
-      },
       {
         "id": "laneBrightness",
         "name": "Lane Brightness",
+        "description": "The brightness of the background behind falling notes.",
         "type": "range",
-        "min": 0,
-        "max": 100,
-        "default": 100
+        "min": -1,
+        "max": 1,
+        "default": 0.0
+      }
+    ]
+  },
+  {
+    "name": "Positioning",
+    "type": "group",
+    "description": "The positions of elements on the screen.",
+    "items": [
+      {
+        "name": "Play Area",
+        "type": "group",
+        "description": "The area where notes are played. Its width is the sum of column widths and spacings.",
+        "items": [
+          {
+            "id": "playAreaX",
+            "name": "X",
+            "type": "range",
+            "min": 0,
+            "default": 0,
+            "description": "The X position of the left side of the play area rectangle."
+          },
+          {
+            "id": "playAreaHeight",
+            "name": "Height",
+            "type": "range",
+            "min": 0,
+            "default": 800,
+            "description": "The height of the play area rectangle. This can be covered by lane cover or lift."
+          }
+        ]
+      },
+      {
+        "name": "Note Columns",
+        "type": "group",
+        "description": "The sizes of notes.",
+        "items": [
+          {
+            "id": "thickness",
+            "name": "Thickness",
+            "type": "range",
+            "min": 0,
+            "default": 36
+          },
+          {
+            "id": "whiteWidth",
+            "name": "White Width",
+            "type": "range",
+            "min": 0,
+            "default": 60,
+            "description": "The width of white (even) notes."
+          },
+          {
+            "id": "blackWidth",
+            "name": "Black Width",
+            "type": "range",
+            "min": 0,
+            "default": 48,
+            "description": "The width of black (odd) notes."
+          },
+          {
+            "id": "scratchWidth",
+            "name": "Scratch Width",
+            "type": "range",
+            "min": 0,
+            "default": 108,
+            "description": "The width of scratch notes."
+          },
+          {
+            "id": "spacing",
+            "name": "Spacing",
+            "type": "range",
+            "min": 0,
+            "default": 2,
+            "description": "The number of pixels between columns."
+          }
+        ]
       }
     ]
   }

@@ -37,6 +37,8 @@ Item {
         let item = noteRepeater.itemAt(offset);
         if (item) {
             item.visible = false;
+            item.width = 0;
+            item.height = 0;
         }
     }
 
@@ -81,10 +83,8 @@ Item {
                 }
             }
 
-            height: column.noteHeight
             source: root.iniImagesUrl + "default.png/" + getTypeString() + column.color
             visible: false
-            width: parent.width
             y: notePosition - height / 2
 
             Loader {
@@ -105,7 +105,7 @@ Item {
                             let flashing = Math.abs(chart.position % 0.5) > 0.25;
                             return root.iniImagesUrl + "default.png/ln_body_" + (flashing ? "flash" : "active") + "_" + column.color;
                         }
-                        width: sourceSize.width
+                        width: noteImg.width
                         y: -height
                     }
                 }
@@ -152,6 +152,8 @@ Item {
                 globalPos.y += noteImage.height;
                 if (globalPos.y > 0) {
                     noteImage.visible = true;
+                    noteImage.width = Qt.binding(() => column.width);
+                    noteImage.height = Qt.binding(() => column.noteHeight);
                     count++;
                 } else {
                     break;

@@ -15,16 +15,16 @@ Rectangle {
         let sizes = [];
         for (let i = 0; i < 16; i++) {
             if (i === 7 || i === 15) {
-                sizes.push(ProfileList.currentProfile.vars.themeVars["gameplay"].scratchColumnWidth);
+                sizes.push(ProfileList.currentProfile.vars.themeVars["gameplay"].scratchWidth);
             } else if (i % 2 === 0)
-                sizes.push(ProfileList.currentProfile.vars.themeVars["gameplay"].whiteColumnWidth);
+                sizes.push(ProfileList.currentProfile.vars.themeVars["gameplay"].whiteWidth);
             else {
-                sizes.push(ProfileList.currentProfile.vars.themeVars["gameplay"].blackColumnWidth);
+                sizes.push(ProfileList.currentProfile.vars.themeVars["gameplay"].blackWidth);
             }
         }
         return sizes;
     }
-    property double greenNumber: 400
+    property double greenNumber: ProfileList.currentProfile.vars.globalVars.greenNumber
     readonly property string imagesUrl: Qt.resolvedUrl(".") + "images/"
     readonly property string iniImagesUrl: "image://ini/" + rootUrl + "images/"
     property list<string> laserImages: {
@@ -89,7 +89,8 @@ Rectangle {
     Rectangle {
         id: scaledRoot
 
-        anchors.centerIn: parent
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.top: parent.top
         color: "black"
         height: 1080
         scale: Math.min(globalRoot.width / 1920, globalRoot.height / 1080)
@@ -99,29 +100,24 @@ Rectangle {
             anchors.right: parent.right
             anchors.top: parent.top
         }
-        Rectangle {
-            id: playAreaBorder
 
-            anchors.bottom: parent.bottom
-            anchors.bottomMargin: parent.height - height
-            color: "white"
-            height: root.playfieldHeight + 2
-            width: playArea.width + 2
-            z: 1
+        PlayAreaTemplate {
+            id: playAreaTemplate
+            anchors.top: parent.top
+            z: 2
+            columns: playArea.columns
+        }
+        PlayArea {
+            id: playArea
 
-            PlayArea {
-                id: playArea
-
-                anchors.bottomMargin: 1
-                anchors.left: parent.left
-                anchors.leftMargin: 1
-                columns: [7, 0, 1, 2, 3, 4, 5, 6]
-                height: root.playfieldHeight
-            }
+            anchors.top: parent.top
+            columns: [7, 0, 1, 2, 3, 4, 5, 6]
+            x: ProfileList.currentProfile.vars.themeVars["gameplay"].playAreaX
         }
         Row {
-            anchors.horizontalCenter: playAreaBorder.horizontalCenter
-            anchors.top: playAreaBorder.bottom
+            anchors.horizontalCenter: playArea.horizontalCenter
+            anchors.top: playArea.bottom
+            anchors.topMargin: 8
 
             Gauge {
                 id: gauge
@@ -139,8 +135,8 @@ Rectangle {
         Rectangle {
             id: judgementCountsContainer
 
-            anchors.bottom: playAreaBorder.bottom
-            anchors.left: playAreaBorder.right
+            anchors.bottom: playArea.bottom
+            anchors.left: playArea.right
             color: "darkslategray"
             height: childrenRect.height
             width: 120

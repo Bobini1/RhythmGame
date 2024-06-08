@@ -1,6 +1,7 @@
 import QtQml
 import QtQuick
 import QtQuick.Layouts
+import RhythmGameQml
 
 Rectangle {
     id: playfield
@@ -33,14 +34,13 @@ Rectangle {
     }
 
     color: "black"
+    width: notesRow.width
 
-    RowLayout {
+    Row {
         id: notesRow
 
         anchors.bottom: parent.bottom
-        height: children.height
         spacing: playfield.spacing
-        width: parent.width
 
         Repeater {
             id: noteColumnRepeater
@@ -55,9 +55,10 @@ Rectangle {
 
                 color: root.noteColors[playfield.columns[index]]
                 heightMultiplier: root.greenNumber
-                noteHeight: 36
+                noteHeight: ProfileList.currentProfile.vars.themeVars["gameplay"].thickness
                 notes: modelData
                 width: root.columnSizes[playfield.columns[index]]
+                height: 1
             }
         }
     }

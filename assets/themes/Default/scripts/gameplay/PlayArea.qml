@@ -18,13 +18,11 @@ Item {
     }
     readonly property int spacing: ProfileList.currentProfile.vars.themeVars["gameplay"].spacing
 
-    anchors.bottom: parent.bottom
-    anchors.top: parent.top
-    width: columns.reduce((a, b) => a + root.columnSizes[b], 0) + (columns.length - 1) * spacing
+    width: playfield.width
+    height: ProfileList.currentProfile.vars.themeVars["gameplay"].playAreaHeight
 
     Playfield {
         id: playfield
-        width: parent.width
 
         columns: playArea.columns
         spacing: playArea.spacing
@@ -44,7 +42,6 @@ Item {
         anchors.bottom: parent.bottom
         height: parent.height
         spacing: playArea.spacing
-        width: parent.width
 
         Repeater {
             id: laserRowChildren
