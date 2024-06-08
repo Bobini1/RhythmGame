@@ -290,6 +290,19 @@ createRangeProperty(QHash<QString, QVariant>& screenVars,
 }
 
 void
+createBooleanProperty(QHash<QString, QVariant>& screenVars,
+                      const QJsonObject& object)
+{
+    if (!object["default"].isBool()) {
+        throw support::Exception(
+          std::format("default field of property of type boolean is undefined "
+                      "or not a boolean: {}",
+                      jsonValueToString(object)));
+    }
+    screenVars[object["id"].toString()] = object["default"].toBool();
+}
+
+void
 createHiddenProperty(QHash<QString, QVariant>& screenVars,
                      const QJsonObject& object,
                      int level)
@@ -339,6 +352,8 @@ createProperty(ScreenVarsPopulationResult& result,
         createStringProperty(result.screenVars, object);
     } else if (object["type"] == "range") {
         createRangeProperty(result.screenVars, object);
+    } else if (object["type"] == "boolean") {
+        createBooleanProperty(result.screenVars, object);
     } else if (object["type"] == "hidden") {
         createHiddenProperty(result.screenVars, object, level);
     } else {
