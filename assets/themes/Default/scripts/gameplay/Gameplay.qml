@@ -11,7 +11,7 @@ Rectangle {
     id: root
 
     property bool customizeMode: false
-    property list<int> columnSizes: {
+    property list<real> columnSizes: {
         let sizes = [];
         for (let i = 0; i < 16; i++) {
             if (i === 7 || i === 15) {
