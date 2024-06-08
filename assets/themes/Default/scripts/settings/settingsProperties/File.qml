@@ -22,7 +22,7 @@ ComboBox {
             index++;
         }
     }
-    onActivated: (index) => {
+    onActivated: (_) => {
         destination[props.id] = currentText;
     }
 }
