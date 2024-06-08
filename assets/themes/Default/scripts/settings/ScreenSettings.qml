@@ -14,7 +14,7 @@ Loader {
         "name": Helpers.capitalizeFirstLetter(screen) + " Settings",
         "type": "group"
     }
-    source: script ? script : (screenSettings.length > 0 ? "SettingsProperties/Group.qml" : "")
+    source: script ? script : (screenSettings.length > 0 ? "settingsProperties/Group.qml" : "")
 
     function openFile(fileUrl) {
         let request = new XMLHttpRequest();
