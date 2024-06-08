@@ -24,7 +24,7 @@ Rectangle {
         }
         return sizes;
     }
-    property double greenNumber: ProfileList.currentProfile.vars.globalVars.greenNumber
+    property double greenNumber: ProfileList.currentProfile.vars.globalVars.noteScreenTimeSeconds * 400
     readonly property string imagesUrl: Qt.resolvedUrl(".") + "images/"
     readonly property string iniImagesUrl: "image://ini/" + rootUrl + "images/"
     property list<string> laserImages: {
