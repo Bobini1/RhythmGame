@@ -60,6 +60,7 @@ FocusScope {
             height: 1080
             scale: Math.min(parent.width / width, parent.height / height)
             width: 1920
+            anchors.centerIn: parent
 
             Column {
                 width: parent.width
