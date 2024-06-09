@@ -19,14 +19,10 @@ FocusScope {
         readonly property var oldBestClear: Helpers.getClearType(scores)
         readonly property var oldBestPointsScore: Helpers.getScoreWithBestPoints(scores)
         readonly property var oldBestStats: Helpers.getBestStats(scores)
-        property string rootUrl: globalRoot.urlToPath(Qt.resolvedUrl(".").toString())
-        readonly property var scores: {
-            let scores = ScoreDb.getScoresForChart(chartData.sha256);
-            scores = scores.filter(function (score) {
-                    return score.id !== result.result.id;
-                });
-            return scores;
-        }
+        readonly property string rootUrl: globalRoot.urlToPath(Qt.resolvedUrl(".").toString())
+        readonly property var scores: ScoreDb.getScoresForChart(chartData.sha256).filter(function (score) {
+            return score.id !== result.result.id;
+        })
 
         fillMode: Image.PreserveAspectCrop
         height: parent.height
