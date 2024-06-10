@@ -99,6 +99,7 @@ Rectangle {
         FpsCounter {
             anchors.right: parent.right
             anchors.top: parent.top
+            z: 3
         }
 
         PlayAreaTemplate {
