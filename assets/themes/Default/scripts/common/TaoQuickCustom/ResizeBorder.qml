@@ -4,35 +4,34 @@ import "../../third_party/TaoQuick/Qml/Misc"
 
 Item {
     id: root
+
+    property bool borderPressed: leftTopHandle.pressed || rightTopHandle.pressed || leftBottomHandle.pressed || rightBottomHandle.pressed || posTopItem.pressed || posLeftItem.pressed || posRightItem.pressed || posBottomItem.pressed
+    property int borderWidth: 12
     //controller 要控制大小的目标，可以是Item，也可以是view，只要提供x、y、width、height等属性的修改
     //默认值为parent
     property var control: parent
-    property int borderWidth: 12
-
-    // Added for RhythmGame
-    property bool topBorderResizable: true
+    property bool keepAspectRatio: false
     property bool leftBorderResizable: true
     property bool rightBorderResizable: true
+    property bool topBorderResizable: true
     property bool bottomBorderResizable: true
-    
-    property bool keepAspectRatio: false
-
-    property bool borderPressed: leftTopHandle.pressed || rightTopHandle.pressed || leftBottomHandle.pressed || rightBottomHandle.pressed || posTopItem.pressed || posLeftItem.pressed || posRightItem.pressed || posBottomItem.pressed
 
     //左上角的拖拽
     DragItem {
         id: leftTopHandle
+
+        enabled: topBorderResizable && leftBorderResizable
+        height: borderWidth
         posType: posLeftTop
         width: borderWidth
-        height: borderWidth
-        enabled: topBorderResizable && leftBorderResizable
-        onPosChange: function(xOffset, yOffset){
+
+        onPosChange: function (xOffset, yOffset) {
             if (root.keepAspectRatio) {
                 let aspectRatio = control.width / control.height;
-                if (xOffset > yOffset) {
-                    xOffset = yOffset * aspectRatio;
+                if (Math.abs(xOffset) > Math.abs(yOffset)) {
+                    xOffset = yOffset / aspectRatio;
                 } else {
-                    yOffset = xOffset / aspectRatio;
+                    yOffset = xOffset * aspectRatio;
                 }
             }
 
@@ -42,26 +41,28 @@ Item {
             if (control.y + yOffset < control.y + control.height)
                 control.y += yOffset;
             if (control.width - xOffset > 0)
-                control.width-= xOffset;
-            if (control.height -yOffset > 0)
+                control.width -= xOffset;
+            if (control.height - yOffset > 0)
                 control.height -= yOffset;
         }
     }
     //右上角拖拽
     DragItem {
         id: rightTopHandle
-        posType: posRightTop
-        x: parent.width - width
-        width: borderWidth
-        height: borderWidth
+
         enabled: topBorderResizable && rightBorderResizable
-        onPosChange: function(xOffset, yOffset){
+        height: borderWidth
+        posType: posRightTop
+        width: borderWidth
+        x: parent.width - width
+
+        onPosChange: function (xOffset, yOffset) {
             if (root.keepAspectRatio) {
                 let aspectRatio = control.width / control.height;
-                if (xOffset > yOffset) {
-                    xOffset = yOffset * aspectRatio;
+                if (Math.abs(xOffset) > Math.abs(yOffset)) {
+                    xOffset = yOffset * aspectRatio * -1;
                 } else {
-                    yOffset = xOffset / aspectRatio;
+                    yOffset = xOffset / aspectRatio * -1;
                 }
             }
 
@@ -77,25 +78,26 @@ Item {
     //左下角拖拽
     DragItem {
         id: leftBottomHandle
-        posType: posLeftBottom
-        y: parent.height - height
-        width: borderWidth
-        height: borderWidth
+
         enabled: leftBorderResizable && bottomBorderResizable
-        onPosChange:function(xOffset, yOffset){
+        height: borderWidth
+        posType: posLeftBottom
+        width: borderWidth
+        y: parent.height - height
+
+        onPosChange: function (xOffset, yOffset) {
             if (root.keepAspectRatio) {
                 let aspectRatio = control.width / control.height;
-                if (xOffset > yOffset) {
-                    xOffset = yOffset * aspectRatio;
+                if (Math.abs(xOffset) > Math.abs(yOffset)) {
+                    xOffset = yOffset * aspectRatio * -1;
                 } else {
-                    yOffset = xOffset / aspectRatio;
+                    yOffset = xOffset / aspectRatio * -1;
                 }
             }
-
             if (control.x + xOffset < control.x + control.width)
                 control.x += xOffset;
             if (control.width - xOffset > 0)
-                control.width-= xOffset;
+                control.width -= xOffset;
             if (control.height + yOffset > 0)
                 control.height += yOffset;
         }
@@ -103,22 +105,23 @@ Item {
     //右下角拖拽
     DragItem {
         id: rightBottomHandle
+
+        enabled: rightBorderResizable && bottomBorderResizable
+        height: borderWidth
         posType: posRightBottom
+        width: borderWidth
         x: parent.width - width
         y: parent.height - height
-        width: borderWidth
-        height: borderWidth
-        enabled: rightBorderResizable && bottomBorderResizable
-        onPosChange: function(xOffset, yOffset) {
+
+        onPosChange: function (xOffset, yOffset) {
             if (root.keepAspectRatio) {
                 let aspectRatio = control.width / control.height;
-                if (xOffset > yOffset) {
+                if (Math.abs(xOffset) > Math.abs(yOffset)) {
                     xOffset = yOffset * aspectRatio;
                 } else {
                     yOffset = xOffset / aspectRatio;
                 }
             }
-
             if (control.width + xOffset > 0)
                 control.width += xOffset;
             if (control.height + yOffset > 0)
@@ -128,12 +131,14 @@ Item {
     //上边拖拽
     DragItem {
         id: posTopItem
+
+        enabled: topBorderResizable && !root.keepAspectRatio
+        height: borderWidth
         posType: posTop
         width: parent.width - leftTopHandle.width - rightTopHandle.width
-        height: borderWidth
         x: leftBottomHandle.width
-        enabled: topBorderResizable && !root.keepAspectRatio
-        onPosChange: function(xOffset, yOffset){
+
+        onPosChange: function (xOffset, yOffset) {
             if (control.y + yOffset < control.y + control.height)
                 control.y += yOffset;
             if (control.height - yOffset > 0)
@@ -144,30 +149,32 @@ Item {
     //左边拖拽
     DragItem {
         id: posLeftItem
-        posType: posLeft
-        height: parent.height - leftTopHandle.height - leftBottomHandle.height
-        width: borderWidth
 
-        y: leftTopHandle.height
         enabled: leftBorderResizable && !root.keepAspectRatio
-        onPosChange: function(xOffset, yOffset){
+        height: parent.height - leftTopHandle.height - leftBottomHandle.height
+        posType: posLeft
+        width: borderWidth
+        y: leftTopHandle.height
+
+        onPosChange: function (xOffset, yOffset) {
             if (control.x + xOffset < control.x + control.width)
                 control.x += xOffset;
             if (control.width - xOffset > 0)
-                control.width-= xOffset;
+                control.width -= xOffset;
         }
     }
     //右边拖拽
     DragItem {
         id: posRightItem
-        posType: posRight
-        x: parent.width - width
-        height: parent.height - rightTopHandle.height - rightBottomHandle.height
-        width: borderWidth
 
-        y: rightTopHandle.height
         enabled: rightBorderResizable && !root.keepAspectRatio
-        onPosChange: function(xOffset, yOffset) {
+        height: parent.height - rightTopHandle.height - rightBottomHandle.height
+        posType: posRight
+        width: borderWidth
+        x: parent.width - width
+        y: rightTopHandle.height
+
+        onPosChange: function (xOffset, yOffset) {
             if (control.width + xOffset > 0)
                 control.width += xOffset;
         }
@@ -175,13 +182,15 @@ Item {
     //下边拖拽
     DragItem {
         id: posBottomItem
+
+        enabled: bottomBorderResizable && !root.keepAspectRatio
+        height: borderWidth
         posType: posBottom
+        width: parent.width - leftBottomHandle.width - rightBottomHandle.width
         x: leftBottomHandle.width
         y: parent.height - height
-        width: parent.width - leftBottomHandle.width - rightBottomHandle.width
-        height: borderWidth
-        enabled: bottomBorderResizable && !root.keepAspectRatio
-        onPosChange: function(xOffset, yOffset){
+
+        onPosChange: function (xOffset, yOffset) {
             if (control.height + yOffset > 0)
                 control.height += yOffset;
         }
