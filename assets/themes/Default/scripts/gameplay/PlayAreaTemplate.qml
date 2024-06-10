@@ -6,10 +6,9 @@ Item {
     id: playAreaTemplate
     required property var columns
     readonly property real spacing: ProfileList.currentProfile.vars.themeVars["gameplay"].spacing
-    x: ProfileList.currentProfile.vars.themeVars["gameplay"].playAreaX - template.borderMargin
-    anchors.topMargin: -template.borderMargin
-    height: ProfileList.currentProfile.vars.themeVars["gameplay"].playAreaHeight + template.borderMargin * 2
-    width: playAreaTemplate.columns.reduce((a, b) => a + root.columnSizes[b], 0) + (playAreaTemplate.columns.length - 1) * playAreaTemplate.spacing + template.borderMargin * 2
+    x: ProfileList.currentProfile.vars.themeVars["gameplay"].playAreaX
+    height: ProfileList.currentProfile.vars.themeVars["gameplay"].playAreaHeight
+    width: playAreaTemplate.columns.reduce((a, b) => a + root.columnSizes[b], 0) + (playAreaTemplate.columns.length - 1) * playAreaTemplate.spacing
     TemplateDragBorder {
         id: template
         visible: root.customizeMode
@@ -19,21 +18,24 @@ Item {
                 // remove the binding
                 playAreaTemplate.width = playAreaTemplate.width
             } else {
-                playAreaTemplate.width = Qt.binding(() => playAreaTemplate.columns.reduce((a, b) => a + root.columnSizes[b], 0) + (playAreaTemplate.columns.length - 1) * playAreaTemplate.spacing + template.borderMargin * 2)
+                playAreaTemplate.width = Qt.binding(() => playAreaTemplate.columns.reduce((a, b) => a + root.columnSizes[b], 0) + (playAreaTemplate.columns.length - 1) * playAreaTemplate.spacing)
             }
         }
+
+        anchors.fill: parent
+        anchors.margins: -borderMargin
 
         color: "transparent"
         rotationEnabled: false
     }
     onHeightChanged: {
-        ProfileList.currentProfile.vars.themeVars["gameplay"].playAreaHeight = height - template.borderMargin * 2;
-        height = Qt.binding(() => ProfileList.currentProfile.vars.themeVars["gameplay"].playAreaHeight + template.borderMargin * 2);
+        ProfileList.currentProfile.vars.themeVars["gameplay"].playAreaHeight = height;
+        height = Qt.binding(() => ProfileList.currentProfile.vars.themeVars["gameplay"].playAreaHeight);
     }
     onWidthChanged: {
         let spacing = ProfileList.currentProfile.vars.themeVars["gameplay"].spacing;
         let oldWithoutSpacing = playAreaTemplate.columns.reduce((a, b) => a + root.columnSizes[b], 0);
-        let newWithoutSpacing = width - spacing * 7 - template.borderMargin * 2;
+        let newWithoutSpacing = width - spacing * 7;
         let newWidths = [];
         for (let i = 5; i < 8; i++) {
             newWidths.push(newWithoutSpacing / oldWithoutSpacing * root.columnSizes[i]);
@@ -44,7 +46,7 @@ Item {
 
     }
     onXChanged: {
-        ProfileList.currentProfile.vars.themeVars["gameplay"].playAreaX = x + template.borderMargin;
-        x = Qt.binding(() => ProfileList.currentProfile.vars.themeVars["gameplay"].playAreaX - template.borderMargin);
+        ProfileList.currentProfile.vars.themeVars["gameplay"].playAreaX = x;
+        x = Qt.binding(() => ProfileList.currentProfile.vars.themeVars["gameplay"].playAreaX);
     }
 }
