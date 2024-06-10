@@ -6,6 +6,7 @@ import RhythmGameQml
 import QtQuick.Controls.Basic
 import QtMultimedia
 import Qt5Compat.GraphicalEffects
+import "../common/TaoQuickCustom"
 
 Rectangle {
     id: root
@@ -194,13 +195,40 @@ Rectangle {
                 target: chart.score
             }
         }
+
         BgaRenderer {
             id: bga
+            visible: ProfileList.currentProfile.vars.globalVars.bgaOn
 
-            anchors.left: judgementCountsContainer.right
-            anchors.top: parent.top
-            height: 800
-            width: 800
+            x: ProfileList.currentProfile.vars.themeVars["gameplay"].bgaX
+            y: ProfileList.currentProfile.vars.themeVars["gameplay"].bgaY
+            height: ProfileList.currentProfile.vars.themeVars["gameplay"].bgaSize
+            width: ProfileList.currentProfile.vars.themeVars["gameplay"].bgaSize
+            onHeightChanged: {
+                ProfileList.currentProfile.vars.themeVars["gameplay"].bgaSize = height;
+                height = Qt.binding(() => ProfileList.currentProfile.vars.themeVars["gameplay"].bgaSize);
+            }
+            onWidthChanged: {
+                width = Qt.binding(() => ProfileList.currentProfile.vars.themeVars["gameplay"].bgaSize);
+            }
+            onXChanged: {
+                ProfileList.currentProfile.vars.themeVars["gameplay"].bgaX = x;
+                x = Qt.binding(() => ProfileList.currentProfile.vars.themeVars["gameplay"].bgaX);
+            }
+            onYChanged: {
+                ProfileList.currentProfile.vars.themeVars["gameplay"].bgaY = y;
+                y = Qt.binding(() => ProfileList.currentProfile.vars.themeVars["gameplay"].bgaY);
+            }
+
+            TemplateDragBorder {
+                id: bgaTemplate
+                visible: root.customizeMode
+                keepAspectRatio: true
+                color: "transparent"
+
+                anchors.margins: -borderMargin
+                anchors.fill: parent
+            }
         }
     }
     Shortcut {
