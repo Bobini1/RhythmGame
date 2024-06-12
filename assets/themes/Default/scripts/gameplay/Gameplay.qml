@@ -7,11 +7,11 @@ import QtQuick.Controls.Basic
 import QtMultimedia
 import Qt5Compat.GraphicalEffects
 import "../common/TaoQuickCustom"
+import "../common/helpers.js" as Helpers
 
 Rectangle {
     id: root
 
-    property bool customizeMode: false
     property list<real> columnSizes: {
         let sizes = [];
         for (let i = 0; i < 16; i++) {
@@ -25,6 +25,7 @@ Rectangle {
         }
         return sizes;
     }
+    property bool customizeMode: false
     property double greenNumber: ProfileList.currentProfile.vars.globalVars.noteScreenTimeSeconds * 400
     readonly property string imagesUrl: Qt.resolvedUrl(".") + "images/"
     readonly property string iniImagesUrl: "image://ini/" + rootUrl + "images/"
@@ -102,12 +103,12 @@ Rectangle {
             anchors.top: parent.top
             z: 3
         }
-
         PlayAreaTemplate {
             id: playAreaTemplate
+
             anchors.top: parent.top
-            z: 2
             columns: playArea.columns
+            z: 2
         }
         PlayArea {
             id: playArea
@@ -116,76 +117,127 @@ Rectangle {
             columns: [7, 0, 1, 2, 3, 4, 5, 6]
             x: ProfileList.currentProfile.vars.themeVars["gameplay"].playAreaX
         }
-        Row {
-            anchors.horizontalCenter: playArea.horizontalCenter
-            anchors.top: playArea.bottom
-            anchors.topMargin: 8
+        LifeBar {
+            id: lifeBar
 
-            Gauge {
-                id: gauge
+            height: ProfileList.currentProfile.vars.themeVars["gameplay"].lifeBarHeight
+            width: ProfileList.currentProfile.vars.themeVars["gameplay"].lifeBarWidth
+            x: ProfileList.currentProfile.vars.themeVars["gameplay"].lifeBarX
+            y: ProfileList.currentProfile.vars.themeVars["gameplay"].lifeBarY
+            z: 2
 
+            onHeightChanged: {
+                ProfileList.currentProfile.vars.themeVars["gameplay"].lifeBarHeight = height;
+                height = Qt.binding(() => ProfileList.currentProfile.vars.themeVars["gameplay"].lifeBarHeight);
             }
-            Item {
-                id: lifeNumberContainer
-
+            onWidthChanged: {
+                ProfileList.currentProfile.vars.themeVars["gameplay"].lifeBarWidth = width;
+                width = Qt.binding(() => ProfileList.currentProfile.vars.themeVars["gameplay"].lifeBarWidth);
             }
-            LifeNumber {
-                anchors.verticalCenter: gauge.verticalCenter
-                width: 80
+            onXChanged: {
+                ProfileList.currentProfile.vars.themeVars["gameplay"].lifeBarX = x;
+                x = Qt.binding(() => ProfileList.currentProfile.vars.themeVars["gameplay"].lifeBarX);
+            }
+            onYChanged: {
+                ProfileList.currentProfile.vars.themeVars["gameplay"].lifeBarY = y;
+                y = Qt.binding(() => ProfileList.currentProfile.vars.themeVars["gameplay"].lifeBarY);
+            }
+
+            TemplateDragBorder {
+                id: lifeBarTemplate
+
+                anchors.fill: parent
+                anchors.margins: -borderMargin
+                color: "transparent"
+                visible: root.customizeMode
+                rotationEnabled: false
             }
         }
         Rectangle {
             id: judgementCountsContainer
 
-            anchors.bottom: playArea.bottom
-            anchors.left: playArea.right
             color: "darkslategray"
-            height: childrenRect.height
-            width: 120
+            height: ProfileList.currentProfile.vars.themeVars["gameplay"].judgementCountsHeight
+            width: ProfileList.currentProfile.vars.themeVars["gameplay"].judgementCountsWidth
+            x: ProfileList.currentProfile.vars.themeVars["gameplay"].judgementCountsX
+            y: ProfileList.currentProfile.vars.themeVars["gameplay"].judgementCountsY
+            z: 2
 
-            Column {
-                anchors.left: parent.left
-                anchors.leftMargin: 8
+            onHeightChanged: {
+                ProfileList.currentProfile.vars.themeVars["gameplay"].judgementCountsHeight = height;
+                height = Qt.binding(() => ProfileList.currentProfile.vars.themeVars["gameplay"].judgementCountsHeight);
+            }
+            onWidthChanged: {
+                ProfileList.currentProfile.vars.themeVars["gameplay"].judgementCountsWidth = width;
+                width = Qt.binding(() => ProfileList.currentProfile.vars.themeVars["gameplay"].judgementCountsWidth);
+            }
+            onXChanged: {
+                ProfileList.currentProfile.vars.themeVars["gameplay"].judgementCountsX = x;
+                x = Qt.binding(() => ProfileList.currentProfile.vars.themeVars["gameplay"].judgementCountsX);
+            }
+            onYChanged: {
+                ProfileList.currentProfile.vars.themeVars["gameplay"].judgementCountsY = y;
+                y = Qt.binding(() => ProfileList.currentProfile.vars.themeVars["gameplay"].judgementCountsY);
+            }
 
-                Repeater {
-                    id: judgementCounts
+            TemplateDragBorder {
+                id: judgementCountsTemplate
 
-                    model: ["Perfect", "Great", "Good", "Bad", "Poor", "EmptyPoor"]
+                anchors.fill: parent
+                anchors.margins: -borderMargin
+                color: "transparent"
+                rotationEnabled: false
+                visible: root.customizeMode
+            }
 
-                    delegate: Text {
-                        property int num: 0
+            Text {
+                id: judgementCounts
+                property int perfect: 0
+                property int great: 0
+                property int good: 0
+                property int bad: 0
+                property int poor: 0
+                property int emptyPoor: 0
 
-                        color: "white"
-                        font.pixelSize: 16
-                        text: modelData + ": " + num
-                        textFormat: Text.PlainText
+
+                anchors.fill: parent
+                anchors.margins: 8
+                color: "white"
+                font.pixelSize: 300
+                fontSizeMode: Text.Fit
+                text: {
+                    let txt = "";
+                    for (let judgement of ["perfect", "great", "good", "bad", "poor", "emptyPoor"]) {
+                        txt += Helpers.capitalizeFirstLetter(judgement) + ": " + judgementCounts[judgement] + "\n";
                     }
+                    return txt;
                 }
+                textFormat: Text.PlainText
             }
             Connections {
                 function onMissed() {
-                    judgementCounts.itemAt(4).num++;
+                    judgementCounts.poor++;
                     bga.poorVisible = true;
                     poorLayerTimer.restart();
                 }
                 function onNoteHit(tap) {
                     switch (tap.points.judgement) {
                     case Judgement.Perfect:
-                        judgementCounts.itemAt(0).num++;
+                        judgementCounts.perfect++;
                         break;
                     case Judgement.Great:
-                        judgementCounts.itemAt(1).num++;
+                        judgementCounts.great++;
                         break;
                     case Judgement.Good:
-                        judgementCounts.itemAt(2).num++;
+                        judgementCounts.good++;
                         break;
                     case Judgement.Bad:
-                        judgementCounts.itemAt(3).num++;
+                        judgementCounts.bad++;
                         bga.poorVisible = true;
                         poorLayerTimer.restart();
                         break;
                     case Judgement.EmptyPoor:
-                        judgementCounts.itemAt(5).num++;
+                        judgementCounts.emptyPoor++;
                         bga.poorVisible = true;
                         poorLayerTimer.restart();
                         break;
@@ -195,15 +247,15 @@ Rectangle {
                 target: chart.score
             }
         }
-
         BgaRenderer {
             id: bga
-            visible: ProfileList.currentProfile.vars.globalVars.bgaOn
 
+            height: ProfileList.currentProfile.vars.themeVars["gameplay"].bgaSize
+            visible: ProfileList.currentProfile.vars.globalVars.bgaOn
+            width: ProfileList.currentProfile.vars.themeVars["gameplay"].bgaSize
             x: ProfileList.currentProfile.vars.themeVars["gameplay"].bgaX
             y: ProfileList.currentProfile.vars.themeVars["gameplay"].bgaY
-            height: ProfileList.currentProfile.vars.themeVars["gameplay"].bgaSize
-            width: ProfileList.currentProfile.vars.themeVars["gameplay"].bgaSize
+
             onHeightChanged: {
                 ProfileList.currentProfile.vars.themeVars["gameplay"].bgaSize = height;
                 height = Qt.binding(() => ProfileList.currentProfile.vars.themeVars["gameplay"].bgaSize);
@@ -222,12 +274,13 @@ Rectangle {
 
             TemplateDragBorder {
                 id: bgaTemplate
-                visible: root.customizeMode
-                keepAspectRatio: true
-                color: "transparent"
 
-                anchors.margins: -borderMargin
                 anchors.fill: parent
+                anchors.margins: -borderMargin
+                color: "transparent"
+                keepAspectRatio: true
+                rotationEnabled: false
+                visible: root.customizeMode
             }
         }
     }

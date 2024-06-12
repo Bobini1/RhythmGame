@@ -158,6 +158,45 @@
             "description": "The height of the life bar rectangle."
           }
         ]
+      },
+      {
+        "type": "group",
+        "name": "Judgement Counts",
+        "description": "The position of judgement counts.",
+        "items": [
+          {
+            "id": "judgementCountsX",
+            "name": "X",
+            "type": "range",
+            "min": 0,
+            "default": 0,
+            "description": "The X position of the left side of the judgement counts rectangle."
+          },
+          {
+            "id": "judgementCountsY",
+            "name": "Y",
+            "type": "range",
+            "min": 0,
+            "default": 0,
+            "description": "The Y position of the top side of the judgement counts rectangle."
+          },
+          {
+            "id": "judgementCountsWidth",
+            "name": "Width",
+            "type": "range",
+            "min": 0,
+            "default": 800,
+            "description": "The width of the judgement counts rectangle."
+          },
+          {
+            "id": "judgementCountsHeight",
+            "name": "Height",
+            "type": "range",
+            "min": 0,
+            "default": 20,
+            "description": "The height of the judgement counts rectangle."
+          }
+        ]
       }
     ]
   }
