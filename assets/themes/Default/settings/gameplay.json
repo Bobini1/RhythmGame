@@ -29,7 +29,6 @@
             "id": "playAreaX",
             "name": "X",
             "type": "range",
-            "min": 0,
             "default": 0,
             "description": "The X position of the left side of the play area rectangle."
           },
@@ -98,7 +97,6 @@
             "id": "bgaX",
             "name": "X",
             "type": "range",
-            "min": 0,
             "default": 0,
             "description": "The X position of the left side of the BGA rectangle."
           },
@@ -106,7 +104,6 @@
             "id": "bgaY",
             "name": "Y",
             "type": "range",
-            "min": 0,
             "default": 0,
             "description": "The Y position of the top side of the BGA rectangle."
           },
@@ -129,7 +126,6 @@
             "id": "lifeBarX",
             "name": "X",
             "type": "range",
-            "min": 0,
             "default": 0,
             "description": "The X position of the left side of the life bar rectangle."
           },
@@ -137,7 +133,6 @@
             "id": "lifeBarY",
             "name": "Y",
             "type": "range",
-            "min": 0,
             "default": 0,
             "description": "The Y position of the top side of the life bar rectangle."
           },
@@ -168,7 +163,6 @@
             "id": "judgementCountsX",
             "name": "X",
             "type": "range",
-            "min": 0,
             "default": 0,
             "description": "The X position of the left side of the judgement counts rectangle."
           },
@@ -176,7 +170,6 @@
             "id": "judgementCountsY",
             "name": "Y",
             "type": "range",
-            "min": 0,
             "default": 0,
             "description": "The Y position of the top side of the judgement counts rectangle."
           },
