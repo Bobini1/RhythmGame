@@ -6,67 +6,72 @@ import "../../third_party/TaoQuick/Qml/Misc"
 
 ResizeBorder {
     id: cusBorder
-    x: 0
-    y: 0
-    width: parent.width
-    height: parent.height
+
+    property color borderColor: CusConfig.controlBorderColor
     readonly property int borderMargin: 6
-    readonly property int rotateHandleDistance: 25
+    property color color: CusConfig.themeColor
     property var controller: parent
     property alias dragEnabled: dragItem.enabled
-    property bool rotationEnabled: true
     property alias dragged: dragItem.drag.active
-
     property color rotateHandleColor: "lightgreen"
-    property color color: CusConfig.themeColor
-    property color borderColor: CusConfig.controlBorderColor
-    signal clicked(real x, real y)
-    signal doubleClicked(real x, real y)
+    readonly property int rotateHandleDistance: 25
+    property bool rotationEnabled: true
+
+    signal clicked(var mouse)
+    signal doubleClicked(var mouse)
+
+    height: parent.height
+    width: parent.width
+    x: 0
+    y: 0
 
     //big
     Rectangle {
+        anchors.fill: parent
+        anchors.margins: borderMargin + 1
         border.color: cusBorder.borderColor
         border.width: 1
         color: cusBorder.color
         radius: borderMargin
-        anchors.fill: parent
-        anchors.margins: borderMargin + 1
     }
     //line to rotateHandle and Border
     Rectangle {
         color: rotateHandleColor
-        width: 2
-        visible: rotationEnabled
         height: rotateHandleDistance
+        visible: rotationEnabled
+        width: 2
+
         anchors {
-            top: parent.top
             horizontalCenter: parent.horizontalCenter
+            top: parent.top
             topMargin: -rotateHandleDistance
         }
     }
     //top
     Rectangle {
-        visible: cusBorder.topBorderResizable && !cusBorder.keepAspectRatio
         border.color: CusConfig.controlBorderColor
         border.width: 1
         color: CusConfig.backgroundColor
-        width: borderMargin * 2
         height: width
         radius: width / 2
+        visible: cusBorder.topBorderResizable && !cusBorder.keepAspectRatio
+        width: borderMargin * 2
+
         anchors {
-            top: parent.top
             horizontalCenter: parent.horizontalCenter
+            top: parent.top
         }
     }
     //bottom
     Rectangle {
-        visible: cusBorder.bottomBorderResizable && !cusBorder.keepAspectRatio
         border.color: CusConfig.controlBorderColor
         border.width: 1
         color: CusConfig.backgroundColor
-        width: borderMargin * 2
         height: width
         radius: width / 2
+        visible: cusBorder.bottomBorderResizable && !cusBorder.keepAspectRatio
+        width: borderMargin * 2
+
         anchors {
             bottom: parent.bottom
             horizontalCenter: parent.horizontalCenter
@@ -74,13 +79,14 @@ ResizeBorder {
     }
     //left
     Rectangle {
-        visible: cusBorder.leftBorderResizable && !cusBorder.keepAspectRatio
         border.color: CusConfig.controlBorderColor
         border.width: 1
         color: CusConfig.backgroundColor
-        width: borderMargin * 2
         height: width
         radius: width / 2
+        visible: cusBorder.leftBorderResizable && !cusBorder.keepAspectRatio
+        width: borderMargin * 2
+
         anchors {
             left: parent.left
             verticalCenter: parent.verticalCenter
@@ -88,13 +94,14 @@ ResizeBorder {
     }
     //right
     Rectangle {
-        visible: cusBorder.rightBorderResizable && !cusBorder.keepAspectRatio
         border.color: CusConfig.controlBorderColor
         border.width: 1
         color: CusConfig.backgroundColor
-        width: borderMargin * 2
         height: width
         radius: width / 2
+        visible: cusBorder.rightBorderResizable && !cusBorder.keepAspectRatio
+        width: borderMargin * 2
+
         anchors {
             right: parent.right
             verticalCenter: parent.verticalCenter
@@ -102,71 +109,76 @@ ResizeBorder {
     }
     //top left
     Rectangle {
+        border.color: CusConfig.controlBorderColor
+        border.width: 1
+        color: CusConfig.backgroundColor
+        height: width
+        radius: width / 2
         visible: cusBorder.topBorderResizable && cusBorder.leftBorderResizable
-        border.color: CusConfig.controlBorderColor
-        border.width: 1
-        color: CusConfig.backgroundColor
         width: borderMargin * 2
-        height: width
-        radius: width / 2
-        anchors {
-            top: parent.top
-            left: parent.left
-        }
-    }
-    Rectangle {
-        visible: cusBorder.topBorderResizable && cusBorder.rightBorderResizable
-        border.color: CusConfig.controlBorderColor
-        border.width: 1
-        color: CusConfig.backgroundColor
-        width: borderMargin * 2
-        height: width
-        radius: width / 2
-        anchors {
-            top: parent.top
-            right: parent.right
-        }
-    }
-    Rectangle {
-        visible: cusBorder.bottomBorderResizable && cusBorder.leftBorderResizable
-        border.color: CusConfig.controlBorderColor
-        border.width: 1
-        color: CusConfig.backgroundColor
-        width: borderMargin * 2
-        height: width
-        radius: width / 2
-        anchors {
-            left: parent.left
-            bottom: parent.bottom
-        }
-    }
-    Rectangle {
-        visible: cusBorder.bottomBorderResizable && cusBorder.rightBorderResizable
-        border.color: CusConfig.controlBorderColor
-        border.width: 1
-        color: CusConfig.backgroundColor
-        width: borderMargin * 2
-        height: width
-        radius: width / 2
-        anchors {
-            right: parent.right
-            bottom: parent.bottom
-        }
-    }
 
+        anchors {
+            left: parent.left
+            top: parent.top
+        }
+    }
+    Rectangle {
+        border.color: CusConfig.controlBorderColor
+        border.width: 1
+        color: CusConfig.backgroundColor
+        height: width
+        radius: width / 2
+        visible: cusBorder.topBorderResizable && cusBorder.rightBorderResizable
+        width: borderMargin * 2
+
+        anchors {
+            right: parent.right
+            top: parent.top
+        }
+    }
+    Rectangle {
+        border.color: CusConfig.controlBorderColor
+        border.width: 1
+        color: CusConfig.backgroundColor
+        height: width
+        radius: width / 2
+        visible: cusBorder.bottomBorderResizable && cusBorder.leftBorderResizable
+        width: borderMargin * 2
+
+        anchors {
+            bottom: parent.bottom
+            left: parent.left
+        }
+    }
+    Rectangle {
+        border.color: CusConfig.controlBorderColor
+        border.width: 1
+        color: CusConfig.backgroundColor
+        height: width
+        radius: width / 2
+        visible: cusBorder.bottomBorderResizable && cusBorder.rightBorderResizable
+        width: borderMargin * 2
+
+        anchors {
+            bottom: parent.bottom
+            right: parent.right
+        }
+    }
     Rectangle {
         color: rotateHandleColor
-        width: borderMargin * 2
         height: width
         radius: width / 2
         visible: rotationEnabled
+        width: borderMargin * 2
+
         anchors {
-            top: parent.top
             horizontalCenter: parent.horizontalCenter
+            top: parent.top
             topMargin: -rotateHandleDistance
         }
         CusImage {
             id: rotateCursor
+
             source: "../../third_party/TaoQuick/Images/rotate.png"
             visible: rotateArea.containsMouse | rotateArea.pressed
             x: rotateArea.mouseX - width / 2
@@ -174,50 +186,53 @@ ResizeBorder {
         }
         MouseArea {
             id: rotateArea
+
+            property int lastX: 0
+
             anchors.centerIn: parent
-            width: parent.width * 2
             height: parent.height * 2
             hoverEnabled: true
-            property int lastX: 0
+            width: parent.width * 2
+
             onContainsMouseChanged: {
                 if (containsMouse) {
-                    cursorShape = Qt.BlankCursor
+                    cursorShape = Qt.BlankCursor;
                 } else {
-                    cursorShape = Qt.ArrowCursor
-                }
-            }
-            onPressedChanged: {
-                if (containsPress) {
-                    lastX = mouseX
+                    cursorShape = Qt.ArrowCursor;
                 }
             }
             onPositionChanged: {
                 if (pressed) {
-                    var t = controller.rotation + (mouseX - lastX) / 5
-                    t = t % 360
-                    controller.rotation = t
+                    var t = controller.rotation + (mouseX - lastX) / 5;
+                    t = t % 360;
+                    controller.rotation = t;
+                }
+            }
+            onPressedChanged: {
+                if (containsPress) {
+                    lastX = mouseX;
                 }
             }
         }
         BasicTooltip {
             id: toolTip
+
+            text: parseInt(controller.rotation) + "°"
+            visible: rotateArea.pressed
             x: rotateArea.mouseX + 30
             y: rotateArea.mouseY
-            visible: rotateArea.pressed
-            text: parseInt(controller.rotation) + "°"
         }
     }
     MouseArea {
         id: dragItem
+
+        acceptedButtons: Qt.LeftButton
         anchors.fill: parent
         anchors.margins: borderMargin * 2
         cursorShape: Qt.PointingHandCursor
         drag.target: controller
-        onClicked: {
-            cusBorder.clicked(x, y)
-        }
-        onDoubleClicked: {
-            cusBorder.doubleClicked(x, y)
-        }
+
+        onClicked: mouse => cusBorder.clicked(mouse)
+        onDoubleClicked: mouse => cusBorder.doubleClicked(mouse)
     }
 }
