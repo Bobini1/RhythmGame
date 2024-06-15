@@ -20,10 +20,9 @@ Text {
     }
     readonly property real hundredPercentWidth: textMetrics.width
     color: "white"
-    font.pixelSize: 24
+    font.pixelSize: 32
     fontSizeMode: Text.Fit
     text: lifeText.getLifeText()
-    font.pointSize: Infinity
     horizontalAlignment: Text.AlignHCenter
     verticalAlignment: Text.AlignVCenter
 
