@@ -4,6 +4,7 @@
 
 #include <QSettings>
 #include "IniImageProvider.h"
+
 #include <QFile>
 #include <spdlog/spdlog.h>
 
@@ -51,17 +52,14 @@ IniImageProvider::requestPixmap(const QString& id,
         }
         return cachedPixmap->copy(rect);
     }();
-    // resize if requested
     if (requestedSize.isValid()) {
-        // do not interpolate
-        pixmap = pixmap.scaled(
-          requestedSize, Qt::KeepAspectRatio, Qt::FastTransformation);
+        return pixmap.scaled(requestedSize);
     }
     return pixmap;
 }
 IniImageProvider::
 IniImageProvider()
-  : QQuickImageProvider(QQuickImageProvider::Pixmap)
+  : QQuickImageProvider(Pixmap)
 {
 }
 } // namespace resource_managers
