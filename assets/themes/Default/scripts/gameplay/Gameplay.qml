@@ -293,7 +293,6 @@ Rectangle {
         }
     }
     Shortcut {
-        enabled: chartFocusScope.active
         sequence: "F2"
 
         onActivated: {
