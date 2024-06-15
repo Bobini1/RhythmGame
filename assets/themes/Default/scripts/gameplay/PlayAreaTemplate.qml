@@ -1,33 +1,21 @@
 import RhythmGameQml
 import QtQuick
 import "../common/TaoQuickCustom"
+import QtQuick.Controls
 
 Item {
     id: playAreaTemplate
+
     required property var columns
     readonly property real spacing: ProfileList.currentProfile.vars.themeVars["gameplay"].spacing
-    x: ProfileList.currentProfile.vars.themeVars["gameplay"].playAreaX
+
+    signal clicked(var mouse)
+    signal doubleClicked(var mouse)
+
     height: ProfileList.currentProfile.vars.themeVars["gameplay"].playAreaHeight
     width: playAreaTemplate.columns.reduce((a, b) => a + root.columnSizes[b], 0) + (playAreaTemplate.columns.length - 1) * playAreaTemplate.spacing
-    TemplateDragBorder {
-        id: template
-        visible: root.customizeMode
-        topBorderResizable: false
-        onBorderPressedChanged: {
-            if (borderPressed) {
-                // remove the binding
-                playAreaTemplate.width = playAreaTemplate.width
-            } else {
-                playAreaTemplate.width = Qt.binding(() => playAreaTemplate.columns.reduce((a, b) => a + root.columnSizes[b], 0) + (playAreaTemplate.columns.length - 1) * playAreaTemplate.spacing)
-            }
-        }
+    x: ProfileList.currentProfile.vars.themeVars["gameplay"].playAreaX
 
-        anchors.fill: parent
-        anchors.margins: -borderMargin
-
-        color: "transparent"
-        rotationEnabled: false
-    }
     onHeightChanged: {
         ProfileList.currentProfile.vars.themeVars["gameplay"].playAreaHeight = height;
         height = Qt.binding(() => ProfileList.currentProfile.vars.themeVars["gameplay"].playAreaHeight);
@@ -43,10 +31,31 @@ Item {
         ProfileList.currentProfile.vars.themeVars["gameplay"].blackWidth = newWidths[0];
         ProfileList.currentProfile.vars.themeVars["gameplay"].whiteWidth = newWidths[1];
         ProfileList.currentProfile.vars.themeVars["gameplay"].scratchWidth = newWidths[2];
-
     }
     onXChanged: {
         ProfileList.currentProfile.vars.themeVars["gameplay"].playAreaX = x;
         x = Qt.binding(() => ProfileList.currentProfile.vars.themeVars["gameplay"].playAreaX);
+    }
+
+    TemplateDragBorder {
+        id: template
+
+        anchors.fill: parent
+        anchors.margins: -borderMargin
+        color: "transparent"
+        rotationEnabled: false
+        topBorderResizable: false
+
+        onBorderPressedChanged: {
+            if (borderPressed) {
+                // remove the binding
+                // noinspection SillyAssignmentJS
+                playAreaTemplate.width = playAreaTemplate.width;
+            } else {
+                playAreaTemplate.width = Qt.binding(() => playAreaTemplate.columns.reduce((a, b) => a + root.columnSizes[b], 0) + (playAreaTemplate.columns.length - 1) * playAreaTemplate.spacing);
+            }
+        }
+        onClicked: mouse => playAreaTemplate.clicked(mouse)
+        onDoubleClicked: mouse => playAreaTemplate.doubleClicked(mouse)
     }
 }
