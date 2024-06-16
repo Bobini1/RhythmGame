@@ -16,10 +16,10 @@ Item {
         }
         return mapping;
     }
-    readonly property int spacing: ProfileList.currentProfile.vars.themeVars["gameplay"].spacing
+    readonly property int spacing: ProfileList.currentProfile.vars.themeVars.gameplay.spacing
 
     width: playfield.width
-    height: ProfileList.currentProfile.vars.themeVars["gameplay"].playAreaHeight
+    height: ProfileList.currentProfile.vars.themeVars.gameplay.playAreaHeight
     clip: true
 
     Playfield {
@@ -173,7 +173,7 @@ Item {
 
         anchors.bottom: parent.bottom
         opacity: (Math.abs(chart.position % 1) > 0.5 ? Math.abs(chart.position % 1) : 1 - Math.abs(chart.position % 1)) * 0.2 + 0.1
-        source: root.imagesUrl + "glow.png"
+        source: root.imagesUrl + "glow/" + ProfileList.currentProfile.vars.themeVars.gameplay.glow
         visible: true
         width: parent.width
         z: -1
@@ -216,7 +216,7 @@ Item {
                 height: 300
                 loops: bombWrapper.ln ? AnimatedSprite.Infinite : 1
                 running: false
-                source: root.imagesUrl + "explosion.png"
+                source: root.imagesUrl + "bomb/" + ProfileList.currentProfile.vars.themeVars.gameplay.bomb
                 visible: running
                 width: 300
             }

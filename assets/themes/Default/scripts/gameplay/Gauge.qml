@@ -1,6 +1,7 @@
 import QtQml
 import QtQuick
 import QtQuick.Layouts
+import RhythmGameQml
 
 Item {
     Repeater {
@@ -16,7 +17,7 @@ Item {
 
             function getSource(index) {
                 let above = index >= gauge.threshold / 2;
-                let img = root.iniImagesUrl + "gauge.png/";
+                let img = root.iniImagesUrl + "gauge/" + ProfileList.currentProfile.vars.themeVars.gameplay.gauge + "/";
                 switch (gauge.gaugeName) {
                 case "FC":
                     return img + "orange";

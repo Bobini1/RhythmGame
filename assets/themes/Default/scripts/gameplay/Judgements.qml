@@ -76,7 +76,7 @@ Item {
             frameWidth: 227
             interpolate: false
             onSourceChanged: {
-                if (source != root.iniImagesUrl + "judge.png/pgreat") {
+                if (source != root.iniImagesUrl + "judge/" + ProfileList.currentProfile.vars.themeVars.gameplay.judge + "/pgreat") {
                     judgementAnimationFlashing.start();
                 } else {
                     judgementAnimationFlashing.stop();
@@ -88,17 +88,17 @@ Item {
         Repeater {
             id: comboNumber
 
-            model: chart.score.combo > 0 && judgementAnimation.source != root.iniImagesUrl + "judge.png/poor" ? chart.score.combo.toString().split("") : []
+            model: chart.score.combo > 0 && judgementAnimation.source != root.iniImagesUrl + "judge/" + ProfileList.currentProfile.vars.themeVars.gameplay.judge + "/poor" ? chart.score.combo.toString().split("") : []
 
             AnimatedSprite {
                 id: comboNumberAnimation
 
                 currentFrame: judgementAnimation.currentFrame
-                frameCount: judgementAnimation.source == root.iniImagesUrl + "judge.png/pgreat" ? 3 : 1
+                frameCount: judgementAnimation.source == root.iniImagesUrl + "judge/" + ProfileList.currentProfile.vars.themeVars.gameplay.judge + "/pgreat" ? 3 : 1
                 frameHeight: 84
                 frameWidth: 55
                 paused: true
-                source: root.iniImagesUrl + (judgementAnimation.source == root.iniImagesUrl + "judge.png/pgreat" ? "judge.png/pgreat_" : "judge.png/great_") + modelData
+                source: root.iniImagesUrl + (judgementAnimation.source == root.iniImagesUrl + "judge/" + ProfileList.currentProfile.vars.themeVars.gameplay.judge + "/pgreat" ? "judge.png/pgreat_" : "judge.png/great_") + modelData
             }
 
         }
@@ -108,35 +108,35 @@ Item {
     Connections {
         function onLnEndMissed(_) {
             judgementAnimation.frameCount = 1;
-            judgementAnimation.source = root.iniImagesUrl + "judge.png/poor";
+            judgementAnimation.source = root.iniImagesUrl + "judge/" + ProfileList.currentProfile.vars.themeVars.gameplay.judge + "/poor";
         }
 
         function onMissed(misses) {
             judgementAnimation.frameCount = 1;
-            judgementAnimation.source = root.iniImagesUrl + "judge.png/poor";
+            judgementAnimation.source = root.iniImagesUrl + "judge/" + ProfileList.currentProfile.vars.themeVars.gameplay.judge + "/poor";
         }
 
         function onNoteHit(tap) {
             switch (tap.points.judgement) {
             case Judgement.Perfect:
                 judgementAnimation.frameCount = 3;
-                judgementAnimation.source = root.iniImagesUrl + "judge.png/pgreat";
+                judgementAnimation.source = root.iniImagesUrl + "judge/" + ProfileList.currentProfile.vars.themeVars.gameplay.judge + "/pgreat";
                 break;
             case Judgement.Great:
                 judgementAnimation.frameCount = 1;
-                judgementAnimation.source = root.iniImagesUrl + "judge.png/great";
+                judgementAnimation.source = root.iniImagesUrl + "judge/" + ProfileList.currentProfile.vars.themeVars.gameplay.judge + "/great";
                 break;
             case Judgement.Good:
                 judgementAnimation.frameCount = 1;
-                judgementAnimation.source = root.iniImagesUrl + "judge.png/good";
+                judgementAnimation.source = root.iniImagesUrl + "judge/" + ProfileList.currentProfile.vars.themeVars.gameplay.judge + "/good";
                 break;
             case Judgement.Bad:
                 judgementAnimation.frameCount = 1;
-                judgementAnimation.source = root.iniImagesUrl + "judge.png/bad";
+                judgementAnimation.source = root.iniImagesUrl + "judge/" + ProfileList.currentProfile.vars.themeVars.gameplay.judge + "/bad";
                 break;
             default:
                 judgementAnimation.frameCount = 1;
-                judgementAnimation.source = root.iniImagesUrl + "judge.png/poor";
+                judgementAnimation.source = root.iniImagesUrl + "judge/" + ProfileList.currentProfile.vars.themeVars.gameplay.judge + "/poor";
                 break;
             }
         }
@@ -147,14 +147,14 @@ Item {
 
     Image {
         height: 0
-        source: root.iniImagesUrl + "judge.png/pgreat"
+        source: root.iniImagesUrl + "judge/" + ProfileList.currentProfile.vars.themeVars.gameplay.judge + "/pgreat"
         visible: false
         width: 0
     }
 
     Image {
         height: 0
-        source: root.iniImagesUrl + "judge.png/pgreat_0"
+        source: root.iniImagesUrl + "judge/" + ProfileList.currentProfile.vars.themeVars.gameplay.judge + "/pgreat_0"
         visible: false
         width: 0
     }
