@@ -15,9 +15,6 @@ Item {
     property real noteHeight: 36
     property var notes
     property int visibleNoteIndex: 0
-    onNoteHeightChanged: {
-        print(noteHeight)
-    }
 
     function activateLn(index: int) {
         let item = noteRepeater.itemAt(index - column.erasedNoteIndex);
