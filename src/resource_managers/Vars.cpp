@@ -156,7 +156,7 @@ createFileProperty(QHash<QString, QVariant>& screenVars,
                       "a string: {}",
                       jsonValueToString(object)));
     }
-    auto stdPath = support::qStringToPath(object["default"].toString());
+    const auto stdPath = support::qStringToPath(object["path"].toString());
     if (!stdPath.is_relative()) {
         throw support::Exception(
           std::format("default field of property of type file is not a "
