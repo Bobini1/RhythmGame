@@ -38,7 +38,7 @@
       },
       {
         "id": "bomb",
-        "name": "BGA",
+        "name": "bomb",
         "type": "file",
         "path": "scripts/gameplay/images/bomb",
         "default": "explosion.png",
