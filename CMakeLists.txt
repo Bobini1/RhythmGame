@@ -141,8 +141,8 @@ qt_add_library(RhythmGame_lib OBJECT src/db/SqliteCppDb.cpp src/db/SqliteCppDb.h
         src/qml_components/PreviewFilePathFetcher.h
         src/qml_components/ScoreDb.cpp
         src/qml_components/ScoreDb.h
-        src/qml_components/FileValidator.cpp
-        src/qml_components/FileValidator.h
+        src/qml_components/FileQuery.cpp
+        src/qml_components/FileQuery.h
         src/qml_components/Bga.cpp
         src/qml_components/Bga.h
         src/gameplay_logic/MineHit.cpp

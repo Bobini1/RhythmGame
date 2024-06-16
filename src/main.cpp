@@ -25,7 +25,7 @@
 #include "qml_components/ProfileList.h"
 #include "qml_components/PreviewFilePathFetcher.h"
 #include "qml_components/ScoreDb.h"
-#include "qml_components/FileValidator.h"
+#include "qml_components/FileQuery.h"
 #include "qml_components/Themes.h"
 #include "resource_managers/ScanThemes.h"
 
@@ -199,9 +199,9 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
         qmlRegisterSingletonInstance(
           "RhythmGameQml", 1, 0, "ScoreDb", &scoreDbSingleton);
 
-        auto fileValidator = qml_components::FileValidator{};
+        auto fileQuery = qml_components::FileQuery{};
         qmlRegisterSingletonInstance(
-          "RhythmGameQml", 1, 0, "FileValidator", &fileValidator);
+          "RhythmGameQml", 1, 0, "FileQuery", &fileQuery);
 
         // add all other common types
 

@@ -4,7 +4,7 @@
 
 #include "ScanThemes.h"
 
-#include "qml_components/FileValidator.h"
+#include "qml_components/FileQuery.h"
 #include "support/PathToQString.h"
 #include "support/QStringToPath.h"
 

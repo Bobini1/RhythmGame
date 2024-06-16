@@ -5,7 +5,7 @@ import RhythmGameQml
 
 ComboBox {
     id: fileComboBox
-    property var files: ProfileList.currentProfile.vars.getSelectableFilesForDirectory(Themes.availableThemeFamilies[ProfileList.currentProfile.themeConfig[screen]].path + "/" + props.path)
+    property var files: FileQuery.getSelectableFilesForDirectory(Themes.availableThemeFamilies[ProfileList.currentProfile.themeConfig[screen]].path + "/" + props.path)
     model: files
     delegate: ItemDelegate {
         text: modelData

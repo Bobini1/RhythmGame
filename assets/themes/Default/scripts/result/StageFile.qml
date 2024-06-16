@@ -8,7 +8,7 @@ Image {
     height: sourceSize.height
     source: {
         let stageFile = "file://" + chartData.directory + chartData.stageFile;
-        return FileValidator.exists(stageFile) ? stageFile : "";
+        return FileQuery.exists(stageFile) ? stageFile : "";
     }
     sourceSize.height: 192
     sourceSize.width: 256

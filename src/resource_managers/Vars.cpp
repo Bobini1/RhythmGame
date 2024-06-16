@@ -9,6 +9,8 @@
 #include <QJsonObject>
 #include <QJsonArray>
 #include "Vars.h"
+
+#include "qml_components/FileQuery.h"
 #include "qml_components/ProfileList.h"
 #include "qml_components/ThemeFamily.h"
 #include "support/PathToQString.h"
@@ -123,27 +125,6 @@ jsonValueToString(const QJsonValue& value) -> std::string
     return QJsonDocument(value.toObject()).toJson().toStdString();
 }
 
-auto
-getSelectableFilesForDirectory(const std::filesystem::path& path)
-  -> QList<QString>
-{
-    auto files = QList<QString>{};
-    for (const auto& file : std::filesystem::directory_iterator(path)) {
-        if (!file.is_regular_file()) {
-            continue;
-        }
-        if (file.path().extension() == ".ini") {
-            continue;
-        }
-        // ignore files starting with dot
-        if (file.path().filename().string().front() == '.') {
-            continue;
-        }
-        files.push_back(support::pathToQString(file.path().filename()));
-    }
-    return files;
-}
-
 void
 createFileProperty(QHash<QString, QVariant>& screenVars,
                    const QJsonObject& object,
@@ -188,7 +169,9 @@ createFileProperty(QHash<QString, QVariant>& screenVars,
             return;
         }
     }
-    if (const auto files = getSelectableFilesForDirectory(themePath / stdPath);
+    if (const auto files =
+          qml_components::FileQuery().getSelectableFilesForDirectory(
+            support::pathToQString(themePath / stdPath));
         !files.empty()) {
         screenVars[object["id"].toString()] = QVariant(files.first());
     } else {
@@ -611,11 +594,7 @@ resource_managers::Vars::getThemeVars() -> QQmlPropertyMap*
 {
     return &themeVars;
 }
-QList<QString>
-resource_managers::Vars::getSelectableFilesForDirectory(QString directory) const
-{
-    return ::getSelectableFilesForDirectory(support::qStringToPath(directory));
-}
+
 void
 resource_managers::Vars::onThemeConfigChanged(const QString& key,
                                               const QVariant& value)

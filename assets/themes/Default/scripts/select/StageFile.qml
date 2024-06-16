@@ -11,7 +11,7 @@ Image {
             return "";
         }
         let stageFile = "file://" + current.directory + current.stageFile;
-        return FileValidator.exists(stageFile) ? stageFile : "";
+        return FileQuery.exists(stageFile) ? stageFile : "";
     }
     sourceSize.height: 450
     sourceSize.width: 600
