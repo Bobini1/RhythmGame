@@ -23,8 +23,8 @@ IniImageProvider::requestPixmap(const QString& id,
     pathToIni.append(".ini");
     if (!QFile(pathToIni).exists()) {
         // use folder.ini if the file does not exist
-        path.remove(path.lastIndexOf('/'), path.length());
         pathToIni = path;
+        pathToIni.remove(path.lastIndexOf('/'), path.length());
         pathToIni.append("/folder.ini");
         if (!QFile(pathToIni).exists()) {
             spdlog::warn("Could not find the ini file for {}",
