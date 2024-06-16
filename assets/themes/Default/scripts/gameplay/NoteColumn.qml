@@ -84,7 +84,7 @@ Item {
             }
 
             mipmap: true
-            source: root.iniImagesUrl + (column.notes[note].type === Note.Type.Landmine ? ("mine/" + ProfileList.currentProfile.vars.themeVars.gameplay.mine) : ("notes/" + ProfileList.currentProfile.vars.themeVars.gameplay.notes)) + "/" + getTypeString() + column.color
+            source: root.iniImagesUrl + (column.notes[note].type === Note.Type.Landmine ? ("mine/" + root.vars.mine) : ("notes/" + root.vars.notes)) + "/" + getTypeString() + column.color
             visible: false
             antialiasing: true
             y: notePosition - height / 2
@@ -102,10 +102,10 @@ Item {
                         height: Math.floor(column.notes[note + 1].time.position * column.heightMultiplier) + noteImg.y
                         source: {
                             if (!noteImg.held) {
-                                return root.iniImagesUrl + "notes/" + ProfileList.currentProfile.vars.themeVars.gameplay.notes + "/ln_body_inactive_" + column.color;
+                                return root.iniImagesUrl + "notes/" + root.vars.notes + "/ln_body_inactive_" + column.color;
                             }
                             let flashing = Math.abs(chart.position % 0.5) > 0.25;
-                            return root.iniImagesUrl + "notes/" + ProfileList.currentProfile.vars.themeVars.gameplay.notes + "/ln_body_" + (flashing ? "flash" : "active") + "_" + column.color;
+                            return root.iniImagesUrl + "notes/" + root.vars.notes + "/ln_body_" + (flashing ? "flash" : "active") + "_" + column.color;
                         }
                         width: noteImg.width
                         y: -height

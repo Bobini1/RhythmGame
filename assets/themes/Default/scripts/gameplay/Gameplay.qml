@@ -16,11 +16,11 @@ Rectangle {
         let sizes = [];
         for (let i = 0; i < 16; i++) {
             if (i === 7 || i === 15) {
-                sizes.push(ProfileList.currentProfile.vars.themeVars.gameplay.scratchWidth);
+                sizes.push(root.vars.scratchWidth);
             } else if (i % 2 === 0)
-                sizes.push(ProfileList.currentProfile.vars.themeVars.gameplay.whiteWidth);
+                sizes.push(root.vars.whiteWidth);
             else {
-                sizes.push(ProfileList.currentProfile.vars.themeVars.gameplay.blackWidth);
+                sizes.push(root.vars.blackWidth);
             }
         }
         return sizes;
@@ -29,15 +29,16 @@ Rectangle {
     property double greenNumber: ProfileList.currentProfile.vars.globalVars.noteScreenTimeSeconds * 400
     readonly property string imagesUrl: Qt.resolvedUrl(".") + "images/"
     readonly property string iniImagesUrl: "image://ini/" + rootUrl + "images/"
+    readonly property var vars: ProfileList.currentProfile.vars.themeVars.gameplay
     property list<string> laserImages: {
         let images = [];
         for (let i = 0; i < 16; i++) {
             if (i === 7 || i === 15)
-                images.push(iniImagesUrl + "keybeam/" + ProfileList.currentProfile.vars.themeVars.gameplay.keybeam + "/laser_s");
+                images.push(iniImagesUrl + "keybeam/" + root.vars.keybeam + "/laser_s");
             else if (i % 2 === 0)
-                images.push(iniImagesUrl + "keybeam/" + ProfileList.currentProfile.vars.themeVars.gameplay.keybeam + "/laser_w");
+                images.push(iniImagesUrl + "keybeam/" + root.vars.keybeam + "/laser_w");
             else
-                images.push(iniImagesUrl + "keybeam/" + ProfileList.currentProfile.vars.themeVars.gameplay.keybeam + "/laser_b");
+                images.push(iniImagesUrl + "keybeam/" + root.vars.keybeam + "/laser_b");
         }
         return images;
     }
@@ -118,10 +119,10 @@ Rectangle {
 
                         from: 0
                         to: 100
-                        value: ProfileList.currentProfile.vars.themeVars.gameplay.thickness
+                        value: root.vars.thickness
                         onMoved: {
-                            ProfileList.currentProfile.vars.themeVars.gameplay.thickness = value;
-                            value = Qt.binding(() => ProfileList.currentProfile.vars.themeVars.gameplay.thickness);
+                            root.vars.thickness = value;
+                            value = Qt.binding(() => root.vars.thickness);
                         }
                     }
                 }
@@ -172,32 +173,32 @@ Rectangle {
 
             anchors.top: parent.top
             columns: [7, 0, 1, 2, 3, 4, 5, 6]
-            x: ProfileList.currentProfile.vars.themeVars.gameplay.playAreaX
+            x: root.vars.playAreaX
         }
         LifeBar {
             id: lifeBar
 
-            height: ProfileList.currentProfile.vars.themeVars.gameplay.lifeBarHeight
-            width: ProfileList.currentProfile.vars.themeVars.gameplay.lifeBarWidth
-            x: ProfileList.currentProfile.vars.themeVars.gameplay.lifeBarX
-            y: ProfileList.currentProfile.vars.themeVars.gameplay.lifeBarY
+            height: root.vars.lifeBarHeight
+            width: root.vars.lifeBarWidth
+            x: root.vars.lifeBarX
+            y: root.vars.lifeBarY
             z: 2
 
             onHeightChanged: {
-                ProfileList.currentProfile.vars.themeVars.gameplay.lifeBarHeight = height;
-                height = Qt.binding(() => ProfileList.currentProfile.vars.themeVars.gameplay.lifeBarHeight);
+                root.vars.lifeBarHeight = height;
+                height = Qt.binding(() => root.vars.lifeBarHeight);
             }
             onWidthChanged: {
-                ProfileList.currentProfile.vars.themeVars.gameplay.lifeBarWidth = width;
-                width = Qt.binding(() => ProfileList.currentProfile.vars.themeVars.gameplay.lifeBarWidth);
+                root.vars.lifeBarWidth = width;
+                width = Qt.binding(() => root.vars.lifeBarWidth);
             }
             onXChanged: {
-                ProfileList.currentProfile.vars.themeVars.gameplay.lifeBarX = x;
-                x = Qt.binding(() => ProfileList.currentProfile.vars.themeVars.gameplay.lifeBarX);
+                root.vars.lifeBarX = x;
+                x = Qt.binding(() => root.vars.lifeBarX);
             }
             onYChanged: {
-                ProfileList.currentProfile.vars.themeVars.gameplay.lifeBarY = y;
-                y = Qt.binding(() => ProfileList.currentProfile.vars.themeVars.gameplay.lifeBarY);
+                root.vars.lifeBarY = y;
+                y = Qt.binding(() => root.vars.lifeBarY);
             }
 
             TemplateDragBorder {
@@ -214,27 +215,27 @@ Rectangle {
             id: judgementCountsContainer
 
             color: "darkslategray"
-            height: ProfileList.currentProfile.vars.themeVars.gameplay.judgementCountsHeight
-            width: ProfileList.currentProfile.vars.themeVars.gameplay.judgementCountsWidth
-            x: ProfileList.currentProfile.vars.themeVars.gameplay.judgementCountsX
-            y: ProfileList.currentProfile.vars.themeVars.gameplay.judgementCountsY
+            height: root.vars.judgementCountsHeight
+            width: root.vars.judgementCountsWidth
+            x: root.vars.judgementCountsX
+            y: root.vars.judgementCountsY
             z: 2
 
             onHeightChanged: {
-                ProfileList.currentProfile.vars.themeVars.gameplay.judgementCountsHeight = height;
-                height = Qt.binding(() => ProfileList.currentProfile.vars.themeVars.gameplay.judgementCountsHeight);
+                root.vars.judgementCountsHeight = height;
+                height = Qt.binding(() => root.vars.judgementCountsHeight);
             }
             onWidthChanged: {
-                ProfileList.currentProfile.vars.themeVars.gameplay.judgementCountsWidth = width;
-                width = Qt.binding(() => ProfileList.currentProfile.vars.themeVars.gameplay.judgementCountsWidth);
+                root.vars.judgementCountsWidth = width;
+                width = Qt.binding(() => root.vars.judgementCountsWidth);
             }
             onXChanged: {
-                ProfileList.currentProfile.vars.themeVars.gameplay.judgementCountsX = x;
-                x = Qt.binding(() => ProfileList.currentProfile.vars.themeVars.gameplay.judgementCountsX);
+                root.vars.judgementCountsX = x;
+                x = Qt.binding(() => root.vars.judgementCountsX);
             }
             onYChanged: {
-                ProfileList.currentProfile.vars.themeVars.gameplay.judgementCountsY = y;
-                y = Qt.binding(() => ProfileList.currentProfile.vars.themeVars.gameplay.judgementCountsY);
+                root.vars.judgementCountsY = y;
+                y = Qt.binding(() => root.vars.judgementCountsY);
             }
 
             TemplateDragBorder {
@@ -306,26 +307,26 @@ Rectangle {
         BgaRenderer {
             id: bga
 
-            height: ProfileList.currentProfile.vars.themeVars.gameplay.bgaSize
+            height: root.vars.bgaSize
             visible: ProfileList.currentProfile.vars.globalVars.bgaOn
-            width: ProfileList.currentProfile.vars.themeVars.gameplay.bgaSize
-            x: ProfileList.currentProfile.vars.themeVars.gameplay.bgaX
-            y: ProfileList.currentProfile.vars.themeVars.gameplay.bgaY
+            width: root.vars.bgaSize
+            x: root.vars.bgaX
+            y: root.vars.bgaY
 
             onHeightChanged: {
-                ProfileList.currentProfile.vars.themeVars.gameplay.bgaSize = height;
-                height = Qt.binding(() => ProfileList.currentProfile.vars.themeVars.gameplay.bgaSize);
+                root.vars.bgaSize = height;
+                height = Qt.binding(() => root.vars.bgaSize);
             }
             onWidthChanged: {
-                width = Qt.binding(() => ProfileList.currentProfile.vars.themeVars.gameplay.bgaSize);
+                width = Qt.binding(() => root.vars.bgaSize);
             }
             onXChanged: {
-                ProfileList.currentProfile.vars.themeVars.gameplay.bgaX = x;
-                x = Qt.binding(() => ProfileList.currentProfile.vars.themeVars.gameplay.bgaX);
+                root.vars.bgaX = x;
+                x = Qt.binding(() => root.vars.bgaX);
             }
             onYChanged: {
-                ProfileList.currentProfile.vars.themeVars.gameplay.bgaY = y;
-                y = Qt.binding(() => ProfileList.currentProfile.vars.themeVars.gameplay.bgaY);
+                root.vars.bgaY = y;
+                y = Qt.binding(() => root.vars.bgaY);
             }
 
             TemplateDragBorder {

@@ -17,7 +17,7 @@ Item {
 
             function getSource(index) {
                 let above = index >= gauge.threshold / 2;
-                let img = root.iniImagesUrl + "gauge/" + ProfileList.currentProfile.vars.themeVars.gameplay.gauge + "/";
+                let img = root.iniImagesUrl + "gauge/" + root.vars.gauge + "/";
                 switch (gauge.gaugeName) {
                 case "FC":
                     return img + "orange";

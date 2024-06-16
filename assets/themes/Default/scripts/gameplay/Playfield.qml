@@ -56,7 +56,7 @@ Rectangle {
 
                 color: root.noteColors[playfield.columns[index]]
                 heightMultiplier: root.greenNumber
-                noteHeight: ProfileList.currentProfile.vars.themeVars.gameplay.thickness
+                noteHeight: root.vars.thickness
                 notes: modelData
                 width: root.columnSizes[playfield.columns[index]]
                 height: 1
