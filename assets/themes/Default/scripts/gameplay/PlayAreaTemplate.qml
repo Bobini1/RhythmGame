@@ -1,7 +1,7 @@
 import RhythmGameQml
 import QtQuick
 import "../common/TaoQuickCustom"
-import QtQuick.Controls
+import QtQuick.Controls.Basic
 
 Item {
     id: playAreaTemplate
