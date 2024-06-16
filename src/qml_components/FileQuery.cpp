@@ -6,6 +6,7 @@
 
 #include "support/PathToQString.h"
 #include "support/QStringToPath.h"
+#include <spdlog/spdlog.h>
 namespace {
 
 auto
@@ -42,6 +43,14 @@ FileQuery::exists(const QString& path)
 QList<QString>
 FileQuery::getSelectableFilesForDirectory(const QString& directory) const
 {
-    return ::getSelectableFilesForDirectory(support::qStringToPath(directory));
+    try {
+        return ::getSelectableFilesForDirectory(
+          support::qStringToPath(directory));
+    } catch (const std::exception& e) {
+        spdlog::error("Error getting selectable files for directory {}: {}",
+                      directory.toStdString(),
+                      e.what());
+        return {};
+    }
 }
 } // namespace qml_components
