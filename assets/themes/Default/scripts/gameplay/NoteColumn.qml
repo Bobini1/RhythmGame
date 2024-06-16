@@ -1,20 +1,23 @@
-import QtQuick 2.0
+import QtQuick
 import QtQuick.Layouts
 import RhythmGameQml
 
 Item {
     id: column
 
-    property double chartPosition: Math.floor(-chart.position * column.heightMultiplier)
+    property real chartPosition: Math.floor(-chart.position * column.heightMultiplier)
     property string color
     property int erasedNoteIndex: 0
-    property int heightMultiplier: 20
+    property real heightMultiplier: 20
     property var missedLnEnds: {
         return {};
     }
-    property int noteHeight: 36
+    property real noteHeight: 36
     property var notes
     property int visibleNoteIndex: 0
+    onNoteHeightChanged: {
+        print(noteHeight)
+    }
 
     function activateLn(index: int) {
         let item = noteRepeater.itemAt(index - column.erasedNoteIndex);
@@ -50,8 +53,8 @@ Item {
         Component.onCompleted: {
             for (let i = 0; i < column.notes.length; i++) {
                 notesModel.append({
-                        "note": i
-                    });
+                    "note": i
+                });
             }
         }
     }
@@ -65,7 +68,7 @@ Item {
 
             // for ln begin only
             property bool held: false
-            property double notePosition: Math.floor(-column.notes[note].time.position * column.heightMultiplier)
+            property real notePosition: Math.floor(-column.notes[note].time.position * column.heightMultiplier)
 
             function getTypeString() {
                 let type = column.notes[note].type;
@@ -83,8 +86,10 @@ Item {
                 }
             }
 
+            mipmap: true
             source: root.iniImagesUrl + "default.png/" + getTypeString() + column.color
             visible: false
+            antialiasing: true
             y: notePosition - height / 2
 
             Loader {
@@ -148,8 +153,8 @@ Item {
             count = 0;
             while (visibleNoteIndex + count < noteRepeater.count) {
                 let noteImage = noteRepeater.itemAt(visibleNoteIndex + count);
-                let globalPos = noteImage.mapToGlobal(0, 0);
-                globalPos.y += noteImage.height;
+                let globalPos = noteImage.mapToItem(root, 0, 0);
+                globalPos.y += column.noteHeight;
                 if (globalPos.y > 0) {
                     noteImage.visible = true;
                     noteImage.width = Qt.binding(() => column.width);

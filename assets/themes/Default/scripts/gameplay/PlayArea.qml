@@ -20,13 +20,14 @@ Item {
 
     width: playfield.width
     height: ProfileList.currentProfile.vars.themeVars["gameplay"].playAreaHeight
+    clip: true
 
     Playfield {
         id: playfield
 
         columns: playArea.columns
         spacing: playArea.spacing
-        y: Math.floor(chart.position * root.greenNumber + parent.height)
+        y: chart.position * root.greenNumber + parent.height
         z: 1
     }
     Row {

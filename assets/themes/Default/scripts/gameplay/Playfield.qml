@@ -14,7 +14,7 @@ Rectangle {
         }
         return mapping;
     }
-    property int spacing
+    property real spacing
 
     function activateLn(column: int, index: int) {
         let noteColumn = noteColumnRepeater.itemAt(columnsReversedMapping[column]);
@@ -32,6 +32,7 @@ Rectangle {
         let noteColumn = noteColumnRepeater.itemAt(columnsReversedMapping[column]);
         noteColumn.removeNote(index);
     }
+
 
     color: "black"
     width: notesRow.width
