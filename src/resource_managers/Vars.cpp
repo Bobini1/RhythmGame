@@ -156,6 +156,13 @@ createFileProperty(QHash<QString, QVariant>& screenVars,
                       "a string: {}",
                       jsonValueToString(object)));
     }
+    auto stdPath = support::qStringToPath(object["default"].toString());
+    if (!stdPath.is_relative()) {
+        throw support::Exception(
+          std::format("default field of property of type file is not a "
+                      "relative path: {}",
+                      jsonValueToString(object)));
+    }
     if (object.contains("default") && !object["default"].isString()) {
         throw support::Exception(std::format(
           "default field of property of type file is not a string: {}",
@@ -170,7 +177,7 @@ createFileProperty(QHash<QString, QVariant>& screenVars,
                           "relative path: {}",
                           jsonValueToString(object)));
         }
-        if (!exists(themePath / defaultPath)) {
+        if (!exists(themePath / stdPath / defaultPath)) {
             spdlog::debug("default file of property of type file does not "
                           "exist, will pick the "
                           "first one available instead: {}",
@@ -181,8 +188,7 @@ createFileProperty(QHash<QString, QVariant>& screenVars,
             return;
         }
     }
-    if (const auto files = getSelectableFilesForDirectory(
-          themePath / support::qStringToPath(path.toString()));
+    if (const auto files = getSelectableFilesForDirectory(themePath / stdPath);
         !files.empty()) {
         screenVars[object["id"].toString()] = QVariant(files.first());
     } else {
@@ -236,10 +242,11 @@ createChoiceProperty(QHash<QString, QVariant>& screenVars,
     }
     if (std::ranges::find(choices, object["default"]) ==
         std::ranges::end(choices)) {
-        throw support::Exception(std::format(
-          "default field of property of type choice is not one of the choices: "
-          "{}",
-          jsonValueToString(object)));
+        throw support::Exception(
+          std::format("default field of property of type choice is not one "
+                      "of the choices: "
+                      "{}",
+                      jsonValueToString(object)));
     }
     screenVars[object["id"].toString()] = object["default"].toVariant();
 }
@@ -332,7 +339,7 @@ void
 createProperty(ScreenVarsPopulationResult& result,
                const std::filesystem::path& themePath,
                const QJsonObject& object,
-               int level)
+               const int level)
 {
     if (!object["id"].isString()) {
         throw support::Exception(
@@ -373,7 +380,7 @@ populateScreenVarsRecursive( // NOLINT(*-no-recursion)
   ScreenVarsPopulationResult& screenVars,
   const std::filesystem::path& themePath,
   const QJsonArray& array,
-  int level = 0)
+  const int level = 0)
 {
     for (const auto& property : array) {
         const auto object = property.toObject();
@@ -385,9 +392,10 @@ populateScreenVarsRecursive( // NOLINT(*-no-recursion)
         if (object["type"] == "group") {
             if (!object["items"].isArray() ||
                 object["items"].toArray().empty()) {
-                throw support::Exception(std::format(
-                  "Property group has no items (or items is not an array): {}",
-                  jsonValueToString(object)));
+                throw support::Exception(
+                  std::format("Property group has no items (or items is "
+                              "not an array): {}",
+                              jsonValueToString(object)));
             }
             populateScreenVarsRecursive(
               screenVars, themePath, object["items"].toArray(), level + 1);
@@ -490,8 +498,8 @@ readThemeVarsForTheme(const std::filesystem::path& themeVarsPath,
                 } else {
                     spdlog::debug(
                       "The saved file property {} of screen {} of theme {} "
-                      "({}) does not point to an existing file, will use the "
-                      "default instead ({}).",
+                      "({}) does not point to an existing file, will use "
+                      "the default instead ({}).",
                       key.toStdString(),
                       screen.toStdString(),
                       themePath.string(),
