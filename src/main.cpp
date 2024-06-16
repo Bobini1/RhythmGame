@@ -86,8 +86,6 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
 
         qputenv("QML_XHR_ALLOW_FILE_READ", QByteArray("1"));
 
-        auto engine = QQmlApplicationEngine{};
-
         auto db = db::SqliteCppDb{ support::pathToQString(
                                      (assetsFolder / "song_db.sqlite"))
                                      .toStdString() };
@@ -242,6 +240,8 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
                                          "Access to enums & flags only");
         qmlRegisterUncreatableType<gameplay_logic::Note>(
           "RhythmGameQml", 1, 0, "Note", "Note is created in C++");
+
+        auto engine = QQmlApplicationEngine{};
 
         engine.addImageProvider("ini",
                                 new resource_managers::IniImageProvider{});
