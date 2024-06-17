@@ -98,7 +98,7 @@ Item {
                 frameHeight: 84
                 frameWidth: 55
                 paused: true
-                source: root.iniImagesUrl + (judgementAnimation.source == root.iniImagesUrl + "judge/" + root.vars.judge + "/pgreat" ? "judge.png/pgreat_" : "judge.png/great_") + modelData
+                source: root.iniImagesUrl + "judge/" + root.vars.judge + (judgementAnimation.source == root.iniImagesUrl + "judge/" + root.vars.judge + "/pgreat" ? "/pgreat_" : "/great_") + modelData
             }
 
         }
