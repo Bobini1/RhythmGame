@@ -24,5 +24,6 @@ ComboBox {
     }
     onActivated: (_) => {
         destination[props.id] = currentText;
+        currentText = Qt.binding(() => destination[props.id]);
     }
 }

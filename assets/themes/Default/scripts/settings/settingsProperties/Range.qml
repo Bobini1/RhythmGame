@@ -17,7 +17,10 @@ RowLayout {
                 Layout.fillHeight: true
                 value: destination[props.id]
 
-                onMoved: destination[props.id] = Math.round(value * 10) / 10
+                onMoved: {
+                    destination[props.id] = Math.round(value * 10) / 10
+                    value = Qt.binding(() => destination[props.id])
+                }
             }
         }
     }
@@ -36,6 +39,7 @@ RowLayout {
         onTextEdited: {
             if (acceptableInput) {
                 destination[props.id] = Number.fromLocaleString(text)
+                text = Qt.binding(() => Qt.locale().toString(destination[props.id], "f", 3))
             }
         }
         TextMetrics {

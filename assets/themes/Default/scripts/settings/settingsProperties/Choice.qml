@@ -22,5 +22,6 @@ ComboBox {
     }
     onAccepted: (index) => {
         destination[props.id] = choiceComboBox.currentText;
+        choiceComboBox.currentText = Qt.binding(() => destination[props.id]);
     }
 }

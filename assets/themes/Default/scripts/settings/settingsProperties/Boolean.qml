@@ -9,5 +9,6 @@ CheckBox {
     checked: destination[props.id]
     onCheckedChanged: {
         destination[props.id] = checked
+        checked = Qt.binding(() => destination[props.id])
     }
 }

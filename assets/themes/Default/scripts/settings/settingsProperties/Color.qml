@@ -25,6 +25,7 @@ Rectangle {
 
         onAccepted: {
             destination[props.id] = colorDialog.selectedColor;
+            colorDialog.selectedColor = Qt.binding(() => destination[props.id])
         }
     }
 }

@@ -10,5 +10,6 @@ TextArea {
 
     onTextChanged: {
         destination[props.id] = text;
+        text = Qt.binding(() => destination[props.id])
     }
 }
