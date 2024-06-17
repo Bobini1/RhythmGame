@@ -139,8 +139,7 @@ Rectangle {
 
                 onClicked: mouse => {
                     let point = mapToGlobal(mouse.x, mouse.y);
-                    playAreaPopup.x = point.x;
-                    playAreaPopup.y = point.y;
+                    playAreaPopup.setPosition(point);
                     playAreaPopup.open();
                     root.popup = playAreaPopup;
                 }
@@ -197,8 +196,7 @@ Rectangle {
 
                     onClicked: mouse => {
                         let point = mapToGlobal(mouse.x, mouse.y);
-                        gaugePopup.x = point.x;
-                        gaugePopup.y = point.y;
+                        gaugePopup.setPosition(point);
                         gaugePopup.open();
                         root.popup = gaugePopup;
                     }
