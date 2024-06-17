@@ -94,40 +94,18 @@ Rectangle {
 
         target: chart
     }
-    Popup {
+    PlayAreaPopup {
         id: playAreaPopup
-        closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
 
-        focus: true
-        contentItem: Rectangle {
-            height: childrenRect.height
-            width: childrenRect.width
-            opacity: 0.9
-            color: "black"
+        onClosed: {
+            root.popup = null;
+        }
+    }
+    GaugePopup {
+        id: gaugePopup
 
-            Column {
-                Row {
-                    Text {
-                        text: "Note Thickness"
-                        font.bold: true
-                        color: "white"
-                        height: thickness.height
-                        verticalAlignment: Text.AlignVCenter
-                    }
-                    Slider {
-                        id: thickness
-
-                        from: 0
-                        to: 100
-                        value: root.vars.thickness
-                        onMoved: {
-                            root.vars.thickness = value;
-                            value = Qt.binding(() => root.vars.thickness);
-                        }
-                    }
-                }
-
-            }
+        onClosed: {
+            root.popup = null;
         }
     }
     Rectangle {
@@ -209,6 +187,22 @@ Rectangle {
                 color: "transparent"
                 rotationEnabled: false
                 visible: root.customizeMode
+
+                MouseArea {
+                    id: lifeBarMouseArea
+
+                    acceptedButtons: Qt.RightButton
+                    anchors.fill: parent
+                    z: -1
+
+                    onClicked: mouse => {
+                        let point = mapToGlobal(mouse.x, mouse.y);
+                        gaugePopup.x = point.x;
+                        gaugePopup.y = point.y;
+                        gaugePopup.open();
+                        root.popup = gaugePopup;
+                    }
+                }
             }
         }
         Rectangle {
@@ -354,6 +348,10 @@ Rectangle {
 
         onActivated: {
             root.customizeMode = !root.customizeMode;
+            if (root.popup !== null) {
+                root.popup.close();
+                root.popup = null;
+            }
         }
     }
 }

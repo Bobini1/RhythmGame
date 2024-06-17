@@ -20,15 +20,18 @@ Item {
 
     width: playfield.width
     height: root.vars.playAreaHeight
-    clip: true
 
-    Playfield {
-        id: playfield
+    Item {
+        anchors.fill: parent
+        clip: true
+        Playfield {
+            id: playfield
 
-        columns: playArea.columns
-        spacing: playArea.spacing
-        y: chart.position * root.greenNumber + parent.height
-        z: 1
+            columns: playArea.columns
+            spacing: playArea.spacing
+            y: chart.position * root.greenNumber + parent.height
+            z: 1
+        }
     }
     Row {
         id: laserRow
