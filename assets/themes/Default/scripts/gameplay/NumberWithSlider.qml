@@ -10,6 +10,7 @@ Row {
     property alias from: slider.from
 
     height: slider.height
+    spacing: 10
 
     Text {
         id: label
@@ -17,12 +18,14 @@ Row {
         font.bold: true
         horizontalAlignment: Text.AlignHCenter
         verticalAlignment: Text.AlignVCenter
+        color: "white"
         width: 100
     }
     Slider {
         id: slider
 
         value: root.vars[numberWithSlider.prop]
+        width: 320
 
         onMoved: {
             root.vars[numberWithSlider.prop] = value;

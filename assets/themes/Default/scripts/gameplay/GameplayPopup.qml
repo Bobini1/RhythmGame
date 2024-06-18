@@ -9,6 +9,7 @@ Popup {
     focus: true
     height: 500
     width: 500
+    padding: 2
     property alias model: column.model
 
     function setPosition(globalPos) {
@@ -18,7 +19,7 @@ Popup {
 
     background: Rectangle {
         border.color: "white"
-        border.width: 2
+        border.width: parent.padding
         color: "black"
         opacity: 0.9
     }
@@ -26,7 +27,6 @@ Popup {
     transformOrigin: Item.TopLeft
     scale: scaledRoot.scale
     contentItem: ScrollView {
-        anchors.fill: parent
         clip: true
 
         ListView {
