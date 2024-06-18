@@ -216,15 +216,15 @@ Item {
                 finishBehavior: AnimatedSprite.FinishAtFinalFrame
                 frameCount: bombWrapper.ln ? 8 : 16
                 frameDuration: 25
-                frameHeight: 600
-                frameWidth: 600
-                frameY: bombWrapper.ln ? 0 : 600
-                height: 300
+                frameHeight: bombSize.sourceSize.height / 4
+                frameWidth: bombSize.sourceSize.width / 4
+                frameY: bombWrapper.ln ? 0 : frameHeight
+                height: frameHeight / 2
                 loops: bombWrapper.ln ? AnimatedSprite.Infinite : 1
                 running: false
                 source: root.imagesUrl + "bomb/" + root.vars.bomb
                 visible: running
-                width: 300
+                width: frameWidth / 2
             }
         }
     }
@@ -258,6 +258,12 @@ Item {
         }
 
         target: chart.score
+    }
+    // to get the sourceSize of the bomb image
+    Image {
+        id: bombSize
+        visible: false
+        source: root.imagesUrl + "bomb/" + root.vars.bomb
     }
 }
 
