@@ -28,13 +28,6 @@ Row {
             root.vars.thickness = value;
             value = Qt.binding(() => root.vars[numberWithSlider.prop]);
         }
-        Rectangle {
-            anchors.fill: parent
-            color: "red"
-            border.color: "black"
-            border.width: 1
-            z: -1
-        }
     }
     TextField {
         id: txt
