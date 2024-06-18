@@ -25,7 +25,7 @@ Row {
         value: root.vars[numberWithSlider.prop]
 
         onMoved: {
-            root.vars.thickness = value;
+            root.vars[numberWithSlider.prop] = value;
             value = Qt.binding(() => root.vars[numberWithSlider.prop]);
         }
     }
