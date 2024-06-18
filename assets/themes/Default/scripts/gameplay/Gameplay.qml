@@ -117,11 +117,6 @@ Rectangle {
         scale: Math.min(globalRoot.width / 1920, globalRoot.height / 1080)
         width: 1920
 
-        FpsCounter {
-            anchors.right: parent.right
-            anchors.top: parent.top
-            z: 3
-        }
         PlayAreaTemplate {
             id: playAreaTemplate
 
