@@ -86,7 +86,6 @@ Item {
             mipmap: true
             source: root.iniImagesUrl + (column.notes[note].type === Note.Type.Landmine ? ("mine/" + root.vars.mine) : ("notes/" + root.vars.notes)) + "/" + getTypeString() + column.color
             visible: false
-            antialiasing: true
             y: notePosition - height / 2
 
             Loader {

@@ -26,8 +26,6 @@ Item {
         model: barModel
 
         Rectangle {
-            id: note
-
             border.width: 1
             color: "gray"
             height: 3
@@ -41,8 +39,8 @@ Item {
             let count = 0;
             let chartPosition = chart.position;
             while (column.erasedBarIndex + count < column.barLines.length) {
-                let note = column.barLines[column.erasedBarIndex + count];
-                if (note.position > chartPosition) {
+                let bar = column.barLines[column.erasedBarIndex + count];
+                if (bar.position > chartPosition) {
                     break;
                 }
                 count++;

@@ -24,6 +24,15 @@ Item {
     Item {
         anchors.fill: parent
         clip: true
+        layer.enabled: true
+        layer.smooth: true
+
+        BarLinePositioner {
+            barLines: chart.notes.barLines
+            heightMultiplier: root.greenNumber
+            width: parent.width
+            y: Math.floor(chart.position * root.greenNumber + parent.height)
+        }
         Playfield {
             id: playfield
 
@@ -124,12 +133,6 @@ Item {
         anchors.fill: parent
         z: -1
 
-        BarLinePositioner {
-            barLines: chart.notes.barLines
-            heightMultiplier: root.greenNumber
-            width: parent.width
-            y: Math.floor(chart.position * root.greenNumber + parent.height)
-        }
         Repeater {
             id: columnSeparators
 
