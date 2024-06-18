@@ -9,6 +9,26 @@
 #include <spdlog/spdlog.h>
 
 namespace resource_managers {
+namespace {
+auto
+hasTransparentPixels(const QImage& img) -> bool
+{
+    // Check if the image has an alpha channel
+    if (!img.hasAlphaChannel())
+        return false;
+
+    // Loop through all the pixels and check their alpha values
+    for (int y = 0; y < img.height(); ++y) {
+        for (int x = 0; x < img.width(); ++x) {
+            if (qAlpha(img.pixel(x, y)) < 255) {
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+} // namespace
 
 auto
 IniImageProvider::requestPixmap(const QString& id,
@@ -34,23 +54,33 @@ IniImageProvider::requestPixmap(const QString& id,
     }
     const auto settings = QSettings(pathToIni, QSettings::IniFormat);
     // get the key identified by the last part of the url
-    QString key = id;
-    key.remove(0, key.lastIndexOf('/') + 1);
+    QString rectName = id;
+    rectName.remove(0, rectName.lastIndexOf('/') + 1);
     // get the size and position of the image
-    auto rect = settings.value(key).toRect();
+    auto rect = settings.value(rectName).toRect();
     if (size != nullptr) {
         *size = rect.size();
     }
     if (rect.isNull()) {
         return {};
     }
-    auto pixmap = [this, rect, &path] {
+    const auto& pixmap = [this, rect, &path, &settings]() -> const QPixmap& {
         const auto cachedPixmap = pixmaps.find(path);
-        if (cachedPixmap == pixmaps.end()) {
-            const auto pixmap = pixmaps.emplace(path, QPixmap(path));
-            return pixmap->copy(rect);
+        if (cachedPixmap != pixmaps.end()) {
+            return cachedPixmap.value()[rect];
         }
-        return cachedPixmap->copy(rect);
+        const auto image = QImage(path);
+        auto cuts = QHash<QRect, QPixmap>{};
+        // add all rects to cache
+        for (const auto& key : settings.allKeys()) {
+            auto pixRect = settings.value(key).toRect();
+            auto cut = image.copy(pixRect);
+            if (cut.hasAlphaChannel() && !hasTransparentPixels(cut)) {
+                cut = cut.convertToFormat(QImage::Format_RGB32);
+            }
+            cuts.emplace(pixRect, QPixmap::fromImage(cut));
+        }
+        return (*pixmaps.emplace(path, std::move(cuts)))[rect];
     }();
     if (requestedSize.isValid()) {
         return pixmap.scaled(requestedSize);
