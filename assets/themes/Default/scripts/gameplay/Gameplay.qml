@@ -108,11 +108,9 @@ Rectangle {
             root.popup = null;
         }
     }
-    Rectangle {
+    Item {
         id: scaledRoot
         anchors.horizontalCenter: parent.horizontalCenter
-        anchors.top: parent.top
-        color: "black"
         height: 1080
         scale: Math.min(globalRoot.width / 1920, globalRoot.height / 1080)
         width: 1920
@@ -120,10 +118,9 @@ Rectangle {
         PlayAreaTemplate {
             id: playAreaTemplate
 
-            anchors.top: parent.top
             columns: playArea.columns
             visible: root.customizeMode
-            z: 2
+            z: playArea.z + 1
 
             MouseArea {
                 id: playAreaTemplateMouseArea
@@ -143,9 +140,9 @@ Rectangle {
         PlayArea {
             id: playArea
 
-            anchors.top: parent.top
             columns: [7, 0, 1, 2, 3, 4, 5, 6]
             x: root.vars.playAreaX
+            y: root.vars.playAreaY
         }
         LifeBar {
             id: lifeBar

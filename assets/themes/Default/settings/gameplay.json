@@ -111,6 +111,13 @@
             "description": "The X position of the left side of the play area rectangle."
           },
           {
+            "id": "playAreaY",
+            "name": "Y",
+            "type": "range",
+            "default": 0,
+            "description": "The Y position of the top side of the play area rectangle."
+          },
+          {
             "id": "playAreaHeight",
             "name": "Height",
             "type": "range",
@@ -268,6 +275,45 @@
             "description": "The height of the judgement counts rectangle."
           }
         ]
+      }
+    ]
+  },
+  {
+    "name": "Z-order",
+    "type": "group",
+    "description": "The z-index of elements on the screen.",
+    "items": [
+      {
+        "id": "playAreaZ",
+        "name": "Play Area Z",
+        "type": "range",
+        "min": 0,
+        "default": 0,
+        "description": "The z-index of the play area."
+      },
+      {
+        "id": "lifeBarZ",
+        "name": "Life Bar Z",
+        "type": "range",
+        "min": 0,
+        "default": 1,
+        "description": "The z-index of the life bar."
+      },
+      {
+        "id": "judgementCountsZ",
+        "name": "Judgement Counts Z",
+        "type": "range",
+        "min": 0,
+        "default": 2,
+        "description": "The z-index of the judgement counts."
+      },
+      {
+        "id": "bgaZ",
+        "name": "BGA Z",
+        "type": "range",
+        "min": 0,
+        "default": 3,
+        "description": "The z-index of the BGA."
       }
     ]
   }

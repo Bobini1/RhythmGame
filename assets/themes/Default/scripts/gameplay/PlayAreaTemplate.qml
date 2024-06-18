@@ -15,6 +15,7 @@ Item {
     height: root.vars.playAreaHeight
     width: playAreaTemplate.columns.reduce((a, b) => a + root.columnSizes[b], 0) + (playAreaTemplate.columns.length - 1) * playAreaTemplate.spacing
     x: root.vars.playAreaX
+    y: root.vars.playAreaY
 
     onHeightChanged: {
         root.vars.playAreaHeight = height;
@@ -36,6 +37,10 @@ Item {
         root.vars.playAreaX = x;
         x = Qt.binding(() => root.vars.playAreaX);
     }
+    onYChanged: {
+        root.vars.playAreaY = y;
+        y = Qt.binding(() => root.vars.playAreaY);
+    }
 
     TemplateDragBorder {
         id: template
@@ -44,7 +49,6 @@ Item {
         anchors.margins: -borderMargin
         color: "transparent"
         rotationEnabled: false
-        topBorderResizable: false
 
         onBorderPressedChanged: {
             if (borderPressed) {
