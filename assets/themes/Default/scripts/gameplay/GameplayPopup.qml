@@ -33,16 +33,6 @@ Popup {
             id: column
 
             width: childrenRect.width
-
-            model: ObjectModel {
-                id: objectModel
-
-                ImageSelection {
-                    id: notes
-
-                    propertyId: "notes"
-                }
-            }
         }
     }
 }
