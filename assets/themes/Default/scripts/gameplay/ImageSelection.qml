@@ -26,7 +26,6 @@ Row {
         id: selection
 
         readonly property var files: FileQuery.getSelectableFilesForDirectory(root.rootUrl + "images/" + imageSelection.propertyId + "/")
-        property real spacing: 10
 
         activeFocusOnTab: true
         cellHeight: imageSelection.itemHeight + imageSelection.spacing
