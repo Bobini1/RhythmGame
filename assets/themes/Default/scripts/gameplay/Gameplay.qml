@@ -143,6 +143,44 @@ Rectangle {
             columns: [7, 0, 1, 2, 3, 4, 5, 6]
             x: root.vars.playAreaX
             y: root.vars.playAreaY
+            z: root.vars.playAreaZ
+        }
+        BgaRenderer {
+            id: bga
+
+            height: root.vars.bgaSize
+            visible: ProfileList.currentProfile.vars.globalVars.bgaOn
+            width: root.vars.bgaSize
+            x: root.vars.bgaX
+            y: root.vars.bgaY
+            z: root.vars.bgaZ
+
+            onHeightChanged: {
+                root.vars.bgaSize = height;
+                height = Qt.binding(() => root.vars.bgaSize);
+            }
+            onWidthChanged: {
+                width = Qt.binding(() => root.vars.bgaSize);
+            }
+            onXChanged: {
+                root.vars.bgaX = x;
+                x = Qt.binding(() => root.vars.bgaX);
+            }
+            onYChanged: {
+                root.vars.bgaY = y;
+                y = Qt.binding(() => root.vars.bgaY);
+            }
+
+            TemplateDragBorder {
+                id: bgaTemplate
+
+                anchors.fill: parent
+                anchors.margins: -borderMargin
+                color: "transparent"
+                keepAspectRatio: true
+                rotationEnabled: false
+                visible: root.customizeMode
+            }
         }
         LifeBar {
             id: lifeBar
@@ -151,7 +189,7 @@ Rectangle {
             width: root.vars.lifeBarWidth
             x: root.vars.lifeBarX
             y: root.vars.lifeBarY
-            z: 2
+            z: root.vars.lifeBarZ
 
             onHeightChanged: {
                 root.vars.lifeBarHeight = height;
@@ -203,7 +241,7 @@ Rectangle {
             width: root.vars.judgementCountsWidth
             x: root.vars.judgementCountsX
             y: root.vars.judgementCountsY
-            z: 2
+            z: root.vars.judgementCountsZ
 
             onHeightChanged: {
                 root.vars.judgementCountsHeight = height;
@@ -286,42 +324,6 @@ Rectangle {
                 }
 
                 target: chart.score
-            }
-        }
-        BgaRenderer {
-            id: bga
-
-            height: root.vars.bgaSize
-            visible: ProfileList.currentProfile.vars.globalVars.bgaOn
-            width: root.vars.bgaSize
-            x: root.vars.bgaX
-            y: root.vars.bgaY
-
-            onHeightChanged: {
-                root.vars.bgaSize = height;
-                height = Qt.binding(() => root.vars.bgaSize);
-            }
-            onWidthChanged: {
-                width = Qt.binding(() => root.vars.bgaSize);
-            }
-            onXChanged: {
-                root.vars.bgaX = x;
-                x = Qt.binding(() => root.vars.bgaX);
-            }
-            onYChanged: {
-                root.vars.bgaY = y;
-                y = Qt.binding(() => root.vars.bgaY);
-            }
-
-            TemplateDragBorder {
-                id: bgaTemplate
-
-                anchors.fill: parent
-                anchors.margins: -borderMargin
-                color: "transparent"
-                keepAspectRatio: true
-                rotationEnabled: false
-                visible: root.customizeMode
             }
         }
     }
