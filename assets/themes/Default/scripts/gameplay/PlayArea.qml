@@ -23,23 +23,29 @@ Item {
 
     Item {
         anchors.fill: parent
+        anchors.bottomMargin: -root.vars.thickness
         clip: true
         layer.enabled: true
         layer.smooth: true
 
-        BarLinePositioner {
-            barLines: chart.notes.barLines
-            heightMultiplier: root.greenNumber
-            width: parent.width
-            y: Math.floor(chart.position * root.greenNumber + parent.height)
-        }
-        Playfield {
-            id: playfield
+        Item {
+            anchors.fill: parent
+            anchors.bottomMargin: root.vars.thickness
 
-            columns: playArea.columns
-            spacing: playArea.spacing
-            y: chart.position * root.greenNumber + parent.height
-            z: 1
+            BarLinePositioner {
+                barLines: chart.notes.barLines
+                heightMultiplier: root.greenNumber
+                width: parent.width
+                y: Math.floor(chart.position * root.greenNumber + parent.height)
+            }
+            Playfield {
+                id: playfield
+
+                columns: playArea.columns
+                spacing: playArea.spacing
+                y: chart.position * root.greenNumber + parent.height
+                z: 1
+            }
         }
     }
     Row {
