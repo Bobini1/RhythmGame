@@ -8,6 +8,12 @@ GameplayPopup {
     height: 200
 
     model: ObjectModel {
+        NumberWithSlider {
+            to: 10
+            from: -10
+            prop: "lifeBarZ"
+            text: "Z-index"
+        }
         Row {
             height: verticalGauge.height
 

@@ -6,30 +6,17 @@ import QtQml.Models
 
 GameplayPopup {
     model: ObjectModel {
-        Row {
-            height: thickness.height
-
-            Text {
-                anchors.verticalCenter: thickness.verticalCenter
-                color: "white"
-                font.bold: true
-                horizontalAlignment: Text.AlignHCenter
-                text: "Note Thickness"
-                verticalAlignment: Text.AlignVCenter
-                width: 100
-            }
-            Slider {
-                id: thickness
-
-                from: 0
-                to: 100
-                value: root.vars.thickness
-
-                onMoved: {
-                    root.vars.thickness = value;
-                    value = Qt.binding(() => root.vars.thickness);
-                }
-            }
+        NumberWithSlider {
+            text: "Z-index"
+            prop: "playAreaZ"
+            from: -10
+            to: 10
+        }
+        NumberWithSlider {
+            text: "Note Thickness"
+            prop: "thickness"
+            from: 0
+            to: 200
         }
         ImageSelection {
             id: notes
