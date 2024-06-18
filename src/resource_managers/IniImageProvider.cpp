@@ -9,27 +9,6 @@
 #include <spdlog/spdlog.h>
 
 namespace resource_managers {
-namespace {
-auto
-hasTransparentPixels(const QImage& img) -> bool
-{
-    // Check if the image has an alpha channel
-    if (!img.hasAlphaChannel())
-        return false;
-
-    // Loop through all the pixels and check their alpha values
-    for (int y = 0; y < img.height(); ++y) {
-        for (int x = 0; x < img.width(); ++x) {
-            if (qAlpha(img.pixel(x, y)) < 255) {
-                return true;
-            }
-        }
-    }
-
-    return false;
-}
-} // namespace
-
 auto
 IniImageProvider::requestPixmap(const QString& id,
                                 QSize* size,
@@ -69,15 +48,13 @@ IniImageProvider::requestPixmap(const QString& id,
         if (cachedPixmap != pixmaps.end()) {
             return cachedPixmap.value()[rect];
         }
+        // loading to QImage first to automatically convert from RGBA to RGB in
+        // QPixmap::fromImage
         const auto image = QImage(path);
         auto cuts = QHash<QRect, QPixmap>{};
-        // add all rects to cache
         for (const auto& key : settings.allKeys()) {
             auto pixRect = settings.value(key).toRect();
             auto cut = image.copy(pixRect);
-            if (cut.hasAlphaChannel() && !hasTransparentPixels(cut)) {
-                cut = cut.convertToFormat(QImage::Format_RGB32);
-            }
             cuts.emplace(pixRect, QPixmap::fromImage(cut));
         }
         return (*pixmaps.emplace(path, std::move(cuts)))[rect];
