@@ -147,8 +147,12 @@ Item {
             Rectangle {
                 anchors.bottom: parent.bottom
                 color: {
-                    let base = Qt.color("#1e1e1e")
-                    base.hsvValue = Math.max(0, Math.min(base.hsvValue + root.vars.laneBrightness, 1));
+                    let base = Qt.color("#1e1e1e");
+                    let mod = root.vars.laneBrightness;
+                    if (root.vars.laneBrightness < 0) {
+                        mod = base.hsvValue * root.vars.laneBrightness;
+                    }
+                    base.hsvValue = Math.max(0, Math.min(base.hsvValue + mod, 1));
                     return base;
                 }
                 height: parent.height
@@ -172,7 +176,11 @@ Item {
                 anchors.bottom: parent.bottom
                 color: {
                     let base = Qt.color(playfield.columns[index] % 2 === 0 ? "#050505" : "#000000");
-                    base.hsvValue = Math.max(0, Math.min(base.hsvValue + root.vars.laneBrightness, 1));
+                    let mod = root.vars.laneBrightness;
+                    if (root.vars.laneBrightness < 0) {
+                        mod = Qt.color("#1e1e1e").hsvValue * root.vars.laneBrightness;
+                    }
+                    base.hslValue = Math.max(0, Math.min(base.hsvValue + mod, 1));
                     return base;
                 }
                 height: parent.height
