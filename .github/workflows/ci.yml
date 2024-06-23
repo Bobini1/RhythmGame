@@ -10,7 +10,7 @@ on:
       - master
 
 env:
-  VCPKG_COMMIT: "16ee2ecb31788c336ace8bb14c21801efb6836e4"
+  VCPKG_COMMIT: "a1212c93cabaa9c5c36c1ffdb4bddd59fdf31e43"
 
 jobs:
   lint:
@@ -129,7 +129,7 @@ jobs:
         if: matrix.os == 'ubuntu-bobini'
         run: >-
           sudo apt-get install clang-tidy-14 cppcheck -y -q
-  
+          
           sudo update-alternatives --install
           /usr/bin/clang-tidy clang-tidy
           /usr/bin/clang-tidy-14 140
@@ -137,7 +137,7 @@ jobs:
       - name: Install vcpkg
         if: matrix.os == 'macos-12'
         uses: friendlyanon/setup-vcpkg@v1
-        with: { committish: "${{ env.VCPKG_COMMIT }}"  }
+        with: { committish: "${{ env.VCPKG_COMMIT }}" }
 
       - name: Set VCPKG_ROOT Windows
         if: matrix.os == 'windows-bobini'
@@ -210,7 +210,7 @@ jobs:
       - name: Install vcpkg
         if: matrix.os == 'macos-12'
         uses: friendlyanon/setup-vcpkg@v1
-        with: { committish: "${{ env.VCPKG_COMMIT }}"  }
+        with: { committish: "${{ env.VCPKG_COMMIT }}" }
 
       - name: Set VCPKG_ROOT Windows
         if: matrix.os == 'windows-bobini'
