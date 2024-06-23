@@ -55,17 +55,6 @@ find_package(magic_enum REQUIRED)
 
 find_package(zstd REQUIRED)
 
-# <------------ taoquick (qml) --------------->
-include(FetchContent)
-FetchContent_Declare(
-        taoquick
-        GIT_REPOSITORY https://github.com/jaredtao/TaoQuick
-        GIT_TAG e6d3111c0791006d0d85d0964b69caed3b536e52
-)
-if (NOT taoquick_POPULATED)
-    FetchContent_Populate(taoquick)
-endif ()
-
 # ---- Load library ----
 
 qt_add_library(RhythmGame_lib OBJECT src/db/SqliteCppDb.cpp src/db/SqliteCppDb.h src/charts/chart_readers/BmsChartReader.cpp src/charts/parser_models/ParsedBmsChart.cpp src/charts/parser_models/ParsedBmsChart.h src/support/EnableSharedFromBase.cpp src/support/EnableSharedFromBase.h src/support/Capitalize.cpp src/support/Capitalize.h src/resource_managers/FindAssetsFolderBoost.cpp src/resource_managers/FindAssetsFolderBoost.h src/sounds/OpenAlSound.cpp src/sounds/OpenAlSound.h src/sounds/OpenAlSoundBuffer.h src/sounds/OpenAlSoundBuffer.cpp src/charts/gameplay_models/BmsNotesData.cpp src/charts/gameplay_models/BmsNotesData.h src/charts/gameplay_models/Snap.cpp src/charts/gameplay_models/Snap.h src/charts/helper_functions/loadBmsSounds.cpp src/charts/helper_functions/loadBmsSounds.h
@@ -209,15 +198,6 @@ qt_import_qml_plugins(RhythmGame_exe)
 add_custom_command(TARGET RhythmGame_exe POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E create_symlink
         ${CMAKE_SOURCE_DIR}/assets assets)
-
-set(TaoQuickDir "${taoquick_SOURCE_DIR}/src/TaoQuick/")
-
-add_custom_command(
-        TARGET RhythmGame_exe POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E create_symlink
-        ${TaoQuickDir}
-        ${CMAKE_SOURCE_DIR}/assets/themes/Default/scripts/third_party/TaoQuick
-)
 
 if (WIN32)
     set(alsoft_ext "ini")

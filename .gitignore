@@ -18,4 +18,3 @@ conan.lock
 *.sqlite-shm
 *.sqlite-wal
 assets/profiles/
-assets/themes/Default/scripts/third_party/

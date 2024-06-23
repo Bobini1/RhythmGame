@@ -1,21 +1,18 @@
 import QtQuick 2.9
 import QtQuick.Controls 2.2
-import "../../third_party/TaoQuick"
-import "../../third_party/TaoQuick/Qml"
-import "../../third_party/TaoQuick/Qml/Misc"
 
 ResizeBorder {
     id: cusBorder
 
-    property color borderColor: CusConfig.controlBorderColor
+    property color borderColor: "#cbcbcb"
     readonly property int borderMargin: 6
-    property color color: CusConfig.themeColor
+    property color color: "#ec4141"
+    property color backgroundColor: "#ffffff"
     property var controller: parent
     property alias dragEnabled: dragItem.enabled
     property alias dragged: dragItem.drag.active
     property color rotateHandleColor: "lightgreen"
     readonly property int rotateHandleDistance: 25
-    property bool rotationEnabled: true
 
     signal clicked(var mouse)
     signal doubleClicked(var mouse)
@@ -34,24 +31,11 @@ ResizeBorder {
         color: cusBorder.color
         radius: borderMargin
     }
-    //line to rotateHandle and Border
-    Rectangle {
-        color: rotateHandleColor
-        height: rotateHandleDistance
-        visible: rotationEnabled
-        width: 2
-
-        anchors {
-            horizontalCenter: parent.horizontalCenter
-            top: parent.top
-            topMargin: -rotateHandleDistance
-        }
-    }
     //top
     Rectangle {
-        border.color: CusConfig.controlBorderColor
+        border.color: cusBorder.borderColor
         border.width: 1
-        color: CusConfig.backgroundColor
+        color: cusBorder.backgroundColor
         height: width
         radius: width / 2
         visible: cusBorder.topBorderResizable && !cusBorder.keepAspectRatio
@@ -64,9 +48,9 @@ ResizeBorder {
     }
     //bottom
     Rectangle {
-        border.color: CusConfig.controlBorderColor
+        border.color: cusBorder.borderColor
         border.width: 1
-        color: CusConfig.backgroundColor
+        color: cusBorder.backgroundColor
         height: width
         radius: width / 2
         visible: cusBorder.bottomBorderResizable && !cusBorder.keepAspectRatio
@@ -79,9 +63,9 @@ ResizeBorder {
     }
     //left
     Rectangle {
-        border.color: CusConfig.controlBorderColor
+        border.color: cusBorder.borderColor
         border.width: 1
-        color: CusConfig.backgroundColor
+        color: cusBorder.backgroundColor
         height: width
         radius: width / 2
         visible: cusBorder.leftBorderResizable && !cusBorder.keepAspectRatio
@@ -94,9 +78,9 @@ ResizeBorder {
     }
     //right
     Rectangle {
-        border.color: CusConfig.controlBorderColor
+        border.color: cusBorder.borderColor
         border.width: 1
-        color: CusConfig.backgroundColor
+        color: cusBorder.backgroundColor
         height: width
         radius: width / 2
         visible: cusBorder.rightBorderResizable && !cusBorder.keepAspectRatio
@@ -109,9 +93,9 @@ ResizeBorder {
     }
     //top left
     Rectangle {
-        border.color: CusConfig.controlBorderColor
+        border.color: cusBorder.borderColor
         border.width: 1
-        color: CusConfig.backgroundColor
+        color: cusBorder.backgroundColor
         height: width
         radius: width / 2
         visible: cusBorder.topBorderResizable && cusBorder.leftBorderResizable
@@ -123,9 +107,9 @@ ResizeBorder {
         }
     }
     Rectangle {
-        border.color: CusConfig.controlBorderColor
+        border.color: cusBorder.borderColor
         border.width: 1
-        color: CusConfig.backgroundColor
+        color: cusBorder.backgroundColor
         height: width
         radius: width / 2
         visible: cusBorder.topBorderResizable && cusBorder.rightBorderResizable
@@ -137,9 +121,9 @@ ResizeBorder {
         }
     }
     Rectangle {
-        border.color: CusConfig.controlBorderColor
+        border.color: cusBorder.borderColor
         border.width: 1
-        color: CusConfig.backgroundColor
+        color: cusBorder.backgroundColor
         height: width
         radius: width / 2
         visible: cusBorder.bottomBorderResizable && cusBorder.leftBorderResizable
@@ -151,9 +135,9 @@ ResizeBorder {
         }
     }
     Rectangle {
-        border.color: CusConfig.controlBorderColor
+        border.color: cusBorder.borderColor
         border.width: 1
-        color: CusConfig.backgroundColor
+        color: cusBorder.backgroundColor
         height: width
         radius: width / 2
         visible: cusBorder.bottomBorderResizable && cusBorder.rightBorderResizable
@@ -162,65 +146,6 @@ ResizeBorder {
         anchors {
             bottom: parent.bottom
             right: parent.right
-        }
-    }
-    Rectangle {
-        color: rotateHandleColor
-        height: width
-        radius: width / 2
-        visible: rotationEnabled
-        width: borderMargin * 2
-
-        anchors {
-            horizontalCenter: parent.horizontalCenter
-            top: parent.top
-            topMargin: -rotateHandleDistance
-        }
-        CusImage {
-            id: rotateCursor
-
-            source: "../../third_party/TaoQuick/Images/rotate.png"
-            visible: rotateArea.containsMouse | rotateArea.pressed
-            x: rotateArea.mouseX - width / 2
-            y: rotateArea.mouseY - height / 2
-        }
-        MouseArea {
-            id: rotateArea
-
-            property int lastX: 0
-
-            anchors.centerIn: parent
-            height: parent.height * 2
-            hoverEnabled: true
-            width: parent.width * 2
-
-            onContainsMouseChanged: {
-                if (containsMouse) {
-                    cursorShape = Qt.BlankCursor;
-                } else {
-                    cursorShape = Qt.ArrowCursor;
-                }
-            }
-            onPositionChanged: {
-                if (pressed) {
-                    var t = controller.rotation + (mouseX - lastX) / 5;
-                    t = t % 360;
-                    controller.rotation = t;
-                }
-            }
-            onPressedChanged: {
-                if (containsPress) {
-                    lastX = mouseX;
-                }
-            }
-        }
-        BasicTooltip {
-            id: toolTip
-
-            text: parseInt(controller.rotation) + "°"
-            visible: rotateArea.pressed
-            x: rotateArea.mouseX + 30
-            y: rotateArea.mouseY
         }
     }
     MouseArea {
