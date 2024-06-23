@@ -36,7 +36,7 @@
     },
     {
       "name": "zstd",
-      "version>=": "1.5.5"
+      "version>=": "1.5.6"
     },
     {
       "name": "libsndfile",
@@ -52,23 +52,23 @@
     },
     {
       "name": "qtdeclarative",
-      "version>=": "6.7.0"
+      "version>=": "6.7.2"
     },
     {
       "name": "qtshadertools",
-      "version>=": "6.7.0"
+      "version>=": "6.7.2"
     },
     {
       "name": "qt5compat",
-      "version>=": "6.7.0"
+      "version>=": "6.7.2"
     },
     {
       "name": "qtsvg",
-      "version>=": "6.7.0"
+      "version>=": "6.7.2"
     },
     {
       "name": "qtmultimedia",
-      "version>=": "6.7.0",
+      "version>=": "6.7.2",
       "default-features": false,
       "features": [
         "qml",
@@ -77,7 +77,7 @@
     },
     {
       "name": "qtwayland",
-      "version>=": "6.7.0",
+      "version>=": "6.7.2",
       "platform": "linux"
     }
   ],
@@ -93,5 +93,5 @@
       ]
     }
   },
-  "builtin-baseline": "a1212c93cabaa9c5c36c1ffdb4bddd59fdf31e43"
+  "builtin-baseline": "c4467cb686f92671f0172aa8299a77d908175b4e"
 }
