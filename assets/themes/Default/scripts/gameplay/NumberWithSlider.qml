@@ -35,7 +35,7 @@ Row {
     TextField {
         id: txt
 
-        text: Qt.locale().toString(root.vars[numberWithSlider.prop], "f", 0)
+        text: Qt.locale().toString(root.vars[numberWithSlider.prop], "f", numberWithSlider.to <= 1 ? 1 : 0)
         font.pixelSize: 20
         width: 50
         height: slider.height

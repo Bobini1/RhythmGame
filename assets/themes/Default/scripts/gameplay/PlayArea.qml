@@ -18,19 +18,19 @@ Item {
     }
     readonly property int spacing: root.vars.spacing
 
-    width: playfield.width
     height: root.vars.playAreaHeight
+    width: playfield.width
 
     Item {
-        anchors.fill: parent
         anchors.bottomMargin: -root.vars.thickness
+        anchors.fill: parent
         clip: true
         layer.enabled: true
         layer.smooth: true
 
         Item {
-            anchors.fill: parent
             anchors.bottomMargin: root.vars.thickness
+            anchors.fill: parent
 
             BarLinePositioner {
                 barLines: chart.notes.barLines
@@ -146,7 +146,11 @@ Item {
 
             Rectangle {
                 anchors.bottom: parent.bottom
-                color: "#1e1e1e"
+                color: {
+                    let base = Qt.color("#1e1e1e")
+                    base.hsvValue = Math.max(0, Math.min(base.hsvValue + root.vars.laneBrightness, 1));
+                    return base;
+                }
                 height: parent.height
                 width: playArea.spacing
                 x: {
@@ -166,7 +170,11 @@ Item {
 
             Rectangle {
                 anchors.bottom: parent.bottom
-                color: playfield.columns[index] % 2 === 0 ? "#050505" : "#000000"
+                color: {
+                    let base = Qt.color(playfield.columns[index] % 2 === 0 ? "#050505" : "#000000");
+                    base.hsvValue = Math.max(0, Math.min(base.hsvValue + root.vars.laneBrightness, 1));
+                    return base;
+                }
                 height: parent.height
                 width: root.columnSizes[playfield.columns[index]]
                 x: {
@@ -268,8 +276,9 @@ Item {
     // to get the sourceSize of the bomb image
     Image {
         id: bombSize
-        visible: false
+
         source: root.imagesUrl + "bomb/" + root.vars.bomb
+        visible: false
     }
 }
 

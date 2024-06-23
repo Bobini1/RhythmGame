@@ -13,10 +13,20 @@ GameplayPopup {
             to: 10
         }
         NumberWithSlider {
+            from: -1
+            prop: "laneBrightness"
+            text: "Lane Brightness"
+            to: 1
+        }
+        NumberWithSlider {
             text: "Note Thickness"
             prop: "thickness"
             from: 0
             to: 200
+        }
+        BooleanOption {
+            description: "Flip scratch lane"
+            prop: "scratchOnRightSide"
         }
         ImageSelection {
             id: notes

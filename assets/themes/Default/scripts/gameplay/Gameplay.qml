@@ -140,7 +140,7 @@ Rectangle {
         PlayArea {
             id: playArea
 
-            columns: [7, 0, 1, 2, 3, 4, 5, 6]
+            columns: root.vars.scratchOnRightSide ? [0, 1, 2, 3, 4, 5, 6, 7] : [7, 0, 1, 2, 3, 4, 5, 6]
             x: root.vars.playAreaX
             y: root.vars.playAreaY
             z: root.vars.playAreaZ

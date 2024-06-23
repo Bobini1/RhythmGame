@@ -14,28 +14,9 @@ GameplayPopup {
             prop: "lifeBarZ"
             text: "Z-index"
         }
-        Row {
-            height: verticalGauge.height
-
-            Text {
-                anchors.verticalCenter: verticalGauge.verticalCenter
-                color: "white"
-                font.bold: true
-                horizontalAlignment: Text.AlignHCenter
-                text: "Vertical Gauge"
-                verticalAlignment: Text.AlignVCenter
-                width: 100
-            }
-            CheckBox {
-                id: verticalGauge
-
-                checked: root.vars.verticalGauge
-
-                onCheckedChanged: {
-                    root.vars.verticalGauge = checked;
-                    checked = Qt.binding(() => root.vars.verticalGauge);
-                }
-            }
+        BooleanOption {
+            prop: "verticalGauge"
+            description: "Vertical Gauge"
         }
         ImageSelection {
             id: gauge
