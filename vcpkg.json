@@ -11,8 +11,16 @@
       "version>=": "3.3.1"
     },
     {
-      "name": "boost",
-      "version>=": "1.82.0"
+      "name": "boost-locale",
+      "version>=": "1.85.0"
+    },
+    {
+      "name": "boost-dll",
+      "version>=": "1.85.0"
+    },
+    {
+      "name": "boost-headers",
+      "version>=": "1.85.0"
     },
     {
       "name": "spdlog",
