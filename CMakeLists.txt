@@ -35,7 +35,7 @@ endif ()
 
 # <------------ boost --------------->
 
-find_package(Boost REQUIRED COMPONENTS locale serialization filesystem)
+find_package(Boost REQUIRED COMPONENTS locale filesystem)
 
 # <------------ OpenAL (audio playback) --------------->
 
