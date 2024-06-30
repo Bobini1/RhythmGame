@@ -32,7 +32,7 @@ target_compile_definitions(spdlog::spdlog INTERFACE SPDLOG_WCHAR_FILENAMES)
 
 # <------------ boost --------------->
 
-find_package(Boost REQUIRED COMPONENTS locale filesystem)
+find_package(Boost REQUIRED COMPONENTS locale filesystem serialization)
 
 # <------------ OpenAL (audio playback) --------------->
 
@@ -161,7 +161,7 @@ find_package(SndFile REQUIRED)
 
 find_package(SDL2 REQUIRED)
 
-target_link_libraries(RhythmGame_lib PUBLIC SDL2::SDL2 Qt6::Gui Qt6::Quick Qt6::OpenGL Qt6::Widgets Qt6::Concurrent Qt6::Core5Compat Qt6::Multimedia Threads::Threads Boost::headers Boost::locale Boost::dynamic_linking SQLiteCpp spdlog::spdlog foonathan::lexy OpenAL::OpenAL cryptopp::cryptopp magic_enum::magic_enum zstd::libzstd_static SndFile::sndfile)
+target_link_libraries(RhythmGame_lib PUBLIC SDL2::SDL2 Qt6::Gui Qt6::Quick Qt6::OpenGL Qt6::Widgets Qt6::Concurrent Qt6::Core5Compat Qt6::Multimedia Threads::Threads Boost::headers Boost::locale Boost::dynamic_linking Boost::serialization SQLiteCpp spdlog::spdlog foonathan::lexy OpenAL::OpenAL cryptopp::cryptopp magic_enum::magic_enum zstd::libzstd_static SndFile::sndfile)
 
 # We all love MSVC.
 target_compile_definitions(RhythmGame_lib PUBLIC NOMINMAX)
