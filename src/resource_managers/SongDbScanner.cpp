@@ -175,13 +175,8 @@ SongDbScanner::scanDirectory(
                    updateCurrentScannedFolder,
                    stop);
     } else {
-#ifdef _WIN32
-        spdlog::error(L"Resource path {} is not a directory",
-                      directory.wstring());
-#else
         spdlog::error("Resource path {} is not a directory",
                       directory.string());
-#endif
     }
     threadPool.waitForDone();
     updateCurrentScannedFolder("");
