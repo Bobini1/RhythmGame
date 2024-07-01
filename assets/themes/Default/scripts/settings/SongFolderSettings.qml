@@ -28,6 +28,8 @@ RowLayout {
             Text {
                 font.pixelSize: 20
                 text: qsTr("Song directories")
+                elide: Text.ElideRight
+                Layout.fillWidth: true
             }
             ScrollView {
                 Layout.fillHeight: true
@@ -46,8 +48,10 @@ RowLayout {
 
                         width: parent ? parent.width : 0
 
-                        Text {
+                        TextEdit {
+                            readOnly: true
                             Layout.fillWidth: true
+                            wrapMode: TextEdit.Wrap
                             text: folderRow.rootFolder ? folderRow.rootFolder.name : ""
                         }
                         Button {
@@ -103,6 +107,8 @@ RowLayout {
             Text {
                 font.pixelSize: 20
                 text: qsTr("Scanning queue")
+                elide: Text.ElideRight
+                Layout.fillWidth: true
             }
             ScrollView {
                 Layout.fillHeight: true

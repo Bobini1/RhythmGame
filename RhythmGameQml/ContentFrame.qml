@@ -15,7 +15,6 @@ ApplicationWindow {
         property alias height: contentContainer.height
         property alias width: contentContainer.width
     }
-
     Component {
         id: chartContext
 
@@ -29,13 +28,10 @@ ApplicationWindow {
                 id: loader
 
                 anchors.fill: parent
-                source: Themes.availableThemeFamilies[ProfileList.currentProfile.themeConfig.gameplay].themes.gameplay
+                source: Themes.availableThemeFamilies[ProfileList.currentProfile.themeConfig.gameplay].screens.gameplay.script
             }
-
         }
-
     }
-
     Component {
         id: resultContext
 
@@ -50,27 +46,24 @@ ApplicationWindow {
                 id: loader
 
                 anchors.fill: parent
-                source: Themes.availableThemeFamilies[ProfileList.currentProfile.themeConfig.result].themes.result
+                source: Themes.availableThemeFamilies[ProfileList.currentProfile.themeConfig.result].screens.result.script
             }
-
         }
-
     }
-
     Item {
         id: globalRoot
 
         readonly property Component gameplayComponent: chartContext
-        readonly property Component mainComponent: Qt.createComponent(Themes.availableThemeFamilies[ProfileList.currentProfile.themeConfig.main].themes.main)
+        readonly property Component mainComponent: Qt.createComponent(Themes.availableThemeFamilies[ProfileList.currentProfile.themeConfig.main].screens.main.script)
         readonly property Component resultComponent: resultContext
-        readonly property Component settingsComponent: Qt.createComponent(Themes.availableThemeFamilies[ProfileList.currentProfile.themeConfig.settings].themes.settings)
-        readonly property Component songWheelComponent: Qt.createComponent(Themes.availableThemeFamilies[ProfileList.currentProfile.themeConfig.songWheel].themes.songWheel)
+        readonly property Component settingsComponent: Qt.createComponent(Themes.availableThemeFamilies[ProfileList.currentProfile.themeConfig.settings].screens.settings.script)
+        readonly property Component songWheelComponent: Qt.createComponent(Themes.availableThemeFamilies[ProfileList.currentProfile.themeConfig.songWheel].screens.songWheel.script)
 
-        function openChart(path: url) {
+        function openChart(path) {
             let chart = ChartLoader.loadChart(path);
             if (!chart) {
                 console.error("Failed to load chart");
-                return ;
+                return;
             }
             sceneStack.push(gameplayComponent, {
                 "chart": chart
@@ -96,6 +89,7 @@ ApplicationWindow {
         }
 
         anchors.fill: parent
+
         Component.onCompleted: {
             if (ProgramSettings.chartPath != "")
                 openChart(ProgramSettings.chartPath);
@@ -110,53 +104,40 @@ ApplicationWindow {
             popEnter: Transition {
                 PropertyAnimation {
                     duration: 0
-                    property: "opacity"
+                    properties: "opacity"
                 }
-
             }
-
             popExit: Transition {
                 PropertyAnimation {
                     duration: 0
-                    property: "opacity"
+                    properties: "opacity"
                 }
-
             }
-
             pushEnter: Transition {
                 PropertyAnimation {
                     duration: 0
-                    property: "opacity"
+                    properties: "opacity"
                 }
-
             }
-
             pushExit: Transition {
                 PropertyAnimation {
                     duration: 0
-                    property: "opacity"
+                    properties: "opacity"
                 }
-
             }
-
             replaceEnter: Transition {
                 PropertyAnimation {
                     duration: 0
-                    property: "opacity"
+                    properties: "opacity"
                 }
-
             }
-
             replaceExit: Transition {
                 PropertyAnimation {
                     duration: 0
-                    property: "opacity"
+                    properties: "opacity"
                 }
-
             }
-
         }
-
         Loader {
             id: debugLogLoader
 
@@ -165,15 +146,13 @@ ApplicationWindow {
             asynchronous: true
             source: "Log.qml"
         }
-
         Shortcut {
             autoRepeat: false
             sequence: "F11"
+
             onActivated: {
                 debugLogLoader.active = !debugLogLoader.active;
             }
         }
-
     }
-
 }

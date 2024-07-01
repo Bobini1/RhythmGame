@@ -8,9 +8,9 @@
 #include <QQuickImageProvider>
 namespace resource_managers {
 
-class IniImageProvider : public QQuickImageProvider
+class IniImageProvider final : public QQuickImageProvider
 {
-    QHash<QString, QPixmap> pixmaps;
+    QHash<QString, QHash<QRect, QPixmap>> pixmaps;
 
   public:
     IniImageProvider();

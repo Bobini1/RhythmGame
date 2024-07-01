@@ -1,18 +1,18 @@
-import QtQuick 2.0
+import QtQuick
 import QtQuick.Layouts
 import RhythmGameQml
 
 Item {
     id: column
 
-    property double chartPosition: Math.floor(-chart.position * column.heightMultiplier)
+    property real chartPosition: Math.floor(-chart.position * column.heightMultiplier)
     property string color
     property int erasedNoteIndex: 0
-    property int heightMultiplier: 20
+    property real heightMultiplier: 20
     property var missedLnEnds: {
         return {};
     }
-    property int noteHeight: 36
+    property real noteHeight: 36
     property var notes
     property int visibleNoteIndex: 0
 
@@ -37,6 +37,8 @@ Item {
         let item = noteRepeater.itemAt(offset);
         if (item) {
             item.visible = false;
+            item.width = 0;
+            item.height = 0;
         }
     }
 
@@ -48,8 +50,8 @@ Item {
         Component.onCompleted: {
             for (let i = 0; i < column.notes.length; i++) {
                 notesModel.append({
-                        "note": i
-                    });
+                    "note": i
+                });
             }
         }
     }
@@ -63,7 +65,7 @@ Item {
 
             // for ln begin only
             property bool held: false
-            property double notePosition: Math.floor(-column.notes[note].time.position * column.heightMultiplier)
+            property real notePosition: Math.floor(-column.notes[note].time.position * column.heightMultiplier)
 
             function getTypeString() {
                 let type = column.notes[note].type;
@@ -75,16 +77,15 @@ Item {
                 case Note.Type.LongNoteEnd:
                     return "ln_end_";
                 case Note.Type.Landmine:
-                    return "note_";
+                    return "mine_";
                 default:
                     console.info("Unknown note type: " + type);
                 }
             }
 
-            height: column.noteHeight
-            source: root.iniImagesUrl + "default.png/" + getTypeString() + column.color
+            mipmap: true
+            source: root.iniImagesUrl + (column.notes[note].type === Note.Type.Landmine ? ("mine/" + root.vars.mine) : ("notes/" + root.vars.notes)) + "/" + getTypeString() + column.color
             visible: false
-            width: parent.width
             y: notePosition - height / 2
 
             Loader {
@@ -100,12 +101,12 @@ Item {
                         height: Math.floor(column.notes[note + 1].time.position * column.heightMultiplier) + noteImg.y
                         source: {
                             if (!noteImg.held) {
-                                return root.iniImagesUrl + "default.png/ln_body_inactive_" + column.color;
+                                return root.iniImagesUrl + "notes/" + root.vars.notes + "/ln_body_inactive_" + column.color;
                             }
                             let flashing = Math.abs(chart.position % 0.5) > 0.25;
-                            return root.iniImagesUrl + "default.png/ln_body_" + (flashing ? "flash" : "active") + "_" + column.color;
+                            return root.iniImagesUrl + "notes/" + root.vars.notes + "/ln_body_" + (flashing ? "flash" : "active") + "_" + column.color;
                         }
-                        width: sourceSize.width
+                        width: noteImg.width
                         y: -height
                     }
                 }
@@ -148,10 +149,12 @@ Item {
             count = 0;
             while (visibleNoteIndex + count < noteRepeater.count) {
                 let noteImage = noteRepeater.itemAt(visibleNoteIndex + count);
-                let globalPos = noteImage.mapToGlobal(0, 0);
-                globalPos.y += noteImage.height;
+                let globalPos = noteImage.mapToItem(root, 0, 0);
+                globalPos.y += column.noteHeight;
                 if (globalPos.y > 0) {
                     noteImage.visible = true;
+                    noteImage.width = Qt.binding(() => column.width);
+                    noteImage.height = Qt.binding(() => column.noteHeight);
                     count++;
                 } else {
                     break;

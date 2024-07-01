@@ -52,7 +52,8 @@ readConfig(const std::filesystem::path& path,
                                           .asKeyValueRange()) {
             if (object.contains(key)) {
                 if (themeFamilies.contains(value.toString()) &&
-                    themeFamilies[value.toString()].getThemes().contains(key)) {
+                    themeFamilies[value.toString()].getScreens().contains(
+                      key)) {
                     object.insert(key, value);
                 }
             }

@@ -4,4 +4,4 @@ check-filenames =
 check-hidden =
 skip = */.git,*/build,*/prefix,*/conan
 quiet-level = 2
-ignore-words-list = hastable,deque
+ignore-words-list = hastable,deque,errorString

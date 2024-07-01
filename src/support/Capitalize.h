@@ -9,6 +9,6 @@
 namespace support {
 [[nodiscard]] auto
 capitalize(std::string_view str) -> std::string;
-}
+} // namespace support
 
 #endif // RHYTHMGAME_CAPITALIZE_H

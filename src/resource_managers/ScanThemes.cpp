@@ -4,8 +4,9 @@
 
 #include "ScanThemes.h"
 
-#include "qml_components/FileValidator.h"
+#include "qml_components/FileQuery.h"
 #include "support/PathToQString.h"
+#include "support/QStringToPath.h"
 
 #include <QJsonDocument>
 #include <QJsonArray>
@@ -31,22 +32,43 @@ resource_managers::scanThemes(std::filesystem::path themesFolder)
         auto file = QFile(configPath);
         try {
             file.open(QIODevice::ReadOnly);
-            auto config = QJsonDocument::fromJson(file.readAll());
-            const auto& themes = config["scriptNames"];
-            if (!themes.isObject() || themes.toObject().isEmpty()) {
+            const auto config = QJsonDocument::fromJson(file.readAll());
+            const auto& scripts = config["scripts"];
+            if (!scripts.isObject() || scripts.toObject().isEmpty()) {
                 continue;
             }
+            auto settings = config["settings"];
+            if (!settings.isObject() || settings.toObject().isEmpty()) {
+                settings = QJsonObject();
+            }
+            auto settingsScripts = config["settingsScripts"];
+            if (!settingsScripts.isObject() ||
+                settingsScripts.toObject().isEmpty()) {
+                settingsScripts = QJsonObject();
+            }
 
-            auto themeMap = QMap<QString, QUrl>();
+            auto themeMap = QMap<QString, qml_components::Screen>();
             for (const auto& [key, value] :
-                 themes.toObject().toVariantMap().asKeyValueRange()) {
-                themeMap[key] = QUrl::fromLocalFile(support::pathToQString(path / value.toString().
-#ifdef _WIN32
-                                                              toStdWString()
-#else
-                                                              toStdString()
-#endif
-                ));
+                 scripts.toObject().toVariantMap().asKeyValueRange()) {
+                auto settingsUrl =
+                  settings.toObject().contains(key)
+                    ? QUrl::fromLocalFile(support::pathToQString(
+                        path / support::qStringToPath(
+                                 settings.toObject()[key].toString())))
+                    : QUrl("");
+                auto settingsScriptUrl =
+                  settingsScripts.toObject().contains(key)
+                    ? QUrl::fromLocalFile(support::pathToQString(
+                        path / support::qStringToPath(
+                                 settingsScripts.toObject()[key].toString())))
+                    : QUrl("");
+
+                themeMap[key] = {
+                    QUrl::fromLocalFile(support::pathToQString(
+                      path / support::qStringToPath(value.toString()))),
+                    settingsUrl,
+                    settingsScriptUrl,
+                };
             }
             auto themeName = support::pathToQString(path.filename());
             auto themeFamily =
@@ -67,7 +89,7 @@ resource_managers::fillWithDefaults(
 {
     for (const auto& [name, themeFamily] : themes.asKeyValueRange()) {
         for (const auto& [screen, path] :
-             themeFamily.getThemes().asKeyValueRange()) {
+             themeFamily.getScreens().asKeyValueRange()) {
             if (name == QStringLiteral("Default") || !object.contains(screen)) {
                 object.insert(screen, name);
             }

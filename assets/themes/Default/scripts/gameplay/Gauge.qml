@@ -1,23 +1,23 @@
 import QtQml
 import QtQuick
+import QtQuick.Layouts
+import RhythmGameQml
 
 Item {
-    height: childrenRect.height
-    width: childrenRect.width
-
     Repeater {
         model: chart.score.gauges
 
         Item {
             id: gauge
 
-            property double gauge: modelData.gauge
-            property string gaugeName: modelData.objectName
-            property double threshold: modelData.threshold
+            readonly property double gauge: modelData.gauge
+            readonly property string gaugeName: modelData.objectName
+            readonly property double threshold: modelData.threshold
+            readonly property double gaugeMax: modelData.gaugeMax
 
             function getSource(index) {
                 let above = index >= gauge.threshold / 2;
-                let img = root.iniImagesUrl + "gauge.png/";
+                let img = root.iniImagesUrl + "gauge/" + root.vars.gauge + "/";
                 switch (gauge.gaugeName) {
                 case "FC":
                     return img + "orange";
@@ -36,32 +36,37 @@ Item {
                 }
             }
 
-            height: childrenRect.height
+            anchors.fill: parent
             visible: (index === chart.score.gauges.length - 1) || (modelData.gauge > threshold)
-            width: childrenRect.width
-            z: (chart.score.gauges.length - index - 1) * 2
+            z: chart.score.gauges.length - index - 1
 
             Row {
-                z: parent.z
+                z: 0
+                anchors.fill: parent
 
                 Repeater {
-                    model: Math.floor(modelData.gaugeMax / 2)
+                    model: Math.floor(gauge.gaugeMax / 2)
 
                     Image {
                         id: emptyChunk
+                        width: parent.width / (gauge.gaugeMax / 2)
+                        height: parent.height
 
                         source: gauge.getSource(index) + "_empty"
                     }
                 }
             }
             Row {
-                z: parent.z + 1
+                z: 1
+                anchors.fill: parent
 
                 Repeater {
-                    model: Math.floor(modelData.gauge / 2)
+                    model: Math.floor(gauge.gauge / 2)
 
                     Image {
                         id: fullChunk
+                        width: parent.width / (gauge.gaugeMax / 2)
+                        height: parent.height
 
                         source: gauge.getSource(index)
                         visible: index < gauge.gauge / 2

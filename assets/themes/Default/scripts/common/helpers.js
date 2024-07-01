@@ -30,7 +30,7 @@ function getScoreWithBestPoints(scores) {
 function getBestStats(scores) {
     // create an object with the clear types as keys and the scores as values
     let best = {};
-    if (scores.length === 0) {
+    if (!scores || scores.length === 0) {
         return null;
     }
     for (let score of scores) {
@@ -103,4 +103,8 @@ function getEarlyLate(replayData, missCount) {
         early: early,
         late: late
     };
+}
+
+function capitalizeFirstLetter(string) {
+    return string.charAt(0).toUpperCase() + string.slice(1);
 }

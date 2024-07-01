@@ -1,0 +1,327 @@
+[
+  {
+    "name": "General Settings",
+    "type": "group",
+    "description": "Miscellaneous.",
+    "items": [
+      {
+        "id": "laneBrightness",
+        "name": "Lane Brightness",
+        "description": "The brightness of the background behind falling notes.",
+        "type": "range",
+        "min": -1,
+        "max": 1,
+        "default": 0.0
+      },
+      {
+        "id": "verticalGauge",
+        "name": "Vertical Gauge",
+        "description": "Whether the life gauge is vertical (fills downwards).",
+        "type": "boolean",
+        "default": false
+      },
+      {
+        "id": "scratchOnRightSide",
+        "name": "Scratch on right side",
+        "description": "Move the scratch to the right side of the play area (player 2 layout)",
+        "type": "boolean",
+        "default": false
+      }
+    ]
+  },
+  {
+    "name": "Textures",
+    "type": "group",
+    "description": "The textures used in the game.",
+    "items": [
+      {
+        "id": "notes",
+        "name": "Note",
+        "type": "file",
+        "path": "scripts/gameplay/images/notes",
+        "default": "default.png",
+        "description": "The texture used for notes."
+      },
+      {
+        "id": "mine",
+        "name": "Landmine",
+        "type": "file",
+        "path": "scripts/gameplay/images/mine",
+        "default": "darkred.png",
+        "description": "The texture used for landmines."
+      },
+      {
+        "id": "bomb",
+        "name": "bomb",
+        "type": "file",
+        "path": "scripts/gameplay/images/bomb",
+        "default": "explosion.png",
+        "description": "The texture used for the animated explosion triggered when a note is hit."
+      },
+      {
+        "id": "gauge",
+        "name": "Gauge",
+        "type": "file",
+        "path": "scripts/gameplay/images/gauge",
+        "default": "dotgradation.png",
+        "description": "The texture used for the life gauge."
+      },
+      {
+        "id": "glow",
+        "name": "Glow",
+        "type": "file",
+        "path": "scripts/gameplay/images/glow",
+        "default": "default.png",
+        "description": "The texture used for the glow at the bottom of the play area."
+      },
+      {
+        "id": "5keyscover",
+        "name": "5 Keys Cover",
+        "type": "file",
+        "path": "scripts/gameplay/images/5keyscover",
+        "default": "gradation.png",
+        "description": "The texture used for the cover of redundant lanes for the 5 keys mode."
+      },
+      {
+        "id": "judge",
+        "name": "Judgement",
+        "type": "file",
+        "path": "scripts/gameplay/images/judge",
+        "default": "SquadaOne.png",
+        "description": "The texture used for the judgement text and combo number."
+      },
+      {
+        "id": "keybeam",
+        "name": "Key Beam",
+        "type": "file",
+        "path": "scripts/gameplay/images/keybeam",
+        "default": "default.png",
+        "description": "The texture used for the judgement text and combo number."
+      }
+    ]
+  },
+  {
+    "name": "Positioning",
+    "type": "group",
+    "description": "The positions of elements on the screen.",
+    "items": [
+      {
+        "name": "Play Area",
+        "type": "group",
+        "description": "The area where notes are played. Its width is the sum of column widths and spacings.",
+        "items": [
+          {
+            "id": "playAreaX",
+            "name": "X",
+            "type": "range",
+            "default": 0,
+            "description": "The X position of the left side of the play area rectangle."
+          },
+          {
+            "id": "playAreaY",
+            "name": "Y",
+            "type": "range",
+            "default": 0,
+            "description": "The Y position of the top side of the play area rectangle."
+          },
+          {
+            "id": "playAreaHeight",
+            "name": "Height",
+            "type": "range",
+            "min": 0,
+            "default": 800,
+            "description": "The height of the play area rectangle. This can be covered by lane cover or lift."
+          }
+        ]
+      },
+      {
+        "name": "Note Columns",
+        "type": "group",
+        "description": "The sizes of notes.",
+        "items": [
+          {
+            "id": "thickness",
+            "name": "Thickness",
+            "type": "range",
+            "min": 0,
+            "default": 36
+          },
+          {
+            "id": "whiteWidth",
+            "name": "White Width",
+            "type": "range",
+            "min": 0,
+            "default": 60,
+            "description": "The width of white (even) notes."
+          },
+          {
+            "id": "blackWidth",
+            "name": "Black Width",
+            "type": "range",
+            "min": 0,
+            "default": 48,
+            "description": "The width of black (odd) notes."
+          },
+          {
+            "id": "scratchWidth",
+            "name": "Scratch Width",
+            "type": "range",
+            "min": 0,
+            "default": 108,
+            "description": "The width of scratch notes."
+          },
+          {
+            "id": "spacing",
+            "name": "Spacing",
+            "type": "range",
+            "min": 0,
+            "default": 2,
+            "description": "The number of pixels between columns."
+          }
+        ]
+      },
+      {
+        "type": "group",
+        "name": "Bga",
+        "description": "The position of the background video/image.",
+        "items": [
+          {
+            "id": "bgaX",
+            "name": "X",
+            "type": "range",
+            "default": 0,
+            "description": "The X position of the left side of the BGA rectangle."
+          },
+          {
+            "id": "bgaY",
+            "name": "Y",
+            "type": "range",
+            "default": 0,
+            "description": "The Y position of the top side of the BGA rectangle."
+          },
+          {
+            "id": "bgaSize",
+            "name": "Scale",
+            "type": "range",
+            "min": 0,
+            "default": 800,
+            "description": "The size of the BGA square."
+          }
+        ]
+      },
+      {
+        "type": "group",
+        "name": "LifeBar",
+        "description": "The position of the life bar.",
+        "items": [
+          {
+            "id": "lifeBarX",
+            "name": "X",
+            "type": "range",
+            "default": 0,
+            "description": "The X position of the left side of the life bar rectangle."
+          },
+          {
+            "id": "lifeBarY",
+            "name": "Y",
+            "type": "range",
+            "default": 0,
+            "description": "The Y position of the top side of the life bar rectangle."
+          },
+          {
+            "id": "lifeBarWidth",
+            "name": "Width",
+            "type": "range",
+            "min": 0,
+            "default": 800,
+            "description": "The width of the life bar rectangle."
+          },
+          {
+            "id": "lifeBarHeight",
+            "name": "Height",
+            "type": "range",
+            "min": 0,
+            "default": 20,
+            "description": "The height of the life bar rectangle."
+          }
+        ]
+      },
+      {
+        "type": "group",
+        "name": "Judgement Counts",
+        "description": "The position of judgement counts.",
+        "items": [
+          {
+            "id": "judgementCountsX",
+            "name": "X",
+            "type": "range",
+            "default": 0,
+            "description": "The X position of the left side of the judgement counts rectangle."
+          },
+          {
+            "id": "judgementCountsY",
+            "name": "Y",
+            "type": "range",
+            "default": 0,
+            "description": "The Y position of the top side of the judgement counts rectangle."
+          },
+          {
+            "id": "judgementCountsWidth",
+            "name": "Width",
+            "type": "range",
+            "min": 0,
+            "default": 800,
+            "description": "The width of the judgement counts rectangle."
+          },
+          {
+            "id": "judgementCountsHeight",
+            "name": "Height",
+            "type": "range",
+            "min": 0,
+            "default": 20,
+            "description": "The height of the judgement counts rectangle."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Z-order",
+    "type": "group",
+    "description": "The z-index of elements on the screen.",
+    "items": [
+      {
+        "id": "playAreaZ",
+        "name": "Play Area Z",
+        "type": "range",
+        "min": 0,
+        "default": 0,
+        "description": "The z-index of the play area."
+      },
+      {
+        "id": "bgaZ",
+        "name": "BGA Z",
+        "type": "range",
+        "min": 0,
+        "default": 1,
+        "description": "The z-index of the BGA."
+      },
+      {
+        "id": "lifeBarZ",
+        "name": "Life Bar Z",
+        "type": "range",
+        "min": 0,
+        "default": 2,
+        "description": "The z-index of the life bar."
+      },
+      {
+        "id": "judgementCountsZ",
+        "name": "Judgement Counts Z",
+        "type": "range",
+        "min": 0,
+        "default": 3,
+        "description": "The z-index of the judgement counts."
+      }
+    ]
+  }
+]

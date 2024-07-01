@@ -1,9 +1,12 @@
 {
-  "scriptNames": {
+  "scripts": {
     "main": "scripts/main/Main.qml",
     "songWheel": "scripts/select/SongWheel.qml",
     "gameplay": "scripts/gameplay/Gameplay.qml",
     "settings": "scripts/settings/Settings.qml",
     "result": "scripts/result/Result.qml"
+  },
+  "settings": {
+    "gameplay": "settings/gameplay.json"
   }
 }

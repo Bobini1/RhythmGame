@@ -14,7 +14,7 @@ Item {
         laserBeam.height = wrapper.height;
     }
     function stop() {
-        laserBeam.duration = (laserBeam.width * 1.0 / wrapper.width) * 100;
+        laserBeam.duration = (laserBeam.width / wrapper.width) * 100;
         laserBeamAnimation.start();
     }
 

@@ -11,7 +11,6 @@ install(DIRECTORY assets/themes/ DESTINATION assets/themes/
         COMPONENT RhythmGame_Runtime)
 
 if (WIN32)
-
     install(FILES alsoft.ini DESTINATION "${CMAKE_INSTALL_BINDIR}"
             COMPONENT RhythmGame_Runtime)
 else ()

@@ -11,7 +11,7 @@ Image {
             return "";
         }
         let banner = "file://" + currentItem.directory + currentItem.banner;
-        return FileValidator.exists(banner) ? banner : "";
+        return FileQuery.exists(banner) ? banner : "";
     }
     sourceSize.height: 80
     sourceSize.width: 300
