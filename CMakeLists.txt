@@ -197,6 +197,22 @@ add_custom_command(TARGET RhythmGame_exe POST_BUILD
         ${CMAKE_SOURCE_DIR}/assets assets)
 
 if (WIN32)
+    find_program(TOOL_WINDEPLOYQT NAMES windeployqt)
+    find_program(TOOL_WINDEPLOYQT_DEBUG NAMES windeployqt.debug.bat)
+
+    add_custom_command(TARGET RhythmGame_exe POST_BUILD
+            COMMAND $<IF:$<CONFIG:Debug,RelWithDebInfo>,${TOOL_WINDEPLOYQT_DEBUG},${TOOL_WINDEPLOYQT}> --qmldir "${CMAKE_SOURCE_DIR}/assets/themes/Default" --qmldir "${CMAKE_SOURCE_DIR}/RhythmGameQml"
+            $<TARGET_FILE:RhythmGame_exe>
+            COMMENT "Running windeployqt..."
+            VERBATIM
+    )
+
+    add_custom_command(TARGET RhythmGame_exe POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_directory "${PROJECT_BINARY_DIR}/bin/qml" "${PROJECT_BINARY_DIR}/bin"
+    )
+endif()
+
+if (WIN32)
     set(alsoft_ext "ini")
 else ()
     set(alsoft_ext "conf")

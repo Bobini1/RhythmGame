@@ -10,6 +10,14 @@ install(DIRECTORY assets/avatars/ DESTINATION assets/avatars/
 install(DIRECTORY assets/themes/ DESTINATION assets/themes/
         COMPONENT RhythmGame_Runtime)
 
+qt_generate_deploy_qml_app_script(
+        TARGET RhythmGame_exe
+        OUTPUT_SCRIPT deploy_script
+        NO_UNSUPPORTED_PLATFORM_ERROR
+        DEPLOY_TOOL_OPTIONS "--qmldir \"${CMAKE_SOURCE_DIR}/assets/themes/Default\""
+)
+install(SCRIPT ${deploy_script})
+
 if (WIN32)
     install(FILES alsoft.ini DESTINATION "${CMAKE_INSTALL_BINDIR}"
             COMPONENT RhythmGame_Runtime)
