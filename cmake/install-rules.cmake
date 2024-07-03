@@ -1,5 +1,6 @@
 install(
         TARGETS RhythmGame_exe
+        RUNTIME_DEPENDENCY_SET RuntimeDeps
         RUNTIME COMPONENT RhythmGame_Runtime
 )
 
@@ -21,6 +22,9 @@ install(SCRIPT ${deploy_script})
 
 if (LINUX)
     install(FILES RhythmGame.sh DESTINATION "${CMAKE_INSTALL_BINDIR}" PERMISSIONS OWNER_EXECUTE OWNER_READ OWNER_WRITE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
+    install(
+            RUNTIME_DEPENDENCY_SET RuntimeDeps
+    )
 endif ()
 
 if (WIN32)
