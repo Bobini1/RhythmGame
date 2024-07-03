@@ -15,8 +15,13 @@ qt_generate_deploy_qml_app_script(
         OUTPUT_SCRIPT deploy_script
         NO_UNSUPPORTED_PLATFORM_ERROR
         DEPLOY_TOOL_OPTIONS "--qmldir \"${CMAKE_SOURCE_DIR}/assets/themes/Default\""
+        MACOS_BUNDLE_POST_BUILD
 )
 install(SCRIPT ${deploy_script})
+
+if (LINUX)
+    install(FILES RhythmGame.sh DESTINATION "${CMAKE_INSTALL_BINDIR}" PERMISSIONS OWNER_EXECUTE OWNER_READ OWNER_WRITE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
+endif ()
 
 if (WIN32)
     install(FILES alsoft.ini DESTINATION "${CMAKE_INSTALL_BINDIR}"
