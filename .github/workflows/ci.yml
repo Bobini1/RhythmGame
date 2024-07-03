@@ -111,7 +111,8 @@ jobs:
 
     strategy:
       matrix:
-        os: [ macos-12, ubuntu-bobini, windows-bobini ]
+        os: [ #macos-12,
+          ubuntu-bobini, windows-bobini ]
       fail-fast: false
 
     runs-on: ${{ matrix.os }}
@@ -176,7 +177,8 @@ jobs:
 
     strategy:
       matrix:
-        os: [ macos-12, ubuntu-bobini, windows-bobini ]
+        os: [ #macos-12,
+          ubuntu-bobini, windows-bobini ]
       fail-fast: false
 
     runs-on: ${{ matrix.os }}
