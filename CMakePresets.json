@@ -154,7 +154,8 @@
       "inherits": [
         "coverage-linux",
         "dev-mode",
-        "vcpkg"
+        "vcpkg",
+        "vcpkg-linux-sharedqt"
       ],
       "cacheVariables": {
         "COVERAGE_HTML_COMMAND": ""
@@ -166,7 +167,8 @@
       "inherits": [
         "ci-linux",
         "dev-mode",
-        "vcpkg"
+        "vcpkg",
+        "vcpkg-linux-sharedqt"
       ],
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
