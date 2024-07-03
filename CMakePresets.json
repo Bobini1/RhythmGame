@@ -15,9 +15,6 @@
         "uninitialized": true,
         "unusedCli": true,
         "systemVars": false
-      },
-      "errors": {
-        "deprecated": true
       }
     },
     {
