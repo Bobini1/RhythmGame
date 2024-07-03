@@ -11,6 +11,7 @@ on:
 
 env:
   VCPKG_COMMIT: "101cc9a69a1061969caf4b73579a34873fdd60fe"
+  LDFLAGS: "-fuse-ld=mold"
 
 jobs:
   lint:
@@ -74,8 +75,8 @@ jobs:
     needs: [ lint ]
 
     env:
-      CXX: clang++-14
-      CC: clang-14
+      CXX: clang++-17
+      CC: clang-17
       VCPKG_ROOT: /home/bobini/vcpkg
 
     runs-on: ubuntu-bobini
@@ -86,8 +87,8 @@ jobs:
       - name: Install system dependencies
         run: sudo apt-get update && sudo apt-get install libtbb-dev libgl-dev libdrm-dev libgles2-mesa-dev libudev-dev nasm autoconf automake autoconf-archive gperf pkg-config python3-jinja2 '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev -y
 
-      - name: Install Clang 14
-        run: sudo apt-get install clang-14 libc++-dev -y
+      - name: Install Clang 17
+        run: sudo apt-get install clang-17 libc++-dev -y
 
       - name: Configure
         run: cmake --preset=ci-sanitize
