@@ -36,7 +36,7 @@ find_package(Boost REQUIRED COMPONENTS locale filesystem serialization)
 
 # <------------ OpenAL (audio playback) --------------->
 
-find_package(OpenAL REQUIRED)
+find_package(OpenAL CONFIG REQUIRED)
 
 # <------------ Qt (gui) --------------->
 
