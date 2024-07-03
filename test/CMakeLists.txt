@@ -39,6 +39,22 @@ add_custom_command(TARGET RhythmGame_test POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E create_symlink
         ${CMAKE_SOURCE_DIR}/testOnlyAssets testOnlyAssets)
 
+if (WIN32)
+    find_program(TOOL_WINDEPLOYQT NAMES windeployqt)
+    find_program(TOOL_WINDEPLOYQT_DEBUG NAMES windeployqt.debug.bat)
+
+    add_custom_command(TARGET RhythmGame_test POST_BUILD
+            COMMAND $<IF:$<CONFIG:Debug,RelWithDebInfo>,${TOOL_WINDEPLOYQT_DEBUG},${TOOL_WINDEPLOYQT}> --qmldir "${CMAKE_SOURCE_DIR}/assets/themes/Default" --qmldir "${CMAKE_SOURCE_DIR}/RhythmGameQml"
+            $<TARGET_FILE:RhythmGame_test>
+            COMMENT "Running windeployqt..."
+            VERBATIM
+    )
+
+    add_custom_command(TARGET RhythmGame_test POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_directory "${PROJECT_BINARY_DIR}/bin/qml" "${PROJECT_BINARY_DIR}/bin"
+    )
+endif()
+
 catch_discover_tests(RhythmGame_test)
 # ---- End-of-file commands ----
 
