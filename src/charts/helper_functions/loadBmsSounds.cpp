@@ -6,6 +6,7 @@
 #include "sounds/OpenAlSoundBuffer.h"
 #include <optional>
 #include <unordered_set>
+#include <QtConcurrent>
 
 namespace charts::helper_functions {
 
@@ -129,30 +130,30 @@ loadBmsSounds(const std::map<std::string, std::string>& wavs,
                        std::shared_ptr<const sounds::OpenALSoundBuffer>>
       buffers;
     buffers.reserve(uniqueSoundPaths.size());
-//
-//    buffers = QtConcurrent::blockingMappedReduced<
-//      std::unordered_map<std::string,
-//                         std::shared_ptr<const sounds::OpenALSoundBuffer>>>(
-//      uniqueSoundPaths,
-//      [](const auto& path)
-//        -> std::optional<
-//          std::pair<std::string,
-//                    std::shared_ptr<const sounds::OpenALSoundBuffer>>> {
-//          try {
-//              return { { path,
-//                         std::make_shared<const sounds::OpenALSoundBuffer>(
-//                           path.c_str()) } };
-//          } catch (const std::exception& e) {
-//              spdlog::warn("Failed to load sound {}: {}", path, e.what());
-//              return std::nullopt;
-//          }
-//      },
-//      [](auto& container, const auto& pair) -> void {
-//          if (pair) {
-//              container.emplace(pair->first, pair->second);
-//          }
-//      },
-//      std::move(buffers));
+
+    buffers = QtConcurrent::blockingMappedReduced<
+      std::unordered_map<std::string,
+                         std::shared_ptr<const sounds::OpenALSoundBuffer>>>(
+      uniqueSoundPaths,
+      [](const auto& path)
+        -> std::optional<
+          std::pair<std::string,
+                    std::shared_ptr<const sounds::OpenALSoundBuffer>>> {
+          try {
+              return { { path,
+                         std::make_shared<const sounds::OpenALSoundBuffer>(
+                           path.c_str()) } };
+          } catch (const std::exception& e) {
+              spdlog::warn("Failed to load sound {}: {}", path, e.what());
+              return std::nullopt;
+          }
+      },
+      [](auto& container, const auto& pair) -> void {
+          if (pair) {
+              container.emplace(pair->first, pair->second);
+          }
+      },
+      std::move(buffers));
 
     auto sounds = std::unordered_map<std::string, sounds::OpenALSound>();
     sounds.reserve(wavsActualPaths.size());
