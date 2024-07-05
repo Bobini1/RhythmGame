@@ -120,16 +120,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-
-      - name: Install static analyzers
-        if: matrix.os == 'ubuntu-bobini'
-        run: >-
-          sudo apt-get install clang-tidy-17 cppcheck -y -q
-          
-          sudo update-alternatives --install
-          /usr/bin/clang-tidy clang-tidy
-          /usr/bin/clang-tidy-14 170
-
+        
       - name: Install vcpkg
         if: matrix.os == 'macos-12'
         uses: friendlyanon/setup-vcpkg@v1
