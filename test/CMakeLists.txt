@@ -15,6 +15,7 @@ add_executable(RhythmGame_test charts/chart_readers/BmsChartReader.test.cpp db/S
 target_link_libraries(
         RhythmGame_test PRIVATE
         RhythmGame_lib
+        RhythmGame_qmlplugin
         Catch2::Catch2WithMain
 )
 target_compile_features(RhythmGame_test PRIVATE cxx_std_20)
