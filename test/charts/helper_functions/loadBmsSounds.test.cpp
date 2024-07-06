@@ -23,7 +23,7 @@ TEST_CASE("Sounds are loaded from a folder according to the bms file",
 {
     auto folder = findTestAssetsFolder() / "supportedSoundFormats";
     auto path =
-      (folder / "8BIT_audiocheck.net_sin_1000Hz_-3dBFS_0.2s_8.0k.wav").string();
+      std::string("8BIT_audiocheck.net_sin_1000Hz_-3dBFS_0.2s_8.0k.wav");
     const auto bmsFile = fmt::format("#WAV01 {}\n#WAV02 {}", path, path);
     auto reader = charts::chart_readers::BmsChartReader();
     auto tags = reader.readBmsChart(bmsFile, randomGenerator).tags;
@@ -43,7 +43,7 @@ TEST_CASE("Even when the extension says wav, allow loading other extensions",
                    std::back_inserter(paths),
                    [](const auto& entry) {
                        auto path = entry.path();
-                       return path.replace_extension("wav").string();
+                       return path.replace_extension("wav").filename().string();
                    });
     const auto bmsFile =
       fmt::format("#WAV01 {}\n#WAV02 {}\n#WAV03 {}\n#WAV04 {}",

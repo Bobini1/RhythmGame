@@ -10,31 +10,33 @@
 
 namespace charts::helper_functions {
 
+#if _WIN32
 auto
 getActualPathWindows(std::filesystem::path filePath)
   -> std::optional<std::filesystem::path>
 {
-    if (std::filesystem::exists(filePath)) {
+    if (exists(filePath)) {
         return filePath;
     }
     filePath.replace_extension(".wav");
-    if (std::filesystem::exists(filePath)) {
+    if (exists(filePath)) {
         return filePath;
     }
     filePath.replace_extension(".flac");
-    if (std::filesystem::exists(filePath)) {
+    if (exists(filePath)) {
         return filePath;
     }
     filePath.replace_extension(".ogg");
-    if (std::filesystem::exists(filePath)) {
+    if (exists(filePath)) {
         return filePath;
     }
     filePath.replace_extension(".mp3");
-    if (std::filesystem::exists(filePath)) {
+    if (exists(filePath)) {
         return filePath;
     }
     return std::nullopt;
 }
+#endif
 
 auto
 getActualPath(
@@ -79,10 +81,10 @@ createLowerCaseFilesMap(std::filesystem::path dirToSearch)
         if (entry.is_regular_file()) {
             auto path = entry.path();
             auto pathString = path.filename().string();
-            std::transform(pathString.begin(),
-                           pathString.end(),
-                           pathString.begin(),
-                           [](unsigned char c) { return std::tolower(c); });
+            std::ranges::transform(
+              pathString, pathString.begin(), [](unsigned char c) {
+                  return std::tolower(c);
+              });
             lowerCaseFilesMap.emplace(pathString, path);
         }
     }
@@ -109,10 +111,10 @@ loadBmsSounds(const std::map<std::string, std::string>& wavs,
 #else
             // convert to lowercase first
             auto valueLower = value;
-            std::transform(valueLower.begin(),
-                           valueLower.end(),
-                           valueLower.begin(),
-                           [](unsigned char c) { return std::tolower(c); });
+            std::ranges::transform(
+              valueLower, valueLower.begin(), [](unsigned char c) {
+                  return std::tolower(c);
+              });
 
             auto filePath = path / value;
             auto actualPath = getActualPath(lowerCaseFilesMap, valueLower);
