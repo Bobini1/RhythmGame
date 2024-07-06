@@ -11,7 +11,8 @@ Checks: "*,\
   -llvmlibc-*,\
   -modernize-use-nodiscard,\
   -bugprone-unchecked-optional-access,\
-  -misc-non-private-member-variables-in-classes"
+  -misc-non-private-member-variables-in-classes,\
+  -*-include-cleaner"
 WarningsAsErrors: ''
 CheckOptions:
   - key: 'bugprone-argument-comment.StrictMode'

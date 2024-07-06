@@ -87,6 +87,7 @@ Profile(const std::filesystem::path& dbPath,
   , themeConfig(
       createConfig(themeFamilies, dbPath.parent_path() / "theme_config.json")
         .release())
+  , vars(this, themeFamilies)
 {
     this->themeConfig->setParent(this);
     auto configPath = dbPath.parent_path() / "theme_config.json";
@@ -103,8 +104,6 @@ Profile(const std::filesystem::path& dbPath,
                    "key TEXT NOT NULL UNIQUE,"
                    "value"
                    ");");
-        name = "Player";
-        avatar = "mascot.png";
     } else {
         auto statement = db.createStatement(
           "SELECT value FROM properties WHERE key = 'avatar'");
@@ -201,5 +200,10 @@ Profile::setKeyConfig(const QList<input::Mapping>& keyConfig) -> void
     updateProperty.bind(2, compressedData.data(), compressedData.size());
     updateProperty.execute();
     emit keyConfigChanged();
+}
+auto
+Profile::getVars() -> Vars*
+{
+    return &vars;
 }
 } // namespace resource_managers

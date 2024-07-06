@@ -1,14 +1,13 @@
 import QtQuick
 import QtQuick
 import QtQuick.Layouts
-import QtQuick.Controls
+import QtQuick.Controls.Basic
 import Qt5Compat.GraphicalEffects
 import RhythmGameQml
 
 Item {
     id: playArea
 
-    property double blackWidth: 48.0 / totalWidthAbs * parent.width
     property list<int> columns: []
     readonly property list<int> columnsReversedMapping: {
         var mapping = [];
@@ -17,22 +16,37 @@ Item {
         }
         return mapping;
     }
-    property double redWidth: 108.0 / totalWidthAbs * parent.width
-    readonly property int spacing: 2
-    readonly property int totalWidthAbs: 3 * 48 + 4 * 60 + 108 + spacing * 7
-    property double whiteWidth: 60.0 / totalWidthAbs * parent.width
+    readonly property int spacing: root.vars.spacing
 
-    anchors.bottom: parent.bottom
-    anchors.top: parent.top
-    width: totalWidthAbs
+    height: root.vars.playAreaHeight
+    width: playfield.width
 
-    Playfield {
-        id: playfield
+    Item {
+        anchors.bottomMargin: -root.vars.thickness
+        anchors.fill: parent
+        clip: true
+        layer.enabled: true
+        layer.smooth: true
 
-        columns: playArea.columns
-        spacing: playArea.spacing
-        y: Math.floor(chart.position * root.greenNumber + parent.height)
-        z: 1
+        Item {
+            anchors.bottomMargin: root.vars.thickness
+            anchors.fill: parent
+
+            BarLinePositioner {
+                barLines: chart.notes.barLines
+                heightMultiplier: root.greenNumber
+                width: parent.width
+                y: Math.floor(chart.position * root.greenNumber + parent.height)
+            }
+            Playfield {
+                id: playfield
+
+                columns: playArea.columns
+                spacing: playArea.spacing
+                y: chart.position * root.greenNumber + parent.height
+                z: 1
+            }
+        }
     }
     Row {
         id: laserRow
@@ -47,7 +61,6 @@ Item {
         anchors.bottom: parent.bottom
         height: parent.height
         spacing: playArea.spacing
-        width: parent.width
 
         Repeater {
             id: laserRowChildren
@@ -126,12 +139,6 @@ Item {
         anchors.fill: parent
         z: -1
 
-        BarLinePositioner {
-            barLines: chart.notes.barLines
-            heightMultiplier: root.greenNumber
-            width: parent.width
-            y: Math.floor(chart.position * root.greenNumber + parent.height)
-        }
         Repeater {
             id: columnSeparators
 
@@ -139,7 +146,15 @@ Item {
 
             Rectangle {
                 anchors.bottom: parent.bottom
-                color: "#1e1e1e"
+                color: {
+                    let base = Qt.color("#1e1e1e");
+                    let mod = root.vars.laneBrightness;
+                    if (root.vars.laneBrightness < 0) {
+                        mod = base.hsvValue * root.vars.laneBrightness;
+                    }
+                    base.hsvValue = Math.max(0, Math.min(base.hsvValue + mod, 1));
+                    return base;
+                }
                 height: parent.height
                 width: playArea.spacing
                 x: {
@@ -159,7 +174,15 @@ Item {
 
             Rectangle {
                 anchors.bottom: parent.bottom
-                color: playfield.columns[index] % 2 === 0 ? "#050505" : "#000000"
+                color: {
+                    let base = Qt.color(playfield.columns[index] % 2 === 0 ? "#050505" : "#000000");
+                    let mod = root.vars.laneBrightness;
+                    if (root.vars.laneBrightness < 0) {
+                        mod = Qt.color("#1e1e1e").hsvValue * root.vars.laneBrightness;
+                    }
+                    base.hslValue = Math.max(0, Math.min(base.hsvValue + mod, 1));
+                    return base;
+                }
                 height: parent.height
                 width: root.columnSizes[playfield.columns[index]]
                 x: {
@@ -178,7 +201,7 @@ Item {
 
         anchors.bottom: parent.bottom
         opacity: (Math.abs(chart.position % 1) > 0.5 ? Math.abs(chart.position % 1) : 1 - Math.abs(chart.position % 1)) * 0.2 + 0.1
-        source: root.imagesUrl + "glow.png"
+        source: root.imagesUrl + "glow/" + root.vars.glow
         visible: true
         width: parent.width
         z: -1
@@ -215,15 +238,15 @@ Item {
                 finishBehavior: AnimatedSprite.FinishAtFinalFrame
                 frameCount: bombWrapper.ln ? 8 : 16
                 frameDuration: 25
-                frameHeight: 600
-                frameWidth: 600
-                frameY: bombWrapper.ln ? 0 : 600
-                height: 300
+                frameHeight: bombSize.sourceSize.height / 4
+                frameWidth: bombSize.sourceSize.width / 4
+                frameY: bombWrapper.ln ? 0 : frameHeight
+                height: frameHeight / 2
                 loops: bombWrapper.ln ? AnimatedSprite.Infinite : 1
                 running: false
-                source: root.imagesUrl + "explosion.png"
+                source: root.imagesUrl + "bomb/" + root.vars.bomb
                 visible: running
-                width: 300
+                width: frameWidth / 2
             }
         }
     }
@@ -257,6 +280,13 @@ Item {
         }
 
         target: chart.score
+    }
+    // to get the sourceSize of the bomb image
+    Image {
+        id: bombSize
+
+        source: root.imagesUrl + "bomb/" + root.vars.bomb
+        visible: false
     }
 }
 

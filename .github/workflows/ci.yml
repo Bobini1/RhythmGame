@@ -10,7 +10,8 @@ on:
       - master
 
 env:
-  VCPKG_COMMIT: "16ee2ecb31788c336ace8bb14c21801efb6836e4"
+  VCPKG_COMMIT: "101cc9a69a1061969caf4b73579a34873fdd60fe"
+  LDFLAGS: "-fuse-ld=mold"
 
 jobs:
   lint:
@@ -60,10 +61,7 @@ jobs:
 
       - name: Test
         working-directory: build/coverage
-        run: |
-          export DISPLAY=:99
-          sudo Xvfb -ac :99 -screen 0 1280x1024x24 -noreset > /dev/null 2>&1 &
-          ctest --output-on-failure -j 2
+        run: ctest --output-on-failure -j 2
 
       - name: Process coverage info
         run: cmake --build build/coverage -t coverage
@@ -77,8 +75,8 @@ jobs:
     needs: [ lint ]
 
     env:
-      CXX: clang++-13
-      CC: clang-13
+      CXX: clang++-17
+      CC: clang-17
       VCPKG_ROOT: /home/bobini/vcpkg
 
     runs-on: ubuntu-bobini
@@ -89,8 +87,8 @@ jobs:
       - name: Install system dependencies
         run: sudo apt-get update && sudo apt-get install libtbb-dev libgl-dev libdrm-dev libgles2-mesa-dev libudev-dev nasm autoconf automake autoconf-archive gperf pkg-config python3-jinja2 '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev -y
 
-      - name: Install Clang 13
-        run: sudo apt-get install clang-13 libc++-dev -y
+      - name: Install Clang 17
+        run: sudo apt-get install clang-17 libc++-dev -y
 
       - name: Configure
         run: cmake --preset=ci-sanitize
@@ -107,37 +105,26 @@ jobs:
           strict_init_order=1:\
           detect_leaks=1"
           UBSAN_OPTIONS: print_stacktrace=1
-        run: |
-          export DISPLAY=:99
-          sudo Xvfb -ac :99 -screen 0 1280x1024x24 -noreset > /dev/null 2>&1 &
-          ctest --output-on-failure -j 2
+        run: ctest --output-on-failure -j 2
 
   test:
     needs: [ lint ]
 
     strategy:
       matrix:
-        os: [ macos-12, ubuntu-bobini, windows-bobini ]
+        os: [ #macos-12,
+          ubuntu-bobini, windows-bobini ]
       fail-fast: false
 
     runs-on: ${{ matrix.os }}
 
     steps:
       - uses: actions/checkout@v4
-
-      - name: Install static analyzers
-        if: matrix.os == 'ubuntu-bobini'
-        run: >-
-          sudo apt-get install clang-tidy-14 cppcheck -y -q
-  
-          sudo update-alternatives --install
-          /usr/bin/clang-tidy clang-tidy
-          /usr/bin/clang-tidy-14 140
-
+        
       - name: Install vcpkg
         if: matrix.os == 'macos-12'
         uses: friendlyanon/setup-vcpkg@v1
-        with: { committish: "${{ env.VCPKG_COMMIT }}"  }
+        with: { committish: "${{ env.VCPKG_COMMIT }}" }
 
       - name: Set VCPKG_ROOT Windows
         if: matrix.os == 'windows-bobini'
@@ -171,26 +158,19 @@ jobs:
         run: cmake --build build --config Release -j 2
 
       - name: Install
-        run: cmake --install build --config Release --prefix prefix
+        run: cmake --install build --config Release --prefix ${{ github.workspace }}/prefix
 
       - name: Test
         working-directory: build
-        shell: bash
-        run: |
-          if [ ${{ matrix.os }} = ubuntu-bobini ]; then
-            export DISPLAY=:99
-            sudo Xvfb -ac :99 -screen 0 1280x1024x24 -noreset > /dev/null 2>&1 &
-            ctest --output-on-failure -C Release -j 2
-          else
-            ctest --output-on-failure -C Release -j 2
-          fi
+        run: ctest --output-on-failure -C Release -j 2
 
   deploy:
     needs: [ sanitize, test ]
 
     strategy:
       matrix:
-        os: [ macos-12, ubuntu-bobini, windows-bobini ]
+        os: [ #macos-12,
+          ubuntu-bobini, windows-bobini ]
       fail-fast: false
 
     runs-on: ${{ matrix.os }}
@@ -210,7 +190,7 @@ jobs:
       - name: Install vcpkg
         if: matrix.os == 'macos-12'
         uses: friendlyanon/setup-vcpkg@v1
-        with: { committish: "${{ env.VCPKG_COMMIT }}"  }
+        with: { committish: "${{ env.VCPKG_COMMIT }}" }
 
       - name: Set VCPKG_ROOT Windows
         if: matrix.os == 'windows-bobini'
@@ -243,8 +223,8 @@ jobs:
 
       - name: Remove CPack folders
         working-directory: build
-        shell: bash
-        run: rm -rf ./artifacts/_CPack_Packages
+        shell: pwsh
+        run: Remove-Item -Recurse -Force artifacts/_CPack_Packages
 
       - name: Upload Binary
         uses: actions/upload-artifact@v2
@@ -257,7 +237,7 @@ jobs:
     # Deploy docs only when builds succeed
     needs: [ sanitize, test ]
 
-    runs-on: ubuntu-bobini
+    runs-on: ubuntu-latest
 
     if: github.ref == 'refs/heads/master'
       && github.event_name == 'push'

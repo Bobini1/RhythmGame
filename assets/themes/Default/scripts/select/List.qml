@@ -38,7 +38,10 @@ PathView {
             globalRoot.openChart(item.path);
         } else {
             let folder = SongFolderFactory.open(item);
-            pathView.folderContents = folder;
+            pathView.folderContents.length = 0;
+            for (let item of folder) {
+                pathView.folderContents.push(item);
+            }
             folder = sortFilter(folder);
             addToMinimumCount(folder);
             pathView.currentFolder = item;
@@ -52,7 +55,10 @@ PathView {
             console.info("Search returned no results");
             return;
         }
-        pathView.folderContents = results;
+        pathView.folderContents.length = 0;
+        for (let item of results) {
+            pathView.folderContents.push(item);
+        }
         results = sortFilter(results);
         addToMinimumCount(results);
         pathView.currentFolder = pathView.currentFolder + "search/";

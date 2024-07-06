@@ -1,6 +1,7 @@
 import QtQml
 import QtQuick
 import QtQuick.Layouts
+import RhythmGameQml
 
 Rectangle {
     id: playfield
@@ -13,7 +14,7 @@ Rectangle {
         }
         return mapping;
     }
-    property int spacing
+    property real spacing
 
     function activateLn(column: int, index: int) {
         let noteColumn = noteColumnRepeater.itemAt(columnsReversedMapping[column]);
@@ -32,16 +33,15 @@ Rectangle {
         noteColumn.removeNote(index);
     }
 
-    color: "black"
-    width: totalWidthAbs
 
-    RowLayout {
+    color: "black"
+    width: notesRow.width
+
+    Row {
         id: notesRow
 
         anchors.bottom: parent.bottom
-        height: children.height
         spacing: playfield.spacing
-        width: parent.width
 
         Repeater {
             id: noteColumnRepeater
@@ -56,9 +56,10 @@ Rectangle {
 
                 color: root.noteColors[playfield.columns[index]]
                 heightMultiplier: root.greenNumber
-                noteHeight: 36
+                noteHeight: root.vars.thickness
                 notes: modelData
                 width: root.columnSizes[playfield.columns[index]]
+                height: 1
             }
         }
     }

@@ -10,7 +10,7 @@
 
 namespace qml_components {
 
-class Themes : public QObject
+class Themes final : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(QVariantMap availableThemeFamilies READ getAvailableThemeFamilies
@@ -19,7 +19,7 @@ class Themes : public QObject
     QVariantMap themes;
 
   public:
-    auto getAvailableThemeFamilies() const -> QVariantMap;
+    auto getAvailableThemeFamilies() const -> const QVariantMap&;
 
     explicit Themes(QMap<QString, ThemeFamily> themes);
 };

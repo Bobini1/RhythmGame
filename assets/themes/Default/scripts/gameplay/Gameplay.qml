@@ -6,35 +6,39 @@ import RhythmGameQml
 import QtQuick.Controls.Basic
 import QtMultimedia
 import Qt5Compat.GraphicalEffects
+import "../common/TaoQuickCustom"
+import "../common/helpers.js" as Helpers
 
 Rectangle {
     id: root
 
-    property list<int> columnSizes: {
+    property list<real> columnSizes: {
         let sizes = [];
         for (let i = 0; i < 16; i++) {
-            if (i == 7 || i == 15) {
-                sizes.push(108);
-            } else if (i % 2 == 0)
-                sizes.push(60);
+            if (i === 7 || i === 15) {
+                sizes.push(root.vars.scratchWidth);
+            } else if (i % 2 === 0)
+                sizes.push(root.vars.whiteWidth);
             else {
-                sizes.push(48);
+                sizes.push(root.vars.blackWidth);
             }
         }
         return sizes;
     }
-    property double greenNumber: 400
+    property bool customizeMode: false
+    property double greenNumber: ProfileList.currentProfile.vars.globalVars.noteScreenTimeSeconds * 400
     readonly property string imagesUrl: Qt.resolvedUrl(".") + "images/"
     readonly property string iniImagesUrl: "image://ini/" + rootUrl + "images/"
+    readonly property var vars: ProfileList.currentProfile.vars.themeVars.gameplay
     property list<string> laserImages: {
         let images = [];
         for (let i = 0; i < 16; i++) {
             if (i === 7 || i === 15)
-                images.push(iniImagesUrl + "laser.png/laser_s");
+                images.push(iniImagesUrl + "keybeam/" + root.vars.keybeam + "/laser_s");
             else if (i % 2 === 0)
-                images.push(iniImagesUrl + "laser.png/laser_w");
+                images.push(iniImagesUrl + "keybeam/" + root.vars.keybeam + "/laser_w");
             else
-                images.push(iniImagesUrl + "laser.png/laser_b");
+                images.push(iniImagesUrl + "keybeam/" + root.vars.keybeam + "/laser_b");
         }
         return images;
     }
@@ -54,6 +58,7 @@ Rectangle {
     property string rootUrl: globalRoot.urlToPath(Qt.resolvedUrl(".").toString())
     // copying visibleNotes to js array is faster than accessing it directly
     readonly property var visibleNotes: chart.notes.visibleNotes
+    property var popup: null
 
     color: "black"
 
@@ -80,113 +85,238 @@ Rectangle {
             chart.start();
         }
         function onOver() {
+            if (root.popup !== null) {
+                root.popup.close();
+                root.popup = null;
+            }
             globalRoot.openResult(chart.finish(), chart.chartData);
         }
 
         target: chart
     }
-    Rectangle {
-        id: scaledRoot
+    PlayAreaPopup {
+        id: playAreaPopup
 
-        anchors.centerIn: parent
-        color: "black"
+        onClosed: {
+            root.popup = null;
+        }
+    }
+    GaugePopup {
+        id: gaugePopup
+
+        onClosed: {
+            root.popup = null;
+        }
+    }
+    Item {
+        id: scaledRoot
+        anchors.horizontalCenter: parent.horizontalCenter
         height: 1080
         scale: Math.min(globalRoot.width / 1920, globalRoot.height / 1080)
         width: 1920
 
-        FpsCounter {
-            anchors.right: parent.right
-            anchors.top: parent.top
-        }
-        Rectangle {
-            id: playAreaBorder
+        PlayAreaTemplate {
+            id: playAreaTemplate
 
-            anchors.bottom: parent.bottom
-            anchors.bottomMargin: parent.height - height
-            color: "white"
-            height: root.playfieldHeight + 2
-            width: playArea.width + 2
-            z: 1
+            columns: playArea.columns
+            visible: root.customizeMode
+            z: playArea.z + 1
 
-            PlayArea {
-                id: playArea
+            MouseArea {
+                id: playAreaTemplateMouseArea
 
-                anchors.bottomMargin: 1
-                anchors.left: parent.left
-                anchors.leftMargin: 1
-                columns: [7, 0, 1, 2, 3, 4, 5, 6]
-                height: root.playfieldHeight
+                acceptedButtons: Qt.RightButton
+                anchors.fill: parent
+                z: -1
+
+                onClicked: mouse => {
+                    let point = mapToGlobal(mouse.x, mouse.y);
+                    playAreaPopup.setPosition(point);
+                    playAreaPopup.open();
+                    root.popup = playAreaPopup;
+                }
             }
         }
-        Row {
-            anchors.horizontalCenter: playAreaBorder.horizontalCenter
-            anchors.top: playAreaBorder.bottom
+        PlayArea {
+            id: playArea
 
-            Gauge {
-                id: gauge
+            columns: root.vars.scratchOnRightSide ? [0, 1, 2, 3, 4, 5, 6, 7] : [7, 0, 1, 2, 3, 4, 5, 6]
+            x: root.vars.playAreaX
+            y: root.vars.playAreaY
+            z: root.vars.playAreaZ
+        }
+        BgaRenderer {
+            id: bga
 
+            height: root.vars.bgaSize
+            visible: ProfileList.currentProfile.vars.globalVars.bgaOn
+            width: root.vars.bgaSize
+            x: root.vars.bgaX
+            y: root.vars.bgaY
+            z: root.vars.bgaZ
+
+            onHeightChanged: {
+                root.vars.bgaSize = height;
+                height = Qt.binding(() => root.vars.bgaSize);
             }
-            Item {
-                id: lifeNumberContainer
-
+            onWidthChanged: {
+                width = Qt.binding(() => root.vars.bgaSize);
             }
-            LifeNumber {
-                anchors.verticalCenter: gauge.verticalCenter
-                width: 80
+            onXChanged: {
+                root.vars.bgaX = x;
+                x = Qt.binding(() => root.vars.bgaX);
+            }
+            onYChanged: {
+                root.vars.bgaY = y;
+                y = Qt.binding(() => root.vars.bgaY);
+            }
+
+            TemplateDragBorder {
+                id: bgaTemplate
+
+                anchors.fill: parent
+                anchors.margins: -borderMargin
+                color: "transparent"
+                keepAspectRatio: true
+                rotationEnabled: false
+                visible: root.customizeMode
+            }
+        }
+        LifeBar {
+            id: lifeBar
+
+            height: root.vars.lifeBarHeight
+            width: root.vars.lifeBarWidth
+            x: root.vars.lifeBarX
+            y: root.vars.lifeBarY
+            z: root.vars.lifeBarZ
+
+            onHeightChanged: {
+                root.vars.lifeBarHeight = height;
+                height = Qt.binding(() => root.vars.lifeBarHeight);
+            }
+            onWidthChanged: {
+                root.vars.lifeBarWidth = width;
+                width = Qt.binding(() => root.vars.lifeBarWidth);
+            }
+            onXChanged: {
+                root.vars.lifeBarX = x;
+                x = Qt.binding(() => root.vars.lifeBarX);
+            }
+            onYChanged: {
+                root.vars.lifeBarY = y;
+                y = Qt.binding(() => root.vars.lifeBarY);
+            }
+
+            TemplateDragBorder {
+                id: lifeBarTemplate
+
+                anchors.fill: parent
+                anchors.margins: -borderMargin
+                color: "transparent"
+                rotationEnabled: false
+                visible: root.customizeMode
+
+                MouseArea {
+                    id: lifeBarMouseArea
+
+                    acceptedButtons: Qt.RightButton
+                    anchors.fill: parent
+                    z: -1
+
+                    onClicked: mouse => {
+                        let point = mapToGlobal(mouse.x, mouse.y);
+                        gaugePopup.setPosition(point);
+                        gaugePopup.open();
+                        root.popup = gaugePopup;
+                    }
+                }
             }
         }
         Rectangle {
             id: judgementCountsContainer
 
-            anchors.bottom: playAreaBorder.bottom
-            anchors.left: playAreaBorder.right
             color: "darkslategray"
-            height: childrenRect.height
-            width: 120
+            height: root.vars.judgementCountsHeight
+            width: root.vars.judgementCountsWidth
+            x: root.vars.judgementCountsX
+            y: root.vars.judgementCountsY
+            z: root.vars.judgementCountsZ
 
-            Column {
-                anchors.left: parent.left
-                anchors.leftMargin: 8
+            onHeightChanged: {
+                root.vars.judgementCountsHeight = height;
+                height = Qt.binding(() => root.vars.judgementCountsHeight);
+            }
+            onWidthChanged: {
+                root.vars.judgementCountsWidth = width;
+                width = Qt.binding(() => root.vars.judgementCountsWidth);
+            }
+            onXChanged: {
+                root.vars.judgementCountsX = x;
+                x = Qt.binding(() => root.vars.judgementCountsX);
+            }
+            onYChanged: {
+                root.vars.judgementCountsY = y;
+                y = Qt.binding(() => root.vars.judgementCountsY);
+            }
 
-                Repeater {
-                    id: judgementCounts
+            TemplateDragBorder {
+                id: judgementCountsTemplate
 
-                    model: ["Perfect", "Great", "Good", "Bad", "Poor", "EmptyPoor"]
+                anchors.fill: parent
+                anchors.margins: -borderMargin
+                color: "transparent"
+                rotationEnabled: false
+                visible: root.customizeMode
+            }
+            Text {
+                id: judgementCounts
 
-                    delegate: Text {
-                        property int num: 0
+                property int bad: 0
+                property int emptyPoor: 0
+                property int good: 0
+                property int great: 0
+                property int perfect: 0
+                property int poor: 0
 
-                        color: "white"
-                        font.pixelSize: 16
-                        text: modelData + ": " + num
-                        textFormat: Text.PlainText
+                anchors.fill: parent
+                anchors.margins: 8
+                color: "white"
+                font.pixelSize: 300
+                fontSizeMode: Text.Fit
+                text: {
+                    let txt = "";
+                    for (let judgement of ["perfect", "great", "good", "bad", "poor", "emptyPoor"]) {
+                        txt += Helpers.capitalizeFirstLetter(judgement) + ": " + judgementCounts[judgement] + "\n";
                     }
+                    return txt;
                 }
+                textFormat: Text.PlainText
             }
             Connections {
                 function onMissed() {
-                    judgementCounts.itemAt(4).num++;
+                    judgementCounts.poor++;
                     bga.poorVisible = true;
                     poorLayerTimer.restart();
                 }
                 function onNoteHit(tap) {
                     switch (tap.points.judgement) {
                     case Judgement.Perfect:
-                        judgementCounts.itemAt(0).num++;
+                        judgementCounts.perfect++;
                         break;
                     case Judgement.Great:
-                        judgementCounts.itemAt(1).num++;
+                        judgementCounts.great++;
                         break;
                     case Judgement.Good:
-                        judgementCounts.itemAt(2).num++;
+                        judgementCounts.good++;
                         break;
                     case Judgement.Bad:
-                        judgementCounts.itemAt(3).num++;
+                        judgementCounts.bad++;
                         bga.poorVisible = true;
                         poorLayerTimer.restart();
                         break;
                     case Judgement.EmptyPoor:
-                        judgementCounts.itemAt(5).num++;
+                        judgementCounts.emptyPoor++;
                         bga.poorVisible = true;
                         poorLayerTimer.restart();
                         break;
@@ -196,14 +326,6 @@ Rectangle {
                 target: chart.score
             }
         }
-        BgaRenderer {
-            id: bga
-
-            anchors.left: judgementCountsContainer.right
-            anchors.top: parent.top
-            height: 800
-            width: 800
-        }
     }
     Shortcut {
         enabled: chartFocusScope.active
@@ -211,6 +333,17 @@ Rectangle {
 
         onActivated: {
             globalRoot.openResult(chart.finish(), chart.chartData);
+        }
+    }
+    Shortcut {
+        sequence: "F2"
+
+        onActivated: {
+            root.customizeMode = !root.customizeMode;
+            if (root.popup !== null) {
+                root.popup.close();
+                root.popup = null;
+            }
         }
     }
 }

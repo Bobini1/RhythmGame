@@ -1,5 +1,5 @@
 {
-  "name": "vcpkg-test",
+  "name": "rhythmgame",
   "version-semver": "0.1.0",
   "dependencies": [
     {
@@ -11,8 +11,28 @@
       "version>=": "3.3.1"
     },
     {
-      "name": "boost",
-      "version>=": "1.82.0"
+      "name": "boost-locale",
+      "version>=": "1.85.0"
+    },
+    {
+      "name": "boost-dll",
+      "version>=": "1.85.0"
+    },
+    {
+      "name": "boost-pfr",
+      "version>=": "1.85.0"
+    },
+    {
+      "name": "boost-serialization",
+      "version>=": "1.85.0"
+    },
+    {
+      "name": "boost-icl",
+      "version>=": "1.85.0"
+    },
+    {
+      "name": "boost-headers",
+      "version>=": "1.85.0"
     },
     {
       "name": "spdlog",
@@ -36,11 +56,15 @@
     },
     {
       "name": "zstd",
-      "version>=": "1.5.5"
+      "version>=": "1.5.6"
     },
     {
       "name": "libsndfile",
-      "version>=": "1.2.2"
+      "version>=": "1.2.2",
+      "features": [
+        "external-libs",
+        "mpeg"
+      ]
     },
     {
       "name": "sdl2",
@@ -48,35 +72,42 @@
     },
     {
       "name": "qtdeclarative",
-      "version>=": "6.6.1"
+      "version>=": "6.7.2"
     },
     {
       "name": "qtshadertools",
-      "version>=": "6.6.1"
+      "version>=": "6.7.2"
     },
     {
       "name": "qt5compat",
-      "version>=": "6.6.1"
+      "version>=": "6.7.2"
     },
     {
       "name": "qtsvg",
-      "version>=": "6.6.1"
+      "version>=": "6.7.2"
     },
     {
       "name": "qtmultimedia",
-      "version>=": "6.6.1",
-      "features": ["qml", "gstreamer"],
+      "version>=": "6.7.2",
+      "default-features": false,
+      "features": [
+        "qml",
+        "ffmpeg"
+      ],
       "platform": "linux"
     },
     {
       "name": "qtmultimedia",
-      "version>=": "6.6.1",
-      "features": ["qml"],
+      "version>=": "6.7.2",
+      "features": [
+        "qml"
+      ],
       "platform": "!linux"
     },
     {
-      "name": "qttools",
-      "version>=": "6.6.1"
+      "name": "qtwayland",
+      "version>=": "6.7.2",
+      "platform": "linux"
     }
   ],
   "default-features": [],
@@ -91,5 +122,5 @@
       ]
     }
   },
-  "builtin-baseline": "16ee2ecb31788c336ace8bb14c21801efb6836e4"
+  "builtin-baseline": "afa12e7292fb47771e619675d7915645fe0adb1b"
 }

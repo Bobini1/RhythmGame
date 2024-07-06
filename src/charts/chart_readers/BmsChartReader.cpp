@@ -39,8 +39,7 @@ struct TextTag
         return boost::locale::conv::to_utf<char>(
           trimR(std::string(str.begin(), str.end())), "CP932");
     });
-    static constexpr auto rule =
-      capture(until(dsl::unicode::newline).or_eof());
+    static constexpr auto rule = capture(until(dsl::unicode::newline).or_eof());
 };
 
 struct Identifier
@@ -71,7 +70,8 @@ struct FloatingPoint
         auto suffix =
           dsl::lit_c<'f'> / dsl::lit_c<'F'> / dsl::lit_c<'d'> / dsl::lit_c<'D'>;
 
-        auto realNumber = token(integerPart + if_(fraction) + if_(exponent) + if_(suffix));
+        auto realNumber =
+          token(integerPart + if_(fraction) + if_(exponent) + if_(suffix));
         return capture(realNumber);
     }();
 
@@ -102,7 +102,8 @@ struct Channel
 struct Measure
 {
     static constexpr auto rule = peek(dsl::hash_sign >> dsl::digit<>) >>
-      (dsl::hash_sign + capture(token(dsl::times<3>(dsl::digit<>))));
+                                 (dsl::hash_sign +
+                                  capture(token(dsl::times<3>(dsl::digit<>))));
     static constexpr auto value =
       lexy::as_string<std::string> | lexy::callback<int>([](std::string&& str) {
           constexpr auto base = 10;
@@ -119,31 +120,31 @@ struct MeasureBasedTag
       lexy::construct<std::tuple<int64_t, int, std::vector<std::string>>>;
 };
 
-BOOST_STRONG_TYPEDEF(std::string, Title);
+BOOST_STRONG_TYPEDEF(std::string, Title)
 BOOST_STRONG_TYPEDEF(std::string, Artist)
-BOOST_STRONG_TYPEDEF(std::string, Subtitle);
-BOOST_STRONG_TYPEDEF(std::string, Subartist);
-BOOST_STRONG_TYPEDEF(std::string, Genre);
-BOOST_STRONG_TYPEDEF(std::string, StageFile);
-BOOST_STRONG_TYPEDEF(std::string, Banner);
-BOOST_STRONG_TYPEDEF(std::string, BackBmp);
-BOOST_STRONG_TYPEDEF(double, Total);
-BOOST_STRONG_TYPEDEF(int, Rank);
-BOOST_STRONG_TYPEDEF(double, Bpm);
-BOOST_STRONG_TYPEDEF(int, PlayLevel);
-BOOST_STRONG_TYPEDEF(int, Difficulty);
+BOOST_STRONG_TYPEDEF(std::string, Subtitle)
+BOOST_STRONG_TYPEDEF(std::string, Subartist)
+BOOST_STRONG_TYPEDEF(std::string, Genre)
+BOOST_STRONG_TYPEDEF(std::string, StageFile)
+BOOST_STRONG_TYPEDEF(std::string, Banner)
+BOOST_STRONG_TYPEDEF(std::string, BackBmp)
+BOOST_STRONG_TYPEDEF(double, Total)
+BOOST_STRONG_TYPEDEF(int, Rank)
+BOOST_STRONG_TYPEDEF(double, Bpm)
+BOOST_STRONG_TYPEDEF(int, PlayLevel)
+BOOST_STRONG_TYPEDEF(int, Difficulty)
 using wav_t = std::pair<std::string, std::string>;
-BOOST_STRONG_TYPEDEF(wav_t, Wav);
+BOOST_STRONG_TYPEDEF(wav_t, Wav)
 using bmp_t = std::pair<std::string, std::string>;
-BOOST_STRONG_TYPEDEF(bmp_t, Bmp);
-BOOST_STRONG_TYPEDEF(std::string, LnObj);
-BOOST_STRONG_TYPEDEF(int, LnType);
+BOOST_STRONG_TYPEDEF(bmp_t, Bmp)
+BOOST_STRONG_TYPEDEF(std::string, LnObj)
+BOOST_STRONG_TYPEDEF(int, LnType)
 using pair_t = std::pair<std::string, double>;
-BOOST_STRONG_TYPEDEF(pair_t, ExBpm);
+BOOST_STRONG_TYPEDEF(pair_t, ExBpm)
 using stop_t = std::pair<std::string, double>;
-BOOST_STRONG_TYPEDEF(stop_t, Stop);
+BOOST_STRONG_TYPEDEF(stop_t, Stop)
 using meter_t = std::pair<int64_t, double>;
-BOOST_STRONG_TYPEDEF(meter_t, Meter);
+BOOST_STRONG_TYPEDEF(meter_t, Meter)
 
 struct TitleTag
 {
@@ -722,7 +723,8 @@ resolveIfs(
   std::vector<std::variant<IfData, parser_models::ParsedBmsChart::Tags>>
     randomContents,
   std::function<parser_models::ParsedBmsChart::RandomRange(
-    parser_models::ParsedBmsChart::RandomRange)> randomGenerator) -> parser_models::ParsedBmsChart::Tags
+    parser_models::ParsedBmsChart::RandomRange)> randomGenerator)
+  -> parser_models::ParsedBmsChart::Tags
 {
     auto tags = parser_models::ParsedBmsChart::Tags{};
     auto randomNumber = randomGenerator(randomRange);
@@ -751,8 +753,10 @@ struct RandomBlock
        dsl::p<IfList> +
        (dsl::peek(dsl::ascii::case_folding(LEXY_LIT("#random"))) |
         dsl::ascii::case_folding(LEXY_LIT("#endrandom")) | dsl::eof));
-    static constexpr auto value =
-      lexy::bind(lexy::callback<parser_models::ParsedBmsChart::Tags>(resolveIfs), lexy::values, lexy::parse_state);
+    static constexpr auto value = lexy::bind(
+      lexy::callback<parser_models::ParsedBmsChart::Tags>(resolveIfs),
+      lexy::values,
+      lexy::parse_state);
 };
 
 } // namespace
@@ -773,8 +777,10 @@ BmsChartReader::readBmsChart(
     parser_models::ParsedBmsChart::RandomRange)> randomGenerator) const
   -> parser_models::ParsedBmsChart
 {
-    auto result = lexy::parse<MainTags>(
-      lexy::string_input<lexy::utf8_char_encoding>(chart), randomGenerator, ReportError{});
-    return parser_models::ParsedBmsChart(std::move(result).value());
+    auto result =
+      lexy::parse<MainTags>(lexy::string_input<lexy::utf8_char_encoding>(chart),
+                            randomGenerator,
+                            ReportError{});
+    return parser_models::ParsedBmsChart{ std::move(result).value() };
 }
 } // namespace charts::chart_readers

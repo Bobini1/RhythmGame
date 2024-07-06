@@ -28,17 +28,14 @@ convertImageToFrame(const QImage& image) -> std::unique_ptr<QVideoFrame>
 }
 
 auto
-loadBmp(const std::filesystem::path& path) -> QImage
+loadBmp(std::filesystem::path path) -> QImage
 {
-    if (!std::filesystem::exists(path)) {
-        spdlog::warn("Bga file does not exist: {}", path.string());
-        return {};
-    }
-    // check if it is a valid image
-    auto pathQString = support::pathToQString(path);
+    auto original = path;
+    // remove extension
+    const auto pathQString = support::pathToQString(path.replace_extension());
+    // QImage will try out a few different extensions
     auto image = QImage(pathQString);
     if (image.isNull()) {
-        spdlog::warn("Failed to load bga file: {}", path.string());
         return {};
     }
     image.convertTo(QImage::Format_RGBA8888);
@@ -65,13 +62,29 @@ auto
 loadBmpVideo(const std::filesystem::path& path) -> std::unique_ptr<QMediaPlayer>
 {
     auto player = std::make_unique<QMediaPlayer>();
-    auto pathQString = support::pathToQString(path);
+    QObject::connect(player.get(),
+                     &QMediaPlayer::errorOccurred,
+                     player.get(),
+                     [](QMediaPlayer::Error error, const QString& errorString) {
+                         spdlog::error("Error loading video: ({}) {}",
+                                       (int)error,
+                                       errorString.toStdString());
+                     });
+    const auto pathQString = support::pathToQString(path);
     player->setSource(QUrl::fromLocalFile(pathQString));
     if (player->mediaStatus() == QMediaPlayer::InvalidMedia) {
         return nullptr;
     }
+    QEventLoop loop;
+    QObject::connect(player.get(),
+                     &QMediaPlayer::mediaStatusChanged,
+                     &loop,
+                     &QEventLoop::quit);
+    if (player->mediaStatus() == QMediaPlayer::LoadingMedia) {
+        loop.exec();
+    }
     return player;
-};
+}
 
 auto
 ChartFactory::createChart(

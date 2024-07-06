@@ -8,12 +8,11 @@
 
 namespace qml_components {
 auto
-Themes::getAvailableThemeFamilies() const -> QVariantMap
+Themes::getAvailableThemeFamilies() const -> const QVariantMap&
 {
     return themes;
 }
-Themes::
-Themes(QMap<QString, ThemeFamily> themes)
+Themes::Themes(QMap<QString, ThemeFamily> themes)
 {
     for (const auto& [key, value] : themes.asKeyValueRange()) {
         this->themes.insert(key, QVariant::fromValue(value));

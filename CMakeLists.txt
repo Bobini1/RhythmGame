@@ -32,11 +32,11 @@ target_compile_definitions(spdlog::spdlog INTERFACE SPDLOG_WCHAR_FILENAMES)
 
 # <------------ boost --------------->
 
-find_package(Boost REQUIRED COMPONENTS locale serialization filesystem)
+find_package(Boost REQUIRED COMPONENTS locale filesystem serialization)
 
 # <------------ OpenAL (audio playback) --------------->
 
-find_package(OpenAL REQUIRED)
+find_package(OpenAL CONFIG REQUIRED)
 
 # <------------ Qt (gui) --------------->
 
@@ -127,8 +127,8 @@ qt_add_library(RhythmGame_lib OBJECT src/db/SqliteCppDb.cpp src/db/SqliteCppDb.h
         src/qml_components/PreviewFilePathFetcher.h
         src/qml_components/ScoreDb.cpp
         src/qml_components/ScoreDb.h
-        src/qml_components/FileValidator.cpp
-        src/qml_components/FileValidator.h
+        src/qml_components/FileQuery.cpp
+        src/qml_components/FileQuery.h
         src/qml_components/Bga.cpp
         src/qml_components/Bga.h
         src/gameplay_logic/MineHit.cpp
@@ -148,7 +148,12 @@ qt_add_library(RhythmGame_lib OBJECT src/db/SqliteCppDb.cpp src/db/SqliteCppDb.h
         src/input/InputTranslator.cpp
         src/input/InputTranslator.h
         src/resource_managers/DefineDb.cpp
-        src/resource_managers/DefineDb.h)
+        src/resource_managers/DefineDb.h
+        src/resource_managers/Vars.cpp
+        src/resource_managers/Vars.h
+        src/support/Exception.cpp
+        src/support/Exception.h
+)
 
 find_package(Threads REQUIRED)
 
@@ -156,14 +161,7 @@ find_package(SndFile REQUIRED)
 
 find_package(SDL2 REQUIRED)
 
-target_link_libraries(RhythmGame_lib PUBLIC SDL2::SDL2 Qt6::Gui Qt6::Quick Qt6::OpenGL Qt6::Widgets Qt6::Concurrent Qt6::Core5Compat Qt6::Multimedia Threads::Threads Boost::headers Boost::locale Boost::serialization Boost::dynamic_linking Boost::filesystem SQLiteCpp spdlog::spdlog foonathan::lexy OpenAL::OpenAL cryptopp::cryptopp magic_enum::magic_enum zstd::libzstd_static SndFile::sndfile)
-
-include(CheckCXXSymbolExists)
-check_cxx_symbol_exists(std::execution::par "execution" RHYTHMGAME_HAS_STD_EXECUTION)
-
-if (RHYTHMGAME_HAS_STD_EXECUTION)
-    target_compile_definitions(RhythmGame_lib PUBLIC RHYTHMGAME_HAS_STD_EXECUTION)
-endif ()
+target_link_libraries(RhythmGame_lib PUBLIC SDL2::SDL2 Qt6::Gui Qt6::Quick Qt6::OpenGL Qt6::Widgets Qt6::Concurrent Qt6::Core5Compat Qt6::Multimedia Threads::Threads Boost::headers Boost::locale Boost::dynamic_linking Boost::serialization Boost::filesystem SQLiteCpp spdlog::spdlog foonathan::lexy OpenAL::OpenAL cryptopp::cryptopp magic_enum::magic_enum zstd::libzstd_static SndFile::sndfile)
 
 # We all love MSVC.
 target_compile_definitions(RhythmGame_lib PUBLIC NOMINMAX)
@@ -194,10 +192,25 @@ set_target_properties(
 
 qt_import_qml_plugins(RhythmGame_exe)
 
-
 add_custom_command(TARGET RhythmGame_exe POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E create_symlink
         ${CMAKE_SOURCE_DIR}/assets assets)
+
+if (WIN32)
+    find_program(TOOL_WINDEPLOYQT NAMES windeployqt)
+    find_program(TOOL_WINDEPLOYQT_DEBUG NAMES windeployqt.debug.bat)
+
+    add_custom_command(TARGET RhythmGame_exe POST_BUILD
+            COMMAND $<IF:$<CONFIG:Debug,RelWithDebInfo>,${TOOL_WINDEPLOYQT_DEBUG},${TOOL_WINDEPLOYQT}> --qmldir "${CMAKE_SOURCE_DIR}/assets/themes/Default" --qmldir "${CMAKE_SOURCE_DIR}/RhythmGameQml"
+            $<TARGET_FILE:RhythmGame_exe>
+            COMMENT "Running windeployqt..."
+            VERBATIM
+    )
+
+    add_custom_command(TARGET RhythmGame_exe POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_directory "${PROJECT_BINARY_DIR}/bin/qml" "${PROJECT_BINARY_DIR}/bin"
+    )
+endif()
 
 if (WIN32)
     set(alsoft_ext "ini")

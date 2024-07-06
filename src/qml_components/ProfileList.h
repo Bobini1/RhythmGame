@@ -9,7 +9,7 @@
 #include "resource_managers/Profile.h"
 namespace qml_components {
 class ThemeFamily;
-class ProfileList : public QAbstractListModel
+class ProfileList final : public QAbstractListModel
 {
     Q_OBJECT
 
