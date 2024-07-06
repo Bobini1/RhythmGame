@@ -224,7 +224,7 @@ jobs:
       - name: Remove CPack folders
         working-directory: build
         shell: pwsh
-        run: rm -r -fo artifacts/_CPack_Packages
+        run: Remove-Item -Recurse -Force artifacts/_CPack_Packages
 
       - name: Upload Binary
         uses: actions/upload-artifact@v2
