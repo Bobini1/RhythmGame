@@ -237,7 +237,7 @@ jobs:
     # Deploy docs only when builds succeed
     needs: [ sanitize, test ]
 
-    runs-on: ubuntu-bobini
+    runs-on: ubuntu-latest
 
     if: github.ref == 'refs/heads/master'
       && github.event_name == 'push'
