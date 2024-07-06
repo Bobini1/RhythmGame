@@ -1,334 +1,225 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-  <meta charset="UTF-8" />
-  <title>db::SqliteCppDb class | RhythmGame</title>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,400i,600,600i%7CSource+Code+Pro:400,400i,600" />
-  <link rel="stylesheet" href="m-dark+documentation.compiled.css" />
-  <link rel="icon" href="favicon-dark.png" type="image/png" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#22272e" />
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=9"/>
+<meta name="generator" content="Doxygen 1.9.1"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>RhythmGame: db::SqliteCppDb Class Reference</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
 </head>
 <body>
-<header><nav id="navigation">
-  <div class="m-container">
-    <div class="m-row">
-      <a href="index.html" id="m-navbar-brand" class="m-col-t-8 m-col-m-none m-left-m">RhythmGame</a>
-      <div class="m-col-t-4 m-hide-m m-text-right m-nopadr">
-        <a href="#search" class="m-doc-search-icon" title="Search" onclick="return showSearch()"><svg style="height: 0.9rem;" viewBox="0 0 16 16">
-          <path id="m-doc-search-icon-path" d="m6 0c-3.31 0-6 2.69-6 6 0 3.31 2.69 6 6 6 1.49 0 2.85-0.541 3.89-1.44-0.0164 0.338 0.147 0.759 0.5 1.15l3.22 3.79c0.552 0.614 1.45 0.665 2 0.115 0.55-0.55 0.499-1.45-0.115-2l-3.79-3.22c-0.392-0.353-0.812-0.515-1.15-0.5 0.895-1.05 1.44-2.41 1.44-3.89 0-3.31-2.69-6-6-6zm0 1.56a4.44 4.44 0 0 1 4.44 4.44 4.44 4.44 0 0 1-4.44 4.44 4.44 4.44 0 0 1-4.44-4.44 4.44 4.44 0 0 1 4.44-4.44z"/>
-        </svg></a>
-        <a id="m-navbar-show" href="#navigation" title="Show navigation"></a>
-        <a id="m-navbar-hide" href="#" title="Hide navigation"></a>
-      </div>
-      <div id="m-navbar-collapse" class="m-col-t-12 m-show-m m-col-m-none m-right-m">
-        <div class="m-row">
-          <ol class="m-col-t-6 m-col-m-none">
-            <li>
-              <a href="pages.html">Pages</a>
-              <ol>
-                <li><a href="about.html">About</a></li>
-              </ol>
-            </li>
-            <li><a href="namespaces.html">Namespaces</a></li>
-          </ol>
-          <ol class="m-col-t-6 m-col-m-none" start="3">
-            <li><a href="annotated.html">Classes</a></li>
-            <li><a href="files.html">Files</a></li>
-            <li class="m-show-m"><a href="#search" class="m-doc-search-icon" title="Search" onclick="return showSearch()"><svg style="height: 0.9rem;" viewBox="0 0 16 16">
-              <use href="#m-doc-search-icon-path" />
-            </svg></a></li>
-          </ol>
-        </div>
-      </div>
-    </div>
-  </div>
-</nav></header>
-<main><article>
-  <div class="m-container m-container-inflatable">
-    <div class="m-row">
-      <div class="m-col-l-10 m-push-l-1">
-        <h1>
-          <span class="m-breadcrumb"><a href="namespacedb.html">db</a>::<wbr/></span>SqliteCppDb <span class="m-thin">class</span>
-          <div class="m-doc-include m-code m-inverted m-text-right"><span class="cp">#include</span> <a class="cpf" href="SqliteCppDb_8h.html">&lt;SqliteCppDb.h&gt;</a></div>
-        </h1>
-        <p>Database wrapper for SQLiteCpp. The wrapper uses thread_local database connection objects to provide lock-free access.</p>
-        <div class="m-block m-default">
-          <h3>Contents</h3>
-          <ul>
-            <li>
-              Reference
-              <ul>
-                <li><a href="#typeless-methods">Constructors, destructors, conversion operators</a></li>
-                <li><a href="#pub-methods">Public functions</a></li>
-              </ul>
-            </li>
-          </ul>
-        </div>
-        <section id="typeless-methods">
-          <h2><a href="#typeless-methods">Constructors, destructors, conversion operators</a></h2>
-          <dl class="m-doc">
-            <dt>
-              <span class="m-doc-wrap-bumper"><a href="#a433ea6d19ee6a991dfb2d752537d5078" class="m-doc">SqliteCppDb</a>(</span><span class="m-doc-wrap">std::string dbPath) <span class="m-label m-flat m-info">explicit</span> </span>
-            </dt>
-            <dd>Constructs a database wrapper.</dd>
-          </dl>
-        </section>
-        <section id="pub-methods">
-          <h2><a href="#pub-methods">Public functions</a></h2>
-          <dl class="m-doc">
-            <dt>
-              <span class="m-doc-wrap-bumper">auto <a href="#a07372d90f97c8a9eadce34d02595550c" class="m-doc">hasTable</a>(</span><span class="m-doc-wrap">const std::string&amp; table) const -&gt; bool</span>
-            </dt>
-            <dd>Queries the database to inspect whether the table with the provided name exists.</dd>
-            <dt id="a99fcf5af1fae129e86d9402987bb8686">
-              <span class="m-doc-wrap-bumper">auto <a href="#a99fcf5af1fae129e86d9402987bb8686" class="m-doc-self">execute</a>(</span><span class="m-doc-wrap">const std::string&amp; query) const -&gt; void</span>
-            </dt>
-            <dd><span></span></dd>
-            <dt>
-              <div class="m-doc-template">template&lt;std::default_initializable Ret&gt;</div>
-              <span class="m-doc-wrap-bumper">auto <a href="#ac079ef7b257983ff1d46585047485f70" class="m-doc">executeAndGet</a>(</span><span class="m-doc-wrap">const std::string&amp; query)</span>
-            </dt>
-            <dd>Executes a query that returns a single row.</dd>
-            <dt>
-              <div class="m-doc-template">template&lt;std::default_initializable Ret&gt;</div>
-              <span class="m-doc-wrap-bumper">auto <a href="#a2a931f11f0206fa1bdb87857748994e7" class="m-doc">executeAndGetAll</a>(</span><span class="m-doc-wrap">const std::string&amp; query)</span>
-            </dt>
-            <dd>Executes a query that returns any number of rows.</dd>
-            <dt>
-              <div class="m-doc-template">template&lt;typename Ret&gt;</div>
-              <span class="m-doc-wrap-bumper">auto <a href="#abc641d06b21aba952284934d4d3de38f" class="m-doc">executeAndGet</a>(</span><span class="m-doc-wrap">const std::string&amp; query) const -&gt; std::optional&lt; Ret &gt; requires std::convertible_to&lt; SQLite::Column, Ret &gt;</span>
-            </dt>
-            <dd>Executes a query that returns a single value in a single column.</dd>
-            <dt>
-              <div class="m-doc-template">template&lt;typename Ret&gt;</div>
-              <span class="m-doc-wrap-bumper">auto <a href="#afe172fb64605c7403739d6b6adb26098" class="m-doc">executeAndGetAll</a>(</span><span class="m-doc-wrap">const std::string&amp; query) const -&gt; std::vector&lt; Ret &gt; requires std::convertible_to&lt; SQLite::Column, Ret &gt;</span>
-            </dt>
-            <dd>Executes a query that returns any number of values in a single column.</dd>
-          </dl>
-        </section>
-        <section>
-          <h2>Function documentation</h2>
-          <section class="m-doc-details" id="a433ea6d19ee6a991dfb2d752537d5078"><div>
-            <h3>
-              <span class="m-doc-wrap-bumper"> db::<wbr />SqliteCppDb::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a433ea6d19ee6a991dfb2d752537d5078" class="m-doc-self">SqliteCppDb</a>(</span><span class="m-doc-wrap">std::string dbPath) <span class="m-label m-info">explicit</span> </span></span>
-            </h3>
-            <p>Constructs a database wrapper.</p>
-            <table class="m-table m-fullwidth m-flat">
-              <thead>
-                <tr><th colspan="2">Parameters</th></tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td style="width: 1%">dbPath</td>
-                  <td>Path to the database file. The database file will be created if it does not exist.</td>
-                </tr>
-              </tbody>
-            </table>
-          </div></section>
-          <section class="m-doc-details" id="a07372d90f97c8a9eadce34d02595550c"><div>
-            <h3>
-              <span class="m-doc-wrap-bumper">auto db::<wbr />SqliteCppDb::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a07372d90f97c8a9eadce34d02595550c" class="m-doc-self">hasTable</a>(</span><span class="m-doc-wrap">const std::string&amp; table) const -&gt; bool</span></span>
-            </h3>
-            <p>Queries the database to inspect whether the table with the provided name exists.</p>
-            <table class="m-table m-fullwidth m-flat">
-              <tfoot>
-                <tr>
-                  <th style="width: 1%">Returns</th>
-                  <td>True if the table exists, false otherwise.</td>
-                </tr>
-              </tfoot>
-            </table>
-          </div></section>
-          <section class="m-doc-details" id="ac079ef7b257983ff1d46585047485f70"><div>
-            <h3>
-              <div class="m-doc-template">
-                template&lt;std::default_initializable Ret&gt;
-              </div>
-              <span class="m-doc-wrap-bumper">auto db::<wbr />SqliteCppDb::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#ac079ef7b257983ff1d46585047485f70" class="m-doc-self">executeAndGet</a>(</span><span class="m-doc-wrap">const std::string&amp; query)</span></span>
-            </h3>
-            <p>Executes a query that returns a single row.</p>
-            <table class="m-table m-fullwidth m-flat">
-              <thead>
-                <tr><th colspan="2">Template parameters</th></tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td style="width: 1%">Ret</td>
-                  <td>The type that the result will be stored in can be a tuple or an aggregate. Must be default constructible.</td>
-                </tr>
-              </tbody>
-              <thead>
-                <tr><th colspan="2">Parameters</th></tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>query</td>
-                  <td>Query to execute.</td>
-                </tr>
-              </tbody>
-              <tfoot>
-                <tr>
-                  <th>Returns</th>
-                  <td>An optional holding the result of the query. It will be empty if the query didn&#x27;t return anything. If the query returns fewer columns than specified in template parameters, they will be default initialized.</td>
-                </tr>
-              </tfoot>
-            </table>
-          </div></section>
-          <section class="m-doc-details" id="a2a931f11f0206fa1bdb87857748994e7"><div>
-            <h3>
-              <div class="m-doc-template">
-                template&lt;std::default_initializable Ret&gt;
-              </div>
-              <span class="m-doc-wrap-bumper">auto db::<wbr />SqliteCppDb::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a2a931f11f0206fa1bdb87857748994e7" class="m-doc-self">executeAndGetAll</a>(</span><span class="m-doc-wrap">const std::string&amp; query)</span></span>
-            </h3>
-            <p>Executes a query that returns any number of rows.</p>
-            <table class="m-table m-fullwidth m-flat">
-              <thead>
-                <tr><th colspan="2">Template parameters</th></tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td style="width: 1%">Ret</td>
-                  <td>The type that the result will be stored in can be a tuple or an aggregate. Must be default constructible.</td>
-                </tr>
-              </tbody>
-              <thead>
-                <tr><th colspan="2">Parameters</th></tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>query</td>
-                  <td>Query to execute.</td>
-                </tr>
-              </tbody>
-              <tfoot>
-                <tr>
-                  <th>Returns</th>
-                  <td>A vector holding the result of the query. It will be empty if the query didn&#x27;t return anything. If the query returns fewer columns than specified in the template parameters, this method will throw.</td>
-                </tr>
-              </tfoot>
-            </table>
-          </div></section>
-          <section class="m-doc-details" id="abc641d06b21aba952284934d4d3de38f"><div>
-            <h3>
-              <div class="m-doc-template">
-                template&lt;typename Ret&gt;
-              </div>
-              <span class="m-doc-wrap-bumper">auto db::<wbr />SqliteCppDb::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#abc641d06b21aba952284934d4d3de38f" class="m-doc-self">executeAndGet</a>(</span><span class="m-doc-wrap">const std::string&amp; query) const -&gt; std::optional&lt; Ret &gt; requires std::convertible_to&lt; SQLite::Column, Ret &gt;</span></span>
-            </h3>
-            <p>Executes a query that returns a single value in a single column.</p>
-            <table class="m-table m-fullwidth m-flat">
-              <thead>
-                <tr><th colspan="2">Template parameters</th></tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td style="width: 1%">Ret</td>
-                  <td>Type of the value to return.</td>
-                </tr>
-              </tbody>
-              <thead>
-                <tr><th colspan="2">Parameters</th></tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>query</td>
-                  <td>Query to execute.</td>
-                </tr>
-              </tbody>
-              <tfoot>
-                <tr>
-                  <th>Returns</th>
-                  <td>An optional holding the result of the query. It will be empty if the query didn&#x27;t return anything.</td>
-                </tr>
-              </tfoot>
-            </table>
-          </div></section>
-          <section class="m-doc-details" id="afe172fb64605c7403739d6b6adb26098"><div>
-            <h3>
-              <div class="m-doc-template">
-                template&lt;typename Ret&gt;
-              </div>
-              <span class="m-doc-wrap-bumper">auto db::<wbr />SqliteCppDb::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#afe172fb64605c7403739d6b6adb26098" class="m-doc-self">executeAndGetAll</a>(</span><span class="m-doc-wrap">const std::string&amp; query) const -&gt; std::vector&lt; Ret &gt; requires std::convertible_to&lt; SQLite::Column, Ret &gt;</span></span>
-            </h3>
-            <p>Executes a query that returns any number of values in a single column.</p>
-            <table class="m-table m-fullwidth m-flat">
-              <thead>
-                <tr><th colspan="2">Template parameters</th></tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td style="width: 1%">Ret</td>
-                  <td>Type of the values to return.</td>
-                </tr>
-              </tbody>
-              <thead>
-                <tr><th colspan="2">Parameters</th></tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>query</td>
-                  <td>Query to execute.</td>
-                </tr>
-              </tbody>
-              <tfoot>
-                <tr>
-                  <th>Returns</th>
-                  <td>A vector holding the result of the query. It will be empty if the query didn&#x27;t return anything.</td>
-                </tr>
-              </tfoot>
-            </table>
-          </div></section>
-        </section>
-      </div>
-    </div>
-  </div>
-</article></main>
-<div class="m-doc-search" id="search">
-  <a href="#!" onclick="return hideSearch()"></a>
-  <div class="m-container">
-    <div class="m-row">
-      <div class="m-col-m-8 m-push-m-2">
-        <div class="m-doc-search-header m-text m-small">
-          <div><span class="m-label m-default">Tab</span> / <span class="m-label m-default">T</span> to search, <span class="m-label m-default">Esc</span> to close</div>
-          <div id="search-symbolcount">&hellip;</div>
-        </div>
-        <div class="m-doc-search-content">
-          <form>
-            <input type="search" name="q" id="search-input" placeholder="Loading &hellip;" disabled="disabled" autofocus="autofocus" autocomplete="off" spellcheck="false" />
-          </form>
-          <noscript class="m-text m-danger m-text-center">Unlike everything else in the docs, the search functionality <em>requires</em> JavaScript.</noscript>
-          <div id="search-help" class="m-text m-dim m-text-center">
-            <p class="m-noindent">Search for symbols, directories, files, pages or
-            modules. You can omit any prefix from the symbol or file path; adding a
-            <code>:</code> or <code>/</code> suffix lists all members of given symbol or
-            directory.</p>
-            <p class="m-noindent">Use <span class="m-label m-dim">&darr;</span>
-            / <span class="m-label m-dim">&uarr;</span> to navigate through the list,
-            <span class="m-label m-dim">Enter</span> to go.
-            <span class="m-label m-dim">Tab</span> autocompletes common prefix, you can
-            copy a link to the result using <span class="m-label m-dim">⌘</span>
-            <span class="m-label m-dim">L</span> while <span class="m-label m-dim">⌘</span>
-            <span class="m-label m-dim">M</span> produces a Markdown link.</p>
-          </div>
-          <div id="search-notfound" class="m-text m-warning m-text-center">Sorry, nothing was found.</div>
-          <ul id="search-results"></ul>
-        </div>
-      </div>
-    </div>
-  </div>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr style="height: 56px;">
+  <td id="projectalign" style="padding-left: 0.5em;">
+   <div id="projectname">RhythmGame
+   &#160;<span id="projectnumber">0.0.0</span>
+   </div>
+  </td>
+ </tr>
+ </tbody>
+</table>
 </div>
-<script src="search-v1.js"></script>
-<script src="searchdata-v1.js" async="async"></script>
-<footer><nav>
-  <div class="m-container">
-    <div class="m-row">
-      <div class="m-col-l-10 m-push-l-1">
-        <p>RhythmGame. Created with <a href="https://doxygen.org/">Doxygen</a> 1.9.1 and <a href="https://mcss.mosra.cz/">m.css</a>.</p>
-      </div>
-    </div>
-  </div>
-</nav></footer>
+<!-- end header part -->
+<!-- Generated by Doxygen 1.9.1 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:cf05388f2679ee054f2beb29a391d25f4e673ac3&amp;dn=gpl-2.0.txt GPL-v2 */
+var searchBox = new SearchBox("searchBox", "search",false,'Search','.html');
+/* @license-end */
+</script>
+<script type="text/javascript" src="menudata.js"></script>
+<script type="text/javascript" src="menu.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:cf05388f2679ee054f2beb29a391d25f4e673ac3&amp;dn=gpl-2.0.txt GPL-v2 */
+$(function() {
+  initMenu('',true,false,'search.php','Search');
+  $(document).ready(function() { init_search(); });
+});
+/* @license-end */</script>
+<div id="main-nav"></div>
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<iframe src="javascript:void(0)" frameborder="0" 
+        name="MSearchResults" id="MSearchResults">
+</iframe>
+</div>
+
+<div id="nav-path" class="navpath">
+  <ul>
+<li class="navelem"><a class="el" href="namespacedb.html">db</a></li><li class="navelem"><a class="el" href="classdb_1_1SqliteCppDb.html">SqliteCppDb</a></li>  </ul>
+</div>
+</div><!-- top -->
+<div class="header">
+  <div class="summary">
+<a href="#nested-classes">Classes</a> &#124;
+<a href="#pub-methods">Public Member Functions</a> &#124;
+<a href="classdb_1_1SqliteCppDb-members.html">List of all members</a>  </div>
+  <div class="headertitle">
+<div class="title">db::SqliteCppDb Class Reference</div>  </div>
+</div><!--header-->
+<div class="contents">
+
+<p>Database wrapper for SQLiteCpp.  
+ <a href="classdb_1_1SqliteCppDb.html#details">More...</a></p>
+
+<p><code>#include &lt;<a class="el" href="SqliteCppDb_8h_source.html">SqliteCppDb.h</a>&gt;</code></p>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
+Classes</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classdb_1_1SqliteCppDb_1_1Statement.html">Statement</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Wrapper for SQLiteCpp::Statement.  <a href="classdb_1_1SqliteCppDb_1_1Statement.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
+Public Member Functions</h2></td></tr>
+<tr class="memitem:a433ea6d19ee6a991dfb2d752537d5078"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classdb_1_1SqliteCppDb.html#a433ea6d19ee6a991dfb2d752537d5078">SqliteCppDb</a> (std::string dbPath)</td></tr>
+<tr class="memdesc:a433ea6d19ee6a991dfb2d752537d5078"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructs a database wrapper.  <a href="classdb_1_1SqliteCppDb.html#a433ea6d19ee6a991dfb2d752537d5078">More...</a><br /></td></tr>
+<tr class="separator:a433ea6d19ee6a991dfb2d752537d5078"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4995b59a52608ec568d044b6e83b4925"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classdb_1_1SqliteCppDb.html#a4995b59a52608ec568d044b6e83b4925">execute</a> (const std::string &amp;query) -&gt; int64_t</td></tr>
+<tr class="memdesc:a4995b59a52608ec568d044b6e83b4925"><td class="mdescLeft">&#160;</td><td class="mdescRight">Executes a query.  <a href="classdb_1_1SqliteCppDb.html#a4995b59a52608ec568d044b6e83b4925">More...</a><br /></td></tr>
+<tr class="separator:a4995b59a52608ec568d044b6e83b4925"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a31c2f3f7bf2fded47b0732367d4ca55a"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classdb_1_1SqliteCppDb.html#a31c2f3f7bf2fded47b0732367d4ca55a">createStatement</a> (const std::string &amp;query) -&gt; <a class="el" href="classdb_1_1SqliteCppDb_1_1Statement.html">Statement</a></td></tr>
+<tr class="separator:a31c2f3f7bf2fded47b0732367d4ca55a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a07372d90f97c8a9eadce34d02595550c"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classdb_1_1SqliteCppDb.html#a07372d90f97c8a9eadce34d02595550c">hasTable</a> (const std::string &amp;table) const -&gt; bool</td></tr>
+<tr class="memdesc:a07372d90f97c8a9eadce34d02595550c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Queries the database to inspect whether the table with the provided name exists.  <a href="classdb_1_1SqliteCppDb.html#a07372d90f97c8a9eadce34d02595550c">More...</a><br /></td></tr>
+<tr class="separator:a07372d90f97c8a9eadce34d02595550c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Database wrapper for SQLiteCpp. </p>
+<dl class="section note"><dt>Note</dt><dd>This class is thread safe. </dd></dl>
+</div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a id="a433ea6d19ee6a991dfb2d752537d5078"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a433ea6d19ee6a991dfb2d752537d5078">&#9670;&nbsp;</a></span>SqliteCppDb()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">db::SqliteCppDb::SqliteCppDb </td>
+          <td>(</td>
+          <td class="paramtype">std::string&#160;</td>
+          <td class="paramname"><em>dbPath</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">explicit</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Constructs a database wrapper. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">dbPath</td><td>Path to the database file. The database file will be created if it does not exist. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<h2 class="groupheader">Member Function Documentation</h2>
+<a id="a31c2f3f7bf2fded47b0732367d4ca55a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a31c2f3f7bf2fded47b0732367d4ca55a">&#9670;&nbsp;</a></span>createStatement()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto db::SqliteCppDb::createStatement </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>query</em></td><td>)</td>
+          <td> -&gt; <a class="el" href="classdb_1_1SqliteCppDb_1_1Statement.html">Statement</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a4995b59a52608ec568d044b6e83b4925"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4995b59a52608ec568d044b6e83b4925">&#9670;&nbsp;</a></span>execute()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto db::SqliteCppDb::execute </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>query</em></td><td>)</td>
+          <td> -&gt; int64_t</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Executes a query. </p>
+<dl class="section note"><dt>Note</dt><dd>Good for single-use queries. Use <a class="el" href="classdb_1_1SqliteCppDb_1_1Statement.html" title="Wrapper for SQLiteCpp::Statement.">Statement</a> otherwise. </dd></dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">query</td><td>Query to execute. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The last inserted row id. </dd></dl>
+
+</div>
+</div>
+<a id="a07372d90f97c8a9eadce34d02595550c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a07372d90f97c8a9eadce34d02595550c">&#9670;&nbsp;</a></span>hasTable()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto db::SqliteCppDb::hasTable </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>table</em></td><td>)</td>
+          <td> const -&gt; bool</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Queries the database to inspect whether the table with the provided name exists. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">tableName</td><td>Name of the table. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>True if the table exists, false otherwise. </dd></dl>
+
+</div>
+</div>
+<hr/>The documentation for this class was generated from the following files:<ul>
+<li>src/db/<a class="el" href="SqliteCppDb_8h_source.html">SqliteCppDb.h</a></li>
+<li>src/db/<a class="el" href="SqliteCppDb_8cpp.html">SqliteCppDb.cpp</a></li>
+</ul>
+</div><!-- contents -->
+<!-- start footer part -->
+<hr class="footer"/><address class="footer"><small>
+Generated by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
+</small></address>
 </body>
 </html>

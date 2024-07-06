@@ -1,0 +1,25 @@
+digraph "src/support/PathToQString.h"
+{
+ // LATEX_PDF_SIZE
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  Node1 [label="src/support/PathToQString.h",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black",tooltip=" "];
+  Node1 -> Node2 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node2 [label="src/main.cpp",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$main_8cpp.html",tooltip=" "];
+  Node1 -> Node3 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node3 [label="src/qml_components\l/FileQuery.cpp",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$FileQuery_8cpp.html",tooltip=" "];
+  Node1 -> Node4 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node4 [label="src/resource_managers\l/ChartFactory.cpp",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$ChartFactory_8cpp.html",tooltip=" "];
+  Node1 -> Node5 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node5 [label="src/resource_managers\l/Profile.cpp",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$Profile_8cpp.html",tooltip=" "];
+  Node1 -> Node6 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node6 [label="src/resource_managers\l/ScanThemes.cpp",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$ScanThemes_8cpp.html",tooltip=" "];
+  Node1 -> Node7 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node7 [label="src/resource_managers\l/SerializeConfig.cpp",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$SerializeConfig_8cpp.html",tooltip=" "];
+  Node1 -> Node8 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node8 [label="src/resource_managers\l/SongDbScanner.cpp",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$SongDbScanner_8cpp.html",tooltip=" "];
+  Node1 -> Node9 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node9 [label="src/resource_managers\l/Vars.cpp",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$Vars_8cpp.html",tooltip=" "];
+  Node1 -> Node10 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node10 [label="src/support/PathToQString.cpp",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$PathToQString_8cpp.html",tooltip=" "];
+}

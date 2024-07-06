@@ -1,279 +1,378 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-  <meta charset="UTF-8" />
-  <title>sounds::OpenALSoundBuffer class | RhythmGame</title>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,400i,600,600i%7CSource+Code+Pro:400,400i,600" />
-  <link rel="stylesheet" href="m-dark+documentation.compiled.css" />
-  <link rel="icon" href="favicon-dark.png" type="image/png" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#22272e" />
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=9"/>
+<meta name="generator" content="Doxygen 1.9.1"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>RhythmGame: sounds::OpenALSoundBuffer Class Reference</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
 </head>
 <body>
-<header><nav id="navigation">
-  <div class="m-container">
-    <div class="m-row">
-      <a href="index.html" id="m-navbar-brand" class="m-col-t-8 m-col-m-none m-left-m">RhythmGame</a>
-      <div class="m-col-t-4 m-hide-m m-text-right m-nopadr">
-        <a href="#search" class="m-doc-search-icon" title="Search" onclick="return showSearch()"><svg style="height: 0.9rem;" viewBox="0 0 16 16">
-          <path id="m-doc-search-icon-path" d="m6 0c-3.31 0-6 2.69-6 6 0 3.31 2.69 6 6 6 1.49 0 2.85-0.541 3.89-1.44-0.0164 0.338 0.147 0.759 0.5 1.15l3.22 3.79c0.552 0.614 1.45 0.665 2 0.115 0.55-0.55 0.499-1.45-0.115-2l-3.79-3.22c-0.392-0.353-0.812-0.515-1.15-0.5 0.895-1.05 1.44-2.41 1.44-3.89 0-3.31-2.69-6-6-6zm0 1.56a4.44 4.44 0 0 1 4.44 4.44 4.44 4.44 0 0 1-4.44 4.44 4.44 4.44 0 0 1-4.44-4.44 4.44 4.44 0 0 1 4.44-4.44z"/>
-        </svg></a>
-        <a id="m-navbar-show" href="#navigation" title="Show navigation"></a>
-        <a id="m-navbar-hide" href="#" title="Hide navigation"></a>
-      </div>
-      <div id="m-navbar-collapse" class="m-col-t-12 m-show-m m-col-m-none m-right-m">
-        <div class="m-row">
-          <ol class="m-col-t-6 m-col-m-none">
-            <li>
-              <a href="pages.html">Pages</a>
-              <ol>
-                <li><a href="about.html">About</a></li>
-              </ol>
-            </li>
-            <li><a href="namespaces.html">Namespaces</a></li>
-          </ol>
-          <ol class="m-col-t-6 m-col-m-none" start="3">
-            <li><a href="annotated.html">Classes</a></li>
-            <li><a href="files.html">Files</a></li>
-            <li class="m-show-m"><a href="#search" class="m-doc-search-icon" title="Search" onclick="return showSearch()"><svg style="height: 0.9rem;" viewBox="0 0 16 16">
-              <use href="#m-doc-search-icon-path" />
-            </svg></a></li>
-          </ol>
-        </div>
-      </div>
-    </div>
-  </div>
-</nav></header>
-<main><article>
-  <div class="m-container m-container-inflatable">
-    <div class="m-row">
-      <div class="m-col-l-10 m-push-l-1">
-        <h1>
-          <span class="m-breadcrumb"><a href="namespacesounds.html">sounds</a>::<wbr/></span>OpenALSoundBuffer <span class="m-thin">class</span>
-          <div class="m-doc-include m-code m-inverted m-text-right"><span class="cp">#include</span> <a class="cpf" href="OpenAlSoundBuffer_8h.html">&lt;OpenAlSoundBuffer.h&gt;</a></div>
-        </h1>
-        <p>A buffer that can be used to create sounds. Wraps an OpenAL buffer.</p>
-        <div class="m-block m-default">
-          <h3>Contents</h3>
-          <ul>
-            <li>
-              Reference
-              <ul>
-                <li><a href="#typeless-methods">Constructors, destructors, conversion operators</a></li>
-                <li><a href="#pub-methods">Public functions</a></li>
-              </ul>
-            </li>
-          </ul>
-        </div>
-<p>This class is used to load, decode and store the sound data. It can be used to create multiple sounds that share the same buffer. Creating new instances of this class can be very expensive, so it is recommended to load every sound only once, at the start of a scene.</p>
-        <section id="typeless-methods">
-          <h2><a href="#typeless-methods">Constructors, destructors, conversion operators</a></h2>
-          <dl class="m-doc">
-            <dt>
-              <span class="m-doc-wrap-bumper"><a href="#acd8f25a58d6f96e1ac3fd0a7a71395e2" class="m-doc">OpenALSoundBuffer</a>(</span><span class="m-doc-wrap">const char* filename) <span class="m-label m-flat m-info">explicit</span> </span>
-            </dt>
-            <dd>Creates a new sound buffer from a file.</dd>
-            <dt id="a86a41b4a3c8df47cbc63f325e2baa5e7">
-              <span class="m-doc-wrap-bumper"><a href="#a86a41b4a3c8df47cbc63f325e2baa5e7" class="m-doc-self">~OpenALSoundBuffer</a>(</span><span class="m-doc-wrap">)</span>
-            </dt>
-            <dd><span></span></dd>
-            <dt id="a0885b6d40d5fbf51a90966bb9ebfb6d6">
-              <span class="m-doc-wrap-bumper"><a href="#a0885b6d40d5fbf51a90966bb9ebfb6d6" class="m-doc-self">OpenALSoundBuffer</a>(</span><span class="m-doc-wrap">const <a href="classsounds_1_1OpenALSoundBuffer.html" class="m-doc">OpenALSoundBuffer</a>&amp; other) <span class="m-label m-flat m-danger">deleted</span></span>
-            </dt>
-            <dd><span></span></dd>
-            <dt>
-              <span class="m-doc-wrap-bumper"><a href="#abe80d82bdc3d361dfff5960372e23303" class="m-doc">OpenALSoundBuffer</a>(</span><span class="m-doc-wrap"><a href="classsounds_1_1OpenALSoundBuffer.html" class="m-doc">OpenALSoundBuffer</a>&amp;&amp; other) <span class="m-label m-flat m-success">noexcept</span></span>
-            </dt>
-            <dd>Moves the internal OpenAL buffer from another sound buffer.</dd>
-          </dl>
-        </section>
-        <section id="pub-methods">
-          <h2><a href="#pub-methods">Public functions</a></h2>
-          <dl class="m-doc">
-            <dt id="a534a9ea3f2e4b5bf97c15403b2873c1c">
-              <span class="m-doc-wrap-bumper">auto <a href="#a534a9ea3f2e4b5bf97c15403b2873c1c" class="m-doc-self">operator=</a>(</span><span class="m-doc-wrap">const <a href="classsounds_1_1OpenALSoundBuffer.html" class="m-doc">OpenALSoundBuffer</a>&amp; other) -&gt; OpenALSoundBuffer &amp; <span class="m-label m-flat m-danger">deleted</span></span>
-            </dt>
-            <dd><span></span></dd>
-            <dt>
-              <span class="m-doc-wrap-bumper">auto <a href="#aa598da9aabaa01036a31e08bee25df7f" class="m-doc">operator=</a>(</span><span class="m-doc-wrap"><a href="classsounds_1_1OpenALSoundBuffer.html" class="m-doc">OpenALSoundBuffer</a>&amp;&amp; other) noexcept -&gt; OpenALSoundBuffer &amp;</span>
-            </dt>
-            <dd>Moves the internal OpenAL buffer from another sound buffer.</dd>
-            <dt>
-              <span class="m-doc-wrap-bumper">auto <a href="#a99acb3f70c2b6654d93b1366d83c2dfd" class="m-doc">getBuffer</a>(</span><span class="m-doc-wrap">) const -&gt; ALuint</span>
-            </dt>
-            <dd>Gets the internal OpenAL buffer.</dd>
-            <dt>
-              <span class="m-doc-wrap-bumper">auto <a href="#a699d2aa1002df1dcda352a266d8782a7" class="m-doc">getDuration</a>(</span><span class="m-doc-wrap">) const -&gt; std::chrono::nanoseconds</span>
-            </dt>
-            <dd>Gets the duration of the sound.</dd>
-            <dt>
-              <span class="m-doc-wrap-bumper">auto <a href="#a674c505009a900bd7eb0d34a714e7b36" class="m-doc">getFrequency</a>(</span><span class="m-doc-wrap">) const -&gt; int</span>
-            </dt>
-            <dd>Gets the sampling frequency of the sound.</dd>
-            <dt>
-              <span class="m-doc-wrap-bumper">auto <a href="#aa58d06b226f4a7154cb06eca6c537943" class="m-doc">getChannels</a>(</span><span class="m-doc-wrap">) const -&gt; int</span>
-            </dt>
-            <dd>Gets the number of channels in the sound.</dd>
-          </dl>
-        </section>
-        <section>
-          <h2>Function documentation</h2>
-          <section class="m-doc-details" id="acd8f25a58d6f96e1ac3fd0a7a71395e2"><div>
-            <h3>
-              <span class="m-doc-wrap-bumper"> sounds::<wbr />OpenALSoundBuffer::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#acd8f25a58d6f96e1ac3fd0a7a71395e2" class="m-doc-self">OpenALSoundBuffer</a>(</span><span class="m-doc-wrap">const char* filename) <span class="m-label m-info">explicit</span> </span></span>
-            </h3>
-            <p>Creates a new sound buffer from a file.</p>
-            <table class="m-table m-fullwidth m-flat">
-              <thead>
-                <tr><th colspan="2">Parameters</th></tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td style="width: 1%">filename</td>
-                  <td>The path to the file to load.</td>
-                </tr>
-              </tbody>
-            </table>
-          </div></section>
-          <section class="m-doc-details" id="abe80d82bdc3d361dfff5960372e23303"><div>
-            <h3>
-              <span class="m-doc-wrap-bumper"> sounds::<wbr />OpenALSoundBuffer::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#abe80d82bdc3d361dfff5960372e23303" class="m-doc-self">OpenALSoundBuffer</a>(</span><span class="m-doc-wrap"><a href="classsounds_1_1OpenALSoundBuffer.html" class="m-doc">OpenALSoundBuffer</a>&amp;&amp; other) <span class="m-label m-success">noexcept</span></span></span>
-            </h3>
-            <p>Moves the internal OpenAL buffer from another sound buffer.</p>
-            <table class="m-table m-fullwidth m-flat">
-              <thead>
-                <tr><th colspan="2">Parameters</th></tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td style="width: 1%">other</td>
-                  <td>The sound buffer to move the internal buffer from.</td>
-                </tr>
-              </tbody>
-            </table>
-          </div></section>
-          <section class="m-doc-details" id="aa598da9aabaa01036a31e08bee25df7f"><div>
-            <h3>
-              <span class="m-doc-wrap-bumper">auto sounds::<wbr />OpenALSoundBuffer::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#aa598da9aabaa01036a31e08bee25df7f" class="m-doc-self">operator=</a>(</span><span class="m-doc-wrap"><a href="classsounds_1_1OpenALSoundBuffer.html" class="m-doc">OpenALSoundBuffer</a>&amp;&amp; other) noexcept -&gt; OpenALSoundBuffer &amp;</span></span>
-            </h3>
-            <p>Moves the internal OpenAL buffer from another sound buffer.</p>
-            <table class="m-table m-fullwidth m-flat">
-              <thead>
-                <tr><th colspan="2">Parameters</th></tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td style="width: 1%">other</td>
-                  <td>The sound buffer to move the internal buffer from.</td>
-                </tr>
-              </tbody>
-            </table>
-          </div></section>
-          <section class="m-doc-details" id="a99acb3f70c2b6654d93b1366d83c2dfd"><div>
-            <h3>
-              <span class="m-doc-wrap-bumper">auto sounds::<wbr />OpenALSoundBuffer::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a99acb3f70c2b6654d93b1366d83c2dfd" class="m-doc-self">getBuffer</a>(</span><span class="m-doc-wrap">) const -&gt; ALuint</span></span>
-            </h3>
-            <p>Gets the internal OpenAL buffer.</p>
-            <table class="m-table m-fullwidth m-flat">
-              <tfoot>
-                <tr>
-                  <th style="width: 1%">Returns</th>
-                  <td>The internal OpenAL buffer.</td>
-                </tr>
-              </tfoot>
-            </table>
-          </div></section>
-          <section class="m-doc-details" id="a699d2aa1002df1dcda352a266d8782a7"><div>
-            <h3>
-              <span class="m-doc-wrap-bumper">auto sounds::<wbr />OpenALSoundBuffer::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a699d2aa1002df1dcda352a266d8782a7" class="m-doc-self">getDuration</a>(</span><span class="m-doc-wrap">) const -&gt; std::chrono::nanoseconds</span></span>
-            </h3>
-            <p>Gets the duration of the sound.</p>
-            <table class="m-table m-fullwidth m-flat">
-              <tfoot>
-                <tr>
-                  <th style="width: 1%">Returns</th>
-                  <td>The duration of the sound.</td>
-                </tr>
-              </tfoot>
-            </table>
-          </div></section>
-          <section class="m-doc-details" id="a674c505009a900bd7eb0d34a714e7b36"><div>
-            <h3>
-              <span class="m-doc-wrap-bumper">auto sounds::<wbr />OpenALSoundBuffer::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a674c505009a900bd7eb0d34a714e7b36" class="m-doc-self">getFrequency</a>(</span><span class="m-doc-wrap">) const -&gt; int</span></span>
-            </h3>
-            <p>Gets the sampling frequency of the sound.</p>
-            <table class="m-table m-fullwidth m-flat">
-              <tfoot>
-                <tr>
-                  <th style="width: 1%">Returns</th>
-                  <td>The sampling frequency of the sound.</td>
-                </tr>
-              </tfoot>
-            </table>
-          </div></section>
-          <section class="m-doc-details" id="aa58d06b226f4a7154cb06eca6c537943"><div>
-            <h3>
-              <span class="m-doc-wrap-bumper">auto sounds::<wbr />OpenALSoundBuffer::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#aa58d06b226f4a7154cb06eca6c537943" class="m-doc-self">getChannels</a>(</span><span class="m-doc-wrap">) const -&gt; int</span></span>
-            </h3>
-            <p>Gets the number of channels in the sound.</p>
-            <table class="m-table m-fullwidth m-flat">
-              <tfoot>
-                <tr>
-                  <th style="width: 1%">Returns</th>
-                  <td>The number of channels in the sound.</td>
-                </tr>
-              </tfoot>
-            </table>
-          </div></section>
-        </section>
-      </div>
-    </div>
-  </div>
-</article></main>
-<div class="m-doc-search" id="search">
-  <a href="#!" onclick="return hideSearch()"></a>
-  <div class="m-container">
-    <div class="m-row">
-      <div class="m-col-m-8 m-push-m-2">
-        <div class="m-doc-search-header m-text m-small">
-          <div><span class="m-label m-default">Tab</span> / <span class="m-label m-default">T</span> to search, <span class="m-label m-default">Esc</span> to close</div>
-          <div id="search-symbolcount">&hellip;</div>
-        </div>
-        <div class="m-doc-search-content">
-          <form>
-            <input type="search" name="q" id="search-input" placeholder="Loading &hellip;" disabled="disabled" autofocus="autofocus" autocomplete="off" spellcheck="false" />
-          </form>
-          <noscript class="m-text m-danger m-text-center">Unlike everything else in the docs, the search functionality <em>requires</em> JavaScript.</noscript>
-          <div id="search-help" class="m-text m-dim m-text-center">
-            <p class="m-noindent">Search for symbols, directories, files, pages or
-            modules. You can omit any prefix from the symbol or file path; adding a
-            <code>:</code> or <code>/</code> suffix lists all members of given symbol or
-            directory.</p>
-            <p class="m-noindent">Use <span class="m-label m-dim">&darr;</span>
-            / <span class="m-label m-dim">&uarr;</span> to navigate through the list,
-            <span class="m-label m-dim">Enter</span> to go.
-            <span class="m-label m-dim">Tab</span> autocompletes common prefix, you can
-            copy a link to the result using <span class="m-label m-dim">⌘</span>
-            <span class="m-label m-dim">L</span> while <span class="m-label m-dim">⌘</span>
-            <span class="m-label m-dim">M</span> produces a Markdown link.</p>
-          </div>
-          <div id="search-notfound" class="m-text m-warning m-text-center">Sorry, nothing was found.</div>
-          <ul id="search-results"></ul>
-        </div>
-      </div>
-    </div>
-  </div>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr style="height: 56px;">
+  <td id="projectalign" style="padding-left: 0.5em;">
+   <div id="projectname">RhythmGame
+   &#160;<span id="projectnumber">0.0.0</span>
+   </div>
+  </td>
+ </tr>
+ </tbody>
+</table>
 </div>
-<script src="search-v1.js"></script>
-<script src="searchdata-v1.js" async="async"></script>
-<footer><nav>
-  <div class="m-container">
-    <div class="m-row">
-      <div class="m-col-l-10 m-push-l-1">
-        <p>RhythmGame. Created with <a href="https://doxygen.org/">Doxygen</a> 1.9.1 and <a href="https://mcss.mosra.cz/">m.css</a>.</p>
-      </div>
-    </div>
-  </div>
-</nav></footer>
+<!-- end header part -->
+<!-- Generated by Doxygen 1.9.1 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:cf05388f2679ee054f2beb29a391d25f4e673ac3&amp;dn=gpl-2.0.txt GPL-v2 */
+var searchBox = new SearchBox("searchBox", "search",false,'Search','.html');
+/* @license-end */
+</script>
+<script type="text/javascript" src="menudata.js"></script>
+<script type="text/javascript" src="menu.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:cf05388f2679ee054f2beb29a391d25f4e673ac3&amp;dn=gpl-2.0.txt GPL-v2 */
+$(function() {
+  initMenu('',true,false,'search.php','Search');
+  $(document).ready(function() { init_search(); });
+});
+/* @license-end */</script>
+<div id="main-nav"></div>
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<iframe src="javascript:void(0)" frameborder="0" 
+        name="MSearchResults" id="MSearchResults">
+</iframe>
+</div>
+
+<div id="nav-path" class="navpath">
+  <ul>
+<li class="navelem"><a class="el" href="namespacesounds.html">sounds</a></li><li class="navelem"><a class="el" href="classsounds_1_1OpenALSoundBuffer.html">OpenALSoundBuffer</a></li>  </ul>
+</div>
+</div><!-- top -->
+<div class="header">
+  <div class="summary">
+<a href="#pub-methods">Public Member Functions</a> &#124;
+<a href="classsounds_1_1OpenALSoundBuffer-members.html">List of all members</a>  </div>
+  <div class="headertitle">
+<div class="title">sounds::OpenALSoundBuffer Class Reference</div>  </div>
+</div><!--header-->
+<div class="contents">
+
+<p>A buffer that can be used to create sounds. Wraps an OpenAL buffer.  
+ <a href="classsounds_1_1OpenALSoundBuffer.html#details">More...</a></p>
+
+<p><code>#include &lt;<a class="el" href="OpenAlSoundBuffer_8h_source.html">OpenAlSoundBuffer.h</a>&gt;</code></p>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
+Public Member Functions</h2></td></tr>
+<tr class="memitem:acd8f25a58d6f96e1ac3fd0a7a71395e2"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classsounds_1_1OpenALSoundBuffer.html#acd8f25a58d6f96e1ac3fd0a7a71395e2">OpenALSoundBuffer</a> (const char *filename)</td></tr>
+<tr class="memdesc:acd8f25a58d6f96e1ac3fd0a7a71395e2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates a new sound buffer from a file.  <a href="classsounds_1_1OpenALSoundBuffer.html#acd8f25a58d6f96e1ac3fd0a7a71395e2">More...</a><br /></td></tr>
+<tr class="separator:acd8f25a58d6f96e1ac3fd0a7a71395e2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a86a41b4a3c8df47cbc63f325e2baa5e7"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classsounds_1_1OpenALSoundBuffer.html#a86a41b4a3c8df47cbc63f325e2baa5e7">~OpenALSoundBuffer</a> ()</td></tr>
+<tr class="separator:a86a41b4a3c8df47cbc63f325e2baa5e7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0885b6d40d5fbf51a90966bb9ebfb6d6"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classsounds_1_1OpenALSoundBuffer.html#a0885b6d40d5fbf51a90966bb9ebfb6d6">OpenALSoundBuffer</a> (const <a class="el" href="classsounds_1_1OpenALSoundBuffer.html">OpenALSoundBuffer</a> &amp;other)=delete</td></tr>
+<tr class="separator:a0885b6d40d5fbf51a90966bb9ebfb6d6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abe80d82bdc3d361dfff5960372e23303"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classsounds_1_1OpenALSoundBuffer.html#abe80d82bdc3d361dfff5960372e23303">OpenALSoundBuffer</a> (<a class="el" href="classsounds_1_1OpenALSoundBuffer.html">OpenALSoundBuffer</a> &amp;&amp;other) noexcept</td></tr>
+<tr class="memdesc:abe80d82bdc3d361dfff5960372e23303"><td class="mdescLeft">&#160;</td><td class="mdescRight">Moves the internal OpenAL buffer from another sound buffer.  <a href="classsounds_1_1OpenALSoundBuffer.html#abe80d82bdc3d361dfff5960372e23303">More...</a><br /></td></tr>
+<tr class="separator:abe80d82bdc3d361dfff5960372e23303"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a534a9ea3f2e4b5bf97c15403b2873c1c"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classsounds_1_1OpenALSoundBuffer.html#a534a9ea3f2e4b5bf97c15403b2873c1c">operator=</a> (const <a class="el" href="classsounds_1_1OpenALSoundBuffer.html">OpenALSoundBuffer</a> &amp;other) -&gt; <a class="el" href="classsounds_1_1OpenALSoundBuffer.html">OpenALSoundBuffer</a> &amp;=delete</td></tr>
+<tr class="separator:a534a9ea3f2e4b5bf97c15403b2873c1c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa598da9aabaa01036a31e08bee25df7f"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classsounds_1_1OpenALSoundBuffer.html#aa598da9aabaa01036a31e08bee25df7f">operator=</a> (<a class="el" href="classsounds_1_1OpenALSoundBuffer.html">OpenALSoundBuffer</a> &amp;&amp;other) noexcept -&gt; <a class="el" href="classsounds_1_1OpenALSoundBuffer.html">OpenALSoundBuffer</a> &amp;</td></tr>
+<tr class="memdesc:aa598da9aabaa01036a31e08bee25df7f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Moves the internal OpenAL buffer from another sound buffer.  <a href="classsounds_1_1OpenALSoundBuffer.html#aa598da9aabaa01036a31e08bee25df7f">More...</a><br /></td></tr>
+<tr class="separator:aa598da9aabaa01036a31e08bee25df7f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a99acb3f70c2b6654d93b1366d83c2dfd"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classsounds_1_1OpenALSoundBuffer.html#a99acb3f70c2b6654d93b1366d83c2dfd">getBuffer</a> () const -&gt; ALuint</td></tr>
+<tr class="memdesc:a99acb3f70c2b6654d93b1366d83c2dfd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the internal OpenAL buffer.  <a href="classsounds_1_1OpenALSoundBuffer.html#a99acb3f70c2b6654d93b1366d83c2dfd">More...</a><br /></td></tr>
+<tr class="separator:a99acb3f70c2b6654d93b1366d83c2dfd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a699d2aa1002df1dcda352a266d8782a7"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classsounds_1_1OpenALSoundBuffer.html#a699d2aa1002df1dcda352a266d8782a7">getDuration</a> () const -&gt; std::chrono::nanoseconds</td></tr>
+<tr class="memdesc:a699d2aa1002df1dcda352a266d8782a7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the duration of the sound.  <a href="classsounds_1_1OpenALSoundBuffer.html#a699d2aa1002df1dcda352a266d8782a7">More...</a><br /></td></tr>
+<tr class="separator:a699d2aa1002df1dcda352a266d8782a7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a674c505009a900bd7eb0d34a714e7b36"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classsounds_1_1OpenALSoundBuffer.html#a674c505009a900bd7eb0d34a714e7b36">getFrequency</a> () const -&gt; int</td></tr>
+<tr class="memdesc:a674c505009a900bd7eb0d34a714e7b36"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the sampling frequency of the sound.  <a href="classsounds_1_1OpenALSoundBuffer.html#a674c505009a900bd7eb0d34a714e7b36">More...</a><br /></td></tr>
+<tr class="separator:a674c505009a900bd7eb0d34a714e7b36"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa58d06b226f4a7154cb06eca6c537943"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classsounds_1_1OpenALSoundBuffer.html#aa58d06b226f4a7154cb06eca6c537943">getChannels</a> () const -&gt; int</td></tr>
+<tr class="memdesc:aa58d06b226f4a7154cb06eca6c537943"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the number of channels in the sound.  <a href="classsounds_1_1OpenALSoundBuffer.html#aa58d06b226f4a7154cb06eca6c537943">More...</a><br /></td></tr>
+<tr class="separator:aa58d06b226f4a7154cb06eca6c537943"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>A buffer that can be used to create sounds. Wraps an OpenAL buffer. </p>
+<p>This class is used to load, decode and store the sound data. It can be used to create multiple sounds that share the same buffer. Creating new instances of this class can be very expensive, so it is recommended to load every sound only once, at the start of a scene. </p>
+</div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a id="acd8f25a58d6f96e1ac3fd0a7a71395e2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acd8f25a58d6f96e1ac3fd0a7a71395e2">&#9670;&nbsp;</a></span>OpenALSoundBuffer() <span class="overload">[1/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">sounds::OpenALSoundBuffer::OpenALSoundBuffer </td>
+          <td>(</td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>filename</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">explicit</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Creates a new sound buffer from a file. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">filename</td><td>The path to the file to load. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a86a41b4a3c8df47cbc63f325e2baa5e7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a86a41b4a3c8df47cbc63f325e2baa5e7">&#9670;&nbsp;</a></span>~OpenALSoundBuffer()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">sounds::OpenALSoundBuffer::~OpenALSoundBuffer </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a0885b6d40d5fbf51a90966bb9ebfb6d6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0885b6d40d5fbf51a90966bb9ebfb6d6">&#9670;&nbsp;</a></span>OpenALSoundBuffer() <span class="overload">[2/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">sounds::OpenALSoundBuffer::OpenALSoundBuffer </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="classsounds_1_1OpenALSoundBuffer.html">OpenALSoundBuffer</a> &amp;&#160;</td>
+          <td class="paramname"><em>other</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">delete</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="abe80d82bdc3d361dfff5960372e23303"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abe80d82bdc3d361dfff5960372e23303">&#9670;&nbsp;</a></span>OpenALSoundBuffer() <span class="overload">[3/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">sounds::OpenALSoundBuffer::OpenALSoundBuffer </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classsounds_1_1OpenALSoundBuffer.html">sounds::OpenALSoundBuffer</a> &amp;&amp;&#160;</td>
+          <td class="paramname"><em>other</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Moves the internal OpenAL buffer from another sound buffer. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">other</td><td>The sound buffer to move the internal buffer from. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<h2 class="groupheader">Member Function Documentation</h2>
+<a id="a99acb3f70c2b6654d93b1366d83c2dfd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a99acb3f70c2b6654d93b1366d83c2dfd">&#9670;&nbsp;</a></span>getBuffer()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto sounds::OpenALSoundBuffer::getBuffer </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const -&gt; ALuint</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Gets the internal OpenAL buffer. </p>
+<dl class="section return"><dt>Returns</dt><dd>The internal OpenAL buffer. </dd></dl>
+
+</div>
+</div>
+<a id="aa58d06b226f4a7154cb06eca6c537943"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa58d06b226f4a7154cb06eca6c537943">&#9670;&nbsp;</a></span>getChannels()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto sounds::OpenALSoundBuffer::getChannels </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const -&gt; int</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Gets the number of channels in the sound. </p>
+<dl class="section return"><dt>Returns</dt><dd>The number of channels in the sound. </dd></dl>
+
+</div>
+</div>
+<a id="a699d2aa1002df1dcda352a266d8782a7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a699d2aa1002df1dcda352a266d8782a7">&#9670;&nbsp;</a></span>getDuration()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto sounds::OpenALSoundBuffer::getDuration </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const -&gt; std::chrono::nanoseconds</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Gets the duration of the sound. </p>
+<dl class="section return"><dt>Returns</dt><dd>The duration of the sound. </dd></dl>
+
+</div>
+</div>
+<a id="a674c505009a900bd7eb0d34a714e7b36"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a674c505009a900bd7eb0d34a714e7b36">&#9670;&nbsp;</a></span>getFrequency()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto sounds::OpenALSoundBuffer::getFrequency </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const -&gt; int</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Gets the sampling frequency of the sound. </p>
+<dl class="section return"><dt>Returns</dt><dd>The sampling frequency of the sound. </dd></dl>
+
+</div>
+</div>
+<a id="a534a9ea3f2e4b5bf97c15403b2873c1c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a534a9ea3f2e4b5bf97c15403b2873c1c">&#9670;&nbsp;</a></span>operator=() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto sounds::OpenALSoundBuffer::operator= </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="classsounds_1_1OpenALSoundBuffer.html">OpenALSoundBuffer</a> &amp;&#160;</td>
+          <td class="paramname"><em>other</em></td><td>)</td>
+          <td> -&gt;  <a class="el" href="classsounds_1_1OpenALSoundBuffer.html">OpenALSoundBuffer</a> &amp;=delete</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">delete</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aa598da9aabaa01036a31e08bee25df7f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa598da9aabaa01036a31e08bee25df7f">&#9670;&nbsp;</a></span>operator=() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto sounds::OpenALSoundBuffer::operator= </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classsounds_1_1OpenALSoundBuffer.html">sounds::OpenALSoundBuffer</a> &amp;&amp;&#160;</td>
+          <td class="paramname"><em>other</em></td><td>)</td>
+          <td> -&gt; <a class="el" href="classsounds_1_1OpenALSoundBuffer.html">OpenALSoundBuffer</a>&amp;</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Moves the internal OpenAL buffer from another sound buffer. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">other</td><td>The sound buffer to move the internal buffer from. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<hr/>The documentation for this class was generated from the following files:<ul>
+<li>src/sounds/<a class="el" href="OpenAlSoundBuffer_8h_source.html">OpenAlSoundBuffer.h</a></li>
+<li>src/sounds/<a class="el" href="OpenAlSoundBuffer_8cpp.html">OpenAlSoundBuffer.cpp</a></li>
+</ul>
+</div><!-- contents -->
+<!-- start footer part -->
+<hr class="footer"/><address class="footer"><small>
+Generated by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
+</small></address>
 </body>
 </html>

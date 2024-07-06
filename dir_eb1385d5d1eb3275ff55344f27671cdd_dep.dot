@@ -1,0 +1,11 @@
+digraph "src/gameplay_logic/rules" {
+  compound=true
+  node [ fontsize="10", fontname="Helvetica"];
+  edge [ labelfontsize="10", labelfontname="Helvetica"];
+  subgraph clusterdir_532906d8876b5477dcd3b8816c48a7ca {
+    graph [ bgcolor="#ddddee", pencolor="black", label="gameplay_logic" fontname="Helvetica", fontsize="10", URL="dir_532906d8876b5477dcd3b8816c48a7ca.html"]
+  dir_eb1385d5d1eb3275ff55344f27671cdd [shape=box, label="rules", style="filled", fillcolor="#eeeeff", pencolor="black", URL="dir_eb1385d5d1eb3275ff55344f27671cdd.html"];
+  }
+  dir_b1e1480277e1bd1794b03e39c91b2dd4 [shape=box label="charts" fillcolor="white" style="filled" color="red" URL="dir_b1e1480277e1bd1794b03e39c91b2dd4.html"];
+  dir_eb1385d5d1eb3275ff55344f27671cdd->dir_b1e1480277e1bd1794b03e39c91b2dd4 [headlabel="2", labeldistance=1.5 headhref="dir_000010_000003.html"];
+}
