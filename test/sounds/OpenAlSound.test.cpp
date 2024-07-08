@@ -2,10 +2,8 @@
 // Created by bobini on 05.02.23.
 //
 
-#include <catch2/catch_approx.hpp>
 #include <catch2/catch_test_macros.hpp>
 
-#include <QQmlTypeNotAvailable>
 #include "../findTestAssetsFolder.h"
 #include "sounds/OpenAlSoundBuffer.h"
 
