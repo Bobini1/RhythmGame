@@ -11,14 +11,14 @@ RowLayout {
         Layout.fillWidth: active
         sourceComponent: Component {
             Slider {
-                stepSize: props.max <= 1.0 ? 0.1 : 1
+                stepSize: 0.001
                 from: props.min
                 to: props.max
                 Layout.fillHeight: true
                 value: destination[props.id]
 
                 onMoved: {
-                    destination[props.id] = Math.round(value * 10) / 10
+                    destination[props.id] = Math.round(value * 1000) / 1000
                     value = Qt.binding(() => destination[props.id])
                 }
             }
@@ -26,9 +26,18 @@ RowLayout {
     }
     TextField {
         id: textField
+
+        function getFormattedNumber(num) {
+            let longNum = Qt.locale().toString(num, "f", -128);
+            let shortNum = Qt.locale().toString(num, "f", 3);
+            if (longNum.length > shortNum.length) {
+                return longNum;
+            }
+            return shortNum;
+        }
         horizontalAlignment: Text.AlignHCenter
         Layout.preferredWidth: textMetrics.width + 20
-        text: Qt.locale().toString(destination[props.id], "f", 3)
+        text: getFormattedNumber(destination[props.id])
         Layout.fillHeight: true
         color: acceptableInput ? "black" : "red"
         validator: DoubleValidator {
@@ -37,10 +46,15 @@ RowLayout {
         }
         inputMethodHints: Qt.ImhFormattedNumbersOnly
         onTextEdited: {
+            // noinspection SillyAssignmentJS
+            text = text
             if (acceptableInput) {
                 destination[props.id] = Number.fromLocaleString(text)
-                text = Qt.binding(() => Qt.locale().toString(destination[props.id], "f", 3))
             }
+        }
+
+        onEditingFinished: {
+            text = Qt.binding(() => getFormattedNumber(destination[props.id]))
         }
         TextMetrics {
             id: textMetrics
