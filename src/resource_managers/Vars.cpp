@@ -32,8 +32,9 @@ writeGlobalVars(const QQmlPropertyMap& globalVars,
     }
     auto file = QFile{ profileFolder / "globalVars.json" };
     if (!file.open(QIODevice::WriteOnly)) {
-        spdlog::error("Failed to open config for writing: {}",
-                      profileFolder.string());
+        spdlog::error("Failed to open config for writing: {}: {}",
+                      profileFolder.string(),
+                      file.errorString().toStdString());
         return;
     }
     auto jsonDocument = QJsonDocument();
@@ -48,8 +49,9 @@ writeThemeVarsForTheme(
 {
     auto file = QFile{ path };
     if (!file.open(QIODevice::ReadWrite)) {
-        spdlog::error("Failed to open config for reading + writing: {}",
-                      path.string());
+        spdlog::error("Failed to open config for reading + writing: {}, {}",
+                      path.string(),
+                      file.errorString().toStdString());
         return;
     }
     auto jsonDocument = QJsonDocument::fromJson(file.readAll());
@@ -87,10 +89,12 @@ writeSingleThemeVar(const QString& screen,
 {
     auto file = QFile{ path };
     if (!file.open(QIODevice::ReadWrite)) {
-        spdlog::error("Failed to open config for reading + writing: {}. The "
-                      "var {} will not be written.",
-                      path.string(),
-                      key.toStdString());
+        spdlog::error(
+          "Failed to open config for reading + writing: {}: {}. The "
+          "var {} will not be written.",
+          path.string(),
+          file.errorString().toStdString(),
+          key.toStdString());
         return;
     }
     auto jsonDocument = QJsonDocument::fromJson(file.readAll());
@@ -399,8 +403,9 @@ populateScreenVars(const std::filesystem::path& themePath,
         return {};
     }
     if (!file.open(QIODevice::ReadOnly)) {
-        spdlog::error("Failed to open config for reading: {}",
-                      settingsPath.string());
+        spdlog::error("Failed to open config for reading: {}: {}",
+                      settingsPath.string(),
+                      file.errorString().toStdString());
     }
     const auto contents = QJsonDocument::fromJson(file.readAll());
     if (!contents.isArray()) {
@@ -421,8 +426,9 @@ readGlobalVars(QQmlPropertyMap& globalVars,
         writeGlobalVars(globalVars, profileFolder);
     }
     if (!file.open(QIODevice::ReadOnly)) {
-        spdlog::error("Failed to open config for reading: {}",
-                      profileFolder.string());
+        spdlog::error("Failed to open config for reading: {}: {}",
+                      profileFolder.string(),
+                      file.errorString().toStdString());
         globalVars.freeze();
         return;
     }
@@ -461,8 +467,9 @@ readThemeVarsForTheme(const std::filesystem::path& themeVarsPath,
         return result;
     }
     if (!file.open(QIODevice::ReadOnly)) {
-        spdlog::error("Failed to open config for reading: {}",
-                      themeVarsPath.string());
+        spdlog::error("Failed to open config for reading: {}: {}",
+                      themeVarsPath.string(),
+                      file.errorString().toStdString());
         return result;
     }
     auto contents = QJsonDocument::fromJson(file.readAll()).object();
@@ -580,8 +587,7 @@ Vars(const Profile* profile,
             this,
             [this](const QString& key, const QVariant& value) {
                 writeGlobalVars(globalVars,
-                                this->profile->getPath().parent_path() /
-                                  "globalVars.json");
+                                this->profile->getPath().parent_path());
             });
 }
 auto
