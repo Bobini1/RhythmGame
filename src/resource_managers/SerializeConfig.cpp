@@ -25,8 +25,10 @@ writeConfig(const std::filesystem::path& path, QQmlPropertyMap& object) -> void
     auto file = QFile{ path };
 
     if (!file.open(QIODevice::WriteOnly)) {
-        throw std::runtime_error{ "Failed to open file for writing " +
-                                  path.string() };
+        throw std::runtime_error{ fmt::format(
+          "Failed to open file for writing: {}: {}",
+          path.string(),
+          file.errorString().toStdString()) };
     }
 
     file.write(json.toJson());
