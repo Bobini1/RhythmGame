@@ -42,7 +42,7 @@ addDirToParentDirs(QThreadPool& threadPool,
             }
             insert.bind(":dir", current.toStdString());
             insert.execute();
-            if (current == folder) {
+            if (current == folder || folder.isEmpty()) {
                 break;
             }
             getIdQuery.reset();
