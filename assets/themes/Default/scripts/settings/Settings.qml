@@ -25,6 +25,9 @@ Rectangle {
                 text: qsTr("Themes")
             }
             TabButton {
+                text: qsTr("Global Settings")
+            }
+            TabButton {
                 text: qsTr("Key config")
             }
         }
@@ -40,6 +43,10 @@ Rectangle {
                 Layout.preferredHeight: parent.height - tabView.height
             }
             ThemeSettings {
+                Layout.fillWidth: true
+                Layout.preferredHeight: parent.height - tabView.height
+            }
+            GlobalSettings {
                 Layout.fillWidth: true
                 Layout.preferredHeight: parent.height - tabView.height
             }
