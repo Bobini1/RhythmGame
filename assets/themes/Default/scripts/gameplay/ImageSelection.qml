@@ -39,7 +39,7 @@ Row {
         delegate: Image {
             fillMode: Image.PreserveAspectFit
             height: selection.cellHeight - imageSelection.spacing
-            source: root.rootUrl + "images/"+ imageSelection.propertyId + "/" + modelData
+            source: "images/"+ imageSelection.propertyId + "/" + modelData
             width: selection.cellWidth - imageSelection.spacing
 
             MouseArea {

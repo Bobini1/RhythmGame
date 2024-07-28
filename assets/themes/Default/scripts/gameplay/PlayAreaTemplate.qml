@@ -48,7 +48,6 @@ Item {
         anchors.fill: parent
         anchors.margins: -borderMargin
         color: "transparent"
-        rotationEnabled: false
 
         onBorderPressedChanged: {
             if (borderPressed) {
