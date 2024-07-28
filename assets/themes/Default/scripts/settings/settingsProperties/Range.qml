@@ -18,7 +18,7 @@ RowLayout {
                     return Math.floor(Math.log(Math.abs(num)) / Math.LN10 + 0.000000001);
                 }
                 readonly property real mult: Math.pow(10,Math.max(order(props.default), 2))
-                readonly property real minmult: 0.4 * Math.pow(10,Math.max(order(props.min), 2))
+                readonly property real minmult: Math.pow(10,Math.max(order(props.min), 2))
                 readonly property real maxmult: 0.500 + 1 / Math.pow(10,Math.max(order(props.max) + 1, 3))
 
                 property var f: {
