@@ -108,6 +108,10 @@
       "name": "qtwayland",
       "version>=": "6.7.2",
       "platform": "linux"
+    },
+    {
+      "name": "llfio",
+      "version>=": "2023-11-06"
     }
   ],
   "default-features": [],

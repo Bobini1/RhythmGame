@@ -178,7 +178,6 @@ Rectangle {
                 anchors.margins: -borderMargin
                 color: "transparent"
                 keepAspectRatio: true
-                rotationEnabled: false
                 visible: root.customizeMode
             }
         }
@@ -214,7 +213,6 @@ Rectangle {
                 anchors.fill: parent
                 anchors.margins: -borderMargin
                 color: "transparent"
-                rotationEnabled: false
                 visible: root.customizeMode
 
                 MouseArea {
@@ -266,7 +264,6 @@ Rectangle {
                 anchors.fill: parent
                 anchors.margins: -borderMargin
                 color: "transparent"
-                rotationEnabled: false
                 visible: root.customizeMode
             }
             Text {
