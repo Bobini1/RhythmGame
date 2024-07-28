@@ -5,11 +5,6 @@ import QtQuick.Layouts
 import "settingsProperties"
 import QtQml.Models
 
-// { "laneCoverOn", false },
-// { "laneCoverRatio", 0.1 },
-// { "liftOn", false },
-// { "liftRatio", 0.1 },
-// { "bgaOn", true },
 Frame {
     Layout.fillHeight: true
     Layout.fillWidth: true
@@ -32,14 +27,8 @@ Frame {
                     }
                     Loader {
                         active: true
-                        property var props: {"id": "noteScreenTimeSeconds", "min": 0, "max": 2000}
-                        property var destination: {
-                            return this
-                        }
-                        property real noteScreenTimeSeconds: ProfileList.currentProfile.vars.globalVars.noteScreenTimeSeconds  * 1000
-                        onNoteScreenTimeSecondsChanged: {
-                            ProfileList.currentProfile.vars.globalVars.noteScreenTimeSeconds = noteScreenTimeSeconds / 1000
-                        }
+                        property var props: {"id": "noteScreenTimeMillis", "min": 0}
+                        property var destination: ProfileList.currentProfile.vars.globalVars
                         width: 150
                         anchors.verticalCenter: parent.verticalCenter
                         sourceComponent: Component {

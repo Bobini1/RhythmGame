@@ -113,7 +113,7 @@ void
 populateGlobalVars(QQmlPropertyMap& globalVars)
 {
     globalVars.insert({
-      { "noteScreenTimeSeconds", 1 },
+      { "noteScreenTimeMillis", 1000 },
       { "laneCoverOn", false },
       { "laneCoverRatio", 0.1 },
       { "liftOn", false },
