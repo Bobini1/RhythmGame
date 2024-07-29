@@ -60,12 +60,6 @@ qtLogHandler(QtMsgType type,
 auto
 main(int argc, [[maybe_unused]] char* argv[]) -> int
 {
-    const auto app = QGuiApplication{ argc, argv };
-
-    QGuiApplication::setOrganizationName("Tomasz Kalisiak");
-    QGuiApplication::setOrganizationDomain("bemani.pl");
-    QGuiApplication::setApplicationName("RhythmGame");
-
     qInstallMessageHandler(qtLogHandler);
 
     struct UnregisterHandler {
@@ -86,6 +80,13 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
     // set global log level to debug
     spdlog::set_level(spdlog::level::debug);
     set_default_logger(logger);
+
+    const auto app = QGuiApplication{ argc, argv };
+
+    QGuiApplication::setOrganizationName("Tomasz Kalisiak");
+    QGuiApplication::setOrganizationDomain("bemani.pl");
+    QGuiApplication::setApplicationName("RhythmGame");
+
 
     try {
         auto assetsFolder = resource_managers::findAssetsFolder();
