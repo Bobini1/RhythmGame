@@ -68,6 +68,12 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
 
     qInstallMessageHandler(qtLogHandler);
 
+    struct UnregisterHandler {
+        ~UnregisterHandler() {
+            qInstallMessageHandler(nullptr);
+        }
+    } unregisterHandler;
+
     auto log = qml_components::Logger{ nullptr };
     qmlRegisterSingletonInstance("RhythmGameQml", 1, 0, "Logger", &log);
 
