@@ -184,7 +184,12 @@ qt_import_qml_plugins(RhythmGame_qmlplugin)
 
 # ---- Declare executable ----
 
-qt_add_executable(RhythmGame_exe src/main.cpp)
+if (WIN32)
+    enable_language("RC")
+    set (WIN32_RESOURCES ${CMAKE_CURRENT_SOURCE_DIR}/staticAssets/RhythmGame.rc)
+endif()
+
+qt_add_executable(RhythmGame_exe src/main.cpp ${WIN32_RESOURCES})
 add_executable(RhythmGame::exe ALIAS RhythmGame_exe)
 
 set_target_properties(
