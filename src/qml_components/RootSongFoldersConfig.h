@@ -94,6 +94,7 @@ class ScanningQueue final : public QAbstractListModel
     void clearImpl(const QString& which);
 
   public:
+    ~ScanningQueue() override;
     auto rowCount(const QModelIndex& parent = QModelIndex()) const
       -> int override;
     auto data(const QModelIndex& index = QModelIndex(),

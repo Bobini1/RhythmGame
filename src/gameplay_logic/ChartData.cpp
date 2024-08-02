@@ -124,7 +124,7 @@ gameplay_logic::ChartData::getGenre() const -> QString
 auto
 gameplay_logic::ChartData::save(db::SqliteCppDb& db) const -> void
 {
-    thread_local auto query = db.createStatement(
+    auto query = db.createStatement(
       "INSERT OR REPLACE INTO charts (title, artist, subtitle, subartist, "
       "genre, stage_file, banner, back_bmp, rank, total, play_level, "
       "difficulty, is_random, normal_note_count, ln_count, mine_count, length, "

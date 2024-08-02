@@ -318,4 +318,11 @@ ScanningQueue::data(const QModelIndex& index, int role) const -> QVariant
     }
     return QVariant{};
 }
+ScanningQueue::~ScanningQueue() {
+    const auto rows = rowCount();
+    for (auto i = rows; i >= 0; i--) {
+        remove(i);
+    }
+    scanFuture.waitForFinished();
+}
 } // namespace qml_components
