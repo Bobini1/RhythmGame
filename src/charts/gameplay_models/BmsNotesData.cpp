@@ -179,7 +179,7 @@ calculateOffsetsForColumn(
                     noteType = BmsNotesData::NoteType::LongNoteEnd;
                     lastNote->noteType = BmsNotesData::NoteType::LongNoteBegin;
                 } else {
-                    spdlog::error("Two LN endings in a row");
+                    spdlog::trace("Two LN endings in a row");
                 }
             }
             target.emplace_back(BmsNotesData::Note{
@@ -570,7 +570,7 @@ removeInvalidNotes(
                        note.noteType == BmsNotesData::NoteType::LongNoteEnd) {
                 insideLn = false;
             } else if (!valid) {
-                spdlog::warn("Invalid: note inside LN");
+                spdlog::trace("Invalid: note inside LN");
             }
             return !valid;
         });

@@ -11,6 +11,7 @@
 #include <lexy/input/string_input.hpp>
 #include <spdlog/spdlog.h>
 #include <boost/serialization/strong_typedef.hpp>
+#include <type_traits>
 #include "BmsChartReader.h"
 #include "support/toLower.h"
 
@@ -93,9 +94,11 @@ struct Channel
     static constexpr auto rule =
       capture(token(dsl::times<2>(dsl::ascii::alnum)));
     static constexpr auto value =
-      lexy::as_string<std::string> | lexy::callback<int>([](std::string&& str) {
+      lexy::callback<int>([](auto&& str) {
           constexpr auto base = 36;
-          return std::stoi(str, nullptr, base);
+          auto result = 0;
+          std::from_chars(str.begin(), str.end(), result, base);
+          return result;
       });
 };
 
@@ -105,9 +108,11 @@ struct Measure
                                  (dsl::hash_sign +
                                   capture(token(dsl::times<3>(dsl::digit<>))));
     static constexpr auto value =
-      lexy::as_string<std::string> | lexy::callback<int>([](std::string&& str) {
+      lexy::callback<int>([](auto&& str) {
           constexpr auto base = 10;
-          return std::stoi(str, nullptr, base);
+          auto result = 0;
+          std::from_chars(str.begin(), str.end(), result, base);
+          return result;
       });
 };
 
@@ -120,31 +125,53 @@ struct MeasureBasedTag
       lexy::construct<std::tuple<int64_t, int, std::vector<std::string>>>;
 };
 
-BOOST_STRONG_TYPEDEF(std::string, Title)
-BOOST_STRONG_TYPEDEF(std::string, Artist)
-BOOST_STRONG_TYPEDEF(std::string, Subtitle)
-BOOST_STRONG_TYPEDEF(std::string, Subartist)
-BOOST_STRONG_TYPEDEF(std::string, Genre)
-BOOST_STRONG_TYPEDEF(std::string, StageFile)
-BOOST_STRONG_TYPEDEF(std::string, Banner)
-BOOST_STRONG_TYPEDEF(std::string, BackBmp)
-BOOST_STRONG_TYPEDEF(double, Total)
-BOOST_STRONG_TYPEDEF(int, Rank)
-BOOST_STRONG_TYPEDEF(double, Bpm)
-BOOST_STRONG_TYPEDEF(int, PlayLevel)
-BOOST_STRONG_TYPEDEF(int, Difficulty)
+#define RG_STRONG_TYPEDEF(T, D)                                                                                  \
+struct D                                                                                                         \
+    : boost::totally_ordered1< D                                                                                 \
+    , boost::totally_ordered2< D, T                                                                              \
+    > >                                                                                                          \
+{                                                                                                                \
+    T t;                                                                                                         \
+    explicit D(T t_) BOOST_NOEXCEPT_IF(std::is_nothrow_move_constructible<T>::value) : t(std::move(t_)) {}      \
+    D() BOOST_NOEXCEPT_IF(boost::has_nothrow_default_constructor<T>::value) : t() {}                             \
+    D(const D & t_) BOOST_NOEXCEPT_IF(boost::has_nothrow_copy_constructor<T>::value) : t(t_.t) {}                \
+    D(D && t_) BOOST_NOEXCEPT_IF(std::is_nothrow_move_constructible<T>::value) : t(std::move(t_.t)) {}          \
+    D& operator=(const D& rhs) BOOST_NOEXCEPT_IF(boost::has_nothrow_assign<T>::value) {t = rhs.t; return *this;} \
+    D& operator=(const T& rhs) BOOST_NOEXCEPT_IF(boost::has_nothrow_assign<T>::value) {t = rhs; return *this;}   \
+    D& operator=(D&& rhs) BOOST_NOEXCEPT_IF(std::is_nothrow_move_assignable<T>::value) {t = std::move(rhs.t); return *this;} \
+    D& operator=(T&& rhs) BOOST_NOEXCEPT_IF(std::is_nothrow_move_assignable<T>::value) {t = std::move(rhs); return *this;}   \
+    operator const T&() const {return t;}                                                                        \
+    operator T&() & {return t;}                                                                                  \
+    operator T&&() && {return std::move(t);}                                                                     \
+    bool operator==(const D& rhs) const {return t == rhs.t;}                                                     \
+    bool operator<(const D& rhs) const {return t < rhs.t;}                                                       \
+};
+
+RG_STRONG_TYPEDEF(std::string, Title)
+RG_STRONG_TYPEDEF(std::string, Artist)
+RG_STRONG_TYPEDEF(std::string, Subtitle)
+RG_STRONG_TYPEDEF(std::string, Subartist)
+RG_STRONG_TYPEDEF(std::string, Genre)
+RG_STRONG_TYPEDEF(std::string, StageFile)
+RG_STRONG_TYPEDEF(std::string, Banner)
+RG_STRONG_TYPEDEF(std::string, BackBmp)
+RG_STRONG_TYPEDEF(double, Total)
+RG_STRONG_TYPEDEF(int, Rank)
+RG_STRONG_TYPEDEF(double, Bpm)
+RG_STRONG_TYPEDEF(int, PlayLevel)
+RG_STRONG_TYPEDEF(int, Difficulty)
 using wav_t = std::pair<std::string, std::string>;
-BOOST_STRONG_TYPEDEF(wav_t, Wav)
+RG_STRONG_TYPEDEF(wav_t, Wav)
 using bmp_t = std::pair<std::string, std::string>;
-BOOST_STRONG_TYPEDEF(bmp_t, Bmp)
-BOOST_STRONG_TYPEDEF(std::string, LnObj)
-BOOST_STRONG_TYPEDEF(int, LnType)
+RG_STRONG_TYPEDEF(bmp_t, Bmp)
+RG_STRONG_TYPEDEF(std::string, LnObj)
+RG_STRONG_TYPEDEF(int, LnType)
 using pair_t = std::pair<std::string, double>;
-BOOST_STRONG_TYPEDEF(pair_t, ExBpm)
+RG_STRONG_TYPEDEF(pair_t, ExBpm)
 using stop_t = std::pair<std::string, double>;
-BOOST_STRONG_TYPEDEF(stop_t, Stop)
+RG_STRONG_TYPEDEF(stop_t, Stop)
 using meter_t = std::pair<int64_t, double>;
-BOOST_STRONG_TYPEDEF(meter_t, Meter)
+RG_STRONG_TYPEDEF(meter_t, Meter)
 
 struct TitleTag
 {
@@ -154,7 +181,7 @@ struct TitleTag
     }();
     static constexpr auto value =
       lexy::as_string<std::string> |
-      lexy::callback<Title>([](std::string&& str) { return Title{ str }; });
+      lexy::callback<Title>([](std::string&& str) { return Title{ std::move(str) }; });
 };
 
 struct ArtistTag
@@ -165,7 +192,7 @@ struct ArtistTag
     }();
     static constexpr auto value =
       lexy::as_string<std::string> |
-      lexy::callback<Artist>([](std::string&& str) { return Artist{ str }; });
+      lexy::callback<Artist>([](std::string&& str) { return Artist{ std::move(str) }; });
 };
 
 struct SubtitleTag
@@ -177,7 +204,7 @@ struct SubtitleTag
     static constexpr auto value =
       lexy::as_string<std::string> |
       lexy::callback<Subtitle>(
-        [](std::string&& str) { return Subtitle{ str }; });
+        [](std::string&& str) { return Subtitle{ std::move(str) }; });
 };
 
 struct SubartistTag
@@ -189,7 +216,7 @@ struct SubartistTag
     static constexpr auto value =
       lexy::as_string<std::string> |
       lexy::callback<Subartist>(
-        [](std::string&& str) { return Subartist{ str }; });
+        [](std::string&& str) { return Subartist{ std::move(str) }; });
 };
 
 struct GenreTag
@@ -200,7 +227,7 @@ struct GenreTag
     }();
     static constexpr auto value =
       lexy::as_string<std::string> |
-      lexy::callback<Genre>([](std::string&& str) { return Genre{ str }; });
+      lexy::callback<Genre>([](std::string&& str) { return Genre{ std::move(str) }; });
 };
 
 struct StageFileTag
@@ -212,7 +239,7 @@ struct StageFileTag
     static constexpr auto value =
       lexy::as_string<std::string> |
       lexy::callback<StageFile>(
-        [](std::string&& str) { return StageFile{ str }; });
+        [](std::string&& str) { return StageFile{ std::move(str) }; });
 };
 
 struct BannerTag
@@ -223,7 +250,7 @@ struct BannerTag
     }();
     static constexpr auto value =
       lexy::as_string<std::string> |
-      lexy::callback<Banner>([](std::string&& str) { return Banner{ str }; });
+      lexy::callback<Banner>([](std::string&& str) { return Banner{ std::move(str) }; });
 };
 
 struct BackBmpTag
@@ -234,7 +261,7 @@ struct BackBmpTag
     }();
     static constexpr auto value =
       lexy::as_string<std::string> |
-      lexy::callback<BackBmp>([](std::string&& str) { return BackBmp{ str }; });
+      lexy::callback<BackBmp>([](std::string&& str) { return BackBmp{ std::move(str) }; });
 };
 
 struct TotalTag

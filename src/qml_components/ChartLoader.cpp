@@ -6,6 +6,7 @@
 
 #include <utility>
 #include "gameplay_logic/Chart.h"
+#include "support/QStringToPath.h"
 #include "magic_enum.hpp"
 
 namespace qml_components {
@@ -23,7 +24,8 @@ ChartLoader::loadChart(const QString& filename) -> gameplay_logic::Chart*
               }(randomEngine);
           };
         auto chartComponents =
-          chartDataFactory->loadChartData(filename, randomGenerator);
+          chartDataFactory->loadChartData(
+          support::qStringToPath(filename), randomGenerator);
         auto rankInt = chartComponents.chartData->getRank();
         auto rank =
           magic_enum::enum_cast<gameplay_logic::rules::BmsRank>(rankInt)

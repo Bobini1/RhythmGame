@@ -99,16 +99,18 @@ ChartDataFactory::convertToQVector(
 }
 auto
 ChartDataFactory::loadChartData(
-  const QString& chartPath,
+  const std::filesystem::path& chartPath,
   std::function<charts::parser_models::ParsedBmsChart::RandomRange(
     charts::parser_models::ParsedBmsChart::RandomRange)> randomGenerator,
   QString directoryInDb) const -> ChartDataFactory::ChartComponents
 {
-    auto url = QUrl::fromLocalFile(chartPath);
-    auto chart = loadFile(url);
+    auto mfh = llfio::mapped_file({}, chartPath).value();
+    auto length = mfh.maximum_extent().value();
+    auto chart = std::string_view{reinterpret_cast<char*>(mfh.address()), length};
     auto hash = support::sha256(chart);
     auto parsedChart =
       chartReader.readBmsChart(chart, std::move(randomGenerator));
+    mfh.close().value();
     auto calculatedNotesData =
       charts::gameplay_models::BmsNotesData{ parsedChart };
     auto noteData = makeNotes(calculatedNotesData);
