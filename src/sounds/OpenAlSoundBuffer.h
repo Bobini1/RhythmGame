@@ -6,6 +6,7 @@
 #define RHYTHMGAME_OPENALSOUNDBUFFER_H
 #include <AL/al.h>
 #include <chrono>
+#include <filesystem>
 
 namespace sounds {
 /**
@@ -24,7 +25,7 @@ class OpenALSoundBuffer
      * @brief Creates a new sound buffer from a file.
      * @param filename The path to the file to load.
      */
-    explicit OpenALSoundBuffer(const char* filename);
+    explicit OpenALSoundBuffer(const std::filesystem::path& filename);
     ~OpenALSoundBuffer();
     OpenALSoundBuffer(const OpenALSoundBuffer& other) = delete;
     /**
