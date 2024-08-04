@@ -56,7 +56,7 @@ struct Identifier
 
 struct IdentifierChain
 {
-    static constexpr auto value = lexy::as_list<std::vector<std::string>>;
+    static constexpr auto value = lexy::as_list<std::vector<uint16_t>>;
     static constexpr auto rule = list(dsl::p<Identifier>);
 };
 
@@ -121,7 +121,7 @@ struct MeasureBasedTag
                                  (dsl::p<Channel> + dsl::colon +
                                   dsl::p<IdentifierChain>);
     static constexpr auto value =
-      lexy::construct<std::tuple<int64_t, int, std::vector<std::string>>>;
+      lexy::construct<std::tuple<int64_t, int, std::vector<uint16_t>>>;
 };
 
 #define RG_STRONG_TYPEDEF(T, D)                                                                                  \

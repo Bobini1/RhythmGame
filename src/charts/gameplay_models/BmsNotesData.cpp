@@ -108,7 +108,7 @@ combineBpmChanges(std::span<const uint16_t> bpmChanges,
 
 auto
 createNoteInfo(
-  std::span<const uint16_t> notes,
+  const std::vector<uint16_t>& notes,
   const std::map<std::pair<double, BpmChangeType>,
                  std::pair<double, BmsNotesData::Time>>& bpmChangesInMeasure,
   int index,
