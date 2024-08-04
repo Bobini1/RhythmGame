@@ -33,15 +33,21 @@ addDirToParentDirs(QThreadPool& threadPool,
                    QString folder)
 {
     threadPool.start([&db, root, folder]() mutable {
-        thread_local auto insert =
+        auto insert =
           db.createStatement("INSERT OR IGNORE INTO parent_dir "
                              "(parent_dir, dir) VALUES (:parent_dir, "
                              ":dir)");
-        thread_local auto getIdQuery =
+        auto getIdQuery =
           db.createStatement("SELECT id FROM parent_dir WHERE dir = :dir");
+#ifdef _WIN32
+        folder.replace('\\', '/');
+#endif
+        if (folder.back() != '/') {
+            folder += '/';
+        }
         auto parent = int64_t{ -1 };
         auto current = root;
-        auto rest = folder.right(folder.size() - root.size() - 1);
+        auto rest = folder.right(folder.size() - root.size());
         while (true) {
             insert.reset();
             if (parent == int64_t{ -1 }) {
@@ -57,7 +63,7 @@ addDirToParentDirs(QThreadPool& threadPool,
             getIdQuery.reset();
             getIdQuery.bind(":dir", current.toStdString());
             parent = getIdQuery.executeAndGet<int64_t>().value();
-            current = current + rest.left(rest.indexOf('/'));
+            current = current + rest.left(rest.indexOf('/') + 1);
             rest = rest.right(rest.size() - rest.indexOf('/') - 1);
         }
     });
@@ -66,10 +72,10 @@ void
 loadChart(QThreadPool& threadPool,
           db::SqliteCppDb& db,
           const QString& directory,
-          const std::filesystem::path& path)
+          const std::filesystem::path& path
+          )
 {
-    auto url = support::pathToQString(path);
-    threadPool.start([&db, url = std::move(url), directory]() mutable {
+    threadPool.start([&db, path, directory]() mutable {
         try {
             thread_local constexpr ChartDataFactory chartDataFactory;
             auto randomGenerator =
@@ -84,13 +90,13 @@ loadChart(QThreadPool& threadPool,
               };
 
             const auto chartComponents =
-              chartDataFactory.loadChartData(url, randomGenerator, directory);
+              chartDataFactory.loadChartData(path, randomGenerator, directory);
             chartComponents.chartData->save(db);
             chartComponents.bmsNotes->save(
               db, chartComponents.chartData->getSha256().toStdString());
         } catch (const std::exception& e) {
             spdlog::error("Failed to load chart data for {}: {}",
-                          url.toStdString(),
+                          path.string(),
                           e.what());
         }
     });
@@ -101,7 +107,7 @@ addPreviewFileToDb(db::SqliteCppDb& db,
                    const std::filesystem::path& directory,
                    const std::filesystem::path& path)
 {
-    thread_local auto statement = db.createStatement(
+    auto statement = db.createStatement(
       "INSERT OR REPLACE INTO preview_files (path, directory) "
       "VALUES (?, ?)");
     statement.reset();
@@ -110,12 +116,21 @@ addPreviewFileToDb(db::SqliteCppDb& db,
     statement.execute();
 }
 #ifdef _WIN32
-using NtQueryDirectoryFile_t = NTSTATUS(NTAPI *)(_In_ HANDLE FileHandle, _In_opt_ HANDLE Event, _In_opt_ PIO_APC_ROUTINE ApcRoutine,
-                                                _In_opt_ PVOID ApcContext, _Out_ PIO_STATUS_BLOCK IoStatusBlock, _Out_ PVOID FileInformation,
-                                                _In_ ULONG Length, _In_ FILE_INFORMATION_CLASS FileInformationClass, _In_ BOOLEAN ReturnSingleEntry,
-                                                _In_opt_ PUNICODE_STRING FileName, _In_ BOOLEAN RestartScan);
+using NtQueryDirectoryFile_t =
+  NTSTATUS(NTAPI*)(_In_ HANDLE FileHandle,
+                   _In_opt_ HANDLE Event,
+                   _In_opt_ PIO_APC_ROUTINE ApcRoutine,
+                   _In_opt_ PVOID ApcContext,
+                   _Out_ PIO_STATUS_BLOCK IoStatusBlock,
+                   _Out_ PVOID FileInformation,
+                   _In_ ULONG Length,
+                   _In_ FILE_INFORMATION_CLASS FileInformationClass,
+                   _In_ BOOLEAN ReturnSingleEntry,
+                   _In_opt_ PUNICODE_STRING FileName,
+                   _In_ BOOLEAN RestartScan);
 
-typedef struct _FILE_DIRECTORY_INFORMATION {
+typedef struct _FILE_DIRECTORY_INFORMATION
+{
     ULONG NextEntryOffset;
     ULONG FileIndex;
     LARGE_INTEGER CreationTime;
@@ -139,48 +154,45 @@ scanFolder(std::filesystem::path directory,
            std::atomic_bool* stop)
 {
     static HMODULE ntdllh = GetModuleHandleA("NTDLL.DLL");
-    static auto NtQueryDirectoryFile = reinterpret_cast<NtQueryDirectoryFile_t>(GetProcAddress(ntdllh, "NtQueryDirectoryFile"));
+    static auto NtQueryDirectoryFile = reinterpret_cast<NtQueryDirectoryFile_t>(
+      GetProcAddress(ntdllh, "NtQueryDirectoryFile"));
     auto isb = IO_STATUS_BLOCK{};
     memset(&isb, 0, sizeof(isb));
     isb.Status = -1;
     static constexpr auto max_bytes = 65536;
     char buffer[65536];
-    HANDLE hDirectory = CreateFileW(
-      directory.c_str(),
-      FILE_LIST_DIRECTORY,
-      FILE_SHARE_READ,
-      NULL,
-      OPEN_EXISTING,
-      FILE_FLAG_BACKUP_SEMANTICS,
-      NULL
-    );
+    HANDLE hDirectory = CreateFileW(directory.c_str(),
+                                    FILE_LIST_DIRECTORY,
+                                    FILE_SHARE_READ,
+                                    NULL,
+                                    OPEN_EXISTING,
+                                    FILE_FLAG_BACKUP_SEMANTICS,
+                                    NULL);
 
-
-    updateCurrentScannedFolder(support::pathToQString(directory));
+    updateCurrentScannedFolder(support::pathToQString(directory.lexically_normal()));
     auto directoriesToScan = std::vector<std::filesystem::path>{};
     auto isSongDirectory = false;
 
     while (true) {
-        auto status = NtQueryDirectoryFile(
-          hDirectory,
-          NULL,
-          NULL,
-          NULL,
-          &isb,
-          buffer,
-          sizeof(buffer),
-          FileDirectoryInformation,
-          FALSE,
-          NULL,
-          false
-        );
+        auto status = NtQueryDirectoryFile(hDirectory,
+                                           NULL,
+                                           NULL,
+                                           NULL,
+                                           &isb,
+                                           buffer,
+                                           sizeof(buffer),
+                                           FileDirectoryInformation,
+                                           FALSE,
+                                           NULL,
+                                           false);
 
         if (status == STATUS_NO_MORE_FILES) {
             break; // No more files to process
         }
 
         if (status != STATUS_SUCCESS && status != STATUS_BUFFER_OVERFLOW) {
-            spdlog::error("NtQueryDirectoryFile failed. NTSTATUS: {:#x}\n", status);
+            spdlog::error("NtQueryDirectoryFile failed. NTSTATUS: {:#x}\n",
+                          status);
             break;
         }
 
@@ -191,35 +203,45 @@ scanFolder(std::filesystem::path directory,
         auto* fileInfo = reinterpret_cast<PFILE_DIRECTORY_INFORMATION>(buffer);
 
         do {
-            auto path = std::wstring_view{fileInfo->FileName, fileInfo->FileNameLength / sizeof(WCHAR)};
-            if (fileInfo->FileAttributes & FILE_ATTRIBUTE_DIRECTORY && path != L"." && path != L"..") {
+            auto path =
+              std::wstring_view{ fileInfo->FileName,
+                                 fileInfo->FileNameLength / sizeof(WCHAR) };
+            if (fileInfo->FileAttributes & FILE_ATTRIBUTE_DIRECTORY &&
+                path != L"." && path != L"..") {
                 if (!isSongDirectory) {
                     directoriesToScan.emplace_back(path);
                 }
-            } else if (auto extension = llfio::path_view(path).extension();
-                       extension.compare(".bms") == 0 || extension.compare(".bme") == 0  ||
-                       extension.compare(".bml") == 0  || extension.compare(".pms") == 0 ) {
+            } else if (auto extension = std::filesystem::path(path).extension();
+                       extension.compare(".bms") == 0 ||
+                       extension.compare(".bme") == 0 ||
+                       extension.compare(".bml") == 0 ||
+                       extension.compare(".pms") == 0) {
                 isSongDirectory = true;
                 directoriesToScan.clear();
-                if (extension.compare(".pms") == 0) {
-                    continue;
+                if (extension.compare(".pms") != 0) {
+                    loadChart(threadPool,
+                              db,
+                              support::pathToQString(parentDirectory),
+                              directory / path);
                 }
-                loadChart(
-                  threadPool, db, support::pathToQString(parentDirectory), directory / path);
                 // converting to string should not break stuff even on windows
                 // in this case
             } else if (path.starts_with(L"preview") &&
-                                                    (extension.compare(".mp3") == 0 || extension.compare(".ogg") == 0  ||
-                                                     extension.compare(".wav") == 0  || extension.compare(".flac") == 0 )) {
-                threadPool.start([&db, directory, path = std::filesystem::path(path)] {
-                    addPreviewFileToDb(db, directory, path);
-                });
+                       (extension.compare(".mp3") == 0 ||
+                        extension.compare(".ogg") == 0 ||
+                        extension.compare(".wav") == 0 ||
+                        extension.compare(".flac") == 0)) {
+                threadPool.start(
+                  [&db, directory, path = std::filesystem::path(path)] {
+                      addPreviewFileToDb(db, directory, path);
+                  });
             }
 
             if (fileInfo->NextEntryOffset == 0) {
                 break;
             }
-            fileInfo = (PFILE_DIRECTORY_INFORMATION)((BYTE*)fileInfo + fileInfo->NextEntryOffset);
+            fileInfo = reinterpret_cast<PFILE_DIRECTORY_INFORMATION>(
+              reinterpret_cast<BYTE*>(fileInfo) + fileInfo->NextEntryOffset);
         } while (true);
     }
     for (const auto& entry : directoriesToScan) {
@@ -324,10 +346,11 @@ SongDbScanner::scanDirectory(
                           directory.string());
         }
     } catch (const std::exception& e) {
-        spdlog::error("Error scanning directory {}: {}", directory.string(), e.what());
+        spdlog::error(
+          "Error scanning directory {}: {}", directory.string(), e.what());
     }
     threadPool.waitForDone();
-    spdlog::info("Scanning {} took {}", directory.string(), sw);
+    spdlog::info("Scanning {} took {} seconds", directory.string(), sw);
     updateCurrentScannedFolder("");
 }
 } // namespace resource_managers
