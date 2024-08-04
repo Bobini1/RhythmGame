@@ -237,8 +237,8 @@ calculateOffsetsForColumn(
     for (auto& [timestamp, note] : notesMap) {
         if (lnObj.has_value() && note.sound == lnObj.value()) {
             // we don't ever want two ln ends in a row
-            if (auto lastNote = target.rend();
-                lastNote != target.rbegin() &&
+            if (auto lastNote = getLastNote(target);
+                lastNote != target.rend() &&
                 lastNote->noteType != BmsNotesData::NoteType::LongNoteEnd) {
                 note.noteType = BmsNotesData::NoteType::LongNoteEnd;
                 lastNote->noteType = BmsNotesData::NoteType::LongNoteBegin;
