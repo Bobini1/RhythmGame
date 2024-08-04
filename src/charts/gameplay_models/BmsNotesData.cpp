@@ -28,9 +28,9 @@ enum class BpmChangeType
 };
 
 auto
-combineBpmChanges(const std::vector<uint16_t>& bpmChanges,
-                  const std::vector<uint16_t>& exBpmChanges,
-                  const std::vector<uint16_t>& stops,
+combineBpmChanges(std::span<const uint16_t> bpmChanges,
+                  std::span<const uint16_t> exBpmChanges,
+                  std::span<const uint16_t> stops,
                   const std::unordered_map<uint16_t, double>& bpms,
                   const std::unordered_map<uint16_t, double>& stopDefs)
   -> std::vector<BpmChangeDef>
@@ -108,7 +108,7 @@ combineBpmChanges(const std::vector<uint16_t>& bpmChanges,
 
 auto
 createNoteInfo(
-  const std::vector<uint16_t>& notes,
+  std::span<const uint16_t> notes,
   const std::map<std::pair<double, BpmChangeType>,
                  std::pair<double, BmsNotesData::Time>>& bpmChangesInMeasure,
   int index,
