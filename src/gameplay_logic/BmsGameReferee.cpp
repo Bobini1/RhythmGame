@@ -12,13 +12,12 @@ BmsGameReferee(
   std::array<std::vector<charts::gameplay_models::BmsNotesData::Note>,
              charts::gameplay_models::BmsNotesData::columnNumber>
     invisibleNotes,
-  std::vector<std::pair<charts::gameplay_models::BmsNotesData::Time,
-                        std::string>> bgmNotes,
+  std::vector<std::pair<charts::gameplay_models::BmsNotesData::Time, uint16_t>> bgmNotes,
   std::vector<std::pair<charts::gameplay_models::BmsNotesData::Time, double>>
     bpmChanges,
   sounds::OpenALSound* mineHitSound,
   BmsScore* score,
-  std::unordered_map<std::string, sounds::OpenALSound> sounds,
+  std::unordered_map<uint16_t, sounds::OpenALSound> sounds,
   std::unique_ptr<rules::BmsHitRules> hitRules)
   : bpmChanges(std::move(bpmChanges))
   , sounds(std::move(sounds))
@@ -28,10 +27,10 @@ BmsGameReferee(
 {
     for (int i = 0; i < charts::gameplay_models::BmsNotesData::columnNumber;
          i++) {
-        for (const auto& note : visibleNotes[i]) {
+        for (auto note : visibleNotes[i]) {
             addVisibleNote(i, note);
         }
-        for (const auto& note : invisibleNotes[i]) {
+        for (auto note : invisibleNotes[i]) {
             auto soundId = note.sound;
             if (auto sound = this->sounds.find(soundId);
                 sound != this->sounds.end()) {
@@ -116,11 +115,7 @@ gameplay_logic::BmsGameReferee::addVisibleNote(
     } else if (note.noteType ==
                charts::gameplay_models::BmsNotesData::NoteType::Landmine) {
         auto idx = std::size_t{ 0 };
-        auto penalty = -std::stoi(note.sound, &idx, 36) / 2;
-        if (idx != note.sound.size()) {
-            spdlog::warn("Invalid landmine penalty value: {}", note.sound);
-            penalty = 0;
-        }
+        auto penalty = -note.sound / 2;
         visibleNotes[i].emplace_back(rules::BmsHitRules::Mine{
           note.time.timestamp, static_cast<double>(penalty) });
     }

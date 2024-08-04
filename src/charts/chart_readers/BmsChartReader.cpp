@@ -13,7 +13,6 @@
 #include <boost/serialization/strong_typedef.hpp>
 #include <type_traits>
 #include "BmsChartReader.h"
-#include "support/toLower.h"
 
 #include <lexy_ext/report_error.hpp>
 #include <boost/locale/encoding.hpp>
@@ -23,34 +22,34 @@ namespace dsl = lexy::dsl;
 
 namespace {
 [[nodiscard]] auto
-trimR(std::string str) -> std::string
+trimR(std::string_view str) -> size_t
 {
     auto pos = str.find_last_not_of(" \t\r\n");
     if (pos != std::string::npos) {
-        str.resize(pos + 1);
-    } else {
-        str.clear();
+        return pos + 1;
     }
-    return str;
+    return 0;
+
 };
 
 struct TextTag
 {
     static constexpr auto value = lexy::callback<std::string>([](auto&& str) {
         return boost::locale::conv::to_utf<char>(
-          trimR(std::string(str.begin(), str.end())), "CP932");
+          str.begin(), str.begin() + trimR({str.data(), str.size()}), "CP932");
     });
     static constexpr auto rule = capture(until(dsl::unicode::newline).or_eof());
 };
 
 struct Identifier
 {
-    static constexpr auto value = lexy::callback<std::string>([](auto&& str) {
-        auto strLower = std::string{};
-        strLower.resize(str.size());
-        std::transform(
-          str.begin(), str.end(), strLower.begin(), support::toLower);
-        return strLower;
+    static constexpr auto value = lexy::callback<uint16_t>([](auto&& str) {
+        auto res = uint16_t{};
+        auto [ptr, ec] = std::from_chars(str.begin(), str.end(), res, 36);
+        if(ec == std::errc{} && ptr == str.end()) {
+            return res;
+        }
+        return uint16_t{ 0 };
     });
     static constexpr auto rule = capture(token(twice(dsl::ascii::alnum)));
 };
@@ -160,15 +159,16 @@ RG_STRONG_TYPEDEF(int, Rank)
 RG_STRONG_TYPEDEF(double, Bpm)
 RG_STRONG_TYPEDEF(int, PlayLevel)
 RG_STRONG_TYPEDEF(int, Difficulty)
-using wav_t = std::pair<std::string, std::string>;
+using wav_t = std::pair<uint16_t, std::string>;
 RG_STRONG_TYPEDEF(wav_t, Wav)
-using bmp_t = std::pair<std::string, std::string>;
+using bmp_t = std::pair<uint16_t, std::string>;
 RG_STRONG_TYPEDEF(bmp_t, Bmp)
-RG_STRONG_TYPEDEF(std::string, LnObj)
+using lnobj_t = uint16_t;
+RG_STRONG_TYPEDEF(lnobj_t, LnObj)
 RG_STRONG_TYPEDEF(int, LnType)
-using pair_t = std::pair<std::string, double>;
+using pair_t = std::pair<uint16_t, double>;
 RG_STRONG_TYPEDEF(pair_t, ExBpm)
-using stop_t = std::pair<std::string, double>;
+using stop_t = std::pair<uint16_t, double>;
 RG_STRONG_TYPEDEF(stop_t, Stop)
 using meter_t = std::pair<int64_t, double>;
 RG_STRONG_TYPEDEF(meter_t, Meter)
@@ -321,7 +321,7 @@ struct WavTag
         return wavTag >> (dsl::p<Identifier> + dsl::p<TextTag>);
     }();
     static constexpr auto value =
-      lexy::callback<Wav>([](std::string&& identifier, std::string&& filename) {
+      lexy::callback<Wav>([](uint16_t&& identifier, std::string&& filename) {
           return Wav{ { std::move(identifier), std::move(filename) } };
       });
 };
@@ -333,7 +333,7 @@ struct BmpTag
         return bmpTag >> (dsl::p<Identifier> + dsl::p<TextTag>);
     }();
     static constexpr auto value =
-      lexy::callback<Bmp>([](std::string&& identifier, std::string&& filename) {
+      lexy::callback<Bmp>([](uint16_t&& identifier, std::string&& filename) {
           return Bmp{ { std::move(identifier), std::move(filename) } };
       });
 };
@@ -345,7 +345,7 @@ struct LnObjTag
         return lnObjTag >> dsl::p<Identifier>;
     }();
     static constexpr auto value =
-      lexy::callback<LnObj>([](std::string&& identifier) {
+      lexy::callback<LnObj>([](uint16_t&& identifier) {
           return LnObj{ { std::move(identifier) } };
       });
 };
@@ -369,7 +369,7 @@ struct ExBpmTag
         return peek(exBpmTag) >> (exBpmTag + dsl::p<FloatingPoint>);
     }();
     static constexpr auto value =
-      lexy::callback<ExBpm>([](std::string identifier, double num) {
+      lexy::callback<ExBpm>([](uint16_t identifier, double num) {
           return ExBpm{ { std::move(identifier), num } };
       });
 };
@@ -382,7 +382,7 @@ struct StopTag
         return peek(stopTag) >> (stopTag + dsl::p<FloatingPoint>);
     }();
     static constexpr auto value =
-      lexy::callback<Stop>([](std::string identifier, double num) {
+      lexy::callback<Stop>([](uint16_t identifier, double num) {
           return Stop{ { std::move(identifier), num } };
       });
 };
@@ -410,35 +410,35 @@ struct TagsSink
         auto finish() && -> return_type { return std::move(state); }
         auto operator()(Title&& title) -> void
         {
-            state.title = std::move(static_cast<std::string&>(title));
+            state.title = static_cast<std::string&&>(std::move(title));
         }
         auto operator()(Artist&& artist) -> void
         {
-            state.artist = std::move(static_cast<std::string&>(artist));
+            state.artist = static_cast<std::string&&>(std::move(artist));
         }
         auto operator()(Subtitle&& subtitle) -> void
         {
-            state.subTitle = std::move(static_cast<std::string&>(subtitle));
+            state.subTitle = static_cast<std::string&&>(std::move(subtitle));
         }
         auto operator()(Subartist&& subartist) -> void
         {
-            state.subArtist = std::move(static_cast<std::string&>(subartist));
+            state.subArtist = static_cast<std::string&&>(std::move(subartist));
         }
         auto operator()(Genre&& genre) -> void
         {
-            state.genre = std::move(static_cast<std::string&>(genre));
+            state.genre = static_cast<std::string&&>(std::move(genre));
         }
         auto operator()(StageFile&& stageFile) -> void
         {
-            state.stageFile = std::move(static_cast<std::string&>(stageFile));
+            state.stageFile = static_cast<std::string&&>(std::move(stageFile));
         }
         auto operator()(Banner&& banner) -> void
         {
-            state.banner = std::move(static_cast<std::string&>(banner));
+            state.banner = static_cast<std::string&&>(std::move(banner));
         }
         auto operator()(BackBmp&& backBmp) -> void
         {
-            state.backBmp = std::move(static_cast<std::string&>(backBmp));
+            state.backBmp = static_cast<std::string&&>(std::move(backBmp));
         }
         auto operator()(Total&& total) -> void
         {
@@ -462,7 +462,7 @@ struct TagsSink
         }
         auto operator()(LnObj&& lnObj) -> void
         {
-            state.lnObj = std::move(static_cast<std::string&>(lnObj));
+            state.lnObj = std::move(static_cast<uint16_t&>(lnObj));
         }
         auto operator()(LnType&& lnType) -> void
         {
@@ -471,7 +471,7 @@ struct TagsSink
         auto operator()(ExBpm&& bpm) -> void
         {
             auto& [identifier, value] =
-              static_cast<std::pair<std::string, double>&>(bpm);
+              static_cast<std::pair<uint16_t, double>&>(bpm);
             if (value != 0.0) {
                 state.exBpms[identifier] = value;
             }
@@ -479,7 +479,7 @@ struct TagsSink
         auto operator()(Stop&& stop) -> void
         {
             auto& [identifier, value] =
-              static_cast<std::pair<std::string, double>&>(stop);
+              static_cast<std::pair<uint16_t, double>&>(stop);
             if (value != 0.0) {
                 state.stops[identifier] = value;
             }
@@ -501,14 +501,14 @@ struct TagsSink
         auto operator()(Wav&& wav) -> void
         {
             auto& [identifier, filename] =
-              static_cast<std::pair<std::string, std::string>&>(wav);
+              static_cast<std::pair<uint16_t, std::string>&>(wav);
             state.wavs[identifier] = std::move(filename);
         }
 
         auto operator()(Bmp&& bmp) -> void
         {
             auto& [identifier, filename] =
-              static_cast<std::pair<std::string, std::string>&>(bmp);
+              static_cast<std::pair<uint16_t, std::string>&>(bmp);
             state.bmps[identifier] = std::move(filename);
         }
 
@@ -549,7 +549,7 @@ struct TagsSink
 
             auto addNotes = [](auto& noteArray,
                                unsigned column,
-                               std::vector<std::string> identifiers) {
+                               std::vector<uint16_t> identifiers) {
                 if (column < 1 || column > noteArray.size()) [[unlikely]] {
                     return;
                 }

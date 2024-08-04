@@ -113,7 +113,7 @@ ChartFactory::createChart(
         auto sounds =
           charts::helper_functions::loadBmsSounds(wavs, std::move(path));
         sounds::OpenALSound* mineHitSound = nullptr;
-        if (auto sound = sounds.find("00"); sound != sounds.end()) {
+        if (auto sound = sounds.find(0); sound != sounds.end()) {
             mineHitSound = &sound->second;
         }
         return gameplay_logic::BmsGameReferee(std::move(visibleNotes),
@@ -135,11 +135,11 @@ ChartFactory::createChart(
         auto start = std::chrono::high_resolution_clock::now();
         struct Request
         {
-            std::string path;
+            std::filesystem::path path;
             bool requested;
         };
 
-        auto requested = std::unordered_map<std::string, Request>{};
+        auto requested = std::unordered_map<uint16_t, Request>{};
         for (auto& bmp : bmps) {
             requested.emplace(bmp.first, Request(std::move(bmp.second), false));
         }
@@ -171,7 +171,7 @@ ChartFactory::createChart(
 
         struct FrameLoadingResult
         {
-            std::string id;
+            uint16_t id;
             std::filesystem::path path;
             QVideoFrame* frame;
         };
@@ -181,7 +181,7 @@ ChartFactory::createChart(
           QtConcurrent::blockingMapped<QList<FrameLoadingResult>>(
             requested, [path](auto bmp) -> FrameLoadingResult {
                 auto filePath =
-                  path / support::utfStringToPath(bmp.second.path);
+                  path / bmp.second.path;
                 auto ret = FrameLoadingResult{ bmp.first, filePath, {} };
                 if (!bmp.second.requested) {
                     return ret;
@@ -195,8 +195,8 @@ ChartFactory::createChart(
             });
         // create unordered_maps
         auto frames =
-          std::unordered_map<std::string, std::unique_ptr<QVideoFrame>>{};
-        auto videos = std::unordered_map<std::string, QMediaPlayer*>{};
+          std::unordered_map<uint16_t, std::unique_ptr<QVideoFrame>>{};
+        auto videos = std::unordered_map<uint16_t, QMediaPlayer*>{};
         for (auto& frame : loadedBgaFrames) {
             if (frame.frame) {
                 frames.emplace(frame.id,

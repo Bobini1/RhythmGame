@@ -7,6 +7,8 @@
 #include <utility>
 #include <fstream>
 #include <qfileinfo.h>
+#include <boost/locale/encoding.hpp>
+#include "support/UtfStringToPath.h"
 
 namespace resource_managers {
 auto
@@ -106,11 +108,31 @@ ChartDataFactory::loadChartData(
 {
     auto mfh = llfio::mapped_file({}, chartPath).value();
     auto length = mfh.maximum_extent().value();
-    auto chart = std::string_view{reinterpret_cast<char*>(mfh.address()), length};
+    auto chart =
+      std::string_view{ reinterpret_cast<char*>(mfh.address()), length };
     auto hash = support::sha256(chart);
     auto parsedChart =
       chartReader.readBmsChart(chart, std::move(randomGenerator));
     mfh.close().value();
+
+    auto title = QString::fromUtf8(parsedChart.tags.title.value_or(""));
+    auto artist = QString::fromUtf8(parsedChart.tags.artist.value_or(""));
+    auto subtitle = QString::fromUtf8(parsedChart.tags.subTitle.value_or(""));
+    auto subartist = QString::fromUtf8(parsedChart.tags.subArtist.value_or(""));
+    auto genre = QString::fromUtf8(parsedChart.tags.genre.value_or(""));
+    auto stageFile = QString::fromUtf8(parsedChart.tags.stageFile.value_or(""));
+    auto banner = QString::fromUtf8(parsedChart.tags.banner.value_or(""));
+    auto backBmp = QString::fromUtf8(parsedChart.tags.backBmp.value_or(""));
+    std::unordered_map<uint16_t, std::filesystem::path> wavs;
+    wavs.reserve(parsedChart.tags.wavs.size());
+    for (const auto& wav : parsedChart.tags.wavs) {
+        wavs.emplace(wav.first, support::utfStringToPath(wav.second));
+    }
+    std::unordered_map<uint16_t, std::filesystem::path> bmps;
+    bmps.reserve(parsedChart.tags.bmps.size());
+    for (const auto& bmp : parsedChart.tags.bmps) {
+        wavs.emplace(bmp.first, support::utfStringToPath(bmp.second));
+    }
     auto calculatedNotesData =
       charts::gameplay_models::BmsNotesData{ parsedChart };
     auto noteData = makeNotes(calculatedNotesData);
@@ -172,14 +194,14 @@ ChartDataFactory::loadChartData(
         }
     }
     auto chartData = std::make_unique<gameplay_logic::ChartData>(
-      QString::fromStdString(parsedChart.tags.title.value_or("")),
-      QString::fromStdString(parsedChart.tags.artist.value_or("")),
-      QString::fromStdString(parsedChart.tags.subTitle.value_or("")),
-      QString::fromStdString(parsedChart.tags.subArtist.value_or("")),
-      QString::fromStdString(parsedChart.tags.genre.value_or("")),
-      QString::fromStdString(parsedChart.tags.stageFile.value_or("")),
-      QString::fromStdString(parsedChart.tags.banner.value_or("")),
-      QString::fromStdString(parsedChart.tags.backBmp.value_or("")),
+      std::move(title),
+      std::move(subtitle),
+      std::move(artist),
+      std::move(subartist),
+      std::move(genre),
+      std::move(stageFile),
+      std::move(banner),
+      std::move(backBmp),
       parsedChart.tags.rank.value_or(2),
       parsedChart.tags.total.value_or(160.0),
       parsedChart.tags.playLevel.value_or(1),
@@ -199,7 +221,7 @@ ChartDataFactory::loadChartData(
     return { std::move(chartData),
              std::move(noteData),
              std::move(calculatedNotesData),
-             std::move(parsedChart.tags.wavs),
-             std::move(parsedChart.tags.bmps) };
+             std::move(wavs),
+             std::move(bmps) };
 }
 } // namespace resource_managers
