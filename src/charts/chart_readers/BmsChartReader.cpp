@@ -513,7 +513,7 @@ struct TagsSink
         }
 
         auto operator()(
-          std::tuple<int64_t, int, std::vector<std::string>>&& measureBasedTag)
+          std::tuple<int64_t, int, std::vector<uint16_t>>&& measureBasedTag)
           -> void
         {
             auto [measure, channel, identifiers] = std::move(measureBasedTag);
