@@ -48,7 +48,7 @@ charts::parser_models::ParsedBmsChart::mergeTags(
         first.difficulty = second.difficulty;
     }
     if (second.lnObj.has_value()) {
-        first.lnObj = std::move(second.lnObj);
+        first.lnObj = second.lnObj;
     }
     if (second.lnType.has_value()) {
         first.lnType = second.lnType;
