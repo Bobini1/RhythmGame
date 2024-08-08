@@ -8,10 +8,11 @@
 #include "gameplay_logic/Chart.h"
 #include "support/QStringToPath.h"
 #include "magic_enum.hpp"
+#include "qdir.h"
 
 namespace qml_components {
 auto
-ChartLoader::loadChart(const QString& filename) -> gameplay_logic::Chart*
+ChartLoader::loadChart(QString filename) -> gameplay_logic::Chart*
 {
     try {
         auto randomGenerator =
@@ -23,9 +24,14 @@ ChartLoader::loadChart(const QString& filename) -> gameplay_logic::Chart*
                   randomRange
               }(randomEngine);
           };
+
+#if _WIN32
+        filename.replace('\\', '/');
+#endif
+        auto fileAbsolute = QFileInfo(filename).absoluteFilePath();
         auto chartComponents =
           chartDataFactory->loadChartData(
-          support::qStringToPath(filename), randomGenerator);
+          support::qStringToPath(fileAbsolute), randomGenerator);
         auto rankInt = chartComponents.chartData->getRank();
         auto rank =
           magic_enum::enum_cast<gameplay_logic::rules::BmsRank>(rankInt)

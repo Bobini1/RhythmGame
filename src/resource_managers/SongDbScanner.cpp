@@ -12,7 +12,7 @@
 #include <qthreadpool.h>
 #include <spdlog/stopwatch.h>
 #ifdef _WIN32
-#include <windows.h>
+#include <Windows.h>
 #include <winternl.h>
 #include <ntstatus.h>
 #endif
@@ -26,56 +26,56 @@ SongDbScanner::SongDbScanner(db::SqliteCppDb* db)
 {
 }
 
-void
-addDirToParentDirs(QThreadPool& threadPool,
-                   db::SqliteCppDb& db,
+int64_t
+addDirToParentDirs(db::SqliteCppDb& db,
                    QString root,
                    QString folder)
 {
-    threadPool.start([&db, root, folder]() mutable {
-        auto insert =
+    auto insert =
           db.createStatement("INSERT OR IGNORE INTO parent_dir "
                              "(parent_dir, dir) VALUES (:parent_dir, "
                              ":dir)");
-        auto getIdQuery =
-          db.createStatement("SELECT id FROM parent_dir WHERE dir = :dir");
 #ifdef _WIN32
-        folder.replace('\\', '/');
+    folder.replace('\\', '/');
 #endif
-        if (folder.back() != '/') {
-            folder += '/';
+    if (folder.back() != '/') {
+        folder += '/';
+    }
+    auto parent = std::string{};
+    auto current = root;
+    auto rest = folder.right(folder.size() - root.size());
+    while (true) {
+        insert.reset();
+        if (parent.empty()) {
+            insert.bind(":parent_dir");
+        } else {
+            insert.bind(std::string(":parent_dir"), parent);
         }
-        auto parent = int64_t{ -1 };
-        auto current = root;
-        auto rest = folder.right(folder.size() - root.size());
-        while (true) {
-            insert.reset();
-            if (parent == int64_t{ -1 }) {
-                insert.bind(":parent_dir");
-            } else {
-                insert.bind(std::string(":parent_dir"), parent);
-            }
-            insert.bind(":dir", current.toStdString());
-            insert.execute();
-            if (current == folder || folder.isEmpty()) {
-                break;
-            }
-            getIdQuery.reset();
-            getIdQuery.bind(":dir", current.toStdString());
-            parent = getIdQuery.executeAndGet<int64_t>().value();
-            current = current + rest.left(rest.indexOf('/') + 1);
-            rest = rest.right(rest.size() - rest.indexOf('/') - 1);
+        insert.bind(":dir", parent = current.toStdString());
+        insert.execute();
+        if (current == folder || folder.isEmpty()) {
+            break;
         }
-    });
+        current = current + rest.left(rest.indexOf('/') + 1);
+        rest = rest.right(rest.size() - rest.indexOf('/') - 1);
+    }
+    auto getIdQuery =
+      db.createStatement("SELECT id FROM parent_dir WHERE dir = :dir");
+    getIdQuery.bind(":dir",  folder.toStdString());
+    return getIdQuery.executeAndGet<int64_t>().value();
 }
 void
 loadChart(QThreadPool& threadPool,
           db::SqliteCppDb& db,
-          const QString& directory,
-          const std::filesystem::path& path
+          int64_t directory,
+          const std::filesystem::path& path,
+          std::atomic_bool* stop
           )
 {
-    threadPool.start([&db, path, directory]() mutable {
+    threadPool.start([&db, path, directory, stop] {
+        if (*stop) {
+            return;
+        }
         try {
             thread_local constexpr ChartDataFactory chartDataFactory;
             auto randomGenerator =
@@ -107,12 +107,18 @@ addPreviewFileToDb(db::SqliteCppDb& db,
                    const std::filesystem::path& directory,
                    const std::filesystem::path& path)
 {
+    auto previewPath = support::pathToUtfString((path));
+    auto directoryPath = support::pathToUtfString((directory / ""));
+#if _WIN32
+    std::ranges::replace(previewPath, '\\', '/');
+    std::ranges::replace(directoryPath, '\\', '/');
+#endif
     auto statement = db.createStatement(
       "INSERT OR REPLACE INTO preview_files (path, directory) "
       "VALUES (?, ?)");
     statement.reset();
-    statement.bind(1, support::pathToUtfString(path));
-    statement.bind(2, support::pathToUtfString(directory / ""));
+    statement.bind(1, previewPath);
+    statement.bind(2, directoryPath);
     statement.execute();
 }
 #ifdef _WIN32
@@ -172,6 +178,15 @@ scanFolder(std::filesystem::path directory,
     updateCurrentScannedFolder(support::pathToQString(directory.lexically_normal()));
     auto directoriesToScan = std::vector<std::filesystem::path>{};
     auto isSongDirectory = false;
+    auto parentDirQString = support::pathToQString(parentDirectory);
+    if (!parentDirQString.isEmpty()) {
+        parentDirQString.replace('\\', '/');
+        if (parentDirQString.back() != '/') {
+            parentDirQString += '/';
+        }
+    }
+    auto previewPath = std::filesystem::path{};
+    auto dirId = int64_t{ 0 };
 
     while (true) {
         auto status = NtQueryDirectoryFile(hDirectory,
@@ -216,25 +231,25 @@ scanFolder(std::filesystem::path directory,
                        extension.compare(".bme") == 0 ||
                        extension.compare(".bml") == 0 ||
                        extension.compare(".pms") == 0) {
-                isSongDirectory = true;
+                if (!isSongDirectory) {
+                    dirId = addDirToParentDirs(
+                      db, root, parentDirQString);
+                    isSongDirectory = true;
+                }
                 directoriesToScan.clear();
                 if (extension.compare(".pms") != 0) {
                     loadChart(threadPool,
                               db,
-                              support::pathToQString(parentDirectory),
-                              directory / path);
+                              dirId,
+                              directory / path,
+                              stop);
                 }
-                // converting to string should not break stuff even on windows
-                // in this case
             } else if (path.starts_with(L"preview") &&
                        (extension.compare(".mp3") == 0 ||
                         extension.compare(".ogg") == 0 ||
                         extension.compare(".wav") == 0 ||
                         extension.compare(".flac") == 0)) {
-                threadPool.start(
-                  [&db, directory, path = std::filesystem::path(path)] {
-                      addPreviewFileToDb(db, directory, path);
-                  });
+                previewPath = directory / path;
             }
 
             if (fileInfo->NextEntryOffset == 0) {
@@ -243,6 +258,12 @@ scanFolder(std::filesystem::path directory,
             fileInfo = reinterpret_cast<PFILE_DIRECTORY_INFORMATION>(
               reinterpret_cast<BYTE*>(fileInfo) + fileInfo->NextEntryOffset);
         } while (true);
+    }
+    if (!previewPath.empty() && isSongDirectory) {
+        threadPool.start(
+          [&db, directory, previewPath] {
+              addPreviewFileToDb(db, directory, previewPath);
+          });
     }
     for (const auto& entry : directoriesToScan) {
         if (*stop) {
@@ -255,10 +276,6 @@ scanFolder(std::filesystem::path directory,
                    root,
                    updateCurrentScannedFolder,
                    stop);
-    }
-    if (isSongDirectory) {
-        addDirToParentDirs(
-          threadPool, db, root, support::pathToQString(parentDirectory));
     }
 }
 #else
@@ -331,9 +348,6 @@ SongDbScanner::scanDirectory(
     try {
         if (is_directory(directory)) {
             const auto root = support::pathToQString(directory);
-
-            // Read up to ten directory_entry
-            std::vector<llfio::directory_handle::buffer_type> buffer(20000);
             scanFolder(directory,
                        {},
                        threadPool,
@@ -350,7 +364,11 @@ SongDbScanner::scanDirectory(
           "Error scanning directory {}: {}", directory.string(), e.what());
     }
     threadPool.waitForDone();
-    spdlog::info("Scanning {} took {} seconds", directory.string(), sw);
+    if (*stop) {
+        spdlog::info("Scanning {} cancelled after {} seconds", directory.string(), sw);
+    } else {
+        spdlog::info("Scanning {} took {} seconds", directory.string(), sw);
+    }
     updateCurrentScannedFolder("");
 }
 } // namespace resource_managers

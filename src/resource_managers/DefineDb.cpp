@@ -30,10 +30,14 @@ defineDb(db::SqliteCppDb& db)
                "max_bpm REAL NOT NULL,"
                "min_bpm REAL NOT NULL,"
                "path TEXT NOT NULL UNIQUE,"
-               "directory TEXT NOT NULL,"
+               "chart_directory TEXT,"
+               "directory INTEGER,"
                "sha256 TEXT NOT NULL,"
                "keymode INTEGER NOT NULL"
                ");");
+
+    db.execute("CREATE INDEX IF NOT EXISTS directory_index ON charts(directory)");
+    db.execute("CREATE INDEX IF NOT EXISTS chart_directory_index ON charts(chart_directory)");
 
     db.execute("CREATE TABLE IF NOT EXISTS note_data ("
                "id INTEGER PRIMARY KEY AUTOINCREMENT,"
@@ -50,8 +54,7 @@ defineDb(db::SqliteCppDb& db)
     db.execute("CREATE TABLE IF NOT EXISTS root_dir ("
                "id INTEGER PRIMARY KEY AUTOINCREMENT,"
                "path TEXT NOT NULL UNIQUE,"
-               "status INTEGER DEFAULT 0 NOT NULL" // 0 = not scanned, 1 =
-                                                   // scanning, 2 = scanned
+               "status INTEGER DEFAULT 0 NOT NULL" // 0 = not scanned, 1 = scanned
                ");");
 
     db.execute("CREATE TABLE IF NOT EXISTS current_profile ("
@@ -62,7 +65,7 @@ defineDb(db::SqliteCppDb& db)
     db.execute("CREATE TABLE IF NOT EXISTS preview_files ("
                "id INTEGER PRIMARY KEY AUTOINCREMENT,"
                "path TEXT NOT NULL,"
-               "directory TEXT NOT NULL UNIQUE"
+               "directory INTEGER UNIQUE"
                ");");
 }
 } // namespace resource_managers

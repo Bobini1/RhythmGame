@@ -9,6 +9,7 @@
 #include <qfileinfo.h>
 #include <boost/locale/encoding.hpp>
 #include "support/UtfStringToPath.h"
+#include "support/PathToQString.h"
 
 namespace resource_managers {
 auto
@@ -104,7 +105,7 @@ ChartDataFactory::loadChartData(
   const std::filesystem::path& chartPath,
   std::function<charts::parser_models::ParsedBmsChart::RandomRange(
     charts::parser_models::ParsedBmsChart::RandomRange)> randomGenerator,
-  QString directoryInDb) const -> ChartDataFactory::ChartComponents
+  int64_t directory) const -> ChartDataFactory::ChartComponents
 {
     auto mfh = llfio::mapped_file({}, chartPath).value();
     auto length = mfh.maximum_extent().value();
@@ -131,7 +132,7 @@ ChartDataFactory::loadChartData(
     std::unordered_map<uint16_t, std::filesystem::path> bmps;
     bmps.reserve(parsedChart.tags.bmps.size());
     for (const auto& bmp : parsedChart.tags.bmps) {
-        wavs.emplace(bmp.first, support::utfStringToPath(bmp.second));
+        bmps.emplace(bmp.first, support::utfStringToPath(bmp.second));
     }
     auto calculatedNotesData =
       charts::gameplay_models::BmsNotesData{ parsedChart };
@@ -193,6 +194,10 @@ ChartDataFactory::loadChartData(
             }
         }
     }
+    auto path = support::pathToQString(chartPath);
+#if _WIN32
+    path.replace('\\', '/');
+#endif
     auto chartData = std::make_unique<gameplay_logic::ChartData>(
       std::move(title),
       std::move(subtitle),
@@ -214,8 +219,8 @@ ChartDataFactory::loadChartData(
       initialBpm.second,
       maxBpm.second,
       minBpm.second,
-      QFileInfo{ chartPath }.absoluteFilePath(),
-      std::move(directoryInDb),
+      path,
+      directory,
       QString::fromStdString(hash),
       keymode);
     return { std::move(chartData),

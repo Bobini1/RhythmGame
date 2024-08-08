@@ -43,15 +43,14 @@ class ChartData : public QObject
     Q_PROPERTY(int mineCount READ getMineCount CONSTANT)
     Q_PROPERTY(int64_t length READ getLength CONSTANT)
     Q_PROPERTY(QString path READ getPath CONSTANT)
-    Q_PROPERTY(QString directoryInDb READ getDirectoryInDb CONSTANT)
+    Q_PROPERTY(QString directory READ getDirectory CONSTANT)
+    Q_PROPERTY(QString chartDirectory READ getChartDirectory CONSTANT)
     Q_PROPERTY(QString sha256 READ getSha256 CONSTANT)
     Q_PROPERTY(bool isRandom READ getIsRandom CONSTANT)
     Q_PROPERTY(Keymode keymode READ getKeymode CONSTANT)
     Q_PROPERTY(double initialBpm READ getInitialBpm CONSTANT)
     Q_PROPERTY(double maxBpm READ getMaxBpm CONSTANT)
     Q_PROPERTY(double minBpm READ getMinBpm CONSTANT)
-
-    Q_PROPERTY(QString directory READ getDirectory CONSTANT)
 
     ChartData() = default;
 
@@ -77,7 +76,7 @@ class ChartData : public QObject
               double maxBpm,
               double minBpm,
               QString path,
-              QString directoryInDb,
+              int64_t directory,
               QString sha256,
               Keymode keymode,
               QObject* parent = nullptr);
@@ -98,7 +97,6 @@ class ChartData : public QObject
     [[nodiscard]] auto getMaxBpm() const -> double;
     [[nodiscard]] auto getMinBpm() const -> double;
     [[nodiscard]] auto getPath() const -> QString;
-    [[nodiscard]] auto getDirectoryInDb() const -> QString;
     [[nodiscard]] auto getRank() const -> int;
     [[nodiscard]] auto getTotal() const -> double;
     [[nodiscard]] auto getPlayLevel() const -> int;
@@ -106,8 +104,8 @@ class ChartData : public QObject
     [[nodiscard]] auto getSha256() const -> QString;
     [[nodiscard]] auto getIsRandom() const -> bool;
     [[nodiscard]] auto getKeymode() const -> Keymode;
-
     [[nodiscard]] auto getDirectory() const -> QString;
+    [[nodiscard]] auto getChartDirectory() const -> QString;
 
     struct DTO
     {
@@ -133,7 +131,7 @@ class ChartData : public QObject
         double maxBpm;
         double minBpm;
         std::string path;
-        std::string directory;
+        int64_t directory;
         std::string sha256;
         int keymode;
     };
@@ -164,7 +162,7 @@ class ChartData : public QObject
     double maxBpm;
     double minBpm;
     QString path;
-    QString directoryInDb;
+    int64_t directory;
     QString sha256;
     Keymode keymode;
 };

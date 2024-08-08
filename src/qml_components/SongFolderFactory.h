@@ -16,21 +16,30 @@ class SongFolderFactory : public QObject
 
     db::SqliteCppDb* db;
     db::SqliteCppDb::Statement getCharts =
-      db->createStatement("SELECT * FROM charts WHERE directory "
-                          "IS ? ORDER BY title, subtitle ASC");
+      db->createStatement("SELECT id, title, artist, subtitle, subartist, "
+                          "genre, stage_file, banner, back_bmp, rank, total, "
+                          "play_level, difficulty, is_random, normal_note_count, "
+                          "ln_count, mine_count, length, initial_bpm, max_bpm, "
+                          "min_bpm, path, directory, sha256, keymode "
+                          "FROM charts WHERE directory IS (SELECT id FROM parent_dir WHERE dir IS ?) "
+                          "ORDER BY title, subtitle ASC");
     db::SqliteCppDb::Statement getFolders =
-      db->createStatement("SELECT dir FROM parent_dir WHERE parent_dir IS ? "
-                          "ORDER BY dir ASC");
+      db->createStatement("SELECT dir FROM parent_dir "
+                          "WHERE parent_dir IS ? ORDER BY dir ASC");
     // query to get count of charts and subfolders
     db::SqliteCppDb::Statement getSize =
-      db->createStatement("SELECT COUNT(*) FROM parent_dir WHERE parent_dir IS "
-                          "? UNION SELECT COUNT(*) FROM charts WHERE "
-                          "directory IS ?");
+      db->createStatement("SELECT COUNT(*) FROM parent_dir WHERE parent_dir = "
+                          "(SELECT id FROM parent_dir WHERE dir IS ?) UNION SELECT COUNT(*) FROM charts WHERE "
+                          "directory IS (SELECT id FROM parent_dir WHERE dir IS ?)");
     db::SqliteCppDb::Statement searchFolders =
       db->createStatement("SELECT dir FROM parent_dir WHERE dir LIKE ? "
                           "ORDER BY dir ASC");
     db::SqliteCppDb::Statement searchCharts = db->createStatement(
-      "SELECT * FROM charts WHERE title LIKE :query OR "
+      "SELECT id, title, artist, subtitle, subartist, "
+      "genre, stage_file, banner, back_bmp, rank, total, "
+      "play_level, difficulty, is_random, normal_note_count, "
+      "ln_count, mine_count, length, initial_bpm, max_bpm, "
+      "min_bpm, path, directory, sha256, keymode FROM charts WHERE title LIKE :query OR "
       "artist LIKE :query OR subtitle LIKE :query or subartist LIKE "
       ":query or genre LIKE :query ORDER BY title, subtitle ASC");
     db::SqliteCppDb::Statement getParentFolder =

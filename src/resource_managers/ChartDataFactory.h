@@ -40,7 +40,7 @@ class ChartDataFactory
       const std::filesystem::path& chartPath,
       std::function<charts::parser_models::ParsedBmsChart::RandomRange(
         charts::parser_models::ParsedBmsChart::RandomRange)> randomGenerator,
-      QString directoryInDb = QString()) const -> ChartComponents;
+      int64_t directory = 0) const -> ChartComponents;
 };
 
 } // namespace resource_managers

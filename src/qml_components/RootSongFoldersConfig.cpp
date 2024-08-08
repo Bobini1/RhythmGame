@@ -150,12 +150,8 @@ RootSongFolders::RootSongFolders(db::SqliteCppDb* db,
   , scanningQueue(scanningQueue)
 {
     folders = getStartupRootFolders(getRootFolders);
-    db->execute("UPDATE root_dir SET status = 0 WHERE status = 1");
     for (const auto& folder : folders) {
-        if (const auto status = folder->getStatus();
-            status == RootSongFolder::Status::NotScanned ||
-            status == RootSongFolder::Status::InProgress) {
-            folder->updateStatus(RootSongFolder::Status::NotScanned);
+        if (folder->getStatus() == RootSongFolder::Status::NotScanned) {
             scanningQueue->scan(folder.get());
         }
     }
@@ -245,6 +241,7 @@ void
 ScanningQueue::performTask()
 {
     const auto& folder = scanItems.front();
+    folder->updateStatus(RootSongFolder::Status::InProgress);
     scanImpl(folder->getName());
 }
 void
@@ -293,13 +290,12 @@ ScanningQueue::clearImpl(const QString& which)
     removeSongsStartingWith.reset();
     removeSongsStartingWith.bind(":dir", folderNameStd);
     removeSongsStartingWith.execute();
-    removeParentDirsStartingWith.reset();
-    removeParentDirsStartingWith.bind(":dir", folderNameStd);
-    removeParentDirsStartingWith.execute();
+    db->execute("DELETE FROM parent_dir WHERE parent_dir.id NOT IN "
+                "(SELECT directory FROM charts)");
     db->execute("DELETE FROM note_data WHERE note_data.sha256 NOT IN "
                 "(SELECT sha256 FROM charts);");
     db->execute("DELETE FROM preview_files WHERE directory NOT IN "
-                "(SELECT directory FROM charts);");
+                "(SELECT chart_directory FROM charts);");
 }
 auto
 ScanningQueue::rowCount(const QModelIndex& parent) const -> int
