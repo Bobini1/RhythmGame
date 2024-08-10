@@ -67,5 +67,7 @@ defineDb(db::SqliteCppDb& db)
                "path TEXT NOT NULL,"
                "directory INTEGER UNIQUE"
                ");");
+
+    db.execute("PRAGMA optimize;");
 }
 } // namespace resource_managers
