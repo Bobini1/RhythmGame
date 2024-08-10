@@ -116,7 +116,8 @@ RowLayout {
             }
             return shortNum;
         }
-        horizontalAlignment: Text.AlignHCenter
+        horizontalAlignment: contentWidth >= width ? TextField.AlignLeft : TextField.AlignHCenter
+        autoScroll: false
         Layout.preferredWidth: textMetrics.width + 20
         text: getFormattedNumber(destination[props.id])
         Layout.fillHeight: true
@@ -136,10 +137,19 @@ RowLayout {
 
         onEditingFinished: {
             text = Qt.binding(() => getFormattedNumber(destination[props.id]))
+            ensureVisible(0);
+        }
+        onActiveFocusChanged: {
+            autoScroll = true;
+        }
+
+        Component.onCompleted: {
+            ensureVisible(0);
         }
         TextMetrics {
             id: textMetrics
             font: textField.font
+
             text: {
                 let length = 0;
                 let str = ""
