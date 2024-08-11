@@ -71,6 +71,21 @@ Item {
                 }
                 Separator {}
                 GlobalSettingsProperty {
+                    text: "Hidden"
+                    props: {"id": "hiddenOn", "default": false}
+                    sourceComponent: Component {
+                        Boolean {}
+                    }
+                }
+                GlobalSettingsProperty {
+                    text: "Hidden Ratio"
+                    props: {"id": "hiddenRatio", "default": 0.1, "min": 0, "max": 1}
+                    sourceComponent: Component {
+                        Range {}
+                    }
+                }
+                Separator {}
+                GlobalSettingsProperty {
                     text: "BGA Enabled"
                     props: {"id": "bgaOn", "default": true}
                     sourceComponent: Component {

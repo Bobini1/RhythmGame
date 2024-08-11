@@ -147,13 +147,10 @@ Item {
                 }
                 let item = noteRepeater.itemAt(count);
                 if (item.state !== "reparented") {
-                    let itemY = Math.min(column.chartPosition - item.height / 2, item.y);
                     if (column.chartPosition - item.height / 2 < item.y) {
-                        item.y = itemY;
+                        item.y = column.chartPosition - item.height / 2;
                         item.state = "reparented";
                         item.z = 3;
-                    } else {
-                        item.y = itemY;
                     }
                 }
                 count++;
@@ -163,8 +160,7 @@ Item {
             count = 0;
             while (visibleNoteIndex + count < noteRepeater.count) {
                 let noteImage = noteRepeater.itemAt(visibleNoteIndex + count);
-                let globalPos = noteImage.mapToItem(root, 0, 0);
-                globalPos.y += column.noteHeight;
+                let globalPos = noteImage.mapToItem(playObjectContainer, 0, column.noteHeight);
                 if (globalPos.y > 0) {
                     noteImage.visible = true;
                     noteImage.width = Qt.binding(() => column.width);

@@ -54,7 +54,7 @@ Item {
             count = 0;
             while (visibleBarIndex + count < barLineRepeater.count) {
                 let bar = barLineRepeater.itemAt(visibleBarIndex + count);
-                let globalPos = bar.mapToGlobal(0, bar.height);
+                let globalPos = bar.mapToItem(playObjectContainer, 0, bar.height);
                 if (globalPos.y > 0) {
                     bar.visible = true;
                     count++;
