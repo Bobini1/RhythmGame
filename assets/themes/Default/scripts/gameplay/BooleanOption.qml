@@ -17,7 +17,7 @@ Row {
         horizontalAlignment: Text.AlignHCenter
         text: parent.description
         verticalAlignment: Text.AlignVCenter
-        width: 100
+        width: 110
     }
     CheckBox {
         id: checkBox

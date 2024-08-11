@@ -21,7 +21,7 @@ Row {
         horizontalAlignment: Text.AlignHCenter
         verticalAlignment: Text.AlignVCenter
         color: "white"
-        width: 100
+        width: 110
     }
     Slider {
         id: slider

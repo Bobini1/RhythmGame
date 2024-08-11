@@ -16,7 +16,7 @@ Row {
 
         anchors.verticalCenter: parent.verticalCenter
         color: "white"
-        width: 100
+        width: 110
         font.bold: true
         text: imageSelection.label
         verticalAlignment: Text.AlignVCenter

@@ -26,6 +26,19 @@
         "description": "Move the scratch to the right side of the play area (player 2 layout)",
         "type": "boolean",
         "default": false
+      },
+      {
+        "id": "judgeLineThickness",
+        "name": "Judge Line Thickness",
+        "type": "range",
+        "min": 0,
+        "default": 8
+      },
+      {
+        "id": "judgeLineColor",
+        "name": "Judge Line Color",
+        "type": "color",
+        "default": "red"
       }
     ]
   },
@@ -160,7 +173,7 @@
             "name": "Thickness",
             "type": "range",
             "min": 0,
-            "default": 36
+            "default": 12
           },
           {
             "id": "whiteWidth",

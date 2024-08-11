@@ -31,6 +31,16 @@ GameplayPopup {
             from: 0
             to: 200
         }
+        NumberWithSlider {
+            text: "Judge Line Thickness"
+            prop: "judgeLineThickness"
+            from: 0
+            to: 200
+        }
+        ColorChoice {
+            description: "Judge Line Color"
+            prop: "judgeLineColor"
+        }
         BooleanOption {
             description: "Flip Scratch Lane"
             prop: "scratchOnRightSide"
@@ -61,6 +71,18 @@ GameplayPopup {
         NumberWithSlider {
             text: "Lift Ratio"
             prop: "liftRatio"
+            global: true
+            from: 0
+            to: 1
+        }
+        BooleanOption {
+            description: "Enable Hidden"
+            prop: "hiddenOn"
+            global: true
+        }
+        NumberWithSlider {
+            text: "Hidden Ratio"
+            prop: "hiddenRatio"
             global: true
             from: 0
             to: 1

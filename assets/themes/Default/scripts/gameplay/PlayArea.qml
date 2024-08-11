@@ -22,52 +22,62 @@ Item {
     width: playfield.width
 
     Item {
-        anchors.bottomMargin: -root.vars.thickness
+        id: playObjectContainer
         anchors.fill: parent
         clip: true
         layer.enabled: true
         layer.smooth: true
 
-        Item {
-            id: playObjectContainer
-            anchors.bottomMargin: root.vars.thickness
-            anchors.fill: parent
+        Image {
+            id: laneCover
+            source: root.imagesUrl + "lanecover/" + root.vars.lanecover
+            visible: ProfileList.currentProfile.vars.globalVars.laneCoverOn
+            height: parent.height
+            width: parent.width
+            y: height * (-1 + ProfileList.currentProfile.vars.globalVars.laneCoverRatio)
+            z: 4
+        }
 
-            Image {
-                id: laneCover
-                source: root.imagesUrl + "lanecover/" + root.vars.lanecover
-                visible: ProfileList.currentProfile.vars.globalVars.laneCoverOn
-                height: parent.height
-                width: parent.width
-                y: height * (-1 + ProfileList.currentProfile.vars.globalVars.laneCoverRatio)
-                z: 4
-            }
+        Image {
+            id: liftCover
+            source: root.imagesUrl + "liftcover/" + root.vars.liftcover
+            visible: ProfileList.currentProfile.vars.globalVars.liftOn || ProfileList.currentProfile.vars.globalVars.hiddenOn
+            height: parent.height * Math.min(1,
+                ProfileList.currentProfile.vars.globalVars.liftOn * ProfileList.currentProfile.vars.globalVars.liftRatio +
+                ProfileList.currentProfile.vars.globalVars.hiddenOn * ProfileList.currentProfile.vars.globalVars.hiddenRatio)
+            width: parent.width
+            fillMode: Image.PreserveAspectCrop
+            y: parent.height - height
+            z: 3
+        }
 
-            Image {
-                id: liftCover
-                source: root.imagesUrl + "liftcover/" + root.vars.liftcover
-                visible: ProfileList.currentProfile.vars.globalVars.liftOn
-                height: parent.height * ProfileList.currentProfile.vars.globalVars.liftRatio
-                width: parent.width
-                fillMode: Image.PreserveAspectCrop
-                y: parent.height - height
-                z: 2
-            }
+        BarLinePositioner {
+            barLines: chart.notes.barLines
+            heightMultiplier: root.greenNumber
+            width: parent.width
+            y: -root.vars.thickness / 2 + chart.position * root.greenNumber + parent.height *
+                (1 - ProfileList.currentProfile.vars.globalVars.liftOn * ProfileList.currentProfile.vars.globalVars.liftRatio)
+        }
 
-            BarLinePositioner {
-                barLines: chart.notes.barLines
-                heightMultiplier: root.greenNumber
-                width: parent.width
-                y: chart.position * root.greenNumber + parent.height * (1 - ProfileList.currentProfile.vars.globalVars.liftOn * ProfileList.currentProfile.vars.globalVars.liftRatio)
-            }
-            Playfield {
-                id: playfield
+        Playfield {
+            id: playfield
 
-                columns: playArea.columns
-                spacing: playArea.spacing
-                y: chart.position * root.greenNumber + parent.height  * (1 - ProfileList.currentProfile.vars.globalVars.liftOn * ProfileList.currentProfile.vars.globalVars.liftRatio)
-                z: 1
-            }
+            columns: playArea.columns
+            spacing: playArea.spacing
+            y: -root.vars.thickness / 2 + chart.position * root.greenNumber + parent.height *
+                (1 - ProfileList.currentProfile.vars.globalVars.liftOn * ProfileList.currentProfile.vars.globalVars.liftRatio)
+            z: 1
+        }
+
+        Rectangle {
+            id: judgeLine
+            color: root.vars.judgeLineColor
+
+            anchors.bottom: parent.bottom
+            anchors.bottomMargin: parent.height * ProfileList.currentProfile.vars.globalVars.liftOn * ProfileList.currentProfile.vars.globalVars.liftRatio
+            width: parent.width
+            height: root.vars.judgeLineThickness
+            z: 2
         }
     }
     Row {

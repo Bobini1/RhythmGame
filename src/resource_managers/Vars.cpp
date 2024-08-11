@@ -118,6 +118,8 @@ populateGlobalVars(QQmlPropertyMap& globalVars)
       { "laneCoverRatio", 0.1 },
       { "liftOn", false },
       { "liftRatio", 0.1 },
+      { "hiddenOn", false },
+      { "hiddenRatio", 0.1 },
       { "bgaOn", true },
     });
 }
