@@ -5,9 +5,11 @@ import RhythmGameQml
 Row {
     id: numberWithSlider
     required property string prop
+    property bool global: false
     property alias text: label.text
     property alias to: slider.to
     property alias from: slider.from
+    readonly property var src: global ? ProfileList.currentProfile.vars.globalVars : root.vars
 
     height: slider.height
     spacing: 10
@@ -24,20 +26,20 @@ Row {
     Slider {
         id: slider
 
-        value: root.vars[numberWithSlider.prop]
-        width: 320
+        value: src[numberWithSlider.prop]
+        width: 300
 
         onMoved: {
-            root.vars[numberWithSlider.prop] = value;
-            value = Qt.binding(() => root.vars[numberWithSlider.prop]);
+            src[numberWithSlider.prop] = value;
+            value = Qt.binding(() => src[numberWithSlider.prop]);
         }
     }
     TextField {
         id: txt
 
-        text: Qt.locale().toString(root.vars[numberWithSlider.prop], "f", numberWithSlider.to <= 1 ? 1 : 0)
+        text: Qt.locale().toString(src[numberWithSlider.prop], "f", numberWithSlider.to <= 1 ? 1 : 0)
         font.pixelSize: 20
-        width: 50
+        width: 70
         height: slider.height
         horizontalAlignment: Text.AlignHCenter
 
@@ -45,8 +47,8 @@ Row {
         }
 
         onAccepted: {
-            root.vars[numberWithSlider.prop] = Number.fromLocaleString(text);
-            text = Qt.binding(() => Qt.locale().toString(root.vars[numberWithSlider.prop]));
+            src[numberWithSlider.prop] = Number.fromLocaleString(text);
+            text = Qt.binding(() => Qt.locale().toString(src[numberWithSlider.prop]));
         }
     }
 }

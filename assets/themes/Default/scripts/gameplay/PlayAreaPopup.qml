@@ -7,6 +7,13 @@ import QtQml.Models
 GameplayPopup {
     model: ObjectModel {
         NumberWithSlider {
+            text: "Green Number"
+            prop: "noteScreenTimeMillis"
+            global: true
+            from: 0
+            to: 2000
+        }
+        NumberWithSlider {
             text: "Z-index"
             prop: "playAreaZ"
             from: -10

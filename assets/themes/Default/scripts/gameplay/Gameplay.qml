@@ -26,7 +26,7 @@ Rectangle {
         return sizes;
     }
     property bool customizeMode: false
-    property double greenNumber: ProfileList.currentProfile.vars.globalVars.noteScreenTimeSeconds * 400
+    property double greenNumber: ((1 / ProfileList.currentProfile.vars.globalVars.noteScreenTimeMillis) || 0) * 60000 * vars.playAreaHeight / chart.chartData.initialBpm
     readonly property string imagesUrl: Qt.resolvedUrl(".") + "images/"
     readonly property string iniImagesUrl: "image://ini/" + rootUrl + "images/"
     readonly property var vars: ProfileList.currentProfile.vars.themeVars.gameplay
