@@ -1,6 +1,6 @@
-import QtQuick 2.15
+import QtQuick
 import QtQuick.Layouts
-import QtQuick.Controls.Basic 2.12
+import QtQuick.Controls.Basic
 
 Rectangle {
     id: screen
@@ -39,15 +39,12 @@ Rectangle {
             currentIndex: tabView.currentIndex
 
             SongFolderSettings {
-                Layout.fillWidth: true
                 Layout.preferredHeight: parent.height - tabView.height
             }
             ThemeSettings {
-                Layout.fillWidth: true
                 Layout.preferredHeight: parent.height - tabView.height
             }
             GlobalSettings {
-                Layout.fillWidth: true
                 Layout.preferredHeight: parent.height - tabView.height
             }
             KeySettings {
