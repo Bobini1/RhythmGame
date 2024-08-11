@@ -35,7 +35,7 @@ Item {
             height: parent.height
             width: parent.width
             y: height * (-1 + ProfileList.currentProfile.vars.globalVars.laneCoverRatio)
-            z: 5
+            z: 7
         }
 
         Image {
@@ -48,7 +48,7 @@ Item {
             width: parent.width
             fillMode: Image.PreserveAspectCrop
             y: parent.height - height
-            z: 4
+            z: 6
         }
 
         Rectangle {
@@ -68,7 +68,7 @@ Item {
             width: parent.width
             y: -root.vars.thickness / 2 + chart.position * root.greenNumber + parent.height *
                 (1 - ProfileList.currentProfile.vars.globalVars.liftOn * ProfileList.currentProfile.vars.globalVars.liftRatio)
-            z: 1
+            z: 2
         }
 
         Playfield {
@@ -78,7 +78,46 @@ Item {
             spacing: playArea.spacing
             y: -root.vars.thickness / 2 + chart.position * root.greenNumber + parent.height *
                 (1 - ProfileList.currentProfile.vars.globalVars.liftOn * ProfileList.currentProfile.vars.globalVars.liftRatio)
-            z: 2
+            z: 3
+        }
+
+        Row {
+            id: laserRow
+
+            z: 5
+
+            function hideLaser(index) {
+                laserRow.children[playArea.columnsReversedMapping[index]].stop();
+            }
+            function shootLaser(index) {
+                laserRow.children[playArea.columnsReversedMapping[index]].start();
+            }
+
+            anchors.bottom: judgeLine.bottom
+            height: parent.height
+            spacing: playArea.spacing
+
+            Repeater {
+                id: laserRowChildren
+
+                model: playArea.columns.length
+
+                // laser beam (animated)
+                LaserBeam {
+                    columnIndex: playArea.columns[index]
+                    image: root.laserImages[index]
+                }
+            }
+        }
+
+        Image {
+            id: glow
+
+            anchors.bottom: judgeLine.bottom
+            opacity: (Math.abs(chart.position % 1) > 0.5 ? Math.abs(chart.position % 1) : 1 - Math.abs(chart.position % 1)) * 0.2 + 0.1
+            source: root.imagesUrl + "glow/" + root.vars.glow
+            width: parent.width
+            z: 1
         }
 
         Item {
@@ -87,34 +126,7 @@ Item {
             anchors.bottom: parent.bottom
             anchors.bottomMargin: parent.height * ProfileList.currentProfile.vars.globalVars.liftOn * ProfileList.currentProfile.vars.globalVars.liftRatio
             width: parent.width
-            z: 3
-        }
-    }
-    Row {
-        id: laserRow
-
-        function hideLaser(index) {
-            laserRow.children[playArea.columnsReversedMapping[index]].stop();
-        }
-        function shootLaser(index) {
-            laserRow.children[playArea.columnsReversedMapping[index]].start();
-        }
-
-        anchors.bottom: parent.bottom
-        anchors.bottomMargin: parent.height * ProfileList.currentProfile.vars.globalVars.liftOn * ProfileList.currentProfile.vars.globalVars.liftRatio
-        height: parent.height
-        spacing: playArea.spacing
-
-        Repeater {
-            id: laserRowChildren
-
-            model: playArea.columns.length
-
-            // laser beam (animated)
-            LaserBeam {
-                columnIndex: playArea.columns[index]
-                image: root.laserImages[index]
-            }
+            z: 4
         }
     }
     Judgements {
@@ -238,16 +250,6 @@ Item {
                 z: -2
             }
         }
-    }
-    Image {
-        id: glow
-
-        anchors.bottom: parent.bottom
-        opacity: (Math.abs(chart.position % 1) > 0.5 ? Math.abs(chart.position % 1) : 1 - Math.abs(chart.position % 1)) * 0.2 + 0.1
-        source: root.imagesUrl + "glow/" + root.vars.glow
-        visible: true
-        width: parent.width
-        z: -1
     }
     Repeater {
         id: explosions
