@@ -85,7 +85,7 @@ Item {
 
             states: State {
                 name: "reparented"
-                ParentChange { target: noteImg; parent: judgeLine; }
+                ParentChange { target: noteImg; parent: noteAnchor; }
             }
 
             mipmap: true
@@ -151,7 +151,7 @@ Item {
                         item.y = column.chartPosition - item.height / 2;
                         item.state = "reparented";
                         item.z = 2;
-                        item.anchors.bottom = judgeLine.bottom
+                        item.anchors.bottom = noteAnchor.bottom
                         item.anchors.bottomMargin = Qt.binding(() => -column.noteHeight / 3)
                     }
                 }

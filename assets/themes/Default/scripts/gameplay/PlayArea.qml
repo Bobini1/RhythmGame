@@ -35,7 +35,7 @@ Item {
             height: parent.height
             width: parent.width
             y: height * (-1 + ProfileList.currentProfile.vars.globalVars.laneCoverRatio)
-            z: 4
+            z: 5
         }
 
         Image {
@@ -48,25 +48,7 @@ Item {
             width: parent.width
             fillMode: Image.PreserveAspectCrop
             y: parent.height - height
-            z: 3
-        }
-
-        BarLinePositioner {
-            barLines: chart.notes.barLines
-            heightMultiplier: root.greenNumber
-            width: parent.width
-            y: -root.vars.thickness / 2 + chart.position * root.greenNumber + parent.height *
-                (1 - ProfileList.currentProfile.vars.globalVars.liftOn * ProfileList.currentProfile.vars.globalVars.liftRatio)
-        }
-
-        Playfield {
-            id: playfield
-
-            columns: playArea.columns
-            spacing: playArea.spacing
-            y: -root.vars.thickness / 2 + chart.position * root.greenNumber + parent.height *
-                (1 - ProfileList.currentProfile.vars.globalVars.liftOn * ProfileList.currentProfile.vars.globalVars.liftRatio)
-            z: 1
+            z: 4
         }
 
         Rectangle {
@@ -77,7 +59,35 @@ Item {
             anchors.bottomMargin: parent.height * ProfileList.currentProfile.vars.globalVars.liftOn * ProfileList.currentProfile.vars.globalVars.liftRatio
             width: parent.width
             height: root.vars.judgeLineThickness
+            z: 0
+        }
+
+        BarLinePositioner {
+            barLines: chart.notes.barLines
+            heightMultiplier: root.greenNumber
+            width: parent.width
+            y: -root.vars.thickness / 2 + chart.position * root.greenNumber + parent.height *
+                (1 - ProfileList.currentProfile.vars.globalVars.liftOn * ProfileList.currentProfile.vars.globalVars.liftRatio)
+            z: 1
+        }
+
+        Playfield {
+            id: playfield
+
+            columns: playArea.columns
+            spacing: playArea.spacing
+            y: -root.vars.thickness / 2 + chart.position * root.greenNumber + parent.height *
+                (1 - ProfileList.currentProfile.vars.globalVars.liftOn * ProfileList.currentProfile.vars.globalVars.liftRatio)
             z: 2
+        }
+
+        Item {
+            id: noteAnchor
+
+            anchors.bottom: parent.bottom
+            anchors.bottomMargin: parent.height * ProfileList.currentProfile.vars.globalVars.liftOn * ProfileList.currentProfile.vars.globalVars.liftRatio
+            width: parent.width
+            z: 3
         }
     }
     Row {
