@@ -5,7 +5,7 @@ import RhythmGameQml
 Item {
     id: column
 
-    property real chartPosition: Math.floor(-chart.position * column.heightMultiplier)
+    property real chartPosition: -chart.position * column.heightMultiplier
     property string color
     property int erasedNoteIndex: 0
     property real heightMultiplier: 20
@@ -65,7 +65,7 @@ Item {
 
             // for ln begin only
             property bool held: false
-            property real notePosition: Math.floor(-column.notes[note].time.position * column.heightMultiplier)
+            property real notePosition: -column.notes[note].time.position * column.heightMultiplier
 
             function getTypeString() {
                 let type = column.notes[note].type;
@@ -103,7 +103,7 @@ Item {
                         id: lnImg
 
                         fillMode: Image.TileVertically
-                        height: Math.floor(column.notes[note + 1].time.position * column.heightMultiplier) + noteImg.y
+                        height: column.notes[note + 1].time.position * column.heightMultiplier + noteImg.y
                         source: {
                             if (!noteImg.held) {
                                 return root.iniImagesUrl + "notes/" + root.vars.notes + "/ln_body_inactive_" + column.color;
