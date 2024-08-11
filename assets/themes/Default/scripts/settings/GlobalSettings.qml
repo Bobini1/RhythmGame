@@ -1,61 +1,83 @@
 import QtQuick
-import QtQuick.Controls.Fusion
-import RhythmGameQml
-import QtQuick.Layouts
+import QtQuick.Controls.Basic
 import "settingsProperties"
 import QtQml.Models
 
-Frame {
-    Layout.fillHeight: true
-    Layout.fillWidth: true
-    Layout.preferredWidth: parent.width / 2
-    Layout.alignment: Qt.AlignHCenter
+Item {
     ScrollView {
-        anchors.fill:parent
         id: scrollView
         clip: true
-        contentWidth: Math.max(width, 450)
+        anchors {
+            horizontalCenter: parent.horizontalCenter
+            top: parent.top
+            bottom: parent.bottom
+        }
+        width: Math.min(parent.width / 2, 600)
+        padding: 1
+
         ListView {
+            id: list
+            width: 600
+
+            spacing: 10
+            bottomMargin: 10
+            topMargin: 10
+            leftMargin: 10
+            rightMargin: 10
+
+            Frame {
+                anchors.fill: list
+                z: -1
+            }
+
             model: ObjectModel {
-                Row {
-                    height: 30
-                    TextEdit {
-                        font.pixelSize: 16
-                        font.bold: true
-                        readOnly: true
-                        text: "Green Number"
-                    }
-                    Loader {
-                        active: true
-                        property var props: {"id": "noteScreenTimeMillis", "min": 0}
-                        property var destination: ProfileList.currentProfile.vars.globalVars
-                        width: 150
-                        anchors.verticalCenter: parent.verticalCenter
-                        sourceComponent: Component {
-                            Range {
-                            }
+                GlobalSettingsProperty {
+                    text: "Green Number"
+                    props: {"id": "noteScreenTimeMillis", "min": 0, "default": 1000}
+                    sourceComponent: Component {
+                        Range {
                         }
                     }
                 }
-                Row {
-                    height: 30
-                    TextEdit {
-                        font.pixelSize: 16
-                        font.bold: true
-                        readOnly: true
-                        text: "Lane Cover"
-                    }
-                    Loader {
-                        active: true
-                        property var props: {"id":"laneCoverOn"}
-                        property var destination: ProfileList.currentProfile.vars.globalVars
-                        width: 150
-                        anchors.verticalCenter: parent.verticalCenter
-                        sourceComponent: Component {
-                            Boolean {}
-                        }
+                Separator {}
+                GlobalSettingsProperty {
+                    text: "Lane Cover"
+                    props: {"id": "laneCoverOn", "default": false}
+                    sourceComponent: Component {
+                        Boolean {}
                     }
                 }
+                GlobalSettingsProperty {
+                    text: "Lane Cover Ratio"
+                    props: {"id": "laneCoverRatio", "default": 0.1, "min": 0, "max": 1}
+                    sourceComponent: Component {
+                        Range {}
+                    }
+                }
+                Separator {}
+                GlobalSettingsProperty {
+                    text: "Lift"
+                    props: {"id": "liftOn", "default": false}
+                    sourceComponent: Component {
+                        Boolean {}
+                    }
+                }
+                GlobalSettingsProperty {
+                    text: "Lift Ratio"
+                    props: {"id": "liftRatio", "default": 0.1, "min": 0, "max": 1}
+                    sourceComponent: Component {
+                        Range {}
+                    }
+                }
+                Separator {}
+                GlobalSettingsProperty {
+                    text: "BGA Enabled"
+                    props: {"id": "bgaOn", "default": true}
+                    sourceComponent: Component {
+                        Boolean {}
+                    }
+                }
+                Separator {}
             }
         }
     }
