@@ -5,6 +5,8 @@ import QtQuick.Dialogs
 Row {
     height: rect.height
 
+    width: text.width + 390
+
     required property string prop
     property string description: prop
     property bool global: false
@@ -23,15 +25,20 @@ Row {
 
     Rectangle {
         id: rect
+
         height: 30
         border {
-            color: "black"
-            width: 1
+            color: "white"
+            width: 2
         }
 
-        width: parent.width - text.width
+        width: 390
 
         color: src[prop]
+
+        Component.onCompleted: {
+            print(width, height)
+        }
 
         MouseArea {
             anchors.fill: parent
@@ -44,7 +51,16 @@ Row {
             selectedColor: src[prop]
 
             onSelectedColorChanged: {
+                // noinspection SillyAssignmentJS
+                selectedColor = selectedColor;
                 src[prop] = selectedColor;
+            }
+
+            onAccepted: {
+                selectedColor = Qt.binding(() => src[prop]);
+            }
+
+            onRejected: {
                 selectedColor = Qt.binding(() => src[prop]);
             }
         }
