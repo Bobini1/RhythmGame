@@ -32,32 +32,52 @@ GameplayPopup {
             to: 200
         }
         BooleanOption {
-            description: "Flip scratch lane"
+            description: "Flip Scratch Lane"
             prop: "scratchOnRightSide"
         }
         ImageSelection {
-            id: notes
-
             propertyId: "notes"
         }
+        BooleanOption {
+            description: "Enable Lane Cover"
+            prop: "laneCoverOn"
+            global: true
+        }
+        NumberWithSlider {
+            text: "Lane Cover Ratio"
+            prop: "laneCoverRatio"
+            global: true
+            from: 0
+            to: 1
+        }
         ImageSelection {
-            id: mine
-
+            propertyId: "lanecover"
+        }
+        BooleanOption {
+            description: "Enable Lift"
+            prop: "liftOn"
+            global: true
+        }
+        NumberWithSlider {
+            text: "Lift Ratio"
+            prop: "liftRatio"
+            global: true
+            from: 0
+            to: 1
+        }
+        ImageSelection {
+            propertyId: "liftcover"
+        }
+        ImageSelection {
             propertyId: "mine"
         }
         ImageSelection {
-            id: keybeam
-
             propertyId: "keybeam"
         }
         ImageSelection {
-            id: bomb
-
             propertyId: "bomb"
         }
         ImageSelection {
-            id: glow
-
             propertyId: "glow"
         }
     }

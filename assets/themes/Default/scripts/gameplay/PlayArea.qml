@@ -29,21 +29,43 @@ Item {
         layer.smooth: true
 
         Item {
+            id: playObjectContainer
             anchors.bottomMargin: root.vars.thickness
             anchors.fill: parent
+
+            Image {
+                id: laneCover
+                source: root.imagesUrl + "lanecover/" + root.vars.lanecover
+                visible: ProfileList.currentProfile.vars.globalVars.laneCoverOn
+                height: parent.height
+                width: parent.width
+                y: height * (-1 + ProfileList.currentProfile.vars.globalVars.laneCoverRatio)
+                z: 4
+            }
+
+            Image {
+                id: liftCover
+                source: root.imagesUrl + "liftcover/" + root.vars.liftcover
+                visible: ProfileList.currentProfile.vars.globalVars.liftOn
+                height: parent.height * ProfileList.currentProfile.vars.globalVars.liftRatio
+                width: parent.width
+                fillMode: Image.PreserveAspectCrop
+                y: parent.height - height
+                z: 2
+            }
 
             BarLinePositioner {
                 barLines: chart.notes.barLines
                 heightMultiplier: root.greenNumber
                 width: parent.width
-                y: chart.position * root.greenNumber + parent.height
+                y: chart.position * root.greenNumber + parent.height * (1 - ProfileList.currentProfile.vars.globalVars.liftOn * ProfileList.currentProfile.vars.globalVars.liftRatio)
             }
             Playfield {
                 id: playfield
 
                 columns: playArea.columns
                 spacing: playArea.spacing
-                y: chart.position * root.greenNumber + parent.height
+                y: chart.position * root.greenNumber + parent.height  * (1 - ProfileList.currentProfile.vars.globalVars.liftOn * ProfileList.currentProfile.vars.globalVars.liftRatio)
                 z: 1
             }
         }
@@ -59,6 +81,7 @@ Item {
         }
 
         anchors.bottom: parent.bottom
+        anchors.bottomMargin: parent.height * ProfileList.currentProfile.vars.globalVars.liftOn * ProfileList.currentProfile.vars.globalVars.liftRatio
         height: parent.height
         spacing: playArea.spacing
 
@@ -221,6 +244,7 @@ Item {
             }
 
             anchors.bottom: parent.bottom
+            anchors.bottomMargin: parent.height * ProfileList.currentProfile.vars.globalVars.liftOn * ProfileList.currentProfile.vars.globalVars.liftRatio
             width: root.columnSizes[playfield.columns[index]]
             x: {
                 let cpos = 0;

@@ -85,7 +85,7 @@ Item {
 
             states: State {
                 name: "reparented"
-                ParentChange { target: noteImg; parent: playArea; }
+                ParentChange { target: noteImg; parent: playObjectContainer; }
             }
 
             mipmap: true
@@ -150,7 +150,8 @@ Item {
                     let itemY = Math.min(column.chartPosition - item.height / 2, item.y);
                     if (column.chartPosition - item.height / 2 < item.y) {
                         item.y = itemY;
-                        item.state = "reparented"
+                        item.state = "reparented";
+                        item.z = 3;
                     } else {
                         item.y = itemY;
                     }
