@@ -83,6 +83,11 @@ Item {
                 }
             }
 
+            states: State {
+                name: "reparented"
+                ParentChange { target: noteImg; parent: playArea; }
+            }
+
             mipmap: true
             source: root.iniImagesUrl + (column.notes[note].type === Note.Type.Landmine ? ("mine/" + root.vars.mine) : ("notes/" + root.vars.notes)) + "/" + getTypeString() + column.color
             visible: false
@@ -141,7 +146,15 @@ Item {
                     continue;
                 }
                 let item = noteRepeater.itemAt(count);
-                item.y = Math.min(column.chartPosition - item.height / 2, item.y);
+                if (item.state !== "reparented") {
+                    let itemY = Math.min(column.chartPosition - item.height / 2, item.y);
+                    if (column.chartPosition - item.height / 2 < item.y) {
+                        item.y = itemY;
+                        item.state = "reparented"
+                    } else {
+                        item.y = itemY;
+                    }
+                }
                 count++;
             }
             column.visibleNoteIndex = Math.max(0, column.visibleNoteIndex - count);
