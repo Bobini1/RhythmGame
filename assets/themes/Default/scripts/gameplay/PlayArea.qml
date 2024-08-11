@@ -36,7 +36,7 @@ Item {
                 barLines: chart.notes.barLines
                 heightMultiplier: root.greenNumber
                 width: parent.width
-                y: Math.floor(chart.position * root.greenNumber + parent.height)
+                y: chart.position * root.greenNumber + parent.height
             }
             Playfield {
                 id: playfield

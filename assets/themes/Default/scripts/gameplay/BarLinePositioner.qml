@@ -26,9 +26,8 @@ Item {
         model: barModel
 
         Rectangle {
-            border.width: 1
             color: "gray"
-            height: 3
+            height: 1
             width: parent.width
             visible: false
             y: -column.barLines[bar].position * column.heightMultiplier - height / 2
