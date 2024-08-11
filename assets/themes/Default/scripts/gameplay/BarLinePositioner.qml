@@ -4,7 +4,7 @@ Item {
     id: column
 
     property var barLines: []
-    property int heightMultiplier: 20
+    required property real heightMultiplier
     property int erasedBarIndex: 0
     property int visibleBarIndex: 0
 
@@ -54,8 +54,7 @@ Item {
             count = 0;
             while (visibleBarIndex + count < barLineRepeater.count) {
                 let bar = barLineRepeater.itemAt(visibleBarIndex + count);
-                let globalPos = bar.mapToGlobal(0, 0);
-                globalPos.y += bar.height;
+                let globalPos = bar.mapToGlobal(0, bar.height);
                 if (globalPos.y > 0) {
                     bar.visible = true;
                     count++;
