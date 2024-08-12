@@ -45,6 +45,10 @@ GameplayPopup {
             description: "Flip Scratch Lane"
             prop: "scratchOnRightSide"
         }
+        BooleanOption {
+            description: "Stop notes at bottom"
+            prop: "notesStay"
+        }
         ImageSelection {
             propertyId: "notes"
         }

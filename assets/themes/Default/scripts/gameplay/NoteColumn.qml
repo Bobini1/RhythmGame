@@ -146,13 +146,13 @@ Item {
                     continue;
                 }
                 let item = noteRepeater.itemAt(count);
-                if (item.state !== "reparented") {
+                if (item.state !== "reparented" && root.vars.notesStay) {
                     if (column.chartPosition - item.height / 2 < item.y) {
                         item.y = column.chartPosition - item.height / 2;
                         item.state = "reparented";
                         item.z = 2;
-                        item.anchors.bottom = noteAnchor.bottom
-                        item.anchors.bottomMargin = Qt.binding(() => -column.noteHeight / 3)
+                        item.anchors.bottom = noteAnchor.bottom;
+                        item.anchors.bottomMargin = Qt.binding(() => -column.noteHeight / 3);
                     }
                 }
                 count++;
