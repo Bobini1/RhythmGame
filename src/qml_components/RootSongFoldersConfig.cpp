@@ -221,6 +221,7 @@ ScanningQueue::ScanningQueue(db::SqliteCppDb* db,
   , scanner(scanner)
 {
     connect(&scanFutureWatcher, &QFutureWatcher<void>::finished, [this] {
+        // fixme: what if we press stop between scanning is finished and this line?
         scanItems.front()->updateStatus(stop
                                           ? RootSongFolder::Status::NotScanned
                                           : RootSongFolder::Status::Scanned);
@@ -235,6 +236,8 @@ ScanningQueue::ScanningQueue(db::SqliteCppDb* db,
         endRemoveRows();
         if (!scanItems.empty()) {
             performTask();
+        } else {
+            this->db->execute("INSERT INTO charts_fts(charts_fts) VALUES('rebuild')");
         }
     });
 }
