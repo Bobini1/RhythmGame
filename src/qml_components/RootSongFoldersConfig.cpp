@@ -200,6 +200,7 @@ RootSongFolders::remove(const int index)
             break;
         }
     }
+    scanningQueue->clear(folders[index]->getName());
     beginRemoveRows(QModelIndex(), index, index);
     folders.erase(folders.begin() + index);
     endRemoveRows();
@@ -262,7 +263,7 @@ void
 ScanningQueue::scanImpl(const QString& which)
 {
     scanFuture = QtConcurrent::run([this, which] {
-        clearImpl(which);
+        clear(which);
         scanner.scanDirectory(
           support::qStringToPath(which),
           [this](QString newCurrentScannedFolder) {
@@ -277,13 +278,13 @@ ScanningQueue::scanImpl(const QString& which)
           },
           &stop);
         if (stop) {
-            clearImpl(which);
+            clear(which);
         }
     });
     scanFutureWatcher.setFuture(scanFuture);
 }
 void
-ScanningQueue::clearImpl(const QString& which)
+ScanningQueue::clear(const QString& which)
 {
     const auto folderNameStd = which.toStdString();
 
@@ -293,9 +294,10 @@ ScanningQueue::clearImpl(const QString& which)
     db->execute("DELETE FROM parent_dir WHERE parent_dir.id NOT IN "
                 "(SELECT directory FROM charts)");
     db->execute("DELETE FROM note_data WHERE note_data.sha256 NOT IN "
-                "(SELECT sha256 FROM charts);");
+                "(SELECT sha256 FROM charts)");
     db->execute("DELETE FROM preview_files WHERE directory NOT IN "
-                "(SELECT chart_directory FROM charts);");
+                "(SELECT chart_directory FROM charts)");
+    db->execute("INSERT INTO charts_fts(charts_fts) VALUES('rebuild')");
 }
 auto
 ScanningQueue::rowCount(const QModelIndex& parent) const -> int
