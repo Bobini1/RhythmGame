@@ -200,8 +200,8 @@ ChartDataFactory::loadChartData(
 #endif
     auto chartData = std::make_unique<gameplay_logic::ChartData>(
       std::move(title),
-      std::move(subtitle),
       std::move(artist),
+      std::move(subtitle),
       std::move(subartist),
       std::move(genre),
       std::move(stageFile),
