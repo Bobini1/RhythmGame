@@ -207,7 +207,7 @@ Item {
                     if (root.vars.laneBrightness < 0) {
                         mod = base.hsvValue * root.vars.laneBrightness;
                     }
-                    base.hsvValue = Math.max(0, Math.min(base.hsvValue + mod, 1));
+                    base.hslLightness = Math.max(0, Math.min(base.hslLightness + mod, 1));
                     return base;
                 }
                 height: parent.height
@@ -233,9 +233,9 @@ Item {
                     let base = Qt.color(playfield.columns[index] % 2 === 0 ? "#050505" : "#000000");
                     let mod = root.vars.laneBrightness;
                     if (root.vars.laneBrightness < 0) {
-                        mod = Qt.color("#1e1e1e").hsvValue * root.vars.laneBrightness;
+                        mod = Qt.color("#1e1e1e").hslLightness * root.vars.laneBrightness;
                     }
-                    base.hslValue = Math.max(0, Math.min(base.hsvValue + mod, 1));
+                    base.hslLightness = Math.max(0, Math.min(base.hslLightness + mod, 1));
                     return base;
                 }
                 height: parent.height
