@@ -236,8 +236,6 @@ ScanningQueue::ScanningQueue(db::SqliteCppDb* db,
         endRemoveRows();
         if (!scanItems.empty()) {
             performTask();
-        } else {
-            this->db->execute("INSERT INTO charts_fts(charts_fts) VALUES('rebuild')");
         }
     });
 }
@@ -300,7 +298,6 @@ ScanningQueue::clear(const QString& which)
                 "(SELECT sha256 FROM charts)");
     db->execute("DELETE FROM preview_files WHERE directory NOT IN "
                 "(SELECT chart_directory FROM charts)");
-    db->execute("INSERT INTO charts_fts(charts_fts) VALUES('rebuild')");
 }
 auto
 ScanningQueue::rowCount(const QModelIndex& parent) const -> int
