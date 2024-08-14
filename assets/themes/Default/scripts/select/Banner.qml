@@ -10,8 +10,11 @@ Image {
         if (!(currentItem instanceof ChartData) || currentItem.banner === "") {
             return "";
         }
-        let banner = "file://" + currentItem.directory + currentItem.banner;
-        return FileQuery.exists(banner) ? banner : "";
+        let dir = currentItem.chartDirectory;
+        if (dir[0] !== "/") {
+            dir = "/" + dir;
+        }
+        return "file://" + dir + currentItem.banner;
     }
     sourceSize.height: 80
     sourceSize.width: 300
