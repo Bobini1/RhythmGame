@@ -109,7 +109,13 @@ loadBmsSounds(const std::unordered_map<uint16_t, std::filesystem::path>& wavs,
             auto filePath = path / value;
             auto actualPath = getActualPathWindows(filePath);
 #else
-            // convert to lowercase first
+            std::ranges::transform(
+              value, value.begin(), [](unsigned char c) {
+                  if (c == '\\') {
+                      return '/';
+                  }
+                  return c;
+              });
             auto valueLower = value;
             std::ranges::transform(
               valueLower, valueLower.begin(), [](unsigned char c) {
