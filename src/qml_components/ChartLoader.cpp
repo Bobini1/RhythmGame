@@ -12,13 +12,16 @@
 
 namespace qml_components {
 auto
-ChartLoader::loadChart(QString filename) -> gameplay_logic::Chart*
+ChartLoader::loadChart(QString filename, QList<int64_t> randomSequence) -> gameplay_logic::Chart*
 {
     try {
         auto randomGenerator =
-          [](charts::parser_models::ParsedBmsChart::RandomRange randomRange) {
-              static thread_local auto randomEngine =
+          [randomSequence = std::move(randomSequence), counter = 0](const charts::parser_models::ParsedBmsChart::RandomRange randomRange) mutable {
+              thread_local auto randomEngine =
                 std::default_random_engine{ std::random_device{}() };
+              if (counter < randomSequence.size()) {
+                  return randomSequence[counter++];
+              }
               return std::uniform_int_distribution{
                   charts::parser_models::ParsedBmsChart::RandomRange{ 1 },
                   randomRange

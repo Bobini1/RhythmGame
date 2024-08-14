@@ -47,6 +47,7 @@ class ChartData : public QObject
     Q_PROPERTY(QString chartDirectory READ getChartDirectory CONSTANT)
     Q_PROPERTY(QString sha256 READ getSha256 CONSTANT)
     Q_PROPERTY(bool isRandom READ getIsRandom CONSTANT)
+    Q_PROPERTY(QList<int64_t> randomSequence READ getRandomSequence CONSTANT)
     Q_PROPERTY(Keymode keymode READ getKeymode CONSTANT)
     Q_PROPERTY(double initialBpm READ getInitialBpm CONSTANT)
     Q_PROPERTY(double maxBpm READ getMaxBpm CONSTANT)
@@ -104,6 +105,7 @@ class ChartData : public QObject
     [[nodiscard]] auto getDifficulty() const -> int;
     [[nodiscard]] auto getSha256() const -> QString;
     [[nodiscard]] auto getIsRandom() const -> bool;
+    [[nodiscard]] auto getRandomSequence() const -> QList<int64_t>;
     [[nodiscard]] auto getKeymode() const -> Keymode;
     [[nodiscard]] auto getDirectory() const -> QString;
     [[nodiscard]] auto getChartDirectory() const -> QString;
