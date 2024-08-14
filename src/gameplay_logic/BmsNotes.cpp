@@ -54,19 +54,14 @@ BmsNotes::load(db::SqliteCppDb& db, const support::Sha256& sha256)
         throw std::runtime_error{ "Failed to load note data" };
     }
     auto serializedData = QByteArray::fromStdString(*result);
-    auto decompressedBuffer = support::decompress(serializedData);
     auto noteData = std::make_unique<BmsNotes>();
-    auto stream = QDataStream{ &decompressedBuffer, QIODevice::ReadOnly };
-    stream >> *noteData;
+    support::decompress(serializedData, *noteData);
     return noteData;
 }
 auto
 BmsNotes::serialize() const -> QByteArray
 {
-    auto buffer = QByteArray{};
-    auto stream = QDataStream{ &buffer, QIODevice::WriteOnly };
-    stream << *this;
-    return support::compress(buffer);
+    return support::compress(*this);
 }
 auto
 BmsNotes::save(db::SqliteCppDb& db, const support::Sha256& sha256) const -> void

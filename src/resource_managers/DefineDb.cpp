@@ -22,6 +22,7 @@ defineDb(db::SqliteCppDb& db)
                "play_level INTEGER NOT NULL,"
                "difficulty INTEGER NOT NULL,"
                "is_random INTEGER NOT NULL,"
+               "random_sequence STRING NOT NULL,"
                "normal_note_count INTEGER NOT NULL,"
                "ln_count INTEGER NOT NULL,"
                "mine_count INTEGER NOT NULL,"

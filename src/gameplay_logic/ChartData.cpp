@@ -3,6 +3,8 @@
 //
 
 #include "ChartData.h"
+#include "support/LehmerCode.h"
+#include "support/Compress.h"
 #include <QFileInfo>
 
 #include <memory>
@@ -24,6 +26,7 @@ ChartData(QString title,
           int playLevel,
           int difficulty,
           bool isRandom,
+          QList<int64_t> randomSequence,
           int normalNoteCount,
           int lnCount,
           int mineCount,
@@ -50,6 +53,7 @@ ChartData(QString title,
   , playLevel(playLevel)
   , difficulty(difficulty)
   , isRandom(isRandom)
+  , randomSequence(std::move(randomSequence))
   , normalNoteCount(normalNoteCount)
   , lnCount(lnCount)
   , mineCount(mineCount)
@@ -129,11 +133,11 @@ gameplay_logic::ChartData::save(db::SqliteCppDb& db) const -> void
     auto query = db.createStatement(
       "INSERT OR REPLACE INTO charts (title, artist, subtitle, subartist, "
       "genre, stage_file, banner, back_bmp, rank, total, play_level, "
-      "difficulty, is_random, normal_note_count, ln_count, mine_count, length, "
-      "initial_bpm, max_bpm, "
+      "difficulty, is_random, random_sequence, normal_note_count, ln_count, "
+      "mine_count, length, initial_bpm, max_bpm, "
       "min_bpm, path, chart_directory, directory, sha256, keymode) "
-      "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, "
-      "?, ?, ?);");
+      "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, "
+      "?, ?, ?, ?, ?);");
     query.reset();
     query.bind(1, title.toStdString());
     query.bind(2, artist.toStdString());
@@ -148,22 +152,24 @@ gameplay_logic::ChartData::save(db::SqliteCppDb& db) const -> void
     query.bind(11, playLevel);
     query.bind(12, difficulty);
     query.bind(13, isRandom);
-    query.bind(14, normalNoteCount);
-    query.bind(15, lnCount);
-    query.bind(16, mineCount);
-    query.bind(17, length);
-    query.bind(18, initialBpm);
-    query.bind(19, maxBpm);
-    query.bind(20, minBpm);
-    query.bind(21, path.toStdString());
-    query.bind(22, getChartDirectory().toStdString());
+    auto compressed = support::compress(randomSequence);
+    query.bind(14, compressed.data(), compressed.size());
+    query.bind(15, normalNoteCount);
+    query.bind(16, lnCount);
+    query.bind(17, mineCount);
+    query.bind(18, length);
+    query.bind(19, initialBpm);
+    query.bind(20, maxBpm);
+    query.bind(21, minBpm);
+    query.bind(22, path.toStdString());
+    query.bind(23, getChartDirectory().toStdString());
     if (directory == 0) {
-        query.bind(23);
+        query.bind(24);
     } else {
-        query.bind(23, directory);
+        query.bind(24, directory);
     }
-    query.bind(24, sha256.toStdString());
-    query.bind(25, static_cast<int>(keymode));
+    query.bind(25, sha256.toStdString());
+    query.bind(26, static_cast<int>(keymode));
     query.execute();
 }
 auto
@@ -190,6 +196,7 @@ gameplay_logic::ChartData::load(const DTO& chartDataDto)
       chartDataDto.playLevel,
       chartDataDto.difficulty,
       static_cast<bool>(chartDataDto.isRandom),
+      support::decompress<QList<int64_t>>(QByteArray::fromStdString(chartDataDto.randomSequence)),
       chartDataDto.normalNoteCount,
       chartDataDto.lnCount,
       chartDataDto.mineCount,

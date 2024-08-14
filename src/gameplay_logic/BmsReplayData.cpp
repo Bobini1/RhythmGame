@@ -67,10 +67,7 @@ BmsReplayData::save(db::SqliteCppDb& db, int64_t scoreId)
 {
     auto statement = db.createStatement(
       "INSERT INTO replay_data (score_id, replay_data) VALUES (?, ?)");
-    auto data = QByteArray{};
-    auto stream = QDataStream(&data, QIODevice::WriteOnly);
-    stream << *this;
-    auto compressed = support::compress(data);
+    auto compressed = support::compress(*this);
     statement.bind(1, scoreId);
     statement.bind(2, compressed.data(), compressed.size());
     statement.execute();
@@ -87,10 +84,8 @@ BmsReplayData::load(db::SqliteCppDb& db, int64_t scoreId)
         return nullptr;
     }
     auto data = QByteArray::fromStdString(*result);
-    auto decompressed = support::decompress(data);
-    auto stream = QDataStream(&decompressed, QIODevice::ReadOnly);
     auto replayData = std::make_unique<BmsReplayData>();
-    stream >> *replayData;
+    support::decompress(data, *replayData);
     return replayData;
 }
 auto

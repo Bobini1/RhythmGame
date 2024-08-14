@@ -118,10 +118,7 @@ Profile(const std::filesystem::path& dbPath,
                                        "key = 'key_config'");
         if (auto config = statement.executeAndGet<std::string>()) {
             auto serializedData = QByteArray::fromStdString(*config);
-            auto decompressedBuffer = support::decompress(serializedData);
-            auto stream =
-              QDataStream{ &decompressedBuffer, QIODevice::ReadOnly };
-            stream >> keyConfig;
+            support::decompress(serializedData, keyConfig);
         }
     }
     db.execute("CREATE TABLE IF NOT EXISTS score ("
@@ -189,10 +186,7 @@ Profile::setKeyConfig(const QList<input::Mapping>& keyConfig) -> void
         return;
     }
     this->keyConfig = keyConfig;
-    auto serializedData = QByteArray{};
-    auto stream = QDataStream{ &serializedData, QIODevice::WriteOnly };
-    stream << keyConfig;
-    auto compressedData = support::compress(serializedData);
+    auto compressedData = support::compress(keyConfig);
     auto updateProperty =
       db.createStatement("INSERT OR REPLACE INTO properties "
                          "(key, value) VALUES (?, ?)");

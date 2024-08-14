@@ -68,6 +68,7 @@ class ChartData : public QObject
               int playLevel,
               int difficulty,
               bool isRandom,
+              QList<int64_t> randomSequence,
               int normalNoteCount,
               int lnCount,
               int mineCount,
@@ -123,6 +124,7 @@ class ChartData : public QObject
         int playLevel;
         int difficulty;
         int isRandom;
+        std::string randomSequence;
         int normalNoteCount;
         int lnCount;
         int mineCount;
@@ -149,6 +151,7 @@ class ChartData : public QObject
     QString stageFile;
     QString banner;
     QString backBmp;
+    QList<int64_t> randomSequence;
     int rank;
     double total;
     int playLevel;

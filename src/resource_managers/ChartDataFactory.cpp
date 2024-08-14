@@ -112,8 +112,14 @@ ChartDataFactory::loadChartData(
     auto chart =
       std::string_view{ reinterpret_cast<char*>(mfh.address()), length };
     auto hash = support::sha256(chart);
+    auto randomValues = QList<int64_t>{};
+    auto randomGeneratorRecorder = [&randomValues, &randomGenerator](charts::parser_models::ParsedBmsChart::RandomRange number) mutable {
+        auto generated = randomGenerator(number);
+        randomValues.append(generated);
+        return generated;
+    };
     auto parsedChart =
-      chartReader.readBmsChart(chart, std::move(randomGenerator));
+      chartReader.readBmsChart(chart, randomGeneratorRecorder);
     mfh.close().value();
 
     auto title = QString::fromUtf8(parsedChart.tags.title.value_or(""));
@@ -212,6 +218,7 @@ ChartDataFactory::loadChartData(
       parsedChart.tags.playLevel.value_or(1),
       parsedChart.tags.difficulty.value_or(1),
       parsedChart.tags.isRandom,
+      randomValues,
       normalNotes,
       lnNotes,
       mineNotes,
