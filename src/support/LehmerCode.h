@@ -9,8 +9,8 @@
 #include <span>
 
 namespace support {
-uint64_t encodePermutation(std::span<const int> permutation);
-QList<int> decodePermutation(uint64_t lehmerCode, int n);
+auto encodePermutation(std::span<const int64_t> permutation) -> uint64_t;
+auto decodePermutation(uint64_t lehmerCode, int n) -> QList<int64_t>;
 } // namespace support
 
 #endif // RHYTHMGAME_LEHMERCODE_H

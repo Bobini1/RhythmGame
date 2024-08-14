@@ -6,7 +6,7 @@
 
 namespace support {
 
-uint64_t factorial(int n) {
+auto factorial(int64_t n) -> uint64_t {
     auto fact = uint64_t{ 1 };
     for (int i = 2; i <= n; i++) {
         fact *= i;
@@ -14,8 +14,8 @@ uint64_t factorial(int n) {
     return fact;
 }
 
-uint64_t encodePermutation(std::span<const int> permutation) {
-    int n = permutation.size();
+auto encodePermutation(std::span<const int64_t> permutation) -> uint64_t {
+    auto n = permutation.size();
     std::vector<bool> used(n, false);
     uint64_t lehmerCode = 0;
 
@@ -33,9 +33,9 @@ uint64_t encodePermutation(std::span<const int> permutation) {
     return lehmerCode;
 }
 
-QList<int> decodePermutation(uint64_t lehmerCode, int n) {
-    QList<int> permutation(n);
-    std::vector<int> availableElements(n);
+auto decodePermutation(uint64_t lehmerCode, int n) -> QList<int64_t> {
+    QList<int64_t> permutation(n);
+    std::vector<int64_t> availableElements(n);
     
     // Initialize the available elements
     for (int i = 0; i < n; i++) {
@@ -43,8 +43,8 @@ QList<int> decodePermutation(uint64_t lehmerCode, int n) {
     }
     
     for (int i = 0; i < n; i++) {
-        uint64_t factorialValue = factorial(n - i - 1);
-        int index = lehmerCode / factorialValue;
+        auto factorialValue = factorial(n - i - 1);
+        auto index = lehmerCode / factorialValue;
         permutation[i] = availableElements[index];
         
         // Remove the used element
