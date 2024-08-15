@@ -162,7 +162,7 @@ FocusScope {
                 property bool waitingForStop: false
 
                 loops: MediaPlayer.Infinite
-                source: songList.current instanceof ChartData ? PreviewFilePathFetcher.getPreviewFilePath(songList.current.directory) : ""
+                source: songList.current instanceof ChartData ? PreviewFilePathFetcher.getPreviewFilePath(songList.current.chartDirectory) : ""
 
                 audioOutput: AudioOutput {
                     id: audioOutput
