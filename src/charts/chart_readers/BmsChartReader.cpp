@@ -614,6 +614,22 @@ struct TagsSink
                               std::move(identifiers));
                             break;
                         case Bpm:
+                            std::ranges::transform(
+                              identifiers,
+                              identifiers.begin(),
+                              [](auto identifier) -> uint16_t {
+                                  // convert from base-36 identifier to base-16
+                                  auto bpmValueHigh = identifier / 36;
+                                  if (bpmValueHigh >= 16) [[unlikely]] {
+                                      return 0;
+                                  }
+                                  bpmValueHigh *= 16;
+                                  auto bpmValueLow = identifier % 36;
+                                  if (bpmValueLow >= 16) [[unlikely]] {
+                                      return 0;
+                                  }
+                                  return bpmValueHigh + bpmValueLow;
+                              });
                             state.measures[measure].bpmChanges =
                               std::move(identifiers);
                             break;

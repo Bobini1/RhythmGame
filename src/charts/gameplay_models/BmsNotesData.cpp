@@ -69,12 +69,8 @@ combineBpmChanges(std::span<const uint16_t> exBpmChanges,
         auto gcd = std::gcd(index, static_cast<int>(bpmChanges.size()));
         auto fractionDec =
           std::pair{ index / gcd, static_cast<int>(bpmChanges.size()) / gcd };
-        // convert from base-36 identifier to base 16
-        auto bpmValueHigh = bpmChange / 36;
-        bpmValueHigh *= 16;
-        const auto bpmValue = bpmValueHigh + (bpmChange % 36);
         combinedBpmChanges.emplace_back(BpmChangeDef{
-          fraction, false, fractionDec, static_cast<double>(bpmValue) });
+          fraction, false, fractionDec, static_cast<double>(bpmChange) });
     }
     index = -1;
     for (const auto& stop : stops) {
