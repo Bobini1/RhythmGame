@@ -29,14 +29,15 @@ trimR(std::string_view str) -> size_t
         return pos + 1;
     }
     return 0;
-
 };
 
 struct TextTag
 {
     static constexpr auto value = lexy::callback<std::string>([](auto&& str) {
         return boost::locale::conv::to_utf<char>(
-          str.begin(), str.begin() + trimR({str.data(), str.size()}), "CP932");
+          str.begin(),
+          str.begin() + trimR({ str.data(), str.size() }),
+          "CP932");
     });
     static constexpr auto rule = capture(until(dsl::unicode::newline).or_eof());
 };
@@ -46,7 +47,7 @@ struct Identifier
     static constexpr auto value = lexy::callback<uint16_t>([](auto&& str) {
         auto res = uint16_t{};
         auto [ptr, ec] = std::from_chars(str.begin(), str.end(), res, 36);
-        if(ec == std::errc{} && ptr == str.end()) {
+        if (ec == std::errc{} && ptr == str.end()) {
             return res;
         }
         return uint16_t{ 0 };
@@ -92,13 +93,12 @@ struct Channel
 {
     static constexpr auto rule =
       capture(token(dsl::times<2>(dsl::ascii::alnum)));
-    static constexpr auto value =
-      lexy::callback<int>([](auto&& str) {
-          constexpr auto base = 36;
-          auto result = 0;
-          std::from_chars(str.begin(), str.end(), result, base);
-          return result;
-      });
+    static constexpr auto value = lexy::callback<int>([](auto&& str) {
+        constexpr auto base = 36;
+        auto result = 0;
+        std::from_chars(str.begin(), str.end(), result, base);
+        return result;
+    });
 };
 
 struct Measure
@@ -106,13 +106,12 @@ struct Measure
     static constexpr auto rule = peek(dsl::hash_sign >> dsl::digit<>) >>
                                  (dsl::hash_sign +
                                   capture(token(dsl::times<3>(dsl::digit<>))));
-    static constexpr auto value =
-      lexy::callback<int>([](auto&& str) {
-          constexpr auto base = 10;
-          auto result = 0;
-          std::from_chars(str.begin(), str.end(), result, base);
-          return result;
-      });
+    static constexpr auto value = lexy::callback<int>([](auto&& str) {
+        constexpr auto base = 10;
+        auto result = 0;
+        std::from_chars(str.begin(), str.end(), result, base);
+        return result;
+    });
 };
 
 struct MeasureBasedTag
@@ -124,27 +123,75 @@ struct MeasureBasedTag
       lexy::construct<std::tuple<int64_t, int, std::vector<uint16_t>>>;
 };
 
-#define RG_STRONG_TYPEDEF(T, D)                                                                                  \
-struct D                                                                                                         \
-    : boost::totally_ordered1< D                                                                                 \
-    , boost::totally_ordered2< D, T                                                                              \
-    > >                                                                                                          \
-{                                                                                                                \
-    T t;                                                                                                         \
-    explicit D(T t_) BOOST_NOEXCEPT_IF(std::is_nothrow_move_constructible<T>::value) : t(std::move(t_)) {}      \
-    D() BOOST_NOEXCEPT_IF(boost::has_nothrow_default_constructor<T>::value) : t() {}                             \
-    D(const D & t_) BOOST_NOEXCEPT_IF(boost::has_nothrow_copy_constructor<T>::value) : t(t_.t) {}                \
-    D(D && t_) BOOST_NOEXCEPT_IF(std::is_nothrow_move_constructible<T>::value) : t(std::move(t_.t)) {}          \
-    D& operator=(const D& rhs) BOOST_NOEXCEPT_IF(boost::has_nothrow_assign<T>::value) {t = rhs.t; return *this;} \
-    D& operator=(const T& rhs) BOOST_NOEXCEPT_IF(boost::has_nothrow_assign<T>::value) {t = rhs; return *this;}   \
-    D& operator=(D&& rhs) BOOST_NOEXCEPT_IF(std::is_nothrow_move_assignable<T>::value) {t = std::move(rhs.t); return *this;} \
-    D& operator=(T&& rhs) BOOST_NOEXCEPT_IF(std::is_nothrow_move_assignable<T>::value) {t = std::move(rhs); return *this;}   \
-    operator const T&() const {return t;}                                                                        \
-    operator T&() & {return t;}                                                                                  \
-    operator T&&() && {return std::move(t);}                                                                     \
-    bool operator==(const D& rhs) const {return t == rhs.t;}                                                     \
-    bool operator<(const D& rhs) const {return t < rhs.t;}                                                       \
-};
+#define RG_STRONG_TYPEDEF(T, D)                                                \
+    struct D : boost::totally_ordered1<D, boost::totally_ordered2<D, T>>       \
+    {                                                                          \
+        T t;                                                                   \
+        explicit D(T t_)                                                       \
+          BOOST_NOEXCEPT_IF(std::is_nothrow_move_constructible<T>::value)      \
+          : t(std::move(t_))                                                   \
+        {                                                                      \
+        }                                                                      \
+        D()                                                                    \
+        BOOST_NOEXCEPT_IF(boost::has_nothrow_default_constructor<T>::value)    \
+          : t()                                                                \
+        {                                                                      \
+        }                                                                      \
+        D(const D& t_)                                                         \
+        BOOST_NOEXCEPT_IF(boost::has_nothrow_copy_constructor<T>::value)       \
+          : t(t_.t)                                                            \
+        {                                                                      \
+        }                                                                      \
+        D(D&& t_)                                                              \
+        BOOST_NOEXCEPT_IF(std::is_nothrow_move_constructible<T>::value)        \
+          : t(std::move(t_.t))                                                 \
+        {                                                                      \
+        }                                                                      \
+        D& operator=(const D& rhs)                                             \
+          BOOST_NOEXCEPT_IF(boost::has_nothrow_assign<T>::value)               \
+        {                                                                      \
+            t = rhs.t;                                                         \
+            return *this;                                                      \
+        }                                                                      \
+        D& operator=(const T& rhs)                                             \
+          BOOST_NOEXCEPT_IF(boost::has_nothrow_assign<T>::value)               \
+        {                                                                      \
+            t = rhs;                                                           \
+            return *this;                                                      \
+        }                                                                      \
+        D& operator=(D&& rhs)                                                  \
+          BOOST_NOEXCEPT_IF(std::is_nothrow_move_assignable<T>::value)         \
+        {                                                                      \
+            t = std::move(rhs.t);                                              \
+            return *this;                                                      \
+        }                                                                      \
+        D& operator=(T&& rhs)                                                  \
+          BOOST_NOEXCEPT_IF(std::is_nothrow_move_assignable<T>::value)         \
+        {                                                                      \
+            t = std::move(rhs);                                                \
+            return *this;                                                      \
+        }                                                                      \
+        operator const T&() const                                              \
+        {                                                                      \
+            return t;                                                          \
+        }                                                                      \
+        operator T&() &                                                        \
+        {                                                                      \
+            return t;                                                          \
+        }                                                                      \
+        operator T&&() &&                                                      \
+        {                                                                      \
+            return std::move(t);                                               \
+        }                                                                      \
+        bool operator==(const D& rhs) const                                    \
+        {                                                                      \
+            return t == rhs.t;                                                 \
+        }                                                                      \
+        bool operator<(const D& rhs) const                                     \
+        {                                                                      \
+            return t < rhs.t;                                                  \
+        }                                                                      \
+    };
 
 RG_STRONG_TYPEDEF(std::string, Title)
 RG_STRONG_TYPEDEF(std::string, Artist)
@@ -179,9 +226,10 @@ struct TitleTag
         auto titleTag = dsl::ascii::case_folding(LEXY_LIT("#title"));
         return titleTag >> dsl::p<TextTag>;
     }();
-    static constexpr auto value =
-      lexy::as_string<std::string> |
-      lexy::callback<Title>([](std::string&& str) { return Title{ std::move(str) }; });
+    static constexpr auto value = lexy::as_string<std::string> |
+                                  lexy::callback<Title>([](std::string&& str) {
+                                      return Title{ std::move(str) };
+                                  });
 };
 
 struct ArtistTag
@@ -190,9 +238,10 @@ struct ArtistTag
         auto artistTag = dsl::ascii::case_folding(LEXY_LIT("#artist"));
         return artistTag >> dsl::p<TextTag>;
     }();
-    static constexpr auto value =
-      lexy::as_string<std::string> |
-      lexy::callback<Artist>([](std::string&& str) { return Artist{ std::move(str) }; });
+    static constexpr auto value = lexy::as_string<std::string> |
+                                  lexy::callback<Artist>([](std::string&& str) {
+                                      return Artist{ std::move(str) };
+                                  });
 };
 
 struct SubtitleTag
@@ -225,9 +274,10 @@ struct GenreTag
         auto genreTag = dsl::ascii::case_folding(LEXY_LIT("#genre"));
         return genreTag >> dsl::p<TextTag>;
     }();
-    static constexpr auto value =
-      lexy::as_string<std::string> |
-      lexy::callback<Genre>([](std::string&& str) { return Genre{ std::move(str) }; });
+    static constexpr auto value = lexy::as_string<std::string> |
+                                  lexy::callback<Genre>([](std::string&& str) {
+                                      return Genre{ std::move(str) };
+                                  });
 };
 
 struct StageFileTag
@@ -248,9 +298,10 @@ struct BannerTag
         auto bannerTag = dsl::ascii::case_folding(LEXY_LIT("#banner"));
         return bannerTag >> dsl::p<TextTag>;
     }();
-    static constexpr auto value =
-      lexy::as_string<std::string> |
-      lexy::callback<Banner>([](std::string&& str) { return Banner{ std::move(str) }; });
+    static constexpr auto value = lexy::as_string<std::string> |
+                                  lexy::callback<Banner>([](std::string&& str) {
+                                      return Banner{ std::move(str) };
+                                  });
 };
 
 struct BackBmpTag
@@ -261,7 +312,8 @@ struct BackBmpTag
     }();
     static constexpr auto value =
       lexy::as_string<std::string> |
-      lexy::callback<BackBmp>([](std::string&& str) { return BackBmp{ std::move(str) }; });
+      lexy::callback<BackBmp>(
+        [](std::string&& str) { return BackBmp{ std::move(str) }; });
 };
 
 struct TotalTag
@@ -344,10 +396,8 @@ struct LnObjTag
         auto lnObjTag = dsl::ascii::case_folding(LEXY_LIT("#lnobj"));
         return lnObjTag >> dsl::p<Identifier>;
     }();
-    static constexpr auto value =
-      lexy::callback<LnObj>([](uint16_t&& identifier) {
-          return LnObj{ { std::move(identifier) } };
-      });
+    static constexpr auto value = lexy::callback<LnObj>(
+      [](uint16_t&& identifier) { return LnObj{ { std::move(identifier) } }; });
 };
 
 struct LnTypeTag
