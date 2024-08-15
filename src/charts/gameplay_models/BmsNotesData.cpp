@@ -28,8 +28,8 @@ enum class BpmChangeType
 };
 
 auto
-combineBpmChanges(std::span<const uint16_t> bpmChanges,
-                  std::span<const uint16_t> exBpmChanges,
+combineBpmChanges(std::span<const uint16_t> exBpmChanges,
+                  std::span<const uint16_t> bpmChanges,
                   std::span<const uint16_t> stops,
                   const std::unordered_map<uint16_t, double>& bpms,
                   const std::unordered_map<uint16_t, double>& stopDefs)
@@ -37,7 +37,7 @@ combineBpmChanges(std::span<const uint16_t> bpmChanges,
 {
     auto index = -1;
     auto combinedBpmChanges = std::vector<BpmChangeDef>{};
-    for (const auto& bpmChange : bpmChanges) {
+    for (const auto& bpmChange : exBpmChanges) {
         index++;
         if (bpmChange == 0) {
             continue;
@@ -51,26 +51,30 @@ combineBpmChanges(std::span<const uint16_t> bpmChanges,
                                       std::to_string(bpmValue->second) };
         }
         auto fraction =
-          static_cast<double>(index) / static_cast<double>(bpmChanges.size());
-        auto gcd = std::gcd(index, static_cast<int>(bpmChanges.size()));
+          static_cast<double>(index) / static_cast<double>(exBpmChanges.size());
+        auto gcd = std::gcd(index, static_cast<int>(exBpmChanges.size()));
         auto fractionDec =
-          std::pair{ index / gcd, static_cast<int>(bpmChanges.size()) / gcd };
+          std::pair{ index / gcd, static_cast<int>(exBpmChanges.size()) / gcd };
         combinedBpmChanges.emplace_back(
           BpmChangeDef{ fraction, false, fractionDec, bpmValue->second });
     }
     index = -1;
-    for (const auto& bpmChange : exBpmChanges) {
+    for (const auto& bpmChange : bpmChanges) {
         index++;
         if (bpmChange == 0) {
             continue;
         }
         auto fraction =
-          static_cast<double>(index) / static_cast<double>(exBpmChanges.size());
-        auto gcd = std::gcd(index, static_cast<int>(exBpmChanges.size()));
+          static_cast<double>(index) / static_cast<double>(bpmChanges.size());
+        auto gcd = std::gcd(index, static_cast<int>(bpmChanges.size()));
         auto fractionDec =
-          std::pair{ index / gcd, static_cast<int>(exBpmChanges.size()) / gcd };
+          std::pair{ index / gcd, static_cast<int>(bpmChanges.size()) / gcd };
+        // convert from base-36 identifier to base 16
+        auto bpmValueHigh = bpmChange / 36;
+        bpmValueHigh *= 16;
+        const auto bpmValue = bpmValueHigh + (bpmChange % 36);
         combinedBpmChanges.emplace_back(BpmChangeDef{
-          fraction, false, fractionDec, static_cast<double>(bpmChange) });
+          fraction, false, fractionDec, static_cast<double>(bpmValue) });
     }
     index = -1;
     for (const auto& stop : stops) {
