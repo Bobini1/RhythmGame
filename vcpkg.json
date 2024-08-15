@@ -100,16 +100,7 @@
       "features": [
         "qml",
         "ffmpeg"
-      ],
-      "platform": "linux"
-    },
-    {
-      "name": "qtmultimedia",
-      "version>=": "6.7.2",
-      "features": [
-        "qml"
-      ],
-      "platform": "!linux"
+      ]
     },
     {
       "name": "qtwayland",

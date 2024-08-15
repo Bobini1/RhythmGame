@@ -21,7 +21,7 @@ class PreviewFilePathFetcher : public QObject
   public:
     explicit PreviewFilePathFetcher(db::SqliteCppDb* db,
                                     QObject* parent = nullptr);
-    Q_INVOKABLE QString getPreviewFilePath(QString directory);
+    Q_INVOKABLE QString getPreviewFilePath(const QString& directory);
 };
 
 } // namespace qml_components
