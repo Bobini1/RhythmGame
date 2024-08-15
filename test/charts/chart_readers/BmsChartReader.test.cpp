@@ -67,7 +67,7 @@ TEST_CASE("Parse BPM", "[BmsChartReader]")
     REQUIRE(res.tags.bpm.value() ==
             Catch::Approx(expectedBpm).epsilon(allowedError));
 
-    testString = "#BPM 120"s;
+    testString = "#BPM 120";
     res = reader.readBmsChart(testString, randomGenerator);
     REQUIRE(res.tags.bpm);
     REQUIRE(res.tags.bpm.value() ==
@@ -163,7 +163,7 @@ randomGenerator); REQUIRE(res.tags.title == std::optional<std::string>{});
               .second[0]
               .second.randomBlocks[0]
               .second[0]
-              .second.artist == "-45"s);
+              .second.artist == "-45);
 }
 */
 
@@ -198,7 +198,7 @@ TEST_CASE("Parse notes", "[BmsChartReader]")
     auto res = reader.readBmsChart(chart, randomGenerator);
     REQUIRE(res.tags.measures.size() == 1);
     REQUIRE(res.tags.measures[1].p1VisibleNotes[0].size() == 1);
-    REQUIRE(res.tags.measures[1].p1VisibleNotes[0][0][0] == "00"s);
+    REQUIRE(res.tags.measures[1].p1VisibleNotes[0][0][0] == 0);
 }
 
 TEST_CASE("Parse notes from a chart with multiple notes", "[BmsChartReader]")
@@ -208,10 +208,10 @@ TEST_CASE("Parse notes from a chart with multiple notes", "[BmsChartReader]")
     auto res = reader.readBmsChart(chart, randomGenerator);
     REQUIRE(res.tags.measures.size() == 1);
     REQUIRE(res.tags.measures[1].p1VisibleNotes[0][0].size() == 4);
-    REQUIRE(res.tags.measures[1].p1VisibleNotes[0][0][0] == "00"s);
-    REQUIRE(res.tags.measures[1].p1VisibleNotes[0][0][1] == "01"s);
-    REQUIRE(res.tags.measures[1].p1VisibleNotes[0][0][2] == "02"s);
-    REQUIRE(res.tags.measures[1].p1VisibleNotes[0][0][3] == "03"s);
+    REQUIRE(res.tags.measures[1].p1VisibleNotes[0][0][0] == 0);
+    REQUIRE(res.tags.measures[1].p1VisibleNotes[0][0][1] == 1);
+    REQUIRE(res.tags.measures[1].p1VisibleNotes[0][0][2] == 2);
+    REQUIRE(res.tags.measures[1].p1VisibleNotes[0][0][3] == 3);
 }
 
 TEST_CASE("Parse notes from a chart with multiple lanes", "[BmsChartReader]")
@@ -221,15 +221,15 @@ TEST_CASE("Parse notes from a chart with multiple lanes", "[BmsChartReader]")
     auto res = reader.readBmsChart(chart, randomGenerator);
     REQUIRE(res.tags.measures.size() == 1);
     REQUIRE(res.tags.measures[1].p1VisibleNotes[0][0].size() == 4);
-    REQUIRE(res.tags.measures[1].p1VisibleNotes[0][0][0] == "00"s);
-    REQUIRE(res.tags.measures[1].p1VisibleNotes[0][0][1] == "01"s);
-    REQUIRE(res.tags.measures[1].p1VisibleNotes[0][0][2] == "02"s);
-    REQUIRE(res.tags.measures[1].p1VisibleNotes[0][0][3] == "03"s);
+    REQUIRE(res.tags.measures[1].p1VisibleNotes[0][0][0] == 0);
+    REQUIRE(res.tags.measures[1].p1VisibleNotes[0][0][1] == 1);
+    REQUIRE(res.tags.measures[1].p1VisibleNotes[0][0][2] == 2);
+    REQUIRE(res.tags.measures[1].p1VisibleNotes[0][0][3] == 3);
     REQUIRE(res.tags.measures[1].p1VisibleNotes[1][0].size() == 4);
-    REQUIRE(res.tags.measures[1].p1VisibleNotes[1][0][0] == "04"s);
-    REQUIRE(res.tags.measures[1].p1VisibleNotes[1][0][1] == "05"s);
-    REQUIRE(res.tags.measures[1].p1VisibleNotes[1][0][2] == "06"s);
-    REQUIRE(res.tags.measures[1].p1VisibleNotes[1][0][3] == "07"s);
+    REQUIRE(res.tags.measures[1].p1VisibleNotes[1][0][0] == 4);
+    REQUIRE(res.tags.measures[1].p1VisibleNotes[1][0][1] == 5);
+    REQUIRE(res.tags.measures[1].p1VisibleNotes[1][0][2] == 6);
+    REQUIRE(res.tags.measures[1].p1VisibleNotes[1][0][3] == 7);
 }
 
 TEST_CASE("Bgm notes get parsed correctly", "[BmsChartReader]")
@@ -240,16 +240,18 @@ TEST_CASE("Bgm notes get parsed correctly", "[BmsChartReader]")
     REQUIRE(res.tags.measures.size() == 1);
     REQUIRE(res.tags.measures[1].bgmNotes.size() == 2);
     REQUIRE(res.tags.measures[1].bgmNotes[0].size() == 4);
-    REQUIRE(res.tags.measures[1].bgmNotes[0][0] == "00"s);
-    REQUIRE(res.tags.measures[1].bgmNotes[0][1] == "01"s);
-    REQUIRE(res.tags.measures[1].bgmNotes[0][2] == "02"s);
-    REQUIRE(res.tags.measures[1].bgmNotes[0][3] == "03"s);
+    REQUIRE(res.tags.measures[1].bgmNotes[0][0] == 0);
+    REQUIRE(res.tags.measures[1].bgmNotes[0][1] == 1);
+    REQUIRE(res.tags.measures[1].bgmNotes[0][2] == 2);
+    REQUIRE(res.tags.measures[1].bgmNotes[0][3] == 3);
     REQUIRE(res.tags.measures[1].bgmNotes[1].size() == 4);
-    REQUIRE(res.tags.measures[1].bgmNotes[1][0] == "04"s);
-    REQUIRE(res.tags.measures[1].bgmNotes[1][1] == "05"s);
-    REQUIRE(res.tags.measures[1].bgmNotes[1][2] == "06"s);
-    REQUIRE(res.tags.measures[1].bgmNotes[1][3] == "07"s);
+    REQUIRE(res.tags.measures[1].bgmNotes[1][0] == 4);
+    REQUIRE(res.tags.measures[1].bgmNotes[1][1] == 5);
+    REQUIRE(res.tags.measures[1].bgmNotes[1][2] == 6);
+    REQUIRE(res.tags.measures[1].bgmNotes[1][3] == 7);
 }
+
+
 
 TEST_CASE("Parse all basic note types get", "[BmsChartReader]")
 {
@@ -261,30 +263,30 @@ TEST_CASE("Parse all basic note types get", "[BmsChartReader]")
     REQUIRE(res.tags.measures.size() == 7);
     REQUIRE(res.tags.measures[1].bgmNotes.size() == 2);
     REQUIRE(res.tags.measures[1].bgmNotes[0].size() == 4);
-    REQUIRE(res.tags.measures[1].bgmNotes[0][0] == "00"s);
-    REQUIRE(res.tags.measures[1].bgmNotes[0][1] == "01"s);
-    REQUIRE(res.tags.measures[1].bgmNotes[0][2] == "02"s);
-    REQUIRE(res.tags.measures[1].bgmNotes[0][3] == "03"s);
+    REQUIRE(res.tags.measures[1].bgmNotes[0][0] == 0);
+    REQUIRE(res.tags.measures[1].bgmNotes[0][1] == 1);
+    REQUIRE(res.tags.measures[1].bgmNotes[0][2] == 2);
+    REQUIRE(res.tags.measures[1].bgmNotes[0][3] == 3);
     REQUIRE(res.tags.measures[1].bgmNotes[1].size() == 4);
-    REQUIRE(res.tags.measures[1].bgmNotes[1][0] == "04"s);
-    REQUIRE(res.tags.measures[1].bgmNotes[1][1] == "05"s);
-    REQUIRE(res.tags.measures[1].bgmNotes[1][2] == "06"s);
-    REQUIRE(res.tags.measures[1].bgmNotes[1][3] == "07"s);
+    REQUIRE(res.tags.measures[1].bgmNotes[1][0] == 4);
+    REQUIRE(res.tags.measures[1].bgmNotes[1][1] == 5);
+    REQUIRE(res.tags.measures[1].bgmNotes[1][2] == 6);
+    REQUIRE(res.tags.measures[1].bgmNotes[1][3] == 7);
     REQUIRE(res.tags.measures[5].p1VisibleNotes[0][0].size() == 2);
-    REQUIRE(res.tags.measures[5].p1VisibleNotes[0][0][0] == "04"s);
-    REQUIRE(res.tags.measures[5].p1VisibleNotes[0][0][1] == "05"s);
+    REQUIRE(res.tags.measures[5].p1VisibleNotes[0][0][0] == 4);
+    REQUIRE(res.tags.measures[5].p1VisibleNotes[0][0][1] == 5);
     REQUIRE(res.tags.measures[10].p2VisibleNotes[0][0].size() == 1);
-    REQUIRE(res.tags.measures[10].p2VisibleNotes[0][0][0] == "00"s);
+    REQUIRE(res.tags.measures[10].p2VisibleNotes[0][0][0] == 0);
     REQUIRE(res.tags.measures[999].p1InvisibleNotes[4][0].size() == 3);
-    REQUIRE(res.tags.measures[999].p1InvisibleNotes[4][0][0] == "12"s);
-    REQUIRE(res.tags.measures[999].p1InvisibleNotes[4][0][1] == "34"s);
-    REQUIRE(res.tags.measures[999].p1InvisibleNotes[4][0][2] == "56"s);
+    REQUIRE(res.tags.measures[999].p1InvisibleNotes[4][0][0] == 38);
+    REQUIRE(res.tags.measures[999].p1InvisibleNotes[4][0][1] == 112);
+    REQUIRE(res.tags.measures[999].p1InvisibleNotes[4][0][2] == 186);
     REQUIRE(res.tags.measures[888].p2InvisibleNotes[3][0].size() == 1);
-    REQUIRE(res.tags.measures[888].p2InvisibleNotes[3][0][0] == "01"s);
+    REQUIRE(res.tags.measures[888].p2InvisibleNotes[3][0][0] == 1);
     REQUIRE(res.tags.measures[777].p1LongNotes[2][0].size() == 1);
-    REQUIRE(res.tags.measures[777].p1LongNotes[2][0][0] == "10"s);
+    REQUIRE(res.tags.measures[777].p1LongNotes[2][0][0] == 36);
     REQUIRE(res.tags.measures[666].p2LongNotes[1][0].size() == 1);
-    REQUIRE(res.tags.measures[666].p2LongNotes[1][0][0] == "11"s);
+    REQUIRE(res.tags.measures[666].p2LongNotes[1][0][0] == 37);
 }
 
 TEST_CASE("Error recovery on bad value", "[BmsChartReader]")
@@ -309,7 +311,7 @@ TEST_CASE("Parse old-style bpm changes", "[BmsChartReader]")
     auto reader = charts::chart_readers::BmsChartReader{};
     auto res = reader.readBmsChart(chart, randomGenerator);
     REQUIRE(res.tags.measures[1].bpmChanges.size() == 2);
-    REQUIRE(res.tags.measures[1].bpmChanges[1] == "11");
+    REQUIRE(res.tags.measures[1].bpmChanges[1] == 0x11);
 }
 
 TEST_CASE("Parse new-style bpm changes", "[BmsChartReader]")
@@ -318,12 +320,12 @@ TEST_CASE("Parse new-style bpm changes", "[BmsChartReader]")
     auto reader = charts::chart_readers::BmsChartReader{};
     auto res = reader.readBmsChart(chart, randomGenerator);
     REQUIRE(res.tags.measures[1].exBpmChanges.size() == 1);
-    REQUIRE(res.tags.measures[1].exBpmChanges[0] == "12");
+    REQUIRE(res.tags.measures[1].exBpmChanges[0] == 38);
     REQUIRE(res.tags.exBpms.size() == 2);
-    REQUIRE(res.tags.exBpms.find("20") != res.tags.exBpms.end());
-    REQUIRE(res.tags.exBpms.find("20")->second == Catch::Approx(120));
-    REQUIRE(res.tags.exBpms.find("ff") != res.tags.exBpms.end());
-    REQUIRE(res.tags.exBpms.find("ff")->second == Catch::Approx(12));
+    REQUIRE(res.tags.exBpms.find(72) != res.tags.exBpms.end());
+    REQUIRE(res.tags.exBpms.find(72)->second == Catch::Approx(120));
+    REQUIRE(res.tags.exBpms.find(555) != res.tags.exBpms.end());
+    REQUIRE(res.tags.exBpms.find(555)->second == Catch::Approx(12));
 }
 
 TEST_CASE("Parse WAVXX", "[BmsChartReader]")
@@ -332,6 +334,6 @@ TEST_CASE("Parse WAVXX", "[BmsChartReader]")
     auto reader = charts::chart_readers::BmsChartReader{};
     auto res = reader.readBmsChart(chart, randomGenerator);
     REQUIRE(res.tags.wavs.size() == 1);
-    REQUIRE(res.tags.wavs.find("01") != res.tags.wavs.end());
-    REQUIRE(res.tags.wavs["01"] == "01.wav"s);
+    REQUIRE(res.tags.wavs.find(1) != res.tags.wavs.end());
+    REQUIRE(res.tags.wavs[1] == "01.wav"s);
 }

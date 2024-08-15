@@ -11,6 +11,8 @@
 #include "../../findTestAssetsFolder.h"
 #include "charts/chart_readers/BmsChartReader.h"
 
+#include <support/UtfStringToPath.h>
+
 namespace {
 auto randomGenerator =
   [](charts::parser_models::ParsedBmsChart::RandomRange range) {
@@ -27,9 +29,14 @@ TEST_CASE("Sounds are loaded from a folder according to the bms file",
     const auto bmsFile = fmt::format("#WAV01 {}\n#WAV02 {}", path, path);
     auto reader = charts::chart_readers::BmsChartReader();
     auto tags = reader.readBmsChart(bmsFile, randomGenerator).tags;
-    auto sounds = charts::helper_functions::loadBmsSounds(tags.wavs, folder);
+    std::unordered_map<uint16_t, std::filesystem::path> wavs;
+    wavs.reserve(tags.wavs.size());
+    for (auto& wav : tags.wavs) {
+        wavs.emplace(wav.first, support::utfStringToPath(wav.second));
+    }
+    auto sounds = charts::helper_functions::loadBmsSounds(wavs, folder);
     REQUIRE(sounds.size() == 2);
-    REQUIRE(sounds.at("01").getBuffer() == sounds.at("02").getBuffer());
+    REQUIRE(sounds.at(1).getBuffer() == sounds.at(2).getBuffer());
 }
 
 TEST_CASE("Even when the extension says wav, allow loading other extensions",
@@ -53,6 +60,11 @@ TEST_CASE("Even when the extension says wav, allow loading other extensions",
                   paths[3]);
     auto reader = charts::chart_readers::BmsChartReader();
     auto tags = reader.readBmsChart(bmsFile, randomGenerator).tags;
-    auto sounds = charts::helper_functions::loadBmsSounds(tags.wavs, folder);
+    std::unordered_map<uint16_t, std::filesystem::path> wavs;
+    wavs.reserve(tags.wavs.size());
+    for (auto& wav : tags.wavs) {
+        wavs.emplace(wav.first, support::utfStringToPath(wav.second));
+    }
+    auto sounds = charts::helper_functions::loadBmsSounds(wavs, folder);
     REQUIRE(sounds.size() == 4);
 }

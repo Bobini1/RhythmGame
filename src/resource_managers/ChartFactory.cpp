@@ -284,7 +284,7 @@ ChartFactory::createChart(
                  score,
                  hitRules = std::move(hitRules)]() mutable {
         auto sounds =
-          charts::helper_functions::loadBmsSounds(wavs, std::move(path));
+          charts::helper_functions::loadBmsSounds(wavs, path);
         sounds::OpenALSound* mineHitSound = nullptr;
         if (auto sound = sounds.find(0); sound != sounds.end()) {
             mineHitSound = &sound->second;
