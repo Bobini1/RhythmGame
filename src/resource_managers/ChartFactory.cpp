@@ -274,7 +274,9 @@ ChartFactory::createChart(
       chartData->getMineCount(),
       chartData->getLnCount() + chartData->getNormalNoteCount(),
       maxHitValue,
-      std::move(gauges));
+      std::move(gauges),
+      chartData->getRandomSequence(),
+      chartData->getSha256().toStdString());
     auto task = [path,
                  wavs = std::move(wavs),
                  visibleNotes = std::move(notesData.visibleNotes),

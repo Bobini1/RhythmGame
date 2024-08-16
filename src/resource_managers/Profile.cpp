@@ -136,7 +136,8 @@ Profile(const std::filesystem::path& dbPath,
                "perfect INTEGER NOT NULL,"
                "mine_hits INTEGER NOT NULL,"
                "clear_type TEXT NOT NULL,"
-               "unix_timestamp INTEGER NOT NULL"
+               "unix_timestamp INTEGER NOT NULL,"
+               "random_sequence STRING NOT NULL"
                ");");
     db.execute("CREATE TABLE IF NOT EXISTS replay_data ("
                "id INTEGER PRIMARY KEY AUTOINCREMENT,"

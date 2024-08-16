@@ -4,6 +4,7 @@
 
 #include "BmsScore.h"
 #include <magic_enum.hpp>
+#include <utility>
 #include <spdlog/spdlog.h>
 
 namespace gameplay_logic {
@@ -58,6 +59,8 @@ BmsScore(int normalNoteCount,
          int maxHits,
          double maxHitValue,
          QList<rules::BmsGauge*> gauges,
+         QList<int64_t> randomSequence,
+         support::Sha256 sha256,
          QObject* parent)
   : QObject(parent)
   , maxPoints(maxHitValue * maxHits)
@@ -66,6 +69,8 @@ BmsScore(int normalNoteCount,
   , lnCount(lnCount)
   , maxHits(maxHits)
   , gauges(std::move(gauges))
+  , randomSequence(std::move(randomSequence))
+  , sha256(std::move(sha256))
 {
     for (auto* gauge : this->gauges) {
         gauge->setParent(this);
@@ -154,7 +159,9 @@ BmsScore::getResult() const -> std::unique_ptr<BmsResult>
                                        judgementCounts,
                                        mineHits.size(),
                                        points,
-                                       maxCombo);
+                                       maxCombo,
+                                       randomSequence,
+                                       sha256);
 }
 auto
 BmsScore::getReplayData() const -> std::unique_ptr<BmsReplayData>

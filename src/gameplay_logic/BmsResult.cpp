@@ -6,6 +6,7 @@
 #include <QIODevice>
 #include <QDataStream>
 #include <QDateTime>
+#include <support/Compress.h>
 auto
 gameplay_logic::BmsResult::getMaxPoints() const -> double
 {
@@ -36,6 +37,11 @@ gameplay_logic::BmsResult::getClearType() const -> QString
 {
     return clearType;
 }
+auto
+gameplay_logic::BmsResult::getRandomSequence() -> QList<int64_t>
+{
+    return randomSequence;
+}
 gameplay_logic::BmsResult::BmsResult(double maxPoints,
                                      int maxHits,
                                      int normalNoteCount,
@@ -46,6 +52,8 @@ gameplay_logic::BmsResult::BmsResult(double maxPoints,
                                      int mineHits,
                                      double points,
                                      int maxCombo,
+                                     QList<int64_t> randomSequence,
+                                     support::Sha256 sha256,
                                      QObject* parent)
   : QObject(parent)
   , maxPoints(maxPoints)
@@ -59,11 +67,12 @@ gameplay_logic::BmsResult::BmsResult(double maxPoints,
   , points(points)
   , maxCombo(maxCombo)
   , unixTimestamp(QDateTime::currentSecsSinceEpoch())
+  , randomSequence(std::move(randomSequence))
+  , sha256(std::move(sha256))
 {
 }
 auto
-gameplay_logic::BmsResult::save(db::SqliteCppDb& db,
-                                support::Sha256 sha256) const -> int64_t
+gameplay_logic::BmsResult::save(db::SqliteCppDb& db) const -> int64_t
 {
     auto statement = db.createStatement(
       "INSERT INTO score ("
@@ -83,9 +92,11 @@ gameplay_logic::BmsResult::save(db::SqliteCppDb& db,
       "perfect,"
       "mine_hits,"
       "sha256,"
-      "unix_timestamp"
+      "unix_timestamp,"
+      "random_sequence"
       ")"
-      "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+      "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+    auto randomSequenceCompressed = support::compress(randomSequence);
     statement.bind(1, maxPoints);
     statement.bind(2, maxHits);
     statement.bind(3, normalNoteCount);
@@ -103,6 +114,7 @@ gameplay_logic::BmsResult::save(db::SqliteCppDb& db,
     statement.bind(15, mineHits);
     statement.bind(16, sha256);
     statement.bind(17, unixTimestamp);
+    statement.bind(18, randomSequenceCompressed.data(), randomSequenceCompressed.size());
     return statement.execute();
 }
 auto
@@ -127,7 +139,9 @@ gameplay_logic::BmsResult::load(const BmsResultDto& dto)
                                   judgementCounts,
                                   dto.mineHits,
                                   dto.points,
-                                  dto.maxCombo);
+                                  dto.maxCombo,
+                                  support::decompress<QList<int64_t>>(QByteArray::fromStdString(dto.randomSequence)),
+                                  dto.sha256);
     result->setId(dto.id);
     result->unixTimestamp = dto.unixTimestamp;
     return result;
