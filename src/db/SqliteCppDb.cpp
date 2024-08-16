@@ -8,7 +8,7 @@
 #include <utility>
 
 db::SqliteCppDb::
-SqliteCppDb(std::string dbPath)
+SqliteCppDb(std::filesystem::path dbPath)
   : db(dbPath,
        SQLite::OPEN_READWRITE | // NOLINT(hicpp-signed-bitwise)
          SQLite::OPEN_CREATE)

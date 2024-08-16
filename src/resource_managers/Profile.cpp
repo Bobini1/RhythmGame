@@ -12,16 +12,12 @@
 
 namespace resource_managers {
 
+namespace {
 auto
 createDb(const std::filesystem::path& dbPath) -> db::SqliteCppDb
 {
     create_directories(dbPath.parent_path());
-#ifdef _WIN32
-    return db::SqliteCppDb(
-      QString::fromStdWString(dbPath.wstring()).toStdString());
-#else
     return db::SqliteCppDb(dbPath);
-#endif
 }
 
 auto
@@ -35,6 +31,7 @@ createConfig(const QMap<QString, qml_components::ThemeFamily>& availableThemes,
     config->freeze();
     return config;
 }
+} // namespace
 
 auto
 Profile::getName() const -> QString

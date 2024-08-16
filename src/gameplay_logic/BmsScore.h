@@ -4,14 +4,8 @@
 
 #ifndef RHYTHMGAME_BMSSCORE_H
 #define RHYTHMGAME_BMSSCORE_H
-#include <vector>
-#include <boost/container/flat_map.hpp>
-#include <QObject>
 #include <magic_enum.hpp>
-#include "gameplay_logic/TimePoint.h"
-#include "gameplay_logic/BmsPoints.h"
 #include "gameplay_logic/rules/BmsGauge.h"
-#include "input/BmsKeys.h"
 #include "HitEvent.h"
 #include "BmsResult.h"
 #include "BmsGaugeHistory.h"
