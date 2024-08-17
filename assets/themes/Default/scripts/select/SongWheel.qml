@@ -208,6 +208,10 @@ FocusScope {
                     }
                 }
 
+                function onOpenedFolder() {
+                    previewDelayTimer.restart()
+                }
+
                 target: songList
             }
             Timer {

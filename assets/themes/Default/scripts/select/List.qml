@@ -47,8 +47,12 @@ PathView {
             pathView.currentFolder = item;
             pathView.model = folder;
             pathView.positionViewAtIndex(1, PathView.Center);
+            openedFolder();
         }
     }
+
+    signal openedFolder()
+
     function search(query) {
         let results = SongFolderFactory.search(query);
         if (!results.length) {
