@@ -50,7 +50,6 @@ PathView {
             pathView.model = folder;
             let idx = 1;
             if (back) {
-                print(folder, historyStack);
                 let last = historyStack.pop();
                 idx = (1 + folder.findIndex((folderItem) => {
                     if (folderItem instanceof ChartData && last instanceof ChartData) {
