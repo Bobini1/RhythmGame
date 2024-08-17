@@ -53,7 +53,7 @@ PathView {
                 let last = historyStack.pop();
                 idx = (1 + folder.findIndex((folderItem) => {
                     if (folderItem instanceof ChartData && last instanceof ChartData) {
-                        return folderItem.sha256 === last.sha256;
+                        return folderItem.path === last.path;
                     } else if (typeof folderItem === "string" && typeof last === "string") {
                         return folderItem === last;
                     }
