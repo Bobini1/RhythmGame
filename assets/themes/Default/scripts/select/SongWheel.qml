@@ -27,30 +27,31 @@ FocusScope {
 
         function getDiffColor(diff) {
             switch (diff) {
-            case "beginner":
-                return "green";
-            case "normal":
-                return "blue";
-            case "hyper":
-                return "orange";
-            case "another":
-                return "red";
-            default:
-                return "purple";
+                case "beginner":
+                    return "green";
+                case "normal":
+                    return "blue";
+                case "hyper":
+                    return "orange";
+                case "another":
+                    return "red";
+                default:
+                    return "purple";
             }
         }
+
         function getDiffColorInt(diff) {
             switch (diff) {
-            case 1:
-                return "green";
-            case 2:
-                return "blue";
-            case 3:
-                return "orange";
-            case 4:
-                return "red";
-            default:
-                return "purple";
+                case 1:
+                    return "green";
+                case 2:
+                    return "blue";
+                case 3:
+                    return "orange";
+                case 4:
+                    return "red";
+                default:
+                    return "purple";
             }
         }
 
