@@ -107,7 +107,7 @@ FocusScope {
                 anchors.verticalCenterOffset: -50
                 currentItem: songList.current
                 scrollingText: songList.scrollingText
-                z: songList.count + 1
+                z: 2
             }
             Image {
                 anchors.left: parent.left
