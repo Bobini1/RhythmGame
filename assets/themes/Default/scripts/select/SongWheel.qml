@@ -80,6 +80,37 @@ FocusScope {
             scale: Math.min(parent.width / 1920, parent.height / 1080)
             width: 1920
 
+            PlayOptions {
+                id: playOptions
+
+                scale: 0
+
+                width: 1600
+                height: 900
+                anchors.centerIn: parent
+                z: 3
+
+                Component.onCompleted: {
+                    print(InputTranslator.start)
+                }
+
+                states: State {
+                    name: "shown"; when: InputTranslator.start
+                    PropertyChanges {
+                        target: playOptions
+                        scale: 1
+                    }
+                }
+
+                transitions: Transition {
+                    NumberAnimation {
+                        properties: "scale"
+                        easing.type: Easing.InOutQuad
+                        duration: 100
+                    }
+                }
+            }
+
             RowLayout {
                 anchors.left: parent.left
                 anchors.top: parent.top
