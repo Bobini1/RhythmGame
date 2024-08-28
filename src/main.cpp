@@ -120,6 +120,9 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
 
         auto availableThemes =
           resource_managers::scanThemes(assetsFolder / "themes");
+        if (availableThemes.empty()) {
+            throw std::runtime_error("No themes available");
+        }
 
         auto themes = qml_components::Themes{ availableThemes };
         qmlRegisterSingletonInstance("RhythmGameQml", 1, 0, "Themes", &themes);
