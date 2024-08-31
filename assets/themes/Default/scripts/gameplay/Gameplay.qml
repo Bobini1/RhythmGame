@@ -26,7 +26,12 @@ Rectangle {
         return sizes;
     }
     property bool customizeMode: false
-    property double greenNumber: ProfileList.currentProfile.vars.globalVars.noteScreenTimeSeconds * 400
+    property double greenNumber: {
+        let baseSpeed = ((1 / ProfileList.currentProfile.vars.globalVars.noteScreenTimeMillis) || 0) * 60000 * vars.playAreaHeight / chart.chartData.initialBpm;
+        let laneCoverMod = ProfileList.currentProfile.vars.globalVars.laneCoverOn * ProfileList.currentProfile.vars.globalVars.laneCoverRatio;
+        let liftMod = ProfileList.currentProfile.vars.globalVars.liftOn * ProfileList.currentProfile.vars.globalVars.liftRatio;
+        return baseSpeed * Math.max(0, Math.min(1 - laneCoverMod - liftMod, 1));
+    }
     readonly property string imagesUrl: Qt.resolvedUrl(".") + "images/"
     readonly property string iniImagesUrl: "image://ini/" + rootUrl + "images/"
     readonly property var vars: ProfileList.currentProfile.vars.themeVars.gameplay

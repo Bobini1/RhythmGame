@@ -4,6 +4,8 @@
 
 #include "SongFolderFactory.h"
 #include "gameplay_logic/ChartData.h"
+#include "spdlog/stopwatch.h"
+#include "spdlog/spdlog.h"
 
 namespace qml_components {
 QVariantList
@@ -68,25 +70,24 @@ SongFolderFactory::parentFolder(QString path)
 QVariantList
 SongFolderFactory::search(QString query)
 {
+    auto sw = spdlog::stopwatch{};
     auto folder = QVariantList{};
     auto queryStd = query.toStdString();
-    auto queryLike = "%" + queryStd + "%";
-    searchFolders.reset();
-    searchFolders.bind(1, queryLike);
-    auto result = searchFolders.executeAndGetAll<std::string>();
-    for (const auto& row : result) {
-        folder.append(QString::fromStdString(row));
+    try {
+        searchCharts.reset();
+        searchCharts.bind(1, queryStd);
+        auto chartResult =
+          searchCharts.executeAndGetAll<gameplay_logic::ChartData::DTO>();
+        for (const auto& row : chartResult) {
+            auto loadedChart = gameplay_logic::ChartData::load(row);
+            QQmlEngine::setObjectOwnership(loadedChart.get(),
+                                           QQmlEngine::JavaScriptOwnership);
+            folder.append(QVariant::fromValue(loadedChart.release()));
+        }
+    } catch (const std::exception& e) {
+        spdlog::error("{}", e.what());
     }
-    searchCharts.reset();
-    searchCharts.bind(":query", queryLike);
-    auto chartResult =
-      searchCharts.executeAndGetAll<gameplay_logic::ChartData::DTO>();
-    for (const auto& row : chartResult) {
-        auto loadedChart = gameplay_logic::ChartData::load(row);
-        QQmlEngine::setObjectOwnership(loadedChart.get(),
-                                       QQmlEngine::JavaScriptOwnership);
-        folder.append(QVariant::fromValue(loadedChart.release()));
-    }
+    spdlog::info("search took {} seconds", sw);
     return folder;
 }
 } // namespace qml_components

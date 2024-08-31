@@ -12,7 +12,7 @@ PreviewFilePathFetcher::PreviewFilePathFetcher(db::SqliteCppDb* db,
 {
 }
 auto
-PreviewFilePathFetcher::getPreviewFilePath(QString directory) -> QString
+PreviewFilePathFetcher::getPreviewFilePath(const QString& directory) -> QString
 {
     getPreviewFilePathStatement.reset();
     getPreviewFilePathStatement.bind(":directory", directory.toStdString());

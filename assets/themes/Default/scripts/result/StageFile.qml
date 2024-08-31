@@ -7,8 +7,12 @@ Image {
     asynchronous: true
     height: sourceSize.height
     source: {
-        let stageFile = "file://" + chartData.directory + chartData.stageFile;
-        return FileQuery.exists(stageFile) ? stageFile : "";
+        let dir = chartData.chartDirectory;
+        if (dir[0] !== "/") {
+            dir = "/" + dir;
+        }
+        let stageFile = "file://" + dir + chartData.stageFile;
+        return stageFile;
     }
     sourceSize.height: 192
     sourceSize.width: 256

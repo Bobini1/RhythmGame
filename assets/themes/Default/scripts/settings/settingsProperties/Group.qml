@@ -68,8 +68,8 @@ Frame {
                     property var destination: groupFrame._destination
                     property var props: modelData
                     Layout.fillWidth: true
-                    Layout.maximumWidth: modelData.type === "group" ? -1 : 300
-                    Layout.minimumWidth: modelData.type === "group" ? -1 : 100
+                    Layout.maximumWidth: modelData.type === "group" ? -1 : 600
+                    Layout.minimumWidth: modelData.type === "group" ? -1 : 150
                     // Priority
                     Layout.preferredWidth: 1
                 }
@@ -77,6 +77,7 @@ Frame {
                     active: modelData.type !== "group"
                     Layout.fillWidth: active
                     Layout.minimumWidth: active ? 50 : -1
+                    Layout.maximumWidth: active ? 50 : -1
                     sourceComponent: Component {
                         Button {
                             text: "Reset"

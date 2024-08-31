@@ -50,6 +50,11 @@ RowLayout {
                     ComboBox {
                         id: themeComboBox
 
+                        palette {
+                            window: "white"
+                            light: palette.button
+                        }
+
                         property bool loaded: false
                         Layout.alignment: Qt.AlignTop
                         Layout.preferredWidth: 200

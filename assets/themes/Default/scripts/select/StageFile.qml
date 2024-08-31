@@ -10,8 +10,11 @@ Image {
         if (!(current instanceof ChartData) || current.stageFile === "") {
             return "";
         }
-        let stageFile = "file://" + current.directory + current.stageFile;
-        return FileQuery.exists(stageFile) ? stageFile : "";
+        let dir = current.chartDirectory;
+        if (dir[0] !== "/") {
+            dir = "/" + dir;
+        }
+        return "file://" + dir + current.stageFile;
     }
     sourceSize.height: 450
     sourceSize.width: 600
@@ -23,10 +26,6 @@ Image {
         if (status === Image.Ready) {
             shadow.active = true;
             return;
-        }
-        if (status === Image.Error) {
-            let currentItem = songList.current;
-            console.warn("Could not load stagefile for " + currentItem.path + ":", currentItem.stageFile);
         }
     }
 

@@ -25,6 +25,7 @@ class BmsResult : public QObject
     Q_PROPERTY(QList<int> judgementCounts READ getJudgementCounts CONSTANT)
     Q_PROPERTY(int mineHits READ getMineHits CONSTANT)
     Q_PROPERTY(QString clearType READ getClearType CONSTANT)
+    Q_PROPERTY(QList<int64_t> randomSequence READ getRandomSequence CONSTANT)
     Q_PROPERTY(int64_t id READ getId CONSTANT)
     Q_PROPERTY(int64_t unixTimestamp READ getUnixTimestamp CONSTANT)
 
@@ -37,6 +38,8 @@ class BmsResult : public QObject
     QString clearType;
     QList<int> judgementCounts =
       QList<int>(magic_enum::enum_count<Judgement>());
+    QList<int64_t> randomSequence;
+    support::Sha256 sha256;
     int mineHits;
     double points;
     int maxCombo;
@@ -63,6 +66,7 @@ class BmsResult : public QObject
         int mineHits;
         std::string clearType;
         int64_t unixTimestamp;
+        std::string randomSequence;
     };
     explicit BmsResult(double maxPoints,
                        int maxHits,
@@ -74,6 +78,8 @@ class BmsResult : public QObject
                        int mineHits,
                        double points,
                        int maxCombo,
+                       QList<int64_t> randomSequence,
+                       support::Sha256 sha256,
                        QObject* parent = nullptr);
 
     auto getMaxPoints() const -> double;
@@ -86,11 +92,12 @@ class BmsResult : public QObject
     auto getJudgementCounts() const -> QList<int>;
     auto getMineHits() const -> int;
     auto getClearType() const -> QString;
+    auto getRandomSequence() -> QList<int64_t>;
     auto setId(int64_t id) -> void;
     auto getId() const -> int64_t;
     auto getUnixTimestamp() const -> int64_t;
 
-    auto save(db::SqliteCppDb& db, support::Sha256 sha256) const -> int64_t;
+    auto save(db::SqliteCppDb& db) const -> int64_t;
     static auto load(const BmsResultDto& dto) -> std::unique_ptr<BmsResult>;
 };
 

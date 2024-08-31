@@ -27,13 +27,13 @@ getALContext() -> ALCcontext*
 }
 
 sounds::OpenALSoundBuffer::
-OpenALSoundBuffer(const char* filename)
+OpenALSoundBuffer(const std::filesystem::path& filename)
 {
-    auto sndFile = SndfileHandle{ filename, SFM_READ };
+    auto sndFile = SndfileHandle{ filename.c_str(), SFM_READ };
     // throw if the file is not readable
     if (auto error = sndFile.error(); error != 0) {
         spdlog::error(
-          "Could not open sound file {}: {}", filename, sf_error_number(error));
+          "Could not open sound file {}: {}", filename.string(), sf_error_number(error));
         throw std::runtime_error("Could not open sound file");
     }
     auto sndFileSamples = std::vector<float>{};

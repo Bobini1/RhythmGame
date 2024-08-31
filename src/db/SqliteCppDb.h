@@ -179,7 +179,7 @@ class SqliteCppDb
      * @param dbPath Path to the database file.
      * The database file will be created if it does not exist.
      */
-    explicit SqliteCppDb(std::string dbPath);
+    explicit SqliteCppDb(std::filesystem::path dbPath);
     /**
      * @brief Executes a query.
      * @note Good for single-use queries. Use Statement otherwise.

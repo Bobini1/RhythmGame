@@ -52,10 +52,7 @@ BmsGaugeHistory::save(db::SqliteCppDb& db, int64_t scoreId)
     auto statement =
       db.createStatement("INSERT INTO gauge_history (score_id, gauge_history) "
                          "VALUES (?, ?)");
-    auto buffer = QByteArray{};
-    auto stream = QDataStream{ &buffer, QIODevice::WriteOnly };
-    stream << *this;
-    auto compressed = support::compress(buffer);
+    auto compressed = support::compress(*this);
     statement.bind(1, scoreId);
     statement.bind(2, compressed.data(), compressed.size());
     statement.execute();
@@ -72,10 +69,8 @@ BmsGaugeHistory::load(db::SqliteCppDb& db, int64_t scoreId)
         return nullptr;
     }
     auto buffer = QByteArray::fromStdString(*result);
-    auto decompressed = support::decompress(buffer);
-    auto stream = QDataStream{ &decompressed, QIODevice::ReadOnly };
     auto gaugeHistory = std::make_unique<BmsGaugeHistory>();
-    stream >> *gaugeHistory;
+    support::decompress(buffer, *gaugeHistory);
     return gaugeHistory;
 }
 auto

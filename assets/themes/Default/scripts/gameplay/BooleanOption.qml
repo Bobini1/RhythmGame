@@ -7,6 +7,8 @@ Row {
 
     required property string prop
     property string description: prop
+    property bool global: false
+    readonly property var src: global ? ProfileList.currentProfile.vars.globalVars : root.vars
 
     Text {
         anchors.verticalCenter: checkBox.verticalCenter
@@ -15,16 +17,16 @@ Row {
         horizontalAlignment: Text.AlignHCenter
         text: parent.description
         verticalAlignment: Text.AlignVCenter
-        width: 100
+        width: 110
     }
     CheckBox {
         id: checkBox
 
-        checked: root.vars[prop]
+        checked: src[prop]
 
         onCheckedChanged: {
-            root.vars[prop] = checked;
-            checked = Qt.binding(() => root.vars[prop]);
+            src[prop] = checked;
+            checked = Qt.binding(() => src[prop]);
         }
     }
 }

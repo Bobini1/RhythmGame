@@ -6,6 +6,7 @@
 #define RHYTHMGAME_PARSEDBMSCHART_H
 
 #include <map>
+#include <unordered_map>
 #include <random>
 #include <optional>
 #include <memory>
@@ -25,30 +26,30 @@ struct ParsedBmsChart
     {
         static constexpr auto columnNumber = 9;
         static constexpr auto defaultMeter = 1.0;
-        std::array<std::vector<std::vector<std::string>>, columnNumber>
+        std::array<std::vector<std::vector<uint16_t>>, columnNumber>
           p1VisibleNotes;
-        std::array<std::vector<std::vector<std::string>>, columnNumber>
+        std::array<std::vector<std::vector<uint16_t>>, columnNumber>
           p2VisibleNotes;
-        std::array<std::vector<std::vector<std::string>>, columnNumber>
+        std::array<std::vector<std::vector<uint16_t>>, columnNumber>
           p1InvisibleNotes;
-        std::array<std::vector<std::vector<std::string>>, columnNumber>
+        std::array<std::vector<std::vector<uint16_t>>, columnNumber>
           p2InvisibleNotes;
-        std::array<std::vector<std::vector<std::string>>, columnNumber>
+        std::array<std::vector<std::vector<uint16_t>>, columnNumber>
           p1LongNotes;
-        std::array<std::vector<std::vector<std::string>>, columnNumber>
+        std::array<std::vector<std::vector<uint16_t>>, columnNumber>
           p2LongNotes;
-        std::array<std::vector<std::vector<std::string>>, columnNumber>
+        std::array<std::vector<std::vector<uint16_t>>, columnNumber>
           p1Landmines;
-        std::array<std::vector<std::vector<std::string>>, columnNumber>
+        std::array<std::vector<std::vector<uint16_t>>, columnNumber>
           p2Landmines;
-        std::vector<std::vector<std::string>> bgaBase;
-        std::vector<std::vector<std::string>> bgaPoor;
-        std::vector<std::vector<std::string>> bgaLayer;
-        std::vector<std::vector<std::string>> bgaLayer2;
-        std::vector<std::vector<std::string>> bgmNotes;
-        std::vector<std::string> bpmChanges;   // old-school, FF = BPM is 255
-        std::vector<std::string> exBpmChanges; // new, FF = #BPMFF
-        std::vector<std::string> stops;
+        std::vector<std::vector<uint16_t>> bgaBase;
+        std::vector<std::vector<uint16_t>> bgaPoor;
+        std::vector<std::vector<uint16_t>> bgaLayer;
+        std::vector<std::vector<uint16_t>> bgaLayer2;
+        std::vector<std::vector<uint16_t>> bgmNotes;
+        std::vector<uint16_t> bpmChanges;   // old-school, FF = BPM is 255
+        std::vector<uint16_t> exBpmChanges; // new, FF = #BPMFF
+        std::vector<uint16_t> stops;
         std::optional<double> meter;
     };
 
@@ -70,12 +71,12 @@ struct ParsedBmsChart
         std::optional<int> rank;
         std::optional<int> playLevel;
         std::optional<int> difficulty;
-        std::optional<std::string> lnObj;
+        std::optional<uint16_t> lnObj;
         std::optional<int> lnType;
-        std::map<std::string, double> exBpms;
-        std::map<std::string, double> stops;
-        std::map<std::string, std::string> wavs;
-        std::map<std::string, std::string> bmps;
+        std::unordered_map<uint16_t, double> exBpms;
+        std::unordered_map<uint16_t, double> stops;
+        std::unordered_map<uint16_t, std::string> wavs;
+        std::unordered_map<uint16_t, std::string> bmps;
         std::map<int64_t, Measure> measures;
         bool isRandom = false;
     };

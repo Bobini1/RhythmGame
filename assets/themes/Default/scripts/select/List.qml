@@ -15,6 +15,8 @@ PathView {
     property bool scrollingText: false
     property var sort: null
 
+    property var historyStack: []
+
     function addToMinimumCount(input) {
         let length = input.length;
         let limit = Math.max(length, pathItemCount);
@@ -32,7 +34,7 @@ PathView {
         movingTimer.restart();
         movingManually = true;
     }
-    function open(item) {
+    function open(item, back = false) {
         if (item instanceof ChartData) {
             console.info("Opening chart " + item.path);
             globalRoot.openChart(item.path);
@@ -46,22 +48,45 @@ PathView {
             addToMinimumCount(folder);
             pathView.currentFolder = item;
             pathView.model = folder;
-            pathView.positionViewAtIndex(1, PathView.Center);
+            let idx = 1;
+            if (back) {
+                let last = historyStack.pop();
+                idx = (1 + folder.findIndex((folderItem) => {
+                    if (folderItem instanceof ChartData && last instanceof ChartData) {
+                        return folderItem.path === last.path;
+                    } else if (typeof folderItem === "string" && typeof last === "string") {
+                        return folderItem === last;
+                    }
+                    return false;
+                })) || 1;
+            } else {
+                historyStack.push(item);
+            }
+            pathView.positionViewAtIndex(idx, PathView.Center);
+            openedFolder();
         }
     }
+
+    signal openedFolder()
+
     function search(query) {
         let results = SongFolderFactory.search(query);
         if (!results.length) {
             console.info("Search returned no results");
             return;
         }
+        let curItem = current;
         pathView.folderContents.length = 0;
         for (let item of results) {
             pathView.folderContents.push(item);
         }
         results = sortFilter(results);
         addToMinimumCount(results);
-        pathView.currentFolder = pathView.currentFolder + "search/";
+        // The special path for searches.
+        if (currentFolder.slice(-2) !== "//") {
+            currentFolder = currentFolder + "/";
+            historyStack.push(curItem);
+        }
         pathView.model = results;
         pathView.positionViewAtIndex(1, PathView.Center);
     }
@@ -151,8 +176,12 @@ PathView {
         if (!currentFolder) {
             sceneStack.pop();
         }
-        let parentFolder = SongFolderFactory.parentFolder(currentFolder);
-        open(parentFolder);
+        if (currentFolder.slice(-2) === "//") {
+            open(currentFolder.slice(0, -1), true);
+        } else {
+            let parentFolder = SongFolderFactory.parentFolder(currentFolder);
+            open(parentFolder, true);
+        }
     }
     Keys.onReturnPressed: {
         open(current);

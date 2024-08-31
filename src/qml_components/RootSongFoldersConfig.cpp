@@ -150,12 +150,8 @@ RootSongFolders::RootSongFolders(db::SqliteCppDb* db,
   , scanningQueue(scanningQueue)
 {
     folders = getStartupRootFolders(getRootFolders);
-    db->execute("UPDATE root_dir SET status = 0 WHERE status = 1");
     for (const auto& folder : folders) {
-        if (const auto status = folder->getStatus();
-            status == RootSongFolder::Status::NotScanned ||
-            status == RootSongFolder::Status::InProgress) {
-            folder->updateStatus(RootSongFolder::Status::NotScanned);
+        if (folder->getStatus() == RootSongFolder::Status::NotScanned) {
             scanningQueue->scan(folder.get());
         }
     }
@@ -204,6 +200,7 @@ RootSongFolders::remove(const int index)
             break;
         }
     }
+    scanningQueue->clear(folders[index]->getName());
     beginRemoveRows(QModelIndex(), index, index);
     folders.erase(folders.begin() + index);
     endRemoveRows();
@@ -224,6 +221,7 @@ ScanningQueue::ScanningQueue(db::SqliteCppDb* db,
   , scanner(scanner)
 {
     connect(&scanFutureWatcher, &QFutureWatcher<void>::finished, [this] {
+        // fixme: what if we press stop between scanning is finished and this line?
         scanItems.front()->updateStatus(stop
                                           ? RootSongFolder::Status::NotScanned
                                           : RootSongFolder::Status::Scanned);
@@ -245,6 +243,7 @@ void
 ScanningQueue::performTask()
 {
     const auto& folder = scanItems.front();
+    folder->updateStatus(RootSongFolder::Status::InProgress);
     scanImpl(folder->getName());
 }
 void
@@ -265,7 +264,7 @@ void
 ScanningQueue::scanImpl(const QString& which)
 {
     scanFuture = QtConcurrent::run([this, which] {
-        clearImpl(which);
+        clear(which);
         scanner.scanDirectory(
           support::qStringToPath(which),
           [this](QString newCurrentScannedFolder) {
@@ -280,26 +279,25 @@ ScanningQueue::scanImpl(const QString& which)
           },
           &stop);
         if (stop) {
-            clearImpl(which);
+            clear(which);
         }
     });
     scanFutureWatcher.setFuture(scanFuture);
 }
 void
-ScanningQueue::clearImpl(const QString& which)
+ScanningQueue::clear(const QString& which)
 {
     const auto folderNameStd = which.toStdString();
 
     removeSongsStartingWith.reset();
     removeSongsStartingWith.bind(":dir", folderNameStd);
     removeSongsStartingWith.execute();
-    removeParentDirsStartingWith.reset();
-    removeParentDirsStartingWith.bind(":dir", folderNameStd);
-    removeParentDirsStartingWith.execute();
+    db->execute("DELETE FROM parent_dir WHERE parent_dir.id NOT IN "
+                "(SELECT directory FROM charts)");
     db->execute("DELETE FROM note_data WHERE note_data.sha256 NOT IN "
-                "(SELECT sha256 FROM charts);");
+                "(SELECT sha256 FROM charts)");
     db->execute("DELETE FROM preview_files WHERE directory NOT IN "
-                "(SELECT directory FROM charts);");
+                "(SELECT chart_directory FROM charts)");
 }
 auto
 ScanningQueue::rowCount(const QModelIndex& parent) const -> int
@@ -317,5 +315,12 @@ ScanningQueue::data(const QModelIndex& index, int role) const -> QVariant
         return QVariant::fromValue(scanItems[index.row()].get());
     }
     return QVariant{};
+}
+ScanningQueue::~ScanningQueue() {
+    const auto rows = rowCount();
+    for (auto i = rows; i >= 0; i--) {
+        remove(i);
+    }
+    scanFuture.waitForFinished();
 }
 } // namespace qml_components

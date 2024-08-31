@@ -5,7 +5,7 @@ import RhythmGameQml
 Item {
     id: column
 
-    property real chartPosition: Math.floor(-chart.position * column.heightMultiplier)
+    property real chartPosition: -chart.position * column.heightMultiplier
     property string color
     property int erasedNoteIndex: 0
     property real heightMultiplier: 20
@@ -65,7 +65,7 @@ Item {
 
             // for ln begin only
             property bool held: false
-            property real notePosition: Math.floor(-column.notes[note].time.position * column.heightMultiplier)
+            property real notePosition: -column.notes[note].time.position * column.heightMultiplier
 
             function getTypeString() {
                 let type = column.notes[note].type;
@@ -83,6 +83,11 @@ Item {
                 }
             }
 
+            states: State {
+                name: "reparented"
+                ParentChange { target: noteImg; parent: noteAnchor; }
+            }
+
             mipmap: true
             source: root.iniImagesUrl + (column.notes[note].type === Note.Type.Landmine ? ("mine/" + root.vars.mine) : ("notes/" + root.vars.notes)) + "/" + getTypeString() + column.color
             visible: false
@@ -98,7 +103,7 @@ Item {
                         id: lnImg
 
                         fillMode: Image.TileVertically
-                        height: Math.floor(column.notes[note + 1].time.position * column.heightMultiplier) + noteImg.y
+                        height: column.notes[note + 1].time.position * column.heightMultiplier + noteImg.y
                         source: {
                             if (!noteImg.held) {
                                 return root.iniImagesUrl + "notes/" + root.vars.notes + "/ln_body_inactive_" + column.color;
@@ -141,7 +146,15 @@ Item {
                     continue;
                 }
                 let item = noteRepeater.itemAt(count);
-                item.y = Math.min(column.chartPosition - item.height / 2, item.y);
+                if (item.state !== "reparented" && root.vars.notesStay) {
+                    if (column.chartPosition - item.height / 2 < item.y) {
+                        item.y = column.chartPosition - item.height / 2;
+                        item.state = "reparented";
+                        item.z = 2;
+                        item.anchors.bottom = noteAnchor.bottom;
+                        item.anchors.bottomMargin = Qt.binding(() => -column.noteHeight / 3);
+                    }
+                }
                 count++;
             }
             column.visibleNoteIndex = Math.max(0, column.visibleNoteIndex - count);
@@ -149,8 +162,7 @@ Item {
             count = 0;
             while (visibleNoteIndex + count < noteRepeater.count) {
                 let noteImage = noteRepeater.itemAt(visibleNoteIndex + count);
-                let globalPos = noteImage.mapToItem(root, 0, 0);
-                globalPos.y += column.noteHeight;
+                let globalPos = noteImage.mapToItem(playObjectContainer, 0, column.noteHeight);
                 if (globalPos.y > 0) {
                     noteImage.visible = true;
                     noteImage.width = Qt.binding(() => column.width);

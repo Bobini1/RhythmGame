@@ -5,10 +5,12 @@ import RhythmGameQml
 import QtQml.Models
 
 Popup {
+    id: popup
+
     closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
     focus: true
     height: 500
-    width: 500
+    width: 520
     padding: 2
     property alias model: column.model
 
@@ -28,11 +30,12 @@ Popup {
     scale: scaledRoot.scale
     contentItem: ScrollView {
         clip: true
+        leftPadding: 6
 
         ListView {
             id: column
 
-            width: childrenRect.width
+            width: popup.width
         }
     }
 }

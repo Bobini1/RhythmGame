@@ -6,22 +6,25 @@ import RhythmGameQml
 ComboBox {
     id: choiceComboBox
     model: props.choices
-    delegate: ItemDelegate {
-        text: modelData
-        width: parent.width
+
+    palette {
+        window: "white"
+        light: palette.button
     }
-    Component.onCompleted: {
+
+    function getIndex(text) {
         let index = 0;
         for (let choice of props.choices) {
-            if (destination[props.id] === choice) {
-                currentIndex = index;
+            if (text === choice) {
+                return index;
                 break;
             }
             index++;
         }
     }
-    onAccepted: (index) => {
-        destination[props.id] = choiceComboBox.currentText;
-        choiceComboBox.currentText = Qt.binding(() => destination[props.id]);
+
+    currentIndex: getIndex(destination[props.id]);
+    onActivated: (_) => {
+        destination[props.id] = currentText;
     }
 }

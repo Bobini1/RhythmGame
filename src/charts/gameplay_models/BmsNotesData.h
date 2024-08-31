@@ -46,9 +46,9 @@ struct BmsNotesData
     struct Note
     {
         Time time;
-        std::string sound;
         Snap snap;
         NoteType noteType;
+        uint16_t sound;
     };
 
     enum class LnType
@@ -63,11 +63,11 @@ struct BmsNotesData
     static constexpr auto columnNumber = columnMapping.size() * 2;
     std::array<std::vector<Note>, columnNumber> visibleNotes;
     std::array<std::vector<Note>, columnNumber> invisibleNotes;
-    std::vector<std::pair<Time, std::string>> bgmNotes;
-    std::vector<std::pair<Time, std::string>> bgaBase;
-    std::vector<std::pair<Time, std::string>> bgaPoor;
-    std::vector<std::pair<Time, std::string>> bgaLayer;
-    std::vector<std::pair<Time, std::string>> bgaLayer2;
+    std::vector<std::pair<Time, uint16_t>> bgmNotes;
+    std::vector<std::pair<Time, uint16_t>> bgaBase;
+    std::vector<std::pair<Time, uint16_t>> bgaPoor;
+    std::vector<std::pair<Time, uint16_t>> bgaLayer;
+    std::vector<std::pair<Time, uint16_t>> bgaLayer2;
     std::vector<std::pair<Time, double>> bpmChanges;
     std::vector<Time> barLines;
     static constexpr auto defaultBpm = 120.0;
@@ -77,11 +77,11 @@ struct BmsNotesData
   private:
     void generateMeasures(
       double baseBpm,
-      const std::map<std::string, double>& bpms,
-      const std::map<std::string, double>& stops,
+      const std::unordered_map<uint16_t, double>& bpms,
+      const std::unordered_map<uint16_t, double>& stops,
       const std::map<int64_t, parser_models::ParsedBmsChart::Measure>& measures,
       LnType lnType,
-      std::optional<std::string> lnObj);
+      std::optional<uint16_t> lnObj);
     void fillEmptyMeasures(int64_t lastMeasure,
                            int64_t measureIndex,
                            BmsNotesData::Time& measureStart,

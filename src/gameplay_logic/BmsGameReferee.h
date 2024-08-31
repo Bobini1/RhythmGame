@@ -34,7 +34,7 @@ class BmsGameReferee
       bpmChanges;
     std::span<std::pair<charts::gameplay_models::BmsNotesData::Time, double>>
       currentBpmChanges;
-    std::unordered_map<std::string, sounds::OpenALSound> sounds;
+    std::unordered_map<uint16_t, sounds::OpenALSound> sounds;
     std::unique_ptr<rules::BmsHitRules> hitRules;
     BmsScore* score;
     sounds::OpenALSound* mineHitSound;
@@ -73,12 +73,12 @@ class BmsGameReferee
                  charts::gameplay_models::BmsNotesData::columnNumber>
         invisibleNotes,
       std::vector<std::pair<charts::gameplay_models::BmsNotesData::Time,
-                            std::string>> bgmNotes,
+                            uint16_t>> bgmNotes,
       std::vector<std::pair<charts::gameplay_models::BmsNotesData::Time,
                             double>> bpmChanges,
       sounds::OpenALSound* mineHitSound,
       BmsScore* score,
-      std::unordered_map<std::string, sounds::OpenALSound> sounds,
+      std::unordered_map<uint16_t, sounds::OpenALSound> sounds,
       std::unique_ptr<rules::BmsHitRules> hitRules);
     /**
      * @brief Update the internal state of the referee

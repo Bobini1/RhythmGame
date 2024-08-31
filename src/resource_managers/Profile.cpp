@@ -12,16 +12,12 @@
 
 namespace resource_managers {
 
+namespace {
 auto
 createDb(const std::filesystem::path& dbPath) -> db::SqliteCppDb
 {
     create_directories(dbPath.parent_path());
-#ifdef _WIN32
-    return db::SqliteCppDb(
-      QString::fromStdWString(dbPath.wstring()).toStdString());
-#else
     return db::SqliteCppDb(dbPath);
-#endif
 }
 
 auto
@@ -35,6 +31,7 @@ createConfig(const QMap<QString, qml_components::ThemeFamily>& availableThemes,
     config->freeze();
     return config;
 }
+} // namespace
 
 auto
 Profile::getName() const -> QString
@@ -118,10 +115,7 @@ Profile(const std::filesystem::path& dbPath,
                                        "key = 'key_config'");
         if (auto config = statement.executeAndGet<std::string>()) {
             auto serializedData = QByteArray::fromStdString(*config);
-            auto decompressedBuffer = support::decompress(serializedData);
-            auto stream =
-              QDataStream{ &decompressedBuffer, QIODevice::ReadOnly };
-            stream >> keyConfig;
+            support::decompress(serializedData, keyConfig);
         }
     }
     db.execute("CREATE TABLE IF NOT EXISTS score ("
@@ -142,7 +136,8 @@ Profile(const std::filesystem::path& dbPath,
                "perfect INTEGER NOT NULL,"
                "mine_hits INTEGER NOT NULL,"
                "clear_type TEXT NOT NULL,"
-               "unix_timestamp INTEGER NOT NULL"
+               "unix_timestamp INTEGER NOT NULL,"
+               "random_sequence STRING NOT NULL"
                ");");
     db.execute("CREATE TABLE IF NOT EXISTS replay_data ("
                "id INTEGER PRIMARY KEY AUTOINCREMENT,"
@@ -189,10 +184,7 @@ Profile::setKeyConfig(const QList<input::Mapping>& keyConfig) -> void
         return;
     }
     this->keyConfig = keyConfig;
-    auto serializedData = QByteArray{};
-    auto stream = QDataStream{ &serializedData, QIODevice::WriteOnly };
-    stream << keyConfig;
-    auto compressedData = support::compress(serializedData);
+    auto compressedData = support::compress(keyConfig);
     auto updateProperty =
       db.createStatement("INSERT OR REPLACE INTO properties "
                          "(key, value) VALUES (?, ?)");

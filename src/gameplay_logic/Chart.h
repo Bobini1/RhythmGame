@@ -30,8 +30,7 @@ class Chart : public QObject
     Q_PROPERTY(int64_t timeAfterChartEnd READ getTimeAfterChartEnd CONSTANT)
     Q_PROPERTY(qml_components::BgaContainer* bga READ getBga NOTIFY loaded)
 
-    std::array<bool, charts::gameplay_models::BmsNotesData::columnNumber>
-      keyStates;
+
     QTimer propertyUpdateTimer;
     std::chrono::system_clock::time_point startTimepoint;
     std::optional<BmsGameReferee> gameReferee;

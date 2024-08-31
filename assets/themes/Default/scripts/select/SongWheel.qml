@@ -27,30 +27,31 @@ FocusScope {
 
         function getDiffColor(diff) {
             switch (diff) {
-            case "beginner":
-                return "green";
-            case "normal":
-                return "blue";
-            case "hyper":
-                return "orange";
-            case "another":
-                return "red";
-            default:
-                return "purple";
+                case "beginner":
+                    return "green";
+                case "normal":
+                    return "blue";
+                case "hyper":
+                    return "orange";
+                case "another":
+                    return "red";
+                default:
+                    return "purple";
             }
         }
+
         function getDiffColorInt(diff) {
             switch (diff) {
-            case 1:
-                return "green";
-            case 2:
-                return "blue";
-            case 3:
-                return "orange";
-            case 4:
-                return "red";
-            default:
-                return "purple";
+                case 1:
+                    return "green";
+                case 2:
+                    return "blue";
+                case 3:
+                    return "orange";
+                case 4:
+                    return "red";
+                default:
+                    return "purple";
             }
         }
 
@@ -78,6 +79,11 @@ FocusScope {
             height: 1080
             scale: Math.min(parent.width / 1920, parent.height / 1080)
             width: 1920
+
+            PlayOptions {
+                anchors.centerIn: parent
+                z: 3
+            }
 
             RowLayout {
                 anchors.left: parent.left
@@ -107,7 +113,7 @@ FocusScope {
                 anchors.verticalCenterOffset: -50
                 currentItem: songList.current
                 scrollingText: songList.scrollingText
-                z: songList.count + 1
+                z: 2
             }
             Image {
                 anchors.left: parent.left
@@ -162,7 +168,16 @@ FocusScope {
                 property bool waitingForStop: false
 
                 loops: MediaPlayer.Infinite
-                source: songList.current instanceof ChartData ? PreviewFilePathFetcher.getPreviewFilePath(songList.current.directory) : ""
+                source: {
+                    let base = songList.current instanceof ChartData ? PreviewFilePathFetcher.getPreviewFilePath(songList.current.chartDirectory) : ""
+                    if (base === "") {
+                        return base;
+                    }
+                    if (base[0] !== '/') {
+                        base = '/' + base;
+                    }
+                    return "file://" + base;
+                }
 
                 audioOutput: AudioOutput {
                     id: audioOutput
@@ -197,6 +212,10 @@ FocusScope {
                     if (playMusic.waitingForStop) {
                         previewDelayTimer.restart();
                     }
+                }
+
+                function onOpenedFolder() {
+                    previewDelayTimer.restart()
                 }
 
                 target: songList

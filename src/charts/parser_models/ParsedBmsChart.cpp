@@ -48,7 +48,7 @@ charts::parser_models::ParsedBmsChart::mergeTags(
         first.difficulty = second.difficulty;
     }
     if (second.lnObj.has_value()) {
-        first.lnObj = std::move(second.lnObj);
+        first.lnObj = second.lnObj;
     }
     if (second.lnType.has_value()) {
         first.lnType = second.lnType;
@@ -134,15 +134,12 @@ charts::parser_models::ParsedBmsChart::mergeTags(
         for (auto& definition : measure.bgmNotes) {
             firstMeasure.bgmNotes.push_back(std::move(definition));
         }
-        for (auto& definition : measure.bpmChanges) {
-            firstMeasure.bpmChanges.push_back(std::move(definition));
-        }
+        firstMeasure.bpmChanges = std::move(measure.bpmChanges);
         for (auto& definition : measure.exBpmChanges) {
             firstMeasure.exBpmChanges.push_back(std::move(definition));
         }
-        for (auto& definition : measure.stops) {
-            firstMeasure.stops.push_back(std::move(definition));
-        }
+        firstMeasure.exBpmChanges = std::move(measure.exBpmChanges);
+        firstMeasure.stops = std::move(measure.stops);
         if (measure.meter.has_value()) {
             firstMeasure.meter = measure.meter;
         }

@@ -60,13 +60,13 @@ qtLogHandler(QtMsgType type,
 auto
 main(int argc, [[maybe_unused]] char* argv[]) -> int
 {
-    const auto app = QGuiApplication{ argc, argv };
-
-    QGuiApplication::setOrganizationName("Tomasz Kalisiak");
-    QGuiApplication::setOrganizationDomain("bemani.pl");
-    QGuiApplication::setApplicationName("RhythmGame");
-
     qInstallMessageHandler(qtLogHandler);
+
+    struct UnregisterHandler {
+        ~UnregisterHandler() {
+            qInstallMessageHandler(nullptr);
+        }
+    } unregisterHandler;
 
     auto log = qml_components::Logger{ nullptr };
     qmlRegisterSingletonInstance("RhythmGameQml", 1, 0, "Logger", &log);
@@ -80,6 +80,13 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
     // set global log level to debug
     spdlog::set_level(spdlog::level::debug);
     set_default_logger(logger);
+
+    const auto app = QGuiApplication{ argc, argv };
+
+    QGuiApplication::setOrganizationName("Tomasz Kalisiak");
+    QGuiApplication::setOrganizationDomain("bemani.pl");
+    QGuiApplication::setApplicationName("RhythmGame");
+
 
     try {
         auto assetsFolder = resource_managers::findAssetsFolder();
@@ -113,6 +120,9 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
 
         auto availableThemes =
           resource_managers::scanThemes(assetsFolder / "themes");
+        if (availableThemes.empty()) {
+            throw std::runtime_error("No themes available");
+        }
 
         auto themes = qml_components::Themes{ availableThemes };
         qmlRegisterSingletonInstance("RhythmGameQml", 1, 0, "Themes", &themes);

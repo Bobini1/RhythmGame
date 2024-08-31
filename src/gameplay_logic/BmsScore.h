@@ -4,14 +4,8 @@
 
 #ifndef RHYTHMGAME_BMSSCORE_H
 #define RHYTHMGAME_BMSSCORE_H
-#include <vector>
-#include <boost/container/flat_map.hpp>
-#include <QObject>
 #include <magic_enum.hpp>
-#include "gameplay_logic/TimePoint.h"
-#include "gameplay_logic/BmsPoints.h"
 #include "gameplay_logic/rules/BmsGauge.h"
-#include "input/BmsKeys.h"
 #include "HitEvent.h"
 #include "BmsResult.h"
 #include "BmsGaugeHistory.h"
@@ -53,6 +47,8 @@ class BmsScore : public QObject
     QList<rules::BmsGauge*> gauges;
     QList<int> judgementCounts =
       QList<int>(magic_enum::enum_count<Judgement>());
+    QList<int64_t> randomSequence;
+    support::Sha256 sha256;
     double points = 0;
     int combo = 0;
     int maxCombo = 0;
@@ -79,6 +75,8 @@ class BmsScore : public QObject
                       int maxHits,
                       double maxHitValue,
                       QList<rules::BmsGauge*> gauges,
+                      QList<int64_t> randomSequence,
+                      support::Sha256 sha256,
                       QObject* parent = nullptr);
 
     auto getMaxPoints() const -> double;

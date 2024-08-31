@@ -9,7 +9,9 @@
 #include "charts/chart_readers/BmsChartReader.h"
 #include "charts/gameplay_models/BmsNotesData.h"
 #include "gameplay_logic/BmsNotes.h"
+#include <llfio.hpp>
 
+namespace llfio = LLFIO_V2_NAMESPACE;
 namespace resource_managers {
 
 class ChartDataFactory
@@ -30,15 +32,15 @@ class ChartDataFactory
         std::unique_ptr<gameplay_logic::ChartData> chartData;
         std::unique_ptr<gameplay_logic::BmsNotes> bmsNotes;
         charts::gameplay_models::BmsNotesData notesData;
-        std::map<std::string, std::string> wavs;
-        std::map<std::string, std::string> bmps;
+        std::unordered_map<uint16_t, std::filesystem::path> wavs;
+        std::unordered_map<uint16_t, std::filesystem::path> bmps;
     };
 
     auto loadChartData(
-      const QString& chartPath,
+      const std::filesystem::path& chartPath,
       std::function<charts::parser_models::ParsedBmsChart::RandomRange(
         charts::parser_models::ParsedBmsChart::RandomRange)> randomGenerator,
-      QString directoryInDb = QString()) const -> ChartComponents;
+      int64_t directory = 0) const -> ChartComponents;
 };
 
 } // namespace resource_managers

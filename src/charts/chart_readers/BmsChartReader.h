@@ -20,6 +20,7 @@ class BmsChartReader final
     /**
      * @brief Reads a BMS chart from a string.
      * @param chart String to read.
+     * @param randomGenerator The function that will be used to roll when #RANDOM is encountered
      * @return Raw tag data.
      */
     [[nodiscard]] auto readBmsChart(

@@ -18,7 +18,6 @@ namespace qml_components {
 class ChartLoader : public QObject
 {
     Q_OBJECT
-    QML_ELEMENT
 
     resource_managers::ChartDataFactory* chartDataFactory;
     std::function<gameplay_logic::rules::TimingWindows(
@@ -39,7 +38,7 @@ class ChartLoader : public QObject
     resource_managers::ChartFactory* chartFactory;
     double maxHitValue;
 
-  public:
+public:
     ChartLoader(
       resource_managers::ChartDataFactory* chartDataFactory,
       std::function<gameplay_logic::rules::TimingWindows(
@@ -57,7 +56,7 @@ class ChartLoader : public QObject
       double maxHitValue,
       QObject* parent = nullptr);
 
-    Q_INVOKABLE gameplay_logic::Chart* loadChart(const QString& filename);
+    Q_INVOKABLE gameplay_logic::Chart* loadChart(QString filename, QList<int64_t> randomSequence = {});
 };
 
 } // namespace qml_components

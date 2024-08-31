@@ -13,9 +13,9 @@
 
 namespace charts::helper_functions {
 auto
-loadBmsSounds(const std::map<std::string, std::string>& wavs,
+loadBmsSounds(const std::unordered_map<uint16_t, std::filesystem::path>& wavs,
               const std::filesystem::path& path)
-  -> std::unordered_map<std::string, sounds::OpenALSound>;
+  -> std::unordered_map<uint16_t, sounds::OpenALSound>;
 } // namespace charts::helper_functions
 
 #endif // RHYTHMGAME_LOADBMSSOUNDS_H

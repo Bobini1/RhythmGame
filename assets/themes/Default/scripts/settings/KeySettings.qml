@@ -53,7 +53,7 @@ Item {
                         anchors.fill: parent
 
                         Repeater {
-                            model: ["Col11", "Col12", "Col13", "Col14", "Col15", "Col16", "Col17", "Col1sUp", "Col21", "Col22", "Col23", "Col24", "Col25", "Col26", "Col27", "Col2sUp", "Start", "Select", "Col1sDown", "Col2sDown"]
+                            model: ["col11", "col12", "col13", "col14", "col15", "col16", "col17", "col1sUp", "col21", "col22", "col23", "col24", "col25", "col26", "col27", "col2sUp", "start", "select", "col1sDown", "col2sDown"]
 
                             RowLayout {
                                 Layout.fillWidth: true

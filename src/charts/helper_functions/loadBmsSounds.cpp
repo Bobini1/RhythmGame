@@ -92,24 +92,23 @@ createLowerCaseFilesMap(std::filesystem::path dirToSearch)
 }
 
 auto
-loadBmsSounds(const std::map<std::string, std::string>& wavs,
+loadBmsSounds(const std::unordered_map<uint16_t, std::filesystem::path>& wavs,
               const std::filesystem::path& path)
-  -> std::unordered_map<std::string, sounds::OpenALSound>
+  -> std::unordered_map<uint16_t, sounds::OpenALSound>
 {
     auto start = std::chrono::high_resolution_clock::now();
-    auto wavsActualPaths = std::unordered_map<std::string, std::string>{};
+    auto wavsActualPaths = std::unordered_map<uint16_t, std::filesystem::path>{};
     wavsActualPaths.reserve(wavs.size());
-    auto uniqueSoundPaths = std::unordered_set<std::string>{};
+    auto uniqueSoundPaths = std::unordered_set<std::filesystem::path>{};
 #ifndef _WIN32
     auto lowerCaseFilesMap = createLowerCaseFilesMap(path);
 #endif
     for (const auto& [key, value] : wavs) {
         {
 #ifdef _WIN32
-            auto filePath = path / QString::fromStdString(value).toStdWString();
+            auto filePath = path / value;
             auto actualPath = getActualPathWindows(filePath);
 #else
-            // convert to lowercase first
             auto valueLower = value;
             std::ranges::transform(
               valueLower, valueLower.begin(), [](unsigned char c) {
@@ -128,25 +127,25 @@ loadBmsSounds(const std::map<std::string, std::string>& wavs,
             uniqueSoundPaths.emplace(std::move(actualPathString));
         }
     }
-    std::unordered_map<std::string,
+    std::unordered_map<std::filesystem::path,
                        std::shared_ptr<const sounds::OpenALSoundBuffer>>
       buffers;
     buffers.reserve(uniqueSoundPaths.size());
 
     buffers = QtConcurrent::blockingMappedReduced<
-      std::unordered_map<std::string,
+      std::unordered_map<std::filesystem::path,
                          std::shared_ptr<const sounds::OpenALSoundBuffer>>>(
       uniqueSoundPaths,
       [](const auto& path)
         -> std::optional<
-          std::pair<std::string,
+          std::pair<std::filesystem::path,
                     std::shared_ptr<const sounds::OpenALSoundBuffer>>> {
           try {
               return { { path,
                          std::make_shared<const sounds::OpenALSoundBuffer>(
-                           path.c_str()) } };
+                           path) } };
           } catch (const std::exception& e) {
-              spdlog::warn("Failed to load sound {}: {}", path, e.what());
+              spdlog::warn("Failed to load sound {}: {}", path.string(), e.what());
               return std::nullopt;
           }
       },
@@ -157,7 +156,7 @@ loadBmsSounds(const std::map<std::string, std::string>& wavs,
       },
       std::move(buffers));
 
-    auto sounds = std::unordered_map<std::string, sounds::OpenALSound>();
+    auto sounds = std::unordered_map<uint16_t, sounds::OpenALSound>();
     sounds.reserve(wavsActualPaths.size());
     for (const auto& [key, actualPath] : wavsActualPaths) {
         auto buffer = buffers.find(actualPath);

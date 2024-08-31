@@ -22,56 +22,111 @@ Item {
     width: playfield.width
 
     Item {
-        anchors.bottomMargin: -root.vars.thickness
+        id: playObjectContainer
         anchors.fill: parent
         clip: true
         layer.enabled: true
         layer.smooth: true
 
+        Image {
+            id: laneCover
+            source: root.imagesUrl + "lanecover/" + root.vars.lanecover
+            visible: ProfileList.currentProfile.vars.globalVars.laneCoverOn
+            height: parent.height
+            width: parent.width
+            y: height * (-1 + ProfileList.currentProfile.vars.globalVars.laneCoverRatio)
+            z: 7
+        }
+
+        Image {
+            id: liftCover
+            source: root.imagesUrl + "liftcover/" + root.vars.liftcover
+            visible: ProfileList.currentProfile.vars.globalVars.liftOn || ProfileList.currentProfile.vars.globalVars.hiddenOn
+            height: parent.height * Math.min(1,
+                ProfileList.currentProfile.vars.globalVars.liftOn * ProfileList.currentProfile.vars.globalVars.liftRatio +
+                ProfileList.currentProfile.vars.globalVars.hiddenOn * ProfileList.currentProfile.vars.globalVars.hiddenRatio)
+            width: parent.width
+            fillMode: Image.PreserveAspectCrop
+            y: parent.height - height
+            z: 6
+        }
+
+        Rectangle {
+            id: judgeLine
+            color: root.vars.judgeLineColor
+
+            anchors.bottom: parent.bottom
+            anchors.bottomMargin: parent.height * ProfileList.currentProfile.vars.globalVars.liftOn * ProfileList.currentProfile.vars.globalVars.liftRatio
+            width: parent.width
+            height: root.vars.judgeLineThickness
+            z: 0
+        }
+
+        BarLinePositioner {
+            barLines: chart.notes.barLines
+            heightMultiplier: root.greenNumber
+            width: parent.width
+            y: -root.vars.thickness / 2 + chart.position * root.greenNumber + parent.height *
+                (1 - ProfileList.currentProfile.vars.globalVars.liftOn * ProfileList.currentProfile.vars.globalVars.liftRatio)
+            z: 2
+        }
+
+        Playfield {
+            id: playfield
+
+            columns: playArea.columns
+            spacing: playArea.spacing
+            y: -root.vars.thickness / 2 + chart.position * root.greenNumber + parent.height *
+                (1 - ProfileList.currentProfile.vars.globalVars.liftOn * ProfileList.currentProfile.vars.globalVars.liftRatio)
+            z: 3
+        }
+
+        Row {
+            id: laserRow
+
+            z: 5
+
+            function hideLaser(index) {
+                laserRow.children[playArea.columnsReversedMapping[index]].stop();
+            }
+            function shootLaser(index) {
+                laserRow.children[playArea.columnsReversedMapping[index]].start();
+            }
+
+            anchors.bottom: judgeLine.bottom
+            height: parent.height
+            spacing: playArea.spacing
+
+            Repeater {
+                id: laserRowChildren
+
+                model: playArea.columns.length
+
+                // laser beam (animated)
+                LaserBeam {
+                    columnIndex: playArea.columns[index]
+                    image: root.laserImages[index]
+                }
+            }
+        }
+
+        Image {
+            id: glow
+
+            anchors.bottom: judgeLine.bottom
+            opacity: (Math.abs(chart.position % 1) > 0.5 ? Math.abs(chart.position % 1) : 1 - Math.abs(chart.position % 1)) * 0.2 + 0.1
+            source: root.imagesUrl + "glow/" + root.vars.glow
+            width: parent.width
+            z: 1
+        }
+
         Item {
-            anchors.bottomMargin: root.vars.thickness
-            anchors.fill: parent
+            id: noteAnchor
 
-            BarLinePositioner {
-                barLines: chart.notes.barLines
-                heightMultiplier: root.greenNumber
-                width: parent.width
-                y: Math.floor(chart.position * root.greenNumber + parent.height)
-            }
-            Playfield {
-                id: playfield
-
-                columns: playArea.columns
-                spacing: playArea.spacing
-                y: chart.position * root.greenNumber + parent.height
-                z: 1
-            }
-        }
-    }
-    Row {
-        id: laserRow
-
-        function hideLaser(index) {
-            laserRow.children[playArea.columnsReversedMapping[index]].stop();
-        }
-        function shootLaser(index) {
-            laserRow.children[playArea.columnsReversedMapping[index]].start();
-        }
-
-        anchors.bottom: parent.bottom
-        height: parent.height
-        spacing: playArea.spacing
-
-        Repeater {
-            id: laserRowChildren
-
-            model: playArea.columns.length
-
-            // laser beam (animated)
-            LaserBeam {
-                columnIndex: playArea.columns[index]
-                image: root.laserImages[index]
-            }
+            anchors.bottom: parent.bottom
+            anchors.bottomMargin: parent.height * ProfileList.currentProfile.vars.globalVars.liftOn * ProfileList.currentProfile.vars.globalVars.liftRatio
+            width: parent.width
+            z: 4
         }
     }
     Judgements {
@@ -152,7 +207,7 @@ Item {
                     if (root.vars.laneBrightness < 0) {
                         mod = base.hsvValue * root.vars.laneBrightness;
                     }
-                    base.hsvValue = Math.max(0, Math.min(base.hsvValue + mod, 1));
+                    base.hslLightness = Math.max(0, Math.min(base.hslLightness + mod, 1));
                     return base;
                 }
                 height: parent.height
@@ -178,9 +233,9 @@ Item {
                     let base = Qt.color(playfield.columns[index] % 2 === 0 ? "#050505" : "#000000");
                     let mod = root.vars.laneBrightness;
                     if (root.vars.laneBrightness < 0) {
-                        mod = Qt.color("#1e1e1e").hsvValue * root.vars.laneBrightness;
+                        mod = Qt.color("#1e1e1e").hslLightness * root.vars.laneBrightness;
                     }
-                    base.hslValue = Math.max(0, Math.min(base.hsvValue + mod, 1));
+                    base.hslLightness = Math.max(0, Math.min(base.hslLightness + mod, 1));
                     return base;
                 }
                 height: parent.height
@@ -195,16 +250,6 @@ Item {
                 z: -2
             }
         }
-    }
-    Image {
-        id: glow
-
-        anchors.bottom: parent.bottom
-        opacity: (Math.abs(chart.position % 1) > 0.5 ? Math.abs(chart.position % 1) : 1 - Math.abs(chart.position % 1)) * 0.2 + 0.1
-        source: root.imagesUrl + "glow/" + root.vars.glow
-        visible: true
-        width: parent.width
-        z: -1
     }
     Repeater {
         id: explosions
@@ -221,6 +266,7 @@ Item {
             }
 
             anchors.bottom: parent.bottom
+            anchors.bottomMargin: parent.height * ProfileList.currentProfile.vars.globalVars.liftOn * ProfileList.currentProfile.vars.globalVars.liftRatio
             width: root.columnSizes[playfield.columns[index]]
             x: {
                 let cpos = 0;

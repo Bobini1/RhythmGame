@@ -187,7 +187,7 @@ Chart::finish() -> BmsScoreAftermath*
         auto gaugeHistory = score->getGaugeHistory();
         auto& currentScoreDb = scoreDb();
         auto scoreId =
-          result->save(currentScoreDb, chartData->getSha256().toStdString());
+          result->save(currentScoreDb);
         result->setId(scoreId);
         replayData->save(currentScoreDb, scoreId);
         gaugeHistory->save(currentScoreDb, scoreId);

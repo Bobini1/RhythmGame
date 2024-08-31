@@ -6,24 +6,35 @@
 
 #include <utility>
 #include "gameplay_logic/Chart.h"
+#include "support/QStringToPath.h"
 #include "magic_enum.hpp"
+#include "qdir.h"
 
 namespace qml_components {
 auto
-ChartLoader::loadChart(const QString& filename) -> gameplay_logic::Chart*
+ChartLoader::loadChart(QString filename, QList<int64_t> randomSequence) -> gameplay_logic::Chart*
 {
     try {
         auto randomGenerator =
-          [](charts::parser_models::ParsedBmsChart::RandomRange randomRange) {
-              static thread_local auto randomEngine =
+          [randomSequence = std::move(randomSequence), counter = 0](const charts::parser_models::ParsedBmsChart::RandomRange randomRange) mutable {
+              thread_local auto randomEngine =
                 std::default_random_engine{ std::random_device{}() };
+              if (counter < randomSequence.size()) {
+                  return randomSequence[counter++];
+              }
               return std::uniform_int_distribution{
                   charts::parser_models::ParsedBmsChart::RandomRange{ 1 },
                   randomRange
               }(randomEngine);
           };
+
+#if _WIN32
+        filename.replace('\\', '/');
+#endif
+        auto fileAbsolute = QFileInfo(filename).absoluteFilePath();
         auto chartComponents =
-          chartDataFactory->loadChartData(filename, randomGenerator);
+          chartDataFactory->loadChartData(
+          support::qStringToPath(fileAbsolute), randomGenerator);
         auto rankInt = chartComponents.chartData->getRank();
         auto rank =
           magic_enum::enum_cast<gameplay_logic::rules::BmsRank>(rankInt)

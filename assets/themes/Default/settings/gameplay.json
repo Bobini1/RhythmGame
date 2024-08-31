@@ -26,6 +26,28 @@
         "description": "Move the scratch to the right side of the play area (player 2 layout)",
         "type": "boolean",
         "default": false
+      },
+      {
+        "id": "judgeLineThickness",
+        "name": "Judge Line Thickness",
+        "type": "range",
+        "description": "The thickness of the line where you are supposed to hit the note",
+        "min": 0,
+        "default": 8
+      },
+      {
+        "id": "judgeLineColor",
+        "name": "Judge Line Color",
+        "type": "color",
+        "description": "The color of the line where you are supposed to hit the note",
+        "default": "red"
+      },
+      {
+        "id": "notesStay",
+        "name": "Stop notes on judge line",
+        "description": "Notes will never go below the judge line, staying there for a moment instead",
+        "type": "boolean",
+        "default": false
       }
     ]
   },
@@ -73,6 +95,22 @@
         "path": "scripts/gameplay/images/glow",
         "default": "default.png",
         "description": "The texture used for the glow at the bottom of the play area."
+      },
+      {
+        "id": "lanecover",
+        "name": "Lane Cover",
+        "type": "file",
+        "path": "scripts/gameplay/images/lanecover",
+        "default": "default.png",
+        "description": "The texture used for covering the top part of the playfield."
+      },
+      {
+        "id": "liftcover",
+        "name": "Lift Cover",
+        "type": "file",
+        "path": "scripts/gameplay/images/liftcover",
+        "default": "default.png",
+        "description": "The texture used for covering the bottom part of the playfield."
       },
       {
         "id": "5keyscover",
@@ -144,7 +182,7 @@
             "name": "Thickness",
             "type": "range",
             "min": 0,
-            "default": 36
+            "default": 12
           },
           {
             "id": "whiteWidth",
