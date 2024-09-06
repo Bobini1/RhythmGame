@@ -59,7 +59,7 @@ find_package(zstd REQUIRED)
 
 if (MSVC)
     set(utf8Manifest staticAssets/utf8.manifest)
-endif()
+endif ()
 
 # ---- Load library ----
 
@@ -170,7 +170,11 @@ find_package(SndFile REQUIRED)
 
 find_package(SDL2 REQUIRED)
 
-target_link_libraries(RhythmGame_lib PUBLIC SDL2::SDL2 Qt6::Gui Qt6::Quick Qt6::OpenGL Qt6::Widgets Qt6::Concurrent Qt6::Core5Compat Qt6::Multimedia Threads::Threads Boost::headers Boost::locale Boost::dynamic_linking Boost::serialization Boost::filesystem SQLiteCpp spdlog::spdlog foonathan::lexy OpenAL::OpenAL cryptopp::cryptopp magic_enum::magic_enum zstd::libzstd_static SndFile::sndfile llfio::sl llfio::ntkernel-error-category_sl)
+target_link_libraries(RhythmGame_lib PUBLIC SDL2::SDL2 Qt6::Gui Qt6::Quick Qt6::OpenGL Qt6::Widgets Qt6::Concurrent Qt6::Core5Compat Qt6::Multimedia Threads::Threads Boost::headers Boost::locale Boost::dynamic_linking Boost::serialization Boost::filesystem SQLiteCpp spdlog::spdlog foonathan::lexy OpenAL::OpenAL cryptopp::cryptopp magic_enum::magic_enum zstd::libzstd_static SndFile::sndfile llfio::sl)
+
+if (WIN32)
+    target_link_libraries(RhythmGame_lib PUBLIC llfio::ntkernel-error-category_sl)
+endif ()
 
 # We all love MSVC.
 target_compile_definitions(RhythmGame_lib PUBLIC NOMINMAX)
@@ -191,8 +195,8 @@ qt_import_qml_plugins(RhythmGame_qmlplugin)
 
 if (WIN32)
     enable_language("RC")
-    set (WIN32_RESOURCES ${CMAKE_CURRENT_SOURCE_DIR}/staticAssets/RhythmGame.rc)
-endif()
+    set(WIN32_RESOURCES ${CMAKE_CURRENT_SOURCE_DIR}/staticAssets/RhythmGame.rc)
+endif ()
 
 qt_add_executable(RhythmGame_exe src/main.cpp ${WIN32_RESOURCES})
 add_executable(RhythmGame::exe ALIAS RhythmGame_exe)
@@ -224,7 +228,7 @@ if (WIN32)
     add_custom_command(TARGET RhythmGame_exe POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_directory "${PROJECT_BINARY_DIR}/bin/qml" "${PROJECT_BINARY_DIR}/bin"
     )
-endif()
+endif ()
 
 if (WIN32)
     set(alsoft_ext "ini")
