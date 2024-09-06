@@ -22,7 +22,12 @@ Rectangle {
             verticalAlignment: Text.AlignVCenter
             font.pixelSize: 32
 
-            color: index === Tumbler.tumbler.currentIndex ? "white" : "black"
+            color: {
+                let c = Qt.color("black");
+                let value = Math.max(0, 1 - Math.abs(Tumbler.displacement));
+                c.hslLightness = value;
+                return c;
+            }
         }
     }
 
@@ -45,6 +50,38 @@ Rectangle {
             visibleItemCount: 5
 
             anchors.fill: parent
+
+            function findView(parent) {
+                for (let i = 0; i < parent.children.length; ++i) {
+                    let child = parent.children[i];
+                    if (child.hasOwnProperty("currentIndex")) {
+                        return child;
+                    }
+
+                    let grandChild = findView(child);
+                    if (grandChild)
+                        return grandChild;
+                }
+
+                return null;
+            }
+
+            Component.onCompleted: {
+            }
+
+            WheelHandler {
+                target: randoms
+                onWheel: (wheel) => {
+                    let view = randoms.findView(randoms);
+                    print(view.highlightMoveDuration);
+                    view.highlightMoveDuration = 200;
+                    if (wheel.angleDelta.y > 0) {
+                        randoms.findView(randoms).incrementCurrentIndex();
+                    } else {
+                        randoms.findView(randoms).decrementCurrentIndex();
+                    }
+                }
+            }
         }
     }
 
