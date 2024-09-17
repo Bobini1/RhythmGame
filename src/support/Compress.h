@@ -14,7 +14,8 @@ namespace support {
 
 template<typename T>
 auto
-compress(const T& data) -> QByteArray {
+compress(const T& data) -> QByteArray
+{
     using namespace std::string_literals;
     auto buffer = QByteArray{};
     auto stream = QDataStream{ &buffer, QIODevice::WriteOnly };
@@ -35,7 +36,8 @@ compress(const T& data) -> QByteArray {
 
 template<typename T>
 void
-decompress(QByteArray data, T& out) {
+decompress(QByteArray data, T& out)
+{
     using namespace std::string_literals;
     auto decompressedBuffer = QByteArray{};
     auto decompressedSize = ZSTD_getFrameContentSize(data.data(), data.size());
@@ -59,7 +61,8 @@ decompress(QByteArray data, T& out) {
 
 template<typename T>
 T
-decompress(QByteArray data) {
+decompress(QByteArray data)
+{
     T t;
     decompress(data, t);
     return t;

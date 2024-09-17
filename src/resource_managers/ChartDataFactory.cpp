@@ -109,17 +109,18 @@ ChartDataFactory::loadChartData(
 {
     auto mfh = llfio::mapped_file({}, chartPath).value();
     auto length = mfh.maximum_extent().value();
-    auto chart =
-      std::string_view{ reinterpret_cast<char*>(mfh.address()), length };
+    auto chart = std::string_view{ reinterpret_cast<char*>(mfh.address()),
+                                   static_cast<unsigned long>(length) };
     auto hash = support::sha256(chart);
-    auto randomValues = QList<int64_t>{};
-    auto randomGeneratorRecorder = [&randomValues, &randomGenerator](charts::parser_models::ParsedBmsChart::RandomRange number) mutable {
-        auto generated = randomGenerator(number);
-        randomValues.append(generated);
-        return generated;
-    };
-    auto parsedChart =
-      chartReader.readBmsChart(chart, randomGeneratorRecorder);
+    auto randomValues = QList<qint64>{};
+    auto randomGeneratorRecorder =
+      [&randomValues, &randomGenerator](
+        charts::parser_models::ParsedBmsChart::RandomRange number) mutable {
+          auto generated = randomGenerator(number);
+          randomValues.append(generated);
+          return generated;
+      };
+    auto parsedChart = chartReader.readBmsChart(chart, randomGeneratorRecorder);
     mfh.close().value();
 
     auto title = QString::fromUtf8(parsedChart.tags.title.value_or(""));

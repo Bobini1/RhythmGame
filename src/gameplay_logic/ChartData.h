@@ -47,7 +47,7 @@ class ChartData : public QObject
     Q_PROPERTY(QString chartDirectory READ getChartDirectory CONSTANT)
     Q_PROPERTY(QString sha256 READ getSha256 CONSTANT)
     Q_PROPERTY(bool isRandom READ getIsRandom CONSTANT)
-    Q_PROPERTY(QList<int64_t> randomSequence READ getRandomSequence CONSTANT)
+    Q_PROPERTY(QList<qint64> randomSequence READ getRandomSequence CONSTANT)
     Q_PROPERTY(Keymode keymode READ getKeymode CONSTANT)
     Q_PROPERTY(double initialBpm READ getInitialBpm CONSTANT)
     Q_PROPERTY(double maxBpm READ getMaxBpm CONSTANT)
@@ -69,7 +69,7 @@ class ChartData : public QObject
               int playLevel,
               int difficulty,
               bool isRandom,
-              QList<int64_t> randomSequence,
+              QList<qint64> randomSequence,
               int normalNoteCount,
               int lnCount,
               int mineCount,
@@ -83,14 +83,14 @@ class ChartData : public QObject
               Keymode keymode,
               QObject* parent = nullptr);
 
-    [[nodiscard]] auto getTitle() const -> QString;
-    [[nodiscard]] auto getArtist() const -> QString;
-    [[nodiscard]] auto getSubtitle() const -> QString;
-    [[nodiscard]] auto getSubartist() const -> QString;
-    [[nodiscard]] auto getGenre() const -> QString;
-    [[nodiscard]] auto getStageFile() const -> QString;
-    [[nodiscard]] auto getBanner() const -> QString;
-    [[nodiscard]] auto getBackBmp() const -> QString;
+    [[nodiscard]] auto getTitle() const -> const QString&;
+    [[nodiscard]] auto getArtist() const -> const QString&;
+    [[nodiscard]] auto getSubtitle() const -> const QString&;
+    [[nodiscard]] auto getSubartist() const -> const QString&;
+    [[nodiscard]] auto getGenre() const -> const QString&;
+    [[nodiscard]] auto getStageFile() const -> const QString&;
+    [[nodiscard]] auto getBanner() const -> const QString&;
+    [[nodiscard]] auto getBackBmp() const -> const QString&;
     [[nodiscard]] auto getNormalNoteCount() const -> int;
     [[nodiscard]] auto getLnCount() const -> int;
     [[nodiscard]] auto getMineCount() const -> int;
@@ -103,9 +103,9 @@ class ChartData : public QObject
     [[nodiscard]] auto getTotal() const -> double;
     [[nodiscard]] auto getPlayLevel() const -> int;
     [[nodiscard]] auto getDifficulty() const -> int;
-    [[nodiscard]] auto getSha256() const -> QString;
+    [[nodiscard]] auto getSha256() const -> const QString&;
     [[nodiscard]] auto getIsRandom() const -> bool;
-    [[nodiscard]] auto getRandomSequence() const -> QList<int64_t>;
+    [[nodiscard]] auto getRandomSequence() const -> const QList<qint64>&;
     [[nodiscard]] auto getKeymode() const -> Keymode;
     [[nodiscard]] auto getDirectory() const -> QString;
     [[nodiscard]] auto getChartDirectory() const -> QString;
@@ -153,7 +153,7 @@ class ChartData : public QObject
     QString stageFile;
     QString banner;
     QString backBmp;
-    QList<int64_t> randomSequence;
+    QList<qint64> randomSequence;
     int rank;
     double total;
     int playLevel;

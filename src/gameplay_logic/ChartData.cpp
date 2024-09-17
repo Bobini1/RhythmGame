@@ -26,7 +26,7 @@ ChartData(QString title,
           int playLevel,
           int difficulty,
           bool isRandom,
-          QList<int64_t> randomSequence,
+          QList<qint64> randomSequence,
           int normalNoteCount,
           int lnCount,
           int mineCount,
@@ -68,12 +68,12 @@ ChartData(QString title,
 {
 }
 auto
-gameplay_logic::ChartData::getTitle() const -> QString
+gameplay_logic::ChartData::getTitle() const -> const QString&
 {
     return title;
 }
 auto
-gameplay_logic::ChartData::getArtist() const -> QString
+gameplay_logic::ChartData::getArtist() const -> const QString&
 {
     return artist;
 }
@@ -113,17 +113,17 @@ gameplay_logic::ChartData::getDifficulty() const -> int
     return difficulty;
 }
 auto
-gameplay_logic::ChartData::getSubtitle() const -> QString
+gameplay_logic::ChartData::getSubtitle() const -> const QString&
 {
     return subtitle;
 }
 auto
-gameplay_logic::ChartData::getSubartist() const -> QString
+gameplay_logic::ChartData::getSubartist() const -> const QString&
 {
     return subartist;
 }
 auto
-gameplay_logic::ChartData::getGenre() const -> QString
+gameplay_logic::ChartData::getGenre() const -> const QString&
 {
     return genre;
 }
@@ -173,7 +173,7 @@ gameplay_logic::ChartData::save(db::SqliteCppDb& db) const -> void
     query.execute();
 }
 auto
-gameplay_logic::ChartData::getSha256() const -> QString
+gameplay_logic::ChartData::getSha256() const -> const QString&
 {
     return sha256;
 }
@@ -196,7 +196,8 @@ gameplay_logic::ChartData::load(const DTO& chartDataDto)
       chartDataDto.playLevel,
       chartDataDto.difficulty,
       static_cast<bool>(chartDataDto.isRandom),
-      support::decompress<QList<int64_t>>(QByteArray::fromStdString(chartDataDto.randomSequence)),
+      support::decompress<QList<qint64>>(
+        QByteArray::fromStdString(chartDataDto.randomSequence)),
       chartDataDto.normalNoteCount,
       chartDataDto.lnCount,
       chartDataDto.mineCount,
@@ -215,28 +216,27 @@ gameplay_logic::ChartData::getIsRandom() const -> bool
     return isRandom;
 }
 auto
-gameplay_logic::ChartData::getRandomSequence() const -> QList<int64_t>
+gameplay_logic::ChartData::getRandomSequence() const -> const QList<qint64>&
 {
     return randomSequence;
 }
 auto
-gameplay_logic::ChartData::getKeymode() const
-  -> Keymode
+gameplay_logic::ChartData::getKeymode() const -> Keymode
 {
     return keymode;
 }
 auto
-gameplay_logic::ChartData::getStageFile() const -> QString
+gameplay_logic::ChartData::getStageFile() const -> const QString&
 {
     return stageFile;
 }
 auto
-gameplay_logic::ChartData::getBanner() const -> QString
+gameplay_logic::ChartData::getBanner() const -> const QString&
 {
     return banner;
 }
 auto
-gameplay_logic::ChartData::getBackBmp() const -> QString
+gameplay_logic::ChartData::getBackBmp() const -> const QString&
 {
     return backBmp;
 }
@@ -253,7 +253,7 @@ gameplay_logic::ChartData::getDirectory() const -> QString
 auto
 gameplay_logic::ChartData::getChartDirectory() const -> QString
 {
-    return QFileInfo{path}.absolutePath() + '/';
+    return QFileInfo{ path }.absolutePath() + '/';
 }
 auto
 gameplay_logic::ChartData::getInitialBpm() const -> double

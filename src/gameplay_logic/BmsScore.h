@@ -47,7 +47,7 @@ class BmsScore : public QObject
     QList<rules::BmsGauge*> gauges;
     QList<int> judgementCounts =
       QList<int>(magic_enum::enum_count<Judgement>());
-    QList<int64_t> randomSequence;
+    QList<qint64> randomSequence;
     support::Sha256 sha256;
     double points = 0;
     int combo = 0;
@@ -75,7 +75,7 @@ class BmsScore : public QObject
                       int maxHits,
                       double maxHitValue,
                       QList<rules::BmsGauge*> gauges,
-                      QList<int64_t> randomSequence,
+                      QList<qint64> randomSequence,
                       support::Sha256 sha256,
                       QObject* parent = nullptr);
 

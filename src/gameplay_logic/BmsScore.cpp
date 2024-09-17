@@ -59,7 +59,7 @@ BmsScore(int normalNoteCount,
          int maxHits,
          double maxHitValue,
          QList<rules::BmsGauge*> gauges,
-         QList<int64_t> randomSequence,
+         QList<qint64> randomSequence,
          support::Sha256 sha256,
          QObject* parent)
   : QObject(parent)

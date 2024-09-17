@@ -5,9 +5,7 @@
 #ifndef RHYTHMGAME_BMSGAMEREFEREE_H
 #define RHYTHMGAME_BMSGAMEREFEREE_H
 
-#include <list>
 #include <span>
-#include <boost/container/flat_map.hpp>
 #include "charts/gameplay_models/BmsNotesData.h"
 #include "input/BmsKeys.h"
 #include "BmsScore.h"

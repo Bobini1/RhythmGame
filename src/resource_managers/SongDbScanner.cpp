@@ -21,20 +21,18 @@
 namespace llfio = LLFIO_V2_NAMESPACE;
 
 namespace resource_managers {
-SongDbScanner::SongDbScanner(db::SqliteCppDb* db)
+SongDbScanner::
+SongDbScanner(db::SqliteCppDb* db)
   : db(db)
 {
 }
 
 int64_t
-addDirToParentDirs(db::SqliteCppDb& db,
-                   QString root,
-                   QString folder)
+addDirToParentDirs(db::SqliteCppDb& db, QString root, QString folder)
 {
-    auto insert =
-          db.createStatement("INSERT OR IGNORE INTO parent_dir "
-                             "(parent_dir, dir) VALUES (:parent_dir, "
-                             ":dir)");
+    auto insert = db.createStatement("INSERT OR IGNORE INTO parent_dir "
+                                     "(parent_dir, dir) VALUES (:parent_dir, "
+                                     ":dir)");
 #ifdef _WIN32
     folder.replace('\\', '/');
 #endif
@@ -61,7 +59,7 @@ addDirToParentDirs(db::SqliteCppDb& db,
     }
     auto getIdQuery =
       db.createStatement("SELECT id FROM parent_dir WHERE dir = :dir");
-    getIdQuery.bind(":dir",  folder.toStdString());
+    getIdQuery.bind(":dir", folder.toStdString());
     return getIdQuery.executeAndGet<int64_t>().value();
 }
 void
@@ -69,8 +67,7 @@ loadChart(QThreadPool& threadPool,
           db::SqliteCppDb& db,
           int64_t directory,
           const std::filesystem::path& path,
-          std::atomic_bool* stop
-          )
+          std::atomic_bool* stop)
 {
     threadPool.start([&db, path, directory, stop] {
         if (*stop) {
@@ -95,9 +92,8 @@ loadChart(QThreadPool& threadPool,
             chartComponents.bmsNotes->save(
               db, chartComponents.chartData->getSha256().toStdString());
         } catch (const std::exception& e) {
-            spdlog::error("Failed to load chart data for {}: {}",
-                          path.string(),
-                          e.what());
+            spdlog::error(
+              "Failed to load chart data for {}: {}", path.string(), e.what());
         }
     });
 }
@@ -175,7 +171,8 @@ scanFolder(std::filesystem::path directory,
                                     FILE_FLAG_BACKUP_SEMANTICS,
                                     NULL);
 
-    updateCurrentScannedFolder(support::pathToQString(directory.lexically_normal()));
+    updateCurrentScannedFolder(
+      support::pathToQString(directory.lexically_normal()));
     auto directoriesToScan = std::vector<std::filesystem::path>{};
     auto isSongDirectory = false;
     auto parentDirQString = support::pathToQString(parentDirectory);
@@ -232,17 +229,12 @@ scanFolder(std::filesystem::path directory,
                        extension.compare(".bml") == 0 ||
                        extension.compare(".pms") == 0) {
                 if (!isSongDirectory) {
-                    dirId = addDirToParentDirs(
-                      db, root, parentDirQString);
+                    dirId = addDirToParentDirs(db, root, parentDirQString);
                     isSongDirectory = true;
                 }
                 directoriesToScan.clear();
                 if (extension.compare(".pms") != 0) {
-                    loadChart(threadPool,
-                              db,
-                              dirId,
-                              directory / path,
-                              stop);
+                    loadChart(threadPool, db, dirId, directory / path, stop);
                 }
             } else if (path.starts_with(L"preview") &&
                        (extension.compare(".mp3") == 0 ||
@@ -260,10 +252,9 @@ scanFolder(std::filesystem::path directory,
         } while (true);
     }
     if (!previewPath.empty() && isSongDirectory) {
-        threadPool.start(
-          [&db, directory, previewPath] {
-              addPreviewFileToDb(db, directory, previewPath);
-          });
+        threadPool.start([&db, directory, previewPath] {
+            addPreviewFileToDb(db, directory, previewPath);
+        });
     }
     for (const auto& entry : directoriesToScan) {
         if (*stop) {
@@ -280,37 +271,73 @@ scanFolder(std::filesystem::path directory,
 }
 #else
 void
-scanFolder(std::filesystem::path directory,
-           std::filesystem::path parentDirectory,
+scanFolder(const std::filesystem::path& directory,
+           const std::filesystem::path& parentDirectory,
            QThreadPool& threadPool,
            db::SqliteCppDb& db,
            const QString& root,
-           std::function<void(QString)> updateCurrentScannedFolder,
+           const std::function<void(QString)>& updateCurrentScannedFolder,
+           std::vector<llfio::directory_handle::buffer_type>& buffer,
            std::atomic_bool* stop)
 {
     updateCurrentScannedFolder(support::pathToQString(directory));
     auto directoriesToScan = std::vector<std::filesystem::path>{};
     auto isSongDirectory = false;
-    for (const auto& entry : std::filesystem::directory_iterator(directory)) {
+    auto previewPath = std::filesystem::path{};
+    auto parentDirQString = support::pathToQString(parentDirectory);
+    auto dirId = int64_t{ 0 };
+    auto dh = llfio::directory( //
+                {},             // path_handle to base directory
+                directory       // path_view to path fragment relative to base
+                                // directory default mode is read only default
+                // creation is open existing default caching is all
+                // default flags is none
+                )
+                .value(); // If failed, throw a filesystem_error exception
+
+    // Very similar to reading from a file handle, we need
+    // to achieve a single snapshot read to be race free.
+    buffer.resize(buffer.capacity());
+    auto entries = llfio::directory_handle::buffers_type{ std::span(buffer) };
+    for (;;) {
+        entries = dh.read({ std::move(entries) } // buffers to fill
+                          )
+                    .value(); // If failed, throw a filesystem_error exception
+
+        // If there were fewer entries in the directory than buffers
+        // passed in, we are done.
+        if (entries.done()) {
+            break;
+        }
+        // Otherwise double the size of the buffer
+        buffer.resize(buffer.size() << 1);
+        // Set the next read attempt to use the newly enlarged buffer.
+        // buffers_type may cache internally reusable state depending
+        // on platform, to efficiently reuse that state pass in the
+        // old entries by rvalue ref.
+        entries = { std::span(buffer), std::move(entries) };
+    }
+
+    for (const auto& entry : entries) {
         if (*stop) {
             break;
         }
-        const auto& path = entry.path();
-        if (is_directory(entry) && !isSongDirectory) {
-            directoriesToScan.push_back(path);
-        } else if (auto extension = path.extension();
+        auto path = entry.leafname.path();
+        if (entry.stat.st_type == llfio::filesystem::file_type::directory &&
+            !isSongDirectory) {
+            directoriesToScan.push_back(directory / path);
+        } else if (const auto extension = path.extension();
                    extension == ".bms" || extension == ".bme" ||
                    extension == ".bml" || extension == ".pms") {
-            isSongDirectory = true;
-            directoriesToScan.clear();
-            if (extension == ".pms") {
-                continue;
+            if (!isSongDirectory) {
+                dirId = addDirToParentDirs(db, root, parentDirQString);
+                isSongDirectory = true;
             }
-            loadChart(
-              threadPool, db, support::pathToQString(parentDirectory), path);
-            // converting to string should not break stuff even on windows
-            // in this case
-        } else if (path.filename().string().starts_with("preview") &&
+            directoriesToScan.clear();
+            if (extension.compare(".pms") != 0) {
+                loadChart(threadPool, db, dirId, directory / path, stop);
+            }
+        } else if (path.string().starts_with("preview") &&
                    (extension == ".mp3" || extension == ".ogg" ||
                     extension == ".wav" || extension == ".flac")) {
             threadPool.start([&db, directory, path] {
@@ -322,30 +349,32 @@ scanFolder(std::filesystem::path directory,
         if (*stop) {
             break;
         }
+        buffer.clear();
         scanFolder(entry,
                    directory,
                    threadPool,
                    db,
                    root,
                    updateCurrentScannedFolder,
+                   buffer,
                    stop);
     }
     if (isSongDirectory) {
-        addDirToParentDirs(
-          threadPool, db, root, support::pathToQString(parentDirectory));
+        addDirToParentDirs(db, root, support::pathToQString(parentDirectory));
     }
 }
 #endif
 
 void
 SongDbScanner::scanDirectory(
-  std::filesystem::path directory,
-  std::function<void(QString)> updateCurrentScannedFolder,
+  const std::filesystem::path& directory,
+  const std::function<void(QString)>& updateCurrentScannedFolder,
   std::atomic_bool* stop) const
 {
     auto sw = spdlog::stopwatch{};
     auto threadPool = QThreadPool{};
     try {
+        auto buffer = std::vector<llfio::directory_handle::buffer_type>(100);
         if (is_directory(directory)) {
             const auto root = support::pathToQString(directory);
             scanFolder(directory,
@@ -354,6 +383,9 @@ SongDbScanner::scanDirectory(
                        *db,
                        root,
                        updateCurrentScannedFolder,
+#ifndef _WIN32
+                       buffer,
+#endif
                        stop);
         } else {
             spdlog::error("Resource path {} is not a directory",
@@ -365,7 +397,8 @@ SongDbScanner::scanDirectory(
     }
     threadPool.waitForDone();
     if (*stop) {
-        spdlog::info("Scanning {} cancelled after {} seconds", directory.string(), sw);
+        spdlog::info(
+          "Scanning {} cancelled after {} seconds", directory.string(), sw);
     } else {
         spdlog::info("Scanning {} took {} seconds", directory.string(), sw);
     }
