@@ -5,6 +5,7 @@ import QtQuick.Controls.Basic
 import QtMultimedia
 import QtQml
 import "../common/helpers.js" as Helpers
+import "./playOptions"
 
 FocusScope {
     focus: StackView.status === StackView.Active
