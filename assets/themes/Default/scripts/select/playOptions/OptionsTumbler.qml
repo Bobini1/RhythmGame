@@ -34,21 +34,19 @@ TumblerFrame {
     }
     PathView {
         id: tumbler
-        readonly property bool movingInAnyWay: flicking || moving || dragging
         clip: true
 
         delegate: delegateComponent
         model: frame.model
         pathItemCount: 6
-        offset: 3
         dragMargin: width / 2
         path: Path {
             startX: frame.width / 2
             startY: -label.height / 2
             PathLine { x: frame.width / 2; y: frame.height + label.height / 2 }
         }
-        preferredHighlightBegin: 4 / 6
-        preferredHighlightEnd: 4 / 6
+        preferredHighlightBegin: 3 / 6
+        preferredHighlightEnd: 3 / 6
 
         anchors.fill: parent
 
@@ -68,10 +66,8 @@ TumblerFrame {
         }
 
         onCurrentIndexChanged: (_) => {
-            if (!movingInAnyWay) {
-                ProfileList.currentProfile.vars.globalVars[prop] = frame.model[currentIndex];
-                currentIndex = Qt.binding(() => getIndex(ProfileList.currentProfile.vars.globalVars[prop]))
-            }
+            ProfileList.currentProfile.vars.globalVars[prop] = frame.model[currentIndex];
+            currentIndex = Qt.binding(() => getIndex(ProfileList.currentProfile.vars.globalVars[prop]))
         }
 
         onFlickingChanged: {
@@ -97,13 +93,13 @@ TumblerFrame {
             onWheel: (wheel) => {
                 if (wheel.angleDelta.y > 0) {
                     if (previousDirection === 1) {
-                        tumbler.positionViewAtIndex(tumbler.currentIndex, PathView.Beginning);
+                        tumbler.positionViewAtIndex(tumbler.currentIndex - 3, PathView.Beginning);
                     }
                     tumbler.decrementCurrentIndex();
                     previousDirection = 1;
                 } else {
                     if (previousDirection === -1) {
-                        tumbler.positionViewAtIndex(tumbler.currentIndex, PathView.Beginning);
+                        tumbler.positionViewAtIndex(tumbler.currentIndex - 3, PathView.Beginning);
                     }
                     tumbler.incrementCurrentIndex();
                     previousDirection = -1;
