@@ -19,7 +19,7 @@ Rectangle {
         anchors.top: parent.top
         anchors.bottom: parent.bottom
         anchors.left: parent.left
-        anchors.leftMargin: 10
+        anchors.leftMargin: 20
     }
 
 
@@ -27,7 +27,7 @@ Rectangle {
         id: keyImage
 
         anchors.right: darkLabel.right
-        anchors.rightMargin: 10
+        anchors.rightMargin: 20
         anchors.verticalCenter: darkLabel.verticalCenter
 
         highlightedKeys: darkLabel.highlightedKeys
