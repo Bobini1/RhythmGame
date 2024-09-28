@@ -5,6 +5,7 @@ import QtQuick.Controls.Basic
 BorderImage {
     id: frame
     required property var model
+    property var strings: model
     required property string prop
     property var up: -1
     property var down: -1
@@ -22,7 +23,7 @@ BorderImage {
         id: delegateComponent
 
         Text {
-            text: modelData
+            text: frame.strings[index]
             horizontalAlignment: Text.AlignHCenter
             verticalAlignment: Text.AlignVCenter
             font.pixelSize: 32
@@ -64,13 +65,17 @@ BorderImage {
 
         function getIndex(text) {
             let index = 0;
+            let proposition = null;
             for (let choice of frame.model) {
                 if (text === choice) {
-                    return index;
+                    // special handling for duplicated elements
+                    if (proposition === null || Math.abs(currentIndex - index) < Math.abs(currentIndex - proposition)) {
+                        proposition = index
+                    }
                 }
                 index++;
             }
-            return 0;
+            return proposition;
         }
 
         Component.onCompleted: {

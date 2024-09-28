@@ -112,18 +112,19 @@ writeSingleThemeVar(const QString& screen,
 void
 populateGlobalVars(QQmlPropertyMap& globalVars)
 {
-    globalVars.insert({
-      { "noteScreenTimeMillis", 1000 },
-      { "laneCoverOn", false },
-      { "laneCoverRatio", 0.1 },
-      { "liftOn", false },
-      { "liftRatio", 0.1 },
-      { "hiddenOn", false },
-      { "hiddenRatio", 0.1 },
-      { "bgaOn", true },
-      {"noteOrderAlgorithm", "NORMAL"},
-      {"noteOrderAlgorithmP2", "NORMAL"}
-    });
+    globalVars.insert({ { "noteScreenTimeMillis", 1000 },
+                        { "laneCoverOn", false },
+                        { "laneCoverRatio", 0.1 },
+                        { "liftOn", false },
+                        { "liftRatio", 0.1 },
+                        { "hiddenOn", false },
+                        { "hiddenRatio", 0.1 },
+                        { "bgaOn", true },
+                        { "noteOrderAlgorithm", "NORMAL" },
+                        { "noteOrderAlgorithmP2", "NORMAL" },
+                        { "hiSpeedFix", "MAIN" },
+                        { "dpOptions", "OFF" },
+                        { "gaugeType", "HAZARD" } });
 }
 #pragma clang diagnostic pop
 

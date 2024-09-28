@@ -1,5 +1,6 @@
 import RhythmGameQml
 import QtQuick
+import QtQuick.Layouts
 import QtQuick.Controls.Basic
 
 Rectangle {
@@ -15,10 +16,10 @@ Rectangle {
 
     DarkLabel {
         id: p1RandomLabel
-        width: 480
+        width: 600
         height: 40
         anchors.top: parent.top
-        anchors.topMargin: 20
+        anchors.topMargin: 60
         anchors.left: parent.left
         anchors.leftMargin: 20
 
@@ -28,12 +29,12 @@ Rectangle {
     }
 
     OptionsTumbler {
+        id: p1RandomTumbler
         width: 360
         height: 220
         anchors.top: p1RandomLabel.bottom
         anchors.topMargin: 20
-        anchors.left: parent.left
-        anchors.leftMargin: 20
+        anchors.horizontalCenter: p1RandomLabel.horizontalCenter
         up: BmsKey.Col12
         down: BmsKey.Col11
 
@@ -43,10 +44,10 @@ Rectangle {
 
     DarkLabel {
         id: p2RandomLabel
-        width: 480
+        width: 600
         height: 40
         anchors.top: parent.top
-        anchors.topMargin: 20
+        anchors.topMargin: 60
         anchors.right: parent.right
         anchors.rightMargin: 20
 
@@ -60,8 +61,7 @@ Rectangle {
         height: 220
         anchors.top: p2RandomLabel.bottom
         anchors.topMargin: 20
-        anchors.right: parent.right
-        anchors.rightMargin: 20
+        anchors.horizontalCenter: p2RandomLabel.horizontalCenter
         up: BmsKey.Col17
         down: BmsKey.Col16
 
@@ -69,6 +69,91 @@ Rectangle {
         prop: "noteOrderAlgorithmP2"
     }
 
+    RowLayout {
+        id: labelRow
+        anchors.top: p1RandomTumbler.bottom
+        anchors.topMargin: 180
+        anchors.left: parent.left
+        anchors.leftMargin: 20
+        anchors.right: parent.right
+        anchors.rightMargin: 20
+        spacing: 60
+        height: 40
+
+        DarkLabel {
+            id: gaugeLabel
+            Layout.fillWidth: true
+            height: 40
+
+            text: "Gauge Type"
+
+            highlightedKeys: [3]
+        }
+
+        DarkLabel {
+            id: dpOptionsLabel
+            Layout.fillWidth: true
+            height: 40
+
+            text: "DP Options"
+
+            highlightedKeys: [4]
+        }
+
+        DarkLabel {
+            id: hiSpeedFixLabel
+            Layout.fillWidth: true
+            height: 40
+
+            text: "Hi-Speed Fix"
+
+            highlightedKeys: [5]
+        }
+    }
+
+    OptionsTumbler {
+        id: gaugeTumbler
+        anchors.top: labelRow.bottom
+        anchors.topMargin: 20
+        anchors.left: parent.left
+        anchors.leftMargin: 20 + (gaugeLabel.width - width) / 2
+        width: 360
+        height: 220
+        down: BmsKey.Col13
+        model: ["AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC"]
+        strings: ["ASSISTED EASY", "EASY", "NORMAL", "HARD", "EXHARD", "HAZARD"]
+        prop: "gaugeType"
+    }
+
+    function duplicate(arr) {
+        return arr.concat(arr)
+    }
+
+    OptionsTumbler {
+        id: dpOptionsTumbler
+        width: 360
+        height: 220
+        anchors.top: labelRow.bottom
+        anchors.topMargin: 20
+        anchors.horizontalCenter: parent.horizontalCenter
+        down: BmsKey.Col14
+        model: bg.duplicate(["OFF", "FLIP", "BATTLE", "BATTLE AS"])
+        prop: "dpOptions"
+    }
+
+    OptionsTumbler {
+        id: hiSpeedFixTumbler
+        anchors.top: labelRow.bottom
+        anchors.topMargin: 20
+        anchors.right: parent.right
+        anchors.rightMargin: 20 + (hiSpeedFixLabel.width - width) / 2
+        width: 360
+        height: 220
+        down: BmsKey.Col15
+        model: bg.duplicate(["MAIN", "START", "MAX", "MIN", "OFF"])
+        strings: bg.duplicate(["MAIN BPM", "START BPM", "MAX BPM", "MIN BPM", "OFF"])
+        prop: "hiSpeedFix"
+    }
     property var open: false
 
     Input.onStartPressed: {
