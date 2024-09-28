@@ -47,9 +47,10 @@ InputSignalProvider(ProfileList* profileList)
 auto
 InputAttached::isAttachedToCurrentScene() const -> bool
 {
+    const auto* const currentScene = (*findCurrentScene)();
     const auto* current = parent();
     while (current != nullptr) {
-        if (current == (*findCurrentScene)()) {
+        if (current == currentScene) {
             return true;
         }
         current = current->parent();
@@ -90,7 +91,7 @@ InputAttached(QObject* obj)
                    const int64_t time) {
                 switch (button) {
 #define CASE(key, capital)                                                     \
-    case input::BmsKey::##capital:                                             \
+    case input::BmsKey::capital:                                               \
         emit key##Pressed(profile, value, time);                               \
         break;
                     CASE(col11, Col11)
@@ -124,7 +125,7 @@ InputAttached(QObject* obj)
                    const int64_t time) {
                 switch (button) {
 #define CASE(key, capital)                                                     \
-    case input::BmsKey::##capital:                                             \
+    case input::BmsKey::capital:                                               \
         emit key##Released(profile, time);                                     \
         break;
                     CASE(col11, Col11)
