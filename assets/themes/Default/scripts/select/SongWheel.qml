@@ -81,11 +81,6 @@ FocusScope {
             scale: Math.min(parent.width / 1920, parent.height / 1080)
             width: 1920
 
-            PlayOptions {
-                anchors.centerIn: parent
-                z: 3
-            }
-
             RowLayout {
                 anchors.left: parent.left
                 anchors.top: parent.top
@@ -287,6 +282,32 @@ FocusScope {
 
                 onClicked: {
                     songList.focus = true;
+                }
+            }
+        }
+
+
+        Rectangle {
+            anchors.fill: parent
+
+            color: {
+                let c = Qt.color("black");
+                c.a = 0.5;
+                return c;
+            }
+
+            visible: playOptions.open
+
+            Item {
+                anchors.centerIn: parent
+                height: 1080
+                scale: Math.min(parent.width / 1920, parent.height / 1080)
+                width: 1920
+
+                PlayOptions {
+                    id: playOptions
+
+                    anchors.centerIn: parent
                 }
             }
         }
