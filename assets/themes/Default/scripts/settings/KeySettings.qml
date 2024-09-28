@@ -16,12 +16,12 @@ Item {
 
     Connections {
         function onConfiguringChanged() {
-            if (!InputTranslator.configuring)
+            if (!ProfileList.currentProfile.inputTranslator.configuring)
                 pressButton(null);
 
         }
 
-        target: InputTranslator
+        target: ProfileList.currentProfile.inputTranslator
     }
 
     Flickable {
@@ -48,7 +48,7 @@ Item {
                     ColumnLayout {
                         id: keyLayout
 
-                        property var keyConfig: InputTranslator.keyConfig
+                        property var keyConfig: ProfileList.currentProfile.inputTranslator.keyConfig
 
                         anchors.fill: parent
 
@@ -90,9 +90,9 @@ Item {
                                 }
 
                                 Label {
-                                    text: InputTranslator[modelData] ? qsTr("DOWN") : qsTr("UP")
+                                    text: ProfileList.currentProfile.inputTranslator[modelData] ? qsTr("DOWN") : qsTr("UP")
                                     horizontalAlignment: Text.AlignRight
-                                    color: InputTranslator[modelData] ? "green" : "red"
+                                    color: ProfileList.currentProfile.inputTranslator[modelData] ? "green" : "red"
                                 }
 
                                 Button {
@@ -102,7 +102,7 @@ Item {
                                     onCheckedChanged: {
                                         pressButton(this);
                                         if (checked)
-                                            InputTranslator.configuredButton = index;
+                                            ProfileList.currentProfile.inputTranslator.configuredButton = index;
 
                                     }
                                 }
@@ -110,7 +110,7 @@ Item {
                                 Button {
                                     text: qsTr("Reset")
                                     onClicked: {
-                                        InputTranslator.resetButton(index);
+                                        ProfileList.currentProfile.inputTranslator.resetButton(index);
                                     }
                                 }
 

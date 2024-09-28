@@ -468,27 +468,18 @@ InputTranslator::getTime(const QKeyEvent& event) -> int64_t
 }
 
 InputTranslator::
-InputTranslator(const GamepadManager* source, QObject* parent)
+InputTranslator(QObject* parent)
   : QObject(parent)
 {
-    connect(
-      source, &GamepadManager::axisMoved, this, &InputTranslator::handleAxis);
-    connect(source,
-            &GamepadManager::buttonPressed,
-            this,
-            &InputTranslator::handlePress);
-    connect(source,
-            &GamepadManager::buttonReleased,
-            this,
-            &InputTranslator::handleRelease);
-
 #ifdef _WIN32
-    auto clk = std::chrono::milliseconds(clock() * 1000 / CLOCKS_PER_SEC);
-    startTimeClk = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch() - clk).count();
+    const auto clk = std::chrono::milliseconds(clock() * 1000 / CLOCKS_PER_SEC);
+    startTimeClk = std::chrono::duration_cast<std::chrono::milliseconds>(
+                     std::chrono::system_clock::now().time_since_epoch() - clk)
+                     .count();
 #endif
 }
 void
-InputTranslator::setConfiguredButton(QVariant button)
+InputTranslator::setConfiguredButton(const QVariant& button)
 {
     const auto old = configuredButton;
     const auto oldIsConfiguring = isConfiguring();
@@ -664,7 +655,7 @@ bool
 InputTranslator::eventFilter(QObject* watched, QEvent* event)
 {
     if (event->type() == QEvent::KeyPress) {
-        const auto key = static_cast<QKeyEvent*>(event);
+        const auto* const key = static_cast<QKeyEvent*>(event);
         if (key->isAutoRepeat()) {
             return false;
         }
@@ -684,7 +675,7 @@ InputTranslator::eventFilter(QObject* watched, QEvent* event)
             }
         }
     } else if (event->type() == QEvent::KeyRelease) {
-        const auto key = static_cast<QKeyEvent*>(event);
+        const auto* const key = static_cast<QKeyEvent*>(event);
         if (key->isAutoRepeat()) {
             return false;
         }

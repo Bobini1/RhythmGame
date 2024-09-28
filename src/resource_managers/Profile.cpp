@@ -33,50 +33,10 @@ createConfig(const QMap<QString, qml_components::ThemeFamily>& availableThemes,
 }
 } // namespace
 
-auto
-Profile::getName() const -> QString
-{
-    return name;
-}
-auto
-Profile::getAvatar() const -> QString
-{
-    return avatar;
-}
-
-void
-Profile::setName(QString newName)
-{
-    if (name == newName) {
-        return;
-    }
-    name = std::move(newName);
-    auto updateProperty =
-      db.createStatement("INSERT OR REPLACE INTO properties "
-                         "(key, value) VALUES (?, ?)");
-    updateProperty.bind(1, "name");
-    updateProperty.bind(2, name.toStdString());
-    updateProperty.execute();
-    emit nameChanged();
-}
-void
-Profile::setAvatar(QString newAvatar)
-{
-    if (avatar == newAvatar) {
-        return;
-    }
-    avatar = std::move(newAvatar);
-    auto updateProperty =
-      db.createStatement("INSERT OR REPLACE INTO properties "
-                         "(key, value) VALUES (?, ?)");
-    updateProperty.bind(1, "avatar");
-    updateProperty.bind(2, avatar.toStdString());
-    updateProperty.execute();
-    emit avatarChanged();
-}
 Profile::
 Profile(const std::filesystem::path& dbPath,
         const QMap<QString, qml_components::ThemeFamily>& themeFamilies,
+        input::InputTranslator* inputTranslator,
         QObject* parent)
   : QObject(parent)
   , db(createDb(dbPath))
@@ -85,9 +45,14 @@ Profile(const std::filesystem::path& dbPath,
       createConfig(themeFamilies, dbPath.parent_path() / "theme_config.json")
         .release())
   , vars(this, themeFamilies)
+  , inputTranslator(inputTranslator)
 {
     this->themeConfig->setParent(this);
     auto configPath = dbPath.parent_path() / "theme_config.json";
+    connect(inputTranslator,
+            &input::InputTranslator::keyConfigModified,
+            this,
+            &Profile::onKeyConfigModified);
     connect(themeConfig,
             &QQmlPropertyMap::valueChanged,
             this,
@@ -102,20 +67,13 @@ Profile(const std::filesystem::path& dbPath,
                    "value"
                    ");");
     } else {
-        auto statement = db.createStatement(
-          "SELECT value FROM properties WHERE key = 'avatar'");
-        auto av = statement.executeAndGet<std::string>();
-        avatar = QString::fromStdString(av.value_or(""));
-        statement =
-          db.createStatement("SELECT value FROM properties WHERE key = "
-                             "'name'");
-        auto n = statement.executeAndGet<std::string>();
-        name = QString::fromStdString(n.value_or(""));
-        statement = db.createStatement("SELECT value FROM properties WHERE "
-                                       "key = 'key_config'");
-        if (auto config = statement.executeAndGet<std::string>()) {
-            auto serializedData = QByteArray::fromStdString(*config);
-            support::decompress(serializedData, keyConfig);
+        auto statement =
+          db.createStatement("SELECT value FROM properties WHERE "
+                             "key = 'key_config'");
+        if (const auto config = statement.executeAndGet<std::string>()) {
+            const auto serializedData = QByteArray::fromStdString(*config);
+            inputTranslator->setKeyConfig(
+              support::decompress<QList<input::Mapping>>(serializedData));
         }
     }
     db.execute("CREATE TABLE IF NOT EXISTS score ("
@@ -168,22 +126,19 @@ Profile::getDb() -> db::SqliteCppDb&
     return db;
 }
 auto
+Profile::getScoreDb() -> qml_components::ScoreDb*
+{
+    return &scoreDb;
+}
+auto
 Profile::getThemeConfig() const -> QQmlPropertyMap*
 {
     return themeConfig;
 }
-auto
-Profile::getKeyConfig() const -> QList<input::Mapping>
+void
+Profile::onKeyConfigModified()
 {
-    return keyConfig;
-}
-auto
-Profile::setKeyConfig(const QList<input::Mapping>& keyConfig) -> void
-{
-    if (this->keyConfig == keyConfig) {
-        return;
-    }
-    this->keyConfig = keyConfig;
+    const auto keyConfig = inputTranslator->getKeyConfig();
     auto compressedData = support::compress(keyConfig);
     auto updateProperty =
       db.createStatement("INSERT OR REPLACE INTO properties "
@@ -191,11 +146,15 @@ Profile::setKeyConfig(const QList<input::Mapping>& keyConfig) -> void
     updateProperty.bind(1, "key_config");
     updateProperty.bind(2, compressedData.data(), compressedData.size());
     updateProperty.execute();
-    emit keyConfigChanged();
 }
 auto
 Profile::getVars() -> Vars*
 {
     return &vars;
+}
+auto
+Profile::getInputTranslator() const -> input::InputTranslator*
+{
+    return inputTranslator;
 }
 } // namespace resource_managers

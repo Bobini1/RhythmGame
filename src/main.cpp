@@ -5,10 +5,9 @@
 #include "qml_components/ProgramSettings.h"
 #include "qml_components/ChartLoader.h"
 
-#include <QQmlExtensionPlugin>
 #include <QGuiApplication>
-#include <QQmlApplicationEngine>
 #include <QObject>
+#include <qtquick>
 #include <spdlog/sinks/qt_sinks.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include "qml_components/Logger.h"
@@ -24,9 +23,10 @@
 #include "support/PathToQString.h"
 #include "qml_components/ProfileList.h"
 #include "qml_components/PreviewFilePathFetcher.h"
-#include "qml_components/ScoreDb.h"
 #include "qml_components/FileQuery.h"
+#include "qml_components/InputAttached.h"
 #include "qml_components/Themes.h"
+#include "resource_managers/KeyboardInputForwarder.h"
 #include "resource_managers/ScanThemes.h"
 
 Q_IMPORT_QML_PLUGIN(RhythmGameQmlPlugin)
@@ -62,10 +62,9 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
 {
     qInstallMessageHandler(qtLogHandler);
 
-    struct UnregisterHandler {
-        ~UnregisterHandler() {
-            qInstallMessageHandler(nullptr);
-        }
+    struct UnregisterHandler
+    {
+        ~UnregisterHandler() { qInstallMessageHandler(nullptr); }
     } unregisterHandler;
 
     auto log = qml_components::Logger{ nullptr };
@@ -86,7 +85,6 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
     QGuiApplication::setOrganizationName("Tomasz Kalisiak");
     QGuiApplication::setOrganizationDomain("bemani.pl");
     QGuiApplication::setApplicationName("RhythmGame");
-
 
     try {
         auto assetsFolder = resource_managers::findAssetsFolder();
@@ -123,41 +121,22 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
         if (availableThemes.empty()) {
             throw std::runtime_error("No themes available");
         }
+        auto gamepadManager = input::GamepadManager{};
+        qmlRegisterSingletonInstance(
+          "RhythmGameQml", 1, 0, "GamepadManager", &gamepadManager);
 
         auto themes = qml_components::Themes{ availableThemes };
         qmlRegisterSingletonInstance("RhythmGameQml", 1, 0, "Themes", &themes);
         auto profileList = qml_components::ProfileList{
-            &db, availableThemes, assetsFolder / "profiles"
+            &db, availableThemes, assetsFolder / "profiles", &gamepadManager
         };
         qmlRegisterSingletonInstance(
           "RhythmGameQml", 1, 0, "ProfileList", &profileList);
-        auto scoreDb = [&profileList]() -> db::SqliteCppDb& {
-            return profileList.getCurrentProfile()->getDb();
-        };
 
-        auto gamepadManager = input::GamepadManager{};
-        qmlRegisterSingletonInstance(
-          "RhythmGameQml", 1, 0, "GamepadManager", &gamepadManager);
-        auto inputTranslator = input::InputTranslator{ &gamepadManager };
-        qmlRegisterSingletonInstance(
-          "RhythmGameQml", 1, 0, "InputTranslator", &inputTranslator);
-        QObject::connect(&inputTranslator,
-                         &input::InputTranslator::keyConfigModified,
-                         [&inputTranslator, &profileList] {
-                             profileList.getCurrentProfile()->setKeyConfig(
-                               inputTranslator.getKeyConfig());
-                         });
-        auto saveConfig = [&inputTranslator, &profileList] {
-            inputTranslator.setKeyConfig(
-              profileList.getCurrentProfile()->getKeyConfig());
-        };
-        saveConfig();
-        QObject::connect(&profileList,
-                         &qml_components::ProfileList::currentProfileChanged,
-                         saveConfig);
+        auto keyboardInputForwarder =
+          resource_managers::KeyboardInputForwarder{ &profileList };
 
-        auto chartFactory =
-          resource_managers::ChartFactory{ scoreDb, &inputTranslator };
+        auto chartFactory = resource_managers::ChartFactory{ &profileList };
         auto hitRulesFactory =
           [](gameplay_logic::rules::TimingWindows timingWindows,
              std::function<double(std::chrono::nanoseconds)> hitValuesFactory) {
@@ -203,10 +182,6 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
                                      "PreviewFilePathFetcher",
                                      &previewFilePathFetcher);
 
-        auto scoreDbSingleton = qml_components::ScoreDb{ scoreDb };
-        qmlRegisterSingletonInstance(
-          "RhythmGameQml", 1, 0, "ScoreDb", &scoreDbSingleton);
-
         auto fileQuery = qml_components::FileQuery{};
         qmlRegisterSingletonInstance(
           "RhythmGameQml", 1, 0, "FileQuery", &fileQuery);
@@ -250,6 +225,19 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
                                          "Access to enums & flags only");
         qmlRegisterUncreatableType<gameplay_logic::Note>(
           "RhythmGameQml", 1, 0, "Note", "Note is created in C++");
+        qmlRegisterUncreatableType<qml_components::InputAttached>(
+          "RhythmGameQml",
+          1,
+          0,
+          "Input",
+          "Input is only accessible as an attached property");
+
+        auto getCurrentScene = std::function<QQuickItem*()>{};
+        auto inputSignalProvider =
+          qml_components::InputSignalProvider{ &profileList };
+        qml_components::InputAttached::inputSignalProvider =
+          &inputSignalProvider;
+        qml_components::InputAttached::findCurrentScene = &getCurrentScene;
 
         auto engine = QQmlApplicationEngine{};
 
@@ -260,7 +248,21 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
         if (engine.rootObjects().isEmpty()) {
             throw std::runtime_error{ "Failed to load main qml" };
         }
-        engine.rootObjects()[0]->installEventFilter(&inputTranslator);
+        engine.rootObjects()[0]->installEventFilter(&keyboardInputForwarder);
+        // get the "sceneStack" property from the root object
+        auto sceneStack = engine.rootObjects()[0]->property("sceneStack");
+        if (!sceneStack.isValid()) {
+            throw std::runtime_error{ "Failed to get sceneStack" };
+        }
+        // get the currentItem property from the sceneStack
+        getCurrentScene = [sceneStack]() {
+            const auto currentItem =
+              sceneStack.value<QQuickItem*>()->property("currentItem");
+            if (!currentItem.isValid()) {
+                throw std::runtime_error{ "Failed to get currentItem" };
+            }
+            return currentItem.value<QQuickItem*>();
+        };
 
         return app.exec();
     } catch (const std::exception& e) {

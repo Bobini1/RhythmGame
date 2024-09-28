@@ -2,11 +2,21 @@ import RhythmGameQml
 import QtQuick
 import QtQuick.Controls.Basic
 
-TumblerFrame {
+BorderImage {
     id: frame
     required property var model
     required property string prop
+    property var up: -1
+    property var down: -1
 
+    source: root.iniImagesUrl + "option.png/tumbler_frame"
+
+    border {
+        left: 15
+        right: 15
+        top: 15
+        bottom: 15
+    }
 
     Component {
         id: delegateComponent
@@ -43,7 +53,9 @@ TumblerFrame {
         path: Path {
             startX: frame.width / 2
             startY: -label.height / 2
-            PathLine { x: frame.width / 2; y: frame.height + label.height / 2 }
+            PathLine {
+                x: frame.width / 2; y: frame.height + label.height / 2
+            }
         }
         preferredHighlightBegin: 3 / 6
         preferredHighlightEnd: 3 / 6
@@ -77,14 +89,7 @@ TumblerFrame {
             }
         }
 
-        Timer {
-            id:wheelTimer
-            interval: tumbler.highlightMoveDuration
-            running: false
-            repeat: false
-        }
-        highlightMoveDuration: 200
-
+        highlightMoveDuration: 150
         WheelHandler {
             property int previousDirection: 0
 
@@ -92,18 +97,22 @@ TumblerFrame {
             target: tumbler
             onWheel: (wheel) => {
                 if (wheel.angleDelta.y > 0) {
-                    if (previousDirection === 1) {
-                        tumbler.positionViewAtIndex(tumbler.currentIndex - 3, PathView.Beginning);
-                    }
                     tumbler.decrementCurrentIndex();
-                    previousDirection = 1;
                 } else {
-                    if (previousDirection === -1) {
-                        tumbler.positionViewAtIndex(tumbler.currentIndex - 3, PathView.Beginning);
-                    }
                     tumbler.incrementCurrentIndex();
-                    previousDirection = -1;
                 }
+            }
+        }
+
+        Input.onButtonPressed: (profile, key) => {
+            if (profile !== ProfileList.currentProfile) {
+                return;
+            }
+            if (key === up && bg.open) {
+                tumbler.decrementCurrentIndex();
+            }
+            if (key === down && bg.open) {
+                tumbler.incrementCurrentIndex();
             }
         }
     }

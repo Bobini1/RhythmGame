@@ -14,9 +14,12 @@
 #include <QTimer>
 #include <qfuture.h>
 #include <qfuturewatcher.h>
+namespace resource_managers {
+class Profile;
+} // namespace resource_managers
 namespace gameplay_logic {
 
-class Chart : public QObject
+class Chart final : public QObject
 {
     Q_OBJECT
 
@@ -44,7 +47,7 @@ class Chart : public QObject
     QFuture<std::unique_ptr<qml_components::BgaContainer>> bgaFuture;
     QFutureWatcher<std::unique_ptr<qml_components::BgaContainer>>
       bgaFutureWatcher;
-    std::function<db::SqliteCppDb&()> scoreDb;
+    QPointer<resource_managers::Profile> profile;
     int64_t elapsed;
     int64_t timeBeforeChartStart{};
     int64_t timeAfterChartEnd{};
@@ -68,7 +71,7 @@ class Chart : public QObject
       ChartData* chartData,
       BmsNotes* notes,
       BmsScore* score,
-      std::function<db::SqliteCppDb&()> scoreDb,
+      resource_managers::Profile* profile,
       QObject* parent = nullptr);
 
     Q_INVOKABLE void start();

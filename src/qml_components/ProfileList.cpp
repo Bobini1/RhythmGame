@@ -11,14 +11,34 @@
 #include <spdlog/spdlog.h>
 #include <QUuid>
 
+auto
+qml_components::ProfileList::createInputTranslator() -> input::InputTranslator*
+{
+    auto* const inputTranslator = new input::InputTranslator(this);
+    connect(gamepadManager,
+            &input::GamepadManager::axisMoved,
+            inputTranslator,
+            &input::InputTranslator::handleAxis);
+    connect(gamepadManager,
+            &input::GamepadManager::buttonPressed,
+            inputTranslator,
+            &input::InputTranslator::handlePress);
+    connect(gamepadManager,
+            &input::GamepadManager::buttonReleased,
+            inputTranslator,
+            &input::InputTranslator::handleRelease);
+    return inputTranslator;
+}
 qml_components::ProfileList::
 ProfileList(db::SqliteCppDb* songDb,
             const QMap<QString, ThemeFamily>& themeFamilies,
             std::filesystem::path profilesFolder,
+            input::GamepadManager* gamepadManager,
             QObject* parent)
   : QAbstractListModel(parent)
   , profilesFolder(std::move(profilesFolder))
   , songDb(songDb)
+  , gamepadManager(gamepadManager)
   , themeFamilies(themeFamilies)
 {
     if (!exists(this->profilesFolder)) {
@@ -32,8 +52,11 @@ ProfileList(db::SqliteCppDb* songDb,
         if (entry.is_directory()) {
             try {
                 auto* profile = new resource_managers::Profile(
-                  entry.path() / "profile.sqlite", themeFamilies);
-                profile->setParent(this);
+                  entry.path() / "profile.sqlite",
+                  themeFamilies,
+                  createInputTranslator(),
+                  this);
+                profile->getInputTranslator()->setParent(profile);
                 profiles.append(profile);
             } catch (const std::exception& e) {
                 spdlog::error("Failed to load profile {}: {}",
@@ -45,27 +68,30 @@ ProfileList(db::SqliteCppDb* songDb,
     if (profiles.empty()) {
         spdlog::info("No profiles found, creating default profile");
         auto* profile = new resource_managers::Profile(
-          this->profilesFolder / "default" / "profile.sqlite", themeFamilies);
-        profile->setParent(this);
+          this->profilesFolder / "default" / "profile.sqlite",
+          themeFamilies,
+          createInputTranslator(),
+          this);
+        profile->getInputTranslator()->setParent(profile);
         profiles.append(profile);
     }
-    auto currentProfile =
+    const auto dbCurrentProfile =
       songDb->createStatement("SELECT path FROM current_profile")
         .executeAndGet<std::string>();
-    if (!currentProfile.has_value()) {
+    if (!dbCurrentProfile.has_value()) {
         setCurrentProfile(profiles[0]);
         return;
     }
-    auto profilePath =
-      support::qStringToPath(QString::fromStdString(currentProfile.value()));
-    auto absoluteProfilePath = this->profilesFolder / profilePath;
+    const auto profilePath =
+      support::qStringToPath(QString::fromStdString(dbCurrentProfile.value()));
+    const auto absoluteProfilePath = this->profilesFolder / profilePath;
     for (auto* profile : profiles) {
         if (profile->getPath() == absoluteProfilePath) {
-            setCurrentProfile(profile);
+            setCurrentProfile(currentProfile);
             break;
         }
     }
-    if (this->currentProfile == nullptr) {
+    if (currentProfile == nullptr) {
         setCurrentProfile(profiles[0]);
     }
 }
@@ -78,40 +104,32 @@ auto
 qml_components::ProfileList::data(const QModelIndex& index, int role) const
   -> QVariant
 {
-    if (role == ProfileRole) {
-        return QVariant::fromValue(profiles.at(index.row()));
-    }
-    if (role == ActiveRole) {
-        return QVariant::fromValue(profiles.at(index.row()) == currentProfile);
-    }
     if (role == Qt::DisplayRole) {
-        return profiles.at(index.row())->getName();
+        return QVariant::fromValue(profiles.at(index.row()));
     }
     return {};
 }
 auto
 qml_components::ProfileList::roleNames() const -> QHash<int, QByteArray>
 {
-    return { { ProfileRole, "profiles" }, { ActiveRole, "active" } };
-}
-auto
-qml_components::ProfileList::getCurrentProfile() const
-  -> resource_managers::Profile*
-{
-    return currentProfile;
+    return { { ProfileRole, "profile" }, { ActiveRole, "active" } };
 }
 auto
 qml_components::ProfileList::createProfile() -> resource_managers::Profile*
 {
     resource_managers::Profile* profile = nullptr;
+    auto* inputTranslator = createInputTranslator();
     try {
         profile = new resource_managers::Profile(
           profilesFolder / QUuid::createUuid().toString().toStdString() /
             "profile.sqlite",
-          themeFamilies);
-        profile->setParent(this);
+          themeFamilies,
+          inputTranslator,
+          this);
+        profile->getInputTranslator()->setParent(profile);
     } catch (const std::exception& e) {
         spdlog::error("Failed to create profile: {}", e.what());
+        inputTranslator->deleteLater();
         return nullptr;
     }
     profiles.append(profile);
@@ -125,7 +143,7 @@ qml_components::ProfileList::removeProfile(resource_managers::Profile* profile)
         spdlog::warn("Can't remove current profile");
         return;
     }
-    auto index = profiles.indexOf(profile);
+    const auto index = profiles.indexOf(profile);
     if (index == -1) {
         spdlog::warn("Can't remove profile - not found");
         return;
@@ -136,6 +154,7 @@ qml_components::ProfileList::removeProfile(resource_managers::Profile* profile)
     profile->deleteLater();
     remove_all(profile->getPath().parent_path());
 }
+
 void
 qml_components::ProfileList::setCurrentProfile(
   resource_managers::Profile* profile)
@@ -143,12 +162,8 @@ qml_components::ProfileList::setCurrentProfile(
     if (profile == currentProfile) {
         return;
     }
-    auto index = profiles.indexOf(profile);
-    if (index == -1) {
-        spdlog::warn("Can't set current profile - not found");
-        return;
-    }
     currentProfile = profile;
+
     // get count of rows in current_profile table
     auto countStatement =
       songDb->createStatement("SELECT COUNT(*) FROM current_profile");
@@ -159,22 +174,38 @@ qml_components::ProfileList::setCurrentProfile(
     }
     auto profilePath = profile->getPath();
     auto relativePath = relative(profilePath, profilesFolder);
+    auto pathUtf = support::pathToUtfString(relativePath);
+#ifdef _WIN32
+    std::ranges::replace(pathUtf, '\\', '/');
+#endif
     if (result.value() == 0) {
         // insert new row
         auto statement =
           songDb->createStatement("INSERT INTO current_profile (path) "
                                   "VALUES (:path)");
-        statement.bind(":path", support::pathToUtfString(relativePath));
+        statement.bind(":path", pathUtf);
         statement.execute();
-        emit currentProfileChanged(profile);
         return;
     }
     auto statement =
       songDb->createStatement("UPDATE current_profile SET path = :path");
     statement.bind(":path", support::pathToUtfString(relativePath));
     statement.execute();
-    emit currentProfileChanged(profile);
+    emit currentProfileChanged();
 }
+auto
+qml_components::ProfileList::getCurrentProfile() const
+  -> resource_managers::Profile*
+{
+    return currentProfile;
+}
+auto
+qml_components::ProfileList::getProfiles()
+  -> const QList<resource_managers::Profile*>&
+{
+    return profiles;
+}
+
 resource_managers::Profile*
 qml_components::ProfileList::at(int index) const
 {

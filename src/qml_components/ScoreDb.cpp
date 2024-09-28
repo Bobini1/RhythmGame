@@ -6,15 +6,14 @@
 
 namespace qml_components {
 
-ScoreDb::ScoreDb(std::function<db::SqliteCppDb&()> scoreDb)
+ScoreDb::ScoreDb(db::SqliteCppDb* scoreDb)
   : scoreDb(std::move(scoreDb))
 {
 }
 auto
 ScoreDb::getScoresForChart(QString sha256) -> QList<gameplay_logic::BmsResult*>
 {
-    auto& db = scoreDb();
-    auto statement = db.createStatement("SELECT * "
+    auto statement = scoreDb->createStatement("SELECT * "
                                         "FROM score "
                                         "WHERE sha256 = ?");
     statement.bind(1, sha256.toStdString());
@@ -29,11 +28,11 @@ ScoreDb::getScoresForChart(QString sha256) -> QList<gameplay_logic::BmsResult*>
 auto
 ScoreDb::getGaugeHistory(int64_t scoreId) -> gameplay_logic::BmsGaugeHistory*
 {
-    return gameplay_logic::BmsGaugeHistory::load(scoreDb(), scoreId).release();
+    return gameplay_logic::BmsGaugeHistory::load(*scoreDb, scoreId).release();
 }
 auto
 ScoreDb::getReplayData(int64_t scoreId) -> gameplay_logic::BmsReplayData*
 {
-    return gameplay_logic::BmsReplayData::load(scoreDb(), scoreId).release();
+    return gameplay_logic::BmsReplayData::load(*scoreDb, scoreId).release();
 }
 } // namespace qml_components

@@ -6,6 +6,8 @@
 #include <spdlog/spdlog.h>
 #include "Chart.h"
 
+#include "resource_managers/Profile.h"
+
 namespace gameplay_logic {
 
 Chart::
@@ -14,7 +16,7 @@ Chart(QFuture<gameplay_logic::BmsGameReferee> refereeFuture,
       ChartData* chartData,
       BmsNotes* notes,
       BmsScore* score,
-      std::function<db::SqliteCppDb&()> scoreDb,
+      resource_managers::Profile* profile,
       QObject* parent)
   : QObject(parent)
   , bpmChanges(notes->getBpmChanges())
@@ -23,13 +25,13 @@ Chart(QFuture<gameplay_logic::BmsGameReferee> refereeFuture,
   , score(score)
   , refereeFuture(std::move(refereeFuture))
   , bgaFuture(std::move(bgaFuture))
-  , scoreDb(std::move(scoreDb))
+  , profile(profile)
 {
     chartData->setParent(this);
     notes->setParent(this);
     score->setParent(this);
     connect(&refereeFutureWatcher,
-            &QFutureWatcher<gameplay_logic::BmsGameReferee>::finished,
+            &QFutureWatcher<BmsGameReferee>::finished,
             this,
             &Chart::setup);
     refereeFutureWatcher.setFuture(this->refereeFuture);
@@ -185,19 +187,21 @@ Chart::finish() -> BmsScoreAftermath*
         auto result = score->getResult();
         auto replayData = score->getReplayData();
         auto gaugeHistory = score->getGaugeHistory();
-        auto& currentScoreDb = scoreDb();
-        auto scoreId =
-          result->save(currentScoreDb);
-        result->setId(scoreId);
-        replayData->save(currentScoreDb, scoreId);
-        gaugeHistory->save(currentScoreDb, scoreId);
-        return new BmsScoreAftermath{ std::move(result),
-                                      std::move(replayData),
-                                      std::move(gaugeHistory) };
+        if (auto* profilePtr = profile.get()) {
+            const auto scoreId =
+          result->save(profilePtr->getDb());
+            result->setId(scoreId);
+            replayData->save(profilePtr->getDb(), scoreId);
+            gaugeHistory->save(profilePtr->getDb(), scoreId);
+            return new BmsScoreAftermath{ std::move(result),
+                                          std::move(replayData),
+                                          std::move(gaugeHistory) };
+        }
+        spdlog::warn("Profile was deleted before saving score");
     } catch (const std::exception& e) {
         spdlog::error("Failed to save score: {}", e.what());
-        return nullptr;
     }
+    return nullptr;
 }
 auto
 Chart::getTimeBeforeChartStart() const -> int64_t

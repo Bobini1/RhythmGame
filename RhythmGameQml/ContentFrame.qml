@@ -10,6 +10,7 @@ ApplicationWindow {
     height: 720
     visible: true
     width: 1280
+    property var sceneStack: sceneStack
 
     Settings {
         property alias height: contentContainer.height

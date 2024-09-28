@@ -142,17 +142,20 @@ class InputTranslator : public QObject
     void pressButton(BmsKey button, double value, uint64_t time);
     void releaseButton(BmsKey button, uint64_t time);
     void unpressCurrentKey(const Key& key, uint64_t time);
+
+  public:
     void handleAxis(Gamepad gamepad, Uint8 axis, double value, int64_t time);
     void handlePress(Gamepad gamepad, Uint8 button, int64_t time);
     void handleRelease(Gamepad gamepad, Uint8 button, int64_t time);
+
+  private:
     auto getTime(const QKeyEvent& event) -> int64_t;
 
     static constexpr auto scratchSensitivity = 0.01;
 
   public:
-    explicit InputTranslator(const GamepadManager* source,
-                             QObject* parent = nullptr);
-    void setConfiguredButton(QVariant button);
+    explicit InputTranslator(QObject* parent = nullptr);
+    void setConfiguredButton(const QVariant& button);
     auto getConfiguredButton() const -> QVariant;
     auto isConfiguring() const -> bool;
     void setKeyConfig(const QList<Mapping>& config);
@@ -179,7 +182,7 @@ class InputTranslator : public QObject
     auto start() const -> bool;
     auto select() const -> bool;
 
-    bool eventFilter(QObject* watched, QEvent* event) override;
+    auto eventFilter(QObject* watched, QEvent* event) -> bool override;
 
   signals:
     void buttonPressed(BmsKey button, double value, int64_t time);

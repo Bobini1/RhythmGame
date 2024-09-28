@@ -162,6 +162,10 @@ qt_add_library(RhythmGame_lib OBJECT ${utf8Manifest} src/db/SqliteCppDb.cpp src/
         src/resource_managers/Vars.h
         src/support/Exception.cpp
         src/support/Exception.h
+        src/resource_managers/KeyboardInputForwarder.cpp
+        src/resource_managers/KeyboardInputForwarder.h
+        src/qml_components/InputAttached.cpp
+        src/qml_components/InputAttached.h
 )
 
 find_package(Threads REQUIRED)

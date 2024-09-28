@@ -8,58 +8,54 @@
 #include "Vars.h"
 #include "db/SqliteCppDb.h"
 #include "input/InputTranslator.h"
+#include "qml_components/ScoreDb.h"
 
 #include <QQmlPropertyMap>
 #include "qml_components/ThemeFamily.h"
 namespace resource_managers {
 
-class Profile : public QObject
+class Profile final : public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(QString name READ getName WRITE setName NOTIFY nameChanged)
-    Q_PROPERTY(
-      QString avatar READ getAvatar WRITE setAvatar NOTIFY avatarChanged)
     Q_PROPERTY(QString path READ getPathQString CONSTANT)
     Q_PROPERTY(QQmlPropertyMap* themeConfig READ getThemeConfig CONSTANT)
-    Q_PROPERTY(
-      QList<input::Mapping> keyConfig READ getKeyConfig NOTIFY keyConfigChanged)
     Q_PROPERTY(Vars* vars READ getVars CONSTANT)
+    Q_PROPERTY(
+      input::InputTranslator* inputTranslator READ getInputTranslator CONSTANT)
+    Q_PROPERTY(qml_components::ScoreDb* scoreDb READ getScoreDb CONSTANT)
     QString name;
     QString avatar;
     db::SqliteCppDb db;
     std::filesystem::path dbPath;
     QQmlPropertyMap* themeConfig;
-    QList<input::Mapping> keyConfig;
     Vars vars;
+    input::InputTranslator* inputTranslator;
+    qml_components::ScoreDb scoreDb{ &db };
+
+    void onKeyConfigModified();
 
   public:
     /**
      * @brief Creates a profiles object living in the given database.
-     * If the profiles doesn't exist, it will be created.
+     * If the profile doesn't exist, it will be created.
      * @param dbPath Path to the database file. Doesn't have to exist.
+     * @param themeFamilies The available theme families.
+     * @param inputTranslator The input translator instance to use.
      * @param parent QObject parent.
      */
     explicit Profile(
       const std::filesystem::path& dbPath,
       const QMap<QString, qml_components::ThemeFamily>& themeFamilies,
+      input::InputTranslator* inputTranslator,
       QObject* parent = nullptr);
 
-    auto getName() const -> QString;
-    auto getAvatar() const -> QString;
-    void setName(QString newName);
-    void setAvatar(QString newAvatar);
     auto getPath() const -> std::filesystem::path;
     auto getPathQString() const -> QString;
     auto getDb() -> db::SqliteCppDb&;
+    auto getScoreDb() -> qml_components::ScoreDb*;
     auto getThemeConfig() const -> QQmlPropertyMap*;
-    auto getKeyConfig() const -> QList<input::Mapping>;
-    auto setKeyConfig(const QList<input::Mapping>& keyConfig) -> void;
     auto getVars() -> Vars*;
-
-  signals:
-    void nameChanged();
-    void avatarChanged();
-    void keyConfigChanged();
+    auto getInputTranslator() const -> input::InputTranslator*;
 };
 
 } // namespace resource_managers

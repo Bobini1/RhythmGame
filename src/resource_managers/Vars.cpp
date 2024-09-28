@@ -121,7 +121,8 @@ populateGlobalVars(QQmlPropertyMap& globalVars)
       { "hiddenOn", false },
       { "hiddenRatio", 0.1 },
       { "bgaOn", true },
-        {"noteOrderAlgorithm", "NORMAL"}
+      {"noteOrderAlgorithm", "NORMAL"},
+      {"noteOrderAlgorithmP2", "NORMAL"}
     });
 }
 #pragma clang diagnostic pop

@@ -8,16 +8,17 @@
 #include "ChartDataFactory.h"
 #include "gameplay_logic/Chart.h"
 #include "input/InputTranslator.h"
+namespace qml_components {
+class ProfileList;
+} // namespace qml_components
 namespace resource_managers {
 
 class ChartFactory
 {
-    std::function<db::SqliteCppDb&()> scoreDb;
-    input::InputTranslator* inputTranslator;
+    qml_components::ProfileList* profileList;
 
   public:
-    explicit ChartFactory(std::function<db::SqliteCppDb&()> scoreDb,
-                          input::InputTranslator* inputTranslator);
+    explicit ChartFactory(qml_components::ProfileList* profile_list);
 
     auto createChart(
       ChartDataFactory::ChartComponents chartComponents,

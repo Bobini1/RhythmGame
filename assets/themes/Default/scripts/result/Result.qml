@@ -20,7 +20,7 @@ FocusScope {
         readonly property var oldBestPointsScore: Helpers.getScoreWithBestPoints(scores)
         readonly property var oldBestStats: Helpers.getBestStats(scores)
         readonly property string rootUrl: globalRoot.urlToPath(Qt.resolvedUrl(".").toString())
-        readonly property var scores: ScoreDb.getScoresForChart(chartData.sha256).filter(function (score) {
+        readonly property var scores: ProfileList.currentProfile.scoreDb.getScoresForChart(chartData.sha256).filter(function (score) {
             return score.id !== result.result.id;
         })
 

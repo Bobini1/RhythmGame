@@ -7,6 +7,7 @@
 #include "ChartFactory.h"
 
 #include "charts/helper_functions/loadBmsSounds.h"
+#include "qml_components/ProfileList.h"
 #include "support/QStringToPath.h"
 #include "support/PathToQString.h"
 #include <QImageReader>
@@ -86,13 +87,18 @@ loadBmpVideo(const std::filesystem::path& path) -> std::unique_ptr<QMediaPlayer>
 }
 
 auto
-loadBga(std::vector<std::pair<charts::gameplay_models::BmsNotesData::Time, uint16_t>> bgaBase,
-        std::vector<std::pair<charts::gameplay_models::BmsNotesData::Time, uint16_t>> bgaPoor,
-        std::vector<std::pair<charts::gameplay_models::BmsNotesData::Time, uint16_t>> bgaLayer,
-        std::vector<std::pair<charts::gameplay_models::BmsNotesData::Time, uint16_t>> bgaLayer2,
-        std::unordered_map<uint16_t, std::filesystem::path> bmps,
-        QThread* thread,
-        std::filesystem::path path) -> std::unique_ptr<qml_components::BgaContainer>
+loadBga(
+  std::vector<std::pair<charts::gameplay_models::BmsNotesData::Time, uint16_t>>
+    bgaBase,
+  std::vector<std::pair<charts::gameplay_models::BmsNotesData::Time, uint16_t>>
+    bgaPoor,
+  std::vector<std::pair<charts::gameplay_models::BmsNotesData::Time, uint16_t>>
+    bgaLayer,
+  std::vector<std::pair<charts::gameplay_models::BmsNotesData::Time, uint16_t>>
+    bgaLayer2,
+  std::unordered_map<uint16_t, std::filesystem::path> bmps,
+  QThread* thread,
+  std::filesystem::path path) -> std::unique_ptr<qml_components::BgaContainer>
 {
     auto start = std::chrono::high_resolution_clock::now();
     struct Request
@@ -285,10 +291,9 @@ ChartFactory::createChart(
                  bpmChanges = std::move(notesData.bpmChanges),
                  score,
                  hitRules = std::move(hitRules)]() mutable {
-        auto sounds =
-          charts::helper_functions::loadBmsSounds(wavs, path);
+        auto sounds = charts::helper_functions::loadBmsSounds(wavs, path);
         sounds::OpenALSound* mineHitSound = nullptr;
-        if (auto sound = sounds.find(0); sound != sounds.end()) {
+        if (const auto sound = sounds.find(0); sound != sounds.end()) {
             mineHitSound = &sound->second;
         }
         return gameplay_logic::BmsGameReferee(std::move(visibleNotes),
@@ -308,12 +313,12 @@ ChartFactory::createChart(
                     thread = QApplication::instance()->thread(),
                     path]() mutable {
         return loadBga(std::move(bgaBase),
-                    std::move(bgaPoor),
-                    std::move(bgaLayer),
-                    std::move(bgaLayer2),
-                    std::move(bmps),
-                    thread,
-                    std::move(path));
+                       std::move(bgaPoor),
+                       std::move(bgaLayer),
+                       std::move(bgaLayer2),
+                       std::move(bmps),
+                       thread,
+                       std::move(path));
     };
 
     auto bga = QtConcurrent::run(std::move(bgaTask));
@@ -323,12 +328,15 @@ ChartFactory::createChart(
                                             chartData.release(),
                                             notes.release(),
                                             score,
-                                            scoreDb);
+                                            profileList->getCurrentProfile());
+    const auto* const inputTranslator =
+      profileList->getCurrentProfile()->getInputTranslator();
     QObject::connect(
       inputTranslator,
       &input::InputTranslator::buttonPressed,
       chart,
-      [chart](input::BmsKey button, double /*value*/, int64_t time) {
+      [chart](
+        const input::BmsKey button, double /*value*/, const int64_t time) {
           chart->passKey(
             button, gameplay_logic::Chart::EventType::KeyPress, time);
       });
@@ -343,10 +351,8 @@ ChartFactory::createChart(
     return chart;
 }
 ChartFactory::
-ChartFactory(std::function<db::SqliteCppDb&()> scoreDb,
-             input::InputTranslator* inputTranslator)
-  : scoreDb(std::move(scoreDb))
-  , inputTranslator(inputTranslator)
+ChartFactory(qml_components::ProfileList* profileList)
+  : profileList(profileList)
 {
 }
 } // namespace resource_managers
