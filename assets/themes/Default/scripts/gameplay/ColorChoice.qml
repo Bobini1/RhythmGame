@@ -36,10 +36,6 @@ Row {
 
         color: src[prop]
 
-        Component.onCompleted: {
-            print(width, height)
-        }
-
         MouseArea {
             anchors.fill: parent
             onClicked: colorDialog.open()
