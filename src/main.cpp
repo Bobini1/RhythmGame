@@ -26,6 +26,7 @@
 #include "qml_components/FileQuery.h"
 #include "qml_components/InputAttached.h"
 #include "qml_components/Themes.h"
+#include "resource_managers/GaugeFactory.h"
 #include "resource_managers/KeyboardInputForwarder.h"
 #include "resource_managers/ScanThemes.h"
 
@@ -145,12 +146,14 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
                 std::move(timingWindows), std::move(hitValuesFactory));
           };
         auto chartDataFactory = resource_managers::ChartDataFactory{};
+        auto gaugeFactory = resource_managers::GaugeFactory{};
         auto chartLoader = qml_components::ChartLoader{
+            (&profileList),
             &chartDataFactory,
             &gameplay_logic::rules::lr2_timing_windows::getTimingWindows,
             std::move(hitRulesFactory),
             &gameplay_logic::rules::lr2_hit_values::getLr2HitValue,
-            &gameplay_logic::rules::Lr2Gauge::getGauges,
+            gaugeFactory,
             &chartFactory,
             2.0
         };
