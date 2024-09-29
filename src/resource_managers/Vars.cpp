@@ -4,7 +4,6 @@
 
 #include <memory>
 #include <spdlog/spdlog.h>
-#include <QFile>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonArray>
@@ -21,14 +20,242 @@
 #include <chrono>
 #include <qcolor.h>
 #include <utility>
+auto
+resource_managers::GlobalVars::getNoteScreenTimeMillis() const -> int
+{
+    return noteScreenTimeMillis;
+}
+void
+resource_managers::GlobalVars::setNoteScreenTimeMillis(int value)
+{
+    if (noteScreenTimeMillis == value) {
+        return;
+    }
+    noteScreenTimeMillis = value;
+    emit noteScreenTimeMillisChanged();
+}
+auto
+resource_managers::GlobalVars::getLaneCoverOn() const -> bool
+{
+    return laneCoverOn;
+}
+void
+resource_managers::GlobalVars::setLaneCoverOn(bool value)
+{
+    if (laneCoverOn == value) {
+        return;
+    }
+    laneCoverOn = value;
+    emit laneCoverOnChanged();
+}
+auto
+resource_managers::GlobalVars::getLaneCoverRatio() const -> double
+{
+    return laneCoverRatio;
+}
+void
+resource_managers::GlobalVars::setLaneCoverRatio(double value)
+{
+    if (laneCoverRatio == value) {
+        return;
+    }
+    laneCoverRatio = value;
+    emit laneCoverRatioChanged();
+}
+
+auto
+resource_managers::GlobalVars::getLiftOn() const -> bool
+{
+    return liftOn;
+}
+void
+resource_managers::GlobalVars::setLiftOn(bool value)
+{
+    if (liftOn == value) {
+        return;
+    }
+    liftOn = value;
+    emit liftOnChanged();
+}
+
+auto
+resource_managers::GlobalVars::getLiftRatio() const -> double
+{
+    return liftRatio;
+}
+void
+resource_managers::GlobalVars::setLiftRatio(double value)
+{
+    if (liftRatio == value) {
+        return;
+    }
+    liftRatio = value;
+    emit liftRatioChanged();
+}
+
+auto
+resource_managers::GlobalVars::getHiddenOn() const -> bool
+{
+    return hiddenOn;
+}
+void
+resource_managers::GlobalVars::setHiddenOn(bool value)
+{
+    if (hiddenOn == value) {
+        return;
+    }
+    hiddenOn = value;
+    emit hiddenOnChanged();
+}
+
+auto
+resource_managers::GlobalVars::getHiddenRatio() const -> double
+{
+    return hiddenRatio;
+}
+void
+resource_managers::GlobalVars::setHiddenRatio(double value)
+{
+    if (hiddenRatio == value) {
+        return;
+    }
+    hiddenRatio = value;
+    emit hiddenRatioChanged();
+}
+
+auto
+resource_managers::GlobalVars::getBgaOn() const -> bool
+{
+    return bgaOn;
+}
+void
+resource_managers::GlobalVars::setBgaOn(bool value)
+{
+    if (bgaOn == value) {
+        return;
+    }
+    bgaOn = value;
+    emit bgaOnChanged();
+}
+
+auto
+resource_managers::GlobalVars::getNoteOrderAlgorithm() const -> QString
+{
+    return noteOrderAlgorithm;
+}
+void
+resource_managers::GlobalVars::setNoteOrderAlgorithm(QString value)
+{
+    if (noteOrderAlgorithm == value) {
+        return;
+    }
+    noteOrderAlgorithm = value;
+    emit noteOrderAlgorithmChanged();
+}
+
+auto
+resource_managers::GlobalVars::getNoteOrderAlgorithmP2() const -> QString
+{
+    return noteOrderAlgorithmP2;
+}
+void
+resource_managers::GlobalVars::setNoteOrderAlgorithmP2(QString value)
+{
+    if (noteOrderAlgorithmP2 == value) {
+        return;
+    }
+    noteOrderAlgorithmP2 = value;
+    emit noteOrderAlgorithmP2Changed();
+}
+
+auto
+resource_managers::GlobalVars::getHiSpeedFix() const -> QString
+{
+    return hiSpeedFix;
+}
+void
+resource_managers::GlobalVars::setHiSpeedFix(QString value)
+{
+    if (hiSpeedFix == value) {
+        return;
+    }
+    hiSpeedFix = value;
+    emit hiSpeedFixChanged();
+}
+
+auto
+resource_managers::GlobalVars::getDpOptions() const -> QString
+{
+    return dpOptions;
+}
+void
+resource_managers::GlobalVars::setDpOptions(QString value)
+{
+    if (dpOptions == value) {
+        return;
+    }
+    dpOptions = value;
+    emit dpOptionsChanged();
+}
+
+auto
+resource_managers::GlobalVars::getGaugeType() const -> QString
+{
+    return gaugeType;
+}
+void
+resource_managers::GlobalVars::setGaugeType(QString value)
+{
+    if (gaugeType == value) {
+        return;
+    }
+    gaugeType = value;
+    emit gaugeTypeChanged();
+}
+
+auto
+resource_managers::GlobalVars::getGaugeMode() const -> QString
+{
+    return gaugeMode;
+}
+void
+resource_managers::GlobalVars::setGaugeMode(QString value)
+{
+    if (gaugeMode == value) {
+        return;
+    }
+    gaugeMode = value;
+    emit gaugeModeChanged();
+}
+
+auto
+resource_managers::GlobalVars::getBottomShiftableGauge() const -> QString
+{
+    return bottomShiftableGauge;
+}
+void
+resource_managers::GlobalVars::setBottomShiftableGauge(QString value)
+{
+    if (bottomShiftableGauge == value) {
+        return;
+    }
+    bottomShiftableGauge = value;
+    emit bottomShiftableGaugeChanged();
+}
 
 void
-writeGlobalVars(const QQmlPropertyMap& globalVars,
+writeGlobalVars(const resource_managers::GlobalVars& globalVars,
                 const std::filesystem::path& profileFolder)
 {
     auto json = QJsonObject();
-    for (const auto& key : globalVars.keys()) {
-        json[key] = globalVars[key].toJsonValue();
+    for (auto i = globalVars.metaObject()->propertyOffset();
+         i < globalVars.metaObject()->propertyCount();
+         ++i) {
+        auto property = globalVars.metaObject()->property(i);
+        const auto value = property.isEnumType()
+                             ? property.read(&globalVars).toString()
+                             : property.read(&globalVars).toJsonValue();
+        json[property.name()] = value;
     }
     auto file = QFile{ profileFolder / "globalVars.json" };
     if (!file.open(QIODevice::WriteOnly)) {
@@ -106,27 +333,6 @@ writeSingleThemeVar(const QString& screen,
     file.resize(0);
     file.write(jsonDocument.toJson());
 }
-
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "*-avoid-magic-numbers"
-void
-populateGlobalVars(QQmlPropertyMap& globalVars)
-{
-    globalVars.insert({ { "noteScreenTimeMillis", 1000 },
-                        { "laneCoverOn", false },
-                        { "laneCoverRatio", 0.1 },
-                        { "liftOn", false },
-                        { "liftRatio", 0.1 },
-                        { "hiddenOn", false },
-                        { "hiddenRatio", 0.1 },
-                        { "bgaOn", true },
-                        { "noteOrderAlgorithm", "NORMAL" },
-                        { "noteOrderAlgorithmP2", "NORMAL" },
-                        { "hiSpeedFix", "MAIN" },
-                        { "dpOptions", "OFF" },
-                        { "gaugeType", "HAZARD" } });
-}
-#pragma clang diagnostic pop
 
 auto
 jsonValueToString(const QJsonValue& value) -> std::string
@@ -422,10 +628,9 @@ populateScreenVars(const std::filesystem::path& themePath,
 }
 
 void
-readGlobalVars(QQmlPropertyMap& globalVars,
+readGlobalVars(resource_managers::GlobalVars& globalVars,
                const std::filesystem::path& profileFolder)
 {
-    populateGlobalVars(globalVars);
     auto file = QFile{ profileFolder / "globalVars.json" };
     if (!file.exists()) {
         writeGlobalVars(globalVars, profileFolder);
@@ -434,16 +639,33 @@ readGlobalVars(QQmlPropertyMap& globalVars,
         spdlog::error("Failed to open config for reading: {}: {}",
                       profileFolder.string(),
                       file.errorString().toStdString());
-        globalVars.freeze();
         return;
     }
     try {
-        const auto contents = QJsonDocument::fromJson(file.readAll()).object();
-        globalVars.insert(contents.toVariantHash());
+        const auto contents =
+          QJsonDocument::fromJson(file.readAll()).object().toVariantHash();
+        for (auto i = globalVars.metaObject()->propertyOffset();
+             i < globalVars.metaObject()->propertyCount();
+             ++i) {
+            auto property = globalVars.metaObject()->property(i);
+            if (contents.contains(property.name())) {
+                // if the property is an enum, we need to convert the string
+                // to the enum value
+                if (property.isEnumType()) {
+                    const auto enumValue =
+                      property.enumerator().keyToValue(contents[property.name()]
+                                                         .toString()
+                                                         .toStdString()
+                                                         .c_str());
+                    property.write(&globalVars, enumValue);
+                } else {
+                    property.write(&globalVars, contents[property.name()]);
+                }
+            }
+        }
     } catch (std::exception& exception) {
         spdlog::error("{}", exception.what());
     }
-    globalVars.freeze();
 }
 
 auto
@@ -564,6 +786,11 @@ resource_managers::Vars::populateThemePropertyMap(
     }
     themeVars.freeze();
 }
+void
+resource_managers::Vars::writeGlobalVars() const
+{
+    ::writeGlobalVars(globalVars, profile->getPath().parent_path());
+}
 
 resource_managers::Vars::
 Vars(const Profile* profile,
@@ -582,21 +809,23 @@ Vars(const Profile* profile,
                              profile->getPath().parent_path(),
                              *themeConfig);
     readGlobalVars(globalVars, profile->getPath().parent_path());
-    writeGlobalVars(globalVars, profile->getPath().parent_path());
+    writeGlobalVars();
     connect(themeConfig,
             &QQmlPropertyMap::valueChanged,
             this,
             &Vars::onThemeConfigChanged);
-    connect(&globalVars,
-            &QQmlPropertyMap::valueChanged,
-            this,
-            [this](const QString& key, const QVariant& value) {
-                writeGlobalVars(globalVars,
-                                this->profile->getPath().parent_path());
-            });
+    for (auto i = globalVars.metaObject()->propertyOffset();
+         i < globalVars.metaObject()->propertyCount();
+         ++i) {
+        connect(&globalVars,
+                globalVars.metaObject()->property(i).notifySignal(),
+                this,
+                metaObject()->method(
+                  metaObject()->indexOfMethod("writeGlobalVars()")));
+    }
 }
 auto
-resource_managers::Vars::getGlobalVars() -> QQmlPropertyMap*
+resource_managers::Vars::getGlobalVars() -> GlobalVars*
 {
     return &globalVars;
 }
