@@ -223,6 +223,34 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
                                          0,
                                          "BmsKey",
                                          "Access to enums & flags only");
+        qmlRegisterUncreatableMetaObject(
+          resource_managers::dp_options::staticMetaObject,
+          "RhythmGameQml",
+          1,
+          0,
+          "DpOptions",
+          "Access to enums & flags only");
+        qmlRegisterUncreatableMetaObject(
+          resource_managers::hi_speed_fix::staticMetaObject,
+          "RhythmGameQml",
+          1,
+          0,
+          "HiSpeedFix",
+          "Access to enums & flags only");
+        qmlRegisterUncreatableMetaObject(
+          resource_managers::gauge_mode::staticMetaObject,
+          "RhythmGameQml",
+          1,
+          0,
+          "GaugeMode",
+          "Access to enums & flags only");
+        qmlRegisterUncreatableMetaObject(
+          resource_managers::note_order_algorithm::staticMetaObject,
+          "RhythmGameQml",
+          1,
+          0,
+          "NoteOrderAlgorithm",
+          "Access to enums & flags only");
         qmlRegisterUncreatableType<gameplay_logic::Note>(
           "RhythmGameQml", 1, 0, "Note", "Note is created in C++");
         qmlRegisterUncreatableType<qml_components::InputAttached>(

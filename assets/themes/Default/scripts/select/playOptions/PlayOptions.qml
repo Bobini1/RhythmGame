@@ -38,7 +38,8 @@ Rectangle {
         up: BmsKey.Col12
         down: BmsKey.Col11
 
-        model: ["NORMAL", "MIRROR", "SPIRAL", "RANDOM", "S-RANDOM", "H-RANDOM", "R-RANDOM", "S-RANDOM+"]
+        model: [NoteOrderAlgorithm.Normal, NoteOrderAlgorithm.Mirror, NoteOrderAlgorithm.Spiral, NoteOrderAlgorithm.Random, NoteOrderAlgorithm.SRandom, NoteOrderAlgorithm.HRandom, NoteOrderAlgorithm.RRandom, NoteOrderAlgorithm.SRandomPlus]
+        strings: ["NORMAL", "MIRROR", "SPIRAL", "RANDOM", "S-RANDOM", "H-RANDOM", "R-RANDOM", "S-RANDOM+"]
         prop: "noteOrderAlgorithm"
     }
 
@@ -65,7 +66,8 @@ Rectangle {
         up: BmsKey.Col17
         down: BmsKey.Col16
 
-        model: ["NORMAL", "MIRROR", "SPIRAL", "RANDOM", "S-RANDOM", "H-RANDOM", "R-RANDOM", "S-RANDOM+"]
+        model: [NoteOrderAlgorithm.Normal, NoteOrderAlgorithm.Mirror, NoteOrderAlgorithm.Spiral, NoteOrderAlgorithm.Random, NoteOrderAlgorithm.SRandom, NoteOrderAlgorithm.HRandom, NoteOrderAlgorithm.RRandom, NoteOrderAlgorithm.SRandomPlus]
+        strings: ["NORMAL", "MIRROR", "SPIRAL", "RANDOM", "S-RANDOM", "H-RANDOM", "R-RANDOM", "S-RANDOM+"]
         prop: "noteOrderAlgorithmP2"
     }
 
@@ -137,7 +139,8 @@ Rectangle {
         anchors.topMargin: 20
         anchors.horizontalCenter: parent.horizontalCenter
         down: BmsKey.Col14
-        model: bg.duplicate(["OFF", "FLIP", "BATTLE", "BATTLE AS"])
+        model: bg.duplicate([DpOptions.Off, DpOptions.Flip, DpOptions.Battle, DpOptions.BattleAs])
+        strings: bg.duplicate(["OFF", "FLIP", "BATTLE", "BATTLE AS"])
         prop: "dpOptions"
     }
 
@@ -150,7 +153,7 @@ Rectangle {
         width: 360
         height: 220
         down: BmsKey.Col15
-        model: bg.duplicate(["MAIN", "START", "MAX", "MIN", "OFF"])
+        model: bg.duplicate([HiSpeedFix.Main, HiSpeedFix.Start, HiSpeedFix.Max, HiSpeedFix.Min, HiSpeedFix.Off])
         strings: bg.duplicate(["MAIN BPM", "START BPM", "MAX BPM", "MIN BPM", "OFF"])
         prop: "hiSpeedFix"
     }

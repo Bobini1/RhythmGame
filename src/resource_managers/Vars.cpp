@@ -139,12 +139,13 @@ resource_managers::GlobalVars::setBgaOn(bool value)
 }
 
 auto
-resource_managers::GlobalVars::getNoteOrderAlgorithm() const -> QString
+resource_managers::GlobalVars::getNoteOrderAlgorithm() const
+  -> NoteOrderAlgorithm
 {
     return noteOrderAlgorithm;
 }
 void
-resource_managers::GlobalVars::setNoteOrderAlgorithm(QString value)
+resource_managers::GlobalVars::setNoteOrderAlgorithm(NoteOrderAlgorithm value)
 {
     if (noteOrderAlgorithm == value) {
         return;
@@ -154,12 +155,13 @@ resource_managers::GlobalVars::setNoteOrderAlgorithm(QString value)
 }
 
 auto
-resource_managers::GlobalVars::getNoteOrderAlgorithmP2() const -> QString
+resource_managers::GlobalVars::getNoteOrderAlgorithmP2() const
+  -> NoteOrderAlgorithm
 {
     return noteOrderAlgorithmP2;
 }
 void
-resource_managers::GlobalVars::setNoteOrderAlgorithmP2(QString value)
+resource_managers::GlobalVars::setNoteOrderAlgorithmP2(NoteOrderAlgorithm value)
 {
     if (noteOrderAlgorithmP2 == value) {
         return;
@@ -169,12 +171,12 @@ resource_managers::GlobalVars::setNoteOrderAlgorithmP2(QString value)
 }
 
 auto
-resource_managers::GlobalVars::getHiSpeedFix() const -> QString
+resource_managers::GlobalVars::getHiSpeedFix() const -> HiSpeedFix
 {
     return hiSpeedFix;
 }
 void
-resource_managers::GlobalVars::setHiSpeedFix(QString value)
+resource_managers::GlobalVars::setHiSpeedFix(HiSpeedFix value)
 {
     if (hiSpeedFix == value) {
         return;
@@ -184,12 +186,12 @@ resource_managers::GlobalVars::setHiSpeedFix(QString value)
 }
 
 auto
-resource_managers::GlobalVars::getDpOptions() const -> QString
+resource_managers::GlobalVars::getDpOptions() const -> DpOptions
 {
     return dpOptions;
 }
 void
-resource_managers::GlobalVars::setDpOptions(QString value)
+resource_managers::GlobalVars::setDpOptions(DpOptions value)
 {
     if (dpOptions == value) {
         return;
@@ -214,12 +216,12 @@ resource_managers::GlobalVars::setGaugeType(QString value)
 }
 
 auto
-resource_managers::GlobalVars::getGaugeMode() const -> QString
+resource_managers::GlobalVars::getGaugeMode() const -> GaugeMode
 {
     return gaugeMode;
 }
 void
-resource_managers::GlobalVars::setGaugeMode(QString value)
+resource_managers::GlobalVars::setGaugeMode(GaugeMode value)
 {
     if (gaugeMode == value) {
         return;

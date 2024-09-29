@@ -18,6 +18,62 @@ class ProfileList;
 namespace resource_managers {
 class Profile;
 
+namespace note_order_algorithm {
+Q_NAMESPACE
+enum class NoteOrderAlgorithm
+{
+    Normal,
+    Mirror,
+    Random,
+    SRandom,
+    HRandom,
+    RRandom,
+    Spiral,
+    SRandomPlus
+};
+Q_ENUM_NS(NoteOrderAlgorithm)
+} // namespace note_order_algorithm
+using namespace note_order_algorithm;
+
+namespace hi_speed_fix {
+Q_NAMESPACE
+enum class HiSpeedFix
+{
+    Off,
+    Main,
+    Start,
+    Min,
+    Max
+};
+Q_ENUM_NS(HiSpeedFix)
+} // namespace hi_speed_fix
+using namespace hi_speed_fix;
+
+namespace dp_options {
+Q_NAMESPACE
+enum class DpOptions
+{
+    Off,
+    Flip,
+    Battle,
+    BattleAs
+};
+Q_ENUM_NS(DpOptions)
+} // namespace dp_options
+using namespace dp_options;
+
+namespace gauge_mode {
+Q_NAMESPACE
+enum class GaugeMode
+{
+    Exclusive,
+    Best,
+    SelectToUnder
+};
+Q_ENUM_NS(GaugeMode)
+} // namespace gauge_mode
+using namespace gauge_mode;
+
 class GlobalVars final : public QObject
 {
     Q_OBJECT
@@ -35,20 +91,23 @@ class GlobalVars final : public QObject
     Q_PROPERTY(double hiddenRatio READ getHiddenRatio WRITE setHiddenRatio
                  NOTIFY hiddenRatioChanged)
     Q_PROPERTY(bool bgaOn READ getBgaOn WRITE setBgaOn NOTIFY bgaOnChanged)
-    Q_PROPERTY(QString noteOrderAlgorithm READ getNoteOrderAlgorithm WRITE
-                 setNoteOrderAlgorithm NOTIFY noteOrderAlgorithmChanged)
-    Q_PROPERTY(QString noteOrderAlgorithmP2 READ getNoteOrderAlgorithmP2 WRITE
-                 setNoteOrderAlgorithmP2 NOTIFY noteOrderAlgorithmP2Changed)
-    Q_PROPERTY(QString hiSpeedFix READ getHiSpeedFix WRITE setHiSpeedFix NOTIFY
-                 hiSpeedFixChanged)
-    Q_PROPERTY(QString dpOptions READ getDpOptions WRITE setDpOptions NOTIFY
-                 dpOptionsChanged)
+    Q_PROPERTY(resource_managers::note_order_algorithm::NoteOrderAlgorithm
+                 noteOrderAlgorithm READ getNoteOrderAlgorithm WRITE
+                   setNoteOrderAlgorithm NOTIFY noteOrderAlgorithmChanged)
+    Q_PROPERTY(resource_managers::note_order_algorithm::NoteOrderAlgorithm
+                 noteOrderAlgorithmP2 READ getNoteOrderAlgorithmP2 WRITE
+                   setNoteOrderAlgorithmP2 NOTIFY noteOrderAlgorithmP2Changed)
+    Q_PROPERTY(resource_managers::hi_speed_fix::HiSpeedFix hiSpeedFix READ
+                 getHiSpeedFix WRITE setHiSpeedFix NOTIFY hiSpeedFixChanged)
+    Q_PROPERTY(resource_managers::dp_options::DpOptions dpOptions READ
+                 getDpOptions WRITE setDpOptions NOTIFY dpOptionsChanged)
     Q_PROPERTY(QString gaugeType READ getGaugeType WRITE setGaugeType NOTIFY
                  gaugeTypeChanged)
-    Q_PROPERTY(QString gaugeMode READ getGaugeMode WRITE setGaugeMode NOTIFY
-                 gaugeModeChanged)
+    Q_PROPERTY(resource_managers::gauge_mode::GaugeMode gaugeMode READ
+                 getGaugeMode WRITE setGaugeMode NOTIFY gaugeModeChanged)
     Q_PROPERTY(QString bottomShiftableGauge READ getBottomShiftableGauge WRITE
                  setBottomShiftableGauge NOTIFY bottomShiftableGaugeChanged)
+    // ^ remember to use full namespace for enums for reflection
     int noteScreenTimeMillis = 1000;
     bool laneCoverOn = false;
     double laneCoverRatio = 0.1;
@@ -57,12 +116,12 @@ class GlobalVars final : public QObject
     bool hiddenOn = false;
     double hiddenRatio = 0.1;
     bool bgaOn = true;
-    QString noteOrderAlgorithm = "NORMAL";
-    QString noteOrderAlgorithmP2 = "NORMAL";
-    QString hiSpeedFix = "MAIN";
-    QString dpOptions = "OFF";
+    NoteOrderAlgorithm noteOrderAlgorithm = NoteOrderAlgorithm::Normal;
+    NoteOrderAlgorithm noteOrderAlgorithmP2 = NoteOrderAlgorithm::Normal;
+    HiSpeedFix hiSpeedFix = HiSpeedFix::Main;
+    DpOptions dpOptions = DpOptions::Off;
     QString gaugeType = "HAZARD";
-    QString gaugeMode = "SELECT_TO_UNDER";
+    GaugeMode gaugeMode = GaugeMode::SelectToUnder;
     QString bottomShiftableGauge = "AEASY";
 
   public:
@@ -82,18 +141,18 @@ class GlobalVars final : public QObject
     void setHiddenRatio(double value);
     auto getBgaOn() const -> bool;
     void setBgaOn(bool value);
-    auto getNoteOrderAlgorithm() const -> QString;
-    void setNoteOrderAlgorithm(QString value);
-    auto getNoteOrderAlgorithmP2() const -> QString;
-    void setNoteOrderAlgorithmP2(QString value);
-    auto getHiSpeedFix() const -> QString;
-    void setHiSpeedFix(QString value);
-    auto getDpOptions() const -> QString;
-    void setDpOptions(QString value);
+    auto getNoteOrderAlgorithm() const -> NoteOrderAlgorithm;
+    void setNoteOrderAlgorithm(NoteOrderAlgorithm value);
+    auto getNoteOrderAlgorithmP2() const -> NoteOrderAlgorithm;
+    void setNoteOrderAlgorithmP2(NoteOrderAlgorithm value);
+    auto getHiSpeedFix() const -> HiSpeedFix;
+    void setHiSpeedFix(HiSpeedFix value);
+    auto getDpOptions() const -> DpOptions;
+    void setDpOptions(DpOptions value);
     auto getGaugeType() const -> QString;
     void setGaugeType(QString value);
-    auto getGaugeMode() const -> QString;
-    void setGaugeMode(QString value);
+    auto getGaugeMode() const -> GaugeMode;
+    void setGaugeMode(GaugeMode value);
     auto getBottomShiftableGauge() const -> QString;
     void setBottomShiftableGauge(QString value);
 
