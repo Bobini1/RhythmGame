@@ -31,7 +31,8 @@ class GaugeFactory
         const auto selectedGauge = vars->getGaugeType();
         auto selectedIt =
           std::ranges::find_if(gauges, [selectedGauge](const auto& elem) {
-              return elem->objectName() == selectedGauge;
+              auto name = elem->objectName();
+              return name == selectedGauge;
           });
         // invalid gauge selected
         if (selectedIt == std::ranges::end(gauges)) {
@@ -45,14 +46,14 @@ class GaugeFactory
         }
         if (gaugeMode == GaugeMode::SelectToUnder) {
             std::transform(selectedIt,
-                           gauges.end(),
-                           ret.begin(),
+                           std::ranges::end(gauges),
+                           std::back_insert_iterator(ret),
                            [](auto& elem) { return elem.release(); });
         }
         if (gaugeMode == GaugeMode::Best) {
             std::transform(gauges.begin(),
                            gauges.end(),
-                           ret.begin(),
+                           std::back_insert_iterator(ret),
                            [](auto& elem) { return elem.release(); });
         }
         return ret;
