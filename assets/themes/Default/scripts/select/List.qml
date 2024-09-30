@@ -11,7 +11,7 @@ PathView {
     // we need to keep references to ChartDatas, otherwise they will be garbage collected
     property var folderContents: []
     readonly property bool movingInAnyWay: movingManually || flicking || moving || dragging
-    property bool movingManually: false
+    property bool movingManually: movingTimer.running
     property bool scrollingText: false
     property var sort: null
 
@@ -24,16 +24,17 @@ PathView {
             input.push(input[i % length]);
         }
     }
+
     function decrementViewIndex() {
         decrementCurrentIndex();
         movingTimer.restart();
-        movingManually = true;
     }
+
     function incrementViewIndex() {
         incrementCurrentIndex();
         movingTimer.restart();
-        movingManually = true;
     }
+
     function open(item, back = false) {
         if (item instanceof ChartData) {
             console.info("Opening chart " + item.path);
@@ -90,6 +91,7 @@ PathView {
         pathView.model = results;
         pathView.positionViewAtIndex(1, PathView.Center);
     }
+
     function sortFilter(input) {
         let resultFolders = [];
         let resultCharts = [];
@@ -107,6 +109,7 @@ PathView {
         }
         return resultFolders.concat(resultCharts);
     }
+
     function sortOrFilterChanged() {
         if (folderContents.length) {
             let old = pathView.current;
@@ -216,10 +219,6 @@ PathView {
         id: movingTimer
 
         interval: pathView.highlightMoveDuration
-
-        onTriggered: {
-            pathView.movingManually = false;
-        }
     }
     MouseArea {
         id: mouse
