@@ -11,7 +11,7 @@ PathView {
     // we need to keep references to ChartDatas, otherwise they will be garbage collected
     property var folderContents: []
     readonly property bool movingInAnyWay: movingManually || flicking || moving || dragging
-    property bool movingManually: scrollViewAnimation.running
+    property bool movingManually: false
     property bool scrollingText: false
     property var sort: null
 
@@ -26,9 +26,13 @@ PathView {
     }
     function decrementViewIndex() {
         decrementCurrentIndex();
+        movingTimer.restart();
+        movingManually = true;
     }
     function incrementViewIndex() {
         incrementCurrentIndex();
+        movingTimer.restart();
+        movingManually = true;
     }
     function open(item, back = false) {
         if (item instanceof ChartData) {
@@ -118,15 +122,7 @@ PathView {
     }
 
     dragMargin: 200
-
-    onDragStarted: {
-        scrollViewAnimation.stop()
-    }
-    NumberAnimation on offset {
-        id: scrollViewAnimation
-        duration: 250
-        easing.type: Easing.InOutQuad
-    }
+    highlightMoveDuration: 100
     pathItemCount: 16
     preferredHighlightBegin: 0.499999999
     preferredHighlightEnd: 0.5
@@ -216,38 +212,25 @@ PathView {
             pathView.scrollingText = true;
         }
     }
+    Timer {
+        id: movingTimer
+
+        interval: pathView.highlightMoveDuration
+
+        onTriggered: {
+            pathView.movingManually = false;
+        }
+    }
     MouseArea {
         id: mouse
 
         anchors.fill: parent
 
         onWheel: wheel => {
-            onWheel: {
-                if (wheel.angleDelta.y < 0)
-                {
-                    if (scrollViewAnimation.running) {
-                        scrollViewAnimation.stop()
-                        scrollViewAnimation.to--
-                        scrollViewAnimation.start()
-                    }
-                    else {
-                        scrollViewAnimation.to = Math.round(pathView.offset - 1)
-                        scrollViewAnimation.start()
-                    }
-                }
-                else if (wheel.angleDelta.y > 0)
-                {
-                    if (scrollViewAnimation.running) {
-                        scrollViewAnimation.stop()
-                        scrollViewAnimation.to++
-                        scrollViewAnimation.start()
-                    }
-                    else {
-                        scrollViewAnimation.to = Math.round(pathView.offset + 1)
-                        scrollViewAnimation.start()
-                    }
-                }
-            }
+            if (wheel.angleDelta.y > 0)
+                pathView.decrementViewIndex();
+            else
+                pathView.incrementViewIndex();
         }
     }
 }
