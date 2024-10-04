@@ -18,9 +18,9 @@ auto
 KeyboardInputForwarder::eventFilter(QObject* watched, QEvent* event) -> bool
 {
     auto ret = false;
-    for (auto i = 0; i < profileList->rowCount(); ++i) {
-        const auto* const profile = profileList->at(i);
-        ret |= profile->getInputTranslator()->eventFilter(watched, event);
+    for (const auto& activeProfiles = profileList->getActiveProfiles();
+         const auto* activeProfile : activeProfiles) {
+        ret |= activeProfile->getInputTranslator()->eventFilter(watched, event);
     }
     return ret;
 }

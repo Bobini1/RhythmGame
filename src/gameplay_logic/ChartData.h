@@ -20,7 +20,9 @@ class ChartData : public QObject
   public:
     enum class Keymode
     {
+        K5 = 5,
         K7 = 7,
+        K10 = 10,
         K14 = 14
     };
     Q_ENUM(Keymode)
@@ -171,6 +173,9 @@ class ChartData : public QObject
     QString sha256;
     Keymode keymode;
 };
+
+auto
+isDp(ChartData::Keymode keymode) -> bool;
 
 } // namespace gameplay_logic
 

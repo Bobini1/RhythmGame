@@ -11,10 +11,11 @@
 #include "BmsGaugeHistory.h"
 #include "BmsReplayData.h"
 #include "MineHit.h"
+#include "resource_managers/Vars.h"
 
 namespace gameplay_logic {
 
-class BmsScore : public QObject
+class BmsScore final : public QObject
 {
     Q_OBJECT
 
@@ -30,6 +31,13 @@ class BmsScore : public QObject
                  judgementCountsChanged)
     Q_PROPERTY(int mineHits READ getMineHits NOTIFY mineHit)
     Q_PROPERTY(QList<rules::BmsGauge*> gauges READ getGauges CONSTANT)
+    Q_PROPERTY(QList<qint64_t> randomSequence READ getRandomSequence CONSTANT)
+    Q_PROPERTY(resource_managers::note_order_algorithm::NoteOrderAlgorithm
+                 noteOrderAlgorithm READ getNoteOrderAlgorithm CONSTANT)
+    Q_PROPERTY(resource_managers::note_order_algorithm::NoteOrderAlgorithm
+                 noteOrderAlgorithmP2 READ getNoteOrderAlgorithmP2 CONSTANT)
+    Q_PROPERTY(QList<int> permutation READ getPermutation CONSTANT)
+    Q_PROPERTY(QList<int> permutationP2 READ getPermutationP2 CONSTANT)
 
     double maxPoints;
     int mineCount;
@@ -48,6 +56,10 @@ class BmsScore : public QObject
     QList<int> judgementCounts =
       QList<int>(magic_enum::enum_count<Judgement>());
     QList<qint64> randomSequence;
+    resource_managers::NoteOrderAlgorithm noteOrderAlgorithm;
+    resource_managers::NoteOrderAlgorithm noteOrderAlgorithmP2;
+    QList<int> permutation;
+    QList<int> permutationP2;
     support::Sha256 sha256;
     double points = 0;
     int combo = 0;
@@ -69,15 +81,19 @@ class BmsScore : public QObject
     void addLnEndMiss(HitEvent lnEndMiss);
     void addLnEndSkip(HitEvent lnEndSkips);
 
-    explicit BmsScore(int normalNoteCount,
-                      int lnCount,
-                      int mineCount,
-                      int maxHits,
-                      double maxHitValue,
-                      QList<rules::BmsGauge*> gauges,
-                      QList<qint64> randomSequence,
-                      support::Sha256 sha256,
-                      QObject* parent = nullptr);
+    explicit BmsScore(
+      int normalNoteCount,
+      int lnCount,
+      int mineCount,
+      int maxHits,
+      double maxHitValue,
+      QList<rules::BmsGauge*> gauges,
+      QList<qint64> randomSequence,
+      resource_managers::NoteOrderAlgorithm noteOrderAlgorithm,
+      resource_managers::NoteOrderAlgorithm noteOrderAlgorithmP2,
+      QList<int> permutation,
+      support::Sha256 sha256,
+      QObject* parent = nullptr);
 
     auto getMaxPoints() const -> double;
     auto getMaxHits() const -> int;
@@ -90,6 +106,12 @@ class BmsScore : public QObject
     auto getMaxCombo() const -> int;
     auto getMineHits() const -> int;
     auto getGauges() const -> QList<rules::BmsGauge*>;
+    auto getRandomSequence() const -> const QList<qint64>&;
+    auto getNoteOrderAlgorithm() const -> resource_managers::NoteOrderAlgorithm;
+    auto getNoteOrderAlgorithmP2() const
+      -> resource_managers::NoteOrderAlgorithm;
+    auto getPermutation() const -> const QList<int>&;
+    auto getPermutationP2() const -> const QList<int>&;
 
     auto getResult() const -> std::unique_ptr<BmsResult>;
     auto getReplayData() const -> std::unique_ptr<BmsReplayData>;

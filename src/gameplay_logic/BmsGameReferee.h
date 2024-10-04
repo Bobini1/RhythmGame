@@ -58,9 +58,8 @@ class BmsGameReferee
     auto getPosition(std::chrono::nanoseconds offsetFromStart) -> Position;
     void playLastKeysound(int index);
 
-    void assignLastKeysound(
-      int columnIndex,
-      const gameplay_logic::rules::BmsHitRules::NoteType& note);
+    void assignLastKeysound(int columnIndex,
+                            const rules::BmsHitRules::NoteType& note);
 
   public:
     explicit BmsGameReferee(

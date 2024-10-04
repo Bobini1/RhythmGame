@@ -28,7 +28,7 @@ enum class NoteOrderAlgorithm
     SRandom,
     HRandom,
     RRandom,
-    Spiral,
+    RandomPlus,
     SRandomPlus
 };
 Q_ENUM_NS(NoteOrderAlgorithm)

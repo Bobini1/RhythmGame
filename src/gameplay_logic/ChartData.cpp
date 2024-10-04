@@ -48,12 +48,12 @@ ChartData(QString title,
   , stageFile(std::move(stageFile))
   , banner(std::move(banner))
   , backBmp(std::move(backBmp))
+  , randomSequence(std::move(randomSequence))
   , rank(rank)
   , total(total)
   , playLevel(playLevel)
   , difficulty(difficulty)
   , isRandom(isRandom)
-  , randomSequence(std::move(randomSequence))
   , normalNoteCount(normalNoteCount)
   , lnCount(lnCount)
   , mineCount(mineCount)
@@ -209,6 +209,12 @@ gameplay_logic::ChartData::load(const DTO& chartDataDto)
       chartDataDto.directory,
       QString::fromStdString(chartDataDto.sha256),
       static_cast<Keymode>(chartDataDto.keymode));
+}
+auto
+gameplay_logic::isDp(ChartData::Keymode keymode) -> bool
+{
+    return keymode == ChartData::Keymode::K10 ||
+           keymode == ChartData::Keymode::K14;
 }
 auto
 gameplay_logic::ChartData::getIsRandom() const -> bool

@@ -35,7 +35,7 @@ ChartDataFactory::loadFile(const QUrl& chartPath) -> std::string
 }
 auto
 ChartDataFactory::makeNotes(
-  charts::gameplay_models::BmsNotesData& calculatedNotesData)
+  const charts::gameplay_models::BmsNotesData& calculatedNotesData)
   -> std::unique_ptr<gameplay_logic::BmsNotes>
 {
     auto visibleNotes = QVector<QVector<gameplay_logic::Note>>{};
@@ -143,7 +143,6 @@ ChartDataFactory::loadChartData(
     }
     auto calculatedNotesData =
       charts::gameplay_models::BmsNotesData{ parsedChart };
-    auto noteData = makeNotes(calculatedNotesData);
 
     auto lastNoteTimestamp = std::chrono::nanoseconds{ 0 };
     for (const auto& column : calculatedNotesData.visibleNotes) {
@@ -231,6 +230,7 @@ ChartDataFactory::loadChartData(
       directory,
       QString::fromStdString(hash),
       keymode);
+    auto noteData = makeNotes(calculatedNotesData);
     return { std::move(chartData),
              std::move(noteData),
              std::move(calculatedNotesData),

@@ -274,36 +274,49 @@ ChartFactory::createChart(
 {
     auto& [chartData, notes, notesData, wavs, bmps] = chartComponents;
     auto path = support::qStringToPath(chartData->getPath()).parent_path();
-    auto* score = new gameplay_logic::BmsScore(
-      chartData->getNormalNoteCount(),
-      chartData->getLnCount(),
-      chartData->getMineCount(),
-      chartData->getLnCount() + chartData->getNormalNoteCount(),
-      maxHitValue,
-      std::move(gauges),
-      chartData->getRandomSequence(),
-      chartData->getSha256().toStdString());
+    auto scores = QList<gameplay_logic::BmsScore*>{};
+    for (auto* profile : profileList->getActiveProfiles()) {)
+            scores.emplace_back(
+              new gameplay_logic::BmsScore(
+                chartData->getNormalNoteCount(),
+                chartData->getLnCount(),
+                chartData->getMineCount(),
+                chartData->getLnCount() + chartData->getNormalNoteCount(),
+                maxHitValue,
+                std::move(gauges),
+                chartData->getRandomSequence(),
+                profile->getVars()->getGlobalVars()->getNoteOrderAlgorithm(),
+                isDp(chartData->getKeymode()) ? profile->getVars()->getGlobalVars()->getNoteOrderAlgorithmP2() : NoteOrderAlgorithm::Normal,
+
+
+                chartData->getSha256().toStdString());)
+    }
+
     auto task = [path,
                  wavs = std::move(wavs),
                  visibleNotes = std::move(notesData.visibleNotes),
                  invisibleNotes = std::move(notesData.invisibleNotes),
                  bgmNotes = std::move(notesData.bgmNotes),
                  bpmChanges = std::move(notesData.bpmChanges),
-                 score,
+                 scores,
                  hitRules = std::move(hitRules)]() mutable {
         auto sounds = charts::helper_functions::loadBmsSounds(wavs, path);
         sounds::OpenALSound* mineHitSound = nullptr;
         if (const auto sound = sounds.find(0); sound != sounds.end()) {
             mineHitSound = &sound->second;
         }
-        return gameplay_logic::BmsGameReferee(std::move(visibleNotes),
-                                              std::move(invisibleNotes),
-                                              std::move(bgmNotes),
-                                              std::move(bpmChanges),
-                                              mineHitSound,
-                                              score,
-                                              std::move(sounds),
-                                              std::move(hitRules));
+        auto referees = QList<gameplay_logic::BmsGameReferee>{};
+        for (auto* score : scores) {
+            referees.emplace_back(std::move(visibleNotes),
+                                  std::move(invisibleNotes),
+                                  std::move(bgmNotes),
+                                  std::move(bpmChanges),
+                                  mineHitSound,
+                                  score,
+                                  std::move(sounds),
+                                  std::move(hitRules));
+        }
+        return referees;
     };
     auto bgaTask = [bgaBase = std::move(notesData.bgaBase),
                     bgaPoor = std::move(notesData.bgaPoor),
@@ -330,12 +343,12 @@ ChartFactory::createChart(
                                             score,
                                             profileList->getCurrentProfile());
     const auto* const inputTranslator =
-      profileList->getCurrentProfile()->getInputTranslator();
+      profileList->getPrimary()->getInputTranslator();
     QObject::connect(
       inputTranslator,
       &input::InputTranslator::buttonPressed,
       chart,
-      [chart](
+      [chart, profile](
         const input::BmsKey button, double /*value*/, const int64_t time) {
           chart->passKey(
             button, gameplay_logic::Chart::EventType::KeyPress, time);

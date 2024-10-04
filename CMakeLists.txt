@@ -168,6 +168,8 @@ qt_add_library(RhythmGame_lib OBJECT ${utf8Manifest} src/db/SqliteCppDb.cpp src/
         src/qml_components/InputAttached.h
         src/resource_managers/GaugeFactory.cpp
         src/resource_managers/GaugeFactory.h
+        src/support/GeneratePermutation.cpp
+        src/support/GeneratePermutation.h
 )
 
 find_package(Threads REQUIRED)

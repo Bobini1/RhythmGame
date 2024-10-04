@@ -7,6 +7,7 @@
 #include "support/QStringToPath.h"
 #include "support/PathToUtfString.h"
 
+#include <QQmlEngine>
 #include <utility>
 #include <spdlog/spdlog.h>
 #include <QUuid>
@@ -56,6 +57,8 @@ ProfileList(db::SqliteCppDb* songDb,
                   themeFamilies,
                   createInputTranslator(),
                   this);
+                QQmlEngine::setObjectOwnership(profile,
+                                               QQmlEngine::CppOwnership);
                 profile->getInputTranslator()->setParent(profile);
                 profiles.append(profile);
             } catch (const std::exception& e) {
@@ -72,6 +75,7 @@ ProfileList(db::SqliteCppDb* songDb,
           themeFamilies,
           createInputTranslator(),
           this);
+        QQmlEngine::setObjectOwnership(profile, QQmlEngine::CppOwnership);
         profile->getInputTranslator()->setParent(profile);
         profiles.append(profile);
     }
@@ -79,20 +83,20 @@ ProfileList(db::SqliteCppDb* songDb,
       songDb->createStatement("SELECT path FROM current_profile")
         .executeAndGet<std::string>();
     if (!dbCurrentProfile.has_value()) {
-        setCurrentProfile(profiles[0]);
+        setActiveProfiles({ profiles[0] });
         return;
     }
     const auto profilePath =
       support::qStringToPath(QString::fromStdString(dbCurrentProfile.value()));
     const auto absoluteProfilePath = this->profilesFolder / profilePath;
-    for (auto* profile : profiles) {
-        if (profile->getPath() == absoluteProfilePath) {
-            setCurrentProfile(currentProfile);
+    for (auto i = 0; i < profiles.size(); ++i) {
+        if (profiles[i]->getPath() == absoluteProfilePath) {
+            setActiveProfiles({ profiles[i] });
             break;
         }
     }
-    if (currentProfile == nullptr) {
-        setCurrentProfile(profiles[0]);
+    if (activeProfiles.empty()) {
+        setActiveProfiles({ profiles[0] });
     }
 }
 auto
@@ -126,6 +130,7 @@ qml_components::ProfileList::createProfile() -> resource_managers::Profile*
           themeFamilies,
           inputTranslator,
           this);
+        QQmlEngine::setObjectOwnership(profile, QQmlEngine::CppOwnership);
         profile->getInputTranslator()->setParent(profile);
     } catch (const std::exception& e) {
         spdlog::error("Failed to create profile: {}", e.what());
@@ -139,75 +144,78 @@ qml_components::ProfileList::createProfile() -> resource_managers::Profile*
 void
 qml_components::ProfileList::removeProfile(resource_managers::Profile* profile)
 {
-    if (profile == currentProfile) {
-        spdlog::warn("Can't remove current profile");
+    if (profile == profiles[0]) {
+        spdlog::warn("Can't remove primary profile");
         return;
     }
-    const auto index = profiles.indexOf(profile);
-    if (index == -1) {
-        spdlog::warn("Can't remove profile - not found");
-        return;
-    }
-    beginRemoveRows(QModelIndex(), index, index);
-    profiles.removeAt(index);
-    endRemoveRows();
     profile->deleteLater();
     remove_all(profile->getPath().parent_path());
+    if (activeProfiles.removeAll(profile) > 0) {
+        emit activeProfilesChanged();
+    }
+    const auto index = profiles.indexOf(profile);
+    beginRemoveRows(QModelIndex(), index, index);
+    profiles.remove(index);
+    endRemoveRows();
 }
 
-void
-qml_components::ProfileList::setCurrentProfile(
-  resource_managers::Profile* profile)
-{
-    if (profile == currentProfile) {
-        return;
-    }
-    currentProfile = profile;
-
-    // get count of rows in current_profile table
-    auto countStatement =
-      songDb->createStatement("SELECT COUNT(*) FROM current_profile");
-    auto result = countStatement.executeAndGet<int>();
-    if (!result.has_value()) {
-        throw std::runtime_error(
-          "Failed to get count of rows in current_profile table");
-    }
-    auto profilePath = profile->getPath();
-    auto relativePath = relative(profilePath, profilesFolder);
-    auto pathUtf = support::pathToUtfString(relativePath);
-#ifdef _WIN32
-    std::ranges::replace(pathUtf, '\\', '/');
-#endif
-    if (result.value() == 0) {
-        // insert new row
-        auto statement =
-          songDb->createStatement("INSERT INTO current_profile (path) "
-                                  "VALUES (:path)");
-        statement.bind(":path", pathUtf);
-        statement.execute();
-        return;
-    }
-    auto statement =
-      songDb->createStatement("UPDATE current_profile SET path = :path");
-    statement.bind(":path", support::pathToUtfString(relativePath));
-    statement.execute();
-    emit currentProfileChanged();
-}
-auto
-qml_components::ProfileList::getCurrentProfile() const
-  -> resource_managers::Profile*
-{
-    return currentProfile;
-}
 auto
 qml_components::ProfileList::getProfiles()
   -> const QList<resource_managers::Profile*>&
 {
     return profiles;
 }
+auto
+qml_components::ProfileList::getActiveProfiles()
+  -> QList<resource_managers::Profile*>
+{
+    return activeProfiles;
+}
+void
+qml_components::ProfileList::setActiveProfiles(
+  QList<resource_managers::Profile*> profiles)
+{
+    if (profiles == activeProfiles) {
+        return;
+    }
+    if (profiles.empty()) {
+        spdlog::warn("Can't deactivate all profiles");
+        return;
+    }
+    if (profiles[0] != activeProfiles[0]) {
+        auto countStatement =
+          songDb->createStatement("SELECT COUNT(*) FROM current_profile");
+        auto result = countStatement.executeAndGet<int>();
+        if (!result.has_value()) {
+            throw std::runtime_error(
+              "Failed to get count of rows in current_profile table");
+        }
+        auto profilePath = profiles[0]->getPath();
+        auto relativePath = relative(profilePath, profilesFolder);
+        auto pathUtf = support::pathToUtfString(relativePath);
+#ifdef _WIN32
+        std::ranges::replace(pathUtf, '\\', '/');
+#endif
+        if (result.value() == 0) {
+            // insert new row
+            auto statement =
+              songDb->createStatement("INSERT INTO current_profile (path) "
+                                      "VALUES (:path)");
+            statement.bind(":path", pathUtf);
+            statement.execute();
+            return;
+        }
+        auto statement =
+          songDb->createStatement("UPDATE current_profile SET path = :path");
+        statement.bind(":path", support::pathToUtfString(relativePath));
+        statement.execute();
+    }
+    activeProfiles = std::move(profiles);
+    emit activeProfilesChanged();
+}
 
-resource_managers::Profile*
-qml_components::ProfileList::at(int index) const
+auto
+qml_components::ProfileList::at(int index) const -> resource_managers::Profile*
 {
     return profiles.at(index);
 }

@@ -11,19 +11,21 @@
 #include <qproperty.h>
 namespace qml_components {
 class ThemeFamily;
+
 class ProfileList final : public QAbstractListModel
 {
     Q_OBJECT
 
     std::filesystem::path profilesFolder;
     QList<resource_managers::Profile*> profiles;
-    resource_managers::Profile* currentProfile;
     db::SqliteCppDb* songDb;
     input::GamepadManager* gamepadManager;
     QMap<QString, ThemeFamily> themeFamilies;
+    QList<resource_managers::Profile*> activeProfiles;
 
-    Q_PROPERTY(resource_managers::Profile* currentProfile READ getCurrentProfile
-                 WRITE setCurrentProfile NOTIFY currentProfileChanged)
+    Q_PROPERTY(
+      QList<resource_managers::Profile*> activeProfiles READ getActiveProfiles
+        WRITE setActiveProfiles NOTIFY activeProfilesChanged)
 
     auto createInputTranslator() -> input::InputTranslator*;
 
@@ -45,16 +47,30 @@ class ProfileList final : public QAbstractListModel
     auto data(const QModelIndex& index, int role = Qt::DisplayRole) const
       -> QVariant override;
     auto roleNames() const -> QHash<int, QByteArray> override;
-    void setCurrentProfile(resource_managers::Profile* profile);
-    auto getCurrentProfile() const -> resource_managers::Profile*;
     auto getProfiles() -> const QList<resource_managers::Profile*>&;
+
+    /**
+     * @brief The list of active profiles.
+     * The first profile is the primary profile, used to select the theme and
+     * theme settings. If other profiles are active, battle mode is enabled.
+     * There is always at least one profile in the list.
+     * @return The list of profiles that are currently active.
+     */
+    auto getActiveProfiles() -> QList<resource_managers::Profile*>;
+    /**
+     * @brief Set the list of active profiles.
+     * The first profile is the primary profile, used to select the theme and
+     * theme settings. Provide more than one profile to enable battle mode.
+     * @param profiles The list of profiles that are to be set as active.
+     */
+    void setActiveProfiles(QList<resource_managers::Profile*> profiles);
 
     Q_INVOKABLE resource_managers::Profile* at(int index) const;
     Q_INVOKABLE resource_managers::Profile* createProfile();
     Q_INVOKABLE void removeProfile(resource_managers::Profile* profile);
 
   signals:
-    void currentProfileChanged();
+    void activeProfilesChanged();
 };
 } // namespace qml_components
 
