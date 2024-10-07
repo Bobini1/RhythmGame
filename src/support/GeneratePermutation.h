@@ -12,9 +12,9 @@
 #include "resource_managers/Vars.h"
 #include "charts/gameplay_models/BmsNotesData.h"
 
-#include <set>
-#include <boost/icl/interval_set.hpp>
+#include <spdlog/spdlog.h>
 
+using namespace std::chrono_literals;
 namespace support {
 
 template<typename Arr, typename Random>
@@ -29,30 +29,151 @@ fisherYatesShuffle(Arr arr, Random& randomGenerator)
     }
 }
 
-template<typename Random>
-void
-fisherYatesShuffle(
-  std::span<std::vector<charts::gameplay_models::BmsNotesData::Note>> arr,
-  Random& randomGenerator)
-{
-    // using an interval set to handle long notes more easily
-    auto takenSpots =
-      std::vector<boost::icl::interval_set<std::chrono::nanoseconds>>{};
-    for (auto i = arr.size() - 1; i > 0; --i) {
-        auto distribution = std::uniform_int_distribution<uint8_t>(0, i);
-        const auto j = distribution(randomGenerator);
-        std::swap(arr[i], arr[j]);
-    }
-}
-
-auto
+inline auto
 getColumsIota(const int size) -> QList<int>
 {
     auto columns = QList<int>{};
+    columns.reserve(size);
     for (auto i = 0; i < size; ++i) {
         columns.append(i);
     }
     return columns;
+}
+
+inline auto
+getNextNote(
+  const std::span<std::vector<charts::gameplay_models::BmsNotesData::Note>> arr,
+  std::vector<
+    std::vector<charts::gameplay_models::BmsNotesData::Note>::const_iterator>&
+    noteIters)
+  -> std::optional<
+    std::vector<charts::gameplay_models::BmsNotesData::Note>::const_iterator>
+{
+    auto nextNote = std::optional<std::vector<
+      charts::gameplay_models::BmsNotesData::Note>::const_iterator>{};
+    auto selectedColumn = 0;
+    for (auto i = 0; i < noteIters.size(); ++i) {
+        if (noteIters[i] == arr[i].cend()) {
+            continue;
+        }
+        if (!nextNote ||
+            noteIters[i]->time.timestamp < (*nextNote)->time.timestamp) {
+            nextNote = noteIters[i];
+            selectedColumn = i;
+        }
+    }
+    if (nextNote) {
+        ++noteIters[selectedColumn];
+        if ((*nextNote)->noteType ==
+            charts::gameplay_models::BmsNotesData::NoteType::LongNoteBegin) {
+            ++noteIters[selectedColumn];
+        }
+    }
+    return nextNote;
+}
+
+inline void
+pushProposedNote(
+  std::vector<charts::gameplay_models::BmsNotesData::Note>& lane,
+  const std::vector<
+    charts::gameplay_models::BmsNotesData::Note>::const_iterator& note)
+{
+    lane.push_back(*note);
+    if (note->noteType ==
+        charts::gameplay_models::BmsNotesData::NoteType::LongNoteBegin) {
+        auto endNote = note;
+        ++endNote;
+        lane.push_back(*endNote);
+    }
+}
+
+inline auto
+tryPushingNoteWithDistance(
+  const std::vector<
+    charts::gameplay_models::BmsNotesData::Note>::const_iterator& noteIt,
+  const QList<int>& columnsIota,
+  std::vector<std::vector<charts::gameplay_models::BmsNotesData::Note>>&
+    newColumns,
+  const std::chrono::nanoseconds preferredNoteDistance) -> bool
+{
+    for (const auto& proposedColumn : columnsIota) {
+        auto& proposedColumnNotes = newColumns[proposedColumn];
+        if (proposedColumnNotes.empty()) {
+            pushProposedNote(proposedColumnNotes, noteIt);
+            return true;
+        }
+        const auto& lastNote = proposedColumnNotes.back();
+        const auto proposedTime =
+          lastNote.time.timestamp + preferredNoteDistance;
+        if (proposedTime < noteIt->time.timestamp) {
+            pushProposedNote(proposedColumnNotes, noteIt);
+            return true;
+        }
+    }
+    return false;
+}
+
+inline void
+pushNoteWithMaxDistance(
+  const std::vector<
+    charts::gameplay_models::BmsNotesData::Note>::const_iterator& noteIt,
+  const QList<int>& columnsIota,
+  std::vector<std::vector<charts::gameplay_models::BmsNotesData::Note>>&
+    newColumns)
+{
+    auto bestPick = -1;
+    auto bestDistance = 0ns;
+    for (const auto& proposedColumn : columnsIota) {
+        auto& proposedColumnNotes = newColumns[proposedColumn];
+        const auto& lastNote = proposedColumnNotes.back();
+        const auto proposedTime = lastNote.time.timestamp;
+        if (noteIt->time.timestamp - proposedTime > bestDistance) {
+            bestPick = proposedColumn;
+            bestDistance = noteIt->time.timestamp - proposedTime;
+        }
+    }
+    if (bestDistance == 0ns) {
+        spdlog::critical(
+          "Failed to find a column for a note in randomization "
+          "algorithm. Please report this issue to the developers.");
+    }
+    pushProposedNote(newColumns[bestPick], noteIt);
+}
+
+template<typename Random>
+void
+shuffleAllNotes(
+  std::span<std::vector<charts::gameplay_models::BmsNotesData::Note>> arr,
+  const std::chrono::nanoseconds preferredNoteDistance,
+  Random& randomGenerator)
+{
+    auto newColumns =
+      std::vector<std::vector<charts::gameplay_models::BmsNotesData::Note>>{};
+    newColumns.resize(arr.size());
+    auto noteIters = std::vector<std::vector<
+      charts::gameplay_models::BmsNotesData::Note>::const_iterator>{};
+    noteIters.resize(arr.size());
+    for (auto i = 0; i < arr.size(); ++i) {
+        noteIters[i] = arr[i].cbegin();
+    }
+
+    while (auto noteIt = getNextNote(arr, noteIters)) {
+        const auto& note = **noteIt;
+        // first, we generate a list of proposed positions, ordered by
+        // preference
+        auto columnsIota = getColumsIota(arr.size());
+        fisherYatesShuffle(columnsIota, randomGenerator);
+        // check where there is enough space for the note
+        const auto spotFound = tryPushingNoteWithDistance(
+          *noteIt, columnsIota, newColumns, preferredNoteDistance);
+        if (spotFound) {
+            continue;
+        }
+        pushNoteWithMaxDistance(*noteIt, columnsIota, newColumns);
+    }
+    for (auto i = 0; i < arr.size(); ++i) {
+        arr[i] = newColumns[i];
+    }
 }
 
 struct ShuffleResult
