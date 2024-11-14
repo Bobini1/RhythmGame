@@ -31,13 +31,13 @@ class BmsScore final : public QObject
                  judgementCountsChanged)
     Q_PROPERTY(int mineHits READ getMineHits NOTIFY mineHit)
     Q_PROPERTY(QList<rules::BmsGauge*> gauges READ getGauges CONSTANT)
-    Q_PROPERTY(QList<qint64_t> randomSequence READ getRandomSequence CONSTANT)
+    Q_PROPERTY(QList<qint64> randomSequence READ getRandomSequence CONSTANT)
     Q_PROPERTY(resource_managers::note_order_algorithm::NoteOrderAlgorithm
                  noteOrderAlgorithm READ getNoteOrderAlgorithm CONSTANT)
     Q_PROPERTY(resource_managers::note_order_algorithm::NoteOrderAlgorithm
                  noteOrderAlgorithmP2 READ getNoteOrderAlgorithmP2 CONSTANT)
     Q_PROPERTY(QList<int> permutation READ getPermutation CONSTANT)
-    Q_PROPERTY(QList<int> permutationP2 READ getPermutationP2 CONSTANT)
+    Q_PROPERTY(uint64_t randomSeed READ getRandomSeed CONSTANT)
 
     double maxPoints;
     int mineCount;
@@ -59,11 +59,11 @@ class BmsScore final : public QObject
     resource_managers::NoteOrderAlgorithm noteOrderAlgorithm;
     resource_managers::NoteOrderAlgorithm noteOrderAlgorithmP2;
     QList<int> permutation;
-    QList<int> permutationP2;
     support::Sha256 sha256;
     double points = 0;
     int combo = 0;
     int maxCombo = 0;
+    uint64_t randomSeed;
 
     void resetCombo();
     void increaseCombo();
@@ -92,6 +92,7 @@ class BmsScore final : public QObject
       resource_managers::NoteOrderAlgorithm noteOrderAlgorithm,
       resource_managers::NoteOrderAlgorithm noteOrderAlgorithmP2,
       QList<int> permutation,
+      uint64_t seed,
       support::Sha256 sha256,
       QObject* parent = nullptr);
 
@@ -111,7 +112,7 @@ class BmsScore final : public QObject
     auto getNoteOrderAlgorithmP2() const
       -> resource_managers::NoteOrderAlgorithm;
     auto getPermutation() const -> const QList<int>&;
-    auto getPermutationP2() const -> const QList<int>&;
+    auto getRandomSeed() const -> uint64_t;
 
     auto getResult() const -> std::unique_ptr<BmsResult>;
     auto getReplayData() const -> std::unique_ptr<BmsReplayData>;

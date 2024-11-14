@@ -26,7 +26,6 @@ enum class NoteOrderAlgorithm
     Mirror,
     Random,
     SRandom,
-    HRandom,
     RRandom,
     RandomPlus,
     SRandomPlus

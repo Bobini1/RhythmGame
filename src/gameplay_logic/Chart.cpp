@@ -14,14 +14,14 @@ Chart::
 Chart(QFuture<std::vector<BmsGameReferee>> refereesFuture,
       QFuture<std::unique_ptr<qml_components::BgaContainer>> bgaFuture,
       ChartData* chartData,
-      BmsNotes* notes,
+      QList<BmsNotes*> notes,
       QList<BmsScore*> scores,
       QList<resource_managers::Profile*> profiles,
       QObject* parent)
   : QObject(parent)
-  , bpmChanges(notes->getBpmChanges())
+  , bpmChanges(notes[0]->getBpmChanges())
   , chartData(chartData)
-  , notes(notes)
+  , notes(std::move(notes))
   , scores(std::move(scores))
   , refereesFuture(std::move(refereesFuture))
   , bgaFuture(std::move(bgaFuture))
@@ -30,7 +30,9 @@ Chart(QFuture<std::vector<BmsGameReferee>> refereesFuture,
         this->profiles.append(profile);
     }
     chartData->setParent(this);
-    notes->setParent(this);
+    for (auto* note : this->notes) {
+        note->setParent(this);
+    }
     for (auto* score : this->scores) {
         score->setParent(this);
     }
@@ -93,28 +95,31 @@ Chart::getElapsed() const -> int64_t
 }
 
 void
-Chart::passKey(input::BmsKey key, const EventType eventType, const int64_t time)
+Chart::passKey(int playerIndex,
+               input::BmsKey key,
+               const EventType eventType,
+               const int64_t time)
 {
     auto offset =
       std::chrono::milliseconds{ time } - startTimepoint.time_since_epoch();
     if (gameReferees.empty()) {
         if (eventType == EventType::KeyPress) {
-            score->sendVisualOnlyTap({ static_cast<int>(key),
-                                       std::nullopt,
-                                       offset.count(),
-                                       std::nullopt });
+            scores[playerIndex]->sendVisualOnlyTap({ static_cast<int>(key),
+                                                     std::nullopt,
+                                                     offset.count(),
+                                                     std::nullopt });
         } else {
-            score->sendVisualOnlyRelease({ static_cast<int>(key),
-                                           std::nullopt,
-                                           offset.count(),
-                                           std::nullopt });
+            scores[playerIndex]->sendVisualOnlyRelease({ static_cast<int>(key),
+                                                         std::nullopt,
+                                                         offset.count(),
+                                                         std::nullopt });
         }
     } else {
         if (eventType == EventType::KeyPress) {
-            gameReferee->passPressed(
+            gameReferees[playerIndex].passPressed(
               offset - std::chrono::nanoseconds(timeBeforeChartStart), key);
         } else {
-            gameReferee->passReleased(
+            gameReferees[playerIndex].passReleased(
               offset - std::chrono::nanoseconds(timeBeforeChartStart), key);
         }
     }
@@ -127,7 +132,7 @@ Chart::getChartData() const -> ChartData*
 }
 
 auto
-Chart::getNotes() const -> const BmsNotes*
+Chart::getNotes() const -> const QList<BmsNotes*>&
 {
     return notes;
 }
@@ -172,7 +177,7 @@ Chart::setup()
     if (++numberOfSetupCalls < 2) {
         return;
     }
-    gameReferees = refereeFuture.takeResult();
+    gameReferees = refereesFuture.takeResult();
     bga = bgaFuture.takeResult().release();
     bga->setParent(this);
     emit loaded();
@@ -254,7 +259,7 @@ Chart::setTimeBeforeChartStart(int64_t timeBeforeChartStart)
     this->timeBeforeChartStart = timeBeforeChartStart;
     auto beatsBeforeChartStart =
       std::chrono::duration<double>(timeBeforeChartStart).count() *
-      notes->getBpmChanges().first().bpm / 60;
+      notes[0]->getBpmChanges().first().bpm / 60;
     setElapsed(-timeBeforeChartStart);
     setPosition(-beatsBeforeChartStart);
 }

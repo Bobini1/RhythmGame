@@ -5,11 +5,10 @@ import RhythmGameQml
 Row {
     id: numberWithSlider
     required property string prop
-    property bool global: false
     property alias text: label.text
     property alias to: slider.to
     property alias from: slider.from
-    readonly property var src: global ? ProfileList.currentProfile.vars.globalVars : root.vars
+    required property var src
 
     height: slider.height
     spacing: 10

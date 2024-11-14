@@ -63,6 +63,7 @@ BmsScore(int normalNoteCount,
          resource_managers::NoteOrderAlgorithm noteOrderAlgorithm,
          resource_managers::NoteOrderAlgorithm noteOrderAlgorithmP2,
          QList<int> permutation,
+         uint64_t seed,
          support::Sha256 sha256,
          QObject* parent)
   : QObject(parent)
@@ -73,11 +74,11 @@ BmsScore(int normalNoteCount,
   , maxHits(maxHits)
   , gauges(std::move(gauges))
   , randomSequence(std::move(randomSequence))
-  , sha256(std::move(sha256))
   , noteOrderAlgorithm(noteOrderAlgorithm)
   , noteOrderAlgorithmP2(noteOrderAlgorithmP2)
   , permutation(std::move(permutation))
-  , permutationP2(std::move(permutationP2))
+  , sha256(std::move(sha256))
+  , randomSeed(seed)
 {
     for (auto* gauge : this->gauges) {
         gauge->setParent(this);
@@ -146,9 +147,9 @@ BmsScore::getPermutation() const -> const QList<int>&
     return permutation;
 }
 auto
-BmsScore::getPermutationP2() const -> const QList<int>&
+BmsScore::getRandomSeed() const -> uint64_t
 {
-    return permutationP2;
+    return randomSeed;
 }
 void
 BmsScore::increaseCombo()

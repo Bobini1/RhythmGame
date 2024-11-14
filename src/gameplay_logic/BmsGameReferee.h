@@ -11,6 +11,7 @@
 #include "BmsScore.h"
 #include "BmsNotes.h"
 #include "gameplay_logic/rules/BmsHitRules.h"
+#include "sounds/OpenALSound.h"
 namespace gameplay_logic {
 class BmsGameReferee
 {

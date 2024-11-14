@@ -3,12 +3,12 @@ import RhythmGameQml
 import QtQuick.Controls.Basic
 
 Row {
+    id: booleanOption
     height: checkBox.height
 
     required property string prop
     property string description: prop
-    property bool global: false
-    readonly property var src: global ? ProfileList.currentProfile.vars.globalVars : root.vars
+    required property var src
 
     Text {
         anchors.verticalCenter: checkBox.verticalCenter
@@ -22,11 +22,11 @@ Row {
     CheckBox {
         id: checkBox
 
-        checked: src[prop]
+        checked: booleanOption.src[booleanOption.prop]
 
         onCheckedChanged: {
-            src[prop] = checked;
-            checked = Qt.binding(() => src[prop]);
+            booleanOption.src[booleanOption.prop] = checked;
+            checked = Qt.binding(() => booleanOption.src[booleanOption.prop]);
         }
     }
 }

@@ -9,6 +9,7 @@ BorderImage {
     required property string prop
     property var up: -1
     property var down: -1
+    required property Profile profile
 
     source: root.iniImagesUrl + "option.png/tumbler_frame"
 
@@ -79,18 +80,18 @@ BorderImage {
         }
 
         Component.onCompleted: {
-            currentIndex = getIndex(ProfileList.currentProfile.vars.globalVars[prop])
+            currentIndex = getIndex(frame.profile.vars.globalVars[prop])
         }
 
         onCurrentIndexChanged: (_) => {
-            ProfileList.currentProfile.vars.globalVars[prop] = frame.model[currentIndex];
-            currentIndex = Qt.binding(() => getIndex(ProfileList.currentProfile.vars.globalVars[prop]))
+            frame.profile.vars.globalVars[prop] = frame.model[currentIndex];
+            currentIndex = Qt.binding(() => getIndex(frame.profile.vars.globalVars[prop]))
         }
 
         onFlickingChanged: {
             if (!flicking) {
-                ProfileList.currentProfile.vars.globalVars[prop] = frame.model[currentIndex];
-                currentIndex = Qt.binding(() => getIndex(ProfileList.currentProfile.vars.globalVars[prop]))
+                frame.profile.vars.globalVars[prop] = frame.model[currentIndex];
+                currentIndex = Qt.binding(() => getIndex(frame.profile.vars.globalVars[prop]))
             }
         }
 
@@ -110,7 +111,7 @@ BorderImage {
         }
 
         Input.onButtonPressed: (profile, key) => {
-            if (profile !== ProfileList.currentProfile) {
+            if (profile !== frame.profile) {
                 return;
             }
             if (key === up && bg.open) {

@@ -12,41 +12,23 @@ import "../common/helpers.js" as Helpers
 Rectangle {
     id: root
 
-    property list<real> columnSizes: {
-        let sizes = [];
-        for (let i = 0; i < 16; i++) {
-            if (i === 7 || i === 15) {
-                sizes.push(root.vars.scratchWidth);
-            } else if (i % 2 === 0)
-                sizes.push(root.vars.whiteWidth);
-            else {
-                sizes.push(root.vars.blackWidth);
-            }
-        }
-        return sizes;
-    }
     property bool customizeMode: false
-    property double greenNumber: {
-        let baseSpeed = ((1 / ProfileList.currentProfile.vars.globalVars.noteScreenTimeMillis) || 0) * 60000 * vars.playAreaHeight / chart.chartData.initialBpm;
-        let laneCoverMod = ProfileList.currentProfile.vars.globalVars.laneCoverOn * ProfileList.currentProfile.vars.globalVars.laneCoverRatio;
-        let liftMod = ProfileList.currentProfile.vars.globalVars.liftOn * ProfileList.currentProfile.vars.globalVars.liftRatio;
-        return baseSpeed * Math.max(0, Math.min(1 - laneCoverMod - liftMod, 1));
-    }
     readonly property string imagesUrl: Qt.resolvedUrl(".") + "images/"
     readonly property string iniImagesUrl: "image://ini/" + rootUrl + "images/"
-    readonly property var vars: ProfileList.currentProfile.vars.themeVars.gameplay
     property list<string> laserImages: {
         let images = [];
         for (let i = 0; i < 16; i++) {
             if (i === 7 || i === 15)
-                images.push(iniImagesUrl + "keybeam/" + root.vars.keybeam + "/laser_s");
+                images.push(iniImagesUrl + "keybeam/" + mainProfileVars.keybeam + "/laser_s");
             else if (i % 2 === 0)
-                images.push(iniImagesUrl + "keybeam/" + root.vars.keybeam + "/laser_w");
+                images.push(iniImagesUrl + "keybeam/" + mainProfileVars.keybeam + "/laser_w");
             else
-                images.push(iniImagesUrl + "keybeam/" + root.vars.keybeam + "/laser_b");
+                images.push(iniImagesUrl + "keybeam/" + mainProfileVars.keybeam + "/laser_b");
         }
         return images;
     }
+    readonly property Profile mainProfile: ProfileList.activeProfiles[0]
+    readonly property var mainProfileVars: mainProfile.vars.themeVars.gameplay
     property list<string> noteColors: {
         let images = [];
         for (let i = 0; i < 16; i++) {
@@ -60,10 +42,24 @@ Rectangle {
         return images;
     }
     property double playfieldHeight: 800
+    property var popup: null
     property string rootUrl: globalRoot.urlToPath(Qt.resolvedUrl(".").toString())
     // copying visibleNotes to js array is faster than accessing it directly
     readonly property var visibleNotes: chart.notes.visibleNotes
-    property var popup: null
+
+    function getColumnSizes(vars) {
+        let sizes = [];
+        for (let i = 0; i < 16; i++) {
+            if (i === 7 || i === 15) {
+                sizes.push(vars.scratchWidth);
+            } else if (i % 2 === 0)
+                sizes.push(vars.whiteWidth);
+            else {
+                sizes.push(vars.blackWidth);
+            }
+        }
+        return sizes;
+    }
 
     color: "black"
 
@@ -102,6 +98,9 @@ Rectangle {
     PlayAreaPopup {
         id: playAreaPopup
 
+        themeVars: ProfileList.activeProfiles[0].vars.themeVars.gameplay
+        globalVars: ProfileList.activeProfiles[0].vars.globalVars
+
         onClosed: {
             root.popup = null;
         }
@@ -109,12 +108,15 @@ Rectangle {
     GaugePopup {
         id: gaugePopup
 
+        themeVars: ProfileList.activeProfiles[0].vars.themeVars.gameplay
+
         onClosed: {
             root.popup = null;
         }
     }
     Item {
         id: scaledRoot
+
         anchors.horizontalCenter: parent.horizontalCenter
         height: 1080
         scale: Math.min(globalRoot.width / 1920, globalRoot.height / 1080)
@@ -124,6 +126,7 @@ Rectangle {
             id: playAreaTemplate
 
             columns: playArea.columns
+            vars: ProfileList.activeProfiles[0].vars.themeVars.gameplay
             visible: root.customizeMode
             z: playArea.z + 1
 
@@ -145,35 +148,40 @@ Rectangle {
         PlayArea {
             id: playArea
 
-            columns: root.vars.scratchOnRightSide ? [0, 1, 2, 3, 4, 5, 6, 7] : [7, 0, 1, 2, 3, 4, 5, 6]
-            x: root.vars.playAreaX
-            y: root.vars.playAreaY
-            z: root.vars.playAreaZ
+            columns: root.mainProfileVars.scratchOnRightSide ? [0, 1, 2, 3, 4, 5, 6, 7] : [7, 0, 1, 2, 3, 4, 5, 6]
+            profile: ProfileList.activeProfiles[0]
+            score: chart.scores[0]
+            notes: columns.map(function (column) {
+                return chart.notes[0].visibleNotes[column];
+            })
+            x: root.mainProfileVars.playAreaX
+            y: root.mainProfileVars.playAreaY
+            z: root.mainProfileVars.playAreaZ
         }
         BgaRenderer {
             id: bga
 
-            height: root.vars.bgaSize
-            visible: ProfileList.currentProfile.vars.globalVars.bgaOn
-            width: root.vars.bgaSize
-            x: root.vars.bgaX
-            y: root.vars.bgaY
-            z: root.vars.bgaZ
+            height: root.mainProfileVars.bgaSize
+            visible: ProfileList.activeProfiles[0].vars.globalVars.bgaOn
+            width: root.mainProfileVars.bgaSize
+            x: root.mainProfileVars.bgaX
+            y: root.mainProfileVars.bgaY
+            z: root.mainProfileVars.bgaZ
 
             onHeightChanged: {
-                root.vars.bgaSize = height;
-                height = Qt.binding(() => root.vars.bgaSize);
+                root.mainProfileVars.bgaSize = height;
+                height = Qt.binding(() => root.mainProfileVars.bgaSize);
             }
             onWidthChanged: {
-                width = Qt.binding(() => root.vars.bgaSize);
+                width = Qt.binding(() => root.mainProfileVars.bgaSize);
             }
             onXChanged: {
-                root.vars.bgaX = x;
-                x = Qt.binding(() => root.vars.bgaX);
+                root.mainProfileVars.bgaX = x;
+                x = Qt.binding(() => root.mainProfileVars.bgaX);
             }
             onYChanged: {
-                root.vars.bgaY = y;
-                y = Qt.binding(() => root.vars.bgaY);
+                root.mainProfileVars.bgaY = y;
+                y = Qt.binding(() => root.mainProfileVars.bgaY);
             }
 
             TemplateDragBorder {
@@ -189,27 +197,31 @@ Rectangle {
         LifeBar {
             id: lifeBar
 
-            height: root.vars.lifeBarHeight
-            width: root.vars.lifeBarWidth
-            x: root.vars.lifeBarX
-            y: root.vars.lifeBarY
-            z: root.vars.lifeBarZ
+            verticalGauge: root.mainProfileVars.verticalGauge
+            gaugeImage: root.mainProfileVars.gauge
+            score: chart.scores[0]
+
+            height: root.mainProfileVars.lifeBarHeight
+            width: root.mainProfileVars.lifeBarWidth
+            x: root.mainProfileVars.lifeBarX
+            y: root.mainProfileVars.lifeBarY
+            z: root.mainProfileVars.lifeBarZ
 
             onHeightChanged: {
-                root.vars.lifeBarHeight = height;
-                height = Qt.binding(() => root.vars.lifeBarHeight);
+                root.mainProfileVars.lifeBarHeight = height;
+                height = Qt.binding(() => root.mainProfileVars.lifeBarHeight);
             }
             onWidthChanged: {
-                root.vars.lifeBarWidth = width;
-                width = Qt.binding(() => root.vars.lifeBarWidth);
+                root.mainProfileVars.lifeBarWidth = width;
+                width = Qt.binding(() => root.mainProfileVars.lifeBarWidth);
             }
             onXChanged: {
-                root.vars.lifeBarX = x;
-                x = Qt.binding(() => root.vars.lifeBarX);
+                root.mainProfileVars.lifeBarX = x;
+                x = Qt.binding(() => root.mainProfileVars.lifeBarX);
             }
             onYChanged: {
-                root.vars.lifeBarY = y;
-                y = Qt.binding(() => root.vars.lifeBarY);
+                root.mainProfileVars.lifeBarY = y;
+                y = Qt.binding(() => root.mainProfileVars.lifeBarY);
             }
 
             TemplateDragBorder {
@@ -240,27 +252,27 @@ Rectangle {
             id: judgementCountsContainer
 
             color: "darkslategray"
-            height: root.vars.judgementCountsHeight
-            width: root.vars.judgementCountsWidth
-            x: root.vars.judgementCountsX
-            y: root.vars.judgementCountsY
-            z: root.vars.judgementCountsZ
+            height: root.mainProfileVars.judgementCountsHeight
+            width: root.mainProfileVars.judgementCountsWidth
+            x: root.mainProfileVars.judgementCountsX
+            y: root.mainProfileVars.judgementCountsY
+            z: root.mainProfileVars.judgementCountsZ
 
             onHeightChanged: {
-                root.vars.judgementCountsHeight = height;
-                height = Qt.binding(() => root.vars.judgementCountsHeight);
+                root.mainProfileVars.judgementCountsHeight = height;
+                height = Qt.binding(() => root.mainProfileVars.judgementCountsHeight);
             }
             onWidthChanged: {
-                root.vars.judgementCountsWidth = width;
-                width = Qt.binding(() => root.vars.judgementCountsWidth);
+                root.mainProfileVars.judgementCountsWidth = width;
+                width = Qt.binding(() => root.mainProfileVars.judgementCountsWidth);
             }
             onXChanged: {
-                root.vars.judgementCountsX = x;
-                x = Qt.binding(() => root.vars.judgementCountsX);
+                root.mainProfileVars.judgementCountsX = x;
+                x = Qt.binding(() => root.mainProfileVars.judgementCountsX);
             }
             onYChanged: {
-                root.vars.judgementCountsY = y;
-                y = Qt.binding(() => root.vars.judgementCountsY);
+                root.mainProfileVars.judgementCountsY = y;
+                y = Qt.binding(() => root.mainProfileVars.judgementCountsY);
             }
 
             TemplateDragBorder {
@@ -325,7 +337,7 @@ Rectangle {
                     }
                 }
 
-                target: chart.score
+                target: chart.scores[0]
             }
         }
     }

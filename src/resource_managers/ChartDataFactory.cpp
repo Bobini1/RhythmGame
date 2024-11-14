@@ -35,37 +35,48 @@ ChartDataFactory::loadFile(const QUrl& chartPath) -> std::string
 }
 auto
 ChartDataFactory::makeNotes(
-  const charts::gameplay_models::BmsNotesData& calculatedNotesData)
+  const std::array<std::vector<charts::gameplay_models::BmsNotesData::Note>,
+                   charts::gameplay_models::BmsNotesData::columnNumber>&
+    visibleNotes,
+  const std::array<std::vector<charts::gameplay_models::BmsNotesData::Note>,
+                   charts::gameplay_models::BmsNotesData::columnNumber>&
+    invisibleNotes,
+  const std::vector<
+    std::pair<charts::gameplay_models::BmsNotesData::Time, double>>& bpmChanges,
+  const std::vector<charts::gameplay_models::BmsNotesData::Time>& barLines)
   -> std::unique_ptr<gameplay_logic::BmsNotes>
 {
-    auto visibleNotes = QVector<QVector<gameplay_logic::Note>>{};
-    for (const auto& column : calculatedNotesData.visibleNotes) {
-        visibleNotes.append(convertToQVector(column));
+    auto visibleNotesQ = QVector<QVector<gameplay_logic::Note>>{};
+    for (const auto& column : visibleNotes) {
+        visibleNotesQ.append(convertToQVector(column));
     }
-    auto invisibleNotes = QVector<QVector<gameplay_logic::Note>>{};
-    for (const auto& column : calculatedNotesData.invisibleNotes) {
-        invisibleNotes.append(convertToQVector(column));
+    auto invisibleNotesQ = QVector<QVector<gameplay_logic::Note>>{};
+    for (const auto& column : invisibleNotes) {
+        invisibleNotesQ.append(convertToQVector(column));
     }
-    auto bpmChanges = QVector<gameplay_logic::BpmChange>{};
-    for (const auto& bpmChange : calculatedNotesData.bpmChanges) {
-        bpmChanges.append(
-          { { std::chrono::duration_cast<std::chrono::milliseconds>(
-                bpmChange.first.timestamp)
-                .count(),
-              bpmChange.first.position },
+    auto bpmChangesQ = QVector<gameplay_logic::BpmChange>{};
+    for (const auto& bpmChange : bpmChanges) {
+        bpmChangesQ.append(
+          { { .timestamp =
+                std::chrono::duration_cast<std::chrono::milliseconds>(
+                  bpmChange.first.timestamp)
+                  .count(),
+              .position = bpmChange.first.position },
             bpmChange.second });
     }
-    auto barLines = QVector<gameplay_logic::Time>{};
-    for (const auto& barLine : calculatedNotesData.barLines) {
-        barLines.append({ std::chrono::duration_cast<std::chrono::milliseconds>(
-                            barLine.timestamp)
-                            .count(),
-                          barLine.position });
+    auto barLinesQ = QVector<gameplay_logic::Time>{};
+    for (const auto& barLine : barLines) {
+        barLinesQ.append(
+          { std::chrono::duration_cast<std::chrono::milliseconds>(
+              barLine.timestamp)
+              .count(),
+            barLine.position });
     }
-    return std::make_unique<gameplay_logic::BmsNotes>(std::move(visibleNotes),
-                                                      std::move(invisibleNotes),
-                                                      std::move(bpmChanges),
-                                                      std::move(barLines));
+    return std::make_unique<gameplay_logic::BmsNotes>(
+      std::move(visibleNotesQ),
+      std::move(invisibleNotesQ),
+      std::move(bpmChangesQ),
+      std::move(barLinesQ));
 }
 auto
 ChartDataFactory::convertToQVector(
@@ -105,7 +116,7 @@ ChartDataFactory::loadChartData(
   const std::filesystem::path& chartPath,
   std::function<charts::parser_models::ParsedBmsChart::RandomRange(
     charts::parser_models::ParsedBmsChart::RandomRange)> randomGenerator,
-  int64_t directory) const -> ChartDataFactory::ChartComponents
+  int64_t directory) const -> ChartComponents
 {
     auto mfh = llfio::mapped_file({}, chartPath).value();
     auto length = mfh.maximum_extent().value();
@@ -194,6 +205,9 @@ ChartDataFactory::loadChartData(
                   LongNoteBegin:
                     lnNotes++;
                     break;
+                case charts::gameplay_models::BmsNotesData::NoteType::
+                  LongNoteEnd:
+                    break;
                 case charts::gameplay_models::BmsNotesData::NoteType::Landmine:
                     mineNotes++;
                     break;
@@ -230,11 +244,13 @@ ChartDataFactory::loadChartData(
       directory,
       QString::fromStdString(hash),
       keymode);
-    auto noteData = makeNotes(calculatedNotesData);
-    return { std::move(chartData),
-             std::move(noteData),
-             std::move(calculatedNotesData),
-             std::move(wavs),
-             std::move(bmps) };
+    auto noteData = makeNotes(calculatedNotesData.visibleNotes,
+                              calculatedNotesData.invisibleNotes,
+                              calculatedNotesData.bpmChanges,
+                              calculatedNotesData.barLines);
+    return { .chartData = std::move(chartData),
+             .notesData = std::move(calculatedNotesData),
+             .wavs = std::move(wavs),
+             .bmps = std::move(bmps) };
 }
 } // namespace resource_managers

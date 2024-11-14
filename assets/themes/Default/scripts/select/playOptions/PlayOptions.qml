@@ -37,6 +37,7 @@ Rectangle {
         anchors.horizontalCenter: p1RandomLabel.horizontalCenter
         up: BmsKey.Col12
         down: BmsKey.Col11
+        profile: ProfileList.activeProfiles[0]
 
         model: [NoteOrderAlgorithm.Normal, NoteOrderAlgorithm.Mirror, NoteOrderAlgorithm.Spiral, NoteOrderAlgorithm.Random, NoteOrderAlgorithm.SRandom, NoteOrderAlgorithm.HRandom, NoteOrderAlgorithm.RRandom, NoteOrderAlgorithm.SRandomPlus]
         strings: ["NORMAL", "MIRROR", "SPIRAL", "RANDOM", "S-RANDOM", "H-RANDOM", "R-RANDOM", "S-RANDOM+"]
@@ -65,6 +66,7 @@ Rectangle {
         anchors.horizontalCenter: p2RandomLabel.horizontalCenter
         up: BmsKey.Col17
         down: BmsKey.Col16
+        profile: ProfileList.activeProfiles[0]
 
         model: [NoteOrderAlgorithm.Normal, NoteOrderAlgorithm.Mirror, NoteOrderAlgorithm.Spiral, NoteOrderAlgorithm.Random, NoteOrderAlgorithm.SRandom, NoteOrderAlgorithm.HRandom, NoteOrderAlgorithm.RRandom, NoteOrderAlgorithm.SRandomPlus]
         strings: ["NORMAL", "MIRROR", "SPIRAL", "RANDOM", "S-RANDOM", "H-RANDOM", "R-RANDOM", "S-RANDOM+"]
@@ -125,6 +127,7 @@ Rectangle {
         model: ["AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC"]
         strings: ["ASSISTED EASY", "EASY", "NORMAL", "HARD", "EXHARD", "HAZARD"]
         prop: "gaugeType"
+        profile: ProfileList.activeProfiles[0]
     }
 
     function duplicate(arr) {
@@ -142,6 +145,7 @@ Rectangle {
         model: bg.duplicate([DpOptions.Off, DpOptions.Flip, DpOptions.Battle, DpOptions.BattleAs])
         strings: bg.duplicate(["OFF", "FLIP", "BATTLE", "BATTLE AS"])
         prop: "dpOptions"
+        profile: ProfileList.activeProfiles[0]
     }
 
     OptionsTumbler {
@@ -156,6 +160,7 @@ Rectangle {
         model: bg.duplicate([HiSpeedFix.Main, HiSpeedFix.Start, HiSpeedFix.Max, HiSpeedFix.Min, HiSpeedFix.Off])
         strings: bg.duplicate(["MAIN BPM", "START BPM", "MAX BPM", "MIN BPM", "OFF"])
         prop: "hiSpeedFix"
+        profile: ProfileList.activeProfiles[0]
     }
     property var open: false
 

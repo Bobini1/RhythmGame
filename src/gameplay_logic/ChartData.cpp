@@ -3,14 +3,12 @@
 //
 
 #include "ChartData.h"
-#include "support/LehmerCode.h"
 #include "support/Compress.h"
 #include <QFileInfo>
 
 #include <memory>
 #include <utility>
 #include <spdlog/spdlog.h>
-#include <zstd.h>
 
 gameplay_logic::ChartData::
 ChartData(QString title,

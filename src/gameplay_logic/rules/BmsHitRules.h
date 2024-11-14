@@ -4,13 +4,14 @@
 
 #ifndef RHYTHMGAME_BMSHITRULES_H
 #define RHYTHMGAME_BMSHITRULES_H
-#include <iterator>
 #include <optional>
 #include <chrono>
-#include <list>
+#include <span>
 #include "gameplay_logic/BmsPoints.h"
-#include "gameplay_logic/TimePoint.h"
 #include "charts/gameplay_models/BmsNotesData.h"
+namespace sounds {
+class OpenALSound;
+}
 namespace gameplay_logic::rules {
 
 class BmsHitRules

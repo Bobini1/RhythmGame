@@ -22,8 +22,9 @@ class ChartFactory
 
     auto createChart(
       ChartDataFactory::ChartComponents chartComponents,
-      std::unique_ptr<gameplay_logic::rules::BmsHitRules> hitRules,
-      QList<gameplay_logic::rules::BmsGauge*> gauges,
+      std::vector<std::unique_ptr<gameplay_logic::rules::BmsHitRules>> hitRules,
+      std::vector<QList<gameplay_logic::rules::BmsGauge*>> gauges,
+      const QList<Profile*>& profiles,
       double maxHitValue) -> gameplay_logic::Chart*;
 };
 

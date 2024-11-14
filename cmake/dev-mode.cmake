@@ -1,5 +1,20 @@
 include(cmake/folders.cmake)
 
+include(FetchContent)
+
+# only add tracy in release mode
+if (CMAKE_BUILD_TYPE STREQUAL "Release")
+FetchContent_Declare (
+        tracy
+        GIT_REPOSITORY https://github.com/wolfpld/tracy.git
+        GIT_TAG master
+        GIT_SHALLOW TRUE
+        GIT_PROGRESS TRUE
+)
+FetchContent_MakeAvailable(tracy)
+target_link_libraries(RhythmGame_exe PUBLIC TracyClient)
+endif()
+
 include(CTest)
 if (BUILD_TESTING)
     add_subdirectory(test)

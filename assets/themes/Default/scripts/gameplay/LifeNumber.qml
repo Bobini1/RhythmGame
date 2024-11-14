@@ -3,8 +3,10 @@ import QtQuick
 Text {
     id: lifeText
 
+    required property var score
+
     function getLifeText() {
-        let gauges = chart.score.gauges;
+        let gauges = lifeText.score.gauges;
         for (let gauge of gauges) {
             if (gauge.gauge > gauge.threshold) {
                 return gauge.gauge.toFixed(1) + "%";
@@ -31,6 +33,6 @@ Text {
             lifeText.text = lifeText.getLifeText();
         }
 
-        target: chart.score
+        target: lifeText.score
     }
 }

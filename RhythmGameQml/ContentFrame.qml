@@ -29,7 +29,7 @@ ApplicationWindow {
                 id: loader
 
                 anchors.fill: parent
-                source: Themes.availableThemeFamilies[ProfileList.currentProfile.themeConfig.gameplay].screens.gameplay.script
+                source: Themes.availableThemeFamilies[ProfileList.activeProfiles[0].themeConfig.gameplay].screens.gameplay.script
             }
         }
     }
@@ -47,18 +47,19 @@ ApplicationWindow {
                 id: loader
 
                 anchors.fill: parent
-                source: Themes.availableThemeFamilies[ProfileList.currentProfile.themeConfig.result].screens.result.script
+                source: Themes.availableThemeFamilies[ProfileList.activeProfiles[0].themeConfig.result].screens.result.script
             }
         }
     }
     Item {
         id: globalRoot
 
+        readonly property Profile mainProfile: ProfileList.activeProfiles[0]
         readonly property Component gameplayComponent: chartContext
-        readonly property Component mainComponent: Qt.createComponent(Themes.availableThemeFamilies[ProfileList.currentProfile.themeConfig.main].screens.main.script)
+        readonly property Component mainComponent: Qt.createComponent(Themes.availableThemeFamilies[mainProfile.themeConfig.main].screens.main.script)
         readonly property Component resultComponent: resultContext
-        readonly property Component settingsComponent: Qt.createComponent(Themes.availableThemeFamilies[ProfileList.currentProfile.themeConfig.settings].screens.settings.script)
-        readonly property Component songWheelComponent: Qt.createComponent(Themes.availableThemeFamilies[ProfileList.currentProfile.themeConfig.songWheel].screens.songWheel.script)
+        readonly property Component settingsComponent: Qt.createComponent(Themes.availableThemeFamilies[mainProfile.themeConfig.settings].screens.settings.script)
+        readonly property Component songWheelComponent: Qt.createComponent(Themes.availableThemeFamilies[mainProfile.themeConfig.songWheel].screens.songWheel.script)
 
         function openChart(path) {
             let chart = ChartLoader.loadChart(path);
@@ -92,7 +93,7 @@ ApplicationWindow {
         anchors.fill: parent
 
         Component.onCompleted: {
-            if (ProgramSettings.chartPath != "")
+            if (ProgramSettings.chartPath !== "")
                 openChart(ProgramSettings.chartPath);
         }
 
@@ -100,7 +101,7 @@ ApplicationWindow {
             id: sceneStack
 
             anchors.fill: parent
-            initialItem: (ProgramSettings.chartPath != "") ? null : globalRoot.mainComponent
+            initialItem: (ProgramSettings.chartPath !== "") ? null : globalRoot.mainComponent
 
             popEnter: Transition {
                 PropertyAnimation {

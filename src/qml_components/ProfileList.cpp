@@ -182,7 +182,7 @@ qml_components::ProfileList::setActiveProfiles(
         spdlog::warn("Can't deactivate all profiles");
         return;
     }
-    if (profiles[0] != activeProfiles[0]) {
+    if (activeProfiles.empty() || profiles[0] != activeProfiles[0]) {
         auto countStatement =
           songDb->createStatement("SELECT COUNT(*) FROM current_profile");
         auto result = countStatement.executeAndGet<int>();

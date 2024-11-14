@@ -8,6 +8,7 @@
 #include <QtConcurrentRun>
 #include <utility>
 #include <qdir.h>
+#include <spdlog/spdlog.h>
 
 namespace qml_components {
 
@@ -46,9 +47,10 @@ validatePath(const QString& path) -> bool
 }
 } // namespace
 
-RootSongFoldersConfig::RootSongFoldersConfig(RootSongFolders* folders,
-                                             ScanningQueue* scanningQueue,
-                                             QObject* parent)
+RootSongFoldersConfig::
+RootSongFoldersConfig(RootSongFolders* folders,
+                      ScanningQueue* scanningQueue,
+                      QObject* parent)
   : QObject(parent)
   , folders(folders)
   , scanningQueue(scanningQueue)
@@ -101,7 +103,8 @@ ScanningQueue::getCurrentScannedFolder() const -> QString
     return currentScannedFolder;
 }
 
-RootSongFolder::RootSongFolder(QString name, const Status status)
+RootSongFolder::
+RootSongFolder(QString name, const Status status)
   : name(std::move(name))
   , status(status)
 {
@@ -142,9 +145,10 @@ RootSongFolders::data(const QModelIndex& index, const int role) const
     }
     return QVariant{};
 }
-RootSongFolders::RootSongFolders(db::SqliteCppDb* db,
-                                 ScanningQueue* scanningQueue,
-                                 QObject* parent)
+RootSongFolders::
+RootSongFolders(db::SqliteCppDb* db,
+                ScanningQueue* scanningQueue,
+                QObject* parent)
   : QAbstractListModel(parent)
   , db(db)
   , scanningQueue(scanningQueue)
@@ -213,15 +217,17 @@ RootSongFolders::at(const int index) const -> QVariant
     }
     return QVariant::fromValue(folders[index].get());
 }
-ScanningQueue::ScanningQueue(db::SqliteCppDb* db,
-                             resource_managers::SongDbScanner scanner,
-                             QObject* parent)
+ScanningQueue::
+ScanningQueue(db::SqliteCppDb* db,
+              resource_managers::SongDbScanner scanner,
+              QObject* parent)
   : QAbstractListModel(parent)
   , db(db)
   , scanner(scanner)
 {
     connect(&scanFutureWatcher, &QFutureWatcher<void>::finished, [this] {
-        // fixme: what if we press stop between scanning is finished and this line?
+        // fixme: what if we press stop between scanning is finished and this
+        // line?
         scanItems.front()->updateStatus(stop
                                           ? RootSongFolder::Status::NotScanned
                                           : RootSongFolder::Status::Scanned);
@@ -316,7 +322,9 @@ ScanningQueue::data(const QModelIndex& index, int role) const -> QVariant
     }
     return QVariant{};
 }
-ScanningQueue::~ScanningQueue() {
+ScanningQueue::~
+ScanningQueue()
+{
     const auto rows = rowCount();
     for (auto i = rows; i >= 0; i--) {
         remove(i);

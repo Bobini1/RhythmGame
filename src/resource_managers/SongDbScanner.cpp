@@ -17,6 +17,7 @@
 #include <ntstatus.h>
 #endif
 #include <llfio.hpp>
+#include <spdlog/spdlog.h>
 
 namespace llfio = LLFIO_V2_NAMESPACE;
 
@@ -89,8 +90,12 @@ loadChart(QThreadPool& threadPool,
             const auto chartComponents =
               chartDataFactory.loadChartData(path, randomGenerator, directory);
             chartComponents.chartData->save(db);
-            chartComponents.bmsNotes->save(
-              db, chartComponents.chartData->getSha256().toStdString());
+            ChartDataFactory::makeNotes(
+              chartComponents.notesData.visibleNotes,
+              chartComponents.notesData.invisibleNotes,
+              chartComponents.notesData.bpmChanges,
+              chartComponents.notesData.barLines)
+              ->save(db, chartComponents.chartData->getSha256().toStdString());
         } catch (const std::exception& e) {
             spdlog::error(
               "Failed to load chart data for {}: {}", path.string(), e.what());

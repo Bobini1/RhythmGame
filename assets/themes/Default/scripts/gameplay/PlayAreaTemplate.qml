@@ -7,39 +7,41 @@ Item {
     id: playAreaTemplate
 
     required property var columns
-    readonly property real spacing: root.vars.spacing
+    readonly property real spacing: playAreaTemplate.vars.spacing
+    required property var vars
+    readonly property list<real> columnSizes: root.getColumnSizes(vars)
 
     signal clicked(var mouse)
     signal doubleClicked(var mouse)
 
-    height: root.vars.playAreaHeight
-    width: playAreaTemplate.columns.reduce((a, b) => a + root.columnSizes[b], 0) + (playAreaTemplate.columns.length - 1) * playAreaTemplate.spacing
-    x: root.vars.playAreaX
-    y: root.vars.playAreaY
+    height: playAreaTemplate.vars.playAreaHeight
+    width: playAreaTemplate.columns.reduce((a, b) => a + playAreaTemplate.columnSizes[b], 0) + (playAreaTemplate.columns.length - 1) * playAreaTemplate.spacing
+    x: playAreaTemplate.vars.playAreaX
+    y: playAreaTemplate.vars.playAreaY
 
     onHeightChanged: {
-        root.vars.playAreaHeight = height;
-        height = Qt.binding(() => root.vars.playAreaHeight);
+        playAreaTemplate.vars.playAreaHeight = height;
+        height = Qt.binding(() => playAreaTemplate.vars.playAreaHeight);
     }
     onWidthChanged: {
-        let spacing = root.vars.spacing;
-        let oldWithoutSpacing = playAreaTemplate.columns.reduce((a, b) => a + root.columnSizes[b], 0);
+        let spacing = playAreaTemplate.vars.spacing;
+        let oldWithoutSpacing = playAreaTemplate.columns.reduce((a, b) => a + playAreaTemplate.columnSizes[b], 0);
         let newWithoutSpacing = width - spacing * 7;
         let newWidths = [];
         for (let i = 5; i < 8; i++) {
-            newWidths.push(newWithoutSpacing / oldWithoutSpacing * root.columnSizes[i]);
+            newWidths.push(newWithoutSpacing / oldWithoutSpacing * playAreaTemplate.columnSizes[i]);
         }
-        root.vars.blackWidth = newWidths[0];
-        root.vars.whiteWidth = newWidths[1];
-        root.vars.scratchWidth = newWidths[2];
+        playAreaTemplate.vars.blackWidth = newWidths[0];
+        playAreaTemplate.vars.whiteWidth = newWidths[1];
+        playAreaTemplate.vars.scratchWidth = newWidths[2];
     }
     onXChanged: {
-        root.vars.playAreaX = x;
-        x = Qt.binding(() => root.vars.playAreaX);
+        playAreaTemplate.vars.playAreaX = x;
+        x = Qt.binding(() => playAreaTemplate.vars.playAreaX);
     }
     onYChanged: {
-        root.vars.playAreaY = y;
-        y = Qt.binding(() => root.vars.playAreaY);
+        playAreaTemplate.vars.playAreaY = y;
+        y = Qt.binding(() => playAreaTemplate.vars.playAreaY);
     }
 
     TemplateDragBorder {
@@ -55,7 +57,7 @@ Item {
                 // noinspection SillyAssignmentJS
                 playAreaTemplate.width = playAreaTemplate.width;
             } else {
-                playAreaTemplate.width = Qt.binding(() => playAreaTemplate.columns.reduce((a, b) => a + root.columnSizes[b], 0) + (playAreaTemplate.columns.length - 1) * playAreaTemplate.spacing);
+                playAreaTemplate.width = Qt.binding(() => playAreaTemplate.columns.reduce((a, b) => a + playAreaTemplate.columnSizes[b], 0) + (playAreaTemplate.columns.length - 1) * playAreaTemplate.spacing);
             }
         }
         onClicked: mouse => playAreaTemplate.clicked(mouse)

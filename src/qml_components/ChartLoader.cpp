@@ -10,6 +10,8 @@
 #include "magic_enum.hpp"
 #include "qdir.h"
 
+#include <spdlog/spdlog.h>
+
 namespace qml_components {
 auto
 ChartLoader::loadChart(QString filename, QList<int64_t> randomSequence)
@@ -37,27 +39,33 @@ ChartLoader::loadChart(QString filename, QList<int64_t> randomSequence)
         auto fileAbsolute = QFileInfo(filename).absoluteFilePath();
         auto chartComponents = chartDataFactory->loadChartData(
           support::qStringToPath(fileAbsolute), randomGenerator);
-        auto rankInt = chartComponents.chartData->getRank();
-        auto rank =
+        const auto rankInt = chartComponents.chartData->getRank();
+        const auto rank =
           magic_enum::enum_cast<gameplay_logic::rules::BmsRank>(rankInt)
             .value_or(gameplay_logic::rules::defaultBmsRank);
+        auto hitRules =
+          std::vector<std::unique_ptr<gameplay_logic::rules::BmsHitRules>>{};
+        auto gauges = std::vector<QList<gameplay_logic::rules::BmsGauge*>>{};
         auto timingWindows = timingWindowsFactory(rank);
         auto hitValuesFactoryPartial =
           [timingWindows, hitValueFactory = this->hitValueFactory](
-            std::chrono::nanoseconds offset) {
+            const std::chrono::nanoseconds offset) {
               return hitValueFactory(timingWindows, offset);
           };
-        auto gauges =
-          gaugeFactory(profileList->getCurrentProfile(),
-                       timingWindows,
-                       chartComponents.chartData->getTotal(),
-                       chartComponents.chartData->getNormalNoteCount());
-        auto hitRules =
-          hitRulesFactory(timingWindows, std::move(hitValuesFactoryPartial));
+        for (auto* profile : profileList->getActiveProfiles()) {
+            gauges.push_back(
+              gaugeFactory(profile,
+                           timingWindows,
+                           chartComponents.chartData->getTotal(),
+                           chartComponents.chartData->getNormalNoteCount()));
+            hitRules.push_back(
+              hitRulesFactory(timingWindows, hitValuesFactoryPartial));
+        }
 
         return chartFactory->createChart(std::move(chartComponents),
                                          std::move(hitRules),
                                          std::move(gauges),
+                                         profileList->getActiveProfiles(),
                                          maxHitValue);
     } catch (const std::exception& e) {
         spdlog::error("Failed to load chart: {}", e.what());

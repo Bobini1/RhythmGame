@@ -17,7 +17,7 @@ class BmsScoreAftermath : public QObject
 {
     Q_OBJECT
 
-    Q_PROPERTY(Profile* profile READ getProfile CONSTANT)
+    Q_PROPERTY(resource_managers::Profile* profile READ getProfile CONSTANT)
     Q_PROPERTY(BmsResult* result READ getResult CONSTANT)
     Q_PROPERTY(BmsReplayData* replayData READ getReplayData CONSTANT)
     Q_PROPERTY(BmsGaugeHistory* gaugeHistory READ getGaugeHistory CONSTANT)

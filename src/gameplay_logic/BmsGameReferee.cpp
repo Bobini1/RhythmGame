@@ -2,7 +2,6 @@
 // Created by bobini on 21.06.23.
 //
 
-#include <ranges>
 #include <algorithm>
 #include "BmsGameReferee.h"
 gameplay_logic::BmsGameReferee::
@@ -12,7 +11,8 @@ BmsGameReferee(
   std::array<std::vector<charts::gameplay_models::BmsNotesData::Note>,
              charts::gameplay_models::BmsNotesData::columnNumber>
     invisibleNotes,
-  std::vector<std::pair<charts::gameplay_models::BmsNotesData::Time, uint16_t>> bgmNotes,
+  std::vector<std::pair<charts::gameplay_models::BmsNotesData::Time, uint16_t>>
+    bgmNotes,
   std::vector<std::pair<charts::gameplay_models::BmsNotesData::Time, double>>
     bpmChanges,
   sounds::OpenALSound* mineHitSound,
