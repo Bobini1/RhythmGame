@@ -41,7 +41,7 @@ ApplicationWindow {
 
             readonly property bool active: StackView.status === StackView.Active
             required property ChartData chartData
-            required property BmsScoreAftermath result
+            required property list<BmsScoreAftermath> result
 
             Loader {
                 id: loader

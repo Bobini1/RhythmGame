@@ -27,6 +27,7 @@ Item {
     required property var notes
     readonly property int spacing: playArea.vars.spacing
     readonly property var vars: profile.vars.themeVars.gameplay
+    readonly property var globalVars: profile.vars.globalVars
     readonly property list<real> columnSizes: root.getColumnSizes(vars)
 
     height: playArea.vars.playAreaHeight
@@ -45,18 +46,18 @@ Item {
 
             height: parent.height
             source: root.imagesUrl + "lanecover/" + playArea.vars.lanecover
-            visible: playArea.profile.vars.globalVars.laneCoverOn
+            visible: playArea.globalVars.laneCoverOn
             width: parent.width
-            y: height * (-1 + playArea.profile.vars.globalVars.laneCoverRatio)
+            y: height * (-1 + playArea.globalVars.laneCoverRatio)
             z: 7
         }
         Image {
             id: liftCover
 
             fillMode: Image.PreserveAspectCrop
-            height: parent.height * Math.min(1, playArea.profile.vars.globalVars.liftOn * playArea.profile.vars.globalVars.liftRatio + playArea.profile.vars.globalVars.hiddenOn * playArea.profile.vars.globalVars.hiddenRatio)
+            height: parent.height * Math.min(1, playArea.globalVars.liftOn * playArea.globalVars.liftRatio + playArea.globalVars.hiddenOn * playArea.globalVars.hiddenRatio)
             source: root.imagesUrl + "liftcover/" + playArea.vars.liftcover
-            visible: playArea.profile.vars.globalVars.liftOn || playArea.profile.vars.globalVars.hiddenOn
+            visible: playArea.globalVars.liftOn || playArea.globalVars.hiddenOn
             width: parent.width
             y: parent.height - height
             z: 6
@@ -65,7 +66,7 @@ Item {
             id: judgeLine
 
             anchors.bottom: parent.bottom
-            anchors.bottomMargin: parent.height * playArea.profile.vars.globalVars.liftOn * playArea.profile.vars.globalVars.liftRatio
+            anchors.bottomMargin: parent.height * playArea.globalVars.liftOn * playArea.globalVars.liftRatio
             color: playArea.vars.judgeLineColor
             height: playArea.vars.judgeLineThickness
             width: parent.width
@@ -76,7 +77,7 @@ Item {
             barLines: chart.notes[0].barLines
             heightMultiplier: playArea.heightMultiplier
             width: parent.width
-            y: -playArea.vars.thickness / 2 + chart.position * playArea.heightMultiplier + parent.height * (1 - playArea.profile.vars.globalVars.liftOn * playArea.profile.vars.globalVars.liftRatio)
+            y: -playArea.vars.thickness / 2 + chart.position * playArea.heightMultiplier + parent.height * (1 - playArea.globalVars.liftOn * playArea.globalVars.liftRatio)
             z: 2
         }
         Playfield {
@@ -91,7 +92,7 @@ Item {
             noteImage: playArea.vars.notes
             mineImage: playArea.vars.mine
             notesStay: playArea.vars.notesStay
-            y: -playArea.vars.thickness / 2 + chart.position * playArea.heightMultiplier + parent.height * (1 - playArea.profile.vars.globalVars.liftOn * playArea.profile.vars.globalVars.liftRatio)
+            y: -playArea.vars.thickness / 2 + chart.position * playArea.heightMultiplier + parent.height * (1 - playArea.globalVars.liftOn * playArea.globalVars.liftRatio)
             z: 3
         }
         Row {
@@ -136,7 +137,7 @@ Item {
             id: noteAnchor
 
             anchors.bottom: parent.bottom
-            anchors.bottomMargin: parent.height * playArea.profile.vars.globalVars.liftOn * playArea.profile.vars.globalVars.liftRatio
+            anchors.bottomMargin: parent.height * playArea.globalVars.liftOn * playArea.globalVars.liftRatio
             width: parent.width
             z: 4
         }
@@ -281,7 +282,7 @@ Item {
             }
 
             anchors.bottom: parent.bottom
-            anchors.bottomMargin: parent.height * playArea.profile.vars.globalVars.liftOn * playArea.profile.vars.globalVars.liftRatio
+            anchors.bottomMargin: parent.height * playArea.globalVars.liftOn * playArea.globalVars.liftRatio
             width: playArea.columnSizes[playfield.columns[index]]
             x: {
                 let cpos = 0;
