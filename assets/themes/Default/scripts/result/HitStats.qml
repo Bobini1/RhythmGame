@@ -4,6 +4,9 @@ import RhythmGameQml
 WindowBg {
     id: hitStats
 
+    required property var judgementCounts
+    required property var earlyLate
+
     Item {
         id: hitStatHeader
 
@@ -37,7 +40,7 @@ WindowBg {
             model: [Judgement.Perfect, Judgement.Great, Judgement.Good, Judgement.Bad, Judgement.Poor, Judgement.EmptyPoor]
 
             HitStatLine {
-                earlyCount: root.earlyLate.early[modelData]
+                earlyCount: hitStats.earlyLate.early[modelData]
                 img: {
                     switch (modelData) {
                     case Judgement.Perfect:
@@ -54,8 +57,8 @@ WindowBg {
                         return root.iniImagesUrl + "parts.png/j_empty_poor";
                     }
                 }
-                judgementCount: result.result.judgementCounts[modelData]
-                lateCount: root.earlyLate.late[modelData]
+                judgementCount: hitStats.judgementCounts[modelData]
+                lateCount: hitStats.earlyLate.late[modelData]
             }
         }
     }

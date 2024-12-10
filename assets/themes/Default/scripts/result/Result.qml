@@ -24,6 +24,7 @@ FocusScope {
         readonly property var scores: ProfileList.activeProfiles[0].scoreDb.getScoresForChart(chartData.sha256).filter(function (score) {
             return score.id !== result.result.id;
         })
+        readonly property ChartData _chartData: chartData
 
         fillMode: Image.PreserveAspectCrop
         height: parent.height
@@ -70,9 +71,16 @@ FocusScope {
                     anchors.horizontalCenter: parent.horizontalCenter
 
                     StageFile {
+                        chartDirectory: chartData.chartDirectory
+                        stageFileName: chartData.stageFile
                     }
                     TitleArtist {
                         id: titleArtist
+
+                        title: chartData.title
+                        artist: chartData.artist
+                        subtitle: chartData.subtitle
+                        subartist: chartData.subartist
 
                         anchors.bottom: parent.bottom
                         anchors.bottomMargin: 24
@@ -80,6 +88,9 @@ FocusScope {
                         width: 1214
                     }
                     ChartInfo {
+                        judgementCounts: root.result.result.judgementCounts
+                        chartData: root._chartData
+
                         anchors.bottom: parent.bottom
                         anchors.bottomMargin: 24
                         height: titleArtist.height
@@ -93,6 +104,11 @@ FocusScope {
                     LifeGraph {
                         id: lifeGraph
 
+                        clearType: root.result.result.clearType
+                        gaugeHistory: root.result.gaugeHistory.gaugeHistory
+                        gaugeInfo: root.result.gaugeHistory.gaugeInfo
+                        chartData: root._chartData
+
                         anchors.right: parent.right
                         anchors.rightMargin: 90
                         anchors.top: scoreColumn.top
@@ -101,10 +117,20 @@ FocusScope {
                         anchors.left: scoreColumn.right
                         height: 104
                         width: 350
+
+                        clearType: root.result.result.clearType
+                        oldBestClear: root.oldBestClear
                     }
                     ScoreColumn {
                         id: scoreColumn
 
+                        points: root.result.result.points
+                        maxPoints: root.result.result.maxPoints
+                        oldBestPoints: root.oldBestPointsScore?.points || 0
+                        oldBestStats: root.oldBestStats
+                        earlyLate: root.earlyLate
+                        judgementCounts: root.result.result.judgementCounts
+                        maxCombo: root.result.result.maxCombo
                     }
                 }
             }

@@ -3,6 +3,11 @@ import RhythmGameQml
 
 WindowBg {
     id: hitInfo
+    
+    required property var judgementCounts
+    required property var oldBestStats
+    required property int maxCombo
+
 
     Row {
         anchors.left: parent.left
@@ -16,21 +21,21 @@ WindowBg {
             StatLine {
                 img: root.iniImagesUrl + "parts.png/miss_count"
                 invertDeltaColor: true
-                newVal: result.result.judgementCounts[Judgement.Poor] + result.result.judgementCounts[Judgement.EmptyPoor] + result.result.judgementCounts[Judgement.Bad]
-                oldVal: root.oldBestStats ? root.oldBestStats.missCount : 0
+                newVal: hitInfo.judgementCounts[Judgement.Poor] + hitInfo.judgementCounts[Judgement.EmptyPoor] + hitInfo.judgementCounts[Judgement.Bad]
+                oldVal: hitInfo.oldBestStats ? hitInfo.oldBestStats.missCount : 0
                 width: parent.width
             }
             StatLine {
                 img: root.iniImagesUrl + "parts.png/combo"
-                newVal: result.result.maxCombo
-                oldVal: root.oldBestStats ? root.oldBestStats.maxCombo : 0
+                newVal: hitInfo.maxCombo
+                oldVal: hitInfo.oldBestStats ? hitInfo.oldBestStats.maxCombo : 0
                 width: parent.width
             }
             StatLine {
                 img: root.iniImagesUrl + "parts.png/combo_break"
                 invertDeltaColor: true
-                newVal: result.result.judgementCounts[Judgement.Poor] + result.result.judgementCounts[Judgement.Bad]
-                oldVal: root.oldBestStats ? root.oldBestStats.comboBreak : 0
+                newVal: hitInfo.judgementCounts[Judgement.Poor] + hitInfo.judgementCounts[Judgement.Bad]
+                oldVal: hitInfo.oldBestStats ? hitInfo.oldBestStats.comboBreak : 0
                 width: parent.width
             }
         }
