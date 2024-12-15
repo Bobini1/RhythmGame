@@ -24,7 +24,7 @@ RowLayout {
         }
 
         Repeater {
-            model: ProfileList.currentProfile.themeConfig.keys()
+            model: ProfileList.mainProfile.themeConfig.keys()
 
             TabButton {
                 text: modelData
@@ -40,7 +40,7 @@ RowLayout {
         currentIndex: themeTabView.currentIndex
 
         Repeater {
-            model: ProfileList.currentProfile.themeConfig.keys()
+            model: ProfileList.mainProfile.themeConfig.keys()
 
             Frame {
                 Layout.fillHeight: true
@@ -77,13 +77,13 @@ RowLayout {
                                     themeNames.push(name);
                                 }
                             }
-                            let index = themeNames.indexOf(ProfileList.currentProfile.themeConfig[modelData]);
+                            let index = themeNames.indexOf(ProfileList.mainProfile.themeConfig[modelData]);
                             currentIndex = index;
                             loaded = true;
                         }
                         onCurrentTextChanged: {
                             if (themeComboBox.loaded) {
-                                ProfileList.currentProfile.themeConfig[modelData] = themeComboBox.currentText;
+                                ProfileList.mainProfile.themeConfig[modelData] = themeComboBox.currentText;
                             }
                         }
                     }

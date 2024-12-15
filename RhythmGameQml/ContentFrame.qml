@@ -29,7 +29,7 @@ ApplicationWindow {
                 id: loader
 
                 anchors.fill: parent
-                source: Themes.availableThemeFamilies[ProfileList.activeProfiles[0].themeConfig.gameplay].screens.gameplay.script
+                source: Themes.availableThemeFamilies[ProfileList.mainProfile.themeConfig.gameplay].screens.gameplay.script
             }
         }
     }
@@ -47,14 +47,14 @@ ApplicationWindow {
                 id: loader
 
                 anchors.fill: parent
-                source: Themes.availableThemeFamilies[ProfileList.activeProfiles[0].themeConfig.result].screens.result.script
+                source: Themes.availableThemeFamilies[ProfileList.mainProfile.themeConfig.result].screens.result.script
             }
         }
     }
     Item {
         id: globalRoot
 
-        readonly property Profile mainProfile: ProfileList.activeProfiles[0]
+        readonly property Profile mainProfile: ProfileList.mainProfile
         readonly property Component gameplayComponent: chartContext
         readonly property Component mainComponent: Qt.createComponent(Themes.availableThemeFamilies[mainProfile.themeConfig.main].screens.main.script)
         readonly property Component resultComponent: resultContext

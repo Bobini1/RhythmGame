@@ -215,9 +215,6 @@ ChartDataFactory::loadChartData(
         }
     }
     auto path = support::pathToQString(chartPath);
-#if _WIN32
-    path.replace('\\', '/');
-#endif
     auto chartData = std::make_unique<gameplay_logic::ChartData>(
       std::move(title),
       std::move(artist),

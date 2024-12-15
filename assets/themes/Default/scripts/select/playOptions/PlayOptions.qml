@@ -37,10 +37,10 @@ Rectangle {
         anchors.horizontalCenter: p1RandomLabel.horizontalCenter
         up: BmsKey.Col12
         down: BmsKey.Col11
-        profile: ProfileList.activeProfiles[0]
+        profile: ProfileList.mainProfile
 
-        model: [NoteOrderAlgorithm.Normal, NoteOrderAlgorithm.Mirror, NoteOrderAlgorithm.Spiral, NoteOrderAlgorithm.Random, NoteOrderAlgorithm.SRandom, NoteOrderAlgorithm.HRandom, NoteOrderAlgorithm.RRandom, NoteOrderAlgorithm.SRandomPlus]
-        strings: ["NORMAL", "MIRROR", "SPIRAL", "RANDOM", "S-RANDOM", "H-RANDOM", "R-RANDOM", "S-RANDOM+"]
+        model: [NoteOrderAlgorithm.Normal, NoteOrderAlgorithm.Mirror, NoteOrderAlgorithm.Random, NoteOrderAlgorithm.RandomPlus, NoteOrderAlgorithm.SRandom, NoteOrderAlgorithm.SRandomPlus, NoteOrderAlgorithm.RRandom]
+        strings: ["NORMAL", "MIRROR", "RANDOM", "RANDOM+", "S-RANDOM", "S-RANDOM+", "R-RANDOM"]
         prop: "noteOrderAlgorithm"
     }
 
@@ -66,7 +66,7 @@ Rectangle {
         anchors.horizontalCenter: p2RandomLabel.horizontalCenter
         up: BmsKey.Col17
         down: BmsKey.Col16
-        profile: ProfileList.activeProfiles[0]
+        profile: ProfileList.mainProfile
 
         model: [NoteOrderAlgorithm.Normal, NoteOrderAlgorithm.Mirror, NoteOrderAlgorithm.Spiral, NoteOrderAlgorithm.Random, NoteOrderAlgorithm.SRandom, NoteOrderAlgorithm.HRandom, NoteOrderAlgorithm.RRandom, NoteOrderAlgorithm.SRandomPlus]
         strings: ["NORMAL", "MIRROR", "SPIRAL", "RANDOM", "S-RANDOM", "H-RANDOM", "R-RANDOM", "S-RANDOM+"]
@@ -124,10 +124,10 @@ Rectangle {
         width: 360
         height: 220
         down: BmsKey.Col13
-        model: ["AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC"]
+        model: ["AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "HAZARD"]
         strings: ["ASSISTED EASY", "EASY", "NORMAL", "HARD", "EXHARD", "HAZARD"]
         prop: "gaugeType"
-        profile: ProfileList.activeProfiles[0]
+        profile: ProfileList.mainProfile
     }
 
     function duplicate(arr) {
@@ -145,7 +145,7 @@ Rectangle {
         model: bg.duplicate([DpOptions.Off, DpOptions.Flip, DpOptions.Battle, DpOptions.BattleAs])
         strings: bg.duplicate(["OFF", "FLIP", "BATTLE", "BATTLE AS"])
         prop: "dpOptions"
-        profile: ProfileList.activeProfiles[0]
+        profile: ProfileList.mainProfile
     }
 
     OptionsTumbler {
@@ -160,7 +160,7 @@ Rectangle {
         model: bg.duplicate([HiSpeedFix.Main, HiSpeedFix.Start, HiSpeedFix.Max, HiSpeedFix.Min, HiSpeedFix.Off])
         strings: bg.duplicate(["MAIN BPM", "START BPM", "MAX BPM", "MIN BPM", "OFF"])
         prop: "hiSpeedFix"
-        profile: ProfileList.activeProfiles[0]
+        profile: ProfileList.mainProfile
     }
     property var open: false
 

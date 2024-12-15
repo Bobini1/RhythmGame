@@ -9,9 +9,8 @@
 #include "charts/gameplay_models/BmsNotesData.h"
 #include "input/BmsKeys.h"
 #include "BmsScore.h"
-#include "BmsNotes.h"
 #include "gameplay_logic/rules/BmsHitRules.h"
-#include "sounds/OpenALSound.h"
+#include "sounds/OpenAlSound.h"
 namespace gameplay_logic {
 class BmsGameReferee
 {

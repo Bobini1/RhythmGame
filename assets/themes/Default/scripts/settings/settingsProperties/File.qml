@@ -5,7 +5,7 @@ import RhythmGameQml
 
 ComboBox {
     id: fileComboBox
-    property var files: FileQuery.getSelectableFilesForDirectory(Themes.availableThemeFamilies[ProfileList.currentProfile.themeConfig[screen]].path + "/" + props.path)
+    property var files: FileQuery.getSelectableFilesForDirectory(Themes.availableThemeFamilies[ProfileList.mainProfile.themeConfig[screen]].path + "/" + props.path)
     model: files
 
     palette {

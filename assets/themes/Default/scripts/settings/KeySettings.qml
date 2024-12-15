@@ -16,12 +16,12 @@ Item {
 
     Connections {
         function onConfiguringChanged() {
-            if (!ProfileList.currentProfile.inputTranslator.configuring)
+            if (!ProfileList.mainProfile.inputTranslator.configuring)
                 pressButton(null);
 
         }
 
-        target: ProfileList.currentProfile.inputTranslator
+        target: ProfileList.mainProfile.inputTranslator
     }
 
     Flickable {
@@ -48,7 +48,7 @@ Item {
                     ColumnLayout {
                         id: keyLayout
 
-                        property var keyConfig: ProfileList.currentProfile.inputTranslator.keyConfig
+                        property var keyConfig: ProfileList.mainProfile.inputTranslator.keyConfig
 
                         anchors.fill: parent
 
@@ -90,9 +90,9 @@ Item {
                                 }
 
                                 Label {
-                                    text: ProfileList.currentProfile.inputTranslator[modelData] ? qsTr("DOWN") : qsTr("UP")
+                                    text: ProfileList.mainProfile.inputTranslator[modelData] ? qsTr("DOWN") : qsTr("UP")
                                     horizontalAlignment: Text.AlignRight
-                                    color: ProfileList.currentProfile.inputTranslator[modelData] ? "green" : "red"
+                                    color: ProfileList.mainProfile.inputTranslator[modelData] ? "green" : "red"
                                 }
 
                                 Button {
@@ -102,7 +102,7 @@ Item {
                                     onCheckedChanged: {
                                         pressButton(this);
                                         if (checked)
-                                            ProfileList.currentProfile.inputTranslator.configuredButton = index;
+                                            ProfileList.mainProfile.inputTranslator.configuredButton = index;
 
                                     }
                                 }
@@ -110,7 +110,7 @@ Item {
                                 Button {
                                     text: qsTr("Reset")
                                     onClicked: {
-                                        ProfileList.currentProfile.inputTranslator.resetButton(index);
+                                        ProfileList.mainProfile.inputTranslator.resetButton(index);
                                     }
                                 }
 

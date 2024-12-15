@@ -9,7 +9,9 @@ auto
 pathToQString(const std::filesystem::path& path) -> QString
 {
 #if defined(_WIN32)
-    return QString::fromStdWString(path.wstring());
+    auto string = QString::fromStdWString(path.wstring());
+    std::ranges::replace(string, '\\', '/');
+    return string;
 #else
     return QString::fromStdString(path.string());
 #endif

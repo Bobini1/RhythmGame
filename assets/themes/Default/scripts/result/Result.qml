@@ -21,7 +21,7 @@ FocusScope {
         readonly property var oldBestStats: Helpers.getBestStats(scores)
         readonly property string rootUrl: globalRoot.urlToPath(Qt.resolvedUrl(".").toString())
         readonly property BmsScoreAftermath result: resultFocusScope.result[0]
-        readonly property var scores: ProfileList.activeProfiles[0].scoreDb.getScoresForChart(chartData.sha256).filter(function (score) {
+        readonly property var scores: ProfileList.mainProfile.scoreDb.getScoresForChart(chartData.sha256).filter(function (score) {
             return score.id !== result.result.id;
         })
         readonly property ChartData _chartData: chartData

@@ -33,9 +33,6 @@ ChartLoader::loadChart(QString filename, QList<int64_t> randomSequence)
               }(randomEngine);
           };
 
-#if _WIN32
-        filename.replace('\\', '/');
-#endif
         auto fileAbsolute = QFileInfo(filename).absoluteFilePath();
         auto chartComponents = chartDataFactory->loadChartData(
           support::qStringToPath(fileAbsolute), randomGenerator);

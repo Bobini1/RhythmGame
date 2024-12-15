@@ -27,7 +27,7 @@ Rectangle {
         }
         return images;
     }
-    readonly property Profile mainProfile: ProfileList.activeProfiles[0]
+    readonly property Profile mainProfile: ProfileList.mainProfile
     readonly property var mainProfileVars: mainProfile.vars.themeVars.gameplay
     property list<string> noteColors: {
         let images = [];
@@ -98,8 +98,8 @@ Rectangle {
     PlayAreaPopup {
         id: playAreaPopup
 
-        themeVars: ProfileList.activeProfiles[0].vars.themeVars.gameplay
-        globalVars: ProfileList.activeProfiles[0].vars.globalVars
+        themeVars: ProfileList.mainProfile.vars.themeVars.gameplay
+        globalVars: ProfileList.mainProfile.vars.globalVars
 
         onClosed: {
             root.popup = null;
@@ -108,7 +108,7 @@ Rectangle {
     GaugePopup {
         id: gaugePopup
 
-        themeVars: ProfileList.activeProfiles[0].vars.themeVars.gameplay
+        themeVars: ProfileList.mainProfile.vars.themeVars.gameplay
 
         onClosed: {
             root.popup = null;
@@ -126,7 +126,7 @@ Rectangle {
             id: playAreaTemplate
 
             columns: playArea.columns
-            vars: ProfileList.activeProfiles[0].vars.themeVars.gameplay
+            vars: ProfileList.mainProfile.vars.themeVars.gameplay
             visible: root.customizeMode
             z: playArea.z + 1
 
@@ -149,7 +149,7 @@ Rectangle {
             id: playArea
 
             columns: root.mainProfileVars.scratchOnRightSide ? [0, 1, 2, 3, 4, 5, 6, 7] : [7, 0, 1, 2, 3, 4, 5, 6]
-            profile: ProfileList.activeProfiles[0]
+            profile: ProfileList.mainProfile
             score: chart.scores[0]
             notes: columns.map(function (column) {
                 return chart.notes[0].visibleNotes[column];
@@ -162,7 +162,7 @@ Rectangle {
             id: bga
 
             height: root.mainProfileVars.bgaSize
-            visible: ProfileList.activeProfiles[0].vars.globalVars.bgaOn
+            visible: ProfileList.mainProfile.vars.globalVars.bgaOn
             width: root.mainProfileVars.bgaSize
             x: root.mainProfileVars.bgaX
             y: root.mainProfileVars.bgaY

@@ -27,17 +27,17 @@ RowLayout {
         active: true
         Layout.fillWidth: true
         property var props: parent.props
-        property var destination: ProfileList.currentProfile.vars.globalVars
+        property var destination: ProfileList.mainProfile.vars.globalVars
         Layout.alignment: Qt.AlignVCenter
     }
     Button {
         text: "Reset"
 
         implicitWidth: 50
-        enabled: ProfileList.currentProfile.vars.globalVars[parent.props.id] !== parent.props.default
+        enabled: ProfileList.mainProfile.vars.globalVars[parent.props.id] !== parent.props.default
         Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
         onClicked: {
-            ProfileList.currentProfile.vars.globalVars[parent.props.id] = parent.props.default
+            ProfileList.mainProfile.vars.globalVars[parent.props.id] = parent.props.default
         }
     }
 }

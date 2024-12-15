@@ -1,18 +1,16 @@
 #include "resource_managers/FindAssetsFolderBoost.h"
 #include "resource_managers/IniImageProvider.h"
-#include "sounds/OpenAlSound.h"
 #include "gameplay_logic/rules/Lr2TimingWindows.h"
 #include "qml_components/ProgramSettings.h"
 #include "qml_components/ChartLoader.h"
 
 #include <QGuiApplication>
 #include <QObject>
-#include <qtquick>
+#include <QtQuick>
 #include <spdlog/sinks/qt_sinks.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include "qml_components/Logger.h"
 #include "gameplay_logic/rules/StandardBmsHitRules.h"
-#include "gameplay_logic/rules/Lr2Gauge.h"
 #include "gameplay_logic/rules/Lr2HitValues.h"
 #include "resource_managers/SongDbScanner.h"
 #include "resource_managers/DefineDb.h"

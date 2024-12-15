@@ -34,9 +34,6 @@ addDirToParentDirs(db::SqliteCppDb& db, QString root, QString folder)
     auto insert = db.createStatement("INSERT OR IGNORE INTO parent_dir "
                                      "(parent_dir, dir) VALUES (:parent_dir, "
                                      ":dir)");
-#ifdef _WIN32
-    folder.replace('\\', '/');
-#endif
     if (folder.back() != '/') {
         folder += '/';
     }
@@ -110,10 +107,6 @@ addPreviewFileToDb(db::SqliteCppDb& db,
 {
     auto previewPath = support::pathToUtfString((path));
     auto directoryPath = support::pathToUtfString((directory / ""));
-#if _WIN32
-    std::ranges::replace(previewPath, '\\', '/');
-    std::ranges::replace(directoryPath, '\\', '/');
-#endif
     auto statement = db.createStatement(
       "INSERT OR REPLACE INTO preview_files (path, directory) "
       "VALUES (?, ?)");
@@ -182,7 +175,6 @@ scanFolder(std::filesystem::path directory,
     auto isSongDirectory = false;
     auto parentDirQString = support::pathToQString(parentDirectory);
     if (!parentDirQString.isEmpty()) {
-        parentDirQString.replace('\\', '/');
         if (parentDirQString.back() != '/') {
             parentDirQString += '/';
         }
