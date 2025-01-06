@@ -4,23 +4,23 @@
 
 #include "KeyboardInputForwarder.h"
 
+#include "InputTranslators.h"
 #include "qml_components/ProfileList.h"
 
 namespace resource_managers {
-KeyboardInputForwarder::
-KeyboardInputForwarder(qml_components::ProfileList* profileList,
-                       QObject* parent)
+KeyboardInputForwarder::KeyboardInputForwarder(
+  InputTranslators* inputTranslators,
+  QObject* parent)
   : QObject(parent)
-  , profileList(profileList)
+  , inputTranslators(inputTranslators)
 {
 }
 auto
 KeyboardInputForwarder::eventFilter(QObject* watched, QEvent* event) -> bool
 {
     auto ret = false;
-    for (const auto& activeProfiles = profileList->getActiveProfiles();
-         const auto* activeProfile : activeProfiles) {
-        ret |= activeProfile->getInputTranslator()->eventFilter(watched, event);
+    for (auto* inputTranslator : inputTranslators->getInputTranslators()) {
+        ret |= inputTranslator->eventFilter(watched, event);
     }
     return ret;
 }

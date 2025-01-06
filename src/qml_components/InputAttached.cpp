@@ -4,45 +4,62 @@
 
 #include "InputAttached.h"
 
+#include "resource_managers/InputTranslators.h"
+
 #include <spdlog/spdlog.h>
 #include <spdlog/stopwatch.h>
 
 namespace qml_components {
 void
-InputSignalProvider::connectProfile(resource_managers::Profile* profile)
+InputSignalProvider::connectProfile(
+  resource_managers::Profile* profile,
+  const input::InputTranslator* inputTranslator,
+  int playerIndex)
 {
-    connect(profile->getInputTranslator(),
-            &input::InputTranslator::buttonPressed,
-            this,
-            [profile, this](const input::BmsKey button,
-                            const double value,
-                            const int64_t time) {
-                emit buttonPressed(profile, button, value, time);
-            });
-    connect(profile->getInputTranslator(),
-            &input::InputTranslator::buttonReleased,
-            this,
-            [profile, this](const input::BmsKey button, const int64_t time) {
-                emit buttonReleased(profile, button, time);
-            });
+    connections.append(connect(
+      inputTranslator,
+      &input::InputTranslator::buttonPressed,
+      this,
+      [profile, playerIndex, this](
+        const input::BmsKey button, const double value, const int64_t time) {
+          emit buttonPressed(profile, button, playerIndex, value, time);
+      }));
+    connections.append(
+      connect(inputTranslator,
+              &input::InputTranslator::buttonReleased,
+              this,
+              [profile, playerIndex, this](const input::BmsKey button,
+                                           const int64_t time) {
+                  emit buttonReleased(profile, button, playerIndex, time);
+              }));
 }
-InputSignalProvider::
-InputSignalProvider(ProfileList* profileList)
-  : profileList(profileList)
+InputSignalProvider::InputSignalProvider(
+  ProfileList* profileList,
+  resource_managers::InputTranslators* inputTranslators,
+  QObject* parent)
+  : QObject(parent)
+  , profileList(profileList)
+  , inputTranslators(inputTranslators)
+
 {
-    for (auto* profile : profileList->getProfiles()) {
-        connectProfile(profile);
+    for (auto i = 0; i < profileList->getActiveProfiles().size(); ++i) {
+        connectProfile(profileList->getActiveProfiles().at(i),
+                       inputTranslators->getInputTranslators().at(i),
+                       i);
     }
-    connect(profileList,
-            &ProfileList::rowsInserted,
-            this,
-            [this, profileList](const QModelIndex& model, int begin, int end) {
-                for (int i = begin; i <= end; ++i) {
-                    auto* profile = profileList->at(i);
-                    connectProfile(profile);
-                }
-            });
-    // Disconnecting manually shouldn't be necessary.
+    connect(profileList, &ProfileList::activeProfilesChanged, this, [this]() {
+        for (const auto& connection : connections) {
+            disconnect(connection);
+        }
+        connections.clear();
+        for (auto i = 0; i < this->profileList->getActiveProfiles().size();
+             ++i) {
+            auto* profile = this->profileList->at(i);
+            const auto* inputTranslator =
+              this->inputTranslators->getInputTranslators().at(i);
+            connectProfile(profile, inputTranslator, i);
+        }
+    });
 }
 auto
 InputAttached::isAttachedToCurrentScene() const -> bool
@@ -57,8 +74,7 @@ InputAttached::isAttachedToCurrentScene() const -> bool
     }
     return false;
 }
-InputAttached::
-InputAttached(QObject* obj)
+InputAttached::InputAttached(QObject* obj)
   : QObject(obj)
 {
     connect(inputSignalProvider,

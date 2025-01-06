@@ -20,18 +20,27 @@ class InputSignalProvider final : public QObject
 {
     Q_OBJECT
     ProfileList* profileList;
+    resource_managers::InputTranslators* inputTranslators;
+    QList<QMetaObject::Connection> connections;
 
-    void connectProfile(resource_managers::Profile* profile);
+    void connectProfile(resource_managers::Profile* profile,
+                        const input::InputTranslator* inputTranslator,
+                        int playerIndex);
 
   public:
-    explicit InputSignalProvider(ProfileList* profileList);
+    explicit InputSignalProvider(
+      ProfileList* profileList,
+      resource_managers::InputTranslators* inputTranslators,
+      QObject* parent = nullptr);
   signals:
     void buttonPressed(resource_managers::Profile* profile,
                        input::BmsKey button,
+                       int playerIndex,
                        double value,
                        int64_t time);
     void buttonReleased(resource_managers::Profile* profile,
                         input::BmsKey button,
+                        int playerIndex,
                         int64_t time);
 };
 

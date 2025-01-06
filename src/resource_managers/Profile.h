@@ -20,8 +20,6 @@ class Profile final : public QObject
     Q_PROPERTY(QString path READ getPathQString CONSTANT)
     Q_PROPERTY(QQmlPropertyMap* themeConfig READ getThemeConfig CONSTANT)
     Q_PROPERTY(Vars* vars READ getVars CONSTANT)
-    Q_PROPERTY(
-      input::InputTranslator* inputTranslator READ getInputTranslator CONSTANT)
     Q_PROPERTY(qml_components::ScoreDb* scoreDb READ getScoreDb CONSTANT)
     QString name;
     QString avatar;
@@ -29,10 +27,7 @@ class Profile final : public QObject
     std::filesystem::path dbPath;
     QQmlPropertyMap* themeConfig;
     Vars vars;
-    input::InputTranslator* inputTranslator;
     qml_components::ScoreDb scoreDb{ &db };
-
-    void onKeyConfigModified();
 
   public:
     /**
@@ -46,7 +41,6 @@ class Profile final : public QObject
     explicit Profile(
       const std::filesystem::path& dbPath,
       const QMap<QString, qml_components::ThemeFamily>& themeFamilies,
-      input::InputTranslator* inputTranslator,
       QObject* parent = nullptr);
 
     auto getPath() const -> std::filesystem::path;
@@ -55,7 +49,6 @@ class Profile final : public QObject
     auto getScoreDb() -> qml_components::ScoreDb*;
     auto getThemeConfig() const -> QQmlPropertyMap*;
     auto getVars() -> Vars*;
-    auto getInputTranslator() const -> input::InputTranslator*;
 };
 
 } // namespace resource_managers

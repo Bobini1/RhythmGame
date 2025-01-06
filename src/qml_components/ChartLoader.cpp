@@ -7,8 +7,9 @@
 #include <utility>
 #include "gameplay_logic/Chart.h"
 #include "support/QStringToPath.h"
-#include "magic_enum.hpp"
+#include "magic_enum/magic_enum.hpp"
 #include "qdir.h"
+#include "resource_managers/InputTranslators.h"
 
 #include <spdlog/spdlog.h>
 
@@ -59,34 +60,28 @@ ChartLoader::loadChart(QString filename, QList<int64_t> randomSequence)
               hitRulesFactory(timingWindows, hitValuesFactoryPartial));
         }
 
-        return chartFactory->createChart(std::move(chartComponents),
-                                         std::move(hitRules),
-                                         std::move(gauges),
-                                         profileList->getActiveProfiles(),
-                                         maxHitValue);
+        return chartFactory->createChart(
+          std::move(chartComponents),
+          std::move(hitRules),
+          std::move(gauges),
+          profileList->getActiveProfiles(),
+          inputTranslators->getInputTranslators(),
+          maxHitValue);
     } catch (const std::exception& e) {
         spdlog::error("Failed to load chart: {}", e.what());
         return nullptr;
     }
 }
-ChartLoader::
-ChartLoader(ProfileList* profileList,
-            resource_managers::ChartDataFactory* chartDataFactory,
-            std::function<gameplay_logic::rules::TimingWindows(
-              gameplay_logic::rules::BmsRank)> timingWindowsFactory,
-            std::function<std::unique_ptr<gameplay_logic::rules::BmsHitRules>(
-              gameplay_logic::rules::TimingWindows,
-              std::function<double(std::chrono::nanoseconds)>)> hitRulesFactory,
-            std::function<double(gameplay_logic::rules::TimingWindows,
-                                 std::chrono::nanoseconds)> hitValueFactory,
-            std::function<QList<gameplay_logic::rules::BmsGauge*>(
-              resource_managers::Profile* profile,
-              gameplay_logic::rules::TimingWindows timingWindows,
-              double total,
-              int noteCount)> gaugeFactory,
-            resource_managers::ChartFactory* chartFactory,
-            double maxHitValue,
-            QObject* parent)
+ChartLoader::ChartLoader(ProfileList* profileList,
+                         resource_managers::InputTranslators* inputTranslators,
+                         resource_managers::ChartDataFactory* chartDataFactory,
+                         TimingWindowsFactory timingWindowsFactory,
+                         HitRulesFactory hitRulesFactory,
+                         HitValueFactory hitValueFactory,
+                         GaugeFactory gaugeFactory,
+                         resource_managers::ChartFactory* chartFactory,
+                         double maxHitValue,
+                         QObject* parent)
   : QObject(parent)
   , chartDataFactory(chartDataFactory)
   , timingWindowsFactory(std::move(timingWindowsFactory))
@@ -96,6 +91,7 @@ ChartLoader(ProfileList* profileList,
   , chartFactory(chartFactory)
   , maxHitValue(maxHitValue)
   , profileList(profileList)
+  , inputTranslators(inputTranslators)
 
 {
 }

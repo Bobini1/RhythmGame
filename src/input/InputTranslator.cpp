@@ -467,8 +467,7 @@ InputTranslator::getTime(const QKeyEvent& event) -> int64_t
 #endif
 }
 
-InputTranslator::
-InputTranslator(QObject* parent)
+InputTranslator::InputTranslator(QObject* parent)
   : QObject(parent)
 {
 #ifdef _WIN32
@@ -507,11 +506,11 @@ InputTranslator::isConfiguring() const -> bool
 void
 InputTranslator::setKeyConfig(const QList<Mapping>& newConfig)
 {
-    config.clear();
+    auto config = QHash<Key, BmsKey>{};
     for (const auto& mapping : newConfig) {
         config[mapping.key] = mapping.button;
     }
-    emit keyConfigModified();
+    setKeyConfig(config);
 }
 auto
 InputTranslator::getKeyConfig() -> QList<Mapping>
@@ -521,6 +520,20 @@ InputTranslator::getKeyConfig() -> QList<Mapping>
         result.append({ key, button });
     }
     return result;
+}
+void
+InputTranslator::setKeyConfig(const QHash<Key, BmsKey>& config)
+{
+    if (this->config == config) {
+        return;
+    }
+    this->config = config;
+    emit keyConfigModified();
+}
+auto
+InputTranslator::getKeyConfigHash() -> QHash<Key, BmsKey>
+{
+    return config;
 }
 void
 InputTranslator::resetButton(BmsKey key)

@@ -6,6 +6,7 @@
 #include <QObject>
 #include "ChartFactory.h"
 
+#include "InputTranslators.h"
 #include "charts/helper_functions/loadBmsSounds.h"
 #include "qml_components/ProfileList.h"
 #include "support/GeneratePermutation.h"
@@ -272,7 +273,8 @@ ChartFactory::createChart(
   std::vector<std::unique_ptr<gameplay_logic::rules::BmsHitRules>> hitRules,
   std::vector<QList<gameplay_logic::rules::BmsGauge*>> gauges,
   const QList<Profile*>& profiles,
-  double maxHitValue) -> gameplay_logic::Chart*
+  const QList<input::InputTranslator*>& inputTranslators,
+  const double maxHitValue) -> gameplay_logic::Chart*
 {
     auto& [chartData, notesData, wavs, bmps] = chartComponents;
     auto path = support::qStringToPath(chartData->getPath()).parent_path();
@@ -408,8 +410,7 @@ ChartFactory::createChart(
                                             scores,
                                             profiles);
     for (auto playerIndex = 0; playerIndex < profiles.size(); playerIndex++) {
-        const auto* const inputTranslator =
-          profiles[playerIndex]->getInputTranslator();
+        const auto* const inputTranslator = inputTranslators[playerIndex];
         QObject::connect(
           inputTranslator,
           &input::InputTranslator::buttonPressed,
@@ -433,10 +434,5 @@ ChartFactory::createChart(
           });
     }
     return chart;
-}
-ChartFactory::
-ChartFactory(qml_components::ProfileList* profileList)
-  : profileList(profileList)
-{
 }
 } // namespace resource_managers

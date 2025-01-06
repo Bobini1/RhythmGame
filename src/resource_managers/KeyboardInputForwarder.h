@@ -5,8 +5,8 @@
 #ifndef KEYBOARDINPUTFORWARDER_H
 #define KEYBOARDINPUTFORWARDER_H
 #include <QObject>
-namespace qml_components {
-class ProfileList;
+namespace resource_managers {
+class InputTranslators;
 }
 namespace resource_managers {
 
@@ -14,10 +14,10 @@ class KeyboardInputForwarder final : public QObject
 {
     Q_OBJECT
 
-    qml_components::ProfileList* profileList;
+    InputTranslators* inputTranslators;
 
   public:
-    explicit KeyboardInputForwarder(qml_components::ProfileList* profileList,
+    explicit KeyboardInputForwarder(InputTranslators* inputTranslators,
                                     QObject* parent = nullptr);
     auto eventFilter(QObject* watched, QEvent* event) -> bool override;
 };

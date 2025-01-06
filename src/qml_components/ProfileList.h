@@ -10,6 +10,9 @@
 
 #include <qproperty.h>
 #include <qqmllist.h>
+namespace resource_managers {
+class InputTranslators;
+}
 namespace qml_components {
 class ThemeFamily;
 
@@ -26,7 +29,7 @@ class ProfileList final : public QAbstractListModel
     std::filesystem::path profilesFolder;
     QList<resource_managers::Profile*> profiles;
     db::SqliteCppDb* songDb;
-    input::GamepadManager* gamepadManager;
+    resource_managers::InputTranslators* keyConfigs;
     QMap<QString, ThemeFamily> themeFamilies;
     QList<resource_managers::Profile*> activeProfiles;
     resource_managers::Profile* mainProfile{};
@@ -41,8 +44,6 @@ class ProfileList final : public QAbstractListModel
       QList<resource_managers::Profile*> previousSessionProfiles READ
         getPreviousSessionProfiles NOTIFY previousSessionProfilesChanged)
 
-    auto createInputTranslator() -> input::InputTranslator*;
-
     auto createDefaultProfile() -> resource_managers::Profile*;
 
     void saveMainProfile();
@@ -52,7 +53,6 @@ class ProfileList final : public QAbstractListModel
     explicit ProfileList(db::SqliteCppDb* songDb,
                          const QMap<QString, ThemeFamily>& themeFamilies,
                          std::filesystem::path profilesFolder,
-                         input::GamepadManager* gamepadManager,
                          QObject* parent = nullptr);
 
     auto rowCount(const QModelIndex& parent = QModelIndex()) const

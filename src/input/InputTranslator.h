@@ -10,7 +10,7 @@
 #include <QKeyEvent>
 #include <QObject>
 #include <QVariant>
-#include <magic_enum.hpp>
+#include <magic_enum/magic_enum.hpp>
 #include <functional>
 
 namespace input {
@@ -84,7 +84,7 @@ class Mapping
       -> QDataStream&;
 };
 
-class InputTranslator : public QObject
+class InputTranslator final : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(bool configuring READ isConfiguring NOTIFY configuringChanged)
@@ -160,6 +160,8 @@ class InputTranslator : public QObject
     auto isConfiguring() const -> bool;
     void setKeyConfig(const QList<Mapping>& config);
     auto getKeyConfig() -> QList<Mapping>;
+    void setKeyConfig(const QHash<Key, BmsKey>& config);
+    auto getKeyConfigHash() -> QHash<Key, BmsKey>;
     Q_INVOKABLE void resetButton(BmsKey key);
     auto col11() const -> bool;
     auto col12() const -> bool;

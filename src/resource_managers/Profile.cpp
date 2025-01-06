@@ -33,11 +33,10 @@ createConfig(const QMap<QString, qml_components::ThemeFamily>& availableThemes,
 }
 } // namespace
 
-Profile::
-Profile(const std::filesystem::path& dbPath,
-        const QMap<QString, qml_components::ThemeFamily>& themeFamilies,
-        input::InputTranslator* inputTranslator,
-        QObject* parent)
+Profile::Profile(
+  const std::filesystem::path& dbPath,
+  const QMap<QString, qml_components::ThemeFamily>& themeFamilies,
+  QObject* parent)
   : QObject(parent)
   , db(createDb(dbPath))
   , dbPath(dbPath)
@@ -45,14 +44,9 @@ Profile(const std::filesystem::path& dbPath,
       createConfig(themeFamilies, dbPath.parent_path() / "theme_config.json")
         .release())
   , vars(this, themeFamilies)
-  , inputTranslator(inputTranslator)
 {
     this->themeConfig->setParent(this);
     auto configPath = dbPath.parent_path() / "theme_config.json";
-    connect(inputTranslator,
-            &input::InputTranslator::keyConfigModified,
-            this,
-            &Profile::onKeyConfigModified);
     connect(themeConfig,
             &QQmlPropertyMap::valueChanged,
             this,
@@ -60,22 +54,6 @@ Profile(const std::filesystem::path& dbPath,
                 writeConfig(configPath, *themeConfig);
             });
     writeConfig(configPath, *themeConfig);
-    if (!db.hasTable("properties")) {
-        db.execute("CREATE TABLE properties ("
-                   "id INTEGER PRIMARY KEY AUTOINCREMENT,"
-                   "key TEXT NOT NULL UNIQUE,"
-                   "value"
-                   ");");
-    } else {
-        auto statement =
-          db.createStatement("SELECT value FROM properties WHERE "
-                             "key = 'key_config'");
-        if (const auto config = statement.executeAndGet<std::string>()) {
-            const auto serializedData = QByteArray::fromStdString(*config);
-            inputTranslator->setKeyConfig(
-              support::decompress<QList<input::Mapping>>(serializedData));
-        }
-    }
     db.execute("CREATE TABLE IF NOT EXISTS score ("
                "id INTEGER PRIMARY KEY,"
                "sha256 TEXT NOT NULL,"
@@ -135,26 +113,9 @@ Profile::getThemeConfig() const -> QQmlPropertyMap*
 {
     return themeConfig;
 }
-void
-Profile::onKeyConfigModified()
-{
-    const auto keyConfig = inputTranslator->getKeyConfig();
-    auto compressedData = support::compress(keyConfig);
-    auto updateProperty =
-      db.createStatement("INSERT OR REPLACE INTO properties "
-                         "(key, value) VALUES (?, ?)");
-    updateProperty.bind(1, "key_config");
-    updateProperty.bind(2, compressedData.data(), compressedData.size());
-    updateProperty.execute();
-}
 auto
 Profile::getVars() -> Vars*
 {
     return &vars;
-}
-auto
-Profile::getInputTranslator() const -> input::InputTranslator*
-{
-    return inputTranslator;
 }
 } // namespace resource_managers

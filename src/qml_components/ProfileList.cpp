@@ -14,37 +14,16 @@
 #include <QUuid>
 
 auto
-qml_components::ProfileList::createInputTranslator() -> input::InputTranslator*
-{
-    auto* const inputTranslator = new input::InputTranslator(this);
-    connect(gamepadManager,
-            &input::GamepadManager::axisMoved,
-            inputTranslator,
-            &input::InputTranslator::handleAxis);
-    connect(gamepadManager,
-            &input::GamepadManager::buttonPressed,
-            inputTranslator,
-            &input::InputTranslator::handlePress);
-    connect(gamepadManager,
-            &input::GamepadManager::buttonReleased,
-            inputTranslator,
-            &input::InputTranslator::handleRelease);
-    return inputTranslator;
-}
-auto
 qml_components::ProfileList::createDefaultProfile()
   -> resource_managers::Profile*
 {
     auto* profile = new resource_managers::Profile(
-      this->profilesFolder / "default" / "profile.sqlite",
-      themeFamilies,
-      createInputTranslator(),
-      this);
+      this->profilesFolder / "default" / "profile.sqlite", themeFamilies, this);
     QQmlEngine::setObjectOwnership(profile, QQmlEngine::CppOwnership);
-    profile->getInputTranslator()->setParent(profile);
     profiles.append(profile);
     return profile;
 }
+
 void
 qml_components::ProfileList::saveMainProfile()
 {
@@ -73,16 +52,14 @@ qml_components::ProfileList::saveActiveProfiles()
     statement.execute();
 }
 
-qml_components::ProfileList::
-ProfileList(db::SqliteCppDb* songDb,
-            const QMap<QString, ThemeFamily>& themeFamilies,
-            std::filesystem::path profilesFolder,
-            input::GamepadManager* gamepadManager,
-            QObject* parent)
+qml_components::ProfileList::ProfileList(
+  db::SqliteCppDb* songDb,
+  const QMap<QString, ThemeFamily>& themeFamilies,
+  std::filesystem::path profilesFolder,
+  QObject* parent)
   : QAbstractListModel(parent)
   , profilesFolder(std::move(profilesFolder))
   , songDb(songDb)
-  , gamepadManager(gamepadManager)
   , themeFamilies(themeFamilies)
 {
     if (!exists(this->profilesFolder)) {
@@ -96,13 +73,9 @@ ProfileList(db::SqliteCppDb* songDb,
         if (entry.is_directory()) {
             try {
                 auto* profile = new resource_managers::Profile(
-                  entry.path() / "profile.sqlite",
-                  themeFamilies,
-                  createInputTranslator(),
-                  this);
+                  entry.path() / "profile.sqlite", themeFamilies, this);
                 QQmlEngine::setObjectOwnership(profile,
                                                QQmlEngine::CppOwnership);
-                profile->getInputTranslator()->setParent(profile);
                 profiles.append(profile);
             } catch (const std::exception& e) {
                 spdlog::error("Failed to load profile {}: {}",
@@ -176,25 +149,21 @@ qml_components::ProfileList::data(const QModelIndex& index, int role) const
 auto
 qml_components::ProfileList::createProfile() -> resource_managers::Profile*
 {
-    resource_managers::Profile* profile = nullptr;
-    auto* inputTranslator = createInputTranslator();
     try {
-        profile = new resource_managers::Profile(
+        auto* profile = new resource_managers::Profile(
           profilesFolder / QUuid::createUuid().toString().toStdString() /
             "profile.sqlite",
           themeFamilies,
-          inputTranslator,
           this);
+        QQmlEngine::setObjectOwnership(profile, QQmlEngine::CppOwnership);
+        profiles.append(profile);
+        emit dataChanged(index(profiles.size() - 1),
+                         index(profiles.size() - 1));
+        return profile;
     } catch (const std::exception& e) {
         spdlog::error("Failed to create profile: {}", e.what());
-        inputTranslator->deleteLater();
         return nullptr;
     }
-    QQmlEngine::setObjectOwnership(profile, QQmlEngine::CppOwnership);
-    profile->getInputTranslator()->setParent(profile);
-    profiles.append(profile);
-    emit dataChanged(index(profiles.size() - 1), index(profiles.size() - 1));
-    return profile;
 }
 
 void

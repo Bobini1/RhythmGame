@@ -25,6 +25,7 @@
 #include "qml_components/InputAttached.h"
 #include "qml_components/Themes.h"
 #include "resource_managers/GaugeFactory.h"
+#include "resource_managers/InputTranslators.h"
 #include "resource_managers/KeyboardInputForwarder.h"
 #include "resource_managers/ScanThemes.h"
 
@@ -132,10 +133,25 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
         qmlRegisterSingletonInstance(
           "RhythmGameQml", 1, 0, "ProfileList", &profileList);
 
-        auto keyboardInputForwarder =
-          resource_managers::KeyboardInputForwarder{ &profileList };
+        auto inputTranslators =
+          resource_managers::InputTranslators{ &gamepadManager, &db };
+        qmlRegisterSingletonInstance(
+          "RhythmGameQml", 1, 0, "InputTranslators", &inputTranslators);
+        // always 1 player at the start of the game
+        inputTranslators.onPlayerCountChanged(
+          profileList.getActiveProfiles().size());
+        QObject::connect(&profileList,
+                         &qml_components::ProfileList::activeProfilesChanged,
+                         &inputTranslators,
+                         [&inputTranslators, &profileList]() {
+                             inputTranslators.onPlayerCountChanged(
+                               profileList.getActiveProfiles().size());
+                         });
 
-        auto chartFactory = resource_managers::ChartFactory{ &profileList };
+        auto keyboardInputForwarder =
+          resource_managers::KeyboardInputForwarder{ &inputTranslators };
+
+        auto chartFactory = resource_managers::ChartFactory{};
         auto hitRulesFactory =
           [](gameplay_logic::rules::TimingWindows timingWindows,
              std::function<double(std::chrono::nanoseconds)> hitValuesFactory) {
@@ -146,7 +162,8 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
         auto chartDataFactory = resource_managers::ChartDataFactory{};
         auto gaugeFactory = resource_managers::GaugeFactory{};
         auto chartLoader = qml_components::ChartLoader{
-            (&profileList),
+            &profileList,
+            &inputTranslators,
             &chartDataFactory,
             &gameplay_logic::rules::lr2_timing_windows::getTimingWindows,
             std::move(hitRulesFactory),
@@ -265,7 +282,8 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
 
         auto getCurrentScene = std::function<QQuickItem*()>{};
         auto inputSignalProvider =
-          qml_components::InputSignalProvider{ &profileList };
+          qml_components::InputSignalProvider{ &profileList,
+                                               &inputTranslators };
         qml_components::InputAttached::inputSignalProvider =
           &inputSignalProvider;
         qml_components::InputAttached::findCurrentScene = &getCurrentScene;
