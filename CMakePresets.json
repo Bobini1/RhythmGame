@@ -52,7 +52,8 @@
       "name": "vcpkg-win64-sharedqt",
       "hidden": true,
       "cacheVariables": {
-        "VCPKG_TARGET_TRIPLET": "x64-windows-static-md-sharedqt"
+        "VCPKG_TARGET_TRIPLET": "x64-windows-static-md-sharedqt",
+        "VCPKG_HOST_TRIPLET": "x64-windows-static-md-sharedqt"
       }
     },
     {
