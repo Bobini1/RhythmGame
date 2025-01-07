@@ -2,16 +2,20 @@ import QtQuick
 import RhythmGameQml
 
 Image {
-    id: stageFile
-
     asynchronous: true
     height: sourceSize.height
+
+    required property string chartDirectory
+    required property string stageFileName
     source: {
-        let dir = chartData.chartDirectory;
+        if (stageFileName === "") {
+            return "";
+        }
+        let dir = chartDirectory;
         if (dir[0] !== "/") {
             dir = "/" + dir;
         }
-        let stageFile = "file://" + dir + chartData.stageFile;
+        let stageFile = "file://" + dir + stageFileName;
         return stageFile;
     }
     sourceSize.height: 192

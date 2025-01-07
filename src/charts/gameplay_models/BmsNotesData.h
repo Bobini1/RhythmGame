@@ -5,11 +5,9 @@
 #ifndef RHYTHMGAME_BMSNOTESDATA_H
 #define RHYTHMGAME_BMSNOTESDATA_H
 
-#include <string>
 #include <vector>
 #include <chrono>
 #include "Snap.h"
-#include "sounds/OpenAlSound.h"
 #include "charts/parser_models/ParsedBmsChart.h"
 
 namespace charts::gameplay_models {

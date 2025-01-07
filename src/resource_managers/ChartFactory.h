@@ -9,20 +9,22 @@
 #include "gameplay_logic/Chart.h"
 #include "input/InputTranslator.h"
 namespace resource_managers {
+class InputTranslators;
+}
+namespace qml_components {
+class ProfileList;
+} // namespace qml_components
+namespace resource_managers {
 
 class ChartFactory
 {
-    std::function<db::SqliteCppDb&()> scoreDb;
-    input::InputTranslator* inputTranslator;
-
   public:
-    explicit ChartFactory(std::function<db::SqliteCppDb&()> scoreDb,
-                          input::InputTranslator* inputTranslator);
-
     auto createChart(
       ChartDataFactory::ChartComponents chartComponents,
-      std::unique_ptr<gameplay_logic::rules::BmsHitRules> hitRules,
-      QList<gameplay_logic::rules::BmsGauge*> gauges,
+      std::vector<std::unique_ptr<gameplay_logic::rules::BmsHitRules>> hitRules,
+      std::vector<QList<gameplay_logic::rules::BmsGauge*>> gauges,
+      const QList<Profile*>& profiles,
+      const QList<input::InputTranslator*>& inputTranslators,
       double maxHitValue) -> gameplay_logic::Chart*;
 };
 

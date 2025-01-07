@@ -9,8 +9,7 @@ Row {
 
     required property string prop
     property string description: prop
-    property bool global: false
-    readonly property var src: global ? ProfileList.currentProfile.vars.globalVars : root.vars
+    required property var src
 
     Text {
         id: text
@@ -35,10 +34,6 @@ Row {
         width: 390
 
         color: src[prop]
-
-        Component.onCompleted: {
-            print(width, height)
-        }
 
         MouseArea {
             anchors.fill: parent

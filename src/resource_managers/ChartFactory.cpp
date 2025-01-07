@@ -6,7 +6,10 @@
 #include <QObject>
 #include "ChartFactory.h"
 
+#include "InputTranslators.h"
 #include "charts/helper_functions/loadBmsSounds.h"
+#include "qml_components/ProfileList.h"
+#include "support/GeneratePermutation.h"
 #include "support/QStringToPath.h"
 #include "support/PathToQString.h"
 #include <QImageReader>
@@ -86,13 +89,18 @@ loadBmpVideo(const std::filesystem::path& path) -> std::unique_ptr<QMediaPlayer>
 }
 
 auto
-loadBga(std::vector<std::pair<charts::gameplay_models::BmsNotesData::Time, uint16_t>> bgaBase,
-        std::vector<std::pair<charts::gameplay_models::BmsNotesData::Time, uint16_t>> bgaPoor,
-        std::vector<std::pair<charts::gameplay_models::BmsNotesData::Time, uint16_t>> bgaLayer,
-        std::vector<std::pair<charts::gameplay_models::BmsNotesData::Time, uint16_t>> bgaLayer2,
-        std::unordered_map<uint16_t, std::filesystem::path> bmps,
-        QThread* thread,
-        std::filesystem::path path) -> std::unique_ptr<qml_components::BgaContainer>
+loadBga(
+  std::vector<std::pair<charts::gameplay_models::BmsNotesData::Time, uint16_t>>
+    bgaBase,
+  std::vector<std::pair<charts::gameplay_models::BmsNotesData::Time, uint16_t>>
+    bgaPoor,
+  std::vector<std::pair<charts::gameplay_models::BmsNotesData::Time, uint16_t>>
+    bgaLayer,
+  std::vector<std::pair<charts::gameplay_models::BmsNotesData::Time, uint16_t>>
+    bgaLayer2,
+  std::unordered_map<uint16_t, std::filesystem::path> bmps,
+  QThread* thread,
+  std::filesystem::path path) -> std::unique_ptr<qml_components::BgaContainer>
 {
     auto start = std::chrono::high_resolution_clock::now();
     struct Request
@@ -262,43 +270,122 @@ loadBga(std::vector<std::pair<charts::gameplay_models::BmsNotesData::Time, uint1
 auto
 ChartFactory::createChart(
   ChartDataFactory::ChartComponents chartComponents,
-  std::unique_ptr<gameplay_logic::rules::BmsHitRules> hitRules,
-  QList<gameplay_logic::rules::BmsGauge*> gauges,
-  double maxHitValue) -> gameplay_logic::Chart*
+  std::vector<std::unique_ptr<gameplay_logic::rules::BmsHitRules>> hitRules,
+  std::vector<QList<gameplay_logic::rules::BmsGauge*>> gauges,
+  const QList<Profile*>& profiles,
+  const QList<input::InputTranslator*>& inputTranslators,
+  const double maxHitValue) -> gameplay_logic::Chart*
 {
-    auto& [chartData, notes, notesData, wavs, bmps] = chartComponents;
+    auto& [chartData, notesData, wavs, bmps] = chartComponents;
     auto path = support::qStringToPath(chartData->getPath()).parent_path();
-    auto* score = new gameplay_logic::BmsScore(
-      chartData->getNormalNoteCount(),
-      chartData->getLnCount(),
-      chartData->getMineCount(),
-      chartData->getLnCount() + chartData->getNormalNoteCount(),
-      maxHitValue,
-      std::move(gauges),
-      chartData->getRandomSequence(),
-      chartData->getSha256().toStdString());
+    auto scores = QList<gameplay_logic::BmsScore*>{};
+    auto notes = QList<gameplay_logic::BmsNotes*>{};
+    auto visibleNotes = std::vector<decltype(notesData.visibleNotes)>{};
+    auto invisibleNotes = std::vector<decltype(notesData.invisibleNotes)>{};
+    for (auto playerIndex = 0; playerIndex < profiles.size(); playerIndex++) {
+        visibleNotes.emplace_back(notesData.visibleNotes);
+        invisibleNotes.emplace_back(notesData.invisibleNotes);
+        auto results = [&] {
+            if (isDp(chartData->getKeymode())) {
+                auto visibleNotes1 =
+                  std::span{ visibleNotes.back().data(),
+                             visibleNotes.back().size() / 2 };
+                auto invisibleNotes1 =
+                  std::span{ invisibleNotes.back().data(),
+                             invisibleNotes.back().size() / 2 };
+                auto result1 =
+                  support::generatePermutation(visibleNotes1,
+                                               invisibleNotes1,
+                                               profiles[playerIndex]
+                                                 ->getVars()
+                                                 ->getGlobalVars()
+                                                 ->getNoteOrderAlgorithm());
+                auto visibleNotes2 =
+                  std::span{ visibleNotes.back().data() +
+                               visibleNotes.back().size() / 2,
+                             visibleNotes.back().size() / 2 };
+                auto invisibleNotes2 =
+                  std::span{ invisibleNotes.back().data() +
+                               invisibleNotes.back().size() / 2,
+                             invisibleNotes.back().size() / 2 };
+                auto result2 =
+                  support::generatePermutation(visibleNotes2,
+                                               invisibleNotes2,
+                                               profiles[playerIndex]
+                                                 ->getVars()
+                                                 ->getGlobalVars()
+                                                 ->getNoteOrderAlgorithmP2(),
+                                               result1.seed + 1);
+                return std::pair{ result1, result2 };
+            }
+            auto visibleNotes1 = std::span{ visibleNotes.back().data(),
+                                            visibleNotes.back().size() / 2 };
+            auto invisibleNotes1 =
+              std::span{ invisibleNotes.back().data(),
+                         invisibleNotes.back().size() / 2 };
+            return std::pair{ support::generatePermutation(
+                                visibleNotes1,
+                                invisibleNotes1,
+                                profiles[playerIndex]
+                                  ->getVars()
+                                  ->getGlobalVars()
+                                  ->getNoteOrderAlgorithm()),
+                              support::ShuffleResult{} };
+        }();
+        // TODO: Simplify this. Don't convert bpmChanges in a loop.
+        notes.emplace_back(ChartDataFactory::makeNotes(visibleNotes.back(),
+                                                       invisibleNotes.back(),
+                                                       notesData.bpmChanges,
+                                                       notesData.barLines)
+                             .release());
+        scores.emplace_back(new gameplay_logic::BmsScore(
+          chartData->getNormalNoteCount(),
+          chartData->getLnCount(),
+          chartData->getMineCount(),
+          chartData->getLnCount() + chartData->getNormalNoteCount(),
+          maxHitValue,
+          std::move(gauges[playerIndex]),
+          chartData->getRandomSequence(),
+          profiles[playerIndex]
+            ->getVars()
+            ->getGlobalVars()
+            ->getNoteOrderAlgorithm(),
+          isDp(chartData->getKeymode()) ? profiles[playerIndex]
+                                            ->getVars()
+                                            ->getGlobalVars()
+                                            ->getNoteOrderAlgorithmP2()
+                                        : NoteOrderAlgorithm::Normal,
+          results.first.columns += results.second.columns,
+          results.first.seed,
+          chartData->getSha256().toStdString()));
+    }
+
     auto task = [path,
                  wavs = std::move(wavs),
-                 visibleNotes = std::move(notesData.visibleNotes),
-                 invisibleNotes = std::move(notesData.invisibleNotes),
+                 visibleNotes = std::move(visibleNotes),
+                 invisibleNotes = std::move(invisibleNotes),
                  bgmNotes = std::move(notesData.bgmNotes),
                  bpmChanges = std::move(notesData.bpmChanges),
-                 score,
+                 scores,
                  hitRules = std::move(hitRules)]() mutable {
-        auto sounds =
-          charts::helper_functions::loadBmsSounds(wavs, path);
+        auto sounds = charts::helper_functions::loadBmsSounds(wavs, path);
         sounds::OpenALSound* mineHitSound = nullptr;
-        if (auto sound = sounds.find(0); sound != sounds.end()) {
+        if (const auto sound = sounds.find(0); sound != sounds.end()) {
             mineHitSound = &sound->second;
         }
-        return gameplay_logic::BmsGameReferee(std::move(visibleNotes),
-                                              std::move(invisibleNotes),
-                                              std::move(bgmNotes),
-                                              std::move(bpmChanges),
-                                              mineHitSound,
-                                              score,
-                                              std::move(sounds),
-                                              std::move(hitRules));
+        auto referees = std::vector<gameplay_logic::BmsGameReferee>{};
+        for (auto playerIndex = 0; playerIndex < scores.size(); playerIndex++) {
+            referees.emplace_back(std::move(visibleNotes[playerIndex]),
+                                  std::move(invisibleNotes[playerIndex]),
+                                  playerIndex == 0 ? std::move(bgmNotes)
+                                                   : decltype(bgmNotes){},
+                                  bpmChanges,
+                                  mineHitSound,
+                                  scores[playerIndex],
+                                  sounds,
+                                  std::move(hitRules[playerIndex]));
+        }
+        return referees;
     };
     auto bgaTask = [bgaBase = std::move(notesData.bgaBase),
                     bgaPoor = std::move(notesData.bgaPoor),
@@ -308,45 +395,45 @@ ChartFactory::createChart(
                     thread = QApplication::instance()->thread(),
                     path]() mutable {
         return loadBga(std::move(bgaBase),
-                    std::move(bgaPoor),
-                    std::move(bgaLayer),
-                    std::move(bgaLayer2),
-                    std::move(bmps),
-                    thread,
-                    std::move(path));
+                       std::move(bgaPoor),
+                       std::move(bgaLayer),
+                       std::move(bgaLayer2),
+                       std::move(bmps),
+                       thread,
+                       std::move(path));
     };
-
     auto bga = QtConcurrent::run(std::move(bgaTask));
-    auto referee = QtConcurrent::run(std::move(task));
-    auto* chart = new gameplay_logic::Chart(std::move(referee),
+    auto referees = QtConcurrent::run(std::move(task));
+    auto* chart = new gameplay_logic::Chart(std::move(referees),
                                             std::move(bga),
                                             chartData.release(),
-                                            notes.release(),
-                                            score,
-                                            scoreDb);
-    QObject::connect(
-      inputTranslator,
-      &input::InputTranslator::buttonPressed,
-      chart,
-      [chart](input::BmsKey button, double /*value*/, int64_t time) {
-          chart->passKey(
-            button, gameplay_logic::Chart::EventType::KeyPress, time);
-      });
-    QObject::connect(
-      inputTranslator,
-      &input::InputTranslator::buttonReleased,
-      chart,
-      [chart](input::BmsKey button, int64_t time) {
-          chart->passKey(
-            button, gameplay_logic::Chart::EventType::KeyRelease, time);
-      });
+                                            std::move(notes),
+                                            scores,
+                                            profiles);
+    for (auto playerIndex = 0; playerIndex < profiles.size(); playerIndex++) {
+        const auto* const inputTranslator = inputTranslators[playerIndex];
+        QObject::connect(
+          inputTranslator,
+          &input::InputTranslator::buttonPressed,
+          chart,
+          [chart, playerIndex](
+            const input::BmsKey button, double /*value*/, const int64_t time) {
+              chart->passKey(playerIndex,
+                             button,
+                             gameplay_logic::Chart::EventType::KeyPress,
+                             time);
+          });
+        QObject::connect(
+          inputTranslator,
+          &input::InputTranslator::buttonReleased,
+          chart,
+          [chart, playerIndex](input::BmsKey button, int64_t time) {
+              chart->passKey(playerIndex,
+                             button,
+                             gameplay_logic::Chart::EventType::KeyRelease,
+                             time);
+          });
+    }
     return chart;
-}
-ChartFactory::
-ChartFactory(std::function<db::SqliteCppDb&()> scoreDb,
-             input::InputTranslator* inputTranslator)
-  : scoreDb(std::move(scoreDb))
-  , inputTranslator(inputTranslator)
-{
 }
 } // namespace resource_managers

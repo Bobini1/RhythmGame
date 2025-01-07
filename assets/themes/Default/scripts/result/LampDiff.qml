@@ -3,6 +3,9 @@ import QtQuick
 WindowBg {
     id: lampDiff
 
+    required property var oldBestClear
+    required property var clearType
+
     Image {
         id: lampText
 
@@ -18,7 +21,7 @@ WindowBg {
         anchors.bottomMargin: 24
         anchors.left: parent.left
         anchors.leftMargin: 48
-        source: root.iniImagesUrl + "parts.png/" + root.oldBestClear + "_s"
+        source: root.iniImagesUrl + "parts.png/" + lampDiff.oldBestClear + "_s"
     }
     Image {
         anchors.bottom: parent.bottom
@@ -33,6 +36,6 @@ WindowBg {
         anchors.bottomMargin: 24
         anchors.right: parent.right
         anchors.rightMargin: 36
-        source: root.iniImagesUrl + "parts.png/" + result.result.clearType
+        source: root.iniImagesUrl + "parts.png/" + lampDiff.clearType
     }
 }

@@ -4,8 +4,11 @@ import QtQuick.Layouts
 import RhythmGameQml
 
 Item {
+    id: gaugeRoot
+    required property string gaugeImage
+    required property var gauges
     Repeater {
-        model: chart.score.gauges
+        model: gaugeRoot.gauges
 
         Item {
             id: gauge
@@ -17,7 +20,7 @@ Item {
 
             function getSource(index) {
                 let above = index >= gauge.threshold / 2;
-                let img = root.iniImagesUrl + "gauge/" + root.vars.gauge + "/";
+                let img = root.iniImagesUrl + "gauge/" + gaugeRoot.gaugeImage + "/";
                 switch (gauge.gaugeName) {
                 case "FC":
                     return img + "orange";
@@ -37,8 +40,8 @@ Item {
             }
 
             anchors.fill: parent
-            visible: (index === chart.score.gauges.length - 1) || (modelData.gauge > threshold)
-            z: chart.score.gauges.length - index - 1
+            visible: (index === gaugeRoot.gauges.length - 1) || (modelData.gauge > threshold)
+            z: gaugeRoot.gauges.length - index - 1
 
             Row {
                 z: 0

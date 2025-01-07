@@ -4,13 +4,16 @@
 
 #include "PathToUtfString.h"
 #include <QString>
+#include <ranges>
 
 namespace support {
 auto
 pathToUtfString(const std::filesystem::path& path) -> std::string
 {
 #if defined(_WIN32)
-    return QString::fromStdWString(path.wstring()).toStdString();
+    auto string = QString::fromStdWString(path.wstring()).toStdString();
+    std::ranges::replace(string, '\\', '/');
+    return string;
 #else
     return path.string();
 #endif

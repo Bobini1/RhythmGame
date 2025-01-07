@@ -16,9 +16,10 @@ class SongDbScanner
 
   public:
     explicit SongDbScanner(db::SqliteCppDb* db);
-    void scanDirectory(std::filesystem::path directory,
-                       std::function<void(QString)> updateCurrentScannedFolder,
-                       std::atomic_bool* stop) const;
+    void scanDirectory(
+      const std::filesystem::path& directory,
+      const std::function<void(QString)>& updateCurrentScannedFolder,
+      std::atomic_bool* stop) const;
 };
 
 } // namespace resource_managers

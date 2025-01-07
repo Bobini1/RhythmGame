@@ -15,10 +15,10 @@ class ScoreDb : public QObject
 {
     Q_OBJECT
 
-    std::function<db::SqliteCppDb&()> scoreDb;
+    db::SqliteCppDb* scoreDb;
 
   public:
-    explicit ScoreDb(std::function<db::SqliteCppDb&()> scoreDb);
+    explicit ScoreDb(db::SqliteCppDb* scoreDb);
     Q_INVOKABLE QList<gameplay_logic::BmsResult*> getScoresForChart(
       QString sha256);
     Q_INVOKABLE gameplay_logic::BmsGaugeHistory* getGaugeHistory(

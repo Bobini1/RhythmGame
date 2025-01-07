@@ -10,6 +10,7 @@ ApplicationWindow {
     height: 720
     visible: true
     width: 1280
+    property var sceneStack: sceneStack
 
     Settings {
         property alias height: contentContainer.height
@@ -28,7 +29,7 @@ ApplicationWindow {
                 id: loader
 
                 anchors.fill: parent
-                source: Themes.availableThemeFamilies[ProfileList.currentProfile.themeConfig.gameplay].screens.gameplay.script
+                source: Themes.availableThemeFamilies[ProfileList.mainProfile.themeConfig.gameplay].screens.gameplay.script
             }
         }
     }
@@ -40,24 +41,25 @@ ApplicationWindow {
 
             readonly property bool active: StackView.status === StackView.Active
             required property ChartData chartData
-            required property BmsScoreAftermath result
+            required property list<BmsScoreAftermath> result
 
             Loader {
                 id: loader
 
                 anchors.fill: parent
-                source: Themes.availableThemeFamilies[ProfileList.currentProfile.themeConfig.result].screens.result.script
+                source: Themes.availableThemeFamilies[ProfileList.mainProfile.themeConfig.result].screens.result.script
             }
         }
     }
     Item {
         id: globalRoot
 
+        readonly property Profile mainProfile: ProfileList.mainProfile
         readonly property Component gameplayComponent: chartContext
-        readonly property Component mainComponent: Qt.createComponent(Themes.availableThemeFamilies[ProfileList.currentProfile.themeConfig.main].screens.main.script)
+        readonly property Component mainComponent: Qt.createComponent(Themes.availableThemeFamilies[mainProfile.themeConfig.main].screens.main.script)
         readonly property Component resultComponent: resultContext
-        readonly property Component settingsComponent: Qt.createComponent(Themes.availableThemeFamilies[ProfileList.currentProfile.themeConfig.settings].screens.settings.script)
-        readonly property Component songWheelComponent: Qt.createComponent(Themes.availableThemeFamilies[ProfileList.currentProfile.themeConfig.songWheel].screens.songWheel.script)
+        readonly property Component settingsComponent: Qt.createComponent(Themes.availableThemeFamilies[mainProfile.themeConfig.settings].screens.settings.script)
+        readonly property Component songWheelComponent: Qt.createComponent(Themes.availableThemeFamilies[mainProfile.themeConfig.songWheel].screens.songWheel.script)
 
         function openChart(path) {
             let chart = ChartLoader.loadChart(path);
@@ -91,7 +93,7 @@ ApplicationWindow {
         anchors.fill: parent
 
         Component.onCompleted: {
-            if (ProgramSettings.chartPath != "")
+            if (ProgramSettings.chartPath !== "")
                 openChart(ProgramSettings.chartPath);
         }
 
@@ -99,7 +101,7 @@ ApplicationWindow {
             id: sceneStack
 
             anchors.fill: parent
-            initialItem: (ProgramSettings.chartPath != "") ? null : globalRoot.mainComponent
+            initialItem: (ProgramSettings.chartPath !== "") ? null : globalRoot.mainComponent
 
             popEnter: Transition {
                 PropertyAnimation {

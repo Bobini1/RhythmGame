@@ -7,11 +7,11 @@ Image {
     id: image
 
     property string clearType: Helpers.getClearType(scores)
-    property list<BmsResult> scores: ScoreDb.getScoresForChart(modelData.sha256)
+    property var scores: ProfileList.mainProfile.scoreDb.getScoresForChart(modelData.sha256)
     property bool scrollingText: parent.scrollingText
 
     function refreshScores() {
-        scores = ScoreDb.getScoresForChart(modelData.sha256);
+        scores = ProfileList.mainProfile.scoreDb.getScoresForChart(modelData.sha256);
         clearType = Helpers.getClearType(scores);
     }
 

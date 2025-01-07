@@ -5,6 +5,8 @@
 #ifndef RHYTHMGAME_CHARTLOADER_H
 #define RHYTHMGAME_CHARTLOADER_H
 
+#include "ProfileList.h"
+
 #include <memory>
 #include "gameplay_logic/ChartData.h"
 #include "gameplay_logic/Chart.h"
@@ -31,32 +33,47 @@ class ChartLoader : public QObject
                          std::chrono::nanoseconds)>
       hitValueFactory;
     std::function<QList<gameplay_logic::rules::BmsGauge*>(
-      gameplay_logic::rules::TimingWindows,
-      double,
-      int)>
+      resource_managers::Profile* profile,
+      gameplay_logic::rules::TimingWindows timingWindows,
+      double total,
+      int noteCount)>
       gaugeFactory;
     resource_managers::ChartFactory* chartFactory;
     double maxHitValue;
+    ProfileList* profileList;
+    resource_managers::InputTranslators* inputTranslators;
 
-public:
-    ChartLoader(
-      resource_managers::ChartDataFactory* chartDataFactory,
+  public:
+    using GaugeFactory = std::function<QList<gameplay_logic::rules::BmsGauge*>(
+      resource_managers::Profile* profile,
+      gameplay_logic::rules::TimingWindows timingWindows,
+      double total,
+      int noteCount)>;
+    using TimingWindowsFactory =
       std::function<gameplay_logic::rules::TimingWindows(
-        gameplay_logic::rules::BmsRank)> timingWindowsFactory,
+        gameplay_logic::rules::BmsRank)>;
+    using HitRulesFactory =
       std::function<std::unique_ptr<gameplay_logic::rules::BmsHitRules>(
         gameplay_logic::rules::TimingWindows,
-        std::function<double(std::chrono::nanoseconds)>)> hitRulesFactory,
+        std::function<double(std::chrono::nanoseconds)>)>;
+    using HitValueFactory =
       std::function<double(gameplay_logic::rules::TimingWindows,
-                           std::chrono::nanoseconds)> hitValueFactory,
-      std::function<QList<gameplay_logic::rules::BmsGauge*>(
-        gameplay_logic::rules::TimingWindows timingWindows,
-        double,
-        int)> gaugeFactory,
-      resource_managers::ChartFactory* chartFactory,
-      double maxHitValue,
-      QObject* parent = nullptr);
+                           std::chrono::nanoseconds)>;
 
-    Q_INVOKABLE gameplay_logic::Chart* loadChart(QString filename, QList<int64_t> randomSequence = {});
+    ChartLoader(ProfileList* profileList,
+                resource_managers::InputTranslators* inputTranslators,
+                resource_managers::ChartDataFactory* chartDataFactory,
+                TimingWindowsFactory timingWindowsFactory,
+                HitRulesFactory hitRulesFactory,
+                HitValueFactory hitValueFactory,
+                GaugeFactory gaugeFactory,
+                resource_managers::ChartFactory* chartFactory,
+                double maxHitValue,
+                QObject* parent = nullptr);
+
+    Q_INVOKABLE gameplay_logic::Chart* loadChart(
+      QString filename,
+      QList<int64_t> randomSequence = {});
 };
 
 } // namespace qml_components

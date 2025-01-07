@@ -1,13 +1,19 @@
+pragma ComponentBehavior: Bound
 import QtQuick
 import RhythmGameQml
 
 Image {
     id: lifeGraph
 
+    required property var clearType
+    required property var gaugeHistory
+    required property var gaugeInfo
+    required property var chartData
+
     property int clearIndex: {
-        let index = clearTypes.indexOf(result.result.clearType);
+        let index = clearTypes.indexOf(lifeGraph.clearType);
         if (index === -1) {
-            if (result.result.clearType === "FAILED") {
+            if (lifeGraph.clearType === "FAILED") {
                 return 0;
             } else {
                 return clearTypes.indexOf("FC");
@@ -16,9 +22,7 @@ Image {
             return index;
         }
     }
-    property var clearTypes: ["AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC"]
-    property var gaugeHistory: result.gaugeHistory.gaugeHistory
-    property var gaugeInfo: result.gaugeHistory.gaugeInfo
+    property var clearTypes: Object.keys(lifeGraph.gaugeHistory)
     property var primaryColor: {
         return {
             "AEASY": "#d844ff",
@@ -74,7 +78,7 @@ Image {
                 anchors.topMargin: 20
                 history: lifeGraph.gaugeHistory[modelData]
                 maxGauge: lifeGraph.gaugeInfo[modelData].maxGauge
-                songLength: chartData.length
+                songLength: lifeGraph.chartData.length
                 visible: index === lifeGraph.clearIndex
 
                 Rectangle {

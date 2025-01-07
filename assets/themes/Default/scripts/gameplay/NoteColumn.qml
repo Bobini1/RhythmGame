@@ -15,6 +15,9 @@ Item {
     property real noteHeight: 36
     property var notes
     property int visibleNoteIndex: 0
+    property bool notesStay
+    property string noteImage
+    property string mineImage
 
     function activateLn(index: int) {
         let item = noteRepeater.itemAt(index - column.erasedNoteIndex);
@@ -89,7 +92,7 @@ Item {
             }
 
             mipmap: true
-            source: root.iniImagesUrl + (column.notes[note].type === Note.Type.Landmine ? ("mine/" + root.vars.mine) : ("notes/" + root.vars.notes)) + "/" + getTypeString() + column.color
+            source: root.iniImagesUrl + (column.notes[note].type === Note.Type.Landmine ? ("mine/" + column.mineImage) : ("notes/" + column.noteImage)) + "/" + getTypeString() + column.color
             visible: false
             y: notePosition - height / 2
 
@@ -106,10 +109,10 @@ Item {
                         height: column.notes[note + 1].time.position * column.heightMultiplier + noteImg.y
                         source: {
                             if (!noteImg.held) {
-                                return root.iniImagesUrl + "notes/" + root.vars.notes + "/ln_body_inactive_" + column.color;
+                                return root.iniImagesUrl + "notes/" + column.noteImage + "/ln_body_inactive_" + column.color;
                             }
                             let flashing = Math.abs(chart.position % 0.5) > 0.25;
-                            return root.iniImagesUrl + "notes/" + root.vars.notes + "/ln_body_" + (flashing ? "flash" : "active") + "_" + column.color;
+                            return root.iniImagesUrl + "notes/" + column.noteImage + "/ln_body_" + (flashing ? "flash" : "active") + "_" + column.color;
                         }
                         width: noteImg.width
                         y: -height
@@ -146,7 +149,7 @@ Item {
                     continue;
                 }
                 let item = noteRepeater.itemAt(count);
-                if (item.state !== "reparented" && root.vars.notesStay) {
+                if (item.state !== "reparented" && column.notesStay) {
                     if (column.chartPosition - item.height / 2 < item.y) {
                         item.y = column.chartPosition - item.height / 2;
                         item.state = "reparented";

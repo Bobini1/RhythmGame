@@ -2,11 +2,14 @@ import QtQuick
 import RhythmGameQml
 
 WindowBg {
+    id: chartInfo
+    required property var judgementCounts
+    required property var chartData
     Image {
         anchors.left: parent.left
         anchors.top: parent.top
         source: {
-            switch (chartData.difficulty) {
+            switch (chartInfo.chartData.difficulty) {
             case 1:
                 return root.iniImagesUrl + "parts.png/beginner";
             case 2:
@@ -47,7 +50,7 @@ WindowBg {
         anchors.right: parent.right
         anchors.rightMargin: 36
         font.pixelSize: 20
-        text: chartData.total
+        text: chartInfo.chartData.total
     }
     Text {
         id: noteCountLabel
@@ -75,7 +78,7 @@ WindowBg {
         anchors.rightMargin: 36
         font.pixelSize: 20
         text: {
-            let counts = result.result.judgementCounts;
+            let counts = chartInfo.judgementCounts;
             return counts[Judgement.Perfect] + counts[Judgement.Great] + counts[Judgement.Good] + counts[Judgement.Bad] + counts[Judgement.Poor];
         }
     }

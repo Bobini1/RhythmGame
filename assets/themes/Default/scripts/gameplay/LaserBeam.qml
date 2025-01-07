@@ -7,7 +7,7 @@ Item {
 
     property int columnIndex
     property url image
-
+    required property list<real> columnSizes
     function start() {
         laserBeamAnimation.stop();
         laserBeam.width = wrapper.width;
@@ -20,7 +20,7 @@ Item {
 
     anchors.bottom: parent.bottom
     height: 576
-    width: root.columnSizes[wrapper.columnIndex]
+    width: wrapper.columnSizes[wrapper.columnIndex]
 
     Image {
         id: laserBeam

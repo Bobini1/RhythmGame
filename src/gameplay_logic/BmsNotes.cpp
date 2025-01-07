@@ -10,6 +10,16 @@
 
 namespace gameplay_logic {
 auto
+BmsNotes::getVisibleNotes() -> QVector<QVector<Note>>&
+{
+    return visibleNotes;
+}
+auto
+BmsNotes::getInvisibleNotes() -> QVector<QVector<Note>>&
+{
+    return invisibleNotes;
+}
+auto
 BmsNotes::getVisibleNotes() const -> const QVector<QVector<Note>>&
 {
     return visibleNotes;
@@ -19,11 +29,12 @@ BmsNotes::getInvisibleNotes() const -> const QVector<QVector<Note>>&
 {
     return invisibleNotes;
 }
-BmsNotes::BmsNotes(QVector<QVector<Note>> visibleNotes,
-                   QVector<QVector<Note>> invisibleNotes,
-                   QVector<BpmChange> bpmChanges,
-                   QVector<Time> barLines,
-                   QObject* parent)
+BmsNotes::
+BmsNotes(QVector<QVector<Note>> visibleNotes,
+         QVector<QVector<Note>> invisibleNotes,
+         QVector<BpmChange> bpmChanges,
+         QVector<Time> barLines,
+         QObject* parent)
   : QObject(parent)
   , visibleNotes(std::move(visibleNotes))
   , invisibleNotes(std::move(invisibleNotes))

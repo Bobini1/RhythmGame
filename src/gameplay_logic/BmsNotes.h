@@ -146,6 +146,10 @@ class BmsNotes : public QObject
                       QVector<Time> barLines,
                       QObject* parent = nullptr);
 
+    [[nodiscard]] auto getVisibleNotes() -> QVector<QVector<Note>>&;
+
+    [[nodiscard]] auto getInvisibleNotes() -> QVector<QVector<Note>>&;
+
     [[nodiscard]] auto getVisibleNotes() const -> const QVector<QVector<Note>>&;
 
     [[nodiscard]] auto getInvisibleNotes() const

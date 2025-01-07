@@ -6,6 +6,7 @@
 #include "sqlite3.h"
 
 #include <utility>
+#include <thread>
 
 db::SqliteCppDb::
 SqliteCppDb(std::filesystem::path dbPath)

@@ -9,6 +9,7 @@ Row {
     property real itemHeight: 140
     property real itemWidth: 120
     required property string propertyId
+    required property var src
     property string label: Helpers.capitalizeFirstLetter(propertyId)
 
     Text {
@@ -57,10 +58,10 @@ Row {
             radius: 5
         }
 
-        currentIndex: files.indexOf(root.vars[imageSelection.propertyId])
+        currentIndex: files.indexOf(imageSelection.src[imageSelection.propertyId])
         onCurrentIndexChanged: {
-            root.vars[imageSelection.propertyId] = files[currentIndex];
-            currentIndex = Qt.binding(() => files.indexOf(root.vars[imageSelection.propertyId]));
+            imageSelection.src[imageSelection.propertyId] = files[currentIndex];
+            currentIndex = Qt.binding(() => files.indexOf(imageSelection.src[imageSelection.propertyId]));
         }
     }
 }

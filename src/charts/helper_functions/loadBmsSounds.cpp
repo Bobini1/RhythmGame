@@ -97,7 +97,8 @@ loadBmsSounds(const std::unordered_map<uint16_t, std::filesystem::path>& wavs,
   -> std::unordered_map<uint16_t, sounds::OpenALSound>
 {
     auto start = std::chrono::high_resolution_clock::now();
-    auto wavsActualPaths = std::unordered_map<uint16_t, std::filesystem::path>{};
+    auto wavsActualPaths =
+      std::unordered_map<uint16_t, std::filesystem::path>{};
     wavsActualPaths.reserve(wavs.size());
     auto uniqueSoundPaths = std::unordered_set<std::filesystem::path>{};
 #ifndef _WIN32
@@ -109,7 +110,7 @@ loadBmsSounds(const std::unordered_map<uint16_t, std::filesystem::path>& wavs,
             auto filePath = path / value;
             auto actualPath = getActualPathWindows(filePath);
 #else
-            auto valueLower = value;
+            auto valueLower = value.string();
             std::ranges::transform(
               valueLower, valueLower.begin(), [](unsigned char c) {
                   return std::tolower(c);
@@ -145,7 +146,8 @@ loadBmsSounds(const std::unordered_map<uint16_t, std::filesystem::path>& wavs,
                          std::make_shared<const sounds::OpenALSoundBuffer>(
                            path) } };
           } catch (const std::exception& e) {
-              spdlog::warn("Failed to load sound {}: {}", path.string(), e.what());
+              spdlog::warn(
+                "Failed to load sound {}: {}", path.string(), e.what());
               return std::nullopt;
           }
       },

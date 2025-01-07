@@ -3,7 +3,7 @@
 //
 
 #include "BmsScore.h"
-#include <magic_enum.hpp>
+#include <magic_enum/magic_enum.hpp>
 #include <utility>
 #include <spdlog/spdlog.h>
 
@@ -59,7 +59,11 @@ BmsScore(int normalNoteCount,
          int maxHits,
          double maxHitValue,
          QList<rules::BmsGauge*> gauges,
-         QList<int64_t> randomSequence,
+         QList<qint64> randomSequence,
+         resource_managers::NoteOrderAlgorithm noteOrderAlgorithm,
+         resource_managers::NoteOrderAlgorithm noteOrderAlgorithmP2,
+         QList<int> permutation,
+         uint64_t seed,
          support::Sha256 sha256,
          QObject* parent)
   : QObject(parent)
@@ -70,7 +74,11 @@ BmsScore(int normalNoteCount,
   , maxHits(maxHits)
   , gauges(std::move(gauges))
   , randomSequence(std::move(randomSequence))
+  , noteOrderAlgorithm(noteOrderAlgorithm)
+  , noteOrderAlgorithmP2(noteOrderAlgorithmP2)
+  , permutation(std::move(permutation))
   , sha256(std::move(sha256))
+  , randomSeed(seed)
 {
     for (auto* gauge : this->gauges) {
         gauge->setParent(this);
@@ -116,6 +124,32 @@ auto
 BmsScore::getGauges() const -> QList<rules::BmsGauge*>
 {
     return gauges;
+}
+auto
+BmsScore::getRandomSequence() const -> const QList<qint64>&
+{
+    return randomSequence;
+}
+auto
+BmsScore::getNoteOrderAlgorithm() const -> resource_managers::NoteOrderAlgorithm
+{
+    return noteOrderAlgorithm;
+}
+auto
+BmsScore::getNoteOrderAlgorithmP2() const
+  -> resource_managers::NoteOrderAlgorithm
+{
+    return noteOrderAlgorithmP2;
+}
+auto
+BmsScore::getPermutation() const -> const QList<int>&
+{
+    return permutation;
+}
+auto
+BmsScore::getRandomSeed() const -> uint64_t
+{
+    return randomSeed;
 }
 void
 BmsScore::increaseCombo()

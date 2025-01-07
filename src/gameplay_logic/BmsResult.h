@@ -6,7 +6,7 @@
 #define RHYTHMGAME_BMSRESULT_H
 
 #include <QObject>
-#include <magic_enum.hpp>
+#include <magic_enum/magic_enum.hpp>
 #include "Judgement.h"
 #include "db/SqliteCppDb.h"
 #include "support/Sha256.h"
@@ -25,7 +25,7 @@ class BmsResult : public QObject
     Q_PROPERTY(QList<int> judgementCounts READ getJudgementCounts CONSTANT)
     Q_PROPERTY(int mineHits READ getMineHits CONSTANT)
     Q_PROPERTY(QString clearType READ getClearType CONSTANT)
-    Q_PROPERTY(QList<int64_t> randomSequence READ getRandomSequence CONSTANT)
+    Q_PROPERTY(QList<qint64> randomSequence READ getRandomSequence CONSTANT)
     Q_PROPERTY(int64_t id READ getId CONSTANT)
     Q_PROPERTY(int64_t unixTimestamp READ getUnixTimestamp CONSTANT)
 
@@ -38,7 +38,7 @@ class BmsResult : public QObject
     QString clearType;
     QList<int> judgementCounts =
       QList<int>(magic_enum::enum_count<Judgement>());
-    QList<int64_t> randomSequence;
+    QList<qint64> randomSequence;
     support::Sha256 sha256;
     int mineHits;
     double points;
@@ -78,7 +78,7 @@ class BmsResult : public QObject
                        int mineHits,
                        double points,
                        int maxCombo,
-                       QList<int64_t> randomSequence,
+                       QList<qint64> randomSequence,
                        support::Sha256 sha256,
                        QObject* parent = nullptr);
 
@@ -91,8 +91,8 @@ class BmsResult : public QObject
     auto getMaxCombo() const -> int;
     auto getJudgementCounts() const -> QList<int>;
     auto getMineHits() const -> int;
-    auto getClearType() const -> QString;
-    auto getRandomSequence() -> QList<int64_t>;
+    auto getClearType() const -> const QString&;
+    auto getRandomSequence() -> const QList<qint64>&;
     auto setId(int64_t id) -> void;
     auto getId() const -> int64_t;
     auto getUnixTimestamp() const -> int64_t;

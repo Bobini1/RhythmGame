@@ -5,7 +5,10 @@ import RhythmGameQml
 import QtQml.Models
 
 GameplayPopup {
+    id: popup
     height: 200
+
+    required property var themeVars
 
     model: ObjectModel {
         NumberWithSlider {
@@ -13,15 +16,18 @@ GameplayPopup {
             from: -10
             prop: "lifeBarZ"
             text: "Z-index"
+            src: popup.themeVars
         }
         BooleanOption {
             prop: "verticalGauge"
+            src: popup.themeVars
             description: "Vertical Gauge"
         }
         ImageSelection {
             id: gauge
 
             propertyId: "gauge"
+            src: popup.themeVars
         }
     }
 }

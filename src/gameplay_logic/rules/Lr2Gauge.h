@@ -32,9 +32,10 @@ class Lr2Gauge : public BmsGauge
                        std::chrono::nanoseconds hitOffset) override;
     void addHoldEndMiss(std::chrono::nanoseconds offsetFromStart) override;
 
-    static auto getGauges(gameplay_logic::rules::TimingWindows timingWindows,
+    static auto getGauges(TimingWindows timingWindows,
                           double total,
-                          int noteCount) -> QList<BmsGauge*>;
+                          int noteCount)
+      -> std::vector<std::unique_ptr<BmsGauge>>;
 };
 
 } // namespace gameplay_logic::rules

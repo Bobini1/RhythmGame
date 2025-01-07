@@ -454,41 +454,19 @@ auto
 InputTranslator::getTime(const QKeyEvent& event) -> int64_t
 {
     auto timestampQint = event.timestamp();
-    auto timestampNormal = std::chrono::system_clock::now();
-#ifdef _WIN32
-    auto timestampThis = timestampQint + startTimeClk;
-    return std::chrono::milliseconds{ timestampThis }.count();
-#else
     return std::chrono::duration_cast<std::chrono::milliseconds>(
              toSystem(std::chrono::steady_clock::time_point{
                         std::chrono::milliseconds{ timestampQint } })
                .time_since_epoch())
       .count();
-#endif
 }
 
-InputTranslator::
-InputTranslator(const GamepadManager* source, QObject* parent)
+InputTranslator::InputTranslator(QObject* parent)
   : QObject(parent)
 {
-    connect(
-      source, &GamepadManager::axisMoved, this, &InputTranslator::handleAxis);
-    connect(source,
-            &GamepadManager::buttonPressed,
-            this,
-            &InputTranslator::handlePress);
-    connect(source,
-            &GamepadManager::buttonReleased,
-            this,
-            &InputTranslator::handleRelease);
-
-#ifdef _WIN32
-    auto clk = std::chrono::milliseconds(clock() * 1000 / CLOCKS_PER_SEC);
-    startTimeClk = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch() - clk).count();
-#endif
 }
 void
-InputTranslator::setConfiguredButton(QVariant button)
+InputTranslator::setConfiguredButton(const QVariant& button)
 {
     const auto old = configuredButton;
     const auto oldIsConfiguring = isConfiguring();
@@ -516,11 +494,11 @@ InputTranslator::isConfiguring() const -> bool
 void
 InputTranslator::setKeyConfig(const QList<Mapping>& newConfig)
 {
-    config.clear();
+    auto config = QHash<Key, BmsKey>{};
     for (const auto& mapping : newConfig) {
         config[mapping.key] = mapping.button;
     }
-    emit keyConfigModified();
+    setKeyConfig(config);
 }
 auto
 InputTranslator::getKeyConfig() -> QList<Mapping>
@@ -530,6 +508,20 @@ InputTranslator::getKeyConfig() -> QList<Mapping>
         result.append({ key, button });
     }
     return result;
+}
+void
+InputTranslator::setKeyConfig(const QHash<Key, BmsKey>& config)
+{
+    if (this->config == config) {
+        return;
+    }
+    this->config = config;
+    emit keyConfigModified();
+}
+auto
+InputTranslator::getKeyConfigHash() -> QHash<Key, BmsKey>
+{
+    return config;
 }
 void
 InputTranslator::resetButton(BmsKey key)
@@ -664,7 +656,7 @@ bool
 InputTranslator::eventFilter(QObject* watched, QEvent* event)
 {
     if (event->type() == QEvent::KeyPress) {
-        const auto key = static_cast<QKeyEvent*>(event);
+        const auto* const key = static_cast<QKeyEvent*>(event);
         if (key->isAutoRepeat()) {
             return false;
         }
@@ -684,7 +676,7 @@ InputTranslator::eventFilter(QObject* watched, QEvent* event)
             }
         }
     } else if (event->type() == QEvent::KeyRelease) {
-        const auto key = static_cast<QKeyEvent*>(event);
+        const auto* const key = static_cast<QKeyEvent*>(event);
         if (key->isAutoRepeat()) {
             return false;
         }

@@ -2,7 +2,7 @@
 // Created by bobini on 23.06.23.
 //
 
-#include <magic_enum.hpp>
+#include <magic_enum/magic_enum.hpp>
 #include "BmsPoints.h"
 gameplay_logic::BmsPoints::BmsPoints(double value,
                                      gameplay_logic::Judgement judgement,

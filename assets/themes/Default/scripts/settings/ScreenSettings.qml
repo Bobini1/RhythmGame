@@ -8,7 +8,7 @@ import "../common/helpers.js" as Helpers
 Loader {
     id: screenSettingsLoader
     active: true
-    property var destination: ProfileList.currentProfile.vars.themeVars[screen]
+    property var destination: ProfileList.mainProfile.vars.themeVars[screen]
     property var props: {
         "items": screenSettings.filter((item) => item.type !== "hidden"),
         "name": Helpers.capitalizeFirstLetter(screen) + " Settings",
@@ -23,8 +23,8 @@ Loader {
         return request.responseText;
     }
 
-    readonly property string script: Themes.availableThemeFamilies[ProfileList.currentProfile.themeConfig[screen]].screens[screen].settingsScript
+    readonly property string script: Themes.availableThemeFamilies[ProfileList.mainProfile.themeConfig[screen]].screens[screen].settingsScript
     required property string screen
     readonly property var screenSettings: screenSettingsJson ? JSON.parse(openFile(screenSettingsJson)) : []
-    readonly property string screenSettingsJson: Themes.availableThemeFamilies[ProfileList.currentProfile.themeConfig[screen]].screens[screen].settings
+    readonly property string screenSettingsJson: Themes.availableThemeFamilies[ProfileList.mainProfile.themeConfig[screen]].screens[screen].settings
 }

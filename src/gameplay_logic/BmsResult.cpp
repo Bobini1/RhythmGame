@@ -33,28 +33,29 @@ gameplay_logic::BmsResult::getJudgementCounts() const -> QList<int>
     return judgementCounts;
 }
 auto
-gameplay_logic::BmsResult::getClearType() const -> QString
+gameplay_logic::BmsResult::getClearType() const -> const QString&
 {
     return clearType;
 }
 auto
-gameplay_logic::BmsResult::getRandomSequence() -> QList<int64_t>
+gameplay_logic::BmsResult::getRandomSequence() -> const QList<qint64>&
 {
     return randomSequence;
 }
-gameplay_logic::BmsResult::BmsResult(double maxPoints,
-                                     int maxHits,
-                                     int normalNoteCount,
-                                     int lnCount,
-                                     int mineCount,
-                                     QString clearType,
-                                     QList<int> judgementCounts,
-                                     int mineHits,
-                                     double points,
-                                     int maxCombo,
-                                     QList<int64_t> randomSequence,
-                                     support::Sha256 sha256,
-                                     QObject* parent)
+gameplay_logic::BmsResult::
+BmsResult(double maxPoints,
+          int maxHits,
+          int normalNoteCount,
+          int lnCount,
+          int mineCount,
+          QString clearType,
+          QList<int> judgementCounts,
+          int mineHits,
+          double points,
+          int maxCombo,
+          QList<qint64> randomSequence,
+          support::Sha256 sha256,
+          QObject* parent)
   : QObject(parent)
   , maxPoints(maxPoints)
   , maxHits(maxHits)
@@ -63,12 +64,12 @@ gameplay_logic::BmsResult::BmsResult(double maxPoints,
   , mineCount(mineCount)
   , clearType(std::move(clearType))
   , judgementCounts(std::move(judgementCounts))
+  , randomSequence(std::move(randomSequence))
+  , sha256(std::move(sha256))
   , mineHits(mineHits)
   , points(points)
   , maxCombo(maxCombo)
   , unixTimestamp(QDateTime::currentSecsSinceEpoch())
-  , randomSequence(std::move(randomSequence))
-  , sha256(std::move(sha256))
 {
 }
 auto
@@ -96,7 +97,6 @@ gameplay_logic::BmsResult::save(db::SqliteCppDb& db) const -> int64_t
       "random_sequence"
       ")"
       "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-    auto randomSequenceCompressed = support::compress(randomSequence);
     statement.bind(1, maxPoints);
     statement.bind(2, maxHits);
     statement.bind(3, normalNoteCount);
@@ -114,7 +114,9 @@ gameplay_logic::BmsResult::save(db::SqliteCppDb& db) const -> int64_t
     statement.bind(15, mineHits);
     statement.bind(16, sha256);
     statement.bind(17, unixTimestamp);
-    statement.bind(18, randomSequenceCompressed.data(), randomSequenceCompressed.size());
+    auto randomSequenceCompressed = support::compress(randomSequence);
+    statement.bind(
+      18, randomSequenceCompressed.data(), randomSequenceCompressed.size());
     return statement.execute();
 }
 auto
@@ -129,6 +131,8 @@ gameplay_logic::BmsResult::load(const BmsResultDto& dto)
     judgementCounts[static_cast<int>(Judgement::Good)] = dto.goodCount;
     judgementCounts[static_cast<int>(Judgement::Great)] = dto.greatCount;
     judgementCounts[static_cast<int>(Judgement::Perfect)] = dto.perfectCount;
+    auto randomSequence = support::decompress<QList<qint64>>(
+      QByteArray::fromStdString(dto.randomSequence));
     auto result =
       std::make_unique<BmsResult>(dto.maxPoints,
                                   dto.maxHits,
@@ -140,7 +144,7 @@ gameplay_logic::BmsResult::load(const BmsResultDto& dto)
                                   dto.mineHits,
                                   dto.points,
                                   dto.maxCombo,
-                                  support::decompress<QList<int64_t>>(QByteArray::fromStdString(dto.randomSequence)),
+                                  randomSequence,
                                   dto.sha256);
     result->setId(dto.id);
     result->unixTimestamp = dto.unixTimestamp;

@@ -10,7 +10,7 @@
 #include <QKeyEvent>
 #include <QObject>
 #include <QVariant>
-#include <magic_enum.hpp>
+#include <magic_enum/magic_enum.hpp>
 #include <functional>
 
 namespace input {
@@ -84,7 +84,7 @@ class Mapping
       -> QDataStream&;
 };
 
-class InputTranslator : public QObject
+class InputTranslator final : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(bool configuring READ isConfiguring NOTIFY configuringChanged)
@@ -135,28 +135,29 @@ class InputTranslator : public QObject
     QHash<Key, BmsKey> config;
     std::array<bool, magic_enum::enum_count<BmsKey>()> buttons{};
 
-#ifdef _WIN32
-    int64_t startTimeClk;
-#endif
-
     void pressButton(BmsKey button, double value, uint64_t time);
     void releaseButton(BmsKey button, uint64_t time);
     void unpressCurrentKey(const Key& key, uint64_t time);
+
+  public:
     void handleAxis(Gamepad gamepad, Uint8 axis, double value, int64_t time);
     void handlePress(Gamepad gamepad, Uint8 button, int64_t time);
     void handleRelease(Gamepad gamepad, Uint8 button, int64_t time);
+
+  private:
     auto getTime(const QKeyEvent& event) -> int64_t;
 
     static constexpr auto scratchSensitivity = 0.01;
 
   public:
-    explicit InputTranslator(const GamepadManager* source,
-                             QObject* parent = nullptr);
-    void setConfiguredButton(QVariant button);
+    explicit InputTranslator(QObject* parent = nullptr);
+    void setConfiguredButton(const QVariant& button);
     auto getConfiguredButton() const -> QVariant;
     auto isConfiguring() const -> bool;
     void setKeyConfig(const QList<Mapping>& config);
     auto getKeyConfig() -> QList<Mapping>;
+    void setKeyConfig(const QHash<Key, BmsKey>& config);
+    auto getKeyConfigHash() -> QHash<Key, BmsKey>;
     Q_INVOKABLE void resetButton(BmsKey key);
     auto col11() const -> bool;
     auto col12() const -> bool;
@@ -179,7 +180,7 @@ class InputTranslator : public QObject
     auto start() const -> bool;
     auto select() const -> bool;
 
-    bool eventFilter(QObject* watched, QEvent* event) override;
+    auto eventFilter(QObject* watched, QEvent* event) -> bool override;
 
   signals:
     void buttonPressed(BmsKey button, double value, int64_t time);

@@ -6,6 +6,7 @@ import RhythmGameQml
 Rectangle {
     id: playfield
 
+    required property var columnSizes
     property list<int> columns
     readonly property list<int> columnsReversedMapping: {
         var mapping = [];
@@ -14,7 +15,13 @@ Rectangle {
         }
         return mapping;
     }
-    property real spacing
+    required property real heightMultiplier
+    required property real noteThickness
+    required property real spacing
+    required property var notes
+    required property string noteImage
+    required property string mineImage
+    required property bool notesStay
 
     function activateLn(column: int, index: int) {
         let noteColumn = noteColumnRepeater.itemAt(columnsReversedMapping[column]);
@@ -33,7 +40,6 @@ Rectangle {
         noteColumn.removeNote(index);
     }
 
-
     color: "black"
     width: notesRow.width
 
@@ -47,19 +53,20 @@ Rectangle {
             id: noteColumnRepeater
 
             // take only the columns specified in the columns property
-            model: playfield.columns.map(function (column) {
-                    return root.visibleNotes[column];
-                })
+            model: playfield.notes
 
             NoteColumn {
                 id: noteColumn
 
                 color: root.noteColors[playfield.columns[index]]
-                heightMultiplier: root.greenNumber
-                noteHeight: root.vars.thickness * 3
-                notes: modelData
-                width: root.columnSizes[playfield.columns[index]]
                 height: 1
+                heightMultiplier: playfield.heightMultiplier
+                noteHeight: playfield.noteThickness * 3
+                notes: modelData
+                noteImage: playfield.noteImage
+                mineImage: playfield.mineImage
+                notesStay: true
+                width: playfield.columnSizes[playfield.columns[index]]
             }
         }
     }

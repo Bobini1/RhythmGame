@@ -19,9 +19,6 @@ class ChartDataFactory
     charts::chart_readers::BmsChartReader chartReader;
 
     static auto loadFile(const QUrl& chartPath) -> std::string;
-    static auto makeNotes(
-      charts::gameplay_models::BmsNotesData& calculatedNotesData)
-      -> std::unique_ptr<gameplay_logic::BmsNotes>;
     static auto convertToQVector(
       const std::vector<charts::gameplay_models::BmsNotesData::Note>& column)
       -> QVector<gameplay_logic::Note>;
@@ -30,12 +27,21 @@ class ChartDataFactory
     struct ChartComponents
     {
         std::unique_ptr<gameplay_logic::ChartData> chartData;
-        std::unique_ptr<gameplay_logic::BmsNotes> bmsNotes;
         charts::gameplay_models::BmsNotesData notesData;
         std::unordered_map<uint16_t, std::filesystem::path> wavs;
         std::unordered_map<uint16_t, std::filesystem::path> bmps;
     };
-
+    static auto makeNotes(
+      const std::array<std::vector<charts::gameplay_models::BmsNotesData::Note>,
+                       charts::gameplay_models::BmsNotesData::columnNumber>&
+        visibleNotes,
+      const std::array<std::vector<charts::gameplay_models::BmsNotesData::Note>,
+                       charts::gameplay_models::BmsNotesData::columnNumber>&
+        invisibleNotes,
+      const std::vector<std::pair<charts::gameplay_models::BmsNotesData::Time,
+                                  double>>& bpmChanges,
+      const std::vector<charts::gameplay_models::BmsNotesData::Time>& barLines)
+      -> std::unique_ptr<gameplay_logic::BmsNotes>;
     auto loadChartData(
       const std::filesystem::path& chartPath,
       std::function<charts::parser_models::ParsedBmsChart::RandomRange(

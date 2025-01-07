@@ -5,14 +5,12 @@
 #ifndef RHYTHMGAME_BMSGAMEREFEREE_H
 #define RHYTHMGAME_BMSGAMEREFEREE_H
 
-#include <list>
 #include <span>
-#include <boost/container/flat_map.hpp>
 #include "charts/gameplay_models/BmsNotesData.h"
 #include "input/BmsKeys.h"
 #include "BmsScore.h"
-#include "BmsNotes.h"
 #include "gameplay_logic/rules/BmsHitRules.h"
+#include "sounds/OpenAlSound.h"
 namespace gameplay_logic {
 class BmsGameReferee
 {
@@ -60,9 +58,8 @@ class BmsGameReferee
     auto getPosition(std::chrono::nanoseconds offsetFromStart) -> Position;
     void playLastKeysound(int index);
 
-    void assignLastKeysound(
-      int columnIndex,
-      const gameplay_logic::rules::BmsHitRules::NoteType& note);
+    void assignLastKeysound(int columnIndex,
+                            const rules::BmsHitRules::NoteType& note);
 
   public:
     explicit BmsGameReferee(

@@ -33,51 +33,10 @@ createConfig(const QMap<QString, qml_components::ThemeFamily>& availableThemes,
 }
 } // namespace
 
-auto
-Profile::getName() const -> QString
-{
-    return name;
-}
-auto
-Profile::getAvatar() const -> QString
-{
-    return avatar;
-}
-
-void
-Profile::setName(QString newName)
-{
-    if (name == newName) {
-        return;
-    }
-    name = std::move(newName);
-    auto updateProperty =
-      db.createStatement("INSERT OR REPLACE INTO properties "
-                         "(key, value) VALUES (?, ?)");
-    updateProperty.bind(1, "name");
-    updateProperty.bind(2, name.toStdString());
-    updateProperty.execute();
-    emit nameChanged();
-}
-void
-Profile::setAvatar(QString newAvatar)
-{
-    if (avatar == newAvatar) {
-        return;
-    }
-    avatar = std::move(newAvatar);
-    auto updateProperty =
-      db.createStatement("INSERT OR REPLACE INTO properties "
-                         "(key, value) VALUES (?, ?)");
-    updateProperty.bind(1, "avatar");
-    updateProperty.bind(2, avatar.toStdString());
-    updateProperty.execute();
-    emit avatarChanged();
-}
-Profile::
-Profile(const std::filesystem::path& dbPath,
-        const QMap<QString, qml_components::ThemeFamily>& themeFamilies,
-        QObject* parent)
+Profile::Profile(
+  const std::filesystem::path& dbPath,
+  const QMap<QString, qml_components::ThemeFamily>& themeFamilies,
+  QObject* parent)
   : QObject(parent)
   , db(createDb(dbPath))
   , dbPath(dbPath)
@@ -95,29 +54,6 @@ Profile(const std::filesystem::path& dbPath,
                 writeConfig(configPath, *themeConfig);
             });
     writeConfig(configPath, *themeConfig);
-    if (!db.hasTable("properties")) {
-        db.execute("CREATE TABLE properties ("
-                   "id INTEGER PRIMARY KEY AUTOINCREMENT,"
-                   "key TEXT NOT NULL UNIQUE,"
-                   "value"
-                   ");");
-    } else {
-        auto statement = db.createStatement(
-          "SELECT value FROM properties WHERE key = 'avatar'");
-        auto av = statement.executeAndGet<std::string>();
-        avatar = QString::fromStdString(av.value_or(""));
-        statement =
-          db.createStatement("SELECT value FROM properties WHERE key = "
-                             "'name'");
-        auto n = statement.executeAndGet<std::string>();
-        name = QString::fromStdString(n.value_or(""));
-        statement = db.createStatement("SELECT value FROM properties WHERE "
-                                       "key = 'key_config'");
-        if (auto config = statement.executeAndGet<std::string>()) {
-            auto serializedData = QByteArray::fromStdString(*config);
-            support::decompress(serializedData, keyConfig);
-        }
-    }
     db.execute("CREATE TABLE IF NOT EXISTS score ("
                "id INTEGER PRIMARY KEY,"
                "sha256 TEXT NOT NULL,"
@@ -168,30 +104,14 @@ Profile::getDb() -> db::SqliteCppDb&
     return db;
 }
 auto
+Profile::getScoreDb() -> qml_components::ScoreDb*
+{
+    return &scoreDb;
+}
+auto
 Profile::getThemeConfig() const -> QQmlPropertyMap*
 {
     return themeConfig;
-}
-auto
-Profile::getKeyConfig() const -> QList<input::Mapping>
-{
-    return keyConfig;
-}
-auto
-Profile::setKeyConfig(const QList<input::Mapping>& keyConfig) -> void
-{
-    if (this->keyConfig == keyConfig) {
-        return;
-    }
-    this->keyConfig = keyConfig;
-    auto compressedData = support::compress(keyConfig);
-    auto updateProperty =
-      db.createStatement("INSERT OR REPLACE INTO properties "
-                         "(key, value) VALUES (?, ?)");
-    updateProperty.bind(1, "key_config");
-    updateProperty.bind(2, compressedData.data(), compressedData.size());
-    updateProperty.execute();
-    emit keyConfigChanged();
 }
 auto
 Profile::getVars() -> Vars*
