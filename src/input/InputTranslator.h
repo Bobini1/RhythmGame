@@ -135,10 +135,6 @@ class InputTranslator final : public QObject
     QHash<Key, BmsKey> config;
     std::array<bool, magic_enum::enum_count<BmsKey>()> buttons{};
 
-#ifdef _WIN32
-    int64_t startTimeClk;
-#endif
-
     void pressButton(BmsKey button, double value, uint64_t time);
     void releaseButton(BmsKey button, uint64_t time);
     void unpressCurrentKey(const Key& key, uint64_t time);
