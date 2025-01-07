@@ -11,9 +11,9 @@ using namespace std::chrono_literals;
 
 namespace support {
 
-template<typename Arr, typename Random>
+template<typename T, typename Random>
 void
-fisherYatesShuffle(Arr arr, Random& randomGenerator)
+fisherYatesShuffle(std::span<T> arr, Random& randomGenerator)
 {
     for (auto i = arr.size() - 1; i > 0; --i) {
         // we shouldn't need to support more than 256 columns
@@ -155,8 +155,8 @@ shuffleAllNotes(
         // first, we generate a list of proposed positions, ordered by
         // preference
         auto columnsIota = getColumsIota(arr.size());
-        fisherYatesShuffle(columnsIota, randomGenerator);
-        // check where there is enough space for the note
+        fisherYatesShuffle(std::span(columnsIota), randomGenerator);
+        //  check where there is enough space for the note
         const auto spotFound = tryPushingNoteWithDistance(
           *noteIt, columnsIota, newColumns, preferredNoteDistance);
         if (spotFound) {
@@ -183,9 +183,9 @@ fitInvisibleNotes(
     newColumns.resize(visibleNotes.size());
     auto noteIters = std::vector<std::vector<
       charts::gameplay_models::BmsNotesData::Note>::const_iterator>{};
-    noteIters.resize(visibleNotes.size());
-    for (auto i = 0; i < visibleNotes.size(); ++i) {
-        noteIters[i] = visibleNotes[i].cbegin();
+    noteIters.resize(invisibleNotes.size());
+    for (auto i = 0; i < invisibleNotes.size(); ++i) {
+        noteIters[i] = invisibleNotes[i].cbegin();
     }
     auto takenSpots =
       std::vector<std::unordered_set<std::chrono::nanoseconds::rep>>{};
@@ -201,8 +201,8 @@ fitInvisibleNotes(
         // first, we generate a list of proposed positions, ordered by
         // preference
         auto columnsIota = getColumsIota(visibleNotes.size());
-        fisherYatesShuffle(columnsIota, randomGenerator);
-        // find the first spot where the note fits
+        fisherYatesShuffle(std::span(columnsIota), randomGenerator);
+        //  find the first spot where the note fits
         auto spotFound = false;
         for (const auto& proposedColumn : columnsIota) {
             if (takenSpots[proposedColumn].contains(
@@ -212,6 +212,7 @@ fitInvisibleNotes(
             takenSpots[proposedColumn].insert(note.time.timestamp.count());
             newColumns[proposedColumn].push_back(note);
             spotFound = true;
+            break;
         }
         if (!spotFound) {
             newColumns[columnsIota[0]].push_back(note);
@@ -300,9 +301,9 @@ generatePermutation(
         }
         case resource_managers::NoteOrderAlgorithm::RandomPlus: {
             const auto randomSeed = seed.has_value() ? seed.value() : rd();
-            const auto columns = getColumsIota(visibleNotes.size());
+            auto columns = getColumsIota(visibleNotes.size());
             auto randomGenerator = RandomGenerator{ randomSeed };
-            fisherYatesShuffle(columns, randomGenerator);
+            fisherYatesShuffle(std::span(columns), randomGenerator);
             randomGenerator.seed(randomSeed);
             fisherYatesShuffle(visibleNotes, randomGenerator);
             randomGenerator.seed(randomSeed);
@@ -319,7 +320,7 @@ generatePermutation(
               randomGenerator);
             fitInvisibleNotes(
               std::span(visibleNotes).subspan(0, visibleNotes.size() - 1),
-              std::span(visibleNotes).subspan(0, visibleNotes.size() - 1),
+              std::span(invisibleNotes).subspan(0, invisibleNotes.size() - 1),
               randomGenerator);
             return { randomSeed, {} };
         }

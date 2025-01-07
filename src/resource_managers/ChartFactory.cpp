@@ -319,9 +319,10 @@ ChartFactory::createChart(
                 return std::pair{ result1, result2 };
             }
             auto visibleNotes1 = std::span{ visibleNotes.back().data(),
-                                            visibleNotes.back().size() };
-            auto invisibleNotes1 = std::span{ invisibleNotes.back().data(),
-                                              invisibleNotes.back().size() };
+                                            visibleNotes.back().size() / 2 };
+            auto invisibleNotes1 =
+              std::span{ invisibleNotes.back().data(),
+                         invisibleNotes.back().size() / 2 };
             return std::pair{ support::generatePermutation(
                                 visibleNotes1,
                                 invisibleNotes1,
