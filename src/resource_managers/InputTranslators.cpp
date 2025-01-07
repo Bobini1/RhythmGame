@@ -26,10 +26,21 @@ InputTranslators::createInputTranslator() -> input::InputTranslator*
             &input::GamepadManager::buttonReleased,
             inputTranslator,
             &input::InputTranslator::handleRelease);
+    connect(inputTranslator,
+            &input::InputTranslator::keyConfigModified,
+            this,
+            [this, inputTranslator] {
+                const auto index = translators.indexOf(inputTranslator);
+                if (index == -1) {
+                    return;
+                }
+                keyConfigs[index] = inputTranslator->getKeyConfigHash();
+                saveKeyConfigs();
+            });
     return inputTranslator;
 }
 void
-InputTranslators::saveKeyConfigs()
+InputTranslators::saveKeyConfigs() const
 {
     auto statement =
       db->createStatement("INSERT OR REPLACE INTO properties (key, value) "
@@ -90,18 +101,8 @@ InputTranslators::onPlayerCountChanged(int n)
     while (translators.size() < n) {
         beginInsertRows(QModelIndex(), translators.size(), translators.size());
         auto* translator = createInputTranslator();
-        connect(translator,
-                &input::InputTranslator::keyConfigModified,
-                this,
-                [this, translator]() {
-                    const auto index = translators.indexOf(translator);
-                    if (index == -1) {
-                        return;
-                    }
-                    keyConfigs[index] = translator->getKeyConfigHash();
-                    emit dataChanged(this->index(index), this->index(index));
-                });
         translators.push_back(translator);
+        translator->setKeyConfig(keyConfigs[translators.size() - 1]);
         endInsertRows();
     }
     while (translators.size() > n) {

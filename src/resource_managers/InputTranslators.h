@@ -26,7 +26,7 @@ class InputTranslators final : public QAbstractListModel
     input::GamepadManager* gamepadManager;
 
     auto createInputTranslator() -> input::InputTranslator*;
-    void saveKeyConfigs();
+    void saveKeyConfigs() const;
 
   public:
     explicit InputTranslators(input::GamepadManager* gamepadManager,
