@@ -10,7 +10,7 @@
 #include <QKeyEvent>
 #include <QObject>
 #include <QVariant>
-#include <magic_enum.hpp>
+#include <magic_enum/magic_enum.hpp>
 #include <functional>
 
 namespace input {
