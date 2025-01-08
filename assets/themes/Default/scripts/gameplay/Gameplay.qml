@@ -41,7 +41,6 @@ Rectangle {
         }
         return images;
     }
-    property double playfieldHeight: 800
     property var popup: null
     property string rootUrl: globalRoot.urlToPath(Qt.resolvedUrl(".").toString())
 
