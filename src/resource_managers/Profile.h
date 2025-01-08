@@ -35,7 +35,6 @@ class Profile final : public QObject
      * If the profile doesn't exist, it will be created.
      * @param dbPath Path to the database file. Doesn't have to exist.
      * @param themeFamilies The available theme families.
-     * @param inputTranslator The input translator instance to use.
      * @param parent QObject parent.
      */
     explicit Profile(
