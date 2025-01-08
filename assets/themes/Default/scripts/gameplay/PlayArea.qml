@@ -113,17 +113,18 @@ Item {
             Repeater {
                 id: laserRowChildren
 
-                model: playArea.columns.length
+                model: playArea.columns
 
                 // laser beam (animated)
                 LaserBeam {
                     required property int index
-                    columnIndex: playArea.columns[index]
+                    required property string modelData
+                    columnIndex: modelData
                     columnSizes: playArea.columnSizes
                     image: {
-                        if (index === 7 || index === 15)
+                        if (modelData === 7 || modelData === 15)
                             return root.iniImagesUrl + "keybeam/" + playArea.vars.keybeam + "/laser_s";
-                        else if (index % 2 === 0)
+                        else if (modelData % 2 === 0)
                             return root.iniImagesUrl + "keybeam/" + playArea.vars.keybeam + "/laser_w";
                         else
                             return root.iniImagesUrl + "keybeam/" + playArea.vars.keybeam + "/laser_b";

@@ -17,18 +17,6 @@ Rectangle {
     readonly property string iniImagesUrl: "image://ini/" + rootUrl + "images/"
     readonly property Profile mainProfile: ProfileList.mainProfile
     readonly property var mainProfileVars: mainProfile.vars.themeVars[chartFocusScope.screen]
-    property list<string> noteColors: {
-        let images = [];
-        for (let i = 0; i < 16; i++) {
-            if (i === 7 || i === 15)
-                images.push("red");
-            else if (i % 2 === 0)
-                images.push("white");
-            else
-                images.push("black");
-        }
-        return images;
-    }
     property var popup: null
     property string rootUrl: globalRoot.urlToPath(Qt.resolvedUrl(".").toString())
 
