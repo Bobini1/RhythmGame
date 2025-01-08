@@ -120,7 +120,14 @@ Item {
                     required property int index
                     columnIndex: playArea.columns[index]
                     columnSizes: playArea.columnSizes
-                    image: root.laserImages[index]
+                    image: {
+                        if (index === 7 || index === 15)
+                            return root.iniImagesUrl + "keybeam/" + playArea.vars.keybeam + "/laser_s";
+                        else if (index % 2 === 0)
+                            return root.iniImagesUrl + "keybeam/" + playArea.vars.keybeam + "/laser_w";
+                        else
+                            return root.iniImagesUrl + "keybeam/" + playArea.vars.keybeam + "/laser_b";
+                    }
                 }
             }
         }

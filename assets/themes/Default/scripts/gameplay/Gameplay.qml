@@ -15,18 +15,6 @@ Rectangle {
     property bool customizeMode: false
     readonly property string imagesUrl: Qt.resolvedUrl(".") + "images/"
     readonly property string iniImagesUrl: "image://ini/" + rootUrl + "images/"
-    property list<string> laserImages: {
-        let images = [];
-        for (let i = 0; i < 16; i++) {
-            if (i === 7 || i === 15)
-                images.push(iniImagesUrl + "keybeam/" + mainProfileVars.keybeam + "/laser_s");
-            else if (i % 2 === 0)
-                images.push(iniImagesUrl + "keybeam/" + mainProfileVars.keybeam + "/laser_w");
-            else
-                images.push(iniImagesUrl + "keybeam/" + mainProfileVars.keybeam + "/laser_b");
-        }
-        return images;
-    }
     readonly property Profile mainProfile: ProfileList.mainProfile
     readonly property var mainProfileVars: mainProfile.vars.themeVars[chartFocusScope.screen]
     property list<string> noteColors: {
