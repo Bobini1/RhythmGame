@@ -28,7 +28,7 @@ Rectangle {
         return images;
     }
     readonly property Profile mainProfile: ProfileList.mainProfile
-    readonly property var mainProfileVars: mainProfile.vars.themeVars.gameplay
+    readonly property var mainProfileVars: mainProfile.vars.themeVars[chartFocusScope.screen]
     property list<string> noteColors: {
         let images = [];
         for (let i = 0; i < 16; i++) {
@@ -44,8 +44,6 @@ Rectangle {
     property double playfieldHeight: 800
     property var popup: null
     property string rootUrl: globalRoot.urlToPath(Qt.resolvedUrl(".").toString())
-    // copying visibleNotes to js array is faster than accessing it directly
-    readonly property var visibleNotes: chart.notes.visibleNotes
 
     function getColumnSizes(vars) {
         let sizes = [];
@@ -98,7 +96,7 @@ Rectangle {
     PlayAreaPopup {
         id: playAreaPopup
 
-        themeVars: ProfileList.mainProfile.vars.themeVars.gameplay
+        themeVars: root.mainProfileVars
         globalVars: ProfileList.mainProfile.vars.globalVars
 
         onClosed: {
@@ -108,7 +106,7 @@ Rectangle {
     GaugePopup {
         id: gaugePopup
 
-        themeVars: ProfileList.mainProfile.vars.themeVars.gameplay
+        themeVars: root.mainProfileVars
 
         onClosed: {
             root.popup = null;
@@ -126,7 +124,7 @@ Rectangle {
             id: playAreaTemplate
 
             columns: playArea.columns
-            vars: ProfileList.mainProfile.vars.themeVars.gameplay
+            vars: root.mainProfileVars
             visible: root.customizeMode
             z: playArea.z + 1
 

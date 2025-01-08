@@ -26,7 +26,7 @@ Item {
     required property var score
     required property var notes
     readonly property int spacing: playArea.vars.spacing
-    readonly property var vars: profile.vars.themeVars.gameplay
+    readonly property var vars: profile.vars.themeVars[chartFocusScope.screen]
     readonly property var globalVars: profile.vars.globalVars
     readonly property list<real> columnSizes: root.getColumnSizes(vars)
 
@@ -334,7 +334,7 @@ Item {
             }
             if (tap.points.noteRemoved) {
                 let item = explosions.itemAt(playArea.columnsReversedMapping[tap.column]);
-                if (root.visibleNotes[tap.column][tap.noteIndex].type === Note.Type.LongNoteBegin) {
+                if (playArea.notes[playArea.columnsReversedMapping[tap.column]][tap.noteIndex].type === Note.Type.LongNoteBegin) {
                     item.ln = true;
                 }
                 item.restart();

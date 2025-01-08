@@ -24,12 +24,17 @@ ApplicationWindow {
 
             readonly property bool active: StackView.status === StackView.Active
             required property Chart chart
+            readonly property string screen: {
+                let keys = chartFocusScope.chart.chartData.keymode;
+                let battle = chartFocusScope.chart.profiles.length > 1;
+                return "k" + keys + (battle ? "battle" : "");
+            }
 
             Loader {
                 id: loader
 
                 anchors.fill: parent
-                source: Themes.availableThemeFamilies[ProfileList.mainProfile.themeConfig.gameplay].screens.gameplay.script
+                source: Themes.availableThemeFamilies[ProfileList.mainProfile.themeConfig[chartFocusScope.screen]].screens[chartFocusScope.screen].script
             }
         }
     }
@@ -41,7 +46,9 @@ ApplicationWindow {
 
             readonly property bool active: StackView.status === StackView.Active
             required property ChartData chartData
-            required property list<BmsScoreAftermath> result
+            required
+            property
+                list < BmsScoreAftermath > result
 
             Loader {
                 id: loader
