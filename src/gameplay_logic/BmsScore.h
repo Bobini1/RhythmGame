@@ -4,7 +4,7 @@
 
 #ifndef RHYTHMGAME_BMSSCORE_H
 #define RHYTHMGAME_BMSSCORE_H
-#include <magic_enum/magic_enum.hpp>
+#include <magic_enum.hpp>
 #include "gameplay_logic/rules/BmsGauge.h"
 #include "HitEvent.h"
 #include "BmsResult.h"

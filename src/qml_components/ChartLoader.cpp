@@ -7,7 +7,7 @@
 #include <utility>
 #include "gameplay_logic/Chart.h"
 #include "support/QStringToPath.h"
-#include "magic_enum/magic_enum.hpp"
+#include "magic_enum.hpp"
 #include "qdir.h"
 #include "resource_managers/InputTranslators.h"
 

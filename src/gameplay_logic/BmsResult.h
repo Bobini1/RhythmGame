@@ -6,7 +6,7 @@
 #define RHYTHMGAME_BMSRESULT_H
 
 #include <QObject>
-#include <magic_enum/magic_enum.hpp>
+#include <magic_enum.hpp>
 #include "Judgement.h"
 #include "db/SqliteCppDb.h"
 #include "support/Sha256.h"
