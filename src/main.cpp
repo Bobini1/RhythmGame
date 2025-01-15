@@ -25,8 +25,6 @@
 #include "qml_components/InputAttached.h"
 #include "qml_components/Themes.h"
 #include "resource_managers/GaugeFactory.h"
-#include "resource_managers/InputTranslators.h"
-#include "resource_managers/KeyboardInputForwarder.h"
 #include "resource_managers/ScanThemes.h"
 
 Q_IMPORT_QML_PLUGIN(RhythmGameQmlPlugin)
@@ -133,25 +131,23 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
         qmlRegisterSingletonInstance(
           "RhythmGameQml", 1, 0, "ProfileList", &profileList);
 
-        auto inputTranslators =
-          resource_managers::InputTranslators{ &gamepadManager, &db };
+        auto inputTranslator = input::InputTranslator{ &db };
+        QObject::connect(&gamepadManager,
+                         &input::GamepadManager::axisMoved,
+                         &inputTranslator,
+                         &input::InputTranslator::handleAxis);
+        QObject::connect(&gamepadManager,
+                         &input::GamepadManager::buttonPressed,
+                         &inputTranslator,
+                         &input::InputTranslator::handlePress);
+        QObject::connect(&gamepadManager,
+                         &input::GamepadManager::buttonReleased,
+                         &inputTranslator,
+                         &input::InputTranslator::handleRelease);
         qmlRegisterSingletonInstance(
-          "RhythmGameQml", 1, 0, "InputTranslators", &inputTranslators);
-        // always 1 player at the start of the game
-        inputTranslators.onPlayerCountChanged(
-          profileList.getActiveProfiles().size());
-        QObject::connect(&profileList,
-                         &qml_components::ProfileList::activeProfilesChanged,
-                         &inputTranslators,
-                         [&inputTranslators, &profileList]() {
-                             inputTranslators.onPlayerCountChanged(
-                               profileList.getActiveProfiles().size());
-                         });
+          "RhythmGameQml", 1, 0, "InputTranslator", &inputTranslator);
 
-        auto keyboardInputForwarder =
-          resource_managers::KeyboardInputForwarder{ &inputTranslators };
-
-        auto chartFactory = resource_managers::ChartFactory{};
+        auto chartFactory = resource_managers::ChartFactory{ &inputTranslator };
         auto hitRulesFactory =
           [](gameplay_logic::rules::TimingWindows timingWindows,
              std::function<double(std::chrono::nanoseconds)> hitValuesFactory) {
@@ -163,14 +159,13 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
         auto gaugeFactory = resource_managers::GaugeFactory{};
         auto chartLoader = qml_components::ChartLoader{
             &profileList,
-            &inputTranslators,
+            &inputTranslator,
             &chartDataFactory,
             &gameplay_logic::rules::lr2_timing_windows::getTimingWindows,
             std::move(hitRulesFactory),
             &gameplay_logic::rules::lr2_hit_values::getLr2HitValue,
             gaugeFactory,
-            &chartFactory,
-            2.0
+            &chartFactory
         };
         qmlRegisterSingletonInstance(
           "RhythmGameQml", 1, 0, "ChartLoader", &chartLoader);
@@ -282,8 +277,7 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
 
         auto getCurrentScene = std::function<QQuickItem*()>{};
         auto inputSignalProvider =
-          qml_components::InputSignalProvider{ &profileList,
-                                               &inputTranslators };
+          qml_components::InputSignalProvider{ &inputTranslator };
         qml_components::InputAttached::inputSignalProvider =
           &inputSignalProvider;
         qml_components::InputAttached::findCurrentScene = &getCurrentScene;
@@ -297,7 +291,7 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
         if (engine.rootObjects().isEmpty()) {
             throw std::runtime_error{ "Failed to load main qml" };
         }
-        engine.rootObjects()[0]->installEventFilter(&keyboardInputForwarder);
+        engine.rootObjects()[0]->installEventFilter(&inputTranslator);
         // get the "sceneStack" property from the root object
         auto sceneStack = engine.rootObjects()[0]->property("sceneStack");
         if (!sceneStack.isValid()) {

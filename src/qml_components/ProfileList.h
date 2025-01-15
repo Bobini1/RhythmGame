@@ -8,10 +8,11 @@
 #include <QAbstractListModel>
 #include "resource_managers/Profile.h"
 
+#include <qpointer.h>
 #include <qproperty.h>
 #include <qqmllist.h>
 namespace resource_managers {
-class InputTranslators;
+class inputTranslator;
 }
 namespace qml_components {
 class ThemeFamily;
@@ -29,25 +30,23 @@ class ProfileList final : public QAbstractListModel
     std::filesystem::path profilesFolder;
     QList<resource_managers::Profile*> profiles;
     db::SqliteCppDb* songDb;
-    resource_managers::InputTranslators* keyConfigs;
+    input::InputTranslator* keyConfigs;
     QMap<QString, ThemeFamily> themeFamilies;
-    QList<resource_managers::Profile*> activeProfiles;
+    resource_managers::Profile* player1Profile{};
+    resource_managers::Profile* player2Profile{};
     resource_managers::Profile* mainProfile{};
-    QList<resource_managers::Profile*> previousSessionProfiles;
 
-    Q_PROPERTY(
-      QList<resource_managers::Profile*> activeProfiles READ getActiveProfiles
-        WRITE setActiveProfiles NOTIFY activeProfilesChanged)
+    Q_PROPERTY(resource_managers::Profile* player1Profile READ getPlayer1Profile
+                 WRITE setPlayer1Profile NOTIFY player1ProfileChanged)
+    Q_PROPERTY(resource_managers::Profile* player2Profile READ getPlayer2Profile
+                 WRITE setPlayer2Profile NOTIFY player2ProfileChanged)
     Q_PROPERTY(resource_managers::Profile* mainProfile READ getMainProfile WRITE
                  setMainProfile NOTIFY mainProfileChanged)
-    Q_PROPERTY(
-      QList<resource_managers::Profile*> previousSessionProfiles READ
-        getPreviousSessionProfiles NOTIFY previousSessionProfilesChanged)
 
     auto createDefaultProfile() -> resource_managers::Profile*;
 
     void saveMainProfile();
-    void saveActiveProfiles();
+    void saveActiveProfiles() const;
 
   public:
     explicit ProfileList(db::SqliteCppDb* songDb,
@@ -61,26 +60,6 @@ class ProfileList final : public QAbstractListModel
       -> QVariant override;
     auto getProfiles() -> const QList<resource_managers::Profile*>&;
 
-    /**
-     * @brief The list of active profiles.
-     * If more than one profile is active, battle mode is enabled.
-     * There is always at least one profile in the list.
-     * @return The list of profiles that are currently active.
-     */
-    auto getActiveProfiles() -> QList<resource_managers::Profile*>;
-
-    /**
-     * @brief Get the profiles that were activated while closing the previous
-    session of the game.
-    */
-    auto getPreviousSessionProfiles() -> QList<resource_managers::Profile*>;
-
-    /**
-     * @brief Sets the active profiles.
-     * @param activeProfiles The new active profiles.
-     */
-    void setActiveProfiles(QList<resource_managers::Profile*> activeProfiles);
-
     Q_INVOKABLE resource_managers::Profile* at(int index) const;
     Q_INVOKABLE resource_managers::Profile* createProfile();
     /**
@@ -90,20 +69,29 @@ class ProfileList final : public QAbstractListModel
     Q_INVOKABLE void removeProfile(resource_managers::Profile* profile);
     /**
      * @brief Set the profile that is used to select themes and theme settings.
-     * If the profile is not active, sets it to active.
+     * @details It also specifies the layout in battle mode.
+     * The main profile does not need to be assigned to P1 or P2.
      * @param profile the profile to set as main.
      */
     void setMainProfile(resource_managers::Profile* profile);
     /**
      * @brief The profile used to select themes and theme settings.
-     * The main profile is guaranteed to be an active profile.
+     * @details The main profile does not need to be assigned to P1 or P2.
      */
     auto getMainProfile() const -> resource_managers::Profile*;
 
+    void setPlayer1Profile(resource_managers::Profile* profile);
+
+    auto getPlayer1Profile() const -> resource_managers::Profile*;
+
+    void setPlayer2Profile(resource_managers::Profile* profile);
+
+    auto getPlayer2Profile() const -> resource_managers::Profile*;
+
   signals:
-    void activeProfilesChanged();
+    void player1ProfileChanged();
+    void player2ProfileChanged();
     void mainProfileChanged();
-    void previousSessionProfilesChanged();
 };
 } // namespace qml_components
 

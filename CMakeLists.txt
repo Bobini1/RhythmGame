@@ -162,16 +162,12 @@ qt_add_library(RhythmGame_lib OBJECT ${utf8Manifest} src/db/SqliteCppDb.cpp src/
         src/resource_managers/Vars.h
         src/support/Exception.cpp
         src/support/Exception.h
-        src/resource_managers/KeyboardInputForwarder.cpp
-        src/resource_managers/KeyboardInputForwarder.h
         src/qml_components/InputAttached.cpp
         src/qml_components/InputAttached.h
         src/resource_managers/GaugeFactory.cpp
         src/resource_managers/GaugeFactory.h
         src/support/GeneratePermutation.cpp
         src/support/GeneratePermutation.h
-        src/resource_managers/InputTranslators.cpp
-        src/resource_managers/InputTranslators.h
 )
 
 find_package(Threads REQUIRED)
@@ -189,7 +185,7 @@ endif ()
 # We all love MSVC.
 target_compile_definitions(RhythmGame_lib PUBLIC NOMINMAX)
 
-target_compile_features(RhythmGame_lib PRIVATE cxx_std_20)
+target_compile_features(RhythmGame_lib PRIVATE cxx_std_23)
 target_compile_definitions(RhythmGame_lib PUBLIC "$<$<CONFIG:DEBUG>:DEBUG>")
 target_include_directories(
         RhythmGame_lib ${warning_guard}

@@ -24,36 +24,52 @@ class Chart final : public QObject
 {
     Q_OBJECT
 
+  public:
+    struct PlayerSpecificComponents
+    {
+        BmsNotes* notes;
+        BmsScore* score;
+        QPointer<resource_managers::Profile> profile;
+    };
+
+  private:
+    struct LoadedPlayerSpecificComponents
+    {
+        PlayerSpecificComponents playerData;
+        std::optional<BmsGameReferee> referee;
+    };
+
     Q_PROPERTY(int64_t elapsed READ getElapsed NOTIFY elapsedChanged)
     Q_PROPERTY(ChartData* chartData READ getChartData CONSTANT)
-    Q_PROPERTY(QList<BmsNotes*> notes READ getNotes CONSTANT)
-    Q_PROPERTY(QList<BmsScore*> scores READ getScores CONSTANT)
+    Q_PROPERTY(BmsNotes* notes1 READ getNotes1 CONSTANT)
+    Q_PROPERTY(BmsNotes* notes2 READ getNotes2 CONSTANT)
+    Q_PROPERTY(BmsScore* score1 READ getScore1 CONSTANT)
+    Q_PROPERTY(BmsScore* score2 READ getScore2 CONSTANT)
     Q_PROPERTY(double position READ getPosition NOTIFY positionChanged)
     Q_PROPERTY(
       int64_t timeBeforeChartStart READ getTimeBeforeChartStart CONSTANT)
     Q_PROPERTY(int64_t timeAfterChartEnd READ getTimeAfterChartEnd CONSTANT)
     Q_PROPERTY(qml_components::BgaContainer* bga READ getBga NOTIFY loaded)
-    Q_PROPERTY(
-      QList<resource_managers::Profile*> profiles READ getProfiles CONSTANT)
+    Q_PROPERTY(resource_managers::Profile* profile1 READ getProfile1 CONSTANT)
+    Q_PROPERTY(resource_managers::Profile* profile2 READ getProfile2 CONSTANT)
 
     QTimer propertyUpdateTimer;
     std::chrono::system_clock::time_point startTimepoint;
-    std::vector<BmsGameReferee> gameReferees;
     std::span<const BpmChange> bpmChanges;
     ChartData* chartData;
-    QList<BmsNotes*> notes;
-    QList<BmsScore*> scores;
     QFuture<std::vector<BmsGameReferee>> refereesFuture;
     QFutureWatcher<std::vector<BmsGameReferee>> refereesFutureWatcher;
     qml_components::BgaContainer* bga{};
     QFuture<std::unique_ptr<qml_components::BgaContainer>> bgaFuture;
     QFutureWatcher<std::unique_ptr<qml_components::BgaContainer>>
       bgaFutureWatcher;
-    QList<QPointer<resource_managers::Profile>> profiles;
-    int64_t elapsed;
+    std::optional<LoadedPlayerSpecificComponents> player1;
+    std::optional<LoadedPlayerSpecificComponents> player2;
+    std::vector<LoadedPlayerSpecificComponents*> players;
+    int64_t elapsed{};
     int64_t timeBeforeChartStart{};
     int64_t timeAfterChartEnd{};
-    double position;
+    double position{};
     bool startRequested = false;
 
     void updateElapsed();
@@ -71,9 +87,8 @@ class Chart final : public QObject
       QFuture<std::vector<BmsGameReferee>> refereesFuture,
       QFuture<std::unique_ptr<qml_components::BgaContainer>> bgaFuture,
       ChartData* chartData,
-      QList<BmsNotes*> notes,
-      QList<BmsScore*> scores,
-      QList<resource_managers::Profile*> profiles,
+      std::optional<PlayerSpecificComponents> player1,
+      std::optional<PlayerSpecificComponents> player2,
       QObject* parent = nullptr);
 
     Q_INVOKABLE void start();
@@ -85,10 +100,7 @@ class Chart final : public QObject
     };
     Q_ENUM(EventType)
 
-    void passKey(int playerIndex,
-                 input::BmsKey key,
-                 EventType eventType,
-                 int64_t time);
+    void passKey(input::BmsKey key, EventType eventType, int64_t time);
 
     Q_INVOKABLE QList<BmsScoreAftermath*> finish();
 
@@ -96,11 +108,17 @@ class Chart final : public QObject
 
     auto getChartData() const -> ChartData*;
 
-    auto getNotes() const -> const QList<BmsNotes*>&;
+    auto getNotes1() const -> BmsNotes*;
 
-    auto getScores() const -> const QList<BmsScore*>&;
+    auto getNotes2() const -> BmsNotes*;
 
-    auto getProfiles() const -> QList<resource_managers::Profile*>;
+    auto getScore1() const -> BmsScore*;
+
+    auto getScore2() const -> BmsScore*;
+
+    auto getProfile1() const -> resource_managers::Profile*;
+
+    auto getProfile2() const -> resource_managers::Profile*;
 
     auto getPosition() const -> double;
 

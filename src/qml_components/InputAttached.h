@@ -20,7 +20,7 @@ class InputSignalProvider final : public QObject
 {
     Q_OBJECT
     ProfileList* profileList;
-    resource_managers::InputTranslators* inputTranslators;
+    input::InputTranslator* inputTranslator;
     QList<QMetaObject::Connection> connections;
 
     void connectProfile(resource_managers::Profile* profile,
@@ -28,20 +28,11 @@ class InputSignalProvider final : public QObject
                         int playerIndex);
 
   public:
-    explicit InputSignalProvider(
-      ProfileList* profileList,
-      resource_managers::InputTranslators* inputTranslators,
-      QObject* parent = nullptr);
+    explicit InputSignalProvider(input::InputTranslator* inputTranslator,
+                                 QObject* parent = nullptr);
   signals:
-    void buttonPressed(resource_managers::Profile* profile,
-                       input::BmsKey button,
-                       int playerIndex,
-                       double value,
-                       int64_t time);
-    void buttonReleased(resource_managers::Profile* profile,
-                        input::BmsKey button,
-                        int playerIndex,
-                        int64_t time);
+    void buttonPressed(input::BmsKey button, double value, int64_t time);
+    void buttonReleased(input::BmsKey button, int64_t time);
 };
 
 /**
@@ -64,22 +55,18 @@ class InputAttached final : public QObject
     static auto qmlAttachedProperties(QObject* object) -> InputAttached*;
 
   signals:
-    void buttonPressed(resource_managers::Profile* profile,
-                       input::BmsKey button,
-                       double value,
-                       int64_t time);
-    void buttonReleased(resource_managers::Profile* profile,
-                        input::BmsKey button,
-                        int64_t time);
+    void buttonPressed(input::BmsKey button, double value, int64_t time);
+    void buttonReleased(input::BmsKey button, int64_t time);
 
     // too lazy to write these out
 #define KEY(name)                                                              \
-    void name##Pressed(                                                        \
-      resource_managers::Profile* profile, double value, int64_t time);        \
-    void name##Released(resource_managers::Profile* profile, int64_t time);
+    void name##Pressed(double value, int64_t time);                            \
+    void name##Released(int64_t time);
 
-    KEY(start)
-    KEY(select)
+    KEY(start1)
+    KEY(select1)
+    KEY(start2)
+    KEY(select2)
     KEY(col11)
     KEY(col12)
     KEY(col13)

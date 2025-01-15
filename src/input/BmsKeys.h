@@ -26,12 +26,19 @@ enum class BmsKey
     Col26,
     Col27,
     Col2sUp,
-    Start,
-    Select,
+    Start1,
+    Select1,
     Col1sDown,
+    Start2,
+    Select2,
     Col2sDown,
 };
 Q_ENUM_NS(BmsKey);
+
+auto
+playerIndexFromKey(BmsKey key) -> int;
+auto
+convertToP1Key(BmsKey key) -> BmsKey;
 } // namespace input
 
 #endif // RHYTHMGAME_BMSKEYS_H

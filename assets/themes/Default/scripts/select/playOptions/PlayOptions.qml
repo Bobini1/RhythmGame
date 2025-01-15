@@ -68,8 +68,8 @@ Rectangle {
         down: BmsKey.Col16
         profile: ProfileList.mainProfile
 
-        model: [NoteOrderAlgorithm.Normal, NoteOrderAlgorithm.Mirror, NoteOrderAlgorithm.Spiral, NoteOrderAlgorithm.Random, NoteOrderAlgorithm.SRandom, NoteOrderAlgorithm.HRandom, NoteOrderAlgorithm.RRandom, NoteOrderAlgorithm.SRandomPlus]
-        strings: ["NORMAL", "MIRROR", "SPIRAL", "RANDOM", "S-RANDOM", "H-RANDOM", "R-RANDOM", "S-RANDOM+"]
+        model: [NoteOrderAlgorithm.Normal, NoteOrderAlgorithm.Mirror, NoteOrderAlgorithm.Random, NoteOrderAlgorithm.RandomPlus, NoteOrderAlgorithm.SRandom, NoteOrderAlgorithm.SRandomPlus, NoteOrderAlgorithm.RRandom]
+        strings: ["NORMAL", "MIRROR", "RANDOM", "RANDOM+", "S-RANDOM", "S-RANDOM+", "R-RANDOM"]
         prop: "noteOrderAlgorithmP2"
     }
 
@@ -164,11 +164,11 @@ Rectangle {
     }
     property var open: false
 
-    Input.onStartPressed: {
+    Input.onStart1Pressed: {
         open = true;
     }
 
-    Input.onStartReleased: {
+    Input.onStart1Released: {
         open = false;
     }
 

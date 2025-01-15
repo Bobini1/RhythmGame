@@ -4,62 +4,27 @@
 
 #include "InputAttached.h"
 
-#include "resource_managers/InputTranslators.h"
-
 #include <spdlog/spdlog.h>
 #include <spdlog/stopwatch.h>
 
 namespace qml_components {
-void
-InputSignalProvider::connectProfile(
-  resource_managers::Profile* profile,
-  const input::InputTranslator* inputTranslator,
-  int playerIndex)
-{
-    connections.append(connect(
-      inputTranslator,
-      &input::InputTranslator::buttonPressed,
-      this,
-      [profile, playerIndex, this](
-        const input::BmsKey button, const double value, const int64_t time) {
-          emit buttonPressed(profile, button, playerIndex, value, time);
-      }));
-    connections.append(
-      connect(inputTranslator,
-              &input::InputTranslator::buttonReleased,
-              this,
-              [profile, playerIndex, this](const input::BmsKey button,
-                                           const int64_t time) {
-                  emit buttonReleased(profile, button, playerIndex, time);
-              }));
-}
+
 InputSignalProvider::InputSignalProvider(
-  ProfileList* profileList,
-  resource_managers::InputTranslators* inputTranslators,
+  input::InputTranslator* inputTranslator,
   QObject* parent)
   : QObject(parent)
   , profileList(profileList)
-  , inputTranslators(inputTranslators)
+  , inputTranslator(inputTranslator)
 
 {
-    for (auto i = 0; i < profileList->getActiveProfiles().size(); ++i) {
-        connectProfile(profileList->getActiveProfiles().at(i),
-                       inputTranslators->getInputTranslators().at(i),
-                       i);
-    }
-    connect(profileList, &ProfileList::activeProfilesChanged, this, [this]() {
-        for (const auto& connection : connections) {
-            disconnect(connection);
-        }
-        connections.clear();
-        for (auto i = 0; i < this->profileList->getActiveProfiles().size();
-             ++i) {
-            auto* profile = this->profileList->at(i);
-            const auto* inputTranslator =
-              this->inputTranslators->getInputTranslators().at(i);
-            connectProfile(profile, inputTranslator, i);
-        }
-    });
+    connect(inputTranslator,
+            &input::InputTranslator::buttonPressed,
+            this,
+            &InputSignalProvider::buttonPressed);
+    connect(inputTranslator,
+            &input::InputTranslator::buttonReleased,
+            this,
+            &InputSignalProvider::buttonReleased);
 }
 auto
 InputAttached::isAttachedToCurrentScene() const -> bool
@@ -80,35 +45,31 @@ InputAttached::InputAttached(QObject* obj)
     connect(inputSignalProvider,
             &InputSignalProvider::buttonPressed,
             this,
-            [this](resource_managers::Profile* profile,
-                   const input::BmsKey button,
+            [this](const input::BmsKey button,
                    const double value,
                    const int64_t time) {
                 if (isAttachedToCurrentScene()) {
-                    emit buttonPressed(profile, button, value, time);
+                    emit buttonPressed(button, value, time);
                 }
             });
     connect(inputSignalProvider,
             &InputSignalProvider::buttonReleased,
             this,
-            [this](resource_managers::Profile* profile,
-                   const input::BmsKey button,
-                   const int64_t time) {
+            [this](const input::BmsKey button, const int64_t time) {
                 if (isAttachedToCurrentScene()) {
-                    emit buttonReleased(profile, button, time);
+                    emit buttonReleased(button, time);
                 }
             });
     connect(this,
             &InputAttached::buttonPressed,
             this,
-            [this](resource_managers::Profile* profile,
-                   const input::BmsKey button,
+            [this](const input::BmsKey button,
                    const double value,
                    const int64_t time) {
                 switch (button) {
 #define CASE(key, capital)                                                     \
     case input::BmsKey::capital:                                               \
-        emit key##Pressed(profile, value, time);                               \
+        emit key##Pressed(value, time);                                        \
         break;
                     CASE(col11, Col11)
                     CASE(col12, Col12)
@@ -128,21 +89,21 @@ InputAttached::InputAttached(QObject* obj)
                     CASE(col2sUp, Col2sUp)
                     CASE(col1sDown, Col1sDown)
                     CASE(col2sDown, Col2sDown)
-                    CASE(start, Start)
-                    CASE(select, Select)
+                    CASE(start1, Start1)
+                    CASE(select1, Select1)
+                    CASE(start2, Start2)
+                    CASE(select2, Select2)
 #undef CASE
                 }
             });
     connect(this,
             &InputAttached::buttonReleased,
             this,
-            [this](resource_managers::Profile* profile,
-                   const input::BmsKey button,
-                   const int64_t time) {
+            [this](const input::BmsKey button, const int64_t time) {
                 switch (button) {
 #define CASE(key, capital)                                                     \
     case input::BmsKey::capital:                                               \
-        emit key##Released(profile, time);                                     \
+        emit key##Released(time);                                              \
         break;
                     CASE(col11, Col11)
                     CASE(col12, Col12)
@@ -162,8 +123,10 @@ InputAttached::InputAttached(QObject* obj)
                     CASE(col2sUp, Col2sUp)
                     CASE(col1sDown, Col1sDown)
                     CASE(col2sDown, Col2sDown)
-                    CASE(start, Start)
-                    CASE(select, Select)
+                    CASE(start1, Start1)
+                    CASE(select1, Select1)
+                    CASE(start2, Start2)
+                    CASE(select2, Select2)
 #undef CASE
                 }
             });
