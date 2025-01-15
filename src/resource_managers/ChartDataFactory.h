@@ -9,9 +9,6 @@
 #include "charts/chart_readers/BmsChartReader.h"
 #include "charts/gameplay_models/BmsNotesData.h"
 #include "gameplay_logic/BmsNotes.h"
-#include <llfio.hpp>
-
-namespace llfio = LLFIO_V2_NAMESPACE;
 namespace resource_managers {
 
 class ChartDataFactory
