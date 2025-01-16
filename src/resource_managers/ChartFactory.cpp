@@ -447,7 +447,7 @@ ChartFactory::createChart(ChartDataFactory::ChartComponents chartComponents,
                      player.score.release(),
                      player1->profile };
         }),
-      components1.transform(
+      components2.transform(
         [&](auto& player) -> gameplay_logic::Chart::PlayerSpecificComponents {
             return { player.notes.release(),
                      player.score.release(),
