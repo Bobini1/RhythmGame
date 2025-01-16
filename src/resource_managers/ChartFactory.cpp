@@ -385,11 +385,10 @@ ChartFactory::createChart(ChartDataFactory::ChartComponents chartComponents,
                    [&](auto& player) { return std::move(player.hitRules); }),
                  hitRules2 = player2.transform(
                    [&](auto& player) { return std::move(player.hitRules); }),
-                 score1 = components1.transform([](auto& components) {
-                     return std::move(components.score);
-                 }),
+                 score1 = components1.transform(
+                   [](auto& components) { return components.score.get(); }),
                  score2 = components2.transform([](auto& components) {
-                     return std::move(components.score);
+                     return components.score.get();
                  })]() mutable {
         auto sounds = charts::helper_functions::loadBmsSounds(wavs, path);
         sounds::OpenALSound* mineHitSound = nullptr;
@@ -403,7 +402,7 @@ ChartFactory::createChart(ChartDataFactory::ChartComponents chartComponents,
                                   std::move(bgmNotes),
                                   bpmChanges,
                                   mineHitSound,
-                                  score1->release(),
+                                  *score1,
                                   sounds,
                                   std::move(*hitRules1));
         }
@@ -414,7 +413,7 @@ ChartFactory::createChart(ChartDataFactory::ChartComponents chartComponents,
                                          : std::move(bgmNotes),
                                   bpmChanges,
                                   mineHitSound,
-                                  score2->release(),
+                                  *score2,
                                   sounds,
                                   std::move(*hitRules2));
         }
