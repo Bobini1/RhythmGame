@@ -123,9 +123,9 @@ Rectangle {
 
             columns: root.mainProfileVars.scratchOnRightSide ? [0, 1, 2, 3, 4, 5, 6, 7] : [7, 0, 1, 2, 3, 4, 5, 6]
             profile: ProfileList.mainProfile
-            score: chart.scores[0]
+            score: chart.score1
             notes: columns.map(function (column) {
-                return chart.notes[0].visibleNotes[column];
+                return chart.notes1.visibleNotes[column];
             })
             x: root.mainProfileVars.playAreaX
             y: root.mainProfileVars.playAreaY
@@ -172,7 +172,7 @@ Rectangle {
 
             verticalGauge: root.mainProfileVars.verticalGauge
             gaugeImage: root.mainProfileVars.gauge
-            score: chart.scores[0]
+            score: chart.score1
 
             height: root.mainProfileVars.lifeBarHeight
             width: root.mainProfileVars.lifeBarWidth
@@ -310,7 +310,7 @@ Rectangle {
                     }
                 }
 
-                target: chart.scores[0]
+                target: chart.score1
             }
         }
     }

@@ -26,7 +26,7 @@ ApplicationWindow {
             required property Chart chart
             readonly property string screen: {
                 let keys = chartFocusScope.chart.chartData.keymode;
-                let battle = chartFocusScope.chart.profiles.length > 1;
+                let battle = chartFocusScope.chart.player1 && chartFocusScope.chart.player2;
                 return "k" + keys + (battle ? "battle" : "");
             }
 
@@ -97,16 +97,11 @@ ApplicationWindow {
 
         anchors.fill: parent
 
-        Component.onCompleted: {
-            print("test")
-                openChart(ProgramSettings.chartPath);
-        }
-
         StackView {
             id: sceneStack
 
             anchors.fill: parent
-            initialItem: (ProgramSettings.chartPath !== "") ? null : globalRoot.mainComponent
+            initialItem: globalRoot.mainComponent
 
             popEnter: Transition {
                 PropertyAnimation {

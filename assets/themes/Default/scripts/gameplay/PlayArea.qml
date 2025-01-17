@@ -74,7 +74,7 @@ Item {
         }
         BarLinePositioner {
             // barlines are always the same for all players
-            barLines: chart.notes[0].barLines
+            barLines: (chart.notes1 || chart.notes2).barLines
             heightMultiplier: playArea.heightMultiplier
             width: parent.width
             y: -playArea.vars.thickness / 2 + chart.position * playArea.heightMultiplier + parent.height * (1 - playArea.globalVars.liftOn * playArea.globalVars.liftRatio)
