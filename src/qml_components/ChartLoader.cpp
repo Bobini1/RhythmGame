@@ -14,9 +14,16 @@
 
 namespace qml_components {
 auto
-ChartLoader::loadChart(const QString& filename, QList<int64_t> randomSequence)
+ChartLoader::loadChart(const QString& filename,
+      resource_managers::Profile* player1,
+      resource_managers::Profile* player2,
+      QList<int64_t> randomSequence)
   -> gameplay_logic::Chart*
 {
+    if (!player1 && !player2) {
+        spdlog::error("Player 1 and Player 2 are both null");
+        return nullptr;
+    }
     try {
         auto randomGenerator =
           [randomSequence = std::move(randomSequence),
@@ -36,6 +43,10 @@ ChartLoader::loadChart(const QString& filename, QList<int64_t> randomSequence)
         auto fileAbsolute = QFileInfo(filename).absoluteFilePath();
         auto chartComponents = chartDataFactory->loadChartData(
           support::qStringToPath(fileAbsolute), randomGenerator);
+        if (isDp(chartComponents.chartData->getKeymode()) && player1 && player2) {
+            spdlog::error("Can't launch DP for two players");
+            return nullptr;
+        }
         const auto rankInt = chartComponents.chartData->getRank();
         const auto rank =
           magic_enum::enum_cast<gameplay_logic::rules::BmsRank>(rankInt)
@@ -67,12 +78,12 @@ ChartLoader::loadChart(const QString& filename, QList<int64_t> randomSequence)
             }
             return std::nullopt;
         };
-        auto player1 = getPlayerData(profileList->getPlayer1Profile());
-        auto player2 = getPlayerData(profileList->getPlayer2Profile());
+        auto player1data = getPlayerData(player1);
+        auto player2data = getPlayerData(player2);
 
         return chartFactory->createChart(std::move(chartComponents),
-                                         std::move(player1),
-                                         std::move(player2),
+                                         std::move(player1data),
+                                         std::move(player2data),
                                          maxHitValue);
     } catch (const std::exception& e) {
         spdlog::error("Failed to load chart: {}", e.what());

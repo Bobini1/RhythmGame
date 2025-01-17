@@ -71,6 +71,8 @@ class ChartLoader : public QObject
 
     Q_INVOKABLE gameplay_logic::Chart* loadChart(
       const QString& filename,
+      resource_managers::Profile* player1,
+      resource_managers::Profile* player2,
       QList<int64_t> randomSequence = {});
 };
 

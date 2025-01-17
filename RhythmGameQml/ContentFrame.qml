@@ -67,7 +67,7 @@ ApplicationWindow {
         readonly property Component songWheelComponent: Qt.createComponent(Themes.availableThemeFamilies[mainProfile.themeConfig.songWheel].screens.songWheel.script)
 
         function openChart(path) {
-            let chart = ChartLoader.loadChart(path);
+            let chart = ChartLoader.loadChart(path, ProfileList.player1Profile, ProfileList.player2Profile);
             if (!chart) {
                 console.error("Failed to load chart");
                 return;
@@ -98,7 +98,7 @@ ApplicationWindow {
         anchors.fill: parent
 
         Component.onCompleted: {
-            if (ProgramSettings.chartPath !== "")
+            print("test")
                 openChart(ProgramSettings.chartPath);
         }
 
