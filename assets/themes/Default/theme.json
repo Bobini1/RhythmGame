@@ -5,14 +5,12 @@
     "k7": "scripts/gameplay/Gameplay.qml",
     "k7battle": "scripts/gameplay/Gameplay.qml",
     "k14": "scripts/gameplay/Gameplay.qml",
-    "k14battle": "scripts/gameplay/Gameplay.qml",
     "settings": "scripts/settings/Settings.qml",
     "result": "scripts/result/Result.qml"
   },
   "settings": {
     "k7": "settings/gameplay.json",
     "k7battle": "settings/gameplay.json",
-    "k14": "settings/gameplay.json",
-    "k14battle": "settings/gameplay.json"
+    "k14": "settings/gameplay.json"
   }
 }
