@@ -4,7 +4,6 @@
 
 #ifndef INPUT_H
 #define INPUT_H
-#include "ProfileList.h"
 #include "resource_managers/Profile.h"
 
 #include <QQuickItem>
@@ -19,13 +18,8 @@ namespace qml_components {
 class InputSignalProvider final : public QObject
 {
     Q_OBJECT
-    ProfileList* profileList;
     input::InputTranslator* inputTranslator;
     QList<QMetaObject::Connection> connections;
-
-    void connectProfile(resource_managers::Profile* profile,
-                        const input::InputTranslator* inputTranslator,
-                        int playerIndex);
 
   public:
     explicit InputSignalProvider(input::InputTranslator* inputTranslator,

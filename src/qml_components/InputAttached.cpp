@@ -13,7 +13,6 @@ InputSignalProvider::InputSignalProvider(
   input::InputTranslator* inputTranslator,
   QObject* parent)
   : QObject(parent)
-  , profileList(profileList)
   , inputTranslator(inputTranslator)
 
 {
