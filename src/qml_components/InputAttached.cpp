@@ -59,15 +59,24 @@ InputAttached::InputAttached(QObject* obj)
                     emit buttonReleased(button, time);
                 }
             });
-    connect(this,
-            &InputAttached::buttonPressed,
+    connect(inputSignalProvider,
+            &InputSignalProvider::buttonPressed,
             this,
             [this](const input::BmsKey button,
                    const double value,
                    const int64_t time) {
+                if (!isAttachedToCurrentScene()) {
+                    return;
+                }
+                bool old{};
                 switch (button) {
 #define CASE(key, capital)                                                     \
     case input::BmsKey::capital:                                               \
+        old = keyStates[static_cast<int>(input::BmsKey::capital)];             \
+        keyStates[static_cast<int>(input::BmsKey::capital)] = true;            \
+        if (!old) {                                                            \
+            emit key##Changed();                                               \
+        }                                                                      \
         emit key##Pressed(value, time);                                        \
         break;
                     CASE(col11, Col11)
@@ -95,14 +104,22 @@ InputAttached::InputAttached(QObject* obj)
 #undef CASE
                 }
             });
-    connect(this,
-            &InputAttached::buttonReleased,
+    connect(inputSignalProvider,
+            &InputSignalProvider::buttonReleased,
             this,
             [this](const input::BmsKey button, const int64_t time) {
+                bool old{};
                 switch (button) {
 #define CASE(key, capital)                                                     \
     case input::BmsKey::capital:                                               \
-        emit key##Released(time);                                              \
+        old = keyStates[static_cast<int>(input::BmsKey::capital)];             \
+        keyStates[static_cast<int>(input::BmsKey::capital)] = false;           \
+        if (old) {                                                             \
+            emit key##Changed();                                               \
+        }                                                                      \
+        if (isAttachedToCurrentScene()) {                                      \
+            emit key##Released(time);                                          \
+        }                                                                      \
         break;
                     CASE(col11, Col11)
                     CASE(col12, Col12)
