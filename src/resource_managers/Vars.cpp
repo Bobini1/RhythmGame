@@ -244,6 +244,37 @@ resource_managers::GlobalVars::setBottomShiftableGauge(QString value)
     bottomShiftableGauge = value;
     emit bottomShiftableGaugeChanged();
 }
+auto
+resource_managers::GlobalVars::getAvatar() const -> QString
+{
+    return avatar;
+}
+
+void
+resource_managers::GlobalVars::setAvatar(QString value)
+{
+    if (avatar == value) {
+        return;
+    }
+    avatar = value;
+    emit avatarChanged();
+}
+
+auto
+resource_managers::GlobalVars::getName() const -> QString
+{
+    return name;
+}
+
+void
+resource_managers::GlobalVars::setName(QString value)
+{
+    if (name == value) {
+        return;
+    }
+    name = value;
+    emit nameChanged();
+}
 
 void
 writeGlobalVars(const resource_managers::GlobalVars& globalVars,
@@ -794,10 +825,10 @@ resource_managers::Vars::writeGlobalVars() const
     ::writeGlobalVars(globalVars, profile->getPath().parent_path());
 }
 
-resource_managers::Vars::
-Vars(const Profile* profile,
-     QMap<QString, qml_components::ThemeFamily> availableThemeFamilies,
-     QObject* parent)
+resource_managers::Vars::Vars(
+  const Profile* profile,
+  QMap<QString, qml_components::ThemeFamily> availableThemeFamilies,
+  QObject* parent)
   : QObject(parent)
   , profile(profile)
   , availableThemeFamilies(std::move(availableThemeFamilies))

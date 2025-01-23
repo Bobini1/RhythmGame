@@ -106,6 +106,9 @@ class GlobalVars final : public QObject
                  getGaugeMode WRITE setGaugeMode NOTIFY gaugeModeChanged)
     Q_PROPERTY(QString bottomShiftableGauge READ getBottomShiftableGauge WRITE
                  setBottomShiftableGauge NOTIFY bottomShiftableGaugeChanged)
+    Q_PROPERTY(
+      QString avatar READ getAvatar WRITE setAvatar NOTIFY avatarChanged)
+    Q_PROPERTY(QString name READ getName WRITE setName NOTIFY nameChanged)
     // ^ remember to use full namespace for enums for reflection
     int noteScreenTimeMillis = 1000;
     bool laneCoverOn = false;
@@ -122,6 +125,8 @@ class GlobalVars final : public QObject
     QString gaugeType = "HAZARD";
     GaugeMode gaugeMode = GaugeMode::SelectToUnder;
     QString bottomShiftableGauge = "AEASY";
+    QString avatar = "mascot.png";
+    QString name = "Default";
 
   public:
     auto getNoteScreenTimeMillis() const -> int;
@@ -154,6 +159,10 @@ class GlobalVars final : public QObject
     void setGaugeMode(GaugeMode value);
     auto getBottomShiftableGauge() const -> QString;
     void setBottomShiftableGauge(QString value);
+    auto getAvatar() const -> QString;
+    void setAvatar(QString value);
+    auto getName() const -> QString;
+    void setName(QString value);
 
   signals:
     void noteScreenTimeMillisChanged();
@@ -171,6 +180,8 @@ class GlobalVars final : public QObject
     void gaugeTypeChanged();
     void gaugeModeChanged();
     void bottomShiftableGaugeChanged();
+    void avatarChanged();
+    void nameChanged();
 };
 
 class Vars final : public QObject
@@ -180,7 +191,7 @@ class Vars final : public QObject
       GlobalVars* globalVars READ getGlobalVars NOTIFY globalVarsChanged)
     Q_PROPERTY(
       QQmlPropertyMap* themeVars READ getThemeVars NOTIFY themeVarsChanged)
-    GlobalVars globalVars{};
+    GlobalVars globalVars;
     QQmlPropertyMap themeVars;
     const Profile* profile;
     QMap<QString, qml_components::ThemeFamily> availableThemeFamilies;
