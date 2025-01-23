@@ -40,7 +40,7 @@ Row {
         delegate: Image {
             fillMode: Image.PreserveAspectFit
             height: selection.cellHeight - imageSelection.spacing
-            source: "images/"+ imageSelection.propertyId + "/" + modelData
+            source: "images/" + imageSelection.propertyId + "/" + modelData
             width: selection.cellWidth - imageSelection.spacing
 
             MouseArea {
@@ -61,7 +61,6 @@ Row {
         currentIndex: files.indexOf(imageSelection.src[imageSelection.propertyId])
         onCurrentIndexChanged: {
             imageSelection.src[imageSelection.propertyId] = files[currentIndex];
-            currentIndex = Qt.binding(() => files.indexOf(imageSelection.src[imageSelection.propertyId]));
         }
     }
 }

@@ -21,7 +21,6 @@ Item {
 
     onHeightChanged: {
         playAreaTemplate.vars.playAreaHeight = height;
-        height = Qt.binding(() => playAreaTemplate.vars.playAreaHeight);
     }
     onWidthChanged: {
         let spacing = playAreaTemplate.vars.spacing;
@@ -37,11 +36,9 @@ Item {
     }
     onXChanged: {
         playAreaTemplate.vars.playAreaX = x;
-        x = Qt.binding(() => playAreaTemplate.vars.playAreaX);
     }
     onYChanged: {
         playAreaTemplate.vars.playAreaY = y;
-        y = Qt.binding(() => playAreaTemplate.vars.playAreaY);
     }
 
     TemplateDragBorder {
@@ -51,14 +48,13 @@ Item {
         anchors.margins: -borderMargin
         color: "transparent"
 
-        onBorderPressedChanged: {
-            if (borderPressed) {
-                // remove the binding
-                // noinspection SillyAssignmentJS
-                playAreaTemplate.width = playAreaTemplate.width;
-            } else {
-                playAreaTemplate.width = Qt.binding(() => playAreaTemplate.columns.reduce((a, b) => a + playAreaTemplate.columnSizes[b], 0) + (playAreaTemplate.columns.length - 1) * playAreaTemplate.spacing);
+        Binding {
+            playAreaTemplate.width: {
+                if (!template.borderPressed) {
+                    return playAreaTemplate.columns.reduce((a, b) => a + playAreaTemplate.columnSizes[b], 0) + (playAreaTemplate.columns.length - 1) * playAreaTemplate.spacing;
+                }
             }
+            when: !template.borderPressed
         }
         onClicked: mouse => playAreaTemplate.clicked(mouse)
         onDoubleClicked: mouse => playAreaTemplate.doubleClicked(mouse)
