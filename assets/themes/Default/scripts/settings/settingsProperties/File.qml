@@ -10,7 +10,9 @@ ComboBox {
 
     palette {
         window: "white"
-        light: palette.button
+        Component.onCompleted: {
+            light = palette.button
+        }
     }
 
     function getIndex(text) {
