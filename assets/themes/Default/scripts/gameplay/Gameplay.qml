@@ -58,6 +58,7 @@ Rectangle {
             chart.bga.layers[3].videoSink = bga.poorSink;
             chart.start();
         }
+
         function onOver() {
             if (root.popup !== null) {
                 root.popup.close();
@@ -143,18 +144,12 @@ Rectangle {
 
             onHeightChanged: {
                 root.mainProfileVars.bgaSize = height;
-                height = Qt.binding(() => root.mainProfileVars.bgaSize);
-            }
-            onWidthChanged: {
-                width = Qt.binding(() => root.mainProfileVars.bgaSize);
             }
             onXChanged: {
                 root.mainProfileVars.bgaX = x;
-                x = Qt.binding(() => root.mainProfileVars.bgaX);
             }
             onYChanged: {
                 root.mainProfileVars.bgaY = y;
-                y = Qt.binding(() => root.mainProfileVars.bgaY);
             }
 
             TemplateDragBorder {
@@ -182,19 +177,15 @@ Rectangle {
 
             onHeightChanged: {
                 root.mainProfileVars.lifeBarHeight = height;
-                height = Qt.binding(() => root.mainProfileVars.lifeBarHeight);
             }
             onWidthChanged: {
                 root.mainProfileVars.lifeBarWidth = width;
-                width = Qt.binding(() => root.mainProfileVars.lifeBarWidth);
             }
             onXChanged: {
                 root.mainProfileVars.lifeBarX = x;
-                x = Qt.binding(() => root.mainProfileVars.lifeBarX);
             }
             onYChanged: {
                 root.mainProfileVars.lifeBarY = y;
-                y = Qt.binding(() => root.mainProfileVars.lifeBarY);
             }
 
             TemplateDragBorder {
@@ -233,19 +224,15 @@ Rectangle {
 
             onHeightChanged: {
                 root.mainProfileVars.judgementCountsHeight = height;
-                height = Qt.binding(() => root.mainProfileVars.judgementCountsHeight);
             }
             onWidthChanged: {
                 root.mainProfileVars.judgementCountsWidth = width;
-                width = Qt.binding(() => root.mainProfileVars.judgementCountsWidth);
             }
             onXChanged: {
                 root.mainProfileVars.judgementCountsX = x;
-                x = Qt.binding(() => root.mainProfileVars.judgementCountsX);
             }
             onYChanged: {
                 root.mainProfileVars.judgementCountsY = y;
-                y = Qt.binding(() => root.mainProfileVars.judgementCountsY);
             }
 
             TemplateDragBorder {
@@ -286,27 +273,28 @@ Rectangle {
                     bga.poorVisible = true;
                     poorLayerTimer.restart();
                 }
+
                 function onNoteHit(tap) {
                     switch (tap.points.judgement) {
-                    case Judgement.Perfect:
-                        judgementCounts.perfect++;
-                        break;
-                    case Judgement.Great:
-                        judgementCounts.great++;
-                        break;
-                    case Judgement.Good:
-                        judgementCounts.good++;
-                        break;
-                    case Judgement.Bad:
-                        judgementCounts.bad++;
-                        bga.poorVisible = true;
-                        poorLayerTimer.restart();
-                        break;
-                    case Judgement.EmptyPoor:
-                        judgementCounts.emptyPoor++;
-                        bga.poorVisible = true;
-                        poorLayerTimer.restart();
-                        break;
+                        case Judgement.Perfect:
+                            judgementCounts.perfect++;
+                            break;
+                        case Judgement.Great:
+                            judgementCounts.great++;
+                            break;
+                        case Judgement.Good:
+                            judgementCounts.good++;
+                            break;
+                        case Judgement.Bad:
+                            judgementCounts.bad++;
+                            bga.poorVisible = true;
+                            poorLayerTimer.restart();
+                            break;
+                        case Judgement.EmptyPoor:
+                            judgementCounts.emptyPoor++;
+                            bga.poorVisible = true;
+                            poorLayerTimer.restart();
+                            break;
                     }
                 }
 

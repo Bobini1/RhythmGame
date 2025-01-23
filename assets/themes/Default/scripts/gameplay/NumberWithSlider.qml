@@ -30,7 +30,6 @@ Row {
 
         onMoved: {
             src[numberWithSlider.prop] = value;
-            value = Qt.binding(() => src[numberWithSlider.prop]);
         }
     }
     TextField {

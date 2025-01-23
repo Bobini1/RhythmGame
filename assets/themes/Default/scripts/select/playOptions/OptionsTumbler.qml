@@ -80,19 +80,21 @@ BorderImage {
         }
 
         Component.onCompleted: {
-            currentIndex = getIndex(frame.profile.vars.globalVars[prop])
+            ready = true;
         }
 
-        onCurrentIndexChanged: (_) => {
-            frame.profile.vars.globalVars[prop] = frame.model[currentIndex];
-            currentIndex = Qt.binding(() => getIndex(frame.profile.vars.globalVars[prop]))
+        property bool ready: false
+
+        Binding {
+            delayed: true
+            tumbler.currentIndex: tumbler.getIndex(frame.profile.vars.globalVars[frame.prop]);
         }
 
-        onFlickingChanged: {
-            if (!flicking) {
-                frame.profile.vars.globalVars[prop] = frame.model[currentIndex];
-                currentIndex = Qt.binding(() => getIndex(frame.profile.vars.globalVars[prop]))
-            }
+        Binding {
+            target: frame.profile.vars.globalVars
+            property: frame.prop
+            when: tumbler.ready && !tumbler.flicking
+            value: if (!tumbler.flicking) frame.model[tumbler.currentIndex];
         }
 
         highlightMoveDuration: 150
