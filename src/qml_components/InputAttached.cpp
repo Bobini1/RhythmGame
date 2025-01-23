@@ -147,6 +147,9 @@ InputAttached::InputAttached(QObject* obj)
                 }
             });
 }
+
+
+
 auto
 InputAttached::qmlAttachedProperties(QObject* object) -> InputAttached*
 {
