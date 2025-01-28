@@ -94,7 +94,9 @@ BorderImage {
             target: frame.profile.vars.globalVars
             property: frame.prop
             when: tumbler.ready && !tumbler.flicking
-            value: if (!tumbler.flicking) frame.model[tumbler.currentIndex];
+            value: if (!tumbler.flicking) {
+                return frame.model[tumbler.currentIndex];
+            }
         }
 
         highlightMoveDuration: 150
