@@ -14,8 +14,8 @@ auto
 ScoreDb::getScoresForChart(QString sha256) -> QList<gameplay_logic::BmsResult*>
 {
     auto statement = scoreDb->createStatement("SELECT * "
-                                        "FROM score "
-                                        "WHERE sha256 = ?");
+                                              "FROM score "
+                                              "WHERE sha256 = ?");
     statement.bind(1, sha256.toStdString());
     auto result =
       statement.executeAndGetAll<gameplay_logic::BmsResult::BmsResultDto>();
@@ -34,5 +34,11 @@ auto
 ScoreDb::getReplayData(int64_t scoreId) -> gameplay_logic::BmsReplayData*
 {
     return gameplay_logic::BmsReplayData::load(*scoreDb, scoreId).release();
+}
+int
+ScoreDb::getTotalScoreCount()
+{
+    auto statement = scoreDb->createStatement("SELECT COUNT(*) FROM score");
+    return statement.executeAndGet<int>().value_or(0);
 }
 } // namespace qml_components
