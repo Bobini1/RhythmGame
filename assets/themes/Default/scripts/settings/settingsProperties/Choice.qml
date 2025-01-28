@@ -2,6 +2,7 @@ import Qt.labs.folderlistmodel
 import QtQuick
 import QtQuick.Controls.Basic
 import RhythmGameQml
+import "../../common/helpers.js" as Helpers
 
 ComboBox {
     id: choiceComboBox
@@ -12,18 +13,11 @@ ComboBox {
         light: palette.button
     }
 
-    function getIndex(text) {
-        let index = 0;
-        for (let choice of props.choices) {
-            if (text === choice) {
-                return index;
-                break;
-            }
-            index++;
-        }
+    Binding {
+        delayed: true
+        choiceComboBox.currentIndex: Helpers.getIndex(props.choices, destination[props.id], currentIndex);
     }
 
-    currentIndex: getIndex(destination[props.id]);
     onActivated: (_) => {
         destination[props.id] = currentText;
     }

@@ -1,6 +1,7 @@
 import RhythmGameQml
 import QtQuick
 import QtQuick.Controls.Basic
+import "../../common/helpers.js" as Helpers
 
 BorderImage {
     id: frame
@@ -64,21 +65,6 @@ BorderImage {
 
         anchors.fill: parent
 
-        function getIndex(text) {
-            let index = 0;
-            let proposition = null;
-            for (let choice of frame.model) {
-                if (text === choice) {
-                    // special handling for duplicated elements
-                    if (proposition === null || Math.abs(currentIndex - index) < Math.abs(currentIndex - proposition)) {
-                        proposition = index
-                    }
-                }
-                index++;
-            }
-            return proposition;
-        }
-
         Component.onCompleted: {
             ready = true;
         }
@@ -87,15 +73,17 @@ BorderImage {
 
         Binding {
             delayed: true
-            tumbler.currentIndex: tumbler.getIndex(frame.profile.vars.globalVars[frame.prop]);
+            tumbler.currentIndex: Helpers.getIndex(frame.model, frame.profile.vars.globalVars[frame.prop], tumbler.currentIndex);
         }
 
         Binding {
             target: frame.profile.vars.globalVars
             property: frame.prop
             when: tumbler.ready && !tumbler.flicking
-            value: if (!tumbler.flicking) {
-                return frame.model[tumbler.currentIndex];
+            value: {
+                if (!tumbler.flicking) {
+                    return frame.model[tumbler.currentIndex];
+                }
             }
         }
 
