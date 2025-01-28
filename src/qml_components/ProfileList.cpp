@@ -36,20 +36,20 @@ qml_components::ProfileList::saveMainProfile()
     statement.execute();
 }
 void
-qml_components::ProfileList::saveActiveProfiles() const
+qml_components::ProfileList::saveActiveProfiles()
 {
     auto statement =
       songDb->createStatement("INSERT OR REPLACE INTO properties(key, value) "
                               "VALUES('active_profiles', :value)");
     auto activeProfilesString = std::string{};
-    if (player1Profile != nullptr) {
+    if (battleProfiles.player1Profile != nullptr) {
         activeProfilesString += support::pathToUtfString(
-          relative(player1Profile->getPath(), profilesFolder));
+          relative(battleProfiles.player1Profile->getPath(), profilesFolder));
     }
     activeProfilesString += ":";
-    if (player2Profile != nullptr) {
+    if (battleProfiles.player2Profile != nullptr) {
         activeProfilesString += support::pathToUtfString(
-          relative(player2Profile->getPath(), profilesFolder));
+          relative(battleProfiles.player2Profile->getPath(), profilesFolder));
     }
     statement.bind(":value", activeProfilesString);
     statement.execute();
@@ -60,7 +60,7 @@ qml_components::ProfileList::ProfileList(
   const QMap<QString, ThemeFamily>& themeFamilies,
   std::filesystem::path profilesFolder,
   QObject* parent)
-  : QAbstractListModel(parent)
+  : QObject(parent)
   , profilesFolder(std::move(profilesFolder))
   , songDb(songDb)
   , themeFamilies(themeFamilies)
@@ -103,8 +103,8 @@ qml_components::ProfileList::ProfileList(
               dbActiveProfiles.substr(0, dbActiveProfiles.find(':'));
             !firstProfile.empty()) {
             for (auto* profile : profiles) {
-                if (profile->getPath() == profilesFolder / firstProfile) {
-                    setPlayer1Profile(profile);
+                if (profile->getPath() == this->profilesFolder / firstProfile) {
+                    battleProfiles.setPlayer1Profile(profile);
                     break;
                 }
             }
@@ -113,8 +113,9 @@ qml_components::ProfileList::ProfileList(
               dbActiveProfiles.substr(dbActiveProfiles.find(':') + 1);
             !secondProfile.empty()) {
             for (auto* profile : profiles) {
-                if (profile->getPath() == profilesFolder / secondProfile) {
-                    setPlayer2Profile(profile);
+                if (profile->getPath() ==
+                    this->profilesFolder / secondProfile) {
+                    battleProfiles.setPlayer2Profile(profile);
                     break;
                 }
             }
@@ -142,24 +143,15 @@ qml_components::ProfileList::ProfileList(
             setMainProfile({ profiles[0] });
         }
     }
-    if (player1Profile == nullptr && player2Profile == nullptr) {
-        setPlayer1Profile(mainProfile);
-        saveActiveProfiles();
-    }
-}
-auto
-qml_components::ProfileList::rowCount(const QModelIndex& parent) const -> int
-{
-    return profiles.size();
-}
-auto
-qml_components::ProfileList::data(const QModelIndex& index, int role) const
-  -> QVariant
-{
-    if (role == Qt::DisplayRole) {
-        return QVariant::fromValue(profiles.at(index.row()));
-    }
-    return {};
+
+    connect(&battleProfiles,
+            &BattleProfiles::player1ProfileChanged,
+            this,
+            &ProfileList::saveActiveProfiles);
+    connect(&battleProfiles,
+            &BattleProfiles::player2ProfileChanged,
+            this,
+            &ProfileList::saveActiveProfiles);
 }
 auto
 qml_components::ProfileList::createProfile() -> resource_managers::Profile*
@@ -172,8 +164,7 @@ qml_components::ProfileList::createProfile() -> resource_managers::Profile*
           this);
         QQmlEngine::setObjectOwnership(profile, QQmlEngine::CppOwnership);
         profiles.append(profile);
-        emit dataChanged(index(profiles.size() - 1),
-                         index(profiles.size() - 1));
+        emit profilesChanged();
         return profile;
     } catch (const std::exception& e) {
         spdlog::error("Failed to create profile: {}", e.what());
@@ -195,22 +186,19 @@ qml_components::ProfileList::removeProfile(resource_managers::Profile* profile)
             nullptr,
             [path = profile->getPath().parent_path()]() { remove_all(path); });
     const auto index = profiles.indexOf(profile);
-    beginRemoveRows(QModelIndex(), index, index);
     profiles.remove(index);
-    endRemoveRows();
     if (profiles.empty()) {
-        beginInsertRows(QModelIndex(), 0, 0);
         createDefaultProfile();
-        endInsertRows();
     }
+    emit profilesChanged();
     if (mainProfile == profile) {
         setMainProfile(profiles[0]);
     }
-    if (player1Profile == profile) {
-        setPlayer1Profile(nullptr);
+    if (battleProfiles.player1Profile == profile) {
+        battleProfiles.setPlayer1Profile(nullptr);
     }
-    if (player2Profile == profile) {
-        setPlayer2Profile(nullptr);
+    if (battleProfiles.player2Profile == profile) {
+        battleProfiles.setPlayer2Profile(nullptr);
     }
 }
 void
@@ -233,13 +221,15 @@ qml_components::ProfileList::getMainProfile() const
 {
     return mainProfile;
 }
+auto
+qml_components::ProfileList::getBattleProfiles() -> BattleProfiles*
+{
+    return &battleProfiles;
+}
 void
-qml_components::ProfileList::setPlayer1Profile(
+qml_components::BattleProfiles::setPlayer1Profile(
   resource_managers::Profile* profile)
 {
-    if (profile == nullptr && player2Profile == nullptr) {
-        profile = mainProfile;
-    }
     if (profile == player1Profile) {
         return;
     }
@@ -247,17 +237,16 @@ qml_components::ProfileList::setPlayer1Profile(
     if (profile == player2Profile) {
         setPlayer2Profile(nullptr);
     }
-    saveActiveProfiles();
     emit player1ProfileChanged();
 }
 auto
-qml_components::ProfileList::getPlayer1Profile() const
+qml_components::BattleProfiles::getPlayer1Profile() const
   -> resource_managers::Profile*
 {
     return player1Profile;
 }
 void
-qml_components::ProfileList::setPlayer2Profile(
+qml_components::BattleProfiles::setPlayer2Profile(
   resource_managers::Profile* profile)
 {
     if (profile == player2Profile) {
@@ -267,12 +256,11 @@ qml_components::ProfileList::setPlayer2Profile(
     if (profile == player1Profile) {
         setPlayer1Profile(nullptr);
     }
-    saveActiveProfiles();
     emit player2ProfileChanged();
 }
 
 auto
-qml_components::ProfileList::getPlayer2Profile() const
+qml_components::BattleProfiles::getPlayer2Profile() const
   -> resource_managers::Profile*
 {
     return player2Profile;
