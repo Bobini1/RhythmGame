@@ -275,7 +275,6 @@ resource_managers::GlobalVars::setName(QString value)
     name = value;
     emit nameChanged();
 }
-
 void
 writeGlobalVars(const resource_managers::GlobalVars& globalVars,
                 const std::filesystem::path& profileFolder)

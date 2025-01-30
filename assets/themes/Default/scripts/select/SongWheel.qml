@@ -296,7 +296,17 @@ FocusScope {
                 return c;
             }
 
-            visible: playOptions.open
+            TapHandler {
+                id: tapHandler
+                enabled: root.active
+                gesturePolicy: TapHandler.ReleaseWithinBounds
+                onTapped: {
+                    playOptions.enabled = false;
+                    login.enabled = false;
+                }
+            }
+
+            visible: playOptions.enabled || login.enabled
 
             Item {
                 anchors.centerIn: parent
@@ -304,10 +314,27 @@ FocusScope {
                 scale: Math.min(parent.width / 1920, parent.height / 1080)
                 width: 1920
 
-                PlayOptions {
+                Loader {
                     id: playOptions
+                    active: enabled
+                    enabled: (Input.start1 || Input.start2) && !login.enabled
+                    anchors.centerIn: parent
+
+                    source: ProfileList.battleActive ? "playOptions/PlayOptionsBattle.qml" : "playOptions/PlayOptionsSingle.qml"
+                }
+
+                Login {
+                    id: login
 
                     anchors.centerIn: parent
+                    enabled: false
+                }
+                property bool startAndSelectPressed: Input.start1 && Input.select1 || Input.start2 && Input.select2
+
+                onStartAndSelectPressedChanged: {
+                    if (startAndSelectPressed) {
+                        login.enabled = !login.enabled;
+                    }
                 }
             }
         }

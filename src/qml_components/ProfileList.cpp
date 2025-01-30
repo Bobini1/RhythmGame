@@ -38,6 +38,9 @@ qml_components::ProfileList::saveMainProfile()
 void
 qml_components::ProfileList::saveActiveProfiles()
 {
+    if (!battleProfiles.player1Profile || !battleProfiles.player2Profile) {
+        setBattleActive(/*active=*/false);
+    }
     auto statement =
       songDb->createStatement("INSERT OR REPLACE INTO properties(key, value) "
                               "VALUES('active_profiles', :value)");
@@ -226,17 +229,34 @@ qml_components::ProfileList::getBattleProfiles() -> BattleProfiles*
 {
     return &battleProfiles;
 }
+auto
+qml_components::ProfileList::getBattleActive() const -> bool
+{
+    return battleActive;
+}
+void
+qml_components::ProfileList::setBattleActive(bool active)
+{
+    if (active == battleActive) {
+        return;
+    }
+    if (active &&
+        !(battleProfiles.player1Profile && battleProfiles.player2Profile)) {
+        spdlog::warn("Can't start battle mode before setting battle profiles");
+        return;
+    }
+    battleActive = active;
+    emit battleActiveChanged();
+}
+
 void
 qml_components::BattleProfiles::setPlayer1Profile(
   resource_managers::Profile* profile)
 {
-    if (profile == player1Profile) {
+    if (profile == player1Profile || profile == player2Profile && profile) {
         return;
     }
     player1Profile = profile;
-    if (profile == player2Profile) {
-        setPlayer2Profile(nullptr);
-    }
     emit player1ProfileChanged();
 }
 auto
@@ -249,13 +269,10 @@ void
 qml_components::BattleProfiles::setPlayer2Profile(
   resource_managers::Profile* profile)
 {
-    if (profile == player2Profile) {
+    if (profile == player2Profile || profile == player1Profile && profile) {
         return;
     }
     player2Profile = profile;
-    if (profile == player1Profile) {
-        setPlayer1Profile(nullptr);
-    }
     emit player2ProfileChanged();
 }
 

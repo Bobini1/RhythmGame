@@ -5,14 +5,13 @@
 #ifndef RHYTHMGAME_PROFILELIST_H
 #define RHYTHMGAME_PROFILELIST_H
 
-#include <QAbstractListModel>
 #include "resource_managers/Profile.h"
 
 #include <qproperty.h>
 #include <qqmllist.h>
 namespace resource_managers {
 class inputTranslator;
-}
+} // namespace resource_managers
 namespace qml_components {
 class ThemeFamily;
 
@@ -32,11 +31,9 @@ class BattleProfiles final : public QObject
 
   public:
     void setPlayer1Profile(resource_managers::Profile* profile);
-
     auto getPlayer1Profile() const -> resource_managers::Profile*;
 
     void setPlayer2Profile(resource_managers::Profile* profile);
-
     auto getPlayer2Profile() const -> resource_managers::Profile*;
 
   signals:
@@ -61,12 +58,15 @@ class ProfileList final : public QObject
     QMap<QString, ThemeFamily> themeFamilies;
     resource_managers::Profile* mainProfile{};
     BattleProfiles battleProfiles;
+    bool battleActive{};
 
     Q_PROPERTY(resource_managers::Profile* mainProfile READ getMainProfile WRITE
                  setMainProfile NOTIFY mainProfileChanged)
     Q_PROPERTY(BattleProfiles* battleProfiles READ getBattleProfiles CONSTANT)
     Q_PROPERTY(QList<resource_managers::Profile*> profiles READ getProfiles
                  NOTIFY profilesChanged)
+    Q_PROPERTY(bool battleActive READ getBattleActive WRITE setBattleActive
+                 NOTIFY battleActiveChanged)
 
     auto createDefaultProfile() -> resource_managers::Profile*;
 
@@ -102,9 +102,13 @@ class ProfileList final : public QObject
 
     auto getBattleProfiles() -> BattleProfiles*;
 
+    auto getBattleActive() const -> bool;
+    void setBattleActive(bool active);
+
   signals:
     void mainProfileChanged();
     void profilesChanged();
+    void battleActiveChanged();
 };
 } // namespace qml_components
 

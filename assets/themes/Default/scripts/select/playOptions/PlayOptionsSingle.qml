@@ -13,6 +13,10 @@ Rectangle {
 
     width: 1600
     height: 900
+    
+    TapHandler {
+        gesturePolicy: TapHandler.WithinBounds
+    }
 
     DarkLabel {
         id: p1RandomLabel
@@ -162,18 +166,9 @@ Rectangle {
         prop: "hiSpeedFix"
         profile: ProfileList.mainProfile
     }
-    property var open: false
-
-    Input.onStart1Pressed: {
-        open = true;
-    }
-
-    Input.onStart1Released: {
-        open = false;
-    }
 
     states: State {
-        name: "shown"; when: bg.open
+        name: "shown"; when: bg.enabled
         PropertyChanges {
             target: bg
             scale: 1

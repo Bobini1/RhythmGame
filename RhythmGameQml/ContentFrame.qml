@@ -46,7 +46,9 @@ ApplicationWindow {
 
             readonly property bool active: StackView.status === StackView.Active
             required property ChartData chartData
-            required property list<BmsScoreAftermath> result
+            required
+            property
+                list < BmsScoreAftermath > result
 
             Loader {
                 id: loader
@@ -67,7 +69,12 @@ ApplicationWindow {
         readonly property Component songWheelComponent: Qt.createComponent(Themes.availableThemeFamilies[mainProfile.themeConfig.songWheel].screens.songWheel.script)
 
         function openChart(path) {
-            let chart = ChartLoader.loadChart(path, ProfileList.player1Profile, ProfileList.player2Profile);
+            let chart;
+            if (ProfileList.battleActive) {
+                chart = ChartLoader.loadChart(path, ProfileList.battleProfiles.player1Profile, ProfileList.battleProfiles.player2Profile);
+            } else {
+                chart = ChartLoader.loadChart(path, ProfileList.mainProfile);
+            }
             if (!chart) {
                 console.error("Failed to load chart");
                 return;

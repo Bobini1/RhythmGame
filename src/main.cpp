@@ -105,10 +105,14 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
             chartPath = QString::fromStdString(argv[1]);
 #endif
         }
+        auto avatarPath = support::pathToQString(assetsFolder / "avatars/");
+        if (!avatarPath.startsWith("/")) {
+            avatarPath = "/" + avatarPath;
+        }
+        avatarPath = "file://" + avatarPath;
 
-        auto programSettings = qml_components::ProgramSettings{
-            chartPath, support::pathToQString(assetsFolder / "avatars/")
-        };
+        auto programSettings =
+          qml_components::ProgramSettings{ chartPath, avatarPath };
         qmlRegisterSingletonInstance(
           "RhythmGameQml", 1, 0, "ProgramSettings", &programSettings);
 
