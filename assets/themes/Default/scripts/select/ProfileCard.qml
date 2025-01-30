@@ -131,7 +131,19 @@ Rectangle {
                 if (card.grayedOut === modelData) {
                     return 0.5333333333333333;
                 }
-                return PathView.opacity;
+                // not sure why it's undefined sometimes when scrolling fast
+                return PathView.opacity !== undefined ? PathView.opacity : 1;
+            }
+            MouseArea {
+                anchors.fill: parent
+                onWheel: (wheel) => {
+                    if (wheel.angleDelta.y > 0) {
+                        pathView.decrementCurrentIndex();
+                    } else {
+                        pathView.incrementCurrentIndex();
+                    }
+                    wheel.accepted = true;
+                }
             }
             Rectangle {
                 id: avatarFrame

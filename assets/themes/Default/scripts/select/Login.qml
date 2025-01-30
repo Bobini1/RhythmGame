@@ -143,7 +143,6 @@ Rectangle {
                     playerNumber: 1
                     grayedOut: ProfileList.battleProfiles.player2Profile
 
-
                     Binding {
                         target: ProfileList.battleProfiles
                         property: "player1Profile"

@@ -296,13 +296,15 @@ FocusScope {
                 return c;
             }
 
-            TapHandler {
-                id: tapHandler
+            MouseArea {
+                anchors.fill: parent
                 enabled: root.active
-                gesturePolicy: TapHandler.ReleaseWithinBounds
-                onTapped: {
+                onClicked: (event) => {
                     playOptions.enabled = false;
                     login.enabled = false;
+                }
+                onWheel: (wheel) => {
+                    wheel.accepted = true;
                 }
             }
 
