@@ -26,17 +26,10 @@ InputSignalProvider::InputSignalProvider(
             &InputSignalProvider::buttonReleased);
 }
 auto
-InputAttached::isAttachedToCurrentScene() const -> bool
+InputAttached::isEnabled() const -> bool
 {
-    const auto* const currentScene = (*findCurrentScene)();
-    const auto* current = parent();
-    while (current != nullptr) {
-        if (current == currentScene) {
-            return true;
-        }
-        current = current->parent();
-    }
-    return false;
+    const auto* current = qobject_cast<QQuickItem*>(parent());
+    return current && current->isEnabled();
 }
 InputAttached::InputAttached(QObject* obj)
   : QObject(obj)
@@ -47,7 +40,7 @@ InputAttached::InputAttached(QObject* obj)
             [this](const input::BmsKey button,
                    const double value,
                    const int64_t time) {
-                if (isAttachedToCurrentScene()) {
+                if (isEnabled()) {
                     emit buttonPressed(button, value, time);
                 }
             });
@@ -55,7 +48,7 @@ InputAttached::InputAttached(QObject* obj)
             &InputSignalProvider::buttonReleased,
             this,
             [this](const input::BmsKey button, const int64_t time) {
-                if (isAttachedToCurrentScene()) {
+                if (isEnabled()) {
                     emit buttonReleased(button, time);
                 }
             });
@@ -65,7 +58,7 @@ InputAttached::InputAttached(QObject* obj)
             [this](const input::BmsKey button,
                    const double value,
                    const int64_t time) {
-                if (!isAttachedToCurrentScene()) {
+                if (!isEnabled()) {
                     return;
                 }
                 bool old{};
@@ -117,7 +110,7 @@ InputAttached::InputAttached(QObject* obj)
         if (old) {                                                             \
             emit key##Changed();                                               \
         }                                                                      \
-        if (isAttachedToCurrentScene()) {                                      \
+        if (isEnabled()) {                                                     \
             emit key##Released(time);                                          \
         }                                                                      \
         break;
@@ -148,8 +141,6 @@ InputAttached::InputAttached(QObject* obj)
             });
 }
 
-
-
 auto
 InputAttached::qmlAttachedProperties(QObject* object) -> InputAttached*
 {
@@ -157,5 +148,4 @@ InputAttached::qmlAttachedProperties(QObject* object) -> InputAttached*
 }
 
 InputSignalProvider* InputAttached::inputSignalProvider = nullptr;
-std::function<QQuickItem*()>* InputAttached::findCurrentScene = nullptr;
 } // namespace qml_components

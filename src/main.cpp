@@ -279,12 +279,10 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
           "Input",
           "Input is only accessible as an attached property");
 
-        auto getCurrentScene = std::function<QQuickItem*()>{};
         auto inputSignalProvider =
           qml_components::InputSignalProvider{ &inputTranslator };
         qml_components::InputAttached::inputSignalProvider =
           &inputSignalProvider;
-        qml_components::InputAttached::findCurrentScene = &getCurrentScene;
 
         auto engine = QQmlApplicationEngine{};
 
@@ -296,20 +294,6 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
             throw std::runtime_error{ "Failed to load main qml" };
         }
         engine.rootObjects()[0]->installEventFilter(&inputTranslator);
-        // get the "sceneStack" property from the root object
-        auto sceneStack = engine.rootObjects()[0]->property("sceneStack");
-        if (!sceneStack.isValid()) {
-            throw std::runtime_error{ "Failed to get sceneStack" };
-        }
-        // get the currentItem property from the sceneStack
-        getCurrentScene = [sceneStack]() {
-            const auto currentItem =
-              sceneStack.value<QQuickItem*>()->property("currentItem");
-            if (!currentItem.isValid()) {
-                throw std::runtime_error{ "Failed to get currentItem" };
-            }
-            return currentItem.value<QQuickItem*>();
-        };
 
         return app.exec();
     } catch (const std::exception& e) {

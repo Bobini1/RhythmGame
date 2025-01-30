@@ -10,7 +10,6 @@ ApplicationWindow {
     height: 720
     visible: true
     width: 1280
-    property var sceneStack: sceneStack
 
     Settings {
         property alias height: contentContainer.height
@@ -48,7 +47,7 @@ ApplicationWindow {
             required property ChartData chartData
             required
             property
-                list < BmsScoreAftermath > result
+                list<BmsScoreAftermath> result
 
             Loader {
                 id: loader
@@ -73,19 +72,19 @@ ApplicationWindow {
             if (ProfileList.battleActive) {
                 chart = ChartLoader.loadChart(path, ProfileList.battleProfiles.player1Profile, ProfileList.battleProfiles.player2Profile);
             } else {
-                chart = ChartLoader.loadChart(path, ProfileList.mainProfile);
+                chart = ChartLoader.loadChart(path, ProfileList.mainProfile, null);
             }
             if (!chart) {
                 console.error("Failed to load chart");
                 return;
             }
-            sceneStack.push(gameplayComponent, {
+            sceneStack.pushItem(gameplayComponent, {
                 "chart": chart
             });
         }
 
         function openResult(result, chartData) {
-            sceneStack.push(resultComponent, {
+            sceneStack.pushItem(resultComponent, {
                 "result": result,
                 "chartData": chartData
             });
@@ -106,6 +105,20 @@ ApplicationWindow {
 
         StackView {
             id: sceneStack
+
+            onCurrentItemChanged: {
+                updateEnabledStates();
+            }
+
+            function updateEnabledStates() {
+                let topIndex = depth - 1;
+                for (let i = 0; i < depth; ++i) {
+                    let item = get(i, StackView.ForceLoad);
+                    if (item) {
+                        item.enabled = (i === topIndex);
+                    }
+                }
+            }
 
             anchors.fill: parent
             initialItem: globalRoot.mainComponent

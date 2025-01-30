@@ -64,7 +64,7 @@ class InputAttached final : public QObject
     Q_PROPERTY(bool start2 READ start2 NOTIFY start2Changed)
     Q_PROPERTY(bool select2 READ select2 NOTIFY select2Changed)
 
-    auto isAttachedToCurrentScene() const -> bool;
+    auto isEnabled() const -> bool;
 
     std::array<bool, magic_enum::enum_count<input::BmsKey>()> keyStates{};
 
