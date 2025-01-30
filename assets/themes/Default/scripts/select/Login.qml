@@ -4,6 +4,7 @@ import QtQuick.Layouts
 import QtQuick.Controls.Basic
 import QtQuick.Effects
 import QtQuick.Shapes
+import "./playOptions"
 
 Rectangle {
     id: bg
@@ -52,6 +53,16 @@ Rectangle {
         Component {
             id: mainProfileComponent
             Item {
+                DarkLabel {
+                    id: keys
+                    anchors.top: parent.top
+                    anchors.topMargin: 32
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    width: 300
+                    text: "Select Profile"
+                    highlightedKeys: [1, 2]
+                }
+
                 ProfileCard {
                     anchors.centerIn: parent
                     profile: ProfileList.mainProfile
@@ -66,9 +77,9 @@ Rectangle {
             id: battleProfilesComponent
             Item {
                 clip: true
-                // a rectangle with its two bottom corners rounded
+
                 Rectangle {
-                    id: bg
+                    id: mainProfile
                     color: "white"
                     radius: 32
                     width: 400
@@ -91,10 +102,10 @@ Rectangle {
                         clip: true
                         radius: 12
                         anchors.top: parent.top
-                        anchors.topMargin: bg.radius + bg.margin
+                        anchors.topMargin: mainProfile.radius + mainProfile.margin
                         height: 64
                         anchors.left: parent.left
-                        anchors.leftMargin: bg.margin
+                        anchors.leftMargin: mainProfile.margin
                         width: height
 
                         Image {
@@ -117,9 +128,9 @@ Rectangle {
                         anchors.top: avatarFrame.top
                         anchors.bottom: avatarFrame.bottom
                         anchors.left: avatarFrame.right
-                        anchors.leftMargin: bg.margin
+                        anchors.leftMargin: mainProfile.margin
                         anchors.right: parent.right
-                        anchors.rightMargin: bg.margin
+                        anchors.rightMargin: mainProfile.margin
                         width: height
 
                         TextEdit {
@@ -155,6 +166,16 @@ Rectangle {
                             }
                         }
                     }
+                }
+
+                DarkLabel {
+                    id: keys
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    anchors.top: mainProfile.bottom
+                    anchors.topMargin: 32
+                    width: 300
+                    text: "Select Profiles"
+                    highlightedKeys: [1, 2]
                 }
 
                 ProfileCard {
@@ -209,14 +230,16 @@ Rectangle {
         }
     }
 
-    Button {
+    DarkLabel {
         id: addPlayerButton
-        text: bg.isConfiguringDp ? "Back to Single Mode" : "Switch to Battle Mode"
+        text: bg.isConfiguringDp ? "Single Mode" : "Battle Mode"
         anchors.bottom: parent.bottom
         anchors.bottomMargin: 32
         anchors.horizontalCenter: parent.horizontalCenter
+        highlightedKeys: [7]
+        width: 300
 
-        onClicked: {
+        function switchMode() {
             if (bg.isConfiguringDp) {
                 ProfileList.battleActive = false;
                 bg.isConfiguringDp = false;
@@ -225,6 +248,22 @@ Rectangle {
                     ProfileList.battleActive = true;
                 }
                 bg.isConfiguringDp = true;
+            }
+        }
+
+        Input.onCol17Pressed: {
+            addPlayerButton.switchMode();
+        }
+
+        Input.onCol27Pressed: {
+            addPlayerButton.switchMode();
+        }
+
+        MouseArea {
+            anchors.fill: parent
+            cursorShape: Qt.PointingHandCursor
+            onClicked: {
+                addPlayerButton.switchMode();
             }
         }
     }

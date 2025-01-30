@@ -123,6 +123,35 @@ Rectangle {
             pathView.positionViewAtIndex(index, PathView.SnapPosition);
         }
 
+
+        Input.onCol11Pressed: {
+            if (card.playerNumber === 2) {
+                return;
+            }
+            pathView.decrementCurrentIndex();
+        }
+
+        Input.onCol12Pressed: {
+            if (card.playerNumber === 2) {
+                return;
+            }
+            pathView.incrementCurrentIndex();
+        }
+
+        Input.onCol21Pressed: {
+            if (card.playerNumber === 1) {
+                return;
+            }
+            pathView.decrementCurrentIndex();
+        }
+
+        Input.onCol22Pressed: {
+            if (card.playerNumber === 1) {
+                return;
+            }
+            pathView.incrementCurrentIndex();
+        }
+
         delegate: Item {
             width: pathView.itemWidth
             anchors.top: parent.top
