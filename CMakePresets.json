@@ -177,7 +177,10 @@
     {
       "name": "ci-build",
       "binaryDir": "${sourceDir}/build",
-      "hidden": true
+      "hidden": true,
+      "cacheVariables": {
+        "VCPKG_INSTALL_OPTIONS": "--clean-after-build"
+      }
     },
     {
       "name": "ci-macos",
@@ -187,10 +190,7 @@
         "dev-mode",
         "vcpkg",
         "vcpkg-osx-sharedqt"
-      ],
-      "cacheVariables": {
-        "VCPKG_INSTALL_OPTIONS": "--clean-after-build"
-      }
+      ]
     },
     {
       "name": "ci-ubuntu",
