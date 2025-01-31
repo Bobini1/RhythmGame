@@ -26,7 +26,7 @@ jobs:
         run: pip3 install codespell
 
       - name: Lint
-        run: cmake -D FORMAT_COMMAND=clang-format-14 -P cmake/lint.cmake
+        run: cmake -P cmake/lint.cmake
 
       - name: Spell check
         if: always()
