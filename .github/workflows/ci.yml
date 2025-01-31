@@ -10,7 +10,8 @@ on:
       - master
 
 env:
-  VCPKG_COMMIT: "16ee2ecb31788c336ace8bb14c21801efb6836e4"
+  VCPKG_ROOT: ${{ env.VCPKG_INSTALLATION_ROOT }}
+
 
 jobs:
   lint:
@@ -45,10 +46,6 @@ jobs:
       - name: Install LCov
         run: sudo apt-get update -q
           && sudo apt-get install lcov -q -y
-
-      - name: Install vcpkg
-        uses: friendlyanon/setup-vcpkg@v1
-        with: { committish: "${{ env.VCPKG_COMMIT }}", path: "../../../v" }
 
       - name: Install system dependencies
         run: sudo apt-get install libtbb-dev libgl-dev libdrm-dev libgles2-mesa-dev libudev-dev nasm autoconf automake autoconf-archive gperf pkg-config python3-jinja2 '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev -y
@@ -85,10 +82,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-
-      - name: Install vcpkg
-        uses: friendlyanon/setup-vcpkg@v1
-        with: { committish: "${{ env.VCPKG_COMMIT }}", path: "../../../v"  }
 
       - name: Install system dependencies
         run: sudo apt-get update && sudo apt-get install libtbb-dev libgl-dev libdrm-dev libgles2-mesa-dev libudev-dev nasm autoconf automake autoconf-archive gperf pkg-config python3-jinja2 '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev -y
@@ -137,10 +130,6 @@ jobs:
           sudo update-alternatives --install
           /usr/bin/clang-tidy clang-tidy
           /usr/bin/clang-tidy-14 140
-
-      - name: Install vcpkg
-        uses: friendlyanon/setup-vcpkg@v1
-        with: { committish: "${{ env.VCPKG_COMMIT }}", path: "../../../v"  }
 
       - name: Setup MultiToolTask
         if: matrix.os == 'windows-2022'
@@ -206,10 +195,6 @@ jobs:
           sudo update-alternatives --install
           /usr/bin/clang-tidy clang-tidy
           /usr/bin/clang-tidy-14 140
-
-      - name: Install vcpkg
-        uses: friendlyanon/setup-vcpkg@v1
-        with: { committish: "${{ env.VCPKG_COMMIT }}", path: "../../../v"  }
 
       - name: Install WMF
         if: matrix.os == 'windows-latest'
