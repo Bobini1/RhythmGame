@@ -75,8 +75,8 @@ jobs:
     needs: [ lint ]
 
     env:
-      CXX: clang++-13
-      CC: clang-13
+      CXX: clang++
+      CC: clang
 
     runs-on: ubuntu-latest
 
@@ -87,7 +87,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get install libtbb-dev libgl-dev libdrm-dev libgles2-mesa-dev libudev-dev nasm autoconf automake autoconf-archive gperf pkg-config python3-jinja2 '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev -y
 
       - name: Install Clang 13
-        run: sudo apt-get install clang-13 libc++-dev -y
+        run: sudo apt-get install clang libc++-dev -y
 
       - name: Configure
         run: cmake --preset=ci-sanitize
