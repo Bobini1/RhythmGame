@@ -9,6 +9,8 @@ on:
     branches:
       - master
 
+env:
+  VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
 
 jobs:
   lint:
@@ -43,6 +45,13 @@ jobs:
 
       - name: Install system dependencies
         run: sudo apt-get install libtbb-dev libgl-dev libdrm-dev libgles2-mesa-dev libudev-dev nasm autoconf automake autoconf-archive gperf pkg-config python3-jinja2 '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev libltdl-dev -y
+
+      - name: Export GitHub Actions cache environment variables
+        uses: actions/github-script@v7
+        with:
+          script: |
+            core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
+            core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
 
       - name: Configure
         run: cmake --preset=ci-coverage
@@ -79,6 +88,13 @@ jobs:
 
       - name: Install system dependencies
         run: sudo apt-get update && sudo apt-get install libtbb-dev libgl-dev libdrm-dev libgles2-mesa-dev libudev-dev nasm autoconf automake autoconf-archive gperf pkg-config python3-jinja2 '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev -y
+
+      - name: Export GitHub Actions cache environment variables
+        uses: actions/github-script@v7
+        with:
+          script: |
+            core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
+            core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
 
       - name: Install Clang 13
         run: sudo apt-get install clang libc++-dev -y
@@ -146,6 +162,13 @@ jobs:
             brew install autoconf automake autoconf-archive
           fi
 
+      - name: Export GitHub Actions cache environment variables
+        uses: actions/github-script@v7
+        with:
+          script: |
+            core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
+            core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
+
       - name: Configure
         shell: pwsh
         run: cmake "--preset=ci-$("${{ matrix.os }}".split("-")[0])"
@@ -204,6 +227,13 @@ jobs:
           else
             brew install autoconf automake autoconf-archive
           fi
+
+      - name: Export GitHub Actions cache environment variables
+        uses: actions/github-script@v7
+        with:
+          script: |
+            core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
+            core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
 
       - name: Configure
         shell: pwsh
