@@ -90,7 +90,7 @@ in the terminal.
 ### Dependency manager
 
 The above preset will make use of the [vcpkg][vcpkg] dependency manager. After
-installing it, make sure the `VCPKG_ROOT` environment variable is pointing at
+installing it, make sure the `VCPKG_INSTALLATION_ROOT` environment variable is pointing at
 the directory where the vcpkg executable is. On Windows, you might also want
 to inherit from the `vcpkg-win64-static` preset, which will make vcpkg install
 the dependencies as static libraries. This is only necessary if you don't want
