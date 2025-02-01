@@ -151,15 +151,8 @@ FocusScope {
                 sequence: "Esc"
                 enabled: root.enabled
 
-                Component.onCompleted: {
-                    print(parent)
-                }
-
                 onActivated: {
                     sceneStack.pop();
-                }
-                onActivatedAmbiguously: {
-                    print("select", enabled);
                 }
             }
             MediaPlayer {
