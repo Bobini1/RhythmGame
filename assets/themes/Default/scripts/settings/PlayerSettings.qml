@@ -100,33 +100,42 @@ RowLayout {
         Layout.fillWidth: true
 
         TextEdit {
+            id: profileText
             readOnly: true
             text: "Selected Profile"
             anchors.top: parent.top
             anchors.topMargin: 16
             anchors.horizontalCenter: parent.horizontalCenter
         }
+        Frame {
+            id: avatarFrame
+            anchors.top: profileText.bottom
+            anchors.topMargin: 16
+            anchors.horizontalCenter: parent.horizontalCenter
+            width: parent.width / 2
+            height: parent.width / 2
+            Image {
+                anchors.fill: parent
+                source: ProgramSettings.avatarFolder + ProfileList.mainProfile.vars.globalVars.avatar
+                asynchronous: true
+                fillMode: Image.PreserveAspectFit
 
-        Image {
-            source: ProgramSettings.avatarFolder + ProfileList.mainProfile.vars.globalVars.avatar
-            anchors.fill: parent
-            fillMode: Image.PreserveAspectFit
-            anchors.margins: 16
-
-            TapHandler {
-                onTapped: {
-                    fileDialog.open();
+                TapHandler {
+                    onTapped: {
+                        fileDialog.open();
+                    }
                 }
             }
         }
-        TextEdit {
+        TextField {
             text: ProfileList.mainProfile.vars.globalVars.name
             font.pixelSize: 24
-            color: "white"
+            color: "black"
+            width: avatarFrame.width
             horizontalAlignment: Text.AlignHCenter
             verticalAlignment: Text.AlignVCenter
-            anchors.bottom: parent.bottom
-            anchors.bottomMargin: 16
+            anchors.top: avatarFrame.bottom
+            anchors.topMargin: 16
             anchors.horizontalCenter: parent.horizontalCenter
 
             onTextChanged: {
