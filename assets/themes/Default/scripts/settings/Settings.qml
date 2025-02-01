@@ -54,7 +54,7 @@ Rectangle {
         }
     }
     Shortcut {
-        enabled: active
+        enabled: screen.enabled
         sequence: "Esc"
 
         onActivated: {

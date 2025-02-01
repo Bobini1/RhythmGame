@@ -303,7 +303,7 @@ Rectangle {
         }
     }
     Shortcut {
-        enabled: chartFocusScope.active
+        enabled: root.enabled
         sequence: "Esc"
 
         onActivated: {
@@ -312,6 +312,7 @@ Rectangle {
     }
     Shortcut {
         sequence: "F2"
+        enabled: root.enabled
 
         onActivated: {
             root.customizeMode = !root.customizeMode;

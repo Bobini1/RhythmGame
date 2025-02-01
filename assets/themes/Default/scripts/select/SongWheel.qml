@@ -8,7 +8,7 @@ import "../common/helpers.js" as Helpers
 import "./playOptions"
 
 FocusScope {
-    focus: StackView.status === StackView.Active
+    focus: enabled
 
     Image {
         id: root
@@ -151,11 +151,18 @@ FocusScope {
                 width: parent.width / 2
             }
             Shortcut {
-                enabled: root.active
                 sequence: "Esc"
+                enabled: root.enabled
+
+                Component.onCompleted: {
+                    print(parent)
+                }
 
                 onActivated: {
                     sceneStack.pop();
+                }
+                onActivatedAmbiguously: {
+                    print("select", enabled);
                 }
             }
             MediaPlayer {
@@ -277,7 +284,9 @@ FocusScope {
                 id: focusList
 
                 anchors.fill: parent
-                enabled: root.active
+                onEnabledChanged: {
+                    print("song wheel main enabled changed", enabled);
+                }
                 z: -1
 
                 onClicked: {
@@ -298,7 +307,7 @@ FocusScope {
 
             MouseArea {
                 anchors.fill: parent
-                enabled: root.active
+                enabled: parent.visible
                 onClicked: (event) => {
                     playOptions.enabled = false;
                     login.enabled = false;

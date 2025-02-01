@@ -32,7 +32,7 @@ FocusScope {
         width: parent.width
 
         Shortcut {
-            enabled: resultFocusScope.active
+            enabled: root.enabled
             sequence: "Esc"
 
             onActivated: {
@@ -41,7 +41,7 @@ FocusScope {
             }
         }
         Shortcut {
-            enabled: resultFocusScope.active
+            enabled: root.enabled
             sequence: "Down"
 
             onActivated: {
@@ -49,7 +49,7 @@ FocusScope {
             }
         }
         Shortcut {
-            enabled: resultFocusScope.active
+            enabled: root.enabled
             sequence: "Up"
 
             onActivated: {
