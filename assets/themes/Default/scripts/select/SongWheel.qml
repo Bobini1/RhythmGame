@@ -8,12 +8,9 @@ import "../common/helpers.js" as Helpers
 import "./playOptions"
 
 FocusScope {
-    focus: enabled
-
     Image {
         id: root
 
-        readonly property bool active: parent.focus
         readonly property var bestStats: {
             let scores = songList.current instanceof ChartData && songList.currentItem ? songList.currentItem.children[0].scores : [];
             return Helpers.getBestStats(scores);
@@ -61,8 +58,8 @@ FocusScope {
         source: root.imagesUrl + "bg.png"
         width: parent.width
 
-        onActiveChanged: {
-            if (active) {
+        onEnabledChanged: {
+            if (enabled) {
                 previewDelayTimer.restart();
                 let currentChart = songList.currentItem.children[0];
                 if (typeof currentChart.refreshScores === 'function') {

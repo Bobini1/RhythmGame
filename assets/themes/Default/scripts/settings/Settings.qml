@@ -5,8 +5,6 @@ import QtQuick.Controls.Basic
 Rectangle {
     id: screen
 
-    readonly property bool active: StackView.status === StackView.Active
-
     color: "white"
 
     ColumnLayout {

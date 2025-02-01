@@ -7,12 +7,11 @@ import QtQuick.Controls.Basic
 import "../common/helpers.js" as Helpers
 
 FocusScope {
-    focus: StackView.status === StackView.Active
+    focus: enabled
 
     Image {
         id: root
 
-        readonly property bool active: parent.focus
         readonly property var earlyLate: Helpers.getEarlyLate(result.replayData, result.result.judgementCounts[Judgement.Poor])
         readonly property string imagesUrl: Qt.resolvedUrl(".") + "images/"
         readonly property string iniImagesUrl: "image://ini/" + rootUrl + "images/"
