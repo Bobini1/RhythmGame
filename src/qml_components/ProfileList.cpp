@@ -13,17 +13,6 @@
 #include <spdlog/spdlog.h>
 #include <QUuid>
 
-auto
-qml_components::ProfileList::createDefaultProfile()
-  -> resource_managers::Profile*
-{
-    auto* profile = new resource_managers::Profile(
-      this->profilesFolder / "default" / "profile.sqlite", themeFamilies, avatarPath, this);
-    QQmlEngine::setObjectOwnership(profile, QQmlEngine::CppOwnership);
-    profiles.append(profile);
-    return profile;
-}
-
 void
 qml_components::ProfileList::saveMainProfile()
 {
@@ -94,7 +83,7 @@ qml_components::ProfileList::ProfileList(
     }
     if (profiles.empty()) {
         spdlog::info("No profiles found, creating default profile");
-        createDefaultProfile();
+        createProfile();
     }
 
     const auto dbActiveProfiles =
@@ -190,18 +179,18 @@ qml_components::ProfileList::removeProfile(resource_managers::Profile* profile)
     connect(profile,
             &resource_managers::Profile::destroyed,
             this,
-            [path = profile->getPath().parent_path(), this, profile] {
+            [path = profile->getPath().parent_path(), this] {
                 remove_all(path);
-                if (profiles.empty()) {
-                    createDefaultProfile();
-                }
-                if (mainProfile == profile) {
-                    setMainProfile(profiles[0]);
-                }
             });
     const auto index = profiles.indexOf(profile);
     profiles.remove(index);
     emit profilesChanged();
+    if (profiles.empty()) {
+        createProfile();
+    }
+    if (mainProfile == profile) {
+        setMainProfile(profiles[0]);
+    }
     if (battleProfiles.player1Profile == profile) {
         battleProfiles.setPlayer1Profile(nullptr);
     }
@@ -222,6 +211,7 @@ qml_components::ProfileList::setMainProfile(resource_managers::Profile* profile)
     }
     mainProfile = profile;
     saveMainProfile();
+    emit mainProfileChanged();
 }
 auto
 qml_components::ProfileList::getMainProfile() const

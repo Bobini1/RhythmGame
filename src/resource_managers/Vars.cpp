@@ -282,6 +282,8 @@ resource_managers::GlobalVars::setAvatar(QString value)
         const auto targetStdPath = support::qStringToPath(targetPath);
         if (auto err = std::error_code{};
             !equivalent(targetStdPath, sourceStdPath, err)) {
+            // If this picture is currently used by the game, it won't be
+            // overwritten (remove will fail).
             QFile::remove(targetPath);
             if (!file.copy(targetPath)) {
                 spdlog::warn(

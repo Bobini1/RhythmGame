@@ -17,6 +17,9 @@ Rectangle {
             Layout.preferredHeight: childrenRect.height
 
             TabButton {
+                text: qsTr("Player settings")
+            }
+            TabButton {
                 text: qsTr("Song directories")
             }
             TabButton {
@@ -36,6 +39,9 @@ Rectangle {
 
             currentIndex: tabView.currentIndex
 
+            PlayerSettings {
+                Layout.preferredHeight: parent.height - tabView.height
+            }
             SongFolderSettings {
                 Layout.preferredHeight: parent.height - tabView.height
             }

@@ -69,8 +69,6 @@ class ProfileList final : public QObject
     Q_PROPERTY(bool battleActive READ getBattleActive WRITE setBattleActive
                  NOTIFY battleActiveChanged)
 
-    auto createDefaultProfile() -> resource_managers::Profile*;
-
     void saveMainProfile();
     void saveActiveProfiles();
 
