@@ -54,7 +54,6 @@ class ProfileList final : public QObject
     std::filesystem::path profilesFolder;
     QList<resource_managers::Profile*> profiles;
     db::SqliteCppDb* songDb;
-    input::InputTranslator* keyConfigs;
     QMap<QString, ThemeFamily> themeFamilies;
     resource_managers::Profile* mainProfile{};
     BattleProfiles battleProfiles;
