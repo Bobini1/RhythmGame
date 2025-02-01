@@ -40,6 +40,7 @@ class Profile final : public QObject
     explicit Profile(
       const std::filesystem::path& dbPath,
       const QMap<QString, qml_components::ThemeFamily>& themeFamilies,
+      QString avatarPath,
       QObject* parent = nullptr);
 
     auto getPath() const -> std::filesystem::path;

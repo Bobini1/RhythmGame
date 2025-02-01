@@ -59,6 +59,7 @@ class ProfileList final : public QObject
     resource_managers::Profile* mainProfile{};
     BattleProfiles battleProfiles;
     bool battleActive{};
+    QString avatarPath;
 
     Q_PROPERTY(resource_managers::Profile* mainProfile READ getMainProfile WRITE
                  setMainProfile NOTIFY mainProfileChanged)
@@ -77,6 +78,7 @@ class ProfileList final : public QObject
     explicit ProfileList(db::SqliteCppDb* songDb,
                          const QMap<QString, ThemeFamily>& themeFamilies,
                          std::filesystem::path profilesFolder,
+                         QString avatarPath,
                          QObject* parent = nullptr);
     auto getProfiles() -> const QList<resource_managers::Profile*>&;
 

@@ -18,7 +18,7 @@ qml_components::ProfileList::createDefaultProfile()
   -> resource_managers::Profile*
 {
     auto* profile = new resource_managers::Profile(
-      this->profilesFolder / "default" / "profile.sqlite", themeFamilies, this);
+      this->profilesFolder / "default" / "profile.sqlite", themeFamilies, avatarPath, this);
     QQmlEngine::setObjectOwnership(profile, QQmlEngine::CppOwnership);
     profiles.append(profile);
     return profile;
@@ -62,11 +62,13 @@ qml_components::ProfileList::ProfileList(
   db::SqliteCppDb* songDb,
   const QMap<QString, ThemeFamily>& themeFamilies,
   std::filesystem::path profilesFolder,
+  QString avatarPath,
   QObject* parent)
   : QObject(parent)
   , profilesFolder(std::move(profilesFolder))
   , songDb(songDb)
   , themeFamilies(themeFamilies)
+  , avatarPath(std::move(avatarPath))
 {
     if (!exists(this->profilesFolder)) {
         create_directory(this->profilesFolder);
@@ -79,7 +81,7 @@ qml_components::ProfileList::ProfileList(
         if (entry.is_directory()) {
             try {
                 auto* profile = new resource_managers::Profile(
-                  entry.path() / "profile.sqlite", themeFamilies, this);
+                  entry.path() / "profile.sqlite", themeFamilies, this->avatarPath, this);
                 QQmlEngine::setObjectOwnership(profile,
                                                QQmlEngine::CppOwnership);
                 profiles.append(profile);
@@ -164,6 +166,7 @@ qml_components::ProfileList::createProfile() -> resource_managers::Profile*
           profilesFolder / QUuid::createUuid().toString().toStdString() /
             "profile.sqlite",
           themeFamilies,
+          avatarPath,
           this);
         QQmlEngine::setObjectOwnership(profile, QQmlEngine::CppOwnership);
         profiles.append(profile);
@@ -183,20 +186,22 @@ qml_components::ProfileList::removeProfile(resource_managers::Profile* profile)
     }
     profile->deleteLater();
     // We should delete the profile after the profile object (with a db
-    // connection) is destroyed
+    // connection) is destroyed.
     connect(profile,
             &resource_managers::Profile::destroyed,
-            nullptr,
-            [path = profile->getPath().parent_path()]() { remove_all(path); });
+            this,
+            [path = profile->getPath().parent_path(), this, profile] {
+                remove_all(path);
+                if (profiles.empty()) {
+                    createDefaultProfile();
+                }
+                if (mainProfile == profile) {
+                    setMainProfile(profiles[0]);
+                }
+            });
     const auto index = profiles.indexOf(profile);
     profiles.remove(index);
-    if (profiles.empty()) {
-        createDefaultProfile();
-    }
     emit profilesChanged();
-    if (mainProfile == profile) {
-        setMainProfile(profiles[0]);
-    }
     if (battleProfiles.player1Profile == profile) {
         battleProfiles.setPlayer1Profile(nullptr);
     }

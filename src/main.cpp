@@ -130,7 +130,7 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
         auto themes = qml_components::Themes{ availableThemes };
         qmlRegisterSingletonInstance("RhythmGameQml", 1, 0, "Themes", &themes);
         auto profileList = qml_components::ProfileList{
-            &db, availableThemes, assetsFolder / "profiles", &gamepadManager
+            &db, availableThemes, assetsFolder / "profiles", avatarPath
         };
         qmlRegisterSingletonInstance(
           "RhythmGameQml", 1, 0, "ProfileList", &profileList);

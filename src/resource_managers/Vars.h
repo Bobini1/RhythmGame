@@ -128,7 +128,10 @@ class GlobalVars final : public QObject
     QString avatar = "mascot.png";
     QString name = "Default";
 
+    QString avatarPath;
+
   public:
+    GlobalVars(QString avatarPath, QObject* parent = nullptr);
     auto getNoteScreenTimeMillis() const -> int;
     void setNoteScreenTimeMillis(int value);
     auto getLaneCoverOn() const -> bool;
@@ -209,6 +212,7 @@ class Vars final : public QObject
     explicit Vars(
       const Profile* profile,
       QMap<QString, qml_components::ThemeFamily> availableThemeFamilies,
+      QString avatarPath,
       QObject* parent = nullptr);
     auto getGlobalVars() -> GlobalVars*;
     auto getThemeVars() -> QQmlPropertyMap*;

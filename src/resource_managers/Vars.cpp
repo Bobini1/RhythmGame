@@ -19,7 +19,13 @@
 #include <QQmlEngine>
 #include <chrono>
 #include <qcolor.h>
+#include <qdir.h>
 #include <utility>
+resource_managers::GlobalVars::GlobalVars(QString avatarPath, QObject* parent)
+  : QObject(parent)
+  , avatarPath(std::move(avatarPath))
+{
+}
 auto
 resource_managers::GlobalVars::getNoteScreenTimeMillis() const -> int
 {
@@ -255,6 +261,36 @@ resource_managers::GlobalVars::setAvatar(QString value)
 {
     if (avatar == value) {
         return;
+    }
+    const auto url = QUrl{ value };
+    const auto sourcePath = url.toLocalFile();
+    const auto isAbsolute = QDir::isAbsolutePath(sourcePath);
+    if ((value.contains('/') || value.contains('\\')) && !isAbsolute) {
+        spdlog::warn("Avatar must be a filename or an absolute path: {}",
+                     value.toStdString());
+        return;
+    }
+    if (isAbsolute) {
+        auto file = QFile{ sourcePath };
+        if (!file.open(QIODevice::ReadOnly)) {
+            spdlog::warn("Failed to open avatar file: {}", value.toStdString());
+            return;
+        }
+        const auto fileName = QFileInfo{ file.fileName() }.fileName();
+        const auto targetPath = QUrl{ avatarPath + fileName }.toLocalFile();
+        const auto sourceStdPath = support::qStringToPath(sourcePath);
+        const auto targetStdPath = support::qStringToPath(targetPath);
+        if (auto err = std::error_code{};
+            !equivalent(targetStdPath, sourceStdPath, err)) {
+            QFile::remove(targetPath);
+            if (!file.copy(targetPath)) {
+                spdlog::warn(
+                  "Failed to copy avatar file to the avatar folder: {}",
+                  value.toStdString());
+                return;
+            }
+        }
+        value = fileName;
     }
     avatar = value;
     emit avatarChanged();
@@ -827,8 +863,10 @@ resource_managers::Vars::writeGlobalVars() const
 resource_managers::Vars::Vars(
   const Profile* profile,
   QMap<QString, qml_components::ThemeFamily> availableThemeFamilies,
+  QString avatarPath,
   QObject* parent)
   : QObject(parent)
+  , globalVars(std::move(avatarPath))
   , profile(profile)
   , availableThemeFamilies(std::move(availableThemeFamilies))
   , loadedThemeVars(readThemeVars(profile->getPath().parent_path(),
