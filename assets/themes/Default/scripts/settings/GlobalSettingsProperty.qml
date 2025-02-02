@@ -37,7 +37,7 @@ RowLayout {
         enabled: ProfileList.mainProfile.vars.globalVars[parent.props.id] !== parent.props.default
         Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
         onClicked: {
-            ProfileList.mainProfile.vars.globalVars[parent.props.id] = parent.props.default
+            ProfileList.mainProfile.vars.globalVars[parent.props.id] = parent.props.default;
         }
     }
 }

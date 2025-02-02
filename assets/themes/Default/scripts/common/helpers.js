@@ -113,7 +113,7 @@ function getIndex(array, elem, currentIndex) {
     let index = 0;
     let proposition = null;
     for (let choice of array) {
-        if (elem === choice) {
+        if (elem == choice) {
             // special handling for duplicated elements
             if (proposition === null || Math.abs(currentIndex - index) < Math.abs(currentIndex - proposition)) {
                 proposition = index

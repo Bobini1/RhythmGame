@@ -7,18 +7,15 @@ import "../../common/helpers.js" as Helpers
 ComboBox {
     id: choiceComboBox
     model: props.choices
-
-    palette {
-        window: "white"
-        light: palette.button
-    }
+    // for global vars only
+    property bool assignIndex: false
 
     Binding {
         delayed: true
-        choiceComboBox.currentIndex: Helpers.getIndex(props.choices, destination[props.id], currentIndex);
+        choiceComboBox.currentIndex: Helpers.getIndex(choiceComboBox.assignIndex ? Object.keys(props.choices) : props.choices, destination[props.id], currentIndex);
     }
 
     onActivated: (_) => {
-        destination[props.id] = currentText;
+        destination[props.id] = choiceComboBox.assignIndex ? currentIndex : currentText;
     }
 }

@@ -40,6 +40,11 @@ resource_managers::GlobalVars::setNoteScreenTimeMillis(int value)
     noteScreenTimeMillis = value;
     emit noteScreenTimeMillisChanged();
 }
+void
+resource_managers::GlobalVars::resetNoteScreenTimeMillis()
+{
+    setNoteScreenTimeMillis(1000);
+}
 auto
 resource_managers::GlobalVars::getLaneCoverOn() const -> bool
 {
@@ -54,6 +59,12 @@ resource_managers::GlobalVars::setLaneCoverOn(bool value)
     laneCoverOn = value;
     emit laneCoverOnChanged();
 }
+void
+resource_managers::GlobalVars::resetLaneCoverOn()
+{
+    setLaneCoverOn(false);
+}
+
 auto
 resource_managers::GlobalVars::getLaneCoverRatio() const -> double
 {
@@ -67,6 +78,11 @@ resource_managers::GlobalVars::setLaneCoverRatio(double value)
     }
     laneCoverRatio = value;
     emit laneCoverRatioChanged();
+}
+void
+resource_managers::GlobalVars::resetLaneCoverRatio()
+{
+    setLaneCoverRatio(0.1);
 }
 
 auto
@@ -84,6 +100,12 @@ resource_managers::GlobalVars::setLiftOn(bool value)
     emit liftOnChanged();
 }
 
+void
+resource_managers::GlobalVars::resetLiftOn()
+{
+    setLiftOn(false);
+}
+
 auto
 resource_managers::GlobalVars::getLiftRatio() const -> double
 {
@@ -98,7 +120,11 @@ resource_managers::GlobalVars::setLiftRatio(double value)
     liftRatio = value;
     emit liftRatioChanged();
 }
-
+void
+resource_managers::GlobalVars::resetLiftRatio()
+{
+    setLiftRatio(0.1);
+}
 auto
 resource_managers::GlobalVars::getHiddenOn() const -> bool
 {
@@ -112,6 +138,11 @@ resource_managers::GlobalVars::setHiddenOn(bool value)
     }
     hiddenOn = value;
     emit hiddenOnChanged();
+}
+void
+resource_managers::GlobalVars::resetHiddenOn()
+{
+    setHiddenOn(false);
 }
 
 auto
@@ -127,6 +158,11 @@ resource_managers::GlobalVars::setHiddenRatio(double value)
     }
     hiddenRatio = value;
     emit hiddenRatioChanged();
+}
+void
+resource_managers::GlobalVars::resetHiddenRatio()
+{
+    setHiddenRatio(0.1);
 }
 
 auto
@@ -144,6 +180,12 @@ resource_managers::GlobalVars::setBgaOn(bool value)
     emit bgaOnChanged();
 }
 
+void
+resource_managers::GlobalVars::resetBgaOn()
+{
+    setBgaOn(true);
+}
+
 auto
 resource_managers::GlobalVars::getNoteOrderAlgorithm() const
   -> NoteOrderAlgorithm
@@ -158,6 +200,11 @@ resource_managers::GlobalVars::setNoteOrderAlgorithm(NoteOrderAlgorithm value)
     }
     noteOrderAlgorithm = value;
     emit noteOrderAlgorithmChanged();
+}
+void
+resource_managers::GlobalVars::resetNoteOrderAlgorithm()
+{
+    setNoteOrderAlgorithm(NoteOrderAlgorithm::Normal);
 }
 
 auto
@@ -176,6 +223,12 @@ resource_managers::GlobalVars::setNoteOrderAlgorithmP2(NoteOrderAlgorithm value)
     emit noteOrderAlgorithmP2Changed();
 }
 
+void
+resource_managers::GlobalVars::resetNoteOrderAlgorithmP2()
+{
+    setNoteOrderAlgorithmP2(NoteOrderAlgorithm::Normal);
+}
+
 auto
 resource_managers::GlobalVars::getHiSpeedFix() const -> HiSpeedFix
 {
@@ -189,6 +242,12 @@ resource_managers::GlobalVars::setHiSpeedFix(HiSpeedFix value)
     }
     hiSpeedFix = value;
     emit hiSpeedFixChanged();
+}
+
+void
+resource_managers::GlobalVars::resetHiSpeedFix()
+{
+    setHiSpeedFix(HiSpeedFix::Main);
 }
 
 auto
@@ -206,6 +265,12 @@ resource_managers::GlobalVars::setDpOptions(DpOptions value)
     emit dpOptionsChanged();
 }
 
+void
+resource_managers::GlobalVars::resetDpOptions()
+{
+    setDpOptions(DpOptions::Off);
+}
+
 auto
 resource_managers::GlobalVars::getGaugeType() const -> QString
 {
@@ -220,7 +285,11 @@ resource_managers::GlobalVars::setGaugeType(QString value)
     gaugeType = value;
     emit gaugeTypeChanged();
 }
-
+void
+resource_managers::GlobalVars::resetGaugeType()
+{
+    setGaugeType("HAZARD");
+}
 auto
 resource_managers::GlobalVars::getGaugeMode() const -> GaugeMode
 {
@@ -234,6 +303,12 @@ resource_managers::GlobalVars::setGaugeMode(GaugeMode value)
     }
     gaugeMode = value;
     emit gaugeModeChanged();
+}
+
+void
+resource_managers::GlobalVars::resetGaugeMode()
+{
+    setGaugeMode(GaugeMode::SelectToUnder);
 }
 
 auto
@@ -250,12 +325,17 @@ resource_managers::GlobalVars::setBottomShiftableGauge(QString value)
     bottomShiftableGauge = value;
     emit bottomShiftableGaugeChanged();
 }
+void
+resource_managers::GlobalVars::resetBottomShiftableGauge()
+{
+    setBottomShiftableGauge("AEASY");
+}
+
 auto
 resource_managers::GlobalVars::getAvatar() const -> QString
 {
     return avatar;
 }
-
 void
 resource_managers::GlobalVars::setAvatar(QString value)
 {
@@ -297,13 +377,17 @@ resource_managers::GlobalVars::setAvatar(QString value)
     avatar = value;
     emit avatarChanged();
 }
+void
+resource_managers::GlobalVars::resetAvatar()
+{
+    setAvatar("mascot.png");
+}
 
 auto
 resource_managers::GlobalVars::getName() const -> QString
 {
     return name;
 }
-
 void
 resource_managers::GlobalVars::setName(QString value)
 {
@@ -313,6 +397,12 @@ resource_managers::GlobalVars::setName(QString value)
     name = value;
     emit nameChanged();
 }
+void
+resource_managers::GlobalVars::resetName()
+{
+    setName("Default");
+}
+
 void
 writeGlobalVars(const resource_managers::GlobalVars& globalVars,
                 const std::filesystem::path& profileFolder)
