@@ -5,7 +5,10 @@ Image {
     id: keymodeButton
 
     property int current: 1
-    property var options: [null, 7, 14]
+    property var options: ProfileList.battleActive ? [null, 7] : [null, 7, 14]
+    onOptionsChanged: {
+        mouseArea.setFilter();
+    }
 
     source: root.iniImagesUrl + "option.png/button_big"
 
@@ -16,6 +19,7 @@ Image {
         text: (keymodeButton.options[keymodeButton.current] ? keymodeButton.options[keymodeButton.current] : "ALL") + " keys"
     }
     MouseArea {
+        id: mouseArea
         function setFilter() {
             let currentKeymode = keymodeButton.options[keymodeButton.current];
             if (currentKeymode) {
