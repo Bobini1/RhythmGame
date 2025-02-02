@@ -132,13 +132,21 @@ Rectangle {
 
         Side {
             anchors.fill: parent
+            profile: chart.profile1
+            score: chart.score1
+            notes: chart.notes1
         }
         component Side : Item {
+            id: side
+            required property Profile profile
+            required property BmsScore score
+            required property BmsNotes notes
+            readonly property var profileVars: profile.vars.themeVars[chartFocusScope.screen]
             PlayAreaTemplate {
                 id: playAreaTemplate
 
                 columns: playArea.columns
-                vars: root.mainProfileVars
+                vars: side.profileVars
                 visible: root.customizeMode
                 z: playArea.z + 1
 
@@ -160,40 +168,40 @@ Rectangle {
             PlayArea {
                 id: playArea
 
-                columns: root.mainProfileVars.scratchOnRightSide ? [0, 1, 2, 3, 4, 5, 6, 7] : [7, 0, 1, 2, 3, 4, 5, 6]
+                columns: side.profileVars.scratchOnRightSide ? [0, 1, 2, 3, 4, 5, 6, 7] : [7, 0, 1, 2, 3, 4, 5, 6]
                 profile: ProfileList.mainProfile
-                score: chart.score1
+                score: side.score
                 notes: columns.map(function (column) {
-                    return chart.notes1.visibleNotes[column];
+                    return side.notes.visibleNotes[column];
                 })
-                x: root.mainProfileVars.playAreaX
-                y: root.mainProfileVars.playAreaY
-                z: root.mainProfileVars.playAreaZ
+                x: side.profileVars.playAreaX
+                y: side.profileVars.playAreaY
+                z: side.profileVars.playAreaZ
             }
             LifeBar {
                 id: lifeBar
 
-                verticalGauge: root.mainProfileVars.verticalGauge
-                gaugeImage: root.mainProfileVars.gauge
-                score: chart.score1
+                verticalGauge: side.profileVars.verticalGauge
+                gaugeImage: side.profileVars.gauge
+                score: side.score
 
-                height: root.mainProfileVars.lifeBarHeight
-                width: root.mainProfileVars.lifeBarWidth
-                x: root.mainProfileVars.lifeBarX
-                y: root.mainProfileVars.lifeBarY
-                z: root.mainProfileVars.lifeBarZ
+                height: side.profileVars.lifeBarHeight
+                width: side.profileVars.lifeBarWidth
+                x: side.profileVars.lifeBarX
+                y: side.profileVars.lifeBarY
+                z: side.profileVars.lifeBarZ
 
                 onHeightChanged: {
-                    root.mainProfileVars.lifeBarHeight = height;
+                    side.profileVars.lifeBarHeight = height;
                 }
                 onWidthChanged: {
-                    root.mainProfileVars.lifeBarWidth = width;
+                    side.profileVars.lifeBarWidth = width;
                 }
                 onXChanged: {
-                    root.mainProfileVars.lifeBarX = x;
+                    side.profileVars.lifeBarX = x;
                 }
                 onYChanged: {
-                    root.mainProfileVars.lifeBarY = y;
+                    side.profileVars.lifeBarY = y;
                 }
 
                 TemplateDragBorder {
@@ -224,23 +232,23 @@ Rectangle {
                 id: judgementCountsContainer
 
                 color: "darkslategray"
-                height: root.mainProfileVars.judgementCountsHeight
-                width: root.mainProfileVars.judgementCountsWidth
-                x: root.mainProfileVars.judgementCountsX
-                y: root.mainProfileVars.judgementCountsY
-                z: root.mainProfileVars.judgementCountsZ
+                height: side.profileVars.judgementCountsHeight
+                width: side.profileVars.judgementCountsWidth
+                x: side.profileVars.judgementCountsX
+                y: side.profileVars.judgementCountsY
+                z: side.profileVars.judgementCountsZ
 
                 onHeightChanged: {
-                    root.mainProfileVars.judgementCountsHeight = height;
+                    side.profileVars.judgementCountsHeight = height;
                 }
                 onWidthChanged: {
-                    root.mainProfileVars.judgementCountsWidth = width;
+                    side.profileVars.judgementCountsWidth = width;
                 }
                 onXChanged: {
-                    root.mainProfileVars.judgementCountsX = x;
+                    side.profileVars.judgementCountsX = x;
                 }
                 onYChanged: {
-                    root.mainProfileVars.judgementCountsY = y;
+                    side.profileVars.judgementCountsY = y;
                 }
 
                 TemplateDragBorder {
@@ -306,7 +314,7 @@ Rectangle {
                         }
                     }
 
-                    target: chart.score1
+                    target: side.score
                 }
             }
         }
