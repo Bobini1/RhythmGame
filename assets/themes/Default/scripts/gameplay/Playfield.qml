@@ -73,7 +73,7 @@ Rectangle {
                 notes: modelData
                 noteImage: playfield.noteImage
                 mineImage: playfield.mineImage
-                notesStay: true
+                notesStay: playfield.notesStay
                 width: playfield.columnSizes[playfield.columns[index]]
             }
         }
