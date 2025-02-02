@@ -102,14 +102,14 @@ BorderImage {
             }
         }
 
-        Input.onButtonPressed: (profile, key) => {
+        Input.onButtonPressed: (key) => {
             if (profile !== frame.profile) {
                 return;
             }
-            if (key === up && bg.open) {
+            if (key === up) {
                 tumbler.decrementCurrentIndex();
             }
-            if (key === down && bg.open) {
+            if (key === down) {
                 tumbler.incrementCurrentIndex();
             }
         }

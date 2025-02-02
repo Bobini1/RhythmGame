@@ -29,6 +29,7 @@ Item {
 
     Side {
         profile: ProfileList.battleProfiles.player2Profile
+        offset: BmsKey.Col11
 
         TapHandler {
             gesturePolicy: TapHandler.WithinBounds
@@ -48,6 +49,7 @@ Item {
         width: parent.width / 2 - 25
 
         required property Profile profile
+        property int offset: 0
 
         DarkLabel {
             id: p1RandomLabel
@@ -71,8 +73,8 @@ Item {
             anchors.top: p1RandomLabel.bottom
             anchors.topMargin: 20
             anchors.horizontalCenter: p1RandomLabel.horizontalCenter
-            up: BmsKey.Col12
-            down: BmsKey.Col11
+            up: BmsKey.Col12 + offset
+            down: BmsKey.Col11 + offset
             profile: bg.profile
 
             model: [NoteOrderAlgorithm.Normal, NoteOrderAlgorithm.Mirror, NoteOrderAlgorithm.Random, NoteOrderAlgorithm.RandomPlus, NoteOrderAlgorithm.SRandom, NoteOrderAlgorithm.SRandomPlus, NoteOrderAlgorithm.RRandom]
@@ -120,7 +122,7 @@ Item {
             anchors.leftMargin: 20
             width: 360
             height: 220
-            down: BmsKey.Col13
+            down: BmsKey.Col13 + offset
             model: ["AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "HAZARD"]
             strings: ["ASSISTED EASY", "EASY", "NORMAL", "HARD", "EXHARD", "HAZARD"]
             prop: "gaugeType"
@@ -135,7 +137,7 @@ Item {
             anchors.rightMargin: 20
             width: 360
             height: 220
-            down: BmsKey.Col15
+            down: BmsKey.Col15 + offset
             model: playOptionsBattle.duplicate([HiSpeedFix.Main, HiSpeedFix.Start, HiSpeedFix.Max, HiSpeedFix.Min, HiSpeedFix.Off])
             strings: playOptionsBattle.duplicate(["MAIN BPM", "START BPM", "MAX BPM", "MIN BPM", "OFF"])
             prop: "hiSpeedFix"
