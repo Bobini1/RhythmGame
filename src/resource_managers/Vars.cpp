@@ -288,7 +288,7 @@ resource_managers::GlobalVars::setGaugeType(QString value)
 void
 resource_managers::GlobalVars::resetGaugeType()
 {
-    setGaugeType("HAZARD");
+    setGaugeType("FC");
 }
 auto
 resource_managers::GlobalVars::getGaugeMode() const -> GaugeMode

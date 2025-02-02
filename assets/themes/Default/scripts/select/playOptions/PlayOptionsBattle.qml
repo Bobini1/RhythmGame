@@ -123,8 +123,8 @@ Item {
             width: 360
             height: 220
             down: BmsKey.Col13 + offset
-            model: ["AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "HAZARD"]
-            strings: ["ASSISTED EASY", "EASY", "NORMAL", "HARD", "EXHARD", "HAZARD"]
+            model: ["AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC"]
+            strings: ["ASSISTED EASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC"]
             prop: "gaugeType"
             profile: bg.profile
         }
