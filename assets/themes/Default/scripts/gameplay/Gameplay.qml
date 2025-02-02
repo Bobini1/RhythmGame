@@ -19,6 +19,9 @@ Rectangle {
     readonly property var mainProfileVars: mainProfile.vars.themeVars[chartFocusScope.screen]
     property var popup: null
     property string rootUrl: globalRoot.urlToPath(Qt.resolvedUrl(".").toString())
+    property bool screen: chartFocusScope.screen
+    property bool isDp: chartFocusScope.screen === "k14"
+    property bool isBattle: chartFocusScope.screen === "k7battle"
 
     function getColumnSizes(vars) {
         let sizes = [];
@@ -96,42 +99,6 @@ Rectangle {
         scale: Math.min(globalRoot.width / 1920, globalRoot.height / 1080)
         width: 1920
 
-        PlayAreaTemplate {
-            id: playAreaTemplate
-
-            columns: playArea.columns
-            vars: root.mainProfileVars
-            visible: root.customizeMode
-            z: playArea.z + 1
-
-            MouseArea {
-                id: playAreaTemplateMouseArea
-
-                acceptedButtons: Qt.RightButton
-                anchors.fill: parent
-                z: -1
-
-                onClicked: mouse => {
-                    let point = mapToGlobal(mouse.x, mouse.y);
-                    playAreaPopup.setPosition(point);
-                    playAreaPopup.open();
-                    root.popup = playAreaPopup;
-                }
-            }
-        }
-        PlayArea {
-            id: playArea
-
-            columns: root.mainProfileVars.scratchOnRightSide ? [0, 1, 2, 3, 4, 5, 6, 7] : [7, 0, 1, 2, 3, 4, 5, 6]
-            profile: ProfileList.mainProfile
-            score: chart.score1
-            notes: columns.map(function (column) {
-                return chart.notes1.visibleNotes[column];
-            })
-            x: root.mainProfileVars.playAreaX
-            y: root.mainProfileVars.playAreaY
-            z: root.mainProfileVars.playAreaZ
-        }
         BgaRenderer {
             id: bga
 
@@ -162,42 +129,21 @@ Rectangle {
                 visible: root.customizeMode
             }
         }
-        LifeBar {
-            id: lifeBar
 
-            verticalGauge: root.mainProfileVars.verticalGauge
-            gaugeImage: root.mainProfileVars.gauge
-            score: chart.score1
+        Side {
+            anchors.fill: parent
+        }
+        component Side : Item {
+            PlayAreaTemplate {
+                id: playAreaTemplate
 
-            height: root.mainProfileVars.lifeBarHeight
-            width: root.mainProfileVars.lifeBarWidth
-            x: root.mainProfileVars.lifeBarX
-            y: root.mainProfileVars.lifeBarY
-            z: root.mainProfileVars.lifeBarZ
-
-            onHeightChanged: {
-                root.mainProfileVars.lifeBarHeight = height;
-            }
-            onWidthChanged: {
-                root.mainProfileVars.lifeBarWidth = width;
-            }
-            onXChanged: {
-                root.mainProfileVars.lifeBarX = x;
-            }
-            onYChanged: {
-                root.mainProfileVars.lifeBarY = y;
-            }
-
-            TemplateDragBorder {
-                id: lifeBarTemplate
-
-                anchors.fill: parent
-                anchors.margins: -borderMargin
-                color: "transparent"
+                columns: playArea.columns
+                vars: root.mainProfileVars
                 visible: root.customizeMode
+                z: playArea.z + 1
 
                 MouseArea {
-                    id: lifeBarMouseArea
+                    id: playAreaTemplateMouseArea
 
                     acceptedButtons: Qt.RightButton
                     anchors.fill: parent
@@ -205,100 +151,163 @@ Rectangle {
 
                     onClicked: mouse => {
                         let point = mapToGlobal(mouse.x, mouse.y);
-                        gaugePopup.setPosition(point);
-                        gaugePopup.open();
-                        root.popup = gaugePopup;
+                        playAreaPopup.setPosition(point);
+                        playAreaPopup.open();
+                        root.popup = playAreaPopup;
                     }
                 }
             }
-        }
-        Rectangle {
-            id: judgementCountsContainer
+            PlayArea {
+                id: playArea
 
-            color: "darkslategray"
-            height: root.mainProfileVars.judgementCountsHeight
-            width: root.mainProfileVars.judgementCountsWidth
-            x: root.mainProfileVars.judgementCountsX
-            y: root.mainProfileVars.judgementCountsY
-            z: root.mainProfileVars.judgementCountsZ
-
-            onHeightChanged: {
-                root.mainProfileVars.judgementCountsHeight = height;
+                columns: root.mainProfileVars.scratchOnRightSide ? [0, 1, 2, 3, 4, 5, 6, 7] : [7, 0, 1, 2, 3, 4, 5, 6]
+                profile: ProfileList.mainProfile
+                score: chart.score1
+                notes: columns.map(function (column) {
+                    return chart.notes1.visibleNotes[column];
+                })
+                x: root.mainProfileVars.playAreaX
+                y: root.mainProfileVars.playAreaY
+                z: root.mainProfileVars.playAreaZ
             }
-            onWidthChanged: {
-                root.mainProfileVars.judgementCountsWidth = width;
-            }
-            onXChanged: {
-                root.mainProfileVars.judgementCountsX = x;
-            }
-            onYChanged: {
-                root.mainProfileVars.judgementCountsY = y;
-            }
+            LifeBar {
+                id: lifeBar
 
-            TemplateDragBorder {
-                id: judgementCountsTemplate
+                verticalGauge: root.mainProfileVars.verticalGauge
+                gaugeImage: root.mainProfileVars.gauge
+                score: chart.score1
 
-                anchors.fill: parent
-                anchors.margins: -borderMargin
-                color: "transparent"
-                visible: root.customizeMode
-            }
-            Text {
-                id: judgementCounts
+                height: root.mainProfileVars.lifeBarHeight
+                width: root.mainProfileVars.lifeBarWidth
+                x: root.mainProfileVars.lifeBarX
+                y: root.mainProfileVars.lifeBarY
+                z: root.mainProfileVars.lifeBarZ
 
-                property int bad: 0
-                property int emptyPoor: 0
-                property int good: 0
-                property int great: 0
-                property int perfect: 0
-                property int poor: 0
-
-                anchors.fill: parent
-                anchors.margins: 8
-                color: "white"
-                font.pixelSize: 300
-                fontSizeMode: Text.Fit
-                text: {
-                    let txt = "";
-                    for (let judgement of ["perfect", "great", "good", "bad", "poor", "emptyPoor"]) {
-                        txt += Helpers.capitalizeFirstLetter(judgement) + ": " + judgementCounts[judgement] + "\n";
-                    }
-                    return txt;
+                onHeightChanged: {
+                    root.mainProfileVars.lifeBarHeight = height;
                 }
-                textFormat: Text.PlainText
-            }
-            Connections {
-                function onMissed() {
-                    judgementCounts.poor++;
-                    bga.poorVisible = true;
-                    poorLayerTimer.restart();
+                onWidthChanged: {
+                    root.mainProfileVars.lifeBarWidth = width;
+                }
+                onXChanged: {
+                    root.mainProfileVars.lifeBarX = x;
+                }
+                onYChanged: {
+                    root.mainProfileVars.lifeBarY = y;
                 }
 
-                function onNoteHit(tap) {
-                    switch (tap.points.judgement) {
-                        case Judgement.Perfect:
-                            judgementCounts.perfect++;
-                            break;
-                        case Judgement.Great:
-                            judgementCounts.great++;
-                            break;
-                        case Judgement.Good:
-                            judgementCounts.good++;
-                            break;
-                        case Judgement.Bad:
-                            judgementCounts.bad++;
-                            bga.poorVisible = true;
-                            poorLayerTimer.restart();
-                            break;
-                        case Judgement.EmptyPoor:
-                            judgementCounts.emptyPoor++;
-                            bga.poorVisible = true;
-                            poorLayerTimer.restart();
-                            break;
+                TemplateDragBorder {
+                    id: lifeBarTemplate
+
+                    anchors.fill: parent
+                    anchors.margins: -borderMargin
+                    color: "transparent"
+                    visible: root.customizeMode
+
+                    MouseArea {
+                        id: lifeBarMouseArea
+
+                        acceptedButtons: Qt.RightButton
+                        anchors.fill: parent
+                        z: -1
+
+                        onClicked: mouse => {
+                            let point = mapToGlobal(mouse.x, mouse.y);
+                            gaugePopup.setPosition(point);
+                            gaugePopup.open();
+                            root.popup = gaugePopup;
+                        }
                     }
                 }
+            }
+            Rectangle {
+                id: judgementCountsContainer
 
-                target: chart.score1
+                color: "darkslategray"
+                height: root.mainProfileVars.judgementCountsHeight
+                width: root.mainProfileVars.judgementCountsWidth
+                x: root.mainProfileVars.judgementCountsX
+                y: root.mainProfileVars.judgementCountsY
+                z: root.mainProfileVars.judgementCountsZ
+
+                onHeightChanged: {
+                    root.mainProfileVars.judgementCountsHeight = height;
+                }
+                onWidthChanged: {
+                    root.mainProfileVars.judgementCountsWidth = width;
+                }
+                onXChanged: {
+                    root.mainProfileVars.judgementCountsX = x;
+                }
+                onYChanged: {
+                    root.mainProfileVars.judgementCountsY = y;
+                }
+
+                TemplateDragBorder {
+                    id: judgementCountsTemplate
+
+                    anchors.fill: parent
+                    anchors.margins: -borderMargin
+                    color: "transparent"
+                    visible: root.customizeMode
+                }
+                Text {
+                    id: judgementCounts
+
+                    property int bad: 0
+                    property int emptyPoor: 0
+                    property int good: 0
+                    property int great: 0
+                    property int perfect: 0
+                    property int poor: 0
+
+                    anchors.fill: parent
+                    anchors.margins: 8
+                    color: "white"
+                    font.pixelSize: 300
+                    fontSizeMode: Text.Fit
+                    text: {
+                        let txt = "";
+                        for (let judgement of ["perfect", "great", "good", "bad", "poor", "emptyPoor"]) {
+                            txt += Helpers.capitalizeFirstLetter(judgement) + ": " + judgementCounts[judgement] + "\n";
+                        }
+                        return txt;
+                    }
+                    textFormat: Text.PlainText
+                }
+                Connections {
+                    function onMissed() {
+                        judgementCounts.poor++;
+                        bga.poorVisible = true;
+                        poorLayerTimer.restart();
+                    }
+
+                    function onNoteHit(tap) {
+                        switch (tap.points.judgement) {
+                            case Judgement.Perfect:
+                                judgementCounts.perfect++;
+                                break;
+                            case Judgement.Great:
+                                judgementCounts.great++;
+                                break;
+                            case Judgement.Good:
+                                judgementCounts.good++;
+                                break;
+                            case Judgement.Bad:
+                                judgementCounts.bad++;
+                                bga.poorVisible = true;
+                                poorLayerTimer.restart();
+                                break;
+                            case Judgement.EmptyPoor:
+                                judgementCounts.emptyPoor++;
+                                bga.poorVisible = true;
+                                poorLayerTimer.restart();
+                                break;
+                        }
+                    }
+
+                    target: chart.score1
+                }
             }
         }
     }
