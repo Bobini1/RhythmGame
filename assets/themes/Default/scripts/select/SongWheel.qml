@@ -274,9 +274,6 @@ FocusScope {
                 id: focusList
 
                 anchors.fill: parent
-                onEnabledChanged: {
-                    print("song wheel main enabled changed", enabled);
-                }
                 z: -1
 
                 onClicked: {
@@ -299,7 +296,6 @@ FocusScope {
                 anchors.fill: parent
                 enabled: parent.visible
                 onClicked: (event) => {
-                    playOptions.enabled = false;
                     login.enabled = false;
                 }
                 onWheel: (wheel) => {
@@ -310,15 +306,18 @@ FocusScope {
             visible: playOptions.enabled || login.enabled
 
             Item {
+                id: options
                 anchors.centerIn: parent
                 height: 1080
                 scale: Math.min(parent.width / 1920, parent.height / 1080)
                 width: 1920
 
+                property bool startPressed: Input.start1 || Input.start2
+
                 Loader {
                     id: playOptions
                     active: enabled
-                    enabled: (Input.start1 || Input.start2) && !login.enabled
+                    enabled: options.startPressed && !login.enabled
                     anchors.centerIn: parent
 
                     source: ProfileList.battleActive ? "playOptions/PlayOptionsBattle.qml" : "playOptions/PlayOptionsSingle.qml"
