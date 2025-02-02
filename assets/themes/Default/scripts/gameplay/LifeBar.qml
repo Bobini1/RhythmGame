@@ -56,6 +56,7 @@ Item {
                 Layout.fillHeight: true
                 Layout.fillWidth: true
                 Layout.verticalStretchFactor: 1
+                score: lifeBar.score
             }
         }
     }
