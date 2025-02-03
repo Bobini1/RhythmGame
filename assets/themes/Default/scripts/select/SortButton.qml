@@ -110,6 +110,8 @@ Image {
 
         anchors.fill: parent
 
+        cursorShape: Qt.PointingHandCursor
+
         Component.onCompleted: {
             setSort();
         }
