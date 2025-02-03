@@ -83,10 +83,31 @@ Rectangle {
             root.popup = null;
         }
     }
+    PlayAreaPopup {
+        id: playAreaPopupP2
+
+        property Profile profile: chart.profile2
+        themeVars: profile.vars.themeVars[chartFocusScope.screen]
+        globalVars: profile.vars.globalVars
+
+        onClosed: {
+            root.popup = null;
+        }
+    }
     GaugePopup {
         id: gaugePopup
 
         property Profile profile: chart.profile1
+        themeVars: profile.vars.themeVars[chartFocusScope.screen]
+
+        onClosed: {
+            root.popup = null;
+        }
+    }
+    GaugePopup {
+        id: gaugePopupP2
+
+        property Profile profile: chart.profile2
         themeVars: profile.vars.themeVars[chartFocusScope.screen]
 
         onClosed: {
@@ -191,10 +212,15 @@ Rectangle {
 
                     onClicked: mouse => {
                         let point = mapToGlobal(mouse.x, mouse.y);
-                        playAreaPopup.setPosition(point);
-                        playAreaPopup.profile = side.profile;
-                        playAreaPopup.open();
-                        root.popup = playAreaPopup;
+                        let popup;
+                        if (side.mirrored) {
+                            popup = playAreaPopupP2;
+                        } else {
+                            popup = playAreaPopup;
+                        }
+                        popup.setPosition(point);
+                        popup.open();
+                        root.popup = popup;
                     }
                 }
             }
@@ -256,10 +282,15 @@ Rectangle {
 
                         onClicked: mouse => {
                             let point = mapToGlobal(mouse.x, mouse.y);
-                            gaugePopup.setPosition(point);
-                            gaugePopup.profile = side.profile;
-                            gaugePopup.open();
-                            root.popup = gaugePopup;
+                            let popup;
+                            if (side.mirrored) {
+                                popup = gaugePopupP2;
+                            } else {
+                                popup = gaugePopup;
+                            }
+                            popup.setPosition(point);
+                            popup.open();
+                            root.popup = popup;
                         }
                     }
                 }
