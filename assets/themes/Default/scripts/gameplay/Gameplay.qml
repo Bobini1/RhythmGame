@@ -75,8 +75,9 @@ Rectangle {
     PlayAreaPopup {
         id: playAreaPopup
 
-        themeVars: root.mainProfileVars
-        globalVars: ProfileList.mainProfile.vars.globalVars
+        property Profile profile: chart.profile1
+        themeVars: profile.vars.themeVars[chartFocusScope.screen]
+        globalVars: profile.vars.globalVars
 
         onClosed: {
             root.popup = null;
@@ -85,7 +86,8 @@ Rectangle {
     GaugePopup {
         id: gaugePopup
 
-        themeVars: root.mainProfileVars
+        property Profile profile: chart.profile1
+        themeVars: profile.vars.themeVars[chartFocusScope.screen]
 
         onClosed: {
             root.popup = null;
@@ -144,7 +146,9 @@ Rectangle {
         Loader {
             id: p2SideLoader
             active: chart.profile2 !== null || root.isDp
+            anchors.fill: parent
             sourceComponent: Side {
+                id: side2
                 profile: root.isDp ? chart.profile1 : chart.profile2
                 score: root.isDp ? chart.score1 : chart.score2
                 notes: root.isDp ? chart.notes1 : chart.notes2
@@ -168,6 +172,7 @@ Rectangle {
             required property var columns
             property bool mirrored: false
             readonly property var profileVars: profile.vars.themeVars[chartFocusScope.screen]
+            transform: Scale{ xScale: side.mirrored ? -1 : 1; origin.x: side.width / 2 }
             PlayAreaTemplate {
                 id: playAreaTemplate
 
@@ -187,6 +192,7 @@ Rectangle {
                     onClicked: mouse => {
                         let point = mapToGlobal(mouse.x, mouse.y);
                         playAreaPopup.setPosition(point);
+                        playAreaPopup.profile = side.profile;
                         playAreaPopup.open();
                         root.popup = playAreaPopup;
                     }
@@ -201,6 +207,7 @@ Rectangle {
                 notes: columns.map(function (column) {
                     return side.notes.visibleNotes[column];
                 })
+                transform: Scale{ xScale: side.mirrored ? -1 : 1; origin.x: playArea.width / 2 }
                 x: side.profileVars["playAreaX" + side.varSuffix]
                 y: side.profileVars["playAreaY" + side.varSuffix]
                 z: side.profileVars.playAreaZ
@@ -211,6 +218,7 @@ Rectangle {
                 verticalGauge: side.profileVars.verticalGauge
                 gaugeImage: side.profileVars.gauge
                 score: side.score
+                transform: Scale{ xScale: side.mirrored ? -1 : 1; origin.x: lifeBar.width / 2 }
 
                 height: side.profileVars.lifeBarHeight
                 width: side.profileVars.lifeBarWidth
@@ -249,6 +257,7 @@ Rectangle {
                         onClicked: mouse => {
                             let point = mapToGlobal(mouse.x, mouse.y);
                             gaugePopup.setPosition(point);
+                            gaugePopup.profile = side.profile;
                             gaugePopup.open();
                             root.popup = gaugePopup;
                         }
@@ -264,6 +273,7 @@ Rectangle {
                 x: side.profileVars.judgementCountsX
                 y: side.profileVars.judgementCountsY
                 z: side.profileVars.judgementCountsZ
+                transform: Scale{ xScale: side.mirrored ? -1 : 1; origin.x: judgementCountsContainer.width / 2 }
 
                 onHeightChanged: {
                     side.profileVars.judgementCountsHeight = height;
