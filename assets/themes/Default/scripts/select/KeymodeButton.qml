@@ -5,7 +5,7 @@ Image {
     id: keymodeButton
 
     property int current: 1
-    property var options: ProfileList.battleActive ? [null, 7] : [null, 7, 14]
+    property var options: ProfileList.battleActive ? [7] : [null, 7, 14]
     onOptionsChanged: {
         mouseArea.setFilter();
     }
