@@ -102,21 +102,24 @@ Rectangle {
         BgaRenderer {
             id: bga
 
-            height: root.mainProfileVars.bgaSize
-            visible: ProfileList.mainProfile.vars.globalVars.bgaOn
-            width: root.mainProfileVars.bgaSize
-            x: root.mainProfileVars.bgaX
-            y: root.mainProfileVars.bgaY
-            z: root.mainProfileVars.bgaZ
+            readonly property Profile profile: chart.profile2 ? ProfileList.mainProfile : chart.profile1
+            readonly property var profileVars: profile.vars.themeVars[chartFocusScope.screen]
+
+            height: profileVars.bgaSize
+            visible: profile.vars.globalVars.bgaOn
+            width: profileVars.bgaSize
+            x: profileVars.bgaX
+            y: profileVars.bgaY
+            z: profileVars.bgaZ
 
             onHeightChanged: {
-                root.mainProfileVars.bgaSize = height;
+                profileVars.bgaSize = height;
             }
             onXChanged: {
-                root.mainProfileVars.bgaX = x;
+                profileVars.bgaX = x;
             }
             onYChanged: {
-                root.mainProfileVars.bgaY = y;
+                profileVars.bgaY = y;
             }
 
             TemplateDragBorder {
@@ -135,18 +138,40 @@ Rectangle {
             profile: chart.profile1
             score: chart.score1
             notes: chart.notes1
+            varSuffix: root.isDp ? "1" : ""
+            columns: profileVars.scratchOnRightSide ? [0, 1, 2, 3, 4, 5, 6, 7] : [7, 0, 1, 2, 3, 4, 5, 6]
+        }
+        Loader {
+            id: p2SideLoader
+            active: chart.profile2 !== null || root.isDp
+            sourceComponent: Side {
+                profile: chart.profile2
+                score: chart.score2
+                notes: chart.notes2
+                varSuffix: root.isDp ? "2" : ""
+                columns: {
+                    if (root.isDp) {
+                        return profileVars.scratchOnRightSide ? [8, 9, 10, 11, 12, 13, 14, 15] : [15, 8, 9, 10, 11, 12, 13, 14];
+                    } else {
+                        return profileVars.scratchOnRightSide ? [0, 1, 2, 3, 4, 5, 6, 7] : [7, 0, 1, 2, 3, 4, 5, 6];
+                    }
+                }
+            }
         }
         component Side : Item {
             id: side
             required property Profile profile
             required property BmsScore score
             required property BmsNotes notes
+            required property string varSuffix
+            required property var columns
             readonly property var profileVars: profile.vars.themeVars[chartFocusScope.screen]
             PlayAreaTemplate {
                 id: playAreaTemplate
 
                 columns: playArea.columns
                 vars: side.profileVars
+                varSuffix: side.varSuffix
                 visible: root.customizeMode
                 z: playArea.z + 1
 
@@ -168,15 +193,15 @@ Rectangle {
             PlayArea {
                 id: playArea
 
-                columns: side.profileVars.scratchOnRightSide ? [0, 1, 2, 3, 4, 5, 6, 7] : [7, 0, 1, 2, 3, 4, 5, 6]
-                profile: ProfileList.mainProfile
+                columns: side.columns
+                profile: side.profile
                 score: side.score
                 notes: columns.map(function (column) {
                     return side.notes.visibleNotes[column];
                 })
-                x: side.profileVars.playAreaX
-                y: side.profileVars.playAreaY
-                z: side.profileVars.playAreaZ
+                x: side.profileVars["playAreaX" + side.varSuffix]
+                y: side.profileVars["playAreaY" + side.varSuffix]
+                z: side.profileVars["playAreaZ" + side.varSuffix]
             }
             LifeBar {
                 id: lifeBar

@@ -9,6 +9,7 @@ Item {
     required property var columns
     readonly property real spacing: playAreaTemplate.vars.spacing
     required property var vars
+    required property string varSuffix
     readonly property list<real> columnSizes: root.getColumnSizes(vars)
 
     signal clicked(var mouse)
@@ -16,8 +17,8 @@ Item {
 
     height: playAreaTemplate.vars.playAreaHeight
     width: playAreaTemplate.columns.reduce((a, b) => a + playAreaTemplate.columnSizes[b], 0) + (playAreaTemplate.columns.length - 1) * playAreaTemplate.spacing
-    x: playAreaTemplate.vars.playAreaX
-    y: playAreaTemplate.vars.playAreaY
+    x: playAreaTemplate.vars["playAreaX" + playAreaTemplate.varSuffix]
+    y: playAreaTemplate.vars["playAreaY" + playAreaTemplate.varSuffix]
 
     onHeightChanged: {
         playAreaTemplate.vars.playAreaHeight = height;
@@ -35,10 +36,10 @@ Item {
         playAreaTemplate.vars.scratchWidth = newWidths[2];
     }
     onXChanged: {
-        playAreaTemplate.vars.playAreaX = x;
+        playAreaTemplate.vars["playAreaX" + playAreaTemplate.varSuffix] = x;
     }
     onYChanged: {
-        playAreaTemplate.vars.playAreaY = y;
+        playAreaTemplate.vars["playAreaY" + playAreaTemplate.varSuffix] = y;
     }
 
     TemplateDragBorder {
