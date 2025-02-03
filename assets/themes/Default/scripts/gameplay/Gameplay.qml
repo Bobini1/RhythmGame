@@ -145,10 +145,11 @@ Rectangle {
             id: p2SideLoader
             active: chart.profile2 !== null || root.isDp
             sourceComponent: Side {
-                profile: chart.profile2
-                score: chart.score2
-                notes: chart.notes2
+                profile: root.isDp ? chart.profile1 : chart.profile2
+                score: root.isDp ? chart.score1 : chart.score2
+                notes: root.isDp ? chart.notes1 : chart.notes2
                 varSuffix: root.isDp ? "2" : ""
+                mirrored: !root.isDp
                 columns: {
                     if (root.isDp) {
                         return profileVars.scratchOnRightSide ? [8, 9, 10, 11, 12, 13, 14, 15] : [15, 8, 9, 10, 11, 12, 13, 14];
@@ -165,6 +166,7 @@ Rectangle {
             required property BmsNotes notes
             required property string varSuffix
             required property var columns
+            property bool mirrored: false
             readonly property var profileVars: profile.vars.themeVars[chartFocusScope.screen]
             PlayAreaTemplate {
                 id: playAreaTemplate
@@ -201,7 +203,7 @@ Rectangle {
                 })
                 x: side.profileVars["playAreaX" + side.varSuffix]
                 y: side.profileVars["playAreaY" + side.varSuffix]
-                z: side.profileVars["playAreaZ" + side.varSuffix]
+                z: side.profileVars.playAreaZ
             }
             LifeBar {
                 id: lifeBar
