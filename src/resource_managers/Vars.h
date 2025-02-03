@@ -77,35 +77,49 @@ class GlobalVars final : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(int noteScreenTimeMillis READ getNoteScreenTimeMillis WRITE
-                 setNoteScreenTimeMillis NOTIFY noteScreenTimeMillisChanged)
+                 setNoteScreenTimeMillis NOTIFY noteScreenTimeMillisChanged
+                   RESET resetNoteScreenTimeMillis)
     Q_PROPERTY(bool laneCoverOn READ getLaneCoverOn WRITE setLaneCoverOn NOTIFY
-                 laneCoverOnChanged)
-    Q_PROPERTY(double laneCoverRatio READ getLaneCoverRatio WRITE
-                 setLaneCoverRatio NOTIFY laneCoverRatioChanged)
-    Q_PROPERTY(bool liftOn READ getLiftOn WRITE setLiftOn NOTIFY liftOnChanged)
-    Q_PROPERTY(double liftRatio READ getLiftRatio WRITE setLiftRatio NOTIFY
-                 liftRatioChanged)
+                 laneCoverOnChanged RESET resetLaneCoverOn)
     Q_PROPERTY(
-      bool hiddenOn READ getHiddenOn WRITE setHiddenOn NOTIFY hiddenOnChanged)
+      double laneCoverRatio READ getLaneCoverRatio WRITE setLaneCoverRatio
+        NOTIFY laneCoverRatioChanged RESET resetLaneCoverRatio)
+    Q_PROPERTY(bool liftOn READ getLiftOn WRITE setLiftOn NOTIFY liftOnChanged
+                 RESET resetLiftOn)
+    Q_PROPERTY(double liftRatio READ getLiftRatio WRITE setLiftRatio NOTIFY
+                 liftRatioChanged RESET resetLiftRatio)
+    Q_PROPERTY(bool hiddenOn READ getHiddenOn WRITE setHiddenOn NOTIFY
+                 hiddenOnChanged RESET resetHiddenOn)
     Q_PROPERTY(double hiddenRatio READ getHiddenRatio WRITE setHiddenRatio
-                 NOTIFY hiddenRatioChanged)
-    Q_PROPERTY(bool bgaOn READ getBgaOn WRITE setBgaOn NOTIFY bgaOnChanged)
+                 NOTIFY hiddenRatioChanged RESET resetHiddenRatio)
+    Q_PROPERTY(bool bgaOn READ getBgaOn WRITE setBgaOn NOTIFY bgaOnChanged RESET
+                 resetBgaOn)
     Q_PROPERTY(resource_managers::note_order_algorithm::NoteOrderAlgorithm
                  noteOrderAlgorithm READ getNoteOrderAlgorithm WRITE
-                   setNoteOrderAlgorithm NOTIFY noteOrderAlgorithmChanged)
+                   setNoteOrderAlgorithm NOTIFY noteOrderAlgorithmChanged RESET
+                     resetNoteOrderAlgorithm)
     Q_PROPERTY(resource_managers::note_order_algorithm::NoteOrderAlgorithm
                  noteOrderAlgorithmP2 READ getNoteOrderAlgorithmP2 WRITE
-                   setNoteOrderAlgorithmP2 NOTIFY noteOrderAlgorithmP2Changed)
-    Q_PROPERTY(resource_managers::hi_speed_fix::HiSpeedFix hiSpeedFix READ
-                 getHiSpeedFix WRITE setHiSpeedFix NOTIFY hiSpeedFixChanged)
-    Q_PROPERTY(resource_managers::dp_options::DpOptions dpOptions READ
-                 getDpOptions WRITE setDpOptions NOTIFY dpOptionsChanged)
+                   setNoteOrderAlgorithmP2 NOTIFY noteOrderAlgorithmP2Changed
+                     RESET resetNoteOrderAlgorithmP2)
+    Q_PROPERTY(
+      resource_managers::hi_speed_fix::HiSpeedFix hiSpeedFix READ getHiSpeedFix
+        WRITE setHiSpeedFix NOTIFY hiSpeedFixChanged RESET resetHiSpeedFix)
+    Q_PROPERTY(
+      resource_managers::dp_options::DpOptions dpOptions READ getDpOptions WRITE
+        setDpOptions NOTIFY dpOptionsChanged RESET resetDpOptions)
     Q_PROPERTY(QString gaugeType READ getGaugeType WRITE setGaugeType NOTIFY
-                 gaugeTypeChanged)
-    Q_PROPERTY(resource_managers::gauge_mode::GaugeMode gaugeMode READ
-                 getGaugeMode WRITE setGaugeMode NOTIFY gaugeModeChanged)
+                 gaugeTypeChanged RESET resetGaugeType)
+    Q_PROPERTY(
+      resource_managers::gauge_mode::GaugeMode gaugeMode READ getGaugeMode WRITE
+        setGaugeMode NOTIFY gaugeModeChanged RESET resetGaugeMode)
     Q_PROPERTY(QString bottomShiftableGauge READ getBottomShiftableGauge WRITE
-                 setBottomShiftableGauge NOTIFY bottomShiftableGaugeChanged)
+                 setBottomShiftableGauge NOTIFY bottomShiftableGaugeChanged
+                   RESET resetBottomShiftableGauge)
+    Q_PROPERTY(QString avatar READ getAvatar WRITE setAvatar NOTIFY
+                 avatarChanged RESET resetAvatar)
+    Q_PROPERTY(QString name READ getName WRITE setName NOTIFY nameChanged RESET
+                 resetName)
     // ^ remember to use full namespace for enums for reflection
     int noteScreenTimeMillis = 1000;
     bool laneCoverOn = false;
@@ -119,41 +133,67 @@ class GlobalVars final : public QObject
     NoteOrderAlgorithm noteOrderAlgorithmP2 = NoteOrderAlgorithm::Normal;
     HiSpeedFix hiSpeedFix = HiSpeedFix::Main;
     DpOptions dpOptions = DpOptions::Off;
-    QString gaugeType = "HAZARD";
+    QString gaugeType = "FC";
     GaugeMode gaugeMode = GaugeMode::SelectToUnder;
     QString bottomShiftableGauge = "AEASY";
+    QString avatar = "mascot.png";
+    QString name = "Default";
+
+    QString avatarPath;
 
   public:
+    explicit GlobalVars(QString avatarPath, QObject* parent = nullptr);
     auto getNoteScreenTimeMillis() const -> int;
     void setNoteScreenTimeMillis(int value);
+    void resetNoteScreenTimeMillis();
     auto getLaneCoverOn() const -> bool;
     void setLaneCoverOn(bool value);
+    void resetLaneCoverOn();
     auto getLaneCoverRatio() const -> double;
     void setLaneCoverRatio(double value);
+    void resetLaneCoverRatio();
     auto getLiftOn() const -> bool;
     void setLiftOn(bool value);
+    void resetLiftOn();
     auto getLiftRatio() const -> double;
     void setLiftRatio(double value);
+    void resetLiftRatio();
     auto getHiddenOn() const -> bool;
     void setHiddenOn(bool value);
+    void resetHiddenOn();
     auto getHiddenRatio() const -> double;
     void setHiddenRatio(double value);
+    void resetHiddenRatio();
     auto getBgaOn() const -> bool;
     void setBgaOn(bool value);
+    void resetBgaOn();
     auto getNoteOrderAlgorithm() const -> NoteOrderAlgorithm;
     void setNoteOrderAlgorithm(NoteOrderAlgorithm value);
+    void resetNoteOrderAlgorithm();
     auto getNoteOrderAlgorithmP2() const -> NoteOrderAlgorithm;
     void setNoteOrderAlgorithmP2(NoteOrderAlgorithm value);
+    void resetNoteOrderAlgorithmP2();
     auto getHiSpeedFix() const -> HiSpeedFix;
     void setHiSpeedFix(HiSpeedFix value);
+    void resetHiSpeedFix();
     auto getDpOptions() const -> DpOptions;
     void setDpOptions(DpOptions value);
+    void resetDpOptions();
     auto getGaugeType() const -> QString;
     void setGaugeType(QString value);
+    void resetGaugeType();
     auto getGaugeMode() const -> GaugeMode;
     void setGaugeMode(GaugeMode value);
+    void resetGaugeMode();
     auto getBottomShiftableGauge() const -> QString;
     void setBottomShiftableGauge(QString value);
+    void resetBottomShiftableGauge();
+    auto getAvatar() const -> QString;
+    void setAvatar(QString value);
+    void resetAvatar();
+    auto getName() const -> QString;
+    void setName(QString value);
+    void resetName();
 
   signals:
     void noteScreenTimeMillisChanged();
@@ -171,6 +211,8 @@ class GlobalVars final : public QObject
     void gaugeTypeChanged();
     void gaugeModeChanged();
     void bottomShiftableGaugeChanged();
+    void avatarChanged();
+    void nameChanged();
 };
 
 class Vars final : public QObject
@@ -180,7 +222,7 @@ class Vars final : public QObject
       GlobalVars* globalVars READ getGlobalVars NOTIFY globalVarsChanged)
     Q_PROPERTY(
       QQmlPropertyMap* themeVars READ getThemeVars NOTIFY themeVarsChanged)
-    GlobalVars globalVars{};
+    GlobalVars globalVars;
     QQmlPropertyMap themeVars;
     const Profile* profile;
     QMap<QString, qml_components::ThemeFamily> availableThemeFamilies;
@@ -198,6 +240,7 @@ class Vars final : public QObject
     explicit Vars(
       const Profile* profile,
       QMap<QString, qml_components::ThemeFamily> availableThemeFamilies,
+      QString avatarPath,
       QObject* parent = nullptr);
     auto getGlobalVars() -> GlobalVars*;
     auto getThemeVars() -> QQmlPropertyMap*;

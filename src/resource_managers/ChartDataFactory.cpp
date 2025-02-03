@@ -10,6 +10,9 @@
 #include <boost/locale/encoding.hpp>
 #include "support/UtfStringToPath.h"
 #include "support/PathToQString.h"
+#include <llfio.hpp>
+
+namespace llfio = LLFIO_V2_NAMESPACE;
 
 namespace resource_managers {
 auto

@@ -35,12 +35,12 @@ class Profile final : public QObject
      * If the profile doesn't exist, it will be created.
      * @param dbPath Path to the database file. Doesn't have to exist.
      * @param themeFamilies The available theme families.
-     * @param inputTranslator The input translator instance to use.
      * @param parent QObject parent.
      */
     explicit Profile(
       const std::filesystem::path& dbPath,
       const QMap<QString, qml_components::ThemeFamily>& themeFamilies,
+      QString avatarPath,
       QObject* parent = nullptr);
 
     auto getPath() const -> std::filesystem::path;

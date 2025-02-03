@@ -9,15 +9,21 @@
 #include "support/QStringToPath.h"
 #include "magic_enum/magic_enum.hpp"
 #include "qdir.h"
-#include "resource_managers/InputTranslators.h"
 
 #include <spdlog/spdlog.h>
 
 namespace qml_components {
 auto
-ChartLoader::loadChart(QString filename, QList<int64_t> randomSequence)
+ChartLoader::loadChart(const QString& filename,
+      resource_managers::Profile* player1,
+      resource_managers::Profile* player2,
+      QList<int64_t> randomSequence)
   -> gameplay_logic::Chart*
 {
+    if (!player1 && !player2) {
+        spdlog::error("Player 1 and Player 2 are both null");
+        return nullptr;
+    }
     try {
         auto randomGenerator =
           [randomSequence = std::move(randomSequence),
@@ -37,6 +43,10 @@ ChartLoader::loadChart(QString filename, QList<int64_t> randomSequence)
         auto fileAbsolute = QFileInfo(filename).absoluteFilePath();
         auto chartComponents = chartDataFactory->loadChartData(
           support::qStringToPath(fileAbsolute), randomGenerator);
+        if (isDp(chartComponents.chartData->getKeymode()) && player1 && player2) {
+            spdlog::error("Can't launch DP for two players");
+            return nullptr;
+        }
         const auto rankInt = chartComponents.chartData->getRank();
         const auto rank =
           magic_enum::enum_cast<gameplay_logic::rules::BmsRank>(rankInt)
@@ -50,37 +60,44 @@ ChartLoader::loadChart(QString filename, QList<int64_t> randomSequence)
             const std::chrono::nanoseconds offset) {
               return hitValueFactory(timingWindows, offset);
           };
-        for (auto* profile : profileList->getActiveProfiles()) {
-            gauges.push_back(
-              gaugeFactory(profile,
-                           timingWindows,
-                           chartComponents.chartData->getTotal(),
-                           chartComponents.chartData->getNormalNoteCount()));
-            hitRules.push_back(
-              hitRulesFactory(timingWindows, hitValuesFactoryPartial));
-        }
+        auto maxHitValue =
+          hitValueFactory(timingWindows, std::chrono::nanoseconds{ 0 });
+        auto getPlayerData = [&](resource_managers::Profile* profile)
+          -> std::optional<
+            resource_managers::ChartFactory::PlayerSpecificData> {
+            if (profile) {
+                return resource_managers::ChartFactory::PlayerSpecificData{
+                    profile,
+                    gaugeFactory(
+                      profile,
+                      timingWindows,
+                      chartComponents.chartData->getTotal(),
+                      chartComponents.chartData->getNormalNoteCount()),
+                    hitRulesFactory(timingWindows, hitValuesFactoryPartial)
+                };
+            }
+            return std::nullopt;
+        };
+        auto player1data = getPlayerData(player1);
+        auto player2data = getPlayerData(player2);
 
-        return chartFactory->createChart(
-          std::move(chartComponents),
-          std::move(hitRules),
-          std::move(gauges),
-          profileList->getActiveProfiles(),
-          inputTranslators->getInputTranslators(),
-          maxHitValue);
+        return chartFactory->createChart(std::move(chartComponents),
+                                         std::move(player1data),
+                                         std::move(player2data),
+                                         maxHitValue);
     } catch (const std::exception& e) {
         spdlog::error("Failed to load chart: {}", e.what());
         return nullptr;
     }
 }
 ChartLoader::ChartLoader(ProfileList* profileList,
-                         resource_managers::InputTranslators* inputTranslators,
+                         input::InputTranslator* inputTranslator,
                          resource_managers::ChartDataFactory* chartDataFactory,
                          TimingWindowsFactory timingWindowsFactory,
                          HitRulesFactory hitRulesFactory,
                          HitValueFactory hitValueFactory,
                          GaugeFactory gaugeFactory,
                          resource_managers::ChartFactory* chartFactory,
-                         double maxHitValue,
                          QObject* parent)
   : QObject(parent)
   , chartDataFactory(chartDataFactory)
@@ -89,9 +106,8 @@ ChartLoader::ChartLoader(ProfileList* profileList,
   , hitValueFactory(std::move(hitValueFactory))
   , gaugeFactory(std::move(gaugeFactory))
   , chartFactory(chartFactory)
-  , maxHitValue(maxHitValue)
   , profileList(profileList)
-  , inputTranslators(inputTranslators)
+  , inputTranslator(inputTranslator)
 
 {
 }

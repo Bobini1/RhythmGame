@@ -10,32 +10,31 @@
 
 namespace gameplay_logic {
 
-Chart::
-Chart(QFuture<std::vector<BmsGameReferee>> refereesFuture,
-      QFuture<std::unique_ptr<qml_components::BgaContainer>> bgaFuture,
-      ChartData* chartData,
-      QList<BmsNotes*> notes,
-      QList<BmsScore*> scores,
-      QList<resource_managers::Profile*> profiles,
-      QObject* parent)
+Chart::Chart(QFuture<std::vector<BmsGameReferee>> refereesFuture,
+             QFuture<std::unique_ptr<qml_components::BgaContainer>> bgaFuture,
+             ChartData* chartData,
+             std::optional<PlayerSpecificComponents> player1,
+             std::optional<PlayerSpecificComponents> player2,
+             QObject* parent)
   : QObject(parent)
-  , bpmChanges(notes[0]->getBpmChanges())
+  , bpmChanges((player1 ? player1 : player2)->notes->getBpmChanges())
   , chartData(chartData)
-  , notes(std::move(notes))
-  , scores(std::move(scores))
   , refereesFuture(std::move(refereesFuture))
   , bgaFuture(std::move(bgaFuture))
+  , player1(std::move(player1))
+  , player2(std::move(player2))
 {
-    for (auto* profile : profiles) {
-        this->profiles.append(profile);
+    if (this->player1.has_value()) {
+        this->player1->playerData.notes->setParent(this);
+        this->player1->playerData.score->setParent(this);
+        players.push_back(&this->player1.value());
+    }
+    if (this->player2.has_value()) {
+        this->player2->playerData.notes->setParent(this);
+        this->player2->playerData.score->setParent(this);
+        players.push_back(&this->player2.value());
     }
     chartData->setParent(this);
-    for (auto* note : this->notes) {
-        note->setParent(this);
-    }
-    for (auto* score : this->scores) {
-        score->setParent(this);
-    }
     connect(&refereesFutureWatcher,
             &QFutureWatcher<BmsGameReferee>::finished,
             this,
@@ -59,7 +58,7 @@ Chart(QFuture<std::vector<BmsGameReferee>> refereesFuture,
 void
 Chart::start()
 {
-    if (gameReferees.empty()) {
+    if (refereesFuture.isRunning() || bgaFuture.isRunning()) {
         startRequested = true;
         return;
     }
@@ -78,8 +77,8 @@ Chart::updateElapsed()
     offset -= std::chrono::duration_cast<decltype(offset)>(
       std::chrono::nanoseconds(timeBeforeChartStart));
     setElapsed(std::chrono::nanoseconds(offset).count());
-    for (auto& referee : gameReferees) {
-        setPosition(referee.update(offset));
+    for (auto* player : players) {
+        setPosition(player->referee->update(offset));
     }
     bga->update(offset);
     if (chartData->getLength() + timeAfterChartEnd <= elapsed) {
@@ -95,31 +94,51 @@ Chart::getElapsed() const -> int64_t
 }
 
 void
-Chart::passKey(int playerIndex,
-               input::BmsKey key,
-               const EventType eventType,
-               const int64_t time)
+Chart::passKey(input::BmsKey key, const EventType eventType, const int64_t time)
 {
-    auto offset =
+    if (key == input::BmsKey::Start1 || key == input::BmsKey::Select1 ||
+        key == input::BmsKey::Start2 || key == input::BmsKey::Select2) {
+        return;
+    }
+    const auto index = playerIndexFromKey(key);
+    // key pressed for a player side that is not present
+    if (!isDp(chartData->getKeymode()) && !(index == 0 ? player1 : player2)) {
+        return;
+    }
+    const auto offset =
       std::chrono::milliseconds{ time } - startTimepoint.time_since_epoch();
-    if (gameReferees.empty()) {
+    auto& player = isDp(chartData->getKeymode())
+                     ? *players[0]
+                     : (index == 0 ? *player1 : *player2);
+    key = isDp(chartData->getKeymode()) ? key : convertToP1Key(key);
+    if (!isDp(chartData->getKeymode())) {
+        key = convertToP1Key(key);
+    }
+    if (!player.referee) {
         if (eventType == EventType::KeyPress) {
-            scores[playerIndex]->sendVisualOnlyTap({ static_cast<int>(key),
-                                                     std::nullopt,
-                                                     offset.count(),
-                                                     std::nullopt });
+            if (index == 0 && player1 || index == 1 && player2 ||
+                isDp(chartData->getKeymode())) {
+                player.playerData.score->sendVisualOnlyTap(
+                  { static_cast<int>(key),
+                    std::nullopt,
+                    offset.count(),
+                    std::nullopt });
+            }
         } else {
-            scores[playerIndex]->sendVisualOnlyRelease({ static_cast<int>(key),
-                                                         std::nullopt,
-                                                         offset.count(),
-                                                         std::nullopt });
+            if (index == 0 && player1 || index == 1 && player2) {
+                player.playerData.score->sendVisualOnlyRelease(
+                  { static_cast<int>(key),
+                    std::nullopt,
+                    offset.count(),
+                    std::nullopt });
+            }
         }
     } else {
         if (eventType == EventType::KeyPress) {
-            gameReferees[playerIndex].passPressed(
+            player.referee->passPressed(
               offset - std::chrono::nanoseconds(timeBeforeChartStart), key);
         } else {
-            gameReferees[playerIndex].passReleased(
+            player.referee->passReleased(
               offset - std::chrono::nanoseconds(timeBeforeChartStart), key);
         }
     }
@@ -132,14 +151,36 @@ Chart::getChartData() const -> ChartData*
 }
 
 auto
-Chart::getNotes() const -> const QList<BmsNotes*>&
+Chart::getNotes1() const -> BmsNotes*
 {
-    return notes;
+    if (!player1) {
+        return nullptr;
+    }
+    return player1->playerData.notes;
 }
 auto
-Chart::getScores() const -> const QList<BmsScore*>&
+Chart::getNotes2() const -> BmsNotes*
 {
-    return scores;
+    if (!player2.has_value()) {
+        return nullptr;
+    }
+    return player2->playerData.notes;
+}
+auto
+Chart::getScore1() const -> BmsScore*
+{
+    if (!player1) {
+        return nullptr;
+    }
+    return player1->playerData.score;
+}
+auto
+Chart::getScore2() const -> BmsScore*
+{
+    if (!player2.has_value()) {
+        return nullptr;
+    }
+    return player2->playerData.score;
 }
 void
 Chart::updateBpm()
@@ -157,14 +198,20 @@ Chart::updateBpm()
     bpmChanges = std::span(bpmChange, bpmChanges.end());
 }
 auto
-Chart::getProfiles() const -> QList<resource_managers::Profile*>
+Chart::getProfile1() const -> resource_managers::Profile*
 {
-    auto result = QList<resource_managers::Profile*>{};
-    result.reserve(profiles.size());
-    std::ranges::transform(profiles, std::back_inserter(result), [](auto& ptr) {
-        return ptr.data();
-    });
-    return result;
+    if (!player1) {
+        return nullptr;
+    }
+    return player1->playerData.profile;
+}
+auto
+Chart::getProfile2() const -> resource_managers::Profile*
+{
+    if (!player2.has_value()) {
+        return nullptr;
+    }
+    return player2->playerData.profile;
 }
 auto
 Chart::getPosition() const -> double
@@ -177,7 +224,13 @@ Chart::setup()
     if (++numberOfSetupCalls < 2) {
         return;
     }
-    gameReferees = refereesFuture.takeResult();
+    auto gameReferees = refereesFuture.takeResult();
+    if (player1) {
+        player1->referee = std::move(gameReferees[0]);
+    }
+    if (player2) {
+        player2->referee = std::move(gameReferees[(player1 ? 1 : 0)]);
+    }
     bga = bgaFuture.takeResult().release();
     bga->setParent(this);
     emit loaded();
@@ -190,7 +243,7 @@ Chart::finish() -> QList<BmsScoreAftermath*>
 {
     startRequested = false;
     propertyUpdateTimer.stop();
-    if (gameReferees.empty()) {
+    if (!(player1 && player1->referee) && !(player2 && player2->referee)) {
         return {};
     }
     // if we didn't get bga yet, cancel
@@ -201,19 +254,27 @@ Chart::finish() -> QList<BmsScoreAftermath*>
 
     const auto chartLength = chartData->getLength();
     if (elapsed < chartLength) {
-        for (auto& referee : gameReferees) {
-            referee.update(std::chrono::nanoseconds(chartLength),
-                           /*lastUpdate=*/true);
+        if (player1) {
+            player1->referee->update(std::chrono::nanoseconds(chartLength),
+                                     /*lastUpdate=*/true);
         }
     }
     auto ret = QList<BmsScoreAftermath*>{};
     auto i = -1;
-    for (const auto* score : scores) {
+    auto players = std::vector<PlayerSpecificComponents*>{};
+    if (player1) {
+        players.push_back(&player1->playerData);
+    }
+    if (player2) {
+        players.push_back(&player2->playerData);
+    }
+    for (const auto& player : players) {
+        const auto* score = player->score;
         i++;
         auto result = score->getResult();
         auto replayData = score->getReplayData();
         auto gaugeHistory = score->getGaugeHistory();
-        if (auto* profilePtr = profiles[i].get()) {
+        if (auto* profilePtr = player->profile.get()) {
             try {
                 const auto scoreId = result->save(profilePtr->getDb());
                 result->setId(scoreId);
@@ -225,7 +286,7 @@ Chart::finish() -> QList<BmsScoreAftermath*>
         } else {
             spdlog::warn("Profile was deleted before saving score");
         }
-        ret.append(new BmsScoreAftermath{ profiles[i].get(),
+        ret.append(new BmsScoreAftermath{ player->profile.get(),
                                           std::move(result),
                                           std::move(replayData),
                                           std::move(gaugeHistory) });
@@ -259,7 +320,11 @@ Chart::setTimeBeforeChartStart(int64_t timeBeforeChartStart)
     this->timeBeforeChartStart = timeBeforeChartStart;
     auto beatsBeforeChartStart =
       std::chrono::duration<double>(timeBeforeChartStart).count() *
-      notes[0]->getBpmChanges().first().bpm / 60;
+      (player1 ? player1 : player2)
+        ->playerData.notes->getBpmChanges()
+        .first()
+        .bpm /
+      60;
     setElapsed(-timeBeforeChartStart);
     setPosition(-beatsBeforeChartStart);
 }

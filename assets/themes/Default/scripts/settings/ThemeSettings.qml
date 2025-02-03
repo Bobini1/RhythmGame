@@ -52,7 +52,9 @@ RowLayout {
 
                         palette {
                             window: "white"
-                            light: palette.button
+                            Component.onCompleted: {
+                                light = palette.button
+                            }
                         }
 
                         property bool loaded: false

@@ -13,17 +13,6 @@
 #include <spdlog/spdlog.h>
 #include <QUuid>
 
-auto
-qml_components::ProfileList::createDefaultProfile()
-  -> resource_managers::Profile*
-{
-    auto* profile = new resource_managers::Profile(
-      this->profilesFolder / "default" / "profile.sqlite", themeFamilies, this);
-    QQmlEngine::setObjectOwnership(profile, QQmlEngine::CppOwnership);
-    profiles.append(profile);
-    return profile;
-}
-
 void
 qml_components::ProfileList::saveMainProfile()
 {
@@ -38,16 +27,22 @@ qml_components::ProfileList::saveMainProfile()
 void
 qml_components::ProfileList::saveActiveProfiles()
 {
+    if (!battleProfiles.player1Profile || !battleProfiles.player2Profile) {
+        setBattleActive(/*active=*/false);
+    }
     auto statement =
       songDb->createStatement("INSERT OR REPLACE INTO properties(key, value) "
                               "VALUES('active_profiles', :value)");
     auto activeProfilesString = std::string{};
-    for (const auto* profile : activeProfiles) {
-        const auto relativePath = relative(profile->getPath(), profilesFolder);
-        activeProfilesString += support::pathToUtfString(relativePath);
-        activeProfilesString += ':';
+    if (battleProfiles.player1Profile != nullptr) {
+        activeProfilesString += support::pathToUtfString(
+          relative(battleProfiles.player1Profile->getPath(), profilesFolder));
     }
-    activeProfilesString.pop_back();
+    activeProfilesString += ":";
+    if (battleProfiles.player2Profile != nullptr) {
+        activeProfilesString += support::pathToUtfString(
+          relative(battleProfiles.player2Profile->getPath(), profilesFolder));
+    }
     statement.bind(":value", activeProfilesString);
     statement.execute();
 }
@@ -56,11 +51,13 @@ qml_components::ProfileList::ProfileList(
   db::SqliteCppDb* songDb,
   const QMap<QString, ThemeFamily>& themeFamilies,
   std::filesystem::path profilesFolder,
+  QString avatarPath,
   QObject* parent)
-  : QAbstractListModel(parent)
+  : QObject(parent)
   , profilesFolder(std::move(profilesFolder))
   , songDb(songDb)
   , themeFamilies(themeFamilies)
+  , avatarPath(std::move(avatarPath))
 {
     if (!exists(this->profilesFolder)) {
         create_directory(this->profilesFolder);
@@ -73,7 +70,7 @@ qml_components::ProfileList::ProfileList(
         if (entry.is_directory()) {
             try {
                 auto* profile = new resource_managers::Profile(
-                  entry.path() / "profile.sqlite", themeFamilies, this);
+                  entry.path() / "profile.sqlite", themeFamilies, this->avatarPath, this);
                 QQmlEngine::setObjectOwnership(profile,
                                                QQmlEngine::CppOwnership);
                 profiles.append(profile);
@@ -86,7 +83,7 @@ qml_components::ProfileList::ProfileList(
     }
     if (profiles.empty()) {
         spdlog::info("No profiles found, creating default profile");
-        createDefaultProfile();
+        createProfile();
     }
 
     const auto dbActiveProfiles =
@@ -94,19 +91,29 @@ qml_components::ProfileList::ProfileList(
         ->createStatement(
           "SELECT value FROM properties WHERE key = 'active_profiles'")
         .executeAndGet<std::string>()
-        .value_or("");
-    auto dbActiveProfilesVec = std::vector<std::filesystem::path>{};
-    for (auto it = begin(dbActiveProfiles); it != end(dbActiveProfiles);) {
-        auto end = std::find(it, cend(dbActiveProfiles), ':');
-        for (auto* profile : profiles) {
-            if (profile->getPath() ==
-                this->profilesFolder /
-                  support::utfStringToPath(std::string(it, end))) {
-                previousSessionProfiles.push_back(profile);
-                break;
+        .value_or(":");
+    if (std::ranges::find(dbActiveProfiles, ':') != dbActiveProfiles.end()) {
+        if (const auto firstProfile =
+              dbActiveProfiles.substr(0, dbActiveProfiles.find(':'));
+            !firstProfile.empty()) {
+            for (auto* profile : profiles) {
+                if (profile->getPath() == this->profilesFolder / firstProfile) {
+                    battleProfiles.setPlayer1Profile(profile);
+                    break;
+                }
             }
         }
-        it = end;
+        if (const auto secondProfile =
+              dbActiveProfiles.substr(dbActiveProfiles.find(':') + 1);
+            !secondProfile.empty()) {
+            for (auto* profile : profiles) {
+                if (profile->getPath() ==
+                    this->profilesFolder / secondProfile) {
+                    battleProfiles.setPlayer2Profile(profile);
+                    break;
+                }
+            }
+        }
     }
 
     const auto dbCurrentProfile =
@@ -116,35 +123,29 @@ qml_components::ProfileList::ProfileList(
         .executeAndGet<std::string>();
     if (!dbCurrentProfile.has_value()) {
         setMainProfile({ profiles[0] });
-        return;
-    }
-    const auto profilePath = support::utfStringToPath(dbCurrentProfile.value());
-    const auto absoluteProfilePath = this->profilesFolder / profilePath;
-    for (auto* profile : profiles) {
-        if (profile->getPath() == absoluteProfilePath) {
-            setMainProfile({ profile });
-            break;
+    } else {
+        const auto profilePath =
+          support::utfStringToPath(dbCurrentProfile.value());
+        const auto absoluteProfilePath = this->profilesFolder / profilePath;
+        for (auto* profile : profiles) {
+            if (profile->getPath() == absoluteProfilePath) {
+                setMainProfile({ profile });
+                break;
+            }
+        }
+        if (mainProfile == nullptr) {
+            setMainProfile({ profiles[0] });
         }
     }
-    if (mainProfile == nullptr) {
-        setMainProfile({ profiles[0] });
-    }
-    saveMainProfile();
-    saveActiveProfiles();
-}
-auto
-qml_components::ProfileList::rowCount(const QModelIndex& parent) const -> int
-{
-    return profiles.size();
-}
-auto
-qml_components::ProfileList::data(const QModelIndex& index, int role) const
-  -> QVariant
-{
-    if (role == Qt::DisplayRole) {
-        return QVariant::fromValue(profiles.at(index.row()));
-    }
-    return {};
+
+    connect(&battleProfiles,
+            &BattleProfiles::player1ProfileChanged,
+            this,
+            &ProfileList::saveActiveProfiles);
+    connect(&battleProfiles,
+            &BattleProfiles::player2ProfileChanged,
+            this,
+            &ProfileList::saveActiveProfiles);
 }
 auto
 qml_components::ProfileList::createProfile() -> resource_managers::Profile*
@@ -154,11 +155,11 @@ qml_components::ProfileList::createProfile() -> resource_managers::Profile*
           profilesFolder / QUuid::createUuid().toString().toStdString() /
             "profile.sqlite",
           themeFamilies,
+          avatarPath,
           this);
         QQmlEngine::setObjectOwnership(profile, QQmlEngine::CppOwnership);
         profiles.append(profile);
-        emit dataChanged(index(profiles.size() - 1),
-                         index(profiles.size() - 1));
+        emit profilesChanged();
         return profile;
     } catch (const std::exception& e) {
         spdlog::error("Failed to create profile: {}", e.what());
@@ -174,22 +175,28 @@ qml_components::ProfileList::removeProfile(resource_managers::Profile* profile)
     }
     profile->deleteLater();
     // We should delete the profile after the profile object (with a db
-    // connection) is destroyed
+    // connection) is destroyed.
     connect(profile,
             &resource_managers::Profile::destroyed,
-            nullptr,
-            [path = profile->getPath().parent_path()]() { remove_all(path); });
-    if (activeProfiles.removeAll(profile) > 0) {
-        saveActiveProfiles();
-        emit activeProfilesChanged();
-    }
-    if (previousSessionProfiles.removeAll(profile) > 0) {
-        emit previousSessionProfilesChanged();
-    }
+            this,
+            [path = profile->getPath().parent_path(), this] {
+                remove_all(path);
+            });
     const auto index = profiles.indexOf(profile);
-    beginRemoveRows(QModelIndex(), index, index);
     profiles.remove(index);
-    endRemoveRows();
+    emit profilesChanged();
+    if (profiles.empty()) {
+        createProfile();
+    }
+    if (mainProfile == profile) {
+        setMainProfile(profiles[0]);
+    }
+    if (battleProfiles.player1Profile == profile) {
+        battleProfiles.setPlayer1Profile(nullptr);
+    }
+    if (battleProfiles.player2Profile == profile) {
+        battleProfiles.setPlayer2Profile(nullptr);
+    }
 }
 void
 qml_components::ProfileList::setMainProfile(resource_managers::Profile* profile)
@@ -204,17 +211,71 @@ qml_components::ProfileList::setMainProfile(resource_managers::Profile* profile)
     }
     mainProfile = profile;
     saveMainProfile();
-    if (!activeProfiles.contains(profile)) {
-        activeProfiles.push_front(profile);
-        saveActiveProfiles();
-        emit activeProfilesChanged();
-    }
+    emit mainProfileChanged();
 }
 auto
 qml_components::ProfileList::getMainProfile() const
   -> resource_managers::Profile*
 {
     return mainProfile;
+}
+auto
+qml_components::ProfileList::getBattleProfiles() -> BattleProfiles*
+{
+    return &battleProfiles;
+}
+auto
+qml_components::ProfileList::getBattleActive() const -> bool
+{
+    return battleActive;
+}
+void
+qml_components::ProfileList::setBattleActive(bool active)
+{
+    if (active == battleActive) {
+        return;
+    }
+    if (active &&
+        !(battleProfiles.player1Profile && battleProfiles.player2Profile)) {
+        spdlog::warn("Can't start battle mode before setting battle profiles");
+        return;
+    }
+    battleActive = active;
+    emit battleActiveChanged();
+}
+
+void
+qml_components::BattleProfiles::setPlayer1Profile(
+  resource_managers::Profile* profile)
+{
+    if (profile == player1Profile || profile == player2Profile && profile) {
+        return;
+    }
+    player1Profile = profile;
+    emit player1ProfileChanged();
+}
+auto
+qml_components::BattleProfiles::getPlayer1Profile() const
+  -> resource_managers::Profile*
+{
+    return player1Profile;
+}
+void
+qml_components::BattleProfiles::setPlayer2Profile(
+  resource_managers::Profile* profile)
+{
+    if (profile == player2Profile || profile == player1Profile && profile) {
+        return;
+    }
+    player2Profile = profile;
+    emit player2ProfileChanged();
+}
+
+auto
+qml_components::BattleProfiles::getPlayer2Profile() const
+  -> resource_managers::Profile*
+{
+    return player2Profile;
 }
 
 auto
@@ -223,49 +284,10 @@ qml_components::ProfileList::getProfiles()
 {
     return profiles;
 }
-auto
-qml_components::ProfileList::getActiveProfiles()
-  -> QList<resource_managers::Profile*>
-{
-    return activeProfiles;
-}
-auto
-qml_components::ProfileList::getPreviousSessionProfiles()
-  -> QList<resource_managers::Profile*>
-{
-    return previousSessionProfiles;
-}
-void
-qml_components::ProfileList::setActiveProfiles(
-  QList<resource_managers::Profile*> newActiveProfiles)
-{
-    // contains duplicates or nulls
-    if (std::ranges::unique(newActiveProfiles).size() !=
-        newActiveProfiles.size()) {
-        spdlog::warn("ProfileList::setActiveProfiles: Contains duplicates");
-        return;
-    }
-    if (newActiveProfiles.contains(nullptr)) {
-        spdlog::warn("ProfileList::setActiveProfiles: Contains nulls");
-        return;
-    }
-    if (newActiveProfiles.empty()) {
-        spdlog::warn("Can't deactivate all profiles");
-        return;
-    }
-    if (newActiveProfiles == activeProfiles) {
-        return;
-    }
-    activeProfiles = std::move(newActiveProfiles);
-    if (!activeProfiles.contains(mainProfile)) {
-        setMainProfile(activeProfiles[0]);
-    }
-    saveActiveProfiles();
-    emit activeProfilesChanged();
-}
 
 auto
-qml_components::ProfileList::at(int index) const -> resource_managers::Profile*
+qml_components::ProfileList::at(const int index) const
+  -> resource_managers::Profile*
 {
     return profiles.at(index);
 }

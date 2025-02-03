@@ -24,6 +24,7 @@ class ScoreDb : public QObject
     Q_INVOKABLE gameplay_logic::BmsGaugeHistory* getGaugeHistory(
       int64_t scoreId);
     Q_INVOKABLE gameplay_logic::BmsReplayData* getReplayData(int64_t scoreId);
+    Q_INVOKABLE int getTotalScoreCount();
 };
 } // namespace qml_components
 

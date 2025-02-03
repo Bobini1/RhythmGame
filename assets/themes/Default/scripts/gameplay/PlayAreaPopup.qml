@@ -9,6 +9,7 @@ GameplayPopup {
 
     required property var globalVars
     required property var themeVars
+    property bool dp: false
     
     model: ObjectModel {
         NumberWithSlider {
@@ -51,10 +52,13 @@ GameplayPopup {
             description: "Judge Line Color"
             prop: "judgeLineColor"
         }
-        BooleanOption {
-            src: popup.themeVars
-            description: "Flip Scratch Lane"
-            prop: "scratchOnRightSide"
+        Loader {
+            active: !popup.dp
+            sourceComponent: BooleanOption {
+                src: popup.themeVars
+                description: "Flip Scratch Lane"
+                prop: "scratchOnRightSide"
+            }
         }
         BooleanOption {
             src: popup.themeVars

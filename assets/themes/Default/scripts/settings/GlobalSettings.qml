@@ -93,6 +93,75 @@ Item {
                     }
                 }
                 Separator {}
+                GlobalSettingsProperty {
+                    text: "Note Order Algorithm"
+                    props: {"id": "noteOrderAlgorithm", "default": 0, "choices": ["Normal", "Mirror", "Random", "S-Random", "R-Random", "Random+", "S-Random+"]}
+                    sourceComponent: Component {
+                        Choice {
+                            assignIndex: true
+                        }
+                    }
+                }
+                Separator {}
+                GlobalSettingsProperty {
+                    text: "Note Order Algorithm P2"
+                    props: {"id": "noteOrderAlgorithmP2", "default": 0, "choices": ["Normal", "Mirror", "Random", "S-Random", "R-Random", "Random+", "S-Random+"]}
+                    sourceComponent: Component {
+                        Choice {
+                            assignIndex: true
+                        }
+                    }
+                }
+                Separator {}
+                GlobalSettingsProperty {
+                    text: "Hi Speed Fix"
+                    props: {"id": "hiSpeedFix", "default": 1, "choices": ["Off", "Main", "Start", "Min", "Max"]}
+                    sourceComponent: Component {
+                        Choice {
+                            assignIndex: true
+                        }
+                    }
+                }
+                Separator {}
+                GlobalSettingsProperty {
+                    text: "DP Options"
+                    props: {"id": "dpOptions", "default": 0, "choices": ["Off", "Flip", "Battle", "BattleAs"]}
+                    sourceComponent: Component {
+                        Choice {
+                            assignIndex: true
+                        }
+                    }
+                }
+                Separator {}
+                GlobalSettingsProperty {
+                    text: "Gauge Type"
+                    props: {"id": "gaugeType", "default": "FC", "choices": ["AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC"]}
+                    sourceComponent: Component {
+                        Choice {
+                            assignIndex: true
+                        }
+                    }
+                }
+                Separator {}
+                GlobalSettingsProperty {
+                    text: "Gauge Mode"
+                    props: {"id": "gaugeMode", "default": 2, "choices": ["Exclusive", "Best", "Select to Under"]}
+                    sourceComponent: Component {
+                        Choice {
+                            assignIndex: true
+                        }
+                    }
+                }
+                Separator {}
+                GlobalSettingsProperty {
+                    text: "Bottom Shiftable Gauge"
+                    props: {"id": "bottomShiftableGauge", "default": "AEASY", "choices": ["AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC"]}
+                    sourceComponent: Component {
+                        Choice {
+                            assignIndex: true
+                        }
+                    }
+                }
             }
         }
     }

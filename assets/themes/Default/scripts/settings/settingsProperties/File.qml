@@ -2,6 +2,7 @@ import Qt.labs.folderlistmodel
 import QtQuick
 import QtQuick.Controls.Basic
 import RhythmGameQml
+import "../../common/helpers.js" as Helpers
 
 ComboBox {
     id: fileComboBox
@@ -10,21 +11,16 @@ ComboBox {
 
     palette {
         window: "white"
-        light: palette.button
-    }
-
-    function getIndex(text) {
-        let index = 0;
-        for (let file of files) {
-            if (text === file) {
-                return index;
-                break;
-            }
-            index++;
+        Component.onCompleted: {
+            light = palette.button
         }
     }
 
-    currentIndex: getIndex(destination[props.id]);
+    Binding {
+        delayed: true
+        fileComboBox.currentIndex: Helpers.getIndex(files, destination[props.id], currentIndex);
+    }
+
     onActivated: (_) => {
         destination[props.id] = currentText;
     }

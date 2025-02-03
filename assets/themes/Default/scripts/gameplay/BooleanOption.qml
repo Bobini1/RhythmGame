@@ -26,7 +26,6 @@ Row {
 
         onCheckedChanged: {
             booleanOption.src[booleanOption.prop] = checked;
-            checked = Qt.binding(() => booleanOption.src[booleanOption.prop]);
         }
     }
 }

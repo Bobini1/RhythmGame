@@ -13,6 +13,9 @@
 #include <magic_enum/magic_enum.hpp>
 #include <functional>
 
+namespace db {
+class SqliteCppDb;
+}
 namespace input {
 class Key
 {
@@ -110,8 +113,10 @@ class InputTranslator final : public QObject
     Q_PROPERTY(bool col27 READ col27 NOTIFY col27Changed)
     Q_PROPERTY(bool col2sUp READ col2sUp NOTIFY col2sUpChanged)
     Q_PROPERTY(bool col2sDown READ col2sDown NOTIFY col2sDownChanged)
-    Q_PROPERTY(bool start READ start NOTIFY startChanged)
-    Q_PROPERTY(bool select READ select NOTIFY selectChanged)
+    Q_PROPERTY(bool start1 READ start1 NOTIFY start1Changed)
+    Q_PROPERTY(bool select READ select1 NOTIFY select1Changed)
+    Q_PROPERTY(bool start2 READ start2 NOTIFY start2Changed)
+    Q_PROPERTY(bool select2 READ select2 NOTIFY select2Changed)
 
   public:
     struct Scratch
@@ -124,7 +129,7 @@ class InputTranslator final : public QObject
     struct PairHash
     {
         template<typename T, typename U>
-        std::size_t operator()(const std::pair<T, U>& x) const
+        auto operator()(const std::pair<T, U>& x) const -> std::size_t
         {
             return std::hash<T>()(x.first) ^ std::hash<U>()(x.second);
         }
@@ -133,11 +138,13 @@ class InputTranslator final : public QObject
       scratches;
     std::optional<BmsKey> configuredButton;
     QHash<Key, BmsKey> config;
+    db::SqliteCppDb* db;
     std::array<bool, magic_enum::enum_count<BmsKey>()> buttons{};
 
     void pressButton(BmsKey button, double value, uint64_t time);
     void releaseButton(BmsKey button, uint64_t time);
     void unpressCurrentKey(const Key& key, uint64_t time);
+    void saveKeyConfig() const;
 
   public:
     void handleAxis(Gamepad gamepad, Uint8 axis, double value, int64_t time);
@@ -150,7 +157,7 @@ class InputTranslator final : public QObject
     static constexpr auto scratchSensitivity = 0.01;
 
   public:
-    explicit InputTranslator(QObject* parent = nullptr);
+    explicit InputTranslator(db::SqliteCppDb* db, QObject* parent = nullptr);
     void setConfiguredButton(const QVariant& button);
     auto getConfiguredButton() const -> QVariant;
     auto isConfiguring() const -> bool;
@@ -177,8 +184,10 @@ class InputTranslator final : public QObject
     auto col27() const -> bool;
     auto col2sUp() const -> bool;
     auto col2sDown() const -> bool;
-    auto start() const -> bool;
-    auto select() const -> bool;
+    auto start1() const -> bool;
+    auto select1() const -> bool;
+    auto start2() const -> bool;
+    auto select2() const -> bool;
 
     auto eventFilter(QObject* watched, QEvent* event) -> bool override;
 
@@ -206,8 +215,10 @@ class InputTranslator final : public QObject
     void col27Changed();
     void col2sUpChanged();
     void col2sDownChanged();
-    void startChanged();
-    void selectChanged();
+    void start1Changed();
+    void select1Changed();
+    void start2Changed();
+    void select2Changed();
 };
 
 } // namespace input

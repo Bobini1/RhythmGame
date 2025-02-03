@@ -9,6 +9,7 @@ Item {
     required property var columns
     readonly property real spacing: playAreaTemplate.vars.spacing
     required property var vars
+    required property string dpSuffix
     readonly property list<real> columnSizes: root.getColumnSizes(vars)
 
     signal clicked(var mouse)
@@ -16,12 +17,11 @@ Item {
 
     height: playAreaTemplate.vars.playAreaHeight
     width: playAreaTemplate.columns.reduce((a, b) => a + playAreaTemplate.columnSizes[b], 0) + (playAreaTemplate.columns.length - 1) * playAreaTemplate.spacing
-    x: playAreaTemplate.vars.playAreaX
-    y: playAreaTemplate.vars.playAreaY
+    x: playAreaTemplate.vars["playAreaX" + playAreaTemplate.dpSuffix]
+    y: playAreaTemplate.vars["playAreaY" + playAreaTemplate.dpSuffix]
 
     onHeightChanged: {
         playAreaTemplate.vars.playAreaHeight = height;
-        height = Qt.binding(() => playAreaTemplate.vars.playAreaHeight);
     }
     onWidthChanged: {
         let spacing = playAreaTemplate.vars.spacing;
@@ -36,12 +36,10 @@ Item {
         playAreaTemplate.vars.scratchWidth = newWidths[2];
     }
     onXChanged: {
-        playAreaTemplate.vars.playAreaX = x;
-        x = Qt.binding(() => playAreaTemplate.vars.playAreaX);
+        playAreaTemplate.vars["playAreaX" + playAreaTemplate.dpSuffix] = x;
     }
     onYChanged: {
-        playAreaTemplate.vars.playAreaY = y;
-        y = Qt.binding(() => playAreaTemplate.vars.playAreaY);
+        playAreaTemplate.vars["playAreaY" + playAreaTemplate.dpSuffix] = y;
     }
 
     TemplateDragBorder {
@@ -51,14 +49,17 @@ Item {
         anchors.margins: -borderMargin
         color: "transparent"
 
-        onBorderPressedChanged: {
-            if (borderPressed) {
-                // remove the binding
-                // noinspection SillyAssignmentJS
-                playAreaTemplate.width = playAreaTemplate.width;
-            } else {
-                playAreaTemplate.width = Qt.binding(() => playAreaTemplate.columns.reduce((a, b) => a + playAreaTemplate.columnSizes[b], 0) + (playAreaTemplate.columns.length - 1) * playAreaTemplate.spacing);
+        Binding {
+            delayed: true
+            playAreaTemplate.width: {
+                if (!template.borderPressed) {
+                    return playAreaTemplate.columns.reduce((a, b) => a + playAreaTemplate.columnSizes[b], 0) + (playAreaTemplate.columns.length - 1) * playAreaTemplate.spacing;
+                }
             }
+        }
+        Binding {
+            delayed: true
+            playAreaTemplate.height: playAreaTemplate.vars.playAreaHeight
         }
         onClicked: mouse => playAreaTemplate.clicked(mouse)
         onDoubleClicked: mouse => playAreaTemplate.doubleClicked(mouse)

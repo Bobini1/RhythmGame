@@ -13,6 +13,10 @@ Rectangle {
 
     width: 1600
     height: 900
+    
+    TapHandler {
+        gesturePolicy: TapHandler.WithinBounds
+    }
 
     DarkLabel {
         id: p1RandomLabel
@@ -68,8 +72,8 @@ Rectangle {
         down: BmsKey.Col16
         profile: ProfileList.mainProfile
 
-        model: [NoteOrderAlgorithm.Normal, NoteOrderAlgorithm.Mirror, NoteOrderAlgorithm.Spiral, NoteOrderAlgorithm.Random, NoteOrderAlgorithm.SRandom, NoteOrderAlgorithm.HRandom, NoteOrderAlgorithm.RRandom, NoteOrderAlgorithm.SRandomPlus]
-        strings: ["NORMAL", "MIRROR", "SPIRAL", "RANDOM", "S-RANDOM", "H-RANDOM", "R-RANDOM", "S-RANDOM+"]
+        model: [NoteOrderAlgorithm.Normal, NoteOrderAlgorithm.Mirror, NoteOrderAlgorithm.Random, NoteOrderAlgorithm.RandomPlus, NoteOrderAlgorithm.SRandom, NoteOrderAlgorithm.SRandomPlus, NoteOrderAlgorithm.RRandom]
+        strings: ["NORMAL", "MIRROR", "RANDOM", "RANDOM+", "S-RANDOM", "S-RANDOM+", "R-RANDOM"]
         prop: "noteOrderAlgorithmP2"
     }
 
@@ -124,8 +128,8 @@ Rectangle {
         width: 360
         height: 220
         down: BmsKey.Col13
-        model: ["AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "HAZARD"]
-        strings: ["ASSISTED EASY", "EASY", "NORMAL", "HARD", "EXHARD", "HAZARD"]
+        model: ["AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC"]
+        strings: ["ASSISTED EASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC"]
         prop: "gaugeType"
         profile: ProfileList.mainProfile
     }
@@ -162,18 +166,9 @@ Rectangle {
         prop: "hiSpeedFix"
         profile: ProfileList.mainProfile
     }
-    property var open: false
-
-    Input.onStartPressed: {
-        open = true;
-    }
-
-    Input.onStartReleased: {
-        open = false;
-    }
 
     states: State {
-        name: "shown"; when: bg.open
+        name: "shown"; when: bg.enabled
         PropertyChanges {
             target: bg
             scale: 1

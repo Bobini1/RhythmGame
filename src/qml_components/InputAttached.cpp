@@ -4,75 +4,32 @@
 
 #include "InputAttached.h"
 
-#include "resource_managers/InputTranslators.h"
-
 #include <spdlog/spdlog.h>
 #include <spdlog/stopwatch.h>
 
 namespace qml_components {
-void
-InputSignalProvider::connectProfile(
-  resource_managers::Profile* profile,
-  const input::InputTranslator* inputTranslator,
-  int playerIndex)
-{
-    connections.append(connect(
-      inputTranslator,
-      &input::InputTranslator::buttonPressed,
-      this,
-      [profile, playerIndex, this](
-        const input::BmsKey button, const double value, const int64_t time) {
-          emit buttonPressed(profile, button, playerIndex, value, time);
-      }));
-    connections.append(
-      connect(inputTranslator,
-              &input::InputTranslator::buttonReleased,
-              this,
-              [profile, playerIndex, this](const input::BmsKey button,
-                                           const int64_t time) {
-                  emit buttonReleased(profile, button, playerIndex, time);
-              }));
-}
+
 InputSignalProvider::InputSignalProvider(
-  ProfileList* profileList,
-  resource_managers::InputTranslators* inputTranslators,
+  input::InputTranslator* inputTranslator,
   QObject* parent)
   : QObject(parent)
-  , profileList(profileList)
-  , inputTranslators(inputTranslators)
+  , inputTranslator(inputTranslator)
 
 {
-    for (auto i = 0; i < profileList->getActiveProfiles().size(); ++i) {
-        connectProfile(profileList->getActiveProfiles().at(i),
-                       inputTranslators->getInputTranslators().at(i),
-                       i);
-    }
-    connect(profileList, &ProfileList::activeProfilesChanged, this, [this]() {
-        for (const auto& connection : connections) {
-            disconnect(connection);
-        }
-        connections.clear();
-        for (auto i = 0; i < this->profileList->getActiveProfiles().size();
-             ++i) {
-            auto* profile = this->profileList->at(i);
-            const auto* inputTranslator =
-              this->inputTranslators->getInputTranslators().at(i);
-            connectProfile(profile, inputTranslator, i);
-        }
-    });
+    connect(inputTranslator,
+            &input::InputTranslator::buttonPressed,
+            this,
+            &InputSignalProvider::buttonPressed);
+    connect(inputTranslator,
+            &input::InputTranslator::buttonReleased,
+            this,
+            &InputSignalProvider::buttonReleased);
 }
 auto
-InputAttached::isAttachedToCurrentScene() const -> bool
+InputAttached::isEnabled() const -> bool
 {
-    const auto* const currentScene = (*findCurrentScene)();
-    const auto* current = parent();
-    while (current != nullptr) {
-        if (current == currentScene) {
-            return true;
-        }
-        current = current->parent();
-    }
-    return false;
+    const auto* current = qobject_cast<QQuickItem*>(parent());
+    return current && current->isEnabled();
 }
 InputAttached::InputAttached(QObject* obj)
   : QObject(obj)
@@ -80,35 +37,40 @@ InputAttached::InputAttached(QObject* obj)
     connect(inputSignalProvider,
             &InputSignalProvider::buttonPressed,
             this,
-            [this](resource_managers::Profile* profile,
-                   const input::BmsKey button,
+            [this](const input::BmsKey button,
                    const double value,
                    const int64_t time) {
-                if (isAttachedToCurrentScene()) {
-                    emit buttonPressed(profile, button, value, time);
+                if (isEnabled()) {
+                    emit buttonPressed(button, value, time);
                 }
             });
     connect(inputSignalProvider,
             &InputSignalProvider::buttonReleased,
             this,
-            [this](resource_managers::Profile* profile,
-                   const input::BmsKey button,
-                   const int64_t time) {
-                if (isAttachedToCurrentScene()) {
-                    emit buttonReleased(profile, button, time);
+            [this](const input::BmsKey button, const int64_t time) {
+                if (isEnabled()) {
+                    emit buttonReleased(button, time);
                 }
             });
-    connect(this,
-            &InputAttached::buttonPressed,
+    connect(inputSignalProvider,
+            &InputSignalProvider::buttonPressed,
             this,
-            [this](resource_managers::Profile* profile,
-                   const input::BmsKey button,
+            [this](const input::BmsKey button,
                    const double value,
                    const int64_t time) {
+                if (!isEnabled()) {
+                    return;
+                }
+                bool old{};
                 switch (button) {
 #define CASE(key, capital)                                                     \
     case input::BmsKey::capital:                                               \
-        emit key##Pressed(profile, value, time);                               \
+        old = keyStates[static_cast<int>(input::BmsKey::capital)];             \
+        keyStates[static_cast<int>(input::BmsKey::capital)] = true;            \
+        if (!old) {                                                            \
+            emit key##Changed();                                               \
+        }                                                                      \
+        emit key##Pressed(value, time);                                        \
         break;
                     CASE(col11, Col11)
                     CASE(col12, Col12)
@@ -128,21 +90,29 @@ InputAttached::InputAttached(QObject* obj)
                     CASE(col2sUp, Col2sUp)
                     CASE(col1sDown, Col1sDown)
                     CASE(col2sDown, Col2sDown)
-                    CASE(start, Start)
-                    CASE(select, Select)
+                    CASE(start1, Start1)
+                    CASE(select1, Select1)
+                    CASE(start2, Start2)
+                    CASE(select2, Select2)
 #undef CASE
                 }
             });
-    connect(this,
-            &InputAttached::buttonReleased,
+    connect(inputSignalProvider,
+            &InputSignalProvider::buttonReleased,
             this,
-            [this](resource_managers::Profile* profile,
-                   const input::BmsKey button,
-                   const int64_t time) {
+            [this](const input::BmsKey button, const int64_t time) {
+                bool old{};
                 switch (button) {
 #define CASE(key, capital)                                                     \
     case input::BmsKey::capital:                                               \
-        emit key##Released(profile, time);                                     \
+        old = keyStates[static_cast<int>(input::BmsKey::capital)];             \
+        keyStates[static_cast<int>(input::BmsKey::capital)] = false;           \
+        if (old) {                                                             \
+            emit key##Changed();                                               \
+        }                                                                      \
+        if (isEnabled()) {                                                     \
+            emit key##Released(time);                                          \
+        }                                                                      \
         break;
                     CASE(col11, Col11)
                     CASE(col12, Col12)
@@ -162,12 +132,15 @@ InputAttached::InputAttached(QObject* obj)
                     CASE(col2sUp, Col2sUp)
                     CASE(col1sDown, Col1sDown)
                     CASE(col2sDown, Col2sDown)
-                    CASE(start, Start)
-                    CASE(select, Select)
+                    CASE(start1, Start1)
+                    CASE(select1, Select1)
+                    CASE(start2, Start2)
+                    CASE(select2, Select2)
 #undef CASE
                 }
             });
 }
+
 auto
 InputAttached::qmlAttachedProperties(QObject* object) -> InputAttached*
 {
@@ -175,5 +148,4 @@ InputAttached::qmlAttachedProperties(QObject* object) -> InputAttached*
 }
 
 InputSignalProvider* InputAttached::inputSignalProvider = nullptr;
-std::function<QQuickItem*()>* InputAttached::findCurrentScene = nullptr;
 } // namespace qml_components

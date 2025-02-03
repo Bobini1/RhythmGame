@@ -27,7 +27,7 @@ Image {
 
             text: qsTr("Song Selection")
             onClicked: {
-                sceneStack.push(globalRoot.songWheelComponent);
+                sceneStack.pushItem(globalRoot.songWheelComponent);
             }
         }
 
@@ -37,7 +37,7 @@ Image {
             text: qsTr("Settings")
             font.pixelSize: 30
             onClicked: {
-                sceneStack.push(globalRoot.settingsComponent);
+                sceneStack.pushItem(globalRoot.settingsComponent);
             }
         }
 

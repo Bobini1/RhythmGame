@@ -26,7 +26,7 @@ BmsScore::addNoteHit(HitEvent tap) -> void
     }
     if (judgement == Judgement::Bad) {
         resetCombo();
-    } else {
+    } else if (judgement != Judgement::EmptyPoor) {
         increaseCombo();
     }
     emit noteHit(tap);

@@ -108,3 +108,18 @@ function getEarlyLate(replayData, missCount) {
 function capitalizeFirstLetter(string) {
     return string.charAt(0).toUpperCase() + string.slice(1);
 }
+
+function getIndex(array, elem, currentIndex) {
+    let index = 0;
+    let proposition = null;
+    for (let choice of array) {
+        if (elem == choice) {
+            // special handling for duplicated elements
+            if (proposition === null || Math.abs(currentIndex - index) < Math.abs(currentIndex - proposition)) {
+                proposition = index
+            }
+        }
+        index++;
+    }
+    return proposition;
+}

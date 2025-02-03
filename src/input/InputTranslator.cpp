@@ -5,6 +5,8 @@
 #include "InputTranslator.h"
 
 #include "GamepadManager.h"
+#include "db/SqliteCppDb.h"
+#include "support/Compress.h"
 
 #include <QKeyEvent>
 #include <QVariant>
@@ -176,17 +178,31 @@ InputTranslator::pressButton(BmsKey button, double value, uint64_t time)
             }
             break;
 
-        case BmsKey::Start:
+        case BmsKey::Start1:
             state = true;
             if (!oldState) {
-                emit startChanged();
+                emit start1Changed();
             }
             break;
 
-        case BmsKey::Select:
+        case BmsKey::Select1:
             state = true;
             if (!oldState) {
-                emit selectChanged();
+                emit select1Changed();
+            }
+            break;
+
+        case BmsKey::Start2:
+            state = true;
+            if (!oldState) {
+                emit start2Changed();
+            }
+            break;
+
+        case BmsKey::Select2:
+            state = true;
+            if (!oldState) {
+                emit select2Changed();
             }
             break;
     }
@@ -325,17 +341,31 @@ InputTranslator::releaseButton(BmsKey button, uint64_t time)
             }
             break;
 
-        case BmsKey::Start:
+        case BmsKey::Start1:
             state = false;
             if (oldState) {
-                emit startChanged();
+                emit start1Changed();
             }
             break;
 
-        case BmsKey::Select:
+        case BmsKey::Select1:
             state = false;
             if (oldState) {
-                emit selectChanged();
+                emit select1Changed();
+            }
+            break;
+
+        case BmsKey::Start2:
+            state = false;
+            if (oldState) {
+                emit start2Changed();
+            }
+            break;
+
+        case BmsKey::Select2:
+            state = false;
+            if (oldState) {
+                emit select2Changed();
             }
             break;
     }
@@ -350,6 +380,16 @@ InputTranslator::unpressCurrentKey(const Key& key, uint64_t time)
         releaseButton(*found, time);
     }
     resetButton(*configuredButton);
+}
+void
+InputTranslator::saveKeyConfig() const
+{
+    auto statement =
+      db->createStatement("INSERT OR REPLACE INTO properties (key, value) "
+                          "VALUES ('key_config', ?)");
+    const auto data = support::compress(config);
+    statement.bind(1, data.data(), data.size());
+    statement.execute();
 }
 void
 InputTranslator::handleAxis(Gamepad gamepad,
@@ -461,9 +501,21 @@ InputTranslator::getTime(const QKeyEvent& event) -> int64_t
       .count();
 }
 
-InputTranslator::InputTranslator(QObject* parent)
+InputTranslator::InputTranslator(db::SqliteCppDb* db, QObject* parent)
   : QObject(parent)
+  , db(db)
 {
+    connect(this,
+            &InputTranslator::keyConfigModified,
+            this,
+            &InputTranslator::saveKeyConfig);
+    // load key config
+    auto statement = db->createStatement(
+      "SELECT value FROM properties WHERE key = 'key_config'");
+    if (const auto keyConfig = statement.executeAndGet<std::string>()) {
+        const auto array = QByteArray::fromStdString(keyConfig.value());
+        config = support::decompress<QHash<Key, BmsKey>>(array);
+    }
 }
 void
 InputTranslator::setConfiguredButton(const QVariant& button)
@@ -639,17 +691,28 @@ InputTranslator::col2sDown() const -> bool
 {
     return buttons[static_cast<int>(BmsKey::Col2sDown)];
 }
-
 auto
-InputTranslator::start() const -> bool
+InputTranslator::start1() const -> bool
 {
-    return buttons[static_cast<int>(BmsKey::Start)];
+    return buttons[static_cast<int>(BmsKey::Start1)];
 }
 
 auto
-InputTranslator::select() const -> bool
+InputTranslator::start2() const -> bool
 {
-    return buttons[static_cast<int>(BmsKey::Select)];
+    return buttons[static_cast<int>(BmsKey::Start2)];
+}
+
+auto
+InputTranslator::select1() const -> bool
+{
+    return buttons[static_cast<int>(BmsKey::Select1)];
+}
+
+auto
+InputTranslator::select2() const -> bool
+{
+    return buttons[static_cast<int>(BmsKey::Select2)];
 }
 
 bool

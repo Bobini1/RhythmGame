@@ -5,6 +5,7 @@ Rectangle {
     color: "#404040"
 
     radius: 15
+    implicitHeight: 40
 
     property var highlightedKeys: []
     property alias text: textEdit.text

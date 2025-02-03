@@ -39,9 +39,8 @@ class ChartLoader : public QObject
       int noteCount)>
       gaugeFactory;
     resource_managers::ChartFactory* chartFactory;
-    double maxHitValue;
     ProfileList* profileList;
-    resource_managers::InputTranslators* inputTranslators;
+    input::InputTranslator* inputTranslator;
 
   public:
     using GaugeFactory = std::function<QList<gameplay_logic::rules::BmsGauge*>(
@@ -61,18 +60,19 @@ class ChartLoader : public QObject
                            std::chrono::nanoseconds)>;
 
     ChartLoader(ProfileList* profileList,
-                resource_managers::InputTranslators* inputTranslators,
+                input::InputTranslator* inputTranslator,
                 resource_managers::ChartDataFactory* chartDataFactory,
                 TimingWindowsFactory timingWindowsFactory,
                 HitRulesFactory hitRulesFactory,
                 HitValueFactory hitValueFactory,
                 GaugeFactory gaugeFactory,
                 resource_managers::ChartFactory* chartFactory,
-                double maxHitValue,
                 QObject* parent = nullptr);
 
     Q_INVOKABLE gameplay_logic::Chart* loadChart(
-      QString filename,
+      const QString& filename,
+      resource_managers::Profile* player1,
+      resource_managers::Profile* player2,
       QList<int64_t> randomSequence = {});
 };
 

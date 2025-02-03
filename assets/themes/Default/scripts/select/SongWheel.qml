@@ -8,12 +8,9 @@ import "../common/helpers.js" as Helpers
 import "./playOptions"
 
 FocusScope {
-    focus: StackView.status === StackView.Active
-
     Image {
         id: root
 
-        readonly property bool active: parent.focus
         readonly property var bestStats: {
             let scores = songList.current instanceof ChartData && songList.currentItem ? songList.currentItem.children[0].scores : [];
             return Helpers.getBestStats(scores);
@@ -61,8 +58,8 @@ FocusScope {
         source: root.imagesUrl + "bg.png"
         width: parent.width
 
-        onActiveChanged: {
-            if (active) {
+        onEnabledChanged: {
+            if (enabled) {
                 previewDelayTimer.restart();
                 let currentChart = songList.currentItem.children[0];
                 if (typeof currentChart.refreshScores === 'function') {
@@ -151,8 +148,8 @@ FocusScope {
                 width: parent.width / 2
             }
             Shortcut {
-                enabled: root.active
                 sequence: "Esc"
+                enabled: root.enabled
 
                 onActivated: {
                     sceneStack.pop();
@@ -277,7 +274,6 @@ FocusScope {
                 id: focusList
 
                 anchors.fill: parent
-                enabled: root.active
                 z: -1
 
                 onClicked: {
@@ -296,18 +292,49 @@ FocusScope {
                 return c;
             }
 
-            visible: playOptions.open
+            MouseArea {
+                anchors.fill: parent
+                enabled: parent.visible
+                onClicked: (event) => {
+                    login.enabled = false;
+                }
+                onWheel: (wheel) => {
+                    wheel.accepted = true;
+                }
+            }
+
+            visible: playOptions.enabled || login.enabled
 
             Item {
+                id: options
                 anchors.centerIn: parent
                 height: 1080
                 scale: Math.min(parent.width / 1920, parent.height / 1080)
                 width: 1920
 
-                PlayOptions {
+                property bool startPressed: Input.start1 || Input.start2
+
+                Loader {
                     id: playOptions
+                    active: enabled
+                    enabled: options.startPressed && !login.enabled
+                    anchors.centerIn: parent
+
+                    source: ProfileList.battleActive ? "playOptions/PlayOptionsBattle.qml" : "playOptions/PlayOptionsSingle.qml"
+                }
+
+                Login {
+                    id: login
 
                     anchors.centerIn: parent
+                    enabled: false
+                }
+                property bool startAndSelectPressed: Input.start1 && Input.select1 || Input.start2 && Input.select2
+
+                onStartAndSelectPressedChanged: {
+                    if (startAndSelectPressed) {
+                        login.enabled = !login.enabled;
+                    }
                 }
             }
         }

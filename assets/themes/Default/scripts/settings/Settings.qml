@@ -5,8 +5,6 @@ import QtQuick.Controls.Basic
 Rectangle {
     id: screen
 
-    readonly property bool active: StackView.status === StackView.Active
-
     color: "white"
 
     ColumnLayout {
@@ -18,6 +16,9 @@ Rectangle {
             Layout.fillWidth: true
             Layout.preferredHeight: childrenRect.height
 
+            TabButton {
+                text: qsTr("Player settings")
+            }
             TabButton {
                 text: qsTr("Song directories")
             }
@@ -38,6 +39,9 @@ Rectangle {
 
             currentIndex: tabView.currentIndex
 
+            PlayerSettings {
+                Layout.preferredHeight: parent.height - tabView.height
+            }
             SongFolderSettings {
                 Layout.preferredHeight: parent.height - tabView.height
             }
@@ -54,7 +58,7 @@ Rectangle {
         }
     }
     Shortcut {
-        enabled: active
+        enabled: screen.enabled
         sequence: "Esc"
 
         onActivated: {

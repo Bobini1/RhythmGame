@@ -251,8 +251,6 @@ TEST_CASE("Bgm notes get parsed correctly", "[BmsChartReader]")
     REQUIRE(res.tags.measures[1].bgmNotes[1][3] == 7);
 }
 
-
-
 TEST_CASE("Parse all basic note types get", "[BmsChartReader]")
 {
     const auto chart =

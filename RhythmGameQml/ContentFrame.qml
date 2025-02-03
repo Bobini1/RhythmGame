@@ -10,7 +10,6 @@ ApplicationWindow {
     height: 720
     visible: true
     width: 1280
-    property var sceneStack: sceneStack
 
     Settings {
         property alias height: contentContainer.height
@@ -22,14 +21,18 @@ ApplicationWindow {
         FocusScope {
             id: chartFocusScope
 
-            readonly property bool active: StackView.status === StackView.Active
             required property Chart chart
+            readonly property string screen: {
+                let keys = chartFocusScope.chart.chartData.keymode;
+                let battle = chartFocusScope.chart.player1 && chartFocusScope.chart.player2;
+                return "k" + keys + (battle ? "battle" : "");
+            }
 
             Loader {
                 id: loader
 
                 anchors.fill: parent
-                source: Themes.availableThemeFamilies[ProfileList.mainProfile.themeConfig.gameplay].screens.gameplay.script
+                source: Themes.availableThemeFamilies[ProfileList.mainProfile.themeConfig[chartFocusScope.screen]].screens[chartFocusScope.screen].script
             }
         }
     }
@@ -39,7 +42,6 @@ ApplicationWindow {
         FocusScope {
             id: resultFocusScope
 
-            readonly property bool active: StackView.status === StackView.Active
             required property ChartData chartData
             required property list<BmsScoreAftermath> result
 
@@ -62,18 +64,23 @@ ApplicationWindow {
         readonly property Component songWheelComponent: Qt.createComponent(Themes.availableThemeFamilies[mainProfile.themeConfig.songWheel].screens.songWheel.script)
 
         function openChart(path) {
-            let chart = ChartLoader.loadChart(path);
+            let chart;
+            if (ProfileList.battleActive) {
+                chart = ChartLoader.loadChart(path, ProfileList.battleProfiles.player1Profile, ProfileList.battleProfiles.player2Profile);
+            } else {
+                chart = ChartLoader.loadChart(path, ProfileList.mainProfile, null);
+            }
             if (!chart) {
                 console.error("Failed to load chart");
                 return;
             }
-            sceneStack.push(gameplayComponent, {
+            sceneStack.pushItem(gameplayComponent, {
                 "chart": chart
             });
         }
 
         function openResult(result, chartData) {
-            sceneStack.push(resultComponent, {
+            sceneStack.pushItem(resultComponent, {
                 "result": result,
                 "chartData": chartData
             });
@@ -92,16 +99,25 @@ ApplicationWindow {
 
         anchors.fill: parent
 
-        Component.onCompleted: {
-            if (ProgramSettings.chartPath !== "")
-                openChart(ProgramSettings.chartPath);
-        }
-
         StackView {
             id: sceneStack
 
+            onCurrentItemChanged: {
+                updateEnabledStates();
+            }
+
+            function updateEnabledStates() {
+                let topIndex = depth - 1;
+                for (let i = 0; i < depth; ++i) {
+                    let item = get(i, StackView.ForceLoad);
+                    if (item) {
+                        item.enabled = (i === topIndex);
+                    }
+                }
+            }
+
             anchors.fill: parent
-            initialItem: (ProgramSettings.chartPath !== "") ? null : globalRoot.mainComponent
+            initialItem: globalRoot.mainComponent
 
             popEnter: Transition {
                 PropertyAnimation {

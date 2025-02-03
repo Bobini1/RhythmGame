@@ -227,7 +227,7 @@
             "id": "bgaX",
             "name": "X",
             "type": "range",
-            "default": 0,
+            "default": 660,
             "description": "The X position of the left side of the BGA rectangle."
           },
           {
@@ -242,7 +242,7 @@
             "name": "Scale",
             "type": "range",
             "min": 0,
-            "default": 800,
+            "default": 600,
             "description": "The size of the BGA square."
           }
         ]
@@ -263,7 +263,7 @@
             "id": "lifeBarY",
             "name": "Y",
             "type": "range",
-            "default": 0,
+            "default": 800,
             "description": "The Y position of the top side of the life bar rectangle."
           },
           {
@@ -271,7 +271,7 @@
             "name": "Width",
             "type": "range",
             "min": 0,
-            "default": 800,
+            "default": 500,
             "description": "The width of the life bar rectangle."
           },
           {
@@ -279,7 +279,7 @@
             "name": "Height",
             "type": "range",
             "min": 0,
-            "default": 20,
+            "default": 40,
             "description": "The height of the life bar rectangle."
           }
         ]
@@ -293,14 +293,14 @@
             "id": "judgementCountsX",
             "name": "X",
             "type": "range",
-            "default": 0,
+            "default": 545,
             "description": "The X position of the left side of the judgement counts rectangle."
           },
           {
             "id": "judgementCountsY",
             "name": "Y",
             "type": "range",
-            "default": 0,
+            "default": 640,
             "description": "The Y position of the top side of the judgement counts rectangle."
           },
           {
@@ -308,7 +308,7 @@
             "name": "Width",
             "type": "range",
             "min": 0,
-            "default": 800,
+            "default": 300,
             "description": "The width of the judgement counts rectangle."
           },
           {
@@ -316,7 +316,7 @@
             "name": "Height",
             "type": "range",
             "min": 0,
-            "default": 20,
+            "default": 200,
             "description": "The height of the judgement counts rectangle."
           }
         ]

@@ -26,7 +26,7 @@ Item {
     required property var score
     required property var notes
     readonly property int spacing: playArea.vars.spacing
-    readonly property var vars: profile.vars.themeVars.gameplay
+    readonly property var vars: profile.vars.themeVars[chartFocusScope.screen]
     readonly property var globalVars: profile.vars.globalVars
     readonly property list<real> columnSizes: root.getColumnSizes(vars)
 
@@ -74,7 +74,7 @@ Item {
         }
         BarLinePositioner {
             // barlines are always the same for all players
-            barLines: chart.notes[0].barLines
+            barLines: (chart.notes1 || chart.notes2).barLines
             heightMultiplier: playArea.heightMultiplier
             width: parent.width
             y: -playArea.vars.thickness / 2 + chart.position * playArea.heightMultiplier + parent.height * (1 - playArea.globalVars.liftOn * playArea.globalVars.liftRatio)
@@ -113,14 +113,22 @@ Item {
             Repeater {
                 id: laserRowChildren
 
-                model: playArea.columns.length
+                model: playArea.columns
 
                 // laser beam (animated)
                 LaserBeam {
                     required property int index
-                    columnIndex: playArea.columns[index]
+                    required property string modelData
+                    columnIndex: modelData
                     columnSizes: playArea.columnSizes
-                    image: root.laserImages[index]
+                    image: {
+                        if (modelData === 7 || modelData === 15)
+                            return root.iniImagesUrl + "keybeam/" + playArea.vars.keybeam + "/laser_s";
+                        else if (modelData % 2 === 0)
+                            return root.iniImagesUrl + "keybeam/" + playArea.vars.keybeam + "/laser_w";
+                        else
+                            return root.iniImagesUrl + "keybeam/" + playArea.vars.keybeam + "/laser_b";
+                    }
                 }
             }
         }
@@ -334,7 +342,7 @@ Item {
             }
             if (tap.points.noteRemoved) {
                 let item = explosions.itemAt(playArea.columnsReversedMapping[tap.column]);
-                if (root.visibleNotes[tap.column][tap.noteIndex].type === Note.Type.LongNoteBegin) {
+                if (playArea.notes[playArea.columnsReversedMapping[tap.column]][tap.noteIndex].type === Note.Type.LongNoteBegin) {
                     item.ln = true;
                 }
                 item.restart();

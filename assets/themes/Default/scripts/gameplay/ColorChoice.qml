@@ -37,27 +37,30 @@ Row {
 
         MouseArea {
             anchors.fill: parent
-            onClicked: colorDialog.open()
+            onClicked:
+            {
+                rect.oldColor = src[prop]
+                colorDialog.open()
+            }
         }
+
+        property color oldColor
 
         ColorDialog {
             id: colorDialog
 
             selectedColor: src[prop]
 
-            onSelectedColorChanged: {
-                // noinspection SillyAssignmentJS
-                selectedColor = selectedColor;
-                src[prop] = selectedColor;
-            }
-
-            onAccepted: {
-                selectedColor = Qt.binding(() => src[prop]);
+            Binding {
+                target: src
+                property: prop
+                value: colorDialog.selectedColor
             }
 
             onRejected: {
-                selectedColor = Qt.binding(() => src[prop]);
+                src[prop] = rect.oldColor
             }
         }
+
     }
 }

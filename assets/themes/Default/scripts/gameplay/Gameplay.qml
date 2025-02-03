@@ -15,37 +15,13 @@ Rectangle {
     property bool customizeMode: false
     readonly property string imagesUrl: Qt.resolvedUrl(".") + "images/"
     readonly property string iniImagesUrl: "image://ini/" + rootUrl + "images/"
-    property list<string> laserImages: {
-        let images = [];
-        for (let i = 0; i < 16; i++) {
-            if (i === 7 || i === 15)
-                images.push(iniImagesUrl + "keybeam/" + mainProfileVars.keybeam + "/laser_s");
-            else if (i % 2 === 0)
-                images.push(iniImagesUrl + "keybeam/" + mainProfileVars.keybeam + "/laser_w");
-            else
-                images.push(iniImagesUrl + "keybeam/" + mainProfileVars.keybeam + "/laser_b");
-        }
-        return images;
-    }
     readonly property Profile mainProfile: ProfileList.mainProfile
-    readonly property var mainProfileVars: mainProfile.vars.themeVars.gameplay
-    property list<string> noteColors: {
-        let images = [];
-        for (let i = 0; i < 16; i++) {
-            if (i === 7 || i === 15)
-                images.push("red");
-            else if (i % 2 === 0)
-                images.push("white");
-            else
-                images.push("black");
-        }
-        return images;
-    }
-    property double playfieldHeight: 800
+    readonly property var mainProfileVars: mainProfile.vars.themeVars[chartFocusScope.screen]
     property var popup: null
     property string rootUrl: globalRoot.urlToPath(Qt.resolvedUrl(".").toString())
-    // copying visibleNotes to js array is faster than accessing it directly
-    readonly property var visibleNotes: chart.notes.visibleNotes
+    property bool screen: chartFocusScope.screen
+    property bool isDp: chartFocusScope.screen === "k14"
+    property bool isBattle: chartFocusScope.screen === "k7battle"
 
     function getColumnSizes(vars) {
         let sizes = [];
@@ -85,6 +61,7 @@ Rectangle {
             chart.bga.layers[3].videoSink = bga.poorSink;
             chart.start();
         }
+
         function onOver() {
             if (root.popup !== null) {
                 root.popup.close();
@@ -98,8 +75,21 @@ Rectangle {
     PlayAreaPopup {
         id: playAreaPopup
 
-        themeVars: ProfileList.mainProfile.vars.themeVars.gameplay
-        globalVars: ProfileList.mainProfile.vars.globalVars
+        property Profile profile: chart.profile1
+        themeVars: profile.vars.themeVars[chartFocusScope.screen]
+        globalVars: profile.vars.globalVars
+        dp: root.isDp
+
+        onClosed: {
+            root.popup = null;
+        }
+    }
+    PlayAreaPopup {
+        id: playAreaPopupP2
+
+        property Profile profile: chart.profile2 || chart.profile1
+        themeVars: profile.vars.themeVars[chartFocusScope.screen]
+        globalVars: profile.vars.globalVars
 
         onClosed: {
             root.popup = null;
@@ -108,7 +98,18 @@ Rectangle {
     GaugePopup {
         id: gaugePopup
 
-        themeVars: ProfileList.mainProfile.vars.themeVars.gameplay
+        property Profile profile: chart.profile1
+        themeVars: profile.vars.themeVars[chartFocusScope.screen]
+
+        onClosed: {
+            root.popup = null;
+        }
+    }
+    GaugePopup {
+        id: gaugePopupP2
+
+        property Profile profile: chart.profile2 || chart.profile1
+        themeVars: profile.vars.themeVars[chartFocusScope.screen]
 
         onClosed: {
             root.popup = null;
@@ -122,66 +123,27 @@ Rectangle {
         scale: Math.min(globalRoot.width / 1920, globalRoot.height / 1080)
         width: 1920
 
-        PlayAreaTemplate {
-            id: playAreaTemplate
-
-            columns: playArea.columns
-            vars: ProfileList.mainProfile.vars.themeVars.gameplay
-            visible: root.customizeMode
-            z: playArea.z + 1
-
-            MouseArea {
-                id: playAreaTemplateMouseArea
-
-                acceptedButtons: Qt.RightButton
-                anchors.fill: parent
-                z: -1
-
-                onClicked: mouse => {
-                    let point = mapToGlobal(mouse.x, mouse.y);
-                    playAreaPopup.setPosition(point);
-                    playAreaPopup.open();
-                    root.popup = playAreaPopup;
-                }
-            }
-        }
-        PlayArea {
-            id: playArea
-
-            columns: root.mainProfileVars.scratchOnRightSide ? [0, 1, 2, 3, 4, 5, 6, 7] : [7, 0, 1, 2, 3, 4, 5, 6]
-            profile: ProfileList.mainProfile
-            score: chart.scores[0]
-            notes: columns.map(function (column) {
-                return chart.notes[0].visibleNotes[column];
-            })
-            x: root.mainProfileVars.playAreaX
-            y: root.mainProfileVars.playAreaY
-            z: root.mainProfileVars.playAreaZ
-        }
         BgaRenderer {
             id: bga
 
-            height: root.mainProfileVars.bgaSize
-            visible: ProfileList.mainProfile.vars.globalVars.bgaOn
-            width: root.mainProfileVars.bgaSize
-            x: root.mainProfileVars.bgaX
-            y: root.mainProfileVars.bgaY
-            z: root.mainProfileVars.bgaZ
+            readonly property Profile profile: chart.profile2 ? ProfileList.mainProfile : chart.profile1
+            readonly property var profileVars: profile.vars.themeVars[chartFocusScope.screen]
+
+            height: profileVars.bgaSize
+            visible: profile.vars.globalVars.bgaOn
+            width: profileVars.bgaSize
+            x: profileVars.bgaX
+            y: profileVars.bgaY
+            z: profileVars.bgaZ
 
             onHeightChanged: {
-                root.mainProfileVars.bgaSize = height;
-                height = Qt.binding(() => root.mainProfileVars.bgaSize);
-            }
-            onWidthChanged: {
-                width = Qt.binding(() => root.mainProfileVars.bgaSize);
+                profileVars.bgaSize = height;
             }
             onXChanged: {
-                root.mainProfileVars.bgaX = x;
-                x = Qt.binding(() => root.mainProfileVars.bgaX);
+                profileVars.bgaX = x;
             }
             onYChanged: {
-                root.mainProfileVars.bgaY = y;
-                y = Qt.binding(() => root.mainProfileVars.bgaY);
+                profileVars.bgaY = y;
             }
 
             TemplateDragBorder {
@@ -194,46 +156,56 @@ Rectangle {
                 visible: root.customizeMode
             }
         }
-        LifeBar {
-            id: lifeBar
 
-            verticalGauge: root.mainProfileVars.verticalGauge
-            gaugeImage: root.mainProfileVars.gauge
-            score: chart.scores[0]
-
-            height: root.mainProfileVars.lifeBarHeight
-            width: root.mainProfileVars.lifeBarWidth
-            x: root.mainProfileVars.lifeBarX
-            y: root.mainProfileVars.lifeBarY
-            z: root.mainProfileVars.lifeBarZ
-
-            onHeightChanged: {
-                root.mainProfileVars.lifeBarHeight = height;
-                height = Qt.binding(() => root.mainProfileVars.lifeBarHeight);
+        Side {
+            anchors.fill: parent
+            profile: chart.profile1
+            score: chart.score1
+            notes: chart.notes1
+            dpSuffix: root.isDp ? "1" : ""
+            columns: root.isDp || !profileVars.scratchOnRightSide ? [7, 0, 1, 2, 3, 4, 5, 6] : [0, 1, 2, 3, 4, 5, 6, 7]
+        }
+        Loader {
+            id: p2SideLoader
+            active: chart.profile2 !== null || root.isDp
+            anchors.fill: parent
+            sourceComponent: Side {
+                id: side2
+                profile: root.isDp ? chart.profile1 : chart.profile2
+                score: root.isDp ? chart.score1 : chart.score2
+                notes: root.isDp ? chart.notes1 : chart.notes2
+                dpSuffix: root.isDp ? "2" : ""
+                mirrored: !root.isDp
+                columns: {
+                    if (root.isDp) {
+                        return [8, 9, 10, 11, 12, 13, 14, 15];
+                    } else {
+                        return profileVars.scratchOnRightSide ? [0, 1, 2, 3, 4, 5, 6, 7] : [7, 0, 1, 2, 3, 4, 5, 6];
+                    }
+                }
             }
-            onWidthChanged: {
-                root.mainProfileVars.lifeBarWidth = width;
-                width = Qt.binding(() => root.mainProfileVars.lifeBarWidth);
-            }
-            onXChanged: {
-                root.mainProfileVars.lifeBarX = x;
-                x = Qt.binding(() => root.mainProfileVars.lifeBarX);
-            }
-            onYChanged: {
-                root.mainProfileVars.lifeBarY = y;
-                y = Qt.binding(() => root.mainProfileVars.lifeBarY);
-            }
+        }
+        component Side : Item {
+            id: side
+            required property Profile profile
+            required property BmsScore score
+            required property BmsNotes notes
+            required property string dpSuffix
+            required property var columns
+            property bool mirrored: false
+            readonly property var profileVars: profile.vars.themeVars[chartFocusScope.screen]
+            transform: Scale{ xScale: side.mirrored ? -1 : 1; origin.x: side.width / 2 }
+            PlayAreaTemplate {
+                id: playAreaTemplate
 
-            TemplateDragBorder {
-                id: lifeBarTemplate
-
-                anchors.fill: parent
-                anchors.margins: -borderMargin
-                color: "transparent"
+                columns: playArea.columns
+                vars: side.profileVars
+                dpSuffix: side.dpSuffix
                 visible: root.customizeMode
+                z: playArea.z + 1
 
                 MouseArea {
-                    id: lifeBarMouseArea
+                    id: playAreaTemplateMouseArea
 
                     acceptedButtons: Qt.RightButton
                     anchors.fill: parent
@@ -241,108 +213,183 @@ Rectangle {
 
                     onClicked: mouse => {
                         let point = mapToGlobal(mouse.x, mouse.y);
-                        gaugePopup.setPosition(point);
-                        gaugePopup.open();
-                        root.popup = gaugePopup;
+                        let popup;
+                        if (side.mirrored) {
+                            popup = playAreaPopupP2;
+                        } else {
+                            popup = playAreaPopup;
+                        }
+                        popup.setPosition(point);
+                        popup.open();
+                        root.popup = popup;
                     }
                 }
             }
-        }
-        Rectangle {
-            id: judgementCountsContainer
+            PlayArea {
+                id: playArea
 
-            color: "darkslategray"
-            height: root.mainProfileVars.judgementCountsHeight
-            width: root.mainProfileVars.judgementCountsWidth
-            x: root.mainProfileVars.judgementCountsX
-            y: root.mainProfileVars.judgementCountsY
-            z: root.mainProfileVars.judgementCountsZ
-
-            onHeightChanged: {
-                root.mainProfileVars.judgementCountsHeight = height;
-                height = Qt.binding(() => root.mainProfileVars.judgementCountsHeight);
+                columns: side.columns
+                profile: side.profile
+                score: side.score
+                notes: columns.map(function (column) {
+                    return side.notes.visibleNotes[column];
+                })
+                transform: Scale{ xScale: side.mirrored ? -1 : 1; origin.x: playArea.width / 2 }
+                x: side.profileVars["playAreaX" + side.dpSuffix]
+                y: side.profileVars["playAreaY" + side.dpSuffix]
+                z: side.profileVars.playAreaZ
             }
-            onWidthChanged: {
-                root.mainProfileVars.judgementCountsWidth = width;
-                width = Qt.binding(() => root.mainProfileVars.judgementCountsWidth);
-            }
-            onXChanged: {
-                root.mainProfileVars.judgementCountsX = x;
-                x = Qt.binding(() => root.mainProfileVars.judgementCountsX);
-            }
-            onYChanged: {
-                root.mainProfileVars.judgementCountsY = y;
-                y = Qt.binding(() => root.mainProfileVars.judgementCountsY);
-            }
+            LifeBar {
+                id: lifeBar
 
-            TemplateDragBorder {
-                id: judgementCountsTemplate
+                verticalGauge: side.profileVars.verticalGauge
+                gaugeImage: side.profileVars.gauge
+                score: side.score
+                transform: Scale{ xScale: side.mirrored ? -1 : 1; origin.x: lifeBar.width / 2 }
 
-                anchors.fill: parent
-                anchors.margins: -borderMargin
-                color: "transparent"
-                visible: root.customizeMode
-            }
-            Text {
-                id: judgementCounts
+                height: side.profileVars.lifeBarHeight
+                width: side.profileVars.lifeBarWidth
+                x: side.profileVars.lifeBarX
+                y: side.profileVars.lifeBarY
+                z: side.profileVars.lifeBarZ
 
-                property int bad: 0
-                property int emptyPoor: 0
-                property int good: 0
-                property int great: 0
-                property int perfect: 0
-                property int poor: 0
+                onHeightChanged: {
+                    side.profileVars.lifeBarHeight = height;
+                }
+                onWidthChanged: {
+                    side.profileVars.lifeBarWidth = width;
+                }
+                onXChanged: {
+                    side.profileVars.lifeBarX = x;
+                }
+                onYChanged: {
+                    side.profileVars.lifeBarY = y;
+                }
 
-                anchors.fill: parent
-                anchors.margins: 8
-                color: "white"
-                font.pixelSize: 300
-                fontSizeMode: Text.Fit
-                text: {
-                    let txt = "";
-                    for (let judgement of ["perfect", "great", "good", "bad", "poor", "emptyPoor"]) {
-                        txt += Helpers.capitalizeFirstLetter(judgement) + ": " + judgementCounts[judgement] + "\n";
+                TemplateDragBorder {
+                    id: lifeBarTemplate
+
+                    anchors.fill: parent
+                    anchors.margins: -borderMargin
+                    color: "transparent"
+                    visible: root.customizeMode
+
+                    MouseArea {
+                        id: lifeBarMouseArea
+
+                        acceptedButtons: Qt.RightButton
+                        anchors.fill: parent
+                        z: -1
+
+                        onClicked: mouse => {
+                            let point = mapToGlobal(mouse.x, mouse.y);
+                            let popup;
+                            if (side.mirrored) {
+                                popup = gaugePopupP2;
+                            } else {
+                                popup = gaugePopup;
+                            }
+                            popup.setPosition(point);
+                            popup.open();
+                            root.popup = popup;
+                        }
                     }
-                    return txt;
                 }
-                textFormat: Text.PlainText
             }
-            Connections {
-                function onMissed() {
-                    judgementCounts.poor++;
-                    bga.poorVisible = true;
-                    poorLayerTimer.restart();
+            Rectangle {
+                id: judgementCountsContainer
+
+                color: "darkslategray"
+                height: side.profileVars.judgementCountsHeight
+                width: side.profileVars.judgementCountsWidth
+                x: side.profileVars.judgementCountsX
+                y: side.profileVars.judgementCountsY
+                z: side.profileVars.judgementCountsZ
+                transform: Scale{ xScale: side.mirrored ? -1 : 1; origin.x: judgementCountsContainer.width / 2 }
+
+                onHeightChanged: {
+                    side.profileVars.judgementCountsHeight = height;
                 }
-                function onNoteHit(tap) {
-                    switch (tap.points.judgement) {
-                    case Judgement.Perfect:
-                        judgementCounts.perfect++;
-                        break;
-                    case Judgement.Great:
-                        judgementCounts.great++;
-                        break;
-                    case Judgement.Good:
-                        judgementCounts.good++;
-                        break;
-                    case Judgement.Bad:
-                        judgementCounts.bad++;
+                onWidthChanged: {
+                    side.profileVars.judgementCountsWidth = width;
+                }
+                onXChanged: {
+                    side.profileVars.judgementCountsX = x;
+                }
+                onYChanged: {
+                    side.profileVars.judgementCountsY = y;
+                }
+
+                TemplateDragBorder {
+                    id: judgementCountsTemplate
+
+                    anchors.fill: parent
+                    anchors.margins: -borderMargin
+                    color: "transparent"
+                    visible: root.customizeMode
+                }
+                Text {
+                    id: judgementCounts
+
+                    property int bad: 0
+                    property int emptyPoor: 0
+                    property int good: 0
+                    property int great: 0
+                    property int perfect: 0
+                    property int poor: 0
+
+                    anchors.fill: parent
+                    anchors.margins: 8
+                    color: "white"
+                    font.pixelSize: 300
+                    fontSizeMode: Text.Fit
+                    text: {
+                        let txt = "";
+                        for (let judgement of ["perfect", "great", "good", "bad", "poor", "emptyPoor"]) {
+                            txt += Helpers.capitalizeFirstLetter(judgement) + ": " + judgementCounts[judgement] + "\n";
+                        }
+                        return txt;
+                    }
+                    textFormat: Text.PlainText
+                }
+                Connections {
+                    function onMissed() {
+                        judgementCounts.poor++;
                         bga.poorVisible = true;
                         poorLayerTimer.restart();
-                        break;
-                    case Judgement.EmptyPoor:
-                        judgementCounts.emptyPoor++;
-                        bga.poorVisible = true;
-                        poorLayerTimer.restart();
-                        break;
                     }
-                }
 
-                target: chart.scores[0]
+                    function onNoteHit(tap) {
+                        switch (tap.points.judgement) {
+                            case Judgement.Perfect:
+                                judgementCounts.perfect++;
+                                break;
+                            case Judgement.Great:
+                                judgementCounts.great++;
+                                break;
+                            case Judgement.Good:
+                                judgementCounts.good++;
+                                break;
+                            case Judgement.Bad:
+                                judgementCounts.bad++;
+                                bga.poorVisible = true;
+                                poorLayerTimer.restart();
+                                break;
+                            case Judgement.EmptyPoor:
+                                judgementCounts.emptyPoor++;
+                                bga.poorVisible = true;
+                                poorLayerTimer.restart();
+                                break;
+                        }
+                    }
+
+                    target: side.score
+                }
             }
         }
     }
     Shortcut {
-        enabled: chartFocusScope.active
+        enabled: root.enabled
         sequence: "Esc"
 
         onActivated: {
@@ -351,6 +398,7 @@ Rectangle {
     }
     Shortcut {
         sequence: "F2"
+        enabled: root.enabled
 
         onActivated: {
             root.customizeMode = !root.customizeMode;

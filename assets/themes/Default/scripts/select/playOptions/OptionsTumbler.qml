@@ -1,6 +1,7 @@
 import RhythmGameQml
 import QtQuick
 import QtQuick.Controls.Basic
+import "../../common/helpers.js" as Helpers
 
 BorderImage {
     id: frame
@@ -64,34 +65,25 @@ BorderImage {
 
         anchors.fill: parent
 
-        function getIndex(text) {
-            let index = 0;
-            let proposition = null;
-            for (let choice of frame.model) {
-                if (text === choice) {
-                    // special handling for duplicated elements
-                    if (proposition === null || Math.abs(currentIndex - index) < Math.abs(currentIndex - proposition)) {
-                        proposition = index
-                    }
-                }
-                index++;
-            }
-            return proposition;
-        }
-
         Component.onCompleted: {
-            currentIndex = getIndex(frame.profile.vars.globalVars[prop])
+            ready = true;
         }
 
-        onCurrentIndexChanged: (_) => {
-            frame.profile.vars.globalVars[prop] = frame.model[currentIndex];
-            currentIndex = Qt.binding(() => getIndex(frame.profile.vars.globalVars[prop]))
+        property bool ready: false
+
+        Binding {
+            delayed: true
+            tumbler.currentIndex: Helpers.getIndex(frame.model, frame.profile.vars.globalVars[frame.prop], tumbler.currentIndex);
         }
 
-        onFlickingChanged: {
-            if (!flicking) {
-                frame.profile.vars.globalVars[prop] = frame.model[currentIndex];
-                currentIndex = Qt.binding(() => getIndex(frame.profile.vars.globalVars[prop]))
+        Binding {
+            target: frame.profile.vars.globalVars
+            property: frame.prop
+            when: tumbler.ready && !tumbler.flicking
+            value: {
+                if (!tumbler.flicking) {
+                    return frame.model[tumbler.currentIndex];
+                }
             }
         }
 
@@ -110,14 +102,14 @@ BorderImage {
             }
         }
 
-        Input.onButtonPressed: (profile, key) => {
+        Input.onButtonPressed: (key) => {
             if (profile !== frame.profile) {
                 return;
             }
-            if (key === up && bg.open) {
+            if (key === up) {
                 tumbler.decrementCurrentIndex();
             }
-            if (key === down && bg.open) {
+            if (key === down) {
                 tumbler.incrementCurrentIndex();
             }
         }

@@ -58,14 +58,22 @@ Rectangle {
             NoteColumn {
                 id: noteColumn
 
-                color: root.noteColors[playfield.columns[index]]
+                color: {
+                    let idx = playfield.columns[index];
+                    if (idx === 7 || idx === 15)
+                        return "red";
+                    else if (idx % 2 === 0)
+                        return "white";
+                    else
+                        return "black";
+                }
                 height: 1
                 heightMultiplier: playfield.heightMultiplier
                 noteHeight: playfield.noteThickness * 3
                 notes: modelData
                 noteImage: playfield.noteImage
                 mineImage: playfield.mineImage
-                notesStay: true
+                notesStay: playfield.notesStay
                 width: playfield.columnSizes[playfield.columns[index]]
             }
         }
