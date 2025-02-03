@@ -59,7 +59,8 @@ class BmsScore final : public QObject
     resource_managers::NoteOrderAlgorithm noteOrderAlgorithm;
     resource_managers::NoteOrderAlgorithm noteOrderAlgorithmP2;
     QList<int> permutation;
-    support::Sha256 sha256;
+    QString sha256;
+    QString md5;
     double points = 0;
     int combo = 0;
     int maxCombo = 0;
@@ -93,7 +94,8 @@ class BmsScore final : public QObject
       resource_managers::NoteOrderAlgorithm noteOrderAlgorithmP2,
       QList<int> permutation,
       uint64_t seed,
-      support::Sha256 sha256,
+      QString sha256,
+      QString md5,
       QObject* parent = nullptr);
 
     auto getMaxPoints() const -> double;

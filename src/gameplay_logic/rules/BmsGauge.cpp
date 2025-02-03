@@ -8,7 +8,7 @@ namespace gameplay_logic::rules {
 auto
 BmsGauge::getGauge() const -> double
 {
-    return gaugeHistoryList.back().getGauge();
+    return gaugeHistory.back().getGauge();
 }
 auto
 BmsGauge::getGaugeMax() const -> double
@@ -29,25 +29,21 @@ BmsGauge::BmsGauge(double gaugeMax,
   , threshold(threshold)
 {
     // todo: pass -1 in constructor
-    addGaugeHistoryEntry(std::chrono::seconds(-1), initialValue);
+    addGaugeHistoryEntry(
+      { duration_cast<std::chrono::nanoseconds>(std::chrono::seconds(-1))
+          .count(),
+        initialValue });
 }
 auto
-BmsGauge::getGaugeHistory() const -> QVariantList
+BmsGauge::getGaugeHistory() const -> const QList<GaugeHistoryEntry>&
 {
     return gaugeHistory;
 }
 void
-BmsGauge::addGaugeHistoryEntry(std::chrono::nanoseconds offsetFromStart,
-                               double gauge)
+BmsGauge::addGaugeHistoryEntry(const GaugeHistoryEntry entry)
 {
-    gaugeHistoryList.push_back({ offsetFromStart.count(), gauge });
-    gaugeHistory.append(QVariant::fromValue(gaugeHistoryList.back()));
+    gaugeHistory.append(entry);
     emit gaugeChanged();
-}
-auto
-BmsGauge::getGaugeHistoryVector() const -> const std::vector<GaugeHistoryEntry>&
-{
-    return gaugeHistoryList;
 }
 GaugeHistoryEntry::GaugeHistoryEntry(int64_t offsetFromStart, double gauge)
   : offsetFromStart(offsetFromStart)

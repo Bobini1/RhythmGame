@@ -5,10 +5,8 @@
 #ifndef RHYTHMGAME_BMSGAUGEHISTORY_H
 #define RHYTHMGAME_BMSGAUGEHISTORY_H
 
-#include <QObject>
-#include <QMap>
-#include <QVariant>
 #include "db/SqliteCppDb.h"
+#include "rules/BmsGauge.h"
 namespace gameplay_logic {
 
 class BmsGaugeInfo
@@ -31,10 +29,12 @@ class BmsGaugeHistory : public QObject
 {
     Q_OBJECT
 
-    Q_PROPERTY(QVariantMap gaugeHistory READ getGaugeHistory CONSTANT)
-    Q_PROPERTY(QVariantMap gaugeInfo READ getGaugeInfo CONSTANT)
-    QVariantMap gaugeHistory;
-    QVariantMap gaugeInfo;
+    Q_PROPERTY(QHash<QString, QList<gameplay_logic::rules::GaugeHistoryEntry>>
+                 gaugeHistory READ getGaugeHistory CONSTANT)
+    Q_PROPERTY(QHash<QString, gameplay_logic::BmsGaugeInfo> gaugeInfo READ
+                 getGaugeInfo CONSTANT)
+    QHash<QString, QList<rules::GaugeHistoryEntry>> gaugeHistory;
+    QHash<QString, BmsGaugeInfo> gaugeInfo;
 
   public:
     /**
@@ -42,23 +42,25 @@ class BmsGaugeHistory : public QObject
      * @param gaugeHistory A map of gauge name to QList of gauge history entries
      * @param parent QObject parent
      */
-    explicit BmsGaugeHistory(QVariantMap gaugeHistory,
-                             QVariantMap gaugeInfo,
-                             QObject* parent = nullptr);
+    explicit BmsGaugeHistory(
+      QHash<QString, QList<rules::GaugeHistoryEntry>> gaugeHistory,
+      QHash<QString, BmsGaugeInfo> gaugeInfo,
+      QObject* parent = nullptr);
     BmsGaugeHistory() = default;
 
     /**
      * @brief Get the gauge history
      * @return A map of gauge name to QList of gauge history entries
      */
-    auto getGaugeHistory() const -> QVariantMap;
+    auto getGaugeHistory() const
+      -> QHash<QString, QList<rules::GaugeHistoryEntry>>;
 
     /**
      *
      * @brief Get info about gauges - maxGauge and threshold
      * @return A map of gauge name to BmsGaugeInfo
      */
-    auto getGaugeInfo() const -> QVariantMap;
+    auto getGaugeInfo() const -> QHash<QString, BmsGaugeInfo>;
 
     friend auto operator<<(QDataStream& stream,
                            const BmsGaugeHistory& gaugeHistory) -> QDataStream&;

@@ -22,17 +22,17 @@ gameplay_logic::rules::Lr2Gauge::addHit(
     auto newGauge =
       std::clamp(currentGauge + judgementValue, 0.0, getGaugeMax());
     if (newGauge != currentGauge) {
-        addGaugeHistoryEntry(offsetFromStart, newGauge);
+        addGaugeHistoryEntry({ offsetFromStart.count(), newGauge });
     }
 }
-gameplay_logic::rules::Lr2Gauge::
-Lr2Gauge(gameplay_logic::rules::TimingWindows timingWindows,
-         double gaugeMax,
-         double initialValue,
-         double threshold,
-         bool permanentDeath,
-         std::function<double(double, Judgement)> judgementValueFactory,
-         QObject* parent)
+gameplay_logic::rules::Lr2Gauge::Lr2Gauge(
+  gameplay_logic::rules::TimingWindows timingWindows,
+  double gaugeMax,
+  double initialValue,
+  double threshold,
+  bool permanentDeath,
+  std::function<double(double, Judgement)> judgementValueFactory,
+  QObject* parent)
   : BmsGauge(gaugeMax, initialValue, threshold, parent)
   , timingWindows(std::move(timingWindows))
   , permanentDeath(permanentDeath)
@@ -213,7 +213,7 @@ gameplay_logic::rules::Lr2Gauge::addMineHit(
     auto newGauge =
       std::clamp(currentGauge + penalty * 100, 0.0, getGaugeMax());
     if (newGauge != currentGauge) {
-        addGaugeHistoryEntry(offsetFromStart, newGauge);
+        addGaugeHistoryEntry({ offsetFromStart.count(), newGauge });
     }
 }
 void
@@ -234,7 +234,7 @@ gameplay_logic::rules::Lr2Gauge::addHoldEndHit(
     auto value = judgementValueFactory(currentGauge, Judgement::Poor);
     auto newGauge = std::clamp(currentGauge - value, 0.0, getGaugeMax());
     if (newGauge != currentGauge) {
-        addGaugeHistoryEntry(offsetFromStart, newGauge);
+        addGaugeHistoryEntry({ offsetFromStart.count(), newGauge });
     }
 }
 void
@@ -249,6 +249,6 @@ gameplay_logic::rules::Lr2Gauge::addHoldEndMiss(
     auto value = judgementValueFactory(currentGauge, Judgement::Poor);
     auto newGauge = std::clamp(currentGauge - value, 0.0, getGaugeMax());
     if (newGauge != currentGauge) {
-        addGaugeHistoryEntry(offsetFromStart, newGauge);
+        addGaugeHistoryEntry({ offsetFromStart.count(), newGauge });
     }
 }

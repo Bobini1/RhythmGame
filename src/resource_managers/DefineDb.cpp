@@ -34,6 +34,7 @@ defineDb(db::SqliteCppDb& db)
                "chart_directory TEXT,"
                "directory INTEGER,"
                "sha256 TEXT NOT NULL,"
+               "md5 TEXT NOT NULL,"
                "keymode INTEGER NOT NULL"
                ");");
 

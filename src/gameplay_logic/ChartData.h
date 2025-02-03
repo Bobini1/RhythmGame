@@ -48,6 +48,7 @@ class ChartData : public QObject
     Q_PROPERTY(QString directory READ getDirectory CONSTANT)
     Q_PROPERTY(QString chartDirectory READ getChartDirectory CONSTANT)
     Q_PROPERTY(QString sha256 READ getSha256 CONSTANT)
+    Q_PROPERTY(QString md5 READ getMd5 CONSTANT)
     Q_PROPERTY(bool isRandom READ getIsRandom CONSTANT)
     Q_PROPERTY(QList<qint64> randomSequence READ getRandomSequence CONSTANT)
     Q_PROPERTY(Keymode keymode READ getKeymode CONSTANT)
@@ -106,6 +107,7 @@ class ChartData : public QObject
     [[nodiscard]] auto getPlayLevel() const -> int;
     [[nodiscard]] auto getDifficulty() const -> int;
     [[nodiscard]] auto getSha256() const -> const QString&;
+    [[nodiscard]] auto getMd5() const -> const QString&;
     [[nodiscard]] auto getIsRandom() const -> bool;
     [[nodiscard]] auto getRandomSequence() const -> const QList<qint64>&;
     [[nodiscard]] auto getKeymode() const -> Keymode;
@@ -171,6 +173,7 @@ class ChartData : public QObject
     QString path;
     int64_t directory;
     QString sha256;
+    QString md5;
     Keymode keymode;
 };
 

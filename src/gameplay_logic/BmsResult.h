@@ -39,7 +39,8 @@ class BmsResult : public QObject
     QList<int> judgementCounts =
       QList<int>(magic_enum::enum_count<Judgement>());
     QList<qint64> randomSequence;
-    support::Sha256 sha256;
+    QString sha256;
+    QString md5;
     int mineHits;
     double points;
     int maxCombo;
@@ -50,6 +51,7 @@ class BmsResult : public QObject
     {
         int64_t id;
         std::string sha256;
+        std::string md5;
         double points;
         double maxPoints;
         int maxHits;
@@ -79,7 +81,8 @@ class BmsResult : public QObject
                        double points,
                        int maxCombo,
                        QList<qint64> randomSequence,
-                       support::Sha256 sha256,
+                       QString sha256,
+                       QString md5,
                        QObject* parent = nullptr);
 
     auto getMaxPoints() const -> double;

@@ -10,33 +10,32 @@
 #include <utility>
 #include <spdlog/spdlog.h>
 
-gameplay_logic::ChartData::
-ChartData(QString title,
-          QString artist,
-          QString subtitle,
-          QString subartist,
-          QString genre,
-          QString stageFile,
-          QString banner,
-          QString backBmp,
-          int rank,
-          double total,
-          int playLevel,
-          int difficulty,
-          bool isRandom,
-          QList<qint64> randomSequence,
-          int normalNoteCount,
-          int lnCount,
-          int mineCount,
-          int64_t length,
-          double bpm,
-          double maxBpm,
-          double minBpm,
-          QString path,
-          int64_t directory,
-          QString sha256,
-          Keymode keymode,
-          QObject* parent)
+gameplay_logic::ChartData::ChartData(QString title,
+                                     QString artist,
+                                     QString subtitle,
+                                     QString subartist,
+                                     QString genre,
+                                     QString stageFile,
+                                     QString banner,
+                                     QString backBmp,
+                                     int rank,
+                                     double total,
+                                     int playLevel,
+                                     int difficulty,
+                                     bool isRandom,
+                                     QList<qint64> randomSequence,
+                                     int normalNoteCount,
+                                     int lnCount,
+                                     int mineCount,
+                                     int64_t length,
+                                     double bpm,
+                                     double maxBpm,
+                                     double minBpm,
+                                     QString path,
+                                     int64_t directory,
+                                     QString sha256,
+                                     Keymode keymode,
+                                     QObject* parent)
   : QObject(parent)
   , title(std::move(title))
   , artist(std::move(artist))
@@ -174,6 +173,11 @@ auto
 gameplay_logic::ChartData::getSha256() const -> const QString&
 {
     return sha256;
+}
+auto
+gameplay_logic::ChartData::getMd5() const -> const QString&
+{
+    return md5;
 }
 
 auto

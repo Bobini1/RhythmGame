@@ -52,20 +52,20 @@ BmsScore::addMiss(HitEvent miss) -> void
     }
     emit missed(miss);
 }
-BmsScore::
-BmsScore(int normalNoteCount,
-         int lnCount,
-         int mineCount,
-         int maxHits,
-         double maxHitValue,
-         QList<rules::BmsGauge*> gauges,
-         QList<qint64> randomSequence,
-         resource_managers::NoteOrderAlgorithm noteOrderAlgorithm,
-         resource_managers::NoteOrderAlgorithm noteOrderAlgorithmP2,
-         QList<int> permutation,
-         uint64_t seed,
-         support::Sha256 sha256,
-         QObject* parent)
+BmsScore::BmsScore(int normalNoteCount,
+                   int lnCount,
+                   int mineCount,
+                   int maxHits,
+                   double maxHitValue,
+                   QList<rules::BmsGauge*> gauges,
+                   QList<qint64> randomSequence,
+                   resource_managers::NoteOrderAlgorithm noteOrderAlgorithm,
+                   resource_managers::NoteOrderAlgorithm noteOrderAlgorithmP2,
+                   QList<int> permutation,
+                   uint64_t seed,
+                   QString sha256,
+                   QString md5,
+                   QObject* parent)
   : QObject(parent)
   , maxPoints(maxHitValue * maxHits)
   , mineCount(mineCount)
@@ -78,6 +78,7 @@ BmsScore(int normalNoteCount,
   , noteOrderAlgorithmP2(noteOrderAlgorithmP2)
   , permutation(std::move(permutation))
   , sha256(std::move(sha256))
+  , md5(std::move(md5))
   , randomSeed(seed)
 {
     for (auto* gauge : this->gauges) {
@@ -195,7 +196,8 @@ BmsScore::getResult() const -> std::unique_ptr<BmsResult>
                                        points,
                                        maxCombo,
                                        randomSequence,
-                                       sha256);
+                                       sha256,
+                                       md5);
 }
 auto
 BmsScore::getReplayData() const -> std::unique_ptr<BmsReplayData>
@@ -212,12 +214,12 @@ BmsScore::getReplayData() const -> std::unique_ptr<BmsReplayData>
 auto
 BmsScore::getGaugeHistory() const -> std::unique_ptr<BmsGaugeHistory>
 {
-    auto gaugeHistory = QVariantMap{};
-    auto gaugeInfo = QVariantMap{};
+    auto gaugeHistory = QHash<QString, QList<rules::GaugeHistoryEntry>>{};
+    auto gaugeInfo = QHash<QString, BmsGaugeInfo>{};
     for (auto* gauge : gauges) {
         gaugeHistory[gauge->objectName()] = gauge->getGaugeHistory();
-        gaugeInfo[gauge->objectName()] = QVariant::fromValue(
-          BmsGaugeInfo{ gauge->getGaugeMax(), gauge->getThreshold() });
+        gaugeInfo[gauge->objectName()] =
+          BmsGaugeInfo{ gauge->getGaugeMax(), gauge->getThreshold() };
     }
     return std::make_unique<BmsGaugeHistory>(std::move(gaugeHistory),
                                              std::move(gaugeInfo));

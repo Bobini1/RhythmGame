@@ -8,16 +8,18 @@
 #include <QIODevice>
 #include <utility>
 namespace gameplay_logic {
-BmsGaugeHistory::BmsGaugeHistory(QVariantMap gaugeHistory,
-                                 QVariantMap gaugeInfo,
-                                 QObject* parent)
+BmsGaugeHistory::BmsGaugeHistory(
+  QHash<QString, QList<rules::GaugeHistoryEntry>> gaugeHistory,
+  QHash<QString, BmsGaugeInfo> gaugeInfo,
+  QObject* parent)
   : QObject(parent)
   , gaugeHistory(std::move(gaugeHistory))
   , gaugeInfo(std::move(gaugeInfo))
 {
 }
 auto
-BmsGaugeHistory::getGaugeHistory() const -> QVariantMap
+BmsGaugeHistory::getGaugeHistory() const
+  -> QHash<QString, QList<rules::GaugeHistoryEntry>>
 {
     return gaugeHistory;
 }
@@ -74,7 +76,7 @@ BmsGaugeHistory::load(db::SqliteCppDb& db, int64_t scoreId)
     return gaugeHistory;
 }
 auto
-BmsGaugeHistory::getGaugeInfo() const -> QVariantMap
+BmsGaugeHistory::getGaugeInfo() const -> QHash<QString, BmsGaugeInfo>
 {
     return gaugeInfo;
 }
