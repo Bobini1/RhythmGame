@@ -86,7 +86,7 @@ Rectangle {
     PlayAreaPopup {
         id: playAreaPopupP2
 
-        property Profile profile: chart.profile2
+        property Profile profile: chart.profile2 || chart.profile1
         themeVars: profile.vars.themeVars[chartFocusScope.screen]
         globalVars: profile.vars.globalVars
 
@@ -107,7 +107,7 @@ Rectangle {
     GaugePopup {
         id: gaugePopupP2
 
-        property Profile profile: chart.profile2
+        property Profile profile: chart.profile2 || chart.profile1
         themeVars: profile.vars.themeVars[chartFocusScope.screen]
 
         onClosed: {
