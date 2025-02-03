@@ -21,13 +21,6 @@
         "default": false
       },
       {
-        "id": "scratchOnRightSide",
-        "name": "Scratch on right side",
-        "description": "Move the scratch to the right side of the play area (player 2 layout)",
-        "type": "boolean",
-        "default": false
-      },
-      {
         "id": "judgeLineThickness",
         "name": "Judge Line Thickness",
         "type": "range",

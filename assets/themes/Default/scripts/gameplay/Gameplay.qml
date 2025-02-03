@@ -78,6 +78,7 @@ Rectangle {
         property Profile profile: chart.profile1
         themeVars: profile.vars.themeVars[chartFocusScope.screen]
         globalVars: profile.vars.globalVars
+        dp: root.isDp
 
         onClosed: {
             root.popup = null;
@@ -161,8 +162,8 @@ Rectangle {
             profile: chart.profile1
             score: chart.score1
             notes: chart.notes1
-            varSuffix: root.isDp ? "1" : ""
-            columns: profileVars.scratchOnRightSide ? [0, 1, 2, 3, 4, 5, 6, 7] : [7, 0, 1, 2, 3, 4, 5, 6]
+            dpSuffix: root.isDp ? "1" : ""
+            columns: root.isDp || !profileVars.scratchOnRightSide ? [7, 0, 1, 2, 3, 4, 5, 6] : [0, 1, 2, 3, 4, 5, 6, 7]
         }
         Loader {
             id: p2SideLoader
@@ -173,11 +174,11 @@ Rectangle {
                 profile: root.isDp ? chart.profile1 : chart.profile2
                 score: root.isDp ? chart.score1 : chart.score2
                 notes: root.isDp ? chart.notes1 : chart.notes2
-                varSuffix: root.isDp ? "2" : ""
+                dpSuffix: root.isDp ? "2" : ""
                 mirrored: !root.isDp
                 columns: {
                     if (root.isDp) {
-                        return profileVars.scratchOnRightSide ? [8, 9, 10, 11, 12, 13, 14, 15] : [15, 8, 9, 10, 11, 12, 13, 14];
+                        return [8, 9, 10, 11, 12, 13, 14, 15];
                     } else {
                         return profileVars.scratchOnRightSide ? [0, 1, 2, 3, 4, 5, 6, 7] : [7, 0, 1, 2, 3, 4, 5, 6];
                     }
@@ -189,7 +190,7 @@ Rectangle {
             required property Profile profile
             required property BmsScore score
             required property BmsNotes notes
-            required property string varSuffix
+            required property string dpSuffix
             required property var columns
             property bool mirrored: false
             readonly property var profileVars: profile.vars.themeVars[chartFocusScope.screen]
@@ -199,7 +200,7 @@ Rectangle {
 
                 columns: playArea.columns
                 vars: side.profileVars
-                varSuffix: side.varSuffix
+                dpSuffix: side.dpSuffix
                 visible: root.customizeMode
                 z: playArea.z + 1
 
@@ -234,8 +235,8 @@ Rectangle {
                     return side.notes.visibleNotes[column];
                 })
                 transform: Scale{ xScale: side.mirrored ? -1 : 1; origin.x: playArea.width / 2 }
-                x: side.profileVars["playAreaX" + side.varSuffix]
-                y: side.profileVars["playAreaY" + side.varSuffix]
+                x: side.profileVars["playAreaX" + side.dpSuffix]
+                y: side.profileVars["playAreaY" + side.dpSuffix]
                 z: side.profileVars.playAreaZ
             }
             LifeBar {
