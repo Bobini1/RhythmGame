@@ -50,12 +50,16 @@ Item {
         color: "transparent"
 
         Binding {
+            delayed: true
             playAreaTemplate.width: {
                 if (!template.borderPressed) {
                     return playAreaTemplate.columns.reduce((a, b) => a + playAreaTemplate.columnSizes[b], 0) + (playAreaTemplate.columns.length - 1) * playAreaTemplate.spacing;
                 }
             }
-            when: !template.borderPressed
+        }
+        Binding {
+            delayed: true
+            playAreaTemplate.height: playAreaTemplate.vars.playAreaHeight
         }
         onClicked: mouse => playAreaTemplate.clicked(mouse)
         onDoubleClicked: mouse => playAreaTemplate.doubleClicked(mouse)
