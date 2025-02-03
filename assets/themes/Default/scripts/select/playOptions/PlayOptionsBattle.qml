@@ -29,7 +29,7 @@ Item {
 
     Side {
         profile: ProfileList.battleProfiles.player2Profile
-        offset: BmsKey.Col11
+        player: 2
 
         TapHandler {
             gesturePolicy: TapHandler.WithinBounds
@@ -49,7 +49,7 @@ Item {
         width: parent.width / 2 - 25
 
         required property Profile profile
-        property int offset: 0
+        property int player: 1
 
         DarkLabel {
             id: p1RandomLabel
@@ -73,8 +73,8 @@ Item {
             anchors.top: p1RandomLabel.bottom
             anchors.topMargin: 20
             anchors.horizontalCenter: p1RandomLabel.horizontalCenter
-            up: BmsKey.Col12 + offset
-            down: BmsKey.Col11 + offset
+            up: BmsKey[`Col${bg.player}2`]
+            down: BmsKey[`Col${bg.player}1`]
             profile: bg.profile
 
             model: [NoteOrderAlgorithm.Normal, NoteOrderAlgorithm.Mirror, NoteOrderAlgorithm.Random, NoteOrderAlgorithm.RandomPlus, NoteOrderAlgorithm.SRandom, NoteOrderAlgorithm.SRandomPlus, NoteOrderAlgorithm.RRandom]
@@ -122,7 +122,7 @@ Item {
             anchors.leftMargin: 20
             width: 360
             height: 220
-            down: BmsKey.Col13 + offset
+            down: BmsKey[`Col${bg.player}3`]
             model: ["AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC"]
             strings: ["ASSISTED EASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC"]
             prop: "gaugeType"
@@ -137,7 +137,7 @@ Item {
             anchors.rightMargin: 20
             width: 360
             height: 220
-            down: BmsKey.Col15 + offset
+            down: BmsKey[`Col${bg.player}5`]
             model: playOptionsBattle.duplicate([HiSpeedFix.Main, HiSpeedFix.Start, HiSpeedFix.Max, HiSpeedFix.Min, HiSpeedFix.Off])
             strings: playOptionsBattle.duplicate(["MAIN BPM", "START BPM", "MAX BPM", "MIN BPM", "OFF"])
             prop: "hiSpeedFix"
