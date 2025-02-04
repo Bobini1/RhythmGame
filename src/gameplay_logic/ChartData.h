@@ -83,6 +83,7 @@ class ChartData : public QObject
               QString path,
               int64_t directory,
               QString sha256,
+              QString md5,
               Keymode keymode,
               QObject* parent = nullptr);
 
@@ -141,6 +142,7 @@ class ChartData : public QObject
         std::string path;
         int64_t directory;
         std::string sha256;
+        std::string md5;
         int keymode;
     };
 

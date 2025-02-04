@@ -64,7 +64,6 @@ BmsScore::BmsScore(int normalNoteCount,
                    QList<int> permutation,
                    uint64_t seed,
                    QString sha256,
-                   QString md5,
                    QObject* parent)
   : QObject(parent)
   , maxPoints(maxHitValue * maxHits)
@@ -78,7 +77,6 @@ BmsScore::BmsScore(int normalNoteCount,
   , noteOrderAlgorithmP2(noteOrderAlgorithmP2)
   , permutation(std::move(permutation))
   , sha256(std::move(sha256))
-  , md5(std::move(md5))
   , randomSeed(seed)
 {
     for (auto* gauge : this->gauges) {

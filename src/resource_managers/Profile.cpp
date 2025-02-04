@@ -58,6 +58,7 @@ Profile::Profile(
     db.execute("CREATE TABLE IF NOT EXISTS score ("
                "id INTEGER PRIMARY KEY,"
                "sha256 TEXT NOT NULL,"
+               "md5 TEXT NOT NULL,"
                "points INTEGER NOT NULL,"
                "max_points INTEGER NOT NULL,"
                "max_hits INTEGER NOT NULL,"

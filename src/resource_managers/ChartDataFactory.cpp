@@ -125,7 +125,8 @@ ChartDataFactory::loadChartData(
     auto length = mfh.maximum_extent().value();
     auto chart = std::string_view{ reinterpret_cast<char*>(mfh.address()),
                                    static_cast<unsigned long>(length) };
-    auto hash = support::sha256(chart);
+    auto sha256 = support::sha256(chart);
+    auto md5 = support::md5(chart);
     auto randomValues = QList<qint64>{};
     auto randomGeneratorRecorder =
       [&randomValues, &randomGenerator](
@@ -242,7 +243,8 @@ ChartDataFactory::loadChartData(
       minBpm.second,
       path,
       directory,
-      QString::fromStdString(hash),
+      QString::fromStdString(sha256),
+      QString::fromStdString(md5),
       keymode);
     auto noteData = makeNotes(calculatedNotesData.visibleNotes,
                               calculatedNotesData.invisibleNotes,

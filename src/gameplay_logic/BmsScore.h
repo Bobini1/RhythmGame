@@ -95,7 +95,6 @@ class BmsScore final : public QObject
       QList<int> permutation,
       uint64_t seed,
       QString sha256,
-      QString md5,
       QObject* parent = nullptr);
 
     auto getMaxPoints() const -> double;

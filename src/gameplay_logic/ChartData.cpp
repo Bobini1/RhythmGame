@@ -34,6 +34,7 @@ gameplay_logic::ChartData::ChartData(QString title,
                                      QString path,
                                      int64_t directory,
                                      QString sha256,
+                                     QString md5,
                                      Keymode keymode,
                                      QObject* parent)
   : QObject(parent)
@@ -61,6 +62,7 @@ gameplay_logic::ChartData::ChartData(QString title,
   , path(std::move(path))
   , directory(directory)
   , sha256(std::move(sha256))
+  , md5(std::move(md5))
   , keymode(keymode)
 {
 }
@@ -132,9 +134,9 @@ gameplay_logic::ChartData::save(db::SqliteCppDb& db) const -> void
       "genre, stage_file, banner, back_bmp, rank, total, play_level, "
       "difficulty, is_random, random_sequence, normal_note_count, ln_count, "
       "mine_count, length, initial_bpm, max_bpm, "
-      "min_bpm, path, chart_directory, directory, sha256, keymode) "
+      "min_bpm, path, chart_directory, directory, sha256, md5, keymode) "
       "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, "
-      "?, ?, ?, ?, ?);");
+      "?, ?, ?, ?, ?, ?);");
     query.reset();
     query.bind(1, title.toStdString());
     query.bind(2, artist.toStdString());
@@ -166,7 +168,8 @@ gameplay_logic::ChartData::save(db::SqliteCppDb& db) const -> void
         query.bind(24, directory);
     }
     query.bind(25, sha256.toStdString());
-    query.bind(26, static_cast<int>(keymode));
+    query.bind(26, md5.toStdString());
+    query.bind(27, static_cast<int>(keymode));
     query.execute();
 }
 auto
@@ -210,6 +213,7 @@ gameplay_logic::ChartData::load(const DTO& chartDataDto)
       QString::fromStdString(chartDataDto.path),
       chartDataDto.directory,
       QString::fromStdString(chartDataDto.sha256),
+      QString::fromStdString(chartDataDto.md5),
       static_cast<Keymode>(chartDataDto.keymode));
 }
 auto

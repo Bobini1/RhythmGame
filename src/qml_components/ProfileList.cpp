@@ -70,7 +70,10 @@ qml_components::ProfileList::ProfileList(
         if (entry.is_directory()) {
             try {
                 auto* profile = new resource_managers::Profile(
-                  entry.path() / "profile.sqlite", themeFamilies, this->avatarPath, this);
+                  entry.path() / "profile.sqlite",
+                  themeFamilies,
+                  this->avatarPath,
+                  this);
                 QQmlEngine::setObjectOwnership(profile,
                                                QQmlEngine::CppOwnership);
                 profiles.append(profile);
@@ -180,7 +183,11 @@ qml_components::ProfileList::removeProfile(resource_managers::Profile* profile)
             &resource_managers::Profile::destroyed,
             this,
             [path = profile->getPath().parent_path(), this] {
-                remove_all(path);
+                auto ec = std::error_code{};
+                remove_all(path, ec);
+                if (ec) {
+                    spdlog::error("Failed to remove profile: {}", ec.message());
+                }
             });
     const auto index = profiles.indexOf(profile);
     profiles.remove(index);

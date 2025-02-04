@@ -340,8 +340,7 @@ getComponentsForPlayer(const ChartFactory::PlayerSpecificData& player,
         : NoteOrderAlgorithm::Normal,
       results[0].columns += results[1].columns,
       results[0].seed,
-      chartData.getSha256(),
-      chartData.getMd5());
+      chartData.getSha256());
     return { std::move(notes),
              results,
              std::move(score),
