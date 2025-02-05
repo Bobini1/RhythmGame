@@ -39,13 +39,13 @@ class Chart final : public QObject
         std::optional<BmsGameReferee> referee;
     };
 
-    Q_PROPERTY(int64_t elapsed READ getElapsed NOTIFY elapsedChanged)
+    Q_PROPERTY(int64_t elapsed READ getElapsed)
     Q_PROPERTY(ChartData* chartData READ getChartData CONSTANT)
     Q_PROPERTY(BmsNotes* notes1 READ getNotes1 CONSTANT)
     Q_PROPERTY(BmsNotes* notes2 READ getNotes2 CONSTANT)
     Q_PROPERTY(BmsScore* score1 READ getScore1 CONSTANT)
     Q_PROPERTY(BmsScore* score2 READ getScore2 CONSTANT)
-    Q_PROPERTY(double position READ getPosition NOTIFY positionChanged)
+    Q_PROPERTY(double position READ getPosition)
     Q_PROPERTY(
       int64_t timeBeforeChartStart READ getTimeBeforeChartStart CONSTANT)
     Q_PROPERTY(int64_t timeAfterChartEnd READ getTimeAfterChartEnd CONSTANT)
@@ -104,7 +104,7 @@ class Chart final : public QObject
 
     Q_INVOKABLE QList<BmsScoreAftermath*> finish();
 
-    auto getElapsed() const -> int64_t;
+    auto getElapsed() -> int64_t;
 
     auto getChartData() const -> ChartData*;
 
@@ -120,7 +120,7 @@ class Chart final : public QObject
 
     auto getProfile2() const -> resource_managers::Profile*;
 
-    auto getPosition() const -> double;
+    auto getPosition() -> double;
 
     auto getTimeBeforeChartStart() const -> int64_t;
 
@@ -129,8 +129,6 @@ class Chart final : public QObject
     auto getBga() const -> qml_components::BgaContainer*;
 
   signals:
-    void elapsedChanged(int64_t delta);
-    void positionChanged(double delta);
     void over();
     void bpmChanged(BpmChange bpmChange);
     void started();

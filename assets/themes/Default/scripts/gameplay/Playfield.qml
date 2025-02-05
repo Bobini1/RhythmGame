@@ -22,6 +22,7 @@ Rectangle {
     required property string noteImage
     required property string mineImage
     required property bool notesStay
+    required property real position
 
     function activateLn(column: int, index: int) {
         let noteColumn = noteColumnRepeater.itemAt(columnsReversedMapping[column]);
@@ -75,6 +76,7 @@ Rectangle {
                 mineImage: playfield.mineImage
                 notesStay: playfield.notesStay
                 width: playfield.columnSizes[playfield.columns[index]]
+                position: playfield.position
             }
         }
     }

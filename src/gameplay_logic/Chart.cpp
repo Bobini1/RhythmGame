@@ -64,8 +64,8 @@ Chart::start()
     }
     emit started();
     propertyUpdateTimer.start(1);
-    connect(
-      &propertyUpdateTimer, &QTimer::timeout, this, &Chart::updateElapsed);
+     connect(
+       &propertyUpdateTimer, &QTimer::timeout, this, &Chart::updateElapsed);
     startTimepoint = std::chrono::system_clock::now();
     updateBpm();
 }
@@ -73,6 +73,9 @@ Chart::start()
 void
 Chart::updateElapsed()
 {
+    if (!propertyUpdateTimer.isActive()) {
+        return;
+    }
     auto offset = std::chrono::system_clock::now() - startTimepoint;
     offset -= std::chrono::duration_cast<decltype(offset)>(
       std::chrono::nanoseconds(timeBeforeChartStart));
@@ -88,7 +91,7 @@ Chart::updateElapsed()
 }
 
 auto
-Chart::getElapsed() const -> int64_t
+Chart::getElapsed() -> int64_t
 {
     return elapsed;
 }
@@ -214,8 +217,9 @@ Chart::getProfile2() const -> resource_managers::Profile*
     return player2->playerData.profile;
 }
 auto
-Chart::getPosition() const -> double
+Chart::getPosition() -> double
 {
+    updateElapsed();
     return position;
 }
 void
@@ -346,7 +350,7 @@ Chart::setElapsed(int64_t newElapsed)
     if (newElapsed != elapsed) {
         const auto delta = newElapsed - elapsed;
         elapsed = newElapsed;
-        emit elapsedChanged(delta);
+        //emit elapsedChanged(delta);
     }
 }
 void
@@ -355,7 +359,7 @@ Chart::setPosition(double newPosition)
     if (newPosition != position) {
         const auto delta = newPosition - position;
         position = newPosition;
-        emit positionChanged(delta);
+        //emit positionChanged(delta);
     }
 }
 auto

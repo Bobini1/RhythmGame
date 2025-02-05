@@ -43,6 +43,16 @@ Rectangle {
     Component.onDestruction: {
         chart.destroy();
     }
+    Text {
+        text: "fps: " + frameAnimation.fps.toFixed(0)
+        color: "white"
+    }
+
+    FrameAnimation {
+        id: frameAnimation
+        property real fps: smoothFrameTime > 0 ? (1.0 / smoothFrameTime) : 0
+        running: true
+    }
 
     Timer {
         id: poorLayerTimer
