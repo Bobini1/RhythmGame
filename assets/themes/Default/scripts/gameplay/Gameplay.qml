@@ -343,6 +343,7 @@ Rectangle {
                     color: "white"
                     font.pixelSize: 300
                     fontSizeMode: Text.Fit
+                    renderType: Text.NativeRendering
                     text: {
                         let txt = "";
                         for (let judgement of ["perfect", "great", "good", "bad", "poor", "emptyPoor"]) {
