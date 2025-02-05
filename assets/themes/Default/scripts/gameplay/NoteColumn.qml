@@ -5,7 +5,7 @@ import RhythmGameQml
 Item {
     id: column
 
-    property real chartPosition: -position * column.heightMultiplier
+    property real chartPosition: -chart.position * column.heightMultiplier
     property string color
     property int erasedNoteIndex: 0
     property real heightMultiplier: 20
@@ -18,7 +18,6 @@ Item {
     property bool notesStay
     property string noteImage
     property string mineImage
-    property real position
 
     function activateLn(index: int) {
         let item = noteRepeater.itemAt(index - column.erasedNoteIndex);
@@ -112,7 +111,7 @@ Item {
                             if (!noteImg.held) {
                                 return root.iniImagesUrl + "notes/" + column.noteImage + "/ln_body_inactive_" + column.color;
                             }
-                            let flashing = Math.abs(playArea.position % 0.5) > 0.25;
+                            let flashing = Math.abs(chart.position % 0.5) > 0.25;
                             return root.iniImagesUrl + "notes/" + column.noteImage + "/ln_body_" + (flashing ? "flash" : "active") + "_" + column.color;
                         }
                         width: noteImg.width
@@ -122,59 +121,63 @@ Item {
             }
         }
     }
-    onPositionChanged: {
-        let count = 0;
-        let chartPosition = position;
-        while (column.erasedNoteIndex + count < column.notes.length) {
-            let note = column.notes[column.erasedNoteIndex + count];
-            if (note.time.position > chartPosition) {
-                break;
+    Connections {
+        function onPositionChanged(_) {
+            let count = 0;
+            let chartPosition = chart.position;
+            while (column.erasedNoteIndex + count < column.notes.length) {
+                let note = column.notes[column.erasedNoteIndex + count];
+                if (note.time.position > chartPosition) {
+                    break;
+                }
+                if (column.missedLnEnds[column.erasedNoteIndex + count]) {
+                    notesModel.remove(count, 1);
+                    column.erasedNoteIndex += 1;
+                    column.visibleNoteIndex -= 1;
+                    continue;
+                }
+                if (!noteRepeater.itemAt(count).visible) {
+                    notesModel.remove(count, 1);
+                    column.erasedNoteIndex += 1;
+                    column.visibleNoteIndex -= 1;
+                    continue;
+                }
+                if (note.type === Note.Type.Landmine) {
+                    notesModel.remove(count, 1);
+                    column.erasedNoteIndex += 1;
+                    column.visibleNoteIndex -= 1;
+                    continue;
+                }
+                let item = noteRepeater.itemAt(count);
+                if (item.state !== "reparented" && column.notesStay) {
+                    if (column.chartPosition - item.height / 2 < item.y) {
+                        item.y = column.chartPosition - item.height / 2;
+                        item.state = "reparented";
+                        item.z = 2;
+                        item.anchors.bottom = noteAnchor.bottom;
+                        item.anchors.bottomMargin = Qt.binding(() => -column.noteHeight / 3);
+                    }
+                }
+                count++;
             }
-            if (column.missedLnEnds[column.erasedNoteIndex + count]) {
-                notesModel.remove(count, 1);
-                column.erasedNoteIndex += 1;
-                column.visibleNoteIndex -= 1;
-                continue;
-            }
-            if (!noteRepeater.itemAt(count).visible) {
-                notesModel.remove(count, 1);
-                column.erasedNoteIndex += 1;
-                column.visibleNoteIndex -= 1;
-                continue;
-            }
-            if (note.type === Note.Type.Landmine) {
-                notesModel.remove(count, 1);
-                column.erasedNoteIndex += 1;
-                column.visibleNoteIndex -= 1;
-                continue;
-            }
-            let item = noteRepeater.itemAt(count);
-            if (item.state !== "reparented" && column.notesStay) {
-                if (column.chartPosition - item.height / 2 < item.y) {
-                    item.y = column.chartPosition - item.height / 2;
-                    item.state = "reparented";
-                    item.z = 2;
-                    item.anchors.bottom = noteAnchor.bottom;
-                    item.anchors.bottomMargin = Qt.binding(() => -column.noteHeight / 3);
+            column.visibleNoteIndex = Math.max(0, column.visibleNoteIndex - count);
+            let visibleNoteIndex = column.visibleNoteIndex;
+            count = 0;
+            while (visibleNoteIndex + count < noteRepeater.count) {
+                let noteImage = noteRepeater.itemAt(visibleNoteIndex + count);
+                let globalPos = noteImage.mapToItem(playObjectContainer, 0, column.noteHeight);
+                if (globalPos.y > 0) {
+                    noteImage.visible = true;
+                    noteImage.width = Qt.binding(() => column.width);
+                    noteImage.height = Qt.binding(() => column.noteHeight);
+                    count++;
+                } else {
+                    break;
                 }
             }
-            count++;
+            column.visibleNoteIndex += count;
         }
-        column.visibleNoteIndex = Math.max(0, column.visibleNoteIndex - count);
-        let visibleNoteIndex = column.visibleNoteIndex;
-        count = 0;
-        while (visibleNoteIndex + count < noteRepeater.count) {
-            let noteImage = noteRepeater.itemAt(visibleNoteIndex + count);
-            let globalPos = noteImage.mapToItem(playObjectContainer, 0, column.noteHeight);
-            if (globalPos.y > 0) {
-                noteImage.visible = true;
-                noteImage.width = Qt.binding(() => column.width);
-                noteImage.height = Qt.binding(() => column.noteHeight);
-                count++;
-            } else {
-                break;
-            }
-        }
-        column.visibleNoteIndex += count;
+
+        target: chart
     }
 }

@@ -32,27 +32,6 @@ Item {
 
     height: playArea.vars.playAreaHeight
     width: playfield.width
-    property real position: 0
-
-    Connections {
-        function onStarted() {
-            notesAnimator.running = true;
-        }
-        function onOver() {
-            notesAnimator.running = false;
-        }
-
-        target: chart
-    }
-
-    FrameAnimation {
-        id: notesAnimator
-
-        running: false
-        onTriggered: {
-            playArea.position = chart.position;
-        }
-    }
 
     Item {
         id: playObjectContainer
@@ -98,8 +77,7 @@ Item {
             barLines: (chart.notes1 || chart.notes2).barLines
             heightMultiplier: playArea.heightMultiplier
             width: parent.width
-            position: playArea.position
-            y: -playArea.vars.thickness / 2 + playArea.position * playArea.heightMultiplier + parent.height * (1 - playArea.globalVars.liftOn * playArea.globalVars.liftRatio)
+            y: -playArea.vars.thickness / 2 + chart.position * playArea.heightMultiplier + parent.height * (1 - playArea.globalVars.liftOn * playArea.globalVars.liftRatio)
             z: 2
         }
         Playfield {
@@ -114,8 +92,7 @@ Item {
             noteImage: playArea.vars.notes
             mineImage: playArea.vars.mine
             notesStay: playArea.vars.notesStay
-            position: playArea.position
-            y: -playArea.vars.thickness / 2 + playArea.position * playArea.heightMultiplier + parent.height * (1 - playArea.globalVars.liftOn * playArea.globalVars.liftRatio)
+            y: -playArea.vars.thickness / 2 + chart.position * playArea.heightMultiplier + parent.height * (1 - playArea.globalVars.liftOn * playArea.globalVars.liftRatio)
             z: 3
         }
         Row {
@@ -159,7 +136,7 @@ Item {
             id: glow
 
             anchors.bottom: judgeLine.bottom
-            opacity: (Math.abs(playArea.position % 1) > 0.5 ? Math.abs(playArea.position % 1) : 1 - Math.abs(playArea.position % 1)) * 0.2 + 0.1
+            opacity: (Math.abs(chart.position % 1) > 0.5 ? Math.abs(chart.position % 1) : 1 - Math.abs(chart.position % 1)) * 0.2 + 0.1
             source: root.imagesUrl + "glow/" + playArea.vars.glow
             width: parent.width
             z: 1
