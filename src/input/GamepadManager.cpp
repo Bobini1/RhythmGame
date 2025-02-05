@@ -23,7 +23,7 @@ GamepadManager(QObject* parent)
       std::chrono::system_clock::now().time_since_epoch());
     startTime = (now - std::chrono::milliseconds{ SDL_GetTicks64() }).count();
 
-    loopTimer.start(1);
+    loopTimer.start(0);
 }
 
 void
