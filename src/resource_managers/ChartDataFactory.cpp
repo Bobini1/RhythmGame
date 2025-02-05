@@ -60,19 +60,14 @@ ChartDataFactory::makeNotes(
     auto bpmChangesQ = QVector<gameplay_logic::BpmChange>{};
     for (const auto& bpmChange : bpmChanges) {
         bpmChangesQ.append(
-          { { .timestamp =
-                std::chrono::duration_cast<std::chrono::milliseconds>(
-                  bpmChange.first.timestamp)
-                  .count(),
+          { { .timestamp = bpmChange.first.timestamp.count(),
               .position = bpmChange.first.position },
             bpmChange.second });
     }
     auto barLinesQ = QVector<gameplay_logic::Time>{};
     for (const auto& barLine : barLines) {
         barLinesQ.append(
-          { std::chrono::duration_cast<std::chrono::milliseconds>(
-              barLine.timestamp)
-              .count(),
+          { barLine.timestamp.count(),
             barLine.position });
     }
     return std::make_unique<gameplay_logic::BmsNotes>(
@@ -105,8 +100,8 @@ ChartDataFactory::convertToQVector(
                 break;
         }
         columnNotes.append(gameplay_logic::Note{
-          { std::chrono::duration_cast<std::chrono::milliseconds>(
-              note.time.timestamp)
+          {
+              note.time.timestamp
               .count(),
             note.time.position },
           { note.snap.numerator, note.snap.denominator },
