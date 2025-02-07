@@ -10,7 +10,7 @@
 #include "ChartData.h"
 #include "BmsScoreAftermath.h"
 #include "qml_components/Bga.h"
-#include "resource_managers/Vars.h"
+#include "NoteState.h"
 
 #include <QTimer>
 #include <qfuture.h>
@@ -19,6 +19,7 @@ namespace resource_managers {
 class Profile;
 } // namespace resource_managers
 namespace gameplay_logic {
+class GameplayState;
 
 class Chart final : public QObject
 {
@@ -29,6 +30,7 @@ class Chart final : public QObject
     {
         BmsNotes* notes;
         BmsScore* score;
+        GameplayState* state;
         QPointer<resource_managers::Profile> profile;
     };
 
@@ -52,6 +54,8 @@ class Chart final : public QObject
     Q_PROPERTY(qml_components::BgaContainer* bga READ getBga NOTIFY loaded)
     Q_PROPERTY(resource_managers::Profile* profile1 READ getProfile1 CONSTANT)
     Q_PROPERTY(resource_managers::Profile* profile2 READ getProfile2 CONSTANT)
+    Q_PROPERTY(gameplay_logic::GameplayState* state1 READ getState1 CONSTANT)
+    Q_PROPERTY(gameplay_logic::GameplayState* state2 READ getState2 CONSTANT)
 
     QTimer propertyUpdateTimer;
     std::chrono::system_clock::time_point startTimepoint;
@@ -66,6 +70,7 @@ class Chart final : public QObject
     std::optional<LoadedPlayerSpecificComponents> player1;
     std::optional<LoadedPlayerSpecificComponents> player2;
     std::vector<LoadedPlayerSpecificComponents*> players;
+
     int64_t elapsed{};
     int64_t timeBeforeChartStart{};
     int64_t timeAfterChartEnd{};
@@ -116,6 +121,10 @@ class Chart final : public QObject
 
     auto getScore2() const -> BmsScore*;
 
+    auto getState1() -> GameplayState*;
+
+    auto getState2() -> GameplayState*;
+
     auto getProfile1() const -> resource_managers::Profile*;
 
     auto getProfile2() const -> resource_managers::Profile*;
@@ -127,6 +136,7 @@ class Chart final : public QObject
     auto getTimeAfterChartEnd() const -> int64_t;
 
     auto getBga() const -> qml_components::BgaContainer*;
+
 
   signals:
     void elapsedChanged(int64_t delta);

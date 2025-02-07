@@ -140,8 +140,6 @@ qt_add_library(RhythmGame_lib OBJECT ${utf8Manifest} src/db/SqliteCppDb.cpp src/
         src/qml_components/FileQuery.h
         src/qml_components/Bga.cpp
         src/qml_components/Bga.h
-        src/gameplay_logic/MineHit.cpp
-        src/gameplay_logic/MineHit.h
         src/gameplay_logic/rules/CnHitRules.cpp
         src/gameplay_logic/rules/CnHitRules.h
         src/qml_components/ThemeFamily.cpp
@@ -168,6 +166,8 @@ qt_add_library(RhythmGame_lib OBJECT ${utf8Manifest} src/db/SqliteCppDb.cpp src/
         src/resource_managers/GaugeFactory.h
         src/support/GeneratePermutation.cpp
         src/support/GeneratePermutation.h
+        src/gameplay_logic/NoteState.cpp
+        src/gameplay_logic/NoteState.h
 )
 
 find_package(Threads REQUIRED)

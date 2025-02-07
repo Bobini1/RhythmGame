@@ -31,10 +31,10 @@ class StandardBmsHitRules : public BmsHitRules
                         std::chrono::nanoseconds hitOffset)
       -> std::optional<HitResult> override;
 
-    auto getMissesAndLnEndHits(std::span<NoteType> notes,
-                               int& currentNoteIndex,
-                               std::chrono::nanoseconds offsetFromStart)
-      -> std::pair<std::vector<MissData>, std::vector<HitResult>> override;
+    auto getMisses(std::span<NoteType> notes,
+                   int& currentNoteIndex,
+                   std::chrono::nanoseconds offsetFromStart)
+      -> std::vector<MissData> override;
     auto mineHit(std::span<NoteType> notes,
                  int currentNoteIndex,
                  std::chrono::nanoseconds offsetFromStart)

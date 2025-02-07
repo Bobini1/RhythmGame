@@ -27,11 +27,13 @@ Chart::Chart(QFuture<std::vector<BmsGameReferee>> refereesFuture,
     if (this->player1.has_value()) {
         this->player1->playerData.notes->setParent(this);
         this->player1->playerData.score->setParent(this);
+        this->player1->playerData.state->setParent(this);
         players.push_back(&this->player1.value());
     }
     if (this->player2.has_value()) {
         this->player2->playerData.notes->setParent(this);
         this->player2->playerData.score->setParent(this);
+        this->player2->playerData.state->setParent(this);
         players.push_back(&this->player2.value());
     }
     chartData->setParent(this);
@@ -118,19 +120,21 @@ Chart::passKey(input::BmsKey key, const EventType eventType, const int64_t time)
         if (eventType == EventType::KeyPress) {
             if (index == 0 && player1 || index == 1 && player2 ||
                 isDp(chartData->getKeymode())) {
-                player.playerData.score->sendVisualOnlyTap(
+                player.playerData.score->addHit(
                   { static_cast<int>(key),
                     std::nullopt,
                     offset.count(),
-                    std::nullopt });
+                    std::nullopt,
+                    HitEvent::HitType::NothingHit });
             }
         } else {
             if (index == 0 && player1 || index == 1 && player2) {
-                player.playerData.score->sendVisualOnlyRelease(
+                player.playerData.score->addHit(
                   { static_cast<int>(key),
                     std::nullopt,
                     offset.count(),
-                    std::nullopt });
+                    std::nullopt,
+                    HitEvent::HitType::NothingRelease });
             }
         }
     } else {
@@ -161,7 +165,7 @@ Chart::getNotes1() const -> BmsNotes*
 auto
 Chart::getNotes2() const -> BmsNotes*
 {
-    if (!player2.has_value()) {
+    if (!player2) {
         return nullptr;
     }
     return player2->playerData.notes;
@@ -177,10 +181,26 @@ Chart::getScore1() const -> BmsScore*
 auto
 Chart::getScore2() const -> BmsScore*
 {
-    if (!player2.has_value()) {
+    if (!player2) {
         return nullptr;
     }
     return player2->playerData.score;
+}
+auto
+Chart::getState1() -> GameplayState*
+{
+    if (!player1) {
+        return nullptr;
+    }
+    return player1->playerData.state;
+}
+auto
+Chart::getState2() -> GameplayState*
+{
+    if (!player2) {
+        return nullptr;
+    }
+    return player2->playerData.state;
 }
 void
 Chart::updateBpm()

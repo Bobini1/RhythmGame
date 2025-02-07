@@ -23,17 +23,26 @@ HitEvent::getColumn() const -> int
 HitEvent::HitEvent(int column,
                    std::optional<int> noteIndex,
                    DeltaTime offsetFromStart,
-                   std::optional<BmsPoints> points)
+                   std::optional<BmsPoints> points,
+                   HitType type,
+                   Action action)
   : offsetFromStart(offsetFromStart)
   , points(points)
   , noteIndex(noteIndex)
   , column(column)
+  , type(type)
+  , action(action)
 {
 }
 auto
 HitEvent::getNoteIndex() const -> int
 {
     return noteIndex.value_or(-1);
+}
+auto
+HitEvent::getType() const -> HitType
+{
+    return type;
 }
 auto
 HitEvent::getPointsOptional() const -> std::optional<BmsPoints>

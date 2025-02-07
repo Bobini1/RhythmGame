@@ -269,6 +269,7 @@ loadBga(
 struct RandomizedData
 {
     std::unique_ptr<gameplay_logic::BmsNotes> notes;
+    std::unique_ptr<gameplay_logic::GameplayState> state;
     std::array<support::ShuffleResult, 2> shuffleResults;
     std::unique_ptr<gameplay_logic::BmsScore> score;
     std::array<std::vector<charts::gameplay_models::BmsNotesData::Note>, 16>
@@ -326,6 +327,17 @@ getComponentsForPlayer(const ChartFactory::PlayerSpecificData& player,
     // TODO: Simplify this. Don't convert bpmChanges twice for two players.
     auto notes = ChartDataFactory::makeNotes(
       visibleNotes, invisibleNotes, notesData.bpmChanges, notesData.barLines);
+    auto notesStates = QList<gameplay_logic::ColumnState*>{};
+    for (const auto& column : notes->getVisibleNotes()) {
+        auto notes = std::ranges::to<QList<gameplay_logic::NoteState>>(column);
+        notesStates.append(new gameplay_logic::ColumnState(std::move(notes)));
+    }
+    auto barLineStates = std::ranges::to<QList<gameplay_logic::BarLineState>{}>(
+      notes->getBarLines());
+    auto barLinesState =
+      new gameplay_logic::BarLinesState(std::move(barLineStates));
+    auto state =
+      new gameplay_logic::GameplayState(std::move(notesStates), barLinesState);
     auto score = std::make_unique<gameplay_logic::BmsScore>(
       chartData.getNormalNoteCount(),
       chartData.getLnCount(),
@@ -342,6 +354,7 @@ getComponentsForPlayer(const ChartFactory::PlayerSpecificData& player,
       results[0].seed,
       chartData.getSha256());
     return { std::move(notes),
+             state,
              results,
              std::move(score),
              std::move(visibleNotes),

@@ -10,7 +10,6 @@
 #include "BmsResult.h"
 #include "BmsGaugeHistory.h"
 #include "BmsReplayData.h"
-#include "MineHit.h"
 #include "resource_managers/Vars.h"
 
 namespace gameplay_logic {
@@ -44,14 +43,7 @@ class BmsScore final : public QObject
     int normalNoteCount;
     int lnCount;
     int maxHits;
-    QList<HitEvent> misses;
-    QList<HitEvent> hitsWithPoints;
-    QList<HitEvent> hitsWithoutPoints;
-    QList<HitEvent> releasesWithoutPoints;
-    QList<MineHit> mineHits;
-    QList<HitEvent> lnEndHits;
-    QList<HitEvent> lnEndMisses;
-    QList<HitEvent> lnEndSkips;
+    QList<HitEvent> hits;
     QList<rules::BmsGauge*> gauges;
     QList<int> judgementCounts =
       QList<int>(magic_enum::enum_count<Judgement>());
@@ -70,18 +62,10 @@ class BmsScore final : public QObject
     void increaseCombo();
 
   public:
-    auto addNoteHit(HitEvent tap) -> void;
-    // for when the chart isn't loaded yet
-    auto sendVisualOnlyTap(HitEvent tap) -> void;
-    auto sendVisualOnlyRelease(HitEvent release) -> void;
-    auto addEmptyHit(HitEvent tap) -> void;
-    auto addEmptyRelease(HitEvent release) -> void;
-    void addMiss(HitEvent misses);
-    void addMineHit(MineHit mineHits);
-    void addLnEndHit(HitEvent lnEndHit);
-    void addLnEndMiss(HitEvent lnEndMiss);
-    void addLnEndSkip(HitEvent lnEndSkips);
+    auto addHit(HitEvent tap) -> void;
 
+    auto addNoteHit(HitEvent tap) -> void;
+    auto addMiss(HitEvent miss) -> void;
     explicit BmsScore(
       int normalNoteCount,
       int lnCount,
@@ -104,6 +88,7 @@ class BmsScore final : public QObject
     auto getMineCount() const -> int;
     auto getPoints() const -> double;
     auto getJudgementCounts() const -> QVector<int>;
+    auto sendVisualOnlyTap(HitEvent tap) -> void;
     auto getCombo() const -> int;
     auto getMaxCombo() const -> int;
     auto getMineHits() const -> int;
@@ -125,14 +110,7 @@ class BmsScore final : public QObject
     void comboChanged();
     void maxComboChanged();
 
-    void missed(HitEvent misses);
-    void mineHit(MineHit mineHits);
-    void emptyHit(HitEvent hit);
-    void emptyRelease(HitEvent release);
-    void noteHit(HitEvent hit);
-    void lnEndHit(HitEvent lnEndHit);
-    void lnEndMissed(HitEvent lnEndMiss);
-    void lnEndSkipped(HitEvent lnEndSkip);
+    void hit(HitEvent hit);
 
     void pressed(int column);
     void released(int column);

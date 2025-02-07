@@ -19,8 +19,8 @@ gameplay_logic::rules::StandardBmsHitRules::visibleNoteHit(
         if (hit) {
             continue;
         }
-        if (std::holds_alternative<rules::BmsHitRules::Mine>(*iter) ||
-            std::holds_alternative<rules::BmsHitRules::LnEnd>(*iter)) {
+        if (std::holds_alternative<Mine>(*iter) ||
+            std::holds_alternative<LnEnd>(*iter)) {
             continue;
         }
         auto noteTime = std::visit([](auto& note) { return note.time; }, *iter);
@@ -50,17 +50,16 @@ gameplay_logic::rules::StandardBmsHitRules::visibleNoteHit(
     return emptyPoor;
 }
 auto
-gameplay_logic::rules::StandardBmsHitRules::getMissesAndLnEndHits(
+gameplay_logic::rules::StandardBmsHitRules::getMisses(
   std::span<NoteType> notes,
   int& currentNoteIndex,
   std::chrono::nanoseconds offsetFromStart)
-  -> std::pair<std::vector<MissData>, std::vector<HitResult>>
+  -> std::vector<MissData>
 {
     auto misses = std::vector<MissData>{};
-    auto lnEndHits = std::vector<HitResult>{};
     notes = notes.subspan(currentNoteIndex);
     auto upperBound = timingWindows.rbegin()->first.upper();
-    for (auto iter = notes.begin(); iter < notes.end(); iter++) {
+    for (auto iter = notes.begin(); iter < notes.end(); ++iter) {
         auto& hit =
           std::visit([](auto& note) -> bool& { return note.hit; }, *iter);
         if (hit) {
@@ -71,26 +70,12 @@ gameplay_logic::rules::StandardBmsHitRules::getMissesAndLnEndHits(
         if (offsetFromStart < noteTime + upperBound) {
             break;
         }
-        if (std::holds_alternative<rules::BmsHitRules::Mine>(*iter)) {
-            currentNoteIndex++;
-            continue;
-        }
-        if (std::holds_alternative<rules::BmsHitRules::LnEnd>(*iter) &&
-            offsetFromStart >= noteTime) {
-            auto result =
-              timingWindows.find(std::chrono::nanoseconds{ 0 })->second;
-            hit = true;
-            lnEndHits.emplace_back(HitResult{
-              BmsPoints(hitValueFactory(std::chrono::nanoseconds{ 0 }),
-                        result,
-                        0,
-                        /*noteRemoved=*/true),
-              static_cast<int>(iter - notes.begin() + currentNoteIndex) });
+        if (std::holds_alternative<Mine>(*iter)) {
             currentNoteIndex++;
             continue;
         }
         auto lnEndSkip = std::optional<BmsPoints>{};
-        if (std::holds_alternative<rules::BmsHitRules::LnBegin>(*iter)) {
+        if (std::holds_alternative<LnBegin>(*iter)) {
             auto nextNote = std::next(iter);
             auto nextNoteTime =
               std::visit([](auto& note) { return note.time; }, *nextNote);
@@ -109,7 +94,7 @@ gameplay_logic::rules::StandardBmsHitRules::getMissesAndLnEndHits(
                             lnEndSkip);
         currentNoteIndex++;
     }
-    return { std::move(misses), std::move(lnEndHits) };
+    return misses;
 }
 auto
 gameplay_logic::rules::StandardBmsHitRules::invisibleNoteHit(
@@ -156,7 +141,7 @@ gameplay_logic::rules::StandardBmsHitRules::skipInvisible(
     }
 }
 gameplay_logic::rules::StandardBmsHitRules::StandardBmsHitRules(
-  gameplay_logic::rules::TimingWindows timingWindows,
+  TimingWindows timingWindows,
   std::function<double(std::chrono::nanoseconds)> hitValueFactory)
   : timingWindows(std::move(timingWindows))
   , hitValueFactory(std::move(hitValueFactory))
@@ -192,10 +177,10 @@ gameplay_logic::rules::StandardBmsHitRules::mineHit(
         if (hit) {
             continue;
         }
-        if (!std::holds_alternative<rules::BmsHitRules::Mine>(*iter)) {
+        if (!std::holds_alternative<Mine>(*iter)) {
             continue;
         }
-        auto& mine = std::get<rules::BmsHitRules::Mine>(*iter);
+        auto& mine = std::get<Mine>(*iter);
         auto noteTime = mine.time;
         auto hitOffset = offsetFromStart - noteTime;
         if (hitOffset <= windowLow) {
@@ -240,12 +225,12 @@ gameplay_logic::rules::StandardBmsHitRules::lnReleaseHit(
         if (hit) {
             continue;
         }
-        if (!std::holds_alternative<rules::BmsHitRules::LnEnd>(*iter)) {
+        if (!std::holds_alternative<LnEnd>(*iter)) {
             return std::nullopt;
         }
-        auto& lnEnd = std::get<rules::BmsHitRules::LnEnd>(*iter);
+        auto& lnEnd = std::get<LnEnd>(*iter);
         auto noteTime = lnEnd.time;
-        auto& lnBegin = std::get<rules::BmsHitRules::LnBegin>(*(iter - 1));
+        auto& lnBegin = std::get<LnBegin>(*(iter - 1));
         if (!lnBegin.hit) {
             continue;
         }
