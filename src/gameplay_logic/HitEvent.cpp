@@ -45,6 +45,11 @@ HitEvent::getType() const -> HitType
     return type;
 }
 auto
+HitEvent::getAction() const -> Action
+{
+    return action;
+}
+auto
 HitEvent::getPointsOptional() const -> std::optional<BmsPoints>
 {
     return points;
@@ -73,7 +78,7 @@ operator>>(QDataStream& stream, HitEvent& tap) -> QDataStream&
     return stream;
 }
 auto
-HitEvent::getHitOffset() const -> HitEvent::DeltaTime
+HitEvent::getHitOffset() const -> DeltaTime
 {
     if (points.has_value()) {
         return offsetFromStart + points->getDeviation();

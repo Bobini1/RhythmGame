@@ -28,7 +28,7 @@ class BmsScore final : public QObject
     Q_PROPERTY(int maxCombo READ getMaxCombo NOTIFY maxComboChanged)
     Q_PROPERTY(QVector<int> judgementCounts READ getJudgementCounts NOTIFY
                  judgementCountsChanged)
-    Q_PROPERTY(int mineHits READ getMineHits NOTIFY mineHit)
+    Q_PROPERTY(int mineHits READ getMineHits NOTIFY mineHitsChanged)
     Q_PROPERTY(QList<rules::BmsGauge*> gauges READ getGauges CONSTANT)
     Q_PROPERTY(QList<qint64> randomSequence READ getRandomSequence CONSTANT)
     Q_PROPERTY(resource_managers::note_order_algorithm::NoteOrderAlgorithm
@@ -56,6 +56,7 @@ class BmsScore final : public QObject
     double points = 0;
     int combo = 0;
     int maxCombo = 0;
+    int mineHits = 0;
     uint64_t randomSeed;
 
     void resetCombo();
@@ -63,9 +64,6 @@ class BmsScore final : public QObject
 
   public:
     auto addHit(HitEvent tap) -> void;
-
-    auto addNoteHit(HitEvent tap) -> void;
-    auto addMiss(HitEvent miss) -> void;
     explicit BmsScore(
       int normalNoteCount,
       int lnCount,
@@ -88,7 +86,8 @@ class BmsScore final : public QObject
     auto getMineCount() const -> int;
     auto getPoints() const -> double;
     auto getJudgementCounts() const -> QVector<int>;
-    auto sendVisualOnlyTap(HitEvent tap) -> void;
+    void sendVisualOnlyTap(HitEvent tap);
+    void sendVisualOnlyRelease(HitEvent release);
     auto getCombo() const -> int;
     auto getMaxCombo() const -> int;
     auto getMineHits() const -> int;
@@ -109,6 +108,7 @@ class BmsScore final : public QObject
     void judgementCountsChanged();
     void comboChanged();
     void maxComboChanged();
+    void mineHitsChanged();
 
     void hit(HitEvent hit);
 

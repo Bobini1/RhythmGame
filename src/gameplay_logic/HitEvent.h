@@ -65,6 +65,7 @@ class HitEvent
     // if the tap did not hit a note, this returns -1
     auto getNoteIndex() const -> int;
     auto getType() const -> HitType;
+    auto getAction() const -> Action;
 
     auto operator>(const HitEvent& other) const
     {

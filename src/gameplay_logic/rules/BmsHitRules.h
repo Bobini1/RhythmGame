@@ -62,12 +62,12 @@ class BmsHitRules
     virtual ~BmsHitRules() = default;
 
     virtual auto visibleNoteHit(std::span<NoteType> notes,
-                                int currentNoteIndex,
+                                int& currentNoteIndex,
                                 std::chrono::nanoseconds hitOffset)
       -> std::optional<HitResult> = 0;
 
     virtual auto getMisses(std::span<NoteType> notes,
-                                       int& currentNoteIndex,
+                                       int currentNoteIndex,
                                        std::chrono::nanoseconds offsetFromStart)
       -> std::vector<MissData> = 0;
 

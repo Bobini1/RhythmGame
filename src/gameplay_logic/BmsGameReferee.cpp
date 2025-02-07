@@ -113,7 +113,6 @@ gameplay_logic::BmsGameReferee::addVisibleNote(
         }
     } else if (note.noteType ==
                charts::gameplay_models::BmsNotesData::NoteType::Landmine) {
-        auto idx = std::size_t{ 0 };
         auto penalty = -note.sound / 2;
         visibleNotes[i].emplace_back(rules::BmsHitRules::Mine{
           note.time.timestamp, static_cast<double>(penalty) });
@@ -198,13 +197,10 @@ gameplay_logic::BmsGameReferee::update(std::chrono::nanoseconds offsetFromStart,
             }
         }
     }
-    std::sort(
-      events.begin(), events.end(), [](const auto& left, const auto& right) {
-          auto getOffset = [](const auto& event) {
-              return event.getHitOffset();
-          };
-          return std::visit(getOffset, left.second) <
-                 std::visit(getOffset, right.second);
+    std::ranges::sort(
+      events, [](const auto& left, const auto& right) {
+          return left.getHitOffset() <
+                 right.getHitOffset();
       });
     for (const auto& event : events) {
         if (event.getType() == HitEvent::HitType::Mine && mineHitSound != nullptr) {

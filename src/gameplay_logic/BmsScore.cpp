@@ -8,47 +8,6 @@
 #include <spdlog/spdlog.h>
 
 namespace gameplay_logic {
-auto
-BmsScore::addNoteHit(HitEvent tap) -> void
-{
-    auto points = *tap.getPointsOptional();
-    hits.emplace_back(tap);
-    this->points += points.getValue();
-    auto judgement = points.getJudgement();
-    judgementCounts[static_cast<int>(judgement)]++;
-    emit judgementCountsChanged();
-    for (auto* gauge : gauges) {
-        gauge->addHit(std::chrono::nanoseconds(tap.getOffsetFromStart()),
-                      std::chrono::nanoseconds(points.getDeviation()));
-    }
-    if (points.getValue() != 0.0) {
-        emit pointsChanged();
-    }
-    if (judgement == Judgement::Bad) {
-        resetCombo();
-    } else if (judgement != Judgement::EmptyPoor) {
-        increaseCombo();
-    }
-}
-auto
-BmsScore::addMiss(HitEvent miss) -> void
-{
-    resetCombo();
-    auto newPointSum = 0.0;
-    hits.append(miss);
-    points += miss.getPointsOptional()->getValue();
-    newPointSum += miss.getPointsOptional()->getValue();
-    if (newPointSum != 0) {
-        emit pointsChanged();
-    }
-    judgementCounts[static_cast<int>(Judgement::Poor)]++;
-    emit judgementCountsChanged();
-    for (auto* gauge : gauges) {
-        gauge->addHit(
-          std::chrono::nanoseconds(miss.getOffsetFromStart()),
-          std::chrono::nanoseconds(miss.getPointsOptional()->getDeviation()));
-    }
-}
 BmsScore::BmsScore(int normalNoteCount,
                    int lnCount,
                    int mineCount,
@@ -100,10 +59,10 @@ BmsScore::getJudgementCounts() const -> QList<int>
 {
     return judgementCounts;
 }
-auto
-BmsScore::sendVisualOnlyTap(HitEvent tap) -> void
+void
+BmsScore::sendVisualOnlyTap(HitEvent tap)
 {
-    emit pressed(tap.getColumn());
+    emit hit(tap);
 }
 auto
 BmsScore::getCombo() const -> int
@@ -156,6 +115,55 @@ BmsScore::increaseCombo()
     }
     emit comboChanged();
 }
+auto
+BmsScore::addHit(HitEvent tap) -> void
+{
+    if (tap.getType() == HitEvent::HitType::Miss) {
+        resetCombo();
+        auto newPointSum = 0.0;
+        points += tap.getPointsOptional()->getValue();
+        newPointSum += tap.getPointsOptional()->getValue();
+        if (newPointSum != 0) {
+            emit pointsChanged();
+        }
+        judgementCounts[static_cast<int>(Judgement::Poor)]++;
+        emit judgementCountsChanged();
+        for (auto* gauge : gauges) {
+            gauge->addHit(std::chrono::nanoseconds(tap.getOffsetFromStart()),
+                          std::chrono::nanoseconds(
+                            tap.getPointsOptional()->getDeviation()));
+        }
+    } else if (tap.getType() == HitEvent::HitType::Hit) {
+        auto points = *tap.getPointsOptional();
+        this->points += points.getValue();
+        auto judgement = points.getJudgement();
+        judgementCounts[static_cast<int>(judgement)]++;
+        emit judgementCountsChanged();
+        for (auto* gauge : gauges) {
+            gauge->addHit(std::chrono::nanoseconds(tap.getOffsetFromStart()),
+                          std::chrono::nanoseconds(points.getDeviation()));
+        }
+        if (points.getValue() != 0.0) {
+            emit pointsChanged();
+        }
+        if (judgement == Judgement::Bad) {
+            resetCombo();
+        } else if (judgement != Judgement::EmptyPoor) {
+            increaseCombo();
+        }
+    } else if (tap.getType() == HitEvent::HitType::None) {
+    } else if (tap.getType() == HitEvent::HitType::LnEndSkip) {
+    } else if (tap.getType() == HitEvent::HitType::Mine) {
+        for (auto* gauge : gauges) {
+            gauge->addMineHit(
+              std::chrono::nanoseconds(tap.getOffsetFromStart()),
+              tap.getPoints().value<double>());
+        }
+        ++mineHits;
+        emit mineHitsChanged();
+    }
+    hits.append(tap);
+}
 void
 BmsScore::resetCombo()
 {
@@ -179,8 +187,9 @@ BmsScore::getResult() const -> std::unique_ptr<BmsResult>
                maxHits) {
         clearType = QStringLiteral("PERFECT");
     }
-    auto mineHitsSize = std::ranges::count_if(
-      hits, [](const auto& hit) { return hit.getType() == HitEvent::HitType::Mine; });
+    auto mineHitsSize = std::ranges::count_if(hits, [](const auto& hit) {
+        return hit.getType() == HitEvent::HitType::Mine;
+    });
     return std::make_unique<BmsResult>(maxPoints,
                                        maxHits,
                                        normalNoteCount,
@@ -214,59 +223,14 @@ BmsScore::getGaugeHistory() const -> std::unique_ptr<BmsGaugeHistory>
                                              std::move(gaugeInfo));
 }
 void
-BmsScore::addMineHit(HitEvent mineHit)
+BmsScore::sendVisualOnlyRelease(HitEvent release)
 {
-    for (auto* gauge : gauges) {
-        gauge->addMineHit(
-          std::chrono::nanoseconds(mineHit.getOffsetFromStart()),
-          mineHit.getPoints().value<double>());
-    }
-    hits.append(mineHit);
-}
-void
-BmsScore::addLnEndHit(HitEvent lnEndHit)
-{
-    hits.append(lnEndHit);
-}
-void
-BmsScore::addLnEndMiss(HitEvent lnEndMiss)
-{
-    hits.append(lnEndMiss);
-    resetCombo();
-    if (lnEndMiss.getPointsOptional()->getDeviation() < 0) {
-        emit released(lnEndMiss.getColumn());
-    }
-}
-void
-BmsScore::addLnEndSkip(HitEvent lnEndSkip)
-{
-    lnEndSkips.append(lnEndSkip);
-    emit lnEndSkipped(lnEndSkip);
-}
-auto
-BmsScore::addEmptyHit(HitEvent tap) -> void
-{
-    hitsWithoutPoints.append(tap);
-    emit emptyHit(tap);
-    emit pressed(tap.getColumn());
-}
-auto
-BmsScore::sendVisualOnlyRelease(HitEvent release) -> void
-{
-    emit emptyRelease(release);
-    emit released(release.getColumn());
-}
-auto
-BmsScore::addEmptyRelease(HitEvent release) -> void
-{
-    releasesWithoutPoints.append(release);
-    emit emptyRelease(release);
-    emit released(release.getColumn());
+    emit hit(release);
 }
 auto
 BmsScore::getMineHits() const -> int
 {
-    return mineHits.count();
+    return hits.count();
 }
 auto
 BmsScore::getNormalNoteCount() const -> int

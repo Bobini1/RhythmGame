@@ -277,7 +277,7 @@ struct RandomizedData
     std::array<std::vector<charts::gameplay_models::BmsNotesData::Note>, 16>
       invisibleNotes;
 };
-
+namespace {
 auto
 getComponentsForPlayer(const ChartFactory::PlayerSpecificData& player,
                        const charts::gameplay_models::BmsNotesData& notesData,
@@ -329,15 +329,22 @@ getComponentsForPlayer(const ChartFactory::PlayerSpecificData& player,
       visibleNotes, invisibleNotes, notesData.bpmChanges, notesData.barLines);
     auto notesStates = QList<gameplay_logic::ColumnState*>{};
     for (const auto& column : notes->getVisibleNotes()) {
-        auto notes = std::ranges::to<QList<gameplay_logic::NoteState>>(column);
+        auto notes = QList<gameplay_logic::NoteState>{};
+        notes.reserve(column.size());
+        for (const auto& note : column) {
+            notes.append({note});
+        }
         notesStates.append(new gameplay_logic::ColumnState(std::move(notes)));
     }
-    auto barLineStates = std::ranges::to<QList<gameplay_logic::BarLineState>{}>(
-      notes->getBarLines());
+    auto barLineStates = QList<gameplay_logic::BarLineState>{};
+    barLineStates.reserve(notes->getBarLines().size());
+    for (const auto& barLine : notes->getBarLines()) {
+        barLineStates.append({barLine});
+    }
     auto barLinesState =
       new gameplay_logic::BarLinesState(std::move(barLineStates));
     auto state =
-      new gameplay_logic::GameplayState(std::move(notesStates), barLinesState);
+      std::make_unique<gameplay_logic::GameplayState>(std::move(notesStates), barLinesState);
     auto score = std::make_unique<gameplay_logic::BmsScore>(
       chartData.getNormalNoteCount(),
       chartData.getLnCount(),
@@ -354,12 +361,13 @@ getComponentsForPlayer(const ChartFactory::PlayerSpecificData& player,
       results[0].seed,
       chartData.getSha256());
     return { std::move(notes),
-             state,
+             std::move(state),
              results,
              std::move(score),
              std::move(visibleNotes),
              std::move(invisibleNotes) };
 }
+} // namespace
 
 auto
 ChartFactory::createChart(ChartDataFactory::ChartComponents chartComponents,
@@ -457,12 +465,14 @@ ChartFactory::createChart(ChartDataFactory::ChartComponents chartComponents,
         [&](auto& player) -> gameplay_logic::Chart::PlayerSpecificComponents {
             return { player.notes.release(),
                      player.score.release(),
+                           player.state.release(),
                      player1->profile };
         }),
       components2.transform(
         [&](auto& player) -> gameplay_logic::Chart::PlayerSpecificComponents {
             return { player.notes.release(),
                      player.score.release(),
+                           player.state.release(),
                      player2->profile };
         }));
     QObject::connect(

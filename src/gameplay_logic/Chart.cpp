@@ -120,21 +120,21 @@ Chart::passKey(input::BmsKey key, const EventType eventType, const int64_t time)
         if (eventType == EventType::KeyPress) {
             if (index == 0 && player1 || index == 1 && player2 ||
                 isDp(chartData->getKeymode())) {
-                player.playerData.score->addHit(
-                  { static_cast<int>(key),
-                    std::nullopt,
-                    offset.count(),
-                    std::nullopt,
-                    HitEvent::HitType::NothingHit });
+                player.playerData.score->addHit({ static_cast<int>(key),
+                                                  std::nullopt,
+                                                  offset.count(),
+                                                  std::nullopt,
+                                                  HitEvent::HitType::None,
+                                                  HitEvent::Action::Press });
             }
         } else {
             if (index == 0 && player1 || index == 1 && player2) {
-                player.playerData.score->addHit(
-                  { static_cast<int>(key),
-                    std::nullopt,
-                    offset.count(),
-                    std::nullopt,
-                    HitEvent::HitType::NothingRelease });
+                player.playerData.score->addHit({ static_cast<int>(key),
+                                                  std::nullopt,
+                                                  offset.count(),
+                                                  std::nullopt,
+                                                  HitEvent::HitType::None,
+                                                  HitEvent::Action::Release });
             }
         }
     } else {

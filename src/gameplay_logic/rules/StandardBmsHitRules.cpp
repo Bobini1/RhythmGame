@@ -8,7 +8,7 @@
 auto
 gameplay_logic::rules::StandardBmsHitRules::visibleNoteHit(
   std::span<NoteType> notes,
-  int currentNoteIndex,
+  int& currentNoteIndex,
   std::chrono::nanoseconds hitOffset) -> std::optional<HitResult>
 {
     auto emptyPoor = std::optional<HitResult>{};
@@ -52,7 +52,7 @@ gameplay_logic::rules::StandardBmsHitRules::visibleNoteHit(
 auto
 gameplay_logic::rules::StandardBmsHitRules::getMisses(
   std::span<NoteType> notes,
-  int& currentNoteIndex,
+  int currentNoteIndex,
   std::chrono::nanoseconds offsetFromStart)
   -> std::vector<MissData>
 {
@@ -171,7 +171,7 @@ gameplay_logic::rules::StandardBmsHitRules::mineHit(
         }
         return std::chrono::nanoseconds{ 0 };
     }();
-    for (auto iter = notes.begin(); iter < notes.end(); iter++) {
+    for (auto iter = notes.begin(); iter < notes.end(); ++iter) {
         auto& hit =
           std::visit([](auto& note) -> bool& { return note.hit; }, *iter);
         if (hit) {

@@ -84,7 +84,7 @@ class BarLinesState final : public QAbstractListModel
 class GameplayState final : public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(QList<ColumState*> columnStates READ getColumnStates CONSTANT)
+    Q_PROPERTY(QList<ColumnState*> columnStates READ getColumnStates CONSTANT)
     Q_PROPERTY(BarLinesState* barLinesState READ getBarLinesState CONSTANT)
 
     BarLinesState* barLinesState;

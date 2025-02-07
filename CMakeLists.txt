@@ -140,8 +140,6 @@ qt_add_library(RhythmGame_lib OBJECT ${utf8Manifest} src/db/SqliteCppDb.cpp src/
         src/qml_components/FileQuery.h
         src/qml_components/Bga.cpp
         src/qml_components/Bga.h
-        src/gameplay_logic/rules/CnHitRules.cpp
-        src/gameplay_logic/rules/CnHitRules.h
         src/qml_components/ThemeFamily.cpp
         src/qml_components/ThemeFamily.h
         src/resource_managers/ScanThemes.cpp

@@ -42,17 +42,10 @@ ColumnState::onHitEvent(HitEvent hit)
 {
     auto& note = notes[(hit.getNoteIndex())];
     note.hitData = QVariant::fromValue(hit);
-    switch (hit.getType()) {
-        case HitEvent::HitType::NothingHit:
-        case HitEvent::HitType::Hit:
-            setPressed(/*pressed=*/true);
-            break;
-        case HitEvent::HitType::NothingRelease:
-        case HitEvent::HitType::LnEndHit:
-            setPressed(/*pressed=*/false);
-            break;
-        default:
-            break;
+    if (hit.getAction() == HitEvent::Action::Press) {
+        setPressed(true);
+    } else if (hit.getAction() == HitEvent::Action::Release) {
+        setPressed(false);
     }
     emit dataChanged(index(hit.getNoteIndex()), index(hit.getNoteIndex()));
 }
@@ -205,10 +198,5 @@ auto
 GameplayState::getBarLinesState() -> BarLinesState*
 {
     return barLinesState;
-}
-void
-GameplayState::onHitEvent(HitEvent hit)
-{
-    columnStates.at(hit.getColumn())->onHitEvent(hit);
 }
 } // namespace gameplay_logic

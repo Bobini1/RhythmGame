@@ -27,14 +27,16 @@ class StandardBmsHitRules : public BmsHitRules
       TimingWindows timingWindows,
       std::function<double(std::chrono::nanoseconds)> hitValueFactory);
     auto visibleNoteHit(std::span<NoteType> notes,
-                        int currentNoteIndex,
+                        int& currentNoteIndex,
                         std::chrono::nanoseconds hitOffset)
       -> std::optional<HitResult> override;
 
+    // We don't modify currentNoteIndex here, just mark mines as not hittable anymore
     auto getMisses(std::span<NoteType> notes,
-                   int& currentNoteIndex,
+                   int currentNoteIndex,
                    std::chrono::nanoseconds offsetFromStart)
       -> std::vector<MissData> override;
+    // We don't modify currentNoteIndex here, just mark notes as not hittable anymore
     auto mineHit(std::span<NoteType> notes,
                  int currentNoteIndex,
                  std::chrono::nanoseconds offsetFromStart)
