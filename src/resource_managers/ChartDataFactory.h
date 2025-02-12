@@ -31,10 +31,7 @@ class ChartDataFactory
     static auto makeNotes(
       const std::array<std::vector<charts::gameplay_models::BmsNotesData::Note>,
                        charts::gameplay_models::BmsNotesData::columnNumber>&
-        visibleNotes,
-      const std::array<std::vector<charts::gameplay_models::BmsNotesData::Note>,
-                       charts::gameplay_models::BmsNotesData::columnNumber>&
-        invisibleNotes,
+        notes,
       const std::vector<std::pair<charts::gameplay_models::BmsNotesData::Time,
                                   double>>& bpmChanges,
       const std::vector<charts::gameplay_models::BmsNotesData::Time>& barLines)

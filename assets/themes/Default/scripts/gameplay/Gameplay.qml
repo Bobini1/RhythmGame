@@ -123,6 +123,19 @@ Rectangle {
         scale: Math.min(globalRoot.width / 1920, globalRoot.height / 1080)
         width: 1920
 
+        Text {
+            color: "white"
+            text: "fps: " + frameAnimation.fps.toFixed(0)
+            anchors.top: parent.top
+            anchors.right: parent.right
+        }
+
+        FrameAnimation {
+            id: frameAnimation
+            property real fps: smoothFrameTime > 0 ? (1.0 / smoothFrameTime) : 0
+            running: true
+        }
+
         BgaRenderer {
             id: bga
 
@@ -162,6 +175,7 @@ Rectangle {
             profile: chart.profile1
             score: chart.score1
             notes: chart.notes1
+            columnStates: chart.state1.columnStates
             dpSuffix: root.isDp ? "1" : ""
             columns: root.isDp || !profileVars.scratchOnRightSide ? [7, 0, 1, 2, 3, 4, 5, 6] : [0, 1, 2, 3, 4, 5, 6, 7]
         }
@@ -174,6 +188,7 @@ Rectangle {
                 profile: root.isDp ? chart.profile1 : chart.profile2
                 score: root.isDp ? chart.score1 : chart.score2
                 notes: root.isDp ? chart.notes1 : chart.notes2
+                columnStates: root.isDp ? chart.state1.columnStates : chart.state2.columnStates
                 dpSuffix: root.isDp ? "2" : ""
                 mirrored: !root.isDp
                 columns: {
@@ -190,6 +205,7 @@ Rectangle {
             required property Profile profile
             required property BmsScore score
             required property BmsNotes notes
+            required property var columnStates
             required property string dpSuffix
             required property var columns
             property bool mirrored: false
@@ -232,7 +248,10 @@ Rectangle {
                 profile: side.profile
                 score: side.score
                 notes: columns.map(function (column) {
-                    return side.notes.visibleNotes[column];
+                    return side.notes.notes[column];
+                })
+                columnStates: columns.map(function (column) {
+                    return side.columnStates[column];
                 })
                 transform: Scale{ xScale: side.mirrored ? -1 : 1; origin.x: playArea.width / 2 }
                 x: side.profileVars["playAreaX" + side.dpSuffix]
@@ -328,59 +347,42 @@ Rectangle {
                     color: "transparent"
                     visible: root.customizeMode
                 }
-                Text {
-                    id: judgementCounts
+                Column {
+                    Repeater {
+                        id: judgementCounts
 
-                    property int bad: 0
-                    property int emptyPoor: 0
-                    property int good: 0
-                    property int great: 0
-                    property int perfect: 0
-                    property int poor: 0
+                        anchors.fill: parent
+                        anchors.margins: 8
 
-                    anchors.fill: parent
-                    anchors.margins: 8
-                    color: "white"
-                    font.pixelSize: 300
-                    fontSizeMode: Text.Fit
-                    renderType: Text.NativeRendering
-                    text: {
-                        let txt = "";
-                        for (let judgement of ["perfect", "great", "good", "bad", "poor", "emptyPoor"]) {
-                            txt += Helpers.capitalizeFirstLetter(judgement) + ": " + judgementCounts[judgement] + "\n";
+                        model: side.score.judgementCounts
+                        readonly property var judgements: ["Poor", "Empty Poor", "Bad", "Good", "Great", "Perfect"]
+
+                        delegate: Text {
+                            required property var judgement
+                            required property int count
+                            color: "white"
+                            fontSizeMode: Text.Fit
+                            renderType: Text.NativeRendering
+                            textFormat: Text.PlainText
+                            text: {
+                                // ignore judgements like MineHit
+                                if (judgement > Judgement.Perfect) {
+                                    return "";
+                                }
+                                return judgementCounts.judgements[judgement] + ": " + count;
+                            }
                         }
-                        return txt;
                     }
-                    textFormat: Text.PlainText
                 }
                 Connections {
-                    function onMissed() {
-                        judgementCounts.poor++;
-                        bga.poorVisible = true;
-                        poorLayerTimer.restart();
-                    }
-
-                    function onNoteHit(tap) {
-                        switch (tap.points.judgement) {
-                            case Judgement.Perfect:
-                                judgementCounts.perfect++;
-                                break;
-                            case Judgement.Great:
-                                judgementCounts.great++;
-                                break;
-                            case Judgement.Good:
-                                judgementCounts.good++;
-                                break;
-                            case Judgement.Bad:
-                                judgementCounts.bad++;
-                                bga.poorVisible = true;
-                                poorLayerTimer.restart();
-                                break;
-                            case Judgement.EmptyPoor:
-                                judgementCounts.emptyPoor++;
-                                bga.poorVisible = true;
-                                poorLayerTimer.restart();
-                                break;
+                    function onHit(tap) {
+                        if (!tap.points) {
+                            return;
+                        }
+                        let judgement = tap.points.judgement;
+                        if (judgement === Judgement.Poor || judgement === Judgement.LnEndMiss || judgement === Judgement.Bad) {
+                            bga.poorVisible = true;
+                            poorLayerTimer.restart();
                         }
                     }
 

@@ -55,10 +55,17 @@ BmsScore::getPoints() const -> double
     return points;
 }
 auto
-BmsScore::getJudgementCounts() const -> QList<int>
+BmsScore::getJudgementCounts() -> JudgementCounts*
 {
-    return judgementCounts;
+    return &judgementCounts;
 }
+
+auto
+BmsScore::getJudgementCounts() const -> const JudgementCounts*
+{
+    return &judgementCounts;
+}
+
 void
 BmsScore::sendVisualOnlyTap(HitEvent tap)
 {
@@ -118,51 +125,58 @@ BmsScore::increaseCombo()
 auto
 BmsScore::addHit(HitEvent tap) -> void
 {
-    if (tap.getType() == HitEvent::HitType::Miss) {
-        resetCombo();
-        auto newPointSum = 0.0;
-        points += tap.getPointsOptional()->getValue();
-        newPointSum += tap.getPointsOptional()->getValue();
-        if (newPointSum != 0) {
-            emit pointsChanged();
-        }
-        judgementCounts[static_cast<int>(Judgement::Poor)]++;
-        emit judgementCountsChanged();
-        for (auto* gauge : gauges) {
-            gauge->addHit(std::chrono::nanoseconds(tap.getOffsetFromStart()),
-                          std::chrono::nanoseconds(
-                            tap.getPointsOptional()->getDeviation()));
-        }
-    } else if (tap.getType() == HitEvent::HitType::Hit) {
-        auto points = *tap.getPointsOptional();
-        this->points += points.getValue();
-        auto judgement = points.getJudgement();
-        judgementCounts[static_cast<int>(judgement)]++;
-        emit judgementCountsChanged();
-        for (auto* gauge : gauges) {
-            gauge->addHit(std::chrono::nanoseconds(tap.getOffsetFromStart()),
-                          std::chrono::nanoseconds(points.getDeviation()));
-        }
-        if (points.getValue() != 0.0) {
-            emit pointsChanged();
-        }
-        if (judgement == Judgement::Bad) {
-            resetCombo();
-        } else if (judgement != Judgement::EmptyPoor) {
-            increaseCombo();
-        }
-    } else if (tap.getType() == HitEvent::HitType::None) {
-    } else if (tap.getType() == HitEvent::HitType::LnEndSkip) {
-    } else if (tap.getType() == HitEvent::HitType::Mine) {
-        for (auto* gauge : gauges) {
-            gauge->addMineHit(
-              std::chrono::nanoseconds(tap.getOffsetFromStart()),
-              tap.getPoints().value<double>());
-        }
-        ++mineHits;
-        emit mineHitsChanged();
-    }
     hits.append(tap);
+    emit hit(tap);
+    if (!tap.getPointsOptional()) {
+        return;
+    }
+    const auto points = tap.getPointsOptional();
+    judgementCounts.addJudgement(points->getJudgement());
+    switch (points->getJudgement()) {
+        case Judgement::Poor:
+            resetCombo();
+            this->points += points->getValue();
+            if (points->getValue() != 0) {
+                emit pointsChanged();
+            }
+            for (auto* gauge : gauges) {
+                gauge->addHit(
+                  std::chrono::nanoseconds(tap.getOffsetFromStart()),
+                  std::chrono::nanoseconds(points->getDeviation()),
+                  points->getJudgement());
+            }
+            break;
+        case Judgement::MineHit:
+            for (auto* gauge : gauges) {
+                gauge->addMineHit(
+                  std::chrono::nanoseconds(tap.getOffsetFromStart()),
+                  tap.getPoints().value<double>());
+            }
+            ++mineHits;
+            emit mineHitsChanged();
+            break;
+        case Judgement::MineAvoided:
+            break;
+        case Judgement::LnEndSkip:
+            break;
+        default:
+            this->points += points->getValue();
+            auto judgement = points->getJudgement();
+            for (auto* gauge : gauges) {
+                gauge->addHit(
+                  std::chrono::nanoseconds(tap.getOffsetFromStart()),
+                  std::chrono::nanoseconds(points->getDeviation()),
+                  judgement);
+            }
+            if (points->getValue() != 0.0) {
+                emit pointsChanged();
+            }
+            if (judgement == Judgement::Bad) {
+                resetCombo();
+            } else if (judgement != Judgement::EmptyPoor) {
+                increaseCombo();
+            }
+    }
 }
 void
 BmsScore::resetCombo()
@@ -182,13 +196,14 @@ BmsScore::getResult() const -> std::unique_ptr<BmsResult>
     }
     if (points == maxPoints) {
         clearType = QStringLiteral("MAX");
-    } else if (judgementCounts[static_cast<int>(Judgement::Perfect)] +
-                 judgementCounts[static_cast<int>(Judgement::Great)] ==
+    } else if (judgementCounts.getJudgementCounts()[static_cast<int>(Judgement::Perfect)] +
+                 judgementCounts.getJudgementCounts()[static_cast<int>(Judgement::Great)] ==
                maxHits) {
         clearType = QStringLiteral("PERFECT");
     }
     auto mineHitsSize = std::ranges::count_if(hits, [](const auto& hit) {
-        return hit.getType() == HitEvent::HitType::Mine;
+        return hit.getPointsOptional() &&
+               hit.getPointsOptional()->getJudgement() == Judgement::MineHit;
     });
     return std::make_unique<BmsResult>(maxPoints,
                                        maxHits,
@@ -196,7 +211,7 @@ BmsScore::getResult() const -> std::unique_ptr<BmsResult>
                                        lnCount,
                                        mineCount,
                                        clearType,
-                                       judgementCounts,
+                                       judgementCounts.getJudgementCounts(),
                                        mineHitsSize,
                                        points,
                                        maxCombo,

@@ -12,6 +12,7 @@ ColumnState::setPressed(bool pressed)
         return;
     }
     this->pressed = pressed;
+    emit pressedChanged();
 }
 ColumnState::ColumnState(QList<NoteState> notes, QObject* parent)
   : QAbstractListModel(parent)
@@ -40,49 +41,17 @@ ColumnState::data(const QModelIndex& index, int role) const -> QVariant
 void
 ColumnState::onHitEvent(HitEvent hit)
 {
-    auto& note = notes[(hit.getNoteIndex())];
-    note.hitData = QVariant::fromValue(hit);
     if (hit.getAction() == HitEvent::Action::Press) {
         setPressed(true);
     } else if (hit.getAction() == HitEvent::Action::Release) {
         setPressed(false);
     }
+    if (hit.getNoteIndex() == -1 || hit.getPointsOptional()->getJudgement() == Judgement::EmptyPoor) {
+        return;
+    }
+    auto& note = notes[hit.getNoteIndex()];
+    note.hitData = QVariant::fromValue(hit);
     emit dataChanged(index(hit.getNoteIndex()), index(hit.getNoteIndex()));
-}
-void
-ColumnState::modifyVisibility(decltype(notes)::size_type bottomIndex)
-{
-    auto top = elapsed + noteScreenTime;
-    auto topIndex = bottomIndex;
-    for (auto i = currentNote + 1; i < notes.size(); i++) {
-        auto& note = notes[i];
-        if (note.note.time.timestamp > top) {
-            if (note.visible) {
-                note.visible = false;
-                if (bottomIndex == -1) {
-                    bottomIndex = i;
-                }
-                topIndex = i;
-            } else {
-                break;
-            }
-        } else if (!note.visible) {
-            note.visible = true;
-            if (bottomIndex == -1) {
-                bottomIndex = i;
-            }
-            topIndex = i;
-        }
-    }
-    if (bottomIndex != -1) {
-        emit dataChanged(index(bottomIndex), index(topIndex));
-    }
-}
-void
-ColumnState::setNoteScreenTime(int64_t nanos)
-{
-    noteScreenTime = nanos;
-    modifyVisibility(-1);
 }
 void
 ColumnState::setElapsed(int64_t nanos)
@@ -92,46 +61,26 @@ ColumnState::setElapsed(int64_t nanos)
         return;
     }
     auto bottomIndex = -1;
+    auto topIndex = bottomIndex;
     for (auto i = currentNote + 1; i < notes.size(); i++) {
         if (notes[i].note.time.timestamp >= elapsed) {
             break;
         }
-        notes[i].visible = false;
+        notes[i].belowJudgeline = true;
         currentNote = i;
-        bottomIndex = i;
+        if (bottomIndex == -1) {
+            bottomIndex = i;
+        }
+        topIndex = i;
     }
-    modifyVisibility(bottomIndex);
+    if (bottomIndex != -1) {
+        emit dataChanged(index(bottomIndex), index(topIndex));
+    }
 }
 auto
-ColumnState::isPressed() -> bool
+ColumnState::isPressed() const -> bool
 {
     return pressed;
-}
-void
-BarLinesState::modifyVisibility(decltype(barLines)::size_type bottomIndex)
-{
-    auto top = elapsed + noteScreenTime;
-    auto topIndex = bottomIndex;
-    for (auto i = currentLine + 1; i < barLines.size(); i++) {
-        auto& barLine = barLines[i];
-        if (barLine.time.timestamp > top) {
-            if (barLine.visible) {
-                barLine.visible = false;
-                if (bottomIndex == -1) {
-                    bottomIndex = i;
-                }
-                topIndex = i;
-            } else {
-                break;
-            }
-        } else if (!barLine.visible) {
-            barLine.visible = true;
-            if (bottomIndex == -1) {
-                bottomIndex = i;
-            }
-            topIndex = i;
-        }
-    }
 }
 BarLinesState::BarLinesState(QList<BarLineState> barLines, QObject* parent)
   : barLines(std::move(barLines))
@@ -154,28 +103,28 @@ BarLinesState::data(const QModelIndex& index, int role) const
     return {};
 }
 void
-BarLinesState::onNoteScreenTimeChanged(int64_t nanos)
-{
-    noteScreenTime = nanos;
-    modifyVisibility(-1);
-}
-void
-BarLinesState::onElapsedChanged(int64_t nanos)
+BarLinesState::setElapsed(int64_t nanos)
 {
     elapsed = nanos;
     if (barLines.empty()) {
         return;
     }
     auto bottomIndex = -1;
+    auto topIndex = bottomIndex;
     for (auto i = currentLine + 1; i < barLines.size(); i++) {
         if (barLines[i].time.timestamp >= elapsed) {
             break;
         }
-        barLines[i].visible = false;
+        barLines[i].belowJudgeline = true;
         currentLine = i;
-        bottomIndex = i;
+        if (bottomIndex == -1) {
+            bottomIndex = i;
+        }
+        topIndex = i;
     }
-    modifyVisibility(bottomIndex);
+    if (bottomIndex != -1) {
+        emit dataChanged(index(bottomIndex), index(topIndex));
+    }
 }
 GameplayState::GameplayState(QList<ColumnState*> columnStates,
                              BarLinesState* barLinesState,

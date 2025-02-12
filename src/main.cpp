@@ -154,7 +154,7 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
         auto chartFactory = resource_managers::ChartFactory{ &inputTranslator };
         auto hitRulesFactory =
           [](gameplay_logic::rules::TimingWindows timingWindows,
-             std::function<double(std::chrono::nanoseconds)> hitValuesFactory) {
+             qml_components::ChartLoader::HitValueFactory hitValuesFactory) {
               return std::make_unique<
                 gameplay_logic::rules::StandardBmsHitRules>(
                 std::move(timingWindows), std::move(hitValuesFactory));
@@ -230,7 +230,7 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
         qmlRegisterType<qml_components::BgaContainer>(
           "RhythmGameQml", 1, 0, "BgaContainer");
         qmlRegisterType<input::Key>("RhythmGameQml", 1, 0, "Key");
-        qmlRegisterUncreatableMetaObject(gameplay_logic::staticMetaObject,
+        qmlRegisterUncreatableMetaObject(gameplay_logic::judgement::staticMetaObject,
                                          "RhythmGameQml",
                                          1,
                                          0,

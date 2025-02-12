@@ -536,7 +536,7 @@ auto
 InputTranslator::getConfiguredButton() const -> QVariant
 {
     return configuredButton.has_value() ? QVariant::fromValue(*configuredButton)
-                                        : QVariant();
+                                        : QVariant::fromValue(nullptr);
 }
 auto
 InputTranslator::isConfiguring() const -> bool
@@ -725,7 +725,7 @@ InputTranslator::eventFilter(QObject* watched, QEvent* event)
         }
         const auto time = getTime(*key);
         const auto keyLookup = Key{
-            QVariant(), Key::Device::Keyboard, key->key(), Key::Direction::None
+            QVariant::fromValue(nullptr), Key::Device::Keyboard, key->key(), Key::Direction::None
         };
         if (isConfiguring()) {
             unpressCurrentKey(keyLookup, key->timestamp());
@@ -745,7 +745,7 @@ InputTranslator::eventFilter(QObject* watched, QEvent* event)
         }
         const auto time = getTime(*key);
         const auto keyLookup = Key{
-            QVariant(), Key::Device::Keyboard, key->key(), Key::Direction::None
+            QVariant::fromValue(nullptr), Key::Device::Keyboard, key->key(), Key::Direction::None
         };
         if (const auto found = config.find(keyLookup); found != config.end()) {
             releaseButton(*found, time);

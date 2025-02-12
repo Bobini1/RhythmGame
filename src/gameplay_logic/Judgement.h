@@ -7,6 +7,7 @@
 #include <QObject>
 
 namespace gameplay_logic {
+namespace judgement {
 Q_NAMESPACE
 enum class Judgement
 {
@@ -15,9 +16,16 @@ enum class Judgement
     Bad,
     Good,
     Great,
-    Perfect
+    Perfect,
+    MineHit,
+    MineAvoided,
+    LnEndSkip,
+    LnEndMiss,
+    LnEndHit
 };
 Q_ENUM_NS(Judgement)
+}
+using namespace judgement;
 } // namespace gameplay_logic
 
 #endif // RHYTHMGAME_JUDGEMENT_H

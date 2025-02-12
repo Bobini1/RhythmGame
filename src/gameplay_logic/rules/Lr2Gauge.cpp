@@ -8,17 +8,15 @@
 void
 gameplay_logic::rules::Lr2Gauge::addHit(
   std::chrono::nanoseconds offsetFromStart,
-  std::chrono::nanoseconds hitOffset)
+  std::chrono::nanoseconds hitOffset,
+  Judgement judgement)
 {
     auto currentGauge = getGauge();
     if (permanentDeath &&
         (currentGauge == 0 || currentGauge < getThreshold())) {
         return;
     }
-    auto judgement = timingWindows.find(hitOffset);
-    auto judgementValue = judgementValueFactory(
-      currentGauge,
-      judgement == timingWindows.end() ? Judgement::Poor : judgement->second);
+    const auto judgementValue = judgementValueFactory(currentGauge, judgement);
     auto newGauge =
       std::clamp(currentGauge + judgementValue, 0.0, getGaugeMax());
     if (newGauge != currentGauge) {
@@ -60,6 +58,7 @@ gameplay_logic::rules::Lr2Gauge::getGauges(TimingWindows timingWindows,
               case Judgement::Great:
               case Judgement::Good:
               case Judgement::EmptyPoor:
+              case Judgement::MineAvoided:
                   return 0.0;
               default:
                   return -std::numeric_limits<double>::infinity();
@@ -68,29 +67,31 @@ gameplay_logic::rules::Lr2Gauge::getGauges(TimingWindows timingWindows,
     fcGauge->setObjectName("FC");
     gauges.push_back(std::move(fcGauge));
 
-    auto exhardGauge = std::make_unique<Lr2Gauge>(
-      timingWindows,
-      100,
-      100,
-      0,
-      true,
-      [](double currentGauge, Judgement judgement) {
-          switch (judgement) {
-              case Judgement::Perfect:
-                  return 0.15;
-              case Judgement::Great:
-                  return 0.06;
-              case Judgement::Good:
-                  return 0.0;
-              case Judgement::Bad:
-                  return -8.0;
-              case Judgement::Poor:
-                  return -16.0;
-              case Judgement::EmptyPoor:
-                  return -8.0;
-          }
-          throw std::runtime_error("Invalid judgement");
-      });
+    auto exhardGauge =
+      std::make_unique<Lr2Gauge>(timingWindows,
+                                 100,
+                                 100,
+                                 0,
+                                 true,
+                                 [](double currentGauge, Judgement judgement) {
+                                     switch (judgement) {
+                                         case Judgement::Perfect:
+                                             return 0.15;
+                                         case Judgement::Great:
+                                             return 0.06;
+                                         case Judgement::Good:
+                                             return 0.0;
+                                         case Judgement::Bad:
+                                             return -8.0;
+                                         case Judgement::Poor:
+                                         case Judgement::LnEndMiss:
+                                             return -16.0;
+                                         case Judgement::EmptyPoor:
+                                             return -8.0;
+                                         default:
+                                             return 0.0;
+                                     }
+                                 });
     exhardGauge->setObjectName("EXHARD");
     gauges.push_back(std::move(exhardGauge));
 
@@ -111,11 +112,13 @@ gameplay_logic::rules::Lr2Gauge::getGauges(TimingWindows timingWindows,
               case Judgement::Bad:
                   return (currentGauge > 30) ? -6.0 : -3.6;
               case Judgement::Poor:
+              case Judgement::LnEndMiss:
                   return (currentGauge > 30) ? -10.0 : -6.0;
               case Judgement::EmptyPoor:
                   return (currentGauge > 30) ? -2.0 : -1.2;
+              default:
+                  return 0.0;
           }
-          throw std::runtime_error("Invalid judgement");
       });
     hardGauge->setObjectName("HARD");
     gauges.push_back(std::move(hardGauge));
@@ -137,6 +140,7 @@ gameplay_logic::rules::Lr2Gauge::getGauges(TimingWindows timingWindows,
               case Judgement::Bad:
                   return -4.0;
               case Judgement::Poor:
+              case Judgement::LnEndMiss:
                   return -6.0;
               case Judgement::EmptyPoor:
                   return -2.0;
@@ -163,6 +167,7 @@ gameplay_logic::rules::Lr2Gauge::getGauges(TimingWindows timingWindows,
               case Judgement::Bad:
                   return -3.2;
               case Judgement::Poor:
+              case Judgement::LnEndMiss:
                   return -4.8;
               case Judgement::EmptyPoor:
                   return -1.6;
@@ -189,6 +194,7 @@ gameplay_logic::rules::Lr2Gauge::getGauges(TimingWindows timingWindows,
               case Judgement::Bad:
                   return -1.5;
               case Judgement::Poor:
+              case Judgement::LnEndMiss:
                   return -3.0;
               case Judgement::EmptyPoor:
                   return -0.5;
@@ -212,42 +218,6 @@ gameplay_logic::rules::Lr2Gauge::addMineHit(
     }
     auto newGauge =
       std::clamp(currentGauge + penalty * 100, 0.0, getGaugeMax());
-    if (newGauge != currentGauge) {
-        addGaugeHistoryEntry({ offsetFromStart.count(), newGauge });
-    }
-}
-void
-gameplay_logic::rules::Lr2Gauge::addHoldEndHit(
-  std::chrono::nanoseconds offsetFromStart,
-  std::chrono::nanoseconds hitOffset)
-{
-    auto currentGauge = getGauge();
-    if (permanentDeath &&
-        (currentGauge == 0 || currentGauge < getThreshold())) {
-        return;
-    }
-    auto judgement = timingWindows.find(hitOffset)->second;
-    if (judgement == Judgement::Perfect || judgement == Judgement::Great ||
-        judgement == Judgement::Good || judgement == Judgement::Bad) {
-        return;
-    }
-    auto value = judgementValueFactory(currentGauge, Judgement::Poor);
-    auto newGauge = std::clamp(currentGauge - value, 0.0, getGaugeMax());
-    if (newGauge != currentGauge) {
-        addGaugeHistoryEntry({ offsetFromStart.count(), newGauge });
-    }
-}
-void
-gameplay_logic::rules::Lr2Gauge::addHoldEndMiss(
-  std::chrono::nanoseconds offsetFromStart)
-{
-    auto currentGauge = getGauge();
-    if (permanentDeath &&
-        (currentGauge == 0 || currentGauge < getThreshold())) {
-        return;
-    }
-    auto value = judgementValueFactory(currentGauge, Judgement::Poor);
-    auto newGauge = std::clamp(currentGauge - value, 0.0, getGaugeMax());
     if (newGauge != currentGauge) {
         addGaugeHistoryEntry({ offsetFromStart.count(), newGauge });
     }

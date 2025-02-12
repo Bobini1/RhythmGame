@@ -19,6 +19,7 @@ Rectangle {
     required property real noteThickness
     required property real spacing
     required property var notes
+    required property var columnStates
     required property string noteImage
     required property string mineImage
     required property bool notesStay
@@ -58,6 +59,9 @@ Rectangle {
             NoteColumn {
                 id: noteColumn
 
+                required property int index
+                required property var modelData
+
                 color: {
                     let idx = playfield.columns[index];
                     if (idx === 7 || idx === 15)
@@ -71,6 +75,7 @@ Rectangle {
                 heightMultiplier: playfield.heightMultiplier
                 noteHeight: playfield.noteThickness * 3
                 notes: modelData
+                columnState: playfield.columnStates[index]
                 noteImage: playfield.noteImage
                 mineImage: playfield.mineImage
                 notesStay: playfield.notesStay

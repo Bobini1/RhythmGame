@@ -5,14 +5,10 @@
 #include "Lr2HitValues.h"
 auto
 gameplay_logic::rules::lr2_hit_values::getLr2HitValue(
-  const gameplay_logic::rules::TimingWindows& timingWindows,
-  std::chrono::nanoseconds offset) -> double
+  std::chrono::nanoseconds offset,
+  const Judgement judgement) -> double
 {
-    auto iter = timingWindows.find(offset);
-    if (iter == timingWindows.end()) {
-        return 0.0;
-    }
-    switch (iter->second) {
+    switch (judgement) {
         case Judgement::Perfect:
             return 2;
         case Judgement::Great:

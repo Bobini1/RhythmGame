@@ -5,108 +5,104 @@ import RhythmGameQml
 Item {
     id: column
 
-    property real chartPosition: -chart.position * column.heightMultiplier
     property string color
-    property int erasedNoteIndex: 0
     property real heightMultiplier: 20
-    property var missedLnEnds: {
-        return {};
-    }
     property real noteHeight: 36
     property var notes
-    property int visibleNoteIndex: 0
     property bool notesStay
     property string noteImage
     property string mineImage
-
-    function activateLn(index: int) {
-        let item = noteRepeater.itemAt(index - column.erasedNoteIndex);
-        if (item) {
-            item.held = true;
-        }
-    }
-    function deactivateLn(index: int) {
-        let item = noteRepeater.itemAt(index - column.erasedNoteIndex);
-        item.held = false;
-    }
-    function markLnEndAsMissed(index: int) {
-        missedLnEnds[index] = true;
-    }
-    function removeNote(index: int) {
-        if (column.notes[index].type === Note.Type.LongNoteBegin || column.notes[index].type === Note.Type.LongNoteEnd) {
-            return;
-        }
-        let offset = index - column.erasedNoteIndex;
-        let item = noteRepeater.itemAt(offset);
-        if (item) {
-            item.visible = false;
-            item.width = 0;
-            item.height = 0;
-        }
-    }
-
+    required property var columnState
     Layout.alignment: Qt.AlignBottom
 
-    ListModel {
-        id: notesModel
-
-        Component.onCompleted: {
-            for (let i = 0; i < column.notes.length; i++) {
-                notesModel.append({
-                    "note": i
-                });
-            }
-        }
-    }
     Repeater {
         id: noteRepeater
 
-        model: notesModel
+        model: column.columnState
 
         Image {
             id: noteImg
 
             // for ln begin only
-            property bool held: false
-            property real notePosition: -column.notes[note].time.position * column.heightMultiplier
+            required property var display
+            required property int index
+            readonly property var hitData: display.hitData
+            readonly property bool held: note.type === Note.Type.LongNoteBegin && hitData && !nextHitData
+            readonly property var note: display.note
+            readonly property var noteVisible: !display.belowJudgeline
+            height: column.noteHeight
+            visible: (noteVisible && !hitData) || (note.type === Note.Type.LongNoteBegin && nextVisible) || (note.type === Note.Type.LongNoteEnd && noteVisible)
+
+            onNoteVisibleChanged: {
+                if (!noteVisible && note.type === Note.Type.LongNoteBegin && nextVisible) {
+                    state = "reparented";
+                }
+            }
+
+            // repeater instantiates items one by one so we set those properties in onCompleted of the next note
+            property var nextHitData: null
+            property real nextPosition: 0
+            property var nextVisible: false
+
+            Component.onCompleted: {
+                if (note.type === Note.Type.LongNoteEnd) {
+                    noteRepeater.itemAt(index-1).nextHitData = Qt.binding(() => hitData);
+                    noteRepeater.itemAt(index-1).nextPosition = note.time.position;
+                    noteRepeater.itemAt(index-1).nextVisible = Qt.binding(() => noteVisible);
+                }
+            }
 
             function getTypeString() {
-                let type = column.notes[note].type;
+                let type = noteImg.note.type;
                 switch (type) {
-                case Note.Type.Normal:
-                    return "note_";
-                case Note.Type.LongNoteBegin:
-                    return "ln_start_";
-                case Note.Type.LongNoteEnd:
-                    return "ln_end_";
-                case Note.Type.Landmine:
-                    return "mine_";
-                default:
-                    console.info("Unknown note type: " + type);
+                    case Note.Type.Normal:
+                        return "note_";
+                    case Note.Type.LongNoteBegin:
+                        return "ln_start_";
+                    case Note.Type.LongNoteEnd:
+                        return "ln_end_";
+                    case Note.Type.Landmine:
+                        return "mine_";
+                    case Note.Type.Invisible:
+                        return "invisible_";
+                    default:
+                        console.info("Unknown note type: " + type);
                 }
             }
 
             states: State {
                 name: "reparented"
-                ParentChange { target: noteImg; parent: noteAnchor; }
+                ParentChange {
+                    target: noteImg; parent: noteAnchor;
+                }
+                PropertyChanges {
+                    target: noteImg; y: -noteImg.height / 2;
+                }
             }
 
             mipmap: true
-            source: root.iniImagesUrl + (column.notes[note].type === Note.Type.Landmine ? ("mine/" + column.mineImage) : ("notes/" + column.noteImage)) + "/" + getTypeString() + column.color
-            visible: false
-            y: notePosition - height / 2
+            source: getTypeString() === "invisible_" ? "" : root.iniImagesUrl + (noteImg.note.type === Note.Type.Landmine ? ("mine/" + column.mineImage) : ("notes/" + column.noteImage)) + "/" + getTypeString() + column.color
+            y: -note.time.position * column.heightMultiplier - height / 2
 
             Loader {
                 id: lnBodyLoader
 
-                active: column.notes[note].type === Note.Type.LongNoteBegin
+                active: noteImg.note.type === Note.Type.LongNoteBegin
 
                 sourceComponent: Component {
                     Image {
                         id: lnImg
 
                         fillMode: Image.TileVertically
-                        height: column.notes[note + 1].time.position * column.heightMultiplier + noteImg.y
+                        height: {
+                            let pos;
+                            if (noteImg.state !== "reparented") {
+                                pos = noteImg.note.time.position;
+                            } else {
+                                pos = chart.position;
+                            }
+                            return (noteImg.nextPosition - pos) * column.heightMultiplier - noteImg.height;
+                        }
                         source: {
                             if (!noteImg.held) {
                                 return root.iniImagesUrl + "notes/" + column.noteImage + "/ln_body_inactive_" + column.color;
@@ -120,64 +116,5 @@ Item {
                 }
             }
         }
-    }
-    Connections {
-        function onPositionChanged(_) {
-            let count = 0;
-            let chartPosition = chart.position;
-            while (column.erasedNoteIndex + count < column.notes.length) {
-                let note = column.notes[column.erasedNoteIndex + count];
-                if (note.time.position > chartPosition) {
-                    break;
-                }
-                if (column.missedLnEnds[column.erasedNoteIndex + count]) {
-                    notesModel.remove(count, 1);
-                    column.erasedNoteIndex += 1;
-                    column.visibleNoteIndex -= 1;
-                    continue;
-                }
-                if (!noteRepeater.itemAt(count).visible) {
-                    notesModel.remove(count, 1);
-                    column.erasedNoteIndex += 1;
-                    column.visibleNoteIndex -= 1;
-                    continue;
-                }
-                if (note.type === Note.Type.Landmine) {
-                    notesModel.remove(count, 1);
-                    column.erasedNoteIndex += 1;
-                    column.visibleNoteIndex -= 1;
-                    continue;
-                }
-                let item = noteRepeater.itemAt(count);
-                if (item.state !== "reparented" && column.notesStay) {
-                    if (column.chartPosition - item.height / 2 < item.y) {
-                        item.y = column.chartPosition - item.height / 2;
-                        item.state = "reparented";
-                        item.z = 2;
-                        item.anchors.bottom = noteAnchor.bottom;
-                        item.anchors.bottomMargin = Qt.binding(() => -column.noteHeight / 3);
-                    }
-                }
-                count++;
-            }
-            column.visibleNoteIndex = Math.max(0, column.visibleNoteIndex - count);
-            let visibleNoteIndex = column.visibleNoteIndex;
-            count = 0;
-            while (visibleNoteIndex + count < noteRepeater.count) {
-                let noteImage = noteRepeater.itemAt(visibleNoteIndex + count);
-                let globalPos = noteImage.mapToItem(playObjectContainer, 0, column.noteHeight);
-                if (globalPos.y > 0) {
-                    noteImage.visible = true;
-                    noteImage.width = Qt.binding(() => column.width);
-                    noteImage.height = Qt.binding(() => column.noteHeight);
-                    count++;
-                } else {
-                    break;
-                }
-            }
-            column.visibleNoteIndex += count;
-        }
-
-        target: chart
     }
 }

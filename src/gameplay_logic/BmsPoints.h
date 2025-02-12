@@ -13,22 +13,16 @@ class BmsPoints
     Q_PROPERTY(double value READ getValue CONSTANT)
     Q_PROPERTY(Judgement judgement READ getJudgement CONSTANT)
     Q_PROPERTY(int64_t deviation READ getDeviation CONSTANT)
-    Q_PROPERTY(bool noteRemoved READ getNoteRemoved CONSTANT)
     double value;
     Judgement judgement;
     int64_t deviation;
-    bool noteRemoved;
 
   public:
-    BmsPoints(double value,
-              Judgement judgement,
-              int64_t deviation,
-              bool noteRemoved);
+    BmsPoints(double value, Judgement judgement, int64_t deviation);
     BmsPoints() = default;
-    [[nodiscard]] auto getValue() const -> double;
-    [[nodiscard]] auto getJudgement() const -> Judgement;
-    [[nodiscard]] auto getDeviation() const -> int64_t;
-    auto getNoteRemoved() const -> bool;
+    auto getValue() const -> double;
+    auto getJudgement() const -> Judgement;
+    auto getDeviation() const -> int64_t;
 
     friend auto operator<<(QDataStream& stream, const BmsPoints& points)
       -> QDataStream&;

@@ -15,13 +15,12 @@
 namespace qml_components {
 auto
 ChartLoader::loadChart(const QString& filename,
-      resource_managers::Profile* player1,
-      resource_managers::Profile* player2,
-      QList<int64_t> randomSequence)
-  -> gameplay_logic::Chart*
+                       resource_managers::Profile* player1,
+                       resource_managers::Profile* player2,
+                       QList<int64_t> randomSequence) -> gameplay_logic::Chart*
 {
-    if (!player1 && !player2) {
-        spdlog::error("Player 1 and Player 2 are both null");
+    if (!player1) {
+        spdlog::error("Player 1 is null");
         return nullptr;
     }
     try {
@@ -43,7 +42,8 @@ ChartLoader::loadChart(const QString& filename,
         auto fileAbsolute = QFileInfo(filename).absoluteFilePath();
         auto chartComponents = chartDataFactory->loadChartData(
           support::qStringToPath(fileAbsolute), randomGenerator);
-        if (isDp(chartComponents.chartData->getKeymode()) && player1 && player2) {
+        if (isDp(chartComponents.chartData->getKeymode()) && player1 &&
+            player2) {
             spdlog::error("Can't launch DP for two players");
             return nullptr;
         }
@@ -55,32 +55,27 @@ ChartLoader::loadChart(const QString& filename,
           std::vector<std::unique_ptr<gameplay_logic::rules::BmsHitRules>>{};
         auto gauges = std::vector<QList<gameplay_logic::rules::BmsGauge*>>{};
         auto timingWindows = timingWindowsFactory(rank);
-        auto hitValuesFactoryPartial =
-          [timingWindows, hitValueFactory = this->hitValueFactory](
-            const std::chrono::nanoseconds offset) {
-              return hitValueFactory(timingWindows, offset);
-          };
-        auto maxHitValue =
-          hitValueFactory(timingWindows, std::chrono::nanoseconds{ 0 });
-        auto getPlayerData = [&](resource_managers::Profile* profile)
-          -> std::optional<
-            resource_managers::ChartFactory::PlayerSpecificData> {
-            if (profile) {
-                return resource_managers::ChartFactory::PlayerSpecificData{
-                    profile,
-                    gaugeFactory(
-                      profile,
-                      timingWindows,
-                      chartComponents.chartData->getTotal(),
-                      chartComponents.chartData->getNormalNoteCount()),
-                    hitRulesFactory(timingWindows, hitValuesFactoryPartial)
-                };
-            }
-            return std::nullopt;
+        auto maxHitValue = hitValueFactory(std::chrono::nanoseconds{ 0 },
+                                           gameplay_logic::Judgement::Perfect);
+        auto player1data = resource_managers::ChartFactory::PlayerSpecificData{
+            player1,
+            gaugeFactory(player1,
+                         timingWindows,
+                         chartComponents.chartData->getTotal(),
+                         chartComponents.chartData->getNormalNoteCount()),
+            hitRulesFactory(timingWindows, hitValueFactory)
         };
-        auto player1data = getPlayerData(player1);
-        auto player2data = getPlayerData(player2);
-
+        auto player2data =
+          player2
+            ? std::make_optional<
+                resource_managers::ChartFactory::PlayerSpecificData>(
+                player2,
+                gaugeFactory(player2,
+                             timingWindows,
+                             chartComponents.chartData->getTotal(),
+                             chartComponents.chartData->getNormalNoteCount()),
+                hitRulesFactory(timingWindows, hitValueFactory))
+            : std::nullopt;
         return chartFactory->createChart(std::move(chartComponents),
                                          std::move(player1data),
                                          std::move(player2data),

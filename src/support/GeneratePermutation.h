@@ -35,8 +35,6 @@ auto
 generatePermutation(
   std::span<std::vector<charts::gameplay_models::BmsNotesData::Note>>&
     visibleNotes,
-  std::span<std::vector<charts::gameplay_models::BmsNotesData::Note>>&
-    invisibleNotes,
   resource_managers::NoteOrderAlgorithm algorithm,
   std::optional<uint64_t> seed = std::nullopt) -> ShuffleResult;
 } // namespace support

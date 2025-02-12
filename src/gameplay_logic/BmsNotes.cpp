@@ -10,45 +10,33 @@
 
 namespace gameplay_logic {
 auto
-BmsNotes::getVisibleNotes() -> QVector<QVector<Note>>&
+BmsNotes::getNotes() -> QList<QList<Note>>&
 {
-    return visibleNotes;
+    return notes;
 }
 auto
-BmsNotes::getInvisibleNotes() -> QVector<QVector<Note>>&
+BmsNotes::getNotes() const -> const QList<QList<Note>>&
 {
-    return invisibleNotes;
-}
-auto
-BmsNotes::getVisibleNotes() const -> const QVector<QVector<Note>>&
-{
-    return visibleNotes;
-}
-auto
-BmsNotes::getInvisibleNotes() const -> const QVector<QVector<Note>>&
-{
-    return invisibleNotes;
+    return notes;
 }
 BmsNotes::
-BmsNotes(QVector<QVector<Note>> visibleNotes,
-         QVector<QVector<Note>> invisibleNotes,
-         QVector<BpmChange> bpmChanges,
-         QVector<Time> barLines,
+BmsNotes(QList<QList<Note>> notes,
+         QList<BpmChange> bpmChanges,
+         QList<Time> barLines,
          QObject* parent)
   : QObject(parent)
-  , visibleNotes(std::move(visibleNotes))
-  , invisibleNotes(std::move(invisibleNotes))
+  , notes(std::move(notes))
   , bpmChanges(std::move(bpmChanges))
   , barLines(std::move(barLines))
 {
 }
 auto
-BmsNotes::getBarLines() const -> const QVector<Time>&
+BmsNotes::getBarLines() const -> const QList<Time>&
 {
     return barLines;
 }
 auto
-BmsNotes::getBpmChanges() const -> const QVector<BpmChange>&
+BmsNotes::getBpmChanges() const -> const QList<BpmChange>&
 {
     return bpmChanges;
 }

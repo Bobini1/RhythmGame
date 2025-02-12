@@ -140,8 +140,9 @@ getLastNote(std::vector<BmsNotesData::Note>& target)
 {
     auto last = target.rbegin();
     while (last != target.rend() &&
-           last->noteType == BmsNotesData::NoteType::Landmine) {
-        last++;
+           (last->noteType == BmsNotesData::NoteType::Landmine ||
+            last->noteType == BmsNotesData::NoteType::Invisible)) {
+        ++last;
     }
     return last;
 }
@@ -153,6 +154,7 @@ calculateOffsetsForColumn(
   const std::map<std::pair<double, BpmChangeType>,
                  std::pair<double, BmsNotesData::Time>>& bpmChangesInMeasure,
   double meter,
+  const BmsNotesData::NoteType noteType,
   std::optional<uint16_t> lnObj)
 {
     if (notes.empty()) {
@@ -167,13 +169,14 @@ calculateOffsetsForColumn(
             }
             auto [timestamp, fraction] =
               createNoteInfo(notes.at(0), bpmChangesInMeasure, index, meter);
-            auto noteType = BmsNotesData::NoteType::Normal;
-            if (lnObj.has_value() && note == lnObj.value()) {
+            auto thisNoteType = noteType;
+            if (noteType == BmsNotesData::NoteType::Normal &&
+                lnObj.has_value() && note == lnObj.value()) {
                 // we don't ever want two ln ends in a row
                 if (auto lastNote = getLastNote(target);
                     lastNote != target.rend() &&
                     lastNote->noteType != BmsNotesData::NoteType::LongNoteEnd) {
-                    noteType = BmsNotesData::NoteType::LongNoteEnd;
+                    thisNoteType = BmsNotesData::NoteType::LongNoteEnd;
                     lastNote->noteType = BmsNotesData::NoteType::LongNoteBegin;
                 } else {
                     spdlog::trace("Two LN endings in a row");
@@ -183,7 +186,7 @@ calculateOffsetsForColumn(
               timestamp,
               { fraction * meter * BmsNotesData::defaultBeatsPerMeasure,
                 meter * BmsNotesData::defaultBeatsPerMeasure },
-              noteType,
+              thisNoteType,
               note });
         }
         return;
@@ -205,7 +208,6 @@ calculateOffsetsForColumn(
             auto gcd = std::gcd(index, static_cast<int>(definition.size()));
             auto [timestamp, fraction] =
               createNoteInfo(definition, bpmChangesInMeasure, index, meter);
-            auto noteType = BmsNotesData::NoteType::Normal;
             notesMap[{ index / gcd,
                        static_cast<int>(definition.size()) / gcd }] =
               BmsNotesData::Note{
@@ -221,24 +223,25 @@ calculateOffsetsForColumn(
             notesVector.push_back(note);
         }
         // sort by timestamp
-        std::sort(notesVector.begin(),
-                  notesVector.end(),
-                  [](const auto& a, const auto& b) {
-                      return a.time.timestamp < b.time.timestamp;
-                  });
+        std::ranges::sort(notesVector, [](const auto& a, const auto& b) {
+            return a.time.timestamp < b.time.timestamp;
+        });
         // add to target
         for (const auto& note : notesVector) {
             target.push_back(note);
         }
     }
     for (auto& [timestamp, note] : notesMap) {
-        if (lnObj.has_value() && note.sound == lnObj.value()) {
+        if (noteType == BmsNotesData::NoteType::Normal && lnObj.has_value() &&
+            note.sound == lnObj.value()) {
             // we don't ever want two ln ends in a row
             if (auto lastNote = getLastNote(target);
                 lastNote != target.rend() &&
                 lastNote->noteType != BmsNotesData::NoteType::LongNoteEnd) {
                 note.noteType = BmsNotesData::NoteType::LongNoteEnd;
                 lastNote->noteType = BmsNotesData::NoteType::LongNoteBegin;
+            } else {
+                spdlog::trace("Two LN endings in a row");
             }
         }
         target.push_back(note);
@@ -574,8 +577,7 @@ removeInvalidNotes(
 
 } // namespace
 
-BmsNotesData::
-BmsNotesData(const charts::parser_models::ParsedBmsChart& chart)
+BmsNotesData::BmsNotesData(const charts::parser_models::ParsedBmsChart& chart)
 {
     auto lnType = defaultLnType;
     if (chart.tags.lnType.has_value()) {
@@ -670,39 +672,43 @@ BmsNotesData::generateMeasures(
         for (auto i = 0; i < columnMapping.size(); i++) {
             calculateOffsetsForColumn(
               measure.p1VisibleNotes.at(columnMapping.at(i)),
-              visibleNotes.at(i),
+              notes.at(i),
               bpmChangesInMeasure,
               meter,
+              NoteType::Normal,
               lnObj);
             calculateOffsetsForColumn(
               measure.p1InvisibleNotes.at(columnMapping.at(i)),
-              invisibleNotes.at(i),
+              notes.at(i),
               bpmChangesInMeasure,
               meter,
+              NoteType::Invisible,
               std::nullopt);
             calculateOffsetsForColumn(
               measure.p2VisibleNotes.at(columnMapping.at(i)),
-              visibleNotes.at(i + columnMapping.size()),
+              notes.at(i + columnMapping.size()),
               bpmChangesInMeasure,
               meter,
+              NoteType::Normal,
               lnObj);
             calculateOffsetsForColumn(
               measure.p2InvisibleNotes.at(columnMapping.at(i)),
-              invisibleNotes.at(i + columnMapping.size()),
+              notes.at(i + columnMapping.size()),
               bpmChangesInMeasure,
               meter,
+              NoteType::Invisible,
               std::nullopt);
             if (lnType == LnType::RDM) {
                 calculateOffsetsForLnRdm(
                   measure.p1LongNotes.at(columnMapping.at(i)),
-                  visibleNotes.at(i),
+                  notes.at(i),
                   bpmChangesInMeasure,
                   meter,
                   insideLnP1.at(columnMapping.at(i)),
                   lastInsertedRdmNoteP1.at(columnMapping.at(i)));
                 calculateOffsetsForLnRdm(
                   measure.p2LongNotes.at(columnMapping.at(i)),
-                  visibleNotes.at(i + columnMapping.size()),
+                  notes.at(i + columnMapping.size()),
                   bpmChangesInMeasure,
                   meter,
                   insideLnP2.at(columnMapping.at(i)),
@@ -710,25 +716,25 @@ BmsNotesData::generateMeasures(
             } else if (lnType == LnType::MGQ) {
                 calculateOffsetsForLnMgq(
                   measure.p1LongNotes.at(columnMapping.at(i)),
-                  visibleNotes.at(i),
+                  notes.at(i),
                   bpmChangesInMeasure,
                   meter,
                   insideLnP1.at(columnMapping.at(i)));
                 calculateOffsetsForLnMgq(
                   measure.p2LongNotes.at(columnMapping.at(i)),
-                  visibleNotes.at(i + columnMapping.size()),
+                  notes.at(i + columnMapping.size()),
                   bpmChangesInMeasure,
                   meter,
                   insideLnP2.at(columnMapping.at(i)));
             }
             calculateOffsetsForLandmine(
               measure.p1Landmines.at(columnMapping.at(i)),
-              visibleNotes.at(i),
+              notes.at(i),
               bpmChangesInMeasure,
               meter);
             calculateOffsetsForLandmine(
               measure.p2Landmines.at(columnMapping.at(i)),
-              visibleNotes.at(i + columnMapping.size()),
+              notes.at(i + columnMapping.size()),
               bpmChangesInMeasure,
               meter);
         }
@@ -755,7 +761,7 @@ BmsNotesData::generateMeasures(
     } else {
         adjustMgqLnEnds(lastBpm, measureStart, insideLnP1, insideLnP2);
     }
-    for (auto& column : visibleNotes) {
+    for (auto& column : notes) {
         std::sort(
           column.begin(), column.end(), [](const auto& a, const auto& b) {
               if (a.time.timestamp == b.time.timestamp) {
@@ -764,7 +770,7 @@ BmsNotesData::generateMeasures(
               return a.time.timestamp < b.time.timestamp;
           });
     }
-    removeInvalidNotes(visibleNotes);
+    removeInvalidNotes(notes);
 }
 void
 BmsNotesData::adjustMgqLnEnds(
@@ -780,11 +786,11 @@ BmsNotesData::adjustMgqLnEnds(
           { { 0.0, BpmChangeType::Normal }, { lastBpm, measureStart } }
       };
     for (auto i = 0; i < columnMapping.size(); i++) {
-        addLnEndsMgq(this->visibleNotes.at(i),
+        addLnEndsMgq(this->notes.at(i),
                      bpmChangesInMeasureTemp,
                      1,
                      insideLnP1.at(columnMapping.at(i)));
-        addLnEndsMgq(this->visibleNotes.at(i + columnMapping.size()),
+        addLnEndsMgq(this->notes.at(i + columnMapping.size()),
                      bpmChangesInMeasureTemp,
                      1,
                      insideLnP2.at(columnMapping.at(i)));
@@ -804,17 +810,16 @@ BmsNotesData::adjustRdmLnEnds(
         if (!lastNote.has_value()) {
             continue;
         }
-        if (visibleNotes.at(i).at(*lastNote).noteType ==
-            NoteType::LongNoteBegin) {
-            visibleNotes.at(i).at(*lastNote).noteType = NoteType::Normal;
+        if (notes.at(i).at(*lastNote).noteType == NoteType::LongNoteBegin) {
+            notes.at(i).at(*lastNote).noteType = NoteType::Normal;
         }
         lastNote = lastInsertedRdmNoteP2.at(columnMapping.at(i));
         if (!lastNote.has_value()) {
             continue;
         }
-        if (visibleNotes.at(i + columnMapping.size()).at(*lastNote).noteType ==
+        if (notes.at(i + columnMapping.size()).at(*lastNote).noteType ==
             NoteType::LongNoteBegin) {
-            visibleNotes.at(i + columnMapping.size()).at(*lastNote).noteType =
+            notes.at(i + columnMapping.size()).at(*lastNote).noteType =
               NoteType::Normal;
         }
     }

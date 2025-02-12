@@ -273,9 +273,7 @@ struct RandomizedData
     std::array<support::ShuffleResult, 2> shuffleResults;
     std::unique_ptr<gameplay_logic::BmsScore> score;
     std::array<std::vector<charts::gameplay_models::BmsNotesData::Note>, 16>
-      visibleNotes;
-    std::array<std::vector<charts::gameplay_models::BmsNotesData::Note>, 16>
-      invisibleNotes;
+      rawNotes;
 };
 namespace {
 auto
@@ -284,41 +282,29 @@ getComponentsForPlayer(const ChartFactory::PlayerSpecificData& player,
                        const gameplay_logic::ChartData& chartData,
                        const double maxHitValue) -> RandomizedData
 {
-    auto visibleNotes = notesData.visibleNotes;
-    auto invisibleNotes = notesData.invisibleNotes;
+    auto visibleNotes = notesData.notes;
     auto results = [&]() -> std::array<support::ShuffleResult, 2> {
         if (isDp(chartData.getKeymode())) {
-            auto visibleNotes1 =
+            auto notes1 =
               std::span{ visibleNotes.data(), visibleNotes.size() / 2 };
-            auto invisibleNotes1 =
-              std::span{ invisibleNotes.data(), invisibleNotes.size() / 2 };
             auto result1 =
-              support::generatePermutation(visibleNotes1,
-                                           invisibleNotes1,
+              support::generatePermutation(notes1,
                                            player.profile->getVars()
                                              ->getGlobalVars()
                                              ->getNoteOrderAlgorithm());
-            auto visibleNotes2 =
+            auto notes2 =
               std::span{ visibleNotes.data() + visibleNotes.size() / 2,
                          visibleNotes.size() / 2 };
-            auto invisibleNotes2 =
-              std::span{ invisibleNotes.data() + invisibleNotes.size() / 2,
-                         invisibleNotes.size() / 2 };
             auto result2 =
-              support::generatePermutation(visibleNotes2,
-                                           invisibleNotes2,
+              support::generatePermutation(notes2,
                                            player.profile->getVars()
                                              ->getGlobalVars()
                                              ->getNoteOrderAlgorithmP2(),
                                            result1.seed + 1);
             return { result1, result2 };
         }
-        auto visibleNotes1 =
-          std::span{ visibleNotes.data(), visibleNotes.size() / 2 };
-        auto invisibleNotes1 =
-          std::span{ invisibleNotes.data(), invisibleNotes.size() / 2 };
-        return { support::generatePermutation(visibleNotes1,
-                                              invisibleNotes1,
+        auto notes1 = std::span{ visibleNotes.data(), visibleNotes.size() / 2 };
+        return { support::generatePermutation(notes1,
                                               player.profile->getVars()
                                                 ->getGlobalVars()
                                                 ->getNoteOrderAlgorithm()),
@@ -326,25 +312,7 @@ getComponentsForPlayer(const ChartFactory::PlayerSpecificData& player,
     }();
     // TODO: Simplify this. Don't convert bpmChanges twice for two players.
     auto notes = ChartDataFactory::makeNotes(
-      visibleNotes, invisibleNotes, notesData.bpmChanges, notesData.barLines);
-    auto notesStates = QList<gameplay_logic::ColumnState*>{};
-    for (const auto& column : notes->getVisibleNotes()) {
-        auto notes = QList<gameplay_logic::NoteState>{};
-        notes.reserve(column.size());
-        for (const auto& note : column) {
-            notes.append({note});
-        }
-        notesStates.append(new gameplay_logic::ColumnState(std::move(notes)));
-    }
-    auto barLineStates = QList<gameplay_logic::BarLineState>{};
-    barLineStates.reserve(notes->getBarLines().size());
-    for (const auto& barLine : notes->getBarLines()) {
-        barLineStates.append({barLine});
-    }
-    auto barLinesState =
-      new gameplay_logic::BarLinesState(std::move(barLineStates));
-    auto state =
-      std::make_unique<gameplay_logic::GameplayState>(std::move(notesStates), barLinesState);
+      visibleNotes, notesData.bpmChanges, notesData.barLines);
     auto score = std::make_unique<gameplay_logic::BmsScore>(
       chartData.getNormalNoteCount(),
       chartData.getLnCount(),
@@ -360,27 +328,42 @@ getComponentsForPlayer(const ChartFactory::PlayerSpecificData& player,
       results[0].columns += results[1].columns,
       results[0].seed,
       chartData.getSha256());
+    auto notesStates = QList<gameplay_logic::ColumnState*>{};
+    for (const auto& column : notes->getNotes()) {
+        auto notes = QList<gameplay_logic::NoteState>{};
+        notes.reserve(column.size());
+        for (const auto& note : column) {
+            notes.append({ note });
+        }
+        notesStates.append(new gameplay_logic::ColumnState(std::move(notes)));
+    }
+    auto barLineStates = QList<gameplay_logic::BarLineState>{};
+    barLineStates.reserve(notes->getBarLines().size());
+    for (const auto& barLine : notes->getBarLines()) {
+        barLineStates.append({ barLine });
+    }
+    auto* barLinesState =
+      new gameplay_logic::BarLinesState(std::move(barLineStates));
+    auto state = std::make_unique<gameplay_logic::GameplayState>(
+      std::move(notesStates), barLinesState);
     return { std::move(notes),
              std::move(state),
              results,
              std::move(score),
-             std::move(visibleNotes),
-             std::move(invisibleNotes) };
+             std::move(visibleNotes) };
 }
 } // namespace
 
 auto
 ChartFactory::createChart(ChartDataFactory::ChartComponents chartComponents,
-                          std::optional<PlayerSpecificData> player1,
+                          PlayerSpecificData player1,
                           std::optional<PlayerSpecificData> player2,
                           const double maxHitValue) -> gameplay_logic::Chart*
 {
     auto& [chartData, notesData, wavs, bmps] = chartComponents;
     auto path = support::qStringToPath(chartData->getPath()).parent_path();
-    auto components1 = player1.transform([&](auto& player) {
-        return getComponentsForPlayer(
-          player, notesData, *chartData, maxHitValue);
-    });
+    auto components1 =
+      getComponentsForPlayer(player1, notesData, *chartData, maxHitValue);
     auto components2 = player2.transform([&](auto& player) {
         return getComponentsForPlayer(
           player, notesData, *chartData, maxHitValue);
@@ -388,26 +371,16 @@ ChartFactory::createChart(ChartDataFactory::ChartComponents chartComponents,
 
     auto task = [path,
                  wavs = std::move(wavs),
-                 visibleNotes1 = components1.transform([](auto& components) {
-                     return std::move(components.visibleNotes);
-                 }),
-                 invisibleNotes1 = components1.transform([](auto& components) {
-                     return std::move(components.invisibleNotes);
-                 }),
-                 visibleNotes2 = components2.transform([](auto& components) {
-                     return std::move(components.visibleNotes);
-                 }),
-                 invisibleNotes2 = components2.transform([](auto& components) {
-                     return std::move(components.invisibleNotes);
+                 rawNotes1 = std::move(components1.rawNotes),
+                 rawNotes2 = components2.transform([](auto& components) {
+                     return std::move(components.rawNotes);
                  }),
                  bgmNotes = std::move(notesData.bgmNotes),
                  bpmChanges = notesData.bpmChanges,
-                 hitRules1 = player1.transform(
-                   [&](auto& player) { return std::move(player.hitRules); }),
+                 hitRules1 = std::move(player1.hitRules),
                  hitRules2 = player2.transform(
                    [&](auto& player) { return std::move(player.hitRules); }),
-                 score1 = components1.transform(
-                   [](auto& components) { return components.score.get(); }),
+                 score1 = components1.score.get(),
                  score2 = components2.transform([](auto& components) {
                      return components.score.get();
                  })]() mutable {
@@ -417,19 +390,15 @@ ChartFactory::createChart(ChartDataFactory::ChartComponents chartComponents,
             mineHitSound = &sound->second;
         }
         auto referees = std::vector<gameplay_logic::BmsGameReferee>{};
-        if (score1) {
-            referees.emplace_back(std::move(*visibleNotes1),
-                                  std::move(*invisibleNotes1),
-                                  std::move(bgmNotes),
-                                  bpmChanges,
-                                  mineHitSound,
-                                  *score1,
-                                  sounds,
-                                  std::move(*hitRules1));
-        }
+        referees.emplace_back(std::move(rawNotes1),
+                              std::move(bgmNotes),
+                              bpmChanges,
+                              mineHitSound,
+                              score1,
+                              sounds,
+                              std::move(hitRules1));
         if (score2) {
-            referees.emplace_back(std::move(*visibleNotes2),
-                                  std::move(*invisibleNotes2),
+            referees.emplace_back(std::move(*rawNotes2),
                                   score1 ? decltype(bgmNotes){}
                                          : std::move(bgmNotes),
                                   bpmChanges,
@@ -461,18 +430,15 @@ ChartFactory::createChart(ChartDataFactory::ChartComponents chartComponents,
       std::move(referees),
       std::move(bga),
       chartData.release(),
-      components1.transform(
-        [&](auto& player) -> gameplay_logic::Chart::PlayerSpecificComponents {
-            return { player.notes.release(),
-                     player.score.release(),
-                           player.state.release(),
-                     player1->profile };
-        }),
+      { components1.notes.release(),
+        components1.score.release(),
+        components1.state.release(),
+        player1.profile },
       components2.transform(
         [&](auto& player) -> gameplay_logic::Chart::PlayerSpecificComponents {
             return { player.notes.release(),
                      player.score.release(),
-                           player.state.release(),
+                     player.state.release(),
                      player2->profile };
         }));
     QObject::connect(

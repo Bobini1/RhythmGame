@@ -5,6 +5,8 @@
 #ifndef RHYTHMGAME_BMSGAUGE_H
 #define RHYTHMGAME_BMSGAUGE_H
 
+#include "gameplay_logic/Judgement.h"
+
 #include <QObject>
 #include <QVariant>
 
@@ -56,12 +58,10 @@ class BmsGauge : public QObject
     auto getThreshold() const -> double;
     auto getGaugeHistory() const -> const QList<GaugeHistoryEntry>&;
     virtual void addHit(std::chrono::nanoseconds offsetFromStart,
-                        std::chrono::nanoseconds hitOffset) = 0;
+                        std::chrono::nanoseconds hitOffset,
+                        Judgement judgement) = 0;
     virtual void addMineHit(std::chrono::nanoseconds offsetFromStart,
                             double penalty) = 0;
-    virtual void addHoldEndHit(std::chrono::nanoseconds offsetFromStart,
-                               std::chrono::nanoseconds hitOffset) = 0;
-    virtual void addHoldEndMiss(std::chrono::nanoseconds offsetFromStart) = 0;
 
   protected:
     void addGaugeHistoryEntry(GaugeHistoryEntry entry);

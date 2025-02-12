@@ -24,14 +24,14 @@ HitEvent::HitEvent(int column,
                    std::optional<int> noteIndex,
                    DeltaTime offsetFromStart,
                    std::optional<BmsPoints> points,
-                   HitType type,
-                   Action action)
+                   Action action,
+                   bool noteRemoved)
   : offsetFromStart(offsetFromStart)
   , points(points)
   , noteIndex(noteIndex)
   , column(column)
-  , type(type)
   , action(action)
+  , noteRemoved(noteRemoved)
 {
 }
 auto
@@ -40,14 +40,14 @@ HitEvent::getNoteIndex() const -> int
     return noteIndex.value_or(-1);
 }
 auto
-HitEvent::getType() const -> HitType
-{
-    return type;
-}
-auto
 HitEvent::getAction() const -> Action
 {
     return action;
+}
+auto
+HitEvent::getNoteRemoved() const -> bool
+{
+    return noteRemoved;
 }
 auto
 HitEvent::getPointsOptional() const -> std::optional<BmsPoints>

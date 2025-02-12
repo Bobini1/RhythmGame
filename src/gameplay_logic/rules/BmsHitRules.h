@@ -9,86 +9,59 @@
 #include <span>
 #include "gameplay_logic/BmsPoints.h"
 #include "charts/gameplay_models/BmsNotesData.h"
+#include "gameplay_logic/HitEvent.h"
 namespace sounds {
 class OpenALSound;
-}
+} // namespace sounds
 namespace gameplay_logic::rules {
 
 class BmsHitRules
 {
   public:
+    enum class NoteType
+    {
+        Normal,
+        LnBegin,
+        LnEnd,
+        Invisible
+    };
     struct Note
     {
         sounds::OpenALSound* sound;
         std::chrono::nanoseconds time;
+        NoteType type;
+        int index;
         bool hit = false;
     };
     struct Mine
     {
-        std::chrono::nanoseconds time;
         double penalty;
-        bool hit = false;
-    };
-    struct LnBegin
-    {
-        sounds::OpenALSound* sound;
         std::chrono::nanoseconds time;
+        int index;
         bool hit = false;
     };
-    struct LnEnd
-    {
-        sounds::OpenALSound* sound;
-        std::chrono::nanoseconds time;
-        bool hit = false;
-    };
-    using NoteType = std::variant<Note, Mine, LnBegin, LnEnd>;
-    struct HitResult
-    {
-        BmsPoints points;
-        int noteIndex;
-    };
-    struct MissData
-    {
-        BmsPoints points;
-        int noteIndex;
-        std::optional<BmsPoints> lnEndSkip;
-    };
-    struct MineHitData
-    {
-        std::chrono::nanoseconds offsetFromStart;
-        int noteIndex;
-        double penalty;
-    };
+
     virtual ~BmsHitRules() = default;
 
-    virtual auto visibleNoteHit(std::span<NoteType> notes,
-                                int& currentNoteIndex,
-                                std::chrono::nanoseconds hitOffset)
-      -> std::optional<HitResult> = 0;
+    virtual auto press(std::span<Note> notes,
+                       int column,
+                       std::chrono::nanoseconds hitOffset) -> HitEvent = 0;
 
-    virtual auto getMisses(std::span<NoteType> notes,
-                                       int currentNoteIndex,
-                                       std::chrono::nanoseconds offsetFromStart)
-      -> std::vector<MissData> = 0;
+    virtual auto processMisses(std::span<Note> notes,
+                               int column,
+                               std::chrono::nanoseconds offsetFromStart)
+      -> std::vector<HitEvent> = 0;
 
-    virtual auto invisibleNoteHit(std::span<Note> notes,
-                                  int currentNoteIndex,
-                                  std::chrono::nanoseconds hitOffset)
-      -> std::optional<int> = 0;
+    virtual auto processMines(std::span<Mine> mines,
+                              int column,
+                              std::chrono::nanoseconds hitOffset,
+                              bool pressed,
+                              sounds::OpenALSound* mineHitSound)
+      -> std::vector<HitEvent> = 0;
 
-    virtual auto mineHit(std::span<NoteType> notes,
-                         int currentNoteIndex,
-                         std::chrono::nanoseconds hitOffset)
-      -> std::vector<MineHitData> = 0;
-
-    virtual auto lnReleaseHit(std::span<NoteType> notes,
-                              int currentNoteIndex,
-                              std::chrono::nanoseconds hitOffset)
-      -> std::optional<HitResult> = 0;
-
-    virtual void skipInvisible(std::span<Note> notes,
-                               int& currentNoteIndex,
-                               std::chrono::nanoseconds offsetFromStart) = 0;
+    virtual auto release(std::span<Note> notes,
+                         int column,
+                         std::chrono::nanoseconds hitOffset) -> HitEvent = 0;
 };
 
 } // namespace gameplay_logic::rules

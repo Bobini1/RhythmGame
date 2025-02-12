@@ -12,16 +12,6 @@ class HitEvent
 {
     Q_GADGET
   public:
-    enum class HitType
-    {
-        None,
-        Hit,
-        Miss,
-        // When the beginning is missed
-        LnEndSkip,
-        Mine
-    };
-    Q_ENUM(HitType)
     enum class Action
     {
         None,
@@ -37,23 +27,23 @@ class HitEvent
     Q_PROPERTY(QVariant points READ getPoints CONSTANT)
     Q_PROPERTY(int column READ getColumn CONSTANT)
     Q_PROPERTY(int noteIndex READ getNoteIndex CONSTANT)
-    Q_PROPERTY(HitType type READ getType CONSTANT)
     Q_PROPERTY(Action action READ getAction CONSTANT)
+    Q_PROPERTY(bool noteRemoved READ getNoteRemoved CONSTANT)
 
     DeltaTime offsetFromStart;
     std::optional<BmsPoints> points;
     std::optional<int> noteIndex;
     int column;
-    HitType type;
     Action action;
+    bool noteRemoved;
 
   public:
     HitEvent(int column,
              std::optional<int> noteIndex,
              DeltaTime offsetFromStart,
              std::optional<BmsPoints> points,
-             HitType type,
-             Action action);
+             Action action,
+             bool noteRemoved);
     HitEvent() = default;
 
     auto getOffsetFromStart() const -> DeltaTime;
@@ -64,8 +54,8 @@ class HitEvent
     auto getColumn() const -> int;
     // if the tap did not hit a note, this returns -1
     auto getNoteIndex() const -> int;
-    auto getType() const -> HitType;
     auto getAction() const -> Action;
+    auto getNoteRemoved() const -> bool;
 
     auto operator>(const HitEvent& other) const
     {

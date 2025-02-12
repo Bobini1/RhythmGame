@@ -88,8 +88,7 @@ loadChart(QThreadPool& threadPool,
               chartDataFactory.loadChartData(path, randomGenerator, directory);
             chartComponents.chartData->save(db);
             ChartDataFactory::makeNotes(
-              chartComponents.notesData.visibleNotes,
-              chartComponents.notesData.invisibleNotes,
+              chartComponents.notesData.notes,
               chartComponents.notesData.bpmChanges,
               chartComponents.notesData.barLines)
               ->save(db, chartComponents.chartData->getSha256().toStdString());

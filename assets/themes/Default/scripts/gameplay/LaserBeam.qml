@@ -7,12 +7,22 @@ Item {
 
     property int columnIndex
     property url image
-    required property list<real> columnSizes
+    property bool active: false
+
+    onActiveChanged: {
+        if (active) {
+            start();
+        } else {
+            stop();
+        }
+    }
+
     function start() {
         laserBeamAnimation.stop();
         laserBeam.width = wrapper.width;
         laserBeam.height = wrapper.height;
     }
+
     function stop() {
         laserBeam.duration = (laserBeam.width / wrapper.width) * 100;
         laserBeamAnimation.start();
@@ -20,7 +30,6 @@ Item {
 
     anchors.bottom: parent.bottom
     height: 576
-    width: wrapper.columnSizes[wrapper.columnIndex]
 
     Image {
         id: laserBeam

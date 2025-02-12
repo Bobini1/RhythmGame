@@ -109,38 +109,32 @@ Item {
     }
 
     Connections {
-        function onLnEndMissed(_) {
-            judgementAnimation.frameCount = 1;
-            judgementAnimation.source = root.iniImagesUrl + "judge/" + judgement.judge + "/poor";
-        }
-
-        function onMissed(misses) {
-            judgementAnimation.frameCount = 1;
-            judgementAnimation.source = root.iniImagesUrl + "judge/" + judgement.judge + "/poor";
-        }
-
-        function onNoteHit(tap) {
+        function onHit(tap) {
+            if (!tap.points) {
+                return;
+            }
             switch (tap.points.judgement) {
-            case Judgement.Perfect:
-                judgementAnimation.frameCount = 3;
-                judgementAnimation.source = root.iniImagesUrl + "judge/" + judgement.judge + "/pgreat";
-                break;
-            case Judgement.Great:
-                judgementAnimation.frameCount = 1;
-                judgementAnimation.source = root.iniImagesUrl + "judge/" + judgement.judge + "/great";
-                break;
-            case Judgement.Good:
-                judgementAnimation.frameCount = 1;
-                judgementAnimation.source = root.iniImagesUrl + "judge/" + judgement.judge + "/good";
-                break;
-            case Judgement.Bad:
-                judgementAnimation.frameCount = 1;
-                judgementAnimation.source = root.iniImagesUrl + "judge/" + judgement.judge + "/bad";
-                break;
-            default:
-                judgementAnimation.frameCount = 1;
-                judgementAnimation.source = root.iniImagesUrl + "judge/" + judgement.judge + "/poor";
-                break;
+                case Judgement.Perfect:
+                    judgementAnimation.frameCount = 3;
+                    judgementAnimation.source = root.iniImagesUrl + "judge/" + judgement.judge + "/pgreat";
+                    break;
+                case Judgement.Great:
+                    judgementAnimation.frameCount = 1;
+                    judgementAnimation.source = root.iniImagesUrl + "judge/" + judgement.judge + "/great";
+                    break;
+                case Judgement.Good:
+                    judgementAnimation.frameCount = 1;
+                    judgementAnimation.source = root.iniImagesUrl + "judge/" + judgement.judge + "/good";
+                    break;
+                case Judgement.Bad:
+                    judgementAnimation.frameCount = 1;
+                    judgementAnimation.source = root.iniImagesUrl + "judge/" + judgement.judge + "/bad";
+                    break;
+                case Judgement.Poor:
+                case Judgement.LnEndMiss:
+                    judgementAnimation.frameCount = 1;
+                    judgementAnimation.source = root.iniImagesUrl + "judge/" + judgement.judge + "/poor";
+                    break;
             }
         }
 

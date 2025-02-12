@@ -25,6 +25,7 @@ Item {
     required property Profile profile
     required property var score
     required property var notes
+    required property var columnStates
     readonly property int spacing: playArea.vars.spacing
     readonly property var vars: profile.vars.themeVars[chartFocusScope.screen]
     readonly property var globalVars: profile.vars.globalVars
@@ -74,7 +75,7 @@ Item {
         }
         BarLinePositioner {
             // barlines are always the same for all players
-            barLines: (chart.notes1 || chart.notes2).barLines
+            barLines: (chart.state1.barLinesState)
             heightMultiplier: playArea.heightMultiplier
             width: parent.width
             y: -playArea.vars.thickness / 2 + chart.position * playArea.heightMultiplier + parent.height * (1 - playArea.globalVars.liftOn * playArea.globalVars.liftRatio)
@@ -86,6 +87,7 @@ Item {
             columns: playArea.columns
             spacing: playArea.spacing
             notes: playArea.notes
+            columnStates: playArea.columnStates
             noteThickness: playArea.vars.thickness
             heightMultiplier: playArea.heightMultiplier
             columnSizes: playArea.columnSizes
@@ -93,7 +95,7 @@ Item {
             mineImage: playArea.vars.mine
             notesStay: playArea.vars.notesStay
             y: -playArea.vars.thickness / 2 + chart.position * playArea.heightMultiplier + parent.height * (1 - playArea.globalVars.liftOn * playArea.globalVars.liftRatio)
-            z: 3
+            z: 4
         }
         Row {
             id: laserRow
@@ -108,23 +110,23 @@ Item {
             anchors.bottom: judgeLine.bottom
             height: parent.height
             spacing: playArea.spacing
-            z: 5
+            z: 3
 
             Repeater {
                 id: laserRowChildren
 
-                model: playArea.columns
+                model: playArea.columnStates
 
-                // laser beam (animated)
                 LaserBeam {
                     required property int index
-                    required property string modelData
-                    columnIndex: modelData
-                    columnSizes: playArea.columnSizes
+                    required property var modelData
+                    columnIndex: playArea.columns[index]
+                    width: playArea.columnSizes[columnIndex]
+                    active: modelData.pressed
                     image: {
-                        if (modelData === 7 || modelData === 15)
+                        if (columnIndex === 7 || columnIndex === 15)
                             return root.iniImagesUrl + "keybeam/" + playArea.vars.keybeam + "/laser_s";
-                        else if (modelData % 2 === 0)
+                        else if (columnIndex % 2 === 0)
                             return root.iniImagesUrl + "keybeam/" + playArea.vars.keybeam + "/laser_w";
                         else
                             return root.iniImagesUrl + "keybeam/" + playArea.vars.keybeam + "/laser_b";
@@ -147,7 +149,7 @@ Item {
             anchors.bottom: parent.bottom
             anchors.bottomMargin: parent.height * playArea.globalVars.liftOn * playArea.globalVars.liftRatio
             width: parent.width
-            z: 4
+            z: 5
         }
     }
     Judgements {
@@ -155,62 +157,6 @@ Item {
 
         score: playArea.score
         judge: playArea.vars.judge
-    }
-    Connections {
-        function onLnEndHit(tap) {
-            if (playArea.columns.indexOf(tap.column) === -1) {
-                return;
-            }
-            playfield.markLnEndAsMissed(tap.column, tap.noteIndex);
-        }
-        function onLnEndMissed(miss) {
-            if (playArea.columns.indexOf(miss.column) === -1) {
-                return;
-            }
-            playfield.deactivateLn(miss.column, miss.noteIndex - 1);
-            playfield.markLnEndAsMissed(miss.column, miss.noteIndex);
-        }
-        function onLnEndSkipped(skip) {
-            if (playArea.columns.indexOf(skip.column) === -1) {
-                return;
-            }
-            playfield.markLnEndAsMissed(skip.column, skip.noteIndex);
-        }
-        function onMineHit(hit) {
-            if (playArea.columns.indexOf(hit.column) === -1) {
-                return;
-            }
-            playfield.removeNote(hit.column, hit.noteIndex);
-        }
-        function onMissed(miss) {
-            if (playArea.columns.indexOf(miss.column) === -1) {
-                return;
-            }
-            playfield.removeNote(miss.column, miss.noteIndex);
-        }
-        function onNoteHit(tap) {
-            if (playArea.columns.indexOf(tap.column) === -1) {
-                return;
-            }
-            if (tap.points.noteRemoved) {
-                playfield.removeNote(tap.column, tap.noteIndex);
-                playfield.activateLn(tap.column, tap.noteIndex);
-            }
-        }
-        function onPressed(columnIndex) {
-            if (playArea.columns.indexOf(columnIndex) === -1) {
-                return;
-            }
-            laserRow.shootLaser(columnIndex);
-        }
-        function onReleased(columnIndex) {
-            if (playArea.columns.indexOf(columnIndex) === -1) {
-                return;
-            }
-            laserRow.hideLaser(columnIndex);
-        }
-
-        target: playArea.score
     }
     Item {
         id: playAreaBg

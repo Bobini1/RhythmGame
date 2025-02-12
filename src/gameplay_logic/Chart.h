@@ -67,9 +67,8 @@ class Chart final : public QObject
     QFuture<std::unique_ptr<qml_components::BgaContainer>> bgaFuture;
     QFutureWatcher<std::unique_ptr<qml_components::BgaContainer>>
       bgaFutureWatcher;
-    std::optional<LoadedPlayerSpecificComponents> player1;
+    LoadedPlayerSpecificComponents player1;
     std::optional<LoadedPlayerSpecificComponents> player2;
-    std::vector<LoadedPlayerSpecificComponents*> players;
 
     int64_t elapsed{};
     int64_t timeBeforeChartStart{};
@@ -83,6 +82,7 @@ class Chart final : public QObject
     void setup();
     void setElapsed(int64_t elapsed);
     void setPosition(double position);
+    void connectPlayer(LoadedPlayerSpecificComponents& player);
 
     void setTimeBeforeChartStart(int64_t timeBeforeChartStart);
     void setTimeAfterChartEnd(int64_t timeAfterChartEnd);
@@ -92,7 +92,7 @@ class Chart final : public QObject
       QFuture<std::vector<BmsGameReferee>> refereesFuture,
       QFuture<std::unique_ptr<qml_components::BgaContainer>> bgaFuture,
       ChartData* chartData,
-      std::optional<PlayerSpecificComponents> player1,
+      PlayerSpecificComponents player1,
       std::optional<PlayerSpecificComponents> player2,
       QObject* parent = nullptr);
 
@@ -136,7 +136,6 @@ class Chart final : public QObject
     auto getTimeAfterChartEnd() const -> int64_t;
 
     auto getBga() const -> qml_components::BgaContainer*;
-
 
   signals:
     void elapsedChanged(int64_t delta);

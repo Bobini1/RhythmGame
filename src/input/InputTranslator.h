@@ -40,7 +40,7 @@ class Key
     };
     Q_ENUM(Direction)
 
-    QVariant gamepad;
+    QVariant gamepad = QVariant::fromValue(nullptr);
     Device device;
     int code;
     Direction direction{};

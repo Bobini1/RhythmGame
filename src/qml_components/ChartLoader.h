@@ -21,27 +21,6 @@ class ChartLoader : public QObject
 {
     Q_OBJECT
 
-    resource_managers::ChartDataFactory* chartDataFactory;
-    std::function<gameplay_logic::rules::TimingWindows(
-      gameplay_logic::rules::BmsRank)>
-      timingWindowsFactory;
-    std::function<std::unique_ptr<gameplay_logic::rules::BmsHitRules>(
-      gameplay_logic::rules::TimingWindows,
-      std::function<double(std::chrono::nanoseconds)>)>
-      hitRulesFactory;
-    std::function<double(gameplay_logic::rules::TimingWindows,
-                         std::chrono::nanoseconds)>
-      hitValueFactory;
-    std::function<QList<gameplay_logic::rules::BmsGauge*>(
-      resource_managers::Profile* profile,
-      gameplay_logic::rules::TimingWindows timingWindows,
-      double total,
-      int noteCount)>
-      gaugeFactory;
-    resource_managers::ChartFactory* chartFactory;
-    ProfileList* profileList;
-    input::InputTranslator* inputTranslator;
-
   public:
     using GaugeFactory = std::function<QList<gameplay_logic::rules::BmsGauge*>(
       resource_managers::Profile* profile,
@@ -51,14 +30,24 @@ class ChartLoader : public QObject
     using TimingWindowsFactory =
       std::function<gameplay_logic::rules::TimingWindows(
         gameplay_logic::rules::BmsRank)>;
+    using HitValueFactory = std::function<double(std::chrono::nanoseconds,
+                                                 gameplay_logic::Judgement)>;
     using HitRulesFactory =
       std::function<std::unique_ptr<gameplay_logic::rules::BmsHitRules>(
         gameplay_logic::rules::TimingWindows,
-        std::function<double(std::chrono::nanoseconds)>)>;
-    using HitValueFactory =
-      std::function<double(gameplay_logic::rules::TimingWindows,
-                           std::chrono::nanoseconds)>;
+        HitValueFactory)>;
 
+  private:
+    resource_managers::ChartDataFactory* chartDataFactory;
+    TimingWindowsFactory timingWindowsFactory;
+    HitRulesFactory hitRulesFactory;
+    HitValueFactory hitValueFactory;
+    GaugeFactory gaugeFactory;
+    resource_managers::ChartFactory* chartFactory;
+    ProfileList* profileList;
+    input::InputTranslator* inputTranslator;
+
+  public:
     ChartLoader(ProfileList* profileList,
                 input::InputTranslator* inputTranslator,
                 resource_managers::ChartDataFactory* chartDataFactory,

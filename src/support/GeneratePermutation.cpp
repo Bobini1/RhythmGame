@@ -169,66 +169,10 @@ shuffleAllNotes(
     }
 }
 
-template<typename Random>
-void
-fitInvisibleNotes(
-  const std::span<const std::vector<
-    charts::gameplay_models::BmsNotesData::Note>> visibleNotes,
-  std::span<std::vector<charts::gameplay_models::BmsNotesData::Note>>
-    invisibleNotes,
-  Random& randomGenerator)
-{
-    auto newColumns =
-      std::vector<std::vector<charts::gameplay_models::BmsNotesData::Note>>{};
-    newColumns.resize(visibleNotes.size());
-    auto noteIters = std::vector<std::vector<
-      charts::gameplay_models::BmsNotesData::Note>::const_iterator>{};
-    noteIters.resize(invisibleNotes.size());
-    for (auto i = 0; i < invisibleNotes.size(); ++i) {
-        noteIters[i] = invisibleNotes[i].cbegin();
-    }
-    auto takenSpots =
-      std::vector<std::unordered_set<std::chrono::nanoseconds::rep>>{};
-    takenSpots.resize(visibleNotes.size());
-    for (auto i = 0; i < visibleNotes.size(); ++i) {
-        for (const auto& note : visibleNotes[i]) {
-            takenSpots[i].insert(note.time.timestamp.count());
-        }
-    }
-
-    while (auto noteIt = getNextNote(invisibleNotes, noteIters)) {
-        const auto& note = **noteIt;
-        // first, we generate a list of proposed positions, ordered by
-        // preference
-        auto columnsIota = getColumsIota(visibleNotes.size());
-        fisherYatesShuffle(std::span(columnsIota), randomGenerator);
-        //  find the first spot where the note fits
-        auto spotFound = false;
-        for (const auto& proposedColumn : columnsIota) {
-            if (takenSpots[proposedColumn].contains(
-                  note.time.timestamp.count())) {
-                continue;
-            }
-            takenSpots[proposedColumn].insert(note.time.timestamp.count());
-            newColumns[proposedColumn].push_back(note);
-            spotFound = true;
-            break;
-        }
-        if (!spotFound) {
-            newColumns[columnsIota[0]].push_back(note);
-        }
-    }
-    for (auto i = 0; i < invisibleNotes.size(); ++i) {
-        invisibleNotes[i] = newColumns[i];
-    }
-}
-
 auto
 generatePermutation(
   std::span<std::vector<charts::gameplay_models::BmsNotesData::Note>>&
     visibleNotes,
-  std::span<std::vector<charts::gameplay_models::BmsNotesData::Note>>&
-    invisibleNotes,
   const resource_managers::NoteOrderAlgorithm algorithm,
   const std::optional<uint64_t> seed) -> ShuffleResult
 {
@@ -256,7 +200,6 @@ generatePermutation(
             auto columns = getColumsIota(visibleNotes.size());
             std::reverse(columns.begin(), columns.end() - 1);
             std::reverse(visibleNotes.begin(), visibleNotes.end() - 1);
-            std::reverse(invisibleNotes.begin(), invisibleNotes.end() - 1);
             return { 0, columns };
         }
         case resource_managers::NoteOrderAlgorithm::RRandom: {
@@ -271,14 +214,10 @@ generatePermutation(
             std::rotate(visibleNotes.begin(),
                         visibleNotes.begin() + shift,
                         visibleNotes.end() - 1);
-            std::rotate(invisibleNotes.begin(),
-                        invisibleNotes.begin() + shift,
-                        invisibleNotes.end() - 1);
             // also mirror sometimes
             if (std::uniform_int_distribution(0, 1)(randomGenerator) != 0) {
                 std::reverse(columns.begin(), columns.end() - 1);
                 std::reverse(visibleNotes.begin(), visibleNotes.end() - 1);
-                std::reverse(invisibleNotes.begin(), invisibleNotes.end() - 1);
             }
             return { randomSeed, columns };
         }
@@ -293,10 +232,6 @@ generatePermutation(
             fisherYatesShuffle(
               std::span(visibleNotes).subspan(0, visibleNotes.size() - 1),
               randomGenerator);
-            randomGenerator.seed(randomSeed);
-            fisherYatesShuffle(
-              std::span(invisibleNotes).subspan(0, invisibleNotes.size() - 1),
-              randomGenerator);
             return { randomSeed, columns };
         }
         case resource_managers::NoteOrderAlgorithm::RandomPlus: {
@@ -306,8 +241,6 @@ generatePermutation(
             fisherYatesShuffle(std::span(columns), randomGenerator);
             randomGenerator.seed(randomSeed);
             fisherYatesShuffle(visibleNotes, randomGenerator);
-            randomGenerator.seed(randomSeed);
-            fisherYatesShuffle(invisibleNotes, randomGenerator);
             return { randomSeed, columns };
         }
         case resource_managers::NoteOrderAlgorithm::SRandom: {
@@ -318,10 +251,6 @@ generatePermutation(
               std::span(visibleNotes).subspan(0, visibleNotes.size() - 1),
               preferredNoteDistance,
               randomGenerator);
-            fitInvisibleNotes(
-              std::span(visibleNotes).subspan(0, visibleNotes.size() - 1),
-              std::span(invisibleNotes).subspan(0, invisibleNotes.size() - 1),
-              randomGenerator);
             return { randomSeed, {} };
         }
         case resource_managers::NoteOrderAlgorithm::SRandomPlus: {
@@ -330,7 +259,6 @@ generatePermutation(
             static constexpr auto preferredNoteDistance = 40ms;
             shuffleAllNotes(
               visibleNotes, preferredNoteDistance, randomGenerator);
-            fitInvisibleNotes(visibleNotes, invisibleNotes, randomGenerator);
             return { randomSeed, {} };
         }
     }

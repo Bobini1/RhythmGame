@@ -11,17 +11,16 @@
 #include <QAbstractListModel>
 
 namespace gameplay_logic {
-
 class NoteState
 {
     Q_GADGET
     Q_PROPERTY(Note note MEMBER note)
-    Q_PROPERTY(bool visible MEMBER visible)
+    Q_PROPERTY(bool belowJudgeline MEMBER belowJudgeline)
     Q_PROPERTY(QVariant hitData MEMBER hitData)
   public:
     Note note;
-    QVariant hitData;
-    bool visible;
+    QVariant hitData = QVariant::fromValue(nullptr);
+    bool belowJudgeline = false;
 };
 
 class ColumnState final : public QAbstractListModel
@@ -32,9 +31,7 @@ class ColumnState final : public QAbstractListModel
     QList<NoteState> notes;
     // the last invisible note
     decltype(notes)::size_type currentNote = -1;
-    int64_t noteScreenTime{};
     int64_t elapsed{};
-    void modifyVisibility(decltype(notes)::size_type bottomIndex);
     bool pressed = false;
     void setPressed(bool pressed);
 
@@ -43,10 +40,9 @@ class ColumnState final : public QAbstractListModel
     auto rowCount(const QModelIndex& parent) const -> int override;
     auto data(const QModelIndex& index, int role) const -> QVariant override;
     void onHitEvent(HitEvent hit);
-    void setNoteScreenTime(int64_t nanos);
     // don't set it back in time!
     void setElapsed(int64_t nanos);
-    auto isPressed() -> bool;
+    auto isPressed() const -> bool;
   signals:
     void pressedChanged();
 };
@@ -55,11 +51,11 @@ class BarLineState
 {
     Q_GADGET
     Q_PROPERTY(Time time MEMBER time)
-    Q_PROPERTY(bool visible MEMBER visible)
+    Q_PROPERTY(bool belowJudgeline MEMBER belowJudgeline)
 
   public:
     Time time;
-    bool visible;
+    bool belowJudgeline = false;
 };
 
 class BarLinesState final : public QAbstractListModel
@@ -68,17 +64,15 @@ class BarLinesState final : public QAbstractListModel
     QList<BarLineState> barLines;
     // the last invisible barline
     decltype(barLines)::size_type currentLine = -1;
-    int64_t noteScreenTime{};
     int64_t elapsed{};
-    void modifyVisibility(decltype(barLines)::size_type bottomIndex);
 
   public:
-    explicit BarLinesState(QList<BarLineState> barLines, QObject* parent = nullptr);
+    explicit BarLinesState(QList<BarLineState> barLines,
+                           QObject* parent = nullptr);
     auto rowCount(const QModelIndex& parent) const -> int override;
     auto data(const QModelIndex& index, int role) const -> QVariant override;
-    void onNoteScreenTimeChanged(int64_t nanos);
     // don't set it back in time!
-    void onElapsedChanged(int64_t nanos);
+    void setElapsed(int64_t nanos);
 };
 
 class GameplayState final : public QObject

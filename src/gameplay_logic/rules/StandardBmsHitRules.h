@@ -4,55 +4,51 @@
 
 #ifndef RHYTHMGAME_STANDARDBMSHITRULES_H
 #define RHYTHMGAME_STANDARDBMSHITRULES_H
-#include <iterator>
-#include <optional>
 #include <chrono>
-#include <list>
-#include "gameplay_logic/BmsPoints.h"
-#include "gameplay_logic/TimePoint.h"
 #include "charts/gameplay_models/BmsNotesData.h"
 #include "BmsHitRules.h"
 #include "TimingWindows.h"
 #include "BmsGauge.h"
+#include "gameplay_logic/HitEvent.h"
 
 namespace gameplay_logic::rules {
 class StandardBmsHitRules : public BmsHitRules
 {
   protected:
     TimingWindows timingWindows;
-    std::function<double(std::chrono::nanoseconds)> hitValueFactory;
+    std::function<double(std::chrono::nanoseconds, Judgement judgement)>
+      hitValueFactory;
+    std::array<int, charts::gameplay_models::BmsNotesData::columnNumber>
+      currentNotes{};
+    std::array<int, charts::gameplay_models::BmsNotesData::columnNumber>
+      currentMines{};
 
   public:
     explicit StandardBmsHitRules(
       TimingWindows timingWindows,
-      std::function<double(std::chrono::nanoseconds)> hitValueFactory);
-    auto visibleNoteHit(std::span<NoteType> notes,
-                        int& currentNoteIndex,
-                        std::chrono::nanoseconds hitOffset)
-      -> std::optional<HitResult> override;
+      std::function<double(std::chrono::nanoseconds, Judgement judgement)>
+        hitValueFactory);
+    auto press(std::span<Note> notes,
+               int column,
+               std::chrono::nanoseconds hitOffset) -> HitEvent override;
 
-    // We don't modify currentNoteIndex here, just mark mines as not hittable anymore
-    auto getMisses(std::span<NoteType> notes,
-                   int currentNoteIndex,
-                   std::chrono::nanoseconds offsetFromStart)
-      -> std::vector<MissData> override;
-    // We don't modify currentNoteIndex here, just mark notes as not hittable anymore
-    auto mineHit(std::span<NoteType> notes,
-                 int currentNoteIndex,
-                 std::chrono::nanoseconds offsetFromStart)
-      -> std::vector<MineHitData> override;
-    auto lnReleaseHit(std::span<NoteType> notes,
-                      int currentNoteIndex,
-                      std::chrono::nanoseconds hitOffset)
-      -> std::optional<HitResult> override;
-
-    auto invisibleNoteHit(std::span<Note> notes,
-                          int currentNoteIndex,
-                          std::chrono::nanoseconds hitOffset)
-      -> std::optional<int> override;
-    void skipInvisible(std::span<Note> notes,
-                       int& currentNoteIndex,
-                       std::chrono::nanoseconds offsetFromStart) override;
+    // We don't modify currentNoteIndex here, just mark mines as not hittable
+    // anymore
+    auto processMisses(std::span<Note> notes,
+                       int column,
+                       std::chrono::nanoseconds offsetFromStart)
+      -> std::vector<HitEvent> override;
+    // We don't modify currentNoteIndex here, just mark notes as not hittable
+    // anymore
+    auto processMines(std::span<Mine> mines,
+                      int column,
+                      std::chrono::nanoseconds offsetFromStart,
+                      bool pressed,
+                      sounds::OpenALSound* mineHitSound)
+      -> std::vector<HitEvent> override;
+    auto release(std::span<Note> notes,
+                 int column,
+                 std::chrono::nanoseconds hitOffset) -> HitEvent override;
 };
 } // namespace gameplay_logic::rules
 

@@ -8,8 +8,7 @@
 #include "TimingWindows.h"
 namespace gameplay_logic::rules::lr2_hit_values {
 auto
-getLr2HitValue(const TimingWindows& timingWindows,
-               std::chrono::nanoseconds offset) -> double;
+getLr2HitValue(std::chrono::nanoseconds offset, Judgement judgement) -> double;
 } // namespace gameplay_logic::rules::lr2_hit_values
 
 #endif // RHYTHMGAME_LR2HITVALUES_H

@@ -22,11 +22,11 @@ class ChartFactory
     {
         QPointer<Profile> profile;
         QList<gameplay_logic::rules::BmsGauge*> gauges;
-        std::unique_ptr<gameplay_logic::rules::BmsHitRules> hitRules{};
+        std::unique_ptr<gameplay_logic::rules::BmsHitRules> hitRules;
     };
     explicit ChartFactory(input::InputTranslator* inputTranslator);
     auto createChart(ChartDataFactory::ChartComponents chartComponents,
-                     std::optional<PlayerSpecificData> player1,
+                     PlayerSpecificData player1,
                      std::optional<PlayerSpecificData> player2,
                      double maxHitValue) -> gameplay_logic::Chart*;
 };

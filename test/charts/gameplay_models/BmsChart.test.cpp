@@ -26,7 +26,7 @@ TEST_CASE("An empty chart is created successfully", "[BmsNotesData]")
     auto parsedChart = charts::parser_models::ParsedBmsChart{ std::move(tags) };
     auto chart = charts::gameplay_models::BmsNotesData(parsedChart);
     REQUIRE(chart.bgmNotes.empty());
-    for (const auto& column : chart.visibleNotes) {
+    for (const auto& column : chart.notes) {
         REQUIRE(column.empty());
     }
     for (const auto& column : chart.invisibleNotes) {
@@ -46,15 +46,15 @@ TEST_CASE("A chart with a single note is created successfully",
     auto parsedChart = charts::parser_models::ParsedBmsChart{ std::move(tags) };
     auto chart = charts::gameplay_models::BmsNotesData(parsedChart);
     REQUIRE(chart.bgmNotes.empty());
-    REQUIRE(chart.visibleNotes[0].size() == 1);
+    REQUIRE(chart.notes[0].size() == 1);
     static constexpr auto bpm = chart.defaultBpm;
     static constexpr auto measureLength = std::chrono::nanoseconds(
       static_cast<int64_t>(60.0 * 4 * 1000 * 1000 * 1000 / bpm));
-    REQUIRE(chart.visibleNotes[0][0].time.timestamp == measureLength * 3 / 2);
+    REQUIRE(chart.notes[0][0].time.timestamp == measureLength * 3 / 2);
     for (auto index = 1ul;
          index < charts::gameplay_models::BmsNotesData::columnNumber;
          index++) {
-        REQUIRE(chart.visibleNotes[index].empty());
+        REQUIRE(chart.notes[index].empty());
     }
     for (const auto& column : chart.invisibleNotes) {
         REQUIRE(column.empty());
@@ -76,7 +76,7 @@ TEST_CASE("A chart with a bpm change and a note is created successfully",
     auto parsedChart = charts::parser_models::ParsedBmsChart{ std::move(tags) };
     auto chart = charts::gameplay_models::BmsNotesData(parsedChart);
     REQUIRE(chart.bgmNotes.empty());
-    REQUIRE(chart.visibleNotes[0].size() == 1);
+    REQUIRE(chart.notes[0].size() == 1);
     static constexpr auto bpm = 240.0;
     static constexpr auto bpm2 = 60.0;
     static constexpr auto measureLength = std::chrono::nanoseconds(
@@ -86,8 +86,8 @@ TEST_CASE("A chart with a bpm change and a note is created successfully",
         static_cast<int64_t>(60.0 * 4 * 1000 * 1000 * 1000 / bpm2)) /
         2 +
       measureLength / 2;
-    REQUIRE(chart.visibleNotes[0].size() == 1);
-    REQUIRE(chart.visibleNotes[0][0].time.timestamp == measureLength * 3 / 2);
+    REQUIRE(chart.notes[0].size() == 1);
+    REQUIRE(chart.notes[0][0].time.timestamp == measureLength * 3 / 2);
     REQUIRE(chart.barLines.size() == 2);
     REQUIRE(chart.barLines[0].timestamp == measureLength);
     REQUIRE(chart.barLines[1].timestamp == measureLength + measureLength2);
@@ -118,10 +118,10 @@ TEST_CASE("Multiple BPM changes mid-measure are handled correctly",
       2;
     static constexpr auto measureLength2 = halvedBpmPeriod + measureLength / 2;
     REQUIRE(chart.bgmNotes.empty());
-    REQUIRE(chart.visibleNotes[0].size() == 2);
-    REQUIRE(chart.visibleNotes[0][0].time.timestamp ==
+    REQUIRE(chart.notes[0].size() == 2);
+    REQUIRE(chart.notes[0][0].time.timestamp ==
             measureLength + halvedBpmPeriod / 2);
-    REQUIRE(chart.visibleNotes[0][1].time.timestamp ==
+    REQUIRE(chart.notes[0][1].time.timestamp ==
             measureLength + halvedBpmPeriod + measureLength / 4);
     REQUIRE(chart.barLines.size() == 2);
     REQUIRE(chart.barLines[0].timestamp == measureLength);

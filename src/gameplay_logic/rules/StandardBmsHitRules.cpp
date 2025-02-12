@@ -4,157 +4,178 @@
 
 #include "StandardBmsHitRules.h"
 
+#include "sounds/OpenAlSound.h"
+
 #include <ranges>
+using namespace std::chrono_literals;
 auto
-gameplay_logic::rules::StandardBmsHitRules::visibleNoteHit(
-  std::span<NoteType> notes,
-  int& currentNoteIndex,
-  std::chrono::nanoseconds hitOffset) -> std::optional<HitResult>
+gameplay_logic::rules::StandardBmsHitRules::press(
+  std::span<Note> notes,
+  const int column,
+  const std::chrono::nanoseconds hitOffset) -> HitEvent
 {
-    auto emptyPoor = std::optional<HitResult>{};
-    notes = notes.subspan(currentNoteIndex);
-    for (auto iter = notes.begin(); iter < notes.end(); iter++) {
-        auto& hit =
-          std::visit([](auto& note) -> bool& { return note.hit; }, *iter);
-        if (hit) {
+    auto currentNoteIndex = currentNotes[column];
+    // by default, there is no empty poor, this is an empty hit
+    auto emptyPoorOrNothing = HitEvent{ column,
+                                        std::nullopt,
+                                        hitOffset.count(),
+                                        std::nullopt,
+                                        HitEvent::Action::Press,
+                                        /*noteRemoved=*/false };
+    for (auto& note : notes.subspan(currentNoteIndex)) {
+        if (note.hit) {
+            currentNoteIndex++;
             continue;
         }
-        if (std::holds_alternative<Mine>(*iter) ||
-            std::holds_alternative<LnEnd>(*iter)) {
+        if (note.type == NoteType::LnEnd) {
+            currentNoteIndex++;
             continue;
         }
-        auto noteTime = std::visit([](auto& note) { return note.time; }, *iter);
+        auto noteTime = note.time;
         if (hitOffset <= noteTime + timingWindows.begin()->first.lower()) {
+            currentNoteIndex++;
             continue;
         }
         if (hitOffset >= noteTime + timingWindows.rbegin()->first.upper()) {
-            return emptyPoor;
-        };
-        auto result = timingWindows.find(hitOffset - noteTime)->second;
-        if (result != Judgement::EmptyPoor) {
-            hit = true;
-            return { { BmsPoints(hitValueFactory(hitOffset - noteTime),
-                                 result,
-                                 (hitOffset - noteTime).count(),
-                                 /*noteRemoved=*/true),
-                       static_cast<int>(iter - notes.begin() +
-                                        currentNoteIndex) } };
+            break;
         }
-        emptyPoor = { { BmsPoints(hitValueFactory(hitOffset - noteTime),
-                                  result,
-                                  (hitOffset - noteTime).count(),
-                                  /*noteRemoved=*/false),
-                        static_cast<int>(iter - notes.begin() +
-                                         currentNoteIndex) } };
+        if (const auto result =
+              timingWindows.find(hitOffset - noteTime)->second;
+            result != Judgement::EmptyPoor) {
+            note.hit = true;
+            if (note.sound != nullptr) {
+                note.sound->play();
+            }
+            return { column,
+                     note.index,
+                     hitOffset.count(),
+                     BmsPoints{
+                       hitValueFactory(hitOffset - noteTime, result),
+                       result,
+                       (hitOffset - noteTime).count(),
+                     },
+                     HitEvent::Action::Press,
+                     /*noteRemoved=*/true };
+        }
+        emptyPoorOrNothing = HitEvent(
+          column,
+          note.index,
+          hitOffset.count(),
+          BmsPoints{
+            hitValueFactory(hitOffset - noteTime, Judgement::EmptyPoor),
+            Judgement::EmptyPoor,
+            (hitOffset - noteTime).count(),
+          },
+          HitEvent::Action::Press,
+          /*noteRemoved=*/false);
+        currentNoteIndex++;
     }
-    return emptyPoor;
+    // find the sound to play (the last note before the hit)
+    // go backwards
+    auto notesToCheck = notes.subspan(0, notes.size() - currentNoteIndex);
+    auto found = false;
+    for (auto& note : std::ranges::reverse_view(notesToCheck)) {
+        if (note.time <= hitOffset) {
+            if (note.sound != nullptr) {
+                note.sound->play();
+            }
+            found = true;
+            break;
+        }
+    }
+    if (!found) {
+        // play the first sound, if one exists
+        if (!notes.empty() && notes.front().sound != nullptr) {
+            notes.front().sound->play();
+        }
+    }
+    return emptyPoorOrNothing;
 }
 auto
-gameplay_logic::rules::StandardBmsHitRules::getMisses(
-  std::span<NoteType> notes,
-  int currentNoteIndex,
-  std::chrono::nanoseconds offsetFromStart)
-  -> std::vector<MissData>
+gameplay_logic::rules::StandardBmsHitRules::processMisses(
+  std::span<Note> notes,
+  int column,
+  const std::chrono::nanoseconds offsetFromStart) -> std::vector<HitEvent>
 {
-    auto misses = std::vector<MissData>{};
+    auto& currentNoteIndex = currentNotes[column];
+    auto events = std::vector<HitEvent>{};
     notes = notes.subspan(currentNoteIndex);
-    auto upperBound = timingWindows.rbegin()->first.upper();
+    const auto upperBound = timingWindows.rbegin()->first.upper();
     for (auto iter = notes.begin(); iter < notes.end(); ++iter) {
-        auto& hit =
-          std::visit([](auto& note) -> bool& { return note.hit; }, *iter);
+        auto& hit = iter->hit;
         if (hit) {
             currentNoteIndex++;
             continue;
         }
-        auto noteTime = std::visit([](auto& note) { return note.time; }, *iter);
+        auto noteTime = iter->time;
         if (offsetFromStart < noteTime + upperBound) {
             break;
         }
-        if (std::holds_alternative<Mine>(*iter)) {
+        if (iter->type == NoteType::LnEnd) {
+            if (iter->time <= offsetFromStart) {
+                events.emplace_back(column,
+                                    iter->index,
+                                    noteTime.count(),
+                                    BmsPoints{ 0.0, Judgement::LnEndMiss, 0 },
+                                    HitEvent::Action::None,
+                                    /*noteRemoved=*/false);
+            }
+        } else if (iter->type == NoteType::LnBegin ||
+                   iter->type == NoteType::Normal) {
+            events.emplace_back(
+              column,
+              iter->index,
+              (noteTime + upperBound).count(),
+              BmsPoints{ hitValueFactory(upperBound, Judgement::Poor),
+                         Judgement::Poor,
+                         (offsetFromStart - noteTime).count() },
+              HitEvent::Action::None,
+              /*noteRemoved=*/true);
+            hit = true;
+        }
+        // register a skip event for the end of the long note
+        if (iter->type == NoteType::LnBegin) {
+            if (iter->sound != nullptr) {
+                iter->sound->stop();
+            }
+            const auto nextNote = std::next(iter);
+            auto nextNoteTime = nextNote->time;
+            events.emplace_back(
+              column,
+              nextNote->index,
+              (noteTime + upperBound).count(),
+              BmsPoints{ hitValueFactory(upperBound, Judgement::LnEndSkip),
+                         Judgement::LnEndSkip,
+                         (noteTime + upperBound - nextNoteTime).count() },
+              HitEvent::Action::None,
+              /*noteRemoved=*/true);
+            nextNote->hit = true;
             currentNoteIndex++;
-            continue;
         }
-        auto lnEndSkip = std::optional<BmsPoints>{};
-        if (std::holds_alternative<LnBegin>(*iter)) {
-            auto nextNote = std::next(iter);
-            auto nextNoteTime =
-              std::visit([](auto& note) { return note.time; }, *nextNote);
-            lnEndSkip =
-              BmsPoints(hitValueFactory(upperBound),
-                        Judgement::Poor,
-                        (nextNoteTime - noteTime + upperBound).count(),
-                        /*noteRemoved=*/false);
-            std::visit([](auto& note) { note.hit = true; }, *nextNote);
-        }
-        misses.emplace_back(BmsPoints(hitValueFactory(upperBound),
-                                      Judgement::Poor,
-                                      upperBound.count(),
-                                      /*noteRemoved=*/true),
-                            currentNoteIndex,
-                            lnEndSkip);
         currentNoteIndex++;
     }
-    return misses;
-}
-auto
-gameplay_logic::rules::StandardBmsHitRules::invisibleNoteHit(
-  std::span<Note> notes,
-  int currentNoteIndex,
-  std::chrono::nanoseconds hitOffset) -> std::optional<int>
-{
-    notes = notes.subspan(currentNoteIndex);
-    for (auto& [sound, noteTime, hit] : notes) {
-        if (hit) {
-            currentNoteIndex++;
-            continue;
-        }
-        if (hitOffset <= noteTime + timingWindows.begin()->first.lower()) {
-            currentNoteIndex++;
-            continue;
-        }
-        if (hitOffset >= noteTime + timingWindows.rbegin()->first.upper()) {
-            return std::nullopt;
-        }
-        hit = true;
-        return currentNoteIndex;
-    }
-    return std::nullopt;
-}
-void
-gameplay_logic::rules::StandardBmsHitRules::skipInvisible(
-  std::span<Note> notes,
-  int& currentNoteIndex,
-  std::chrono::nanoseconds offsetFromStart)
-{
-    notes = notes.subspan(currentNoteIndex);
-    for (auto& [sound, noteTime, hit] : notes) {
-        if (hit) {
-            currentNoteIndex++;
-            continue;
-        }
-        if (noteTime <=
-            offsetFromStart - timingWindows.begin()->first.lower()) {
-            currentNoteIndex++;
-        } else {
-            break;
-        }
-    }
+    return events;
 }
 gameplay_logic::rules::StandardBmsHitRules::StandardBmsHitRules(
   TimingWindows timingWindows,
-  std::function<double(std::chrono::nanoseconds)> hitValueFactory)
+  std::function<double(std::chrono::nanoseconds, Judgement judgement)>
+    hitValueFactory)
   : timingWindows(std::move(timingWindows))
   , hitValueFactory(std::move(hitValueFactory))
 {
 }
 auto
-gameplay_logic::rules::StandardBmsHitRules::mineHit(
-  std::span<NoteType> notes,
-  int currentNoteIndex,
-  std::chrono::nanoseconds offsetFromStart) -> std::vector<MineHitData>
+gameplay_logic::rules::StandardBmsHitRules::processMines(
+  std::span<Mine> mines,
+  int column,
+  std::chrono::nanoseconds offsetFromStart,
+  bool pressed,
+  sounds::OpenALSound* mineHitSound) -> std::vector<HitEvent>
 {
-    auto mineHits = std::vector<MineHitData>{};
-    notes = notes.subspan(currentNoteIndex);
+    auto& currentMineIndex = currentMines[column];
+    auto mineHits = std::vector<HitEvent>{};
+    mines = mines.subspan(currentMineIndex);
+    auto playSound = false;
     auto windowLow = [&] {
         for (auto& [window, judgement] : timingWindows) {
             if (judgement != Judgement::EmptyPoor) {
@@ -171,87 +192,121 @@ gameplay_logic::rules::StandardBmsHitRules::mineHit(
         }
         return std::chrono::nanoseconds{ 0 };
     }();
-    for (auto iter = notes.begin(); iter < notes.end(); ++iter) {
-        auto& hit =
-          std::visit([](auto& note) -> bool& { return note.hit; }, *iter);
-        if (hit) {
+    for (auto iter = mines.begin(); iter < mines.end(); ++iter) {
+        if (iter->hit) {
+            currentMineIndex++;
             continue;
         }
-        if (!std::holds_alternative<Mine>(*iter)) {
-            continue;
-        }
-        auto& mine = std::get<Mine>(*iter);
+        auto& mine = *iter;
         auto noteTime = mine.time;
         auto hitOffset = offsetFromStart - noteTime;
         if (hitOffset <= windowLow) {
+            iter->hit = true;
+            mineHits.emplace_back(column,
+                                  mine.index,
+                                  noteTime.count(),
+                                  BmsPoints{ 0.0,
+                                             Judgement::MineAvoided,
+                                             (noteTime + windowHigh).count() },
+                                  HitEvent::Action::None,
+                                  /*noteRemoved=*/true);
+            currentMineIndex++;
             continue;
         }
         if (hitOffset >= windowHigh) {
-            return mineHits;
+            break;
         }
-        hit = true;
-        mineHits.emplace_back(MineHitData{
-          offsetFromStart - noteTime,
-          static_cast<int>(iter - notes.begin() + currentNoteIndex),
-          mine.penalty });
+        if (!pressed) {
+            break;
+        }
+        iter->hit = true;
+        playSound = true;
+        mineHits.emplace_back(
+          column,
+          mine.index,
+          offsetFromStart.count(),
+          BmsPoints{ mine.penalty, Judgement::MineHit, hitOffset.count() },
+          HitEvent::Action::None,
+          /*noteRemoved=*/true);
+        currentMineIndex++;
+    }
+    if (playSound && mineHitSound != nullptr) {
+        mineHitSound->play();
     }
     return mineHits;
 }
 auto
-gameplay_logic::rules::StandardBmsHitRules::lnReleaseHit(
-  std::span<NoteType> notes,
-  int currentNoteIndex,
-  std::chrono::nanoseconds hitOffset) -> std::optional<HitResult>
+gameplay_logic::rules::StandardBmsHitRules::release(
+  std::span<Note> notes,
+  const int column,
+  const std::chrono::nanoseconds hitOffset) -> HitEvent
 {
-    auto windowLow = [&] {
-        for (auto& [window, judgement] : timingWindows) {
+    const auto currentNoteIndex = currentNotes[column];
+    const auto windowLow = [&] {
+        for (const auto& [window, judgement] : timingWindows) {
             if (judgement != Judgement::EmptyPoor) {
                 return window.lower();
             }
         }
         return std::chrono::nanoseconds{ 0 };
     }();
-    auto windowHigh = [&] {
-        for (auto& timingWindow : std::ranges::reverse_view(timingWindows)) {
+    const auto windowHigh = [&] {
+        for (const auto& timingWindow :
+             std::ranges::reverse_view(timingWindows)) {
             if (timingWindow.second != Judgement::EmptyPoor) {
                 return timingWindow.first.upper();
             }
         }
         return std::chrono::nanoseconds{ 0 };
     }();
-    for (auto iter = notes.begin() + currentNoteIndex; iter < notes.end(); iter++) {
-        auto& hit =
-          std::visit([](auto& note) -> bool& { return note.hit; }, *iter);
-        if (hit) {
+    for (auto iter = notes.begin() + currentNoteIndex; iter < notes.end();
+         ++iter) {
+        if (iter->hit) {
             continue;
         }
-        if (!std::holds_alternative<LnEnd>(*iter)) {
-            return std::nullopt;
+        if (iter->type != NoteType::LnEnd) {
+            return { column,
+                     std::nullopt,
+                     hitOffset.count(),
+                     std::nullopt,
+                     HitEvent::Action::Release,
+                     /*noteRemoved=*/false };
         }
-        auto& lnEnd = std::get<LnEnd>(*iter);
-        auto noteTime = lnEnd.time;
-        auto& lnBegin = std::get<LnBegin>(*(iter - 1));
+        auto noteTime = iter->time;
+        auto& lnBegin = *(iter - 1);
         if (!lnBegin.hit) {
             continue;
         }
+        // dropped too early
         if (hitOffset <= noteTime + windowLow) {
-            hit = true;
-            return { { BmsPoints(0.0,
-                                 Judgement::Poor,
-                                 (hitOffset - noteTime).count(),
-                                 /*noteRemoved=*/false),
-                       static_cast<int>(iter - notes.begin()) } };
+            iter->hit = true;
+            return { column,
+                     iter->index,
+                     noteTime.count(),
+                     BmsPoints{ hitValueFactory(hitOffset - noteTime,
+                                                Judgement::LnEndMiss),
+                                Judgement::LnEndMiss,
+                                (hitOffset - noteTime).count() },
+                     HitEvent::Action::Release,
+                     /*noteRemoved=*/true };
         }
+        // dropped too late (handled in processMisses)
         if (hitOffset >= noteTime + windowHigh) {
-            return std::nullopt;
-        };
-        auto result = timingWindows.find(hitOffset - noteTime)->second;
-        hit = true;
-        return { { BmsPoints(0.0,
-                             result,
-                             (hitOffset - noteTime).count(),
-                             /*noteRemoved=*/true),
-                   static_cast<int>(iter - notes.begin()) } };
+            continue;
+        }
+        const auto result = timingWindows.find(hitOffset - noteTime)->second;
+        iter->hit = true;
+        return { column,
+                 iter->index,
+                 noteTime.count(),
+                 BmsPoints{ 0.0, result, (hitOffset - noteTime).count() },
+                 HitEvent::Action::Release,
+                 /*noteRemoved=*/true };
     }
-    return std::nullopt;
+    return { column,
+             std::nullopt,
+             hitOffset.count(),
+             std::nullopt,
+             HitEvent::Action::Release,
+             /*noteRemoved=*/false };
 }

@@ -12,7 +12,68 @@
 #include "BmsReplayData.h"
 #include "resource_managers/Vars.h"
 
+#include <QAbstractListModel>
+
 namespace gameplay_logic {
+
+class JudgementCounts final : public QAbstractListModel
+{
+    Q_OBJECT
+
+    QList<int> judgementCounts =
+      QList<int>(magic_enum::enum_count<Judgement>());
+
+  public:
+    explicit JudgementCounts(QObject* parent = nullptr)
+      : QAbstractListModel(parent)
+    {
+    }
+
+    auto rowCount(const QModelIndex& parent = QModelIndex()) const -> int override
+    {
+        return judgementCounts.size();
+    }
+
+    enum Roles
+    {
+        JudgementRole = Qt::UserRole + 1,
+        CountRole
+    };
+
+    auto roleNames() const -> QHash<int, QByteArray> override
+    {
+        return { { JudgementRole, "judgement" }, { CountRole, "count" } };
+    }
+
+    auto data(const QModelIndex& index, int role) const -> QVariant override
+    {
+        if (!index.isValid() || index.row() >= judgementCounts.size()) {
+            return {};
+        }
+        if (role == JudgementRole) {
+            return QVariant::fromValue(static_cast<Judgement>(index.row()));
+        }
+        if (role == CountRole) {
+            return judgementCounts[index.row()];
+        }
+
+        return {};
+    }
+
+    void addJudgement(Judgement judgement)
+    {
+        auto index = magic_enum::enum_integer(judgement);
+        judgementCounts[index]++;
+        emit dataChanged(createIndex(index, 0),
+                         createIndex(index, 0),
+                         { CountRole });
+    }
+
+    auto getJudgementCounts() const -> const QList<int>&
+    {
+        return judgementCounts;
+    }
+};
 
 class BmsScore final : public QObject
 {
@@ -26,8 +87,7 @@ class BmsScore final : public QObject
     Q_PROPERTY(double points READ getPoints NOTIFY pointsChanged)
     Q_PROPERTY(int combo READ getCombo NOTIFY comboChanged)
     Q_PROPERTY(int maxCombo READ getMaxCombo NOTIFY maxComboChanged)
-    Q_PROPERTY(QVector<int> judgementCounts READ getJudgementCounts NOTIFY
-                 judgementCountsChanged)
+    Q_PROPERTY(JudgementCounts* judgementCounts READ getJudgementCounts CONSTANT)
     Q_PROPERTY(int mineHits READ getMineHits NOTIFY mineHitsChanged)
     Q_PROPERTY(QList<rules::BmsGauge*> gauges READ getGauges CONSTANT)
     Q_PROPERTY(QList<qint64> randomSequence READ getRandomSequence CONSTANT)
@@ -45,8 +105,7 @@ class BmsScore final : public QObject
     int maxHits;
     QList<HitEvent> hits;
     QList<rules::BmsGauge*> gauges;
-    QList<int> judgementCounts =
-      QList<int>(magic_enum::enum_count<Judgement>());
+    JudgementCounts judgementCounts;
     QList<qint64> randomSequence;
     resource_managers::NoteOrderAlgorithm noteOrderAlgorithm;
     resource_managers::NoteOrderAlgorithm noteOrderAlgorithmP2;
@@ -85,7 +144,8 @@ class BmsScore final : public QObject
     auto getLnCount() const -> int;
     auto getMineCount() const -> int;
     auto getPoints() const -> double;
-    auto getJudgementCounts() const -> QVector<int>;
+    auto getJudgementCounts() -> JudgementCounts*;
+    auto getJudgementCounts() const -> const JudgementCounts*;
     void sendVisualOnlyTap(HitEvent tap);
     void sendVisualOnlyRelease(HitEvent release);
     auto getCombo() const -> int;
@@ -105,15 +165,11 @@ class BmsScore final : public QObject
 
   signals:
     void pointsChanged();
-    void judgementCountsChanged();
     void comboChanged();
     void maxComboChanged();
     void mineHitsChanged();
 
     void hit(HitEvent hit);
-
-    void pressed(int column);
-    void released(int column);
 };
 
 } // namespace gameplay_logic

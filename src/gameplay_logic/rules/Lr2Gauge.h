@@ -7,7 +7,6 @@
 
 #include "BmsGauge.h"
 #include "TimingWindows.h"
-#include "BmsRanks.h"
 namespace gameplay_logic::rules {
 class Lr2Gauge : public BmsGauge
 {
@@ -25,12 +24,10 @@ class Lr2Gauge : public BmsGauge
       std::function<double(double, Judgement)> judgementValueFactory,
       QObject* parent = nullptr);
     void addHit(std::chrono::nanoseconds offsetFromStart,
-                std::chrono::nanoseconds hitOffset) override;
+                std::chrono::nanoseconds hitOffset,
+                Judgement judgement) override;
     void addMineHit(std::chrono::nanoseconds offsetFromStart,
                     double penalty) override;
-    void addHoldEndHit(std::chrono::nanoseconds offsetFromStart,
-                       std::chrono::nanoseconds hitOffset) override;
-    void addHoldEndMiss(std::chrono::nanoseconds offsetFromStart) override;
 
     static auto getGauges(TimingWindows timingWindows,
                           double total,

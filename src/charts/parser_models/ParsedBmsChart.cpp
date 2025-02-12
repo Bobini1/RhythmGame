@@ -5,8 +5,8 @@
 #include "ParsedBmsChart.h"
 auto
 charts::parser_models::ParsedBmsChart::mergeTags(
-  charts::parser_models::ParsedBmsChart::Tags& first,
-  charts::parser_models::ParsedBmsChart::Tags second) -> void
+  Tags& first,
+  Tags second) -> void
 {
     if (second.title.has_value()) {
         first.title = std::move(second.title);

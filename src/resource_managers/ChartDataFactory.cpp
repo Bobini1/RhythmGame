@@ -39,42 +39,28 @@ ChartDataFactory::loadFile(const QUrl& chartPath) -> std::string
 auto
 ChartDataFactory::makeNotes(
   const std::array<std::vector<charts::gameplay_models::BmsNotesData::Note>,
-                   charts::gameplay_models::BmsNotesData::columnNumber>&
-    visibleNotes,
-  const std::array<std::vector<charts::gameplay_models::BmsNotesData::Note>,
-                   charts::gameplay_models::BmsNotesData::columnNumber>&
-    invisibleNotes,
+                   charts::gameplay_models::BmsNotesData::columnNumber>& notes,
   const std::vector<
     std::pair<charts::gameplay_models::BmsNotesData::Time, double>>& bpmChanges,
   const std::vector<charts::gameplay_models::BmsNotesData::Time>& barLines)
   -> std::unique_ptr<gameplay_logic::BmsNotes>
 {
     auto visibleNotesQ = QVector<QVector<gameplay_logic::Note>>{};
-    for (const auto& column : visibleNotes) {
+    for (const auto& column : notes) {
         visibleNotesQ.append(convertToQVector(column));
-    }
-    auto invisibleNotesQ = QVector<QVector<gameplay_logic::Note>>{};
-    for (const auto& column : invisibleNotes) {
-        invisibleNotesQ.append(convertToQVector(column));
     }
     auto bpmChangesQ = QVector<gameplay_logic::BpmChange>{};
     for (const auto& bpmChange : bpmChanges) {
-        bpmChangesQ.append(
-          { { .timestamp = bpmChange.first.timestamp.count(),
-              .position = bpmChange.first.position },
-            bpmChange.second });
+        bpmChangesQ.append({ { .timestamp = bpmChange.first.timestamp.count(),
+                               .position = bpmChange.first.position },
+                             bpmChange.second });
     }
     auto barLinesQ = QVector<gameplay_logic::Time>{};
     for (const auto& barLine : barLines) {
-        barLinesQ.append(
-          { barLine.timestamp.count(),
-            barLine.position });
+        barLinesQ.append({ barLine.timestamp.count(), barLine.position });
     }
     return std::make_unique<gameplay_logic::BmsNotes>(
-      std::move(visibleNotesQ),
-      std::move(invisibleNotesQ),
-      std::move(bpmChangesQ),
-      std::move(barLinesQ));
+      std::move(visibleNotesQ), std::move(bpmChangesQ), std::move(barLinesQ));
 }
 auto
 ChartDataFactory::convertToQVector(
@@ -98,12 +84,12 @@ ChartDataFactory::convertToQVector(
             case charts::gameplay_models::BmsNotesData::NoteType::Landmine:
                 type = gameplay_logic::Note::Type::Landmine;
                 break;
+            case charts::gameplay_models::BmsNotesData::NoteType::Invisible:
+                type = gameplay_logic::Note::Type::Invisible;
+                break;
         }
         columnNotes.append(gameplay_logic::Note{
-          {
-              note.time.timestamp
-              .count(),
-            note.time.position },
+          { note.time.timestamp.count(), note.time.position },
           { note.snap.numerator, note.snap.denominator },
           type });
     }
@@ -155,7 +141,7 @@ ChartDataFactory::loadChartData(
       charts::gameplay_models::BmsNotesData{ parsedChart };
 
     auto lastNoteTimestamp = std::chrono::nanoseconds{ 0 };
-    for (const auto& column : calculatedNotesData.visibleNotes) {
+    for (const auto& column : calculatedNotesData.notes) {
         if (column.empty()) {
             continue;
         }
@@ -166,11 +152,11 @@ ChartDataFactory::loadChartData(
     }
     // find keymode
     auto keymode = gameplay_logic::ChartData::Keymode::K7;
-    const auto startColumn = calculatedNotesData.visibleNotes.size() / 2;
+    const auto startColumn = calculatedNotesData.notes.size() / 2;
     for (auto columnIndex = startColumn;
-         columnIndex < calculatedNotesData.visibleNotes.size();
+         columnIndex < calculatedNotesData.notes.size();
          columnIndex++) {
-        if (!calculatedNotesData.visibleNotes[columnIndex].empty()) {
+        if (!calculatedNotesData.notes[columnIndex].empty()) {
             keymode = gameplay_logic::ChartData::Keymode::K14;
             break;
         }
@@ -194,7 +180,7 @@ ChartDataFactory::loadChartData(
     auto normalNotes = 0;
     auto lnNotes = 0;
     auto mineNotes = 0;
-    for (const auto& column : calculatedNotesData.visibleNotes) {
+    for (const auto& column : calculatedNotesData.notes) {
         for (const auto& note : column) {
             switch (note.noteType) {
                 case charts::gameplay_models::BmsNotesData::NoteType::Normal:
@@ -241,8 +227,7 @@ ChartDataFactory::loadChartData(
       QString::fromStdString(sha256),
       QString::fromStdString(md5),
       keymode);
-    auto noteData = makeNotes(calculatedNotesData.visibleNotes,
-                              calculatedNotesData.invisibleNotes,
+    auto noteData = makeNotes(calculatedNotesData.notes,
                               calculatedNotesData.bpmChanges,
                               calculatedNotesData.barLines);
     return { .chartData = std::move(chartData),

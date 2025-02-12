@@ -38,7 +38,8 @@ struct BmsNotesData
         LongNoteBegin,
         LongNoteEnd,
         Normal,
-        Landmine
+        Landmine,
+        Invisible
     };
 
     struct Note
@@ -59,8 +60,7 @@ struct BmsNotesData
     static constexpr auto columnMapping =
       std::array{ 0, 1, 2, 3, 4, 7, 8, 5 }; // ignore "foot pedal"
     static constexpr auto columnNumber = columnMapping.size() * 2;
-    std::array<std::vector<Note>, columnNumber> visibleNotes;
-    std::array<std::vector<Note>, columnNumber> invisibleNotes;
+    std::array<std::vector<Note>, columnNumber> notes;
     std::vector<std::pair<Time, uint16_t>> bgmNotes;
     std::vector<std::pair<Time, uint16_t>> bgaBase;
     std::vector<std::pair<Time, uint16_t>> bgaPoor;
@@ -82,7 +82,7 @@ struct BmsNotesData
       std::optional<uint16_t> lnObj);
     void fillEmptyMeasures(int64_t lastMeasure,
                            int64_t measureIndex,
-                           BmsNotesData::Time& measureStart,
+                           Time& measureStart,
                            double lastBpm);
     void adjustRdmLnEnds(
       const std::array<std::optional<size_t>,
@@ -93,7 +93,7 @@ struct BmsNotesData
         lastInsertedRdmNoteP2);
     void adjustMgqLnEnds(
       double lastBpm,
-      BmsNotesData::Time measureStart,
+      Time measureStart,
       std::array<bool, parser_models::ParsedBmsChart::Measure::columnNumber>&
         insideLnP1,
       std::array<bool, parser_models::ParsedBmsChart::Measure::columnNumber>&

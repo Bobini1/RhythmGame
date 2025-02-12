@@ -97,7 +97,8 @@ class Note
         Normal,
         LongNoteBegin,
         LongNoteEnd,
-        Landmine
+        Landmine,
+        Invisible
     };
     Q_ENUM(Type)
   private:
@@ -126,50 +127,37 @@ operator>>(QDataStream& stream, Note& note) -> QDataStream&
 class BmsNotes : public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(
-      QVector<QVector<Note>> visibleNotes READ getVisibleNotes CONSTANT)
-    Q_PROPERTY(
-      QVector<QVector<Note>> invisibleNotes READ getInvisibleNotes CONSTANT)
-    Q_PROPERTY(QVector<BpmChange> bpmChanges READ getBpmChanges CONSTANT)
-    Q_PROPERTY(QVector<Time> barLines READ getBarLines CONSTANT)
+    Q_PROPERTY(QList<QList<Note>> notes READ getNotes CONSTANT)
+    Q_PROPERTY(QList<BpmChange> bpmChanges READ getBpmChanges CONSTANT)
+    Q_PROPERTY(QList<Time> barLines READ getBarLines CONSTANT)
 
-    QVector<QVector<Note>> visibleNotes;
-    QVector<QVector<Note>> invisibleNotes;
-    QVector<BpmChange> bpmChanges;
-    QVector<Time> barLines;
+    QList<QList<Note>> notes;
+    QList<BpmChange> bpmChanges;
+    QList<Time> barLines;
 
   public:
     BmsNotes() = default;
-    explicit BmsNotes(QVector<QVector<Note>> visibleNotes,
-                      QVector<QVector<Note>> invisibleNotes,
-                      QVector<BpmChange> bpmChanges,
-                      QVector<Time> barLines,
+    explicit BmsNotes(QList<QList<Note>> visibleNotes,
+                      QList<BpmChange> bpmChanges,
+                      QList<Time> barLines,
                       QObject* parent = nullptr);
 
-    [[nodiscard]] auto getVisibleNotes() -> QVector<QVector<Note>>&;
+    auto getNotes() -> QList<QList<Note>>&;
 
-    [[nodiscard]] auto getInvisibleNotes() -> QVector<QVector<Note>>&;
+    auto getNotes() const -> const QList<QList<Note>>&;
+    auto getBarLines() const -> const QList<Time>&;
 
-    [[nodiscard]] auto getVisibleNotes() const -> const QVector<QVector<Note>>&;
-
-    [[nodiscard]] auto getInvisibleNotes() const
-      -> const QVector<QVector<Note>>&;
-
-    [[nodiscard]] auto getBarLines() const -> const QVector<Time>&;
-
-    [[nodiscard]] auto getBpmChanges() const -> const QVector<BpmChange>&;
+    auto getBpmChanges() const -> const QList<BpmChange>&;
 
     friend auto operator<<(QDataStream& stream, const BmsNotes& notes)
       -> QDataStream&
     {
-        return stream << notes.visibleNotes << notes.invisibleNotes
-                      << notes.bpmChanges << notes.barLines;
+        return stream << notes.notes << notes.bpmChanges << notes.barLines;
     }
 
     friend auto operator>>(QDataStream& stream, BmsNotes& notes) -> QDataStream&
     {
-        return stream >> notes.visibleNotes >> notes.invisibleNotes >>
-               notes.bpmChanges >> notes.barLines;
+        return stream >> notes.notes >> notes.bpmChanges >> notes.barLines;
     }
 
     static auto load(db::SqliteCppDb& db, const support::Sha256& sha256)
