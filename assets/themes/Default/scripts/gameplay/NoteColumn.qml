@@ -40,11 +40,13 @@ ListView {
 
         readonly property real previousPos: index > 0 ? notes[index-1].time.position : 0
         height: (note.time.position - previousPos) * column.heightMultiplier
-        width: img.width
+        width: column.width
+        z: index
 
         Image {
             id: img
             height: column.noteHeight
+            width: column.width
             mipmap: true
             source: getTypeString() === "invisible_" ? "" : root.iniImagesUrl + (noteImg.note.type === Note.Type.Landmine ? ("mine/" + column.mineImage) : ("notes/" + column.noteImage)) + "/" + getTypeString() + column.color
             y: -height

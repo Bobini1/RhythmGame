@@ -1,20 +1,26 @@
 import QtQuick 2.0
 
-Item {
+ListView {
     id: column
 
-    property alias barLines: barLineRepeater.model
     required property real heightMultiplier
+    required property var barlinesArray
+    interactive: false
+    contentY: (chart.position * heightMultiplier + height * (1 - playArea.globalVars.liftOn * playArea.globalVars.liftRatio))
 
-    Repeater {
-        id: barLineRepeater
-
+    transform: Scale {
+        origin.y: column.height / 2
+        yScale: -1
+    }
+    delegate: Item {
+        readonly property real previousPos: index > 0 ? barlinesArray[index-1].position : 0
+        height: (display.time.position - previousPos) * column.heightMultiplier
+        width: column.width
         Rectangle {
-            visible: !display.belowJudgeline
             color: "gray"
             height: 1
+            y: -height / 2
             width: parent.width
-            y: -display.time.position * column.heightMultiplier - height / 2
         }
     }
 }

@@ -75,11 +75,10 @@ Item {
         }
         BarLinePositioner {
             // barlines are always the same for all players
-            barLines: chart.state1.barLinesState
+            model: chart.state1.barLinesState
+            barlinesArray: chart.notes1.barLines
             heightMultiplier: playArea.heightMultiplier
-            width: parent.width
-            anchors.bottom: parent.bottom
-            y: -playArea.vars.thickness / 2 + chart.position * playArea.heightMultiplier + parent.height * (1 - playArea.globalVars.liftOn * playArea.globalVars.liftRatio)
+            anchors.fill: parent
             z: 2
         }
         Playfield {
