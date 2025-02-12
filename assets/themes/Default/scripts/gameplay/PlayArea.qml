@@ -38,7 +38,7 @@ Item {
         id: playObjectContainer
 
         anchors.fill: parent
-        clip: true
+        //clip: true
         layer.enabled: true
         layer.smooth: true
 
@@ -75,15 +75,18 @@ Item {
         }
         BarLinePositioner {
             // barlines are always the same for all players
-            barLines: (chart.state1.barLinesState)
+            barLines: chart.state1.barLinesState
             heightMultiplier: playArea.heightMultiplier
             width: parent.width
+            anchors.bottom: parent.bottom
             y: -playArea.vars.thickness / 2 + chart.position * playArea.heightMultiplier + parent.height * (1 - playArea.globalVars.liftOn * playArea.globalVars.liftRatio)
             z: 2
         }
         Playfield {
             id: playfield
 
+            anchors.top: parent.top
+            anchors.bottom: parent.bottom
             columns: playArea.columns
             spacing: playArea.spacing
             notes: playArea.notes
@@ -94,7 +97,6 @@ Item {
             noteImage: playArea.vars.notes
             mineImage: playArea.vars.mine
             notesStay: playArea.vars.notesStay
-            y: -playArea.vars.thickness / 2 + chart.position * playArea.heightMultiplier + parent.height * (1 - playArea.globalVars.liftOn * playArea.globalVars.liftRatio)
             z: 4
         }
         Row {
@@ -265,37 +267,6 @@ Item {
                 width: frameWidth / 2
             }
         }
-    }
-    Connections {
-        function onLnEndHit(hit) {
-            if (playArea.columns.indexOf(hit.column) === -1) {
-                return;
-            }
-            let item = explosions.itemAt(playArea.columnsReversedMapping[hit.column]);
-            item.ln = false;
-            item.restart();
-        }
-        function onLnEndMissed(miss) {
-            if (playArea.columns.indexOf(miss.column) === -1) {
-                return;
-            }
-            let item = explosions.itemAt(playArea.columnsReversedMapping[miss.column]);
-            item.ln = false;
-        }
-        function onNoteHit(tap) {
-            if (playArea.columns.indexOf(tap.column) === -1) {
-                return;
-            }
-            if (tap.points.noteRemoved) {
-                let item = explosions.itemAt(playArea.columnsReversedMapping[tap.column]);
-                if (playArea.notes[playArea.columnsReversedMapping[tap.column]][tap.noteIndex].type === Note.Type.LongNoteBegin) {
-                    item.ln = true;
-                }
-                item.restart();
-            }
-        }
-
-        target: playArea.score
     }
     // to get the sourceSize of the bomb image
     Image {

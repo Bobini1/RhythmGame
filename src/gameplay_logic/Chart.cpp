@@ -320,7 +320,7 @@ Chart::setTimeBeforeChartStart(int64_t timeBeforeChartStart)
     }
     this->timeBeforeChartStart = timeBeforeChartStart;
     auto beatsBeforeChartStart =
-      std::chrono::duration<double>(timeBeforeChartStart).count() *
+      std::chrono::duration_cast<std::chrono::duration<double>>(std::chrono::nanoseconds(timeBeforeChartStart)).count() *
       player1.playerData.notes->getBpmChanges().first().bpm / 60;
     setElapsed(-timeBeforeChartStart);
     setPosition(-beatsBeforeChartStart);

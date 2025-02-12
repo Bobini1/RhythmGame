@@ -3,7 +3,7 @@ import QtQuick
 import QtQuick.Layouts
 import RhythmGameQml
 
-Rectangle {
+Item {
     id: playfield
 
     required property var columnSizes
@@ -24,39 +24,23 @@ Rectangle {
     required property string mineImage
     required property bool notesStay
 
-    function activateLn(column: int, index: int) {
-        let noteColumn = noteColumnRepeater.itemAt(columnsReversedMapping[column]);
-        noteColumn.activateLn(index);
-    }
-    function deactivateLn(column: int, index: int) {
-        let noteColumn = noteColumnRepeater.itemAt(columnsReversedMapping[column]);
-        noteColumn.deactivateLn(index);
-    }
-    function markLnEndAsMissed(column: int, index: int) {
-        let noteColumn = noteColumnRepeater.itemAt(columnsReversedMapping[column]);
-        noteColumn.markLnEndAsMissed(index);
-    }
-    function removeNote(column: int, index: int) {
-        let noteColumn = noteColumnRepeater.itemAt(columnsReversedMapping[column]);
-        noteColumn.removeNote(index);
-    }
-
-    color: "black"
     width: notesRow.width
 
     Row {
         id: notesRow
 
-        anchors.bottom: parent.bottom
         spacing: playfield.spacing
+        anchors.top: parent.top
+        anchors.bottom: parent.bottom
 
         Repeater {
             id: noteColumnRepeater
 
             // take only the columns specified in the columns property
             model: playfield.notes
+            height: notesRow.height
 
-            NoteColumn {
+            delegate: NoteColumn {
                 id: noteColumn
 
                 required property int index
@@ -71,7 +55,7 @@ Rectangle {
                     else
                         return "black";
                 }
-                height: 1
+                height: notesRow.height
                 heightMultiplier: playfield.heightMultiplier
                 noteHeight: playfield.noteThickness * 3
                 notes: modelData

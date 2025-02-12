@@ -27,12 +27,4 @@ Text {
     text: lifeText.getLifeText()
     horizontalAlignment: Text.AlignHCenter
     verticalAlignment: Text.AlignVCenter
-
-    Connections {
-        function onJudgementCountsChanged() {
-            lifeText.text = lifeText.getLifeText();
-        }
-
-        target: lifeText.score
-    }
 }
