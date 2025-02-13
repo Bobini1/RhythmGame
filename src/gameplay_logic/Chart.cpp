@@ -43,11 +43,11 @@ Chart::Chart(QFuture<std::vector<BmsGameReferee>> refereesFuture,
 
     setTimeBeforeChartStart(
       std::chrono::duration_cast<std::chrono::nanoseconds>(
-        std::chrono::seconds{ 1 })
+        std::chrono::seconds{ 0 })
         .count());
-    setTimeAfterChartEnd(std::chrono::duration_cast<std::chrono::nanoseconds>(
+    timeAfterChartEnd = std::chrono::duration_cast<std::chrono::nanoseconds>(
                            std::chrono::seconds{ 3 })
-                           .count());
+                           .count();
 }
 
 void
@@ -300,9 +300,9 @@ Chart::getTimeBeforeChartStart() const -> int64_t
     return timeBeforeChartStart;
 }
 auto
-Chart::getTimeAfterChartEnd() const -> int64_t
+Chart::getPositionBeforeChartStart() const -> double
 {
-    return timeAfterChartEnd;
+    return positionBeforeChartStart;
 }
 void
 Chart::setTimeBeforeChartStart(int64_t timeBeforeChartStart)
@@ -319,23 +319,11 @@ Chart::setTimeBeforeChartStart(int64_t timeBeforeChartStart)
         return;
     }
     this->timeBeforeChartStart = timeBeforeChartStart;
-    auto beatsBeforeChartStart =
+    positionBeforeChartStart =
       std::chrono::duration_cast<std::chrono::duration<double>>(std::chrono::nanoseconds(timeBeforeChartStart)).count() *
       player1.playerData.notes->getBpmChanges().first().bpm / 60;
     setElapsed(-timeBeforeChartStart);
-    setPosition(-beatsBeforeChartStart);
-}
-void
-Chart::setTimeAfterChartEnd(int64_t newTimeAfterChartEnd)
-{
-    if (newTimeAfterChartEnd < 0) {
-        spdlog::warn("Time after chart end cannot be negative");
-        return;
-    }
-    if (newTimeAfterChartEnd == timeAfterChartEnd) {
-        return;
-    }
-    timeAfterChartEnd = newTimeAfterChartEnd;
+    setPosition(-positionBeforeChartStart);
 }
 void
 Chart::setElapsed(int64_t newElapsed)

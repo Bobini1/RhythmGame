@@ -50,7 +50,7 @@ class Chart final : public QObject
     Q_PROPERTY(double position READ getPosition NOTIFY positionChanged)
     Q_PROPERTY(
       int64_t timeBeforeChartStart READ getTimeBeforeChartStart CONSTANT)
-    Q_PROPERTY(int64_t timeAfterChartEnd READ getTimeAfterChartEnd CONSTANT)
+    Q_PROPERTY(double positionBeforeChartStart READ getPositionBeforeChartStart CONSTANT)
     Q_PROPERTY(qml_components::BgaContainer* bga READ getBga NOTIFY loaded)
     Q_PROPERTY(resource_managers::Profile* profile1 READ getProfile1 CONSTANT)
     Q_PROPERTY(resource_managers::Profile* profile2 READ getProfile2 CONSTANT)
@@ -73,6 +73,7 @@ class Chart final : public QObject
     int64_t elapsed{};
     int64_t timeBeforeChartStart{};
     int64_t timeAfterChartEnd{};
+    double positionBeforeChartStart{};
     double position{};
     bool startRequested = false;
 
@@ -85,7 +86,6 @@ class Chart final : public QObject
     void connectPlayer(LoadedPlayerSpecificComponents& player);
 
     void setTimeBeforeChartStart(int64_t timeBeforeChartStart);
-    void setTimeAfterChartEnd(int64_t timeAfterChartEnd);
 
   public:
     explicit Chart(
@@ -133,7 +133,7 @@ class Chart final : public QObject
 
     auto getTimeBeforeChartStart() const -> int64_t;
 
-    auto getTimeAfterChartEnd() const -> int64_t;
+    auto getPositionBeforeChartStart() const -> double;
 
     auto getBga() const -> qml_components::BgaContainer*;
 

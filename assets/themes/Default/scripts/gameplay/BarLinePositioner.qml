@@ -6,14 +6,12 @@ ListView {
     required property real heightMultiplier
     required property var barlinesArray
     interactive: false
-    contentY: (chart.position * heightMultiplier + height * (1 - playArea.globalVars.liftOn * playArea.globalVars.liftRatio))
+    contentY: -(chart.position * heightMultiplier + height * (1 - playArea.globalVars.liftOn * playArea.globalVars.liftRatio))
 
-    transform: Scale {
-        origin.y: column.height / 2
-        yScale: -1
-    }
+    verticalLayoutDirection: ListView.BottomToTop
+
     delegate: Item {
-        readonly property real previousPos: index > 0 ? barlinesArray[index-1].position : 0
+        readonly property real previousPos: index > 0 ? barlinesArray[index-1].position : -chart.positionBeforeChartStart
         height: (display.time.position - previousPos) * column.heightMultiplier
         width: column.width
         Rectangle {

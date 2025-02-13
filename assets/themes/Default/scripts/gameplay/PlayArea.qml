@@ -38,7 +38,6 @@ Item {
         id: playObjectContainer
 
         anchors.fill: parent
-        //clip: true
         layer.enabled: true
         layer.smooth: true
 
@@ -143,14 +142,6 @@ Item {
             source: root.imagesUrl + "glow/" + playArea.vars.glow
             width: parent.width
             z: 1
-        }
-        Item {
-            id: noteAnchor
-
-            anchors.bottom: parent.bottom
-            anchors.bottomMargin: parent.height * playArea.globalVars.liftOn * playArea.globalVars.liftRatio
-            width: parent.width
-            z: 5
         }
     }
     Judgements {
