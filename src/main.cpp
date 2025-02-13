@@ -3,6 +3,7 @@
 #include "gameplay_logic/rules/Lr2TimingWindows.h"
 #include "qml_components/ProgramSettings.h"
 #include "qml_components/ChartLoader.h"
+#include <mimalloc-new-delete.h>
 
 #include <QGuiApplication>
 #include <QObject>
@@ -278,6 +279,7 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
           0,
           "Input",
           "Input is only accessible as an attached property");
+
 
         auto inputSignalProvider =
           qml_components::InputSignalProvider{ &inputTranslator };

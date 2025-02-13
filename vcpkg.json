@@ -94,6 +94,14 @@
       "version>=": "6.8.1"
     },
     {
+      "name": "mimalloc",
+      "version>=": "2.1.7",
+        "features": [
+          "asm",
+          "override"
+        ]
+    },
+    {
       "name": "qtmultimedia",
       "version>=": "6.8.1",
       "default-features": false,

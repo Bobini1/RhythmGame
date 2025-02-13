@@ -13,3 +13,7 @@ endif ()
 if (PORT MATCHES "ffmpeg")
     set(VCPKG_LIBRARY_LINKAGE dynamic)
 endif ()
+
+if (PORT MATCHES "mimalloc")
+    set(VCPKG_LIBRARY_LINKAGE dynamic)
+endif ()
