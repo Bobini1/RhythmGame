@@ -175,6 +175,7 @@ find_package(Threads REQUIRED)
 find_package(SndFile REQUIRED)
 
 find_package(SDL2 REQUIRED)
+target_link_libraries(RhythmGame_lib PUBLIC $<IF:$<TARGET_EXISTS:mimalloc-static>,mimalloc-static,mimalloc>)
 target_link_libraries(RhythmGame_lib PUBLIC SDL2::SDL2 Qt6::Gui Qt6::Quick Qt6::OpenGL Qt6::Widgets Qt6::Concurrent Qt6::Core5Compat Qt6::Multimedia Threads::Threads Boost::headers Boost::locale Boost::dynamic_linking Boost::serialization Boost::filesystem SQLiteCpp spdlog::spdlog foonathan::lexy OpenAL::OpenAL cryptopp::cryptopp magic_enum::magic_enum zstd::libzstd_static SndFile::sndfile llfio::sl)
 
 if (WIN32)
@@ -220,7 +221,6 @@ add_custom_command(TARGET RhythmGame_exe POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E create_symlink
         ${CMAKE_SOURCE_DIR}/assets assets)
 
-target_link_libraries(RhythmGame_exe PUBLIC $<IF:$<TARGET_EXISTS:mimalloc-static>,mimalloc-static,mimalloc>)
 
 if (WIN32)
     find_program(TOOL_WINDEPLOYQT NAMES windeployqt)
