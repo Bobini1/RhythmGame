@@ -35,7 +35,6 @@ ListView {
     delegate: Item {
         id: noteObj
 
-        // for ln begin only
         required property var display
         required property int index
         readonly property var hitData: display.hitData
