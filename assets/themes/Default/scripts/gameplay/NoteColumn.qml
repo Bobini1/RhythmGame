@@ -42,7 +42,7 @@ ListView {
         readonly property bool held: note.type === Note.Type.LongNoteEnd && !hitData && repeater.itemAt(index-1).display.hitData
         readonly property var note: display.note
         readonly property var noteVisible: !display.belowJudgeline
-        //visible: note.type === Note.Type.LongNoteEnd || !hitData
+        visible: note.type === Note.Type.LongNoteEnd || !hitData
 
         readonly property real previousPos: index > 0 ? notes[index-1].time.position : 0
         height: (note.time.position - previousPos) * column.heightMultiplier
