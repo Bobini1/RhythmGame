@@ -52,7 +52,6 @@ ListView {
             id: noteImg
             height: column.noteHeight
             width: column.width
-            mipmap: true
 
             function getTypeString() {
                 let type = noteObj.note.type;
