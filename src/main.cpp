@@ -82,7 +82,7 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
     const auto app = QGuiApplication{ argc, argv };
 
     QGuiApplication::setOrganizationName("Tomasz Kalisiak");
-    QGuiApplication::setOrganizationDomain("bemani.pl");
+    QGuiApplication::setOrganizationDomain("rhythmgame.eu");
     QGuiApplication::setApplicationName("RhythmGame");
 
     try {
