@@ -81,8 +81,8 @@ FocusScope {
                     width: 1214
                 }
                 ChartInfo {
-                    judgementCounts: root.result1.result.judgementCounts
                     chartData: root._chartData
+                    noteCount: root.result1.result.normalNoteCount + root.result1.result.lnCount
 
                     anchors.bottom: parent.bottom
                     anchors.bottomMargin: 24

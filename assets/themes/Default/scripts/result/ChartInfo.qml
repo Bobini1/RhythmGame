@@ -3,8 +3,8 @@ import RhythmGameQml
 
 WindowBg {
     id: chartInfo
-    required property var judgementCounts
     required property var chartData
+    required property int noteCount
     Image {
         anchors.left: parent.left
         anchors.top: parent.top
@@ -77,9 +77,6 @@ WindowBg {
         anchors.right: parent.right
         anchors.rightMargin: 36
         font.pixelSize: 20
-        text: {
-            let counts = chartInfo.judgementCounts;
-            return counts[Judgement.Perfect] + counts[Judgement.Great] + counts[Judgement.Good] + counts[Judgement.Bad] + counts[Judgement.Poor];
-        }
+        text: chartInfo.noteCount
     }
 }
