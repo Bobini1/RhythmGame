@@ -32,14 +32,11 @@ class StandardBmsHitRules : public BmsHitRules
                int column,
                std::chrono::nanoseconds hitOffset) -> HitEvent override;
 
-    // We don't modify currentNoteIndex here, just mark mines as not hittable
-    // anymore
     auto processMisses(std::span<Note> notes,
                        int column,
                        std::chrono::nanoseconds offsetFromStart)
       -> std::vector<HitEvent> override;
-    // We don't modify currentNoteIndex here, just mark notes as not hittable
-    // anymore
+
     auto processMines(std::span<Mine> mines,
                       int column,
                       std::chrono::nanoseconds offsetFromStart,
