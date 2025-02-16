@@ -117,12 +117,15 @@ gameplay_logic::BmsGameReferee::update(std::chrono::nanoseconds offsetFromStart,
     auto events = std::vector<HitEvent>{};
     for (auto columnIndex = 0; columnIndex < notes.size(); columnIndex++) {
         auto& column = notes[columnIndex];
-        events.append_range(hitRules->processMisses(column, columnIndex, offsetFromStart));
-        events.append_range(hitRules->processMines(mines[columnIndex],
-                                                   columnIndex,
-                                                   offsetFromStart,
-                                                   pressedState[columnIndex],
-                                                   mineHitSound));
+        std::ranges::copy(
+          hitRules->processMisses(column, columnIndex, offsetFromStart),
+          std::back_inserter(events));
+        std::ranges::copy(hitRules->processMines(mines[columnIndex],
+                                                 columnIndex,
+                                                 offsetFromStart,
+                                                 pressedState[columnIndex],
+                                                 mineHitSound),
+                          std::back_inserter(events));
     }
     std::ranges::sort(events, [](const auto& left, const auto& right) {
         return left.getHitOffset() < right.getHitOffset();

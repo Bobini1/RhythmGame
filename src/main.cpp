@@ -3,8 +3,9 @@
 #include "gameplay_logic/rules/Lr2TimingWindows.h"
 #include "qml_components/ProgramSettings.h"
 #include "qml_components/ChartLoader.h"
+#ifdef _WIN32
 #include <mimalloc-new-delete.h>
-
+#endif
 #include <QGuiApplication>
 #include <QObject>
 #include <QtQuick>

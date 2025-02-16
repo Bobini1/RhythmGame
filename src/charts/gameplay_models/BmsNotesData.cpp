@@ -223,7 +223,7 @@ calculateOffsetsForColumn(
             notesVector.push_back(note);
         }
         // sort by timestamp
-        std::ranges::sort(notesVector, [](const auto& a, const auto& b) {
+        std::sort(notesVector.begin(), notesVector.end(), [](const auto& a, const auto& b) {
             return a.time.timestamp < b.time.timestamp;
         });
         // add to target
