@@ -34,22 +34,6 @@ FocusScope {
                 sceneStack.pop();
             }
         }
-        Shortcut {
-            enabled: root.enabled
-            sequence: "Down"
-
-            onActivated: {
-                lifeGraph.decrementIndex();
-            }
-        }
-        Shortcut {
-            enabled: root.enabled
-            sequence: "Up"
-
-            onActivated: {
-                lifeGraph.incrementIndex();
-            }
-        }
         Item {
             id: scaledRoot
 
@@ -127,6 +111,13 @@ FocusScope {
                 transform: Scale {
                     xScale: side.mirrored ? -1 : 1
                     origin.x: side.mirrored ? side.width / 2 : 0
+                }
+                Input.onButtonPressed: (key) => {
+                    if (key === BmsKey[`Col${mirrored ? 2 : 1}1`]) {
+                        lifeGraph.decrementIndex();
+                    } else if (key === BmsKey[`Col${mirrored ? 2 : 1}2`]) {
+                        lifeGraph.incrementIndex();
+                    }
                 }
                 Item {
                     height: childrenRect.height
