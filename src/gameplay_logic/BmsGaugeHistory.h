@@ -29,10 +29,8 @@ class BmsGaugeHistory : public QObject
 {
     Q_OBJECT
 
-    Q_PROPERTY(QHash<QString, QList<gameplay_logic::rules::GaugeHistoryEntry>>
-                 gaugeHistory READ getGaugeHistory CONSTANT)
-    Q_PROPERTY(QHash<QString, gameplay_logic::BmsGaugeInfo> gaugeInfo READ
-                 getGaugeInfo CONSTANT)
+    Q_PROPERTY(QVariantMap gaugeHistory READ getGaugeHistoryVariant CONSTANT)
+    Q_PROPERTY(QVariantMap gaugeInfo READ getGaugeInfoVariant CONSTANT)
     QHash<QString, QList<rules::GaugeHistoryEntry>> gaugeHistory;
     QHash<QString, BmsGaugeInfo> gaugeInfo;
 
@@ -61,6 +59,10 @@ class BmsGaugeHistory : public QObject
      * @return A map of gauge name to BmsGaugeInfo
      */
     auto getGaugeInfo() const -> QHash<QString, BmsGaugeInfo>;
+
+    auto getGaugeHistoryVariant() const -> QVariantMap;
+
+    auto getGaugeInfoVariant() const -> QVariantMap;
 
     friend auto operator<<(QDataStream& stream,
                            const BmsGaugeHistory& gaugeHistory) -> QDataStream&;

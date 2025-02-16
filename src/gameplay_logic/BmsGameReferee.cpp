@@ -28,14 +28,6 @@ gameplay_logic::BmsGameReferee::BmsGameReferee(
              std::ranges::views::enumerate(notes[i])) {
             addNote(this->notes[i], this->mines[i], note, index);
         }
-        for (auto note : notes[i]) {
-            auto soundId = note.sound;
-            if (auto sound = this->sounds.find(soundId);
-                sound != this->sounds.end()) {
-                this->notes[i].emplace_back(rules::BmsHitRules::Note{
-                  &sound->second, note.time.timestamp });
-            }
-        }
     }
     for (const auto& bgmNote : bgmNotes) {
         auto soundId = bgmNote.second;

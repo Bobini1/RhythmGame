@@ -80,4 +80,23 @@ BmsGaugeHistory::getGaugeInfo() const -> QHash<QString, BmsGaugeInfo>
 {
     return gaugeInfo;
 }
+auto
+BmsGaugeHistory::getGaugeHistoryVariant() const -> QVariantMap
+{
+    auto ret = QVariantMap{};
+    for (const auto& [key, value] : gaugeHistory.asKeyValueRange()) {
+        ret[key] = QVariant::fromValue(value);
+    }
+    return ret;
+}
+
+auto
+BmsGaugeHistory::getGaugeInfoVariant() const -> QVariantMap
+{
+    auto ret = QVariantMap{};
+    for (const auto& [key, value] : gaugeInfo.asKeyValueRange()) {
+        ret[key] = QVariant::fromValue(value);
+    }
+    return ret;
+}
 } // namespace gameplay_logic
