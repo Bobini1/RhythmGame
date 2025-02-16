@@ -117,7 +117,7 @@ FocusScope {
                 required property BmsScoreAftermath result
                 required property bool isBattle
                 property bool mirrored: false
-                readonly property var earlyLate: Helpers.getEarlyLate(result.replayData, result.result.judgementCounts[Judgement.Poor])
+                readonly property var earlyLate: Helpers.getEarlyLate(result.replayData)
                 readonly property var oldBestClear: Helpers.getClearType(scores)
                 readonly property var oldBestPointsScore: Helpers.getScoreWithBestPoints(scores)
                 readonly property var oldBestStats: Helpers.getBestStats(scores)

@@ -80,16 +80,18 @@ function pad(num, size) {
     return num;
 }
 
-function getEarlyLate(replayData, missCount) {
+function getEarlyLate(replayData) {
     // array with a value for each judgement
     let early = [];
     let late = [];
-    for (let i = 0; i < Judgement.Perfect + 1; i++) {
+    for (let i = 0; i <= Judgement.Perfect; i++) {
         early.push(0);
         late.push(0);
     }
-    let hitsWithPoints = replayData.hitsWithPoints;
-    for (let hit of hitsWithPoints) {
+    for (let hit of replayData.hitEvents) {
+        if (!hit.points) {
+            continue;
+        }
         let delta = hit.points.deviation;
         if (delta < 0) {
             early[hit.points.judgement]++;
@@ -97,7 +99,6 @@ function getEarlyLate(replayData, missCount) {
             late[hit.points.judgement]++;
         }
     }
-    late[Judgement.Poor] = missCount;
 
     return {
         early: early,
