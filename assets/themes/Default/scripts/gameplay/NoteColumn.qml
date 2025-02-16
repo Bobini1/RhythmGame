@@ -16,23 +16,13 @@ Item {
     property string mineImage
     required property var columnState
 
-    Repeater {
-        id: repeater
-        model: column.columnState
-
-        delegate: Item {
-            required property var display
-        }
-    }
-
     Image {
         id: lnBeginStatic
-        anchors.bottom: parent.bottom
         height: column.noteHeight
         width: column.width
         source: root.iniImagesUrl + "notes/" + column.noteImage + "/ln_start_" + column.color
-        y: parent.height * (1 - playArea.globalVars.liftOn * playArea.globalVars.liftRatio) + noteHeight / 3
-        visible: true
+        y: parent.height * (1 - playArea.globalVars.liftOn * playArea.globalVars.liftRatio) - column.noteHeight * 2 / 3
+        visible: false
         z: 1
     }
 
@@ -47,6 +37,7 @@ Item {
         contentY: -(chart.position * playArea.heightMultiplier + height * (1 - playArea.globalVars.liftOn * playArea.globalVars.liftRatio)) + column.noteHeight / 3
 
         Repeater {
+            id: repeater
             model: column.columnState
 
             delegate: Item {
@@ -57,9 +48,12 @@ Item {
                 readonly property var hitData: display.hitData
                 readonly property bool held: note.type === Note.Type.LongNoteEnd && !hitData && repeater.itemAt(index - 1).display.hitData
                 readonly property var note: display.note
+                readonly property real prevPosition: index > 0 ? repeater.itemAt(index - 1).note.time.position : 0
+                readonly property real prevBelowJudgeline: index > 0 ? repeater.itemAt(index - 1).display.belowJudgeline : false
                 visible: note.type === Note.Type.LongNoteEnd || !hitData
-                Binding {
-                    lnBeginStatic.visible: note.type === Note.Type.LongNoteBegin && display.belowJudgeline
+                readonly property bool shouldShowStatic: note.type === Note.Type.LongNoteEnd && !display.belowJudgeline && prevBelowJudgeline
+                onShouldShowStaticChanged: {
+                    lnBeginStatic.visible = shouldShowStatic;
                 }
 
                 y: -note.time.position * column.heightMultiplier -column.noteHeight / 3
@@ -114,7 +108,7 @@ Item {
                             id: lnImg
 
                             fillMode: Image.TileVertically
-                            height: noteObj.height - column.noteHeight
+                            height: (noteObj.note.time.position - noteObj.prevPosition) * column.heightMultiplier - column.noteHeight
                             source: {
                                 if (!noteObj.held) {
                                     return root.iniImagesUrl + "notes/" + column.noteImage + "/ln_body_inactive_" + column.color;
@@ -123,7 +117,7 @@ Item {
                                 return root.iniImagesUrl + "notes/" + column.noteImage + "/ln_body_" + (flashing ? "flash" : "active") + "_" + column.color;
                             }
                             width: noteObj.width
-                            y: column.noteHeight * 2 / 3
+                            y: column.noteHeight
                             z: -1
                         }
                     }
