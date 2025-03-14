@@ -102,6 +102,10 @@
         ]
     },
     {
+      "name": "libxml2",
+      "version>=": "2.13.5"
+    },
+    {
       "name": "qtmultimedia",
       "version>=": "6.8.1",
       "default-features": false,

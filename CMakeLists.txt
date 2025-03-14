@@ -12,6 +12,8 @@ project(
 include(cmake/project-is-top-level.cmake)
 include(cmake/variables.cmake)
 
+# <---- mimalloc (faster memory allocation) ---->
+
 find_package(mimalloc CONFIG REQUIRED)
 
 # <------------ SQLiteCpp (db) --------------->
@@ -60,7 +62,9 @@ find_package(zstd REQUIRED)
 
 
 if (MSVC)
-    set(utf8Manifest staticAssets/utf8.manifest)
+    set(utf8Manifest staticAssets/utf8.manifest
+            src/resource_managers/TableManager.cpp
+            src/resource_managers/TableManager.h)
 endif ()
 
 # ---- Load library ----
