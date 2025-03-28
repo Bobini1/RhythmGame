@@ -19,7 +19,7 @@ struct Level
     Q_GADGET
     Q_PROPERTY(QString name MEMBER name)
     Q_PROPERTY(QList<QVariantMap> charts MEMBER charts)
-public:
+  public:
     QString name;
     QList<QVariantMap> charts;
 };
@@ -30,7 +30,7 @@ struct Trophy
     Q_PROPERTY(QString name MEMBER name)
     Q_PROPERTY(double missRate MEMBER missRate)
     Q_PROPERTY(double scoreRate MEMBER scoreRate)
-public:
+  public:
     QString name;
     double missRate{};
     double scoreRate{};
@@ -41,39 +41,42 @@ struct Course
     Q_GADGET
     Q_PROPERTY(QString name MEMBER name)
     Q_PROPERTY(QStringList md5s MEMBER md5s)
-    Q_PROPERTY(QList<Trophy> trophies MEMBER trophies)
+    Q_PROPERTY(QVariantList trophies READ getTrophies CONSTANT)
     Q_PROPERTY(QStringList constraints MEMBER constraints)
-public:
+  public:
     QString name;
     QString originalUrl;
     QStringList md5s;
     QList<Trophy> trophies;
     QStringList constraints;
+    auto getTrophies() const -> QVariantList;
 };
 
-class Table final : public QObject
+struct Table
 {
     Q_GADGET
     Q_PROPERTY(QString name MEMBER name)
     Q_PROPERTY(QString tag MEMBER tag)
     Q_PROPERTY(QVariant keymode MEMBER keymode)
-    Q_PROPERTY(QList<Level> levels MEMBER levels)
-    Q_PROPERTY(QList<QList<Course>> courses MEMBER courses)
-public:
+    Q_PROPERTY(QVariantList levels READ getLevels CONSTANT)
+    Q_PROPERTY(QVariantList courses READ getCourses CONSTANT)
+  public:
     QString name;
     QString tag;
     QVariant keymode;
     QList<Level> levels;
     QList<QList<Course>> courses;
-    static auto fromJson(const QJsonDocument& header, const QJsonDocument& data) -> Table;
+    auto getLevels() const -> QVariantList;
+    auto getCourses() const -> QVariantList;
 };
 
-class TableManager final : public QAbstractListModel
+class Tables final : public QAbstractListModel
 {
     Q_OBJECT
     QNetworkAccessManager* networkManager;
     QDir tableLocation;
-public:
+
+  public:
     enum Status
     {
         Loading,
@@ -81,18 +84,21 @@ public:
         Error
     };
     Q_ENUM(Status)
-private:
+  private:
     struct TableData
     {
         QUrl url;
-        std::optional<Table> table;
-        Status status{Loading};
+        Table table;
+        Status status{ Loading };
     };
     QList<TableData> tables;
+    QThreadPool fileOperationThreadPool;
 
-    void handleInitialReply(QNetworkReply* reply);
-    void handleHeaderReply(QNetworkReply* reply, QUrl url);
-    void handleDataReply(QNetworkReply* reply, const QJsonDocument& header, QUrl url);
+    void handleInitialReply(QNetworkReply* reply, const QUrl& url);
+    void setErrorFlag(const QUrl& url);
+    void handleHeader(const QUrl& url, const QJsonObject& header);
+    void handleData(const QUrl& url, const QJsonArray& data);
+    void handleHeaderReply(const QUrl& url, const QByteArray& reply);
 
   public:
     enum Roles
@@ -101,15 +107,16 @@ private:
         TableRole,
         StatusRole
     };
-    explicit TableManager(QNetworkAccessManager* networkManager,
-                          const QDir& tableLocation,
-                          QObject* parent = nullptr);
+    explicit Tables(QNetworkAccessManager* networkManager,
+                    const QDir& tableLocation,
+                    QObject* parent = nullptr);
     auto rowCount(const QModelIndex& parent) const -> int override;
     auto data(const QModelIndex& index, int role) const -> QVariant override;
     auto roleNames() const -> QHash<int, QByteArray> override;
-    void removeAt(int index);
-    void addTable(const QUrl& url);
-
+    Q_INVOKABLE void removeAt(int index);
+    Q_INVOKABLE void add(const QUrl& url);
+    Q_INVOKABLE void reload(int index);
+    Q_INVOKABLE void reorder(int from, int to);
 };
 } // namespace resource_managers
 

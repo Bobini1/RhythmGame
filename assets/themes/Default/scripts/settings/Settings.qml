@@ -23,6 +23,9 @@ Rectangle {
                 text: qsTr("Song directories")
             }
             TabButton {
+                text: qsTr("Tables")
+            }
+            TabButton {
                 text: qsTr("Themes")
             }
             TabButton {
@@ -43,6 +46,9 @@ Rectangle {
                 Layout.preferredHeight: parent.height - tabView.height
             }
             SongFolderSettings {
+                Layout.preferredHeight: parent.height - tabView.height
+            }
+            TableSettings {
                 Layout.preferredHeight: parent.height - tabView.height
             }
             ThemeSettings {
