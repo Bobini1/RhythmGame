@@ -216,6 +216,7 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
         qmlRegisterType<resource_managers::Course>("RhythmGameQml", 1, 0, "course");
         qmlRegisterType<resource_managers::Trophy>("RhythmGameQml", 1, 0, "trophy");
         qmlRegisterType<resource_managers::Table>("RhythmGameQml", 1, 0, "table");
+        qmlRegisterType<resource_managers::Entry>("RhythmGameQml", 1, 0, "entry");
         qmlRegisterType<gameplay_logic::Chart>("RhythmGameQml", 1, 0, "Chart");
         qmlRegisterType<gameplay_logic::ChartData>(
           "RhythmGameQml", 1, 0, "ChartData");
