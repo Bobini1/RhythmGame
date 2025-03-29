@@ -279,7 +279,8 @@ resource_managers::Tables::handleData(const QUrl& url, const QJsonArray& data)
             std::ranges::sort(
               extraLevelValues,
               [](const auto& a, const auto& b) {
-                  bool ok1, ok2;
+                  bool ok1;
+                  bool ok2;
                   auto aNum = a.name.toDouble(&ok1);
                   auto bNum = b.name.toDouble(&ok2);
                   if (ok1 && ok2) {
