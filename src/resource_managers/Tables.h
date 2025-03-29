@@ -11,18 +11,45 @@
 #include <qthreadpool.h>
 namespace db {
 class SqliteCppDb;
-}
+} // namespace db
 namespace resource_managers {
+
+struct Entry
+{
+    Q_GADGET
+    Q_PROPERTY(QString title MEMBER title)
+    Q_PROPERTY(QString artist MEMBER artist)
+    Q_PROPERTY(QString subtitle MEMBER subtitle)
+    Q_PROPERTY(QString subartist MEMBER subartist)
+    Q_PROPERTY(QString md5 MEMBER md5)
+    Q_PROPERTY(QString sha256 MEMBER sha256)
+    Q_PROPERTY(QString url MEMBER url)
+    Q_PROPERTY(QString urlDiff MEMBER urlDiff)
+    Q_PROPERTY(QString level MEMBER level)
+    Q_PROPERTY(QString comment MEMBER comment)
+    public:
+    QString title;
+    QString artist;
+    QString subtitle;
+    QString subartist;
+    QString md5;
+    QString sha256;
+    QString url;
+    QString urlDiff;
+    QString level;
+    QString comment;
+};
 
 struct Level
 {
     Q_GADGET
     Q_PROPERTY(QString name MEMBER name)
-    Q_PROPERTY(QList<QVariantMap> charts MEMBER charts)
+    Q_PROPERTY(QVariantList entries READ getEntries CONSTANT)
   public:
     db::SqliteCppDb* db;
     QString name;
-    QList<QVariantMap> charts;
+    QList<Entry> entries;
+    auto getEntries() const -> QVariantList;
     Q_INVOKABLE QVariantList loadCharts() const;
 };
 
@@ -113,7 +140,7 @@ class Tables final : public QAbstractListModel
     Q_INVOKABLE void add(const QUrl& url);
     Q_INVOKABLE void reload(int index);
     Q_INVOKABLE void reorder(int from, int to);
-    Q_INVOKABLE QList<QVariant> getList();
+    Q_INVOKABLE QVariantList getList();
 };
 } // namespace resource_managers
 

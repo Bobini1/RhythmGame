@@ -15,6 +15,7 @@
 #include <libxml2/libxml/xpath.h>
 #include <QUrl>
 #include <spdlog/spdlog.h>
+#include <spdlog/stopwatch.h>
 auto
 getBmstableLink(const QByteArray& html) -> QString
 {
@@ -28,17 +29,17 @@ getBmstableLink(const QByteArray& html) -> QString
                        HTML_PARSE_NOERROR | HTML_PARSE_NOWARNING);
     if (doc == nullptr) {
         spdlog::error("Failed to parse HTML document");
-        return QString();
+        return {};
     }
 
     auto* xpathCtx = xmlXPathNewContext(doc);
     if (xpathCtx == nullptr) {
         spdlog::error("Failed to create XPath context");
         xmlFreeDoc(doc);
-        return QString();
+        return {};
     }
 
-    auto* xpathExpr =
+    const auto* xpathExpr =
       reinterpret_cast<const xmlChar*>("//meta[@name='bmstable']");
     auto* xpathObj = xmlXPathEvalExpression(xpathExpr, xpathCtx);
     if (xpathObj == nullptr) {
@@ -68,28 +69,104 @@ getBmstableLink(const QByteArray& html) -> QString
 }
 
 auto
+resource_managers::Level::getEntries() const -> QVariantList
+{
+    auto list = QVariantList{};
+    for (const auto& entry : entries) {
+        list.append(QVariant::fromValue(entry));
+    }
+    return list;
+}
+auto
 resource_managers::Level::loadCharts() const -> QVariantList
 {
-    auto ret = QVariantList{};
-    auto query = db->createStatement(
-      "SELECT id, title, artist, subtitle, subartist, "
-      "genre, stage_file, banner, back_bmp, rank, total, "
-      "play_level, difficulty, is_random, random_sequence, normal_note_count, "
-      "ln_count, mine_count, length, initial_bpm, max_bpm, "
-      "min_bpm, path, directory, sha256, md5, keymode "
-      "FROM charts WHERE md5 LIKE ?");
-    for (const auto& chart : charts) {
-        auto md5 = chart["md5"].toString().toStdString();
-        query.bind(1, md5);
-        if (auto queryResult =
-              query.executeAndGet<gameplay_logic::ChartData::DTO>()) {
-            auto chartData = gameplay_logic::ChartData::load(*queryResult);
-            ret.append(QVariant::fromValue(chartData.release()));
-        } else {
-            ret.append(chart);
-        }
-        query.reset();
+    if (entries.empty()) {
+        return {};
     }
+
+    auto sw = spdlog::stopwatch{};
+    auto ret = QVariantList{};
+    auto md5List = QStringList{};
+
+    for (const auto& chart : entries) {
+        ret.append(QVariant::fromValue(chart));
+        md5List.append(chart.md5.toUpper());
+    }
+
+    struct ChartDTOWithIndex
+    {
+        int64_t index;
+        gameplay_logic::ChartData::DTO chartData;
+    };
+
+    // Create a single query with an IN clause
+    auto queryStr = std::string("WITH md5_list(md5, idx) AS (VALUES ");
+    auto value = std::string("");
+    for (const auto& md5 : md5List) {
+        value += "(?, ?), ";
+    }
+    if (value.size() > 2) {
+        value =
+          value.substr(0, value.size() - 2); // Remove the last comma and space
+    }
+    queryStr += value;
+
+    queryStr += ") SELECT min(md5_list.idx), charts.id, charts.title, "
+                "charts.artist, charts.subtitle, charts.subartist, "
+                "charts.genre, charts.stage_file, charts.banner, "
+                "charts.back_bmp, charts.rank, charts.total, "
+                "charts.play_level, charts.difficulty, charts.is_random, "
+                "charts.random_sequence, charts.normal_note_count, "
+                "charts.ln_count, charts.mine_count, charts.length, "
+                "charts.initial_bpm, charts.max_bpm, "
+                "charts.min_bpm, charts.path, charts.directory, charts.sha256, "
+                "charts.md5, charts.keymode "
+                "FROM md5_list JOIN charts ON md5_list.md5 = charts.md5 GROUP "
+                "BY md5_list.idx";
+
+    auto query = db->createStatement(queryStr);
+    for (const auto& [index, md5] : std::ranges::views::enumerate(md5List)) {
+        query.bind(index * 2 + 1, md5.toStdString());
+        query.bind(index * 2 + 2, index);
+    }
+    const auto queryResult = query.executeAndGetAll<ChartDTOWithIndex>();
+    for (const auto& result : queryResult) {
+        auto chartData = gameplay_logic::ChartData::load(result.chartData);
+        ret[result.index] = QVariant::fromValue(chartData.release());
+    }
+    // sort by title, subtitle
+    std::ranges::sort(ret, [](QVariant& a, QVariant& b) {
+        auto getTitle = [](QVariant& chart) {
+            if (chart.canView<gameplay_logic::ChartData*>()) {
+                return chart.value<gameplay_logic::ChartData*>()->getTitle();
+            }
+            if (chart.canView<Entry>()) {
+                return chart.view<Entry>().title;
+            }
+            throw std::runtime_error(
+              "ChartData or Entry not found in QVariant");
+        };
+        const auto titleA = getTitle(a);
+        const auto titleB = getTitle(b);
+        auto getSubtitle = [](QVariant& chart) {
+            if (chart.canView<gameplay_logic::ChartData*>()) {
+                return chart.value<gameplay_logic::ChartData*>()->getSubtitle();
+            }
+            if (chart.canView<Entry>()) {
+                return chart.view<Entry>().subtitle;
+            }
+            throw std::runtime_error(
+              "ChartData or Entry not found in QVariant");
+        };
+        const auto subtitleA = getSubtitle(a);
+        const auto subtitleB = getSubtitle(b);
+        if (titleA == titleB) {
+            return subtitleA < subtitleB;
+        }
+        return titleA < titleB;
+    });
+
+    spdlog::debug("Loaded {} charts in {} s", queryResult.size(), sw);
     return ret;
 }
 auto
@@ -266,28 +343,40 @@ resource_managers::Tables::handleData(const QUrl& url, const QJsonArray& data)
             // levels not declared in level_order
             auto extraLevels = QHash<QString, Level>{};
             for (const auto& chart : data) {
-                auto levelStr = chart.toObject()["level"].toString();
+                auto chartObj = chart.toObject();
+                auto levelStr = chartObj["level"].toString();
                 auto* level = map[levelStr];
                 if (level == nullptr) {
                     level = &extraLevels[levelStr];
                     level->db = db;
                     level->name = levelStr;
                 }
-                level->charts.push_back(chart.toObject().toVariantMap());
+                auto entry = Entry{};
+                entry.md5 = chartObj["md5"].toString();
+                entry.sha256 = chartObj["sha256"].toString();
+                entry.title = chartObj["title"].toString();
+                entry.artist = chartObj["artist"].toString();
+                entry.subtitle = chartObj["subtitle"].toString();
+                entry.subartist = chartObj["subartist"].toString();
+                entry.level = levelStr;
+                entry.url = chartObj["url"].toString();
+                entry.urlDiff = chartObj["url_diff"].toString();
+                entry.comment = chartObj["comment"].toString();
+
+                level->entries.push_back(entry);
             }
             auto extraLevelValues = extraLevels.values();
-            std::ranges::sort(
-              extraLevelValues,
-              [](const auto& a, const auto& b) {
-                  bool ok1;
-                  bool ok2;
-                  auto aNum = a.name.toDouble(&ok1);
-                  auto bNum = b.name.toDouble(&ok2);
-                  if (ok1 && ok2) {
-                      return aNum < bNum;
-                  }
-                  return a.name < b.name;
-              });
+            std::ranges::sort(extraLevelValues,
+                              [](const auto& a, const auto& b) {
+                                  bool ok1;
+                                  bool ok2;
+                                  auto aNum = a.name.toDouble(&ok1);
+                                  auto bNum = b.name.toDouble(&ok2);
+                                  if (ok1 && ok2) {
+                                      return aNum < bNum;
+                                  }
+                                  return a.name < b.name;
+                              });
             for (const auto& level : extraLevelValues) {
                 table.levels.push_back(level);
             }
@@ -523,7 +612,7 @@ resource_managers::Tables::add(const QUrl& url)
         save(tableLocation, url, QStringLiteral("url"), std::nullopt);
     });
     beginInsertRows(QModelIndex(), tables.size(), tables.size());
-    tables.push_back(Table {.url=url});
+    tables.push_back(Table{ .url = url });
     endInsertRows();
 }
 void
@@ -576,9 +665,9 @@ resource_managers::Tables::reorder(int from, int to)
     });
 }
 auto
-resource_managers::Tables::getList() -> QList<QVariant>
+resource_managers::Tables::getList() -> QVariantList
 {
-    auto ret = QList<QVariant>{};
+    auto ret = QVariantList{};
     for (const auto& table : tables) {
         ret.push_back(QVariant::fromValue(table));
     }
