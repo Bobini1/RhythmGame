@@ -19,8 +19,8 @@ class ScoreDb : public QObject
 
   public:
     explicit ScoreDb(db::SqliteCppDb* scoreDb);
-    Q_INVOKABLE QList<gameplay_logic::BmsResult*> getScoresForChart(
-      QString sha256);
+    Q_INVOKABLE QList<gameplay_logic::BmsResult*> getScoresForMd5(
+      const QString& md5) const;
     Q_INVOKABLE gameplay_logic::BmsGaugeHistory* getGaugeHistory(
       int64_t scoreId);
     Q_INVOKABLE gameplay_logic::BmsReplayData* getReplayData(int64_t scoreId);
