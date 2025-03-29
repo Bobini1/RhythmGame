@@ -77,7 +77,7 @@ resource_managers::Level::loadCharts() const -> QVariantList
       "play_level, difficulty, is_random, random_sequence, normal_note_count, "
       "ln_count, mine_count, length, initial_bpm, max_bpm, "
       "min_bpm, path, directory, sha256, md5, keymode "
-      "FROM charts WHERE md5 = ?");
+      "FROM charts WHERE md5 LIKE ?");
     for (const auto& chart : charts) {
         auto md5 = chart["md5"].toString().toStdString();
         query.bind(1, md5);
