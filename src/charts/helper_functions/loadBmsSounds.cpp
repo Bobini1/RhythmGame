@@ -4,6 +4,8 @@
 
 #include "loadBmsSounds.h"
 #include "sounds/OpenAlSoundBuffer.h"
+#include "support/PathToQString.h"
+
 #include <optional>
 #include <unordered_set>
 #include <QtConcurrent>
@@ -123,9 +125,8 @@ loadBmsSounds(const std::unordered_map<uint16_t, std::filesystem::path>& wavs,
                 spdlog::warn("File {} not found.", filePath.string());
                 continue;
             }
-            auto actualPathString = actualPath->string();
-            wavsActualPaths.emplace(key, actualPathString);
-            uniqueSoundPaths.emplace(std::move(actualPathString));
+            wavsActualPaths.emplace(key, *actualPath);
+            uniqueSoundPaths.emplace(std::move(*actualPath));
         }
     }
     std::unordered_map<std::filesystem::path,
