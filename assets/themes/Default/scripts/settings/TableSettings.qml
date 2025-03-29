@@ -1,3 +1,4 @@
+pragma ValueTypeBehavior: Addressable
 import QtQuick
 import QtQuick.Controls.Basic
 import RhythmGameQml
@@ -106,7 +107,7 @@ Item {
                             id: errorItem
                             Shape {
                                 id: errorIcon
-                                visible: dragArea.display.status === Tables.Error
+                                visible: dragArea.display.status === table.Error
                                 ShapePath {
                                     strokeColor: "red"
                                     strokeWidth: 4
@@ -129,7 +130,7 @@ Item {
                             id: loadingItem
                             Item {
                                 BusyIndicator {
-                                    running: dragArea.display.status === Tables.Loading
+                                    running: dragArea.display.status === table.Loading
                                     anchors.fill: parent
                                     anchors.margins: -8
                                 }
@@ -139,9 +140,9 @@ Item {
                         height: 32
 
                         sourceComponent: {
-                            if (dragArea.display.status === Tables.Error) {
+                            if (dragArea.display.status === table.Error) {
                                 return errorItem;
-                            } else if (dragArea.display.status === Tables.Loading) {
+                            } else if (dragArea.display.status === table.Loading) {
                                 return loadingItem;
                             }
                             return defaultItem;
