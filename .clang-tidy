@@ -12,6 +12,7 @@ Checks: "*,\
   -modernize-use-nodiscard,\
   -bugprone-unchecked-optional-access,\
   -misc-non-private-member-variables-in-classes,\
+  -google-readability-namespace-comment,\
   -*-include-cleaner"
 WarningsAsErrors: ''
 CheckOptions:
