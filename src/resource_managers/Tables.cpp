@@ -441,7 +441,8 @@ resource_managers::Tables::handleHeader(const QUrl& url,
             table.keymode = header["keymode"];
             for (const auto& level : header["level_order"].toArray()) {
                 auto levelObj = Level{};
-                levelObj.name = level.toString();
+                levelObj.name = level.isString() ? level.toString()
+                                                : QString::number(level.toInt());
                 levelObj.db = db;
                 table.levels.push_back(levelObj);
             }
