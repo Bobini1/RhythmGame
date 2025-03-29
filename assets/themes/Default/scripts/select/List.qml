@@ -78,7 +78,12 @@ PathView {
         } else if (typeof item === "string") {
             folder = [];
             if (item === "") {
-                folder = Tables.getList();
+                let tables = Tables.getList();
+                for (let t of tables) {
+                    if (t.status === table.Loaded) {
+                        folder.push(t);
+                    }
+                }
             }
             folder.push(...SongFolderFactory.open(item));
         } else {
