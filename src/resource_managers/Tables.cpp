@@ -4,6 +4,7 @@
 
 #include "Tables.h"
 
+#include "gameplay_logic/ChartData.h"
 #include "support/GeneratePermutation.h"
 
 #include <QJsonArray>
@@ -13,6 +14,7 @@
 #include <libxml2/libxml/HTMLparser.h>
 #include <libxml2/libxml/xpath.h>
 #include <QUrl>
+#include <spdlog/spdlog.h>
 auto
 getBmstableLink(const QByteArray& html) -> QString
 {
@@ -29,15 +31,13 @@ getBmstableLink(const QByteArray& html) -> QString
         return QString();
     }
 
-    // Create an XPath context
-    xmlXPathContextPtr xpathCtx = xmlXPathNewContext(doc);
+    auto* xpathCtx = xmlXPathNewContext(doc);
     if (xpathCtx == nullptr) {
         spdlog::error("Failed to create XPath context");
         xmlFreeDoc(doc);
         return QString();
     }
 
-    // Evaluate the XPath expression
     auto* xpathExpr =
       reinterpret_cast<const xmlChar*>("//meta[@name='bmstable']");
     auto* xpathObj = xmlXPathEvalExpression(xpathExpr, xpathCtx);
@@ -48,7 +48,6 @@ getBmstableLink(const QByteArray& html) -> QString
         return {};
     }
 
-    // Process the results
     if (const auto* nodes = xpathObj->nodesetval;
         nodes != nullptr && nodes->nodeNr > 0) {
         xmlChar* content = xmlGetProp(
@@ -68,6 +67,31 @@ getBmstableLink(const QByteArray& html) -> QString
     return {};
 }
 
+auto
+resource_managers::Level::loadCharts() const -> QVariantList
+{
+    auto ret = QVariantList{};
+    auto query = db->createStatement(
+      "SELECT id, title, artist, subtitle, subartist, "
+      "genre, stage_file, banner, back_bmp, rank, total, "
+      "play_level, difficulty, is_random, random_sequence, normal_note_count, "
+      "ln_count, mine_count, length, initial_bpm, max_bpm, "
+      "min_bpm, path, directory, sha256, md5, keymode "
+      "FROM charts WHERE md5 = ?");
+    for (const auto& chart : charts) {
+        auto md5 = chart["md5"].toString().toStdString();
+        query.bind(1, md5);
+        if (auto queryResult =
+              query.executeAndGet<gameplay_logic::ChartData::DTO>()) {
+            auto chartData = gameplay_logic::ChartData::load(*queryResult);
+            ret.append(QVariant::fromValue(chartData.release()));
+        } else {
+            ret.append(chart);
+        }
+        query.reset();
+    }
+    return ret;
+}
 auto
 resource_managers::Course::getTrophies() const -> QVariantList
 {
@@ -112,7 +136,8 @@ resource_managers::Tables::handleInitialReply(QNetworkReply* reply,
     }
 
     const auto type = reply->header(QNetworkRequest::ContentTypeHeader);
-    if (reply->url().toString().endsWith(".json") || type.toString().startsWith("application/json")) {
+    if (reply->url().toString().endsWith(".json") ||
+        type.toString().startsWith("application/json")) {
         handleHeaderReply(url, reply->readAll());
         return;
     }
@@ -133,7 +158,8 @@ resource_managers::Tables::handleInitialReply(QNetworkReply* reply,
         if (newReply->error() == QNetworkReply::NoError) {
             handleHeaderReply(url, newReply->readAll());
         } else {
-            spdlog::error("Network error: {}", newReply->errorString().toStdString());
+            spdlog::error("Network error: {}",
+                          newReply->errorString().toStdString());
             setErrorFlag(url);
         }
     });
@@ -143,7 +169,7 @@ resource_managers::Tables::setErrorFlag(const QUrl& url)
 {
     for (const auto& [index, table] : std::ranges::views::enumerate(tables)) {
         if (table.url == url) {
-            table.status = Error;
+            table.status = Table::Error;
             emit dataChanged(createIndex(index, 0), createIndex(index, 0));
         }
     }
@@ -231,9 +257,8 @@ reorderInFile(const QDir& tableLocation, const QUrl& url1, const QUrl& url2)
 void
 resource_managers::Tables::handleData(const QUrl& url, const QJsonArray& data)
 {
-    for (const auto& [index, entry] : std::ranges::views::enumerate(tables)) {
-        if (entry.url == url) {
-            auto& table = entry.table;
+    for (const auto& [index, table] : std::ranges::views::enumerate(tables)) {
+        if (table.url == url) {
             auto map = QHash<QString, Level*>{};
             for (auto& level : table.levels) {
                 map[level.name] = &level;
@@ -245,18 +270,28 @@ resource_managers::Tables::handleData(const QUrl& url, const QJsonArray& data)
                 auto* level = map[levelStr];
                 if (level == nullptr) {
                     level = &extraLevels[levelStr];
+                    level->db = db;
+                    level->name = levelStr;
                 }
                 level->charts.push_back(chart.toObject().toVariantMap());
             }
             auto extraLevelValues = extraLevels.values();
             std::ranges::sort(
               extraLevelValues,
-              [](const auto& a, const auto& b) { return a.name < b.name; });
+              [](const auto& a, const auto& b) {
+                  bool ok1, ok2;
+                  auto aNum = a.name.toDouble(&ok1);
+                  auto bNum = b.name.toDouble(&ok2);
+                  if (ok1 && ok2) {
+                      return aNum < bNum;
+                  }
+                  return a.name < b.name;
+              });
             for (const auto& level : extraLevelValues) {
                 table.levels.push_back(level);
             }
-            if (tables[index].status != Error) {
-                tables[index].status = Loaded;
+            if (tables[index].status != Table::Error) {
+                tables[index].status = Table::Loaded;
             }
             emit dataChanged(createIndex(index, 0), createIndex(index, 0));
         }
@@ -309,15 +344,15 @@ void
 resource_managers::Tables::handleHeader(const QUrl& url,
                                         const QJsonObject& header)
 {
-    for (const auto& [index, entry] : std::ranges::views::enumerate(tables)) {
-        if (entry.url == url) {
-            auto& table = entry.table;
+    for (const auto& [index, table] : std::ranges::views::enumerate(tables)) {
+        if (table.url == url) {
             table.name = header["name"].toString();
             table.tag = header["tag"].toString();
             table.keymode = header["keymode"];
             for (const auto& level : header["level_order"].toArray()) {
                 auto levelObj = Level{};
                 levelObj.name = level.toString();
+                levelObj.db = db;
                 table.levels.push_back(levelObj);
             }
 
@@ -353,13 +388,14 @@ resource_managers::Tables::handleHeader(const QUrl& url,
 }
 resource_managers::Tables::Tables(QNetworkAccessManager* networkManager,
                                   const QDir& tableLocation,
+                                  db::SqliteCppDb* db,
                                   QObject* parent)
   : QAbstractListModel(parent)
   , networkManager(networkManager)
   , tableLocation(tableLocation)
+  , db(db)
 {
     fileOperationThreadPool.setMaxThreadCount(1);
-    // create table location if it doesn't exist
     if (!tableLocation.mkpath(".")) {
         spdlog::error("Failed to create folder for tables file: {}",
                       tableLocation.filePath("tables.json").toStdString());
@@ -412,25 +448,12 @@ resource_managers::Tables::data(const QModelIndex& index, const int role) const
     }
     const auto& table = tables[index.row()];
     switch (role) {
-        case UrlRole:
-            return table.url;
-        case TableRole:
-            return QVariant::fromValue(table.table);
-        case StatusRole:
-            return table.status;
+        case Qt::DisplayRole:
+            return QVariant::fromValue(table);
         default:
             break;
     }
     return {};
-}
-auto
-resource_managers::Tables::roleNames() const -> QHash<int, QByteArray>
-{
-    return {
-        { UrlRole, "url" },
-        { TableRole, "table" },
-        { StatusRole, "status" },
-    };
 }
 void
 removeFromFile(const QDir& tableLocation, const QUrl& url)
@@ -495,12 +518,11 @@ resource_managers::Tables::add(const QUrl& url)
         handleInitialReply(reply, url);
     });
     // add to file
-    fileOperationThreadPool.start(
-      [tableLocation = tableLocation, url] {
-          save(tableLocation, url, QStringLiteral("url"), std::nullopt);
-      });
+    fileOperationThreadPool.start([tableLocation = tableLocation, url] {
+        save(tableLocation, url, QStringLiteral("url"), std::nullopt);
+    });
     beginInsertRows(QModelIndex(), tables.size(), tables.size());
-    tables.push_back({ url });
+    tables.push_back(Table {.url=url});
     endInsertRows();
 }
 void
@@ -513,11 +535,11 @@ resource_managers::Tables::reload(int index)
         return;
     }
     auto& table = tables[index];
-    if (table.status == Loading) {
+    if (table.status == Table::Loading) {
         return;
     }
     spdlog::info("Reloading table: {}", table.url.toString().toStdString());
-    table.status = Loading;
+    table.status = Table::Loading;
     const QNetworkRequest request(table.url);
     auto* reply = networkManager->get(request);
     connect(reply,
@@ -546,8 +568,18 @@ resource_managers::Tables::reorder(int from, int to)
     using std::swap;
     swap(tables[from], tables[to]);
     endMoveRows();
-    fileOperationThreadPool.start(
-      [fromUrl = tables[from].url, toUrl = tables[to].url, tableLocation = tableLocation] {
-          reorderInFile(tableLocation, fromUrl, toUrl);
-      });
+    fileOperationThreadPool.start([fromUrl = tables[from].url,
+                                   toUrl = tables[to].url,
+                                   tableLocation = tableLocation] {
+        reorderInFile(tableLocation, fromUrl, toUrl);
+    });
+}
+auto
+resource_managers::Tables::getList() -> QList<QVariant>
+{
+    auto ret = QList<QVariant>{};
+    for (const auto& table : tables) {
+        ret.push_back(QVariant::fromValue(table));
+    }
+    return ret;
 }

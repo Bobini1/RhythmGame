@@ -43,7 +43,7 @@ Item {
             TextureText {
                 anchors.horizontalCenter: circle.horizontalCenter
                 anchors.top: circle.bottom
-                number: noteImage.playLevel
+                number: noteImage.playLevel || 0
                 srcBeforeDecimal: root.iniImagesUrl + "parts.png/l_" + root.getDiffColor(noteImage.name) + "_"
             }
         }

@@ -1,3 +1,4 @@
+pragma ValueTypeBehavior: Addressable
 import QtQuick
 import RhythmGameQml
 import QtQml.Models
@@ -6,7 +7,7 @@ PathView {
     id: pathView
 
     property var current: model[currentIndex]
-    property string currentFolder: ""
+    property var currentFolder: undefined
     property var filter: null
     // we need to keep references to ChartDatas, otherwise they will be garbage collected
     property var folderContents: []
@@ -35,37 +36,64 @@ PathView {
         movingTimer.restart();
     }
 
-    function open(item, back = false) {
+    function goBack() {
+        if (historyStack.length === 1) {
+            return;
+        }
+        historyStack.pop();
+        let last = historyStack[historyStack.length - 1];
+        currentFolder = last;
+        let folder = open(last);
+        let idx = (1 + folder.findIndex((folderItem) => {
+            if (folderItem instanceof ChartData && last instanceof ChartData) {
+                return folderItem.path === last.path;
+            } else if (typeof folderItem === "string" && typeof last === "string") {
+                return folderItem === last;
+            } else {
+                return folderItem.name === last.name;
+            }
+            return false;
+        })) || 1;
+        pathView.positionViewAtIndex(idx, PathView.Center);
+    }
+
+    function goForward(item) {
         if (item instanceof ChartData) {
             console.info("Opening chart " + item.path);
             globalRoot.openChart(item.path);
-        } else {
-            let folder = SongFolderFactory.open(item);
-            pathView.folderContents.length = 0;
-            for (let item of folder) {
-                pathView.folderContents.push(item);
-            }
-            folder = sortFilter(folder);
-            addToMinimumCount(folder);
-            pathView.currentFolder = item;
-            pathView.model = folder;
-            let idx = 1;
-            if (back) {
-                let last = historyStack.pop();
-                idx = (1 + folder.findIndex((folderItem) => {
-                    if (folderItem instanceof ChartData && last instanceof ChartData) {
-                        return folderItem.path === last.path;
-                    } else if (typeof folderItem === "string" && typeof last === "string") {
-                        return folderItem === last;
-                    }
-                    return false;
-                })) || 1;
-            } else {
-                historyStack.push(item);
-            }
-            pathView.positionViewAtIndex(idx, PathView.Center);
-            openedFolder();
+            return;
         }
+        historyStack.push(item);
+        currentFolder = item;
+        open(item);
+        pathView.positionViewAtIndex(1, PathView.Center);
+    }
+
+    function open(item) {
+        let folder;
+        if (item instanceof table) {
+            folder = item.levels;
+        } else if (item instanceof level) {
+            folder = item.loadCharts();
+        } else if (typeof item === "string") {
+            folder = [];
+            if (item === "") {
+                folder = Tables.getList();
+            }
+            folder.push(...SongFolderFactory.open(item));
+        } else {
+            return;
+        }
+        pathView.folderContents.length = 0;
+        for (let item of folder) {
+            pathView.folderContents.push(item);
+        }
+        folder = sortFilter(folder);
+        addToMinimumCount(folder);
+        pathView.currentFolder = item;
+        pathView.model = folder;
+        openedFolder();
+        return folder;
     }
 
     signal openedFolder()
@@ -84,8 +112,9 @@ PathView {
         results = sortFilter(results);
         addToMinimumCount(results);
         // The special path for searches.
-        if (currentFolder.slice(-2) !== "//") {
-            currentFolder = currentFolder + "/";
+        if (currentFolder !== "SEARCH") {
+            currentFolder = "SEARCH";
+            // we won't ever use this atm
             historyStack.push(curItem);
         }
         pathView.model = results;
@@ -136,8 +165,10 @@ PathView {
 
         property bool isCurrentItem: PathView.isCurrentItem
         property bool scrollingText: pathView.scrollingText
+        required property var modelData
+        required property int index
 
-        source: modelData instanceof ChartData ? "Chart.qml" : "Folder.qml"
+        source: typeof modelData === "string" || modelData instanceof level || modelData instanceof table ? "Folder.qml" : "Chart.qml"
     }
     path: Path {
         id: path
@@ -170,7 +201,7 @@ PathView {
     }
 
     Component.onCompleted: {
-        open("");
+        goForward("");
     }
     Keys.onDownPressed: {
         incrementViewIndex();
@@ -179,18 +210,13 @@ PathView {
         if (!currentFolder) {
             sceneStack.pop();
         }
-        if (currentFolder.slice(-2) === "//") {
-            open(currentFolder.slice(0, -1), true);
-        } else {
-            let parentFolder = SongFolderFactory.parentFolder(currentFolder);
-            open(parentFolder, true);
-        }
+        goBack();
     }
     Keys.onReturnPressed: {
-        open(current);
+        goForward(current);
     }
     Keys.onRightPressed: {
-        open(current);
+        goForward(current);
     }
     Keys.onUpPressed: {
         decrementViewIndex();

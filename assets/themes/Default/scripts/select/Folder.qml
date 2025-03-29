@@ -1,10 +1,14 @@
+pragma ValueTypeBehavior: Addressable
 import QtQuick 2.0
+import RhythmGameQml
 
 Image {
+    id: folder
     property bool scrollingText: parent.scrollingText
+    readonly property bool isTable: modelData instanceof table || modelData instanceof level
 
     asynchronous: true
-    source: root.iniImagesUrl + "folders.png/folder_green"
+    source: root.iniImagesUrl + "folders.png/" + (isTable ? "folder_red" : "folder_green")
 
     NameLabel {
         anchors.right: parent.right
@@ -12,7 +16,7 @@ Image {
         color: "black"
         height: parent.height
         scrolling: isCurrentItem && parent.scrollingText
-        text: modelData || "- EMPTY -"
+        text: folder.isTable ? modelData.name : (modelData || "- EMPTY -")
         width: parent.width * 0.7
     }
     MouseArea {
@@ -20,7 +24,7 @@ Image {
 
         onClicked: {
             pathView.currentIndex = index;
-            pathView.open(modelData);
+            pathView.goForward(modelData);
         }
     }
 }

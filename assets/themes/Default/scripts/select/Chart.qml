@@ -35,7 +35,7 @@ Image {
         anchors.bottomMargin: 10
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.horizontalCenterOffset: -270
-        number: Math.min(modelData.playLevel, 99)
+        number: Math.min(modelData.playLevel || 0, 99)
         srcBeforeDecimal: root.iniImagesUrl + "parts.png/s_" + root.getDiffColorInt(modelData.difficulty) + "_"
     }
     NameLabel {
@@ -51,7 +51,7 @@ Image {
         anchors.fill: parent
 
         onClicked: {
-            pathView.open(modelData);
+            pathView.goForward(modelData);
             pathView.currentIndex = index;
         }
     }

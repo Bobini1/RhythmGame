@@ -66,9 +66,7 @@ find_package(zstd REQUIRED)
 
 
 if (MSVC)
-    set(utf8Manifest staticAssets/utf8.manifest
-            src/resource_managers/Tables.cpp
-            src/resource_managers/Tables.h)
+    set(utf8Manifest staticAssets/utf8.manifest)
 endif ()
 
 # ---- Load library ----
@@ -176,6 +174,8 @@ qt_add_library(RhythmGame_lib OBJECT ${utf8Manifest} src/db/SqliteCppDb.cpp src/
         src/support/GeneratePermutation.h
         src/gameplay_logic/NoteState.cpp
         src/gameplay_logic/NoteState.h
+        src/resource_managers/Tables.cpp
+        src/resource_managers/Tables.h
 )
 
 find_package(Threads REQUIRED)

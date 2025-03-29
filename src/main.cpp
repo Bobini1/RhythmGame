@@ -208,11 +208,14 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
 
         auto networkManager = QNetworkAccessManager{};
         auto tables =
-          resource_managers::Tables{ &networkManager, assetsFolder / "tables" };
+          resource_managers::Tables{ &networkManager, assetsFolder / "tables", &db };
         qmlRegisterSingletonInstance("RhythmGameQml", 1, 0, "Tables", &tables);
 
         // add all other common types
-
+        qmlRegisterType<resource_managers::Level>("RhythmGameQml", 1, 0, "level");
+        qmlRegisterType<resource_managers::Course>("RhythmGameQml", 1, 0, "course");
+        qmlRegisterType<resource_managers::Trophy>("RhythmGameQml", 1, 0, "trophy");
+        qmlRegisterType<resource_managers::Table>("RhythmGameQml", 1, 0, "table");
         qmlRegisterType<gameplay_logic::Chart>("RhythmGameQml", 1, 0, "Chart");
         qmlRegisterType<gameplay_logic::ChartData>(
           "RhythmGameQml", 1, 0, "ChartData");

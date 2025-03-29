@@ -14,10 +14,8 @@ Item {
 
             property bool held: false
 
-            required property url url
             required property int index
-            required property var status
-            required property var table
+            required property var display
 
             anchors {
                 left: parent?.left
@@ -39,7 +37,7 @@ Item {
                     verticalCenter: parent.verticalCenter
                 }
                 width: dragArea.width
-                height: 64
+                height: Math.max(64, row.implicitHeight + 8)
 
                 border.width: 1
                 border.color: "lightsteelblue"
@@ -82,7 +80,7 @@ Item {
                             id: tableUrl
                             readOnly: true
                             wrapMode: TextEdit.Wrap
-                            text: dragArea.url
+                            text: dragArea.display.url
                             width: Math.min(implicitWidth, parent.width)
                         }
                     }
@@ -94,7 +92,7 @@ Item {
                             id: tableName
                             readOnly: true
                             wrapMode: TextEdit.Wrap
-                            text: dragArea.table.name
+                            text: dragArea.display.name
                             width: Math.min(implicitWidth, parent.width)
                         }
                     }
@@ -108,7 +106,7 @@ Item {
                             id: errorItem
                             Shape {
                                 id: errorIcon
-                                visible: dragArea.status === Tables.Error
+                                visible: dragArea.display.status === Tables.Error
                                 ShapePath {
                                     strokeColor: "red"
                                     strokeWidth: 4
@@ -131,7 +129,7 @@ Item {
                             id: loadingItem
                             Item {
                                 BusyIndicator {
-                                    running: dragArea.status === Tables.Loading
+                                    running: dragArea.display.status === Tables.Loading
                                     anchors.fill: parent
                                     anchors.margins: -8
                                 }
@@ -141,9 +139,9 @@ Item {
                         height: 32
 
                         sourceComponent: {
-                            if (dragArea.status === Tables.Error) {
+                            if (dragArea.display.status === Tables.Error) {
                                 return errorItem;
-                            } else if (dragArea.status === Tables.Loading) {
+                            } else if (dragArea.display.status === Tables.Loading) {
                                 return loadingItem;
                             }
                             return defaultItem;

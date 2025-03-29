@@ -4,14 +4,14 @@
 
 #ifndef TABLEMANAGER_H
 #define TABLEMANAGER_H
-#include "gameplay_logic/ChartData.h"
 
 #include <QAbstractListModel>
-#include <qnetworkreply.h>
-#include <spdlog/spdlog.h>
 #include <QDir>
-#include <QFutureWatcher>
-
+#include <QNetworkReply>
+#include <qthreadpool.h>
+namespace db {
+class SqliteCppDb;
+}
 namespace resource_managers {
 
 struct Level
@@ -20,8 +20,10 @@ struct Level
     Q_PROPERTY(QString name MEMBER name)
     Q_PROPERTY(QList<QVariantMap> charts MEMBER charts)
   public:
+    db::SqliteCppDb* db;
     QString name;
     QList<QVariantMap> charts;
+    Q_INVOKABLE QVariantList loadCharts() const;
 };
 
 struct Trophy
@@ -55,26 +57,6 @@ struct Course
 struct Table
 {
     Q_GADGET
-    Q_PROPERTY(QString name MEMBER name)
-    Q_PROPERTY(QString tag MEMBER tag)
-    Q_PROPERTY(QVariant keymode MEMBER keymode)
-    Q_PROPERTY(QVariantList levels READ getLevels CONSTANT)
-    Q_PROPERTY(QVariantList courses READ getCourses CONSTANT)
-  public:
-    QString name;
-    QString tag;
-    QVariant keymode;
-    QList<Level> levels;
-    QList<QList<Course>> courses;
-    auto getLevels() const -> QVariantList;
-    auto getCourses() const -> QVariantList;
-};
-
-class Tables final : public QAbstractListModel
-{
-    Q_OBJECT
-    QNetworkAccessManager* networkManager;
-    QDir tableLocation;
 
   public:
     enum Status
@@ -85,13 +67,33 @@ class Tables final : public QAbstractListModel
     };
     Q_ENUM(Status)
   private:
-    struct TableData
-    {
-        QUrl url;
-        Table table;
-        Status status{ Loading };
-    };
-    QList<TableData> tables;
+    Q_PROPERTY(QString name MEMBER name)
+    Q_PROPERTY(QString tag MEMBER tag)
+    Q_PROPERTY(QVariant keymode MEMBER keymode)
+    Q_PROPERTY(QVariantList levels READ getLevels CONSTANT)
+    Q_PROPERTY(QVariantList courses READ getCourses CONSTANT)
+    Q_PROPERTY(QUrl url MEMBER url)
+    Q_PROPERTY(Status status MEMBER status)
+
+  public:
+    QString name;
+    QString tag;
+    QVariant keymode;
+    QList<Level> levels;
+    QList<QList<Course>> courses;
+    QUrl url;
+    Status status{ Loading };
+    auto getLevels() const -> QVariantList;
+    auto getCourses() const -> QVariantList;
+};
+
+class Tables final : public QAbstractListModel
+{
+    Q_OBJECT
+    QNetworkAccessManager* networkManager;
+    QDir tableLocation;
+    db::SqliteCppDb* db;
+    QList<Table> tables;
     QThreadPool fileOperationThreadPool;
 
     void handleInitialReply(QNetworkReply* reply, const QUrl& url);
@@ -101,22 +103,17 @@ class Tables final : public QAbstractListModel
     void handleHeaderReply(const QUrl& url, const QByteArray& reply);
 
   public:
-    enum Roles
-    {
-        UrlRole = Qt::UserRole + 1,
-        TableRole,
-        StatusRole
-    };
     explicit Tables(QNetworkAccessManager* networkManager,
                     const QDir& tableLocation,
+                    db::SqliteCppDb* db,
                     QObject* parent = nullptr);
     auto rowCount(const QModelIndex& parent) const -> int override;
     auto data(const QModelIndex& index, int role) const -> QVariant override;
-    auto roleNames() const -> QHash<int, QByteArray> override;
     Q_INVOKABLE void removeAt(int index);
     Q_INVOKABLE void add(const QUrl& url);
     Q_INVOKABLE void reload(int index);
     Q_INVOKABLE void reorder(int from, int to);
+    Q_INVOKABLE QList<QVariant> getList();
 };
 } // namespace resource_managers
 
