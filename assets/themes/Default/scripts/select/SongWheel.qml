@@ -100,6 +100,7 @@ FocusScope {
                 orientation: Qt.Vertical
                 onPositionChanged: {
                     songList.offset = songList.count * (1-position);
+                    previewDelayTimer.restart();
                 }
                 onPressedChanged: {
                     if (!pressed) {
