@@ -7,7 +7,6 @@ PathView {
     id: pathView
 
     property var current: model[currentIndex]
-    property var currentFolder: undefined
     property var filter: null
     // we need to keep references to ChartDatas, otherwise they will be garbage collected
     property var folderContents: []
@@ -42,8 +41,7 @@ PathView {
         }
         let last = historyStack[historyStack.length - 1];
         historyStack.pop();
-        currentFolder = historyStack[historyStack.length - 1];
-        let folder = open(currentFolder);
+        let folder = open(historyStack[historyStack.length - 1]);
         let idx = (1 + folder.findIndex((folderItem) => {
             if (folderItem instanceof ChartData && last instanceof ChartData) {
                 return folderItem.path === last.path;
@@ -69,7 +67,6 @@ PathView {
             return;
         }
         historyStack.push(item);
-        currentFolder = item;
         open(item);
         pathView.positionViewAtIndex(1, PathView.Center);
     }
@@ -100,7 +97,6 @@ PathView {
         }
         folder = sortFilter(folder);
         addToMinimumCount(folder);
-        pathView.currentFolder = item;
         pathView.model = folder;
         openedFolder();
         return folder;
@@ -122,10 +118,8 @@ PathView {
         results = sortFilter(results);
         addToMinimumCount(results);
         // The special path for searches.
-        if (currentFolder !== "SEARCH") {
-            currentFolder = "SEARCH";
-            // we won't ever use this atm
-            historyStack.push(curItem);
+        if (historyStack[historyStack.length - 1] !== "SEARCH") {
+            historyStack.push("SEARCH");
         }
         pathView.model = results;
         pathView.positionViewAtIndex(1, PathView.Center);
@@ -215,7 +209,7 @@ PathView {
         incrementViewIndex();
     }
     Keys.onLeftPressed: {
-        if (!currentFolder) {
+        if (!historyStack[historyStack.length - 1]) {
             sceneStack.pop();
         }
         goBack();
