@@ -16,7 +16,7 @@ ScoreDb::getScoresForMd5(const QString& md5) const
 {
     auto statement = scoreDb->createStatement("SELECT * "
                                               "FROM score "
-                                              "WHERE md5 = ?");
+                                              "WHERE md5 LIKE ?");
     statement.bind(1, md5.toStdString());
     const auto result =
       statement.executeAndGetAll<gameplay_logic::BmsResult::BmsResultDto>();
@@ -27,7 +27,8 @@ ScoreDb::getScoresForMd5(const QString& md5) const
     return scores;
 }
 auto
-ScoreDb::getGaugeHistory(int64_t scoreId) -> gameplay_logic::BmsGaugeHistory*
+ScoreDb::getGaugeHistory(int64_t scoreId) const
+  -> gameplay_logic::BmsGaugeHistory*
 {
     return gameplay_logic::BmsGaugeHistory::load(*scoreDb, scoreId).release();
 }
@@ -37,7 +38,7 @@ ScoreDb::getReplayData(int64_t scoreId) -> gameplay_logic::BmsReplayData*
     return gameplay_logic::BmsReplayData::load(*scoreDb, scoreId).release();
 }
 int
-ScoreDb::getTotalScoreCount()
+ScoreDb::getTotalScoreCount() const
 {
     auto statement = scoreDb->createStatement("SELECT COUNT(*) FROM score");
     return statement.executeAndGet<int>().value_or(0);
