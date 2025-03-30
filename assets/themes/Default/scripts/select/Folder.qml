@@ -23,8 +23,8 @@ Image {
         anchors.fill: parent
 
         onClicked: {
-            pathView.currentIndex = index;
-            pathView.goForward(modelData);
+            pathView.positionViewAtIndex(index + 1, PathView.Center);
+            Qt.callLater(() => pathView.goForward(pathView.current));
         }
     }
 }
