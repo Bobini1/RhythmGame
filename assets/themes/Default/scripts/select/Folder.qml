@@ -9,7 +9,13 @@ Image {
     readonly property bool isLevel: modelData instanceof level
 
     asynchronous: true
-    source: root.iniImagesUrl + "folders.png/" + (isTable || isLevel ? "folder_red" : "folder_green")
+    source: {
+        let base = root.iniImagesUrl + "folders.png/";
+        if (isTable || isLevel) {
+            return base + "folder_red";
+        }
+        return base + "folder_green";
+    }
 
     NameLabel {
         anchors.right: parent.right
