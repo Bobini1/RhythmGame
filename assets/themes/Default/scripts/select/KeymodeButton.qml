@@ -1,3 +1,4 @@
+pragma ValueTypeBehavior: Addressable
 import RhythmGameQml
 import QtQuick 2.0
 
@@ -29,7 +30,7 @@ Image {
             let currentKeymode = keymodeButton.options[keymodeButton.current];
             if (currentKeymode) {
                 songList.filter = function (chart) {
-                    return chart.keymode === currentKeymode;
+                    return chart.keymode === currentKeymode || chart instanceof entry
                 };
             } else {
                 songList.filter = null;
