@@ -40,16 +40,18 @@ PathView {
         if (historyStack.length === 1) {
             return;
         }
-        historyStack.pop();
         let last = historyStack[historyStack.length - 1];
-        currentFolder = last;
-        let folder = open(last);
+        historyStack.pop();
+        currentFolder = historyStack[historyStack.length - 1];
+        let folder = open(currentFolder);
         let idx = (1 + folder.findIndex((folderItem) => {
             if (folderItem instanceof ChartData && last instanceof ChartData) {
                 return folderItem.path === last.path;
             } else if (typeof folderItem === "string" && typeof last === "string") {
                 return folderItem === last;
-            } else {
+            } else if (folderItem instanceof level && last instanceof level) {
+                return folderItem.name === last.name;
+            } else if (folderItem instanceof table && last instanceof table) {
                 return folderItem.name === last.name;
             }
             return false;
@@ -61,6 +63,9 @@ PathView {
         if (item instanceof ChartData) {
             console.info("Opening chart " + item.path);
             globalRoot.openChart(item.path);
+            return;
+        }
+        if (item instanceof entry) {
             return;
         }
         historyStack.push(item);
@@ -130,7 +135,7 @@ PathView {
         let resultFolders = [];
         let resultCharts = [];
         for (let item of input) {
-            if (item instanceof ChartData) {
+            if (item instanceof ChartData || item instanceof entry) {
                 if (filter && !filter(item))
                     continue;
                 resultCharts.push(item);
@@ -170,8 +175,6 @@ PathView {
 
         property bool isCurrentItem: PathView.isCurrentItem
         property bool scrollingText: pathView.scrollingText
-        required property var modelData
-        required property int index
 
         source: typeof modelData === "string" || modelData instanceof level || modelData instanceof table ? "Folder.qml" : "Chart.qml"
     }
