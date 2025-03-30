@@ -91,13 +91,30 @@ FocusScope {
 
                 active: true
                 anchors.bottom: parent.bottom
-                anchors.bottomMargin: 0
+                anchors.bottomMargin: 152
                 anchors.right: parent.right
-                anchors.rightMargin: 0
+                anchors.rightMargin: 25
                 anchors.top: parent.top
+                anchors.topMargin: 152
                 hoverEnabled: true
                 orientation: Qt.Vertical
-                size: songList.height
+                onPositionChanged: {
+                    songList.offset = songList.count * position;
+                }
+                onPressedChanged: {
+                    if (!pressed) {
+                        songList.positionViewAtIndex(songList.currentIndex+1, PathView.Center);
+                    }
+                }
+                background: Item {
+                }
+                contentItem: Image {
+                    source: root.iniImagesUrl + "parts.png/slider"
+                }
+                Binding {
+                    delayed: true
+                    vbar.position: songList.offset / songList.count
+                }
             }
             Image {
                 id: stageFileFrame
