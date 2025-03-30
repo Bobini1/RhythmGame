@@ -99,7 +99,7 @@ FocusScope {
                 hoverEnabled: true
                 orientation: Qt.Vertical
                 onPositionChanged: {
-                    songList.offset = songList.count * position;
+                    songList.offset = songList.count * (1-position);
                 }
                 onPressedChanged: {
                     if (!pressed) {
@@ -113,7 +113,11 @@ FocusScope {
                 }
                 Binding {
                     delayed: true
-                    vbar.position: songList.offset / songList.count
+                    vbar.position: {
+                        let pos = 1 - (songList.offset / songList.count);
+                        // some trickery to get the scrollbar to appear at the top at the beginning
+                        return pos === 1 ? 0 : pos;
+                    }
                 }
             }
             Image {
