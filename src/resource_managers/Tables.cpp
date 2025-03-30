@@ -438,6 +438,7 @@ resource_managers::Tables::handleHeader(const QUrl& url,
         if (table.url == url) {
             table.name = header["name"].toString();
             table.tag = header["tag"].toString();
+            table.symbol = header["symbol"].toString();
             table.keymode = header["keymode"];
             for (const auto& level : header["level_order"].toArray()) {
                 auto levelObj = Level{};

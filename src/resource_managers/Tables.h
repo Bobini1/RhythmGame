@@ -101,11 +101,13 @@ struct Table
     Q_PROPERTY(QVariantList courses READ getCourses CONSTANT)
     Q_PROPERTY(QUrl url MEMBER url)
     Q_PROPERTY(Status status MEMBER status)
+    Q_PROPERTY(QString symbol MEMBER symbol)
 
   public:
     QString name;
     QString tag;
     QVariant keymode;
+    QString symbol;
     QList<Level> levels;
     QList<QList<Course>> courses;
     QUrl url;
