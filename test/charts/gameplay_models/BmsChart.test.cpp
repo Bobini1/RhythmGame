@@ -29,9 +29,6 @@ TEST_CASE("An empty chart is created successfully", "[BmsNotesData]")
     for (const auto& column : chart.notes) {
         REQUIRE(column.empty());
     }
-    for (const auto& column : chart.invisibleNotes) {
-        REQUIRE(column.empty());
-    }
     REQUIRE(chart.bpmChanges.size() == 1);
     REQUIRE(chart.bpmChanges[0].first.timestamp == std::chrono::nanoseconds(0));
     REQUIRE(chart.bpmChanges[0].second == Catch::Approx(120.0));
@@ -55,9 +52,6 @@ TEST_CASE("A chart with a single note is created successfully",
          index < charts::gameplay_models::BmsNotesData::columnNumber;
          index++) {
         REQUIRE(chart.notes[index].empty());
-    }
-    for (const auto& column : chart.invisibleNotes) {
-        REQUIRE(column.empty());
     }
     REQUIRE(chart.bpmChanges.size() == 1);
     REQUIRE(chart.bpmChanges[0].first.timestamp == std::chrono::nanoseconds(0));

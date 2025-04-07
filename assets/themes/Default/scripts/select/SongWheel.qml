@@ -23,36 +23,6 @@ FocusScope {
             return Helpers.getScoreWithBestPoints(scores);
         }
 
-        function getDiffColor(diff) {
-            switch (diff) {
-                case "beginner":
-                    return "green";
-                case "normal":
-                    return "blue";
-                case "hyper":
-                    return "orange";
-                case "another":
-                    return "red";
-                default:
-                    return "purple";
-            }
-        }
-
-        function getDiffColorInt(diff) {
-            switch (diff) {
-                case 1:
-                    return "green";
-                case 2:
-                    return "blue";
-                case 3:
-                    return "orange";
-                case 4:
-                    return "red";
-                default:
-                    return "purple";
-            }
-        }
-
         fillMode: Image.PreserveAspectCrop
         height: parent.height
         source: root.imagesUrl + "bg.png"
@@ -121,13 +91,35 @@ FocusScope {
 
                 active: true
                 anchors.bottom: parent.bottom
-                anchors.bottomMargin: 0
+                anchors.bottomMargin: 152
                 anchors.right: parent.right
-                anchors.rightMargin: 0
+                anchors.rightMargin: 25
                 anchors.top: parent.top
+                anchors.topMargin: 152
                 hoverEnabled: true
                 orientation: Qt.Vertical
-                size: songList.height
+                onPositionChanged: {
+                    songList.offset = songList.count * (1-position);
+                    previewDelayTimer.restart();
+                }
+                onPressedChanged: {
+                    if (!pressed) {
+                        songList.positionViewAtIndex(songList.currentIndex+1, PathView.Center);
+                    }
+                }
+                background: Item {
+                }
+                contentItem: Image {
+                    source: root.iniImagesUrl + "parts.png/slider"
+                }
+                Binding {
+                    delayed: true
+                    vbar.position: {
+                        let pos = 1 - (songList.offset / songList.count);
+                        // some trickery to get the scrollbar to appear at the top at the beginning
+                        return pos === 1 ? 0 : pos;
+                    }
+                }
             }
             Image {
                 id: stageFileFrame

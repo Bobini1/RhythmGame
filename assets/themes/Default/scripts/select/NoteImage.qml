@@ -41,10 +41,24 @@ Item {
                 source: root.iniImagesUrl + "parts.png/" + noteImage.name + "_text"
             }
             TextureText {
+                function getDiffColor(diff) {
+                    switch (diff) {
+                        case "beginner":
+                            return "green";
+                        case "normal":
+                            return "blue";
+                        case "hyper":
+                            return "orange";
+                        case "another":
+                            return "red";
+                        default:
+                            return "purple";
+                    }
+                }
                 anchors.horizontalCenter: circle.horizontalCenter
                 anchors.top: circle.bottom
-                number: noteImage.playLevel
-                srcBeforeDecimal: root.iniImagesUrl + "parts.png/l_" + root.getDiffColor(noteImage.name) + "_"
+                number: noteImage.playLevel || 0
+                srcBeforeDecimal: root.iniImagesUrl + "parts.png/l_" + getDiffColor(noteImage.name) + "_"
             }
         }
     }

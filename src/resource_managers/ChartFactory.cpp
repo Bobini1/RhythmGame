@@ -327,7 +327,8 @@ getComponentsForPlayer(const ChartFactory::PlayerSpecificData& player,
         : NoteOrderAlgorithm::Normal,
       results[0].columns += results[1].columns,
       results[0].seed,
-      chartData.getSha256());
+      chartData.getSha256(),
+      chartData.getMd5());
     auto notesStates = QList<gameplay_logic::ColumnState*>{};
     for (const auto& column : notes->getNotes()) {
         auto notes = QList<gameplay_logic::NoteState>{};

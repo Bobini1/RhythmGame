@@ -43,6 +43,7 @@ defineDb(db::SqliteCppDb& db)
     db.execute("CREATE INDEX IF NOT EXISTS chart_directory_index ON "
                "charts(chart_directory)");
     db.execute("CREATE INDEX IF NOT EXISTS sha256_index ON charts(sha256)");
+    db.execute("CREATE INDEX IF NOT EXISTS md5_index ON charts(md5)");
 
     db.execute("CREATE VIRTUAL TABLE IF NOT EXISTS charts_fts USING "
                "fts5(title, artist, subtitle, subartist, genre, path, "

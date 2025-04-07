@@ -12,7 +12,13 @@ project(
 include(cmake/project-is-top-level.cmake)
 include(cmake/variables.cmake)
 
+# <---- mimalloc (faster memory allocation) ---->
+
 find_package(mimalloc CONFIG REQUIRED)
+
+# <------------ LibXml2 (html parsing) --------------->
+
+find_package(LibXml2 REQUIRED)
 
 # <------------ SQLiteCpp (db) --------------->
 
@@ -168,6 +174,8 @@ qt_add_library(RhythmGame_lib OBJECT ${utf8Manifest} src/db/SqliteCppDb.cpp src/
         src/support/GeneratePermutation.h
         src/gameplay_logic/NoteState.cpp
         src/gameplay_logic/NoteState.h
+        src/resource_managers/Tables.cpp
+        src/resource_managers/Tables.h
 )
 
 find_package(Threads REQUIRED)
@@ -176,7 +184,7 @@ find_package(SndFile REQUIRED)
 
 find_package(SDL2 REQUIRED)
 target_link_libraries(RhythmGame_lib PUBLIC $<IF:$<TARGET_EXISTS:mimalloc-static>,mimalloc-static,mimalloc>)
-target_link_libraries(RhythmGame_lib PUBLIC SDL2::SDL2 Qt6::Gui Qt6::Quick Qt6::OpenGL Qt6::Widgets Qt6::Concurrent Qt6::Core5Compat Qt6::Multimedia Threads::Threads Boost::headers Boost::locale Boost::dynamic_linking Boost::serialization Boost::filesystem SQLiteCpp spdlog::spdlog foonathan::lexy OpenAL::OpenAL cryptopp::cryptopp magic_enum::magic_enum zstd::libzstd_static SndFile::sndfile llfio::sl)
+target_link_libraries(RhythmGame_lib PUBLIC SDL2::SDL2 Qt6::Gui Qt6::Quick Qt6::OpenGL Qt6::Widgets Qt6::Concurrent Qt6::Core5Compat Qt6::Multimedia Threads::Threads Boost::headers Boost::locale Boost::dynamic_linking Boost::serialization Boost::filesystem SQLiteCpp spdlog::spdlog foonathan::lexy OpenAL::OpenAL cryptopp::cryptopp magic_enum::magic_enum zstd::libzstd_static SndFile::sndfile llfio::sl LibXml2::LibXml2)
 
 if (WIN32)
     target_link_libraries(RhythmGame_lib PUBLIC llfio::ntkernel-error-category_sl)

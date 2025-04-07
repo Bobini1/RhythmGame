@@ -7,26 +7,28 @@
 namespace qml_components {
 
 ScoreDb::ScoreDb(db::SqliteCppDb* scoreDb)
-  : scoreDb(std::move(scoreDb))
+  : scoreDb(scoreDb)
 {
 }
 auto
-ScoreDb::getScoresForChart(QString sha256) -> QList<gameplay_logic::BmsResult*>
+ScoreDb::getScoresForMd5(const QString& md5) const
+  -> QList<gameplay_logic::BmsResult*>
 {
     auto statement = scoreDb->createStatement("SELECT * "
                                               "FROM score "
-                                              "WHERE sha256 = ?");
-    statement.bind(1, sha256.toStdString());
-    auto result =
+                                              "WHERE md5 LIKE ?");
+    statement.bind(1, md5.toStdString());
+    const auto result =
       statement.executeAndGetAll<gameplay_logic::BmsResult::BmsResultDto>();
     auto scores = QList<gameplay_logic::BmsResult*>{};
-    for (auto& row : result) {
+    for (const auto& row : result) {
         scores.append(gameplay_logic::BmsResult::load(row).release());
     }
     return scores;
 }
 auto
-ScoreDb::getGaugeHistory(int64_t scoreId) -> gameplay_logic::BmsGaugeHistory*
+ScoreDb::getGaugeHistory(int64_t scoreId) const
+  -> gameplay_logic::BmsGaugeHistory*
 {
     return gameplay_logic::BmsGaugeHistory::load(*scoreDb, scoreId).release();
 }
@@ -36,7 +38,7 @@ ScoreDb::getReplayData(int64_t scoreId) -> gameplay_logic::BmsReplayData*
     return gameplay_logic::BmsReplayData::load(*scoreDb, scoreId).release();
 }
 int
-ScoreDb::getTotalScoreCount()
+ScoreDb::getTotalScoreCount() const
 {
     auto statement = scoreDb->createStatement("SELECT COUNT(*) FROM score");
     return statement.executeAndGet<int>().value_or(0);

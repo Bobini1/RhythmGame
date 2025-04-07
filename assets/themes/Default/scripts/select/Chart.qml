@@ -7,11 +7,11 @@ Image {
     id: image
 
     property string clearType: Helpers.getClearType(scores)
-    property var scores: ProfileList.mainProfile.scoreDb.getScoresForChart(modelData.sha256)
+    property var scores: ProfileList.mainProfile.scoreDb.getScoresForMd5(modelData.md5)
     property bool scrollingText: parent.scrollingText
 
     function refreshScores() {
-        scores = ProfileList.mainProfile.scoreDb.getScoresForChart(modelData.sha256);
+        scores = ProfileList.mainProfile.scoreDb.getScoresForMd5(modelData.md5);
         clearType = Helpers.getClearType(scores);
     }
 
@@ -31,12 +31,27 @@ Image {
     TextureText {
         id: playlevelText
 
+        function getDiffColorInt(diff) {
+            switch (diff) {
+                case 1:
+                    return "green";
+                case 2:
+                    return "blue";
+                case 3:
+                    return "orange";
+                case 4:
+                    return "red";
+                default:
+                    return "purple";
+            }
+        }
+
         anchors.bottom: parent.bottom
         anchors.bottomMargin: 10
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.horizontalCenterOffset: -270
-        number: Math.min(modelData.playLevel, 99)
-        srcBeforeDecimal: root.iniImagesUrl + "parts.png/s_" + root.getDiffColorInt(modelData.difficulty) + "_"
+        number: Math.min(modelData.playLevel || 0, 99)
+        srcBeforeDecimal: root.iniImagesUrl + "parts.png/s_" + getDiffColorInt(modelData.difficulty) + "_"
     }
     NameLabel {
         anchors.right: parent.right
@@ -51,8 +66,8 @@ Image {
         anchors.fill: parent
 
         onClicked: {
-            pathView.open(modelData);
-            pathView.currentIndex = index;
+            pathView.goForward(modelData);
+            pathView.positionViewAtIndex(index + 1, PathView.Center);
         }
     }
 }

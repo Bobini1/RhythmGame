@@ -20,6 +20,7 @@ BmsScore::BmsScore(int normalNoteCount,
                    QList<int> permutation,
                    uint64_t seed,
                    QString sha256,
+                   QString md5,
                    QObject* parent)
   : QObject(parent)
   , maxPoints(maxHitValue * maxHits)
@@ -33,6 +34,7 @@ BmsScore::BmsScore(int normalNoteCount,
   , noteOrderAlgorithmP2(noteOrderAlgorithmP2)
   , permutation(std::move(permutation))
   , sha256(std::move(sha256))
+  , md5(std::move(md5))
   , randomSeed(seed)
 {
     for (auto* gauge : this->gauges) {
@@ -196,8 +198,10 @@ BmsScore::getResult() const -> std::unique_ptr<BmsResult>
     }
     if (points == maxPoints) {
         clearType = QStringLiteral("MAX");
-    } else if (judgementCounts.getJudgementCounts()[static_cast<int>(Judgement::Perfect)] +
-                 judgementCounts.getJudgementCounts()[static_cast<int>(Judgement::Great)] ==
+    } else if (judgementCounts
+                   .getJudgementCounts()[static_cast<int>(Judgement::Perfect)] +
+                 judgementCounts
+                   .getJudgementCounts()[static_cast<int>(Judgement::Great)] ==
                maxHits) {
         clearType = QStringLiteral("PERFECT");
     }

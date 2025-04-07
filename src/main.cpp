@@ -28,6 +28,7 @@
 #include "qml_components/Themes.h"
 #include "resource_managers/GaugeFactory.h"
 #include "resource_managers/ScanThemes.h"
+#include "resource_managers/Tables.h"
 
 Q_IMPORT_QML_PLUGIN(RhythmGameQmlPlugin)
 
@@ -205,8 +206,17 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
         qmlRegisterSingletonInstance(
           "RhythmGameQml", 1, 0, "FileQuery", &fileQuery);
 
-        // add all other common types
+        auto networkManager = QNetworkAccessManager{};
+        auto tables =
+          resource_managers::Tables{ &networkManager, assetsFolder / "tables", &db };
+        qmlRegisterSingletonInstance("RhythmGameQml", 1, 0, "Tables", &tables);
 
+        // add all other common types
+        qmlRegisterType<resource_managers::Level>("RhythmGameQml", 1, 0, "level");
+        qmlRegisterType<resource_managers::Course>("RhythmGameQml", 1, 0, "course");
+        qmlRegisterType<resource_managers::Trophy>("RhythmGameQml", 1, 0, "trophy");
+        qmlRegisterType<resource_managers::Table>("RhythmGameQml", 1, 0, "table");
+        qmlRegisterType<resource_managers::Entry>("RhythmGameQml", 1, 0, "entry");
         qmlRegisterType<gameplay_logic::Chart>("RhythmGameQml", 1, 0, "Chart");
         qmlRegisterType<gameplay_logic::ChartData>(
           "RhythmGameQml", 1, 0, "ChartData");
@@ -232,12 +242,13 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
         qmlRegisterType<qml_components::BgaContainer>(
           "RhythmGameQml", 1, 0, "BgaContainer");
         qmlRegisterType<input::Key>("RhythmGameQml", 1, 0, "Key");
-        qmlRegisterUncreatableMetaObject(gameplay_logic::judgement::staticMetaObject,
-                                         "RhythmGameQml",
-                                         1,
-                                         0,
-                                         "Judgement",
-                                         "Access to enums & flags only");
+        qmlRegisterUncreatableMetaObject(
+          gameplay_logic::judgement::staticMetaObject,
+          "RhythmGameQml",
+          1,
+          0,
+          "Judgement",
+          "Access to enums & flags only");
         qmlRegisterUncreatableMetaObject(input::staticMetaObject,
                                          "RhythmGameQml",
                                          1,
@@ -280,7 +291,6 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
           0,
           "Input",
           "Input is only accessible as an attached property");
-
 
         auto inputSignalProvider =
           qml_components::InputSignalProvider{ &inputTranslator };

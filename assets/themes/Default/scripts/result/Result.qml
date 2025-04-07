@@ -105,7 +105,7 @@ FocusScope {
                 readonly property var oldBestClear: Helpers.getClearType(scores)
                 readonly property var oldBestPointsScore: Helpers.getScoreWithBestPoints(scores)
                 readonly property var oldBestStats: Helpers.getBestStats(scores)
-                readonly property var scores: result.profile.scoreDb.getScoresForChart(chartData.sha256).filter(function (score) {
+                readonly property var scores: result.profile.scoreDb.getScoresForMd5(chartData.md5).filter(function (score) {
                     return score.id !== result.result.id;
                 })
                 transform: Scale {

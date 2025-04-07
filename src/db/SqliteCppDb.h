@@ -66,8 +66,6 @@ class SqliteCppDb
          */
         template<std::default_initializable Ret>
         [[nodiscard]] auto executeAndGet() -> std::optional<Ret>
-            requires(!std::convertible_to<SQLite::Column, Ret> &&
-                     !std::is_same_v<Ret, std::string>)
         {
             std::lock_guard lock(*dbMutex);
             if (!statement.executeStep()) {
@@ -88,8 +86,6 @@ class SqliteCppDb
          */
         template<std::default_initializable Ret>
         [[nodiscard]] auto executeAndGetAll() -> std::vector<Ret>
-            requires(!std::convertible_to<SQLite::Column, Ret> &&
-                     !std::is_same_v<Ret, std::string>)
         {
             std::lock_guard lock(*dbMutex);
             std::vector<Ret> result;
@@ -97,50 +93,6 @@ class SqliteCppDb
             while (statement.executeStep()) {
                 result.emplace_back();
                 writeRow(statement, result.back());
-            }
-
-            return result;
-        }
-
-        /**
-         * @brief Executes a query that returns a single value in a single
-         * column.
-         * @tparam Ret Type of the value to return.
-         * @param query Query to execute.
-         * @return An optional holding the result of the query. It will be empty
-         * if the query didn't return anything.
-         */
-        template<typename Ret>
-        auto executeAndGet() -> std::optional<Ret>
-            requires std::convertible_to<SQLite::Column, Ret> ||
-              std::is_same_v<Ret, std::string>
-        {
-
-            std::lock_guard lock(*dbMutex);
-            if (!statement.executeStep()) {
-                return {};
-            }
-            return { getElem<Ret>(statement, 0) };
-        }
-
-        /**
-         * @brief Executes a query that returns any number of values in a single
-         * column.
-         * @tparam Ret Type of the values to return.
-         * @param query Query to execute.
-         * @return A vector holding the result of the query. It will be empty if
-         * the query didn't return anything.
-         */
-        template<typename Ret>
-        auto executeAndGetAll() -> std::vector<Ret>
-            requires std::convertible_to<SQLite::Column, Ret> ||
-              std::is_same_v<Ret, std::string>
-        {
-            std::lock_guard lock(*dbMutex);
-            std::vector<Ret> result;
-
-            while (statement.executeStep()) {
-                result.emplace_back(getElem<Ret>(statement, 0));
             }
 
             return result;
@@ -159,18 +111,25 @@ class SqliteCppDb
         }
 
         template<std::default_initializable Ret>
-        auto writeRow(SQLite::Statement& statement, Ret& ret) const -> void
+        void writeRow(SQLite::Statement& statement, Ret& ret) const
         {
-            constexpr size_t tupleSize = support::tupleSizeV<Ret>;
-            constexpr auto indices =
-              std::make_integer_sequence<int, static_cast<int>(tupleSize)>();
+            int index = 0;
+            writeRow(statement, ret, index);
+        }
 
-            [&statement, &ret]<int... N>(std::integer_sequence<int, N...>) {
-                ((support::get<N>(ret) = getElem<
-                    std::remove_cvref_t<decltype(support::get<N>(ret))>>(
-                    statement, N)),
-                 ...);
-            }(indices);
+        template<std::default_initializable Ret>
+        void writeRow(SQLite::Statement& statement, Ret& ret, int& index) const
+        {
+            if constexpr (std::convertible_to<SQLite::Column, Ret> || std::is_same_v<Ret, std::string>) {
+                ret = getElem<std::remove_cvref_t<Ret>>(statement, index++);
+            } else {
+                constexpr size_t tupleSize = support::tupleSizeV<Ret>;
+                constexpr auto indices =
+                  std::make_integer_sequence<int, static_cast<int>(tupleSize)>();
+                [this, &statement, &ret, &index]<int... N>(std::integer_sequence<int, N...>) {
+                    (writeRow(statement, support::get<N>(ret), index), ...);
+                }(indices);
+            }
         }
     };
 
