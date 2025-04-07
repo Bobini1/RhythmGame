@@ -48,6 +48,10 @@ class BmsGameReferee
      * @return The position in the chart, expressed in beats
      */
     auto getPosition(std::chrono::nanoseconds offsetFromStart) -> Position;
+    void addNote(decltype(notes)::value_type& column,
+                 decltype(mines)::value_type& minesColumn,
+                 const charts::gameplay_models::BmsNotesData::Note& note,
+                 int index);
 
   public:
     explicit BmsGameReferee(
@@ -74,10 +78,6 @@ class BmsGameReferee
                      input::BmsKey key) -> void;
     auto passReleased(std::chrono::nanoseconds offsetFromStart,
                       input::BmsKey key) -> void;
-    void addNote(decltype(notes)::value_type& column,
-                 decltype(mines)::value_type& minesColumn,
-                 const charts::gameplay_models::BmsNotesData::Note& note,
-                 int index);
 };
 } // namespace gameplay_logic
 

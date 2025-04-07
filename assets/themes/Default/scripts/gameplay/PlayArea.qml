@@ -9,7 +9,7 @@ Item {
     id: playArea
 
     required property list<int> columns
-    readonly property list<int> columnsReversedMapping: {
+    readonly property list<int>columnsReversedMapping: {
         var mapping = [];
         for (var i = 0; i < columns.length; i++) {
             mapping[columns[i]] = i;
@@ -22,14 +22,21 @@ Item {
         let liftMod = profile.vars.globalVars.liftOn * profile.vars.globalVars.liftRatio;
         return baseSpeed * Math.max(0, Math.min(1 - laneCoverMod - liftMod, 1));
     }
-    required property Profile profile
-    required property var score
-    required property var notes
-    required property var columnStates
+    required property Player player
+    readonly property Profile profile: player.profile
+    readonly property var score: player.score
+    readonly property var barLinesState: player.state.barLinesState
+    readonly property var notes: columns.map(function (column) {
+        return side.notes.notes[column];
+    })
+    readonly property var columnStates: columns.map(function (column) {
+        return side.columnStates[column];
+    })
     readonly property int spacing: playArea.vars.spacing
     readonly property var vars: profile.vars.themeVars[chartFocusScope.screen]
     readonly property var globalVars: profile.vars.globalVars
     readonly property list<real> columnSizes: root.getColumnSizes(vars)
+    readonly property real position: player.position
 
     height: playArea.vars.playAreaHeight
     width: playfield.width
@@ -73,10 +80,10 @@ Item {
             z: 0
         }
         BarLinePositioner {
-            // barlines are always the same for all players
-            model: chart.state1.barLinesState
-            barlinesArray: chart.notes1.barLines
+            model: playArea.barLinesState
+            barlinesArray: playArea.player.notes.barLines
             heightMultiplier: playArea.heightMultiplier
+            position: playArea.position
             anchors.fill: parent
             z: 2
         }
@@ -95,6 +102,7 @@ Item {
             noteImage: playArea.vars.notes
             mineImage: playArea.vars.mine
             notesStay: playArea.vars.notesStay
+            position: playArea.position
             z: 4
         }
         Row {
@@ -103,6 +111,7 @@ Item {
             function hideLaser(index) {
                 laserRow.children[playArea.columnsReversedMapping[index]].stop();
             }
+
             function shootLaser(index) {
                 laserRow.children[playArea.columnsReversedMapping[index]].start();
             }
@@ -138,7 +147,10 @@ Item {
             id: glow
 
             anchors.bottom: judgeLine.bottom
-            opacity: (Math.abs(chart.position % 1) > 0.5 ? Math.abs(chart.position % 1) : 1 - Math.abs(chart.position % 1)) * 0.2 + 0.1
+            opacity: {
+                let pos = Math.abs(side.player.position % 1);
+                return (pos > 0.5 ? pos : 1 - pos) * 0.2 + 0.1;
+            }
             source: root.imagesUrl + "glow/" + playArea.vars.glow
             width: parent.width
             z: 1

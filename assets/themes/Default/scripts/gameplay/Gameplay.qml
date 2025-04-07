@@ -54,20 +54,20 @@ Rectangle {
         }
     }
     Connections {
-        function onLoaded() {
-            chart.bga.layers[0].videoSink = bga.baseSink;
-            chart.bga.layers[1].videoSink = bga.layerSink;
-            chart.bga.layers[2].videoSink = bga.layer2Sink;
-            chart.bga.layers[3].videoSink = bga.poorSink;
-            chart.start();
-        }
-
-        function onOver() {
-            if (root.popup !== null) {
-                root.popup.close();
-                root.popup = null;
+        function onStatusChanged() {
+            if (chart.status === Chart.Ready) {
+                chart.bga.layers[0].videoSink = bga.baseSink;
+                chart.bga.layers[1].videoSink = bga.layerSink;
+                chart.bga.layers[2].videoSink = bga.layer2Sink;
+                chart.bga.layers[3].videoSink = bga.poorSink;
+                chart.start();
+            } else if (chart.status === Chart.Finished) {
+                if (root.popup !== null) {
+                    root.popup.close();
+                    root.popup = null;
+                }
+                globalRoot.openResult(chart.finish(), chart.chartData);
             }
-            globalRoot.openResult(chart.finish(), chart.chartData);
         }
 
         target: chart
@@ -75,7 +75,7 @@ Rectangle {
     PlayAreaPopup {
         id: playAreaPopup
 
-        property Profile profile: chart.profile1
+        property Profile profile: chart.player1.profile
         themeVars: profile.vars.themeVars[chartFocusScope.screen]
         globalVars: profile.vars.globalVars
         dp: root.isDp
@@ -87,7 +87,7 @@ Rectangle {
     PlayAreaPopup {
         id: playAreaPopupP2
 
-        property Profile profile: chart.profile2 || chart.profile1
+        property Profile profile: (chart.player2 || chart.player1).profile
         themeVars: profile.vars.themeVars[chartFocusScope.screen]
         globalVars: profile.vars.globalVars
 
@@ -98,7 +98,7 @@ Rectangle {
     GaugePopup {
         id: gaugePopup
 
-        property Profile profile: chart.profile1
+        property Profile profile: chart.player1.profile
         themeVars: profile.vars.themeVars[chartFocusScope.screen]
 
         onClosed: {
@@ -108,7 +108,7 @@ Rectangle {
     GaugePopup {
         id: gaugePopupP2
 
-        property Profile profile: chart.profile2 || chart.profile1
+        property Profile profile: (chart.player2 || chart.player1).profile
         themeVars: profile.vars.themeVars[chartFocusScope.screen]
 
         onClosed: {
@@ -139,7 +139,7 @@ Rectangle {
         BgaRenderer {
             id: bga
 
-            readonly property Profile profile: chart.profile2 ? ProfileList.mainProfile : chart.profile1
+            readonly property Profile profile: chart.player2 ? ProfileList.mainProfile : chart.player1.profile
             readonly property var profileVars: profile.vars.themeVars[chartFocusScope.screen]
 
             height: profileVars.bgaSize
@@ -172,23 +172,17 @@ Rectangle {
 
         Side {
             anchors.fill: parent
-            profile: chart.profile1
-            score: chart.score1
-            notes: chart.notes1
-            columnStates: chart.state1.columnStates
+            player: chart.player1
             dpSuffix: root.isDp ? "1" : ""
             columns: root.isDp || !profileVars.scratchOnRightSide ? [7, 0, 1, 2, 3, 4, 5, 6] : [0, 1, 2, 3, 4, 5, 6, 7]
         }
         Loader {
             id: p2SideLoader
-            active: chart.profile2 !== null || root.isDp
+            active: chart.player2 !== null || root.isDp
             anchors.fill: parent
             sourceComponent: Side {
                 id: side2
-                profile: root.isDp ? chart.profile1 : chart.profile2
-                score: root.isDp ? chart.score1 : chart.score2
-                notes: root.isDp ? chart.notes1 : chart.notes2
-                columnStates: root.isDp ? chart.state1.columnStates : chart.state2.columnStates
+                player: root.isDp ? chart.player1 : chart.player2
                 dpSuffix: root.isDp ? "2" : ""
                 mirrored: !root.isDp
                 columns: {
@@ -202,15 +196,20 @@ Rectangle {
         }
         component Side : Item {
             id: side
-            required property Profile profile
-            required property BmsScore score
-            required property BmsNotes notes
-            required property var columnStates
+            required property Player player
             required property string dpSuffix
             required property var columns
             property bool mirrored: false
+
+            readonly property Profile profile: player.profile
+            readonly property BmsScore score: player.score
+            readonly property BmsNotes notes: player.notes
+            readonly property var columnStates: player.state.columnStates
             readonly property var profileVars: profile.vars.themeVars[chartFocusScope.screen]
-            transform: Scale{ xScale: side.mirrored ? -1 : 1; origin.x: side.width / 2 }
+
+            transform: Scale {
+                xScale: side.mirrored ? -1 : 1; origin.x: side.width / 2
+            }
             PlayAreaTemplate {
                 id: playAreaTemplate
 
@@ -244,16 +243,11 @@ Rectangle {
             PlayArea {
                 id: playArea
 
+                player: side.player
                 columns: side.columns
-                profile: side.profile
-                score: side.score
-                notes: columns.map(function (column) {
-                    return side.notes.notes[column];
-                })
-                columnStates: columns.map(function (column) {
-                    return side.columnStates[column];
-                })
-                transform: Scale{ xScale: side.mirrored ? -1 : 1; origin.x: playArea.width / 2 }
+                transform: Scale {
+                    xScale: side.mirrored ? -1 : 1; origin.x: playArea.width / 2
+                }
                 x: side.profileVars["playAreaX" + side.dpSuffix]
                 y: side.profileVars["playAreaY" + side.dpSuffix]
                 z: side.profileVars.playAreaZ
@@ -264,7 +258,9 @@ Rectangle {
                 verticalGauge: side.profileVars.verticalGauge
                 gaugeImage: side.profileVars.gauge
                 score: side.score
-                transform: Scale{ xScale: side.mirrored ? -1 : 1; origin.x: lifeBar.width / 2 }
+                transform: Scale {
+                    xScale: side.mirrored ? -1 : 1; origin.x: lifeBar.width / 2
+                }
 
                 height: side.profileVars.lifeBarHeight
                 width: side.profileVars.lifeBarWidth
@@ -324,7 +320,9 @@ Rectangle {
                 x: side.profileVars.judgementCountsX
                 y: side.profileVars.judgementCountsY
                 z: side.profileVars.judgementCountsZ
-                transform: Scale{ xScale: side.mirrored ? -1 : 1; origin.x: judgementCountsContainer.width / 2 }
+                transform: Scale {
+                    xScale: side.mirrored ? -1 : 1; origin.x: judgementCountsContainer.width / 2
+                }
 
                 onHeightChanged: {
                     side.profileVars.judgementCountsHeight = height;

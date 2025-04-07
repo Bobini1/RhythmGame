@@ -370,45 +370,8 @@ ChartFactory::createChart(ChartDataFactory::ChartComponents chartComponents,
           player, notesData, *chartData, maxHitValue);
     });
 
-    auto task = [path,
-                 wavs = std::move(wavs),
-                 rawNotes1 = std::move(components1.rawNotes),
-                 rawNotes2 = components2.transform([](auto& components) {
-                     return std::move(components.rawNotes);
-                 }),
-                 bgmNotes = std::move(notesData.bgmNotes),
-                 bpmChanges = notesData.bpmChanges,
-                 hitRules1 = std::move(player1.hitRules),
-                 hitRules2 = player2.transform(
-                   [&](auto& player) { return std::move(player.hitRules); }),
-                 score1 = components1.score.get(),
-                 score2 = components2.transform([](auto& components) {
-                     return components.score.get();
-                 })]() mutable {
-        auto sounds = charts::helper_functions::loadBmsSounds(wavs, path);
-        sounds::OpenALSound* mineHitSound = nullptr;
-        if (const auto sound = sounds.find(0); sound != sounds.end()) {
-            mineHitSound = &sound->second;
-        }
-        auto referees = std::vector<gameplay_logic::BmsGameReferee>{};
-        referees.emplace_back(std::move(rawNotes1),
-                              std::move(bgmNotes),
-                              bpmChanges,
-                              mineHitSound,
-                              score1,
-                              sounds,
-                              std::move(hitRules1));
-        if (score2) {
-            referees.emplace_back(std::move(*rawNotes2),
-                                  score1 ? decltype(bgmNotes){}
-                                         : std::move(bgmNotes),
-                                  bpmChanges,
-                                  mineHitSound,
-                                  *score2,
-                                  sounds,
-                                  std::move(*hitRules2));
-        }
-        return referees;
+    auto soundTask = [path, wavs = std::move(wavs)] {
+        return charts::helper_functions::loadBmsSounds(wavs, path);
     };
     auto bgaTask = [bgaBase = std::move(notesData.bgaBase),
                     bgaPoor = std::move(notesData.bgaPoor),
@@ -426,22 +389,65 @@ ChartFactory::createChart(ChartDataFactory::ChartComponents chartComponents,
                        std::move(path));
     };
     auto bga = QtConcurrent::run(std::move(bgaTask));
-    auto referees = QtConcurrent::run(std::move(task));
+    auto soundFuture = QtConcurrent::run(std::move(soundTask));
     auto* chart = new gameplay_logic::Chart(
-      std::move(referees),
-      std::move(bga),
       chartData.release(),
-      { components1.notes.release(),
+      std::move(bga),
+      new gameplay_logic::Player{
+        components1.notes.release(),
         components1.score.release(),
         components1.state.release(),
-        player1.profile },
-      components2.transform(
-        [&](auto& player) -> gameplay_logic::Chart::PlayerSpecificComponents {
-            return { player.notes.release(),
-                     player.score.release(),
-                     player.state.release(),
-                     player2->profile };
-        }));
+        player1.profile,
+        soundFuture.then(
+          [rawNotes = std::move(components1.rawNotes),
+           hitRules = std::move(player1.hitRules),
+           score = components1.score.get(),
+           bpmChanges = notesData.bpmChanges,
+           bgmNotes = std::move(notesData.bgmNotes)](
+            std::unordered_map<uint16_t, sounds::OpenALSound> sounds) mutable {
+              sounds::OpenALSound* mineHitSound = nullptr;
+              if (const auto sound = sounds.find(0); sound != sounds.end()) {
+                  // there will be awful bugs if you insert anything into the
+                  // map after this point
+                  mineHitSound = &sound->second;
+              }
+              return gameplay_logic::BmsGameReferee{ std::move(rawNotes),
+                                                     std::move(bgmNotes),
+                                                     bpmChanges,
+                                                     mineHitSound,
+                                                     score,
+                                                     std::move(sounds),
+                                                     std::move(hitRules) };
+          }) },
+      components2
+        .transform([&](auto& player) {
+            return new gameplay_logic::Player{
+                player.notes.release(),
+                player.score.release(),
+                player.state.release(),
+                player2->profile,
+                soundFuture.then(
+                  [rawNotes = std::move(components2->rawNotes),
+                   hitRules = std::move(player2->hitRules),
+                   score = components2->score.get(),
+                   bpmChanges = notesData.bpmChanges,
+                   bgmNotes = std::move(notesData.bgmNotes)](
+                    std::unordered_map<uint16_t, sounds::OpenALSound>
+                      sounds) mutable {
+                      sounds::OpenALSound* mineHitSound = nullptr;
+                      if (const auto sound = sounds.find(0);
+                          sound != sounds.end()) {
+                          mineHitSound = &sound->second;
+                      }
+                      return gameplay_logic::BmsGameReferee{
+                          std::move(rawNotes), {},    bpmChanges,
+                          mineHitSound,        score, std::move(sounds),
+                          std::move(hitRules)
+                      };
+                  })
+            };
+        })
+        .value_or(nullptr));
     QObject::connect(
       inputTranslator,
       &input::InputTranslator::buttonPressed,

@@ -5,8 +5,9 @@ ListView {
 
     required property real heightMultiplier
     required property var barlinesArray
+    required property real position
     interactive: false
-    contentY: -(chart.position * heightMultiplier + height * (1 - playArea.globalVars.liftOn * playArea.globalVars.liftRatio))
+    contentY: -(position * heightMultiplier + height * (1 - playArea.globalVars.liftOn * playArea.globalVars.liftRatio))
 
     verticalLayoutDirection: ListView.BottomToTop
 

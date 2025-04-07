@@ -7,14 +7,15 @@ import QtQuick.Controls
 Item {
     id: column
 
-    property string color
-    property real heightMultiplier: 20
-    property real noteHeight: 36
-    property var notes
-    property bool notesStay
-    property string noteImage
-    property string mineImage
     required property var columnState
+    required property real position
+    required property string color
+    required property bool notesStay
+    required property string noteImage
+    required property string mineImage
+    required property var notes
+    required property real heightMultiplier
+    required property real noteHeight
 
     Image {
         id: lnBeginStatic
@@ -34,7 +35,7 @@ Item {
         clip: true
         interactive: false
 
-        contentY: -(chart.position * playArea.heightMultiplier + height * (1 - playArea.globalVars.liftOn * playArea.globalVars.liftRatio)) + column.noteHeight / 3
+        contentY: -(column.position * playArea.heightMultiplier + height * (1 - playArea.globalVars.liftOn * playArea.globalVars.liftRatio)) + column.noteHeight / 3
 
         Repeater {
             id: repeater
@@ -113,7 +114,7 @@ Item {
                                 if (!noteObj.held) {
                                     return root.iniImagesUrl + "notes/" + column.noteImage + "/ln_body_inactive_" + column.color;
                                 }
-                                let flashing = Math.abs(chart.position % 0.5) > 0.25;
+                                let flashing = Math.abs(column.position % 0.5) > 0.25;
                                 return root.iniImagesUrl + "notes/" + column.noteImage + "/ln_body_" + (flashing ? "flash" : "active") + "_" + column.color;
                             }
                             width: noteObj.width
