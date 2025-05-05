@@ -359,10 +359,9 @@ Player::finish() const -> BmsScoreAftermath*
     auto gaugeHistory = score->getGaugeHistory();
     if (auto* profilePtr = profile.get()) {
         try {
-            const auto scoreId = result->save(profilePtr->getDb());
-            result->setId(scoreId);
-            replayData->save(profilePtr->getDb(), scoreId);
-            gaugeHistory->save(profilePtr->getDb(), scoreId);
+            result->save(profilePtr->getDb());
+            replayData->save(profilePtr->getDb());
+            gaugeHistory->save(profilePtr->getDb());
         } catch (const std::exception& e) {
             spdlog::error("Failed to save score: {}", e.what());
         }

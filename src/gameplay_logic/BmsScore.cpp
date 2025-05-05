@@ -21,6 +21,7 @@ BmsScore::BmsScore(int normalNoteCount,
                    uint64_t seed,
                    QString sha256,
                    QString md5,
+                   QString guid,
                    QObject* parent)
   : QObject(parent)
   , maxPoints(maxHitValue * maxHits)
@@ -113,6 +114,11 @@ auto
 BmsScore::getRandomSeed() const -> uint64_t
 {
     return randomSeed;
+}
+auto
+BmsScore::getGuid() const -> QString
+{
+    return guid;
 }
 void
 BmsScore::increaseCombo()
@@ -220,26 +226,27 @@ BmsScore::getResult() const -> std::unique_ptr<BmsResult>
                                        points,
                                        maxCombo,
                                        randomSequence,
+                                       guid,
                                        sha256,
                                        md5);
 }
 auto
 BmsScore::getReplayData() const -> std::unique_ptr<BmsReplayData>
 {
-    return std::make_unique<BmsReplayData>(hits);
+    return std::make_unique<BmsReplayData>(hits, guid);
 }
 auto
 BmsScore::getGaugeHistory() const -> std::unique_ptr<BmsGaugeHistory>
 {
     auto gaugeHistory = QHash<QString, QList<rules::GaugeHistoryEntry>>{};
     auto gaugeInfo = QHash<QString, BmsGaugeInfo>{};
-    for (auto* gauge : gauges) {
+    for (const auto* gauge : gauges) {
         gaugeHistory[gauge->objectName()] = gauge->getGaugeHistory();
         gaugeInfo[gauge->objectName()] =
           BmsGaugeInfo{ gauge->getGaugeMax(), gauge->getThreshold() };
     }
-    return std::make_unique<BmsGaugeHistory>(std::move(gaugeHistory),
-                                             std::move(gaugeInfo));
+    return std::make_unique<BmsGaugeHistory>(
+      std::move(gaugeHistory), std::move(gaugeInfo), guid);
 }
 void
 BmsScore::sendVisualOnlyRelease(HitEvent release)

@@ -11,7 +11,7 @@
 #include "db/SqliteCppDb.h"
 #include "support/Sha256.h"
 namespace gameplay_logic {
-class BmsResult : public QObject
+class BmsResult final : public QObject
 {
     Q_OBJECT
 
@@ -26,10 +26,9 @@ class BmsResult : public QObject
     Q_PROPERTY(int mineHits READ getMineHits CONSTANT)
     Q_PROPERTY(QString clearType READ getClearType CONSTANT)
     Q_PROPERTY(QList<qint64> randomSequence READ getRandomSequence CONSTANT)
-    Q_PROPERTY(int64_t id READ getId CONSTANT)
     Q_PROPERTY(int64_t unixTimestamp READ getUnixTimestamp CONSTANT)
+    Q_PROPERTY(QString guid READ getGuid CONSTANT)
 
-    int64_t id = -1;
     double maxPoints;
     int maxHits;
     int normalNoteCount;
@@ -39,6 +38,7 @@ class BmsResult : public QObject
     QList<int> judgementCounts =
       QList<int>(magic_enum::enum_count<Judgement>());
     QList<qint64> randomSequence;
+    QString guid;
     QString sha256;
     QString md5;
     int mineHits;
@@ -50,6 +50,7 @@ class BmsResult : public QObject
     struct BmsResultDto
     {
         int64_t id;
+        std::string guid;
         std::string sha256;
         std::string md5;
         double points;
@@ -81,6 +82,7 @@ class BmsResult : public QObject
                        double points,
                        int maxCombo,
                        QList<qint64> randomSequence,
+                       QString guid,
                        QString sha256,
                        QString md5,
                        QObject* parent = nullptr);
@@ -96,11 +98,10 @@ class BmsResult : public QObject
     auto getMineHits() const -> int;
     auto getClearType() const -> const QString&;
     auto getRandomSequence() -> const QList<qint64>&;
-    auto setId(int64_t id) -> void;
-    auto getId() const -> int64_t;
     auto getUnixTimestamp() const -> int64_t;
+    auto getGuid() const -> QString;
 
-    auto save(db::SqliteCppDb& db) const -> int64_t;
+    void save(db::SqliteCppDb& db) const;
     static auto load(const BmsResultDto& dto) -> std::unique_ptr<BmsResult>;
 };
 

@@ -22,8 +22,9 @@ class ScoreDb : public QObject
     Q_INVOKABLE QList<gameplay_logic::BmsResult*> getScoresForMd5(
       const QString& md5) const;
     Q_INVOKABLE gameplay_logic::BmsGaugeHistory* getGaugeHistory(
-      int64_t scoreId) const;
-    Q_INVOKABLE gameplay_logic::BmsReplayData* getReplayData(int64_t scoreId);
+      const QString& guid) const;
+    Q_INVOKABLE gameplay_logic::BmsReplayData* getReplayData(
+      const QString& guid) const;
     Q_INVOKABLE int getTotalScoreCount() const;
 };
 } // namespace qml_components

@@ -13,6 +13,7 @@
 #include "resource_managers/Vars.h"
 
 #include <QAbstractListModel>
+#include <QUuid>
 
 namespace gameplay_logic {
 
@@ -29,7 +30,8 @@ class JudgementCounts final : public QAbstractListModel
     {
     }
 
-    auto rowCount(const QModelIndex& parent = QModelIndex()) const -> int override
+    auto rowCount(const QModelIndex& parent = QModelIndex()) const
+      -> int override
     {
         return judgementCounts.size();
     }
@@ -64,9 +66,8 @@ class JudgementCounts final : public QAbstractListModel
     {
         auto index = magic_enum::enum_integer(judgement);
         judgementCounts[index]++;
-        emit dataChanged(createIndex(index, 0),
-                         createIndex(index, 0),
-                         { CountRole });
+        emit dataChanged(
+          createIndex(index, 0), createIndex(index, 0), { CountRole });
     }
 
     auto getJudgementCounts() const -> const QList<int>&
@@ -87,7 +88,8 @@ class BmsScore final : public QObject
     Q_PROPERTY(double points READ getPoints NOTIFY pointsChanged)
     Q_PROPERTY(int combo READ getCombo NOTIFY comboChanged)
     Q_PROPERTY(int maxCombo READ getMaxCombo NOTIFY maxComboChanged)
-    Q_PROPERTY(JudgementCounts* judgementCounts READ getJudgementCounts CONSTANT)
+    Q_PROPERTY(
+      JudgementCounts* judgementCounts READ getJudgementCounts CONSTANT)
     Q_PROPERTY(int mineHits READ getMineHits NOTIFY mineHitsChanged)
     Q_PROPERTY(QList<rules::BmsGauge*> gauges READ getGauges CONSTANT)
     Q_PROPERTY(QList<qint64> randomSequence READ getRandomSequence CONSTANT)
@@ -97,6 +99,7 @@ class BmsScore final : public QObject
                  noteOrderAlgorithmP2 READ getNoteOrderAlgorithmP2 CONSTANT)
     Q_PROPERTY(QList<int> permutation READ getPermutation CONSTANT)
     Q_PROPERTY(uint64_t randomSeed READ getRandomSeed CONSTANT)
+    Q_PROPERTY(QString guid READ getGuid CONSTANT)
 
     double maxPoints;
     int mineCount;
@@ -112,6 +115,7 @@ class BmsScore final : public QObject
     QList<int> permutation;
     QString sha256;
     QString md5;
+    QString guid;
     double points = 0;
     int combo = 0;
     int maxCombo = 0;
@@ -137,6 +141,7 @@ class BmsScore final : public QObject
       uint64_t seed,
       QString sha256,
       QString md5,
+      QString guid = QUuid::createUuid().toString(),
       QObject* parent = nullptr);
 
     auto getMaxPoints() const -> double;
@@ -159,6 +164,7 @@ class BmsScore final : public QObject
       -> resource_managers::NoteOrderAlgorithm;
     auto getPermutation() const -> const QList<int>&;
     auto getRandomSeed() const -> uint64_t;
+    auto getGuid() const -> QString;
 
     auto getResult() const -> std::unique_ptr<BmsResult>;
     auto getReplayData() const -> std::unique_ptr<BmsReplayData>;

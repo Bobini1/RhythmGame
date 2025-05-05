@@ -10,27 +10,25 @@
 #include "db/SqliteCppDb.h"
 namespace gameplay_logic {
 
-class BmsReplayData : public QObject
+class BmsReplayData final : public QObject
 {
     Q_OBJECT
 
     Q_PROPERTY(QList<HitEvent> hitEvents READ getHitEvents CONSTANT)
+    Q_PROPERTY(QString guid READ getGuid CONSTANT)
 
     QList<HitEvent> hitEvents;
+    QString guid;
 
   public:
     explicit BmsReplayData(QList<HitEvent> hitEvents,
+                           QString guid,
                            QObject* parent = nullptr);
-    BmsReplayData() = default;
     auto getHitEvents() -> const QList<HitEvent>&;
+    auto getGuid() const -> QString;
 
-    friend auto operator<<(QDataStream& stream, const BmsReplayData& data)
-      -> QDataStream&;
-    friend auto operator>>(QDataStream& stream, BmsReplayData& data)
-      -> QDataStream&;
-
-    void save(db::SqliteCppDb& db, int64_t scoreId);
-    static auto load(db::SqliteCppDb& db, int64_t scoreId)
+    void save(db::SqliteCppDb& db) const;
+    static auto load(db::SqliteCppDb& db, QString guid)
       -> std::unique_ptr<BmsReplayData>;
 };
 

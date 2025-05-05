@@ -27,15 +27,16 @@ ScoreDb::getScoresForMd5(const QString& md5) const
     return scores;
 }
 auto
-ScoreDb::getGaugeHistory(int64_t scoreId) const
+ScoreDb::getGaugeHistory(const QString& guid) const
   -> gameplay_logic::BmsGaugeHistory*
 {
-    return gameplay_logic::BmsGaugeHistory::load(*scoreDb, scoreId).release();
+    return gameplay_logic::BmsGaugeHistory::load(*scoreDb, guid).release();
 }
 auto
-ScoreDb::getReplayData(int64_t scoreId) -> gameplay_logic::BmsReplayData*
+ScoreDb::getReplayData(const QString& guid) const
+  -> gameplay_logic::BmsReplayData*
 {
-    return gameplay_logic::BmsReplayData::load(*scoreDb, scoreId).release();
+    return gameplay_logic::BmsReplayData::load(*scoreDb, guid).release();
 }
 int
 ScoreDb::getTotalScoreCount() const

@@ -53,6 +53,7 @@ gameplay_logic::BmsResult::BmsResult(double maxPoints,
                                      double points,
                                      int maxCombo,
                                      QList<qint64> randomSequence,
+                                     QString guid,
                                      QString sha256,
                                      QString md5,
                                      QObject* parent)
@@ -65,6 +66,7 @@ gameplay_logic::BmsResult::BmsResult(double maxPoints,
   , clearType(std::move(clearType))
   , judgementCounts(std::move(judgementCounts))
   , randomSequence(std::move(randomSequence))
+  , guid(std::move(guid))
   , sha256(std::move(sha256))
   , md5(std::move(md5))
   , mineHits(mineHits)
@@ -73,11 +75,11 @@ gameplay_logic::BmsResult::BmsResult(double maxPoints,
   , unixTimestamp(QDateTime::currentSecsSinceEpoch())
 {
 }
-auto
-gameplay_logic::BmsResult::save(db::SqliteCppDb& db) const -> int64_t
+void
+gameplay_logic::BmsResult::save(db::SqliteCppDb& db) const
 {
     auto statement = db.createStatement(
-      "INSERT INTO score ("
+      "INSERT OR IGNORE INTO score ("
       "max_points, "
       "max_hits, "
       "normal_note_count, "
@@ -93,6 +95,7 @@ gameplay_logic::BmsResult::save(db::SqliteCppDb& db) const -> int64_t
       "great, "
       "perfect,"
       "mine_hits,"
+      "guid,"
       "sha256,"
       "md5,"
       "unix_timestamp,"
@@ -114,13 +117,14 @@ gameplay_logic::BmsResult::save(db::SqliteCppDb& db) const -> int64_t
     statement.bind(13, judgementCounts[static_cast<int>(Judgement::Great)]);
     statement.bind(14, judgementCounts[static_cast<int>(Judgement::Perfect)]);
     statement.bind(15, mineHits);
-    statement.bind(16, sha256.toStdString());
-    statement.bind(17, md5.toStdString());
-    statement.bind(18, unixTimestamp);
+    statement.bind(16, guid.toStdString());
+    statement.bind(17, sha256.toStdString());
+    statement.bind(18, md5.toStdString());
+    statement.bind(19, unixTimestamp);
     auto randomSequenceCompressed = support::compress(randomSequence);
     statement.bind(
-      19, randomSequenceCompressed.data(), randomSequenceCompressed.size());
-    return statement.execute();
+      20, randomSequenceCompressed.data(), randomSequenceCompressed.size());
+    statement.execute();
 }
 auto
 gameplay_logic::BmsResult::load(const BmsResultDto& dto)
@@ -148,26 +152,21 @@ gameplay_logic::BmsResult::load(const BmsResultDto& dto)
                                   dto.points,
                                   dto.maxCombo,
                                   randomSequence,
+                                  QString::fromStdString(dto.guid),
                                   QString::fromStdString(dto.sha256),
                                   QString::fromStdString(dto.md5));
-    result->setId(dto.id);
     result->unixTimestamp = dto.unixTimestamp;
     return result;
-}
-auto
-gameplay_logic::BmsResult::setId(int64_t newId) -> void
-{
-    id = newId;
-}
-auto
-gameplay_logic::BmsResult::getId() const -> int64_t
-{
-    return id;
 }
 auto
 gameplay_logic::BmsResult::getUnixTimestamp() const -> int64_t
 {
     return unixTimestamp;
+}
+auto
+gameplay_logic::BmsResult::getGuid() const -> QString
+{
+    return guid;
 }
 auto
 gameplay_logic::BmsResult::getNormalNoteCount() const -> int

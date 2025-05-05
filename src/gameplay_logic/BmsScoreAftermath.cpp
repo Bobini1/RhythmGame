@@ -3,12 +3,12 @@
 //
 
 #include "BmsScoreAftermath.h"
-gameplay_logic::BmsScoreAftermath::
-BmsScoreAftermath(resource_managers::Profile* profile,
-                  std::unique_ptr<BmsResult> result,
-                  std::unique_ptr<BmsReplayData> replayData,
-                  std::unique_ptr<BmsGaugeHistory> gaugeHistory,
-                  QObject* parent)
+gameplay_logic::BmsScoreAftermath::BmsScoreAftermath(
+  resource_managers::Profile* profile,
+  std::unique_ptr<BmsResult> result,
+  std::unique_ptr<BmsReplayData> replayData,
+  std::unique_ptr<BmsGaugeHistory> gaugeHistory,
+  QObject* parent)
   : QObject(parent)
   , profile(profile)
   , result(result.release())
@@ -26,20 +26,17 @@ gameplay_logic::BmsScoreAftermath::getProfile() const
     return profile;
 }
 auto
-gameplay_logic::BmsScoreAftermath::getResult() const
-  -> gameplay_logic::BmsResult*
+gameplay_logic::BmsScoreAftermath::getResult() const -> BmsResult*
 {
     return result;
 }
 auto
-gameplay_logic::BmsScoreAftermath::getReplayData() const
-  -> gameplay_logic::BmsReplayData*
+gameplay_logic::BmsScoreAftermath::getReplayData() const -> BmsReplayData*
 {
     return replayData;
 }
 auto
-gameplay_logic::BmsScoreAftermath::getGaugeHistory() const
-  -> gameplay_logic::BmsGaugeHistory*
+gameplay_logic::BmsScoreAftermath::getGaugeHistory() const -> BmsGaugeHistory*
 {
     return gaugeHistory;
 }

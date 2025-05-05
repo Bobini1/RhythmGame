@@ -21,6 +21,7 @@ class Profile final : public QObject
     Q_PROPERTY(QQmlPropertyMap* themeConfig READ getThemeConfig CONSTANT)
     Q_PROPERTY(Vars* vars READ getVars CONSTANT)
     Q_PROPERTY(qml_components::ScoreDb* scoreDb READ getScoreDb CONSTANT)
+    Q_PROPERTY(QString guid READ getGuid CONSTANT)
     QString name;
     QString avatar;
     db::SqliteCppDb db;
@@ -28,13 +29,15 @@ class Profile final : public QObject
     QQmlPropertyMap* themeConfig;
     Vars vars;
     qml_components::ScoreDb scoreDb{ &db };
+    QString guid;
 
   public:
     /**
-     * @brief Creates a profiles object living in the given database.
+     * @brief Creates a profile object living in the given database.
      * If the profile doesn't exist, it will be created.
      * @param dbPath Path to the database file. Doesn't have to exist.
      * @param themeFamilies The available theme families.
+     * @param avatarPath Path to the avatar folder.
      * @param parent QObject parent.
      */
     explicit Profile(
@@ -49,6 +52,7 @@ class Profile final : public QObject
     auto getScoreDb() -> qml_components::ScoreDb*;
     auto getThemeConfig() const -> QQmlPropertyMap*;
     auto getVars() -> Vars*;
+    auto getGuid() const -> QString;
 };
 
 } // namespace resource_managers
