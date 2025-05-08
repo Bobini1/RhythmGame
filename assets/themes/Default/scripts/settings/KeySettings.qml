@@ -26,12 +26,12 @@ Item {
 
         Connections {
             function onConfiguringChanged() {
-                if (!InputTranslator.configuring)
+                if (!Rg.inputTranslator.configuring)
                     pressButton(null);
 
             }
 
-            target: InputTranslator
+            target: Rg.inputTranslator
         }
 
         GroupBox {
@@ -42,7 +42,7 @@ Item {
             ColumnLayout {
                 id: keyLayout
 
-                property var keyConfig: InputTranslator.keyConfig
+                property var keyConfig: Rg.inputTranslator.keyConfig
 
                 anchors.fill: parent
 
@@ -84,9 +84,9 @@ Item {
                         }
 
                         Label {
-                            text: InputTranslator[modelData] ? qsTr("DOWN") : qsTr("UP")
+                            text: Rg.inputTranslator[modelData] ? qsTr("DOWN") : qsTr("UP")
                             horizontalAlignment: Text.AlignRight
-                            color: InputTranslator[modelData] ? "green" : "red"
+                            color: Rg.inputTranslator[modelData] ? "green" : "red"
                         }
 
                         Button {
@@ -96,7 +96,7 @@ Item {
                             onCheckedChanged: {
                                 pressButton(this);
                                 if (checked)
-                                    InputTranslator.configuredButton = index;
+                                    Rg.inputTranslator.configuredButton = index;
 
                             }
                         }
@@ -104,7 +104,7 @@ Item {
                         Button {
                             text: qsTr("Reset")
                             onClicked: {
-                                InputTranslator.resetButton(index);
+                                Rg.inputTranslator.resetButton(index);
                             }
                         }
 

@@ -7,11 +7,11 @@ Image {
     id: image
 
     property string clearType: Helpers.getClearType(scores)
-    property var scores: ProfileList.mainProfile.scoreDb.getScoresForMd5(modelData.md5)
+    property var scores: Rg.profileList.mainProfile.scoreDb.getScoresForMd5(modelData.md5)
     property bool scrollingText: parent.scrollingText
 
     function refreshScores() {
-        scores = ProfileList.mainProfile.scoreDb.getScoresForMd5(modelData.md5);
+        scores = Rg.profileList.mainProfile.scoreDb.getScoresForMd5(modelData.md5);
         clearType = Helpers.getClearType(scores);
     }
 

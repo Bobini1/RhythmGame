@@ -15,7 +15,7 @@ Rectangle {
     property bool customizeMode: false
     readonly property string imagesUrl: Qt.resolvedUrl(".") + "images/"
     readonly property string iniImagesUrl: "image://ini/" + rootUrl + "images/"
-    readonly property Profile mainProfile: ProfileList.mainProfile
+    readonly property Profile mainProfile: Rg.profileList.mainProfile
     readonly property var mainProfileVars: mainProfile.vars.themeVars[chartFocusScope.screen]
     property var popup: null
     property string rootUrl: globalRoot.urlToPath(Qt.resolvedUrl(".").toString())
@@ -139,7 +139,7 @@ Rectangle {
         BgaRenderer {
             id: bga
 
-            readonly property Profile profile: chart.player2 ? ProfileList.mainProfile : chart.player1.profile
+            readonly property Profile profile: chart.player2 ? Rg.profileList.mainProfile : chart.player1.profile
             readonly property var profileVars: profile.vars.themeVars[chartFocusScope.screen]
 
             height: profileVars.bgaSize

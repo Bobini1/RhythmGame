@@ -94,7 +94,7 @@ Rectangle {
         pathItemCount: 3
 
         model: {
-            let profiles = ProfileList.profiles;
+            let profiles = Rg.profileList.profiles;
             if (profiles.length === 1) {
                 return [profiles[0], profiles[0], profiles[0]];
             }
@@ -188,7 +188,7 @@ Rectangle {
 
                 Image {
                     id: image
-                    source: ProgramSettings.avatarFolder + modelData.vars.globalVars.avatar
+                    source: Rg.programSettings.avatarFolder + modelData.vars.globalVars.avatar
                     asynchronous: true
                     anchors.fill: parent
                     fillMode: Image.PreserveAspectFit

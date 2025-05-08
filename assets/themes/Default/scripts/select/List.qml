@@ -80,14 +80,14 @@ PathView {
         } else if (typeof item === "string") {
             folder = [];
             if (item === "") {
-                let tables = Tables.getList();
+                let tables = Rg.tables.getList();
                 for (let t of tables) {
                     if (t.status === table.Loaded) {
                         folder.push(t);
                     }
                 }
             }
-            folder.push(...SongFolderFactory.open(item));
+            folder.push(...Rg.songFolderFactory.open(item));
         } else {
             return;
         }
@@ -105,7 +105,7 @@ PathView {
     signal openedFolder()
 
     function search(query) {
-        let results = SongFolderFactory.search(query);
+        let results = Rg.songFolderFactory.search(query);
         if (!results.length) {
             console.info("Search returned no results");
             return;

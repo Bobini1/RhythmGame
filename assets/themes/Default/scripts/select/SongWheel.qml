@@ -154,7 +154,7 @@ FocusScope {
 
                 loops: MediaPlayer.Infinite
                 source: {
-                    let base = songList.current instanceof ChartData ? PreviewFilePathFetcher.getPreviewFilePath(songList.current.chartDirectory) : ""
+                    let base = songList.current instanceof ChartData ? Rg.previewFilePathFetcher.getPreviewFilePath(songList.current.chartDirectory) : ""
                     if (base === "") {
                         return base;
                     }
@@ -312,7 +312,7 @@ FocusScope {
                     enabled: options.startPressed && !login.enabled
                     anchors.centerIn: parent
 
-                    source: ProfileList.battleActive ? "playOptions/PlayOptionsBattle.qml" : "playOptions/PlayOptionsSingle.qml"
+                    source: Rg.profileList.battleActive ? "playOptions/PlayOptionsBattle.qml" : "playOptions/PlayOptionsSingle.qml"
                 }
 
                 Login {

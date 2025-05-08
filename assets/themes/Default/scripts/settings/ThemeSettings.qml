@@ -24,7 +24,7 @@ RowLayout {
         }
 
         Repeater {
-            model: ProfileList.mainProfile.themeConfig.keys()
+            model: Rg.profileList.mainProfile.themeConfig.keys()
 
             TabButton {
                 text: modelData
@@ -40,7 +40,7 @@ RowLayout {
         currentIndex: themeTabView.currentIndex
 
         Repeater {
-            model: ProfileList.mainProfile.themeConfig.keys()
+            model: Rg.profileList.mainProfile.themeConfig.keys()
 
             Frame {
                 Layout.fillHeight: true
@@ -61,7 +61,7 @@ RowLayout {
                         Layout.alignment: Qt.AlignTop
                         Layout.preferredWidth: 200
                         model: {
-                            let themeFamilies = Themes.availableThemeFamilies;
+                            let themeFamilies = Rg.themes.availableThemeFamilies;
                             let themeNames = [];
                             for (let [name, family] of Object.entries(themeFamilies)) {
                                 if (family.screens[modelData]) {
@@ -72,20 +72,20 @@ RowLayout {
                         }
 
                         Component.onCompleted: {
-                            let themeFamilies = Themes.availableThemeFamilies;
+                            let themeFamilies = Rg.themes.availableThemeFamilies;
                             let themeNames = [];
                             for (let [name, family] of Object.entries(themeFamilies)) {
                                 if (family.screens[modelData]) {
                                     themeNames.push(name);
                                 }
                             }
-                            let index = themeNames.indexOf(ProfileList.mainProfile.themeConfig[modelData]);
+                            let index = themeNames.indexOf(Rg.profileList.mainProfile.themeConfig[modelData]);
                             currentIndex = index;
                             loaded = true;
                         }
                         onCurrentTextChanged: {
                             if (themeComboBox.loaded) {
-                                ProfileList.mainProfile.themeConfig[modelData] = themeComboBox.currentText;
+                                Rg.profileList.mainProfile.themeConfig[modelData] = themeComboBox.currentText;
                             }
                         }
                     }

@@ -55,8 +55,8 @@ Image {
                 break;
             case "Clear":
                 songList.sort = function (a, b) {
-                    let scores1 = ProfileList.mainProfile.scoreDb.getScoresForMd5(a.md5);
-                    let scores2 = ProfileList.mainProfile.scoreDb.getScoresForMd5(b.md5);
+                    let scores1 = Rg.profileList.mainProfile.scoreDb.getScoresForMd5(a.md5);
+                    let scores2 = Rg.profileList.mainProfile.scoreDb.getScoresForMd5(b.md5);
                     let clearType1 = Helpers.getClearType(scores1);
                     let clearType2 = Helpers.getClearType(scores2);
                     let res = Helpers.clearTypePriorities.indexOf(clearType2) - Helpers.clearTypePriorities.indexOf(clearType1);
@@ -68,8 +68,8 @@ Image {
                 break;
             case "Score":
                 songList.sort = function (a, b) {
-                    let scores1 = ProfileList.mainProfile.scoreDb.getScoresForMd5(a.md5);
-                    let scores2 = ProfileList.mainProfile.scoreDb.getScoresForMd5(b.md5);
+                    let scores1 = Rg.profileList.mainProfile.scoreDb.getScoresForMd5(a.md5);
+                    let scores2 = Rg.profileList.mainProfile.scoreDb.getScoresForMd5(b.md5);
                     let score1 = root.getScoreWithBestPoints(scores1);
                     let score2 = root.getScoreWithBestPoints(scores2);
                     if (!score1 && !score2) {

@@ -26,7 +26,7 @@ Row {
     GridView {
         id: selection
 
-        readonly property var files: FileQuery.getSelectableFilesForDirectory(root.rootUrl + "images/" + imageSelection.propertyId + "/")
+        readonly property var files: Rg.fileQuery.getSelectableFilesForDirectory(root.rootUrl + "images/" + imageSelection.propertyId + "/")
 
         activeFocusOnTab: true
         cellHeight: imageSelection.itemHeight + imageSelection.spacing

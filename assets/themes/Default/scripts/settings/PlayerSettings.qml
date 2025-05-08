@@ -19,13 +19,13 @@ Item {
             standardButtons: Dialog.Ok | Dialog.Cancel
             modal: true
 
-            onAccepted: ProfileList.removeProfile(profile)
+            onAccepted: Rg.profileList.removeProfile(profile)
         }
         FileDialog {
             id: fileDialog
-            currentFolder: ProgramSettings.avatarFolder
+            currentFolder: Rg.programSettings.avatarFolder
             onAccepted: {
-                ProfileList.mainProfile.vars.globalVars.avatar = selectedFile;
+                Rg.profileList.mainProfile.vars.globalVars.avatar = selectedFile;
             }
         }
         Frame {
@@ -52,7 +52,7 @@ Item {
                         id: profileList
 
                         clip: true
-                        model: ProfileList.profiles.slice().sort((a, b) => {
+                        model: Rg.profileList.profiles.slice().sort((a, b) => {
                             return a.vars.globalVars.name.localeCompare(b.vars.globalVars.name);
                         });
                         spacing: 5
@@ -64,13 +64,13 @@ Item {
 
                             color: isSelected ? palette.highlight : "transparent"
                             readonly property bool isSelected:
-                                ProfileList.mainProfile === profile
+                                Rg.profileList.mainProfile === profile
                             height: removeButton.height + 10
 
                             MouseArea {
                                 anchors.fill: parent
                                 onClicked: {
-                                    ProfileList.mainProfile = folderRow.profile;  // Select profile
+                                    Rg.profileList.mainProfile = folderRow.profile;  // Select profile
                                 }
                             }
 
@@ -121,7 +121,7 @@ Item {
                         text: qsTr("Add profile")
 
                         onClicked: {
-                            ProfileList.createProfile();
+                            Rg.profileList.createProfile();
                         }
                     }
                 }
@@ -148,7 +148,7 @@ Item {
                 height: parent.width / 2
                 Image {
                     anchors.fill: parent
-                    source: ProgramSettings.avatarFolder + ProfileList.mainProfile.vars.globalVars.avatar
+                    source: Rg.programSettings.avatarFolder + Rg.profileList.mainProfile.vars.globalVars.avatar
                     asynchronous: true
                     fillMode: Image.PreserveAspectFit
 
@@ -160,7 +160,7 @@ Item {
                 }
             }
             TextField {
-                text: ProfileList.mainProfile.vars.globalVars.name
+                text: Rg.profileList.mainProfile.vars.globalVars.name
                 font.pixelSize: 24
                 color: "black"
                 width: avatarFrame.width
@@ -171,7 +171,7 @@ Item {
                 anchors.horizontalCenter: parent.horizontalCenter
 
                 onTextChanged: {
-                    ProfileList.mainProfile.vars.globalVars.name = text;
+                    Rg.profileList.mainProfile.vars.globalVars.name = text;
                 }
             }
         }

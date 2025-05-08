@@ -17,7 +17,7 @@ Item {
             title: qsTr("Add song folder")
 
             onAccepted: {
-                RootSongFoldersConfig.folders.add(folderDialog.selectedFolder.toString());
+                Rg.rootSongFoldersConfig.folders.add(folderDialog.selectedFolder.toString());
             }
         }
         Frame {
@@ -44,7 +44,7 @@ Item {
                         id: songList
 
                         clip: true
-                        model: RootSongFoldersConfig.folders
+                        model: Rg.rootSongFoldersConfig.folders
 
                         delegate: RowLayout {
                             id: folderRow
@@ -63,14 +63,14 @@ Item {
                                 text: qsTr("Remove")
 
                                 onClicked: {
-                                    RootSongFoldersConfig.folders.remove(index);
+                                    Rg.rootSongFoldersConfig.folders.remove(index);
                                 }
                             }
                             Button {
                                 text: qsTr("Scan")
 
                                 onClicked: {
-                                    RootSongFoldersConfig.scanningQueue.scan(folderRow.rootFolder);
+                                    Rg.rootSongFoldersConfig.scanningQueue.scan(folderRow.rootFolder);
                                 }
                             }
                         }
@@ -92,8 +92,8 @@ Item {
                         text: qsTr("Scan all")
 
                         onClicked: {
-                            for (let i = 0; i < RootSongFoldersConfig.folders.rowCount(); i++) {
-                                RootSongFoldersConfig.scanningQueue.scan(RootSongFoldersConfig.folders.at(i));
+                            for (let i = 0; i < Rg.rootSongFoldersConfig.folders.rowCount(); i++) {
+                                Rg.rootSongFoldersConfig.scanningQueue.scan(Rg.rootSongFoldersConfig.folders.at(i));
                             }
                         }
                     }
@@ -124,7 +124,7 @@ Item {
                         id: scanningQueueList
 
                         clip: true
-                        model: RootSongFoldersConfig.scanningQueue
+                        model: Rg.rootSongFoldersConfig.scanningQueue
 
                         delegate: RowLayout {
                             id: scanItemRow
@@ -149,7 +149,7 @@ Item {
                                 text: qsTr("Cancel")
 
                                 onClicked: {
-                                    RootSongFoldersConfig.scanningQueue.remove(index);
+                                    Rg.rootSongFoldersConfig.scanningQueue.remove(index);
                                 }
                             }
                         }
@@ -161,7 +161,7 @@ Item {
                     Layout.alignment: Qt.AlignBottom
                     Layout.fillWidth: true
                     readOnly: true
-                    text: RootSongFoldersConfig.scanningQueue.currentScannedFolder
+                    text: Rg.rootSongFoldersConfig.scanningQueue.currentScannedFolder
                 }
             }
         }

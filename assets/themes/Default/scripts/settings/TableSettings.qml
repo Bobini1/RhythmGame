@@ -152,14 +152,14 @@ Item {
                         text: qsTr("Reload")
 
                         onClicked: {
-                            Tables.reload(dragArea.index);
+                            Rg.tables.reload(dragArea.index);
                         }
                     }
                     Button {
                         text: qsTr("Remove")
 
                         onClicked: {
-                            Tables.removeAt(dragArea.index);
+                            Rg.tables.removeAt(dragArea.index);
                         }
                     }
                 }
@@ -171,7 +171,7 @@ Item {
                 }
 
                 onEntered: (drag) => {
-                    Tables.reorder(
+                    Rg.tables.reorder(
                         drag.source.index,
                         dragArea.index)
                 }
@@ -196,7 +196,7 @@ Item {
 
                     clip: true
                     spacing: 5
-                    model: Tables
+                    model: Rg.tables
                     delegate: dragDelegate
                 }
             }
@@ -210,7 +210,7 @@ Item {
                     placeholderText: qsTr("Add table")
 
                     onAccepted: {
-                        Tables.add(text);
+                        Rg.tables.add(text);
                         text = "";
                     }
                 }
@@ -220,7 +220,7 @@ Item {
                     text: qsTr("Add")
 
                     onClicked: {
-                        Tables.add(textField.text);
+                        Rg.tables.add(textField.text);
                         textField.text = "";
                     }
                 }
