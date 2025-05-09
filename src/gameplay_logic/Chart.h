@@ -8,7 +8,9 @@
 #include <QObject>
 #include "BmsGameReferee.h"
 #include "ChartData.h"
-#include "BmsScoreAftermath.h"
+#include "BmsScore.h"
+#include "BmsLiveScore.h"
+#include "resource_managers/Profile.h"
 #include "qml_components/Bga.h"
 #include "NoteState.h"
 #include "support/GeneratePermutation.h"
@@ -16,9 +18,6 @@
 #include <QTimer>
 #include <qfuture.h>
 #include <qfuturewatcher.h>
-namespace resource_managers {
-class Profile;
-} // namespace resource_managers
 namespace gameplay_logic {
 class GameplayState;
 class Player;
@@ -80,7 +79,7 @@ class Chart final : public QObject
 
     void passKey(input::BmsKey key, EventType eventType, int64_t time);
 
-    Q_INVOKABLE QList<BmsScoreAftermath*> finish();
+    Q_INVOKABLE QList<BmsScore*> finish();
 
     auto getChartData() const -> ChartData*;
 
@@ -100,7 +99,7 @@ class Player final : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(BmsNotes* notes READ getNotes CONSTANT)
-    Q_PROPERTY(BmsScore* score READ getScore CONSTANT)
+    Q_PROPERTY(BmsLiveScore* score READ getScore CONSTANT)
     Q_PROPERTY(GameplayState* state READ getState CONSTANT)
     Q_PROPERTY(resource_managers::Profile* profile READ getProfile CONSTANT)
     Q_PROPERTY(double position READ getPosition NOTIFY positionChanged)
@@ -111,7 +110,7 @@ class Player final : public QObject
       int64_t timeBeforeChartStart READ getTimeBeforeChartStart CONSTANT)
     Q_PROPERTY(Chart::Status status READ getStatus NOTIFY statusChanged)
     BmsNotes* notes;
-    BmsScore* score;
+    BmsLiveScore* score;
     GameplayState* state;
     QPointer<resource_managers::Profile> profile;
     std::optional<BmsGameReferee> referee;
@@ -129,7 +128,7 @@ class Player final : public QObject
 
   public:
     explicit Player(BmsNotes* notes,
-                    BmsScore* score,
+                    BmsLiveScore* score,
                     GameplayState* state,
                     resource_managers::Profile* profile,
                     QFuture<BmsGameReferee> referee,
@@ -140,7 +139,7 @@ class Player final : public QObject
                  std::chrono::nanoseconds offset);
     void setup();
     auto getNotes() const -> BmsNotes*;
-    auto getScore() const -> BmsScore*;
+    auto getScore() const -> BmsLiveScore*;
     auto getState() const -> GameplayState*;
     auto getProfile() const -> resource_managers::Profile*;
     auto getPosition() const -> double;
@@ -149,7 +148,7 @@ class Player final : public QObject
     auto getTimeBeforeChartStart() const -> int64_t;
     auto getStatus() const -> Chart::Status;
     void setStatus(Chart::Status status);
-    auto finish() const -> BmsScoreAftermath*;
+    auto finish() const -> BmsScore*;
 
   signals:
     void positionChanged(double delta);

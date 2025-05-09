@@ -220,14 +220,14 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
           "RhythmGameQml", 1, 0, "Player");
         qmlRegisterUncreatableType<gameplay_logic::rules::BmsGauge>(
           "RhythmGameQml", 1, 0, "BmsGauge", "BmsGauge is abstract");
-        qmlRegisterType<gameplay_logic::BmsScore>(
-          "RhythmGameQml", 1, 0, "BmsScore");
+        qmlRegisterType<gameplay_logic::BmsLiveScore>(
+          "RhythmGameQml", 1, 0, "BmsLiveScore");
         qmlRegisterType<gameplay_logic::BmsNotes>(
           "RhythmGameQml", 1, 0, "BmsNotes");
         qmlRegisterType<resource_managers::Profile>(
           "RhythmGameQml", 1, 0, "BmsProfile");
-        qmlRegisterType<gameplay_logic::BmsScoreAftermath>(
-          "RhythmGameQml", 1, 0, "BmsScoreAftermath");
+        qmlRegisterType<gameplay_logic::BmsScore>(
+          "RhythmGameQml", 1, 0, "BmsScore");
         qmlRegisterType<gameplay_logic::BmsResult>(
           "RhythmGameQml", 1, 0, "BmsResult");
         qmlRegisterType<gameplay_logic::BmsReplayData>(

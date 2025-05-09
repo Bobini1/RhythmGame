@@ -52,7 +52,7 @@ find_package(llfio CONFIG REQUIRED)
 
 # <------------ Qt (gui) --------------->
 
-find_package(Qt6 COMPONENTS ShaderTools Quick Gui Widgets Core5Compat Concurrent Multimedia Svg REQUIRED)
+find_package(Qt6 COMPONENTS ShaderTools Quick Gui Widgets Core5Compat Concurrent Multimedia Svg InterfaceFramework REQUIRED)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
@@ -74,8 +74,8 @@ endif ()
 qt_add_library(RhythmGame_lib OBJECT ${utf8Manifest} src/db/SqliteCppDb.cpp src/db/SqliteCppDb.h src/charts/chart_readers/BmsChartReader.cpp src/charts/parser_models/ParsedBmsChart.cpp src/charts/parser_models/ParsedBmsChart.h src/support/EnableSharedFromBase.cpp src/support/EnableSharedFromBase.h src/support/Capitalize.cpp src/support/Capitalize.h src/resource_managers/FindAssetsFolderBoost.cpp src/resource_managers/FindAssetsFolderBoost.h src/sounds/OpenAlSound.cpp src/sounds/OpenAlSound.h src/sounds/OpenAlSoundBuffer.h src/sounds/OpenAlSoundBuffer.cpp src/charts/gameplay_models/BmsNotesData.cpp src/charts/gameplay_models/BmsNotesData.h src/charts/gameplay_models/Snap.cpp src/charts/gameplay_models/Snap.h src/charts/helper_functions/loadBmsSounds.cpp src/charts/helper_functions/loadBmsSounds.h
         src/gameplay_logic/BmsPoints.cpp src/gameplay_logic/BmsPoints.h src/gameplay_logic/rules/StandardBmsHitRules.cpp src/gameplay_logic/rules/StandardBmsHitRules.h src/gameplay_logic/Judgement.cpp src/gameplay_logic/Judgement.h src/gameplay_logic/TimePoint.cpp src/gameplay_logic/TimePoint.h src/support/Sha256.cpp src/support/Sha256.h
         src/input/BmsKeys.cpp
-        src/gameplay_logic/BmsScore.h
-        src/gameplay_logic/BmsScore.cpp
+        src/gameplay_logic/BmsLiveScore.h
+        src/gameplay_logic/BmsLiveScore.cpp
         src/gameplay_logic/BmsGameReferee.cpp
         src/gameplay_logic/BmsGameReferee.h
         src/gameplay_logic/ChartData.cpp
@@ -136,8 +136,8 @@ qt_add_library(RhythmGame_lib OBJECT ${utf8Manifest} src/db/SqliteCppDb.cpp src/
         src/gameplay_logic/BmsGaugeHistory.h
         src/support/Compress.cpp
         src/support/Compress.h
-        src/gameplay_logic/BmsScoreAftermath.cpp
-        src/gameplay_logic/BmsScoreAftermath.h
+        src/gameplay_logic/BmsScore.cpp
+        src/gameplay_logic/BmsScore.h
         src/qml_components/ProfileList.cpp
         src/qml_components/ProfileList.h
         src/qml_components/PreviewFilePathFetcher.cpp
@@ -184,7 +184,7 @@ find_package(SndFile REQUIRED)
 
 find_package(SDL2 REQUIRED)
 target_link_libraries(RhythmGame_lib PUBLIC $<IF:$<TARGET_EXISTS:mimalloc-static>,mimalloc-static,mimalloc>)
-target_link_libraries(RhythmGame_lib PUBLIC SDL2::SDL2 Qt6::Gui Qt6::Quick Qt6::OpenGL Qt6::Widgets Qt6::Concurrent Qt6::Core5Compat Qt6::Multimedia Threads::Threads Boost::headers Boost::locale Boost::dynamic_linking Boost::serialization Boost::filesystem SQLiteCpp spdlog::spdlog foonathan::lexy OpenAL::OpenAL cryptopp::cryptopp magic_enum::magic_enum zstd::libzstd_static SndFile::sndfile llfio::sl LibXml2::LibXml2)
+target_link_libraries(RhythmGame_lib PUBLIC SDL2::SDL2 Qt6::Gui Qt6::Quick Qt6::OpenGL Qt6::Widgets Qt6::Concurrent Qt6::Core5Compat Qt6::Multimedia Qt6::InterfaceFramework Threads::Threads Boost::headers Boost::locale Boost::dynamic_linking Boost::serialization Boost::filesystem SQLiteCpp spdlog::spdlog foonathan::lexy OpenAL::OpenAL cryptopp::cryptopp magic_enum::magic_enum zstd::libzstd_static SndFile::sndfile llfio::sl LibXml2::LibXml2)
 
 if (WIN32)
     target_link_libraries(RhythmGame_lib PUBLIC llfio::ntkernel-error-category_sl)

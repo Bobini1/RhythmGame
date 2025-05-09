@@ -27,9 +27,15 @@ class BmsReplayData final : public QObject
     auto getHitEvents() -> const QList<HitEvent>&;
     auto getGuid() const -> QString;
 
+    struct DTO
+    {
+        int64_t id;
+        std::string guid;
+        std::string hitEvents;
+    };
+
     void save(db::SqliteCppDb& db) const;
-    static auto load(db::SqliteCppDb& db, QString guid)
-      -> std::unique_ptr<BmsReplayData>;
+    static auto load(const DTO& dto) -> std::unique_ptr<BmsReplayData>;
 };
 
 } // namespace gameplay_logic

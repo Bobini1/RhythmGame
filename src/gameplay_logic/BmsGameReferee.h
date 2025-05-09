@@ -8,7 +8,7 @@
 #include <span>
 #include "charts/gameplay_models/BmsNotesData.h"
 #include "input/BmsKeys.h"
-#include "BmsScore.h"
+#include "BmsLiveScore.h"
 #include "gameplay_logic/rules/BmsHitRules.h"
 #include "sounds/OpenAlSound.h"
 namespace gameplay_logic {
@@ -30,7 +30,7 @@ class BmsGameReferee
       currentBpmChanges;
     std::unordered_map<uint16_t, sounds::OpenALSound> sounds;
     std::unique_ptr<rules::BmsHitRules> hitRules;
-    BmsScore* score;
+    BmsLiveScore* score;
     sounds::OpenALSound* mineHitSound;
     std::array<bool, charts::gameplay_models::BmsNotesData::columnNumber>
       pressedState{};
@@ -62,7 +62,7 @@ class BmsGameReferee
       std::vector<std::pair<charts::gameplay_models::BmsNotesData::Time,
                             double>> bpmChanges,
       sounds::OpenALSound* mineHitSound,
-      BmsScore* score,
+      BmsLiveScore* score,
       std::unordered_map<uint16_t, sounds::OpenALSound> sounds,
       std::unique_ptr<rules::BmsHitRules> hitRules);
     /**

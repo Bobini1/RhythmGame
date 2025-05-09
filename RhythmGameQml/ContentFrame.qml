@@ -43,7 +43,8 @@ ApplicationWindow {
             id: resultFocusScope
 
             required property ChartData chartData
-            required property list<BmsScoreAftermath> result
+            required property list<BmsScore> result
+            required property list<Profile> profiles
 
             Loader {
                 id: loader
@@ -79,9 +80,10 @@ ApplicationWindow {
             });
         }
 
-        function openResult(result, chartData) {
+        function openResult(result, profiles, chartData) {
             sceneStack.pushItem(resultComponent, {
                 "result": result,
+                "profiles": profiles,
                 "chartData": chartData
             });
         }

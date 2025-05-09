@@ -71,8 +71,15 @@ class BmsGaugeHistory final : public QObject
     auto getGuid() const -> QString;
 
     void save(db::SqliteCppDb& db);
-    static auto load(db::SqliteCppDb& db, const QString& guid)
-      -> std::unique_ptr<BmsGaugeHistory>;
+
+    struct DTO
+    {
+        int64_t id;
+        std::string scoreGuid;
+        std::string gaugeHistory;
+        std::string gaugeInfo;
+    };
+    static auto load(const DTO& dto) -> std::unique_ptr<BmsGaugeHistory>;
 };
 } // namespace gameplay_logic
 

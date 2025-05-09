@@ -129,7 +129,7 @@ Chart::setup()
     }
 }
 auto
-Chart::finish() -> QList<BmsScoreAftermath*>
+Chart::finish() -> QList<BmsScore*>
 {
     startRequested = false;
     propertyUpdateTimer.stop();
@@ -152,7 +152,7 @@ Chart::finish() -> QList<BmsScoreAftermath*>
         player2->update(std::chrono::nanoseconds(chartLength) + 10s,
                         /*lastUpdate=*/true);
     }
-    auto ret = QList<BmsScoreAftermath*>{};
+    auto ret = QList<BmsScore*>{};
     ret.append(player1->finish());
     if (player2 != nullptr) {
         ret.push_back(player2->finish());
@@ -196,7 +196,7 @@ Chart::getPlayer2() const -> Player*
     return player2;
 }
 Player::Player(BmsNotes* notes,
-               BmsScore* score,
+               BmsLiveScore* score,
                GameplayState* state,
                resource_managers::Profile* profile,
                QFuture<BmsGameReferee> referee,
@@ -223,7 +223,7 @@ Player::Player(BmsNotes* notes,
     for (auto [index, column] :
          std::ranges::views::enumerate(state->getColumnStates())) {
         connect(score,
-                &BmsScore::hit,
+                &BmsLiveScore::hit,
                 column,
                 [column, index](const HitEvent& event) {
                     if (index == event.getColumn()) {
@@ -304,7 +304,7 @@ Player::getNotes() const -> BmsNotes*
     return notes;
 }
 auto
-Player::getScore() const -> BmsScore*
+Player::getScore() const -> BmsLiveScore*
 {
     return score;
 }
@@ -352,7 +352,7 @@ Player::setStatus(const Chart::Status status)
     }
 }
 auto
-Player::finish() const -> BmsScoreAftermath*
+Player::finish() const -> BmsScore*
 {
     auto result = score->getResult();
     auto replayData = score->getReplayData();
@@ -368,9 +368,8 @@ Player::finish() const -> BmsScoreAftermath*
     } else {
         spdlog::warn("Profile was deleted before saving score");
     }
-    return new BmsScoreAftermath{ profile.get(),
-                                  std::move(result),
-                                  std::move(replayData),
-                                  std::move(gaugeHistory) };
+    return new BmsScore{ std::move(result),
+                         std::move(replayData),
+                         std::move(gaugeHistory) };
 }
 } // namespace gameplay_logic

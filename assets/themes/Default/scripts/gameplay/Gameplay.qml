@@ -66,7 +66,7 @@ Rectangle {
                     root.popup.close();
                     root.popup = null;
                 }
-                globalRoot.openResult(chart.finish(), chart.chartData);
+                globalRoot.openResult(chart.finish(), [chart.player1.profile, chart.player2.profile], chart.chartData);
             }
         }
 
@@ -202,7 +202,7 @@ Rectangle {
             property bool mirrored: false
 
             readonly property Profile profile: player.profile
-            readonly property BmsScore score: player.score
+            readonly property BmsLiveScore score: player.score
             readonly property BmsNotes notes: player.notes
             readonly property var columnStates: player.state.columnStates
             readonly property var profileVars: profile.vars.themeVars[chartFocusScope.screen]
@@ -394,7 +394,7 @@ Rectangle {
         sequence: "Esc"
 
         onActivated: {
-            globalRoot.openResult(chart.finish(), chart.chartData);
+            globalRoot.openResult(chart.finish(), [chart.player1.profile, chart.player2.profile], chart.chartData);
         }
     }
     Shortcut {

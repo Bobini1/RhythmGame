@@ -8,7 +8,7 @@
 #include <QObject>
 #include <QQmlEngine>
 #include <QJSEngine>
-#include "BmsScore.h"
+#include "BmsLiveScore.h"
 #include "BmsNotes.h"
 #include "db/SqliteCppDb.h"
 namespace gameplay_logic {

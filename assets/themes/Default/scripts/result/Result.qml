@@ -15,8 +15,8 @@ FocusScope {
         readonly property string imagesUrl: Qt.resolvedUrl(".") + "images/"
         readonly property string iniImagesUrl: "image://ini/" + rootUrl + "images/"
         readonly property string rootUrl: globalRoot.urlToPath(Qt.resolvedUrl(".").toString())
-        readonly property BmsScoreAftermath result1: resultFocusScope.result[0]
-        readonly property BmsScoreAftermath result2: resultFocusScope.result[1] || null
+        readonly property BmsScore result1: resultFocusScope.result[0]
+        readonly property BmsScore result2: resultFocusScope.result[1] || null
         readonly property bool isBattle: result1 && result2
         readonly property ChartData _chartData: chartData
 
@@ -98,7 +98,7 @@ FocusScope {
             component Side: Column {
                 id: side
                 required property ChartData chartData
-                required property BmsScoreAftermath result
+                required property BmsScore result
                 required property bool isBattle
                 property bool mirrored: false
                 readonly property var earlyLate: Helpers.getEarlyLate(result.replayData)

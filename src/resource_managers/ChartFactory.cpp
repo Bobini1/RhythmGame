@@ -271,7 +271,7 @@ struct RandomizedData
     std::unique_ptr<gameplay_logic::BmsNotes> notes;
     std::unique_ptr<gameplay_logic::GameplayState> state;
     std::array<support::ShuffleResult, 2> shuffleResults;
-    std::unique_ptr<gameplay_logic::BmsScore> score;
+    std::unique_ptr<gameplay_logic::BmsLiveScore> score;
     std::array<std::vector<charts::gameplay_models::BmsNotesData::Note>, 16>
       rawNotes;
 };
@@ -313,7 +313,7 @@ getComponentsForPlayer(const ChartFactory::PlayerSpecificData& player,
     // TODO: Simplify this. Don't convert bpmChanges twice for two players.
     auto notes = ChartDataFactory::makeNotes(
       visibleNotes, notesData.bpmChanges, notesData.barLines);
-    auto score = std::make_unique<gameplay_logic::BmsScore>(
+    auto score = std::make_unique<gameplay_logic::BmsLiveScore>(
       chartData.getNormalNoteCount(),
       chartData.getLnCount(),
       chartData.getMineCount(),

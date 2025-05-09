@@ -38,19 +38,12 @@ BmsReplayData::save(db::SqliteCppDb& db) const
     statement.execute();
 }
 auto
-BmsReplayData::load(db::SqliteCppDb& db, QString guid)
-  -> std::unique_ptr<BmsReplayData>
+BmsReplayData::load(const DTO& dto) -> std::unique_ptr<BmsReplayData>
 {
-    auto statement = db.createStatement(
-      "SELECT replay_data FROM replay_data WHERE score_guid = ?");
-    statement.bind(1, guid.toStdString());
-    const auto result = statement.executeAndGet<std::string>();
-    if (!result.has_value()) {
-        return nullptr;
-    }
-    const auto data = QByteArray::fromStdString(*result);
+    const auto data = QByteArray::fromStdString(dto.hitEvents);
     auto hitEvents = QList<HitEvent>{};
     support::decompress(data, hitEvents);
-    return std::make_unique<BmsReplayData>(std::move(hitEvents), guid);
+    return std::make_unique<BmsReplayData>(std::move(hitEvents),
+                                           QString::fromStdString(dto.guid));
 }
 } // namespace gameplay_logic
