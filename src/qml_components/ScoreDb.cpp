@@ -21,10 +21,11 @@ ScoreDb::getScoresForMd5(const QList<QString>& md5s) const
     QThreadPool::globalInstance()->start([this, md5s, reply]() mutable {
         auto statement = scoreDb->createStatement("SELECT * "
                                                   "FROM score "
-                                                  "WHERE md5 IN (" +
-                                                  QString("?, ").repeated(md5s.size()).chopped(2).toStdString() + ") "
                                                   "JOIN replay_data ON score.guid = replay_data.score_guid "
-                                                  "JOIN gauge_history ON score.guid = gauge_history.score_guid");
+                                                  "JOIN gauge_history ON score.guid = gauge_history.score_guid "
+                                                  "WHERE score.md5 IN (" +
+                                                  QString("?, ").repeated(md5s.size()).chopped(2).toStdString() + ")");
+
         for (int i = 0; i < md5s.size(); ++i) {
             statement.bind(i + 1, md5s[i].toStdString());
         }
@@ -51,8 +52,8 @@ ScoreDb::getScoresForMd5(const QList<QString>& md5s) const
     });
     return reply;
 }
-int
-ScoreDb::getTotalScoreCount() const
+auto
+ScoreDb::getTotalScoreCount() const -> int
 {
     auto statement = scoreDb->createStatement("SELECT COUNT(*) FROM score");
     return statement.executeAndGet<int>().value_or(0);
