@@ -88,21 +88,19 @@ FocusScope {
                 hoverEnabled: true
                 orientation: Qt.Vertical
                 onPositionChanged: {
-                    songList.offset = songList.count * (1-position);
-                    previewDelayTimer.restart();
-                }
-                onPressedChanged: {
-                    if (!pressed) {
-                        songList.positionViewAtIndex(songList.currentIndex+1, PathView.Center);
+                    if (pressed) {
+                        previewDelayTimer.restart();
+                        songList.offset = songList.count * (1 - vbar.position);
                     }
                 }
+                snapMode: ScrollBar.SnapOnRelease
+                stepSize: 1 / songList.count
                 background: Item {
                 }
                 contentItem: Image {
                     source: root.iniImagesUrl + "parts.png/slider"
                 }
                 Binding {
-                    delayed: true
                     vbar.position: {
                         let pos = 1 - (songList.offset / songList.count);
                         // some trickery to get the scrollbar to appear at the top at the beginning
