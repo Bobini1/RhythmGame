@@ -118,10 +118,11 @@ Rectangle {
     Item {
         id: scaledRoot
 
-        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.centerIn: parent
+        width: 1920
         height: 1080
         scale: Math.min(globalRoot.width / 1920, globalRoot.height / 1080)
-        width: 1920
+        transformOrigin: Item.Center
 
         Text {
             color: "white"
