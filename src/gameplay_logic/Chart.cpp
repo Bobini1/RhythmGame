@@ -111,13 +111,17 @@ Chart::setStatus(const Status status)
 {
     if (this->status != status) {
         this->status = status;
+        player1->setStatus(status);
+        if (player2 != nullptr) {
+            player2->setStatus(status);
+        }
         emit statusChanged();
     }
 }
 void
 Chart::setup()
 {
-    if (++numberOfSetupCalls < (player2 != nullptr ? 3 : 2)) {
+    if (++numberOfSetupCalls != (player2 != nullptr ? 3 : 2)) {
         return;
     }
     bga = bgaFuture.takeResult().release();

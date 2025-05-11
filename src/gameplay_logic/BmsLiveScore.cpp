@@ -36,6 +36,7 @@ BmsLiveScore::BmsLiveScore(int normalNoteCount,
   , permutation(std::move(permutation))
   , sha256(std::move(sha256))
   , md5(std::move(md5))
+  , guid(std::move(guid))
   , randomSeed(seed)
 {
     for (auto* gauge : this->gauges) {
