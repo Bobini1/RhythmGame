@@ -178,7 +178,7 @@ FocusScope {
                 anchors.horizontalCenterOffset: -10
                 anchors.verticalCenterOffset: -10
                 sourceComponent: Grade {
-                    scoreWithBestPoints: songList.currentItem.scoreWithBestPoints
+                    scoreWithBestPoints: songList.currentItem?.scoreWithBestPoints
                 }
             }
             Connections {
@@ -211,8 +211,8 @@ FocusScope {
                 spacing: 40
 
                 current: songList.current
-                scoreWithBestPoints: songList.currentItem.scoreWithBestPoints
-                bestStats: songList.currentItem.bestStats
+                scoreWithBestPoints: songList.currentItem?.scoreWithBestPoints
+                bestStats: songList.currentItem?.bestStats
             }
             Image {
                 id: search
