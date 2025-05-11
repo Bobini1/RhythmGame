@@ -101,7 +101,7 @@ gameplay_logic::BmsResult::save(db::SqliteCppDb& db) const
       "unix_timestamp,"
       "random_sequence"
       ")"
-      "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+      "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
     statement.bind(1, maxPoints);
     statement.bind(2, maxHits);
     statement.bind(3, normalNoteCount);

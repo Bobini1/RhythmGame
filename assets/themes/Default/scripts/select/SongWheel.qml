@@ -11,17 +11,9 @@ FocusScope {
     Image {
         id: root
 
-        readonly property var bestStats: {
-            let scores = songList.current instanceof ChartData && songList.currentItem ? songList.currentItem.children[0].scores : [];
-            return Helpers.getBestStats(scores);
-        }
         readonly property string imagesUrl: Qt.resolvedUrl(".") + "images/"
         readonly property string iniImagesUrl: "image://ini/" + rootUrl + "images/"
         property string rootUrl: globalRoot.urlToPath(Qt.resolvedUrl(".").toString())
-        property BmsResult scoreWithBestPoints: {
-            let scores = songList.current instanceof ChartData && songList.currentItem ? songList.currentItem.children[0].scores : [];
-            return Helpers.getScoreWithBestPoints(scores);
-        }
 
         fillMode: Image.PreserveAspectCrop
         height: parent.height
@@ -31,10 +23,7 @@ FocusScope {
         onEnabledChanged: {
             if (enabled) {
                 previewDelayTimer.restart();
-                let currentChart = songList.currentItem.children[0];
-                if (typeof currentChart.refreshScores === 'function') {
-                    currentChart.refreshScores();
-                }
+                songList.refreshScores();
             } else {
                 playMusic.stop();
                 previewDelayTimer.stop();
@@ -190,7 +179,9 @@ FocusScope {
                 anchors.centerIn: parent
                 anchors.horizontalCenterOffset: -10
                 anchors.verticalCenterOffset: -10
-                source: "Grade.qml"
+                sourceComponent: Grade {
+                    scoreWithBestPoints: songList.currentItem.scoreWithBestPoints
+                }
             }
             Connections {
                 function onMovingInAnyWayChanged() {
@@ -220,6 +211,10 @@ FocusScope {
                 anchors.left: parent.left
                 anchors.leftMargin: 80
                 spacing: 40
+
+                current: songList.current
+                scoreWithBestPoints: songList.currentItem.scoreWithBestPoints
+                bestStats: songList.currentItem.bestStats
             }
             Image {
                 id: search

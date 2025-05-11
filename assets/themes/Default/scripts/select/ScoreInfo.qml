@@ -2,6 +2,12 @@ import QtQuick
 import RhythmGameQml
 
 Row {
+    id: scoreInfoRow
+    required property var scoreWithBestPoints
+    required property var bestStats
+    required property var current
+
+
     Column {
         spacing: 12
 
@@ -11,9 +17,9 @@ Row {
             delegate: ScoreInfoLine {
                 source: root.iniImagesUrl + "parts.png/" + modelData
                 text: {
-                    if (root.scoreWithBestPoints !== null) {
+                    if (scoreInfoRow.scoreWithBestPoints !== null) {
                         let index = ["poor", "empty_poor", "bad", "good", "great", "perfect"].indexOf(modelData);
-                        return root.scoreWithBestPoints.judgementCounts[index];
+                        return scoreInfoRow.scoreWithBestPoints.result.judgementCounts[index];
                     } else {
                         return 0;
                     }
@@ -26,23 +32,23 @@ Row {
 
         ScoreInfoLine {
             source: root.iniImagesUrl + "parts.png/ex_score"
-            text: root.scoreWithBestPoints !== null ? root.scoreWithBestPoints.points : 0
+            text: scoreInfoRow.scoreWithBestPoints?.points || 0
         }
         ScoreInfoLine {
             source: root.iniImagesUrl + "parts.png/hi_score"
-            text: root.scoreWithBestPoints !== null ? (100 * root.scoreWithBestPoints.points / root.scoreWithBestPoints.maxPoints).toFixed(2) + "%" : "0.00%"
+            text: (100 * (scoreInfoRow.scoreWithBestPoints?.points || 0) / (scoreInfoRow.scoreWithBestPoints?.maxPoints || 1)).toFixed(2) + "%"
         }
         ScoreInfoLine {
             source: root.iniImagesUrl + "parts.png/combo"
-            text: root.bestStats !== null ? root.bestStats.maxCombo : 0
+            text: scoreInfoRow.bestStats?.maxCombo || 0
         }
         ScoreInfoLine {
             source: root.iniImagesUrl + "parts.png/total_notes"
-            text: songList.current instanceof ChartData ? songList.current.normalNoteCount + songList.current.lnCount : 0
+            text: scoreInfoRow.current instanceof ChartData ? scoreInfoRow.current.normalNoteCount + scoreInfoRow.current.lnCount : 0
         }
         ScoreInfoLine {
             source: root.iniImagesUrl + "parts.png/miss_count"
-            text: root.bestStats !== null ? root.bestStats.missCount : 0
+            text: scoreInfoRow.bestStats?.missCount || 0
         }
     }
 }

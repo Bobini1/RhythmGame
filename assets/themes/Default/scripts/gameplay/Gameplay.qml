@@ -394,7 +394,7 @@ Rectangle {
         sequence: "Esc"
 
         onActivated: {
-            globalRoot.openResult(chart.finish(), [chart.player1.profile, chart.player2.profile], chart.chartData);
+            globalRoot.openResult(chart.finish(), [chart.player1.profile, chart.player2?.profile], chart.chartData);
         }
     }
     Shortcut {

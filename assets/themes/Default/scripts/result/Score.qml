@@ -74,7 +74,7 @@ WindowBg {
                     font.pixelSize: 34
                     horizontalAlignment: Text.AlignRight
                     text: {
-                        let points = root.oldBestPointsScore ? root.oldBestPointsScore.points : 0;
+                        let points = score.oldBestPoints;
                         return "00000".slice(0, 5 - points.toString().length) + "<font color='DeepPink'>" + points + "</font>";
                     }
                 }

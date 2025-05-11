@@ -4,8 +4,8 @@ function getClearType(scores) {
     let clearType = "NOPLAY";
     for (let i = 0; i < scores.length; i++) {
         let score = scores[i];
-        if (clearTypePriorities.indexOf(score.clearType) > clearTypePriorities.indexOf(clearType)) {
-            clearType = score.clearType;
+        if (clearTypePriorities.indexOf(score.result.clearType) > clearTypePriorities.indexOf(clearType)) {
+            clearType = score.result.clearType;
         }
     }
     return clearType;
@@ -15,10 +15,10 @@ function getScoreWithBestPoints(scores) {
     let bestPoints = 0;
     let bestScore = null;
     for (let score of scores) {
-        if (score.maxPoints === 0) {
+        if (score.result.maxPoints === 0) {
             continue;
         }
-        let percent = score.points / score.maxPoints;
+        let percent = score.result.points / score.result.maxPoints;
         if (percent > bestPoints) {
             bestPoints = percent;
             bestScore = score;
@@ -34,14 +34,14 @@ function getBestStats(scores) {
         return null;
     }
     for (let score of scores) {
-        if (score.maxCombo > best.maxCombo || best.maxCombo === undefined) {
-            best.maxCombo = score.maxCombo;
+        if (score.result.maxCombo > best.maxCombo || best.maxCombo === undefined) {
+            best.maxCombo = score.result.maxCombo;
         }
-        let missCount = score.judgementCounts[Judgement.Poor] + score.judgementCounts[Judgement.EmptyPoor] + score.judgementCounts[Judgement.Bad];
+        let missCount = score.result.judgementCounts[Judgement.Poor] + score.result.judgementCounts[Judgement.EmptyPoor] + score.result.judgementCounts[Judgement.Bad];
         if (missCount < best.missCount || best.missCount === undefined) {
             best.missCount = missCount;
         }
-        let comboBreak = score.judgementCounts[Judgement.Poor] + score.judgementCounts[Judgement.Bad];
+        let comboBreak = score.result.judgementCounts[Judgement.Poor] + score.result.judgementCounts[Judgement.Bad];
         if (comboBreak < best.comboBreak || best.comboBreak === undefined) {
             best.comboBreak = comboBreak;
         }

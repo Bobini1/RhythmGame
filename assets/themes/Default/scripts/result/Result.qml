@@ -15,14 +15,16 @@ FocusScope {
         readonly property string imagesUrl: Qt.resolvedUrl(".") + "images/"
         readonly property string iniImagesUrl: "image://ini/" + rootUrl + "images/"
         readonly property string rootUrl: globalRoot.urlToPath(Qt.resolvedUrl(".").toString())
-        readonly property BmsScore result1: resultFocusScope.result[0]
-        readonly property BmsScore result2: resultFocusScope.result[1] || null
-        readonly property bool isBattle: result1 && result2
-        readonly property ChartData _chartData: chartData
+        readonly property BmsScore score1: resultFocusScope.scores[0]
+        readonly property BmsScore score2: resultFocusScope.scores[1] || null
+        readonly property Profile profile1: resultFocusScope.profiles[0]
+        readonly property Profile profile2: resultFocusScope.profiles[1] || null
+        readonly property bool isBattle: score1 && score2
+        readonly property ChartData chartData: resultFocusScope.chartData
 
         fillMode: Image.PreserveAspectCrop
         height: parent.height
-        source: root.imagesUrl + (result1.result.clearType === "FAILED" ? "failed.png" : "clear.png")
+        source: root.imagesUrl + (score1.result.clearType === "FAILED" ? "failed.png" : "clear.png")
         width: parent.width
 
         Shortcut {
@@ -55,9 +57,9 @@ FocusScope {
                     id: titleArtist
 
                     title: chartData.title
-                    artist: chartData.artist
-                    subtitle: chartData.subtitle
-                    subartist: chartData.subartist
+                    artist: root.chartData.artist
+                    subtitle: root.chartData.subtitle
+                    subartist: root.chartData.subartist
 
                     anchors.bottom: parent.bottom
                     anchors.bottomMargin: 24
@@ -65,8 +67,8 @@ FocusScope {
                     width: 1214
                 }
                 ChartInfo {
-                    chartData: root._chartData
-                    noteCount: root.result1.result.normalNoteCount + root.result1.result.lnCount
+                    chartData: root.chartData
+                    noteCount: root.score1.result.normalNoteCount + root.score1.result.lnCount
 
                     anchors.bottom: parent.bottom
                     anchors.bottomMargin: 24
@@ -76,9 +78,10 @@ FocusScope {
             }
 
             Side {
-                chartData: root._chartData
-                result: root.result1
+                chartData: root.chartData
+                score: root.score1
                 isBattle: root.isBattle
+                profile: root.profile1
                 width: parent.width
                 anchors.top: chartInfoRow.bottom
             }
@@ -88,9 +91,10 @@ FocusScope {
                 width: parent.width
                 anchors.top: chartInfoRow.bottom
                 sourceComponent: Side {
-                    chartData: root._chartData
-                    result: root.result2
+                    chartData: root.chartData
+                    score: root.score2
                     isBattle: root.isBattle
+                    profile: root.profile2
                     mirrored: true
                 }
             }
@@ -98,16 +102,20 @@ FocusScope {
             component Side: Column {
                 id: side
                 required property ChartData chartData
-                required property BmsScore result
+                required property BmsScore score
+                required property Profile profile
                 required property bool isBattle
                 property bool mirrored: false
-                readonly property var earlyLate: Helpers.getEarlyLate(result.replayData)
-                readonly property var oldBestClear: Helpers.getClearType(scores)
-                readonly property var oldBestPointsScore: Helpers.getScoreWithBestPoints(scores)
+                readonly property var earlyLate: Helpers.getEarlyLate(score.replayData)
+                readonly property string oldBestClear: Helpers.getClearType(scores)
+                readonly property BmsScore oldBestPointsScore: Helpers.getScoreWithBestPoints(scores)
                 readonly property var oldBestStats: Helpers.getBestStats(scores)
-                readonly property var scores: result.profile.scoreDb.getScoresForMd5(chartData.md5).filter(function (score) {
-                    return score.id !== result.result.id;
-                })
+                readonly property var scores: []
+                Component.onCompleted: {
+                    profile.scoreDb.getScoresForMd5([root.chartData.md5]).then((dbScores) => {
+                        scores = dbScores[0].filter((oldScore) => oldScore.result.id !== score.result.id)
+                    });
+                }
                 transform: Scale {
                     xScale: side.mirrored ? -1 : 1
                     origin.x: side.mirrored ? side.width / 2 : 0
@@ -131,7 +139,7 @@ FocusScope {
                         height: 104
                         width: 350
 
-                        clearType: root.result1.result.clearType
+                        clearType: root.score1.result.clearType
                         oldBestClear: side.oldBestClear
                         transform: Scale {
                             xScale: side.mirrored ? -1 : 1
@@ -141,10 +149,10 @@ FocusScope {
                     LifeGraph {
                         id: lifeGraph
 
-                        clearType: root.result1.result.clearType
-                        gaugeHistory: root.result1.gaugeHistory.gaugeHistory
-                        gaugeInfo: root.result1.gaugeHistory.gaugeInfo
-                        chartData: root._chartData
+                        clearType: root.score1.result.clearType
+                        gaugeHistory: root.score1.gaugeHistory.gaugeHistory
+                        gaugeInfo: root.score1.gaugeHistory.gaugeInfo
+                        chartData: root.chartData
 
                         anchors.right: side.isBattle ? undefined : parent.right
                         anchors.left: side.isBattle ? scoreColumn.right : undefined
@@ -160,13 +168,13 @@ FocusScope {
                     ScoreColumn {
                         id: scoreColumn
 
-                        points: side.result.result.points
-                        maxPoints: side.result.result.maxPoints
-                        oldBestPoints: side.oldBestPointsScore?.points || 0
+                        points: side.score.result.points
+                        maxPoints: side.score.result.maxPoints
+                        oldBestPoints: side.oldBestPointsScore?.result.points || 0
                         oldBestStats: side.oldBestStats
                         earlyLate: side.earlyLate
-                        judgementCounts: side.result.result.judgementCounts
-                        maxCombo: side.result.result.maxCombo
+                        judgementCounts: side.score.result.judgementCounts
+                        maxCombo: side.score.result.maxCombo
                         transform: Scale {
                             xScale: side.mirrored ? -1 : 1
                             origin.x: side.mirrored ? scoreColumn.width / 2 : 0

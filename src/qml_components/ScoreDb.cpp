@@ -5,6 +5,7 @@
 #include "ScoreDb.h"
 
 #include <QFutureWatcher>
+#include <qcoreapplication.h>
 #include <qtconcurrentrun.h>
 
 namespace qml_components {
@@ -18,6 +19,10 @@ ScoreDb::getScoresForMd5(const QList<QString>& md5s) const
   -> QIfPendingReply<QList<QList<gameplay_logic::BmsScore*>>>
 {
     auto reply = QIfPendingReply<QList<QList<gameplay_logic::BmsScore*>>>{};
+    if (md5s.isEmpty()) {
+        reply.setSuccess(QList<QList<gameplay_logic::BmsScore*>>{});
+        return reply;
+    }
     QThreadPool::globalInstance()->start([this, md5s, reply]() mutable {
         auto statement = scoreDb->createStatement("SELECT * "
                                                   "FROM score "
@@ -48,7 +53,8 @@ ScoreDb::getScoresForMd5(const QList<QString>& md5s) const
         for (const auto& md5 : md5s) {
             scores.append(groupedScores.value(md5, {}));
         }
-        reply.setSuccess(std::move(scores));
+        QMetaObject::invokeMethod(QCoreApplication::instance(), [reply, scores]() mutable {reply.setSuccess(scores);},
+                                  Qt::QueuedConnection);
     });
     return reply;
 }

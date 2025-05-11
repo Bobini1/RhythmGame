@@ -227,7 +227,9 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
         qmlRegisterType<resource_managers::Profile>(
           "RhythmGameQml", 1, 0, "BmsProfile");
         qmlRegisterType<gameplay_logic::BmsScore>(
-          "RhythmGameQml", 1, 0, "BmsScore");
+        "RhythmGameQml", 1, 0, "BmsScore");
+        qmlRegisterType<gameplay_logic::BmsPoints>(
+          "RhythmGameQml", 1, 0, "BmsPoints");
         qmlRegisterType<gameplay_logic::BmsResult>(
           "RhythmGameQml", 1, 0, "BmsResult");
         qmlRegisterType<gameplay_logic::BmsReplayData>(

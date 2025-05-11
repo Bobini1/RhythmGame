@@ -7,13 +7,11 @@ Image {
     id: image
 
     property string clearType: Helpers.getClearType(scores)
-    property var scores: Rg.profileList.mainProfile.scoreDb.getScoresForMd5(modelData.md5)
-    property bool scrollingText: parent.scrollingText
-
-    function refreshScores() {
-        scores = Rg.profileList.mainProfile.scoreDb.getScoresForMd5(modelData.md5);
-        clearType = Helpers.getClearType(scores);
-    }
+    required property list<BmsScore> scores
+    property var bestStats: Helpers.getBestStats(scores)
+    property BmsScore scoreWithBestPoints: Helpers.getScoreWithBestPoints(scores)
+    property bool scrollingText: false
+    property bool isCurrentItem: false
 
     asynchronous: true
     source: root.iniImagesUrl + "folders.png/white"
@@ -58,7 +56,7 @@ Image {
         anchors.rightMargin: 30
         color: (modelData.keymode === ChartData.Keymode.K14) ? "red" : "black"
         height: parent.height
-        scrolling: isCurrentItem && parent.scrollingText
+        scrolling: image.isCurrentItem && image.scrollingText
         text: modelData.title + (modelData.subtitle ? (" " + modelData.subtitle) : "")
         width: parent.width * 0.7
     }

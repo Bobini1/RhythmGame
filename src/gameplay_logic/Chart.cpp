@@ -149,7 +149,7 @@ Chart::finish() -> QList<BmsScore*>
                         /*lastUpdate=*/true);
     }
     if (player2 != nullptr && player2->getStatus() == Running) {
-        player2->update(std::chrono::nanoseconds(chartLength) + 10s,
+        player2->update(chartLength + 10s,
                         /*lastUpdate=*/true);
     }
     auto ret = QList<BmsScore*>{};

@@ -41,7 +41,7 @@ void
 BmsGaugeHistory::save(db::SqliteCppDb& db)
 {
     auto statement = db.createStatement(
-      "INSERT OR IGNORE INTO gauge_history (guid, gauge_history, gauge_info) "
+      "INSERT OR IGNORE INTO gauge_history (score_guid, gauge_history, gauge_info) "
       "VALUES (?, ?, ?)");
     auto compressedHistory = support::compress(gaugeHistory);
     auto compressedInfo = support::compress(gaugeInfo);
