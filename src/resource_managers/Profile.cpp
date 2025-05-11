@@ -57,7 +57,7 @@ Profile::Profile(
     writeConfig(configPath, *themeConfig);
     db.execute("CREATE TABLE IF NOT EXISTS score ("
                "id INTEGER PRIMARY KEY,"
-               "guid TEXT NOT NULL,"
+               "guid TEXT NOT NULL UNIQUE,"
                "sha256 TEXT NOT NULL,"
                "md5 TEXT NOT NULL,"
                "points INTEGER NOT NULL,"
