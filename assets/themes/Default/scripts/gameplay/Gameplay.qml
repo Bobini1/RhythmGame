@@ -360,7 +360,6 @@ Rectangle {
                             required property int count
                             color: "white"
                             fontSizeMode: Text.Fit
-                            renderType: Text.NativeRendering
                             textFormat: Text.PlainText
                             text: {
                                 // ignore judgements like MineHit
