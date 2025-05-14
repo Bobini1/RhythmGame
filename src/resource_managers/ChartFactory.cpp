@@ -301,7 +301,7 @@ auto createAutoplayFromNotes(const gameplay_logic::BmsNotes& notes) -> std::vect
                         releaseTime = note.time.timestamp + heldTime;
                     }
                     if (nextNote->type == gameplay_logic::Note::Type::Landmine) {
-                        releaseTime = nextNote->time.timestamp;
+                        releaseTime = note.time.timestamp;
                     }
                 }
                 events.emplace_back(
