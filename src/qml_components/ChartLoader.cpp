@@ -17,8 +17,10 @@ namespace qml_components {
 gameplay_logic::Chart*
 ChartLoader::createChart(
   resource_managers::Profile* player1,
-  resource_managers::Profile* player2,
+  bool player1AutoPlay,
   gameplay_logic::BmsScore* replayedScore1,
+  resource_managers::Profile* player2,
+  bool player2AutoPlay,
   gameplay_logic::BmsScore* replayedScore2,
   resource_managers::ChartDataFactory::RandomGenerator randomGenerator,
   const std::filesystem::path& fileAbsolute) const
@@ -47,7 +49,8 @@ ChartLoader::createChart(
                      chartComponents.chartData->getTotal(),
                      chartComponents.chartData->getNormalNoteCount()),
         hitRulesFactory(timingWindows, hitValueFactory),
-        replayedScore1
+        replayedScore1,
+        player1AutoPlay
     };
     auto player2data =
       player2 ? std::make_optional<
@@ -58,7 +61,8 @@ ChartLoader::createChart(
                                chartComponents.chartData->getTotal(),
                                chartComponents.chartData->getNormalNoteCount()),
                   hitRulesFactory(timingWindows, hitValueFactory),
-                  replayedScore2)
+                  replayedScore2,
+                  player2AutoPlay)
               : std::nullopt;
     return chartFactory->createChart(std::move(chartComponents),
                                      std::move(player1data),
@@ -69,80 +73,88 @@ ChartLoader::createChart(
 auto
 ChartLoader::loadChart(const QString& filename,
                        resource_managers::Profile* player1,
+                       bool player1AutoPlay,
+                       gameplay_logic::BmsScore* score1,
                        resource_managers::Profile* player2,
-                       QList<int64_t> randomSequence) const
+                       bool player2AutoPlay,
+                       gameplay_logic::BmsScore* score2) const
   -> gameplay_logic::Chart*
 {
     if (!player1) {
         spdlog::error("Player 1 is null");
         return nullptr;
     }
+    if (!player2 && player2AutoPlay) {
+        spdlog::error("Player 2 autoplay requested but player 2 is null");
+        return nullptr;
+    }
+    if (!player2 && score2) {
+        spdlog::error("Player 2 replay requested but player 2 is null");
+        return nullptr;
+    }
+    if (score1 && score2) {
+        if (score1->getResult()->getSha256() !=
+            score2->getResult()->getSha256()) {
+            spdlog::error("Score 1 and score 2 have different sha256");
+            return nullptr;
+        }
+        if (score1->getResult()->getRandomSequence() !=
+            score2->getResult()->getRandomSequence()) {
+            spdlog::error(
+              "Score 1 and score 2 have different #RANDOM sequences");
+            return nullptr;
+        }
+    }
+    if (player1AutoPlay && score1) {
+        spdlog::error("Player 1 autoplay requested but replay also provided");
+        return nullptr;
+    }
+    if (player2AutoPlay && score2) {
+        spdlog::error("Player 2 autoplay requested but replay also provided");
+        return nullptr;
+    }
+    auto randomSequence = score1   ? score1->getResult()->getRandomSequence()
+                          : score2 ? score2->getResult()->getRandomSequence()
+                                   : QList<qint64>{};
+    auto randomGenerator =
+      [randomSequence = std::move(randomSequence),
+       counter = 0](const charts::parser_models::ParsedBmsChart::RandomRange
+                      randomRange) mutable {
+          thread_local auto randomEngine =
+            std::default_random_engine{ std::random_device{}() };
+          if (counter < randomSequence.size()) {
+              return randomSequence[counter++];
+          }
+          return std::uniform_int_distribution{
+              charts::parser_models::ParsedBmsChart::RandomRange{ 1 },
+              randomRange
+          }(randomEngine);
+      };
     try {
-        auto randomGenerator =
-          [randomSequence = std::move(randomSequence),
-           counter = 0](const charts::parser_models::ParsedBmsChart::RandomRange
-                          randomRange) mutable {
-              thread_local auto randomEngine =
-                std::default_random_engine{ std::random_device{}() };
-              if (counter < randomSequence.size()) {
-                  return randomSequence[counter++];
-              }
-              return std::uniform_int_distribution{
-                  charts::parser_models::ParsedBmsChart::RandomRange{ 1 },
-                  randomRange
-              }(randomEngine);
-          };
-        const auto fileAbsolute = QFileInfo(filename).absoluteFilePath();
-        return createChart(player1,
-                           player2,
-                           nullptr,
-                           nullptr,
-                           std::move(randomGenerator),
-                           support::qStringToPath(fileAbsolute));
-    } catch (const std::exception& e) {
-        spdlog::error("Failed to load chart: {}", e.what());
-        return nullptr;
-    }
-}
-gameplay_logic::Chart*
-ChartLoader::playReplay(gameplay_logic::BmsScore* score,
-                        resource_managers::Profile* player) const
-{
-    if (!player) {
-        spdlog::error("Player is null");
-        return nullptr;
-    }
-    if (!score) {
-        spdlog::error("Score is null");
-        return nullptr;
-    }
-    try {
-        auto randomGenerator =
-          [randomSequence = score->getResult()->getRandomSequence(),
-           counter = 0](const charts::parser_models::ParsedBmsChart::RandomRange
-                          randomRange) mutable {
-              thread_local auto randomEngine =
-                std::default_random_engine{ std::random_device{}() };
-              if (counter < randomSequence.size()) {
-                  return randomSequence[counter++];
-              }
-              return std::uniform_int_distribution{
-                  charts::parser_models::ParsedBmsChart::RandomRange{ 1 },
-                  randomRange
-              }(randomEngine);
-          };
         const auto fileAbsolute =
-          getChartPathFromSha256(score->getResult()->getSha256());
-        if (!fileAbsolute) {
+          support::qStringToPath(QFileInfo(filename).absoluteFilePath());
+        const auto file = [&] {
+            if (score1 || score2) {
+                return getChartPathFromSha256(
+                  (score1 ? score1 : score2)->getResult()->getSha256(),
+                  fileAbsolute);
+            }
+            return !filename.isEmpty()
+                     ? std::optional{ support::qStringToPath(filename) }
+                     : std::nullopt;
+        }();
+        if (!file) {
             spdlog::error("Failed to find chart path to load replay");
             return nullptr;
         }
-        return createChart(player,
-                           nullptr,
-                           score,
-                           nullptr,
+        return createChart(player1,
+                           player1AutoPlay,
+                           score1,
+                           player2,
+                           player2AutoPlay,
+                           score2,
                            std::move(randomGenerator),
-                           *fileAbsolute);
+                           *file);
     } catch (const std::exception& e) {
         spdlog::error("Failed to load chart: {}", e.what());
         return nullptr;

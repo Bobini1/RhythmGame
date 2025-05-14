@@ -265,7 +265,10 @@ PathView {
         decrementViewIndex();
     }
     Keys.onSpacePressed: {
-        globalRoot.openReplay(pathView.currentItem.scoreWithBestPoints);
+        globalRoot.openReplay(pathView.current.path, pathView.currentItem.scoreWithBestPoints);
+    }
+    Keys.onDigit0Pressed: {
+        globalRoot.openAutoPlay(pathView.current.path);
     }
     onCurrentItemChanged: {
         scrollingTextTimer.restart();

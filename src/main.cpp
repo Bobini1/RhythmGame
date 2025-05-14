@@ -30,6 +30,8 @@
 #include "resource_managers/GaugeFactory.h"
 #include "resource_managers/ScanThemes.h"
 #include "resource_managers/Tables.h"
+#include "support/PathToUtfString.h"
+#include "support/QStringToPath.h"
 #include "support/UtfStringToPath.h"
 
 Q_IMPORT_QML_PLUGIN(RhythmGameQmlPlugin)
@@ -157,7 +159,16 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
           };
         auto chartDataFactory = resource_managers::ChartDataFactory{};
         auto gaugeFactory = resource_managers::GaugeFactory{};
-        auto getChartPathFromSha256 = [&db](const QString& sha256) {
+        auto getChartPathFromSha256 = [&db](const QString& sha256, const std::filesystem::path& hint) {
+            // Check if the hint path exists and matches the hash
+            auto hintStatement = db.createStatement("SELECT sha256 FROM charts WHERE path = ?;");
+            hintStatement.bind(1, support::pathToUtfString(hint));
+            if (const auto hintResult = hintStatement.executeAndGet<std::string>()) {
+                if (*hintResult == sha256.toStdString()) {
+                    return std::optional{ hint };
+                }
+            }
+
             auto statement =
               db.createStatement("SELECT path FROM charts WHERE sha256 = ?;");
             statement.bind(1, sha256.toStdString());

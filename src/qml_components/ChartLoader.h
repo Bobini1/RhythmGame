@@ -37,7 +37,7 @@ class ChartLoader : public QObject
         gameplay_logic::rules::TimingWindows,
         HitValueFactory)>;
     using GetChartPathFromSha256 =
-      std::function<std::optional<std::filesystem::path>(const QString& hash)>;
+      std::function<std::optional<std::filesystem::path>(const QString& hash, const std::filesystem::path& hint)>;
 
   private:
     resource_managers::ChartDataFactory* chartDataFactory;
@@ -52,8 +52,10 @@ class ChartLoader : public QObject
 
     gameplay_logic::Chart* createChart(
       resource_managers::Profile* player1,
-      resource_managers::Profile* player2,
+      bool player1AutoPlay,
       gameplay_logic::BmsScore* replayedScore1,
+      resource_managers::Profile* player2,
+      bool player2AutoPlay,
       gameplay_logic::BmsScore* replayedScore2,
       resource_managers::ChartDataFactory::RandomGenerator randomGenerator,
       const std::filesystem::path& fileAbsolute) const;
@@ -73,11 +75,11 @@ class ChartLoader : public QObject
     Q_INVOKABLE gameplay_logic::Chart* loadChart(
       const QString& filename,
       resource_managers::Profile* player1,
+      bool player1AutoPlay,
+      gameplay_logic::BmsScore* score1,
       resource_managers::Profile* player2,
-      QList<int64_t> randomSequence = {}) const;
-    Q_INVOKABLE gameplay_logic::Chart* playReplay(
-      gameplay_logic::BmsScore* score,
-      resource_managers::Profile* player) const;
+      bool player2AutoPlay,
+      gameplay_logic::BmsScore* score2) const;
 };
 
 } // namespace qml_components

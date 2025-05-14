@@ -69,7 +69,7 @@ ApplicationWindow {
             if (Rg.profileList.battleActive) {
                 chart = Rg.chartLoader.loadChart(path, Rg.profileList.battleProfiles.player1Profile, Rg.profileList.battleProfiles.player2Profile);
             } else {
-                chart = Rg.chartLoader.loadChart(path, Rg.profileList.mainProfile, null);
+                chart = Rg.chartLoader.loadChart(path, Rg.profileList.mainProfile, false, null, null, false, null);
             }
             if (!chart) {
                 console.error("Failed to load chart");
@@ -80,10 +80,21 @@ ApplicationWindow {
             });
         }
 
-        function openReplay(score: BmsScore) {
-            let chart = Rg.chartLoader.playReplay(score, Rg.profileList.mainProfile);
+        function openReplay(path, score: BmsScore) {
+            let chart = Rg.chartLoader.loadChart(path, Rg.profileList.mainProfile, false, score, null, false, null);
             if (!chart) {
                 console.error("Failed to load replay");
+                return;
+            }
+            sceneStack.pushItem(gameplayComponent, {
+                "chart": chart
+            });
+        }
+
+        function openAutoPlay(path) {
+            let chart = Rg.chartLoader.loadChart(path, Rg.profileList.mainProfile, true, null, null, false, null);
+            if (!chart) {
+                console.error("Failed to load chart");
                 return;
             }
             sceneStack.pushItem(gameplayComponent, {

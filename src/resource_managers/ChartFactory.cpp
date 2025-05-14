@@ -275,6 +275,67 @@ struct RandomizedData
     std::array<std::vector<charts::gameplay_models::BmsNotesData::Note>, 16>
       rawNotes;
 };
+
+auto createAutoplayFromNotes(const gameplay_logic::BmsNotes& notes) -> std::vector<gameplay_logic::HitEvent>
+{
+    auto events = std::vector<gameplay_logic::HitEvent>{};
+    const auto& noteArr = notes.getNotes();
+    for (const auto& [columnIndex, column] : std::ranges::views::enumerate(noteArr)) {
+        for (const auto& [noteIndex, note] : std::ranges::views::enumerate(column)) {
+            if (note.type == gameplay_logic::Note::Type::Normal) {
+                events.emplace_back(
+                  columnIndex,
+                  noteIndex,
+                  note.time.timestamp,
+                  gameplay_logic::BmsPoints{ 0.0, gameplay_logic::Judgement::Perfect, 0 },
+                  gameplay_logic::HitEvent::Action::Press,
+                  /*noteRemoved=*/true);
+
+                auto heldTime = 50'000'000;
+                auto releaseTime = note.time.timestamp + heldTime;
+
+                if (auto nextNote = std::next(column.begin(), noteIndex + 1);
+                    nextNote != column.end()) {
+                    if (nextNote->time.timestamp < releaseTime) {
+                        heldTime = nextNote->time.timestamp - note.time.timestamp / 2;
+                        releaseTime = note.time.timestamp + heldTime;
+                    }
+                    if (nextNote->type == gameplay_logic::Note::Type::Landmine) {
+                        releaseTime = nextNote->time.timestamp;
+                    }
+                }
+                events.emplace_back(
+                  columnIndex,
+                  noteIndex,
+                  releaseTime,
+                  gameplay_logic::BmsPoints{ 0.0, gameplay_logic::Judgement::Perfect, 0 },
+                  gameplay_logic::HitEvent::Action::Release,
+                  /*noteRemoved=*/true);
+            } else if (note.type == gameplay_logic::Note::Type::LongNoteBegin) {
+                events.emplace_back(
+                  columnIndex,
+                  noteIndex,
+                  note.time.timestamp,
+                  gameplay_logic::BmsPoints{ 0.0, gameplay_logic::Judgement::Perfect, 0 },
+                  gameplay_logic::HitEvent::Action::Press,
+                  /*noteRemoved=*/false);
+            }
+            else if (note.type == gameplay_logic::Note::Type::LongNoteEnd) {
+                events.emplace_back(
+                  columnIndex,
+                  noteIndex,
+                  note.time.timestamp,
+                  gameplay_logic::BmsPoints{ 0.0, gameplay_logic::Judgement::Perfect, 0 },
+                  gameplay_logic::HitEvent::Action::Release,
+                  /*noteRemoved=*/true);
+            }
+        }
+    }
+    std::ranges::stable_sort(events, [](const auto& left, const auto& right) {
+        return left.getOffsetFromStart() < right.getOffsetFromStart();
+    });
+    return events;
+}
 namespace {
 auto
 getComponentsForPlayer(const ChartFactory::PlayerSpecificData& player,
@@ -368,7 +429,21 @@ getComponentsForPlayer(const ChartFactory::PlayerSpecificData& player,
              std::move(score),
              std::move(visibleNotes) };
 }
+
+auto getLength(const gameplay_logic::BmsNotes& notes) -> std::chrono::nanoseconds
+{
+    auto max = int64_t{ 0 };
+    for (const auto& column : notes.getNotes()) {
+        for (const auto& note : column) {
+            if (note.time.timestamp > max) {
+                max = note.time.timestamp;
+            }
+        }
+    }
+    return std::chrono::nanoseconds{max};
+}
 } // namespace
+
 
 auto
 ChartFactory::createChart(ChartDataFactory::ChartComponents chartComponents,
@@ -396,12 +471,12 @@ ChartFactory::createChart(ChartDataFactory::ChartComponents chartComponents,
                     thread = QApplication::instance()->thread(),
                     path]() mutable {
         return loadBga(std::move(bgaBase),
-                       std::move(bgaPoor),
-                       std::move(bgaLayer),
-                       std::move(bgaLayer2),
-                       std::move(bmps),
-                       thread,
-                       std::move(path));
+                           std::move(bgaPoor),
+                           std::move(bgaLayer),
+                           std::move(bgaLayer2),
+                           std::move(bmps),
+                           thread,
+                           std::move(path));
     };
     auto bga = QtConcurrent::run(std::move(bgaTask));
     auto soundFuture = QtConcurrent::run(std::move(soundTask));
@@ -420,31 +495,45 @@ ChartFactory::createChart(ChartDataFactory::ChartComponents chartComponents,
                   mineHitSound = &sound->second;
               }
               return gameplay_logic::BmsGameReferee{ std::move(rawNotes),
-                                                     std::move(bgmNotes),
+                                                     bgmNotes,
                                                      bpmChanges,
                                                      mineHitSound,
                                                      score,
                                                      std::move(sounds),
                                                      std::move(hitRules) };
           });
-        if (!player1.replayedScore) {
-            return new gameplay_logic::Player{
+        auto chartLength = getLength(*components1.notes);
+        if (player1.replayedScore) {
+            return new gameplay_logic::RePlayer{
                 components1.notes.release(),
                 components1.score.release(),
                 components1.state.release(),
                 player1.profile,
-                std::move(refereeFuture)
+                std::move(refereeFuture),
+                chartLength,
+                player1.replayedScore,
             };
-        } else {
+        }
+        if (player1.autoPlay) {
+            auto events = createAutoplayFromNotes(*components1.notes);
             return new gameplay_logic::AutoPlayer{
                 components1.notes.release(),
                 components1.score.release(),
                 components1.state.release(),
                 player1.profile,
                 std::move(refereeFuture),
-                player1.replayedScore,
+                chartLength,
+                std::move(events),
             };
         }
+        return new gameplay_logic::Player{
+            components1.notes.release(),
+            components1.score.release(),
+            components1.state.release(),
+            player1.profile,
+            std::move(refereeFuture),
+            chartLength
+        };
     }();
     auto player2Object = components2
         .transform([&](auto& player)  -> gameplay_logic::Player* {
@@ -467,23 +556,38 @@ ChartFactory::createChart(ChartDataFactory::ChartComponents chartComponents,
                           std::move(hitRules)
                       };
                   });
-            if (!player2->replayedScore) {
-                return new gameplay_logic::Player{
-                    components2->notes.release(),
-                    components2->score.release(),
-                    components2->state.release(),
-                    player2->profile,
-                    std::move(refereeFuture)
-                };
-            }
-            return new gameplay_logic::AutoPlayer{
+            auto chartLength = getLength(*components2->notes);
+            if (player2->replayedScore) {
+                return new gameplay_logic::RePlayer{
                     components2->notes.release(),
                     components2->score.release(),
                     components2->state.release(),
                     player2->profile,
                     std::move(refereeFuture),
+                    chartLength,
                     player2->replayedScore,
                 };
+            }
+            if (player2->autoPlay) {
+                auto events = createAutoplayFromNotes(*components2->notes);
+                return new gameplay_logic::AutoPlayer{
+                    components2->notes.release(),
+                    components2->score.release(),
+                    components2->state.release(),
+                    player2->profile,
+                    std::move(refereeFuture),
+                    chartLength,
+                    std::move(events),
+                };
+            }
+            return new gameplay_logic::Player{
+                components2->notes.release(),
+                components2->score.release(),
+                components2->state.release(),
+                player2->profile,
+                std::move(refereeFuture),
+                chartLength
+            };
         });
     auto* chart = new gameplay_logic::Chart(
       chartData.release(),
