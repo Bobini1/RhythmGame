@@ -17,7 +17,27 @@ Item {
         return mapping;
     }
     readonly property double heightMultiplier: {
-        let baseSpeed = ((1 / profile.vars.globalVars.noteScreenTimeMillis) || 0) * 60000 * vars.playAreaHeight / chart.chartData.initialBpm;
+        let bpmMode = profile.vars.globalVars.hiSpeedFix;
+        const bpm = (() => {
+            switch (bpmMode) {
+                case HiSpeedFix.Off:
+                    return 120;
+                case HiSpeedFix.Main:
+                    return chart.chartData.mainBpm;
+                case HiSpeedFix.Start:
+                    return chart.chartData.initialBpm;
+                case HiSpeedFix.Min:
+                    return chart.chartData.minBpm;
+                case HiSpeedFix.Max:
+                    return chart.chartData.maxBpm;
+                case HiSpeedFix.Avg:
+                    return chart.chartData.avgBpm;
+                default:
+                    console.error("Invalid HiSpeedFix mode: " + bpmMode);
+                    return 120;
+            }
+        })();
+        let baseSpeed = ((1 / profile.vars.globalVars.noteScreenTimeMillis) || 0) * 60000 * vars.playAreaHeight / bpm;
         let laneCoverMod = profile.vars.globalVars.laneCoverOn * profile.vars.globalVars.laneCoverRatio;
         let liftMod = profile.vars.globalVars.liftOn * profile.vars.globalVars.liftRatio;
         return baseSpeed * Math.max(0, Math.min(1 - laneCoverMod - liftMod, 1));

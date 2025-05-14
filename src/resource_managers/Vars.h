@@ -42,7 +42,8 @@ enum class HiSpeedFix
     Main,
     Start,
     Min,
-    Max
+    Max,
+    Avg
 };
 Q_ENUM_NS(HiSpeedFix)
 } // namespace hi_speed_fix
