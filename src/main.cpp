@@ -30,6 +30,7 @@
 #include "resource_managers/GaugeFactory.h"
 #include "resource_managers/ScanThemes.h"
 #include "resource_managers/Tables.h"
+#include "support/UtfStringToPath.h"
 
 Q_IMPORT_QML_PLUGIN(RhythmGameQmlPlugin)
 
@@ -156,6 +157,13 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
           };
         auto chartDataFactory = resource_managers::ChartDataFactory{};
         auto gaugeFactory = resource_managers::GaugeFactory{};
+        auto getChartPathFromSha256 = [&db](const QString& sha256) {
+            auto statement =
+              db.createStatement("SELECT path FROM charts WHERE sha256 = ?;");
+            statement.bind(1, sha256.toStdString());
+            return statement.executeAndGet<std::string>().transform(
+              support::utfStringToPath);
+        };
         auto chartLoader = qml_components::ChartLoader{
             &profileList,
             &inputTranslator,
@@ -164,6 +172,7 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
             std::move(hitRulesFactory),
             &gameplay_logic::rules::lr2_hit_values::getLr2HitValue,
             gaugeFactory,
+            getChartPathFromSha256,
             &chartFactory
         };
 
@@ -187,16 +196,16 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
                                                  &db };
 
         auto rg = Rg{ &programSettings,
-                                      &inputTranslator,
-                                      &chartLoader,
-                                      &rootSongFoldersConfig,
-                                      &songFolderFactory,
-                                      &previewFilePathFetcher,
-                                      &fileQuery,
-                                      &themes,
-                                      &gamepadManager,
-                                      &profileList,
-                                      &tables };
+                      &inputTranslator,
+                      &chartLoader,
+                      &rootSongFoldersConfig,
+                      &songFolderFactory,
+                      &previewFilePathFetcher,
+                      &fileQuery,
+                      &themes,
+                      &gamepadManager,
+                      &profileList,
+                      &tables };
 
         Rg::instance = &rg;
 
@@ -227,7 +236,7 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
         qmlRegisterType<resource_managers::Profile>(
           "RhythmGameQml", 1, 0, "BmsProfile");
         qmlRegisterType<gameplay_logic::BmsScore>(
-        "RhythmGameQml", 1, 0, "BmsScore");
+          "RhythmGameQml", 1, 0, "BmsScore");
         qmlRegisterType<gameplay_logic::BmsPoints>(
           "RhythmGameQml", 1, 0, "BmsPoints");
         qmlRegisterType<gameplay_logic::BmsResult>(

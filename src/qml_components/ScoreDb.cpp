@@ -40,13 +40,14 @@ ScoreDb::getScoresForMd5(const QList<QString>& md5s) const
         gameplay_logic::BmsReplayData::DTO, gameplay_logic::BmsGaugeHistory::DTO>>();
 
         QHash<QString, QList<gameplay_logic::BmsScore*>> groupedScores;
+        auto mainThread = QCoreApplication::instance()->thread();
         for (const auto& row : result) {
             auto md5 = QString::fromStdString(std::get<0>(row).md5);
             groupedScores[md5].append(new gameplay_logic::BmsScore{
                 gameplay_logic::BmsResult::load(std::get<0>(row)),
                 gameplay_logic::BmsReplayData::load(std::get<1>(row)),
                 gameplay_logic::BmsGaugeHistory::load(std::get<2>(row))});
-
+            groupedScores[md5].back()->moveToThread(mainThread);
         }
 
         QList<QList<gameplay_logic::BmsScore*>> scores;

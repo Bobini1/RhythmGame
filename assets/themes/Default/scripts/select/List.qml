@@ -264,6 +264,9 @@ PathView {
     Keys.onUpPressed: {
         decrementViewIndex();
     }
+    Keys.onSpacePressed: {
+        globalRoot.openReplay(pathView.currentItem.scoreWithBestPoints);
+    }
     onCurrentItemChanged: {
         scrollingTextTimer.restart();
         scrollingText = false;

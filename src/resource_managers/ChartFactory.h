@@ -23,6 +23,7 @@ class ChartFactory
         QPointer<Profile> profile;
         QList<gameplay_logic::rules::BmsGauge*> gauges;
         std::unique_ptr<gameplay_logic::rules::BmsHitRules> hitRules;
+        gameplay_logic::BmsScore* replayedScore;
     };
     explicit ChartFactory(input::InputTranslator* inputTranslator);
     auto createChart(ChartDataFactory::ChartComponents chartComponents,

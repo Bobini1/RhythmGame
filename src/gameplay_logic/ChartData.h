@@ -5,10 +5,8 @@
 #ifndef RHYTHMGAME_CHARTDATA_H
 #define RHYTHMGAME_CHARTDATA_H
 
-#include <QObject>
 #include <QQmlEngine>
 #include <QJSEngine>
-#include "BmsLiveScore.h"
 #include "BmsNotes.h"
 #include "db/SqliteCppDb.h"
 namespace gameplay_logic {

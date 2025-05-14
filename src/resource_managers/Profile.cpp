@@ -76,7 +76,10 @@ Profile::Profile(
                "mine_hits INTEGER NOT NULL,"
                "clear_type TEXT NOT NULL,"
                "unix_timestamp INTEGER NOT NULL,"
-               "random_sequence STRING NOT NULL"
+               "random_sequence STRING NOT NULL,"
+               "random_seed INTEGER NOT NULL,"
+               "note_order_algorithm INTEGER NOT NULL,"
+               "note_order_algorithm_p2 INTEGER NOT NULL"
                ");");
     db.execute("CREATE TABLE IF NOT EXISTS replay_data ("
                "id INTEGER PRIMARY KEY AUTOINCREMENT,"

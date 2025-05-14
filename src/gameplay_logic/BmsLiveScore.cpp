@@ -227,6 +227,9 @@ BmsLiveScore::getResult() const -> std::unique_ptr<BmsResult>
                                        points,
                                        maxCombo,
                                        randomSequence,
+                                       randomSeed,
+                                       noteOrderAlgorithm,
+                                       noteOrderAlgorithmP2,
                                        guid,
                                        sha256,
                                        md5);

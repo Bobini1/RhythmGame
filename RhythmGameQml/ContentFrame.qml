@@ -80,6 +80,17 @@ ApplicationWindow {
             });
         }
 
+        function openReplay(score: BmsScore) {
+            let chart = Rg.chartLoader.playReplay(score, Rg.profileList.mainProfile);
+            if (!chart) {
+                console.error("Failed to load replay");
+                return;
+            }
+            sceneStack.pushItem(gameplayComponent, {
+                "chart": chart
+            });
+        }
+
         function openResult(scores, profiles, chartData) {
             sceneStack.pushItem(resultComponent, {
                 "scores": scores,

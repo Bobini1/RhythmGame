@@ -376,4 +376,52 @@ Player::finish() const -> BmsScore*
                          std::move(replayData),
                          std::move(gaugeHistory) };
 }
+AutoPlayer::AutoPlayer(BmsNotes* notes,
+                       BmsLiveScore* score,
+                       GameplayState* state,
+                       resource_managers::Profile* profile,
+                       QFuture<BmsGameReferee> referee,
+                       BmsScore* replayedScore,
+                       QObject* parent)
+  : Player(notes, score, state, profile, std::move(referee), parent)
+  , replayedScore(replayedScore)
+  , events(replayedScore->getReplayData()->getHitEvents())
+{
+    replayedScore->setParent(this);
+}
+void
+AutoPlayer::passKey(input::BmsKey key,
+                    Chart::EventType eventType,
+                    std::chrono::nanoseconds offset)
+{
+}
+void
+AutoPlayer::update(const std::chrono::nanoseconds offsetFromStart,
+                   const bool lastUpdate)
+{
+    const auto offset =
+      offsetFromStart - std::chrono::nanoseconds(getTimeBeforeChartStart());
+    while (!events.empty() &&
+           events.front().getOffsetFromStart() <= offset.count()) {
+        const auto event = events.front();
+        events = events.subspan(1);
+        const auto hitOffset =
+          std::chrono::nanoseconds{ event.getOffsetFromStart() };
+        if (event.getAction() == HitEvent::Action::Press) {
+            referee->update(hitOffset, lastUpdate);
+            referee->passPressed(hitOffset,
+                                 static_cast<input::BmsKey>(event.getColumn()));
+        } else if (event.getAction() == HitEvent::Action::Release) {
+            referee->update(hitOffset, lastUpdate);
+            referee->passReleased(
+              hitOffset, static_cast<input::BmsKey>(event.getColumn()));
+        }
+    }
+    Player::update(offsetFromStart, lastUpdate);
+}
+auto
+AutoPlayer::getReplayedScore() const -> BmsScore*
+{
+    return replayedScore;
+}
 } // namespace gameplay_logic

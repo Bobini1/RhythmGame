@@ -69,6 +69,8 @@ class BmsGameReferee
      * @brief Update the internal state of the referee
      * @param offsetFromStart The current time offset from the start of the
      * chart
+     * @param lastUpdate If true, remove all bgm sounds from the queue before
+     * updating
      * @return The position in the chart, expressed in beats
      */
     auto update(std::chrono::nanoseconds offsetFromStart,

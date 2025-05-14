@@ -21,6 +21,9 @@ class ChartDataFactory
       -> QVector<gameplay_logic::Note>;
 
   public:
+    using RandomGenerator =
+      std::function<charts::parser_models::ParsedBmsChart::RandomRange(
+        charts::parser_models::ParsedBmsChart::RandomRange)>;
     struct ChartComponents
     {
         std::unique_ptr<gameplay_logic::ChartData> chartData;
@@ -38,8 +41,7 @@ class ChartDataFactory
       -> std::unique_ptr<gameplay_logic::BmsNotes>;
     auto loadChartData(
       const std::filesystem::path& chartPath,
-      std::function<charts::parser_models::ParsedBmsChart::RandomRange(
-        charts::parser_models::ParsedBmsChart::RandomRange)> randomGenerator,
+      RandomGenerator randomGenerator,
       int64_t directory = 0) const -> ChartComponents;
 };
 

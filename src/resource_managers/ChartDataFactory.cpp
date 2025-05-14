@@ -98,8 +98,7 @@ ChartDataFactory::convertToQVector(
 auto
 ChartDataFactory::loadChartData(
   const std::filesystem::path& chartPath,
-  std::function<charts::parser_models::ParsedBmsChart::RandomRange(
-    charts::parser_models::ParsedBmsChart::RandomRange)> randomGenerator,
+  RandomGenerator randomGenerator,
   int64_t directory) const -> ChartComponents
 {
     auto mfh = llfio::mapped_file({}, chartPath).value();
@@ -111,8 +110,8 @@ ChartDataFactory::loadChartData(
     auto randomValues = QList<qint64>{};
     auto randomGeneratorRecorder =
       [&randomValues, &randomGenerator](
-        charts::parser_models::ParsedBmsChart::RandomRange number) mutable {
-          auto generated = randomGenerator(number);
+        const charts::parser_models::ParsedBmsChart::RandomRange number) mutable {
+          const auto generated = randomGenerator(number);
           randomValues.append(generated);
           return generated;
       };
@@ -150,9 +149,8 @@ ChartDataFactory::loadChartData(
             lastNoteTimestamp = lastNote.time.timestamp;
         }
     }
-    // find keymode
     auto keymode = gameplay_logic::ChartData::Keymode::K7;
-    const auto startColumn = calculatedNotesData.notes.size() / 2;
+    constexpr auto startColumn = calculatedNotesData.notes.size() / 2;
     for (auto columnIndex = startColumn;
          columnIndex < calculatedNotesData.notes.size();
          columnIndex++) {
@@ -161,16 +159,13 @@ ChartDataFactory::loadChartData(
             break;
         }
     }
-    // get initial bpm
     auto initialBpm = calculatedNotesData.bpmChanges[0]; // guaranteed to exist
-    // get max bpm
     auto maxBpm = initialBpm;
     for (const auto& bpmChange : calculatedNotesData.bpmChanges) {
         if (bpmChange.second > maxBpm.second) {
             maxBpm = bpmChange;
         }
     }
-    // get min bpm
     auto minBpm = initialBpm;
     for (const auto& bpmChange : calculatedNotesData.bpmChanges) {
         if (bpmChange.second < minBpm.second) {
@@ -195,6 +190,8 @@ ChartDataFactory::loadChartData(
                     break;
                 case charts::gameplay_models::BmsNotesData::NoteType::Landmine:
                     mineNotes++;
+                    break;
+                case charts::gameplay_models::BmsNotesData::NoteType::Invisible:
                     break;
             }
         }

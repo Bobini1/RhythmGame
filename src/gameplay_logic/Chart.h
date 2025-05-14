@@ -95,7 +95,7 @@ class Chart final : public QObject
     void bgaLoaded();
 };
 
-class Player final : public QObject
+class Player : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(BmsNotes* notes READ getNotes CONSTANT)
@@ -113,18 +113,20 @@ class Player final : public QObject
     BmsLiveScore* score;
     GameplayState* state;
     QPointer<resource_managers::Profile> profile;
-    std::optional<BmsGameReferee> referee;
-    QFutureWatcher<BmsGameReferee> refereeWatcher;
-    QFuture<BmsGameReferee> refereeFuture;
     BmsGameReferee::Position positionBeforeChartStart{};
     BmsGameReferee::Position position{};
     Chart::Status status{ Chart::Status::Loading };
     int64_t elapsed{};
     int64_t timeBeforeChartStart{};
+    QFutureWatcher<BmsGameReferee> refereeWatcher;
+    QFuture<BmsGameReferee> refereeFuture;
 
     void setTimeBeforeChartStart(int64_t timeBeforeChartStart);
     void setElapsed(int64_t newElapsed);
     void setPosition(BmsGameReferee::Position position);
+
+protected:
+    std::optional<BmsGameReferee> referee;
 
   public:
     explicit Player(BmsNotes* notes,
@@ -133,8 +135,8 @@ class Player final : public QObject
                     resource_managers::Profile* profile,
                     QFuture<BmsGameReferee> referee,
                     QObject* parent = nullptr);
-    void update(std::chrono::nanoseconds offsetFromStart, bool lastUpdate);
-    void passKey(input::BmsKey key,
+    virtual void update(std::chrono::nanoseconds offsetFromStart, bool lastUpdate);
+    virtual void passKey(input::BmsKey key,
                  Chart::EventType eventType,
                  std::chrono::nanoseconds offset);
     void setup();
@@ -154,6 +156,28 @@ class Player final : public QObject
     void positionChanged(double delta);
     void elapsedChanged(int64_t delta);
     void statusChanged();
+};
+
+class AutoPlayer final : public Player
+{
+    Q_OBJECT
+    Q_PROPERTY(BmsScore* replayedScore READ getReplayedScore CONSTANT)
+
+    BmsScore* replayedScore;
+    std::span<const HitEvent> events;
+  public:
+    explicit AutoPlayer(BmsNotes* notes,
+                        BmsLiveScore* score,
+                        GameplayState* state,
+                        resource_managers::Profile* profile,
+                        QFuture<BmsGameReferee> referee,
+                        BmsScore* replayedScore,
+                        QObject* parent = nullptr);
+    void passKey(input::BmsKey key,
+                 Chart::EventType eventType,
+                 std::chrono::nanoseconds offset) override;
+    void update(std::chrono::nanoseconds offsetFromStart, bool lastUpdate) override;
+    auto getReplayedScore() const -> BmsScore*;
 };
 
 } // namespace gameplay_logic
