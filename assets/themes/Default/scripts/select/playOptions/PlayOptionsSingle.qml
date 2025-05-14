@@ -161,8 +161,8 @@ Rectangle {
         width: 360
         height: 220
         down: BmsKey.Col15
-        model: bg.duplicate([HiSpeedFix.Main, HiSpeedFix.Start, HiSpeedFix.Max, HiSpeedFix.Min, HiSpeedFix.Off])
-        strings: bg.duplicate(["MAIN BPM", "START BPM", "MAX BPM", "MIN BPM", "OFF"])
+        model: bg.duplicate([HiSpeedFix.Main, HiSpeedFix.Start, HiSpeedFix.Max, HiSpeedFix.Min, HiSpeedFix.Avg, HiSpeedFix.Off])
+        strings: bg.duplicate(["MAIN BPM", "START BPM", "MAX BPM", "MIN BPM", "AVG BPM", "OFF"])
         prop: "hiSpeedFix"
         profile: Rg.profileList.mainProfile
     }

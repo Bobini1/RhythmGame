@@ -144,8 +144,8 @@ ChartDataFactory::loadChartData(
         if (column.empty()) {
             continue;
         }
-        auto lastNote = column.back();
-        if (lastNote.time.timestamp > lastNoteTimestamp) {
+        if (auto lastNote = column.back();
+            lastNote.time.timestamp > lastNoteTimestamp) {
             lastNoteTimestamp = lastNote.time.timestamp;
         }
     }
@@ -171,6 +171,39 @@ ChartDataFactory::loadChartData(
         if (bpmChange.second < minBpm.second) {
             minBpm = bpmChange;
         }
+    }
+    auto bpms = std::unordered_map<double,
+                              std::chrono::nanoseconds>{};
+    for (auto it = calculatedNotesData.bpmChanges.begin();
+         it != calculatedNotesData.bpmChanges.end();
+         ++it) {
+        auto bpmChange = *it;
+        auto bpm = bpmChange.second;
+        auto timestamp = bpmChange.first.timestamp;
+        auto nextTimestamp = std::chrono::nanoseconds{ 0 };
+        if (it + 1 != calculatedNotesData.bpmChanges.end()) {
+            nextTimestamp = (it + 1)->first.timestamp;
+        } else {
+            nextTimestamp = lastNoteTimestamp;
+        }
+        auto duration = nextTimestamp - timestamp;
+        bpms[bpm] += duration;
+    }
+    auto totalBpm = 0.0;
+    auto totalDuration = std::chrono::nanoseconds{ 0 };
+    auto maxBpmDuration = std::chrono::nanoseconds{ 0 };
+    auto mainBpm = 0.0;
+    for (const auto& [bpm, duration] : bpms) {
+        totalBpm += bpm * duration.count();
+        totalDuration += duration;
+        if (duration > maxBpmDuration) {
+            maxBpmDuration = duration;
+            mainBpm = bpm;
+        }
+    }
+    auto avgBpm = totalBpm;
+    if (totalDuration.count() > 0) {
+        avgBpm /= totalDuration.count();
     }
     auto normalNotes = 0;
     auto lnNotes = 0;
@@ -219,6 +252,8 @@ ChartDataFactory::loadChartData(
       initialBpm.second,
       maxBpm.second,
       minBpm.second,
+        mainBpm,
+        avgBpm,
       path,
       directory,
       QString::fromStdString(sha256),

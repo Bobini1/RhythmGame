@@ -53,8 +53,8 @@ class ChartData : public QObject
     Q_PROPERTY(double initialBpm READ getInitialBpm CONSTANT)
     Q_PROPERTY(double maxBpm READ getMaxBpm CONSTANT)
     Q_PROPERTY(double minBpm READ getMinBpm CONSTANT)
-
-    ChartData() = default;
+    Q_PROPERTY(double mainBpm READ getMainBpm CONSTANT)
+    Q_PROPERTY(double avgBpm READ getAvgBpm CONSTANT)
 
   public:
     ChartData(QString title,
@@ -78,6 +78,8 @@ class ChartData : public QObject
               double initialBpm,
               double maxBpm,
               double minBpm,
+              double mainBpm,
+              double avgBpm,
               QString path,
               int64_t directory,
               QString sha256,
@@ -100,6 +102,8 @@ class ChartData : public QObject
     [[nodiscard]] auto getInitialBpm() const -> double;
     [[nodiscard]] auto getMaxBpm() const -> double;
     [[nodiscard]] auto getMinBpm() const -> double;
+    [[nodiscard]] auto getMainBpm() const -> double;
+    [[nodiscard]] auto getAvgBpm() const -> double;
     [[nodiscard]] auto getPath() const -> QString;
     [[nodiscard]] auto getRank() const -> int;
     [[nodiscard]] auto getTotal() const -> double;
@@ -137,6 +141,8 @@ class ChartData : public QObject
         double initialBpm;
         double maxBpm;
         double minBpm;
+        double mainBpm;
+        double avgBpm;
         std::string path;
         int64_t directory;
         std::string sha256;
@@ -170,6 +176,8 @@ class ChartData : public QObject
     double initialBpm;
     double maxBpm;
     double minBpm;
+    double mainBpm;
+    double avgBpm;
     QString path;
     int64_t directory;
     QString sha256;

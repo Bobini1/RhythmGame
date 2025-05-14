@@ -118,9 +118,9 @@ resource_managers::Level::loadCharts() const -> QVariantList
                 "charts.play_level, charts.difficulty, charts.is_random, "
                 "charts.random_sequence, charts.normal_note_count, "
                 "charts.ln_count, charts.mine_count, charts.length, "
-                "charts.initial_bpm, charts.max_bpm, "
-                "charts.min_bpm, charts.path, charts.directory, charts.sha256, "
-                "charts.md5, charts.keymode "
+                "charts.initial_bpm, charts.max_bpm, charts.min_bpm, "
+                "charts.main_bpm, charts.avg_bpm, charts.path, "
+                "charts.directory, charts.sha256, charts.md5, charts.keymode "
                 "FROM md5_list JOIN charts ON md5_list.md5 = charts.md5 GROUP "
                 "BY md5_list.idx";
 

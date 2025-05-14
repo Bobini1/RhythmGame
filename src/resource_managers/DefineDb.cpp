@@ -30,6 +30,8 @@ defineDb(db::SqliteCppDb& db)
                "initial_bpm REAL NOT NULL,"
                "max_bpm REAL NOT NULL,"
                "min_bpm REAL NOT NULL,"
+               "main_bpm REAL NOT NULL,"
+               "avg_bpm REAL NOT NULL,"
                "path TEXT NOT NULL UNIQUE,"
                "chart_directory TEXT,"
                "directory INTEGER,"

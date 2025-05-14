@@ -31,6 +31,8 @@ gameplay_logic::ChartData::ChartData(QString title,
                                      double bpm,
                                      double maxBpm,
                                      double minBpm,
+                                     double mainBpm,
+                                     double avgBpm,
                                      QString path,
                                      int64_t directory,
                                      QString sha256,
@@ -59,6 +61,8 @@ gameplay_logic::ChartData::ChartData(QString title,
   , initialBpm(bpm)
   , maxBpm(maxBpm)
   , minBpm(minBpm)
+  , mainBpm(mainBpm)
+  , avgBpm(avgBpm)
   , path(std::move(path))
   , directory(directory)
   , sha256(std::move(sha256))
@@ -134,9 +138,10 @@ gameplay_logic::ChartData::save(db::SqliteCppDb& db) const -> void
       "genre, stage_file, banner, back_bmp, rank, total, play_level, "
       "difficulty, is_random, random_sequence, normal_note_count, ln_count, "
       "mine_count, length, initial_bpm, max_bpm, "
-      "min_bpm, path, chart_directory, directory, sha256, md5, keymode) "
+      "min_bpm, main_bpm, avg_bpm, path, chart_directory, directory, sha256, "
+      "md5, keymode) "
       "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, "
-      "?, ?, ?, ?, ?, ?);");
+      "?, ?, ?, ?, ?, ?, ?, ?);");
     query.reset();
     query.bind(1, title.toStdString());
     query.bind(2, artist.toStdString());
@@ -160,16 +165,18 @@ gameplay_logic::ChartData::save(db::SqliteCppDb& db) const -> void
     query.bind(19, initialBpm);
     query.bind(20, maxBpm);
     query.bind(21, minBpm);
-    query.bind(22, path.toStdString());
-    query.bind(23, getChartDirectory().toStdString());
+    query.bind(22, mainBpm);
+    query.bind(23, avgBpm);
+    query.bind(24, path.toStdString());
+    query.bind(25, getChartDirectory().toStdString());
     if (directory == 0) {
-        query.bind(24);
+        query.bind(26);
     } else {
-        query.bind(24, directory);
+        query.bind(26, directory);
     }
-    query.bind(25, sha256.toStdString());
-    query.bind(26, md5.toStdString());
-    query.bind(27, static_cast<int>(keymode));
+    query.bind(27, sha256.toStdString());
+    query.bind(28, md5.toStdString());
+    query.bind(29, static_cast<int>(keymode));
     query.execute();
 }
 auto
@@ -210,6 +217,8 @@ gameplay_logic::ChartData::load(const DTO& chartDataDto)
       chartDataDto.initialBpm,
       chartDataDto.maxBpm,
       chartDataDto.minBpm,
+      chartDataDto.mainBpm,
+      chartDataDto.avgBpm,
       QString::fromStdString(chartDataDto.path),
       chartDataDto.directory,
       QString::fromStdString(chartDataDto.sha256),
@@ -281,6 +290,16 @@ auto
 gameplay_logic::ChartData::getMinBpm() const -> double
 {
     return minBpm;
+}
+auto
+gameplay_logic::ChartData::getMainBpm() const -> double
+{
+    return mainBpm;
+}
+auto
+gameplay_logic::ChartData::getAvgBpm() const -> double
+{
+    return avgBpm;
 }
 auto
 gameplay_logic::ChartData::getLnCount() const -> int
