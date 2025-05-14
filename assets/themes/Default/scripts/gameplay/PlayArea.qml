@@ -301,8 +301,8 @@ Item {
             }
 
             if (hitEvent.noteRemoved) {
-                let note = playArea.notes[hitEvent.column][hitEvent.noteIndex];
                 let index = columnsReversedMapping[hitEvent.column];
+                let note = playArea.notes[index][hitEvent.noteIndex];
 
                 if (hitEvent.action === HitEvent.Press) {
                     if (note.type === Note.Type.Normal) {
