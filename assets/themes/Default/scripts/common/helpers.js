@@ -2,8 +2,7 @@ const clearTypePriorities = ["NOPLAY", "FAILED", "AEASY", "EASY", "NORMAL", "HAR
 
 function getClearType(scores) {
     let clearType = "NOPLAY";
-    for (let i = 0; i < scores.length; i++) {
-        let score = scores[i];
+    for (let score of scores) {
         if (clearTypePriorities.indexOf(score.result.clearType) > clearTypePriorities.indexOf(clearType)) {
             clearType = score.result.clearType;
         }
