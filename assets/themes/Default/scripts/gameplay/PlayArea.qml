@@ -290,6 +290,32 @@ Item {
             }
         }
     }
+    Connections {
+        target: playArea.score
+        function onHit(hitEvent) {
+            function handleBomb(index, isLongNote, restart = true) {
+                if (index === undefined) return;
+                let bomb = explosions.itemAt(index);
+                bomb.ln = isLongNote;
+                if (restart) bomb.restart();
+            }
+
+            if (hitEvent.noteRemoved) {
+                let note = playArea.notes[hitEvent.column][hitEvent.noteIndex];
+                let index = columnsReversedMapping[hitEvent.column];
+
+                if (hitEvent.action === HitEvent.Press) {
+                    if (note.type === Note.Type.Normal) {
+                        handleBomb(index, false);
+                    } else if (note.type === Note.Type.LongNoteBegin) {
+                        handleBomb(index, true);
+                    }
+                } else if (hitEvent.action === HitEvent.Release && note.type === Note.Type.LongNoteEnd) {
+                    handleBomb(index, false, false);
+                }
+            }
+        }
+    }
     // to get the sourceSize of the bomb image
     Image {
         id: bombSize

@@ -256,6 +256,8 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
           "RhythmGameQml", 1, 0, "BmsReplayData");
         qmlRegisterType<gameplay_logic::BmsGaugeHistory>(
           "RhythmGameQml", 1, 0, "BmsGaugeHistory");
+        qmlRegisterType<gameplay_logic::HitEvent>(
+          "RhythmGameQml", 1, 0, "HitEvent");
         qmlRegisterType<qml_components::Bga>("RhythmGameQml", 1, 0, "Bga");
         qmlRegisterType<qml_components::BgaContainer>(
           "RhythmGameQml", 1, 0, "BgaContainer");
