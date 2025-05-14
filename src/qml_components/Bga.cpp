@@ -75,7 +75,7 @@ qml_components::Bga::update(std::chrono::nanoseconds offsetFromStart)
             playedVideo->stop();
             playedVideo->setVideoOutput(nullptr);
         }
-        if (currentImage->second) {
+        if (currentImage->second != nullptr) {
             videoSink->setVideoFrame(*currentImage->second);
         } else {
             videoSink->setVideoFrame(*getEmptyVideoFrame());
