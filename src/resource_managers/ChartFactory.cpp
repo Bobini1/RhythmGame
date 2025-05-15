@@ -84,6 +84,7 @@ loadBmpVideo(const std::filesystem::path& path) -> std::unique_ptr<QMediaPlayer>
     if (player->mediaStatus() == QMediaPlayer::LoadingMedia) {
         loop.exec();
     }
+    player->pause();
     return player;
 }
 
