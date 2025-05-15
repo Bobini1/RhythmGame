@@ -54,9 +54,10 @@ qml_components::Bga::update(std::chrono::nanoseconds offsetFromStart)
     if (videoSink == nullptr) {
         return;
     }
-    auto offset = offsetFromStart;
+    const auto offset = offsetFromStart;
     while (currentVideoFile != videoFiles.end() &&
            currentVideoFile->first < offset) {
+        currentVideoFile->second->stop();
         if (currentVideoFile->second->isSeekable()) {
             currentVideoFile->second->setPosition(
               (currentVideoFile->first - offset).count() / 1000000);
