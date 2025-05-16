@@ -60,7 +60,7 @@ qml_components::Bga::update(std::chrono::nanoseconds offsetFromStart)
         currentVideoFile->second->stop();
         if (currentVideoFile->second->isSeekable()) {
             currentVideoFile->second->setPosition(
-              (currentVideoFile->first - offset).count() / 1000000);
+              (offset - currentVideoFile->first).count() / 1000000);
         }
         if (playedVideo != nullptr) {
             playedVideo->stop();
