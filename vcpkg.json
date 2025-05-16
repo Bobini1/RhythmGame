@@ -101,7 +101,6 @@
       "name": "mimalloc",
       "version>=": "2.1.7",
         "features": [
-          "asm",
           "override"
         ]
     },
@@ -140,5 +139,5 @@
       ]
     }
   },
-  "builtin-baseline": "65be7019941e1401e02daaba0738cab2c8a4a355"
+  "builtin-baseline": "9dd12f8d791f6fa4e396adbebc714d51cbee2143"
 }
