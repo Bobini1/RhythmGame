@@ -123,7 +123,9 @@ ChartLoader::loadChart(const QString& filename,
           thread_local auto randomEngine =
             std::default_random_engine{ std::random_device{}() };
           if (counter < randomSequence.size()) {
-              return randomSequence[counter++];
+              return static_cast<
+                charts::parser_models::ParsedBmsChart::RandomRange>(
+                randomSequence[counter++]);
           }
           return std::uniform_int_distribution{
               charts::parser_models::ParsedBmsChart::RandomRange{ 1 },

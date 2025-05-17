@@ -127,7 +127,7 @@ resource_managers::Level::loadCharts() const -> QVariantList
     auto query = db->createStatement(queryStr);
     for (const auto& [index, md5] : std::ranges::views::enumerate(md5List)) {
         query.bind(index * 2 + 1, md5.toStdString());
-        query.bind(index * 2 + 2, index);
+        query.bind(index * 2 + 2, static_cast<int64_t>(index));
     }
     const auto queryResult = query.executeAndGetAll<ChartDTOWithIndex>();
     for (const auto& result : queryResult) {
