@@ -207,6 +207,7 @@ PathView {
         }
 
         readonly property BmsScore scoreWithBestPoints: "scoreWithBestPoints" in item ? item.scoreWithBestPoints : null
+        readonly property list<BmsScore> scores: "scores" in item ? item.scores : []
         readonly property var bestStats: "bestStats" in item ? item.bestStats : null
         readonly property bool isCurrentItem: PathView.isCurrentItem
         readonly property bool scrollingText: pathView.scrollingText
@@ -263,12 +264,6 @@ PathView {
     }
     Keys.onUpPressed: {
         decrementViewIndex();
-    }
-    Keys.onSpacePressed: {
-        globalRoot.openReplay(pathView.current.path, pathView.currentItem.scoreWithBestPoints);
-    }
-    Keys.onDigit0Pressed: {
-        globalRoot.openAutoPlay(pathView.current.path);
     }
     onCurrentItemChanged: {
         scrollingTextTimer.restart();
