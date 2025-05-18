@@ -64,6 +64,7 @@ GamepadManager::loop()
 GamepadManager::~
 GamepadManager()
 {
+    controllers.clear();
     SDL_QuitSubSystem(SDL_INIT_GAMECONTROLLER | SDL_INIT_JOYSTICK);
 }
 

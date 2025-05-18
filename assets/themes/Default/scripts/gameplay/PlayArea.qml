@@ -9,7 +9,7 @@ Item {
     id: playArea
 
     required property list<int> columns
-    readonly property list<int> columnsReversedMapping: {
+    readonly property list<int>columnsReversedMapping: {
         var mapping = [];
         for (var i = 0; i < columns.length; i++) {
             mapping[columns[i]] = i;
@@ -17,19 +17,46 @@ Item {
         return mapping;
     }
     readonly property double heightMultiplier: {
-        let baseSpeed = ((1 / profile.vars.globalVars.noteScreenTimeMillis) || 0) * 60000 * vars.playAreaHeight / chart.chartData.initialBpm;
+        let bpmMode = profile.vars.globalVars.hiSpeedFix;
+        const bpm = (() => {
+            switch (bpmMode) {
+                case HiSpeedFix.Off:
+                    return 120;
+                case HiSpeedFix.Main:
+                    return chart.chartData.mainBpm;
+                case HiSpeedFix.Start:
+                    return chart.chartData.initialBpm;
+                case HiSpeedFix.Min:
+                    return chart.chartData.minBpm;
+                case HiSpeedFix.Max:
+                    return chart.chartData.maxBpm;
+                case HiSpeedFix.Avg:
+                    return chart.chartData.avgBpm;
+                default:
+                    console.error("Invalid HiSpeedFix mode: " + bpmMode);
+                    return 120;
+            }
+        })();
+        let baseSpeed = ((1 / profile.vars.globalVars.noteScreenTimeMillis) || 0) * 60000 * vars.playAreaHeight / bpm;
         let laneCoverMod = profile.vars.globalVars.laneCoverOn * profile.vars.globalVars.laneCoverRatio;
         let liftMod = profile.vars.globalVars.liftOn * profile.vars.globalVars.liftRatio;
         return baseSpeed * Math.max(0, Math.min(1 - laneCoverMod - liftMod, 1));
     }
-    required property Profile profile
-    required property var score
-    required property var notes
-    required property var columnStates
+    required property Player player
+    readonly property Profile profile: player.profile
+    readonly property var score: player.score
+    readonly property var barLinesState: player.state.barLinesState
+    readonly property var notes: columns.map(function (column) {
+        return side.notes.notes[column];
+    })
+    readonly property var columnStates: columns.map(function (column) {
+        return side.columnStates[column];
+    })
     readonly property int spacing: playArea.vars.spacing
     readonly property var vars: profile.vars.themeVars[chartFocusScope.screen]
     readonly property var globalVars: profile.vars.globalVars
     readonly property list<real> columnSizes: root.getColumnSizes(vars)
+    readonly property real position: player.position
 
     height: playArea.vars.playAreaHeight
     width: playfield.width
@@ -73,10 +100,10 @@ Item {
             z: 0
         }
         BarLinePositioner {
-            // barlines are always the same for all players
-            model: chart.state1.barLinesState
-            barlinesArray: chart.notes1.barLines
+            model: playArea.barLinesState
+            barlinesArray: playArea.player.notes.barLines
             heightMultiplier: playArea.heightMultiplier
+            position: playArea.position
             anchors.fill: parent
             z: 2
         }
@@ -95,6 +122,7 @@ Item {
             noteImage: playArea.vars.notes
             mineImage: playArea.vars.mine
             notesStay: playArea.vars.notesStay
+            position: playArea.position
             z: 4
         }
         Row {
@@ -103,6 +131,7 @@ Item {
             function hideLaser(index) {
                 laserRow.children[playArea.columnsReversedMapping[index]].stop();
             }
+
             function shootLaser(index) {
                 laserRow.children[playArea.columnsReversedMapping[index]].start();
             }
@@ -138,7 +167,10 @@ Item {
             id: glow
 
             anchors.bottom: judgeLine.bottom
-            opacity: (Math.abs(chart.position % 1) > 0.5 ? Math.abs(chart.position % 1) : 1 - Math.abs(chart.position % 1)) * 0.2 + 0.1
+            opacity: {
+                let pos = Math.abs(side.player.position % 1);
+                return (pos > 0.5 ? pos : 1 - pos) * 0.2 + 0.1;
+            }
             source: root.imagesUrl + "glow/" + playArea.vars.glow
             width: parent.width
             z: 1
@@ -255,6 +287,32 @@ Item {
                 source: root.imagesUrl + "bomb/" + playArea.vars.bomb
                 visible: running
                 width: frameWidth / 2
+            }
+        }
+    }
+    Connections {
+        target: playArea.score
+        function onHit(hitEvent) {
+            function handleBomb(index, isLongNote, restart = true) {
+                if (index === undefined) return;
+                let bomb = explosions.itemAt(index);
+                bomb.ln = isLongNote;
+                if (restart) bomb.restart();
+            }
+
+            if (hitEvent.noteRemoved) {
+                let index = columnsReversedMapping[hitEvent.column];
+                let note = playArea.notes[index][hitEvent.noteIndex];
+
+                if (hitEvent.action === HitEvent.Press) {
+                    if (note.type === Note.Type.Normal) {
+                        handleBomb(index, false);
+                    } else if (note.type === Note.Type.LongNoteBegin) {
+                        handleBomb(index, true);
+                    }
+                } else if (hitEvent.action === HitEvent.Release && note.type === Note.Type.LongNoteEnd) {
+                    handleBomb(index, false, false);
+                }
             }
         }
     }

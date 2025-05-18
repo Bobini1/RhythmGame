@@ -18,10 +18,10 @@ Rectangle {
     height: 900
 
     Connections {
-        target: ProfileList
+        target: Rg.profileList
 
         function onBattleActiveChanged() {
-            if (ProfileList.battleActive) {
+            if (Rg.profileList.battleActive) {
                 bg.isConfiguringDp = true;
             }
         }
@@ -41,7 +41,7 @@ Rectangle {
 
     onEnabledChanged: {
         if (enabled) {
-            isConfiguringDp = ProfileList.battleActive;
+            isConfiguringDp = Rg.profileList.battleActive;
         }
     }
 
@@ -65,10 +65,10 @@ Rectangle {
 
                 ProfileCard {
                     anchors.centerIn: parent
-                    profile: ProfileList.mainProfile
+                    profile: Rg.profileList.mainProfile
                     playerNumber: 0
 
-                    onProfileChanged: ProfileList.mainProfile = profile;
+                    onProfileChanged: Rg.profileList.mainProfile = profile;
                 }
             }
         }
@@ -110,7 +110,7 @@ Rectangle {
 
                         Image {
                             id: image
-                            source: ProgramSettings.avatarFolder + ProfileList.mainProfile.vars.globalVars.avatar
+                            source: Rg.programSettings.avatarFolder + Rg.profileList.mainProfile.vars.globalVars.avatar
                             anchors.fill: parent
                             anchors.margins: 1
                             fillMode: Image.PreserveAspectFit
@@ -134,7 +134,7 @@ Rectangle {
                         width: height
 
                         TextEdit {
-                            text: ProfileList.mainProfile.vars.globalVars.name
+                            text: Rg.profileList.mainProfile.vars.globalVars.name
                             readOnly: true
                             font.pixelSize: 24
                             color: "white"
@@ -150,16 +150,16 @@ Rectangle {
                     anchors.left: parent.left
                     anchors.leftMargin: 100
                     anchors.verticalCenter: parent.verticalCenter
-                    profile: ProfileList.battleProfiles.player1Profile
+                    profile: Rg.profileList.battleProfiles.player1Profile
                     playerNumber: 1
-                    grayedOut: ProfileList.battleProfiles.player2Profile
+                    grayedOut: Rg.profileList.battleProfiles.player2Profile
 
                     Binding {
-                        target: ProfileList.battleProfiles
+                        target: Rg.profileList.battleProfiles
                         property: "player1Profile"
                         delayed: true
                         value: {
-                            if (ProfileList.battleProfiles.player2Profile === p1card.profile) {
+                            if (Rg.profileList.battleProfiles.player2Profile === p1card.profile) {
                                 return null;
                             } else {
                                 return p1card.profile;
@@ -183,17 +183,17 @@ Rectangle {
                     anchors.right: parent.right
                     anchors.rightMargin: 100
                     anchors.verticalCenter: parent.verticalCenter
-                    profile: ProfileList.battleProfiles.player2Profile
+                    profile: Rg.profileList.battleProfiles.player2Profile
                     playerNumber: 2
-                    grayedOut: ProfileList.battleProfiles.player1Profile
+                    grayedOut: Rg.profileList.battleProfiles.player1Profile
 
                     Binding {
-                        target: ProfileList.battleProfiles
+                        target: Rg.profileList.battleProfiles
                         property: "player2Profile"
 
                         delayed: true
                         value: {
-                            if (ProfileList.battleProfiles.player1Profile === p2card.profile) {
+                            if (Rg.profileList.battleProfiles.player1Profile === p2card.profile) {
                                 return null;
                             } else {
                                 return p2card.profile;
@@ -207,10 +207,10 @@ Rectangle {
         sourceComponent: bg.isConfiguringDp ? battleProfilesComponent : mainProfileComponent
     }
 
-    property bool bothPlayersSet: ProfileList.battleProfiles.player1Profile && ProfileList.battleProfiles.player2Profile
+    property bool bothPlayersSet: Rg.profileList.battleProfiles.player1Profile && Rg.profileList.battleProfiles.player2Profile
     onBothPlayersSetChanged: {
         if (bothPlayersSet && bg.isConfiguringDp) {
-            ProfileList.battleActive = true;
+            Rg.profileList.battleActive = true;
         }
     }
 
@@ -241,11 +241,11 @@ Rectangle {
 
         function switchMode() {
             if (bg.isConfiguringDp) {
-                ProfileList.battleActive = false;
+                Rg.profileList.battleActive = false;
                 bg.isConfiguringDp = false;
             } else {
-                if (ProfileList.battleProfiles.player1Profile && ProfileList.battleProfiles.player2Profile) {
-                    ProfileList.battleActive = true;
+                if (Rg.profileList.battleProfiles.player1Profile && Rg.profileList.battleProfiles.player2Profile) {
+                    Rg.profileList.battleActive = true;
                 }
                 bg.isConfiguringDp = true;
             }

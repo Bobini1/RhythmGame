@@ -6,7 +6,7 @@ import "../../common/helpers.js" as Helpers
 
 ComboBox {
     id: fileComboBox
-    property var files: FileQuery.getSelectableFilesForDirectory(Themes.availableThemeFamilies[ProfileList.mainProfile.themeConfig[screen]].path + "/" + props.path)
+    property var files: Rg.fileQuery.getSelectableFilesForDirectory(Rg.themes.availableThemeFamilies[Rg.profileList.mainProfile.themeConfig[screen]].path + "/" + props.path)
     model: files
 
     palette {

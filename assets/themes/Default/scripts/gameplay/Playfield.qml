@@ -9,8 +9,8 @@ Item {
     required property var columnSizes
     property list<int> columns
     readonly property list<int> columnsReversedMapping: {
-        var mapping = [];
-        for (var i = 0; i < columns.length; i++) {
+        let mapping = [];
+        for (let i = 0; i < columns.length; i++) {
             mapping[columns[i]] = i;
         }
         return mapping;
@@ -23,6 +23,7 @@ Item {
     required property string noteImage
     required property string mineImage
     required property bool notesStay
+    required property real position
 
     width: notesRow.width
 
@@ -64,6 +65,7 @@ Item {
                 mineImage: playfield.mineImage
                 notesStay: playfield.notesStay
                 width: playfield.columnSizes[playfield.columns[index]]
+                position: playfield.position
             }
         }
     }

@@ -199,8 +199,7 @@ gameplay_logic::rules::StandardBmsHitRules::processMines(
         }
         auto& mine = *iter;
         auto noteTime = mine.time;
-        auto hitOffset = offsetFromStart - noteTime;
-        if (hitOffset <= windowLow) {
+        if (noteTime <= offsetFromStart + windowLow) {
             iter->hit = true;
             mineHits.emplace_back(column,
                                   mine.index,
@@ -213,7 +212,7 @@ gameplay_logic::rules::StandardBmsHitRules::processMines(
             currentMineIndex++;
             continue;
         }
-        if (hitOffset >= windowHigh) {
+        if (noteTime + windowLow >= offsetFromStart) {
             break;
         }
         if (!pressed) {
@@ -225,7 +224,7 @@ gameplay_logic::rules::StandardBmsHitRules::processMines(
           column,
           mine.index,
           offsetFromStart.count(),
-          BmsPoints{ mine.penalty, Judgement::MineHit, hitOffset.count() },
+          BmsPoints{ mine.penalty, Judgement::MineHit, (offsetFromStart - noteTime).count() },
           HitEvent::Action::None,
           /*noteRemoved=*/true);
         currentMineIndex++;

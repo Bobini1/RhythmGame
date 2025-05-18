@@ -6,15 +6,16 @@ Image {
 
     asynchronous: true
     source: {
-        let currentItem = songList.current;
-        if (!(currentItem instanceof ChartData) || currentItem.banner === "") {
+        let current = songList.current;
+        if (!(current instanceof ChartData) || current.banner === "") {
             return "";
         }
-        let dir = currentItem.chartDirectory;
+        let dir = current.chartDirectory;
         if (dir[0] !== "/") {
             dir = "/" + dir;
         }
-        return "file://" + dir + currentItem.banner;
+        let bannerWithoutExt = current.banner.replace(/\.[^/.]+$/, "");
+        return "file://" + dir + bannerWithoutExt;
     }
     sourceSize.height: 80
     sourceSize.width: 300

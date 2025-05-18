@@ -8,7 +8,7 @@
 #include <span>
 #include "charts/gameplay_models/BmsNotesData.h"
 #include "input/BmsKeys.h"
-#include "BmsScore.h"
+#include "BmsLiveScore.h"
 #include "gameplay_logic/rules/BmsHitRules.h"
 #include "sounds/OpenAlSound.h"
 namespace gameplay_logic {
@@ -30,7 +30,7 @@ class BmsGameReferee
       currentBpmChanges;
     std::unordered_map<uint16_t, sounds::OpenALSound> sounds;
     std::unique_ptr<rules::BmsHitRules> hitRules;
-    BmsScore* score;
+    BmsLiveScore* score;
     sounds::OpenALSound* mineHitSound;
     std::array<bool, charts::gameplay_models::BmsNotesData::columnNumber>
       pressedState{};
@@ -48,6 +48,10 @@ class BmsGameReferee
      * @return The position in the chart, expressed in beats
      */
     auto getPosition(std::chrono::nanoseconds offsetFromStart) -> Position;
+    void addNote(decltype(notes)::value_type& column,
+                 decltype(mines)::value_type& minesColumn,
+                 const charts::gameplay_models::BmsNotesData::Note& note,
+                 int index);
 
   public:
     explicit BmsGameReferee(
@@ -58,13 +62,15 @@ class BmsGameReferee
       std::vector<std::pair<charts::gameplay_models::BmsNotesData::Time,
                             double>> bpmChanges,
       sounds::OpenALSound* mineHitSound,
-      BmsScore* score,
+      BmsLiveScore* score,
       std::unordered_map<uint16_t, sounds::OpenALSound> sounds,
       std::unique_ptr<rules::BmsHitRules> hitRules);
     /**
      * @brief Update the internal state of the referee
      * @param offsetFromStart The current time offset from the start of the
      * chart
+     * @param lastUpdate If true, remove all bgm sounds from the queue before
+     * updating
      * @return The position in the chart, expressed in beats
      */
     auto update(std::chrono::nanoseconds offsetFromStart,
@@ -74,10 +80,6 @@ class BmsGameReferee
                      input::BmsKey key) -> void;
     auto passReleased(std::chrono::nanoseconds offsetFromStart,
                       input::BmsKey key) -> void;
-    void addNote(decltype(notes)::value_type& column,
-                 decltype(mines)::value_type& minesColumn,
-                 const charts::gameplay_models::BmsNotesData::Note& note,
-                 int index);
 };
 } // namespace gameplay_logic
 

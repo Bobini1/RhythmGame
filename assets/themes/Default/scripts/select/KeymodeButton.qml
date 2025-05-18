@@ -6,7 +6,7 @@ Image {
     id: keymodeButton
 
     property int current: 0
-    property var options: ProfileList.battleActive ? [7] : [7, 14, null]
+    property var options: Rg.profileList.battleActive ? [7] : [7, 14, null]
     onOptionsChanged: {
         if (current >= options.length) {
             current = 0;

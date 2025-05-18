@@ -13,7 +13,7 @@ gameplay_logic::BmsGameReferee::BmsGameReferee(
   std::vector<std::pair<charts::gameplay_models::BmsNotesData::Time, double>>
     bpmChanges,
   sounds::OpenALSound* mineHitSound,
-  BmsScore* score,
+  BmsLiveScore* score,
   std::unordered_map<uint16_t, sounds::OpenALSound> sounds,
   std::unique_ptr<rules::BmsHitRules> hitRules)
   : bpmChanges(std::move(bpmChanges))

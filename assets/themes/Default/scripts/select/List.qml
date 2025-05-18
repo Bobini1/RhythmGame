@@ -10,6 +10,25 @@ PathView {
     property var filter: null
     // we need to keep references to ChartDatas, otherwise they will be garbage collected
     property var folderContents: []
+    onFolderContentsChanged: {
+        refreshScores()
+    }
+    function refreshScores() {
+        let md5s = [];
+        for (let item of folderContents) {
+            if (typeof item === "object" && "md5" in item) {
+                md5s.push(item.md5);
+            }
+        }
+        Rg.profileList.mainProfile.scoreDb.getScoresForMd5(md5s).then((results) => {
+            let md5ToScores = {};
+            for (let idx in results) {
+                md5ToScores[md5s[idx]] = results[idx];
+            }
+            scores = md5ToScores;
+        });
+    }
+    property var scores: []
     readonly property bool movingInAnyWay: movingManually || flicking || moving || dragging
     property bool movingManually: movingTimer.running
     property bool scrollingText: false
@@ -80,24 +99,25 @@ PathView {
         } else if (typeof item === "string") {
             folder = [];
             if (item === "") {
-                let tables = Tables.getList();
+                let tables = Rg.tables.getList();
                 for (let t of tables) {
                     if (t.status === table.Loaded) {
                         folder.push(t);
                     }
                 }
             }
-            folder.push(...SongFolderFactory.open(item));
+            folder.push(...Rg.songFolderFactory.open(item));
         } else {
             return;
         }
-        pathView.folderContents.length = 0;
+        let newFolderContents = [];
         for (let item of folder) {
-            pathView.folderContents.push(item);
+            newFolderContents.push(item);
         }
         folder = sortFilter(folder);
         addToMinimumCount(folder);
         pathView.model = folder;
+        pathView.folderContents = newFolderContents;
         openedFolder();
         return folder;
     }
@@ -105,15 +125,15 @@ PathView {
     signal openedFolder()
 
     function search(query) {
-        let results = SongFolderFactory.search(query);
+        let results = Rg.songFolderFactory.search(query);
         if (!results.length) {
             console.info("Search returned no results");
             return;
         }
         let curItem = current;
-        pathView.folderContents.length = 0;
+        let newFolderContents = [];
         for (let item of results) {
-            pathView.folderContents.push(item);
+            newFolderContents.push(item);
         }
         results = sortFilter(results);
         addToMinimumCount(results);
@@ -122,7 +142,9 @@ PathView {
             historyStack.push("SEARCH");
         }
         pathView.model = results;
+        pathView.folderContents = newFolderContents;
         pathView.positionViewAtIndex(1, PathView.Center);
+        openedFolder();
     }
 
     function sortFilter(input) {
@@ -163,14 +185,35 @@ PathView {
     preferredHighlightBegin: 0.499999999
     preferredHighlightEnd: 0.5
     snapMode: PathView.SnapToItem
+    cacheItemCount: 4
 
     delegate: Loader {
         id: selectItemLoader
 
-        property bool isCurrentItem: PathView.isCurrentItem
-        property bool scrollingText: pathView.scrollingText
+        Component {
+            id: chartComponent
+            ChartEntry {
+                scores: pathView.scores[modelData.md5] || []
+                isCurrentItem: selectItemLoader.isCurrentItem
+                scrollingText: selectItemLoader.scrollingText
+            }
+        }
 
-        source: typeof modelData === "string" || modelData instanceof level || modelData instanceof table ? "Folder.qml" : "Chart.qml"
+        Component {
+            id: folderComponent
+            FolderEntry {
+                isCurrentItem: selectItemLoader.isCurrentItem
+                scrollingText: selectItemLoader.scrollingText
+            }
+        }
+
+        readonly property BmsScore scoreWithBestPoints: "scoreWithBestPoints" in item ? item.scoreWithBestPoints : null
+        readonly property list<BmsScore> scores: "scores" in item ? item.scores : []
+        readonly property var bestStats: "bestStats" in item ? item.bestStats : null
+        readonly property bool isCurrentItem: PathView.isCurrentItem
+        readonly property bool scrollingText: pathView.scrollingText
+
+        sourceComponent: typeof modelData === "string" || modelData instanceof level || modelData instanceof table ? folderComponent : chartComponent
     }
     path: Path {
         id: path

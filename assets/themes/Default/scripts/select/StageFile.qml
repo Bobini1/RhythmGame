@@ -14,7 +14,8 @@ Image {
         if (dir[0] !== "/") {
             dir = "/" + dir;
         }
-        return "file://" + dir + current.stageFile;
+        let stageFileWithoutExt = current.stageFile.replace(/\.[^/.]+$/, "");
+        return "file://" + dir + stageFileWithoutExt;
     }
     sourceSize.height: 450
     sourceSize.width: 600

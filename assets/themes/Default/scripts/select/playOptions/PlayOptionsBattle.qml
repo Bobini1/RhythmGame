@@ -16,7 +16,7 @@ Item {
     }
 
     Side {
-        profile: ProfileList.battleProfiles.player1Profile
+        profile: Rg.profileList.battleProfiles.player1Profile
 
         TapHandler {
             gesturePolicy: TapHandler.WithinBounds
@@ -28,7 +28,7 @@ Item {
     }
 
     Side {
-        profile: ProfileList.battleProfiles.player2Profile
+        profile: Rg.profileList.battleProfiles.player2Profile
         player: 2
 
         TapHandler {

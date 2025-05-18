@@ -59,7 +59,7 @@ operator<<(QDataStream& stream, const HitEvent& tap) -> QDataStream&
 {
     auto points = tap.getPoints();
     stream << static_cast<qint64>(tap.offsetFromStart) << points << tap.column
-           << tap.getNoteIndex();
+           << tap.getNoteIndex() << tap.action << tap.noteRemoved;
     return stream;
 }
 auto
@@ -69,12 +69,16 @@ operator>>(QDataStream& stream, HitEvent& tap) -> QDataStream&
     QVariant points;
     int column;
     int noteIndex;
-    stream >> offsetFromStart >> points >> column >> noteIndex;
+    HitEvent::Action action;
+    bool noteRemoved;
+    stream >> offsetFromStart >> points >> column >> noteIndex >> action >> noteRemoved;
     tap.offsetFromStart = offsetFromStart;
     tap.points =
       points.isNull() ? std::nullopt : std::optional(points.value<BmsPoints>());
     tap.column = column;
     tap.noteIndex = noteIndex == -1 ? std::nullopt : std::optional(noteIndex);
+    tap.action = action;
+    tap.noteRemoved = noteRemoved;
     return stream;
 }
 auto

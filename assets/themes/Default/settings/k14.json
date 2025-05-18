@@ -354,7 +354,7 @@
         "name": "Play Area Z",
         "type": "range",
         "min": 0,
-        "default": 0,
+        "default": 2,
         "description": "The z-index of the play area."
       },
       {
@@ -362,7 +362,7 @@
         "name": "BGA Z",
         "type": "range",
         "min": 0,
-        "default": 1,
+        "default": 3,
         "description": "The z-index of the BGA."
       },
       {
@@ -370,7 +370,7 @@
         "name": "Life Bar Z",
         "type": "range",
         "min": 0,
-        "default": 2,
+        "default": 0,
         "description": "The z-index of the life bar."
       },
       {
@@ -378,7 +378,7 @@
         "name": "Judgement Counts Z",
         "type": "range",
         "min": 0,
-        "default": 3,
+        "default": 1,
         "description": "The z-index of the judgement counts."
       }
     ]

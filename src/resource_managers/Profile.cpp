@@ -57,6 +57,7 @@ Profile::Profile(
     writeConfig(configPath, *themeConfig);
     db.execute("CREATE TABLE IF NOT EXISTS score ("
                "id INTEGER PRIMARY KEY,"
+               "guid TEXT NOT NULL UNIQUE,"
                "sha256 TEXT NOT NULL,"
                "md5 TEXT NOT NULL,"
                "points INTEGER NOT NULL,"
@@ -75,20 +76,39 @@ Profile::Profile(
                "mine_hits INTEGER NOT NULL,"
                "clear_type TEXT NOT NULL,"
                "unix_timestamp INTEGER NOT NULL,"
-               "random_sequence STRING NOT NULL"
+               "random_sequence STRING NOT NULL,"
+               "random_seed INTEGER NOT NULL,"
+               "note_order_algorithm INTEGER NOT NULL,"
+               "note_order_algorithm_p2 INTEGER NOT NULL"
                ");");
     db.execute("CREATE TABLE IF NOT EXISTS replay_data ("
                "id INTEGER PRIMARY KEY AUTOINCREMENT,"
-               "score_id INTEGER NOT NULL,"
+               "score_guid TEXT NOT NULL UNIQUE,"
                "replay_data BLOB NOT NULL,"
-               "FOREIGN KEY(score_id) REFERENCES score(id)"
+               "FOREIGN KEY(score_guid) REFERENCES score(guid)"
                ");");
     db.execute("CREATE TABLE IF NOT EXISTS gauge_history ("
                "id INTEGER PRIMARY KEY AUTOINCREMENT,"
-               "score_id INTEGER NOT NULL,"
+               "score_guid TEXT NOT NULL UNIQUE,"
                "gauge_history BLOB NOT NULL,"
-               "FOREIGN KEY(score_id) REFERENCES score(id)"
+               "gauge_info BLOB NOT NULL,"
+               "FOREIGN KEY(score_guid) REFERENCES score(guid)"
                ");");
+    db.execute("CREATE TABLE IF NOT EXISTS properties ("
+               "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+               "key TEXT NOT NULL UNIQUE,"
+               "value"
+               ");");
+    const auto folderName = dbPath.parent_path().filename();
+    auto statement = db.createStatement("INSERT OR IGNORE INTO properties "
+                                        "(key, value) VALUES ('guid', ?);");
+    statement.bind(1, folderName.string());
+    statement.execute();
+    auto getGuid = db.createStatement("SELECT value FROM properties "
+                                      "WHERE key = 'guid';");
+    auto guidResult =
+      getGuid.executeAndGet<std::string>().value_or(std::string{});
+    guid = QString::fromStdString(guidResult);
 }
 auto
 Profile::getPath() const -> std::filesystem::path
@@ -119,5 +139,10 @@ auto
 Profile::getVars() -> Vars*
 {
     return &vars;
+}
+auto
+Profile::getGuid() const -> QString
+{
+    return guid;
 }
 } // namespace resource_managers

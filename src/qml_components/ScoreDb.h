@@ -6,12 +6,11 @@
 #define RHYTHMGAME_SCOREDB_H
 
 #include <functional>
+#include <QIfPendingReply>
 #include "db/SqliteCppDb.h"
-#include "gameplay_logic/BmsResult.h"
-#include "gameplay_logic/BmsGaugeHistory.h"
-#include "gameplay_logic/BmsReplayData.h"
+#include "gameplay_logic/BmsScore.h"
 namespace qml_components {
-class ScoreDb : public QObject
+class ScoreDb final : public QObject
 {
     Q_OBJECT
 
@@ -19,11 +18,8 @@ class ScoreDb : public QObject
 
   public:
     explicit ScoreDb(db::SqliteCppDb* scoreDb);
-    Q_INVOKABLE QList<gameplay_logic::BmsResult*> getScoresForMd5(
-      const QString& md5) const;
-    Q_INVOKABLE gameplay_logic::BmsGaugeHistory* getGaugeHistory(
-      int64_t scoreId) const;
-    Q_INVOKABLE gameplay_logic::BmsReplayData* getReplayData(int64_t scoreId);
+    Q_INVOKABLE QIfPendingReply<QList<QList<gameplay_logic::BmsScore*>>> getScoresForMd5(
+      const QList<QString>& md5s) const;
     Q_INVOKABLE int getTotalScoreCount() const;
 };
 } // namespace qml_components

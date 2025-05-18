@@ -32,7 +32,7 @@ ApplicationWindow {
                 id: loader
 
                 anchors.fill: parent
-                source: Themes.availableThemeFamilies[ProfileList.mainProfile.themeConfig[chartFocusScope.screen]].screens[chartFocusScope.screen].script
+                source: Rg.themes.availableThemeFamilies[Rg.profileList.mainProfile.themeConfig[chartFocusScope.screen]].screens[chartFocusScope.screen].script
             }
         }
     }
@@ -43,32 +43,33 @@ ApplicationWindow {
             id: resultFocusScope
 
             required property ChartData chartData
-            required property list<BmsScoreAftermath> result
+            required property list<BmsScore> scores
+            required property list<Profile> profiles
 
             Loader {
                 id: loader
 
                 anchors.fill: parent
-                source: Themes.availableThemeFamilies[ProfileList.mainProfile.themeConfig.result].screens.result.script
+                source: Rg.themes.availableThemeFamilies[Rg.profileList.mainProfile.themeConfig.result].screens.result.script
             }
         }
     }
     Item {
         id: globalRoot
 
-        readonly property Profile mainProfile: ProfileList.mainProfile
+        readonly property Profile mainProfile: Rg.profileList.mainProfile
         readonly property Component gameplayComponent: chartContext
-        readonly property Component mainComponent: Qt.createComponent(Themes.availableThemeFamilies[mainProfile.themeConfig.main].screens.main.script)
+        readonly property Component mainComponent: Qt.createComponent(Rg.themes.availableThemeFamilies[mainProfile.themeConfig.main].screens.main.script)
         readonly property Component resultComponent: resultContext
-        readonly property Component settingsComponent: Qt.createComponent(Themes.availableThemeFamilies[mainProfile.themeConfig.settings].screens.settings.script)
-        readonly property Component songWheelComponent: Qt.createComponent(Themes.availableThemeFamilies[mainProfile.themeConfig.songWheel].screens.songWheel.script)
+        readonly property Component settingsComponent: Qt.createComponent(Rg.themes.availableThemeFamilies[mainProfile.themeConfig.settings].screens.settings.script)
+        readonly property Component songWheelComponent: Qt.createComponent(Rg.themes.availableThemeFamilies[mainProfile.themeConfig.songWheel].screens.songWheel.script)
 
         function openChart(path) {
             let chart;
-            if (ProfileList.battleActive) {
-                chart = ChartLoader.loadChart(path, ProfileList.battleProfiles.player1Profile, ProfileList.battleProfiles.player2Profile);
+            if (Rg.profileList.battleActive) {
+                chart = Rg.chartLoader.loadChart(path, Rg.profileList.battleProfiles.player1Profile, Rg.profileList.battleProfiles.player2Profile);
             } else {
-                chart = ChartLoader.loadChart(path, ProfileList.mainProfile, null);
+                chart = Rg.chartLoader.loadChart(path, Rg.profileList.mainProfile, false, null, null, false, null);
             }
             if (!chart) {
                 console.error("Failed to load chart");
@@ -79,9 +80,32 @@ ApplicationWindow {
             });
         }
 
-        function openResult(result, chartData) {
+        function openReplay(path, score: BmsScore) {
+            let chart = Rg.chartLoader.loadChart(path, Rg.profileList.mainProfile, false, score, null, false, null);
+            if (!chart) {
+                console.error("Failed to load replay");
+                return;
+            }
+            sceneStack.pushItem(gameplayComponent, {
+                "chart": chart
+            });
+        }
+
+        function openAutoPlay(path) {
+            let chart = Rg.chartLoader.loadChart(path, Rg.profileList.mainProfile, true, null, null, false, null);
+            if (!chart) {
+                console.error("Failed to load chart");
+                return;
+            }
+            sceneStack.pushItem(gameplayComponent, {
+                "chart": chart
+            });
+        }
+
+        function openResult(scores, profiles, chartData) {
             sceneStack.pushItem(resultComponent, {
-                "result": result,
+                "scores": scores,
+                "profiles": profiles,
                 "chartData": chartData
             });
         }

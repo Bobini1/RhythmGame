@@ -25,10 +25,14 @@
 #include "qml_components/PreviewFilePathFetcher.h"
 #include "qml_components/FileQuery.h"
 #include "qml_components/InputAttached.h"
+#include "../RhythmGameQml/Rg.h"
 #include "qml_components/Themes.h"
 #include "resource_managers/GaugeFactory.h"
 #include "resource_managers/ScanThemes.h"
 #include "resource_managers/Tables.h"
+#include "support/PathToUtfString.h"
+#include "support/QStringToPath.h"
+#include "support/UtfStringToPath.h"
 
 Q_IMPORT_QML_PLUGIN(RhythmGameQmlPlugin)
 
@@ -116,8 +120,6 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
 
         auto programSettings =
           qml_components::ProgramSettings{ chartPath, avatarPath };
-        qmlRegisterSingletonInstance(
-          "RhythmGameQml", 1, 0, "ProgramSettings", &programSettings);
 
         qRegisterMetaType<input::Gamepad>("input::Gamepad");
 
@@ -127,16 +129,11 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
             throw std::runtime_error("No themes available");
         }
         auto gamepadManager = input::GamepadManager{};
-        qmlRegisterSingletonInstance(
-          "RhythmGameQml", 1, 0, "GamepadManager", &gamepadManager);
 
         auto themes = qml_components::Themes{ availableThemes };
-        qmlRegisterSingletonInstance("RhythmGameQml", 1, 0, "Themes", &themes);
         auto profileList = qml_components::ProfileList{
             &db, availableThemes, assetsFolder / "profiles", avatarPath
         };
-        qmlRegisterSingletonInstance(
-          "RhythmGameQml", 1, 0, "ProfileList", &profileList);
 
         auto inputTranslator = input::InputTranslator{ &db };
         QObject::connect(&gamepadManager,
@@ -151,8 +148,6 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
                          &input::GamepadManager::buttonReleased,
                          &inputTranslator,
                          &input::InputTranslator::handleRelease);
-        qmlRegisterSingletonInstance(
-          "RhythmGameQml", 1, 0, "InputTranslator", &inputTranslator);
 
         auto chartFactory = resource_managers::ChartFactory{ &inputTranslator };
         auto hitRulesFactory =
@@ -164,6 +159,22 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
           };
         auto chartDataFactory = resource_managers::ChartDataFactory{};
         auto gaugeFactory = resource_managers::GaugeFactory{};
+        auto getChartPathFromSha256 = [&db](const QString& sha256, const std::filesystem::path& hint) {
+            // Check if the hint path exists and matches the hash
+            auto hintStatement = db.createStatement("SELECT sha256 FROM charts WHERE path = ?;");
+            hintStatement.bind(1, support::pathToUtfString(hint));
+            if (const auto hintResult = hintStatement.executeAndGet<std::string>()) {
+                if (*hintResult == sha256.toStdString()) {
+                    return std::optional{ hint };
+                }
+            }
+
+            auto statement =
+              db.createStatement("SELECT path FROM charts WHERE sha256 = ?;");
+            statement.bind(1, sha256.toStdString());
+            return statement.executeAndGet<std::string>().transform(
+              support::utfStringToPath);
+        };
         auto chartLoader = qml_components::ChartLoader{
             &profileList,
             &inputTranslator,
@@ -172,10 +183,9 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
             std::move(hitRulesFactory),
             &gameplay_logic::rules::lr2_hit_values::getLr2HitValue,
             gaugeFactory,
+            getChartPathFromSha256,
             &chartFactory
         };
-        qmlRegisterSingletonInstance(
-          "RhythmGameQml", 1, 0, "ChartLoader", &chartLoader);
 
         auto scanningQueue =
           qml_components::ScanningQueue{ &db, songDbScanner };
@@ -184,60 +194,70 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
 
         auto rootSongFoldersConfig =
           qml_components::RootSongFoldersConfig{ &folders, &scanningQueue };
-        qmlRegisterSingletonInstance("RhythmGameQml",
-                                     1,
-                                     0,
-                                     "RootSongFoldersConfig",
-                                     &rootSongFoldersConfig);
 
         auto songFolderFactory = qml_components::SongFolderFactory{ &db };
-        qmlRegisterSingletonInstance(
-          "RhythmGameQml", 1, 0, "SongFolderFactory", &songFolderFactory);
-
         auto previewFilePathFetcher =
           qml_components::PreviewFilePathFetcher{ &db };
-        qmlRegisterSingletonInstance("RhythmGameQml",
-                                     1,
-                                     0,
-                                     "PreviewFilePathFetcher",
-                                     &previewFilePathFetcher);
 
         auto fileQuery = qml_components::FileQuery{};
-        qmlRegisterSingletonInstance(
-          "RhythmGameQml", 1, 0, "FileQuery", &fileQuery);
 
         auto networkManager = QNetworkAccessManager{};
-        auto tables =
-          resource_managers::Tables{ &networkManager, assetsFolder / "tables", &db };
-        qmlRegisterSingletonInstance("RhythmGameQml", 1, 0, "Tables", &tables);
+        auto tables = resource_managers::Tables{ &networkManager,
+                                                 assetsFolder / "tables",
+                                                 &db };
+
+        auto rg = Rg{ &programSettings,
+                      &inputTranslator,
+                      &chartLoader,
+                      &rootSongFoldersConfig,
+                      &songFolderFactory,
+                      &previewFilePathFetcher,
+                      &fileQuery,
+                      &themes,
+                      &gamepadManager,
+                      &profileList,
+                      &tables };
+
+        Rg::instance = &rg;
 
         // add all other common types
-        qmlRegisterType<resource_managers::Level>("RhythmGameQml", 1, 0, "level");
-        qmlRegisterType<resource_managers::Course>("RhythmGameQml", 1, 0, "course");
-        qmlRegisterType<resource_managers::Trophy>("RhythmGameQml", 1, 0, "trophy");
-        qmlRegisterType<resource_managers::Table>("RhythmGameQml", 1, 0, "table");
-        qmlRegisterType<resource_managers::Entry>("RhythmGameQml", 1, 0, "entry");
+        qmlRegisterType<resource_managers::Level>(
+          "RhythmGameQml", 1, 0, "level");
+        qmlRegisterType<resource_managers::Course>(
+          "RhythmGameQml", 1, 0, "course");
+        qmlRegisterType<resource_managers::Trophy>(
+          "RhythmGameQml", 1, 0, "trophy");
+        qmlRegisterType<resource_managers::Table>(
+          "RhythmGameQml", 1, 0, "table");
+        qmlRegisterType<resource_managers::Entry>(
+          "RhythmGameQml", 1, 0, "entry");
         qmlRegisterType<gameplay_logic::Chart>("RhythmGameQml", 1, 0, "Chart");
         qmlRegisterType<gameplay_logic::ChartData>(
           "RhythmGameQml", 1, 0, "ChartData");
         qmlRegisterType<resource_managers::Profile>(
           "RhythmGameQml", 1, 0, "Profile");
+        qmlRegisterType<gameplay_logic::Player>(
+          "RhythmGameQml", 1, 0, "Player");
         qmlRegisterUncreatableType<gameplay_logic::rules::BmsGauge>(
           "RhythmGameQml", 1, 0, "BmsGauge", "BmsGauge is abstract");
-        qmlRegisterType<gameplay_logic::BmsScore>(
-          "RhythmGameQml", 1, 0, "BmsScore");
+        qmlRegisterType<gameplay_logic::BmsLiveScore>(
+          "RhythmGameQml", 1, 0, "BmsLiveScore");
         qmlRegisterType<gameplay_logic::BmsNotes>(
           "RhythmGameQml", 1, 0, "BmsNotes");
         qmlRegisterType<resource_managers::Profile>(
           "RhythmGameQml", 1, 0, "BmsProfile");
-        qmlRegisterType<gameplay_logic::BmsScoreAftermath>(
-          "RhythmGameQml", 1, 0, "BmsScoreAftermath");
+        qmlRegisterType<gameplay_logic::BmsScore>(
+          "RhythmGameQml", 1, 0, "BmsScore");
+        qmlRegisterType<gameplay_logic::BmsPoints>(
+          "RhythmGameQml", 1, 0, "BmsPoints");
         qmlRegisterType<gameplay_logic::BmsResult>(
           "RhythmGameQml", 1, 0, "BmsResult");
         qmlRegisterType<gameplay_logic::BmsReplayData>(
           "RhythmGameQml", 1, 0, "BmsReplayData");
         qmlRegisterType<gameplay_logic::BmsGaugeHistory>(
           "RhythmGameQml", 1, 0, "BmsGaugeHistory");
+        qmlRegisterType<gameplay_logic::HitEvent>(
+          "RhythmGameQml", 1, 0, "HitEvent");
         qmlRegisterType<qml_components::Bga>("RhythmGameQml", 1, 0, "Bga");
         qmlRegisterType<qml_components::BgaContainer>(
           "RhythmGameQml", 1, 0, "BgaContainer");

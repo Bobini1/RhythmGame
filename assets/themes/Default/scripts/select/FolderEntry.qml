@@ -4,9 +4,10 @@ import RhythmGameQml
 
 Image {
     id: folder
-    property bool scrollingText: parent.scrollingText
     readonly property bool isTable: modelData instanceof table
     readonly property bool isLevel: modelData instanceof level
+    property bool scrollingText: false
+    property bool isCurrentItem: false
 
     asynchronous: true
     source: {
@@ -22,7 +23,7 @@ Image {
         anchors.rightMargin: 30
         color: "black"
         height: parent.height
-        scrolling: isCurrentItem && parent.scrollingText
+        scrolling: folder.isCurrentItem && folder.scrollingText
         text: {
             if (folder.isLevel) {
                 return pathView.historyStack[pathView.historyStack.length-1].symbol + modelData.name

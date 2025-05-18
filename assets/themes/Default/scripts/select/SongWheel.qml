@@ -1,6 +1,5 @@
 import QtQuick
 import RhythmGameQml
-import QtQuick.Layouts
 import QtQuick.Controls.Basic
 import QtMultimedia
 import QtQml
@@ -11,17 +10,9 @@ FocusScope {
     Image {
         id: root
 
-        readonly property var bestStats: {
-            let scores = songList.current instanceof ChartData && songList.currentItem ? songList.currentItem.children[0].scores : [];
-            return Helpers.getBestStats(scores);
-        }
         readonly property string imagesUrl: Qt.resolvedUrl(".") + "images/"
         readonly property string iniImagesUrl: "image://ini/" + rootUrl + "images/"
         property string rootUrl: globalRoot.urlToPath(Qt.resolvedUrl(".").toString())
-        property BmsResult scoreWithBestPoints: {
-            let scores = songList.current instanceof ChartData && songList.currentItem ? songList.currentItem.children[0].scores : [];
-            return Helpers.getScoreWithBestPoints(scores);
-        }
 
         fillMode: Image.PreserveAspectCrop
         height: parent.height
@@ -31,10 +22,7 @@ FocusScope {
         onEnabledChanged: {
             if (enabled) {
                 previewDelayTimer.restart();
-                let currentChart = songList.currentItem.children[0];
-                if (typeof currentChart.refreshScores === 'function') {
-                    currentChart.refreshScores();
-                }
+                songList.refreshScores();
             } else {
                 playMusic.stop();
                 previewDelayTimer.stop();
@@ -48,25 +36,102 @@ FocusScope {
             scale: Math.min(parent.width / 1920, parent.height / 1080)
             width: 1920
 
-            RowLayout {
-                anchors.left: parent.left
-                anchors.top: parent.top
-                height: parent.height
-                width: parent.width / 2
 
-                StageFile {
-                    Layout.alignment: Qt.AlignLeft | Qt.AlignTop
-                    Layout.leftMargin: 80
-                    Layout.preferredHeight: 480
-                    Layout.preferredWidth: 640
-                    Layout.topMargin: 120
+            StageFile {
+                id: stageFile
+                anchors {
+                    left: parent.left
+                    top: parent.top
+                    leftMargin: 80
+                    topMargin: 120
                 }
-                Banner {
-                    Layout.alignment: Qt.AlignLeft | Qt.AlignTop
-                    Layout.leftMargin: 80
-                    Layout.preferredHeight: 80
-                    Layout.preferredWidth: 300
-                    Layout.topMargin: 200
+                height: 480
+                width: 640
+            }
+            Banner {
+                id: banner
+                anchors {
+                    left: stageFile.right
+                    top: parent.top
+                    leftMargin: 60
+                    topMargin: 200
+                }
+                height: 80
+                width: 300
+            }
+            Row {
+                z: 1
+                anchors.horizontalCenter: banner.horizontalCenter
+                anchors.verticalCenter: parent.verticalCenter
+                anchors.verticalCenterOffset: -10
+                spacing: 5
+                Image {
+                    id: auto
+                    source: root.iniImagesUrl + "parts.png/auto"
+                    MouseArea {
+                        anchors.fill: parent
+                        enabled: songList.current?.path || false
+                        cursorShape: enabled ? Qt.PointingHandCursor : undefined
+                        onClicked: {
+                            if (songList.current?.path) {
+                                globalRoot.openAutoPlay(songList.current.path);
+                            }
+                        }
+                    }
+                }
+                Repeater {
+                    model: 4
+                    delegate: Image {
+                        id: replay
+                        source: root.iniImagesUrl + "parts.png/replay"
+                        MouseArea {
+                            anchors.fill: parent
+                            cursorShape: enabled ? Qt.PointingHandCursor : undefined
+                            enabled: (songList.current?.path && songList.currentItem?.scores) || false
+                            hoverEnabled: true
+                            ToolTip.visible: containsMouse
+                            ToolTip.text: {
+                                switch (modelData) {
+                                    case 0:
+                                        return qsTr("NEWEST");
+                                    case 1:
+                                        return qsTr("BEST SCORE");
+                                    case 2:
+                                        return qsTr("BEST CLEAR");
+                                    case 3:
+                                        return qsTr("BEST COMBO");
+                                }
+                            }
+                            ToolTip.delay: 500
+                            onClicked: {
+                                switch (modelData) {
+                                    case 0:
+                                        globalRoot.openReplay(songList.current.path, songList.currentItem.scores[0]);
+                                        break;
+                                    case 1:
+                                        globalRoot.openReplay(songList.current.path, songList.currentItem.scoreWithBestPoints);
+                                        break;
+                                    case 2:
+                                        let clearType = Helpers.getClearType(songList.currentItem?.scores);
+                                        let score = songList.currentItem.scores.find((score) => {
+                                            return score.result.clearType === clearType;
+                                        });
+                                        if (score) {
+                                            globalRoot.openReplay(songList.current.path, score);
+                                        }
+                                        break;
+                                    case 3:
+                                        let bestScore = songList.currentItem.scores.reduce((prev, curr) => {
+                                            return prev.result.maxCombo > curr.result.maxCombo ? prev : curr;
+                                        });
+                                        if (bestScore) {
+                                            globalRoot.openReplay(songList.current.path, bestScore);
+                                        }
+                                        break;
+                                }
+                            }
+                        }
+                    }
                 }
             }
             Selector {
@@ -99,21 +164,19 @@ FocusScope {
                 hoverEnabled: true
                 orientation: Qt.Vertical
                 onPositionChanged: {
-                    songList.offset = songList.count * (1-position);
-                    previewDelayTimer.restart();
-                }
-                onPressedChanged: {
-                    if (!pressed) {
-                        songList.positionViewAtIndex(songList.currentIndex+1, PathView.Center);
+                    if (pressed) {
+                        previewDelayTimer.restart();
+                        songList.offset = songList.count * (1 - vbar.position);
                     }
                 }
+                snapMode: ScrollBar.SnapOnRelease
+                stepSize: 1 / songList.count
                 background: Item {
                 }
                 contentItem: Image {
                     source: root.iniImagesUrl + "parts.png/slider"
                 }
                 Binding {
-                    delayed: true
                     vbar.position: {
                         let pos = 1 - (songList.offset / songList.count);
                         // some trickery to get the scrollbar to appear at the top at the beginning
@@ -154,7 +217,7 @@ FocusScope {
 
                 loops: MediaPlayer.Infinite
                 source: {
-                    let base = songList.current instanceof ChartData ? PreviewFilePathFetcher.getPreviewFilePath(songList.current.chartDirectory) : ""
+                    let base = songList.current instanceof ChartData ? Rg.previewFilePathFetcher.getPreviewFilePath(songList.current.chartDirectory) : ""
                     if (base === "") {
                         return base;
                     }
@@ -190,7 +253,9 @@ FocusScope {
                 anchors.centerIn: parent
                 anchors.horizontalCenterOffset: -10
                 anchors.verticalCenterOffset: -10
-                source: "Grade.qml"
+                sourceComponent: Grade {
+                    scoreWithBestPoints: songList.currentItem?.scoreWithBestPoints || null
+                }
             }
             Connections {
                 function onMovingInAnyWayChanged() {
@@ -220,6 +285,10 @@ FocusScope {
                 anchors.left: parent.left
                 anchors.leftMargin: 80
                 spacing: 40
+
+                current: songList.current
+                scoreWithBestPoints: songList.currentItem?.scoreWithBestPoints || null
+                bestStats: songList.currentItem?.bestStats || null
             }
             Image {
                 id: search
@@ -312,7 +381,7 @@ FocusScope {
                     enabled: options.startPressed && !login.enabled
                     anchors.centerIn: parent
 
-                    source: ProfileList.battleActive ? "playOptions/PlayOptionsBattle.qml" : "playOptions/PlayOptionsSingle.qml"
+                    source: Rg.profileList.battleActive ? "playOptions/PlayOptionsBattle.qml" : "playOptions/PlayOptionsSingle.qml"
                 }
 
                 Login {

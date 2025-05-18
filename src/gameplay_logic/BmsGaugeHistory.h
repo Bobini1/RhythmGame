@@ -25,26 +25,30 @@ class BmsGaugeInfo
       -> QDataStream&;
 };
 
-class BmsGaugeHistory : public QObject
+class BmsGaugeHistory final : public QObject
 {
     Q_OBJECT
 
     Q_PROPERTY(QVariantMap gaugeHistory READ getGaugeHistoryVariant CONSTANT)
     Q_PROPERTY(QVariantMap gaugeInfo READ getGaugeInfoVariant CONSTANT)
+    Q_PROPERTY(QString guid READ getGuid CONSTANT)
     QHash<QString, QList<rules::GaugeHistoryEntry>> gaugeHistory;
     QHash<QString, BmsGaugeInfo> gaugeInfo;
+    QString guid;
 
   public:
     /**
      * @brief Construct a new Bms Gauge History object
      * @param gaugeHistory A map of gauge name to QList of gauge history entries
+     * @param gaugeInfo A map of gauge name to BmsGaugeInfo
+     * @param guid The unique identifier for the score
      * @param parent QObject parent
      */
     explicit BmsGaugeHistory(
       QHash<QString, QList<rules::GaugeHistoryEntry>> gaugeHistory,
       QHash<QString, BmsGaugeInfo> gaugeInfo,
+      QString guid,
       QObject* parent = nullptr);
-    BmsGaugeHistory() = default;
 
     /**
      * @brief Get the gauge history
@@ -64,14 +68,18 @@ class BmsGaugeHistory : public QObject
 
     auto getGaugeInfoVariant() const -> QVariantMap;
 
-    friend auto operator<<(QDataStream& stream,
-                           const BmsGaugeHistory& gaugeHistory) -> QDataStream&;
-    friend auto operator>>(QDataStream& stream, BmsGaugeHistory& gaugeHistory)
-      -> QDataStream&;
+    auto getGuid() const -> QString;
 
-    void save(db::SqliteCppDb& db, int64_t scoreId);
-    static auto load(db::SqliteCppDb& db, int64_t scoreId)
-      -> std::unique_ptr<BmsGaugeHistory>;
+    void save(db::SqliteCppDb& db);
+
+    struct DTO
+    {
+        int64_t id;
+        std::string scoreGuid;
+        std::string gaugeHistory;
+        std::string gaugeInfo;
+    };
+    static auto load(const DTO& dto) -> std::unique_ptr<BmsGaugeHistory>;
 };
 } // namespace gameplay_logic
 
