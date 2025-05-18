@@ -144,6 +144,7 @@ PathView {
         pathView.model = results;
         pathView.folderContents = newFolderContents;
         pathView.positionViewAtIndex(1, PathView.Center);
+        openedFolder();
     }
 
     function sortFilter(input) {
