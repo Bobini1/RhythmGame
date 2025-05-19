@@ -9,7 +9,7 @@
 
 namespace qml_components {
 QVariantList
-SongFolderFactory::open(QString path)
+SongFolderFactory::open(const QString& path)
 {
     auto folder = QVariantList{};
     auto pathStd = path.toStdString();
@@ -19,8 +19,8 @@ SongFolderFactory::open(QString path)
     } else {
         getFolders.bind(1, pathStd);
     }
-    auto result = getFolders.executeAndGetAll<std::string>();
-    for (const auto& row : result) {
+    for (const auto result = getFolders.executeAndGetAll<std::string>();
+         const auto& row : result) {
         folder.append(QString::fromStdString(row));
     }
     getCharts.reset();
@@ -29,8 +29,39 @@ SongFolderFactory::open(QString path)
     } else {
         getCharts.bind(1, pathStd);
     }
-    auto chartResult =
+    const auto chartResult =
       getCharts.executeAndGetAll<gameplay_logic::ChartData::DTO>();
+    for (const auto& row : chartResult) {
+        auto loadedChart = gameplay_logic::ChartData::load(row);
+        QQmlEngine::setObjectOwnership(loadedChart.get(),
+                                       QQmlEngine::JavaScriptOwnership);
+        folder.append(QVariant::fromValue(loadedChart.release()));
+    }
+    return folder;
+}
+QVariantList
+SongFolderFactory::openRecursive(const QString& path)
+{
+    auto folder = QVariantList{};
+    auto pathStd = path.toStdString();
+    getFoldersRecursive.reset();
+    if (path.isEmpty()) {
+        getFoldersRecursive.bind(1);
+    } else {
+        getFoldersRecursive.bind(1, pathStd);
+    }
+    for (const auto result = getFoldersRecursive.executeAndGetAll<std::string>();
+         const auto& row : result) {
+        folder.append(QString::fromStdString(row));
+         }
+    getChartsRecursive.reset();
+    if (path.isEmpty()) {
+        getChartsRecursive.bind(1);
+    } else {
+        getChartsRecursive.bind(1, pathStd);
+    }
+    const auto chartResult =
+      getChartsRecursive.executeAndGetAll<gameplay_logic::ChartData::DTO>();
     for (const auto& row : chartResult) {
         auto loadedChart = gameplay_logic::ChartData::load(row);
         QQmlEngine::setObjectOwnership(loadedChart.get(),
@@ -45,7 +76,7 @@ SongFolderFactory::SongFolderFactory(db::SqliteCppDb* db, QObject* parent)
 {
 }
 auto
-SongFolderFactory::folderSize(QString path) -> int
+SongFolderFactory::folderSize(const QString& path) -> int
 {
     auto pathStd = path.toStdString();
     getSize.reset();
@@ -55,7 +86,7 @@ SongFolderFactory::folderSize(QString path) -> int
     return result[0] + result[1];
 }
 QString
-SongFolderFactory::parentFolder(QString path)
+SongFolderFactory::parentFolder(const QString& path)
 {
 
     auto pathStd = path.toStdString();
@@ -68,7 +99,7 @@ SongFolderFactory::parentFolder(QString path)
     return QString::fromStdString(result.value());
 }
 QVariantList
-SongFolderFactory::search(QString query)
+SongFolderFactory::search(const QString& query)
 {
     auto sw = spdlog::stopwatch{};
     auto folder = QVariantList{};
