@@ -11,24 +11,26 @@ PathView {
     property var filter: null
     // we need to keep references to ChartDatas, otherwise they will be garbage collected
     property var folderContents: []
-    onFolderContentsChanged: {
-        refreshScores()
+    onOpenedFolder: {
+        refreshScores();
         refreshFolderClearStats();
     }
     function refreshScores() {
-        let md5s = [];
-        for (let item of folderContents) {
-            if (typeof item === "object" && "md5" in item) {
-                md5s.push(item.md5);
+        if (historyStack[historyStack.length - 1] === "SEARCH") {
+            let md5s = [];
+            for (let item of folderContents) {
+                if (typeof item === "object" && "md5" in item) {
+                    md5s.push(item.md5);
+                }
             }
+            Rg.profileList.mainProfile.scoreDb.getScoresForMd5(md5s).then((result) => {
+                scores = result.scores;
+            });
+        } else {
+            Rg.profileList.mainProfile.scoreDb.getScores(historyStack[historyStack.length - 1]).then((result) => {
+                scores = result.scores;
+            });
         }
-        Rg.profileList.mainProfile.scoreDb.getScoresForMd5(md5s).then((results) => {
-            let md5ToScores = {};
-            for (let idx in results) {
-                md5ToScores[md5s[idx]] = results[idx];
-            }
-            scores = md5ToScores;
-        });
     }
     property var scores: {
         return {};
@@ -40,22 +42,9 @@ PathView {
             if (folder instanceof ChartData || folder instanceof entry) {
                 continue;
             }
-            let md5s;
-            if (folder instanceof table) {
-                md5s = folder.levels.map((level) => level.entries)
-                    .reduce((acc, entries) => acc.concat(entries), []).map((entry) => entry.md5);
-            } else if (folder instanceof level) {
-                md5s = folder.entries.map((entry) => entry.md5);
-            } else {
-                md5s = Rg.songFolderFactory.openRecursive(folder).filter((item) => item instanceof ChartData).map((song) => song.md5);
-            }
-            function onlyUnique(value, index, array) {
-                return array.indexOf(value) === index;
-            }
-            md5s = md5s.filter(onlyUnique);
-            Rg.profileList.mainProfile.scoreDb.getScoresForMd5(md5s).then((results) => {
-                let clearCounts = {};
-                for (let scores of results) {
+            Rg.profileList.mainProfile.scoreDb.getScores(folder).then((result) => {
+                let clearCounts = {"NOPLAY": result.unplayed};
+                for (let scores of Object.values(result.scores)) {
                     let clear = Helpers.getClearType(scores);
                     if (clearCounts[clear] === undefined) {
                         clearCounts[clear] = 0;
@@ -97,8 +86,7 @@ PathView {
         if (historyStack.length === 1) {
             return;
         }
-        let last = historyStack[historyStack.length - 1];
-        historyStack.pop();
+        let last = historyStack.pop();
         let folder = open(historyStack[historyStack.length - 1]);
         let idx = (1 + folder.findIndex((folderItem) => {
             if (folderItem instanceof ChartData && last instanceof ChartData) {

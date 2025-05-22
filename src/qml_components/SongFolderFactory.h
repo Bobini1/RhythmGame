@@ -4,7 +4,7 @@
 
 #ifndef RHYTHMGAME_SONGFOLDERFACTORY_H
 #define RHYTHMGAME_SONGFOLDERFACTORY_H
-\
+
 #include <QIfPendingReply>
 #include "db/SqliteCppDb.h"
 
@@ -23,15 +23,19 @@ class SongFolderFactory : public QObject
       "main_bpm, avg_bpm, path, directory, sha256, md5, keymode "
       "FROM charts WHERE directory IS (SELECT id FROM parent_dir WHERE dir IS "
       "?) ORDER BY title, subtitle ASC");
-    db::SqliteCppDb::Statement getChartsRecursive =
-      db->createStatement(
-        "SELECT id, title, artist, subtitle, subartist, "
-        "genre, stage_file, banner, back_bmp, rank, total, "
-        "play_level, difficulty, is_random, random_sequence, normal_note_count, "
-        "ln_count, mine_count, length, initial_bpm, max_bpm, min_bpm, "
-        "main_bpm, avg_bpm, path, directory, sha256, md5, keymode FROM charts "
-        "WHERE directory IS (SELECT id FROM parent_dir WHERE dir LIKE ? || '%') "
-        "ORDER BY title ASC");
+    db::SqliteCppDb::Statement getChartsRecursive = db->createStatement(
+      "SELECT id, title, artist, subtitle, subartist, "
+      "genre, stage_file, banner, back_bmp, rank, total, "
+      "play_level, difficulty, is_random, random_sequence, normal_note_count, "
+      "ln_count, mine_count, length, initial_bpm, max_bpm, min_bpm, "
+      "main_bpm, avg_bpm, path, directory, sha256, md5, keymode FROM charts "
+      "WHERE directory IS (SELECT id FROM parent_dir WHERE dir LIKE ? || '%') "
+      "ORDER BY title ASC");
+    db::SqliteCppDb::Statement getMd5 =
+      db->createStatement("SELECT md5 FROM charts WHERE directory IS "
+                          "(SELECT id FROM parent_dir WHERE dir IS ?)");
+    db::SqliteCppDb::Statement getMd5Recursive = db->createStatement(
+      "SELECT md5 FROM charts WHERE chart_directory LIKE ? || '%'");
     db::SqliteCppDb::Statement getFolders =
       db->createStatement("SELECT dir FROM parent_dir "
                           "WHERE parent_dir IS ? ORDER BY dir ASC");

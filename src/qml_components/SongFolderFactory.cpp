@@ -44,16 +44,6 @@ SongFolderFactory::openRecursive(const QString& path)
 {
     auto folder = QVariantList{};
     auto pathStd = path.toStdString();
-    getFoldersRecursive.reset();
-    if (path.isEmpty()) {
-        getFoldersRecursive.bind(1);
-    } else {
-        getFoldersRecursive.bind(1, pathStd);
-    }
-    for (const auto result = getFoldersRecursive.executeAndGetAll<std::string>();
-         const auto& row : result) {
-        folder.append(QString::fromStdString(row));
-         }
     getChartsRecursive.reset();
     if (path.isEmpty()) {
         getChartsRecursive.bind(1);

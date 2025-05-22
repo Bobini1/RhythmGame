@@ -96,9 +96,7 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
 
         qputenv("QML_XHR_ALLOW_FILE_READ", QByteArray("1"));
 
-        auto db = db::SqliteCppDb{ support::pathToQString(
-                                     (assetsFolder / "song_db.sqlite"))
-                                     .toStdString() };
+        auto db = db::SqliteCppDb{ assetsFolder / "song_db.sqlite" };
 
         resource_managers::defineDb(db);
 
@@ -132,6 +130,7 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
 
         auto themes = qml_components::Themes{ availableThemes };
         auto profileList = qml_components::ProfileList{
+            assetsFolder / "song_db.sqlite",
             &db, availableThemes, assetsFolder / "profiles", avatarPath
         };
 

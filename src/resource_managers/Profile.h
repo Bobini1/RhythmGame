@@ -41,6 +41,7 @@ class Profile final : public QObject
      * @param parent QObject parent.
      */
     explicit Profile(
+      const std::filesystem::path& mainDbPath,
       const std::filesystem::path& dbPath,
       const QMap<QString, qml_components::ThemeFamily>& themeFamilies,
       QString avatarPath,

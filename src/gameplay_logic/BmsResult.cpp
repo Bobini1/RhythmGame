@@ -140,7 +140,7 @@ gameplay_logic::BmsResult::save(db::SqliteCppDb& db) const
     statement.execute();
 }
 auto
-gameplay_logic::BmsResult::load(const BmsResultDto& dto)
+gameplay_logic::BmsResult::load(const DTO& dto)
   -> std::unique_ptr<BmsResult>
 {
     auto judgementCounts = QList<int>(magic_enum::enum_count<Judgement>());
