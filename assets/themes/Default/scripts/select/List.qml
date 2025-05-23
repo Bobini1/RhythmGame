@@ -256,7 +256,7 @@ PathView {
         readonly property bool isCurrentItem: PathView.isCurrentItem
         readonly property bool scrollingText: pathView.scrollingText
 
-        sourceComponent: typeof modelData === "string" || modelData instanceof level || modelData instanceof table || modelData === null ? folderComponent : chartComponent
+        sourceComponent: modelData instanceof ChartData || modelData instanceof entry ? chartComponent : folderComponent
     }
     path: Path {
         id: path
