@@ -68,7 +68,7 @@ PathView {
         let length = input.length;
         let limit = Math.max(length, pathItemCount);
         for (let i = length; i < limit; i++) {
-            input.push(input[i % length]);
+            input.push(input[i % length] || null);
         }
     }
 
@@ -109,7 +109,7 @@ PathView {
             globalRoot.openChart(item.path);
             return;
         }
-        if (item instanceof entry) {
+        if (item instanceof entry || item === null) {
             return;
         }
         historyStack.push(item);
@@ -135,7 +135,7 @@ PathView {
             }
             folder.push(...Rg.songFolderFactory.open(item));
         } else {
-            return;
+            return [];
         }
         let newFolderContents = [];
         for (let item of folder) {
@@ -256,7 +256,7 @@ PathView {
         readonly property bool isCurrentItem: PathView.isCurrentItem
         readonly property bool scrollingText: pathView.scrollingText
 
-        sourceComponent: typeof modelData === "string" || modelData instanceof level || modelData instanceof table ? folderComponent : chartComponent
+        sourceComponent: typeof modelData === "string" || modelData instanceof level || modelData instanceof table || modelData === null ? folderComponent : chartComponent
     }
     path: Path {
         id: path
