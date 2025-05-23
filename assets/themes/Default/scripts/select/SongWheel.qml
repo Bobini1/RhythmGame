@@ -87,7 +87,7 @@ FocusScope {
                         MouseArea {
                             anchors.fill: parent
                             cursorShape: enabled ? Qt.PointingHandCursor : undefined
-                            enabled: (songList.current?.path && songList.currentItem?.scores) || false
+                            enabled: (songList.current?.path && songList.currentItem?.scores?.length) || false
                             hoverEnabled: true
                             ToolTip.visible: containsMouse
                             ToolTip.text: {

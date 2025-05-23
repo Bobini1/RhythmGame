@@ -48,6 +48,7 @@ qml_components::ProfileList::saveActiveProfiles()
 }
 
 qml_components::ProfileList::ProfileList(
+  std::filesystem::path mainDbPath,
   db::SqliteCppDb* songDb,
   const QMap<QString, ThemeFamily>& themeFamilies,
   std::filesystem::path profilesFolder,
@@ -55,6 +56,7 @@ qml_components::ProfileList::ProfileList(
   QObject* parent)
   : QObject(parent)
   , profilesFolder(std::move(profilesFolder))
+  , mainDbPath(std::move(mainDbPath))
   , songDb(songDb)
   , themeFamilies(themeFamilies)
   , avatarPath(std::move(avatarPath))
@@ -70,6 +72,7 @@ qml_components::ProfileList::ProfileList(
         if (entry.is_directory()) {
             try {
                 auto* profile = new resource_managers::Profile(
+                    this->mainDbPath,
                   entry.path() / "profile.sqlite",
                   themeFamilies,
                   this->avatarPath,
@@ -155,6 +158,7 @@ qml_components::ProfileList::createProfile() -> resource_managers::Profile*
 {
     try {
         auto* profile = new resource_managers::Profile(
+            this->mainDbPath,
           profilesFolder / QUuid::createUuid().toString().toStdString() /
             "profile.sqlite",
           themeFamilies,

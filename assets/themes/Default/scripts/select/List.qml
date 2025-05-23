@@ -2,6 +2,7 @@ pragma ValueTypeBehavior: Addressable
 import QtQuick
 import RhythmGameQml
 import QtQml.Models
+import "../common/helpers.js" as Helpers
 
 PathView {
     id: pathView
@@ -10,25 +11,52 @@ PathView {
     property var filter: null
     // we need to keep references to ChartDatas, otherwise they will be garbage collected
     property var folderContents: []
-    onFolderContentsChanged: {
-        refreshScores()
+    onOpenedFolder: {
+        refreshScores();
+        refreshFolderClearStats();
     }
     function refreshScores() {
-        let md5s = [];
-        for (let item of folderContents) {
-            if (typeof item === "object" && "md5" in item) {
-                md5s.push(item.md5);
+        if (historyStack[historyStack.length - 1] === "SEARCH") {
+            let md5s = [];
+            for (let item of folderContents) {
+                if (typeof item === "object" && "md5" in item) {
+                    md5s.push(item.md5);
+                }
             }
+            Rg.profileList.mainProfile.scoreDb.getScoresForMd5(md5s).then((result) => {
+                scores = result.scores;
+            });
+        } else {
+            Rg.profileList.mainProfile.scoreDb.getScores(historyStack[historyStack.length - 1]).then((result) => {
+                scores = result.scores;
+            });
         }
-        Rg.profileList.mainProfile.scoreDb.getScoresForMd5(md5s).then((results) => {
-            let md5ToScores = {};
-            for (let idx in results) {
-                md5ToScores[md5s[idx]] = results[idx];
-            }
-            scores = md5ToScores;
-        });
     }
-    property var scores: []
+    property var scores: {
+        return {};
+    }
+    property var folderClearStats: []
+    function refreshFolderClearStats() {
+        folderClearStats = [];
+        for (let folder of folderContents) {
+            if (folder instanceof ChartData || folder instanceof entry) {
+                continue;
+            }
+            Rg.profileList.mainProfile.scoreDb.getScores(folder).then((result) => {
+                let clearCounts = {"NOPLAY": result.unplayed};
+                for (let scores of Object.values(result.scores)) {
+                    let clear = Helpers.getClearType(scores);
+                    if (clearCounts[clear] === undefined) {
+                        clearCounts[clear] = 0;
+                    }
+                    clearCounts[clear] += 1;
+                }
+                folderClearStats.push([folder, clearCounts]);
+                folderClearStats = folderClearStats.slice();
+            });
+        }
+    }
+
     readonly property bool movingInAnyWay: movingManually || flicking || moving || dragging
     property bool movingManually: movingTimer.running
     property bool scrollingText: false
@@ -40,7 +68,7 @@ PathView {
         let length = input.length;
         let limit = Math.max(length, pathItemCount);
         for (let i = length; i < limit; i++) {
-            input.push(input[i % length]);
+            input.push(input[i % length] || null);
         }
     }
 
@@ -58,8 +86,7 @@ PathView {
         if (historyStack.length === 1) {
             return;
         }
-        let last = historyStack[historyStack.length - 1];
-        historyStack.pop();
+        let last = historyStack.pop();
         let folder = open(historyStack[historyStack.length - 1]);
         let idx = (1 + folder.findIndex((folderItem) => {
             if (folderItem instanceof ChartData && last instanceof ChartData) {
@@ -82,7 +109,7 @@ PathView {
             globalRoot.openChart(item.path);
             return;
         }
-        if (item instanceof entry) {
+        if (item instanceof entry || item === null) {
             return;
         }
         historyStack.push(item);
@@ -108,7 +135,7 @@ PathView {
             }
             folder.push(...Rg.songFolderFactory.open(item));
         } else {
-            return;
+            return [];
         }
         let newFolderContents = [];
         for (let item of folder) {
@@ -202,6 +229,22 @@ PathView {
         Component {
             id: folderComponent
             FolderEntry {
+                clearStats: {
+                    let stats = pathView.folderClearStats.find((item) => {
+                        if (item[0] instanceof table && modelData instanceof table) {
+                            return item[0].url === modelData.url;
+                        } else if (item[0] instanceof level && modelData instanceof level) {
+                            return item[0].name === modelData.name;
+                        } else if (typeof item[0] === "string" && typeof modelData === "string") {
+                            return item[0] === modelData;
+                        }
+                        return false;
+                    });
+                    if (stats) {
+                        return stats[1];
+                    }
+                    return null;
+                }
                 isCurrentItem: selectItemLoader.isCurrentItem
                 scrollingText: selectItemLoader.scrollingText
             }
@@ -213,7 +256,7 @@ PathView {
         readonly property bool isCurrentItem: PathView.isCurrentItem
         readonly property bool scrollingText: pathView.scrollingText
 
-        sourceComponent: typeof modelData === "string" || modelData instanceof level || modelData instanceof table ? folderComponent : chartComponent
+        sourceComponent: modelData instanceof ChartData || modelData instanceof entry ? chartComponent : folderComponent
     }
     path: Path {
         id: path

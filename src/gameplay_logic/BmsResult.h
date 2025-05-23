@@ -56,7 +56,7 @@ class BmsResult final : public QObject
     resource_managers::NoteOrderAlgorithm noteOrderAlgorithmP2;
 
   public:
-    struct BmsResultDto
+    struct DTO
     {
         int64_t id;
         std::string guid;
@@ -122,7 +122,7 @@ class BmsResult final : public QObject
     auto getNoteOrderAlgorithmP2() const -> resource_managers::NoteOrderAlgorithm;
 
     void save(db::SqliteCppDb& db) const;
-    static auto load(const BmsResultDto& dto) -> std::unique_ptr<BmsResult>;
+    static auto load(const DTO& dto) -> std::unique_ptr<BmsResult>;
 };
 
 } // namespace gameplay_logic

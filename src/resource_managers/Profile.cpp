@@ -9,6 +9,7 @@
 #include "support/Compress.h"
 #include "support/PathToQString.h"
 #include "input/GamepadManager.h"
+#include "support/PathToUtfString.h"
 
 namespace resource_managers {
 
@@ -34,6 +35,7 @@ createConfig(const QMap<QString, qml_components::ThemeFamily>& availableThemes,
 } // namespace
 
 Profile::Profile(
+  const std::filesystem::path& mainDbPath,
   const std::filesystem::path& dbPath,
   const QMap<QString, qml_components::ThemeFamily>& themeFamilies,
   QString avatarPath,
@@ -46,6 +48,10 @@ Profile::Profile(
         .release())
   , vars(this, themeFamilies, std::move(avatarPath))
 {
+    auto attachStatement = db.createStatement(
+      "ATTACH DATABASE ? AS song_db;");
+    attachStatement.bind(1, support::pathToUtfString(mainDbPath));
+    attachStatement.execute();
     this->themeConfig->setParent(this);
     auto configPath = dbPath.parent_path() / "theme_config.json";
     connect(themeConfig,

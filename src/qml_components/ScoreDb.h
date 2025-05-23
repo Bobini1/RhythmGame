@@ -9,7 +9,18 @@
 #include <QIfPendingReply>
 #include "db/SqliteCppDb.h"
 #include "gameplay_logic/BmsScore.h"
+#include "resource_managers/Tables.h"
 namespace qml_components {
+class ScoreQueryResult
+{
+    Q_GADGET
+    Q_PROPERTY(qint64 unplayed MEMBER unplayed)
+    Q_PROPERTY(QVariantMap scores MEMBER scores)
+  public:
+    qint64 unplayed{};
+    QVariantMap scores;
+};
+
 class ScoreDb final : public QObject
 {
     Q_OBJECT
@@ -18,8 +29,15 @@ class ScoreDb final : public QObject
 
   public:
     explicit ScoreDb(db::SqliteCppDb* scoreDb);
-    Q_INVOKABLE QIfPendingReply<QList<QList<gameplay_logic::BmsScore*>>> getScoresForMd5(
+    Q_INVOKABLE QIfPendingReply<ScoreQueryResult> getScoresForMd5(
       const QList<QString>& md5s) const;
+    Q_INVOKABLE QIfPendingReply<ScoreQueryResult> getScores(
+      const QString& folder) const;
+    Q_INVOKABLE QIfPendingReply<ScoreQueryResult> getScores(
+      const resource_managers::Table& table) const;
+    Q_INVOKABLE QIfPendingReply<ScoreQueryResult> getScores(
+      const resource_managers::Level& level) const;
+
     Q_INVOKABLE int getTotalScoreCount() const;
 };
 } // namespace qml_components

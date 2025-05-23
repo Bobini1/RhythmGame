@@ -40,25 +40,30 @@ addDirToParentDirs(db::SqliteCppDb& db, QString root, QString folder)
     auto parent = std::string{};
     auto current = root;
     auto rest = folder.right(folder.size() - root.size());
-    while (true) {
-        insert.reset();
-        if (parent.empty()) {
-            insert.bind(":parent_dir");
-        } else {
-            insert.bind(std::string(":parent_dir"), parent);
+    try {
+        while (true) {
+            insert.reset();
+            if (parent.empty()) {
+                insert.bind(":parent_dir");
+            } else {
+                insert.bind(std::string(":parent_dir"), parent);
+            }
+            insert.bind(":dir", parent = current.toStdString());
+            insert.execute();
+            if (current == folder || folder.isEmpty()) {
+                break;
+            }
+            current = current + rest.left(rest.indexOf('/') + 1);
+            rest = rest.right(rest.size() - rest.indexOf('/') - 1);
         }
-        insert.bind(":dir", parent = current.toStdString());
-        insert.execute();
-        if (current == folder || folder.isEmpty()) {
-            break;
-        }
-        current = current + rest.left(rest.indexOf('/') + 1);
-        rest = rest.right(rest.size() - rest.indexOf('/') - 1);
+        auto getIdQuery =
+          db.createStatement("SELECT id FROM parent_dir WHERE dir = :dir");
+        getIdQuery.bind(":dir", folder.toStdString());
+        return getIdQuery.executeAndGet<int64_t>().value();
+    } catch (const std::exception& e) {
+        spdlog::error("Failed to add directory to parent dirs: {}", e.what());
+        return -1;
     }
-    auto getIdQuery =
-      db.createStatement("SELECT id FROM parent_dir WHERE dir = :dir");
-    getIdQuery.bind(":dir", folder.toStdString());
-    return getIdQuery.executeAndGet<int64_t>().value();
 }
 void
 loadChart(QThreadPool& threadPool,

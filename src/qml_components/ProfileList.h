@@ -52,6 +52,7 @@ class ProfileList final : public QObject
     Q_OBJECT
 
     std::filesystem::path profilesFolder;
+    std::filesystem::path mainDbPath;
     QList<resource_managers::Profile*> profiles;
     db::SqliteCppDb* songDb;
     QMap<QString, ThemeFamily> themeFamilies;
@@ -72,7 +73,8 @@ class ProfileList final : public QObject
     void saveActiveProfiles();
 
   public:
-    explicit ProfileList(db::SqliteCppDb* songDb,
+    explicit ProfileList(std::filesystem::path mainDbPath,
+                         db::SqliteCppDb* songDb,
                          const QMap<QString, ThemeFamily>& themeFamilies,
                          std::filesystem::path profilesFolder,
                          QString avatarPath,
