@@ -42,13 +42,11 @@ class SqliteCppDb
         template<typename... T>
         auto bind(int index, T&&... values) -> void
         {
-            std::lock_guard lock(*dbMutex);
             statement.bind(index, std::forward<T>(values)...);
         }
         template<typename... T>
         auto bind(const std::string& name, T&&... values) -> void
         {
-            std::lock_guard lock(*dbMutex);
             statement.bind(name, std::forward<T>(values)...);
         }
         void reset();
@@ -67,7 +65,6 @@ class SqliteCppDb
         template<std::default_initializable Ret>
         [[nodiscard]] auto executeAndGet() -> std::optional<Ret>
         {
-            std::lock_guard lock(*dbMutex);
             if (!statement.executeStep()) {
                 return {};
             }
@@ -87,7 +84,6 @@ class SqliteCppDb
         template<std::default_initializable Ret>
         [[nodiscard]] auto executeAndGetAll() -> std::vector<Ret>
         {
-            std::lock_guard lock(*dbMutex);
             std::vector<Ret> result;
 
             while (statement.executeStep()) {

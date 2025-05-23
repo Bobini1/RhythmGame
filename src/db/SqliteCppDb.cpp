@@ -12,7 +12,7 @@ db::SqliteCppDb::
 SqliteCppDb(std::filesystem::path dbPath)
   : db(dbPath,
        SQLite::OPEN_READWRITE | // NOLINT(hicpp-signed-bitwise)
-         SQLite::OPEN_CREATE)
+         SQLite::OPEN_CREATE | SQLite::OPEN_FULLMUTEX)
 {
     db.exec("PRAGMA journal_mode=WAL;");
     db.exec("PRAGMA synchronous=NORMAL;");
@@ -31,27 +31,23 @@ db::SqliteCppDb::hasTable(const std::string& table) const -> bool
 auto
 db::SqliteCppDb::execute(const std::string& query) -> int64_t
 {
-    std::lock_guard lock(dbMutex);
     db.exec(query);
     return db.getLastInsertRowid();
 }
 auto
 db::SqliteCppDb::createStatement(const std::string& query) -> Statement
 {
-    std::lock_guard lock(dbMutex);
     return Statement{ SQLite::Statement(db, query), &dbMutex, &db };
 }
 auto
 db::SqliteCppDb::Statement::execute() -> int64_t
 {
-    std::lock_guard lock(*dbMutex);
     statement.exec();
     return db->getLastInsertRowid();
 }
 void
 db::SqliteCppDb::Statement::reset()
 {
-    std::lock_guard lock(*dbMutex);
     statement.reset();
     statement.clearBindings();
 }
