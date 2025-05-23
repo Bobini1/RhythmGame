@@ -55,7 +55,8 @@ Image {
                     id: clearType
                     running: true
                     height: parent.height
-                    width: ((clearStats[modelData] || 0) / totalLength) * parent.width
+                    // don't divide by zero!
+                    width: ((clearStats[modelData] || 0) / (totalLength || 1)) * parent.width
                     frameDuration: 100
                     frameWidth: 1
                     frameHeight: 8
