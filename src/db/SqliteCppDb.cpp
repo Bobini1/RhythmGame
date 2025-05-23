@@ -37,7 +37,7 @@ db::SqliteCppDb::execute(const std::string& query) -> int64_t
 auto
 db::SqliteCppDb::createStatement(const std::string& query) -> Statement
 {
-    return Statement{ SQLite::Statement(db, query), &dbMutex, &db };
+    return Statement{ SQLite::Statement(db, query), &db };
 }
 auto
 db::SqliteCppDb::Statement::execute() -> int64_t
@@ -53,10 +53,8 @@ db::SqliteCppDb::Statement::reset()
 }
 db::SqliteCppDb::Statement::
 Statement(SQLite::Statement statement,
-          std::mutex* dbMutex,
           SQLite::Database* db)
   : statement(std::move(statement))
-  , dbMutex(dbMutex)
   , db(db)
 {
 }

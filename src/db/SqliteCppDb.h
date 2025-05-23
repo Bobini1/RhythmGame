@@ -22,7 +22,6 @@ namespace db {
 class SqliteCppDb
 {
     SQLite::Database db;
-    std::mutex dbMutex;
 
   public:
     /**
@@ -32,12 +31,10 @@ class SqliteCppDb
     class Statement
     {
         SQLite::Statement statement;
-        std::mutex* dbMutex;
         SQLite::Database* db;
 
       public:
         Statement(SQLite::Statement statement,
-                  std::mutex* dbMutex,
                   SQLite::Database* db);
         template<typename... T>
         auto bind(int index, T&&... values) -> void
