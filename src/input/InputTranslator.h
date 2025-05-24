@@ -117,16 +117,15 @@ class InputTranslator final : public QObject
     Q_PROPERTY(bool select READ select1 NOTIFY select1Changed)
     Q_PROPERTY(bool start2 READ start2 NOTIFY start2Changed)
     Q_PROPERTY(bool select2 READ select2 NOTIFY select2Changed)
-    Q_PROPERTY(bool scratchAlgorithm1 READ scratchAlgorithm1 NOTIFY scratchAlgorithm1Changed)
-    Q_PROPERTY(bool scratchAlgorithm2 READ scratchAlgorithm2 NOTIFY scratchAlgorithm2Changed)
+    Q_PROPERTY(bool scratchAlgorithm1 READ getScratchAlgorithm1 NOTIFY scratchAlgorithm1Changed)
+    Q_PROPERTY(bool scratchAlgorithm2 READ getScratchAlgorithm2 NOTIFY scratchAlgorithm2Changed)
 
   public:
     struct Scratch
     {
         std::unique_ptr<QTimer> timer;
-        int delta = 0;
-        int upState = 0;
-        int downState = 0;
+        double delta = 0;
+        Key::Direction direction = Key::Direction::None;
         double value = std::numeric_limits<double>::quiet_NaN();
     };
 
@@ -145,11 +144,15 @@ class InputTranslator final : public QObject
     QHash<Key, BmsKey> config;
     db::SqliteCppDb* db;
     std::array<bool, magic_enum::enum_count<BmsKey>()> buttons{};
+    bool scratchAlgorithm1 = false;
+    bool scratchAlgorithm2 = false;
 
-    void pressButton(BmsKey button, double value, uint64_t time);
+
+    void pressButton(BmsKey button, uint64_t time);
     void releaseButton(BmsKey button, uint64_t time);
     void unpressAndUnbind(const Key& key, uint64_t time);
     void saveKeyConfig() const;
+    void handleAxisChange(Gamepad gamepad, Uint8 axis, int64_t time);
 
   public:
     void handleAxis(Gamepad gamepad, Uint8 axis, double value, int64_t time);
@@ -159,7 +162,8 @@ class InputTranslator final : public QObject
   private:
     auto getTime(const QKeyEvent& event) -> int64_t;
 
-    static constexpr auto scratchSensitivity = 0.01;
+    static constexpr auto scratchSensitivity = 0.008;
+    static constexpr auto scratchTimeout = 100;
 
   public:
     explicit InputTranslator(db::SqliteCppDb* db, QObject* parent = nullptr);
@@ -193,11 +197,13 @@ class InputTranslator final : public QObject
     auto select1() const -> bool;
     auto start2() const -> bool;
     auto select2() const -> bool;
+    auto getScratchAlgorithm1() const -> bool;
+    auto getScratchAlgorithm2() const -> bool;
 
     auto eventFilter(QObject* watched, QEvent* event) -> bool override;
 
   signals:
-    void buttonPressed(BmsKey button, double value, int64_t time);
+    void buttonPressed(BmsKey button, int64_t time);
     void buttonReleased(BmsKey button, int64_t time);
     void keyConfigModified();
     void configuringChanged();
@@ -224,6 +230,8 @@ class InputTranslator final : public QObject
     void select1Changed();
     void start2Changed();
     void select2Changed();
+    void scratchAlgorithm1Changed();
+    void scratchAlgorithm2Changed();
 };
 
 } // namespace input

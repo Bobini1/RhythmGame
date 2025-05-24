@@ -600,7 +600,7 @@ ChartFactory::createChart(ChartDataFactory::ChartComponents chartComponents,
       &input::InputTranslator::buttonPressed,
       chart,
       [chart](
-        const input::BmsKey button, double /*value*/, const int64_t time) {
+        const input::BmsKey button, const int64_t time) {
           chart->passKey(
             button, gameplay_logic::Chart::EventType::KeyPress, time);
       });
