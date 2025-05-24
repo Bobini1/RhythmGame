@@ -163,7 +163,7 @@ class InputTranslator final : public QObject
     auto getTime(const QKeyEvent& event) -> int64_t;
 
     static constexpr auto scratchSensitivity = 0.008;
-    static constexpr auto scratchTimeout = 100;
+    static constexpr auto scratchTimeout = 150;
 
   public:
     explicit InputTranslator(db::SqliteCppDb* db, QObject* parent = nullptr);
