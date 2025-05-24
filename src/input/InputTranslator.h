@@ -117,12 +117,17 @@ class InputTranslator final : public QObject
     Q_PROPERTY(bool select READ select1 NOTIFY select1Changed)
     Q_PROPERTY(bool start2 READ start2 NOTIFY start2Changed)
     Q_PROPERTY(bool select2 READ select2 NOTIFY select2Changed)
+    Q_PROPERTY(bool scratchAlgorithm1 READ scratchAlgorithm1 NOTIFY scratchAlgorithm1Changed)
+    Q_PROPERTY(bool scratchAlgorithm2 READ scratchAlgorithm2 NOTIFY scratchAlgorithm2Changed)
 
   public:
     struct Scratch
     {
         std::unique_ptr<QTimer> timer;
-        double value{};
+        int delta = 0;
+        int upState = 0;
+        int downState = 0;
+        double value = std::numeric_limits<double>::quiet_NaN();
     };
 
   private:
@@ -143,7 +148,7 @@ class InputTranslator final : public QObject
 
     void pressButton(BmsKey button, double value, uint64_t time);
     void releaseButton(BmsKey button, uint64_t time);
-    void unpressCurrentKey(const Key& key, uint64_t time);
+    void unpressAndUnbind(const Key& key, uint64_t time);
     void saveKeyConfig() const;
 
   public:

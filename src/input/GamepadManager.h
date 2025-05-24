@@ -51,14 +51,14 @@ class Gamepad
 template<>
 struct std::hash<input::Gamepad>
 {
-    std::size_t operator()(const input::Gamepad& s) const noexcept
+    auto operator()(const input::Gamepad& s) const noexcept -> std::size_t
     {
         return std::hash<QString>{}(s.name) ^ std::hash<QString>{}(s.guid) ^
                std::hash<int>{}(s.index);
     }
 };
 namespace input {
-class GamepadManager : public QObject
+class GamepadManager final : public QObject
 {
     Q_OBJECT
 
@@ -86,6 +86,6 @@ class GamepadManager : public QObject
     void gamepadAdded(Gamepad gamepad);
 };
 
-} // input
+} // namespace input
 
 #endif // GAMEPADMANAGER_H
