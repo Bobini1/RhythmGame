@@ -403,7 +403,9 @@ InputTranslator::unpressAndUnbind(const Key& key, uint64_t time)
     if (auto found = config.find(key); found != config.end()) {
         releaseButton(*found, time);
     }
-    resetButton(*configuredButton);
+    if (configuredButton.has_value()) {
+        resetButton(*configuredButton);
+    }
 }
 void
 InputTranslator::saveKeyConfig() const
@@ -424,15 +426,16 @@ InputTranslator::handleAxisChange(Gamepad gamepad, Uint8 axis, int64_t time)
         QVariant::fromValue(gamepad), Key::Device::Axis, axis, scratch.direction
     };
     if (isConfiguring() && isScratch(*configuredButton)) {
+        auto button = *configuredButton;
+        setConfiguredButton({});
         unpressAndUnbind(keyLookup, time);
-        config[keyLookup] = *configuredButton;
+        config[keyLookup] = button;
         keyLookup.direction = keyLookup.direction == Key::Direction::Up
                                 ? Key::Direction::Down
                                 : Key::Direction::Up;
         unpressAndUnbind(keyLookup, time);
-        config[keyLookup] = invertScratch(*configuredButton);
+        config[keyLookup] = invertScratch(button);
         emit keyConfigModified();
-        setConfiguredButton({});
     } else {
         auto oppositeKeyLookup = keyLookup;
         oppositeKeyLookup.direction = scratch.direction == Key::Direction::Up
