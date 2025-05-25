@@ -226,6 +226,7 @@ private:
     void setAnalogAxisConfig1(QVariant config);
     void setAnalogAxisConfig2(QVariant config);
     auto eventFilter(QObject* watched, QEvent* event) -> bool override;
+    Q_INVOKABLE static QString scancodeToString(int scancode);
 
   signals:
     void buttonPressed(BmsKey button, int64_t time);

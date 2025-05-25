@@ -99,7 +99,11 @@ Item {
                                                 deviceName += " axis";
                                             }
                                         }
-                                        return key.code + " (" + deviceName + ")";
+                                        let keyName = key.code;
+                                        if (deviceName === "Keyboard") {
+                                            keyName = Rg.inputTranslator.scancodeToString(key.code);
+                                        }
+                                        return keyName + " (" + deviceName + ")";
                                     }
                                 }
                                 return qsTr("Not Configured");

@@ -1022,6 +1022,11 @@ InputTranslator::eventFilter(QObject* watched, QEvent* event)
     }
     return false;
 }
+QString
+InputTranslator::scancodeToString(const int scancode)
+{
+    return QKeySequence(scancode).toString(QKeySequence::NativeText);
+}
 
 auto
 operator>>(QDataStream& stream, Key& key) -> QDataStream&
