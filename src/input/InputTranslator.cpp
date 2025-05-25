@@ -161,10 +161,10 @@ InputTranslator::pressButton(BmsKey button, uint64_t time)
             break;
 
         case BmsKey::Col24:
+            state = true;
             if (!oldState) {
                 emit col24Changed();
             }
-            state = true;
             break;
 
         case BmsKey::Col25:
