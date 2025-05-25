@@ -123,3 +123,15 @@ function getIndex(array, elem, currentIndex) {
     }
     return proposition;
 }
+
+function getFormattedNumber(num) {
+    if (isNaN(num)) {
+        return "";
+    }
+    let longNum = Qt.locale().toString(num, "f", -128);
+    let shortNum = Qt.locale().toString(num, "f", 3);
+    if (longNum.length > shortNum.length) {
+        return longNum;
+    }
+    return shortNum;
+}

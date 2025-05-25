@@ -18,10 +18,10 @@ Item {
         id: scrollArea
 
         anchors.centerIn: parent
-        width: parent.width / 3
+        width: parent.width
         height: parent.height
         contentHeight: contentLayout.implicitHeight
-        contentWidth: parent.width / 3
+        contentWidth: parent.width
         clip: true
 
         Connections {
@@ -34,10 +34,33 @@ Item {
             target: Rg.inputTranslator
         }
 
+        Loader {
+            id: analogAxisSettings1
+            anchors.left: parent.left
+            anchors.right: contentLayout.left
+            anchors.margins: 10
+            active: Rg.inputTranslator.analogAxisConfig1 !== null
+            sourceComponent: AnalogAxisSettings {
+                player: 1
+            }
+        }
+
+        Loader {
+            id: analogAxisSettings2
+            anchors.left: contentLayout.right
+            anchors.right: parent.right
+            anchors.margins: 10
+            active: Rg.inputTranslator.analogAxisConfig2 !== null
+            sourceComponent: AnalogAxisSettings {
+                player: 2
+            }
+        }
+
         GroupBox {
             id: contentLayout
             title: qsTr("Configure Gamepad Buttons")
-            width: parent.width
+            width: parent.width / 3
+            anchors.horizontalCenter: parent.horizontalCenter
 
             ColumnLayout {
                 id: keyLayout

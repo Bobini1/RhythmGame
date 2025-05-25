@@ -3,11 +3,12 @@ import QtQuick.Controls.Basic
 import RhythmGameQml
 import QtQuick
 import QtQuick.Layouts
+import "../../common/helpers.js" as Helpers
 
 RowLayout {
     height: 30
     Loader {
-        active: true
+        active: props.min !== undefined && props.max !== undefined
         Layout.fillWidth: active
         sourceComponent: Component {
             Slider {
@@ -104,22 +105,11 @@ RowLayout {
     }
     TextField {
         id: textField
-
-        function getFormattedNumber(num) {
-            if (isNaN(num)) {
-                return "";
-            }
-            let longNum = Qt.locale().toString(num, "f", -128);
-            let shortNum = Qt.locale().toString(num, "f", 3);
-            if (longNum.length > shortNum.length) {
-                return longNum;
-            }
-            return shortNum;
-        }
+        
         horizontalAlignment: contentWidth >= width ? TextField.AlignLeft : TextField.AlignHCenter
         autoScroll: false
         Layout.preferredWidth: textMetrics.width + 20
-        text: getFormattedNumber(destination[props.id])
+        text: Helpers.getFormattedNumber(destination[props.id])
         Layout.fillHeight: true
         color: acceptableInput ? "black" : "red"
         validator: DoubleValidator {
@@ -136,7 +126,7 @@ RowLayout {
         }
 
         onEditingFinished: {
-            text = Qt.binding(() => getFormattedNumber(destination[props.id]))
+            text = Qt.binding(() => Helpers.getFormattedNumber(destination[props.id]))
             ensureVisible(0);
         }
         onActiveFocusChanged: {
@@ -154,19 +144,19 @@ RowLayout {
                 let length = 0;
                 let str = ""
                 if (props.max !== undefined) {
-                    str = textField.getFormattedNumber(props.max * 10);
+                    str = Helpers.getFormattedNumber(props.max * 10);
                 }
                 if (props.min !== undefined) {
-                    let minStr = textField.getFormattedNumber(props.min * 10);
+                    let minStr = Helpers.getFormattedNumber(props.min * 10);
                     if (minStr.length > str.length) {
                         str = minStr;
                     }
                 }
-                let defStr = textField.getFormattedNumber(props.default * 10);
+                let defStr = Helpers.getFormattedNumber(props.default * 10);
                 if (defStr.length > str.length) {
                     str = defStr;
                 }
-                let thousandStr = textField.getFormattedNumber(1000);
+                let thousandStr = Helpers.getFormattedNumber(1000);
                 if (str.length < thousandStr.length) {
                     str = thousandStr;
                 }
