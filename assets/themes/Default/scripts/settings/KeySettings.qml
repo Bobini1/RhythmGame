@@ -1,3 +1,4 @@
+pragma ValueTypeBehavior: Addressable
 import QtQuick 2.5
 import QtQuick.Controls.Basic
 import QtQuick.Layouts
@@ -88,20 +89,20 @@ Item {
                             text: {
                                 for (let i = 0; i < keyLayout.keyConfig.length; i++) {
                                     if (keyLayout.keyConfig[i].button === index) {
-                                        let key = keyLayout.keyConfig[i].key;
+                                        let k = keyLayout.keyConfig[i].key;
                                         let deviceName = "Keyboard";
-                                        if (key.gamepad) {
-                                            deviceName = key.gamepad.name;
-                                            if (key.gamepad.index !== 0) {
-                                                deviceName += " (" + key.gamepad.index + ")";
+                                        if (k.gamepad) {
+                                            deviceName = k.gamepad.name;
+                                            if (k.gamepad.index !== 0) {
+                                                deviceName += " (" + k.gamepad.index + ")";
                                             }
-                                            if (key.device === Key.Axis) {
+                                            if (k.device === key.Axis) {
                                                 deviceName += " axis";
                                             }
                                         }
-                                        let keyName = key.code;
+                                        let keyName = k.code;
                                         if (deviceName === "Keyboard") {
-                                            keyName = Rg.inputTranslator.scancodeToString(key.code);
+                                            keyName = Rg.inputTranslator.scancodeToString(k.code);
                                         }
                                         return keyName + " (" + deviceName + ")";
                                     }

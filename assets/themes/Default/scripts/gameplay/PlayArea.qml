@@ -1,3 +1,4 @@
+pragma ValueTypeBehavior: Addressable
 import QtQuick
 import QtQuick
 import QtQuick.Layouts
@@ -291,7 +292,7 @@ Item {
     }
     Connections {
         target: playArea.score
-        function onHit(hitEvent) {
+        function onHit(hit) {
             function handleBomb(index, isLongNote, restart = true) {
                 if (index === undefined) return;
                 let bomb = explosions.itemAt(index);
@@ -299,17 +300,17 @@ Item {
                 if (restart) bomb.restart();
             }
 
-            if (hitEvent.noteRemoved) {
-                let index = columnsReversedMapping[hitEvent.column];
-                let note = playArea.notes[index][hitEvent.noteIndex];
+            if (hit.noteRemoved) {
+                let index = columnsReversedMapping[hit.column];
+                let note = playArea.notes[index][hit.noteIndex];
 
-                if (hitEvent.action === HitEvent.Press) {
+                if (hit.action === hitEvent.Press) {
                     if (note.type === Note.Type.Normal) {
                         handleBomb(index, false);
                     } else if (note.type === Note.Type.LongNoteBegin) {
                         handleBomb(index, true);
                     }
-                } else if (hitEvent.action === HitEvent.Release && note.type === Note.Type.LongNoteEnd) {
+                } else if (hit.action === hitEvent.Release && note.type === Note.Type.LongNoteEnd) {
                     handleBomb(index, false, false);
                 }
             }

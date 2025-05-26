@@ -248,7 +248,7 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
         qmlRegisterType<gameplay_logic::BmsScore>(
           "RhythmGameQml", 1, 0, "BmsScore");
         qmlRegisterType<gameplay_logic::BmsPoints>(
-          "RhythmGameQml", 1, 0, "BmsPoints");
+          "RhythmGameQml", 1, 0, "bmsPoints");
         qmlRegisterType<gameplay_logic::BmsResult>(
           "RhythmGameQml", 1, 0, "BmsResult");
         qmlRegisterType<gameplay_logic::BmsReplayData>(
@@ -256,11 +256,11 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
         qmlRegisterType<gameplay_logic::BmsGaugeHistory>(
           "RhythmGameQml", 1, 0, "BmsGaugeHistory");
         qmlRegisterType<gameplay_logic::HitEvent>(
-          "RhythmGameQml", 1, 0, "HitEvent");
+          "RhythmGameQml", 1, 0, "hitEvent");
         qmlRegisterType<qml_components::Bga>("RhythmGameQml", 1, 0, "Bga");
         qmlRegisterType<qml_components::BgaContainer>(
           "RhythmGameQml", 1, 0, "BgaContainer");
-        qmlRegisterType<input::Key>("RhythmGameQml", 1, 0, "Key");
+        qmlRegisterType<input::Key>("RhythmGameQml", 1, 0, "key");
         qmlRegisterType<input::Gamepad>("RhythmGameQml", 1, 0, "gamepad");
         qmlRegisterType<input::AnalogAxisConfig>(
           "RhythmGameQml", 1, 0, "analogAxisConfig");
