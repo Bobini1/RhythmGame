@@ -35,7 +35,7 @@ Item {
         clip: true
         interactive: false
 
-        contentY: -(column.position * playArea.heightMultiplier + height * (1 - playArea.globalVars.liftOn * playArea.globalVars.liftRatio)) + column.noteHeight / 3
+        contentY: -(column.position * column.heightMultiplier + height * (1 - playArea.globalVars.liftOn * playArea.globalVars.liftRatio)) + column.noteHeight / 3
 
         Repeater {
             id: repeater

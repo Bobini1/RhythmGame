@@ -101,7 +101,6 @@ Item {
         }
         BarLinePositioner {
             model: playArea.barLinesState
-            barlinesArray: playArea.player.notes.barLines
             heightMultiplier: playArea.heightMultiplier
             position: playArea.position
             anchors.fill: parent
