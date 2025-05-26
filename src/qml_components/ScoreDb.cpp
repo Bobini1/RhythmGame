@@ -28,7 +28,7 @@ ScoreDb::getScoresForMd5(const QList<QString>& md5s) const
     }
     auto uniqueMd5s = QSet<QString>{};
     for (const auto& md5 : md5s) {
-        uniqueMd5s.insert(md5);
+        uniqueMd5s.insert(md5.toUpper());
     }
     auto md5sToFetch = uniqueMd5s.values();
     auto token = stopSource.get_token();
