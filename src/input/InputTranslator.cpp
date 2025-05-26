@@ -545,6 +545,7 @@ InputTranslator::autoReleaseScratch(
         releaseButton(*button, time);
     }
 }
+
 void
 InputTranslator::handleAxis(Gamepad gamepad,
                             Uint8 axis,
@@ -589,7 +590,6 @@ InputTranslator::handleAxis(Gamepad gamepad,
         scratch.delta = 0;
         scratch.direction = dir;
 
-        scratch.timer = std::make_unique<QTimer>();
         scratch.timer->setSingleShot(true);
         scratch.timer->setInterval(analogConfig.timeout);
         connect(scratch.timer.get(),

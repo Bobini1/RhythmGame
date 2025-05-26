@@ -148,7 +148,7 @@ private:
   public:
     struct Scratch
     {
-        std::unique_ptr<QTimer> timer;
+        std::unique_ptr<QTimer> timer = std::make_unique<QTimer>();
         double delta = 0;
         Key::Direction direction = Key::Direction::None;
         double value = std::numeric_limits<double>::quiet_NaN();
