@@ -22,7 +22,7 @@ FocusScope {
         onEnabledChanged: {
             if (enabled) {
                 previewDelayTimer.restart();
-                songList.refreshScores();
+                songList.refresh();
             } else {
                 playMusic.stop();
                 previewDelayTimer.stop();
