@@ -428,14 +428,16 @@ struct GamepadAxisConfig
       -> QDataStream&
     {
         return stream << config.gamepad << config.axis
-                      << config.config.sensitivity << config.config.timeout
+                      << config.config.triggerThreshold
+                      << config.config.releaseThreshold << config.config.timeout
                       << static_cast<int>(config.config.algorithm);
     }
     friend auto operator>>(QDataStream& stream, GamepadAxisConfig& config)
       -> QDataStream&
     {
         int algorithm;
-        stream >> config.gamepad >> config.axis >> config.config.sensitivity >>
+        stream >> config.gamepad >> config.axis >>
+          config.config.triggerThreshold >> config.config.releaseThreshold >>
           config.config.timeout >> algorithm;
         config.config.algorithm =
           static_cast<AnalogAxisConfig::ScratchAlgorithm>(algorithm);
@@ -601,9 +603,13 @@ InputTranslator::handleAxis(Gamepad gamepad,
         scratch.timer->start();
     };
 
-    if (curDelta > 0 && scratch.delta >= analogConfig.sensitivity) {
+    const auto requiredThreshold = scratch.direction == Key::Direction::None
+                                     ? analogConfig.triggerThreshold
+                                     : analogConfig.releaseThreshold;
+
+    if (curDelta > 0 && scratch.delta >= requiredThreshold) {
         setScratchDirection(Key::Direction::Up);
-    } else if (curDelta < 0 && -scratch.delta >= analogConfig.sensitivity) {
+    } else if (curDelta < 0 && -scratch.delta >= requiredThreshold) {
         setScratchDirection(Key::Direction::Down);
     } else {
         return;

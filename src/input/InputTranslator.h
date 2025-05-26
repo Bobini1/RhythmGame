@@ -90,7 +90,8 @@ class Mapping
 struct AnalogAxisConfig
 {
     Q_GADGET
-    Q_PROPERTY(double sensitivity MEMBER sensitivity)
+    Q_PROPERTY(double triggerThreshold MEMBER triggerThreshold)
+    Q_PROPERTY(double releaseThreshold MEMBER releaseThreshold)
     Q_PROPERTY(uint timeout MEMBER timeout)
     Q_PROPERTY(ScratchAlgorithm scratchAlgorithm MEMBER algorithm)
 public:
@@ -101,7 +102,8 @@ public:
     };
     Q_ENUM(ScratchAlgorithm)
 
-    double sensitivity = 0.008;
+    double triggerThreshold = 0.008;
+    double releaseThreshold = 0.004;
     uint timeout = 100;
     ScratchAlgorithm algorithm = ScratchAlgorithmAnalog;
 
