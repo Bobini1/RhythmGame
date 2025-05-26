@@ -16,6 +16,7 @@ PathView {
         refreshFolderClearStats();
     }
     function refreshScores() {
+        Rg.profileList.mainProfile.scoreDb.cancelPending();
         if (historyStack[historyStack.length - 1] === "SEARCH") {
             let md5s = [];
             for (let item of folderContents) {

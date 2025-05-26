@@ -26,6 +26,8 @@ class ScoreDb final : public QObject
     Q_OBJECT
 
     db::SqliteCppDb* scoreDb;
+    mutable QThreadPool threadPool;
+    std::stop_source stopSource;
 
   public:
     explicit ScoreDb(db::SqliteCppDb* scoreDb);
@@ -37,6 +39,7 @@ class ScoreDb final : public QObject
       const resource_managers::Table& table) const;
     Q_INVOKABLE QIfPendingReply<ScoreQueryResult> getScores(
       const resource_managers::Level& level) const;
+    Q_INVOKABLE void cancelPending();
 
     Q_INVOKABLE int getTotalScoreCount() const;
 };
