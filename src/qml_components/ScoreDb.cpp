@@ -67,7 +67,7 @@ ScoreDb::getScoresForMd5(const QList<QString>& md5s) const
             }
 
             QMap<QString, QVariantList> groupedScores;
-            auto mainThread = QCoreApplication::instance()->thread();
+            auto* mainThread = QCoreApplication::instance()->thread();
             for (const auto& row : allResults) {
                 auto md5 = QString::fromStdString(std::get<0>(row).md5);
                 auto* score = new gameplay_logic::BmsScore{
@@ -136,7 +136,7 @@ ScoreDb::getScores(const QString& folder) const
             countQuery.bind(1, folder.toStdString());
             auto unplayedCount = countQuery.executeAndGet<int>().value_or(0);
 
-            auto mainThread = QCoreApplication::instance()->thread();
+            auto* mainThread = QCoreApplication::instance()->thread();
             auto query = scoreDb->createStatement(
               "SELECT score.*, replay_data.*, gauge_history.* "
               "FROM score "
