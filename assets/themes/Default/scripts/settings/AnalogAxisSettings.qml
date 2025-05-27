@@ -82,35 +82,69 @@ GroupBox {
             Layout.fillWidth: true
             spacing: 0
             TextEdit {
-                text: qsTr("Threshold")
+                text: qsTr("Trigger Threshold")
                 font.pixelSize: 20
                 readOnly: true
                 Layout.fillWidth: true
                 Layout.preferredWidth: parent.width / 3
             }
             NumberField {
-
                 Layout.fillHeight: true
                 Layout.preferredWidth: parent.width / 6
-                variable: "sensitivity"
+                variable: "triggerThreshold"
                 max: 1
                 min: 0
             }
             Slider {
-                id: sensitivitySlider
+                id: triggerThreshold
                 from: 0
-                to: 0.50
-                stepSize: 0.01
+                to: 0.10
+                stepSize: 0.001
                 Layout.fillWidth: true
                 Layout.preferredWidth: parent.width / 2
 
                 Binding {
                     delayed: true
-                    sensitivitySlider.value: Rg.inputTranslator[`analogAxisConfig${player}`].sensitivity;
+                    triggerThreshold.value: Rg.inputTranslator[`analogAxisConfig${player}`].triggerThreshold;
                 }
 
                 onMoved: () => {
-                    Rg.inputTranslator[`analogAxisConfig${player}`].sensitivity = value;
+                    Rg.inputTranslator[`analogAxisConfig${player}`].triggerThreshold = value;
+                }
+            }
+        }
+        RowLayout {
+            Layout.fillWidth: true
+            spacing: 0
+            TextEdit {
+                text: qsTr("Release Threshold")
+                font.pixelSize: 20
+                readOnly: true
+                Layout.fillWidth: true
+                Layout.preferredWidth: parent.width / 3
+            }
+            NumberField {
+                Layout.fillHeight: true
+                Layout.preferredWidth: parent.width / 6
+                variable: "releaseThreshold"
+                max: 1
+                min: 0
+            }
+            Slider {
+                id: releaseThreshold
+                from: 0
+                to: 0.10
+                stepSize: 0.001
+                Layout.fillWidth: true
+                Layout.preferredWidth: parent.width / 2
+
+                Binding {
+                    delayed: true
+                    releaseThreshold.value: Rg.inputTranslator[`analogAxisConfig${player}`].releaseThreshold;
+                }
+
+                onMoved: () => {
+                    Rg.inputTranslator[`analogAxisConfig${player}`].releaseThreshold = value;
                 }
             }
         }
