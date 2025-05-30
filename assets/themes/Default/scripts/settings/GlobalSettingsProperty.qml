@@ -7,21 +7,7 @@ RowLayout {
     required property var props
     property alias sourceComponent: loader.sourceComponent
     property alias text: text.text
-    anchors {
-        left: parent ? parent.left : undefined
-        right: parent ? parent.right : undefined
-    }
 
-    TextEdit {
-        id: text
-        font.pixelSize: 16
-        font.bold: true
-        readOnly: true
-        text: "Green Number"
-        Layout.alignment: Qt.AlignVCenter
-        Layout.preferredWidth: 200
-        wrapMode: TextEdit.Wrap
-    }
     Loader {
         id: loader
         active: true

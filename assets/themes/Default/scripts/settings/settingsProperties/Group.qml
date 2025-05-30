@@ -8,15 +8,17 @@ import "../../common/helpers.js" as Helpers
 Frame {
     id: groupFrame
 
-    property var _props: props
-    property var _destination: destination
+    property string name
+    property string description
+    property var items
+    property var destination
 
     ColumnLayout {
         width: parent.width
         TextEdit {
             wrapMode: TextEdit.Wrap
             Layout.fillWidth: true
-            text: groupFrame._props.name
+            text: groupFrame.name
             font.pixelSize: 24
             font.bold: true
             readOnly: true
@@ -24,7 +26,7 @@ Frame {
         TextEdit {
             wrapMode: TextEdit.Wrap
             Layout.fillWidth: true
-            text: groupFrame._props.description || ""
+            text: groupFrame.description || ""
             font.pixelSize: 16
             readOnly: true
         }
@@ -35,7 +37,7 @@ Frame {
             color: "transparent"
         }
         Repeater {
-            model: groupFrame._props.items
+            model: groupFrame.items
             RowLayout {
                 width: parent.width
                 Loader {
@@ -64,9 +66,23 @@ Frame {
                 Loader {
                     id: loader
 
-                    source: Helpers.capitalizeFirstLetter(modelData.type) + ".qml"
-                    property var destination: groupFrame._destination
-                    property var props: modelData
+                    Component.onCompleted: {
+                        let props = {};
+                        Object.assign(props, modelData);
+                        if ("id" in props) {
+                            props.id_ = props.id;
+                        }
+                        delete props.id;
+                        delete props.name;
+                        delete props.description;
+                        if (props.type === "range") {
+                            props.default_ = props.default;
+                        }
+                        delete props.default;
+                        delete props.type;
+                        props.destination = groupFrame.destination;
+                        setSource(Helpers.capitalizeFirstLetter(modelData.type) + ".qml", props);
+                    }
                     Layout.fillWidth: true
                     Layout.maximumWidth: modelData.type === "group" ? -1 : 600
                     Layout.minimumWidth: modelData.type === "group" ? -1 : 150
@@ -81,11 +97,11 @@ Frame {
                     sourceComponent: Component {
                         Button {
                             text: "Reset"
-                            enabled: groupFrame._destination[modelData.id] !== modelData.default
+                            enabled: groupFrame.destination[modelData.id] !== modelData.default
 
                             implicitWidth: 50
                             onClicked: {
-                                groupFrame._destination[modelData.id] = modelData.default
+                                groupFrame.destination[modelData.id] = modelData.default
                             }
                         }
                     }

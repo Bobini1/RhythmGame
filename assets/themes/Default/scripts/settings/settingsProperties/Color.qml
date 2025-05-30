@@ -4,13 +4,18 @@ import RhythmGameQml
 import QtQuick
 
 Rectangle {
+    id: colorPicker
+
     height: 30
     border {
         color: "black"
         width: 1
     }
+    property var destination
+    property string id_
+    property string name
 
-    color: destination[props.id]
+    color: destination[colorPicker.id_]
 
     MouseArea {
         anchors.fill: parent
@@ -20,12 +25,12 @@ Rectangle {
     ColorDialog {
         id: colorDialog
 
-        selectedColor: destination[props.id]
-        title: props.id
+        selectedColor: colorPicker.destination[colorPicker.id_]
+        title: colorPicker.name
 
         onAccepted: {
-            destination[props.id] = colorDialog.selectedColor;
-            colorDialog.selectedColor = Qt.binding(() => destination[props.id])
+            colorPicker.destination[colorPicker.id_] = colorDialog.selectedColor;
+            colorDialog.selectedColor = Qt.binding(() => destination[colorPicker.id_])
         }
     }
 }

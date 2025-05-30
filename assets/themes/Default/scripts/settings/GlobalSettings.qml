@@ -2,6 +2,8 @@ import QtQuick
 import QtQuick.Controls.Basic
 import "settingsProperties"
 import QtQml.Models
+import QtQuick.Layouts
+import RhythmGameQml
 
 Item {
     ScrollView {
@@ -15,151 +17,315 @@ Item {
         width: Math.min(parent.width / 2, 600)
         padding: 1
 
-        ListView {
-            id: list
+        Frame {
             width: 600
+            z: -1
+            Column {
+                id: list
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.top: parent.top
 
-            spacing: 10
-            bottomMargin: 10
-            topMargin: 10
-            leftMargin: 10
-            rightMargin: 10
-
-            Frame {
-                anchors.fill: list
-                z: -1
-            }
-
-            model: ObjectModel {
-                GlobalSettingsProperty {
+                component SettingLabel:
+                    TextEdit {
+                    id: text
+                    font.pixelSize: 16
+                    font.bold: true
+                    readOnly: true
                     text: "Green Number"
-                    props: {"id": "noteScreenTimeMillis", "min": 0, "default": 1000}
-                    sourceComponent: Component {
-                        Range {
-                        }
+                    Layout.alignment: Qt.AlignVCenter
+                    Layout.preferredWidth: 200
+                    wrapMode: TextEdit.Wrap
+                }
+                RowLayout {
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    SettingLabel {
+                        text: "Green Number"
+                    }
+                    Range {
+                        destination: Rg.profileList.mainProfile.vars.globalVars
+                        id_: "noteScreenTimeMillis"
+                        min: 0
+                        default_: 1000
+                    }
+                    ResetButton {
+                        destination: Rg.profileList.mainProfile.vars.globalVars
+                        id_: "noteScreenTimeMillis"
+                        default_: 1000
                     }
                 }
-                Separator {}
-                GlobalSettingsProperty {
-                    text: "Lane Cover"
-                    props: {"id": "laneCoverOn", "default": false}
-                    sourceComponent: Component {
-                        Boolean {}
+                Separator {
+                }
+                RowLayout {
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    SettingLabel {
+                        text: "Lane Cover"
+                    }
+                    Boolean {
+                        destination: Rg.profileList.mainProfile.vars.globalVars
+                        id_: "laneCoverOn"
+                    }
+                    ResetButton {
+                        destination: Rg.profileList.mainProfile.vars.globalVars
+                        id_: "laneCoverOn"
+                        default_: false
                     }
                 }
-                GlobalSettingsProperty {
-                    text: "Lane Cover Ratio"
-                    props: {"id": "laneCoverRatio", "default": 0.1, "min": 0, "max": 1}
-                    sourceComponent: Component {
-                        Range {}
+                Separator {
+                }
+                RowLayout {
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    SettingLabel {
+                        text: "Lane Cover Ratio"
+                    }
+                    Range {
+                        destination: Rg.profileList.mainProfile.vars.globalVars
+                        id_: "laneCoverRatio"
+                        default_: 0.1
+                        min: 0
+                        max: 1
+                    }
+                    ResetButton {
+                        destination: Rg.profileList.mainProfile.vars.globalVars
+                        id_: "laneCoverRatio"
+                        default_: 0.1
                     }
                 }
-                Separator {}
-                GlobalSettingsProperty {
-                    text: "Lift"
-                    props: {"id": "liftOn", "default": false}
-                    sourceComponent: Component {
-                        Boolean {}
+                Separator {
+                }
+                RowLayout {
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    SettingLabel {
+                        text: "Lift"
+                    }
+                    Boolean {
+                        destination: Rg.profileList.mainProfile.vars.globalVars
+                        id_: "liftOn"
+                    }
+                    ResetButton {
+                        destination: Rg.profileList.mainProfile.vars.globalVars
+                        id_: "liftOn"
+                        default_: false
                     }
                 }
-                GlobalSettingsProperty {
-                    text: "Lift Ratio"
-                    props: {"id": "liftRatio", "default": 0.1, "min": 0, "max": 1}
-                    sourceComponent: Component {
-                        Range {}
+                Separator {
+                }
+                RowLayout {
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    SettingLabel {
+                        text: "Lift Ratio"
+                    }
+                    Range {
+                        destination: Rg.profileList.mainProfile.vars.globalVars
+                        id_: "liftRatio"
+                        default_: 0.1
+                        min: 0
+                        max: 1
+                    }
+                    ResetButton {
+                        destination: Rg.profileList.mainProfile.vars.globalVars
+                        id_: "liftRatio"
+                        default_: 0.1
                     }
                 }
-                Separator {}
-                GlobalSettingsProperty {
-                    text: "Hidden"
-                    props: {"id": "hiddenOn", "default": false}
-                    sourceComponent: Component {
-                        Boolean {}
+                Separator {
+                }
+                RowLayout {
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    SettingLabel {
+                        text: "Hidden"
+                    }
+                    Boolean {
+                        destination: Rg.profileList.mainProfile.vars.globalVars
+                        id_: "hiddenOn"
+                    }
+                    ResetButton {
+                        destination: Rg.profileList.mainProfile.vars.globalVars
+                        id_: "hiddenOn"
+                        default_: false
                     }
                 }
-                GlobalSettingsProperty {
-                    text: "Hidden Ratio"
-                    props: {"id": "hiddenRatio", "default": 0.1, "min": 0, "max": 1}
-                    sourceComponent: Component {
-                        Range {}
+                Separator {
+                }
+                RowLayout {
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    SettingLabel {
+                        text: "Hidden Ratio"
+                    }
+                    Range {
+                        destination: Rg.profileList.mainProfile.vars.globalVars
+                        id_: "hiddenRatio"
+                        default_: 0.1
+                        min: 0
+                        max: 1
+                    }
+                    ResetButton {
+                        destination: Rg.profileList.mainProfile.vars.globalVars
+                        id_: "hiddenRatio"
+                        default_: 0.1
                     }
                 }
-                Separator {}
-                GlobalSettingsProperty {
-                    text: "BGA Enabled"
-                    props: {"id": "bgaOn", "default": true}
-                    sourceComponent: Component {
-                        Boolean {}
+                Separator {
+                }
+                RowLayout {
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    SettingLabel {
+                        text: "BGA Enabled"
+                    }
+                    Boolean {
+                        destination: Rg.profileList.mainProfile.vars.globalVars
+                        id_: "bgaOn"
+                    }
+                    ResetButton {
+                        destination: Rg.profileList.mainProfile.vars.globalVars
+                        id_: "bgaOn"
+                        default_: true
                     }
                 }
-                Separator {}
-                GlobalSettingsProperty {
-                    text: "Note Order Algorithm"
-                    props: {"id": "noteOrderAlgorithm", "default": 0, "choices": ["Normal", "Mirror", "Random", "S-Random", "R-Random", "Random+", "S-Random+"]}
-                    sourceComponent: Component {
-                        Choice {
-                            assignIndex: true
-                        }
+                Separator {
+                }
+                RowLayout {
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    SettingLabel {
+                        text: "Note Order Algorithm"
+                    }
+                    Choice {
+                        destination: Rg.profileList.mainProfile.vars.globalVars
+                        id_: "noteOrderAlgorithm"
+                        choices: ["Normal", "Mirror", "Random", "S-Random", "R-Random", "Random+", "S-Random+"]
+                        assignIndex: true
+                    }
+                    ResetButton {
+                        destination: Rg.profileList.mainProfile.vars.globalVars
+                        id_: "noteOrderAlgorithm"
+                        default_: 0
                     }
                 }
-                Separator {}
-                GlobalSettingsProperty {
-                    text: "Note Order Algorithm P2"
-                    props: {"id": "noteOrderAlgorithmP2", "default": 0, "choices": ["Normal", "Mirror", "Random", "S-Random", "R-Random", "Random+", "S-Random+"]}
-                    sourceComponent: Component {
-                        Choice {
-                            assignIndex: true
-                        }
+                Separator {
+                }
+                RowLayout {
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    SettingLabel {
+                        text: "Note Order Algorithm P2"
+                    }
+                    Choice {
+                        destination: Rg.profileList.mainProfile.vars.globalVars
+                        id_: "noteOrderAlgorithmP2"
+                        choices: ["Normal", "Mirror", "Random", "S-Random", "R-Random", "Random+", "S-Random+"]
+                        assignIndex: true
+                    }
+                    ResetButton {
+                        destination: Rg.profileList.mainProfile.vars.globalVars
+                        id_: "noteOrderAlgorithmP2"
+                        default_: 0
                     }
                 }
-                Separator {}
-                GlobalSettingsProperty {
-                    text: "Hi Speed Fix"
-                    props: {"id": "hiSpeedFix", "default": 1, "choices": ["Off", "Main", "Start", "Min", "Max"]}
-                    sourceComponent: Component {
-                        Choice {
-                            assignIndex: true
-                        }
+                Separator {
+                }
+                RowLayout {
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    SettingLabel {
+                        text: "Hi Speed Fix"
+                    }
+                    Choice {
+                        destination: Rg.profileList.mainProfile.vars.globalVars
+                        id_: "hiSpeedFix"
+                        choices: ["Off", "Main", "Start", "Min", "Max"]
+                        assignIndex: true
+                    }
+                    ResetButton {
+                        destination: Rg.profileList.mainProfile.vars.globalVars
+                        id_: "hiSpeedFix"
+                        default_: 1
                     }
                 }
-                Separator {}
-                GlobalSettingsProperty {
-                    text: "DP Options"
-                    props: {"id": "dpOptions", "default": 0, "choices": ["Off", "Flip", "Battle", "BattleAs"]}
-                    sourceComponent: Component {
-                        Choice {
-                            assignIndex: true
-                        }
+                Separator {
+                }
+                RowLayout {
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    SettingLabel {
+                        text: "DP Options"
+                    }
+                    Choice {
+                        destination: Rg.profileList.mainProfile.vars.globalVars
+                        id_: "dpOptions"
+                        choices: ["Off", "Flip", "Battle", "BattleAs"]
+                        assignIndex: true
+                    }
+                    ResetButton {
+                        destination: Rg.profileList.mainProfile.vars.globalVars
+                        id_: "dpOptions"
+                        default_: 0
                     }
                 }
-                Separator {}
-                GlobalSettingsProperty {
-                    text: "Gauge Type"
-                    props: {"id": "gaugeType", "default": "FC", "choices": ["AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC"]}
-                    sourceComponent: Component {
-                        Choice {
-                            assignIndex: true
-                        }
+                Separator {
+                }
+                RowLayout {
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    SettingLabel {
+                        text: "Gauge Type"
+                    }
+                    Choice {
+                        destination: Rg.profileList.mainProfile.vars.globalVars
+                        id_: "gaugeType"
+                        choices: ["AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC"]
+                    }
+                    ResetButton {
+                        destination: Rg.profileList.mainProfile.vars.globalVars
+                        id_: "gaugeType"
+                        default_: "FC"
                     }
                 }
-                Separator {}
-                GlobalSettingsProperty {
-                    text: "Gauge Mode"
-                    props: {"id": "gaugeMode", "default": 2, "choices": ["Exclusive", "Best", "Select to Under"]}
-                    sourceComponent: Component {
-                        Choice {
-                            assignIndex: true
-                        }
+                Separator {
+                }
+                RowLayout {
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    SettingLabel {
+                        text: "Gauge Mode"
+                    }
+                    Choice {
+                        destination: Rg.profileList.mainProfile.vars.globalVars
+                        id_: "gaugeMode"
+                        choices: ["Exclusive", "Best", "Select to Under"]
+                        assignIndex: true
+                    }
+                    ResetButton {
+                        destination: Rg.profileList.mainProfile.vars.globalVars
+                        id_: "gaugeMode"
+                        default_: 2
                     }
                 }
-                Separator {}
-                GlobalSettingsProperty {
-                    text: "Bottom Shiftable Gauge"
-                    props: {"id": "bottomShiftableGauge", "default": "AEASY", "choices": ["AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC"]}
-                    sourceComponent: Component {
-                        Choice {
-                            assignIndex: true
-                        }
+                Separator {
+                }
+                RowLayout {
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    SettingLabel {
+                        text: "Bottom Shiftable Gauge"
+                    }
+                    Choice {
+                        destination: Rg.profileList.mainProfile.vars.globalVars
+                        id_: "bottomShiftableGauge"
+                        choices: ["AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC"]
+                    }
+                    ResetButton {
+                        destination: Rg.profileList.mainProfile.vars.globalVars
+                        id_: "bottomShiftableGauge"
+                        default_: "AEASY"
                     }
                 }
             }

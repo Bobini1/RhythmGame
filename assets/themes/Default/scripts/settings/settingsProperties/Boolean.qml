@@ -6,9 +6,12 @@ import QtQuick
 CheckBox {
     id: checkBox
 
-    checked: destination[props.id]
+    property var destination
+    property string id_
+
+    checked: destination[id_]
     onCheckedChanged: {
-        destination[props.id] = checked
-        checked = Qt.binding(() => destination[props.id])
+        destination[id_] = checked
+        checked = Qt.binding(() => destination[id_])
     }
 }

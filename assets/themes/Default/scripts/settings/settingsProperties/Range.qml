@@ -6,9 +6,16 @@ import QtQuick.Layouts
 import "../../common/helpers.js" as Helpers
 
 RowLayout {
+    id: range
     height: 30
+    property real min
+    property real max
+    property real default_: 0
+    property var destination
+    property string id_
+
     Loader {
-        active: props.min !== undefined && props.max !== undefined
+        active: range.min !== undefined && range.max !== undefined
         Layout.fillWidth: active
         sourceComponent: Component {
             Slider {
@@ -18,15 +25,15 @@ RowLayout {
                     }
                     return Math.floor(Math.log(Math.abs(num)) / Math.LN10 + 0.000000001);
                 }
-                readonly property real mult: Math.pow(10,Math.max(order(props.default), 2))
-                readonly property real minmult: Math.pow(10,Math.max(order(props.min), 2))
-                readonly property real maxmult: 0.500 + 1 / Math.pow(10,Math.max(order(props.max) + 1, 3))
+                readonly property real mult: Math.pow(10,Math.max(order(range.default), 2))
+                readonly property real minmult: Math.pow(10,Math.max(order(range.min), 2))
+                readonly property real maxmult: 0.500 + 1 / Math.pow(10,Math.max(order(range.max) + 1, 3))
 
                 property var f: {
-                    if (props.min !== undefined && props.max !== undefined) {
+                    if (range.min !== undefined && range.max !== undefined) {
                         return num => num;
                     }
-                    else if (props.min === undefined && props.max === undefined) {
+                    else if (range.min === undefined && range.max === undefined) {
                         return num => {
                             if (num === 1) {
                                 return Infinity;
@@ -36,27 +43,27 @@ RowLayout {
                             }
                             return mult / 2 * (-2*num+1)/((2*num-2)*num);
                         }
-                    } else if (props.min !== undefined) {
+                    } else if (range.min !== undefined) {
                         return num => {
                             if (num === 1) {
                                 return Infinity
                             }
-                            return props.min + minmult * num / (1 - num);
+                            return range.min + minmult * num / (1 - num);
                         }
-                    } else if (props.max !== undefined) {
+                    } else if (range.max !== undefined) {
                         return num => {
                             if (num === 0) {
                                 return -Infinity
                             }
-                            return (-Math.log(num) / Math.log(0.5 / maxmult)) + props.max
+                            return (-Math.log(num) / Math.log(0.5 / maxmult)) + range.max
                         }
                     }
                 }
                 property var inverseF: {
-                    if (props.min !== undefined && props.max !== undefined) {
+                    if (range.min !== undefined && range.max !== undefined) {
                         return num => num;
                     }
-                    else if (props.min === undefined && props.max === undefined) {
+                    else if (range.min === undefined && range.max === undefined) {
                         return num => {
                             if (num === 0) {
                                 return 0.5
@@ -69,36 +76,36 @@ RowLayout {
                             }
                             return (2 * num - mult + Math.sqrt(Math.pow(mult, 2) + 4 * Math.pow(num, 2))) / (4 * num);
                         }
-                    } else if (props.min !== undefined) {
+                    } else if (range.min !== undefined) {
                         return num => {
                             if (num === Infinity) {
                                 return 1
                             }
-                            if (num === props.min) {
+                            if (num === range.min) {
                                 return 0
                             }
-                            return (num - props.min) / (minmult + num - props.min + 1);
+                            return (num - range.min) / (minmult + num - range.min + 1);
                         }
-                    } else if (props.max !== undefined) {
+                    } else if (range.max !== undefined) {
                         return num => {
                             if (num === -Infinity) {
                                 return 0
                             }
-                            if (num === props.max) {
+                            if (num === range.max) {
                                 return 1
                             }
-                            return Math.pow(0.5 / maxmult, -num + props.max)
+                            return Math.pow(0.5 / maxmult, -num + range.max)
                         }
                     }
                 }
-                from: props.max === undefined || props.min === undefined ? 0 : props.min
-                to: props.max === undefined || props.min === undefined ? 1 : props.max
+                from: range.max === undefined || range.min === undefined ? 0 : range.min
+                to: range.max === undefined || range.min === undefined ? 1 : range.max
                 Layout.fillHeight: true
-                value: inverseF(destination[props.id])
+                value: inverseF(range.destination[range.id_])
 
                 onMoved: {
-                    destination[props.id] = Math.round(f(value) * 1000) / 1000
-                    value = Qt.binding(() => inverseF(destination[props.id]))
+                    range.destination[range.id_] = Math.round(f(value) * 1000) / 1000
+                    value = Qt.binding(() => inverseF(range.destination[range.id_]))
                 }
             }
         }
@@ -109,24 +116,24 @@ RowLayout {
         horizontalAlignment: contentWidth >= width ? TextField.AlignLeft : TextField.AlignHCenter
         autoScroll: false
         Layout.preferredWidth: textMetrics.width + 20
-        text: Helpers.getFormattedNumber(destination[props.id])
+        text: Helpers.getFormattedNumber(range.destination[range.id_])
         Layout.fillHeight: true
         color: acceptableInput ? "black" : "red"
         validator: DoubleValidator {
             id: doubleValidator
-            bottom: props.min !== undefined ? props.min : -Infinity; top: props.max !== undefined ? props.max : Infinity
+            bottom: range.min !== undefined ? range.min : -Infinity; top: range.max !== undefined ? range.max : Infinity
         }
         inputMethodHints: Qt.ImhFormattedNumbersOnly
         onTextEdited: {
             // noinspection SillyAssignmentJS
             text = text
             if (acceptableInput) {
-                destination[props.id] = Number.fromLocaleString(text)
+                range.destination[range.id_] = Number.fromLocaleString(text)
             }
         }
 
         onEditingFinished: {
-            text = Qt.binding(() => Helpers.getFormattedNumber(destination[props.id]))
+            text = Qt.binding(() => Helpers.getFormattedNumber(range.destination[range.id_]))
             ensureVisible(0);
         }
         onActiveFocusChanged: {
@@ -143,16 +150,16 @@ RowLayout {
             text: {
                 let length = 0;
                 let str = ""
-                if (props.max !== undefined) {
-                    str = Helpers.getFormattedNumber(props.max * 10);
+                if (range.max !== undefined) {
+                    str = Helpers.getFormattedNumber(range.max * 10);
                 }
-                if (props.min !== undefined) {
-                    let minStr = Helpers.getFormattedNumber(props.min * 10);
+                if (range.min !== undefined) {
+                    let minStr = Helpers.getFormattedNumber(range.min * 10);
                     if (minStr.length > str.length) {
                         str = minStr;
                     }
                 }
-                let defStr = Helpers.getFormattedNumber(props.default * 10);
+                let defStr = Helpers.getFormattedNumber(range.default * 10);
                 if (defStr.length > str.length) {
                     str = defStr;
                 }

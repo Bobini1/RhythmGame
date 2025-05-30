@@ -6,10 +6,11 @@ import QtQuick
 TextArea {
     id: textEdit
     implicitWidth: 200
-    text: destination[props.id]
+    text: destination[id_]
+    property var destination
+    property string id_
 
     onTextChanged: {
-        destination[props.id] = text;
-        text = Qt.binding(() => destination[props.id])
+        destination[id_] = text;
     }
 }

@@ -8,13 +8,22 @@ import "../common/helpers.js" as Helpers
 Loader {
     id: screenSettingsLoader
     active: true
-    property var destination: Rg.profileList.mainProfile.vars.themeVars[screen]
-    property var props: {
-        "items": screenSettings.filter((item) => item.type !== "hidden"),
-        "name": Helpers.capitalizeFirstLetter(screen) + " Settings",
-        "type": "group"
+    Component.onCompleted: {
+        if (screenSettingsLoader.script) {
+            setSource(script);
+        } else {
+            let items = screenSettingsLoader.screenSettings.filter((item) => item.type !== "hidden");
+            if (items.length === 0) {
+                return;
+            }
+            let props = {
+                name: Helpers.capitalizeFirstLetter(screenSettingsLoader.screen) + " Settings",
+                items: items,
+                destination: Rg.profileList.mainProfile.vars.themeVars[screenSettingsLoader.screen]
+            }
+            setSource("settingsProperties/Group.qml", props);
+        }
     }
-    source: script ? script : (screenSettings.length > 0 ? "settingsProperties/Group.qml" : "")
 
     function openFile(fileUrl) {
         let request = new XMLHttpRequest();

@@ -6,16 +6,22 @@ import "../../common/helpers.js" as Helpers
 
 ComboBox {
     id: choiceComboBox
-    model: props.choices
+    model: choices
     // for global vars only
     property bool assignIndex: false
+    property var destination
+    property string id_
+    property var choices
 
     Binding {
         delayed: true
-        choiceComboBox.currentIndex: Helpers.getIndex(choiceComboBox.assignIndex ? Object.keys(props.choices) : props.choices, destination[props.id], currentIndex);
+        choiceComboBox.currentIndex: Helpers.getIndex(
+            choiceComboBox.assignIndex ? Object.keys(choiceComboBox.choices) : choiceComboBox.choices,
+            choiceComboBox.destination[choiceComboBox.id_],
+            choiceComboBox.currentIndex);
     }
 
     onActivated: (_) => {
-        destination[props.id] = choiceComboBox.assignIndex ? currentIndex : currentText;
+        destination[choiceComboBox.id_] = choiceComboBox.assignIndex ? currentIndex : currentText;
     }
 }
