@@ -13,11 +13,15 @@ Frame {
     property var items
     property var destination
 
-    ColumnLayout {
+    Column {
         width: parent.width
+        spacing: 5
         TextEdit {
             wrapMode: TextEdit.Wrap
-            Layout.fillWidth: true
+            anchors {
+                left: parent.left
+                right: parent.right
+            }
             text: groupFrame.name
             font.pixelSize: 24
             font.bold: true
@@ -25,21 +29,31 @@ Frame {
         }
         TextEdit {
             wrapMode: TextEdit.Wrap
-            Layout.fillWidth: true
+            anchors {
+                left: parent.left
+                right: parent.right
+            }
             text: groupFrame.description || ""
             font.pixelSize: 16
             readOnly: true
         }
         // empty space separator
         Rectangle {
-            Layout.fillWidth: true
+            anchors {
+                left: parent.left
+                right: parent.right
+            }
             Layout.preferredHeight: 10
             color: "transparent"
         }
         Repeater {
             model: groupFrame.items
             RowLayout {
-                width: parent.width
+                anchors {
+                    left: parent.left
+                    right: parent.right
+                }
+
                 Loader {
                     id: loader1
                     active: modelData.type !== "group"
@@ -73,8 +87,10 @@ Frame {
                             props.id_ = props.id;
                         }
                         delete props.id;
-                        delete props.name;
-                        delete props.description;
+                        if (props.type !== "group") {
+                            delete props.name;
+                            delete props.description;
+                        }
                         if (props.type === "range") {
                             props.default_ = props.default;
                         }

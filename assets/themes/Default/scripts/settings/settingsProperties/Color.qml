@@ -30,7 +30,6 @@ Rectangle {
 
         onAccepted: {
             colorPicker.destination[colorPicker.id_] = colorDialog.selectedColor;
-            colorDialog.selectedColor = Qt.binding(() => destination[colorPicker.id_])
         }
     }
 }

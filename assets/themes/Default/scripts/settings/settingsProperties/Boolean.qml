@@ -12,6 +12,6 @@ CheckBox {
     checked: destination[id_]
     onCheckedChanged: {
         destination[id_] = checked
-        checked = Qt.binding(() => destination[id_])
     }
 }
+

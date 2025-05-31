@@ -52,7 +52,6 @@ Item {
                     ResetButton {
                         destination: Rg.profileList.mainProfile.vars.globalVars
                         id_: "noteScreenTimeMillis"
-                        default_: 1000
                     }
                 }
                 Separator {
@@ -70,7 +69,6 @@ Item {
                     ResetButton {
                         destination: Rg.profileList.mainProfile.vars.globalVars
                         id_: "laneCoverOn"
-                        default_: false
                     }
                 }
                 Separator {
@@ -91,7 +89,6 @@ Item {
                     ResetButton {
                         destination: Rg.profileList.mainProfile.vars.globalVars
                         id_: "laneCoverRatio"
-                        default_: 0.1
                     }
                 }
                 Separator {
@@ -109,7 +106,6 @@ Item {
                     ResetButton {
                         destination: Rg.profileList.mainProfile.vars.globalVars
                         id_: "liftOn"
-                        default_: false
                     }
                 }
                 Separator {
@@ -130,7 +126,6 @@ Item {
                     ResetButton {
                         destination: Rg.profileList.mainProfile.vars.globalVars
                         id_: "liftRatio"
-                        default_: 0.1
                     }
                 }
                 Separator {
@@ -148,7 +143,6 @@ Item {
                     ResetButton {
                         destination: Rg.profileList.mainProfile.vars.globalVars
                         id_: "hiddenOn"
-                        default_: false
                     }
                 }
                 Separator {
@@ -169,7 +163,6 @@ Item {
                     ResetButton {
                         destination: Rg.profileList.mainProfile.vars.globalVars
                         id_: "hiddenRatio"
-                        default_: 0.1
                     }
                 }
                 Separator {
@@ -187,7 +180,6 @@ Item {
                     ResetButton {
                         destination: Rg.profileList.mainProfile.vars.globalVars
                         id_: "bgaOn"
-                        default_: true
                     }
                 }
                 Separator {
@@ -207,7 +199,6 @@ Item {
                     ResetButton {
                         destination: Rg.profileList.mainProfile.vars.globalVars
                         id_: "noteOrderAlgorithm"
-                        default_: 0
                     }
                 }
                 Separator {
@@ -227,7 +218,6 @@ Item {
                     ResetButton {
                         destination: Rg.profileList.mainProfile.vars.globalVars
                         id_: "noteOrderAlgorithmP2"
-                        default_: 0
                     }
                 }
                 Separator {
@@ -247,7 +237,6 @@ Item {
                     ResetButton {
                         destination: Rg.profileList.mainProfile.vars.globalVars
                         id_: "hiSpeedFix"
-                        default_: 1
                     }
                 }
                 Separator {
@@ -267,7 +256,6 @@ Item {
                     ResetButton {
                         destination: Rg.profileList.mainProfile.vars.globalVars
                         id_: "dpOptions"
-                        default_: 0
                     }
                 }
                 Separator {
@@ -286,7 +274,6 @@ Item {
                     ResetButton {
                         destination: Rg.profileList.mainProfile.vars.globalVars
                         id_: "gaugeType"
-                        default_: "FC"
                     }
                 }
                 Separator {
@@ -306,7 +293,6 @@ Item {
                     ResetButton {
                         destination: Rg.profileList.mainProfile.vars.globalVars
                         id_: "gaugeMode"
-                        default_: 2
                     }
                 }
                 Separator {
@@ -325,10 +311,10 @@ Item {
                     ResetButton {
                         destination: Rg.profileList.mainProfile.vars.globalVars
                         id_: "bottomShiftableGauge"
-                        default_: "AEASY"
                     }
                 }
             }
         }
     }
 }
+
