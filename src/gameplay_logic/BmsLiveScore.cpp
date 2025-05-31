@@ -241,7 +241,7 @@ BmsLiveScore::getReplayData() const -> std::unique_ptr<BmsReplayData>
 {
     auto hitsCopy = hits;
     std::ranges::sort(hitsCopy, [](const auto& hit, const auto& hit2) {
-        return hit.getOffsetFromStart() > hit2.getOffsetFromStart();
+        return hit.getOffsetFromStart() < hit2.getOffsetFromStart();
     });
     return std::make_unique<BmsReplayData>(hitsCopy, guid);
 }
