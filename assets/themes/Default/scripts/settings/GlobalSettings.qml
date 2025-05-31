@@ -25,6 +25,7 @@ Item {
                 anchors.left: parent.left
                 anchors.right: parent.right
                 anchors.top: parent.top
+                spacing: 5
 
                 component SettingLabel:
                     TextEdit {
@@ -71,8 +72,6 @@ Item {
                         id_: "laneCoverOn"
                     }
                 }
-                Separator {
-                }
                 RowLayout {
                     anchors.left: parent.left
                     anchors.right: parent.right
@@ -108,8 +107,6 @@ Item {
                         id_: "liftOn"
                     }
                 }
-                Separator {
-                }
                 RowLayout {
                     anchors.left: parent.left
                     anchors.right: parent.right
@@ -144,8 +141,6 @@ Item {
                         destination: Rg.profileList.mainProfile.vars.globalVars
                         id_: "hiddenOn"
                     }
-                }
-                Separator {
                 }
                 RowLayout {
                     anchors.left: parent.left
@@ -200,8 +195,6 @@ Item {
                         destination: Rg.profileList.mainProfile.vars.globalVars
                         id_: "noteOrderAlgorithm"
                     }
-                }
-                Separator {
                 }
                 RowLayout {
                     anchors.left: parent.left
