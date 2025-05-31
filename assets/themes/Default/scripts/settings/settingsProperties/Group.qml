@@ -59,7 +59,6 @@ Frame {
                     active: modelData.type !== "group"
                     Layout.fillWidth: modelData.type !== "group"
                     Layout.minimumWidth: modelData.type !== "group" ? 150 : -1
-                    // I have no idea why this is needed here.
                     // It works like some kind of priority.
                     Layout.preferredWidth: modelData.type !== "group" ? 2 : -1
                     sourceComponent: Component {
