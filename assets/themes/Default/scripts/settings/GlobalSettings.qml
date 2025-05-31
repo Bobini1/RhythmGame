@@ -27,8 +27,7 @@ Item {
                 anchors.top: parent.top
                 spacing: 5
 
-                component SettingLabel:
-                    TextEdit {
+                component SettingLabel: TextEdit {
                     id: text
                     font.pixelSize: 16
                     font.bold: true
@@ -49,6 +48,7 @@ Item {
                         id_: "noteScreenTimeMillis"
                         min: 0
                         default_: 1000
+                        Layout.fillWidth: true
                     }
                     ResetButton {
                         destination: Rg.profileList.mainProfile.vars.globalVars
@@ -66,6 +66,7 @@ Item {
                     Boolean {
                         destination: Rg.profileList.mainProfile.vars.globalVars
                         id_: "laneCoverOn"
+                        Layout.fillWidth: true
                     }
                     ResetButton {
                         destination: Rg.profileList.mainProfile.vars.globalVars
@@ -84,6 +85,7 @@ Item {
                         default_: 0.1
                         min: 0
                         max: 1
+                        Layout.fillWidth: true
                     }
                     ResetButton {
                         destination: Rg.profileList.mainProfile.vars.globalVars
@@ -101,6 +103,7 @@ Item {
                     Boolean {
                         destination: Rg.profileList.mainProfile.vars.globalVars
                         id_: "liftOn"
+                        Layout.fillWidth: true
                     }
                     ResetButton {
                         destination: Rg.profileList.mainProfile.vars.globalVars
@@ -119,6 +122,7 @@ Item {
                         default_: 0.1
                         min: 0
                         max: 1
+                        Layout.fillWidth: true
                     }
                     ResetButton {
                         destination: Rg.profileList.mainProfile.vars.globalVars
@@ -136,6 +140,7 @@ Item {
                     Boolean {
                         destination: Rg.profileList.mainProfile.vars.globalVars
                         id_: "hiddenOn"
+                        Layout.fillWidth: true
                     }
                     ResetButton {
                         destination: Rg.profileList.mainProfile.vars.globalVars
@@ -154,6 +159,7 @@ Item {
                         default_: 0.1
                         min: 0
                         max: 1
+                        Layout.fillWidth: true
                     }
                     ResetButton {
                         destination: Rg.profileList.mainProfile.vars.globalVars
@@ -171,6 +177,7 @@ Item {
                     Boolean {
                         destination: Rg.profileList.mainProfile.vars.globalVars
                         id_: "bgaOn"
+                        Layout.fillWidth: true
                     }
                     ResetButton {
                         destination: Rg.profileList.mainProfile.vars.globalVars
@@ -190,6 +197,7 @@ Item {
                         id_: "noteOrderAlgorithm"
                         choices: ["Normal", "Mirror", "Random", "S-Random", "R-Random", "Random+", "S-Random+"]
                         assignIndex: true
+                        Layout.fillWidth: true
                     }
                     ResetButton {
                         destination: Rg.profileList.mainProfile.vars.globalVars
@@ -207,6 +215,7 @@ Item {
                         id_: "noteOrderAlgorithmP2"
                         choices: ["Normal", "Mirror", "Random", "S-Random", "R-Random", "Random+", "S-Random+"]
                         assignIndex: true
+                        Layout.fillWidth: true
                     }
                     ResetButton {
                         destination: Rg.profileList.mainProfile.vars.globalVars
@@ -226,6 +235,7 @@ Item {
                         id_: "hiSpeedFix"
                         choices: ["Off", "Main", "Start", "Min", "Max"]
                         assignIndex: true
+                        Layout.fillWidth: true
                     }
                     ResetButton {
                         destination: Rg.profileList.mainProfile.vars.globalVars
@@ -245,6 +255,7 @@ Item {
                         id_: "dpOptions"
                         choices: ["Off", "Flip", "Battle", "BattleAs"]
                         assignIndex: true
+                        Layout.fillWidth: true
                     }
                     ResetButton {
                         destination: Rg.profileList.mainProfile.vars.globalVars
@@ -263,6 +274,7 @@ Item {
                         destination: Rg.profileList.mainProfile.vars.globalVars
                         id_: "gaugeType"
                         choices: ["AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC"]
+                        Layout.fillWidth: true
                     }
                     ResetButton {
                         destination: Rg.profileList.mainProfile.vars.globalVars
@@ -282,6 +294,7 @@ Item {
                         id_: "gaugeMode"
                         choices: ["Exclusive", "Best", "Select to Under"]
                         assignIndex: true
+                        Layout.fillWidth: true
                     }
                     ResetButton {
                         destination: Rg.profileList.mainProfile.vars.globalVars
@@ -300,6 +313,7 @@ Item {
                         destination: Rg.profileList.mainProfile.vars.globalVars
                         id_: "bottomShiftableGauge"
                         choices: ["AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC"]
+                        Layout.fillWidth: true
                     }
                     ResetButton {
                         destination: Rg.profileList.mainProfile.vars.globalVars

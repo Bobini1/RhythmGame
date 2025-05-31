@@ -16,7 +16,7 @@ RowLayout {
 
     Loader {
         active: range.min !== -Infinity && range.max !== Infinity
-        Layout.fillWidth: active
+        Layout.fillWidth: true
         sourceComponent: Component {
             Slider {
                 function order(num) {
@@ -45,7 +45,7 @@ RowLayout {
         
         horizontalAlignment: contentWidth >= width ? TextField.AlignLeft : TextField.AlignHCenter
         autoScroll: false
-        Layout.preferredWidth: textMetrics.width + 20
+        Layout.preferredWidth: 100
         text: Helpers.getFormattedNumber(range.destination[range.id_])
         Layout.fillHeight: true
         color: acceptableInput ? "black" : "red"
@@ -70,32 +70,6 @@ RowLayout {
 
         Component.onCompleted: {
             ensureVisible(0);
-        }
-        TextMetrics {
-            id: textMetrics
-            font: textField.font
-
-            text: {
-                let str = ""
-                if (range.max !== undefined) {
-                    str = Helpers.getFormattedNumber(range.max * 10);
-                }
-                if (range.min !== undefined) {
-                    let minStr = Helpers.getFormattedNumber(range.min * 10);
-                    if (minStr.length > str.length) {
-                        str = minStr;
-                    }
-                }
-                let defStr = Helpers.getFormattedNumber(range.default * 10);
-                if (defStr.length > str.length) {
-                    str = defStr;
-                }
-                let thousandStr = Helpers.getFormattedNumber(1000);
-                if (str.length < thousandStr.length) {
-                    str = thousandStr;
-                }
-                return str;
-            }
         }
         Layout.alignment: Qt.AlignRight
         HoverHandler {

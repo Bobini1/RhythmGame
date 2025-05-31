@@ -103,6 +103,7 @@ Frame {
                     Layout.minimumWidth: modelData.type === "group" ? -1 : 150
                     // Priority
                     Layout.preferredWidth: 1
+                    height: 30
                 }
                 Loader {
                     active: modelData.type !== "group"
