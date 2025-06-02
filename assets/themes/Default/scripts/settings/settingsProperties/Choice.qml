@@ -30,15 +30,11 @@ RowLayout {
         Binding {
             delayed: true
             choiceComboBox.currentIndex: {
-                print(choice.choices, choice.destination[choice.id_])
                 return Helpers.getIndex(
                     choice.assignIndex ? Object.keys(choice.choices) : choice.choices,
                     choice.destination[choice.id_],
                     choiceComboBox.currentIndex);
             }
-        }
-        onCurrentIndexChanged: {
-            print("Choice currentIndex changed to: " + currentIndex);
         }
 
         onActivated: (_) => {
