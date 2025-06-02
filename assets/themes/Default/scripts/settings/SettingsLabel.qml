@@ -1,12 +1,19 @@
 import QtQuick
+import QtQuick.Controls.Basic
 import QtQuick.Layouts
 
 TextEdit {
-    id: text
+    property string description
     font.pixelSize: 16
     font.bold: true
-    readOnly: true
-    Layout.alignment: Qt.AlignVCenter
-    Layout.preferredWidth: 200
     wrapMode: TextEdit.Wrap
+    readOnly: true
+    HoverHandler {
+        id: hoverHandler
+    }
+    ToolTip.text: description
+    ToolTip.visible: hoverHandler.hovered && description
+    Layout.fillWidth: true
+    Layout.minimumWidth: 200
+    Layout.maximumWidth: 1000
 }

@@ -8,7 +8,9 @@ RowLayout {
         id: themeTabView
 
         Layout.fillHeight: true
-        Layout.preferredWidth: 100
+        width: 200
+        implicitWidth: 200
+        Layout.maximumWidth: 200
 
         contentItem: ListView {
             boundsBehavior: Flickable.StopAtBounds
@@ -28,7 +30,7 @@ RowLayout {
 
             TabButton {
                 text: modelData
-                width: 100
+                width: themeTabView.width
             }
         }
     }
@@ -37,6 +39,7 @@ RowLayout {
 
         Layout.fillHeight: true
         Layout.fillWidth: true
+        Layout.maximumWidth: 1500
         currentIndex: themeTabView.currentIndex
 
         Repeater {
@@ -59,7 +62,9 @@ RowLayout {
 
                         property bool loaded: false
                         Layout.alignment: Qt.AlignTop
+                        Layout.maximumWidth: 300
                         Layout.preferredWidth: 200
+                        Layout.fillWidth: true
                         model: {
                             let themeFamilies = Rg.themes.availableThemeFamilies;
                             let themeNames = [];
@@ -94,7 +99,7 @@ RowLayout {
                         Layout.fillHeight: true
                         Layout.fillWidth: true
                         clip: true
-                        contentWidth: Math.max(width, 450)
+                        contentWidth: Math.max(width, 550)
                         ScreenSettings {
                             id: screenSettings
                             screen: modelData

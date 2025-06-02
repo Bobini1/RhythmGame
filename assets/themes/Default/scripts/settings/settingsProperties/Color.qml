@@ -1,35 +1,62 @@
 import QtQuick.Dialogs
 import QtQuick.Controls.Basic
+import QtQuick.Layouts
 import RhythmGameQml
 import QtQuick
+import ".."
 
-Rectangle {
+RowLayout {
     id: colorPicker
-
-    height: 30
-    border {
-        color: "black"
-        width: 1
-    }
     property var destination
     property string id_
-    property string name
+    property var colorPickers
+    property alias name: strLabel.text
+    property alias description: strLabel.description
+    property var default_
 
-    color: destination[colorPicker.id_]
-
-    MouseArea {
-        anchors.fill: parent
-        onClicked: colorDialog.open()
+    SettingsLabel {
+        id: strLabel
     }
 
-    ColorDialog {
-        id: colorDialog
+    Rectangle {
+        id: colorPickerRectangle
 
-        selectedColor: colorPicker.destination[colorPicker.id_]
-        title: colorPicker.name
+        height: 30
+        border {
+            color: "black"
+            width: 1
+        }
+        Layout.fillWidth: true
+        Layout.preferredWidth: 400
+        Layout.minimumWidth: 200
 
-        onAccepted: {
-            colorPicker.destination[colorPicker.id_] = colorDialog.selectedColor;
+        color: colorPicker.destination[colorPicker.id_]
+
+        MouseArea {
+            anchors.fill: parent
+            onClicked: colorDialog.open()
+        }
+
+        ColorDialog {
+            id: colorDialog
+
+            selectedColor: colorPicker.destination[colorPicker.id_]
+            title: colorPicker.name
+
+            onAccepted: {
+                colorPicker.destination[colorPicker.id_] = colorDialog.selectedColor;
+            }
+        }
+    }
+
+
+    ResetButton {
+        destination: colorPicker.destination
+        id_: colorPicker.id_
+        default_: colorPicker.default_
+
+        onClicked: {
+            colorPicker.destination[colorPicker.id_] = colorPicker.default_
         }
     }
 }

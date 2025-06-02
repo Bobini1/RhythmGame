@@ -14,7 +14,7 @@ Item {
             top: parent.top
             bottom: parent.bottom
         }
-        width: Math.min(parent.width / 2, 600)
+        width: 600
         padding: 1
 
         Frame {
@@ -27,297 +27,199 @@ Item {
                 anchors.top: parent.top
                 spacing: 5
 
-                component SettingLabel: TextEdit {
-                    id: text
-                    font.pixelSize: 16
-                    font.bold: true
-                    readOnly: true
-                    text: "Green Number"
-                    Layout.alignment: Qt.AlignVCenter
-                    Layout.preferredWidth: 200
-                    wrapMode: TextEdit.Wrap
-                }
-                RowLayout {
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-                    SettingLabel {
-                        text: "Green Number"
-                    }
-                    Range {
-                        destination: Rg.profileList.mainProfile.vars.globalVars
-                        id_: "noteScreenTimeMillis"
-                        min: 0
-                        default_: 1000
-                        Layout.fillWidth: true
-                    }
-                    ResetButton {
-                        destination: Rg.profileList.mainProfile.vars.globalVars
-                        id_: "noteScreenTimeMillis"
+                Range {
+                    destination: Rg.profileList.mainProfile.vars.globalVars
+                    id_: "noteScreenTimeMillis"
+                    name: "Note Screen Time (ms)"
+                    min: 0
+                    default_: 1000
+                    anchors {
+                        left: parent.left
+                        right: parent.right
                     }
                 }
                 Separator {
                 }
-                RowLayout {
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-                    SettingLabel {
-                        text: "Lane Cover"
-                    }
-                    Boolean {
-                        destination: Rg.profileList.mainProfile.vars.globalVars
-                        id_: "laneCoverOn"
-                        Layout.fillWidth: true
-                    }
-                    ResetButton {
-                        destination: Rg.profileList.mainProfile.vars.globalVars
-                        id_: "laneCoverOn"
+                Boolean {
+                    destination: Rg.profileList.mainProfile.vars.globalVars
+                    id_: "laneCoverOn"
+                    name: "Lane Cover"
+                    
+                    anchors {
+                        left: parent.left
+                        right: parent.right
                     }
                 }
-                RowLayout {
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-                    SettingLabel {
-                        text: "Lane Cover Ratio"
-                    }
-                    Range {
-                        destination: Rg.profileList.mainProfile.vars.globalVars
-                        id_: "laneCoverRatio"
-                        default_: 0.1
-                        min: 0
-                        max: 1
-                        Layout.fillWidth: true
-                    }
-                    ResetButton {
-                        destination: Rg.profileList.mainProfile.vars.globalVars
-                        id_: "laneCoverRatio"
+                Range {
+                    destination: Rg.profileList.mainProfile.vars.globalVars
+                    id_: "laneCoverRatio"
+                    name: "Lane Cover Ratio"
+                    default_: 0.1
+                    min: 0
+                    max: 1
+                    
+                    anchors {
+                        left: parent.left
+                        right: parent.right
                     }
                 }
                 Separator {
                 }
-                RowLayout {
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-                    SettingLabel {
-                        text: "Lift"
-                    }
-                    Boolean {
-                        destination: Rg.profileList.mainProfile.vars.globalVars
-                        id_: "liftOn"
-                        Layout.fillWidth: true
-                    }
-                    ResetButton {
-                        destination: Rg.profileList.mainProfile.vars.globalVars
-                        id_: "liftOn"
+                Boolean {
+                    destination: Rg.profileList.mainProfile.vars.globalVars
+                    id_: "liftOn"
+                    name: "Lift"
+                    
+                    anchors {
+                        left: parent.left
+                        right: parent.right
                     }
                 }
-                RowLayout {
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-                    SettingLabel {
-                        text: "Lift Ratio"
-                    }
-                    Range {
-                        destination: Rg.profileList.mainProfile.vars.globalVars
-                        id_: "liftRatio"
-                        default_: 0.1
-                        min: 0
-                        max: 1
-                        Layout.fillWidth: true
-                    }
-                    ResetButton {
-                        destination: Rg.profileList.mainProfile.vars.globalVars
-                        id_: "liftRatio"
+                Range {
+                    destination: Rg.profileList.mainProfile.vars.globalVars
+                    id_: "liftRatio"
+                    name: "Lift Ratio"
+                    default_: 0.1
+                    min: 0
+                    max: 1
+                    
+                    anchors {
+                        left: parent.left
+                        right: parent.right
                     }
                 }
                 Separator {
                 }
-                RowLayout {
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-                    SettingLabel {
-                        text: "Hidden"
-                    }
-                    Boolean {
-                        destination: Rg.profileList.mainProfile.vars.globalVars
-                        id_: "hiddenOn"
-                        Layout.fillWidth: true
-                    }
-                    ResetButton {
-                        destination: Rg.profileList.mainProfile.vars.globalVars
-                        id_: "hiddenOn"
+                Boolean {
+                    destination: Rg.profileList.mainProfile.vars.globalVars
+                    id_: "hiddenOn"
+                    name: "Hidden"
+                    
+                    anchors {
+                        left: parent.left
+                        right: parent.right
                     }
                 }
-                RowLayout {
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-                    SettingLabel {
-                        text: "Hidden Ratio"
-                    }
-                    Range {
-                        destination: Rg.profileList.mainProfile.vars.globalVars
-                        id_: "hiddenRatio"
-                        default_: 0.1
-                        min: 0
-                        max: 1
-                        Layout.fillWidth: true
-                    }
-                    ResetButton {
-                        destination: Rg.profileList.mainProfile.vars.globalVars
-                        id_: "hiddenRatio"
+                Range {
+                    destination: Rg.profileList.mainProfile.vars.globalVars
+                    id_: "hiddenRatio"
+                    name: "Hidden Ratio"
+                    default_: 0.1
+                    min: 0
+                    max: 1
+                    
+                    anchors {
+                        left: parent.left
+                        right: parent.right
                     }
                 }
                 Separator {
                 }
-                RowLayout {
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-                    SettingLabel {
-                        text: "BGA Enabled"
-                    }
-                    Boolean {
-                        destination: Rg.profileList.mainProfile.vars.globalVars
-                        id_: "bgaOn"
-                        Layout.fillWidth: true
-                    }
-                    ResetButton {
-                        destination: Rg.profileList.mainProfile.vars.globalVars
-                        id_: "bgaOn"
+                Boolean {
+                    destination: Rg.profileList.mainProfile.vars.globalVars
+                    id_: "bgaOn"
+                    name: "BGA On"
+                    
+                    anchors {
+                        left: parent.left
+                        right: parent.right
                     }
                 }
                 Separator {
                 }
-                RowLayout {
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-                    SettingLabel {
-                        text: "Note Order Algorithm"
-                    }
-                    Choice {
-                        destination: Rg.profileList.mainProfile.vars.globalVars
-                        id_: "noteOrderAlgorithm"
-                        choices: ["Normal", "Mirror", "Random", "S-Random", "R-Random", "Random+", "S-Random+"]
-                        assignIndex: true
-                        Layout.fillWidth: true
-                    }
-                    ResetButton {
-                        destination: Rg.profileList.mainProfile.vars.globalVars
-                        id_: "noteOrderAlgorithm"
+
+                Choice {
+                    destination: Rg.profileList.mainProfile.vars.globalVars
+                    id_: "noteOrderAlgorithm"
+                    choices: ["Normal", "Mirror", "Random", "S-Random", "R-Random", "Random+", "S-Random+"]
+                    name: "Note Order Algorithm"
+                    assignIndex: true
+                    
+                    anchors {
+                        left: parent.left
+                        right: parent.right
                     }
                 }
-                RowLayout {
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-                    SettingLabel {
-                        text: "Note Order Algorithm P2"
-                    }
-                    Choice {
-                        destination: Rg.profileList.mainProfile.vars.globalVars
-                        id_: "noteOrderAlgorithmP2"
-                        choices: ["Normal", "Mirror", "Random", "S-Random", "R-Random", "Random+", "S-Random+"]
-                        assignIndex: true
-                        Layout.fillWidth: true
-                    }
-                    ResetButton {
-                        destination: Rg.profileList.mainProfile.vars.globalVars
-                        id_: "noteOrderAlgorithmP2"
+
+                Choice {
+                    destination: Rg.profileList.mainProfile.vars.globalVars
+                    id_: "noteOrderAlgorithmP2"
+                    choices: ["Normal", "Mirror", "Random", "S-Random", "R-Random", "Random+", "S-Random+"]
+                    name: "Note Order Algorithm P2"
+                    assignIndex: true
+                    
+                    anchors {
+                        left: parent.left
+                        right: parent.right
                     }
                 }
                 Separator {
                 }
-                RowLayout {
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-                    SettingLabel {
-                        text: "Hi Speed Fix"
-                    }
-                    Choice {
-                        destination: Rg.profileList.mainProfile.vars.globalVars
-                        id_: "hiSpeedFix"
-                        choices: ["Off", "Main", "Start", "Min", "Max"]
-                        assignIndex: true
-                        Layout.fillWidth: true
-                    }
-                    ResetButton {
-                        destination: Rg.profileList.mainProfile.vars.globalVars
-                        id_: "hiSpeedFix"
+
+                Choice {
+                    destination: Rg.profileList.mainProfile.vars.globalVars
+                    id_: "hiSpeedFix"
+                    choices: ["Off", "Main", "Start", "Min", "Max"]
+                    name: "Hi-Speed Fix"
+                    assignIndex: true
+                    
+                    anchors {
+                        left: parent.left
+                        right: parent.right
                     }
                 }
                 Separator {
                 }
-                RowLayout {
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-                    SettingLabel {
-                        text: "DP Options"
-                    }
-                    Choice {
-                        destination: Rg.profileList.mainProfile.vars.globalVars
-                        id_: "dpOptions"
-                        choices: ["Off", "Flip", "Battle", "BattleAs"]
-                        assignIndex: true
-                        Layout.fillWidth: true
-                    }
-                    ResetButton {
-                        destination: Rg.profileList.mainProfile.vars.globalVars
-                        id_: "dpOptions"
+                Choice {
+                    destination: Rg.profileList.mainProfile.vars.globalVars
+                    id_: "dpOptions"
+                    choices: ["Off", "Flip", "Battle", "BattleAs"]
+                    name: "DP Options"
+                    assignIndex: true
+                    
+                    anchors {
+                        left: parent.left
+                        right: parent.right
                     }
                 }
                 Separator {
                 }
-                RowLayout {
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-                    SettingLabel {
-                        text: "Gauge Type"
-                    }
-                    Choice {
-                        destination: Rg.profileList.mainProfile.vars.globalVars
-                        id_: "gaugeType"
-                        choices: ["AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC"]
-                        Layout.fillWidth: true
-                    }
-                    ResetButton {
-                        destination: Rg.profileList.mainProfile.vars.globalVars
-                        id_: "gaugeType"
+                Choice {
+                    destination: Rg.profileList.mainProfile.vars.globalVars
+                    id_: "gaugeType"
+                    choices: ["AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC"]
+                    name: "Gauge Type"
+                    
+                    anchors {
+                        left: parent.left
+                        right: parent.right
                     }
                 }
                 Separator {
                 }
-                RowLayout {
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-                    SettingLabel {
-                        text: "Gauge Mode"
-                    }
-                    Choice {
-                        destination: Rg.profileList.mainProfile.vars.globalVars
-                        id_: "gaugeMode"
-                        choices: ["Exclusive", "Best", "Select to Under"]
-                        assignIndex: true
-                        Layout.fillWidth: true
-                    }
-                    ResetButton {
-                        destination: Rg.profileList.mainProfile.vars.globalVars
-                        id_: "gaugeMode"
+                Choice {
+                    destination: Rg.profileList.mainProfile.vars.globalVars
+                    id_: "gaugeMode"
+                    choices: ["Exclusive", "Best", "Select to Under"]
+                    name: "Gauge Mode"
+                    assignIndex: true
+                    
+                    anchors {
+                        left: parent.left
+                        right: parent.right
                     }
                 }
                 Separator {
                 }
-                RowLayout {
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-                    SettingLabel {
-                        text: "Bottom Shiftable Gauge"
-                    }
-                    Choice {
-                        destination: Rg.profileList.mainProfile.vars.globalVars
-                        id_: "bottomShiftableGauge"
-                        choices: ["AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC"]
-                        Layout.fillWidth: true
-                    }
-                    ResetButton {
-                        destination: Rg.profileList.mainProfile.vars.globalVars
-                        id_: "bottomShiftableGauge"
+                Choice {
+                    destination: Rg.profileList.mainProfile.vars.globalVars
+                    id_: "bottomShiftableGauge"
+                    name: "Bottom Shiftable Gauge"
+                    choices: ["AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC"]
+                    
+                    anchors {
+                        left: parent.left
+                        right: parent.right
                     }
                 }
             }

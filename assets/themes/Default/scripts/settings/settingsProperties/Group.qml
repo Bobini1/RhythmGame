@@ -48,80 +48,28 @@ Frame {
         }
         Repeater {
             model: groupFrame.items
-            RowLayout {
-                anchors {
-                    left: parent.left
-                    right: parent.right
-                }
+            Loader {
+                id: loader
 
-                Loader {
-                    id: loader1
-                    active: modelData.type !== "group"
-                    Layout.fillWidth: modelData.type !== "group"
-                    Layout.minimumWidth: modelData.type !== "group" ? 150 : -1
-                    // It works like some kind of priority.
-                    Layout.preferredWidth: modelData.type !== "group" ? 2 : -1
-                    sourceComponent: Component {
-                        TextEdit {
-                            text: modelData.name
-                            font.pixelSize: 16
-                            font.bold: true
-                            wrapMode: TextEdit.Wrap
-                            readOnly: true
-                            HoverHandler {
-                                id: hoverHandler
-                            }
-                            ToolTip.visible: hoverHandler.hovered && (modelData.description || false)
-                            ToolTip.text: modelData.description || ""
-                        }
+                Component.onCompleted: {
+                    let props = {};
+                    Object.assign(props, modelData);
+                    if ("id" in props) {
+                        props.id_ = props.id;
                     }
-                }
-                Loader {
-                    id: loader
-
-                    Component.onCompleted: {
-                        let props = {};
-                        Object.assign(props, modelData);
-                        if ("id" in props) {
-                            props.id_ = props.id;
-                        }
-                        delete props.id;
-                        if (props.type !== "group") {
-                            delete props.name;
-                            delete props.description;
-                        }
-                        if (props.type === "range") {
-                            props.default_ = props.default;
-                        }
-                        delete props.default;
-                        delete props.type;
-                        props.destination = groupFrame.destination;
-                        setSource(Helpers.capitalizeFirstLetter(modelData.type) + ".qml", props);
+                    delete props.id;
+                    if (props.type !== "group") {
+                        props.default_ = props.default;
                     }
-                    Layout.fillWidth: true
-                    Layout.maximumWidth: modelData.type === "group" ? -1 : 600
-                    Layout.minimumWidth: modelData.type === "group" ? -1 : 150
-                    // Priority
-                    Layout.preferredWidth: 1
-                    height: 30
+                    delete props.default;
+                    delete props.type;
+                    props.destination = groupFrame.destination;
+                    setSource(Helpers.capitalizeFirstLetter(modelData.type) + ".qml", props);
                 }
-                Loader {
-                    active: modelData.type !== "group"
-                    Layout.fillWidth: active
-                    Layout.minimumWidth: active ? 50 : -1
-                    Layout.maximumWidth: active ? 50 : -1
-                    sourceComponent: Component {
-                        Button {
-                            text: "Reset"
-                            enabled: groupFrame.destination[modelData.id] !== modelData.default
-
-                            implicitWidth: 50
-                            onClicked: {
-                                groupFrame.destination[modelData.id] = modelData.default
-                            }
-                        }
-                    }
-                }
+                Layout.fillWidth: true
+                Layout.maximumWidth: modelData.type === "group" ? -1 : 600
+                Layout.minimumWidth: modelData.type === "group" ? -1 : 150
+                width: parent.width
             }
         }
     }

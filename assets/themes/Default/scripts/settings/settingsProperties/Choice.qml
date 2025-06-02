@@ -1,27 +1,48 @@
 import Qt.labs.folderlistmodel
 import QtQuick
 import QtQuick.Controls.Basic
+import QtQuick.Layouts
 import RhythmGameQml
 import "../../common/helpers.js" as Helpers
+import ".."
 
-ComboBox {
-    id: choiceComboBox
-    model: choices
+RowLayout {
+    id: choice
     // for global vars only
     property bool assignIndex: false
     property var destination
     property string id_
     property var choices
+    property alias name: strLabel.text
+    property alias description: strLabel.description
+    property var default_
 
-    Binding {
-        delayed: true
-        choiceComboBox.currentIndex: Helpers.getIndex(
-            choiceComboBox.assignIndex ? Object.keys(choiceComboBox.choices) : choiceComboBox.choices,
-            choiceComboBox.destination[choiceComboBox.id_],
-            choiceComboBox.currentIndex);
+    SettingsLabel {
+        id: strLabel
+    }
+    ComboBox {
+        id: choiceComboBox
+        model: choices
+        Layout.fillWidth: true
+        Layout.preferredWidth: 400
+        Layout.minimumWidth: 200
+
+        Binding {
+            delayed: true
+            choiceComboBox.currentIndex: Helpers.getIndex(
+                choice.assignIndex ? Object.keys(choice.choices) : choice.choices,
+                choice.destination[choiceComboBox.id_],
+                choiceComboBox.currentIndex);
+        }
+
+        onActivated: (_) => {
+            destination[choiceComboBox.id_] = choiceComboBox.assignIndex ? currentIndex : currentText;
+        }
     }
 
-    onActivated: (_) => {
-        destination[choiceComboBox.id_] = choiceComboBox.assignIndex ? currentIndex : currentText;
+    ResetButton {
+        destination: choice.destination
+        id_: choice.id_
+        default_: choice.default_
     }
 }
