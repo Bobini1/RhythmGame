@@ -10,6 +10,8 @@ RowLayout {
     id: range
     property real min: -Infinity
     property real max: Infinity
+    property real sliderMax: max
+    property real sliderMin: min
     property real default_: 0
     property var destination
     property string id_
@@ -27,14 +29,14 @@ RowLayout {
         Layout.minimumWidth: 200
 
         Loader {
-            active: range.min !== -Infinity && range.max !== Infinity
+            active: range.sliderMin !== -Infinity && range.sliderMax !== Infinity
             Layout.fillWidth: true
             Layout.minimumWidth: 120 - rangeRow.spacing
             Layout.preferredWidth: 120 - rangeRow.spacing
             sourceComponent: Component {
                 Slider {
-                    from: range.min
-                    to: range.max
+                    from: range.sliderMin
+                    to: range.sliderMax
                     Layout.fillHeight: true
                     value: range.destination[range.id_]
 

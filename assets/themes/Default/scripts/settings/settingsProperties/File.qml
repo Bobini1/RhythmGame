@@ -10,7 +10,6 @@ RowLayout {
     id: file
     property var destination
     property string id_
-    property var files
     property alias name: strLabel.text
     property alias description: strLabel.description
     property var default_
@@ -38,11 +37,11 @@ RowLayout {
 
         Binding {
             delayed: true
-            fileComboBox.currentIndex: Helpers.getIndex(fileComboBox.files, destination[file.id_], fileComboBox.currentIndex);
+            fileComboBox.currentIndex: Helpers.getIndex(fileComboBox.files, file.destination[file.id_], fileComboBox.currentIndex);
         }
 
         onActivated: (_) => {
-            destination[fileComboBox.id_] = currentText;
+            file.destination[file.id_] = currentText;
         }
     }
 

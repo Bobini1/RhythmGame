@@ -33,6 +33,7 @@ Item {
                     name: "Note Screen Time (ms)"
                     min: 0
                     default_: 1000
+                    sliderMax: 1500
                     anchors {
                         left: parent.left
                         right: parent.right
@@ -44,6 +45,7 @@ Item {
                     destination: Rg.profileList.mainProfile.vars.globalVars
                     id_: "laneCoverOn"
                     name: "Lane Cover"
+                    default_: false
                     
                     anchors {
                         left: parent.left
@@ -69,6 +71,7 @@ Item {
                     destination: Rg.profileList.mainProfile.vars.globalVars
                     id_: "liftOn"
                     name: "Lift"
+                    default_: false
                     
                     anchors {
                         left: parent.left
@@ -94,6 +97,7 @@ Item {
                     destination: Rg.profileList.mainProfile.vars.globalVars
                     id_: "hiddenOn"
                     name: "Hidden"
+                    default_: false
                     
                     anchors {
                         left: parent.left
@@ -119,6 +123,7 @@ Item {
                     destination: Rg.profileList.mainProfile.vars.globalVars
                     id_: "bgaOn"
                     name: "BGA On"
+                    default_: true
                     
                     anchors {
                         left: parent.left
@@ -134,6 +139,7 @@ Item {
                     choices: ["Normal", "Mirror", "Random", "S-Random", "R-Random", "Random+", "S-Random+"]
                     name: "Note Order Algorithm"
                     assignIndex: true
+                    default_: 0
                     
                     anchors {
                         left: parent.left
@@ -147,6 +153,7 @@ Item {
                     choices: ["Normal", "Mirror", "Random", "S-Random", "R-Random", "Random+", "S-Random+"]
                     name: "Note Order Algorithm P2"
                     assignIndex: true
+                    default_: 0
                     
                     anchors {
                         left: parent.left
@@ -162,6 +169,7 @@ Item {
                     choices: ["Off", "Main", "Start", "Min", "Max"]
                     name: "Hi-Speed Fix"
                     assignIndex: true
+                    default_: 1
                     
                     anchors {
                         left: parent.left
@@ -176,6 +184,7 @@ Item {
                     choices: ["Off", "Flip", "Battle", "BattleAs"]
                     name: "DP Options"
                     assignIndex: true
+                    default_: 0
                     
                     anchors {
                         left: parent.left
@@ -189,6 +198,7 @@ Item {
                     id_: "gaugeType"
                     choices: ["AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC"]
                     name: "Gauge Type"
+                    default_: "EXHARD"
                     
                     anchors {
                         left: parent.left
@@ -203,6 +213,7 @@ Item {
                     choices: ["Exclusive", "Best", "Select to Under"]
                     name: "Gauge Mode"
                     assignIndex: true
+                    default_: 1
                     
                     anchors {
                         left: parent.left
@@ -216,6 +227,7 @@ Item {
                     id_: "bottomShiftableGauge"
                     name: "Bottom Shiftable Gauge"
                     choices: ["AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC"]
+                    default_: "EASY"
                     
                     anchors {
                         left: parent.left

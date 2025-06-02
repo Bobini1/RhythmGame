@@ -3,6 +3,7 @@ import QtQuick.Controls.Basic
 import QtQuick.Layouts
 import RhythmGameQml
 import "../common/helpers.js" as Helpers
+import "settingsProperties"
 
 
 GroupBox {
@@ -51,136 +52,45 @@ GroupBox {
     ColumnLayout {
         anchors.fill: parent
 
-        RowLayout {
-            Layout.fillWidth: true
-            spacing: 0
-            TextEdit {
-                text: qsTr("Algorithm")
-                font.pixelSize: 20
-                readOnly: true
-                Layout.fillWidth: true
-                Layout.preferredWidth: parent.width / 3
-            }
-            ComboBox {
-                id: choiceComboBox
-                model: ["Analog", "Classic"]
-                Layout.fillWidth: true
-                Layout.preferredWidth: parent.width / 3 * 2
-
-                Binding {
-                    delayed: true
-                    choiceComboBox.currentIndex: Rg.inputTranslator[`analogAxisConfig${player}`].scratchAlgorithm;
-                }
-
-                onActivated: () => {
-                    Rg.inputTranslator[`analogAxisConfig${player}`].scratchAlgorithm = currentIndex
-                }
-            }
+        Choice {
+            destination: Rg.inputTranslator[`analogAxisConfig${player}`]
+            id_: "scratchAlgorithm"
+            name: qsTr("Algorithm")
+            choices: ["Analog", "Classic"]
+            assignIndex: true
+            default_: 0
         }
 
-        RowLayout {
-            Layout.fillWidth: true
-            spacing: 0
-            TextEdit {
-                text: qsTr("Trigger Threshold")
-                font.pixelSize: 20
-                readOnly: true
-                Layout.fillWidth: true
-                Layout.preferredWidth: parent.width / 3
-            }
-            NumberField {
-                Layout.fillHeight: true
-                Layout.preferredWidth: parent.width / 6
-                variable: "triggerThreshold"
-                max: 1
-                min: 0
-            }
-            Slider {
-                id: triggerThreshold
-                from: 0
-                to: 0.10
-                stepSize: 0.001
-                Layout.fillWidth: true
-                Layout.preferredWidth: parent.width / 2
 
-                Binding {
-                    delayed: true
-                    triggerThreshold.value: Rg.inputTranslator[`analogAxisConfig${player}`].triggerThreshold;
-                }
-
-                onMoved: () => {
-                    Rg.inputTranslator[`analogAxisConfig${player}`].triggerThreshold = value;
-                }
-            }
+        Range {
+            id_: "triggerThreshold"
+            destination: Rg.inputTranslator[`analogAxisConfig${player}`]
+            name: qsTr("Trigger Threshold")
+            sliderMax: 0.1
+            sliderMin: 0
+            min: 0
+            max: 1
+            default_: 0.008
         }
-        RowLayout {
-            Layout.fillWidth: true
-            spacing: 0
-            TextEdit {
-                text: qsTr("Release Threshold")
-                font.pixelSize: 20
-                readOnly: true
-                Layout.fillWidth: true
-                Layout.preferredWidth: parent.width / 3
-            }
-            NumberField {
-                Layout.fillHeight: true
-                Layout.preferredWidth: parent.width / 6
-                variable: "releaseThreshold"
-                max: 1
-                min: 0
-            }
-            Slider {
-                id: releaseThreshold
-                from: 0
-                to: 0.10
-                stepSize: 0.001
-                Layout.fillWidth: true
-                Layout.preferredWidth: parent.width / 2
-
-                Binding {
-                    delayed: true
-                    releaseThreshold.value: Rg.inputTranslator[`analogAxisConfig${player}`].releaseThreshold;
-                }
-
-                onMoved: () => {
-                    Rg.inputTranslator[`analogAxisConfig${player}`].releaseThreshold = value;
-                }
-            }
+        Range {
+            id_: "releaseThreshold"
+            destination: Rg.inputTranslator[`analogAxisConfig${player}`]
+            name: qsTr("Release Threshold")
+            sliderMax: 0.1
+            sliderMin: 0
+            min: 0
+            max: 1
+            default_: 0.004
         }
 
-        RowLayout {
-            Layout.fillWidth: true
-            spacing: 0
-            TextEdit {
-                text: qsTr("Timeout")
-                font.pixelSize: 20
-                readOnly: true
-                Layout.fillWidth: true
-                Layout.preferredWidth: parent.width / 3
-            }
-            NumberField {
-                Layout.fillHeight: true
-                Layout.preferredWidth: parent.width / 6
-                variable: "timeout"
-                max: 500
-                min: 0
-            }
-            Slider {
-                id: timeout
-                from: 0
-                to: 500
-                stepSize: 1
-                Layout.fillWidth: true
-                Layout.preferredWidth: parent.width / 2
-                Binding {
-                    delayed: true
-                    timeout.value: Rg.inputTranslator[`analogAxisConfig${player}`].timeout;
-                }
-                onMoved: () => {
-                    Rg.inputTranslator[`analogAxisConfig${player}`].timeout = value;
-                }
-            }
+        Range {
+            id_: "timeout"
+            destination: Rg.inputTranslator[`analogAxisConfig${player}`]
+            name: qsTr("Timeout")
+            sliderMax: 500
+            sliderMin: 0
+            min: 0
+            default_: 100
         }
     }
 }

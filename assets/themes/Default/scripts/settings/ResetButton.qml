@@ -11,7 +11,7 @@ Button {
     property string id_
     property var default_
 
-    enabled: destination[id_] !== default_
+    enabled: destination[id_] != default_
     Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
 
     onClicked: {

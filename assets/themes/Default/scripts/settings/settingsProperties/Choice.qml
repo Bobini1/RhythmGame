@@ -29,14 +29,20 @@ RowLayout {
 
         Binding {
             delayed: true
-            choiceComboBox.currentIndex: Helpers.getIndex(
-                choice.assignIndex ? Object.keys(choice.choices) : choice.choices,
-                choice.destination[choiceComboBox.id_],
-                choiceComboBox.currentIndex);
+            choiceComboBox.currentIndex: {
+                print(choice.choices, choice.destination[choice.id_])
+                return Helpers.getIndex(
+                    choice.assignIndex ? Object.keys(choice.choices) : choice.choices,
+                    choice.destination[choice.id_],
+                    choiceComboBox.currentIndex);
+            }
+        }
+        onCurrentIndexChanged: {
+            print("Choice currentIndex changed to: " + currentIndex);
         }
 
         onActivated: (_) => {
-            destination[choiceComboBox.id_] = choiceComboBox.assignIndex ? currentIndex : currentText;
+            destination[choice.id_] = choice.assignIndex ? currentIndex : currentText;
         }
     }
 
