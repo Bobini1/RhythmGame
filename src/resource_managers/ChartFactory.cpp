@@ -405,7 +405,10 @@ getComponentsForPlayer(const ChartFactory::PlayerSpecificData& player,
       results[0].columns += results[1].columns,
       results[0].seed,
       chartData.getSha256(),
-      chartData.getMd5());
+      chartData.getMd5(),
+      player.replayedScore
+        ? player.replayedScore->getResult()->getGuid()
+        : QUuid::createUuid().toString());
     auto notesStates = QList<gameplay_logic::ColumnState*>{};
     for (const auto& column : notes->getNotes()) {
         auto notes = QList<gameplay_logic::NoteState>{};
