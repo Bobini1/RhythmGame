@@ -8,7 +8,6 @@ import RhythmGameQml
 Item {
     ScrollView {
         id: scrollView
-        clip: true
         anchors {
             top: parent.top
             bottom: parent.bottom
