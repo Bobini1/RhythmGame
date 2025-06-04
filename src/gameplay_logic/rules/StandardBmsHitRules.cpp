@@ -98,6 +98,9 @@ gameplay_logic::rules::StandardBmsHitRules::processMisses(
   const std::chrono::nanoseconds offsetFromStart) -> std::vector<HitEvent>
 {
     auto& currentNoteIndex = currentNotes[column];
+    if (currentNoteIndex >= notes.size()) {
+        return {};
+    }
     auto events = std::vector<HitEvent>{};
     notes = notes.subspan(currentNoteIndex);
     const auto upperBound = timingWindows.rbegin()->first.upper();
@@ -173,6 +176,9 @@ gameplay_logic::rules::StandardBmsHitRules::processMines(
   sounds::OpenALSound* mineHitSound) -> std::vector<HitEvent>
 {
     auto& currentMineIndex = currentMines[column];
+    if (currentMineIndex >= mines.size()) {
+        return {};
+    }
     auto mineHits = std::vector<HitEvent>{};
     mines = mines.subspan(currentMineIndex);
     auto playSound = false;
