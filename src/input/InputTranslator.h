@@ -23,6 +23,7 @@ class Key
     Q_PROPERTY(QVariant gamepad MEMBER gamepad)
     Q_PROPERTY(Device device MEMBER device)
     Q_PROPERTY(int code MEMBER code)
+    Q_PROPERTY(Direction direction MEMBER direction)
 
   public:
     enum class Device
