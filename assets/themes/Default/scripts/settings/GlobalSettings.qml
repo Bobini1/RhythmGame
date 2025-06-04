@@ -10,16 +10,15 @@ Item {
         id: scrollView
         clip: true
         anchors {
-            horizontalCenter: parent.horizontalCenter
             top: parent.top
             bottom: parent.bottom
+            horizontalCenter: parent.horizontalCenter
         }
-        width: 600
-        padding: 1
+        width: Math.min(600, parent.width)
+        Layout.alignment: Qt.AlignHCenter | Qt.AlignTop
 
         Frame {
             width: 600
-            z: -1
             Column {
                 id: list
                 anchors.left: parent.left
