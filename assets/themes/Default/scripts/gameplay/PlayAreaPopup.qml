@@ -60,11 +60,6 @@ GameplayPopup {
                 prop: "scratchOnRightSide"
             }
         }
-        BooleanOption {
-            src: popup.themeVars
-            description: "Stop notes at bottom"
-            prop: "notesStay"
-        }
         ImageSelection {
             src: popup.themeVars
             propertyId: "notes"

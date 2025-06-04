@@ -10,7 +10,6 @@ Item {
     required property var columnState
     required property real position
     required property string color
-    required property bool notesStay
     required property string noteImage
     required property string mineImage
     required property var notes

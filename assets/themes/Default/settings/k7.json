@@ -41,13 +41,6 @@
         "type": "color",
         "description": "The color of the line where you are supposed to hit the note",
         "default": "red"
-      },
-      {
-        "id": "notesStay",
-        "name": "Stop notes on judge line",
-        "description": "Notes will never go below the judge line, staying there for a moment instead",
-        "type": "boolean",
-        "default": false
       }
     ]
   },

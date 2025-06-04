@@ -121,7 +121,6 @@ Item {
             columnSizes: playArea.columnSizes
             noteImage: playArea.vars.notes
             mineImage: playArea.vars.mine
-            notesStay: playArea.vars.notesStay
             position: playArea.position
             z: 4
         }
