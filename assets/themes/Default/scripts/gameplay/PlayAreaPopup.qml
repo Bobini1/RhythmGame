@@ -9,7 +9,7 @@ GameplayPopup {
 
     required property var globalVars
     required property var themeVars
-    property bool dp: true
+    property bool dp: false
     
     model: ObjectModel {
         NumberWithSlider {

@@ -90,7 +90,6 @@ Rectangle {
         property Profile profile: (chart.player2 || chart.player1).profile
         themeVars: profile.vars.themeVars[chartFocusScope.screen]
         globalVars: profile.vars.globalVars
-        dp: false
 
         onClosed: {
             root.popup = null;
