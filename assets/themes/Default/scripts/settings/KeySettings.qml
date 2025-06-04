@@ -89,9 +89,6 @@ Item {
             LayoutItemProxy {
                 visible: analogAxisSettings1.active || analogAxisSettings2.active
                 target: analogAxisSettings1
-                onVisibleChanged: {
-                    print("Analog Axis Settings 1 visible:", visible);
-                }
             }
             LayoutItemProxy {
                 target: contentLayout
