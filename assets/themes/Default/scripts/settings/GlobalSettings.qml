@@ -15,7 +15,6 @@ Item {
             horizontalCenter: parent.horizontalCenter
         }
         width: Math.min(600, parent.width)
-        Layout.alignment: Qt.AlignHCenter | Qt.AlignTop
 
         Frame {
             width: 600
