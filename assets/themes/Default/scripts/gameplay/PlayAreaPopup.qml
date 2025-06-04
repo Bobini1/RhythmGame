@@ -54,10 +54,12 @@ GameplayPopup {
         }
         Loader {
             active: !popup.dp
-            sourceComponent: BooleanOption {
-                src: popup.themeVars
-                description: "Flip Scratch Lane"
-                prop: "scratchOnRightSide"
+            sourceComponent: Component {
+                BooleanOption {
+                    src: popup.themeVars
+                    description: "Flip Scratch Lane"
+                    prop: "scratchOnRightSide"
+                }
             }
         }
         ImageSelection {
