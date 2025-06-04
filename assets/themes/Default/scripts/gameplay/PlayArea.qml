@@ -300,6 +300,10 @@ Item {
                 if (restart) bomb.restart();
             }
 
+            if (!playArea.columns.includes(hit.column)) {
+                return;
+            }
+
             if (hit.noteRemoved) {
                 let index = columnsReversedMapping[hit.column];
                 let note = playArea.notes[index][hit.noteIndex];
