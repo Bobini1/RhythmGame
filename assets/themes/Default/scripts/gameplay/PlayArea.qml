@@ -181,6 +181,7 @@ Item {
 
         score: playArea.score
         judge: playArea.vars.judge
+        columns: playArea.columns
     }
     Item {
         id: playAreaBg
