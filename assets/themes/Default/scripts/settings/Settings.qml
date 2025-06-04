@@ -58,7 +58,6 @@ Rectangle {
                 Layout.preferredHeight: parent.height - tabView.height
             }
             KeySettings {
-                Layout.fillWidth: true
                 Layout.preferredHeight: parent.height - tabView.height
             }
         }
