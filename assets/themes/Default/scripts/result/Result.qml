@@ -39,7 +39,6 @@ FocusScope {
 
             onActivated: {
                 sceneStack.pop();
-                sceneStack.pop();
             }
         }
         Item {

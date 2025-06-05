@@ -28,6 +28,15 @@ Rectangle {
     property bool isBattle: root.screen === "k7battle"
     property Chart chart
 
+    property bool completed: false
+    StackView.onActivated: {
+        if (completed) {
+            Qt.callLater(() => sceneStack.pop());
+        } else {
+            completed = true;
+        }
+    }
+
     function getColumnSizes(vars) {
         let sizes = [];
         for (let i = 0; i < 16; i++) {
