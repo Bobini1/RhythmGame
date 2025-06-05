@@ -54,7 +54,7 @@ Item {
         return side.columnStates[column];
     })
     readonly property int spacing: playArea.vars.spacing
-    readonly property var vars: profile.vars.themeVars[chartFocusScope.screen]
+    readonly property var vars: profile.vars.themeVars[root.screen]
     readonly property var globalVars: profile.vars.globalVars
     readonly property list<real> columnSizes: root.getColumnSizes(vars)
     readonly property real position: player.position
