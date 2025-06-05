@@ -67,7 +67,7 @@ ApplicationWindow {
         function openChart(path) {
             let chart;
             if (Rg.profileList.battleActive) {
-                chart = Rg.chartLoader.loadChart(path, Rg.profileList.battleProfiles.player1Profile, Rg.profileList.battleProfiles.player2Profile);
+                chart = Rg.chartLoader.loadChart(path, Rg.profileList.battleProfiles.player1Profile, false, null, Rg.profileList.battleProfiles.player2Profile, false, null);
             } else {
                 chart = Rg.chartLoader.loadChart(path, Rg.profileList.mainProfile, false, null, null, false, null);
             }
