@@ -25,18 +25,18 @@ Loader {
         }
     }
     Component.onCompleted: {
-        print(Object.keys(Rg.profileList.mainProfile.vars.themeVars), screenSettingsLoader.screen);
         refresh();
     }
 
+    // we only want to reload when all of those finish changing, hence the callLater
     onScriptChanged: {
-        refresh();
+        Qt.callLater(refresh);
     }
     onScreenSettingsChanged: {
-        refresh();
+        Qt.callLater(refresh);
     }
     onCurrentThemeChanged: {
-        refresh();
+        Qt.callLater(refresh);
     }
 
     function openFile(fileUrl) {

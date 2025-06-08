@@ -60,12 +60,11 @@ RowLayout {
                             }
                         }
 
-                        property bool loaded: false
                         Layout.alignment: Qt.AlignTop
                         Layout.maximumWidth: 300
                         Layout.preferredWidth: 200
                         Layout.fillWidth: true
-                        model: {
+                        property var themeNames: {
                             let themeFamilies = Rg.themes.availableThemeFamilies;
                             let themeNames = [];
                             for (let [name, family] of Object.entries(themeFamilies)) {
@@ -75,23 +74,11 @@ RowLayout {
                             }
                             return themeNames;
                         }
+                        model: themeNames
+                        currentIndex: themeNames.indexOf(Rg.profileList.mainProfile.themeConfig[modelData])
 
-                        Component.onCompleted: {
-                            let themeFamilies = Rg.themes.availableThemeFamilies;
-                            let themeNames = [];
-                            for (let [name, family] of Object.entries(themeFamilies)) {
-                                if (family.screens[modelData]) {
-                                    themeNames.push(name);
-                                }
-                            }
-                            let index = themeNames.indexOf(Rg.profileList.mainProfile.themeConfig[modelData]);
-                            currentIndex = index;
-                            loaded = true;
-                        }
                         onCurrentTextChanged: {
-                            if (themeComboBox.loaded) {
-                                Rg.profileList.mainProfile.themeConfig[modelData] = themeComboBox.currentText;
-                            }
+                            Rg.profileList.mainProfile.themeConfig[modelData] = themeComboBox.currentText;
                         }
                     }
                     ScrollView {
