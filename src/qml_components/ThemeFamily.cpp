@@ -14,16 +14,22 @@ ThemeFamily::getPath() const -> QString
     return path;
 }
 auto
-ThemeFamily::getScreens() const -> QVariantMap
+ThemeFamily::getScreensVariant() const -> QVariantMap
+{
+    auto ret = QVariantMap{};
+    for (const auto& [key, value] : screens.asKeyValueRange()) {
+        ret.insert(key, QVariant::fromValue(value));
+    }
+    return ret;
+}
+auto
+ThemeFamily::getScreens() const -> QMap<QString, Screen>
 {
     return screens;
 }
 ThemeFamily::ThemeFamily(QString path, QMap<QString, Screen> screens)
-  : path(std::move(path))
+  : path(std::move(path)), screens(std::move(screens))
 {
-    for (const auto& [key, value] : screens.asKeyValueRange()) {
-        this->screens.insert(key, QVariant::fromValue(value));
-    }
 }
 Screen::Screen(QUrl script, QUrl settings, QUrl settingsScript)
   : script(std::move(script))

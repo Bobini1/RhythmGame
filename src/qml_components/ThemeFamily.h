@@ -30,17 +30,18 @@ class ThemeFamily
 {
     Q_GADGET
     Q_PROPERTY(QString path READ getPath CONSTANT)
-    Q_PROPERTY(QVariantMap screens READ getScreens CONSTANT)
+    Q_PROPERTY(QVariantMap screens READ getScreensVariant CONSTANT)
 
   public:
     auto getPath() const -> QString;
-    auto getScreens() const -> QVariantMap;
+    auto getScreensVariant() const -> QVariantMap;
+    auto getScreens() const -> QMap<QString, Screen>;
     ThemeFamily() = default; // necessary for Qt
     ThemeFamily(QString path, QMap<QString, Screen> screens);
 
   private:
     QString path;
-    QVariantMap screens;
+    QMap<QString, Screen> screens;
 };
 } // namespace qml_components
 #endif // SKIN_H

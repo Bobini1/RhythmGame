@@ -8,7 +8,7 @@ import "../common/helpers.js" as Helpers
 Loader {
     id: screenSettingsLoader
     active: true
-    Component.onCompleted: {
+    function refresh() {
         if (screenSettingsLoader.script) {
             setSource(script);
         } else {
@@ -19,10 +19,24 @@ Loader {
             let props = {
                 name: Helpers.capitalizeFirstLetter(screenSettingsLoader.screen) + " Settings",
                 items: items,
-                destination: Rg.profileList.mainProfile.vars.themeVars[screenSettingsLoader.screen]
+                destination: Rg.profileList.mainProfile.vars.themeVars[screenSettingsLoader.screen][currentTheme]
             }
             setSource("settingsProperties/Group.qml", props);
         }
+    }
+    Component.onCompleted: {
+        print(Object.keys(Rg.profileList.mainProfile.vars.themeVars), screenSettingsLoader.screen);
+        refresh();
+    }
+
+    onScriptChanged: {
+        refresh();
+    }
+    onScreenSettingsChanged: {
+        refresh();
+    }
+    onCurrentThemeChanged: {
+        refresh();
     }
 
     function openFile(fileUrl) {
@@ -36,4 +50,5 @@ Loader {
     required property string screen
     readonly property var screenSettings: screenSettingsJson ? JSON.parse(openFile(screenSettingsJson)) : []
     readonly property string screenSettingsJson: Rg.themes.availableThemeFamilies[Rg.profileList.mainProfile.themeConfig[screen]].screens[screen].settings
+    readonly property string currentTheme: Rg.profileList.mainProfile.themeConfig[screen]
 }

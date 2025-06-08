@@ -460,7 +460,13 @@ writeThemeVars(
   const QHash<QString, QHash<QString, QHash<QString, QVariant>>>& themeVars,
   const std::filesystem::path& profileFolder)
 {
-    for (const auto& [name, vars] : themeVars.asKeyValueRange()) {
+    auto themes = QHash<QString, QHash<QString, QHash<QString, QVariant>>>{};
+    for (const auto& [screen, screenVars] : themeVars.asKeyValueRange()) {
+        for (const auto& [themeName, themeVars] : screenVars.asKeyValueRange()) {
+            themes[themeName][screen] = themeVars;
+        }
+    }
+    for (const auto& [name, vars] : themes.asKeyValueRange()) {
         writeThemeVarsForTheme(
           vars,
           profileFolder /
@@ -836,9 +842,7 @@ readThemeVarsForTheme(const std::filesystem::path& themeVarsPath,
 {
     auto vars = QHash<QString, ScreenVarsPopulationResult>{};
     for (const auto& screen : themeFamily.getScreens().keys()) {
-        auto settingsUrl = themeFamily.getScreens()[screen]
-                             .value<qml_components::Screen>()
-                             .getSettings();
+        auto settingsUrl = themeFamily.getScreens()[screen].getSettings();
         if (settingsUrl.isEmpty()) {
             continue;
         }
@@ -904,11 +908,15 @@ readThemeVars(const std::filesystem::path& profileFolder,
     auto vars = QHash<QString, QHash<QString, QHash<QString, QVariant>>>{};
     for (const auto& [name, themeFamily] : themeFamilies.asKeyValueRange()) {
         auto themePath = support::qStringToPath(themeFamily.getPath());
-        vars[name] = readThemeVarsForTheme(
+        auto screens = readThemeVarsForTheme(
           profileFolder /
             support::qStringToPath(name + QStringLiteral("-vars.json")),
           themePath,
           themeFamily);
+        for (const auto& [screen, screenVars] :
+             screens.asKeyValueRange()) {
+            vars[screen][name] = screenVars;
+        }
     }
     return vars;
 }
@@ -917,32 +925,40 @@ void
 resource_managers::Vars::populateThemePropertyMap(
   QQmlPropertyMap& themeVars,
   QHash<QString, QHash<QString, QHash<QString, QVariant>>> themeVarsData,
-  const std::filesystem::path& themeVarsPath,
-  const QQmlPropertyMap& themeConfig)
+  const std::filesystem::path& themeVarsPath)
 {
     for (const auto& key : themeVars.keys()) {
         themeVars[key].value<QQmlPropertyMap*>()->deleteLater();
     }
-    for (const auto& key : themeConfig.keys()) {
-        const auto& value = themeConfig[key].toString();
-        auto propertyMap = std::make_unique<QQmlPropertyMap>(&themeVars);
-        propertyMap->insert(themeVarsData[value][key]);
-        propertyMap->freeze();
-        connect(propertyMap.get(),
-                &QQmlPropertyMap::valueChanged,
-                this,
-                [this, themeVarsPath, screen = key, themeFamily = value](
-                  const QString& key, const QVariant& value) {
-                    loadedThemeVars[themeFamily][screen][key] = value;
-                    writeSingleThemeVar(
-                      screen,
-                      key,
-                      value,
-                      themeVarsPath /
-                        support::qStringToPath(themeFamily +
-                                               QStringLiteral("-vars.json")));
-                });
-        themeVars.insert(key, QVariant::fromValue(propertyMap.release()));
+    for (const auto& [screenName, themes] : themeVarsData.asKeyValueRange()) {
+        auto screenPropertyMap = std::make_unique<QQmlPropertyMap>(&themeVars);
+        for (const auto& [themeName, vars] : themes.asKeyValueRange()) {
+            auto propertyMap = std::make_unique<QQmlPropertyMap>(screenPropertyMap.get());
+            propertyMap->insert(themeVarsData[screenName][themeName]);
+            propertyMap->freeze();
+            connect(propertyMap.get(),
+                    &QQmlPropertyMap::valueChanged,
+                    this,
+                    [this,
+                     themeVarsPath,
+                     screen = screenName,
+                     themeFamily = themeName](const QString& key,
+                                              const QVariant& value) {
+                        loadedThemeVars[screen][themeFamily][key] = value;
+                        writeSingleThemeVar(
+                          screen,
+                          key,
+                          value,
+                          themeVarsPath /
+                            support::qStringToPath(
+                              themeFamily + QStringLiteral("-vars.json")));
+                    });
+            screenPropertyMap->insert(
+              themeName, QVariant::fromValue(propertyMap.release()));
+        }
+        screenPropertyMap->freeze();
+        themeVars.insert(screenName,
+                         QVariant::fromValue(screenPropertyMap.release()));
     }
     themeVars.freeze();
 }
@@ -964,18 +980,11 @@ resource_managers::Vars::Vars(
   , loadedThemeVars(readThemeVars(profile->getPath().parent_path(),
                                   this->availableThemeFamilies))
 {
-    const auto* themeConfig = profile->getThemeConfig();
     writeThemeVars(loadedThemeVars, profile->getPath().parent_path());
-    populateThemePropertyMap(themeVars,
-                             loadedThemeVars,
-                             profile->getPath().parent_path(),
-                             *themeConfig);
+    populateThemePropertyMap(
+      themeVars, loadedThemeVars, profile->getPath().parent_path());
     readGlobalVars(globalVars, profile->getPath().parent_path());
     writeGlobalVars();
-    connect(themeConfig,
-            &QQmlPropertyMap::valueChanged,
-            this,
-            &Vars::onThemeConfigChanged);
     for (auto i = globalVars.metaObject()->propertyOffset();
          i < globalVars.metaObject()->propertyCount();
          ++i) {
@@ -995,32 +1004,4 @@ auto
 resource_managers::Vars::getThemeVars() -> QQmlPropertyMap*
 {
     return &themeVars;
-}
-
-void
-resource_managers::Vars::onThemeConfigChanged(const QString& key,
-                                              const QVariant& value)
-{
-    themeVars.value(key).value<QQmlPropertyMap*>()->deleteLater();
-    auto propertyMap = std::make_unique<QQmlPropertyMap>(&themeVars);
-    propertyMap->insert(loadedThemeVars[value.toString()][key]);
-    propertyMap->freeze();
-    connect(propertyMap.get(),
-            &QQmlPropertyMap::valueChanged,
-            this,
-            [this,
-             themeVarsPath = profile->getPath().parent_path(),
-             screen = key,
-             themeFamily = value.toString()](const QString& key,
-                                             const QVariant& value) {
-                loadedThemeVars[themeFamily][screen][key] = value;
-                writeSingleThemeVar(
-                  screen,
-                  key,
-                  value,
-                  themeVarsPath /
-                    support::qStringToPath(themeFamily +
-                                           QStringLiteral("-vars.json")));
-            });
-    themeVars.insert(key, QVariant::fromValue(propertyMap.release()));
 }

@@ -26,12 +26,12 @@
 #include "qml_components/FileQuery.h"
 #include "qml_components/InputAttached.h"
 #include "../RhythmGameQml/Rg.h"
+#include "qml_components/QmlUtils.h"
 #include "qml_components/Themes.h"
 #include "resource_managers/GaugeFactory.h"
 #include "resource_managers/ScanThemes.h"
 #include "resource_managers/Tables.h"
 #include "support/PathToUtfString.h"
-#include "support/QStringToPath.h"
 #include "support/UtfStringToPath.h"
 
 Q_IMPORT_QML_PLUGIN(RhythmGameQmlPlugin)
@@ -318,6 +318,23 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
           qml_components::InputSignalProvider{ &inputTranslator };
         qml_components::InputAttached::inputSignalProvider =
           &inputSignalProvider;
+        qml_components::QmlUtilsAttached::getThemeNameForRootFile =
+          [&availableThemes](const QUrl& rootFile){
+            for (const auto& [themeName, family] : availableThemes.asKeyValueRange()) {
+                for (const auto& screen : family.getScreens()) {
+                    if (screen.getScript() == rootFile) {
+                        return themeName;
+                    }
+                }
+            }
+            return QString{};
+        };
+        qmlRegisterUncreatableType<qml_components::QmlUtilsAttached>(
+          "RhythmGameQml",
+          1,
+          0,
+          "QmlUtils",
+          "QmlUtils is only accessible as an attached property");
 
         auto engine = QQmlApplicationEngine{};
 

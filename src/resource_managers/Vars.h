@@ -229,12 +229,10 @@ class Vars final : public QObject
     QMap<QString, qml_components::ThemeFamily> availableThemeFamilies;
     QHash<QString, QHash<QString, QHash<QString, QVariant>>> loadedThemeVars;
 
-    void onThemeConfigChanged(const QString& key, const QVariant& value);
     void populateThemePropertyMap(
       QQmlPropertyMap& themeVars,
       QHash<QString, QHash<QString, QHash<QString, QVariant>>> themeVarsData,
-      const std::filesystem::path& themeVarsPath,
-      const QQmlPropertyMap& themeConfig);
+      const std::filesystem::path& themeVarsPath);
     Q_SLOT void writeGlobalVars() const;
 
   public:

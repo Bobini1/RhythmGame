@@ -19,7 +19,6 @@ class InputSignalProvider final : public QObject
 {
     Q_OBJECT
     input::InputTranslator* inputTranslator;
-    QList<QMetaObject::Connection> connections;
 
     friend class InputAttached;
 
@@ -33,7 +32,7 @@ class InputSignalProvider final : public QObject
 
 /**
  * @brief The class that provides the Input attached property.
- * QML components that wish react to game key events, like scratch or
+ * QML components that wish to react to game key events, like scratch or
  * buttons, should use Input.
  */
 class InputAttached final : public QObject
