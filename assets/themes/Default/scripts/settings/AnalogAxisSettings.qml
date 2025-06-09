@@ -9,7 +9,7 @@ import "settingsProperties"
 GroupBox {
     id: axisSettings
     property int player: 1
-    title: qsTr(`Player ${player} Turntable`)
+    title: qsTr(`Player %1 Turntable`).arg(player)
     property var axisConfig: Rg.inputTranslator[`analogAxisConfig${player}`]
 
     component NumberField: TextField {

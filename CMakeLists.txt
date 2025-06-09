@@ -52,10 +52,11 @@ find_package(llfio CONFIG REQUIRED)
 
 # <------------ Qt (gui) --------------->
 
-find_package(Qt6 COMPONENTS ShaderTools Quick Gui Widgets Core5Compat Concurrent Multimedia Svg InterfaceFramework REQUIRED)
+find_package(Qt6 COMPONENTS ShaderTools Quick Gui Widgets Core5Compat Concurrent Multimedia Svg InterfaceFramework LinguistTools REQUIRED)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
+qt_standard_project_setup(I18N_TRANSLATED_LANGUAGES pl jp)
 
 find_package(cryptopp REQUIRED)
 find_package(magic_enum REQUIRED)
@@ -190,7 +191,6 @@ target_link_libraries(RhythmGame_lib PUBLIC SDL2::SDL2 Qt6::Gui Qt6::Quick Qt6::
 
 if (WIN32)
     target_link_libraries(RhythmGame_lib PUBLIC llfio::ntkernel-error-category_sl)
-
 endif ()
 
 # We all love MSVC.
@@ -226,6 +226,22 @@ set_target_properties(
 )
 
 qt_import_qml_plugins(RhythmGame_exe)
+
+
+file(GLOB_RECURSE QML_FILES "${CMAKE_SOURCE_DIR}/assets/themes/Default/**/*.qml")
+qt_add_translations(
+        RhythmGame_exe
+        TS_FILE_BASE
+        Default
+        TS_FILE_DIR
+        ${CMAKE_SOURCE_DIR}/assets/themes/Default/translations
+        SOURCES
+        ${QML_FILES}
+        LUPDATE_TARGET
+        Default_translations
+)
+# run LUPDATE_TARGET to update translations when building RhythmGame_exe
+add_dependencies(RhythmGame_exe Default_translations)
 
 add_custom_command(TARGET RhythmGame_exe POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E create_symlink
