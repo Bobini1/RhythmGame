@@ -19,3 +19,4 @@ conan.lock
 *.sqlite-wal
 assets/profiles/
 assets/tables/
+*.qm
