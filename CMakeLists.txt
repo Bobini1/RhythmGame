@@ -229,6 +229,7 @@ qt_import_qml_plugins(RhythmGame_exe)
 
 
 file(GLOB_RECURSE QML_FILES "${CMAKE_SOURCE_DIR}/assets/themes/Default/**/*.qml")
+# use QM_OUTPUT_DIRECTORY once we switch to Qt 6.9
 qt_add_translations(
         RhythmGame_exe
         TS_FILE_BASE
@@ -239,9 +240,19 @@ qt_add_translations(
         ${QML_FILES}
         LUPDATE_TARGET
         Default_translations
+        QM_FILES_OUTPUT_VARIABLE
+        LRELEASE_QM_FILES
 )
-# run LUPDATE_TARGET to update translations when building RhythmGame_exe
-add_dependencies(RhythmGame_exe Default_translations)
+add_custom_target(ReleaseAndCopy
+        COMMAND ${CMAKE_COMMAND} -E copy
+        ${LRELEASE_QM_FILES}
+        ${CMAKE_SOURCE_DIR}/assets/themes/Default/translations
+        COMMENT "Copying qm files to assets/themes/Default/translations"
+        VERBATIM
+)
+add_dependencies(ReleaseAndCopy release_translations)
+add_dependencies(RhythmGame_exe ReleaseAndCopy)
+
 
 add_custom_command(TARGET RhythmGame_exe POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E create_symlink
@@ -260,12 +271,15 @@ if (WIN32)
     )
 
     add_custom_command(TARGET RhythmGame_exe POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy_directory "${PROJECT_BINARY_DIR}/bin/qml" "${PROJECT_BINARY_DIR}/bin"
-    )
-    add_custom_command(TARGET RhythmGame_exe POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_RUNTIME_DLLS:RhythmGame_exe> $<TARGET_FILE_DIR:RhythmGame_exe>
             COMMAND_EXPAND_LISTS
     )
+
+    # This is only for running in the build directory, before installation.
+    add_custom_command(TARGET RhythmGame_exe POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy
+            ${CMAKE_SOURCE_DIR}/staticAssets/qt.conf
+            ${CMAKE_BINARY_DIR}/bin/$<0:>/qt.conf)
 endif ()
 
 if (WIN32)
