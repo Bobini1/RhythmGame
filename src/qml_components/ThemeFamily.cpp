@@ -27,8 +27,12 @@ ThemeFamily::getScreens() const -> QMap<QString, Screen>
 {
     return screens;
 }
-ThemeFamily::ThemeFamily(QString path, QMap<QString, Screen> screens)
-  : path(std::move(path)), screens(std::move(screens))
+ThemeFamily::ThemeFamily(QString path,
+                         QMap<QString, Screen> screens,
+                         QMap<QString, QUrl> translations)
+  : path(std::move(path))
+  , screens(std::move(screens))
+  , translations(std::move(translations))
 {
 }
 Screen::Screen(QUrl script, QUrl settings, QUrl settingsScript)
@@ -51,5 +55,10 @@ auto
 Screen::getSettingsScript() const -> QUrl
 {
     return settingsScript;
+}
+auto
+ThemeFamily::getTranslations() const -> QMap<QString, QUrl>
+{
+    return translations;
 }
 } // namespace qml_components

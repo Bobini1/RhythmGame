@@ -12,5 +12,10 @@
     "k7": "settings/k7.json",
     "k7battle": "settings/k7battle.json",
     "k14": "settings/k14.json"
+  },
+  "translations": {
+    "en": "translations/en.qm",
+    "ja": "translations/jp.qm",
+    "zh": "translations/pl.qm"
   }
 }

@@ -71,9 +71,15 @@ resource_managers::scanThemes(std::filesystem::path themesFolder)
                 };
             }
             auto themeName = support::pathToQString(path.filename());
-            auto themeFamily =
-              qml_components::ThemeFamily{ support::pathToQString(path),
-                                           std::move(themeMap) };
+            auto translations = config["translations"].toString();
+            auto themeFamily = qml_components::ThemeFamily{
+                support::pathToQString(path),
+                std::move(themeMap),
+                translations.isEmpty()
+                  ? QUrl{}
+                  : QUrl::fromLocalFile(support::pathToQString(
+                      path / support::qStringToPath(translations)))
+            };
             themeFamilies.insert(themeName, themeFamily);
         } catch (const std::exception& e) {
             spdlog::error(

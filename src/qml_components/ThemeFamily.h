@@ -21,7 +21,7 @@ class Screen
 
   public:
     Screen() = default; // necessary for Qt
-    Screen(QUrl script, QUrl settings, QUrl icon);
+    Screen(QUrl script, QUrl settings, QUrl settingsScript);
     auto getScript() const -> QUrl;
     auto getSettings() const -> QUrl;
     auto getSettingsScript() const -> QUrl;
@@ -31,17 +31,22 @@ class ThemeFamily
     Q_GADGET
     Q_PROPERTY(QString path READ getPath CONSTANT)
     Q_PROPERTY(QVariantMap screens READ getScreensVariant CONSTANT)
+    Q_PROPERTY(QUrl translations READ getTranslations CONSTANT)
 
   public:
     auto getPath() const -> QString;
     auto getScreensVariant() const -> QVariantMap;
     auto getScreens() const -> QMap<QString, Screen>;
     ThemeFamily() = default; // necessary for Qt
-    ThemeFamily(QString path, QMap<QString, Screen> screens);
+    ThemeFamily(QString path,
+                QMap<QString, Screen> screens,
+                QMap<QString, QUrl> translations);
+    auto getTranslations() const -> QMap<QString, QUrl>;
 
   private:
     QString path;
     QMap<QString, Screen> screens;
+    QMap<QString, QUrl> translations;
 };
 } // namespace qml_components
 #endif // SKIN_H
