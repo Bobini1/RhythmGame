@@ -38,3 +38,15 @@ endif ()
 if (PROJECT_IS_TOP_LEVEL)
     include(CPack)
 endif ()
+
+if (WIN32)
+    if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+        install(FILES ${CMAKE_BINARY_DIR}/bin/mimalloc-debug.dll DESTINATION "${CMAKE_INSTALL_BINDIR}"
+                COMPONENT RhythmGame_Runtime)
+    else ()
+        install(FILES ${CMAKE_BINARY_DIR}/bin/mimalloc.dll DESTINATION "${CMAKE_INSTALL_BINDIR}"
+                COMPONENT RhythmGame_Runtime)
+    endif ()
+    install(FILES ${CMAKE_BINARY_DIR}/bin/mimalloc-redirect.dll DESTINATION "${CMAKE_INSTALL_BINDIR}"
+            COMPONENT RhythmGame_Runtime)
+endif ()
