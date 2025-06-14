@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS>
-<TS version="2.1" language="jp" sourcelanguage="en">
+<TS version="2.1" language="ja" sourcelanguage="en">
 <context>
     <name>AnalogAxisSettings</name>
     <message>
@@ -55,27 +55,102 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/KeySettings.qml" line="208"/>
+        <location filename="../scripts/settings/KeySettings.qml" line="155"/>
+        <source>Key 1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/KeySettings.qml" line="155"/>
+        <source>Key 2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/KeySettings.qml" line="155"/>
+        <source>Key 3</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/KeySettings.qml" line="156"/>
+        <source>Key 4</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/KeySettings.qml" line="156"/>
+        <source>Key 5</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/KeySettings.qml" line="156"/>
+        <source>Key 6</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/KeySettings.qml" line="156"/>
+        <source>Key 7</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/KeySettings.qml" line="157"/>
+        <source>Scratch Up</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/KeySettings.qml" line="157"/>
+        <source>Scratch Down</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/KeySettings.qml" line="157"/>
+        <source>Start</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/KeySettings.qml" line="157"/>
+        <source>Select</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/KeySettings.qml" line="195"/>
+        <source> axis</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/KeySettings.qml" line="197"/>
+        <source> down</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/KeySettings.qml" line="199"/>
+        <source> up</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/KeySettings.qml" line="205"/>
+        <source>Keyboard</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/KeySettings.qml" line="211"/>
         <source>Not Configured</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/KeySettings.qml" line="213"/>
+        <location filename="../scripts/settings/KeySettings.qml" line="216"/>
         <source>DOWN</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/KeySettings.qml" line="213"/>
+        <location filename="../scripts/settings/KeySettings.qml" line="216"/>
         <source>UP</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/KeySettings.qml" line="219"/>
+        <location filename="../scripts/settings/KeySettings.qml" line="222"/>
         <source>Configure</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/KeySettings.qml" line="231"/>
+        <location filename="../scripts/settings/KeySettings.qml" line="234"/>
         <source>Reset</source>
         <translation type="unfinished"></translation>
     </message>
@@ -101,8 +176,18 @@
 <context>
     <name>PlayerSettings</name>
     <message>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="29"/>
+        <source>Delete %1?</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <location filename="../scripts/settings/PlayerSettings.qml" line="54"/>
         <source>Select Profile</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="107"/>
+        <source>Scores: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -227,22 +312,22 @@
 <context>
     <name>TableSettings</name>
     <message>
-        <location filename="../scripts/settings/TableSettings.qml" line="164"/>
+        <location filename="../scripts/settings/TableSettings.qml" line="160"/>
         <source>Reload</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/TableSettings.qml" line="171"/>
+        <location filename="../scripts/settings/TableSettings.qml" line="167"/>
         <source>Remove</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/TableSettings.qml" line="231"/>
+        <location filename="../scripts/settings/TableSettings.qml" line="227"/>
         <source>Add table</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/TableSettings.qml" line="241"/>
+        <location filename="../scripts/settings/TableSettings.qml" line="237"/>
         <source>Add</source>
         <translation type="unfinished"></translation>
     </message>

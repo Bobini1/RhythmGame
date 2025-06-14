@@ -26,7 +26,7 @@ Item {
                 id: confirmDeletion
                 anchors.centerIn: parent
                 property Profile profile: null
-                title: "Delete " + (profile ? profile.vars.globalVars.name : "") + "?"
+                title: qsTr("Delete %1?").arg(profile ? profile.vars.globalVars.name : "")
                 standardButtons: Dialog.Ok | Dialog.Cancel
                 modal: true
 
@@ -104,7 +104,7 @@ Item {
                                     anchors.rightMargin: 16
                                     anchors.verticalCenter: parent.verticalCenter
                                     readOnly: true
-                                    text: "Scores: " + folderRow.profile.scoreDb.getTotalScoreCount()
+                                    text: qsTr("Scores: %1").arg(folderRow.profile.scoreDb.getTotalScoreCount())
                                     color: palette.brightText
                                 }
 

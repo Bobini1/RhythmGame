@@ -152,7 +152,9 @@ Item {
         component ButtonGroup: GroupBox {
             id: buttonGroup
             property alias model: keyRepeater.model
-            readonly property var names: ["Key 1", "Key 2", "Key 3", "Key 4", "Key 5", "Key 6", "Key 7", "Scratch Up", "Scratch Down", "Start", "Select"]
+            readonly property var names: [QT_TR_NOOP("Key 1"), QT_TR_NOOP("Key 2"), QT_TR_NOOP("Key 3"),
+                QT_TR_NOOP("Key 4"), QT_TR_NOOP("Key 5"), QT_TR_NOOP("Key 6"), QT_TR_NOOP("Key 7"),
+                QT_TR_NOOP("Scratch Up"), QT_TR_NOOP("Scratch Down"), QT_TR_NOOP("Start"), QT_TR_NOOP("Select")]
 
             ColumnLayout {
                 id: keyLayout
@@ -170,7 +172,7 @@ Item {
                         readonly property var button: BmsKey[Helpers.capitalizeFirstLetter(modelData)]
 
                         Label {
-                            text: buttonGroup.names[index]
+                            text: qsTr(buttonGroup.names[index])
                             color: "black"
                             horizontalAlignment: Text.AlignRight
                         }
@@ -190,16 +192,17 @@ Item {
                                                 deviceName += " (" + k.gamepad.index + ")";
                                             }
                                             if (k.device === key.Axis) {
-                                                deviceName += " axis";
+                                                deviceName += qsTr(" axis");
                                                 if (k.direction === key.Down) {
-                                                    deviceName += " down";
+                                                    deviceName += qsTr(" down");
                                                 } else if (k.direction === key.Up) {
-                                                    deviceName += " up";
+                                                    deviceName += qsTr(" up");
                                                 }
                                             }
                                         }
                                         let keyName = k.code;
                                         if (deviceName === "Keyboard") {
+                                            deviceName = qsTr("Keyboard");
                                             keyName = Rg.inputTranslator.scancodeToString(k.code);
                                         }
                                         return keyName + " (" + deviceName + ")";
