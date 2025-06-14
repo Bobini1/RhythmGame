@@ -51,7 +51,7 @@ RowLayout {
 
             horizontalAlignment: contentWidth >= width ? TextField.AlignLeft : TextField.AlignHCenter
             autoScroll: false
-            text: Helpers.getFormattedNumber(range.destination[range.id_])
+            text: Helpers.getFormattedNumber(Qt.locale(Rg.languages.selectedLanguage), range.destination[range.id_])
             Layout.fillHeight: true
             Layout.fillWidth: true
             Layout.maximumWidth: 200
@@ -63,11 +63,12 @@ RowLayout {
                 id: doubleValidator
                 bottom: range.min
                 top: range.max
+                locale: Rg.languages.selectedLanguage
             }
             inputMethodHints: Qt.ImhFormattedNumbersOnly
             onTextEdited: {
                 if (acceptableInput) {
-                    range.destination[range.id_] = Number.fromLocaleString(text)
+                    range.destination[range.id_] = Number.fromLocaleString(Qt.locale(Rg.languages.selectedLanguage), text)
                 }
             }
 
@@ -85,7 +86,7 @@ RowLayout {
                 id: hoverHandler
             }
             ToolTip.visible: hoverHandler.hovered
-            ToolTip.text: "Limits: " + Qt.locale().toString(doubleValidator.bottom, "f", -128) + " - " + Qt.locale().toString(doubleValidator.top, "f", -128)
+            ToolTip.text: "Limits: " + Qt.locale(Rg.languages.selectedLanguage).toString(doubleValidator.bottom, "f", -128) + " - " + Qt.locale(Rg.languages.selectedLanguage).toString(doubleValidator.top, "f", -128)
         }
 
     }
