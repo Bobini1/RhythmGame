@@ -33,6 +33,8 @@ class Languages final : public QObject
     auto getSelectedLanguage() const -> QString;
     void setSelectedLanguage(const QString& language);
     Q_INVOKABLE static QString getLanguageName(const QString& language);
+    Q_INVOKABLE static QString getClosestLanguage(QString language,
+                                                  const QStringList& languages);
 
   signals:
     void selectedLanguageChanged();

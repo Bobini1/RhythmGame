@@ -734,6 +734,16 @@ createProperty(ScreenVarsPopulationResult& result,
           std::format("Property has no type (or not a string): {}",
                       jsonValueToString(object)));
     }
+    if (!object["name"].isObject()) {
+        throw support::Exception(
+          std::format("Property has no name (or not an object): {}",
+                      jsonValueToString(object)));
+    }
+    if (!object["description"].isUndefined() && !object["description"].isObject()) {
+        throw support::Exception(
+          std::format("Property has no description (or not an object): {}",
+                      jsonValueToString(object)));
+    }
     if (object["type"] == "file") {
         createFileProperty(result.screenVars, object, themePath);
         result.fileTypeProperties.insert(object["id"].toString(),

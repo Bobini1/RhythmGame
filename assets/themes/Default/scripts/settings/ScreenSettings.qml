@@ -17,11 +17,17 @@ Loader {
                 return;
             }
             let props = {
-                name: Helpers.capitalizeFirstLetter(screenSettingsLoader.screen) + " Settings",
+                name: screenSettingsLoader.name,
                 items: items,
                 destination: Rg.profileList.mainProfile.vars.themeVars[screenSettingsLoader.screen][currentTheme]
             }
             setSource("settingsProperties/Group.qml", props);
+        }
+    }
+    readonly property string name: qsTr("%1 Settings").arg(Helpers.capitalizeFirstLetter(screenSettingsLoader.screen))
+    onNameChanged: {
+        if (screenSettingsLoader.item) {
+            screenSettingsLoader.item.name = screenSettingsLoader.name;
         }
     }
     Component.onCompleted: {

@@ -33,7 +33,7 @@ Frame {
                 left: parent.left
                 right: parent.right
             }
-            text: groupFrame.description || ""
+            text: groupFrame.description
             font.pixelSize: 16
             readOnly: true
         }
@@ -64,7 +64,21 @@ Frame {
                     delete props.default;
                     delete props.type;
                     props.destination = groupFrame.destination;
+                    props.description = loader.description;
+                    props.name = loader.name;
                     setSource(Helpers.capitalizeFirstLetter(modelData.type) + ".qml", props);
+                }
+                readonly property string name: modelData.name[Rg.languages.getClosestLanguage(Rg.languages.selectedLanguage, Object.keys(modelData.name))] || "";
+                onNameChanged: {
+                    if (loader.item) {
+                        loader.item.name = name;
+                    }
+                }
+                readonly property string description: modelData.description ? modelData.description[Rg.languages.getClosestLanguage(Rg.languages.selectedLanguage, Object.keys(modelData.description))] || "" : "";
+                onDescriptionChanged: {
+                    if (loader.item) {
+                        loader.item.description = description;
+                    }
                 }
                 Layout.fillWidth: true
                 Layout.maximumWidth: modelData.type === "group" ? -1 : 600

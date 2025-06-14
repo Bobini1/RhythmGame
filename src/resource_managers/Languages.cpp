@@ -62,17 +62,19 @@ determineLocaleToPick(const QLocale& locale,
                       const QMap<QString, QUrl>& translations) -> QString
 {
     auto localeToPick = locale.name();
-    if (!translations.contains(localeToPick)) {
-        localeToPick = locale.name().split('_').first();
-        if (!translations.contains(localeToPick)) {
-            spdlog::trace("Theme {} does not have translation for language: {}",
-                          themeName.toStdString(),
-                          localeToPick.toStdString());
-            for (const auto& [lang, url] : translations.asKeyValueRange()) {
-                if (lang.startsWith(localeToPick)) {
-                    return lang;
-                }
-            }
+    if (translations.contains(localeToPick)) {
+        return localeToPick;
+    }
+    localeToPick = locale.name().split('_').first();
+    if (translations.contains(localeToPick)) {
+        return localeToPick;
+    }
+    spdlog::trace("Theme {} does not have translation for language: {}",
+                  themeName.toStdString(),
+                  localeToPick.toStdString());
+    for (const auto& [lang, url] : translations.asKeyValueRange()) {
+        if (lang.startsWith(localeToPick)) {
+            return lang;
         }
     }
     return localeToPick;
@@ -128,5 +130,47 @@ auto
 Languages::getLanguageName(const QString& language) -> QString
 {
     return QLocale{ language }.nativeLanguageName();
+}
+auto getClosestLanguageImpl(QLocale locale,
+                            const QStringList& languages) -> QString
+{
+    if (languages.contains(locale.name())) {
+        return locale.name();
+    }
+    if (languages.contains(locale.name().split('_').first())) {
+        return locale.name().split('_').first();
+    }
+    for (const auto& lang : languages) {
+        if (lang.startsWith(locale.name().split('_').first())) {
+            return lang;
+        }
+    }
+    return {};
+}
+QString
+Languages::getClosestLanguage(QString language, const QStringList& languages)
+{
+    if (languages.contains(language)) {
+        return language;
+    }
+    if (languages.isEmpty()) {
+        return {};
+    }
+    auto locale = QLocale{ language };
+    auto closestLanguage = getClosestLanguageImpl(locale, languages);
+    if (!closestLanguage.isEmpty()) {
+        return closestLanguage;
+    }
+    locale = QLocale::system();
+    closestLanguage = getClosestLanguageImpl(locale, languages);
+    if (!closestLanguage.isEmpty()) {
+        return closestLanguage;
+    }
+    locale = QLocale(QLocale::English);
+    closestLanguage = getClosestLanguageImpl(locale, languages);
+    if (!closestLanguage.isEmpty()) {
+        return closestLanguage;
+    }
+    return languages.first();
 }
 } // namespace resource_managers
