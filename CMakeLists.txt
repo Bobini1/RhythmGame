@@ -253,7 +253,11 @@ add_custom_target(ReleaseAndCopy
         VERBATIM
 )
 add_dependencies(ReleaseAndCopy release_translations)
-add_dependencies(RhythmGame_exe ReleaseAndCopy)
+add_custom_command(TARGET RhythmGame_exe POST_BUILD
+        COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target ReleaseAndCopy
+        COMMENT "Compiling translation files"
+        VERBATIM
+)
 
 
 add_custom_command(TARGET RhythmGame_exe POST_BUILD
