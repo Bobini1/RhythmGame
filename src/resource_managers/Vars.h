@@ -141,7 +141,7 @@ class GlobalVars final : public QObject
     QString bottomShiftableGauge = "AEASY";
     QString avatar = "mascot.png";
     QString name = "Default";
-    QString language = "en";
+    QString language = "en_US";
 
     QString avatarPath;
 

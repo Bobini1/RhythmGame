@@ -137,7 +137,9 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
                                        availableThemes,
                                        assetsFolder / "profiles",
                                        avatarPath };
-        auto languages = resource_managers::Languages{ availableThemes };
+
+        auto engine = QQmlApplicationEngine{};
+        auto languages = resource_managers::Languages{ availableThemes, &engine };
         auto setLang = [&profileList, &languages, connection = QMetaObject::Connection{}]() mutable {
             languages.setSelectedLanguage(
               profileList.getMainProfile()
@@ -366,8 +368,6 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
           0,
           "QmlUtils",
           "QmlUtils is only accessible as an attached property");
-
-        auto engine = QQmlApplicationEngine{};
 
         engine.addImageProvider("ini",
                                 new resource_managers::IniImageProvider{});

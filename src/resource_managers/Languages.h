@@ -10,6 +10,7 @@
 #include <QObject>
 #include <qtranslator.h>
 
+class QQmlEngine;
 namespace resource_managers {
 
 class Languages final : public QObject
@@ -21,10 +22,12 @@ class Languages final : public QObject
     QTranslator qtTranslator;
     std::unordered_map<QString, std::unique_ptr<QTranslator>> themeTranslators;
     QMap<QString, qml_components::ThemeFamily> availableThemes;
+    QQmlEngine* engine;
 
   public:
     explicit Languages(
       const QMap<QString, qml_components::ThemeFamily>& availableThemes,
+      QQmlEngine* qmlEngine,
       QObject* parent = nullptr);
     auto getLanguages() const -> const QStringList&;
     auto getSelectedLanguage() const -> QString;

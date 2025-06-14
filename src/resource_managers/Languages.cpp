@@ -4,6 +4,7 @@
 
 #include "Languages.h"
 
+#include <QQmlEngine>
 #include <qcoreapplication.h>
 #include <qlibraryinfo.h>
 #include <magic_enum/magic_enum.hpp>
@@ -12,9 +13,11 @@
 namespace resource_managers {
 Languages::Languages(
   const QMap<QString, qml_components::ThemeFamily>& availableThemes,
+  QQmlEngine* qmlEngine,
   QObject* parent)
   : QObject(parent)
   , availableThemes(availableThemes)
+  , engine(qmlEngine)
 {
     for (const auto& [themeName, theme] : availableThemes.asKeyValueRange()) {
         auto translator = std::make_unique<QTranslator>();
@@ -53,24 +56,27 @@ Languages::getSelectedLanguage() const -> QString
     return selectedLanguage;
 }
 
-static auto determineLocaleToPick(const QLocale& locale, const QString& themeName, const QMap<QString, QUrl>& translations) -> QString {
+static auto
+determineLocaleToPick(const QLocale& locale,
+                      const QString& themeName,
+                      const QMap<QString, QUrl>& translations) -> QString
+{
     auto localeToPick = locale.name();
     if (!translations.contains(localeToPick)) {
         localeToPick = locale.name().split('_').first();
         if (!translations.contains(localeToPick)) {
-            spdlog::trace(
-                "Theme {} does not have translation for language: {}",
-                themeName.toStdString(),
-                localeToPick.toStdString());
+            spdlog::trace("Theme {} does not have translation for language: {}",
+                          themeName.toStdString(),
+                          localeToPick.toStdString());
             for (const auto& [lang, url] : translations.asKeyValueRange()) {
                 if (lang.startsWith(localeToPick)) {
                     return lang;
                 }
             }
-            spdlog::trace(
-                "Theme {} does not have translation for language: {}, picking English",
-                themeName.toStdString(),
-                localeToPick.toStdString());
+            spdlog::trace("Theme {} does not have translation for language: "
+                          "{}, picking English",
+                          themeName.toStdString(),
+                          localeToPick.toStdString());
             for (const auto& [lang, url] : translations.asKeyValueRange()) {
                 if (QLocale{ lang }.language() == QLocale::English) {
                     return lang;
@@ -107,16 +113,17 @@ Languages::setSelectedLanguage(const QString& language)
             if (auto url = translations.value(localeToPick); !url.isValid()) {
                 QCoreApplication::removeTranslator(translator.get());
             } else if (!translator->load(url.toLocalFile())) {
-                spdlog::error(
-                    "Failed to load theme translation for language {}: in theme {}",
-                    localeToPick.toStdString(),
-                    themeName.toStdString());
+                spdlog::error("Failed to load theme translation for language "
+                              "{}: in theme {}",
+                              localeToPick.toStdString(),
+                              themeName.toStdString());
                 QCoreApplication::removeTranslator(translator.get());
             } else {
                 QCoreApplication::installTranslator(translator.get());
             }
         }
     }
+    engine->retranslate();
 
     selectedLanguage = language;
     emit selectedLanguageChanged();

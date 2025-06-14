@@ -29,7 +29,7 @@ Item {
                     choices: Rg.languages.languages
                     displayStrings: Rg.languages.languages.map(lang => Rg.languages.getLanguageName(lang))
                     name: "Language"
-                    default_: "en"
+                    default_: "en_US"
 
                     anchors {
                         left: parent.left
