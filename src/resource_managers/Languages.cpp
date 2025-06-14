@@ -10,14 +10,6 @@
 #include <spdlog/spdlog.h>
 
 namespace resource_managers {
-Languages::Languages(QObject* parent)
-  : QObject(parent)
-{
-    QCoreApplication::installTranslator(&qtTranslator);
-    for (const auto& locale : magic_enum::enum_values<QLocale::Language>()) {
-        languages.append(QLocale{ locale }.name());
-    }
-}
 Languages::Languages(
   const QMap<QString, qml_components::ThemeFamily>& availableThemes,
   QObject* parent)

@@ -23,7 +23,6 @@ class Languages final : public QObject
     QMap<QString, qml_components::ThemeFamily> availableThemes;
 
   public:
-    explicit Languages(QObject* parent = nullptr);
     explicit Languages(
       const QMap<QString, qml_components::ThemeFamily>& availableThemes,
       QObject* parent = nullptr);
