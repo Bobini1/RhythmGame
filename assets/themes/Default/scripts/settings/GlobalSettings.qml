@@ -28,8 +28,8 @@ Item {
                     id_: "language"
                     choices: Rg.languages.languages
                     displayStrings: Rg.languages.languages.map(lang => Rg.languages.getLanguageName(lang))
-                    name: "Language"
-                    default_: "en_US"
+                    name: qsTr("Language")
+                    default_: Qt.locale().name
 
                     anchors {
                         left: parent.left
@@ -39,7 +39,7 @@ Item {
                 Range {
                     destination: Rg.profileList.mainProfile.vars.globalVars
                     id_: "noteScreenTimeMillis"
-                    name: "Note Screen Time (ms)"
+                    name: qsTr("Note Screen Time (ms)")
                     min: 0
                     default_: 1000
                     sliderMax: 1500
@@ -53,7 +53,7 @@ Item {
                 Boolean {
                     destination: Rg.profileList.mainProfile.vars.globalVars
                     id_: "laneCoverOn"
-                    name: "Lane Cover"
+                    name: qsTr("Lane Cover")
                     default_: false
                     
                     anchors {
@@ -64,7 +64,7 @@ Item {
                 Range {
                     destination: Rg.profileList.mainProfile.vars.globalVars
                     id_: "laneCoverRatio"
-                    name: "Lane Cover Ratio"
+                    name: qsTr("Lane Cover Ratio")
                     default_: 0.1
                     min: 0
                     max: 1
@@ -79,7 +79,7 @@ Item {
                 Boolean {
                     destination: Rg.profileList.mainProfile.vars.globalVars
                     id_: "liftOn"
-                    name: "Lift"
+                    name: qsTr("Lift")
                     default_: false
                     
                     anchors {
@@ -90,7 +90,7 @@ Item {
                 Range {
                     destination: Rg.profileList.mainProfile.vars.globalVars
                     id_: "liftRatio"
-                    name: "Lift Ratio"
+                    name: qsTr("Lift Ratio")
                     default_: 0.1
                     min: 0
                     max: 1
@@ -105,7 +105,7 @@ Item {
                 Boolean {
                     destination: Rg.profileList.mainProfile.vars.globalVars
                     id_: "hiddenOn"
-                    name: "Hidden"
+                    name: qsTr("Hidden")
                     default_: false
                     
                     anchors {
@@ -116,7 +116,7 @@ Item {
                 Range {
                     destination: Rg.profileList.mainProfile.vars.globalVars
                     id_: "hiddenRatio"
-                    name: "Hidden Ratio"
+                    name: qsTr("Hidden Ratio")
                     default_: 0.1
                     min: 0
                     max: 1
@@ -131,7 +131,7 @@ Item {
                 Boolean {
                     destination: Rg.profileList.mainProfile.vars.globalVars
                     id_: "bgaOn"
-                    name: "BGA On"
+                    name: qsTr("BGA On")
                     default_: true
                     
                     anchors {
@@ -146,7 +146,7 @@ Item {
                     destination: Rg.profileList.mainProfile.vars.globalVars
                     id_: "noteOrderAlgorithm"
                     choices: ["Normal", "Mirror", "Random", "S-Random", "R-Random", "Random+", "S-Random+"]
-                    name: "Note Order Algorithm"
+                    name: qsTr("Note Order Algorithm")
                     assignIndex: true
                     default_: 0
                     
@@ -160,7 +160,7 @@ Item {
                     destination: Rg.profileList.mainProfile.vars.globalVars
                     id_: "noteOrderAlgorithmP2"
                     choices: ["Normal", "Mirror", "Random", "S-Random", "R-Random", "Random+", "S-Random+"]
-                    name: "Note Order Algorithm P2"
+                    name: qsTr("Note Order Algorithm P2")
                     assignIndex: true
                     default_: 0
                     
@@ -176,7 +176,7 @@ Item {
                     destination: Rg.profileList.mainProfile.vars.globalVars
                     id_: "hiSpeedFix"
                     choices: ["Off", "Main", "Start", "Min", "Max"]
-                    name: "Hi-Speed Fix"
+                    name: qsTr("Hi-Speed Fix")
                     assignIndex: true
                     default_: 1
                     
@@ -191,7 +191,7 @@ Item {
                     destination: Rg.profileList.mainProfile.vars.globalVars
                     id_: "dpOptions"
                     choices: ["Off", "Flip", "Battle", "BattleAs"]
-                    name: "DP Options"
+                    name: qsTr("DP Options")
                     assignIndex: true
                     default_: 0
                     
@@ -206,7 +206,7 @@ Item {
                     destination: Rg.profileList.mainProfile.vars.globalVars
                     id_: "gaugeType"
                     choices: ["AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC"]
-                    name: "Gauge Type"
+                    name: qsTr("Gauge Type")
                     default_: "EXHARD"
                     
                     anchors {
@@ -220,7 +220,7 @@ Item {
                     destination: Rg.profileList.mainProfile.vars.globalVars
                     id_: "gaugeMode"
                     choices: ["Exclusive", "Best", "Select to Under"]
-                    name: "Gauge Mode"
+                    name: qsTr("Gauge Mode")
                     assignIndex: true
                     default_: 1
                     
@@ -234,7 +234,7 @@ Item {
                 Choice {
                     destination: Rg.profileList.mainProfile.vars.globalVars
                     id_: "bottomShiftableGauge"
-                    name: "Bottom Shiftable Gauge"
+                    name: qsTr("Bottom Shiftable Gauge")
                     choices: ["AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC"]
                     default_: "EASY"
                     

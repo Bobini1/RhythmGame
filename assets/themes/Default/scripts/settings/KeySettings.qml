@@ -193,6 +193,7 @@ Item {
                                             }
                                             if (k.device === key.Axis) {
                                                 deviceName += qsTr(" axis");
+                                                deviceName += " " + k.code;
                                                 if (k.direction === key.Down) {
                                                     deviceName += qsTr(" down");
                                                 } else if (k.direction === key.Up) {

@@ -419,7 +419,7 @@ resource_managers::GlobalVars::setLanguage(QString value)
 void
 resource_managers::GlobalVars::resetLanguage()
 {
-    setLanguage("en_US");
+    setLanguage(QLocale::system().name());
 }
 
 void

@@ -73,16 +73,6 @@ determineLocaleToPick(const QLocale& locale,
                     return lang;
                 }
             }
-            spdlog::trace("Theme {} does not have translation for language: "
-                          "{}, picking English",
-                          themeName.toStdString(),
-                          localeToPick.toStdString());
-            for (const auto& [lang, url] : translations.asKeyValueRange()) {
-                if (QLocale{ lang }.language() == QLocale::English) {
-                    return lang;
-                }
-            }
-            return "";
         }
     }
     return localeToPick;
@@ -107,20 +97,26 @@ Languages::setSelectedLanguage(const QString& language)
     }
     for (const auto& [themeName, translator] : themeTranslators) {
         auto translations = availableThemes.value(themeName).getTranslations();
-        if (auto localeToPick =
+        auto localeToPick =
               determineLocaleToPick(locale, themeName, translations);
-            !localeToPick.isEmpty()) {
-            if (auto url = translations.value(localeToPick); !url.isValid()) {
-                QCoreApplication::removeTranslator(translator.get());
-            } else if (!translator->load(url.toLocalFile())) {
-                spdlog::error("Failed to load theme translation for language "
-                              "{}: in theme {}",
-                              localeToPick.toStdString(),
-                              themeName.toStdString());
-                QCoreApplication::removeTranslator(translator.get());
-            } else {
-                QCoreApplication::installTranslator(translator.get());
-            }
+        if (localeToPick.isEmpty()) {
+            localeToPick = determineLocaleToPick(
+                QLocale::system(), themeName, translations);
+        }
+        if (localeToPick.isEmpty()) {
+            localeToPick = determineLocaleToPick(
+                QLocale(QLocale::English), themeName, translations);
+        }
+        if (auto url = translations.value(localeToPick); !url.isValid()) {
+            QCoreApplication::removeTranslator(translator.get());
+        } else if (!translator->load(url.toLocalFile())) {
+            spdlog::error("Failed to load theme translation for language "
+                          "{}: in theme {}",
+                          localeToPick.toStdString(),
+                          themeName.toStdString());
+            QCoreApplication::removeTranslator(translator.get());
+        } else {
+            QCoreApplication::installTranslator(translator.get());
         }
     }
     engine->retranslate();

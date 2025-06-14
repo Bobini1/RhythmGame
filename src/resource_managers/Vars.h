@@ -10,6 +10,7 @@
 #include <QObject>
 #include <QQmlPropertyMap>
 #include <filesystem>
+#include <QLocale>
 
 namespace qml_components {
 class ProfileList;
@@ -141,7 +142,7 @@ class GlobalVars final : public QObject
     QString bottomShiftableGauge = "AEASY";
     QString avatar = "mascot.png";
     QString name = "Default";
-    QString language = "en_US";
+    QString language = QLocale::system().name();
 
     QString avatarPath;
 
