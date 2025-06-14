@@ -43,6 +43,89 @@
     </message>
 </context>
 <context>
+    <name>GlobalSettings</name>
+    <message>
+        <location filename="../scripts/settings/GlobalSettings.qml" line="31"/>
+        <source>Language</source>
+        <translation>Język</translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/GlobalSettings.qml" line="42"/>
+        <source>Note Screen Time (ms)</source>
+        <translation>Czas widoczności notki (ms)</translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/GlobalSettings.qml" line="56"/>
+        <source>Lane Cover</source>
+        <translation>Zasłona od góry</translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/GlobalSettings.qml" line="67"/>
+        <source>Lane Cover Ratio</source>
+        <translation>Poziom zasłony</translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/GlobalSettings.qml" line="82"/>
+        <source>Lift</source>
+        <translation>Podniesienie</translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/GlobalSettings.qml" line="93"/>
+        <source>Lift Ratio</source>
+        <translation>Poziom podniesienia</translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/GlobalSettings.qml" line="108"/>
+        <source>Hidden</source>
+        <translation>Ukrycie od dołu</translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/GlobalSettings.qml" line="119"/>
+        <source>Hidden Ratio</source>
+        <translation>Poziom ukrycia</translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/GlobalSettings.qml" line="134"/>
+        <source>BGA On</source>
+        <translation>BGA</translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/GlobalSettings.qml" line="149"/>
+        <source>Note Order Algorithm</source>
+        <translation>Ułożenie notek</translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/GlobalSettings.qml" line="163"/>
+        <source>Note Order Algorithm P2</source>
+        <translation>Ułożenie notek</translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/GlobalSettings.qml" line="179"/>
+        <source>Hi-Speed Fix</source>
+        <translation>Tryb ustawień prędkości</translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/GlobalSettings.qml" line="194"/>
+        <source>DP Options</source>
+        <translation>Opcje DP</translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/GlobalSettings.qml" line="209"/>
+        <source>Gauge Type</source>
+        <translation>Typ gajgi</translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/GlobalSettings.qml" line="223"/>
+        <source>Gauge Mode</source>
+        <translation>Tryb gajgi</translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/GlobalSettings.qml" line="237"/>
+        <source>Bottom Shiftable Gauge</source>
+        <translation>Najniższa gajga</translation>
+    </message>
+</context>
+<context>
     <name>KeySettings</name>
     <message>
         <location filename="../scripts/settings/KeySettings.qml" line="47"/>
@@ -115,42 +198,42 @@
         <translation> oś</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/KeySettings.qml" line="197"/>
+        <location filename="../scripts/settings/KeySettings.qml" line="198"/>
         <source> down</source>
         <translation> -</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/KeySettings.qml" line="199"/>
+        <location filename="../scripts/settings/KeySettings.qml" line="200"/>
         <source> up</source>
         <translation> +</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/KeySettings.qml" line="205"/>
+        <location filename="../scripts/settings/KeySettings.qml" line="206"/>
         <source>Keyboard</source>
         <translation>Klawiatura</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/KeySettings.qml" line="211"/>
+        <location filename="../scripts/settings/KeySettings.qml" line="212"/>
         <source>Not Configured</source>
         <translation>Nie skonfigurowano</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/KeySettings.qml" line="216"/>
+        <location filename="../scripts/settings/KeySettings.qml" line="217"/>
         <source>DOWN</source>
         <translation>Aktywny</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/KeySettings.qml" line="216"/>
+        <location filename="../scripts/settings/KeySettings.qml" line="217"/>
         <source>UP</source>
         <translation>Nieaktywny</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/KeySettings.qml" line="222"/>
+        <location filename="../scripts/settings/KeySettings.qml" line="223"/>
         <source>Configure</source>
         <translation>Skonfiguruj</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/KeySettings.qml" line="234"/>
+        <location filename="../scripts/settings/KeySettings.qml" line="235"/>
         <source>Reset</source>
         <translation>Reset</translation>
     </message>
