@@ -14,7 +14,7 @@
         "id": "laneBrightness",
         "name": {
           "en": "Lane Brightness",
-          "pl": "Jasność toru"
+          "pl": "Jasność tła"
         },
         "description": {
           "en": "The brightness of the background behind falling notes.",
@@ -312,7 +312,7 @@
       {
         "name": {
           "en": "Play Area Common",
-          "pl": "Obszar gry wspólny"
+          "pl": "Obszar gry (wspólne)"
         },
         "type": "group",
         "description": {

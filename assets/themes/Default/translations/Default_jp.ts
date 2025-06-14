@@ -298,6 +298,14 @@
     </message>
 </context>
 <context>
+    <name>ScreenSettings</name>
+    <message>
+        <location filename="../scripts/settings/ScreenSettings.qml" line="27"/>
+        <source>%1 Settings</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>Settings</name>
     <message>
         <location filename="../scripts/settings/Settings.qml" line="20"/>

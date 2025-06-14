@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS>
-<TS version="2.1" language="pl" sourcelanguage="en">
+<TS version="2.1" language="pl_PL" sourcelanguage="en_US">
 <context>
     <name>AnalogAxisSettings</name>
     <message>
@@ -295,6 +295,14 @@
         <location filename="../scripts/settings/ResetButton.qml" line="7"/>
         <source>Reset</source>
         <translation>Reset</translation>
+    </message>
+</context>
+<context>
+    <name>ScreenSettings</name>
+    <message>
+        <location filename="../scripts/settings/ScreenSettings.qml" line="27"/>
+        <source>%1 Settings</source>
+        <translation>Ustawienia %1</translation>
     </message>
 </context>
 <context>
