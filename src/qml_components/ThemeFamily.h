@@ -31,7 +31,7 @@ class ThemeFamily
     Q_GADGET
     Q_PROPERTY(QString path READ getPath CONSTANT)
     Q_PROPERTY(QVariantMap screens READ getScreensVariant CONSTANT)
-    Q_PROPERTY(QUrl translations READ getTranslations CONSTANT)
+    Q_PROPERTY(QMap<QString, QUrl> translations READ getTranslations CONSTANT)
 
   public:
     auto getPath() const -> QString;

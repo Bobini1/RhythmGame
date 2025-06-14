@@ -14,8 +14,8 @@
     "k14": "settings/k14.json"
   },
   "translations": {
-    "en": "translations/en.qm",
-    "ja": "translations/jp.qm",
-    "zh": "translations/pl.qm"
+    "en": "translations/Default_en.qm",
+    "ja": "translations/Default_jp.qm",
+    "zh": "translations/Default_pl.qm"
   }
 }

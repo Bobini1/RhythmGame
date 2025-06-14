@@ -70,15 +70,31 @@ resource_managers::scanThemes(std::filesystem::path themesFolder)
                     settingsScriptUrl,
                 };
             }
+            // Load translations
+            auto translations = QMap<QString, QUrl>{};
+            if (config["translations"].isObject()) {
+                for (const auto& [language, translation] :
+                     config["translations"].toObject().toVariantHash().asKeyValueRange()) {
+                    auto translationPath =
+                          path / support::qStringToPath(translation.toString());
+                    if (exists(translationPath)) {
+                        translations.insert(
+                          language,
+                          QUrl::fromLocalFile(
+                            support::pathToQString(translationPath)));
+                    } else {
+                        spdlog::warn(
+                          "Translation file {} does not exist for theme {}",
+                          translationPath.string(),
+                          path.string());
+                    }
+                }
+            }
             auto themeName = support::pathToQString(path.filename());
-            auto translations = config["translations"].toString();
             auto themeFamily = qml_components::ThemeFamily{
                 support::pathToQString(path),
                 std::move(themeMap),
-                translations.isEmpty()
-                  ? QUrl{}
-                  : QUrl::fromLocalFile(support::pathToQString(
-                      path / support::qStringToPath(translations)))
+                translations,
             };
             themeFamilies.insert(themeName, themeFamily);
         } catch (const std::exception& e) {
