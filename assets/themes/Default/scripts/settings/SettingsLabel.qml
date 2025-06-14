@@ -16,4 +16,5 @@ TextEdit {
     Layout.fillWidth: true
     Layout.minimumWidth: 200
     Layout.maximumWidth: 1000
+    Layout.preferredWidth: 300
 }
