@@ -402,6 +402,25 @@ resource_managers::GlobalVars::resetName()
 {
     setName("Default");
 }
+auto
+resource_managers::GlobalVars::getLanguage() const -> QString
+{
+    return language;
+}
+void
+resource_managers::GlobalVars::setLanguage(QString value)
+{
+    if (language == value) {
+        return;
+    }
+    language = value;
+    emit languageChanged();
+}
+void
+resource_managers::GlobalVars::resetLanguage()
+{
+    setLanguage("en");
+}
 
 void
 writeGlobalVars(const resource_managers::GlobalVars& globalVars,

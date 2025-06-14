@@ -12,6 +12,7 @@
 #include "../src/qml_components/SongFolderFactory.h"
 #include "../src/qml_components/Themes.h"
 #include "input/InputTranslator.h"
+#include "resource_managers/Languages.h"
 #include "resource_managers/Tables.h"
 
 #include <QObject>
@@ -42,6 +43,8 @@ class Rg final : public QObject
     Q_PROPERTY(
       qml_components::ProfileList* profileList MEMBER profileList CONSTANT)
     Q_PROPERTY(resource_managers::Tables* tables MEMBER tables CONSTANT)
+    Q_PROPERTY(
+      resource_managers::Languages* languages MEMBER languages CONSTANT)
 
     qml_components::ProgramSettings* programSettings;
     input::InputTranslator* inputTranslator;
@@ -54,6 +57,7 @@ class Rg final : public QObject
     input::GamepadManager* gamepadManager;
     qml_components::ProfileList* profileList;
     resource_managers::Tables* tables;
+    resource_managers::Languages* languages;
 
   public:
     Rg(qml_components::ProgramSettings* programSettings,
@@ -67,6 +71,7 @@ class Rg final : public QObject
        input::GamepadManager* gamepadManager,
        qml_components::ProfileList* profileList,
        resource_managers::Tables* tables,
+       resource_managers::Languages* languages,
        QObject* parent = nullptr);
     inline static Rg* instance = nullptr;
     static Rg* create(QQmlEngine* qmlEngine, QJSEngine*);

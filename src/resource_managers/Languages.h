@@ -4,6 +4,9 @@
 
 #ifndef LANGUAGES_H
 #define LANGUAGES_H
+#include "qml_components/ThemeFamily.h"
+
+#include <QHash>
 #include <QObject>
 #include <qtranslator.h>
 
@@ -16,22 +19,28 @@ class Languages final : public QObject
     Q_PROPERTY(QString selectedLanguage READ getSelectedLanguage NOTIFY
                  selectedLanguageChanged)
     QTranslator qtTranslator;
-    QList<std::unique_ptr<QTranslator>> themeTranslators;
+    std::unordered_map<QString, std::unique_ptr<QTranslator>> themeTranslators;
+    QMap<QString, qml_components::ThemeFamily> availableThemes;
 
   public:
     explicit Languages(QObject* parent = nullptr);
+    explicit Languages(
+      const QMap<QString, qml_components::ThemeFamily>& availableThemes,
+      QObject* parent = nullptr);
     auto getLanguages() const -> const QStringList&;
     auto getSelectedLanguage() const -> QString;
-    auto setSelectedLanguage(const QString& language) -> void;
+    void setSelectedLanguage(const QString& language);
+    Q_INVOKABLE static QString getLanguageName(const QString& language);
 
   signals:
     void selectedLanguageChanged();
 
   private:
     QStringList languages;
+    QList<QLocale> locales;
     QString selectedLanguage;
 };
 
 } // namespace resource_managers
 
-#endif //LANGUAGES_H
+#endif // LANGUAGES_H

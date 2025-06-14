@@ -29,6 +29,7 @@
 #include "qml_components/QmlUtils.h"
 #include "qml_components/Themes.h"
 #include "resource_managers/GaugeFactory.h"
+#include "resource_managers/Languages.h"
 #include "resource_managers/ScanThemes.h"
 #include "resource_managers/Tables.h"
 #include "support/PathToUtfString.h"
@@ -126,14 +127,38 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
         if (availableThemes.empty()) {
             throw std::runtime_error("No themes available");
         }
-        //loadTranslations(assetsFolder / "translations");
+        // loadTranslations(assetsFolder / "translations");
         auto gamepadManager = input::GamepadManager{};
 
         auto themes = qml_components::Themes{ availableThemes };
-        auto profileList = qml_components::ProfileList{
-            assetsFolder / "song_db.sqlite",
-            &db, availableThemes, assetsFolder / "profiles", avatarPath
+        auto profileList =
+          qml_components::ProfileList{ assetsFolder / "song_db.sqlite",
+                                       &db,
+                                       availableThemes,
+                                       assetsFolder / "profiles",
+                                       avatarPath };
+        auto languages = resource_managers::Languages{ availableThemes };
+        auto setLang = [&profileList, &languages, connection = QMetaObject::Connection{}]() mutable {
+            languages.setSelectedLanguage(
+              profileList.getMainProfile()
+                ->getVars()
+                ->getGlobalVars()
+                ->getLanguage());
+            connection = QObject::connect(
+            profileList.getMainProfile()
+              ->getVars()->getGlobalVars(),
+              &resource_managers::GlobalVars::languageChanged,
+              &languages,
+              [mainProfileVars = profileList.getMainProfile()
+              ->getVars()->getGlobalVars(), &languages]() {
+                  languages.setSelectedLanguage(mainProfileVars->getLanguage());
+              });
         };
+        QObject::connect(&profileList,
+                         &qml_components::ProfileList::mainProfileChanged,
+                         &languages,
+                         setLang);
+        setLang();
 
         auto inputTranslator = input::InputTranslator{ &db };
         QObject::connect(&gamepadManager,
@@ -159,11 +184,14 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
           };
         auto chartDataFactory = resource_managers::ChartDataFactory{};
         auto gaugeFactory = resource_managers::GaugeFactory{};
-        auto getChartPathFromSha256 = [&db](const QString& sha256, const std::filesystem::path& hint) {
+        auto getChartPathFromSha256 = [&db](const QString& sha256,
+                                            const std::filesystem::path& hint) {
             // Check if the hint path exists and matches the hash
-            auto hintStatement = db.createStatement("SELECT sha256 FROM charts WHERE path = ?;");
+            auto hintStatement =
+              db.createStatement("SELECT sha256 FROM charts WHERE path = ?;");
             hintStatement.bind(1, support::pathToUtfString(hint));
-            if (const auto hintResult = hintStatement.executeAndGet<std::string>()) {
+            if (const auto hintResult =
+                  hintStatement.executeAndGet<std::string>()) {
                 if (*hintResult == sha256.toStdString()) {
                     return std::optional{ hint };
                 }
@@ -216,7 +244,8 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
                       &themes,
                       &gamepadManager,
                       &profileList,
-                      &tables };
+                      &tables,
+                      &languages };
 
         Rg::instance = &rg;
 
@@ -320,16 +349,17 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
         qml_components::InputAttached::inputSignalProvider =
           &inputSignalProvider;
         qml_components::QmlUtilsAttached::getThemeNameForRootFile =
-          [&availableThemes](const QUrl& rootFile){
-            for (const auto& [themeName, family] : availableThemes.asKeyValueRange()) {
-                for (const auto& screen : family.getScreens()) {
-                    if (screen.getScript() == rootFile) {
-                        return themeName;
-                    }
-                }
-            }
-            return QString{};
-        };
+          [&availableThemes](const QUrl& rootFile) {
+              for (const auto& [themeName, family] :
+                   availableThemes.asKeyValueRange()) {
+                  for (const auto& screen : family.getScreens()) {
+                      if (screen.getScript() == rootFile) {
+                          return themeName;
+                      }
+                  }
+              }
+              return QString{};
+          };
         qmlRegisterUncreatableType<qml_components::QmlUtilsAttached>(
           "RhythmGameQml",
           1,

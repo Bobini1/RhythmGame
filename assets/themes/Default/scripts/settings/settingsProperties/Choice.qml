@@ -13,6 +13,7 @@ RowLayout {
     property var destination
     property string id_
     property var choices
+    property var displayStrings: choices
     property alias name: strLabel.text
     property alias description: strLabel.description
     property var default_
@@ -22,7 +23,7 @@ RowLayout {
     }
     ComboBox {
         id: choiceComboBox
-        model: choices
+        model: displayStrings
         Layout.fillWidth: true
         Layout.preferredWidth: 400
         Layout.minimumWidth: 200
@@ -38,7 +39,7 @@ RowLayout {
         }
 
         onActivated: (_) => {
-            destination[choice.id_] = choice.assignIndex ? currentIndex : currentText;
+            destination[choice.id_] = choice.assignIndex ? currentIndex : choice.choices[currentIndex];
         }
     }
 

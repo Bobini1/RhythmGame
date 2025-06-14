@@ -23,7 +23,19 @@ Item {
                 anchors.right: parent.right
                 anchors.top: parent.top
                 spacing: 5
+                Choice {
+                    destination: Rg.profileList.mainProfile.vars.globalVars
+                    id_: "language"
+                    choices: Rg.languages.languages
+                    displayStrings: Rg.languages.languages.map(lang => Rg.languages.getLanguageName(lang))
+                    name: "Language"
+                    default_: "en"
 
+                    anchors {
+                        left: parent.left
+                        right: parent.right
+                    }
+                }
                 Range {
                     destination: Rg.profileList.mainProfile.vars.globalVars
                     id_: "noteScreenTimeMillis"

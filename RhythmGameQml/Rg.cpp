@@ -15,6 +15,7 @@ Rg::Rg(qml_components::ProgramSettings* programSettings,
        input::GamepadManager* gamepadManager,
        qml_components::ProfileList* profileList,
        resource_managers::Tables* tables,
+       resource_managers::Languages* languages,
        QObject* parent)
   : QObject(parent)
   , programSettings(programSettings)
@@ -28,6 +29,7 @@ Rg::Rg(qml_components::ProgramSettings* programSettings,
   , gamepadManager(gamepadManager)
   , profileList(profileList)
   , tables(tables)
+  , languages(languages)
 {
 }
 Rg*

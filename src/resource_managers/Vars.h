@@ -121,6 +121,8 @@ class GlobalVars final : public QObject
                  avatarChanged RESET resetAvatar)
     Q_PROPERTY(QString name READ getName WRITE setName NOTIFY nameChanged RESET
                  resetName)
+    Q_PROPERTY(QString language READ getLanguage WRITE setLanguage NOTIFY
+                 languageChanged RESET resetLanguage)
     // ^ remember to use full namespace for enums for reflection
     int noteScreenTimeMillis = 1000;
     bool laneCoverOn = false;
@@ -139,6 +141,7 @@ class GlobalVars final : public QObject
     QString bottomShiftableGauge = "AEASY";
     QString avatar = "mascot.png";
     QString name = "Default";
+    QString language = "en";
 
     QString avatarPath;
 
@@ -195,6 +198,9 @@ class GlobalVars final : public QObject
     auto getName() const -> QString;
     void setName(QString value);
     void resetName();
+    auto getLanguage() const -> QString;
+    void setLanguage(QString value);
+    void resetLanguage();
 
   signals:
     void noteScreenTimeMillisChanged();
@@ -214,6 +220,7 @@ class GlobalVars final : public QObject
     void bottomShiftableGaugeChanged();
     void avatarChanged();
     void nameChanged();
+    void languageChanged();
 };
 
 class Vars final : public QObject
