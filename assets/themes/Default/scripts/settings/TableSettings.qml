@@ -19,12 +19,8 @@ Item {
             required property var display
 
             anchors {
-                left: parent
-                ?.
-                left
-                right: parent
-                ?.
-                right
+                left: parent?.left
+                right: parent?.right
             }
             height: content.height
 
