@@ -259,7 +259,6 @@ add_custom_command(TARGET RhythmGame_exe POST_BUILD
         VERBATIM
 )
 
-
 add_custom_command(TARGET RhythmGame_exe POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E create_symlink
         ${CMAKE_SOURCE_DIR}/assets assets)
