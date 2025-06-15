@@ -44,10 +44,12 @@ IniImageProvider::requestPixmap(const QString& id,
         return {};
     }
     const auto& pixmap = [this, rect, &path, &settings]() -> const QPixmap& {
+        auto pixmapsLock = std::unique_lock{pixmapsMutex};
         const auto cachedPixmap = pixmaps.find(path);
         if (cachedPixmap != pixmaps.end()) {
             return cachedPixmap.value()[rect];
         }
+        pixmapsLock.unlock();
         // loading to QImage first to automatically convert from RGBA to RGB in
         // QPixmap::fromImage
         const auto image = QImage(path);
@@ -57,6 +59,7 @@ IniImageProvider::requestPixmap(const QString& id,
             auto cut = image.copy(pixRect);
             cuts.emplace(pixRect, QPixmap::fromImage(cut));
         }
+        pixmapsLock.lock();
         return (*pixmaps.emplace(path, std::move(cuts)))[rect];
     }();
     if (requestedSize.isValid()) {

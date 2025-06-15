@@ -6,11 +6,13 @@
 #define RHYTHMGAME_INIIMAGEPROVIDER_H
 
 #include <QQuickImageProvider>
+#include <mutex>
 namespace resource_managers {
 
 class IniImageProvider final : public QQuickImageProvider
 {
     QHash<QString, QHash<QRect, QPixmap>> pixmaps;
+    std::mutex pixmapsMutex;
 
   public:
     IniImageProvider();
