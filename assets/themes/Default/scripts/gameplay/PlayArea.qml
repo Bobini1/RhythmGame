@@ -325,7 +325,7 @@ Item {
         id: bombSize
 
         source: root.imagesUrl + "bomb/" + playArea.vars.bomb
-        visible: false
+        opacity: 0
     }
 }
 
