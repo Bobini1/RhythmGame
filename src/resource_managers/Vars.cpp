@@ -616,6 +616,27 @@ createChoiceProperty(QHash<QString, QVariant>& screenVars,
           "not an array: {}",
           jsonValueToString(object)));
     }
+    if (!object["displayStrings"].isObject()) {
+        throw support::Exception(std::format(
+          "displayStrings field of property of type choice is undefined or "
+          "not an object: {}",
+          jsonValueToString(object)));
+    }
+    auto length = object["choices"].toArray().size();
+    for (const auto& lang : object["displayStrings"].toObject()) {
+        if (!lang.isArray()) {
+            throw support::Exception(std::format(
+              "a language of displayStrings of property of type choice contains a "
+              "non-array value: {}",
+              jsonValueToString(lang)));
+        }
+        if (lang.toArray().size() != length) {
+            throw support::Exception(std::format(
+              "a language of displayStrings of property of type choice has a "
+              "different number of choices than the choices field: {}",
+              jsonValueToString(lang)));
+        }
+    }
     // confirm that the default value is one of the choices
     const auto choices = object["choices"].toArray();
     if (choices.isEmpty()) {

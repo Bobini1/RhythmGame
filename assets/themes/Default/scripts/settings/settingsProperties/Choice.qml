@@ -37,6 +37,12 @@ RowLayout {
                     choiceComboBox.currentIndex);
             }
         }
+        onModelChanged: {
+            choiceComboBox.currentIndex = Helpers.getIndex(
+                choice.assignIndex ? Object.keys(choice.choices) : choice.choices,
+                choice.destination[choice.id_],
+                choiceComboBox.currentIndex);
+        }
 
         onActivated: (_) => {
             destination[choice.id_] = choice.assignIndex ? currentIndex : choice.choices[currentIndex];

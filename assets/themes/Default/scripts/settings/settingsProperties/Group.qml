@@ -62,6 +62,9 @@ Frame {
                         props.default_ = props.default;
                     }
                     delete props.default;
+                    if (props.type === "choice") {
+                        props.displayStrings = loader.displayStrings;
+                    }
                     delete props.type;
                     props.destination = groupFrame.destination;
                     props.description = loader.description;
@@ -78,6 +81,12 @@ Frame {
                 onDescriptionChanged: {
                     if (loader.item) {
                         loader.item.description = description;
+                    }
+                }
+                readonly property list<string> displayStrings: modelData.type === "choice" ? modelData.displayStrings[Rg.languages.getClosestLanguage(Rg.languages.selectedLanguage, Object.keys(modelData.displayStrings))] : [];
+                onDisplayStringsChanged: {
+                    if (loader.item) {
+                        loader.item.displayStrings = displayStrings;
                     }
                 }
                 Layout.fillWidth: true
