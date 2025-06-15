@@ -239,6 +239,19 @@
     </message>
 </context>
 <context>
+    <name>KeymodeButton</name>
+    <message>
+        <location filename="../scripts/select/KeymodeButton.qml" line="28"/>
+        <source>ALL keys</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/select/KeymodeButton.qml" line="30"/>
+        <source>%1 keys</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>Main</name>
     <message>
         <location filename="../scripts/main/Main.qml" line="28"/>
@@ -302,6 +315,14 @@
     <message>
         <location filename="../scripts/settings/ScreenSettings.qml" line="27"/>
         <source>%1 Settings</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>Selector</name>
+    <message>
+        <location filename="../scripts/select/Selector.qml" line="41"/>
+        <source>KEYS</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -397,6 +418,49 @@
     <message>
         <location filename="../scripts/select/SongWheel.qml" line="104"/>
         <source>BEST COMBO</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>SortButton</name>
+    <message>
+        <location filename="../scripts/select/SortButton.qml" line="9"/>
+        <source>Title</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/select/SortButton.qml" line="9"/>
+        <source>Artist</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/select/SortButton.qml" line="9"/>
+        <source>BPM</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/select/SortButton.qml" line="9"/>
+        <source>Clear</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/select/SortButton.qml" line="9"/>
+        <source>Score</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/select/SortButton.qml" line="9"/>
+        <source>Level</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/select/SortButton.qml" line="9"/>
+        <source>Total</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/select/SortButton.qml" line="17"/>
+        <source>Sort: %1</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

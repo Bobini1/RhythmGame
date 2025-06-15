@@ -239,6 +239,27 @@
     </message>
 </context>
 <context>
+    <name>KeymodeButton</name>
+    <message>
+        <source>ALL</source>
+        <translation type="vanished">WSZYSTKIE</translation>
+    </message>
+    <message>
+        <source> keys</source>
+        <translation type="obsolete"> klawiszy</translation>
+    </message>
+    <message>
+        <location filename="../scripts/select/KeymodeButton.qml" line="28"/>
+        <source>ALL keys</source>
+        <translation>WSZYSTKIE klawisze</translation>
+    </message>
+    <message>
+        <location filename="../scripts/select/KeymodeButton.qml" line="30"/>
+        <source>%1 keys</source>
+        <translation>%1 klawiszy</translation>
+    </message>
+</context>
+<context>
     <name>Main</name>
     <message>
         <location filename="../scripts/main/Main.qml" line="28"/>
@@ -303,6 +324,14 @@
         <location filename="../scripts/settings/ScreenSettings.qml" line="27"/>
         <source>%1 Settings</source>
         <translation>Ustawienia %1</translation>
+    </message>
+</context>
+<context>
+    <name>Selector</name>
+    <message>
+        <location filename="../scripts/select/Selector.qml" line="41"/>
+        <source>KEYS</source>
+        <translation>KLAWISZE</translation>
     </message>
 </context>
 <context>
@@ -398,6 +427,49 @@
         <location filename="../scripts/select/SongWheel.qml" line="104"/>
         <source>BEST COMBO</source>
         <translation>NAJLEPSZE COMBO</translation>
+    </message>
+</context>
+<context>
+    <name>SortButton</name>
+    <message>
+        <location filename="../scripts/select/SortButton.qml" line="9"/>
+        <source>Title</source>
+        <translation>Tytuł</translation>
+    </message>
+    <message>
+        <location filename="../scripts/select/SortButton.qml" line="9"/>
+        <source>Artist</source>
+        <translation>Artysta</translation>
+    </message>
+    <message>
+        <location filename="../scripts/select/SortButton.qml" line="9"/>
+        <source>BPM</source>
+        <translation>BPM</translation>
+    </message>
+    <message>
+        <location filename="../scripts/select/SortButton.qml" line="9"/>
+        <source>Clear</source>
+        <translation>Clear</translation>
+    </message>
+    <message>
+        <location filename="../scripts/select/SortButton.qml" line="9"/>
+        <source>Score</source>
+        <translation>Wynik</translation>
+    </message>
+    <message>
+        <location filename="../scripts/select/SortButton.qml" line="9"/>
+        <source>Level</source>
+        <translation>Level</translation>
+    </message>
+    <message>
+        <location filename="../scripts/select/SortButton.qml" line="9"/>
+        <source>Total</source>
+        <translation>Total</translation>
+    </message>
+    <message>
+        <location filename="../scripts/select/SortButton.qml" line="17"/>
+        <source>Sort: %1</source>
+        <translation>Sortowanie: %1</translation>
     </message>
 </context>
 <context>
