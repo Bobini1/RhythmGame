@@ -146,6 +146,7 @@ Item {
                     destination: Rg.profileList.mainProfile.vars.globalVars
                     id_: "noteOrderAlgorithm"
                     choices: ["Normal", "Mirror", "Random", "S-Random", "R-Random", "Random+", "S-Random+"]
+                    displayStrings: qsTr("Normal;Mirror;Random;S-Random;R-Random;Random+;S-Random+").split(";")
                     name: qsTr("Note Order Algorithm")
                     assignIndex: true
                     default_: 0
@@ -160,6 +161,7 @@ Item {
                     destination: Rg.profileList.mainProfile.vars.globalVars
                     id_: "noteOrderAlgorithmP2"
                     choices: ["Normal", "Mirror", "Random", "S-Random", "R-Random", "Random+", "S-Random+"]
+                    displayStrings: qsTr("Normal;Mirror;Random;S-Random;R-Random;Random+;S-Random+").split(";")
                     name: qsTr("Note Order Algorithm P2")
                     assignIndex: true
                     default_: 0
@@ -176,6 +178,7 @@ Item {
                     destination: Rg.profileList.mainProfile.vars.globalVars
                     id_: "hiSpeedFix"
                     choices: ["Off", "Main", "Start", "Min", "Max"]
+                    displayStrings: qsTr("Off;Main;Start;Min;Max").split(";")
                     name: qsTr("Hi-Speed Fix")
                     assignIndex: true
                     default_: 1
@@ -191,6 +194,7 @@ Item {
                     destination: Rg.profileList.mainProfile.vars.globalVars
                     id_: "dpOptions"
                     choices: ["Off", "Flip", "Battle", "BattleAs"]
+                    displayStrings: qsTr("Off;Flip;Battle;BattleAs").split(";")
                     name: qsTr("DP Options")
                     assignIndex: true
                     default_: 0
@@ -206,6 +210,7 @@ Item {
                     destination: Rg.profileList.mainProfile.vars.globalVars
                     id_: "gaugeType"
                     choices: ["AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC"]
+                    displayStrings: qsTr("ASSISTED EASY;EASY;NORMAL;HARD;EXHARD;FC").split(";")
                     name: qsTr("Gauge Type")
                     default_: "EXHARD"
                     
@@ -220,6 +225,7 @@ Item {
                     destination: Rg.profileList.mainProfile.vars.globalVars
                     id_: "gaugeMode"
                     choices: ["Exclusive", "Best", "Select to Under"]
+                    displayStrings: qsTr("Exclusive;Best;Select to Under").split(";")
                     name: qsTr("Gauge Mode")
                     assignIndex: true
                     default_: 1
@@ -236,6 +242,7 @@ Item {
                     id_: "bottomShiftableGauge"
                     name: qsTr("Bottom Shiftable Gauge")
                     choices: ["AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC"]
+                    displayStrings: qsTr("ASSISTED EASY;EASY;NORMAL;HARD;EXHARD;FC").split(";")
                     default_: "EASY"
                     
                     anchors {

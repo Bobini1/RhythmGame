@@ -109,36 +109,63 @@
     </message>
     <message>
         <location filename="../scripts/settings/GlobalSettings.qml" line="149"/>
+        <location filename="../scripts/settings/GlobalSettings.qml" line="164"/>
+        <source>Normal;Mirror;Random;S-Random;R-Random;Random+;S-Random+</source>
+        <translation>Normalny;Lustrzany;Losowy;S-Losowy;R-Losowy;Losowy+;S-Losowy+</translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/GlobalSettings.qml" line="150"/>
         <source>Note Order Algorithm</source>
         <translation>Ułożenie notek</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GlobalSettings.qml" line="163"/>
+        <location filename="../scripts/settings/GlobalSettings.qml" line="165"/>
         <source>Note Order Algorithm P2</source>
         <translation>Ułożenie notek</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GlobalSettings.qml" line="179"/>
+        <location filename="../scripts/settings/GlobalSettings.qml" line="181"/>
+        <source>Off;Main;Start;Min;Max</source>
+        <translation>Wyłączony;Główny;Początkowy;Min;Max</translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/GlobalSettings.qml" line="182"/>
         <source>Hi-Speed Fix</source>
         <translation>Tryb ustawień prędkości</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GlobalSettings.qml" line="194"/>
+        <location filename="../scripts/settings/GlobalSettings.qml" line="197"/>
+        <source>Off;Flip;Battle;BattleAs</source>
+        <translation>Wyłączony;Przerzuć;Bitwa;BitwaAs</translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/GlobalSettings.qml" line="198"/>
         <source>DP Options</source>
         <translation>Opcje DP</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GlobalSettings.qml" line="209"/>
+        <location filename="../scripts/settings/GlobalSettings.qml" line="213"/>
+        <location filename="../scripts/settings/GlobalSettings.qml" line="245"/>
+        <source>ASSISTED EASY;EASY;NORMAL;HARD;EXHARD;FC</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/GlobalSettings.qml" line="214"/>
         <source>Gauge Type</source>
         <translation>Typ gajgi</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GlobalSettings.qml" line="223"/>
+        <location filename="../scripts/settings/GlobalSettings.qml" line="228"/>
+        <source>Exclusive;Best;Select to Under</source>
+        <translation>Wyłączny;Najlepszy;Wybór do najgorszego</translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/GlobalSettings.qml" line="229"/>
         <source>Gauge Mode</source>
         <translation>Tryb gajgi</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GlobalSettings.qml" line="237"/>
+        <location filename="../scripts/settings/GlobalSettings.qml" line="243"/>
         <source>Bottom Shiftable Gauge</source>
         <translation>Najniższa gajga</translation>
     </message>
@@ -429,6 +456,11 @@
         <translation>Kolejność notek</translation>
     </message>
     <message>
+        <location filename="../scripts/select/playOptions/PlayOptionsBattle.qml" line="81"/>
+        <source>NORMAL;MIRROR;RANDOM;RANDOM+;S-RANDOM;S-RANDOM+;R-RANDOM</source>
+        <translation>NORMALNY;LUSTRZANY;LOSOWY;LOSOWY+;S-LOSOWY;S-LOSOWY+;R-LOSOWY</translation>
+    </message>
+    <message>
         <location filename="../scripts/select/playOptions/PlayOptionsBattle.qml" line="101"/>
         <source>Gauge Type</source>
         <translation>Typ gajgi</translation>
@@ -438,6 +470,16 @@
         <source>Hi-Speed Fix</source>
         <translation>Tryb ustawień prędkości</translation>
     </message>
+    <message>
+        <location filename="../scripts/select/playOptions/PlayOptionsBattle.qml" line="127"/>
+        <source>ASSISTED EASY;EASY;NORMAL;HARD;EXHARD;FC</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../scripts/select/playOptions/PlayOptionsBattle.qml" line="142"/>
+        <source>MAIN BPM;START BPM;MAX BPM;MIN BPM;AVG BPM;OFF</source>
+        <translation>GŁÓWNE BPM;POCZĄTKOWE BPM;MAX BPM;MIN BPM;ŚREDNIE BPM;WYŁĄCZONE</translation>
+    </message>
 </context>
 <context>
     <name>PlayOptionsSingle</name>
@@ -445,6 +487,12 @@
         <location filename="../scripts/select/playOptions/PlayOptionsSingle.qml" line="30"/>
         <source>Note Order (P1)</source>
         <translation>Kolejność notek (P1)</translation>
+    </message>
+    <message>
+        <location filename="../scripts/select/playOptions/PlayOptionsSingle.qml" line="47"/>
+        <location filename="../scripts/select/playOptions/PlayOptionsSingle.qml" line="76"/>
+        <source>NORMAL;MIRROR;RANDOM;RANDOM+;S-RANDOM;S-RANDOM+;R-RANDOM</source>
+        <translation>NORMALNY;LUSTRZANY;LOSOWY;LOSOWY+;S-LOSOWY;S-LOSOWY+;R-LOSOWY</translation>
     </message>
     <message>
         <location filename="../scripts/select/playOptions/PlayOptionsSingle.qml" line="60"/>
@@ -465,6 +513,21 @@
         <location filename="../scripts/select/playOptions/PlayOptionsSingle.qml" line="116"/>
         <source>Hi-Speed Fix</source>
         <translation>Tryb ustawień prędkości</translation>
+    </message>
+    <message>
+        <location filename="../scripts/select/playOptions/PlayOptionsSingle.qml" line="132"/>
+        <source>ASSISTED EASY;EASY;NORMAL;HARD;EXHARD;FC</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../scripts/select/playOptions/PlayOptionsSingle.qml" line="150"/>
+        <source>OFF;FLIP;BATTLE;BATTLE AS</source>
+        <translation>WYŁĄCZ;PRZERZUĆ;BITWA;BITWA AS</translation>
+    </message>
+    <message>
+        <location filename="../scripts/select/playOptions/PlayOptionsSingle.qml" line="165"/>
+        <source>MAIN BPM;START BPM;MAX BPM;MIN BPM;AVG BPM;OFF</source>
+        <translation>GŁÓWNE BPM;POCZĄTKOWE BPM;MAX BPM;MIN BPM;ŚREDNIE BPM;WYŁĄCZONE</translation>
     </message>
 </context>
 <context>

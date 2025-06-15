@@ -75,6 +75,9 @@ BorderImage {
             delayed: true
             tumbler.currentIndex: Helpers.getIndex(frame.model, frame.profile.vars.globalVars[frame.prop], tumbler.currentIndex);
         }
+        onModelChanged: {
+            tumbler.currentIndex = Helpers.getIndex(frame.model, frame.profile.vars.globalVars[frame.prop], tumbler.currentIndex);
+        }
 
         Binding {
             target: frame.profile.vars.globalVars
