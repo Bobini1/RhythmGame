@@ -159,14 +159,14 @@ Item {
     Image {
         height: 0
         source: root.iniImagesUrl + "judge/" + judgement.judge + "/pgreat"
-        visible: false
+        opacity: 0
         width: 0
     }
 
     Image {
         height: 0
         source: root.iniImagesUrl + "judge/" + judgement.judge + "/pgreat_0"
-        visible: false
+        opacity: 0
         width: 0
     }
 
