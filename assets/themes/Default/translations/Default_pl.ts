@@ -54,6 +54,11 @@
         <source>Vertical Gauge</source>
         <translation>Pionowa gajga</translation>
     </message>
+    <message>
+        <location filename="../scripts/gameplay/GaugePopup.qml" line="31"/>
+        <source>Gauge</source>
+        <translation>Gajga</translation>
+    </message>
 </context>
 <context>
     <name>GlobalSettings</name>
@@ -351,34 +356,69 @@
         <translation>Przerzuć płytę</translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="70"/>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="68"/>
+        <source>Notes</source>
+        <translation>Notki</translation>
+    </message>
+    <message>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="71"/>
         <source>Enable Lane Cover</source>
         <translation>Zakrycie od góry</translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="78"/>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="79"/>
         <source>Lane Cover Ratio</source>
         <translation>Poziom zakrycia</translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="86"/>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="85"/>
+        <source>Lane Cover</source>
+        <translation>Zasłona od góry</translation>
+    </message>
+    <message>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="88"/>
         <source>Enable Lift</source>
         <translation>Podniesienie</translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="94"/>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="96"/>
         <source>Lift Ratio</source>
         <translation>Poziom podniesienia</translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="98"/>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="100"/>
         <source>Enable Hidden</source>
         <translation>Ukrycie od dołu</translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="106"/>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="108"/>
         <source>Hidden Ratio</source>
         <translation>Poziom ukrycia</translation>
+    </message>
+    <message>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="114"/>
+        <source>Lift Cover</source>
+        <translation>Zakrycie z dołu</translation>
+    </message>
+    <message>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="119"/>
+        <source>Mine</source>
+        <translation>Mina</translation>
+    </message>
+    <message>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="124"/>
+        <source>Key Beam</source>
+        <translation>Laser</translation>
+    </message>
+    <message>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="129"/>
+        <source>Bomb</source>
+        <translation>Bomba</translation>
+    </message>
+    <message>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="134"/>
+        <source>Glow</source>
+        <translation>Poświata</translation>
     </message>
 </context>
 <context>

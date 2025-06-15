@@ -28,6 +28,7 @@ GameplayPopup {
 
             propertyId: "gauge"
             src: popup.themeVars
+            label: qsTr("Gauge")
         }
     }
 }

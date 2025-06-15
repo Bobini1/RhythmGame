@@ -54,6 +54,11 @@
         <source>Vertical Gauge</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <location filename="../scripts/gameplay/GaugePopup.qml" line="31"/>
+        <source>Gauge</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>GlobalSettings</name>
@@ -343,33 +348,68 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="70"/>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="68"/>
+        <source>Notes</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="71"/>
         <source>Enable Lane Cover</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="78"/>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="79"/>
         <source>Lane Cover Ratio</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="86"/>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="85"/>
+        <source>Lane Cover</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="88"/>
         <source>Enable Lift</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="94"/>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="96"/>
         <source>Lift Ratio</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="98"/>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="100"/>
         <source>Enable Hidden</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="106"/>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="108"/>
         <source>Hidden Ratio</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="114"/>
+        <source>Lift Cover</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="119"/>
+        <source>Mine</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="124"/>
+        <source>Key Beam</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="129"/>
+        <source>Bomb</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="134"/>
+        <source>Glow</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

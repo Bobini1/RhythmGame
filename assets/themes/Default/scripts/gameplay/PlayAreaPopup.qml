@@ -65,6 +65,7 @@ GameplayPopup {
         ImageSelection {
             src: popup.themeVars
             propertyId: "notes"
+            label: qsTr("Notes")
         }
         BooleanOption {
             description: qsTr("Enable Lane Cover")
@@ -81,6 +82,7 @@ GameplayPopup {
         ImageSelection {
             src: popup.themeVars
             propertyId: "lanecover"
+            label: qsTr("Lane Cover")
         }
         BooleanOption {
             description: qsTr("Enable Lift")
@@ -109,22 +111,27 @@ GameplayPopup {
         ImageSelection {
             src: popup.themeVars
             propertyId: "liftcover"
+            label: qsTr("Lift Cover")
         }
         ImageSelection {
             src: popup.themeVars
             propertyId: "mine"
+            label: qsTr("Mine")
         }
         ImageSelection {
             src: popup.themeVars
             propertyId: "keybeam"
+            label: qsTr("Key Beam")
         }
         ImageSelection {
             src: popup.themeVars
             propertyId: "bomb"
+            label: qsTr("Bomb")
         }
         ImageSelection {
             src: popup.themeVars
             propertyId: "glow"
+            label: qsTr("Glow")
         }
     }
 }
