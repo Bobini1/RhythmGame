@@ -157,17 +157,12 @@ Item {
     // preload images
 
     Image {
-        height: 0
         source: root.iniImagesUrl + "judge/" + judgement.judge + "/pgreat"
         opacity: 0
-        width: 0
     }
 
     Image {
-        height: 0
         source: root.iniImagesUrl + "judge/" + judgement.judge + "/pgreat_0"
         opacity: 0
-        width: 0
     }
-
 }
