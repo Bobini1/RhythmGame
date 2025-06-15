@@ -61,7 +61,7 @@ Item {
             anchors.right: parent.right
             anchors.rightMargin: 20
 
-            text: "Note Order"
+            text: qsTr("Note Order")
 
             highlightedKeys: [1, 2]
         }
@@ -98,7 +98,7 @@ Item {
                 Layout.fillWidth: true
                 height: 40
 
-                text: "Gauge Type"
+                text: qsTr("Gauge Type")
 
                 highlightedKeys: [3]
             }
@@ -108,7 +108,7 @@ Item {
                 Layout.fillWidth: true
                 height: 40
 
-                text: "Hi-Speed Fix"
+                text: qsTr("Hi-Speed Fix")
 
                 highlightedKeys: [5]
             }

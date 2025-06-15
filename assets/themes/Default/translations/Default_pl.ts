@@ -260,6 +260,29 @@
     </message>
 </context>
 <context>
+    <name>Login</name>
+    <message>
+        <location filename="../scripts/select/Login.qml" line="62"/>
+        <source>Select Profile</source>
+        <translation>Wybierz profil</translation>
+    </message>
+    <message>
+        <location filename="../scripts/select/Login.qml" line="177"/>
+        <source>Select Profiles</source>
+        <translation>Wybierz profile</translation>
+    </message>
+    <message>
+        <location filename="../scripts/select/Login.qml" line="235"/>
+        <source>Single Mode</source>
+        <translation>Tryb pojedynczy</translation>
+    </message>
+    <message>
+        <location filename="../scripts/select/Login.qml" line="235"/>
+        <source>Battle Mode</source>
+        <translation>Tryb bitwy</translation>
+    </message>
+</context>
+<context>
     <name>Main</name>
     <message>
         <location filename="../scripts/main/Main.qml" line="28"/>
@@ -275,6 +298,52 @@
         <location filename="../scripts/main/Main.qml" line="47"/>
         <source>Quit</source>
         <translation>Wyjdź</translation>
+    </message>
+</context>
+<context>
+    <name>PlayOptionsBattle</name>
+    <message>
+        <location filename="../scripts/select/playOptions/PlayOptionsBattle.qml" line="64"/>
+        <source>Note Order</source>
+        <translation>Kolejność notek</translation>
+    </message>
+    <message>
+        <location filename="../scripts/select/playOptions/PlayOptionsBattle.qml" line="101"/>
+        <source>Gauge Type</source>
+        <translation>Typ gajgi</translation>
+    </message>
+    <message>
+        <location filename="../scripts/select/playOptions/PlayOptionsBattle.qml" line="111"/>
+        <source>Hi-Speed Fix</source>
+        <translation>Tryb ustawień prędkości</translation>
+    </message>
+</context>
+<context>
+    <name>PlayOptionsSingle</name>
+    <message>
+        <location filename="../scripts/select/playOptions/PlayOptionsSingle.qml" line="30"/>
+        <source>Note Order (P1)</source>
+        <translation>Kolejność notek (P1)</translation>
+    </message>
+    <message>
+        <location filename="../scripts/select/playOptions/PlayOptionsSingle.qml" line="60"/>
+        <source>Note Order (P2)</source>
+        <translation>Kolejność notek (P2)</translation>
+    </message>
+    <message>
+        <location filename="../scripts/select/playOptions/PlayOptionsSingle.qml" line="96"/>
+        <source>Gauge Type</source>
+        <translation>Typ gajgi</translation>
+    </message>
+    <message>
+        <location filename="../scripts/select/playOptions/PlayOptionsSingle.qml" line="106"/>
+        <source>DP Options</source>
+        <translation>Opcje DP</translation>
+    </message>
+    <message>
+        <location filename="../scripts/select/playOptions/PlayOptionsSingle.qml" line="116"/>
+        <source>Hi-Speed Fix</source>
+        <translation>Tryb ustawień prędkości</translation>
     </message>
 </context>
 <context>

@@ -27,7 +27,7 @@ Rectangle {
         anchors.left: parent.left
         anchors.leftMargin: 20
 
-        text: "Note Order (P1)"
+        text: qsTr("Note Order (P1)")
 
         highlightedKeys: [1, 2]
     }
@@ -57,7 +57,7 @@ Rectangle {
         anchors.right: parent.right
         anchors.rightMargin: 20
 
-        text: "Note Order (P2)"
+        text: qsTr("Note Order (P2)")
 
         highlightedKeys: [6, 7]
     }
@@ -93,7 +93,7 @@ Rectangle {
             Layout.fillWidth: true
             height: 40
 
-            text: "Gauge Type"
+            text: qsTr("Gauge Type")
 
             highlightedKeys: [3]
         }
@@ -103,7 +103,7 @@ Rectangle {
             Layout.fillWidth: true
             height: 40
 
-            text: "DP Options"
+            text: qsTr("DP Options")
 
             highlightedKeys: [4]
         }
@@ -113,7 +113,7 @@ Rectangle {
             Layout.fillWidth: true
             height: 40
 
-            text: "Hi-Speed Fix"
+            text: qsTr("Hi-Speed Fix")
 
             highlightedKeys: [5]
         }

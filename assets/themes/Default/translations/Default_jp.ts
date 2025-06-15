@@ -252,6 +252,29 @@
     </message>
 </context>
 <context>
+    <name>Login</name>
+    <message>
+        <location filename="../scripts/select/Login.qml" line="62"/>
+        <source>Select Profile</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/select/Login.qml" line="177"/>
+        <source>Select Profiles</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/select/Login.qml" line="235"/>
+        <source>Single Mode</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/select/Login.qml" line="235"/>
+        <source>Battle Mode</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>Main</name>
     <message>
         <location filename="../scripts/main/Main.qml" line="28"/>
@@ -266,6 +289,52 @@
     <message>
         <location filename="../scripts/main/Main.qml" line="47"/>
         <source>Quit</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>PlayOptionsBattle</name>
+    <message>
+        <location filename="../scripts/select/playOptions/PlayOptionsBattle.qml" line="64"/>
+        <source>Note Order</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/select/playOptions/PlayOptionsBattle.qml" line="101"/>
+        <source>Gauge Type</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/select/playOptions/PlayOptionsBattle.qml" line="111"/>
+        <source>Hi-Speed Fix</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>PlayOptionsSingle</name>
+    <message>
+        <location filename="../scripts/select/playOptions/PlayOptionsSingle.qml" line="30"/>
+        <source>Note Order (P1)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/select/playOptions/PlayOptionsSingle.qml" line="60"/>
+        <source>Note Order (P2)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/select/playOptions/PlayOptionsSingle.qml" line="96"/>
+        <source>Gauge Type</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/select/playOptions/PlayOptionsSingle.qml" line="106"/>
+        <source>DP Options</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/select/playOptions/PlayOptionsSingle.qml" line="116"/>
+        <source>Hi-Speed Fix</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
