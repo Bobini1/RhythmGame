@@ -15,13 +15,13 @@ GameplayPopup {
             to: 10
             from: -10
             prop: "lifeBarZ"
-            text: "Z-index"
+            text: qsTr("Z-index")
             src: popup.themeVars
         }
         BooleanOption {
             prop: "verticalGauge"
             src: popup.themeVars
-            description: "Vertical Gauge"
+            description: qsTr("Vertical Gauge")
         }
         ImageSelection {
             id: gauge

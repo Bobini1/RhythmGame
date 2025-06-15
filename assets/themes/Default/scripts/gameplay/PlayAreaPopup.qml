@@ -10,46 +10,46 @@ GameplayPopup {
     required property var globalVars
     required property var themeVars
     property bool dp: false
-    
+
     model: ObjectModel {
         NumberWithSlider {
             from: 0
             src: popup.globalVars
             prop: "noteScreenTimeMillis"
-            text: "Green Number"
+            text: qsTr("Green Number")
             to: 2000
         }
         NumberWithSlider {
             from: -10
             src: popup.themeVars
             prop: "playAreaZ"
-            text: "Z-index"
+            text: qsTr("Z-index")
             to: 10
         }
         NumberWithSlider {
             from: -1
             src: popup.themeVars
             prop: "laneBrightness"
-            text: "Lane Brightness"
+            text: qsTr("Lane Brightness")
             to: 1
         }
         NumberWithSlider {
             from: 0
             src: popup.themeVars
             prop: "thickness"
-            text: "Note Thickness"
+            text: qsTr("Note Thickness")
             to: 200
         }
         NumberWithSlider {
             from: 0
             src: popup.themeVars
             prop: "judgeLineThickness"
-            text: "Judge Line Thickness"
+            text: qsTr("Judge Line Thickness")
             to: 200
         }
         ColorChoice {
             src: popup.themeVars
-            description: "Judge Line Color"
+            description: qsTr("Judge Line Color")
             prop: "judgeLineColor"
         }
         Loader {
@@ -57,7 +57,7 @@ GameplayPopup {
             sourceComponent: Component {
                 BooleanOption {
                     src: popup.themeVars
-                    description: "Flip Scratch Lane"
+                    description: qsTr("Flip Scratch Lane")
                     prop: "scratchOnRightSide"
                 }
             }
@@ -67,7 +67,7 @@ GameplayPopup {
             propertyId: "notes"
         }
         BooleanOption {
-            description: "Enable Lane Cover"
+            description: qsTr("Enable Lane Cover")
             src: popup.globalVars
             prop: "laneCoverOn"
         }
@@ -75,7 +75,7 @@ GameplayPopup {
             from: 0
             src: popup.globalVars
             prop: "laneCoverRatio"
-            text: "Lane Cover Ratio"
+            text: qsTr("Lane Cover Ratio")
             to: 1
         }
         ImageSelection {
@@ -83,7 +83,7 @@ GameplayPopup {
             propertyId: "lanecover"
         }
         BooleanOption {
-            description: "Enable Lift"
+            description: qsTr("Enable Lift")
             src: popup.globalVars
             prop: "liftOn"
         }
@@ -91,11 +91,11 @@ GameplayPopup {
             from: 0
             src: popup.globalVars
             prop: "liftRatio"
-            text: "Lift Ratio"
+            text: qsTr("Lift Ratio")
             to: 1
         }
         BooleanOption {
-            description: "Enable Hidden"
+            description: qsTr("Enable Hidden")
             src: popup.globalVars
             prop: "hiddenOn"
         }
@@ -103,7 +103,7 @@ GameplayPopup {
             from: 0
             src: popup.globalVars
             prop: "hiddenRatio"
-            text: "Hidden Ratio"
+            text: qsTr("Hidden Ratio")
             to: 1
         }
         ImageSelection {

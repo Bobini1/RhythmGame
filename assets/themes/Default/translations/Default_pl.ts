@@ -43,6 +43,19 @@
     </message>
 </context>
 <context>
+    <name>GaugePopup</name>
+    <message>
+        <location filename="../scripts/gameplay/GaugePopup.qml" line="18"/>
+        <source>Z-index</source>
+        <translation>Z-index</translation>
+    </message>
+    <message>
+        <location filename="../scripts/gameplay/GaugePopup.qml" line="24"/>
+        <source>Vertical Gauge</source>
+        <translation>Pionowa gajga</translation>
+    </message>
+</context>
+<context>
     <name>GlobalSettings</name>
     <message>
         <location filename="../scripts/settings/GlobalSettings.qml" line="31"/>
@@ -298,6 +311,74 @@
         <location filename="../scripts/main/Main.qml" line="47"/>
         <source>Quit</source>
         <translation>Wyjdź</translation>
+    </message>
+</context>
+<context>
+    <name>PlayAreaPopup</name>
+    <message>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="19"/>
+        <source>Green Number</source>
+        <translation>Zielona liczba</translation>
+    </message>
+    <message>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="26"/>
+        <source>Z-index</source>
+        <translation>Z-index</translation>
+    </message>
+    <message>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="33"/>
+        <source>Lane Brightness</source>
+        <translation>Jasność tła</translation>
+    </message>
+    <message>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="40"/>
+        <source>Note Thickness</source>
+        <translation>Grubość notek</translation>
+    </message>
+    <message>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="47"/>
+        <source>Judge Line Thickness</source>
+        <translation>Grubość dolnej kreski</translation>
+    </message>
+    <message>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="52"/>
+        <source>Judge Line Color</source>
+        <translation>Kolor dolnej kreski</translation>
+    </message>
+    <message>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="60"/>
+        <source>Flip Scratch Lane</source>
+        <translation>Przerzuć płytę</translation>
+    </message>
+    <message>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="70"/>
+        <source>Enable Lane Cover</source>
+        <translation>Włącz zakrycie od góry</translation>
+    </message>
+    <message>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="78"/>
+        <source>Lane Cover Ratio</source>
+        <translation>Poziom zakrycia</translation>
+    </message>
+    <message>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="86"/>
+        <source>Enable Lift</source>
+        <translation>Włącz podniesienie</translation>
+    </message>
+    <message>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="94"/>
+        <source>Lift Ratio</source>
+        <translation>Poziom podniesienia</translation>
+    </message>
+    <message>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="98"/>
+        <source>Enable Hidden</source>
+        <translation>Włącz ukrycie od dołu</translation>
+    </message>
+    <message>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="106"/>
+        <source>Hidden Ratio</source>
+        <translation>Poziom ukrycia</translation>
     </message>
 </context>
 <context>

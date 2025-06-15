@@ -43,6 +43,19 @@
     </message>
 </context>
 <context>
+    <name>GaugePopup</name>
+    <message>
+        <location filename="../scripts/gameplay/GaugePopup.qml" line="18"/>
+        <source>Z-index</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/gameplay/GaugePopup.qml" line="24"/>
+        <source>Vertical Gauge</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>GlobalSettings</name>
     <message>
         <location filename="../scripts/settings/GlobalSettings.qml" line="31"/>
@@ -289,6 +302,74 @@
     <message>
         <location filename="../scripts/main/Main.qml" line="47"/>
         <source>Quit</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>PlayAreaPopup</name>
+    <message>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="19"/>
+        <source>Green Number</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="26"/>
+        <source>Z-index</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="33"/>
+        <source>Lane Brightness</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="40"/>
+        <source>Note Thickness</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="47"/>
+        <source>Judge Line Thickness</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="52"/>
+        <source>Judge Line Color</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="60"/>
+        <source>Flip Scratch Lane</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="70"/>
+        <source>Enable Lane Cover</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="78"/>
+        <source>Lane Cover Ratio</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="86"/>
+        <source>Enable Lift</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="94"/>
+        <source>Lift Ratio</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="98"/>
+        <source>Enable Hidden</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="106"/>
+        <source>Hidden Ratio</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
