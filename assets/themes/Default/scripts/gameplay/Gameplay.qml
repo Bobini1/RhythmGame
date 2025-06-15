@@ -92,7 +92,7 @@ Rectangle {
 
         property Profile profile: chart.player1.profile
         themeVars: profile.vars.themeVars[root.screen][root.themeName]
-        globalVars: profile.vars.globalVars
+        generalVars: profile.vars.generalVars
         dp: root.isDp
 
         onClosed: {
@@ -104,7 +104,7 @@ Rectangle {
 
         property Profile profile: (chart.player2 || chart.player1).profile
         themeVars: profile.vars.themeVars[root.screen][root.themeName]
-        globalVars: profile.vars.globalVars
+        generalVars: profile.vars.generalVars
         dp: root.isDp
 
         onClosed: {
@@ -160,7 +160,7 @@ Rectangle {
             readonly property var profileVars: profile.vars.themeVars[root.screen][root.themeName]
 
             height: profileVars.bgaSize
-            visible: profile.vars.globalVars.bgaOn
+            visible: profile.vars.generalVars.bgaOn
             width: profileVars.bgaSize
             x: profileVars.bgaX
             y: profileVars.bgaY

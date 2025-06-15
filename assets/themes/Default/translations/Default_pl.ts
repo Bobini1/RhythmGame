@@ -611,8 +611,8 @@
     </message>
     <message>
         <location filename="../scripts/settings/Settings.qml" line="32"/>
-        <source>Global Settings</source>
-        <translation>Globalne ustawienia</translation>
+        <source>General Settings</source>
+        <translation>Ustawienia Ogólne</translation>
     </message>
     <message>
         <location filename="../scripts/settings/Settings.qml" line="35"/>

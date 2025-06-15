@@ -354,7 +354,7 @@ getComponentsForPlayer(const ChartFactory::PlayerSpecificData& player,
               player.replayedScore
                 ? player.replayedScore->getResult()->getNoteOrderAlgorithm()
                 : player.profile->getVars()
-                    ->getGlobalVars()
+                    ->getGeneralVars()
                     ->getNoteOrderAlgorithm(),
               player.replayedScore
                 ? std::optional{player.replayedScore->getResult()->getRandomSeed()}
@@ -367,7 +367,7 @@ getComponentsForPlayer(const ChartFactory::PlayerSpecificData& player,
               player.replayedScore
                 ? player.replayedScore->getResult()->getNoteOrderAlgorithmP2()
                 : player.profile->getVars()
-                    ->getGlobalVars()
+                    ->getGeneralVars()
                     ->getNoteOrderAlgorithmP2(),
               result1.seed + 1);
             return { result1, result2 };
@@ -379,7 +379,7 @@ getComponentsForPlayer(const ChartFactory::PlayerSpecificData& player,
               player.replayedScore
                 ? player.replayedScore->getResult()->getNoteOrderAlgorithm()
                 : player.profile->getVars()
-                    ->getGlobalVars()
+                    ->getGeneralVars()
                     ->getNoteOrderAlgorithm(),
               player.replayedScore
                 ? std::optional{player.replayedScore->getResult()->getRandomSeed()}
@@ -398,9 +398,9 @@ getComponentsForPlayer(const ChartFactory::PlayerSpecificData& player,
       maxHitValue,
       player.gauges,
       chartData.getRandomSequence(),
-      player.profile->getVars()->getGlobalVars()->getNoteOrderAlgorithm(),
+      player.profile->getVars()->getGeneralVars()->getNoteOrderAlgorithm(),
       isDp(chartData.getKeymode())
-        ? player.profile->getVars()->getGlobalVars()->getNoteOrderAlgorithmP2()
+        ? player.profile->getVars()->getGeneralVars()->getNoteOrderAlgorithmP2()
         : NoteOrderAlgorithm::Normal,
       results[0].columns += results[1].columns,
       results[0].seed,

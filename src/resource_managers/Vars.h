@@ -75,7 +75,7 @@ Q_ENUM_NS(GaugeMode)
 } // namespace gauge_mode
 using namespace gauge_mode;
 
-class GlobalVars final : public QObject
+class GeneralVars final : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(int noteScreenTimeMillis READ getNoteScreenTimeMillis WRITE
@@ -147,7 +147,7 @@ class GlobalVars final : public QObject
     QString avatarPath;
 
   public:
-    explicit GlobalVars(QString avatarPath, QObject* parent = nullptr);
+    explicit GeneralVars(QString avatarPath, QObject* parent = nullptr);
     auto getNoteScreenTimeMillis() const -> int;
     void setNoteScreenTimeMillis(int value);
     void resetNoteScreenTimeMillis();
@@ -228,10 +228,10 @@ class Vars final : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(
-      GlobalVars* globalVars READ getGlobalVars NOTIFY globalVarsChanged)
+      GeneralVars* generalVars READ getGeneralVars NOTIFY generalVarsChanged)
     Q_PROPERTY(
       QQmlPropertyMap* themeVars READ getThemeVars NOTIFY themeVarsChanged)
-    GlobalVars globalVars;
+    GeneralVars generalVars;
     QQmlPropertyMap themeVars;
     const Profile* profile;
     QMap<QString, qml_components::ThemeFamily> availableThemeFamilies;
@@ -241,7 +241,7 @@ class Vars final : public QObject
       QQmlPropertyMap& themeVars,
       QHash<QString, QHash<QString, QHash<QString, QVariant>>> themeVarsData,
       const std::filesystem::path& themeVarsPath);
-    Q_SLOT void writeGlobalVars() const;
+    Q_SLOT void writeGeneralVars() const;
 
   public:
     explicit Vars(
@@ -249,11 +249,11 @@ class Vars final : public QObject
       QMap<QString, qml_components::ThemeFamily> availableThemeFamilies,
       QString avatarPath,
       QObject* parent = nullptr);
-    auto getGlobalVars() -> GlobalVars*;
+    auto getGeneralVars() -> GeneralVars*;
     auto getThemeVars() -> QQmlPropertyMap*;
 
   signals:
-    void globalVarsChanged();
+    void generalVarsChanged();
     void themeVarsChanged();
 };
 } // namespace resource_managers

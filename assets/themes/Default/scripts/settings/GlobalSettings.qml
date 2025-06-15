@@ -24,7 +24,7 @@ Item {
                 anchors.top: parent.top
                 spacing: 5
                 Choice {
-                    destination: Rg.profileList.mainProfile.vars.globalVars
+                    destination: Rg.profileList.mainProfile.vars.generalVars
                     id_: "language"
                     choices: Rg.languages.languages
                     displayStrings: Rg.languages.languages.map(lang => Rg.languages.getLanguageName(lang))
@@ -37,7 +37,7 @@ Item {
                     }
                 }
                 Range {
-                    destination: Rg.profileList.mainProfile.vars.globalVars
+                    destination: Rg.profileList.mainProfile.vars.generalVars
                     id_: "noteScreenTimeMillis"
                     name: qsTr("Note Screen Time (ms)")
                     min: 0
@@ -51,7 +51,7 @@ Item {
                 Separator {
                 }
                 Boolean {
-                    destination: Rg.profileList.mainProfile.vars.globalVars
+                    destination: Rg.profileList.mainProfile.vars.generalVars
                     id_: "laneCoverOn"
                     name: qsTr("Lane Cover")
                     default_: false
@@ -62,7 +62,7 @@ Item {
                     }
                 }
                 Range {
-                    destination: Rg.profileList.mainProfile.vars.globalVars
+                    destination: Rg.profileList.mainProfile.vars.generalVars
                     id_: "laneCoverRatio"
                     name: qsTr("Lane Cover Ratio")
                     default_: 0.1
@@ -77,7 +77,7 @@ Item {
                 Separator {
                 }
                 Boolean {
-                    destination: Rg.profileList.mainProfile.vars.globalVars
+                    destination: Rg.profileList.mainProfile.vars.generalVars
                     id_: "liftOn"
                     name: qsTr("Lift")
                     default_: false
@@ -88,7 +88,7 @@ Item {
                     }
                 }
                 Range {
-                    destination: Rg.profileList.mainProfile.vars.globalVars
+                    destination: Rg.profileList.mainProfile.vars.generalVars
                     id_: "liftRatio"
                     name: qsTr("Lift Ratio")
                     default_: 0.1
@@ -103,7 +103,7 @@ Item {
                 Separator {
                 }
                 Boolean {
-                    destination: Rg.profileList.mainProfile.vars.globalVars
+                    destination: Rg.profileList.mainProfile.vars.generalVars
                     id_: "hiddenOn"
                     name: qsTr("Hidden")
                     default_: false
@@ -114,7 +114,7 @@ Item {
                     }
                 }
                 Range {
-                    destination: Rg.profileList.mainProfile.vars.globalVars
+                    destination: Rg.profileList.mainProfile.vars.generalVars
                     id_: "hiddenRatio"
                     name: qsTr("Hidden Ratio")
                     default_: 0.1
@@ -129,7 +129,7 @@ Item {
                 Separator {
                 }
                 Boolean {
-                    destination: Rg.profileList.mainProfile.vars.globalVars
+                    destination: Rg.profileList.mainProfile.vars.generalVars
                     id_: "bgaOn"
                     name: qsTr("BGA On")
                     default_: true
@@ -143,7 +143,7 @@ Item {
                 }
 
                 Choice {
-                    destination: Rg.profileList.mainProfile.vars.globalVars
+                    destination: Rg.profileList.mainProfile.vars.generalVars
                     id_: "noteOrderAlgorithm"
                     choices: ["Normal", "Mirror", "Random", "S-Random", "R-Random", "Random+", "S-Random+"]
                     displayStrings: qsTr("Normal;Mirror;Random;S-Random;R-Random;Random+;S-Random+").split(";")
@@ -158,7 +158,7 @@ Item {
                 }
 
                 Choice {
-                    destination: Rg.profileList.mainProfile.vars.globalVars
+                    destination: Rg.profileList.mainProfile.vars.generalVars
                     id_: "noteOrderAlgorithmP2"
                     choices: ["Normal", "Mirror", "Random", "S-Random", "R-Random", "Random+", "S-Random+"]
                     displayStrings: qsTr("Normal;Mirror;Random;S-Random;R-Random;Random+;S-Random+").split(";")
@@ -175,7 +175,7 @@ Item {
                 }
 
                 Choice {
-                    destination: Rg.profileList.mainProfile.vars.globalVars
+                    destination: Rg.profileList.mainProfile.vars.generalVars
                     id_: "hiSpeedFix"
                     choices: ["Off", "Main", "Start", "Min", "Max"]
                     displayStrings: qsTr("Off;Main;Start;Min;Max").split(";")
@@ -191,7 +191,7 @@ Item {
                 Separator {
                 }
                 Choice {
-                    destination: Rg.profileList.mainProfile.vars.globalVars
+                    destination: Rg.profileList.mainProfile.vars.generalVars
                     id_: "dpOptions"
                     choices: ["Off", "Flip", "Battle", "BattleAs"]
                     displayStrings: qsTr("Off;Flip;Battle;BattleAs").split(";")
@@ -207,7 +207,7 @@ Item {
                 Separator {
                 }
                 Choice {
-                    destination: Rg.profileList.mainProfile.vars.globalVars
+                    destination: Rg.profileList.mainProfile.vars.generalVars
                     id_: "gaugeType"
                     choices: ["AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC"]
                     displayStrings: qsTr("ASSISTED EASY;EASY;NORMAL;HARD;EXHARD;FC").split(";")
@@ -222,7 +222,7 @@ Item {
                 Separator {
                 }
                 Choice {
-                    destination: Rg.profileList.mainProfile.vars.globalVars
+                    destination: Rg.profileList.mainProfile.vars.generalVars
                     id_: "gaugeMode"
                     choices: ["Exclusive", "Best", "Select to Under"]
                     displayStrings: qsTr("Exclusive;Best;Select to Under").split(";")
@@ -238,7 +238,7 @@ Item {
                 Separator {
                 }
                 Choice {
-                    destination: Rg.profileList.mainProfile.vars.globalVars
+                    destination: Rg.profileList.mainProfile.vars.generalVars
                     id_: "bottomShiftableGauge"
                     name: qsTr("Bottom Shiftable Gauge")
                     choices: ["AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC"]

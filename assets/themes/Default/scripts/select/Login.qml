@@ -110,7 +110,7 @@ Rectangle {
 
                         Image {
                             id: image
-                            source: Rg.programSettings.avatarFolder + Rg.profileList.mainProfile.vars.globalVars.avatar
+                            source: Rg.programSettings.avatarFolder + Rg.profileList.mainProfile.vars.generalVars.avatar
                             anchors.fill: parent
                             anchors.margins: 1
                             fillMode: Image.PreserveAspectFit
@@ -134,7 +134,7 @@ Rectangle {
                         width: height
 
                         TextEdit {
-                            text: Rg.profileList.mainProfile.vars.globalVars.name
+                            text: Rg.profileList.mainProfile.vars.generalVars.name
                             readOnly: true
                             font.pixelSize: 24
                             color: "white"

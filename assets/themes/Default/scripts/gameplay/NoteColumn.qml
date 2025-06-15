@@ -21,7 +21,7 @@ Item {
         height: column.noteHeight
         width: column.width
         source: root.iniImagesUrl + "notes/" + column.noteImage + "/ln_start_" + column.color
-        y: parent.height * (1 - playArea.globalVars.liftOn * playArea.globalVars.liftRatio) - column.noteHeight * 2 / 3
+        y: parent.height * (1 - playArea.generalVars.liftOn * playArea.generalVars.liftRatio) - column.noteHeight * 2 / 3
         visible: false
         z: 1
     }
@@ -34,7 +34,7 @@ Item {
         clip: true
         interactive: false
 
-        contentY: -(column.position * column.heightMultiplier + height * (1 - playArea.globalVars.liftOn * playArea.globalVars.liftRatio)) + column.noteHeight / 3
+        contentY: -(column.position * column.heightMultiplier + height * (1 - playArea.generalVars.liftOn * playArea.generalVars.liftRatio)) + column.noteHeight / 3
 
         Repeater {
             id: repeater

@@ -144,15 +144,15 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
             languages.setSelectedLanguage(
               profileList.getMainProfile()
                 ->getVars()
-                ->getGlobalVars()
+                ->getGeneralVars()
                 ->getLanguage());
             connection = QObject::connect(
             profileList.getMainProfile()
-              ->getVars()->getGlobalVars(),
-              &resource_managers::GlobalVars::languageChanged,
+              ->getVars()->getGeneralVars(),
+              &resource_managers::GeneralVars::languageChanged,
               &languages,
               [mainProfileVars = profileList.getMainProfile()
-              ->getVars()->getGlobalVars(), &languages]() {
+              ->getVars()->getGeneralVars(), &languages]() {
                   languages.setSelectedLanguage(mainProfileVars->getLanguage());
               });
         };
@@ -183,7 +183,7 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
               return std::make_unique<
                 gameplay_logic::rules::StandardBmsHitRules>(
                 std::move(timingWindows), std::move(hitValuesFactory));
-          };
+        };
         auto chartDataFactory = resource_managers::ChartDataFactory{};
         auto gaugeFactory = resource_managers::GaugeFactory{};
         auto getChartPathFromSha256 = [&db](const QString& sha256,
@@ -197,7 +197,7 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
                 if (*hintResult == sha256.toStdString()) {
                     return std::optional{ hint };
                 }
-            }
+                  }
 
             auto statement =
               db.createStatement("SELECT path FROM charts WHERE sha256 = ?;");
@@ -359,9 +359,9 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
                           return themeName;
                       }
                   }
-              }
+                   }
               return QString{};
-          };
+        };
         qmlRegisterUncreatableType<qml_components::QmlUtilsAttached>(
           "RhythmGameQml",
           1,

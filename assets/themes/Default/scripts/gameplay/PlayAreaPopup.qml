@@ -7,14 +7,14 @@ import QtQml.Models
 GameplayPopup {
     id: popup
 
-    required property var globalVars
+    required property var generalVars
     required property var themeVars
     property bool dp: false
 
     model: ObjectModel {
         NumberWithSlider {
             from: 0
-            src: popup.globalVars
+            src: popup.generalVars
             prop: "noteScreenTimeMillis"
             text: qsTr("Green Number")
             to: 2000
@@ -69,12 +69,12 @@ GameplayPopup {
         }
         BooleanOption {
             description: qsTr("Enable Lane Cover")
-            src: popup.globalVars
+            src: popup.generalVars
             prop: "laneCoverOn"
         }
         NumberWithSlider {
             from: 0
-            src: popup.globalVars
+            src: popup.generalVars
             prop: "laneCoverRatio"
             text: qsTr("Lane Cover Ratio")
             to: 1
@@ -86,24 +86,24 @@ GameplayPopup {
         }
         BooleanOption {
             description: qsTr("Enable Lift")
-            src: popup.globalVars
+            src: popup.generalVars
             prop: "liftOn"
         }
         NumberWithSlider {
             from: 0
-            src: popup.globalVars
+            src: popup.generalVars
             prop: "liftRatio"
             text: qsTr("Lift Ratio")
             to: 1
         }
         BooleanOption {
             description: qsTr("Enable Hidden")
-            src: popup.globalVars
+            src: popup.generalVars
             prop: "hiddenOn"
         }
         NumberWithSlider {
             from: 0
-            src: popup.globalVars
+            src: popup.generalVars
             prop: "hiddenRatio"
             text: qsTr("Hidden Ratio")
             to: 1

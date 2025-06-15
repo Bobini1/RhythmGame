@@ -26,7 +26,7 @@ Item {
                 id: confirmDeletion
                 anchors.centerIn: parent
                 property Profile profile: null
-                title: qsTr("Delete %1?").arg(profile ? profile.vars.globalVars.name : "")
+                title: qsTr("Delete %1?").arg(profile ? profile.vars.generalVars.name : "")
                 standardButtons: Dialog.Ok | Dialog.Cancel
                 modal: true
 
@@ -36,7 +36,7 @@ Item {
                 id: fileDialog
                 currentFolder: Rg.programSettings.avatarFolder
                 onAccepted: {
-                    Rg.profileList.mainProfile.vars.globalVars.avatar = selectedFile;
+                    Rg.profileList.mainProfile.vars.generalVars.avatar = selectedFile;
                 }
             }
             Frame {
@@ -64,7 +64,7 @@ Item {
 
                             clip: true
                             model: Rg.profileList.profiles.slice().sort((a, b) => {
-                                return a.vars.globalVars.name.localeCompare(b.vars.globalVars.name);
+                                return a.vars.generalVars.name.localeCompare(b.vars.generalVars.name);
                             });
                             spacing: 5
 
@@ -95,7 +95,7 @@ Item {
                                     anchors.verticalCenter: parent.verticalCenter
                                     elide: Text.ElideRight
                                     color: folderRow.isSelected ? palette.highlightedText : "black"
-                                    text: folderRow.profile.vars.globalVars.name
+                                    text: folderRow.profile.vars.generalVars.name
                                 }
 
                                 TextEdit {
@@ -159,7 +159,7 @@ Item {
                     height: parent.width / 2
                     Image {
                         anchors.fill: parent
-                        source: Rg.programSettings.avatarFolder + Rg.profileList.mainProfile.vars.globalVars.avatar
+                        source: Rg.programSettings.avatarFolder + Rg.profileList.mainProfile.vars.generalVars.avatar
                         asynchronous: true
                         fillMode: Image.PreserveAspectFit
 
@@ -171,7 +171,7 @@ Item {
                     }
                 }
                 TextField {
-                    text: Rg.profileList.mainProfile.vars.globalVars.name
+                    text: Rg.profileList.mainProfile.vars.generalVars.name
                     font.pixelSize: 24
                     color: "black"
                     width: avatarFrame.width
@@ -182,7 +182,7 @@ Item {
                     anchors.horizontalCenter: parent.horizontalCenter
 
                     onTextChanged: {
-                        Rg.profileList.mainProfile.vars.globalVars.name = text;
+                        Rg.profileList.mainProfile.vars.generalVars.name = text;
                     }
                 }
             }

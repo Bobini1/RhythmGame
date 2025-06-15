@@ -18,7 +18,7 @@ Item {
         return mapping;
     }
     readonly property double heightMultiplier: {
-        let bpmMode = profile.vars.globalVars.hiSpeedFix;
+        let bpmMode = profile.vars.generalVars.hiSpeedFix;
         const bpm = (() => {
             switch (bpmMode) {
                 case HiSpeedFix.Off:
@@ -38,9 +38,9 @@ Item {
                     return 120;
             }
         })();
-        let baseSpeed = ((1 / profile.vars.globalVars.noteScreenTimeMillis) || 0) * 60000 * vars.playAreaHeight / bpm;
-        let laneCoverMod = profile.vars.globalVars.laneCoverOn * profile.vars.globalVars.laneCoverRatio;
-        let liftMod = profile.vars.globalVars.liftOn * profile.vars.globalVars.liftRatio;
+        let baseSpeed = ((1 / profile.vars.generalVars.noteScreenTimeMillis) || 0) * 60000 * vars.playAreaHeight / bpm;
+        let laneCoverMod = profile.vars.generalVars.laneCoverOn * profile.vars.generalVars.laneCoverRatio;
+        let liftMod = profile.vars.generalVars.liftOn * profile.vars.generalVars.liftRatio;
         return baseSpeed * Math.max(0, Math.min(1 - laneCoverMod - liftMod, 1));
     }
     required property Player player
@@ -55,7 +55,7 @@ Item {
     })
     readonly property int spacing: playArea.vars.spacing
     readonly property var vars: profile.vars.themeVars[root.screen][root.themeName]
-    readonly property var globalVars: profile.vars.globalVars
+    readonly property var generalVars: profile.vars.generalVars
     readonly property list<real> columnSizes: root.getColumnSizes(vars)
     readonly property real position: player.position
 
@@ -74,18 +74,18 @@ Item {
 
             height: parent.height
             source: root.imagesUrl + "lanecover/" + playArea.vars.lanecover
-            visible: playArea.globalVars.laneCoverOn
+            visible: playArea.generalVars.laneCoverOn
             width: parent.width
-            y: height * (-1 + playArea.globalVars.laneCoverRatio)
+            y: height * (-1 + playArea.generalVars.laneCoverRatio)
             z: 7
         }
         Image {
             id: liftCover
 
             fillMode: Image.PreserveAspectCrop
-            height: parent.height * Math.min(1, playArea.globalVars.liftOn * playArea.globalVars.liftRatio + playArea.globalVars.hiddenOn * playArea.globalVars.hiddenRatio)
+            height: parent.height * Math.min(1, playArea.generalVars.liftOn * playArea.generalVars.liftRatio + playArea.generalVars.hiddenOn * playArea.generalVars.hiddenRatio)
             source: root.imagesUrl + "liftcover/" + playArea.vars.liftcover
-            visible: playArea.globalVars.liftOn || playArea.globalVars.hiddenOn
+            visible: playArea.generalVars.liftOn || playArea.generalVars.hiddenOn
             width: parent.width
             y: parent.height - height
             z: 6
@@ -94,7 +94,7 @@ Item {
             id: judgeLine
 
             anchors.bottom: parent.bottom
-            anchors.bottomMargin: parent.height * playArea.globalVars.liftOn * playArea.globalVars.liftRatio
+            anchors.bottomMargin: parent.height * playArea.generalVars.liftOn * playArea.generalVars.liftRatio
             color: playArea.vars.judgeLineColor
             height: playArea.vars.judgeLineThickness
             width: parent.width
@@ -260,7 +260,7 @@ Item {
             }
 
             anchors.bottom: parent.bottom
-            anchors.bottomMargin: parent.height * playArea.globalVars.liftOn * playArea.globalVars.liftRatio
+            anchors.bottomMargin: parent.height * playArea.generalVars.liftOn * playArea.generalVars.liftRatio
             width: playArea.columnSizes[playfield.columns[index]]
             x: {
                 let cpos = 0;
