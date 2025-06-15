@@ -11,24 +11,6 @@
     },
     "items": [
       {
-        "id": "testChoice",
-        "name": {
-          "en": "Test Choice",
-          "pl": "Wybór testu"
-        },
-        "description": {
-          "en": "A test choice for demonstration purposes.",
-          "pl": "Wybór testowy do celów demonstracyjnych."
-        },
-        "type": "choice",
-        "default": "option1",
-        "choices": ["option1", "option2", "option3"],
-        "displayStrings": {
-          "en": ["Option 1", "Option 2", "Option 3"],
-          "pl": ["Opcja 1", "Opcja 2", "Opcja 3"]
-        }
-      },
-      {
         "id": "laneBrightness",
         "name": {
           "en": "Lane Brightness",
