@@ -3,6 +3,7 @@ import QtQuick.Controls.Basic
 import RhythmGameQml
 import QtQuick
 import QtQuick.Layouts
+import ".."
 
 RowLayout {
     id: str
@@ -26,6 +27,7 @@ RowLayout {
         onTextChanged: {
             str.destination[str.id_] = text;
         }
+        background: Frame {}
     }
 
 
