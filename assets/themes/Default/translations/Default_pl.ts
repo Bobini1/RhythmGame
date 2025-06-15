@@ -353,7 +353,7 @@
     <message>
         <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="70"/>
         <source>Enable Lane Cover</source>
-        <translation>Włącz zakrycie od góry</translation>
+        <translation>Zakrycie od góry</translation>
     </message>
     <message>
         <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="78"/>
@@ -363,7 +363,7 @@
     <message>
         <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="86"/>
         <source>Enable Lift</source>
-        <translation>Włącz podniesienie</translation>
+        <translation>Podniesienie</translation>
     </message>
     <message>
         <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="94"/>
@@ -373,7 +373,7 @@
     <message>
         <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="98"/>
         <source>Enable Hidden</source>
-        <translation>Włącz ukrycie od dołu</translation>
+        <translation>Ukrycie od dołu</translation>
     </message>
     <message>
         <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="106"/>
