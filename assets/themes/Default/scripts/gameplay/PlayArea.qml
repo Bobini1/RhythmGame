@@ -285,7 +285,7 @@ Item {
                 loops: bombWrapper.ln ? AnimatedSprite.Infinite : 1
                 running: false
                 source: root.imagesUrl + "bomb/" + playArea.vars.bomb
-                visible: running
+                opacity: running ? 1 : 0
                 width: frameWidth / 2
             }
         }
