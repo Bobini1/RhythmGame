@@ -20,6 +20,13 @@ GameplayPopup {
             to: 2000
         }
         NumberWithSlider {
+            from: 0
+            src: popup.themeVars
+            prop: "judgementsOffset"
+            text: qsTr("Judgements Offset")
+            to: 1
+        }
+        NumberWithSlider {
             from: -10
             src: popup.themeVars
             prop: "playAreaZ"

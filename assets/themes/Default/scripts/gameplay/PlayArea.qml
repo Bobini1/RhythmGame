@@ -177,6 +177,7 @@ Item {
     }
     Judgements {
         anchors.centerIn: parent
+        anchors.verticalCenterOffset: (-playArea.vars.judgementsOffset * 2 + 1) * (parent.height - height) / 2
 
         score: playArea.score
         judge: playArea.vars.judge
