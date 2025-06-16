@@ -5,11 +5,21 @@ install(
 )
 
 install(DIRECTORY assets/avatars/ DESTINATION assets/avatars/
-        COMPONENT RhythmGame_Runtime)
+        COMPONENT RhythmGame_Runtime
+        DIRECTORY_PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ GROUP_WRITE WORLD_READ WORLD_WRITE)
 
 
 install(DIRECTORY assets/themes/ DESTINATION assets/themes/
-        COMPONENT RhythmGame_Runtime)
+        COMPONENT RhythmGame_Runtime
+        DIRECTORY_PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ GROUP_WRITE WORLD_READ WORLD_WRITE)
+
+install(DIRECTORY DESTINATION assets/profiles/
+        COMPONENT RhythmGame_Runtime
+        DIRECTORY_PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ GROUP_WRITE WORLD_READ WORLD_WRITE)
+
+install(DIRECTORY DESTINATION assets/tables/
+        COMPONENT RhythmGame_Runtime
+        DIRECTORY_PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ GROUP_WRITE WORLD_READ WORLD_WRITE)
 
 qt_generate_deploy_qml_app_script(
         TARGET RhythmGame_exe
@@ -35,10 +45,6 @@ else ()
             COMPONENT RhythmGame_Runtime)
 endif ()
 
-if (PROJECT_IS_TOP_LEVEL)
-    include(CPack)
-endif ()
-
 if (WIN32)
     if (CMAKE_BUILD_TYPE STREQUAL "Debug")
         install(FILES ${CMAKE_BINARY_DIR}/bin/mimalloc-debug.dll DESTINATION "${CMAKE_INSTALL_BINDIR}"
@@ -49,4 +55,8 @@ if (WIN32)
     endif ()
     install(FILES ${CMAKE_BINARY_DIR}/bin/mimalloc-redirect.dll DESTINATION "${CMAKE_INSTALL_BINDIR}"
             COMPONENT RhythmGame_Runtime)
+endif ()
+
+if (PROJECT_IS_TOP_LEVEL)
+    include(CPack)
 endif ()
