@@ -26,6 +26,7 @@
 #include "qml_components/FileQuery.h"
 #include "qml_components/InputAttached.h"
 #include "../RhythmGameQml/Rg.h"
+#include "input/CustomNotifyApp.h"
 #include "qml_components/QmlUtils.h"
 #include "qml_components/Themes.h"
 #include "resource_managers/GaugeFactory.h"
@@ -86,7 +87,7 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
     spdlog::set_level(spdlog::level::debug);
     set_default_logger(logger);
 
-    const auto app = QGuiApplication{ argc, argv };
+    auto app = input::CustomNotifyApp{ argc, argv };
 
     QGuiApplication::setOrganizationName("Tomasz Kalisiak");
     QGuiApplication::setOrganizationDomain("rhythmgame.eu");
@@ -376,7 +377,7 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
         if (engine.rootObjects().isEmpty()) {
             throw std::runtime_error{ "Failed to load main qml" };
         }
-        engine.rootObjects()[0]->installEventFilter(&inputTranslator);
+        app.setInputTranslator(&inputTranslator);
 
         return app.exec();
     } catch (const std::exception& e) {

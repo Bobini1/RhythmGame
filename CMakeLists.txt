@@ -181,6 +181,8 @@ qt_add_library(RhythmGame_lib OBJECT ${utf8Manifest} src/db/SqliteCppDb.cpp src/
         src/qml_components/QmlUtils.h
         src/resource_managers/Languages.cpp
         src/resource_managers/Languages.h
+        src/input/CustomNotifyApp.cpp
+        src/input/CustomNotifyApp.h
 )
 
 find_package(Threads REQUIRED)

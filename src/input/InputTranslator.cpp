@@ -991,7 +991,7 @@ InputTranslator::setAnalogAxisConfig2(QVariant config)
 bool
 InputTranslator::eventFilter(QObject* watched, QEvent* event)
 {
-    if (event->type() == QEvent::KeyPress) {
+    if (event->type() == QEvent::KeyPress && !event->isAccepted()) {
         const auto* const key = static_cast<QKeyEvent*>(event);
         if (key->isAutoRepeat()) {
             return false;
@@ -1012,7 +1012,7 @@ InputTranslator::eventFilter(QObject* watched, QEvent* event)
                 pressButton(*found, time);
             }
         }
-    } else if (event->type() == QEvent::KeyRelease) {
+    } else if (event->type() == QEvent::KeyRelease && !event->isAccepted()) {
         const auto* const key = static_cast<QKeyEvent*>(event);
         if (key->isAutoRepeat()) {
             return false;
