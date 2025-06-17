@@ -108,7 +108,15 @@ Item {
                             id: lnImg
 
                             fillMode: Image.TileVertically
-                            height: (noteObj.note.time.position - noteObj.prevPosition) * column.heightMultiplier - column.noteHeight
+                            property bool wasHeld: false
+                            height: {
+                                if (!noteObj.held && !wasHeld) {
+                                    return (noteObj.note.time.position - noteObj.prevPosition) * column.heightMultiplier - column.noteHeight
+                                } else {
+                                    wasHeld = true;
+                                    return lnBeginStatic.mapToItem(noteObj, 0, 0).y + column.noteHeight;
+                                }
+                            }
                             source: {
                                 if (!noteObj.held) {
                                     return root.iniImagesUrl + "notes/" + column.noteImage + "/ln_body_inactive_" + column.color;
