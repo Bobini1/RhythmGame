@@ -192,7 +192,7 @@ class AutoPlayer final : public Player
 {
     Q_OBJECT
     std::vector<HitEvent> eventsVec;
-    std::span<HitEvent> events;
+    std::span<const HitEvent> events;
 
   public:
     explicit AutoPlayer(BmsNotes* notes,
