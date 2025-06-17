@@ -116,7 +116,7 @@
         <location filename="../scripts/settings/GeneralSettings.qml" line="163"/>
         <location filename="../scripts/settings/GeneralSettings.qml" line="178"/>
         <source>Normal;Mirror;Random;S-Random;R-Random;Random+;S-Random+</source>
-        <translation>Normalny;Lustrzany;Losowy;S-Losowy;R-Losowy;Losowy+;S-Losowy+</translation>
+        <translation>Normalne;Lustrzane;Losowe;S-Losowe;R-Losowe;Losowe+;S-Losowe+</translation>
     </message>
     <message>
         <location filename="../scripts/settings/GeneralSettings.qml" line="164"/>
@@ -126,7 +126,7 @@
     <message>
         <location filename="../scripts/settings/GeneralSettings.qml" line="179"/>
         <source>Note Order Algorithm P2</source>
-        <translation>Ułożenie notek</translation>
+        <translation>Ułożenie notek P2</translation>
     </message>
     <message>
         <location filename="../scripts/settings/GeneralSettings.qml" line="195"/>
@@ -473,7 +473,7 @@
     <message>
         <location filename="../scripts/select/playOptions/PlayOptionsBattle.qml" line="81"/>
         <source>NORMAL;MIRROR;RANDOM;RANDOM+;S-RANDOM;S-RANDOM+;R-RANDOM</source>
-        <translation>NORMALNY;LUSTRZANY;LOSOWY;LOSOWY+;S-LOSOWY;S-LOSOWY+;R-LOSOWY</translation>
+        <translation>NORMALNA;LUSTRZANA;LOSOWA;LOSOWA+;S-LOSOWA;S-LOSOWA+;R-LOSOWA</translation>
     </message>
     <message>
         <location filename="../scripts/select/playOptions/PlayOptionsBattle.qml" line="101"/>
