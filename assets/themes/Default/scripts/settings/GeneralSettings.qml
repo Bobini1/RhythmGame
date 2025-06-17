@@ -43,6 +43,20 @@ Item {
                     min: 0
                     default_: 1000
                     sliderMax: 1500
+
+                    anchors {
+                        left: parent.left
+                        right: parent.right
+                    }
+                }
+                Range {
+                    destination: Rg.profileList.mainProfile.vars.generalVars
+                    id_: "offset"
+                    name: qsTr("Offset (ms)")
+                    default_: 0
+                    sliderMin: -15
+                    sliderMax: 15
+
                     anchors {
                         left: parent.left
                         right: parent.right
@@ -55,7 +69,7 @@ Item {
                     id_: "laneCoverOn"
                     name: qsTr("Lane Cover")
                     default_: false
-                    
+
                     anchors {
                         left: parent.left
                         right: parent.right
@@ -68,7 +82,7 @@ Item {
                     default_: 0.1
                     min: 0
                     max: 1
-                    
+
                     anchors {
                         left: parent.left
                         right: parent.right
@@ -81,7 +95,7 @@ Item {
                     id_: "liftOn"
                     name: qsTr("Lift")
                     default_: false
-                    
+
                     anchors {
                         left: parent.left
                         right: parent.right
@@ -94,7 +108,7 @@ Item {
                     default_: 0.1
                     min: 0
                     max: 1
-                    
+
                     anchors {
                         left: parent.left
                         right: parent.right
@@ -107,7 +121,7 @@ Item {
                     id_: "hiddenOn"
                     name: qsTr("Hidden")
                     default_: false
-                    
+
                     anchors {
                         left: parent.left
                         right: parent.right
@@ -120,7 +134,7 @@ Item {
                     default_: 0.1
                     min: 0
                     max: 1
-                    
+
                     anchors {
                         left: parent.left
                         right: parent.right
@@ -133,7 +147,7 @@ Item {
                     id_: "bgaOn"
                     name: qsTr("BGA On")
                     default_: true
-                    
+
                     anchors {
                         left: parent.left
                         right: parent.right
@@ -150,7 +164,7 @@ Item {
                     name: qsTr("Note Order Algorithm")
                     assignIndex: true
                     default_: 0
-                    
+
                     anchors {
                         left: parent.left
                         right: parent.right
@@ -165,7 +179,7 @@ Item {
                     name: qsTr("Note Order Algorithm P2")
                     assignIndex: true
                     default_: 0
-                    
+
                     anchors {
                         left: parent.left
                         right: parent.right
@@ -182,7 +196,7 @@ Item {
                     name: qsTr("Hi-Speed Fix")
                     assignIndex: true
                     default_: 1
-                    
+
                     anchors {
                         left: parent.left
                         right: parent.right
@@ -198,7 +212,7 @@ Item {
                     name: qsTr("DP Options")
                     assignIndex: true
                     default_: 0
-                    
+
                     anchors {
                         left: parent.left
                         right: parent.right
@@ -213,7 +227,7 @@ Item {
                     displayStrings: qsTr("ASSISTED EASY;EASY;NORMAL;HARD;EXHARD;FC").split(";")
                     name: qsTr("Gauge Type")
                     default_: "EXHARD"
-                    
+
                     anchors {
                         left: parent.left
                         right: parent.right
@@ -229,7 +243,7 @@ Item {
                     name: qsTr("Gauge Mode")
                     assignIndex: true
                     default_: 1
-                    
+
                     anchors {
                         left: parent.left
                         right: parent.right
@@ -244,7 +258,7 @@ Item {
                     choices: ["AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC"]
                     displayStrings: qsTr("ASSISTED EASY;EASY;NORMAL;HARD;EXHARD;FC").split(";")
                     default_: "EASY"
-                    
+
                     anchors {
                         left: parent.left
                         right: parent.right
@@ -254,4 +268,3 @@ Item {
         }
     }
 }
-

@@ -421,6 +421,25 @@ resource_managers::GeneralVars::resetLanguage()
 {
     setLanguage(QLocale::system().name());
 }
+auto
+resource_managers::GeneralVars::getOffset() const -> double
+{
+    return offset;
+}
+void
+resource_managers::GeneralVars::setOffset(double value)
+{
+    if (offset == value) {
+        return;
+    }
+    offset = value;
+    emit offsetChanged();
+}
+void
+resource_managers::GeneralVars::resetOffset()
+{
+    setOffset(0.0);
+}
 
 void
 writeGeneralVars(const resource_managers::GeneralVars& generalVars,

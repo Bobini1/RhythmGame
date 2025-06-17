@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS>
-<TS version="2.1" language="ja" sourcelanguage="en">
+<TS version="2.1">
 <context>
     <name>AnalogAxisSettings</name>
     <message>
@@ -61,111 +61,116 @@
     </message>
 </context>
 <context>
-    <name>GlobalSettings</name>
+    <name>GeneralSettings</name>
     <message>
-        <location filename="../scripts/settings/GlobalSettings.qml" line="31"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="31"/>
         <source>Language</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GlobalSettings.qml" line="42"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="42"/>
         <source>Note Screen Time (ms)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GlobalSettings.qml" line="56"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="55"/>
+        <source>Offset (ms)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="70"/>
         <source>Lane Cover</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GlobalSettings.qml" line="67"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="81"/>
         <source>Lane Cover Ratio</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GlobalSettings.qml" line="82"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="96"/>
         <source>Lift</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GlobalSettings.qml" line="93"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="107"/>
         <source>Lift Ratio</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GlobalSettings.qml" line="108"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="122"/>
         <source>Hidden</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GlobalSettings.qml" line="119"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="133"/>
         <source>Hidden Ratio</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GlobalSettings.qml" line="134"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="148"/>
         <source>BGA On</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GlobalSettings.qml" line="149"/>
-        <location filename="../scripts/settings/GlobalSettings.qml" line="164"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="163"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="178"/>
         <source>Normal;Mirror;Random;S-Random;R-Random;Random+;S-Random+</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GlobalSettings.qml" line="150"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="164"/>
         <source>Note Order Algorithm</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GlobalSettings.qml" line="165"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="179"/>
         <source>Note Order Algorithm P2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GlobalSettings.qml" line="181"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="195"/>
         <source>Off;Main;Start;Min;Max</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GlobalSettings.qml" line="182"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="196"/>
         <source>Hi-Speed Fix</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GlobalSettings.qml" line="197"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="211"/>
         <source>Off;Flip;Battle;BattleAs</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GlobalSettings.qml" line="198"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="212"/>
         <source>DP Options</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GlobalSettings.qml" line="213"/>
-        <location filename="../scripts/settings/GlobalSettings.qml" line="245"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="227"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="259"/>
         <source>ASSISTED EASY;EASY;NORMAL;HARD;EXHARD;FC</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GlobalSettings.qml" line="214"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="228"/>
         <source>Gauge Type</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GlobalSettings.qml" line="228"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="242"/>
         <source>Exclusive;Best;Select to Under</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GlobalSettings.qml" line="229"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="243"/>
         <source>Gauge Mode</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GlobalSettings.qml" line="243"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="257"/>
         <source>Bottom Shiftable Gauge</source>
         <translation type="unfinished"></translation>
     </message>
@@ -322,17 +327,17 @@
 <context>
     <name>Main</name>
     <message>
-        <location filename="../scripts/main/Main.qml" line="28"/>
+        <location filename="../scripts/main/Main.qml" line="29"/>
         <source>Song Selection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/main/Main.qml" line="37"/>
+        <location filename="../scripts/main/Main.qml" line="38"/>
         <source>Settings</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/main/Main.qml" line="47"/>
+        <location filename="../scripts/main/Main.qml" line="48"/>
         <source>Quit</source>
         <translation type="unfinished"></translation>
     </message>
@@ -346,96 +351,106 @@
     </message>
     <message>
         <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="26"/>
+        <source>Offset</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="34"/>
+        <source>Judgements Offset</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="41"/>
         <source>Z-index</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="33"/>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="48"/>
         <source>Lane Brightness</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="40"/>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="55"/>
         <source>Note Thickness</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="47"/>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="62"/>
         <source>Judge Line Thickness</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="52"/>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="67"/>
         <source>Judge Line Color</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="60"/>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="75"/>
         <source>Flip Scratch Lane</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="68"/>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="83"/>
         <source>Notes</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="71"/>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="86"/>
         <source>Enable Lane Cover</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="79"/>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="94"/>
         <source>Lane Cover Ratio</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="85"/>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="100"/>
         <source>Lane Cover</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="88"/>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="103"/>
         <source>Enable Lift</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="96"/>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="111"/>
         <source>Lift Ratio</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="100"/>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="115"/>
         <source>Enable Hidden</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="108"/>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="123"/>
         <source>Hidden Ratio</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="114"/>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="129"/>
         <source>Lift Cover</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="119"/>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="134"/>
         <source>Mine</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="124"/>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="139"/>
         <source>Key Beam</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="129"/>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="144"/>
         <source>Bomb</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="134"/>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="149"/>
         <source>Glow</source>
         <translation type="unfinished"></translation>
     </message>
@@ -603,7 +618,7 @@
     </message>
     <message>
         <location filename="../scripts/settings/Settings.qml" line="32"/>
-        <source>Global Settings</source>
+        <source>General Settings</source>
         <translation type="unfinished"></translation>
     </message>
     <message>

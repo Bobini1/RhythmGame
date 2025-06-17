@@ -26,8 +26,6 @@ class BmsGameReferee
     std::span<BgmType> currentBgms;
     std::vector<std::pair<charts::gameplay_models::BmsNotesData::Time, double>>
       bpmChanges;
-    std::span<std::pair<charts::gameplay_models::BmsNotesData::Time, double>>
-      currentBpmChanges;
     std::unordered_map<uint16_t, sounds::OpenALSound> sounds;
     std::unique_ptr<rules::BmsHitRules> hitRules;
     BmsLiveScore* score;
@@ -39,15 +37,6 @@ class BmsGameReferee
     using Position = double;
 
   private:
-    /**
-     * @brief Get the position in the chart, expressed in beats
-     * @warning This function mutates the internal state of the referee. It is
-     * not const for a reason!
-     * @param offsetFromStart The current time offset from the start of the
-     * chart
-     * @return The position in the chart, expressed in beats
-     */
-    auto getPosition(std::chrono::nanoseconds offsetFromStart) -> Position;
     void addNote(decltype(notes)::value_type& column,
                  decltype(mines)::value_type& minesColumn,
                  const charts::gameplay_models::BmsNotesData::Note& note,
@@ -71,10 +60,17 @@ class BmsGameReferee
      * chart
      * @param lastUpdate If true, remove all bgm sounds from the queue before
      * updating
+     */
+    void update(std::chrono::nanoseconds offsetFromStart,
+                bool lastUpdate = false);
+
+    /**
+     * @brief Get the position in the chart, expressed in beats
+     * @param offsetFromStart The current time offset from the start of the
+     * chart
      * @return The position in the chart, expressed in beats
      */
-    auto update(std::chrono::nanoseconds offsetFromStart,
-                bool lastUpdate = false) -> Position;
+    auto getPosition(std::chrono::nanoseconds offsetFromStart) -> Position;
 
     auto passPressed(std::chrono::nanoseconds offsetFromStart,
                      input::BmsKey key) -> void;

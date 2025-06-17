@@ -124,6 +124,8 @@ class GeneralVars final : public QObject
                  resetName)
     Q_PROPERTY(QString language READ getLanguage WRITE setLanguage NOTIFY
                  languageChanged RESET resetLanguage)
+    Q_PROPERTY(
+      double offset READ getOffset WRITE setOffset NOTIFY offsetChanged)
     // ^ remember to use full namespace for enums for reflection
     int noteScreenTimeMillis = 1000;
     bool laneCoverOn = false;
@@ -143,6 +145,7 @@ class GeneralVars final : public QObject
     QString avatar = "mascot.png";
     QString name = "Default";
     QString language = QLocale::system().name();
+    double offset = 0.0; // Offset in milliseconds
 
     QString avatarPath;
 
@@ -202,6 +205,9 @@ class GeneralVars final : public QObject
     auto getLanguage() const -> QString;
     void setLanguage(QString value);
     void resetLanguage();
+    auto getOffset() const -> double;
+    void setOffset(double value);
+    void resetOffset();
 
   signals:
     void noteScreenTimeMillisChanged();
@@ -222,6 +228,7 @@ class GeneralVars final : public QObject
     void avatarChanged();
     void nameChanged();
     void languageChanged();
+    void offsetChanged();
 };
 
 class Vars final : public QObject

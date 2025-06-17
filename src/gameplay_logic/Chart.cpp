@@ -85,7 +85,7 @@ Chart::passKey(input::BmsKey key, const EventType eventType, const int64_t time)
     if (!isDp(chartData->getKeymode()) && index == 1 && player2 == nullptr) {
         return;
     }
-    const auto offset =
+    auto offset =
       std::chrono::milliseconds{ time } - startTimepoint.time_since_epoch();
     auto* player =
       isDp(chartData->getKeymode()) || index == 0 ? player1 : player2;
@@ -148,11 +148,13 @@ Chart::finish() -> QList<BmsScore*>
     }
 
     if (player1->getStatus() == Running) {
-        player1->update(std::chrono::nanoseconds{player1->getChartLength()} + 10s,
+        player1->update(std::chrono::nanoseconds{ player1->getChartLength() } +
+                          10s,
                         /*lastUpdate=*/true);
     }
     if (player2 != nullptr && player2->getStatus() == Running) {
-        player2->update(std::chrono::nanoseconds{player2->getChartLength()} + 10s,
+        player2->update(std::chrono::nanoseconds{ player2->getChartLength() } +
+                          10s,
                         /*lastUpdate=*/true);
     }
     auto ret = QList<BmsScore*>{};
@@ -262,8 +264,13 @@ Player::update(std::chrono::nanoseconds offsetFromStart, bool lastUpdate)
       offsetFromStart - std::chrono::nanoseconds(timeBeforeChartStart);
     setElapsed(offsetFromStart.count());
     if (referee) {
-        const auto position = referee->update(offsetFromStart, lastUpdate);
-        setPosition(position);
+        referee->update(offsetFromStart, lastUpdate);
+        const auto visualOffset =
+          std::chrono::duration_cast<std::chrono::nanoseconds>(
+            std::chrono::duration<double, std::milli>(
+              profile ? profile->getVars()->getGeneralVars()->getOffset()
+                      : 0.0));
+        setPosition(referee->getPosition(offsetFromStart + visualOffset));
         if (offsetFromStart >= chartLength + 5s) {
             setStatus(Chart::Finished);
         }
