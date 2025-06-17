@@ -18,32 +18,15 @@ class QmlUtilsAttached : public QObject
     QML_ATTACHED(QmlUtilsAttached)
     QML_ELEMENT
     Q_PROPERTY(QString themeName READ themeName CONSTANT)
+    Q_PROPERTY(QString fileName READ fileName CONSTANT)
 
   public:
     inline static std::function<QString(const QUrl&)>
       getThemeNameForRootFile;
-    static auto qmlAttachedProperties(QObject* object) -> QmlUtilsAttached*
-    {
-        return new QmlUtilsAttached(object);
-    }
-    explicit QmlUtilsAttached(QObject* parent = nullptr)
-      : QObject(parent)
-    {
-    }
-    auto themeName() const -> QString
-    {
-        const auto* context = QQmlEngine::contextForObject(parent());
-        auto themeName = QString{};
-        while (context != nullptr) {
-            const auto url = context->baseUrl();
-            if (auto name = getThemeNameForRootFile(url);
-                !name.isEmpty()) {
-                themeName = name;
-            }
-            context = context->parentContext();
-        }
-        return themeName;
-    }
+    static auto qmlAttachedProperties(QObject* object) -> QmlUtilsAttached*;
+    explicit QmlUtilsAttached(QObject* parent = nullptr);
+    auto themeName() const -> QString;
+    auto fileName() const -> QString;
 };
 
 } // namespace qml_components

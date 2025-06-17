@@ -85,17 +85,6 @@ ApplicationWindow {
             });
         }
 
-        function urlToPath(urlString) {
-            let s;
-            if (urlString.startsWith("file:///")) {
-                let k = urlString.charAt(9) === ':' ? 8 : 7;
-                s = urlString.substring(k);
-            } else {
-                s = urlString;
-            }
-            return decodeURIComponent(s);
-        }
-
         anchors.fill: parent
 
         StackView {

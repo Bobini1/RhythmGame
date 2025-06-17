@@ -17,7 +17,7 @@ Rectangle {
     readonly property string iniImagesUrl: "image://ini/" + rootUrl + "images/"
     readonly property Profile mainProfile: Rg.profileList.mainProfile
     readonly property var mainProfileVars: mainProfile.vars.themeVars[screen][themeName]
-    readonly property string rootUrl: globalRoot.urlToPath(Qt.resolvedUrl(".").toString())
+    property string rootUrl: QmlUtils.fileName.slice(0, QmlUtils.fileName.lastIndexOf("/") + 1)
     readonly property string screen: {
         let keys = chart.chartData.keymode;
         let battle = chart.player1 && chart.player2;
