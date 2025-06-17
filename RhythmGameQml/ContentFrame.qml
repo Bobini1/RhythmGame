@@ -10,10 +10,23 @@ ApplicationWindow {
     height: 720
     visible: true
     width: 1280
+    Shortcut {
+        autoRepeat: false
+        sequence: "F11"
+
+        onActivated: {
+            if (contentContainer.visibility === Window.FullScreen) {
+                contentContainer.visibility = Window.Windowed;
+            } else {
+                contentContainer.visibility = Window.FullScreen;
+            }
+        }
+    }
 
     Settings {
         property alias height: contentContainer.height
         property alias width: contentContainer.width
+        property alias visibility: contentContainer.visibility
     }
     Item {
         id: globalRoot
@@ -154,7 +167,7 @@ ApplicationWindow {
         }
         Shortcut {
             autoRepeat: false
-            sequence: "F11"
+            sequence: "F10"
 
             onActivated: {
                 debugLogLoader.active = !debugLogLoader.active;
