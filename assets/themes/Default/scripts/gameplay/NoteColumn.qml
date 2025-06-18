@@ -55,15 +55,16 @@ Item {
                 required property var display
                 required property int index
                 readonly property var hitData: display.hitData
-                readonly property bool held: note.type === Note.Type.LongNoteEnd && !hitData && repeater.itemAt(index - 1).display.hitData
+                readonly property bool held: note.type === Note.Type.LongNoteEnd && !hitData && display.otherEndHitData
                 readonly property var note: display.note
-                readonly property real prevPosition: index > 0 ? repeater.itemAt(index - 1).note.time.position : 0
-                readonly property real prevBelowJudgeline: index > 0 ? repeater.itemAt(index - 1).display.belowJudgeline : false
+                readonly property real prevPosition: column.notes[realIndex-1]?.time?.position || 0
                 visible: note.type === Note.Type.LongNoteEnd || !hitData
-                readonly property bool shouldShowStatic: note.type === Note.Type.LongNoteEnd && !display.belowJudgeline && prevBelowJudgeline
+                readonly property bool shouldShowStatic: note.type === Note.Type.LongNoteEnd && (wasHeld || prevPosition < column.position) && note.time.position > column.position
                 onShouldShowStaticChanged: {
                     lnBeginStatic.visible = shouldShowStatic;
                 }
+                property bool wasHeld: note.type === Note.Type.LongNoteEnd && display.otherEndHitData && (!hitData || hitData.points.judgement !== Judgement.LnEndSkip)
+                property int realIndex: columnState.getRealIndex(index)
 
                 y: -note.time.position * column.heightMultiplier -column.noteHeight / 3
                 width: column.width
@@ -117,13 +118,11 @@ Item {
                             id: lnImg
 
                             fillMode: Image.TileVertically
-                            property bool wasHeld: false
                             height: {
-                                if (!noteObj.held && !wasHeld) {
+                                if (!noteObj.wasHeld) {
                                     return (noteObj.note.time.position - noteObj.prevPosition) * column.heightMultiplier - column.noteHeight
                                 } else {
-                                    wasHeld = true;
-                                    return lnBeginStatic.mapToItem(noteObj, 0, 0).y + column.noteHeight;
+                                    return (noteObj.note.time.position - column.position) * column.heightMultiplier;
                                 }
                             }
                             source: {

@@ -52,7 +52,19 @@ ColumnState::onHitEvent(HitEvent hit)
     }
     auto& note = notes[hit.getNoteIndex()];
     note.hitData = QVariant::fromValue(hit);
-    emit dataChanged(index(hit.getNoteIndex()), index(hit.getNoteIndex()));
+    if (note.note.type == Note::Type::LongNoteBegin) {
+        auto& nextNote = notes[hit.getNoteIndex() + 1];
+        nextNote.otherEndHitData = note.hitData;
+        emit dataChanged(
+          index(hit.getNoteIndex()), index(hit.getNoteIndex() + 1));
+    } else if (note.note.type == Note::Type::LongNoteEnd) {
+        auto& prevNote = notes[hit.getNoteIndex() - 1];
+        prevNote.otherEndHitData = note.hitData;
+        emit dataChanged(
+          index(hit.getNoteIndex() - 1), index(hit.getNoteIndex()));
+    } else {
+        emit dataChanged(index(hit.getNoteIndex()), index(hit.getNoteIndex()));
+    }
 }
 void
 ColumnState::setElapsed(int64_t nanos)
@@ -75,7 +87,7 @@ ColumnState::setElapsed(int64_t nanos)
         topIndex = i;
     }
     if (bottomIndex != -1) {
-        // emit dataChanged(index(bottomIndex), index(topIndex));
+        emit dataChanged(index(bottomIndex), index(topIndex));
     }
 }
 auto
@@ -127,17 +139,24 @@ BarLinesState::setElapsed(int64_t nanos)
         emit dataChanged(index(bottomIndex), index(topIndex));
     }
 }
+void
+Filter::setPressed(bool pressed)
+{
+    if (this->pressed == pressed) {
+        return;
+    }
+    this->pressed = pressed;
+    emit pressedChanged();
+}
 Filter::Filter(ColumnState* columnState, QObject* parent)
   : QSortFilterProxyModel(parent)
 {
-    setDynamicSortFilter(false);
     setSourceModel(columnState);
     connect(
       columnState, &ColumnState::pressedChanged, this, &Filter::pressedChanged);
 }
 BarlineFilter::BarlineFilter(BarLinesState* barLinesState, QObject* parent)
 {
-    setDynamicSortFilter(false);
     setSourceModel(barLinesState);
 }
 void
@@ -190,6 +209,11 @@ Filter::setBottomPosition(double value)
         emit bottomPositionChanged();
         invalidateFilter();
     }
+}
+int
+Filter::getRealIndex(int sourceRow) const
+{
+    return mapToSource(index(sourceRow, 0, QModelIndex())).row();
 }
 bool
 Filter::filterAcceptsRow(int source_row, const QModelIndex& source_parent) const

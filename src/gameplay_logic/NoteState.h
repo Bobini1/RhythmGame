@@ -8,7 +8,6 @@
 #include "BmsNotes.h"
 #include "HitEvent.h"
 
-#include <QAbstractListModel>
 #include <QSortFilterProxyModel>
 
 namespace gameplay_logic {
@@ -18,9 +17,11 @@ class NoteState
     Q_PROPERTY(Note note MEMBER note)
     Q_PROPERTY(bool belowJudgeline MEMBER belowJudgeline)
     Q_PROPERTY(QVariant hitData MEMBER hitData)
+    Q_PROPERTY(QVariant otherEndHitData MEMBER otherEndHitData)
   public:
     Note note;
     QVariant hitData = QVariant::fromValue(nullptr);
+    QVariant otherEndHitData = QVariant::fromValue(nullptr);
     bool belowJudgeline = false;
 };
 
@@ -88,14 +89,7 @@ class Filter : public QSortFilterProxyModel
     double topPosition = 0.0;
     double bottomPosition = 0.0;
     bool pressed = false;
-    void setPressed(bool pressed)
-    {
-        if (this->pressed == pressed) {
-            return;
-        }
-        this->pressed = pressed;
-        emit pressedChanged();
-    }
+    void setPressed(bool pressed);
 
   public:
     explicit Filter(ColumnState* columnState, QObject* parent = nullptr);
@@ -105,6 +99,7 @@ class Filter : public QSortFilterProxyModel
     auto getBottomPosition() const -> double { return bottomPosition; }
     void setBottomPosition(double value);
     auto isPressed() const -> bool { return pressed; }
+    Q_INVOKABLE int getRealIndex(int sourceRow) const;
   signals:
     void topPositionChanged();
     void bottomPositionChanged();
