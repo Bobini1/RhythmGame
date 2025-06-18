@@ -75,7 +75,7 @@ ColumnState::setElapsed(int64_t nanos)
         topIndex = i;
     }
     if (bottomIndex != -1) {
-        //emit dataChanged(index(bottomIndex), index(topIndex));
+        // emit dataChanged(index(bottomIndex), index(topIndex));
     }
 }
 auto
@@ -170,7 +170,7 @@ BarlineFilter::filterAcceptsRow(int source_row,
     const auto barLineState =
       sourceModel()->data(index, Qt::DisplayRole).value<BarLineState>();
     const auto show = barLineState.time.position <= topPosition &&
-                barLineState.time.position >= bottomPosition;
+                      barLineState.time.position >= bottomPosition;
     return show;
 }
 void
@@ -202,8 +202,39 @@ Filter::filterAcceptsRow(int source_row, const QModelIndex& source_parent) const
     const auto noteState =
       sourceModel()->data(index, Qt::DisplayRole).value<NoteState>();
     const auto show = noteState.note.time.position <= topPosition &&
-                noteState.note.time.position >= bottomPosition;
-    return show;
+                      noteState.note.time.position >= bottomPosition;
+    if (show) {
+        return true;
+    }
+    if (noteState.note.type == Note::Type::LongNoteBegin) {
+        if (const auto nextIndex =
+              sourceModel()->index(source_row + 1, 0, source_parent);
+            nextIndex.isValid()) {
+            const auto nextNoteState = sourceModel()
+                                         ->data(nextIndex, Qt::DisplayRole)
+                                         .value<NoteState>();
+            if (nextNoteState.note.time.position > bottomPosition &&
+                noteState.note.time.position <= topPosition) {
+                return true;
+            }
+        }
+        return true;
+    }
+    if (noteState.note.type == Note::Type::LongNoteEnd) {
+        // get previous note
+        if (const auto prevIndex =
+              sourceModel()->index(source_row - 1, 0, source_parent);
+            prevIndex.isValid()) {
+            const auto prevNoteState = sourceModel()
+                                         ->data(prevIndex, Qt::DisplayRole)
+                                         .value<NoteState>();
+            if (prevNoteState.note.time.position < topPosition &&
+                noteState.note.time.position >= bottomPosition) {
+                return true;
+            }
+        }
+    }
+    return false;
 }
 GameplayState::GameplayState(QList<ColumnState*> columnStates,
                              BarLinesState* barLinesState,
