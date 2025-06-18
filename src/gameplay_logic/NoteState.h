@@ -15,7 +15,6 @@ class NoteState
 {
     Q_GADGET
     Q_PROPERTY(Note note MEMBER note)
-    Q_PROPERTY(bool belowJudgeline MEMBER belowJudgeline)
     Q_PROPERTY(QVariant hitData MEMBER hitData)
     Q_PROPERTY(QVariant otherEndHitData MEMBER otherEndHitData)
   public:
@@ -31,8 +30,6 @@ class ColumnState final : public QAbstractListModel
     Q_PROPERTY(bool pressed READ isPressed NOTIFY pressedChanged)
 
     QList<NoteState> notes;
-    // the last invisible note
-    decltype(notes)::size_type currentNote = -1;
     int64_t elapsed{};
     bool pressed = false;
     void setPressed(bool pressed);
@@ -42,8 +39,6 @@ class ColumnState final : public QAbstractListModel
     auto rowCount(const QModelIndex& parent) const -> int override;
     auto data(const QModelIndex& index, int role) const -> QVariant override;
     void onHitEvent(HitEvent hit);
-    // don't set it back in time!
-    void setElapsed(int64_t nanos);
     auto isPressed() const -> bool;
   signals:
     void pressedChanged();
@@ -53,7 +48,6 @@ class BarLineState
 {
     Q_GADGET
     Q_PROPERTY(Time time MEMBER time)
-    Q_PROPERTY(bool belowJudgeline MEMBER belowJudgeline)
 
   public:
     Time time;
@@ -64,17 +58,12 @@ class BarLinesState final : public QAbstractListModel
 {
     Q_OBJECT
     QList<BarLineState> barLines;
-    // the last invisible barline
-    decltype(barLines)::size_type currentLine = -1;
-    int64_t elapsed{};
 
   public:
     explicit BarLinesState(QList<BarLineState> barLines,
                            QObject* parent = nullptr);
     auto rowCount(const QModelIndex& parent) const -> int override;
     auto data(const QModelIndex& index, int role) const -> QVariant override;
-    // don't set it back in time!
-    void setElapsed(int64_t nanos);
 };
 
 class Filter : public QSortFilterProxyModel

@@ -237,16 +237,7 @@ Player::Player(BmsNotes* notes,
                         column->onHitEvent(event);
                     }
                 });
-        connect(this, &Player::elapsedChanged, column, [column, this](int64_t) {
-            column->setElapsed(this->elapsed);
-        });
     }
-    connect(this,
-            &Player::elapsedChanged,
-            state->getBarLinesState(),
-            [barLines = state->getBarLinesState(), this](int64_t) {
-                barLines->setElapsed(this->elapsed);
-            });
 }
 void
 Player::setPosition(BmsGameReferee::Position newPosition)

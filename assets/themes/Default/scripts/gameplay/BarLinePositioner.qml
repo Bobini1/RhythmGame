@@ -1,4 +1,4 @@
-import QtQuick 2.0
+import QtQuick
 
 Flickable {
     id: column
@@ -10,6 +10,16 @@ Flickable {
     clip: true
     contentY: -(column.position * column.heightMultiplier + height * (1 - playArea.generalVars.liftOn * playArea.generalVars.liftRatio)) + 0.5
     contentWidth: width
+
+    FrameAnimation {
+        running: true
+        onTriggered: {
+            // Update the position of the bar lines based on the current position
+            barlinesRepeater.model.bottomPosition = column.position;
+            let top = column.height / column.heightMultiplier;
+            barlinesRepeater.model.topPosition = column.position + top;
+        }
+    }
 
     Repeater {
         id: barlinesRepeater

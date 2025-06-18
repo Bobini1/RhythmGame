@@ -66,30 +66,6 @@ ColumnState::onHitEvent(HitEvent hit)
         emit dataChanged(index(hit.getNoteIndex()), index(hit.getNoteIndex()));
     }
 }
-void
-ColumnState::setElapsed(int64_t nanos)
-{
-    elapsed = nanos;
-    if (notes.empty()) {
-        return;
-    }
-    auto bottomIndex = -1;
-    auto topIndex = bottomIndex;
-    for (auto i = currentNote + 1; i < notes.size(); i++) {
-        if (notes[i].note.time.timestamp >= elapsed) {
-            break;
-        }
-        notes[i].belowJudgeline = true;
-        currentNote = i;
-        if (bottomIndex == -1) {
-            bottomIndex = i;
-        }
-        topIndex = i;
-    }
-    if (bottomIndex != -1) {
-        emit dataChanged(index(bottomIndex), index(topIndex));
-    }
-}
 auto
 ColumnState::isPressed() const -> bool
 {
@@ -114,30 +90,6 @@ BarLinesState::data(const QModelIndex& index, int role) const
         return QVariant::fromValue(barLines.at(index.row()));
     }
     return {};
-}
-void
-BarLinesState::setElapsed(int64_t nanos)
-{
-    elapsed = nanos;
-    if (barLines.empty()) {
-        return;
-    }
-    auto bottomIndex = -1;
-    auto topIndex = bottomIndex;
-    for (auto i = currentLine + 1; i < barLines.size(); i++) {
-        if (barLines[i].time.timestamp >= elapsed) {
-            break;
-        }
-        barLines[i].belowJudgeline = true;
-        currentLine = i;
-        if (bottomIndex == -1) {
-            bottomIndex = i;
-        }
-        topIndex = i;
-    }
-    if (bottomIndex != -1) {
-        emit dataChanged(index(bottomIndex), index(topIndex));
-    }
 }
 void
 Filter::setPressed(bool pressed)
