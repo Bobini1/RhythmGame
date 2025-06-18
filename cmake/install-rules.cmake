@@ -57,7 +57,7 @@ if (WIN32)
             COMPONENT RhythmGame_Runtime)
 
     set(CPACK_NSIS_EXTRA_INSTALL_COMMANDS
-        "Exec 'icacls \\\"$INSTDIR/assets\\\" /grant (BU):(OI)(CI)F /T'"
+        "Exec 'icacls \\\"$INSTDIR/assets\\\" /grant *S-1-5-32-545:(OI)(CI)F /T'"
     )
 endif ()
 
