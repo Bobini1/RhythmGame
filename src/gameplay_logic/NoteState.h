@@ -9,6 +9,7 @@
 #include "HitEvent.h"
 
 #include <QAbstractListModel>
+#include <QSortFilterProxyModel>
 
 namespace gameplay_logic {
 class NoteState
@@ -75,21 +76,93 @@ class BarLinesState final : public QAbstractListModel
     void setElapsed(int64_t nanos);
 };
 
+class Filter : public QSortFilterProxyModel
+{
+    Q_OBJECT
+    Q_PROPERTY(double topPosition READ getTopPosition WRITE setTopPosition
+                 NOTIFY topPositionChanged)
+    Q_PROPERTY(double bottomPosition READ getBottomPosition WRITE
+                 setBottomPosition NOTIFY bottomPositionChanged)
+    Q_PROPERTY(bool pressed READ isPressed NOTIFY pressedChanged)
+
+    double topPosition = 0.0;
+    double bottomPosition = 0.0;
+    bool pressed = false;
+    void setPressed(bool pressed)
+    {
+        if (this->pressed == pressed) {
+            return;
+        }
+        this->pressed = pressed;
+        emit pressedChanged();
+    }
+
+  public:
+    explicit Filter(ColumnState* columnState, QObject* parent = nullptr);
+
+    auto getTopPosition() const -> double { return topPosition; }
+    void setTopPosition(double value);
+    auto getBottomPosition() const -> double { return bottomPosition; }
+    void setBottomPosition(double value);
+    auto isPressed() const -> bool { return pressed; }
+  signals:
+    void topPositionChanged();
+    void bottomPositionChanged();
+    void pressedChanged();
+
+  protected:
+    auto filterAcceptsRow(int source_row,
+                          const QModelIndex& source_parent) const
+      -> bool override;
+};
+
+class BarlineFilter : public QSortFilterProxyModel
+{
+    Q_OBJECT
+    Q_PROPERTY(double topPosition READ getTopPosition WRITE setTopPosition
+                 NOTIFY topPositionChanged)
+    Q_PROPERTY(double bottomPosition READ getBottomPosition WRITE
+                 setBottomPosition NOTIFY bottomPositionChanged)
+
+    double topPosition = 0.0;
+    double bottomPosition = 0.0;
+
+  public:
+    explicit BarlineFilter(BarLinesState* barLinesState, QObject* parent = nullptr);
+
+    auto getTopPosition() const -> double { return topPosition; }
+    void setTopPosition(double value);
+    auto getBottomPosition() const -> double { return bottomPosition; }
+    void setBottomPosition(double value);
+  signals:
+    void topPositionChanged();
+    void bottomPositionChanged();
+
+  protected:
+    auto filterAcceptsRow(int source_row,
+                          const QModelIndex& source_parent) const
+      -> bool override;
+};
+
 class GameplayState final : public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(QList<ColumnState*> columnStates READ getColumnStates CONSTANT)
-    Q_PROPERTY(BarLinesState* barLinesState READ getBarLinesState CONSTANT)
+    Q_PROPERTY(QList<Filter*> columnStates READ getColumnFilters CONSTANT)
+    Q_PROPERTY(BarlineFilter* barLinesState READ getBarLineFilter CONSTANT)
 
     BarLinesState* barLinesState;
+    BarlineFilter* barLineFilter = nullptr;
     QList<ColumnState*> columnStates;
+    QList<Filter*> columnFilters;
 
   public:
     GameplayState(QList<ColumnState*> columnStates,
                   BarLinesState* barLinesState,
                   QObject* parent = nullptr);
     auto getColumnStates() -> QList<ColumnState*>;
-    auto getBarLinesState() -> BarLinesState*;
+    auto getColumnFilters() -> QList<Filter*>;
+    auto getBarLinesState() const -> BarLinesState*;
+    auto getBarLineFilter() const -> BarlineFilter*;
 };
 
 } // namespace gameplay_logic

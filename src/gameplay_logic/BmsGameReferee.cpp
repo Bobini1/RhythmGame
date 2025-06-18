@@ -160,7 +160,7 @@ gameplay_logic::BmsGameReferee::passPressed(
 }
 auto
 gameplay_logic::BmsGameReferee::getPosition(
-  std::chrono::nanoseconds offsetFromStart) -> Position
+  std::chrono::nanoseconds offsetFromStart) const -> Position
 {
     // find the last bpm change that happened before the current time
     auto bpmChange = std::ranges::find_if(

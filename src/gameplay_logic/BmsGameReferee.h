@@ -70,7 +70,7 @@ class BmsGameReferee
      * chart
      * @return The position in the chart, expressed in beats
      */
-    auto getPosition(std::chrono::nanoseconds offsetFromStart) -> Position;
+    auto getPosition(std::chrono::nanoseconds offsetFromStart) const -> Position;
 
     auto passPressed(std::chrono::nanoseconds offsetFromStart,
                      input::BmsKey key) -> void;

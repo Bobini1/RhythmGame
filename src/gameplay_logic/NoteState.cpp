@@ -46,7 +46,8 @@ ColumnState::onHitEvent(HitEvent hit)
     } else if (hit.getAction() == HitEvent::Action::Release) {
         setPressed(false);
     }
-    if (hit.getNoteIndex() == -1 || hit.getPointsOptional()->getJudgement() == Judgement::EmptyPoor) {
+    if (hit.getNoteIndex() == -1 ||
+        hit.getPointsOptional()->getJudgement() == Judgement::EmptyPoor) {
         return;
     }
     auto& note = notes[hit.getNoteIndex()];
@@ -74,7 +75,7 @@ ColumnState::setElapsed(int64_t nanos)
         topIndex = i;
     }
     if (bottomIndex != -1) {
-        emit dataChanged(index(bottomIndex), index(topIndex));
+        //emit dataChanged(index(bottomIndex), index(topIndex));
     }
 }
 auto
@@ -126,6 +127,84 @@ BarLinesState::setElapsed(int64_t nanos)
         emit dataChanged(index(bottomIndex), index(topIndex));
     }
 }
+Filter::Filter(ColumnState* columnState, QObject* parent)
+  : QSortFilterProxyModel(parent)
+{
+    setDynamicSortFilter(false);
+    setSourceModel(columnState);
+    connect(
+      columnState, &ColumnState::pressedChanged, this, &Filter::pressedChanged);
+}
+BarlineFilter::BarlineFilter(BarLinesState* barLinesState, QObject* parent)
+{
+    setDynamicSortFilter(false);
+    setSourceModel(barLinesState);
+}
+void
+BarlineFilter::setTopPosition(double value)
+{
+    if (topPosition != value) {
+        topPosition = value;
+        emit topPositionChanged();
+        invalidateFilter();
+    }
+}
+void
+BarlineFilter::setBottomPosition(double value)
+{
+    if (bottomPosition != value) {
+        bottomPosition = value;
+        emit bottomPositionChanged();
+        invalidateFilter();
+    }
+}
+bool
+BarlineFilter::filterAcceptsRow(int source_row,
+                                const QModelIndex& source_parent) const
+{
+    if (source_row < 0 ||
+        source_row >= sourceModel()->rowCount(source_parent)) {
+        return false;
+    }
+    const auto index = sourceModel()->index(source_row, 0, source_parent);
+    const auto barLineState =
+      sourceModel()->data(index, Qt::DisplayRole).value<BarLineState>();
+    const auto show = barLineState.time.position <= topPosition &&
+                barLineState.time.position >= bottomPosition;
+    return show;
+}
+void
+Filter::setTopPosition(double value)
+{
+    if (topPosition != value) {
+        topPosition = value;
+        emit topPositionChanged();
+        invalidateFilter();
+    }
+}
+void
+Filter::setBottomPosition(double value)
+{
+    if (bottomPosition != value) {
+        bottomPosition = value;
+        emit bottomPositionChanged();
+        invalidateFilter();
+    }
+}
+bool
+Filter::filterAcceptsRow(int source_row, const QModelIndex& source_parent) const
+{
+    if (source_row < 0 ||
+        source_row >= sourceModel()->rowCount(source_parent)) {
+        return false;
+    }
+    const auto index = sourceModel()->index(source_row, 0, source_parent);
+    const auto noteState =
+      sourceModel()->data(index, Qt::DisplayRole).value<NoteState>();
+    const auto show = noteState.note.time.position <= topPosition &&
+                noteState.note.time.position >= bottomPosition;
+    return show;
+}
 GameplayState::GameplayState(QList<ColumnState*> columnStates,
                              BarLinesState* barLinesState,
                              QObject* parent)
@@ -134,9 +213,12 @@ GameplayState::GameplayState(QList<ColumnState*> columnStates,
   , columnStates(std::move(columnStates))
 {
     for (auto* const columnState : this->columnStates) {
-        columnState->setParent(this);
+        auto* filter = new Filter(columnState, this);
+        columnState->setParent(filter);
+        columnFilters.append(filter);
     }
-    barLinesState->setParent(this);
+    barLineFilter = new BarlineFilter(barLinesState, this);
+    barLinesState->setParent(barLineFilter);
 }
 auto
 GameplayState::getColumnStates() -> QList<ColumnState*>
@@ -144,8 +226,18 @@ GameplayState::getColumnStates() -> QList<ColumnState*>
     return columnStates;
 }
 auto
-GameplayState::getBarLinesState() -> BarLinesState*
+GameplayState::getColumnFilters() -> QList<Filter*>
+{
+    return columnFilters;
+}
+auto
+GameplayState::getBarLinesState() const -> BarLinesState*
 {
     return barLinesState;
+}
+auto
+GameplayState::getBarLineFilter() const -> BarlineFilter*
+{
+    return barLineFilter;
 }
 } // namespace gameplay_logic

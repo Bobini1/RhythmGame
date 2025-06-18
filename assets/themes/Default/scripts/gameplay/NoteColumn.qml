@@ -16,6 +16,15 @@ Item {
     required property real heightMultiplier
     required property real noteHeight
 
+    FrameAnimation {
+        running: true
+        onTriggered: {
+            columnState.bottomPosition = column.position;
+            let top = column.height / column.heightMultiplier;
+            columnState.topPosition = column.position + top;
+        }
+    }
+
     Image {
         id: lnBeginStatic
         height: column.noteHeight

@@ -57,7 +57,13 @@ Item {
     readonly property var vars: profile.vars.themeVars[root.screen][root.themeName]
     readonly property var generalVars: profile.vars.generalVars
     readonly property list<real> columnSizes: root.getColumnSizes(vars)
-    readonly property real position: player.position
+    property real position
+    FrameAnimation {
+        running: true
+        onTriggered: {
+            playArea.position = playArea.player.position;
+        }
+    }
 
     height: playArea.vars.playAreaHeight
     width: playfield.width
