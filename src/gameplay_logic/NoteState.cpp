@@ -154,7 +154,7 @@ Filter::setTopPosition(double value)
                        columnState->getNotes().end(),
                        value,
                        [](double value, const auto& note) {
-                           return note.note.time.position > value;
+                           return note.note.time.position > value && note.note.type != Note::Type::LongNoteEnd;
                        });
     auto newTopRow = std::distance(columnState->getNotes().begin(), upper);
     if (newTopRow > topRow) {
@@ -183,6 +183,10 @@ Filter::setBottomPosition(double value)
       [](const auto& note, double value) {
           return note.note.time.position < value;
       });
+    if (lower != columnState->getNotes().end() &&
+        lower->note.type == Note::Type::LongNoteEnd) {
+        --lower;
+    }
     auto newBottomRow =
       std::distance(columnState->getNotes().begin(), lower);
     if (newBottomRow > bottomRow) {
