@@ -441,7 +441,6 @@ AutoPlayer::passKey(input::BmsKey key,
 void
 AutoPlayer::update(std::chrono::nanoseconds offsetFromStart, bool lastUpdate)
 {
-    auto start = std::chrono::system_clock::now();
     while (!lastUpdate && !events.empty() &&
            events.front().getOffsetFromStart() <= offsetFromStart.count()) {
         const auto event = events.front();
@@ -459,12 +458,6 @@ AutoPlayer::update(std::chrono::nanoseconds offsetFromStart, bool lastUpdate)
         }
     }
     Player::update(offsetFromStart, lastUpdate);
-    auto end = std::chrono::system_clock::now();
-    auto duration =
-      std::chrono::duration_cast<std::chrono::microseconds>(end - start);
-    if (duration > 3ms) {
-        spdlog::warn("Update took: {}", duration.count());
-    }
 }
 BmsScore*
 AutoPlayer::finish() const
