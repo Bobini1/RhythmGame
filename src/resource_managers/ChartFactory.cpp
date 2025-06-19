@@ -298,7 +298,7 @@ auto createAutoplayFromNotes(const gameplay_logic::BmsNotes& notes) -> std::vect
                 if (auto nextNote = std::next(column.begin(), noteIndex + 1);
                     nextNote != column.end()) {
                     if (nextNote->time.timestamp < releaseTime) {
-                        heldTime = nextNote->time.timestamp - note.time.timestamp / 2;
+                        heldTime = (nextNote->time.timestamp - note.time.timestamp) / 2;
                         releaseTime = note.time.timestamp + heldTime;
                     }
                     if (nextNote->type == gameplay_logic::Note::Type::Landmine) {
@@ -307,9 +307,9 @@ auto createAutoplayFromNotes(const gameplay_logic::BmsNotes& notes) -> std::vect
                 }
                 events.emplace_back(
                   columnIndex,
-                  noteIndex,
+                  -1,
                   releaseTime,
-                  gameplay_logic::BmsPoints{ 0.0, gameplay_logic::Judgement::Perfect, 0 },
+                  std::nullopt,
                   gameplay_logic::HitEvent::Action::Release,
                   /*noteRemoved=*/true);
             } else if (note.type == gameplay_logic::Note::Type::LongNoteBegin) {
