@@ -7,6 +7,7 @@
 #include "BmsNotesData.h"
 #include "sounds/OpenAlSoundBuffer.h"
 
+#include <ranges>
 #include <span>
 #include <spdlog/spdlog.h>
 
@@ -218,20 +219,16 @@ calculateOffsetsForColumn(
                   note
               };
         }
-        std::vector<BmsNotesData::Note> notesVector;
-        for (const auto& [fractionDec, note] : notesMap) {
-            notesVector.push_back(note);
-        }
-        // sort by timestamp
-        std::sort(notesVector.begin(), notesVector.end(), [](const auto& a, const auto& b) {
-            return a.time.timestamp < b.time.timestamp;
-        });
-        // add to target
-        for (const auto& note : notesVector) {
-            target.push_back(note);
-        }
     }
-    for (auto& [timestamp, note] : notesMap) {
+    std::vector<BmsNotesData::Note> notesVector;
+    for (const auto& note : notesMap | std::views::values) {
+        notesVector.push_back(note);
+    }
+    // sort by timestamp
+    std::ranges::sort(notesVector, [](const auto& a, const auto& b) {
+        return a.time.timestamp < b.time.timestamp;
+    });
+    for (auto& note : notesVector) {
         if (noteType == BmsNotesData::NoteType::Normal && lnObj.has_value() &&
             note.sound == lnObj.value()) {
             // we don't ever want two ln ends in a row
@@ -310,12 +307,11 @@ calculateOffsetsForLnRdm(
               };
         }
         std::vector<BmsNotesData::Note> notesVector;
-        for (const auto& [fractionDec, note] : notesMap) {
+        for (const auto& note : notesMap | std::views::values) {
             notesVector.push_back(note);
         }
         // sort by timestamp
-        std::sort(notesVector.begin(),
-                  notesVector.end(),
+        std::ranges::sort(notesVector,
                   [](const auto& a, const auto& b) {
                       return a.time.timestamp < b.time.timestamp;
                   });
@@ -452,22 +448,18 @@ calculateOffsetsForLandmine(
                   note
               };
         }
-        std::vector<BmsNotesData::Note> notesVector;
-        for (const auto& [fractionDec, note] : notesMap) {
-            notesVector.push_back(note);
-        }
-        // sort by timestamp
-        std::sort(notesVector.begin(),
-                  notesVector.end(),
-                  [](const auto& a, const auto& b) {
-                      return a.time.timestamp < b.time.timestamp;
-                  });
-        // add to target
-        for (const auto& note : notesVector) {
-            target.push_back(note);
-        }
     }
-    for (const auto& [timestamp, note] : notesMap) {
+    std::vector<BmsNotesData::Note> notesVector;
+    for (const auto& [fractionDec, note] : notesMap) {
+        notesVector.push_back(note);
+    }
+    // sort by timestamp
+    std::ranges::sort(notesVector,
+              [](const auto& a, const auto& b) {
+                  return a.time.timestamp < b.time.timestamp;
+              });
+    // add to target
+    for (const auto& note : notesVector) {
         target.push_back(note);
     }
 }
@@ -534,12 +526,11 @@ calculateOffsetsForBga(
             };
         }
         std::vector<std::pair<BmsNotesData::Time, uint16_t>> notesVector;
-        for (const auto& [fractionDec, note] : notesMap) {
+        for (const auto& note : notesMap | std::views::values) {
             notesVector.emplace_back(note.second, note.first);
         }
         // sort by timestamp
-        std::sort(notesVector.begin(),
-                  notesVector.end(),
+        std::ranges::stable_sort(notesVector,
                   [](const auto& a, const auto& b) {
                       return a.first.timestamp < b.first.timestamp;
                   });
@@ -755,15 +746,14 @@ BmsNotesData::generateMeasures(
         lastMeasure = currentMeasure;
         measureStart = timestamp;
     }
-    std::sort(bgmNotes.begin(), bgmNotes.end());
+    std::ranges::sort(bgmNotes);
     if (lnType == LnType::RDM) {
         adjustRdmLnEnds(lastInsertedRdmNoteP1, lastInsertedRdmNoteP2);
     } else {
         adjustMgqLnEnds(lastBpm, measureStart, insideLnP1, insideLnP2);
     }
     for (auto& column : notes) {
-        std::sort(
-          column.begin(), column.end(), [](const auto& a, const auto& b) {
+        std::ranges::sort(column, [](const auto& a, const auto& b) {
               if (a.time.timestamp == b.time.timestamp) {
                   return a.noteType < b.noteType;
               }
