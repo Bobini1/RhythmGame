@@ -6,7 +6,7 @@
 auto
 gameplay_logic::rules::lr2_hit_values::getLr2HitValue(
   std::chrono::nanoseconds offset,
-  const gameplay_logic::Judgement judgement) -> double
+  const Judgement judgement) -> double
 {
     switch (judgement) {
         case Judgement::Perfect:

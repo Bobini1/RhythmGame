@@ -154,7 +154,7 @@ BmsLiveScore::addHit(HitEvent tap) -> void
                 gauge->addHit(
                   std::chrono::nanoseconds(tap.getOffsetFromStart()),
                   std::chrono::nanoseconds(points->getDeviation()),
-                  points->getJudgement());
+                  Judgement::Poor);
             }
             break;
         case Judgement::MineHit:
@@ -167,7 +167,6 @@ BmsLiveScore::addHit(HitEvent tap) -> void
             emit mineHitsChanged();
             break;
         case Judgement::MineAvoided:
-            break;
         case Judgement::LnEndSkip:
             break;
         default:
@@ -184,7 +183,8 @@ BmsLiveScore::addHit(HitEvent tap) -> void
             }
             if (judgement == Judgement::Bad) {
                 resetCombo();
-            } else if (judgement != Judgement::EmptyPoor) {
+            } else if (judgement != Judgement::EmptyPoor &&
+                       judgement != Judgement::LnBeginHit) {
                 increaseCombo();
             }
     }

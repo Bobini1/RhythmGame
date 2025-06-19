@@ -46,14 +46,29 @@ gameplay_logic::rules::StandardBmsHitRules::press(
             if (note.sound != nullptr) {
                 note.sound->play();
             }
+            auto points = BmsPoints{};
+            if (note.type == NoteType::LnBegin) {
+                lnBeginPoints[column] = BmsPoints{
+                    hitValueFactory(hitOffset - noteTime, result),
+                    result,
+                    (hitOffset - noteTime).count(), // unused
+                };
+                points = BmsPoints{
+                  0.0,
+                  Judgement::LnBeginHit,
+                  (hitOffset - noteTime).count(),
+                };
+            } else {
+                points = BmsPoints{
+                    hitValueFactory(hitOffset - noteTime, result),
+                    result,
+                    (hitOffset - noteTime).count(),
+                };
+            }
             return { column,
                      note.index,
                      hitOffset.count(),
-                     BmsPoints{
-                       hitValueFactory(hitOffset - noteTime, result),
-                       result,
-                       (hitOffset - noteTime).count(),
-                     },
+                     points,
                      HitEvent::Action::Press,
                      /*noteRemoved=*/true };
         }
@@ -116,12 +131,15 @@ gameplay_logic::rules::StandardBmsHitRules::processMisses(
         }
         if (iter->type == NoteType::LnEnd) {
             if (iter->time <= offsetFromStart) {
-                events.emplace_back(column,
-                                    iter->index,
-                                    noteTime.count(),
-                                    BmsPoints{ 0.0, Judgement::LnEndMiss, 0 },
-                                    HitEvent::Action::None,
-                                    /*noteRemoved=*/false);
+                events.emplace_back(
+                  column,
+                  iter->index,
+                  noteTime.count(),
+                  BmsPoints{ lnBeginPoints[column].getValue(),
+                             lnBeginPoints[column].getJudgement(),
+                             0 },
+                  HitEvent::Action::None,
+                  /*noteRemoved=*/true);
             }
         } else if (iter->type == NoteType::LnBegin ||
                    iter->type == NoteType::Normal) {
@@ -226,13 +244,14 @@ gameplay_logic::rules::StandardBmsHitRules::processMines(
         }
         iter->hit = true;
         playSound = true;
-        mineHits.emplace_back(
-          column,
-          mine.index,
-          offsetFromStart.count(),
-          BmsPoints{ mine.penalty, Judgement::MineHit, (offsetFromStart - noteTime).count() },
-          HitEvent::Action::None,
-          /*noteRemoved=*/true);
+        mineHits.emplace_back(column,
+                              mine.index,
+                              offsetFromStart.count(),
+                              BmsPoints{ mine.penalty,
+                                         Judgement::MineHit,
+                                         (offsetFromStart - noteTime).count() },
+                              HitEvent::Action::None,
+                              /*noteRemoved=*/true);
         currentMineIndex++;
     }
     if (playSound && mineHitSound != nullptr) {
@@ -249,17 +268,8 @@ gameplay_logic::rules::StandardBmsHitRules::release(
     const auto currentNoteIndex = currentNotes[column];
     const auto windowLow = [&] {
         for (const auto& [window, judgement] : timingWindows) {
-            if (judgement != Judgement::EmptyPoor) {
+            if (judgement == Judgement::Good) {
                 return window.lower();
-            }
-        }
-        return std::chrono::nanoseconds{ 0 };
-    }();
-    const auto windowHigh = [&] {
-        for (const auto& timingWindow :
-             std::ranges::reverse_view(timingWindows)) {
-            if (timingWindow.second != Judgement::EmptyPoor) {
-                return timingWindow.first.upper();
             }
         }
         return std::chrono::nanoseconds{ 0 };
@@ -288,23 +298,24 @@ gameplay_logic::rules::StandardBmsHitRules::release(
             return { column,
                      iter->index,
                      noteTime.count(),
-                     BmsPoints{ hitValueFactory(hitOffset - noteTime,
-                                                Judgement::LnEndMiss),
-                                Judgement::LnEndMiss,
-                                (hitOffset - noteTime).count() },
+                     BmsPoints{
+                       hitValueFactory(hitOffset - noteTime, Judgement::Bad),
+                       Judgement::Bad,
+                       (hitOffset - noteTime).count() },
                      HitEvent::Action::Release,
                      /*noteRemoved=*/true };
         }
-        // dropped too late (handled in processMisses)
-        if (hitOffset >= noteTime + windowHigh) {
-            continue;
+        // dropped late (handled in processMisses)
+        if (hitOffset >= noteTime) {
+            break;
         }
-        const auto result = timingWindows.find(hitOffset - noteTime)->second;
         iter->hit = true;
         return { column,
                  iter->index,
                  noteTime.count(),
-                 BmsPoints{ 0.0, result, (hitOffset - noteTime).count() },
+                 BmsPoints{ lnBeginPoints[column].getValue(),
+                            lnBeginPoints[column].getJudgement(),
+                            (hitOffset - noteTime).count() },
                  HitEvent::Action::Release,
                  /*noteRemoved=*/true };
     }

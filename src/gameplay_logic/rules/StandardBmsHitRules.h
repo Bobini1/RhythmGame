@@ -22,6 +22,8 @@ class StandardBmsHitRules : public BmsHitRules
       currentNotes{};
     std::array<int, charts::gameplay_models::BmsNotesData::columnNumber>
       currentMines{};
+    std::array<BmsPoints, charts::gameplay_models::BmsNotesData::columnNumber>
+      lnBeginPoints{};
 
   public:
     explicit StandardBmsHitRules(

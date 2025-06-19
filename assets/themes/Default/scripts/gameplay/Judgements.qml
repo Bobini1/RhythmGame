@@ -145,7 +145,6 @@ Item {
                     judgementAnimation.source = root.iniImagesUrl + "judge/" + judgement.judge + "/bad";
                     break;
                 case Judgement.Poor:
-                case Judgement.LnEndMiss:
                     judgementAnimation.frameCount = 1;
                     judgementAnimation.source = root.iniImagesUrl + "judge/" + judgement.judge + "/poor";
                     break;

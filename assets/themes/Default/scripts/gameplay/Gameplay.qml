@@ -394,7 +394,7 @@ Rectangle {
                             return;
                         }
                         let judgement = tap.points.judgement;
-                        if (judgement === Judgement.Poor || judgement === Judgement.LnEndMiss || judgement === Judgement.Bad) {
+                        if (judgement === Judgement.Poor || judgement === Judgement.Bad) {
                             bga.poorVisible = true;
                             poorLayerTimer.restart();
                         }

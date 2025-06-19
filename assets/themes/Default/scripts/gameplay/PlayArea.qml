@@ -340,7 +340,7 @@ Item {
                     } else if (note.type === Note.Type.LongNoteBegin) {
                         handleBomb(index, true);
                     }
-                } else if (hit.action === hitEvent.Release && note.type === Note.Type.LongNoteEnd) {
+                } else if (note.type === Note.Type.LongNoteEnd) {
                     handleBomb(index, false, false);
                 }
             }
