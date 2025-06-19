@@ -264,6 +264,7 @@ Item {
 
             function restart() {
                 bomb.restart();
+                lnBomb.restart();
             }
 
             anchors.bottom: parent.bottom
@@ -283,16 +284,34 @@ Item {
 
                 anchors.centerIn: parent
                 finishBehavior: AnimatedSprite.FinishAtFinalFrame
-                frameCount: bombWrapper.ln ? 8 : 16
+                frameCount: 16
                 frameDuration: 25
                 frameHeight: bombSize.sourceSize.height / 4
                 frameWidth: bombSize.sourceSize.width / 4
-                frameY: bombWrapper.ln ? 0 : frameHeight
+                frameY: frameHeight
                 height: frameHeight / 2
-                loops: bombWrapper.ln ? AnimatedSprite.Infinite : 1
+                loops: 1
                 running: false
                 source: root.imagesUrl + "bomb/" + playArea.vars.bomb
-                opacity: running ? 1 : 0
+                opacity: (running && !bombWrapper.ln ? 1 : 0)
+                width: frameWidth / 2
+            }
+
+            AnimatedSprite {
+                id: lnBomb
+
+                anchors.centerIn: parent
+                finishBehavior: AnimatedSprite.FinishAtFinalFrame
+                frameCount: 8
+                frameDuration: 25
+                frameHeight: bombSize.sourceSize.height / 4
+                frameWidth: bombSize.sourceSize.width / 4
+                frameY: 0
+                height: frameHeight / 2
+                loops: AnimatedSprite.Infinite
+                running: false
+                source: root.imagesUrl + "bomb/" + playArea.vars.bomb
+                opacity: (running && bombWrapper.ln ? 1 : 0)
                 width: frameWidth / 2
             }
         }
