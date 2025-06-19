@@ -55,13 +55,13 @@ ColumnState::onHitEvent(HitEvent hit)
     if (note.note.type == Note::Type::LongNoteBegin) {
         auto& nextNote = notes[hit.getNoteIndex() + 1];
         nextNote.otherEndHitData = note.hitData;
-        emit dataChanged(
-          index(hit.getNoteIndex()), index(hit.getNoteIndex() + 1));
+        emit dataChanged(index(hit.getNoteIndex()),
+                         index(hit.getNoteIndex() + 1));
     } else if (note.note.type == Note::Type::LongNoteEnd) {
         auto& prevNote = notes[hit.getNoteIndex() - 1];
         prevNote.otherEndHitData = note.hitData;
-        emit dataChanged(
-          index(hit.getNoteIndex() - 1), index(hit.getNoteIndex()));
+        emit dataChanged(index(hit.getNoteIndex() - 1),
+                         index(hit.getNoteIndex()));
     } else {
         emit dataChanged(index(hit.getNoteIndex()), index(hit.getNoteIndex()));
     }
@@ -101,7 +101,7 @@ Filter::setPressed(bool pressed)
     emit pressedChanged();
 }
 Filter::Filter(ColumnState* columnState, QObject* parent)
-  : QSortFilterProxyModel(parent)
+  : QAbstractProxyModel(parent), columnState(columnState)
 {
     setSourceModel(columnState);
     connect(
@@ -147,70 +147,104 @@ BarlineFilter::filterAcceptsRow(int source_row,
 void
 Filter::setTopPosition(double value)
 {
-    if (topPosition != value) {
-        topPosition = value;
-        emit topPositionChanged();
-        invalidateFilter();
+    if (topPosition == value) {
+        return;
     }
+    const auto upper = std::upper_bound(columnState->getNotes().begin(),
+                       columnState->getNotes().end(),
+                       value,
+                       [](double value, const auto& note) {
+                           return note.note.time.position > value;
+                       });
+    auto newTopRow = std::distance(columnState->getNotes().begin(), upper);
+    if (newTopRow > topRow) {
+        beginInsertRows(QModelIndex(), topRow - bottomRow, newTopRow - bottomRow - 1);
+        topPosition = value;
+        topRow = newTopRow;
+        endInsertRows();
+    } else if (newTopRow < topRow) {
+        beginRemoveRows(QModelIndex(), newTopRow - bottomRow, topRow - bottomRow - 1);
+        topPosition = value;
+        topRow = newTopRow;
+        endRemoveRows();
+    }
+
+    emit topPositionChanged();
 }
 void
 Filter::setBottomPosition(double value)
 {
-    if (bottomPosition != value) {
-        bottomPosition = value;
-        emit bottomPositionChanged();
-        invalidateFilter();
+    if (bottomPosition == value) {
+        return;
     }
+
+    auto lower = std::lower_bound(
+      columnState->getNotes().begin(), columnState->getNotes().end(), value,
+      [](const auto& note, double value) {
+          return note.note.time.position < value;
+      });
+    auto newBottomRow =
+      std::distance(columnState->getNotes().begin(), lower);
+    if (newBottomRow > bottomRow) {
+        beginRemoveRows(QModelIndex(), 0,
+                                 newBottomRow - bottomRow - 1);
+
+        bottomPosition = value;
+        bottomRow = newBottomRow;
+        endRemoveRows();
+    } else if (newBottomRow < bottomRow) {
+        beginInsertRows(QModelIndex(), 0, bottomRow - newBottomRow - 1);
+
+        bottomPosition = value;
+        bottomRow = newBottomRow;
+        endInsertRows();
+    }
+    emit bottomPositionChanged();
 }
 int
 Filter::getRealIndex(int sourceRow) const
 {
     return mapToSource(index(sourceRow, 0, QModelIndex())).row();
 }
-bool
-Filter::filterAcceptsRow(int source_row, const QModelIndex& source_parent) const
+QModelIndex
+Filter::index(int row, int column, const QModelIndex& parent) const
 {
-    if (source_row < 0 ||
-        source_row >= sourceModel()->rowCount(source_parent)) {
-        return false;
+    if (row < 0 || row >= topRow - bottomRow || column != 0) {
+        return QModelIndex();
     }
-    const auto index = sourceModel()->index(source_row, 0, source_parent);
-    const auto noteState =
-      sourceModel()->data(index, Qt::DisplayRole).value<NoteState>();
-    const auto show = noteState.note.time.position <= topPosition &&
-                      noteState.note.time.position >= bottomPosition;
-    if (show) {
-        return true;
+    return createIndex(row, column, &columnState->getNotes().at(row + bottomRow));
+}
+QModelIndex
+Filter::parent(const QModelIndex& child) const
+{
+    return QModelIndex();
+}
+int
+Filter::rowCount(const QModelIndex& parent) const
+{
+    return topRow - bottomRow;
+}
+int
+Filter::columnCount(const QModelIndex& parent) const
+{
+    return 1;
+}
+QModelIndex
+Filter::mapToSource(const QModelIndex& proxyIndex) const
+{
+    if (!proxyIndex.isValid() || proxyIndex.row() < 0 ||
+        proxyIndex.row() >= rowCount({})) {
+        return QModelIndex();
     }
-    if (noteState.note.type == Note::Type::LongNoteBegin) {
-        if (const auto nextIndex =
-              sourceModel()->index(source_row + 1, 0, source_parent);
-            nextIndex.isValid()) {
-            const auto nextNoteState = sourceModel()
-                                         ->data(nextIndex, Qt::DisplayRole)
-                                         .value<NoteState>();
-            if (nextNoteState.note.time.position > bottomPosition &&
-                noteState.note.time.position <= topPosition) {
-                return true;
-            }
-        }
-        return true;
+    return columnState->index(proxyIndex.row() + bottomRow, proxyIndex.column(), QModelIndex());
+}
+QModelIndex
+Filter::mapFromSource(const QModelIndex& sourceIndex) const
+{
+    if (!sourceIndex.isValid() || sourceIndex.model() != columnState) {
+        return QModelIndex();
     }
-    if (noteState.note.type == Note::Type::LongNoteEnd) {
-        // get previous note
-        if (const auto prevIndex =
-              sourceModel()->index(source_row - 1, 0, source_parent);
-            prevIndex.isValid()) {
-            const auto prevNoteState = sourceModel()
-                                         ->data(prevIndex, Qt::DisplayRole)
-                                         .value<NoteState>();
-            if (prevNoteState.note.time.position < topPosition &&
-                noteState.note.time.position >= bottomPosition) {
-                return true;
-            }
-        }
-    }
-    return false;
+    return index(sourceIndex.row() - bottomRow, sourceIndex.column(), QModelIndex());
 }
 GameplayState::GameplayState(QList<ColumnState*> columnStates,
                              BarLinesState* barLinesState,

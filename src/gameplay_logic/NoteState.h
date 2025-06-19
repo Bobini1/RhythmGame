@@ -40,6 +40,7 @@ class ColumnState final : public QAbstractListModel
     auto data(const QModelIndex& index, int role) const -> QVariant override;
     void onHitEvent(HitEvent hit);
     auto isPressed() const -> bool;
+    auto getNotes() const -> const QList<NoteState>& { return notes; }
   signals:
     void pressedChanged();
 };
@@ -66,7 +67,7 @@ class BarLinesState final : public QAbstractListModel
     auto data(const QModelIndex& index, int role) const -> QVariant override;
 };
 
-class Filter : public QSortFilterProxyModel
+class Filter : public QAbstractProxyModel
 {
     Q_OBJECT
     Q_PROPERTY(double topPosition READ getTopPosition WRITE setTopPosition
@@ -77,8 +78,11 @@ class Filter : public QSortFilterProxyModel
 
     double topPosition = 0.0;
     double bottomPosition = 0.0;
+    int bottomRow = 0;
+    int topRow = 0;
     bool pressed = false;
     void setPressed(bool pressed);
+    ColumnState* columnState;
 
   public:
     explicit Filter(ColumnState* columnState, QObject* parent = nullptr);
@@ -89,15 +93,16 @@ class Filter : public QSortFilterProxyModel
     void setBottomPosition(double value);
     auto isPressed() const -> bool { return pressed; }
     Q_INVOKABLE int getRealIndex(int sourceRow) const;
+    QModelIndex index(int row, int column = 0, const QModelIndex &parent = QModelIndex()) const override;
+    QModelIndex parent(const QModelIndex& child) const override;
+    int rowCount(const QModelIndex& parent) const override;
+    int columnCount(const QModelIndex& parent) const override;
+    QModelIndex mapToSource(const QModelIndex& proxyIndex) const override;
+    QModelIndex mapFromSource(const QModelIndex& sourceIndex) const override;
   signals:
     void topPositionChanged();
     void bottomPositionChanged();
     void pressedChanged();
-
-  protected:
-    auto filterAcceptsRow(int source_row,
-                          const QModelIndex& source_parent) const
-      -> bool override;
 };
 
 class BarlineFilter : public QSortFilterProxyModel

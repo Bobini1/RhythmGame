@@ -19,9 +19,9 @@ Item {
     FrameAnimation {
         running: true
         onTriggered: {
-            columnState.bottomPosition = column.position;
             let top = column.height / column.heightMultiplier;
             columnState.topPosition = column.position + top;
+            columnState.bottomPosition = column.position;
         }
     }
 
