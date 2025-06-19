@@ -106,8 +106,6 @@ class Player : public QObject
     Q_PROPERTY(int64_t elapsed READ getElapsed NOTIFY elapsedChanged)
     Q_PROPERTY(
       double positionBeforeChartStart READ getPositionBeforeChartStart CONSTANT)
-    Q_PROPERTY(
-      int64_t timeBeforeChartStart READ getTimeBeforeChartStart CONSTANT)
     Q_PROPERTY(Chart::Status status READ getStatus NOTIFY statusChanged)
     Q_PROPERTY(int64_t chartLength READ getChartLength CONSTANT)
     BmsNotes* notes;
@@ -117,12 +115,10 @@ class Player : public QObject
     BmsGameReferee::Position position{};
     Chart::Status status{ Chart::Status::Loading };
     int64_t elapsed{};
-    int64_t timeBeforeChartStart{};
     QFutureWatcher<BmsGameReferee> refereeWatcher;
     QFuture<BmsGameReferee> refereeFuture;
     std::chrono::nanoseconds chartLength;
 
-    void setTimeBeforeChartStart(int64_t timeBeforeChartStart);
     void setElapsed(int64_t newElapsed);
     void setPosition(BmsGameReferee::Position position);
 
@@ -151,7 +147,6 @@ class Player : public QObject
     auto getPosition() const -> double;
     auto getElapsed() const -> int64_t;
     auto getPositionBeforeChartStart() const -> double;
-    auto getTimeBeforeChartStart() const -> int64_t;
     auto getStatus() const -> Chart::Status;
     void setStatus(Chart::Status status);
     auto getChartLength() const -> int64_t;

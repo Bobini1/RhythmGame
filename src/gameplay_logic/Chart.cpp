@@ -165,18 +165,6 @@ Chart::finish() -> QList<BmsScore*>
     return ret;
 }
 void
-Player::setTimeBeforeChartStart(int64_t timeBeforeChartStart)
-{
-    this->timeBeforeChartStart = timeBeforeChartStart;
-    positionBeforeChartStart =
-      std::chrono::duration_cast<std::chrono::duration<double>>(
-        std::chrono::nanoseconds(timeBeforeChartStart))
-        .count() *
-      notes->getBpmChanges().first().bpm / 60;
-    setElapsed(-timeBeforeChartStart);
-    setPosition(-positionBeforeChartStart);
-}
-void
 Player::setElapsed(const int64_t newElapsed)
 {
     if (newElapsed != elapsed) {
@@ -218,10 +206,6 @@ Player::Player(BmsNotes* notes,
     notes->setParent(this);
     score->setParent(this);
     state->setParent(this);
-    setTimeBeforeChartStart(
-      std::chrono::duration_cast<std::chrono::nanoseconds>(
-        std::chrono::seconds{ 0 })
-        .count());
     connect(&refereeWatcher,
             &QFutureWatcher<BmsGameReferee>::finished,
             this,
@@ -251,8 +235,6 @@ Player::setPosition(BmsGameReferee::Position newPosition)
 void
 Player::update(std::chrono::nanoseconds offsetFromStart, bool lastUpdate)
 {
-    offsetFromStart =
-      offsetFromStart - std::chrono::nanoseconds(timeBeforeChartStart);
     setElapsed(offsetFromStart.count());
     if (referee) {
         referee->update(offsetFromStart, lastUpdate);
@@ -291,10 +273,10 @@ Player::passKey(input::BmsKey key,
     } else {
         if (eventType == Chart::EventType::KeyPress) {
             referee->passPressed(
-              offset - std::chrono::nanoseconds(timeBeforeChartStart), key);
+              offset, key);
         } else {
             referee->passReleased(
-              offset - std::chrono::nanoseconds(timeBeforeChartStart), key);
+              offset, key);
         }
     }
 }
@@ -338,11 +320,6 @@ auto
 Player::getPositionBeforeChartStart() const -> double
 {
     return positionBeforeChartStart;
-}
-auto
-Player::getTimeBeforeChartStart() const -> int64_t
-{
-    return timeBeforeChartStart;
 }
 auto
 Player::getStatus() const -> Chart::Status
@@ -413,10 +390,8 @@ void
 RePlayer::update(const std::chrono::nanoseconds offsetFromStart,
                  const bool lastUpdate)
 {
-    const auto offset =
-      offsetFromStart - std::chrono::nanoseconds(getTimeBeforeChartStart());
     while (!lastUpdate && !events.empty() &&
-           events.front().getOffsetFromStart() <= offset.count()) {
+           events.front().getOffsetFromStart() <= offsetFromStart.count()) {
         const auto event = events.front();
         events = events.subspan(1);
         const auto hitOffset =
@@ -466,10 +441,9 @@ AutoPlayer::passKey(input::BmsKey key,
 void
 AutoPlayer::update(std::chrono::nanoseconds offsetFromStart, bool lastUpdate)
 {
-    const auto offset =
-      offsetFromStart - std::chrono::nanoseconds(getTimeBeforeChartStart());
+    auto start = std::chrono::system_clock::now();
     while (!lastUpdate && !events.empty() &&
-           events.front().getOffsetFromStart() <= offset.count()) {
+           events.front().getOffsetFromStart() <= offsetFromStart.count()) {
         const auto event = events.front();
         events = events.subspan(1);
         const auto hitOffset =
@@ -485,6 +459,12 @@ AutoPlayer::update(std::chrono::nanoseconds offsetFromStart, bool lastUpdate)
         }
     }
     Player::update(offsetFromStart, lastUpdate);
+    auto end = std::chrono::system_clock::now();
+    auto duration =
+      std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+    if (duration > 3ms) {
+        spdlog::warn("Update took: {}", duration.count());
+    }
 }
 BmsScore*
 AutoPlayer::finish() const
