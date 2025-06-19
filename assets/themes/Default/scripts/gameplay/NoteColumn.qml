@@ -33,6 +33,7 @@ Item {
         y: parent.height * (1 - playArea.generalVars.liftOn * playArea.generalVars.liftRatio) - column.noteHeight * 2 / 3
         visible: false
         z: 1
+        property int lastIndex: -1
     }
 
     Flickable {
@@ -61,7 +62,10 @@ Item {
                 visible: note.type === Note.Type.LongNoteEnd || !hitData
                 readonly property bool shouldShowStatic: note.type === Note.Type.LongNoteEnd && (wasHeld || prevPosition < column.position) && note.time.position > column.position
                 onShouldShowStaticChanged: {
-                    lnBeginStatic.visible = shouldShowStatic;
+                    if (realIndex >= lnBeginStatic.lastIndex) {
+                        lnBeginStatic.visible = shouldShowStatic;
+                        lnBeginStatic.lastIndex = realIndex;
+                    }
                 }
                 property bool wasHeld: note.type === Note.Type.LongNoteEnd && display.otherEndHitData && (!hitData || hitData.points.judgement !== Judgement.LnEndSkip)
                 property int realIndex: columnState.getRealIndex(index)
