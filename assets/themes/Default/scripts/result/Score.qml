@@ -39,7 +39,7 @@ WindowBg {
                     font.pixelSize: 41
                     horizontalAlignment: Text.AlignRight
                     text: {
-                        return "00000".slice(0, 5 - score.points.toString().length) + "<font color='DeepPink'>" + points + "</font>";
+                        return "00000".slice(0, Math.max(0, 5 - score.points.toString().length)) + "<font color='DeepPink'>" + points + "</font>";
                     }
                 }
                 Text {
@@ -75,7 +75,7 @@ WindowBg {
                     horizontalAlignment: Text.AlignRight
                     text: {
                         let points = score.oldBestPoints;
-                        return "00000".slice(0, 5 - points.toString().length) + "<font color='DeepPink'>" + points + "</font>";
+                        return "00000".slice(0, Math.max(0, 5 - points.toString().length)) + "<font color='DeepPink'>" + points + "</font>";
                     }
                 }
                 Text {
