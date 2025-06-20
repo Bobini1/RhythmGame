@@ -158,7 +158,7 @@ jobs:
       - name: Install vcpkg
         if: matrix.os == 'macos-latest'
         uses: friendlyanon/setup-vcpkg@v1
-        with: { committish: d504de05dcd7b55df34976be1c824324ec6bca2b }
+        with: { committish: ef7dbf94b9198bc58f45951adcf1f041fcbc5ea0 }
 
       - name: export VCPKG_INSTALL_ROOT
         if: matrix.os == 'macos-latest'
@@ -231,6 +231,15 @@ jobs:
             brew install autoconf automake autoconf-archive
           fi
 
+      - name: Install vcpkg
+        if: matrix.os == 'macos-latest'
+        uses: friendlyanon/setup-vcpkg@v1
+        with: { committish: ef7dbf94b9198bc58f45951adcf1f041fcbc5ea0 }
+
+      - name: export VCPKG_INSTALL_ROOT
+        if: matrix.os == 'macos-latest'
+        run: echo "VCPKG_INSTALLATION_ROOT=${VCPKG_ROOT}" >> $GITHUB_ENV
+        
       - name: Export GitHub Actions cache environment variables
         uses: actions/github-script@v7
         with:
