@@ -3,6 +3,8 @@
 //
 
 #include "DefineDb.h"
+
+#include "support/Version.h"
 namespace resource_managers {
 void
 defineDb(db::SqliteCppDb& db)
@@ -96,6 +98,13 @@ defineDb(db::SqliteCppDb& db)
                "key TEXT NOT NULL UNIQUE,"
                "value"
                ");");
+
+
+    auto stmt = db.createStatement(
+      "INSERT OR IGNORE INTO properties (key, value) VALUES "
+        "('version', ?);");
+    stmt.bind(1, static_cast<int64_t>(support::currentVersion));
+    stmt.execute();
 
     db.execute("CREATE TABLE IF NOT EXISTS preview_files ("
                "id INTEGER PRIMARY KEY AUTOINCREMENT,"
