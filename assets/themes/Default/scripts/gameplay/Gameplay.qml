@@ -81,6 +81,9 @@ Rectangle {
                     root.popup.close();
                     root.popup = null;
                 }
+                if (escapeShortcut.used) {
+                    return;
+                }
                 globalRoot.openResult(chart.finish(), [chart.player1.profile, chart.player2?.profile], chart.chartData);
             }
         }
@@ -431,11 +434,13 @@ Rectangle {
         enabled: root.enabled
         sequence: "Esc"
         property bool nothingWasHit: true
+        property bool used: false
 
         onActivated: {
             if (nothingWasHit) {
                 sceneStack.pop();
             } else {
+                used = true;
                 globalRoot.openResult(chart.finish(), [chart.player1.profile, chart.player2?.profile], chart.chartData);
             }
         }

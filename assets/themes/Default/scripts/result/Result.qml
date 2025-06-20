@@ -8,12 +8,10 @@ import "../common/helpers.js" as Helpers
 
 FocusScope {
     id: resultFocusScope
-    focus: enabled
 
     required property ChartData chartData
     required property list<BmsScore> scores
     required property list<Profile> profiles
-
 
     Image {
         id: root
