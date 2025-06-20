@@ -155,6 +155,7 @@ Chart::finish() -> QList<BmsScore*>
         bgaFuture.cancel();
     }
 
+    auto ret = QList<BmsScore*>{};
     if (player1->getStatus() == Running) {
         player1->update(std::chrono::nanoseconds{ player1->getChartLength() } +
                           10s,
@@ -165,7 +166,6 @@ Chart::finish() -> QList<BmsScore*>
                           10s,
                         /*lastUpdate=*/true);
     }
-    auto ret = QList<BmsScore*>{};
     ret.append(player1->finish());
     if (player2 != nullptr) {
         ret.push_back(player2->finish());
@@ -352,6 +352,9 @@ Player::finish() -> BmsScore*
     if (refereeFuture.isRunning()) {
         refereeFuture.cancel();
     }
+    if (status != Chart::Status::Running) {
+        return nullptr;
+    }
     auto result = score->getResult();
     auto replayData = score->getReplayData();
     auto gaugeHistory = score->getGaugeHistory();
@@ -474,6 +477,9 @@ AutoPlayer::finish() -> BmsScore*
 {
     if (refereeFuture.isRunning()) {
         refereeFuture.cancel();
+    }
+    if (getStatus() != Chart::Status::Running) {
+        return nullptr;
     }
     auto result = score->getResult();
     auto replayData = score->getReplayData();
