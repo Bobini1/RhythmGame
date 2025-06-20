@@ -405,16 +405,35 @@ Rectangle {
             }
         }
     }
+    Connections {
+        target: chart.player1.score
+        function onHit(tap) {
+            let ignoreJudgements = [Judgement.Poor, Judgement.EmptyPoor, Judgement.MineHit, Judgement.MineAvoided];
+            if (!tap.points || ignoreJudgements.includes(tap.points?.judgement)) {
+                return;
+            }
+            escapeShortcut.nothingWasHit = false;
+        }
+    }
+    Connections {
+        target: chart.player2?.score || null
+        ignoreUnknownSignals: true
+        function onHit(tap) {
+            let ignoreJudgements = [Judgement.Poor, Judgement.EmptyPoor, Judgement.MineHit, Judgement.MineAvoided];
+            if (!tap.points || ignoreJudgements.includes(tap.points?.judgement)) {
+                return;
+            }
+            escapeShortcut.nothingWasHit = false;
+        }
+    }
     Shortcut {
+        id: escapeShortcut
         enabled: root.enabled
         sequence: "Esc"
+        property bool nothingWasHit: true
 
         onActivated: {
-            let player2Points = 0;
-            if (chart.player2) {
-                player2Points = chart.player2.score.points;
-            }
-            if (chart.player1.score.points === 0 && player2Points === 0) {
+            if (nothingWasHit) {
                 sceneStack.pop();
             } else {
                 globalRoot.openResult(chart.finish(), [chart.player1.profile, chart.player2?.profile], chart.chartData);
