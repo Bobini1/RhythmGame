@@ -22,17 +22,6 @@ Item {
         columnState.bottomPosition = column.position;
     }
 
-    Image {
-        id: lnBeginStatic
-        height: column.noteHeight
-        width: column.width
-        source: root.iniImagesUrl + "notes/" + column.noteImage + "/ln_start_" + column.color
-        y: parent.height * (1 - playArea.generalVars.liftOn * playArea.generalVars.liftRatio) - column.noteHeight * 2 / 3
-        visible: false
-        z: 1
-        property int lastIndex: -1
-    }
-
     Flickable {
         id: flickable
         anchors.fill: parent
@@ -53,21 +42,16 @@ Item {
                 required property var display
                 required property int index
                 readonly property var hitData: display.hitData
-                readonly property bool held: note.type === Note.Type.LongNoteEnd && !hitData && display.otherEndHitData
+                readonly property bool held: note.type === Note.Type.LongNoteBegin && hitData && !display.otherEndHitData
                 readonly property var note: display.note
-                readonly property real prevPosition: column.notes[realIndex-1]?.time?.position || 0
-                visible: note.type === Note.Type.LongNoteEnd || !hitData
-                readonly property bool shouldShowStatic: note.type === Note.Type.LongNoteEnd && (wasHeld || prevPosition < column.position) && note.time.position > column.position
-                onShouldShowStaticChanged: {
-                    if (realIndex >= lnBeginStatic.lastIndex) {
-                        lnBeginStatic.visible = shouldShowStatic;
-                        lnBeginStatic.lastIndex = realIndex;
-                    }
-                }
-                property bool wasHeld: note.type === Note.Type.LongNoteEnd && display.otherEndHitData && (!hitData || hitData.points.judgement !== Judgement.LnEndSkip)
+                readonly property real nextPosition: column.notes[realIndex+1]?.time?.position || Infinity
+                visible: note.type === Note.Type.LongNoteBegin || note.type === Note.Type.LongNoteEnd || !hitData
+                readonly property bool shouldShowStatic: note.type === Note.Type.LongNoteBegin && (wasHeld || note.time.position < column.position) && nextPosition > column.position
+                property bool wasHeld: note.type === Note.Type.LongNoteBegin && hitData && (!display.otherEndHitData || display.otherEndHitData.points.judgement !== Judgement.LnEndSkip)
                 property int realIndex: columnState.getRealIndex(index)
+                property bool between: note.position < column.position && nextPosition > column.position
 
-                y: -note.time.position * column.heightMultiplier -column.noteHeight / 3
+                y: (shouldShowStatic ? -column.position : -note.time.position) * column.heightMultiplier -column.noteHeight / 3
                 width: column.width
                 z: index
 
@@ -112,7 +96,7 @@ Item {
                 Loader {
                     id: lnBodyLoader
 
-                    active: noteObj.note.type === Note.Type.LongNoteEnd
+                    active: noteObj.note.type === Note.Type.LongNoteBegin
 
                     sourceComponent: Component {
                         Image {
@@ -120,10 +104,10 @@ Item {
 
                             fillMode: Image.TileVertically
                             height: {
-                                if (!noteObj.wasHeld) {
-                                    return (noteObj.note.time.position - noteObj.prevPosition) * column.heightMultiplier - column.noteHeight
+                                if (!noteObj.shouldShowStatic) {
+                                    return (noteObj.nextPosition - noteObj.note.time.position) * column.heightMultiplier - column.noteHeight
                                 } else {
-                                    return (noteObj.note.time.position - column.position) * column.heightMultiplier;
+                                    return (noteObj.nextPosition - column.position) * column.heightMultiplier - column.noteHeight
                                 }
                             }
                             source: {
@@ -134,7 +118,7 @@ Item {
                                 return root.iniImagesUrl + "notes/" + column.noteImage + "/ln_body_" + (flashing ? "flash" : "active") + "_" + column.color;
                             }
                             width: noteObj.width
-                            y: column.noteHeight
+                            y: -height
                             z: -1
                         }
                     }
