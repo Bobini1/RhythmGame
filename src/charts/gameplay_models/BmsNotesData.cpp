@@ -7,6 +7,7 @@
 #include "BmsNotesData.h"
 #include "sounds/OpenAlSoundBuffer.h"
 
+#include <ranges>
 #include <span>
 #include <spdlog/spdlog.h>
 
@@ -98,8 +99,7 @@ combineBpmChanges(std::span<const uint16_t> exBpmChanges,
         combinedBpmChanges.emplace_back(
           BpmChangeDef{ fraction, true, fractionDec, stopValue->second });
     }
-    std::sort(combinedBpmChanges.begin(),
-              combinedBpmChanges.end(),
+    std::ranges::sort(combinedBpmChanges,
               [](const auto& a, const auto& b) {
                   if (a.fractionDec == b.fractionDec) {
                       return a.isStop < b.isStop;
@@ -218,20 +218,16 @@ calculateOffsetsForColumn(
                   note
               };
         }
-        std::vector<BmsNotesData::Note> notesVector;
-        for (const auto& [fractionDec, note] : notesMap) {
-            notesVector.push_back(note);
-        }
-        // sort by timestamp
-        std::sort(notesVector.begin(), notesVector.end(), [](const auto& a, const auto& b) {
-            return a.time.timestamp < b.time.timestamp;
-        });
-        // add to target
-        for (const auto& note : notesVector) {
-            target.push_back(note);
-        }
     }
-    for (auto& [timestamp, note] : notesMap) {
+    std::vector<BmsNotesData::Note> notesVector;
+    for (const auto& note : notesMap | std::views::values) {
+        notesVector.push_back(note);
+    }
+    // sort by timestamp
+    std::ranges::sort(notesVector, [](const auto& a, const auto& b) {
+        return a.time.timestamp < b.time.timestamp;
+    });
+    for (auto& note : notesVector) {
         if (noteType == BmsNotesData::NoteType::Normal && lnObj.has_value() &&
             note.sound == lnObj.value()) {
             // we don't ever want two ln ends in a row
@@ -310,12 +306,11 @@ calculateOffsetsForLnRdm(
               };
         }
         std::vector<BmsNotesData::Note> notesVector;
-        for (const auto& [fractionDec, note] : notesMap) {
+        for (const auto& note : notesMap | std::views::values) {
             notesVector.push_back(note);
         }
         // sort by timestamp
-        std::sort(notesVector.begin(),
-                  notesVector.end(),
+        std::ranges::sort(notesVector,
                   [](const auto& a, const auto& b) {
                       return a.time.timestamp < b.time.timestamp;
                   });
@@ -452,22 +447,18 @@ calculateOffsetsForLandmine(
                   note
               };
         }
-        std::vector<BmsNotesData::Note> notesVector;
-        for (const auto& [fractionDec, note] : notesMap) {
-            notesVector.push_back(note);
-        }
-        // sort by timestamp
-        std::sort(notesVector.begin(),
-                  notesVector.end(),
-                  [](const auto& a, const auto& b) {
-                      return a.time.timestamp < b.time.timestamp;
-                  });
-        // add to target
-        for (const auto& note : notesVector) {
-            target.push_back(note);
-        }
     }
-    for (const auto& [timestamp, note] : notesMap) {
+    std::vector<BmsNotesData::Note> notesVector;
+    for (const auto& [fractionDec, note] : notesMap) {
+        notesVector.push_back(note);
+    }
+    // sort by timestamp
+    std::ranges::sort(notesVector,
+              [](const auto& a, const auto& b) {
+                  return a.time.timestamp < b.time.timestamp;
+              });
+    // add to target
+    for (const auto& note : notesVector) {
         target.push_back(note);
     }
 }
@@ -534,12 +525,11 @@ calculateOffsetsForBga(
             };
         }
         std::vector<std::pair<BmsNotesData::Time, uint16_t>> notesVector;
-        for (const auto& [fractionDec, note] : notesMap) {
+        for (const auto& note : notesMap | std::views::values) {
             notesVector.emplace_back(note.second, note.first);
         }
         // sort by timestamp
-        std::sort(notesVector.begin(),
-                  notesVector.end(),
+        std::ranges::stable_sort(notesVector,
                   [](const auto& a, const auto& b) {
                       return a.first.timestamp < b.first.timestamp;
                   });
@@ -628,7 +618,7 @@ BmsNotesData::generateMeasures(
         auto combinedBpmChanges = combineBpmChanges(
           measure.exBpmChanges, measure.bpmChanges, measure.stops, bpms, stops);
         auto meter = measure.meter.value_or(
-          charts::parser_models::ParsedBmsChart::Measure::defaultMeter);
+          parser_models::ParsedBmsChart::Measure::defaultMeter);
         for (const auto& bpmChange : combinedBpmChanges) {
             auto fraction = bpmChange.fraction;
             auto bpmChangeNum = bpmChange.bpm;
@@ -755,15 +745,14 @@ BmsNotesData::generateMeasures(
         lastMeasure = currentMeasure;
         measureStart = timestamp;
     }
-    std::sort(bgmNotes.begin(), bgmNotes.end());
+    std::ranges::sort(bgmNotes);
     if (lnType == LnType::RDM) {
         adjustRdmLnEnds(lastInsertedRdmNoteP1, lastInsertedRdmNoteP2);
     } else {
         adjustMgqLnEnds(lastBpm, measureStart, insideLnP1, insideLnP2);
     }
     for (auto& column : notes) {
-        std::sort(
-          column.begin(), column.end(), [](const auto& a, const auto& b) {
+        std::ranges::sort(column, [](const auto& a, const auto& b) {
               if (a.time.timestamp == b.time.timestamp) {
                   return a.noteType < b.noteType;
               }
@@ -775,7 +764,7 @@ BmsNotesData::generateMeasures(
 void
 BmsNotesData::adjustMgqLnEnds(
   double lastBpm,
-  BmsNotesData::Time measureStart,
+  Time measureStart,
   std::array<bool, parser_models::ParsedBmsChart::Measure::columnNumber>&
     insideLnP1,
   std::array<bool, parser_models::ParsedBmsChart::Measure::columnNumber>&
@@ -828,16 +817,16 @@ BmsNotesData::adjustRdmLnEnds(
 void
 BmsNotesData::fillEmptyMeasures(int64_t lastMeasure,
                                 int64_t measureIndex,
-                                BmsNotesData::Time& measureStart,
+                                Time& measureStart,
                                 double lastBpm)
 {
     lastMeasure++;
     for (; lastMeasure < measureIndex; ++lastMeasure) {
         auto measureLength =
-          BmsNotesData::Time{ std::chrono::nanoseconds(static_cast<int64_t>(
-                                60.0 * BmsNotesData::defaultBeatsPerMeasure *
+          Time{ std::chrono::nanoseconds(static_cast<int64_t>(
+                                60.0 * defaultBeatsPerMeasure *
                                 1'000'000'000 / lastBpm)),
-                              BmsNotesData::defaultBeatsPerMeasure };
+                              defaultBeatsPerMeasure };
         auto measureEnd = measureStart + measureLength;
         barLines.push_back(measureEnd);
         measureStart = measureEnd;

@@ -188,7 +188,7 @@ Rectangle {
 
                 Image {
                     id: image
-                    source: Rg.programSettings.avatarFolder + modelData.vars.globalVars.avatar
+                    source: Rg.programSettings.avatarFolder + modelData.vars.generalVars.avatar
                     asynchronous: true
                     anchors.fill: parent
                     fillMode: Image.PreserveAspectFit
@@ -214,7 +214,7 @@ Rectangle {
 
                 TextEdit {
                     id: name
-                    text: modelData.vars.globalVars.name
+                    text: modelData.vars.generalVars.name
                     readOnly: true
                     font.pixelSize: 24
                     color: "white"

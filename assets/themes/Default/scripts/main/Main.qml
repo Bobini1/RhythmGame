@@ -1,13 +1,13 @@
 import QtQuick 2.15
-import RhythmGameQml
 import QtQuick.Controls.Basic 2.15
 import QtQuick.Layouts
+import RhythmGameQml
 
 Image {
     id: screen
     readonly property string imagesUrl: Qt.resolvedUrl(".") + "images/"
     readonly property string iniImagesUrl: "image://ini/" + rootUrl + "images/"
-    property string rootUrl: globalRoot.urlToPath(Qt.resolvedUrl(".").toString())
+    property string rootUrl: QmlUtils.fileName.slice(0, QmlUtils.fileName.lastIndexOf("/") + 1)
 
     source: imagesUrl + "RGBArtboard_2.svg"
 

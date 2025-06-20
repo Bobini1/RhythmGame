@@ -27,7 +27,7 @@ Rectangle {
         anchors.left: parent.left
         anchors.leftMargin: 20
 
-        text: "Note Order (P1)"
+        text: qsTr("Note Order (P1)")
 
         highlightedKeys: [1, 2]
     }
@@ -44,7 +44,7 @@ Rectangle {
         profile: Rg.profileList.mainProfile
 
         model: [NoteOrderAlgorithm.Normal, NoteOrderAlgorithm.Mirror, NoteOrderAlgorithm.Random, NoteOrderAlgorithm.RandomPlus, NoteOrderAlgorithm.SRandom, NoteOrderAlgorithm.SRandomPlus, NoteOrderAlgorithm.RRandom]
-        strings: ["NORMAL", "MIRROR", "RANDOM", "RANDOM+", "S-RANDOM", "S-RANDOM+", "R-RANDOM"]
+        strings: qsTr("NORMAL;MIRROR;RANDOM;RANDOM+;S-RANDOM;S-RANDOM+;R-RANDOM").split(";")
         prop: "noteOrderAlgorithm"
     }
 
@@ -57,7 +57,7 @@ Rectangle {
         anchors.right: parent.right
         anchors.rightMargin: 20
 
-        text: "Note Order (P2)"
+        text: qsTr("Note Order (P2)")
 
         highlightedKeys: [6, 7]
     }
@@ -73,7 +73,7 @@ Rectangle {
         profile: Rg.profileList.mainProfile
 
         model: [NoteOrderAlgorithm.Normal, NoteOrderAlgorithm.Mirror, NoteOrderAlgorithm.Random, NoteOrderAlgorithm.RandomPlus, NoteOrderAlgorithm.SRandom, NoteOrderAlgorithm.SRandomPlus, NoteOrderAlgorithm.RRandom]
-        strings: ["NORMAL", "MIRROR", "RANDOM", "RANDOM+", "S-RANDOM", "S-RANDOM+", "R-RANDOM"]
+        strings: qsTr("NORMAL;MIRROR;RANDOM;RANDOM+;S-RANDOM;S-RANDOM+;R-RANDOM").split(";")
         prop: "noteOrderAlgorithmP2"
     }
 
@@ -93,7 +93,7 @@ Rectangle {
             Layout.fillWidth: true
             height: 40
 
-            text: "Gauge Type"
+            text: qsTr("Gauge Type")
 
             highlightedKeys: [3]
         }
@@ -103,7 +103,7 @@ Rectangle {
             Layout.fillWidth: true
             height: 40
 
-            text: "DP Options"
+            text: qsTr("DP Options")
 
             highlightedKeys: [4]
         }
@@ -113,7 +113,7 @@ Rectangle {
             Layout.fillWidth: true
             height: 40
 
-            text: "Hi-Speed Fix"
+            text: qsTr("Hi-Speed Fix")
 
             highlightedKeys: [5]
         }
@@ -129,7 +129,7 @@ Rectangle {
         height: 220
         down: BmsKey.Col13
         model: ["AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC"]
-        strings: ["ASSISTED EASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC"]
+        strings: qsTr("ASSISTED EASY;EASY;NORMAL;HARD;EXHARD;FC").split(";")
         prop: "gaugeType"
         profile: Rg.profileList.mainProfile
     }
@@ -147,7 +147,7 @@ Rectangle {
         anchors.horizontalCenter: parent.horizontalCenter
         down: BmsKey.Col14
         model: bg.duplicate([DpOptions.Off, DpOptions.Flip, DpOptions.Battle, DpOptions.BattleAs])
-        strings: bg.duplicate(["OFF", "FLIP", "BATTLE", "BATTLE AS"])
+        strings: bg.duplicate(qsTr("OFF;FLIP;BATTLE;BATTLE AS").split(";"))
         prop: "dpOptions"
         profile: Rg.profileList.mainProfile
     }
@@ -162,7 +162,7 @@ Rectangle {
         height: 220
         down: BmsKey.Col15
         model: bg.duplicate([HiSpeedFix.Main, HiSpeedFix.Start, HiSpeedFix.Max, HiSpeedFix.Min, HiSpeedFix.Avg, HiSpeedFix.Off])
-        strings: bg.duplicate(["MAIN BPM", "START BPM", "MAX BPM", "MIN BPM", "AVG BPM", "OFF"])
+        strings: bg.duplicate(qsTr("MAIN BPM;START BPM;MAX BPM;MIN BPM;AVG BPM;OFF").split(";"))
         prop: "hiSpeedFix"
         profile: Rg.profileList.mainProfile
     }

@@ -8,88 +8,91 @@ import "../../common/helpers.js" as Helpers
 Frame {
     id: groupFrame
 
-    property var _props: props
-    property var _destination: destination
+    property string name
+    property string description
+    property var items
+    property var destination
 
-    ColumnLayout {
+    Column {
         width: parent.width
+        spacing: 5
         TextEdit {
             wrapMode: TextEdit.Wrap
-            Layout.fillWidth: true
-            text: groupFrame._props.name
+            anchors {
+                left: parent.left
+                right: parent.right
+            }
+            text: groupFrame.name
             font.pixelSize: 24
             font.bold: true
             readOnly: true
         }
         TextEdit {
             wrapMode: TextEdit.Wrap
-            Layout.fillWidth: true
-            text: groupFrame._props.description || ""
+            anchors {
+                left: parent.left
+                right: parent.right
+            }
+            text: groupFrame.description
             font.pixelSize: 16
             readOnly: true
         }
         // empty space separator
         Rectangle {
-            Layout.fillWidth: true
+            anchors {
+                left: parent.left
+                right: parent.right
+            }
             Layout.preferredHeight: 10
             color: "transparent"
         }
         Repeater {
-            model: groupFrame._props.items
-            RowLayout {
+            model: groupFrame.items
+            Loader {
+                id: loader
+
+                Component.onCompleted: {
+                    let props = {};
+                    Object.assign(props, modelData);
+                    if ("id" in props) {
+                        props.id_ = props.id;
+                    }
+                    delete props.id;
+                    if (props.type !== "group") {
+                        props.default_ = props.default;
+                    }
+                    delete props.default;
+                    if (props.type === "choice") {
+                        props.displayStrings = loader.displayStrings;
+                    }
+                    delete props.type;
+                    props.destination = groupFrame.destination;
+                    props.description = loader.description;
+                    props.name = loader.name;
+                    setSource(Helpers.capitalizeFirstLetter(modelData.type) + ".qml", props);
+                }
+                readonly property string name: modelData.name[Rg.languages.getClosestLanguage(Rg.languages.selectedLanguage, Object.keys(modelData.name))] || "";
+                onNameChanged: {
+                    if (loader.item) {
+                        loader.item.name = name;
+                    }
+                }
+                readonly property string description: modelData.description ? modelData.description[Rg.languages.getClosestLanguage(Rg.languages.selectedLanguage, Object.keys(modelData.description))] || "" : "";
+                onDescriptionChanged: {
+                    if (loader.item) {
+                        loader.item.description = description;
+                    }
+                }
+                readonly property list<string> displayStrings: modelData.type === "choice" ? modelData.displayStrings[Rg.languages.getClosestLanguage(Rg.languages.selectedLanguage, Object.keys(modelData.displayStrings))] : [];
+                onDisplayStringsChanged: {
+                    if (loader.item) {
+                        loader.item.displayStrings = displayStrings;
+                    }
+                }
+                Layout.fillWidth: true
+                Layout.maximumWidth: modelData.type === "group" ? -1 : 600
+                Layout.minimumWidth: modelData.type === "group" ? -1 : 150
                 width: parent.width
-                Loader {
-                    id: loader1
-                    active: modelData.type !== "group"
-                    Layout.fillWidth: modelData.type !== "group"
-                    Layout.minimumWidth: modelData.type !== "group" ? 150 : -1
-                    // I have no idea why this is needed here.
-                    // It works like some kind of priority.
-                    Layout.preferredWidth: modelData.type !== "group" ? 2 : -1
-                    sourceComponent: Component {
-                        TextEdit {
-                            text: modelData.name
-                            font.pixelSize: 16
-                            font.bold: true
-                            wrapMode: TextEdit.Wrap
-                            readOnly: true
-                            HoverHandler {
-                                id: hoverHandler
-                            }
-                            ToolTip.visible: hoverHandler.hovered && (modelData.description || false)
-                            ToolTip.text: modelData.description || ""
-                        }
-                    }
-                }
-                Loader {
-                    id: loader
-
-                    source: Helpers.capitalizeFirstLetter(modelData.type) + ".qml"
-                    property var destination: groupFrame._destination
-                    property var props: modelData
-                    Layout.fillWidth: true
-                    Layout.maximumWidth: modelData.type === "group" ? -1 : 600
-                    Layout.minimumWidth: modelData.type === "group" ? -1 : 150
-                    // Priority
-                    Layout.preferredWidth: 1
-                }
-                Loader {
-                    active: modelData.type !== "group"
-                    Layout.fillWidth: active
-                    Layout.minimumWidth: active ? 50 : -1
-                    Layout.maximumWidth: active ? 50 : -1
-                    sourceComponent: Component {
-                        Button {
-                            text: "Reset"
-                            enabled: groupFrame._destination[modelData.id] !== modelData.default
-
-                            implicitWidth: 50
-                            onClicked: {
-                                groupFrame._destination[modelData.id] = modelData.default
-                            }
-                        }
-                    }
-                }
             }
         }
     }

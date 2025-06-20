@@ -6,7 +6,7 @@ Image {
     id: sortButton
 
     property int current: 0
-    property var options: ["Title", "Artist", "BPM", "Clear", "Score", "Level", "Total"]
+    property var options: [QT_TR_NOOP("Title"), QT_TR_NOOP("Artist"), QT_TR_NOOP("BPM"), QT_TR_NOOP("Clear"), QT_TR_NOOP("Score"), QT_TR_NOOP("Level"), QT_TR_NOOP("Total")]
 
     source: root.iniImagesUrl + "option.png/button_big"
 
@@ -14,7 +14,7 @@ Image {
         anchors.centerIn: parent
         color: "black"
         font.pixelSize: 20
-        text: "Sort: " + sortButton.options[sortButton.current]
+        text: qsTr("Sort: %1").arg(qsTr(sortButton.options[sortButton.current]))
     }
     MouseArea {
         function compareByTitle(a, b) {

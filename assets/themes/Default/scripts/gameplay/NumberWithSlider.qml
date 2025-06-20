@@ -9,6 +9,7 @@ Row {
     property alias to: slider.to
     property alias from: slider.from
     required property var src
+    property real decimals: to <= 1 ? 1 : 0
 
     height: slider.height
     spacing: 10
@@ -35,7 +36,7 @@ Row {
     TextField {
         id: txt
 
-        text: Qt.locale().toString(src[numberWithSlider.prop], "f", numberWithSlider.to <= 1 ? 1 : 0)
+        text: Qt.locale().toString(src[numberWithSlider.prop], "f", numberWithSlider.decimals)
         font.pixelSize: 20
         width: 70
         height: slider.height

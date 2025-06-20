@@ -10,64 +10,40 @@ ApplicationWindow {
     height: 720
     visible: true
     width: 1280
+    Shortcut {
+        autoRepeat: false
+        sequence: "F11"
+
+        onActivated: {
+            if (contentContainer.visibility === Window.FullScreen) {
+                contentContainer.visibility = Window.Windowed;
+            } else {
+                contentContainer.visibility = Window.FullScreen;
+            }
+        }
+    }
 
     Settings {
         property alias height: contentContainer.height
         property alias width: contentContainer.width
-    }
-    Component {
-        id: chartContext
-
-        FocusScope {
-            id: chartFocusScope
-
-            required property Chart chart
-            readonly property string screen: {
-                let keys = chartFocusScope.chart.chartData.keymode;
-                let battle = chartFocusScope.chart.player1 && chartFocusScope.chart.player2;
-                return "k" + keys + (battle ? "battle" : "");
-            }
-
-            Loader {
-                id: loader
-
-                anchors.fill: parent
-                source: Rg.themes.availableThemeFamilies[Rg.profileList.mainProfile.themeConfig[chartFocusScope.screen]].screens[chartFocusScope.screen].script
-            }
-        }
-    }
-    Component {
-        id: resultContext
-
-        FocusScope {
-            id: resultFocusScope
-
-            required property ChartData chartData
-            required property list<BmsScore> scores
-            required property list<Profile> profiles
-
-            Loader {
-                id: loader
-
-                anchors.fill: parent
-                source: Rg.themes.availableThemeFamilies[Rg.profileList.mainProfile.themeConfig.result].screens.result.script
-            }
-        }
+        property alias visibility: contentContainer.visibility
     }
     Item {
         id: globalRoot
 
         readonly property Profile mainProfile: Rg.profileList.mainProfile
-        readonly property Component gameplayComponent: chartContext
+        readonly property Component k7Component: Qt.createComponent(Rg.themes.availableThemeFamilies[mainProfile.themeConfig.k7].screens.k7.script)
+        readonly property Component k7battleComponent: Qt.createComponent(Rg.themes.availableThemeFamilies[mainProfile.themeConfig.k7battle].screens.k7battle.script)
+        readonly property Component k14Component: Qt.createComponent(Rg.themes.availableThemeFamilies[mainProfile.themeConfig.k14].screens.k14.script)
         readonly property Component mainComponent: Qt.createComponent(Rg.themes.availableThemeFamilies[mainProfile.themeConfig.main].screens.main.script)
-        readonly property Component resultComponent: resultContext
+        readonly property Component resultComponent: Qt.createComponent(Rg.themes.availableThemeFamilies[mainProfile.themeConfig.result].screens.result.script)
         readonly property Component settingsComponent: Qt.createComponent(Rg.themes.availableThemeFamilies[mainProfile.themeConfig.settings].screens.settings.script)
         readonly property Component songWheelComponent: Qt.createComponent(Rg.themes.availableThemeFamilies[mainProfile.themeConfig.songWheel].screens.songWheel.script)
 
         function openChart(path) {
             let chart;
             if (Rg.profileList.battleActive) {
-                chart = Rg.chartLoader.loadChart(path, Rg.profileList.battleProfiles.player1Profile, Rg.profileList.battleProfiles.player2Profile);
+                chart = Rg.chartLoader.loadChart(path, Rg.profileList.battleProfiles.player1Profile, false, null, Rg.profileList.battleProfiles.player2Profile, false, null);
             } else {
                 chart = Rg.chartLoader.loadChart(path, Rg.profileList.mainProfile, false, null, null, false, null);
             }
@@ -75,7 +51,11 @@ ApplicationWindow {
                 console.error("Failed to load chart");
                 return;
             }
-            sceneStack.pushItem(gameplayComponent, {
+            let keys = chart.chartData.keymode;
+            let battle = chart.player1 && chart.player2;
+            let screen = "k" + keys + (battle ? "battle" : "");
+            let component = this[screen + "Component"];
+            sceneStack.pushItem(component, {
                 "chart": chart
             });
         }
@@ -86,7 +66,11 @@ ApplicationWindow {
                 console.error("Failed to load replay");
                 return;
             }
-            sceneStack.pushItem(gameplayComponent, {
+            let keys = chart.chartData.keymode;
+            let battle = chart.player1 && chart.player2;
+            let screen = "k" + keys + (battle ? "battle" : "");
+            let component = this[screen + "Component"];
+            sceneStack.pushItem(component, {
                 "chart": chart
             });
         }
@@ -97,7 +81,11 @@ ApplicationWindow {
                 console.error("Failed to load chart");
                 return;
             }
-            sceneStack.pushItem(gameplayComponent, {
+            let keys = chart.chartData.keymode;
+            let battle = chart.player1 && chart.player2;
+            let screen = "k" + keys + (battle ? "battle" : "");
+            let component = this[screen + "Component"];
+            sceneStack.pushItem(component, {
                 "chart": chart
             });
         }
@@ -108,17 +96,6 @@ ApplicationWindow {
                 "profiles": profiles,
                 "chartData": chartData
             });
-        }
-
-        function urlToPath(urlString) {
-            let s;
-            if (urlString.startsWith("file:///")) {
-                let k = urlString.charAt(9) === ':' ? 8 : 7;
-                s = urlString.substring(k);
-            } else {
-                s = urlString;
-            }
-            return decodeURIComponent(s);
         }
 
         anchors.fill: parent
@@ -190,7 +167,7 @@ ApplicationWindow {
         }
         Shortcut {
             autoRepeat: false
-            sequence: "F11"
+            sequence: "F10"
 
             onActivated: {
                 debugLogLoader.active = !debugLogLoader.active;

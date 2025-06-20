@@ -10,21 +10,30 @@ Item {
     required property var columnState
     required property real position
     required property string color
-    required property bool notesStay
     required property string noteImage
     required property string mineImage
     required property var notes
     required property real heightMultiplier
     required property real noteHeight
 
+    FrameAnimation {
+        running: true
+        onTriggered: {
+            let top = column.height / column.heightMultiplier;
+            columnState.topPosition = column.position + top;
+            columnState.bottomPosition = column.position;
+        }
+    }
+
     Image {
         id: lnBeginStatic
         height: column.noteHeight
         width: column.width
         source: root.iniImagesUrl + "notes/" + column.noteImage + "/ln_start_" + column.color
-        y: parent.height * (1 - playArea.globalVars.liftOn * playArea.globalVars.liftRatio) - column.noteHeight * 2 / 3
+        y: parent.height * (1 - playArea.generalVars.liftOn * playArea.generalVars.liftRatio) - column.noteHeight * 2 / 3
         visible: false
         z: 1
+        property int lastIndex: -1
     }
 
     Flickable {
@@ -35,7 +44,7 @@ Item {
         clip: true
         interactive: false
 
-        contentY: -(column.position * playArea.heightMultiplier + height * (1 - playArea.globalVars.liftOn * playArea.globalVars.liftRatio)) + column.noteHeight / 3
+        contentY: -(column.position * column.heightMultiplier + height * (1 - playArea.generalVars.liftOn * playArea.generalVars.liftRatio)) + column.noteHeight / 3
 
         Repeater {
             id: repeater
@@ -47,15 +56,19 @@ Item {
                 required property var display
                 required property int index
                 readonly property var hitData: display.hitData
-                readonly property bool held: note.type === Note.Type.LongNoteEnd && !hitData && repeater.itemAt(index - 1).display.hitData
+                readonly property bool held: note.type === Note.Type.LongNoteEnd && !hitData && display.otherEndHitData
                 readonly property var note: display.note
-                readonly property real prevPosition: index > 0 ? repeater.itemAt(index - 1).note.time.position : 0
-                readonly property real prevBelowJudgeline: index > 0 ? repeater.itemAt(index - 1).display.belowJudgeline : false
+                readonly property real prevPosition: column.notes[realIndex-1]?.time?.position || 0
                 visible: note.type === Note.Type.LongNoteEnd || !hitData
-                readonly property bool shouldShowStatic: note.type === Note.Type.LongNoteEnd && !display.belowJudgeline && prevBelowJudgeline
+                readonly property bool shouldShowStatic: note.type === Note.Type.LongNoteEnd && (wasHeld || prevPosition < column.position) && note.time.position > column.position
                 onShouldShowStaticChanged: {
-                    lnBeginStatic.visible = shouldShowStatic;
+                    if (realIndex >= lnBeginStatic.lastIndex) {
+                        lnBeginStatic.visible = shouldShowStatic;
+                        lnBeginStatic.lastIndex = realIndex;
+                    }
                 }
+                property bool wasHeld: note.type === Note.Type.LongNoteEnd && display.otherEndHitData && (!hitData || hitData.points.judgement !== Judgement.LnEndSkip)
+                property int realIndex: columnState.getRealIndex(index)
 
                 y: -note.time.position * column.heightMultiplier -column.noteHeight / 3
                 width: column.width
@@ -109,7 +122,13 @@ Item {
                             id: lnImg
 
                             fillMode: Image.TileVertically
-                            height: (noteObj.note.time.position - noteObj.prevPosition) * column.heightMultiplier - column.noteHeight
+                            height: {
+                                if (!noteObj.wasHeld) {
+                                    return (noteObj.note.time.position - noteObj.prevPosition) * column.heightMultiplier - column.noteHeight
+                                } else {
+                                    return (noteObj.note.time.position - column.position) * column.heightMultiplier;
+                                }
+                            }
                             source: {
                                 if (!noteObj.held) {
                                     return root.iniImagesUrl + "notes/" + column.noteImage + "/ln_body_inactive_" + column.color;

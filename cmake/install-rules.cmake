@@ -11,6 +11,12 @@ install(DIRECTORY assets/avatars/ DESTINATION assets/avatars/
 install(DIRECTORY assets/themes/ DESTINATION assets/themes/
         COMPONENT RhythmGame_Runtime)
 
+install(DIRECTORY DESTINATION assets/profiles/
+        COMPONENT RhythmGame_Runtime)
+
+install(DIRECTORY DESTINATION assets/tables/
+        COMPONENT RhythmGame_Runtime)
+
 qt_generate_deploy_qml_app_script(
         TARGET RhythmGame_exe
         OUTPUT_SCRIPT deploy_script
@@ -33,6 +39,26 @@ if (WIN32)
 else ()
     install(FILES alsoft.ini DESTINATION "${CMAKE_INSTALL_BINDIR}" RENAME alsoft.conf
             COMPONENT RhythmGame_Runtime)
+endif ()
+
+set(CPACK_PACKAGE_VENDOR "Bobini")
+set(CPACK_PACKAGE_INSTALL_DIRECTORY "RhythmGame")
+set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_SOURCE_DIR}/LICENSE.md")
+
+if (WIN32)
+    if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+        install(FILES ${CMAKE_BINARY_DIR}/bin/mimalloc-debug.dll DESTINATION "${CMAKE_INSTALL_BINDIR}"
+                COMPONENT RhythmGame_Runtime)
+    else ()
+        install(FILES ${CMAKE_BINARY_DIR}/bin/mimalloc.dll DESTINATION "${CMAKE_INSTALL_BINDIR}"
+                COMPONENT RhythmGame_Runtime)
+    endif ()
+    install(FILES ${CMAKE_BINARY_DIR}/bin/mimalloc-redirect.dll DESTINATION "${CMAKE_INSTALL_BINDIR}"
+            COMPONENT RhythmGame_Runtime)
+
+    set(CPACK_NSIS_EXTRA_INSTALL_COMMANDS
+        "Exec 'icacls \\\"$INSTDIR/assets\\\" /grant *S-1-5-32-545:(OI)(CI)F /T'"
+    )
 endif ()
 
 if (PROJECT_IS_TOP_LEVEL)

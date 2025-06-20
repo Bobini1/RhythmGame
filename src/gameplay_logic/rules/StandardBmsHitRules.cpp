@@ -12,7 +12,7 @@ auto
 gameplay_logic::rules::StandardBmsHitRules::press(
   std::span<Note> notes,
   const int column,
-  const std::chrono::nanoseconds hitOffset) -> HitEvent
+  const std::chrono::nanoseconds hitOffset) -> QList<HitEvent>
 {
     auto currentNoteIndex = currentNotes[column];
     // by default, there is no empty poor, this is an empty hit
@@ -22,12 +22,14 @@ gameplay_logic::rules::StandardBmsHitRules::press(
                                         std::nullopt,
                                         HitEvent::Action::Press,
                                         /*noteRemoved=*/false };
-    for (auto& note : notes.subspan(currentNoteIndex)) {
+    auto subspan = notes.subspan(currentNoteIndex);
+    for (auto iter = subspan.begin(); iter < subspan.end(); ++iter) {
+        auto& note = *iter;
         if (note.hit) {
             currentNoteIndex++;
             continue;
         }
-        if (note.type == NoteType::LnEnd) {
+        if (note.type == NoteType::LnEnd || note.type == NoteType::Invisible) {
             currentNoteIndex++;
             continue;
         }
@@ -46,16 +48,50 @@ gameplay_logic::rules::StandardBmsHitRules::press(
             if (note.sound != nullptr) {
                 note.sound->play();
             }
-            return { column,
-                     note.index,
-                     hitOffset.count(),
-                     BmsPoints{
-                       hitValueFactory(hitOffset - noteTime, result),
-                       result,
-                       (hitOffset - noteTime).count(),
-                     },
-                     HitEvent::Action::Press,
-                     /*noteRemoved=*/true };
+            if (note.type != NoteType::LnBegin) {
+                return { { column,
+                           note.index,
+                           hitOffset.count(),
+                           BmsPoints{
+                             hitValueFactory(hitOffset - noteTime, result),
+                             result,
+                             (hitOffset - noteTime).count(),
+                           },
+                           HitEvent::Action::Press,
+                           /*noteRemoved=*/true } };
+            }
+
+            lnBeginPoints[column] = BmsPoints{
+                hitValueFactory(hitOffset - noteTime, result),
+                result,
+                (hitOffset - noteTime).count(), // unused
+            };
+            auto ret = QList<HitEvent>{ { column,
+                                          note.index,
+                                          hitOffset.count(),
+                                          BmsPoints{
+                                            0.0,
+                                            Judgement::LnBeginHit,
+                                            (hitOffset - noteTime).count(),
+                                          },
+                                          HitEvent::Action::Press,
+                                          /*noteRemoved=*/true } };
+            if (result == Judgement::Bad) {
+                const auto nextNote = std::next(iter);
+                nextNote->hit = true;
+                ret.append(
+                  { column,
+                    nextNote->index,
+                    hitOffset.count(),
+                    BmsPoints{
+                      hitValueFactory(hitOffset - noteTime, Judgement::Bad),
+                      result,
+                      (hitOffset - noteTime).count(),
+                    },
+                    HitEvent::Action::None,
+                    /*noteRemoved=*/true });
+            }
+            return ret;
         }
         emptyPoorOrNothing = HitEvent(
           column,
@@ -72,7 +108,7 @@ gameplay_logic::rules::StandardBmsHitRules::press(
     }
     // find the sound to play (the last note before the hit)
     // go backwards
-    auto notesToCheck = notes.subspan(0, notes.size() - currentNoteIndex);
+    auto notesToCheck = notes.subspan(0, currentNoteIndex);
     auto found = false;
     for (auto& note : std::ranges::reverse_view(notesToCheck)) {
         if (note.time <= hitOffset) {
@@ -89,7 +125,7 @@ gameplay_logic::rules::StandardBmsHitRules::press(
             notes.front().sound->play();
         }
     }
-    return emptyPoorOrNothing;
+    return { emptyPoorOrNothing };
 }
 auto
 gameplay_logic::rules::StandardBmsHitRules::processMisses(
@@ -98,6 +134,9 @@ gameplay_logic::rules::StandardBmsHitRules::processMisses(
   const std::chrono::nanoseconds offsetFromStart) -> std::vector<HitEvent>
 {
     auto& currentNoteIndex = currentNotes[column];
+    if (currentNoteIndex >= notes.size()) {
+        return {};
+    }
     auto events = std::vector<HitEvent>{};
     notes = notes.subspan(currentNoteIndex);
     const auto upperBound = timingWindows.rbegin()->first.upper();
@@ -113,12 +152,15 @@ gameplay_logic::rules::StandardBmsHitRules::processMisses(
         }
         if (iter->type == NoteType::LnEnd) {
             if (iter->time <= offsetFromStart) {
-                events.emplace_back(column,
-                                    iter->index,
-                                    noteTime.count(),
-                                    BmsPoints{ 0.0, Judgement::LnEndMiss, 0 },
-                                    HitEvent::Action::None,
-                                    /*noteRemoved=*/false);
+                events.emplace_back(
+                  column,
+                  iter->index,
+                  noteTime.count(),
+                  BmsPoints{ lnBeginPoints[column].getValue(),
+                             lnBeginPoints[column].getJudgement(),
+                             0 },
+                  HitEvent::Action::None,
+                  /*noteRemoved=*/true);
             }
         } else if (iter->type == NoteType::LnBegin ||
                    iter->type == NoteType::Normal) {
@@ -173,6 +215,9 @@ gameplay_logic::rules::StandardBmsHitRules::processMines(
   sounds::OpenALSound* mineHitSound) -> std::vector<HitEvent>
 {
     auto& currentMineIndex = currentMines[column];
+    if (currentMineIndex >= mines.size()) {
+        return {};
+    }
     auto mineHits = std::vector<HitEvent>{};
     mines = mines.subspan(currentMineIndex);
     auto playSound = false;
@@ -220,13 +265,14 @@ gameplay_logic::rules::StandardBmsHitRules::processMines(
         }
         iter->hit = true;
         playSound = true;
-        mineHits.emplace_back(
-          column,
-          mine.index,
-          offsetFromStart.count(),
-          BmsPoints{ mine.penalty, Judgement::MineHit, (offsetFromStart - noteTime).count() },
-          HitEvent::Action::None,
-          /*noteRemoved=*/true);
+        mineHits.emplace_back(column,
+                              mine.index,
+                              offsetFromStart.count(),
+                              BmsPoints{ mine.penalty,
+                                         Judgement::MineHit,
+                                         (offsetFromStart - noteTime).count() },
+                              HitEvent::Action::None,
+                              /*noteRemoved=*/true);
         currentMineIndex++;
     }
     if (playSound && mineHitSound != nullptr) {
@@ -243,17 +289,8 @@ gameplay_logic::rules::StandardBmsHitRules::release(
     const auto currentNoteIndex = currentNotes[column];
     const auto windowLow = [&] {
         for (const auto& [window, judgement] : timingWindows) {
-            if (judgement != Judgement::EmptyPoor) {
+            if (judgement == Judgement::Good) {
                 return window.lower();
-            }
-        }
-        return std::chrono::nanoseconds{ 0 };
-    }();
-    const auto windowHigh = [&] {
-        for (const auto& timingWindow :
-             std::ranges::reverse_view(timingWindows)) {
-            if (timingWindow.second != Judgement::EmptyPoor) {
-                return timingWindow.first.upper();
             }
         }
         return std::chrono::nanoseconds{ 0 };
@@ -282,23 +319,24 @@ gameplay_logic::rules::StandardBmsHitRules::release(
             return { column,
                      iter->index,
                      noteTime.count(),
-                     BmsPoints{ hitValueFactory(hitOffset - noteTime,
-                                                Judgement::LnEndMiss),
-                                Judgement::LnEndMiss,
-                                (hitOffset - noteTime).count() },
+                     BmsPoints{
+                       hitValueFactory(hitOffset - noteTime, Judgement::Bad),
+                       Judgement::Bad,
+                       (hitOffset - noteTime).count() },
                      HitEvent::Action::Release,
                      /*noteRemoved=*/true };
         }
-        // dropped too late (handled in processMisses)
-        if (hitOffset >= noteTime + windowHigh) {
-            continue;
+        // dropped late (handled in processMisses)
+        if (hitOffset >= noteTime) {
+            break;
         }
-        const auto result = timingWindows.find(hitOffset - noteTime)->second;
         iter->hit = true;
         return { column,
                  iter->index,
                  noteTime.count(),
-                 BmsPoints{ 0.0, result, (hitOffset - noteTime).count() },
+                 BmsPoints{ lnBeginPoints[column].getValue(),
+                            lnBeginPoints[column].getJudgement(),
+                            (hitOffset - noteTime).count() },
                  HitEvent::Action::Release,
                  /*noteRemoved=*/true };
     }

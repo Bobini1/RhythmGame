@@ -7,37 +7,23 @@ RowLayout {
     required property var props
     property alias sourceComponent: loader.sourceComponent
     property alias text: text.text
-    anchors {
-        left: parent ? parent.left : undefined
-        right: parent ? parent.right : undefined
-    }
 
-    TextEdit {
-        id: text
-        font.pixelSize: 16
-        font.bold: true
-        readOnly: true
-        text: "Green Number"
-        Layout.alignment: Qt.AlignVCenter
-        Layout.preferredWidth: 200
-        wrapMode: TextEdit.Wrap
-    }
     Loader {
         id: loader
         active: true
         Layout.fillWidth: true
         property var props: parent.props
-        property var destination: Rg.profileList.mainProfile.vars.globalVars
+        property var destination: Rg.profileList.mainProfile.vars.generalVars
         Layout.alignment: Qt.AlignVCenter
     }
     Button {
         text: "Reset"
 
         implicitWidth: 50
-        enabled: Rg.profileList.mainProfile.vars.globalVars[parent.props.id] !== parent.props.default
+        enabled: Rg.profileList.mainProfile.vars.generalVars[parent.props.id] !== parent.props.default
         Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
         onClicked: {
-            Rg.profileList.mainProfile.vars.globalVars[parent.props.id] = parent.props.default;
+            Rg.profileList.mainProfile.vars.generalVars[parent.props.id] = parent.props.default;
         }
     }
 }

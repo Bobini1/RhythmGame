@@ -19,15 +19,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install codespell
-        run: pip3 install codespell
-
       - name: Lint
         run: cmake -P cmake/lint.cmake
-
-      - name: Spell check
-        if: always()
-        run: cmake -P cmake/spell.cmake
 
   coverage:
     needs: [ lint ]

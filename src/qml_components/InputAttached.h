@@ -19,7 +19,6 @@ class InputSignalProvider final : public QObject
 {
     Q_OBJECT
     input::InputTranslator* inputTranslator;
-    QList<QMetaObject::Connection> connections;
 
     friend class InputAttached;
 
@@ -27,13 +26,13 @@ class InputSignalProvider final : public QObject
     explicit InputSignalProvider(input::InputTranslator* inputTranslator,
                                  QObject* parent = nullptr);
   signals:
-    void buttonPressed(input::BmsKey button, double value, int64_t time);
+    void buttonPressed(input::BmsKey button, int64_t time);
     void buttonReleased(input::BmsKey button, int64_t time);
 };
 
 /**
  * @brief The class that provides the Input attached property.
- * QML components that wish react to game key events, like scratch or
+ * QML components that wish to react to game key events, like scratch or
  * buttons, should use Input.
  */
 class InputAttached final : public QObject
@@ -77,7 +76,7 @@ class InputAttached final : public QObject
 
   signals:
 #define KEY(name)                                                              \
-    void name##Pressed(double value, int64_t time);                            \
+    void name##Pressed(int64_t time);                                          \
     void name##Released(int64_t time);                                         \
     void name##Changed();
 
@@ -104,7 +103,7 @@ class InputAttached final : public QObject
     KEY(start2)
     KEY(select2)
 #undef KEY
-    void buttonPressed(input::BmsKey button, double value, int64_t time);
+    void buttonPressed(input::BmsKey button, int64_t time);
     void buttonReleased(input::BmsKey button, int64_t time);
 
   public:

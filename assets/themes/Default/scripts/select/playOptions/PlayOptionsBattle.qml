@@ -61,7 +61,7 @@ Item {
             anchors.right: parent.right
             anchors.rightMargin: 20
 
-            text: "Note Order"
+            text: qsTr("Note Order")
 
             highlightedKeys: [1, 2]
         }
@@ -78,7 +78,7 @@ Item {
             profile: bg.profile
 
             model: [NoteOrderAlgorithm.Normal, NoteOrderAlgorithm.Mirror, NoteOrderAlgorithm.Random, NoteOrderAlgorithm.RandomPlus, NoteOrderAlgorithm.SRandom, NoteOrderAlgorithm.SRandomPlus, NoteOrderAlgorithm.RRandom]
-            strings: ["NORMAL", "MIRROR", "RANDOM", "RANDOM+", "S-RANDOM", "S-RANDOM+", "R-RANDOM"]
+            strings: qsTr("NORMAL;MIRROR;RANDOM;RANDOM+;S-RANDOM;S-RANDOM+;R-RANDOM").split(";")
             prop: "noteOrderAlgorithm"
         }
 
@@ -98,7 +98,7 @@ Item {
                 Layout.fillWidth: true
                 height: 40
 
-                text: "Gauge Type"
+                text: qsTr("Gauge Type")
 
                 highlightedKeys: [3]
             }
@@ -108,7 +108,7 @@ Item {
                 Layout.fillWidth: true
                 height: 40
 
-                text: "Hi-Speed Fix"
+                text: qsTr("Hi-Speed Fix")
 
                 highlightedKeys: [5]
             }
@@ -124,7 +124,7 @@ Item {
             height: 220
             down: BmsKey[`Col${bg.player}3`]
             model: ["AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC"]
-            strings: ["ASSISTED EASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC"]
+            strings: qsTr("ASSISTED EASY;EASY;NORMAL;HARD;EXHARD;FC").split(";")
             prop: "gaugeType"
             profile: bg.profile
         }
@@ -139,7 +139,7 @@ Item {
             height: 220
             down: BmsKey[`Col${bg.player}5`]
             model: playOptionsBattle.duplicate([HiSpeedFix.Main, HiSpeedFix.Start, HiSpeedFix.Max, HiSpeedFix.Min, HiSpeedFix.Off])
-            strings: playOptionsBattle.duplicate(["MAIN BPM", "START BPM", "MAX BPM", "MIN BPM", "OFF"])
+            strings: playOptionsBattle.duplicate(qsTr("MAIN BPM;START BPM;MAX BPM;MIN BPM;AVG BPM;OFF").split(";"))
             prop: "hiSpeedFix"
             profile: bg.profile
         }

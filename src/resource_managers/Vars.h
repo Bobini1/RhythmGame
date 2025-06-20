@@ -10,6 +10,7 @@
 #include <QObject>
 #include <QQmlPropertyMap>
 #include <filesystem>
+#include <QLocale>
 
 namespace qml_components {
 class ProfileList;
@@ -74,7 +75,7 @@ Q_ENUM_NS(GaugeMode)
 } // namespace gauge_mode
 using namespace gauge_mode;
 
-class GlobalVars final : public QObject
+class GeneralVars final : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(int noteScreenTimeMillis READ getNoteScreenTimeMillis WRITE
@@ -121,6 +122,10 @@ class GlobalVars final : public QObject
                  avatarChanged RESET resetAvatar)
     Q_PROPERTY(QString name READ getName WRITE setName NOTIFY nameChanged RESET
                  resetName)
+    Q_PROPERTY(QString language READ getLanguage WRITE setLanguage NOTIFY
+                 languageChanged RESET resetLanguage)
+    Q_PROPERTY(
+      double offset READ getOffset WRITE setOffset NOTIFY offsetChanged)
     // ^ remember to use full namespace for enums for reflection
     int noteScreenTimeMillis = 1000;
     bool laneCoverOn = false;
@@ -139,11 +144,13 @@ class GlobalVars final : public QObject
     QString bottomShiftableGauge = "AEASY";
     QString avatar = "mascot.png";
     QString name = "Default";
+    QString language = QLocale::system().name();
+    double offset = 0.0; // Offset in milliseconds
 
     QString avatarPath;
 
   public:
-    explicit GlobalVars(QString avatarPath, QObject* parent = nullptr);
+    explicit GeneralVars(QString avatarPath, QObject* parent = nullptr);
     auto getNoteScreenTimeMillis() const -> int;
     void setNoteScreenTimeMillis(int value);
     void resetNoteScreenTimeMillis();
@@ -195,6 +202,12 @@ class GlobalVars final : public QObject
     auto getName() const -> QString;
     void setName(QString value);
     void resetName();
+    auto getLanguage() const -> QString;
+    void setLanguage(QString value);
+    void resetLanguage();
+    auto getOffset() const -> double;
+    void setOffset(double value);
+    void resetOffset();
 
   signals:
     void noteScreenTimeMillisChanged();
@@ -214,28 +227,28 @@ class GlobalVars final : public QObject
     void bottomShiftableGaugeChanged();
     void avatarChanged();
     void nameChanged();
+    void languageChanged();
+    void offsetChanged();
 };
 
 class Vars final : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(
-      GlobalVars* globalVars READ getGlobalVars NOTIFY globalVarsChanged)
+      GeneralVars* generalVars READ getGeneralVars NOTIFY generalVarsChanged)
     Q_PROPERTY(
       QQmlPropertyMap* themeVars READ getThemeVars NOTIFY themeVarsChanged)
-    GlobalVars globalVars;
+    GeneralVars generalVars;
     QQmlPropertyMap themeVars;
     const Profile* profile;
     QMap<QString, qml_components::ThemeFamily> availableThemeFamilies;
     QHash<QString, QHash<QString, QHash<QString, QVariant>>> loadedThemeVars;
 
-    void onThemeConfigChanged(const QString& key, const QVariant& value);
     void populateThemePropertyMap(
       QQmlPropertyMap& themeVars,
       QHash<QString, QHash<QString, QHash<QString, QVariant>>> themeVarsData,
-      const std::filesystem::path& themeVarsPath,
-      const QQmlPropertyMap& themeConfig);
-    Q_SLOT void writeGlobalVars() const;
+      const std::filesystem::path& themeVarsPath);
+    Q_SLOT void writeGeneralVars() const;
 
   public:
     explicit Vars(
@@ -243,11 +256,11 @@ class Vars final : public QObject
       QMap<QString, qml_components::ThemeFamily> availableThemeFamilies,
       QString avatarPath,
       QObject* parent = nullptr);
-    auto getGlobalVars() -> GlobalVars*;
+    auto getGeneralVars() -> GeneralVars*;
     auto getThemeVars() -> QQmlPropertyMap*;
 
   signals:
-    void globalVarsChanged();
+    void generalVarsChanged();
     void themeVarsChanged();
 };
 } // namespace resource_managers

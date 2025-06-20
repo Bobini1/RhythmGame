@@ -12,7 +12,7 @@ FocusScope {
 
         readonly property string imagesUrl: Qt.resolvedUrl(".") + "images/"
         readonly property string iniImagesUrl: "image://ini/" + rootUrl + "images/"
-        property string rootUrl: globalRoot.urlToPath(Qt.resolvedUrl(".").toString())
+        property string rootUrl: QmlUtils.fileName.slice(0, QmlUtils.fileName.lastIndexOf("/") + 1)
 
         fillMode: Image.PreserveAspectCrop
         height: parent.height
@@ -22,7 +22,7 @@ FocusScope {
         onEnabledChanged: {
             if (enabled) {
                 previewDelayTimer.restart();
-                songList.refreshScores();
+                songList.refresh();
             } else {
                 playMusic.stop();
                 previewDelayTimer.stop();
@@ -68,9 +68,10 @@ FocusScope {
                 Image {
                     id: auto
                     source: root.iniImagesUrl + "parts.png/auto"
+                    enabled: songList.current?.path || false
+                    opacity: enabled ? 1 : 0.5
                     MouseArea {
                         anchors.fill: parent
-                        enabled: songList.current?.path || false
                         cursorShape: enabled ? Qt.PointingHandCursor : undefined
                         onClicked: {
                             if (songList.current?.path) {
@@ -84,10 +85,11 @@ FocusScope {
                     delegate: Image {
                         id: replay
                         source: root.iniImagesUrl + "parts.png/replay"
+                        opacity: enabled ? 1 : 0.5
+                        enabled: (songList.current?.path && songList.currentItem?.scores?.length) || false
                         MouseArea {
                             anchors.fill: parent
                             cursorShape: enabled ? Qt.PointingHandCursor : undefined
-                            enabled: (songList.current?.path && songList.currentItem?.scores?.length) || false
                             hoverEnabled: true
                             ToolTip.visible: containsMouse
                             ToolTip.text: {

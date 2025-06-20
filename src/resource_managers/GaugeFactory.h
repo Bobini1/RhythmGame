@@ -26,7 +26,7 @@ class GaugeFactory
     {
         auto gauges = gameplay_logic::rules::Lr2Gauge::getGauges(
           timingWindows, total, noteCount);
-        const auto* vars = profile->getVars()->getGlobalVars();
+        const auto* vars = profile->getVars()->getGeneralVars();
         const auto gaugeMode = vars->getGaugeMode();
         const auto selectedGauge = vars->getGaugeType();
         auto selectedIt =

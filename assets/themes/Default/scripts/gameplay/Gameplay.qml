@@ -16,12 +16,27 @@ Rectangle {
     readonly property string imagesUrl: Qt.resolvedUrl(".") + "images/"
     readonly property string iniImagesUrl: "image://ini/" + rootUrl + "images/"
     readonly property Profile mainProfile: Rg.profileList.mainProfile
-    readonly property var mainProfileVars: mainProfile.vars.themeVars[chartFocusScope.screen]
+    readonly property var mainProfileVars: mainProfile.vars.themeVars[screen][themeName]
+    property string rootUrl: QmlUtils.fileName.slice(0, QmlUtils.fileName.lastIndexOf("/") + 1)
+    readonly property string screen: {
+        let keys = chart.chartData.keymode;
+        let battle = chart.player1 && chart.player2;
+        return "k" + keys + (battle ? "battle" : "");
+    }
     property var popup: null
-    property string rootUrl: globalRoot.urlToPath(Qt.resolvedUrl(".").toString())
-    property bool screen: chartFocusScope.screen
-    property bool isDp: chartFocusScope.screen === "k14"
-    property bool isBattle: chartFocusScope.screen === "k7battle"
+    readonly property bool isDp: screen === "k14"
+    readonly property bool isBattle: screen === "k7battle"
+    property Chart chart
+    readonly property string themeName: QmlUtils.themeName
+
+    property bool completed: false
+    StackView.onActivated: {
+        if (completed) {
+            Qt.callLater(() => sceneStack.pop());
+        } else {
+            completed = true;
+        }
+    }
 
     function getColumnSizes(vars) {
         let sizes = [];
@@ -76,8 +91,8 @@ Rectangle {
         id: playAreaPopup
 
         property Profile profile: chart.player1.profile
-        themeVars: profile.vars.themeVars[chartFocusScope.screen]
-        globalVars: profile.vars.globalVars
+        themeVars: profile.vars.themeVars[root.screen][root.themeName]
+        generalVars: profile.vars.generalVars
         dp: root.isDp
 
         onClosed: {
@@ -88,8 +103,9 @@ Rectangle {
         id: playAreaPopupP2
 
         property Profile profile: (chart.player2 || chart.player1).profile
-        themeVars: profile.vars.themeVars[chartFocusScope.screen]
-        globalVars: profile.vars.globalVars
+        themeVars: profile.vars.themeVars[root.screen][root.themeName]
+        generalVars: profile.vars.generalVars
+        dp: root.isDp
 
         onClosed: {
             root.popup = null;
@@ -99,7 +115,7 @@ Rectangle {
         id: gaugePopup
 
         property Profile profile: chart.player1.profile
-        themeVars: profile.vars.themeVars[chartFocusScope.screen]
+        themeVars: profile.vars.themeVars[root.screen][root.themeName]
 
         onClosed: {
             root.popup = null;
@@ -109,7 +125,7 @@ Rectangle {
         id: gaugePopupP2
 
         property Profile profile: (chart.player2 || chart.player1).profile
-        themeVars: profile.vars.themeVars[chartFocusScope.screen]
+        themeVars: profile.vars.themeVars[root.screen][root.themeName]
 
         onClosed: {
             root.popup = null;
@@ -141,10 +157,10 @@ Rectangle {
             id: bga
 
             readonly property Profile profile: chart.player2 ? Rg.profileList.mainProfile : chart.player1.profile
-            readonly property var profileVars: profile.vars.themeVars[chartFocusScope.screen]
+            readonly property var profileVars: profile.vars.themeVars[root.screen][root.themeName]
 
             height: profileVars.bgaSize
-            visible: profile.vars.globalVars.bgaOn
+            visible: profile.vars.generalVars.bgaOn
             width: profileVars.bgaSize
             x: profileVars.bgaX
             y: profileVars.bgaY
@@ -206,7 +222,7 @@ Rectangle {
             readonly property BmsLiveScore score: player.score
             readonly property BmsNotes notes: player.notes
             readonly property var columnStates: player.state.columnStates
-            readonly property var profileVars: profile.vars.themeVars[chartFocusScope.screen]
+            readonly property var profileVars: profile.vars.themeVars[root.screen][root.themeName]
 
             transform: Scale {
                 xScale: side.mirrored ? -1 : 1; origin.x: side.width / 2
@@ -378,7 +394,7 @@ Rectangle {
                             return;
                         }
                         let judgement = tap.points.judgement;
-                        if (judgement === Judgement.Poor || judgement === Judgement.LnEndMiss || judgement === Judgement.Bad) {
+                        if (judgement === Judgement.Poor || judgement === Judgement.Bad) {
                             bga.poorVisible = true;
                             poorLayerTimer.restart();
                         }

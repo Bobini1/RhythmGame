@@ -10,6 +10,7 @@ Item {
 
     required property var score
     required property string judge
+    required property var columns
 
     // turn invisible after one second of no notes
     Timer {
@@ -21,9 +22,19 @@ Item {
         }
     }
 
+    property int combo: 0
+
     Connections {
-        function onComboChanged() {
+        function onHit(hit) {
+            if (!hit.points) {
+                return;
+            }
+            if (!judgement.columns.includes(hit.column)) {
+                return;
+            }
+
             Qt.callLater(function() {
+                judgement.combo = judgement.score.combo;
                 judgement.visible = true;
                 hidingTimer.restart();
             });
@@ -91,7 +102,7 @@ Item {
         Repeater {
             id: comboNumber
 
-            model: judgement.score.combo > 0 && judgementAnimation.source != root.iniImagesUrl + "judge/" + judgement.judge + "/poor" ? judgement.score.combo.toString().split("") : []
+            model: judgement.combo > 0 && judgementAnimation.source != root.iniImagesUrl + "judge/" + judgement.judge + "/poor" ? judgement.combo.toString().split("") : []
 
             AnimatedSprite {
                 id: comboNumberAnimation
@@ -113,6 +124,9 @@ Item {
             if (!tap.points) {
                 return;
             }
+            if (!judgement.columns.includes(tap.column)) {
+                return;
+            }
             switch (tap.points.judgement) {
                 case Judgement.Perfect:
                     judgementAnimation.frameCount = 3;
@@ -131,7 +145,6 @@ Item {
                     judgementAnimation.source = root.iniImagesUrl + "judge/" + judgement.judge + "/bad";
                     break;
                 case Judgement.Poor:
-                case Judgement.LnEndMiss:
                     judgementAnimation.frameCount = 1;
                     judgementAnimation.source = root.iniImagesUrl + "judge/" + judgement.judge + "/poor";
                     break;
@@ -143,17 +156,16 @@ Item {
     // preload images
 
     Image {
+        width: 0
         height: 0
         source: root.iniImagesUrl + "judge/" + judgement.judge + "/pgreat"
-        visible: false
-        width: 0
+        opacity: 0
     }
 
     Image {
+        width: 0
         height: 0
         source: root.iniImagesUrl + "judge/" + judgement.judge + "/pgreat_0"
-        visible: false
-        width: 0
+        opacity: 0
     }
-
 }

@@ -38,7 +38,7 @@ Image {
                         id: keysText
 
                         font.pixelSize: 20
-                        text: "KEYS"
+                        text: qsTr("KEYS")
                     }
                 }
                 Column {

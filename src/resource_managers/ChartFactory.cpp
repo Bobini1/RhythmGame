@@ -298,7 +298,7 @@ auto createAutoplayFromNotes(const gameplay_logic::BmsNotes& notes) -> std::vect
                 if (auto nextNote = std::next(column.begin(), noteIndex + 1);
                     nextNote != column.end()) {
                     if (nextNote->time.timestamp < releaseTime) {
-                        heldTime = nextNote->time.timestamp - note.time.timestamp / 2;
+                        heldTime = (nextNote->time.timestamp - note.time.timestamp) / 2;
                         releaseTime = note.time.timestamp + heldTime;
                     }
                     if (nextNote->type == gameplay_logic::Note::Type::Landmine) {
@@ -307,9 +307,9 @@ auto createAutoplayFromNotes(const gameplay_logic::BmsNotes& notes) -> std::vect
                 }
                 events.emplace_back(
                   columnIndex,
-                  noteIndex,
+                  -1,
                   releaseTime,
-                  gameplay_logic::BmsPoints{ 0.0, gameplay_logic::Judgement::Perfect, 0 },
+                  std::nullopt,
                   gameplay_logic::HitEvent::Action::Release,
                   /*noteRemoved=*/true);
             } else if (note.type == gameplay_logic::Note::Type::LongNoteBegin) {
@@ -354,7 +354,7 @@ getComponentsForPlayer(const ChartFactory::PlayerSpecificData& player,
               player.replayedScore
                 ? player.replayedScore->getResult()->getNoteOrderAlgorithm()
                 : player.profile->getVars()
-                    ->getGlobalVars()
+                    ->getGeneralVars()
                     ->getNoteOrderAlgorithm(),
               player.replayedScore
                 ? std::optional{player.replayedScore->getResult()->getRandomSeed()}
@@ -367,7 +367,7 @@ getComponentsForPlayer(const ChartFactory::PlayerSpecificData& player,
               player.replayedScore
                 ? player.replayedScore->getResult()->getNoteOrderAlgorithmP2()
                 : player.profile->getVars()
-                    ->getGlobalVars()
+                    ->getGeneralVars()
                     ->getNoteOrderAlgorithmP2(),
               result1.seed + 1);
             return { result1, result2 };
@@ -379,7 +379,7 @@ getComponentsForPlayer(const ChartFactory::PlayerSpecificData& player,
               player.replayedScore
                 ? player.replayedScore->getResult()->getNoteOrderAlgorithm()
                 : player.profile->getVars()
-                    ->getGlobalVars()
+                    ->getGeneralVars()
                     ->getNoteOrderAlgorithm(),
               player.replayedScore
                 ? std::optional{player.replayedScore->getResult()->getRandomSeed()}
@@ -398,14 +398,17 @@ getComponentsForPlayer(const ChartFactory::PlayerSpecificData& player,
       maxHitValue,
       player.gauges,
       chartData.getRandomSequence(),
-      player.profile->getVars()->getGlobalVars()->getNoteOrderAlgorithm(),
+      player.profile->getVars()->getGeneralVars()->getNoteOrderAlgorithm(),
       isDp(chartData.getKeymode())
-        ? player.profile->getVars()->getGlobalVars()->getNoteOrderAlgorithmP2()
+        ? player.profile->getVars()->getGeneralVars()->getNoteOrderAlgorithmP2()
         : NoteOrderAlgorithm::Normal,
       results[0].columns += results[1].columns,
       results[0].seed,
       chartData.getSha256(),
-      chartData.getMd5());
+      chartData.getMd5(),
+      player.replayedScore
+        ? player.replayedScore->getResult()->getGuid()
+        : QUuid::createUuid().toString());
     auto notesStates = QList<gameplay_logic::ColumnState*>{};
     for (const auto& column : notes->getNotes()) {
         auto notes = QList<gameplay_logic::NoteState>{};
@@ -600,7 +603,7 @@ ChartFactory::createChart(ChartDataFactory::ChartComponents chartComponents,
       &input::InputTranslator::buttonPressed,
       chart,
       [chart](
-        const input::BmsKey button, double /*value*/, const int64_t time) {
+        const input::BmsKey button, const int64_t time) {
           chart->passKey(
             button, gameplay_logic::Chart::EventType::KeyPress, time);
       });

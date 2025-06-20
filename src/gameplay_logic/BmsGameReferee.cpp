@@ -37,7 +37,6 @@ gameplay_logic::BmsGameReferee::BmsGameReferee(
         }
     }
     currentBgms = bgms;
-    currentBpmChanges = this->bpmChanges;
 }
 void
 gameplay_logic::BmsGameReferee::addNote(
@@ -102,9 +101,9 @@ gameplay_logic::BmsGameReferee::addNote(
     }
 }
 
-auto
+void
 gameplay_logic::BmsGameReferee::update(std::chrono::nanoseconds offsetFromStart,
-                                       bool lastUpdate) -> Position
+                                       bool lastUpdate)
 {
     auto events = std::vector<HitEvent>{};
     for (auto columnIndex = 0; columnIndex < notes.size(); columnIndex++) {
@@ -138,7 +137,6 @@ gameplay_logic::BmsGameReferee::update(std::chrono::nanoseconds offsetFromStart,
         }
         currentBgms = currentBgms.subspan(played);
     }
-    return getPosition(offsetFromStart);
 }
 auto
 gameplay_logic::BmsGameReferee::passPressed(
@@ -157,20 +155,21 @@ gameplay_logic::BmsGameReferee::passPressed(
         return;
     }
     pressedState[columnIndex] = true;
-    score->addHit(
-      hitRules->press(notes[columnIndex], columnIndex, offsetFromStart));
+    for (const auto& hit : hitRules->press(notes[columnIndex], columnIndex, offsetFromStart)) {
+        score->addHit(hit);
+    }
 }
 auto
 gameplay_logic::BmsGameReferee::getPosition(
-  std::chrono::nanoseconds offsetFromStart) -> Position
+  std::chrono::nanoseconds offsetFromStart) const -> Position
 {
     // find the last bpm change that happened before the current time
     auto bpmChange = std::ranges::find_if(
-      currentBpmChanges, [offsetFromStart](const auto& bpmChange) {
+      bpmChanges, [offsetFromStart](const auto& bpmChange) {
           return bpmChange.first.timestamp >= offsetFromStart;
       });
     if (offsetFromStart.count() < 0) {
-        bpmChange = currentBpmChanges.begin();
+        bpmChange = bpmChanges.begin();
     } else {
         --bpmChange;
     }
@@ -182,9 +181,6 @@ gameplay_logic::BmsGameReferee::getPosition(
       std::chrono::duration_cast<std::chrono::duration<double>>(
         bpmChangeOffset);
     auto bpmChangeOffsetBeats = bpmChangeOffsetSeconds.count() * bpm / 60.0;
-    // scanNew the current bpm changes
-    currentBpmChanges =
-      currentBpmChanges.subspan(bpmChange - currentBpmChanges.begin());
     return bpmChangePosition + bpmChangeOffsetBeats;
 }
 

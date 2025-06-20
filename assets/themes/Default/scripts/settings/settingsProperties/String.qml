@@ -2,14 +2,43 @@ import QtQuick.Dialogs
 import QtQuick.Controls.Basic
 import RhythmGameQml
 import QtQuick
+import QtQuick.Layouts
+import ".."
 
-TextArea {
-    id: textEdit
-    implicitWidth: 200
-    text: destination[props.id]
+RowLayout {
+    id: str
+    property var destination
+    property string id_
+    property alias name: strLabel.text
+    property alias description: strLabel.description
+    property var default_
 
-    onTextChanged: {
-        destination[props.id] = text;
-        text = Qt.binding(() => destination[props.id])
+    SettingsLabel {
+        id: strLabel
+    }
+
+    TextArea {
+        id: textEdit
+        text: destination[id_]
+        Layout.fillWidth: true
+        Layout.preferredWidth: 400
+        Layout.minimumWidth: 200
+
+        onTextChanged: {
+            str.destination[str.id_] = text;
+        }
+        background: Frame {}
+    }
+
+
+    ResetButton {
+        destination: str.destination
+        id_: str.id_
+        default_: str.default_
+
+        onClicked: {
+            str.destination[str.id_] = str.default_
+        }
     }
 }
+

@@ -44,7 +44,11 @@ Item {
                 border.color: "lightsteelblue"
 
                 color: dragArea.held ? "lightsteelblue" : "white"
-                Behavior on color { ColorAnimation { duration: 100 } }
+                Behavior on color {
+                    ColorAnimation {
+                        duration: 100
+                    }
+                }
 
                 radius: 2
                 Drag.active: dragArea.held
@@ -114,7 +118,9 @@ Item {
                                     fillColor: "transparent"
                                     startX: 0
                                     startY: 0
-                                    PathLine { x: 32; y: 32 }
+                                    PathLine {
+                                        x: 32; y: 32
+                                    }
                                 }
                                 ShapePath {
                                     strokeColor: "red"
@@ -122,7 +128,9 @@ Item {
                                     fillColor: "transparent"
                                     startX: 32
                                     startY: 0
-                                    PathLine { x: 0; y: 32 }
+                                    PathLine {
+                                        x: 0; y: 32
+                                    }
                                 }
                             }
                         }
@@ -179,49 +187,59 @@ Item {
         }
     }
 
-    Frame {
-        anchors.top: parent.top
-        anchors.bottom: parent.bottom
-        anchors.horizontalCenter: parent.horizontalCenter
-        width: parent.width / 2
+    ScrollView {
+        id: rootScrollView
+        anchors {
+            top: parent.top
+            bottom: parent.bottom
+            horizontalCenter: parent.horizontalCenter
+        }
+        width: Math.min(1200, parent.width)
+        contentWidth: Math.max(600, width)
+        contentHeight: Math.max(rootFrame.implicitHeight, parent.height)
 
-        ColumnLayout {
+        Frame {
+            id: rootFrame
             anchors.fill: parent
-            ScrollView {
-                Layout.fillHeight: true
-                Layout.fillWidth: true
 
-                ListView {
-                    id: songList
-
-                    clip: true
-                    spacing: 5
-                    model: Rg.tables
-                    delegate: dragDelegate
-                }
-            }
-            RowLayout {
-                Layout.fillWidth: true
-
-                TextField {
-                    id: textField
+            ColumnLayout {
+                anchors.fill: parent
+                ScrollView {
+                    Layout.fillHeight: true
                     Layout.fillWidth: true
-                    Layout.preferredWidth: 3
-                    placeholderText: qsTr("Add table")
 
-                    onAccepted: {
-                        Rg.tables.add(text);
-                        text = "";
+                    ListView {
+                        id: songList
+
+                        clip: true
+                        spacing: 5
+                        model: Rg.tables
+                        delegate: dragDelegate
                     }
                 }
-                Button {
+                RowLayout {
                     Layout.fillWidth: true
-                    Layout.preferredWidth: 1
-                    text: qsTr("Add")
 
-                    onClicked: {
-                        Rg.tables.add(textField.text);
-                        textField.text = "";
+                    TextField {
+                        id: textField
+                        Layout.fillWidth: true
+                        Layout.preferredWidth: 3
+                        placeholderText: qsTr("Add table")
+
+                        onAccepted: {
+                            Rg.tables.add(text);
+                            text = "";
+                        }
+                    }
+                    Button {
+                        Layout.fillWidth: true
+                        Layout.preferredWidth: 1
+                        text: qsTr("Add")
+
+                        onClicked: {
+                            Rg.tables.add(textField.text);
+                            textField.text = "";
+                        }
                     }
                 }
             }

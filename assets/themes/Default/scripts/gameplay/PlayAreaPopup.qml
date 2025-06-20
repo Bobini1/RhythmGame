@@ -7,127 +7,146 @@ import QtQml.Models
 GameplayPopup {
     id: popup
 
-    required property var globalVars
+    required property var generalVars
     required property var themeVars
     property bool dp: false
-    
+
     model: ObjectModel {
         NumberWithSlider {
             from: 0
-            src: popup.globalVars
+            src: popup.generalVars
             prop: "noteScreenTimeMillis"
-            text: "Green Number"
+            text: qsTr("Green Number")
             to: 2000
+        }
+        NumberWithSlider {
+            from: -15
+            src: popup.generalVars
+            prop: "offset"
+            text: qsTr("Offset")
+            to: 15
+            decimals: 1
+        }
+        NumberWithSlider {
+            from: 0
+            src: popup.themeVars
+            prop: "judgementsOffset"
+            text: qsTr("Judgements Offset")
+            to: 1
         }
         NumberWithSlider {
             from: -10
             src: popup.themeVars
             prop: "playAreaZ"
-            text: "Z-index"
+            text: qsTr("Z-index")
             to: 10
         }
         NumberWithSlider {
             from: -1
             src: popup.themeVars
             prop: "laneBrightness"
-            text: "Lane Brightness"
+            text: qsTr("Lane Brightness")
             to: 1
         }
         NumberWithSlider {
             from: 0
             src: popup.themeVars
             prop: "thickness"
-            text: "Note Thickness"
+            text: qsTr("Note Thickness")
             to: 200
         }
         NumberWithSlider {
             from: 0
             src: popup.themeVars
             prop: "judgeLineThickness"
-            text: "Judge Line Thickness"
+            text: qsTr("Judge Line Thickness")
             to: 200
         }
         ColorChoice {
             src: popup.themeVars
-            description: "Judge Line Color"
+            description: qsTr("Judge Line Color")
             prop: "judgeLineColor"
         }
         Loader {
             active: !popup.dp
-            sourceComponent: BooleanOption {
-                src: popup.themeVars
-                description: "Flip Scratch Lane"
-                prop: "scratchOnRightSide"
+            sourceComponent: Component {
+                BooleanOption {
+                    src: popup.themeVars
+                    description: qsTr("Flip Scratch Lane")
+                    prop: "scratchOnRightSide"
+                }
             }
-        }
-        BooleanOption {
-            src: popup.themeVars
-            description: "Stop notes at bottom"
-            prop: "notesStay"
         }
         ImageSelection {
             src: popup.themeVars
             propertyId: "notes"
+            label: qsTr("Notes")
         }
         BooleanOption {
-            description: "Enable Lane Cover"
-            src: popup.globalVars
+            description: qsTr("Enable Lane Cover")
+            src: popup.generalVars
             prop: "laneCoverOn"
         }
         NumberWithSlider {
             from: 0
-            src: popup.globalVars
+            src: popup.generalVars
             prop: "laneCoverRatio"
-            text: "Lane Cover Ratio"
+            text: qsTr("Lane Cover Ratio")
             to: 1
         }
         ImageSelection {
             src: popup.themeVars
             propertyId: "lanecover"
+            label: qsTr("Lane Cover")
         }
         BooleanOption {
-            description: "Enable Lift"
-            src: popup.globalVars
+            description: qsTr("Enable Lift")
+            src: popup.generalVars
             prop: "liftOn"
         }
         NumberWithSlider {
             from: 0
-            src: popup.globalVars
+            src: popup.generalVars
             prop: "liftRatio"
-            text: "Lift Ratio"
+            text: qsTr("Lift Ratio")
             to: 1
         }
         BooleanOption {
-            description: "Enable Hidden"
-            src: popup.globalVars
+            description: qsTr("Enable Hidden")
+            src: popup.generalVars
             prop: "hiddenOn"
         }
         NumberWithSlider {
             from: 0
-            src: popup.globalVars
+            src: popup.generalVars
             prop: "hiddenRatio"
-            text: "Hidden Ratio"
+            text: qsTr("Hidden Ratio")
             to: 1
         }
         ImageSelection {
             src: popup.themeVars
             propertyId: "liftcover"
+            label: qsTr("Lift Cover")
         }
         ImageSelection {
             src: popup.themeVars
             propertyId: "mine"
+            label: qsTr("Mine")
         }
         ImageSelection {
             src: popup.themeVars
             propertyId: "keybeam"
+            label: qsTr("Key Beam")
         }
         ImageSelection {
             src: popup.themeVars
             propertyId: "bomb"
+            label: qsTr("Bomb")
         }
         ImageSelection {
             src: popup.themeVars
             propertyId: "glow"
+            label: qsTr("Glow")
         }
     }
 }

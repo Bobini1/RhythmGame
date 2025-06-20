@@ -28,14 +28,12 @@ ScoreDb::getScoresForMd5(const QList<QString>& md5s) const
     }
     auto uniqueMd5s = QSet<QString>{};
     for (const auto& md5 : md5s) {
-        uniqueMd5s.insert(md5);
+        uniqueMd5s.insert(md5.toUpper());
     }
     auto md5sToFetch = uniqueMd5s.values();
+    auto token = stopSource.get_token();
 
-    QThreadPool::globalInstance()->start([this,
-                                          md5s,
-                                          md5sToFetch,
-                                          reply]() mutable {
+    threadPool.start([this, md5s, md5sToFetch, token, reply]() mutable {
         try {
             constexpr int maxVariables = 999;
             std::vector<std::tuple<gameplay_logic::BmsResult::DTO,
@@ -69,7 +67,7 @@ ScoreDb::getScoresForMd5(const QList<QString>& md5s) const
             }
 
             QMap<QString, QVariantList> groupedScores;
-            auto mainThread = QCoreApplication::instance()->thread();
+            auto* mainThread = QCoreApplication::instance()->thread();
             for (const auto& row : allResults) {
                 auto md5 = QString::fromStdString(std::get<0>(row).md5);
                 auto* score = new gameplay_logic::BmsScore{
@@ -94,8 +92,13 @@ ScoreDb::getScoresForMd5(const QList<QString>& md5s) const
             QMetaObject::invokeMethod(
               QCoreApplication::instance(),
               [reply,
+               token,
                groupedVariantScores = std::move(groupedVariantScores),
                notFoundMd5s]() mutable {
+                  if (token.stop_requested()) {
+                      reply.setFailed();
+                      return;
+                  }
                   ScoreQueryResult result;
                   result.scores = std::move(groupedVariantScores);
                   result.unplayed = notFoundMd5s;
@@ -119,7 +122,8 @@ ScoreDb::getScores(const QString& folder) const
   -> QIfPendingReply<ScoreQueryResult>
 {
     auto reply = QIfPendingReply<ScoreQueryResult>{};
-    QThreadPool::globalInstance()->start([reply, folder, this]() {
+    auto token = stopSource.get_token();
+    threadPool.start([reply, folder, token, this] {
         try {
             // Query to count unplayed charts
             auto countQuery = scoreDb->createStatement(
@@ -132,7 +136,7 @@ ScoreDb::getScores(const QString& folder) const
             countQuery.bind(1, folder.toStdString());
             auto unplayedCount = countQuery.executeAndGet<int>().value_or(0);
 
-            auto mainThread = QCoreApplication::instance()->thread();
+            auto* mainThread = QCoreApplication::instance()->thread();
             auto query = scoreDb->createStatement(
               "SELECT score.*, replay_data.*, gauge_history.* "
               "FROM score "
@@ -164,9 +168,14 @@ ScoreDb::getScores(const QString& folder) const
             QMetaObject::invokeMethod(
               QCoreApplication::instance(),
               [reply,
+               token,
                unplayedCount,
                groupedVariantScores =
                  std::move(groupedVariantScores)]() mutable {
+                  if (token.stop_requested()) {
+                      reply.setFailed();
+                      return;
+                  }
                   ScoreQueryResult result;
                   result.unplayed = unplayedCount;
                   result.scores = std::move(groupedVariantScores);
@@ -206,6 +215,13 @@ ScoreDb::getScores(const resource_managers::Level& level) const
         md5s.append(entry.md5);
     }
     return getScoresForMd5(md5s);
+}
+void
+ScoreDb::cancelPending()
+{
+    threadPool.clear();
+    stopSource.request_stop();
+    stopSource = std::stop_source{};
 }
 auto
 ScoreDb::getTotalScoreCount() const -> int

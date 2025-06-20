@@ -7,14 +7,20 @@ import QtQuick.Controls.Basic
 import "../common/helpers.js" as Helpers
 
 FocusScope {
+    id: resultFocusScope
     focus: enabled
+
+    required property ChartData chartData
+    required property list<BmsScore> scores
+    required property list<Profile> profiles
+
 
     Image {
         id: root
 
         readonly property string imagesUrl: Qt.resolvedUrl(".") + "images/"
         readonly property string iniImagesUrl: "image://ini/" + rootUrl + "images/"
-        readonly property string rootUrl: globalRoot.urlToPath(Qt.resolvedUrl(".").toString())
+        property string rootUrl: QmlUtils.fileName.slice(0, QmlUtils.fileName.lastIndexOf("/") + 1)
         readonly property BmsScore score1: resultFocusScope.scores[0]
         readonly property BmsScore score2: resultFocusScope.scores[1] || null
         readonly property Profile profile1: resultFocusScope.profiles[0]
@@ -32,7 +38,6 @@ FocusScope {
             sequence: "Esc"
 
             onActivated: {
-                sceneStack.pop();
                 sceneStack.pop();
             }
         }

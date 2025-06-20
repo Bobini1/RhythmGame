@@ -8,21 +8,22 @@
 #include <spdlog/spdlog.h>
 
 namespace gameplay_logic {
-BmsLiveScore::BmsLiveScore(int normalNoteCount,
-                   int lnCount,
-                   int mineCount,
-                   int maxHits,
-                   double maxHitValue,
-                   QList<rules::BmsGauge*> gauges,
-                   QList<qint64> randomSequence,
-                   resource_managers::NoteOrderAlgorithm noteOrderAlgorithm,
-                   resource_managers::NoteOrderAlgorithm noteOrderAlgorithmP2,
-                   QList<int> permutation,
-                   uint64_t seed,
-                   QString sha256,
-                   QString md5,
-                   QString guid,
-                   QObject* parent)
+BmsLiveScore::BmsLiveScore(
+  int normalNoteCount,
+  int lnCount,
+  int mineCount,
+  int maxHits,
+  double maxHitValue,
+  QList<rules::BmsGauge*> gauges,
+  QList<qint64> randomSequence,
+  resource_managers::NoteOrderAlgorithm noteOrderAlgorithm,
+  resource_managers::NoteOrderAlgorithm noteOrderAlgorithmP2,
+  QList<int> permutation,
+  uint64_t seed,
+  QString sha256,
+  QString md5,
+  QString guid,
+  QObject* parent)
   : QObject(parent)
   , maxPoints(maxHitValue * maxHits)
   , mineCount(mineCount)
@@ -96,7 +97,8 @@ BmsLiveScore::getRandomSequence() const -> const QList<qint64>&
     return randomSequence;
 }
 auto
-BmsLiveScore::getNoteOrderAlgorithm() const -> resource_managers::NoteOrderAlgorithm
+BmsLiveScore::getNoteOrderAlgorithm() const
+  -> resource_managers::NoteOrderAlgorithm
 {
     return noteOrderAlgorithm;
 }
@@ -152,7 +154,7 @@ BmsLiveScore::addHit(HitEvent tap) -> void
                 gauge->addHit(
                   std::chrono::nanoseconds(tap.getOffsetFromStart()),
                   std::chrono::nanoseconds(points->getDeviation()),
-                  points->getJudgement());
+                  Judgement::Poor);
             }
             break;
         case Judgement::MineHit:
@@ -165,7 +167,6 @@ BmsLiveScore::addHit(HitEvent tap) -> void
             emit mineHitsChanged();
             break;
         case Judgement::MineAvoided:
-            break;
         case Judgement::LnEndSkip:
             break;
         default:
@@ -182,7 +183,8 @@ BmsLiveScore::addHit(HitEvent tap) -> void
             }
             if (judgement == Judgement::Bad) {
                 resetCombo();
-            } else if (judgement != Judgement::EmptyPoor) {
+            } else if (judgement != Judgement::EmptyPoor &&
+                       judgement != Judgement::LnBeginHit) {
                 increaseCombo();
             }
     }
@@ -237,7 +239,11 @@ BmsLiveScore::getResult() const -> std::unique_ptr<BmsResult>
 auto
 BmsLiveScore::getReplayData() const -> std::unique_ptr<BmsReplayData>
 {
-    return std::make_unique<BmsReplayData>(hits, guid);
+    auto hitsCopy = hits;
+    std::ranges::sort(hitsCopy, [](const auto& hit, const auto& hit2) {
+        return hit.getOffsetFromStart() < hit2.getOffsetFromStart();
+    });
+    return std::make_unique<BmsReplayData>(hitsCopy, guid);
 }
 auto
 BmsLiveScore::getGaugeHistory() const -> std::unique_ptr<BmsGaugeHistory>

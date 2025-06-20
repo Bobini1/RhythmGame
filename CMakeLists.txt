@@ -52,10 +52,11 @@ find_package(llfio CONFIG REQUIRED)
 
 # <------------ Qt (gui) --------------->
 
-find_package(Qt6 COMPONENTS ShaderTools Quick Gui Widgets Core5Compat Concurrent Multimedia Svg InterfaceFramework REQUIRED)
+find_package(Qt6 COMPONENTS ShaderTools Quick Gui Widgets Core5Compat Concurrent Multimedia Svg InterfaceFramework LinguistTools REQUIRED)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
+qt_standard_project_setup(I18N_TRANSLATED_LANGUAGES pl jp)
 
 find_package(cryptopp REQUIRED)
 find_package(magic_enum REQUIRED)
@@ -176,6 +177,12 @@ qt_add_library(RhythmGame_lib OBJECT ${utf8Manifest} src/db/SqliteCppDb.cpp src/
         src/gameplay_logic/NoteState.h
         src/resource_managers/Tables.cpp
         src/resource_managers/Tables.h
+        src/qml_components/QmlUtils.cpp
+        src/qml_components/QmlUtils.h
+        src/resource_managers/Languages.cpp
+        src/resource_managers/Languages.h
+        src/input/CustomNotifyApp.cpp
+        src/input/CustomNotifyApp.h
 )
 
 find_package(Threads REQUIRED)
@@ -188,7 +195,6 @@ target_link_libraries(RhythmGame_lib PUBLIC SDL2::SDL2 Qt6::Gui Qt6::Quick Qt6::
 
 if (WIN32)
     target_link_libraries(RhythmGame_lib PUBLIC llfio::ntkernel-error-category_sl)
-
 endif ()
 
 # We all love MSVC.
@@ -225,6 +231,36 @@ set_target_properties(
 
 qt_import_qml_plugins(RhythmGame_exe)
 
+
+file(GLOB_RECURSE QML_FILES "${CMAKE_SOURCE_DIR}/assets/themes/Default/**/*.qml")
+# use QM_OUTPUT_DIRECTORY once we switch to Qt 6.9
+qt_add_translations(
+        RhythmGame_exe
+        TS_FILE_BASE
+        Default
+        TS_FILE_DIR
+        ${CMAKE_SOURCE_DIR}/assets/themes/Default/translations
+        SOURCES
+        ${QML_FILES}
+        LUPDATE_TARGET
+        Default_translations
+        QM_FILES_OUTPUT_VARIABLE
+        LRELEASE_QM_FILES
+)
+add_custom_target(ReleaseAndCopy
+        COMMAND ${CMAKE_COMMAND} -E copy
+        ${LRELEASE_QM_FILES}
+        ${CMAKE_SOURCE_DIR}/assets/themes/Default/translations
+        COMMENT "Copying qm files to assets/themes/Default/translations"
+        VERBATIM
+)
+add_dependencies(ReleaseAndCopy release_translations)
+add_custom_command(TARGET RhythmGame_exe POST_BUILD
+        COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target ReleaseAndCopy
+        COMMENT "Compiling translation files"
+        VERBATIM
+)
+
 add_custom_command(TARGET RhythmGame_exe POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E create_symlink
         ${CMAKE_SOURCE_DIR}/assets assets)
@@ -242,12 +278,15 @@ if (WIN32)
     )
 
     add_custom_command(TARGET RhythmGame_exe POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy_directory "${PROJECT_BINARY_DIR}/bin/qml" "${PROJECT_BINARY_DIR}/bin"
-    )
-    add_custom_command(TARGET RhythmGame_exe POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_RUNTIME_DLLS:RhythmGame_exe> $<TARGET_FILE_DIR:RhythmGame_exe>
             COMMAND_EXPAND_LISTS
     )
+
+    # This is only for running in the build directory, before installation.
+    add_custom_command(TARGET RhythmGame_exe POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy
+            ${CMAKE_SOURCE_DIR}/staticAssets/qt.conf
+            ${CMAKE_BINARY_DIR}/bin/$<0:>/qt.conf)
 endif ()
 
 if (WIN32)

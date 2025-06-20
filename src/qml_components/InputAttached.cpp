@@ -37,11 +37,9 @@ InputAttached::InputAttached(QObject* obj)
     connect(inputSignalProvider,
             &InputSignalProvider::buttonPressed,
             this,
-            [this](const input::BmsKey button,
-                   const double value,
-                   const int64_t time) {
+            [this](const input::BmsKey button, const int64_t time) {
                 if (isEnabled()) {
-                    emit buttonPressed(button, value, time);
+                    emit buttonPressed(button, time);
                 }
             });
     connect(inputSignalProvider,
@@ -55,9 +53,7 @@ InputAttached::InputAttached(QObject* obj)
     connect(inputSignalProvider,
             &InputSignalProvider::buttonPressed,
             this,
-            [this](const input::BmsKey button,
-                   const double value,
-                   const int64_t time) {
+            [this](const input::BmsKey button, const int64_t time) {
                 if (!isEnabled()) {
                     return;
                 }
@@ -70,7 +66,7 @@ InputAttached::InputAttached(QObject* obj)
         if (!old) {                                                            \
             emit key##Changed();                                               \
         }                                                                      \
-        emit key##Pressed(value, time);                                        \
+        emit key##Pressed(time);                                               \
         break;
                     CASE(col11, Col11)
                     CASE(col12, Col12)

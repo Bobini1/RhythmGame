@@ -47,8 +47,32 @@ Key::operator!=(const Key& key) const -> bool
     return !(*this == key);
 }
 
+auto
+isScratch(const BmsKey key) -> bool
+{
+    return key == BmsKey::Col1sUp || key == BmsKey::Col1sDown ||
+           key == BmsKey::Col2sUp || key == BmsKey::Col2sDown;
+}
+
+auto
+invertScratch(const BmsKey key) -> BmsKey
+{
+    switch (key) {
+        case BmsKey::Col1sUp:
+            return BmsKey::Col1sDown;
+        case BmsKey::Col1sDown:
+            return BmsKey::Col1sUp;
+        case BmsKey::Col2sUp:
+            return BmsKey::Col2sDown;
+        case BmsKey::Col2sDown:
+            return BmsKey::Col2sUp;
+        default:
+            return key;
+    }
+}
+
 void
-InputTranslator::pressButton(BmsKey button, double value, uint64_t time)
+InputTranslator::pressButton(BmsKey button, uint64_t time)
 {
     auto& state = buttons[static_cast<int>(button)];
     const auto oldState = state;
@@ -137,10 +161,10 @@ InputTranslator::pressButton(BmsKey button, double value, uint64_t time)
             break;
 
         case BmsKey::Col24:
+            state = true;
             if (!oldState) {
                 emit col24Changed();
             }
-            state = true;
             break;
 
         case BmsKey::Col25:
@@ -207,7 +231,7 @@ InputTranslator::pressButton(BmsKey button, double value, uint64_t time)
             break;
     }
     if (!oldState) {
-        emit buttonPressed(button, value, time);
+        emit buttonPressed(button, time);
     }
 }
 void
@@ -374,12 +398,14 @@ InputTranslator::releaseButton(BmsKey button, uint64_t time)
     }
 }
 void
-InputTranslator::unpressCurrentKey(const Key& key, uint64_t time)
+InputTranslator::unpressAndUnbind(const Key& key, uint64_t time)
 {
     if (auto found = config.find(key); found != config.end()) {
         releaseButton(*found, time);
     }
-    resetButton(*configuredButton);
+    if (configuredButton.has_value()) {
+        resetButton(*configuredButton);
+    }
 }
 void
 InputTranslator::saveKeyConfig() const
@@ -391,55 +417,205 @@ InputTranslator::saveKeyConfig() const
     statement.bind(1, data.data(), data.size());
     statement.execute();
 }
+
+struct GamepadAxisConfig
+{
+    Gamepad gamepad;
+    Uint8 axis{};
+    AnalogAxisConfig config;
+
+    friend auto operator<<(QDataStream& stream, const GamepadAxisConfig& config)
+      -> QDataStream&
+    {
+        return stream << config.gamepad << config.axis
+                      << config.config.triggerThreshold
+                      << config.config.releaseThreshold << config.config.timeout
+                      << static_cast<int>(config.config.algorithm);
+    }
+    friend auto operator>>(QDataStream& stream, GamepadAxisConfig& config)
+      -> QDataStream&
+    {
+        int algorithm;
+        stream >> config.gamepad >> config.axis >>
+          config.config.triggerThreshold >> config.config.releaseThreshold >>
+          config.config.timeout >> algorithm;
+        config.config.algorithm =
+          static_cast<AnalogAxisConfig::ScratchAlgorithm>(algorithm);
+        return stream;
+    }
+};
+
+void
+InputTranslator::saveAnalogAxisConfig() const
+{
+    auto statement =
+      db->createStatement("INSERT OR REPLACE INTO properties (key, value) "
+                          "VALUES ('analog_axis_config', ?)");
+    auto array = QList<GamepadAxisConfig>{};
+    for (const auto& [key, config] : axisConfig) {
+        array.append(GamepadAxisConfig{ key.first, key.second, config });
+    }
+    auto configData = support::compress(array);
+    statement.bind(1, configData.data(), configData.size());
+    statement.execute();
+}
+void
+InputTranslator::handleAxisChange(Gamepad gamepad, Uint8 axis, int64_t time)
+{
+    auto scratchKey = std::pair{ gamepad, axis };
+    auto& scratch = scratches[scratchKey];
+    auto keyLookup = Key{
+        QVariant::fromValue(gamepad), Key::Device::Axis, axis, scratch.direction
+    };
+    if (isConfiguring() && isScratch(*configuredButton) &&
+        keyLookup.direction != Key::Direction::None) {
+        auto button = *configuredButton;
+        unpressAndUnbind(keyLookup, time);
+        setConfiguredButton({});
+        config[keyLookup] = button;
+        keyLookup.direction = keyLookup.direction == Key::Direction::Up
+                                ? Key::Direction::Down
+                                : Key::Direction::Up;
+        unpressAndUnbind(keyLookup, time);
+        config[keyLookup] = invertScratch(button);
+        emit keyConfigModified();
+    } else {
+        auto unpressBoth = keyLookup.direction == Key::Direction::None;
+        if (unpressBoth) {
+            keyLookup.direction = Key::Direction::Up;
+        }
+        auto oppositeKeyLookup = keyLookup;
+        oppositeKeyLookup.direction = scratch.direction == Key::Direction::Up
+                                        ? Key::Direction::Down
+                                        : Key::Direction::Up;
+        // find the key with the opposite direction
+        if (const auto oppositeButton = config.find(oppositeKeyLookup);
+            oppositeButton != config.end()) {
+            releaseButton(*oppositeButton, time);
+        }
+        if (const auto button = config.find(keyLookup);
+            button != config.end()) {
+            if (unpressBoth) {
+                releaseButton(*button, time);
+            } else {
+                pressButton(*button, time);
+            }
+        }
+    }
+}
+void
+InputTranslator::checkAnalogAxisStatus()
+{
+    auto axisLookup1 = std::optional<std::pair<Gamepad, uint8_t>>{};
+    auto axisLookup2 = std::optional<std::pair<Gamepad, uint8_t>>{};
+    for (const auto& [key, button] : this->config.asKeyValueRange()) {
+        if (key.device == Key::Device::Axis &&
+            (button == BmsKey::Col1sUp || button == BmsKey::Col1sDown)) {
+            axisLookup1 = std::pair{ key.gamepad.value<Gamepad>(), key.code };
+        }
+        if (key.device == Key::Device::Axis &&
+            (button == BmsKey::Col2sUp || button == BmsKey::Col2sDown)) {
+            axisLookup2 = std::pair{ key.gamepad.value<Gamepad>(), key.code };
+        }
+    }
+    if (scratchAxis1 != axisLookup1) {
+        scratchAxis1 = axisLookup1;
+        emit analogAxisConfig1Changed();
+    }
+    if (scratchAxis2 != axisLookup2) {
+        scratchAxis2 = axisLookup2;
+        emit analogAxisConfig2Changed();
+    }
+}
+void
+InputTranslator::autoReleaseScratch(
+  const std::pair<Gamepad, uint8_t>& scratchKey,
+  int64_t time)
+{
+    scratches[scratchKey].direction = Key::Direction::None;
+    const auto keyLookup = Key{ QVariant::fromValue(scratchKey.first),
+                                Key::Device::Axis,
+                                scratchKey.second,
+                                Key::Direction::Up };
+    auto oppositeKeyLookup = keyLookup;
+    oppositeKeyLookup.direction = Key::Direction::Down;
+    if (const auto oppositeButton = config.find(oppositeKeyLookup);
+        oppositeButton != config.end()) {
+        releaseButton(*oppositeButton, time);
+    }
+    if (const auto button = config.find(keyLookup); button != config.end()) {
+        releaseButton(*button, time);
+    }
+}
+
 void
 InputTranslator::handleAxis(Gamepad gamepad,
                             Uint8 axis,
                             double value,
                             int64_t time)
 {
-    auto scratchKey = std::pair{ gamepad, axis };
+    const auto scratchKey = std::pair{ gamepad, axis };
     auto& scratch = scratches[scratchKey];
-    if (std::abs(scratch.value - value) < scratchSensitivity) {
+    if (std::isnan(scratch.value)) {
+        scratch.value = value;
+    }
+
+    const auto analogConfig = axisConfig[scratchKey];
+    if (analogConfig.algorithm == AnalogAxisConfig::ScratchAlgorithmClassic) {
+        if (value > 0.9) {
+            scratch.direction = Key::Direction::Up;
+        } else if (value < -0.9) {
+            scratch.direction = Key::Direction::Down;
+        } else {
+            scratch.direction = Key::Direction::None;
+        }
+        handleAxisChange(gamepad, axis, time);
         return;
     }
-    auto direction =
-      value > scratch.value ? Key::Direction::Up : Key::Direction::Down;
-    if (2 - std::abs(scratch.value - value) > 2 - scratchSensitivity) {
-        direction = direction == Key::Direction::Up ? Key::Direction::Down
-                                                    : Key::Direction::Up;
+
+    if (value == scratch.value) {
+        return;
+    }
+
+    double curDelta = value - scratch.value;
+    if (curDelta > 1) {
+        curDelta = value + scratch.value;
+    }
+    if (curDelta < -1) {
+        curDelta = value + scratch.value;
     }
     scratch.value = value;
-    auto keyLookup =
-      Key{ QVariant::fromValue(gamepad), Key::Device::Axis, axis, direction };
-    if (isConfiguring()) {
-        unpressCurrentKey(keyLookup, time);
-        config[keyLookup] = *configuredButton;
-        emit keyConfigModified();
-        setConfiguredButton({});
-    } else {
-        // find key with opposite direction
-        const auto oppositeKey = config.find(
-          Key{ QVariant::fromValue(std::move(gamepad)),
-               Key::Device::Axis,
-               axis,
-               direction == Key::Direction::Up ? Key::Direction::Down
-                                               : Key::Direction::Up });
-        if (oppositeKey != config.end()) {
-            releaseButton(*oppositeKey, time);
-        }
-        auto key = config.find(keyLookup);
-        if (key == config.end()) {
-            return;
-        }
-        pressButton(*key, value, time);
-        scratch.timer = std::make_unique<QTimer>();
+
+    scratch.delta += curDelta;
+
+    auto setScratchDirection = [&](Key::Direction dir) {
+        scratch.delta = 0;
+        scratch.direction = dir;
+
         scratch.timer->setSingleShot(true);
-        scratch.timer->setInterval(150);
+        scratch.timer->setInterval(analogConfig.timeout);
         connect(scratch.timer.get(),
                 &QTimer::timeout,
-                [this, key = *key, time] { releaseButton(key, time + 150); });
+                this,
+                [this, scratchKey, time, timeout = analogConfig.timeout] {
+                    autoReleaseScratch(scratchKey, time + timeout);
+                });
         scratch.timer->start();
+    };
+
+    const auto requiredThreshold = scratch.direction == Key::Direction::None
+                                     ? analogConfig.triggerThreshold
+                                     : analogConfig.releaseThreshold;
+
+    if (curDelta > 0 && scratch.delta >= requiredThreshold) {
+        setScratchDirection(Key::Direction::Up);
+    } else if (curDelta < 0 && -scratch.delta >= requiredThreshold) {
+        setScratchDirection(Key::Direction::Down);
+    } else {
+        return;
     }
+
+    handleAxisChange(gamepad, axis, time);
 }
 void
 InputTranslator::handlePress(Gamepad gamepad, Uint8 button, int64_t time)
@@ -448,7 +624,7 @@ InputTranslator::handlePress(Gamepad gamepad, Uint8 button, int64_t time)
         auto keyLookup = Key{ QVariant::fromValue(std::move(gamepad)),
                               Key::Device::Button,
                               button };
-        unpressCurrentKey(keyLookup, time);
+        unpressAndUnbind(keyLookup, time);
         config[keyLookup] = *configuredButton;
         emit keyConfigModified();
         setConfiguredButton({});
@@ -457,7 +633,7 @@ InputTranslator::handlePress(Gamepad gamepad, Uint8 button, int64_t time)
                                     Key::Device::Button,
                                     button });
         if (key != config.end()) {
-            pressButton(*key, 0.0, time);
+            pressButton(*key, time);
         }
     }
 }
@@ -491,9 +667,9 @@ toSystem(std::chrono::file_clock::time_point tp)
 }
 
 auto
-InputTranslator::getTime(const QKeyEvent& event) -> int64_t
+getTime(const QKeyEvent& event) -> int64_t
 {
-    auto timestampQint = event.timestamp();
+    const auto timestampQint = event.timestamp();
     return std::chrono::duration_cast<std::chrono::milliseconds>(
              toSystem(std::chrono::steady_clock::time_point{
                         std::chrono::milliseconds{ timestampQint } })
@@ -501,6 +677,31 @@ InputTranslator::getTime(const QKeyEvent& event) -> int64_t
       .count();
 }
 
+void
+InputTranslator::loadKeyConfig(db::SqliteCppDb* db)
+{
+    auto statement = db->createStatement(
+      "SELECT value FROM properties WHERE key = 'key_config'");
+    if (const auto keyConfig = statement.executeAndGet<std::string>()) {
+        const auto array = QByteArray::fromStdString(keyConfig.value());
+        config = support::decompress<QHash<Key, BmsKey>>(array);
+    }
+}
+void
+InputTranslator::loadAnalogAxisConfig(db::SqliteCppDb* db)
+{
+    auto axisStatement = db->createStatement(
+      "SELECT value FROM properties WHERE key = 'analog_axis_config'");
+    if (const auto axisConfigData =
+          axisStatement.executeAndGet<std::string>()) {
+        const auto array = QByteArray::fromStdString(axisConfigData.value());
+        auto axisConfigs = support::decompress<QList<GamepadAxisConfig>>(array);
+        for (const auto& config : axisConfigs) {
+            axisConfig[{ config.gamepad, config.axis }] = config.config;
+        }
+    }
+    checkAnalogAxisStatus();
+}
 InputTranslator::InputTranslator(db::SqliteCppDb* db, QObject* parent)
   : QObject(parent)
   , db(db)
@@ -510,12 +711,20 @@ InputTranslator::InputTranslator(db::SqliteCppDb* db, QObject* parent)
             this,
             &InputTranslator::saveKeyConfig);
     // load key config
-    auto statement = db->createStatement(
-      "SELECT value FROM properties WHERE key = 'key_config'");
-    if (const auto keyConfig = statement.executeAndGet<std::string>()) {
-        const auto array = QByteArray::fromStdString(keyConfig.value());
-        config = support::decompress<QHash<Key, BmsKey>>(array);
-    }
+    loadKeyConfig(db);
+    loadAnalogAxisConfig(db);
+    connect(this,
+            &InputTranslator::analogAxisConfig1Changed,
+            this,
+            &InputTranslator::saveAnalogAxisConfig);
+    connect(this,
+            &InputTranslator::analogAxisConfig2Changed,
+            this,
+            &InputTranslator::saveAnalogAxisConfig);
+    connect(this,
+            &InputTranslator::keyConfigModified,
+            this,
+            &InputTranslator::checkAnalogAxisStatus);
 }
 void
 InputTranslator::setConfiguredButton(const QVariant& button)
@@ -715,43 +924,114 @@ InputTranslator::select2() const -> bool
     return buttons[static_cast<int>(BmsKey::Select2)];
 }
 
+auto
+InputTranslator::getAnalogAxisConfig1() const -> QVariant
+{
+    if (!scratchAxis1.has_value()) {
+        return QVariant::fromValue(nullptr);
+    }
+    if (const auto found = axisConfig.find(*scratchAxis1);
+        found != axisConfig.end()) {
+        return QVariant::fromValue(found->second);
+    }
+    return QVariant::fromValue(AnalogAxisConfig{});
+}
+
+void
+InputTranslator::setAnalogAxisConfig1(QVariant config)
+{
+    if (config.typeId() != qMetaTypeId<AnalogAxisConfig>()) {
+        return;
+    }
+    auto configUnpacked = config.value<AnalogAxisConfig>();
+
+    if (!scratchAxis1.has_value()) {
+        return;
+    }
+    auto& axisConfig = this->axisConfig[*scratchAxis1];
+    if (axisConfig == configUnpacked) {
+        return;
+    }
+    axisConfig = configUnpacked;
+    emit analogAxisConfig1Changed();
+}
+
+auto
+InputTranslator::getAnalogAxisConfig2() const -> QVariant
+{
+    if (!scratchAxis2.has_value()) {
+        return QVariant::fromValue(nullptr);
+    }
+    if (const auto found = axisConfig.find(*scratchAxis2);
+        found != axisConfig.end()) {
+        return QVariant::fromValue(found->second);
+    }
+    return QVariant::fromValue(AnalogAxisConfig{});
+}
+
+void
+InputTranslator::setAnalogAxisConfig2(QVariant config)
+{
+    if (!config.canConvert<AnalogAxisConfig>()) {
+        return;
+    }
+    auto configUnpacked = config.value<AnalogAxisConfig>();
+
+    if (!scratchAxis2.has_value()) {
+        return;
+    }
+    auto& axisConfig = this->axisConfig[*scratchAxis2];
+    if (axisConfig == configUnpacked) {
+        return;
+    }
+    axisConfig = configUnpacked;
+    emit analogAxisConfig2Changed();
+}
+
 bool
 InputTranslator::eventFilter(QObject* watched, QEvent* event)
 {
-    if (event->type() == QEvent::KeyPress) {
+    if (event->type() == QEvent::KeyPress && !event->isAccepted()) {
         const auto* const key = static_cast<QKeyEvent*>(event);
         if (key->isAutoRepeat()) {
             return false;
         }
         const auto time = getTime(*key);
-        const auto keyLookup = Key{
-            QVariant::fromValue(nullptr), Key::Device::Keyboard, key->key(), Key::Direction::None
-        };
+        const auto keyLookup = Key{ QVariant::fromValue(nullptr),
+                                    Key::Device::Keyboard,
+                                    key->key(),
+                                    Key::Direction::None };
         if (isConfiguring()) {
-            unpressCurrentKey(keyLookup, key->timestamp());
+            unpressAndUnbind(keyLookup, key->timestamp());
             config[keyLookup] = *configuredButton;
             emit keyConfigModified();
             setConfiguredButton({});
         } else {
             if (const auto found = config.find(keyLookup);
                 found != config.end()) {
-                pressButton(*found, 0.0, time);
+                pressButton(*found, time);
             }
         }
-    } else if (event->type() == QEvent::KeyRelease) {
+    } else if (event->type() == QEvent::KeyRelease && !event->isAccepted()) {
         const auto* const key = static_cast<QKeyEvent*>(event);
         if (key->isAutoRepeat()) {
             return false;
         }
         const auto time = getTime(*key);
-        const auto keyLookup = Key{
-            QVariant::fromValue(nullptr), Key::Device::Keyboard, key->key(), Key::Direction::None
-        };
+        const auto keyLookup = Key{ QVariant::fromValue(nullptr),
+                                    Key::Device::Keyboard,
+                                    key->key(),
+                                    Key::Direction::None };
         if (const auto found = config.find(keyLookup); found != config.end()) {
             releaseButton(*found, time);
         }
     }
     return false;
+}
+QString
+InputTranslator::scancodeToString(const int scancode)
+{
+    return QKeySequence(scancode).toString(QKeySequence::NativeText);
 }
 
 auto

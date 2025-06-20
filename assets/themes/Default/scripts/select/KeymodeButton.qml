@@ -22,7 +22,13 @@ Image {
         anchors.centerIn: parent
         color: "black"
         font.pixelSize: 20
-        text: (keymodeButton.options[keymodeButton.current] ? keymodeButton.options[keymodeButton.current] : "ALL") + " keys"
+        text: {
+            let current = keymodeButton.options[keymodeButton.current];
+            if (current === null) {
+                return qsTr("ALL keys");
+            }
+            return qsTr("%1 keys").arg(current)
+        }
     }
     MouseArea {
         id: mouseArea

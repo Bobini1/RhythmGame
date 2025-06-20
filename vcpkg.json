@@ -98,6 +98,18 @@
       "version>=": "6.8.1"
     },
     {
+      "name": "qttranslations",
+      "version>=": "6.8.1"
+    },
+    {
+      "name": "qttools",
+      "version>=": "6.8.1",
+      "features": [
+        "linguist",
+        "qml"
+      ]
+    },
+    {
       "name": "mimalloc",
       "version>=": "2.1.7",
         "features": [
@@ -139,5 +151,5 @@
       ]
     }
   },
-  "builtin-baseline": "f26ec398c25c4980f33a50391f00a75f7ad62ef7"
+  "builtin-baseline": "ef7dbf94b9198bc58f45951adcf1f041fcbc5ea0"
 }

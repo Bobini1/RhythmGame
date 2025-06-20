@@ -26,12 +26,14 @@
 #include "qml_components/FileQuery.h"
 #include "qml_components/InputAttached.h"
 #include "../RhythmGameQml/Rg.h"
+#include "input/CustomNotifyApp.h"
+#include "qml_components/QmlUtils.h"
 #include "qml_components/Themes.h"
 #include "resource_managers/GaugeFactory.h"
+#include "resource_managers/Languages.h"
 #include "resource_managers/ScanThemes.h"
 #include "resource_managers/Tables.h"
 #include "support/PathToUtfString.h"
-#include "support/QStringToPath.h"
 #include "support/UtfStringToPath.h"
 
 Q_IMPORT_QML_PLUGIN(RhythmGameQmlPlugin)
@@ -85,7 +87,7 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
     spdlog::set_level(spdlog::level::debug);
     set_default_logger(logger);
 
-    const auto app = QGuiApplication{ argc, argv };
+    auto app = input::CustomNotifyApp{ argc, argv };
 
     QGuiApplication::setOrganizationName("Tomasz Kalisiak");
     QGuiApplication::setOrganizationDomain("rhythmgame.eu");
@@ -126,13 +128,40 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
         if (availableThemes.empty()) {
             throw std::runtime_error("No themes available");
         }
+        // loadTranslations(assetsFolder / "translations");
         auto gamepadManager = input::GamepadManager{};
 
         auto themes = qml_components::Themes{ availableThemes };
-        auto profileList = qml_components::ProfileList{
-            assetsFolder / "song_db.sqlite",
-            &db, availableThemes, assetsFolder / "profiles", avatarPath
+        auto profileList =
+          qml_components::ProfileList{ assetsFolder / "song_db.sqlite",
+                                       &db,
+                                       availableThemes,
+                                       assetsFolder / "profiles",
+                                       avatarPath };
+
+        auto engine = QQmlApplicationEngine{};
+        auto languages = resource_managers::Languages{ availableThemes, &engine };
+        auto setLang = [&profileList, &languages, connection = QMetaObject::Connection{}]() mutable {
+            languages.setSelectedLanguage(
+              profileList.getMainProfile()
+                ->getVars()
+                ->getGeneralVars()
+                ->getLanguage());
+            connection = QObject::connect(
+            profileList.getMainProfile()
+              ->getVars()->getGeneralVars(),
+              &resource_managers::GeneralVars::languageChanged,
+              &languages,
+              [mainProfileVars = profileList.getMainProfile()
+              ->getVars()->getGeneralVars(), &languages]() {
+                  languages.setSelectedLanguage(mainProfileVars->getLanguage());
+              });
         };
+        QObject::connect(&profileList,
+                         &qml_components::ProfileList::mainProfileChanged,
+                         &languages,
+                         setLang);
+        setLang();
 
         auto inputTranslator = input::InputTranslator{ &db };
         QObject::connect(&gamepadManager,
@@ -155,18 +184,21 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
               return std::make_unique<
                 gameplay_logic::rules::StandardBmsHitRules>(
                 std::move(timingWindows), std::move(hitValuesFactory));
-          };
+        };
         auto chartDataFactory = resource_managers::ChartDataFactory{};
         auto gaugeFactory = resource_managers::GaugeFactory{};
-        auto getChartPathFromSha256 = [&db](const QString& sha256, const std::filesystem::path& hint) {
+        auto getChartPathFromSha256 = [&db](const QString& sha256,
+                                            const std::filesystem::path& hint) {
             // Check if the hint path exists and matches the hash
-            auto hintStatement = db.createStatement("SELECT sha256 FROM charts WHERE path = ?;");
+            auto hintStatement =
+              db.createStatement("SELECT sha256 FROM charts WHERE path = ?;");
             hintStatement.bind(1, support::pathToUtfString(hint));
-            if (const auto hintResult = hintStatement.executeAndGet<std::string>()) {
+            if (const auto hintResult =
+                  hintStatement.executeAndGet<std::string>()) {
                 if (*hintResult == sha256.toStdString()) {
                     return std::optional{ hint };
                 }
-            }
+                  }
 
             auto statement =
               db.createStatement("SELECT path FROM charts WHERE sha256 = ?;");
@@ -215,7 +247,8 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
                       &themes,
                       &gamepadManager,
                       &profileList,
-                      &tables };
+                      &tables,
+                      &languages };
 
         Rg::instance = &rg;
 
@@ -248,7 +281,7 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
         qmlRegisterType<gameplay_logic::BmsScore>(
           "RhythmGameQml", 1, 0, "BmsScore");
         qmlRegisterType<gameplay_logic::BmsPoints>(
-          "RhythmGameQml", 1, 0, "BmsPoints");
+          "RhythmGameQml", 1, 0, "bmsPoints");
         qmlRegisterType<gameplay_logic::BmsResult>(
           "RhythmGameQml", 1, 0, "BmsResult");
         qmlRegisterType<gameplay_logic::BmsReplayData>(
@@ -256,11 +289,14 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
         qmlRegisterType<gameplay_logic::BmsGaugeHistory>(
           "RhythmGameQml", 1, 0, "BmsGaugeHistory");
         qmlRegisterType<gameplay_logic::HitEvent>(
-          "RhythmGameQml", 1, 0, "HitEvent");
+          "RhythmGameQml", 1, 0, "hitEvent");
         qmlRegisterType<qml_components::Bga>("RhythmGameQml", 1, 0, "Bga");
         qmlRegisterType<qml_components::BgaContainer>(
           "RhythmGameQml", 1, 0, "BgaContainer");
-        qmlRegisterType<input::Key>("RhythmGameQml", 1, 0, "Key");
+        qmlRegisterType<input::Key>("RhythmGameQml", 1, 0, "key");
+        qmlRegisterType<input::Gamepad>("RhythmGameQml", 1, 0, "gamepad");
+        qmlRegisterType<input::AnalogAxisConfig>(
+          "RhythmGameQml", 1, 0, "analogAxisConfig");
         qmlRegisterUncreatableMetaObject(
           gameplay_logic::judgement::staticMetaObject,
           "RhythmGameQml",
@@ -315,8 +351,24 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
           qml_components::InputSignalProvider{ &inputTranslator };
         qml_components::InputAttached::inputSignalProvider =
           &inputSignalProvider;
-
-        auto engine = QQmlApplicationEngine{};
+        qml_components::QmlUtilsAttached::getThemeNameForRootFile =
+          [&availableThemes](const QUrl& rootFile) {
+              for (const auto& [themeName, family] :
+                   availableThemes.asKeyValueRange()) {
+                  for (const auto& screen : family.getScreens()) {
+                      if (screen.getScript() == rootFile) {
+                          return themeName;
+                      }
+                  }
+                   }
+              return QString{};
+        };
+        qmlRegisterUncreatableType<qml_components::QmlUtilsAttached>(
+          "RhythmGameQml",
+          1,
+          0,
+          "QmlUtils",
+          "QmlUtils is only accessible as an attached property");
 
         engine.addImageProvider("ini",
                                 new resource_managers::IniImageProvider{});
@@ -325,7 +377,7 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
         if (engine.rootObjects().isEmpty()) {
             throw std::runtime_error{ "Failed to load main qml" };
         }
-        engine.rootObjects()[0]->installEventFilter(&inputTranslator);
+        app.setInputTranslator(&inputTranslator);
 
         return app.exec();
     } catch (const std::exception& e) {

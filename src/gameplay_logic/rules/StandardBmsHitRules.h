@@ -22,6 +22,8 @@ class StandardBmsHitRules : public BmsHitRules
       currentNotes{};
     std::array<int, charts::gameplay_models::BmsNotesData::columnNumber>
       currentMines{};
+    std::array<BmsPoints, charts::gameplay_models::BmsNotesData::columnNumber>
+      lnBeginPoints{};
 
   public:
     explicit StandardBmsHitRules(
@@ -30,7 +32,7 @@ class StandardBmsHitRules : public BmsHitRules
         hitValueFactory);
     auto press(std::span<Note> notes,
                int column,
-               std::chrono::nanoseconds hitOffset) -> HitEvent override;
+               std::chrono::nanoseconds hitOffset) -> QList<HitEvent> override;
 
     auto processMisses(std::span<Note> notes,
                        int column,

@@ -11,11 +11,13 @@ PathView {
     property var filter: null
     // we need to keep references to ChartDatas, otherwise they will be garbage collected
     property var folderContents: []
-    onOpenedFolder: {
+    onOpenedFolder: refresh()
+    function refresh() {
         refreshScores();
         refreshFolderClearStats();
     }
     function refreshScores() {
+        Rg.profileList.mainProfile.scoreDb.cancelPending();
         if (historyStack[historyStack.length - 1] === "SEARCH") {
             let md5s = [];
             for (let item of folderContents) {

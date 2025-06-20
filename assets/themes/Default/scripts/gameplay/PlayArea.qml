@@ -1,3 +1,4 @@
+pragma ValueTypeBehavior: Addressable
 import QtQuick
 import QtQuick
 import QtQuick.Layouts
@@ -17,7 +18,7 @@ Item {
         return mapping;
     }
     readonly property double heightMultiplier: {
-        let bpmMode = profile.vars.globalVars.hiSpeedFix;
+        let bpmMode = profile.vars.generalVars.hiSpeedFix;
         const bpm = (() => {
             switch (bpmMode) {
                 case HiSpeedFix.Off:
@@ -37,9 +38,9 @@ Item {
                     return 120;
             }
         })();
-        let baseSpeed = ((1 / profile.vars.globalVars.noteScreenTimeMillis) || 0) * 60000 * vars.playAreaHeight / bpm;
-        let laneCoverMod = profile.vars.globalVars.laneCoverOn * profile.vars.globalVars.laneCoverRatio;
-        let liftMod = profile.vars.globalVars.liftOn * profile.vars.globalVars.liftRatio;
+        let baseSpeed = ((1 / profile.vars.generalVars.noteScreenTimeMillis) || 0) * 60000 * vars.playAreaHeight / bpm;
+        let laneCoverMod = profile.vars.generalVars.laneCoverOn * profile.vars.generalVars.laneCoverRatio;
+        let liftMod = profile.vars.generalVars.liftOn * profile.vars.generalVars.liftRatio;
         return baseSpeed * Math.max(0, Math.min(1 - laneCoverMod - liftMod, 1));
     }
     required property Player player
@@ -53,10 +54,16 @@ Item {
         return side.columnStates[column];
     })
     readonly property int spacing: playArea.vars.spacing
-    readonly property var vars: profile.vars.themeVars[chartFocusScope.screen]
-    readonly property var globalVars: profile.vars.globalVars
+    readonly property var vars: profile.vars.themeVars[root.screen][root.themeName]
+    readonly property var generalVars: profile.vars.generalVars
     readonly property list<real> columnSizes: root.getColumnSizes(vars)
-    readonly property real position: player.position
+    property real position
+    FrameAnimation {
+        running: true
+        onTriggered: {
+            playArea.position = playArea.player.position;
+        }
+    }
 
     height: playArea.vars.playAreaHeight
     width: playfield.width
@@ -73,18 +80,18 @@ Item {
 
             height: parent.height
             source: root.imagesUrl + "lanecover/" + playArea.vars.lanecover
-            visible: playArea.globalVars.laneCoverOn
+            visible: playArea.generalVars.laneCoverOn
             width: parent.width
-            y: height * (-1 + playArea.globalVars.laneCoverRatio)
+            y: height * (-1 + playArea.generalVars.laneCoverRatio)
             z: 7
         }
         Image {
             id: liftCover
 
             fillMode: Image.PreserveAspectCrop
-            height: parent.height * Math.min(1, playArea.globalVars.liftOn * playArea.globalVars.liftRatio + playArea.globalVars.hiddenOn * playArea.globalVars.hiddenRatio)
+            height: parent.height * Math.min(1, playArea.generalVars.liftOn * playArea.generalVars.liftRatio + playArea.generalVars.hiddenOn * playArea.generalVars.hiddenRatio)
             source: root.imagesUrl + "liftcover/" + playArea.vars.liftcover
-            visible: playArea.globalVars.liftOn || playArea.globalVars.hiddenOn
+            visible: playArea.generalVars.liftOn || playArea.generalVars.hiddenOn
             width: parent.width
             y: parent.height - height
             z: 6
@@ -93,7 +100,7 @@ Item {
             id: judgeLine
 
             anchors.bottom: parent.bottom
-            anchors.bottomMargin: parent.height * playArea.globalVars.liftOn * playArea.globalVars.liftRatio
+            anchors.bottomMargin: parent.height * playArea.generalVars.liftOn * playArea.generalVars.liftRatio
             color: playArea.vars.judgeLineColor
             height: playArea.vars.judgeLineThickness
             width: parent.width
@@ -101,7 +108,6 @@ Item {
         }
         BarLinePositioner {
             model: playArea.barLinesState
-            barlinesArray: playArea.player.notes.barLines
             heightMultiplier: playArea.heightMultiplier
             position: playArea.position
             anchors.fill: parent
@@ -121,20 +127,11 @@ Item {
             columnSizes: playArea.columnSizes
             noteImage: playArea.vars.notes
             mineImage: playArea.vars.mine
-            notesStay: playArea.vars.notesStay
             position: playArea.position
             z: 4
         }
         Row {
             id: laserRow
-
-            function hideLaser(index) {
-                laserRow.children[playArea.columnsReversedMapping[index]].stop();
-            }
-
-            function shootLaser(index) {
-                laserRow.children[playArea.columnsReversedMapping[index]].start();
-            }
 
             anchors.bottom: judgeLine.bottom
             height: parent.height
@@ -178,9 +175,11 @@ Item {
     }
     Judgements {
         anchors.centerIn: parent
+        anchors.verticalCenterOffset: (-playArea.vars.judgementsOffset * 2 + 1) * (parent.height - height) / 2
 
         score: playArea.score
         judge: playArea.vars.judge
+        columns: playArea.columns
     }
     Item {
         id: playAreaBg
@@ -257,10 +256,11 @@ Item {
 
             function restart() {
                 bomb.restart();
+                lnBomb.restart();
             }
 
             anchors.bottom: parent.bottom
-            anchors.bottomMargin: parent.height * playArea.globalVars.liftOn * playArea.globalVars.liftRatio
+            anchors.bottomMargin: parent.height * playArea.generalVars.liftOn * playArea.generalVars.liftRatio
             width: playArea.columnSizes[playfield.columns[index]]
             x: {
                 let cpos = 0;
@@ -276,23 +276,41 @@ Item {
 
                 anchors.centerIn: parent
                 finishBehavior: AnimatedSprite.FinishAtFinalFrame
-                frameCount: bombWrapper.ln ? 8 : 16
+                frameCount: 16
                 frameDuration: 25
                 frameHeight: bombSize.sourceSize.height / 4
                 frameWidth: bombSize.sourceSize.width / 4
-                frameY: bombWrapper.ln ? 0 : frameHeight
+                frameY: frameHeight
                 height: frameHeight / 2
-                loops: bombWrapper.ln ? AnimatedSprite.Infinite : 1
+                loops: 1
                 running: false
                 source: root.imagesUrl + "bomb/" + playArea.vars.bomb
-                visible: running
+                opacity: (running && !bombWrapper.ln ? 1 : 0)
+                width: frameWidth / 2
+            }
+
+            AnimatedSprite {
+                id: lnBomb
+
+                anchors.centerIn: parent
+                finishBehavior: AnimatedSprite.FinishAtFinalFrame
+                frameCount: 8
+                frameDuration: 25
+                frameHeight: bombSize.sourceSize.height / 4
+                frameWidth: bombSize.sourceSize.width / 4
+                frameY: 0
+                height: frameHeight / 2
+                loops: AnimatedSprite.Infinite
+                running: false
+                source: root.imagesUrl + "bomb/" + playArea.vars.bomb
+                opacity: (running && bombWrapper.ln ? 1 : 0)
                 width: frameWidth / 2
             }
         }
     }
     Connections {
         target: playArea.score
-        function onHit(hitEvent) {
+        function onHit(hit) {
             function handleBomb(index, isLongNote, restart = true) {
                 if (index === undefined) return;
                 let bomb = explosions.itemAt(index);
@@ -300,17 +318,21 @@ Item {
                 if (restart) bomb.restart();
             }
 
-            if (hitEvent.noteRemoved) {
-                let index = columnsReversedMapping[hitEvent.column];
-                let note = playArea.notes[index][hitEvent.noteIndex];
+            if (!playArea.columns.includes(hit.column)) {
+                return;
+            }
 
-                if (hitEvent.action === HitEvent.Press) {
+            if (hit.noteRemoved) {
+                let index = columnsReversedMapping[hit.column];
+                let note = playArea.notes[index][hit.noteIndex];
+
+                if (hit.action === hitEvent.Press) {
                     if (note.type === Note.Type.Normal) {
                         handleBomb(index, false);
                     } else if (note.type === Note.Type.LongNoteBegin) {
                         handleBomb(index, true);
                     }
-                } else if (hitEvent.action === HitEvent.Release && note.type === Note.Type.LongNoteEnd) {
+                } else if (note.type === Note.Type.LongNoteEnd) {
                     handleBomb(index, false, false);
                 }
             }
@@ -321,7 +343,7 @@ Item {
         id: bombSize
 
         source: root.imagesUrl + "bomb/" + playArea.vars.bomb
-        visible: false
+        opacity: 0
     }
 }
 

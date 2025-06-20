@@ -23,6 +23,7 @@ class Key
     Q_PROPERTY(QVariant gamepad MEMBER gamepad)
     Q_PROPERTY(Device device MEMBER device)
     Q_PROPERTY(int code MEMBER code)
+    Q_PROPERTY(Direction direction MEMBER direction)
 
   public:
     enum class Device
@@ -87,9 +88,34 @@ class Mapping
       -> QDataStream&;
 };
 
+struct AnalogAxisConfig
+{
+    Q_GADGET
+    Q_PROPERTY(double triggerThreshold MEMBER triggerThreshold)
+    Q_PROPERTY(double releaseThreshold MEMBER releaseThreshold)
+    Q_PROPERTY(uint timeout MEMBER timeout)
+    Q_PROPERTY(ScratchAlgorithm scratchAlgorithm MEMBER algorithm)
+public:
+    enum ScratchAlgorithm
+    {
+        ScratchAlgorithmAnalog,
+        ScratchAlgorithmClassic
+    };
+    Q_ENUM(ScratchAlgorithm)
+
+    double triggerThreshold = 0.008;
+    double releaseThreshold = 0.004;
+    uint timeout = 100;
+    ScratchAlgorithm algorithm = ScratchAlgorithmAnalog;
+
+    auto operator<=>(const AnalogAxisConfig&) const = default;
+};
+
 class InputTranslator final : public QObject
 {
     Q_OBJECT
+public:
+private:
     Q_PROPERTY(bool configuring READ isConfiguring NOTIFY configuringChanged)
     Q_PROPERTY(QVariant configuredButton READ getConfiguredButton WRITE
                  setConfiguredButton NOTIFY configuredButtonChanged)
@@ -117,15 +143,21 @@ class InputTranslator final : public QObject
     Q_PROPERTY(bool select READ select1 NOTIFY select1Changed)
     Q_PROPERTY(bool start2 READ start2 NOTIFY start2Changed)
     Q_PROPERTY(bool select2 READ select2 NOTIFY select2Changed)
+    Q_PROPERTY(QVariant analogAxisConfig1 READ getAnalogAxisConfig1
+                 WRITE setAnalogAxisConfig1 NOTIFY analogAxisConfig1Changed)
+    Q_PROPERTY(QVariant analogAxisConfig2 READ getAnalogAxisConfig2
+                 WRITE setAnalogAxisConfig2 NOTIFY analogAxisConfig2Changed)
 
   public:
     struct Scratch
     {
-        std::unique_ptr<QTimer> timer;
-        double value{};
+        std::unique_ptr<QTimer> timer = std::make_unique<QTimer>();
+        double delta = 0;
+        Key::Direction direction = Key::Direction::None;
+        double value = std::numeric_limits<double>::quiet_NaN();
     };
 
-  private:
+private:
     struct PairHash
     {
         template<typename T, typename U>
@@ -137,26 +169,30 @@ class InputTranslator final : public QObject
     std::unordered_map<std::pair<Gamepad, uint8_t>, Scratch, PairHash>
       scratches;
     std::optional<BmsKey> configuredButton;
+    std::unordered_map<std::pair<Gamepad, uint8_t>, AnalogAxisConfig, PairHash> axisConfig;
     QHash<Key, BmsKey> config;
     db::SqliteCppDb* db;
     std::array<bool, magic_enum::enum_count<BmsKey>()> buttons{};
+    std::optional<std::pair<Gamepad, uint8_t>> scratchAxis1;
+    std::optional<std::pair<Gamepad, uint8_t>> scratchAxis2;
 
-    void pressButton(BmsKey button, double value, uint64_t time);
+    void pressButton(BmsKey button, uint64_t time);
     void releaseButton(BmsKey button, uint64_t time);
-    void unpressCurrentKey(const Key& key, uint64_t time);
+    void unpressAndUnbind(const Key& key, uint64_t time);
     void saveKeyConfig() const;
+    void saveAnalogAxisConfig() const;
+    void handleAxisChange(Gamepad gamepad, Uint8 axis, int64_t time);
+    void checkAnalogAxisStatus();
+    void autoReleaseScratch(const std::pair<Gamepad, uint8_t>& scratchKey,
+                             int64_t time);
 
   public:
     void handleAxis(Gamepad gamepad, Uint8 axis, double value, int64_t time);
     void handlePress(Gamepad gamepad, Uint8 button, int64_t time);
     void handleRelease(Gamepad gamepad, Uint8 button, int64_t time);
 
-  private:
-    auto getTime(const QKeyEvent& event) -> int64_t;
-
-    static constexpr auto scratchSensitivity = 0.01;
-
-  public:
+    void loadKeyConfig(db::SqliteCppDb* db);
+    void loadAnalogAxisConfig(db::SqliteCppDb* db);
     explicit InputTranslator(db::SqliteCppDb* db, QObject* parent = nullptr);
     void setConfiguredButton(const QVariant& button);
     auto getConfiguredButton() const -> QVariant;
@@ -188,11 +224,15 @@ class InputTranslator final : public QObject
     auto select1() const -> bool;
     auto start2() const -> bool;
     auto select2() const -> bool;
-
+    auto getAnalogAxisConfig1() const -> QVariant;
+    auto getAnalogAxisConfig2() const -> QVariant;
+    void setAnalogAxisConfig1(QVariant config);
+    void setAnalogAxisConfig2(QVariant config);
     auto eventFilter(QObject* watched, QEvent* event) -> bool override;
+    Q_INVOKABLE static QString scancodeToString(int scancode);
 
   signals:
-    void buttonPressed(BmsKey button, double value, int64_t time);
+    void buttonPressed(BmsKey button, int64_t time);
     void buttonReleased(BmsKey button, int64_t time);
     void keyConfigModified();
     void configuringChanged();
@@ -219,6 +259,8 @@ class InputTranslator final : public QObject
     void select1Changed();
     void start2Changed();
     void select2Changed();
+    void analogAxisConfig1Changed();
+    void analogAxisConfig2Changed();
 };
 
 } // namespace input

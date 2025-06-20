@@ -59,6 +59,7 @@ gameplay_logic::rules::Lr2Gauge::getGauges(TimingWindows timingWindows,
               case Judgement::Good:
               case Judgement::EmptyPoor:
               case Judgement::MineAvoided:
+              case Judgement::LnBeginHit:
                   return 0.0;
               default:
                   return -std::numeric_limits<double>::infinity();
@@ -84,7 +85,6 @@ gameplay_logic::rules::Lr2Gauge::getGauges(TimingWindows timingWindows,
                                          case Judgement::Bad:
                                              return -8.0;
                                          case Judgement::Poor:
-                                         case Judgement::LnEndMiss:
                                              return -16.0;
                                          case Judgement::EmptyPoor:
                                              return -8.0;
@@ -112,7 +112,6 @@ gameplay_logic::rules::Lr2Gauge::getGauges(TimingWindows timingWindows,
               case Judgement::Bad:
                   return (currentGauge > 30) ? -6.0 : -3.6;
               case Judgement::Poor:
-              case Judgement::LnEndMiss:
                   return (currentGauge > 30) ? -10.0 : -6.0;
               case Judgement::EmptyPoor:
                   return (currentGauge > 30) ? -2.0 : -1.2;
@@ -140,10 +139,11 @@ gameplay_logic::rules::Lr2Gauge::getGauges(TimingWindows timingWindows,
               case Judgement::Bad:
                   return -4.0;
               case Judgement::Poor:
-              case Judgement::LnEndMiss:
                   return -6.0;
               case Judgement::EmptyPoor:
                   return -2.0;
+              case Judgement::LnBeginHit:
+                  return 0.0;
           }
           throw std::runtime_error("Invalid judgement");
       });
@@ -167,10 +167,11 @@ gameplay_logic::rules::Lr2Gauge::getGauges(TimingWindows timingWindows,
               case Judgement::Bad:
                   return -3.2;
               case Judgement::Poor:
-              case Judgement::LnEndMiss:
                   return -4.8;
               case Judgement::EmptyPoor:
                   return -1.6;
+              case Judgement::LnBeginHit:
+                  return 0.0;
           }
           throw std::runtime_error("Invalid judgement");
       });
@@ -194,10 +195,11 @@ gameplay_logic::rules::Lr2Gauge::getGauges(TimingWindows timingWindows,
               case Judgement::Bad:
                   return -1.5;
               case Judgement::Poor:
-              case Judgement::LnEndMiss:
                   return -3.0;
               case Judgement::EmptyPoor:
                   return -0.5;
+                case Judgement::LnBeginHit:
+                  return 0.0;
           }
           throw std::runtime_error("Invalid judgement");
       });

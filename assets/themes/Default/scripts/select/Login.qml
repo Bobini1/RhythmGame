@@ -59,7 +59,7 @@ Rectangle {
                     anchors.topMargin: 32
                     anchors.horizontalCenter: parent.horizontalCenter
                     width: 300
-                    text: "Select Profile"
+                    text: qsTr("Select Profile")
                     highlightedKeys: [1, 2]
                 }
 
@@ -110,7 +110,7 @@ Rectangle {
 
                         Image {
                             id: image
-                            source: Rg.programSettings.avatarFolder + Rg.profileList.mainProfile.vars.globalVars.avatar
+                            source: Rg.programSettings.avatarFolder + Rg.profileList.mainProfile.vars.generalVars.avatar
                             anchors.fill: parent
                             anchors.margins: 1
                             fillMode: Image.PreserveAspectFit
@@ -134,7 +134,7 @@ Rectangle {
                         width: height
 
                         TextEdit {
-                            text: Rg.profileList.mainProfile.vars.globalVars.name
+                            text: Rg.profileList.mainProfile.vars.generalVars.name
                             readOnly: true
                             font.pixelSize: 24
                             color: "white"
@@ -174,7 +174,7 @@ Rectangle {
                     anchors.top: mainProfile.bottom
                     anchors.topMargin: 32
                     width: 300
-                    text: "Select Profiles"
+                    text: qsTr("Select Profiles")
                     highlightedKeys: [1, 2]
                 }
 
@@ -232,7 +232,7 @@ Rectangle {
 
     DarkLabel {
         id: addPlayerButton
-        text: bg.isConfiguringDp ? "Single Mode" : "Battle Mode"
+        text: bg.isConfiguringDp ? qsTr("Single Mode") : qsTr("Battle Mode")
         anchors.bottom: parent.bottom
         anchors.bottomMargin: 32
         anchors.horizontalCenter: parent.horizontalCenter

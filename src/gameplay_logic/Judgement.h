@@ -20,8 +20,7 @@ enum class Judgement
     MineHit,
     MineAvoided,
     LnEndSkip,
-    LnEndMiss,
-    LnEndHit
+    LnBeginHit,
 };
 Q_ENUM_NS(Judgement)
 }

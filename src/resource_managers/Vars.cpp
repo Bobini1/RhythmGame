@@ -21,18 +21,18 @@
 #include <qcolor.h>
 #include <qdir.h>
 #include <utility>
-resource_managers::GlobalVars::GlobalVars(QString avatarPath, QObject* parent)
+resource_managers::GeneralVars::GeneralVars(QString avatarPath, QObject* parent)
   : QObject(parent)
   , avatarPath(std::move(avatarPath))
 {
 }
 auto
-resource_managers::GlobalVars::getNoteScreenTimeMillis() const -> int
+resource_managers::GeneralVars::getNoteScreenTimeMillis() const -> int
 {
     return noteScreenTimeMillis;
 }
 void
-resource_managers::GlobalVars::setNoteScreenTimeMillis(int value)
+resource_managers::GeneralVars::setNoteScreenTimeMillis(int value)
 {
     if (noteScreenTimeMillis == value) {
         return;
@@ -41,17 +41,17 @@ resource_managers::GlobalVars::setNoteScreenTimeMillis(int value)
     emit noteScreenTimeMillisChanged();
 }
 void
-resource_managers::GlobalVars::resetNoteScreenTimeMillis()
+resource_managers::GeneralVars::resetNoteScreenTimeMillis()
 {
     setNoteScreenTimeMillis(1000);
 }
 auto
-resource_managers::GlobalVars::getLaneCoverOn() const -> bool
+resource_managers::GeneralVars::getLaneCoverOn() const -> bool
 {
     return laneCoverOn;
 }
 void
-resource_managers::GlobalVars::setLaneCoverOn(bool value)
+resource_managers::GeneralVars::setLaneCoverOn(bool value)
 {
     if (laneCoverOn == value) {
         return;
@@ -60,18 +60,18 @@ resource_managers::GlobalVars::setLaneCoverOn(bool value)
     emit laneCoverOnChanged();
 }
 void
-resource_managers::GlobalVars::resetLaneCoverOn()
+resource_managers::GeneralVars::resetLaneCoverOn()
 {
     setLaneCoverOn(false);
 }
 
 auto
-resource_managers::GlobalVars::getLaneCoverRatio() const -> double
+resource_managers::GeneralVars::getLaneCoverRatio() const -> double
 {
     return laneCoverRatio;
 }
 void
-resource_managers::GlobalVars::setLaneCoverRatio(double value)
+resource_managers::GeneralVars::setLaneCoverRatio(double value)
 {
     if (laneCoverRatio == value) {
         return;
@@ -80,18 +80,18 @@ resource_managers::GlobalVars::setLaneCoverRatio(double value)
     emit laneCoverRatioChanged();
 }
 void
-resource_managers::GlobalVars::resetLaneCoverRatio()
+resource_managers::GeneralVars::resetLaneCoverRatio()
 {
     setLaneCoverRatio(0.1);
 }
 
 auto
-resource_managers::GlobalVars::getLiftOn() const -> bool
+resource_managers::GeneralVars::getLiftOn() const -> bool
 {
     return liftOn;
 }
 void
-resource_managers::GlobalVars::setLiftOn(bool value)
+resource_managers::GeneralVars::setLiftOn(bool value)
 {
     if (liftOn == value) {
         return;
@@ -101,18 +101,18 @@ resource_managers::GlobalVars::setLiftOn(bool value)
 }
 
 void
-resource_managers::GlobalVars::resetLiftOn()
+resource_managers::GeneralVars::resetLiftOn()
 {
     setLiftOn(false);
 }
 
 auto
-resource_managers::GlobalVars::getLiftRatio() const -> double
+resource_managers::GeneralVars::getLiftRatio() const -> double
 {
     return liftRatio;
 }
 void
-resource_managers::GlobalVars::setLiftRatio(double value)
+resource_managers::GeneralVars::setLiftRatio(double value)
 {
     if (liftRatio == value) {
         return;
@@ -121,17 +121,17 @@ resource_managers::GlobalVars::setLiftRatio(double value)
     emit liftRatioChanged();
 }
 void
-resource_managers::GlobalVars::resetLiftRatio()
+resource_managers::GeneralVars::resetLiftRatio()
 {
     setLiftRatio(0.1);
 }
 auto
-resource_managers::GlobalVars::getHiddenOn() const -> bool
+resource_managers::GeneralVars::getHiddenOn() const -> bool
 {
     return hiddenOn;
 }
 void
-resource_managers::GlobalVars::setHiddenOn(bool value)
+resource_managers::GeneralVars::setHiddenOn(bool value)
 {
     if (hiddenOn == value) {
         return;
@@ -140,18 +140,18 @@ resource_managers::GlobalVars::setHiddenOn(bool value)
     emit hiddenOnChanged();
 }
 void
-resource_managers::GlobalVars::resetHiddenOn()
+resource_managers::GeneralVars::resetHiddenOn()
 {
     setHiddenOn(false);
 }
 
 auto
-resource_managers::GlobalVars::getHiddenRatio() const -> double
+resource_managers::GeneralVars::getHiddenRatio() const -> double
 {
     return hiddenRatio;
 }
 void
-resource_managers::GlobalVars::setHiddenRatio(double value)
+resource_managers::GeneralVars::setHiddenRatio(double value)
 {
     if (hiddenRatio == value) {
         return;
@@ -160,18 +160,18 @@ resource_managers::GlobalVars::setHiddenRatio(double value)
     emit hiddenRatioChanged();
 }
 void
-resource_managers::GlobalVars::resetHiddenRatio()
+resource_managers::GeneralVars::resetHiddenRatio()
 {
     setHiddenRatio(0.1);
 }
 
 auto
-resource_managers::GlobalVars::getBgaOn() const -> bool
+resource_managers::GeneralVars::getBgaOn() const -> bool
 {
     return bgaOn;
 }
 void
-resource_managers::GlobalVars::setBgaOn(bool value)
+resource_managers::GeneralVars::setBgaOn(bool value)
 {
     if (bgaOn == value) {
         return;
@@ -181,19 +181,19 @@ resource_managers::GlobalVars::setBgaOn(bool value)
 }
 
 void
-resource_managers::GlobalVars::resetBgaOn()
+resource_managers::GeneralVars::resetBgaOn()
 {
     setBgaOn(true);
 }
 
 auto
-resource_managers::GlobalVars::getNoteOrderAlgorithm() const
+resource_managers::GeneralVars::getNoteOrderAlgorithm() const
   -> NoteOrderAlgorithm
 {
     return noteOrderAlgorithm;
 }
 void
-resource_managers::GlobalVars::setNoteOrderAlgorithm(NoteOrderAlgorithm value)
+resource_managers::GeneralVars::setNoteOrderAlgorithm(NoteOrderAlgorithm value)
 {
     if (noteOrderAlgorithm == value) {
         return;
@@ -202,19 +202,19 @@ resource_managers::GlobalVars::setNoteOrderAlgorithm(NoteOrderAlgorithm value)
     emit noteOrderAlgorithmChanged();
 }
 void
-resource_managers::GlobalVars::resetNoteOrderAlgorithm()
+resource_managers::GeneralVars::resetNoteOrderAlgorithm()
 {
     setNoteOrderAlgorithm(NoteOrderAlgorithm::Normal);
 }
 
 auto
-resource_managers::GlobalVars::getNoteOrderAlgorithmP2() const
+resource_managers::GeneralVars::getNoteOrderAlgorithmP2() const
   -> NoteOrderAlgorithm
 {
     return noteOrderAlgorithmP2;
 }
 void
-resource_managers::GlobalVars::setNoteOrderAlgorithmP2(NoteOrderAlgorithm value)
+resource_managers::GeneralVars::setNoteOrderAlgorithmP2(NoteOrderAlgorithm value)
 {
     if (noteOrderAlgorithmP2 == value) {
         return;
@@ -224,18 +224,18 @@ resource_managers::GlobalVars::setNoteOrderAlgorithmP2(NoteOrderAlgorithm value)
 }
 
 void
-resource_managers::GlobalVars::resetNoteOrderAlgorithmP2()
+resource_managers::GeneralVars::resetNoteOrderAlgorithmP2()
 {
     setNoteOrderAlgorithmP2(NoteOrderAlgorithm::Normal);
 }
 
 auto
-resource_managers::GlobalVars::getHiSpeedFix() const -> HiSpeedFix
+resource_managers::GeneralVars::getHiSpeedFix() const -> HiSpeedFix
 {
     return hiSpeedFix;
 }
 void
-resource_managers::GlobalVars::setHiSpeedFix(HiSpeedFix value)
+resource_managers::GeneralVars::setHiSpeedFix(HiSpeedFix value)
 {
     if (hiSpeedFix == value) {
         return;
@@ -245,18 +245,18 @@ resource_managers::GlobalVars::setHiSpeedFix(HiSpeedFix value)
 }
 
 void
-resource_managers::GlobalVars::resetHiSpeedFix()
+resource_managers::GeneralVars::resetHiSpeedFix()
 {
     setHiSpeedFix(HiSpeedFix::Main);
 }
 
 auto
-resource_managers::GlobalVars::getDpOptions() const -> DpOptions
+resource_managers::GeneralVars::getDpOptions() const -> DpOptions
 {
     return dpOptions;
 }
 void
-resource_managers::GlobalVars::setDpOptions(DpOptions value)
+resource_managers::GeneralVars::setDpOptions(DpOptions value)
 {
     if (dpOptions == value) {
         return;
@@ -266,18 +266,18 @@ resource_managers::GlobalVars::setDpOptions(DpOptions value)
 }
 
 void
-resource_managers::GlobalVars::resetDpOptions()
+resource_managers::GeneralVars::resetDpOptions()
 {
     setDpOptions(DpOptions::Off);
 }
 
 auto
-resource_managers::GlobalVars::getGaugeType() const -> QString
+resource_managers::GeneralVars::getGaugeType() const -> QString
 {
     return gaugeType;
 }
 void
-resource_managers::GlobalVars::setGaugeType(QString value)
+resource_managers::GeneralVars::setGaugeType(QString value)
 {
     if (gaugeType == value) {
         return;
@@ -286,17 +286,17 @@ resource_managers::GlobalVars::setGaugeType(QString value)
     emit gaugeTypeChanged();
 }
 void
-resource_managers::GlobalVars::resetGaugeType()
+resource_managers::GeneralVars::resetGaugeType()
 {
     setGaugeType("FC");
 }
 auto
-resource_managers::GlobalVars::getGaugeMode() const -> GaugeMode
+resource_managers::GeneralVars::getGaugeMode() const -> GaugeMode
 {
     return gaugeMode;
 }
 void
-resource_managers::GlobalVars::setGaugeMode(GaugeMode value)
+resource_managers::GeneralVars::setGaugeMode(GaugeMode value)
 {
     if (gaugeMode == value) {
         return;
@@ -306,18 +306,18 @@ resource_managers::GlobalVars::setGaugeMode(GaugeMode value)
 }
 
 void
-resource_managers::GlobalVars::resetGaugeMode()
+resource_managers::GeneralVars::resetGaugeMode()
 {
     setGaugeMode(GaugeMode::SelectToUnder);
 }
 
 auto
-resource_managers::GlobalVars::getBottomShiftableGauge() const -> QString
+resource_managers::GeneralVars::getBottomShiftableGauge() const -> QString
 {
     return bottomShiftableGauge;
 }
 void
-resource_managers::GlobalVars::setBottomShiftableGauge(QString value)
+resource_managers::GeneralVars::setBottomShiftableGauge(QString value)
 {
     if (bottomShiftableGauge == value) {
         return;
@@ -326,18 +326,18 @@ resource_managers::GlobalVars::setBottomShiftableGauge(QString value)
     emit bottomShiftableGaugeChanged();
 }
 void
-resource_managers::GlobalVars::resetBottomShiftableGauge()
+resource_managers::GeneralVars::resetBottomShiftableGauge()
 {
     setBottomShiftableGauge("AEASY");
 }
 
 auto
-resource_managers::GlobalVars::getAvatar() const -> QString
+resource_managers::GeneralVars::getAvatar() const -> QString
 {
     return avatar;
 }
 void
-resource_managers::GlobalVars::setAvatar(QString value)
+resource_managers::GeneralVars::setAvatar(QString value)
 {
     if (avatar == value) {
         return;
@@ -378,18 +378,18 @@ resource_managers::GlobalVars::setAvatar(QString value)
     emit avatarChanged();
 }
 void
-resource_managers::GlobalVars::resetAvatar()
+resource_managers::GeneralVars::resetAvatar()
 {
     setAvatar("mascot.png");
 }
 
 auto
-resource_managers::GlobalVars::getName() const -> QString
+resource_managers::GeneralVars::getName() const -> QString
 {
     return name;
 }
 void
-resource_managers::GlobalVars::setName(QString value)
+resource_managers::GeneralVars::setName(QString value)
 {
     if (name == value) {
         return;
@@ -398,26 +398,64 @@ resource_managers::GlobalVars::setName(QString value)
     emit nameChanged();
 }
 void
-resource_managers::GlobalVars::resetName()
+resource_managers::GeneralVars::resetName()
 {
     setName("Default");
 }
+auto
+resource_managers::GeneralVars::getLanguage() const -> QString
+{
+    return language;
+}
+void
+resource_managers::GeneralVars::setLanguage(QString value)
+{
+    if (language == value) {
+        return;
+    }
+    language = value;
+    emit languageChanged();
+}
+void
+resource_managers::GeneralVars::resetLanguage()
+{
+    setLanguage(QLocale::system().name());
+}
+auto
+resource_managers::GeneralVars::getOffset() const -> double
+{
+    return offset;
+}
+void
+resource_managers::GeneralVars::setOffset(double value)
+{
+    if (offset == value) {
+        return;
+    }
+    offset = value;
+    emit offsetChanged();
+}
+void
+resource_managers::GeneralVars::resetOffset()
+{
+    setOffset(0.0);
+}
 
 void
-writeGlobalVars(const resource_managers::GlobalVars& globalVars,
+writeGeneralVars(const resource_managers::GeneralVars& generalVars,
                 const std::filesystem::path& profileFolder)
 {
     auto json = QJsonObject();
-    for (auto i = globalVars.metaObject()->propertyOffset();
-         i < globalVars.metaObject()->propertyCount();
+    for (auto i = generalVars.metaObject()->propertyOffset();
+         i < generalVars.metaObject()->propertyCount();
          ++i) {
-        auto property = globalVars.metaObject()->property(i);
+        auto property = generalVars.metaObject()->property(i);
         const auto value = property.isEnumType()
-                             ? property.read(&globalVars).toString()
-                             : property.read(&globalVars).toJsonValue();
+                             ? property.read(&generalVars).toString()
+                             : property.read(&generalVars).toJsonValue();
         json[property.name()] = value;
     }
-    auto file = QFile{ profileFolder / "globalVars.json" };
+    auto file = QFile{ profileFolder / "generalVars.json" };
     if (!file.open(QIODevice::WriteOnly)) {
         spdlog::error("Failed to open config for writing: {}: {}",
                       profileFolder.string(),
@@ -460,7 +498,13 @@ writeThemeVars(
   const QHash<QString, QHash<QString, QHash<QString, QVariant>>>& themeVars,
   const std::filesystem::path& profileFolder)
 {
-    for (const auto& [name, vars] : themeVars.asKeyValueRange()) {
+    auto themes = QHash<QString, QHash<QString, QHash<QString, QVariant>>>{};
+    for (const auto& [screen, screenVars] : themeVars.asKeyValueRange()) {
+        for (const auto& [themeName, themeVars] : screenVars.asKeyValueRange()) {
+            themes[themeName][screen] = themeVars;
+        }
+    }
+    for (const auto& [name, vars] : themes.asKeyValueRange()) {
         writeThemeVarsForTheme(
           vars,
           profileFolder /
@@ -591,6 +635,27 @@ createChoiceProperty(QHash<QString, QVariant>& screenVars,
           "not an array: {}",
           jsonValueToString(object)));
     }
+    if (!object["displayStrings"].isObject()) {
+        throw support::Exception(std::format(
+          "displayStrings field of property of type choice is undefined or "
+          "not an object: {}",
+          jsonValueToString(object)));
+    }
+    auto length = object["choices"].toArray().size();
+    for (const auto& lang : object["displayStrings"].toObject()) {
+        if (!lang.isArray()) {
+            throw support::Exception(std::format(
+              "a language of displayStrings of property of type choice contains a "
+              "non-array value: {}",
+              jsonValueToString(lang)));
+        }
+        if (lang.toArray().size() != length) {
+            throw support::Exception(std::format(
+              "a language of displayStrings of property of type choice has a "
+              "different number of choices than the choices field: {}",
+              jsonValueToString(lang)));
+        }
+    }
     // confirm that the default value is one of the choices
     const auto choices = object["choices"].toArray();
     if (choices.isEmpty()) {
@@ -709,6 +774,16 @@ createProperty(ScreenVarsPopulationResult& result,
           std::format("Property has no type (or not a string): {}",
                       jsonValueToString(object)));
     }
+    if (!object["name"].isObject()) {
+        throw support::Exception(
+          std::format("Property has no name (or not an object): {}",
+                      jsonValueToString(object)));
+    }
+    if (!object["description"].isUndefined() && !object["description"].isObject()) {
+        throw support::Exception(
+          std::format("Property has no description (or not an object): {}",
+                      jsonValueToString(object)));
+    }
     if (object["type"] == "file") {
         createFileProperty(result.screenVars, object, themePath);
         result.fileTypeProperties.insert(object["id"].toString(),
@@ -788,12 +863,12 @@ populateScreenVars(const std::filesystem::path& themePath,
 }
 
 void
-readGlobalVars(resource_managers::GlobalVars& globalVars,
+readGeneralVars(resource_managers::GeneralVars& generalVars,
                const std::filesystem::path& profileFolder)
 {
-    auto file = QFile{ profileFolder / "globalVars.json" };
+    auto file = QFile{ profileFolder / "generalVars.json" };
     if (!file.exists()) {
-        writeGlobalVars(globalVars, profileFolder);
+        writeGeneralVars(generalVars, profileFolder);
     }
     if (!file.open(QIODevice::ReadOnly)) {
         spdlog::error("Failed to open config for reading: {}: {}",
@@ -804,10 +879,10 @@ readGlobalVars(resource_managers::GlobalVars& globalVars,
     try {
         const auto contents =
           QJsonDocument::fromJson(file.readAll()).object().toVariantHash();
-        for (auto i = globalVars.metaObject()->propertyOffset();
-             i < globalVars.metaObject()->propertyCount();
+        for (auto i = generalVars.metaObject()->propertyOffset();
+             i < generalVars.metaObject()->propertyCount();
              ++i) {
-            auto property = globalVars.metaObject()->property(i);
+            auto property = generalVars.metaObject()->property(i);
             if (contents.contains(property.name())) {
                 // if the property is an enum, we need to convert the string
                 // to the enum value
@@ -817,9 +892,9 @@ readGlobalVars(resource_managers::GlobalVars& globalVars,
                                                          .toString()
                                                          .toStdString()
                                                          .c_str());
-                    property.write(&globalVars, enumValue);
+                    property.write(&generalVars, enumValue);
                 } else {
-                    property.write(&globalVars, contents[property.name()]);
+                    property.write(&generalVars, contents[property.name()]);
                 }
             }
         }
@@ -836,9 +911,7 @@ readThemeVarsForTheme(const std::filesystem::path& themeVarsPath,
 {
     auto vars = QHash<QString, ScreenVarsPopulationResult>{};
     for (const auto& screen : themeFamily.getScreens().keys()) {
-        auto settingsUrl = themeFamily.getScreens()[screen]
-                             .value<qml_components::Screen>()
-                             .getSettings();
+        auto settingsUrl = themeFamily.getScreens()[screen].getSettings();
         if (settingsUrl.isEmpty()) {
             continue;
         }
@@ -904,11 +977,15 @@ readThemeVars(const std::filesystem::path& profileFolder,
     auto vars = QHash<QString, QHash<QString, QHash<QString, QVariant>>>{};
     for (const auto& [name, themeFamily] : themeFamilies.asKeyValueRange()) {
         auto themePath = support::qStringToPath(themeFamily.getPath());
-        vars[name] = readThemeVarsForTheme(
+        auto screens = readThemeVarsForTheme(
           profileFolder /
             support::qStringToPath(name + QStringLiteral("-vars.json")),
           themePath,
           themeFamily);
+        for (const auto& [screen, screenVars] :
+             screens.asKeyValueRange()) {
+            vars[screen][name] = screenVars;
+        }
     }
     return vars;
 }
@@ -917,39 +994,47 @@ void
 resource_managers::Vars::populateThemePropertyMap(
   QQmlPropertyMap& themeVars,
   QHash<QString, QHash<QString, QHash<QString, QVariant>>> themeVarsData,
-  const std::filesystem::path& themeVarsPath,
-  const QQmlPropertyMap& themeConfig)
+  const std::filesystem::path& themeVarsPath)
 {
     for (const auto& key : themeVars.keys()) {
         themeVars[key].value<QQmlPropertyMap*>()->deleteLater();
     }
-    for (const auto& key : themeConfig.keys()) {
-        const auto& value = themeConfig[key].toString();
-        auto propertyMap = std::make_unique<QQmlPropertyMap>(&themeVars);
-        propertyMap->insert(themeVarsData[value][key]);
-        propertyMap->freeze();
-        connect(propertyMap.get(),
-                &QQmlPropertyMap::valueChanged,
-                this,
-                [this, themeVarsPath, screen = key, themeFamily = value](
-                  const QString& key, const QVariant& value) {
-                    loadedThemeVars[themeFamily][screen][key] = value;
-                    writeSingleThemeVar(
-                      screen,
-                      key,
-                      value,
-                      themeVarsPath /
-                        support::qStringToPath(themeFamily +
-                                               QStringLiteral("-vars.json")));
-                });
-        themeVars.insert(key, QVariant::fromValue(propertyMap.release()));
+    for (const auto& [screenName, themes] : themeVarsData.asKeyValueRange()) {
+        auto screenPropertyMap = std::make_unique<QQmlPropertyMap>(&themeVars);
+        for (const auto& [themeName, vars] : themes.asKeyValueRange()) {
+            auto propertyMap = std::make_unique<QQmlPropertyMap>(screenPropertyMap.get());
+            propertyMap->insert(themeVarsData[screenName][themeName]);
+            propertyMap->freeze();
+            connect(propertyMap.get(),
+                    &QQmlPropertyMap::valueChanged,
+                    this,
+                    [this,
+                     themeVarsPath,
+                     screen = screenName,
+                     themeFamily = themeName](const QString& key,
+                                              const QVariant& value) {
+                        loadedThemeVars[screen][themeFamily][key] = value;
+                        writeSingleThemeVar(
+                          screen,
+                          key,
+                          value,
+                          themeVarsPath /
+                            support::qStringToPath(
+                              themeFamily + QStringLiteral("-vars.json")));
+                    });
+            screenPropertyMap->insert(
+              themeName, QVariant::fromValue(propertyMap.release()));
+        }
+        screenPropertyMap->freeze();
+        themeVars.insert(screenName,
+                         QVariant::fromValue(screenPropertyMap.release()));
     }
     themeVars.freeze();
 }
 void
-resource_managers::Vars::writeGlobalVars() const
+resource_managers::Vars::writeGeneralVars() const
 {
-    ::writeGlobalVars(globalVars, profile->getPath().parent_path());
+    ::writeGeneralVars(generalVars, profile->getPath().parent_path());
 }
 
 resource_managers::Vars::Vars(
@@ -958,69 +1043,34 @@ resource_managers::Vars::Vars(
   QString avatarPath,
   QObject* parent)
   : QObject(parent)
-  , globalVars(std::move(avatarPath))
+  , generalVars(std::move(avatarPath))
   , profile(profile)
   , availableThemeFamilies(std::move(availableThemeFamilies))
   , loadedThemeVars(readThemeVars(profile->getPath().parent_path(),
                                   this->availableThemeFamilies))
 {
-    const auto* themeConfig = profile->getThemeConfig();
     writeThemeVars(loadedThemeVars, profile->getPath().parent_path());
-    populateThemePropertyMap(themeVars,
-                             loadedThemeVars,
-                             profile->getPath().parent_path(),
-                             *themeConfig);
-    readGlobalVars(globalVars, profile->getPath().parent_path());
-    writeGlobalVars();
-    connect(themeConfig,
-            &QQmlPropertyMap::valueChanged,
-            this,
-            &Vars::onThemeConfigChanged);
-    for (auto i = globalVars.metaObject()->propertyOffset();
-         i < globalVars.metaObject()->propertyCount();
+    populateThemePropertyMap(
+      themeVars, loadedThemeVars, profile->getPath().parent_path());
+    readGeneralVars(generalVars, profile->getPath().parent_path());
+    writeGeneralVars();
+    for (auto i = generalVars.metaObject()->propertyOffset();
+         i < generalVars.metaObject()->propertyCount();
          ++i) {
-        connect(&globalVars,
-                globalVars.metaObject()->property(i).notifySignal(),
+        connect(&generalVars,
+                generalVars.metaObject()->property(i).notifySignal(),
                 this,
                 metaObject()->method(
-                  metaObject()->indexOfMethod("writeGlobalVars()")));
+                  metaObject()->indexOfMethod("writeGeneralVars()")));
     }
 }
 auto
-resource_managers::Vars::getGlobalVars() -> GlobalVars*
+resource_managers::Vars::getGeneralVars() -> GeneralVars*
 {
-    return &globalVars;
+    return &generalVars;
 }
 auto
 resource_managers::Vars::getThemeVars() -> QQmlPropertyMap*
 {
     return &themeVars;
-}
-
-void
-resource_managers::Vars::onThemeConfigChanged(const QString& key,
-                                              const QVariant& value)
-{
-    themeVars.value(key).value<QQmlPropertyMap*>()->deleteLater();
-    auto propertyMap = std::make_unique<QQmlPropertyMap>(&themeVars);
-    propertyMap->insert(loadedThemeVars[value.toString()][key]);
-    propertyMap->freeze();
-    connect(propertyMap.get(),
-            &QQmlPropertyMap::valueChanged,
-            this,
-            [this,
-             themeVarsPath = profile->getPath().parent_path(),
-             screen = key,
-             themeFamily = value.toString()](const QString& key,
-                                             const QVariant& value) {
-                loadedThemeVars[themeFamily][screen][key] = value;
-                writeSingleThemeVar(
-                  screen,
-                  key,
-                  value,
-                  themeVarsPath /
-                    support::qStringToPath(themeFamily +
-                                           QStringLiteral("-vars.json")));
-            });
-    themeVars.insert(key, QVariant::fromValue(propertyMap.release()));
 }

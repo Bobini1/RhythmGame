@@ -3,181 +3,102 @@ import QtQuick.Controls.Basic
 import RhythmGameQml
 import QtQuick
 import QtQuick.Layouts
+import "../../common/helpers.js" as Helpers
+import ".."
 
 RowLayout {
-    height: 30
-    Loader {
-        active: true
-        Layout.fillWidth: active
-        sourceComponent: Component {
-            Slider {
-                function order(num) {
-                    if (!num) {
-                        return -1;
-                    }
-                    return Math.floor(Math.log(Math.abs(num)) / Math.LN10 + 0.000000001);
-                }
-                readonly property real mult: Math.pow(10,Math.max(order(props.default), 2))
-                readonly property real minmult: Math.pow(10,Math.max(order(props.min), 2))
-                readonly property real maxmult: 0.500 + 1 / Math.pow(10,Math.max(order(props.max) + 1, 3))
+    id: range
+    property real min: -Infinity
+    property real max: Infinity
+    property real sliderMax: max
+    property real sliderMin: min
+    property real default_: 0
+    property var destination
+    property string id_
+    property alias name: strLabel.text
+    property alias description: strLabel.description
 
-                property var f: {
-                    if (props.min !== undefined && props.max !== undefined) {
-                        return num => num;
-                    }
-                    else if (props.min === undefined && props.max === undefined) {
-                        return num => {
-                            if (num === 1) {
-                                return Infinity;
-                            }
-                            if (num === 0) {
-                                return -Infinity;
-                            }
-                            return mult / 2 * (-2*num+1)/((2*num-2)*num);
-                        }
-                    } else if (props.min !== undefined) {
-                        return num => {
-                            if (num === 1) {
-                                return Infinity
-                            }
-                            return props.min + minmult * num / (1 - num);
-                        }
-                    } else if (props.max !== undefined) {
-                        return num => {
-                            if (num === 0) {
-                                return -Infinity
-                            }
-                            return (-Math.log(num) / Math.log(0.5 / maxmult)) + props.max
-                        }
-                    }
-                }
-                property var inverseF: {
-                    if (props.min !== undefined && props.max !== undefined) {
-                        return num => num;
-                    }
-                    else if (props.min === undefined && props.max === undefined) {
-                        return num => {
-                            if (num === 0) {
-                                return 0.5
-                            }
-                            if (num === Infinity) {
-                                return 1
-                            }
-                            if (num === -Infinity) {
-                                return 0
-                            }
-                            return (2 * num - mult + Math.sqrt(Math.pow(mult, 2) + 4 * Math.pow(num, 2))) / (4 * num);
-                        }
-                    } else if (props.min !== undefined) {
-                        return num => {
-                            if (num === Infinity) {
-                                return 1
-                            }
-                            if (num === props.min) {
-                                return 0
-                            }
-                            return (num - props.min) / (minmult + num - props.min + 1);
-                        }
-                    } else if (props.max !== undefined) {
-                        return num => {
-                            if (num === -Infinity) {
-                                return 0
-                            }
-                            if (num === props.max) {
-                                return 1
-                            }
-                            return Math.pow(0.5 / maxmult, -num + props.max)
-                        }
-                    }
-                }
-                from: props.max === undefined || props.min === undefined ? 0 : props.min
-                to: props.max === undefined || props.min === undefined ? 1 : props.max
-                Layout.fillHeight: true
-                value: inverseF(destination[props.id])
-
-                onMoved: {
-                    destination[props.id] = Math.round(f(value) * 1000) / 1000
-                    value = Qt.binding(() => inverseF(destination[props.id]))
-                }
-            }
-        }
+    SettingsLabel {
+        id: strLabel
     }
-    TextField {
-        id: textField
 
-        function getFormattedNumber(num) {
-            if (isNaN(num)) {
-                return "";
-            }
-            let longNum = Qt.locale().toString(num, "f", -128);
-            let shortNum = Qt.locale().toString(num, "f", 3);
-            if (longNum.length > shortNum.length) {
-                return longNum;
-            }
-            return shortNum;
-        }
-        horizontalAlignment: contentWidth >= width ? TextField.AlignLeft : TextField.AlignHCenter
-        autoScroll: false
-        Layout.preferredWidth: textMetrics.width + 20
-        text: getFormattedNumber(destination[props.id])
-        Layout.fillHeight: true
-        color: acceptableInput ? "black" : "red"
-        validator: DoubleValidator {
-            id: doubleValidator
-            bottom: props.min !== undefined ? props.min : -Infinity; top: props.max !== undefined ? props.max : Infinity
-        }
-        inputMethodHints: Qt.ImhFormattedNumbersOnly
-        onTextEdited: {
-            // noinspection SillyAssignmentJS
-            text = text
-            if (acceptableInput) {
-                destination[props.id] = Number.fromLocaleString(text)
-            }
-        }
+    RowLayout {
+        id: rangeRow
+        Layout.fillWidth: true
+        Layout.preferredWidth: 400
+        Layout.minimumWidth: 200
 
-        onEditingFinished: {
-            text = Qt.binding(() => getFormattedNumber(destination[props.id]))
-            ensureVisible(0);
-        }
-        onActiveFocusChanged: {
-            autoScroll = true;
-        }
+        Loader {
+            active: range.sliderMin !== -Infinity && range.sliderMax !== Infinity
+            Layout.fillWidth: true
+            Layout.minimumWidth: 120 - rangeRow.spacing
+            Layout.preferredWidth: 120 - rangeRow.spacing
+            sourceComponent: Component {
+                Slider {
+                    from: range.sliderMin
+                    to: range.sliderMax
+                    Layout.fillHeight: true
+                    value: range.destination[range.id_]
 
-        Component.onCompleted: {
-            ensureVisible(0);
-        }
-        TextMetrics {
-            id: textMetrics
-            font: textField.font
-
-            text: {
-                let length = 0;
-                let str = ""
-                if (props.max !== undefined) {
-                    str = textField.getFormattedNumber(props.max * 10);
-                }
-                if (props.min !== undefined) {
-                    let minStr = textField.getFormattedNumber(props.min * 10);
-                    if (minStr.length > str.length) {
-                        str = minStr;
+                    onMoved: {
+                        range.destination[range.id_] = Math.round(value * 1000) / 1000
                     }
                 }
-                let defStr = textField.getFormattedNumber(props.default * 10);
-                if (defStr.length > str.length) {
-                    str = defStr;
-                }
-                let thousandStr = textField.getFormattedNumber(1000);
-                if (str.length < thousandStr.length) {
-                    str = thousandStr;
-                }
-                return str;
             }
         }
-        Layout.alignment: Qt.AlignRight
-        HoverHandler {
-            id: hoverHandler
+        TextField {
+            id: textField
+
+            horizontalAlignment: contentWidth >= width ? TextField.AlignLeft : TextField.AlignHCenter
+            autoScroll: false
+            text: Helpers.getFormattedNumber(Qt.locale(Rg.languages.selectedLanguage), range.destination[range.id_])
+            Layout.fillHeight: true
+            Layout.fillWidth: true
+            Layout.maximumWidth: 200
+            Layout.minimumWidth: 80
+            Layout.preferredWidth: 80
+            Layout.alignment: Qt.AlignRight
+            color: acceptableInput ? "black" : "red"
+            validator: DoubleValidator {
+                id: doubleValidator
+                bottom: range.min
+                top: range.max
+                locale: Rg.languages.selectedLanguage
+            }
+            inputMethodHints: Qt.ImhFormattedNumbersOnly
+            onTextEdited: {
+                if (acceptableInput) {
+                    range.destination[range.id_] = Number.fromLocaleString(Qt.locale(Rg.languages.selectedLanguage), text)
+                }
+            }
+
+            onEditingFinished: {
+                ensureVisible(0);
+            }
+            onActiveFocusChanged: {
+                autoScroll = true;
+            }
+
+            Component.onCompleted: {
+                ensureVisible(0);
+            }
+            HoverHandler {
+                id: hoverHandler
+            }
+            ToolTip.visible: hoverHandler.hovered
+            ToolTip.text: "Limits: " + Qt.locale(Rg.languages.selectedLanguage).toString(doubleValidator.bottom, "f", -128) + " - " + Qt.locale(Rg.languages.selectedLanguage).toString(doubleValidator.top, "f", -128)
         }
-        ToolTip.visible: hoverHandler.hovered
-        ToolTip.text: "Limits: " + Qt.locale().toString(doubleValidator.bottom, "f", -128) + " - " + Qt.locale().toString(doubleValidator.top, "f", -128)
+
+    }
+    ResetButton {
+        destination: range.destination
+        id_: range.id_
+        default_: range.default_
+
+        onClicked: {
+            range.destination[range.id_] = range.default_
+        }
     }
 }
+
+
