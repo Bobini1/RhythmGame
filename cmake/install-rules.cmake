@@ -59,6 +59,7 @@ if (WIN32)
     set(CPACK_NSIS_EXTRA_INSTALL_COMMANDS
         "Exec 'icacls \\\"$INSTDIR/assets\\\" /grant *S-1-5-32-545:(OI)(CI)F /T'"
     )
+    set(CPACK_PACKAGE_EXECUTABLES "RhythmGame" "RhythmGame")
 endif ()
 
 if (PROJECT_IS_TOP_LEVEL)
