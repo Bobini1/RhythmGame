@@ -352,7 +352,7 @@ Player::finish() -> BmsScore*
     if (refereeFuture.isRunning()) {
         refereeFuture.cancel();
     }
-    if (status != Chart::Status::Running) {
+    if (status == Chart::Status::Loading) {
         return nullptr;
     }
     auto result = score->getResult();
@@ -478,7 +478,7 @@ AutoPlayer::finish() -> BmsScore*
     if (refereeFuture.isRunning()) {
         refereeFuture.cancel();
     }
-    if (getStatus() != Chart::Status::Running) {
+    if (getStatus() != Chart::Status::Loading) {
         return nullptr;
     }
     auto result = score->getResult();
