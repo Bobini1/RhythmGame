@@ -126,7 +126,7 @@ class BmsLiveScore final : public QObject
     void increaseCombo();
 
   public:
-    auto addHit(HitEvent tap) -> void;
+    void addHit(const HitEvent& tap, bool notify = true);
     explicit BmsLiveScore(
       int normalNoteCount,
       int lnCount,

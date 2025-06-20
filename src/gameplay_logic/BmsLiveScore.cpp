@@ -133,11 +133,13 @@ BmsLiveScore::increaseCombo()
     }
     emit comboChanged();
 }
-auto
-BmsLiveScore::addHit(HitEvent tap) -> void
+void
+BmsLiveScore::addHit(const HitEvent& tap, bool notify)
 {
     hits.append(tap);
-    emit hit(tap);
+    if (notify) {
+        emit hit(tap);
+    }
     if (!tap.getPointsOptional()) {
         return;
     }

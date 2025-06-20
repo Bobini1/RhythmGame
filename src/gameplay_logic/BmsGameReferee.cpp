@@ -122,7 +122,7 @@ gameplay_logic::BmsGameReferee::update(std::chrono::nanoseconds offsetFromStart,
         return left.getHitOffset() < right.getHitOffset();
     });
     for (const auto& event : events) {
-        score->addHit(event);
+        score->addHit(event, !lastUpdate);
     }
     if (lastUpdate) {
         currentBgms = {};
