@@ -128,7 +128,7 @@ Item {
             noteImage: playArea.vars.notes
             mineImage: playArea.vars.mine
             position: playArea.position
-            z: 3
+            z: 4
         }
         Row {
             id: laserRow
@@ -136,7 +136,7 @@ Item {
             anchors.bottom: judgeLine.bottom
             height: parent.height
             spacing: playArea.spacing
-            z: 4
+            z: 3
 
             Repeater {
                 id: laserRowChildren
