@@ -23,7 +23,7 @@ Image {
         readonly property string clearType: {
             if (folder.clearStats) {
                 for (let type of Helpers.clearTypePriorities) {
-                    if (type in folder.clearStats) {
+                    if (type in folder.clearStats && folder.clearStats[type] > 0) {
                         return type;
                     }
                 }
