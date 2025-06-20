@@ -410,7 +410,15 @@ Rectangle {
         sequence: "Esc"
 
         onActivated: {
-            globalRoot.openResult(chart.finish(), [chart.player1.profile, chart.player2?.profile], chart.chartData);
+            let player2Points = 0;
+            if (chart.player2) {
+                player2Points = chart.player2.score.points;
+            }
+            if (chart.player1.score.points === 0 && player2Points === 0) {
+                sceneStack.pop();
+            } else {
+                globalRoot.openResult(chart.finish(), [chart.player1.profile, chart.player2?.profile], chart.chartData);
+            }
         }
     }
     Shortcut {
