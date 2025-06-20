@@ -33,9 +33,17 @@ Chart::Chart(ChartData* chartData,
             this,
             &Chart::setup);
     bgaFutureWatcher.setFuture(this->bgaFuture);
-    connect(player1, &Player::statusChanged, this, &Chart::setup);
+    connect(player1, &Player::statusChanged, this, [player1, this] {
+        if (player1->getStatus() == Ready) {
+            setup();
+        }
+    });
     if (player2) {
-        connect(player2, &Player::statusChanged, this, &Chart::setup);
+        connect(player2, &Player::statusChanged, this, [player2, this] {
+            if (player2->getStatus() == Ready) {
+                setup();
+            }
+        });
     }
 }
 
