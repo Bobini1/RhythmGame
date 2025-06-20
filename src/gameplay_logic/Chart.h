@@ -115,14 +115,14 @@ class Player : public QObject
     BmsGameReferee::Position position{};
     Chart::Status status{ Chart::Status::Loading };
     int64_t elapsed{};
-    QFutureWatcher<BmsGameReferee> refereeWatcher;
-    QFuture<BmsGameReferee> refereeFuture;
     std::chrono::nanoseconds chartLength;
 
     void setElapsed(int64_t newElapsed);
     void setPosition(BmsGameReferee::Position position);
 
-  protected:
+protected:
+    QFutureWatcher<BmsGameReferee> refereeWatcher;
+    QFuture<BmsGameReferee> refereeFuture;
     std::optional<BmsGameReferee> referee;
     BmsLiveScore* score;
 
@@ -150,7 +150,7 @@ class Player : public QObject
     auto getStatus() const -> Chart::Status;
     void setStatus(Chart::Status status);
     auto getChartLength() const -> int64_t;
-    virtual auto finish() const -> BmsScore*;
+    virtual auto finish() -> BmsScore*;
 
   signals:
     void positionChanged(double delta);
@@ -203,7 +203,7 @@ class AutoPlayer final : public Player
                  std::chrono::nanoseconds offset) override;
     void update(std::chrono::nanoseconds offsetFromStart,
                 bool lastUpdate) override;
-    auto finish() const -> BmsScore* override;
+    auto finish() -> BmsScore* override;
 };
 
 } // namespace gameplay_logic

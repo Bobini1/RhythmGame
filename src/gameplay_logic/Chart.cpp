@@ -338,8 +338,11 @@ Player::getChartLength() const -> int64_t
     return chartLength.count();
 }
 auto
-Player::finish() const -> BmsScore*
+Player::finish() -> BmsScore*
 {
+    if (refereeFuture.isRunning()) {
+        refereeFuture.cancel();
+    }
     auto result = score->getResult();
     auto replayData = score->getReplayData();
     auto gaugeHistory = score->getGaugeHistory();
@@ -457,9 +460,12 @@ AutoPlayer::update(std::chrono::nanoseconds offsetFromStart, bool lastUpdate)
     }
     Player::update(offsetFromStart, lastUpdate);
 }
-BmsScore*
-AutoPlayer::finish() const
+auto
+AutoPlayer::finish() -> BmsScore*
 {
+    if (refereeFuture.isRunning()) {
+        refereeFuture.cancel();
+    }
     auto result = score->getResult();
     auto replayData = score->getReplayData();
     auto gaugeHistory = score->getGaugeHistory();

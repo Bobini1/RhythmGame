@@ -32,7 +32,7 @@ class StandardBmsHitRules : public BmsHitRules
         hitValueFactory);
     auto press(std::span<Note> notes,
                int column,
-               std::chrono::nanoseconds hitOffset) -> HitEvent override;
+               std::chrono::nanoseconds hitOffset) -> QList<HitEvent> override;
 
     auto processMisses(std::span<Note> notes,
                        int column,

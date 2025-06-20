@@ -133,14 +133,6 @@ Item {
         Row {
             id: laserRow
 
-            function hideLaser(index) {
-                laserRow.children[playArea.columnsReversedMapping[index]].stop();
-            }
-
-            function shootLaser(index) {
-                laserRow.children[playArea.columnsReversedMapping[index]].start();
-            }
-
             anchors.bottom: judgeLine.bottom
             height: parent.height
             spacing: playArea.spacing

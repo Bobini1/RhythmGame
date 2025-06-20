@@ -45,7 +45,7 @@ class BmsHitRules
 
     virtual auto press(std::span<Note> notes,
                        int column,
-                       std::chrono::nanoseconds hitOffset) -> HitEvent = 0;
+                       std::chrono::nanoseconds hitOffset) -> QList<HitEvent> = 0;
 
     virtual auto processMisses(std::span<Note> notes,
                                int column,

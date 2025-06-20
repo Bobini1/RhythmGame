@@ -12,7 +12,7 @@ auto
 gameplay_logic::rules::StandardBmsHitRules::press(
   std::span<Note> notes,
   const int column,
-  const std::chrono::nanoseconds hitOffset) -> HitEvent
+  const std::chrono::nanoseconds hitOffset) -> QList<HitEvent>
 {
     auto currentNoteIndex = currentNotes[column];
     // by default, there is no empty poor, this is an empty hit
@@ -22,12 +22,14 @@ gameplay_logic::rules::StandardBmsHitRules::press(
                                         std::nullopt,
                                         HitEvent::Action::Press,
                                         /*noteRemoved=*/false };
-    for (auto& note : notes.subspan(currentNoteIndex)) {
+    auto subspan = notes.subspan(currentNoteIndex);
+    for (auto iter = subspan.begin(); iter < subspan.end(); ++iter) {
+        auto& note = *iter;
         if (note.hit) {
             currentNoteIndex++;
             continue;
         }
-        if (note.type == NoteType::LnEnd) {
+        if (note.type == NoteType::LnEnd || note.type == NoteType::Invisible) {
             currentNoteIndex++;
             continue;
         }
@@ -46,31 +48,50 @@ gameplay_logic::rules::StandardBmsHitRules::press(
             if (note.sound != nullptr) {
                 note.sound->play();
             }
-            auto points = BmsPoints{};
-            if (note.type == NoteType::LnBegin) {
-                lnBeginPoints[column] = BmsPoints{
-                    hitValueFactory(hitOffset - noteTime, result),
-                    result,
-                    (hitOffset - noteTime).count(), // unused
-                };
-                points = BmsPoints{
-                  0.0,
-                  Judgement::LnBeginHit,
-                  (hitOffset - noteTime).count(),
-                };
-            } else {
-                points = BmsPoints{
-                    hitValueFactory(hitOffset - noteTime, result),
-                    result,
-                    (hitOffset - noteTime).count(),
-                };
+            if (note.type != NoteType::LnBegin) {
+                return { { column,
+                           note.index,
+                           hitOffset.count(),
+                           BmsPoints{
+                             hitValueFactory(hitOffset - noteTime, result),
+                             result,
+                             (hitOffset - noteTime).count(),
+                           },
+                           HitEvent::Action::Press,
+                           /*noteRemoved=*/true } };
             }
-            return { column,
-                     note.index,
-                     hitOffset.count(),
-                     points,
-                     HitEvent::Action::Press,
-                     /*noteRemoved=*/true };
+
+            lnBeginPoints[column] = BmsPoints{
+                hitValueFactory(hitOffset - noteTime, result),
+                result,
+                (hitOffset - noteTime).count(), // unused
+            };
+            auto ret = QList<HitEvent>{ { column,
+                                          note.index,
+                                          hitOffset.count(),
+                                          BmsPoints{
+                                            0.0,
+                                            Judgement::LnBeginHit,
+                                            (hitOffset - noteTime).count(),
+                                          },
+                                          HitEvent::Action::Press,
+                                          /*noteRemoved=*/true } };
+            if (result == Judgement::Bad) {
+                const auto nextNote = std::next(iter);
+                nextNote->hit = true;
+                ret.append(
+                  { column,
+                    nextNote->index,
+                    hitOffset.count(),
+                    BmsPoints{
+                      hitValueFactory(hitOffset - noteTime, Judgement::Bad),
+                      result,
+                      (hitOffset - noteTime).count(),
+                    },
+                    HitEvent::Action::None,
+                    /*noteRemoved=*/true });
+            }
+            return ret;
         }
         emptyPoorOrNothing = HitEvent(
           column,
@@ -87,7 +108,7 @@ gameplay_logic::rules::StandardBmsHitRules::press(
     }
     // find the sound to play (the last note before the hit)
     // go backwards
-    auto notesToCheck = notes.subspan(0, notes.size() - currentNoteIndex);
+    auto notesToCheck = notes.subspan(0, currentNoteIndex);
     auto found = false;
     for (auto& note : std::ranges::reverse_view(notesToCheck)) {
         if (note.time <= hitOffset) {
@@ -104,7 +125,7 @@ gameplay_logic::rules::StandardBmsHitRules::press(
             notes.front().sound->play();
         }
     }
-    return emptyPoorOrNothing;
+    return { emptyPoorOrNothing };
 }
 auto
 gameplay_logic::rules::StandardBmsHitRules::processMisses(

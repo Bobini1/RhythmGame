@@ -106,7 +106,9 @@ Filter::Filter(ColumnState* columnState, QObject* parent)
 {
     setSourceModel(columnState);
     connect(
-      columnState, &ColumnState::pressedChanged, this, &Filter::pressedChanged);
+      columnState, &ColumnState::pressedChanged, this, [this, columnState]() {
+          setPressed(columnState->isPressed());
+      });
     connect(columnState,
             &ColumnState::dataChanged,
             this,

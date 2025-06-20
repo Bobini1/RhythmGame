@@ -155,8 +155,9 @@ gameplay_logic::BmsGameReferee::passPressed(
         return;
     }
     pressedState[columnIndex] = true;
-    score->addHit(
-      hitRules->press(notes[columnIndex], columnIndex, offsetFromStart));
+    for (const auto& hit : hitRules->press(notes[columnIndex], columnIndex, offsetFromStart)) {
+        score->addHit(hit);
+    }
 }
 auto
 gameplay_logic::BmsGameReferee::getPosition(
