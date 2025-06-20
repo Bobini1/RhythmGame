@@ -16,13 +16,10 @@ Item {
     required property real heightMultiplier
     required property real noteHeight
 
-    FrameAnimation {
-        running: true
-        onTriggered: {
-            let top = column.height / column.heightMultiplier;
-            columnState.topPosition = column.position + top;
-            columnState.bottomPosition = column.position;
-        }
+    onPositionChanged: {
+        let top = column.height / column.heightMultiplier;
+        columnState.topPosition = column.position + top;
+        columnState.bottomPosition = column.position;
     }
 
     Image {
