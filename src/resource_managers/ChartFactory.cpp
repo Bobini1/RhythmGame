@@ -14,6 +14,8 @@
 #include <QImageReader>
 #include <QVideoFrame>
 #include <QApplication>
+#include <latch>
+#include <semaphore>
 
 namespace resource_managers {
 
@@ -161,16 +163,29 @@ loadBga(
     // create unordered_maps
     auto frames = std::unordered_map<uint16_t, std::unique_ptr<QVideoFrame>>{};
     auto videos = std::unordered_map<uint16_t, QMediaPlayer*>{};
+    auto nullFrames =
+      std::ranges::count_if(loadedBgaFrames, [](const auto& frame) {
+          return frame.frame == nullptr;
+      });
+    std::latch videoLatch{ nullFrames };
+    auto currentThread = QThread::currentThread();
     for (auto& frame : loadedBgaFrames) {
         if (frame.frame) {
             frames.emplace(frame.id, std::unique_ptr<QVideoFrame>(frame.frame));
         } else {
-            auto video = loadBmpVideo(frame.path);
-            if (video) {
-                videos.emplace(frame.id, video.release());
-            }
+            QMetaObject::invokeMethod(
+              QApplication::instance(),
+              [&] {
+                  if (auto video = loadBmpVideo(frame.path)) {
+                      video->moveToThread(currentThread);
+                      videos.emplace(frame.id, video.release());
+                  }
+                  videoLatch.count_down();
+              },
+              Qt::QueuedConnection);
         }
     }
+    videoLatch.wait();
 
     auto baseFrames =
       std::vector<std::pair<std::chrono::nanoseconds, QVideoFrame*>>{};
@@ -277,18 +292,23 @@ struct RandomizedData
       rawNotes;
 };
 
-auto createAutoplayFromNotes(const gameplay_logic::BmsNotes& notes) -> std::vector<gameplay_logic::HitEvent>
+auto
+createAutoplayFromNotes(const gameplay_logic::BmsNotes& notes)
+  -> std::vector<gameplay_logic::HitEvent>
 {
     auto events = std::vector<gameplay_logic::HitEvent>{};
     const auto& noteArr = notes.getNotes();
-    for (const auto& [columnIndex, column] : std::ranges::views::enumerate(noteArr)) {
-        for (const auto& [noteIndex, note] : std::ranges::views::enumerate(column)) {
+    for (const auto& [columnIndex, column] :
+         std::ranges::views::enumerate(noteArr)) {
+        for (const auto& [noteIndex, note] :
+             std::ranges::views::enumerate(column)) {
             if (note.type == gameplay_logic::Note::Type::Normal) {
                 events.emplace_back(
                   columnIndex,
                   noteIndex,
                   note.time.timestamp,
-                  gameplay_logic::BmsPoints{ 0.0, gameplay_logic::Judgement::Perfect, 0 },
+                  gameplay_logic::BmsPoints{
+                    0.0, gameplay_logic::Judgement::Perfect, 0 },
                   gameplay_logic::HitEvent::Action::Press,
                   /*noteRemoved=*/true);
 
@@ -298,35 +318,37 @@ auto createAutoplayFromNotes(const gameplay_logic::BmsNotes& notes) -> std::vect
                 if (auto nextNote = std::next(column.begin(), noteIndex + 1);
                     nextNote != column.end()) {
                     if (nextNote->time.timestamp < releaseTime) {
-                        heldTime = (nextNote->time.timestamp - note.time.timestamp) / 2;
+                        heldTime =
+                          (nextNote->time.timestamp - note.time.timestamp) / 2;
                         releaseTime = note.time.timestamp + heldTime;
                     }
-                    if (nextNote->type == gameplay_logic::Note::Type::Landmine) {
+                    if (nextNote->type ==
+                        gameplay_logic::Note::Type::Landmine) {
                         releaseTime = note.time.timestamp;
                     }
                 }
-                events.emplace_back(
-                  columnIndex,
-                  -1,
-                  releaseTime,
-                  std::nullopt,
-                  gameplay_logic::HitEvent::Action::Release,
-                  /*noteRemoved=*/true);
+                events.emplace_back(columnIndex,
+                                    -1,
+                                    releaseTime,
+                                    std::nullopt,
+                                    gameplay_logic::HitEvent::Action::Release,
+                                    /*noteRemoved=*/true);
             } else if (note.type == gameplay_logic::Note::Type::LongNoteBegin) {
                 events.emplace_back(
                   columnIndex,
                   noteIndex,
                   note.time.timestamp,
-                  gameplay_logic::BmsPoints{ 0.0, gameplay_logic::Judgement::Perfect, 0 },
+                  gameplay_logic::BmsPoints{
+                    0.0, gameplay_logic::Judgement::Perfect, 0 },
                   gameplay_logic::HitEvent::Action::Press,
                   /*noteRemoved=*/false);
-            }
-            else if (note.type == gameplay_logic::Note::Type::LongNoteEnd) {
+            } else if (note.type == gameplay_logic::Note::Type::LongNoteEnd) {
                 events.emplace_back(
                   columnIndex,
                   noteIndex,
                   note.time.timestamp,
-                  gameplay_logic::BmsPoints{ 0.0, gameplay_logic::Judgement::Perfect, 0 },
+                  gameplay_logic::BmsPoints{
+                    0.0, gameplay_logic::Judgement::Perfect, 0 },
                   gameplay_logic::HitEvent::Action::Release,
                   /*noteRemoved=*/true);
             }
@@ -357,7 +379,8 @@ getComponentsForPlayer(const ChartFactory::PlayerSpecificData& player,
                     ->getGeneralVars()
                     ->getNoteOrderAlgorithm(),
               player.replayedScore
-                ? std::optional{player.replayedScore->getResult()->getRandomSeed()}
+                ? std::optional{ player.replayedScore->getResult()
+                                   ->getRandomSeed() }
                 : std::nullopt);
             auto notes2 =
               std::span{ visibleNotes.data() + visibleNotes.size() / 2,
@@ -382,7 +405,8 @@ getComponentsForPlayer(const ChartFactory::PlayerSpecificData& player,
                     ->getGeneralVars()
                     ->getNoteOrderAlgorithm(),
               player.replayedScore
-                ? std::optional{player.replayedScore->getResult()->getRandomSeed()}
+                ? std::optional{ player.replayedScore->getResult()
+                                   ->getRandomSeed() }
                 : std::nullopt),
             support::ShuffleResult{}
         };
@@ -406,9 +430,8 @@ getComponentsForPlayer(const ChartFactory::PlayerSpecificData& player,
       results[0].seed,
       chartData.getSha256(),
       chartData.getMd5(),
-      player.replayedScore
-        ? player.replayedScore->getResult()->getGuid()
-        : QUuid::createUuid().toString());
+      player.replayedScore ? player.replayedScore->getResult()->getGuid()
+                           : QUuid::createUuid().toString());
     auto notesStates = QList<gameplay_logic::ColumnState*>{};
     for (const auto& column : notes->getNotes()) {
         auto notes = QList<gameplay_logic::NoteState>{};
@@ -434,7 +457,8 @@ getComponentsForPlayer(const ChartFactory::PlayerSpecificData& player,
              std::move(visibleNotes) };
 }
 
-auto getLength(const gameplay_logic::BmsNotes& notes) -> std::chrono::nanoseconds
+auto
+getLength(const gameplay_logic::BmsNotes& notes) -> std::chrono::nanoseconds
 {
     auto max = int64_t{ 0 };
     for (const auto& column : notes.getNotes()) {
@@ -444,10 +468,9 @@ auto getLength(const gameplay_logic::BmsNotes& notes) -> std::chrono::nanosecond
             }
         }
     }
-    return std::chrono::nanoseconds{max};
+    return std::chrono::nanoseconds{ max };
 }
 } // namespace
-
 
 auto
 ChartFactory::createChart(ChartDataFactory::ChartComponents chartComponents,
@@ -475,12 +498,12 @@ ChartFactory::createChart(ChartDataFactory::ChartComponents chartComponents,
                     thread = QApplication::instance()->thread(),
                     path]() mutable {
         return loadBga(std::move(bgaBase),
-                           std::move(bgaPoor),
-                           std::move(bgaLayer),
-                           std::move(bgaLayer2),
-                           std::move(bmps),
-                           thread,
-                           std::move(path));
+                       std::move(bgaPoor),
+                       std::move(bgaLayer),
+                       std::move(bgaLayer2),
+                       std::move(bmps),
+                       thread,
+                       std::move(path));
     };
     auto bga = QtConcurrent::run(std::move(bgaTask));
     auto soundFuture = QtConcurrent::run(std::move(soundTask));
@@ -498,112 +521,91 @@ ChartFactory::createChart(ChartDataFactory::ChartComponents chartComponents,
                   // map after this point
                   mineHitSound = &sound->second;
               }
-              return gameplay_logic::BmsGameReferee{ std::move(rawNotes),
-                                                     bgmNotes,
-                                                     bpmChanges,
-                                                     mineHitSound,
-                                                     score,
-                                                     std::move(sounds),
-                                                     std::move(hitRules) };
+              return gameplay_logic::BmsGameReferee{
+                  std::move(rawNotes), bgmNotes, bpmChanges,
+                  mineHitSound,        score,    std::move(sounds),
+                  std::move(hitRules)
+              };
           });
         auto chartLength = getLength(*components1.notes);
         if (player1.replayedScore) {
             return new gameplay_logic::RePlayer{
-                components1.notes.release(),
-                components1.score.release(),
-                components1.state.release(),
-                player1.profile,
-                std::move(refereeFuture),
-                chartLength,
+                components1.notes.release(), components1.score.release(),
+                components1.state.release(), player1.profile,
+                std::move(refereeFuture),    chartLength,
                 player1.replayedScore,
             };
         }
         if (player1.autoPlay) {
             auto events = createAutoplayFromNotes(*components1.notes);
             return new gameplay_logic::AutoPlayer{
-                components1.notes.release(),
-                components1.score.release(),
-                components1.state.release(),
-                player1.profile,
+                components1.notes.release(), components1.score.release(),
+                components1.state.release(), player1.profile,
+                std::move(refereeFuture),    chartLength,
+                std::move(events),
+            };
+        }
+        return new gameplay_logic::Player{
+            components1.notes.release(), components1.score.release(),
+            components1.state.release(), player1.profile,
+            std::move(refereeFuture),    chartLength
+        };
+    }();
+    auto player2Object = components2.transform([&](auto& player)
+                                                 -> gameplay_logic::Player* {
+        auto refereeFuture = soundFuture.then(
+          [rawNotes = std::move(components2->rawNotes),
+           hitRules = std::move(player2->hitRules),
+           score = components2->score.get(),
+           bpmChanges = notesData.bpmChanges,
+           bgmNotes = std::move(notesData.bgmNotes)](
+            std::unordered_map<uint16_t, sounds::OpenALSound> sounds) mutable {
+              sounds::OpenALSound* mineHitSound = nullptr;
+              if (const auto sound = sounds.find(0); sound != sounds.end()) {
+                  mineHitSound = &sound->second;
+              }
+              return gameplay_logic::BmsGameReferee{
+                  std::move(rawNotes), {},    bpmChanges,
+                  mineHitSound,        score, std::move(sounds),
+                  std::move(hitRules)
+              };
+          });
+        auto chartLength = getLength(*components2->notes);
+        if (player2->replayedScore) {
+            return new gameplay_logic::RePlayer{
+                components2->notes.release(), components2->score.release(),
+                components2->state.release(), player2->profile,
+                std::move(refereeFuture),     chartLength,
+                player2->replayedScore,
+            };
+        }
+        if (player2->autoPlay) {
+            auto events = createAutoplayFromNotes(*components2->notes);
+            return new gameplay_logic::AutoPlayer{
+                components2->notes.release(),
+                components2->score.release(),
+                components2->state.release(),
+                player2->profile,
                 std::move(refereeFuture),
                 chartLength,
                 std::move(events),
             };
         }
         return new gameplay_logic::Player{
-            components1.notes.release(),
-            components1.score.release(),
-            components1.state.release(),
-            player1.profile,
-            std::move(refereeFuture),
-            chartLength
+            components2->notes.release(), components2->score.release(),
+            components2->state.release(), player2->profile,
+            std::move(refereeFuture),     chartLength
         };
-    }();
-    auto player2Object = components2
-        .transform([&](auto& player)  -> gameplay_logic::Player* {
-            auto refereeFuture = soundFuture.then(
-                  [rawNotes = std::move(components2->rawNotes),
-                   hitRules = std::move(player2->hitRules),
-                   score = components2->score.get(),
-                   bpmChanges = notesData.bpmChanges,
-                   bgmNotes = std::move(notesData.bgmNotes)](
-                    std::unordered_map<uint16_t, sounds::OpenALSound>
-                      sounds) mutable {
-                      sounds::OpenALSound* mineHitSound = nullptr;
-                      if (const auto sound = sounds.find(0);
-                          sound != sounds.end()) {
-                          mineHitSound = &sound->second;
-                      }
-                      return gameplay_logic::BmsGameReferee{
-                          std::move(rawNotes), {},    bpmChanges,
-                          mineHitSound,        score, std::move(sounds),
-                          std::move(hitRules)
-                      };
-                  });
-            auto chartLength = getLength(*components2->notes);
-            if (player2->replayedScore) {
-                return new gameplay_logic::RePlayer{
-                    components2->notes.release(),
-                    components2->score.release(),
-                    components2->state.release(),
-                    player2->profile,
-                    std::move(refereeFuture),
-                    chartLength,
-                    player2->replayedScore,
-                };
-            }
-            if (player2->autoPlay) {
-                auto events = createAutoplayFromNotes(*components2->notes);
-                return new gameplay_logic::AutoPlayer{
-                    components2->notes.release(),
-                    components2->score.release(),
-                    components2->state.release(),
-                    player2->profile,
-                    std::move(refereeFuture),
-                    chartLength,
-                    std::move(events),
-                };
-            }
-            return new gameplay_logic::Player{
-                components2->notes.release(),
-                components2->score.release(),
-                components2->state.release(),
-                player2->profile,
-                std::move(refereeFuture),
-                chartLength
-            };
-        });
-    auto* chart = new gameplay_logic::Chart(
-      chartData.release(),
-      std::move(bga),
-      player1Object,
-        player2Object.value_or(nullptr));
+    });
+    auto* chart = new gameplay_logic::Chart(chartData.release(),
+                                            std::move(bga),
+                                            player1Object,
+                                            player2Object.value_or(nullptr));
     QObject::connect(
       inputTranslator,
       &input::InputTranslator::buttonPressed,
       chart,
-      [chart](
-        const input::BmsKey button, const int64_t time) {
+      [chart](const input::BmsKey button, const int64_t time) {
           chart->passKey(
             button, gameplay_logic::Chart::EventType::KeyPress, time);
       });
