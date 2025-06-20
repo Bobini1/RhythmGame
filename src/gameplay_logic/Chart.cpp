@@ -130,7 +130,7 @@ Chart::setStatus(const Status status)
 void
 Chart::setup()
 {
-    if (++numberOfSetupCalls != (player2 != nullptr ? 3 : 2)) {
+    if (++numberOfSetupCalls != (player2 != nullptr ? 3 : 2) || status != Loading) {
         return;
     }
     bga = bgaFuture.takeResult().release();
@@ -170,6 +170,7 @@ Chart::finish() -> QList<BmsScore*>
     if (player2 != nullptr) {
         ret.push_back(player2->finish());
     }
+    setStatus(Finished);
     return ret;
 }
 void
