@@ -68,7 +68,10 @@ PathView {
 
     function addToMinimumCount(input) {
         let length = input.length;
-        let limit = Math.max(length, pathItemCount);
+        if (length >= pathItemCount) {
+            return;
+        }
+        let limit = Math.ceil(pathItemCount / length) * length
         for (let i = length; i < limit; i++) {
             input.push(input[i % length] || null);
         }
