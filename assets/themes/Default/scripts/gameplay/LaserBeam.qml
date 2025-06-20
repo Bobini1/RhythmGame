@@ -10,7 +10,6 @@ Item {
     property bool active: false
 
     onActiveChanged: {
-        print(active)
         if (active) {
             start();
         } else {
