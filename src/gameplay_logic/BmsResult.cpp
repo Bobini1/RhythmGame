@@ -3,6 +3,9 @@
 //
 
 #include "BmsResult.h"
+
+#include "support/Version.h"
+
 #include <QIODevice>
 #include <QDataStream>
 #include <QDateTime>
@@ -60,6 +63,7 @@ gameplay_logic::BmsResult::BmsResult(
   QString guid,
   QString sha256,
   QString md5,
+  uint64_t gameVersion,
   QObject* parent)
   : QObject(parent)
   , maxPoints(maxPoints)
@@ -80,6 +84,7 @@ gameplay_logic::BmsResult::BmsResult(
   , randomSeed(randomSeed)
   , noteOrderAlgorithm(noteOrderAlgorithm)
   , noteOrderAlgorithmP2(noteOrderAlgorithmP2)
+    , gameVersion(gameVersion)
 {
 }
 void
@@ -109,9 +114,10 @@ gameplay_logic::BmsResult::save(db::SqliteCppDb& db) const
       "random_sequence,"
       "random_seed,"
       "note_order_algorithm,"
-      "note_order_algorithm_p2"
+      "note_order_algorithm_p2,"
+      "game_version"
       ")"
-      "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+      "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
     statement.bind(1, maxPoints);
     statement.bind(2, maxHits);
     statement.bind(3, normalNoteCount);
@@ -137,6 +143,7 @@ gameplay_logic::BmsResult::save(db::SqliteCppDb& db) const
     statement.bind(21, static_cast<int64_t>(randomSeed));
     statement.bind(22, static_cast<int>(noteOrderAlgorithm));
     statement.bind(23, static_cast<int>(noteOrderAlgorithmP2));
+    statement.bind(24, static_cast<int64_t>(gameVersion));
     statement.execute();
 }
 auto
@@ -172,7 +179,8 @@ gameplay_logic::BmsResult::load(const DTO& dto)
         dto.noteOrderAlgorithmP2),
       QString::fromStdString(dto.guid),
       QString::fromStdString(dto.sha256),
-      QString::fromStdString(dto.md5));
+      QString::fromStdString(dto.md5),
+      dto.gameVersion);
     result->unixTimestamp = dto.unixTimestamp;
     return result;
 }
@@ -212,6 +220,11 @@ gameplay_logic::BmsResult::getNoteOrderAlgorithmP2() const
   -> resource_managers::NoteOrderAlgorithm
 {
     return noteOrderAlgorithmP2;
+}
+auto
+gameplay_logic::BmsResult::getGameVersion() const -> uint64_t
+{
+    return gameVersion;
 }
 auto
 gameplay_logic::BmsResult::getNormalNoteCount() const -> int

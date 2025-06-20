@@ -183,6 +183,14 @@ qt_add_library(RhythmGame_lib OBJECT ${utf8Manifest} src/db/SqliteCppDb.cpp src/
         src/resource_managers/Languages.h
         src/input/CustomNotifyApp.cpp
         src/input/CustomNotifyApp.h
+        src/support/Version.cpp
+        src/support/Version.h
+)
+# define version macros
+target_compile_definitions(RhythmGame_lib PUBLIC
+        RHYTHMGAME_VERSION_MAJOR=${PROJECT_VERSION_MAJOR}
+        RHYTHMGAME_VERSION_MINOR=${PROJECT_VERSION_MINOR}
+        RHYTHMGAME_VERSION_PATCH=${PROJECT_VERSION_PATCH}
 )
 
 find_package(Threads REQUIRED)
