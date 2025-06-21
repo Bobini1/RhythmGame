@@ -111,7 +111,11 @@ PathView {
     function goForward(item) {
         if (item instanceof ChartData) {
             console.info("Opening chart " + item.path);
-            globalRoot.openChart(item.path);
+            if (Rg.profileList.battleActive) {
+                globalRoot.openChart(item.path, Rg.profileList.battleProfiles.player1Profile, false, null, Rg.profileList.battleProfiles.player2Profile, false, null);
+            } else {
+                globalRoot.openChart(item.path, Rg.profileList.mainProfile, false, null, null, false, null);
+            }
             return;
         }
         if (item instanceof entry || item === null) {
@@ -162,7 +166,6 @@ PathView {
             console.info("Search returned no results");
             return;
         }
-        let curItem = current;
         let newFolderContents = [];
         for (let item of results) {
             newFolderContents.push(item);
@@ -352,6 +355,64 @@ PathView {
             } else {
                 pathView.incrementViewIndex();
             }
+        }
+    }
+    Input.onCol11Pressed: {
+        goForward(current);
+    }
+    Input.onCol13Pressed: {
+        if (current instanceof ChartData) {
+            globalRoot.openChart(songList.current.path, Rg.profileList.mainProfile, true, null, null, false, null);
+        } else {
+            goForward(current);
+        }
+    }
+    Input.onCol15Pressed: {
+        if (current instanceof ChartData && songList.currentItem.scores.length > 0) {
+            let key = 0;
+            if (Keys.digit2Pressed) {
+                key = 1;
+            } else if (Keys.digit3Pressed) {
+                key = 2;
+            } else if (Keys.digit4Pressed) {
+                key = 3;
+            }
+            root.openReplay(key);
+        } else {
+            goForward(current);
+        }
+    }
+    Input.onCol21Pressed: {
+        goForward(current);
+    }
+    Input.onCol23Pressed: {
+        if (current instanceof ChartData) {
+            globalRoot.openChart(songList.current.path, Rg.profileList.mainProfile, true, null, null, false, null);
+        } else {
+            goForward(current);
+        }
+    }
+    Input.onCol25Pressed: {
+        if (current instanceof ChartData && songList.currentItem.scores.length > 0) {
+            let key = 0;
+            if (Keys.digit2Pressed) {
+                key = 1;
+            } else if (Keys.digit3Pressed) {
+                key = 2;
+            } else if (Keys.digit4Pressed) {
+                key = 3;
+            }
+            root.openReplay(key);
+        } else {
+            goForward(current);
+        }
+    }
+    Input.onButtonPressed: (key) => {
+        if (key === BmsKey.Col12 || key === BmsKey.Col14 || key === BmsKey.Col16 || key === BmsKey.Col22 || key === BmsKey.Col24 || key === BmsKey.Col26) {
+            if (!historyStack[historyStack.length - 1]) {
+                sceneStack.pop();
+            }
+            goBack();
         }
     }
     onCurrentItemChanged: {

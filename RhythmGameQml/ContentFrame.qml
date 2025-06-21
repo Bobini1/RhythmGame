@@ -40,43 +40,8 @@ ApplicationWindow {
         readonly property Component settingsComponent: Qt.createComponent(Rg.themes.availableThemeFamilies[mainProfile.themeConfig.settings].screens.settings.script)
         readonly property Component songWheelComponent: Qt.createComponent(Rg.themes.availableThemeFamilies[mainProfile.themeConfig.songWheel].screens.songWheel.script)
 
-        function openChart(path) {
-            let chart;
-            if (Rg.profileList.battleActive) {
-                chart = Rg.chartLoader.loadChart(path, Rg.profileList.battleProfiles.player1Profile, false, null, Rg.profileList.battleProfiles.player2Profile, false, null);
-            } else {
-                chart = Rg.chartLoader.loadChart(path, Rg.profileList.mainProfile, false, null, null, false, null);
-            }
-            if (!chart) {
-                console.error("Failed to load chart");
-                return;
-            }
-            let keys = chart.chartData.keymode;
-            let battle = chart.player1 && chart.player2;
-            let screen = "k" + keys + (battle ? "battle" : "");
-            let component = this[screen + "Component"];
-            sceneStack.pushItem(component, {
-                "chart": chart
-            });
-        }
-
-        function openReplay(path, score: BmsScore) {
-            let chart = Rg.chartLoader.loadChart(path, Rg.profileList.mainProfile, false, score, null, false, null);
-            if (!chart) {
-                console.error("Failed to load replay");
-                return;
-            }
-            let keys = chart.chartData.keymode;
-            let battle = chart.player1 && chart.player2;
-            let screen = "k" + keys + (battle ? "battle" : "");
-            let component = this[screen + "Component"];
-            sceneStack.pushItem(component, {
-                "chart": chart
-            });
-        }
-
-        function openAutoPlay(path) {
-            let chart = Rg.chartLoader.loadChart(path, Rg.profileList.mainProfile, true, null, null, false, null);
+        function openChart(path, profile1, autoplay1, score1, profile2, autoplay2, score2) {
+            let chart = Rg.chartLoader.loadChart(path, profile1, autoplay1, score1, profile2, autoplay2, score2);
             if (!chart) {
                 console.error("Failed to load chart");
                 return;

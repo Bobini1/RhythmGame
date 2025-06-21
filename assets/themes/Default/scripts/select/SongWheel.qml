@@ -14,6 +14,34 @@ FocusScope {
         readonly property string iniImagesUrl: "image://ini/" + rootUrl + "images/"
         property string rootUrl: QmlUtils.fileName.slice(0, QmlUtils.fileName.lastIndexOf("/") + 1)
 
+        function openReplay(type) {
+            switch (type) {
+                case 0:
+                    globalRoot.openChart(songList.current.path, Rg.profileList.mainProfile, false, songList.currentItem.scores[0], null, false, null);
+                    break;
+                case 1:
+                    globalRoot.openChart(songList.current.path, Rg.profileList.mainProfile, false, songList.currentItem.scoreWithBestPoints, null, false, null);
+                    break;
+                case 2:
+                    let clearType = Helpers.getClearType(songList.currentItem?.scores);
+                    let score = songList.currentItem.scores.find((score) => {
+                        return score.result.clearType === clearType;
+                    });
+                    if (score) {
+                        globalRoot.openChart(songList.current.path, Rg.profileList.mainProfile, false, score, null, false, null);
+                    }
+                    break;
+                case 3:
+                    let bestScore = songList.currentItem.scores.reduce((prev, curr) => {
+                        return prev.result.maxCombo > curr.result.maxCombo ? prev : curr;
+                    });
+                    if (bestScore) {
+                        globalRoot.openChart(songList.current.path, Rg.profileList.mainProfile, false, bestScore, null, false, null);
+                    }
+                    break;
+            }
+        }
+
         fillMode: Image.PreserveAspectCrop
         height: parent.height
         source: root.imagesUrl + "bg.png"
@@ -75,7 +103,7 @@ FocusScope {
                         cursorShape: enabled ? Qt.PointingHandCursor : undefined
                         onClicked: {
                             if (songList.current?.path) {
-                                globalRoot.openAutoPlay(songList.current.path);
+                                globalRoot.openChart(songList.current.path, Rg.profileList.mainProfile, true, null, null, false, null);
                             }
                         }
                     }
@@ -106,31 +134,7 @@ FocusScope {
                             }
                             ToolTip.delay: 500
                             onClicked: {
-                                switch (modelData) {
-                                    case 0:
-                                        globalRoot.openReplay(songList.current.path, songList.currentItem.scores[0]);
-                                        break;
-                                    case 1:
-                                        globalRoot.openReplay(songList.current.path, songList.currentItem.scoreWithBestPoints);
-                                        break;
-                                    case 2:
-                                        let clearType = Helpers.getClearType(songList.currentItem?.scores);
-                                        let score = songList.currentItem.scores.find((score) => {
-                                            return score.result.clearType === clearType;
-                                        });
-                                        if (score) {
-                                            globalRoot.openReplay(songList.current.path, score);
-                                        }
-                                        break;
-                                    case 3:
-                                        let bestScore = songList.currentItem.scores.reduce((prev, curr) => {
-                                            return prev.result.maxCombo > curr.result.maxCombo ? prev : curr;
-                                        });
-                                        if (bestScore) {
-                                            globalRoot.openReplay(songList.current.path, bestScore);
-                                        }
-                                        break;
-                                }
+                                root.openReplay(modelData);
                             }
                         }
                     }
