@@ -303,9 +303,6 @@ PathView {
         incrementViewIndex();
     }
     Keys.onLeftPressed: {
-        if (!historyStack[historyStack.length - 1]) {
-            sceneStack.pop();
-        }
         goBack();
     }
     Keys.onReturnPressed: {
@@ -409,9 +406,6 @@ PathView {
     }
     Input.onButtonPressed: (key) => {
         if (key === BmsKey.Col12 || key === BmsKey.Col14 || key === BmsKey.Col16 || key === BmsKey.Col22 || key === BmsKey.Col24 || key === BmsKey.Col26) {
-            if (!historyStack[historyStack.length - 1]) {
-                sceneStack.pop();
-            }
             goBack();
         }
     }
