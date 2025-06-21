@@ -314,6 +314,46 @@ PathView {
     Keys.onUpPressed: {
         decrementViewIndex();
     }
+    Timer {
+        id: scrAutorepeat
+        interval: 100
+        running: Input.col1sUp || Input.col1sDown
+        repeat: true
+        Input.onCol1sUpPressed: up = true
+        Input.onCol1sDownPressed: up = false
+        Input.onCol1sUpReleased: up = false
+        Input.onCol1sDownReleased: up = true
+        property bool up
+        triggeredOnStart: true
+        onTriggered: {
+            if (up) {
+                pathView.decrementViewIndex();
+            } else {
+                pathView.incrementViewIndex();
+            }
+        }
+    }
+    Timer {
+        id: p2scrAutorepeat
+        interval: 100
+        running: Input.col2sUp || Input.col2sDown
+        repeat: true
+        Input.onCol2sUpPressed: up = true
+        Input.onCol2sDownPressed: up = false
+        Input.onCol2sUpReleased: up = false
+        Input.onCol2sDownReleased: up = true
+        property bool up
+        onTriggered: {
+            if (scrAutorepeat.running) {
+                return;
+            }
+            if (up) {
+                pathView.decrementViewIndex();
+            } else {
+                pathView.incrementViewIndex();
+            }
+        }
+    }
     onCurrentItemChanged: {
         scrollingTextTimer.restart();
         scrollingText = false;

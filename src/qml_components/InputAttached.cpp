@@ -28,7 +28,15 @@ InputSignalProvider::InputSignalProvider(
 auto
 InputAttached::isEnabled() const -> bool
 {
-    const auto* current = qobject_cast<QQuickItem*>(parent());
+    auto p = parent();
+    const QQuickItem* current = nullptr;
+    while (p) {
+        if (const auto item = qobject_cast<QQuickItem*>(p)) {
+            current = item;
+            break;
+        }
+        p = p->parent();
+    }
     return current && current->isEnabled();
 }
 InputAttached::InputAttached(QObject* obj)

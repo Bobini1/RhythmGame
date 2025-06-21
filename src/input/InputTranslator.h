@@ -114,7 +114,6 @@ public:
 class InputTranslator final : public QObject
 {
     Q_OBJECT
-public:
 private:
     Q_PROPERTY(bool configuring READ isConfiguring NOTIFY configuringChanged)
     Q_PROPERTY(QVariant configuredButton READ getConfiguredButton WRITE
