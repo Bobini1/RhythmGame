@@ -357,6 +357,9 @@ PathView {
     Input.onCol11Pressed: {
         goForward(current);
     }
+    Input.onCol17Pressed: {
+        goForward(current);
+    }
     Input.onCol13Pressed: {
         if (current instanceof ChartData) {
             globalRoot.openChart(songList.current.path, Rg.profileList.mainProfile, true, null, null, false, null);
@@ -380,6 +383,9 @@ PathView {
         }
     }
     Input.onCol21Pressed: {
+        goForward(current);
+    }
+    Input.onCol27Pressed: {
         goForward(current);
     }
     Input.onCol23Pressed: {
