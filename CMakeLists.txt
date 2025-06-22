@@ -12,6 +12,14 @@ project(
 include(cmake/project-is-top-level.cmake)
 include(cmake/variables.cmake)
 
+include(CheckIPOSupported)
+check_ipo_supported(RESULT supported OUTPUT error)
+
+if( supported )
+    message(STATUS "IPO / LTO enabled")
+    set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
+endif()
+
 # <---- mimalloc (faster memory allocation) ---->
 
 find_package(mimalloc CONFIG REQUIRED)
