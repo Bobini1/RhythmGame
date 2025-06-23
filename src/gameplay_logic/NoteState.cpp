@@ -206,18 +206,32 @@ Filter::setBottomPosition(double value)
         --lower;
     }
     auto newBottomRow = std::distance(columnState->getNotes().begin(), lower);
-    if (newBottomRow > bottomRow) {
+    if (newBottomRow > bottomRow) [[likely]] {
         beginRemoveRows(QModelIndex(), 0, newBottomRow - bottomRow - 1);
-
+        auto oldBottomRow = bottomRow;
         bottomPosition = value;
         bottomRow = newBottomRow;
         endRemoveRows();
-    } else if (newBottomRow < bottomRow) {
+        for (int i = oldBottomRow; i < newBottomRow; ++i) {
+            auto& note = columnState->getNotes()[i];
+            note.belowBottom = true;
+        }
+        emit columnState->dataChanged(
+          columnState->index(oldBottomRow, 0, QModelIndex()),
+          columnState->index(newBottomRow - 1, 0, QModelIndex()));
+    } else if (newBottomRow < bottomRow) [[unlikely]] {
         beginInsertRows(QModelIndex(), 0, bottomRow - newBottomRow - 1);
-
+        auto oldBottomRow = bottomRow;
         bottomPosition = value;
         bottomRow = newBottomRow;
         endInsertRows();
+        for (int i = newBottomRow; i < oldBottomRow; ++i) {
+            auto& note = columnState->getNotes()[i];
+            note.belowBottom = false;
+        }
+        emit columnState->dataChanged(
+          columnState->index(newBottomRow, 0, QModelIndex()),
+          columnState->index(oldBottomRow - 1, 0, QModelIndex()));
     }
     emit bottomPositionChanged();
 }

@@ -18,11 +18,13 @@ class NoteState
     Q_PROPERTY(qint64 index MEMBER index)
     Q_PROPERTY(QVariant hitData MEMBER hitData)
     Q_PROPERTY(QVariant otherEndHitData MEMBER otherEndHitData)
+    Q_PROPERTY(bool belowBottom MEMBER belowBottom)
   public:
     Note note;
     qint64 index;
     QVariant hitData = QVariant::fromValue(nullptr);
     QVariant otherEndHitData = QVariant::fromValue(nullptr);
+    bool belowBottom;
 };
 
 class ColumnState final : public QAbstractListModel
@@ -42,6 +44,7 @@ class ColumnState final : public QAbstractListModel
     void onHitEvent(HitEvent hit);
     auto isPressed() const -> bool;
     auto getNotes() const -> const QList<NoteState>& { return notes; }
+    auto getNotes() -> QList<NoteState>& { return notes; }
   signals:
     void pressedChanged();
 };
