@@ -436,15 +436,15 @@ getComponentsForPlayer(const ChartFactory::PlayerSpecificData& player,
     for (const auto& column : notes->getNotes()) {
         auto notes = QList<gameplay_logic::NoteState>{};
         notes.reserve(column.size());
-        for (const auto& note : column) {
-            notes.append({ note });
+        for (const auto& [i, note] : std::ranges::views::enumerate(column)) {
+            notes.append({ note, i });
         }
         notesStates.append(new gameplay_logic::ColumnState(std::move(notes)));
     }
     auto barLineStates = QList<gameplay_logic::BarLineState>{};
     barLineStates.reserve(notes->getBarLines().size());
-    for (const auto& barLine : notes->getBarLines()) {
-        barLineStates.append({ barLine });
+    for (const auto& [i, barLine] : std::ranges::views::enumerate(notes->getBarLines())) {
+        barLineStates.append({ barLine, i });
     }
     auto* barLinesState =
       new gameplay_logic::BarLinesState(std::move(barLineStates));

@@ -54,15 +54,14 @@ Item {
                 readonly property var hitData: display.hitData
                 readonly property bool held: note.type === Note.Type.LongNoteBegin && hitData && !display.otherEndHitData
                 readonly property var note: display.note
-                readonly property real nextPosition: column.notes[realIndex+1]?.time?.position || Infinity
+                readonly property real nextPosition: column.notes[display.index+1]?.time?.position || Infinity
                 visible: note.type === Note.Type.LongNoteBegin || note.type === Note.Type.LongNoteEnd || !hitData
                 readonly property bool shouldShowStatic: note.type === Note.Type.LongNoteBegin && (wasHeld || note.time.position < column.position) && nextPosition > column.position
                 property bool wasHeld: note.type === Note.Type.LongNoteBegin && hitData && (!display.otherEndHitData || display.otherEndHitData.points.judgement !== Judgement.LnEndSkip)
-                property int realIndex: columnState.getRealIndex(index)
 
                 y: (shouldShowStatic ? -column.position : -note.time.position) * column.heightMultiplier -column.noteHeight / 3
                 width: column.width
-                z: index
+                z: display.index
 
                 Image {
                     id: noteImg

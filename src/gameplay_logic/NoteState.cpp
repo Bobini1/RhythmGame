@@ -221,11 +221,6 @@ Filter::setBottomPosition(double value)
     }
     emit bottomPositionChanged();
 }
-int
-Filter::getRealIndex(int sourceRow) const
-{
-    return mapToSource(index(sourceRow, 0, QModelIndex())).row();
-}
 QModelIndex
 Filter::index(int row, int column, const QModelIndex& parent) const
 {

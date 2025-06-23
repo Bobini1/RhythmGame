@@ -15,13 +15,14 @@ class NoteState
 {
     Q_GADGET
     Q_PROPERTY(Note note MEMBER note)
+    Q_PROPERTY(qint64 index MEMBER index)
     Q_PROPERTY(QVariant hitData MEMBER hitData)
     Q_PROPERTY(QVariant otherEndHitData MEMBER otherEndHitData)
   public:
     Note note;
+    qint64 index;
     QVariant hitData = QVariant::fromValue(nullptr);
     QVariant otherEndHitData = QVariant::fromValue(nullptr);
-    bool belowJudgeline = false;
 };
 
 class ColumnState final : public QAbstractListModel
@@ -49,10 +50,11 @@ class BarLineState
 {
     Q_GADGET
     Q_PROPERTY(Time time MEMBER time)
+    Q_PROPERTY(qint64 index MEMBER index)
 
   public:
     Time time;
-    bool belowJudgeline = false;
+    qint64 index;
 };
 
 class BarLinesState final : public QAbstractListModel
@@ -92,7 +94,6 @@ class Filter : public QAbstractProxyModel
     auto getBottomPosition() const -> double { return bottomPosition; }
     void setBottomPosition(double value);
     auto isPressed() const -> bool { return pressed; }
-    Q_INVOKABLE int getRealIndex(int sourceRow) const;
     QModelIndex index(int row, int column = 0, const QModelIndex &parent = QModelIndex()) const override;
     QModelIndex parent(const QModelIndex& child) const override;
     int rowCount(const QModelIndex& parent) const override;
