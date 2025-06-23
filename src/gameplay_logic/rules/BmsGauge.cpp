@@ -30,8 +30,7 @@ BmsGauge::BmsGauge(double gaugeMax,
 {
     // todo: pass -1 in constructor
     addGaugeHistoryEntry(
-      { duration_cast<std::chrono::nanoseconds>(std::chrono::seconds(-1))
-          .count(),
+      { 0,
         initialValue });
 }
 auto
@@ -42,8 +41,11 @@ BmsGauge::getGaugeHistory() const -> const QList<GaugeHistoryEntry>&
 void
 BmsGauge::addGaugeHistoryEntry(const GaugeHistoryEntry entry)
 {
+    auto currentGauge = gaugeHistory.empty() ? std::nan("") : gaugeHistory.back().getGauge();
     gaugeHistory.append(entry);
-    emit gaugeChanged();
+    if (currentGauge != entry.getGauge()) {
+        emit gaugeChanged();
+    }
 }
 GaugeHistoryEntry::GaugeHistoryEntry(int64_t offsetFromStart, double gauge)
   : offsetFromStart(offsetFromStart)
