@@ -22,6 +22,16 @@ Item {
         columnState.bottomPosition = column.position;
     }
 
+    readonly property url lnBodyInactive: root.iniImagesUrl + "notes/" + column.noteImage + "/ln_body_inactive_" + column.color;
+    readonly property url lnBodyActive: root.iniImagesUrl + "notes/" + column.noteImage + "/ln_body_active_" + column.color;
+    readonly property url lnBodyFlashing: root.iniImagesUrl + "notes/" + column.noteImage + "/ln_body_flash_" + column.color;
+    readonly property bool flashing: Math.abs(column.position % 0.5) > 0.25;
+
+    readonly property url normalNote: `${root.iniImagesUrl}notes/${column.noteImage}/note_${column.color}`;
+    readonly property url lnBegin: `${root.iniImagesUrl}notes/${column.noteImage}/ln_start_${column.color}`;
+    readonly property url lnEnd: `${root.iniImagesUrl}notes/${column.noteImage}/ln_end_${column.color}`;
+    readonly property url mine: `${root.iniImagesUrl}mines/${column.noteImage}/mine_${column.color}`;
+
     Flickable {
         id: flickable
         anchors.fill: parent
@@ -59,36 +69,21 @@ Item {
                     height: column.noteHeight
                     width: column.width
 
-                    function getTypeString() {
-                        let type = noteObj.note.type;
-                        switch (type) {
+                    source: {
+                        switch (noteObj.note.type) {
                             case Note.Type.Normal:
-                                return "note_";
+                                return column.normalNote;
                             case Note.Type.LongNoteBegin:
-                                return "ln_start_";
+                                return column.lnBegin;
                             case Note.Type.LongNoteEnd:
-                                return "ln_end_";
+                                return column.lnEnd;
                             case Note.Type.Landmine:
-                                return "mine_";
+                                return column.mine;
                             case Note.Type.Invisible:
-                                return "invisible_";
+                                return "";
                             default:
                                 console.info("Unknown note type: " + type);
                         }
-                    }
-
-                    source: {
-                        let type = getTypeString();
-                        if (type === "invisible_") {
-                            return "";
-                        }
-
-                        const typePath = noteObj.note.type === Note.Type.Landmine
-                            ? `mine/${column.mineImage}`
-                            : `notes/${column.noteImage}`;
-                        const suffix = `${type}${column.color}`;
-
-                        return `${root.iniImagesUrl}${typePath}/${suffix}`;
                     }
                 }
 
@@ -111,10 +106,9 @@ Item {
                             }
                             source: {
                                 if (!noteObj.held) {
-                                    return root.iniImagesUrl + "notes/" + column.noteImage + "/ln_body_inactive_" + column.color;
+                                    return column.lnBodyInactive;
                                 }
-                                let flashing = Math.abs(column.position % 0.5) > 0.25;
-                                return root.iniImagesUrl + "notes/" + column.noteImage + "/ln_body_" + (flashing ? "flash" : "active") + "_" + column.color;
+                                return column.flashing ? column.lnBodyFlashing : column.lnBodyActive;
                             }
                             width: noteObj.width
                             y: -height
