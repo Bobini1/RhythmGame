@@ -201,9 +201,34 @@ Filter::setBottomPosition(double value)
                                   [](const auto& note, double value) {
                                       return note.note.time.position < value;
                                   });
-    if (lower != columnState->getNotes().end() &&
+    if (lower != columnState->getNotes().end() && lower->note.type == Note::Type::LongNoteBegin) {
+        if (lower->belowBottom) {
+            lower->belowBottom = false;
+            emit columnState->dataChanged(
+              columnState->index(std::distance(columnState->getNotes().begin(),
+                                               lower),
+                                 0,
+                                 QModelIndex()),
+              columnState->index(std::distance(columnState->getNotes().begin(),
+                                               lower),
+                                 0,
+                                 QModelIndex()));
+        }
+    } else if (lower != columnState->getNotes().end() &&
         lower->note.type == Note::Type::LongNoteEnd) {
         --lower;
+        if (!lower->belowBottom) {
+            lower->belowBottom = true;
+            emit columnState->dataChanged(
+              columnState->index(std::distance(columnState->getNotes().begin(),
+                                               lower),
+                                 0,
+                                 QModelIndex()),
+              columnState->index(std::distance(columnState->getNotes().begin(),
+                                               lower),
+                                 0,
+                                 QModelIndex()));
+        }
     }
     auto newBottomRow = std::distance(columnState->getNotes().begin(), lower);
     if (newBottomRow > bottomRow) [[likely]] {
