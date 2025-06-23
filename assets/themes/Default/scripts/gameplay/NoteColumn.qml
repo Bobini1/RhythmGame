@@ -49,7 +49,6 @@ Item {
                 readonly property bool shouldShowStatic: note.type === Note.Type.LongNoteBegin && (wasHeld || note.time.position < column.position) && nextPosition > column.position
                 property bool wasHeld: note.type === Note.Type.LongNoteBegin && hitData && (!display.otherEndHitData || display.otherEndHitData.points.judgement !== Judgement.LnEndSkip)
                 property int realIndex: columnState.getRealIndex(index)
-                property bool between: note.position < column.position && nextPosition > column.position
 
                 y: (shouldShowStatic ? -column.position : -note.time.position) * column.heightMultiplier -column.noteHeight / 3
                 width: column.width
