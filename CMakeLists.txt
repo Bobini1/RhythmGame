@@ -15,10 +15,10 @@ include(cmake/variables.cmake)
 include(CheckIPOSupported)
 check_ipo_supported(RESULT supported OUTPUT error)
 
-if( supported )
+if (supported)
     message(STATUS "IPO / LTO enabled")
     set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
-endif()
+endif ()
 
 # <---- mimalloc (faster memory allocation) ---->
 
@@ -44,6 +44,7 @@ find_package(fmt REQUIRED)
 
 find_package(spdlog REQUIRED)
 target_compile_definitions(spdlog::spdlog INTERFACE SPDLOG_WCHAR_FILENAMES)
+target_compile_definitions(spdlog::spdlog INTERFACE SPDLOG_USE_STD_FORMAT)
 
 
 # <------------ boost --------------->

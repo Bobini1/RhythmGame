@@ -8,7 +8,7 @@
 
 #include <QJsonDocument>
 #include <QFile>
-#include <fstream>
+#include <fmt/format.h>
 #include <spdlog/spdlog.h>
 #include <QJsonObject>
 
