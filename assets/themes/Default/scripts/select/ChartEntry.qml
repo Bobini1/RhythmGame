@@ -54,7 +54,7 @@ Image {
     NameLabel {
         anchors.right: parent.right
         anchors.rightMargin: 30
-        color: (modelData.keymode === ChartData.Keymode.K14) ? "red" : "black"
+        color: (modelData instanceof ChartData) ? "black" : "red"
         height: parent.height
         scrolling: image.isCurrentItem && image.scrollingText
         text: modelData.title + (modelData.subtitle ? (" " + modelData.subtitle) : "")
