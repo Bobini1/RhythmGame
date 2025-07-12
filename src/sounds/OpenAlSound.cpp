@@ -18,7 +18,6 @@ sounds::OpenALSound::OpenALSound(
 sounds::OpenALSound::~OpenALSound()
 {
     if (source != 0) {
-        stop();
         alDeleteSources(1, &source);
     }
 }

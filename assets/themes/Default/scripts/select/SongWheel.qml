@@ -49,20 +49,12 @@ FocusScope {
 
         onEnabledChanged: {
             if (enabled) {
-                playMusic.chart = Qt.binding(() => {
-                    if (songList.current instanceof ChartData && (playMusic.mediaStatus === MediaPlayer.NoMedia || playMusic.mediaStatus === MediaPlayer.InvalidMedia)) {
-                        return Rg.chartLoader.loadChart(songList.current.path, Rg.profileList.mainProfile, true, null, null, false, null);
-                    } else {
-                        return null;
-                    }
-                    });
                 previewDelayTimer.restart();
                 songList.refresh();
             } else {
                 playMusic.stop();
-                playMusic.chart?.destroy();
-                playMusic.chart = null;
                 previewDelayTimer.stop();
+                playMusic.waitingForStop = false;
             }
         }
 
@@ -224,55 +216,32 @@ FocusScope {
                     sceneStack.pop();
                 }
             }
-
-            Connections {
-                target: songList
-                function onCurrentChanged() {
-                    if (playMusic.chart) {
-                        playMusic.chart.destroy();
-                        playMusic.chart = null;
-                    }
-                    let base = songList.current instanceof ChartData ? Rg.previewFilePathFetcher.getPreviewFilePath(songList.current.chartDirectory) : ""
-                    if (base === "") {
-                        playMusic.source = "";
-                    } else {
-                        if (base[0] !== '/') {
-                            base = '/' + base;
-                        }
-                        playMusic.source = "file://" + base;
-                    }
-                    playMusic.chart = Qt.binding(() => {
-                        if (songList.current instanceof ChartData && (playMusic.mediaStatus === MediaPlayer.NoMedia || playMusic.mediaStatus === MediaPlayer.InvalidMedia)) {
-                            return Rg.chartLoader.loadChart(songList.current.path, Rg.profileList.mainProfile, true, null, null, false, null);
-                        } else {
-                            return null;
-                        }
-                    });
-                }
-            }
-
             MediaPlayer {
                 id: playMusic
 
-                function playMusic() {
-                    if (playMusic.chart) {
-                        playMusic.chart.start();
-                    } else {
-                        playMusic.play();
-                    }
-                }
+                property bool waitingForStop: false
 
                 loops: MediaPlayer.Infinite
+                source: {
+                    let base = songList.current instanceof ChartData ? Rg.previewFilePathFetcher.getPreviewFilePath(songList.current.chartDirectory) : ""
+                    if (base === "") {
+                        return base;
+                    }
+                    if (base[0] !== '/') {
+                        base = '/' + base;
+                    }
+                    return "file://" + base;
+                }
 
                 audioOutput: AudioOutput {
                     id: audioOutput
-                }
 
-                property Chart chart: null
+                }
 
                 onSourceChanged: {
                     playMusic.stop();
                     previewDelayTimer.stop();
+                    waitingForStop = playMusic.source !== "";
                 }
             }
             Difficulty {
@@ -296,7 +265,9 @@ FocusScope {
             }
             Connections {
                 function onMovingInAnyWayChanged() {
-                    previewDelayTimer.restart();
+                    if (playMusic.waitingForStop) {
+                        previewDelayTimer.restart();
+                    }
                 }
 
                 function onOpenedFolder() {
@@ -311,7 +282,7 @@ FocusScope {
                 interval: 300
 
                 onTriggered: {
-                    playMusic.playMusic();
+                    playMusic.play();
                 }
             }
             ScoreInfo {
