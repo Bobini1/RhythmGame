@@ -49,13 +49,7 @@ FocusScope {
 
         onEnabledChanged: {
             if (enabled) {
-                playMusic.chart = Qt.binding(() => {
-                    if (songList.current instanceof ChartData && (playMusic.mediaStatus === MediaPlayer.NoMedia || playMusic.mediaStatus === MediaPlayer.InvalidMedia)) {
-                        return Rg.chartLoader.loadChart(songList.current.path, Rg.profileList.mainProfile, true, null, null, false, null);
-                    } else {
-                        return null;
-                    }
-                    });
+                playMusic.loadChartIfNeeded();
                 previewDelayTimer.restart();
                 songList.refresh();
             } else {
@@ -66,7 +60,13 @@ FocusScope {
             }
         }
 
+        Component.onCompleted: {
+            playMusic.loadChartIfNeeded();
+            previewDelayTimer.restart();
+        }
+
         Item {
+            id: mainContainer
             anchors.centerIn: parent
             height: 1080
             scale: Math.min(parent.width / 1920, parent.height / 1080)
@@ -228,10 +228,10 @@ FocusScope {
             Connections {
                 target: songList
                 function onCurrentChanged() {
-                    if (playMusic.chart) {
-                        playMusic.chart.destroy();
-                        playMusic.chart = null;
-                    }
+                    playMusic.chart?.destroy();
+                    playMusic.chart = null;
+                    playMusic.pendingReply?.setFailed();
+                    playMusic.pendingReply = null;
                     let base = songList.current instanceof ChartData ? Rg.previewFilePathFetcher.getPreviewFilePath(songList.current.chartDirectory) : ""
                     if (base === "") {
                         playMusic.source = "";
@@ -241,26 +241,41 @@ FocusScope {
                         }
                         playMusic.source = "file://" + base;
                     }
-                    playMusic.chart = Qt.binding(() => {
-                        if (songList.current instanceof ChartData && (playMusic.mediaStatus === MediaPlayer.NoMedia || playMusic.mediaStatus === MediaPlayer.InvalidMedia)) {
-                            return Rg.chartLoader.loadChart(songList.current.path, Rg.profileList.mainProfile, true, null, null, false, null);
-                        } else {
-                            return null;
-                        }
-                    });
+                    playMusic.loadChartIfNeeded();
                 }
             }
+            readonly property string themeName: QmlUtils.themeName
+            property bool shouldLoadChart: Rg.profileList.mainProfile.vars.themeVars.songWheel[themeName].fallbackToAutoplay && songList.current instanceof ChartData && (playMusic.mediaStatus === MediaPlayer.NoMedia || playMusic.mediaStatus === MediaPlayer.InvalidMedia)
+            onShouldLoadChartChanged: playMusic.loadChartIfNeeded();
 
             MediaPlayer {
                 id: playMusic
 
-                function playMusic() {
+                function playPreview() {
                     if (playMusic.chart) {
                         playMusic.chart.start();
                     } else {
                         playMusic.play();
                     }
                 }
+
+                function loadChartIfNeeded() {
+                    if (mainContainer.shouldLoadChart) {
+                        playMusic.pendingReply = Rg.chartLoader.loadChartAsync(songList.current.path, Rg.profileList.mainProfile, true, null, null, false, null);
+                        playMusic.pendingReply.then((chart) => {
+                            playMusic.chart = chart;
+                            if (!previewDelayTimer.running && root.enabled) {
+                                playMusic.playPreview();
+                            }
+                        }, () => {
+                            playMusic.chart?.destroy();
+                            playMusic.chart = null;
+                        });
+                    } else {
+                        playMusic.chart = null;
+                    }
+                }
+
 
                 loops: MediaPlayer.Infinite
 
@@ -269,6 +284,7 @@ FocusScope {
                 }
 
                 property Chart chart: null
+                property var pendingReply: null
 
                 onSourceChanged: {
                     playMusic.stop();
@@ -311,7 +327,7 @@ FocusScope {
                 interval: 300
 
                 onTriggered: {
-                    playMusic.playMusic();
+                    playMusic.playPreview();
                 }
             }
             ScoreInfo {

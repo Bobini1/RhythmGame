@@ -58,7 +58,7 @@ class Chart final : public QObject
     qml_components::BgaContainer* bga{};
     QFuture<std::unique_ptr<qml_components::BgaContainer>> bgaFuture;
     QFutureWatcher<std::unique_ptr<qml_components::BgaContainer>>
-      bgaFutureWatcher;
+      bgaFutureWatcher{this};
     Status status{ Loading };
     bool startRequested = false;
 
@@ -104,8 +104,6 @@ class Player : public QObject
     Q_PROPERTY(resource_managers::Profile* profile READ getProfile CONSTANT)
     Q_PROPERTY(double position READ getPosition NOTIFY positionChanged)
     Q_PROPERTY(int64_t elapsed READ getElapsed NOTIFY elapsedChanged)
-    Q_PROPERTY(
-      double positionBeforeChartStart READ getPositionBeforeChartStart CONSTANT)
     Q_PROPERTY(Chart::Status status READ getStatus NOTIFY statusChanged)
     Q_PROPERTY(int64_t chartLength READ getChartLength CONSTANT)
     BmsNotes* notes;
@@ -121,7 +119,7 @@ class Player : public QObject
     void setPosition(BmsGameReferee::Position position);
 
 protected:
-    QFutureWatcher<BmsGameReferee> refereeWatcher;
+    QFutureWatcher<BmsGameReferee> refereeWatcher{this};
     QFuture<BmsGameReferee> refereeFuture;
     std::optional<BmsGameReferee> referee;
     BmsLiveScore* score;

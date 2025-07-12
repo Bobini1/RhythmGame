@@ -1,0 +1,15 @@
+[
+  {
+    "id": "fallbackToAutoplay",
+    "name": {
+      "en": "Song preview fallback to autoplay",
+      "pl": "Autoplay jako alternatywny sposób odtwarzania podglądu utworu"
+    },
+    "description": {
+      "en": "The song wheel will automatically load the entire bms file when a song is selected and no pre-generated preview file is available.",
+      "pl": "Koło utworów automatycznie załaduje cały plik bms po wybraniu utworu, jeśli nie jest dostępny wcześniej wygenerowany plik podglądu."
+    },
+    "type": "boolean",
+    "default": true
+  }
+]

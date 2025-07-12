@@ -22,12 +22,8 @@ ChartLoader::createChart(
   resource_managers::Profile* player2,
   bool player2AutoPlay,
   gameplay_logic::BmsScore* replayedScore2,
-  resource_managers::ChartDataFactory::RandomGenerator randomGenerator,
-  const std::filesystem::path& fileAbsolute) const
+  resource_managers::ChartDataFactory::ChartComponents chartComponents) const
 {
-
-    auto chartComponents =
-      chartDataFactory->loadChartData(fileAbsolute, std::move(randomGenerator));
     if (isDp(chartComponents.chartData->getKeymode()) && player1 && player2) {
         spdlog::error("Can't launch DP for two players");
         return nullptr;
@@ -149,17 +145,159 @@ ChartLoader::loadChart(const QString& filename,
             spdlog::error("Failed to find chart path to load replay");
             return nullptr;
         }
+        auto chartComponents =
+          chartDataFactory->loadChartData(*file, std::move(randomGenerator));
         return createChart(player1,
                            player1AutoPlay,
                            score1,
                            player2,
                            player2AutoPlay,
                            score2,
-                           std::move(randomGenerator),
-                           *file);
+                           std::move(chartComponents));
     } catch (const std::exception& e) {
         spdlog::error("Failed to load chart: {}", e.what());
         return nullptr;
+    }
+}
+auto
+ChartLoader::loadChartAsync(const QString& filename,
+                            resource_managers::Profile* player1,
+                            bool player1AutoPlay,
+                            gameplay_logic::BmsScore* score1,
+                            resource_managers::Profile* player2,
+                            bool player2AutoPlay,
+                            gameplay_logic::BmsScore* score2)
+  -> QIfPendingReply<gameplay_logic::Chart*>
+{
+
+    if (!player1) {
+        spdlog::error("Player 1 is null");
+        return QIfPendingReply<gameplay_logic::Chart*>::createFailedReply();
+    }
+    if (!player2 && player2AutoPlay) {
+        spdlog::error("Player 2 autoplay requested but player 2 is null");
+        return QIfPendingReply<gameplay_logic::Chart*>::createFailedReply();
+    }
+    if (!player2 && score2) {
+        spdlog::error("Player 2 replay requested but player 2 is null");
+        return QIfPendingReply<gameplay_logic::Chart*>::createFailedReply();
+    }
+    if (score1 && score2) {
+        if (score1->getResult()->getSha256() !=
+            score2->getResult()->getSha256()) {
+            spdlog::error("Score 1 and score 2 have different sha256");
+            return QIfPendingReply<gameplay_logic::Chart*>::createFailedReply();
+        }
+        if (score1->getResult()->getRandomSequence() !=
+            score2->getResult()->getRandomSequence()) {
+            spdlog::error(
+              "Score 1 and score 2 have different #RANDOM sequences");
+            return QIfPendingReply<gameplay_logic::Chart*>::createFailedReply();
+        }
+    }
+    if (player1AutoPlay && score1) {
+        spdlog::error("Player 1 autoplay requested but replay also provided");
+        return QIfPendingReply<gameplay_logic::Chart*>::createFailedReply();
+    }
+    if (player2AutoPlay && score2) {
+        spdlog::error("Player 2 autoplay requested but replay also provided");
+        return QIfPendingReply<gameplay_logic::Chart*>::createFailedReply();
+    }
+    auto randomSequence = score1   ? score1->getResult()->getRandomSequence()
+                          : score2 ? score2->getResult()->getRandomSequence()
+                                   : QList<qint64>{};
+    auto randomGenerator =
+      [randomSequence = std::move(randomSequence),
+       counter = 0](const charts::parser_models::ParsedBmsChart::RandomRange
+                      randomRange) mutable {
+          thread_local auto randomEngine =
+            std::default_random_engine{ std::random_device{}() };
+          if (counter < randomSequence.size()) {
+              return static_cast<
+                charts::parser_models::ParsedBmsChart::RandomRange>(
+                randomSequence[counter++]);
+          }
+          return std::uniform_int_distribution{
+              charts::parser_models::ParsedBmsChart::RandomRange{ 1 },
+              randomRange
+          }(randomEngine);
+      };
+    try {
+        const auto fileAbsolute =
+          support::qStringToPath(QFileInfo(filename).absoluteFilePath());
+        const auto file = [&] {
+            if (score1 || score2) {
+                return getChartPathFromSha256(
+                  (score1 ? score1 : score2)->getResult()->getSha256(),
+                  fileAbsolute);
+            }
+            return !filename.isEmpty()
+                     ? std::optional{ support::qStringToPath(filename) }
+                     : std::nullopt;
+        }();
+        if (!file) {
+            spdlog::error("Failed to find chart path to load replay");
+            return nullptr;
+        }
+        auto reply = QIfPendingReply<gameplay_logic::Chart*>{};
+        threadPool.start([this,
+                          player1,
+                          player1AutoPlay,
+                          score1,
+                          player2,
+                          player2AutoPlay,
+                          score2,
+                          reply,
+                          file,
+                          randomGenerator]() mutable {
+            try {
+                auto chartComponents = chartDataFactory->loadChartData(
+                  *file, std::move(randomGenerator));
+                chartComponents.chartData->moveToThread(
+                  QGuiApplication::instance()->thread());
+
+                QMetaObject::invokeMethod(
+                  this,
+                  [reply,
+                   chartComponents = std::move(chartComponents),
+                   this,
+                   player1,
+                   player1AutoPlay,
+                   score1,
+                   player2,
+                   player2AutoPlay,
+                   score2]() mutable {
+                      try {
+                          auto* chart = createChart(player1,
+                                                    player1AutoPlay,
+                                                    score1,
+                                                    player2,
+                                                    player2AutoPlay,
+                                                    score2,
+                                                    std::move(chartComponents));
+                          if (chart) {
+                              QQmlEngine::setObjectOwnership(chart,
+                                                             QQmlEngine::JavaScriptOwnership);
+                              reply.setSuccess(chart);
+                          } else {
+                              reply.setFailed();
+                          }
+                      } catch (const std::exception& e) {
+                          spdlog::error("Failed to load chart: {}", e.what());
+                          reply.setFailed();
+                      }
+                  },
+                  Qt::QueuedConnection);
+
+            } catch (const std::exception& e) {
+                spdlog::error("Failed to load chart data: {}", e.what());
+                reply.setFailed();
+            }
+        });
+        return reply;
+    } catch (const std::exception& e) {
+        spdlog::error("Failed to load chart: {}", e.what());
+        return QIfPendingReply<gameplay_logic::Chart*>::createFailedReply();
     }
 }
 ChartLoader::ChartLoader(ProfileList* profileList,
