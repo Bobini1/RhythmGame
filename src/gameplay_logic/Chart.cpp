@@ -324,11 +324,6 @@ Player::getElapsed() const -> int64_t
     return elapsed;
 }
 auto
-Player::getPositionBeforeChartStart() const -> double
-{
-    return positionBeforeChartStart;
-}
-auto
 Player::getStatus() const -> Chart::Status
 {
     return status;

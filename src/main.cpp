@@ -128,7 +128,6 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
         if (availableThemes.empty()) {
             throw std::runtime_error("No themes available");
         }
-        // loadTranslations(assetsFolder / "translations");
         auto gamepadManager = input::GamepadManager{};
 
         auto themes = qml_components::Themes{ availableThemes };
@@ -198,7 +197,7 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
                 if (*hintResult == sha256.toStdString()) {
                     return std::optional{ hint };
                 }
-                  }
+            }
 
             auto statement =
               db.createStatement("SELECT path FROM charts WHERE sha256 = ?;");
