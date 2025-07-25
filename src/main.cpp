@@ -139,20 +139,22 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
                                        avatarPath };
 
         auto engine = QQmlApplicationEngine{};
-        auto languages = resource_managers::Languages{ availableThemes, &engine };
-        auto setLang = [&profileList, &languages, connection = QMetaObject::Connection{}]() mutable {
-            languages.setSelectedLanguage(
-              profileList.getMainProfile()
-                ->getVars()
-                ->getGeneralVars()
-                ->getLanguage());
+        auto languages =
+          resource_managers::Languages{ availableThemes, &engine };
+        auto setLang = [&profileList,
+                        &languages,
+                        connection = QMetaObject::Connection{}]() mutable {
+            languages.setSelectedLanguage(profileList.getMainProfile()
+                                            ->getVars()
+                                            ->getGeneralVars()
+                                            ->getLanguage());
             connection = QObject::connect(
-            profileList.getMainProfile()
-              ->getVars()->getGeneralVars(),
+              profileList.getMainProfile()->getVars()->getGeneralVars(),
               &resource_managers::GeneralVars::languageChanged,
               &languages,
-              [mainProfileVars = profileList.getMainProfile()
-              ->getVars()->getGeneralVars(), &languages]() {
+              [mainProfileVars =
+                 profileList.getMainProfile()->getVars()->getGeneralVars(),
+               &languages]() {
                   languages.setSelectedLanguage(mainProfileVars->getLanguage());
               });
         };
@@ -183,25 +185,27 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
               return std::make_unique<
                 gameplay_logic::rules::StandardBmsHitRules>(
                 std::move(timingWindows), std::move(hitValuesFactory));
-        };
+          };
         auto chartDataFactory = resource_managers::ChartDataFactory{};
         auto gaugeFactory = resource_managers::GaugeFactory{};
-        auto getChartPathFromSha256 = [&db](const QString& sha256,
+        auto getChartPathFromSha256 = [&db](const QString& md5,
                                             const std::filesystem::path& hint) {
             // Check if the hint path exists and matches the hash
-            auto hintStatement =
-              db.createStatement("SELECT sha256 FROM charts WHERE path = ?;");
-            hintStatement.bind(1, support::pathToUtfString(hint));
-            if (const auto hintResult =
-                  hintStatement.executeAndGet<std::string>()) {
-                if (*hintResult == sha256.toStdString()) {
-                    return std::optional{ hint };
+            if (!hint.empty()) {
+                auto hintStatement =
+                  db.createStatement("SELECT md5 FROM charts WHERE path = ?;");
+                hintStatement.bind(1, support::pathToUtfString(hint));
+                if (const auto hintResult =
+                      hintStatement.executeAndGet<std::string>()) {
+                    if (*hintResult == md5.toStdString()) {
+                        return std::optional{ hint };
+                    }
                 }
             }
 
             auto statement =
-              db.createStatement("SELECT path FROM charts WHERE sha256 = ?;");
-            statement.bind(1, sha256.toStdString());
+              db.createStatement("SELECT path FROM charts WHERE md5 = ?;");
+            statement.bind(1, md5.toStdString());
             return statement.executeAndGet<std::string>().transform(
               support::utfStringToPath);
         };
@@ -262,7 +266,8 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
           "RhythmGameQml", 1, 0, "table");
         qmlRegisterType<resource_managers::Entry>(
           "RhythmGameQml", 1, 0, "entry");
-        qmlRegisterType<gameplay_logic::Chart>("RhythmGameQml", 1, 0, "Chart");
+        qmlRegisterType<gameplay_logic::ChartRunner>(
+          "RhythmGameQml", 1, 0, "ChartRunner");
         qmlRegisterType<gameplay_logic::ChartData>(
           "RhythmGameQml", 1, 0, "ChartData");
         qmlRegisterType<resource_managers::Profile>(
@@ -359,9 +364,9 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
                           return themeName;
                       }
                   }
-                   }
+              }
               return QString{};
-        };
+          };
         qmlRegisterUncreatableType<qml_components::QmlUtilsAttached>(
           "RhythmGameQml",
           1,

@@ -170,6 +170,24 @@ resource_managers::Level::loadCharts() const -> QVariantList
     return ret;
 }
 auto
+resource_managers::Trophy::fromJson(const QJsonObject& json) -> Trophy
+{
+    Trophy trophy;
+    trophy.name = json["name"].toString();
+    trophy.missRate = json["missRate"].toDouble();
+    trophy.scoreRate = json["scoreRate"].toDouble();
+    return trophy;
+}
+auto
+resource_managers::Trophy::toJson() const -> QJsonObject
+{
+    QJsonObject json;
+    json["name"] = name;
+    json["missRate"] = missRate;
+    json["scoreRate"] = scoreRate;
+    return json;
+}
+auto
 resource_managers::Course::getTrophies() const -> QVariantList
 {
     auto list = QVariantList{};
@@ -177,6 +195,16 @@ resource_managers::Course::getTrophies() const -> QVariantList
         list.append(QVariant::fromValue(trophy));
     }
     return list;
+}
+auto
+resource_managers::Course::getIdentifier() const -> QString
+{
+    auto identifier = md5s.join(" ");
+    identifier += '+';
+    auto constraintsSorted = constraints;
+    constraintsSorted.sort();
+    identifier += constraintsSorted.join(",");
+    return identifier;
 }
 auto
 resource_managers::Table::getLevels() const -> QVariantList

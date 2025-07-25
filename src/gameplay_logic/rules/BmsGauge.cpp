@@ -20,28 +20,41 @@ BmsGauge::getThreshold() const -> double
 {
     return threshold;
 }
-BmsGauge::BmsGauge(double gaugeMax,
+BmsGauge::BmsGauge(QString name,
+                   QString awardedClearType,
+                   double gaugeMax,
                    double initialValue,
                    double threshold,
                    QObject* parent)
   : QObject(parent)
+  , name(std::move(name))
+  , awardedClearType(std::move(awardedClearType))
   , gaugeMax(gaugeMax)
   , threshold(threshold)
 {
     // todo: pass -1 in constructor
-    addGaugeHistoryEntry(
-      { 0,
-        initialValue });
+    addGaugeHistoryEntry({ 0, initialValue });
 }
 auto
 BmsGauge::getGaugeHistory() const -> const QList<GaugeHistoryEntry>&
 {
     return gaugeHistory;
 }
+auto
+BmsGauge::getAwardedClearType() const -> QString
+{
+    return awardedClearType;
+}
+auto
+BmsGauge::getName() const -> QString
+{
+    return name;
+}
 void
 BmsGauge::addGaugeHistoryEntry(const GaugeHistoryEntry entry)
 {
-    auto currentGauge = gaugeHistory.empty() ? std::nan("") : gaugeHistory.back().getGauge();
+    auto currentGauge =
+      gaugeHistory.empty() ? std::nan("") : gaugeHistory.back().getGauge();
     gaugeHistory.append(entry);
     if (currentGauge != entry.getGauge()) {
         emit gaugeChanged();

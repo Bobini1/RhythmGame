@@ -6,7 +6,7 @@
 #define RHYTHMGAME_CHARTFACTORY_H
 
 #include "ChartDataFactory.h"
-#include "gameplay_logic/Chart.h"
+#include "gameplay_logic/ChartRunner.h"
 #include "input/InputTranslator.h"
 namespace qml_components {
 class ProfileList;
@@ -30,7 +30,7 @@ class ChartFactory
     auto createChart(ChartDataFactory::ChartComponents chartComponents,
                      PlayerSpecificData player1,
                      std::optional<PlayerSpecificData> player2,
-                     double maxHitValue) -> gameplay_logic::Chart*;
+                     double maxHitValue) -> gameplay_logic::ChartRunner*;
 };
 
 } // namespace resource_managers

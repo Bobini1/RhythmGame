@@ -4,7 +4,7 @@
 
 #include <QKeyEvent>
 #include <spdlog/spdlog.h>
-#include "Chart.h"
+#include "ChartRunner.h"
 
 #include "resource_managers/Profile.h"
 #include "support/GeneratePermutation.h"
@@ -12,7 +12,7 @@
 using namespace std::chrono_literals;
 namespace gameplay_logic {
 
-Chart::Chart(ChartData* chartData,
+ChartRunner::ChartRunner(ChartData* chartData,
              QFuture<std::unique_ptr<qml_components::BgaContainer>> bgaFuture,
              Player* player1,
              Player* player2,
@@ -31,7 +31,7 @@ Chart::Chart(ChartData* chartData,
     connect(&bgaFutureWatcher,
             &QFutureWatcher<qml_components::Bga*>::finished,
             this,
-            &Chart::setup);
+            &ChartRunner::setup);
     bgaFutureWatcher.setFuture(this->bgaFuture);
     connect(player1, &Player::statusChanged, this, [player1, this] {
         if (player1->getStatus() == Ready) {
@@ -48,7 +48,7 @@ Chart::Chart(ChartData* chartData,
 }
 
 void
-Chart::start()
+ChartRunner::start()
 {
     if (player1->getStatus() == Loading ||
         (player2 != nullptr && player2->getStatus() == Loading) ||
@@ -59,12 +59,12 @@ Chart::start()
     setStatus(Running);
     propertyUpdateTimer.start(1);
     connect(
-      &propertyUpdateTimer, &QTimer::timeout, this, &Chart::updateElapsed);
+      &propertyUpdateTimer, &QTimer::timeout, this, &ChartRunner::updateElapsed);
     startTimepoint = std::chrono::system_clock::now();
 }
 
 void
-Chart::updateElapsed()
+ChartRunner::updateElapsed()
 {
     const auto offset = std::chrono::system_clock::now() - startTimepoint;
     player1->update(offset,
@@ -82,7 +82,7 @@ Chart::updateElapsed()
 }
 
 void
-Chart::passKey(input::BmsKey key, const EventType eventType, const int64_t time)
+ChartRunner::passKey(input::BmsKey key, const EventType eventType, const int64_t time)
 {
     if (key == input::BmsKey::Start1 || key == input::BmsKey::Select1 ||
         key == input::BmsKey::Start2 || key == input::BmsKey::Select2) {
@@ -105,18 +105,18 @@ Chart::passKey(input::BmsKey key, const EventType eventType, const int64_t time)
 }
 
 auto
-Chart::getChartData() const -> ChartData*
+ChartRunner::getChartData() const -> ChartData*
 {
     return chartData;
 }
 auto
-Chart::getStatus() const -> Status
+ChartRunner::getStatus() const -> Status
 {
     return status;
 }
 
 void
-Chart::setStatus(const Status status)
+ChartRunner::setStatus(const Status status)
 {
     if (this->status != status) {
         this->status = status;
@@ -128,7 +128,7 @@ Chart::setStatus(const Status status)
     }
 }
 void
-Chart::setup()
+ChartRunner::setup()
 {
     if (++numberOfSetupCalls != (player2 != nullptr ? 3 : 2) || status != Loading) {
         return;
@@ -142,7 +142,7 @@ Chart::setup()
     }
 }
 auto
-Chart::finish() -> QList<BmsScore*>
+ChartRunner::finish() -> QList<BmsScore*>
 {
     startRequested = false;
     propertyUpdateTimer.stop();
@@ -183,17 +183,17 @@ Player::setElapsed(const int64_t newElapsed)
     }
 }
 auto
-Chart::getBga() const -> qml_components::BgaContainer*
+ChartRunner::getBga() const -> qml_components::BgaContainer*
 {
     return bga;
 }
 auto
-Chart::getPlayer1() const -> Player*
+ChartRunner::getPlayer1() const -> Player*
 {
     return player1;
 }
 auto
-Chart::getPlayer2() const -> Player*
+ChartRunner::getPlayer2() const -> Player*
 {
     return player2;
 }
@@ -254,17 +254,17 @@ Player::update(std::chrono::nanoseconds offsetFromStart, bool lastUpdate)
                       : 0.0));
         setPosition(referee->getPosition(offsetFromStart + visualOffset));
         if (offsetFromStart >= chartLength + 5s) {
-            setStatus(Chart::Finished);
+            setStatus(ChartRunner::Finished);
         }
     }
 }
 void
 Player::passKey(input::BmsKey key,
-                Chart::EventType eventType,
+                ChartRunner::EventType eventType,
                 std::chrono::nanoseconds offset)
 {
     if (!referee) {
-        if (eventType == Chart::EventType::KeyPress) {
+        if (eventType == ChartRunner::EventType::KeyPress) {
             score->sendVisualOnlyTap({ static_cast<int>(key),
                                        std::nullopt,
                                        offset.count(),
@@ -280,7 +280,7 @@ Player::passKey(input::BmsKey key,
                                                    /*noteRemoved=*/false });
         }
     } else {
-        if (eventType == Chart::EventType::KeyPress) {
+        if (eventType == ChartRunner::EventType::KeyPress) {
             referee->passPressed(offset, key);
         } else {
             referee->passReleased(offset, key);
@@ -291,7 +291,7 @@ void
 Player::setup()
 {
     referee = refereeFuture.takeResult();
-    setStatus(Chart::Status::Ready);
+    setStatus(ChartRunner::Status::Ready);
 }
 auto
 Player::getNotes() const -> BmsNotes*
@@ -324,12 +324,12 @@ Player::getElapsed() const -> int64_t
     return elapsed;
 }
 auto
-Player::getStatus() const -> Chart::Status
+Player::getStatus() const -> ChartRunner::Status
 {
     return status;
 }
 void
-Player::setStatus(const Chart::Status status)
+Player::setStatus(const ChartRunner::Status status)
 {
     if (this->status != status) {
         this->status = status;
@@ -347,7 +347,7 @@ Player::finish() -> BmsScore*
     if (refereeFuture.isRunning()) {
         refereeFuture.cancel();
     }
-    if (status == Chart::Status::Loading) {
+    if (status == ChartRunner::Status::Loading) {
         return nullptr;
     }
     auto result = score->getResult();
@@ -390,7 +390,7 @@ RePlayer::RePlayer(BmsNotes* notes,
 }
 void
 RePlayer::passKey(input::BmsKey key,
-                  Chart::EventType eventType,
+                  ChartRunner::EventType eventType,
                   std::chrono::nanoseconds offset)
 {
 }
@@ -442,7 +442,7 @@ AutoPlayer::AutoPlayer(BmsNotes* notes,
 }
 void
 AutoPlayer::passKey(input::BmsKey key,
-                    Chart::EventType eventType,
+                    ChartRunner::EventType eventType,
                     std::chrono::nanoseconds offset)
 {
 }
@@ -473,7 +473,7 @@ AutoPlayer::finish() -> BmsScore*
     if (refereeFuture.isRunning()) {
         refereeFuture.cancel();
     }
-    if (getStatus() == Chart::Status::Loading) {
+    if (getStatus() == ChartRunner::Status::Loading) {
         return nullptr;
     }
     auto result = score->getResult();

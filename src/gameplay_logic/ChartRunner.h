@@ -13,7 +13,6 @@
 #include "resource_managers/Profile.h"
 #include "qml_components/Bga.h"
 #include "NoteState.h"
-#include "support/GeneratePermutation.h"
 
 #include <QTimer>
 #include <qfuture.h>
@@ -22,7 +21,7 @@ namespace gameplay_logic {
 class GameplayState;
 class Player;
 
-class Chart final : public QObject
+class ChartRunner final : public QObject
 {
     Q_OBJECT
 
@@ -68,7 +67,7 @@ class Chart final : public QObject
     void setup();
 
   public:
-    explicit Chart(
+    explicit ChartRunner(
       ChartData* chartData,
       QFuture<std::unique_ptr<qml_components::BgaContainer>> bgaFuture,
       Player* player1,
@@ -106,14 +105,14 @@ class Player : public QObject
     Q_PROPERTY(int64_t elapsed READ getElapsed NOTIFY elapsedChanged)
     Q_PROPERTY(
       double positionBeforeChartStart READ getPositionBeforeChartStart CONSTANT)
-    Q_PROPERTY(Chart::Status status READ getStatus NOTIFY statusChanged)
+    Q_PROPERTY(ChartRunner::Status status READ getStatus NOTIFY statusChanged)
     Q_PROPERTY(int64_t chartLength READ getChartLength CONSTANT)
     BmsNotes* notes;
     GameplayState* state;
     QPointer<resource_managers::Profile> profile;
     BmsGameReferee::Position positionBeforeChartStart{};
     BmsGameReferee::Position position{};
-    Chart::Status status{ Chart::Status::Loading };
+    ChartRunner::Status status{ ChartRunner::Status::Loading };
     int64_t elapsed{};
     std::chrono::nanoseconds chartLength;
 
@@ -137,7 +136,7 @@ protected:
     virtual void update(std::chrono::nanoseconds offsetFromStart,
                         bool lastUpdate);
     virtual void passKey(input::BmsKey key,
-                         Chart::EventType eventType,
+                         ChartRunner::EventType eventType,
                          std::chrono::nanoseconds offset);
     void setup();
     auto getNotes() const -> BmsNotes*;
@@ -147,8 +146,8 @@ protected:
     auto getPosition() const -> double;
     auto getElapsed() const -> int64_t;
     auto getPositionBeforeChartStart() const -> double;
-    auto getStatus() const -> Chart::Status;
-    void setStatus(Chart::Status status);
+    auto getStatus() const -> ChartRunner::Status;
+    void setStatus(ChartRunner::Status status);
     auto getChartLength() const -> int64_t;
     virtual auto finish() -> BmsScore*;
 
@@ -176,7 +175,7 @@ class RePlayer final : public Player
                       BmsScore* replayedScore,
                       QObject* parent = nullptr);
     void passKey(input::BmsKey key,
-                 Chart::EventType eventType,
+                 ChartRunner::EventType eventType,
                  std::chrono::nanoseconds offset) override;
     void update(std::chrono::nanoseconds offsetFromStart,
                 bool lastUpdate) override;
@@ -199,7 +198,7 @@ class AutoPlayer final : public Player
                         std::vector<HitEvent> events,
                         QObject* parent = nullptr);
     void passKey(input::BmsKey key,
-                 Chart::EventType eventType,
+                 ChartRunner::EventType eventType,
                  std::chrono::nanoseconds offset) override;
     void update(std::chrono::nanoseconds offsetFromStart,
                 bool lastUpdate) override;

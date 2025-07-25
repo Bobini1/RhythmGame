@@ -24,22 +24,26 @@ gameplay_logic::rules::Lr2Gauge::addHit(
     }
 }
 gameplay_logic::rules::Lr2Gauge::Lr2Gauge(
-  gameplay_logic::rules::TimingWindows timingWindows,
+  QString gaugeName,
+  QString awardedClearType,
   double gaugeMax,
   double initialValue,
   double threshold,
   bool permanentDeath,
   std::function<double(double, Judgement)> judgementValueFactory,
   QObject* parent)
-  : BmsGauge(gaugeMax, initialValue, threshold, parent)
-  , timingWindows(std::move(timingWindows))
+  : BmsGauge(std::move(gaugeName),
+             std::move(awardedClearType),
+             gaugeMax,
+             initialValue,
+             threshold,
+             parent)
   , permanentDeath(permanentDeath)
   , judgementValueFactory(std::move(judgementValueFactory))
 {
 }
 auto
-gameplay_logic::rules::Lr2Gauge::getGauges(TimingWindows timingWindows,
-                                           double total,
+gameplay_logic::rules::Lr2Gauge::getGauges(double total,
                                            int noteCount)
   -> std::vector<std::unique_ptr<BmsGauge>>
 {
@@ -47,7 +51,8 @@ gameplay_logic::rules::Lr2Gauge::getGauges(TimingWindows timingWindows,
 
     auto gauges = std::vector<std::unique_ptr<BmsGauge>>();
     auto fcGauge = std::make_unique<Lr2Gauge>(
-      timingWindows,
+      "HAZARD",
+      "FC",
       100,
       100,
       0,
@@ -65,11 +70,11 @@ gameplay_logic::rules::Lr2Gauge::getGauges(TimingWindows timingWindows,
                   return -std::numeric_limits<double>::infinity();
           }
       });
-    fcGauge->setObjectName("FC");
     gauges.push_back(std::move(fcGauge));
 
     auto exhardGauge =
-      std::make_unique<Lr2Gauge>(timingWindows,
+      std::make_unique<Lr2Gauge>("EXHARD",
+                                 "EXHARD",
                                  100,
                                  100,
                                  0,
@@ -92,11 +97,11 @@ gameplay_logic::rules::Lr2Gauge::getGauges(TimingWindows timingWindows,
                                              return 0.0;
                                      }
                                  });
-    exhardGauge->setObjectName("EXHARD");
     gauges.push_back(std::move(exhardGauge));
 
     auto hardGauge = std::make_unique<Lr2Gauge>(
-      timingWindows,
+      "HARD",
+      "HARD",
       100,
       100,
       0,
@@ -119,11 +124,11 @@ gameplay_logic::rules::Lr2Gauge::getGauges(TimingWindows timingWindows,
                   return 0.0;
           }
       });
-    hardGauge->setObjectName("HARD");
     gauges.push_back(std::move(hardGauge));
 
     auto normalGauge = std::make_unique<Lr2Gauge>(
-      timingWindows,
+      "NORMAL",
+      "NORMAL",
       100,
       20,
       80,
@@ -147,11 +152,11 @@ gameplay_logic::rules::Lr2Gauge::getGauges(TimingWindows timingWindows,
           }
           throw std::runtime_error("Invalid judgement");
       });
-    normalGauge->setObjectName("NORMAL");
     gauges.push_back(std::move(normalGauge));
 
     auto easyGauge = std::make_unique<Lr2Gauge>(
-      timingWindows,
+      "EASY",
+      "EASY",
       100,
       20,
       80,
@@ -175,11 +180,11 @@ gameplay_logic::rules::Lr2Gauge::getGauges(TimingWindows timingWindows,
           }
           throw std::runtime_error("Invalid judgement");
       });
-    easyGauge->setObjectName("EASY");
     gauges.push_back(std::move(easyGauge));
 
     auto aeasyGauge = std::make_unique<Lr2Gauge>(
-      timingWindows,
+      "AEASY",
+      "AEASY",
       100,
       20,
       60,
@@ -198,12 +203,11 @@ gameplay_logic::rules::Lr2Gauge::getGauges(TimingWindows timingWindows,
                   return -3.0;
               case Judgement::EmptyPoor:
                   return -0.5;
-                case Judgement::LnBeginHit:
+              case Judgement::LnBeginHit:
                   return 0.0;
           }
           throw std::runtime_error("Invalid judgement");
       });
-    aeasyGauge->setObjectName("AEASY");
     gauges.push_back(std::move(aeasyGauge));
 
     return gauges;

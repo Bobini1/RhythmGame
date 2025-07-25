@@ -26,7 +26,7 @@ Rectangle {
     property var popup: null
     readonly property bool isDp: screen === "k14"
     readonly property bool isBattle: screen === "k7battle"
-    property Chart chart
+    property ChartRunner chart
     readonly property string themeName: QmlUtils.themeName
 
     property bool completed: false

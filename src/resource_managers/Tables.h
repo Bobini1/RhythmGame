@@ -63,6 +63,9 @@ struct Trophy
     QString name;
     double missRate{};
     double scoreRate{};
+
+    static auto fromJson(const QJsonObject& json) -> Trophy;
+    auto toJson() const -> QJsonObject;
 };
 
 struct Course
@@ -72,6 +75,7 @@ struct Course
     Q_PROPERTY(QStringList md5s MEMBER md5s)
     Q_PROPERTY(QVariantList trophies READ getTrophies CONSTANT)
     Q_PROPERTY(QStringList constraints MEMBER constraints)
+    Q_PROPERTY(QString identifier READ getIdentifier STORED false CONSTANT)
   public:
     QString name;
     QString originalUrl;
@@ -79,6 +83,7 @@ struct Course
     QList<Trophy> trophies;
     QStringList constraints;
     auto getTrophies() const -> QVariantList;
+    auto getIdentifier() const -> QString;
 };
 
 struct Table

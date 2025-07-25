@@ -44,7 +44,7 @@ find_package(fmt REQUIRED)
 
 find_package(spdlog REQUIRED)
 target_compile_definitions(spdlog::spdlog INTERFACE SPDLOG_WCHAR_FILENAMES)
-target_compile_definitions(spdlog::spdlog INTERFACE SPDLOG_USE_STD_FORMAT)
+#target_compile_definitions(spdlog::spdlog INTERFACE SPDLOG_USE_STD_FORMAT)
 
 
 # <------------ boost --------------->
@@ -90,8 +90,8 @@ qt_add_library(RhythmGame_lib OBJECT ${utf8Manifest} src/db/SqliteCppDb.cpp src/
         src/gameplay_logic/BmsGameReferee.h
         src/gameplay_logic/ChartData.cpp
         src/gameplay_logic/ChartData.h
-        src/gameplay_logic/Chart.cpp
-        src/gameplay_logic/Chart.h
+        src/gameplay_logic/ChartRunner.cpp
+        src/gameplay_logic/ChartRunner.h
         src/gameplay_logic/HitEvent.cpp
         src/gameplay_logic/HitEvent.h
         src/resource_managers/ChartDataFactory.cpp
@@ -194,6 +194,10 @@ qt_add_library(RhythmGame_lib OBJECT ${utf8Manifest} src/db/SqliteCppDb.cpp src/
         src/input/CustomNotifyApp.h
         src/support/Version.cpp
         src/support/Version.h
+        src/gameplay_logic/CourseRunner.cpp
+        src/gameplay_logic/CourseRunner.h
+        src/gameplay_logic/BmsScoreCourse.cpp
+        src/gameplay_logic/BmsScoreCourse.h
 )
 # define version macros
 target_compile_definitions(RhythmGame_lib PUBLIC

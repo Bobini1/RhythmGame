@@ -476,7 +476,7 @@ auto
 ChartFactory::createChart(ChartDataFactory::ChartComponents chartComponents,
                           PlayerSpecificData player1,
                           std::optional<PlayerSpecificData> player2,
-                          const double maxHitValue) -> gameplay_logic::Chart*
+                          const double maxHitValue) -> gameplay_logic::ChartRunner*
 {
     auto& [chartData, notesData, wavs, bmps] = chartComponents;
     auto path = support::qStringToPath(chartData->getPath()).parent_path();
@@ -597,7 +597,7 @@ ChartFactory::createChart(ChartDataFactory::ChartComponents chartComponents,
             std::move(refereeFuture),     chartLength
         };
     });
-    auto* chart = new gameplay_logic::Chart(chartData.release(),
+    auto* chart = new gameplay_logic::ChartRunner(chartData.release(),
                                             std::move(bga),
                                             player1Object,
                                             player2Object.value_or(nullptr));
@@ -607,7 +607,7 @@ ChartFactory::createChart(ChartDataFactory::ChartComponents chartComponents,
       chart,
       [chart](const input::BmsKey button, const int64_t time) {
           chart->passKey(
-            button, gameplay_logic::Chart::EventType::KeyPress, time);
+            button, gameplay_logic::ChartRunner::EventType::KeyPress, time);
       });
     QObject::connect(
       inputTranslator,
@@ -615,7 +615,7 @@ ChartFactory::createChart(ChartDataFactory::ChartComponents chartComponents,
       chart,
       [chart](input::BmsKey button, int64_t time) {
           chart->passKey(
-            button, gameplay_logic::Chart::EventType::KeyRelease, time);
+            button, gameplay_logic::ChartRunner::EventType::KeyRelease, time);
       });
     return chart;
 }

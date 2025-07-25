@@ -7,16 +7,19 @@
 
 #include "BmsGauge.h"
 #include "TimingWindows.h"
+
+#include <QObject>
+#include <functional>
 namespace gameplay_logic::rules {
 class Lr2Gauge : public BmsGauge
 {
-    TimingWindows timingWindows;
     bool permanentDeath;
     std::function<double(double, Judgement)> judgementValueFactory;
 
   public:
     explicit Lr2Gauge(
-      TimingWindows timingWindows,
+      QString gaugeName,
+      QString awardedClearType,
       double gaugeMax,
       double initialValue,
       double threshold,
@@ -29,9 +32,12 @@ class Lr2Gauge : public BmsGauge
     void addMineHit(std::chrono::nanoseconds offsetFromStart,
                     double penalty) override;
 
-    static auto getGauges(TimingWindows timingWindows,
-                          double total,
+    static auto getGauges(double total,
                           int noteCount)
+      -> std::vector<std::unique_ptr<BmsGauge>>;
+
+    static auto getDanGauges(double total,
+                                int noteCount)
       -> std::vector<std::unique_ptr<BmsGauge>>;
 };
 
