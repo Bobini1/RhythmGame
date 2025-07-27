@@ -61,12 +61,12 @@ ApplicationWindow {
                 console.error("Failed to load course");
                 return;
             }
-            let keys = course.chartData.keymode;
+            let keys = course.chartDatas[0].keymode;
             let battle = course.player1 && course.player2;
             let screen = "k" + keys + (battle ? "battle" : "");
             let component = this[screen + "Component"];
             sceneStack.pushItem(component, {
-                "course": course
+                "chart": course
             });
         }
 

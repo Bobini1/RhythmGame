@@ -62,18 +62,20 @@ CourseRunner::connectChart()
             &BmsLiveScore::comboDropped,
             this,
             [this] { coursePlayer1->setCombo(0); });
-    connect(currentChart->getPlayer2()->getScore(),
-            &BmsLiveScore::comboIncreased,
-            this,
-            [this] {
-                auto combo = coursePlayer2->getCombo();
-                combo++;
-                coursePlayer2->setCombo(combo);
-            });
-    connect(currentChart->getPlayer2()->getScore(),
-            &BmsLiveScore::comboDropped,
-            this,
-            [this] { coursePlayer2->setCombo(0); });
+    if (coursePlayer2) {
+        connect(currentChart->getPlayer2()->getScore(),
+                &BmsLiveScore::comboIncreased,
+                this,
+                [this] {
+                    auto combo = coursePlayer2->getCombo();
+                    combo++;
+                    coursePlayer2->setCombo(combo);
+                });
+        connect(currentChart->getPlayer2()->getScore(),
+                &BmsLiveScore::comboDropped,
+                this,
+                [this] { coursePlayer2->setCombo(0); });
+    }
 }
 CourseRunner::CourseRunner(CoursePlayer* coursePlayer1,
                            CoursePlayer* coursePlayer2,
@@ -84,6 +86,8 @@ CourseRunner::CourseRunner(CoursePlayer* coursePlayer1,
   : QObject(parent)
   , chartDatas(std::move(chartDatas))
   , course(std::move(course))
+  , coursePlayer1(coursePlayer1)
+  , coursePlayer2(coursePlayer2)
   , loadChart(std::move(loadChart))
   , currentChart(this->loadChart())
 {
@@ -145,6 +149,9 @@ auto
 CourseRunner::proceed() -> QList<BmsScore*>
 
 {
+    if (currentChartIndex == chartDatas.size() - 1) {
+        return {nullptr};
+    }
     const auto* p2 = getPlayer2();
     auto scores = QList<BmsScore*>{};
     if (currentChart) {
@@ -172,7 +179,9 @@ CourseRunner::proceed() -> QList<BmsScore*>
             }
         }
         for (auto* score : scores) {
-            score->setParent(this);
+            if (score) {
+                score->setParent(this);
+            }
         }
     }
     currentChart = loadChart();
@@ -182,9 +191,6 @@ CourseRunner::proceed() -> QList<BmsScore*>
     emit player1Changed();
     if (p2 != getPlayer2()) {
         emit player2Changed();
-    }
-    if (currentChart == nullptr) {
-        return scores;
     }
     if (status != currentChart->getStatus()) {
         status = currentChart->getStatus();
@@ -196,10 +202,14 @@ CourseRunner::proceed() -> QList<BmsScore*>
 auto
 CourseRunner::finish() -> QList<BmsScoreCourse*>
 {
-    while (currentChart) {
+    while (currentChartIndex < chartDatas.size() - 1) {
         proceed();
     }
+    proceed();
     auto scores = QList<BmsScoreCourse*>{};
+    if (scores1.contains(nullptr) || scores2.contains(nullptr)) {
+        return { nullptr };
+    }
     scores.append(new BmsScoreCourse{ coursePlayer1->getGuid(),
                                       course.getIdentifier(),
                                       std::move(scores1),

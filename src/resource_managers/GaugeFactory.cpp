@@ -24,8 +24,6 @@ GaugeFactory::selectGauges(
     });
     // invalid gauge selected
     if (selectedIt == std::ranges::end(gauges)) {
-        spdlog::error("Invalid gauge selected: {}",
-                      selectedGauge.toStdString());
         selectedIt = gauges.begin();
     }
     if (gaugeMode == GaugeMode::Exclusive) {

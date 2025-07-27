@@ -24,15 +24,15 @@ Item {
                 case HiSpeedFix.Off:
                     return 120;
                 case HiSpeedFix.Main:
-                    return chart.chartData.mainBpm;
+                    return chartData.mainBpm;
                 case HiSpeedFix.Start:
-                    return chart.chartData.initialBpm;
+                    return chartData.initialBpm;
                 case HiSpeedFix.Min:
-                    return chart.chartData.minBpm;
+                    return chartData.minBpm;
                 case HiSpeedFix.Max:
-                    return chart.chartData.maxBpm;
+                    return chartData.maxBpm;
                 case HiSpeedFix.Avg:
-                    return chart.chartData.avgBpm;
+                    return chartData.avgBpm;
                 default:
                     console.error("Invalid HiSpeedFix mode: " + bpmMode);
                     return 120;
@@ -44,6 +44,7 @@ Item {
         return baseSpeed * Math.max(0, Math.min(1 - laneCoverMod - liftMod, 1));
     }
     required property Player player
+    required property ChartData chartData
     readonly property Profile profile: player.profile
     readonly property var score: player.score
     readonly property var barLinesState: player.state.barLinesState

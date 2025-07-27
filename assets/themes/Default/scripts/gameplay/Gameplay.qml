@@ -18,15 +18,16 @@ Rectangle {
     readonly property Profile mainProfile: Rg.profileList.mainProfile
     readonly property var mainProfileVars: mainProfile.vars.themeVars[screen][themeName]
     property string rootUrl: QmlUtils.fileName.slice(0, QmlUtils.fileName.lastIndexOf("/") + 1)
+    property ChartData chartData: chart instanceof ChartRunner ? chart.chartData : chart.chartDatas[chart.currentChartIndex];
     readonly property string screen: {
-        let keys = chart.chartData.keymode;
+        let keys = chartData.keymode;
         let battle = chart.player1 && chart.player2;
         return "k" + keys + (battle ? "battle" : "");
     }
     property var popup: null
     readonly property bool isDp: screen === "k14"
     readonly property bool isBattle: screen === "k7battle"
-    property ChartRunner chart
+    property var chart
     readonly property string themeName: QmlUtils.themeName
 
     property bool completed: false
@@ -70,13 +71,13 @@ Rectangle {
     }
     Connections {
         function onStatusChanged() {
-            if (chart.status === Chart.Ready) {
+            if (root.chart.status === ChartRunner.Ready) {
                 chart.bga.layers[0].videoSink = bga.baseSink;
                 chart.bga.layers[1].videoSink = bga.layerSink;
                 chart.bga.layers[2].videoSink = bga.layer2Sink;
                 chart.bga.layers[3].videoSink = bga.poorSink;
                 chart.start();
-            } else if (chart.status === Chart.Finished) {
+            } else if (root.chart.status === ChartRunner.Finished) {
                 if (root.popup !== null) {
                     root.popup.close();
                     root.popup = null;
@@ -84,7 +85,11 @@ Rectangle {
                 if (escapeShortcut.used) {
                     return;
                 }
-                globalRoot.openResult(chart.finish(), [chart.player1.profile, chart.player2?.profile], chart.chartData);
+                let chartData = root.chartData;
+                let profile1 = chart.player1.profile;
+                let profile2 = chart.player2 ? chart.player2.profile : null;
+                let scores = chart instanceof ChartRunner ? chart.finish() : chart.proceed();
+                globalRoot.openResult(scores, [profile1, profile2], chartData);
             }
         }
 
@@ -265,6 +270,7 @@ Rectangle {
 
                 player: side.player
                 columns: side.columns
+                chartData: root.chartData
                 transform: Scale {
                     xScale: side.mirrored ? -1 : 1; origin.x: playArea.width / 2
                 }
@@ -441,7 +447,11 @@ Rectangle {
                 sceneStack.pop();
             } else {
                 used = true;
-                globalRoot.openResult(chart.finish(), [chart.player1.profile, chart.player2?.profile], chart.chartData);
+                let chartData = root.chartData;
+                let profile1 = chart.player1.profile;
+                let profile2 = chart.player2 ? chart.player2.profile : null;
+                let scores = chart instanceof ChartRunner ? chart.finish() : chart.proceed();
+                globalRoot.openResult(scores, [profile1, profile2], chartData);
             }
         }
     }

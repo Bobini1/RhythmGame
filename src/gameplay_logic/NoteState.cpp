@@ -163,6 +163,9 @@ Filter::setTopPosition(double value)
     if (topPosition == value) {
         return;
     }
+    if (value < bottomPosition) {
+        setBottomPosition(value);
+    }
     const auto upper =
       std::upper_bound(columnState->getNotes().begin(),
                        columnState->getNotes().end(),
