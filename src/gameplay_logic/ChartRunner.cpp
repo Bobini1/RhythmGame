@@ -146,9 +146,7 @@ ChartRunner::finish() -> QList<BmsScore*>
 {
     startRequested = false;
     propertyUpdateTimer.stop();
-    if (player1->getStatus() == Loading ||
-        (player2 != nullptr && player2->getStatus() == Loading)) {
-    }
+
     // if we didn't get bga yet, cancel
     if (bga == nullptr) {
         bgaFutureWatcher.cancel();

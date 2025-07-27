@@ -5,8 +5,8 @@
 #include "QStringToPath.h"
 
 namespace support {
-std::filesystem::path
-qStringToPath(const QString& qString)
+auto
+qStringToPath(const QString& qString) -> std::filesystem::path
 {
 #if defined(_WIN32)
     return std::filesystem::path(qString.toStdWString());

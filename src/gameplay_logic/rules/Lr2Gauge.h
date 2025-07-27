@@ -19,11 +19,11 @@ class Lr2Gauge : public BmsGauge
   public:
     explicit Lr2Gauge(
       QString gaugeName,
-      QString awardedClearType,
       double gaugeMax,
       double initialValue,
       double threshold,
       bool permanentDeath,
+      bool courseGauge,
       std::function<double(double, Judgement)> judgementValueFactory,
       QObject* parent = nullptr);
     void addHit(std::chrono::nanoseconds offsetFromStart,
@@ -32,13 +32,10 @@ class Lr2Gauge : public BmsGauge
     void addMineHit(std::chrono::nanoseconds offsetFromStart,
                     double penalty) override;
 
-    static auto getGauges(double total,
-                          int noteCount)
+    static auto getGauges(double total, int noteCount)
       -> std::vector<std::unique_ptr<BmsGauge>>;
 
-    static auto getDanGauges(double total,
-                                int noteCount)
-      -> std::vector<std::unique_ptr<BmsGauge>>;
+    static auto getDanGauges(const QHash<QString, double>& initialValues) -> std::vector<std::unique_ptr<BmsGauge>>;
 };
 
 } // namespace gameplay_logic::rules

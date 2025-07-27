@@ -443,7 +443,8 @@ getComponentsForPlayer(const ChartFactory::PlayerSpecificData& player,
     }
     auto barLineStates = QList<gameplay_logic::BarLineState>{};
     barLineStates.reserve(notes->getBarLines().size());
-    for (const auto& [i, barLine] : std::ranges::views::enumerate(notes->getBarLines())) {
+    for (const auto& [i, barLine] :
+         std::ranges::views::enumerate(notes->getBarLines())) {
         barLineStates.append({ barLine, i });
     }
     auto* barLinesState =
@@ -476,7 +477,8 @@ auto
 ChartFactory::createChart(ChartDataFactory::ChartComponents chartComponents,
                           PlayerSpecificData player1,
                           std::optional<PlayerSpecificData> player2,
-                          const double maxHitValue) -> gameplay_logic::ChartRunner*
+                          const double maxHitValue)
+  -> std::unique_ptr<gameplay_logic::ChartRunner>
 {
     auto& [chartData, notesData, wavs, bmps] = chartComponents;
     auto path = support::qStringToPath(chartData->getPath()).parent_path();
@@ -597,23 +599,24 @@ ChartFactory::createChart(ChartDataFactory::ChartComponents chartComponents,
             std::move(refereeFuture),     chartLength
         };
     });
-    auto* chart = new gameplay_logic::ChartRunner(chartData.release(),
-                                            std::move(bga),
-                                            player1Object,
-                                            player2Object.value_or(nullptr));
+    auto chart = std::make_unique<gameplay_logic::ChartRunner>(
+      chartData.release(),
+      std::move(bga),
+      player1Object,
+      player2Object.value_or(nullptr));
     QObject::connect(
       inputTranslator,
       &input::InputTranslator::buttonPressed,
-      chart,
-      [chart](const input::BmsKey button, const int64_t time) {
+      chart.get(),
+      [chart = chart.get()](const input::BmsKey button, const int64_t time) {
           chart->passKey(
             button, gameplay_logic::ChartRunner::EventType::KeyPress, time);
       });
     QObject::connect(
       inputTranslator,
       &input::InputTranslator::buttonReleased,
-      chart,
-      [chart](input::BmsKey button, int64_t time) {
+      chart.get(),
+      [chart = chart.get()](input::BmsKey button, int64_t time) {
           chart->passKey(
             button, gameplay_logic::ChartRunner::EventType::KeyRelease, time);
       });

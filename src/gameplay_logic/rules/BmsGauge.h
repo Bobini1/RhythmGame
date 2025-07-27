@@ -36,27 +36,27 @@ class BmsGauge : public QObject
     Q_OBJECT
 
     Q_PROPERTY(QString name READ getName CONSTANT)
-    Q_PROPERTY(QString awardedClearType READ getAwardedClearType CONSTANT)
+    Q_PROPERTY(bool courseGauge READ isCourseGauge CONSTANT)
     Q_PROPERTY(double gauge READ getGauge NOTIFY gaugeChanged)
     Q_PROPERTY(double gaugeMax READ getGaugeMax CONSTANT)
     Q_PROPERTY(double threshold READ getThreshold CONSTANT)
     Q_PROPERTY(QList<gameplay_logic::rules::GaugeHistoryEntry> gaugeHistory READ
                  getGaugeHistory NOTIFY gaugeChanged)
     QString name;
-    QString awardedClearType;
 
     double gaugeMax;
     double threshold = 0;
     QList<GaugeHistoryEntry> gaugeHistory;
+    bool courseGauge;
 
     BmsGauge() = default;
 
   public:
     explicit BmsGauge(QString name,
-                      QString awardedClearType,
                       double gaugeMax,
                       double initialValue,
                       double threshold,
+                      bool courseGauge,
                       QObject* parent = nullptr);
     auto getGauge() const -> double;
     auto getGaugeMax() const -> double;
@@ -68,8 +68,8 @@ class BmsGauge : public QObject
                         Judgement judgement) = 0;
     virtual void addMineHit(std::chrono::nanoseconds offsetFromStart,
                             double penalty) = 0;
-    auto getAwardedClearType() const -> QString;
     auto getName() const -> QString;
+    auto isCourseGauge() const -> bool;
 
   protected:
     void addGaugeHistoryEntry(GaugeHistoryEntry entry);

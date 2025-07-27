@@ -35,11 +35,11 @@ class BmsScoreCourse : public QObject
     Q_PROPERTY(QString guid READ getGuid CONSTANT)
     Q_PROPERTY(QString sha256 READ getSha256 CONSTANT)
     Q_PROPERTY(QString md5 READ getMd5 CONSTANT)
-    Q_PROPERTY(uint64_t randomSeed READ getRandomSeed CONSTANT)
     Q_PROPERTY(resource_managers::NoteOrderAlgorithm noteOrderAlgorithm READ
                  getNoteOrderAlgorithm CONSTANT)
     Q_PROPERTY(resource_managers::NoteOrderAlgorithm noteOrderAlgorithmP2 READ
                  getNoteOrderAlgorithmP2 CONSTANT)
+    Q_PROPERTY(QString identifier READ getIdentifier CONSTANT)
     Q_PROPERTY(uint64_t gameVersion READ getGameVersion CONSTANT)
 
     Q_PROPERTY(QStringList constraints READ getConstraints CONSTANT)
@@ -66,7 +66,7 @@ class BmsScoreCourse : public QObject
         int maxCombo;
         std::string constraints;
         std::string trophies;
-        uint64_t gameVersion;
+        int64_t gameVersion;
     };
     static auto load(const DTO& dto, QList<BmsScore*>& scores)
       -> std::unique_ptr<BmsScoreCourse>;
@@ -103,6 +103,7 @@ class BmsScoreCourse : public QObject
     auto getScores() const -> QList<BmsScore*>;
     auto getConstraints() const -> QStringList;
     auto getTrophies() const -> QVariantList;
+    auto getIdentifier() const -> QString;
 };
 } // namespace gameplay_logic
 

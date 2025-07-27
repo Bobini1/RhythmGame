@@ -103,14 +103,11 @@ class Player : public QObject
     Q_PROPERTY(resource_managers::Profile* profile READ getProfile CONSTANT)
     Q_PROPERTY(double position READ getPosition NOTIFY positionChanged)
     Q_PROPERTY(int64_t elapsed READ getElapsed NOTIFY elapsedChanged)
-    Q_PROPERTY(
-      double positionBeforeChartStart READ getPositionBeforeChartStart CONSTANT)
     Q_PROPERTY(ChartRunner::Status status READ getStatus NOTIFY statusChanged)
     Q_PROPERTY(int64_t chartLength READ getChartLength CONSTANT)
     BmsNotes* notes;
     GameplayState* state;
     QPointer<resource_managers::Profile> profile;
-    BmsGameReferee::Position positionBeforeChartStart{};
     BmsGameReferee::Position position{};
     ChartRunner::Status status{ ChartRunner::Status::Loading };
     int64_t elapsed{};
@@ -145,7 +142,6 @@ protected:
     auto getProfile() const -> resource_managers::Profile*;
     auto getPosition() const -> double;
     auto getElapsed() const -> int64_t;
-    auto getPositionBeforeChartStart() const -> double;
     auto getStatus() const -> ChartRunner::Status;
     void setStatus(ChartRunner::Status status);
     auto getChartLength() const -> int64_t;

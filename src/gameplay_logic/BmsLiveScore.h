@@ -153,7 +153,7 @@ class BmsLiveScore final : public QObject
     auto getJudgementCounts() -> JudgementCounts*;
     auto getJudgementCounts() const -> const JudgementCounts*;
     void sendVisualOnlyTap(HitEvent tap);
-    void sendVisualOnlyRelease(HitEvent release);
+    void sendVisualOnlyRelease(const HitEvent& release);
     auto getCombo() const -> int;
     auto getMaxCombo() const -> int;
     auto getMineHits() const -> int;
@@ -173,6 +173,8 @@ class BmsLiveScore final : public QObject
   signals:
     void pointsChanged();
     void comboChanged();
+    void comboDropped();
+    void comboIncreased();
     void maxComboChanged();
     void mineHitsChanged();
 

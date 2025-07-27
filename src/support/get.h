@@ -36,7 +36,7 @@ constexpr auto
 get(T&& aggregate) -> auto&
     requires std::is_aggregate_v<std::remove_cvref_t<T>>
 {
-    return boost::pfr::get<N>(aggregate);
+    return boost::pfr::get<N>(std::forward<T>(aggregate));
 }
 
 } // namespace support

@@ -14,7 +14,7 @@ Item {
             id: gauge
 
             readonly property double gauge: modelData.gauge
-            readonly property string gaugeName: modelData.objectName
+            readonly property string gaugeName: modelData.gaugeName
             readonly property double threshold: modelData.threshold
             readonly property double gaugeMax: modelData.gaugeMax
 
@@ -24,8 +24,10 @@ Item {
                 switch (gauge.gaugeName) {
                 case "FC":
                     return img + "orange";
+                case "EXDAN":
                 case "EXHARD":
                     return img + "yellow";
+                case "DAN":
                 case "HARD":
                     return img + "red";
                 case "NORMAL":

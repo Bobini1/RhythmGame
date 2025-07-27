@@ -21,16 +21,16 @@ BmsGauge::getThreshold() const -> double
     return threshold;
 }
 BmsGauge::BmsGauge(QString name,
-                   QString awardedClearType,
                    double gaugeMax,
                    double initialValue,
                    double threshold,
+                   bool courseGauge,
                    QObject* parent)
   : QObject(parent)
   , name(std::move(name))
-  , awardedClearType(std::move(awardedClearType))
   , gaugeMax(gaugeMax)
   , threshold(threshold)
+  , courseGauge(courseGauge)
 {
     // todo: pass -1 in constructor
     addGaugeHistoryEntry({ 0, initialValue });
@@ -41,14 +41,14 @@ BmsGauge::getGaugeHistory() const -> const QList<GaugeHistoryEntry>&
     return gaugeHistory;
 }
 auto
-BmsGauge::getAwardedClearType() const -> QString
-{
-    return awardedClearType;
-}
-auto
 BmsGauge::getName() const -> QString
 {
     return name;
+}
+auto
+BmsGauge::isCourseGauge() const -> bool
+{
+    return courseGauge;
 }
 void
 BmsGauge::addGaugeHistoryEntry(const GaugeHistoryEntry entry)

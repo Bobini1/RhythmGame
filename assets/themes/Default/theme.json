@@ -6,7 +6,8 @@
     "k7battle": "scripts/gameplay/Gameplay.qml",
     "k14": "scripts/gameplay/Gameplay.qml",
     "settings": "scripts/settings/Settings.qml",
-    "result": "scripts/result/Result.qml"
+    "result": "scripts/result/Result.qml",
+    "courseResult": "scripts/result/Result.qml"
   },
   "settings": {
     "k7": "settings/k7.json",

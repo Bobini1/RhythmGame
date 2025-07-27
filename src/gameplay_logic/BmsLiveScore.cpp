@@ -40,9 +40,8 @@ BmsLiveScore::BmsLiveScore(
   , guid(std::move(guid))
   , randomSeed(seed)
 {
-    for (auto* gauge : this->gauges) {
-        gauge->setParent(this);
-    }
+    // remember to assign a parent to gauges!
+    // but not here, because courses own their gauges
 }
 auto
 BmsLiveScore::getMaxPoints() const -> double
@@ -132,6 +131,7 @@ BmsLiveScore::increaseCombo()
         emit maxComboChanged();
     }
     emit comboChanged();
+    emit comboIncreased();
 }
 void
 BmsLiveScore::addHit(const HitEvent& tap, bool notify)
@@ -196,6 +196,7 @@ BmsLiveScore::resetCombo()
 {
     combo = 0;
     emit comboChanged();
+    emit comboDropped();
 }
 auto
 BmsLiveScore::getResult() const -> std::unique_ptr<BmsResult>
@@ -203,7 +204,11 @@ BmsLiveScore::getResult() const -> std::unique_ptr<BmsResult>
     auto clearType = QStringLiteral("FAILED");
     for (auto* gauge : gauges) {
         if (gauge->getGauge() > gauge->getThreshold()) {
-            clearType = gauge->objectName();
+            if (gauge->isCourseGauge()) {
+                clearType = QStringLiteral("NOPLAY");
+            } else {
+                clearType = gauge->getName();
+            }
             break;
         }
     }
@@ -215,6 +220,8 @@ BmsLiveScore::getResult() const -> std::unique_ptr<BmsResult>
                    .getJudgementCounts()[static_cast<int>(Judgement::Great)] ==
                maxHits) {
         clearType = QStringLiteral("PERFECT");
+    } else if (maxCombo == maxHits) {
+        clearType = QStringLiteral("FC");
     }
     auto mineHitsSize = std::ranges::count_if(hits, [](const auto& hit) {
         return hit.getPointsOptional() &&
@@ -253,15 +260,15 @@ BmsLiveScore::getGaugeHistory() const -> std::unique_ptr<BmsGaugeHistory>
     auto gaugeHistory = QHash<QString, QList<rules::GaugeHistoryEntry>>{};
     auto gaugeInfo = QHash<QString, BmsGaugeInfo>{};
     for (const auto* gauge : gauges) {
-        gaugeHistory[gauge->objectName()] = gauge->getGaugeHistory();
-        gaugeInfo[gauge->objectName()] =
+        gaugeHistory[gauge->getName()] = gauge->getGaugeHistory();
+        gaugeInfo[gauge->getName()] =
           BmsGaugeInfo{ gauge->getGaugeMax(), gauge->getThreshold() };
     }
     return std::make_unique<BmsGaugeHistory>(
       std::move(gaugeHistory), std::move(gaugeInfo), guid);
 }
 void
-BmsLiveScore::sendVisualOnlyRelease(HitEvent release)
+BmsLiveScore::sendVisualOnlyRelease(const HitEvent& release)
 {
     emit hit(release);
 }

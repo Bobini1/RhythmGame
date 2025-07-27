@@ -5,10 +5,6 @@
 #ifndef RHYTHMGAME_LR2TIMINGWINDOWS_H
 #define RHYTHMGAME_LR2TIMINGWINDOWS_H
 
-#include <chrono>
-#include <boost/icl/interval_map.hpp>
-
-#include "gameplay_logic/Judgement.h"
 #include "BmsRanks.h"
 #include "TimingWindows.h"
 namespace gameplay_logic::rules::lr2_timing_windows {

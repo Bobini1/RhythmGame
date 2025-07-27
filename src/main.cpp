@@ -187,7 +187,15 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
                 std::move(timingWindows), std::move(hitValuesFactory));
           };
         auto chartDataFactory = resource_managers::ChartDataFactory{};
-        auto gaugeFactory = resource_managers::GaugeFactory{};
+        auto gaugeFactoryGeneral = resource_managers::GaugeFactory{};
+        auto gaugeFactory = [gaugeFactoryGeneral](
+          resource_managers::Profile* profile, double total, int noteCount) {
+            return gaugeFactoryGeneral.getStandardGauges(profile, total, noteCount);
+        };
+        auto gaugeFactoryCourse = [gaugeFactoryGeneral](
+          resource_managers::Profile* profile, const QHash<QString, double>& initialValues) {
+            return gaugeFactoryGeneral.getCourseGauges(profile, initialValues);
+        };
         auto getChartPathFromSha256 = [&db](const QString& md5,
                                             const std::filesystem::path& hint) {
             // Check if the hint path exists and matches the hash
@@ -217,6 +225,7 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
             std::move(hitRulesFactory),
             &gameplay_logic::rules::lr2_hit_values::getLr2HitValue,
             gaugeFactory,
+            gaugeFactoryCourse,
             getChartPathFromSha256,
             &chartFactory
         };

@@ -44,7 +44,9 @@ find_package(fmt REQUIRED)
 
 find_package(spdlog REQUIRED)
 target_compile_definitions(spdlog::spdlog INTERFACE SPDLOG_WCHAR_FILENAMES)
-#target_compile_definitions(spdlog::spdlog INTERFACE SPDLOG_USE_STD_FORMAT)
+if (NOT WIN32)
+    target_compile_definitions(spdlog::spdlog INTERFACE SPDLOG_USE_STD_FORMAT)
+endif ()
 
 
 # <------------ boost --------------->

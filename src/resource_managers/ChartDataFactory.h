@@ -30,6 +30,15 @@ class ChartDataFactory
         charts::gameplay_models::BmsNotesData notesData;
         std::unordered_map<uint16_t, std::filesystem::path> wavs;
         std::unordered_map<uint16_t, std::filesystem::path> bmps;
+
+        ChartComponents(std::unique_ptr<gameplay_logic::ChartData> chartData,
+            charts::gameplay_models::BmsNotesData notesData,
+            std::unordered_map<uint16_t, std::filesystem::path> wavs,
+            std::unordered_map<uint16_t, std::filesystem::path> bmps);
+        ChartComponents(const ChartComponents& other);
+        ChartComponents(ChartComponents&& other) noexcept;
+        auto operator=(const ChartComponents& other) -> ChartComponents&;
+        auto operator=(ChartComponents&& other) noexcept -> ChartComponents&;
     };
     static auto makeNotes(
       const std::array<std::vector<charts::gameplay_models::BmsNotesData::Note>,

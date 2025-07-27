@@ -250,3 +250,8 @@ gameplay_logic::BmsScoreCourse::getTrophies() const -> QVariantList
     }
     return trophyList;
 }
+auto
+gameplay_logic::BmsScoreCourse::getIdentifier() const -> QString
+{
+    return identifier;
+}

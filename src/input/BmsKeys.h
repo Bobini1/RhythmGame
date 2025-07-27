@@ -33,7 +33,7 @@ enum class BmsKey
     Select2,
     Col2sDown,
 };
-Q_ENUM_NS(BmsKey);
+Q_ENUM_NS(BmsKey)
 
 auto
 playerIndexFromKey(BmsKey key) -> int;

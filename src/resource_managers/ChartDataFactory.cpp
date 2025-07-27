@@ -36,6 +36,54 @@ ChartDataFactory::loadFile(const QUrl& chartPath) -> std::string
                  std::istreambuf_iterator<char>{});
     return chart;
 }
+ChartDataFactory::ChartComponents::ChartComponents(
+  std::unique_ptr<gameplay_logic::ChartData> chartData,
+  charts::gameplay_models::BmsNotesData notesData,
+  std::unordered_map<uint16_t, std::filesystem::path> wavs,
+  std::unordered_map<uint16_t, std::filesystem::path> bmps)
+  : chartData(std::move(chartData))
+  , notesData(std::move(notesData))
+  , wavs(std::move(wavs))
+  , bmps(std::move(bmps))
+{
+}
+ChartDataFactory::ChartComponents::ChartComponents(const ChartComponents& other)
+  : chartData(other.chartData ? other.chartData->clone() : nullptr)
+  , notesData(other.notesData)
+  , wavs(other.wavs)
+  , bmps(other.bmps)
+{
+}
+ChartDataFactory::ChartComponents::ChartComponents(
+  ChartComponents&& other) noexcept
+  : chartData(std::move(other.chartData))
+  , notesData(std::move(other.notesData))
+  , wavs(std::move(other.wavs))
+  , bmps(std::move(other.bmps))
+{
+}
+ChartDataFactory::ChartComponents&
+ChartDataFactory::ChartComponents::operator=(const ChartComponents& other)
+{
+    if (this != &other) {
+        chartData = other.chartData ? other.chartData->clone() : nullptr;
+        notesData = other.notesData;
+        wavs = other.wavs;
+        bmps = other.bmps;
+    }
+    return *this;
+}
+ChartDataFactory::ChartComponents&
+ChartDataFactory::ChartComponents::operator=(ChartComponents&& other) noexcept
+{
+    if (this != &other) {
+        chartData = std::move(other.chartData);
+        notesData = std::move(other.notesData);
+        wavs = std::move(other.wavs);
+        bmps = std::move(other.bmps);
+    }
+    return *this;
+}
 auto
 ChartDataFactory::makeNotes(
   const std::array<std::vector<charts::gameplay_models::BmsNotesData::Note>,
@@ -96,10 +144,9 @@ ChartDataFactory::convertToQVector(
     return columnNotes;
 }
 auto
-ChartDataFactory::loadChartData(
-  const std::filesystem::path& chartPath,
-  RandomGenerator randomGenerator,
-  int64_t directory) const -> ChartComponents
+ChartDataFactory::loadChartData(const std::filesystem::path& chartPath,
+                                RandomGenerator randomGenerator,
+                                int64_t directory) const -> ChartComponents
 {
     auto mfh = llfio::mapped_file({}, chartPath).value();
     auto length = mfh.maximum_extent().value();
@@ -110,7 +157,8 @@ ChartDataFactory::loadChartData(
     auto randomValues = QList<qint64>{};
     auto randomGeneratorRecorder =
       [&randomValues, &randomGenerator](
-        const charts::parser_models::ParsedBmsChart::RandomRange number) mutable {
+        const charts::parser_models::ParsedBmsChart::RandomRange
+          number) mutable {
           const auto generated = randomGenerator(number);
           randomValues.append(generated);
           return generated;
@@ -172,8 +220,7 @@ ChartDataFactory::loadChartData(
             minBpm = bpmChange;
         }
     }
-    auto bpms = std::unordered_map<double,
-                              std::chrono::nanoseconds>{};
+    auto bpms = std::unordered_map<double, std::chrono::nanoseconds>{};
     for (auto it = calculatedNotesData.bpmChanges.begin();
          it != calculatedNotesData.bpmChanges.end();
          ++it) {
@@ -252,8 +299,8 @@ ChartDataFactory::loadChartData(
       initialBpm.second,
       maxBpm.second,
       minBpm.second,
-        mainBpm,
-        avgBpm,
+      mainBpm,
+      avgBpm,
       path,
       directory,
       QString::fromStdString(sha256),
@@ -262,9 +309,9 @@ ChartDataFactory::loadChartData(
     auto noteData = makeNotes(calculatedNotesData.notes,
                               calculatedNotesData.bpmChanges,
                               calculatedNotesData.barLines);
-    return { .chartData = std::move(chartData),
-             .notesData = std::move(calculatedNotesData),
-             .wavs = std::move(wavs),
-             .bmps = std::move(bmps) };
+    return { std::move(chartData),
+             std::move(calculatedNotesData),
+             std::move(wavs),
+             std::move(bmps) };
 }
 } // namespace resource_managers

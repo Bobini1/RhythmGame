@@ -25,38 +25,37 @@ gameplay_logic::rules::Lr2Gauge::addHit(
 }
 gameplay_logic::rules::Lr2Gauge::Lr2Gauge(
   QString gaugeName,
-  QString awardedClearType,
   double gaugeMax,
   double initialValue,
   double threshold,
   bool permanentDeath,
+  bool courseGauge,
   std::function<double(double, Judgement)> judgementValueFactory,
   QObject* parent)
   : BmsGauge(std::move(gaugeName),
-             std::move(awardedClearType),
              gaugeMax,
              initialValue,
              threshold,
+             courseGauge,
              parent)
   , permanentDeath(permanentDeath)
   , judgementValueFactory(std::move(judgementValueFactory))
 {
 }
 auto
-gameplay_logic::rules::Lr2Gauge::getGauges(double total,
-                                           int noteCount)
+gameplay_logic::rules::Lr2Gauge::getGauges(double total, int noteCount)
   -> std::vector<std::unique_ptr<BmsGauge>>
 {
     auto totalRatio = total / noteCount;
 
     auto gauges = std::vector<std::unique_ptr<BmsGauge>>();
     auto fcGauge = std::make_unique<Lr2Gauge>(
-      "HAZARD",
       "FC",
       100,
       100,
       0,
       true,
+      false,
       [](double currentGauge, Judgement judgement) {
           switch (judgement) {
               case Judgement::Perfect:
@@ -74,25 +73,25 @@ gameplay_logic::rules::Lr2Gauge::getGauges(double total,
 
     auto exhardGauge =
       std::make_unique<Lr2Gauge>("EXHARD",
-                                 "EXHARD",
                                  100,
                                  100,
                                  0,
                                  true,
+                                 false,
                                  [](double currentGauge, Judgement judgement) {
                                      switch (judgement) {
                                          case Judgement::Perfect:
                                              return 0.15;
                                          case Judgement::Great:
-                                             return 0.06;
+                                             return 0.12;
                                          case Judgement::Good:
-                                             return 0.0;
+                                             return 0.03;
                                          case Judgement::Bad:
-                                             return -8.0;
+                                             return -3.0;
                                          case Judgement::Poor:
-                                             return -16.0;
+                                             return -6.0;
                                          case Judgement::EmptyPoor:
-                                             return -8.0;
+                                             return -3.0;
                                          default:
                                              return 0.0;
                                      }
@@ -101,11 +100,11 @@ gameplay_logic::rules::Lr2Gauge::getGauges(double total,
 
     auto hardGauge = std::make_unique<Lr2Gauge>(
       "HARD",
-      "HARD",
       100,
       100,
       0,
       true,
+      false,
       [](double currentGauge, Judgement judgement) {
           switch (judgement) {
               case Judgement::Perfect:
@@ -128,10 +127,10 @@ gameplay_logic::rules::Lr2Gauge::getGauges(double total,
 
     auto normalGauge = std::make_unique<Lr2Gauge>(
       "NORMAL",
-      "NORMAL",
       100,
       20,
       80,
+      false,
       false,
       [totalRatio](double currentGauge, Judgement judgement) {
           switch (judgement) {
@@ -156,10 +155,10 @@ gameplay_logic::rules::Lr2Gauge::getGauges(double total,
 
     auto easyGauge = std::make_unique<Lr2Gauge>(
       "EASY",
-      "EASY",
       100,
       20,
       80,
+      false,
       false,
       [totalRatio](double currentGauge, Judgement judgement) {
           switch (judgement) {
@@ -184,10 +183,10 @@ gameplay_logic::rules::Lr2Gauge::getGauges(double total,
 
     auto aeasyGauge = std::make_unique<Lr2Gauge>(
       "AEASY",
-      "AEASY",
       100,
       20,
       60,
+      false,
       false,
       [totalRatio](double currentGauge, Judgement judgement) {
           switch (judgement) {
@@ -209,6 +208,94 @@ gameplay_logic::rules::Lr2Gauge::getGauges(double total,
           throw std::runtime_error("Invalid judgement");
       });
     gauges.push_back(std::move(aeasyGauge));
+
+    return gauges;
+}
+auto
+gameplay_logic::rules::Lr2Gauge::getDanGauges(
+  const QHash<QString, double>& initialValues) -> std::vector<std::unique_ptr<BmsGauge>>
+{
+    auto gauges = std::vector<std::unique_ptr<BmsGauge>>{};
+
+    auto exhardDanGauge =
+      std::make_unique<Lr2Gauge>("EXHARDDAN",
+                                 100,
+                                 initialValues.value("EXHARDDAN", 100),
+                                 0,
+                                 true,
+                                 true,
+                                 [](double currentGauge, Judgement judgement) {
+                                     switch (judgement) {
+                                         case Judgement::Perfect:
+                                             return 0.15;
+                                         case Judgement::Great:
+                                             return 0.08;
+                                         case Judgement::Good:
+                                             return 0.0;
+                                         case Judgement::Bad:
+                                             return -5.0;
+                                         case Judgement::Poor:
+                                             return -10.0;
+                                         case Judgement::EmptyPoor:
+                                             return -5.0;
+                                         default:
+                                             return 0.0;
+                                     }
+                                 });
+
+    auto exdanGauge =
+      std::make_unique<Lr2Gauge>("EXDAN",
+                                 100,
+                                 initialValues.value("EXDAN", 100),
+                                 0,
+                                 true,
+                                 true,
+                                 [](double currentGauge, Judgement judgement) {
+                                     switch (judgement) {
+                                         case Judgement::Perfect:
+                                             return 0.15;
+                                         case Judgement::Great:
+                                             return 0.06;
+                                         case Judgement::Good:
+                                             return 0.0;
+                                         case Judgement::Bad:
+                                             return -3.0;
+                                         case Judgement::Poor:
+                                             return -5.0;
+                                         case Judgement::EmptyPoor:
+                                             return -3.0;
+                                         default:
+                                             return 0.0;
+                                     }
+                                 });
+    gauges.push_back(std::move(exdanGauge));
+
+    auto danGauge = std::make_unique<Lr2Gauge>(
+      "DAN",
+      100,
+      initialValues.value("DAN", 100),
+      0,
+      true,
+      true,
+      [](double currentGauge, Judgement judgement) {
+          switch (judgement) {
+              case Judgement::Perfect:
+                  return 0.1;
+              case Judgement::Great:
+                  return 0.1;
+              case Judgement::Good:
+                  return 0.05;
+              case Judgement::Bad:
+                  return (currentGauge > 30) ? -2.0 : -1.2;
+              case Judgement::Poor:
+                  return (currentGauge > 30) ? -3.0 : -1.8;
+              case Judgement::EmptyPoor:
+                  return (currentGauge > 30) ? -2.0 : -1.2;
+              default:
+                  return 0.0;
+          }
+      });
+    gauges.push_back(std::move(danGauge));
 
     return gauges;
 }

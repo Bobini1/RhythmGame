@@ -117,6 +117,8 @@ class ChartData : public QObject
     [[nodiscard]] auto getDirectory() const -> QString;
     [[nodiscard]] auto getChartDirectory() const -> QString;
 
+    auto clone() const -> std::unique_ptr<ChartData>;
+
     struct DTO
     {
         int id;

@@ -8,7 +8,7 @@
 #include "gameplay_logic/ChartRunner.h"
 #include "support/QStringToPath.h"
 #include "magic_enum/magic_enum.hpp"
-#include "qdir.h"
+#include <QDir>
 #include "gameplay_logic/CourseRunner.h"
 #include <ranges>
 
@@ -16,7 +16,7 @@
 
 namespace qml_components {
 
-gameplay_logic::ChartRunner*
+auto
 ChartLoader::createChart(
   resource_managers::Profile* player1,
   bool player1AutoPlay,
@@ -24,8 +24,8 @@ ChartLoader::createChart(
   resource_managers::Profile* player2,
   bool player2AutoPlay,
   gameplay_logic::BmsScore* replayedScore2,
-  const resource_managers::ChartDataFactory::ChartComponents& chartComponents)
-  const
+  resource_managers::ChartDataFactory::ChartComponents chartComponents) const
+  -> std::unique_ptr<gameplay_logic::ChartRunner>
 {
     if (isDp(chartComponents.chartData->getKeymode()) && player1 && player2) {
         spdlog::error("Can't launch DP for two players");
@@ -43,7 +43,6 @@ ChartLoader::createChart(
     auto player1data = resource_managers::ChartFactory::PlayerSpecificData{
         player1,
         gaugeFactory(player1,
-                     timingWindows,
                      chartComponents.chartData->getTotal(),
                      chartComponents.chartData->getNormalNoteCount()),
         hitRulesFactory(timingWindows, hitValueFactory),
@@ -55,7 +54,6 @@ ChartLoader::createChart(
                   resource_managers::ChartFactory::PlayerSpecificData>(
                   player2,
                   gaugeFactory(player2,
-                               timingWindows,
                                chartComponents.chartData->getTotal(),
                                chartComponents.chartData->getNormalNoteCount()),
                   hitRulesFactory(timingWindows, hitValueFactory),
@@ -90,13 +88,13 @@ validateParams(resource_managers::Profile* player1,
         return false;
     }
     if constexpr (std::is_same_v<Score, gameplay_logic::BmsScoreCourse>) {
-        if (score1.getIdentifier() != score2.getIdentifier()) {
+        if (score1->getIdentifier() != score2->getIdentifier()) {
             spdlog::error("Score 1 and score 2 aren't for the same course");
             return false;
         }
-        for (auto i = 0; i < score1.getScores().size(); ++i) {
-            if (score1.getScores()[i]->getResult()->getRandomSequence() !=
-                score2.getScores()[i]->getResult()->getRandomSequence()) {
+        for (auto i = 0; i < score1->getScores().size(); ++i) {
+            if (score1->getScores()[i]->getResult()->getRandomSequence() !=
+                score2->getScores()[i]->getResult()->getRandomSequence()) {
                 spdlog::error("Score 1 and score 2 have different #RANDOM "
                               "sequences for course");
                 return false;
@@ -139,8 +137,9 @@ ChartLoader::loadChart(const QString& filename,
   -> gameplay_logic::ChartRunner*
 {
     if (!validateParams(
-          player1, player1AutoPlay, score1, player2, player2AutoPlay, score2))
+          player1, player1AutoPlay, score1, player2, player2AutoPlay, score2)) {
         return nullptr;
+    }
     auto randomSequence = score1   ? score1->getResult()->getRandomSequence()
                           : score2 ? score2->getResult()->getRandomSequence()
                                    : QList<qint64>{};
@@ -185,7 +184,8 @@ ChartLoader::loadChart(const QString& filename,
                            player2,
                            player2AutoPlay,
                            score2,
-                           chartComponents);
+                           std::move(chartComponents))
+          .release();
     } catch (const std::exception& e) {
         spdlog::error("Failed to load chart: {}", e.what());
         return nullptr;
@@ -210,7 +210,8 @@ ChartLoader::loadCourse(const resource_managers::Course& course,
         try {
             auto path = getChartPathFromMd5(md5, {});
             if (!path) {
-                spdlog::error("Failed to find chart path for course: {}", md5);
+                spdlog::error("Failed to find chart path for course: {}",
+                              md5.toStdString());
                 return nullptr;
             }
             auto randomSequence =
@@ -243,9 +244,76 @@ ChartLoader::loadCourse(const resource_managers::Course& course,
             return nullptr;
         }
     }
-    return new gameplay_logic::CourseRunner{ course, this };
+    if (isDp(chartComponents[0].chartData->getKeymode()) && player1 &&
+        player2) {
+        spdlog::error("Can't launch DP for two players");
+        return nullptr;
+    }
+    // check if keymode is the same for all charts
+    const auto keymode = chartComponents[0].chartData->getKeymode();
+    for (const auto& chartComponent : chartComponents) {
+        if (chartComponent.chartData->getKeymode() != keymode) {
+            spdlog::error("Keymode mismatch in course charts");
+            return nullptr;
+        }
+    }
+    auto loadCourseChartPartial =
+      [=,
+       player1 = QPointer(player1),
+       player2 = QPointer(player2),
+       previous1 = QList<gameplay_logic::rules::BmsGauge*>{},
+       previous2 = QList<gameplay_logic::rules::BmsGauge*>{},
+       index = 0]() mutable -> std::unique_ptr<gameplay_logic::ChartRunner> {
+        if (!player1) {
+            return nullptr;
+        }
+        if (index >= chartComponents.size()) {
+            return nullptr;
+        }
+        auto previous1Vals = QHash<QString, double>{};
+        for (const auto& gauge : previous1) {
+            previous1Vals[gauge->getName()] = gauge->getGauge();
+        }
+        auto gauges1 = gaugeFactoryCourse(player1, previous1Vals);
+        auto gauges2 = QList<gameplay_logic::rules::BmsGauge*>{};
+        if (player2) {
+            auto previous2Vals = QHash<QString, double>{};
+            for (const auto& gauge : previous2) {
+                previous2Vals[gauge->getName()] = gauge->getGauge();
+            }
+            gauges2 = gaugeFactoryCourse(player2, previous2Vals);
+        }
+        auto course = loadCourseChart(
+          chartComponents[index],
+          player1,
+          player1AutoPlay,
+          score1 ? score1->getScores().value(index, nullptr) : nullptr,
+          player2,
+          player2AutoPlay,
+          score2 ? score2->getScores().value(index, nullptr) : nullptr,
+          gauges1,
+          gauges2);
+        index++;
+        return course;
+    };
+    auto chartDatas = QList<gameplay_logic::ChartData*>{};
+    chartDatas.reserve(chartComponents.size());
+    for (const auto& components : chartComponents) {
+        chartDatas.append(components.chartData->clone().release());
+    }
+    auto* coursePlayer1 = new gameplay_logic::CoursePlayer(
+      score1 ? score1->getGuid() : QUuid::createUuid().toString());
+    auto* coursePlayer2 =
+      player2 ? new gameplay_logic::CoursePlayer(
+                  score2 ? score2->getGuid() : QUuid::createUuid().toString())
+              : nullptr;
+    return new gameplay_logic::CourseRunner{ coursePlayer1,
+                                             coursePlayer2,
+                                             course,
+                                             std::move(chartDatas),
+                                             loadCourseChartPartial };
 }
-gameplay_logic::ChartRunner*
+auto
 ChartLoader::loadCourseChart(
   resource_managers::ChartDataFactory::ChartComponents chartComponents,
   resource_managers::Profile* player1,
@@ -253,8 +321,40 @@ ChartLoader::loadCourseChart(
   gameplay_logic::BmsScore* score1,
   resource_managers::Profile* player2,
   bool player2AutoPlay,
-  gameplay_logic::BmsScore* score2) const
+  gameplay_logic::BmsScore* score2,
+  QList<gameplay_logic::rules::BmsGauge*> gauges1,
+  QList<gameplay_logic::rules::BmsGauge*> gauges2) const
+  -> std::unique_ptr<gameplay_logic::ChartRunner>
 {
+    const auto rankInt = chartComponents.chartData->getRank();
+    const auto rank =
+      magic_enum::enum_cast<gameplay_logic::rules::BmsRank>(rankInt).value_or(
+        gameplay_logic::rules::defaultBmsRank);
+    auto hitRules =
+      std::vector<std::unique_ptr<gameplay_logic::rules::BmsHitRules>>{};
+    auto timingWindows = timingWindowsFactory(rank);
+    auto maxHitValue = hitValueFactory(std::chrono::nanoseconds{ 0 },
+                                       gameplay_logic::Judgement::Perfect);
+    auto player1data = resource_managers::ChartFactory::PlayerSpecificData{
+        player1,
+        std::move(gauges1),
+        hitRulesFactory(timingWindows, hitValueFactory),
+        score1,
+        player1AutoPlay
+    };
+    auto player2data =
+      player2 ? std::make_optional<
+                  resource_managers::ChartFactory::PlayerSpecificData>(
+                  player2,
+                  std::move(gauges2),
+                  hitRulesFactory(timingWindows, hitValueFactory),
+                  score2,
+                  player2AutoPlay)
+              : std::nullopt;
+    return chartFactory->createChart(std::move(chartComponents),
+                                     std::move(player1data),
+                                     std::move(player2data),
+                                     maxHitValue);
 }
 ChartLoader::ChartLoader(ProfileList* profileList,
                          input::InputTranslator* inputTranslator,
@@ -263,6 +363,7 @@ ChartLoader::ChartLoader(ProfileList* profileList,
                          HitRulesFactory hitRulesFactory,
                          HitValueFactory hitValueFactory,
                          GaugeFactory gaugeFactory,
+                         GaugeFactoryCourse gaugeFactoryCourse,
                          GetChartPathFromMd5 getChartPathFromSha256,
                          resource_managers::ChartFactory* chartFactory,
                          QObject* parent)
@@ -272,6 +373,7 @@ ChartLoader::ChartLoader(ProfileList* profileList,
   , hitRulesFactory(std::move(hitRulesFactory))
   , hitValueFactory(std::move(hitValueFactory))
   , gaugeFactory(std::move(gaugeFactory))
+  , gaugeFactoryCourse(std::move(gaugeFactoryCourse))
   , getChartPathFromMd5(std::move(getChartPathFromSha256))
   , chartFactory(chartFactory)
   , profileList(profileList)

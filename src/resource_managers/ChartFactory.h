@@ -30,7 +30,8 @@ class ChartFactory
     auto createChart(ChartDataFactory::ChartComponents chartComponents,
                      PlayerSpecificData player1,
                      std::optional<PlayerSpecificData> player2,
-                     double maxHitValue) -> gameplay_logic::ChartRunner*;
+                     double maxHitValue)
+      -> std::unique_ptr<gameplay_logic::ChartRunner>;
 };
 
 } // namespace resource_managers
