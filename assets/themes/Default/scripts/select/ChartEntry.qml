@@ -1,3 +1,4 @@
+pragma ValueTypeBehavior: Addressable
 import QtQuick
 import QtQuick.Layouts
 import RhythmGameQml
@@ -12,9 +13,10 @@ Image {
     property BmsScore scoreWithBestPoints: Helpers.getScoreWithBestPoints(scores)
     property bool scrollingText: false
     property bool isCurrentItem: false
+    readonly property bool isCourse: modelData instanceof course
 
     asynchronous: true
-    source: root.iniImagesUrl + "folders.png/white"
+    source: root.iniImagesUrl + "folders.png/" + (isCourse ? "folder_pink" : "white")
 
     Image {
         id: clearImage
@@ -28,6 +30,7 @@ Image {
     }
     TextureText {
         id: playlevelText
+        visible: !image.isCourse
 
         function getDiffColorInt(diff) {
             switch (diff) {
@@ -54,10 +57,10 @@ Image {
     NameLabel {
         anchors.right: parent.right
         anchors.rightMargin: 30
-        color: (modelData instanceof ChartData) ? "black" : "red"
+        color: (modelData instanceof ChartData || modelData instanceof course) ? "black" : "red"
         height: parent.height
         scrolling: image.isCurrentItem && image.scrollingText
-        text: modelData.title + (modelData.subtitle ? (" " + modelData.subtitle) : "")
+        text: (modelData.title || modelData.name || "") + (modelData.subtitle ? (" " + modelData.subtitle) : "")
         width: parent.width * 0.7
     }
     MouseArea {

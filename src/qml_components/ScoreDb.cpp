@@ -227,14 +227,13 @@ ScoreDb::getScores(const resource_managers::Table& table) const
                 auto chunk = courseIds.mid(i, maxVariables);
                 auto statement = scoreDb->createStatement(
                   "SELECT * "
-                  "FROM course_score "
-                  "JOIN course ON course_score.course_id = course.id "
-                  "WHERE course.identifier IN (" +
+                  "FROM score_course "
+                  "WHERE score_course.identifier IN (" +
                   QString("?, ")
                     .repeated(chunk.size())
                     .chopped(2)
                     .toStdString() +
-                  ") ORDER BY course_score.unix_timestamp DESC");
+                  ") ORDER BY score_course.unix_timestamp DESC");
 
                 for (int j = 0; j < chunk.size(); ++j) {
                     statement.bind(j + 1, chunk[j].toStdString());

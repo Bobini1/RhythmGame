@@ -88,14 +88,16 @@ Profile::Profile(
                "note_order_algorithm_p2 INTEGER NOT NULL,"
                "game_version INTEGER NOT NULL"
                ");");
-    db.execute("CREATE INDEX IF NOT EXISTS course_score ("
+    db.execute("CREATE TABLE IF NOT EXISTS score_course ("
                "id INTEGER PRIMARY KEY AUTOINCREMENT,"
                 "guid TEXT NOT NULL UNIQUE,"
+                "identifier TEXT NOT NULL,"
                 "score_guids TEXT NOT NULL,"
                 "clear_type TEXT NOT NULL,"
                 "max_combo INTEGER NOT NULL,"
                 "constraints TEXT NOT NULL,"
                 "trophies TEXT NOT NULL,"
+                "unix_timestamp INTEGER NOT NULL,"
                 "game_version INTEGER NOT NULL);");
     db.execute("CREATE TABLE IF NOT EXISTS replay_data ("
                "id INTEGER PRIMARY KEY AUTOINCREMENT,"

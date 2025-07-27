@@ -41,7 +41,7 @@ PathView {
     function refreshFolderClearStats() {
         folderClearStats = [];
         for (let folder of folderContents) {
-            if (folder instanceof ChartData || folder instanceof entry) {
+            if (folder instanceof ChartData || folder instanceof entry || folder instanceof course) {
                 continue;
             }
             Rg.profileList.mainProfile.scoreDb.getScores(folder).then((result) => {
@@ -102,6 +102,8 @@ PathView {
                 return folderItem.name === last.name;
             } else if (folderItem instanceof table && last instanceof table) {
                 return folderItem.name === last.name;
+            } else if (folderItem instanceof course && last instanceof course) {
+                return folderItem.name === last.name;
             }
             return false;
         })) || 1;
@@ -118,6 +120,14 @@ PathView {
             }
             return;
         }
+        if (item instanceof course) {
+            if (Rg.profileList.battleActive) {
+                globalRoot.openCourse(item, Rg.profileList.battleProfiles.player1Profile, false, null, Rg.profileList.battleProfiles.player2Profile, false, null);
+            } else {
+                globalRoot.openCourse(item, Rg.profileList.mainProfile, false, null, null, false, null);
+            }
+            return;
+        }
         if (item instanceof entry || item === null) {
             return;
         }
@@ -129,7 +139,8 @@ PathView {
     function open(item) {
         let folder;
         if (item instanceof table) {
-            folder = item.levels;
+            let courses = item.courses;
+            folder = [...item.levels, ...courses];
         } else if (item instanceof level) {
             folder = item.loadCharts();
         } else if (typeof item === "string") {
@@ -228,7 +239,8 @@ PathView {
         Component {
             id: chartComponent
             ChartEntry {
-                scores: pathView.scores[modelData.md5] || []
+                property string identifier: modelData instanceof course ? modelData.identifier : modelData.md5
+                scores: pathView.scores[identifier] || []
                 isCurrentItem: selectItemLoader.isCurrentItem
                 scrollingText: selectItemLoader.scrollingText
             }
@@ -264,7 +276,7 @@ PathView {
         readonly property bool isCurrentItem: PathView.isCurrentItem
         readonly property bool scrollingText: pathView.scrollingText
 
-        sourceComponent: modelData instanceof ChartData || modelData instanceof entry ? chartComponent : folderComponent
+        sourceComponent: modelData instanceof ChartData || modelData instanceof entry || modelData instanceof course ? chartComponent : folderComponent
     }
     path: Path {
         id: path

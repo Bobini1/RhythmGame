@@ -88,16 +88,18 @@ validateParams(resource_managers::Profile* player1,
         return false;
     }
     if constexpr (std::is_same_v<Score, gameplay_logic::BmsScoreCourse>) {
-        if (score1->getIdentifier() != score2->getIdentifier()) {
-            spdlog::error("Score 1 and score 2 aren't for the same course");
-            return false;
-        }
-        for (auto i = 0; i < score1->getScores().size(); ++i) {
-            if (score1->getScores()[i]->getResult()->getRandomSequence() !=
-                score2->getScores()[i]->getResult()->getRandomSequence()) {
-                spdlog::error("Score 1 and score 2 have different #RANDOM "
-                              "sequences for course");
+        if (score1 && score2) {
+            if (score1->getIdentifier() != score2->getIdentifier()) {
+                spdlog::error("Score 1 and score 2 aren't for the same course");
                 return false;
+            }
+            for (auto i = 0; i < score1->getScores().size(); ++i) {
+                if (score1->getScores()[i]->getResult()->getRandomSequence() !=
+                    score2->getScores()[i]->getResult()->getRandomSequence()) {
+                    spdlog::error("Score 1 and score 2 have different #RANDOM "
+                                  "sequences for course");
+                    return false;
+                    }
             }
         }
     } else {
@@ -208,7 +210,7 @@ ChartLoader::loadCourse(const resource_managers::Course& course,
       QList<resource_managers::ChartDataFactory::ChartComponents>{};
     for (const auto& [i, md5] : std::ranges::views::enumerate(course.md5s)) {
         try {
-            auto path = getChartPathFromMd5(md5, {});
+            auto path = getChartPathFromMd5(md5.toUpper(), {});
             if (!path) {
                 spdlog::error("Failed to find chart path for course: {}",
                               md5.toStdString());

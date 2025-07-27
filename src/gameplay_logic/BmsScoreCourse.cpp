@@ -37,7 +37,7 @@ gameplay_logic::BmsScoreCourse::save(db::SqliteCppDb& db) const
     auto statement = db.createStatement(
       "INSERT OR REPLACE INTO score_course "
       "(guid, identifier, score_guids, clear_type, max_combo, constraints, "
-      "trophies, game_version) "
+      "trophies, unix_timestamp, game_version) "
       "VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
     statement.bind(1, guid.toStdString());
     statement.bind(2, identifier.toStdString());
@@ -53,6 +53,8 @@ gameplay_logic::BmsScoreCourse::save(db::SqliteCppDb& db) const
     for (const auto& trophy : trophies) {
         trophyArray.append(trophy.toJson());
     }
+    statement.bind(
+      8, scores.last() ? scores.last()->getResult()->getUnixTimestamp() : 0);
     statement.bind(
       7,
       QJsonDocument(trophyArray).toJson(QJsonDocument::Compact).toStdString());

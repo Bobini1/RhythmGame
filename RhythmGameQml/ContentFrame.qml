@@ -55,6 +55,21 @@ ApplicationWindow {
             });
         }
 
+        function openCourse(path, profile1, autoplay1, score1, profile2, autoplay2, score2) {
+            let course = Rg.chartLoader.loadCourse(path, profile1, autoplay1, score1, profile2, autoplay2, score2);
+            if (!course) {
+                console.error("Failed to load course");
+                return;
+            }
+            let keys = course.chartData.keymode;
+            let battle = course.player1 && course.player2;
+            let screen = "k" + keys + (battle ? "battle" : "");
+            let component = this[screen + "Component"];
+            sceneStack.pushItem(component, {
+                "course": course
+            });
+        }
+
         function openResult(scores, profiles, chartData) {
             sceneStack.pushItem(resultComponent, {
                 "scores": scores,

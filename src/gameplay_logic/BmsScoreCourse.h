@@ -66,6 +66,7 @@ class BmsScoreCourse : public QObject
         int maxCombo;
         std::string constraints;
         std::string trophies;
+        int64_t unixTimestamp;
         int64_t gameVersion;
     };
     static auto load(const DTO& dto, QList<BmsScore*>& scores)
