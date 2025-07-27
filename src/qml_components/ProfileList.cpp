@@ -180,6 +180,20 @@ qml_components::ProfileList::removeProfile(resource_managers::Profile* profile)
     if (profile == nullptr) {
         return;
     }
+    if (profiles.size() == 1) {
+        createProfile();
+    }
+    const auto index = profiles.indexOf(profile);
+    profiles.remove(index);
+    if (profile == mainProfile) {
+        setMainProfile(profiles[0]);
+    }
+    if (battleProfiles.player1Profile == profile) {
+        battleProfiles.setPlayer1Profile(nullptr);
+    }
+    if (battleProfiles.player2Profile == profile) {
+        battleProfiles.setPlayer2Profile(nullptr);
+    }
     profile->deleteLater();
     // We should delete the profile after the profile object (with a db
     // connection) is destroyed.
@@ -193,21 +207,7 @@ qml_components::ProfileList::removeProfile(resource_managers::Profile* profile)
                     spdlog::error("Failed to remove profile: {}", ec.message());
                 }
             });
-    const auto index = profiles.indexOf(profile);
-    profiles.remove(index);
     emit profilesChanged();
-    if (profiles.empty()) {
-        createProfile();
-    }
-    if (mainProfile == profile) {
-        setMainProfile(profiles[0]);
-    }
-    if (battleProfiles.player1Profile == profile) {
-        battleProfiles.setPlayer1Profile(nullptr);
-    }
-    if (battleProfiles.player2Profile == profile) {
-        battleProfiles.setPlayer2Profile(nullptr);
-    }
 }
 void
 qml_components::ProfileList::setMainProfile(resource_managers::Profile* profile)

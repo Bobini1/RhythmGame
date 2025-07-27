@@ -19,7 +19,7 @@ Loader {
             let props = {
                 name: screenSettingsLoader.name,
                 items: items,
-                destination: Rg.profileList.mainProfile.vars.themeVars[screenSettingsLoader.screen][currentTheme]
+                destination: screenSettingsLoader.destination
             }
             setSource("settingsProperties/Group.qml", props);
         }
@@ -33,6 +33,13 @@ Loader {
     Component.onCompleted: {
         refresh();
     }
+    readonly property var destination: {
+        let scr = Rg.profileList.mainProfile.vars.themeVars[screen]
+        if (scr && scr[currentTheme]) {
+            return scr[currentTheme];
+        }
+        return undefined;
+    }
 
     // we only want to reload when all of those finish changing, hence the callLater
     onScriptChanged: {
@@ -42,6 +49,9 @@ Loader {
         Qt.callLater(refresh);
     }
     onCurrentThemeChanged: {
+        Qt.callLater(refresh);
+    }
+    onDestinationChanged: {
         Qt.callLater(refresh);
     }
 
