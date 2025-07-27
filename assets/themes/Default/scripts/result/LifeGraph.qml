@@ -29,8 +29,11 @@ Image {
             "EASY": "#6eff3a",
             "NORMAL": "#3affff",
             "HARD": "#ff3a3a",
+            "DAN": "#ff3a3a",
             "EXHARD": "#ff9a3a",
+            "EXDAN": "#ff9a3a",
             "FC": "#cbcbcb",
+            "EXHARDDAN": "#cbcbcb",
             "PERFECT": "#cbcbcb",
             "MAX": "#cbcbcb"
         };
