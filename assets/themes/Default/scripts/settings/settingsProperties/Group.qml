@@ -50,6 +50,7 @@ Frame {
             model: groupFrame.items
             Loader {
                 id: loader
+                asynchronous: true
 
                 Component.onCompleted: {
                     let props = {};
