@@ -85,13 +85,13 @@ WindowBg {
                     anchors.left: hiScoreText.right
                     anchors.leftMargin: 41
                     color: {
-                        let delta = score.points - (score.oldBestPoints ? score.oldBestPoints.points : 0);
+                        let delta = score.points - score.oldBestPoints;
                         return delta > 0 ? "darkgreen" : (delta < 0 ? "FireBrick" : "black");
                     }
                     font.pixelSize: 25
                     horizontalAlignment: Text.AlignLeft
                     text: {
-                        let delta = score.points - (score.oldBestPoints);
+                        let delta = score.points - score.oldBestPoints;
                         if (delta > 0) {
                             return "+" + delta;
                         } else if (delta < 0) {
