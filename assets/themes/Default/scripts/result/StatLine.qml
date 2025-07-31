@@ -52,7 +52,7 @@ Item {
 
         anchors.baseline: parent.bottom
         anchors.left: newText.right
-        anchors.leftMargin: 20
+        anchors.leftMargin: statLine.newVal.toString().length <= 4 ? 20 : 2
         color: (statLine.newVal > statLine.oldVal) ^ !invertDeltaColor ? "FireBrick" : "darkgreen"
         font.pixelSize: 25
         text: {
