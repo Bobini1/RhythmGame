@@ -13,7 +13,7 @@ Image {
     property int clearIndex: {
         let index = clearTypes.indexOf(lifeGraph.clearType);
         if (index === -1) {
-            if (lifeGraph.clearType === "FAILED") {
+            if (lifeGraph.clearType === "FAILED" || lifeGraph.clearType === "NOPLAY") {
                 return 0;
             } else {
                 return clearTypes.indexOf("FC");
