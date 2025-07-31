@@ -62,6 +62,7 @@ gameplay_logic::BmsResultCourse::save(db::SqliteCppDb& db) const
     statement.bind(
       8, scores.last() ? scores.last()->getResult()->getUnixTimestamp() : 0);
     statement.bind(9, static_cast<int64_t>(gameVersion));
+    statement.execute();
 }
 gameplay_logic::BmsResultCourse::BmsResultCourse(
   QString guid,
