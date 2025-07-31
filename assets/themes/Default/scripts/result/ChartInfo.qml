@@ -3,13 +3,14 @@ import RhythmGameQml
 
 WindowBg {
     id: chartInfo
-    required property var chartData
+    required property var difficulty
+    required property var total
     required property int noteCount
     Image {
         anchors.left: parent.left
         anchors.top: parent.top
         source: {
-            switch (chartInfo.chartData.difficulty) {
+            switch (chartInfo.difficulty) {
             case 1:
                 return root.iniImagesUrl + "parts.png/beginner";
             case 2:
@@ -50,7 +51,7 @@ WindowBg {
         anchors.right: parent.right
         anchors.rightMargin: 36
         font.pixelSize: 20
-        text: chartInfo.chartData.total
+        text: chartInfo.total || "-"
     }
     Text {
         id: noteCountLabel

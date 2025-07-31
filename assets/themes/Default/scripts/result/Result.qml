@@ -6,29 +6,31 @@ import QtQml
 import QtQuick.Controls.Basic
 import "../common/helpers.js" as Helpers
 
-FocusScope {
-    id: resultFocusScope
+Item {
+    id: root
 
-    required property ChartData chartData
-    required property list<BmsScore> scores
+    // course
+    property var course
+    property var chartDatas
+    // single chart
+    property ChartData chartData
+
+    required property var scores
     required property list<Profile> profiles
 
+    readonly property string imagesUrl: Qt.resolvedUrl(".") + "images/"
+    readonly property string iniImagesUrl: "image://ini/" + rootUrl + "images/"
+    readonly property string rootUrl: QmlUtils.fileName.slice(0, QmlUtils.fileName.lastIndexOf("/") + 1)
+    readonly property var score1: scores[0]
+    readonly property var score2: scores[1] || null
+    readonly property Profile profile1: profiles[0]
+    readonly property Profile profile2: profiles[1] || null
+    readonly property bool isBattle: score1 && score2
+
     Image {
-        id: root
-
-        readonly property string imagesUrl: Qt.resolvedUrl(".") + "images/"
-        readonly property string iniImagesUrl: "image://ini/" + rootUrl + "images/"
-        property string rootUrl: QmlUtils.fileName.slice(0, QmlUtils.fileName.lastIndexOf("/") + 1)
-        readonly property BmsScore score1: resultFocusScope.scores[0]
-        readonly property BmsScore score2: resultFocusScope.scores[1] || null
-        readonly property Profile profile1: resultFocusScope.profiles[0]
-        readonly property Profile profile2: resultFocusScope.profiles[1] || null
-        readonly property bool isBattle: score1 && score2
-        readonly property ChartData chartData: resultFocusScope.chartData
-
         fillMode: Image.PreserveAspectCrop
         height: parent.height
-        source: root.imagesUrl + (score1.result.clearType === "FAILED" ? "failed.png" : "clear.png")
+        source: root.imagesUrl + (root.score1.result.clearType === "FAILED" ? "failed.png" : "clear.png")
         width: parent.width
 
         Shortcut {
@@ -53,16 +55,16 @@ FocusScope {
                 anchors.horizontalCenter: parent.horizontalCenter
 
                 StageFile {
-                    chartDirectory: chartData.chartDirectory
-                    stageFileName: chartData.stageFile
+                    chartDirectory: chartData?.chartDirectory || ""
+                    stageFileName: chartData?.stageFile || ""
                 }
                 TitleArtist {
                     id: titleArtist
 
-                    title: chartData.title
-                    artist: root.chartData.artist
-                    subtitle: root.chartData.subtitle
-                    subartist: root.chartData.subartist
+                    title: chartData?.title || course?.name || ""
+                    artist: root.chartData?.artist || ""
+                    subtitle: root.chartData?.subtitle || ""
+                    subartist: root.chartData?.subartist || ""
 
                     anchors.bottom: parent.bottom
                     anchors.bottomMargin: 24
@@ -70,7 +72,8 @@ FocusScope {
                     width: 1214
                 }
                 ChartInfo {
-                    chartData: root.chartData
+                    difficulty: root.chartData?.difficulty
+                    total: root.chartData?.total
                     noteCount: root.score1.result.normalNoteCount + root.score1.result.lnCount
 
                     anchors.bottom: parent.bottom
@@ -81,7 +84,6 @@ FocusScope {
             }
 
             Side {
-                chartData: root.chartData
                 score: root.score1
                 isBattle: root.isBattle
                 profile: root.profile1
@@ -94,7 +96,6 @@ FocusScope {
                 width: parent.width
                 anchors.top: chartInfoRow.bottom
                 sourceComponent: Side {
-                    chartData: root.chartData
                     score: root.score2
                     isBattle: root.isBattle
                     profile: root.profile2
@@ -104,20 +105,25 @@ FocusScope {
 
             component Side: Column {
                 id: side
-                required property ChartData chartData
-                required property BmsScore score
+                required property var score
                 required property Profile profile
                 required property bool isBattle
                 property bool mirrored: false
                 readonly property var earlyLate: Helpers.getEarlyLate(score.replayData)
                 readonly property string oldBestClear: Helpers.getClearType(scores)
-                readonly property BmsScore oldBestPointsScore: Helpers.getScoreWithBestPoints(scores)
+                readonly property var oldBestPointsScore: Helpers.getScoreWithBestPoints(scores)
                 readonly property var oldBestStats: Helpers.getBestStats(scores)
                 readonly property var scores: []
                 Component.onCompleted: {
-                    profile.scoreDb.getScoresForMd5([root.chartData.md5]).then((dbScores) => {
-                        scores = dbScores[0].filter((oldScore) => oldScore.result.id !== score.result.id)
-                    });
+                    if (root.course) {
+                        profile.scoreDb.getScoresForCourseId([root.course.identifier]).then((dbScores) => {
+                            scores = dbScores[0].filter((oldScore) => oldScore.result.guid !== score.result.guid)
+                        });
+                    } else {
+                        profile.scoreDb.getScoresForMd5([root.chartData.md5]).then((dbScores) => {
+                            scores = dbScores[0].filter((oldScore) => oldScore.result.guid !== score.result.guid)
+                        });
+                    }
                 }
                 transform: Scale {
                     xScale: side.mirrored ? -1 : 1
@@ -142,7 +148,7 @@ FocusScope {
                         height: 104
                         width: 350
 
-                        clearType: root.score1.result.clearType
+                        clearType: side.score.result.clearType
                         oldBestClear: side.oldBestClear
                         transform: Scale {
                             xScale: side.mirrored ? -1 : 1
@@ -152,10 +158,10 @@ FocusScope {
                     LifeGraph {
                         id: lifeGraph
 
-                        clearType: root.score1.result.clearType
-                        gaugeHistory: root.score1.gaugeHistory.gaugeHistory
-                        gaugeInfo: root.score1.gaugeHistory.gaugeInfo
-                        chartData: root.chartData
+                        clearType: side.score.result.clearType
+                        gaugeHistory: side.score.gaugeHistory.gaugeHistory
+                        gaugeInfo: side.score.gaugeHistory.gaugeInfo
+                        length: side.score.result.length
 
                         anchors.right: side.isBattle ? undefined : parent.right
                         anchors.left: side.isBattle ? scoreColumn.right : undefined

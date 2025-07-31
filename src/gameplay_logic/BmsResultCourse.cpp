@@ -89,7 +89,7 @@ gameplay_logic::BmsResultCourse::getMaxPoints() const -> double
 {
     return std::accumulate(
       scores.begin(), scores.end(), 0.0, [](double sum, const BmsScore* score) {
-          return sum + score->getResult()->getPoints();
+          return sum + score->getResult()->getMaxPoints();
       });
 }
 auto
@@ -256,4 +256,12 @@ auto
 gameplay_logic::BmsResultCourse::getIdentifier() const -> QString
 {
     return identifier;
+}
+auto
+gameplay_logic::BmsResultCourse::getLength() const -> int64_t
+{
+    return std::accumulate(
+      scores.begin(), scores.end(), 0LL, [](int64_t sum, const BmsScore* score) {
+          return sum + score->getResult()->getLength();
+      });
 }

@@ -295,6 +295,8 @@ ChartLoader::loadCourse(const resource_managers::Course& course,
           score2 ? score2->getScores().value(index, nullptr) : nullptr,
           gauges1,
           gauges2);
+        previous1 = std::move(gauges1);
+        previous2 = std::move(gauges2);
         index++;
         return course;
     };
@@ -330,6 +332,44 @@ ChartLoader::loadCourse(const resource_managers::Course& course,
                                              course,
                                              std::move(chartDatas),
                                              loadCourseChartPartial };
+}
+gameplay_logic::ChartData*
+ChartLoader::loadChartData(const QString& filename,
+                           const QString& md5,
+                           QList<int64_t> randomSequence) const
+{
+    try {
+        auto path =
+          getChartPathFromMd5(md5.toUpper(), support::qStringToPath(filename));
+        if (!path) {
+            spdlog::error("Failed to find chart path for course: {}",
+                          md5.toStdString());
+            return nullptr;
+        }
+
+        auto randomGenerator =
+          [randomSequence = std::move(randomSequence),
+           counter = 0](const charts::parser_models::ParsedBmsChart::RandomRange
+                          randomRange) mutable {
+              thread_local auto randomEngine =
+                std::default_random_engine{ std::random_device{}() };
+              if (counter < randomSequence.size()) {
+                  return static_cast<
+                    charts::parser_models::ParsedBmsChart::RandomRange>(
+                    randomSequence[counter++]);
+              }
+              return std::uniform_int_distribution{
+                  charts::parser_models::ParsedBmsChart::RandomRange{ 1 },
+                  randomRange
+              }(randomEngine);
+          };
+        auto components =
+          chartDataFactory->loadChartData(*path, randomGenerator);
+        return components.chartData.release();
+    } catch (const std::exception& e) {
+        spdlog::error("Failed to load chart: {}", e.what());
+        return nullptr;
+    }
 }
 auto
 ChartLoader::loadCourseChart(

@@ -192,6 +192,7 @@ CourseRunner::proceed() -> QList<BmsScore*>
     currentChartIndex++;
     if (currentChartIndex != chartDatas.size()) {
         emit currentChartIndexChanged();
+        currentChart.release()->deleteLater();
         currentChart = loadChart();
         emit bgaChanged();
         emit player1Changed();

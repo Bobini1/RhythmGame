@@ -141,6 +141,9 @@ class ChartLoader : public QObject
       resource_managers::Profile* player2,
       bool player2AutoPlay,
       gameplay_logic::BmsResultCourse* score2) const;
+
+    Q_INVOKABLE gameplay_logic::ChartData* loadChartData(
+      const QString& filename, const QString& md5 = "", QList<int64_t> randomSequence = {}) const;
 };
 
 } // namespace qml_components

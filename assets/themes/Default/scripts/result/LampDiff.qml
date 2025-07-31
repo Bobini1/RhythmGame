@@ -32,10 +32,16 @@ WindowBg {
     Image {
         id: newLamp
 
+        property var clearTypesForCourse: {
+            "DAN": "NORMAL",
+            "EXDAN": "HARD",
+            "EXHARDDAN": "EXHARD",
+        }
+
         anchors.bottom: parent.bottom
         anchors.bottomMargin: 24
         anchors.right: parent.right
         anchors.rightMargin: 36
-        source: root.iniImagesUrl + "parts.png/" + lampDiff.clearType
+        source: root.iniImagesUrl + "parts.png/" + (clearTypesForCourse[lampDiff.clearType] || lampDiff.clearType)
     }
 }

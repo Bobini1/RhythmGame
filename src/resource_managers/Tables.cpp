@@ -78,27 +78,9 @@ resource_managers::Level::getEntries() const -> QVariantList
     return list;
 }
 auto
-resource_managers::Level::loadCharts() const -> QVariantList
+queryScores(db::SqliteCppDb& db, QVariantList& ret, QStringList md5List)
+  -> size_t
 {
-    if (entries.empty()) {
-        return {};
-    }
-
-    auto sw = spdlog::stopwatch{};
-    auto ret = QVariantList{};
-    auto md5List = QStringList{};
-
-    for (const auto& chart : entries) {
-        ret.append(QVariant::fromValue(chart));
-        md5List.append(chart.md5.toUpper());
-    }
-
-    struct ChartDTOWithIndex
-    {
-        int64_t index;
-        gameplay_logic::ChartData::DTO chartData;
-    };
-
     // Create a single query with an IN clause
     auto queryStr = std::string("WITH md5_list(md5, idx) AS (VALUES ");
     auto value = std::string("");
@@ -124,16 +106,40 @@ resource_managers::Level::loadCharts() const -> QVariantList
                 "FROM md5_list JOIN charts ON md5_list.md5 = charts.md5 GROUP "
                 "BY md5_list.idx";
 
-    auto query = db->createStatement(queryStr);
+    auto query = db.createStatement(queryStr);
     for (const auto& [index, md5] : std::ranges::views::enumerate(md5List)) {
         query.bind(index * 2 + 1, md5.toStdString());
         query.bind(index * 2 + 2, static_cast<int64_t>(index));
     }
-    const auto queryResult = query.executeAndGetAll<ChartDTOWithIndex>();
+    struct ChartDTOWithIndex
+    {
+        int64_t index;
+        gameplay_logic::ChartData::DTO chartData;
+    };
+    auto queryResult = query.executeAndGetAll<ChartDTOWithIndex>();
     for (const auto& result : queryResult) {
         auto chartData = gameplay_logic::ChartData::load(result.chartData);
         ret[result.index] = QVariant::fromValue(chartData.release());
     }
+    return queryResult.size();
+}
+auto
+resource_managers::Level::loadCharts() const -> QVariantList
+{
+    if (entries.empty()) {
+        return {};
+    }
+
+    auto sw = spdlog::stopwatch{};
+    auto ret = QVariantList{};
+    auto md5List = QStringList{};
+
+    for (const auto& chart : entries) {
+        ret.append(QVariant::fromValue(chart));
+        md5List.append(chart.md5.toUpper());
+    }
+
+    auto loaded = queryScores(*db, ret, md5List);
     // sort by title, subtitle
     std::ranges::sort(ret, [](QVariant& a, QVariant& b) {
         auto getTitle = [](QVariant& chart) {
@@ -166,7 +172,7 @@ resource_managers::Level::loadCharts() const -> QVariantList
         return titleA < titleB;
     });
 
-    spdlog::debug("Loaded {} charts in {} s", queryResult.size(), sw);
+    spdlog::debug("Loaded {} charts in {} s", loaded, sw);
     return ret;
 }
 auto
@@ -205,6 +211,22 @@ resource_managers::Course::getIdentifier() const -> QString
     constraintsSorted.sort();
     identifier += constraintsSorted.join(",");
     return identifier;
+}
+QVariantList
+resource_managers::Course::loadCharts() const
+{
+    auto sw = spdlog::stopwatch{};
+    auto ret = QVariantList{};
+    auto md5List = QStringList{};
+
+    for (const auto& md5 : md5s) {
+        ret.append(md5);
+        md5List.append(md5.toUpper());
+    }
+
+    auto loaded = queryScores(*db, ret, md5List);
+    spdlog::debug("Loaded {} charts in {} s", loaded, sw);
+    return ret;
 }
 auto
 resource_managers::Table::getLevels() const -> QVariantList
@@ -470,8 +492,9 @@ resource_managers::Tables::handleHeader(const QUrl& url,
             table.keymode = header["keymode"];
             for (const auto& level : header["level_order"].toArray()) {
                 auto levelObj = Level{};
-                levelObj.name = level.isString() ? level.toString()
-                                                : QString::number(level.toInt());
+                levelObj.name = level.isString()
+                                  ? level.toString()
+                                  : QString::number(level.toInt());
                 levelObj.db = db;
                 table.levels.push_back(levelObj);
             }
@@ -479,7 +502,7 @@ resource_managers::Tables::handleHeader(const QUrl& url,
             for (const auto& courseList : header["course"].toArray()) {
                 auto courseListObj = QList<Course>{};
                 for (const auto& course : courseList.toArray()) {
-                    auto courseObj = Course{};
+                    auto courseObj = Course{ db };
                     courseObj.name = course.toObject()["name"].toString();
                     for (const auto& md5 : course.toObject()["md5"].toArray()) {
                         courseObj.md5s.push_back(md5.toString());

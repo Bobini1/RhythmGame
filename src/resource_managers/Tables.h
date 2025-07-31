@@ -77,6 +77,7 @@ struct Course
     Q_PROPERTY(QStringList constraints MEMBER constraints)
     Q_PROPERTY(QString identifier READ getIdentifier STORED false CONSTANT)
   public:
+    db::SqliteCppDb* db;
     QString name;
     QString originalUrl;
     QStringList md5s;
@@ -84,6 +85,7 @@ struct Course
     QStringList constraints;
     auto getTrophies() const -> QVariantList;
     auto getIdentifier() const -> QString;
+    Q_INVOKABLE QVariantList loadCharts() const;
 };
 
 struct Table

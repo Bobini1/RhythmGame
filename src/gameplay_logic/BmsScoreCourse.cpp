@@ -4,18 +4,18 @@
 
 #include "BmsScoreCourse.h"
 namespace gameplay_logic {
-BmsScoreCourse::BmsScoreCourse(std::unique_ptr<BmsResultCourse> resultCourse,
+BmsScoreCourse::BmsScoreCourse(std::unique_ptr<BmsResultCourse> result,
                                std::unique_ptr<BmsGaugeHistory> gaugeHistory,
                                std::unique_ptr<BmsReplayData> replayData,
                                QList<BmsScore*> scores,
                                QObject* parent)
   : QObject(parent)
-  , resultCourse(resultCourse.release())
+  , result(result.release())
   , gaugeHistory(gaugeHistory.release())
   , replayData(replayData.release())
   , scores(std::move(scores))
 {
-    this->resultCourse->setParent(this);
+    this->result->setParent(this);
     this->gaugeHistory->setParent(this);
     this->replayData->setParent(this);
     for (auto* score : this->scores) {
@@ -28,9 +28,9 @@ BmsScoreCourse::getScores() const -> const QList<BmsScore*>&
     return scores;
 }
 auto
-BmsScoreCourse::getResultCourse() const -> BmsResultCourse*
+BmsScoreCourse::getResult() const -> BmsResultCourse*
 {
-    return resultCourse;
+    return result;
 }
 auto
 BmsScoreCourse::getGaugeHistory() const -> BmsGaugeHistory*
@@ -49,13 +49,13 @@ BmsScoreCourse::save(db::SqliteCppDb& db) const
     for (const auto* score : scores) {
         score->save(db);
     }
-    resultCourse->save(db);
+    result->save(db);
     // these are not saved! We generate them from scores
     // gaugeHistory->save(db);
     // replayData->save(db);
 }
 auto
-BmsScoreCourse::fromScores(std::unique_ptr<BmsResultCourse> resultCourse,
+BmsScoreCourse::fromScores(std::unique_ptr<BmsResultCourse> result,
                            QList<BmsScore*> scores,
                            QObject* parent) -> std::unique_ptr<BmsScoreCourse>
 {
@@ -90,10 +90,10 @@ BmsScoreCourse::fromScores(std::unique_ptr<BmsResultCourse> resultCourse,
         offset += score->getResult()->getLength();
     }
     auto gaugeHistory = std::make_unique<BmsGaugeHistory>(
-      std::move(gaugeHistories), std::move(gaugeInfo), resultCourse->getGuid());
+      std::move(gaugeHistories), std::move(gaugeInfo), result->getGuid());
     auto replayData = std::make_unique<BmsReplayData>(std::move(hitEvents),
-                                                      resultCourse->getGuid());
-    return std::make_unique<BmsScoreCourse>(std::move(resultCourse),
+                                                      result->getGuid());
+    return std::make_unique<BmsScoreCourse>(std::move(result),
                                             std::move(gaugeHistory),
                                             std::move(replayData),
                                             std::move(scores),

@@ -36,7 +36,8 @@ Rectangle {
         if (chart.status === ChartRunner.Finished) {
             if (isCourse && !showedCourseResult) {
                 showedCourseResult = true;
-                Qt.callLater(() => globalRoot.openCourseResult(chart.finish(), [chart.player1.profile, chart.player2 ? chart.player2.profile : null], chart.chartDatas));
+                let profiles = [chart.player1.profile, chart.player2 ? chart.player2.profile : null];
+                Qt.callLater(() => globalRoot.openCourseResult(chart.finish(), profiles, chart.chartDatas, chart.course));
             } else {
                 Qt.callLater(() => sceneStack.pop());
             }

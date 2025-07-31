@@ -30,6 +30,7 @@ class BmsResultCourse final : public QObject
     Q_PROPERTY(QString clearType READ getClearType CONSTANT)
     Q_PROPERTY(QList<qint64> randomSequence READ getRandomSequence CONSTANT)
     Q_PROPERTY(int64_t unixTimestamp READ getUnixTimestamp CONSTANT)
+    Q_PROPERTY(int64_t length READ getLength CONSTANT)
     Q_PROPERTY(QString guid READ getGuid CONSTANT)
     Q_PROPERTY(QString sha256 READ getSha256 CONSTANT)
     Q_PROPERTY(QString md5 READ getMd5 CONSTANT)
@@ -103,6 +104,7 @@ class BmsResultCourse final : public QObject
     auto getConstraints() const -> QStringList;
     auto getTrophies() const -> QVariantList;
     auto getIdentifier() const -> QString;
+    auto getLength() const -> int64_t;
 };
 } // namespace gameplay_logic
 

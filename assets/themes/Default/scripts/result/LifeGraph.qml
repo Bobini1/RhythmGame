@@ -8,7 +8,7 @@ Image {
     required property var clearType
     required property var gaugeHistory
     required property var gaugeInfo
-    required property var chartData
+    required property var length
 
     property int clearIndex: {
         let index = clearTypes.indexOf(lifeGraph.clearType);
@@ -81,7 +81,7 @@ Image {
                 anchors.topMargin: 20
                 history: lifeGraph.gaugeHistory[modelData]
                 maxGauge: lifeGraph.gaugeInfo[modelData].maxGauge
-                songLength: lifeGraph.chartData.length
+                songLength: lifeGraph.length
                 visible: index === lifeGraph.clearIndex
 
                 Rectangle {
