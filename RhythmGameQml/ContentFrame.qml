@@ -49,7 +49,7 @@ ApplicationWindow {
             let keys = chart.chartData.keymode;
             let battle = chart.player1 && chart.player2;
             let screen = "k" + keys + (battle ? "battle" : "");
-            let component = this[screen + "Component"];
+            let component = globalRoot[screen + "Component"];
             sceneStack.pushItem(component, {
                 "chart": chart
             });
@@ -64,7 +64,7 @@ ApplicationWindow {
             let keys = runner.chartDatas[0].keymode;
             let battle = runner.player1 && runner.player2;
             let screen = "k" + keys + (battle ? "battle" : "");
-            let component = this[screen + "Component"];
+            let component = globalRoot[screen + "Component"];
             sceneStack.pushItem(component, {
                 "chart": runner
             });

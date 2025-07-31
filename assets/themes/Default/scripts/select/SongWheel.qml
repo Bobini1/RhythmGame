@@ -16,12 +16,15 @@ FocusScope {
         property string rootUrl: QmlUtils.fileName.slice(0, QmlUtils.fileName.lastIndexOf("/") + 1)
 
         function openReplay(type) {
+            let path = songList.current instanceof course ? songList.current : songList.current.path;
+            let func = songList.current instanceof course ? globalRoot.openCourse : globalRoot.openChart;
+            print(path)
             switch (type) {
                 case 0:
-                    globalRoot.openChart(songList.current.path, Rg.profileList.mainProfile, false, songList.currentItem.scores[0], null, false, null);
+                    func(path, Rg.profileList.mainProfile, false, songList.currentItem.scores[0], null, false, null);
                     break;
                 case 1:
-                    globalRoot.openChart(songList.current.path, Rg.profileList.mainProfile, false, songList.currentItem.scoreWithBestPoints, null, false, null);
+                    func(path, Rg.profileList.mainProfile, false, songList.currentItem.scoreWithBestPoints, null, false, null);
                     break;
                 case 2:
                     let clearType = Helpers.getClearType(songList.currentItem?.scores);
@@ -29,7 +32,7 @@ FocusScope {
                         return score.result.clearType === clearType;
                     });
                     if (score) {
-                        globalRoot.openChart(songList.current.path, Rg.profileList.mainProfile, false, score, null, false, null);
+                        func(path, Rg.profileList.mainProfile, false, score, null, false, null);
                     }
                     break;
                 case 3:
@@ -37,7 +40,7 @@ FocusScope {
                         return prev.result.maxCombo > curr.result.maxCombo ? prev : curr;
                     });
                     if (bestScore) {
-                        globalRoot.openChart(songList.current.path, Rg.profileList.mainProfile, false, bestScore, null, false, null);
+                        func(path, Rg.profileList.mainProfile, false, bestScore, null, false, null);
                     }
                     break;
             }
@@ -117,7 +120,7 @@ FocusScope {
                         id: replay
                         source: root.iniImagesUrl + "parts.png/replay"
                         opacity: enabled ? 1 : 0.5
-                        enabled: (songList.current?.path && songList.currentItem?.scores?.length) || false
+                        enabled: ((songList.current?.path || songList.current instanceof course) && songList.currentItem?.scores?.length) || false
                         MouseArea {
                             anchors.fill: parent
                             cursorShape: enabled ? Qt.PointingHandCursor : undefined

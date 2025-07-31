@@ -197,10 +197,10 @@ gameplay_logic::CourseRunner*
 ChartLoader::loadCourse(const resource_managers::Course& course,
                         resource_managers::Profile* player1,
                         bool player1AutoPlay,
-                        gameplay_logic::BmsResultCourse* score1,
+                        gameplay_logic::BmsScoreCourse* score1,
                         resource_managers::Profile* player2,
                         bool player2AutoPlay,
-                        gameplay_logic::BmsResultCourse* score2) const
+                        gameplay_logic::BmsScoreCourse* score2) const
 {
     if (!validateParams(
           player1, player1AutoPlay, score1, player2, player2AutoPlay, score2)) {
@@ -307,7 +307,7 @@ ChartLoader::loadCourse(const resource_managers::Course& course,
     }
     auto guid1 = [&]() -> QString {
         if (score1) {
-            return score1->getGuid();
+            return score1->getResult()->getGuid();
         }
         if (player1AutoPlay) {
             return QStringLiteral("");
@@ -316,7 +316,7 @@ ChartLoader::loadCourse(const resource_managers::Course& course,
     }();
     auto guid2 = [&]() -> QString {
         if (score2) {
-            return score2->getGuid();
+            return score2->getResult()->getGuid();
         }
         if (player2AutoPlay) {
             return QStringLiteral("");
