@@ -12,6 +12,19 @@ RowLayout {
         implicitWidth: 200
         Layout.maximumWidth: 200
 
+        property var orderedScreens: {
+            let configKeys = Rg.profileList.mainProfile.themeConfig.keys();
+            // We don't want screens to be alphabetically sorted, that's not friendly
+            let order = [QT_TR_NOOP("k7"), QT_TR_NOOP("k7battle"), QT_TR_NOOP("k14"), QT_TR_NOOP("main"), QT_TR_NOOP("settings"), QT_TR_NOOP("songWheel"), QT_TR_NOOP("result"), QT_TR_NOOP("courseResult")];
+            return configKeys.sort((a, b) => {
+                let indexA = order.indexOf(a);
+                let indexB = order.indexOf(b);
+                if (indexA === -1) indexA = Infinity; // If not found, put it at the end
+                if (indexB === -1) indexB = Infinity; // If not found, put it at the end
+                return indexA - indexB;
+            });
+        }
+
         contentItem: ListView {
             boundsBehavior: Flickable.StopAtBounds
             currentIndex: themeTabView.currentIndex
@@ -27,18 +40,7 @@ RowLayout {
 
         Repeater {
             id: themeTabRepeater
-            model: {
-                let configKeys = Rg.profileList.mainProfile.themeConfig.keys();
-                // We don't want screens to be alphabetically sorted, that's not friendly
-                let order = ["k7", "k7battle", "k14", "main", "settings", "songWheel", "result", "courseResult"];
-                return configKeys.sort((a, b) => {
-                    let indexA = order.indexOf(a);
-                    let indexB = order.indexOf(b);
-                    if (indexA === -1) indexA = Infinity; // If not found, put it at the end
-                    if (indexB === -1) indexB = Infinity; // If not found, put it at the end
-                    return indexA - indexB;
-                });
-            }
+            model: themeTabView.orderedScreens.map((str) => qsTr(str))
 
             TabButton {
                 text: modelData
@@ -55,7 +57,8 @@ RowLayout {
         currentIndex: themeTabView.currentIndex
 
         Repeater {
-            model: themeTabRepeater.model
+            id: screenRepeater
+            model: themeTabView.orderedScreens
 
             Frame {
                 Layout.fillHeight: true
