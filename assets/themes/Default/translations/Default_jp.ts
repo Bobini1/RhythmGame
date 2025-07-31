@@ -32,12 +32,12 @@
 <context>
     <name>ChartInfo</name>
     <message>
-        <location filename="../scripts/result/ChartInfo.qml" line="37"/>
+        <location filename="../scripts/result/ChartInfo.qml" line="38"/>
         <source>TOTAL</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/result/ChartInfo.qml" line="64"/>
+        <location filename="../scripts/result/ChartInfo.qml" line="65"/>
         <source>NOTES</source>
         <translation type="unfinished"></translation>
     </message>
@@ -327,17 +327,17 @@
 <context>
     <name>Main</name>
     <message>
-        <location filename="../scripts/main/Main.qml" line="29"/>
+        <location filename="../scripts/main/Main.qml" line="28"/>
         <source>Song Selection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/main/Main.qml" line="38"/>
+        <location filename="../scripts/main/Main.qml" line="37"/>
         <source>Settings</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/main/Main.qml" line="48"/>
+        <location filename="../scripts/main/Main.qml" line="47"/>
         <source>Quit</source>
         <translation type="unfinished"></translation>
     </message>
@@ -581,7 +581,47 @@
 <context>
     <name>ScreenSettings</name>
     <message>
-        <location filename="../scripts/settings/ScreenSettings.qml" line="27"/>
+        <location filename="../scripts/settings/ScreenSettings.qml" line="29"/>
+        <source>7k Settings</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/ScreenSettings.qml" line="30"/>
+        <source>7k Battle Settings</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/ScreenSettings.qml" line="31"/>
+        <source>14k Settings</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/ScreenSettings.qml" line="32"/>
+        <source>Main Menu Settings</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/ScreenSettings.qml" line="33"/>
+        <source>Settings Settings</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/ScreenSettings.qml" line="34"/>
+        <source>Select Settings</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/ScreenSettings.qml" line="35"/>
+        <source>Result Settings</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/ScreenSettings.qml" line="36"/>
+        <source>Course Result</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/ScreenSettings.qml" line="39"/>
         <source>%1 Settings</source>
         <translation type="unfinished"></translation>
     </message>
@@ -669,22 +709,22 @@
 <context>
     <name>SongWheel</name>
     <message>
-        <location filename="../scripts/select/SongWheel.qml" line="98"/>
+        <location filename="../scripts/select/SongWheel.qml" line="129"/>
         <source>NEWEST</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/select/SongWheel.qml" line="100"/>
+        <location filename="../scripts/select/SongWheel.qml" line="131"/>
         <source>BEST SCORE</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/select/SongWheel.qml" line="102"/>
+        <location filename="../scripts/select/SongWheel.qml" line="133"/>
         <source>BEST CLEAR</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/select/SongWheel.qml" line="104"/>
+        <location filename="../scripts/select/SongWheel.qml" line="135"/>
         <source>BEST COMBO</source>
         <translation type="unfinished"></translation>
     </message>
@@ -752,6 +792,49 @@
     <message>
         <location filename="../scripts/settings/TableSettings.qml" line="237"/>
         <source>Add</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>ThemeSettings</name>
+    <message>
+        <location filename="../scripts/settings/ThemeSettings.qml" line="43"/>
+        <source>7k</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/ThemeSettings.qml" line="44"/>
+        <source>7k Battle</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/ThemeSettings.qml" line="45"/>
+        <source>14k</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/ThemeSettings.qml" line="46"/>
+        <source>Main Menu</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/ThemeSettings.qml" line="47"/>
+        <source>Settings</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/ThemeSettings.qml" line="48"/>
+        <source>Select</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/ThemeSettings.qml" line="49"/>
+        <source>Result</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/ThemeSettings.qml" line="50"/>
+        <source>Course Result</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

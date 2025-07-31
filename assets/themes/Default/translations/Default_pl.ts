@@ -32,12 +32,12 @@
 <context>
     <name>ChartInfo</name>
     <message>
-        <location filename="../scripts/result/ChartInfo.qml" line="37"/>
+        <location filename="../scripts/result/ChartInfo.qml" line="38"/>
         <source>TOTAL</source>
         <translation>TOTAL</translation>
     </message>
     <message>
-        <location filename="../scripts/result/ChartInfo.qml" line="64"/>
+        <location filename="../scripts/result/ChartInfo.qml" line="65"/>
         <source>NOTES</source>
         <translation>NOTKI</translation>
     </message>
@@ -335,17 +335,17 @@
 <context>
     <name>Main</name>
     <message>
-        <location filename="../scripts/main/Main.qml" line="29"/>
+        <location filename="../scripts/main/Main.qml" line="28"/>
         <source>Song Selection</source>
         <translation>Wybór piosenek</translation>
     </message>
     <message>
-        <location filename="../scripts/main/Main.qml" line="38"/>
+        <location filename="../scripts/main/Main.qml" line="37"/>
         <source>Settings</source>
         <translation>Ustawienia</translation>
     </message>
     <message>
-        <location filename="../scripts/main/Main.qml" line="48"/>
+        <location filename="../scripts/main/Main.qml" line="47"/>
         <source>Quit</source>
         <translation>Wyjdź</translation>
     </message>
@@ -589,9 +589,49 @@
 <context>
     <name>ScreenSettings</name>
     <message>
-        <location filename="../scripts/settings/ScreenSettings.qml" line="27"/>
+        <location filename="../scripts/settings/ScreenSettings.qml" line="39"/>
         <source>%1 Settings</source>
         <translation>Ustawienia %1</translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/ScreenSettings.qml" line="29"/>
+        <source>7k Settings</source>
+        <translation>Ustawienia 7k</translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/ScreenSettings.qml" line="30"/>
+        <source>7k Battle Settings</source>
+        <translation>Ustawienia bitwy 7k</translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/ScreenSettings.qml" line="31"/>
+        <source>14k Settings</source>
+        <translation>Ustawienia 14k</translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/ScreenSettings.qml" line="32"/>
+        <source>Main Menu Settings</source>
+        <translation>Ustawienia menu głównego</translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/ScreenSettings.qml" line="33"/>
+        <source>Settings Settings</source>
+        <translation>Ustawienia ustawień</translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/ScreenSettings.qml" line="34"/>
+        <source>Select Settings</source>
+        <translation>Ustawienia wyboru piosenek</translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/ScreenSettings.qml" line="35"/>
+        <source>Result Settings</source>
+        <translation>Ustawienia ekranu wyników</translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/ScreenSettings.qml" line="36"/>
+        <source>Course Result</source>
+        <translation>Ustawienia ekranu wyników serii</translation>
     </message>
 </context>
 <context>
@@ -677,22 +717,22 @@
 <context>
     <name>SongWheel</name>
     <message>
-        <location filename="../scripts/select/SongWheel.qml" line="98"/>
+        <location filename="../scripts/select/SongWheel.qml" line="129"/>
         <source>NEWEST</source>
         <translation>NAJNOWSZY</translation>
     </message>
     <message>
-        <location filename="../scripts/select/SongWheel.qml" line="100"/>
+        <location filename="../scripts/select/SongWheel.qml" line="131"/>
         <source>BEST SCORE</source>
         <translation>NAJLEPSZY WYNIK</translation>
     </message>
     <message>
-        <location filename="../scripts/select/SongWheel.qml" line="102"/>
+        <location filename="../scripts/select/SongWheel.qml" line="133"/>
         <source>BEST CLEAR</source>
         <translation>NAJLEPSZY CLEAR</translation>
     </message>
     <message>
-        <location filename="../scripts/select/SongWheel.qml" line="104"/>
+        <location filename="../scripts/select/SongWheel.qml" line="135"/>
         <source>BEST COMBO</source>
         <translation>NAJLEPSZE COMBO</translation>
     </message>
@@ -761,6 +801,81 @@
         <location filename="../scripts/settings/TableSettings.qml" line="237"/>
         <source>Add</source>
         <translation>Dodaj</translation>
+    </message>
+</context>
+<context>
+    <name>ThemeSettings</name>
+    <message>
+        <source>k7</source>
+        <translation type="vanished">7k</translation>
+    </message>
+    <message>
+        <source>k7battle</source>
+        <translation type="vanished">7k bitwa</translation>
+    </message>
+    <message>
+        <source>k14</source>
+        <translation type="vanished">14k</translation>
+    </message>
+    <message>
+        <source>main</source>
+        <translation type="vanished">Główny</translation>
+    </message>
+    <message>
+        <source>settings</source>
+        <translation type="vanished">Ustawienia</translation>
+    </message>
+    <message>
+        <source>songWheel</source>
+        <translation type="vanished">Wybór piosenek</translation>
+    </message>
+    <message>
+        <source>result</source>
+        <translation type="vanished">Wynik</translation>
+    </message>
+    <message>
+        <source>courseResult</source>
+        <translation type="vanished">Wynik serii</translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/ThemeSettings.qml" line="43"/>
+        <source>7k</source>
+        <translation>7k</translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/ThemeSettings.qml" line="44"/>
+        <source>7k Battle</source>
+        <translation>7k bitwa</translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/ThemeSettings.qml" line="45"/>
+        <source>14k</source>
+        <translation>14k</translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/ThemeSettings.qml" line="46"/>
+        <source>Main Menu</source>
+        <translation>Menu główne</translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/ThemeSettings.qml" line="47"/>
+        <source>Settings</source>
+        <translation>Ustawienia</translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/ThemeSettings.qml" line="48"/>
+        <source>Select</source>
+        <translation>Wybór piosenek</translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/ThemeSettings.qml" line="49"/>
+        <source>Result</source>
+        <translation>Ekran wyników</translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/ThemeSettings.qml" line="50"/>
+        <source>Course Result</source>
+        <translation>Ekran wyników serii</translation>
     </message>
 </context>
 </TS>

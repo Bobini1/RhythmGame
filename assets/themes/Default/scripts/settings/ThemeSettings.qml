@@ -15,12 +15,12 @@ RowLayout {
         property var orderedScreens: {
             let configKeys = Rg.profileList.mainProfile.themeConfig.keys();
             // We don't want screens to be alphabetically sorted, that's not friendly
-            let order = [QT_TR_NOOP("k7"), QT_TR_NOOP("k7battle"), QT_TR_NOOP("k14"), QT_TR_NOOP("main"), QT_TR_NOOP("settings"), QT_TR_NOOP("songWheel"), QT_TR_NOOP("result"), QT_TR_NOOP("courseResult")];
+            let order = ["k7", "k7battle", "k14", "main", "settings", "songWheel", "result", "courseResult"];
             return configKeys.sort((a, b) => {
                 let indexA = order.indexOf(a);
                 let indexB = order.indexOf(b);
-                if (indexA === -1) indexA = Infinity; // If not found, put it at the end
-                if (indexB === -1) indexB = Infinity; // If not found, put it at the end
+                if (indexA === -1) indexA = Infinity;
+                if (indexB === -1) indexB = Infinity;
                 return indexA - indexB;
             });
         }
@@ -38,9 +38,22 @@ RowLayout {
             spacing: themeTabView.spacing
         }
 
+        property var displayNames: {
+            return {
+                "k7": QT_TR_NOOP("7k"),
+                "k7battle": QT_TR_NOOP("7k Battle"),
+                "k14": QT_TR_NOOP("14k"),
+                "main": QT_TR_NOOP("Main Menu"),
+                "settings": QT_TR_NOOP("Settings"),
+                "songWheel": QT_TR_NOOP("Select"),
+                "result": QT_TR_NOOP("Result"),
+                "courseResult": QT_TR_NOOP("Course Result")
+            };
+        }
+
         Repeater {
             id: themeTabRepeater
-            model: themeTabView.orderedScreens.map((str) => qsTr(str))
+            model: themeTabView.orderedScreens.map((str) => qsTr(themeTabView.displayNames[str] || str))
 
             TabButton {
                 text: modelData

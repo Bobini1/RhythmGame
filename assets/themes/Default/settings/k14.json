@@ -367,8 +367,8 @@
             "min": 0,
             "default": 60,
             "description": {
-              "en": "The width of white (even) notes.",
-              "pl": "Szerokość białych (parzystych) notek."
+              "en": "The width of white (odd) notes.",
+              "pl": "Szerokość białych (nieparzystych) notek."
             }
           },
           {
@@ -381,8 +381,8 @@
             "min": 0,
             "default": 48,
             "description": {
-              "en": "The width of black (odd) notes.",
-              "pl": "Szerokość czarnych (nieparzystych) notek."
+              "en": "The width of black (even) notes.",
+              "pl": "Szerokość czarnych (parzystych) notek."
             }
           },
           {

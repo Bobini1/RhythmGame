@@ -24,7 +24,19 @@ Loader {
             setSource("settingsProperties/Group.qml", props);
         }
     }
-    readonly property string name: qsTr("%1 Settings").arg(Helpers.capitalizeFirstLetter(screenSettingsLoader.screen))
+    property var displayNames: {
+        return {
+            "k7": QT_TR_NOOP("7k Settings"),
+            "k7battle": QT_TR_NOOP("7k Battle Settings"),
+            "k14": QT_TR_NOOP("14k Settings"),
+            "main": QT_TR_NOOP("Main Menu Settings"),
+            "settings": QT_TR_NOOP("Settings Settings"),
+            "songWheel": QT_TR_NOOP("Select Settings"),
+            "result": QT_TR_NOOP("Result Settings"),
+            "courseResult": QT_TR_NOOP("Course Result")
+        };
+    }
+    readonly property string name: displayNames[screenSettingsLoader.screen] ? qsTr(displayNames[screenSettingsLoader.screen]) : qsTr("%1 Settings").arg(Helpers.capitalizeFirstLetter(screenSettingsLoader.screen))
     onNameChanged: {
         if (screenSettingsLoader.item) {
             screenSettingsLoader.item.name = screenSettingsLoader.name;
