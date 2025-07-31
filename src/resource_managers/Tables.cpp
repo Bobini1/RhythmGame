@@ -77,7 +77,7 @@ resource_managers::Level::getEntries() const -> QVariantList
     }
     return list;
 }
-auto
+static auto
 queryScores(db::SqliteCppDb& db, QVariantList& ret, QStringList md5List)
   -> size_t
 {
