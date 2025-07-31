@@ -23,7 +23,7 @@ class BmsScoreCourse : public QObject
     BmsReplayData* replayData;
     QList<BmsScore*> scores;
   public:
-    explicit BmsScoreCourse(std::unique_ptr<BmsResultCourse> result,
+    explicit BmsScoreCourse(std::unique_ptr<BmsResultCourse> resultCourse,
                             std::unique_ptr<BmsGaugeHistory> gaugeHistory,
                             std::unique_ptr<BmsReplayData> replayData,
                             QList<BmsScore*> scores,
@@ -33,7 +33,7 @@ class BmsScoreCourse : public QObject
     auto getGaugeHistory() const -> BmsGaugeHistory*;
     auto getReplayData() const -> BmsReplayData*;
     void save(db::SqliteCppDb& db) const;
-    static auto fromScores(std::unique_ptr<BmsResultCourse> result,
+    static auto fromScores(std::unique_ptr<BmsResultCourse> resultCourse,
                            QList<BmsScore*> scores,
                            QObject* parent = nullptr) -> std::unique_ptr<BmsScoreCourse>;
 };
