@@ -26,7 +26,19 @@ RowLayout {
         }
 
         Repeater {
-            model: Rg.profileList.mainProfile.themeConfig.keys()
+            id: themeTabRepeater
+            model: {
+                let configKeys = Rg.profileList.mainProfile.themeConfig.keys();
+                // We don't want screens to be alphabetically sorted, that's not friendly
+                let order = ["k7", "k7battle", "k14", "main", "settings", "songWheel", "result", "courseResult"];
+                return configKeys.sort((a, b) => {
+                    let indexA = order.indexOf(a);
+                    let indexB = order.indexOf(b);
+                    if (indexA === -1) indexA = Infinity; // If not found, put it at the end
+                    if (indexB === -1) indexB = Infinity; // If not found, put it at the end
+                    return indexA - indexB;
+                });
+            }
 
             TabButton {
                 text: modelData
@@ -43,7 +55,7 @@ RowLayout {
         currentIndex: themeTabView.currentIndex
 
         Repeater {
-            model: Rg.profileList.mainProfile.themeConfig.keys()
+            model: themeTabRepeater.model
 
             Frame {
                 Layout.fillHeight: true
