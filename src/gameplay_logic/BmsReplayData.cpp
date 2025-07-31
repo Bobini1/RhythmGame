@@ -17,7 +17,7 @@ BmsReplayData::BmsReplayData(QList<HitEvent> hitEvents,
 {
 }
 auto
-BmsReplayData::getHitEvents() -> const QList<HitEvent>&
+BmsReplayData::getHitEvents() const -> const QList<HitEvent>&
 {
     return hitEvents;
 }
@@ -29,6 +29,9 @@ BmsReplayData::getGuid() const -> QString
 void
 BmsReplayData::save(db::SqliteCppDb& db) const
 {
+    if (guid.isEmpty()) {
+        return;
+    }
     auto statement =
       db.createStatement("INSERT OR IGNORE INTO replay_data (score_guid, "
                          "replay_data) VALUES (?, ?)");

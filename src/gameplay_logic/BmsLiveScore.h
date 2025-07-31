@@ -121,6 +121,7 @@ class BmsLiveScore final : public QObject
     int maxCombo = 0;
     int mineHits = 0;
     uint64_t randomSeed;
+    int64_t length;
 
     void resetCombo();
     void increaseCombo();
@@ -139,6 +140,7 @@ class BmsLiveScore final : public QObject
       resource_managers::NoteOrderAlgorithm noteOrderAlgorithmP2,
       QList<int> permutation,
       uint64_t seed,
+        int64_t length,
       QString sha256,
       QString md5,
       QString guid = QUuid::createUuid().toString(),

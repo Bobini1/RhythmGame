@@ -6,6 +6,7 @@
 #include <magic_enum/magic_enum.hpp>
 #include <utility>
 #include <spdlog/spdlog.h>
+#include <QDateTime>
 
 namespace gameplay_logic {
 BmsLiveScore::BmsLiveScore(
@@ -20,6 +21,7 @@ BmsLiveScore::BmsLiveScore(
   resource_managers::NoteOrderAlgorithm noteOrderAlgorithmP2,
   QList<int> permutation,
   uint64_t seed,
+  int64_t length,
   QString sha256,
   QString md5,
   QString guid,
@@ -39,9 +41,11 @@ BmsLiveScore::BmsLiveScore(
   , md5(std::move(md5))
   , guid(std::move(guid))
   , randomSeed(seed)
+  , length(length)
 {
-    // remember to assign a parent to gauges!
-    // but not here, because courses own their gauges
+    for (auto* gauge : this->gauges) {
+        gauge->setParent(this);
+    }
 }
 auto
 BmsLiveScore::getMaxPoints() const -> double
@@ -237,6 +241,8 @@ BmsLiveScore::getResult() const -> std::unique_ptr<BmsResult>
                                        mineHitsSize,
                                        points,
                                        maxCombo,
+                                       QDateTime::currentSecsSinceEpoch(),
+                                       length,
                                        randomSequence,
                                        randomSeed,
                                        noteOrderAlgorithm,

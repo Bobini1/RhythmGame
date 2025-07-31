@@ -32,3 +32,10 @@ gameplay_logic::BmsScore::getGaugeHistory() const -> BmsGaugeHistory*
 {
     return gaugeHistory;
 }
+void
+gameplay_logic::BmsScore::save(db::SqliteCppDb& db) const
+{
+    result->save(db);
+    replayData->save(db);
+    gaugeHistory->save(db);
+}

@@ -56,6 +56,8 @@ gameplay_logic::BmsResult::BmsResult(
   int mineHits,
   double points,
   int maxCombo,
+    int64_t unixTimestamp,
+  int64_t length,
   QList<qint64> randomSequence,
   uint64_t randomSeed,
   resource_managers::NoteOrderAlgorithm noteOrderAlgorithm,
@@ -80,44 +82,50 @@ gameplay_logic::BmsResult::BmsResult(
   , mineHits(mineHits)
   , points(points)
   , maxCombo(maxCombo)
-  , unixTimestamp(QDateTime::currentSecsSinceEpoch())
+  , unixTimestamp(unixTimestamp)
   , randomSeed(randomSeed)
+  , length(length)
   , noteOrderAlgorithm(noteOrderAlgorithm)
   , noteOrderAlgorithmP2(noteOrderAlgorithmP2)
-    , gameVersion(gameVersion)
+  , gameVersion(gameVersion)
 {
 }
 void
 gameplay_logic::BmsResult::save(db::SqliteCppDb& db) const
 {
-    auto statement = db.createStatement(
-      "INSERT OR IGNORE INTO score ("
-      "max_points, "
-      "max_hits, "
-      "normal_note_count, "
-      "ln_count, "
-      "mine_count, "
-      "clear_type, "
-      "points, "
-      "max_combo, "
-      "poor, "
-      "empty_poor, "
-      "bad, "
-      "good, "
-      "great, "
-      "perfect,"
-      "mine_hits,"
-      "guid,"
-      "sha256,"
-      "md5,"
-      "unix_timestamp,"
-      "random_sequence,"
-      "random_seed,"
-      "note_order_algorithm,"
-      "note_order_algorithm_p2,"
-      "game_version"
-      ")"
-      "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+    if (guid.isEmpty()) {
+        return;
+    }
+    auto statement =
+      db.createStatement("INSERT OR IGNORE INTO score ("
+                         "max_points, "
+                         "max_hits, "
+                         "normal_note_count, "
+                         "ln_count, "
+                         "mine_count, "
+                         "clear_type, "
+                         "points, "
+                         "max_combo, "
+                         "poor, "
+                         "empty_poor, "
+                         "bad, "
+                         "good, "
+                         "great, "
+                         "perfect,"
+                         "mine_hits,"
+                         "guid,"
+                         "sha256,"
+                         "md5,"
+                         "unix_timestamp,"
+                         "length,"
+                         "random_sequence,"
+                         "random_seed,"
+                         "note_order_algorithm,"
+                         "note_order_algorithm_p2,"
+                         "game_version"
+                         ")"
+                         "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, "
+                         "?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
     statement.bind(1, maxPoints);
     statement.bind(2, maxHits);
     statement.bind(3, normalNoteCount);
@@ -137,18 +145,18 @@ gameplay_logic::BmsResult::save(db::SqliteCppDb& db) const
     statement.bind(17, sha256.toStdString());
     statement.bind(18, md5.toStdString());
     statement.bind(19, unixTimestamp);
+    statement.bind(20, length);
     auto randomSequenceCompressed = support::compress(randomSequence);
     statement.bind(
-      20, randomSequenceCompressed.data(), randomSequenceCompressed.size());
-    statement.bind(21, static_cast<int64_t>(randomSeed));
-    statement.bind(22, static_cast<int>(noteOrderAlgorithm));
-    statement.bind(23, static_cast<int>(noteOrderAlgorithmP2));
-    statement.bind(24, static_cast<int64_t>(gameVersion));
+      21, randomSequenceCompressed.data(), randomSequenceCompressed.size());
+    statement.bind(22, static_cast<int64_t>(randomSeed));
+    statement.bind(23, static_cast<int>(noteOrderAlgorithm));
+    statement.bind(24, static_cast<int>(noteOrderAlgorithmP2));
+    statement.bind(25, static_cast<int64_t>(gameVersion));
     statement.execute();
 }
 auto
-gameplay_logic::BmsResult::load(const DTO& dto)
-  -> std::unique_ptr<BmsResult>
+gameplay_logic::BmsResult::load(const DTO& dto) -> std::unique_ptr<BmsResult>
 {
     auto judgementCounts = QList<int>(magic_enum::enum_count<Judgement>());
     judgementCounts[static_cast<int>(Judgement::Poor)] = dto.poorCount;
@@ -171,6 +179,8 @@ gameplay_logic::BmsResult::load(const DTO& dto)
       dto.mineHits,
       dto.points,
       dto.maxCombo,
+      dto.unixTimestamp,
+      dto.length,
       randomSequence,
       dto.randomSeed,
       static_cast<resource_managers::NoteOrderAlgorithm>(
@@ -188,6 +198,11 @@ auto
 gameplay_logic::BmsResult::getUnixTimestamp() const -> int64_t
 {
     return unixTimestamp;
+}
+auto
+gameplay_logic::BmsResult::getLength() const -> int64_t
+{
+    return length;
 }
 auto
 gameplay_logic::BmsResult::getGuid() const -> QString

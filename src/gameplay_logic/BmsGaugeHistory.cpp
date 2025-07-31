@@ -40,6 +40,9 @@ operator>>(QDataStream& stream, BmsGaugeInfo& gaugeInfo) -> QDataStream&
 void
 BmsGaugeHistory::save(db::SqliteCppDb& db) const
 {
+    if (guid.isEmpty()) {
+        return;
+    }
     auto statement = db.createStatement(
       "INSERT OR IGNORE INTO gauge_history (score_guid, gauge_history, gauge_info) "
       "VALUES (?, ?, ?)");

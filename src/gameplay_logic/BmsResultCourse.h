@@ -1,19 +1,20 @@
 //
-// Created by bobini on 27.09.23.
+// Created by PC on 17/07/2025.
 //
 
-#ifndef RHYTHMGAME_BMSRESULT_H
-#define RHYTHMGAME_BMSRESULT_H
+#ifndef BMSRESULTCOURSE_H
+#define BMSRESULTCOURSE_H
 
-#include <magic_enum/magic_enum.hpp>
-#include "Judgement.h"
-#include "db/SqliteCppDb.h"
-#include "resource_managers/Vars.h"
+#include "BmsScore.h"
+#include "resource_managers/Tables.h"
 #include "support/Version.h"
+#include "resource_managers/Vars.h"
 
 #include <QObject>
+#include <magic_enum/magic_enum.hpp>
+
 namespace gameplay_logic {
-class BmsResult final : public QObject
+class BmsResultCourse final : public QObject
 {
     Q_OBJECT
 
@@ -29,91 +30,55 @@ class BmsResult final : public QObject
     Q_PROPERTY(QString clearType READ getClearType CONSTANT)
     Q_PROPERTY(QList<qint64> randomSequence READ getRandomSequence CONSTANT)
     Q_PROPERTY(int64_t unixTimestamp READ getUnixTimestamp CONSTANT)
-    Q_PROPERTY(int64_t length READ getLength CONSTANT)
     Q_PROPERTY(QString guid READ getGuid CONSTANT)
     Q_PROPERTY(QString sha256 READ getSha256 CONSTANT)
     Q_PROPERTY(QString md5 READ getMd5 CONSTANT)
-    Q_PROPERTY(uint64_t randomSeed READ getRandomSeed CONSTANT)
     Q_PROPERTY(resource_managers::NoteOrderAlgorithm noteOrderAlgorithm READ
                  getNoteOrderAlgorithm CONSTANT)
     Q_PROPERTY(resource_managers::NoteOrderAlgorithm noteOrderAlgorithmP2 READ
                  getNoteOrderAlgorithmP2 CONSTANT)
+    Q_PROPERTY(QString identifier READ getIdentifier CONSTANT)
     Q_PROPERTY(uint64_t gameVersion READ getGameVersion CONSTANT)
 
-    double maxPoints;
-    int maxHits;
-    int normalNoteCount;
-    int lnCount;
-    int mineCount;
+    Q_PROPERTY(QStringList constraints READ getConstraints CONSTANT)
+    Q_PROPERTY(QVariantList trophies READ getTrophies CONSTANT)
+
+    QString identifier;
+    QList<BmsScore*> scores;
     QString clearType;
-    QList<int> judgementCounts =
-      QList<int>(magic_enum::enum_count<Judgement>());
     QList<qint64> randomSequence;
     QString guid;
-    QString sha256;
-    QString md5;
-    int mineHits;
-    double points;
     int maxCombo;
-    int64_t unixTimestamp;
-    int64_t length;
-    uint64_t randomSeed;
-    resource_managers::NoteOrderAlgorithm noteOrderAlgorithm;
-    resource_managers::NoteOrderAlgorithm noteOrderAlgorithmP2;
+    QStringList constraints;
+    QList<resource_managers::Trophy> trophies;
     uint64_t gameVersion;
 
   public:
     struct DTO
     {
         int64_t id;
+        std::string identifier;
         std::string guid;
-        std::string sha256;
-        std::string md5;
-        double points;
-        double maxPoints;
-        int maxHits;
-        int normalNoteCount;
-        int lnCount;
-        int mineCount;
-        int maxCombo;
-        int poorCount;
-        int emptyPoorCount;
-        int badCount;
-        int goodCount;
-        int greatCount;
-        int perfectCount;
-        int mineHits;
+        std::string scoreGuids;
         std::string clearType;
+        int maxCombo;
+        std::string constraints;
+        std::string trophies;
         int64_t unixTimestamp;
-        int64_t length;
-        std::string randomSequence;
-        int64_t randomSeed;
-        int noteOrderAlgorithm;
-        int noteOrderAlgorithmP2;
         int64_t gameVersion;
     };
-    explicit BmsResult(
-      double maxPoints,
-      int maxHits,
-      int normalNoteCount,
-      int lnCount,
-      int mineCount,
-      QString clearType,
-      QList<int> judgementCounts,
-      int mineHits,
-      double points,
-      int maxCombo,
-        int64_t unixTimestamp,
-      int64_t length,
-      QList<qint64> randomSequence,
-      uint64_t randomSeed,
-      resource_managers::NoteOrderAlgorithm noteOrderAlgorithm,
-      resource_managers::NoteOrderAlgorithm noteOrderAlgorithmP2,
-      QString guid,
-      QString sha256,
-      QString md5,
-      uint64_t gameVersion = support::currentVersion,
-      QObject* parent = nullptr);
+    static auto load(const DTO& dto, QList<BmsScore*>& scores)
+      -> std::unique_ptr<BmsResultCourse>;
+    void save(db::SqliteCppDb& db) const;
+    BmsResultCourse(QString guid,
+                   QString identifier,
+                   QList<BmsScore*> scores,
+                   QString clearType,
+                   int maxCombo,
+                   QStringList constraints,
+                   QList<resource_managers::Trophy> trophies,
+                   uint64_t gameVersion = support::currentVersion,
+                   QObject* parent = nullptr);
 
     auto getMaxPoints() const -> double;
     auto getMaxHits() const -> int;
@@ -125,22 +90,20 @@ class BmsResult final : public QObject
     auto getJudgementCounts() const -> QList<int>;
     auto getMineHits() const -> int;
     auto getClearType() const -> const QString&;
-    auto getRandomSequence() -> const QList<qint64>&;
+    auto getRandomSequence() -> QList<qint64>;
     auto getUnixTimestamp() const -> int64_t;
-    auto getLength() const -> int64_t;
     auto getGuid() const -> QString;
     auto getSha256() const -> QString;
     auto getMd5() const -> QString;
-    auto getRandomSeed() const -> uint64_t;
     auto getNoteOrderAlgorithm() const -> resource_managers::NoteOrderAlgorithm;
     auto getNoteOrderAlgorithmP2() const
       -> resource_managers::NoteOrderAlgorithm;
     auto getGameVersion() const -> uint64_t;
-
-    void save(db::SqliteCppDb& db) const;
-    static auto load(const DTO& dto) -> std::unique_ptr<BmsResult>;
+    auto getScores() const -> QList<BmsScore*>;
+    auto getConstraints() const -> QStringList;
+    auto getTrophies() const -> QVariantList;
+    auto getIdentifier() const -> QString;
 };
-
 } // namespace gameplay_logic
 
-#endif // RHYTHMGAME_BMSRESULT_H
+#endif // BMSRESULTCOURSE_H

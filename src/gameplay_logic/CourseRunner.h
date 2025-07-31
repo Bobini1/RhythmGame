@@ -4,11 +4,11 @@
 
 #ifndef CHARTGROUP_H
 #define CHARTGROUP_H
+#include "BmsScoreCourse.h"
 #include "ChartData.h"
 
 #include <QObject>
 #include "ChartRunner.h"
-#include "qml_components/ChartLoader.h"
 
 namespace gameplay_logic {
 

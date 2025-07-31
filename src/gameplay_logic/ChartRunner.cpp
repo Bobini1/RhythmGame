@@ -12,11 +12,12 @@
 using namespace std::chrono_literals;
 namespace gameplay_logic {
 
-ChartRunner::ChartRunner(ChartData* chartData,
-             QFuture<std::unique_ptr<qml_components::BgaContainer>> bgaFuture,
-             Player* player1,
-             Player* player2,
-             QObject* parent)
+ChartRunner::ChartRunner(
+  ChartData* chartData,
+  QFuture<std::unique_ptr<qml_components::BgaContainer>> bgaFuture,
+  Player* player1,
+  Player* player2,
+  QObject* parent)
   : QObject(parent)
   , player1(player1)
   , player2(player2)
@@ -58,8 +59,10 @@ ChartRunner::start()
     }
     setStatus(Running);
     propertyUpdateTimer.start(1);
-    connect(
-      &propertyUpdateTimer, &QTimer::timeout, this, &ChartRunner::updateElapsed);
+    connect(&propertyUpdateTimer,
+            &QTimer::timeout,
+            this,
+            &ChartRunner::updateElapsed);
     startTimepoint = std::chrono::system_clock::now();
 }
 
@@ -82,7 +85,9 @@ ChartRunner::updateElapsed()
 }
 
 void
-ChartRunner::passKey(input::BmsKey key, const EventType eventType, const int64_t time)
+ChartRunner::passKey(input::BmsKey key,
+                     const EventType eventType,
+                     const int64_t time)
 {
     if (key == input::BmsKey::Start1 || key == input::BmsKey::Select1 ||
         key == input::BmsKey::Start2 || key == input::BmsKey::Select2) {
@@ -130,7 +135,8 @@ ChartRunner::setStatus(const Status status)
 void
 ChartRunner::setup()
 {
-    if (++numberOfSetupCalls != (player2 != nullptr ? 3 : 2) || status != Loading) {
+    if (++numberOfSetupCalls != (player2 != nullptr ? 3 : 2) ||
+        status != Loading) {
         return;
     }
     bga = bgaFuture.takeResult().release();
@@ -351,20 +357,18 @@ Player::finish() -> BmsScore*
     auto result = score->getResult();
     auto replayData = score->getReplayData();
     auto gaugeHistory = score->getGaugeHistory();
+    auto score = std::make_unique<BmsScore>(
+      std::move(result), std::move(replayData), std::move(gaugeHistory));
     if (auto* profilePtr = profile.get()) {
         try {
-            result->save(profilePtr->getDb());
-            replayData->save(profilePtr->getDb());
-            gaugeHistory->save(profilePtr->getDb());
+            score->save(profilePtr->getDb());
         } catch (const std::exception& e) {
             spdlog::error("Failed to save score: {}", e.what());
         }
     } else {
         spdlog::warn("Profile was deleted before saving score");
     }
-    return new BmsScore{ std::move(result),
-                         std::move(replayData),
-                         std::move(gaugeHistory) };
+    return score.release();
 }
 RePlayer::RePlayer(BmsNotes* notes,
                    BmsLiveScore* score,
@@ -464,21 +468,5 @@ AutoPlayer::update(std::chrono::nanoseconds offsetFromStart, bool lastUpdate)
         }
     }
     Player::update(offsetFromStart, lastUpdate);
-}
-auto
-AutoPlayer::finish() -> BmsScore*
-{
-    if (refereeFuture.isRunning()) {
-        refereeFuture.cancel();
-    }
-    if (getStatus() == ChartRunner::Status::Loading) {
-        return nullptr;
-    }
-    auto result = score->getResult();
-    auto replayData = score->getReplayData();
-    auto gaugeHistory = score->getGaugeHistory();
-    return new BmsScore{ std::move(result),
-                         std::move(replayData),
-                         std::move(gaugeHistory) };
 }
 } // namespace gameplay_logic

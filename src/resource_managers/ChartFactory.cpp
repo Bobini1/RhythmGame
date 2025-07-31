@@ -414,6 +414,15 @@ getComponentsForPlayer(const ChartFactory::PlayerSpecificData& player,
     // TODO: Simplify this. Don't convert bpmChanges twice for two players.
     auto notes = ChartDataFactory::makeNotes(
       visibleNotes, notesData.bpmChanges, notesData.barLines);
+    auto guid = [&] {
+        if (player.replayedScore) {
+            return player.replayedScore->getResult()->getGuid();
+        }
+        if (player.autoPlay) {
+            return QStringLiteral("");
+        }
+        return QUuid::createUuid().toString();
+    }();
     auto score = std::make_unique<gameplay_logic::BmsLiveScore>(
       chartData.getNormalNoteCount(),
       chartData.getLnCount(),
@@ -428,10 +437,10 @@ getComponentsForPlayer(const ChartFactory::PlayerSpecificData& player,
         : NoteOrderAlgorithm::Normal,
       results[0].columns += results[1].columns,
       results[0].seed,
+      chartData.getLength(),
       chartData.getSha256(),
       chartData.getMd5(),
-      player.replayedScore ? player.replayedScore->getResult()->getGuid()
-                           : QUuid::createUuid().toString());
+      guid);
     auto notesStates = QList<gameplay_logic::ColumnState*>{};
     for (const auto& column : notes->getNotes()) {
         auto notes = QList<gameplay_logic::NoteState>{};

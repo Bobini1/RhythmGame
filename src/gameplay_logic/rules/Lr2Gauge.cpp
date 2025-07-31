@@ -242,6 +242,7 @@ gameplay_logic::rules::Lr2Gauge::getDanGauges(
                                              return 0.0;
                                      }
                                  });
+    gauges.push_back(std::move(exhardDanGauge));
 
     auto exdanGauge =
       std::make_unique<Lr2Gauge>("EXDAN",

@@ -87,7 +87,7 @@ validateParams(resource_managers::Profile* player1,
         spdlog::error("Player 2 replay requested but player 2 is null");
         return false;
     }
-    if constexpr (std::is_same_v<Score, gameplay_logic::BmsScoreCourse>) {
+    if constexpr (std::is_same_v<Score, gameplay_logic::BmsResultCourse>) {
         if (score1 && score2) {
             if (score1->getIdentifier() != score2->getIdentifier()) {
                 spdlog::error("Score 1 and score 2 aren't for the same course");
@@ -99,7 +99,7 @@ validateParams(resource_managers::Profile* player1,
                     spdlog::error("Score 1 and score 2 have different #RANDOM "
                                   "sequences for course");
                     return false;
-                    }
+                }
             }
         }
     } else {
@@ -197,10 +197,10 @@ gameplay_logic::CourseRunner*
 ChartLoader::loadCourse(const resource_managers::Course& course,
                         resource_managers::Profile* player1,
                         bool player1AutoPlay,
-                        gameplay_logic::BmsScoreCourse* score1,
+                        gameplay_logic::BmsResultCourse* score1,
                         resource_managers::Profile* player2,
                         bool player2AutoPlay,
-                        gameplay_logic::BmsScoreCourse* score2) const
+                        gameplay_logic::BmsResultCourse* score2) const
 {
     if (!validateParams(
           player1, player1AutoPlay, score1, player2, player2AutoPlay, score2)) {
@@ -303,12 +303,28 @@ ChartLoader::loadCourse(const resource_managers::Course& course,
     for (const auto& components : chartComponents) {
         chartDatas.append(components.chartData->clone().release());
     }
-    auto* coursePlayer1 = new gameplay_logic::CoursePlayer(
-      score1 ? score1->getGuid() : QUuid::createUuid().toString());
+    auto guid1 = [&]() -> QString {
+        if (score1) {
+            return score1->getGuid();
+        }
+        if (player1AutoPlay) {
+            return QStringLiteral("");
+        }
+        return QUuid::createUuid().toString();
+    }();
+    auto guid2 = [&]() -> QString {
+        if (score2) {
+            return score2->getGuid();
+        }
+        if (player2AutoPlay) {
+            return QStringLiteral("");
+        }
+        return QUuid::createUuid().toString();
+    }();
+
+    auto* coursePlayer1 = new gameplay_logic::CoursePlayer(guid1);
     auto* coursePlayer2 =
-      player2 ? new gameplay_logic::CoursePlayer(
-                  score2 ? score2->getGuid() : QUuid::createUuid().toString())
-              : nullptr;
+      player2 ? new gameplay_logic::CoursePlayer(guid2) : nullptr;
     return new gameplay_logic::CourseRunner{ coursePlayer1,
                                              coursePlayer2,
                                              course,

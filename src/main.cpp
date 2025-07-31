@@ -26,6 +26,7 @@
 #include "qml_components/FileQuery.h"
 #include "qml_components/InputAttached.h"
 #include "../RhythmGameQml/Rg.h"
+#include "gameplay_logic/BmsScoreCourse.h"
 #include "input/CustomNotifyApp.h"
 #include "qml_components/QmlUtils.h"
 #include "qml_components/Themes.h"
@@ -35,6 +36,7 @@
 #include "resource_managers/Tables.h"
 #include "support/PathToUtfString.h"
 #include "support/UtfStringToPath.h"
+#include "gameplay_logic/CourseRunner.h"
 
 Q_IMPORT_QML_PLUGIN(RhythmGameQmlPlugin)
 
@@ -277,6 +279,8 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
           "RhythmGameQml", 1, 0, "entry");
         qmlRegisterType<gameplay_logic::ChartRunner>(
           "RhythmGameQml", 1, 0, "ChartRunner");
+        qmlRegisterType<gameplay_logic::CourseRunner>(
+          "RhythmGameQml", 1, 0, "CourseRunner");
         qmlRegisterType<gameplay_logic::ChartData>(
           "RhythmGameQml", 1, 0, "ChartData");
         qmlRegisterType<resource_managers::Profile>(
@@ -293,6 +297,10 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
           "RhythmGameQml", 1, 0, "BmsProfile");
         qmlRegisterType<gameplay_logic::BmsScore>(
           "RhythmGameQml", 1, 0, "BmsScore");
+        qmlRegisterType<gameplay_logic::BmsScoreCourse>(
+          "RhythmGameQml", 1, 0, "BmsScoreCourse");
+        qmlRegisterType<gameplay_logic::BmsResultCourse>(
+          "RhythmGameQml", 1, 0, "BmsResultCourse");
         qmlRegisterType<gameplay_logic::BmsPoints>(
           "RhythmGameQml", 1, 0, "bmsPoints");
         qmlRegisterType<gameplay_logic::BmsResult>(

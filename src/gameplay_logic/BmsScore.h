@@ -30,6 +30,7 @@ class BmsScore final : public QObject
     auto getResult() const -> BmsResult*;
     auto getReplayData() const -> BmsReplayData*;
     auto getGaugeHistory() const -> BmsGaugeHistory*;
+    void save(db::SqliteCppDb& db) const;
 };
 } // namespace gameplay_logic
 

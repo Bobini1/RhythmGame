@@ -6,8 +6,11 @@
 #define RHYTHMGAME_BMSREPLAYDATA_H
 
 #include "HitEvent.h"
-#include "gameplay_logic/rules/BmsGauge.h"
 #include "db/SqliteCppDb.h"
+
+#include <QList>
+#include <QObject>
+#include <QString>
 namespace gameplay_logic {
 
 class BmsReplayData final : public QObject
@@ -24,7 +27,7 @@ class BmsReplayData final : public QObject
     explicit BmsReplayData(QList<HitEvent> hitEvents,
                            QString guid,
                            QObject* parent = nullptr);
-    auto getHitEvents() -> const QList<HitEvent>&;
+    auto getHitEvents() const -> const QList<HitEvent>&;
     auto getGuid() const -> QString;
 
     struct DTO

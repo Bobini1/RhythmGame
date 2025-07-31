@@ -3,7 +3,8 @@
 //
 
 #include "CourseRunner.h"
-
+#include <ranges>
+#include <spdlog/spdlog.h>
 namespace gameplay_logic {
 CoursePlayer::CoursePlayer(QString guid, QObject* parent)
   : QObject(parent)
@@ -50,6 +51,10 @@ CourseRunner::connectChart()
             &ChartRunner::statusChanged,
             this,
             &CourseRunner::onStatusChanged);
+    connect(currentChart.get(),
+            &ChartRunner::bgaLoaded,
+            this,
+            &CourseRunner::bgaChanged);
     connect(currentChart->getPlayer1()->getScore(),
             &BmsLiveScore::comboIncreased,
             this,
@@ -108,7 +113,7 @@ CourseRunner::getChartDatas() const -> QList<ChartData*>
 auto
 CourseRunner::getCurrentChartIndex() const -> int
 {
-    return currentChartIndex;
+    return std::min(currentChartIndex, static_cast<int>(chartDatas.size() - 1));
 }
 auto
 CourseRunner::getBga() const -> qml_components::BgaContainer*
@@ -149,8 +154,8 @@ auto
 CourseRunner::proceed() -> QList<BmsScore*>
 
 {
-    if (currentChartIndex == chartDatas.size() - 1) {
-        return {nullptr};
+    if (currentChartIndex == chartDatas.size()) {
+        return { nullptr };
     }
     const auto* p2 = getPlayer2();
     auto scores = QList<BmsScore*>{};
@@ -184,19 +189,21 @@ CourseRunner::proceed() -> QList<BmsScore*>
             }
         }
     }
-    currentChart = loadChart();
-    emit bgaChanged();
     currentChartIndex++;
-    emit currentChartIndexChanged();
-    emit player1Changed();
-    if (p2 != getPlayer2()) {
-        emit player2Changed();
+    if (currentChartIndex != chartDatas.size()) {
+        emit currentChartIndexChanged();
+        currentChart = loadChart();
+        emit bgaChanged();
+        emit player1Changed();
+        if (p2 != getPlayer2()) {
+            emit player2Changed();
+        }
+        if (status != currentChart->getStatus()) {
+            status = currentChart->getStatus();
+            emit statusChanged();
+        }
+        connectChart();
     }
-    if (status != currentChart->getStatus()) {
-        status = currentChart->getStatus();
-        emit statusChanged();
-    }
-    connectChart();
     return scores;
 }
 auto
@@ -207,25 +214,48 @@ CourseRunner::finish() -> QList<BmsScoreCourse*>
     }
     proceed();
     auto scores = QList<BmsScoreCourse*>{};
-    if (scores1.contains(nullptr) || scores2.contains(nullptr)) {
+    if (scores1.contains(nullptr) || scores2.contains(nullptr) || scores1.isEmpty()) {
         return { nullptr };
     }
-    scores.append(new BmsScoreCourse{ coursePlayer1->getGuid(),
-                                      course.getIdentifier(),
-                                      std::move(scores1),
-                                      clear1,
-                                      coursePlayer1->getMaxCombo(),
-                                      course.constraints,
-                                      course.trophies });
-    if (coursePlayer2) {
-        scores.append(new BmsScoreCourse{ coursePlayer2->getGuid(),
-                                          course.getIdentifier(),
-                                          std::move(scores2),
-                                          clear2,
-                                          coursePlayer2->getMaxCombo(),
-                                          course.constraints,
-                                          course.trophies });
+
+    auto result1 =
+      std::make_unique<BmsResultCourse>(coursePlayer1->getGuid(),
+                                        course.getIdentifier(),
+                                        scores1,
+                                        clear1,
+                                        coursePlayer1->getMaxCombo(),
+                                        course.constraints,
+                                        course.trophies);
+    auto score1 = BmsScoreCourse::fromScores(std::move(result1), scores1, this);
+    try {
+        score1->save(getPlayer1()->getProfile()->getDb());
+    } catch (const std::exception& e) {
+        spdlog::error("Failed to save course result for player 1: {}",
+                      e.what());
     }
+    scores.append(score1.release());
+
+    if (coursePlayer2) {
+        auto result2 =
+          std::make_unique<BmsResultCourse>(coursePlayer2->getGuid(),
+                                            course.getIdentifier(),
+                                            scores2,
+                                            clear2,
+                                            coursePlayer2->getMaxCombo(),
+                                            course.constraints,
+                                            course.trophies);
+        auto score2 =
+          BmsScoreCourse::fromScores(std::move(result2), scores2, this);
+        try {
+            score2->save(getPlayer2()->getProfile()->getDb());
+        } catch (const std::exception& e) {
+            spdlog::error("Failed to save course result for player 2: {}",
+                          e.what());
+        }
+        scores.append(score2.release());
+    }
+    scores1.clear();
+    scores2.clear();
     return scores;
 }
 void

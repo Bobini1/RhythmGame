@@ -78,7 +78,9 @@ find_package(zstd REQUIRED)
 
 
 if (MSVC)
-    set(utf8Manifest staticAssets/utf8.manifest)
+    set(utf8Manifest staticAssets/utf8.manifest
+            src/gameplay_logic/BmsScoreCourse.cpp
+            src/gameplay_logic/BmsScoreCourse.h)
 endif ()
 
 # ---- Load library ----
@@ -198,8 +200,8 @@ qt_add_library(RhythmGame_lib OBJECT ${utf8Manifest} src/db/SqliteCppDb.cpp src/
         src/support/Version.h
         src/gameplay_logic/CourseRunner.cpp
         src/gameplay_logic/CourseRunner.h
-        src/gameplay_logic/BmsScoreCourse.cpp
-        src/gameplay_logic/BmsScoreCourse.h
+        src/gameplay_logic/BmsResultCourse.cpp
+        src/gameplay_logic/BmsResultCourse.h
 )
 # define version macros
 target_compile_definitions(RhythmGame_lib PUBLIC

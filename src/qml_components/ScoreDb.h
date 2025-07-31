@@ -20,7 +20,7 @@ class ScoreQueryResult
     qint64 unplayed{};
     QVariantMap scores;
 };
-class TableScoreQueryResult : public ScoreQueryResult
+class CourseQueryResult
 {
     Q_GADGET
     Q_PROPERTY(qint64 courseUnplayed MEMBER courseUnplayed)
@@ -28,6 +28,10 @@ class TableScoreQueryResult : public ScoreQueryResult
 public:
     qint64 courseUnplayed{};
     QVariantMap courseScores;
+};
+class TableQueryResult : public ScoreQueryResult, public CourseQueryResult
+{
+    Q_GADGET
 };
 
 class ScoreDb final : public QObject
@@ -38,14 +42,18 @@ class ScoreDb final : public QObject
     mutable QThreadPool threadPool;
     std::stop_source stopSource;
     auto getScoresForMd5Impl(QList<QString> md5s) const -> ScoreQueryResult;
+    auto getScoresForCourseIdImpl(const QList<QString>& courseIds) const
+      -> CourseQueryResult;
 
   public:
     explicit ScoreDb(db::SqliteCppDb* scoreDb);
     Q_INVOKABLE QIfPendingReply<ScoreQueryResult> getScoresForMd5(
-      const QList<QString>& md5s) const;
+    const QList<QString>& md5s) const;
+    Q_INVOKABLE QIfPendingReply<CourseQueryResult> getScoresForCourseId(
+      const QList<QString>& courseIds) const;
     Q_INVOKABLE QIfPendingReply<ScoreQueryResult> getScores(
       const QString& folder) const;
-    Q_INVOKABLE QIfPendingReply<TableScoreQueryResult> getScores(
+    Q_INVOKABLE QIfPendingReply<TableQueryResult> getScores(
       const resource_managers::Table& table) const;
     Q_INVOKABLE QIfPendingReply<ScoreQueryResult> getScores(
       const resource_managers::Level& level) const;

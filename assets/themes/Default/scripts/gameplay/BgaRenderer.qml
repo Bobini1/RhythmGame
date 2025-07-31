@@ -9,6 +9,16 @@ Item {
     readonly property alias poorSink: videoPoor.videoSink
     property alias poorVisible: videoPoor.visible
 
+    function clearOutput() {
+        // available since Qt 6.9
+        if ("clearOutput" in videoBase) {
+            videoBase.clearOutput();
+            videoLayer.clearOutput();
+            videoLayer2.clearOutput();
+            videoPoor.clearOutput();
+        }
+    }
+
     clip: true
 
     Item {

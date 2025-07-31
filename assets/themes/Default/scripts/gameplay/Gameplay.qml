@@ -27,15 +27,21 @@ Rectangle {
     property var popup: null
     readonly property bool isDp: screen === "k14"
     readonly property bool isBattle: screen === "k7battle"
+    readonly property bool isCourse: chart instanceof CourseRunner
     property var chart
     readonly property string themeName: QmlUtils.themeName
 
-    property bool completed: false
+    property bool showedCourseResult: false
     StackView.onActivated: {
-        if (completed) {
-            Qt.callLater(() => sceneStack.pop());
+        if (chart.status === ChartRunner.Finished) {
+            if (isCourse && !showedCourseResult) {
+                showedCourseResult = true;
+                Qt.callLater(() => globalRoot.openCourseResult(chart.finish(), [chart.player1.profile, chart.player2 ? chart.player2.profile : null], chart.chartDatas));
+            } else {
+                Qt.callLater(() => sceneStack.pop());
+            }
         } else {
-            completed = true;
+            chart.start();
         }
     }
 
@@ -71,13 +77,13 @@ Rectangle {
     }
     Connections {
         function onStatusChanged() {
-            if (root.chart.status === ChartRunner.Ready) {
+            if (root.chart.status === ChartRunner.Ready || root.chart.status === ChartRunner.Running) {
                 chart.bga.layers[0].videoSink = bga.baseSink;
                 chart.bga.layers[1].videoSink = bga.layerSink;
                 chart.bga.layers[2].videoSink = bga.layer2Sink;
                 chart.bga.layers[3].videoSink = bga.poorSink;
-                chart.start();
             } else if (root.chart.status === ChartRunner.Finished) {
+                bga.clearOutput();
                 if (root.popup !== null) {
                     root.popup.close();
                     root.popup = null;
@@ -85,6 +91,10 @@ Rectangle {
                 if (escapeShortcut.used) {
                     return;
                 }
+                chart.bga.layers[0].videoSink = bga.baseSink;
+                chart.bga.layers[1].videoSink = bga.layerSink;
+                chart.bga.layers[2].videoSink = bga.layer2Sink;
+                chart.bga.layers[3].videoSink = bga.poorSink;
                 let chartData = root.chartData;
                 let profile1 = chart.player1.profile;
                 let profile2 = chart.player2 ? chart.player2.profile : null;

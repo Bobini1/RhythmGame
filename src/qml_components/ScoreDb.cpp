@@ -4,7 +4,7 @@
 
 #include "ScoreDb.h"
 
-#include "gameplay_logic/BmsScoreCourse.h"
+#include "gameplay_logic/BmsResultCourse.h"
 #include "support/PathToUtfString.h"
 
 #include <QFutureWatcher>
@@ -78,6 +78,101 @@ ScoreDb::getScoresForMd5Impl(QList<QString> md5s) const -> ScoreQueryResult
 
     return result;
 }
+
+auto
+ScoreDb::getScoresForCourseIdImpl(const QList<QString>& courseIds) const
+  -> CourseQueryResult
+{
+    auto allCourseResults = std::vector<gameplay_logic::BmsResultCourse::DTO>{};
+    for (int i = 0; i < courseIds.size(); i += maxVariables) {
+        auto chunk = courseIds.mid(i, maxVariables);
+        auto statement = scoreDb->createStatement(
+          "SELECT * "
+          "FROM score_course "
+          "WHERE score_course.identifier IN (" +
+          QString("?, ").repeated(chunk.size()).chopped(2).toStdString() +
+          ") ORDER BY score_course.unix_timestamp DESC");
+
+        for (int j = 0; j < chunk.size(); ++j) {
+            statement.bind(j + 1, chunk[j].toStdString());
+        }
+
+        const auto result =
+          statement.executeAndGetAll<gameplay_logic::BmsResultCourse::DTO>();
+        allCourseResults.append_range(result);
+    }
+
+    auto scoreGuids = QList<QString>{};
+    for (const auto& course : allCourseResults) {
+        const auto& guidsForCourse = course.scoreGuids;
+        auto guids =
+          QString::fromStdString(guidsForCourse).split(' ', Qt::SkipEmptyParts);
+        scoreGuids.append(guids);
+    }
+
+    std::vector<std::tuple<gameplay_logic::BmsResult::DTO,
+                           gameplay_logic::BmsReplayData::DTO,
+                           gameplay_logic::BmsGaugeHistory::DTO>>
+      allResults;
+
+    for (int i = 0; i < scoreGuids.size(); i += maxVariables) {
+        auto chunk = scoreGuids.mid(i, maxVariables);
+        auto statement = scoreDb->createStatement(
+          "SELECT * "
+          "FROM score "
+          "JOIN replay_data ON score.guid = replay_data.score_guid "
+          "JOIN gauge_history ON score.guid = gauge_history.score_guid "
+          "WHERE score.guid IN (" +
+          QString("?, ").repeated(chunk.size()).chopped(2).toStdString() +
+          ") ORDER BY score.unix_timestamp DESC");
+
+        for (int j = 0; j < chunk.size(); ++j) {
+            statement.bind(j + 1, chunk[j].toStdString());
+        }
+
+        const auto result = statement.executeAndGetAll<
+          std::tuple<gameplay_logic::BmsResult::DTO,
+                     gameplay_logic::BmsReplayData::DTO,
+                     gameplay_logic::BmsGaugeHistory::DTO>>();
+        allResults.append_range(result);
+    }
+    QHash<QString, gameplay_logic::BmsScore*> groupedScores;
+    auto* mainThread = QCoreApplication::instance()->thread();
+    for (const auto& row : allResults) {
+        auto guid = QString::fromStdString(std::get<0>(row).guid);
+        auto* score = new gameplay_logic::BmsScore{
+            gameplay_logic::BmsResult::load(std::get<0>(row)),
+            gameplay_logic::BmsReplayData::load(std::get<1>(row)),
+            gameplay_logic::BmsGaugeHistory::load(std::get<2>(row))
+        };
+        score->moveToThread(mainThread);
+        groupedScores[guid] = score;
+    }
+    auto courseScores = QMap<QString, QVariantList>{};
+    for (const auto& courseScore : allCourseResults) {
+        auto scoreGuids = QString::fromStdString(courseScore.scoreGuids)
+                            .split(' ', Qt::SkipEmptyParts);
+        auto scoresForCourse = QList<gameplay_logic::BmsScore*>{};
+        for (const auto& guid : scoreGuids) {
+            if (groupedScores.contains(guid)) {
+                scoresForCourse.append(groupedScores[guid]);
+            }
+        }
+        courseScores[QString::fromStdString(courseScore.identifier)].push_back(
+          QVariant::fromValue(
+            gameplay_logic::BmsResultCourse::load(courseScore, scoresForCourse)
+              .release()));
+    }
+
+    auto result = CourseQueryResult{};
+    result.courseScores = QVariantMap{};
+    for (const auto& [courseId, scores] : courseScores.asKeyValueRange()) {
+        result.courseScores[courseId] = scores;
+    }
+    result.courseUnplayed = courseIds.size() - courseScores.size();
+
+    return result;
+}
 ScoreDb::ScoreDb(db::SqliteCppDb* scoreDb)
   : scoreDb(scoreDb)
 {
@@ -118,6 +213,41 @@ ScoreDb::getScoresForMd5(const QList<QString>& md5s) const
         }
     });
     return reply;
+}
+QIfPendingReply<CourseQueryResult>
+ScoreDb::getScoresForCourseId(const QList<QString>& courseIds) const
+{
+    auto reply = QIfPendingReply<CourseQueryResult>{};
+    if (courseIds.isEmpty()) {
+        reply.setSuccess(CourseQueryResult{});
+        return reply;
+    }
+    auto token = stopSource.get_token();
+    threadPool.start([this, courseIds, token, reply]() mutable {
+        try {
+            auto result = getScoresForCourseIdImpl(courseIds);
+
+            QMetaObject::invokeMethod(
+              QCoreApplication::instance(),
+              [reply, token, result = std::move(result)]() mutable {
+                  if (token.stop_requested()) {
+                      reply.setFailed();
+                      return;
+                  }
+                  reply.setSuccess(result);
+              },
+              Qt::QueuedConnection);
+        } catch (const std::exception& e) {
+            QMetaObject::invokeMethod(
+              QCoreApplication::instance(),
+              [reply, e]() mutable {
+                  spdlog::error("Error in getScoresForCourseId: {}", e.what());
+                  reply.setFailed();
+              },
+              Qt::QueuedConnection);
+        }
+    });
+
 }
 auto
 ScoreDb::getScores(const QString& folder) const
@@ -198,9 +328,9 @@ ScoreDb::getScores(const QString& folder) const
 }
 auto
 ScoreDb::getScores(const resource_managers::Table& table) const
-  -> QIfPendingReply<TableScoreQueryResult>
+  -> QIfPendingReply<TableQueryResult>
 {
-    auto reply = QIfPendingReply<TableScoreQueryResult>{};
+    auto reply = QIfPendingReply<TableQueryResult>{};
     auto token = stopSource.get_token();
 
     threadPool.start([this, table, token, reply]() mutable {
@@ -221,101 +351,14 @@ ScoreDb::getScores(const resource_managers::Table& table) const
                 }
             }
 
-            auto allCourseResults =
-              std::vector<gameplay_logic::BmsScoreCourse::DTO>{};
-            for (int i = 0; i < courseIds.size(); i += maxVariables) {
-                auto chunk = courseIds.mid(i, maxVariables);
-                auto statement = scoreDb->createStatement(
-                  "SELECT * "
-                  "FROM score_course "
-                  "WHERE score_course.identifier IN (" +
-                  QString("?, ")
-                    .repeated(chunk.size())
-                    .chopped(2)
-                    .toStdString() +
-                  ") ORDER BY score_course.unix_timestamp DESC");
-
-                for (int j = 0; j < chunk.size(); ++j) {
-                    statement.bind(j + 1, chunk[j].toStdString());
-                }
-
-                const auto result =
-                  statement
-                    .executeAndGetAll<gameplay_logic::BmsScoreCourse::DTO>();
-                allCourseResults.append_range(result);
-            }
-
-            auto scoreGuids = QList<QString>{};
-            for (const auto& course : allCourseResults) {
-                const auto& guidsForCourse = course.scoreGuids;
-                auto guids = QString::fromStdString(guidsForCourse)
-                               .split(' ', Qt::SkipEmptyParts);
-                scoreGuids.append(guids);
-            }
-
-            std::vector<std::tuple<gameplay_logic::BmsResult::DTO,
-                                   gameplay_logic::BmsReplayData::DTO,
-                                   gameplay_logic::BmsGaugeHistory::DTO>>
-              allResults;
-
-            for (int i = 0; i < scoreGuids.size(); i += maxVariables) {
-                auto chunk = scoreGuids.mid(i, maxVariables);
-                auto statement = scoreDb->createStatement(
-                  "SELECT * "
-                  "FROM score "
-                  "JOIN replay_data ON score.guid = replay_data.score_guid "
-                  "JOIN gauge_history ON score.guid = gauge_history.score_guid "
-                  "WHERE score.guid IN (" +
-                  QString("?, ")
-                    .repeated(chunk.size())
-                    .chopped(2)
-                    .toStdString() +
-                  ") ORDER BY score.unix_timestamp DESC");
-
-                for (int j = 0; j < chunk.size(); ++j) {
-                    statement.bind(j + 1, chunk[j].toStdString());
-                }
-
-                const auto result = statement.executeAndGetAll<
-                  std::tuple<gameplay_logic::BmsResult::DTO,
-                             gameplay_logic::BmsReplayData::DTO,
-                             gameplay_logic::BmsGaugeHistory::DTO>>();
-                allResults.append_range(result);
-            }
-            QHash<QString, gameplay_logic::BmsScore*> groupedScores;
-            auto* mainThread = QCoreApplication::instance()->thread();
-            for (const auto& row : allResults) {
-                auto guid = QString::fromStdString(std::get<0>(row).guid);
-                auto* score = new gameplay_logic::BmsScore{
-                    gameplay_logic::BmsResult::load(std::get<0>(row)),
-                    gameplay_logic::BmsReplayData::load(std::get<1>(row)),
-                    gameplay_logic::BmsGaugeHistory::load(std::get<2>(row))
-                };
-                score->moveToThread(mainThread);
-                groupedScores[guid] = score;
-            }
-            auto courseScores = QMap<QString, QVariantList>{};
-            for (const auto& courseScore : allCourseResults) {
-                auto scoreGuids = QString::fromStdString(courseScore.scoreGuids)
-                                    .split(' ', Qt::SkipEmptyParts);
-                auto scoresForCourse = QList<gameplay_logic::BmsScore*>{};
-                for (const auto& guid : scoreGuids) {
-                    if (groupedScores.contains(guid)) {
-                        scoresForCourse.append(groupedScores[guid]);
-                    }
-                }
-                courseScores[QString::fromStdString(courseScore.identifier)].push_back(
-                  QVariant::fromValue(gameplay_logic::BmsScoreCourse::load(courseScore, scoresForCourse).release()));
-            }
-
-            auto result = TableScoreQueryResult{};
+            auto result = TableQueryResult{};
             result.scores = std::move(scores.scores);
             result.unplayed = scores.unplayed;
-            for (const auto& [courseId, scores] :
-                 courseScores.asKeyValueRange()) {
-                result.courseScores[courseId] = scores;
-            }
-            result.courseUnplayed = courseIds.size() - courseScores.size();
+
+            auto courseResults =
+              getScoresForCourseIdImpl(courseIds);
+            result.courseScores = std::move(courseResults.courseScores);
+            result.courseUnplayed = courseResults.courseUnplayed;
 
             QMetaObject::invokeMethod(
               QCoreApplication::instance(),

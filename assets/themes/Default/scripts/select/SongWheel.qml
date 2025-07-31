@@ -1,3 +1,4 @@
+pragma ValueTypeBehavior: Addressable
 import QtQuick
 import RhythmGameQml
 import QtQuick.Controls.Basic
@@ -96,7 +97,7 @@ FocusScope {
                 Image {
                     id: auto
                     source: root.iniImagesUrl + "parts.png/auto"
-                    enabled: songList.current?.path || false
+                    enabled: songList.current?.path || songList.current instanceof course
                     opacity: enabled ? 1 : 0.5
                     MouseArea {
                         anchors.fill: parent
@@ -104,6 +105,8 @@ FocusScope {
                         onClicked: {
                             if (songList.current?.path) {
                                 globalRoot.openChart(songList.current.path, Rg.profileList.mainProfile, true, null, null, false, null);
+                            } else if (songList.current instanceof course) {
+                                globalRoot.openCourse(songList.current, Rg.profileList.mainProfile, true, null, null, false, null);
                             }
                         }
                     }

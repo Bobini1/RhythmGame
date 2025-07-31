@@ -78,6 +78,14 @@ ApplicationWindow {
             });
         }
 
+        function openCourseResult(scores, profiles, chartDatas) {
+            sceneStack.pushItem(resultComponent, {
+                "scores": scores,
+                "profiles": profiles,
+                "chartDatas": chartDatas
+            });
+        }
+
         anchors.fill: parent
 
         StackView {
