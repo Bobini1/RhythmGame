@@ -14,19 +14,17 @@ namespace qml_components {
 class ScoreQueryResult
 {
     Q_GADGET
-    Q_PROPERTY(qint64 unplayed MEMBER unplayed)
-    Q_PROPERTY(QVariantMap scores MEMBER scores)
+    Q_PROPERTY(qint64 unplayed MEMBER unplayed CONSTANT)
+    Q_PROPERTY(QVariantMap scores MEMBER scores CONSTANT)
   public:
     qint64 unplayed{};
     QVariantMap scores;
-
-    auto operator==(const ScoreQueryResult& other) const -> bool;
 };
 class TableQueryResult
 {
     Q_GADGET
-    Q_PROPERTY(ScoreQueryResult courseScores MEMBER courseScores)
-    Q_PROPERTY(ScoreQueryResult scores MEMBER scores)
+    Q_PROPERTY(ScoreQueryResult courseScores MEMBER courseScores CONSTANT)
+    Q_PROPERTY(ScoreQueryResult scores MEMBER scores CONSTANT)
 public:
     ScoreQueryResult courseScores;
     ScoreQueryResult scores;

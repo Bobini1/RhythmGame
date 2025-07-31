@@ -284,7 +284,9 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
         qmlRegisterType<qml_components::ScoreQueryResult>(
           "RhythmGameQml", 1, 0, "scoreQueryResult");
         qmlRegisterType<qml_components::TableQueryResult>(
-          "RhythmGameQml", 1, 0, "tableQueryResult");
+        "RhythmGameQml", 1, 0, "tableQueryResult");
+        qmlRegisterType<resource_managers::TableInfo>(
+          "RhythmGameQml", 1, 0, "tableInfo");
         qmlRegisterType<gameplay_logic::ChartRunner>(
           "RhythmGameQml", 1, 0, "ChartRunner");
         qmlRegisterType<gameplay_logic::CourseRunner>(

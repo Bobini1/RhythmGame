@@ -414,6 +414,7 @@ resource_managers::Tables::handleData(const QUrl& url, const QJsonArray& data)
                 entry.comment = chartObj["comment"].toString();
 
                 level->entries.push_back(entry);
+                level->md5s.insert(entry.md5.toUpper(), entry);
             }
             auto extraLevelValues = extraLevels.values();
             std::ranges::sort(extraLevelValues,
@@ -725,4 +726,23 @@ resource_managers::Tables::getList() -> QVariantList
         ret.push_back(QVariant::fromValue(table));
     }
     return ret;
+}
+auto
+resource_managers::Tables::search(const QString& md5) -> QList<TableInfo>
+{
+    const auto upper = md5.toUpper();
+    auto info = QList<TableInfo>{};
+    for (const auto& table : tables) {
+        for (const auto& level : table.levels) {
+            if (auto entry = level.md5s.find(upper);
+                entry != level.md5s.end()) {
+                info.push_back(TableInfo{ .tableName = table.name,
+                                          .levelName = level.name,
+                                          .symbol = table.symbol,
+                                          .tableUrl = table.url,
+                                          .entry = *entry });
+            }
+        }
+    }
+    return info;
 }

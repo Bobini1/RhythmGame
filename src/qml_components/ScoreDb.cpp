@@ -17,11 +17,6 @@ namespace qml_components {
 
 constexpr int maxVariables = 999;
 auto
-ScoreQueryResult::operator==(const ScoreQueryResult& other) const -> bool
-{
-    return unplayed == other.unplayed && scores == other.scores;
-}
-auto
 ScoreDb::getScoresForMd5Impl(QList<QString> md5s) const -> ScoreQueryResult
 {
     auto uniqueMd5s = QSet<QString>{};

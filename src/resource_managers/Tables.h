@@ -17,16 +17,16 @@ namespace resource_managers {
 struct Entry
 {
     Q_GADGET
-    Q_PROPERTY(QString title MEMBER title)
-    Q_PROPERTY(QString artist MEMBER artist)
-    Q_PROPERTY(QString subtitle MEMBER subtitle)
-    Q_PROPERTY(QString subartist MEMBER subartist)
-    Q_PROPERTY(QString md5 MEMBER md5)
-    Q_PROPERTY(QString sha256 MEMBER sha256)
-    Q_PROPERTY(QString url MEMBER url)
-    Q_PROPERTY(QString urlDiff MEMBER urlDiff)
-    Q_PROPERTY(QString level MEMBER level)
-    Q_PROPERTY(QString comment MEMBER comment)
+    Q_PROPERTY(QString title MEMBER title CONSTANT)
+    Q_PROPERTY(QString artist MEMBER artist CONSTANT)
+    Q_PROPERTY(QString subtitle MEMBER subtitle CONSTANT)
+    Q_PROPERTY(QString subartist MEMBER subartist CONSTANT)
+    Q_PROPERTY(QString md5 MEMBER md5 CONSTANT)
+    Q_PROPERTY(QString sha256 MEMBER sha256 CONSTANT)
+    Q_PROPERTY(QString url MEMBER url CONSTANT)
+    Q_PROPERTY(QString urlDiff MEMBER urlDiff CONSTANT)
+    Q_PROPERTY(QString level MEMBER level CONSTANT)
+    Q_PROPERTY(QString comment MEMBER comment CONSTANT)
     public:
     QString title;
     QString artist;
@@ -43,12 +43,14 @@ struct Entry
 struct Level
 {
     Q_GADGET
-    Q_PROPERTY(QString name MEMBER name)
+    Q_PROPERTY(QString name MEMBER name CONSTANT)
     Q_PROPERTY(QVariantList entries READ getEntries CONSTANT)
   public:
     db::SqliteCppDb* db;
     QString name;
     QList<Entry> entries;
+    // for searching
+    QHash<QString, Entry> md5s;
     auto getEntries() const -> QVariantList;
     Q_INVOKABLE QVariantList loadCharts() const;
 };
@@ -56,9 +58,9 @@ struct Level
 struct Trophy
 {
     Q_GADGET
-    Q_PROPERTY(QString name MEMBER name)
-    Q_PROPERTY(double missRate MEMBER missRate)
-    Q_PROPERTY(double scoreRate MEMBER scoreRate)
+    Q_PROPERTY(QString name MEMBER name CONSTANT)
+    Q_PROPERTY(double missRate MEMBER missRate CONSTANT)
+    Q_PROPERTY(double scoreRate MEMBER scoreRate CONSTANT)
   public:
     QString name;
     double missRate{};
@@ -71,10 +73,10 @@ struct Trophy
 struct Course
 {
     Q_GADGET
-    Q_PROPERTY(QString name MEMBER name)
-    Q_PROPERTY(QStringList md5s MEMBER md5s)
+    Q_PROPERTY(QString name MEMBER name CONSTANT)
+    Q_PROPERTY(QStringList md5s MEMBER md5s CONSTANT)
     Q_PROPERTY(QVariantList trophies READ getTrophies CONSTANT)
-    Q_PROPERTY(QStringList constraints MEMBER constraints)
+    Q_PROPERTY(QStringList constraints MEMBER constraints CONSTANT)
     Q_PROPERTY(QString identifier READ getIdentifier STORED false CONSTANT)
   public:
     db::SqliteCppDb* db;
@@ -86,6 +88,22 @@ struct Course
     auto getTrophies() const -> QVariantList;
     auto getIdentifier() const -> QString;
     Q_INVOKABLE QVariantList loadCharts() const;
+};
+
+struct TableInfo
+{
+    Q_GADGET
+    Q_PROPERTY(QString tableName MEMBER tableName CONSTANT)
+    Q_PROPERTY(QString levelName MEMBER levelName CONSTANT)
+    Q_PROPERTY(QString symbol MEMBER symbol CONSTANT)
+    Q_PROPERTY(QUrl tableUrl MEMBER tableUrl CONSTANT)
+    Q_PROPERTY(Entry entry MEMBER entry CONSTANT)
+  public:
+    QString tableName;
+    QString levelName;
+    QString symbol;
+    QUrl tableUrl;
+    Entry entry;
 };
 
 struct Table
@@ -150,6 +168,7 @@ class Tables final : public QAbstractListModel
     Q_INVOKABLE void reload(int index);
     Q_INVOKABLE void reorder(int from, int to);
     Q_INVOKABLE QVariantList getList();
+    Q_INVOKABLE QList<TableInfo> search(const QString& md5);
 };
 } // namespace resource_managers
 
