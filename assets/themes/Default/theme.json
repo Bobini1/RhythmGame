@@ -1,10 +1,10 @@
 {
   "scripts": {
-    "main": "scripts/main/Main.qml",
-    "songWheel": "scripts/select/SongWheel.qml",
     "k7": "scripts/gameplay/Gameplay.qml",
     "k7battle": "scripts/gameplay/Gameplay.qml",
     "k14": "scripts/gameplay/Gameplay.qml",
+    "main": "scripts/main/Main.qml",
+    "songWheel": "scripts/select/SongWheel.qml",
     "settings": "scripts/settings/Settings.qml",
     "result": "scripts/result/Result.qml",
     "courseResult": "scripts/result/Result.qml"
