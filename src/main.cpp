@@ -190,14 +190,18 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
           };
         auto chartDataFactory = resource_managers::ChartDataFactory{};
         auto gaugeFactoryGeneral = resource_managers::GaugeFactory{};
-        auto gaugeFactory = [gaugeFactoryGeneral](
-          resource_managers::Profile* profile, double total, int noteCount) {
-            return gaugeFactoryGeneral.getStandardGauges(profile, total, noteCount);
-        };
-        auto gaugeFactoryCourse = [gaugeFactoryGeneral](
-          resource_managers::Profile* profile, const QHash<QString, double>& initialValues) {
-            return gaugeFactoryGeneral.getCourseGauges(profile, initialValues);
-        };
+        auto gaugeFactory =
+          [gaugeFactoryGeneral](
+            resource_managers::Profile* profile, double total, int noteCount) {
+              return gaugeFactoryGeneral.getStandardGauges(
+                profile, total, noteCount);
+          };
+        auto gaugeFactoryCourse =
+          [gaugeFactoryGeneral](resource_managers::Profile* profile,
+                                const QHash<QString, double>& initialValues) {
+              return gaugeFactoryGeneral.getCourseGauges(profile,
+                                                         initialValues);
+          };
         auto getChartPathFromSha256 = [&db](const QString& md5,
                                             const std::filesystem::path& hint) {
             // Check if the hint path exists and matches the hash
@@ -277,6 +281,10 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
           "RhythmGameQml", 1, 0, "table");
         qmlRegisterType<resource_managers::Entry>(
           "RhythmGameQml", 1, 0, "entry");
+        qmlRegisterType<qml_components::ScoreQueryResult>(
+          "RhythmGameQml", 1, 0, "scoreQueryResult");
+        qmlRegisterType<qml_components::TableQueryResult>(
+          "RhythmGameQml", 1, 0, "tableQueryResult");
         qmlRegisterType<gameplay_logic::ChartRunner>(
           "RhythmGameQml", 1, 0, "ChartRunner");
         qmlRegisterType<gameplay_logic::CourseRunner>(

@@ -5,6 +5,7 @@
 #include "ScoreDb.h"
 
 #include "gameplay_logic/BmsResultCourse.h"
+#include "gameplay_logic/BmsScoreCourse.h"
 #include "support/PathToUtfString.h"
 
 #include <QFutureWatcher>
@@ -15,6 +16,11 @@
 namespace qml_components {
 
 constexpr int maxVariables = 999;
+auto
+ScoreQueryResult::operator==(const ScoreQueryResult& other) const -> bool
+{
+    return unplayed == other.unplayed && scores == other.scores;
+}
 auto
 ScoreDb::getScoresForMd5Impl(QList<QString> md5s) const -> ScoreQueryResult
 {
@@ -81,7 +87,7 @@ ScoreDb::getScoresForMd5Impl(QList<QString> md5s) const -> ScoreQueryResult
 
 auto
 ScoreDb::getScoresForCourseIdImpl(const QList<QString>& courseIds) const
-  -> CourseQueryResult
+  -> ScoreQueryResult
 {
     auto allCourseResults = std::vector<gameplay_logic::BmsResultCourse::DTO>{};
     for (int i = 0; i < courseIds.size(); i += maxVariables) {
@@ -145,7 +151,6 @@ ScoreDb::getScoresForCourseIdImpl(const QList<QString>& courseIds) const
             gameplay_logic::BmsReplayData::load(std::get<1>(row)),
             gameplay_logic::BmsGaugeHistory::load(std::get<2>(row))
         };
-        score->moveToThread(mainThread);
         groupedScores[guid] = score;
     }
     auto courseScores = QMap<QString, QVariantList>{};
@@ -158,18 +163,21 @@ ScoreDb::getScoresForCourseIdImpl(const QList<QString>& courseIds) const
                 scoresForCourse.append(groupedScores[guid]);
             }
         }
+        auto score = gameplay_logic::BmsScoreCourse::fromScores(
+                                gameplay_logic::BmsResultCourse::load(
+                                  courseScore, scoresForCourse),
+                                scoresForCourse);
+        score->moveToThread(mainThread);
         courseScores[QString::fromStdString(courseScore.identifier)].push_back(
-          QVariant::fromValue(
-            gameplay_logic::BmsResultCourse::load(courseScore, scoresForCourse)
-              .release()));
+          QVariant::fromValue(score.release()));
     }
 
-    auto result = CourseQueryResult{};
-    result.courseScores = QVariantMap{};
+    auto result = ScoreQueryResult{};
+    result.scores = QVariantMap{};
     for (const auto& [courseId, scores] : courseScores.asKeyValueRange()) {
-        result.courseScores[courseId] = scores;
+        result.scores[courseId] = scores;
     }
-    result.courseUnplayed = courseIds.size() - courseScores.size();
+    result.unplayed = courseIds.size() - courseScores.size();
 
     return result;
 }
@@ -214,12 +222,12 @@ ScoreDb::getScoresForMd5(const QList<QString>& md5s) const
     });
     return reply;
 }
-QIfPendingReply<CourseQueryResult>
+QIfPendingReply<ScoreQueryResult>
 ScoreDb::getScoresForCourseId(const QList<QString>& courseIds) const
 {
-    auto reply = QIfPendingReply<CourseQueryResult>{};
+    auto reply = QIfPendingReply<ScoreQueryResult>{};
     if (courseIds.isEmpty()) {
-        reply.setSuccess(CourseQueryResult{});
+        reply.setSuccess(ScoreQueryResult{});
         return reply;
     }
     auto token = stopSource.get_token();
@@ -248,6 +256,7 @@ ScoreDb::getScoresForCourseId(const QList<QString>& courseIds) const
         }
     });
 
+    return reply;
 }
 auto
 ScoreDb::getScores(const QString& folder) const
@@ -352,13 +361,10 @@ ScoreDb::getScores(const resource_managers::Table& table) const
             }
 
             auto result = TableQueryResult{};
-            result.scores = std::move(scores.scores);
-            result.unplayed = scores.unplayed;
+            result.scores = std::move(scores);
 
-            auto courseResults =
-              getScoresForCourseIdImpl(courseIds);
-            result.courseScores = std::move(courseResults.courseScores);
-            result.courseUnplayed = courseResults.courseUnplayed;
+            auto courseResults = getScoresForCourseIdImpl(courseIds);
+            result.courseScores = std::move(courseResults);
 
             QMetaObject::invokeMethod(
               QCoreApplication::instance(),

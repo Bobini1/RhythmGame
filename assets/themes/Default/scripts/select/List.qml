@@ -30,7 +30,15 @@ PathView {
             });
         } else {
             Rg.profileList.mainProfile.scoreDb.getScores(historyStack[historyStack.length - 1]).then((result) => {
-                scores = result.scores;
+                if (result instanceof tableQueryResult) {
+                    let newScores = result.scores.scores;
+                    for (let [key, value] of Object.entries(result.courseScores.scores)) {
+                        newScores[key] = value;
+                    }
+                    scores = newScores;
+                } else {
+                    scores = result.scores;
+                }
             });
         }
     }
@@ -45,6 +53,9 @@ PathView {
                 continue;
             }
             Rg.profileList.mainProfile.scoreDb.getScores(folder).then((result) => {
+                if (result instanceof tableQueryResult) {
+                    result = result.scores;
+                }
                 let clearCounts = {"NOPLAY": result.unplayed};
                 for (let scores of Object.values(result.scores)) {
                     let clear = Helpers.getClearType(scores);
@@ -270,8 +281,8 @@ PathView {
             }
         }
 
-        readonly property BmsScore scoreWithBestPoints: "scoreWithBestPoints" in item ? item.scoreWithBestPoints : null
-        readonly property list<BmsScore> scores: "scores" in item ? item.scores : []
+        readonly property var scoreWithBestPoints: "scoreWithBestPoints" in item ? item.scoreWithBestPoints : null
+        readonly property var scores: "scores" in item ? item.scores : []
         readonly property var bestStats: "bestStats" in item ? item.bestStats : null
         readonly property bool isCurrentItem: PathView.isCurrentItem
         readonly property bool scrollingText: pathView.scrollingText

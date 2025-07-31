@@ -205,12 +205,13 @@ BmsLiveScore::resetCombo()
 auto
 BmsLiveScore::getResult() const -> std::unique_ptr<BmsResult>
 {
-    auto clearType = QStringLiteral("FAILED");
+    auto allCourses = std::ranges::all_of(gauges, [](const auto* gauge) {
+        return gauge->isCourseGauge();
+    });
+    auto clearType = allCourses ? QStringLiteral("NOPLAY") : QStringLiteral("FAILED");
     for (auto* gauge : gauges) {
         if (gauge->getGauge() > gauge->getThreshold()) {
-            if (gauge->isCourseGauge()) {
-                clearType = QStringLiteral("NOPLAY");
-            } else {
+            if (!gauge->isCourseGauge()) {
                 clearType = gauge->getName();
             }
             break;

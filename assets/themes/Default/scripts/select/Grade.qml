@@ -5,7 +5,7 @@ import "../common/helpers.js" as Helpers
 Image {
     id: gradeImage
 
-    required property BmsScore scoreWithBestPoints
+    required property var scoreWithBestPoints
 
     anchors.centerIn: parent
     anchors.verticalCenterOffset: 90

@@ -58,8 +58,8 @@ class BmsResultCourse final : public QObject
     struct DTO
     {
         int64_t id;
-        std::string identifier;
         std::string guid;
+        std::string identifier;
         std::string scoreGuids;
         std::string clearType;
         int maxCombo;

@@ -8,9 +8,9 @@ Image {
     id: image
 
     property string clearType: Helpers.getClearType(scores)
-    required property list<BmsScore> scores
+    required property var scores
     property var bestStats: Helpers.getBestStats(scores)
-    property BmsScore scoreWithBestPoints: Helpers.getScoreWithBestPoints(scores)
+    property var scoreWithBestPoints: Helpers.getScoreWithBestPoints(scores)
     property bool scrollingText: false
     property bool isCurrentItem: false
     readonly property bool isCourse: modelData instanceof course
