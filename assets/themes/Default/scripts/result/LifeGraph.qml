@@ -9,6 +9,7 @@ Image {
     required property var gaugeHistory
     required property var gaugeInfo
     required property var length
+    required property var lengths
 
     property int clearIndex: {
         let index = clearTypes.indexOf(lifeGraph.clearType);
@@ -67,6 +68,30 @@ Image {
         anchors.fill: parent
         z: -1
 
+        Item {
+            anchors.margins: 20
+            anchors.fill: parent
+            Repeater {
+                property var cumulativeLengths: lifeGraph.lengths.reduce((acc, val) => {
+                    if (acc.length === 0) {
+                        acc.push(val);
+                    } else {
+                        acc.push(acc[acc.length - 1] + val);
+                    }
+                    return acc;
+                }, []);
+                model: cumulativeLengths.slice(0, cumulativeLengths.length - 1)
+                // draw a vertical line for each length
+                Rectangle {
+                    required property string modelData
+                    x: modelData * (parent.width / lifeGraph.length)
+                    width: 2
+                    height: parent.height
+                    color: "red"
+                }
+            }
+        }
+
         Repeater {
             model: lifeGraph.clearTypes
 
@@ -74,11 +99,8 @@ Image {
                 required property int index
                 required property string modelData
 
-                anchors.bottomMargin: 20
+                anchors.margins: 20
                 anchors.fill: parent
-                anchors.leftMargin: 20
-                anchors.rightMargin: 20
-                anchors.topMargin: 20
                 history: lifeGraph.gaugeHistory[modelData]
                 maxGauge: lifeGraph.gaugeInfo[modelData].maxGauge
                 songLength: lifeGraph.length
