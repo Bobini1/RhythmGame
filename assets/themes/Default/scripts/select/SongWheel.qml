@@ -110,20 +110,15 @@ FocusScope {
                             let names = []
                             for (let md5 of md5s) {
                                 let info = Rg.tables.search(md5);
-                                let before = "";
-                                let after = "";
                                 let chartData = chartDatas[md5.toUpperCase()];
-                                if (chartData === undefined) {
-                                    before = "<font color='red'>";
-                                    after = "</font>";
-                                }
+                                let red = (chartData === undefined);
                                 if (info.length) {
-                                    names.push(before + info[0].symbol + info[0].levelName + " " + info[0].entry.title + (info[0].entry.subtitle ? " " + info[0].entry.subtitle : "") + after);
+                                    names.push({red, text: info[0].symbol + info[0].levelName + " " + info[0].entry.title + (info[0].entry.subtitle ? " " + info[0].entry.subtitle : "")});
                                 } else {
                                     if (chartData !== undefined) {
-                                        names.push(chartData.title + (chartData.subtitle ? " " + chartData.subtitle : ""));
+                                        names.push({red, text: chartData.title + (chartData.subtitle ? " " + chartData.subtitle : "")});
                                     } else {
-                                        names.push(before + md5 + after);
+                                        names.push({red, text: before + md5 + after});
                                     }
                                 }
                             }
@@ -136,16 +131,19 @@ FocusScope {
                                 anchors.top: parent.top
                                 anchors.topMargin: 4
                             }
-                            Text {
+                            NameLabel {
                                 anchors.left: parent.left
-                                anchors.leftMargin: 64
+                                anchors.leftMargin: 192
                                 anchors.right: parent.right
                                 anchors.rightMargin: 20
-                                anchors.verticalCenter: parent.verticalCenter
-                                horizontalAlignment: Text.AlignRight
-                                color: "black"
+                                anchors.top: parent.top
+                                anchors.topMargin: 10
+                                anchors.bottom: parent.bottom
+                                anchors.bottomMargin: 10
+                                color: modelData.red ? "red" : "black"
                                 font.pixelSize: 25
-                                text: modelData
+                                text: modelData.text
+                                scrolling: songList.scrollingText
                             }
                         }
                     }
