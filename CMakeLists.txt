@@ -44,9 +44,6 @@ find_package(fmt REQUIRED)
 
 find_package(spdlog REQUIRED)
 target_compile_definitions(spdlog::spdlog INTERFACE SPDLOG_WCHAR_FILENAMES)
-if (NOT WIN32)
-    target_compile_definitions(spdlog::spdlog INTERFACE SPDLOG_USE_STD_FORMAT)
-endif ()
 
 
 # <------------ boost --------------->
@@ -78,9 +75,7 @@ find_package(zstd REQUIRED)
 
 
 if (MSVC)
-    set(utf8Manifest staticAssets/utf8.manifest
-            src/gameplay_logic/BmsScoreCourse.cpp
-            src/gameplay_logic/BmsScoreCourse.h)
+    set(utf8Manifest staticAssets/utf8.manifest)
 endif ()
 
 # ---- Load library ----
@@ -202,6 +197,8 @@ qt_add_library(RhythmGame_lib OBJECT ${utf8Manifest} src/db/SqliteCppDb.cpp src/
         src/gameplay_logic/CourseRunner.h
         src/gameplay_logic/BmsResultCourse.cpp
         src/gameplay_logic/BmsResultCourse.h
+        src/gameplay_logic/BmsScoreCourse.cpp
+        src/gameplay_logic/BmsScoreCourse.h
 )
 # define version macros
 target_compile_definitions(RhythmGame_lib PUBLIC

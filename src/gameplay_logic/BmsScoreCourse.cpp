@@ -62,7 +62,7 @@ BmsScoreCourse::fromScores(std::unique_ptr<BmsResultCourse> resultCourse,
     auto hitEvents = QList<HitEvent>{};
     auto gaugeHistories = QHash<QString, QList<rules::GaugeHistoryEntry>>{};
     auto gaugeInfo = QHash<QString, BmsGaugeInfo>{};
-    auto offset = 0I64;
+    auto offset = 0LL;
     for (const auto* score : scores) {
         const auto* replayData = score->getReplayData();
         const auto& scoreHitEvents = replayData->getHitEvents();
