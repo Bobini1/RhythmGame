@@ -371,6 +371,44 @@ ChartLoader::loadChartData(const QString& filename,
         return nullptr;
     }
 }
+constexpr int maxVariables = 999;
+auto
+ChartLoader::loadChartDataFromDb(QList<QString> md5s) const -> QVariantMap
+{
+    auto uniqueMd5s = QSet<QString>{};
+    for (const auto& md5 : md5s) {
+        uniqueMd5s.insert(md5.toUpper());
+    }
+    const auto md5sToFetch = uniqueMd5s.values();
+    std::vector<gameplay_logic::ChartData::DTO> allResults;
+
+    for (int i = 0; i < md5sToFetch.size(); i += maxVariables) {
+        auto chunk = md5sToFetch.mid(i, maxVariables);
+        auto statement = db->createStatement(
+          "SELECT id, title, artist, subtitle, subartist, "
+          "genre, stage_file, banner, back_bmp, rank, total, "
+          "play_level, difficulty, is_random, random_sequence, "
+          "normal_note_count, ln_count, mine_count, length, initial_bpm, "
+          "max_bpm, min_bpm, main_bpm, avg_bpm, path, directory, sha256, md5, "
+          "keymode FROM charts WHERE md5 IN (" +
+          QString("?, ").repeated(chunk.size()).chopped(2).toStdString() +
+          ")  ORDER BY title, subtitle ASC");
+
+        for (int j = 0; j < chunk.size(); ++j) {
+            statement.bind(j + 1, chunk[j].toStdString());
+        }
+
+        const auto result =
+          statement.executeAndGetAll<gameplay_logic::ChartData::DTO>();
+        allResults.append_range(result);
+    }
+    auto ret = QVariantMap{};
+    for (const auto& result : allResults) {
+        ret[QString::fromStdString(result.md5)] =
+          QVariant::fromValue(gameplay_logic::ChartData::load(result).release());
+    }
+    return ret;
+}
 auto
 ChartLoader::loadCourseChart(
   resource_managers::ChartDataFactory::ChartComponents chartComponents,
@@ -424,6 +462,7 @@ ChartLoader::ChartLoader(ProfileList* profileList,
                          GaugeFactoryCourse gaugeFactoryCourse,
                          GetChartPathFromMd5 getChartPathFromSha256,
                          resource_managers::ChartFactory* chartFactory,
+                         db::SqliteCppDb* db,
                          QObject* parent)
   : QObject(parent)
   , chartDataFactory(chartDataFactory)
@@ -436,6 +475,7 @@ ChartLoader::ChartLoader(ProfileList* profileList,
   , chartFactory(chartFactory)
   , profileList(profileList)
   , inputTranslator(inputTranslator)
+  , db(db)
 {
 }
 } // namespace qml_components

@@ -91,6 +91,63 @@ FocusScope {
                 height: 80
                 width: 300
             }
+            Loader {
+                id: courseSongs
+                active: songList.current instanceof course
+                anchors {
+                    left: parent.left
+                    right: parent.right
+                    top: stageFile.top
+                }
+                sourceComponent: Column {
+                    Repeater {
+                        model: {
+                            let md5s = songList.current.md5s;
+                            let chartDatas = Rg.chartLoader.loadChartDataFromDb(md5s);
+                            let names = []
+                            for (let md5 of md5s) {
+                                let info = Rg.tables.search(md5);
+                                let before = "";
+                                let after = "";
+                                let chartData = chartDatas[md5.toUpperCase()];
+                                if (chartData === undefined) {
+                                    before = "<font color='red'>";
+                                    after = "</font>";
+                                }
+                                if (info.length) {
+                                    names.push(before + info[0].symbol + info[0].levelName + " " + info[0].entry.title + (info[0].entry.subtitle ? " " + info[0].entry.subtitle : "") + after);
+                                } else {
+                                    if (chartData !== undefined) {
+                                        names.push(chartData.title + (chartData.subtitle ? " " + chartData.subtitle : ""));
+                                    } else {
+                                        names.push(before + md5 + after);
+                                    }
+                                }
+                            }
+                            return names;
+                        }
+                        delegate: Image {
+                            source: root.iniImagesUrl + "parts.png/course_chart_bar"
+                            Image {
+                                source: root.iniImagesUrl + "parts.png/" + (index+1) + "th"
+                                anchors.top: parent.top
+                                anchors.topMargin: 4
+                            }
+                            Text {
+                                anchors.left: parent.left
+                                anchors.leftMargin: 64
+                                anchors.right: parent.right
+                                anchors.rightMargin: 20
+                                anchors.verticalCenter: parent.verticalCenter
+                                horizontalAlignment: Text.AlignRight
+                                color: "black"
+                                font.pixelSize: 25
+                                text: modelData
+                            }
+                        }
+                    }
+                }
+            }
             Row {
                 z: 1
                 anchors.horizontalCenter: banner.horizontalCenter

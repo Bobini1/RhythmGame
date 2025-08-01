@@ -233,7 +233,8 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
             gaugeFactory,
             gaugeFactoryCourse,
             getChartPathFromSha256,
-            &chartFactory
+            &chartFactory,
+            &db
         };
 
         auto scanningQueue =

@@ -61,6 +61,7 @@ class ChartLoader : public QObject
     resource_managers::ChartFactory* chartFactory;
     ProfileList* profileList;
     input::InputTranslator* inputTranslator;
+    db::SqliteCppDb* db;
 
     auto createChart(resource_managers::Profile* player1,
                      bool player1AutoPlay,
@@ -95,6 +96,7 @@ class ChartLoader : public QObject
                 GaugeFactoryCourse gaugeFactoryCourse,
                 GetChartPathFromMd5 getChartPathFromSha256,
                 resource_managers::ChartFactory* chartFactory,
+                db::SqliteCppDb* db,
                 QObject* parent = nullptr);
 
     /**
@@ -144,7 +146,11 @@ class ChartLoader : public QObject
       gameplay_logic::BmsScoreCourse* score2) const;
 
     Q_INVOKABLE gameplay_logic::ChartData* loadChartData(
-      const QString& filename, const QString& md5 = "", QList<int64_t> randomSequence = {}) const;
+      const QString& filename,
+      const QString& md5 = "",
+      QList<int64_t> randomSequence = {}) const;
+    Q_INVOKABLE QVariantMap loadChartDataFromDb(
+      QList<QString> md5s) const;
 };
 
 } // namespace qml_components
