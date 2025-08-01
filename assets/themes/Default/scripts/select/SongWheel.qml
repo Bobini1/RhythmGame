@@ -100,10 +100,13 @@ FocusScope {
                     top: stageFile.top
                 }
                 sourceComponent: Column {
+                    id: courseSongsColumn
+                    property var chartDatas: Rg.chartLoader.loadChartDataFromDb(songList.current.md5s)
+                    property var canPlay: songList.current.md5s.every(md5 => chartDatas[md5.toUpperCase()] !== undefined)
                     Repeater {
                         model: {
                             let md5s = songList.current.md5s;
-                            let chartDatas = Rg.chartLoader.loadChartDataFromDb(md5s);
+                            let chartDatas = courseSongsColumn.chartDatas;
                             let names = []
                             for (let md5 of md5s) {
                                 let info = Rg.tables.search(md5);
@@ -157,7 +160,7 @@ FocusScope {
                 Image {
                     id: auto
                     source: root.iniImagesUrl + "parts.png/auto"
-                    enabled: songList.current?.path || songList.current instanceof course
+                    enabled: songList.current?.path || (songList.current instanceof course && courseSongs.item?.canPlay) || false
                     opacity: enabled ? 1 : 0.5
                     MouseArea {
                         anchors.fill: parent
@@ -177,7 +180,7 @@ FocusScope {
                         id: replay
                         source: root.iniImagesUrl + "parts.png/replay"
                         opacity: enabled ? 1 : 0.5
-                        enabled: ((songList.current?.path || songList.current instanceof course) && songList.currentItem?.scores?.length) || false
+                        enabled: ((songList.current?.path || (songList.current instanceof course && courseSongs.item?.canPlay)) && songList.currentItem?.scores?.length) || false
                         MouseArea {
                             anchors.fill: parent
                             cursorShape: enabled ? Qt.PointingHandCursor : undefined
