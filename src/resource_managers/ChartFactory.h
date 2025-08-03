@@ -13,6 +13,20 @@ class ProfileList;
 } // namespace qml_components
 namespace resource_managers {
 
+class SoundTask : public QObject
+{
+    Q_OBJECT
+    std::filesystem::path path;
+    std::unordered_map<uint16_t, std::filesystem::path> wavs;
+
+  public:
+    SoundTask(std::filesystem::path path,
+              std::unordered_map<uint16_t, std::filesystem::path> wavs);
+    void run();
+  signals:
+    void soundsLoaded(std::unordered_map<uint16_t, sounds::OpenALSound> sounds);
+};
+
 class ChartFactory
 {
     input::InputTranslator* inputTranslator;

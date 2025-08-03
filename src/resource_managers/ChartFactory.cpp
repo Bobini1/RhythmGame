@@ -482,6 +482,8 @@ getLength(const gameplay_logic::BmsNotes& notes) -> std::chrono::nanoseconds
 }
 } // namespace
 
+
+
 auto
 ChartFactory::createChart(ChartDataFactory::ChartComponents chartComponents,
                           PlayerSpecificData player1,
@@ -498,9 +500,8 @@ ChartFactory::createChart(ChartDataFactory::ChartComponents chartComponents,
           player, notesData, *chartData, maxHitValue);
     });
 
-    auto soundTask = [path, wavs = std::move(wavs)] {
-        return charts::helper_functions::loadBmsSounds(wavs, path);
-    };
+    auto soundTask = new SoundTask(path, std::move(wavs));
+    soundTask->moveToThread(nullptr);
     auto bgaTask = [bgaBase = std::move(notesData.bgaBase),
                     bgaPoor = std::move(notesData.bgaPoor),
                     bgaLayer = std::move(notesData.bgaLayer),
@@ -517,8 +518,9 @@ ChartFactory::createChart(ChartDataFactory::ChartComponents chartComponents,
                        std::move(path));
     };
     auto bga = QtConcurrent::run(std::move(bgaTask));
-    auto soundFuture = QtConcurrent::run(std::move(soundTask));
     auto* player1Object = [&]() -> gameplay_logic::Player* {
+        auto soundFuture =
+          QtFuture::connect(soundTask, &SoundTask::soundsLoaded);
         auto refereeFuture = soundFuture.then(
           [rawNotes = std::move(components1.rawNotes),
            hitRules = std::move(player1.hitRules),
@@ -564,6 +566,8 @@ ChartFactory::createChart(ChartDataFactory::ChartComponents chartComponents,
     }();
     auto player2Object = components2.transform([&](auto& player)
                                                  -> gameplay_logic::Player* {
+        auto soundFuture =
+          QtFuture::connect(soundTask, &SoundTask::soundsLoaded);
         auto refereeFuture = soundFuture.then(
           [rawNotes = std::move(components2->rawNotes),
            hitRules = std::move(player2->hitRules),
@@ -608,6 +612,11 @@ ChartFactory::createChart(ChartDataFactory::ChartComponents chartComponents,
             std::move(refereeFuture),     chartLength
         };
     });
+    QThreadPool::globalInstance()->start([soundTask] {
+        soundTask->moveToThread(QThread::currentThread());
+        soundTask->run();
+        soundTask->deleteLater();
+    });
     auto chart = std::make_unique<gameplay_logic::ChartRunner>(
       chartData.release(),
       std::move(bga),
@@ -630,6 +639,17 @@ ChartFactory::createChart(ChartDataFactory::ChartComponents chartComponents,
             button, gameplay_logic::ChartRunner::EventType::KeyRelease, time);
       });
     return chart;
+}
+SoundTask::SoundTask(std::filesystem::path path,
+                     std::unordered_map<uint16_t, std::filesystem::path> wavs)
+  : path(std::move(path))
+  , wavs(std::move(wavs))
+{
+}
+void
+SoundTask::run()
+{
+    emit soundsLoaded(charts::helper_functions::loadBmsSounds(wavs, path));
 }
 ChartFactory::ChartFactory(input::InputTranslator* inputTranslator)
   : inputTranslator(inputTranslator)
