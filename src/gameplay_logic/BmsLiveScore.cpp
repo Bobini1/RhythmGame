@@ -203,10 +203,10 @@ BmsLiveScore::resetCombo()
 auto
 BmsLiveScore::getResult() const -> std::unique_ptr<BmsResult>
 {
-    auto allCourses = std::ranges::all_of(gauges, [](const auto* gauge) {
-        return gauge->isCourseGauge();
-    });
-    auto clearType = allCourses ? QStringLiteral("NOPLAY") : QStringLiteral("FAILED");
+    auto allCourses = std::ranges::all_of(
+      gauges, [](const auto* gauge) { return gauge->isCourseGauge(); });
+    auto clearType =
+      allCourses ? QStringLiteral("NOPLAY") : QStringLiteral("FAILED");
     for (auto* gauge : gauges) {
         if (gauge->getGauge() > gauge->getThreshold()) {
             if (!gauge->isCourseGauge()) {
@@ -263,11 +263,13 @@ auto
 BmsLiveScore::getGaugeHistory() const -> std::unique_ptr<BmsGaugeHistory>
 {
     auto gaugeHistory = QHash<QString, QList<rules::GaugeHistoryEntry>>{};
-    auto gaugeInfo = QHash<QString, BmsGaugeInfo>{};
+    auto gaugeInfo = QList<BmsGaugeInfo>{};
     for (const auto* gauge : gauges) {
         gaugeHistory[gauge->getName()] = gauge->getGaugeHistory();
-        gaugeInfo[gauge->getName()] =
-          BmsGaugeInfo{ gauge->getGaugeMax(), gauge->getThreshold() };
+        gaugeInfo.emplace_back(gauge->getGaugeMax(),
+                               gauge->getThreshold(),
+                               gauge->getName(),
+                               gauge->isCourseGauge());
     }
     return std::make_unique<BmsGaugeHistory>(
       std::move(gaugeHistory), std::move(gaugeInfo), guid);

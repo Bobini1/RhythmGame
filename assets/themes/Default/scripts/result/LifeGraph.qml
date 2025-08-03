@@ -23,7 +23,7 @@ Image {
             return index;
         }
     }
-    property var clearTypes: Object.keys(lifeGraph.gaugeHistory)
+    property var clearTypes: lifeGraph.gaugeInfo.map(info => info.name).reverse()
     property var primaryColor: {
         return {
             "AEASY": "#d844ff",
@@ -93,16 +93,16 @@ Image {
         }
 
         Repeater {
-            model: lifeGraph.clearTypes
+            model: lifeGraph.gaugeInfo.slice().reverse()
 
             LifePath {
                 required property int index
-                required property string modelData
+                required property var modelData
 
                 anchors.margins: 20
                 anchors.fill: parent
-                history: lifeGraph.gaugeHistory[modelData]
-                maxGauge: lifeGraph.gaugeInfo[modelData].maxGauge
+                history: lifeGraph.gaugeHistory[modelData.name]
+                maxGauge: modelData.maxGauge
                 songLength: lifeGraph.length
                 visible: index === lifeGraph.clearIndex
 
@@ -116,13 +116,13 @@ Image {
                     anchors.top: parent.top
                     anchors.topMargin: -2
                     color: {
-                        let secondary = lifeGraph.secondaryColor[modelData];
+                        let secondary = lifeGraph.secondaryColor[modelData.name];
                         if (secondary) {
                             return secondary;
                         }
-                        return lifeGraph.primaryColor[modelData];
+                        return lifeGraph.primaryColor[modelData.name];
                     }
-                    height: (1 - (lifeGraph.gaugeInfo[modelData].threshold / lifeGraph.gaugeInfo[modelData].maxGauge)) * parent.height
+                    height: (1 - (modelData.threshold / modelData.maxGauge)) * parent.height
                     opacity: 0.5
                     z: -1
                 }
@@ -136,7 +136,7 @@ Image {
                     anchors.right: parent.right
                     anchors.rightMargin: -2
                     anchors.top: topRect.bottom
-                    color: lifeGraph.primaryColor[modelData]
+                    color: lifeGraph.primaryColor[modelData.name]
                     opacity: 0.5
                     z: -1
                 }

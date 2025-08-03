@@ -10,7 +10,7 @@
 namespace gameplay_logic {
 BmsGaugeHistory::BmsGaugeHistory(
   QHash<QString, QList<rules::GaugeHistoryEntry>> gaugeHistory,
-  QHash<QString, BmsGaugeInfo> gaugeInfo,
+  QList<BmsGaugeInfo> gaugeInfo,
   QString guid,
   QObject* parent)
   : QObject(parent)
@@ -29,12 +29,14 @@ BmsGaugeHistory::getGaugeHistory() const
 auto
 operator<<(QDataStream& stream, const BmsGaugeInfo& gaugeInfo) -> QDataStream&
 {
-    return stream << gaugeInfo.maxGauge << gaugeInfo.threshold;
+    return stream << gaugeInfo.maxGauge << gaugeInfo.threshold << gaugeInfo.name
+                  << gaugeInfo.courseGauge;
 }
 auto
 operator>>(QDataStream& stream, BmsGaugeInfo& gaugeInfo) -> QDataStream&
 {
-    return stream >> gaugeInfo.maxGauge >> gaugeInfo.threshold;
+    return stream >> gaugeInfo.maxGauge >> gaugeInfo.threshold >> gaugeInfo.name
+                  >> gaugeInfo.courseGauge;
 }
 
 void
@@ -68,7 +70,7 @@ BmsGaugeHistory::load(const DTO& dto) -> std::unique_ptr<BmsGaugeHistory>
       QString::fromStdString(dto.scoreGuid));
 }
 auto
-BmsGaugeHistory::getGaugeInfo() const -> QHash<QString, BmsGaugeInfo>
+BmsGaugeHistory::getGaugeInfo() const -> QList<BmsGaugeInfo>
 {
     return gaugeInfo;
 }
@@ -77,16 +79,6 @@ BmsGaugeHistory::getGaugeHistoryVariant() const -> QVariantMap
 {
     auto ret = QVariantMap{};
     for (const auto& [key, value] : gaugeHistory.asKeyValueRange()) {
-        ret[key] = QVariant::fromValue(value);
-    }
-    return ret;
-}
-
-auto
-BmsGaugeHistory::getGaugeInfoVariant() const -> QVariantMap
-{
-    auto ret = QVariantMap{};
-    for (const auto& [key, value] : gaugeInfo.asKeyValueRange()) {
         ret[key] = QVariant::fromValue(value);
     }
     return ret;

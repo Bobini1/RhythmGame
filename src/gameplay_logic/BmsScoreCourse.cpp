@@ -82,15 +82,10 @@ BmsScoreCourse::fromScores(std::unique_ptr<BmsResultCourse> resultCourse,
                   entry.getOffsetFromStart() + offset, entry.getGauge()));
             }
         }
-        // This overwrites the entries a few times, but it is fine
-        for (const auto& [name, info] :
-             score->getGaugeHistory()->getGaugeInfo().asKeyValueRange()) {
-            gaugeInfo[name] = info;
-        }
         offset += score->getResult()->getLength();
     }
     auto gaugeHistory = std::make_unique<BmsGaugeHistory>(
-      std::move(gaugeHistories), std::move(gaugeInfo), resultCourse->getGuid());
+      std::move(gaugeHistories), scores[0]->getGaugeHistory()->getGaugeInfo(), resultCourse->getGuid());
     auto replayData = std::make_unique<BmsReplayData>(std::move(hitEvents),
                                                       resultCourse->getGuid());
     return std::make_unique<BmsScoreCourse>(std::move(resultCourse),

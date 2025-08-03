@@ -12,12 +12,16 @@ namespace gameplay_logic {
 class BmsGaugeInfo
 {
     Q_GADGET
-    Q_PROPERTY(double maxGauge MEMBER maxGauge)
-    Q_PROPERTY(double threshold MEMBER threshold)
+    Q_PROPERTY(double maxGauge MEMBER maxGauge CONSTANT)
+    Q_PROPERTY(double threshold MEMBER threshold CONSTANT)
+    Q_PROPERTY(QString name MEMBER name CONSTANT)
+    Q_PROPERTY(bool courseGauge MEMBER courseGauge CONSTANT)
 
   public:
     double maxGauge;
     double threshold;
+    QString name;
+    bool courseGauge;
 
     friend auto operator<<(QDataStream& stream,
                            const BmsGaugeInfo& gaugeHistory) -> QDataStream&;
@@ -30,10 +34,10 @@ class BmsGaugeHistory final : public QObject
     Q_OBJECT
 
     Q_PROPERTY(QVariantMap gaugeHistory READ getGaugeHistoryVariant CONSTANT)
-    Q_PROPERTY(QVariantMap gaugeInfo READ getGaugeInfoVariant CONSTANT)
+    Q_PROPERTY(QList<BmsGaugeInfo> gaugeInfo READ getGaugeInfo CONSTANT)
     Q_PROPERTY(QString guid READ getGuid CONSTANT)
     QHash<QString, QList<rules::GaugeHistoryEntry>> gaugeHistory;
-    QHash<QString, BmsGaugeInfo> gaugeInfo;
+    QList<BmsGaugeInfo> gaugeInfo;
     QString guid;
 
   public:
@@ -46,7 +50,7 @@ class BmsGaugeHistory final : public QObject
      */
     explicit BmsGaugeHistory(
       QHash<QString, QList<rules::GaugeHistoryEntry>> gaugeHistory,
-      QHash<QString, BmsGaugeInfo> gaugeInfo,
+      QList<BmsGaugeInfo> gaugeInfo,
       QString guid,
       QObject* parent = nullptr);
 
@@ -62,11 +66,9 @@ class BmsGaugeHistory final : public QObject
      * @brief Get info about gauges - maxGauge and threshold
      * @return A map of gauge name to BmsGaugeInfo
      */
-    auto getGaugeInfo() const -> QHash<QString, BmsGaugeInfo>;
+    auto getGaugeInfo() const -> QList<BmsGaugeInfo>;
 
     auto getGaugeHistoryVariant() const -> QVariantMap;
-
-    auto getGaugeInfoVariant() const -> QVariantMap;
 
     auto getGuid() const -> QString;
 
