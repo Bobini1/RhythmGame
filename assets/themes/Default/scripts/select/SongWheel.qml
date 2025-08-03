@@ -18,7 +18,6 @@ FocusScope {
         function openReplay(type) {
             let path = songList.current instanceof course ? songList.current : songList.current.path;
             let func = songList.current instanceof course ? globalRoot.openCourse : globalRoot.openChart;
-            print(path)
             switch (type) {
                 case 0:
                     func(path, Rg.profileList.mainProfile, false, songList.currentItem.scores[0], null, false, null);
