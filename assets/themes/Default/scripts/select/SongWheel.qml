@@ -169,7 +169,7 @@ FocusScope {
                             if (Rg.profileList.battleActive) {
                                 func(path, Rg.profileList.battleProfiles.player1Profile, true, null, Rg.profileList.battleProfiles.player2Profile, true, null);
                             } else {
-                                func(path, Rg.profileList.mainProfile, true, null, null, true, null);
+                                func(path, Rg.profileList.mainProfile, true, null, null, false, null);
                             }
                         }
                     }
