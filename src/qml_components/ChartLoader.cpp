@@ -35,18 +35,30 @@ ChartLoader::createChart(
     const auto rank =
       magic_enum::enum_cast<gameplay_logic::rules::BmsRank>(rankInt).value_or(
         gameplay_logic::rules::defaultBmsRank);
-    auto hitRules =
-      std::vector<std::unique_ptr<gameplay_logic::rules::StandardBmsHitRules>>{};
+    auto hitRules = std::vector<
+      std::unique_ptr<gameplay_logic::rules::StandardBmsHitRules>>{};
     auto timingWindows = timingWindowsFactory(rank);
     auto maxHitValue = hitValueFactory(std::chrono::nanoseconds{ 0 },
                                        gameplay_logic::Judgement::Perfect);
+    auto p1DpOptions = player2
+                         ? resource_managers::DpOptions::Off
+                         : player1->getVars()->getGeneralVars()->getDpOptions();
+    auto p1NoteOrderAlgorithm =
+      player1->getVars()->getGeneralVars()->getNoteOrderAlgorithm();
+    auto p1NoteOrderAlgorithmP2 =
+      player2 ? resource_managers::NoteOrderAlgorithm::Normal
+              : player1->getVars()->getGeneralVars()->getNoteOrderAlgorithmP2();
     auto player1data = resource_managers::ChartFactory::PlayerSpecificData{
         player1,
         gaugeFactory(player1,
                      chartComponents.chartData->getTotal(),
                      chartComponents.chartData->getNormalNoteCount()),
-        gameplay_logic::rules::StandardBmsHitRules(timingWindows, hitValueFactory),
+        gameplay_logic::rules::StandardBmsHitRules(timingWindows,
+                                                   hitValueFactory),
         replayedScore1,
+        p1NoteOrderAlgorithm,
+        p1NoteOrderAlgorithmP2,
+        p1DpOptions,
         player1AutoPlay
     };
     auto player2data =
@@ -56,8 +68,12 @@ ChartLoader::createChart(
                   gaugeFactory(player2,
                                chartComponents.chartData->getTotal(),
                                chartComponents.chartData->getNormalNoteCount()),
-                  gameplay_logic::rules::StandardBmsHitRules(timingWindows, hitValueFactory),
+                  gameplay_logic::rules::StandardBmsHitRules(timingWindows,
+                                                             hitValueFactory),
                   replayedScore2,
+                  player2->getVars()->getGeneralVars()->getNoteOrderAlgorithm(),
+                  resource_managers::NoteOrderAlgorithm::Normal,
+                  resource_managers::DpOptions::Off,
                   player2AutoPlay)
               : std::nullopt;
     return chartFactory->createChart(std::move(chartComponents),
@@ -146,19 +162,16 @@ ChartLoader::loadChart(const QString& filename,
                           : score2 ? score2->getResult()->getRandomSequence()
                                    : QList<qint64>{};
     auto randomGenerator =
-      [randomSequence = std::move(randomSequence),
-       counter = 0](const charts::ParsedBmsChart::RandomRange
-                      randomRange) mutable {
+      [randomSequence = std::move(randomSequence), counter = 0](
+        const charts::ParsedBmsChart::RandomRange randomRange) mutable {
           thread_local auto randomEngine =
             std::default_random_engine{ std::random_device{}() };
           if (counter < randomSequence.size()) {
-              return static_cast<
-                charts::ParsedBmsChart::RandomRange>(
+              return static_cast<charts::ParsedBmsChart::RandomRange>(
                 randomSequence[counter++]);
           }
           return std::uniform_int_distribution{
-              charts::ParsedBmsChart::RandomRange{ 1 },
-              randomRange
+              charts::ParsedBmsChart::RandomRange{ 1 }, randomRange
           }(randomEngine);
       };
     try {
@@ -193,6 +206,18 @@ ChartLoader::loadChart(const QString& filename,
         return nullptr;
     }
 }
+
+auto
+constrainNoteOrderAlgorithm(resource_managers::NoteOrderAlgorithm algo,
+                            bool mirror)
+  -> resource_managers::NoteOrderAlgorithm
+{
+    if (mirror && algo != resource_managers::NoteOrderAlgorithm::Mirror) {
+        return resource_managers::NoteOrderAlgorithm::Normal;
+    }
+    return resource_managers::NoteOrderAlgorithm::Normal;
+}
+
 gameplay_logic::CourseRunner*
 ChartLoader::loadCourse(const resource_managers::Course& course,
                         resource_managers::Profile* player1,
@@ -224,18 +249,15 @@ ChartLoader::loadCourse(const resource_managers::Course& course,
 
             auto randomGenerator =
               [randomSequence = std::move(randomSequence), counter = 0](
-                const charts::ParsedBmsChart::RandomRange
-                  randomRange) mutable {
+                const charts::ParsedBmsChart::RandomRange randomRange) mutable {
                   thread_local auto randomEngine =
                     std::default_random_engine{ std::random_device{}() };
                   if (counter < randomSequence.size()) {
-                      return static_cast<
-                        charts::ParsedBmsChart::RandomRange>(
+                      return static_cast<charts::ParsedBmsChart::RandomRange>(
                         randomSequence[counter++]);
                   }
                   return std::uniform_int_distribution{
-                      charts::ParsedBmsChart::RandomRange{ 1 },
-                      randomRange
+                      charts::ParsedBmsChart::RandomRange{ 1 }, randomRange
                   }(randomEngine);
               };
             auto components =
@@ -259,6 +281,24 @@ ChartLoader::loadCourse(const resource_managers::Course& course,
             return nullptr;
         }
     }
+    auto p1DpOptions = player2
+                         ? resource_managers::DpOptions::Off
+                         : player1->getVars()->getGeneralVars()->getDpOptions();
+    auto p1NoteOrderAlgorithm =
+      player1->getVars()->getGeneralVars()->getNoteOrderAlgorithm();
+    auto p1NoteOrderAlgorithmP2 =
+      player2 ? resource_managers::NoteOrderAlgorithm::Normal
+              : player1->getVars()->getGeneralVars()->getNoteOrderAlgorithmP2();
+    auto p2NoteOrderAlgorithm =
+      player2 ? player2->getVars()->getGeneralVars()->getNoteOrderAlgorithm()
+              : resource_managers::NoteOrderAlgorithm::Normal;
+    const auto mirror = course.constraints.contains("grade_mirror");
+    p1NoteOrderAlgorithm =
+      constrainNoteOrderAlgorithm(p1NoteOrderAlgorithm, mirror);
+    p1NoteOrderAlgorithmP2 =
+      constrainNoteOrderAlgorithm(p1NoteOrderAlgorithmP2, mirror);
+    p2NoteOrderAlgorithm =
+      constrainNoteOrderAlgorithm(p2NoteOrderAlgorithm, mirror);
     auto loadCourseChartPartial =
       [=,
        player1 = QPointer(player1),
@@ -294,7 +334,11 @@ ChartLoader::loadCourse(const resource_managers::Course& course,
           player2AutoPlay,
           score2 ? score2->getScores().value(index, nullptr) : nullptr,
           gauges1,
-          gauges2);
+          gauges2,
+          p1NoteOrderAlgorithm,
+          p1NoteOrderAlgorithmP2,
+          p1DpOptions,
+          p2NoteOrderAlgorithm);
         previous1 = std::move(gauges1);
         previous2 = std::move(gauges2);
         index++;
@@ -348,19 +392,16 @@ ChartLoader::loadChartData(const QString& filename,
         }
 
         auto randomGenerator =
-          [randomSequence = std::move(randomSequence),
-           counter = 0](const charts::ParsedBmsChart::RandomRange
-                          randomRange) mutable {
+          [randomSequence = std::move(randomSequence), counter = 0](
+            const charts::ParsedBmsChart::RandomRange randomRange) mutable {
               thread_local auto randomEngine =
                 std::default_random_engine{ std::random_device{}() };
               if (counter < randomSequence.size()) {
-                  return static_cast<
-                    charts::ParsedBmsChart::RandomRange>(
+                  return static_cast<charts::ParsedBmsChart::RandomRange>(
                     randomSequence[counter++]);
               }
               return std::uniform_int_distribution{
-                  charts::ParsedBmsChart::RandomRange{ 1 },
-                  randomRange
+                  charts::ParsedBmsChart::RandomRange{ 1 }, randomRange
               }(randomEngine);
           };
         auto components =
@@ -404,8 +445,8 @@ ChartLoader::loadChartDataFromDb(QList<QString> md5s) const -> QVariantMap
     }
     auto ret = QVariantMap{};
     for (const auto& result : allResults) {
-        ret[QString::fromStdString(result.md5)] =
-          QVariant::fromValue(gameplay_logic::ChartData::load(result).release());
+        ret[QString::fromStdString(result.md5)] = QVariant::fromValue(
+          gameplay_logic::ChartData::load(result).release());
     }
     return ret;
 }
@@ -419,23 +460,31 @@ ChartLoader::loadCourseChart(
   bool player2AutoPlay,
   gameplay_logic::BmsScore* score2,
   QList<gameplay_logic::rules::BmsGauge*> gauges1,
-  QList<gameplay_logic::rules::BmsGauge*> gauges2) const
+  QList<gameplay_logic::rules::BmsGauge*> gauges2,
+  resource_managers::NoteOrderAlgorithm p1NoteOrderAlgorithm,
+  resource_managers::NoteOrderAlgorithm p1NoteOrderAlgorithmP2,
+  resource_managers::DpOptions p1DpOptions,
+  resource_managers::NoteOrderAlgorithm p2NoteOrderAlgorithm) const
   -> std::unique_ptr<gameplay_logic::ChartRunner>
 {
     const auto rankInt = chartComponents.chartData->getRank();
     const auto rank =
       magic_enum::enum_cast<gameplay_logic::rules::BmsRank>(rankInt).value_or(
         gameplay_logic::rules::defaultBmsRank);
-    auto hitRules =
-      std::vector<std::unique_ptr<gameplay_logic::rules::StandardBmsHitRules>>{};
+    auto hitRules = std::vector<
+      std::unique_ptr<gameplay_logic::rules::StandardBmsHitRules>>{};
     auto timingWindows = timingWindowsFactory(rank);
     auto maxHitValue = hitValueFactory(std::chrono::nanoseconds{ 0 },
                                        gameplay_logic::Judgement::Perfect);
     auto player1data = resource_managers::ChartFactory::PlayerSpecificData{
         player1,
         std::move(gauges1),
-        gameplay_logic::rules::StandardBmsHitRules(timingWindows, hitValueFactory),
+        gameplay_logic::rules::StandardBmsHitRules(timingWindows,
+                                                   hitValueFactory),
         score1,
+        p1NoteOrderAlgorithm,
+        p1NoteOrderAlgorithmP2,
+        p1DpOptions,
         player1AutoPlay
     };
     auto player2data =
@@ -443,8 +492,12 @@ ChartLoader::loadCourseChart(
                   resource_managers::ChartFactory::PlayerSpecificData>(
                   player2,
                   std::move(gauges2),
-                  gameplay_logic::rules::StandardBmsHitRules(timingWindows, hitValueFactory),
+                  gameplay_logic::rules::StandardBmsHitRules(timingWindows,
+                                                             hitValueFactory),
                   score2,
+                  p2NoteOrderAlgorithm,
+                  resource_managers::NoteOrderAlgorithm::Normal,
+                  resource_managers::DpOptions::Off,
                   player2AutoPlay)
               : std::nullopt;
     return chartFactory->createChart(std::move(chartComponents),

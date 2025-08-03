@@ -15,7 +15,6 @@
 #include "resource_managers/ChartFactory.h"
 #include "gameplay_logic/rules/TimingWindows.h"
 #include "gameplay_logic/rules/BmsRanks.h"
-#include "gameplay_logic/rules/StandardBmsHitRules.h"
 #include "resource_managers/Tables.h"
 
 namespace gameplay_logic {
@@ -77,7 +76,11 @@ class ChartLoader : public QObject
       bool player2AutoPlay,
       gameplay_logic::BmsScore* score2,
       QList<gameplay_logic::rules::BmsGauge*> gauges1,
-      QList<gameplay_logic::rules::BmsGauge*> gauges2) const
+      QList<gameplay_logic::rules::BmsGauge*> gauges2,
+      resource_managers::NoteOrderAlgorithm p1NoteOrderAlgorithm,
+      resource_managers::NoteOrderAlgorithm p1NoteOrderAlgorithmP2,
+      resource_managers::DpOptions p1DpOptions,
+      resource_managers::NoteOrderAlgorithm p2NoteOrderAlgorithm) const
       -> std::unique_ptr<gameplay_logic::ChartRunner>;
 
   public:
@@ -143,8 +146,7 @@ class ChartLoader : public QObject
       const QString& filename,
       const QString& md5 = "",
       QList<int64_t> randomSequence = {}) const;
-    Q_INVOKABLE QVariantMap loadChartDataFromDb(
-      QList<QString> md5s) const;
+    Q_INVOKABLE QVariantMap loadChartDataFromDb(QList<QString> md5s) const;
 };
 
 } // namespace qml_components

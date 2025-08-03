@@ -359,10 +359,9 @@ auto
 getComponentsForPlayer(const ChartFactory::PlayerSpecificData& player,
                        const charts::BmsNotesData& notesData,
                        const gameplay_logic::ChartData& chartData,
-                       const double maxHitValue) -> RandomizedData
+                       const double maxHitValue,
+                       DpOptions dpOptions) -> RandomizedData
 {
-    auto dpOptions =
-      player.profile->getVars()->getGeneralVars()->getDpOptions();
     auto visibleNotes = notesData.notes;
     if ((dpOptions == DpOptions::Battle && isDp(chartData.getKeymode())) ||
         (dpOptions == DpOptions::Flip && !isDp(chartData.getKeymode()))) {
@@ -377,7 +376,13 @@ getComponentsForPlayer(const ChartFactory::PlayerSpecificData& player,
         for (int i = 0; i < 7; i += 1) {
             std::swap(visibleNotes[14 - i], visibleNotes[i]);
         }
-        std::swap(visibleNotes[7], visibleNotes[15]);
+        std::swap(visibleNotes[15], visibleNotes[7]);
+    }
+    if (dpOptions == DpOptions::Battle) {
+        for (int i = 0; i < 7; i += 1) {
+            visibleNotes[14 - i] = visibleNotes[i];
+        }
+        visibleNotes[15] = visibleNotes[7];
     }
     auto results = [&]() -> std::array<support::ShuffleResult, 2> {
         if (isDp(keymode)) {
@@ -385,11 +390,7 @@ getComponentsForPlayer(const ChartFactory::PlayerSpecificData& player,
               std::span{ visibleNotes.data(), visibleNotes.size() / 2 };
             auto result1 = support::generatePermutation(
               notes1,
-              player.replayedScore
-                ? player.replayedScore->getResult()->getNoteOrderAlgorithm()
-                : player.profile->getVars()
-                    ->getGeneralVars()
-                    ->getNoteOrderAlgorithm(),
+              player.noteOrderAlgorithm,
               player.replayedScore
                 ? std::optional{ player.replayedScore->getResult()
                                    ->getRandomSeed() }
@@ -399,11 +400,7 @@ getComponentsForPlayer(const ChartFactory::PlayerSpecificData& player,
                          visibleNotes.size() / 2 };
             auto result2 = support::generatePermutation(
               notes2,
-              player.replayedScore
-                ? player.replayedScore->getResult()->getNoteOrderAlgorithmP2()
-                : player.profile->getVars()
-                    ->getGeneralVars()
-                    ->getNoteOrderAlgorithmP2(),
+              player.noteOrderAlgorithmP2,
               result1.seed + 1);
             return { result1, result2 };
         }
@@ -411,11 +408,7 @@ getComponentsForPlayer(const ChartFactory::PlayerSpecificData& player,
         return {
             support::generatePermutation(
               notes1,
-              player.replayedScore
-                ? player.replayedScore->getResult()->getNoteOrderAlgorithm()
-                : player.profile->getVars()
-                    ->getGeneralVars()
-                    ->getNoteOrderAlgorithm(),
+              player.noteOrderAlgorithm,
               player.replayedScore
                 ? std::optional{ player.replayedScore->getResult()
                                    ->getRandomSeed() }
@@ -443,10 +436,8 @@ getComponentsForPlayer(const ChartFactory::PlayerSpecificData& player,
       maxHitValue,
       player.gauges,
       chartData.getRandomSequence(),
-      player.profile->getVars()->getGeneralVars()->getNoteOrderAlgorithm(),
-      isDp(keymode)
-        ? player.profile->getVars()->getGeneralVars()->getNoteOrderAlgorithmP2()
-        : NoteOrderAlgorithm::Normal,
+      player.noteOrderAlgorithm,
+      player.noteOrderAlgorithmP2,
       dpOptions,
       results[0].columns + results[1].columns,
       results[0].seed,
@@ -505,10 +496,10 @@ ChartFactory::createChart(ChartDataFactory::ChartComponents chartComponents,
     auto& [chartData, notesData, wavs, bmps] = chartComponents;
     auto path = support::qStringToPath(chartData->getPath()).parent_path();
     auto components1 =
-      getComponentsForPlayer(player1, notesData, *chartData, maxHitValue);
+      getComponentsForPlayer(player1, notesData, *chartData, maxHitValue, player1.dpOptions);
     auto components2 = player2.transform([&](auto& player) {
         return getComponentsForPlayer(
-          player, notesData, *chartData, maxHitValue);
+          player, notesData, *chartData, maxHitValue, DpOptions::Off);
     });
 
     auto soundTask = new SoundTask(path, std::move(wavs));

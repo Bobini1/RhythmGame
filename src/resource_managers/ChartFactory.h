@@ -38,6 +38,9 @@ class ChartFactory
         QList<gameplay_logic::rules::BmsGauge*> gauges;
         gameplay_logic::rules::StandardBmsHitRules hitRules;
         gameplay_logic::BmsScore* replayedScore;
+        NoteOrderAlgorithm noteOrderAlgorithm;
+        NoteOrderAlgorithm noteOrderAlgorithmP2;
+        DpOptions dpOptions = DpOptions::Off;
         bool autoPlay = false;
     };
     explicit ChartFactory(input::InputTranslator* inputTranslator);
