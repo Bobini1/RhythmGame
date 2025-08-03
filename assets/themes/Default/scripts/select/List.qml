@@ -9,7 +9,6 @@ PathView {
 
     property var current: model[currentIndex]
     property var filter: null
-    // we need to keep references to ChartDatas, otherwise they will be garbage collected
     property var folderContents: []
     onOpenedFolder: refresh()
     function refresh() {
