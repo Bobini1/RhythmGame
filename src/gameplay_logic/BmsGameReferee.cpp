@@ -125,9 +125,6 @@ gameplay_logic::BmsGameReferee::update(std::chrono::nanoseconds offsetFromStart,
     std::ranges::sort(events, [](const auto& left, const auto& right) {
         return left.getHitOffset() < right.getHitOffset();
     });
-    if (lastUpdate) {
-        score->blockSignals(true);
-    }
     for (const auto& event : events) {
         score->addHit(event);
     }
