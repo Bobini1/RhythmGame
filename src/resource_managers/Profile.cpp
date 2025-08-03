@@ -109,7 +109,6 @@ Profile::Profile(
     db.execute("CREATE TABLE IF NOT EXISTS gauge_history ("
                "id INTEGER PRIMARY KEY AUTOINCREMENT,"
                "score_guid TEXT NOT NULL UNIQUE,"
-               "gauge_history BLOB NOT NULL,"
                "gauge_info BLOB NOT NULL,"
                "FOREIGN KEY(score_guid) REFERENCES score(guid)"
                ");");

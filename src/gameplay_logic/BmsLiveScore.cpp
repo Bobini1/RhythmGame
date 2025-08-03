@@ -269,10 +269,10 @@ BmsLiveScore::getGaugeHistory() const -> std::unique_ptr<BmsGaugeHistory>
         gaugeInfo.emplace_back(gauge->getGaugeMax(),
                                gauge->getThreshold(),
                                gauge->getName(),
-                               gauge->isCourseGauge());
+                               gauge->isCourseGauge(),
+                               gauge->getGaugeHistory());
     }
-    return std::make_unique<BmsGaugeHistory>(
-      std::move(gaugeHistory), std::move(gaugeInfo), guid);
+    return std::make_unique<BmsGaugeHistory>(std::move(gaugeInfo), guid);
 }
 void
 BmsLiveScore::sendVisualOnlyRelease(const HitEvent& release)

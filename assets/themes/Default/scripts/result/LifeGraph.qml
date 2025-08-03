@@ -6,7 +6,6 @@ Image {
     id: lifeGraph
 
     required property var clearType
-    required property var gaugeHistory
     required property var gaugeInfo
     required property var length
     required property var lengths
@@ -101,7 +100,7 @@ Image {
 
                 anchors.margins: 20
                 anchors.fill: parent
-                history: lifeGraph.gaugeHistory[modelData.name]
+                history: modelData.gaugeHistory
                 maxGauge: modelData.maxGauge
                 songLength: lifeGraph.length
                 visible: index === lifeGraph.clearIndex

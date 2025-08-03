@@ -159,7 +159,6 @@ Item {
                         id: lifeGraph
 
                         clearType: side.score.result.clearType
-                        gaugeHistory: side.score.gaugeHistory.gaugeHistory
                         gaugeInfo: side.score.gaugeHistory.gaugeInfo
                         length: side.score.result.length
                         lengths: side.score instanceof BmsScoreCourse ? side.score.scores.map((s) => s.result.length) : [side.score.result.length]

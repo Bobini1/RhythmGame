@@ -16,12 +16,15 @@ class BmsGaugeInfo
     Q_PROPERTY(double threshold MEMBER threshold CONSTANT)
     Q_PROPERTY(QString name MEMBER name CONSTANT)
     Q_PROPERTY(bool courseGauge MEMBER courseGauge CONSTANT)
+    Q_PROPERTY(
+      QList<rules::GaugeHistoryEntry> gaugeHistory MEMBER gaugeHistory CONSTANT)
 
   public:
     double maxGauge;
     double threshold;
     QString name;
     bool courseGauge;
+    QList<rules::GaugeHistoryEntry> gaugeHistory;
 
     friend auto operator<<(QDataStream& stream,
                            const BmsGaugeInfo& gaugeHistory) -> QDataStream&;
@@ -33,42 +36,23 @@ class BmsGaugeHistory final : public QObject
 {
     Q_OBJECT
 
-    Q_PROPERTY(QVariantMap gaugeHistory READ getGaugeHistoryVariant CONSTANT)
     Q_PROPERTY(QList<BmsGaugeInfo> gaugeInfo READ getGaugeInfo CONSTANT)
     Q_PROPERTY(QString guid READ getGuid CONSTANT)
-    QHash<QString, QList<rules::GaugeHistoryEntry>> gaugeHistory;
     QList<BmsGaugeInfo> gaugeInfo;
     QString guid;
 
   public:
     /**
      * @brief Construct a new Bms Gauge History object
-     * @param gaugeHistory A map of gauge name to QList of gauge history entries
-     * @param gaugeInfo A map of gauge name to BmsGaugeInfo
+     * @param gaugeInfo A list of gauge infos with entries and metadata
      * @param guid The unique identifier for the score
      * @param parent QObject parent
      */
-    explicit BmsGaugeHistory(
-      QHash<QString, QList<rules::GaugeHistoryEntry>> gaugeHistory,
-      QList<BmsGaugeInfo> gaugeInfo,
-      QString guid,
-      QObject* parent = nullptr);
+    explicit BmsGaugeHistory(QList<BmsGaugeInfo> gaugeInfo,
+                             QString guid,
+                             QObject* parent = nullptr);
 
-    /**
-     * @brief Get the gauge history
-     * @return A map of gauge name to QList of gauge history entries
-     */
-    auto getGaugeHistory() const
-      -> QHash<QString, QList<rules::GaugeHistoryEntry>>;
-
-    /**
-     *
-     * @brief Get info about gauges - maxGauge and threshold
-     * @return A map of gauge name to BmsGaugeInfo
-     */
     auto getGaugeInfo() const -> QList<BmsGaugeInfo>;
-
-    auto getGaugeHistoryVariant() const -> QVariantMap;
 
     auto getGuid() const -> QString;
 
@@ -78,7 +62,6 @@ class BmsGaugeHistory final : public QObject
     {
         int64_t id;
         std::string scoreGuid;
-        std::string gaugeHistory;
         std::string gaugeInfo;
     };
     static auto load(const DTO& dto) -> std::unique_ptr<BmsGaugeHistory>;

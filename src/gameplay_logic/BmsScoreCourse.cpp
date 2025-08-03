@@ -61,7 +61,6 @@ BmsScoreCourse::fromScores(std::unique_ptr<BmsResultCourse> resultCourse,
 {
     auto hitEvents = QList<HitEvent>{};
     auto gaugeHistories = QHash<QString, QList<rules::GaugeHistoryEntry>>{};
-    auto gaugeInfo = QHash<QString, BmsGaugeInfo>{};
     auto offset = 0LL;
     for (const auto* score : scores) {
         const auto* replayData = score->getReplayData();
@@ -74,18 +73,21 @@ BmsScoreCourse::fromScores(std::unique_ptr<BmsResultCourse> resultCourse,
                                       event.getAction(),
                                       event.getNoteRemoved()));
         }
-        for (const auto& [name, entries] :
-             score->getGaugeHistory()->getGaugeHistory().asKeyValueRange()) {
-            auto& gaugeHistory = gaugeHistories[name];
-            for (const auto& entry : entries) {
+        for (const auto& info : score->getGaugeHistory()->getGaugeInfo()) {
+            auto& gaugeHistory = gaugeHistories[info.name];
+            for (const auto& entry : info.gaugeHistory) {
                 gaugeHistory.append(rules::GaugeHistoryEntry(
                   entry.getOffsetFromStart() + offset, entry.getGauge()));
             }
         }
         offset += score->getResult()->getLength();
     }
-    auto gaugeHistory = std::make_unique<BmsGaugeHistory>(
-      std::move(gaugeHistories), scores[0]->getGaugeHistory()->getGaugeInfo(), resultCourse->getGuid());
+    auto infos = scores[0]->getGaugeHistory()->getGaugeInfo();
+    for (auto& info : infos) {
+        info.gaugeHistory = gaugeHistories[info.name];
+    }
+    auto gaugeHistory =
+      std::make_unique<BmsGaugeHistory>(infos, resultCourse->getGuid());
     auto replayData = std::make_unique<BmsReplayData>(std::move(hitEvents),
                                                       resultCourse->getGuid());
     return std::make_unique<BmsScoreCourse>(std::move(resultCourse),
