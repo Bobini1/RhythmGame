@@ -471,8 +471,9 @@ FocusScope {
                     if (start1Pressed) {
                         if (p1StartTimer.running && !login.enabled || login.enabled) {
                             login.enabled = !login.enabled;
+                        } else {
+                            p1StartTimer.restart();
                         }
-                        p1StartTimer.restart();
                     }
                 }
                 Timer {
@@ -484,8 +485,9 @@ FocusScope {
                     if (start2Pressed) {
                         if (p2StartTimer.running && !login.enabled || login.enabled) {
                             login.enabled = !login.enabled;
+                        } else {
+                            p2StartTimer.restart();
                         }
-                        p2StartTimer.restart();
                     }
                 }
             }
