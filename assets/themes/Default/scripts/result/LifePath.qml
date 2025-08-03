@@ -8,6 +8,7 @@ Shape {
     required property var history
     required property double maxGauge
     required property var songLength
+    asynchronous: true
 
     ShapePath {
         id: path
@@ -21,6 +22,7 @@ Shape {
         strokeWidth: 4
     }
     Instantiator {
+        asynchronous: true
         model: {
             let array = shape.history;
             let arrayDuplicated = [];
@@ -37,6 +39,7 @@ Shape {
                     "gauge": shape.history[shape.history.length - 1].gauge,
                     "offsetFromStart": 3E9 + shape.songLength
                 });
+            arrayDuplicated.reverse();
             return arrayDuplicated;
         }
 
