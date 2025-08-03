@@ -48,7 +48,7 @@ PathView {
     function refreshFolderClearStats() {
         folderClearStats = [];
         for (let folder of folderContents) {
-            if (folder instanceof ChartData || folder instanceof entry || folder instanceof course) {
+            if (folder instanceof ChartData || folder instanceof entry || folder instanceof course || folder === null) {
                 continue;
             }
             Rg.profileList.mainProfile.scoreDb.getScores(folder).then((result) => {
@@ -218,7 +218,11 @@ PathView {
         if (sort) {
             resultCharts.sort(sort);
         }
-        return resultFolders.concat(resultCharts);
+        let result = resultFolders.concat(resultCharts);
+        if (result.length === 0) {
+            result.push(null);
+        }
+        return result;
     }
 
     function sortOrFilterChanged() {
