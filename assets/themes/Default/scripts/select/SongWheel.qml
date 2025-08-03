@@ -68,6 +68,7 @@ FocusScope {
             scale: Math.min(parent.width / 1920, parent.height / 1080)
             width: 1920
 
+            enabled: !playOptions.enabled && !login.enabled
 
             StageFile {
                 id: stageFile
