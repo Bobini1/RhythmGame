@@ -12,12 +12,12 @@
 #include <spdlog/spdlog.h>
 #include <boost/serialization/strong_typedef.hpp>
 #include <type_traits>
-#include "BmsChartReader.h"
+#include "ReadBmsFile.h"
 
 #include <lexy_ext/report_error.hpp>
 #include <boost/locale/encoding.hpp>
 
-namespace charts::chart_readers {
+namespace charts {
 namespace dsl = lexy::dsl;
 
 namespace {
@@ -79,7 +79,7 @@ struct FloatingPoint
     static constexpr auto value =
       lexy::as_string<std::string> |
       lexy::callback<double>([](std::string&& str) {
-          auto val = parser_models::ParsedBmsChart::Measure::defaultMeter;
+          auto val = ParsedBmsChart::Measure::defaultMeter;
           auto err =
             std::from_chars(str.c_str(), str.c_str() + str.size(), val);
           if (err.ec != std::errc{}) {
@@ -454,8 +454,8 @@ struct TagsSink
     struct SinkCallback
     {
         using return_type = // NOLINT(readability-identifier-naming)
-          parser_models::ParsedBmsChart::Tags;
-        parser_models::ParsedBmsChart::Tags state;
+          ParsedBmsChart::Tags;
+        ParsedBmsChart::Tags state;
 
         auto finish() && -> return_type { return std::move(state); }
         auto operator()(Title&& title) -> void
@@ -534,10 +534,10 @@ struct TagsSink
                 state.stops[identifier] = value;
             }
         }
-        auto operator()(parser_models::ParsedBmsChart::Tags&& randomBlock)
+        auto operator()(ParsedBmsChart::Tags&& randomBlock)
         {
             state.isRandom = true;
-            parser_models::ParsedBmsChart::mergeTags(state,
+            ParsedBmsChart::mergeTags(state,
                                                      std::move(randomBlock));
         }
 
@@ -759,15 +759,15 @@ struct OrphanizedRandomCommonPart
 
 struct IfData
 {
-    parser_models::ParsedBmsChart::RandomRange number;
-    parser_models::ParsedBmsChart::Tags tags;
+    ParsedBmsChart::RandomRange number;
+    ParsedBmsChart::Tags tags;
 };
 
 struct IfBlock
 {
     static constexpr auto rule =
       dsl::ascii::case_folding(LEXY_LIT("#if")) >>
-      (dsl::integer<parser_models::ParsedBmsChart::RandomRange>(dsl::digits<>) +
+      (dsl::integer<ParsedBmsChart::RandomRange>(dsl::digits<>) +
        dsl::p<MainTags> + dsl::ascii::case_folding(LEXY_LIT("#endif")));
     static constexpr auto value = lexy::construct<IfData>;
 };
@@ -778,7 +778,7 @@ struct RandomSink
     {
         using return_type = // NOLINT(readability-identifier-naming)
           std::vector<
-            std::variant<IfData, parser_models::ParsedBmsChart::Tags>>;
+            std::variant<IfData, ParsedBmsChart::Tags>>;
         return_type state;
 
         auto finish() && -> return_type { return std::move(state); }
@@ -786,7 +786,7 @@ struct RandomSink
         {
             state.push_back(std::move(ifBlock));
         }
-        auto operator()(parser_models::ParsedBmsChart::Tags&& orphanTags)
+        auto operator()(ParsedBmsChart::Tags&& orphanTags)
           -> void
         {
             state.push_back(std::move(orphanTags));
@@ -812,27 +812,27 @@ struct IfList
 
 auto
 resolveIfs(
-  parser_models::ParsedBmsChart::RandomRange randomRange,
-  std::vector<std::variant<IfData, parser_models::ParsedBmsChart::Tags>>
+  ParsedBmsChart::RandomRange randomRange,
+  std::vector<std::variant<IfData, ParsedBmsChart::Tags>>
     randomContents,
-  std::function<parser_models::ParsedBmsChart::RandomRange(
-    parser_models::ParsedBmsChart::RandomRange)> randomGenerator)
-  -> parser_models::ParsedBmsChart::Tags
+  std::function<ParsedBmsChart::RandomRange(
+    ParsedBmsChart::RandomRange)> randomGenerator)
+  -> ParsedBmsChart::Tags
 {
-    auto tags = parser_models::ParsedBmsChart::Tags{};
+    auto tags = ParsedBmsChart::Tags{};
     auto randomNumber = randomGenerator(randomRange);
     for (auto& randomContent : randomContents) {
         if (std::holds_alternative<IfData>(randomContent)) {
             auto& ifData = std::get<IfData>(randomContent);
             if (ifData.number == randomNumber) {
-                parser_models::ParsedBmsChart::mergeTags(
+                ParsedBmsChart::mergeTags(
                   tags, std::move(ifData.tags));
             }
         } else {
-            parser_models::ParsedBmsChart::mergeTags(
+            ParsedBmsChart::mergeTags(
               tags,
               std::move(
-                std::get<parser_models::ParsedBmsChart::Tags>(randomContent)));
+                std::get<ParsedBmsChart::Tags>(randomContent)));
         }
     }
     return tags;
@@ -842,12 +842,12 @@ struct RandomBlock
 {
     static constexpr auto rule =
       dsl::ascii::case_folding(LEXY_LIT("#random")) >>
-      (dsl::integer<parser_models::ParsedBmsChart::RandomRange>(dsl::digits<>) +
+      (dsl::integer<ParsedBmsChart::RandomRange>(dsl::digits<>) +
        dsl::p<IfList> +
        (dsl::peek(dsl::ascii::case_folding(LEXY_LIT("#random"))) |
         dsl::ascii::case_folding(LEXY_LIT("#endrandom")) | dsl::eof));
     static constexpr auto value = lexy::bind(
-      lexy::callback<parser_models::ParsedBmsChart::Tags>(resolveIfs),
+      lexy::callback<ParsedBmsChart::Tags>(resolveIfs),
       lexy::values,
       lexy::parse_state);
 };
@@ -864,16 +864,16 @@ struct ReportError
 };
 
 auto
-BmsChartReader::readBmsChart(
+readBmsChart(
   std::string_view chart,
-  std::function<parser_models::ParsedBmsChart::RandomRange(
-    parser_models::ParsedBmsChart::RandomRange)> randomGenerator) const
-  -> parser_models::ParsedBmsChart
+  std::function<ParsedBmsChart::RandomRange(
+    ParsedBmsChart::RandomRange)> randomGenerator)
+  -> ParsedBmsChart
 {
     auto result =
       lexy::parse<MainTags>(lexy::string_input<lexy::utf8_char_encoding>(chart),
                             randomGenerator,
                             ReportError{});
-    return parser_models::ParsedBmsChart{ std::move(result).value() };
+    return ParsedBmsChart{ std::move(result).value() };
 }
 } // namespace charts::chart_readers

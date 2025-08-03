@@ -9,11 +9,9 @@
 #include <unordered_map>
 #include <random>
 #include <optional>
-#include <memory>
 #include <array>
-#include <utility>
 
-namespace charts::parser_models {
+namespace charts {
 /**
  * @brief Be-Music Source chart.
  */
@@ -85,5 +83,5 @@ struct ParsedBmsChart
 
     Tags tags;
 };
-} // namespace charts::parser_models
+} // namespace charts
 #endif // RHYTHMGAME_PARSEDBMSCHART_H

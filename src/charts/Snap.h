@@ -5,11 +5,11 @@
 #ifndef RHYTHMGAME_SNAP_H
 #define RHYTHMGAME_SNAP_H
 
-namespace charts::gameplay_models {
+namespace charts {
 struct Snap
 {
     double numerator;
     double denominator;
 };
-} // namespace charts::gameplay_models
+} // namespace charts
 #endif // RHYTHMGAME_SNAP_H

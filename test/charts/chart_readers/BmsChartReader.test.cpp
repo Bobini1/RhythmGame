@@ -4,13 +4,13 @@
 
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/catch_approx.hpp>
-#include "charts/chart_readers/BmsChartReader.h"
+#include "../../../src/charts/ReadBmsFile.h"
 // convert to CP932
 #include <boost/locale/encoding.hpp>
 
 namespace {
 auto randomGenerator =
-  [](charts::parser_models::ParsedBmsChart::RandomRange range) {
+  [](charts::ParsedBmsChart::RandomRange range) {
       return range;
   };
 } // namespace

@@ -7,15 +7,15 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/catch_approx.hpp>
 
-#include "charts/helper_functions/loadBmsSounds.h"
+#include "../../../src/resource_managers/loadBmsSounds.h"
 #include "../../findTestAssetsFolder.h"
-#include "charts/chart_readers/BmsChartReader.h"
+#include "../../../src/charts/ReadBmsFile.h"
 
 #include <support/UtfStringToPath.h>
 
 namespace {
 auto randomGenerator =
-  [](charts::parser_models::ParsedBmsChart::RandomRange range) {
+  [](charts::ParsedBmsChart::RandomRange range) {
       return range;
   };
 } // namespace
@@ -34,7 +34,7 @@ TEST_CASE("Sounds are loaded from a folder according to the bms file",
     for (auto& wav : tags.wavs) {
         wavs.emplace(wav.first, support::utfStringToPath(wav.second));
     }
-    auto sounds = charts::helper_functions::loadBmsSounds(wavs, folder);
+    auto sounds = charts::loadBmsSounds(wavs, folder);
     REQUIRE(sounds.size() == 2);
     REQUIRE(sounds.at(1).getBuffer() == sounds.at(2).getBuffer());
 }
@@ -65,6 +65,6 @@ TEST_CASE("Even when the extension says wav, allow loading other extensions",
     for (auto& wav : tags.wavs) {
         wavs.emplace(wav.first, support::utfStringToPath(wav.second));
     }
-    auto sounds = charts::helper_functions::loadBmsSounds(wavs, folder);
+    auto sounds = charts::loadBmsSounds(wavs, folder);
     REQUIRE(sounds.size() == 4);
 }

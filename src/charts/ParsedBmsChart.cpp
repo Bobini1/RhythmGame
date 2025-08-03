@@ -4,7 +4,7 @@
 
 #include "ParsedBmsChart.h"
 auto
-charts::parser_models::ParsedBmsChart::mergeTags(
+charts::ParsedBmsChart::mergeTags(
   Tags& first,
   Tags second) -> void
 {

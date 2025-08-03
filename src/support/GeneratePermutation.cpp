@@ -37,15 +37,15 @@ getColumsIota(const int size) -> QList<int>
 
 auto
 getNextNote(
-  const std::span<std::vector<charts::gameplay_models::BmsNotesData::Note>> arr,
+  const std::span<std::vector<charts::BmsNotesData::Note>> arr,
   std::vector<
-    std::vector<charts::gameplay_models::BmsNotesData::Note>::const_iterator>&
+    std::vector<charts::BmsNotesData::Note>::const_iterator>&
     noteIters)
   -> std::optional<
-    std::vector<charts::gameplay_models::BmsNotesData::Note>::const_iterator>
+    std::vector<charts::BmsNotesData::Note>::const_iterator>
 {
     auto nextNote = std::optional<std::vector<
-      charts::gameplay_models::BmsNotesData::Note>::const_iterator>{};
+      charts::BmsNotesData::Note>::const_iterator>{};
     auto selectedColumn = 0;
     for (auto i = 0; i < noteIters.size(); ++i) {
         if (noteIters[i] == arr[i].cend()) {
@@ -60,7 +60,7 @@ getNextNote(
     if (nextNote) {
         ++noteIters[selectedColumn];
         if ((*nextNote)->noteType ==
-            charts::gameplay_models::BmsNotesData::NoteType::LongNoteBegin) {
+            charts::BmsNotesData::NoteType::LongNoteBegin) {
             ++noteIters[selectedColumn];
         }
     }
@@ -69,13 +69,13 @@ getNextNote(
 
 auto
 pushProposedNote(
-  std::vector<charts::gameplay_models::BmsNotesData::Note>& lane,
+  std::vector<charts::BmsNotesData::Note>& lane,
   const std::vector<
-    charts::gameplay_models::BmsNotesData::Note>::const_iterator& note) -> void
+    charts::BmsNotesData::Note>::const_iterator& note) -> void
 {
     lane.push_back(*note);
     if (note->noteType ==
-        charts::gameplay_models::BmsNotesData::NoteType::LongNoteBegin) {
+        charts::BmsNotesData::NoteType::LongNoteBegin) {
         auto endNote = note;
         ++endNote;
         lane.push_back(*endNote);
@@ -85,9 +85,9 @@ pushProposedNote(
 auto
 tryPushingNoteWithDistance(
   const std::vector<
-    charts::gameplay_models::BmsNotesData::Note>::const_iterator& noteIt,
+    charts::BmsNotesData::Note>::const_iterator& noteIt,
   const QList<int>& columnsIota,
-  std::vector<std::vector<charts::gameplay_models::BmsNotesData::Note>>&
+  std::vector<std::vector<charts::BmsNotesData::Note>>&
     newColumns,
   const std::chrono::nanoseconds preferredNoteDistance) -> bool
 {
@@ -111,9 +111,9 @@ tryPushingNoteWithDistance(
 void
 pushNoteWithMaxDistance(
   const std::vector<
-    charts::gameplay_models::BmsNotesData::Note>::const_iterator& noteIt,
+    charts::BmsNotesData::Note>::const_iterator& noteIt,
   const QList<int>& columnsIota,
-  std::vector<std::vector<charts::gameplay_models::BmsNotesData::Note>>&
+  std::vector<std::vector<charts::BmsNotesData::Note>>&
     newColumns)
 {
     auto bestPick = -1;
@@ -137,15 +137,15 @@ pushNoteWithMaxDistance(
 template<typename Random>
 void
 shuffleAllNotes(
-  std::span<std::vector<charts::gameplay_models::BmsNotesData::Note>> arr,
+  std::span<std::vector<charts::BmsNotesData::Note>> arr,
   const std::chrono::nanoseconds preferredNoteDistance,
   Random& randomGenerator)
 {
     auto newColumns =
-      std::vector<std::vector<charts::gameplay_models::BmsNotesData::Note>>{};
+      std::vector<std::vector<charts::BmsNotesData::Note>>{};
     newColumns.resize(arr.size());
     auto noteIters = std::vector<std::vector<
-      charts::gameplay_models::BmsNotesData::Note>::const_iterator>{};
+      charts::BmsNotesData::Note>::const_iterator>{};
     noteIters.resize(arr.size());
     for (auto i = 0; i < arr.size(); ++i) {
         noteIters[i] = arr[i].cbegin();
@@ -171,7 +171,7 @@ shuffleAllNotes(
 
 auto
 generatePermutation(
-  std::span<std::vector<charts::gameplay_models::BmsNotesData::Note>>&
+  std::span<std::vector<charts::BmsNotesData::Note>>&
     visibleNotes,
   const resource_managers::NoteOrderAlgorithm algorithm,
   const std::optional<uint64_t> seed) -> ShuffleResult

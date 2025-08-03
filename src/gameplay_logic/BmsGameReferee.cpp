@@ -6,11 +6,11 @@
 #include <ranges>
 #include "BmsGameReferee.h"
 gameplay_logic::BmsGameReferee::BmsGameReferee(
-  std::array<std::vector<charts::gameplay_models::BmsNotesData::Note>,
-             charts::gameplay_models::BmsNotesData::columnNumber> notes,
+  std::array<std::vector<charts::BmsNotesData::Note>,
+             charts::BmsNotesData::columnNumber> notes,
   const std::vector<
-    std::pair<charts::gameplay_models::BmsNotesData::Time, uint16_t>>& bgmNotes,
-  std::vector<std::pair<charts::gameplay_models::BmsNotesData::Time, double>>
+    std::pair<charts::BmsNotesData::Time, uint16_t>>& bgmNotes,
+  std::vector<std::pair<charts::BmsNotesData::Time, double>>
     bpmChanges,
   sounds::OpenALSound* mineHitSound,
   BmsLiveScore* score,
@@ -22,7 +22,7 @@ gameplay_logic::BmsGameReferee::BmsGameReferee(
   , score(score)
   , mineHitSound(mineHitSound)
 {
-    for (int i = 0; i < charts::gameplay_models::BmsNotesData::columnNumber;
+    for (int i = 0; i < charts::BmsNotesData::columnNumber;
          i++) {
         for (const auto& [index, note] :
              std::ranges::views::enumerate(notes[i])) {
@@ -42,11 +42,11 @@ void
 gameplay_logic::BmsGameReferee::addNote(
   decltype(notes)::value_type& column,
   decltype(mines)::value_type& minesColumn,
-  const charts::gameplay_models::BmsNotesData::Note& note,
+  const charts::BmsNotesData::Note& note,
   int index)
 {
     if (note.noteType ==
-        charts::gameplay_models::BmsNotesData::NoteType::Normal) {
+        charts::BmsNotesData::NoteType::Normal) {
         auto soundId = note.sound;
         if (auto sound = sounds.find(soundId); sound != sounds.end()) {
             column.emplace_back(&sound->second,
@@ -62,7 +62,7 @@ gameplay_logic::BmsGameReferee::addNote(
                                 index);
         }
     } else if (note.noteType ==
-               charts::gameplay_models::BmsNotesData::NoteType::LongNoteBegin) {
+               charts::BmsNotesData::NoteType::LongNoteBegin) {
         auto soundId = note.sound;
         if (auto sound = sounds.find(soundId); sound != sounds.end()) {
             column.emplace_back(&sound->second,
@@ -78,7 +78,7 @@ gameplay_logic::BmsGameReferee::addNote(
                                 index);
         }
     } else if (note.noteType ==
-               charts::gameplay_models::BmsNotesData::NoteType::LongNoteEnd) {
+               charts::BmsNotesData::NoteType::LongNoteEnd) {
         auto soundId = note.sound;
         if (auto sound = sounds.find(soundId); sound != sounds.end()) {
             column.emplace_back(&sound->second,
@@ -94,7 +94,7 @@ gameplay_logic::BmsGameReferee::addNote(
                                 index);
         }
     } else if (note.noteType ==
-               charts::gameplay_models::BmsNotesData::NoteType::Landmine) {
+               charts::BmsNotesData::NoteType::Landmine) {
         auto penalty = -note.sound / 2;
         minesColumn.emplace_back(
           static_cast<double>(penalty), note.time.timestamp, index);
@@ -151,7 +151,7 @@ gameplay_logic::BmsGameReferee::passPressed(
     }
     auto columnIndex = static_cast<int>(key);
     if (columnIndex < 0 ||
-        columnIndex >= charts::gameplay_models::BmsNotesData::columnNumber) {
+        columnIndex >= charts::BmsNotesData::columnNumber) {
         return;
     }
     pressedState[columnIndex] = true;
@@ -197,7 +197,7 @@ gameplay_logic::BmsGameReferee::passReleased(
     }
     auto columnIndex = static_cast<int>(key);
     if (columnIndex < 0 ||
-        columnIndex >= charts::gameplay_models::BmsNotesData::columnNumber) {
+        columnIndex >= charts::BmsNotesData::columnNumber) {
         return;
     }
     pressedState[columnIndex] = false;

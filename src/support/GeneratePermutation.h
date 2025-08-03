@@ -10,7 +10,7 @@
 #include <random>
 #include <ranges>
 #include "resource_managers/Vars.h"
-#include "charts/gameplay_models/BmsNotesData.h"
+#include "../charts/BmsNotesData.h"
 
 namespace support {
 struct ShuffleResult
@@ -33,7 +33,7 @@ struct ShuffleResult
  */
 auto
 generatePermutation(
-  std::span<std::vector<charts::gameplay_models::BmsNotesData::Note>>&
+  std::span<std::vector<charts::BmsNotesData::Note>>&
     visibleNotes,
   resource_managers::NoteOrderAlgorithm algorithm,
   std::optional<uint64_t> seed = std::nullopt) -> ShuffleResult;

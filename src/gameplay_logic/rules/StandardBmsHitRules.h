@@ -5,7 +5,7 @@
 #ifndef RHYTHMGAME_STANDARDBMSHITRULES_H
 #define RHYTHMGAME_STANDARDBMSHITRULES_H
 #include <chrono>
-#include "charts/gameplay_models/BmsNotesData.h"
+#include "../../charts/BmsNotesData.h"
 #include "BmsHitRules.h"
 #include "TimingWindows.h"
 #include "BmsGauge.h"
@@ -18,11 +18,11 @@ class StandardBmsHitRules : public BmsHitRules
     TimingWindows timingWindows;
     std::function<double(std::chrono::nanoseconds, Judgement judgement)>
       hitValueFactory;
-    std::array<int, charts::gameplay_models::BmsNotesData::columnNumber>
+    std::array<int, charts::BmsNotesData::columnNumber>
       currentNotes{};
-    std::array<int, charts::gameplay_models::BmsNotesData::columnNumber>
+    std::array<int, charts::BmsNotesData::columnNumber>
       currentMines{};
-    std::array<BmsPoints, charts::gameplay_models::BmsNotesData::columnNumber>
+    std::array<BmsPoints, charts::BmsNotesData::columnNumber>
       lnBeginPoints{};
 
   public:

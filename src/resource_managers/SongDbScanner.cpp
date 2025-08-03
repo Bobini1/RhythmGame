@@ -79,12 +79,12 @@ loadChart(QThreadPool& threadPool,
         try {
             thread_local constexpr ChartDataFactory chartDataFactory;
             auto randomGenerator =
-              [](charts::parser_models::ParsedBmsChart::RandomRange
+              [](charts::ParsedBmsChart::RandomRange
                    randomRange) {
                   thread_local auto randomEngine =
                     std::default_random_engine{ std::random_device{}() };
                   return std::uniform_int_distribution{
-                      charts::parser_models::ParsedBmsChart::RandomRange{ 1 },
+                      charts::ParsedBmsChart::RandomRange{ 1 },
                       randomRange
                   }(randomEngine);
               };

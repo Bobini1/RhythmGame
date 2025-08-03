@@ -10,7 +10,7 @@
 #include <unordered_set>
 #include <QtConcurrent>
 
-namespace charts::helper_functions {
+namespace charts {
 
 #if _WIN32
 auto
@@ -179,4 +179,4 @@ loadBmsSounds(const std::unordered_map<uint16_t, std::filesystem::path>& wavs,
     return sounds;
 }
 
-} // namespace charts::helper_functions
+} // namespace charts

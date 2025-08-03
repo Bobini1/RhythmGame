@@ -8,9 +8,9 @@
 #include <vector>
 #include <chrono>
 #include "Snap.h"
-#include "charts/parser_models/ParsedBmsChart.h"
+#include "ParsedBmsChart.h"
 
-namespace charts::gameplay_models {
+namespace charts {
 struct BmsNotesData
 {
     using Position = double;
@@ -70,14 +70,14 @@ struct BmsNotesData
     std::vector<Time> barLines;
     static constexpr auto defaultBpm = 120.0;
     static constexpr auto defaultLnType = LnType::RDM;
-    explicit BmsNotesData(const parser_models::ParsedBmsChart& chart);
+    explicit BmsNotesData(const ParsedBmsChart& chart);
 
   private:
     void generateMeasures(
       double baseBpm,
       const std::unordered_map<uint16_t, double>& bpms,
       const std::unordered_map<uint16_t, double>& stops,
-      const std::map<int64_t, parser_models::ParsedBmsChart::Measure>& measures,
+      const std::map<int64_t, ParsedBmsChart::Measure>& measures,
       LnType lnType,
       std::optional<uint16_t> lnObj);
     void fillEmptyMeasures(int64_t lastMeasure,
@@ -86,18 +86,18 @@ struct BmsNotesData
                            double lastBpm);
     void adjustRdmLnEnds(
       const std::array<std::optional<size_t>,
-                       parser_models::ParsedBmsChart::Measure::columnNumber>&
+                       ParsedBmsChart::Measure::columnNumber>&
         lastInsertedRdmNoteP1,
       const std::array<std::optional<size_t>,
-                       parser_models::ParsedBmsChart::Measure::columnNumber>&
+                       ParsedBmsChart::Measure::columnNumber>&
         lastInsertedRdmNoteP2);
     void adjustMgqLnEnds(
       double lastBpm,
       Time measureStart,
-      std::array<bool, parser_models::ParsedBmsChart::Measure::columnNumber>&
+      std::array<bool, ParsedBmsChart::Measure::columnNumber>&
         insideLnP1,
-      std::array<bool, parser_models::ParsedBmsChart::Measure::columnNumber>&
+      std::array<bool, ParsedBmsChart::Measure::columnNumber>&
         insideLnP2);
 };
-} // namespace charts::gameplay_models
+} // namespace charts
 #endif // RHYTHMGAME_BMSNOTESDATA_H

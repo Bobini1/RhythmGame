@@ -11,11 +11,11 @@
 #include <filesystem>
 #include "sounds/OpenAlSound.h"
 
-namespace charts::helper_functions {
+namespace charts {
 auto
 loadBmsSounds(const std::unordered_map<uint16_t, std::filesystem::path>& wavs,
               const std::filesystem::path& path)
   -> std::unordered_map<uint16_t, sounds::OpenALSound>;
-} // namespace charts::helper_functions
+} // namespace charts
 
 #endif // RHYTHMGAME_LOADBMSSOUNDS_H

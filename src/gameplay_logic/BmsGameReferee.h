@@ -6,7 +6,7 @@
 #define RHYTHMGAME_BMSGAMEREFEREE_H
 
 #include <span>
-#include "charts/gameplay_models/BmsNotesData.h"
+#include "../charts/BmsNotesData.h"
 #include "input/BmsKeys.h"
 #include "BmsLiveScore.h"
 #include "gameplay_logic/rules/BmsHitRules.h"
@@ -17,20 +17,20 @@ class BmsGameReferee
     using BgmType = std::pair<std::chrono::nanoseconds, sounds::OpenALSound*>;
 
     std::array<std::vector<rules::BmsHitRules::Note>,
-               charts::gameplay_models::BmsNotesData::columnNumber>
+               charts::BmsNotesData::columnNumber>
       notes;
     std::array<std::vector<rules::BmsHitRules::Mine>,
-               charts::gameplay_models::BmsNotesData::columnNumber>
+               charts::BmsNotesData::columnNumber>
       mines;
     std::vector<BgmType> bgms;
     std::span<BgmType> currentBgms;
-    std::vector<std::pair<charts::gameplay_models::BmsNotesData::Time, double>>
+    std::vector<std::pair<charts::BmsNotesData::Time, double>>
       bpmChanges;
     std::unordered_map<uint16_t, sounds::OpenALSound> sounds;
     std::unique_ptr<rules::BmsHitRules> hitRules;
     BmsLiveScore* score;
     sounds::OpenALSound* mineHitSound;
-    std::array<bool, charts::gameplay_models::BmsNotesData::columnNumber>
+    std::array<bool, charts::BmsNotesData::columnNumber>
       pressedState{};
 
   public:
@@ -39,16 +39,16 @@ class BmsGameReferee
   private:
     void addNote(decltype(notes)::value_type& column,
                  decltype(mines)::value_type& minesColumn,
-                 const charts::gameplay_models::BmsNotesData::Note& note,
+                 const charts::BmsNotesData::Note& note,
                  int index);
 
   public:
     explicit BmsGameReferee(
-      std::array<std::vector<charts::gameplay_models::BmsNotesData::Note>,
-                 charts::gameplay_models::BmsNotesData::columnNumber> notes,
-      const std::vector<std::pair<charts::gameplay_models::BmsNotesData::Time,
+      std::array<std::vector<charts::BmsNotesData::Note>,
+                 charts::BmsNotesData::columnNumber> notes,
+      const std::vector<std::pair<charts::BmsNotesData::Time,
                                   uint16_t>>& bgmNotes,
-      std::vector<std::pair<charts::gameplay_models::BmsNotesData::Time,
+      std::vector<std::pair<charts::BmsNotesData::Time,
                             double>> bpmChanges,
       sounds::OpenALSound* mineHitSound,
       BmsLiveScore* score,

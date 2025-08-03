@@ -13,7 +13,7 @@
 
 using namespace std::chrono_literals;
 
-namespace charts::gameplay_models {
+namespace charts {
 namespace {
 
 struct BpmChangeDef
@@ -567,7 +567,7 @@ removeInvalidNotes(
 
 } // namespace
 
-BmsNotesData::BmsNotesData(const charts::parser_models::ParsedBmsChart& chart)
+BmsNotesData::BmsNotesData(const charts::ParsedBmsChart& chart)
 {
     auto lnType = defaultLnType;
     if (chart.tags.lnType.has_value()) {
@@ -585,7 +585,7 @@ BmsNotesData::generateMeasures(
   double baseBpm,
   const std::unordered_map<uint16_t, double>& bpms,
   const std::unordered_map<uint16_t, double>& stops,
-  const std::map<int64_t, parser_models::ParsedBmsChart::Measure>& measures,
+  const std::map<int64_t, ParsedBmsChart::Measure>& measures,
   LnType lnType,
   std::optional<uint16_t> lnObj)
 {
@@ -594,15 +594,15 @@ BmsNotesData::generateMeasures(
     auto measureStart = Time{ 0ns, 0.0 };
     bpmChanges.emplace_back(measureStart, baseBpm);
     auto insideLnP1 =
-      std::array<bool, parser_models::ParsedBmsChart::Measure::columnNumber>{};
+      std::array<bool, ParsedBmsChart::Measure::columnNumber>{};
     auto insideLnP2 =
-      std::array<bool, parser_models::ParsedBmsChart::Measure::columnNumber>{};
+      std::array<bool, ParsedBmsChart::Measure::columnNumber>{};
     auto lastInsertedRdmNoteP1 =
       std::array<std::optional<size_t>,
-                 parser_models::ParsedBmsChart::Measure::columnNumber>{};
+                 ParsedBmsChart::Measure::columnNumber>{};
     auto lastInsertedRdmNoteP2 =
       std::array<std::optional<size_t>,
-                 parser_models::ParsedBmsChart::Measure::columnNumber>{};
+                 ParsedBmsChart::Measure::columnNumber>{};
     for (const auto& [measureIndex, measure] : measures) {
         auto currentMeasure = measureIndex;
         if (lnType == LnType::MGQ && currentMeasure > lastMeasure + 1) {
@@ -618,7 +618,7 @@ BmsNotesData::generateMeasures(
         auto combinedBpmChanges = combineBpmChanges(
           measure.exBpmChanges, measure.bpmChanges, measure.stops, bpms, stops);
         auto meter = measure.meter.value_or(
-          parser_models::ParsedBmsChart::Measure::defaultMeter);
+          ParsedBmsChart::Measure::defaultMeter);
         for (const auto& bpmChange : combinedBpmChanges) {
             auto fraction = bpmChange.fraction;
             auto bpmChangeNum = bpmChange.bpm;
@@ -765,9 +765,9 @@ void
 BmsNotesData::adjustMgqLnEnds(
   double lastBpm,
   Time measureStart,
-  std::array<bool, parser_models::ParsedBmsChart::Measure::columnNumber>&
+  std::array<bool, ParsedBmsChart::Measure::columnNumber>&
     insideLnP1,
-  std::array<bool, parser_models::ParsedBmsChart::Measure::columnNumber>&
+  std::array<bool, ParsedBmsChart::Measure::columnNumber>&
     insideLnP2)
 {
     auto bpmChangesInMeasureTemp =
@@ -788,10 +788,10 @@ BmsNotesData::adjustMgqLnEnds(
 void
 BmsNotesData::adjustRdmLnEnds(
   const std::array<std::optional<size_t>,
-                   parser_models::ParsedBmsChart::Measure::columnNumber>&
+                   ParsedBmsChart::Measure::columnNumber>&
     lastInsertedRdmNoteP1,
   const std::array<std::optional<size_t>,
-                   parser_models::ParsedBmsChart::Measure::columnNumber>&
+                   ParsedBmsChart::Measure::columnNumber>&
     lastInsertedRdmNoteP2)
 {
     for (int i = 0; i < columnMapping.size(); i++) {
@@ -832,4 +832,4 @@ BmsNotesData::fillEmptyMeasures(int64_t lastMeasure,
         measureStart = measureEnd;
     }
 }
-} // namespace charts::gameplay_models
+} // namespace charts

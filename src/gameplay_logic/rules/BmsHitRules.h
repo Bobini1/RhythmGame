@@ -8,7 +8,7 @@
 #include <chrono>
 #include <span>
 #include "gameplay_logic/BmsPoints.h"
-#include "charts/gameplay_models/BmsNotesData.h"
+#include "../../charts/BmsNotesData.h"
 #include "gameplay_logic/HitEvent.h"
 namespace sounds {
 class OpenALSound;

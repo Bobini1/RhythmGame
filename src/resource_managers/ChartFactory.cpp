@@ -6,7 +6,7 @@
 #include <QObject>
 #include "ChartFactory.h"
 
-#include "charts/helper_functions/loadBmsSounds.h"
+#include "loadBmsSounds.h"
 #include "qml_components/ProfileList.h"
 #include "support/GeneratePermutation.h"
 #include "support/QStringToPath.h"
@@ -92,13 +92,13 @@ loadBmpVideo(const std::filesystem::path& path) -> std::unique_ptr<QMediaPlayer>
 
 auto
 loadBga(
-  std::vector<std::pair<charts::gameplay_models::BmsNotesData::Time, uint16_t>>
+  std::vector<std::pair<charts::BmsNotesData::Time, uint16_t>>
     bgaBase,
-  std::vector<std::pair<charts::gameplay_models::BmsNotesData::Time, uint16_t>>
+  std::vector<std::pair<charts::BmsNotesData::Time, uint16_t>>
     bgaPoor,
-  std::vector<std::pair<charts::gameplay_models::BmsNotesData::Time, uint16_t>>
+  std::vector<std::pair<charts::BmsNotesData::Time, uint16_t>>
     bgaLayer,
-  std::vector<std::pair<charts::gameplay_models::BmsNotesData::Time, uint16_t>>
+  std::vector<std::pair<charts::BmsNotesData::Time, uint16_t>>
     bgaLayer2,
   std::unordered_map<uint16_t, std::filesystem::path> bmps,
   QThread* thread,
@@ -288,7 +288,7 @@ struct RandomizedData
     std::unique_ptr<gameplay_logic::GameplayState> state;
     std::array<support::ShuffleResult, 2> shuffleResults;
     std::unique_ptr<gameplay_logic::BmsLiveScore> score;
-    std::array<std::vector<charts::gameplay_models::BmsNotesData::Note>, 16>
+    std::array<std::vector<charts::BmsNotesData::Note>, 16>
       rawNotes;
 };
 
@@ -362,7 +362,7 @@ createAutoplayFromNotes(const gameplay_logic::BmsNotes& notes)
 namespace {
 auto
 getComponentsForPlayer(const ChartFactory::PlayerSpecificData& player,
-                       const charts::gameplay_models::BmsNotesData& notesData,
+                       const charts::BmsNotesData& notesData,
                        const gameplay_logic::ChartData& chartData,
                        const double maxHitValue) -> RandomizedData
 {
@@ -649,7 +649,7 @@ SoundTask::SoundTask(std::filesystem::path path,
 void
 SoundTask::run()
 {
-    emit soundsLoaded(charts::helper_functions::loadBmsSounds(wavs, path));
+    emit soundsLoaded(charts::loadBmsSounds(wavs, path));
 }
 ChartFactory::ChartFactory(input::InputTranslator* inputTranslator)
   : inputTranslator(inputTranslator)

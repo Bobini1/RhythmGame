@@ -6,33 +6,30 @@
 #define RHYTHMGAME_CHARTDATAFACTORY_H
 
 #include "gameplay_logic/ChartData.h"
-#include "charts/chart_readers/BmsChartReader.h"
-#include "charts/gameplay_models/BmsNotesData.h"
+#include "charts/BmsNotesData.h"
 #include "gameplay_logic/BmsNotes.h"
 namespace resource_managers {
 
 class ChartDataFactory
 {
-    charts::chart_readers::BmsChartReader chartReader;
-
     static auto loadFile(const QUrl& chartPath) -> std::string;
     static auto convertToQVector(
-      const std::vector<charts::gameplay_models::BmsNotesData::Note>& column)
+      const std::vector<charts::BmsNotesData::Note>& column)
       -> QVector<gameplay_logic::Note>;
 
   public:
     using RandomGenerator =
-      std::function<charts::parser_models::ParsedBmsChart::RandomRange(
-        charts::parser_models::ParsedBmsChart::RandomRange)>;
+      std::function<charts::ParsedBmsChart::RandomRange(
+        charts::ParsedBmsChart::RandomRange)>;
     struct ChartComponents
     {
         std::unique_ptr<gameplay_logic::ChartData> chartData;
-        charts::gameplay_models::BmsNotesData notesData;
+        charts::BmsNotesData notesData;
         std::unordered_map<uint16_t, std::filesystem::path> wavs;
         std::unordered_map<uint16_t, std::filesystem::path> bmps;
 
         ChartComponents(std::unique_ptr<gameplay_logic::ChartData> chartData,
-            charts::gameplay_models::BmsNotesData notesData,
+            charts::BmsNotesData notesData,
             std::unordered_map<uint16_t, std::filesystem::path> wavs,
             std::unordered_map<uint16_t, std::filesystem::path> bmps);
         ChartComponents(const ChartComponents& other);
@@ -41,12 +38,12 @@ class ChartDataFactory
         auto operator=(ChartComponents&& other) noexcept -> ChartComponents&;
     };
     static auto makeNotes(
-      const std::array<std::vector<charts::gameplay_models::BmsNotesData::Note>,
-                       charts::gameplay_models::BmsNotesData::columnNumber>&
+      const std::array<std::vector<charts::BmsNotesData::Note>,
+                       charts::BmsNotesData::columnNumber>&
         notes,
-      const std::vector<std::pair<charts::gameplay_models::BmsNotesData::Time,
+      const std::vector<std::pair<charts::BmsNotesData::Time,
                                   double>>& bpmChanges,
-      const std::vector<charts::gameplay_models::BmsNotesData::Time>& barLines)
+      const std::vector<charts::BmsNotesData::Time>& barLines)
       -> std::unique_ptr<gameplay_logic::BmsNotes>;
     auto loadChartData(
       const std::filesystem::path& chartPath,

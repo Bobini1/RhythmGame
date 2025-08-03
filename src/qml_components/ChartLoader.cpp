@@ -147,17 +147,17 @@ ChartLoader::loadChart(const QString& filename,
                                    : QList<qint64>{};
     auto randomGenerator =
       [randomSequence = std::move(randomSequence),
-       counter = 0](const charts::parser_models::ParsedBmsChart::RandomRange
+       counter = 0](const charts::ParsedBmsChart::RandomRange
                       randomRange) mutable {
           thread_local auto randomEngine =
             std::default_random_engine{ std::random_device{}() };
           if (counter < randomSequence.size()) {
               return static_cast<
-                charts::parser_models::ParsedBmsChart::RandomRange>(
+                charts::ParsedBmsChart::RandomRange>(
                 randomSequence[counter++]);
           }
           return std::uniform_int_distribution{
-              charts::parser_models::ParsedBmsChart::RandomRange{ 1 },
+              charts::ParsedBmsChart::RandomRange{ 1 },
               randomRange
           }(randomEngine);
       };
@@ -224,17 +224,17 @@ ChartLoader::loadCourse(const resource_managers::Course& course,
 
             auto randomGenerator =
               [randomSequence = std::move(randomSequence), counter = 0](
-                const charts::parser_models::ParsedBmsChart::RandomRange
+                const charts::ParsedBmsChart::RandomRange
                   randomRange) mutable {
                   thread_local auto randomEngine =
                     std::default_random_engine{ std::random_device{}() };
                   if (counter < randomSequence.size()) {
                       return static_cast<
-                        charts::parser_models::ParsedBmsChart::RandomRange>(
+                        charts::ParsedBmsChart::RandomRange>(
                         randomSequence[counter++]);
                   }
                   return std::uniform_int_distribution{
-                      charts::parser_models::ParsedBmsChart::RandomRange{ 1 },
+                      charts::ParsedBmsChart::RandomRange{ 1 },
                       randomRange
                   }(randomEngine);
               };
@@ -349,17 +349,17 @@ ChartLoader::loadChartData(const QString& filename,
 
         auto randomGenerator =
           [randomSequence = std::move(randomSequence),
-           counter = 0](const charts::parser_models::ParsedBmsChart::RandomRange
+           counter = 0](const charts::ParsedBmsChart::RandomRange
                           randomRange) mutable {
               thread_local auto randomEngine =
                 std::default_random_engine{ std::random_device{}() };
               if (counter < randomSequence.size()) {
                   return static_cast<
-                    charts::parser_models::ParsedBmsChart::RandomRange>(
+                    charts::ParsedBmsChart::RandomRange>(
                     randomSequence[counter++]);
               }
               return std::uniform_int_distribution{
-                  charts::parser_models::ParsedBmsChart::RandomRange{ 1 },
+                  charts::ParsedBmsChart::RandomRange{ 1 },
                   randomRange
               }(randomEngine);
           };
