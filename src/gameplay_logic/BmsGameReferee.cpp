@@ -15,7 +15,7 @@ gameplay_logic::BmsGameReferee::BmsGameReferee(
   sounds::OpenALSound* mineHitSound,
   BmsLiveScore* score,
   std::unordered_map<uint16_t, sounds::OpenALSound> sounds,
-  std::unique_ptr<rules::BmsHitRules> hitRules)
+  rules::StandardBmsHitRules hitRules)
   : bpmChanges(std::move(bpmChanges))
   , sounds(std::move(sounds))
   , hitRules(std::move(hitRules))
@@ -51,14 +51,14 @@ gameplay_logic::BmsGameReferee::addNote(
         if (auto sound = sounds.find(soundId); sound != sounds.end()) {
             column.emplace_back(&sound->second,
                                 note.time.timestamp,
-                                rules::BmsHitRules::NoteType::Normal,
+                                rules::StandardBmsHitRules::NoteType::Normal,
                                 index);
         } else {
             // we still want to be able to hit those notes, even if they
             // don't make a sound
             column.emplace_back(nullptr,
                                 note.time.timestamp,
-                                rules::BmsHitRules::NoteType::Normal,
+                                rules::StandardBmsHitRules::NoteType::Normal,
                                 index);
         }
     } else if (note.noteType ==
@@ -67,14 +67,14 @@ gameplay_logic::BmsGameReferee::addNote(
         if (auto sound = sounds.find(soundId); sound != sounds.end()) {
             column.emplace_back(&sound->second,
                                 note.time.timestamp,
-                                rules::BmsHitRules::NoteType::LnBegin,
+                                rules::StandardBmsHitRules::NoteType::LnBegin,
                                 index);
         } else {
             // we still want to be able to hit those notes, even if they
             // don't make a sound
             column.emplace_back(nullptr,
                                 note.time.timestamp,
-                                rules::BmsHitRules::NoteType::LnBegin,
+                                rules::StandardBmsHitRules::NoteType::LnBegin,
                                 index);
         }
     } else if (note.noteType ==
@@ -83,14 +83,14 @@ gameplay_logic::BmsGameReferee::addNote(
         if (auto sound = sounds.find(soundId); sound != sounds.end()) {
             column.emplace_back(&sound->second,
                                 note.time.timestamp,
-                                rules::BmsHitRules::NoteType::LnEnd,
+                                rules::StandardBmsHitRules::NoteType::LnEnd,
                                 index);
         } else {
             // we still want to be able to hit those notes, even if they
             // don't make a sound
             column.emplace_back(nullptr,
                                 note.time.timestamp,
-                                rules::BmsHitRules::NoteType::LnEnd,
+                                rules::StandardBmsHitRules::NoteType::LnEnd,
                                 index);
         }
     } else if (note.noteType ==
@@ -105,13 +105,17 @@ void
 gameplay_logic::BmsGameReferee::update(std::chrono::nanoseconds offsetFromStart,
                                        bool lastUpdate)
 {
+    if (lastUpdate) {
+        hitRules.disableSound();
+        currentBgms = {};
+    }
     auto events = std::vector<HitEvent>{};
     for (auto columnIndex = 0; columnIndex < notes.size(); columnIndex++) {
         auto& column = notes[columnIndex];
         std::ranges::copy(
-          hitRules->processMisses(column, columnIndex, offsetFromStart),
+          hitRules.processMisses(column, columnIndex, offsetFromStart),
           std::back_inserter(events));
-        std::ranges::copy(hitRules->processMines(mines[columnIndex],
+        std::ranges::copy(hitRules.processMines(mines[columnIndex],
                                                  columnIndex,
                                                  offsetFromStart,
                                                  pressedState[columnIndex],
@@ -121,22 +125,22 @@ gameplay_logic::BmsGameReferee::update(std::chrono::nanoseconds offsetFromStart,
     std::ranges::sort(events, [](const auto& left, const auto& right) {
         return left.getHitOffset() < right.getHitOffset();
     });
-    for (const auto& event : events) {
-        score->addHit(event, !lastUpdate);
-    }
     if (lastUpdate) {
-        currentBgms = {};
+        score->blockSignals(true);
     }
+    for (const auto& event : events) {
+        score->addHit(event);
+    }
+    auto played = 0;
     for (const auto& bgm : currentBgms) {
-        auto played = 0;
         if (bgm.first < offsetFromStart) {
             bgm.second->play();
             played++;
         } else {
             break;
         }
-        currentBgms = currentBgms.subspan(played);
     }
+    currentBgms = currentBgms.subspan(played);
 }
 auto
 gameplay_logic::BmsGameReferee::passPressed(
@@ -155,7 +159,7 @@ gameplay_logic::BmsGameReferee::passPressed(
         return;
     }
     pressedState[columnIndex] = true;
-    for (const auto& hit : hitRules->press(notes[columnIndex], columnIndex, offsetFromStart)) {
+    for (const auto& hit : hitRules.press(notes[columnIndex], columnIndex, offsetFromStart)) {
         score->addHit(hit);
     }
 }
@@ -202,5 +206,5 @@ gameplay_logic::BmsGameReferee::passReleased(
     }
     pressedState[columnIndex] = false;
     score->addHit(
-      hitRules->release(notes[columnIndex], columnIndex, offsetFromStart));
+      hitRules.release(notes[columnIndex], columnIndex, offsetFromStart));
 }

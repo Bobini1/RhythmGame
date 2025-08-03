@@ -36,7 +36,7 @@ ChartLoader::createChart(
       magic_enum::enum_cast<gameplay_logic::rules::BmsRank>(rankInt).value_or(
         gameplay_logic::rules::defaultBmsRank);
     auto hitRules =
-      std::vector<std::unique_ptr<gameplay_logic::rules::BmsHitRules>>{};
+      std::vector<std::unique_ptr<gameplay_logic::rules::StandardBmsHitRules>>{};
     auto timingWindows = timingWindowsFactory(rank);
     auto maxHitValue = hitValueFactory(std::chrono::nanoseconds{ 0 },
                                        gameplay_logic::Judgement::Perfect);
@@ -45,7 +45,7 @@ ChartLoader::createChart(
         gaugeFactory(player1,
                      chartComponents.chartData->getTotal(),
                      chartComponents.chartData->getNormalNoteCount()),
-        hitRulesFactory(timingWindows, hitValueFactory),
+        gameplay_logic::rules::StandardBmsHitRules(timingWindows, hitValueFactory),
         replayedScore1,
         player1AutoPlay
     };
@@ -56,7 +56,7 @@ ChartLoader::createChart(
                   gaugeFactory(player2,
                                chartComponents.chartData->getTotal(),
                                chartComponents.chartData->getNormalNoteCount()),
-                  hitRulesFactory(timingWindows, hitValueFactory),
+                  gameplay_logic::rules::StandardBmsHitRules(timingWindows, hitValueFactory),
                   replayedScore2,
                   player2AutoPlay)
               : std::nullopt;
@@ -427,14 +427,14 @@ ChartLoader::loadCourseChart(
       magic_enum::enum_cast<gameplay_logic::rules::BmsRank>(rankInt).value_or(
         gameplay_logic::rules::defaultBmsRank);
     auto hitRules =
-      std::vector<std::unique_ptr<gameplay_logic::rules::BmsHitRules>>{};
+      std::vector<std::unique_ptr<gameplay_logic::rules::StandardBmsHitRules>>{};
     auto timingWindows = timingWindowsFactory(rank);
     auto maxHitValue = hitValueFactory(std::chrono::nanoseconds{ 0 },
                                        gameplay_logic::Judgement::Perfect);
     auto player1data = resource_managers::ChartFactory::PlayerSpecificData{
         player1,
         std::move(gauges1),
-        hitRulesFactory(timingWindows, hitValueFactory),
+        gameplay_logic::rules::StandardBmsHitRules(timingWindows, hitValueFactory),
         score1,
         player1AutoPlay
     };
@@ -443,7 +443,7 @@ ChartLoader::loadCourseChart(
                   resource_managers::ChartFactory::PlayerSpecificData>(
                   player2,
                   std::move(gauges2),
-                  hitRulesFactory(timingWindows, hitValueFactory),
+                  gameplay_logic::rules::StandardBmsHitRules(timingWindows, hitValueFactory),
                   score2,
                   player2AutoPlay)
               : std::nullopt;
@@ -456,7 +456,6 @@ ChartLoader::ChartLoader(ProfileList* profileList,
                          input::InputTranslator* inputTranslator,
                          resource_managers::ChartDataFactory* chartDataFactory,
                          TimingWindowsFactory timingWindowsFactory,
-                         HitRulesFactory hitRulesFactory,
                          HitValueFactory hitValueFactory,
                          GaugeFactory gaugeFactory,
                          GaugeFactoryCourse gaugeFactoryCourse,
@@ -467,7 +466,6 @@ ChartLoader::ChartLoader(ProfileList* profileList,
   : QObject(parent)
   , chartDataFactory(chartDataFactory)
   , timingWindowsFactory(std::move(timingWindowsFactory))
-  , hitRulesFactory(std::move(hitRulesFactory))
   , hitValueFactory(std::move(hitValueFactory))
   , gaugeFactory(std::move(gaugeFactory))
   , gaugeFactoryCourse(std::move(gaugeFactoryCourse))

@@ -135,8 +135,6 @@ qt_add_library(RhythmGame_lib OBJECT ${utf8Manifest}
         src/gameplay_logic/rules/Lr2TimingWindows.cpp
         src/gameplay_logic/rules/Lr2TimingWindows.h
         src/gameplay_logic/rules/BmsRanks.h
-        src/gameplay_logic/rules/BmsHitRules.cpp
-        src/gameplay_logic/rules/BmsHitRules.h
         src/gameplay_logic/rules/TimingWindows.h
         src/gameplay_logic/rules/Lr2HitValues.cpp
         src/gameplay_logic/rules/Lr2HitValues.h

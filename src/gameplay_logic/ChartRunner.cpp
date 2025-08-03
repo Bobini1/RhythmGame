@@ -400,7 +400,7 @@ void
 RePlayer::update(const std::chrono::nanoseconds offsetFromStart,
                  const bool lastUpdate)
 {
-    while (!lastUpdate && !events.empty() &&
+    while (!events.empty() &&
            events.front().getOffsetFromStart() <= offsetFromStart.count()) {
         const auto event = events.front();
         events = events.subspan(1);
@@ -451,7 +451,7 @@ AutoPlayer::passKey(input::BmsKey key,
 void
 AutoPlayer::update(std::chrono::nanoseconds offsetFromStart, bool lastUpdate)
 {
-    while (!lastUpdate && !events.empty() &&
+    while (!events.empty() &&
            events.front().getOffsetFromStart() <= offsetFromStart.count()) {
         const auto event = events.front();
         events = events.subspan(1);

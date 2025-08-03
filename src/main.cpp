@@ -181,13 +181,6 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
                          &input::InputTranslator::handleRelease);
 
         auto chartFactory = resource_managers::ChartFactory{ &inputTranslator };
-        auto hitRulesFactory =
-          [](gameplay_logic::rules::TimingWindows timingWindows,
-             qml_components::ChartLoader::HitValueFactory hitValuesFactory) {
-              return std::make_unique<
-                gameplay_logic::rules::StandardBmsHitRules>(
-                std::move(timingWindows), std::move(hitValuesFactory));
-          };
         auto chartDataFactory = resource_managers::ChartDataFactory{};
         auto gaugeFactoryGeneral = resource_managers::GaugeFactory{};
         auto gaugeFactory =
@@ -228,7 +221,6 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
             &inputTranslator,
             &chartDataFactory,
             &gameplay_logic::rules::lr2_timing_windows::getTimingWindows,
-            std::move(hitRulesFactory),
             &gameplay_logic::rules::lr2_hit_values::getLr2HitValue,
             gaugeFactory,
             gaugeFactoryCourse,

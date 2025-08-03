@@ -6,20 +6,20 @@
 #define RHYTHMGAME_BMSGAMEREFEREE_H
 
 #include <span>
-#include "../charts/BmsNotesData.h"
+#include "charts/BmsNotesData.h"
 #include "input/BmsKeys.h"
 #include "BmsLiveScore.h"
-#include "gameplay_logic/rules/BmsHitRules.h"
+#include "gameplay_logic/rules/StandardBmsHitRules.h"
 #include "sounds/OpenAlSound.h"
 namespace gameplay_logic {
 class BmsGameReferee
 {
     using BgmType = std::pair<std::chrono::nanoseconds, sounds::OpenALSound*>;
 
-    std::array<std::vector<rules::BmsHitRules::Note>,
+    std::array<std::vector<rules::StandardBmsHitRules::Note>,
                charts::BmsNotesData::columnNumber>
       notes;
-    std::array<std::vector<rules::BmsHitRules::Mine>,
+    std::array<std::vector<rules::StandardBmsHitRules::Mine>,
                charts::BmsNotesData::columnNumber>
       mines;
     std::vector<BgmType> bgms;
@@ -27,7 +27,7 @@ class BmsGameReferee
     std::vector<std::pair<charts::BmsNotesData::Time, double>>
       bpmChanges;
     std::unordered_map<uint16_t, sounds::OpenALSound> sounds;
-    std::unique_ptr<rules::BmsHitRules> hitRules;
+    rules::StandardBmsHitRules hitRules;
     BmsLiveScore* score;
     sounds::OpenALSound* mineHitSound;
     std::array<bool, charts::BmsNotesData::columnNumber>
@@ -35,6 +35,11 @@ class BmsGameReferee
 
   public:
     using Position = double;
+
+    BmsGameReferee(const BmsGameReferee&) = delete;
+    BmsGameReferee& operator=(const BmsGameReferee&) = delete;
+    BmsGameReferee(BmsGameReferee&&) = default;
+    BmsGameReferee& operator=(BmsGameReferee&&) = default;
 
   private:
     void addNote(decltype(notes)::value_type& column,
@@ -53,7 +58,7 @@ class BmsGameReferee
       sounds::OpenALSound* mineHitSound,
       BmsLiveScore* score,
       std::unordered_map<uint16_t, sounds::OpenALSound> sounds,
-      std::unique_ptr<rules::BmsHitRules> hitRules);
+      rules::StandardBmsHitRules hitRules);
     /**
      * @brief Update the internal state of the referee
      * @param offsetFromStart The current time offset from the start of the

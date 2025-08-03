@@ -15,7 +15,7 @@
 #include "resource_managers/ChartFactory.h"
 #include "gameplay_logic/rules/TimingWindows.h"
 #include "gameplay_logic/rules/BmsRanks.h"
-#include "gameplay_logic/rules/BmsHitRules.h"
+#include "gameplay_logic/rules/StandardBmsHitRules.h"
 #include "resource_managers/Tables.h"
 
 namespace gameplay_logic {
@@ -41,10 +41,6 @@ class ChartLoader : public QObject
         gameplay_logic::rules::BmsRank)>;
     using HitValueFactory = std::function<double(std::chrono::nanoseconds,
                                                  gameplay_logic::Judgement)>;
-    using HitRulesFactory =
-      std::function<std::unique_ptr<gameplay_logic::rules::BmsHitRules>(
-        gameplay_logic::rules::TimingWindows,
-        HitValueFactory)>;
     using GetChartPathFromMd5 =
       std::function<std::optional<std::filesystem::path>(
         const QString& hash,
@@ -53,7 +49,6 @@ class ChartLoader : public QObject
   private:
     resource_managers::ChartDataFactory* chartDataFactory;
     TimingWindowsFactory timingWindowsFactory;
-    HitRulesFactory hitRulesFactory;
     HitValueFactory hitValueFactory;
     GaugeFactory gaugeFactory;
     GaugeFactoryCourse gaugeFactoryCourse;
@@ -90,7 +85,6 @@ class ChartLoader : public QObject
                 input::InputTranslator* inputTranslator,
                 resource_managers::ChartDataFactory* chartDataFactory,
                 TimingWindowsFactory timingWindowsFactory,
-                HitRulesFactory hitRulesFactory,
                 HitValueFactory hitValueFactory,
                 GaugeFactory gaugeFactory,
                 GaugeFactoryCourse gaugeFactoryCourse,

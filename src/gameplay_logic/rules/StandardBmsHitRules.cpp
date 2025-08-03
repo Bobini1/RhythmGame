@@ -45,7 +45,7 @@ gameplay_logic::rules::StandardBmsHitRules::press(
               timingWindows.find(hitOffset - noteTime)->second;
             result != Judgement::EmptyPoor) {
             note.hit = true;
-            if (note.sound != nullptr) {
+            if (note.sound != nullptr && !soundDisabled) {
                 note.sound->play();
             }
             if (note.type != NoteType::LnBegin) {
@@ -112,7 +112,7 @@ gameplay_logic::rules::StandardBmsHitRules::press(
     auto found = false;
     for (auto& note : std::ranges::reverse_view(notesToCheck)) {
         if (note.time <= hitOffset) {
-            if (note.sound != nullptr) {
+            if (note.sound != nullptr && !soundDisabled) {
                 note.sound->play();
             }
             found = true;
@@ -121,7 +121,7 @@ gameplay_logic::rules::StandardBmsHitRules::press(
     }
     if (!found) {
         // play the first sound, if one exists
-        if (!notes.empty() && notes.front().sound != nullptr) {
+        if (!notes.empty() && notes.front().sound != nullptr  && !soundDisabled) {
             notes.front().sound->play();
         }
     }
@@ -206,6 +206,11 @@ gameplay_logic::rules::StandardBmsHitRules::StandardBmsHitRules(
   , hitValueFactory(std::move(hitValueFactory))
 {
 }
+void
+gameplay_logic::rules::StandardBmsHitRules::disableSound()
+{
+    soundDisabled = true;
+}
 auto
 gameplay_logic::rules::StandardBmsHitRules::processMines(
   std::span<Mine> mines,
@@ -275,7 +280,7 @@ gameplay_logic::rules::StandardBmsHitRules::processMines(
                               /*noteRemoved=*/true);
         currentMineIndex++;
     }
-    if (playSound && mineHitSound != nullptr) {
+    if (playSound && mineHitSound != nullptr && !soundDisabled) {
         mineHitSound->play();
     }
     return mineHits;
