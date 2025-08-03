@@ -102,7 +102,7 @@ FocusScope {
                 sourceComponent: Column {
                     id: courseSongsColumn
                     property var chartDatas: Rg.chartLoader.loadChartDataFromDb(songList.current.md5s)
-                    property var canPlay: songList.current.md5s.every(md5 => chartDatas[md5.toUpperCase()] !== undefined)
+                    property var canPlay: songList.current.md5s.every(md5 => chartDatas[md5] !== undefined)
                     Repeater {
                         model: {
                             let md5s = songList.current.md5s;
@@ -110,7 +110,7 @@ FocusScope {
                             let names = []
                             for (let md5 of md5s) {
                                 let info = Rg.tables.search(md5);
-                                let chartData = chartDatas[md5.toUpperCase()];
+                                let chartData = chartDatas[md5];
                                 let red = (chartData === undefined);
                                 if (info.length) {
                                     names.push({red, text: info[0].symbol + info[0].levelName + " " + info[0].entry.title + (info[0].entry.subtitle ? " " + info[0].entry.subtitle : "")});

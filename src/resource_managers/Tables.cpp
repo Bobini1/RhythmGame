@@ -402,7 +402,7 @@ resource_managers::Tables::handleData(const QUrl& url, const QJsonArray& data)
                     level->name = levelStr;
                 }
                 auto entry = Entry{};
-                entry.md5 = chartObj["md5"].toString();
+                entry.md5 = chartObj["md5"].toString().toUpper();
                 entry.sha256 = chartObj["sha256"].toString();
                 entry.title = chartObj["title"].toString();
                 entry.artist = chartObj["artist"].toString();
@@ -506,7 +506,7 @@ resource_managers::Tables::handleHeader(const QUrl& url,
                     auto courseObj = Course{ db };
                     courseObj.name = course.toObject()["name"].toString();
                     for (const auto& md5 : course.toObject()["md5"].toArray()) {
-                        courseObj.md5s.push_back(md5.toString());
+                        courseObj.md5s.push_back(md5.toString().toUpper());
                     }
                     for (const auto& trophy :
                          course.toObject()["trophy"].toArray()) {
