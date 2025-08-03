@@ -466,36 +466,26 @@ FocusScope {
                 Timer {
                     id: p1StartTimer
                     interval: 500
-                    property int count: 0
-                    onTriggered: {
-                        count = 0;
-                    }
                 }
                 property bool start1Pressed: Input.start1
                 onStart1PressedChanged: {
                     if (start1Pressed) {
-                        if (p1StartTimer.count > 0 && !login.enabled || login.enabled) {
+                        if (p1StartTimer.running && !login.enabled || login.enabled) {
                             login.enabled = !login.enabled;
                         }
-                        p1StartTimer.count++;
                         p1StartTimer.restart();
                     }
                 }
                 Timer {
                     id: p2StartTimer
                     interval: 500
-                    property int count: 0
-                    onTriggered: {
-                        count = 0;
-                    }
                 }
                 property bool start2Pressed: Input.start2
                 onStart2PressedChanged: {
                     if (start2Pressed) {
-                        if (p2StartTimer.count > 0 && !login.enabled || login.enabled) {
+                        if (p2StartTimer.running && !login.enabled || login.enabled) {
                             login.enabled = !login.enabled;
                         }
-                        p2StartTimer.count++;
                         p2StartTimer.restart();
                     }
                 }
