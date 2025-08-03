@@ -16,7 +16,7 @@ Image {
             if (lifeGraph.clearType === "FAILED" || lifeGraph.clearType === "NOPLAY") {
                 return 0;
             } else {
-                return clearTypes.indexOf("FC");
+                return clearTypes.length - 1;
             }
         } else {
             return index;

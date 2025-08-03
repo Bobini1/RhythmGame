@@ -215,9 +215,31 @@ CourseRunner::finish() -> QList<BmsScoreCourse*>
     }
     proceed();
     auto scores = QList<BmsScoreCourse*>{};
-    if (scores1.contains(nullptr) || scores2.contains(nullptr) || scores1.isEmpty()) {
+    if (scores1.contains(nullptr) || scores2.contains(nullptr) ||
+        scores1.isEmpty()) {
         return { nullptr };
     }
+    auto satisfiesFc = [](const BmsScore* score) {
+        return score->getResult()->getMaxCombo() ==
+               score->getResult()->getMaxHits();
+    };
+    auto satisfiesPerfect = [](const BmsScore* score) {
+        return score->getResult()->getJudgementCounts()[static_cast<int>(Judgement::Perfect)] +
+               score->getResult()->getJudgementCounts()[static_cast<int>(Judgement::Great)] ==
+               score->getResult()->getMaxHits();
+    };
+    auto satisfiesMax = [](const BmsScore* score) {
+        return score->getResult()->getMaxPoints() ==
+               score->getResult()->getPoints();
+    };
+    if (std::ranges::all_of(scores1, satisfiesFc)) {
+        clear1 = QStringLiteral("FC");
+    } else if (std::ranges::all_of(scores1, satisfiesPerfect)) {
+        clear1 = QStringLiteral("PERFECT");
+    } else if (std::ranges::all_of(scores1, satisfiesMax)) {
+        clear1 = QStringLiteral("MAX");
+    }
+
 
     auto result1 =
       std::make_unique<BmsResultCourse>(coursePlayer1->getGuid(),
@@ -237,6 +259,13 @@ CourseRunner::finish() -> QList<BmsScoreCourse*>
     scores.append(score1.release());
 
     if (coursePlayer2) {
+        if (std::ranges::all_of(scores2, satisfiesFc)) {
+            clear2 = QStringLiteral("FC");
+        } else if (std::ranges::all_of(scores2, satisfiesPerfect)) {
+            clear2 = QStringLiteral("PERFECT");
+        } else if (std::ranges::all_of(scores2, satisfiesMax)) {
+            clear2 = QStringLiteral("MAX");
+        }
         auto result2 =
           std::make_unique<BmsResultCourse>(coursePlayer2->getGuid(),
                                             course.getIdentifier(),
