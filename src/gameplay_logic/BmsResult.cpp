@@ -56,12 +56,13 @@ gameplay_logic::BmsResult::BmsResult(
   int mineHits,
   double points,
   int maxCombo,
-    int64_t unixTimestamp,
+  int64_t unixTimestamp,
   int64_t length,
   QList<qint64> randomSequence,
   uint64_t randomSeed,
   resource_managers::NoteOrderAlgorithm noteOrderAlgorithm,
   resource_managers::NoteOrderAlgorithm noteOrderAlgorithmP2,
+  resource_managers::DpOptions dpOptions,
   QString guid,
   QString sha256,
   QString md5,
@@ -87,6 +88,7 @@ gameplay_logic::BmsResult::BmsResult(
   , length(length)
   , noteOrderAlgorithm(noteOrderAlgorithm)
   , noteOrderAlgorithmP2(noteOrderAlgorithmP2)
+  , dpOptions(dpOptions)
   , gameVersion(gameVersion)
 {
 }
@@ -122,10 +124,11 @@ gameplay_logic::BmsResult::save(db::SqliteCppDb& db) const
                          "random_seed,"
                          "note_order_algorithm,"
                          "note_order_algorithm_p2,"
+                         "dp_options, "
                          "game_version"
                          ")"
                          "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, "
-                         "?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                         "?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
     statement.bind(1, maxPoints);
     statement.bind(2, maxHits);
     statement.bind(3, normalNoteCount);
@@ -152,7 +155,8 @@ gameplay_logic::BmsResult::save(db::SqliteCppDb& db) const
     statement.bind(22, static_cast<int64_t>(randomSeed));
     statement.bind(23, static_cast<int>(noteOrderAlgorithm));
     statement.bind(24, static_cast<int>(noteOrderAlgorithmP2));
-    statement.bind(25, static_cast<int64_t>(gameVersion));
+    statement.bind(25, static_cast<int>(dpOptions));
+    statement.bind(26, static_cast<int64_t>(gameVersion));
     statement.execute();
 }
 auto
@@ -187,6 +191,7 @@ gameplay_logic::BmsResult::load(const DTO& dto) -> std::unique_ptr<BmsResult>
         dto.noteOrderAlgorithm),
       static_cast<resource_managers::NoteOrderAlgorithm>(
         dto.noteOrderAlgorithmP2),
+      static_cast<resource_managers::DpOptions>(dto.dpOptions),
       QString::fromStdString(dto.guid),
       QString::fromStdString(dto.sha256),
       QString::fromStdString(dto.md5),
@@ -235,6 +240,11 @@ gameplay_logic::BmsResult::getNoteOrderAlgorithmP2() const
   -> resource_managers::NoteOrderAlgorithm
 {
     return noteOrderAlgorithmP2;
+}
+auto
+gameplay_logic::BmsResult::getDpOptions() const -> resource_managers::DpOptions
+{
+    return dpOptions;
 }
 auto
 gameplay_logic::BmsResult::getGameVersion() const -> uint64_t

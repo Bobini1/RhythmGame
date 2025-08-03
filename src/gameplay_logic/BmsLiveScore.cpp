@@ -19,6 +19,7 @@ BmsLiveScore::BmsLiveScore(
   QList<qint64> randomSequence,
   resource_managers::NoteOrderAlgorithm noteOrderAlgorithm,
   resource_managers::NoteOrderAlgorithm noteOrderAlgorithmP2,
+  resource_managers::DpOptions dpOptions,
   QList<int> permutation,
   uint64_t seed,
   int64_t length,
@@ -36,6 +37,7 @@ BmsLiveScore::BmsLiveScore(
   , randomSequence(std::move(randomSequence))
   , noteOrderAlgorithm(noteOrderAlgorithm)
   , noteOrderAlgorithmP2(noteOrderAlgorithmP2)
+  , dpOptions(dpOptions)
   , permutation(std::move(permutation))
   , sha256(std::move(sha256))
   , md5(std::move(md5))
@@ -246,6 +248,7 @@ BmsLiveScore::getResult() const -> std::unique_ptr<BmsResult>
                                        randomSeed,
                                        noteOrderAlgorithm,
                                        noteOrderAlgorithmP2,
+                                       dpOptions,
                                        guid,
                                        sha256,
                                        md5);

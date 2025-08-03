@@ -38,6 +38,8 @@ class BmsResult final : public QObject
                  getNoteOrderAlgorithm CONSTANT)
     Q_PROPERTY(resource_managers::NoteOrderAlgorithm noteOrderAlgorithmP2 READ
                  getNoteOrderAlgorithmP2 CONSTANT)
+    Q_PROPERTY(
+      resource_managers::DpOptions dpOptions READ getDpOptions CONSTANT)
     Q_PROPERTY(uint64_t gameVersion READ getGameVersion CONSTANT)
 
     double maxPoints;
@@ -60,6 +62,7 @@ class BmsResult final : public QObject
     uint64_t randomSeed;
     resource_managers::NoteOrderAlgorithm noteOrderAlgorithm;
     resource_managers::NoteOrderAlgorithm noteOrderAlgorithmP2;
+    resource_managers::DpOptions dpOptions;
     uint64_t gameVersion;
 
   public:
@@ -90,6 +93,7 @@ class BmsResult final : public QObject
         int64_t randomSeed;
         int noteOrderAlgorithm;
         int noteOrderAlgorithmP2;
+        int dpOptions;
         int64_t gameVersion;
     };
     explicit BmsResult(
@@ -103,12 +107,13 @@ class BmsResult final : public QObject
       int mineHits,
       double points,
       int maxCombo,
-        int64_t unixTimestamp,
+      int64_t unixTimestamp,
       int64_t length,
       QList<qint64> randomSequence,
       uint64_t randomSeed,
       resource_managers::NoteOrderAlgorithm noteOrderAlgorithm,
       resource_managers::NoteOrderAlgorithm noteOrderAlgorithmP2,
+      resource_managers::DpOptions dpOptions,
       QString guid,
       QString sha256,
       QString md5,
@@ -135,6 +140,7 @@ class BmsResult final : public QObject
     auto getNoteOrderAlgorithm() const -> resource_managers::NoteOrderAlgorithm;
     auto getNoteOrderAlgorithmP2() const
       -> resource_managers::NoteOrderAlgorithm;
+    auto getDpOptions() const -> resource_managers::DpOptions;
     auto getGameVersion() const -> uint64_t;
 
     void save(db::SqliteCppDb& db) const;

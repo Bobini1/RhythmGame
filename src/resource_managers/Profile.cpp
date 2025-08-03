@@ -87,6 +87,7 @@ Profile::Profile(
                "random_seed INTEGER NOT NULL,"
                "note_order_algorithm INTEGER NOT NULL,"
                "note_order_algorithm_p2 INTEGER NOT NULL,"
+               "dp_options INTEGER NOT NULL,"
                "game_version INTEGER NOT NULL"
                ");");
     db.execute("CREATE TABLE IF NOT EXISTS score_course ("

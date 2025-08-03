@@ -91,18 +91,14 @@ loadBmpVideo(const std::filesystem::path& path) -> std::unique_ptr<QMediaPlayer>
 }
 
 auto
-loadBga(
-  std::vector<std::pair<charts::BmsNotesData::Time, uint16_t>>
-    bgaBase,
-  std::vector<std::pair<charts::BmsNotesData::Time, uint16_t>>
-    bgaPoor,
-  std::vector<std::pair<charts::BmsNotesData::Time, uint16_t>>
-    bgaLayer,
-  std::vector<std::pair<charts::BmsNotesData::Time, uint16_t>>
-    bgaLayer2,
-  std::unordered_map<uint16_t, std::filesystem::path> bmps,
-  QThread* thread,
-  std::filesystem::path path) -> std::unique_ptr<qml_components::BgaContainer>
+loadBga(std::vector<std::pair<charts::BmsNotesData::Time, uint16_t>> bgaBase,
+        std::vector<std::pair<charts::BmsNotesData::Time, uint16_t>> bgaPoor,
+        std::vector<std::pair<charts::BmsNotesData::Time, uint16_t>> bgaLayer,
+        std::vector<std::pair<charts::BmsNotesData::Time, uint16_t>> bgaLayer2,
+        std::unordered_map<uint16_t, std::filesystem::path> bmps,
+        QThread* thread,
+        std::filesystem::path path)
+  -> std::unique_ptr<qml_components::BgaContainer>
 {
     auto start = std::chrono::high_resolution_clock::now();
     struct Request
@@ -288,8 +284,7 @@ struct RandomizedData
     std::unique_ptr<gameplay_logic::GameplayState> state;
     std::array<support::ShuffleResult, 2> shuffleResults;
     std::unique_ptr<gameplay_logic::BmsLiveScore> score;
-    std::array<std::vector<charts::BmsNotesData::Note>, 16>
-      rawNotes;
+    std::array<std::vector<charts::BmsNotesData::Note>, 16> rawNotes;
 };
 
 auto
@@ -366,9 +361,26 @@ getComponentsForPlayer(const ChartFactory::PlayerSpecificData& player,
                        const gameplay_logic::ChartData& chartData,
                        const double maxHitValue) -> RandomizedData
 {
+    auto dpOptions =
+      player.profile->getVars()->getGeneralVars()->getDpOptions();
     auto visibleNotes = notesData.notes;
+    if ((dpOptions == DpOptions::Battle && isDp(chartData.getKeymode())) ||
+        (dpOptions == DpOptions::Flip && !isDp(chartData.getKeymode()))) {
+        dpOptions = DpOptions::Off;
+    }
+    auto keymode = chartData.getKeymode();
+    if (dpOptions == DpOptions::Battle) {
+        keymode = gameplay_logic::ChartData::Keymode::K14;
+    }
+
+    if (dpOptions == DpOptions::Flip) {
+        for (int i = 0; i < 7; i += 1) {
+            std::swap(visibleNotes[14 - i], visibleNotes[i]);
+        }
+        std::swap(visibleNotes[7], visibleNotes[15]);
+    }
     auto results = [&]() -> std::array<support::ShuffleResult, 2> {
-        if (isDp(chartData.getKeymode())) {
+        if (isDp(keymode)) {
             auto notes1 =
               std::span{ visibleNotes.data(), visibleNotes.size() / 2 };
             auto result1 = support::generatePermutation(
@@ -432,10 +444,11 @@ getComponentsForPlayer(const ChartFactory::PlayerSpecificData& player,
       player.gauges,
       chartData.getRandomSequence(),
       player.profile->getVars()->getGeneralVars()->getNoteOrderAlgorithm(),
-      isDp(chartData.getKeymode())
+      isDp(keymode)
         ? player.profile->getVars()->getGeneralVars()->getNoteOrderAlgorithmP2()
         : NoteOrderAlgorithm::Normal,
-      results[0].columns += results[1].columns,
+      dpOptions,
+      results[0].columns + results[1].columns,
       results[0].seed,
       chartData.getLength(),
       chartData.getSha256(),
@@ -481,8 +494,6 @@ getLength(const gameplay_logic::BmsNotes& notes) -> std::chrono::nanoseconds
     return std::chrono::nanoseconds{ max };
 }
 } // namespace
-
-
 
 auto
 ChartFactory::createChart(ChartDataFactory::ChartComponents chartComponents,
