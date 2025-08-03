@@ -11,7 +11,7 @@ Item {
 
     // course
     property var course
-    property var chartDatas
+    property list<ChartData> chartDatas: []
     // single chart
     property ChartData chartData
 
@@ -188,6 +188,41 @@ Item {
                             xScale: side.mirrored ? -1 : 1
                             origin.x: side.mirrored ? scoreColumn.width / 2 : 0
                         }
+                    }
+                }
+            }
+            Column {
+                anchors.bottom: parent.bottom
+                anchors.bottomMargin: 20
+                anchors.horizontalCenter: parent.horizontalCenter
+                spacing: 10
+                width: parent.width
+
+                Repeater {
+                    model: {
+                        let ret = [];
+                        for (let chartData of root.chartDatas) {
+                            let infos = Rg.tables.search(chartData.md5);
+                            let title = chartData.title;
+                            let subtitle = chartData.subtitle;
+                            if (subtitle) {
+                                title += " " + subtitle;
+                            }
+                            if (infos && infos.length > 0) {
+                                title = infos[0].symbol + infos[0].levelName + " " + title;
+                            }
+                            ret.push(title);
+                        }
+                        return ret;
+                    }
+                    delegate: Text {
+                        text: modelData
+                        font.pixelSize: 30
+                        style: Text.Outline
+                        color: "white"
+                        width: parent.width
+                        horizontalAlignment: Text.AlignHCenter
+                        verticalAlignment: Text.AlignVCenter
                     }
                 }
             }
