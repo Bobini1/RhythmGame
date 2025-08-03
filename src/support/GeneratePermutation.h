@@ -10,7 +10,7 @@
 #include <random>
 #include <ranges>
 #include "resource_managers/Vars.h"
-#include "../charts/BmsNotesData.h"
+#include "charts/BmsNotesData.h"
 
 namespace support {
 struct ShuffleResult

@@ -29,21 +29,21 @@ sounds::OpenALSound::isPlaying() const -> bool
     return state == AL_PLAYING;
 }
 
-sounds::OpenALSound::OpenALSound(const sounds::OpenALSound& other)
+sounds::OpenALSound::OpenALSound(const OpenALSound& other)
   : sampleBuffer(other.sampleBuffer)
 {
     alGenSources(1, &source);
     alSourcei(source, AL_BUFFER, sampleBuffer->getBuffer());
 }
-sounds::OpenALSound::OpenALSound(sounds::OpenALSound&& other) noexcept
+sounds::OpenALSound::OpenALSound(OpenALSound&& other) noexcept
   : source(other.source)
   , sampleBuffer(std::move(other.sampleBuffer))
 {
     other.source = 0;
 }
 auto
-sounds::OpenALSound::operator=(const sounds::OpenALSound& other)
-  -> sounds::OpenALSound&
+sounds::OpenALSound::operator=(const OpenALSound& other)
+  -> OpenALSound&
 {
     if (this != &other) {
         alDeleteSources(1, &source);
@@ -53,8 +53,8 @@ sounds::OpenALSound::operator=(const sounds::OpenALSound& other)
     return *this;
 }
 auto
-sounds::OpenALSound::operator=(sounds::OpenALSound&& other) noexcept
-  -> sounds::OpenALSound&
+sounds::OpenALSound::operator=(OpenALSound&& other) noexcept
+  -> OpenALSound&
 {
     if (this != &other) {
         alDeleteSources(1, &source);
