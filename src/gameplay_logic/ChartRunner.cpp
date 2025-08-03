@@ -212,9 +212,9 @@ Player::Player(BmsNotes* notes,
   , notes(notes)
   , state(state)
   , profile(profile)
+  , chartLength(chartLength)
   , refereeFuture(std::move(referee))
   , score(score)
-  , chartLength(chartLength)
 {
     notes->setParent(this);
     score->setParent(this);
