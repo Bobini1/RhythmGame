@@ -12,11 +12,6 @@ namespace resource_managers {
 
 class GaugeFactory
 {
-    auto selectGauges(
-      Profile* profile,
-      std::vector<std::unique_ptr<gameplay_logic::rules::BmsGauge>> gauges)
-      const -> QList<gameplay_logic::rules::BmsGauge*>;
-
   public:
     auto getStandardGauges(Profile* profile, double total, int noteCount) const
       -> QList<gameplay_logic::rules::BmsGauge*>;

@@ -7,10 +7,11 @@
 #include "gameplay_logic/rules/Lr2Gauge.h"
 
 namespace resource_managers {
-QList<gameplay_logic::rules::BmsGauge*>
-GaugeFactory::selectGauges(
+auto
+selectGauges(
   Profile* profile,
-  std::vector<std::unique_ptr<gameplay_logic::rules::BmsGauge>> gauges) const
+  std::vector<std::unique_ptr<gameplay_logic::rules::BmsGauge>> gauges)
+  -> QList<gameplay_logic::rules::BmsGauge*>
 {
     const auto* vars = profile->getVars()->getGeneralVars();
     const auto gaugeMode = vars->getGaugeMode();
