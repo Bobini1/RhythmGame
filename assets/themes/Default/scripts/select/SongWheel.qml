@@ -164,10 +164,12 @@ FocusScope {
                         anchors.fill: parent
                         cursorShape: enabled ? Qt.PointingHandCursor : undefined
                         onClicked: {
-                            if (songList.current?.path) {
-                                globalRoot.openChart(songList.current.path, Rg.profileList.mainProfile, true, null, null, false, null);
-                            } else if (songList.current instanceof course) {
-                                globalRoot.openCourse(songList.current, Rg.profileList.mainProfile, true, null, null, false, null);
+                            let func = songList.current instanceof course ? globalRoot.openCourse : globalRoot.openChart;
+                            let path = songList.current instanceof course ? songList.current : songList.current.path;
+                            if (Rg.profileList.battleActive) {
+                                func(path, Rg.profileList.battleProfiles.player1Profile, true, null, Rg.profileList.battleProfiles.player2Profile, true, null);
+                            } else {
+                                func(path, Rg.profileList.mainProfile, true, null, null, true, null);
                             }
                         }
                     }
