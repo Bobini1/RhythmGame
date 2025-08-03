@@ -97,7 +97,6 @@ Profile::Profile(
                 "clear_type TEXT NOT NULL,"
                 "max_combo INTEGER NOT NULL,"
                 "constraints TEXT NOT NULL,"
-                "trophies TEXT NOT NULL,"
                 "unix_timestamp INTEGER NOT NULL,"
                 "game_version INTEGER NOT NULL);");
     db.execute("CREATE TABLE IF NOT EXISTS replay_data ("

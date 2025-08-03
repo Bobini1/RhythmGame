@@ -240,15 +240,13 @@ CourseRunner::finish() -> QList<BmsScoreCourse*>
         clear1 = QStringLiteral("MAX");
     }
 
-
     auto result1 =
       std::make_unique<BmsResultCourse>(coursePlayer1->getGuid(),
                                         course.getIdentifier(),
                                         scores1,
                                         clear1,
                                         coursePlayer1->getMaxCombo(),
-                                        course.constraints,
-                                        course.trophies);
+                                        course.constraints);
     auto score1 = BmsScoreCourse::fromScores(std::move(result1), scores1, this);
     try {
         score1->save(getPlayer1()->getProfile()->getDb());
@@ -272,8 +270,7 @@ CourseRunner::finish() -> QList<BmsScoreCourse*>
                                             scores2,
                                             clear2,
                                             coursePlayer2->getMaxCombo(),
-                                            course.constraints,
-                                            course.trophies);
+                                            course.constraints);
         auto score2 =
           BmsScoreCourse::fromScores(std::move(result2), scores2, this);
         try {

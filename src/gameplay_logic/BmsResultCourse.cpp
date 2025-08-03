@@ -15,12 +15,6 @@ gameplay_logic::BmsResultCourse::load(const DTO& dto, QList<BmsScore*>& scores)
 {
     auto constraints =
       QString::fromStdString(dto.constraints).split(' ', Qt::SkipEmptyParts);
-    auto trophies = QList<resource_managers::Trophy>{};
-    for (const auto& trophy :
-         QJsonDocument::fromJson(QByteArray::fromStdString(dto.trophies))
-           .array()) {
-        trophies.append(resource_managers::Trophy::fromJson(trophy.toObject()));
-    }
     return std::make_unique<BmsResultCourse>(
       QString::fromStdString(dto.guid),
       QString::fromStdString(dto.identifier),
@@ -28,7 +22,6 @@ gameplay_logic::BmsResultCourse::load(const DTO& dto, QList<BmsScore*>& scores)
       QString::fromStdString(dto.clearType),
       dto.maxCombo,
       std::move(constraints),
-      std::move(trophies),
       dto.gameVersion);
 }
 void
@@ -40,8 +33,8 @@ gameplay_logic::BmsResultCourse::save(db::SqliteCppDb& db) const
     auto statement = db.createStatement(
       "INSERT OR IGNORE INTO score_course "
       "(guid, identifier, score_guids, clear_type, max_combo, constraints, "
-      "trophies, unix_timestamp, game_version) "
-      "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+      "unix_timestamp, game_version) "
+      "VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
     statement.bind(1, guid.toStdString());
     statement.bind(2, identifier.toStdString());
     QStringList scoreGuids;
@@ -52,16 +45,9 @@ gameplay_logic::BmsResultCourse::save(db::SqliteCppDb& db) const
     statement.bind(4, clearType.toStdString());
     statement.bind(5, maxCombo);
     statement.bind(6, constraints.join(' ').toStdString());
-    QJsonArray trophyArray;
-    for (const auto& trophy : trophies) {
-        trophyArray.append(trophy.toJson());
-    }
     statement.bind(
-      7,
-      QJsonDocument(trophyArray).toJson(QJsonDocument::Compact).toStdString());
-    statement.bind(
-      8, scores.last() ? scores.last()->getResult()->getUnixTimestamp() : 0);
-    statement.bind(9, static_cast<int64_t>(gameVersion));
+      7, scores.last() ? scores.last()->getResult()->getUnixTimestamp() : 0);
+    statement.bind(8, static_cast<int64_t>(gameVersion));
     statement.execute();
 }
 gameplay_logic::BmsResultCourse::BmsResultCourse(
@@ -71,7 +57,6 @@ gameplay_logic::BmsResultCourse::BmsResultCourse(
   QString clearType,
   int maxCombo,
   QStringList constraints,
-  QList<resource_managers::Trophy> trophies,
   uint64_t gameVersion,
   QObject* parent)
   : QObject(parent)
@@ -81,7 +66,6 @@ gameplay_logic::BmsResultCourse::BmsResultCourse(
   , guid(std::move(guid))
   , maxCombo(maxCombo)
   , constraints(std::move(constraints))
-  , trophies(std::move(trophies))
   , gameVersion(gameVersion)
 {
 }

@@ -42,7 +42,6 @@ class BmsResultCourse final : public QObject
     Q_PROPERTY(uint64_t gameVersion READ getGameVersion CONSTANT)
 
     Q_PROPERTY(QStringList constraints READ getConstraints CONSTANT)
-    Q_PROPERTY(QVariantList trophies READ getTrophies CONSTANT)
 
     QString identifier;
     QList<BmsScore*> scores;
@@ -64,7 +63,6 @@ class BmsResultCourse final : public QObject
         std::string clearType;
         int maxCombo;
         std::string constraints;
-        std::string trophies;
         int64_t unixTimestamp;
         int64_t gameVersion;
     };
@@ -77,7 +75,6 @@ class BmsResultCourse final : public QObject
                    QString clearType,
                    int maxCombo,
                    QStringList constraints,
-                   QList<resource_managers::Trophy> trophies,
                    uint64_t gameVersion = support::currentVersion,
                    QObject* parent = nullptr);
 
