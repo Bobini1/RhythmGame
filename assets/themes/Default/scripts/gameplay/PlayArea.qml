@@ -325,15 +325,15 @@ Item {
 
             if (hit.noteRemoved) {
                 let index = columnsReversedMapping[hit.column];
-                let note = playArea.notes[index][hit.noteIndex];
+                let n = playArea.notes[index][hit.noteIndex];
 
                 if (hit.action === hitEvent.Press) {
-                    if (note.type === Note.Type.Normal) {
+                    if (n.type === note.Type.Normal) {
                         handleBomb(index, false);
-                    } else if (note.type === Note.Type.LongNoteBegin) {
+                    } else if (n.type === note.Type.LongNoteBegin) {
                         handleBomb(index, true);
                     }
-                } else if (note.type === Note.Type.LongNoteEnd) {
+                } else if (n.type === note.Type.LongNoteEnd) {
                     handleBomb(index, false, false);
                 }
             }

@@ -1,3 +1,4 @@
+pragma ValueTypeBehavior: Addressable
 import QtQuick
 import QtQuick.Layouts
 import RhythmGameQml
@@ -52,14 +53,13 @@ Item {
                 required property var display
                 required property int index
                 readonly property var hitData: display.hitData
-                readonly property bool held: note.type === Note.Type.LongNoteBegin && hitData && !display.otherEndHitData
-                readonly property var note: display.note
+                readonly property bool held: display.note.type === note.Type.LongNoteBegin && hitData && !display.otherEndHitData
                 readonly property real nextPosition: column.notes[display.index+1]?.time?.position || Infinity
-                visible: note.type === Note.Type.LongNoteBegin || note.type === Note.Type.LongNoteEnd || !hitData
-                readonly property bool shouldShowStatic: note.type === Note.Type.LongNoteBegin && (wasHeld || display.belowBottom) && nextPosition > column.position
-                property bool wasHeld: note.type === Note.Type.LongNoteBegin && hitData && (!display.otherEndHitData || display.otherEndHitData.points.judgement !== Judgement.LnEndSkip)
+                visible: display.note.type === note.Type.LongNoteBegin || display.note.type === note.Type.LongNoteEnd || !hitData
+                readonly property bool shouldShowStatic: display.note.type === note.Type.LongNoteBegin && (wasHeld || display.belowBottom) && nextPosition > column.position
+                property bool wasHeld: display.note.type === note.Type.LongNoteBegin && hitData && (!display.otherEndHitData || display.otherEndHitData.points.judgement !== Judgement.LnEndSkip)
 
-                y: (shouldShowStatic ? -column.position : -note.time.position) * column.heightMultiplier -column.noteHeight / 3
+                y: (shouldShowStatic ? -column.position : -display.note.time.position) * column.heightMultiplier -column.noteHeight / 3
                 width: column.width
                 z: display.index
 
@@ -69,16 +69,16 @@ Item {
                     width: column.width
 
                     source: {
-                        switch (noteObj.note.type) {
-                            case Note.Type.Normal:
+                        switch (noteObj.display.note.type) {
+                            case note.Type.Normal:
                                 return column.normalNote;
-                            case Note.Type.LongNoteBegin:
+                            case note.Type.LongNoteBegin:
                                 return column.lnBegin;
-                            case Note.Type.LongNoteEnd:
+                            case note.Type.LongNoteEnd:
                                 return column.lnEnd;
-                            case Note.Type.Landmine:
+                            case note.Type.Landmine:
                                 return column.mine;
-                            case Note.Type.Invisible:
+                            case note.Type.Invisible:
                                 return "";
                             default:
                                 console.info("Unknown note type: " + type);
@@ -89,7 +89,7 @@ Item {
                 Loader {
                     id: lnBodyLoader
 
-                    active: noteObj.note.type === Note.Type.LongNoteBegin
+                    active: noteObj.display.note.type === note.Type.LongNoteBegin
 
                     sourceComponent: Component {
                         Image {
@@ -98,7 +98,7 @@ Item {
                             fillMode: Image.TileVertically
                             height: {
                                 if (!noteObj.shouldShowStatic) {
-                                    return (noteObj.nextPosition - noteObj.note.time.position) * column.heightMultiplier - column.noteHeight
+                                    return (noteObj.nextPosition - noteObj.display.note.time.position) * column.heightMultiplier - column.noteHeight
                                 } else {
                                     return (noteObj.nextPosition - column.position) * column.heightMultiplier - column.noteHeight
                                 }

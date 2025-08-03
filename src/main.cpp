@@ -363,7 +363,7 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
           "NoteOrderAlgorithm",
           "Access to enums & flags only");
         qmlRegisterUncreatableType<gameplay_logic::Note>(
-          "RhythmGameQml", 1, 0, "Note", "Note is created in C++");
+          "RhythmGameQml", 1, 0, "note", "Note is created in C++");
         qmlRegisterUncreatableType<qml_components::InputAttached>(
           "RhythmGameQml",
           1,
