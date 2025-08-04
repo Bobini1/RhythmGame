@@ -126,7 +126,7 @@ TEST_CASE("Multiple BPM changes mid-measure are handled correctly",
 TEST_CASE("Bgm notes have the right timestamps", "[BmsNotesData]")
 {
     auto tags = charts::readBmsChart("#00101:0011\n#00101:1111\n#00103:3c",
-                                    randomGenerator);
+                                     randomGenerator);
     auto parsedChart = charts::ParsedBmsChart{ std::move(tags) };
     auto chart = charts::BmsNotesData(parsedChart);
     static constexpr auto bpm = charts::BmsNotesData::defaultBpm;
