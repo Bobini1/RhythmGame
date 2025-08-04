@@ -80,6 +80,7 @@ Rectangle {
     Connections {
         function onStatusChanged() {
             if (root.chart.status === ChartRunner.Ready || root.chart.status === ChartRunner.Running) {
+                bga.clearOutput();
                 chart.bga.layers[0].videoSink = bga.baseSink;
                 chart.bga.layers[1].videoSink = bga.layerSink;
                 chart.bga.layers[2].videoSink = bga.layer2Sink;
