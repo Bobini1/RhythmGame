@@ -500,7 +500,7 @@
               "pl": "X"
             },
             "type": "range",
-            "default": 710,
+            "default": 755,
             "description": {
               "en": "The X position of the left side of the life bar rectangle.",
               "pl": "Pozycja X lewej strony prostokąta paska życia."
