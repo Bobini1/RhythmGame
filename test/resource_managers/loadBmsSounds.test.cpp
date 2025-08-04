@@ -7,9 +7,9 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/catch_approx.hpp>
 
-#include "../../../src/resource_managers/loadBmsSounds.h"
-#include "../../findTestAssetsFolder.h"
-#include "../../../src/charts/ReadBmsFile.h"
+#include "resource_managers/loadBmsSounds.h"
+#include "../findTestAssetsFolder.h"
+#include "charts/ReadBmsFile.h"
 
 #include <support/UtfStringToPath.h>
 
@@ -26,8 +26,7 @@ TEST_CASE("Sounds are loaded from a folder according to the bms file",
     auto path =
       std::string("8BIT_audiocheck.net_sin_1000Hz_-3dBFS_0.2s_8.0k.wav");
     const auto bmsFile = fmt::format("#WAV01 {}\n#WAV02 {}", path, path);
-    auto reader = charts::chart_readers::BmsChartReader();
-    auto tags = reader.readBmsChart(bmsFile, randomGenerator).tags;
+    auto tags = charts::readBmsChart(bmsFile, randomGenerator).tags;
     std::unordered_map<uint16_t, std::filesystem::path> wavs;
     wavs.reserve(tags.wavs.size());
     for (auto& wav : tags.wavs) {
@@ -57,8 +56,7 @@ TEST_CASE("Even when the extension says wav, allow loading other extensions",
                   paths[1],
                   paths[2],
                   paths[3]);
-    auto reader = charts::chart_readers::BmsChartReader();
-    auto tags = reader.readBmsChart(bmsFile, randomGenerator).tags;
+    auto tags = charts::readBmsChart(bmsFile, randomGenerator).tags;
     std::unordered_map<uint16_t, std::filesystem::path> wavs;
     wavs.reserve(tags.wavs.size());
     for (auto& wav : tags.wavs) {

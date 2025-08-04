@@ -2,11 +2,11 @@
 // Created by bobini on 16.06.23.
 //
 
-#include "../../../src/resource_managers/loadBmsSounds.h"
+#include "resource_managers/loadBmsSounds.h"
 #include "sounds/OpenAlSoundBuffer.h"
-#include "../../../src/charts/BmsNotesData.h"
-#include "../../../src/charts/ParsedBmsChart.h"
-#include "../../../src/charts/ReadBmsFile.h"
+#include "charts/BmsNotesData.h"
+#include "charts/ParsedBmsChart.h"
+#include "charts/ReadBmsFile.h"
 
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/catch_approx.hpp>
@@ -20,8 +20,7 @@ auto randomGenerator = [](charts::ParsedBmsChart::RandomRange range) {
 
 TEST_CASE("An empty chart is created successfully", "[BmsNotesData]")
 {
-    auto reader = charts::chart_readers::BmsChartReader();
-    auto tags = reader.readBmsChart("", randomGenerator);
+    auto tags = charts::readBmsChart("", randomGenerator);
     auto parsedChart = charts::ParsedBmsChart{ std::move(tags) };
     auto chart = charts::BmsNotesData(parsedChart);
     REQUIRE(chart.bgmNotes.empty());
@@ -37,8 +36,7 @@ TEST_CASE("An empty chart is created successfully", "[BmsNotesData]")
 TEST_CASE("A chart with a single note is created successfully",
           "[BmsNotesData]")
 {
-    auto reader = charts::chart_readers::BmsChartReader();
-    auto tags = reader.readBmsChart("#00111:0011", randomGenerator);
+    auto tags = charts::readBmsChart("#00111:0011", randomGenerator);
     auto parsedChart = charts::ParsedBmsChart{ std::move(tags) };
     auto chart = charts::BmsNotesData(parsedChart);
     REQUIRE(chart.bgmNotes.empty());
@@ -62,8 +60,7 @@ TEST_CASE("A chart with a single note is created successfully",
 TEST_CASE("A chart with a bpm change and a note is created successfully",
           "[BmsNotesData]")
 {
-    auto reader = charts::chart_readers::BmsChartReader();
-    auto tags = reader.readBmsChart(
+    auto tags = charts::readBmsChart(
       "#BPM 240\n#BPM11 60\n#00111:0011\n#00108:0011", randomGenerator);
     auto parsedChart = charts::ParsedBmsChart{ std::move(tags) };
     auto chart = charts::BmsNotesData(parsedChart);
@@ -93,9 +90,8 @@ TEST_CASE("A chart with a bpm change and a note is created successfully",
 TEST_CASE("Multiple BPM changes mid-measure are handled correctly",
           "[BmsNotesData]")
 {
-    auto reader = charts::chart_readers::BmsChartReader();
     auto tags =
-      reader.readBmsChart("#00111:00110011\n#00103:3c78", randomGenerator);
+      charts::readBmsChart("#00111:00110011\n#00103:3c78", randomGenerator);
     auto parsedChart = charts::ParsedBmsChart{ std::move(tags) };
     auto chart = charts::BmsNotesData(parsedChart);
     static constexpr auto bpm = charts::BmsNotesData::defaultBpm;
@@ -129,8 +125,7 @@ TEST_CASE("Multiple BPM changes mid-measure are handled correctly",
 
 TEST_CASE("Bgm notes have the right timestamps", "[BmsNotesData]")
 {
-    auto reader = charts::chart_readers::BmsChartReader();
-    auto tags = reader.readBmsChart("#00101:0011\n#00101:1111\n#00103:3c",
+    auto tags = charts::readBmsChart("#00101:0011\n#00101:1111\n#00103:3c",
                                     randomGenerator);
     auto parsedChart = charts::ParsedBmsChart{ std::move(tags) };
     auto chart = charts::BmsNotesData(parsedChart);
