@@ -158,7 +158,7 @@ jobs:
       - name: Install vcpkg
         if: matrix.os == 'macos-latest'
         uses: friendlyanon/setup-vcpkg@v1
-        with: { committish: ef7dbf94b9198bc58f45951adcf1f041fcbc5ea0 }
+        with: { committish: 903956eff7cb94774a9e805ff573c000afc43e3e }
 
       - name: export VCPKG_INSTALL_ROOT
         if: matrix.os == 'macos-latest'
@@ -234,7 +234,7 @@ jobs:
       - name: Install vcpkg
         if: matrix.os == 'macos-latest'
         uses: friendlyanon/setup-vcpkg@v1
-        with: { committish: ef7dbf94b9198bc58f45951adcf1f041fcbc5ea0 }
+        with: { committish: 903956eff7cb94774a9e805ff573c000afc43e3e }
 
       - name: export VCPKG_INSTALL_ROOT
         if: matrix.os == 'macos-latest'
