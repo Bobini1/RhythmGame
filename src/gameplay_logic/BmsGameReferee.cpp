@@ -155,6 +155,9 @@ gameplay_logic::BmsGameReferee::passPressed(
         columnIndex >= charts::BmsNotesData::columnNumber) {
         return;
     }
+    if (pressedState[columnIndex]) {
+        return;
+    }
     pressedState[columnIndex] = true;
     for (const auto& hit : hitRules.press(notes[columnIndex], columnIndex, offsetFromStart)) {
         score->addHit(hit);
@@ -199,6 +202,9 @@ gameplay_logic::BmsGameReferee::passReleased(
     auto columnIndex = static_cast<int>(key);
     if (columnIndex < 0 ||
         columnIndex >= charts::BmsNotesData::columnNumber) {
+        return;
+    }
+    if (!pressedState[columnIndex]) {
         return;
     }
     pressedState[columnIndex] = false;

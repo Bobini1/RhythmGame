@@ -264,6 +264,13 @@ Player::update(std::chrono::nanoseconds offsetFromStart, bool lastUpdate)
               profile ? profile->getVars()->getGeneralVars()->getOffset()
                       : 0.0));
         setPosition(referee->getPosition(offsetFromStart + visualOffset));
+        if (lastUpdate) {
+            for (auto i = 0; i < charts::BmsNotesData::columnNumber; ++i) {
+                referee->passReleased(
+                  std::chrono::nanoseconds{ getChartLength() } + 10s,
+                  static_cast<input::BmsKey>(i));
+            }
+        }
         if (offsetFromStart >= chartLength + 5s) {
             setStatus(ChartRunner::Finished);
         }
