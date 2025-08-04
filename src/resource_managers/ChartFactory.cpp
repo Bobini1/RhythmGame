@@ -502,7 +502,7 @@ ChartFactory::createChart(ChartDataFactory::ChartComponents chartComponents,
           player, notesData, *chartData, maxHitValue, DpOptions::Off);
     });
     auto keymode = chartData->getKeymode();
-    if (player1.dpOptions == DpOptions::Battle) {
+    if (player1.dpOptions == DpOptions::Battle && !player2 && !isDp(keymode)) {
         keymode = gameplay_logic::ChartData::Keymode::K14;
     }
 
