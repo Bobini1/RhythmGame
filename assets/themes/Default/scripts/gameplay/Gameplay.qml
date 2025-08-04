@@ -33,6 +33,7 @@ Rectangle {
 
     property bool showedCourseResult: false
     StackView.onActivated: {
+        escapeShortcut.nothingWasHit = true;
         if (chart.status === ChartRunner.Finished) {
             if (isCourse && !showedCourseResult) {
                 showedCourseResult = true;
