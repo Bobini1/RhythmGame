@@ -500,7 +500,7 @@
               "pl": "X"
             },
             "type": "range",
-            "default": 0,
+            "default": 710,
             "description": {
               "en": "The X position of the left side of the life bar rectangle.",
               "pl": "Pozycja X lewej strony prostokąta paska życia."
@@ -513,7 +513,7 @@
               "pl": "Y"
             },
             "type": "range",
-            "default": 800,
+            "default": 615,
             "description": {
               "en": "The Y position of the top side of the life bar rectangle.",
               "pl": "Pozycja Y górnej strony prostokąta paska życia."
@@ -567,7 +567,7 @@
               "pl": "X"
             },
             "type": "range",
-            "default": 545,
+            "default": 810,
             "description": {
               "en": "The X position of the left side of the judgement counts rectangle.",
               "pl": "Pozycja X lewej strony prostokąta licznika trafień."
@@ -580,7 +580,7 @@
               "pl": "Y"
             },
             "type": "range",
-            "default": 640,
+            "default": 700,
             "description": {
               "en": "The Y position of the top side of the judgement counts rectangle.",
               "pl": "Pozycja Y górnej strony prostokąta licznika trafień."
