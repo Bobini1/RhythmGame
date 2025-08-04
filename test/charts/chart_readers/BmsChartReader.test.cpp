@@ -9,10 +9,9 @@
 #include <boost/locale/encoding.hpp>
 
 namespace {
-auto randomGenerator =
-  [](charts::ParsedBmsChart::RandomRange range) {
-      return range;
-  };
+auto randomGenerator = [](charts::ParsedBmsChart::RandomRange range) {
+    return range;
+};
 } // namespace
 
 using namespace std::literals::string_literals;

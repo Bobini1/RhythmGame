@@ -13,10 +13,9 @@
 #include <catch2/generators/catch_generators.hpp>
 
 namespace {
-auto randomGenerator =
-  [](charts::ParsedBmsChart::RandomRange range) {
-      return range;
-  };
+auto randomGenerator = [](charts::ParsedBmsChart::RandomRange range) {
+    return range;
+};
 } // namespace
 
 TEST_CASE("An empty chart is created successfully", "[BmsNotesData]")
@@ -48,8 +47,7 @@ TEST_CASE("A chart with a single note is created successfully",
     static constexpr auto measureLength = std::chrono::nanoseconds(
       static_cast<int64_t>(60.0 * 4 * 1000 * 1000 * 1000 / bpm));
     REQUIRE(chart.notes[0][0].time.timestamp == measureLength * 3 / 2);
-    for (auto index = 1ul;
-         index < charts::BmsNotesData::columnNumber;
+    for (auto index = 1ul; index < charts::BmsNotesData::columnNumber;
          index++) {
         REQUIRE(chart.notes[index].empty());
     }
@@ -100,8 +98,7 @@ TEST_CASE("Multiple BPM changes mid-measure are handled correctly",
       reader.readBmsChart("#00111:00110011\n#00103:3c78", randomGenerator);
     auto parsedChart = charts::ParsedBmsChart{ std::move(tags) };
     auto chart = charts::BmsNotesData(parsedChart);
-    static constexpr auto bpm =
-      charts::BmsNotesData::defaultBpm;
+    static constexpr auto bpm = charts::BmsNotesData::defaultBpm;
     static constexpr auto bpm2 = 60.0;
     static constexpr auto bpm3 = 120.0;
     static constexpr auto measureLength = std::chrono::nanoseconds(
@@ -137,8 +134,7 @@ TEST_CASE("Bgm notes have the right timestamps", "[BmsNotesData]")
                                     randomGenerator);
     auto parsedChart = charts::ParsedBmsChart{ std::move(tags) };
     auto chart = charts::BmsNotesData(parsedChart);
-    static constexpr auto bpm =
-      charts::BmsNotesData::defaultBpm;
+    static constexpr auto bpm = charts::BmsNotesData::defaultBpm;
     static constexpr auto bpm2 = 60.0;
     static constexpr auto measureLength = std::chrono::nanoseconds(
       static_cast<int64_t>(60.0 * 4 * 1000 * 1000 * 1000 / bpm));

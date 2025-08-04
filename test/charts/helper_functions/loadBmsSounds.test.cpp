@@ -14,10 +14,9 @@
 #include <support/UtfStringToPath.h>
 
 namespace {
-auto randomGenerator =
-  [](charts::ParsedBmsChart::RandomRange range) {
-      return range;
-  };
+auto randomGenerator = [](charts::ParsedBmsChart::RandomRange range) {
+    return range;
+};
 } // namespace
 
 TEST_CASE("Sounds are loaded from a folder according to the bms file",
