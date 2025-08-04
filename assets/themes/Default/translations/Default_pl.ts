@@ -140,8 +140,8 @@
     </message>
     <message>
         <location filename="../scripts/settings/GeneralSettings.qml" line="211"/>
-        <source>Off;Flip;Battle;BattleAs</source>
-        <translation>Wyłączony;Przerzuć;Bitwa;BitwaAs</translation>
+        <source>Off;Flip;Battle</source>
+        <translation>Wyłączony;Przerzuć;Bitwa</translation>
     </message>
     <message>
         <location filename="../scripts/settings/GeneralSettings.qml" line="212"/>
@@ -293,10 +293,6 @@
     <message>
         <source>ALL</source>
         <translation type="vanished">WSZYSTKIE</translation>
-    </message>
-    <message>
-        <source> keys</source>
-        <translation type="obsolete"> klawiszy</translation>
     </message>
     <message>
         <location filename="../scripts/select/KeymodeButton.qml" line="28"/>
@@ -536,8 +532,12 @@
     </message>
     <message>
         <location filename="../scripts/select/playOptions/PlayOptionsSingle.qml" line="150"/>
+        <source>OFF;FLIP;BATTLE</source>
+        <translation>WYŁĄCZ;PRZERZUĆ;BITWA</translation>
+    </message>
+    <message>
         <source>OFF;FLIP;BATTLE;BATTLE AS</source>
-        <translation>WYŁĄCZ;PRZERZUĆ;BITWA;BITWA AS</translation>
+        <translation type="vanished">WYŁĄCZ;PRZERZUĆ;BITWA;BITWA AS</translation>
     </message>
     <message>
         <location filename="../scripts/select/playOptions/PlayOptionsSingle.qml" line="165"/>
@@ -717,22 +717,22 @@
 <context>
     <name>SongWheel</name>
     <message>
-        <location filename="../scripts/select/SongWheel.qml" line="129"/>
+        <location filename="../scripts/select/SongWheel.qml" line="192"/>
         <source>NEWEST</source>
         <translation>NAJNOWSZY</translation>
     </message>
     <message>
-        <location filename="../scripts/select/SongWheel.qml" line="131"/>
+        <location filename="../scripts/select/SongWheel.qml" line="194"/>
         <source>BEST SCORE</source>
         <translation>NAJLEPSZY WYNIK</translation>
     </message>
     <message>
-        <location filename="../scripts/select/SongWheel.qml" line="133"/>
+        <location filename="../scripts/select/SongWheel.qml" line="196"/>
         <source>BEST CLEAR</source>
         <translation>NAJLEPSZY CLEAR</translation>
     </message>
     <message>
-        <location filename="../scripts/select/SongWheel.qml" line="135"/>
+        <location filename="../scripts/select/SongWheel.qml" line="198"/>
         <source>BEST COMBO</source>
         <translation>NAJLEPSZE COMBO</translation>
     </message>

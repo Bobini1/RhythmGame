@@ -207,8 +207,8 @@ Item {
                 Choice {
                     destination: Rg.profileList.mainProfile.vars.generalVars
                     id_: "dpOptions"
-                    choices: ["Off", "Flip", "Battle", "BattleAs"]
-                    displayStrings: qsTr("Off;Flip;Battle;BattleAs").split(";")
+                    choices: ["Off", "Flip", "Battle"]
+                    displayStrings: qsTr("Off;Flip;Battle").split(";")
                     name: qsTr("DP Options")
                     assignIndex: true
                     default_: 0

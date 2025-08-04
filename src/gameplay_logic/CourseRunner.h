@@ -51,6 +51,8 @@ class CourseRunner final : public QObject
                  CONSTANT)
     Q_PROPERTY(gameplay_logic::CoursePlayer* coursePlayer2 READ getCoursePlayer2
                  CONSTANT)
+    Q_PROPERTY(
+      gameplay_logic::ChartData::Keymode keymode READ getKeymode CONSTANT)
     QList<ChartData*> chartDatas;
     int currentChartIndex{ 0 };
     ChartRunner::Status status{ ChartRunner::Status::Loading };
@@ -88,6 +90,7 @@ class CourseRunner final : public QObject
     auto getCoursePlayer1() const -> CoursePlayer*;
     auto getCoursePlayer2() const -> CoursePlayer*;
     auto getCourse() const -> const resource_managers::Course&;
+    auto getKeymode() const -> ChartData::Keymode;
     Q_INVOKABLE QList<BmsScore*> proceed();
     Q_INVOKABLE QList<BmsScoreCourse*> finish();
     Q_INVOKABLE void start() const;

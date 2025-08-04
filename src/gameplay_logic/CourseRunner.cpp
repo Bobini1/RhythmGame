@@ -151,6 +151,11 @@ CourseRunner::getCourse() const -> const resource_managers::Course&
     return course;
 }
 auto
+CourseRunner::getKeymode() const -> ChartData::Keymode
+{
+    return currentChart ? currentChart->getKeymode() : ChartData::Keymode::K7;
+}
+auto
 CourseRunner::proceed() -> QList<BmsScore*>
 
 {
@@ -224,8 +229,10 @@ CourseRunner::finish() -> QList<BmsScoreCourse*>
                score->getResult()->getMaxHits();
     };
     auto satisfiesPerfect = [](const BmsScore* score) {
-        return score->getResult()->getJudgementCounts()[static_cast<int>(Judgement::Perfect)] +
-               score->getResult()->getJudgementCounts()[static_cast<int>(Judgement::Great)] ==
+        return score->getResult()->getJudgementCounts()[static_cast<int>(
+                 Judgement::Perfect)] +
+                 score->getResult()
+                   ->getJudgementCounts()[static_cast<int>(Judgement::Great)] ==
                score->getResult()->getMaxHits();
     };
     auto satisfiesMax = [](const BmsScore* score) {

@@ -399,22 +399,18 @@ getComponentsForPlayer(const ChartFactory::PlayerSpecificData& player,
               std::span{ visibleNotes.data() + visibleNotes.size() / 2,
                          visibleNotes.size() / 2 };
             auto result2 = support::generatePermutation(
-              notes2,
-              player.noteOrderAlgorithmP2,
-              result1.seed + 1);
+              notes2, player.noteOrderAlgorithmP2, result1.seed + 1);
             return { result1, result2 };
         }
         auto notes1 = std::span{ visibleNotes.data(), visibleNotes.size() / 2 };
-        return {
-            support::generatePermutation(
-              notes1,
-              player.noteOrderAlgorithm,
-              player.replayedScore
-                ? std::optional{ player.replayedScore->getResult()
-                                   ->getRandomSeed() }
-                : std::nullopt),
-            support::ShuffleResult{}
-        };
+        return { support::generatePermutation(
+                   notes1,
+                   player.noteOrderAlgorithm,
+                   player.replayedScore
+                     ? std::optional{ player.replayedScore->getResult()
+                                        ->getRandomSeed() }
+                     : std::nullopt),
+                 support::ShuffleResult{} };
     }();
     // TODO: Simplify this. Don't convert bpmChanges twice for two players.
     auto notes = ChartDataFactory::makeNotes(
@@ -428,16 +424,20 @@ getComponentsForPlayer(const ChartFactory::PlayerSpecificData& player,
         }
         return QUuid::createUuid().toString();
     }();
+    auto multiplier = 1;
+    if (dpOptions == DpOptions::Battle) {
+        multiplier = 2;
+    }
     auto score = std::make_unique<gameplay_logic::BmsLiveScore>(
-      chartData.getNormalNoteCount(),
-      chartData.getLnCount(),
-      chartData.getMineCount(),
-      chartData.getLnCount() + chartData.getNormalNoteCount(),
+      chartData.getNormalNoteCount() * multiplier,
+      chartData.getLnCount() * multiplier,
+      chartData.getMineCount() * multiplier,
+      (chartData.getLnCount() + chartData.getNormalNoteCount()) * multiplier,
       maxHitValue,
       player.gauges,
       chartData.getRandomSequence(),
       player.noteOrderAlgorithm,
-      player.noteOrderAlgorithmP2,
+      isDp(keymode) ? player.noteOrderAlgorithmP2 : NoteOrderAlgorithm::Normal,
       dpOptions,
       results[0].columns + results[1].columns,
       results[0].seed,
@@ -495,12 +495,16 @@ ChartFactory::createChart(ChartDataFactory::ChartComponents chartComponents,
 {
     auto& [chartData, notesData, wavs, bmps] = chartComponents;
     auto path = support::qStringToPath(chartData->getPath()).parent_path();
-    auto components1 =
-      getComponentsForPlayer(player1, notesData, *chartData, maxHitValue, player1.dpOptions);
+    auto components1 = getComponentsForPlayer(
+      player1, notesData, *chartData, maxHitValue, player1.dpOptions);
     auto components2 = player2.transform([&](auto& player) {
         return getComponentsForPlayer(
           player, notesData, *chartData, maxHitValue, DpOptions::Off);
     });
+    auto keymode = chartData->getKeymode();
+    if (player1.dpOptions == DpOptions::Battle) {
+        keymode = gameplay_logic::ChartData::Keymode::K14;
+    }
 
     auto soundTask = new SoundTask(path, std::move(wavs));
     soundTask->moveToThread(nullptr);
@@ -622,6 +626,7 @@ ChartFactory::createChart(ChartDataFactory::ChartComponents chartComponents,
     auto chart = std::make_unique<gameplay_logic::ChartRunner>(
       chartData.release(),
       std::move(bga),
+      keymode,
       player1Object,
       player2Object.value_or(nullptr));
     QObject::connect(

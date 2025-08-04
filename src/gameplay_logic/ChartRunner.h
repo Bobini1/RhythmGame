@@ -48,6 +48,8 @@ class ChartRunner final : public QObject
     Q_PROPERTY(ChartData* chartData READ getChartData CONSTANT)
     Q_PROPERTY(qml_components::BgaContainer* bga READ getBga NOTIFY bgaLoaded)
     Q_PROPERTY(Status status READ getStatus NOTIFY statusChanged)
+    Q_PROPERTY(
+      gameplay_logic::ChartData::Keymode keymode READ getKeymode CONSTANT)
     Q_PROPERTY(Player* player1 READ getPlayer1 CONSTANT)
     Q_PROPERTY(Player* player2 READ getPlayer2 CONSTANT)
 
@@ -60,6 +62,7 @@ class ChartRunner final : public QObject
       bgaFutureWatcher;
     Status status{ Loading };
     bool startRequested = false;
+    ChartData::Keymode keymode;
 
     void updateElapsed();
     int numberOfSetupCalls = 0;
@@ -70,6 +73,7 @@ class ChartRunner final : public QObject
     explicit ChartRunner(
       ChartData* chartData,
       QFuture<std::unique_ptr<qml_components::BgaContainer>> bgaFuture,
+      ChartData::Keymode keymode,
       Player* player1,
       Player* player2,
       QObject* parent = nullptr);
@@ -81,6 +85,7 @@ class ChartRunner final : public QObject
     Q_INVOKABLE QList<BmsScore*> finish();
 
     auto getChartData() const -> ChartData*;
+    auto getKeymode() const -> ChartData::Keymode;
 
     auto getStatus() const -> Status;
 

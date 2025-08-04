@@ -146,8 +146,8 @@ Rectangle {
         anchors.topMargin: 20
         anchors.horizontalCenter: parent.horizontalCenter
         down: BmsKey.Col14
-        model: bg.duplicate([DpOptions.Off, DpOptions.Flip, DpOptions.Battle, DpOptions.BattleAs])
-        strings: bg.duplicate(qsTr("OFF;FLIP;BATTLE;BATTLE AS").split(";"))
+        model: bg.duplicate([DpOptions.Off, DpOptions.Flip, DpOptions.Battle])
+        strings: bg.duplicate(qsTr("OFF;FLIP;BATTLE").split(";"))
         prop: "dpOptions"
         profile: Rg.profileList.mainProfile
     }

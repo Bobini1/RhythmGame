@@ -46,7 +46,7 @@ ApplicationWindow {
                 console.error("Failed to load chart");
                 return;
             }
-            let keys = chart.chartData.keymode;
+            let keys = chart.keymode;
             let battle = chart.player1 && chart.player2;
             let screen = "k" + keys + (battle ? "battle" : "");
             let component = globalRoot[screen + "Component"];
@@ -61,7 +61,7 @@ ApplicationWindow {
                 console.error("Failed to load course");
                 return;
             }
-            let keys = runner.chartDatas[0].keymode;
+            let keys = runner.keymode;
             let battle = runner.player1 && runner.player2;
             let screen = "k" + keys + (battle ? "battle" : "");
             let component = globalRoot[screen + "Component"];

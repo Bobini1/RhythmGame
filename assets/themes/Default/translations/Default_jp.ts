@@ -140,7 +140,7 @@
     </message>
     <message>
         <location filename="../scripts/settings/GeneralSettings.qml" line="211"/>
-        <source>Off;Flip;Battle;BattleAs</source>
+        <source>Off;Flip;Battle</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -528,7 +528,7 @@
     </message>
     <message>
         <location filename="../scripts/select/playOptions/PlayOptionsSingle.qml" line="150"/>
-        <source>OFF;FLIP;BATTLE;BATTLE AS</source>
+        <source>OFF;FLIP;BATTLE</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -709,22 +709,22 @@
 <context>
     <name>SongWheel</name>
     <message>
-        <location filename="../scripts/select/SongWheel.qml" line="129"/>
+        <location filename="../scripts/select/SongWheel.qml" line="192"/>
         <source>NEWEST</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/select/SongWheel.qml" line="131"/>
+        <location filename="../scripts/select/SongWheel.qml" line="194"/>
         <source>BEST SCORE</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/select/SongWheel.qml" line="133"/>
+        <location filename="../scripts/select/SongWheel.qml" line="196"/>
         <source>BEST CLEAR</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/select/SongWheel.qml" line="135"/>
+        <location filename="../scripts/select/SongWheel.qml" line="198"/>
         <source>BEST COMBO</source>
         <translation type="unfinished"></translation>
     </message>

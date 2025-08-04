@@ -15,6 +15,7 @@ namespace gameplay_logic {
 ChartRunner::ChartRunner(
   ChartData* chartData,
   QFuture<std::unique_ptr<qml_components::BgaContainer>> bgaFuture,
+  ChartData::Keymode keymode,
   Player* player1,
   Player* player2,
   QObject* parent)
@@ -23,6 +24,7 @@ ChartRunner::ChartRunner(
   , player2(player2)
   , chartData(chartData)
   , bgaFuture(std::move(bgaFuture))
+  , keymode(keymode)
 {
     player1->setParent(this);
     if (player2 != nullptr) {
@@ -113,6 +115,11 @@ auto
 ChartRunner::getChartData() const -> ChartData*
 {
     return chartData;
+}
+auto
+ChartRunner::getKeymode() const -> ChartData::Keymode
+{
+    return keymode;
 }
 auto
 ChartRunner::getStatus() const -> Status

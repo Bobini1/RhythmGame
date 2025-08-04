@@ -20,7 +20,7 @@ Rectangle {
     property string rootUrl: QmlUtils.fileName.slice(0, QmlUtils.fileName.lastIndexOf("/") + 1)
     property ChartData chartData: chart instanceof ChartRunner ? chart.chartData : chart.chartDatas[chart.currentChartIndex];
     readonly property string screen: {
-        let keys = chartData.keymode;
+        let keys = chart.keymode;
         let battle = chart.player1 && chart.player2;
         return "k" + keys + (battle ? "battle" : "");
     }

@@ -56,8 +56,7 @@ enum class DpOptions
 {
     Off,
     Flip,
-    Battle,
-    BattleAs
+    Battle
 };
 Q_ENUM_NS(DpOptions)
 } // namespace dp_options
