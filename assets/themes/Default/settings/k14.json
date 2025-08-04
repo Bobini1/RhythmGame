@@ -177,20 +177,6 @@
         }
       },
       {
-        "id": "5keyscover",
-        "name": {
-          "en": "5 Keys Cover",
-          "pl": "Zakrycie dla trybu 5 klawiszy"
-        },
-        "type": "file",
-        "path": "scripts/gameplay/images/5keyscover",
-        "default": "gradation.png",
-        "description": {
-          "en": "The texture used for the cover of redundant lanes for the 5 keys mode.",
-          "pl": "Tekstura zakrywająca zbędne linie w trybie 5 klawiszy."
-        }
-      },
-      {
         "id": "judge",
         "name": {
           "en": "Judgement",
