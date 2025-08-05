@@ -13,7 +13,7 @@
 #include "support/PathToQString.h"
 #include <QImageReader>
 #include <QVideoFrame>
-#include <QApplication>
+#include <QGuiApplication>
 #include <latch>
 #include <semaphore>
 
@@ -170,7 +170,7 @@ loadBga(std::vector<std::pair<charts::BmsNotesData::Time, uint16_t>> bgaBase,
             frames.emplace(frame.id, std::unique_ptr<QVideoFrame>(frame.frame));
         } else {
             QMetaObject::invokeMethod(
-              QApplication::instance(),
+              QGuiApplication::instance(),
               [&] {
                   if (auto video = loadBmpVideo(frame.path)) {
                       video->moveToThread(currentThread);
@@ -513,7 +513,7 @@ ChartFactory::createChart(ChartDataFactory::ChartComponents chartComponents,
                     bgaLayer = std::move(notesData.bgaLayer),
                     bgaLayer2 = std::move(notesData.bgaLayer2),
                     bmps = std::move(bmps),
-                    thread = QApplication::instance()->thread(),
+                    thread = QGuiApplication::instance()->thread(),
                     path]() mutable {
         return loadBga(std::move(bgaBase),
                        std::move(bgaPoor),
