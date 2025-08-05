@@ -92,7 +92,7 @@ The MIT License (MIT)
 
 Copyright © 2012-2025 Sébastien Rombauts 
 
-https://github.com/SRombauts/SQLiteCpp
+https://github.com/SRombauts/SQLiteCpp/blob/master/LICENSE.txt
 
 ### lexy
 
