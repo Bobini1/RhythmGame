@@ -9,10 +9,8 @@
 #include <QGuiApplication>
 #include <QObject>
 #include <QtQuick>
-#include <spdlog/sinks/qt_sinks.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include "qml_components/Logger.h"
-#include "gameplay_logic/rules/StandardBmsHitRules.h"
 #include "gameplay_logic/rules/Lr2HitValues.h"
 #include "resource_managers/SongDbScanner.h"
 #include "resource_managers/DefineDb.h"
@@ -37,6 +35,7 @@
 #include "support/PathToUtfString.h"
 #include "support/UtfStringToPath.h"
 #include "gameplay_logic/CourseRunner.h"
+#include "support/QtSink.h"
 
 Q_IMPORT_QML_PLUGIN(RhythmGameQmlPlugin)
 
@@ -79,7 +78,7 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
     auto log = qml_components::Logger{ nullptr };
     qmlRegisterSingletonInstance("RhythmGameQml", 1, 0, "Logger", &log);
 
-    auto logger = spdlog::qt_logger_mt("log", &log, "addLog");
+    auto logger = support::qtLoggerMt("log", &log, "addLog");
 
     // combine with console logger
     logger->sinks().push_back(

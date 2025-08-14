@@ -60,7 +60,7 @@ find_package(llfio CONFIG REQUIRED)
 
 # <------------ Qt (gui) --------------->
 
-find_package(Qt6 COMPONENTS ShaderTools Quick Widgets Core5Compat Concurrent Multimedia Svg InterfaceFramework LinguistTools REQUIRED)
+find_package(Qt6 COMPONENTS ShaderTools Quick Core5Compat Concurrent Multimedia Svg InterfaceFramework LinguistTools REQUIRED)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
@@ -228,6 +228,8 @@ qt_add_library(RhythmGame_lib OBJECT ${utf8Manifest}
         src/gameplay_logic/BmsResultCourse.h
         src/gameplay_logic/BmsScoreCourse.cpp
         src/gameplay_logic/BmsScoreCourse.h
+        src/support/QtSink.cpp
+        src/support/QtSink.h
 )
 # define version macros
 target_compile_definitions(RhythmGame_lib PUBLIC
@@ -242,7 +244,7 @@ find_package(SndFile REQUIRED)
 
 find_package(SDL2 REQUIRED)
 target_link_libraries(RhythmGame_lib PUBLIC $<IF:$<TARGET_EXISTS:mimalloc-static>,mimalloc-static,mimalloc>)
-target_link_libraries(RhythmGame_lib PUBLIC SDL2::SDL2 Qt6::Quick Qt6::OpenGL Qt6::Widgets Qt6::Concurrent Qt6::Core5Compat Qt6::Multimedia Qt6::InterfaceFramework Threads::Threads Boost::headers Boost::locale Boost::dynamic_linking Boost::serialization Boost::filesystem SQLiteCpp spdlog::spdlog foonathan::lexy OpenAL::OpenAL cryptopp::cryptopp magic_enum::magic_enum zstd::libzstd_static SndFile::sndfile llfio::sl LibXml2::LibXml2)
+target_link_libraries(RhythmGame_lib PUBLIC SDL2::SDL2 Qt6::Quick Qt6::OpenGL Qt6::Concurrent Qt6::Core5Compat Qt6::Multimedia Qt6::InterfaceFramework Threads::Threads Boost::headers Boost::locale Boost::dynamic_linking Boost::serialization Boost::filesystem SQLiteCpp spdlog::spdlog foonathan::lexy OpenAL::OpenAL cryptopp::cryptopp magic_enum::magic_enum zstd::libzstd_static SndFile::sndfile llfio::sl LibXml2::LibXml2)
 
 if (WIN32)
     target_link_libraries(RhythmGame_lib PUBLIC llfio::ntkernel-error-category_sl)
