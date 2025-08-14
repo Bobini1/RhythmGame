@@ -10,7 +10,6 @@
 #include <functional>
 #include <lexy/input/string_input.hpp>
 #include <spdlog/spdlog.h>
-#include <boost/serialization/strong_typedef.hpp>
 #include <type_traits>
 #include "ReadBmsFile.h"
 
@@ -124,49 +123,46 @@ struct MeasureBasedTag
 };
 
 #define RG_STRONG_TYPEDEF(T, D)                                                \
-    struct D : boost::totally_ordered1<D, boost::totally_ordered2<D, T>>       \
+    struct D                                                                   \
     {                                                                          \
         T t;                                                                   \
-        explicit D(T t_)                                                       \
-          BOOST_NOEXCEPT_IF(std::is_nothrow_move_constructible<T>::value)      \
+        explicit D(T t_) noexcept(                                             \
+          std::is_nothrow_move_constructible<T>::value)                        \
           : t(std::move(t_))                                                   \
         {                                                                      \
         }                                                                      \
-        D()                                                                    \
-        BOOST_NOEXCEPT_IF(boost::has_nothrow_default_constructor<T>::value)    \
+        D() noexcept(std::is_nothrow_constructible<T>::value)                  \
           : t()                                                                \
         {                                                                      \
         }                                                                      \
         D(const D& t_)                                                         \
-        BOOST_NOEXCEPT_IF(boost::has_nothrow_copy_constructor<T>::value)       \
           : t(t_.t)                                                            \
         {                                                                      \
         }                                                                      \
-        D(D&& t_)                                                              \
-        BOOST_NOEXCEPT_IF(std::is_nothrow_move_constructible<T>::value)        \
+        D(D&& t_) noexcept(std::is_nothrow_move_constructible<T>::value)       \
           : t(std::move(t_.t))                                                 \
         {                                                                      \
         }                                                                      \
-        D& operator=(const D& rhs)                                             \
-          BOOST_NOEXCEPT_IF(boost::has_nothrow_assign<T>::value)               \
+        D& operator=(const D& rhs) noexcept(                                   \
+          std::is_nothrow_copy_assignable<T>::value)                           \
         {                                                                      \
             t = rhs.t;                                                         \
             return *this;                                                      \
         }                                                                      \
-        D& operator=(const T& rhs)                                             \
-          BOOST_NOEXCEPT_IF(boost::has_nothrow_assign<T>::value)               \
+        D& operator=(const T& rhs) noexcept(                                   \
+          std::is_nothrow_copy_assignable<T>::value)                           \
         {                                                                      \
             t = rhs;                                                           \
             return *this;                                                      \
         }                                                                      \
-        D& operator=(D&& rhs)                                                  \
-          BOOST_NOEXCEPT_IF(std::is_nothrow_move_assignable<T>::value)         \
+        D& operator=(D&& rhs) noexcept(                                        \
+          std::is_nothrow_move_assignable<T>::value)                           \
         {                                                                      \
             t = std::move(rhs.t);                                              \
             return *this;                                                      \
         }                                                                      \
-        D& operator=(T&& rhs)                                                  \
-          BOOST_NOEXCEPT_IF(std::is_nothrow_move_assignable<T>::value)         \
+        D& operator=(T&& rhs) noexcept(                                        \
+          std::is_nothrow_move_assignable<T>::value)                           \
         {                                                                      \
             t = std::move(rhs);                                                \
             return *this;                                                      \
@@ -443,10 +439,8 @@ struct MeterTag
         auto start = (dsl::p<Measure> + LEXY_LIT("02"));
         return peek(start) >> start >> dsl::colon >> dsl::p<FloatingPoint>;
     }();
-    static constexpr auto value =
-      lexy::callback<Meter>([](int64_t measure, double num) {
-          return Meter{ { measure, num } };
-      });
+    static constexpr auto value = lexy::callback<Meter>(
+      [](int64_t measure, double num) { return Meter{ { measure, num } }; });
 };
 
 struct TagsSink
@@ -537,8 +531,7 @@ struct TagsSink
         auto operator()(ParsedBmsChart::Tags&& randomBlock)
         {
             state.isRandom = true;
-            ParsedBmsChart::mergeTags(state,
-                                                     std::move(randomBlock));
+            ParsedBmsChart::mergeTags(state, std::move(randomBlock));
         }
 
         auto operator()(Meter&& meter) -> void
@@ -777,8 +770,7 @@ struct RandomSink
     struct RandomSinkCallback
     {
         using return_type = // NOLINT(readability-identifier-naming)
-          std::vector<
-            std::variant<IfData, ParsedBmsChart::Tags>>;
+          std::vector<std::variant<IfData, ParsedBmsChart::Tags>>;
         return_type state;
 
         auto finish() && -> return_type { return std::move(state); }
@@ -786,8 +778,7 @@ struct RandomSink
         {
             state.push_back(std::move(ifBlock));
         }
-        auto operator()(ParsedBmsChart::Tags&& orphanTags)
-          -> void
+        auto operator()(ParsedBmsChart::Tags&& orphanTags) -> void
         {
             state.push_back(std::move(orphanTags));
         }
@@ -813,11 +804,9 @@ struct IfList
 auto
 resolveIfs(
   ParsedBmsChart::RandomRange randomRange,
-  std::vector<std::variant<IfData, ParsedBmsChart::Tags>>
-    randomContents,
-  std::function<ParsedBmsChart::RandomRange(
-    ParsedBmsChart::RandomRange)> randomGenerator)
-  -> ParsedBmsChart::Tags
+  std::vector<std::variant<IfData, ParsedBmsChart::Tags>> randomContents,
+  std::function<ParsedBmsChart::RandomRange(ParsedBmsChart::RandomRange)>
+    randomGenerator) -> ParsedBmsChart::Tags
 {
     auto tags = ParsedBmsChart::Tags{};
     auto randomNumber = randomGenerator(randomRange);
@@ -825,14 +814,11 @@ resolveIfs(
         if (std::holds_alternative<IfData>(randomContent)) {
             auto& ifData = std::get<IfData>(randomContent);
             if (ifData.number == randomNumber) {
-                ParsedBmsChart::mergeTags(
-                  tags, std::move(ifData.tags));
+                ParsedBmsChart::mergeTags(tags, std::move(ifData.tags));
             }
         } else {
             ParsedBmsChart::mergeTags(
-              tags,
-              std::move(
-                std::get<ParsedBmsChart::Tags>(randomContent)));
+              tags, std::move(std::get<ParsedBmsChart::Tags>(randomContent)));
         }
     }
     return tags;
@@ -846,10 +832,10 @@ struct RandomBlock
        dsl::p<IfList> +
        (dsl::peek(dsl::ascii::case_folding(LEXY_LIT("#random"))) |
         dsl::ascii::case_folding(LEXY_LIT("#endrandom")) | dsl::eof));
-    static constexpr auto value = lexy::bind(
-      lexy::callback<ParsedBmsChart::Tags>(resolveIfs),
-      lexy::values,
-      lexy::parse_state);
+    static constexpr auto value =
+      lexy::bind(lexy::callback<ParsedBmsChart::Tags>(resolveIfs),
+                 lexy::values,
+                 lexy::parse_state);
 };
 
 } // namespace
@@ -866,9 +852,8 @@ struct ReportError
 auto
 readBmsChart(
   std::string_view chart,
-  std::function<ParsedBmsChart::RandomRange(
-    ParsedBmsChart::RandomRange)> randomGenerator)
-  -> ParsedBmsChart
+  std::function<ParsedBmsChart::RandomRange(ParsedBmsChart::RandomRange)>
+    randomGenerator) -> ParsedBmsChart
 {
     auto result =
       lexy::parse<MainTags>(lexy::string_input<lexy::utf8_char_encoding>(chart),

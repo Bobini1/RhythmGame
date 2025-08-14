@@ -26,10 +26,6 @@
       "version>=": "1.85.0"
     },
     {
-      "name": "boost-serialization",
-      "version>=": "1.85.0"
-    },
-    {
       "name": "boost-icl",
       "version>=": "1.85.0"
     },
