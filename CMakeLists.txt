@@ -61,9 +61,6 @@ find_package(llfio CONFIG REQUIRED)
 # <------------ Qt (gui) --------------->
 
 find_package(Qt6 COMPONENTS ShaderTools Quick Core5Compat Concurrent Multimedia Svg InterfaceFramework LinguistTools REQUIRED)
-set(CMAKE_AUTOMOC ON)
-set(CMAKE_AUTORCC ON)
-set(CMAKE_AUTOUIC ON)
 qt_standard_project_setup(I18N_TRANSLATED_LANGUAGES pl jp)
 
 find_package(cryptopp REQUIRED)
