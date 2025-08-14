@@ -1,4 +1,4 @@
-#include "resource_managers/FindAssetsFolderBoost.h"
+#include "resource_managers/FindAssetsFolder.h"
 #include "resource_managers/IniImageProvider.h"
 #include "gameplay_logic/rules/Lr2TimingWindows.h"
 #include "qml_components/ProgramSettings.h"

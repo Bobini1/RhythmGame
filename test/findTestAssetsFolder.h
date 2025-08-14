@@ -4,16 +4,22 @@
 
 #ifndef RHYTHMGAME_FINDTESTASSETSFOLDER_H
 #define RHYTHMGAME_FINDTESTASSETSFOLDER_H
+#include "support/QStringToPath.h"
+
+#include <QGuiApplication>
+#include <QDir>
 #include <filesystem>
 #include <boost/dll/runtime_symbol_info.hpp>
 inline auto
 findTestAssetsFolder() -> std::filesystem::path
 {
-    static const auto assetsFolder =
-      std::filesystem::path(boost::dll::program_location().c_str())
-        .parent_path()
-        .parent_path() /
-      "testOnlyAssets";
+    static const auto assetsFolder = []() -> std::filesystem::path {
+        const auto appPath = QFileInfo(QGuiApplication::applicationFilePath());
+        QDir dir = appPath.dir();
+        dir.cdUp();
+        const auto path = dir.absoluteFilePath("testOnlyAssets");
+        return support::qStringToPath(path);
+    }();
     return assetsFolder;
 }
 

@@ -48,7 +48,7 @@ target_compile_definitions(spdlog::spdlog INTERFACE SPDLOG_WCHAR_FILENAMES)
 
 # <------------ boost --------------->
 
-find_package(Boost REQUIRED COMPONENTS locale filesystem serialization)
+find_package(Boost REQUIRED COMPONENTS locale serialization)
 
 # <------------ OpenAL (audio playback) --------------->
 
@@ -91,8 +91,8 @@ qt_add_library(RhythmGame_lib OBJECT ${utf8Manifest}
         src/support/EnableSharedFromBase.h
         src/support/Capitalize.cpp
         src/support/Capitalize.h
-        src/resource_managers/FindAssetsFolderBoost.cpp
-        src/resource_managers/FindAssetsFolderBoost.h
+        src/resource_managers/FindAssetsFolder.cpp
+        src/resource_managers/FindAssetsFolder.h
         src/sounds/OpenAlSound.cpp
         src/sounds/OpenAlSound.h
         src/sounds/OpenAlSoundBuffer.h
@@ -244,7 +244,7 @@ find_package(SndFile REQUIRED)
 
 find_package(SDL2 REQUIRED)
 target_link_libraries(RhythmGame_lib PUBLIC $<IF:$<TARGET_EXISTS:mimalloc-static>,mimalloc-static,mimalloc>)
-target_link_libraries(RhythmGame_lib PUBLIC SDL2::SDL2 Qt6::Quick Qt6::OpenGL Qt6::Concurrent Qt6::Core5Compat Qt6::Multimedia Qt6::InterfaceFramework Threads::Threads Boost::headers Boost::locale Boost::dynamic_linking Boost::serialization Boost::filesystem SQLiteCpp spdlog::spdlog foonathan::lexy OpenAL::OpenAL cryptopp::cryptopp magic_enum::magic_enum zstd::libzstd_static SndFile::sndfile llfio::sl LibXml2::LibXml2)
+target_link_libraries(RhythmGame_lib PUBLIC SDL2::SDL2 Qt6::Quick Qt6::OpenGL Qt6::Concurrent Qt6::Core5Compat Qt6::Multimedia Qt6::InterfaceFramework Threads::Threads Boost::headers Boost::locale Boost::serialization SQLiteCpp spdlog::spdlog foonathan::lexy OpenAL::OpenAL cryptopp::cryptopp magic_enum::magic_enum zstd::libzstd_static SndFile::sndfile llfio::sl LibXml2::LibXml2)
 
 if (WIN32)
     target_link_libraries(RhythmGame_lib PUBLIC llfio::ntkernel-error-category_sl)
