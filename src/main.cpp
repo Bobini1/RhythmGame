@@ -85,7 +85,11 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
       std::make_shared<spdlog::sinks::stdout_color_sink_mt>());
 
     // set global log level to debug
+#ifdef DEBUG
     spdlog::set_level(spdlog::level::debug);
+#else
+    spdlog::set_level(spdlog::level::info);
+#endif
     set_default_logger(logger);
 
     auto app = input::CustomNotifyApp{ argc, argv };
