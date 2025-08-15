@@ -145,7 +145,9 @@ Copyright (c) 2018-2025 Microsoft Corporation, Daan Leijen
 
 https://github.com/microsoft/mimalloc/blob/main/LICENSE
 
-### Boost
+### Boost libraries
+
+Boost.PFR and Boost.ICL
 
 Boost Software License - Version 1.0 (BSL-1.0)
 
@@ -155,8 +157,13 @@ https://www.boost.org/doc/user-guide/bsl.html
 
 ### FFmpeg
 
-GNU Lesser General Public License Version 2.1
-(LGPL-2.1)
+GNU Lesser General Public License Version 2.1 (LGPL-2.1)
+BSD 3-Clause License (BSD-3-Clause)
+BSD 2-Clause License (BSD-2-Clause)
+BSD Source Code Attribution (BSD-Source-Code)
+ISC License (ISC)
+MIT License (MIT)
+Mozilla Public License 2.0 (MPL-2.0)
 
 Copyright (c) 2000-2023 the FFmpeg developers
 
@@ -295,7 +302,392 @@ https://doc.qt.io/qt-6/qtcore-attribution-extra-cmake-modules.html
 
 The MIT License (MIT)
 
-Copyright (C) 2016 Intel Corporation
-Copyright (C) 2015 Klarälvdalens Datakonsult AB, a KDAB Group company, info@kdab.com
+Copyright © 2016 Intel Corporation
+Copyright © 2015 Klarälvdalens Datakonsult AB, a KDAB Group company, info@kdab.com
 
 https://doc.qt.io/qt-6/qtcore-attribution-forkfd.html
+
+### Adobe Glyph List For New Fonts
+
+BSD 3-Clause License (BSD-3-Clause)
+
+Copyright © 2002, 2003, 2005, 2006, 2008, 2010, 2015 Adobe Systems
+
+https://doc.qt.io/qt-6/qtgui-attribution-aglfn.html
+
+### Anti-aliasing rasterizer from FreeType 2
+
+Freetype Project License (FTL)
+
+Copyright © 2000-2016 by David Turner, Robert Wilhelm, and Werner Lemberg.
+
+https://doc.qt.io/qt-6/qtgui-attribution-grayraster.html
+
+### Cocoa Platform Plugin
+
+BSD 3-Clause license (BSD-3-Clause)
+
+Copyright (c) 2007-2008, Apple, Inc.
+
+https://doc.qt.io/qt-6/qtgui-attribution-cocoa-platform-plugin.html
+
+### D3D12 Memory Allocator
+
+MIT License (MIT)
+
+Copyright (c) 2019-2022 Advanced Micro Devices, Inc. All rights reserved.
+
+https://doc.qt.io/qt-6/qtgui-attribution-d3d12memoryallocator.html
+
+### DejaVu Fonts
+
+Bitstream Vera Font License (Bitstream-Vera)
+
+Copyright (c) 2003 by Bitstream, Inc
+Copyright (c) 2006 by Tavmjong Bah
+(c) American Mathematical Society
+
+https://doc.qt.io/qt-6/qtgui-attribution-dejayvu.html
+
+### Emoji Segmenter
+
+Apache License 2.0 (Apache-2.0)
+
+Copyright 2019 Google LLC
+
+https://doc.qt.io/qt-6/qtgui-attribution-emoji-segmenter.html
+
+### Freetype 2 - Bitmap Distribution Format (BDF) support
+
+MIT License (MIT)
+
+Copyright (c) 2000 Computing Research Labs, New Mexico State University
+Copyright (c) 2001-2014 Francesco Zappa Nardelli
+
+https://doc.qt.io/qt-6/qtgui-attribution-freetype-bdf.html
+
+### Freetype 2 - Portable Compiled Format (PCF) support
+
+MIT License (MIT)
+
+Copyright (c) 2001, 2012 David Turner, Robert Wilhelm, and Werner Lemberg
+Copyright (c) 2000-2014 Francesco Zappa Nardelli
+Copyright (c) 1990, 1994, 1998 The Open Group
+
+https://doc.qt.io/qt-6/qtgui-attribution-freetype-pcf.html
+
+### Freetype 2
+
+Freetype Project License (FTL)
+
+Copyright (c) 2007-2014 Adobe Systems Incorporated
+Copyright (c) 2004-2024 Albert Chin-A-Young
+Copyright (c) 2018-2024 Armin Hasitzka, David Turner, Robert Wilhelm, and Werner Lemberg
+Copyright (c) 2000 Computing Research Labs, New Mexico State University
+Copyright (c) 1996-2024 David Turner, Robert Wilhelm, Dominik Röttsches, and Werner Lemberg
+Copyright (c) 2004-2024 David Turner, Robert Wilhelm, Werner Lemberg and George Williams
+Copyright (c) 2022-2024 David Turner, Robert Wilhelm, Werner Lemberg, and Moazin Khatti
+Copyright (c) 2008-2024 David Turner, Robert Wilhelm, Werner Lemberg, and suzuki toshiya
+Copyright (c) 2003-2024 David Turner, Robert Wilhelm, and Werner Lemberg
+Copyright (c) 2005-2024 David Turner
+Copyright (c) 2007-2024 Derek Clegg and Michael Toftdal
+Copyright (c) 2007 Dmitry Timoshkov for Codeweavers
+Copyright (c) 2001-2015 Francesco Zappa Nardelli
+Copyright (c) 2005, 2007, 2008, 2013 George Williams
+Copyright (c) 2013-2024 Google, Inc. Google Author(s) Behdad Esfahbod and Stuart Gill
+Copyright (c) 2013-2022 Google, Inc.
+Copyright (c) 2003 Huw D M Davies for Codeweavers
+Copyright (c) 2010-2024 Joel Klinghed
+Copyright (c) 1996-2024 Just van Rossum, David Turner, Robert Wilhelm, and Werner Lemberg
+Copyright (c) 2003-2024 Masatake YAMATO and Redhat K.K.
+Copyright (c) 2004-2024 Masatake YAMATO, Redhat K.K, David Turner, Robert Wilhelm, and Werner Lemberg
+Copyright (c) 2019-2024 Nikhil Ramakrishnan, David Turner, Robert Wilhelm, and Werner Lemberg
+Copyright (c) 2009-2024 Oran Agra and Mickey Gabel
+Copyright (c) 2007-2024 Rahul Bhalerao <rahul.bhalerao@redhat.com>
+Copyright (c) 2002-2024 Roberto Alameda
+Copyright (c) 2015-2024 Werner Lemberg
+Copyright (c) 2004-2024 suzuki toshiya, Masatake YAMATO, Red Hat K.K., David Turner, Robert Wilhelm, and Werner Lemberg
+Copyright (c) 2019 nyorain
+Copyright (c) 2022-2024 David Turner, Robert Wilhelm, Werner Lemberg, George Williams, and Dominik Röttsches
+Copyright (C) 2009, 2023  Red Hat, Inc.
+
+https://doc.qt.io/qt-6/qtgui-attribution-freetype.html
+
+### HarfBuzz-NG
+
+MIT License (MIT)
+
+Copyright © 2010-2022  Google, Inc.
+Copyright © 2015-2020  Ebrahim Byagowi
+Copyright © 2019,2020  Facebook, Inc.
+Copyright © 2012,2015  Mozilla Foundation
+Copyright © 2011  Codethink Limited
+Copyright © 2008,2010  Nokia Corporation and/or its subsidiary(-ies)
+Copyright © 2009  Keith Stribley
+Copyright © 2011  Martin Hosken and SIL International
+Copyright © 2007  Chris Wilson
+Copyright © 2005,2006,2020,2021,2022,2023  Behdad Esfahbod
+Copyright © 2004,2007,2008,2009,2010,2013,2021,2022,2023  Red Hat, Inc.
+Copyright © 1998-2005  David Turner and Werner Lemberg
+Copyright © 2016  Igalia S.L.
+Copyright © 2022  Matthias Clasen
+Copyright © 2018,2021  Khaled Hosny
+Copyright © 2018,2019,2020  Adobe, Inc
+Copyright © 2013-2015  Alexei Podtelezhnikov
+
+https://doc.qt.io/qt-6/qtgui-attribution-harfbuzz-ng.html
+
+### LibJPEG-turbo
+
+Independent JPEG Group License (IJG)
+BSD 3-Clause License (BSD-3-Clause)
+
+Copyright (C) 2009-2024 D. R. Commander
+Copyright (C) 2015, 2020 Google, Inc.
+Copyright (C) 2019-2020 Arm Limited
+Copyright (C) 2015-2016, 2018 Matthieu Darbois
+Copyright (C) 2011-2016 Siarhei Siamashka
+Copyright (C) 2015 Intel Corporation
+Copyright (C) 2013-2014 Linaro Limited
+Copyright (C) 2013-2014 MIPS Technologies, Inc.
+Copyright (C) 2009, 2012 Pierre Ossman for Cendio AB
+Copyright (C) 2009-2011 Nokia Corporation and/or its subsidiary(-ies)
+Copyright (C) 1999-2006 MIYASAKA Masaru
+Copyright (C) 1999 Ken Murchison
+Copyright (C) 1991-2020 Thomas G. Lane, Guido Vollbeding
+
+https://doc.qt.io/qt-6/qtgui-attribution-libjpeg.html
+
+### LibPNG
+
+Libpng License (Libpng)
+PNG Reference Library version 2 (libpng-2.0)
+
+Copyright (c) 1995-2025 The PNG Reference Library Authors
+Copyright (c) 2000-2025 Cosmin Truta
+Copyright (c) 1998-2018 Glenn Randers-Pehrson
+Copyright (c) 1996-1997 Andreas Dilger
+Copyright (c) 1995-1996 Guy Eric Schalnat, Group 42, Inc.
+Copyright (c) 2000-2017 Simon-Pierre Cadieux
+Copyright (c) 2000-2017 Eric S. Raymond
+Copyright (c) 2000-2017 Mans Rullgard
+Copyright (c) 2000-2017 Gilles Vollant
+Copyright (c) 2000-2017 James Yu
+Copyright (c) 2000-2017 Mandar Sahastrabuddhe
+Copyright (c) 1998-2000 Tom Lane
+Copyright (c) 1998-2000 Willem van Schaik
+Copyright (c) 1996-1997 John Bowler
+Copyright (c) 1996-1997 Kevin Bracey
+Copyright (c) 1996-1997 Sam Bushell
+Copyright (c) 1996-1997 Magnus Holmgren
+Copyright (c) 1996-1997 Greg Roelofs
+Copyright (c) 1996-1997 Tom Tanner
+Copyright (c) 1995-1996 Dave Martindale
+Copyright (c) 1995-1996 Paul Schmidt
+Copyright (c) 1995-1996 Tim Wegner
+
+https://doc.qt.io/qt-6/qtgui-attribution-libpng.html
+
+### MD4C
+
+MIT License (MIT)
+
+Copyright © 2016-2024 Martin Mitáš
+
+https://doc.qt.io/qt-6/qtgui-attribution-md4c.html
+
+### Mipmap generator for D3D12
+
+MIT License (MIT)
+
+Copyright (c) 2015 Microsoft
+
+https://doc.qt.io/qt-6/qtgui-attribution-rhi-miniengine-d3d12-mipmap.html
+
+### OpenGL ES 2 Headers
+
+MIT License (MIT)
+
+Copyright (c) 2013-2014 The Khronos Group Inc.
+
+https://doc.qt.io/qt-6/qtgui-attribution-opengl-es2-headers.html
+
+### OpenGL Headers
+
+MIT License (MIT)
+
+Copyright (c) 2013-2014 The Khronos Group Inc.
+
+https://doc.qt.io/qt-6/qtgui-attribution-opengl-headers.html
+
+### Pixman
+
+MIT License (MIT)
+
+Copyright © 2009 Nokia Corporation
+
+https://doc.qt.io/qt-6/qtgui-attribution-pixman.html
+
+### Smooth Scaling Algorithm
+
+MIT License (MIT)
+
+Copyright (C) 2004, 2005 Daniel M. Duley.
+(C) Carsten Haitzler and various contributors.
+(C) Willem Monsuwe <willem@stack.nl>
+
+https://doc.qt.io/qt-6/qtgui-attribution-smooth-scaling-algorithm.html
+
+### Vulkan API Registry
+
+Apache License 2.0 (Apache-2.0)
+
+Copyright (c) 2015-2022 The Khronos Group Inc.
+
+https://doc.qt.io/qt-6/qtgui-attribution-vulkan-xml-spec.html
+
+### Vulkan Memory Allocator
+
+MIT License (MIT)
+
+Copyright (c) 2017-2024 Advanced Micro Devices, Inc. All rights reserved.
+
+https://doc.qt.io/qt-6/qtgui-attribution-vulkanmemoryallocator.html
+
+### WebGradients
+
+MIT License (MIT)
+
+Copyright (c) 2017 itmeo
+
+https://doc.qt.io/qt-6/qtgui-attribution-webgradients.html
+
+### X Server helper
+
+X11 License (X11)
+Historical Permission Notice and Disclaimer (HPND)
+
+Copyright (c) 1987, 1988 X Consortium
+Copyright 1987, 1988 by Digital Equipment Corporation, Maynard, Massachusetts.
+
+https://doc.qt.io/qt-6/qtgui-attribution-xserverhelper.html
+
+### XCB-XInput
+
+MIT License (MIT)
+
+Copyright (C) 2001-2006 Bart Massey, Jamey Sharp, and Josh Triplett.
+Copyright (C) 2006 Peter Hutterer
+Copyright (C) 2013 Daniel Martin
+
+https://doc.qt.io/qt-6/qtgui-attribution-xcb-xinput.html
+
+### TIFF Software Distribution (libtiff)
+
+libtiff License (libtiff)
+
+Copyright (c) 1988-1997 Sam Leffler
+Copyright (c) 1991-1997 Silicon Graphics, Inc.
+
+https://doc.qt.io/qt-6/qtimageformats-attribution-libtiff.html
+
+### WebP (libwebp)
+
+BSD 3-Clause License (BSD-3-Clause)
+
+Copyright (c) 2010, Google Inc. All rights reserved.
+
+https://doc.qt.io/qt-6/qtimageformats-attribution-libwebp.html
+
+### Signalsmith Stretch
+
+MIT License (MIT)
+
+Copyright (c) 2022 Geraint Luff / Signalsmith Audio Ltd.
+
+https://doc.qt.io/qt-6/qtmultimedia-attribution-signalsmith-stretch.html
+
+### The Public Suffix List
+
+Mozilla Public License Version 2.0 (MPL-2.0)
+
+The list was originally provided by Jo Hermans <jo.hermans@gmail.com>.
+It is now maintained on github (https://github.com/publicsuffix/list).
+
+https://doc.qt.io/qt-6/qtnetwork-attribution-psl-data.html
+
+### libpsl - C library to handle the Public Suffix List
+
+BSD 3-Clause License (BSD-3-Clause)
+
+Copyright 2014-2016 The Chromium Authors. All rights reserved.
+
+https://doc.qt.io/qt-6/qtnetwork-attribution-libpsl.html
+
+### JavaScriptCore Macro Assembler
+
+BSD 2-Clause License (BSD-2-Clause)
+
+Copyright (C) 2003-2018 Apple Inc. All rights reserved.
+Copyright (C) 2007 Justin Haygood (jhaygood@reaktix.com)
+Copyright (C) 2007-2009 Torch Mobile, Inc. All rights reserved. (http://www.torchmobile.com/)
+Copyright (C) 2009, 2010 University of Szeged
+Copyright (C) 2009-2011 STMicroelectronics. All rights reserved.
+Copyright (C) 2010 MIPS Technologies, Inc. All rights reserved.
+Copyright (C) 2010 Peter Varga (pvarga@inf.u-szeged.hu), University of Szeged
+Copyright (C) 2010 MIPS Technologies, Inc. All rights reserved.
+Copyright (C) 2010, 2011 Research In Motion Limited. All rights reserved.
+Copyright (C) 2011 Google Inc. All rights reserved.
+Copyright (C) 2013 Samsung Electronics. All rights reserved.
+Copyright (C) 2015 Cisco Systems, Inc. All rights reserved.
+Copyright (c) 2002-2009 Vivek Thampi
+
+https://doc.qt.io/qt-6/qtqml-attribution-masm.html
+
+### Shadow values from Angular Material
+
+MIT License (MIT)
+
+Copyright (c) 2014-2016 Google, Inc
+
+https://doc.qt.io/qt-6/qtquickcontrols-attribution-shadow-angular-material.html
+
+### XSVG
+
+Historical Permission Notice and Disclaimer - sell variant (HPND-sell-variant)
+
+Copyright 2002 USC/Information Sciences Institute
+
+https://doc.qt.io/qt-6/qtsvg-attribution-xsvg.html
+
+### SPIRV-Cross
+
+Apache License 2.0 (Apache-2.0)
+MIT Khronos - old variant (MIT-Khronos-old)
+
+Copyright 2015-2020 Arm Limited
+Copyright (c) 2014-2019 The Khronos Group Inc.
+Copyright 2019-2020 Hans-Kristian Arntzen
+Copyright 2016-2020 Robert Konrad
+Copyright 2016-2020 The Brenwill Workshop Ltd.
+Copyright 2018-2020 Bradley Austin Davis
+
+https://doc.qt.io/qt-6/qtshadertools-attribution-spirvcross.html
+
+### glslang
+
+BSD 3-Clause License (BSD-3-Clause)
+MIT Khronos - old variant (MIT-Khronos-old)
+Apache License 2.0 (Apache-2.0)
+GNU General Public License v3.0 or later with Bison exception 2.2 (GPL-3.0-or-later WITH Bison-exception-2.2)
+AML glslang variant License (AML-glslang)
+
+Copyright (c) 2017, 2019 ARM Limited
+Copyright (c) 2002-2005 3 Dlabs Inc. Ltd.
+Copyright (c) 1984, 1989-1990, 2000-2015 Free Software Foundation, Inc.
+Copyright (c) 2014-2018 Google, Inc.
+Copyright (c) 2002 NVIDIA Corporation
+Copyright (c) 2002-2010 The ANGLE Project
+Copyright (c) 2014-2019 The Khronos Group Inc.
+
+https://doc.qt.io/qt-6/qtshadertools-attribution-glslang.html
