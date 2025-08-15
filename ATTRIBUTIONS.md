@@ -153,6 +153,38 @@ Boost Software License - Version 1.0 (BSL-1.0)
 
 https://www.boost.org/doc/user-guide/bsl.html
 
+### SDL2
+
+zlib License (Zlib)
+
+http://www.libsdl.org/license.php
+
+
+### ICU
+
+Unicode License v3 (Unicode-3.0)
+
+Copyright © 2016-2025 Unicode, Inc.
+
+https://github.com/unicode-org/icu?tab=License-1-ov-file#readme
+
+### zstd
+
+BSD 3-Clause License (BSD-3-Clause)
+
+Copyright (c) Meta Platforms, Inc. and affiliates. All rights reserved.
+
+https://github.com/facebook/zstd/blob/dev/LICENSE
+
+
+### magic_enum
+
+MIT License (MIT)
+
+Copyright (c) 2019 - 2024 Daniil Goncharov
+
+https://github.com/Neargye/magic_enum?tab=MIT-1-ov-file#readme
+
 ## Transitive dependencies
 
 ### FFmpeg
@@ -747,3 +779,59 @@ Copyright (c) 1995-2020 by Michael Hipp and others,
 
 https://sourceforge.net/projects/mpg123/
 
+### bzip2
+
+bzip2 and libbzip2 License v1.0.6 (bzip2-1.0.6)
+
+Copyright © 1996-2019 Julian Seward
+
+https://sourceware.org/bzip2/manual/manual.html
+
+### TagLib
+
+Mozilla Public License Version 1.1 (MPL-1.1)
+
+https://github.com/taglib/taglib/blob/master/COPYING.MPL
+
+### OpenSSL
+
+Apache License 2.0 (Apache-2.0)
+
+Copyright (c) 1998-2025 The OpenSSL Project Authors
+Copyright (c) 1995-1998 Eric A. Young, Tim J. Hudson
+
+https://openssl-library.org/source/license/apache-license-2.0.txt
+
+### libpq
+
+BSD 3-Clause License (BSD-3-Clause)
+
+Copyright (c) 2010, Grant Monroe
+Copyright (c) 2011, Leon P Smith
+
+https://github.com/lpsmith/postgresql-libpq/blob/master/LICENSE
+
+### lz4
+
+BSD 2-Clause License (BSD-2-Clause)
+
+Copyright (c) 2011-2020, Yann Collet
+
+https://github.com/lz4/lz4/blob/dev/lib/LICENSE
+
+### dbus
+
+Academic Free License v2.1 (AFL-2.1)
+
+Copyright (C) 2002, 2003 CodeFactory AB
+Copyright (C) 2004, 2005 Red Hat, Inc.
+
+https://gitlab.freedesktop.org/dbus/dbus/-/blob/main/LICENSES/AFL-2.1.txt?ref_type=heads
+
+### yasm
+
+BSD 2-Clause License (BSD-2-Clause)
+
+Copyright (c) 2001-2014 Peter Johnson and other Yasm developers
+
+https://github.com/yasm/yasm/blob/master/COPYING
