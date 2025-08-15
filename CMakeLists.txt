@@ -60,7 +60,7 @@ find_package(llfio CONFIG REQUIRED)
 
 # <------------ Qt (gui) --------------->
 
-find_package(Qt6 COMPONENTS ShaderTools Quick Core5Compat Concurrent Multimedia Svg InterfaceFramework LinguistTools REQUIRED)
+find_package(Qt6 COMPONENTS ShaderTools Quick Concurrent Multimedia Svg InterfaceFramework LinguistTools REQUIRED)
 qt_standard_project_setup(I18N_TRANSLATED_LANGUAGES pl jp)
 
 # <------------ zstd (compression) --------------->
@@ -249,7 +249,7 @@ target_compile_definitions(RhythmGame_lib PUBLIC
 find_package(Threads REQUIRED)
 
 target_link_libraries(RhythmGame_lib PUBLIC $<IF:$<TARGET_EXISTS:mimalloc-static>,mimalloc-static,mimalloc>)
-target_link_libraries(RhythmGame_lib PUBLIC SDL2::SDL2 Qt6::Quick Qt6::OpenGL Qt6::Concurrent Qt6::Core5Compat Qt6::Multimedia Qt6::InterfaceFramework Threads::Threads Boost::headers SQLiteCpp spdlog::spdlog foonathan::lexy OpenAL::OpenAL cryptopp::cryptopp magic_enum::magic_enum zstd::libzstd_static SndFile::sndfile llfio::sl LibXml2::LibXml2)
+target_link_libraries(RhythmGame_lib PUBLIC SDL2::SDL2 Qt6::Quick Qt6::OpenGL Qt6::Concurrent Qt6::Multimedia Qt6::InterfaceFramework Threads::Threads Boost::headers SQLiteCpp spdlog::spdlog foonathan::lexy OpenAL::OpenAL cryptopp::cryptopp magic_enum::magic_enum zstd::libzstd_static SndFile::sndfile llfio::sl LibXml2::LibXml2)
 target_link_libraries(RhythmGame_lib PUBLIC ICU::uc ICU::i18n ICU::data)
 
 if (WIN32)

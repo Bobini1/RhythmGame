@@ -691,3 +691,59 @@ Copyright (c) 2002-2010 The ANGLE Project
 Copyright (c) 2014-2019 The Khronos Group Inc.
 
 https://doc.qt.io/qt-6/qtshadertools-attribution-glslang.html
+
+### libflac
+
+BSD 3-Clause License (BSD-3-Clause)
+
+Copyright (C) 2000-2009  Josh Coalson
+Copyright (C) 2011-2025  Xiph.Org Foundation
+
+https://github.com/xiph/flac?tab=BSD-3-Clause-4-ov-file
+
+### libvorbis
+
+BSD 3-Clause License (BSD-3-Clause)
+
+Copyright (c) 2002-2020 Xiph.org Foundation
+
+https://github.com/xiph/vorbis?tab=License-1-ov-file
+
+### libogg
+
+BSD 3-Clause License (BSD-3-Clause)
+
+Copyright (c) 2002, Xiph.org Foundation
+
+https://github.com/xiph/ogg?tab=BSD-3-Clause-1-ov-file
+
+### opus
+
+BSD 3-Clause License (BSD-3-Clause)
+
+Copyright 2001-2023 Xiph.Org, Skype Limited, Octasic,
+Jean-Marc Valin, Timothy B. Terriberry,
+CSIRO, Gregory Maxwell, Mark Borgerding,
+Erik de Castro Lopo, Mozilla, Amazon
+
+https://github.com/xiph/opus?tab=License-1-ov-file
+
+### mp3lame
+
+GNU Library General Public License v2 only (LGPL-2.0-only)
+
+Copyrights (c) 1999-2011 by The LAME Project
+Copyrights (c) 1999,2000,2001 by Mark Taylor
+Copyrights (c) 1998 by Michael Cheng
+Copyrights (c) 1995,1996,1997 by Michael Hipp: mpglib
+
+https://lame.sourceforge.io/license.txt
+
+### mpg123
+
+GNU Lesser General Public License v2.1 or later (LGPL-2.1-or-later)
+
+Copyright (c) 1995-2020 by Michael Hipp and others,
+
+https://sourceforge.net/projects/mpg123/
+
