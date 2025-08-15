@@ -87,7 +87,7 @@ combineBpmChanges(std::span<const uint16_t> exBpmChanges,
             continue;
         }
         if (stopValue->second <= 0.0) {
-            spdlog::warn("Stop must be positive, was: {}",
+            spdlog::debug("Stop must be positive, was: {}",
                          std::to_string(stopValue->second));
             continue;
         }

@@ -11,16 +11,18 @@
 #include <lexy/input/string_input.hpp>
 #include <spdlog/spdlog.h>
 #include <type_traits>
+#include <unicode/ucnv.h>
+#include <unicode/unistr.h>
+#include <unicode/ucsdet.h>
 #include "ReadBmsFile.h"
 
 #include <lexy_ext/report_error.hpp>
-#include <boost/locale/encoding.hpp>
 
 namespace charts {
 namespace dsl = lexy::dsl;
 
 namespace {
-[[nodiscard]] auto
+auto
 trimR(std::string_view str) -> size_t
 {
     auto pos = str.find_last_not_of(" \t\r\n");
@@ -28,16 +30,114 @@ trimR(std::string_view str) -> size_t
         return pos + 1;
     }
     return 0;
-};
+}
+
+auto
+convert(const char* encoding,
+        const std::string_view& str,
+        UConverterToUCallback callback = UCNV_TO_U_CALLBACK_STOP)
+  -> std::optional<std::string>
+{
+    // Calculate trimmed size
+    size_t size = trimR({ str.data(), str.size() });
+
+    UErrorCode status = U_ZERO_ERROR;
+
+    // Create converters for CP932 and UTF-8
+    UConverter* fromConverter = ucnv_open(encoding, &status);
+    if (U_FAILURE(status)) {
+        spdlog::error("Failed to open ICU converter for CP932: {}",
+                      u_errorName(status));
+        return "";
+    }
+
+    ucnv_setToUCallBack(
+      fromConverter, callback, nullptr, nullptr, nullptr, &status);
+
+    auto ustr = icu::UnicodeString(str.data(), size, fromConverter, status);
+    ucnv_close(fromConverter);
+
+    if (U_FAILURE(status)) {
+        return std::nullopt;
+    }
+
+    std::string result;
+    ustr.toUTF8String(result);
+
+    return result;
+}
+
+auto
+detectEncoding(std::string_view str) -> std::optional<std::string>
+{
+    UErrorCode status = U_ZERO_ERROR;
+    auto* detector = ucsdet_open(&status);
+    if (U_FAILURE(status)) {
+        spdlog::error("Failed to open UCS Detector: {}", u_errorName(status));
+        return std::nullopt;
+    }
+
+    ucsdet_setText(
+      detector, str.data(), static_cast<int32_t>(str.size()), &status);
+    if (U_FAILURE(status)) {
+        spdlog::error("Failed to set text for UCS Detector: {}",
+                      u_errorName(status));
+        ucsdet_close(detector);
+        return std::nullopt;
+    }
+
+    const auto* result = ucsdet_detect(detector, &status);
+    if (U_FAILURE(status) || !result) {
+        spdlog::error("Failed to detect encoding: {}", u_errorName(status));
+        ucsdet_close(detector);
+        return std::nullopt;
+    }
+
+    const char* encoding = ucsdet_getName(result, &status);
+    if (U_FAILURE(status)) {
+        spdlog::error("Failed to get encoding name: {}", u_errorName(status));
+        ucsdet_close(detector);
+        return std::nullopt;
+    }
+
+    ucsdet_close(detector);
+    return std::string{ encoding };
+}
+} // namespace
 
 struct TextTag
 {
-    static constexpr auto value = lexy::callback<std::string>([](auto&& str) {
-        return boost::locale::conv::to_utf<char>(
-          str.begin(),
-          str.begin() + trimR({ str.data(), str.size() }),
-          "CP932");
-    });
+    static constexpr auto value =
+      lexy::callback<std::string>([](auto&& str) -> std::string {
+          const auto size = trimR({ str.data(), str.size() });
+          auto view = std::string_view{ str.data(), size };
+          auto ret = convert("CP932", view);
+          if (ret.has_value()) {
+              return ret.value();
+          }
+          ret = convert("CP949", view);
+          if (ret.has_value()) {
+              return ret.value();
+          }
+          auto encoding = detectEncoding(view);
+          if (encoding.has_value() && encoding.value() != "Shift_JIS") {
+              ret = convert(encoding->c_str(), view);
+              if (ret.has_value()) {
+                  return ret.value();
+              }
+              ret = convert(encoding->c_str(), view, UCNV_TO_U_CALLBACK_ESCAPE);
+              if (ret.has_value()) {
+                  spdlog::warn("Text tag contains invalid characters: {}, detected encoding: {}",
+                               ret.value_or(std::string{}), *encoding);
+                  return ret.value();
+              }
+          }
+          ret = convert("CP932", view, UCNV_TO_U_CALLBACK_ESCAPE);
+
+          spdlog::warn("Text tag contains invalid characters: {}",
+                       ret.value_or(std::string{}));
+          return ret.value_or(std::string{});
+      });
     static constexpr auto rule = capture(until(dsl::unicode::newline).or_eof());
 };
 
@@ -838,8 +938,6 @@ struct RandomBlock
                  lexy::parse_state);
 };
 
-} // namespace
-
 struct ReportError
 {
     using return_type = void;
@@ -861,4 +959,4 @@ readBmsChart(
                             ReportError{});
     return ParsedBmsChart{ std::move(result).value() };
 }
-} // namespace charts::chart_readers
+} // namespace charts

@@ -9,7 +9,6 @@
 #include <utility>
 #include <fstream>
 #include <qfileinfo.h>
-#include <boost/locale/encoding.hpp>
 #include "support/UtfStringToPath.h"
 #include "support/PathToQString.h"
 #include <llfio.hpp>

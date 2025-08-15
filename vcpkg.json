@@ -18,10 +18,6 @@
       ]
     },
     {
-      "name": "boost-locale",
-      "version>=": "1.85.0"
-    },
-    {
       "name": "boost-pfr",
       "version>=": "1.85.0"
     },
