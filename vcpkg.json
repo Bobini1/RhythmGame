@@ -66,6 +66,13 @@
       "version>=": "2.28.5"
     },
     {
+      "name": "qtbase",
+      "default-features": false,
+      "features": [
+        "dnslookup","harfbuzz","icu","jpeg","opengl","openssl"
+      ]
+    },
+    {
       "name": "qtdeclarative",
       "version>=": "6.8.1"
     },
