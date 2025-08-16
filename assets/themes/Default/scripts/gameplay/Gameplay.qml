@@ -5,7 +5,6 @@ import QtQuick.Layouts
 import RhythmGameQml
 import QtQuick.Controls.Basic
 import QtMultimedia
-import Qt5Compat.GraphicalEffects
 import "../common/TaoQuickCustom"
 import "../common/helpers.js" as Helpers
 
