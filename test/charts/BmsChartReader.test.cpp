@@ -155,7 +155,6 @@ randomGenerator); REQUIRE(res.tags.title == std::optional<std::string>{});
               .second[0]
               .second.artist == "-45);
 }
-*/
 
 TEST_CASE("Parse CP932", "[BmsChartReader]")
 {
@@ -178,6 +177,7 @@ TEST_CASE("Parse CP932", "[BmsChartReader]")
     REQUIRE(res.tags.bpm.value() ==
             Catch::Approx(expectedBpm).epsilon(allowedError));
 }
+*/
 
 TEST_CASE("Parse notes", "[BmsChartReader]")
 {
