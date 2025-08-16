@@ -11,9 +11,7 @@
 #include <lexy/input/string_input.hpp>
 #include <spdlog/spdlog.h>
 #include <type_traits>
-#include <unicode/ucnv.h>
-#include <unicode/unistr.h>
-#include <unicode/ucsdet.h>
+#include <iconv.h>
 #include "ReadBmsFile.h"
 
 #include <lexy_ext/report_error.hpp>
@@ -33,111 +31,86 @@ trimR(std::string_view str) -> size_t
 }
 
 auto
-convert(const char* encoding,
-        const std::string_view& str,
-        UConverterToUCallback callback = UCNV_TO_U_CALLBACK_STOP)
-  -> std::optional<std::string>
+convertToUtf8(const char* encoding,
+              const std::string_view& str,
+              const bool ignoreErrors = false) -> std::optional<std::string>
 {
-    // Calculate trimmed size
-    const auto size = trimR({ str.data(), str.size() });
-
-    auto status = U_ZERO_ERROR;
-
-    // Create converters for CP932 and UTF-8
-    auto* fromConverter = ucnv_open(encoding, &status);
-    if (U_FAILURE(status)) {
-        spdlog::error("Failed to open ICU converter for CP932: {}",
-                      u_errorName(status));
-        return "";
+    const auto* targetEncoding = "UTF-8";
+    if (ignoreErrors) {
+        targetEncoding = "UTF-8//IGNORE";
     }
 
-    ucnv_setToUCallBack(
-      fromConverter, callback, nullptr, nullptr, nullptr, &status);
-
-    auto ustr = icu::UnicodeString(str.data(), size, fromConverter, status);
-    ucnv_close(fromConverter);
-
-    if (U_FAILURE(status)) {
+    iconv_t cd = iconv_open(targetEncoding, encoding);
+    if (cd == (iconv_t)-1) {
         return std::nullopt;
     }
 
-    auto result = std::string{};
-    ustr.toUTF8String(result);
+    auto* srcPtr = const_cast<char*>(str.data());
+    auto srcLeft = str.size();
 
-    return result;
+    const auto dstSize = str.size() * 4;
+    std::vector<char> dstBuf(dstSize + 1);
+    auto* dstPtr = dstBuf.data();
+    auto dstLeft = dstSize;
+
+    auto result = iconv(cd, &srcPtr, &srcLeft, &dstPtr, &dstLeft);
+    iconv_close(cd);
+
+    if (result == static_cast<size_t>(-1) && !ignoreErrors) {
+        return std::nullopt;
+    }
+
+    *dstPtr = '\0';
+    const auto result_size = dstSize - dstLeft;
+    const auto size = trimR({ dstBuf.data(), result_size });
+
+    return std::string(dstBuf.data(), size);
 }
 
-auto
-detectEncoding(std::string_view str) -> std::optional<std::string>
+struct ParseState
 {
-    UErrorCode status = U_ZERO_ERROR;
-    auto* detector = ucsdet_open(&status);
-    if (U_FAILURE(status)) {
-        spdlog::error("Failed to open UCS Detector: {}", u_errorName(status));
-        return std::nullopt;
-    }
+    std::function<ParsedBmsChart::RandomRange(ParsedBmsChart::RandomRange)>
+      randomGenerator;
+    bool utf8;
+};
 
-    ucsdet_setText(
-      detector, str.data(), static_cast<int32_t>(str.size()), &status);
-    if (U_FAILURE(status)) {
-        spdlog::error("Failed to set text for UCS Detector: {}",
-                      u_errorName(status));
-        ucsdet_close(detector);
-        return std::nullopt;
+constexpr auto
+decode = [](auto&& str, const ParseState& parseState) -> std::string
+{
+    const auto view = std::string_view{ str.data(), str.size() };
+    if (parseState.utf8) {
+        auto ret = convertToUtf8("UTF-8", view);
+        if (ret.has_value()) {
+            return ret.value();
+        }
+        ret = convertToUtf8("UTF-8", view, true);
+        spdlog::warn("Text tag contains invalid UTF-8 characters: {}",
+                     ret.value_or(std::string{}));
+        return ret.value_or(std::string{});
     }
-
-    const auto* result = ucsdet_detect(detector, &status);
-    if (U_FAILURE(status) || !result) {
-        spdlog::error("Failed to detect encoding: {}", u_errorName(status));
-        ucsdet_close(detector);
-        return std::nullopt;
+    auto ret = convertToUtf8("CP932", view);
+    if (ret.has_value()) {
+        return ret.value();
     }
-
-    const char* encoding = ucsdet_getName(result, &status);
-    if (U_FAILURE(status)) {
-        spdlog::error("Failed to get encoding name: {}", u_errorName(status));
-        ucsdet_close(detector);
-        return std::nullopt;
+    ret = convertToUtf8("CP949", view);
+    if (ret.has_value()) {
+        return ret.value();
     }
+    ret = convertToUtf8("CP932", view, true);
 
-    ucsdet_close(detector);
-    return std::string{ encoding };
-}
+    spdlog::warn("Text tag contains invalid CP932 characters: {}",
+                 ret.value_or(std::string{}));
+    return ret.value_or(std::string{});
+};
+
 } // namespace
 
 struct TextTag
 {
     static constexpr auto value =
-      lexy::callback<std::string>([](auto&& str) -> std::string {
-          const auto size = trimR({ str.data(), str.size() });
-          auto view = std::string_view{ str.data(), size };
-          auto ret = convert("CP932", view);
-          if (ret.has_value()) {
-              return ret.value();
-          }
-          ret = convert("CP949", view);
-          if (ret.has_value()) {
-              return ret.value();
-          }
-          auto encoding = detectEncoding(view);
-          if (encoding.has_value() && encoding.value() != "Shift_JIS") {
-              ret = convert(encoding->c_str(), view);
-              if (ret.has_value()) {
-                  return ret.value();
-              }
-              ret = convert(encoding->c_str(), view, UCNV_TO_U_CALLBACK_ESCAPE);
-              if (ret.has_value()) {
-                  spdlog::warn("Text tag contains invalid characters: {}, detected encoding: {}",
-                               ret.value_or(std::string{}), *encoding);
-                  return ret.value();
-              }
-          }
-          ret = convert("CP932", view, UCNV_TO_U_CALLBACK_ESCAPE);
-
-          spdlog::warn("Text tag contains invalid characters: {}",
-                       ret.value_or(std::string{}));
-          return ret.value_or(std::string{});
-      });
+      lexy::bind(lexy::callback<std::string>(decode),
+                 lexy::values,
+                 lexy::parse_state);
     static constexpr auto rule = capture(until(dsl::unicode::newline).or_eof());
 };
 
@@ -905,11 +878,10 @@ auto
 resolveIfs(
   ParsedBmsChart::RandomRange randomRange,
   std::vector<std::variant<IfData, ParsedBmsChart::Tags>> randomContents,
-  std::function<ParsedBmsChart::RandomRange(ParsedBmsChart::RandomRange)>
-    randomGenerator) -> ParsedBmsChart::Tags
+  const ParseState& parseState) -> ParsedBmsChart::Tags
 {
     auto tags = ParsedBmsChart::Tags{};
-    auto randomNumber = randomGenerator(randomRange);
+    auto randomNumber = parseState.randomGenerator(randomRange);
     for (auto& randomContent : randomContents) {
         if (std::holds_alternative<IfData>(randomContent)) {
             auto& ifData = std::get<IfData>(randomContent);
@@ -948,14 +920,53 @@ struct ReportError
 };
 
 auto
+getEncodingFromBom(std::string_view chart) -> const char*
+{
+    if (chart.size() >= 3 && chart[0] == '\xEF' && chart[1] == '\xBB' &&
+        chart[2] == '\xBF') {
+        chart.remove_prefix(3); // remove BOM
+        return "UTF-8";
+    }
+    if (chart.size() >= 2 && chart[0] == '\xFF' && chart[1] == '\xFE') {
+        chart.remove_prefix(2); // remove UTF-16 LE BOM
+        return "UTF-16LE";
+    }
+    if (chart.size() >= 2 && chart[0] == '\xFE' && chart[1] == '\xFF') {
+        chart.remove_prefix(2); // remove UTF-16 BE BOM
+        return "UTF-16BE";
+    }
+    if (chart.size() >= 1 && chart[0] == '\xEF') {
+        // UTF-8 BOM is optional, so we don't throw an error here
+        return "UTF-8";
+    }
+    if (chart.size() >= 4 && chart[0] == '\x00' && chart[1] == '\x00' &&
+        chart[2] == '\xFE' && chart[3] == '\xFF') {
+        chart.remove_prefix(4); // remove UTF-32 BE BOM
+        return "UTF-32BE";
+    }
+    if (chart.size() >= 4 && chart[0] == '\xFF' && chart[1] == '\xFE' &&
+        chart[2] == '\x00' && chart[3] == '\x00') {
+        chart.remove_prefix(4); // remove UTF-32 LE BOM
+        return "UTF-32LE";
+    }
+    return nullptr;
+}
+auto
 readBmsChart(
-  std::string_view chart,
-  std::function<ParsedBmsChart::RandomRange(ParsedBmsChart::RandomRange)>
+  const std::string_view chart,
+  const std::function<ParsedBmsChart::RandomRange(ParsedBmsChart::RandomRange)>&
     randomGenerator) -> ParsedBmsChart
 {
+
+    const char* encoding = getEncodingFromBom(chart);
+    using namespace std::string_literals;
+    if (encoding != nullptr && encoding != "UTF-8"s) {
+        throw std::runtime_error(
+          fmt::format("Encoding {} is unsupported", encoding));
+    }
     auto result =
       lexy::parse<MainTags>(lexy::string_input<lexy::utf8_char_encoding>(chart),
-                            randomGenerator,
+                            ParseState{ randomGenerator, encoding && encoding == "UTF-8"s },
                             ReportError{});
     return ParsedBmsChart{ std::move(result).value() };
 }

@@ -69,7 +69,7 @@
       "name": "qtbase",
       "default-features": false,
       "features": [
-        "dnslookup","harfbuzz","icu","jpeg","opengl","openssl"
+        "dnslookup","harfbuzz","jpeg","opengl","openssl"
       ]
     },
     {
