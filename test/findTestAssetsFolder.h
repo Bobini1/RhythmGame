@@ -9,7 +9,6 @@
 #include <QGuiApplication>
 #include <QDir>
 #include <filesystem>
-#include <boost/dll/runtime_symbol_info.hpp>
 inline auto
 findTestAssetsFolder() -> std::filesystem::path
 {
