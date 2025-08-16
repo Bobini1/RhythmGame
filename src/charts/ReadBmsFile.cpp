@@ -39,12 +39,12 @@ convert(const char* encoding,
   -> std::optional<std::string>
 {
     // Calculate trimmed size
-    size_t size = trimR({ str.data(), str.size() });
+    const auto size = trimR({ str.data(), str.size() });
 
-    UErrorCode status = U_ZERO_ERROR;
+    auto status = U_ZERO_ERROR;
 
     // Create converters for CP932 and UTF-8
-    UConverter* fromConverter = ucnv_open(encoding, &status);
+    auto* fromConverter = ucnv_open(encoding, &status);
     if (U_FAILURE(status)) {
         spdlog::error("Failed to open ICU converter for CP932: {}",
                       u_errorName(status));
@@ -61,7 +61,7 @@ convert(const char* encoding,
         return std::nullopt;
     }
 
-    std::string result;
+    auto result = std::string{};
     ustr.toUTF8String(result);
 
     return result;
