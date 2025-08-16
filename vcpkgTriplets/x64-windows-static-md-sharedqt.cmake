@@ -6,14 +6,6 @@ if (PORT MATCHES "qt.*")
     set(VCPKG_LIBRARY_LINKAGE dynamic)
 endif ()
 
-if (PORT MATCHES "icu")
-    set(VCPKG_LIBRARY_LINKAGE dynamic)
-endif ()
-
-if (PORT MATCHES "glib")
-    set(VCPKG_LIBRARY_LINKAGE dynamic)
-endif ()
-
 if (PORT MATCHES "ffmpeg")
     set(VCPKG_LIBRARY_LINKAGE dynamic)
 endif ()
