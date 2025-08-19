@@ -20,7 +20,7 @@ Rectangle {
                 text: "⏎"
                 font.bold: true
                 background: Rectangle {
-                    color: "red"
+                    color: "FireBrick"
                 }
                 palette.buttonText: "white"
                 font.pixelSize: 20
