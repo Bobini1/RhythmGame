@@ -41,6 +41,20 @@ Item {
                 sceneStack.pop();
             }
         }
+        Shortcut {
+            enabled: root.enabled
+            sequence: "Return"
+
+            onActivated: {
+                sceneStack.pop();
+            }
+        }
+        Input.onStart1Pressed: () => {
+            sceneStack.pop();
+        }
+        Input.onStart2Pressed: () => {
+            sceneStack.pop();
+        }
         Item {
             id: scaledRoot
 
