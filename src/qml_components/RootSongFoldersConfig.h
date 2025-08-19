@@ -11,6 +11,7 @@
 #include <qfuture.h>
 #include <QAbstractListModel>
 #include <QFutureWatcher>
+#include <deque>
 
 namespace qml_components {
 class RootSongFolder final

@@ -42,10 +42,6 @@
       "version>=": "1.22.2"
     },
     {
-      "name": "cryptopp",
-      "version>=": "8.7.0"
-    },
-    {
       "name": "magic-enum",
       "version>=": "0.9.3"
     },

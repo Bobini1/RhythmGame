@@ -75,7 +75,6 @@ find_package(SndFile REQUIRED)
 
 find_package(SDL2 REQUIRED)
 
-find_package(cryptopp REQUIRED)
 find_package(magic_enum REQUIRED)
 
 if (MSVC)
@@ -245,7 +244,7 @@ target_compile_definitions(RhythmGame_lib PUBLIC
 find_package(Threads REQUIRED)
 
 target_link_libraries(RhythmGame_lib PUBLIC $<IF:$<TARGET_EXISTS:mimalloc-static>,mimalloc-static,mimalloc>)
-target_link_libraries(RhythmGame_lib PUBLIC SDL2::SDL2 Qt6::Quick Qt6::OpenGL Qt6::Concurrent Qt6::Multimedia Qt6::InterfaceFramework Threads::Threads Boost::headers SQLiteCpp spdlog::spdlog foonathan::lexy OpenAL::OpenAL cryptopp::cryptopp magic_enum::magic_enum zstd::libzstd_static SndFile::sndfile llfio::sl LibXml2::LibXml2)
+target_link_libraries(RhythmGame_lib PUBLIC SDL2::SDL2 Qt6::Quick Qt6::OpenGL Qt6::Concurrent Qt6::Multimedia Qt6::InterfaceFramework Threads::Threads Boost::headers SQLiteCpp spdlog::spdlog foonathan::lexy OpenAL::OpenAL magic_enum::magic_enum zstd::libzstd_static SndFile::sndfile llfio::sl LibXml2::LibXml2)
 
 if (WIN32)
     target_link_libraries(RhythmGame_lib PUBLIC llfio::ntkernel-error-category_sl)
