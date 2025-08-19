@@ -3,36 +3,57 @@ import QtQuick.Layouts
 import QtQuick.Controls.Basic
 
 Rectangle {
-    id: screen
+    id: settings
 
     color: "white"
 
     ColumnLayout {
         anchors.fill: parent
 
-        TabBar {
-            id: tabView
-
+        RowLayout {
             Layout.fillWidth: true
-            Layout.preferredHeight: childrenRect.height
+            Layout.preferredHeight: backButton.height
+            spacing: 1
 
-            TabButton {
-                text: qsTr("Player settings")
+            Button {
+                id: backButton
+                text: "⏎"
+                font.bold: true
+                background: Rectangle {
+                    color: "red"
+                }
+                palette.buttonText: "white"
+                font.pixelSize: 20
+                Layout.alignment: Qt.AlignLeft | Qt.AlignTop
+                Layout.preferredWidth: tabButton.height
+                Layout.preferredHeight: tabButton.height
+                onClicked: {
+                    sceneStack.pop();
+                }
             }
-            TabButton {
-                text: qsTr("Song directories")
-            }
-            TabButton {
-                text: qsTr("Tables")
-            }
-            TabButton {
-                text: qsTr("Themes")
-            }
-            TabButton {
-                text: qsTr("General Settings")
-            }
-            TabButton {
-                text: qsTr("Key config")
+            TabBar {
+                id: tabView
+                Layout.fillWidth: true
+
+                TabButton {
+                    id: tabButton
+                    text: qsTr("Player settings")
+                }
+                TabButton {
+                    text: qsTr("Song directories")
+                }
+                TabButton {
+                    text: qsTr("Tables")
+                }
+                TabButton {
+                    text: qsTr("Themes")
+                }
+                TabButton {
+                    text: qsTr("General Settings")
+                }
+                TabButton {
+                    text: qsTr("Key config")
+                }
             }
         }
         StackLayout {
@@ -63,7 +84,7 @@ Rectangle {
         }
     }
     Shortcut {
-        enabled: screen.enabled
+        enabled: settings.enabled
         sequence: "Esc"
 
         onActivated: {
