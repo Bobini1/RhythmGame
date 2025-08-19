@@ -48,7 +48,7 @@ Image {
         }
 
         anchors.bottom: parent.bottom
-        anchors.bottomMargin: 10
+        anchors.bottomMargin: 12
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.horizontalCenterOffset: -270
         number: Math.min(modelData.playLevel || 0, 99)
