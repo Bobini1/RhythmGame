@@ -54,6 +54,14 @@ Image {
         number: Math.min(modelData.playLevel || 0, 99)
         srcBeforeDecimal: root.iniImagesUrl + "parts.png/s_" + getDiffColorInt(modelData.difficulty) + "_"
     }
+    Image {
+        visible: modelData.lnCount > 0
+        source: root.iniImagesUrl + "folders.png/ln"
+        asynchronous: true
+        anchors.horizontalCenter: parent.left
+        anchors.horizontalCenterOffset: 95
+        anchors.verticalCenter: playlevelText.verticalCenter
+    }
     NameLabel {
         anchors.right: parent.right
         anchors.rightMargin: 30
