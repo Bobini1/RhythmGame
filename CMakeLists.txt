@@ -43,8 +43,6 @@ find_package(fmt REQUIRED)
 # <------------ spdlog (logging) --------------->
 
 find_package(spdlog REQUIRED)
-target_compile_definitions(spdlog::spdlog INTERFACE SPDLOG_WCHAR_FILENAMES)
-
 
 # <------------ boost --------------->
 

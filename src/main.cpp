@@ -10,6 +10,7 @@
 #include <QObject>
 #include <QtQuick>
 #include <spdlog/sinks/stdout_color_sinks.h>
+#include <spdlog/sinks/basic_file_sink.h>
 #include "qml_components/Logger.h"
 #include "gameplay_logic/rules/Lr2HitValues.h"
 #include "resource_managers/SongDbScanner.h"
@@ -80,11 +81,9 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
 
     auto logger = support::qtLoggerMt("log", &log, "addLog");
 
-    // combine with console logger
     logger->sinks().push_back(
       std::make_shared<spdlog::sinks::stdout_color_sink_mt>());
 
-    // set global log level to debug
 #ifdef DEBUG
     spdlog::set_level(spdlog::level::debug);
 #else
@@ -94,13 +93,16 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
 
     auto app = input::CustomNotifyApp{ argc, argv };
 
+    auto assetsFolder = resource_managers::findAssetsFolder();
+    auto logFile = assetsFolder / "log.txt";
+    logger->sinks().push_back(
+      std::make_shared<spdlog::sinks::basic_file_sink_mt>(logFile, true));
+
     QGuiApplication::setOrganizationName("Tomasz Kalisiak");
     QGuiApplication::setOrganizationDomain("rhythmgame.eu");
     QGuiApplication::setApplicationName("RhythmGame");
 
     try {
-        auto assetsFolder = resource_managers::findAssetsFolder();
-
         qputenv("QML_XHR_ALLOW_FILE_READ", QByteArray("1"));
 
         auto db = db::SqliteCppDb{ assetsFolder / "song_db.sqlite" };
@@ -280,7 +282,7 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
         qmlRegisterType<qml_components::ScoreQueryResult>(
           "RhythmGameQml", 1, 0, "scoreQueryResult");
         qmlRegisterType<qml_components::TableQueryResult>(
-        "RhythmGameQml", 1, 0, "tableQueryResult");
+          "RhythmGameQml", 1, 0, "tableQueryResult");
         qmlRegisterType<resource_managers::TableInfo>(
           "RhythmGameQml", 1, 0, "tableInfo");
         qmlRegisterType<gameplay_logic::ChartRunner>(

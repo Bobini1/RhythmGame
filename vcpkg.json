@@ -34,6 +34,14 @@
       "version>=": "1.11.0"
     },
     {
+      "name": "spdlog",
+      "version>=": "1.11.0",
+      "features": [
+        "wchar"
+      ],
+      "platform": "windows"
+    },
+    {
       "name": "foonathan-lexy",
       "version>=": "2022.12.1"
     },
