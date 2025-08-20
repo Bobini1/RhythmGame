@@ -637,32 +637,32 @@
 <context>
     <name>Settings</name>
     <message>
-        <location filename="../scripts/settings/Settings.qml" line="20"/>
+        <location filename="../scripts/settings/Settings.qml" line="40"/>
         <source>Player settings</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/Settings.qml" line="23"/>
+        <location filename="../scripts/settings/Settings.qml" line="43"/>
         <source>Song directories</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/Settings.qml" line="26"/>
+        <location filename="../scripts/settings/Settings.qml" line="46"/>
         <source>Tables</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/Settings.qml" line="29"/>
+        <location filename="../scripts/settings/Settings.qml" line="49"/>
         <source>Themes</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/Settings.qml" line="32"/>
+        <location filename="../scripts/settings/Settings.qml" line="52"/>
         <source>General Settings</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/Settings.qml" line="35"/>
+        <location filename="../scripts/settings/Settings.qml" line="55"/>
         <source>Key config</source>
         <translation type="unfinished"></translation>
     </message>
