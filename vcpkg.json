@@ -73,7 +73,11 @@
       "name": "qtbase",
       "default-features": false,
       "features": [
-        "dnslookup","harfbuzz","jpeg","opengl","openssl"
+        "dnslookup",
+        "harfbuzz",
+        "jpeg",
+        "opengl",
+        "openssl"
       ]
     },
     {
@@ -107,9 +111,9 @@
     {
       "name": "mimalloc",
       "version>=": "2.1.7",
-        "features": [
-          "override"
-        ]
+      "features": [
+        "override"
+      ]
     },
     {
       "name": "libxml2",
