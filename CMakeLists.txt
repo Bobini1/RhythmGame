@@ -267,10 +267,18 @@ qt_import_qml_plugins(RhythmGame_qmlplugin)
 
 if (WIN32)
     enable_language("RC")
-    set(WIN32_RESOURCES ${CMAKE_CURRENT_SOURCE_DIR}/staticAssets/RhythmGame.rc)
+    qt_add_executable(RhythmGame_exe WIN32
+            src/main.cpp  ${CMAKE_CURRENT_SOURCE_DIR}/staticAssets/RhythmGame.rc
+    )
+    # use main() as entry point
+    set_target_properties(RhythmGame_exe PROPERTIES
+            LINK_FLAGS "/ENTRY:mainCRTStartup"
+    )
+else ()
+    qt_add_executable(RhythmGame_exe
+            src/main.cpp
+    )
 endif ()
-
-qt_add_executable(RhythmGame_exe src/main.cpp ${WIN32_RESOURCES})
 add_executable(RhythmGame::exe ALIAS RhythmGame_exe)
 
 set_target_properties(
@@ -284,7 +292,6 @@ qt_import_qml_plugins(RhythmGame_exe)
 
 
 file(GLOB_RECURSE QML_FILES "${CMAKE_SOURCE_DIR}/assets/themes/Default/**/*.qml")
-# use QM_OUTPUT_DIRECTORY once we switch to Qt 6.9
 qt_add_translations(
         RhythmGame_exe
         TS_FILE_BASE
@@ -297,17 +304,10 @@ qt_add_translations(
         Default_translations
         QM_FILES_OUTPUT_VARIABLE
         LRELEASE_QM_FILES
+        QM_OUTPUT_DIRECTORY assets/themes/Default/translations
 )
-add_custom_target(ReleaseAndCopy
-        COMMAND ${CMAKE_COMMAND} -E copy
-        ${LRELEASE_QM_FILES}
-        ${CMAKE_SOURCE_DIR}/assets/themes/Default/translations
-        COMMENT "Copying qm files to assets/themes/Default/translations"
-        VERBATIM
-)
-add_dependencies(ReleaseAndCopy release_translations)
 add_custom_command(TARGET RhythmGame_exe POST_BUILD
-        COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target ReleaseAndCopy
+        COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target release_translations
         COMMENT "Compiling translation files"
         VERBATIM
 )
