@@ -281,6 +281,15 @@ else ()
 endif ()
 add_executable(RhythmGame::exe ALIAS RhythmGame_exe)
 
+qt_add_resources(
+        RhythmGame_exe
+        "ATTRIBUTIONS.md"
+        BASE
+        "${CMAKE_SOURCE_DIR}"
+        FILES
+        ${CMAKE_SOURCE_DIR}/ATTRIBUTIONS.md
+)
+
 set_target_properties(
         RhythmGame_exe PROPERTIES
         OUTPUT_NAME RhythmGame

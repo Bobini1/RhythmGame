@@ -11,6 +11,37 @@ Image {
 
     source: imagesUrl + "RGBArtboard_2.svg"
 
+    Dialog {
+        id: dlg
+        modal: true
+        standardButtons: Dialog.Ok
+        width: 800
+        height: 600
+
+        property string mdText: {
+            const xhr = new XMLHttpRequest();
+            xhr.open("GET", "qrc:/ATTRIBUTIONS.md", false);
+            xhr.send(null);
+            return xhr.responseText
+        }
+
+        contentItem: ScrollView {
+            anchors.fill: parent
+            clip: true
+
+            Text {
+                id: md
+                text: dlg.mdText
+                textFormat: Text.MarkdownText
+                wrapMode: Text.Wrap
+                padding: 12
+                width: parent.width
+                onLinkActivated: Qt.openUrlExternally(link)
+            }
+        }
+    }
+
+
     Item {
         id: scaledRoot
         anchors.centerIn: parent
@@ -34,7 +65,7 @@ Image {
         Column {
             id: column
             anchors.top: parent.top
-            anchors.topMargin: parent.height * 0.55
+            anchors.topMargin: parent.height * 0.50
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.horizontalCenterOffset: 280
 
@@ -60,6 +91,16 @@ Image {
                 font.pixelSize: 30
                 onClicked: {
                     sceneStack.pushItem(globalRoot.settingsComponent);
+                }
+            }
+
+            Button {
+                width: parent.width
+                height: 100
+                text: qsTr("Attributions")
+                font.pixelSize: 30
+                onClicked: {
+                    dlg.open();
                 }
             }
 
