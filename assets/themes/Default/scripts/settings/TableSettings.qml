@@ -187,8 +187,7 @@ Item {
         }
     }
 
-    ScrollView {
-        id: rootScrollView
+    Flickable {
         anchors {
             top: parent.top
             bottom: parent.bottom
@@ -197,25 +196,26 @@ Item {
         width: Math.min(1200, parent.width)
         contentWidth: Math.max(600, width)
         contentHeight: Math.max(rootFrame.implicitHeight, parent.height)
-
+        flickableDirection: Flickable.HorizontalFlick
+        ScrollBar.horizontal: ScrollBar { }
         Frame {
             id: rootFrame
             anchors.fill: parent
 
             ColumnLayout {
                 anchors.fill: parent
-                ScrollView {
+                ListView {
+                    id: songList
                     Layout.fillHeight: true
                     Layout.fillWidth: true
 
-                    ListView {
-                        id: songList
+                    flickableDirection: Flickable.VerticalFlick
+                    ScrollBar.vertical: ScrollBar { }
 
-                        clip: true
-                        spacing: 5
-                        model: Rg.tables
-                        delegate: dragDelegate
-                    }
+                    clip: true
+                    spacing: 5
+                    model: Rg.tables
+                    delegate: dragDelegate
                 }
                 RowLayout {
                     Layout.fillWidth: true
