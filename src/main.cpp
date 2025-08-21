@@ -5,7 +5,6 @@
 #include "qml_components/ChartLoader.h"
 #ifdef _WIN32
 #include <mimalloc-new-delete.h>
-#include <windows.h>
 #endif
 #include <QGuiApplication>
 #include <QObject>
@@ -86,9 +85,6 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
       std::make_shared<spdlog::sinks::stdout_color_sink_mt>());
 
 #ifdef DEBUG
-#ifdef _WIN32
-    AllocConsole();
-#endif
     spdlog::set_level(spdlog::level::debug);
 #else
     spdlog::set_level(spdlog::level::info);

@@ -267,8 +267,12 @@ qt_import_qml_plugins(RhythmGame_qmlplugin)
 
 if (WIN32)
     enable_language("RC")
-    qt_add_executable(RhythmGame_exe WIN32
+    add_executable(RhythmGame_exe
             src/main.cpp  ${CMAKE_CURRENT_SOURCE_DIR}/staticAssets/RhythmGame.rc
+    )
+    set_target_properties(RhythmGame_exe PROPERTIES
+            WIN32_EXECUTABLE $<IF:$<CONFIG:Debug,RelWithDebInfo>,FALSE,TRUE>
+            OUTPUT_NAME RhythmGame
     )
     # use main() as entry point
     set_target_properties(RhythmGame_exe PROPERTIES
