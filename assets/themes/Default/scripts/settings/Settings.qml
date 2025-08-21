@@ -64,22 +64,16 @@ Rectangle {
             currentIndex: tabView.currentIndex
 
             PlayerSettings {
-                Layout.preferredHeight: parent.height - tabView.height
             }
             SongFolderSettings {
-                Layout.preferredHeight: parent.height - tabView.height
             }
             TableSettings {
-                Layout.preferredHeight: parent.height - tabView.height
             }
             ThemeSettings {
-                Layout.preferredHeight: parent.height - tabView.height
             }
             GeneralSettings {
-                Layout.preferredHeight: parent.height - tabView.height
             }
             KeySettings {
-                Layout.preferredHeight: parent.height - tabView.height
             }
         }
     }
