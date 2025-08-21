@@ -16,17 +16,17 @@ https://github.com/Shimi9999/GenericTheme
 
 ##### Fonts
 - 源真ゴシック (http://jikasei.me/font/genshin/)  
-  Licensed under SIL Open Font License 1.1 (http://scripts.sil.org/OFL)  
-  © 2015 自家製フォント工房, © 2014, 2015 Adobe Systems Incorporated, © 2015 M+  
-  FONTS PROJECT
+  * Licensed under SIL Open Font License 1.1 (http://scripts.sil.org/OFL)  
+  * © 2015 自家製フォント工房, © 2014, 2015 Adobe Systems Incorporated, © 2015 M+  
+  * FONTS PROJECT
 - Squada One (https://fonts.google.com/specimen/Squada+One)  
-  Licensed under SIL Open Font License 1.1 (http://scripts.sil.org/OFL)
+  * Licensed under SIL Open Font License 1.1 (http://scripts.sil.org/OFL)
 - x16y32pxGridGazer (https://hicchicc.github.io/00ff/)  
-  © 2018-2023 hicc 患者長ひっく
+  * © 2018-2023 hicc 患者長ひっく
 - Kenney Fonts (https://kenney.nl/assets/kenney-fonts)  
-  Licensed under CC0 1.0 Universal (https://creativecommons.org/publicdomain/zero/1.0/)
+  * Licensed under CC0 1.0 Universal (https://creativecommons.org/publicdomain/zero/1.0/)
 - Newtown (https://fontmeme.com/jfont/newtown-font/)  
-  Public Domain
+  * Public Domain
 
 ##### Images
 - Explosion - 8556 (https://pixabay.com/videos/id-8556/)
