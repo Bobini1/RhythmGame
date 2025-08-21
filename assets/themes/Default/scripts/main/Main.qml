@@ -11,46 +11,68 @@ Image {
 
     source: imagesUrl + "RGBArtboard_2.svg"
 
-    ColumnLayout {
-        id: column
-        anchors.top: parent.top
-        anchors.topMargin: parent.height * 0.55
-        anchors.horizontalCenter: parent.horizontalCenter
-        anchors.horizontalCenterOffset: parent.width * 0.11
+    Item {
+        id: scaledRoot
+        anchors.centerIn: parent
 
-        width: parent.width * 0.4
+        width: 1920
+        height: 1080
+        scale: Math.min(screen.width / width, screen.height / height)
+        transformOrigin: Item.Center
 
-        Button {
-            Layout.preferredWidth: parent.width
-            Layout.preferredHeight: 100
-            font.pixelSize: 30
-
-            text: qsTr("Song Selection")
-            onClicked: {
-                sceneStack.pushItem(globalRoot.songWheelComponent);
-            }
+        Text {
+            id: titleText
+            anchors.top: parent.top
+            anchors.topMargin: 160
+            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.horizontalCenterOffset: 280
+            font.family: "Serif"
+            font.pixelSize: 200
+            text: "Rhythm Game"
         }
 
-        Button {
-            Layout.preferredWidth: parent.width
-            Layout.preferredHeight: 100
-            text: qsTr("Settings")
-            font.pixelSize: 30
-            onClicked: {
-                sceneStack.pushItem(globalRoot.settingsComponent);
-            }
-        }
+        Column {
+            id: column
+            anchors.top: parent.top
+            anchors.topMargin: parent.height * 0.55
+            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.horizontalCenterOffset: 280
 
-        Button {
-            Layout.preferredWidth: parent.width
-            Layout.preferredHeight: 100
-            text: qsTr("Quit")
-            font.pixelSize: 30
-            onClicked: {
-                Qt.quit();
-            }
-        }
+            width: parent.width * 0.4
 
+            spacing: 5
+
+            Button {
+                width: parent.width
+                height: 100
+                font.pixelSize: 30
+
+                text: qsTr("Song Selection")
+                onClicked: {
+                    sceneStack.pushItem(globalRoot.songWheelComponent);
+                }
+            }
+
+            Button {
+                width: parent.width
+                height: 100
+                text: qsTr("Settings")
+                font.pixelSize: 30
+                onClicked: {
+                    sceneStack.pushItem(globalRoot.settingsComponent);
+                }
+            }
+
+            Button {
+                width: parent.width
+                height: 100
+                text: qsTr("Quit")
+                font.pixelSize: 30
+                onClicked: {
+                    Qt.quit();
+                }
+            }
+
+        }
     }
-
 }
