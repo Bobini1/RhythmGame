@@ -83,8 +83,6 @@ Rectangle {
 
         onActivated: {
             sceneStack.pop();
-            if (sceneStack.depth === 1)
-                sceneStack.replace(0, globalRoot.mainComponent);
         }
     }
 }
