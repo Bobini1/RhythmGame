@@ -317,7 +317,7 @@ qt_add_translations(
         Default_translations
         QM_FILES_OUTPUT_VARIABLE
         LRELEASE_QM_FILES
-        QM_OUTPUT_DIRECTORY assets/themes/Default/translations
+        QM_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/assets/themes/Default/translations
 )
 add_custom_command(TARGET RhythmGame_exe POST_BUILD
         COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target release_translations
