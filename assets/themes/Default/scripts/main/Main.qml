@@ -26,7 +26,6 @@ Image {
         }
 
         contentItem: ScrollView {
-            anchors.fill: parent
             clip: true
 
             Text {
@@ -65,7 +64,7 @@ Image {
         Column {
             id: column
             anchors.top: parent.top
-            anchors.topMargin: parent.height * 0.50
+            anchors.topMargin: parent.height * 0.5
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.horizontalCenterOffset: 280
 
