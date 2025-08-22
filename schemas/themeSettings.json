@@ -75,8 +75,7 @@
             "hidden"
           ]
         }
-      },
-      "additionalProperties": true
+      }
     },
     "rangeItem": {
       "allOf": [
@@ -251,8 +250,7 @@
             ]
           }
         }
-      },
-      "additionalProperties": false
+      }
     }
   }
 }
