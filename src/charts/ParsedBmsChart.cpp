@@ -133,9 +133,6 @@ charts::ParsedBmsChart::mergeTags(Tags& first, Tags second) -> void
             firstMeasure.bgmNotes.push_back(std::move(definition));
         }
         firstMeasure.bpmChanges = std::move(measure.bpmChanges);
-        for (auto& definition : measure.exBpmChanges) {
-            firstMeasure.exBpmChanges.push_back(std::move(definition));
-        }
         firstMeasure.exBpmChanges = std::move(measure.exBpmChanges);
         firstMeasure.stops = std::move(measure.stops);
         if (measure.meter.has_value()) {
