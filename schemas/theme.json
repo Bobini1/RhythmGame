@@ -3,7 +3,6 @@
   "title": "Theme Definition",
   "type": "object",
   "required": ["scripts"],
-  "additionalProperties": false,
   "properties": {
     "scripts": {
       "type": "object",
