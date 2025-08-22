@@ -6,9 +6,6 @@
     "items"
   ],
   "properties": {
-    "$schema": {
-      "type": "string"
-    },
     "items": {
       "type": "array",
       "items": {

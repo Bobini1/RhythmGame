@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Theme Definition",
+  "type": "object",
+  "required": ["scripts"],
+  "additionalProperties": false,
+  "properties": {
+    "scripts": {
+      "type": "object",
+      "additionalProperties": { "type": "string" }
+    },
+    "settings": {
+      "type": "object",
+      "additionalProperties": { "type": "string" }
+    },
+    "translations": {
+      "type": "object",
+      "additionalProperties": { "type": "string" }
+    }
+  }
+}
