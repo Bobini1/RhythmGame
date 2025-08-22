@@ -1,5 +1,5 @@
 {
-  "$schema": "https://github.com/Bobini1/RhythmGame/blob/master/schemas/theme.json",
+  "$schema": "https://raw.githubusercontent.com/Bobini1/RhythmGame/blob/master/schemas/theme.json",
   "scripts": {
     "k7": "scripts/gameplay/Gameplay.qml",
     "k7battle": "scripts/gameplay/Gameplay.qml",
