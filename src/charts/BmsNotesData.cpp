@@ -8,7 +8,6 @@
 #include "sounds/OpenAlSoundBuffer.h"
 
 #include <ranges>
-#include <span>
 #include <spdlog/spdlog.h>
 
 using namespace std::chrono_literals;
@@ -538,7 +537,7 @@ calculateOffsetsForBga(
 
 void
 removeInvalidNotes(
-  std::array<std::vector<BmsNotesData::Note>, BmsNotesData::columnNumber> notes)
+  std::array<std::vector<BmsNotesData::Note>, BmsNotesData::columnNumber>& notes)
 {
     for (auto columnIndex = 0; columnIndex < notes.size(); columnIndex++) {
         auto& column = notes.at(columnIndex);
@@ -597,10 +596,14 @@ BmsNotesData::generateMeasures(
     auto lastInsertedRdmNoteP2 =
       std::array<std::optional<size_t>,
                  ParsedBmsChart::Measure::columnNumber>{};
+    auto visibleNotes = std::array<std::vector<Note>, columnNumber>{};
+    auto invisibleNotes = std::array<std::vector<Note>, columnNumber>{};
+    auto lnNotes = std::array<std::vector<Note>, columnNumber>{};
+    auto landmineNotes = std::array<std::vector<Note>, columnNumber>{};
     for (const auto& [measureIndex, measure] : measures) {
         auto currentMeasure = measureIndex;
         if (lnType == LnType::MGQ && currentMeasure > lastMeasure + 1) {
-            adjustMgqLnEnds(lastBpm, measureStart, insideLnP1, insideLnP2);
+            adjustMgqLnEnds(lastBpm, measureStart, insideLnP1, insideLnP2, lnNotes);
         }
         fillEmptyMeasures(lastMeasure, currentMeasure, measureStart, lastBpm);
         auto bpmChangesInMeasure =
@@ -656,28 +659,28 @@ BmsNotesData::generateMeasures(
         for (auto i = 0; i < columnMapping.size(); i++) {
             calculateOffsetsForColumn(
               measure.p1VisibleNotes.at(columnMapping.at(i)),
-              notes.at(i),
+              visibleNotes.at(i),
               bpmChangesInMeasure,
               meter,
               NoteType::Normal,
               lnObj);
             calculateOffsetsForColumn(
               measure.p1InvisibleNotes.at(columnMapping.at(i)),
-              notes.at(i),
+              invisibleNotes.at(i),
               bpmChangesInMeasure,
               meter,
               NoteType::Invisible,
               std::nullopt);
             calculateOffsetsForColumn(
               measure.p2VisibleNotes.at(columnMapping.at(i)),
-              notes.at(i + columnMapping.size()),
+              visibleNotes.at(i + columnMapping.size()),
               bpmChangesInMeasure,
               meter,
               NoteType::Normal,
               lnObj);
             calculateOffsetsForColumn(
               measure.p2InvisibleNotes.at(columnMapping.at(i)),
-              notes.at(i + columnMapping.size()),
+              invisibleNotes.at(i + columnMapping.size()),
               bpmChangesInMeasure,
               meter,
               NoteType::Invisible,
@@ -685,14 +688,14 @@ BmsNotesData::generateMeasures(
             if (lnType == LnType::RDM) {
                 calculateOffsetsForLnRdm(
                   measure.p1LongNotes.at(columnMapping.at(i)),
-                  notes.at(i),
+                  lnNotes.at(i),
                   bpmChangesInMeasure,
                   meter,
                   insideLnP1.at(columnMapping.at(i)),
                   lastInsertedRdmNoteP1.at(columnMapping.at(i)));
                 calculateOffsetsForLnRdm(
                   measure.p2LongNotes.at(columnMapping.at(i)),
-                  notes.at(i + columnMapping.size()),
+                  lnNotes.at(i + columnMapping.size()),
                   bpmChangesInMeasure,
                   meter,
                   insideLnP2.at(columnMapping.at(i)),
@@ -700,25 +703,25 @@ BmsNotesData::generateMeasures(
             } else if (lnType == LnType::MGQ) {
                 calculateOffsetsForLnMgq(
                   measure.p1LongNotes.at(columnMapping.at(i)),
-                  notes.at(i),
+                  lnNotes.at(i),
                   bpmChangesInMeasure,
                   meter,
                   insideLnP1.at(columnMapping.at(i)));
                 calculateOffsetsForLnMgq(
                   measure.p2LongNotes.at(columnMapping.at(i)),
-                  notes.at(i + columnMapping.size()),
+                  lnNotes.at(i + columnMapping.size()),
                   bpmChangesInMeasure,
                   meter,
                   insideLnP2.at(columnMapping.at(i)));
             }
             calculateOffsetsForLandmine(
               measure.p1Landmines.at(columnMapping.at(i)),
-              notes.at(i),
+              landmineNotes.at(i),
               bpmChangesInMeasure,
               meter);
             calculateOffsetsForLandmine(
               measure.p2Landmines.at(columnMapping.at(i)),
-              notes.at(i + columnMapping.size()),
+              landmineNotes.at(i + columnMapping.size()),
               bpmChangesInMeasure,
               meter);
         }
@@ -743,7 +746,19 @@ BmsNotesData::generateMeasures(
     if (lnType == LnType::RDM) {
         adjustRdmLnEnds(lastInsertedRdmNoteP1, lastInsertedRdmNoteP2);
     } else {
-        adjustMgqLnEnds(lastBpm, measureStart, insideLnP1, insideLnP2);
+        adjustMgqLnEnds(lastBpm, measureStart, insideLnP1, insideLnP2, lnNotes);
+    }
+    notes = invisibleNotes;
+    for (auto i = 0; i < visibleNotes.size(); i++) {
+        for (const auto& note : visibleNotes.at(i)) {
+            notes.at(i).push_back(note);
+        }
+        for (const auto& note : lnNotes.at(i)) {
+            notes.at(i).push_back(note);
+        }
+        for (const auto& note : landmineNotes.at(i)) {
+            notes.at(i).push_back(note);
+        }
     }
     for (auto& column : notes) {
         std::ranges::sort(column, [](const auto& a, const auto& b) {
@@ -760,18 +775,20 @@ BmsNotesData::adjustMgqLnEnds(
   double lastBpm,
   Time measureStart,
   std::array<bool, ParsedBmsChart::Measure::columnNumber>& insideLnP1,
-  std::array<bool, ParsedBmsChart::Measure::columnNumber>& insideLnP2)
+  std::array<bool, ParsedBmsChart::Measure::columnNumber>& insideLnP2,
+  std::span<std::vector<Note>> target)
+
 {
     auto bpmChangesInMeasureTemp =
       std::map<std::pair<double, BpmChangeType>, std::pair<double, Time>>{
           { { 0.0, BpmChangeType::Normal }, { lastBpm, measureStart } }
       };
     for (auto i = 0; i < columnMapping.size(); i++) {
-        addLnEndsMgq(this->notes.at(i),
+        addLnEndsMgq(target[i],
                      bpmChangesInMeasureTemp,
                      1,
                      insideLnP1.at(columnMapping.at(i)));
-        addLnEndsMgq(this->notes.at(i + columnMapping.size()),
+        addLnEndsMgq(target[i + columnMapping.size()],
                      bpmChangesInMeasureTemp,
                      1,
                      insideLnP2.at(columnMapping.at(i)));

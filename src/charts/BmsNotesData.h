@@ -10,6 +10,8 @@
 #include "Snap.h"
 #include "ParsedBmsChart.h"
 
+#include <span>
+
 namespace charts {
 struct BmsNotesData
 {
@@ -36,10 +38,10 @@ struct BmsNotesData
     enum class NoteType
     {
         LongNoteBegin,
-        LongNoteEnd,
         Normal,
         Landmine,
-        Invisible
+        Invisible,
+        LongNoteEnd
     };
 
     struct Note
@@ -97,7 +99,8 @@ struct BmsNotesData
       std::array<bool, ParsedBmsChart::Measure::columnNumber>&
         insideLnP1,
       std::array<bool, ParsedBmsChart::Measure::columnNumber>&
-        insideLnP2);
+        insideLnP2,
+        std::span<std::vector<Note>> target);
 };
 } // namespace charts
 #endif // RHYTHMGAME_BMSNOTESDATA_H
