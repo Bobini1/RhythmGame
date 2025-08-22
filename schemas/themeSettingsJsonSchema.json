@@ -1,9 +1,42 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Theme Settings",
-  "type": "array",
-  "items": {
-    "$ref": "#/$defs/group"
+  "type": "object",
+  "required": [
+    "items"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "anyOf": [
+          {
+            "$ref": "#/$defs/group"
+          },
+          {
+            "$ref": "#/$defs/rangeItem"
+          },
+          {
+            "$ref": "#/$defs/booleanItem"
+          },
+          {
+            "$ref": "#/$defs/colorItem"
+          },
+          {
+            "$ref": "#/$defs/fileItem"
+          },
+          {
+            "$ref": "#/$defs/stringItem"
+          },
+          {
+            "$ref": "#/$defs/hiddenItem"
+          }
+        ]
+      }
+    }
   },
   "$defs": {
     "i18nString": {
