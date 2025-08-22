@@ -2,73 +2,37 @@
   "name": "rhythmgame",
   "version-semver": "0.1.0",
   "dependencies": [
-    {
-      "name": "fmt",
-      "version>=": "10.1.0"
-    },
-    {
-      "name": "sqlitecpp",
-      "version>=": "3.3.1"
-    },
+    "fmt",
+    "sqlitecpp",
     {
       "name": "sqlite3",
-      "version>=": "3.46.0#2",
       "features": [
         "fts5"
       ]
     },
-    {
-      "name": "boost-pfr",
-      "version>=": "1.85.0"
-    },
-    {
-      "name": "boost-icl",
-      "version>=": "1.85.0"
-    },
-    {
-      "name": "boost-headers",
-      "version>=": "1.85.0"
-    },
+    "boost-pfr",
+    "boost-icl",
+    "boost-headers",
+    "spdlog",
     {
       "name": "spdlog",
-      "version>=": "1.11.0"
-    },
-    {
-      "name": "spdlog",
-      "version>=": "1.11.0",
       "features": [
         "wchar"
       ],
       "platform": "windows"
     },
-    {
-      "name": "foonathan-lexy",
-      "version>=": "2022.12.1"
-    },
-    {
-      "name": "openal-soft",
-      "version>=": "1.22.2"
-    },
-    {
-      "name": "magic-enum",
-      "version>=": "0.9.3"
-    },
-    {
-      "name": "zstd",
-      "version>=": "1.5.6"
-    },
+    "foonathan-lexy",
+    "openal-soft",
+    "magic-enum",
+    "zstd",
     {
       "name": "libsndfile",
-      "version>=": "1.2.2",
       "features": [
         "external-libs",
         "mpeg"
       ]
     },
-    {
-      "name": "sdl2",
-      "version>=": "2.28.5"
-    },
+    "sdl2",
     {
       "name": "qtbase",
       "default-features": false,
@@ -80,29 +44,13 @@
         "openssl"
       ]
     },
-    {
-      "name": "qtdeclarative",
-      "version>=": "6.8.1"
-    },
-    {
-      "name": "qtshadertools",
-      "version>=": "6.8.1"
-    },
-    {
-      "name": "qtsvg",
-      "version>=": "6.8.1"
-    },
-    {
-      "name": "qtinterfaceframework",
-      "version>=": "6.8.1"
-    },
-    {
-      "name": "qttranslations",
-      "version>=": "6.8.1"
-    },
+    "qtdeclarative",
+    "qtshadertools",
+    "qtsvg",
+    "qtinterfaceframework",
+    "qttranslations",
     {
       "name": "qttools",
-      "version>=": "6.8.1",
       "features": [
         "linguist",
         "qml"
@@ -110,18 +58,13 @@
     },
     {
       "name": "mimalloc",
-      "version>=": "2.1.7",
       "features": [
         "override"
       ]
     },
-    {
-      "name": "libxml2",
-      "version>=": "2.13.5"
-    },
+    "libxml2",
     {
       "name": "qtmultimedia",
-      "version>=": "6.8.1",
       "default-features": false,
       "features": [
         "qml",
@@ -130,13 +73,9 @@
     },
     {
       "name": "qtwayland",
-      "version>=": "6.8.1",
       "platform": "linux"
     },
-    {
-      "name": "llfio",
-      "version>=": "2025-01-13"
-    }
+    "llfio"
   ],
   "default-features": [],
   "features": {
