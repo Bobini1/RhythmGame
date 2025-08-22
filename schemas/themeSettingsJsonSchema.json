@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "K7 Theme Settings",
+  "title": "Theme Settings",
   "type": "array",
   "items": {
     "$ref": "#/$defs/group"
