@@ -511,8 +511,10 @@ struct MeterTag
         auto start = (dsl::p<Measure> + LEXY_LIT("02"));
         return peek(start) >> start >> dsl::colon >> dsl::p<FloatingPoint>;
     }();
-    static constexpr auto value = lexy::callback<Meter>(
-      [](int64_t measure, double num) { return Meter{ { measure, num } }; });
+    static constexpr auto value =
+      lexy::callback<Meter>([](int64_t measure, double num) {
+          return Meter{ { measure, num } };
+      });
 };
 
 struct TagsSink
