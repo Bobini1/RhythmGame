@@ -5,7 +5,7 @@
 #ifndef RHYTHMGAME_PREVIEWFILEPATHFETCHER_H
 #define RHYTHMGAME_PREVIEWFILEPATHFETCHER_H
 
-#include <QObject>
+#include <QVariantHash>
 #include "db/SqliteCppDb.h"
 namespace qml_components {
 
@@ -21,7 +21,7 @@ class PreviewFilePathFetcher : public QObject
   public:
     explicit PreviewFilePathFetcher(db::SqliteCppDb* db,
                                     QObject* parent = nullptr);
-    Q_INVOKABLE QString getPreviewFilePath(const QString& directory);
+    Q_INVOKABLE QVariantHash getPreviewFilePaths(QList<QString> directories);
 };
 
 } // namespace qml_components

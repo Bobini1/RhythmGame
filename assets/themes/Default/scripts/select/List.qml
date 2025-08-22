@@ -40,8 +40,18 @@ PathView {
                 }
             });
         }
+        let dirs = [];
+        for (let item of folderContents) {
+            if (item instanceof ChartData) {
+                dirs.push(item.chartDirectory);
+            }
+        }
+        previewFiles = Rg.previewFilePathFetcher.getPreviewFilePaths(dirs);
     }
     property var scores: {
+        return {};
+    }
+    property var previewFiles: {
         return {};
     }
     property var folderClearStats: []

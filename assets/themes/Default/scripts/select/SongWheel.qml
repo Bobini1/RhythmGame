@@ -289,7 +289,7 @@ FocusScope {
 
                 loops: MediaPlayer.Infinite
                 source: {
-                    let base = songList.current instanceof ChartData ? Rg.previewFilePathFetcher.getPreviewFilePath(songList.current.chartDirectory) : ""
+                    let base = songList.current instanceof ChartData ? songList.previewFiles[songList.current.chartDirectory] || "" : "";
                     if (base === "") {
                         return base;
                     }
