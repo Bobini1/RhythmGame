@@ -16,6 +16,7 @@ Item {
     required property var notes
     required property real heightMultiplier
     required property real noteHeight
+    required property bool hideLnEnds
 
     onPositionChanged: {
         let top = column.height / column.heightMultiplier;
@@ -75,6 +76,9 @@ Item {
                             case note.Type.LongNoteBegin:
                                 return column.lnBegin;
                             case note.Type.LongNoteEnd:
+                                if (column.hideLnEnds) {
+                                    return "";
+                                }
                                 return column.lnEnd;
                             case note.Type.Landmine:
                                 return column.mine;

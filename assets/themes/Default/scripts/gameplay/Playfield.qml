@@ -23,6 +23,7 @@ Item {
     required property string noteImage
     required property string mineImage
     required property real position
+    required property bool hideLnEnds
 
     width: notesRow.width
 
@@ -62,6 +63,7 @@ Item {
                 columnState: playfield.columnStates[index]
                 noteImage: playfield.noteImage
                 mineImage: playfield.mineImage
+                hideLnEnds: playfield.hideLnEnds
                 width: playfield.columnSizes[playfield.columns[index]]
                 position: playfield.position
             }

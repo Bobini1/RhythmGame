@@ -41,6 +41,11 @@ GameplayPopup {
             text: qsTr("Z-index")
             to: 10
         }
+        BooleanOption {
+            description: qsTr("Hide LN Ends")
+            src: popup.themeVars
+            prop: "hideLnEnds"
+        }
         NumberWithSlider {
             from: -1
             src: popup.themeVars
