@@ -32,11 +32,24 @@
           "pl": "Pionowy wskaźnik"
         },
         "description": {
-          "en": "Whether the life gauge is vertical (fills downwards).",
-          "pl": "Czy wskaźnik życia jest pionowy (wypełnia się w dół)."
+          "en": "Whether the life gauge is vertical (fills upwards).",
+          "pl": "Pionowy wskaźnić życia (wypełnia się w górę)."
         },
         "type": "boolean",
         "default": false
+      },
+      {
+        "id": "hideLnEnds",
+        "name": {
+          "en": "Hide LN Ends",
+          "pl": "Ukryj końcówki długich notek"
+        },
+        "description": {
+          "en": "Don't display the note texture at the end of LNs.",
+          "pl": "Nie wyświetlaj tekstury notki na końcu długich notek."
+        },
+        "type": "boolean",
+        "default": true
       },
       {
         "id": "judgeLineThickness",

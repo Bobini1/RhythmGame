@@ -32,8 +32,8 @@
           "pl": "Pionowy wskaźnik"
         },
         "description": {
-          "en": "Whether the life gauge is vertical (fills downwards).",
-          "pl": "Czy wskaźnik życia jest pionowy (wypełnia się w dół)."
+          "en": "Whether the life gauge is vertical (fills upwards).",
+          "pl": "Pionowy wskaźnić życia (wypełnia się w górę)."
         },
         "type": "boolean",
         "default": false
@@ -45,11 +45,24 @@
           "pl": "Scratch po prawej stronie"
         },
         "description": {
-          "en": "Whether the scratch lane is on the right side of the play area.",
-          "pl": "Czy linia scratch jest po prawej stronie obszaru gry."
+          "en": "Put the scratch lane is on the right side of the play area.",
+          "pl": "Umieść linię ze scratchem po prawej stronie obszaru gry."
         },
         "type": "boolean",
         "default": false
+      },
+      {
+        "id": "hideLnEnds",
+        "name": {
+          "en": "Hide LN Ends",
+          "pl": "Ukryj końcówki długich notek"
+        },
+        "description": {
+          "en": "Don't display the note texture at the end of LNs.",
+          "pl": "Nie wyświetlaj tekstury notki na końcu długich notek."
+        },
+        "type": "boolean",
+        "default": true
       },
       {
         "id": "judgeLineThickness",
