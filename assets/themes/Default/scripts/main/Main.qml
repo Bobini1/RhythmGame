@@ -15,8 +15,9 @@ Image {
         id: dlg
         modal: true
         standardButtons: Dialog.Ok
-        width: 800
-        height: 600
+        width: Math.min(800, parent.width)
+        height: Math.min(600, parent.height)
+        anchors.centerIn: parent
 
         property string attrText: {
             const attr = new XMLHttpRequest();
