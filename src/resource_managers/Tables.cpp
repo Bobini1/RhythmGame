@@ -431,8 +431,20 @@ resource_managers::Tables::handleData(const QUrl& url, const QJsonArray& data)
             for (const auto& level : extraLevelValues) {
                 table.levels.push_back(level);
             }
-            if (tables[index].status != Table::Error) {
-                tables[index].status = Table::Loaded;
+            // remove empty levels
+            table.levels.erase(
+              std::ranges::remove_if(
+                table.levels,
+                [](const auto& level) { return level.entries.empty(); })
+                .begin(),
+              table.levels.end());
+            if (table.levels.empty()) {
+                spdlog::error("Table {} is empty",
+                              table.url.toString().toStdString());
+                table.status = Table::Error;
+            }
+            if (table.status != Table::Error) {
+                table.status = Table::Loaded;
             }
             emit dataChanged(createIndex(index, 0), createIndex(index, 0));
         }
