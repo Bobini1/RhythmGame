@@ -1,0 +1,228 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "K7 Theme Settings",
+  "type": "array",
+  "items": {
+    "$ref": "#/$defs/group"
+  },
+  "$defs": {
+    "i18nString": {
+      "type": "object",
+      "description": "Map of language tags (e.g. en, en_US, jp, fr-CA) to localized strings.",
+      "patternProperties": {
+        "^[A-Za-z]{2,8}([_-][A-Za-z0-9]{2,8})*$": {
+          "type": "string"
+        }
+      },
+      "minProperties": 1,
+      "additionalProperties": false
+    },
+    "baseItem": {
+      "type": "object",
+      "required": [
+        "id",
+        "name",
+        "type"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "$ref": "#/$defs/i18nString"
+        },
+        "description": {
+          "$ref": "#/$defs/i18nString"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "range",
+            "boolean",
+            "color",
+            "file",
+            "string",
+            "hidden"
+          ]
+        }
+      },
+      "additionalProperties": true
+    },
+    "rangeItem": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/baseItem"
+        },
+        {
+          "properties": {
+            "type": {
+              "const": "range"
+            },
+            "min": {
+              "type": "number"
+            },
+            "max": {
+              "type": "number"
+            },
+            "default": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "default"
+          ]
+        }
+      ]
+    },
+    "booleanItem": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/baseItem"
+        },
+        {
+          "properties": {
+            "type": {
+              "const": "boolean"
+            },
+            "default": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "default"
+          ]
+        }
+      ]
+    },
+    "colorItem": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/baseItem"
+        },
+        {
+          "properties": {
+            "type": {
+              "const": "color"
+            },
+            "default": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "default"
+          ]
+        }
+      ]
+    },
+    "stringItem": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/baseItem"
+        },
+        {
+          "properties": {
+            "type": {
+              "const": "string"
+            },
+            "default": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "default"
+          ]
+        }
+      ]
+    },
+    "hiddenItem": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/baseItem"
+        },
+        {
+          "properties": {
+            "type": {
+              "const": "hidden"
+            },
+            "default": {}
+          },
+          "required": [
+            "default"
+          ]
+        }
+      ]
+    },
+    "fileItem": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/baseItem"
+        },
+        {
+          "properties": {
+            "type": {
+              "const": "file"
+            },
+            "path": {
+              "type": "string"
+            },
+            "default": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "path",
+            "default"
+          ]
+        }
+      ]
+    },
+    "group": {
+      "type": "object",
+      "required": [
+        "name",
+        "type",
+        "items"
+      ],
+      "properties": {
+        "name": {
+          "$ref": "#/$defs/i18nString"
+        },
+        "description": {
+          "$ref": "#/$defs/i18nString"
+        },
+        "type": {
+          "const": "group"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/group"
+              },
+              {
+                "$ref": "#/$defs/rangeItem"
+              },
+              {
+                "$ref": "#/$defs/booleanItem"
+              },
+              {
+                "$ref": "#/$defs/colorItem"
+              },
+              {
+                "$ref": "#/$defs/fileItem"
+              },
+              {
+                "$ref": "#/$defs/stringItem"
+              },
+              {
+                "$ref": "#/$defs/hiddenItem"
+              }
+            ]
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}
