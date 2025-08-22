@@ -89,7 +89,10 @@ qml_components::ProfileList::ProfileList(
     }
     if (profiles.empty()) {
         spdlog::info("No profiles found, creating default profile");
-        createProfile();
+        if (auto* profile = createProfile(); profile == nullptr) {
+            throw std::runtime_error(
+              "Failed to create default profile");
+        }
     }
 
     const auto dbActiveProfiles =
@@ -128,19 +131,19 @@ qml_components::ProfileList::ProfileList(
           "SELECT value FROM properties WHERE key = 'main_profile'")
         .executeAndGet<std::string>();
     if (!dbCurrentProfile.has_value()) {
-        setMainProfile({ profiles[0] });
+        setMainProfile(profiles[0]);
     } else {
         const auto profilePath =
           support::utfStringToPath(dbCurrentProfile.value());
         const auto absoluteProfilePath = this->profilesFolder / profilePath;
         for (auto* profile : profiles) {
             if (profile->getPath() == absoluteProfilePath) {
-                setMainProfile({ profile });
+                setMainProfile(profile);
                 break;
             }
         }
         if (mainProfile == nullptr) {
-            setMainProfile({ profiles[0] });
+            setMainProfile(profiles[0]);
         }
     }
 
@@ -181,7 +184,10 @@ qml_components::ProfileList::removeProfile(resource_managers::Profile* profile)
         return;
     }
     if (profiles.size() == 1) {
-        createProfile();
+        auto* profile = createProfile();
+        if (profile == nullptr) {
+            return;
+        }
     }
     const auto index = profiles.indexOf(profile);
     profiles.remove(index);
