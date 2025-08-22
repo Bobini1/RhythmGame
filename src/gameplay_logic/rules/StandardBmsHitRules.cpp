@@ -121,7 +121,8 @@ gameplay_logic::rules::StandardBmsHitRules::press(
     }
     if (!found) {
         // play the first sound, if one exists
-        if (!notes.empty() && notes.front().sound != nullptr  && !soundDisabled) {
+        if (!notes.empty() && notes.front().sound != nullptr &&
+            !soundDisabled) {
             notes.front().sound->play();
         }
     }

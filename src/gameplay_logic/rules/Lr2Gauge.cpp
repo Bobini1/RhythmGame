@@ -213,7 +213,8 @@ gameplay_logic::rules::Lr2Gauge::getGauges(double total, int noteCount)
 }
 auto
 gameplay_logic::rules::Lr2Gauge::getDanGauges(
-  const QHash<QString, double>& initialValues) -> std::vector<std::unique_ptr<BmsGauge>>
+  const QHash<QString, double>& initialValues)
+  -> std::vector<std::unique_ptr<BmsGauge>>
 {
     auto gauges = std::vector<std::unique_ptr<BmsGauge>>{};
 

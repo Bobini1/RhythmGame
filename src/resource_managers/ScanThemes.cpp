@@ -74,9 +74,12 @@ resource_managers::scanThemes(std::filesystem::path themesFolder)
             auto translations = QMap<QString, QUrl>{};
             if (config["translations"].isObject()) {
                 for (const auto& [language, translation] :
-                     config["translations"].toObject().toVariantHash().asKeyValueRange()) {
+                     config["translations"]
+                       .toObject()
+                       .toVariantHash()
+                       .asKeyValueRange()) {
                     auto translationPath =
-                          path / support::qStringToPath(translation.toString());
+                      path / support::qStringToPath(translation.toString());
                     if (exists(translationPath)) {
                         translations.insert(
                           language,

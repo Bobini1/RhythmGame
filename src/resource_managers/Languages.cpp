@@ -100,14 +100,14 @@ Languages::setSelectedLanguage(const QString& language)
     for (const auto& [themeName, translator] : themeTranslators) {
         auto translations = availableThemes.value(themeName).getTranslations();
         auto localeToPick =
-              determineLocaleToPick(locale, themeName, translations);
+          determineLocaleToPick(locale, themeName, translations);
         if (localeToPick.isEmpty()) {
-            localeToPick = determineLocaleToPick(
-                QLocale::system(), themeName, translations);
+            localeToPick =
+              determineLocaleToPick(QLocale::system(), themeName, translations);
         }
         if (localeToPick.isEmpty()) {
             localeToPick = determineLocaleToPick(
-                QLocale(QLocale::English), themeName, translations);
+              QLocale(QLocale::English), themeName, translations);
         }
         if (auto url = translations.value(localeToPick); !url.isValid()) {
             QCoreApplication::removeTranslator(translator.get());
@@ -131,8 +131,8 @@ Languages::getLanguageName(const QString& language) -> QString
 {
     return QLocale{ language }.nativeLanguageName();
 }
-auto getClosestLanguageImpl(QLocale locale,
-                            const QStringList& languages) -> QString
+auto
+getClosestLanguageImpl(QLocale locale, const QStringList& languages) -> QString
 {
     if (languages.contains(locale.name())) {
         return locale.name();

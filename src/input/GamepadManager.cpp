@@ -10,8 +10,7 @@
 
 namespace input {
 
-GamepadManager::
-GamepadManager(QObject* parent)
+GamepadManager::GamepadManager(QObject* parent)
   : QObject(parent)
 {
     connect(&loopTimer, &QTimer::timeout, this, &GamepadManager::loop);
@@ -61,8 +60,7 @@ GamepadManager::loop()
     }
 }
 
-GamepadManager::~
-GamepadManager()
+GamepadManager::~GamepadManager()
 {
     controllers.clear();
     SDL_QuitSubSystem(SDL_INIT_GAMECONTROLLER | SDL_INIT_JOYSTICK);

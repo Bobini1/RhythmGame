@@ -5,8 +5,7 @@
 #include "Exception.h"
 
 namespace support {
-Exception::
-Exception(std::string message)
+Exception::Exception(std::string message)
   : message(std::move(message))
 {
 }

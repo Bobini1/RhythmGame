@@ -99,10 +99,9 @@ defineDb(db::SqliteCppDb& db)
                "value"
                ");");
 
-
-    auto stmt = db.createStatement(
-      "INSERT OR IGNORE INTO properties (key, value) VALUES "
-        "('version', ?);");
+    auto stmt =
+      db.createStatement("INSERT OR IGNORE INTO properties (key, value) VALUES "
+                         "('version', ?);");
     stmt.bind(1, static_cast<int64_t>(support::currentVersion));
     stmt.execute();
 

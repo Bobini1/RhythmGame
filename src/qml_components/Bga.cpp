@@ -85,11 +85,11 @@ qml_components::Bga::update(std::chrono::nanoseconds offsetFromStart)
         ++currentImage;
     }
 }
-qml_components::BgaContainer::
-BgaContainer(QList<Bga*> layers,
-             std::vector<QMediaPlayer*> videoFiles,
-             std::vector<std::unique_ptr<QVideoFrame>> images,
-             QObject* parent)
+qml_components::BgaContainer::BgaContainer(
+  QList<Bga*> layers,
+  std::vector<QMediaPlayer*> videoFiles,
+  std::vector<std::unique_ptr<QVideoFrame>> images,
+  QObject* parent)
   : QObject(parent)
   , layers(std::move(layers))
   , videoFiles(std::move(videoFiles))

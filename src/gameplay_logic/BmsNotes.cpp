@@ -19,11 +19,10 @@ BmsNotes::getNotes() const -> const QList<QList<Note>>&
 {
     return notes;
 }
-BmsNotes::
-BmsNotes(QList<QList<Note>> notes,
-         QList<BpmChange> bpmChanges,
-         QList<Time> barLines,
-         QObject* parent)
+BmsNotes::BmsNotes(QList<QList<Note>> notes,
+                   QList<BpmChange> bpmChanges,
+                   QList<Time> barLines,
+                   QObject* parent)
   : QObject(parent)
   , notes(std::move(notes))
   , bpmChanges(std::move(bpmChanges))

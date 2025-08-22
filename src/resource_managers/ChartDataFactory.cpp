@@ -89,8 +89,7 @@ auto
 ChartDataFactory::makeNotes(
   const std::array<std::vector<charts::BmsNotesData::Note>,
                    charts::BmsNotesData::columnNumber>& notes,
-  const std::vector<
-    std::pair<charts::BmsNotesData::Time, double>>& bpmChanges,
+  const std::vector<std::pair<charts::BmsNotesData::Time, double>>& bpmChanges,
   const std::vector<charts::BmsNotesData::Time>& barLines)
   -> std::unique_ptr<gameplay_logic::BmsNotes>
 {
@@ -158,8 +157,7 @@ ChartDataFactory::loadChartData(const std::filesystem::path& chartPath,
     auto randomValues = QList<qint64>{};
     auto randomGeneratorRecorder =
       [&randomValues, &randomGenerator](
-        const charts::ParsedBmsChart::RandomRange
-          number) mutable {
+        const charts::ParsedBmsChart::RandomRange number) mutable {
           const auto generated = randomGenerator(number);
           randomValues.append(generated);
           return generated;
@@ -185,8 +183,7 @@ ChartDataFactory::loadChartData(const std::filesystem::path& chartPath,
     for (const auto& bmp : parsedChart.tags.bmps) {
         bmps.emplace(bmp.first, support::utfStringToPath(bmp.second));
     }
-    auto calculatedNotesData =
-      charts::BmsNotesData{ parsedChart };
+    auto calculatedNotesData = charts::BmsNotesData{ parsedChart };
 
     auto lastNoteTimestamp = std::chrono::nanoseconds{ 0 };
     for (const auto& column : calculatedNotesData.notes) {
@@ -262,12 +259,10 @@ ChartDataFactory::loadChartData(const std::filesystem::path& chartPath,
                 case charts::BmsNotesData::NoteType::Normal:
                     normalNotes++;
                     break;
-                case charts::BmsNotesData::NoteType::
-                  LongNoteBegin:
+                case charts::BmsNotesData::NoteType::LongNoteBegin:
                     lnNotes++;
                     break;
-                case charts::BmsNotesData::NoteType::
-                  LongNoteEnd:
+                case charts::BmsNotesData::NoteType::LongNoteEnd:
                     break;
                 case charts::BmsNotesData::NoteType::Landmine:
                     mineNotes++;

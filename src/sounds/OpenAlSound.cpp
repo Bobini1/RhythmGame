@@ -42,8 +42,7 @@ sounds::OpenALSound::OpenALSound(OpenALSound&& other) noexcept
     other.source = 0;
 }
 auto
-sounds::OpenALSound::operator=(const OpenALSound& other)
-  -> OpenALSound&
+sounds::OpenALSound::operator=(const OpenALSound& other) -> OpenALSound&
 {
     if (this != &other) {
         alDeleteSources(1, &source);
@@ -53,8 +52,7 @@ sounds::OpenALSound::operator=(const OpenALSound& other)
     return *this;
 }
 auto
-sounds::OpenALSound::operator=(OpenALSound&& other) noexcept
-  -> OpenALSound&
+sounds::OpenALSound::operator=(OpenALSound&& other) noexcept -> OpenALSound&
 {
     if (this != &other) {
         alDeleteSources(1, &source);

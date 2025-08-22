@@ -72,7 +72,7 @@ qml_components::ProfileList::ProfileList(
         if (entry.is_directory()) {
             try {
                 auto* profile = new resource_managers::Profile(
-                    this->mainDbPath,
+                  this->mainDbPath,
                   entry.path() / "profile.sqlite",
                   themeFamilies,
                   this->avatarPath,
@@ -158,7 +158,7 @@ qml_components::ProfileList::createProfile() -> resource_managers::Profile*
 {
     try {
         auto* profile = new resource_managers::Profile(
-            this->mainDbPath,
+          this->mainDbPath,
           profilesFolder / QUuid::createUuid().toString().toStdString() /
             "profile.sqlite",
           themeFamilies,

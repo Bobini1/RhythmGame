@@ -8,10 +8,8 @@
 gameplay_logic::BmsGameReferee::BmsGameReferee(
   std::array<std::vector<charts::BmsNotesData::Note>,
              charts::BmsNotesData::columnNumber> notes,
-  const std::vector<
-    std::pair<charts::BmsNotesData::Time, uint16_t>>& bgmNotes,
-  std::vector<std::pair<charts::BmsNotesData::Time, double>>
-    bpmChanges,
+  const std::vector<std::pair<charts::BmsNotesData::Time, uint16_t>>& bgmNotes,
+  std::vector<std::pair<charts::BmsNotesData::Time, double>> bpmChanges,
   sounds::OpenALSound* mineHitSound,
   BmsLiveScore* score,
   std::unordered_map<uint16_t, sounds::OpenALSound> sounds,
@@ -22,8 +20,7 @@ gameplay_logic::BmsGameReferee::BmsGameReferee(
   , score(score)
   , mineHitSound(mineHitSound)
 {
-    for (int i = 0; i < charts::BmsNotesData::columnNumber;
-         i++) {
+    for (int i = 0; i < charts::BmsNotesData::columnNumber; i++) {
         for (const auto& [index, note] :
              std::ranges::views::enumerate(notes[i])) {
             addNote(this->notes[i], this->mines[i], note, index);
@@ -45,8 +42,7 @@ gameplay_logic::BmsGameReferee::addNote(
   const charts::BmsNotesData::Note& note,
   int index)
 {
-    if (note.noteType ==
-        charts::BmsNotesData::NoteType::Normal) {
+    if (note.noteType == charts::BmsNotesData::NoteType::Normal) {
         auto soundId = note.sound;
         if (auto sound = sounds.find(soundId); sound != sounds.end()) {
             column.emplace_back(&sound->second,
@@ -61,8 +57,7 @@ gameplay_logic::BmsGameReferee::addNote(
                                 rules::StandardBmsHitRules::NoteType::Normal,
                                 index);
         }
-    } else if (note.noteType ==
-               charts::BmsNotesData::NoteType::LongNoteBegin) {
+    } else if (note.noteType == charts::BmsNotesData::NoteType::LongNoteBegin) {
         auto soundId = note.sound;
         if (auto sound = sounds.find(soundId); sound != sounds.end()) {
             column.emplace_back(&sound->second,
@@ -77,8 +72,7 @@ gameplay_logic::BmsGameReferee::addNote(
                                 rules::StandardBmsHitRules::NoteType::LnBegin,
                                 index);
         }
-    } else if (note.noteType ==
-               charts::BmsNotesData::NoteType::LongNoteEnd) {
+    } else if (note.noteType == charts::BmsNotesData::NoteType::LongNoteEnd) {
         auto soundId = note.sound;
         if (auto sound = sounds.find(soundId); sound != sounds.end()) {
             column.emplace_back(&sound->second,
@@ -93,8 +87,7 @@ gameplay_logic::BmsGameReferee::addNote(
                                 rules::StandardBmsHitRules::NoteType::LnEnd,
                                 index);
         }
-    } else if (note.noteType ==
-               charts::BmsNotesData::NoteType::Landmine) {
+    } else if (note.noteType == charts::BmsNotesData::NoteType::Landmine) {
         auto penalty = -note.sound / 2;
         minesColumn.emplace_back(
           static_cast<double>(penalty), note.time.timestamp, index);
@@ -116,10 +109,10 @@ gameplay_logic::BmsGameReferee::update(std::chrono::nanoseconds offsetFromStart,
           hitRules.processMisses(column, columnIndex, offsetFromStart),
           std::back_inserter(events));
         std::ranges::copy(hitRules.processMines(mines[columnIndex],
-                                                 columnIndex,
-                                                 offsetFromStart,
-                                                 pressedState[columnIndex],
-                                                 mineHitSound),
+                                                columnIndex,
+                                                offsetFromStart,
+                                                pressedState[columnIndex],
+                                                mineHitSound),
                           std::back_inserter(events));
     }
     std::ranges::sort(events, [](const auto& left, const auto& right) {
@@ -151,15 +144,15 @@ gameplay_logic::BmsGameReferee::passPressed(
         key = input::BmsKey::Col2sUp;
     }
     auto columnIndex = static_cast<int>(key);
-    if (columnIndex < 0 ||
-        columnIndex >= charts::BmsNotesData::columnNumber) {
+    if (columnIndex < 0 || columnIndex >= charts::BmsNotesData::columnNumber) {
         return;
     }
     if (pressedState[columnIndex]) {
         return;
     }
     pressedState[columnIndex] = true;
-    for (const auto& hit : hitRules.press(notes[columnIndex], columnIndex, offsetFromStart)) {
+    for (const auto& hit :
+         hitRules.press(notes[columnIndex], columnIndex, offsetFromStart)) {
         score->addHit(hit);
     }
 }
@@ -200,8 +193,7 @@ gameplay_logic::BmsGameReferee::passReleased(
         key = input::BmsKey::Col2sUp;
     }
     auto columnIndex = static_cast<int>(key);
-    if (columnIndex < 0 ||
-        columnIndex >= charts::BmsNotesData::columnNumber) {
+    if (columnIndex < 0 || columnIndex >= charts::BmsNotesData::columnNumber) {
         return;
     }
     if (!pressedState[columnIndex]) {

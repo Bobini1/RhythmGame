@@ -22,8 +22,7 @@
 namespace llfio = LLFIO_V2_NAMESPACE;
 
 namespace resource_managers {
-SongDbScanner::
-SongDbScanner(db::SqliteCppDb* db)
+SongDbScanner::SongDbScanner(db::SqliteCppDb* db)
   : db(db)
 {
 }
@@ -79,23 +78,20 @@ loadChart(QThreadPool& threadPool,
         try {
             thread_local constexpr ChartDataFactory chartDataFactory;
             auto randomGenerator =
-              [](charts::ParsedBmsChart::RandomRange
-                   randomRange) {
+              [](charts::ParsedBmsChart::RandomRange randomRange) {
                   thread_local auto randomEngine =
                     std::default_random_engine{ std::random_device{}() };
                   return std::uniform_int_distribution{
-                      charts::ParsedBmsChart::RandomRange{ 1 },
-                      randomRange
+                      charts::ParsedBmsChart::RandomRange{ 1 }, randomRange
                   }(randomEngine);
               };
 
             const auto chartComponents =
               chartDataFactory.loadChartData(path, randomGenerator, directory);
             chartComponents.chartData->save(db);
-            ChartDataFactory::makeNotes(
-              chartComponents.notesData.notes,
-              chartComponents.notesData.bpmChanges,
-              chartComponents.notesData.barLines)
+            ChartDataFactory::makeNotes(chartComponents.notesData.notes,
+                                        chartComponents.notesData.bpmChanges,
+                                        chartComponents.notesData.barLines)
               ->save(db, chartComponents.chartData->getSha256().toStdString());
         } catch (const std::exception& e) {
             spdlog::error(

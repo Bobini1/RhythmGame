@@ -686,28 +686,39 @@ InputTranslator::loadKeyConfig(db::SqliteCppDb* db)
         const auto array = QByteArray::fromStdString(keyConfig.value());
         config = support::decompress<QHash<Key, BmsKey>>(array);
     } else {
-        config[Key{ QVariant::fromValue(nullptr), Key::Device::Keyboard,
-                           Qt::Key_A }] = BmsKey::Col11;
-        config[Key{ QVariant::fromValue(nullptr), Key::Device::Keyboard,
-                           Qt::Key_S }] = BmsKey::Col12;
-        config[Key{ QVariant::fromValue(nullptr), Key::Device::Keyboard,
-                           Qt::Key_D }] = BmsKey::Col13;
-        config[Key{ QVariant::fromValue(nullptr), Key::Device::Keyboard,
-                           Qt::Key_Space }] = BmsKey::Col14;
-        config[Key{ QVariant::fromValue(nullptr), Key::Device::Keyboard,
-                           Qt::Key_J }] = BmsKey::Col15;
-        config[Key{ QVariant::fromValue(nullptr), Key::Device::Keyboard,
-                           Qt::Key_K }] = BmsKey::Col16;
-        config[Key{ QVariant::fromValue(nullptr), Key::Device::Keyboard,
-                           Qt::Key_L }] = BmsKey::Col17;
-        config[Key{ QVariant::fromValue(nullptr), Key::Device::Keyboard,
-                           Qt::Key_Semicolon }] = BmsKey::Col1sUp;
-        config[Key{ QVariant::fromValue(nullptr), Key::Device::Keyboard,
-                           Qt::Key_Apostrophe }] = BmsKey::Col1sDown;
+        config[Key{
+          QVariant::fromValue(nullptr), Key::Device::Keyboard, Qt::Key_A }] =
+          BmsKey::Col11;
+        config[Key{
+          QVariant::fromValue(nullptr), Key::Device::Keyboard, Qt::Key_S }] =
+          BmsKey::Col12;
+        config[Key{
+          QVariant::fromValue(nullptr), Key::Device::Keyboard, Qt::Key_D }] =
+          BmsKey::Col13;
         config[Key{ QVariant::fromValue(nullptr),
-                           Key::Device::Keyboard, Qt::Key_Q }] = BmsKey::Start1;
+                    Key::Device::Keyboard,
+                    Qt::Key_Space }] = BmsKey::Col14;
+        config[Key{
+          QVariant::fromValue(nullptr), Key::Device::Keyboard, Qt::Key_J }] =
+          BmsKey::Col15;
+        config[Key{
+          QVariant::fromValue(nullptr), Key::Device::Keyboard, Qt::Key_K }] =
+          BmsKey::Col16;
+        config[Key{
+          QVariant::fromValue(nullptr), Key::Device::Keyboard, Qt::Key_L }] =
+          BmsKey::Col17;
         config[Key{ QVariant::fromValue(nullptr),
-                           Key::Device::Keyboard, Qt::Key_W }] = BmsKey::Select1;
+                    Key::Device::Keyboard,
+                    Qt::Key_Semicolon }] = BmsKey::Col1sUp;
+        config[Key{ QVariant::fromValue(nullptr),
+                    Key::Device::Keyboard,
+                    Qt::Key_Apostrophe }] = BmsKey::Col1sDown;
+        config[Key{
+          QVariant::fromValue(nullptr), Key::Device::Keyboard, Qt::Key_Q }] =
+          BmsKey::Start1;
+        config[Key{
+          QVariant::fromValue(nullptr), Key::Device::Keyboard, Qt::Key_W }] =
+          BmsKey::Select1;
         saveKeyConfig();
     }
 }

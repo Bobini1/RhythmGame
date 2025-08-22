@@ -50,15 +50,14 @@ gameplay_logic::BmsResultCourse::save(db::SqliteCppDb& db) const
     statement.bind(8, static_cast<int64_t>(gameVersion));
     statement.execute();
 }
-gameplay_logic::BmsResultCourse::BmsResultCourse(
-  QString guid,
-  QString identifier,
-  QList<BmsScore*> scores,
-  QString clearType,
-  int maxCombo,
-  QStringList constraints,
-  uint64_t gameVersion,
-  QObject* parent)
+gameplay_logic::BmsResultCourse::BmsResultCourse(QString guid,
+                                                 QString identifier,
+                                                 QList<BmsScore*> scores,
+                                                 QString clearType,
+                                                 int maxCombo,
+                                                 QStringList constraints,
+                                                 uint64_t gameVersion,
+                                                 QObject* parent)
   : QObject(parent)
   , identifier(std::move(identifier))
   , scores(std::move(scores))
@@ -245,8 +244,10 @@ gameplay_logic::BmsResultCourse::getIdentifier() const -> QString
 auto
 gameplay_logic::BmsResultCourse::getLength() const -> int64_t
 {
-    return std::accumulate(
-      scores.begin(), scores.end(), 0LL, [](int64_t sum, const BmsScore* score) {
-          return sum + score->getResult()->getLength();
-      });
+    return std::accumulate(scores.begin(),
+                           scores.end(),
+                           0LL,
+                           [](int64_t sum, const BmsScore* score) {
+                               return sum + score->getResult()->getLength();
+                           });
 }

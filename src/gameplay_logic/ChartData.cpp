@@ -279,11 +279,34 @@ gameplay_logic::ChartData::getChartDirectory() const -> QString
 auto
 gameplay_logic::ChartData::clone() const -> std::unique_ptr<ChartData>
 {
-    return std::make_unique<ChartData>(
-      title, artist, subtitle, subartist, genre, stageFile, banner, backBmp,
-      rank, total, playLevel, difficulty, isRandom, randomSequence,
-      normalNoteCount, lnCount, mineCount, length, initialBpm, maxBpm, minBpm,
-      mainBpm, avgBpm, path, directory, sha256, md5, keymode);
+    return std::make_unique<ChartData>(title,
+                                       artist,
+                                       subtitle,
+                                       subartist,
+                                       genre,
+                                       stageFile,
+                                       banner,
+                                       backBmp,
+                                       rank,
+                                       total,
+                                       playLevel,
+                                       difficulty,
+                                       isRandom,
+                                       randomSequence,
+                                       normalNoteCount,
+                                       lnCount,
+                                       mineCount,
+                                       length,
+                                       initialBpm,
+                                       maxBpm,
+                                       minBpm,
+                                       mainBpm,
+                                       avgBpm,
+                                       path,
+                                       directory,
+                                       sha256,
+                                       md5,
+                                       keymode);
 }
 auto
 gameplay_logic::ChartData::getInitialBpm() const -> double

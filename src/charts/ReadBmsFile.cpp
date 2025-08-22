@@ -74,9 +74,8 @@ struct ParseState
     bool utf8;
 };
 
-constexpr auto
-decode = [](auto&& str, const ParseState& parseState) -> std::string
-{
+constexpr auto decode = [](auto&& str,
+                           const ParseState& parseState) -> std::string {
     const auto view = std::string_view{ str.data(), str.size() };
     if (parseState.utf8) {
         auto ret = convertToUtf8("UTF-8", view);
@@ -512,8 +511,10 @@ struct MeterTag
         auto start = (dsl::p<Measure> + LEXY_LIT("02"));
         return peek(start) >> start >> dsl::colon >> dsl::p<FloatingPoint>;
     }();
-    static constexpr auto value = lexy::callback<Meter>(
-      [](int64_t measure, double num) { return Meter{ { measure, num } }; });
+    static constexpr auto value =
+      lexy::callback<Meter>([](int64_t measure, double num) {
+          return Meter{ { measure, num } };
+      });
 };
 
 struct TagsSink
@@ -964,10 +965,10 @@ readBmsChart(
         throw std::runtime_error(
           fmt::format("Encoding {} is unsupported", encoding));
     }
-    auto result =
-      lexy::parse<MainTags>(lexy::string_input<lexy::utf8_char_encoding>(chart),
-                            ParseState{ randomGenerator, encoding && encoding == "UTF-8"s },
-                            ReportError{});
+    auto result = lexy::parse<MainTags>(
+      lexy::string_input<lexy::utf8_char_encoding>(chart),
+      ParseState{ randomGenerator, encoding && encoding == "UTF-8"s },
+      ReportError{});
     return ParsedBmsChart{ std::move(result).value() };
 }
 } // namespace charts

@@ -159,9 +159,8 @@ ScoreDb::getScoresForCourseIdImpl(const QList<QString>& courseIds) const
             }
         }
         auto score = gameplay_logic::BmsScoreCourse::fromScores(
-                                gameplay_logic::BmsResultCourse::load(
-                                  courseScore, scoresForCourse),
-                                scoresForCourse);
+          gameplay_logic::BmsResultCourse::load(courseScore, scoresForCourse),
+          scoresForCourse);
         score->moveToThread(mainThread);
         courseScores[QString::fromStdString(courseScore.identifier)].push_back(
           QVariant::fromValue(score.release()));

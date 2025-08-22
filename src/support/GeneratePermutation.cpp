@@ -38,14 +38,12 @@ getColumsIota(const int size) -> QList<int>
 auto
 getNextNote(
   const std::span<std::vector<charts::BmsNotesData::Note>> arr,
-  std::vector<
-    std::vector<charts::BmsNotesData::Note>::const_iterator>&
+  std::vector<std::vector<charts::BmsNotesData::Note>::const_iterator>&
     noteIters)
-  -> std::optional<
-    std::vector<charts::BmsNotesData::Note>::const_iterator>
+  -> std::optional<std::vector<charts::BmsNotesData::Note>::const_iterator>
 {
-    auto nextNote = std::optional<std::vector<
-      charts::BmsNotesData::Note>::const_iterator>{};
+    auto nextNote =
+      std::optional<std::vector<charts::BmsNotesData::Note>::const_iterator>{};
     auto selectedColumn = 0;
     for (auto i = 0; i < noteIters.size(); ++i) {
         if (noteIters[i] == arr[i].cend()) {
@@ -70,12 +68,10 @@ getNextNote(
 auto
 pushProposedNote(
   std::vector<charts::BmsNotesData::Note>& lane,
-  const std::vector<
-    charts::BmsNotesData::Note>::const_iterator& note) -> void
+  const std::vector<charts::BmsNotesData::Note>::const_iterator& note) -> void
 {
     lane.push_back(*note);
-    if (note->noteType ==
-        charts::BmsNotesData::NoteType::LongNoteBegin) {
+    if (note->noteType == charts::BmsNotesData::NoteType::LongNoteBegin) {
         auto endNote = note;
         ++endNote;
         lane.push_back(*endNote);
@@ -84,11 +80,9 @@ pushProposedNote(
 
 auto
 tryPushingNoteWithDistance(
-  const std::vector<
-    charts::BmsNotesData::Note>::const_iterator& noteIt,
+  const std::vector<charts::BmsNotesData::Note>::const_iterator& noteIt,
   const QList<int>& columnsIota,
-  std::vector<std::vector<charts::BmsNotesData::Note>>&
-    newColumns,
+  std::vector<std::vector<charts::BmsNotesData::Note>>& newColumns,
   const std::chrono::nanoseconds preferredNoteDistance) -> bool
 {
     for (const auto& proposedColumn : columnsIota) {
@@ -110,11 +104,9 @@ tryPushingNoteWithDistance(
 
 void
 pushNoteWithMaxDistance(
-  const std::vector<
-    charts::BmsNotesData::Note>::const_iterator& noteIt,
+  const std::vector<charts::BmsNotesData::Note>::const_iterator& noteIt,
   const QList<int>& columnsIota,
-  std::vector<std::vector<charts::BmsNotesData::Note>>&
-    newColumns)
+  std::vector<std::vector<charts::BmsNotesData::Note>>& newColumns)
 {
     auto bestPick = -1;
     auto bestDistance = 0ns;
@@ -136,16 +128,14 @@ pushNoteWithMaxDistance(
 
 template<typename Random>
 void
-shuffleAllNotes(
-  std::span<std::vector<charts::BmsNotesData::Note>> arr,
-  const std::chrono::nanoseconds preferredNoteDistance,
-  Random& randomGenerator)
+shuffleAllNotes(std::span<std::vector<charts::BmsNotesData::Note>> arr,
+                const std::chrono::nanoseconds preferredNoteDistance,
+                Random& randomGenerator)
 {
-    auto newColumns =
-      std::vector<std::vector<charts::BmsNotesData::Note>>{};
+    auto newColumns = std::vector<std::vector<charts::BmsNotesData::Note>>{};
     newColumns.resize(arr.size());
-    auto noteIters = std::vector<std::vector<
-      charts::BmsNotesData::Note>::const_iterator>{};
+    auto noteIters =
+      std::vector<std::vector<charts::BmsNotesData::Note>::const_iterator>{};
     noteIters.resize(arr.size());
     for (auto i = 0; i < arr.size(); ++i) {
         noteIters[i] = arr[i].cbegin();
@@ -171,8 +161,7 @@ shuffleAllNotes(
 
 auto
 generatePermutation(
-  std::span<std::vector<charts::BmsNotesData::Note>>&
-    visibleNotes,
+  std::span<std::vector<charts::BmsNotesData::Note>>& visibleNotes,
   const resource_managers::NoteOrderAlgorithm algorithm,
   const std::optional<uint64_t> seed) -> ShuffleResult
 {

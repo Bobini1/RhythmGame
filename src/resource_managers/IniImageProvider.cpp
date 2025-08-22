@@ -44,7 +44,7 @@ IniImageProvider::requestPixmap(const QString& id,
         return {};
     }
     const auto& pixmap = [this, rect, &path, &settings]() -> const QPixmap& {
-        auto pixmapsLock = std::unique_lock{pixmapsMutex};
+        auto pixmapsLock = std::unique_lock{ pixmapsMutex };
         const auto cachedPixmap = pixmaps.find(path);
         if (cachedPixmap != pixmaps.end()) {
             return cachedPixmap.value()[rect];
@@ -67,8 +67,7 @@ IniImageProvider::requestPixmap(const QString& id,
     }
     return pixmap;
 }
-IniImageProvider::
-IniImageProvider()
+IniImageProvider::IniImageProvider()
   : QQuickImageProvider(Pixmap)
 {
 }

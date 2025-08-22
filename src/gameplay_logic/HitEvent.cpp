@@ -71,7 +71,8 @@ operator>>(QDataStream& stream, HitEvent& tap) -> QDataStream&
     int noteIndex;
     HitEvent::Action action;
     bool noteRemoved;
-    stream >> offsetFromStart >> points >> column >> noteIndex >> action >> noteRemoved;
+    stream >> offsetFromStart >> points >> column >> noteIndex >> action >>
+      noteRemoved;
     tap.offsetFromStart = offsetFromStart;
     tap.points =
       points.isNull() ? std::nullopt : std::optional(points.value<BmsPoints>());

@@ -54,7 +54,8 @@ GaugeFactory::getStandardGauges(Profile* profile,
     return selectGauges(profile, std::move(gauges));
 }
 auto
-GaugeFactory::getCourseGauges(Profile* profile, const QHash<QString, double>& initialValues) const
+GaugeFactory::getCourseGauges(Profile* profile,
+                              const QHash<QString, double>& initialValues) const
   -> QList<gameplay_logic::rules::BmsGauge*>
 {
     auto gauges = gameplay_logic::rules::Lr2Gauge::getDanGauges(initialValues);

@@ -26,14 +26,15 @@ getALContext() -> ALCcontext*
     return context.get();
 }
 
-sounds::OpenALSoundBuffer::
-OpenALSoundBuffer(const std::filesystem::path& filename)
+sounds::OpenALSoundBuffer::OpenALSoundBuffer(
+  const std::filesystem::path& filename)
 {
     auto sndFile = SndfileHandle{ filename.c_str(), SFM_READ };
     // throw if the file is not readable
     if (auto error = sndFile.error(); error != 0) {
-        spdlog::error(
-          "Could not open sound file {}: {}", filename.string(), sf_error_number(error));
+        spdlog::error("Could not open sound file {}: {}",
+                      filename.string(),
+                      sf_error_number(error));
         throw std::runtime_error("Could not open sound file");
     }
     auto sndFileSamples = std::vector<float>{};
@@ -49,8 +50,7 @@ OpenALSoundBuffer(const std::filesystem::path& filename)
                  sndFileSamples.size() * sizeof(float),
                  sndFile.samplerate());
 }
-sounds::OpenALSoundBuffer::~
-OpenALSoundBuffer()
+sounds::OpenALSoundBuffer::~OpenALSoundBuffer()
 {
     alDeleteBuffers(1, &sampleBuffer);
 }
@@ -59,8 +59,8 @@ sounds::OpenALSoundBuffer::getBuffer() const -> ALuint
 {
     return sampleBuffer;
 }
-sounds::OpenALSoundBuffer::
-OpenALSoundBuffer(sounds::OpenALSoundBuffer&& other) noexcept
+sounds::OpenALSoundBuffer::OpenALSoundBuffer(
+  sounds::OpenALSoundBuffer&& other) noexcept
   : sampleBuffer(other.sampleBuffer)
 {
     other.sampleBuffer = 0;

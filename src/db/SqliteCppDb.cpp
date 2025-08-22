@@ -8,8 +8,7 @@
 #include <utility>
 #include <thread>
 
-db::SqliteCppDb::
-SqliteCppDb(std::filesystem::path dbPath)
+db::SqliteCppDb::SqliteCppDb(std::filesystem::path dbPath)
   : db(dbPath,
        SQLite::OPEN_READWRITE | // NOLINT(hicpp-signed-bitwise)
          SQLite::OPEN_CREATE | SQLite::OPEN_FULLMUTEX)
@@ -17,7 +16,9 @@ SqliteCppDb(std::filesystem::path dbPath)
     db.exec("PRAGMA journal_mode=WAL;");
     db.exec("PRAGMA synchronous=NORMAL;");
     db.exec("PRAGMA optimize=0x10002;");
-    sqlite3_limit(db.getHandle(), SQLITE_LIMIT_WORKER_THREADS, std::thread::hardware_concurrency());
+    sqlite3_limit(db.getHandle(),
+                  SQLITE_LIMIT_WORKER_THREADS,
+                  std::thread::hardware_concurrency());
 #ifdef DEBUG
     db.exec("PRAGMA foreign_keys=ON;");
 #endif
@@ -51,9 +52,8 @@ db::SqliteCppDb::Statement::reset()
     statement.reset();
     statement.clearBindings();
 }
-db::SqliteCppDb::Statement::
-Statement(SQLite::Statement statement,
-          SQLite::Database* db)
+db::SqliteCppDb::Statement::Statement(SQLite::Statement statement,
+                                      SQLite::Database* db)
   : statement(std::move(statement))
   , db(db)
 {

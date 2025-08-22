@@ -48,8 +48,7 @@ Profile::Profile(
         .release())
   , vars(this, themeFamilies, std::move(avatarPath))
 {
-    auto attachStatement = db.createStatement(
-      "ATTACH DATABASE ? AS song_db;");
+    auto attachStatement = db.createStatement("ATTACH DATABASE ? AS song_db;");
     attachStatement.bind(1, support::pathToUtfString(mainDbPath));
     attachStatement.execute();
     this->themeConfig->setParent(this);
@@ -92,14 +91,14 @@ Profile::Profile(
                ");");
     db.execute("CREATE TABLE IF NOT EXISTS score_course ("
                "id INTEGER PRIMARY KEY AUTOINCREMENT,"
-                "guid TEXT NOT NULL UNIQUE,"
-                "identifier TEXT NOT NULL,"
-                "score_guids TEXT NOT NULL,"
-                "clear_type TEXT NOT NULL,"
-                "max_combo INTEGER NOT NULL,"
-                "constraints TEXT NOT NULL,"
-                "unix_timestamp INTEGER NOT NULL,"
-                "game_version INTEGER NOT NULL);");
+               "guid TEXT NOT NULL UNIQUE,"
+               "identifier TEXT NOT NULL,"
+               "score_guids TEXT NOT NULL,"
+               "clear_type TEXT NOT NULL,"
+               "max_combo INTEGER NOT NULL,"
+               "constraints TEXT NOT NULL,"
+               "unix_timestamp INTEGER NOT NULL,"
+               "game_version INTEGER NOT NULL);");
     db.execute("CREATE TABLE IF NOT EXISTS replay_data ("
                "id INTEGER PRIMARY KEY AUTOINCREMENT,"
                "score_guid TEXT NOT NULL UNIQUE,"

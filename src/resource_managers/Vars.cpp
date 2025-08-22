@@ -214,7 +214,8 @@ resource_managers::GeneralVars::getNoteOrderAlgorithmP2() const
     return noteOrderAlgorithmP2;
 }
 void
-resource_managers::GeneralVars::setNoteOrderAlgorithmP2(NoteOrderAlgorithm value)
+resource_managers::GeneralVars::setNoteOrderAlgorithmP2(
+  NoteOrderAlgorithm value)
 {
     if (noteOrderAlgorithmP2 == value) {
         return;
@@ -443,7 +444,7 @@ resource_managers::GeneralVars::resetOffset()
 
 void
 writeGeneralVars(const resource_managers::GeneralVars& generalVars,
-                const std::filesystem::path& profileFolder)
+                 const std::filesystem::path& profileFolder)
 {
     auto json = QJsonObject();
     for (auto i = generalVars.metaObject()->propertyOffset();
@@ -500,7 +501,8 @@ writeThemeVars(
 {
     auto themes = QHash<QString, QHash<QString, QHash<QString, QVariant>>>{};
     for (const auto& [screen, screenVars] : themeVars.asKeyValueRange()) {
-        for (const auto& [themeName, themeVars] : screenVars.asKeyValueRange()) {
+        for (const auto& [themeName, themeVars] :
+             screenVars.asKeyValueRange()) {
             themes[themeName][screen] = themeVars;
         }
     }
@@ -644,10 +646,11 @@ createChoiceProperty(QHash<QString, QVariant>& screenVars,
     auto length = object["choices"].toArray().size();
     for (const auto& lang : object["displayStrings"].toObject()) {
         if (!lang.isArray()) {
-            throw support::Exception(std::format(
-              "a language of displayStrings of property of type choice contains a "
-              "non-array value: {}",
-              jsonValueToString(lang)));
+            throw support::Exception(
+              std::format("a language of displayStrings of property of type "
+                          "choice contains a "
+                          "non-array value: {}",
+                          jsonValueToString(lang)));
         }
         if (lang.toArray().size() != length) {
             throw support::Exception(std::format(
@@ -779,7 +782,8 @@ createProperty(ScreenVarsPopulationResult& result,
           std::format("Property has no name (or not an object): {}",
                       jsonValueToString(object)));
     }
-    if (!object["description"].isUndefined() && !object["description"].isObject()) {
+    if (!object["description"].isUndefined() &&
+        !object["description"].isObject()) {
         throw support::Exception(
           std::format("Property has no description (or not an object): {}",
                       jsonValueToString(object)));
@@ -864,7 +868,7 @@ populateScreenVars(const std::filesystem::path& themePath,
 
 void
 readGeneralVars(resource_managers::GeneralVars& generalVars,
-               const std::filesystem::path& profileFolder)
+                const std::filesystem::path& profileFolder)
 {
     auto file = QFile{ profileFolder / "generalVars.json" };
     if (!file.exists()) {
@@ -982,8 +986,7 @@ readThemeVars(const std::filesystem::path& profileFolder,
             support::qStringToPath(name + QStringLiteral("-vars.json")),
           themePath,
           themeFamily);
-        for (const auto& [screen, screenVars] :
-             screens.asKeyValueRange()) {
+        for (const auto& [screen, screenVars] : screens.asKeyValueRange()) {
             vars[screen][name] = screenVars;
         }
     }
@@ -1002,7 +1005,8 @@ resource_managers::Vars::populateThemePropertyMap(
     for (const auto& [screenName, themes] : themeVarsData.asKeyValueRange()) {
         auto screenPropertyMap = std::make_unique<QQmlPropertyMap>(&themeVars);
         for (const auto& [themeName, vars] : themes.asKeyValueRange()) {
-            auto propertyMap = std::make_unique<QQmlPropertyMap>(screenPropertyMap.get());
+            auto propertyMap =
+              std::make_unique<QQmlPropertyMap>(screenPropertyMap.get());
             propertyMap->insert(themeVarsData[screenName][themeName]);
             propertyMap->freeze();
             connect(propertyMap.get(),
