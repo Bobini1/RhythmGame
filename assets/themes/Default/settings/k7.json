@@ -1,5 +1,5 @@
 {
-  "$schema": "https://raw.githubusercontent.com/Bobini1/RhythmGame/blob/master/schemas/themeSettings.json",
+  "$schema": "https://raw.githubusercontent.com/Bobini1/RhythmGame/refs/heads/master/schemas/themeSettings.json",
   "items": [
     {
       "name": {
