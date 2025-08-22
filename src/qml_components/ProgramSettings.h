@@ -12,18 +12,14 @@ class ProgramSettings : public QObject
 {
     Q_OBJECT
 
-    // will be empty if not set
-    Q_PROPERTY(QString chartPath READ getChartPath CONSTANT)
     Q_PROPERTY(QString avatarFolder READ getAvatarFolder CONSTANT)
 
     QString chartPath;
     QString avatarFolder;
 
   public:
-    explicit ProgramSettings(QString chartPath,
-                             QString avatarFolder,
+    explicit ProgramSettings(QString avatarFolder,
                              QObject* parent = nullptr);
-    [[nodiscard]] auto getChartPath() const -> QString;
     auto getAvatarFolder() const -> QString;
 };
 

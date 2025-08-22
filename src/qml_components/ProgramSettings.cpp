@@ -7,16 +7,9 @@
 #include <utility>
 
 namespace qml_components {
-auto
-ProgramSettings::getChartPath() const -> QString
-{
-    return chartPath;
-}
-ProgramSettings::ProgramSettings(QString chartPath,
-                                 QString avatarFolder,
+ProgramSettings::ProgramSettings(QString avatarFolder,
                                  QObject* parent)
   : QObject(parent)
-  , chartPath(std::move(chartPath))
   , avatarFolder(std::move(avatarFolder))
 {
 }

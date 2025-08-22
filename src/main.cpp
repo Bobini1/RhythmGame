@@ -111,14 +111,6 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
 
         auto songDbScanner = resource_managers::SongDbScanner{ &db };
 
-        auto chartPath = QString{};
-        if (argc > 1) {
-#ifdef _WIN32
-            chartPath = QString::fromStdWString(__wargv[1]);
-#else
-            chartPath = QString::fromStdString(argv[1]);
-#endif
-        }
         auto avatarPath = support::pathToQString(assetsFolder / "avatars/");
         if (!avatarPath.startsWith("/")) {
             avatarPath = "/" + avatarPath;
@@ -126,7 +118,7 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
         avatarPath = "file://" + avatarPath;
 
         auto programSettings =
-          qml_components::ProgramSettings{ chartPath, avatarPath };
+          qml_components::ProgramSettings{ avatarPath };
 
         qRegisterMetaType<input::Gamepad>("input::Gamepad");
 
