@@ -287,11 +287,11 @@ add_executable(RhythmGame::exe ALIAS RhythmGame_exe)
 
 qt_add_resources(
         RhythmGame_exe
-        "ATTRIBUTIONS.md"
+        "text_files"
         BASE
         "${CMAKE_SOURCE_DIR}"
         FILES
-        ${CMAKE_SOURCE_DIR}/ATTRIBUTIONS.md
+        ${CMAKE_SOURCE_DIR}/ATTRIBUTIONS.md ${CMAKE_SOURCE_DIR}/LICENSE.md
 )
 
 set_target_properties(

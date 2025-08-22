@@ -18,24 +18,44 @@ Image {
         width: 800
         height: 600
 
-        property string mdText: {
-            const xhr = new XMLHttpRequest();
-            xhr.open("GET", "qrc:/ATTRIBUTIONS.md", false);
-            xhr.send(null);
-            return xhr.responseText
+        property string attrText: {
+            const attr = new XMLHttpRequest();
+            attr.open("GET", "qrc:/ATTRIBUTIONS.md", false);
+            attr.send(null);
+            attr.responseText;
+        }
+
+        property string licenseText: {
+            const license = new XMLHttpRequest();
+            license.open("GET", "qrc:/LICENSE.md", false);
+            license.send(null);
+            license.responseText;
         }
 
         contentItem: ScrollView {
+            id: scrollView
             clip: true
 
-            Text {
-                id: md
-                text: dlg.mdText
-                textFormat: Text.MarkdownText
-                wrapMode: Text.Wrap
-                padding: 12
-                width: parent.width
-                onLinkActivated: Qt.openUrlExternally(link)
+            Column {
+                Text {
+                    id: licenseMd
+                    text: dlg.licenseText
+                    textFormat: Text.MarkdownText
+                    wrapMode: Text.Wrap
+                    padding: 12
+                    width: scrollView.width
+                    onLinkActivated: Qt.openUrlExternally(link)
+                }
+
+                Text {
+                    id: md
+                    text: dlg.attrText
+                    textFormat: Text.MarkdownText
+                    wrapMode: Text.Wrap
+                    padding: 12
+                    width: scrollView.width
+                    onLinkActivated: Qt.openUrlExternally(link)
+                }
             }
         }
     }
