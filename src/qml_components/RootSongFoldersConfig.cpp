@@ -24,10 +24,12 @@ getStartupRootFolders(db::SqliteCppDb::Statement& getRootFolders)
         int status{};
     };
     auto rootFolders = std::vector<QSharedPointer<RootSongFolder>>{};
-    // get all root folders
     for (const auto result = getRootFolders.executeAndGetAll<RootFolderDTO>();
          const auto& [folder, status] : result) {
         auto statusEnum = static_cast<RootSongFolder::Status>(status);
+        if (statusEnum == RootSongFolder::Status::InProgress) {
+            statusEnum = RootSongFolder::Status::NotScanned;
+        }
         rootFolders.push_back(QSharedPointer<RootSongFolder>::create(
           QString::fromStdString(folder), statusEnum));
         QQmlEngine::setObjectOwnership(rootFolders.back().get(),
@@ -246,6 +248,11 @@ ScanningQueue::performTask()
 {
     const auto& folder = scanItems.front();
     folder->updateStatus(RootSongFolder::Status::InProgress);
+    updateStatus.reset();
+    updateStatus.bind(":dir", folder->getName().toStdString());
+    updateStatus.bind(":status",
+                      static_cast<int>(folder->getStatus()));
+    updateStatus.execute();
     scanImpl(folder->getName());
 }
 void
