@@ -858,11 +858,16 @@ populateScreenVars(const std::filesystem::path& themePath,
                       file.errorString().toStdString());
     }
     const auto contents = QJsonDocument::fromJson(file.readAll());
-    if (!contents.isArray()) {
+    if (!contents.isObject()) {
         throw support::Exception(std::format(
-          "Settings file is not an array: {}", settingsPath.string()));
+          "Settings file is not an object: {}", settingsPath.string()));
     }
-    populateScreenVarsRecursive(result, themePath, contents.array());
+    if (!contents.object().contains("items") ||
+        !contents.object()["items"].isArray()) {
+        throw support::Exception(std::format(
+          "Settings file has no items array: {}", settingsPath.string()));
+    }
+    populateScreenVarsRecursive(result, themePath, contents.object()["items"].toArray());
     return result;
 }
 

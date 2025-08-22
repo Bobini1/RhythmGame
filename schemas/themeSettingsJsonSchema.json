@@ -41,9 +41,9 @@
   "$defs": {
     "i18nString": {
       "type": "object",
-      "description": "Map of language tags (e.g. en, en_US, jp, fr-CA) to localized strings.",
+      "description": "Map of language tags (e.g. en, en_US, jp, fr_CA) to localized strings.",
       "patternProperties": {
-        "^[A-Za-z]{2,8}([_-][A-Za-z0-9]{2,8})*$": {
+        "^[a-z]{2}(_[A-Z]{2})?$": {
           "type": "string"
         }
       },

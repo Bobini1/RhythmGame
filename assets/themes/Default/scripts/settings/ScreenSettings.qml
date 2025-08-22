@@ -76,7 +76,7 @@ Loader {
 
     readonly property string script: Rg.themes.availableThemeFamilies[Rg.profileList.mainProfile.themeConfig[screen]].screens[screen].settingsScript
     required property string screen
-    readonly property var screenSettings: screenSettingsJson ? JSON.parse(openFile(screenSettingsJson)) : []
+    readonly property var screenSettings: screenSettingsJson ? JSON.parse(openFile(screenSettingsJson)).items : []
     readonly property string screenSettingsJson: Rg.themes.availableThemeFamilies[Rg.profileList.mainProfile.themeConfig[screen]].screens[screen].settings
     readonly property string currentTheme: Rg.profileList.mainProfile.themeConfig[screen]
 }

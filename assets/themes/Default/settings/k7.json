@@ -1,664 +1,667 @@
-[
-  {
-    "name": {
-      "en": "General Settings",
-      "pl": "Ustawienia ogólne"
-    },
-    "type": "group",
-    "description": {
-      "en": "Miscellaneous.",
-      "pl": "Różne."
-    },
-    "items": [
-      {
-        "id": "laneBrightness",
-        "name": {
-          "en": "Lane Brightness",
-          "pl": "Jasność tła"
-        },
-        "description": {
-          "en": "The brightness of the background behind falling notes.",
-          "pl": "Jasność tła za spadającymi notkami."
-        },
-        "type": "range",
-        "min": -1,
-        "max": 1,
-        "default": 0.0
+{
+  "$schema": "https://github.com/Bobini1/RhythmGame/blob/master/schemas/themeSettingsJsonSchema.json",
+  "items": [
+    {
+      "name": {
+        "en": "General Settings",
+        "pl": "Ustawienia ogólne"
       },
-      {
-        "id": "verticalGauge",
-        "name": {
-          "en": "Vertical Gauge",
-          "pl": "Pionowy wskaźnik"
-        },
-        "description": {
-          "en": "Whether the life gauge is vertical (fills upwards).",
-          "pl": "Pionowy wskaźnić życia (wypełnia się w górę)."
-        },
-        "type": "boolean",
-        "default": false
+      "type": "group",
+      "description": {
+        "en": "Miscellaneous.",
+        "pl": "Różne."
       },
-      {
-        "id": "scratchOnRightSide",
-        "name": {
-          "en": "Scratch on Right Side",
-          "pl": "Scratch po prawej stronie"
+      "items": [
+        {
+          "id": "laneBrightness",
+          "name": {
+            "en": "Lane Brightness",
+            "pl": "Jasność tła"
+          },
+          "description": {
+            "en": "The brightness of the background behind falling notes.",
+            "pl": "Jasność tła za spadającymi notkami."
+          },
+          "type": "range",
+          "min": -1,
+          "max": 1,
+          "default": 0.0
         },
-        "description": {
-          "en": "Put the scratch lane is on the right side of the play area.",
-          "pl": "Umieść linię ze scratchem po prawej stronie obszaru gry."
+        {
+          "id": "verticalGauge",
+          "name": {
+            "en": "Vertical Gauge",
+            "pl": "Pionowy wskaźnik"
+          },
+          "description": {
+            "en": "Whether the life gauge is vertical (fills upwards).",
+            "pl": "Pionowy wskaźnić życia (wypełnia się w górę)."
+          },
+          "type": "boolean",
+          "default": false
         },
-        "type": "boolean",
-        "default": false
-      },
-      {
-        "id": "hideLnEnds",
-        "name": {
+        {
+          "id": "scratchOnRightSide",
+          "name": {
+            "en": "Scratch on Right Side",
+            "pl": "Scratch po prawej stronie"
+          },
+          "description": {
+            "en": "Put the scratch lane is on the right side of the play area.",
+            "pl": "Umieść linię ze scratchem po prawej stronie obszaru gry."
+          },
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "id": "hideLnEnds",
+          "name": {
             "en": "Hide LN Ends",
             "pl": "Ukryj końcówki długich notek"
+          },
+          "description": {
+            "en": "Don't display the note texture at the end of LNs.",
+            "pl": "Nie wyświetlaj tekstury notki na końcu długich notek."
+          },
+          "type": "boolean",
+          "default": true
         },
-        "description": {
-          "en": "Don't display the note texture at the end of LNs.",
-          "pl": "Nie wyświetlaj tekstury notki na końcu długich notek."
+        {
+          "id": "judgeLineThickness",
+          "name": {
+            "en": "Judge Line Thickness",
+            "pl": "Grubość dolnej kreski"
+          },
+          "type": "range",
+          "description": {
+            "en": "The thickness of the line where you are supposed to hit the note",
+            "pl": "Grubość linii, na której należy uderzyć notkę"
+          },
+          "min": 0,
+          "default": 8
         },
-        "type": "boolean",
-        "default": true
-      },
-      {
-        "id": "judgeLineThickness",
-        "name": {
-          "en": "Judge Line Thickness",
-          "pl": "Grubość dolnej kreski"
-        },
-        "type": "range",
-        "description": {
-          "en": "The thickness of the line where you are supposed to hit the note",
-          "pl": "Grubość linii, na której należy uderzyć notkę"
-        },
-        "min": 0,
-        "default": 8
-      },
-      {
-        "id": "judgeLineColor",
-        "name": {
-          "en": "Judge Line Color",
-          "pl": "Kolor dolnej kreski"
-        },
-        "type": "color",
-        "description": {
-          "en": "The color of the line where you are supposed to hit the note",
-          "pl": "Kolor linii, na której należy uderzyć notkę"
-        },
-        "default": "red"
-      }
-    ]
-  },
-  {
-    "name": {
-      "en": "Textures",
-      "pl": "Tekstury"
+        {
+          "id": "judgeLineColor",
+          "name": {
+            "en": "Judge Line Color",
+            "pl": "Kolor dolnej kreski"
+          },
+          "type": "color",
+          "description": {
+            "en": "The color of the line where you are supposed to hit the note",
+            "pl": "Kolor linii, na której należy uderzyć notkę"
+          },
+          "default": "red"
+        }
+      ]
     },
-    "type": "group",
-    "description": {
-      "en": "The textures used in the game.",
-      "pl": "Tekstury używane w grze."
+    {
+      "name": {
+        "en": "Textures",
+        "pl": "Tekstury"
+      },
+      "type": "group",
+      "description": {
+        "en": "The textures used in the game.",
+        "pl": "Tekstury używane w grze."
+      },
+      "items": [
+        {
+          "id": "notes",
+          "name": {
+            "en": "Note",
+            "pl": "Notka"
+          },
+          "type": "file",
+          "path": "scripts/gameplay/images/notes",
+          "default": "default.png",
+          "description": {
+            "en": "The texture used for notes.",
+            "pl": "Tekstura używana dla notek."
+          }
+        },
+        {
+          "id": "mine",
+          "name": {
+            "en": "Landmine",
+            "pl": "Mina"
+          },
+          "type": "file",
+          "path": "scripts/gameplay/images/mine",
+          "default": "darkred.png",
+          "description": {
+            "en": "The texture used for landmines.",
+            "pl": "Tekstura używana dla min."
+          }
+        },
+        {
+          "id": "bomb",
+          "name": {
+            "en": "bomb",
+            "pl": "Bomba"
+          },
+          "type": "file",
+          "path": "scripts/gameplay/images/bomb",
+          "default": "explosion.png",
+          "description": {
+            "en": "The texture used for the animated explosion triggered when a note is hit.",
+            "pl": "Tekstura używana dla animowanej eksplozji po trafieniu notki."
+          }
+        },
+        {
+          "id": "gauge",
+          "name": {
+            "en": "Gauge",
+            "pl": "Pasek życia"
+          },
+          "type": "file",
+          "path": "scripts/gameplay/images/gauge",
+          "default": "dotgradation.png",
+          "description": {
+            "en": "The texture used for the life gauge.",
+            "pl": "Tekstura używana dla wskaźnika życia."
+          }
+        },
+        {
+          "id": "glow",
+          "name": {
+            "en": "Glow",
+            "pl": "Poświata"
+          },
+          "type": "file",
+          "path": "scripts/gameplay/images/glow",
+          "default": "default.png",
+          "description": {
+            "en": "The texture used for the glow at the bottom of the play area.",
+            "pl": "Tekstura poświaty na dole pola gry."
+          }
+        },
+        {
+          "id": "lanecover",
+          "name": {
+            "en": "Lane Cover",
+            "pl": "Zakrycie"
+          },
+          "type": "file",
+          "path": "scripts/gameplay/images/lanecover",
+          "default": "default.png",
+          "description": {
+            "en": "The texture used for covering the top part of the playfield.",
+            "pl": "Tekstura zakrywająca górną część pola gry."
+          }
+        },
+        {
+          "id": "liftcover",
+          "name": {
+            "en": "Lift Cover",
+            "pl": "Podniesienie"
+          },
+          "type": "file",
+          "path": "scripts/gameplay/images/liftcover",
+          "default": "default.png",
+          "description": {
+            "en": "The texture used for covering the bottom part of the playfield.",
+            "pl": "Tekstura zakrywająca dolną część pola gry."
+          }
+        },
+        {
+          "id": "judge",
+          "name": {
+            "en": "Judgement",
+            "pl": "Ocena"
+          },
+          "type": "file",
+          "path": "scripts/gameplay/images/judge",
+          "default": "SquadaOne.png",
+          "description": {
+            "en": "The texture used for the judgement text and combo number.",
+            "pl": "Tekstura używana dla tekstu oceny i licznika combo."
+          }
+        },
+        {
+          "id": "keybeam",
+          "name": {
+            "en": "Key Beam",
+            "pl": "Laser klawisza"
+          },
+          "type": "file",
+          "path": "scripts/gameplay/images/keybeam",
+          "default": "default.png",
+          "description": {
+            "en": "The texture used for the laser beam that appears when a key is pressed.",
+            "pl": "Tekstura używana dla lasera, który pojawia się po naciśnięciu klawisza."
+          }
+        }
+      ]
     },
-    "items": [
-      {
-        "id": "notes",
-        "name": {
-          "en": "Note",
-          "pl": "Notka"
-        },
-        "type": "file",
-        "path": "scripts/gameplay/images/notes",
-        "default": "default.png",
-        "description": {
-          "en": "The texture used for notes.",
-          "pl": "Tekstura używana dla notek."
-        }
+    {
+      "name": {
+        "en-us": "Positioning",
+        "pl": "Pozycjonowanie"
       },
-      {
-        "id": "mine",
-        "name": {
-          "en": "Landmine",
-          "pl": "Mina"
-        },
-        "type": "file",
-        "path": "scripts/gameplay/images/mine",
-        "default": "darkred.png",
-        "description": {
-          "en": "The texture used for landmines.",
-          "pl": "Tekstura używana dla min."
-        }
+      "type": "group",
+      "description": {
+        "en": "The positions of elements on the screen.",
+        "pl": "Pozycje elementów na ekranie."
       },
-      {
-        "id": "bomb",
-        "name": {
-          "en": "bomb",
-          "pl": "Bomba"
+      "items": [
+        {
+          "name": {
+            "en": "Play Area",
+            "pl": "Obszar gry"
+          },
+          "type": "group",
+          "description": {
+            "en": "The area where notes fall.",
+            "pl": "Obszar, na którym spadają notki."
+          },
+          "items": [
+            {
+              "id": "playAreaX",
+              "name": {
+                "en": "X",
+                "pl": "X"
+              },
+              "type": "range",
+              "default": 0,
+              "description": {
+                "en": "The X position of the left side of the play area rectangle.",
+                "pl": "Pozycja X lewej strony prostokąta obszaru gry."
+              }
+            },
+            {
+              "id": "playAreaY",
+              "name": {
+                "en": "Y",
+                "pl": "Y"
+              },
+              "type": "range",
+              "default": 0,
+              "description": {
+                "en": "The Y position of the top side of the play area rectangle.",
+                "pl": "Pozycja Y górnej strony prostokąta obszaru gry."
+              }
+            },
+            {
+              "id": "playAreaHeight",
+              "name": {
+                "en": "Height",
+                "pl": "Wysokość"
+              },
+              "type": "range",
+              "min": 0,
+              "default": 800,
+              "description": {
+                "en": "The height of the play area rectangle.",
+                "pl": "Wysokość prostokąta obszaru gry."
+              }
+            }
+          ]
         },
-        "type": "file",
-        "path": "scripts/gameplay/images/bomb",
-        "default": "explosion.png",
-        "description": {
-          "en": "The texture used for the animated explosion triggered when a note is hit.",
-          "pl": "Tekstura używana dla animowanej eksplozji po trafieniu notki."
-        }
-      },
-      {
-        "id": "gauge",
-        "name": {
-          "en": "Gauge",
-          "pl": "Pasek życia"
+        {
+          "name": {
+            "en": "Note Columns",
+            "pl": "Kolumny notek"
+          },
+          "type": "group",
+          "description": {
+            "en": "The sizes of notes.",
+            "pl": "Rozmiary notek."
+          },
+          "items": [
+            {
+              "id": "thickness",
+              "name": {
+                "en": "Thickness",
+                "pl": "Grubość"
+              },
+              "type": "range",
+              "min": 0,
+              "default": 12
+            },
+            {
+              "id": "whiteWidth",
+              "name": {
+                "en": "White Width",
+                "pl": "Szerokość białych"
+              },
+              "type": "range",
+              "min": 0,
+              "default": 60,
+              "description": {
+                "en": "The width of white (odd) notes.",
+                "pl": "Szerokość białych (nieparzystych) notek."
+              }
+            },
+            {
+              "id": "blackWidth",
+              "name": {
+                "en": "Black Width",
+                "pl": "Szerokość czarnych"
+              },
+              "type": "range",
+              "min": 0,
+              "default": 48,
+              "description": {
+                "en": "The width of black (even) notes.",
+                "pl": "Szerokość czarnych (parzystych) notek."
+              }
+            },
+            {
+              "id": "scratchWidth",
+              "name": {
+                "en": "Scratch Width",
+                "pl": "Szerokość scratcha"
+              },
+              "type": "range",
+              "min": 0,
+              "default": 108,
+              "description": {
+                "en": "The width of scratch notes.",
+                "pl": "Szerokość scratch notek."
+              }
+            },
+            {
+              "id": "spacing",
+              "name": {
+                "en": "Spacing",
+                "pl": "Odstęp"
+              },
+              "type": "range",
+              "min": 0,
+              "default": 2,
+              "description": {
+                "en": "The number of pixels between columns.",
+                "pl": "Liczba pikseli między kolumnami."
+              }
+            }
+          ]
         },
-        "type": "file",
-        "path": "scripts/gameplay/images/gauge",
-        "default": "dotgradation.png",
-        "description": {
-          "en": "The texture used for the life gauge.",
-          "pl": "Tekstura używana dla wskaźnika życia."
-        }
-      },
-      {
-        "id": "glow",
-        "name": {
-          "en": "Glow",
-          "pl": "Poświata"
+        {
+          "type": "group",
+          "name": {
+            "en": "Bga",
+            "pl": "Bga"
+          },
+          "description": {
+            "en": "The position of the background video/image.",
+            "pl": "Pozycja tła wideo/obrazu."
+          },
+          "items": [
+            {
+              "id": "bgaX",
+              "name": {
+                "en": "X",
+                "pl": "X"
+              },
+              "type": "range",
+              "default": 660,
+              "description": {
+                "en": "The X position of the left side of the BGA rectangle.",
+                "pl": "Pozycja X lewej strony prostokąta BGA."
+              }
+            },
+            {
+              "id": "bgaY",
+              "name": {
+                "en": "Y",
+                "pl": "Y"
+              },
+              "type": "range",
+              "default": 0,
+              "description": {
+                "en": "The Y position of the top side of the BGA rectangle.",
+                "pl": "Pozycja Y górnej strony prostokąta BGA."
+              }
+            },
+            {
+              "id": "bgaSize",
+              "name": {
+                "en": "Scale",
+                "pl": "Skala"
+              },
+              "type": "range",
+              "min": 0,
+              "default": 600,
+              "description": {
+                "en": "The size of the BGA square.",
+                "pl": "Rozmiar kwadratu BGA."
+              }
+            }
+          ]
         },
-        "type": "file",
-        "path": "scripts/gameplay/images/glow",
-        "default": "default.png",
-        "description": {
-          "en": "The texture used for the glow at the bottom of the play area.",
-          "pl": "Tekstura poświaty na dole pola gry."
-        }
-      },
-      {
-        "id": "lanecover",
-        "name": {
-          "en": "Lane Cover",
-          "pl": "Zakrycie"
+        {
+          "name": {
+            "en": "Judgements",
+            "pl": "Oceny trafień"
+          },
+          "type": "group",
+          "description": {
+            "en": "The position of the judgement text.",
+            "pl": "Pozycja tekstu oceny."
+          },
+          "items": [
+            {
+              "id": "judgementsOffset",
+              "name": {
+                "en": "Position",
+                "pl": "Pozycja"
+              },
+              "type": "range",
+              "min": 0,
+              "max": 1,
+              "default": 0.5,
+              "description": {
+                "en": "The vertical offset, expressed a ratio of the play area height.",
+                "pl": "Pionowe przesunięcie, wyrażone jako stosunek do wysokości obszaru gry."
+              }
+            }
+          ]
         },
-        "type": "file",
-        "path": "scripts/gameplay/images/lanecover",
-        "default": "default.png",
-        "description": {
-          "en": "The texture used for covering the top part of the playfield.",
-          "pl": "Tekstura zakrywająca górną część pola gry."
-        }
-      },
-      {
-        "id": "liftcover",
-        "name": {
-          "en": "Lift Cover",
-          "pl": "Podniesienie"
+        {
+          "type": "group",
+          "name": {
+            "en": "LifeBar",
+            "pl": "Pasek życia"
+          },
+          "description": {
+            "en": "The position of the life bar.",
+            "pl": "Pozycja paska życia."
+          },
+          "items": [
+            {
+              "id": "lifeBarX",
+              "name": {
+                "en": "X",
+                "pl": "X"
+              },
+              "type": "range",
+              "default": 0,
+              "description": {
+                "en": "The X position of the left side of the life bar rectangle.",
+                "pl": "Pozycja X lewej strony prostokąta paska życia."
+              }
+            },
+            {
+              "id": "lifeBarY",
+              "name": {
+                "en": "Y",
+                "pl": "Y"
+              },
+              "type": "range",
+              "default": 800,
+              "description": {
+                "en": "The Y position of the top side of the life bar rectangle.",
+                "pl": "Pozycja Y górnej strony prostokąta paska życia."
+              }
+            },
+            {
+              "id": "lifeBarWidth",
+              "name": {
+                "en": "Width",
+                "pl": "Szerokość"
+              },
+              "type": "range",
+              "min": 0,
+              "default": 500,
+              "description": {
+                "en": "The width of the life bar rectangle.",
+                "pl": "Szerokość prostokąta paska życia."
+              }
+            },
+            {
+              "id": "lifeBarHeight",
+              "name": {
+                "en": "Height",
+                "pl": "Wysokość"
+              },
+              "type": "range",
+              "min": 0,
+              "default": 40,
+              "description": {
+                "en": "The height of the life bar rectangle.",
+                "pl": "Wysokość prostokąta paska życia."
+              }
+            }
+          ]
         },
-        "type": "file",
-        "path": "scripts/gameplay/images/liftcover",
-        "default": "default.png",
-        "description": {
-          "en": "The texture used for covering the bottom part of the playfield.",
-          "pl": "Tekstura zakrywająca dolną część pola gry."
+        {
+          "type": "group",
+          "name": {
+            "en": "Judgement Counts",
+            "pl": "Licznik trafień"
+          },
+          "description": {
+            "en": "The position of judgement counts.",
+            "pl": "Pozycja licznika trafień."
+          },
+          "items": [
+            {
+              "id": "judgementCountsX",
+              "name": {
+                "en": "X",
+                "pl": "X"
+              },
+              "type": "range",
+              "default": 545,
+              "description": {
+                "en": "The X position of the left side of the judgement counts rectangle.",
+                "pl": "Pozycja X lewej strony prostokąta licznika trafień."
+              }
+            },
+            {
+              "id": "judgementCountsY",
+              "name": {
+                "en": "Y",
+                "pl": "Y"
+              },
+              "type": "range",
+              "default": 640,
+              "description": {
+                "en": "The Y position of the top side of the judgement counts rectangle.",
+                "pl": "Pozycja Y górnej strony prostokąta licznika trafień."
+              }
+            },
+            {
+              "id": "judgementCountsWidth",
+              "name": {
+                "en": "Width",
+                "pl": "Szerokość"
+              },
+              "type": "range",
+              "min": 0,
+              "default": 300,
+              "description": {
+                "en": "The width of the judgement counts rectangle.",
+                "pl": "Szerokość prostokąta licznika trafień."
+              }
+            },
+            {
+              "id": "judgementCountsHeight",
+              "name": {
+                "en": "Height",
+                "pl": "Wysokość"
+              },
+              "type": "range",
+              "min": 0,
+              "default": 200,
+              "description": {
+                "en": "The height of the judgement counts rectangle.",
+                "pl": "Wysokość prostokąta licznika trafień."
+              }
+            }
+          ]
         }
-      },
-      {
-        "id": "judge",
-        "name": {
-          "en": "Judgement",
-          "pl": "Ocena"
-        },
-        "type": "file",
-        "path": "scripts/gameplay/images/judge",
-        "default": "SquadaOne.png",
-        "description": {
-          "en": "The texture used for the judgement text and combo number.",
-          "pl": "Tekstura używana dla tekstu oceny i licznika combo."
-        }
-      },
-      {
-        "id": "keybeam",
-        "name": {
-          "en": "Key Beam",
-          "pl": "Laser klawisza"
-        },
-        "type": "file",
-        "path": "scripts/gameplay/images/keybeam",
-        "default": "default.png",
-        "description": {
-          "en": "The texture used for the laser beam that appears when a key is pressed.",
-          "pl": "Tekstura używana dla lasera, który pojawia się po naciśnięciu klawisza."
-        }
-      }
-    ]
-  },
-  {
-    "name": {
-      "en": "Positioning",
-      "pl": "Pozycjonowanie"
+      ]
     },
-    "type": "group",
-    "description": {
-      "en": "The positions of elements on the screen.",
-      "pl": "Pozycje elementów na ekranie."
-    },
-    "items": [
-      {
-        "name": {
-          "en": "Play Area",
-          "pl": "Obszar gry"
-        },
-        "type": "group",
-        "description": {
-          "en": "The area where notes fall.",
-          "pl": "Obszar, na którym spadają notki."
-        },
-        "items": [
-          {
-            "id": "playAreaX",
-            "name": {
-              "en": "X",
-              "pl": "X"
-            },
-            "type": "range",
-            "default": 0,
-            "description": {
-              "en": "The X position of the left side of the play area rectangle.",
-              "pl": "Pozycja X lewej strony prostokąta obszaru gry."
-            }
-          },
-          {
-            "id": "playAreaY",
-            "name": {
-              "en": "Y",
-              "pl": "Y"
-            },
-            "type": "range",
-            "default": 0,
-            "description": {
-              "en": "The Y position of the top side of the play area rectangle.",
-              "pl": "Pozycja Y górnej strony prostokąta obszaru gry."
-            }
-          },
-          {
-            "id": "playAreaHeight",
-            "name": {
-              "en": "Height",
-              "pl": "Wysokość"
-            },
-            "type": "range",
-            "min": 0,
-            "default": 800,
-            "description": {
-              "en": "The height of the play area rectangle.",
-              "pl": "Wysokość prostokąta obszaru gry."
-            }
-          }
-        ]
+    {
+      "name": {
+        "en": "Z-order",
+        "pl": "Kolejność Z"
       },
-      {
-        "name": {
-          "en": "Note Columns",
-          "pl": "Kolumny notek"
-        },
-        "type": "group",
-        "description": {
-          "en": "The sizes of notes.",
-          "pl": "Rozmiary notek."
-        },
-        "items": [
-          {
-            "id": "thickness",
-            "name": {
-              "en": "Thickness",
-              "pl": "Grubość"
-            },
-            "type": "range",
-            "min": 0,
-            "default": 12
-          },
-          {
-            "id": "whiteWidth",
-            "name": {
-              "en": "White Width",
-              "pl": "Szerokość białych"
-            },
-            "type": "range",
-            "min": 0,
-            "default": 60,
-            "description": {
-              "en": "The width of white (odd) notes.",
-              "pl": "Szerokość białych (nieparzystych) notek."
-            }
-          },
-          {
-            "id": "blackWidth",
-            "name": {
-              "en": "Black Width",
-              "pl": "Szerokość czarnych"
-            },
-            "type": "range",
-            "min": 0,
-            "default": 48,
-            "description": {
-              "en": "The width of black (even) notes.",
-              "pl": "Szerokość czarnych (parzystych) notek."
-            }
-          },
-          {
-            "id": "scratchWidth",
-            "name": {
-              "en": "Scratch Width",
-              "pl": "Szerokość scratcha"
-            },
-            "type": "range",
-            "min": 0,
-            "default": 108,
-            "description": {
-              "en": "The width of scratch notes.",
-              "pl": "Szerokość scratch notek."
-            }
-          },
-          {
-            "id": "spacing",
-            "name": {
-              "en": "Spacing",
-              "pl": "Odstęp"
-            },
-            "type": "range",
-            "min": 0,
-            "default": 2,
-            "description": {
-              "en": "The number of pixels between columns.",
-              "pl": "Liczba pikseli między kolumnami."
-            }
-          }
-        ]
+      "type": "group",
+      "description": {
+        "en": "The z-index of elements on the screen.",
+        "pl": "Wartość z-index elementów na ekranie."
       },
-      {
-        "type": "group",
-        "name": {
-          "en": "Bga",
-          "pl": "Bga"
-        },
-        "description": {
-          "en": "The position of the background video/image.",
-          "pl": "Pozycja tła wideo/obrazu."
-        },
-        "items": [
-          {
-            "id": "bgaX",
-            "name": {
-              "en": "X",
-              "pl": "X"
-            },
-            "type": "range",
-            "default": 660,
-            "description": {
-              "en": "The X position of the left side of the BGA rectangle.",
-              "pl": "Pozycja X lewej strony prostokąta BGA."
-            }
+      "items": [
+        {
+          "id": "playAreaZ",
+          "name": {
+            "en": "Play Area Z",
+            "pl": "Obszar gry Z"
           },
-          {
-            "id": "bgaY",
-            "name": {
-              "en": "Y",
-              "pl": "Y"
-            },
-            "type": "range",
-            "default": 0,
-            "description": {
-              "en": "The Y position of the top side of the BGA rectangle.",
-              "pl": "Pozycja Y górnej strony prostokąta BGA."
-            }
-          },
-          {
-            "id": "bgaSize",
-            "name": {
-              "en": "Scale",
-              "pl": "Skala"
-            },
-            "type": "range",
-            "min": 0,
-            "default": 600,
-            "description": {
-              "en": "The size of the BGA square.",
-              "pl": "Rozmiar kwadratu BGA."
-            }
+          "type": "range",
+          "min": 0,
+          "default": 2,
+          "description": {
+            "en": "The z-index of the play area.",
+            "pl": "Wartość z-index obszaru gry."
           }
-        ]
-      },
-      {
-        "name": {
-          "en": "Judgements",
-          "pl": "Oceny trafień"
         },
-        "type": "group",
-        "description": {
-          "en": "The position of the judgement text.",
-          "pl": "Pozycja tekstu oceny."
-        },
-        "items": [
-          {
-            "id": "judgementsOffset",
-            "name": {
-              "en": "Position",
-              "pl": "Pozycja"
-            },
-            "type": "range",
-            "min": 0,
-            "max": 1,
-            "default": 0.5,
-            "description": {
-              "en": "The vertical offset, expressed a ratio of the play area height.",
-              "pl": "Pionowe przesunięcie, wyrażone jako stosunek do wysokości obszaru gry."
-            }
+        {
+          "id": "bgaZ",
+          "name": {
+            "en": "BGA Z",
+            "pl": "BGA Z"
+          },
+          "type": "range",
+          "min": 0,
+          "default": 3,
+          "description": {
+            "en": "The z-index of the BGA.",
+            "pl": "Wartość z-index BGA."
           }
-        ]
-      },
-      {
-        "type": "group",
-        "name": {
-          "en": "LifeBar",
-          "pl": "Pasek życia"
         },
-        "description": {
-          "en": "The position of the life bar.",
-          "pl": "Pozycja paska życia."
-        },
-        "items": [
-          {
-            "id": "lifeBarX",
-            "name": {
-              "en": "X",
-              "pl": "X"
-            },
-            "type": "range",
-            "default": 0,
-            "description": {
-              "en": "The X position of the left side of the life bar rectangle.",
-              "pl": "Pozycja X lewej strony prostokąta paska życia."
-            }
+        {
+          "id": "lifeBarZ",
+          "name": {
+            "en": "Life Bar Z",
+            "pl": "Pasek życia Z"
           },
-          {
-            "id": "lifeBarY",
-            "name": {
-              "en": "Y",
-              "pl": "Y"
-            },
-            "type": "range",
-            "default": 800,
-            "description": {
-              "en": "The Y position of the top side of the life bar rectangle.",
-              "pl": "Pozycja Y górnej strony prostokąta paska życia."
-            }
-          },
-          {
-            "id": "lifeBarWidth",
-            "name": {
-              "en": "Width",
-              "pl": "Szerokość"
-            },
-            "type": "range",
-            "min": 0,
-            "default": 500,
-            "description": {
-              "en": "The width of the life bar rectangle.",
-              "pl": "Szerokość prostokąta paska życia."
-            }
-          },
-          {
-            "id": "lifeBarHeight",
-            "name": {
-              "en": "Height",
-              "pl": "Wysokość"
-            },
-            "type": "range",
-            "min": 0,
-            "default": 40,
-            "description": {
-              "en": "The height of the life bar rectangle.",
-              "pl": "Wysokość prostokąta paska życia."
-            }
+          "type": "range",
+          "min": 0,
+          "default": 0,
+          "description": {
+            "en": "The z-index of the life bar.",
+            "pl": "Wartość z-index paska życia."
           }
-        ]
-      },
-      {
-        "type": "group",
-        "name": {
-          "en": "Judgement Counts",
-          "pl": "Licznik trafień"
         },
-        "description": {
-          "en": "The position of judgement counts.",
-          "pl": "Pozycja licznika trafień."
-        },
-        "items": [
-          {
-            "id": "judgementCountsX",
-            "name": {
-              "en": "X",
-              "pl": "X"
-            },
-            "type": "range",
-            "default": 545,
-            "description": {
-              "en": "The X position of the left side of the judgement counts rectangle.",
-              "pl": "Pozycja X lewej strony prostokąta licznika trafień."
-            }
+        {
+          "id": "judgementCountsZ",
+          "name": {
+            "en": "Judgement Counts Z",
+            "pl": "Licznik trafień Z"
           },
-          {
-            "id": "judgementCountsY",
-            "name": {
-              "en": "Y",
-              "pl": "Y"
-            },
-            "type": "range",
-            "default": 640,
-            "description": {
-              "en": "The Y position of the top side of the judgement counts rectangle.",
-              "pl": "Pozycja Y górnej strony prostokąta licznika trafień."
-            }
-          },
-          {
-            "id": "judgementCountsWidth",
-            "name": {
-              "en": "Width",
-              "pl": "Szerokość"
-            },
-            "type": "range",
-            "min": 0,
-            "default": 300,
-            "description": {
-              "en": "The width of the judgement counts rectangle.",
-              "pl": "Szerokość prostokąta licznika trafień."
-            }
-          },
-          {
-            "id": "judgementCountsHeight",
-            "name": {
-              "en": "Height",
-              "pl": "Wysokość"
-            },
-            "type": "range",
-            "min": 0,
-            "default": 200,
-            "description": {
-              "en": "The height of the judgement counts rectangle.",
-              "pl": "Wysokość prostokąta licznika trafień."
-            }
+          "type": "range",
+          "min": 0,
+          "default": 1,
+          "description": {
+            "en": "The z-index of the judgement counts.",
+            "pl": "Wartość z-index licznika trafień."
           }
-        ]
-      }
-    ]
-  },
-  {
-    "name": {
-      "en": "Z-order",
-      "pl": "Kolejność Z"
-    },
-    "type": "group",
-    "description": {
-      "en": "The z-index of elements on the screen.",
-      "pl": "Wartość z-index elementów na ekranie."
-    },
-    "items": [
-      {
-        "id": "playAreaZ",
-        "name": {
-          "en": "Play Area Z",
-          "pl": "Obszar gry Z"
-        },
-        "type": "range",
-        "min": 0,
-        "default": 2,
-        "description": {
-          "en": "The z-index of the play area.",
-          "pl": "Wartość z-index obszaru gry."
         }
-      },
-      {
-        "id": "bgaZ",
-        "name": {
-          "en": "BGA Z",
-          "pl": "BGA Z"
-        },
-        "type": "range",
-        "min": 0,
-        "default": 3,
-        "description": {
-          "en": "The z-index of the BGA.",
-          "pl": "Wartość z-index BGA."
-        }
-      },
-      {
-        "id": "lifeBarZ",
-        "name": {
-          "en": "Life Bar Z",
-          "pl": "Pasek życia Z"
-        },
-        "type": "range",
-        "min": 0,
-        "default": 0,
-        "description": {
-          "en": "The z-index of the life bar.",
-          "pl": "Wartość z-index paska życia."
-        }
-      },
-      {
-        "id": "judgementCountsZ",
-        "name": {
-          "en": "Judgement Counts Z",
-          "pl": "Licznik trafień Z"
-        },
-        "type": "range",
-        "min": 0,
-        "default": 1,
-        "description": {
-          "en": "The z-index of the judgement counts.",
-          "pl": "Wartość z-index licznika trafień."
-        }
-      }
-    ]
-  }
-]
+      ]
+    }
+  ]
+}

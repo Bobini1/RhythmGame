@@ -294,6 +294,15 @@ qt_add_resources(
         ${CMAKE_SOURCE_DIR}/ATTRIBUTIONS.md ${CMAKE_SOURCE_DIR}/LICENSE.md
 )
 
+qt_add_resources(
+        RhythmGame_exe
+        "schemas"
+        BASE
+        "${CMAKE_SOURCE_DIR}"
+        FILES
+        ${CMAKE_SOURCE_DIR}/schemas/themeSettingsJsonSchema.json
+)
+
 set_target_properties(
         RhythmGame_exe PROPERTIES
         OUTPUT_NAME RhythmGame
