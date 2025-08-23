@@ -744,7 +744,7 @@ BmsNotesData::generateMeasures(
     }
     std::ranges::sort(bgmNotes);
     if (lnType == LnType::RDM) {
-        adjustRdmLnEnds(lastInsertedRdmNoteP1, lastInsertedRdmNoteP2);
+        adjustRdmLnEnds(lastInsertedRdmNoteP1, lastInsertedRdmNoteP2, lnNotes);
     } else {
         adjustMgqLnEnds(lastBpm, measureStart, insideLnP1, insideLnP2, lnNotes);
     }
@@ -801,23 +801,24 @@ BmsNotesData::adjustRdmLnEnds(
     lastInsertedRdmNoteP1,
   const std::array<std::optional<size_t>,
                    ParsedBmsChart::Measure::columnNumber>&
-    lastInsertedRdmNoteP2)
+    lastInsertedRdmNoteP2,
+    std::span<std::vector<Note>> notes)
 {
     for (int i = 0; i < columnMapping.size(); i++) {
         auto lastNote = lastInsertedRdmNoteP1.at(columnMapping.at(i));
         if (!lastNote.has_value()) {
             continue;
         }
-        if (notes.at(i).at(*lastNote).noteType == NoteType::LongNoteBegin) {
-            notes.at(i).at(*lastNote).noteType = NoteType::Normal;
+        if (notes[i].at(*lastNote).noteType == NoteType::LongNoteBegin) {
+            notes[i].at(*lastNote).noteType = NoteType::Normal;
         }
         lastNote = lastInsertedRdmNoteP2.at(columnMapping.at(i));
         if (!lastNote.has_value()) {
             continue;
         }
-        if (notes.at(i + columnMapping.size()).at(*lastNote).noteType ==
+        if (notes[i + columnMapping.size()].at(*lastNote).noteType ==
             NoteType::LongNoteBegin) {
-            notes.at(i + columnMapping.size()).at(*lastNote).noteType =
+            notes[i + columnMapping.size()].at(*lastNote).noteType =
               NoteType::Normal;
         }
     }

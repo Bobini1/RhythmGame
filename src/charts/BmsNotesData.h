@@ -92,15 +92,14 @@ struct BmsNotesData
         lastInsertedRdmNoteP1,
       const std::array<std::optional<size_t>,
                        ParsedBmsChart::Measure::columnNumber>&
-        lastInsertedRdmNoteP2);
+        lastInsertedRdmNoteP2,
+      std::span<std::vector<Note>> notes);
     void adjustMgqLnEnds(
       double lastBpm,
       Time measureStart,
-      std::array<bool, ParsedBmsChart::Measure::columnNumber>&
-        insideLnP1,
-      std::array<bool, ParsedBmsChart::Measure::columnNumber>&
-        insideLnP2,
-        std::span<std::vector<Note>> target);
+      std::array<bool, ParsedBmsChart::Measure::columnNumber>& insideLnP1,
+      std::array<bool, ParsedBmsChart::Measure::columnNumber>& insideLnP2,
+      std::span<std::vector<Note>> target);
 };
 } // namespace charts
 #endif // RHYTHMGAME_BMSNOTESDATA_H
