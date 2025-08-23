@@ -27,12 +27,12 @@ resource_managers::GeneralVars::GeneralVars(QString avatarPath, QObject* parent)
 {
 }
 auto
-resource_managers::GeneralVars::getNoteScreenTimeMillis() const -> int
+resource_managers::GeneralVars::getNoteScreenTimeMillis() const -> double
 {
     return noteScreenTimeMillis;
 }
 void
-resource_managers::GeneralVars::setNoteScreenTimeMillis(int value)
+resource_managers::GeneralVars::setNoteScreenTimeMillis(double value)
 {
     if (noteScreenTimeMillis == value) {
         return;
@@ -73,6 +73,7 @@ resource_managers::GeneralVars::getLaneCoverRatio() const -> double
 void
 resource_managers::GeneralVars::setLaneCoverRatio(double value)
 {
+    value = std::clamp(value, 0.0, 1.0);
     if (laneCoverRatio == value) {
         return;
     }
@@ -114,6 +115,7 @@ resource_managers::GeneralVars::getLiftRatio() const -> double
 void
 resource_managers::GeneralVars::setLiftRatio(double value)
 {
+    value = std::clamp(value, 0.0, 1.0);
     if (liftRatio == value) {
         return;
     }
@@ -153,6 +155,7 @@ resource_managers::GeneralVars::getHiddenRatio() const -> double
 void
 resource_managers::GeneralVars::setHiddenRatio(double value)
 {
+    value = std::clamp(value, 0.0, 1.0);
     if (hiddenRatio == value) {
         return;
     }

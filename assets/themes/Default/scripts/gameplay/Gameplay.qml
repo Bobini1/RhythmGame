@@ -211,6 +211,7 @@ Rectangle {
             anchors.fill: parent
             player: chart.player1
             dpSuffix: root.isDp ? "1" : ""
+            index: 0
             columns: root.isDp || !profileVars.scratchOnRightSide ? [7, 0, 1, 2, 3, 4, 5, 6] : [0, 1, 2, 3, 4, 5, 6, 7]
         }
         Loader {
@@ -222,6 +223,7 @@ Rectangle {
                 player: root.isDp ? chart.player1 : chart.player2
                 dpSuffix: root.isDp ? "2" : ""
                 mirrored: !root.isDp
+                index: 1
                 columns: {
                     if (root.isDp) {
                         return [8, 9, 10, 11, 12, 13, 14, 15];
@@ -237,12 +239,49 @@ Rectangle {
             required property string dpSuffix
             required property var columns
             property bool mirrored: false
+            required property int index
 
             readonly property Profile profile: player.profile
             readonly property BmsLiveScore score: player.score
             readonly property BmsNotes notes: player.notes
             readonly property var columnStates: player.state.columnStates
             readonly property var profileVars: profile.vars.themeVars[root.screen][root.themeName]
+
+            property bool start: Input[`start${index+1}`] || (dpSuffix && (Input.start1 || Input.start2))
+            property bool select: Input[`select${index+1}`] || (dpSuffix && (Input.select1 || Input.select2))
+
+            property bool startAndUp: start && Input[`col${index+1}sUp`]
+            property bool startAndDown: start && Input[`col${index+1}sDown`]
+            property bool selectAndUp: select && Input[`col${index+1}sUp`] && !startAndUp
+            property bool selectAndDown: select && Input[`col${index+1}sDown`] && !startAndDown
+
+            Timer {
+                id: gnWnTimer
+                interval: 2
+                repeat: true
+                running: side.startAndDown || side.selectAndDown || side.selectAndUp || side.startAndUp
+
+                onTriggered: {
+                    let vars = side.profile.vars.generalVars;
+                    if (side.startAndDown) {
+                        vars.noteScreenTimeMillis -= vars.noteScreenTimeMillis / 1000;
+                    } else if (side.startAndUp) {
+                        vars.noteScreenTimeMillis += vars.noteScreenTimeMillis / 1000;
+                    } else if (side.selectAndDown) {
+                        if (vars.laneCoverOn) {
+                            vars.laneCoverRatio -= 0.0003;
+                        } else if (vars.liftOn) {
+                            vars.liftRatio -= 0.0003;
+                        }
+                    } else if (side.selectAndUp) {
+                        if (vars.laneCoverOn) {
+                            vars.laneCoverRatio += 0.0003;
+                        } else if (vars.liftOn) {
+                            vars.liftRatio += 0.0003;
+                        }
+                    }
+                }
+            }
 
             transform: Scale {
                 xScale: side.mirrored ? -1 : 1; origin.x: side.width / 2
@@ -289,6 +328,32 @@ Rectangle {
                 x: side.profileVars["playAreaX" + side.dpSuffix]
                 y: side.profileVars["playAreaY" + side.dpSuffix]
                 z: side.profileVars.playAreaZ
+
+
+                Row {
+                    id: gnwnText
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    anchors.top: parent.top
+                    visible: side.start || side.select
+                    Text {
+                        width: Math.max(100, implicitWidth)
+                        font.pixelSize: 24
+                        color: "green"
+                        text: ((side.profile.vars.generalVars.noteScreenTimeMillis) * 3 / 5).toFixed(0)
+                    }
+                    Text {
+                        width: Math.max(100, implicitWidth)
+                        font.pixelSize: 24
+                        color: "white"
+                        visible: side.profile.vars.generalVars.laneCoverOn || side.profile.vars.generalVars.liftOn
+                        property real wn: {
+                            let laneCoverMod = profile.vars.generalVars.laneCoverOn * profile.vars.generalVars.laneCoverRatio;
+                            let liftMod = profile.vars.generalVars.liftOn * profile.vars.generalVars.liftRatio;
+                            return Math.max(0, Math.min(1 - laneCoverMod - liftMod, 1));
+                        }
+                        text: ((1 - wn) * 1000).toFixed(0)
+                    }
+                }
             }
             LifeBar {
                 id: lifeBar

@@ -77,7 +77,7 @@ using namespace gauge_mode;
 class GeneralVars final : public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(int noteScreenTimeMillis READ getNoteScreenTimeMillis WRITE
+    Q_PROPERTY(double noteScreenTimeMillis READ getNoteScreenTimeMillis WRITE
                  setNoteScreenTimeMillis NOTIFY noteScreenTimeMillisChanged
                    RESET resetNoteScreenTimeMillis)
     Q_PROPERTY(bool laneCoverOn READ getLaneCoverOn WRITE setLaneCoverOn NOTIFY
@@ -126,7 +126,7 @@ class GeneralVars final : public QObject
     Q_PROPERTY(
       double offset READ getOffset WRITE setOffset NOTIFY offsetChanged)
     // ^ remember to use full namespace for enums for reflection
-    int noteScreenTimeMillis = 1000;
+    double noteScreenTimeMillis = 1000;
     bool laneCoverOn = false;
     double laneCoverRatio = 0.1;
     bool liftOn = false;
@@ -150,8 +150,8 @@ class GeneralVars final : public QObject
 
   public:
     explicit GeneralVars(QString avatarPath, QObject* parent = nullptr);
-    auto getNoteScreenTimeMillis() const -> int;
-    void setNoteScreenTimeMillis(int value);
+    auto getNoteScreenTimeMillis() const -> double;
+    void setNoteScreenTimeMillis(double value);
     void resetNoteScreenTimeMillis();
     auto getLaneCoverOn() const -> bool;
     void setLaneCoverOn(bool value);
