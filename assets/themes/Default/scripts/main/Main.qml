@@ -93,6 +93,13 @@ Image {
 
             spacing: 5
 
+            Input.onStart1Pressed: {
+                sceneStack.pushItem(globalRoot.songWheelComponent);
+            }
+            Input.onStart2Pressed: {
+                sceneStack.pushItem(globalRoot.songWheelComponent);
+            }
+
             Button {
                 width: parent.width
                 height: 100
