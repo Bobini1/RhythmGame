@@ -260,26 +260,34 @@ Rectangle {
                 interval: 2
                 repeat: true
                 running: side.startAndDown || side.selectAndDown || side.selectAndUp || side.startAndUp
+                property int count: 0
 
                 onTriggered: {
+                    let mult = 1;
+                    if (count++ > 250) {
+                        mult = 5;
+                    }
                     let vars = side.profile.vars.generalVars;
                     if (side.startAndDown) {
-                        vars.noteScreenTimeMillis -= vars.noteScreenTimeMillis / 1000;
+                        vars.noteScreenTimeMillis -= vars.noteScreenTimeMillis / 1000 * mult;
                     } else if (side.startAndUp) {
-                        vars.noteScreenTimeMillis += vars.noteScreenTimeMillis / 1000;
+                        vars.noteScreenTimeMillis += vars.noteScreenTimeMillis / 1000 * mult;
                     } else if (side.selectAndDown) {
                         if (vars.laneCoverOn) {
-                            vars.laneCoverRatio -= 0.0003;
+                            vars.laneCoverRatio -= 0.0003 * mult;
                         } else if (vars.liftOn) {
-                            vars.liftRatio -= 0.0003;
+                            vars.liftRatio -= 0.0003 * mult;
                         }
                     } else if (side.selectAndUp) {
                         if (vars.laneCoverOn) {
-                            vars.laneCoverRatio += 0.0003;
+                            vars.laneCoverRatio += 0.0003 * mult;
                         } else if (vars.liftOn) {
-                            vars.liftRatio += 0.0003;
+                            vars.liftRatio += 0.0003 * mult;
                         }
                     }
+                }
+                onRunningChanged: {
+                    count = 0;
                 }
             }
 
