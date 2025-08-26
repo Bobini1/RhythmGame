@@ -151,6 +151,7 @@ Rectangle {
             root.popup = null;
         }
     }
+
     Item {
         id: scaledRoot
 
@@ -311,7 +312,7 @@ Rectangle {
                     z: -1
 
                     onClicked: mouse => {
-                        let point = mapToGlobal(mouse.x, mouse.y);
+                        let point = mapToItem(Overlay.overlay, mouse.x, mouse.y);
                         let popup;
                         if (side.mirrored) {
                             popup = playAreaPopupP2;
@@ -408,7 +409,7 @@ Rectangle {
                         z: -1
 
                         onClicked: mouse => {
-                            let point = mapToGlobal(mouse.x, mouse.y);
+                            let point = mapToItem(Overlay.overlay, mouse.x, mouse.y);
                             let popup;
                             if (side.mirrored) {
                                 popup = gaugePopupP2;
