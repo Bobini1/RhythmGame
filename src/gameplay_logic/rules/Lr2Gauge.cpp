@@ -81,17 +81,17 @@ gameplay_logic::rules::Lr2Gauge::getGauges(double total, int noteCount)
                                  [](double currentGauge, Judgement judgement) {
                                      switch (judgement) {
                                          case Judgement::Perfect:
-                                             return 0.15;
+                                             return 0.1;
                                          case Judgement::Great:
-                                             return 0.12;
+                                             return 0.1;
                                          case Judgement::Good:
-                                             return 0.03;
+                                             return 0.05;
                                          case Judgement::Bad:
-                                             return -3.0;
+                                             return (currentGauge > 30) ? -12.0 : -7.2;
                                          case Judgement::Poor:
-                                             return -6.0;
+                                             return (currentGauge > 30) ? -20.0 : -12.0;
                                          case Judgement::EmptyPoor:
-                                             return -3.0;
+                                             return (currentGauge > 30) ? -2.0 : -1.2;
                                          default:
                                              return 0.0;
                                      }
