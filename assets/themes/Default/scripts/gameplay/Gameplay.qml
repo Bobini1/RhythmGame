@@ -62,7 +62,7 @@ Rectangle {
 
     color: "black"
 
-    // destroy chart when this component is unloaded
+    // stops all sounds when leaving the screen
     Component.onDestruction: {
         chart.destroy();
     }
