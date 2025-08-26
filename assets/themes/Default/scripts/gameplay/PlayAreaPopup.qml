@@ -82,11 +82,6 @@ GameplayPopup {
                 }
             }
         }
-        ImageSelection {
-            src: popup.themeVars
-            propertyId: "notes"
-            label: qsTr("Notes")
-        }
         BooleanOption {
             description: qsTr("Enable Lane Cover")
             src: popup.generalVars
@@ -98,11 +93,6 @@ GameplayPopup {
             prop: "laneCoverRatio"
             text: qsTr("Lane Cover Ratio")
             to: 1
-        }
-        ImageSelection {
-            src: popup.themeVars
-            propertyId: "lanecover"
-            label: qsTr("Lane Cover")
         }
         BooleanOption {
             description: qsTr("Enable Lift")
@@ -127,6 +117,16 @@ GameplayPopup {
             prop: "hiddenRatio"
             text: qsTr("Hidden Ratio")
             to: 1
+        }
+        ImageSelection {
+            src: popup.themeVars
+            propertyId: "notes"
+            label: qsTr("Notes")
+        }
+        ImageSelection {
+            src: popup.themeVars
+            propertyId: "lanecover"
+            label: qsTr("Lane Cover")
         }
         ImageSelection {
             src: popup.themeVars

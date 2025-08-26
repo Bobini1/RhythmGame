@@ -23,6 +23,7 @@ Row {
         id: checkBox
 
         checked: booleanOption.src[booleanOption.prop]
+        width: 370
 
         onCheckedChanged: {
             booleanOption.src[booleanOption.prop] = checked;
