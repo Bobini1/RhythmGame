@@ -482,7 +482,7 @@ Rectangle {
                             fontSizeMode: Text.Fit
                             textFormat: Text.PlainText
                             text: {
-                                let row = judgementCountsModel.itemAt(side.score.judgementCounts.rowCount() - index - 1);
+                                let row = judgementCountsModel.count, judgementCountsModel.itemAt(side.score.judgementCounts.rowCount() - index - 1);
                                 // ignore judgements like MineHit
                                 if (!row || row.judgement > Judgement.Perfect) {
                                     return "";
