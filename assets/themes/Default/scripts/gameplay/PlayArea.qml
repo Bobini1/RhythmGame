@@ -180,6 +180,7 @@ Item {
 
         score: playArea.score
         judge: playArea.vars.judge
+        fastslow: playArea.vars.fastslow
         columns: playArea.columns
     }
     Item {
