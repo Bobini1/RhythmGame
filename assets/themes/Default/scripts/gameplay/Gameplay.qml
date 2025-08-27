@@ -457,6 +457,15 @@ Rectangle {
                     color: "transparent"
                     visible: root.customizeMode
                 }
+                Repeater {
+                    id: judgementCountsModel
+
+                    model: side.score.judgementCounts
+                    delegate: Item {
+                        required property var judgement
+                        required property int count
+                    }
+                }
                 Column {
                     Repeater {
                         id: judgementCounts
@@ -464,21 +473,22 @@ Rectangle {
                         anchors.fill: parent
                         anchors.margins: 8
 
-                        model: side.score.judgementCounts
-                        readonly property var judgements: ["Perfect", "Great","Good","Bad", "Poor", "Empty Poor"]
+                        model: side.score.judgementCounts.rowCount()
+                        readonly property var judgements: ["Empty Poor", "Poor", "Bad", "Good", "Great", "Perfect"]
 
                         delegate: Text {
-                            required property var judgement
-                            required property int count
+                            required property int index
                             color: "white"
                             fontSizeMode: Text.Fit
                             textFormat: Text.PlainText
                             text: {
+                                console.warn(side.score.judgementCounts.rowCount(), index, judgementCountsModel.count)
+                                let row = judgementCountsModel.itemAt(side.score.judgementCounts.rowCount() - index - 1);
                                 // ignore judgements like MineHit
-                                if (judgement > Judgement.Perfect) {
+                                if (!row || row.judgement > Judgement.Perfect) {
                                     return "";
                                 }
-                                return judgementCounts.judgements[judgement] + ": " + count;
+                                return judgementCounts.judgements[row.judgement] + ": " + row.count;
                             }
                         }
                     }
