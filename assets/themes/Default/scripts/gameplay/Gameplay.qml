@@ -465,7 +465,7 @@ Rectangle {
                         anchors.margins: 8
 
                         model: side.score.judgementCounts
-                        readonly property var judgements: ["Poor", "Empty Poor", "Bad", "Good", "Great", "Perfect"]
+                        readonly property var judgements: ["Perfect", "Great","Good","Bad", "Poor", "Empty Poor"]
 
                         delegate: Text {
                             required property var judgement
