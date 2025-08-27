@@ -482,7 +482,6 @@ Rectangle {
                             fontSizeMode: Text.Fit
                             textFormat: Text.PlainText
                             text: {
-                                console.warn(side.score.judgementCounts.rowCount(), index, judgementCountsModel.count)
                                 let row = judgementCountsModel.itemAt(side.score.judgementCounts.rowCount() - index - 1);
                                 // ignore judgements like MineHit
                                 if (!row || row.judgement > Judgement.Perfect) {
