@@ -127,15 +127,21 @@ Item {
                 readonly property string oldBestClear: Helpers.getClearType(scores)
                 readonly property var oldBestPointsScore: Helpers.getScoreWithBestPoints(scores)
                 readonly property var oldBestStats: Helpers.getBestStats(scores)
-                readonly property var scores: []
+                property var scores: []
                 Component.onCompleted: {
                     if (root.course) {
                         profile.scoreDb.getScoresForCourseId([root.course.identifier]).then((dbScores) => {
-                            scores = dbScores[0].filter((oldScore) => oldScore.result.guid !== score.result.guid)
+                            if (dbScores.scores[root.course.identifier] === undefined) {
+                                return;
+                            }
+                            scores =  dbScores.scores[root.course.identifier].filter((oldScore) => oldScore.result.guid !== score.result.guid);
                         });
                     } else {
                         profile.scoreDb.getScoresForMd5([root.chartData.md5]).then((dbScores) => {
-                            scores = dbScores[0].filter((oldScore) => oldScore.result.guid !== score.result.guid)
+                            if (dbScores.scores[root.chartData.md5] === undefined) {
+                                return;
+                            }
+                            scores = dbScores.scores[root.chartData.md5].filter((oldScore) => oldScore.result.guid !== score.result.guid);
                         });
                     }
                 }
