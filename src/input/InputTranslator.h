@@ -88,33 +88,49 @@ class Mapping
       -> QDataStream&;
 };
 
-struct AnalogAxisConfig
+class AnalogAxisConfig : public QObject
 {
-    Q_GADGET
-    Q_PROPERTY(double triggerThreshold MEMBER triggerThreshold)
-    Q_PROPERTY(double releaseThreshold MEMBER releaseThreshold)
-    Q_PROPERTY(uint timeout MEMBER timeout)
-    Q_PROPERTY(ScratchAlgorithm scratchAlgorithm MEMBER algorithm)
-public:
+    Q_OBJECT
+    Q_PROPERTY(double triggerThreshold READ getTriggerThreshold WRITE
+                 setTriggerThreshold NOTIFY triggerThresholdChanged)
+    Q_PROPERTY(double releaseThreshold READ getReleaseThreshold WRITE
+                 setReleaseThreshold NOTIFY releaseThresholdChanged)
+    Q_PROPERTY(uint timeout READ getTimeout WRITE setTimeout NOTIFY timeoutChanged)
+    Q_PROPERTY(ScratchAlgorithm scratchAlgorithm READ getScratchAlgorithm WRITE
+                 setScratchAlgorithm NOTIFY scratchAlgorithmChanged)
+  public:
     enum ScratchAlgorithm
     {
         ScratchAlgorithmAnalog,
         ScratchAlgorithmClassic
     };
     Q_ENUM(ScratchAlgorithm)
-
+  private:
     double triggerThreshold = 0.008;
     double releaseThreshold = 0.004;
     uint timeout = 100;
     ScratchAlgorithm algorithm = ScratchAlgorithmAnalog;
 
-    auto operator<=>(const AnalogAxisConfig&) const = default;
+  public:
+    auto getTriggerThreshold() const -> double;
+    void setTriggerThreshold(double value);
+    auto getReleaseThreshold() const -> double;
+    void setReleaseThreshold(double value);
+    auto getTimeout() const -> uint;
+    void setTimeout(uint value);
+    auto getScratchAlgorithm() const -> ScratchAlgorithm;
+    void setScratchAlgorithm(ScratchAlgorithm value);
+    explicit AnalogAxisConfig(QObject* parent = nullptr);
+    signals:
+    void triggerThresholdChanged();
+    void releaseThresholdChanged();
+    void timeoutChanged();
+    void scratchAlgorithmChanged();
 };
 
 class InputTranslator final : public QObject
 {
     Q_OBJECT
-private:
     Q_PROPERTY(bool configuring READ isConfiguring NOTIFY configuringChanged)
     Q_PROPERTY(QVariant configuredButton READ getConfiguredButton WRITE
                  setConfiguredButton NOTIFY configuredButtonChanged)
@@ -142,10 +158,10 @@ private:
     Q_PROPERTY(bool select READ select1 NOTIFY select1Changed)
     Q_PROPERTY(bool start2 READ start2 NOTIFY start2Changed)
     Q_PROPERTY(bool select2 READ select2 NOTIFY select2Changed)
-    Q_PROPERTY(QVariant analogAxisConfig1 READ getAnalogAxisConfig1
-                 WRITE setAnalogAxisConfig1 NOTIFY analogAxisConfig1Changed)
-    Q_PROPERTY(QVariant analogAxisConfig2 READ getAnalogAxisConfig2
-                 WRITE setAnalogAxisConfig2 NOTIFY analogAxisConfig2Changed)
+    Q_PROPERTY(input::AnalogAxisConfig* analogAxisConfig1 READ getAnalogAxisConfig1 NOTIFY
+                 analogAxisConfig1Changed)
+    Q_PROPERTY(input::AnalogAxisConfig* analogAxisConfig2 READ getAnalogAxisConfig2 NOTIFY
+                 analogAxisConfig2Changed)
 
   public:
     struct Scratch
@@ -156,7 +172,7 @@ private:
         double value = std::numeric_limits<double>::quiet_NaN();
     };
 
-private:
+  private:
     struct PairHash
     {
         template<typename T, typename U>
@@ -168,7 +184,8 @@ private:
     std::unordered_map<std::pair<Gamepad, uint8_t>, Scratch, PairHash>
       scratches;
     std::optional<BmsKey> configuredButton;
-    std::unordered_map<std::pair<Gamepad, uint8_t>, AnalogAxisConfig, PairHash> axisConfig;
+    std::unordered_map<std::pair<Gamepad, uint8_t>, AnalogAxisConfig*, PairHash>
+      axisConfig;
     QHash<Key, BmsKey> config;
     db::SqliteCppDb* db;
     std::array<bool, magic_enum::enum_count<BmsKey>()> buttons{};
@@ -183,7 +200,7 @@ private:
     void handleAxisChange(Gamepad gamepad, Uint8 axis, int64_t time);
     void checkAnalogAxisStatus();
     void autoReleaseScratch(const std::pair<Gamepad, uint8_t>& scratchKey,
-                             int64_t time);
+                            int64_t time);
 
   public:
     void handleAxis(Gamepad gamepad, Uint8 axis, double value, int64_t time);
@@ -223,10 +240,8 @@ private:
     auto select1() const -> bool;
     auto start2() const -> bool;
     auto select2() const -> bool;
-    auto getAnalogAxisConfig1() const -> QVariant;
-    auto getAnalogAxisConfig2() const -> QVariant;
-    void setAnalogAxisConfig1(QVariant config);
-    void setAnalogAxisConfig2(QVariant config);
+    auto getAnalogAxisConfig1() -> AnalogAxisConfig*;
+    auto getAnalogAxisConfig2() -> AnalogAxisConfig*;
     auto eventFilter(QObject* watched, QEvent* event) -> bool override;
     Q_INVOKABLE static QString scancodeToString(int scancode);
 

@@ -71,6 +71,67 @@ invertScratch(const BmsKey key) -> BmsKey
     }
 }
 
+auto
+AnalogAxisConfig::getTriggerThreshold() const -> double
+{
+    return triggerThreshold;
+}
+void
+AnalogAxisConfig::setTriggerThreshold(double value)
+{
+    if (triggerThreshold == value) {
+        return;
+    }
+    triggerThreshold = value;
+    emit triggerThresholdChanged();
+}
+auto
+AnalogAxisConfig::getReleaseThreshold() const -> double
+{
+    return releaseThreshold;
+}
+void
+AnalogAxisConfig::setReleaseThreshold(double value)
+{
+    if (releaseThreshold == value) {
+        return;
+    }
+    releaseThreshold = value;
+    emit releaseThresholdChanged();
+}
+auto
+AnalogAxisConfig::getTimeout() const -> uint
+{
+    return timeout;
+}
+void
+AnalogAxisConfig::setTimeout(uint value)
+{
+    if (timeout == value) {
+        return;
+    }
+    timeout = value;
+    emit timeoutChanged();
+}
+auto
+AnalogAxisConfig::getScratchAlgorithm() const -> ScratchAlgorithm
+{
+    return algorithm;
+}
+void
+AnalogAxisConfig::setScratchAlgorithm(ScratchAlgorithm value)
+{
+    if (algorithm == value) {
+        return;
+    }
+    algorithm = value;
+    emit scratchAlgorithmChanged();
+}
+AnalogAxisConfig::AnalogAxisConfig(QObject* parent)
+  : QObject(parent)
+{
+}
+
 void
 InputTranslator::pressButton(BmsKey button, uint64_t time)
 {
@@ -422,25 +483,31 @@ struct GamepadAxisConfig
 {
     Gamepad gamepad;
     Uint8 axis{};
-    AnalogAxisConfig config;
+    AnalogAxisConfig* config;
 
     friend auto operator<<(QDataStream& stream, const GamepadAxisConfig& config)
       -> QDataStream&
     {
         return stream << config.gamepad << config.axis
-                      << config.config.triggerThreshold
-                      << config.config.releaseThreshold << config.config.timeout
-                      << static_cast<int>(config.config.algorithm);
+                      << config.config->getTriggerThreshold()
+                      << config.config->getReleaseThreshold()
+                      << config.config->getTimeout()
+                      << static_cast<int>(config.config->getScratchAlgorithm());
     }
     friend auto operator>>(QDataStream& stream, GamepadAxisConfig& config)
       -> QDataStream&
     {
         int algorithm;
-        stream >> config.gamepad >> config.axis >>
-          config.config.triggerThreshold >> config.config.releaseThreshold >>
-          config.config.timeout >> algorithm;
-        config.config.algorithm =
-          static_cast<AnalogAxisConfig::ScratchAlgorithm>(algorithm);
+        double triggerThreshold, releaseThreshold;
+        uint timeout;
+        stream >> config.gamepad >> config.axis >> triggerThreshold >>
+          releaseThreshold >> timeout >> algorithm;
+        config.config = new AnalogAxisConfig();
+        config.config->setScratchAlgorithm(
+          static_cast<AnalogAxisConfig::ScratchAlgorithm>(algorithm));
+        config.config->setTriggerThreshold(triggerThreshold);
+        config.config->setReleaseThreshold(releaseThreshold);
+        config.config->setTimeout(timeout);
         return stream;
     }
 };
@@ -561,7 +628,8 @@ InputTranslator::handleAxis(Gamepad gamepad,
     }
 
     const auto analogConfig = axisConfig[scratchKey];
-    if (analogConfig.algorithm == AnalogAxisConfig::ScratchAlgorithmClassic) {
+    if (analogConfig->getScratchAlgorithm() ==
+        AnalogAxisConfig::ScratchAlgorithmClassic) {
         if (value > 0.9) {
             scratch.direction = Key::Direction::Up;
         } else if (value < -0.9) {
@@ -593,19 +661,19 @@ InputTranslator::handleAxis(Gamepad gamepad,
         scratch.direction = dir;
 
         scratch.timer->setSingleShot(true);
-        scratch.timer->setInterval(analogConfig.timeout);
+        scratch.timer->setInterval(analogConfig->getTimeout());
         connect(scratch.timer.get(),
                 &QTimer::timeout,
                 this,
-                [this, scratchKey, time, timeout = analogConfig.timeout] {
+                [this, scratchKey, time, timeout = analogConfig->getTimeout()] {
                     autoReleaseScratch(scratchKey, time + timeout);
                 });
         scratch.timer->start();
     };
 
     const auto requiredThreshold = scratch.direction == Key::Direction::None
-                                     ? analogConfig.triggerThreshold
-                                     : analogConfig.releaseThreshold;
+                                     ? analogConfig->getTriggerThreshold()
+                                     : analogConfig->getReleaseThreshold();
 
     if (curDelta > 0 && scratch.delta >= requiredThreshold) {
         setScratchDirection(Key::Direction::Up);
@@ -732,6 +800,7 @@ InputTranslator::loadAnalogAxisConfig(db::SqliteCppDb* db)
         const auto array = QByteArray::fromStdString(axisConfigData.value());
         auto axisConfigs = support::decompress<QList<GamepadAxisConfig>>(array);
         for (const auto& config : axisConfigs) {
+            config.config->setParent(this);
             axisConfig[{ config.gamepad, config.axis }] = config.config;
         }
     }
@@ -960,67 +1029,21 @@ InputTranslator::select2() const -> bool
 }
 
 auto
-InputTranslator::getAnalogAxisConfig1() const -> QVariant
+InputTranslator::getAnalogAxisConfig1() -> AnalogAxisConfig*
 {
     if (!scratchAxis1.has_value()) {
-        return QVariant::fromValue(nullptr);
+        return nullptr;
     }
-    if (const auto found = axisConfig.find(*scratchAxis1);
-        found != axisConfig.end()) {
-        return QVariant::fromValue(found->second);
-    }
-    return QVariant::fromValue(AnalogAxisConfig{});
-}
-
-void
-InputTranslator::setAnalogAxisConfig1(QVariant config)
-{
-    if (config.typeId() != qMetaTypeId<AnalogAxisConfig>()) {
-        return;
-    }
-    auto configUnpacked = config.value<AnalogAxisConfig>();
-
-    if (!scratchAxis1.has_value()) {
-        return;
-    }
-    auto& axisConfig = this->axisConfig[*scratchAxis1];
-    if (axisConfig == configUnpacked) {
-        return;
-    }
-    axisConfig = configUnpacked;
-    emit analogAxisConfig1Changed();
+    return axisConfig[*scratchAxis1];
 }
 
 auto
-InputTranslator::getAnalogAxisConfig2() const -> QVariant
+InputTranslator::getAnalogAxisConfig2() -> AnalogAxisConfig*
 {
     if (!scratchAxis2.has_value()) {
-        return QVariant::fromValue(nullptr);
+        return nullptr;
     }
-    if (const auto found = axisConfig.find(*scratchAxis2);
-        found != axisConfig.end()) {
-        return QVariant::fromValue(found->second);
-    }
-    return QVariant::fromValue(AnalogAxisConfig{});
-}
-
-void
-InputTranslator::setAnalogAxisConfig2(QVariant config)
-{
-    if (!config.canConvert<AnalogAxisConfig>()) {
-        return;
-    }
-    auto configUnpacked = config.value<AnalogAxisConfig>();
-
-    if (!scratchAxis2.has_value()) {
-        return;
-    }
-    auto& axisConfig = this->axisConfig[*scratchAxis2];
-    if (axisConfig == configUnpacked) {
-        return;
-    }
-    axisConfig = configUnpacked;
-    emit analogAxisConfig2Changed();
+    return axisConfig[*scratchAxis2];
 }
 
 bool
