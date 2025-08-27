@@ -327,17 +327,22 @@
 <context>
     <name>Main</name>
     <message>
-        <location filename="../scripts/main/Main.qml" line="28"/>
+        <location filename="../scripts/main/Main.qml" line="108"/>
         <source>Song Selection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/main/Main.qml" line="37"/>
+        <location filename="../scripts/main/Main.qml" line="117"/>
         <source>Settings</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/main/Main.qml" line="47"/>
+        <location filename="../scripts/main/Main.qml" line="127"/>
+        <source>Attributions</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/main/Main.qml" line="137"/>
         <source>Quit</source>
         <translation type="unfinished"></translation>
     </message>
@@ -365,33 +370,43 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="48"/>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="45"/>
+        <source>Hide LN Ends</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="53"/>
         <source>Lane Brightness</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="55"/>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="60"/>
         <source>Note Thickness</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="62"/>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="67"/>
         <source>Judge Line Thickness</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="67"/>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="72"/>
         <source>Judge Line Color</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="75"/>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="80"/>
         <source>Flip Scratch Lane</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="83"/>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="124"/>
         <source>Notes</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="159"/>
+        <source>Fast/Slow</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -405,52 +420,52 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="100"/>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="129"/>
         <source>Lane Cover</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="103"/>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="98"/>
         <source>Enable Lift</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="111"/>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="106"/>
         <source>Lift Ratio</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="115"/>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="110"/>
         <source>Enable Hidden</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="123"/>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="118"/>
         <source>Hidden Ratio</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="129"/>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="134"/>
         <source>Lift Cover</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="134"/>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="139"/>
         <source>Mine</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="139"/>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="144"/>
         <source>Key Beam</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="144"/>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="149"/>
         <source>Bomb</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="149"/>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="154"/>
         <source>Glow</source>
         <translation type="unfinished"></translation>
     </message>

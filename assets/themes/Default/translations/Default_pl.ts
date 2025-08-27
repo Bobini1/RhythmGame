@@ -331,17 +331,22 @@
 <context>
     <name>Main</name>
     <message>
-        <location filename="../scripts/main/Main.qml" line="28"/>
+        <location filename="../scripts/main/Main.qml" line="108"/>
         <source>Song Selection</source>
         <translation>Wybór piosenek</translation>
     </message>
     <message>
-        <location filename="../scripts/main/Main.qml" line="37"/>
+        <location filename="../scripts/main/Main.qml" line="117"/>
         <source>Settings</source>
         <translation>Ustawienia</translation>
     </message>
     <message>
-        <location filename="../scripts/main/Main.qml" line="47"/>
+        <location filename="../scripts/main/Main.qml" line="127"/>
+        <source>Attributions</source>
+        <translation>Atrybucje</translation>
+    </message>
+    <message>
+        <location filename="../scripts/main/Main.qml" line="137"/>
         <source>Quit</source>
         <translation>Wyjdź</translation>
     </message>
@@ -369,34 +374,44 @@
         <translation>Z-index</translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="48"/>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="45"/>
+        <source>Hide LN Ends</source>
+        <translation>Ukryj końcówki LNów</translation>
+    </message>
+    <message>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="53"/>
         <source>Lane Brightness</source>
         <translation>Jasność tła</translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="55"/>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="60"/>
         <source>Note Thickness</source>
         <translation>Grubość notek</translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="62"/>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="67"/>
         <source>Judge Line Thickness</source>
         <translation>Grubość dolnej kreski</translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="67"/>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="72"/>
         <source>Judge Line Color</source>
         <translation>Kolor dolnej kreski</translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="75"/>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="80"/>
         <source>Flip Scratch Lane</source>
         <translation>Przerzuć płytę</translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="83"/>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="124"/>
         <source>Notes</source>
         <translation>Notki</translation>
+    </message>
+    <message>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="159"/>
+        <source>Fast/Slow</source>
+        <translation>Szybko/wolno</translation>
     </message>
     <message>
         <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="86"/>
@@ -409,52 +424,52 @@
         <translation>Poziom zakrycia</translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="100"/>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="129"/>
         <source>Lane Cover</source>
         <translation>Zasłona od góry</translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="103"/>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="98"/>
         <source>Enable Lift</source>
         <translation>Podniesienie</translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="111"/>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="106"/>
         <source>Lift Ratio</source>
         <translation>Poziom podniesienia</translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="115"/>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="110"/>
         <source>Enable Hidden</source>
         <translation>Ukrycie od dołu</translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="123"/>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="118"/>
         <source>Hidden Ratio</source>
         <translation>Poziom ukrycia</translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="129"/>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="134"/>
         <source>Lift Cover</source>
         <translation>Zakrycie z dołu</translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="134"/>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="139"/>
         <source>Mine</source>
         <translation>Mina</translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="139"/>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="144"/>
         <source>Key Beam</source>
         <translation>Laser</translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="144"/>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="149"/>
         <source>Bomb</source>
         <translation>Bomba</translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="149"/>
+        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="154"/>
         <source>Glow</source>
         <translation>Poświata</translation>
     </message>
