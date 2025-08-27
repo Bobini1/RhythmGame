@@ -206,6 +206,20 @@
           }
         },
         {
+          "id": "fastslow",
+          "name": {
+            "en": "Fast/Slow Indicator",
+            "pl": "Wskaźnik Fast/Slow"
+          },
+          "type": "file",
+          "path": "scripts/gameplay/images/fastslow",
+          "default": "fast_slow.png",
+          "description": {
+            "en": "The image used to signal whether the player hits too fast or too slow.",
+            "pl": "Obraz używany do sygnalizowania, że gracz uderza za szybko lub za wolno."
+          }
+        },
+        {
           "id": "keybeam",
           "name": {
             "en": "Key Beam",

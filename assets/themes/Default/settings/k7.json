@@ -226,7 +226,7 @@
           },
           "type": "file",
           "path": "scripts/gameplay/images/fastslow",
-          "default": "fastslow.png",
+          "default": "fast_slow.png",
           "description": {
             "en": "The image used to signal whether the player hits too fast or too slow.",
             "pl": "Obraz używany do sygnalizowania, że gracz uderza za szybko lub za wolno."
