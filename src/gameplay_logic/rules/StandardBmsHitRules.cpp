@@ -301,6 +301,14 @@ gameplay_logic::rules::StandardBmsHitRules::release(
         }
         return std::chrono::nanoseconds{ 0 };
     }();
+    if (currentNoteIndex > notes.size()) {
+        return { column,
+                 std::nullopt,
+                 hitOffset.count(),
+                 std::nullopt,
+                 HitEvent::Action::Release,
+                 /*noteRemoved=*/false };
+    }
     for (auto iter = notes.begin() + currentNoteIndex; iter < notes.end();
          ++iter) {
         if (iter->hit) {
