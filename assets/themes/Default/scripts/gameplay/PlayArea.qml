@@ -145,11 +145,23 @@ Item {
                 model: playArea.columnStates
 
                 LaserBeam {
+                    id: beam
                     required property int index
                     required property var modelData
                     columnIndex: playArea.columns[index]
                     width: playArea.columnSizes[columnIndex]
-                    active: modelData.pressed
+                    Binding {
+                        when: beam.columnIndex !== 7 && beam.columnIndex !== 15
+                        beam.active: modelData.pressed
+                    }
+                    Connections {
+                        target: modelData
+                        enabled: beam.columnIndex === 7 || beam.columnIndex === 15
+                        function onPressedChanged() {
+                            beam.active = modelData.pressed;
+                            beam.active = false;
+                        }
+                    }
                     image: {
                         if (columnIndex === 7 || columnIndex === 15)
                             return root.iniImagesUrl + "keybeam/" + playArea.vars.keybeam + "/laser_s";
