@@ -32,7 +32,7 @@ Item {
     readonly property url normalNote: `${root.iniImagesUrl}notes/${column.noteImage}/note_${column.color}`;
     readonly property url lnBegin: `${root.iniImagesUrl}notes/${column.noteImage}/ln_start_${column.color}`;
     readonly property url lnEnd: `${root.iniImagesUrl}notes/${column.noteImage}/ln_end_${column.color}`;
-    readonly property url mine: `${root.iniImagesUrl}mine/${column.noteImage}/mine_${column.color}`;
+    readonly property url mine: `${root.iniImagesUrl}mine/${column.mineImage}/mine_${column.color}`;
 
     Flickable {
         id: flickable
