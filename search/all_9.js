@@ -20,7 +20,7 @@ var searchData=
   ['inputtranslator_17',['inputtranslator',['../classinput_1_1InputTranslator.html#a720926d3c45b298ad64570f032dae1f3',1,'input::InputTranslator::InputTranslator()'],['../classinput_1_1InputTranslator.html',1,'input::InputTranslator']]],
   ['inputtranslator_2ecpp_18',['InputTranslator.cpp',['../InputTranslator_8cpp.html',1,'']]],
   ['inputtranslator_2eh_19',['InputTranslator.h',['../InputTranslator_8h.html',1,'']]],
-  ['installing_20',['Building and installing',['../index.html#autotoc_md8',1,'']]],
+  ['installing_20',['Building and installing',['../index.html#autotoc_md9',1,'']]],
   ['invertscratch_21',['invertScratch',['../namespaceinput.html#afff26ffe67c75d996b004415697c9e01',1,'input']]],
   ['invisible_22',['invisible',['../classgameplay__logic_1_1rules_1_1StandardBmsHitRules.html#a8f661468abe5e56efb9baa8a30fcb390a8bcda43732b0928d269955e0f09ff76f',1,'gameplay_logic::rules::StandardBmsHitRules::Invisible'],['../structcharts_1_1BmsNotesData.html#a5a4d3df918dce2039d2c1fbc22c77997a8bcda43732b0928d269955e0f09ff76f',1,'charts::BmsNotesData::Invisible'],['../classgameplay__logic_1_1Note.html#a8e22f28b2754a4af52eb701ff01def90a8bcda43732b0928d269955e0f09ff76f',1,'gameplay_logic::Note::Invisible']]],
   ['isconfiguring_23',['isConfiguring',['../classinput_1_1InputTranslator.html#ada2705f513c5d06d33f4ae625e85fefb',1,'input::InputTranslator']]],
