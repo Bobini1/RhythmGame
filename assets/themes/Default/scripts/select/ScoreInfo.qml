@@ -32,11 +32,11 @@ Row {
 
         ScoreInfoLine {
             source: root.iniImagesUrl + "parts.png/ex_score"
-            text: scoreInfoRow.scoreWithBestPoints?.points || 0
+            text: scoreInfoRow.scoreWithBestPoints?.result?.points || 0
         }
         ScoreInfoLine {
             source: root.iniImagesUrl + "parts.png/hi_score"
-            text: (100 * (scoreInfoRow.scoreWithBestPoints?.points || 0) / (scoreInfoRow.scoreWithBestPoints?.maxPoints || 1)).toFixed(2) + "%"
+            text: (100 * (scoreInfoRow.scoreWithBestPoints?.result?.points || 0) / (scoreInfoRow.scoreWithBestPoints?.result?.maxPoints || 1)).toFixed(2) + "%"
         }
         ScoreInfoLine {
             source: root.iniImagesUrl + "parts.png/combo"
