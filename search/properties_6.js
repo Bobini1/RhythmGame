@@ -1,12 +1,16 @@
 var searchData=
 [
-  ['gamepad_1658',['gamepad',['../classinput_1_1Key.html#aaa5fee61a637d1dd02aaba505d1640e8',1,'input::Key']]],
-  ['gauge_1659',['gauge',['../classgameplay__logic_1_1rules_1_1GaugeHistoryEntry.html#a727326e93b02b0db3aa0adc56e2b755b',1,'gameplay_logic::rules::GaugeHistoryEntry::gauge()'],['../classgameplay__logic_1_1rules_1_1BmsGauge.html#a11fb97e2cd6bfe1773c970ad86dc05a2',1,'gameplay_logic::rules::BmsGauge::gauge()']]],
-  ['gaugehistory_1660',['gaugeHistory',['../classgameplay__logic_1_1BmsGaugeHistory.html#a8d68971dbf12a4e7bae369e573c38574',1,'gameplay_logic::BmsGaugeHistory::gaugeHistory()'],['../classgameplay__logic_1_1BmsScoreAftermath.html#ad9388ae464eadc01e0f4c0fa834e0643',1,'gameplay_logic::BmsScoreAftermath::gaugeHistory()'],['../classgameplay__logic_1_1rules_1_1BmsGauge.html#ae3fe3c39f5180854367acf656ed8a4ad',1,'gameplay_logic::rules::BmsGauge::gaugeHistory()']]],
-  ['gaugeinfo_1661',['gaugeInfo',['../classgameplay__logic_1_1BmsGaugeHistory.html#ad98b5b72d206fc3f1ff2b9846b805a47',1,'gameplay_logic::BmsGaugeHistory']]],
-  ['gaugemax_1662',['gaugeMax',['../classgameplay__logic_1_1rules_1_1BmsGauge.html#adb39fa1c4d3d210e63931f09e2f1cbf3',1,'gameplay_logic::rules::BmsGauge']]],
-  ['gauges_1663',['gauges',['../classgameplay__logic_1_1BmsScore.html#a1b62bbe9455fad64dd9099977560e0c8',1,'gameplay_logic::BmsScore']]],
-  ['genre_1664',['genre',['../classgameplay__logic_1_1ChartData.html#ad99f7c82897cc048ffb522c3872afd86',1,'gameplay_logic::ChartData']]],
-  ['globalvars_1665',['globalVars',['../classresource__managers_1_1Vars.html#a4516a82a6065a136fabafcaaf0c67ce9',1,'resource_managers::Vars']]],
-  ['guid_1666',['guid',['../classinput_1_1Gamepad.html#a8092b140fc8163ecad58746fec61a943',1,'input::Gamepad']]]
+  ['gamepad_0',['gamepad',['../classinput_1_1Key.html#a802652a68e36fe02d7339e0c9624ebd6',1,'input::Key']]],
+  ['gameversion_1',['gameversion',['../classgameplay__logic_1_1BmsResult.html#adce7c312c7e6a1ca6b4dbb0028c689bd',1,'gameplay_logic::BmsResult::gameVersion'],['../classgameplay__logic_1_1BmsResultCourse.html#ab31f2066cd80cfda65a559b492957620',1,'gameplay_logic::BmsResultCourse::gameVersion']]],
+  ['gauge_2',['gauge',['../classgameplay__logic_1_1rules_1_1GaugeHistoryEntry.html#a727326e93b02b0db3aa0adc56e2b755b',1,'gameplay_logic::rules::GaugeHistoryEntry::gauge'],['../classgameplay__logic_1_1rules_1_1BmsGauge.html#a11fb97e2cd6bfe1773c970ad86dc05a2',1,'gameplay_logic::rules::BmsGauge::gauge']]],
+  ['gaugehistory_3',['gaugehistory',['../classgameplay__logic_1_1BmsGaugeInfo.html#aba14cef85fcc9aff6b529f8c67baa6c8',1,'gameplay_logic::BmsGaugeInfo::gaugeHistory'],['../classgameplay__logic_1_1BmsScore.html#adb1ba0e2d52f4fca897b07cdc817e468',1,'gameplay_logic::BmsScore::gaugeHistory'],['../classgameplay__logic_1_1BmsScoreCourse.html#a7c0205d29ba5ff053d267387835b4a65',1,'gameplay_logic::BmsScoreCourse::gaugeHistory']]],
+  ['gaugeinfo_4',['gaugeInfo',['../classgameplay__logic_1_1BmsGaugeHistory.html#a97ef56c7e07d42e785975338a6fd6c09',1,'gameplay_logic::BmsGaugeHistory']]],
+  ['gaugemax_5',['gaugeMax',['../classgameplay__logic_1_1rules_1_1BmsGauge.html#adb39fa1c4d3d210e63931f09e2f1cbf3',1,'gameplay_logic::rules::BmsGauge']]],
+  ['gaugemode_6',['gaugeMode',['../classresource__managers_1_1GeneralVars.html#ab4c98124ff269dbea98f0193f9da8c8c',1,'resource_managers::GeneralVars']]],
+  ['gauges_7',['gauges',['../classgameplay__logic_1_1BmsLiveScore.html#a90dec513134814f809f87ca2f9158d46',1,'gameplay_logic::BmsLiveScore']]],
+  ['gaugetype_8',['gaugeType',['../classresource__managers_1_1GeneralVars.html#ac1a76c167a171b060e10e07a87a08cad',1,'resource_managers::GeneralVars']]],
+  ['generalvars_9',['generalVars',['../classresource__managers_1_1Vars.html#ad88e94fbc6e497c0ae188e34477917ec',1,'resource_managers::Vars']]],
+  ['genre_10',['genre',['../classgameplay__logic_1_1ChartData.html#ad99f7c82897cc048ffb522c3872afd86',1,'gameplay_logic::ChartData']]],
+  ['getgaugehistory_11',['getGaugeHistory',['../classgameplay__logic_1_1rules_1_1BmsGauge.html#aee6720bc39f974b46b1b4f5d4ef1c0fb',1,'gameplay_logic::rules::BmsGauge']]],
+  ['guid_12',['guid',['../classgameplay__logic_1_1BmsGaugeHistory.html#ad2669dba12687dfc9275d47f52c53889',1,'gameplay_logic::BmsGaugeHistory::guid'],['../classgameplay__logic_1_1BmsLiveScore.html#aebd4e0dee8a82818a360ed84b867b9c0',1,'gameplay_logic::BmsLiveScore::guid'],['../classgameplay__logic_1_1BmsReplayData.html#a06c6edd6ddeaebc0b9208df1ee40fadf',1,'gameplay_logic::BmsReplayData::guid'],['../classgameplay__logic_1_1BmsResult.html#a6851488aa93291ded7e5f3ec32cb9752',1,'gameplay_logic::BmsResult::guid'],['../classgameplay__logic_1_1BmsResultCourse.html#a76caf0f7ee3ba3a3631496acadd35988',1,'gameplay_logic::BmsResultCourse::guid'],['../classgameplay__logic_1_1CoursePlayer.html#a2cbee9a85095b8b17bc0109fb60bf788',1,'gameplay_logic::CoursePlayer::guid'],['../classinput_1_1Gamepad.html#a8092b140fc8163ecad58746fec61a943',1,'input::Gamepad::guid'],['../classresource__managers_1_1Profile.html#ae2ec6a8b2415139c9bc0333fcc9dd771',1,'resource_managers::Profile::guid']]]
 ];

@@ -1,10 +1,11 @@
 var searchData=
 [
-  ['name_1495',['name',['../classinput_1_1Gamepad.html#a7e5aa32c592316e24504310793eb5119',1,'input::Gamepad']]],
-  ['normalnotecount_1496',['normalNoteCount',['../structgameplay__logic_1_1BmsResult_1_1BmsResultDto.html#a090eceb577b54627b768abf1dcdbf023',1,'gameplay_logic::BmsResult::BmsResultDto::normalNoteCount()'],['../structgameplay__logic_1_1ChartData_1_1DTO.html#a6d388bb119ec8ee010ed99376d566ba9',1,'gameplay_logic::ChartData::DTO::normalNoteCount()']]],
-  ['noteindex_1497',['noteIndex',['../structgameplay__logic_1_1rules_1_1BmsHitRules_1_1HitResult.html#a9cf0e1d323e36c91f8a0202cf7604fd8',1,'gameplay_logic::rules::BmsHitRules::HitResult::noteIndex()'],['../structgameplay__logic_1_1rules_1_1BmsHitRules_1_1MissData.html#ac8495a90dda92eb89431f7572c836ae0',1,'gameplay_logic::rules::BmsHitRules::MissData::noteIndex()'],['../structgameplay__logic_1_1rules_1_1BmsHitRules_1_1MineHitData.html#abb07a3f8ba1892db3e1e9527a1bac47c',1,'gameplay_logic::rules::BmsHitRules::MineHitData::noteIndex()']]],
-  ['notesdata_1498',['notesData',['../structresource__managers_1_1ChartDataFactory_1_1ChartComponents.html#ace176b677733c3c17c216799897a004c',1,'resource_managers::ChartDataFactory::ChartComponents']]],
-  ['notetype_1499',['noteType',['../structcharts_1_1gameplay__models_1_1BmsNotesData_1_1Note.html#a197affe330bd212c65119ac6fa2ca7ed',1,'charts::gameplay_models::BmsNotesData::Note']]],
-  ['number_1500',['number',['../BmsChartReader_8cpp.html#a278d752efa4042494f428ce3a5a44662',1,'BmsChartReader.cpp']]],
-  ['numerator_1501',['numerator',['../structcharts_1_1gameplay__models_1_1Snap.html#a7cde3621c6fc27fdfeb7c7ea55c9890b',1,'charts::gameplay_models::Snap::numerator()'],['../classgameplay__logic_1_1Snap.html#a168c2251e9ea1c22e4faa90c07ac5379',1,'gameplay_logic::Snap::numerator()']]]
+  ['normalnotecount_0',['normalnotecount',['../structgameplay__logic_1_1BmsResult_1_1DTO.html#ad16d38cc9994e76dfa033ceafaad4730',1,'gameplay_logic::BmsResult::DTO::normalNoteCount'],['../structgameplay__logic_1_1ChartData_1_1DTO.html#a6d388bb119ec8ee010ed99376d566ba9',1,'gameplay_logic::ChartData::DTO::normalNoteCount']]],
+  ['noteorderalgorithm_1',['noteorderalgorithm',['../structgameplay__logic_1_1BmsResult_1_1DTO.html#acf3f39d23c83d53ba04bb3bf8495b2b0',1,'gameplay_logic::BmsResult::DTO::noteOrderAlgorithm'],['../structresource__managers_1_1ChartFactory_1_1PlayerSpecificData.html#abbe30787712f933e91e75ce9fd9377ff',1,'resource_managers::ChartFactory::PlayerSpecificData::noteOrderAlgorithm']]],
+  ['noteorderalgorithmp2_2',['noteorderalgorithmp2',['../structgameplay__logic_1_1BmsResult_1_1DTO.html#a7871bf3ec539ce653316a13fb7d15983',1,'gameplay_logic::BmsResult::DTO::noteOrderAlgorithmP2'],['../structresource__managers_1_1ChartFactory_1_1PlayerSpecificData.html#a3b76143c4d4d740c5d98cba6765d435a',1,'resource_managers::ChartFactory::PlayerSpecificData::noteOrderAlgorithmP2']]],
+  ['notes_3',['notes',['../structcharts_1_1BmsNotesData.html#ac59aada37c150d767155d8aef433c4ca',1,'charts::BmsNotesData::notes'],['../structresource__managers_1_1RandomizedData.html#a7ac0d56700d858d0ac502cc9dcfc6c77',1,'resource_managers::RandomizedData::notes']]],
+  ['notesdata_4',['notesData',['../structresource__managers_1_1ChartDataFactory_1_1ChartComponents.html#a4d05493f09f9685d85116eef7712e1e9',1,'resource_managers::ChartDataFactory::ChartComponents']]],
+  ['notetype_5',['noteType',['../structcharts_1_1BmsNotesData_1_1Note.html#abf2b4ac6efed86409380fd36cab40a10',1,'charts::BmsNotesData::Note']]],
+  ['number_6',['number',['../structcharts_1_1IfData.html#a27d22ba1f054f73b3d7f0443445478ee',1,'charts::IfData']]],
+  ['numerator_7',['numerator',['../structcharts_1_1Snap.html#a90f818bc56c856c5c4e244f6401d06ef',1,'charts::Snap']]]
 ];

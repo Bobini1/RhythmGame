@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['lntype_1557',['LnType',['../structcharts_1_1gameplay__models_1_1BmsNotesData.html#ae78e24255264e586c3cd2e8fc804ff0f',1,'charts::gameplay_models::BmsNotesData']]]
+  ['hispeedfix_0',['HiSpeedFix',['../namespaceresource__managers_1_1hi__speed__fix.html#ac715382b9422d7bab66ac00314eb3e7e',1,'resource_managers::hi_speed_fix']]]
 ];

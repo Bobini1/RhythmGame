@@ -1,5 +1,4 @@
 var searchData=
 [
-  ['randomrange_1545',['RandomRange',['../structcharts_1_1parser__models_1_1ParsedBmsChart.html#a22ce810254ed432e0bb2c86a6b542b67',1,'charts::parser_models::ParsedBmsChart']]],
-  ['return_5ftype_1546',['return_type',['../structcharts_1_1chart__readers_1_1ReportError.html#a38e5b426258c179996b7b4645d27750d',1,'charts::chart_readers::ReportError']]]
+  ['hitvaluefactory_0',['HitValueFactory',['../classqml__components_1_1ChartLoader.html#a482312280c7632a3dde1160caf4e0f8f',1,'qml_components::ChartLoader']]]
 ];

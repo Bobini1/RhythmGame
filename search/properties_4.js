@@ -1,4 +1,6 @@
 var searchData=
 [
-  ['elapsed_1656',['elapsed',['../classgameplay__logic_1_1Chart.html#a42697b509cc2ac150253d1534224b203',1,'gameplay_logic::Chart']]]
+  ['elapsed_0',['elapsed',['../classgameplay__logic_1_1Player.html#a827f25e24732120ecec5cabfacf24757',1,'gameplay_logic::Player']]],
+  ['entries_1',['entries',['../structresource__managers_1_1Level.html#a644067b38d4de3952257601279bf10a8',1,'resource_managers::Level']]],
+  ['entry_2',['entry',['../structresource__managers_1_1TableInfo.html#a54ccdf1703d3d4d50cf8eb8e871a9147',1,'resource_managers::TableInfo']]]
 ];

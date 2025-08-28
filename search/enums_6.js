@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['notetype_1558',['NoteType',['../structcharts_1_1gameplay__models_1_1BmsNotesData.html#abbe5aff96e1653c6de41ed99657bb205',1,'charts::gameplay_models::BmsNotesData']]]
+  ['judgement_0',['Judgement',['../namespacegameplay__logic_1_1judgement.html#a4dd73363d266a4e4aa41782d0e02b6e6',1,'gameplay_logic::judgement']]]
 ];

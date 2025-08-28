@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['device_1552',['Device',['../classinput_1_1Key.html#a015a64c0ae6491d8bd329f95d2fe0290',1,'input::Key']]],
-  ['direction_1553',['Direction',['../classinput_1_1Key.html#aa22750d74ed901350411d2145c92c32a',1,'input::Key']]]
+  ['bmskey_0',['BmsKey',['../namespaceinput.html#a89dbd5c89689deb9b22511daf93d97b1',1,'input']]],
+  ['bmsrank_1',['BmsRank',['../namespacegameplay__logic_1_1rules.html#a702e8cfe431caa24d5bbe3246185f65b',1,'gameplay_logic::rules']]]
 ];

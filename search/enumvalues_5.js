@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['good_1587',['Good',['../namespacegameplay__logic.html#aa754e46fd6e1e6f0139b9646928e4911a0c6ad70beb3a7e76c3fc7adab7c46acc',1,'gameplay_logic']]],
-  ['great_1588',['Great',['../namespacegameplay__logic.html#aa754e46fd6e1e6f0139b9646928e4911a63191e4ece37523c9fe6bb62a5e64d45',1,'gameplay_logic']]]
+  ['finished_0',['Finished',['../classgameplay__logic_1_1ChartRunner.html#af47f61dbd9ce965ac6ae35a48906c97baa7f2c243a4a4afa90ac2b2b9f1b4e307',1,'gameplay_logic::ChartRunner']]],
+  ['flip_1',['Flip',['../namespaceresource__managers_1_1dp__options.html#ac768ef700200401f8d3fbcebf69c877fa9ffbd422925a6839ee820ddbc59278c5',1,'resource_managers::dp_options']]]
 ];

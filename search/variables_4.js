@@ -1,6 +1,7 @@
 var searchData=
 [
-  ['emptypoorcount_1461',['emptyPoorCount',['../structgameplay__logic_1_1BmsResult_1_1BmsResultDto.html#ac2db50c6b00e7258d81520bfb6386678',1,'gameplay_logic::BmsResult::BmsResultDto']]],
-  ['exbpmchanges_1462',['exBpmChanges',['../structcharts_1_1parser__models_1_1ParsedBmsChart_1_1Measure.html#a15b674ce335ed8cf43cc0ef907030328',1,'charts::parser_models::ParsedBmsChart::Measure']]],
-  ['exbpms_1463',['exBpms',['../structcharts_1_1parser__models_1_1ParsedBmsChart_1_1Tags.html#a25812d57f97ec805d02cd5a1188e58d3',1,'charts::parser_models::ParsedBmsChart::Tags']]]
+  ['emptypoorcount_0',['emptyPoorCount',['../structgameplay__logic_1_1BmsResult_1_1DTO.html#aefa0c794eb28efc409e99588142042ef',1,'gameplay_logic::BmsResult::DTO']]],
+  ['entries_1',['entries',['../structresource__managers_1_1Level.html#a74917f1c772d4ee80ff14b74e9c7680e',1,'resource_managers::Level']]],
+  ['exbpmchanges_2',['exBpmChanges',['../structcharts_1_1ParsedBmsChart_1_1Measure.html#a544685588c1b9cd79f6d85dbeacc36d1',1,'charts::ParsedBmsChart::Measure']]],
+  ['exbpms_3',['exBpms',['../structcharts_1_1ParsedBmsChart_1_1Tags.html#a6dd8d26479faa37e1adf892c768720ae',1,'charts::ParsedBmsChart::Tags']]]
 ];

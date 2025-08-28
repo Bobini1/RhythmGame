@@ -1,15 +1,13 @@
 var searchData=
 [
-  ['k14_468',['K14',['../classgameplay__logic_1_1ChartData.html#a292daeb8d3a0ee906e350eece3adae04a7bec8dd8160b1a1fb85ce211ab40519a',1,'gameplay_logic::ChartData']]],
-  ['k7_469',['K7',['../classgameplay__logic_1_1ChartData.html#a292daeb8d3a0ee906e350eece3adae04abe2268c01180c5580c4be9a0c38c3686',1,'gameplay_logic::ChartData']]],
-  ['key_470',['Key',['../classinput_1_1Key.html',1,'input']]],
-  ['key_471',['key',['../classinput_1_1Mapping.html#a2e17e3abe270841dda1f3b921e834609',1,'input::Mapping::key()'],['../classinput_1_1Mapping.html#a1c867c1b68f05fcc6acc0026067f605a',1,'input::Mapping::key()']]],
-  ['keyboard_472',['Keyboard',['../classinput_1_1Key.html#a015a64c0ae6491d8bd329f95d2fe0290a6ce4d85a628a88bbdb3ac24a8e5a9c2e',1,'input::Key']]],
-  ['keyconfig_473',['keyConfig',['../classinput_1_1InputTranslator.html#a71e329815889ee32e77eff265ff4d08f',1,'input::InputTranslator::keyConfig()'],['../classresource__managers_1_1Profile.html#a4c1c1ae0ea1f2b4fc4528af4ccb4828f',1,'resource_managers::Profile::keyConfig()']]],
-  ['keyconfigchanged_474',['keyConfigChanged',['../classresource__managers_1_1Profile.html#ae2d48e8f7ca7c8c8c56974b826f9fc34',1,'resource_managers::Profile']]],
-  ['keyconfigmodified_475',['keyConfigModified',['../classinput_1_1InputTranslator.html#af74222370d1bc9a83c52a722b5a25fe1',1,'input::InputTranslator']]],
-  ['keymode_476',['Keymode',['../classgameplay__logic_1_1ChartData.html#a292daeb8d3a0ee906e350eece3adae04',1,'gameplay_logic::ChartData']]],
-  ['keymode_477',['keymode',['../classgameplay__logic_1_1ChartData.html#aef7ca9325aa9aca2ecc1403e7ae8afe6',1,'gameplay_logic::ChartData::keymode()'],['../structgameplay__logic_1_1ChartData_1_1DTO.html#a4a16c74ca0ba1aab01cc415ac7eca53d',1,'gameplay_logic::ChartData::DTO::keymode()']]],
-  ['keypress_478',['KeyPress',['../classgameplay__logic_1_1Chart.html#a5d7902089b46ebf78343a363370b5834a65a1aa093fcf3acd50b318f1942c02f5',1,'gameplay_logic::Chart']]],
-  ['keyrelease_479',['KeyRelease',['../classgameplay__logic_1_1Chart.html#a5d7902089b46ebf78343a363370b5834a17ee17cec34ff017c382ba1ce8dc4cdc',1,'gameplay_logic::Chart']]]
+  ['jsonvaluetostring_0',['jsonValueToString',['../Vars_8cpp.html#a871f8d4a90f2676145359c2a3d928d4a',1,'Vars.cpp']]],
+  ['judgeeasy_1',['judgeEasy',['../namespacegameplay__logic_1_1rules_1_1lr2__timing__windows.html#a22983617fc4cd221ea61d77bc66718e9',1,'gameplay_logic::rules::lr2_timing_windows']]],
+  ['judgehard_2',['judgeHard',['../namespacegameplay__logic_1_1rules_1_1lr2__timing__windows.html#a466e8bda95756638d2db4dbe5609126d',1,'gameplay_logic::rules::lr2_timing_windows']]],
+  ['judgement_3',['judgement',['../classgameplay__logic_1_1BmsPoints.html#afa6dc20be92e798d4e32a091f598a299',1,'gameplay_logic::BmsPoints::judgement'],['../namespacegameplay__logic_1_1judgement.html#a4dd73363d266a4e4aa41782d0e02b6e6',1,'gameplay_logic::judgement::Judgement']]],
+  ['judgement_2ecpp_4',['Judgement.cpp',['../Judgement_8cpp.html',1,'']]],
+  ['judgement_2eh_5',['Judgement.h',['../Judgement_8h.html',1,'']]],
+  ['judgementcounts_6',['judgementcounts',['../classgameplay__logic_1_1JudgementCounts.html',1,'gameplay_logic::JudgementCounts'],['../classgameplay__logic_1_1JudgementCounts.html#aae84fec55084bacd4935e2086c15f045',1,'gameplay_logic::JudgementCounts::JudgementCounts()'],['../classgameplay__logic_1_1BmsLiveScore.html#a923b8bff553c565b5e5997fe3e2c1152',1,'gameplay_logic::BmsLiveScore::judgementCounts'],['../classgameplay__logic_1_1BmsResult.html#a80714d327ffffbae0c7c3d67364fcbc6',1,'gameplay_logic::BmsResult::judgementCounts'],['../classgameplay__logic_1_1BmsResultCourse.html#a68cd391649fa7b42f108ad00b867e0f2',1,'gameplay_logic::BmsResultCourse::judgementCounts']]],
+  ['judgementrole_7',['JudgementRole',['../classgameplay__logic_1_1JudgementCounts.html#a85a716b9b6bd73e0dabf994ed4553ef6a4a4db6dc2a701d8d823e96efb75a190c',1,'gameplay_logic::JudgementCounts']]],
+  ['judgenormal_8',['judgeNormal',['../namespacegameplay__logic_1_1rules_1_1lr2__timing__windows.html#a409dd5d6d3fbf15a90b8366c0a30af63',1,'gameplay_logic::rules::lr2_timing_windows']]],
+  ['judgeveryhard_9',['judgeVeryHard',['../namespacegameplay__logic_1_1rules_1_1lr2__timing__windows.html#aed4b50696eb6984ffd2ba63f624a2bb2',1,'gameplay_logic::rules::lr2_timing_windows']]]
 ];

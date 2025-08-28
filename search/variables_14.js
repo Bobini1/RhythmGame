@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['wavs_1542',['wavs',['../structcharts_1_1parser__models_1_1ParsedBmsChart_1_1Tags.html#ad30f128656d00a49ebf3da7b7ce7836e',1,'charts::parser_models::ParsedBmsChart::Tags::wavs()'],['../structresource__managers_1_1ChartDataFactory_1_1ChartComponents.html#a4e80af36633255ce8f8fbb3ce3bcbbd4',1,'resource_managers::ChartDataFactory::ChartComponents::wavs()']]]
+  ['wavs_0',['wavs',['../structcharts_1_1ParsedBmsChart_1_1Tags.html#a926f3e43214bb92a24d9a2d30ef94d47',1,'charts::ParsedBmsChart::Tags::wavs'],['../structresource__managers_1_1ChartDataFactory_1_1ChartComponents.html#aaef67a918ee873242634f667524adc34',1,'resource_managers::ChartDataFactory::ChartComponents::wavs']]],
+  ['whitespace_1',['whitespace',['../structcharts_1_1MainTags.html#a62e1ac965f9f456c46ca157ca4cc8afa',1,'charts::MainTags']]]
 ];
