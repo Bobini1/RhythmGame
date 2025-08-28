@@ -150,6 +150,7 @@ Item {
                     required property var modelData
                     columnIndex: playArea.columns[index]
                     width: playArea.columnSizes[columnIndex]
+                    height: parent.height
                     Binding {
                         when: beam.columnIndex !== 7 && beam.columnIndex !== 15
                         beam.active: modelData.pressed
