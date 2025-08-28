@@ -409,7 +409,7 @@
                 "pl": "X"
               },
               "type": "range",
-              "default": 660,
+              "default": 930,
               "description": {
                 "en": "The X position of the left side of the BGA rectangle.",
                 "pl": "Pozycja X lewej strony prostokąta BGA."
@@ -422,7 +422,7 @@
                 "pl": "Y"
               },
               "type": "range",
-              "default": 0,
+              "default": 90,
               "description": {
                 "en": "The Y position of the top side of the BGA rectangle.",
                 "pl": "Pozycja Y górnej strony prostokąta BGA."
@@ -431,12 +431,12 @@
             {
               "id": "bgaSize",
               "name": {
-                "en": "Scale",
-                "pl": "Skala"
+                "en": "Size",
+                "pl": "Rozmiar"
               },
               "type": "range",
               "min": 0,
-              "default": 600,
+              "default": 750,
               "description": {
                 "en": "The size of the BGA square.",
                 "pl": "Rozmiar kwadratu BGA."

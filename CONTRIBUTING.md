@@ -5,15 +5,13 @@
     style should go here.
 -->
 
-## Code of Conduct
-
-Please see the [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md) document.
-
 ## Getting started
 
-Helpful notes for developers can be found in the [`HACKING.md`](HACKING.md)
-document.
+What you need depends on what you want to edit.
 
-In addition to he above, if you use the presets file as instructed, then you
-should NOT check it into source control, just as the CMake documentation
-suggests.
+For theme development, see [`DEV_THEME.md`](DEV_THEME.md).
+
+For C++ development, see [`DEV_ENGINE.md`](DEV_ENGINE.md).
+
+Pull requests welcome! You can contact me on Discord
+if you would like to contribute but you are not sure how to use GitHub.

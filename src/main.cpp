@@ -98,6 +98,8 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
     logger->sinks().push_back(
       std::make_shared<spdlog::sinks::basic_file_sink_mt>(logFile, true));
 
+    spdlog::flush_every(std::chrono::seconds(1));
+
     QGuiApplication::setOrganizationName("Tomasz Kalisiak");
     QGuiApplication::setOrganizationDomain("rhythmgame.eu");
     QGuiApplication::setApplicationName("RhythmGame");
@@ -317,7 +319,7 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
         qmlRegisterType<input::Key>("RhythmGameQml", 1, 0, "key");
         qmlRegisterType<input::Gamepad>("RhythmGameQml", 1, 0, "gamepad");
         qmlRegisterType<input::AnalogAxisConfig>(
-          "RhythmGameQml", 1, 0, "analogAxisConfig");
+          "RhythmGameQml", 1, 0, "AnalogAxisConfig");
         qmlRegisterUncreatableMetaObject(
           gameplay_logic::judgement::staticMetaObject,
           "RhythmGameQml",

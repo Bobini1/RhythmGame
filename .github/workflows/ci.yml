@@ -253,9 +253,6 @@ jobs:
           if-no-files-found: error
 
   docs:
-    # Deploy docs only when builds succeed
-    needs: [ sanitize, test ]
-
     runs-on: ubuntu-latest
 
     if: github.ref == 'refs/heads/master'

@@ -431,8 +431,8 @@
             {
               "id": "bgaSize",
               "name": {
-                "en": "Scale",
-                "pl": "Skala"
+                "en": "Size",
+                "pl": "Rozmiar"
               },
               "type": "range",
               "min": 0,

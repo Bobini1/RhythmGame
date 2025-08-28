@@ -534,7 +534,12 @@ resource_managers::Tables::handleHeader(const QUrl& url,
                          course.toObject()["constraint"].toArray()) {
                         courseObj.constraints.push_back(constraint.toString());
                     }
-                    courseListObj.push_back(courseObj);
+                    // other courses are currently unsupported
+                    if (courseObj.constraints.contains("gauge_lr2") &&
+                        courseObj.constraints.contains("grade_mirror") &&
+                        courseObj.constraints.size() == 2) {
+                        courseListObj.push_back(courseObj);
+                    }
                 }
                 table.courses.push_back(courseListObj);
             }
