@@ -12,8 +12,8 @@ add_custom_target(
 )
 add_dependencies(run-exe RhythmGame_exe)
 
-option(BUILD_MCSS_DOCS "Build documentation using Doxygen and m.css" OFF)
-if (BUILD_MCSS_DOCS)
+option(BUILD_DOCS "Build documentation using Doxygen" OFF)
+if (BUILD_DOCS)
     include(cmake/docs.cmake)
 endif ()
 
@@ -27,12 +27,9 @@ if (ENABLE_INCLUDE_WHAT_YOU_USE)
     include(cmake/include-what-you-use.cmake)
 endif ()
 
-if (CMAKE_HOST_SYSTEM_NAME STREQUAL "Windows")
-    include(cmake/open-cpp-coverage.cmake OPTIONAL)
-endif ()
-
-
+include(cmake/build-dir-setup.cmake)
 include(cmake/lint-targets.cmake)
 include(cmake/spell-targets.cmake)
+include(cmake/translations.cmake)
 
 add_folders(Project)

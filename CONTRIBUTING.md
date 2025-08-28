@@ -13,5 +13,7 @@ For theme development, see [`DEV_THEME.md`](DEV_THEME.md).
 
 For C++ development, see [`DEV_ENGINE.md`](DEV_ENGINE.md).
 
+For translations and localization, see [`DEV_LANG.md`](DEV_LANG.md).
+
 Pull requests welcome! You can contact me on Discord
 if you would like to contribute but you are not sure how to use GitHub.

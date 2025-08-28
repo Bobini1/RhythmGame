@@ -40,7 +40,7 @@
       "type": "object",
       "description": "Map of language tags (e.g. en, en_US, jp, fr_CA) to localized strings.",
       "patternProperties": {
-        "^[a-z]{2}(_[A-Z]{2})?$": {
+        "^[a-z]{2}([_-][A-Z]{2})?$": {
           "type": "string"
         }
       },

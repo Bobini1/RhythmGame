@@ -156,5 +156,10 @@ These targets run the codespell tool on the codebase to check errors and to fix
 them respectively. Customization available using the `SPELL_COMMAND` cache
 variable.
 
+#### `update_translations` and `release_translations`
+
+Create ts files and qm files for the default theme.
+See the [DEV_LANG.md](DEV_LANG.md#strings-in-qml-files) document for more information.
+
 [1]: https://cmake.org/cmake/help/latest/manual/cmake-presets.7.html
 [2]: https://cmake.org/download/
