@@ -197,6 +197,7 @@ Item {
         contentWidth: Math.max(600, width)
         contentHeight: Math.max(rootFrame.implicitHeight, parent.height)
         flickableDirection: Flickable.HorizontalFlick
+        boundsBehavior: Flickable.StopAtBounds
         ScrollBar.horizontal: ScrollBar { }
         Frame {
             id: rootFrame
