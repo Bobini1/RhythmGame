@@ -61,6 +61,8 @@ This can look like this:
 }
 ```
 
+# Translating a theme
+
 The qm file is a compiled Qt translation file. Those are used for translating strings in QML files,
 which is explained in the next section. Providing a qm file is optional, you can leave the value empty if
 your theme does not contain any translatable strings in QML files.

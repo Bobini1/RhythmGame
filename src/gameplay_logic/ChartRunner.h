@@ -177,11 +177,12 @@ class Player : public QObject
     void setElapsed(int64_t newElapsed);
     void setPosition(BmsGameReferee::Position position);
 
-  protected:
     QFutureWatcher<BmsGameReferee> refereeWatcher;
     QFuture<BmsGameReferee> refereeFuture;
-    std::optional<BmsGameReferee> referee;
     BmsLiveScore* score;
+
+protected:
+    std::optional<BmsGameReferee> referee;
 
   public:
     explicit Player(BmsNotes* notes,

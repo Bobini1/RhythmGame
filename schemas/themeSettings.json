@@ -27,6 +27,9 @@
           },
           {
             "$ref": "#/$defs/stringItem"
+          },,
+          {
+            "$ref": "#/$defs/choiceItem"
           },
           {
             "$ref": "#/$defs/hiddenItem"
@@ -72,6 +75,7 @@
             "color",
             "file",
             "string",
+            "choice",
             "hidden"
           ]
         }
@@ -205,6 +209,28 @@
         }
       ]
     },
+    "choiceItem": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "choice"
+        },
+        "choices": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1
+        },
+        "default": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "choices",
+        "default"
+      ]
+    },
     "group": {
       "type": "object",
       "required": [
@@ -243,6 +269,9 @@
               },
               {
                 "$ref": "#/$defs/stringItem"
+              },
+              {
+                "$ref": "#/$defs/choiceItem"
               },
               {
                 "$ref": "#/$defs/hiddenItem"
