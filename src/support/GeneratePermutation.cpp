@@ -180,13 +180,12 @@ generatePermutation(
                                                          18,
                                                          1812433253>;
     thread_local std::random_device rd;
+    auto columns = getColumsIota(visibleNotes.size());
     switch (algorithm) {
         case resource_managers::NoteOrderAlgorithm::Normal: {
-            const auto columns = getColumsIota(visibleNotes.size());
             return { 0, columns };
         }
         case resource_managers::NoteOrderAlgorithm::Mirror: {
-            auto columns = getColumsIota(visibleNotes.size());
             std::reverse(columns.begin(), columns.end() - 1);
             std::reverse(visibleNotes.begin(), visibleNotes.end() - 1);
             return { 0, columns };
@@ -196,7 +195,6 @@ generatePermutation(
             auto randomGenerator = RandomGenerator{ randomSeed };
             const auto shift = std::uniform_int_distribution<>(
               0, visibleNotes.size() - 2)(randomGenerator);
-            auto columns = getColumsIota(visibleNotes.size());
             // rotate all but last column
             std::rotate(
               columns.begin(), columns.begin() + shift, columns.end() - 1);
@@ -212,7 +210,6 @@ generatePermutation(
         }
         case resource_managers::NoteOrderAlgorithm::Random: {
             const auto randomSeed = seed.has_value() ? seed.value() : rd();
-            auto columns = getColumsIota(visibleNotes.size());
             auto randomGenerator = RandomGenerator{ randomSeed };
             fisherYatesShuffle(
               std::span(columns).subspan(0, columns.size() - 1),
@@ -225,7 +222,6 @@ generatePermutation(
         }
         case resource_managers::NoteOrderAlgorithm::RandomPlus: {
             const auto randomSeed = seed.has_value() ? seed.value() : rd();
-            auto columns = getColumsIota(visibleNotes.size());
             auto randomGenerator = RandomGenerator{ randomSeed };
             fisherYatesShuffle(std::span(columns), randomGenerator);
             randomGenerator.seed(randomSeed);
@@ -240,7 +236,7 @@ generatePermutation(
               std::span(visibleNotes).subspan(0, visibleNotes.size() - 1),
               preferredNoteDistance,
               randomGenerator);
-            return { randomSeed, {} };
+            return { randomSeed, columns };
         }
         case resource_managers::NoteOrderAlgorithm::SRandomPlus: {
             const auto randomSeed = seed.has_value() ? seed.value() : rd();
@@ -248,7 +244,7 @@ generatePermutation(
             static constexpr auto preferredNoteDistance = 40ms;
             shuffleAllNotes(
               visibleNotes, preferredNoteDistance, randomGenerator);
-            return { randomSeed, {} };
+            return { randomSeed, columns };
         }
     }
     spdlog::error("Unknown note order algorithm");
