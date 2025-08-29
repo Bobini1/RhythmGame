@@ -242,6 +242,14 @@ gameplay_logic::BmsResultCourse::getIdentifier() const -> QString
     return identifier;
 }
 auto
+gameplay_logic::BmsResultCourse::getDpOptions() const
+  -> resource_managers::DpOptions
+{
+    return scores.isEmpty()
+             ? resource_managers::DpOptions::Off
+             : scores.first()->getResult()->getDpOptions();
+}
+auto
 gameplay_logic::BmsResultCourse::getLength() const -> int64_t
 {
     return std::accumulate(scores.begin(),

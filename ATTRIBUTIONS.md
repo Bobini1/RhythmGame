@@ -1,6 +1,6 @@
 # Attributions
 
-## Skins:
+## Themes:
 
 ### GenericTheme
 Copyright © Shimi9999

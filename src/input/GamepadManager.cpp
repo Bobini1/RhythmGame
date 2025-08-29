@@ -97,4 +97,27 @@ GamepadManager::addController(int index)
     emit gamepadAdded(gamepad);
 }
 
+auto
+Gamepad::operator==(const Gamepad& gamepad) const-> bool
+{
+    return std::tie(name, guid, index) ==
+           std::tie(gamepad.name, gamepad.guid, gamepad.index);
+}
+auto
+operator>>(QDataStream& stream, Gamepad& gamepad) -> QDataStream&
+{
+    return stream >> gamepad.name >> gamepad.guid >> gamepad.index;
+}
+auto
+operator<<(QDataStream& stream, const Gamepad& gamepad) -> QDataStream&
+{
+    return stream << gamepad.name << gamepad.guid << gamepad.index;
+}
 } // namespace input
+auto
+std::hash<input::Gamepad>::operator()(const input::Gamepad& s) const noexcept
+  -> std::size_t
+{
+    return std::hash<QString>{}(s.name) ^ std::hash<QString>{}(s.guid) ^
+           std::hash<int>{}(s.index);
+}

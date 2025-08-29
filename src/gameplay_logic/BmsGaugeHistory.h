@@ -9,13 +9,38 @@
 #include "rules/BmsGauge.h"
 namespace gameplay_logic {
 
+/**
+ * @brief Metadata and history of a single gauge used in BMS scoring.
+ */
 class BmsGaugeInfo
 {
     Q_GADGET
+    /**
+     * @brief The maximum possible value of the gauge.
+     */
     Q_PROPERTY(double maxGauge MEMBER maxGauge CONSTANT)
+    /**
+     * @brief The threshold value of the gauge.
+     * @details If the gauge is below this value at the end of the song,
+     * the player fails.
+     */
     Q_PROPERTY(double threshold MEMBER threshold CONSTANT)
+    /**
+     * @brief The name of the gauge.
+     */
     Q_PROPERTY(QString name MEMBER name CONSTANT)
+    /**
+     * @brief Whether the gauge is a course gauge.
+     * @details Course gauges are only used in courses and have different
+     * behavior. They give NOPLAY clears on the charts that constitute the
+     * course.
+     */
     Q_PROPERTY(bool courseGauge MEMBER courseGauge CONSTANT)
+    /**
+     * @brief The history of the gauge during gameplay.
+     * @details A list of entries that record the value of the gauge at the
+     * timestamps when it changed.
+     */
     Q_PROPERTY(
       QList<rules::GaugeHistoryEntry> gaugeHistory MEMBER gaugeHistory CONSTANT)
 
@@ -32,11 +57,22 @@ class BmsGaugeInfo
       -> QDataStream&;
 };
 
+/**
+ * @brief The history of all gauges used in a BMS score.
+ * @details Besides a list of gauge infos, it also contains the unique
+ * identifier of the score it belongs to.
+ */
 class BmsGaugeHistory final : public QObject
 {
     Q_OBJECT
 
+    /**
+     * @brief A list of gauge infos with entries and metadata.
+     */
     Q_PROPERTY(QList<BmsGaugeInfo> gaugeInfo READ getGaugeInfo CONSTANT)
+    /**
+     * @brief The unique identifier for the score.
+     */
     Q_PROPERTY(QString guid READ getGuid CONSTANT)
     QList<BmsGaugeInfo> gaugeInfo;
     QString guid;

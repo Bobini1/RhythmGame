@@ -20,6 +20,11 @@ namespace input {
 class Key
 {
     Q_GADGET
+    /**
+     * @brief The gamepad this key belongs to. Null if the key is from the
+     * keyboard.
+     * @see input::Gamepad
+     */
     Q_PROPERTY(QVariant gamepad MEMBER gamepad)
     Q_PROPERTY(Device device MEMBER device)
     Q_PROPERTY(int code MEMBER code)
@@ -91,17 +96,41 @@ class Mapping
 class AnalogAxisConfig : public QObject
 {
     Q_OBJECT
+    /**
+     * @brief The threshold above which scratch movement is triggered.
+     * @details This is a value between 0 and 1.
+     * Default is 0.008.
+     */
     Q_PROPERTY(double triggerThreshold READ getTriggerThreshold WRITE
                  setTriggerThreshold NOTIFY triggerThresholdChanged)
+    /**
+     * @brief The threshold that is needed to sustain scratch movement.
+     * @details This is a value between 0 and 1.
+     * Default is 0.004.
+     */
     Q_PROPERTY(double releaseThreshold READ getReleaseThreshold WRITE
                  setReleaseThreshold NOTIFY releaseThresholdChanged)
-    Q_PROPERTY(uint timeout READ getTimeout WRITE setTimeout NOTIFY timeoutChanged)
+    /**
+     * @brief The time in milliseconds after which scratch movement is
+     * automatically released, unless releaseThreshold is exceeded.
+     * @details Default is 100.
+     */
+    Q_PROPERTY(
+      uint timeout READ getTimeout WRITE setTimeout NOTIFY timeoutChanged)
+    /**
+     * @brief The algorithm used to interpret axis movement as scratch movement.
+     */
     Q_PROPERTY(ScratchAlgorithm scratchAlgorithm READ getScratchAlgorithm WRITE
                  setScratchAlgorithm NOTIFY scratchAlgorithmChanged)
   public:
+    /**
+     * @brief The algorithm used to interpret axis movement as scratch movement.
+     */
     enum ScratchAlgorithm
     {
+        /** @brief Beatoraja style. */
         ScratchAlgorithmAnalog,
+        /** @brief LR2 style. */
         ScratchAlgorithmClassic
     };
     Q_ENUM(ScratchAlgorithm)
@@ -121,7 +150,7 @@ class AnalogAxisConfig : public QObject
     auto getScratchAlgorithm() const -> ScratchAlgorithm;
     void setScratchAlgorithm(ScratchAlgorithm value);
     explicit AnalogAxisConfig(QObject* parent = nullptr);
-    signals:
+  signals:
     void triggerThresholdChanged();
     void releaseThresholdChanged();
     void timeoutChanged();
@@ -131,7 +160,13 @@ class AnalogAxisConfig : public QObject
 class InputTranslator final : public QObject
 {
     Q_OBJECT
+    /**
+     * True if the next input will be bound to a button.
+     */
     Q_PROPERTY(bool configuring READ isConfiguring NOTIFY configuringChanged)
+    /**
+     * The next input will be bound to this button.
+     */
     Q_PROPERTY(QVariant configuredButton READ getConfiguredButton WRITE
                  setConfiguredButton NOTIFY configuredButtonChanged)
     Q_PROPERTY(QList<Mapping> keyConfig READ getKeyConfig WRITE setKeyConfig
@@ -158,10 +193,10 @@ class InputTranslator final : public QObject
     Q_PROPERTY(bool select READ select1 NOTIFY select1Changed)
     Q_PROPERTY(bool start2 READ start2 NOTIFY start2Changed)
     Q_PROPERTY(bool select2 READ select2 NOTIFY select2Changed)
-    Q_PROPERTY(input::AnalogAxisConfig* analogAxisConfig1 READ getAnalogAxisConfig1 NOTIFY
-                 analogAxisConfig1Changed)
-    Q_PROPERTY(input::AnalogAxisConfig* analogAxisConfig2 READ getAnalogAxisConfig2 NOTIFY
-                 analogAxisConfig2Changed)
+    Q_PROPERTY(input::AnalogAxisConfig* analogAxisConfig1 READ
+                 getAnalogAxisConfig1 NOTIFY analogAxisConfig1Changed)
+    Q_PROPERTY(input::AnalogAxisConfig* analogAxisConfig2 READ
+                 getAnalogAxisConfig2 NOTIFY analogAxisConfig2Changed)
 
   public:
     struct Scratch

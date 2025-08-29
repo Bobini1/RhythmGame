@@ -8,11 +8,10 @@
 #include "ParsedBmsChart.h"
 #include <functional>
 namespace charts {
-auto readBmsChart(
-      std::string_view chart,
-  const std::function<ParsedBmsChart::RandomRange(
-        ParsedBmsChart::RandomRange)>&
-    randomGenerator)
-      -> ParsedBmsChart;
+auto
+readBmsChart(
+  std::string_view chart,
+  const std::function<ParsedBmsChart::RandomRange(ParsedBmsChart::RandomRange)>&
+    randomGenerator) -> ParsedBmsChart;
 } // namespace charts
 #endif // RHYTHMGAME_BMSCHARTREADER_H

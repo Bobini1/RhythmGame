@@ -18,9 +18,15 @@ class Profile final : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(QString path READ getPathQString CONSTANT)
+    /** @brief The themes selected for this profile. */
     Q_PROPERTY(QQmlPropertyMap* themeConfig READ getThemeConfig CONSTANT)
+    /** @brief The persistent configuration variables of this profile. */
     Q_PROPERTY(Vars* vars READ getVars CONSTANT)
+    /**
+     * @brief The object used for querying the score database of the profile.
+     */
     Q_PROPERTY(qml_components::ScoreDb* scoreDb READ getScoreDb CONSTANT)
+    /** @brief The unique identifier of the profile. */
     Q_PROPERTY(QString guid READ getGuid CONSTANT)
     QString name;
     QString avatar;
@@ -34,8 +40,9 @@ class Profile final : public QObject
   public:
     /**
      * @brief Creates a profile object living in the given database.
-     * If the profile doesn't exist, it will be created.
-     * @param dbPath Path to the database file. Doesn't have to exist.
+     * @details If the profile doesn't exist, it will be created.
+     * @param mainDbPath Path to the main song database file. Has to exist.
+     * @param dbPath Path to the profile's database file. Doesn't have to exist.
      * @param themeFamilies The available theme families.
      * @param avatarPath Path to the avatar folder.
      * @param parent QObject parent.

@@ -161,7 +161,7 @@ shuffleAllNotes(std::span<std::vector<charts::BmsNotesData::Note>> arr,
 
 auto
 generatePermutation(
-  std::span<std::vector<charts::BmsNotesData::Note>>& visibleNotes,
+  std::span<std::vector<charts::BmsNotesData::Note>>& notes,
   const resource_managers::NoteOrderAlgorithm algorithm,
   const std::optional<uint64_t> seed) -> ShuffleResult
 {
@@ -180,31 +180,31 @@ generatePermutation(
                                                          18,
                                                          1812433253>;
     thread_local std::random_device rd;
-    auto columns = getColumsIota(visibleNotes.size());
+    auto columns = getColumsIota(notes.size());
     switch (algorithm) {
         case resource_managers::NoteOrderAlgorithm::Normal: {
             return { 0, columns };
         }
         case resource_managers::NoteOrderAlgorithm::Mirror: {
             std::reverse(columns.begin(), columns.end() - 1);
-            std::reverse(visibleNotes.begin(), visibleNotes.end() - 1);
+            std::reverse(notes.begin(), notes.end() - 1);
             return { 0, columns };
         }
         case resource_managers::NoteOrderAlgorithm::RRandom: {
             const auto randomSeed = seed.has_value() ? seed.value() : rd();
             auto randomGenerator = RandomGenerator{ randomSeed };
             const auto shift = std::uniform_int_distribution<>(
-              0, visibleNotes.size() - 2)(randomGenerator);
+              0, notes.size() - 2)(randomGenerator);
             // rotate all but last column
             std::rotate(
               columns.begin(), columns.begin() + shift, columns.end() - 1);
-            std::rotate(visibleNotes.begin(),
-                        visibleNotes.begin() + shift,
-                        visibleNotes.end() - 1);
+            std::rotate(notes.begin(),
+                        notes.begin() + shift,
+                        notes.end() - 1);
             // also mirror sometimes
             if (std::uniform_int_distribution(0, 1)(randomGenerator) != 0) {
                 std::reverse(columns.begin(), columns.end() - 1);
-                std::reverse(visibleNotes.begin(), visibleNotes.end() - 1);
+                std::reverse(notes.begin(), notes.end() - 1);
             }
             return { randomSeed, columns };
         }
@@ -216,7 +216,7 @@ generatePermutation(
               randomGenerator);
             randomGenerator.seed(randomSeed);
             fisherYatesShuffle(
-              std::span(visibleNotes).subspan(0, visibleNotes.size() - 1),
+              std::span(notes).subspan(0, notes.size() - 1),
               randomGenerator);
             return { randomSeed, columns };
         }
@@ -225,7 +225,7 @@ generatePermutation(
             auto randomGenerator = RandomGenerator{ randomSeed };
             fisherYatesShuffle(std::span(columns), randomGenerator);
             randomGenerator.seed(randomSeed);
-            fisherYatesShuffle(visibleNotes, randomGenerator);
+            fisherYatesShuffle(notes, randomGenerator);
             return { randomSeed, columns };
         }
         case resource_managers::NoteOrderAlgorithm::SRandom: {
@@ -233,7 +233,7 @@ generatePermutation(
             auto randomGenerator = RandomGenerator{ randomSeed };
             static constexpr auto preferredNoteDistance = 40ms;
             shuffleAllNotes(
-              std::span(visibleNotes).subspan(0, visibleNotes.size() - 1),
+              std::span(notes).subspan(0, notes.size() - 1),
               preferredNoteDistance,
               randomGenerator);
             return { randomSeed, columns };
@@ -243,7 +243,7 @@ generatePermutation(
             auto randomGenerator = RandomGenerator{ randomSeed };
             static constexpr auto preferredNoteDistance = 40ms;
             shuffleAllNotes(
-              visibleNotes, preferredNoteDistance, randomGenerator);
+              notes, preferredNoteDistance, randomGenerator);
             return { randomSeed, columns };
         }
     }

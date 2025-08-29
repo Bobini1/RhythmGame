@@ -9,22 +9,6 @@
 
 namespace qml_components {
 
-InputSignalProvider::InputSignalProvider(
-  input::InputTranslator* inputTranslator,
-  QObject* parent)
-  : QObject(parent)
-  , inputTranslator(inputTranslator)
-
-{
-    connect(inputTranslator,
-            &input::InputTranslator::buttonPressed,
-            this,
-            &InputSignalProvider::buttonPressed);
-    connect(inputTranslator,
-            &input::InputTranslator::buttonReleased,
-            this,
-            &InputSignalProvider::buttonReleased);
-}
 auto
 InputAttached::isEnabled() const -> bool
 {
@@ -43,7 +27,7 @@ InputAttached::InputAttached(QObject* obj)
   : QObject(obj)
 {
     connect(inputSignalProvider,
-            &InputSignalProvider::buttonPressed,
+            &input::InputTranslator::buttonPressed,
             this,
             [this](const input::BmsKey button, const int64_t time) {
                 if (isEnabled()) {
@@ -51,7 +35,7 @@ InputAttached::InputAttached(QObject* obj)
                 }
             });
     connect(inputSignalProvider,
-            &InputSignalProvider::buttonReleased,
+            &input::InputTranslator::buttonReleased,
             this,
             [this](const input::BmsKey button, const int64_t time) {
                 if (isEnabled()) {
@@ -59,7 +43,7 @@ InputAttached::InputAttached(QObject* obj)
                 }
             });
     connect(inputSignalProvider,
-            &InputSignalProvider::buttonPressed,
+            &input::InputTranslator::buttonPressed,
             this,
             [this](const input::BmsKey button, const int64_t time) {
                 if (!isEnabled()) {
@@ -102,7 +86,7 @@ InputAttached::InputAttached(QObject* obj)
                 }
             });
     connect(inputSignalProvider,
-            &InputSignalProvider::buttonReleased,
+            &input::InputTranslator::buttonReleased,
             this,
             [this](const input::BmsKey button, const int64_t time) {
                 bool old{};
@@ -151,5 +135,5 @@ InputAttached::qmlAttachedProperties(QObject* object) -> InputAttached*
     return new InputAttached(object);
 }
 
-InputSignalProvider* InputAttached::inputSignalProvider = nullptr;
+input::InputTranslator* InputAttached::inputSignalProvider = nullptr;
 } // namespace qml_components

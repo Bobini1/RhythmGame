@@ -25,16 +25,10 @@ class JudgementCounts final : public QAbstractListModel
       QList<int>(magic_enum::enum_count<Judgement>());
 
   public:
-    explicit JudgementCounts(QObject* parent = nullptr)
-      : QAbstractListModel(parent)
-    {
-    }
+    explicit JudgementCounts(QObject* parent = nullptr);
 
     auto rowCount(const QModelIndex& parent = QModelIndex()) const
-      -> int override
-    {
-        return judgementCounts.size();
-    }
+      -> int override;
 
     enum Roles
     {
@@ -42,63 +36,132 @@ class JudgementCounts final : public QAbstractListModel
         CountRole
     };
 
-    auto roleNames() const -> QHash<int, QByteArray> override
-    {
-        return { { JudgementRole, "judgement" }, { CountRole, "count" } };
-    }
+    auto roleNames() const -> QHash<int, QByteArray> override;
 
-    auto data(const QModelIndex& index, int role) const -> QVariant override
-    {
-        if (!index.isValid() || index.row() >= judgementCounts.size()) {
-            return {};
-        }
-        if (role == JudgementRole) {
-            return QVariant::fromValue(static_cast<Judgement>(index.row()));
-        }
-        if (role == CountRole) {
-            return judgementCounts[index.row()];
-        }
+    auto data(const QModelIndex& index, int role) const -> QVariant override;
 
-        return {};
-    }
+    void addJudgement(Judgement judgement);
 
-    void addJudgement(Judgement judgement)
-    {
-        auto index = magic_enum::enum_integer(judgement);
-        judgementCounts[index]++;
-        emit dataChanged(
-          createIndex(index, 0), createIndex(index, 0), { CountRole });
-    }
-
-    auto getJudgementCounts() const -> const QList<int>&
-    {
-        return judgementCounts;
-    }
+    auto getJudgementCounts() const -> const QList<int>&;
 };
 
+/**
+ * @brief The score that gets updated during gameplay.
+ * @details The BmsLiveScore class keeps track of the current score,
+ * combo, gauge and judgement counts during gameplay.
+ * It provides methods to add hits and retrieve the current score state.
+ */
 class BmsLiveScore final : public QObject
 {
     Q_OBJECT
 
+    /**
+     * @brief The maximum possible points achievable in the score.
+     */
     Q_PROPERTY(double maxPoints READ getMaxPoints CONSTANT)
+    /**
+     * @brief The number of normal notes in the chart.
+     * @details Normal means not long notes, not mines, not invisible notes.
+     */
     Q_PROPERTY(int normalNoteCount READ getNormalNoteCount CONSTANT)
+    /**
+     * @brief The number of long notes in the chart.
+     * @details A long note consists of an LN start and LN end. Such a pair
+     * counts as one long note.
+     */
     Q_PROPERTY(int lnCount READ getLnCount CONSTANT)
+    /**
+     * @brief The number of mines (landmines) in the chart.
+     */
     Q_PROPERTY(int mineCount READ getMineCount CONSTANT)
+    /**
+     * @brief The maximum number of possible hits (normal notes + long notes)
+     * in the chart.
+     */
     Q_PROPERTY(int maxHits READ getMaxHits CONSTANT)
+    /**
+     * @brief The current points achieved in the score.
+     */
     Q_PROPERTY(double points READ getPoints NOTIFY pointsChanged)
+    /**
+     * @brief The current combo count.
+     */
     Q_PROPERTY(int combo READ getCombo NOTIFY comboChanged)
+    /**
+     * @brief The best combo achieved so far in the score.
+     */
     Q_PROPERTY(int maxCombo READ getMaxCombo NOTIFY maxComboChanged)
+    /**
+     * @brief The counts of each judgement type achieved in the score.
+     * @details This property provides access to a model that contains the
+     * counts of each judgement type (e.g., Perfect, Great, Good, etc.).
+     * It can be used in QML to display the judgement counts.
+     * @see JudgementCounts
+     * @see Judgement
+     */
     Q_PROPERTY(
       JudgementCounts* judgementCounts READ getJudgementCounts CONSTANT)
+    /**
+     * @brief The number of mines hit during the score.
+     */
     Q_PROPERTY(int mineHits READ getMineHits NOTIFY mineHitsChanged)
+    /**
+     * @brief The gauges used in the score.
+     * @details This property provides access to the list of gauges
+     * (e.g., NORMAL, HARD, EXHARD, etc.) used in the score.
+     * Each gauge can be queried for its current value and history.
+     * @note The gameplay theme should display the first gauge that's above
+     * its threshold, or the last gauge if none are above the threshold.
+     * @see rules::BmsGauge
+     * @see rules::Lr2Gauge
+     */
     Q_PROPERTY(QList<rules::BmsGauge*> gauges READ getGauges CONSTANT)
+    /**
+     * @brief The random sequence used for parsing the chart.
+     * @details If the chart uses
+     * [#RANDOM](https://hitkey.nekokan.dyndns.info/cmds.htm#RANDOM),
+     * this property provides the sequence of random values used to determine
+     * the note order. If the chart does not use randomization,
+     * this list will be empty.
+     */
     Q_PROPERTY(QList<qint64> randomSequence READ getRandomSequence CONSTANT)
+    /**
+     * @brief The note order algorithm used for the chart.
+     * @details This property indicates the algorithm used to modify the
+     * arrangement of notes in the chart.
+     * @see resource_managers::note_order_algorithm::NoteOrderAlgorithm
+     */
     Q_PROPERTY(resource_managers::note_order_algorithm::NoteOrderAlgorithm
                  noteOrderAlgorithm READ getNoteOrderAlgorithm CONSTANT)
+    /**
+     * @brief The note order algorithm used for player 2 side in DP charts.
+     * @see noteOrderAlgorithm
+     */
     Q_PROPERTY(resource_managers::note_order_algorithm::NoteOrderAlgorithm
                  noteOrderAlgorithmP2 READ getNoteOrderAlgorithmP2 CONSTANT)
+    /**
+     * @brief The permutation of columns that resulted from NoteOrderAlgorithm.
+     * @details It will contain the default iota for
+     * resource_managers::NoteOrderAlgorithm::SRandom and
+     * resource_managers::NoteOrderAlgorithm::SRandomPlus.
+     */
     Q_PROPERTY(QList<int> permutation READ getPermutation CONSTANT)
+    /**
+     * @brief The random seed used for note order shuffling.
+     * @details This seed is used to initialize the mt19937 random number
+     * generator for shuffling notes according to the selected note order
+     * algorithm.
+     * @note This seed is *not* used for #RANDOM parsing. Use randomSequence
+     * for that.
+     * @see resource_managers::NoteOrderAlgorithm
+     * @see noteOrderAlgorithm
+     */
     Q_PROPERTY(uint64_t randomSeed READ getRandomSeed CONSTANT)
+    /**
+     * @brief The unique identifier for the score.
+     * @details This GUID is generated when the BmsLiveScore instance is
+     * created and can be used to uniquely identify the score instance.
+     */
     Q_PROPERTY(QString guid READ getGuid CONSTANT)
 
     double maxPoints;
@@ -142,7 +205,7 @@ class BmsLiveScore final : public QObject
       resource_managers::DpOptions dpOptions,
       QList<int> permutation,
       uint64_t seed,
-        int64_t length,
+      int64_t length,
       QString sha256,
       QString md5,
       QString guid = QUuid::createUuid().toString(),

@@ -21,12 +21,10 @@ struct ShuffleResult
 
 /**
  * @brief Generate a permutation of notes.
- *
- * The permutation is generated using the given algorithm and seed.
+ * @details The permutation is generated using the given algorithm and seed.
  * @warning For S-Random, this function relies on total stability of note
  * generation. If we ever change how we load notes, replays WILL break.
- * @param visibleNotes The visible notes.
- * @param invisibleNotes The invisible notes.
+ * @param notes The notes to shuffle.
  * @param algorithm The algorithm to use.
  * @param seed The seed to use. Null for a random seed.
  * @return The seed used.
@@ -34,7 +32,7 @@ struct ShuffleResult
 auto
 generatePermutation(
   std::span<std::vector<charts::BmsNotesData::Note>>&
-    visibleNotes,
+    notes,
   resource_managers::NoteOrderAlgorithm algorithm,
   std::optional<uint64_t> seed = std::nullopt) -> ShuffleResult;
 } // namespace support

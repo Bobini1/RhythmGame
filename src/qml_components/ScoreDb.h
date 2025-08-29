@@ -30,6 +30,12 @@ public:
     ScoreQueryResult scores;
 };
 
+/**
+ * @brief Provides access to the score database of a profile.
+ * @details All methods are asynchronous and return a QIfPendingReply.
+ * The queries are executed in a thread pool, so multiple queries can be
+ * executed in parallel. Use cancelPending() to stop all pending queries.
+ */
 class ScoreDb final : public QObject
 {
     Q_OBJECT
@@ -53,6 +59,11 @@ class ScoreDb final : public QObject
       const resource_managers::Table& table) const;
     Q_INVOKABLE QIfPendingReply<ScoreQueryResult> getScores(
       const resource_managers::Level& level) const;
+    /**
+     * @brief Stop all pending queries and fail them.
+     * @details This is useful when quickly browsing directories (faster than
+     * the queries can finish) to avoid a backlog of queries.
+     */
     Q_INVOKABLE void cancelPending();
 
     Q_INVOKABLE int getTotalScoreCount() const;

@@ -9,12 +9,24 @@
 #include "BmsResult.h"
 #include "BmsReplayData.h"
 namespace gameplay_logic {
+/**
+ * @brief The result of playing a chart.
+ */
 class BmsScore final : public QObject
 {
     Q_OBJECT
 
+    /**
+     * @brief The aggregated info about the score.
+     */
     Q_PROPERTY(BmsResult* result READ getResult CONSTANT)
+    /**
+     * @brief The replay data of the score.
+     */
     Q_PROPERTY(BmsReplayData* replayData READ getReplayData CONSTANT)
+    /**
+     * @brief The gauge history of the score.
+     */
     Q_PROPERTY(BmsGaugeHistory* gaugeHistory READ getGaugeHistory CONSTANT)
 
     BmsResult* result;

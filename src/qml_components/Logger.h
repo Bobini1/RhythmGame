@@ -9,11 +9,17 @@
 #include <qstringlistmodel.h>
 namespace qml_components {
 
+/**
+ * @brief Lets you access the entire log history of this session.
+ */
 class Logger : public QObject
 {
     Q_OBJECT
     QML_ELEMENT
 
+    /**
+     * @brief All log messages.
+     */
     Q_PROPERTY(QStringListModel* history READ getHistory CONSTANT)
     QStringListModel* history{};
 

@@ -8,26 +8,61 @@
 #include <QVariant>
 #include "BmsPoints.h"
 namespace gameplay_logic {
+
+/**
+ * @brief A very generic event that happened during gameplay.
+ * @details It represents hits but also misses and note releases.
+ * Hits that hit nothing as well.
+ */
 class HitEvent
 {
     Q_GADGET
   public:
     enum class Action
     {
-        None,
-        Press,
-        Release
+        None, /** The player did not press or release a key in this event. */
+        Press, /** The player pressed a key. */
+        Release /** The player released a key. */
     };
     Q_ENUM(Action)
   private:
     // nanoseconds
     using DeltaTime = int64_t;
+    /**
+     * @brief The offset from the start of the chart when this event happened.
+     */
     Q_PROPERTY(DeltaTime offsetFromStart READ getOffsetFromStart CONSTANT)
+    /**
+     * @brief The offset from the note's perfect hit time when this event
+     * happened.
+     * @details Will be 0 for hits that hit nothing.
+     * @note This simply forwards the value from BmsPoints::deviation.
+     */
     Q_PROPERTY(DeltaTime hitOffset READ getHitOffset CONSTANT)
+    /**
+     * @brief The points awarded for this hit.
+     * @details Will be null for hits that hit nothing.
+     * @see BmsPoints
+     */
     Q_PROPERTY(QVariant points READ getPoints CONSTANT)
+    /**
+     * @brief The column where this event happened.
+     */
     Q_PROPERTY(int column READ getColumn CONSTANT)
+    /**
+     * @brief The index of the note that was hit or -1 if no note was hit.
+     * @details This index corresponds to the index in BmsNotes::notes.
+     * It will be -1 for hits that hit nothing.
+     */
     Q_PROPERTY(int noteIndex READ getNoteIndex CONSTANT)
+    /**
+     * @brief What the user did to cause this event to happen.
+     */
     Q_PROPERTY(Action action READ getAction CONSTANT)
+    /**
+     * @brief Whether this event removed a note.
+     * @details False for empty poors. The note can still be hit again.
+     */
     Q_PROPERTY(bool noteRemoved READ getNoteRemoved CONSTANT)
 
     DeltaTime offsetFromStart;

@@ -15,7 +15,6 @@ namespace charts {
 /**
  * @brief Be-Music Source chart.
  */
-
 struct ParsedBmsChart
 {
     using RandomRange = int64_t;

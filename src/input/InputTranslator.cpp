@@ -79,6 +79,7 @@ AnalogAxisConfig::getTriggerThreshold() const -> double
 void
 AnalogAxisConfig::setTriggerThreshold(double value)
 {
+    value = std::clamp(value, 0.0, 1.0);
     if (triggerThreshold == value) {
         return;
     }
@@ -93,6 +94,7 @@ AnalogAxisConfig::getReleaseThreshold() const -> double
 void
 AnalogAxisConfig::setReleaseThreshold(double value)
 {
+    value = std::clamp(value, 0.0, 1.0);
     if (releaseThreshold == value) {
         return;
     }

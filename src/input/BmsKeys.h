@@ -6,8 +6,16 @@
 #define RHYTHMGAME_BMSKEYS_H
 
 #include <QObject>
+/**
+ * @brief Various input-related classes and functions.
+ */
 namespace input {
 Q_NAMESPACE
+/**
+ * @brief The keys used for BMS.
+ * @details These correspond to the columns in a BMS chart but they can also
+ * be used to navigate menus.
+ */
 enum class BmsKey
 {
     Col11 = 0,

@@ -17,7 +17,13 @@ class BmsReplayData final : public QObject
 {
     Q_OBJECT
 
+    /**
+     * @brief The list of hit events that occurred during the score.
+     */
     Q_PROPERTY(QList<HitEvent> hitEvents READ getHitEvents CONSTANT)
+    /**
+     * @brief The identifier of the score this replay data belongs to.
+     */
     Q_PROPERTY(QString guid READ getGuid CONSTANT)
 
     QList<HitEvent> hitEvents;

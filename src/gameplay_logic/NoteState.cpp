@@ -143,14 +143,13 @@ BarlineFilter::setBottomPosition(double value)
     }
 }
 bool
-BarlineFilter::filterAcceptsRow(int source_row,
-                                const QModelIndex& source_parent) const
+BarlineFilter::filterAcceptsRow(int sourceRow,
+                                const QModelIndex& sourceParent) const
 {
-    if (source_row < 0 ||
-        source_row >= sourceModel()->rowCount(source_parent)) {
+    if (sourceRow < 0 || sourceRow >= sourceModel()->rowCount(sourceParent)) {
         return false;
     }
-    const auto index = sourceModel()->index(source_row, 0, source_parent);
+    const auto index = sourceModel()->index(sourceRow, 0, sourceParent);
     const auto barLineState =
       sourceModel()->data(index, Qt::DisplayRole).value<BarLineState>();
     const auto show = barLineState.time.position <= topPosition &&

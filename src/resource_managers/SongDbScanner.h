@@ -5,7 +5,6 @@
 #ifndef RHYTHMGAME_SONGDBSCANNER_H
 #define RHYTHMGAME_SONGDBSCANNER_H
 
-#include <span>
 #include "db/SqliteCppDb.h"
 #include "ChartDataFactory.h"
 namespace resource_managers {

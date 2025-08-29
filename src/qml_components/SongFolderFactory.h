@@ -5,8 +5,9 @@
 #ifndef RHYTHMGAME_SONGFOLDERFACTORY_H
 #define RHYTHMGAME_SONGFOLDERFACTORY_H
 
-#include <QIfPendingReply>
 #include "db/SqliteCppDb.h"
+
+#include <QObject>
 
 namespace qml_components {
 

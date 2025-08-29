@@ -13,7 +13,9 @@ namespace gameplay_logic {
 class Time
 {
     Q_GADGET
+    /** @brief Timestamp expressed in nanoseconds */
     Q_PROPERTY(int64_t timestamp MEMBER timestamp)
+    /** @brief Position expressed in beats */
     Q_PROPERTY(double position MEMBER position)
   public:
     // Timestamp in milliseconds
@@ -65,10 +67,19 @@ operator>>(QDataStream& stream, BpmChange& bpmChange) -> QDataStream&
     return stream >> bpmChange.time >> bpmChange.bpm;
 }
 
+/**
+ * @brief Represents the position of the note in a measure.
+ */
 class Snap
 {
     Q_GADGET
+    /*
+     * @brief The position of the note in a measure, expressed in whole notes.
+     */
     Q_PROPERTY(double numerator MEMBER numerator)
+    /**
+     * @brief How many whole notes fit into a measure.
+     */
     Q_PROPERTY(double denominator MEMBER denominator)
   public:
     double numerator;

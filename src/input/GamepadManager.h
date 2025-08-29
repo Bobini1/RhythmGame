@@ -16,6 +16,11 @@ class Gamepad
     Q_GADGET
     Q_PROPERTY(QString name MEMBER name)
     Q_PROPERTY(QString guid MEMBER guid)
+    /**
+     * @brief The index of the gamepad. It will get incremented if two gamepads
+     * with the same guid are connected to the computer.
+     * Connect them in the same order to get the same index.
+     */
     Q_PROPERTY(int index MEMBER index)
 
   public:
@@ -29,33 +34,19 @@ class Gamepad
                std::tie(gamepad.name, gamepad.guid, gamepad.index);
     }
 
-    auto operator==(const Gamepad& gamepad) const
-    {
-        return std::tie(name, guid, index) ==
-               std::tie(gamepad.name, gamepad.guid, gamepad.index);
-    }
+    auto operator==(const Gamepad& gamepad) const -> bool;
 
     friend auto operator>>(QDataStream& stream, Gamepad& gamepad)
-      -> QDataStream&
-    {
-        return stream >> gamepad.name >> gamepad.guid >> gamepad.index;
-    }
+      -> QDataStream&;
     friend auto operator<<(QDataStream& stream, const Gamepad& gamepad)
-      -> QDataStream&
-    {
-        return stream << gamepad.name << gamepad.guid << gamepad.index;
-    }
+      -> QDataStream&;
 };
 } // namespace input
 
 template<>
 struct std::hash<input::Gamepad>
 {
-    auto operator()(const input::Gamepad& s) const noexcept -> std::size_t
-    {
-        return std::hash<QString>{}(s.name) ^ std::hash<QString>{}(s.guid) ^
-               std::hash<int>{}(s.index);
-    }
+    auto operator()(const input::Gamepad& s) const noexcept -> std::size_t;
 };
 namespace input {
 class GamepadManager final : public QObject

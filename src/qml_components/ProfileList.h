@@ -8,13 +8,17 @@
 #include "resource_managers/Profile.h"
 
 #include <qproperty.h>
-#include <qqmllist.h>
 namespace resource_managers {
 class inputTranslator;
 } // namespace resource_managers
 namespace qml_components {
 class ThemeFamily;
 
+/**
+ * @brief The profiles used in battle mode.
+ * @details This class contains the two profiles used in battle mode.
+ * You need to set both profiles before setting ProfileList::battleActive.
+ */
 class BattleProfiles final : public QObject
 {
     Q_OBJECT
@@ -43,9 +47,9 @@ class BattleProfiles final : public QObject
 
 /**
  * @brief The list of local profiles.
- * Besides listing all local profiles, this class also contains the list of
- * active profiles (for battle mode) and the main profile, used to select themes
- * and theme settings.
+ * @details Besides listing all local profiles, this class also contains the
+ * list of active profiles (for battle mode) and the main profile, used to
+ * select themes and theme settings.
  */
 class ProfileList final : public QObject
 {
@@ -61,11 +65,29 @@ class ProfileList final : public QObject
     bool battleActive{};
     QString avatarPath;
 
+    /**
+     * @brief The profile that is used to select themes and theme settings.
+     * Never null.
+     * @details It also specifies the shared settings in battle mode.
+     * The main profile does not need to be assigned to P1 or P2.
+     */
     Q_PROPERTY(resource_managers::Profile* mainProfile READ getMainProfile WRITE
                  setMainProfile NOTIFY mainProfileChanged)
+    /**
+     * @brief The profiles used in battle mode.
+     * @see battleActive
+     */
     Q_PROPERTY(BattleProfiles* battleProfiles READ getBattleProfiles CONSTANT)
+    /**
+     * @brief The list of all available profiles.
+     */
     Q_PROPERTY(QList<resource_managers::Profile*> profiles READ getProfiles
                  NOTIFY profilesChanged)
+    /**
+     * @brief Launch SP charts in battle mode with two profiles.
+     * @details Both battleProfiles.player1Profile and
+     * battleProfiles.player2Profile must be set before enabling battle.
+     */
     Q_PROPERTY(bool battleActive READ getBattleActive WRITE setBattleActive
                  NOTIFY battleActiveChanged)
 
@@ -88,17 +110,7 @@ class ProfileList final : public QObject
      * @warning Be careful.
      */
     Q_INVOKABLE void removeProfile(resource_managers::Profile* profile);
-    /**
-     * @brief Set the profile that is used to select themes and theme settings.
-     * @details It also specifies the shared settings in battle mode.
-     * The main profile does not need to be assigned to P1 or P2.
-     * @param profile the profile to set as main.
-     */
     void setMainProfile(resource_managers::Profile* profile);
-    /**
-     * @brief The profile used to select themes and theme settings. Never null.
-     * @details The main profile does not need to be assigned to P1 or P2.
-     */
     auto getMainProfile() const -> resource_managers::Profile*;
 
     auto getBattleProfiles() -> BattleProfiles*;

@@ -12,27 +12,8 @@
 namespace qml_components {
 
 /**
- * @brief The class that provides the InputSignalProvider attached property.
- * This is not exposed to QML, use the Input attached property instead.
- */
-class InputSignalProvider final : public QObject
-{
-    Q_OBJECT
-    input::InputTranslator* inputTranslator;
-
-    friend class InputAttached;
-
-  public:
-    explicit InputSignalProvider(input::InputTranslator* inputTranslator,
-                                 QObject* parent = nullptr);
-  signals:
-    void buttonPressed(input::BmsKey button, int64_t time);
-    void buttonReleased(input::BmsKey button, int64_t time);
-};
-
-/**
  * @brief The class that provides the Input attached property.
- * QML components that wish to react to game key events, like scratch or
+ * @details QML components that wish to react to game key events, like scratch or
  * buttons, should use Input.
  */
 class InputAttached final : public QObject
@@ -70,7 +51,7 @@ class InputAttached final : public QObject
   public:
     explicit InputAttached(QObject* obj = nullptr);
 
-    static InputSignalProvider* inputSignalProvider;
+    static input::InputTranslator* inputSignalProvider;
     static std::function<QQuickItem*()>* findCurrentScene;
     static auto qmlAttachedProperties(QObject* object) -> InputAttached*;
 

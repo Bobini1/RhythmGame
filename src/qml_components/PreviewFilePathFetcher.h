@@ -21,6 +21,13 @@ class PreviewFilePathFetcher : public QObject
   public:
     explicit PreviewFilePathFetcher(db::SqliteCppDb* db,
                                     QObject* parent = nullptr);
+    /**
+     * @brief Fetches the preview file paths for the given directories.
+     * @param directories A list of directories to fetch preview file paths for.
+     * @return A hash map where the key is the directory and the value is the
+     * preview file path. The result will not contain entries for directories
+     * that do not have a preview file path.
+     */
     Q_INVOKABLE QVariantHash getPreviewFilePaths(QList<QString> directories);
 };
 

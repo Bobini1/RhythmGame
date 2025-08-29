@@ -4,7 +4,6 @@
 
 #ifndef SKIN_H
 #define SKIN_H
-#include <QObject>
 #include <QMap>
 #include <QUrl>
 

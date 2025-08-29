@@ -11,7 +11,10 @@
 #include "ParsedBmsChart.h"
 
 #include <span>
-
+/**
+ * @brief Classes and functions related to loading and calculating offsets in
+ * BMS charts.
+ */
 namespace charts {
 struct BmsNotesData
 {

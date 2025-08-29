@@ -9,6 +9,11 @@
 namespace gameplay_logic {
 namespace judgement {
 Q_NAMESPACE
+/**
+ * @brief The possible judgements for note hits.
+ * @details You probably don't care about some of those, but they are useful for
+ * the engine.
+ */
 enum class Judgement
 {
     Poor,

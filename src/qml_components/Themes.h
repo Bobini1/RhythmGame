@@ -6,7 +6,7 @@
 #define THEMECONFIG_H
 #include "ThemeFamily.h"
 
-#include <QQmlPropertyMap>
+#include <QVariantMap>
 
 namespace qml_components {
 

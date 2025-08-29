@@ -16,8 +16,18 @@ class NoteState
     Q_GADGET
     Q_PROPERTY(Note note MEMBER note)
     Q_PROPERTY(qint64 index MEMBER index)
+    /**
+     * The latest hit data for this note.
+     */
     Q_PROPERTY(QVariant hitData MEMBER hitData)
+    /**
+     * The latest hit data for the other end of this note, if it is an LN begin
+     * or LN end.
+     */
     Q_PROPERTY(QVariant otherEndHitData MEMBER otherEndHitData)
+    /**
+     * Whether this note is below the bottom of the visible area.
+     */
     Q_PROPERTY(bool belowBottom MEMBER belowBottom)
   public:
     Note note;
@@ -27,6 +37,11 @@ class NoteState
     bool belowBottom;
 };
 
+/**
+ * @brief The state of a single column, including its notes and whether it is
+ * currently pressed.
+ * @see NoteState
+ */
 class ColumnState final : public QAbstractListModel
 {
     Q_OBJECT
@@ -60,6 +75,10 @@ class BarLineState
     qint64 index;
 };
 
+/**
+ * @brief The state of the barlines in the chart.
+ * @see BarLineState
+ */
 class BarLinesState final : public QAbstractListModel
 {
     Q_OBJECT
@@ -72,11 +91,22 @@ class BarLinesState final : public QAbstractListModel
     auto data(const QModelIndex& index, int role) const -> QVariant override;
 };
 
+/**
+ * @brief A filter model that only shows the notes that are in the visible
+ * area.
+ * @see ColumnState
+ */
 class Filter : public QAbstractProxyModel
 {
     Q_OBJECT
+    /**
+     * The top position of the visible area expressed in beats.
+     */
     Q_PROPERTY(double topPosition READ getTopPosition WRITE setTopPosition
                  NOTIFY topPositionChanged)
+    /**
+     * The bottom position of the visible area expressed in beats.
+     */
     Q_PROPERTY(double bottomPosition READ getBottomPosition WRITE
                  setBottomPosition NOTIFY bottomPositionChanged)
     Q_PROPERTY(bool pressed READ isPressed NOTIFY pressedChanged)
@@ -97,7 +127,9 @@ class Filter : public QAbstractProxyModel
     auto getBottomPosition() const -> double { return bottomPosition; }
     void setBottomPosition(double value);
     auto isPressed() const -> bool { return pressed; }
-    QModelIndex index(int row, int column = 0, const QModelIndex &parent = QModelIndex()) const override;
+    QModelIndex index(int row,
+                      int column = 0,
+                      const QModelIndex& parent = QModelIndex()) const override;
     QModelIndex parent(const QModelIndex& child) const override;
     int rowCount(const QModelIndex& parent) const override;
     int columnCount(const QModelIndex& parent) const override;
@@ -109,11 +141,22 @@ class Filter : public QAbstractProxyModel
     void pressedChanged();
 };
 
+/**
+ * @brief A filter model that only shows the barlines that are in the visible
+ * area.
+ * @see BarLinesState
+ */
 class BarlineFilter : public QSortFilterProxyModel
 {
     Q_OBJECT
+    /**
+     * The top position of the visible area expressed in beats.
+     */
     Q_PROPERTY(double topPosition READ getTopPosition WRITE setTopPosition
                  NOTIFY topPositionChanged)
+    /**
+     * The bottom position of the visible area expressed in beats.
+     */
     Q_PROPERTY(double bottomPosition READ getBottomPosition WRITE
                  setBottomPosition NOTIFY bottomPositionChanged)
 
@@ -121,7 +164,8 @@ class BarlineFilter : public QSortFilterProxyModel
     double bottomPosition = 0.0;
 
   public:
-    explicit BarlineFilter(BarLinesState* barLinesState, QObject* parent = nullptr);
+    explicit BarlineFilter(BarLinesState* barLinesState,
+                           QObject* parent = nullptr);
 
     auto getTopPosition() const -> double { return topPosition; }
     void setTopPosition(double value);
@@ -132,11 +176,13 @@ class BarlineFilter : public QSortFilterProxyModel
     void bottomPositionChanged();
 
   protected:
-    auto filterAcceptsRow(int source_row,
-                          const QModelIndex& source_parent) const
+    auto filterAcceptsRow(int sourceRow, const QModelIndex& sourceParent) const
       -> bool override;
 };
 
+/**
+ * @brief The state of gameplay columns and barlines.
+ */
 class GameplayState final : public QObject
 {
     Q_OBJECT

@@ -7,12 +7,14 @@
 #include <SQLiteCpp/SQLiteCpp.h>
 #include <optional>
 #include <vector>
-#include <map>
 #include <type_traits>
 #include <mutex>
 #include "support/get.h"
 #include "support/TupleSize.h"
 
+/**
+ * @brief Namespace for database related classes and functions.
+ */
 namespace db {
 
 /**
@@ -143,7 +145,7 @@ class SqliteCppDb
     /**
      * @brief Queries the database to inspect whether the table with the
      * provided name exists.
-     * @param tableName Name of the table.
+     * @param table Name of the table.
      * @return True if the table exists, false otherwise.
      */
     [[nodiscard]] auto hasTable(const std::string& table) const -> bool;

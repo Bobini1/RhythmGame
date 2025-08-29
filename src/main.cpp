@@ -119,8 +119,7 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
         }
         avatarPath = "file://" + avatarPath;
 
-        auto programSettings =
-          qml_components::ProgramSettings{ avatarPath };
+        auto programSettings = qml_components::ProgramSettings{ avatarPath };
 
         qRegisterMetaType<input::Gamepad>("input::Gamepad");
 
@@ -370,10 +369,7 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
           "Input",
           "Input is only accessible as an attached property");
 
-        auto inputSignalProvider =
-          qml_components::InputSignalProvider{ &inputTranslator };
-        qml_components::InputAttached::inputSignalProvider =
-          &inputSignalProvider;
+        qml_components::InputAttached::inputSignalProvider = &inputTranslator;
         qml_components::QmlUtilsAttached::getThemeNameForRootFile =
           [&availableThemes](const QUrl& rootFile) {
               for (const auto& [themeName, family] :

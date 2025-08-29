@@ -10,6 +10,11 @@
 #include <QObject>
 #include <QVariant>
 
+/**
+ * @brief Namespace for logic that affects how the game plays exactly.
+ * @details Look here to modify timing windows, judgement values,
+ * note hit logic, etc.
+ */
 namespace gameplay_logic::rules {
 class GaugeHistoryEntry
 {
@@ -35,11 +40,36 @@ class BmsGauge : public QObject
 {
     Q_OBJECT
 
+    /**
+     * @brief The name of the gauge.
+     */
     Q_PROPERTY(QString name READ getName CONSTANT)
+    /**
+     * @brief Whether the gauge is a course gauge.
+     * @details Course gauges are only used in courses and have different
+     * behavior. They give NOPLAY clears on the charts that constitute the
+     * course.
+     */
     Q_PROPERTY(bool courseGauge READ isCourseGauge CONSTANT)
+    /**
+     * @brief The current value of the gauge.
+     */
     Q_PROPERTY(double gauge READ getGauge NOTIFY gaugeChanged)
+    /**
+     * @brief The maximum possible value of the gauge.
+     */
     Q_PROPERTY(double gaugeMax READ getGaugeMax CONSTANT)
+    /**
+     * @brief The threshold value of the gauge.
+     * @details If the gauge is below this value at the end of the song,
+     * the player fails.
+     */
     Q_PROPERTY(double threshold READ getThreshold CONSTANT)
+    /**
+    * @brief The history of the gauge.
+     * @details A list of entries that record the value of the gauge at the
+     * timestamps when it changed.
+     */
     Q_PROPERTY(QList<gameplay_logic::rules::GaugeHistoryEntry> gaugeHistory READ
                  getGaugeHistory NOTIFY gaugeChanged)
     QString name;

@@ -141,6 +141,13 @@ struct Table
     auto getCourses() const -> QVariantList;
 };
 
+/**
+ * @brief Manages the download and storage of tables from given URLs.
+ * @details The Tables class handles downloading table data from specified
+ * URLs, storing it in a local cache file, and parsing the data for use in QML.
+ * It provides methods to add, remove, reload, and reorder tables, as well as
+ * search for specific entries by their MD5 hash.
+ */
 class Tables final : public QAbstractListModel
 {
     Q_OBJECT
@@ -163,11 +170,44 @@ class Tables final : public QAbstractListModel
                     QObject* parent = nullptr);
     auto rowCount(const QModelIndex& parent) const -> int override;
     auto data(const QModelIndex& index, int role) const -> QVariant override;
+    /**
+     * @brief Removes the table at the specified index.
+     * @param index The index of the table to remove.
+     */
     Q_INVOKABLE void removeAt(int index);
+    /**
+     * @brief Adds a new table from the specified URL.
+     * @param url The URL of the table to add.
+     * @note If the URL is already present, the table will be reloaded and moved
+     * to the end of the list.
+     */
     Q_INVOKABLE void add(const QUrl& url);
+    /**
+     * @brief Reloads the table at the specified index.
+     * @details This will re-download and parse the table data from its URL.
+     * @param index The index of the table to reload.
+     */
     Q_INVOKABLE void reload(int index);
+    /**
+     * @brief Reorders a table from one index to another.
+     * @param from The current index of the table.
+     * @param to The new index to move the table to.
+     */
     Q_INVOKABLE void reorder(int from, int to);
+    /**
+     * @brief Retrieves a list of all tables as QVariantList.
+     * @return A QVariantList containing all tables.
+     * @note You're encouraged to use the model API that this class provides
+     * instead of this method, as it is more efficient. But this method is
+     * still provided for convenience.
+     */
     Q_INVOKABLE QVariantList getList();
+    /**
+     * @brief Searches for entries with the specified MD5 hash across all tables.
+     * @param md5 The MD5 hash to search for.
+     * @return A list of TableInfo objects containing information about the
+     * matching entries.
+     */
     Q_INVOKABLE QList<TableInfo> search(const QString& md5);
 };
 } // namespace resource_managers

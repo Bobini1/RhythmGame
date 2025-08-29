@@ -27,7 +27,7 @@ You have a few options to pass `RhythmGame_DEVELOPER_MODE` to the configure
 command, but this project prefers to use presets.
 
 As a developer, you should create a `CMakeUserPresets.json` file at the root of
-the project:
+the project. Here is an example:
 
 ```json
 {
@@ -39,11 +39,42 @@ the project:
   },
   "configurePresets": [
     {
+      "name": "dev-common",
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "inherits": [
+        "ci-<os>",
+        "vcpkg-<os>-sharedqt",
+        "dev-mode",
+        "vcpkg",
+        "clang-tidy"
+      ],
+      "cacheVariables": {
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/install/${presetName}"
+      },
+      "environment": {
+        "UseMultiToolTask": "true",
+        "EnforceProcessCountAcrossBuilds": "true"
+      }
+    },
+    {
       "name": "dev",
-      "binaryDir": "${sourceDir}/build/dev",
-      "inherits": ["dev-mode", "vcpkg", "ci-<os>"],
+      "inherits": "dev-common",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "dev-rel",
+      "inherits": "dev-common",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "dev-relwithdebinfo",
+      "inherits": "dev-common",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo"
       }
     }
   ],
@@ -51,7 +82,14 @@ the project:
     {
       "name": "dev",
       "configurePreset": "dev",
-      "configuration": "Debug"
+      "configuration": "Debug",
+      "jobs": 32
+    },
+    {
+      "name": "dev-rel",
+      "configurePreset": "dev-rel",
+      "configuration": "Release",
+      "jobs": 32
     }
   ],
   "testPresets": [
@@ -61,6 +99,10 @@ the project:
       "configuration": "Debug",
       "output": {
         "outputOnFailure": true
+      },
+      "execution": {
+        "jobs": 32,
+        "noTestsAction": "error"
       }
     }
   ]
@@ -91,10 +133,9 @@ in the terminal.
 
 The above preset will make use of the [vcpkg][vcpkg] dependency manager. After
 installing it, make sure the `VCPKG_INSTALLATION_ROOT` environment variable is pointing at
-the directory where the vcpkg executable is. On Windows, you might also want
-to inherit from the `vcpkg-win64-static` preset, which will make vcpkg install
-the dependencies as static libraries. This is only necessary if you don't want
-to setup `PATH` to run tests.
+the directory where the vcpkg executable is. You will also want
+to inherit from the `vcpkg-<os>-sharedqt` preset, which will make vcpkg install
+the dependencies as static libraries for all libs other than Qt, FFmpeg and mimalloc.
 
 [vcpkg]: https://github.com/microsoft/vcpkg
 

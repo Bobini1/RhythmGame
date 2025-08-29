@@ -195,6 +195,48 @@ BmsLiveScore::addHit(const HitEvent& tap)
             }
     }
 }
+JudgementCounts::JudgementCounts(QObject* parent)
+  : QAbstractListModel(parent)
+{
+}
+auto
+JudgementCounts::rowCount(const QModelIndex& parent) const -> int
+{
+    return judgementCounts.size();
+}
+QHash<int, QByteArray>
+JudgementCounts::roleNames() const
+{
+    return { { JudgementRole, "judgement" }, { CountRole, "count" } };
+}
+auto
+JudgementCounts::data(const QModelIndex& index, int role) const -> QVariant
+{
+    if (!index.isValid() || index.row() >= judgementCounts.size()) {
+        return {};
+    }
+    if (role == JudgementRole) {
+        return QVariant::fromValue(static_cast<Judgement>(index.row()));
+    }
+    if (role == CountRole) {
+        return judgementCounts[index.row()];
+    }
+
+    return {};
+}
+void
+JudgementCounts::addJudgement(Judgement judgement)
+{
+    auto index = magic_enum::enum_integer(judgement);
+    judgementCounts[index]++;
+    emit dataChanged(
+      createIndex(index, 0), createIndex(index, 0), { CountRole });
+}
+auto
+JudgementCounts::getJudgementCounts() const -> const QList<int>&
+{
+    return judgementCounts;
+}
 void
 BmsLiveScore::resetCombo()
 {
