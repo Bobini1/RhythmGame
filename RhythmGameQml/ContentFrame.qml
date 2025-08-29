@@ -8,8 +8,20 @@ ApplicationWindow {
     id: contentContainer
 
     height: 720
-    visible: true
     width: 1280
+    visibility: Window.Windowed
+
+    Settings {
+        id: settings
+        property alias height: contentContainer.height
+        property alias width: contentContainer.width
+        property int visibility
+    }
+    Component.onCompleted: {
+        if (settings.visibility) {
+            contentContainer.visibility = settings.visibility;
+        }
+    }
     Shortcut {
         autoRepeat: false
         sequence: "F11"
@@ -17,17 +29,14 @@ ApplicationWindow {
         onActivated: {
             if (contentContainer.visibility === Window.FullScreen) {
                 contentContainer.visibility = Window.Windowed;
+                settings.visibility = Window.Windowed;
             } else {
                 contentContainer.visibility = Window.FullScreen;
+                settings.visibility = Window.FullScreen;
             }
         }
     }
 
-    Settings {
-        property alias height: contentContainer.height
-        property alias width: contentContainer.width
-        property alias visibility: contentContainer.visibility
-    }
     Item {
         id: globalRoot
 
