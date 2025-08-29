@@ -15,6 +15,10 @@
     "translations": {
       "type": "object",
       "additionalProperties": { "type": "string" }
+    },
+    "settingsScripts": {
+      "type": "object",
+      "additionalProperties": { "type": "string" }
     }
   }
 }
