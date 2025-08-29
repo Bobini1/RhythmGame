@@ -1,6 +1,8 @@
 <p align=center>
     <a href="https://github.com/Bobini1/RhythmGame/actions"><img src="https://github.com/Bobini1/RhythmGame/actions/workflows/ci.yml/badge.svg"/></a>
     <a href="https://github.com/Bobini1/RhythmGame/blob/master/LICENSE.md"><img src="https://img.shields.io/github/license/Bobini1/RhythmGame"/></a>
+    <br>
+    [![](https://dcbadge.limes.pink/api/server/https://discord.gg/bDxmuSzXBW)](https://discord.gg/bDxmuSzXBW)
 </p>
 
 # RhythmGame
