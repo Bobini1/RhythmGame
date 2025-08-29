@@ -72,12 +72,12 @@ $(function() {
   <div class="headertitle"><div class="title">Translating the game</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md26"></a> Translations are theme-specific. The C++ part of the game does not contain any translatable strings.</p>
+<div class="textblock"><p><a class="anchor" id="autotoc_md30"></a> Translations are theme-specific. The C++ part of the game does not contain any translatable strings.</p>
 <p>In a theme, translatable string come in two forms:</p><ul>
 <li>Theme settings strings (used only in the settings screen)</li>
 <li>Strings in QML files</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md27"></a>
+<h1><a class="anchor" id="autotoc_md31"></a>
 Theme settings strings</h1>
 <p>Those are quite straightforward. If you take a look at <a href="assets/themes/Default/settings/k7.json">the json file</a> defining the settings for the k7 screen, you will notice that the name and description of each setting are defined in the file itself. Simply add new languages next to "en" and "pl" (English and Polish).</p>
 <p>The identifier of the language can be either a two-letter ISO 639-1 code (e.g. "fr" for French, "zh" for Chinese) or a combination of the ISO 639-1 code and the ISO 3166-1 alpha-2 country code (e.g. "fr_CA" for Canadian French, "zh_HK" for Traditional Chinese as used in Hong Kong).</p>
@@ -109,9 +109,11 @@ Theme settings strings</h1>
 <div class="line">    &quot;fr_CA&quot;: &quot;&quot;</div>
 <div class="line">  }</div>
 <div class="line">}</div>
-</div><!-- fragment --><p>The qm file is a compiled Qt translation file. Those are used for translating strings in QML files, which is explained in the next section. Providing a qm file is optional, you can leave the value empty if your theme does not contain any translatable strings in QML files.</p>
-<h1><a class="anchor" id="autotoc_md30"></a>
-Strings in QML files</h1>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md34"></a>
+Translating a theme</h1>
+<p>The qm file is a compiled Qt translation file. Those are used for translating strings in QML files, which is explained in the next section. Providing a qm file is optional, you can leave the value empty if your theme does not contain any translatable strings in QML files.</p>
+<h2><a class="anchor" id="autotoc_md35"></a>
+Strings in QML files</h2>
 <p>To mark a string in a QML file as translatable, you need to wrap it in the <code>qsTr()</code> function. An in-depth explanation of how to use it can be found in the <a href="https://doc.qt.io/qt-6/i18n-source-translation.html#qml-use-qstr">Qt documentation</a>.</p>
 <p>For translating strings in QML files, you will need to use the Qt Linguist toolchain. There are three essential tools:</p><ul>
 <li><code>lupdate</code>: Extracts translatable strings from QML files and creates a <code>.ts</code> file.</li>

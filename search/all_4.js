@@ -27,7 +27,7 @@ var searchData=
   ['direction_24',['direction',['../classinput_1_1Key.html#a02f02ab94397c31f19395ba6e095268c',1,'input::Key::direction'],['../structinput_1_1InputTranslator_1_1Scratch.html#a56d3aa6ccf48aaed7fcae6d4ea9c1089',1,'input::InputTranslator::Scratch::direction'],['../classinput_1_1Key.html#aa22750d74ed901350411d2145c92c32a',1,'input::Key::Direction']]],
   ['directory_25',['directory',['../classgameplay__logic_1_1ChartData.html#a1ebfc239537260343195c0be0f4ce307',1,'gameplay_logic::ChartData::directory'],['../structgameplay__logic_1_1ChartData_1_1DTO.html#a6f40ecbde8b665d8a6ac55d590e6b554',1,'gameplay_logic::ChartData::DTO::directory']]],
   ['disablesound_26',['disableSound',['../classgameplay__logic_1_1rules_1_1StandardBmsHitRules.html#ac5fedce47369749c1eea2d962a54aa9b',1,'gameplay_logic::rules::StandardBmsHitRules']]],
-  ['docs_27',['Docs',['../md_CONTRIBUTING.html#autotoc_md33',1,'']]],
+  ['docs_27',['Docs',['../md_CONTRIBUTING.html#autotoc_md38',1,'']]],
   ['docs_20tt_28',['&lt;tt&gt;docs&lt;/tt&gt;',['../md_DEV__ENGINE.html#autotoc_md19',1,'']]],
   ['documentation_29',['Doxygen documentation',['../about.html#about-doxygen',1,'']]],
   ['down_30',['Down',['../classinput_1_1Key.html#aa22750d74ed901350411d2145c92c32aa08a38277b0309070706f6652eeae9a53',1,'input::Key']]],

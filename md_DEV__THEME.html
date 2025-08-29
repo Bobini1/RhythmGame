@@ -80,10 +80,80 @@ Theme structure</h1>
 <p>Here is an example of a minimal <code>theme.json</code> file:</p>
 <div class="fragment"><div class="line">{</div>
 <div class="line">    &quot;scripts&quot;: {</div>
-<div class="line">        &quot;select&quot;: &quot;select.qml&quot;</div>
+<div class="line">        &quot;result&quot;: &quot;result.qml&quot;</div>
 <div class="line">    }</div>
 <div class="line">}</div>
-</div><!-- fragment --> </div></div><!-- contents -->
+</div><!-- fragment --><p>A theme does not need to implement all screens, it can just implement the ones you want. You can think of it as a package that can contain replacements for any number of the game's screens.</p>
+<h3><a class="anchor" id="autotoc_md26"></a>
+Persisent settings</h3>
+<p>To provide configurable theme settings that will be stored separately for each user profile, you can define a <code>settings</code> field in <code>theme.json</code>.</p>
+<div class="fragment"><div class="line">{</div>
+<div class="line">    &quot;scripts&quot;: {</div>
+<div class="line">        &quot;result&quot;: &quot;result.qml&quot;</div>
+<div class="line">    },</div>
+<div class="line">    &quot;settings&quot;: {</div>
+<div class="line">        &quot;result&quot;: &quot;result.json&quot;</div>
+<div class="line">    }</div>
+<div class="line">}</div>
+</div><!-- fragment --><p>It serves two purposes</p><ul>
+<li>Defines variables of the screen</li>
+<li>Is used for generating a settings page in the settings screen</li>
+</ul>
+<p>For persistent global settings affecting all profiles, you can use the <a href="https://doc.qt.io/qt-6/qml-qt-labs-settings-settings.html">Settings QML type</a>. But you probably won't need it. I only ever used it once, for storing screen resolution.</p>
+<p>There are 7 different types of properties you can use in a settings file:</p><ul>
+<li>boolean</li>
+<li>range</li>
+<li>string</li>
+<li>file</li>
+<li>choice</li>
+<li>color</li>
+<li>hidden</li>
+</ul>
+<p>You can also put them in groups that have names and descriptions.</p>
+<p>The usage of most property types is self-explanatory, simply take a look at the default theme to find out how to use them.</p>
+<p>The special <code>hidden</code> type can be used to declare properties that will not be shown in the auto-generated settings page.</p>
+<p>You can access the values assigned to properties via <code>profile.vars.themeVars[screen][themeName].varId</code>.</p>
+<p>You can get the current theme's name with <code>QmlUtils.themeName</code>. As for <code>screen</code>, your theme should be able to figure it out on its own. It can be <code>"result"</code>, <code>"gameplay"</code>, etc.</p>
+<p>Please don't access vars that don't belong to the current screen. It creates hidden dependencies on other themes or screens of your theme that might not be enabled.</p>
+<p>If you need to pass a variable between screens, suggest adding it to profile.vars.generalVars in the engine.</p>
+<h3><a class="anchor" id="autotoc_md27"></a>
+Overriding the settings page for a screen</h3>
+<p>You can override the auto-generated settings page for a screen by providing a QML file in a <code>settingsScripts</code> field in <code>theme.json</code>.</p>
+<div class="fragment"><div class="line">{</div>
+<div class="line">    &quot;scripts&quot;: {</div>
+<div class="line">        &quot;result&quot;: &quot;result.qml&quot;</div>
+<div class="line">    },</div>
+<div class="line">    &quot;settings&quot;: {</div>
+<div class="line">        &quot;result&quot;: &quot;result.json&quot;</div>
+<div class="line">    },</div>
+<div class="line">    &quot;settingsScripts&quot;: {</div>
+<div class="line">        &quot;result&quot;: &quot;resultSettings.qml&quot;</div>
+<div class="line">    }</div>
+<div class="line">}</div>
+</div><!-- fragment --><p>The default theme does not use this feature.</p>
+<h3><a class="anchor" id="autotoc_md28"></a>
+Translations</h3>
+<p>Translations are described in <a class="el" href="md_DEV__LANG.html">DEV_LANG.md</a>.</p>
+<div class="fragment"><div class="line">{</div>
+<div class="line">    &quot;scripts&quot;: {</div>
+<div class="line">        &quot;result&quot;: &quot;result.qml&quot;</div>
+<div class="line">    },</div>
+<div class="line">    &quot;settings&quot;: {</div>
+<div class="line">        &quot;result&quot;: &quot;result.json&quot;</div>
+<div class="line">    },</div>
+<div class="line">    &quot;settingsScripts&quot;: {</div>
+<div class="line">        &quot;result&quot;: &quot;resultSettings.qml&quot;</div>
+<div class="line">    },</div>
+<div class="line">    &quot;translations&quot;: {</div>
+<div class="line">        &quot;en&quot;: &quot;en.qm&quot;,</div>
+<div class="line">        &quot;pl&quot;: &quot;pl.qm&quot;</div>
+<div class="line">    }</div>
+<div class="line">}</div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md29"></a>
+Theme loading</h2>
+<p>Themes are loaded and validated when the game starts. If there are any critical errors in configuration files, the game will fail to start. Don't share broken themes! Look at log.txt in the assets folder to find out what went wrong.</p>
+<p>The part of the game that manages </p>
+</div></div><!-- contents -->
 </div><!-- PageDoc -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
