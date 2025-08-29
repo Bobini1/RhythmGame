@@ -12,7 +12,7 @@
 /**
  * @brief Classes and functions related to loading and managing resources such
  * as charts, sounds, images, etc.
- * @detauls Some of them are exposed to QML, some are not.
+ * @details Some of them are exposed to QML, some are not.
  */
 namespace resource_managers {
 
