@@ -11,6 +11,10 @@
 #include "BmsLiveScore.h"
 #include "gameplay_logic/rules/StandardBmsHitRules.h"
 #include "sounds/OpenAlSound.h"
+
+/**
+ * @brief Classes and functions mostly related to gameplay.
+ */
 namespace gameplay_logic {
 
 /**

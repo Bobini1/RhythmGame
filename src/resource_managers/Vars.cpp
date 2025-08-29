@@ -444,7 +444,7 @@ resource_managers::GeneralVars::resetOffset()
 {
     setOffset(0.0);
 }
-
+namespace {
 void
 writeGeneralVars(const resource_managers::GeneralVars& generalVars,
                  const std::filesystem::path& profileFolder)
@@ -1000,6 +1000,8 @@ readThemeVars(const std::filesystem::path& profileFolder,
     }
     return vars;
 }
+
+} // namespace
 
 void
 resource_managers::Vars::populateThemePropertyMap(

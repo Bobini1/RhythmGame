@@ -21,6 +21,12 @@ namespace gameplay_logic {
 class GameplayState;
 class Player;
 
+/**
+ * @brief The main class responsible for running a chart during gameplay.
+ * @details Once start() is called and the BGA and sounds are loaded, the starts
+ * its update timer. It updates the player objects on each timer tick. It also
+ * handles key events and passes them to the appropriate player object.
+ */
 class ChartRunner final : public QObject
 {
     Q_OBJECT
@@ -45,12 +51,31 @@ class ChartRunner final : public QObject
     Player* player1;
     Player* player2;
 
+    /** @brief The chart data of the chart being played. */
     Q_PROPERTY(ChartData* chartData READ getChartData CONSTANT)
+    /** @brief The BGA object. Initially null. */
     Q_PROPERTY(qml_components::BgaContainer* bga READ getBga NOTIFY bgaLoaded)
+    /** @brief The current status of the chart runner. */
     Q_PROPERTY(Status status READ getStatus NOTIFY statusChanged)
+    /**
+     * @brief The keymode of the chart being played.
+     * @details Can be different from the keymode of chartData when
+     * resource_managers::dp_options::DpOptions is battle.
+     * @note This is the property used to determine which gampley screen to
+     * load.
+     */
     Q_PROPERTY(
       gameplay_logic::ChartData::Keymode keymode READ getKeymode CONSTANT)
+    /**
+     * @brief The player 1 object.
+     * @details When playing single player, this is the only player object
+     * (even when the player plays on the right side).
+     */
     Q_PROPERTY(Player* player1 READ getPlayer1 CONSTANT)
+    /**
+     * @brief The player 2 object.
+     * @details Only set in battle mode, null otherwise.
+     */
     Q_PROPERTY(Player* player2 READ getPlayer2 CONSTANT)
 
     QTimer propertyUpdateTimer;
@@ -99,16 +124,47 @@ class ChartRunner final : public QObject
     void bgaLoaded();
 };
 
+/**
+ * @brief A player in a chart.
+ * @details The Player class represents a player of a chart. It plays sounds,
+ * gets its score updated, etc.
+ */
 class Player : public QObject
 {
     Q_OBJECT
+    /**
+     * @brief The notes of the chart being played.
+     */
     Q_PROPERTY(BmsNotes* notes READ getNotes CONSTANT)
+    /**
+     * @brief The live score of the player, which gets updated during
+     * gameplay.
+     */
     Q_PROPERTY(BmsLiveScore* score READ getScore CONSTANT)
+    /**
+     * @brief The gameplay state of the player, containing column states and
+     * barlines.
+     */
     Q_PROPERTY(GameplayState* state READ getState CONSTANT)
+    /**
+     * @brief The profile of the player.
+     */
     Q_PROPERTY(resource_managers::Profile* profile READ getProfile CONSTANT)
+    /**
+     * @brief The positition in the chart, expressed in beats.
+     */
     Q_PROPERTY(double position READ getPosition NOTIFY positionChanged)
+    /**
+     * @brief The elapsed time since the start of the chart, in nanoseconds.
+     */
     Q_PROPERTY(int64_t elapsed READ getElapsed NOTIFY elapsedChanged)
+    /**
+     * @brief The current status of the player.
+     */
     Q_PROPERTY(ChartRunner::Status status READ getStatus NOTIFY statusChanged)
+    /**
+     * @brief The length of the chart in nanoseconds.
+     */
     Q_PROPERTY(int64_t chartLength READ getChartLength CONSTANT)
     BmsNotes* notes;
     GameplayState* state;
@@ -158,9 +214,17 @@ class Player : public QObject
     void statusChanged();
 };
 
+/**
+ * @brief A player that replays a recorded score.
+ * @details The RePlayer class replays a recorded score. It does not accept
+ * any input from the user.
+ */
 class RePlayer final : public Player
 {
     Q_OBJECT
+    /**
+     * @brief The score being replayed.
+     */
     Q_PROPERTY(BmsScore* replayedScore READ getReplayedScore CONSTANT)
 
     BmsScore* replayedScore;
@@ -183,6 +247,11 @@ class RePlayer final : public Player
     auto getReplayedScore() const -> BmsScore*;
 };
 
+/**
+ * @brief A player that plays automatically, hitting all notes perfectly.
+ * @details The AutoPlayer class plays automatically, hitting all notes
+ * perfectly. Its score is not saved.
+ */
 class AutoPlayer final : public Player
 {
     Q_OBJECT
