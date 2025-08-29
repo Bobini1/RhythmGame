@@ -58,11 +58,12 @@ var searchData=
   ['converttop1key_55',['convertToP1Key',['../namespaceinput.html#acc5b777b541c2f104286e1aabc4b44bf',1,'input']]],
   ['courseplayer_56',['CoursePlayer',['../classgameplay__logic_1_1CoursePlayer.html#a5516da71b5105fb9262415a036a4a69d',1,'gameplay_logic::CoursePlayer']]],
   ['courserunner_57',['CourseRunner',['../classgameplay__logic_1_1CourseRunner.html#a69e524ecc81eb43158cf3be525c3742d',1,'gameplay_logic::CourseRunner']]],
-  ['createautoplayfromnotes_58',['createAutoplayFromNotes',['../namespaceresource__managers.html#a7a7e8c86418feb3f52200249560d423f',1,'resource_managers']]],
-  ['createchart_59',['createChart',['../classresource__managers_1_1ChartFactory.html#ac8906a9dcf3b281b6ecc643da0a3ffdf',1,'resource_managers::ChartFactory']]],
-  ['createlowercasefilesmap_60',['createLowerCaseFilesMap',['../namespacecharts.html#a055f9dbcbc667dcb0557a1aa307e60af',1,'charts']]],
-  ['createprofile_61',['createProfile',['../classqml__components_1_1ProfileList.html#a0edf2c5fb67a5c2b10ca086cc7e2ae96',1,'qml_components::ProfileList']]],
-  ['createstatement_62',['createStatement',['../classdb_1_1SqliteCppDb.html#a31c2f3f7bf2fded47b0732367d4ca55a',1,'db::SqliteCppDb']]],
-  ['currentchartindexchanged_63',['currentChartIndexChanged',['../classgameplay__logic_1_1CourseRunner.html#aed0997ef5e3c49a945f8e6f61402e783',1,'gameplay_logic::CourseRunner']]],
-  ['currentscannedfolderchanged_64',['currentScannedFolderChanged',['../classqml__components_1_1ScanningQueue.html#a3d6788961aab27324bc1e2675126660b',1,'qml_components::ScanningQueue']]]
+  ['create_58',['create',['../classRg.html#a9522d08da67723696f2c6fd63e10bc20',1,'Rg']]],
+  ['createautoplayfromnotes_59',['createAutoplayFromNotes',['../namespaceresource__managers.html#a7a7e8c86418feb3f52200249560d423f',1,'resource_managers']]],
+  ['createchart_60',['createChart',['../classresource__managers_1_1ChartFactory.html#ac8906a9dcf3b281b6ecc643da0a3ffdf',1,'resource_managers::ChartFactory']]],
+  ['createlowercasefilesmap_61',['createLowerCaseFilesMap',['../namespacecharts.html#a055f9dbcbc667dcb0557a1aa307e60af',1,'charts']]],
+  ['createprofile_62',['createProfile',['../classqml__components_1_1ProfileList.html#a0edf2c5fb67a5c2b10ca086cc7e2ae96',1,'qml_components::ProfileList']]],
+  ['createstatement_63',['createStatement',['../classdb_1_1SqliteCppDb.html#a31c2f3f7bf2fded47b0732367d4ca55a',1,'db::SqliteCppDb']]],
+  ['currentchartindexchanged_64',['currentChartIndexChanged',['../classgameplay__logic_1_1CourseRunner.html#aed0997ef5e3c49a945f8e6f61402e783',1,'gameplay_logic::CourseRunner']]],
+  ['currentscannedfolderchanged_65',['currentScannedFolderChanged',['../classqml__components_1_1ScanningQueue.html#a3d6788961aab27324bc1e2675126660b',1,'qml_components::ScanningQueue']]]
 ];

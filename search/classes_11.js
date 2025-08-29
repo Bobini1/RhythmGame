@@ -7,7 +7,8 @@ var searchData=
   ['ranktag_4',['RankTag',['../structcharts_1_1RankTag.html',1,'charts']]],
   ['replayer_5',['RePlayer',['../classgameplay__logic_1_1RePlayer.html',1,'gameplay_logic']]],
   ['reporterror_6',['ReportError',['../structcharts_1_1ReportError.html',1,'charts']]],
-  ['rootsongfolder_7',['RootSongFolder',['../classqml__components_1_1RootSongFolder.html',1,'qml_components']]],
-  ['rootsongfolders_8',['RootSongFolders',['../classqml__components_1_1RootSongFolders.html',1,'qml_components']]],
-  ['rootsongfoldersconfig_9',['RootSongFoldersConfig',['../classqml__components_1_1RootSongFoldersConfig.html',1,'qml_components']]]
+  ['rg_7',['Rg',['../classRg.html',1,'']]],
+  ['rootsongfolder_8',['RootSongFolder',['../classqml__components_1_1RootSongFolder.html',1,'qml_components']]],
+  ['rootsongfolders_9',['RootSongFolders',['../classqml__components_1_1RootSongFolders.html',1,'qml_components']]],
+  ['rootsongfoldersconfig_10',['RootSongFoldersConfig',['../classqml__components_1_1RootSongFoldersConfig.html',1,'qml_components']]]
 ];

@@ -11,6 +11,6 @@ digraph "src/gameplay_logic/rules"
   }
   dir_a96564f6348ccf85c63c82abdf96cc4c [label="sounds", fillcolor="#edf0f7", color="grey50", style="filled", URL="dir_a96564f6348ccf85c63c82abdf96cc4c.html",tooltip=""];
   dir_b1e1480277e1bd1794b03e39c91b2dd4 [label="charts", fillcolor="#edf0f7", color="grey50", style="filled", URL="dir_b1e1480277e1bd1794b03e39c91b2dd4.html",tooltip=""];
-  dir_eb1385d5d1eb3275ff55344f27671cdd->dir_a96564f6348ccf85c63c82abdf96cc4c [headlabel="1", labeldistance=1.5 headhref="dir_000008_000009.html" href="dir_000008_000009.html" color="steelblue1" fontcolor="steelblue1"];
-  dir_eb1385d5d1eb3275ff55344f27671cdd->dir_b1e1480277e1bd1794b03e39c91b2dd4 [headlabel="1", labeldistance=1.5 headhref="dir_000008_000000.html" href="dir_000008_000000.html" color="steelblue1" fontcolor="steelblue1"];
+  dir_eb1385d5d1eb3275ff55344f27671cdd->dir_a96564f6348ccf85c63c82abdf96cc4c [headlabel="1", labeldistance=1.5 headhref="dir_000009_000010.html" href="dir_000009_000010.html" color="steelblue1" fontcolor="steelblue1"];
+  dir_eb1385d5d1eb3275ff55344f27671cdd->dir_b1e1480277e1bd1794b03e39c91b2dd4 [headlabel="1", labeldistance=1.5 headhref="dir_000009_000000.html" href="dir_000009_000000.html" color="steelblue1" fontcolor="steelblue1"];
 }

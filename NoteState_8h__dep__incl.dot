@@ -20,13 +20,18 @@ digraph "src/gameplay_logic/NoteState.h"
   Node2 -> Node7 [id="edge7_Node000002_Node000007",dir="back",color="steelblue1",style="solid",tooltip=" "];
   Node2 -> Node8 [id="edge8_Node000002_Node000008",dir="back",color="steelblue1",style="solid",tooltip=" "];
   Node8 [id="Node000008",label="src/qml_components\l/ChartLoader.h",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$ChartLoader_8h.html",tooltip=" "];
-  Node8 -> Node6 [id="edge9_Node000008_Node000006",dir="back",color="steelblue1",style="solid",tooltip=" "];
-  Node8 -> Node7 [id="edge10_Node000008_Node000007",dir="back",color="steelblue1",style="solid",tooltip=" "];
-  Node2 -> Node9 [id="edge11_Node000002_Node000009",dir="back",color="steelblue1",style="solid",tooltip=" "];
-  Node9 [id="Node000009",label="src/resource_managers\l/ChartFactory.h",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$ChartFactory_8h.html",tooltip=" "];
-  Node9 -> Node8 [id="edge12_Node000009_Node000008",dir="back",color="steelblue1",style="solid",tooltip=" "];
-  Node9 -> Node10 [id="edge13_Node000009_Node000010",dir="back",color="steelblue1",style="solid",tooltip=" "];
-  Node10 [id="Node000010",label="src/resource_managers\l/ChartFactory.cpp",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$ChartFactory_8cpp.html",tooltip=" "];
-  Node1 -> Node11 [id="edge14_Node000001_Node000011",dir="back",color="steelblue1",style="solid",tooltip=" "];
-  Node11 [id="Node000011",label="src/gameplay_logic\l/NoteState.cpp",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$NoteState_8cpp.html",tooltip=" "];
+  Node8 -> Node9 [id="edge9_Node000008_Node000009",dir="back",color="steelblue1",style="solid",tooltip=" "];
+  Node9 [id="Node000009",label="RhythmGameQml/Rg.h",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$Rg_8h.html",tooltip=" "];
+  Node9 -> Node10 [id="edge10_Node000009_Node000010",dir="back",color="steelblue1",style="solid",tooltip=" "];
+  Node10 [id="Node000010",label="RhythmGameQml/Rg.cpp",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$Rg_8cpp.html",tooltip=" "];
+  Node9 -> Node6 [id="edge11_Node000009_Node000006",dir="back",color="steelblue1",style="solid",tooltip=" "];
+  Node8 -> Node6 [id="edge12_Node000008_Node000006",dir="back",color="steelblue1",style="solid",tooltip=" "];
+  Node8 -> Node7 [id="edge13_Node000008_Node000007",dir="back",color="steelblue1",style="solid",tooltip=" "];
+  Node2 -> Node11 [id="edge14_Node000002_Node000011",dir="back",color="steelblue1",style="solid",tooltip=" "];
+  Node11 [id="Node000011",label="src/resource_managers\l/ChartFactory.h",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$ChartFactory_8h.html",tooltip=" "];
+  Node11 -> Node8 [id="edge15_Node000011_Node000008",dir="back",color="steelblue1",style="solid",tooltip=" "];
+  Node11 -> Node12 [id="edge16_Node000011_Node000012",dir="back",color="steelblue1",style="solid",tooltip=" "];
+  Node12 [id="Node000012",label="src/resource_managers\l/ChartFactory.cpp",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$ChartFactory_8cpp.html",tooltip=" "];
+  Node1 -> Node13 [id="edge17_Node000001_Node000013",dir="back",color="steelblue1",style="solid",tooltip=" "];
+  Node13 [id="Node000013",label="src/gameplay_logic\l/NoteState.cpp",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$NoteState_8cpp.html",tooltip=" "];
 }

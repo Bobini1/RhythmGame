@@ -6,5 +6,6 @@ var searchData=
   ['releasethreshold_3',['releaseThreshold',['../classinput_1_1AnalogAxisConfig.html#a32d042bcf90b5304b49169ac6a555416',1,'input::AnalogAxisConfig']]],
   ['replaydata_4',['replaydata',['../classgameplay__logic_1_1BmsScore.html#a8966f4fddbbd7ac6ae3912a5f41c4e6b',1,'gameplay_logic::BmsScore::replayData'],['../classgameplay__logic_1_1BmsScoreCourse.html#a659a77b2c4f8efe6a16f215372052a0e',1,'gameplay_logic::BmsScoreCourse::replayData']]],
   ['replayedscore_5',['replayedScore',['../classgameplay__logic_1_1RePlayer.html#a888a4f2bb9f366414d0da32d9b29d149',1,'gameplay_logic::RePlayer']]],
-  ['result_6',['result',['../classgameplay__logic_1_1BmsScore.html#a8b249001f144b67963b5cdca911b4fe0',1,'gameplay_logic::BmsScore::result'],['../classgameplay__logic_1_1BmsScoreCourse.html#a6f2c9a848be5e6b782afb4cf74014635',1,'gameplay_logic::BmsScoreCourse::result']]]
+  ['result_6',['result',['../classgameplay__logic_1_1BmsScore.html#a8b249001f144b67963b5cdca911b4fe0',1,'gameplay_logic::BmsScore::result'],['../classgameplay__logic_1_1BmsScoreCourse.html#a6f2c9a848be5e6b782afb4cf74014635',1,'gameplay_logic::BmsScoreCourse::result']]],
+  ['rootsongfoldersconfig_7',['rootSongFoldersConfig',['../classRg.html#a7150ef4bbb8c71a794ca5e4fe4da1c34',1,'Rg']]]
 ];

@@ -2,7 +2,7 @@ var searchData=
 [
   ['features_0',['Features',['../index.html#autotoc_md1',1,'']]],
   ['filename_1',['filename',['../classqml__components_1_1QmlUtilsAttached.html#aaba695bd44a3774e1a9215b6346ce697',1,'qml_components::QmlUtilsAttached::fileName'],['../classqml__components_1_1QmlUtilsAttached.html#a1d87dbcfd02752abe1f2a2e887c0a101',1,'qml_components::QmlUtilsAttached::fileName() const -&gt; QString']]],
-  ['filequery_2',['FileQuery',['../classqml__components_1_1FileQuery.html',1,'qml_components']]],
+  ['filequery_2',['filequery',['../classqml__components_1_1FileQuery.html',1,'qml_components::FileQuery'],['../classRg.html#a667944353d6d8ab557361c2f80b007e5',1,'Rg::fileQuery']]],
   ['filequery_2ecpp_3',['FileQuery.cpp',['../FileQuery_8cpp.html',1,'']]],
   ['filequery_2eh_4',['FileQuery.h',['../FileQuery_8h.html',1,'']]],
   ['files_5',['Strings in QML files',['../md_DEV__LANG.html#autotoc_md30',1,'']]],

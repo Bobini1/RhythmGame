@@ -24,13 +24,18 @@ digraph "src/gameplay_logic/rules/StandardBmsHitRules.h"
   Node4 -> Node9 [id="edge9_Node000004_Node000009",dir="back",color="steelblue1",style="solid",tooltip=" "];
   Node4 -> Node10 [id="edge10_Node000004_Node000010",dir="back",color="steelblue1",style="solid",tooltip=" "];
   Node10 [id="Node000010",label="src/qml_components\l/ChartLoader.h",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$ChartLoader_8h.html",tooltip=" "];
-  Node10 -> Node8 [id="edge11_Node000010_Node000008",dir="back",color="steelblue1",style="solid",tooltip=" "];
-  Node10 -> Node9 [id="edge12_Node000010_Node000009",dir="back",color="steelblue1",style="solid",tooltip=" "];
-  Node4 -> Node11 [id="edge13_Node000004_Node000011",dir="back",color="steelblue1",style="solid",tooltip=" "];
-  Node11 [id="Node000011",label="src/resource_managers\l/ChartFactory.h",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$ChartFactory_8h.html",tooltip=" "];
-  Node11 -> Node10 [id="edge14_Node000011_Node000010",dir="back",color="steelblue1",style="solid",tooltip=" "];
-  Node11 -> Node12 [id="edge15_Node000011_Node000012",dir="back",color="steelblue1",style="solid",tooltip=" "];
-  Node12 [id="Node000012",label="src/resource_managers\l/ChartFactory.cpp",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$ChartFactory_8cpp.html",tooltip=" "];
-  Node1 -> Node13 [id="edge16_Node000001_Node000013",dir="back",color="steelblue1",style="solid",tooltip=" "];
-  Node13 [id="Node000013",label="src/gameplay_logic\l/rules/StandardBmsHitRules.cpp",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$StandardBmsHitRules_8cpp.html",tooltip=" "];
+  Node10 -> Node11 [id="edge11_Node000010_Node000011",dir="back",color="steelblue1",style="solid",tooltip=" "];
+  Node11 [id="Node000011",label="RhythmGameQml/Rg.h",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$Rg_8h.html",tooltip=" "];
+  Node11 -> Node12 [id="edge12_Node000011_Node000012",dir="back",color="steelblue1",style="solid",tooltip=" "];
+  Node12 [id="Node000012",label="RhythmGameQml/Rg.cpp",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$Rg_8cpp.html",tooltip=" "];
+  Node11 -> Node8 [id="edge13_Node000011_Node000008",dir="back",color="steelblue1",style="solid",tooltip=" "];
+  Node10 -> Node8 [id="edge14_Node000010_Node000008",dir="back",color="steelblue1",style="solid",tooltip=" "];
+  Node10 -> Node9 [id="edge15_Node000010_Node000009",dir="back",color="steelblue1",style="solid",tooltip=" "];
+  Node4 -> Node13 [id="edge16_Node000004_Node000013",dir="back",color="steelblue1",style="solid",tooltip=" "];
+  Node13 [id="Node000013",label="src/resource_managers\l/ChartFactory.h",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$ChartFactory_8h.html",tooltip=" "];
+  Node13 -> Node10 [id="edge17_Node000013_Node000010",dir="back",color="steelblue1",style="solid",tooltip=" "];
+  Node13 -> Node14 [id="edge18_Node000013_Node000014",dir="back",color="steelblue1",style="solid",tooltip=" "];
+  Node14 [id="Node000014",label="src/resource_managers\l/ChartFactory.cpp",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$ChartFactory_8cpp.html",tooltip=" "];
+  Node1 -> Node15 [id="edge19_Node000001_Node000015",dir="back",color="steelblue1",style="solid",tooltip=" "];
+  Node15 [id="Node000015",label="src/gameplay_logic\l/rules/StandardBmsHitRules.cpp",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$StandardBmsHitRules_8cpp.html",tooltip=" "];
 }
