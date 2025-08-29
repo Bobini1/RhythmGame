@@ -80,6 +80,9 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 
+<p>Provides access to the score database of a profile.  
+ <a href="classqml__components_1_1ScoreDb.html#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="ScoreDb_8h_source.html">ScoreDb.h</a>&gt;</code></p>
 <div class="dynheader">
 Inheritance diagram for qml_components::ScoreDb:</div>
@@ -107,11 +110,15 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a8d237f07e5db731f517ccd549710333a" id="r_a8d237f07e5db731f517ccd549710333a"><td class="memItemLeft" align="right" valign="top">Q_INVOKABLE QIfPendingReply&lt; <a class="el" href="classqml__components_1_1ScoreQueryResult.html">ScoreQueryResult</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classqml__components_1_1ScoreDb.html#a8d237f07e5db731f517ccd549710333a">getScores</a> (const <a class="el" href="structresource__managers_1_1Level.html">resource_managers::Level</a> &amp;level) const</td></tr>
 <tr class="separator:a8d237f07e5db731f517ccd549710333a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac9eb21f5c3b9415011d140b881575a69" id="r_ac9eb21f5c3b9415011d140b881575a69"><td class="memItemLeft" align="right" valign="top">Q_INVOKABLE void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classqml__components_1_1ScoreDb.html#ac9eb21f5c3b9415011d140b881575a69">cancelPending</a> ()</td></tr>
+<tr class="memdesc:ac9eb21f5c3b9415011d140b881575a69"><td class="mdescLeft">&#160;</td><td class="mdescRight">Stop all pending queries and fail them.  <br /></td></tr>
 <tr class="separator:ac9eb21f5c3b9415011d140b881575a69"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac1c64c6ad001561d1e92218a195ca441" id="r_ac1c64c6ad001561d1e92218a195ca441"><td class="memItemLeft" align="right" valign="top">Q_INVOKABLE int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classqml__components_1_1ScoreDb.html#ac1c64c6ad001561d1e92218a195ca441">getTotalScoreCount</a> () const</td></tr>
 <tr class="separator:ac1c64c6ad001561d1e92218a195ca441"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Provides access to the score database of a profile. </p>
+<p>All methods are asynchronous and return a QIfPendingReply. The queries are executed in a thread pool, so multiple queries can be executed in parallel. Use <a class="el" href="classqml__components_1_1ScoreDb.html#ac9eb21f5c3b9415011d140b881575a69" title="Stop all pending queries and fail them.">cancelPending()</a> to stop all pending queries. </p>
+</div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="aaf888958bee0ca9475989553cbbc11f3" name="aaf888958bee0ca9475989553cbbc11f3"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aaf888958bee0ca9475989553cbbc11f3">&#9670;&#160;</a></span>ScoreDb()</h2>
 
@@ -153,6 +160,9 @@ Public Member Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Stop all pending queries and fail them. </p>
+<p>This is useful when quickly browsing directories (faster than the queries can finish) to avoid a backlog of queries. </p>
 
 </div>
 </div>

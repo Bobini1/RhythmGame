@@ -8,7 +8,7 @@ digraph "resource_managers::ChartFactory::PlayerSpecificData"
   Node2 -> Node1 [id="edge1_Node000001_Node000002",dir="back",color="darkorchid3",style="dashed",tooltip=" ",label=" hitRules",fontcolor="grey" ];
   Node2 [id="Node000002",label="gameplay_logic::rules\l::StandardBmsHitRules",height=0.2,width=0.4,color="gray40", fillcolor="white", style="filled",URL="$classgameplay__logic_1_1rules_1_1StandardBmsHitRules.html",tooltip=" "];
   Node3 -> Node1 [id="edge2_Node000001_Node000003",dir="back",color="darkorchid3",style="dashed",tooltip=" ",label=" replayedScore",fontcolor="grey" ];
-  Node3 [id="Node000003",label="gameplay_logic::BmsScore",height=0.2,width=0.4,color="gray40", fillcolor="white", style="filled",URL="$classgameplay__logic_1_1BmsScore.html",tooltip=" "];
+  Node3 [id="Node000003",label="gameplay_logic::BmsScore",height=0.2,width=0.4,color="gray40", fillcolor="white", style="filled",URL="$classgameplay__logic_1_1BmsScore.html",tooltip="The result of playing a chart."];
   Node4 -> Node3 [id="edge3_Node000003_Node000004",dir="back",color="steelblue1",style="solid",tooltip=" "];
   Node4 [id="Node000004",label="QObject",height=0.2,width=0.4,color="gray40", fillcolor="white", style="filled",tooltip=" "];
 }

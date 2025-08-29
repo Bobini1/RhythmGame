@@ -81,6 +81,9 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 
+<p>The update manager of notes and sounds during gameplay.  
+ <a href="classgameplay__logic_1_1BmsGameReferee.html#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="BmsGameReferee_8h_source.html">BmsGameReferee.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-types" name="pub-types"></a>
@@ -107,11 +110,16 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:aae7147b037fba7b41524a3b881721dc0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the position in the chart, expressed in beats.  <br /></td></tr>
 <tr class="separator:aae7147b037fba7b41524a3b881721dc0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9b16c3583c4ed2efd0820ec527e9c272" id="r_a9b16c3583c4ed2efd0820ec527e9c272"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgameplay__logic_1_1BmsGameReferee.html#a9b16c3583c4ed2efd0820ec527e9c272">passPressed</a> (std::chrono::nanoseconds offsetFromStart, <a class="el" href="namespaceinput.html#a89dbd5c89689deb9b22511daf93d97b1">input::BmsKey</a> key) -&gt; void</td></tr>
+<tr class="memdesc:a9b16c3583c4ed2efd0820ec527e9c272"><td class="mdescLeft">&#160;</td><td class="mdescRight">Handle a key press event.  <br /></td></tr>
 <tr class="separator:a9b16c3583c4ed2efd0820ec527e9c272"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abde14f57321c60cdcbf216ba4d9551fd" id="r_abde14f57321c60cdcbf216ba4d9551fd"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgameplay__logic_1_1BmsGameReferee.html#abde14f57321c60cdcbf216ba4d9551fd">passReleased</a> (std::chrono::nanoseconds offsetFromStart, <a class="el" href="namespaceinput.html#a89dbd5c89689deb9b22511daf93d97b1">input::BmsKey</a> key) -&gt; void</td></tr>
+<tr class="memdesc:abde14f57321c60cdcbf216ba4d9551fd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Handle a key press event.  <br /></td></tr>
 <tr class="separator:abde14f57321c60cdcbf216ba4d9551fd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">Member Typedef Documentation</h2>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>The update manager of notes and sounds during gameplay. </p>
+<p>The <a class="el" href="classgameplay__logic_1_1BmsGameReferee.html" title="The update manager of notes and sounds during gameplay.">BmsGameReferee</a> class is responsible for getting hits and misses of notes, playing note and BGM sounds, and providing the current position of notes. </p>
+</div><h2 class="groupheader">Member Typedef Documentation</h2>
 <a id="ac32c6c7eb1680257498d6e7f988bcbfd" name="ac32c6c7eb1680257498d6e7f988bcbfd"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ac32c6c7eb1680257498d6e7f988bcbfd">&#9670;&#160;</a></span>Position</h2>
 
@@ -265,7 +273,7 @@ Public Member Functions</h2></td></tr>
 <p>Get the position in the chart, expressed in beats. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">offsetFromStart</td><td>The current time offset from the start of the chart </td></tr>
+    <tr><td class="paramname">offsetFromStart</td><td>The time offset from the start of the chart </td></tr>
   </table>
   </dd>
 </dl>
@@ -351,6 +359,16 @@ Public Member Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Handle a key press event. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">offsetFromStart</td><td>The time offset from the start of the chart when the press happened </td></tr>
+    <tr><td class="paramname">key</td><td>The key that was pressed </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="classgameplay__logic_1_1BmsGameReferee.html#a3fd7f26a5d979bfc37da8b31a2529e74" title="Update the internal state of the referee.">update()</a> </dd></dl>
+
 </div>
 </div>
 <a id="abde14f57321c60cdcbf216ba4d9551fd" name="abde14f57321c60cdcbf216ba4d9551fd"></a>
@@ -378,6 +396,16 @@ Public Member Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Handle a key press event. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">offsetFromStart</td><td>The time offset from the start of the chart when the release happened </td></tr>
+    <tr><td class="paramname">key</td><td>The key that was released </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="classgameplay__logic_1_1BmsGameReferee.html#a3fd7f26a5d979bfc37da8b31a2529e74" title="Update the internal state of the referee.">update()</a> </dd></dl>
 
 </div>
 </div>
@@ -411,10 +439,11 @@ Public Member Functions</h2></td></tr>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">offsetFromStart</td><td>The current time offset from the start of the chart </td></tr>
-    <tr><td class="paramname">lastUpdate</td><td>If true, remove all bgm sounds from the queue before updating </td></tr>
+    <tr><td class="paramname">lastUpdate</td><td>If true, don't play any sounds in this and future updates </td></tr>
   </table>
   </dd>
 </dl>
+<dl class="section warning"><dt>Warning</dt><dd>If this function detects a miss and you then use <a class="el" href="classgameplay__logic_1_1BmsGameReferee.html#a9b16c3583c4ed2efd0820ec527e9c272" title="Handle a key press event.">passPressed()</a> or <a class="el" href="classgameplay__logic_1_1BmsGameReferee.html#abde14f57321c60cdcbf216ba4d9551fd" title="Handle a key press event.">passReleased()</a> with an older timestamp, the miss will not be rectified. </dd></dl>
 
 </div>
 </div>

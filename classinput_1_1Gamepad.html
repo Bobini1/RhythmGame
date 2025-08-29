@@ -88,8 +88,8 @@ $(function() {
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a903e1edb36f913da58765bfde6978131" id="r_a903e1edb36f913da58765bfde6978131"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classinput_1_1Gamepad.html#a903e1edb36f913da58765bfde6978131">operator&lt;=&gt;</a> (const <a class="el" href="classinput_1_1Gamepad.html">Gamepad</a> &amp;gamepad) const</td></tr>
 <tr class="separator:a903e1edb36f913da58765bfde6978131"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a572992847c282b019a5ac14a2931086b" id="r_a572992847c282b019a5ac14a2931086b"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classinput_1_1Gamepad.html#a572992847c282b019a5ac14a2931086b">operator==</a> (const <a class="el" href="classinput_1_1Gamepad.html">Gamepad</a> &amp;gamepad) const</td></tr>
-<tr class="separator:a572992847c282b019a5ac14a2931086b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4925bcac7c192fa362964c7a0e0e206e" id="r_a4925bcac7c192fa362964c7a0e0e206e"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classinput_1_1Gamepad.html#a4925bcac7c192fa362964c7a0e0e206e">operator==</a> (const <a class="el" href="classinput_1_1Gamepad.html">Gamepad</a> &amp;gamepad) const -&gt; bool</td></tr>
+<tr class="separator:a4925bcac7c192fa362964c7a0e0e206e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="properties" name="properties"></a>
 Properties</h2></td></tr>
@@ -98,6 +98,7 @@ Properties</h2></td></tr>
 <tr class="memitem:a8092b140fc8163ecad58746fec61a943" id="r_a8092b140fc8163ecad58746fec61a943"><td class="memItemLeft" align="right" valign="top">QString&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classinput_1_1Gamepad.html#a8092b140fc8163ecad58746fec61a943">guid</a></td></tr>
 <tr class="separator:a8092b140fc8163ecad58746fec61a943"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad3aa57b99a63ea30dca55875a8df77dc" id="r_ad3aa57b99a63ea30dca55875a8df77dc"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classinput_1_1Gamepad.html#ad3aa57b99a63ea30dca55875a8df77dc">index</a> {}</td></tr>
+<tr class="memdesc:ad3aa57b99a63ea30dca55875a8df77dc"><td class="mdescLeft">&#160;</td><td class="mdescRight">The index of the gamepad. It will get incremented if two gamepads with the same guid are connected to the computer. Connect them in the same order to get the same index.  <br /></td></tr>
 <tr class="separator:ad3aa57b99a63ea30dca55875a8df77dc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="friends" name="friends"></a>
@@ -134,28 +135,20 @@ Friends</h2></td></tr>
 
 </div>
 </div>
-<a id="a572992847c282b019a5ac14a2931086b" name="a572992847c282b019a5ac14a2931086b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a572992847c282b019a5ac14a2931086b">&#9670;&#160;</a></span>operator==()</h2>
+<a id="a4925bcac7c192fa362964c7a0e0e206e" name="a4925bcac7c192fa362964c7a0e0e206e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4925bcac7c192fa362964c7a0e0e206e">&#9670;&#160;</a></span>operator==()</h2>
 
 <div class="memitem">
 <div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
       <table class="memname">
         <tr>
           <td class="memname">auto input::Gamepad::operator== </td>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="classinput_1_1Gamepad.html">Gamepad</a> &amp;&#160;</td>
           <td class="paramname"><em>gamepad</em></td><td>)</td>
-          <td> const</td>
+          <td> const -&gt; bool</td>
         </tr>
       </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
 </div><div class="memdoc">
 
 </div>
@@ -185,8 +178,7 @@ Friends</h2></td></tr>
         <tr>
           <td></td>
           <td>)</td>
-          <td></td><td> -&gt; QDataStream&amp;
-    </td>
+          <td></td><td> -&gt; QDataStream&amp;</td>
         </tr>
       </table>
   </td>
@@ -222,8 +214,7 @@ Friends</h2></td></tr>
         <tr>
           <td></td>
           <td>)</td>
-          <td></td><td> -&gt; QDataStream&amp;
-    </td>
+          <td></td><td> -&gt; QDataStream&amp;</td>
         </tr>
       </table>
   </td>
@@ -262,6 +253,8 @@ Friends</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>The index of the gamepad. It will get incremented if two gamepads with the same guid are connected to the computer. Connect them in the same order to get the same index. </p>
+
 </div>
 </div>
 <a id="a7e5aa32c592316e24504310793eb5119" name="a7e5aa32c592316e24504310793eb5119"></a>
@@ -278,8 +271,9 @@ Friends</h2></td></tr>
 
 </div>
 </div>
-<hr/>The documentation for this class was generated from the following file:<ul>
+<hr/>The documentation for this class was generated from the following files:<ul>
 <li>src/input/<a class="el" href="GamepadManager_8h_source.html">GamepadManager.h</a></li>
+<li>src/input/<a class="el" href="GamepadManager_8cpp.html">GamepadManager.cpp</a></li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->

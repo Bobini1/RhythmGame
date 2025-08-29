@@ -82,6 +82,9 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 
+<p>A single BGA layer.  
+ <a href="classqml__components_1_1Bga.html#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="Bga_8h_source.html">Bga.h</a>&gt;</code></p>
 <div class="dynheader">
 Inheritance diagram for qml_components::Bga:</div>
@@ -113,9 +116,13 @@ Public Member Functions</h2></td></tr>
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="properties" name="properties"></a>
 Properties</h2></td></tr>
 <tr class="memitem:a98ab4d4a48d2627a78e4ef0f13b36ca2" id="r_a98ab4d4a48d2627a78e4ef0f13b36ca2"><td class="memItemLeft" align="right" valign="top">QVideoSink *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classqml__components_1_1Bga.html#a98ab4d4a48d2627a78e4ef0f13b36ca2">videoSink</a></td></tr>
+<tr class="memdesc:a98ab4d4a48d2627a78e4ef0f13b36ca2"><td class="mdescLeft">&#160;</td><td class="mdescRight">The video sink to output the BGA to.  <br /></td></tr>
 <tr class="separator:a98ab4d4a48d2627a78e4ef0f13b36ca2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>A single BGA layer. </p>
+<p><a href="https://hitkey.nekokan.dyndns.info/cmds.htm#BMPXX">https://hitkey.nekokan.dyndns.info/cmds.htm#BMPXX</a> In QML, assign a QVideoSink to the videoSink property. When a chart is played, it will update the bga and that will update the pixels in the provided videoSink. </p>
+</div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a2f371fcfacaac730e2431cfb11b4cdf7" name="a2f371fcfacaac730e2431cfb11b4cdf7"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a2f371fcfacaac730e2431cfb11b4cdf7">&#9670;&#160;</a></span>Bga()</h2>
 
@@ -257,6 +264,9 @@ Properties</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The video sink to output the BGA to. </p>
+<p>Playback can be started by calling\ <a class="el" href="classgameplay__logic_1_1ChartRunner.html#a8036d4f478016013e3c9ce4aa008a475">gameplay_logic::ChartRunner::start()</a> on the ChartRunner that owns theBGA. </p>
 
 </div>
 </div>

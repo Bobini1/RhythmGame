@@ -87,65 +87,64 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00004" name="l00004"></a><span class="lineno">    4</span> </div>
 <div class="line"><a id="l00005" name="l00005"></a><span class="lineno">    5</span><span class="preprocessor">#ifndef SKIN_H</span></div>
 <div class="line"><a id="l00006" name="l00006"></a><span class="lineno">    6</span><span class="preprocessor">#define SKIN_H</span></div>
-<div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span><span class="preprocessor">#include &lt;QObject&gt;</span></div>
-<div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span><span class="preprocessor">#include &lt;QMap&gt;</span></div>
-<div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span><span class="preprocessor">#include &lt;QUrl&gt;</span></div>
-<div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span> </div>
-<div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span><span class="keyword">namespace </span><a class="code hl_namespace" href="namespaceqml__components.html">qml_components</a> {</div>
-<div class="foldopen" id="foldopen00012" data-start="{" data-end="};">
-<div class="line"><a id="l00012" name="l00012"></a><span class="lineno"><a class="line" href="classqml__components_1_1Screen.html">   12</a></span><span class="keyword">class </span><a class="code hl_class" href="classqml__components_1_1Screen.html">Screen</a></div>
-<div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span>{</div>
-<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span>    Q_GADGET</div>
-<div class="line"><a id="l00015" name="l00015"></a><span class="lineno"><a class="line" href="classqml__components_1_1Screen.html#a7d1307ce21359f24111eb9b6f485604f">   15</a></span>    Q_PROPERTY(QUrl <a class="code hl_property" href="classqml__components_1_1Screen.html#a7d1307ce21359f24111eb9b6f485604f">script</a> READ <a class="code hl_function" href="classqml__components_1_1Screen.html#afa74761e6b67c63e48e2524a3ea154e4">getScript</a> CONSTANT)</div>
-<div class="line"><a id="l00016" name="l00016"></a><span class="lineno"><a class="line" href="classqml__components_1_1Screen.html#aa054ca75b9ef25bf7f03589aafe154e3">   16</a></span>    Q_PROPERTY(QUrl <a class="code hl_property" href="classqml__components_1_1Screen.html#aa054ca75b9ef25bf7f03589aafe154e3">settings</a> READ <a class="code hl_function" href="classqml__components_1_1Screen.html#ae7a5382ddd613c52ecaeca7a0c5dae4d">getSettings</a> CONSTANT)</div>
-<div class="line"><a id="l00017" name="l00017"></a><span class="lineno"><a class="line" href="classqml__components_1_1Screen.html#ac33017aeb14f829eeed0926db261655e">   17</a></span>    Q_PROPERTY(QUrl <a class="code hl_property" href="classqml__components_1_1Screen.html#ac33017aeb14f829eeed0926db261655e">settingsScript</a> READ <a class="code hl_function" href="classqml__components_1_1Screen.html#a7ee5b23f9c5b61b6833f37e8299ba3e9">getSettingsScript</a> CONSTANT)</div>
-<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span>    QUrl <a class="code hl_property" href="classqml__components_1_1Screen.html#a7d1307ce21359f24111eb9b6f485604f">script</a>;</div>
-<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span>    QUrl <a class="code hl_property" href="classqml__components_1_1Screen.html#aa054ca75b9ef25bf7f03589aafe154e3">settings</a>;</div>
-<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span>    QUrl <a class="code hl_property" href="classqml__components_1_1Screen.html#ac33017aeb14f829eeed0926db261655e">settingsScript</a>;</div>
-<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span> </div>
-<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span>  public:</div>
-<div class="line"><a id="l00023" name="l00023"></a><span class="lineno"><a class="line" href="classqml__components_1_1Screen.html#a2507134a83d5b3761c42703ecb8bdea2">   23</a></span>    <a class="code hl_class" href="classqml__components_1_1Screen.html">Screen</a>() = default; <span class="comment">// necessary for Qt</span></div>
-<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span>    <a class="code hl_class" href="classqml__components_1_1Screen.html">Screen</a>(QUrl <a class="code hl_property" href="classqml__components_1_1Screen.html#a7d1307ce21359f24111eb9b6f485604f">script</a>, QUrl <a class="code hl_property" href="classqml__components_1_1Screen.html#aa054ca75b9ef25bf7f03589aafe154e3">settings</a>, QUrl <a class="code hl_property" href="classqml__components_1_1Screen.html#ac33017aeb14f829eeed0926db261655e">settingsScript</a>);</div>
-<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span>    auto <a class="code hl_function" href="classqml__components_1_1Screen.html#afa74761e6b67c63e48e2524a3ea154e4">getScript</a>() const -&gt; QUrl;</div>
-<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span>    auto <a class="code hl_function" href="classqml__components_1_1Screen.html#ae7a5382ddd613c52ecaeca7a0c5dae4d">getSettings</a>() const -&gt; QUrl;</div>
-<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span>    auto <a class="code hl_function" href="classqml__components_1_1Screen.html#a7ee5b23f9c5b61b6833f37e8299ba3e9">getSettingsScript</a>() const -&gt; QUrl;</div>
-<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>};</div>
+<div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span><span class="preprocessor">#include &lt;QMap&gt;</span></div>
+<div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span><span class="preprocessor">#include &lt;QUrl&gt;</span></div>
+<div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span> </div>
+<div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span><span class="keyword">namespace </span><a class="code hl_namespace" href="namespaceqml__components.html">qml_components</a> {</div>
+<div class="foldopen" id="foldopen00011" data-start="{" data-end="};">
+<div class="line"><a id="l00011" name="l00011"></a><span class="lineno"><a class="line" href="classqml__components_1_1Screen.html">   11</a></span><span class="keyword">class </span><a class="code hl_class" href="classqml__components_1_1Screen.html">Screen</a></div>
+<div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span>{</div>
+<div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span>    Q_GADGET</div>
+<div class="line"><a id="l00014" name="l00014"></a><span class="lineno"><a class="line" href="classqml__components_1_1Screen.html#a7d1307ce21359f24111eb9b6f485604f">   14</a></span>    Q_PROPERTY(QUrl <a class="code hl_property" href="classqml__components_1_1Screen.html#a7d1307ce21359f24111eb9b6f485604f">script</a> READ <a class="code hl_function" href="classqml__components_1_1Screen.html#afa74761e6b67c63e48e2524a3ea154e4">getScript</a> CONSTANT)</div>
+<div class="line"><a id="l00015" name="l00015"></a><span class="lineno"><a class="line" href="classqml__components_1_1Screen.html#aa054ca75b9ef25bf7f03589aafe154e3">   15</a></span>    Q_PROPERTY(QUrl <a class="code hl_property" href="classqml__components_1_1Screen.html#aa054ca75b9ef25bf7f03589aafe154e3">settings</a> READ <a class="code hl_function" href="classqml__components_1_1Screen.html#ae7a5382ddd613c52ecaeca7a0c5dae4d">getSettings</a> CONSTANT)</div>
+<div class="line"><a id="l00016" name="l00016"></a><span class="lineno"><a class="line" href="classqml__components_1_1Screen.html#ac33017aeb14f829eeed0926db261655e">   16</a></span>    Q_PROPERTY(QUrl <a class="code hl_property" href="classqml__components_1_1Screen.html#ac33017aeb14f829eeed0926db261655e">settingsScript</a> READ <a class="code hl_function" href="classqml__components_1_1Screen.html#a7ee5b23f9c5b61b6833f37e8299ba3e9">getSettingsScript</a> CONSTANT)</div>
+<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span>    QUrl <a class="code hl_property" href="classqml__components_1_1Screen.html#a7d1307ce21359f24111eb9b6f485604f">script</a>;</div>
+<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span>    QUrl <a class="code hl_property" href="classqml__components_1_1Screen.html#aa054ca75b9ef25bf7f03589aafe154e3">settings</a>;</div>
+<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span>    QUrl <a class="code hl_property" href="classqml__components_1_1Screen.html#ac33017aeb14f829eeed0926db261655e">settingsScript</a>;</div>
+<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span> </div>
+<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span>  public:</div>
+<div class="line"><a id="l00022" name="l00022"></a><span class="lineno"><a class="line" href="classqml__components_1_1Screen.html#a2507134a83d5b3761c42703ecb8bdea2">   22</a></span>    <a class="code hl_class" href="classqml__components_1_1Screen.html">Screen</a>() = default; <span class="comment">// necessary for Qt</span></div>
+<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span>    <a class="code hl_class" href="classqml__components_1_1Screen.html">Screen</a>(QUrl <a class="code hl_property" href="classqml__components_1_1Screen.html#a7d1307ce21359f24111eb9b6f485604f">script</a>, QUrl <a class="code hl_property" href="classqml__components_1_1Screen.html#aa054ca75b9ef25bf7f03589aafe154e3">settings</a>, QUrl <a class="code hl_property" href="classqml__components_1_1Screen.html#ac33017aeb14f829eeed0926db261655e">settingsScript</a>);</div>
+<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span>    auto <a class="code hl_function" href="classqml__components_1_1Screen.html#afa74761e6b67c63e48e2524a3ea154e4">getScript</a>() const -&gt; QUrl;</div>
+<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span>    auto <a class="code hl_function" href="classqml__components_1_1Screen.html#ae7a5382ddd613c52ecaeca7a0c5dae4d">getSettings</a>() const -&gt; QUrl;</div>
+<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span>    auto <a class="code hl_function" href="classqml__components_1_1Screen.html#a7ee5b23f9c5b61b6833f37e8299ba3e9">getSettingsScript</a>() const -&gt; QUrl;</div>
+<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span>};</div>
 </div>
-<div class="foldopen" id="foldopen00029" data-start="{" data-end="};">
-<div class="line"><a id="l00029" name="l00029"></a><span class="lineno"><a class="line" href="classqml__components_1_1ThemeFamily.html">   29</a></span>class <a class="code hl_class" href="classqml__components_1_1ThemeFamily.html">ThemeFamily</a></div>
-<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span>{</div>
-<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span>    Q_GADGET</div>
-<div class="line"><a id="l00032" name="l00032"></a><span class="lineno"><a class="line" href="classqml__components_1_1ThemeFamily.html#a640b1bd30d0549c982ed4e2a528585e1">   32</a></span>    Q_PROPERTY(QString path READ getPath CONSTANT)</div>
-<div class="line"><a id="l00033" name="l00033"></a><span class="lineno"><a class="line" href="classqml__components_1_1ThemeFamily.html#a88b0662cbfdef63ac57eaaac71600fe6">   33</a></span>    Q_PROPERTY(QVariantMap screens READ getScreensVariant CONSTANT)</div>
-<div class="line"><a id="l00034" name="l00034"></a><span class="lineno"><a class="line" href="classqml__components_1_1ThemeFamily.html#a6338cfe045a3c35e8f4c5f5068abc9f0">   34</a></span>    Q_PROPERTY(QMap&lt;QString, QUrl&gt; translations READ getTranslations CONSTANT)</div>
-<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span> </div>
-<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span>  public:</div>
-<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span>    auto getPath() const -&gt; QString;</div>
-<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span>    auto getScreensVariant() const -&gt; QVariantMap;</div>
-<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span>    auto getScreens() const -&gt; QMap&lt;QString, <a class="code hl_class" href="classqml__components_1_1Screen.html">Screen</a>&gt;;</div>
-<div class="line"><a id="l00040" name="l00040"></a><span class="lineno"><a class="line" href="classqml__components_1_1ThemeFamily.html#a0c2c994fd855147bcdf59d56ea4fefd8">   40</a></span>    <a class="code hl_class" href="classqml__components_1_1ThemeFamily.html">ThemeFamily</a>() = default; <span class="comment">// necessary for Qt</span></div>
-<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>    <a class="code hl_class" href="classqml__components_1_1ThemeFamily.html">ThemeFamily</a>(QString path,</div>
-<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span>                QMap&lt;QString, <a class="code hl_class" href="classqml__components_1_1Screen.html">Screen</a>&gt; screens,</div>
-<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span>                QMap&lt;QString, QUrl&gt; translations);</div>
-<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span>    auto getTranslations() const -&gt; QMap&lt;QString, QUrl&gt;;</div>
-<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span> </div>
-<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>  private:</div>
-<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>    QString path;</div>
-<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>    QMap&lt;QString, <a class="code hl_class" href="classqml__components_1_1Screen.html">Screen</a>&gt; screens;</div>
-<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>    QMap&lt;QString, QUrl&gt; translations;</div>
-<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span>};</div>
+<div class="foldopen" id="foldopen00028" data-start="{" data-end="};">
+<div class="line"><a id="l00028" name="l00028"></a><span class="lineno"><a class="line" href="classqml__components_1_1ThemeFamily.html">   28</a></span>class <a class="code hl_class" href="classqml__components_1_1ThemeFamily.html">ThemeFamily</a></div>
+<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span>{</div>
+<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span>    Q_GADGET</div>
+<div class="line"><a id="l00031" name="l00031"></a><span class="lineno"><a class="line" href="classqml__components_1_1ThemeFamily.html#a640b1bd30d0549c982ed4e2a528585e1">   31</a></span>    Q_PROPERTY(QString path READ getPath CONSTANT)</div>
+<div class="line"><a id="l00032" name="l00032"></a><span class="lineno"><a class="line" href="classqml__components_1_1ThemeFamily.html#a88b0662cbfdef63ac57eaaac71600fe6">   32</a></span>    Q_PROPERTY(QVariantMap screens READ getScreensVariant CONSTANT)</div>
+<div class="line"><a id="l00033" name="l00033"></a><span class="lineno"><a class="line" href="classqml__components_1_1ThemeFamily.html#a6338cfe045a3c35e8f4c5f5068abc9f0">   33</a></span>    Q_PROPERTY(QMap&lt;QString, QUrl&gt; translations READ getTranslations CONSTANT)</div>
+<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span> </div>
+<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>  public:</div>
+<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span>    auto getPath() const -&gt; QString;</div>
+<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span>    auto getScreensVariant() const -&gt; QVariantMap;</div>
+<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span>    auto getScreens() const -&gt; QMap&lt;QString, <a class="code hl_class" href="classqml__components_1_1Screen.html">Screen</a>&gt;;</div>
+<div class="line"><a id="l00039" name="l00039"></a><span class="lineno"><a class="line" href="classqml__components_1_1ThemeFamily.html#a0c2c994fd855147bcdf59d56ea4fefd8">   39</a></span>    <a class="code hl_class" href="classqml__components_1_1ThemeFamily.html">ThemeFamily</a>() = default; <span class="comment">// necessary for Qt</span></div>
+<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>    <a class="code hl_class" href="classqml__components_1_1ThemeFamily.html">ThemeFamily</a>(QString path,</div>
+<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>                QMap&lt;QString, <a class="code hl_class" href="classqml__components_1_1Screen.html">Screen</a>&gt; screens,</div>
+<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span>                QMap&lt;QString, QUrl&gt; translations);</div>
+<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span>    auto getTranslations() const -&gt; QMap&lt;QString, QUrl&gt;;</div>
+<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span> </div>
+<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>  private:</div>
+<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>    QString path;</div>
+<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>    QMap&lt;QString, <a class="code hl_class" href="classqml__components_1_1Screen.html">Screen</a>&gt; screens;</div>
+<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>    QMap&lt;QString, QUrl&gt; translations;</div>
+<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>};</div>
 </div>
-<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>} <span class="comment">// namespace qml_components</span></div>
-<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span><span class="preprocessor">#endif </span><span class="comment">// SKIN_H</span></div>
-<div class="ttc" id="aclassqml__components_1_1Screen_html"><div class="ttname"><a href="classqml__components_1_1Screen.html">qml_components::Screen</a></div><div class="ttdef"><b>Definition</b> ThemeFamily.h:13</div></div>
-<div class="ttc" id="aclassqml__components_1_1Screen_html_a7d1307ce21359f24111eb9b6f485604f"><div class="ttname"><a href="classqml__components_1_1Screen.html#a7d1307ce21359f24111eb9b6f485604f">qml_components::Screen::script</a></div><div class="ttdeci">QUrl script</div><div class="ttdef"><b>Definition</b> ThemeFamily.h:15</div></div>
+<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span>} <span class="comment">// namespace qml_components</span></div>
+<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span><span class="preprocessor">#endif </span><span class="comment">// SKIN_H</span></div>
+<div class="ttc" id="aclassqml__components_1_1Screen_html"><div class="ttname"><a href="classqml__components_1_1Screen.html">qml_components::Screen</a></div><div class="ttdef"><b>Definition</b> ThemeFamily.h:12</div></div>
+<div class="ttc" id="aclassqml__components_1_1Screen_html_a7d1307ce21359f24111eb9b6f485604f"><div class="ttname"><a href="classqml__components_1_1Screen.html#a7d1307ce21359f24111eb9b6f485604f">qml_components::Screen::script</a></div><div class="ttdeci">QUrl script</div><div class="ttdef"><b>Definition</b> ThemeFamily.h:14</div></div>
 <div class="ttc" id="aclassqml__components_1_1Screen_html_a7ee5b23f9c5b61b6833f37e8299ba3e9"><div class="ttname"><a href="classqml__components_1_1Screen.html#a7ee5b23f9c5b61b6833f37e8299ba3e9">qml_components::Screen::getSettingsScript</a></div><div class="ttdeci">auto getSettingsScript() const -&gt; QUrl</div><div class="ttdef"><b>Definition</b> ThemeFamily.cpp:55</div></div>
-<div class="ttc" id="aclassqml__components_1_1Screen_html_aa054ca75b9ef25bf7f03589aafe154e3"><div class="ttname"><a href="classqml__components_1_1Screen.html#aa054ca75b9ef25bf7f03589aafe154e3">qml_components::Screen::settings</a></div><div class="ttdeci">QUrl settings</div><div class="ttdef"><b>Definition</b> ThemeFamily.h:16</div></div>
-<div class="ttc" id="aclassqml__components_1_1Screen_html_ac33017aeb14f829eeed0926db261655e"><div class="ttname"><a href="classqml__components_1_1Screen.html#ac33017aeb14f829eeed0926db261655e">qml_components::Screen::settingsScript</a></div><div class="ttdeci">QUrl settingsScript</div><div class="ttdef"><b>Definition</b> ThemeFamily.h:17</div></div>
+<div class="ttc" id="aclassqml__components_1_1Screen_html_aa054ca75b9ef25bf7f03589aafe154e3"><div class="ttname"><a href="classqml__components_1_1Screen.html#aa054ca75b9ef25bf7f03589aafe154e3">qml_components::Screen::settings</a></div><div class="ttdeci">QUrl settings</div><div class="ttdef"><b>Definition</b> ThemeFamily.h:15</div></div>
+<div class="ttc" id="aclassqml__components_1_1Screen_html_ac33017aeb14f829eeed0926db261655e"><div class="ttname"><a href="classqml__components_1_1Screen.html#ac33017aeb14f829eeed0926db261655e">qml_components::Screen::settingsScript</a></div><div class="ttdeci">QUrl settingsScript</div><div class="ttdef"><b>Definition</b> ThemeFamily.h:16</div></div>
 <div class="ttc" id="aclassqml__components_1_1Screen_html_ae7a5382ddd613c52ecaeca7a0c5dae4d"><div class="ttname"><a href="classqml__components_1_1Screen.html#ae7a5382ddd613c52ecaeca7a0c5dae4d">qml_components::Screen::getSettings</a></div><div class="ttdeci">auto getSettings() const -&gt; QUrl</div><div class="ttdef"><b>Definition</b> ThemeFamily.cpp:50</div></div>
 <div class="ttc" id="aclassqml__components_1_1Screen_html_afa74761e6b67c63e48e2524a3ea154e4"><div class="ttname"><a href="classqml__components_1_1Screen.html#afa74761e6b67c63e48e2524a3ea154e4">qml_components::Screen::getScript</a></div><div class="ttdeci">auto getScript() const -&gt; QUrl</div><div class="ttdef"><b>Definition</b> ThemeFamily.cpp:45</div></div>
-<div class="ttc" id="aclassqml__components_1_1ThemeFamily_html"><div class="ttname"><a href="classqml__components_1_1ThemeFamily.html">qml_components::ThemeFamily</a></div><div class="ttdef"><b>Definition</b> ThemeFamily.h:30</div></div>
-<div class="ttc" id="anamespaceqml__components_html"><div class="ttname"><a href="namespaceqml__components.html">qml_components</a></div><div class="ttdef"><b>Definition</b> Bga.h:14</div></div>
+<div class="ttc" id="aclassqml__components_1_1ThemeFamily_html"><div class="ttname"><a href="classqml__components_1_1ThemeFamily.html">qml_components::ThemeFamily</a></div><div class="ttdef"><b>Definition</b> ThemeFamily.h:29</div></div>
+<div class="ttc" id="anamespaceqml__components_html"><div class="ttname"><a href="namespaceqml__components.html">qml_components</a></div><div class="ttdoc">Contains classes that wrap some functionality for use in QML.</div><div class="ttdef"><b>Definition</b> Bga.h:17</div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>

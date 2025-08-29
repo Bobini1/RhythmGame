@@ -14,8 +14,9 @@ var searchData=
   ['chartrunner_2eh_11',['ChartRunner.h',['../ChartRunner_8h.html',1,'']]],
   ['compress_2ecpp_12',['Compress.cpp',['../Compress_8cpp.html',1,'']]],
   ['compress_2eh_13',['Compress.h',['../Compress_8h.html',1,'']]],
-  ['courserunner_2ecpp_14',['CourseRunner.cpp',['../CourseRunner_8cpp.html',1,'']]],
-  ['courserunner_2eh_15',['CourseRunner.h',['../CourseRunner_8h.html',1,'']]],
-  ['customnotifyapp_2ecpp_16',['CustomNotifyApp.cpp',['../CustomNotifyApp_8cpp.html',1,'']]],
-  ['customnotifyapp_2eh_17',['CustomNotifyApp.h',['../CustomNotifyApp_8h.html',1,'']]]
+  ['contributing_2emd_14',['CONTRIBUTING.md',['../CONTRIBUTING_8md.html',1,'']]],
+  ['courserunner_2ecpp_15',['CourseRunner.cpp',['../CourseRunner_8cpp.html',1,'']]],
+  ['courserunner_2eh_16',['CourseRunner.h',['../CourseRunner_8h.html',1,'']]],
+  ['customnotifyapp_2ecpp_17',['CustomNotifyApp.cpp',['../CustomNotifyApp_8cpp.html',1,'']]],
+  ['customnotifyapp_2eh_18',['CustomNotifyApp.h',['../CustomNotifyApp_8h.html',1,'']]]
 ];

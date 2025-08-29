@@ -94,71 +94,65 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span><span class="preprocessor">#include &lt;spdlog/sinks/base_sink.h&gt;</span></div>
 <div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span><span class="preprocessor">#include &lt;spdlog/details/log_msg.h&gt;</span></div>
 <div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span> </div>
-<div class="foldopen" id="foldopen00014" data-start="{" data-end="}">
-<div class="line"><a id="l00014" name="l00014"></a><span class="lineno"><a class="line" href="namespacespdlog.html">   14</a></span><span class="keyword">namespace </span><a class="code hl_namespace" href="namespacespdlog.html">spdlog</a> {</div>
-<div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span><span class="keyword">struct </span>synchronous_factory;</div>
-<div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span>}</div>
+<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span><span class="keyword">namespace </span><a class="code hl_namespace" href="namespacesupport.html">support</a> {</div>
+<div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span> </div>
+<div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> Mutex&gt;</div>
+<div class="foldopen" id="foldopen00017" data-start="{" data-end="};">
+<div class="line"><a id="l00017" name="l00017"></a><span class="lineno"><a class="line" href="classsupport_1_1QtSink.html">   17</a></span><span class="keyword">class </span><a class="code hl_class" href="classsupport_1_1QtSink.html">QtSink</a> : <span class="keyword">public</span> spdlog::sinks::base_sink&lt;Mutex&gt; {</div>
+<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span><span class="keyword">public</span>:</div>
+<div class="foldopen" id="foldopen00019" data-start="{" data-end="}">
+<div class="line"><a id="l00019" name="l00019"></a><span class="lineno"><a class="line" href="classsupport_1_1QtSink.html#ac0b337ba7f86dbcdd6b6db27ea35c57b">   19</a></span>    <a class="code hl_function" href="classsupport_1_1QtSink.html#ac0b337ba7f86dbcdd6b6db27ea35c57b">QtSink</a>(QObject *qt_object, std::string meta_method)</div>
+<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span>        : qt_object_(qt_object),</div>
+<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span>          meta_method_(std::move(meta_method)) {</div>
+<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span>        <span class="keywordflow">if</span> (!qt_object_) {</div>
+<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span>            spdlog::throw_spdlog_ex(<span class="stringliteral">&quot;qt_sink: qt_object is null&quot;</span>);</div>
+<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span>        }</div>
+<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span>    }</div>
 </div>
-<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span><span class="keyword">namespace </span><a class="code hl_namespace" href="namespacesupport.html">support</a> {</div>
-<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span> </div>
-<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> Mutex&gt;</div>
-<div class="foldopen" id="foldopen00020" data-start="{" data-end="};">
-<div class="line"><a id="l00020" name="l00020"></a><span class="lineno"><a class="line" href="classsupport_1_1QtSink.html">   20</a></span><span class="keyword">class </span><a class="code hl_class" href="classsupport_1_1QtSink.html">QtSink</a> : <span class="keyword">public</span> spdlog::sinks::base_sink&lt;Mutex&gt; {</div>
-<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span><span class="keyword">public</span>:</div>
-<div class="foldopen" id="foldopen00022" data-start="{" data-end="}">
-<div class="line"><a id="l00022" name="l00022"></a><span class="lineno"><a class="line" href="classsupport_1_1QtSink.html#ac0b337ba7f86dbcdd6b6db27ea35c57b">   22</a></span>    <a class="code hl_function" href="classsupport_1_1QtSink.html#ac0b337ba7f86dbcdd6b6db27ea35c57b">QtSink</a>(QObject *qt_object, std::string meta_method)</div>
-<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span>        : qt_object_(qt_object),</div>
-<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span>          meta_method_(std::move(meta_method)) {</div>
-<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span>        <span class="keywordflow">if</span> (!qt_object_) {</div>
-<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span>            spdlog::throw_spdlog_ex(<span class="stringliteral">&quot;qt_sink: qt_object is null&quot;</span>);</div>
-<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span>        }</div>
-<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>    }</div>
+<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span> </div>
+<div class="line"><a id="l00027" name="l00027"></a><span class="lineno"><a class="line" href="classsupport_1_1QtSink.html#a68f023fe9bdf97b7bf1470011ee6ee84">   27</a></span>    <a class="code hl_function" href="classsupport_1_1QtSink.html#a68f023fe9bdf97b7bf1470011ee6ee84">~QtSink</a>()<span class="keyword"> override </span>{ <a class="code hl_function" href="classsupport_1_1QtSink.html#aa6e54486c44af5c28ffa822343b3d1a5">QtSink::flush_</a>(); }</div>
+<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span> </div>
+<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span><span class="keyword">protected</span>:</div>
+<div class="foldopen" id="foldopen00030" data-start="{" data-end="}">
+<div class="line"><a id="l00030" name="l00030"></a><span class="lineno"><a class="line" href="classsupport_1_1QtSink.html#aa6208f6ec1a7de03bb2f0a64bd94989a">   30</a></span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classsupport_1_1QtSink.html#aa6208f6ec1a7de03bb2f0a64bd94989a">sink_it_</a>(<span class="keyword">const</span> spdlog::details::log_msg &amp;msg)<span class="keyword"> override </span>{</div>
+<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span>        spdlog::memory_buf_t formatted;</div>
+<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span>        spdlog::sinks::base_sink&lt;Mutex&gt;::formatter_-&gt;format(msg, formatted);</div>
+<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span>        <span class="keyword">const</span> <span class="keyword">auto</span> str = spdlog::string_view_t(formatted.data(), formatted.size());</div>
+<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span>        QMetaObject::invokeMethod(</div>
+<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>            qt_object_, meta_method_.c_str(), Qt::AutoConnection,</div>
+<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span>            Q_ARG(QString, QString::fromUtf8(str.data(), <span class="keyword">static_cast&lt;</span><span class="keywordtype">int</span><span class="keyword">&gt;</span>(str.size())).trimmed()));</div>
+<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span>    }</div>
 </div>
-<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span> </div>
-<div class="line"><a id="l00030" name="l00030"></a><span class="lineno"><a class="line" href="classsupport_1_1QtSink.html#a68f023fe9bdf97b7bf1470011ee6ee84">   30</a></span>    <a class="code hl_function" href="classsupport_1_1QtSink.html#a68f023fe9bdf97b7bf1470011ee6ee84">~QtSink</a>()<span class="keyword"> override </span>{ <a class="code hl_function" href="classsupport_1_1QtSink.html#aa6e54486c44af5c28ffa822343b3d1a5">QtSink::flush_</a>(); }</div>
-<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span> </div>
-<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span><span class="keyword">protected</span>:</div>
-<div class="foldopen" id="foldopen00033" data-start="{" data-end="}">
-<div class="line"><a id="l00033" name="l00033"></a><span class="lineno"><a class="line" href="classsupport_1_1QtSink.html#aa6208f6ec1a7de03bb2f0a64bd94989a">   33</a></span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classsupport_1_1QtSink.html#aa6208f6ec1a7de03bb2f0a64bd94989a">sink_it_</a>(<span class="keyword">const</span> spdlog::details::log_msg &amp;msg)<span class="keyword"> override </span>{</div>
-<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span>        spdlog::memory_buf_t formatted;</div>
-<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>        spdlog::sinks::base_sink&lt;Mutex&gt;::formatter_-&gt;format(msg, formatted);</div>
-<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span>        <span class="keyword">const</span> <span class="keyword">auto</span> str = spdlog::string_view_t(formatted.data(), formatted.size());</div>
-<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span>        QMetaObject::invokeMethod(</div>
-<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span>            qt_object_, meta_method_.c_str(), Qt::AutoConnection,</div>
-<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span>            Q_ARG(QString, QString::fromUtf8(str.data(), <span class="keyword">static_cast&lt;</span><span class="keywordtype">int</span><span class="keyword">&gt;</span>(str.size())).trimmed()));</div>
-<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>    }</div>
+<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span> </div>
+<div class="line"><a id="l00039" name="l00039"></a><span class="lineno"><a class="line" href="classsupport_1_1QtSink.html#aa6e54486c44af5c28ffa822343b3d1a5">   39</a></span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classsupport_1_1QtSink.html#aa6e54486c44af5c28ffa822343b3d1a5">flush_</a>()<span class="keyword"> override </span>{}</div>
+<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span> </div>
+<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span><span class="keyword">private</span>:</div>
+<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span>    QObject *qt_object_ = <span class="keyword">nullptr</span>;</div>
+<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span>    std::string meta_method_;</div>
+<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span>};</div>
 </div>
-<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span> </div>
-<div class="line"><a id="l00042" name="l00042"></a><span class="lineno"><a class="line" href="classsupport_1_1QtSink.html#aa6e54486c44af5c28ffa822343b3d1a5">   42</a></span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classsupport_1_1QtSink.html#aa6e54486c44af5c28ffa822343b3d1a5">flush_</a>()<span class="keyword"> override </span>{}</div>
-<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span> </div>
-<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span><span class="keyword">private</span>:</div>
-<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>    QObject *qt_object_ = <span class="keyword">nullptr</span>;</div>
-<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>    std::string meta_method_;</div>
-<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>};</div>
+<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span> </div>
+<div class="line"><a id="l00046" name="l00046"></a><span class="lineno"><a class="line" href="namespacesupport.html#af30b7a66e00cecaf842c292b05f20f29">   46</a></span><span class="keyword">using </span><a class="code hl_class" href="classsupport_1_1QtSink.html">QtSinkMt</a> = <a class="code hl_class" href="classsupport_1_1QtSink.html">QtSink&lt;std::mutex&gt;</a>;</div>
+<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span> </div>
+<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> Factory = spdlog::synchronous_factory&gt;</div>
+<div class="foldopen" id="foldopen00049" data-start="{" data-end="}">
+<div class="line"><a id="l00049" name="l00049"></a><span class="lineno"><a class="line" href="namespacesupport.html#a30700ae77e1397aa79c0e247aa2777b8">   49</a></span><span class="keyword">inline</span> std::shared_ptr&lt;spdlog::logger&gt; <a class="code hl_function" href="namespacesupport.html#a30700ae77e1397aa79c0e247aa2777b8">qtLoggerMt</a>(<span class="keyword">const</span> std::string &amp;logger_name,</div>
+<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span>                                            QObject *qt_object,</div>
+<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>                                            <span class="keyword">const</span> std::string &amp;meta_method) {</div>
+<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>    <span class="keywordflow">return</span> Factory::template create&lt;QtSinkMt&gt;(logger_name, qt_object, meta_method);</div>
+<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>}</div>
 </div>
-<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span> </div>
-<div class="line"><a id="l00049" name="l00049"></a><span class="lineno"><a class="line" href="namespacesupport.html#af30b7a66e00cecaf842c292b05f20f29">   49</a></span><span class="keyword">using </span><a class="code hl_class" href="classsupport_1_1QtSink.html">QtSinkMt</a> = <a class="code hl_class" href="classsupport_1_1QtSink.html">QtSink&lt;std::mutex&gt;</a>;</div>
-<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span> </div>
-<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> Factory = spdlog::synchronous_factory&gt;</div>
-<div class="foldopen" id="foldopen00052" data-start="{" data-end="}">
-<div class="line"><a id="l00052" name="l00052"></a><span class="lineno"><a class="line" href="namespacesupport.html#a30700ae77e1397aa79c0e247aa2777b8">   52</a></span><span class="keyword">inline</span> std::shared_ptr&lt;spdlog::logger&gt; <a class="code hl_function" href="namespacesupport.html#a30700ae77e1397aa79c0e247aa2777b8">qtLoggerMt</a>(<span class="keyword">const</span> std::string &amp;logger_name,</div>
-<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>                                            QObject *qt_object,</div>
-<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>                                            <span class="keyword">const</span> std::string &amp;meta_method) {</div>
-<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>    <span class="keywordflow">return</span> Factory::template create&lt;QtSinkMt&gt;(logger_name, qt_object, meta_method);</div>
-<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span>}</div>
-</div>
-<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span> </div>
-<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span>} <span class="comment">// namespace support</span></div>
-<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span> </div>
-<div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span><span class="preprocessor">#endif </span><span class="comment">// RHYTHMGAME_QTSINK_H</span></div>
-<div class="ttc" id="aclasssupport_1_1QtSink_html"><div class="ttname"><a href="classsupport_1_1QtSink.html">support::QtSink</a></div><div class="ttdef"><b>Definition</b> QtSink.h:20</div></div>
-<div class="ttc" id="aclasssupport_1_1QtSink_html_a68f023fe9bdf97b7bf1470011ee6ee84"><div class="ttname"><a href="classsupport_1_1QtSink.html#a68f023fe9bdf97b7bf1470011ee6ee84">support::QtSink::~QtSink</a></div><div class="ttdeci">~QtSink() override</div><div class="ttdef"><b>Definition</b> QtSink.h:30</div></div>
-<div class="ttc" id="aclasssupport_1_1QtSink_html_aa6208f6ec1a7de03bb2f0a64bd94989a"><div class="ttname"><a href="classsupport_1_1QtSink.html#aa6208f6ec1a7de03bb2f0a64bd94989a">support::QtSink::sink_it_</a></div><div class="ttdeci">void sink_it_(const spdlog::details::log_msg &amp;msg) override</div><div class="ttdef"><b>Definition</b> QtSink.h:33</div></div>
-<div class="ttc" id="aclasssupport_1_1QtSink_html_aa6e54486c44af5c28ffa822343b3d1a5"><div class="ttname"><a href="classsupport_1_1QtSink.html#aa6e54486c44af5c28ffa822343b3d1a5">support::QtSink::flush_</a></div><div class="ttdeci">void flush_() override</div><div class="ttdef"><b>Definition</b> QtSink.h:42</div></div>
-<div class="ttc" id="aclasssupport_1_1QtSink_html_ac0b337ba7f86dbcdd6b6db27ea35c57b"><div class="ttname"><a href="classsupport_1_1QtSink.html#ac0b337ba7f86dbcdd6b6db27ea35c57b">support::QtSink::QtSink</a></div><div class="ttdeci">QtSink(QObject *qt_object, std::string meta_method)</div><div class="ttdef"><b>Definition</b> QtSink.h:22</div></div>
-<div class="ttc" id="anamespacespdlog_html"><div class="ttname"><a href="namespacespdlog.html">spdlog</a></div><div class="ttdef"><b>Definition</b> QtSink.h:14</div></div>
+<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span> </div>
+<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>} <span class="comment">// namespace support</span></div>
+<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span> </div>
+<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span><span class="preprocessor">#endif </span><span class="comment">// RHYTHMGAME_QTSINK_H</span></div>
+<div class="ttc" id="aclasssupport_1_1QtSink_html"><div class="ttname"><a href="classsupport_1_1QtSink.html">support::QtSink</a></div><div class="ttdef"><b>Definition</b> QtSink.h:17</div></div>
+<div class="ttc" id="aclasssupport_1_1QtSink_html_a68f023fe9bdf97b7bf1470011ee6ee84"><div class="ttname"><a href="classsupport_1_1QtSink.html#a68f023fe9bdf97b7bf1470011ee6ee84">support::QtSink::~QtSink</a></div><div class="ttdeci">~QtSink() override</div><div class="ttdef"><b>Definition</b> QtSink.h:27</div></div>
+<div class="ttc" id="aclasssupport_1_1QtSink_html_aa6208f6ec1a7de03bb2f0a64bd94989a"><div class="ttname"><a href="classsupport_1_1QtSink.html#aa6208f6ec1a7de03bb2f0a64bd94989a">support::QtSink::sink_it_</a></div><div class="ttdeci">void sink_it_(const spdlog::details::log_msg &amp;msg) override</div><div class="ttdef"><b>Definition</b> QtSink.h:30</div></div>
+<div class="ttc" id="aclasssupport_1_1QtSink_html_aa6e54486c44af5c28ffa822343b3d1a5"><div class="ttname"><a href="classsupport_1_1QtSink.html#aa6e54486c44af5c28ffa822343b3d1a5">support::QtSink::flush_</a></div><div class="ttdeci">void flush_() override</div><div class="ttdef"><b>Definition</b> QtSink.h:39</div></div>
+<div class="ttc" id="aclasssupport_1_1QtSink_html_ac0b337ba7f86dbcdd6b6db27ea35c57b"><div class="ttname"><a href="classsupport_1_1QtSink.html#ac0b337ba7f86dbcdd6b6db27ea35c57b">support::QtSink::QtSink</a></div><div class="ttdeci">QtSink(QObject *qt_object, std::string meta_method)</div><div class="ttdef"><b>Definition</b> QtSink.h:19</div></div>
 <div class="ttc" id="anamespacesupport_html"><div class="ttname"><a href="namespacesupport.html">support</a></div><div class="ttdoc">Contains various helper classes and functions.</div><div class="ttdef"><b>Definition</b> Capitalize.h:9</div></div>
-<div class="ttc" id="anamespacesupport_html_a30700ae77e1397aa79c0e247aa2777b8"><div class="ttname"><a href="namespacesupport.html#a30700ae77e1397aa79c0e247aa2777b8">support::qtLoggerMt</a></div><div class="ttdeci">std::shared_ptr&lt; spdlog::logger &gt; qtLoggerMt(const std::string &amp;logger_name, QObject *qt_object, const std::string &amp;meta_method)</div><div class="ttdef"><b>Definition</b> QtSink.h:52</div></div>
+<div class="ttc" id="anamespacesupport_html_a30700ae77e1397aa79c0e247aa2777b8"><div class="ttname"><a href="namespacesupport.html#a30700ae77e1397aa79c0e247aa2777b8">support::qtLoggerMt</a></div><div class="ttdeci">std::shared_ptr&lt; spdlog::logger &gt; qtLoggerMt(const std::string &amp;logger_name, QObject *qt_object, const std::string &amp;meta_method)</div><div class="ttdef"><b>Definition</b> QtSink.h:49</div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>

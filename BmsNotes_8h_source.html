@@ -97,211 +97,214 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00013" name="l00013"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1Time.html">   13</a></span><span class="keyword">class </span><a class="code hl_class" href="classgameplay__logic_1_1Time.html">Time</a></div>
 <div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span>{</div>
 <div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span>    Q_GADGET</div>
-<div class="line"><a id="l00016" name="l00016"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1Time.html#a68ff2e5cb6d39a2d6a28f770b1c31a71">   16</a></span>    Q_PROPERTY(int64_t <a class="code hl_property" href="classgameplay__logic_1_1Time.html#a68ff2e5cb6d39a2d6a28f770b1c31a71">timestamp</a> MEMBER <a class="code hl_property" href="classgameplay__logic_1_1Time.html#a68ff2e5cb6d39a2d6a28f770b1c31a71">timestamp</a>)</div>
-<div class="line"><a id="l00017" name="l00017"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1Time.html#a13b12c2779875f948a629b2e6157f9cd">   17</a></span>    Q_PROPERTY(<span class="keywordtype">double</span> <a class="code hl_property" href="classgameplay__logic_1_1Time.html#a13b12c2779875f948a629b2e6157f9cd">position</a> MEMBER <a class="code hl_property" href="classgameplay__logic_1_1Time.html#a13b12c2779875f948a629b2e6157f9cd">position</a>)</div>
-<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span>  public:</div>
-<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span>    <span class="comment">// Timestamp in milliseconds</span></div>
-<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span>    int64_t <a class="code hl_property" href="classgameplay__logic_1_1Time.html#a68ff2e5cb6d39a2d6a28f770b1c31a71">timestamp</a>;</div>
-<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span>    <span class="comment">// Position in beats</span></div>
-<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span>    <span class="keywordtype">double</span> <a class="code hl_property" href="classgameplay__logic_1_1Time.html#a13b12c2779875f948a629b2e6157f9cd">position</a>;</div>
-<div class="foldopen" id="foldopen00023" data-start="{" data-end="}">
-<div class="line"><a id="l00023" name="l00023"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1Time.html#a57034b8bef4408a1f466e29ade9734bc">   23</a></span>    auto operator+(const <a class="code hl_class" href="classgameplay__logic_1_1Time.html">Time</a>&amp; other) const -&gt; <a class="code hl_class" href="classgameplay__logic_1_1Time.html">Time</a></div>
-<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span>    {</div>
-<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span>        <span class="keywordflow">return</span> { <a class="code hl_property" href="classgameplay__logic_1_1Time.html#a68ff2e5cb6d39a2d6a28f770b1c31a71">timestamp</a> + other.<a class="code hl_property" href="classgameplay__logic_1_1Time.html#a68ff2e5cb6d39a2d6a28f770b1c31a71">timestamp</a>, <a class="code hl_property" href="classgameplay__logic_1_1Time.html#a13b12c2779875f948a629b2e6157f9cd">position</a> + other.position };</div>
-<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span>    }</div>
+<div class="line"><a id="l00017" name="l00017"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1Time.html#a68ff2e5cb6d39a2d6a28f770b1c31a71">   17</a></span>    Q_PROPERTY(int64_t <a class="code hl_property" href="classgameplay__logic_1_1Time.html#a68ff2e5cb6d39a2d6a28f770b1c31a71">timestamp</a> MEMBER <a class="code hl_property" href="classgameplay__logic_1_1Time.html#a68ff2e5cb6d39a2d6a28f770b1c31a71">timestamp</a>)</div>
+<div class="line"><a id="l00019" name="l00019"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1Time.html#a13b12c2779875f948a629b2e6157f9cd">   19</a></span>    Q_PROPERTY(<span class="keywordtype">double</span> <a class="code hl_property" href="classgameplay__logic_1_1Time.html#a13b12c2779875f948a629b2e6157f9cd">position</a> MEMBER <a class="code hl_property" href="classgameplay__logic_1_1Time.html#a13b12c2779875f948a629b2e6157f9cd">position</a>)</div>
+<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span>  public:</div>
+<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span>    <span class="comment">// Timestamp in milliseconds</span></div>
+<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span>    int64_t <a class="code hl_property" href="classgameplay__logic_1_1Time.html#a68ff2e5cb6d39a2d6a28f770b1c31a71">timestamp</a>;</div>
+<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span>    <span class="comment">// Position in beats</span></div>
+<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span>    <span class="keywordtype">double</span> <a class="code hl_property" href="classgameplay__logic_1_1Time.html#a13b12c2779875f948a629b2e6157f9cd">position</a>;</div>
+<div class="foldopen" id="foldopen00025" data-start="{" data-end="}">
+<div class="line"><a id="l00025" name="l00025"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1Time.html#a57034b8bef4408a1f466e29ade9734bc">   25</a></span>    auto operator+(const <a class="code hl_class" href="classgameplay__logic_1_1Time.html">Time</a>&amp; other) const -&gt; <a class="code hl_class" href="classgameplay__logic_1_1Time.html">Time</a></div>
+<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span>    {</div>
+<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span>        <span class="keywordflow">return</span> { <a class="code hl_property" href="classgameplay__logic_1_1Time.html#a68ff2e5cb6d39a2d6a28f770b1c31a71">timestamp</a> + other.<a class="code hl_property" href="classgameplay__logic_1_1Time.html#a68ff2e5cb6d39a2d6a28f770b1c31a71">timestamp</a>, <a class="code hl_property" href="classgameplay__logic_1_1Time.html#a13b12c2779875f948a629b2e6157f9cd">position</a> + other.position };</div>
+<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>    }</div>
 </div>
-<div class="line"><a id="l00027" name="l00027"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1Time.html#aeb71e6817616115dcc043e6d0f45b90c">   27</a></span>    <span class="keyword">auto</span> <a class="code hl_function" href="classgameplay__logic_1_1Time.html#aeb71e6817616115dcc043e6d0f45b90c">operator&lt;=&gt;</a>(<span class="keyword">const</span> <a class="code hl_class" href="classgameplay__logic_1_1Time.html">Time</a>&amp; other) <span class="keyword">const</span> = <span class="keywordflow">default</span>;</div>
-<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>};</div>
+<div class="line"><a id="l00029" name="l00029"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1Time.html#aeb71e6817616115dcc043e6d0f45b90c">   29</a></span>    <span class="keyword">auto</span> <a class="code hl_function" href="classgameplay__logic_1_1Time.html#aeb71e6817616115dcc043e6d0f45b90c">operator&lt;=&gt;</a>(<span class="keyword">const</span> <a class="code hl_class" href="classgameplay__logic_1_1Time.html">Time</a>&amp; other) <span class="keyword">const</span> = <span class="keywordflow">default</span>;</div>
+<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span>};</div>
 </div>
-<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span> </div>
-<div class="foldopen" id="foldopen00030" data-start="{" data-end="}">
-<div class="line"><a id="l00030" name="l00030"></a><span class="lineno"><a class="line" href="namespacegameplay__logic.html#ac063f6061bfaa459996df43985a2d846">   30</a></span><span class="keyword">inline</span> <span class="keyword">auto</span></div>
-<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span><a class="code hl_function" href="namespacegameplay__logic.html#ae125252db73b91b3eb8b158d0e1f1546">operator&lt;&lt;</a>(QDataStream&amp; stream, <span class="keyword">const</span> <a class="code hl_class" href="classgameplay__logic_1_1Time.html">Time</a>&amp; time) -&gt; QDataStream&amp;</div>
-<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span>{</div>
-<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span>    <span class="keywordflow">return</span> stream &lt;&lt; static_cast&lt;qint64&gt;(time.timestamp) &lt;&lt; time.position;</div>
-<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span>}</div>
+<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span> </div>
+<div class="foldopen" id="foldopen00032" data-start="{" data-end="}">
+<div class="line"><a id="l00032" name="l00032"></a><span class="lineno"><a class="line" href="namespacegameplay__logic.html#ac063f6061bfaa459996df43985a2d846">   32</a></span><span class="keyword">inline</span> <span class="keyword">auto</span></div>
+<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span><a class="code hl_function" href="namespacegameplay__logic.html#ae125252db73b91b3eb8b158d0e1f1546">operator&lt;&lt;</a>(QDataStream&amp; stream, <span class="keyword">const</span> <a class="code hl_class" href="classgameplay__logic_1_1Time.html">Time</a>&amp; time) -&gt; QDataStream&amp;</div>
+<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span>{</div>
+<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>    <span class="keywordflow">return</span> stream &lt;&lt; static_cast&lt;qint64&gt;(time.timestamp) &lt;&lt; time.position;</div>
+<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span>}</div>
 </div>
-<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span> </div>
-<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span><span class="keyword">inline</span> <span class="keyword">auto</span></div>
-<div class="foldopen" id="foldopen00037" data-start="{" data-end="}">
-<div class="line"><a id="l00037" name="l00037"></a><span class="lineno"><a class="line" href="namespacegameplay__logic.html#ab58820c5a5b134abc0a8cf519fcf2c07">   37</a></span><a class="code hl_function" href="namespacegameplay__logic.html#aae5baf1af41f9f2bf338c9b5d935d2bd">operator&gt;&gt;</a>(QDataStream&amp; stream, <a class="code hl_class" href="classgameplay__logic_1_1Time.html">Time</a>&amp; time) -&gt; QDataStream&amp;</div>
-<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span>{</div>
-<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span>    <span class="keyword">auto</span> timestamp = qint64{};</div>
-<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>    <span class="keyword">auto</span>&amp; ret = stream &gt;&gt; timestamp &gt;&gt; time.position;</div>
-<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>    time.timestamp = timestamp;</div>
-<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span>    <span class="keywordflow">return</span> ret;</div>
-<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span>}</div>
+<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span> </div>
+<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span><span class="keyword">inline</span> <span class="keyword">auto</span></div>
+<div class="foldopen" id="foldopen00039" data-start="{" data-end="}">
+<div class="line"><a id="l00039" name="l00039"></a><span class="lineno"><a class="line" href="namespacegameplay__logic.html#ab58820c5a5b134abc0a8cf519fcf2c07">   39</a></span><a class="code hl_function" href="namespacegameplay__logic.html#aae5baf1af41f9f2bf338c9b5d935d2bd">operator&gt;&gt;</a>(QDataStream&amp; stream, <a class="code hl_class" href="classgameplay__logic_1_1Time.html">Time</a>&amp; time) -&gt; QDataStream&amp;</div>
+<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>{</div>
+<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>    <span class="keyword">auto</span> timestamp = qint64{};</div>
+<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span>    <span class="keyword">auto</span>&amp; ret = stream &gt;&gt; timestamp &gt;&gt; time.position;</div>
+<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span>    time.timestamp = timestamp;</div>
+<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span>    <span class="keywordflow">return</span> ret;</div>
+<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>}</div>
 </div>
-<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span> </div>
-<div class="foldopen" id="foldopen00045" data-start="{" data-end="};">
-<div class="line"><a id="l00045" name="l00045"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1BpmChange.html">   45</a></span><span class="keyword">class </span><a class="code hl_class" href="classgameplay__logic_1_1BpmChange.html">BpmChange</a></div>
-<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>{</div>
-<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>    Q_GADGET</div>
-<div class="line"><a id="l00048" name="l00048"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1BpmChange.html#aa36a291e6fd614b196b79ba834cf5992">   48</a></span>    Q_PROPERTY(<a class="code hl_class" href="classgameplay__logic_1_1Time.html">Time</a> <a class="code hl_property" href="classgameplay__logic_1_1BpmChange.html#aa36a291e6fd614b196b79ba834cf5992">time</a> MEMBER <a class="code hl_property" href="classgameplay__logic_1_1BpmChange.html#aa36a291e6fd614b196b79ba834cf5992">time</a>)</div>
-<div class="line"><a id="l00049" name="l00049"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1BpmChange.html#a72679974406720d559d2593dc4f4340f">   49</a></span>    Q_PROPERTY(<span class="keywordtype">double</span> <a class="code hl_property" href="classgameplay__logic_1_1BpmChange.html#a72679974406720d559d2593dc4f4340f">bpm</a> MEMBER <a class="code hl_property" href="classgameplay__logic_1_1BpmChange.html#a72679974406720d559d2593dc4f4340f">bpm</a>)</div>
-<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span>  public:</div>
-<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>    <a class="code hl_class" href="classgameplay__logic_1_1Time.html">Time</a> <a class="code hl_property" href="classgameplay__logic_1_1BpmChange.html#aa36a291e6fd614b196b79ba834cf5992">time</a>;</div>
-<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>    <span class="keywordtype">double</span> <a class="code hl_property" href="classgameplay__logic_1_1BpmChange.html#a72679974406720d559d2593dc4f4340f">bpm</a>;</div>
-<div class="line"><a id="l00053" name="l00053"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1BpmChange.html#a4f7081788b5e00d73b7e0725e953ac34">   53</a></span>    auto operator&lt;=&gt;(const <a class="code hl_class" href="classgameplay__logic_1_1BpmChange.html">BpmChange</a>&amp; other) const = default;</div>
-<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>};</div>
+<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span> </div>
+<div class="foldopen" id="foldopen00047" data-start="{" data-end="};">
+<div class="line"><a id="l00047" name="l00047"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1BpmChange.html">   47</a></span><span class="keyword">class </span><a class="code hl_class" href="classgameplay__logic_1_1BpmChange.html">BpmChange</a></div>
+<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>{</div>
+<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>    Q_GADGET</div>
+<div class="line"><a id="l00050" name="l00050"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1BpmChange.html#aa36a291e6fd614b196b79ba834cf5992">   50</a></span>    Q_PROPERTY(<a class="code hl_class" href="classgameplay__logic_1_1Time.html">Time</a> <a class="code hl_property" href="classgameplay__logic_1_1BpmChange.html#aa36a291e6fd614b196b79ba834cf5992">time</a> MEMBER <a class="code hl_property" href="classgameplay__logic_1_1BpmChange.html#aa36a291e6fd614b196b79ba834cf5992">time</a>)</div>
+<div class="line"><a id="l00051" name="l00051"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1BpmChange.html#a72679974406720d559d2593dc4f4340f">   51</a></span>    Q_PROPERTY(<span class="keywordtype">double</span> <a class="code hl_property" href="classgameplay__logic_1_1BpmChange.html#a72679974406720d559d2593dc4f4340f">bpm</a> MEMBER <a class="code hl_property" href="classgameplay__logic_1_1BpmChange.html#a72679974406720d559d2593dc4f4340f">bpm</a>)</div>
+<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>  public:</div>
+<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>    <a class="code hl_class" href="classgameplay__logic_1_1Time.html">Time</a> <a class="code hl_property" href="classgameplay__logic_1_1BpmChange.html#aa36a291e6fd614b196b79ba834cf5992">time</a>;</div>
+<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>    <span class="keywordtype">double</span> <a class="code hl_property" href="classgameplay__logic_1_1BpmChange.html#a72679974406720d559d2593dc4f4340f">bpm</a>;</div>
+<div class="line"><a id="l00055" name="l00055"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1BpmChange.html#a4f7081788b5e00d73b7e0725e953ac34">   55</a></span>    auto operator&lt;=&gt;(const <a class="code hl_class" href="classgameplay__logic_1_1BpmChange.html">BpmChange</a>&amp; other) const = default;</div>
+<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span>};</div>
 </div>
-<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span> </div>
-<div class="foldopen" id="foldopen00056" data-start="{" data-end="}">
-<div class="line"><a id="l00056" name="l00056"></a><span class="lineno"><a class="line" href="namespacegameplay__logic.html#a18f9fbc54aea9aa949f1b6244a2835da">   56</a></span>inline auto</div>
-<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span>operator&lt;&lt;(QDataStream&amp; stream, const <a class="code hl_class" href="classgameplay__logic_1_1BpmChange.html">BpmChange</a>&amp; bpmChange) -&gt; QDataStream&amp;</div>
-<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span>{</div>
-<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span>    <span class="keywordflow">return</span> stream &lt;&lt; bpmChange.time &lt;&lt; bpmChange.bpm;</div>
-<div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span>}</div>
+<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span> </div>
+<div class="foldopen" id="foldopen00058" data-start="{" data-end="}">
+<div class="line"><a id="l00058" name="l00058"></a><span class="lineno"><a class="line" href="namespacegameplay__logic.html#a18f9fbc54aea9aa949f1b6244a2835da">   58</a></span>inline auto</div>
+<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span>operator&lt;&lt;(QDataStream&amp; stream, const <a class="code hl_class" href="classgameplay__logic_1_1BpmChange.html">BpmChange</a>&amp; bpmChange) -&gt; QDataStream&amp;</div>
+<div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span>{</div>
+<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span>    <span class="keywordflow">return</span> stream &lt;&lt; bpmChange.time &lt;&lt; bpmChange.bpm;</div>
+<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span>}</div>
 </div>
-<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span> </div>
-<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span><span class="keyword">inline</span> <span class="keyword">auto</span></div>
-<div class="foldopen" id="foldopen00063" data-start="{" data-end="}">
-<div class="line"><a id="l00063" name="l00063"></a><span class="lineno"><a class="line" href="namespacegameplay__logic.html#aae45a6a87c7eecd10055cf1b776c444c">   63</a></span><a class="code hl_function" href="namespacegameplay__logic.html#aae5baf1af41f9f2bf338c9b5d935d2bd">operator&gt;&gt;</a>(QDataStream&amp; stream, <a class="code hl_class" href="classgameplay__logic_1_1BpmChange.html">BpmChange</a>&amp; bpmChange) -&gt; QDataStream&amp;</div>
-<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span>{</div>
-<div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span>    <span class="keywordflow">return</span> stream &gt;&gt; bpmChange.time &gt;&gt; bpmChange.bpm;</div>
-<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span>}</div>
+<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span> </div>
+<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span><span class="keyword">inline</span> <span class="keyword">auto</span></div>
+<div class="foldopen" id="foldopen00065" data-start="{" data-end="}">
+<div class="line"><a id="l00065" name="l00065"></a><span class="lineno"><a class="line" href="namespacegameplay__logic.html#aae45a6a87c7eecd10055cf1b776c444c">   65</a></span><a class="code hl_function" href="namespacegameplay__logic.html#aae5baf1af41f9f2bf338c9b5d935d2bd">operator&gt;&gt;</a>(QDataStream&amp; stream, <a class="code hl_class" href="classgameplay__logic_1_1BpmChange.html">BpmChange</a>&amp; bpmChange) -&gt; QDataStream&amp;</div>
+<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span>{</div>
+<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>    <span class="keywordflow">return</span> stream &gt;&gt; bpmChange.time &gt;&gt; bpmChange.bpm;</div>
+<div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span>}</div>
 </div>
-<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span> </div>
-<div class="foldopen" id="foldopen00068" data-start="{" data-end="};">
-<div class="line"><a id="l00068" name="l00068"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1Snap.html">   68</a></span><span class="keyword">class </span><a class="code hl_class" href="classgameplay__logic_1_1Snap.html">Snap</a></div>
-<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span>{</div>
-<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span>    Q_GADGET</div>
-<div class="line"><a id="l00071" name="l00071"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1Snap.html#a168c2251e9ea1c22e4faa90c07ac5379">   71</a></span>    Q_PROPERTY(<span class="keywordtype">double</span> numerator MEMBER numerator)</div>
-<div class="line"><a id="l00072" name="l00072"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1Snap.html#a72d8310b14bb16731f03c1da00388850">   72</a></span>    Q_PROPERTY(<span class="keywordtype">double</span> denominator MEMBER denominator)</div>
-<div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span>  public:</div>
-<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span>    <span class="keywordtype">double</span> numerator;</div>
-<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span>    <span class="keywordtype">double</span> denominator;</div>
-<div class="line"><a id="l00076" name="l00076"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1Snap.html#ac3d6aee3de850dc61110f6e9c4f6413e">   76</a></span>    auto operator&lt;=&gt;(const <a class="code hl_class" href="classgameplay__logic_1_1Snap.html">Snap</a>&amp; other) const = default;</div>
-<div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span>};</div>
+<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span> </div>
+<div class="foldopen" id="foldopen00073" data-start="{" data-end="};">
+<div class="line"><a id="l00073" name="l00073"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1Snap.html">   73</a></span><span class="keyword">class </span><a class="code hl_class" href="classgameplay__logic_1_1Snap.html">Snap</a></div>
+<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span>{</div>
+<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span>    Q_GADGET</div>
+<div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span>    <span class="comment">/*</span></div>
+<div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span><span class="comment">     * @brief The position of the note in a measure, expressed in whole notes.</span></div>
+<div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span><span class="comment">     */</span></div>
+<div class="line"><a id="l00079" name="l00079"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1Snap.html#a168c2251e9ea1c22e4faa90c07ac5379">   79</a></span>    Q_PROPERTY(<span class="keywordtype">double</span> numerator MEMBER numerator)</div>
+<div class="line"><a id="l00083" name="l00083"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1Snap.html#a72d8310b14bb16731f03c1da00388850">   83</a></span>    Q_PROPERTY(<span class="keywordtype">double</span> denominator MEMBER denominator)</div>
+<div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span>  public:</div>
+<div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span>    <span class="keywordtype">double</span> numerator;</div>
+<div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span>    <span class="keywordtype">double</span> denominator;</div>
+<div class="line"><a id="l00087" name="l00087"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1Snap.html#ac3d6aee3de850dc61110f6e9c4f6413e">   87</a></span>    auto operator&lt;=&gt;(const <a class="code hl_class" href="classgameplay__logic_1_1Snap.html">Snap</a>&amp; other) const = default;</div>
+<div class="line"><a id="l00088" name="l00088"></a><span class="lineno">   88</span>};</div>
 </div>
-<div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span> </div>
-<div class="foldopen" id="foldopen00079" data-start="{" data-end="}">
-<div class="line"><a id="l00079" name="l00079"></a><span class="lineno"><a class="line" href="namespacegameplay__logic.html#a3290d7a7de7f86fbf1b5a256a1e816e4">   79</a></span>inline auto</div>
-<div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span>operator&lt;&lt;(QDataStream&amp; stream, const <a class="code hl_class" href="classgameplay__logic_1_1Snap.html">Snap</a>&amp; snap) -&gt; QDataStream&amp;</div>
-<div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span>{</div>
-<div class="line"><a id="l00082" name="l00082"></a><span class="lineno">   82</span>    <span class="keywordflow">return</span> stream &lt;&lt; snap.<a class="code hl_property" href="classgameplay__logic_1_1Snap.html#a168c2251e9ea1c22e4faa90c07ac5379">numerator</a> &lt;&lt; snap.denominator;</div>
-<div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span>}</div>
-</div>
-<div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span> </div>
-<div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span><span class="keyword">inline</span> <span class="keyword">auto</span></div>
-<div class="foldopen" id="foldopen00086" data-start="{" data-end="}">
-<div class="line"><a id="l00086" name="l00086"></a><span class="lineno"><a class="line" href="namespacegameplay__logic.html#a506fe8fab4797cbaaf27e219a9cc04ea">   86</a></span><a class="code hl_function" href="namespacegameplay__logic.html#aae5baf1af41f9f2bf338c9b5d935d2bd">operator&gt;&gt;</a>(QDataStream&amp; stream, <a class="code hl_class" href="classgameplay__logic_1_1Snap.html">Snap</a>&amp; snap) -&gt; QDataStream&amp;</div>
-<div class="line"><a id="l00087" name="l00087"></a><span class="lineno">   87</span>{</div>
-<div class="line"><a id="l00088" name="l00088"></a><span class="lineno">   88</span>    <span class="keywordflow">return</span> stream &gt;&gt; snap.numerator &gt;&gt; snap.denominator;</div>
-<div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span>}</div>
-</div>
-<div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span> </div>
-<div class="foldopen" id="foldopen00091" data-start="{" data-end="};">
-<div class="line"><a id="l00091" name="l00091"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1Note.html">   91</a></span><span class="keyword">class </span><a class="code hl_class" href="classgameplay__logic_1_1Note.html">Note</a></div>
+<div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span> </div>
+<div class="foldopen" id="foldopen00090" data-start="{" data-end="}">
+<div class="line"><a id="l00090" name="l00090"></a><span class="lineno"><a class="line" href="namespacegameplay__logic.html#a3290d7a7de7f86fbf1b5a256a1e816e4">   90</a></span>inline auto</div>
+<div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span>operator&lt;&lt;(QDataStream&amp; stream, const <a class="code hl_class" href="classgameplay__logic_1_1Snap.html">Snap</a>&amp; snap) -&gt; QDataStream&amp;</div>
 <div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span>{</div>
-<div class="line"><a id="l00093" name="l00093"></a><span class="lineno">   93</span>    Q_GADGET</div>
-<div class="line"><a id="l00094" name="l00094"></a><span class="lineno">   94</span>  <span class="keyword">public</span>:</div>
-<div class="foldopen" id="foldopen00095" data-start="{" data-end="};">
-<div class="line"><a id="l00095" name="l00095"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1Note.html#a8e22f28b2754a4af52eb701ff01def90">   95</a></span>    <span class="keyword">enum class</span> <a class="code hl_enumeration" href="classgameplay__logic_1_1Note.html#a8e22f28b2754a4af52eb701ff01def90">Type</a></div>
-<div class="line"><a id="l00096" name="l00096"></a><span class="lineno">   96</span>    {</div>
-<div class="line"><a id="l00097" name="l00097"></a><span class="lineno">   97</span>        Normal,</div>
-<div class="line"><a id="l00098" name="l00098"></a><span class="lineno">   98</span>        LongNoteBegin,</div>
-<div class="line"><a id="l00099" name="l00099"></a><span class="lineno">   99</span>        LongNoteEnd,</div>
-<div class="line"><a id="l00100" name="l00100"></a><span class="lineno">  100</span>        Landmine,</div>
-<div class="line"><a id="l00101" name="l00101"></a><span class="lineno">  101</span>        Invisible</div>
-<div class="line"><a id="l00102" name="l00102"></a><span class="lineno">  102</span>    };</div>
+<div class="line"><a id="l00093" name="l00093"></a><span class="lineno">   93</span>    <span class="keywordflow">return</span> stream &lt;&lt; snap.<a class="code hl_property" href="classgameplay__logic_1_1Snap.html#a168c2251e9ea1c22e4faa90c07ac5379">numerator</a> &lt;&lt; snap.denominator;</div>
+<div class="line"><a id="l00094" name="l00094"></a><span class="lineno">   94</span>}</div>
 </div>
-<div class="line"><a id="l00103" name="l00103"></a><span class="lineno">  103</span>    Q_ENUM(Type)</div>
-<div class="line"><a id="l00104" name="l00104"></a><span class="lineno">  104</span>  <span class="keyword">private</span>:</div>
-<div class="line"><a id="l00105" name="l00105"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1Note.html#a2dc366a0722b5898680c8c3e9663cb64">  105</a></span>    Q_PROPERTY(<a class="code hl_class" href="classgameplay__logic_1_1Time.html">Time</a> time MEMBER time)</div>
-<div class="line"><a id="l00106" name="l00106"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1Note.html#a895328165f3088de57d507ec042b4e15">  106</a></span>    Q_PROPERTY(<a class="code hl_class" href="classgameplay__logic_1_1Snap.html">Snap</a> snap MEMBER snap)</div>
-<div class="line"><a id="l00107" name="l00107"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1Note.html#a3b8d1cc4892925c524e301413a7a191c">  107</a></span>    Q_PROPERTY(<a class="code hl_enumeration" href="classgameplay__logic_1_1Note.html#a8e22f28b2754a4af52eb701ff01def90">Type</a> type MEMBER type)</div>
-<div class="line"><a id="l00108" name="l00108"></a><span class="lineno">  108</span>  public:</div>
-<div class="line"><a id="l00109" name="l00109"></a><span class="lineno">  109</span>    <a class="code hl_class" href="classgameplay__logic_1_1Time.html">Time</a> time;</div>
-<div class="line"><a id="l00110" name="l00110"></a><span class="lineno">  110</span>    <a class="code hl_class" href="classgameplay__logic_1_1Snap.html">Snap</a> snap;</div>
-<div class="line"><a id="l00111" name="l00111"></a><span class="lineno">  111</span>    <a class="code hl_enumeration" href="classgameplay__logic_1_1Note.html#a8e22f28b2754a4af52eb701ff01def90">Type</a> type;</div>
-<div class="line"><a id="l00112" name="l00112"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1Note.html#a92b4ba48fc8bf7a928af5ea38aa2844b">  112</a></span>    auto operator&lt;=&gt;(const <a class="code hl_class" href="classgameplay__logic_1_1Note.html">Note</a>&amp; other) const = default;</div>
-<div class="line"><a id="l00113" name="l00113"></a><span class="lineno">  113</span>};</div>
+<div class="line"><a id="l00095" name="l00095"></a><span class="lineno">   95</span> </div>
+<div class="line"><a id="l00096" name="l00096"></a><span class="lineno">   96</span><span class="keyword">inline</span> <span class="keyword">auto</span></div>
+<div class="foldopen" id="foldopen00097" data-start="{" data-end="}">
+<div class="line"><a id="l00097" name="l00097"></a><span class="lineno"><a class="line" href="namespacegameplay__logic.html#a506fe8fab4797cbaaf27e219a9cc04ea">   97</a></span><a class="code hl_function" href="namespacegameplay__logic.html#aae5baf1af41f9f2bf338c9b5d935d2bd">operator&gt;&gt;</a>(QDataStream&amp; stream, <a class="code hl_class" href="classgameplay__logic_1_1Snap.html">Snap</a>&amp; snap) -&gt; QDataStream&amp;</div>
+<div class="line"><a id="l00098" name="l00098"></a><span class="lineno">   98</span>{</div>
+<div class="line"><a id="l00099" name="l00099"></a><span class="lineno">   99</span>    <span class="keywordflow">return</span> stream &gt;&gt; snap.numerator &gt;&gt; snap.denominator;</div>
+<div class="line"><a id="l00100" name="l00100"></a><span class="lineno">  100</span>}</div>
 </div>
-<div class="line"><a id="l00114" name="l00114"></a><span class="lineno">  114</span> </div>
-<div class="foldopen" id="foldopen00115" data-start="{" data-end="}">
-<div class="line"><a id="l00115" name="l00115"></a><span class="lineno"><a class="line" href="namespacegameplay__logic.html#ac45552625228f538b974b25dde061e7f">  115</a></span>inline auto</div>
-<div class="line"><a id="l00116" name="l00116"></a><span class="lineno">  116</span>operator&lt;&lt;(QDataStream&amp; stream, const <a class="code hl_class" href="classgameplay__logic_1_1Note.html">Note</a>&amp; note) -&gt; QDataStream&amp;</div>
-<div class="line"><a id="l00117" name="l00117"></a><span class="lineno">  117</span>{</div>
-<div class="line"><a id="l00118" name="l00118"></a><span class="lineno">  118</span>    <span class="keywordflow">return</span> stream &lt;&lt; note.time &lt;&lt; note.snap &lt;&lt; note.type;</div>
-<div class="line"><a id="l00119" name="l00119"></a><span class="lineno">  119</span>}</div>
+<div class="line"><a id="l00101" name="l00101"></a><span class="lineno">  101</span> </div>
+<div class="foldopen" id="foldopen00102" data-start="{" data-end="};">
+<div class="line"><a id="l00102" name="l00102"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1Note.html">  102</a></span><span class="keyword">class </span><a class="code hl_class" href="classgameplay__logic_1_1Note.html">Note</a></div>
+<div class="line"><a id="l00103" name="l00103"></a><span class="lineno">  103</span>{</div>
+<div class="line"><a id="l00104" name="l00104"></a><span class="lineno">  104</span>    Q_GADGET</div>
+<div class="line"><a id="l00105" name="l00105"></a><span class="lineno">  105</span>  <span class="keyword">public</span>:</div>
+<div class="foldopen" id="foldopen00106" data-start="{" data-end="};">
+<div class="line"><a id="l00106" name="l00106"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1Note.html#a8e22f28b2754a4af52eb701ff01def90">  106</a></span>    <span class="keyword">enum class</span> <a class="code hl_enumeration" href="classgameplay__logic_1_1Note.html#a8e22f28b2754a4af52eb701ff01def90">Type</a></div>
+<div class="line"><a id="l00107" name="l00107"></a><span class="lineno">  107</span>    {</div>
+<div class="line"><a id="l00108" name="l00108"></a><span class="lineno">  108</span>        Normal,</div>
+<div class="line"><a id="l00109" name="l00109"></a><span class="lineno">  109</span>        LongNoteBegin,</div>
+<div class="line"><a id="l00110" name="l00110"></a><span class="lineno">  110</span>        LongNoteEnd,</div>
+<div class="line"><a id="l00111" name="l00111"></a><span class="lineno">  111</span>        Landmine,</div>
+<div class="line"><a id="l00112" name="l00112"></a><span class="lineno">  112</span>        Invisible</div>
+<div class="line"><a id="l00113" name="l00113"></a><span class="lineno">  113</span>    };</div>
 </div>
-<div class="line"><a id="l00120" name="l00120"></a><span class="lineno">  120</span> </div>
-<div class="line"><a id="l00121" name="l00121"></a><span class="lineno">  121</span><span class="keyword">inline</span> <span class="keyword">auto</span></div>
-<div class="foldopen" id="foldopen00122" data-start="{" data-end="}">
-<div class="line"><a id="l00122" name="l00122"></a><span class="lineno"><a class="line" href="namespacegameplay__logic.html#a7f95b83dbd7ffb7c30456d352683b9ce">  122</a></span><a class="code hl_function" href="namespacegameplay__logic.html#aae5baf1af41f9f2bf338c9b5d935d2bd">operator&gt;&gt;</a>(QDataStream&amp; stream, <a class="code hl_class" href="classgameplay__logic_1_1Note.html">Note</a>&amp; note) -&gt; QDataStream&amp;</div>
-<div class="line"><a id="l00123" name="l00123"></a><span class="lineno">  123</span>{</div>
-<div class="line"><a id="l00124" name="l00124"></a><span class="lineno">  124</span>    <span class="keywordflow">return</span> stream &gt;&gt; note.time &gt;&gt; note.snap &gt;&gt; note.type;</div>
-<div class="line"><a id="l00125" name="l00125"></a><span class="lineno">  125</span>}</div>
+<div class="line"><a id="l00114" name="l00114"></a><span class="lineno">  114</span>    Q_ENUM(Type)</div>
+<div class="line"><a id="l00115" name="l00115"></a><span class="lineno">  115</span>  <span class="keyword">private</span>:</div>
+<div class="line"><a id="l00116" name="l00116"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1Note.html#a2dc366a0722b5898680c8c3e9663cb64">  116</a></span>    Q_PROPERTY(<a class="code hl_class" href="classgameplay__logic_1_1Time.html">Time</a> time MEMBER time)</div>
+<div class="line"><a id="l00117" name="l00117"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1Note.html#a895328165f3088de57d507ec042b4e15">  117</a></span>    Q_PROPERTY(<a class="code hl_class" href="classgameplay__logic_1_1Snap.html">Snap</a> snap MEMBER snap)</div>
+<div class="line"><a id="l00118" name="l00118"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1Note.html#a3b8d1cc4892925c524e301413a7a191c">  118</a></span>    Q_PROPERTY(<a class="code hl_enumeration" href="classgameplay__logic_1_1Note.html#a8e22f28b2754a4af52eb701ff01def90">Type</a> type MEMBER type)</div>
+<div class="line"><a id="l00119" name="l00119"></a><span class="lineno">  119</span>  public:</div>
+<div class="line"><a id="l00120" name="l00120"></a><span class="lineno">  120</span>    <a class="code hl_class" href="classgameplay__logic_1_1Time.html">Time</a> time;</div>
+<div class="line"><a id="l00121" name="l00121"></a><span class="lineno">  121</span>    <a class="code hl_class" href="classgameplay__logic_1_1Snap.html">Snap</a> snap;</div>
+<div class="line"><a id="l00122" name="l00122"></a><span class="lineno">  122</span>    <a class="code hl_enumeration" href="classgameplay__logic_1_1Note.html#a8e22f28b2754a4af52eb701ff01def90">Type</a> type;</div>
+<div class="line"><a id="l00123" name="l00123"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1Note.html#a92b4ba48fc8bf7a928af5ea38aa2844b">  123</a></span>    auto operator&lt;=&gt;(const <a class="code hl_class" href="classgameplay__logic_1_1Note.html">Note</a>&amp; other) const = default;</div>
+<div class="line"><a id="l00124" name="l00124"></a><span class="lineno">  124</span>};</div>
 </div>
-<div class="line"><a id="l00126" name="l00126"></a><span class="lineno">  126</span> </div>
-<div class="foldopen" id="foldopen00127" data-start="{" data-end="};">
-<div class="line"><a id="l00127" name="l00127"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1BmsNotes.html">  127</a></span><span class="keyword">class </span><a class="code hl_class" href="classgameplay__logic_1_1BmsNotes.html">BmsNotes</a> : <span class="keyword">public</span> QObject</div>
+<div class="line"><a id="l00125" name="l00125"></a><span class="lineno">  125</span> </div>
+<div class="foldopen" id="foldopen00126" data-start="{" data-end="}">
+<div class="line"><a id="l00126" name="l00126"></a><span class="lineno"><a class="line" href="namespacegameplay__logic.html#ac45552625228f538b974b25dde061e7f">  126</a></span>inline auto</div>
+<div class="line"><a id="l00127" name="l00127"></a><span class="lineno">  127</span>operator&lt;&lt;(QDataStream&amp; stream, const <a class="code hl_class" href="classgameplay__logic_1_1Note.html">Note</a>&amp; note) -&gt; QDataStream&amp;</div>
 <div class="line"><a id="l00128" name="l00128"></a><span class="lineno">  128</span>{</div>
-<div class="line"><a id="l00129" name="l00129"></a><span class="lineno">  129</span>    Q_OBJECT</div>
-<div class="line"><a id="l00130" name="l00130"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1BmsNotes.html#a5eb6a863ebbd126a5a629e7b33e45368">  130</a></span>    Q_PROPERTY(QList&lt;QList&lt;Note&gt;&gt; notes READ getNotes CONSTANT)</div>
-<div class="line"><a id="l00131" name="l00131"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1BmsNotes.html#ad5e63843117c94e92366bc232188881f">  131</a></span>    Q_PROPERTY(QList&lt;<a class="code hl_class" href="classgameplay__logic_1_1BpmChange.html">BpmChange</a>&gt; bpmChanges READ getBpmChanges CONSTANT)</div>
-<div class="line"><a id="l00132" name="l00132"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1BmsNotes.html#a73dc2085e40066437cb4d2be30e1dd40">  132</a></span>    Q_PROPERTY(QList&lt;<a class="code hl_class" href="classgameplay__logic_1_1Time.html">Time</a>&gt; barLines READ getBarLines CONSTANT)</div>
-<div class="line"><a id="l00133" name="l00133"></a><span class="lineno">  133</span> </div>
-<div class="line"><a id="l00134" name="l00134"></a><span class="lineno">  134</span>    QList&lt;QList&lt;<a class="code hl_class" href="classgameplay__logic_1_1Note.html">Note</a>&gt;&gt; notes;</div>
-<div class="line"><a id="l00135" name="l00135"></a><span class="lineno">  135</span>    QList&lt;<a class="code hl_class" href="classgameplay__logic_1_1BpmChange.html">BpmChange</a>&gt; bpmChanges;</div>
-<div class="line"><a id="l00136" name="l00136"></a><span class="lineno">  136</span>    QList&lt;<a class="code hl_class" href="classgameplay__logic_1_1Time.html">Time</a>&gt; barLines;</div>
+<div class="line"><a id="l00129" name="l00129"></a><span class="lineno">  129</span>    <span class="keywordflow">return</span> stream &lt;&lt; note.time &lt;&lt; note.snap &lt;&lt; note.type;</div>
+<div class="line"><a id="l00130" name="l00130"></a><span class="lineno">  130</span>}</div>
+</div>
+<div class="line"><a id="l00131" name="l00131"></a><span class="lineno">  131</span> </div>
+<div class="line"><a id="l00132" name="l00132"></a><span class="lineno">  132</span><span class="keyword">inline</span> <span class="keyword">auto</span></div>
+<div class="foldopen" id="foldopen00133" data-start="{" data-end="}">
+<div class="line"><a id="l00133" name="l00133"></a><span class="lineno"><a class="line" href="namespacegameplay__logic.html#a7f95b83dbd7ffb7c30456d352683b9ce">  133</a></span><a class="code hl_function" href="namespacegameplay__logic.html#aae5baf1af41f9f2bf338c9b5d935d2bd">operator&gt;&gt;</a>(QDataStream&amp; stream, <a class="code hl_class" href="classgameplay__logic_1_1Note.html">Note</a>&amp; note) -&gt; QDataStream&amp;</div>
+<div class="line"><a id="l00134" name="l00134"></a><span class="lineno">  134</span>{</div>
+<div class="line"><a id="l00135" name="l00135"></a><span class="lineno">  135</span>    <span class="keywordflow">return</span> stream &gt;&gt; note.time &gt;&gt; note.snap &gt;&gt; note.type;</div>
+<div class="line"><a id="l00136" name="l00136"></a><span class="lineno">  136</span>}</div>
+</div>
 <div class="line"><a id="l00137" name="l00137"></a><span class="lineno">  137</span> </div>
-<div class="line"><a id="l00138" name="l00138"></a><span class="lineno">  138</span>  public:</div>
-<div class="line"><a id="l00139" name="l00139"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1BmsNotes.html#ad3ceba70026f4526efc173c8a6f7712d">  139</a></span>    <a class="code hl_class" href="classgameplay__logic_1_1BmsNotes.html">BmsNotes</a>() = default;</div>
-<div class="line"><a id="l00140" name="l00140"></a><span class="lineno">  140</span>    explicit <a class="code hl_class" href="classgameplay__logic_1_1BmsNotes.html">BmsNotes</a>(QList&lt;QList&lt;<a class="code hl_class" href="classgameplay__logic_1_1Note.html">Note</a>&gt;&gt; visibleNotes,</div>
-<div class="line"><a id="l00141" name="l00141"></a><span class="lineno">  141</span>                      QList&lt;<a class="code hl_class" href="classgameplay__logic_1_1BpmChange.html">BpmChange</a>&gt; bpmChanges,</div>
-<div class="line"><a id="l00142" name="l00142"></a><span class="lineno">  142</span>                      QList&lt;<a class="code hl_class" href="classgameplay__logic_1_1Time.html">Time</a>&gt; barLines,</div>
-<div class="line"><a id="l00143" name="l00143"></a><span class="lineno">  143</span>                      QObject* parent = <span class="keywordtype">nullptr</span>);</div>
+<div class="foldopen" id="foldopen00138" data-start="{" data-end="};">
+<div class="line"><a id="l00138" name="l00138"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1BmsNotes.html">  138</a></span><span class="keyword">class </span><a class="code hl_class" href="classgameplay__logic_1_1BmsNotes.html">BmsNotes</a> : <span class="keyword">public</span> QObject</div>
+<div class="line"><a id="l00139" name="l00139"></a><span class="lineno">  139</span>{</div>
+<div class="line"><a id="l00140" name="l00140"></a><span class="lineno">  140</span>    Q_OBJECT</div>
+<div class="line"><a id="l00141" name="l00141"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1BmsNotes.html#a5eb6a863ebbd126a5a629e7b33e45368">  141</a></span>    Q_PROPERTY(QList&lt;QList&lt;Note&gt;&gt; notes READ getNotes CONSTANT)</div>
+<div class="line"><a id="l00142" name="l00142"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1BmsNotes.html#ad5e63843117c94e92366bc232188881f">  142</a></span>    Q_PROPERTY(QList&lt;<a class="code hl_class" href="classgameplay__logic_1_1BpmChange.html">BpmChange</a>&gt; bpmChanges READ getBpmChanges CONSTANT)</div>
+<div class="line"><a id="l00143" name="l00143"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1BmsNotes.html#a73dc2085e40066437cb4d2be30e1dd40">  143</a></span>    Q_PROPERTY(QList&lt;<a class="code hl_class" href="classgameplay__logic_1_1Time.html">Time</a>&gt; barLines READ getBarLines CONSTANT)</div>
 <div class="line"><a id="l00144" name="l00144"></a><span class="lineno">  144</span> </div>
-<div class="line"><a id="l00145" name="l00145"></a><span class="lineno">  145</span>    auto getNotes() -&gt; QList&lt;QList&lt;<a class="code hl_class" href="classgameplay__logic_1_1Note.html">Note</a>&gt;&gt;&amp;;</div>
-<div class="line"><a id="l00146" name="l00146"></a><span class="lineno">  146</span> </div>
-<div class="line"><a id="l00147" name="l00147"></a><span class="lineno">  147</span>    auto getNotes() const -&gt; const QList&lt;QList&lt;<a class="code hl_class" href="classgameplay__logic_1_1Note.html">Note</a>&gt;&gt;&amp;;</div>
-<div class="line"><a id="l00148" name="l00148"></a><span class="lineno">  148</span>    auto getBarLines() const -&gt; const QList&lt;<a class="code hl_class" href="classgameplay__logic_1_1Time.html">Time</a>&gt;&amp;;</div>
-<div class="line"><a id="l00149" name="l00149"></a><span class="lineno">  149</span> </div>
-<div class="line"><a id="l00150" name="l00150"></a><span class="lineno">  150</span>    auto getBpmChanges() const -&gt; const QList&lt;<a class="code hl_class" href="classgameplay__logic_1_1BpmChange.html">BpmChange</a>&gt;&amp;;</div>
-<div class="line"><a id="l00151" name="l00151"></a><span class="lineno">  151</span> </div>
-<div class="foldopen" id="foldopen00152" data-start="{" data-end="};">
-<div class="line"><a id="l00152" name="l00152"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1BmsNotes.html#a1608a90e5f82ec2a21ec58dc84b02977">  152</a></span>    friend auto operator&lt;&lt;(QDataStream&amp; stream, const <a class="code hl_class" href="classgameplay__logic_1_1BmsNotes.html">BmsNotes</a>&amp; notes)</div>
-<div class="line"><a id="l00153" name="l00153"></a><span class="lineno">  153</span>      -&gt; QDataStream&amp;</div>
-<div class="line"><a id="l00154" name="l00154"></a><span class="lineno">  154</span>    {</div>
-<div class="line"><a id="l00155" name="l00155"></a><span class="lineno">  155</span>        <span class="keywordflow">return</span> stream &lt;&lt; notes.notes &lt;&lt; notes.bpmChanges &lt;&lt; notes.barLines;</div>
-<div class="line"><a id="l00156" name="l00156"></a><span class="lineno">  156</span>    }</div>
-</div>
+<div class="line"><a id="l00145" name="l00145"></a><span class="lineno">  145</span>    QList&lt;QList&lt;<a class="code hl_class" href="classgameplay__logic_1_1Note.html">Note</a>&gt;&gt; notes;</div>
+<div class="line"><a id="l00146" name="l00146"></a><span class="lineno">  146</span>    QList&lt;<a class="code hl_class" href="classgameplay__logic_1_1BpmChange.html">BpmChange</a>&gt; bpmChanges;</div>
+<div class="line"><a id="l00147" name="l00147"></a><span class="lineno">  147</span>    QList&lt;<a class="code hl_class" href="classgameplay__logic_1_1Time.html">Time</a>&gt; barLines;</div>
+<div class="line"><a id="l00148" name="l00148"></a><span class="lineno">  148</span> </div>
+<div class="line"><a id="l00149" name="l00149"></a><span class="lineno">  149</span>  public:</div>
+<div class="line"><a id="l00150" name="l00150"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1BmsNotes.html#ad3ceba70026f4526efc173c8a6f7712d">  150</a></span>    <a class="code hl_class" href="classgameplay__logic_1_1BmsNotes.html">BmsNotes</a>() = default;</div>
+<div class="line"><a id="l00151" name="l00151"></a><span class="lineno">  151</span>    explicit <a class="code hl_class" href="classgameplay__logic_1_1BmsNotes.html">BmsNotes</a>(QList&lt;QList&lt;<a class="code hl_class" href="classgameplay__logic_1_1Note.html">Note</a>&gt;&gt; visibleNotes,</div>
+<div class="line"><a id="l00152" name="l00152"></a><span class="lineno">  152</span>                      QList&lt;<a class="code hl_class" href="classgameplay__logic_1_1BpmChange.html">BpmChange</a>&gt; bpmChanges,</div>
+<div class="line"><a id="l00153" name="l00153"></a><span class="lineno">  153</span>                      QList&lt;<a class="code hl_class" href="classgameplay__logic_1_1Time.html">Time</a>&gt; barLines,</div>
+<div class="line"><a id="l00154" name="l00154"></a><span class="lineno">  154</span>                      QObject* parent = <span class="keywordtype">nullptr</span>);</div>
+<div class="line"><a id="l00155" name="l00155"></a><span class="lineno">  155</span> </div>
+<div class="line"><a id="l00156" name="l00156"></a><span class="lineno">  156</span>    auto getNotes() -&gt; QList&lt;QList&lt;<a class="code hl_class" href="classgameplay__logic_1_1Note.html">Note</a>&gt;&gt;&amp;;</div>
 <div class="line"><a id="l00157" name="l00157"></a><span class="lineno">  157</span> </div>
-<div class="foldopen" id="foldopen00158" data-start="{" data-end="};">
-<div class="line"><a id="l00158" name="l00158"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1BmsNotes.html#accdca0f65d748f66de52a15ed9450340">  158</a></span>    <span class="keyword">friend</span> <span class="keyword">auto</span> <a class="code hl_friend" href="classgameplay__logic_1_1BmsNotes.html#accdca0f65d748f66de52a15ed9450340">operator&gt;&gt;</a>(QDataStream&amp; stream, <a class="code hl_class" href="classgameplay__logic_1_1BmsNotes.html">BmsNotes</a>&amp; notes) -&gt; QDataStream&amp;</div>
-<div class="line"><a id="l00159" name="l00159"></a><span class="lineno">  159</span>    {</div>
-<div class="line"><a id="l00160" name="l00160"></a><span class="lineno">  160</span>        <span class="keywordflow">return</span> stream &gt;&gt; notes.notes &gt;&gt; notes.bpmChanges &gt;&gt; notes.barLines;</div>
-<div class="line"><a id="l00161" name="l00161"></a><span class="lineno">  161</span>    }</div>
-</div>
+<div class="line"><a id="l00158" name="l00158"></a><span class="lineno">  158</span>    auto getNotes() const -&gt; const QList&lt;QList&lt;<a class="code hl_class" href="classgameplay__logic_1_1Note.html">Note</a>&gt;&gt;&amp;;</div>
+<div class="line"><a id="l00159" name="l00159"></a><span class="lineno">  159</span>    auto getBarLines() const -&gt; const QList&lt;<a class="code hl_class" href="classgameplay__logic_1_1Time.html">Time</a>&gt;&amp;;</div>
+<div class="line"><a id="l00160" name="l00160"></a><span class="lineno">  160</span> </div>
+<div class="line"><a id="l00161" name="l00161"></a><span class="lineno">  161</span>    auto getBpmChanges() const -&gt; const QList&lt;<a class="code hl_class" href="classgameplay__logic_1_1BpmChange.html">BpmChange</a>&gt;&amp;;</div>
 <div class="line"><a id="l00162" name="l00162"></a><span class="lineno">  162</span> </div>
-<div class="line"><a id="l00163" name="l00163"></a><span class="lineno">  163</span>    <span class="keyword">static</span> <span class="keyword">auto</span> load(<a class="code hl_class" href="classdb_1_1SqliteCppDb.html">db::SqliteCppDb</a>&amp; <a class="code hl_namespace" href="namespacedb.html">db</a>, <span class="keyword">const</span> <a class="code hl_typedef" href="namespacesupport.html#a84561464bafe0f5cf44a2c0b7a40631a">support::Sha256</a>&amp; sha256)</div>
-<div class="line"><a id="l00164" name="l00164"></a><span class="lineno">  164</span>      -&gt; std::unique_ptr&lt;BmsNotes&gt;;</div>
-<div class="line"><a id="l00165" name="l00165"></a><span class="lineno">  165</span>    <span class="keyword">auto</span> serialize() const -&gt; QByteArray;</div>
-<div class="line"><a id="l00166" name="l00166"></a><span class="lineno">  166</span>    auto save(<a class="code hl_namespace" href="namespacedb.html">db</a>::SqliteCppDb&amp; <a class="code hl_namespace" href="namespacedb.html">db</a>, const <a class="code hl_namespace" href="namespacesupport.html">support</a>::Sha256&amp; sha256) const -&gt; <span class="keywordtype">void</span>;</div>
-<div class="line"><a id="l00167" name="l00167"></a><span class="lineno">  167</span>};</div>
+<div class="foldopen" id="foldopen00163" data-start="{" data-end="};">
+<div class="line"><a id="l00163" name="l00163"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1BmsNotes.html#a1608a90e5f82ec2a21ec58dc84b02977">  163</a></span>    friend auto operator&lt;&lt;(QDataStream&amp; stream, const <a class="code hl_class" href="classgameplay__logic_1_1BmsNotes.html">BmsNotes</a>&amp; notes)</div>
+<div class="line"><a id="l00164" name="l00164"></a><span class="lineno">  164</span>      -&gt; QDataStream&amp;</div>
+<div class="line"><a id="l00165" name="l00165"></a><span class="lineno">  165</span>    {</div>
+<div class="line"><a id="l00166" name="l00166"></a><span class="lineno">  166</span>        <span class="keywordflow">return</span> stream &lt;&lt; notes.notes &lt;&lt; notes.bpmChanges &lt;&lt; notes.barLines;</div>
+<div class="line"><a id="l00167" name="l00167"></a><span class="lineno">  167</span>    }</div>
 </div>
-<div class="line"><a id="l00168" name="l00168"></a><span class="lineno">  168</span>} <span class="comment">// namespace gameplay_logic</span></div>
-<div class="line"><a id="l00169" name="l00169"></a><span class="lineno">  169</span> </div>
-<div class="line"><a id="l00170" name="l00170"></a><span class="lineno">  170</span><span class="preprocessor">#endif </span><span class="comment">// RHYTHMGAME_BMSNOTES_H</span></div>
+<div class="line"><a id="l00168" name="l00168"></a><span class="lineno">  168</span> </div>
+<div class="foldopen" id="foldopen00169" data-start="{" data-end="};">
+<div class="line"><a id="l00169" name="l00169"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1BmsNotes.html#accdca0f65d748f66de52a15ed9450340">  169</a></span>    <span class="keyword">friend</span> <span class="keyword">auto</span> <a class="code hl_friend" href="classgameplay__logic_1_1BmsNotes.html#accdca0f65d748f66de52a15ed9450340">operator&gt;&gt;</a>(QDataStream&amp; stream, <a class="code hl_class" href="classgameplay__logic_1_1BmsNotes.html">BmsNotes</a>&amp; notes) -&gt; QDataStream&amp;</div>
+<div class="line"><a id="l00170" name="l00170"></a><span class="lineno">  170</span>    {</div>
+<div class="line"><a id="l00171" name="l00171"></a><span class="lineno">  171</span>        <span class="keywordflow">return</span> stream &gt;&gt; notes.notes &gt;&gt; notes.bpmChanges &gt;&gt; notes.barLines;</div>
+<div class="line"><a id="l00172" name="l00172"></a><span class="lineno">  172</span>    }</div>
+</div>
+<div class="line"><a id="l00173" name="l00173"></a><span class="lineno">  173</span> </div>
+<div class="line"><a id="l00174" name="l00174"></a><span class="lineno">  174</span>    <span class="keyword">static</span> <span class="keyword">auto</span> load(<a class="code hl_class" href="classdb_1_1SqliteCppDb.html">db::SqliteCppDb</a>&amp; <a class="code hl_namespace" href="namespacedb.html">db</a>, <span class="keyword">const</span> <a class="code hl_typedef" href="namespacesupport.html#a84561464bafe0f5cf44a2c0b7a40631a">support::Sha256</a>&amp; sha256)</div>
+<div class="line"><a id="l00175" name="l00175"></a><span class="lineno">  175</span>      -&gt; std::unique_ptr&lt;BmsNotes&gt;;</div>
+<div class="line"><a id="l00176" name="l00176"></a><span class="lineno">  176</span>    <span class="keyword">auto</span> serialize() const -&gt; QByteArray;</div>
+<div class="line"><a id="l00177" name="l00177"></a><span class="lineno">  177</span>    auto save(<a class="code hl_namespace" href="namespacedb.html">db</a>::SqliteCppDb&amp; <a class="code hl_namespace" href="namespacedb.html">db</a>, const <a class="code hl_namespace" href="namespacesupport.html">support</a>::Sha256&amp; sha256) const -&gt; <span class="keywordtype">void</span>;</div>
+<div class="line"><a id="l00178" name="l00178"></a><span class="lineno">  178</span>};</div>
+</div>
+<div class="line"><a id="l00179" name="l00179"></a><span class="lineno">  179</span>} <span class="comment">// namespace gameplay_logic</span></div>
+<div class="line"><a id="l00180" name="l00180"></a><span class="lineno">  180</span> </div>
+<div class="line"><a id="l00181" name="l00181"></a><span class="lineno">  181</span><span class="preprocessor">#endif </span><span class="comment">// RHYTHMGAME_BMSNOTES_H</span></div>
 <div class="ttc" id="aSha256_8h_html"><div class="ttname"><a href="Sha256_8h.html">Sha256.h</a></div></div>
 <div class="ttc" id="aSqliteCppDb_8h_html"><div class="ttname"><a href="SqliteCppDb_8h.html">SqliteCppDb.h</a></div></div>
-<div class="ttc" id="aclassdb_1_1SqliteCppDb_html"><div class="ttname"><a href="classdb_1_1SqliteCppDb.html">db::SqliteCppDb</a></div><div class="ttdoc">Database wrapper for SQLiteCpp.</div><div class="ttdef"><b>Definition</b> SqliteCppDb.h:23</div></div>
-<div class="ttc" id="aclassgameplay__logic_1_1BmsNotes_html"><div class="ttname"><a href="classgameplay__logic_1_1BmsNotes.html">gameplay_logic::BmsNotes</a></div><div class="ttdef"><b>Definition</b> BmsNotes.h:128</div></div>
-<div class="ttc" id="aclassgameplay__logic_1_1BmsNotes_html_accdca0f65d748f66de52a15ed9450340"><div class="ttname"><a href="classgameplay__logic_1_1BmsNotes.html#accdca0f65d748f66de52a15ed9450340">gameplay_logic::BmsNotes::operator&gt;&gt;</a></div><div class="ttdeci">friend auto operator&gt;&gt;(QDataStream &amp;stream, BmsNotes &amp;notes) -&gt; QDataStream &amp;</div><div class="ttdef"><b>Definition</b> BmsNotes.h:158</div></div>
-<div class="ttc" id="aclassgameplay__logic_1_1BpmChange_html"><div class="ttname"><a href="classgameplay__logic_1_1BpmChange.html">gameplay_logic::BpmChange</a></div><div class="ttdef"><b>Definition</b> BmsNotes.h:46</div></div>
-<div class="ttc" id="aclassgameplay__logic_1_1BpmChange_html_a72679974406720d559d2593dc4f4340f"><div class="ttname"><a href="classgameplay__logic_1_1BpmChange.html#a72679974406720d559d2593dc4f4340f">gameplay_logic::BpmChange::bpm</a></div><div class="ttdeci">double bpm</div><div class="ttdef"><b>Definition</b> BmsNotes.h:49</div></div>
-<div class="ttc" id="aclassgameplay__logic_1_1BpmChange_html_aa36a291e6fd614b196b79ba834cf5992"><div class="ttname"><a href="classgameplay__logic_1_1BpmChange.html#aa36a291e6fd614b196b79ba834cf5992">gameplay_logic::BpmChange::time</a></div><div class="ttdeci">Time time</div><div class="ttdef"><b>Definition</b> BmsNotes.h:48</div></div>
-<div class="ttc" id="aclassgameplay__logic_1_1Note_html"><div class="ttname"><a href="classgameplay__logic_1_1Note.html">gameplay_logic::Note</a></div><div class="ttdef"><b>Definition</b> BmsNotes.h:92</div></div>
-<div class="ttc" id="aclassgameplay__logic_1_1Note_html_a8e22f28b2754a4af52eb701ff01def90"><div class="ttname"><a href="classgameplay__logic_1_1Note.html#a8e22f28b2754a4af52eb701ff01def90">gameplay_logic::Note::Type</a></div><div class="ttdeci">Type</div><div class="ttdef"><b>Definition</b> BmsNotes.h:96</div></div>
-<div class="ttc" id="aclassgameplay__logic_1_1Snap_html"><div class="ttname"><a href="classgameplay__logic_1_1Snap.html">gameplay_logic::Snap</a></div><div class="ttdef"><b>Definition</b> BmsNotes.h:69</div></div>
-<div class="ttc" id="aclassgameplay__logic_1_1Snap_html_a168c2251e9ea1c22e4faa90c07ac5379"><div class="ttname"><a href="classgameplay__logic_1_1Snap.html#a168c2251e9ea1c22e4faa90c07ac5379">gameplay_logic::Snap::numerator</a></div><div class="ttdeci">double numerator</div><div class="ttdef"><b>Definition</b> BmsNotes.h:71</div></div>
+<div class="ttc" id="aclassdb_1_1SqliteCppDb_html"><div class="ttname"><a href="classdb_1_1SqliteCppDb.html">db::SqliteCppDb</a></div><div class="ttdoc">Database wrapper for SQLiteCpp.</div><div class="ttdef"><b>Definition</b> SqliteCppDb.h:25</div></div>
+<div class="ttc" id="aclassgameplay__logic_1_1BmsNotes_html"><div class="ttname"><a href="classgameplay__logic_1_1BmsNotes.html">gameplay_logic::BmsNotes</a></div><div class="ttdef"><b>Definition</b> BmsNotes.h:139</div></div>
+<div class="ttc" id="aclassgameplay__logic_1_1BmsNotes_html_accdca0f65d748f66de52a15ed9450340"><div class="ttname"><a href="classgameplay__logic_1_1BmsNotes.html#accdca0f65d748f66de52a15ed9450340">gameplay_logic::BmsNotes::operator&gt;&gt;</a></div><div class="ttdeci">friend auto operator&gt;&gt;(QDataStream &amp;stream, BmsNotes &amp;notes) -&gt; QDataStream &amp;</div><div class="ttdef"><b>Definition</b> BmsNotes.h:169</div></div>
+<div class="ttc" id="aclassgameplay__logic_1_1BpmChange_html"><div class="ttname"><a href="classgameplay__logic_1_1BpmChange.html">gameplay_logic::BpmChange</a></div><div class="ttdef"><b>Definition</b> BmsNotes.h:48</div></div>
+<div class="ttc" id="aclassgameplay__logic_1_1BpmChange_html_a72679974406720d559d2593dc4f4340f"><div class="ttname"><a href="classgameplay__logic_1_1BpmChange.html#a72679974406720d559d2593dc4f4340f">gameplay_logic::BpmChange::bpm</a></div><div class="ttdeci">double bpm</div><div class="ttdef"><b>Definition</b> BmsNotes.h:51</div></div>
+<div class="ttc" id="aclassgameplay__logic_1_1BpmChange_html_aa36a291e6fd614b196b79ba834cf5992"><div class="ttname"><a href="classgameplay__logic_1_1BpmChange.html#aa36a291e6fd614b196b79ba834cf5992">gameplay_logic::BpmChange::time</a></div><div class="ttdeci">Time time</div><div class="ttdef"><b>Definition</b> BmsNotes.h:50</div></div>
+<div class="ttc" id="aclassgameplay__logic_1_1Note_html"><div class="ttname"><a href="classgameplay__logic_1_1Note.html">gameplay_logic::Note</a></div><div class="ttdef"><b>Definition</b> BmsNotes.h:103</div></div>
+<div class="ttc" id="aclassgameplay__logic_1_1Note_html_a8e22f28b2754a4af52eb701ff01def90"><div class="ttname"><a href="classgameplay__logic_1_1Note.html#a8e22f28b2754a4af52eb701ff01def90">gameplay_logic::Note::Type</a></div><div class="ttdeci">Type</div><div class="ttdef"><b>Definition</b> BmsNotes.h:107</div></div>
+<div class="ttc" id="aclassgameplay__logic_1_1Snap_html"><div class="ttname"><a href="classgameplay__logic_1_1Snap.html">gameplay_logic::Snap</a></div><div class="ttdoc">Represents the position of the note in a measure.</div><div class="ttdef"><b>Definition</b> BmsNotes.h:74</div></div>
+<div class="ttc" id="aclassgameplay__logic_1_1Snap_html_a168c2251e9ea1c22e4faa90c07ac5379"><div class="ttname"><a href="classgameplay__logic_1_1Snap.html#a168c2251e9ea1c22e4faa90c07ac5379">gameplay_logic::Snap::numerator</a></div><div class="ttdeci">double numerator</div><div class="ttdef"><b>Definition</b> BmsNotes.h:79</div></div>
 <div class="ttc" id="aclassgameplay__logic_1_1Time_html"><div class="ttname"><a href="classgameplay__logic_1_1Time.html">gameplay_logic::Time</a></div><div class="ttdef"><b>Definition</b> BmsNotes.h:14</div></div>
-<div class="ttc" id="aclassgameplay__logic_1_1Time_html_a13b12c2779875f948a629b2e6157f9cd"><div class="ttname"><a href="classgameplay__logic_1_1Time.html#a13b12c2779875f948a629b2e6157f9cd">gameplay_logic::Time::position</a></div><div class="ttdeci">double position</div><div class="ttdef"><b>Definition</b> BmsNotes.h:17</div></div>
-<div class="ttc" id="aclassgameplay__logic_1_1Time_html_a68ff2e5cb6d39a2d6a28f770b1c31a71"><div class="ttname"><a href="classgameplay__logic_1_1Time.html#a68ff2e5cb6d39a2d6a28f770b1c31a71">gameplay_logic::Time::timestamp</a></div><div class="ttdeci">int64_t timestamp</div><div class="ttdef"><b>Definition</b> BmsNotes.h:16</div></div>
+<div class="ttc" id="aclassgameplay__logic_1_1Time_html_a13b12c2779875f948a629b2e6157f9cd"><div class="ttname"><a href="classgameplay__logic_1_1Time.html#a13b12c2779875f948a629b2e6157f9cd">gameplay_logic::Time::position</a></div><div class="ttdeci">double position</div><div class="ttdoc">Position expressed in beats.</div><div class="ttdef"><b>Definition</b> BmsNotes.h:19</div></div>
+<div class="ttc" id="aclassgameplay__logic_1_1Time_html_a68ff2e5cb6d39a2d6a28f770b1c31a71"><div class="ttname"><a href="classgameplay__logic_1_1Time.html#a68ff2e5cb6d39a2d6a28f770b1c31a71">gameplay_logic::Time::timestamp</a></div><div class="ttdeci">int64_t timestamp</div><div class="ttdoc">Timestamp expressed in nanoseconds.</div><div class="ttdef"><b>Definition</b> BmsNotes.h:17</div></div>
 <div class="ttc" id="aclassgameplay__logic_1_1Time_html_aeb71e6817616115dcc043e6d0f45b90c"><div class="ttname"><a href="classgameplay__logic_1_1Time.html#aeb71e6817616115dcc043e6d0f45b90c">gameplay_logic::Time::operator&lt;=&gt;</a></div><div class="ttdeci">auto operator&lt;=&gt;(const Time &amp;other) const =default</div></div>
-<div class="ttc" id="anamespacedb_html"><div class="ttname"><a href="namespacedb.html">db</a></div><div class="ttdef"><b>Definition</b> SqliteCppDb.h:16</div></div>
+<div class="ttc" id="anamespacedb_html"><div class="ttname"><a href="namespacedb.html">db</a></div><div class="ttdoc">Namespace for database related classes and functions.</div><div class="ttdef"><b>Definition</b> SqliteCppDb.h:18</div></div>
 <div class="ttc" id="anamespacegameplay__logic_html"><div class="ttname"><a href="namespacegameplay__logic.html">gameplay_logic</a></div><div class="ttdef"><b>Definition</b> BmsGameReferee.h:14</div></div>
 <div class="ttc" id="anamespacegameplay__logic_html_aae5baf1af41f9f2bf338c9b5d935d2bd"><div class="ttname"><a href="namespacegameplay__logic.html#aae5baf1af41f9f2bf338c9b5d935d2bd">gameplay_logic::operator&gt;&gt;</a></div><div class="ttdeci">auto operator&gt;&gt;(QDataStream &amp;stream, BmsGaugeInfo &amp;gaugeInfo) -&gt; QDataStream &amp;</div><div class="ttdef"><b>Definition</b> BmsGaugeHistory.cpp:27</div></div>
 <div class="ttc" id="anamespacegameplay__logic_html_ae125252db73b91b3eb8b158d0e1f1546"><div class="ttname"><a href="namespacegameplay__logic.html#ae125252db73b91b3eb8b158d0e1f1546">gameplay_logic::operator&lt;&lt;</a></div><div class="ttdeci">auto operator&lt;&lt;(QDataStream &amp;stream, const BmsGaugeInfo &amp;gaugeInfo) -&gt; QDataStream &amp;</div><div class="ttdef"><b>Definition</b> BmsGaugeHistory.cpp:21</div></div>

@@ -83,6 +83,9 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 
+<p>A filter model that only shows the barlines that are in the visible area.  
+ <a href="classgameplay__logic_1_1BarlineFilter.html#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="NoteState_8h_source.html">NoteState.h</a>&gt;</code></p>
 <div class="dynheader">
 Inheritance diagram for gameplay_logic::BarlineFilter:</div>
@@ -117,8 +120,8 @@ Public Member Functions</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pro-methods" name="pro-methods"></a>
 Protected Member Functions</h2></td></tr>
-<tr class="memitem:a293850c84d38372d648208c190f51de9" id="r_a293850c84d38372d648208c190f51de9"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgameplay__logic_1_1BarlineFilter.html#a293850c84d38372d648208c190f51de9">filterAcceptsRow</a> (int source_row, const QModelIndex &amp;source_parent) const -&gt; bool override</td></tr>
-<tr class="separator:a293850c84d38372d648208c190f51de9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aeec3fffaece0a4a793df222e58a6cb7a" id="r_aeec3fffaece0a4a793df222e58a6cb7a"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgameplay__logic_1_1BarlineFilter.html#aeec3fffaece0a4a793df222e58a6cb7a">filterAcceptsRow</a> (int sourceRow, const QModelIndex &amp;sourceParent) const -&gt; bool override</td></tr>
+<tr class="separator:aeec3fffaece0a4a793df222e58a6cb7a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="properties" name="properties"></a>
 Properties</h2></td></tr>
@@ -127,7 +130,10 @@ Properties</h2></td></tr>
 <tr class="memitem:a1d9f7f4b0ce8459884e7e54f4812f04a" id="r_a1d9f7f4b0ce8459884e7e54f4812f04a"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgameplay__logic_1_1BarlineFilter.html#a1d9f7f4b0ce8459884e7e54f4812f04a">bottomPosition</a> = 0.0</td></tr>
 <tr class="separator:a1d9f7f4b0ce8459884e7e54f4812f04a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>A filter model that only shows the barlines that are in the visible area. </p>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="classgameplay__logic_1_1BarLinesState.html" title="The state of the barlines in the chart.">BarLinesState</a> </dd></dl>
+</div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a00c99a1a7d9616c0d7a5cc84e2b14f37" name="a00c99a1a7d9616c0d7a5cc84e2b14f37"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a00c99a1a7d9616c0d7a5cc84e2b14f37">&#9670;&#160;</a></span>BarlineFilter()</h2>
 
@@ -190,8 +196,8 @@ Properties</h2></td></tr>
 
 </div>
 </div>
-<a id="a293850c84d38372d648208c190f51de9" name="a293850c84d38372d648208c190f51de9"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a293850c84d38372d648208c190f51de9">&#9670;&#160;</a></span>filterAcceptsRow()</h2>
+<a id="aeec3fffaece0a4a793df222e58a6cb7a" name="aeec3fffaece0a4a793df222e58a6cb7a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aeec3fffaece0a4a793df222e58a6cb7a">&#9670;&#160;</a></span>filterAcceptsRow()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -203,13 +209,13 @@ Properties</h2></td></tr>
           <td class="memname">bool gameplay_logic::BarlineFilter::filterAcceptsRow </td>
           <td>(</td>
           <td class="paramtype">int&#160;</td>
-          <td class="paramname"><em>source_row</em>, </td>
+          <td class="paramname"><em>sourceRow</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">const QModelIndex &amp;&#160;</td>
-          <td class="paramname"><em>source_parent</em>&#160;</td>
+          <td class="paramname"><em>sourceParent</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -357,6 +363,7 @@ Properties</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>The bottom position of the visible area expressed in beats. </p>
 
 </div>
 </div>
@@ -379,6 +386,7 @@ Properties</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>The top position of the visible area expressed in beats. </p>
 
 </div>
 </div>

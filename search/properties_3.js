@@ -6,5 +6,5 @@ var searchData=
   ['difficulty_3',['difficulty',['../classgameplay__logic_1_1ChartData.html#a5ee33547dc94fe2a08c949d25eab7202',1,'gameplay_logic::ChartData']]],
   ['direction_4',['direction',['../classinput_1_1Key.html#a02f02ab94397c31f19395ba6e095268c',1,'input::Key']]],
   ['directory_5',['directory',['../classgameplay__logic_1_1ChartData.html#a1ebfc239537260343195c0be0f4ce307',1,'gameplay_logic::ChartData']]],
-  ['dpoptions_6',['dpoptions',['../classgameplay__logic_1_1BmsResult.html#ae113d129f204b73a16e8a9b803f3fd6e',1,'gameplay_logic::BmsResult::dpOptions'],['../classresource__managers_1_1GeneralVars.html#aa6d31437196872838978f6ab19918b1e',1,'resource_managers::GeneralVars::dpOptions']]]
+  ['dpoptions_6',['dpoptions',['../classgameplay__logic_1_1BmsResult.html#ae113d129f204b73a16e8a9b803f3fd6e',1,'gameplay_logic::BmsResult::dpOptions'],['../classgameplay__logic_1_1BmsResultCourse.html#ae4625fa885ef60cd9c0090b829a6dfa8',1,'gameplay_logic::BmsResultCourse::dpOptions'],['../classresource__managers_1_1GeneralVars.html#aa6d31437196872838978f6ab19918b1e',1,'resource_managers::GeneralVars::dpOptions']]]
 ];

@@ -100,6 +100,7 @@ Public Types</h2></td></tr>
 <tr class="memitem:a531d303c03fc0e20819caa30ab2849c2" id="r_a531d303c03fc0e20819caa30ab2849c2"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classinput_1_1AnalogAxisConfig.html#a531d303c03fc0e20819caa30ab2849c2">ScratchAlgorithm</a> { <a class="el" href="classinput_1_1AnalogAxisConfig.html#a531d303c03fc0e20819caa30ab2849c2ae90c14263e795016c4be92cb504531a5">ScratchAlgorithmAnalog</a>
 , <a class="el" href="classinput_1_1AnalogAxisConfig.html#a531d303c03fc0e20819caa30ab2849c2ac3ad1e5561c56cbf0aea47b1c069c27f">ScratchAlgorithmClassic</a>
  }</td></tr>
+<tr class="memdesc:a531d303c03fc0e20819caa30ab2849c2"><td class="mdescLeft">&#160;</td><td class="mdescRight">The algorithm used to interpret axis movement as scratch movement.  <a href="classinput_1_1AnalogAxisConfig.html#a531d303c03fc0e20819caa30ab2849c2">More...</a><br /></td></tr>
 <tr class="separator:a531d303c03fc0e20819caa30ab2849c2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="signals" name="signals"></a>
@@ -137,12 +138,16 @@ Public Member Functions</h2></td></tr>
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="properties" name="properties"></a>
 Properties</h2></td></tr>
 <tr class="memitem:af1a4c7539aadd225704928eb8594ef83" id="r_af1a4c7539aadd225704928eb8594ef83"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classinput_1_1AnalogAxisConfig.html#af1a4c7539aadd225704928eb8594ef83">triggerThreshold</a> = 0.008</td></tr>
+<tr class="memdesc:af1a4c7539aadd225704928eb8594ef83"><td class="mdescLeft">&#160;</td><td class="mdescRight">The threshold above which scratch movement is triggered.  <br /></td></tr>
 <tr class="separator:af1a4c7539aadd225704928eb8594ef83"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a32d042bcf90b5304b49169ac6a555416" id="r_a32d042bcf90b5304b49169ac6a555416"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classinput_1_1AnalogAxisConfig.html#a32d042bcf90b5304b49169ac6a555416">releaseThreshold</a> = 0.004</td></tr>
+<tr class="memdesc:a32d042bcf90b5304b49169ac6a555416"><td class="mdescLeft">&#160;</td><td class="mdescRight">The threshold that is needed to sustain scratch movement.  <br /></td></tr>
 <tr class="separator:a32d042bcf90b5304b49169ac6a555416"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac822ab3b88ffc93bcdb1a97769e0024e" id="r_ac822ab3b88ffc93bcdb1a97769e0024e"><td class="memItemLeft" align="right" valign="top">uint&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classinput_1_1AnalogAxisConfig.html#ac822ab3b88ffc93bcdb1a97769e0024e">timeout</a> = 100</td></tr>
+<tr class="memdesc:ac822ab3b88ffc93bcdb1a97769e0024e"><td class="mdescLeft">&#160;</td><td class="mdescRight">The time in milliseconds after which scratch movement is automatically released, unless releaseThreshold is exceeded.  <br /></td></tr>
 <tr class="separator:ac822ab3b88ffc93bcdb1a97769e0024e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aff8a5f0b522968308bca809da5eddbd1" id="r_aff8a5f0b522968308bca809da5eddbd1"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classinput_1_1AnalogAxisConfig.html#a531d303c03fc0e20819caa30ab2849c2">ScratchAlgorithm</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classinput_1_1AnalogAxisConfig.html#aff8a5f0b522968308bca809da5eddbd1">scratchAlgorithm</a></td></tr>
+<tr class="memdesc:aff8a5f0b522968308bca809da5eddbd1"><td class="mdescLeft">&#160;</td><td class="mdescRight">The algorithm used to interpret axis movement as scratch movement.  <br /></td></tr>
 <tr class="separator:aff8a5f0b522968308bca809da5eddbd1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Member Enumeration Documentation</h2>
@@ -157,9 +162,13 @@ Properties</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The algorithm used to interpret axis movement as scratch movement. </p>
 <table class="fieldtable">
-<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a531d303c03fc0e20819caa30ab2849c2ae90c14263e795016c4be92cb504531a5" name="a531d303c03fc0e20819caa30ab2849c2ae90c14263e795016c4be92cb504531a5"></a>ScratchAlgorithmAnalog&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="a531d303c03fc0e20819caa30ab2849c2ac3ad1e5561c56cbf0aea47b1c069c27f" name="a531d303c03fc0e20819caa30ab2849c2ac3ad1e5561c56cbf0aea47b1c069c27f"></a>ScratchAlgorithmClassic&#160;</td><td class="fielddoc"></td></tr>
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a531d303c03fc0e20819caa30ab2849c2ae90c14263e795016c4be92cb504531a5" name="a531d303c03fc0e20819caa30ab2849c2ae90c14263e795016c4be92cb504531a5"></a>ScratchAlgorithmAnalog&#160;</td><td class="fielddoc"><p>Beatoraja style. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a531d303c03fc0e20819caa30ab2849c2ac3ad1e5561c56cbf0aea47b1c069c27f" name="a531d303c03fc0e20819caa30ab2849c2ac3ad1e5561c56cbf0aea47b1c069c27f"></a>ScratchAlgorithmClassic&#160;</td><td class="fielddoc"><p>LR2 style. </p>
+</td></tr>
 </table>
 
 </div>
@@ -453,6 +462,9 @@ Properties</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
+<p>The threshold that is needed to sustain scratch movement. </p>
+<p>This is a value between 0 and 1. Default is 0.004. </p>
+
 </div>
 </div>
 <a id="aff8a5f0b522968308bca809da5eddbd1" name="aff8a5f0b522968308bca809da5eddbd1"></a>
@@ -474,6 +486,8 @@ Properties</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The algorithm used to interpret axis movement as scratch movement. </p>
 
 </div>
 </div>
@@ -497,6 +511,9 @@ Properties</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
+<p>The time in milliseconds after which scratch movement is automatically released, unless releaseThreshold is exceeded. </p>
+<p>Default is 100. </p>
+
 </div>
 </div>
 <a id="af1a4c7539aadd225704928eb8594ef83" name="af1a4c7539aadd225704928eb8594ef83"></a>
@@ -518,6 +535,9 @@ Properties</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The threshold above which scratch movement is triggered. </p>
+<p>This is a value between 0 and 1. Default is 0.008. </p>
 
 </div>
 </div>

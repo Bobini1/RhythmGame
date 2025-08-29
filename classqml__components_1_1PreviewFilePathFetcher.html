@@ -97,6 +97,7 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a064e174a9bfdc108836afa7b88e16f57" id="r_a064e174a9bfdc108836afa7b88e16f57"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classqml__components_1_1PreviewFilePathFetcher.html#a064e174a9bfdc108836afa7b88e16f57">PreviewFilePathFetcher</a> (<a class="el" href="classdb_1_1SqliteCppDb.html">db::SqliteCppDb</a> *db, QObject *parent=nullptr)</td></tr>
 <tr class="separator:a064e174a9bfdc108836afa7b88e16f57"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1496edeb583ee5175d1733ab5d48387d" id="r_a1496edeb583ee5175d1733ab5d48387d"><td class="memItemLeft" align="right" valign="top">Q_INVOKABLE QVariantHash&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classqml__components_1_1PreviewFilePathFetcher.html#a1496edeb583ee5175d1733ab5d48387d">getPreviewFilePaths</a> (QList&lt; QString &gt; directories)</td></tr>
+<tr class="memdesc:a1496edeb583ee5175d1733ab5d48387d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Fetches the preview file paths for the given directories.  <br /></td></tr>
 <tr class="separator:a1496edeb583ee5175d1733ab5d48387d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
@@ -152,6 +153,15 @@ Public Member Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Fetches the preview file paths for the given directories. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">directories</td><td>A list of directories to fetch preview file paths for. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>A hash map where the key is the directory and the value is the preview file path. The result will not contain entries for directories that do not have a preview file path. </dd></dl>
 
 </div>
 </div>

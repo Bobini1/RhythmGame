@@ -129,16 +129,22 @@ Protected Member Functions</h2></td></tr>
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="properties" name="properties"></a>
 Properties</h2></td></tr>
 <tr class="memitem:add962624966aff7dfc94dbb8193fa9dd" id="r_add962624966aff7dfc94dbb8193fa9dd"><td class="memItemLeft" align="right" valign="top">QString&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgameplay__logic_1_1rules_1_1BmsGauge.html#add962624966aff7dfc94dbb8193fa9dd">name</a></td></tr>
+<tr class="memdesc:add962624966aff7dfc94dbb8193fa9dd"><td class="mdescLeft">&#160;</td><td class="mdescRight">The name of the gauge.  <br /></td></tr>
 <tr class="separator:add962624966aff7dfc94dbb8193fa9dd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abf0029efe3f5ba313bbed4101eef0918" id="r_abf0029efe3f5ba313bbed4101eef0918"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgameplay__logic_1_1rules_1_1BmsGauge.html#abf0029efe3f5ba313bbed4101eef0918">courseGauge</a></td></tr>
+<tr class="memdesc:abf0029efe3f5ba313bbed4101eef0918"><td class="mdescLeft">&#160;</td><td class="mdescRight">Whether the gauge is a course gauge.  <br /></td></tr>
 <tr class="separator:abf0029efe3f5ba313bbed4101eef0918"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a11fb97e2cd6bfe1773c970ad86dc05a2" id="r_a11fb97e2cd6bfe1773c970ad86dc05a2"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgameplay__logic_1_1rules_1_1BmsGauge.html#a11fb97e2cd6bfe1773c970ad86dc05a2">gauge</a></td></tr>
+<tr class="memdesc:a11fb97e2cd6bfe1773c970ad86dc05a2"><td class="mdescLeft">&#160;</td><td class="mdescRight">The current value of the gauge.  <br /></td></tr>
 <tr class="separator:a11fb97e2cd6bfe1773c970ad86dc05a2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:adb39fa1c4d3d210e63931f09e2f1cbf3" id="r_adb39fa1c4d3d210e63931f09e2f1cbf3"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgameplay__logic_1_1rules_1_1BmsGauge.html#adb39fa1c4d3d210e63931f09e2f1cbf3">gaugeMax</a></td></tr>
+<tr class="memdesc:adb39fa1c4d3d210e63931f09e2f1cbf3"><td class="mdescLeft">&#160;</td><td class="mdescRight">The maximum possible value of the gauge.  <br /></td></tr>
 <tr class="separator:adb39fa1c4d3d210e63931f09e2f1cbf3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae77acc3e4ce7f373737097c5bba4f5b0" id="r_ae77acc3e4ce7f373737097c5bba4f5b0"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgameplay__logic_1_1rules_1_1BmsGauge.html#ae77acc3e4ce7f373737097c5bba4f5b0">threshold</a> = 0</td></tr>
+<tr class="memdesc:ae77acc3e4ce7f373737097c5bba4f5b0"><td class="mdescLeft">&#160;</td><td class="mdescRight">The threshold value of the gauge.  <br /></td></tr>
 <tr class="separator:ae77acc3e4ce7f373737097c5bba4f5b0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aee6720bc39f974b46b1b4f5d4ef1c0fb" id="r_aee6720bc39f974b46b1b4f5d4ef1c0fb"><td class="memItemLeft" align="right" valign="top">QList&lt; <a class="el" href="classgameplay__logic_1_1rules_1_1GaugeHistoryEntry.html">gameplay_logic::rules::GaugeHistoryEntry</a> &gt; gaugeHistory READ&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgameplay__logic_1_1rules_1_1BmsGauge.html#aee6720bc39f974b46b1b4f5d4ef1c0fb">getGaugeHistory</a></td></tr>
+<tr class="memdesc:aee6720bc39f974b46b1b4f5d4ef1c0fb"><td class="mdescLeft">&#160;</td><td class="mdescRight">The history of the gauge.  <br /></td></tr>
 <tr class="separator:aee6720bc39f974b46b1b4f5d4ef1c0fb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
@@ -459,6 +465,9 @@ Properties</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
+<p>Whether the gauge is a course gauge. </p>
+<p>Course gauges are only used in courses and have different behavior. They give NOPLAY clears on the charts that constitute the course. </p>
+
 </div>
 </div>
 <a id="a11fb97e2cd6bfe1773c970ad86dc05a2" name="a11fb97e2cd6bfe1773c970ad86dc05a2"></a>
@@ -480,6 +489,8 @@ Properties</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The current value of the gauge. </p>
 
 </div>
 </div>
@@ -503,6 +514,8 @@ Properties</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
+<p>The maximum possible value of the gauge. </p>
+
 </div>
 </div>
 <a id="aee6720bc39f974b46b1b4f5d4ef1c0fb" name="aee6720bc39f974b46b1b4f5d4ef1c0fb"></a>
@@ -516,6 +529,9 @@ Properties</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The history of the gauge. </p>
+<p>A list of entries that record the value of the gauge at the timestamps when it changed. </p>
 
 </div>
 </div>
@@ -539,6 +555,8 @@ Properties</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
+<p>The name of the gauge. </p>
+
 </div>
 </div>
 <a id="ae77acc3e4ce7f373737097c5bba4f5b0" name="ae77acc3e4ce7f373737097c5bba4f5b0"></a>
@@ -560,6 +578,9 @@ Properties</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The threshold value of the gauge. </p>
+<p>If the gauge is below this value at the end of the song, the player fails. </p>
 
 </div>
 </div>

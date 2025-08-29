@@ -117,50 +117,50 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span>};</div>
 </div>
 <div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span> </div>
-<div class="foldopen" id="foldopen00033" data-start="{" data-end="};">
-<div class="line"><a id="l00033" name="l00033"></a><span class="lineno"><a class="line" href="classqml__components_1_1ScoreDb.html">   33</a></span>class <a class="code hl_class" href="classqml__components_1_1ScoreDb.html">ScoreDb</a> final : public QObject</div>
-<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span>{</div>
-<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>    Q_OBJECT</div>
-<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span> </div>
-<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span>    <a class="code hl_class" href="classdb_1_1SqliteCppDb.html">db::SqliteCppDb</a>* scoreDb;</div>
-<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span>    <span class="keyword">mutable</span> QThreadPool threadPool;</div>
-<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span>    std::stop_source stopSource;</div>
-<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>    <span class="keyword">auto</span> getScoresForMd5Impl(QList&lt;QString&gt; md5s) <span class="keyword">const</span> -&gt; <a class="code hl_class" href="classqml__components_1_1ScoreQueryResult.html">ScoreQueryResult</a>;</div>
-<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>    <span class="keyword">auto</span> getScoresForCourseIdImpl(<span class="keyword">const</span> QList&lt;QString&gt;&amp; courseIds) <span class="keyword">const</span></div>
-<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span>      -&gt; <a class="code hl_class" href="classqml__components_1_1ScoreQueryResult.html">ScoreQueryResult</a>;</div>
-<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span> </div>
-<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span>  <span class="keyword">public</span>:</div>
-<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>    <span class="keyword">explicit</span> <a class="code hl_class" href="classqml__components_1_1ScoreDb.html">ScoreDb</a>(<a class="code hl_class" href="classdb_1_1SqliteCppDb.html">db::SqliteCppDb</a>* scoreDb);</div>
-<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>    Q_INVOKABLE QIfPendingReply&lt;ScoreQueryResult&gt; getScoresForMd5(</div>
-<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>    <span class="keyword">const</span> QList&lt;QString&gt;&amp; md5s) <span class="keyword">const</span>;</div>
-<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>    Q_INVOKABLE QIfPendingReply&lt;ScoreQueryResult&gt; getScoresForCourseId(</div>
-<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>      <span class="keyword">const</span> QList&lt;QString&gt;&amp; courseIds) <span class="keyword">const</span>;</div>
-<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span>    Q_INVOKABLE QIfPendingReply&lt;ScoreQueryResult&gt; getScores(</div>
-<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>      <span class="keyword">const</span> QString&amp; folder) <span class="keyword">const</span>;</div>
-<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>    Q_INVOKABLE QIfPendingReply&lt;TableQueryResult&gt; getScores(</div>
-<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>      <span class="keyword">const</span> <a class="code hl_struct" href="structresource__managers_1_1Table.html">resource_managers::Table</a>&amp; table) <span class="keyword">const</span>;</div>
-<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>    Q_INVOKABLE QIfPendingReply&lt;ScoreQueryResult&gt; getScores(</div>
-<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>      <span class="keyword">const</span> <a class="code hl_struct" href="structresource__managers_1_1Level.html">resource_managers::Level</a>&amp; level) <span class="keyword">const</span>;</div>
-<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span>    Q_INVOKABLE <span class="keywordtype">void</span> cancelPending();</div>
-<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span> </div>
-<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span>    Q_INVOKABLE <span class="keywordtype">int</span> getTotalScoreCount() <span class="keyword">const</span>;</div>
-<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span>};</div>
+<div class="foldopen" id="foldopen00039" data-start="{" data-end="};">
+<div class="line"><a id="l00039" name="l00039"></a><span class="lineno"><a class="line" href="classqml__components_1_1ScoreDb.html">   39</a></span>class <a class="code hl_class" href="classqml__components_1_1ScoreDb.html">ScoreDb</a> final : public QObject</div>
+<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>{</div>
+<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>    Q_OBJECT</div>
+<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span> </div>
+<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span>    <a class="code hl_class" href="classdb_1_1SqliteCppDb.html">db::SqliteCppDb</a>* scoreDb;</div>
+<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span>    <span class="keyword">mutable</span> QThreadPool threadPool;</div>
+<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>    std::stop_source stopSource;</div>
+<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>    <span class="keyword">auto</span> getScoresForMd5Impl(QList&lt;QString&gt; md5s) <span class="keyword">const</span> -&gt; <a class="code hl_class" href="classqml__components_1_1ScoreQueryResult.html">ScoreQueryResult</a>;</div>
+<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>    <span class="keyword">auto</span> getScoresForCourseIdImpl(<span class="keyword">const</span> QList&lt;QString&gt;&amp; courseIds) <span class="keyword">const</span></div>
+<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>      -&gt; <a class="code hl_class" href="classqml__components_1_1ScoreQueryResult.html">ScoreQueryResult</a>;</div>
+<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span> </div>
+<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span>  <span class="keyword">public</span>:</div>
+<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>    <span class="keyword">explicit</span> <a class="code hl_class" href="classqml__components_1_1ScoreDb.html">ScoreDb</a>(<a class="code hl_class" href="classdb_1_1SqliteCppDb.html">db::SqliteCppDb</a>* scoreDb);</div>
+<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>    Q_INVOKABLE QIfPendingReply&lt;ScoreQueryResult&gt; getScoresForMd5(</div>
+<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>    <span class="keyword">const</span> QList&lt;QString&gt;&amp; md5s) <span class="keyword">const</span>;</div>
+<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>    Q_INVOKABLE QIfPendingReply&lt;ScoreQueryResult&gt; getScoresForCourseId(</div>
+<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>      <span class="keyword">const</span> QList&lt;QString&gt;&amp; courseIds) <span class="keyword">const</span>;</div>
+<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span>    Q_INVOKABLE QIfPendingReply&lt;ScoreQueryResult&gt; getScores(</div>
+<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span>      <span class="keyword">const</span> QString&amp; folder) <span class="keyword">const</span>;</div>
+<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span>    Q_INVOKABLE QIfPendingReply&lt;TableQueryResult&gt; getScores(</div>
+<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span>      <span class="keyword">const</span> <a class="code hl_struct" href="structresource__managers_1_1Table.html">resource_managers::Table</a>&amp; table) <span class="keyword">const</span>;</div>
+<div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span>    Q_INVOKABLE QIfPendingReply&lt;ScoreQueryResult&gt; getScores(</div>
+<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span>      <span class="keyword">const</span> <a class="code hl_struct" href="structresource__managers_1_1Level.html">resource_managers::Level</a>&amp; level) <span class="keyword">const</span>;</div>
+<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>    Q_INVOKABLE <span class="keywordtype">void</span> cancelPending();</div>
+<div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span> </div>
+<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span>    Q_INVOKABLE <span class="keywordtype">int</span> getTotalScoreCount() <span class="keyword">const</span>;</div>
+<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span>};</div>
 </div>
-<div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span>} <span class="comment">// namespace qml_components</span></div>
-<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span> </div>
-<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span><span class="preprocessor">#endif </span><span class="comment">// RHYTHMGAME_SCOREDB_H</span></div>
+<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span>} <span class="comment">// namespace qml_components</span></div>
+<div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span> </div>
+<div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span><span class="preprocessor">#endif </span><span class="comment">// RHYTHMGAME_SCOREDB_H</span></div>
 <div class="ttc" id="aBmsScore_8h_html"><div class="ttname"><a href="BmsScore_8h.html">BmsScore.h</a></div></div>
 <div class="ttc" id="aSqliteCppDb_8h_html"><div class="ttname"><a href="SqliteCppDb_8h.html">SqliteCppDb.h</a></div></div>
 <div class="ttc" id="aTables_8h_html"><div class="ttname"><a href="Tables_8h.html">Tables.h</a></div></div>
-<div class="ttc" id="aclassdb_1_1SqliteCppDb_html"><div class="ttname"><a href="classdb_1_1SqliteCppDb.html">db::SqliteCppDb</a></div><div class="ttdoc">Database wrapper for SQLiteCpp.</div><div class="ttdef"><b>Definition</b> SqliteCppDb.h:23</div></div>
-<div class="ttc" id="aclassqml__components_1_1ScoreDb_html"><div class="ttname"><a href="classqml__components_1_1ScoreDb.html">qml_components::ScoreDb</a></div><div class="ttdef"><b>Definition</b> ScoreDb.h:34</div></div>
+<div class="ttc" id="aclassdb_1_1SqliteCppDb_html"><div class="ttname"><a href="classdb_1_1SqliteCppDb.html">db::SqliteCppDb</a></div><div class="ttdoc">Database wrapper for SQLiteCpp.</div><div class="ttdef"><b>Definition</b> SqliteCppDb.h:25</div></div>
+<div class="ttc" id="aclassqml__components_1_1ScoreDb_html"><div class="ttname"><a href="classqml__components_1_1ScoreDb.html">qml_components::ScoreDb</a></div><div class="ttdoc">Provides access to the score database of a profile.</div><div class="ttdef"><b>Definition</b> ScoreDb.h:40</div></div>
 <div class="ttc" id="aclassqml__components_1_1ScoreQueryResult_html"><div class="ttname"><a href="classqml__components_1_1ScoreQueryResult.html">qml_components::ScoreQueryResult</a></div><div class="ttdef"><b>Definition</b> ScoreDb.h:15</div></div>
 <div class="ttc" id="aclassqml__components_1_1ScoreQueryResult_html_a1408ff7e9e945d780819ce57838ac7e5"><div class="ttname"><a href="classqml__components_1_1ScoreQueryResult.html#a1408ff7e9e945d780819ce57838ac7e5">qml_components::ScoreQueryResult::unplayed</a></div><div class="ttdeci">qint64 unplayed</div><div class="ttdef"><b>Definition</b> ScoreDb.h:17</div></div>
 <div class="ttc" id="aclassqml__components_1_1ScoreQueryResult_html_a9f13047d9d6c9fdf8816fbff889aa67c"><div class="ttname"><a href="classqml__components_1_1ScoreQueryResult.html#a9f13047d9d6c9fdf8816fbff889aa67c">qml_components::ScoreQueryResult::scores</a></div><div class="ttdeci">QVariantMap scores</div><div class="ttdef"><b>Definition</b> ScoreDb.h:18</div></div>
 <div class="ttc" id="aclassqml__components_1_1TableQueryResult_html"><div class="ttname"><a href="classqml__components_1_1TableQueryResult.html">qml_components::TableQueryResult</a></div><div class="ttdef"><b>Definition</b> ScoreDb.h:24</div></div>
 <div class="ttc" id="aclassqml__components_1_1TableQueryResult_html_a7b1d653597c3c8e63bca0ad161787604"><div class="ttname"><a href="classqml__components_1_1TableQueryResult.html#a7b1d653597c3c8e63bca0ad161787604">qml_components::TableQueryResult::courseScores</a></div><div class="ttdeci">ScoreQueryResult courseScores</div><div class="ttdef"><b>Definition</b> ScoreDb.h:26</div></div>
 <div class="ttc" id="aclassqml__components_1_1TableQueryResult_html_ae73b870b4f9b27f5d3e0f3ef2f96f941"><div class="ttname"><a href="classqml__components_1_1TableQueryResult.html#ae73b870b4f9b27f5d3e0f3ef2f96f941">qml_components::TableQueryResult::scores</a></div><div class="ttdeci">ScoreQueryResult scores</div><div class="ttdef"><b>Definition</b> ScoreDb.h:27</div></div>
-<div class="ttc" id="anamespaceqml__components_html"><div class="ttname"><a href="namespaceqml__components.html">qml_components</a></div><div class="ttdef"><b>Definition</b> Bga.h:14</div></div>
+<div class="ttc" id="anamespaceqml__components_html"><div class="ttname"><a href="namespaceqml__components.html">qml_components</a></div><div class="ttdoc">Contains classes that wrap some functionality for use in QML.</div><div class="ttdef"><b>Definition</b> Bga.h:17</div></div>
 <div class="ttc" id="astructresource__managers_1_1Level_html"><div class="ttname"><a href="structresource__managers_1_1Level.html">resource_managers::Level</a></div><div class="ttdef"><b>Definition</b> Tables.h:44</div></div>
 <div class="ttc" id="astructresource__managers_1_1Table_html"><div class="ttname"><a href="structresource__managers_1_1Table.html">resource_managers::Table</a></div><div class="ttdef"><b>Definition</b> Tables.h:110</div></div>
 </div><!-- fragment --></div><!-- contents -->

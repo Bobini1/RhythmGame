@@ -37,7 +37,7 @@ var searchData=
   ['resetnotescreentimemillis_34',['resetNoteScreenTimeMillis',['../classresource__managers_1_1GeneralVars.html#aa12167aa8375236d381ce0e321e58f84',1,'resource_managers::GeneralVars']]],
   ['resetoffset_35',['resetOffset',['../classresource__managers_1_1GeneralVars.html#a96b9d6ff161ba6c6cc360b6599d4f1a9',1,'resource_managers::GeneralVars']]],
   ['resolveifs_36',['resolveIfs',['../namespacecharts.html#a50535dd5be05a8d66d715efe642110e5',1,'charts']]],
-  ['rolenames_37',['roleNames',['../classgameplay__logic_1_1JudgementCounts.html#aa8d9a6b716383e1f735f829794f3f66f',1,'gameplay_logic::JudgementCounts']]],
+  ['rolenames_37',['roleNames',['../classgameplay__logic_1_1JudgementCounts.html#a70d105d385ff2e9cc4306f07676e785d',1,'gameplay_logic::JudgementCounts']]],
   ['rootsongfolder_38',['RootSongFolder',['../classqml__components_1_1RootSongFolder.html#a70cb762738cb3a83e79e64e99d23c7d2',1,'qml_components::RootSongFolder']]],
   ['rootsongfolders_39',['RootSongFolders',['../classqml__components_1_1RootSongFolders.html#ae17e0665ddb6b7784859acf896678c59',1,'qml_components::RootSongFolders']]],
   ['rootsongfoldersconfig_40',['RootSongFoldersConfig',['../classqml__components_1_1RootSongFoldersConfig.html#a60b9e7a70ad8678428c2017ff18e4da5',1,'qml_components::RootSongFoldersConfig']]],

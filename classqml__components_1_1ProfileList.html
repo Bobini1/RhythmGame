@@ -82,7 +82,7 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 
-<p>The list of local profiles. Besides listing all local profiles, this class also contains the list of active profiles (for battle mode) and the main profile, used to select themes and theme settings.  
+<p>The list of local profiles.  
  <a href="classqml__components_1_1ProfileList.html#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="ProfileList_8h_source.html">ProfileList.h</a>&gt;</code></p>
@@ -120,10 +120,8 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:af92e340f37e858e3182761d769cde3c4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Remove the selected profile, completely deleting it.  <br /></td></tr>
 <tr class="separator:af92e340f37e858e3182761d769cde3c4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af5dffd3f2ce1b4ab97151812a1674c0f" id="r_af5dffd3f2ce1b4ab97151812a1674c0f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classqml__components_1_1ProfileList.html#af5dffd3f2ce1b4ab97151812a1674c0f">setMainProfile</a> (<a class="el" href="classresource__managers_1_1Profile.html">resource_managers::Profile</a> *profile)</td></tr>
-<tr class="memdesc:af5dffd3f2ce1b4ab97151812a1674c0f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set the profile that is used to select themes and theme settings.  <br /></td></tr>
 <tr class="separator:af5dffd3f2ce1b4ab97151812a1674c0f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a02634e471d7d6b46bf82917416aa69bb" id="r_a02634e471d7d6b46bf82917416aa69bb"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classqml__components_1_1ProfileList.html#a02634e471d7d6b46bf82917416aa69bb">getMainProfile</a> () const -&gt; <a class="el" href="classresource__managers_1_1Profile.html">resource_managers::Profile</a> *</td></tr>
-<tr class="memdesc:a02634e471d7d6b46bf82917416aa69bb"><td class="mdescLeft">&#160;</td><td class="mdescRight">The profile used to select themes and theme settings. Never null.  <br /></td></tr>
 <tr class="separator:a02634e471d7d6b46bf82917416aa69bb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:adefc19c45c280d4c2c7fe24f5db81361" id="r_adefc19c45c280d4c2c7fe24f5db81361"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classqml__components_1_1ProfileList.html#adefc19c45c280d4c2c7fe24f5db81361">getBattleProfiles</a> () -&gt; <a class="el" href="classqml__components_1_1BattleProfiles.html">BattleProfiles</a> *</td></tr>
 <tr class="separator:adefc19c45c280d4c2c7fe24f5db81361"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -135,10 +133,12 @@ Public Member Functions</h2></td></tr>
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="properties" name="properties"></a>
 Properties</h2></td></tr>
 <tr class="memitem:ab8e7f1a022ed11bea31a9f2f3c99a44e" id="r_ab8e7f1a022ed11bea31a9f2f3c99a44e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classqml__components_1_1BattleProfiles.html">BattleProfiles</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classqml__components_1_1ProfileList.html#ab8e7f1a022ed11bea31a9f2f3c99a44e">battleProfiles</a></td></tr>
+<tr class="memdesc:ab8e7f1a022ed11bea31a9f2f3c99a44e"><td class="mdescLeft">&#160;</td><td class="mdescRight">The profiles used in battle mode.  <br /></td></tr>
 <tr class="separator:ab8e7f1a022ed11bea31a9f2f3c99a44e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>The list of local profiles. Besides listing all local profiles, this class also contains the list of active profiles (for battle mode) and the main profile, used to select themes and theme settings. </p>
+<div class="textblock"><p>The list of local profiles. </p>
+<p>Besides listing all local profiles, this class also contains the list of active profiles (for battle mode) and the main profile, used to select themes and theme settings. </p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a115d3166f7fb272847ffb79c93d0b763" name="a115d3166f7fb272847ffb79c93d0b763"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a115d3166f7fb272847ffb79c93d0b763">&#9670;&#160;</a></span>ProfileList()</h2>
@@ -310,9 +310,6 @@ Properties</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>The profile used to select themes and theme settings. Never null. </p>
-<p>The main profile does not need to be assigned to P1 or P2. </p>
-
 </div>
 </div>
 <a id="afda660b4983138aebfcb0a8a44091de9" name="afda660b4983138aebfcb0a8a44091de9"></a>
@@ -437,14 +434,6 @@ Properties</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Set the profile that is used to select themes and theme settings. </p>
-<p>It also specifies the shared settings in battle mode. The main profile does not need to be assigned to P1 or P2. </p><dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">profile</td><td>the profile to set as main. </td></tr>
-  </table>
-  </dd>
-</dl>
-
 </div>
 </div>
 <h2 class="groupheader">Property Documentation</h2>
@@ -467,6 +456,9 @@ Properties</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The profiles used in battle mode. </p>
+<dl class="section see"><dt>See also</dt><dd>battleActive </dd></dl>
 
 </div>
 </div>
