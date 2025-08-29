@@ -11,9 +11,6 @@
 #include <spdlog/sinks/base_sink.h>
 #include <spdlog/details/log_msg.h>
 
-namespace spdlog {
-struct synchronous_factory;
-}
 namespace support {
 
 template <typename Mutex>
