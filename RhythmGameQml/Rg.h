@@ -18,6 +18,12 @@
 #include <QObject>
 #include <qqmlintegration.h>
 
+/**
+ * @brief The main singleton class that provides access to various components of
+ * the application.
+ * @details This class is exposed to QML as a singleton. Access it by importing
+ * RhythmGameQml 1.0 and using the Rg type.
+ */
 class Rg final : public QObject
 {
     Q_OBJECT
