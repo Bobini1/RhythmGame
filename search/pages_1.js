@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['building_20with_20cmake_0',['Building with CMake',['../md_BUILDING.html',1,'']]]
+  ['contributing_0',['Contributing',['../md_CONTRIBUTING.html',1,'']]]
 ];
