@@ -23,4 +23,3 @@ Here is an example of a minimal `theme.json` file:
 }
 ```
 
-Additionally

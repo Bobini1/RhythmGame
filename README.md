@@ -76,7 +76,7 @@ so you can start playing immediately!
 
 # Building and installing
 
-See the [DEV_ENGINE](BUILDING.md) document.
+See the [DEV_ENGINE](DEV_ENGINE.md) document.
 
 # Contributing
 
