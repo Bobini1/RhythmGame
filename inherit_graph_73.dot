@@ -28,7 +28,7 @@ digraph "Graphical Class Hierarchy"
   Node2 -> Node11 [id="edge17_Node000002_Node000011",dir="back",color="steelblue1",style="solid",tooltip=" "];
   Node11 [id="Node000011",label="gameplay_logic::ChartData",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$classgameplay__logic_1_1ChartData.html",tooltip="Metadata and basic stats of a chart."];
   Node2 -> Node12 [id="edge18_Node000002_Node000012",dir="back",color="steelblue1",style="solid",tooltip=" "];
-  Node12 [id="Node000012",label="gameplay_logic::ChartRunner",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$classgameplay__logic_1_1ChartRunner.html",tooltip=" "];
+  Node12 [id="Node000012",label="gameplay_logic::ChartRunner",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$classgameplay__logic_1_1ChartRunner.html",tooltip="The main class responsible for running a chart during gameplay."];
   Node2 -> Node13 [id="edge19_Node000002_Node000013",dir="back",color="steelblue1",style="solid",tooltip=" "];
   Node13 [id="Node000013",label="gameplay_logic::CoursePlayer",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$classgameplay__logic_1_1CoursePlayer.html",tooltip=" "];
   Node2 -> Node14 [id="edge20_Node000002_Node000014",dir="back",color="steelblue1",style="solid",tooltip=" "];
@@ -36,11 +36,11 @@ digraph "Graphical Class Hierarchy"
   Node2 -> Node15 [id="edge21_Node000002_Node000015",dir="back",color="steelblue1",style="solid",tooltip=" "];
   Node15 [id="Node000015",label="gameplay_logic::Gameplay\lState",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$classgameplay__logic_1_1GameplayState.html",tooltip="The state of gameplay columns and barlines."];
   Node2 -> Node16 [id="edge22_Node000002_Node000016",dir="back",color="steelblue1",style="solid",tooltip=" "];
-  Node16 [id="Node000016",label="gameplay_logic::Player",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$classgameplay__logic_1_1Player.html",tooltip=" "];
+  Node16 [id="Node000016",label="gameplay_logic::Player",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$classgameplay__logic_1_1Player.html",tooltip="A player in a chart."];
   Node16 -> Node17 [id="edge23_Node000016_Node000017",dir="back",color="steelblue1",style="solid",tooltip=" "];
-  Node17 [id="Node000017",label="gameplay_logic::AutoPlayer",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$classgameplay__logic_1_1AutoPlayer.html",tooltip=" "];
+  Node17 [id="Node000017",label="gameplay_logic::AutoPlayer",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$classgameplay__logic_1_1AutoPlayer.html",tooltip="A player that plays automatically, hitting all notes perfectly."];
   Node16 -> Node18 [id="edge24_Node000016_Node000018",dir="back",color="steelblue1",style="solid",tooltip=" "];
-  Node18 [id="Node000018",label="gameplay_logic::RePlayer",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$classgameplay__logic_1_1RePlayer.html",tooltip=" "];
+  Node18 [id="Node000018",label="gameplay_logic::RePlayer",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$classgameplay__logic_1_1RePlayer.html",tooltip="A player that replays a recorded score."];
   Node2 -> Node19 [id="edge25_Node000002_Node000019",dir="back",color="steelblue1",style="solid",tooltip=" "];
   Node19 [id="Node000019",label="gameplay_logic::rules\l::BmsGauge",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$classgameplay__logic_1_1rules_1_1BmsGauge.html",tooltip=" "];
   Node19 -> Node20 [id="edge26_Node000019_Node000020",dir="back",color="steelblue1",style="solid",tooltip=" "];

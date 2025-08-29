@@ -83,6 +83,9 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 
+<p>The main class responsible for running a chart during gameplay.  
+ <a href="classgameplay__logic_1_1ChartRunner.html#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="ChartRunner_8h_source.html">ChartRunner.h</a>&gt;</code></p>
 <div class="dynheader">
 Inheritance diagram for gameplay_logic::ChartRunner:</div>
@@ -141,15 +144,22 @@ Public Member Functions</h2></td></tr>
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="properties" name="properties"></a>
 Properties</h2></td></tr>
 <tr class="memitem:a08f8f892090a6922b2100cae380dca94" id="r_a08f8f892090a6922b2100cae380dca94"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classgameplay__logic_1_1ChartData.html">ChartData</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgameplay__logic_1_1ChartRunner.html#a08f8f892090a6922b2100cae380dca94">chartData</a></td></tr>
+<tr class="memdesc:a08f8f892090a6922b2100cae380dca94"><td class="mdescLeft">&#160;</td><td class="mdescRight">The chart data of the chart being played.  <br /></td></tr>
 <tr class="separator:a08f8f892090a6922b2100cae380dca94"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a92889cd7029ddbda8513023f96d1620b" id="r_a92889cd7029ddbda8513023f96d1620b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classqml__components_1_1BgaContainer.html">qml_components::BgaContainer</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgameplay__logic_1_1ChartRunner.html#a92889cd7029ddbda8513023f96d1620b">bga</a> {}</td></tr>
+<tr class="memdesc:a92889cd7029ddbda8513023f96d1620b"><td class="mdescLeft">&#160;</td><td class="mdescRight">The BGA object. Initially null.  <br /></td></tr>
 <tr class="separator:a92889cd7029ddbda8513023f96d1620b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7cefb5001133ba10e0ad8d7fe66769ae" id="r_a7cefb5001133ba10e0ad8d7fe66769ae"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classgameplay__logic_1_1ChartRunner.html#af47f61dbd9ce965ac6ae35a48906c97b">Status</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgameplay__logic_1_1ChartRunner.html#a7cefb5001133ba10e0ad8d7fe66769ae">status</a> { <a class="el" href="classgameplay__logic_1_1ChartRunner.html#af47f61dbd9ce965ac6ae35a48906c97ba09175b6dda783faa13cc902318678ad3">Loading</a> }</td></tr>
+<tr class="memdesc:a7cefb5001133ba10e0ad8d7fe66769ae"><td class="mdescLeft">&#160;</td><td class="mdescRight">The current status of the chart runner.  <br /></td></tr>
 <tr class="separator:a7cefb5001133ba10e0ad8d7fe66769ae"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab80e0ad02f1d7d86e084b0690bcf6dae" id="r_ab80e0ad02f1d7d86e084b0690bcf6dae"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classgameplay__logic_1_1ChartData.html#a292daeb8d3a0ee906e350eece3adae04">gameplay_logic::ChartData::Keymode</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgameplay__logic_1_1ChartRunner.html#ab80e0ad02f1d7d86e084b0690bcf6dae">keymode</a></td></tr>
+<tr class="memdesc:ab80e0ad02f1d7d86e084b0690bcf6dae"><td class="mdescLeft">&#160;</td><td class="mdescRight">The keymode of the chart being played.  <br /></td></tr>
 <tr class="separator:ab80e0ad02f1d7d86e084b0690bcf6dae"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">Member Enumeration Documentation</h2>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>The main class responsible for running a chart during gameplay. </p>
+<p>Once <a class="el" href="classgameplay__logic_1_1ChartRunner.html#a8036d4f478016013e3c9ce4aa008a475">start()</a> is called and the BGA and sounds are loaded, the starts its update timer. It updates the player objects on each timer tick. It also handles key events and passes them to the appropriate player object. </p>
+</div><h2 class="groupheader">Member Enumeration Documentation</h2>
 <a id="af0f679d67348402a76ef38b12cc47dae" name="af0f679d67348402a76ef38b12cc47dae"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#af0f679d67348402a76ef38b12cc47dae">&#9670;&#160;</a></span>EventType</h2>
 
@@ -499,6 +509,8 @@ Properties</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
+<p>The BGA object. Initially null. </p>
+
 </div>
 </div>
 <a id="a08f8f892090a6922b2100cae380dca94" name="a08f8f892090a6922b2100cae380dca94"></a>
@@ -520,6 +532,8 @@ Properties</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The chart data of the chart being played. </p>
 
 </div>
 </div>
@@ -543,6 +557,9 @@ Properties</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
+<p>The keymode of the chart being played. </p>
+<p>Can be different from the keymode of chartData when <a class="el" href="namespaceresource__managers_1_1dp__options.html#ac768ef700200401f8d3fbcebf69c877f">resource_managers::dp_options::DpOptions</a> is battle. </p><dl class="section note"><dt>Note</dt><dd>This is the property used to determine which gampley screen to load. </dd></dl>
+
 </div>
 </div>
 <a id="a7cefb5001133ba10e0ad8d7fe66769ae" name="a7cefb5001133ba10e0ad8d7fe66769ae"></a>
@@ -564,6 +581,8 @@ Properties</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The current status of the chart runner. </p>
 
 </div>
 </div>
