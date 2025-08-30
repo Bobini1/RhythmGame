@@ -222,4 +222,4 @@ This property propagates to all child components.
 
 The [Rg](https://bobini1.github.io/RhythmGame/classRg.html) singleton is globally accessible upon importing
 `RhythmGameQml`. It contains various API objects with methods and properties useful for themes.
-
+You will probably use it a lot! Start reading the docs there.
