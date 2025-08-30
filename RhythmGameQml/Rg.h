@@ -32,7 +32,6 @@ class Rg final : public QObject
 
     Q_PROPERTY(qml_components::ProgramSettings* programSettings MEMBER
                  programSettings CONSTANT)
-
     Q_PROPERTY(
       input::InputTranslator* inputTranslator MEMBER inputTranslator CONSTANT)
     Q_PROPERTY(
@@ -41,7 +40,6 @@ class Rg final : public QObject
                  MEMBER rootSongFoldersConfig CONSTANT)
     Q_PROPERTY(qml_components::SongFolderFactory* songFolderFactory MEMBER
                  songFolderFactory CONSTANT)
-
     Q_PROPERTY(qml_components::PreviewFilePathFetcher* previewFilePathFetcher
                  MEMBER previewFilePathFetcher CONSTANT)
     Q_PROPERTY(qml_components::FileQuery* fileQuery MEMBER fileQuery CONSTANT)

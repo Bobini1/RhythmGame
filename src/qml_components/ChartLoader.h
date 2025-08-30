@@ -25,8 +25,6 @@ namespace qml_components {
 /**
  * @brief Loads charts and courses with the given parameters.
  * @details This class is how a theme to load charts and courses.
- * It is also used by the replay system to load charts and courses for replaying
- * scores.
  */
 class ChartLoader : public QObject
 {
