@@ -32,7 +32,7 @@
 <area shape="poly" id="edge21_Node000002_Node000015" title=" " alt="" coords="98,1048,108,986,132,904,149,860,172,818,200,779,233,746,253,733,256,738,236,750,204,783,176,821,154,862,137,905,114,987,103,1049"/>
 <area shape="rect" id="Node000016" href="$classgameplay__logic_1_1GameplayState.html" title="The state of gameplay columns and barlines." alt="" coords="260,760,460,800"/>
 <area shape="poly" id="edge22_Node000002_Node000016" title=" " alt="" coords="101,1048,116,998,142,933,180,867,205,836,233,810,258,795,261,800,236,814,209,840,185,870,147,935,121,999,106,1050"/>
-<area shape="rect" id="Node000017" href="$classgameplay__logic_1_1Player.html" title="A player in a chart." alt="" coords="273,825,447,850"/>
+<area shape="rect" id="Node000017" href="$classgameplay__logic_1_1Player.html" title="A player of a chart." alt="" coords="273,825,447,850"/>
 <area shape="poly" id="edge23_Node000002_Node000017" title=" " alt="" coords="104,1048,122,1006,149,955,186,903,208,880,233,860,271,843,273,848,236,865,212,884,190,907,154,958,127,1008,109,1050"/>
 <area shape="rect" id="Node000020" href="$classgameplay__logic_1_1rules_1_1BmsGauge.html" title=" " alt="" coords="277,875,443,915"/>
 <area shape="poly" id="edge26_Node000002_Node000020" title=" " alt="" coords="111,1049,161,987,195,954,233,926,276,907,278,912,236,930,198,958,165,991,115,1052"/>
