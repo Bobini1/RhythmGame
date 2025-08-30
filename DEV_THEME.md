@@ -209,14 +209,39 @@ You can always use `var` instead of the exact type if you want to be flexible.
 
 ## Input
 
+It would be best if your theme supported mouse, keyboard and controller navigation.
+For example, for scrolling a list of songs, it would be best to allow using the mouse wheel, arrow keys and scratch.
+In the default theme, the `settings` screen was designed with mouse and keyboard in mind,
+without support for controller navigation.
+
+For mouse input, use [MouseArea](https://doc.qt.io/qt-6/qml-qtquick-mousearea.html) or
+[TapHandler](https://doc.qt.io/qt-6/qml-qtquick-taphandler.html).
+
+For keyboard input, use [Keys](https://doc.qt.io/qt-6/qml-qtquick-keys.html)
+
+For bound key input (controller or keyboard), use 
+[Input](https://bobini1.github.io/RhythmGame/classqml__components_1_1InputAttached.html).
+
 `sceneStack` automatically disables all input for screens that are not at the top of the stack.
-This applies to input provided by the
-[Input](https://bobini1.github.io/RhythmGame/classqml__components_1_1InputAttached.html) attached property as well.
 Make sure to disable any background sounds when pushing a new screen on top of the stack.
 Song preview should not play during gameplay. You can use the
 [enabled](https://doc.qt.io/qt-6/qml-qtquick-item.html#enabled-prop) property of `Item`
 to detect when a screen is not active.
 This property propagates to all child components.
+
+## Scaling
+
+Your theme is expected to work on all screen sizes and aspect ratios.
+There are two ways you can achieve that.
+- Use [layouts](https://doc.qt.io/qt-6/qtquicklayouts-overview.html) to dynamically set the sizes of elements based on 
+the size of their parents.
+- Use fixed, hard-coded component sizes and [rescale](https://doc.qt.io/qt-6/qml-qtquick-item.html#scale-prop) the top
+item to fit the size of the window.
+
+In the default theme, you can see the first approach in the `settings` screen. All other screens use scaling.
+In general, scaling is easier to use.
+
+Please try resizing the window of the game when testing your theme edits.
 
 ## The Rg singleton
 
