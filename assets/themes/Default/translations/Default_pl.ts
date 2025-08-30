@@ -291,10 +291,6 @@
 <context>
     <name>KeymodeButton</name>
     <message>
-        <source>ALL</source>
-        <translation type="vanished">WSZYSTKIE</translation>
-    </message>
-    <message>
         <location filename="../scripts/select/KeymodeButton.qml" line="28"/>
         <source>ALL keys</source>
         <translation>WSZYSTKIE klawisze</translation>
@@ -551,10 +547,6 @@
         <translation>WYŁĄCZ;PRZERZUĆ;BITWA</translation>
     </message>
     <message>
-        <source>OFF;FLIP;BATTLE;BATTLE AS</source>
-        <translation type="vanished">WYŁĄCZ;PRZERZUĆ;BITWA;BITWA AS</translation>
-    </message>
-    <message>
         <location filename="../scripts/select/playOptions/PlayOptionsSingle.qml" line="165"/>
         <source>MAIN BPM;START BPM;MAX BPM;MIN BPM;AVG BPM;OFF</source>
         <translation>GŁÓWNE BPM;POCZĄTKOWE BPM;MAX BPM;MIN BPM;ŚREDNIE BPM;WYŁĄCZONE</translation>
@@ -645,7 +637,7 @@
     </message>
     <message>
         <location filename="../scripts/settings/ScreenSettings.qml" line="36"/>
-        <source>Course Result</source>
+        <source>Course Result Settings</source>
         <translation>Ustawienia ekranu wyników serii</translation>
     </message>
 </context>
@@ -730,29 +722,6 @@
     </message>
 </context>
 <context>
-    <name>SongWheel</name>
-    <message>
-        <location filename="../scripts/select/SongWheel.qml" line="192"/>
-        <source>NEWEST</source>
-        <translation>NAJNOWSZY</translation>
-    </message>
-    <message>
-        <location filename="../scripts/select/SongWheel.qml" line="194"/>
-        <source>BEST SCORE</source>
-        <translation>NAJLEPSZY WYNIK</translation>
-    </message>
-    <message>
-        <location filename="../scripts/select/SongWheel.qml" line="196"/>
-        <source>BEST CLEAR</source>
-        <translation>NAJLEPSZY CLEAR</translation>
-    </message>
-    <message>
-        <location filename="../scripts/select/SongWheel.qml" line="198"/>
-        <source>BEST COMBO</source>
-        <translation>NAJLEPSZE COMBO</translation>
-    </message>
-</context>
-<context>
     <name>SortButton</name>
     <message>
         <location filename="../scripts/select/SortButton.qml" line="9"/>
@@ -808,50 +777,18 @@
         <translation>Usuń</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/TableSettings.qml" line="227"/>
+        <location filename="../scripts/settings/TableSettings.qml" line="228"/>
         <source>Add table</source>
         <translation>Dodaj tabelę</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/TableSettings.qml" line="237"/>
+        <location filename="../scripts/settings/TableSettings.qml" line="238"/>
         <source>Add</source>
         <translation>Dodaj</translation>
     </message>
 </context>
 <context>
     <name>ThemeSettings</name>
-    <message>
-        <source>k7</source>
-        <translation type="vanished">7k</translation>
-    </message>
-    <message>
-        <source>k7battle</source>
-        <translation type="vanished">7k bitwa</translation>
-    </message>
-    <message>
-        <source>k14</source>
-        <translation type="vanished">14k</translation>
-    </message>
-    <message>
-        <source>main</source>
-        <translation type="vanished">Główny</translation>
-    </message>
-    <message>
-        <source>settings</source>
-        <translation type="vanished">Ustawienia</translation>
-    </message>
-    <message>
-        <source>songWheel</source>
-        <translation type="vanished">Wybór piosenek</translation>
-    </message>
-    <message>
-        <source>result</source>
-        <translation type="vanished">Wynik</translation>
-    </message>
-    <message>
-        <source>courseResult</source>
-        <translation type="vanished">Wynik serii</translation>
-    </message>
     <message>
         <location filename="../scripts/settings/ThemeSettings.qml" line="43"/>
         <source>7k</source>

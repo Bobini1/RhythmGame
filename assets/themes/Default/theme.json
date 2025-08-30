@@ -5,7 +5,7 @@
     "k7battle": "scripts/gameplay/Gameplay.qml",
     "k14": "scripts/gameplay/Gameplay.qml",
     "main": "scripts/main/Main.qml",
-    "songWheel": "scripts/select/SongWheel.qml",
+    "select": "scripts/select/Select.qml",
     "settings": "scripts/settings/Settings.qml",
     "result": "scripts/result/Result.qml",
     "courseResult": "scripts/result/Result.qml"

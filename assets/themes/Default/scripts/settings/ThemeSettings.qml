@@ -15,7 +15,7 @@ RowLayout {
         property var orderedScreens: {
             let configKeys = Rg.profileList.mainProfile.themeConfig.keys();
             // We don't want screens to be alphabetically sorted, that's not friendly
-            let order = ["k7", "k7battle", "k14", "main", "settings", "songWheel", "result", "courseResult"];
+            let order = ["k7", "k7battle", "k14", "main", "settings", "select", "result", "courseResult"];
             return configKeys.sort((a, b) => {
                 let indexA = order.indexOf(a);
                 let indexB = order.indexOf(b);
@@ -45,7 +45,7 @@ RowLayout {
                 "k14": QT_TR_NOOP("14k"),
                 "main": QT_TR_NOOP("Main Menu"),
                 "settings": QT_TR_NOOP("Settings"),
-                "songWheel": QT_TR_NOOP("Select"),
+                "select": QT_TR_NOOP("Select"),
                 "result": QT_TR_NOOP("Result"),
                 "courseResult": QT_TR_NOOP("Course Result")
             };

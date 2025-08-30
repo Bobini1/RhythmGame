@@ -632,7 +632,7 @@
     </message>
     <message>
         <location filename="../scripts/settings/ScreenSettings.qml" line="36"/>
-        <source>Course Result</source>
+        <source>Course Result Settings</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -722,29 +722,6 @@
     </message>
 </context>
 <context>
-    <name>SongWheel</name>
-    <message>
-        <location filename="../scripts/select/SongWheel.qml" line="192"/>
-        <source>NEWEST</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../scripts/select/SongWheel.qml" line="194"/>
-        <source>BEST SCORE</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../scripts/select/SongWheel.qml" line="196"/>
-        <source>BEST CLEAR</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../scripts/select/SongWheel.qml" line="198"/>
-        <source>BEST COMBO</source>
-        <translation type="unfinished"></translation>
-    </message>
-</context>
-<context>
     <name>SortButton</name>
     <message>
         <location filename="../scripts/select/SortButton.qml" line="9"/>
@@ -800,12 +777,12 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/TableSettings.qml" line="227"/>
+        <location filename="../scripts/settings/TableSettings.qml" line="228"/>
         <source>Add table</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/TableSettings.qml" line="237"/>
+        <location filename="../scripts/settings/TableSettings.qml" line="238"/>
         <source>Add</source>
         <translation type="unfinished"></translation>
     </message>

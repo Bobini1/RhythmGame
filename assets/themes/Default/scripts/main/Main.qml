@@ -94,10 +94,10 @@ Image {
             spacing: 5
 
             Input.onStart1Pressed: {
-                sceneStack.pushItem(globalRoot.songWheelComponent);
+                sceneStack.pushItem(globalRoot.selectComponent);
             }
             Input.onStart2Pressed: {
-                sceneStack.pushItem(globalRoot.songWheelComponent);
+                sceneStack.pushItem(globalRoot.selectComponent);
             }
 
             Button {
@@ -107,7 +107,7 @@ Image {
 
                 text: qsTr("Song Selection")
                 onClicked: {
-                    sceneStack.pushItem(globalRoot.songWheelComponent);
+                    sceneStack.pushItem(globalRoot.selectComponent);
                 }
             }
 
