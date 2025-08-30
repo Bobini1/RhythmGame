@@ -54,17 +54,6 @@ class BattleProfiles final : public QObject
 class ProfileList final : public QObject
 {
     Q_OBJECT
-
-    std::filesystem::path profilesFolder;
-    std::filesystem::path mainDbPath;
-    QList<resource_managers::Profile*> profiles;
-    db::SqliteCppDb* songDb;
-    QMap<QString, ThemeFamily> themeFamilies;
-    resource_managers::Profile* mainProfile{};
-    BattleProfiles battleProfiles;
-    bool battleActive{};
-    QString avatarPath;
-
     /**
      * @brief The profile that is used to select themes and theme settings.
      * Never null.
@@ -90,6 +79,16 @@ class ProfileList final : public QObject
      */
     Q_PROPERTY(bool battleActive READ getBattleActive WRITE setBattleActive
                  NOTIFY battleActiveChanged)
+
+    std::filesystem::path profilesFolder;
+    std::filesystem::path mainDbPath;
+    QList<resource_managers::Profile*> profiles;
+    db::SqliteCppDb* songDb;
+    QMap<QString, ThemeFamily> themeFamilies;
+    resource_managers::Profile* mainProfile{};
+    BattleProfiles battleProfiles;
+    bool battleActive{};
+    QString avatarPath;
 
     void saveMainProfile();
     void saveActiveProfiles();

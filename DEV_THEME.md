@@ -70,8 +70,18 @@ in the auto-generated settings page.
 You can access the values assigned to properties via
 `profile.vars.themeVars[screen][themeName].varId`.
 
-You can get the current theme's name with `QmlUtils.themeName`. As for `screen`,
-your theme should be able to figure it out on its own. It can be `"result"`, `"gameplay"`, etc.
+You can get the current theme's name with
+[QmlUtils.themeName](https://bobini1.github.io/RhythmGame/classqml__components_1_1QmlUtilsAttached.html).
+As for `screen`, your theme should be able to figure it out on its own. It can be `"result"`, `"k7"`, etc.
+
+---
+**NOTE**
+
+You should not hard-code the name of your theme anywhere in your theme.
+The actual name of a theme in the game is always the name of its folder.
+Your theme should not break if the user renames the folder. Use `QmlUtils.themeName`.
+
+---
 
 Please don't access vars that don't belong to the current screen.
 It creates hidden dependencies on other themes or screens of your theme that might not be enabled.
@@ -129,4 +139,87 @@ If there are any critical errors in configuration files,
 the game will fail to start. Don't share broken themes!
 Look at log.txt in the assets folder to find out what went wrong.
 
-The part of the game that manages
+The part of the game that manages the theme most directly is
+[RhythmGameQml/ContentFrame.qml](https://github.com/Bobini1/RhythmGame/blob/master/RhythmGameQml/ContentFrame.qml).
+That qml file is compiled into the executable and is not part of any theme.
+It contains the window of the entire game and the `sceneStack`.
+`sceneStack` is a globally accessible [StackView](https://doc.qt.io/qt-6/qml-qtquick-controls-stackview.html)
+that contains screens, like `main`, `select`, `k7`, one on top of the other.
+You can go to another screen by pushing it to the stack.
+You can exit a screen by popping it from the stack.
+
+---
+**NOTE**
+
+When going from `select` to `k7` and then `result`, the former screens are not destroyed.
+When going back from `result`, it is the responsibility of the `k7` screen to remove itself from the stack
+to go back to select. When `k7` pushes `result`, it should remember to remove itself when it becomes active again.
+
+In most scenarios, you will want to push at most one screen on top of the stack at once.
+Then that screen can push another screen on top of itself, if needed.
+
+Do not remove screens from under yourself. It's messy and unnecessary.
+
+---
+
+## Initial state of screens
+
+`sceneStack` contains a few helper methods:
+
+```qml
+function openChart(path, profile1, autoplay1, score1, profile2, autoplay2, score2)
+function openCourse(course, profile1, autoplay1, score1, profile2, autoplay2, score2)
+function openResult(scores, profiles, chartData)
+function openCourseResult(scores, profiles, chartDatas, course)
+```
+
+Since gameplay screens and result screens need to be pushed with some initial property state,
+those helper methods set them based on the parameters passed to them.
+
+See [ChartLoader docs](https://bobini1.github.io/RhythmGame/classqml__components_1_1ChartLoader.html)
+for an explanation of the parameters of `openChart` and `openCourse`.
+
+To use those methods, simply call `sceneStack.openChart(...)` from anywhere in your theme.
+
+Keep the folowing in mind when writing screens with initial state:
+
+Screens `k7`, `k14` and `k7battle` are expected to have single `var` property called `chart`. The assigned `chart` will
+be either a [ChartRunner](https://bobini1.github.io/RhythmGame/classgameplay__logic_1_1ChartRunner.html) or
+[CourseRunner](https://bobini1.github.io/RhythmGame/classgameplay__logic_1_1CourseRunner.html)
+object, depending on whether the player is playing a single chart or a course.
+
+Screen `result` is expected to have the following properties:
+```qml
+property list<BmsScore> scores
+property list<Profile> profiles
+property ChartData chartData
+```
+
+The lists will have 1 or 2 elements, depending on whether the game was played solo or in battle mode.
+
+Screen `courseResult` is expected to have the following properties:
+```qml
+property list<BmsScoreCourse> scores
+property list<Profile> profiles
+property list<ChartData> chartDatas
+property course course
+```
+
+You can always use `var` instead of the exact type if you want to be flexible.
+
+## Input
+
+`sceneStack` automatically disables all input for screens that are not at the top of the stack.
+This applies to input provided by the
+[Input](https://bobini1.github.io/RhythmGame/classqml__components_1_1InputAttached.html) attached property as well.
+Make sure to disable any background sounds when pushing a new screen on top of the stack.
+Song preview should not play during gameplay. You can use the
+[enabled](https://doc.qt.io/qt-6/qml-qtquick-item.html#enabled-prop) property of `Item`
+to detect when a screen is not active.
+This property propagates to all child components.
+
+## The Rg singleton
+
+The [Rg](https://bobini1.github.io/RhythmGame/classRg.html) singleton is globally accessible upon importing
+`RhythmGameQml`. It contains various API objects with methods and properties useful for themes.
+

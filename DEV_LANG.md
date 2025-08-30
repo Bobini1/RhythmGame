@@ -9,8 +9,8 @@ In a theme, translatable string come in two forms:
 
 ## Theme settings strings
 
-Those are quite straightforward.
-If you take a look at [the json file](assets/themes/Default/settings/k7.json)
+Those are quite straightforward. If you take a look at
+[the json file](https://github.com/Bobini1/RhythmGame/blob/master/assets/themes/Default/settings/k7.json)
 defining the settings for the k7 screen, you will notice that the name and description
 of each setting are defined in the file itself.
 Simply add new languages next to "en" and "pl" (English and Polish).

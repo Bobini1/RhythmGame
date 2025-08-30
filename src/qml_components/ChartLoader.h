@@ -148,10 +148,24 @@ class ChartLoader : public QObject
       bool player2AutoPlay,
       gameplay_logic::BmsScoreCourse* score2) const;
 
+    /**
+     *
+     * @param filename The path to the chart file, optional if md5 is given.
+     * @param md5 The md5 hash of the chart file, optional if filename is given.
+     * @param randomSequence The #RANDOM sequence to use for the chart,
+     * optional.
+     * @return The chart data, loaded from the BMS file, or nullptr on failure.
+     */
     Q_INVOKABLE gameplay_logic::ChartData* loadChartData(
       const QString& filename,
       const QString& md5 = "",
       QList<int64_t> randomSequence = {}) const;
+    /**
+     * @brief Loads chart datas for multiple charts from the database.
+     * @param md5s The list of md5 hashes of the charts to load.
+     * @return A map from md5 hash to chart data. If a hash was not in
+     * the database, it will not be present in the map.
+     */
     Q_INVOKABLE QVariantMap loadChartDataFromDb(QList<QString> md5s) const;
 };
 
