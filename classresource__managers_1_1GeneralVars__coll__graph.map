@@ -1,0 +1,5 @@
+<map id="resource_managers::GeneralVars" name="resource_managers::GeneralVars">
+<area shape="rect" id="Node000001" title="The general variables for the game that all screens and the engine should know about and respect...." alt="" coords="5,79,164,119"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="47,5,122,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="87,44,87,79,82,79,82,44"/>
+</map>

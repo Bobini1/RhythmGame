@@ -1,0 +1,21 @@
+<map id="src/qml_components/FileQuery.cpp" name="src/qml_components/FileQuery.cpp">
+<area shape="rect" id="Node000001" title=" " alt="" coords="234,5,391,45"/>
+<area shape="rect" id="Node000002" href="$FileQuery_8h.html" title=" " alt="" coords="5,93,100,119"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="251,48,104,92,103,87,250,43"/>
+<area shape="rect" id="Node000005" href="$PathToQString_8h.html" title=" " alt="" coords="124,93,301,119"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="290,48,240,87,237,82,287,43"/>
+<area shape="rect" id="Node000008" href="$QStringToPath_8h.html" title=" " alt="" coords="325,93,503,119"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="339,43,389,82,386,87,336,48"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="527,93,651,119"/>
+<area shape="poly" id="edge10_Node000001_Node000009" title=" " alt="" coords="380,43,536,87,534,92,378,48"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="26,167,77,192"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="55,119,54,153,49,153,50,119"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="101,167,156,192"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="67,117,108,155,104,159,63,121"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="227,167,297,192"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="223,117,248,154,244,157,219,121"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="345,167,435,192"/>
+<area shape="poly" id="edge6_Node000005_Node000007" title=" " alt="" coords="242,116,350,159,348,164,240,121"/>
+<area shape="poly" id="edge9_Node000008_Node000006" title=" " alt="" coords="391,121,300,163,298,158,388,116"/>
+<area shape="poly" id="edge8_Node000008_Node000007" title=" " alt="" coords="413,120,401,154,396,153,408,118"/>
+</map>

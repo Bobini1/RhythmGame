@@ -1,0 +1,5 @@
+<map id="resource_managers::Tables" name="resource_managers::Tables">
+<area shape="rect" id="Node000001" title="Manages the download and storage of tables from given URLs." alt="" coords="5,79,164,119"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="10,5,159,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="87,44,87,79,82,79,82,44"/>
+</map>

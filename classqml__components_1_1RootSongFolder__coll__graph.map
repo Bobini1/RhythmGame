@@ -1,0 +1,7 @@
+<map id="qml_components::RootSongFolder" name="qml_components::RootSongFolder">
+<area shape="rect" id="Node000001" title=" " alt="" coords="17,93,221,133"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,13,80,38"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="64,46,104,91,100,95,60,50"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="104,5,285,45"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="171,58,137,95,133,91,167,54"/>
+</map>

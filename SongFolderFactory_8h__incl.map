@@ -1,0 +1,28 @@
+<map id="src/qml_components/SongFolderFactory.h" name="src/qml_components/SongFolderFactory.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="419,5,577,45"/>
+<area shape="rect" id="Node000002" href="$SqliteCppDb_8h.html" title=" " alt="" coords="367,93,501,119"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="485,47,454,84,450,81,480,44"/>
+<area shape="rect" id="Node000013" title=" " alt="" coords="526,93,601,119"/>
+<area shape="poly" id="edge13_Node000001_Node000013" title=" " alt="" coords="516,44,547,81,543,84,512,47"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="5,167,177,192"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="379,121,161,166,160,161,378,116"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="202,167,277,192"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="404,121,285,164,283,159,402,116"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="301,167,364,192"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="419,121,362,161,359,156,416,116"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="388,167,480,192"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="437,119,437,153,431,153,431,119"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="505,167,569,192"/>
+<area shape="poly" id="edge6_Node000002_Node000007" title=" " alt="" coords="452,116,510,156,507,161,449,121"/>
+<area shape="rect" id="Node000008" href="$get_8h.html" title=" " alt="" coords="593,167,701,192"/>
+<area shape="poly" id="edge7_Node000002_Node000008" title=" " alt="" coords="469,116,601,160,599,165,467,121"/>
+<area shape="rect" id="Node000011" href="$TupleSize_8h.html" title=" " alt="" coords="725,167,873,192"/>
+<area shape="poly" id="edge10_Node000002_Node000011" title=" " alt="" coords="493,116,727,161,726,167,492,121"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="639,240,818,265"/>
+<area shape="poly" id="edge8_Node000008_Node000009" title=" " alt="" coords="662,190,707,229,703,233,659,194"/>
+<area shape="rect" id="Node000010" title=" " alt="" coords="475,240,615,265"/>
+<area shape="poly" id="edge9_Node000008_Node000010" title=" " alt="" coords="632,194,574,234,571,230,629,190"/>
+<area shape="poly" id="edge11_Node000011_Node000009" title=" " alt="" coords="790,194,752,232,748,228,786,190"/>
+<area shape="rect" id="Node000012" title=" " alt="" coords="843,240,897,265"/>
+<area shape="poly" id="edge12_Node000011_Node000012" title=" " alt="" coords="813,190,851,228,847,232,809,194"/>
+</map>

@@ -1,0 +1,17 @@
+<map id="src/resource_managers/SongDbScanner.h" name="src/resource_managers/SongDbScanner.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="98,5,271,45"/>
+<area shape="rect" id="Node000002" href="$main_8cpp.html" title=" " alt="" coords="5,269,111,295"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="126,54,101,72,82,95,70,117,62,141,55,191,55,236,59,269,53,269,50,237,50,191,57,140,65,115,77,92,98,68,123,50"/>
+<area shape="rect" id="Node000003" href="$RootSongFoldersConfig_8h.html" title=" " alt="" coords="91,93,279,133"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="187,59,187,93,182,93,182,59"/>
+<area shape="rect" id="Node000007" href="$SongDbScanner_8cpp.html" title=" " alt="" coords="303,93,477,133"/>
+<area shape="poly" id="edge8_Node000001_Node000007" title=" " alt="" coords="243,48,346,91,344,96,241,53"/>
+<area shape="poly" id="edge6_Node000003_Node000002" title=" " alt="" coords="150,144,111,183,82,230,65,270,60,268,78,227,107,180,146,140"/>
+<area shape="rect" id="Node000004" href="$Rg_8h.html" title=" " alt="" coords="120,189,292,214"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="195,146,206,188,200,189,190,147"/>
+<area shape="rect" id="Node000006" href="$RootSongFoldersConfig_8cpp.html" title=" " alt="" coords="317,181,519,221"/>
+<area shape="poly" id="edge7_Node000003_Node000006" title=" " alt="" coords="250,136,368,179,366,184,248,141"/>
+<area shape="poly" id="edge5_Node000004_Node000002" title=" " alt="" coords="173,223,81,271,79,267,171,218"/>
+<area shape="rect" id="Node000005" href="$Rg_8cpp.html" title=" " alt="" coords="135,269,322,295"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="216,227,228,268,223,270,211,228"/>
+</map>

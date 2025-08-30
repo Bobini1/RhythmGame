@@ -1,0 +1,12 @@
+<map id="src/gameplay_logic/rules/BmsGauge.cpp" name="src/gameplay_logic/rules/BmsGauge.cpp">
+<area shape="rect" id="Node000001" title=" " alt="" coords="173,5,333,45"/>
+<area shape="rect" id="Node000002" href="$BmsGauge_8h.html" title=" " alt="" coords="201,93,306,119"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="256,46,256,79,251,79,251,46"/>
+<area shape="rect" id="Node000003" href="$Judgement_8h.html" title=" " alt="" coords="5,167,216,192"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="232,121,147,163,145,158,229,116"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="144,240,219,265"/>
+<area shape="poly" id="edge4_Node000002_Node000004" title=" " alt="" coords="254,119,246,153,230,193,204,231,199,228,226,191,241,152,249,118"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="291,167,370,192"/>
+<area shape="poly" id="edge5_Node000002_Node000005" title=" " alt="" coords="268,117,310,155,306,159,264,121"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="124,190,162,228,158,232,120,194"/>
+</map>

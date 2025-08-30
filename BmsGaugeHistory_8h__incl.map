@@ -1,0 +1,35 @@
+<map id="src/gameplay_logic/BmsGaugeHistory.h" name="src/gameplay_logic/BmsGaugeHistory.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="642,5,797,45"/>
+<area shape="rect" id="Node000002" href="$SqliteCppDb_8h.html" title=" " alt="" coords="419,93,553,119"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="664,48,534,91,532,86,663,43"/>
+<area shape="rect" id="Node000013" href="$BmsGauge_8h.html" title=" " alt="" coords="1003,93,1145,119"/>
+<area shape="poly" id="edge13_Node000001_Node000013" title=" " alt="" coords="797,41,1009,88,1008,93,796,46"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="5,167,177,192"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="423,121,169,167,168,162,422,116"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="202,167,277,192"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="447,121,291,166,289,161,446,116"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="301,167,364,192"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="462,121,371,163,369,158,460,116"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="388,167,480,192"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="480,121,453,157,448,154,475,117"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="505,167,569,192"/>
+<area shape="poly" id="edge6_Node000002_Node000007" title=" " alt="" coords="497,117,523,154,518,157,492,121"/>
+<area shape="rect" id="Node000008" href="$get_8h.html" title=" " alt="" coords="593,167,701,192"/>
+<area shape="poly" id="edge7_Node000002_Node000008" title=" " alt="" coords="513,116,610,159,607,163,511,121"/>
+<area shape="rect" id="Node000011" href="$TupleSize_8h.html" title=" " alt="" coords="725,167,873,192"/>
+<area shape="poly" id="edge10_Node000002_Node000011" title=" " alt="" coords="537,116,736,161,735,166,536,121"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="626,240,805,265"/>
+<area shape="poly" id="edge8_Node000008_Node000009" title=" " alt="" coords="660,190,697,228,693,232,657,194"/>
+<area shape="rect" id="Node000010" title=" " alt="" coords="461,240,601,265"/>
+<area shape="poly" id="edge9_Node000008_Node000010" title=" " alt="" coords="630,194,563,235,561,230,627,190"/>
+<area shape="poly" id="edge11_Node000011_Node000009" title=" " alt="" coords="788,194,741,233,738,229,784,190"/>
+<area shape="rect" id="Node000012" title=" " alt="" coords="829,240,884,265"/>
+<area shape="poly" id="edge12_Node000011_Node000012" title=" " alt="" coords="811,191,841,227,837,231,807,194"/>
+<area shape="rect" id="Node000014" href="$Judgement_8h.html" title=" " alt="" coords="898,167,1109,192"/>
+<area shape="poly" id="edge14_Node000013_Node000014" title=" " alt="" coords="1064,121,1026,159,1022,155,1060,117"/>
+<area shape="rect" id="Node000015" title=" " alt="" coords="1037,240,1111,265"/>
+<area shape="poly" id="edge16_Node000013_Node000015" title=" " alt="" coords="1089,117,1108,138,1123,166,1125,184,1120,202,1100,232,1095,229,1115,200,1120,184,1118,167,1104,141,1085,121"/>
+<area shape="rect" id="Node000016" title=" " alt="" coords="1184,167,1263,192"/>
+<area shape="poly" id="edge17_Node000013_Node000016" title=" " alt="" coords="1099,116,1188,158,1185,163,1097,121"/>
+<area shape="poly" id="edge15_Node000014_Node000015" title=" " alt="" coords="1017,190,1055,228,1051,232,1013,194"/>
+</map>

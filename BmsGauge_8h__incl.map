@@ -1,0 +1,10 @@
+<map id="src/gameplay_logic/rules/BmsGauge.h" name="src/gameplay_logic/rules/BmsGauge.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="179,5,327,45"/>
+<area shape="rect" id="Node000002" href="$Judgement_8h.html" title=" " alt="" coords="5,93,216,119"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="220,48,145,89,142,84,218,43"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="144,167,219,192"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="253,46,245,81,230,120,204,158,200,155,226,117,240,80,248,45"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="291,93,370,119"/>
+<area shape="poly" id="edge4_Node000001_Node000004" title=" " alt="" coords="274,44,312,82,308,85,270,47"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="124,117,162,155,158,159,120,121"/>
+</map>

@@ -1,0 +1,11 @@
+<map id="src/sounds/OpenAlSoundBuffer.h" name="src/sounds/OpenAlSoundBuffer.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="323,5,555,31"/>
+<area shape="rect" id="Node000002" href="$BmsNotesData_8cpp.html" title=" " alt="" coords="5,86,220,111"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="379,36,161,89,160,83,378,31"/>
+<area shape="rect" id="Node000003" href="$loadBmsSounds_8cpp.html" title=" " alt="" coords="245,79,418,119"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="414,41,359,81,356,76,411,37"/>
+<area shape="rect" id="Node000004" href="$OpenAlSound_8cpp.html" title=" " alt="" coords="443,86,652,111"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="468,37,533,84,530,88,465,41"/>
+<area shape="rect" id="Node000005" href="$OpenAlSoundBuffer_8cpp.html" title=" " alt="" coords="676,86,923,111"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="506,31,747,83,746,89,504,36"/>
+</map>

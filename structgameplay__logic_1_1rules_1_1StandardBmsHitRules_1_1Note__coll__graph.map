@@ -1,0 +1,5 @@
+<map id="gameplay_logic::rules::StandardBmsHitRules::Note" name="gameplay_logic::rules::StandardBmsHitRules::Note">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,93,216,133"/>
+<area shape="rect" id="Node000002" href="$classsounds_1_1OpenALSound.html" title="A sound that can be played. Wraps an OpenAL source." alt="" coords="27,5,194,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="113,44,113,93,108,93,108,44"/>
+</map>

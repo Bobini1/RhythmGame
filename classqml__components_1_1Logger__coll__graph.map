@@ -1,0 +1,5 @@
+<map id="qml_components::Logger" name="qml_components::Logger">
+<area shape="rect" id="Node000001" title="Lets you access the entire log history of this session." alt="" coords="5,79,192,104"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="61,5,136,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="101,44,101,79,96,79,96,44"/>
+</map>
