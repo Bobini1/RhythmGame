@@ -262,9 +262,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install Doxygen
+      - name: Install Doxygen and graphviz
         run: sudo apt-get update -q
-          && sudo apt-get install doxygen -q -y
+          && sudo apt-get install doxygen graphviz -q -y
 
       - name: Build docs
         run: cmake "-DPROJECT_SOURCE_DIR=$PWD" "-DPROJECT_BINARY_DIR=$PWD/build"
