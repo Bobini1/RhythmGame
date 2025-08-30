@@ -21,17 +21,6 @@ Contact me if you're interested, I can help you get started!
 You can use the [default theme](https://github.com/Bobini1/RhythmGame/tree/master/assets/themes/Default) as a reference.
 See the [DEV_THEME.md](DEV_THEME.md) document for more information.
 
-```qml
-Text {
-    id: titleText
-
-    anchors.bottom: artistText.top
-    anchors.horizontalCenter: parent.horizontalCenter
-    font.pixelSize: 40
-    text: title.title + (title.subtitle ? (" " + title.subtitle) : "")
-}
-```
-
 ### Rules based on Lunatic Rave 2
 
 The timing windows and gauges match Lunatic Rave 2/Lr2oraja
