@@ -1,8 +1,7 @@
 <p align=center>
     <a href="https://github.com/Bobini1/RhythmGame/actions"><img src="https://github.com/Bobini1/RhythmGame/actions/workflows/ci.yml/badge.svg"/></a>
     <a href="https://github.com/Bobini1/RhythmGame/blob/master/LICENSE.md"><img src="https://img.shields.io/github/license/Bobini1/RhythmGame"/></a>
-    <br>
-    [![](https://dcbadge.limes.pink/api/server/https://discord.gg/bDxmuSzXBW)](https://discord.gg/bDxmuSzXBW)
+    <a href="https://discord.gg/Pg3Z8ZFb"><img src="https://img.shields.io/discord/1410743088686829661.svg?color=7289DA&label=RhythmGame%20Community&logo=Discord"/></a>
 </p>
 
 # RhythmGame
@@ -19,7 +18,7 @@ Customize the default theme by pressing F2 during gameplay and moving the elemen
 
 You can also create your own custom theme with [QML](https://doc.qt.io/qt-6/qmlreference.html).
 Contact me if you're interested, I can help you get started!
-You can use the [default theme](assets/themes/Default) as a reference.
+You can use the [default theme](https://github.com/Bobini1/RhythmGame/tree/master/assets/themes/Default) as a reference.
 
 ```qml
 Text {
