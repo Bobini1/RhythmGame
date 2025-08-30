@@ -126,7 +126,7 @@ class ChartRunner final : public QObject
 };
 
 /**
- * @brief A player in a chart.
+ * @brief A player of a chart.
  * @details The Player class represents a player of a chart. It plays sounds,
  * gets its score updated, etc.
  */
