@@ -1,3 +1,5 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="Node000000" href="$classsounds_1_1OpenALSound.html" title="A sound that can be played. Wraps an OpenAL source." alt="" coords="5,5,172,31"/>
+<area shape="rect" id="Node000000" title=" " alt="" coords="5,5,132,31"/>
+<area shape="rect" id="Node000001" href="$classinput_1_1CustomNotifyApp.html" title=" " alt="" coords="180,5,357,31"/>
+<area shape="poly" id="edge52_Node000000_Node000001" title=" " alt="" coords="146,15,180,15,180,21,146,21"/>
 </map>

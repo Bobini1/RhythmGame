@@ -186,8 +186,20 @@ Initial state of screens</h2>
 </div><!-- fragment --><p>You can always use <code>var</code> instead of the exact type if you want to be flexible.</p>
 <h2><a class="anchor" id="autotoc_md35"></a>
 Input</h2>
-<p><code>sceneStack</code> automatically disables all input for screens that are not at the top of the stack. This applies to input provided by the <a href="https://bobini1.github.io/RhythmGame/classqml__components_1_1InputAttached.html">Input</a> attached property as well. Make sure to disable any background sounds when pushing a new screen on top of the stack. Song preview should not play during gameplay. You can use the <a href="https://doc.qt.io/qt-6/qml-qtquick-item.html#enabled-prop">enabled</a> property of <code>Item</code> to detect when a screen is not active. This property propagates to all child components.</p>
+<p>It would be best if your theme supported mouse, keyboard and controller navigation. For example, for scrolling a list of songs, it would be best to allow using the mouse wheel, arrow keys and scratch. In the default theme, the <code>settings</code> screen was designed with mouse and keyboard in mind, without support for controller navigation.</p>
+<p>For mouse input, use <a href="https://doc.qt.io/qt-6/qml-qtquick-mousearea.html">MouseArea</a> or <a href="https://doc.qt.io/qt-6/qml-qtquick-taphandler.html">TapHandler</a>.</p>
+<p>For keyboard input, use <a href="https://doc.qt.io/qt-6/qml-qtquick-keys.html">Keys</a></p>
+<p>For bound key input (controller or keyboard), use <a href="https://bobini1.github.io/RhythmGame/classqml__components_1_1InputAttached.html">Input</a>.</p>
+<p><code>sceneStack</code> automatically disables all input for screens that are not at the top of the stack. Make sure to disable any background sounds when pushing a new screen on top of the stack. Song preview should not play during gameplay. You can use the <a href="https://doc.qt.io/qt-6/qml-qtquick-item.html#enabled-prop">enabled</a> property of <code>Item</code> to detect when a screen is not active. This property propagates to all child components.</p>
 <h2><a class="anchor" id="autotoc_md36"></a>
+Scaling</h2>
+<p>Your theme is expected to work on all screen sizes and aspect ratios. There are two ways you can achieve that.</p><ul>
+<li>Use <a href="https://doc.qt.io/qt-6/qtquicklayouts-overview.html">layouts</a> to dynamically set the sizes of elements based on the size of their parents.</li>
+<li>Use fixed, hard-coded component sizes and <a href="https://doc.qt.io/qt-6/qml-qtquick-item.html#scale-prop">rescale</a> the top item to fit the size of the window.</li>
+</ul>
+<p>In the default theme, you can see the first approach in the <code>settings</code> screen. All other screens use scaling. In general, scaling is easier to use.</p>
+<p>Please try resizing the window of the game when testing your theme edits.</p>
+<h2><a class="anchor" id="autotoc_md37"></a>
 The Rg singleton</h2>
 <p>The <a href="https://bobini1.github.io/RhythmGame/classRg.html">Rg</a> singleton is globally accessible upon importing <code>RhythmGameQml</code>. It contains various API objects with methods and properties useful for themes. You will probably use it a lot! Start reading the docs there. </p>
 </div></div><!-- contents -->

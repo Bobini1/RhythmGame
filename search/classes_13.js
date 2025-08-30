@@ -10,8 +10,10 @@ var searchData=
   ['themefamily_7',['ThemeFamily',['../classqml__components_1_1ThemeFamily.html',1,'qml_components']]],
   ['themes_8',['Themes',['../classqml__components_1_1Themes.html',1,'qml_components']]],
   ['time_9',['time',['../structcharts_1_1BmsNotesData_1_1Time.html',1,'charts::BmsNotesData::Time'],['../classgameplay__logic_1_1Time.html',1,'gameplay_logic::Time']]],
-  ['titletag_10',['TitleTag',['../structcharts_1_1TitleTag.html',1,'charts']]],
-  ['totaltag_11',['TotalTag',['../structcharts_1_1TotalTag.html',1,'charts']]],
-  ['trophy_12',['Trophy',['../structresource__managers_1_1Trophy.html',1,'resource_managers']]],
-  ['tuplesize_13',['TupleSize',['../classsupport_1_1TupleSize.html',1,'support']]]
+  ['title_10',['Title',['../structcharts_1_1Title.html',1,'charts']]],
+  ['titletag_11',['TitleTag',['../structcharts_1_1TitleTag.html',1,'charts']]],
+  ['total_12',['Total',['../structcharts_1_1Total.html',1,'charts']]],
+  ['totaltag_13',['TotalTag',['../structcharts_1_1TotalTag.html',1,'charts']]],
+  ['trophy_14',['Trophy',['../structresource__managers_1_1Trophy.html',1,'resource_managers']]],
+  ['tuplesize_15',['TupleSize',['../classsupport_1_1TupleSize.html',1,'support']]]
 ];

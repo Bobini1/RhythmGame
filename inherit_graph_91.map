@@ -1,3 +1,15 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="Node000000" href="$structresource__managers_1_1Table.html" title=" " alt="" coords="5,5,164,45"/>
+<area shape="rect" id="Node000000" title=" " alt="" coords="5,159,155,185"/>
+<area shape="rect" id="Node000001" href="$classgameplay__logic_1_1BarLinesState.html" title="The state of the barlines in the chart." alt="" coords="217,5,406,45"/>
+<area shape="poly" id="edge1_Node000000_Node000001" title=" " alt="" coords="98,147,142,101,170,76,201,55,227,43,229,48,204,60,174,80,146,104,102,151"/>
+<area shape="rect" id="Node000002" href="$classgameplay__logic_1_1ColumnState.html" title="The state of a single column, including its notes and whether it is currently pressed." alt="" coords="203,70,420,95"/>
+<area shape="poly" id="edge2_Node000000_Node000002" title=" " alt="" coords="112,150,154,127,202,106,244,93,245,98,204,110,156,132,114,155"/>
+<area shape="rect" id="Node000003" href="$classgameplay__logic_1_1JudgementCounts.html" title=" " alt="" coords="210,120,413,160"/>
+<area shape="poly" id="edge3_Node000000_Node000003" title=" " alt="" coords="168,157,209,151,210,157,169,162"/>
+<area shape="rect" id="Node000004" href="$classqml__components_1_1RootSongFolders.html" title=" " alt="" coords="209,184,413,224"/>
+<area shape="poly" id="edge4_Node000000_Node000004" title=" " alt="" coords="169,182,209,187,209,193,168,187"/>
+<area shape="rect" id="Node000005" href="$classqml__components_1_1ScanningQueue.html" title=" " alt="" coords="211,248,412,288"/>
+<area shape="poly" id="edge5_Node000000_Node000005" title=" " alt="" coords="115,189,204,234,236,245,235,250,202,238,113,194"/>
+<area shape="rect" id="Node000006" href="$classresource__managers_1_1Tables.html" title="Manages the download and storage of tables from given URLs." alt="" coords="232,312,391,352"/>
+<area shape="poly" id="edge6_Node000000_Node000006" title=" " alt="" coords="100,194,143,247,172,274,204,298,233,312,231,316,201,302,169,278,140,250,96,198"/>
 </map>

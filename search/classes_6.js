@@ -7,5 +7,6 @@ var searchData=
   ['gaugefactory_4',['GaugeFactory',['../classresource__managers_1_1GaugeFactory.html',1,'resource_managers']]],
   ['gaugehistoryentry_5',['GaugeHistoryEntry',['../classgameplay__logic_1_1rules_1_1GaugeHistoryEntry.html',1,'gameplay_logic::rules']]],
   ['generalvars_6',['GeneralVars',['../classresource__managers_1_1GeneralVars.html',1,'resource_managers']]],
-  ['genretag_7',['GenreTag',['../structcharts_1_1GenreTag.html',1,'charts']]]
+  ['genre_7',['Genre',['../structcharts_1_1Genre.html',1,'charts']]],
+  ['genretag_8',['GenreTag',['../structcharts_1_1GenreTag.html',1,'charts']]]
 ];

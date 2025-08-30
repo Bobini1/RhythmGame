@@ -12,10 +12,14 @@ var searchData=
   ['songfolderfactory_9',['SongFolderFactory',['../classqml__components_1_1SongFolderFactory.html',1,'qml_components']]],
   ['soundtask_10',['SoundTask',['../classresource__managers_1_1SoundTask.html',1,'resource_managers']]],
   ['sqlitecppdb_11',['SqliteCppDb',['../classdb_1_1SqliteCppDb.html',1,'db']]],
-  ['stagefiletag_12',['StageFileTag',['../structcharts_1_1StageFileTag.html',1,'charts']]],
-  ['standardbmshitrules_13',['StandardBmsHitRules',['../classgameplay__logic_1_1rules_1_1StandardBmsHitRules.html',1,'gameplay_logic::rules']]],
-  ['statement_14',['Statement',['../classdb_1_1SqliteCppDb_1_1Statement.html',1,'db::SqliteCppDb']]],
-  ['stoptag_15',['StopTag',['../structcharts_1_1StopTag.html',1,'charts']]],
-  ['subartisttag_16',['SubartistTag',['../structcharts_1_1SubartistTag.html',1,'charts']]],
-  ['subtitletag_17',['SubtitleTag',['../structcharts_1_1SubtitleTag.html',1,'charts']]]
+  ['stagefile_12',['StageFile',['../structcharts_1_1StageFile.html',1,'charts']]],
+  ['stagefiletag_13',['StageFileTag',['../structcharts_1_1StageFileTag.html',1,'charts']]],
+  ['standardbmshitrules_14',['StandardBmsHitRules',['../classgameplay__logic_1_1rules_1_1StandardBmsHitRules.html',1,'gameplay_logic::rules']]],
+  ['statement_15',['Statement',['../classdb_1_1SqliteCppDb_1_1Statement.html',1,'db::SqliteCppDb']]],
+  ['stop_16',['Stop',['../structcharts_1_1Stop.html',1,'charts']]],
+  ['stoptag_17',['StopTag',['../structcharts_1_1StopTag.html',1,'charts']]],
+  ['subartist_18',['Subartist',['../structcharts_1_1Subartist.html',1,'charts']]],
+  ['subartisttag_19',['SubartistTag',['../structcharts_1_1SubartistTag.html',1,'charts']]],
+  ['subtitle_20',['Subtitle',['../structcharts_1_1Subtitle.html',1,'charts']]],
+  ['subtitletag_21',['SubtitleTag',['../structcharts_1_1SubtitleTag.html',1,'charts']]]
 ];
