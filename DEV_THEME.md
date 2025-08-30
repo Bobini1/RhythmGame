@@ -86,7 +86,7 @@ Your theme should not break if a user renames the folder. Use `QmlUtils.themeNam
 Please don't access vars that don't belong to the current screen.
 It creates hidden dependencies on other themes or screens of your theme that might not be enabled.
 
-If you need to pass a variable between screens, suggest adding it to profile.vars.generalVars
+If you need to pass a variable between screens, suggest adding it to `profile.vars.generalVars`
 in the engine.
 
 ### Overriding the settings page for a screen
