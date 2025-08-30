@@ -131,63 +131,63 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00054" name="l00054"></a><span class="lineno"><a class="line" href="classqml__components_1_1ProfileList.html">   54</a></span>class <a class="code hl_class" href="classqml__components_1_1ProfileList.html">ProfileList</a> final : public QObject</div>
 <div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>{</div>
 <div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span>    Q_OBJECT</div>
-<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span> </div>
-<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span>    std::filesystem::path profilesFolder;</div>
-<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span>    std::filesystem::path mainDbPath;</div>
-<div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span>    QList&lt;resource_managers::Profile*&gt; profiles;</div>
-<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span>    <a class="code hl_class" href="classdb_1_1SqliteCppDb.html">db::SqliteCppDb</a>* songDb;</div>
-<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span>    QMap&lt;QString, ThemeFamily&gt; themeFamilies;</div>
-<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span>    <a class="code hl_class" href="classresource__managers_1_1Profile.html">resource_managers::Profile</a>* mainProfile{};</div>
-<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span>    <a class="code hl_class" href="classqml__components_1_1BattleProfiles.html">BattleProfiles</a> battleProfiles;</div>
-<div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span>    <span class="keywordtype">bool</span> battleActive{};</div>
-<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span>    QString avatarPath;</div>
-<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span> </div>
-<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span>    Q_PROPERTY(<a class="code hl_class" href="classresource__managers_1_1Profile.html">resource_managers::Profile</a>* mainProfile READ getMainProfile WRITE</div>
-<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span>                 setMainProfile NOTIFY mainProfileChanged)</div>
-<div class="line"><a id="l00080" name="l00080"></a><span class="lineno"><a class="line" href="classqml__components_1_1ProfileList.html#ab8e7f1a022ed11bea31a9f2f3c99a44e">   80</a></span>    Q_PROPERTY(<a class="code hl_class" href="classqml__components_1_1BattleProfiles.html">BattleProfiles</a>* battleProfiles READ getBattleProfiles CONSTANT)</div>
-<div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span>    Q_PROPERTY(QList&lt;<a class="code hl_namespace" href="namespaceresource__managers.html">resource_managers</a>::Profile*&gt; profiles READ getProfiles</div>
-<div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span>                 NOTIFY profilesChanged)</div>
-<div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span>    Q_PROPERTY(<span class="keywordtype">bool</span> battleActive READ getBattleActive WRITE setBattleActive</div>
-<div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span>                 NOTIFY battleActiveChanged)</div>
-<div class="line"><a id="l00093" name="l00093"></a><span class="lineno">   93</span> </div>
-<div class="line"><a id="l00094" name="l00094"></a><span class="lineno">   94</span>    <span class="keywordtype">void</span> saveMainProfile();</div>
-<div class="line"><a id="l00095" name="l00095"></a><span class="lineno">   95</span>    <span class="keywordtype">void</span> saveActiveProfiles();</div>
-<div class="line"><a id="l00096" name="l00096"></a><span class="lineno">   96</span> </div>
-<div class="line"><a id="l00097" name="l00097"></a><span class="lineno">   97</span>  public:</div>
-<div class="line"><a id="l00098" name="l00098"></a><span class="lineno">   98</span>    explicit <a class="code hl_class" href="classqml__components_1_1ProfileList.html">ProfileList</a>(std::filesystem::path mainDbPath,</div>
-<div class="line"><a id="l00099" name="l00099"></a><span class="lineno">   99</span>                         <a class="code hl_namespace" href="namespacedb.html">db</a>::SqliteCppDb* songDb,</div>
-<div class="line"><a id="l00100" name="l00100"></a><span class="lineno">  100</span>                         const QMap&lt;QString, <a class="code hl_class" href="classqml__components_1_1ThemeFamily.html">ThemeFamily</a>&gt;&amp; themeFamilies,</div>
-<div class="line"><a id="l00101" name="l00101"></a><span class="lineno">  101</span>                         std::filesystem::path profilesFolder,</div>
-<div class="line"><a id="l00102" name="l00102"></a><span class="lineno">  102</span>                         QString avatarPath,</div>
-<div class="line"><a id="l00103" name="l00103"></a><span class="lineno">  103</span>                         QObject* parent = <span class="keywordtype">nullptr</span>);</div>
-<div class="line"><a id="l00104" name="l00104"></a><span class="lineno">  104</span>    auto getProfiles() -&gt; const QList&lt;<a class="code hl_namespace" href="namespaceresource__managers.html">resource_managers</a>::Profile*&gt;&amp;;</div>
-<div class="line"><a id="l00105" name="l00105"></a><span class="lineno">  105</span> </div>
-<div class="line"><a id="l00106" name="l00106"></a><span class="lineno">  106</span>    Q_INVOKABLE <a class="code hl_namespace" href="namespaceresource__managers.html">resource_managers</a>::Profile* at(<span class="keywordtype">int</span> index) const;</div>
-<div class="line"><a id="l00107" name="l00107"></a><span class="lineno">  107</span>    Q_INVOKABLE <a class="code hl_namespace" href="namespaceresource__managers.html">resource_managers</a>::Profile* createProfile();</div>
-<div class="line"><a id="l00112" name="l00112"></a><span class="lineno">  112</span>    Q_INVOKABLE <span class="keywordtype">void</span> removeProfile(<a class="code hl_namespace" href="namespaceresource__managers.html">resource_managers</a>::Profile* profile);</div>
-<div class="line"><a id="l00113" name="l00113"></a><span class="lineno">  113</span>    <span class="keywordtype">void</span> setMainProfile(<a class="code hl_namespace" href="namespaceresource__managers.html">resource_managers</a>::Profile* profile);</div>
-<div class="line"><a id="l00114" name="l00114"></a><span class="lineno">  114</span>    auto getMainProfile() const -&gt; <a class="code hl_namespace" href="namespaceresource__managers.html">resource_managers</a>::Profile*;</div>
-<div class="line"><a id="l00115" name="l00115"></a><span class="lineno">  115</span> </div>
-<div class="line"><a id="l00116" name="l00116"></a><span class="lineno">  116</span>    auto getBattleProfiles() -&gt; <a class="code hl_class" href="classqml__components_1_1BattleProfiles.html">BattleProfiles</a>*;</div>
-<div class="line"><a id="l00117" name="l00117"></a><span class="lineno">  117</span> </div>
-<div class="line"><a id="l00118" name="l00118"></a><span class="lineno">  118</span>    auto getBattleActive() const -&gt; <span class="keywordtype">bool</span>;</div>
-<div class="line"><a id="l00119" name="l00119"></a><span class="lineno">  119</span>    <span class="keywordtype">void</span> setBattleActive(<span class="keywordtype">bool</span> active);</div>
-<div class="line"><a id="l00120" name="l00120"></a><span class="lineno">  120</span> </div>
-<div class="line"><a id="l00121" name="l00121"></a><span class="lineno">  121</span>  signals:</div>
-<div class="line"><a id="l00122" name="l00122"></a><span class="lineno"><a class="line" href="classqml__components_1_1ProfileList.html#a2121f0aa5bfe716e3a76d5aae44d71da">  122</a></span>    <span class="keywordtype">void</span> mainProfileChanged();</div>
-<div class="line"><a id="l00123" name="l00123"></a><span class="lineno"><a class="line" href="classqml__components_1_1ProfileList.html#af79455808aa8ceb78bca1b47f7180785">  123</a></span>    <span class="keywordtype">void</span> profilesChanged();</div>
-<div class="line"><a id="l00124" name="l00124"></a><span class="lineno"><a class="line" href="classqml__components_1_1ProfileList.html#a26eef46928e21866a461d1329c850abf">  124</a></span>    <span class="keywordtype">void</span> battleActiveChanged();</div>
-<div class="line"><a id="l00125" name="l00125"></a><span class="lineno">  125</span>};</div>
+<div class="line"><a id="l00063" name="l00063"></a><span class="lineno"><a class="line" href="classqml__components_1_1ProfileList.html#a94d78f9994866d07837a5112a6070862">   63</a></span>    Q_PROPERTY(<a class="code hl_class" href="classresource__managers_1_1Profile.html">resource_managers::Profile</a>* mainProfile READ getMainProfile WRITE</div>
+<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span>                 setMainProfile NOTIFY mainProfileChanged)</div>
+<div class="line"><a id="l00069" name="l00069"></a><span class="lineno"><a class="line" href="classqml__components_1_1ProfileList.html#ab8e7f1a022ed11bea31a9f2f3c99a44e">   69</a></span>    Q_PROPERTY(<a class="code hl_class" href="classqml__components_1_1BattleProfiles.html">BattleProfiles</a>* battleProfiles READ getBattleProfiles CONSTANT)</div>
+<div class="line"><a id="l00073" name="l00073"></a><span class="lineno"><a class="line" href="classqml__components_1_1ProfileList.html#a56c2858fc5d2a80e52ee48e5bc45234a">   73</a></span>    Q_PROPERTY(QList&lt;<a class="code hl_namespace" href="namespaceresource__managers.html">resource_managers</a>::Profile*&gt; profiles READ getProfiles</div>
+<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span>                 NOTIFY profilesChanged)</div>
+<div class="line"><a id="l00080" name="l00080"></a><span class="lineno"><a class="line" href="classqml__components_1_1ProfileList.html#a90b524ca3c03895993e3a44d53d28117">   80</a></span>    Q_PROPERTY(<span class="keywordtype">bool</span> battleActive READ getBattleActive WRITE setBattleActive</div>
+<div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span>                 NOTIFY battleActiveChanged)</div>
+<div class="line"><a id="l00082" name="l00082"></a><span class="lineno">   82</span> </div>
+<div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span>    std::filesystem::path profilesFolder;</div>
+<div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span>    std::filesystem::path mainDbPath;</div>
+<div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span>    QList&lt;<a class="code hl_namespace" href="namespaceresource__managers.html">resource_managers</a>::Profile*&gt; profiles;</div>
+<div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span>    <a class="code hl_namespace" href="namespacedb.html">db</a>::SqliteCppDb* songDb;</div>
+<div class="line"><a id="l00087" name="l00087"></a><span class="lineno">   87</span>    QMap&lt;QString, <a class="code hl_class" href="classqml__components_1_1ThemeFamily.html">ThemeFamily</a>&gt; themeFamilies;</div>
+<div class="line"><a id="l00088" name="l00088"></a><span class="lineno">   88</span>    <a class="code hl_namespace" href="namespaceresource__managers.html">resource_managers</a>::Profile* mainProfile{};</div>
+<div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span>    <a class="code hl_class" href="classqml__components_1_1BattleProfiles.html">BattleProfiles</a> battleProfiles;</div>
+<div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span>    <span class="keywordtype">bool</span> battleActive{};</div>
+<div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span>    QString avatarPath;</div>
+<div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span> </div>
+<div class="line"><a id="l00093" name="l00093"></a><span class="lineno">   93</span>    <span class="keywordtype">void</span> saveMainProfile();</div>
+<div class="line"><a id="l00094" name="l00094"></a><span class="lineno">   94</span>    <span class="keywordtype">void</span> saveActiveProfiles();</div>
+<div class="line"><a id="l00095" name="l00095"></a><span class="lineno">   95</span> </div>
+<div class="line"><a id="l00096" name="l00096"></a><span class="lineno">   96</span>  <span class="keyword">public</span>:</div>
+<div class="line"><a id="l00097" name="l00097"></a><span class="lineno">   97</span>    <span class="keyword">explicit</span> <a class="code hl_friend" href="classqml__components_1_1BattleProfiles.html#a85b95fafb634621551dcc4ae04ae148f">ProfileList</a>(std::filesystem::path mainDbPath,</div>
+<div class="line"><a id="l00098" name="l00098"></a><span class="lineno">   98</span>                         <a class="code hl_class" href="classdb_1_1SqliteCppDb.html">db::SqliteCppDb</a>* songDb,</div>
+<div class="line"><a id="l00099" name="l00099"></a><span class="lineno">   99</span>                         <span class="keyword">const</span> QMap&lt;QString, ThemeFamily&gt;&amp; themeFamilies,</div>
+<div class="line"><a id="l00100" name="l00100"></a><span class="lineno">  100</span>                         std::filesystem::path profilesFolder,</div>
+<div class="line"><a id="l00101" name="l00101"></a><span class="lineno">  101</span>                         QString avatarPath,</div>
+<div class="line"><a id="l00102" name="l00102"></a><span class="lineno">  102</span>                         QObject* parent = <span class="keyword">nullptr</span>);</div>
+<div class="line"><a id="l00103" name="l00103"></a><span class="lineno">  103</span>    <span class="keyword">auto</span> getProfiles() -&gt; <span class="keyword">const</span> QList&lt;resource_managers::Profile*&gt;&amp;;</div>
+<div class="line"><a id="l00104" name="l00104"></a><span class="lineno">  104</span> </div>
+<div class="line"><a id="l00105" name="l00105"></a><span class="lineno">  105</span>    Q_INVOKABLE <a class="code hl_class" href="classresource__managers_1_1Profile.html">resource_managers::Profile</a>* at(<span class="keywordtype">int</span> index) <span class="keyword">const</span>;</div>
+<div class="line"><a id="l00106" name="l00106"></a><span class="lineno">  106</span>    Q_INVOKABLE <a class="code hl_class" href="classresource__managers_1_1Profile.html">resource_managers::Profile</a>* createProfile();</div>
+<div class="line"><a id="l00111" name="l00111"></a><span class="lineno">  111</span>    Q_INVOKABLE <span class="keywordtype">void</span> removeProfile(<a class="code hl_class" href="classresource__managers_1_1Profile.html">resource_managers::Profile</a>* profile);</div>
+<div class="line"><a id="l00112" name="l00112"></a><span class="lineno">  112</span>    <span class="keywordtype">void</span> setMainProfile(<a class="code hl_class" href="classresource__managers_1_1Profile.html">resource_managers::Profile</a>* profile);</div>
+<div class="line"><a id="l00113" name="l00113"></a><span class="lineno">  113</span>    <span class="keyword">auto</span> getMainProfile() const -&gt; <a class="code hl_namespace" href="namespaceresource__managers.html">resource_managers</a>::Profile*;</div>
+<div class="line"><a id="l00114" name="l00114"></a><span class="lineno">  114</span> </div>
+<div class="line"><a id="l00115" name="l00115"></a><span class="lineno">  115</span>    auto getBattleProfiles() -&gt; BattleProfiles*;</div>
+<div class="line"><a id="l00116" name="l00116"></a><span class="lineno">  116</span> </div>
+<div class="line"><a id="l00117" name="l00117"></a><span class="lineno">  117</span>    auto getBattleActive() const -&gt; <span class="keywordtype">bool</span>;</div>
+<div class="line"><a id="l00118" name="l00118"></a><span class="lineno">  118</span>    <span class="keywordtype">void</span> setBattleActive(<span class="keywordtype">bool</span> active);</div>
+<div class="line"><a id="l00119" name="l00119"></a><span class="lineno">  119</span> </div>
+<div class="line"><a id="l00120" name="l00120"></a><span class="lineno">  120</span>  signals:</div>
+<div class="line"><a id="l00121" name="l00121"></a><span class="lineno"><a class="line" href="classqml__components_1_1ProfileList.html#a2121f0aa5bfe716e3a76d5aae44d71da">  121</a></span>    <span class="keywordtype">void</span> mainProfileChanged();</div>
+<div class="line"><a id="l00122" name="l00122"></a><span class="lineno"><a class="line" href="classqml__components_1_1ProfileList.html#af79455808aa8ceb78bca1b47f7180785">  122</a></span>    <span class="keywordtype">void</span> profilesChanged();</div>
+<div class="line"><a id="l00123" name="l00123"></a><span class="lineno"><a class="line" href="classqml__components_1_1ProfileList.html#a26eef46928e21866a461d1329c850abf">  123</a></span>    <span class="keywordtype">void</span> battleActiveChanged();</div>
+<div class="line"><a id="l00124" name="l00124"></a><span class="lineno">  124</span>};</div>
 </div>
-<div class="line"><a id="l00126" name="l00126"></a><span class="lineno">  126</span>} <span class="comment">// namespace qml_components</span></div>
-<div class="line"><a id="l00127" name="l00127"></a><span class="lineno">  127</span> </div>
-<div class="line"><a id="l00128" name="l00128"></a><span class="lineno">  128</span><span class="preprocessor">#endif </span><span class="comment">// RHYTHMGAME_PROFILELIST_H</span></div>
+<div class="line"><a id="l00125" name="l00125"></a><span class="lineno">  125</span>} <span class="comment">// namespace qml_components</span></div>
+<div class="line"><a id="l00126" name="l00126"></a><span class="lineno">  126</span> </div>
+<div class="line"><a id="l00127" name="l00127"></a><span class="lineno">  127</span><span class="preprocessor">#endif </span><span class="comment">// RHYTHMGAME_PROFILELIST_H</span></div>
 <div class="ttc" id="aProfile_8h_html"><div class="ttname"><a href="Profile_8h.html">Profile.h</a></div></div>
 <div class="ttc" id="aclassdb_1_1SqliteCppDb_html"><div class="ttname"><a href="classdb_1_1SqliteCppDb.html">db::SqliteCppDb</a></div><div class="ttdoc">Database wrapper for SQLiteCpp.</div><div class="ttdef"><b>Definition</b> SqliteCppDb.h:25</div></div>
 <div class="ttc" id="aclassqml__components_1_1BattleProfiles_html"><div class="ttname"><a href="classqml__components_1_1BattleProfiles.html">qml_components::BattleProfiles</a></div><div class="ttdoc">The profiles used in battle mode.</div><div class="ttdef"><b>Definition</b> ProfileList.h:23</div></div>
 <div class="ttc" id="aclassqml__components_1_1BattleProfiles_html_a231d97491de2df0efcc4c514a87c2dae"><div class="ttname"><a href="classqml__components_1_1BattleProfiles.html#a231d97491de2df0efcc4c514a87c2dae">qml_components::BattleProfiles::setPlayer2Profile</a></div><div class="ttdeci">void setPlayer2Profile(resource_managers::Profile *profile)</div><div class="ttdef"><b>Definition</b> ProfileList.cpp:281</div></div>
 <div class="ttc" id="aclassqml__components_1_1BattleProfiles_html_a252b5c2ff22930a1c19b6e0ef3737a7c"><div class="ttname"><a href="classqml__components_1_1BattleProfiles.html#a252b5c2ff22930a1c19b6e0ef3737a7c">qml_components::BattleProfiles::setPlayer1Profile</a></div><div class="ttdeci">void setPlayer1Profile(resource_managers::Profile *profile)</div><div class="ttdef"><b>Definition</b> ProfileList.cpp:265</div></div>
 <div class="ttc" id="aclassqml__components_1_1BattleProfiles_html_a72d4fee65d6d44494438efe9ed934b8c"><div class="ttname"><a href="classqml__components_1_1BattleProfiles.html#a72d4fee65d6d44494438efe9ed934b8c">qml_components::BattleProfiles::getPlayer1Profile</a></div><div class="ttdeci">auto getPlayer1Profile() const -&gt; resource_managers::Profile *</div><div class="ttdef"><b>Definition</b> ProfileList.cpp:275</div></div>
+<div class="ttc" id="aclassqml__components_1_1BattleProfiles_html_a85b95fafb634621551dcc4ae04ae148f"><div class="ttname"><a href="classqml__components_1_1BattleProfiles.html#a85b95fafb634621551dcc4ae04ae148f">qml_components::BattleProfiles::ProfileList</a></div><div class="ttdeci">friend class ProfileList</div><div class="ttdef"><b>Definition</b> ProfileList.h:34</div></div>
 <div class="ttc" id="aclassqml__components_1_1BattleProfiles_html_a9665da2424ff72b3a913f589f9a5595f"><div class="ttname"><a href="classqml__components_1_1BattleProfiles.html#a9665da2424ff72b3a913f589f9a5595f">qml_components::BattleProfiles::getPlayer2Profile</a></div><div class="ttdeci">auto getPlayer2Profile() const -&gt; resource_managers::Profile *</div><div class="ttdef"><b>Definition</b> ProfileList.cpp:292</div></div>
 <div class="ttc" id="aclassqml__components_1_1BattleProfiles_html_aa3b285059896544304268874439ab7c7"><div class="ttname"><a href="classqml__components_1_1BattleProfiles.html#aa3b285059896544304268874439ab7c7">qml_components::BattleProfiles::player1ProfileChanged</a></div><div class="ttdeci">void player1ProfileChanged()</div></div>
 <div class="ttc" id="aclassqml__components_1_1BattleProfiles_html_aa47757d3707f07216a446d31a12432c1"><div class="ttname"><a href="classqml__components_1_1BattleProfiles.html#aa47757d3707f07216a446d31a12432c1">qml_components::BattleProfiles::player2ProfileChanged</a></div><div class="ttdeci">void player2ProfileChanged()</div></div>

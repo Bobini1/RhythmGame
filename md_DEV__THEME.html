@@ -113,10 +113,14 @@ Persisent settings</h3>
 <p>The usage of most property types is self-explanatory, simply take a look at the default theme to find out how to use them.</p>
 <p>The special <code>hidden</code> type can be used to declare properties that will not be shown in the auto-generated settings page.</p>
 <p>You can access the values assigned to properties via <code>profile.vars.themeVars[screen][themeName].varId</code>.</p>
-<p>You can get the current theme's name with <code>QmlUtils.themeName</code>. As for <code>screen</code>, your theme should be able to figure it out on its own. It can be <code>"result"</code>, <code>"gameplay"</code>, etc.</p>
+<p>You can get the current theme's name with <a href="https://bobini1.github.io/RhythmGame/classqml__components_1_1QmlUtilsAttached.html">QmlUtils.themeName</a>. As for <code>screen</code>, your theme should be able to figure it out on its own. It can be <code>"result"</code>, <code>"k7"</code>, etc.</p>
+<hr  />
+<p> <b>NOTE</b></p>
+<p>You should not hard-code the name of your theme anywhere in your theme. The actual name of a theme in the game is always the name of its folder. Your theme should not break if the user renames the folder. Use <code>QmlUtils.themeName</code>.</p>
+<hr  />
 <p>Please don't access vars that don't belong to the current screen. It creates hidden dependencies on other themes or screens of your theme that might not be enabled.</p>
 <p>If you need to pass a variable between screens, suggest adding it to profile.vars.generalVars in the engine.</p>
-<h3><a class="anchor" id="autotoc_md27"></a>
+<h3><a class="anchor" id="autotoc_md29"></a>
 Overriding the settings page for a screen</h3>
 <p>You can override the auto-generated settings page for a screen by providing a QML file in a <code>settingsScripts</code> field in <code>theme.json</code>.</p>
 <div class="fragment"><div class="line">{</div>
@@ -131,7 +135,7 @@ Overriding the settings page for a screen</h3>
 <div class="line">    }</div>
 <div class="line">}</div>
 </div><!-- fragment --><p>The default theme does not use this feature.</p>
-<h3><a class="anchor" id="autotoc_md28"></a>
+<h3><a class="anchor" id="autotoc_md30"></a>
 Translations</h3>
 <p>Translations are described in <a class="el" href="md_DEV__LANG.html">DEV_LANG.md</a>.</p>
 <div class="fragment"><div class="line">{</div>
@@ -149,10 +153,43 @@ Translations</h3>
 <div class="line">        &quot;pl&quot;: &quot;pl.qm&quot;</div>
 <div class="line">    }</div>
 <div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md29"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md31"></a>
 Theme loading</h2>
 <p>Themes are loaded and validated when the game starts. If there are any critical errors in configuration files, the game will fail to start. Don't share broken themes! Look at log.txt in the assets folder to find out what went wrong.</p>
-<p>The part of the game that manages </p>
+<p>The part of the game that manages the theme most directly is <a href="https://github.com/Bobini1/RhythmGame/blob/master/RhythmGameQml/ContentFrame.qml">RhythmGameQml/ContentFrame.qml</a>. That qml file is compiled into the executable and is not part of any theme. It contains the window of the entire game and the <code>sceneStack</code>. <code>sceneStack</code> is a globally accessible <a href="https://doc.qt.io/qt-6/qml-qtquick-controls-stackview.html">StackView</a> that contains screens, like <code>main</code>, <code>select</code>, <code>k7</code>, one on top of the other. You can go to another screen by pushing it to the stack. You can exit a screen by popping it from the stack.</p>
+<hr  />
+<p> <b>NOTE</b></p>
+<p>When going from <code>select</code> to <code>k7</code> and then <code>result</code>, the former screens are not destroyed. When going back from <code>result</code>, it is the responsibility of the <code>k7</code> screen to remove itself from the stack to go back to select. When <code>k7</code> pushes <code>result</code>, it should remember to remove itself when it becomes active again.</p>
+<p>In most scenarios, you will want to push at most one screen on top of the stack at once. Then that screen can push another screen on top of itself, if needed.</p>
+<p>Do not remove screens from under yourself. It's messy and unnecessary.</p>
+<hr  />
+<h2><a class="anchor" id="autotoc_md34"></a>
+Initial state of screens</h2>
+<p><code>sceneStack</code> contains a few helper methods:</p>
+<div class="fragment"><div class="line">function openChart(path, profile1, autoplay1, score1, profile2, autoplay2, score2)</div>
+<div class="line">function openCourse(course, profile1, autoplay1, score1, profile2, autoplay2, score2)</div>
+<div class="line">function openResult(scores, profiles, chartData)</div>
+<div class="line">function openCourseResult(scores, profiles, chartDatas, course)</div>
+</div><!-- fragment --><p>Since gameplay screens and result screens need to be pushed with some initial property state, those helper methods set them based on the parameters passed to them.</p>
+<p>See <a href="https://bobini1.github.io/RhythmGame/classqml__components_1_1ChartLoader.html">ChartLoader docs</a> for an explanation of the parameters of <code>openChart</code> and <code>openCourse</code>.</p>
+<p>To use those methods, simply call <code>sceneStack.openChart(...)</code> from anywhere in your theme.</p>
+<p>Keep the folowing in mind when writing screens with initial state:</p>
+<p>Screens <code>k7</code>, <code>k14</code> and <code>k7battle</code> are expected to have single <code>var</code> property called <code>chart</code>. The assigned <code>chart</code> will be either a <a href="https://bobini1.github.io/RhythmGame/classgameplay__logic_1_1ChartRunner.html">ChartRunner</a> or <a href="https://bobini1.github.io/RhythmGame/classgameplay__logic_1_1CourseRunner.html">CourseRunner</a> object, depending on whether the player is playing a single chart or a course.</p>
+<p>Screen <code>result</code> is expected to have the following properties: </p><div class="fragment"><div class="line">property list&lt;BmsScore&gt; scores</div>
+<div class="line">property list&lt;Profile&gt; profiles</div>
+<div class="line">property ChartData chartData</div>
+</div><!-- fragment --><p>The lists will have 1 or 2 elements, depending on whether the game was played solo or in battle mode.</p>
+<p>Screen <code>courseResult</code> is expected to have the following properties: </p><div class="fragment"><div class="line">property list&lt;BmsScoreCourse&gt; scores</div>
+<div class="line">property list&lt;Profile&gt; profiles</div>
+<div class="line">property list&lt;ChartData&gt; chartDatas</div>
+<div class="line">property course course</div>
+</div><!-- fragment --><p>You can always use <code>var</code> instead of the exact type if you want to be flexible.</p>
+<h2><a class="anchor" id="autotoc_md35"></a>
+Input</h2>
+<p><code>sceneStack</code> automatically disables all input for screens that are not at the top of the stack. This applies to input provided by the <a href="https://bobini1.github.io/RhythmGame/classqml__components_1_1InputAttached.html">Input</a> attached property as well. Make sure to disable any background sounds when pushing a new screen on top of the stack. Song preview should not play during gameplay. You can use the <a href="https://doc.qt.io/qt-6/qml-qtquick-item.html#enabled-prop">enabled</a> property of <code>Item</code> to detect when a screen is not active. This property propagates to all child components.</p>
+<h2><a class="anchor" id="autotoc_md36"></a>
+The Rg singleton</h2>
+<p>The <a href="https://bobini1.github.io/RhythmGame/classRg.html">Rg</a> singleton is globally accessible upon importing <code>RhythmGameQml</code>. It contains various API objects with methods and properties useful for themes. </p>
 </div></div><!-- contents -->
 </div><!-- PageDoc -->
 <!-- start footer part -->

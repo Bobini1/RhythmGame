@@ -132,9 +132,18 @@ Public Member Functions</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="properties" name="properties"></a>
 Properties</h2></td></tr>
+<tr class="memitem:a94d78f9994866d07837a5112a6070862" id="r_a94d78f9994866d07837a5112a6070862"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classresource__managers_1_1Profile.html">resource_managers::Profile</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classqml__components_1_1ProfileList.html#a94d78f9994866d07837a5112a6070862">mainProfile</a> {}</td></tr>
+<tr class="memdesc:a94d78f9994866d07837a5112a6070862"><td class="mdescLeft">&#160;</td><td class="mdescRight">The profile that is used to select themes and theme settings. Never null.  <br /></td></tr>
+<tr class="separator:a94d78f9994866d07837a5112a6070862"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab8e7f1a022ed11bea31a9f2f3c99a44e" id="r_ab8e7f1a022ed11bea31a9f2f3c99a44e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classqml__components_1_1BattleProfiles.html">BattleProfiles</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classqml__components_1_1ProfileList.html#ab8e7f1a022ed11bea31a9f2f3c99a44e">battleProfiles</a></td></tr>
 <tr class="memdesc:ab8e7f1a022ed11bea31a9f2f3c99a44e"><td class="mdescLeft">&#160;</td><td class="mdescRight">The profiles used in battle mode.  <br /></td></tr>
 <tr class="separator:ab8e7f1a022ed11bea31a9f2f3c99a44e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a56c2858fc5d2a80e52ee48e5bc45234a" id="r_a56c2858fc5d2a80e52ee48e5bc45234a"><td class="memItemLeft" align="right" valign="top">QList&lt; <a class="el" href="classresource__managers_1_1Profile.html">resource_managers::Profile</a> * &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classqml__components_1_1ProfileList.html#a56c2858fc5d2a80e52ee48e5bc45234a">profiles</a></td></tr>
+<tr class="memdesc:a56c2858fc5d2a80e52ee48e5bc45234a"><td class="mdescLeft">&#160;</td><td class="mdescRight">The list of all available profiles.  <br /></td></tr>
+<tr class="separator:a56c2858fc5d2a80e52ee48e5bc45234a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a90b524ca3c03895993e3a44d53d28117" id="r_a90b524ca3c03895993e3a44d53d28117"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classqml__components_1_1ProfileList.html#a90b524ca3c03895993e3a44d53d28117">battleActive</a> {}</td></tr>
+<tr class="memdesc:a90b524ca3c03895993e3a44d53d28117"><td class="mdescLeft">&#160;</td><td class="mdescRight">Launch SP charts in battle mode with two profiles.  <br /></td></tr>
+<tr class="separator:a90b524ca3c03895993e3a44d53d28117"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>The list of local profiles. </p>
@@ -437,6 +446,31 @@ Properties</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Property Documentation</h2>
+<a id="a90b524ca3c03895993e3a44d53d28117" name="a90b524ca3c03895993e3a44d53d28117"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a90b524ca3c03895993e3a44d53d28117">&#9670;&#160;</a></span>battleActive</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool qml_components::ProfileList::battleActive {}</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">read</span><span class="mlabel">write</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Launch SP charts in battle mode with two profiles. </p>
+<p>Both battleProfiles.player1Profile and battleProfiles.player2Profile must be set before enabling battle. </p>
+
+</div>
+</div>
 <a id="ab8e7f1a022ed11bea31a9f2f3c99a44e" name="ab8e7f1a022ed11bea31a9f2f3c99a44e"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ab8e7f1a022ed11bea31a9f2f3c99a44e">&#9670;&#160;</a></span>battleProfiles</h2>
 
@@ -458,7 +492,56 @@ Properties</h2></td></tr>
 </div><div class="memdoc">
 
 <p>The profiles used in battle mode. </p>
-<dl class="section see"><dt>See also</dt><dd>battleActive </dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="classqml__components_1_1ProfileList.html#a90b524ca3c03895993e3a44d53d28117" title="Launch SP charts in battle mode with two profiles.">battleActive</a> </dd></dl>
+
+</div>
+</div>
+<a id="a94d78f9994866d07837a5112a6070862" name="a94d78f9994866d07837a5112a6070862"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a94d78f9994866d07837a5112a6070862">&#9670;&#160;</a></span>mainProfile</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classresource__managers_1_1Profile.html">resource_managers::Profile</a> * qml_components::ProfileList::mainProfile {}</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">read</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>The profile that is used to select themes and theme settings. Never null. </p>
+<p>It also specifies the shared settings in battle mode. The main profile does not need to be assigned to P1 or P2. </p>
+
+</div>
+</div>
+<a id="a56c2858fc5d2a80e52ee48e5bc45234a" name="a56c2858fc5d2a80e52ee48e5bc45234a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a56c2858fc5d2a80e52ee48e5bc45234a">&#9670;&#160;</a></span>profiles</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">QList&lt; <a class="el" href="classresource__managers_1_1Profile.html">resource_managers::Profile</a> * &gt; qml_components::ProfileList::profiles</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">read</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>The list of all available profiles. </p>
 
 </div>
 </div>

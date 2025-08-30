@@ -12,5 +12,6 @@ var searchData=
   ['pressed_9',['pressed',['../classgameplay__logic_1_1ColumnState.html#a116fbd7d8aec0c9ebad00828b7564ab6',1,'gameplay_logic::ColumnState::pressed'],['../classgameplay__logic_1_1Filter.html#a88bf37cdc9e027e688f7295861734869',1,'gameplay_logic::Filter::pressed']]],
   ['previewfilepathfetcher_10',['previewFilePathFetcher',['../classRg.html#a03bbcf41f38745a9822e35c625765e5c',1,'Rg']]],
   ['profile_11',['profile',['../classgameplay__logic_1_1Player.html#a86b08811822a75087b8ef494aed1a454',1,'gameplay_logic::Player']]],
-  ['profilelist_12',['profileList',['../classRg.html#aff668898d255d6e6415bf3fbda6bd463',1,'Rg']]]
+  ['profilelist_12',['profileList',['../classRg.html#aff668898d255d6e6415bf3fbda6bd463',1,'Rg']]],
+  ['profiles_13',['profiles',['../classqml__components_1_1ProfileList.html#a56c2858fc5d2a80e52ee48e5bc45234a',1,'qml_components::ProfileList']]]
 ];

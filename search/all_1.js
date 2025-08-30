@@ -1,8 +1,8 @@
 var searchData=
 [
   ['a_20beautiful_20default_20theme_0',['A beautiful default theme',['../index.html#autotoc_md7',1,'']]],
-  ['a_20screen_1',['Overriding the settings page for a screen',['../md_DEV__THEME.html#autotoc_md27',1,'']]],
-  ['a_20theme_2',['Translating a theme',['../md_DEV__LANG.html#autotoc_md34',1,'']]],
+  ['a_20screen_1',['Overriding the settings page for a screen',['../md_DEV__THEME.html#autotoc_md29',1,'']]],
+  ['a_20theme_2',['Translating a theme',['../md_DEV__LANG.html#autotoc_md41',1,'']]],
   ['about_3',['About',['../about.html',1,'']]],
   ['about_2edox_4',['about.dox',['../about_8dox.html',1,'']]],
   ['action_5',['action',['../classgameplay__logic_1_1HitEvent.html#a90790c3562f52b83f1c52d0c3764f767',1,'gameplay_logic::HitEvent::Action'],['../classgameplay__logic_1_1HitEvent.html#aa7157e01818ac8e19ae4659b3560a0c0',1,'gameplay_logic::HitEvent::action']]],
