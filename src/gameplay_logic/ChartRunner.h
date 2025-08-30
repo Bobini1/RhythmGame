@@ -23,9 +23,10 @@ class Player;
 
 /**
  * @brief The main class responsible for running a chart during gameplay.
- * @details Once start() is called and the BGA and sounds are loaded, the starts
- * its update timer. It updates the player objects on each timer tick. It also
- * handles key events and passes them to the appropriate player object.
+ * @details Once start() is called and the BGA and sounds are loaded, the
+ * ChartRunner starts its update timer. It updates the player objects on each
+ * timer tick. It also handles key events and passes them to the appropriate
+ * player object.
  */
 class ChartRunner final : public QObject
 {
@@ -181,7 +182,7 @@ class Player : public QObject
     QFuture<BmsGameReferee> refereeFuture;
     BmsLiveScore* score;
 
-protected:
+  protected:
     std::optional<BmsGameReferee> referee;
 
   public:
