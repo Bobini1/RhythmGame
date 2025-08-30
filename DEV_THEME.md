@@ -79,7 +79,7 @@ As for `screen`, your theme should be able to figure it out on its own. It can b
 
 You should not hard-code the name of your theme anywhere in your theme.
 The actual name of a theme in the game is always the name of its folder.
-Your theme should not break if the user renames the folder. Use `QmlUtils.themeName`.
+Your theme should not break if a user renames the folder. Use `QmlUtils.themeName`.
 
 ---
 
