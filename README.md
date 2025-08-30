@@ -19,6 +19,7 @@ Customize the default theme by pressing F2 during gameplay and moving the elemen
 You can also create your own custom theme with [QML](https://doc.qt.io/qt-6/qmlreference.html).
 Contact me if you're interested, I can help you get started!
 You can use the [default theme](https://github.com/Bobini1/RhythmGame/tree/master/assets/themes/Default) as a reference.
+See the [DEV_THEME.md](DEV_THEME.md) document for more information.
 
 ```qml
 Text {
