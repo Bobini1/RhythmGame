@@ -1,5 +1,5 @@
 <map id="gameplay_logic::Player" name="gameplay_logic::Player">
-<area shape="rect" id="Node000001" title="A player in a chart." alt="" coords="131,79,305,104"/>
+<area shape="rect" id="Node000001" title="A player of a chart." alt="" coords="131,79,305,104"/>
 <area shape="rect" id="Node000003" href="$classgameplay__logic_1_1AutoPlayer.html" title="A player that plays automatically, hitting all notes perfectly." alt="" coords="5,152,209,177"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="190,114,127,154,124,150,187,109"/>
 <area shape="rect" id="Node000004" href="$classgameplay__logic_1_1RePlayer.html" title="A player that replays a recorded score." alt="" coords="233,152,424,177"/>
