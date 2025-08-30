@@ -119,7 +119,7 @@ Persisent settings</h3>
 <p>You should not hard-code the name of your theme anywhere in your theme. The actual name of a theme in the game is always the name of its folder. Your theme should not break if a user renames the folder. Use <code>QmlUtils.themeName</code>.</p>
 <hr  />
 <p>Please don't access vars that don't belong to the current screen. It creates hidden dependencies on other themes or screens of your theme that might not be enabled.</p>
-<p>If you need to pass a variable between screens, suggest adding it to profile.vars.generalVars in the engine.</p>
+<p>If you need to pass a variable between screens, suggest adding it to <code>profile.vars.generalVars</code> in the engine.</p>
 <h3><a class="anchor" id="autotoc_md29"></a>
 Overriding the settings page for a screen</h3>
 <p>You can override the auto-generated settings page for a screen by providing a QML file in a <code>settingsScripts</code> field in <code>theme.json</code>.</p>
