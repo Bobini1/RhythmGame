@@ -116,7 +116,7 @@ Persisent settings</h3>
 <p>You can get the current theme's name with <a href="https://bobini1.github.io/RhythmGame/classqml__components_1_1QmlUtilsAttached.html">QmlUtils.themeName</a>. As for <code>screen</code>, your theme should be able to figure it out on its own. It can be <code>"result"</code>, <code>"k7"</code>, etc.</p>
 <hr  />
 <p> <b>NOTE</b></p>
-<p>You should not hard-code the name of your theme anywhere in your theme. The actual name of a theme in the game is always the name of its folder. Your theme should not break if the user renames the folder. Use <code>QmlUtils.themeName</code>.</p>
+<p>You should not hard-code the name of your theme anywhere in your theme. The actual name of a theme in the game is always the name of its folder. Your theme should not break if a user renames the folder. Use <code>QmlUtils.themeName</code>.</p>
 <hr  />
 <p>Please don't access vars that don't belong to the current screen. It creates hidden dependencies on other themes or screens of your theme that might not be enabled.</p>
 <p>If you need to pass a variable between screens, suggest adding it to profile.vars.generalVars in the engine.</p>
