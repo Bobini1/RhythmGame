@@ -12,6 +12,10 @@
 
 namespace gameplay_logic {
 
+/**
+ * @brief Contains course-related data for a player.
+ * @see Player
+ */
 class CoursePlayer final : public QObject
 {
     Q_OBJECT
@@ -33,6 +37,10 @@ class CoursePlayer final : public QObject
     void maxComboChanged();
 };
 
+/**
+ * @brief Like a ChartRunner, but for courses.
+ * @see ChartRunner
+ */
 class CourseRunner final : public QObject
 {
     Q_OBJECT
