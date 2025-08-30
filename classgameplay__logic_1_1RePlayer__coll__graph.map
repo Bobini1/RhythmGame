@@ -1,6 +1,6 @@
 <map id="gameplay_logic::RePlayer" name="gameplay_logic::RePlayer">
 <area shape="rect" id="Node000001" title="A player that replays a recorded score." alt="" coords="5,152,196,177"/>
-<area shape="rect" id="Node000002" href="$classgameplay__logic_1_1Player.html" title="A player of a chart." alt="" coords="13,79,188,104"/>
+<area shape="rect" id="Node000002" href="$classgameplay__logic_1_1Player.html" title="A player in a chart." alt="" coords="13,79,188,104"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="103,118,103,152,98,152,98,118"/>
 <area shape="rect" id="Node000003" title=" " alt="" coords="63,5,138,31"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="103,44,103,79,98,79,98,44"/>
