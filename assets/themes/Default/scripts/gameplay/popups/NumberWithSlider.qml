@@ -37,9 +37,10 @@ Row {
         id: txt
 
         text: Qt.locale().toString(src[numberWithSlider.prop], "f", numberWithSlider.decimals)
-        font.pixelSize: 20
+        font.pixelSize: 18
         width: 70
-        height: slider.height
+        height: slider.height - 8
+        anchors.verticalCenter: slider.verticalCenter
         horizontalAlignment: Text.AlignHCenter
 
         validator: DoubleValidator {

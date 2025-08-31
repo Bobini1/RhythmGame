@@ -9,7 +9,7 @@ Popup {
 
     closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
     focus: true
-    height: 500
+    height: Math.min(500, column.contentHeight + padding * 2)
     width: 520
     padding: 2
     property alias model: column.model
@@ -29,6 +29,7 @@ Popup {
     transformOrigin: Item.TopLeft
     scale: scaledRoot.scale
     contentItem: ScrollView {
+        id: scrollView
         clip: true
         leftPadding: 6
 

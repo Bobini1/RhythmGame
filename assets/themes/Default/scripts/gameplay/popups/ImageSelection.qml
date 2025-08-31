@@ -1,6 +1,6 @@
 import RhythmGameQml
 import QtQuick
-import "../common/helpers.js" as Helpers
+import "../../common/helpers.js" as Helpers
 
 Row {
     id: imageSelection
@@ -40,7 +40,7 @@ Row {
         delegate: Image {
             fillMode: Image.PreserveAspectFit
             height: selection.cellHeight - imageSelection.spacing
-            source: "images/" + imageSelection.propertyId + "/" + modelData
+            source: "../images/" + imageSelection.propertyId + "/" + modelData
             width: selection.cellWidth - imageSelection.spacing
 
             MouseArea {

@@ -6,7 +6,6 @@ import QtQml.Models
 
 GameplayPopup {
     id: popup
-    height: 200
 
     required property var themeVars
 

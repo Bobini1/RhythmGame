@@ -7,6 +7,7 @@ import QtQuick.Controls.Basic
 import QtMultimedia
 import "../common/TaoQuickCustom"
 import "../common/helpers.js" as Helpers
+import "popups"
 
 Rectangle {
     id: root
@@ -110,7 +111,7 @@ Rectangle {
     PlayAreaPopup {
         id: playAreaPopup
 
-        property Profile profile: chart.player1.profile
+        readonly property Profile profile: chart.player1.profile
         themeVars: profile.vars.themeVars[root.screen][root.themeName]
         generalVars: profile.vars.generalVars
         dp: root.isDp
@@ -122,7 +123,7 @@ Rectangle {
     PlayAreaPopup {
         id: playAreaPopupP2
 
-        property Profile profile: (chart.player2 || chart.player1).profile
+        readonly property Profile profile: (chart.player2 || chart.player1).profile
         themeVars: profile.vars.themeVars[root.screen][root.themeName]
         generalVars: profile.vars.generalVars
         dp: root.isDp
@@ -134,7 +135,7 @@ Rectangle {
     GaugePopup {
         id: gaugePopup
 
-        property Profile profile: chart.player1.profile
+        readonly property Profile profile: chart.player1.profile
         themeVars: profile.vars.themeVars[root.screen][root.themeName]
 
         onClosed: {
@@ -144,8 +145,39 @@ Rectangle {
     GaugePopup {
         id: gaugePopupP2
 
-        property Profile profile: (chart.player2 || chart.player1).profile
+        readonly property Profile profile: (chart.player2 || chart.player1).profile
         themeVars: profile.vars.themeVars[root.screen][root.themeName]
+
+        onClosed: {
+            root.popup = null;
+        }
+    }
+    JudgementCountsPopup {
+        id: judgementCountsPopup
+
+        readonly property Profile profile: chart.player1.profile
+        themeVars: profile.vars.themeVars[root.screen][root.themeName]
+
+        onClosed: {
+            root.popup = null;
+        }
+    }
+    JudgementCountsPopup {
+        id: judgementCountsPopupP2
+
+        readonly property Profile profile: (chart.player2 || chart.player1).profile
+        themeVars: profile.vars.themeVars[root.screen][root.themeName]
+
+        onClosed: {
+            root.popup = null;
+        }
+    }
+    BgaPopup {
+        id: bgaPopup
+
+        readonly property Profile profile: Rg.profileList.mainProfile
+        themeVars: profile.vars.themeVars[root.screen][root.themeName]
+        generalVars: profile.vars.generalVars
 
         onClosed: {
             root.popup = null;
@@ -205,6 +237,21 @@ Rectangle {
                 color: "transparent"
                 keepAspectRatio: true
                 visible: root.customizeMode
+            }
+
+            MouseArea {
+                id: bgaMouseArea
+
+                acceptedButtons: Qt.RightButton
+                anchors.fill: parent
+                z: -1
+
+                onClicked: mouse => {
+                    let point = mapToItem(Overlay.overlay, mouse.x, mouse.y);
+                    bgaPopup.setPosition(point);
+                    bgaPopup.open();
+                    root.popup = bgaPopup;
+                }
             }
         }
 
@@ -456,6 +503,26 @@ Rectangle {
                     anchors.margins: -borderMargin
                     color: "transparent"
                     visible: root.customizeMode
+                }
+                MouseArea {
+                    id: judgementCountsMouseArea
+
+                    acceptedButtons: Qt.RightButton
+                    anchors.fill: parent
+                    z: -1
+
+                    onClicked: mouse => {
+                        let point = mapToItem(Overlay.overlay, mouse.x, mouse.y);
+                        let popup;
+                        if (side.mirrored) {
+                            popup = judgementCountsPopupP2;
+                        } else {
+                            popup = judgementCountsPopup;
+                        }
+                        popup.setPosition(point);
+                        popup.open();
+                        root.popup = popup;
+                    }
                 }
                 Repeater {
                     id: judgementCountsModel
