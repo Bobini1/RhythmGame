@@ -223,11 +223,17 @@ For bound key input (controller or keyboard), use
 [Input](https://bobini1.github.io/RhythmGame/classqml__components_1_1InputAttached.html).
 
 `sceneStack` automatically disables all input for screens that are not at the top of the stack.
-Make sure to disable any background sounds when pushing a new screen on top of the stack.
+Make sure to disable any background sounds and [Shortcuts](https://doc.qt.io/qt-6/qml-qtquick-shortcut.html) when
+pushing a new screen on top of the stack (Shortcuts are dumb and don't get disabled automatically).
 Song preview should not play during gameplay. You can use the
 [enabled](https://doc.qt.io/qt-6/qml-qtquick-item.html#enabled-prop) property of `Item`
 to detect when a screen is not active.
 This property propagates to all child components.
+
+Gameplay screens should not use `Input` directly. Instead, use
+[columnState.pressed](https://bobini1.github.io/RhythmGame/classgameplay__logic_1_1ColumnState.html#a116fbd7d8aec0c9ebad00828b7564ab6).
+This will play nicely with autoplay and replays.
+`Input` is reserved for actual input, not injected key presses.
 
 ## Scaling
 
