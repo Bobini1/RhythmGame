@@ -274,7 +274,7 @@ ChartDataFactory::loadChartData(const std::filesystem::path& chartPath,
     }
     auto totalNotes = normalNotes + lnNotes;
     auto total = parsedChart.tags.total.value_or(
-      160 + (totalNotes + std::clamp(totalNotes - 400, 0, 200)) * 0.16);
+      (totalNotes + std::clamp(totalNotes - 400, 0, 200)) * 0.16 + 160);
     auto path = support::pathToQString(chartPath);
     auto chartData = std::make_unique<gameplay_logic::ChartData>(
       std::move(title),
