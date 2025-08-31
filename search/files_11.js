@@ -15,7 +15,5 @@ var searchData=
   ['songfolderfactory_2ecpp_12',['SongFolderFactory.cpp',['../SongFolderFactory_8cpp.html',1,'']]],
   ['songfolderfactory_2eh_13',['SongFolderFactory.h',['../SongFolderFactory_8h.html',1,'']]],
   ['sqlitecppdb_2ecpp_14',['SqliteCppDb.cpp',['../SqliteCppDb_8cpp.html',1,'']]],
-  ['sqlitecppdb_2eh_15',['SqliteCppDb.h',['../SqliteCppDb_8h.html',1,'']]],
-  ['standardbmshitrules_2ecpp_16',['StandardBmsHitRules.cpp',['../StandardBmsHitRules_8cpp.html',1,'']]],
-  ['standardbmshitrules_2eh_17',['StandardBmsHitRules.h',['../StandardBmsHitRules_8h.html',1,'']]]
+  ['sqlitecppdb_2eh_15',['SqliteCppDb.h',['../SqliteCppDb_8h.html',1,'']]]
 ];

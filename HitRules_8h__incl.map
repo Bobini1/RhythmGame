@@ -1,5 +1,5 @@
-<map id="src/gameplay_logic/rules/StandardBmsHitRules.h" name="src/gameplay_logic/rules/StandardBmsHitRules.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="473,5,689,45"/>
+<map id="src/gameplay_logic/rules/HitRules.h" name="src/gameplay_logic/rules/HitRules.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="507,5,655,45"/>
 <area shape="rect" id="Node000002" href="$BmsNotesData_8h.html" title=" " alt="" coords="225,93,401,119"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="517,48,365,92,364,87,516,43"/>
 <area shape="rect" id="Node000004" title=" " alt="" coords="459,174,526,199"/>
@@ -11,7 +11,7 @@
 <area shape="rect" id="Node000017" href="$BmsGauge_8h.html" title=" " alt="" coords="769,93,875,119"/>
 <area shape="poly" id="edge17_Node000001_Node000017" title=" " alt="" coords="639,43,774,86,773,92,638,48"/>
 <area shape="rect" id="Node000019" href="$HitEvent_8h.html" title=" " alt="" coords="933,93,1130,119"/>
-<area shape="poly" id="edge21_Node000001_Node000019" title=" " alt="" coords="689,43,953,88,952,94,688,48"/>
+<area shape="poly" id="edge21_Node000001_Node000019" title=" " alt="" coords="656,37,953,88,952,94,655,42"/>
 <area shape="rect" id="Node000003" title=" " alt="" coords="39,174,101,199"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="270,121,115,169,109,171,107,166,113,164,269,116"/>
 <area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="340,116,455,166,453,171,338,121"/>

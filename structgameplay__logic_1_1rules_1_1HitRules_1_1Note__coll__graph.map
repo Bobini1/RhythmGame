@@ -1,0 +1,5 @@
+<map id="gameplay_logic::rules::HitRules::Note" name="gameplay_logic::rules::HitRules::Note">
+<area shape="rect" id="Node000001" title=" " alt="" coords="6,93,171,133"/>
+<area shape="rect" id="Node000002" href="$classsounds_1_1OpenALSound.html" title="A sound that can be played. Wraps an OpenAL source." alt="" coords="5,5,172,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="91,44,91,93,86,93,86,44"/>
+</map>

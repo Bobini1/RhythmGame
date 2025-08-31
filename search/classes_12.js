@@ -14,12 +14,11 @@ var searchData=
   ['sqlitecppdb_11',['SqliteCppDb',['../classdb_1_1SqliteCppDb.html',1,'db']]],
   ['stagefile_12',['StageFile',['../structcharts_1_1StageFile.html',1,'charts']]],
   ['stagefiletag_13',['StageFileTag',['../structcharts_1_1StageFileTag.html',1,'charts']]],
-  ['standardbmshitrules_14',['StandardBmsHitRules',['../classgameplay__logic_1_1rules_1_1StandardBmsHitRules.html',1,'gameplay_logic::rules']]],
-  ['statement_15',['Statement',['../classdb_1_1SqliteCppDb_1_1Statement.html',1,'db::SqliteCppDb']]],
-  ['stop_16',['Stop',['../structcharts_1_1Stop.html',1,'charts']]],
-  ['stoptag_17',['StopTag',['../structcharts_1_1StopTag.html',1,'charts']]],
-  ['subartist_18',['Subartist',['../structcharts_1_1Subartist.html',1,'charts']]],
-  ['subartisttag_19',['SubartistTag',['../structcharts_1_1SubartistTag.html',1,'charts']]],
-  ['subtitle_20',['Subtitle',['../structcharts_1_1Subtitle.html',1,'charts']]],
-  ['subtitletag_21',['SubtitleTag',['../structcharts_1_1SubtitleTag.html',1,'charts']]]
+  ['statement_14',['Statement',['../classdb_1_1SqliteCppDb_1_1Statement.html',1,'db::SqliteCppDb']]],
+  ['stop_15',['Stop',['../structcharts_1_1Stop.html',1,'charts']]],
+  ['stoptag_16',['StopTag',['../structcharts_1_1StopTag.html',1,'charts']]],
+  ['subartist_17',['Subartist',['../structcharts_1_1Subartist.html',1,'charts']]],
+  ['subartisttag_18',['SubartistTag',['../structcharts_1_1SubartistTag.html',1,'charts']]],
+  ['subtitle_19',['Subtitle',['../structcharts_1_1Subtitle.html',1,'charts']]],
+  ['subtitletag_20',['SubtitleTag',['../structcharts_1_1SubtitleTag.html',1,'charts']]]
 ];
