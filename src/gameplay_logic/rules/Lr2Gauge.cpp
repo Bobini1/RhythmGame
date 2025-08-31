@@ -13,12 +13,16 @@ gameplay_logic::rules::Lr2Gauge::addHit(
 {
     auto currentGauge = getGauge();
     if (permanentDeath &&
-        (currentGauge == 0 || currentGauge < getThreshold())) {
+        currentGauge == 0.0) {
         return;
     }
     const auto judgementValue = judgementValueFactory(currentGauge, judgement);
+    const auto minVal = permanentDeath ? 0.0 : 2.0;
     auto newGauge =
-      std::clamp(currentGauge + judgementValue, 0.0, getGaugeMax());
+      std::clamp(currentGauge + judgementValue, minVal, getGaugeMax());
+    if (permanentDeath && newGauge < getThreshold()) {
+        newGauge = 0.0;
+    }
     if (newGauge != currentGauge) {
         addGaugeHistoryEntry({ offsetFromStart.count(), newGauge });
     }
@@ -53,7 +57,7 @@ gameplay_logic::rules::Lr2Gauge::getGauges(double total, int noteCount)
       "FC",
       100,
       100,
-      0,
+      2,
       true,
       false,
       [](double currentGauge, Judgement judgement) {
@@ -87,11 +91,11 @@ gameplay_logic::rules::Lr2Gauge::getGauges(double total, int noteCount)
                                          case Judgement::Good:
                                              return 0.05;
                                          case Judgement::Bad:
-                                             return (currentGauge > 30) ? -12.0 : -7.2;
+                                             return (currentGauge > 32) ? -12.0 : -7.2;
                                          case Judgement::Poor:
-                                             return (currentGauge > 30) ? -20.0 : -12.0;
+                                             return (currentGauge > 32) ? -20.0 : -12.0;
                                          case Judgement::EmptyPoor:
-                                             return (currentGauge > 30) ? -2.0 : -1.2;
+                                             return (currentGauge > 32) ? -2.0 : -1.2;
                                          default:
                                              return 0.0;
                                      }
@@ -102,7 +106,7 @@ gameplay_logic::rules::Lr2Gauge::getGauges(double total, int noteCount)
       "HARD",
       100,
       100,
-      0,
+      2,
       true,
       false,
       [](double currentGauge, Judgement judgement) {
@@ -114,11 +118,11 @@ gameplay_logic::rules::Lr2Gauge::getGauges(double total, int noteCount)
               case Judgement::Good:
                   return 0.05;
               case Judgement::Bad:
-                  return (currentGauge > 30) ? -6.0 : -3.6;
+                  return (currentGauge > 32) ? -6.0 : -3.6;
               case Judgement::Poor:
-                  return (currentGauge > 30) ? -10.0 : -6.0;
+                  return (currentGauge > 32) ? -10.0 : -6.0;
               case Judgement::EmptyPoor:
-                  return (currentGauge > 30) ? -2.0 : -1.2;
+                  return (currentGauge > 32) ? -2.0 : -1.2;
               default:
                   return 0.0;
           }
@@ -276,7 +280,7 @@ gameplay_logic::rules::Lr2Gauge::getDanGauges(
       "DAN",
       100,
       initialValues.value("DAN", 100),
-      0,
+      2,
       true,
       true,
       [](double currentGauge, Judgement judgement) {
@@ -288,11 +292,11 @@ gameplay_logic::rules::Lr2Gauge::getDanGauges(
               case Judgement::Good:
                   return 0.05;
               case Judgement::Bad:
-                  return (currentGauge > 30) ? -2.0 : -1.2;
+                  return (currentGauge > 32) ? -2.0 : -1.2;
               case Judgement::Poor:
-                  return (currentGauge > 30) ? -3.0 : -1.8;
+                  return (currentGauge > 32) ? -3.0 : -1.8;
               case Judgement::EmptyPoor:
-                  return (currentGauge > 30) ? -2.0 : -1.2;
+                  return (currentGauge > 32) ? -2.0 : -1.2;
               default:
                   return 0.0;
           }
