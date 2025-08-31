@@ -46,11 +46,22 @@ Item {
             visible: (index === gaugeRoot.gauges.length - 1) || (modelData.gauge > threshold)
             z: gaugeRoot.gauges.length - index - 1
 
+            Timer {
+                id: blinking
+                property real random
+                running: true
+                repeat: true
+                interval: 33
+                onTriggered: {
+                    random = Math.random();
+                }
+            }
             Row {
-                z: 0
+                z: 1
                 anchors.fill: parent
 
                 Repeater {
+                    id: fullChunks
                     model: Math.floor(gauge.gaugeMax / 2)
 
                     Image {
@@ -59,24 +70,32 @@ Item {
                         height: parent.height
 
                         source: gauge.getSource(index) + "_empty"
+
+                        Image {
+                            id: fullChunk
+                            width: parent.width
+                            height: parent.height
+                            visible: {
+                                let count = Math.floor(gauge.gauge / 2)
+                                if (index >= count) {
+                                    return false;
+                                }
+                                if (index === count - 4) {
+                                    return blinking.random > 0.25;
+                                }
+                                if (index === count - 3) {
+                                    return blinking.random > 0.5
+                                }
+                                if (index === count - 2) {
+                                    return blinking.random > 0.75;
+                                }
+                                return true;
+                            }
+
+                            source: gauge.getSource(index)
+                        }
                     }
-                }
-            }
-            Row {
-                z: 1
-                anchors.fill: parent
 
-                Repeater {
-                    model: Math.floor(gauge.gauge / 2)
-
-                    Image {
-                        id: fullChunk
-                        width: parent.width / (gauge.gaugeMax / 2)
-                        height: parent.height
-
-                        source: gauge.getSource(index)
-                        visible: index < gauge.gauge / 2
-                    }
                 }
             }
         }
