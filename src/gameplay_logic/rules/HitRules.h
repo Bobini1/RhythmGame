@@ -27,7 +27,9 @@ namespace gameplay_logic::rules {
  * - "Bottom notes get priority": The lowest (earlier timestamp) hittable note
  *   is hit. Used in osu!mania.
  *
- * This class implements the "Bottom notes get priority" algorithm.
+ * This class implements the "Combo get priority" algorithm.
+ * @note Define RHYTHMGAME_BOTTOM_NOTES_GET_PRIORITY to use the "Bottom notes
+ * get priority" algorithm instead.
  */
 class HitRules
 {

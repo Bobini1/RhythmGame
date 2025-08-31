@@ -9,19 +9,19 @@
 #include <ranges>
 using namespace std::chrono_literals;
 auto
-gameplay_logic::rules::HitRules::press(
-  std::span<Note> notes,
-  const int column,
-  const std::chrono::nanoseconds hitOffset) -> QList<HitEvent>
+gameplay_logic::rules::HitRules::press(std::span<Note> notes,
+                                       const int column,
+                                       const std::chrono::nanoseconds hitOffset)
+  -> QList<HitEvent>
 {
     auto currentNoteIndex = currentNotes[column];
     // by default, there is no empty poor, this is an empty hit
-    auto emptyPoorOrNothing = HitEvent{ column,
-                                        std::nullopt,
-                                        hitOffset.count(),
-                                        std::nullopt,
-                                        HitEvent::Action::Press,
-                                        /*noteRemoved=*/false };
+    auto emptyPoorOrBadOrNothing = HitEvent{ column,
+                                             std::nullopt,
+                                             hitOffset.count(),
+                                             std::nullopt,
+                                             HitEvent::Action::Press,
+                                             /*noteRemoved=*/false };
     auto subspan = notes.subspan(currentNoteIndex);
     for (auto iter = subspan.begin(); iter < subspan.end(); ++iter) {
         auto& note = *iter;
@@ -43,7 +43,11 @@ gameplay_logic::rules::HitRules::press(
         }
         if (const auto result =
               timingWindows.find(hitOffset - noteTime)->second;
-            result != Judgement::EmptyPoor) {
+            result != Judgement::EmptyPoor
+#ifndef RHYTHMGAME_BOTTOM_NOTES_GET_PRIORITY
+            && result != Judgement::Bad
+#endif
+            ) {
             note.hit = true;
             if (note.sound != nullptr && !soundDisabled) {
                 note.sound->play();
@@ -93,7 +97,7 @@ gameplay_logic::rules::HitRules::press(
             }
             return ret;
         }
-        emptyPoorOrNothing = HitEvent(
+        emptyPoorOrBadOrNothing = HitEvent(
           column,
           note.index,
           hitOffset.count(),
@@ -126,7 +130,7 @@ gameplay_logic::rules::HitRules::press(
             notes.front().sound->play();
         }
     }
-    return { emptyPoorOrNothing };
+    return { emptyPoorOrBadOrNothing };
 }
 auto
 gameplay_logic::rules::HitRules::processMisses(
