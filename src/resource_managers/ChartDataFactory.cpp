@@ -272,6 +272,9 @@ ChartDataFactory::loadChartData(const std::filesystem::path& chartPath,
             }
         }
     }
+    auto totalNotes = normalNotes + lnNotes;
+    auto total = parsedChart.tags.total.value_or(
+      160 + (totalNotes + std::clamp(totalNotes - 400, 0, 200)) * 0.16);
     auto path = support::pathToQString(chartPath);
     auto chartData = std::make_unique<gameplay_logic::ChartData>(
       std::move(title),
@@ -283,7 +286,7 @@ ChartDataFactory::loadChartData(const std::filesystem::path& chartPath,
       std::move(banner),
       std::move(backBmp),
       parsedChart.tags.rank.value_or(2),
-      parsedChart.tags.total.value_or(160.0),
+      total,
       parsedChart.tags.playLevel.value_or(1),
       parsedChart.tags.difficulty.value_or(1),
       parsedChart.tags.isRandom,
