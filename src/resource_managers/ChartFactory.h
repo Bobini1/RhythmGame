@@ -36,7 +36,7 @@ class ChartFactory
     {
         QPointer<Profile> profile;
         QList<gameplay_logic::rules::BmsGauge*> gauges;
-        gameplay_logic::rules::StandardBmsHitRules hitRules;
+        gameplay_logic::rules::HitRules hitRules;
         gameplay_logic::BmsScore* replayedScore;
         NoteOrderAlgorithm noteOrderAlgorithm;
         NoteOrderAlgorithm noteOrderAlgorithmP2;

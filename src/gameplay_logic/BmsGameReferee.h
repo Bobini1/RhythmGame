@@ -9,7 +9,7 @@
 #include "charts/BmsNotesData.h"
 #include "input/BmsKeys.h"
 #include "BmsLiveScore.h"
-#include "gameplay_logic/rules/StandardBmsHitRules.h"
+#include "gameplay_logic/rules/HitRules.h"
 #include "sounds/OpenAlSound.h"
 
 /**
@@ -27,17 +27,17 @@ class BmsGameReferee
 {
     using BgmType = std::pair<std::chrono::nanoseconds, sounds::OpenALSound*>;
 
-    std::array<std::vector<rules::StandardBmsHitRules::Note>,
+    std::array<std::vector<rules::HitRules::Note>,
                charts::BmsNotesData::columnNumber>
       notes;
-    std::array<std::vector<rules::StandardBmsHitRules::Mine>,
+    std::array<std::vector<rules::HitRules::Mine>,
                charts::BmsNotesData::columnNumber>
       mines;
     std::vector<BgmType> bgms;
     std::span<BgmType> currentBgms;
     std::vector<std::pair<charts::BmsNotesData::Time, double>> bpmChanges;
     std::unordered_map<uint16_t, sounds::OpenALSound> sounds;
-    rules::StandardBmsHitRules hitRules;
+    rules::HitRules hitRules;
     BmsLiveScore* score;
     sounds::OpenALSound* mineHitSound;
     std::array<bool, charts::BmsNotesData::columnNumber> pressedState{};
@@ -66,7 +66,7 @@ class BmsGameReferee
       sounds::OpenALSound* mineHitSound,
       BmsLiveScore* score,
       std::unordered_map<uint16_t, sounds::OpenALSound> sounds,
-      rules::StandardBmsHitRules hitRules);
+      rules::HitRules hitRules);
     /**
      * @brief Update the internal state of the referee
      * @param offsetFromStart The current time offset from the start of the

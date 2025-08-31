@@ -2,14 +2,14 @@
 // Created by bobini on 22.06.23.
 //
 
-#include "StandardBmsHitRules.h"
+#include "HitRules.h"
 
 #include "sounds/OpenAlSound.h"
 
 #include <ranges>
 using namespace std::chrono_literals;
 auto
-gameplay_logic::rules::StandardBmsHitRules::press(
+gameplay_logic::rules::HitRules::press(
   std::span<Note> notes,
   const int column,
   const std::chrono::nanoseconds hitOffset) -> QList<HitEvent>
@@ -129,7 +129,7 @@ gameplay_logic::rules::StandardBmsHitRules::press(
     return { emptyPoorOrNothing };
 }
 auto
-gameplay_logic::rules::StandardBmsHitRules::processMisses(
+gameplay_logic::rules::HitRules::processMisses(
   std::span<Note> notes,
   int column,
   const std::chrono::nanoseconds offsetFromStart) -> std::vector<HitEvent>
@@ -199,7 +199,7 @@ gameplay_logic::rules::StandardBmsHitRules::processMisses(
     }
     return events;
 }
-gameplay_logic::rules::StandardBmsHitRules::StandardBmsHitRules(
+gameplay_logic::rules::HitRules::HitRules(
   TimingWindows timingWindows,
   std::function<double(std::chrono::nanoseconds, Judgement judgement)>
     hitValueFactory)
@@ -208,12 +208,12 @@ gameplay_logic::rules::StandardBmsHitRules::StandardBmsHitRules(
 {
 }
 void
-gameplay_logic::rules::StandardBmsHitRules::disableSound()
+gameplay_logic::rules::HitRules::disableSound()
 {
     soundDisabled = true;
 }
 auto
-gameplay_logic::rules::StandardBmsHitRules::processMines(
+gameplay_logic::rules::HitRules::processMines(
   std::span<Mine> mines,
   int column,
   std::chrono::nanoseconds offsetFromStart,
@@ -287,7 +287,7 @@ gameplay_logic::rules::StandardBmsHitRules::processMines(
     return mineHits;
 }
 auto
-gameplay_logic::rules::StandardBmsHitRules::release(
+gameplay_logic::rules::HitRules::release(
   std::span<Note> notes,
   const int column,
   const std::chrono::nanoseconds hitOffset) -> HitEvent
