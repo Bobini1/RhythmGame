@@ -108,8 +108,8 @@ qt_add_library(RhythmGame_lib OBJECT ${utf8Manifest}
         src/resource_managers/loadBmsSounds.h
         src/gameplay_logic/BmsPoints.cpp
         src/gameplay_logic/BmsPoints.h
-        src/gameplay_logic/rules/StandardBmsHitRules.cpp
-        src/gameplay_logic/rules/StandardBmsHitRules.h
+        src/gameplay_logic/rules/HitRules.cpp
+        src/gameplay_logic/rules/HitRules.h
         src/gameplay_logic/Judgement.cpp
         src/gameplay_logic/Judgement.h
         src/gameplay_logic/TimePoint.cpp
