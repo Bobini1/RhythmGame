@@ -2,8 +2,8 @@
 // Created by bobini on 22.06.23.
 //
 
-#ifndef RHYTHMGAME_STANDARDBMSHITRULES_H
-#define RHYTHMGAME_STANDARDBMSHITRULES_H
+#ifndef RHYTHMGAME_HITRULES_H
+#define RHYTHMGAME_HITRULES_H
 #include "charts/BmsNotesData.h"
 #include "TimingWindows.h"
 #include "BmsGauge.h"
@@ -90,4 +90,4 @@ class HitRules
 };
 } // namespace gameplay_logic::rules
 
-#endif // RHYTHMGAME_STANDARDBMSHITRULES_H
+#endif // RHYTHMGAME_HITRULES_H

@@ -13,7 +13,7 @@ gameplay_logic::BmsGameReferee::BmsGameReferee(
   sounds::OpenALSound* mineHitSound,
   BmsLiveScore* score,
   std::unordered_map<uint16_t, sounds::OpenALSound> sounds,
-  rules::StandardBmsHitRules hitRules)
+  rules::HitRules hitRules)
   : bpmChanges(std::move(bpmChanges))
   , sounds(std::move(sounds))
   , hitRules(std::move(hitRules))
@@ -47,14 +47,14 @@ gameplay_logic::BmsGameReferee::addNote(
         if (auto sound = sounds.find(soundId); sound != sounds.end()) {
             column.emplace_back(&sound->second,
                                 note.time.timestamp,
-                                rules::StandardBmsHitRules::NoteType::Normal,
+                                rules::HitRules::NoteType::Normal,
                                 index);
         } else {
             // we still want to be able to hit those notes, even if they
             // don't make a sound
             column.emplace_back(nullptr,
                                 note.time.timestamp,
-                                rules::StandardBmsHitRules::NoteType::Normal,
+                                rules::HitRules::NoteType::Normal,
                                 index);
         }
     } else if (note.noteType == charts::BmsNotesData::NoteType::LongNoteBegin) {
@@ -62,14 +62,14 @@ gameplay_logic::BmsGameReferee::addNote(
         if (auto sound = sounds.find(soundId); sound != sounds.end()) {
             column.emplace_back(&sound->second,
                                 note.time.timestamp,
-                                rules::StandardBmsHitRules::NoteType::LnBegin,
+                                rules::HitRules::NoteType::LnBegin,
                                 index);
         } else {
             // we still want to be able to hit those notes, even if they
             // don't make a sound
             column.emplace_back(nullptr,
                                 note.time.timestamp,
-                                rules::StandardBmsHitRules::NoteType::LnBegin,
+                                rules::HitRules::NoteType::LnBegin,
                                 index);
         }
     } else if (note.noteType == charts::BmsNotesData::NoteType::LongNoteEnd) {
@@ -77,14 +77,14 @@ gameplay_logic::BmsGameReferee::addNote(
         if (auto sound = sounds.find(soundId); sound != sounds.end()) {
             column.emplace_back(&sound->second,
                                 note.time.timestamp,
-                                rules::StandardBmsHitRules::NoteType::LnEnd,
+                                rules::HitRules::NoteType::LnEnd,
                                 index);
         } else {
             // we still want to be able to hit those notes, even if they
             // don't make a sound
             column.emplace_back(nullptr,
                                 note.time.timestamp,
-                                rules::StandardBmsHitRules::NoteType::LnEnd,
+                                rules::HitRules::NoteType::LnEnd,
                                 index);
         }
     } else if (note.noteType == charts::BmsNotesData::NoteType::Landmine) {
