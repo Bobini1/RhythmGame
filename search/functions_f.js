@@ -11,7 +11,7 @@ var searchData=
   ['pause_8',['pause',['../classsounds_1_1OpenALSound.html#a4132e5e1c10e078febe11fe1a4c49812',1,'sounds::OpenALSound']]],
   ['performtask_9',['performTask',['../classqml__components_1_1ScanningQueue.html#a3d4cfdd1f236a1ef96f5a5c5aff03638',1,'qml_components::ScanningQueue']]],
   ['play_10',['play',['../classsounds_1_1OpenALSound.html#aa07aa56b4aace442e3f8160027e68826',1,'sounds::OpenALSound']]],
-  ['player_11',['Player',['../classgameplay__logic_1_1Player.html#a50f18919546016a327537a3c75ea32c5',1,'gameplay_logic::Player']]],
+  ['player_11',['Player',['../classgameplay__logic_1_1Player.html#ae6cb28ae992cfb39fb31f7a9322de377',1,'gameplay_logic::Player']]],
   ['player1changed_12',['player1Changed',['../classgameplay__logic_1_1CourseRunner.html#a0864ab82311dd2cf144920c22f4b8e81',1,'gameplay_logic::CourseRunner']]],
   ['player1profilechanged_13',['player1ProfileChanged',['../classqml__components_1_1BattleProfiles.html#aa3b285059896544304268874439ab7c7',1,'qml_components::BattleProfiles']]],
   ['player2changed_14',['player2Changed',['../classgameplay__logic_1_1CourseRunner.html#a860cb0efed4137373ed664c2736a8e82',1,'gameplay_logic::CourseRunner']]],
