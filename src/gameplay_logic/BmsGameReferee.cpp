@@ -137,16 +137,13 @@ gameplay_logic::BmsGameReferee::getBpm(
   std::chrono::nanoseconds offsetFromStart) const
   -> std::pair<charts::BmsNotesData::Time, double>
 {
-    auto bpmChange = std::lower_bound(
+    auto bpmChange = std::upper_bound(
         bpmChanges.begin(), bpmChanges.end(),
         offsetFromStart,
-        [](const auto& change, const std::chrono::nanoseconds& offset) {
-            return change.first.timestamp < offset;
+        [](const std::chrono::nanoseconds& offset, const auto& change) {
+            return offset < change.first.timestamp;
         });
-
-    if (bpmChange != bpmChanges.begin()) {
-        --bpmChange;
-    }
+    --bpmChange;
     return *bpmChange;
 }
 auto
