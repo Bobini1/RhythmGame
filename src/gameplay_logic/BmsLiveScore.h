@@ -60,6 +60,11 @@ class BmsLiveScore final : public QObject
      */
     Q_PROPERTY(double maxPoints READ getMaxPoints CONSTANT)
     /**
+     * @brief The maximum possible points achievable in the score.
+     */
+    Q_PROPERTY(
+      double maxPointsNow READ getMaxPointsNow NOTIFY maxPointsNowChanged)
+    /**
      * @brief The number of normal notes in the chart.
      * @details Normal means not long notes, not mines, not invisible notes.
      */
@@ -164,6 +169,7 @@ class BmsLiveScore final : public QObject
      */
     Q_PROPERTY(QString guid READ getGuid CONSTANT)
 
+    double maxHitValue;
     double maxPoints;
     int mineCount;
     int normalNoteCount;
@@ -181,6 +187,7 @@ class BmsLiveScore final : public QObject
     QString md5;
     QString guid;
     double points = 0;
+    double maxPointsNow = 0;
     int combo = 0;
     int maxCombo = 0;
     int mineHits = 0;
@@ -217,6 +224,7 @@ class BmsLiveScore final : public QObject
     auto getLnCount() const -> int;
     auto getMineCount() const -> int;
     auto getPoints() const -> double;
+    auto getMaxPointsNow() const -> double;
     auto getJudgementCounts() -> JudgementCounts*;
     auto getJudgementCounts() const -> const JudgementCounts*;
     void sendVisualOnlyTap(HitEvent tap);
@@ -244,6 +252,7 @@ class BmsLiveScore final : public QObject
     void comboIncreased();
     void maxComboChanged();
     void mineHitsChanged();
+    void maxPointsNowChanged();
 
     void hit(HitEvent hit);
 };

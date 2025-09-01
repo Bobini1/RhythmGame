@@ -28,6 +28,7 @@ BmsLiveScore::BmsLiveScore(
   QString guid,
   QObject* parent)
   : QObject(parent)
+  , maxHitValue(maxHitValue)
   , maxPoints(maxHitValue * maxHits)
   , mineCount(mineCount)
   , normalNoteCount(normalNoteCount)
@@ -63,6 +64,11 @@ auto
 BmsLiveScore::getPoints() const -> double
 {
     return points;
+}
+auto
+BmsLiveScore::getMaxPointsNow() const -> double
+{
+    return maxPointsNow;
 }
 auto
 BmsLiveScore::getJudgementCounts() -> JudgementCounts*
@@ -148,6 +154,12 @@ BmsLiveScore::addHit(const HitEvent& tap)
         return;
     }
     const auto points = tap.getPointsOptional();
+    if (tap.getNoteRemoved() && points->getJudgement() <= Judgement::Perfect) {
+        maxPointsNow += maxHitValue;
+        if (maxHitValue != 0.0) [[likely]] {
+            emit maxPointsNowChanged();
+        }
+    }
     judgementCounts.addJudgement(points->getJudgement());
     switch (points->getJudgement()) {
         case Judgement::Poor:
