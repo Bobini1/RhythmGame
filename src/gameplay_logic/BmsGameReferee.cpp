@@ -133,6 +133,23 @@ gameplay_logic::BmsGameReferee::update(std::chrono::nanoseconds offsetFromStart,
     currentBgms = currentBgms.subspan(played);
 }
 auto
+gameplay_logic::BmsGameReferee::getBpm(
+  std::chrono::nanoseconds offsetFromStart) const
+  -> std::pair<charts::BmsNotesData::Time, double>
+{
+    auto bpmChange = std::lower_bound(
+        bpmChanges.begin(), bpmChanges.end(),
+        offsetFromStart,
+        [](const auto& change, const std::chrono::nanoseconds& offset) {
+            return change.first.timestamp < offset;
+        });
+
+    if (bpmChange != bpmChanges.begin()) {
+        --bpmChange;
+    }
+    return *bpmChange;
+}
+auto
 gameplay_logic::BmsGameReferee::passPressed(
   std::chrono::nanoseconds offsetFromStart,
   input::BmsKey key) -> void
@@ -157,22 +174,12 @@ gameplay_logic::BmsGameReferee::passPressed(
     }
 }
 auto
-gameplay_logic::BmsGameReferee::getPosition(
-  std::chrono::nanoseconds offsetFromStart) const -> Position
+gameplay_logic::BmsGameReferee::getPosition(std::pair<charts::BmsNotesData::Time, double> bpmChange,
+  std::chrono::nanoseconds offsetFromStart) -> Position
 {
-    // find the last bpm change that happened before the current time
-    auto bpmChange = std::ranges::find_if(
-      bpmChanges, [offsetFromStart](const auto& bpmChange) {
-          return bpmChange.first.timestamp >= offsetFromStart;
-      });
-    if (offsetFromStart.count() < 0) {
-        bpmChange = bpmChanges.begin();
-    } else {
-        --bpmChange;
-    }
-    auto bpm = bpmChange->second;
-    auto bpmChangeTime = bpmChange->first.timestamp;
-    auto bpmChangePosition = bpmChange->first.position;
+    auto bpm = bpmChange.second;
+    auto bpmChangeTime = bpmChange.first.timestamp;
+    auto bpmChangePosition = bpmChange.first.position;
     auto bpmChangeOffset = offsetFromStart - bpmChangeTime;
     auto bpmChangeOffsetSeconds =
       std::chrono::duration_cast<std::chrono::duration<double>>(

@@ -80,13 +80,17 @@ class BmsGameReferee
     void update(std::chrono::nanoseconds offsetFromStart,
                 bool lastUpdate = false);
 
+    auto getBpm(std::chrono::nanoseconds offsetFromStart) const
+      -> std::pair<charts::BmsNotesData::Time, double>;
     /**
      * @brief Get the position in the chart, expressed in beats
+     * @param bpm The current BPM change (as returned by getBpm())
      * @param offsetFromStart The time offset from the start of the
      * chart
      * @return The position in the chart, expressed in beats
      */
-    auto getPosition(std::chrono::nanoseconds offsetFromStart) const
+    static auto getPosition(std::pair<charts::BmsNotesData::Time, double> bpm,
+                     std::chrono::nanoseconds offsetFromStart)
       -> Position;
 
     /**

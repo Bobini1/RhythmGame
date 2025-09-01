@@ -214,6 +214,7 @@ Player::Player(BmsNotes* notes,
                resource_managers::Profile* profile,
                QFuture<BmsGameReferee> referee,
                std::chrono::nanoseconds chartLength,
+               double initialBpm,
                QObject* parent)
   : QObject(parent)
   , notes(notes)
@@ -222,6 +223,7 @@ Player::Player(BmsNotes* notes,
   , chartLength(chartLength)
   , refereeFuture(std::move(referee))
   , score(score)
+  , bpm(initialBpm)
 {
     notes->setParent(this);
     score->setParent(this);
@@ -244,6 +246,14 @@ Player::Player(BmsNotes* notes,
     }
 }
 void
+Player::setBpm(double newBpm)
+{
+    if (newBpm != bpm) {
+        bpm = newBpm;
+        emit bpmChanged();
+    }
+}
+void
 Player::setPosition(BmsGameReferee::Position newPosition)
 {
     if (newPosition != position) {
@@ -263,7 +273,9 @@ Player::update(std::chrono::nanoseconds offsetFromStart, bool lastUpdate)
             std::chrono::duration<double, std::milli>(
               profile ? profile->getVars()->getGeneralVars()->getOffset()
                       : 0.0));
-        setPosition(referee->getPosition(offsetFromStart + visualOffset));
+        auto bpmChange = referee->getBpm(offsetFromStart);
+        setBpm(bpmChange.second);
+        setPosition(referee->getPosition(bpmChange, offsetFromStart + visualOffset));
         if (lastUpdate) {
             for (auto i = 0; i < charts::BmsNotesData::columnNumber; ++i) {
                 referee->passReleased(
@@ -359,6 +371,11 @@ Player::getChartLength() const -> int64_t
 {
     return chartLength.count();
 }
+double
+Player::getBpm() const
+{
+    return bpm;
+}
 auto
 Player::finish() -> BmsScore*
 {
@@ -390,6 +407,7 @@ RePlayer::RePlayer(BmsNotes* notes,
                    resource_managers::Profile* profile,
                    QFuture<BmsGameReferee> referee,
                    std::chrono::nanoseconds chartLength,
+                   double initialBpm,
                    BmsScore* replayedScore,
                    QObject* parent)
   : Player(notes,
@@ -398,6 +416,7 @@ RePlayer::RePlayer(BmsNotes* notes,
            profile,
            std::move(referee),
            chartLength,
+           initialBpm,
            parent)
   , replayedScore(replayedScore)
   , events(replayedScore->getReplayData()->getHitEvents())
@@ -443,6 +462,7 @@ AutoPlayer::AutoPlayer(BmsNotes* notes,
                        resource_managers::Profile* profile,
                        QFuture<BmsGameReferee> referee,
                        std::chrono::nanoseconds chartLength,
+                       double initialBpm,
                        std::vector<HitEvent> events,
                        QObject* parent)
   : Player(notes,
@@ -451,6 +471,7 @@ AutoPlayer::AutoPlayer(BmsNotes* notes,
            profile,
            std::move(referee),
            chartLength,
+           initialBpm,
            parent)
   , eventsVec(std::move(events))
   , events(eventsVec)

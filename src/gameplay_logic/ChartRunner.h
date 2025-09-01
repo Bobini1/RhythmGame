@@ -156,6 +156,10 @@ class Player : public QObject
      */
     Q_PROPERTY(double position READ getPosition NOTIFY positionChanged)
     /**
+     * @brief The current BPM of the chart.
+     */
+    Q_PROPERTY(double bpm READ getBpm NOTIFY bpmChanged)
+    /**
      * @brief The elapsed time since the start of the chart, in nanoseconds.
      */
     Q_PROPERTY(int64_t elapsed READ getElapsed NOTIFY elapsedChanged)
@@ -174,6 +178,7 @@ class Player : public QObject
     ChartRunner::Status status{ ChartRunner::Status::Loading };
     int64_t elapsed{};
     std::chrono::nanoseconds chartLength;
+    double bpm;
 
     void setElapsed(int64_t newElapsed);
     void setPosition(BmsGameReferee::Position position);
@@ -192,7 +197,9 @@ class Player : public QObject
                     resource_managers::Profile* profile,
                     QFuture<BmsGameReferee> referee,
                     std::chrono::nanoseconds chartLength,
+                    double initialBpm,
                     QObject* parent = nullptr);
+    void setBpm(double newBpm);
     virtual void update(std::chrono::nanoseconds offsetFromStart,
                         bool lastUpdate);
     virtual void passKey(input::BmsKey key,
@@ -208,11 +215,13 @@ class Player : public QObject
     auto getStatus() const -> ChartRunner::Status;
     void setStatus(ChartRunner::Status status);
     auto getChartLength() const -> int64_t;
+    double getBpm() const;
     auto finish() -> BmsScore*;
 
   signals:
     void positionChanged(double delta);
     void elapsedChanged(int64_t delta);
+    void bpmChanged();
     void statusChanged();
 };
 
@@ -239,6 +248,7 @@ class RePlayer final : public Player
                       resource_managers::Profile* profile,
                       QFuture<BmsGameReferee> referee,
                       std::chrono::nanoseconds chartLength,
+                      double initialBpm,
                       BmsScore* replayedScore,
                       QObject* parent = nullptr);
     void passKey(input::BmsKey key,
@@ -267,6 +277,7 @@ class AutoPlayer final : public Player
                         resource_managers::Profile* profile,
                         QFuture<BmsGameReferee> referee,
                         std::chrono::nanoseconds chartLength,
+                        double initialBpm,
                         std::vector<HitEvent> events,
                         QObject* parent = nullptr);
     void passKey(input::BmsKey key,
