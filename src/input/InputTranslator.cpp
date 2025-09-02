@@ -633,7 +633,6 @@ InputTranslator::handleAxis(Gamepad gamepad,
     if (!analogConfig) {
         analogConfig = new AnalogAxisConfig(this);
         connectAnalogAxisConfig(*analogConfig);
-        saveAnalogAxisConfig();
     }
     if (analogConfig->getScratchAlgorithm() ==
         AnalogAxisConfig::ScratchAlgorithmClassic) {
