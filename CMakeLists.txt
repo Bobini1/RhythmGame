@@ -77,7 +77,7 @@ find_package(SDL2 REQUIRED)
 
 find_package(magic_enum REQUIRED)
 
-if (MSVC)
+if (WIN32)
     set(utf8Manifest staticAssets/utf8.manifest)
 endif ()
 
@@ -94,8 +94,8 @@ qt_add_library(RhythmGame_lib OBJECT ${utf8Manifest}
         src/support/EnableSharedFromBase.h
         src/support/Capitalize.cpp
         src/support/Capitalize.h
-        src/resource_managers/FindAssetsFolder.cpp
-        src/resource_managers/FindAssetsFolder.h
+        src/resource_managers/FindDataFolder.cpp
+        src/resource_managers/FindDataFolder.h
         src/sounds/OpenAlSound.cpp
         src/sounds/OpenAlSound.h
         src/sounds/OpenAlSoundBuffer.h
@@ -240,6 +240,9 @@ target_compile_definitions(RhythmGame_lib PUBLIC
         RHYTHMGAME_VERSION_MINOR=${PROJECT_VERSION_MINOR}
         RHYTHMGAME_VERSION_PATCH=${PROJECT_VERSION_PATCH}
 )
+
+set(DATA_PATH "../data" CACHE STRING "Path to the data folder, relative to the executable")
+target_compile_definitions(RhythmGame_lib PUBLIC RHYTHMGAME_DATA_PATH="${DATA_PATH}")
 
 find_package(Threads REQUIRED)
 

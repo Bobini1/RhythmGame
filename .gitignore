@@ -17,7 +17,7 @@ conan.lock
 *.sqlite
 *.sqlite-shm
 *.sqlite-wal
-assets/profiles/
-assets/tables/
-assets/log.txt
+data/profiles/
+data/tables/
+data/log.txt
 *.qm

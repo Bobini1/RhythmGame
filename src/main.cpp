@@ -1,4 +1,4 @@
-#include "resource_managers/FindAssetsFolder.h"
+#include "resource_managers/FindDataFolder.h"
 #include "resource_managers/IniImageProvider.h"
 #include "gameplay_logic/rules/Lr2TimingWindows.h"
 #include "qml_components/ProgramSettings.h"
@@ -93,8 +93,8 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
 
     auto app = input::CustomNotifyApp{ argc, argv };
 
-    auto assetsFolder = resource_managers::findAssetsFolder();
-    auto logFile = assetsFolder / "log.txt";
+    auto dataFolder = resource_managers::findDataFolder();
+    auto logFile = dataFolder / "log.txt";
     logger->sinks().push_back(
       std::make_shared<spdlog::sinks::basic_file_sink_mt>(logFile, true));
 
@@ -107,13 +107,13 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
     try {
         qputenv("QML_XHR_ALLOW_FILE_READ", QByteArray("1"));
 
-        auto db = db::SqliteCppDb{ assetsFolder / "song_db.sqlite" };
+        auto db = db::SqliteCppDb{ dataFolder / "song_db.sqlite" };
 
         resource_managers::defineDb(db);
 
         auto songDbScanner = resource_managers::SongDbScanner{ &db };
 
-        auto avatarPath = support::pathToQString(assetsFolder / "avatars/");
+        auto avatarPath = support::pathToQString(dataFolder / "avatars/");
         if (!avatarPath.startsWith("/")) {
             avatarPath = "/" + avatarPath;
         }
@@ -124,7 +124,7 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
         qRegisterMetaType<input::Gamepad>("input::Gamepad");
 
         auto availableThemes =
-          resource_managers::scanThemes(assetsFolder / "themes");
+          resource_managers::scanThemes(dataFolder / "themes");
         if (availableThemes.empty()) {
             throw std::runtime_error("No themes available");
         }
@@ -132,10 +132,10 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
 
         auto themes = qml_components::Themes{ availableThemes };
         auto profileList =
-          qml_components::ProfileList{ assetsFolder / "song_db.sqlite",
+          qml_components::ProfileList{ dataFolder / "song_db.sqlite",
                                        &db,
                                        availableThemes,
-                                       assetsFolder / "profiles",
+                                       dataFolder / "profiles",
                                        avatarPath };
 
         auto engine = QQmlApplicationEngine{};
@@ -243,7 +243,7 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
 
         auto networkManager = QNetworkAccessManager{};
         auto tables = resource_managers::Tables{ &networkManager,
-                                                 assetsFolder / "tables",
+                                                 dataFolder / "tables",
                                                  &db };
 
         auto rg = Rg{ &programSettings,

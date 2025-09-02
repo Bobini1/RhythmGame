@@ -4,24 +4,24 @@ install(
         RUNTIME COMPONENT RhythmGame_Runtime
 )
 
-install(DIRECTORY assets/avatars/ DESTINATION assets/avatars/
+install(DIRECTORY data/avatars/ DESTINATION data/avatars/
         COMPONENT RhythmGame_Runtime)
 
 
-install(DIRECTORY assets/themes/ DESTINATION assets/themes/
+install(DIRECTORY data/themes/ DESTINATION data/themes/
         COMPONENT RhythmGame_Runtime)
 
-install(DIRECTORY DESTINATION assets/profiles/
+install(DIRECTORY DESTINATION data/profiles/
         COMPONENT RhythmGame_Runtime)
 
-install(DIRECTORY DESTINATION assets/tables/
+install(DIRECTORY DESTINATION data/tables/
         COMPONENT RhythmGame_Runtime)
 
 qt_generate_deploy_qml_app_script(
         TARGET RhythmGame_exe
         OUTPUT_SCRIPT deploy_script
         NO_UNSUPPORTED_PLATFORM_ERROR
-        DEPLOY_TOOL_OPTIONS "--qmldir \"${CMAKE_SOURCE_DIR}/assets/themes/Default\""
+        DEPLOY_TOOL_OPTIONS "--qmldir \"${CMAKE_SOURCE_DIR}/data/themes/Default\""
         MACOS_BUNDLE_POST_BUILD
 )
 install(SCRIPT ${deploy_script})
@@ -54,7 +54,7 @@ if (WIN32)
             COMPONENT RhythmGame_Runtime)
 
     set(CPACK_NSIS_EXTRA_INSTALL_COMMANDS
-        "Exec 'icacls \\\"$INSTDIR/assets\\\" /grant *S-1-5-32-545:(OI)(CI)F /T'"
+        "Exec 'icacls \\\"$INSTDIR/data\\\" /grant *S-1-5-32-545:(OI)(CI)F /T'"
     )
     set(CPACK_PACKAGE_EXECUTABLES "RhythmGame" "RhythmGame")
 endif ()
