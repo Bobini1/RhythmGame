@@ -12,7 +12,7 @@
 #include <spdlog/spdlog.h>
 #include <type_traits>
 #include <iconv.h>
-#include <ranges>
+#include <algorithm>
 #include "ReadBmsFile.h"
 
 #include <lexy_ext/report_error.hpp>
