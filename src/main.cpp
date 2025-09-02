@@ -138,32 +138,6 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
                                        dataFolder / "profiles",
                                        avatarPath };
 
-        auto engine = QQmlApplicationEngine{};
-        auto languages =
-          resource_managers::Languages{ availableThemes, &engine };
-        auto setLang = [&profileList,
-                        &languages,
-                        connection = QMetaObject::Connection{}]() mutable {
-            languages.setSelectedLanguage(profileList.getMainProfile()
-                                            ->getVars()
-                                            ->getGeneralVars()
-                                            ->getLanguage());
-            connection = QObject::connect(
-              profileList.getMainProfile()->getVars()->getGeneralVars(),
-              &resource_managers::GeneralVars::languageChanged,
-              &languages,
-              [mainProfileVars =
-                 profileList.getMainProfile()->getVars()->getGeneralVars(),
-               &languages]() {
-                  languages.setSelectedLanguage(mainProfileVars->getLanguage());
-              });
-        };
-        QObject::connect(&profileList,
-                         &qml_components::ProfileList::mainProfileChanged,
-                         &languages,
-                         setLang);
-        setLang();
-
         auto inputTranslator = input::InputTranslator{ &db };
         QObject::connect(&gamepadManager,
                          &input::GamepadManager::axisMoved,
@@ -245,6 +219,33 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
         auto tables = resource_managers::Tables{ &networkManager,
                                                  dataFolder / "tables",
                                                  &db };
+
+
+        auto engine = QQmlApplicationEngine{};
+        auto languages =
+          resource_managers::Languages{ availableThemes, &engine };
+        auto setLang = [&profileList,
+                        &languages,
+                        connection = QMetaObject::Connection{}]() mutable {
+            languages.setSelectedLanguage(profileList.getMainProfile()
+                                            ->getVars()
+                                            ->getGeneralVars()
+                                            ->getLanguage());
+            connection = QObject::connect(
+              profileList.getMainProfile()->getVars()->getGeneralVars(),
+              &resource_managers::GeneralVars::languageChanged,
+              &languages,
+              [mainProfileVars =
+                 profileList.getMainProfile()->getVars()->getGeneralVars(),
+               &languages]() {
+                  languages.setSelectedLanguage(mainProfileVars->getLanguage());
+              });
+        };
+        QObject::connect(&profileList,
+                         &qml_components::ProfileList::mainProfileChanged,
+                         &languages,
+                         setLang);
+        setLang();
 
         auto rg = Rg{ &programSettings,
                       &inputTranslator,
