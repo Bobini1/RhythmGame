@@ -1023,7 +1023,12 @@ InputTranslator::getAnalogAxisConfig1() -> AnalogAxisConfig*
     if (!scratchAxis1.has_value()) {
         return nullptr;
     }
-    return axisConfig[*scratchAxis1];
+    auto& conf = axisConfig[*scratchAxis1];
+    if (!conf) {
+        conf = new AnalogAxisConfig(this);
+        connectAnalogAxisConfig(*conf);
+    }
+    return conf;
 }
 
 auto
@@ -1032,7 +1037,12 @@ InputTranslator::getAnalogAxisConfig2() -> AnalogAxisConfig*
     if (!scratchAxis2.has_value()) {
         return nullptr;
     }
-    return axisConfig[*scratchAxis2];
+    auto& conf = axisConfig[*scratchAxis2];
+    if (!conf) {
+        conf = new AnalogAxisConfig(this);
+        connectAnalogAxisConfig(*conf);
+    }
+    return conf;
 }
 
 bool
