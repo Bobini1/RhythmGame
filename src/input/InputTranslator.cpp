@@ -521,7 +521,17 @@ InputTranslator::saveAnalogAxisConfig() const
       db->createStatement("INSERT OR REPLACE INTO properties (key, value) "
                           "VALUES ('analog_axis_config', ?)");
     auto array = QList<GamepadAxisConfig>{};
+    auto defaultConfig = AnalogAxisConfig{};
     for (const auto& [key, config] : axisConfig) {
+        if (defaultConfig.getTriggerThreshold() ==
+              config->getTriggerThreshold() &&
+            defaultConfig.getReleaseThreshold() ==
+              config->getReleaseThreshold() &&
+            defaultConfig.getTimeout() == config->getTimeout() &&
+            defaultConfig.getScratchAlgorithm() ==
+              config->getScratchAlgorithm()) {
+            continue;
+        }
         array.append(GamepadAxisConfig{ key.first, key.second, config });
     }
     auto configData = support::compress(array);
