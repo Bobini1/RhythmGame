@@ -182,6 +182,7 @@ class Player : public QObject
 
     void setElapsed(int64_t newElapsed);
     void setPosition(BmsGameReferee::Position position);
+    void setBpm(double newBpm);
 
     QFutureWatcher<BmsGameReferee> refereeWatcher;
     QFuture<BmsGameReferee> refereeFuture;
@@ -199,7 +200,6 @@ class Player : public QObject
                     std::chrono::nanoseconds chartLength,
                     double initialBpm,
                     QObject* parent = nullptr);
-    void setBpm(double newBpm);
     virtual void update(std::chrono::nanoseconds offsetFromStart,
                         bool lastUpdate);
     virtual void passKey(input::BmsKey key,
