@@ -626,8 +626,7 @@
             "pl": "Obszar gry Z"
           },
           "type": "range",
-          "min": 0,
-          "default": 2,
+          "default": 1,
           "description": {
             "en": "The z-index of the play area.",
             "pl": "Wartość z-index obszaru gry."
@@ -640,8 +639,7 @@
             "pl": "BGA Z"
           },
           "type": "range",
-          "min": 0,
-          "default": 3,
+          "default": 0,
           "description": {
             "en": "The z-index of the BGA.",
             "pl": "Wartość z-index BGA."
@@ -654,7 +652,6 @@
             "pl": "Pasek życia Z"
           },
           "type": "range",
-          "min": 0,
           "default": 0,
           "description": {
             "en": "The z-index of the life bar.",
@@ -668,8 +665,7 @@
             "pl": "Licznik trafień Z"
           },
           "type": "range",
-          "min": 0,
-          "default": 1,
+          "default": 0,
           "description": {
             "en": "The z-index of the judgement counts.",
             "pl": "Wartość z-index licznika trafień."
