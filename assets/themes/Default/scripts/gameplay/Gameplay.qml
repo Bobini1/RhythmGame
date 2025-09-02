@@ -481,6 +481,7 @@ Rectangle {
                 transform: Scale {
                     xScale: side.mirrored ? -1 : 1; origin.x: judgementCountsContainer.width / 2
                 }
+                score: side.score
 
                 onHeightChanged: {
                     side.profileVars.judgementCountsHeight = height;
@@ -523,6 +524,21 @@ Rectangle {
                         popup.open();
                         root.popup = popup;
                     }
+                }
+
+                Connections {
+                    function onHit(tap) {
+                        if (!tap.points) {
+                            return;
+                        }
+                        let judgement = tap.points.judgement;
+                        if (judgement === Judgement.Poor || judgement === Judgement.Bad) {
+                            bga.poorVisible = true;
+                            poorLayerTimer.restart();
+                        }
+                    }
+
+                    target: side.score
                 }
             }
         }

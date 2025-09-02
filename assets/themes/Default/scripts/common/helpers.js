@@ -50,7 +50,7 @@ function getBestStats(scores) {
 
 
 function getGrade(points, maxPoints) {
-    if (points === maxPoints) {
+    if (points === maxPoints || maxPoints === 0) {
         return "max";
     }
     let percent = points / maxPoints;
