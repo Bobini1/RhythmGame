@@ -10,6 +10,7 @@
 #include <spdlog/logger.h>
 #include <spdlog/sinks/base_sink.h>
 #include <spdlog/details/log_msg.h>
+#include <spdlog/details/synchronous_factory.h>
 
 namespace support {
 
