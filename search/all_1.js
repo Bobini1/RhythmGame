@@ -5,7 +5,7 @@ var searchData=
   ['a_20theme_2',['Translating a theme',['../md_DEV__LANG.html#autotoc_md43',1,'']]],
   ['about_3',['About',['../about.html',1,'']]],
   ['about_2edox_4',['about.dox',['../about_8dox.html',1,'']]],
-  ['action_5',['action',['../classgameplay__logic_1_1HitEvent.html#aa7157e01818ac8e19ae4659b3560a0c0',1,'gameplay_logic::HitEvent::action'],['../classgameplay__logic_1_1HitEvent.html#a90790c3562f52b83f1c52d0c3764f767',1,'gameplay_logic::HitEvent::Action']]],
+  ['action_5',['action',['../classgameplay__logic_1_1HitEvent.html#a90790c3562f52b83f1c52d0c3764f767',1,'gameplay_logic::HitEvent::Action'],['../classgameplay__logic_1_1HitEvent.html#aa7157e01818ac8e19ae4659b3560a0c0',1,'gameplay_logic::HitEvent::action']]],
   ['add_6',['add',['../classqml__components_1_1RootSongFolders.html#a587937acfbdf13a9532331b5a5d7a68a',1,'qml_components::RootSongFolders::add()'],['../classresource__managers_1_1Tables.html#a68d0c6c182552d9a1893fa902151b03c',1,'resource_managers::Tables::add()']]],
   ['adddirtoparentdirs_7',['addDirToParentDirs',['../namespaceresource__managers.html#aa5b9af14ddecc324e5d919941dbfc3a5',1,'resource_managers']]],
   ['addgaugehistoryentry_8',['addGaugeHistoryEntry',['../classgameplay__logic_1_1rules_1_1BmsGauge.html#af0d5eb5adbb5fd27e0a772c58e5fdac2',1,'gameplay_logic::rules::BmsGauge']]],
