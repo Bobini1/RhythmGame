@@ -7,7 +7,7 @@ var searchData=
   ['mainprofilechanged_4',['mainProfileChanged',['../classqml__components_1_1ProfileList.html#a2121f0aa5bfe716e3a76d5aae44d71da',1,'qml_components::ProfileList']]],
   ['maintags_5',['MainTags',['../structcharts_1_1MainTags.html',1,'charts']]],
   ['makenotes_6',['makeNotes',['../classresource__managers_1_1ChartDataFactory.html#a713c4ea1f49c822696e52ae711884cfe',1,'resource_managers::ChartDataFactory']]],
-  ['manager_7',['Dependency manager',['../md_DEV__ENGINE.html#autotoc_md15',1,'']]],
+  ['manager_7',['Dependency manager',['../md_DEV__ENGINE.html#autotoc_md16',1,'']]],
   ['mapfromsource_8',['mapFromSource',['../classgameplay__logic_1_1Filter.html#a678eec2aa47188f77bd8e929c3b5ba6f',1,'gameplay_logic::Filter']]],
   ['mapping_9',['Mapping',['../classinput_1_1Mapping.html',1,'input']]],
   ['maptosource_10',['mapToSource',['../classgameplay__logic_1_1Filter.html#aced2706322844ab751efb193f70a3bc2',1,'gameplay_logic::Filter']]],
@@ -21,7 +21,7 @@ var searchData=
   ['maxpointsnow_18',['maxPointsNow',['../classgameplay__logic_1_1BmsLiveScore.html#aa7a27feb2afd8860c670e596d79e94d4',1,'gameplay_logic::BmsLiveScore']]],
   ['maxpointsnowchanged_19',['maxPointsNowChanged',['../classgameplay__logic_1_1BmsLiveScore.html#aef897b0a5d794ae1c9ab26a31907b396',1,'gameplay_logic::BmsLiveScore']]],
   ['maxvariables_20',['maxVariables',['../namespaceqml__components.html#a814a748fab010d276e004cb59b18f098',1,'qml_components']]],
-  ['md5_21',['md5',['../namespacesupport.html#a03827070f559c16b76bc550d360bbb6c',1,'support::Md5'],['../namespacesupport.html#aeefb6b9245ec904c54c847d56bbb722f',1,'support::md5(const std::string_view str) -&gt; Md5'],['../structresource__managers_1_1Entry.html#aee98ca8f089b7f8c4e9eb16bb7a7be65',1,'resource_managers::Entry::md5'],['../structgameplay__logic_1_1ChartData_1_1DTO.html#a6f492ab55fcc05c2cdbc4c364c4d7f16',1,'gameplay_logic::ChartData::DTO::md5'],['../classgameplay__logic_1_1ChartData.html#acc237db2e8dfac52d13356e42e33f393',1,'gameplay_logic::ChartData::md5'],['../structgameplay__logic_1_1BmsResult_1_1DTO.html#ab59366de66ede336d01c3177296ec6f9',1,'gameplay_logic::BmsResult::DTO::md5'],['../classgameplay__logic_1_1BmsResult.html#ab604177e1d8863fdd59505f123649f31',1,'gameplay_logic::BmsResult::md5'],['../classgameplay__logic_1_1BmsResultCourse.html#ab81f3272aa49b6377a897550b762a55a',1,'gameplay_logic::BmsResultCourse::md5']]],
+  ['md5_21',['md5',['../namespacesupport.html#a03827070f559c16b76bc550d360bbb6c',1,'support::Md5'],['../namespacesupport.html#aeefb6b9245ec904c54c847d56bbb722f',1,'support::md5(const std::string_view str) -&gt; Md5'],['../structresource__managers_1_1Entry.html#aee98ca8f089b7f8c4e9eb16bb7a7be65',1,'resource_managers::Entry::md5'],['../structgameplay__logic_1_1ChartData_1_1DTO.html#a6f492ab55fcc05c2cdbc4c364c4d7f16',1,'gameplay_logic::ChartData::DTO::md5'],['../classgameplay__logic_1_1BmsResultCourse.html#ab81f3272aa49b6377a897550b762a55a',1,'gameplay_logic::BmsResultCourse::md5'],['../structgameplay__logic_1_1BmsResult_1_1DTO.html#ab59366de66ede336d01c3177296ec6f9',1,'gameplay_logic::BmsResult::DTO::md5'],['../classgameplay__logic_1_1BmsResult.html#ab604177e1d8863fdd59505f123649f31',1,'gameplay_logic::BmsResult::md5'],['../classgameplay__logic_1_1ChartData.html#acc237db2e8dfac52d13356e42e33f393',1,'gameplay_logic::ChartData::md5']]],
   ['md5s_22',['md5s',['../structresource__managers_1_1Level.html#a2d5440779c6bb183b5a00bdec259497d',1,'resource_managers::Level::md5s'],['../structresource__managers_1_1Course.html#ab2a60863b38a8b2d3441d7e8e25b396f',1,'resource_managers::Course::md5s']]],
   ['measure_23',['measure',['../structcharts_1_1ParsedBmsChart_1_1Measure.html',1,'charts::ParsedBmsChart::Measure'],['../structcharts_1_1Measure.html',1,'charts::Measure']]],
   ['measurebasedtag_24',['MeasureBasedTag',['../structcharts_1_1MeasureBasedTag.html',1,'charts']]],
@@ -41,6 +41,6 @@ var searchData=
   ['minehitschanged_38',['mineHitsChanged',['../classgameplay__logic_1_1BmsLiveScore.html#a108059120a61b6d73a27f9c0760311f1',1,'gameplay_logic::BmsLiveScore']]],
   ['mirror_39',['Mirror',['../namespaceresource__managers_1_1note__order__algorithm.html#ac185a2ae792679199f885982df647691a2403def5083f02105e7802b3b315681e',1,'resource_managers::note_order_algorithm']]],
   ['missrate_40',['missRate',['../structresource__managers_1_1Trophy.html#a50b603ed3235d7ca240a3d3741ad9a23',1,'resource_managers::Trophy']]],
-  ['mode_41',['Developer mode',['../md_DEV__ENGINE.html#autotoc_md13',1,'']]],
-  ['mode_20targets_42',['Developer mode targets',['../md_DEV__ENGINE.html#autotoc_md17',1,'']]]
+  ['mode_41',['mode',['../md_DEV__ENGINE.html#autotoc_md14',1,'Developer mode'],['../index.html#autotoc_md4',1,'Local battle mode']]],
+  ['mode_20targets_42',['Developer mode targets',['../md_DEV__ENGINE.html#autotoc_md18',1,'']]]
 ];

@@ -1,7 +1,7 @@
 var searchData=
 [
-  ['of_20screens_0',['Initial state of screens',['../md_DEV__THEME.html#autotoc_md34',1,'']]],
-  ['of_20the_20song_20library_1',['Asynchronous scanning of the song library',['../index.html#autotoc_md8',1,'']]],
+  ['of_20screens_0',['Initial state of screens',['../md_DEV__THEME.html#autotoc_md35',1,'']]],
+  ['of_20the_20song_20library_1',['Asynchronous scanning of the song library',['../index.html#autotoc_md9',1,'']]],
   ['off_2',['off',['../namespaceresource__managers_1_1hi__speed__fix.html#ac715382b9422d7bab66ac00314eb3e7ead15305d7a4e34e02489c74a5ef542f36',1,'resource_managers::hi_speed_fix::Off'],['../namespaceresource__managers_1_1dp__options.html#ac768ef700200401f8d3fbcebf69c877fad15305d7a4e34e02489c74a5ef542f36',1,'resource_managers::dp_options::Off']]],
   ['offset_3',['offset',['../classresource__managers_1_1GeneralVars.html#ae1a1ec8d3d1dc4addb72ae394e4cf4ab',1,'resource_managers::GeneralVars']]],
   ['offsetchanged_4',['offsetChanged',['../classresource__managers_1_1GeneralVars.html#a3f6b5635d9f1c9de706b166e555c2fce',1,'resource_managers::GeneralVars']]],
@@ -57,5 +57,5 @@ var searchData=
   ['originalurl_54',['originalUrl',['../structresource__managers_1_1Course.html#a0c1aec607f88abace49b94b92ab8473c',1,'resource_managers::Course']]],
   ['orphanizedrandomcommonpart_55',['OrphanizedRandomCommonPart',['../structcharts_1_1OrphanizedRandomCommonPart.html',1,'charts']]],
   ['otherendhitdata_56',['otherEndHitData',['../classgameplay__logic_1_1NoteState.html#a390d943476deaee685e299c0316df84c',1,'gameplay_logic::NoteState']]],
-  ['overriding_20the_20settings_20page_20for_20a_20screen_57',['Overriding the settings page for a screen',['../md_DEV__THEME.html#autotoc_md29',1,'']]]
+  ['overriding_20the_20settings_20page_20for_20a_20screen_57',['Overriding the settings page for a screen',['../md_DEV__THEME.html#autotoc_md30',1,'']]]
 ];

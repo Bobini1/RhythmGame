@@ -72,9 +72,9 @@ $(function() {
   <div class="headertitle"><div class="title">Theme Development</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md24"></a> If you want to edit a theme, you only need a text editor. Edit the scripts and relaunch the game to see your changes.</p>
+<div class="textblock"><p><a class="anchor" id="autotoc_md25"></a> If you want to edit a theme, you only need a text editor. Edit the scripts and relaunch the game to see your changes.</p>
 <p>All errors are printed to log.txt in the data folder. On platforms other than Windows, the log is printed to the console as well. You can also press F10 in-game to open the log overlay.</p>
-<h1><a class="anchor" id="autotoc_md25"></a>
+<h1><a class="anchor" id="autotoc_md26"></a>
 Theme structure</h1>
 <p>A theme is a folder in <code>data/themes/</code> that contains a <code>theme.json</code> file. That file needs to have a <code>scripts</code> field with an object containing relative paths to QML files for each game screen implemented by the theme.</p>
 <p>Here is an example of a minimal <code>theme.json</code> file:</p>
@@ -84,7 +84,7 @@ Theme structure</h1>
 <div class="line">    }</div>
 <div class="line">}</div>
 </div><!-- fragment --><p>A theme does not need to implement all screens, it can just implement the ones you want. You can think of it as a package that can contain replacements for any number of the game's screens.</p>
-<h3><a class="anchor" id="autotoc_md26"></a>
+<h3><a class="anchor" id="autotoc_md27"></a>
 Persisent settings</h3>
 <p>To provide configurable theme settings that will be stored separately for each user profile, you can define a <code>settings</code> field in <code>theme.json</code>.</p>
 <div class="fragment"><div class="line">{</div>
@@ -120,7 +120,7 @@ Persisent settings</h3>
 <hr  />
 <p>Please don't access vars that don't belong to the current screen. It creates hidden dependencies on other themes or screens of your theme that might not be enabled.</p>
 <p>If you need to pass a variable between screens, suggest adding it to <code>profile.vars.generalVars</code> in the engine.</p>
-<h3><a class="anchor" id="autotoc_md29"></a>
+<h3><a class="anchor" id="autotoc_md30"></a>
 Overriding the settings page for a screen</h3>
 <p>You can override the auto-generated settings page for a screen by providing a QML file in a <code>settingsScripts</code> field in <code>theme.json</code>.</p>
 <div class="fragment"><div class="line">{</div>
@@ -135,7 +135,7 @@ Overriding the settings page for a screen</h3>
 <div class="line">    }</div>
 <div class="line">}</div>
 </div><!-- fragment --><p>The default theme does not use this feature.</p>
-<h3><a class="anchor" id="autotoc_md30"></a>
+<h3><a class="anchor" id="autotoc_md31"></a>
 Translations</h3>
 <p>Translations are described in <a class="el" href="md_DEV__LANG.html">DEV_LANG.md</a>.</p>
 <div class="fragment"><div class="line">{</div>
@@ -153,7 +153,7 @@ Translations</h3>
 <div class="line">        &quot;pl&quot;: &quot;pl.qm&quot;</div>
 <div class="line">    }</div>
 <div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md31"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md32"></a>
 Theme loading</h2>
 <p>Themes are loaded and validated when the game starts. If there are any critical errors in configuration files, the game will fail to start. Don't share broken themes! Look at log.txt in the data folder to find out what went wrong.</p>
 <p>The part of the game that manages the theme most directly is <a href="https://github.com/Bobini1/RhythmGame/blob/master/RhythmGameQml/ContentFrame.qml">RhythmGameQml/ContentFrame.qml</a>. That qml file is compiled into the executable and is not part of any theme. It contains the window of the entire game and the <code>sceneStack</code>. <code>sceneStack</code> is a globally accessible <a href="https://doc.qt.io/qt-6/qml-qtquick-controls-stackview.html">StackView</a> that contains screens, like <code>main</code>, <code>select</code>, <code>k7</code>, one on top of the other. You can go to another screen by pushing it to the stack. You can exit a screen by popping it from the stack.</p>
@@ -163,7 +163,7 @@ Theme loading</h2>
 <p>In most scenarios, you will want to push at most one screen on top of the stack at once. Then that screen can push another screen on top of itself, if needed.</p>
 <p>Do not remove screens from under yourself. It's messy and unnecessary.</p>
 <hr  />
-<h2><a class="anchor" id="autotoc_md34"></a>
+<h2><a class="anchor" id="autotoc_md35"></a>
 Initial state of screens</h2>
 <p><code>sceneStack</code> contains a few helper methods:</p>
 <div class="fragment"><div class="line">function openChart(path, profile1, autoplay1, score1, profile2, autoplay2, score2)</div>
@@ -184,7 +184,7 @@ Initial state of screens</h2>
 <div class="line">property list&lt;ChartData&gt; chartDatas</div>
 <div class="line">property course course</div>
 </div><!-- fragment --><p>You can always use <code>var</code> instead of the exact type if you want to be flexible.</p>
-<h2><a class="anchor" id="autotoc_md35"></a>
+<h2><a class="anchor" id="autotoc_md36"></a>
 Input</h2>
 <p>It would be best if your theme supported mouse, keyboard and controller navigation. For example, for scrolling a list of songs, it would be best to allow using the mouse wheel, arrow keys and scratch. In the default theme, the <code>settings</code> screen was designed with mouse and keyboard in mind, without support for controller navigation.</p>
 <p>For mouse input, use <a href="https://doc.qt.io/qt-6/qml-qtquick-mousearea.html">MouseArea</a> or <a href="https://doc.qt.io/qt-6/qml-qtquick-taphandler.html">TapHandler</a>.</p>
@@ -192,7 +192,7 @@ Input</h2>
 <p>For bound key input (controller or keyboard), use <a href="https://bobini1.github.io/RhythmGame/classqml__components_1_1InputAttached.html">Input</a>.</p>
 <p><code>sceneStack</code> automatically disables all input for screens that are not at the top of the stack. Make sure to disable any background sounds and <a href="https://doc.qt.io/qt-6/qml-qtquick-shortcut.html">Shortcuts</a> when pushing a new screen on top of the stack (Shortcuts are dumb and don't get disabled automatically). Song preview should not play during gameplay. You can use the <a href="https://doc.qt.io/qt-6/qml-qtquick-item.html#enabled-prop">enabled</a> property of <code>Item</code> to detect when a screen is not active. This property propagates to all child components.</p>
 <p>Gameplay screens should not use <code>Input</code> directly. Instead, use <a href="https://bobini1.github.io/RhythmGame/classgameplay__logic_1_1ColumnState.html#a116fbd7d8aec0c9ebad00828b7564ab6">columnState.pressed</a>. This will play nicely with autoplay and replays. <code>Input</code> is reserved for actual input, not injected key presses.</p>
-<h2><a class="anchor" id="autotoc_md36"></a>
+<h2><a class="anchor" id="autotoc_md37"></a>
 Scaling</h2>
 <p>Your theme is expected to work on all screen sizes and aspect ratios. There are two ways you can achieve that.</p><ul>
 <li>Use <a href="https://doc.qt.io/qt-6/qtquicklayouts-overview.html">layouts</a> to dynamically set the sizes of elements based on the size of their parents.</li>
@@ -200,7 +200,7 @@ Scaling</h2>
 </ul>
 <p>In the default theme, you can see the first approach in the <code>settings</code> screen. All other screens use scaling. In general, scaling is easier to use.</p>
 <p>Please try resizing the window of the game when testing your theme edits.</p>
-<h2><a class="anchor" id="autotoc_md37"></a>
+<h2><a class="anchor" id="autotoc_md38"></a>
 The Rg singleton</h2>
 <p>The <a href="https://bobini1.github.io/RhythmGame/classRg.html">Rg</a> singleton is globally accessible upon importing <code>RhythmGameQml</code>. It contains various API objects with methods and properties useful for themes. You will probably use it a lot! Start reading the docs there. </p>
 </div></div><!-- contents -->

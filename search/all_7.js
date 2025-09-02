@@ -215,7 +215,7 @@ var searchData=
   ['gettimeout_212',['getTimeout',['../classinput_1_1AnalogAxisConfig.html#a3bd20468912fa2e10cf49ed51707d711',1,'input::AnalogAxisConfig']]],
   ['gettimepoint_213',['getTimePoint',['../classsounds_1_1OpenALSound.html#a28afe926233e5b5549b8c623418a5669',1,'sounds::OpenALSound']]],
   ['gettimingwindows_214',['getTimingWindows',['../namespacegameplay__logic_1_1rules_1_1lr2__timing__windows.html#af4f81290171afa8b6b0a48c91930fe74',1,'gameplay_logic::rules::lr2_timing_windows']]],
-  ['getting_20started_215',['Getting started',['../md_CONTRIBUTING.html#autotoc_md45',1,'']]],
+  ['getting_20started_215',['Getting started',['../md_CONTRIBUTING.html#autotoc_md46',1,'']]],
   ['gettitle_216',['getTitle',['../classgameplay__logic_1_1ChartData.html#acbc1c01d1f073e3f7436ced30853019d',1,'gameplay_logic::ChartData']]],
   ['gettopposition_217',['gettopposition',['../classgameplay__logic_1_1Filter.html#a71eb2cfc7333e8f7f2d321f1391a953d',1,'gameplay_logic::Filter::getTopPosition()'],['../classgameplay__logic_1_1BarlineFilter.html#a941e0184cf75e85be142216088a32777',1,'gameplay_logic::BarlineFilter::getTopPosition()']]],
   ['gettotal_218',['getTotal',['../classgameplay__logic_1_1ChartData.html#ab93dad794740dad5b90bf34a5c17fc3f',1,'gameplay_logic::ChartData']]],
