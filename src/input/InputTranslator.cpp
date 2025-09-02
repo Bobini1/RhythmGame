@@ -716,36 +716,6 @@ InputTranslator::handleRelease(Gamepad gamepad, Uint8 button, int64_t time)
         releaseButton(*key, time);
     }
 }
-auto
-toSystem(std::chrono::steady_clock::time_point tp)
-  -> std::chrono::system_clock::time_point
-{
-    using namespace std::chrono;
-    const auto systemNow = system_clock::now();
-    const auto steadyNow = steady_clock::now();
-    return time_point_cast<system_clock::duration>(tp - steadyNow + systemNow);
-}
-
-auto
-toSystem(std::chrono::file_clock::time_point tp)
-  -> std::chrono::system_clock::time_point
-{
-    using namespace std::chrono;
-    const auto systemNow = system_clock::now();
-    const auto steadyNow = file_clock ::now();
-    return time_point_cast<system_clock::duration>(tp - steadyNow + systemNow);
-}
-
-auto
-getTime(const QKeyEvent& event) -> int64_t
-{
-    const auto timestampQint = event.timestamp();
-    return std::chrono::duration_cast<std::chrono::milliseconds>(
-             toSystem(std::chrono::steady_clock::time_point{
-                        std::chrono::milliseconds{ timestampQint } })
-               .time_since_epoch())
-      .count();
-}
 
 void
 InputTranslator::loadKeyConfig(db::SqliteCppDb* db)
@@ -1056,7 +1026,7 @@ InputTranslator::eventFilter(QObject* watched, QEvent* event)
         if (key->isAutoRepeat()) {
             return false;
         }
-        const auto time = getTime(*key);
+        const auto time = key->timestamp();
         const auto keyLookup = Key{ QVariant::fromValue(nullptr),
                                     Key::Device::Keyboard,
                                     key->key(),
@@ -1077,7 +1047,7 @@ InputTranslator::eventFilter(QObject* watched, QEvent* event)
         if (key->isAutoRepeat()) {
             return false;
         }
-        const auto time = getTime(*key);
+        const auto time = key->timestamp();
         const auto keyLookup = Key{ QVariant::fromValue(nullptr),
                                     Key::Device::Keyboard,
                                     key->key(),

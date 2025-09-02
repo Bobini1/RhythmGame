@@ -80,7 +80,7 @@ class ChartRunner final : public QObject
     Q_PROPERTY(Player* player2 READ getPlayer2 CONSTANT)
 
     QTimer propertyUpdateTimer;
-    std::chrono::system_clock::time_point startTimepoint;
+    std::chrono::steady_clock::time_point startTimepoint;
     ChartData* chartData;
     qml_components::BgaContainer* bga{};
     QFuture<std::unique_ptr<qml_components::BgaContainer>> bgaFuture;

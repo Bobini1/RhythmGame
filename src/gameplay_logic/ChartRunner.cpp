@@ -65,13 +65,13 @@ ChartRunner::start()
             &QTimer::timeout,
             this,
             &ChartRunner::updateElapsed);
-    startTimepoint = std::chrono::system_clock::now();
+    startTimepoint = std::chrono::steady_clock::now();
 }
 
 void
 ChartRunner::updateElapsed()
 {
-    const auto offset = std::chrono::system_clock::now() - startTimepoint;
+    const auto offset = std::chrono::steady_clock::now() - startTimepoint;
     player1->update(offset,
                     /*lastUpdate=*/false);
     if (player2 != nullptr) {
