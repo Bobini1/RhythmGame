@@ -243,6 +243,7 @@ class InputTranslator final : public QObject
     void handleRelease(Gamepad gamepad, Uint8 button, int64_t time);
 
     void loadKeyConfig(db::SqliteCppDb* db);
+    void connectAnalogAxisConfig(const AnalogAxisConfig& config);
     void loadAnalogAxisConfig(db::SqliteCppDb* db);
     explicit InputTranslator(db::SqliteCppDb* db, QObject* parent = nullptr);
     void setConfiguredButton(const QVariant& button);

@@ -629,7 +629,12 @@ InputTranslator::handleAxis(Gamepad gamepad,
         scratch.value = value;
     }
 
-    const auto analogConfig = axisConfig[scratchKey];
+    auto& analogConfig = axisConfig[scratchKey];
+    if (!analogConfig) {
+        analogConfig = new AnalogAxisConfig(this);
+        connectAnalogAxisConfig(*analogConfig);
+        saveAnalogAxisConfig();
+    }
     if (analogConfig->getScratchAlgorithm() ==
         AnalogAxisConfig::ScratchAlgorithmClassic) {
         if (value > 0.9) {
@@ -763,6 +768,26 @@ InputTranslator::loadKeyConfig(db::SqliteCppDb* db)
     }
 }
 void
+InputTranslator::connectAnalogAxisConfig(const AnalogAxisConfig& config)
+{
+    connect(&config,
+            &AnalogAxisConfig::triggerThresholdChanged,
+            this,
+            &InputTranslator::saveAnalogAxisConfig);
+    connect(&config,
+            &AnalogAxisConfig::releaseThresholdChanged,
+            this,
+            &InputTranslator::saveAnalogAxisConfig);
+    connect(&config,
+            &AnalogAxisConfig::timeoutChanged,
+            this,
+            &InputTranslator::saveAnalogAxisConfig);
+    connect(&config,
+            &AnalogAxisConfig::scratchAlgorithmChanged,
+            this,
+            &InputTranslator::saveAnalogAxisConfig);
+}
+void
 InputTranslator::loadAnalogAxisConfig(db::SqliteCppDb* db)
 {
     auto axisStatement = db->createStatement(
@@ -774,6 +799,7 @@ InputTranslator::loadAnalogAxisConfig(db::SqliteCppDb* db)
         for (const auto& config : axisConfigs) {
             config.config->setParent(this);
             axisConfig[{ config.gamepad, config.axis }] = config.config;
+            connectAnalogAxisConfig(*config.config);
         }
     }
     checkAnalogAxisStatus();
@@ -789,14 +815,6 @@ InputTranslator::InputTranslator(db::SqliteCppDb* db, QObject* parent)
     // load key config
     loadKeyConfig(db);
     loadAnalogAxisConfig(db);
-    connect(this,
-            &InputTranslator::analogAxisConfig1Changed,
-            this,
-            &InputTranslator::saveAnalogAxisConfig);
-    connect(this,
-            &InputTranslator::analogAxisConfig2Changed,
-            this,
-            &InputTranslator::saveAnalogAxisConfig);
     connect(this,
             &InputTranslator::keyConfigModified,
             this,
