@@ -104,21 +104,21 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span>};</div>
 </div>
 <div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span> </div>
-<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span><span class="keyword">auto</span></div>
-<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span><a class="code hl_function" href="namespacesupport.html#a28a672049fa6ffa3d1dc8a1747cd3b94">generatePermutation</a>(</div>
-<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span>  std::span&lt;std::vector&lt;charts::BmsNotesData::Note&gt;&gt;&amp;</div>
-<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>    notes,</div>
-<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span>  <a class="code hl_enumeration" href="namespaceresource__managers_1_1note__order__algorithm.html#ac185a2ae792679199f885982df647691">resource_managers::NoteOrderAlgorithm</a> algorithm,</div>
-<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span>  std::optional&lt;uint64_t&gt; seed = std::nullopt) -&gt; <a class="code hl_struct" href="structsupport_1_1ShuffleResult.html">ShuffleResult</a>;</div>
-<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span>} <span class="comment">// namespace support</span></div>
-<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span> </div>
-<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span><span class="preprocessor">#endif </span><span class="comment">// GENERATEPERMUTATION_H</span></div>
+<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span><span class="keyword">auto</span></div>
+<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span><a class="code hl_function" href="namespacesupport.html#a47ccd83f3841eccefe7e57affacfe892">generatePermutation</a>(</div>
+<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>  std::span&lt;std::vector&lt;charts::BmsNotesData::Note&gt;&gt;&amp;</div>
+<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span>    notes,</div>
+<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span>  <a class="code hl_enumeration" href="namespaceresource__managers_1_1note__order__algorithm.html#ac185a2ae792679199f885982df647691">resource_managers::NoteOrderAlgorithm</a> algorithm,</div>
+<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span>  uint64_t seed) -&gt; <a class="code hl_struct" href="structsupport_1_1ShuffleResult.html">ShuffleResult</a>;</div>
+<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span>} <span class="comment">// namespace support</span></div>
+<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span> </div>
+<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span><span class="preprocessor">#endif </span><span class="comment">// GENERATEPERMUTATION_H</span></div>
 <div class="ttc" id="aBmsNotesData_8h_html"><div class="ttname"><a href="BmsNotesData_8h.html">BmsNotesData.h</a></div></div>
 <div class="ttc" id="aBmsNotes_8h_html"><div class="ttname"><a href="BmsNotes_8h.html">BmsNotes.h</a></div></div>
 <div class="ttc" id="aVars_8h_html"><div class="ttname"><a href="Vars_8h.html">Vars.h</a></div></div>
 <div class="ttc" id="anamespaceresource__managers_1_1note__order__algorithm_html_ac185a2ae792679199f885982df647691"><div class="ttname"><a href="namespaceresource__managers_1_1note__order__algorithm.html#ac185a2ae792679199f885982df647691">resource_managers::note_order_algorithm::NoteOrderAlgorithm</a></div><div class="ttdeci">NoteOrderAlgorithm</div><div class="ttdef"><b>Definition</b> Vars.h:25</div></div>
 <div class="ttc" id="anamespacesupport_html"><div class="ttname"><a href="namespacesupport.html">support</a></div><div class="ttdoc">Contains various helper classes and functions.</div><div class="ttdef"><b>Definition</b> Capitalize.h:9</div></div>
-<div class="ttc" id="anamespacesupport_html_a28a672049fa6ffa3d1dc8a1747cd3b94"><div class="ttname"><a href="namespacesupport.html#a28a672049fa6ffa3d1dc8a1747cd3b94">support::generatePermutation</a></div><div class="ttdeci">auto generatePermutation(std::span&lt; std::vector&lt; charts::BmsNotesData::Note &gt; &gt; &amp;notes, const resource_managers::NoteOrderAlgorithm algorithm, const std::optional&lt; uint64_t &gt; seed) -&gt; ShuffleResult</div><div class="ttdoc">Generate a permutation of notes.</div><div class="ttdef"><b>Definition</b> GeneratePermutation.cpp:163</div></div>
+<div class="ttc" id="anamespacesupport_html_a47ccd83f3841eccefe7e57affacfe892"><div class="ttname"><a href="namespacesupport.html#a47ccd83f3841eccefe7e57affacfe892">support::generatePermutation</a></div><div class="ttdeci">auto generatePermutation(std::span&lt; std::vector&lt; charts::BmsNotesData::Note &gt; &gt; &amp;notes, const resource_managers::NoteOrderAlgorithm algorithm, const uint64_t randomSeed) -&gt; ShuffleResult</div><div class="ttdoc">Generate a permutation of notes.</div><div class="ttdef"><b>Definition</b> GeneratePermutation.cpp:163</div></div>
 <div class="ttc" id="astructsupport_1_1ShuffleResult_html"><div class="ttname"><a href="structsupport_1_1ShuffleResult.html">support::ShuffleResult</a></div><div class="ttdef"><b>Definition</b> GeneratePermutation.h:17</div></div>
 <div class="ttc" id="astructsupport_1_1ShuffleResult_html_a8d831d8b39923f67188af19841c00f46"><div class="ttname"><a href="structsupport_1_1ShuffleResult.html#a8d831d8b39923f67188af19841c00f46">support::ShuffleResult::seed</a></div><div class="ttdeci">uint64_t seed</div><div class="ttdef"><b>Definition</b> GeneratePermutation.h:18</div></div>
 <div class="ttc" id="astructsupport_1_1ShuffleResult_html_a8f981832bc02366baef430a4d91eb67d"><div class="ttname"><a href="structsupport_1_1ShuffleResult.html#a8f981832bc02366baef430a4d91eb67d">support::ShuffleResult::columns</a></div><div class="ttdeci">QList&lt; int &gt; columns</div><div class="ttdef"><b>Definition</b> GeneratePermutation.h:19</div></div>
