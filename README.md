@@ -8,6 +8,9 @@
 
 A customizable BMS player for Windows and Linux.
 
+New to BMS? Check out w's [Beatoraja English Guide](https://github.com/wcko87/beatoraja-english-guide/wiki/BMS-Overview)
+to learn about BMS and how to find songs to play.
+
 ## Features
 
 ### Customizable themes
