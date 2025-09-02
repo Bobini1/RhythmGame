@@ -44,6 +44,17 @@
         "openssl"
       ]
     },
+    {
+      "name": "qtbase",
+      "default-features": false,
+      "features": [
+        "xcb",
+        "xcb-xlib",
+        "xrender",
+        "egl"
+      ],
+      "platform": "linux"
+    },
     "qtdeclarative",
     "qtshadertools",
     "qtsvg",
