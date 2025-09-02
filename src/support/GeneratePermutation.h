@@ -26,15 +26,16 @@ struct ShuffleResult
  * generation. If we ever change how we load notes, replays WILL break.
  * @param notes The notes to shuffle.
  * @param algorithm The algorithm to use.
- * @param seed The seed to use. Null for a random seed.
- * @return The seed used.
+ * @param seed The seed to use.
+ * @return The result of the shuffle, including the new seed and the new column
+ * order.
  */
 auto
 generatePermutation(
   std::span<std::vector<charts::BmsNotesData::Note>>&
     notes,
   resource_managers::NoteOrderAlgorithm algorithm,
-  std::optional<uint64_t> seed = std::nullopt) -> ShuffleResult;
+  uint64_t seed) -> ShuffleResult;
 } // namespace support
 
 #endif // GENERATEPERMUTATION_H

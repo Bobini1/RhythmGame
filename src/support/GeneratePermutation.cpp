@@ -163,23 +163,9 @@ auto
 generatePermutation(
   std::span<std::vector<charts::BmsNotesData::Note>>& notes,
   const resource_managers::NoteOrderAlgorithm algorithm,
-  const std::optional<uint64_t> seed) -> ShuffleResult
+  const uint64_t randomSeed) -> ShuffleResult
 {
-    using RandomGenerator = std::mersenne_twister_engine<std::uint64_t,
-                                                         32,
-                                                         624,
-                                                         397,
-                                                         31,
-                                                         0x9908b0df,
-                                                         11,
-                                                         0xffffffff,
-                                                         7,
-                                                         0x9d2c5680,
-                                                         15,
-                                                         0xefc60000,
-                                                         18,
-                                                         1812433253>;
-    thread_local std::random_device rd;
+    using RandomGenerator = std::mt19937_64;
     auto columns = getColumsIota(notes.size());
     switch (algorithm) {
         case resource_managers::NoteOrderAlgorithm::Normal: {
@@ -191,7 +177,6 @@ generatePermutation(
             return { 0, columns };
         }
         case resource_managers::NoteOrderAlgorithm::RRandom: {
-            const auto randomSeed = seed.has_value() ? seed.value() : rd();
             auto randomGenerator = RandomGenerator{ randomSeed };
             const auto shift = std::uniform_int_distribution<>(
               0, notes.size() - 2)(randomGenerator);
@@ -209,7 +194,6 @@ generatePermutation(
             return { randomSeed, columns };
         }
         case resource_managers::NoteOrderAlgorithm::Random: {
-            const auto randomSeed = seed.has_value() ? seed.value() : rd();
             auto randomGenerator = RandomGenerator{ randomSeed };
             fisherYatesShuffle(
               std::span(columns).subspan(0, columns.size() - 1),
@@ -221,7 +205,6 @@ generatePermutation(
             return { randomSeed, columns };
         }
         case resource_managers::NoteOrderAlgorithm::RandomPlus: {
-            const auto randomSeed = seed.has_value() ? seed.value() : rd();
             auto randomGenerator = RandomGenerator{ randomSeed };
             fisherYatesShuffle(std::span(columns), randomGenerator);
             randomGenerator.seed(randomSeed);
@@ -229,7 +212,6 @@ generatePermutation(
             return { randomSeed, columns };
         }
         case resource_managers::NoteOrderAlgorithm::SRandom: {
-            const auto randomSeed = seed.has_value() ? seed.value() : rd();
             auto randomGenerator = RandomGenerator{ randomSeed };
             static constexpr auto preferredNoteDistance = 40ms;
             shuffleAllNotes(
@@ -239,7 +221,6 @@ generatePermutation(
             return { randomSeed, columns };
         }
         case resource_managers::NoteOrderAlgorithm::SRandomPlus: {
-            const auto randomSeed = seed.has_value() ? seed.value() : rd();
             auto randomGenerator = RandomGenerator{ randomSeed };
             static constexpr auto preferredNoteDistance = 40ms;
             shuffleAllNotes(

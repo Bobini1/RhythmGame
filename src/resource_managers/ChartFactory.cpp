@@ -384,6 +384,9 @@ getComponentsForPlayer(const ChartFactory::PlayerSpecificData& player,
         }
         visibleNotes[15] = visibleNotes[7];
     }
+    thread_local auto rd = std::random_device{};
+    thread_local auto mt = std::mt19937_64(rd());
+    const auto randomSeed = mt();
     auto results = [&]() -> std::array<support::ShuffleResult, 2> {
         if (isDp(keymode)) {
             auto notes1 =
@@ -392,9 +395,9 @@ getComponentsForPlayer(const ChartFactory::PlayerSpecificData& player,
               notes1,
               player.noteOrderAlgorithm,
               player.replayedScore
-                ? std::optional{ player.replayedScore->getResult()
-                                   ->getRandomSeed() }
-                : std::nullopt);
+                ? player.replayedScore->getResult()
+                                   ->getRandomSeed()
+                : randomSeed);
             auto notes2 =
               std::span{ visibleNotes.data() + visibleNotes.size() / 2,
                          visibleNotes.size() / 2 };
@@ -407,9 +410,9 @@ getComponentsForPlayer(const ChartFactory::PlayerSpecificData& player,
                    notes1,
                    player.noteOrderAlgorithm,
                    player.replayedScore
-                     ? std::optional{ player.replayedScore->getResult()
-                                        ->getRandomSeed() }
-                     : std::nullopt),
+                     ? player.replayedScore->getResult()
+                                        ->getRandomSeed()
+                     : randomSeed),
                  support::ShuffleResult{} };
     }();
     // TODO: Simplify this. Don't convert bpmChanges twice for two players.
