@@ -576,9 +576,9 @@ ChartFactory::createChart(ChartDataFactory::ChartComponents chartComponents,
         auto soundFuture =
           QtFuture::connect(soundTask, &SoundTask::soundsLoaded);
         auto refereeFuture = soundFuture.then(
-          [rawNotes = std::move(components2->rawNotes),
+          [rawNotes = std::move(player.rawNotes),
            hitRules = std::move(player2->hitRules),
-           score = components2->score.get(),
+           score = player.score.get(),
            bpmChanges = notesData.bpmChanges,
            bgmNotes = std::move(notesData.bgmNotes)](
             std::unordered_map<uint16_t, sounds::OpenALSound> sounds) mutable {
@@ -592,27 +592,27 @@ ChartFactory::createChart(ChartDataFactory::ChartComponents chartComponents,
                   std::move(hitRules)
               };
           });
-        auto chartLength = getLength(*components2->notes);
+        auto chartLength = getLength(*player.notes);
         if (player2->replayedScore) {
             return new gameplay_logic::RePlayer{
-                components2->notes.release(),   components2->score.release(),
-                components2->state.release(),   player2->profile,
+                player.notes.release(),   player.score.release(),
+                player.state.release(),   player2->profile,
                 std::move(refereeFuture),       chartLength,
                 notesData.bpmChanges[0].second, player2->replayedScore,
             };
         }
         if (player2->autoPlay) {
-            auto events = createAutoplayFromNotes(*components2->notes);
+            auto events = createAutoplayFromNotes(*player.notes);
             return new gameplay_logic::AutoPlayer{
-                components2->notes.release(),   components2->score.release(),
-                components2->state.release(),   player2->profile,
+                player.notes.release(),   player.score.release(),
+                player.state.release(),   player2->profile,
                 std::move(refereeFuture),       chartLength,
                 notesData.bpmChanges[0].second, std::move(events),
             };
         }
-        return new gameplay_logic::Player{ components2->notes.release(),
-                                           components2->score.release(),
-                                           components2->state.release(),
+        return new gameplay_logic::Player{ player.notes.release(),
+                                           player.score.release(),
+                                           player.state.release(),
                                            player2->profile,
                                            std::move(refereeFuture),
                                            chartLength,
