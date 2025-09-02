@@ -6,7 +6,7 @@
 
 # RhythmGame
 
-A customizable, cross-platform BMS player.
+A customizable BMS player for Windows and Linux.
 
 ## Features
 

@@ -3,9 +3,9 @@ cmake_minimum_required(VERSION 3.21)
 include(cmake/prelude.cmake)
 project(
         RhythmGame
-        VERSION 0.0.0
-        DESCRIPTION "A performant and portable rhythm game engine"
-        HOMEPAGE_URL "https://github.com/Bobini1"
+        VERSION 1.0.0
+        DESCRIPTION "A customizable BMS player for Windows and Linux. "
+        HOMEPAGE_URL "https://github.com/Bobini1/RhythmGame"
         LANGUAGES C CXX
 )
 
