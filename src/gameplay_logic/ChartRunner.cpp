@@ -273,7 +273,7 @@ Player::update(std::chrono::nanoseconds offsetFromStart, bool lastUpdate)
             std::chrono::duration<double, std::milli>(
               profile ? profile->getVars()->getGeneralVars()->getOffset()
                       : 0.0));
-        auto bpmChange = referee->getBpm(offsetFromStart);
+        auto bpmChange = referee->getBpm(offsetFromStart + visualOffset);
         setBpm(bpmChange.second);
         setPosition(referee->getPosition(bpmChange, offsetFromStart + visualOffset));
         if (lastUpdate) {
