@@ -29,6 +29,12 @@ See the [DEV_THEME.md](DEV_THEME.md) document for more information.
 The timing windows and gauges match Lunatic Rave 2/Lr2oraja
 so you can compare your scores with those games easily.
 
+### Local battle mode
+
+Play with a friend!
+
+![Local battle mode](docs/images/battle.png)
+
 ### Table support
 
 RhythmGame supports BMS tables natively.
