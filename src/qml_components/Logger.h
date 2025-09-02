@@ -7,6 +7,7 @@
 
 #include <QObject>
 #include <qstringlistmodel.h>
+#include <QtQml/qqmlregistration.h>
 namespace qml_components {
 
 /**
