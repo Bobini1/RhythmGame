@@ -120,7 +120,7 @@ Item {
                     Layout.preferredWidth: 1
                     text: {
                         let row = (judgementCountsModel.count, judgementCountsModel.itemAt(judgementCounts.modelWide.length - judgementRow.index - 1));
-                        if (!row || row.judgement > Judgement.Perfect) {
+                        if (!row) {
                             return "";
                         }
                         return row.count;
