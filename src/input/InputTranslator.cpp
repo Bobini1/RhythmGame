@@ -763,10 +763,10 @@ InputTranslator::loadKeyConfig(db::SqliteCppDb* db)
           BmsKey::Col17;
         config[Key{ QVariant::fromValue(nullptr),
                     Key::Device::Keyboard,
-                    Qt::Key_Semicolon }] = BmsKey::Col1sUp;
+                    Qt::Key_Shift }] = BmsKey::Col1sUp;
         config[Key{ QVariant::fromValue(nullptr),
                     Key::Device::Keyboard,
-                    Qt::Key_Apostrophe }] = BmsKey::Col1sDown;
+                    Qt::Key_Control }] = BmsKey::Col1sDown;
         config[Key{
           QVariant::fromValue(nullptr), Key::Device::Keyboard, Qt::Key_Q }] =
           BmsKey::Start1;
