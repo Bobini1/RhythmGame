@@ -60,7 +60,8 @@ class BmsLiveScore final : public QObject
      */
     Q_PROPERTY(double maxPoints READ getMaxPoints CONSTANT)
     /**
-     * @brief The maximum possible points achievable in the score.
+     * @brief The number of points the player would have if they played perfectly
+     * till now.
      */
     Q_PROPERTY(
       double maxPointsNow READ getMaxPointsNow NOTIFY maxPointsNowChanged)
