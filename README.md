@@ -14,7 +14,7 @@ A customizable BMS player for Windows and Linux.
 
 Customize the default theme by pressing F2 during gameplay and moving the elements around!
 
-![Customize mode](docs/images/customize.webp)
+![Customize mode (song: wa. - Black Lotus)](docs/images/customize.webp)
 
 You can also create your own custom theme with [QML](https://doc.qt.io/qt-6/qmlreference.html).
 Contact me if you're interested, I can help you get started!
@@ -39,7 +39,7 @@ Simply paste a link in settings.
 
 All resolutions supported! Press F11 to toggle fullscreen.
 
-![Scaling](docs/images/resize.webp)
+![Scaling (song: isocosa - data lake)](docs/images/resize.webp)
 
 ### Translations
 
