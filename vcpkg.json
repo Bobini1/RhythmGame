@@ -41,7 +41,8 @@
         "harfbuzz",
         "jpeg",
         "opengl",
-        "openssl"
+        "openssl",
+        "vulkan"
       ]
     },
     {
