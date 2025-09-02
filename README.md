@@ -31,7 +31,7 @@ so you can compare your scores with those games easily.
 
 ### Local battle mode
 
-Play with a friend!
+Play with a friend! Press start twice in song select to enable battle mode.
 
 ![Local battle mode](docs/images/battle.png)
 
