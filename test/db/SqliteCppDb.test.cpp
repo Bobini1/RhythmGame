@@ -48,7 +48,7 @@ TEST_CASE("Failing queries correctly return empty results", "[SqliteCppDb]")
     db.execute("CREATE TABLE Test(ID int, Name VARCHAR(255))"s);
     auto stmt = db.createStatement("SELECT * FROM Test WHERE ID = 1"s);
     auto row = stmt.executeAndGet<std::tuple<int, std::string>>();
-    REQUIRE_FALSE(row);
+    REQUIRE_FALSE(row.has_value());
     stmt = db.createStatement("SELECT * FROM Test"s);
     auto rows = stmt.executeAndGetAll<std::tuple<int, std::string>>();
     REQUIRE(rows.empty());
