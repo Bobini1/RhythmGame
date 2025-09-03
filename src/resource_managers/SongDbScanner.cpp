@@ -76,6 +76,9 @@ loadChart(QThreadPool& threadPool,
               [](charts::ParsedBmsChart::RandomRange randomRange) {
                   thread_local auto randomEngine =
                     std::default_random_engine{ std::random_device{}() };
+                  if (randomRange <= 1) {
+                      return charts::ParsedBmsChart::RandomRange{ 1 };
+                  }
                   return std::uniform_int_distribution{
                       charts::ParsedBmsChart::RandomRange{ 1 }, randomRange
                   }(randomEngine);

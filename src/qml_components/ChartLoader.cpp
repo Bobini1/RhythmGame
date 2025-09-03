@@ -170,6 +170,9 @@ ChartLoader::loadChart(const QString& filename,
               return static_cast<charts::ParsedBmsChart::RandomRange>(
                 randomSequence[counter++]);
           }
+          if (randomRange <= 1) {
+              return charts::ParsedBmsChart::RandomRange{1};
+          }
           return std::uniform_int_distribution{
               charts::ParsedBmsChart::RandomRange{ 1 }, randomRange
           }(randomEngine);
@@ -255,6 +258,9 @@ ChartLoader::loadCourse(const resource_managers::Course& course,
                   if (counter < randomSequence.size()) {
                       return static_cast<charts::ParsedBmsChart::RandomRange>(
                         randomSequence[counter++]);
+                  }
+                  if (randomRange <= 1) {
+                      return charts::ParsedBmsChart::RandomRange{1};
                   }
                   return std::uniform_int_distribution{
                       charts::ParsedBmsChart::RandomRange{ 1 }, randomRange
@@ -399,6 +405,9 @@ ChartLoader::loadChartData(const QString& filename,
               if (counter < randomSequence.size()) {
                   return static_cast<charts::ParsedBmsChart::RandomRange>(
                     randomSequence[counter++]);
+              }
+              if (randomRange <= 1) {
+                  return charts::ParsedBmsChart::RandomRange{1};
               }
               return std::uniform_int_distribution{
                   charts::ParsedBmsChart::RandomRange{ 1 }, randomRange
