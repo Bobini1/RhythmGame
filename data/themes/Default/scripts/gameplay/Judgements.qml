@@ -163,6 +163,7 @@ Item {
                     fastslow.visible = true;
                     break;
                 case Judgement.Poor:
+                case Judgement.EmptyPoor:
                     judgementAnimation.frameCount = 1;
                     judgementAnimation.source = root.iniImagesUrl + "judge/" + judgement.judge + "/poor";
                     fastslow.visible = false;
