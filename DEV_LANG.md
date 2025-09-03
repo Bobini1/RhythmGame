@@ -31,7 +31,7 @@ Please use country codes instead if possible.
 For example, here is a property with an added Canadian French translation:
 
 ```json
-        {
+{
   "id": "verticalGauge",
   "name": {
     "en": "Vertical Gauge",
