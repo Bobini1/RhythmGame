@@ -10,14 +10,14 @@
 #include <sndfile.hh>
 
 auto
-getALDevice() -> ALCdevice*
+sounds::getALDevice() -> ALCdevice*
 {
     static auto device = std::unique_ptr<ALCdevice, decltype(&alcCloseDevice)>(
       alcOpenDevice(/*devicename=*/nullptr), &alcCloseDevice);
     return device.get();
 }
 auto
-getALContext() -> ALCcontext*
+sounds::getALContext() -> ALCcontext*
 {
     static auto context =
       std::unique_ptr<ALCcontext, decltype(&alcDestroyContext)>(

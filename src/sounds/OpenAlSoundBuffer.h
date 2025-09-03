@@ -4,11 +4,15 @@
 
 #ifndef RHYTHMGAME_OPENALSOUNDBUFFER_H
 #define RHYTHMGAME_OPENALSOUNDBUFFER_H
+#include <alc.h>
 #include <AL/al.h>
 #include <chrono>
 #include <filesystem>
 
 namespace sounds {
+    auto getALDevice() -> ALCdevice*;
+    auto getALContext() -> ALCcontext*;
+
 /**
  * @brief A buffer that can be used to create sounds. Wraps an OpenAL buffer.
  * @details This class is used to load, decode and store the sound data.

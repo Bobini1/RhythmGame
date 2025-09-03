@@ -36,7 +36,9 @@
 #include "support/PathToUtfString.h"
 #include "support/UtfStringToPath.h"
 #include "gameplay_logic/CourseRunner.h"
+#include "sounds/OpenAlSoundBuffer.h"
 #include "support/QtSink.h"
+#include <AL/alext.h>
 
 Q_IMPORT_QML_PLUGIN(RhythmGameQmlPlugin)
 
@@ -261,6 +263,15 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
                       &languages };
 
         Rg::instance = &rg;
+
+        auto timer = QTimer{};
+        timer.setInterval(1000);
+        timer.setParent(&app);
+        LPALCREOPENDEVICESOFT alcReopenDeviceSOFT = (LPALCREOPENDEVICESOFT)alGetProcAddress("alcReopenDeviceSOFT");
+        QObject::connect(&timer, &QTimer::timeout, [alcReopenDeviceSOFT] {
+            alcReopenDeviceSOFT(sounds::getALDevice(), nullptr, nullptr);
+        });
+        timer.start();
 
         // add all other common types
         qmlRegisterType<resource_managers::Level>(
