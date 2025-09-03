@@ -503,7 +503,7 @@
               "type": "range",
               "min": 0,
               "max": 1,
-              "default": 0.5,
+              "default": 0.25,
               "description": {
                 "en": "The vertical offset, expressed a ratio of the play area height.",
                 "pl": "Pionowe przesunięcie, wyrażone jako stosunek do wysokości obszaru gry."
