@@ -8,10 +8,10 @@
 namespace gameplay_logic::rules {
 enum class BmsRank
 {
-    Easy,
-    Normal,
+    VeryHard,
     Hard,
-    VeryHard
+    Normal,
+    Easy,
 };
 
 static constexpr auto defaultBmsRank = BmsRank::Normal;
