@@ -23,6 +23,14 @@
     },
     "foonathan-lexy",
     "openal-soft",
+    {
+      "name": "openal-soft",
+      "features": [
+        "pipewire",
+        "pulseaudio"
+      ],
+      "platform": "linux"
+    },
     "magic-enum",
     "zstd",
     {
