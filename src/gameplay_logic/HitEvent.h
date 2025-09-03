@@ -91,6 +91,9 @@ class HitEvent
     auto getNoteIndex() const -> int;
     auto getAction() const -> Action;
     auto getNoteRemoved() const -> bool;
+    void setAction(Action newAction);
+    void setPoints(std::optional<BmsPoints> newPoints);
+    void setNoteRemoved(bool newNoteRemoved);
 
     auto operator>(const HitEvent& other) const
     {

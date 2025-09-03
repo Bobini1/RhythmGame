@@ -49,6 +49,21 @@ HitEvent::getNoteRemoved() const -> bool
 {
     return noteRemoved;
 }
+void
+HitEvent::setAction(Action newAction)
+{
+    action = newAction;
+}
+void
+HitEvent::setPoints(std::optional<BmsPoints> newPoints)
+{
+    points = newPoints;
+}
+void
+HitEvent::setNoteRemoved(bool newNoteRemoved)
+{
+    noteRemoved = newNoteRemoved;
+}
 auto
 HitEvent::getPointsOptional() const -> std::optional<BmsPoints>
 {
