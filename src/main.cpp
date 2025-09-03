@@ -265,7 +265,7 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
 
         Rg::instance = &rg;
 
-        sounds::installOpenALEvents(); 
+        sounds::installOpenALEvents();
 
         // add all other common types
         qmlRegisterType<resource_managers::Level>(
