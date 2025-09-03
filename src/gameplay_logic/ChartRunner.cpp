@@ -293,7 +293,7 @@ Player::passKey(input::BmsKey key,
                 ChartRunner::EventType eventType,
                 std::chrono::nanoseconds offset)
 {
-    if (!referee) {
+    if (!referee || status == ChartRunner::Status::Finished) {
         if (eventType == ChartRunner::EventType::KeyPress) {
             score->sendVisualOnlyTap({ static_cast<int>(key),
                                        std::nullopt,
