@@ -68,6 +68,7 @@ qtLogHandler(QtMsgType type,
     }
 }
 
+
 auto
 main(int argc, [[maybe_unused]] char* argv[]) -> int
 {
@@ -264,14 +265,7 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
 
         Rg::instance = &rg;
 
-        auto timer = QTimer{};
-        timer.setInterval(1000);
-        timer.setParent(&app);
-        LPALCREOPENDEVICESOFT alcReopenDeviceSOFT = (LPALCREOPENDEVICESOFT)alGetProcAddress("alcReopenDeviceSOFT");
-        QObject::connect(&timer, &QTimer::timeout, [alcReopenDeviceSOFT] {
-            alcReopenDeviceSOFT(sounds::getALDevice(), nullptr, nullptr);
-        });
-        timer.start();
+        sounds::installOpenALEvents(); 
 
         // add all other common types
         qmlRegisterType<resource_managers::Level>(

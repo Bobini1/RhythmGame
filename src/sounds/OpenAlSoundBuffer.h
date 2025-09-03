@@ -12,6 +12,7 @@
 namespace sounds {
     auto getALDevice() -> ALCdevice*;
     auto getALContext() -> ALCcontext*;
+    void installOpenALEvents();
 
 /**
  * @brief A buffer that can be used to create sounds. Wraps an OpenAL buffer.

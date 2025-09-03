@@ -8,6 +8,7 @@
 #include <AL/alext.h>
 #include <spdlog/spdlog.h>
 #include <sndfile.hh>
+#include <QGuiApplication>
 
 auto
 sounds::getALDevice() -> ALCdevice*
@@ -24,6 +25,82 @@ sounds::getALContext() -> ALCcontext*
         alcCreateContext(getALDevice(), /*attrlist=*/nullptr),
         &alcDestroyContext);
     return context.get();
+}
+
+namespace {
+
+struct OpenALEventContext {
+    LPALCREOPENDEVICESOFT reopenFunc {nullptr};
+    ALCdevice *device {nullptr};
+    // For thread marshaling back to Qt main (or owning) thread
+    QCoreApplication *app {nullptr};
+};
+
+// The actual event callback
+static void ALC_APIENTRY onAlEvent(ALCenum eventType, ALCenum deviceType,
+    ALCdevice *device, ALCsizei length, const ALCchar *message, void *userParam) noexcept
+{
+    auto *ctx = static_cast<OpenALEventContext*>(userParam);
+    if(!ctx || !ctx->reopenFunc) return;
+
+    if(eventType == ALC_EVENT_TYPE_DEFAULT_DEVICE_CHANGED_SOFT) {
+        // (Optional) Log message text if provided
+        QString msg = QString::fromUtf8(message ? QByteArray(message, length) : QByteArray());
+        spdlog::debug("[OpenAL] Default device changed event:");
+
+        // Reopen must generally be done in your main / audio management thread,
+        // so dispatch via Qt event loop to be safe.
+        QMetaObject::invokeMethod(ctx->app, [ctx, device]() {
+            // Reopen with nullptrs to use the new default device
+            if(!ctx->reopenFunc(sounds::getALDevice(), nullptr, nullptr)) {
+                spdlog::error("[OpenAL] alcReopenDeviceSOFT failed after default device change.");
+            } else {
+                spdlog::debug("[OpenAL] Device successfully reopened on new default output.");
+            }
+        }, Qt::QueuedConnection);
+    }
+}
+} // namespace
+
+void sounds::installOpenALEvents()
+{
+    ALCdevice *device = sounds::getALDevice();
+    if(!device) {
+        spdlog::warn("No OpenAL device available.");
+        return;
+    }
+
+    auto alcReopenDeviceSOFT  = reinterpret_cast<LPALCREOPENDEVICESOFT>(
+        alcGetProcAddress(device, "alcReopenDeviceSOFT"));
+    auto alcEventCallbackSOFT = reinterpret_cast<LPALCEVENTCALLBACKSOFT>(
+        alcGetProcAddress(device, "alcEventCallbackSOFT"));
+    auto alcEventControlSOFT  = reinterpret_cast<LPALCEVENTCONTROLSOFT>(
+        alcGetProcAddress(device, "alcEventControlSOFT"));
+
+    if(!alcReopenDeviceSOFT || !alcEventCallbackSOFT || !alcEventControlSOFT) {
+        spdlog::warn("Required OpenAL event extension functions not available.");
+        return;
+    }
+
+    static auto ctx = std::make_unique<OpenALEventContext>();
+    ctx->reopenFunc = alcReopenDeviceSOFT;
+    ctx->device     = device;
+    ctx->app        = QCoreApplication::instance();
+
+    // Register callback
+    alcEventCallbackSOFT(onAlEvent, ctx.get());
+
+    // Enable just the default-device-changed event
+    const ALCenum events[] = { ALC_EVENT_TYPE_DEFAULT_DEVICE_CHANGED_SOFT };
+    if(alcEventControlSOFT(1, events, ALC_TRUE) == ALC_FALSE) {
+        spdlog::error("Failed to enable default device change event.");
+    } else {
+        spdlog::debug("OpenAL default device change event enabled.");
+    }
+
+    // You may keep ctx alive for the app lifetime. If you later want to disable:
+    // alcEventControlSOFT(1, events, ALC_FALSE);
+    // alcEventCallbackSOFT(nullptr, nullptr);
 }
 
 sounds::OpenALSoundBuffer::OpenALSoundBuffer(
