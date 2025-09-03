@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['main_0',['main',['../namespaceresource__managers_1_1hi__speed__fix.html#ac715382b9422d7bab66ac00314eb3e7eaa02c83a7dbd96295beaefb72c2bee2de',1,'resource_managers::hi_speed_fix::Main'],['../main_8cpp.html#a7114aa2dd6837734db57667a298dfcc4',1,'main(int argc, char *argv[]) -&gt; int:&#160;main.cpp']]],
+  ['main_0',['main',['../main_8cpp.html#a7114aa2dd6837734db57667a298dfcc4',1,'main():&#160;main.cpp'],['../namespaceresource__managers_1_1hi__speed__fix.html#ac715382b9422d7bab66ac00314eb3e7eaa02c83a7dbd96295beaefb72c2bee2de',1,'resource_managers::hi_speed_fix::Main']]],
   ['main_2ecpp_1',['main.cpp',['../main_8cpp.html',1,'']]],
   ['mainbpm_2',['mainbpm',['../classgameplay__logic_1_1ChartData.html#a1a45478691ed5a94d1e263b1ced12746',1,'gameplay_logic::ChartData::mainBpm'],['../structgameplay__logic_1_1ChartData_1_1DTO.html#a659350dd5b0e3614ab5ed1d436a75e11',1,'gameplay_logic::ChartData::DTO::mainBpm']]],
   ['mainprofile_3',['mainProfile',['../classqml__components_1_1ProfileList.html#a94d78f9994866d07837a5112a6070862',1,'qml_components::ProfileList']]],
