@@ -100,8 +100,13 @@ loadChart(QThreadPool& threadPool,
                                         chartComponents.notesData.barLines)
               ->save(db, chartComponents.chartData->getSha256().toStdString());
         } catch (const std::exception& e) {
-            spdlog::error(
-              "Failed to load chart data for {}: {}", path.string(), e.what());
+            try {
+                spdlog::error(
+                  "Failed to load chart data for {}: {}", path.string(), e.what());
+            } catch (const std::exception& e2) {
+                spdlog::error(
+                  "Failed to load chart data for ({}): {}", e2.what(), e.what());
+            }
         }
     });
 }
@@ -400,11 +405,14 @@ SongDbScanner::scanDirectory(
           "Error scanning directory {}: {}", directory.string(), e.what());
     }
     threadPool.waitForDone();
-    if (*stop) {
-        spdlog::info(
-          "Scanning {} cancelled after {} seconds", directory.string(), sw);
-    } else {
-        spdlog::info("Scanning {} took {} seconds", directory.string(), sw);
+    try {
+        if (*stop) {
+            spdlog::info(
+              "Scanning {} cancelled after {} seconds", directory.string(), sw);
+        } else {
+            spdlog::info("Scanning {} took {} seconds", directory.string(), sw);
+        }
+    } catch (...) {
     }
     updateCurrentScannedFolder("");
 }
