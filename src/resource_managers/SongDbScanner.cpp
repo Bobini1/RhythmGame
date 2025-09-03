@@ -111,15 +111,19 @@ addPreviewFileToDb(db::SqliteCppDb& db,
                    const std::filesystem::path& directory,
                    const std::filesystem::path& path)
 {
-    auto previewPath = support::pathToUtfString((path));
-    auto directoryPath = support::pathToUtfString((directory / ""));
-    auto statement = db.createStatement(
-      "INSERT OR REPLACE INTO preview_files (path, directory) "
-      "VALUES (?, ?)");
-    statement.reset();
-    statement.bind(1, previewPath);
-    statement.bind(2, directoryPath);
-    statement.execute();
+    try {
+        auto previewPath = support::pathToUtfString((path));
+        auto directoryPath = support::pathToUtfString((directory / ""));
+        auto statement = db.createStatement(
+          "INSERT OR REPLACE INTO preview_files (path, directory) "
+          "VALUES (?, ?)");
+        statement.reset();
+        statement.bind(1, previewPath);
+        statement.bind(2, directoryPath);
+        statement.execute();
+    } catch (const std::exception& e) {
+        spdlog::error("Failed to add preview file to db: {}", e.what());
+    }
 }
 #ifdef _WIN32
 using NtQueryDirectoryFile_t =
