@@ -75,11 +75,13 @@ $(function() {
 <div class="header">
   <div class="summary">
 <a href="#nested-classes">Classes</a> &#124;
-<a href="#namespaces">Namespaces</a>  </div>
+<a href="#namespaces">Namespaces</a> &#124;
+<a href="#func-members">Functions</a>  </div>
   <div class="headertitle"><div class="title">OpenAlSoundBuffer.h File Reference</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><code>#include &lt;AL/al.h&gt;</code><br />
+<div class="textblock"><code>#include &lt;alc.h&gt;</code><br />
+<code>#include &lt;AL/al.h&gt;</code><br />
 <code>#include &lt;chrono&gt;</code><br />
 <code>#include &lt;filesystem&gt;</code><br />
 </div><div class="textblock"><div class="dynheader">
@@ -87,13 +89,15 @@ Include dependency graph for OpenAlSoundBuffer.h:</div>
 <div class="dyncontent">
 <div class="center"><img src="OpenAlSoundBuffer_8h__incl.png" border="0" usemap="#asrc_2sounds_2OpenAlSoundBuffer_8h" alt=""/></div>
 <map name="asrc_2sounds_2OpenAlSoundBuffer_8h" id="asrc_2sounds_2OpenAlSoundBuffer_8h">
-<area shape="rect" title=" " alt="" coords="13,5,245,31"/>
-<area shape="rect" title=" " alt="" coords="5,79,72,104"/>
-<area shape="poly" title=" " alt="" coords="116,33,66,72,63,68,113,29"/>
-<area shape="rect" title=" " alt="" coords="96,79,163,104"/>
-<area shape="poly" title=" " alt="" coords="132,31,132,65,127,65,127,31"/>
-<area shape="rect" title=" " alt="" coords="187,79,277,104"/>
-<area shape="poly" title=" " alt="" coords="147,28,205,68,202,73,144,33"/>
+<area shape="rect" title=" " alt="" coords="45,5,277,31"/>
+<area shape="rect" title=" " alt="" coords="5,79,59,104"/>
+<area shape="poly" title=" " alt="" coords="142,33,67,74,64,69,139,28"/>
+<area shape="rect" title=" " alt="" coords="83,79,149,104"/>
+<area shape="poly" title=" " alt="" coords="156,32,133,69,128,66,152,30"/>
+<area shape="rect" title=" " alt="" coords="173,79,240,104"/>
+<area shape="poly" title=" " alt="" coords="171,30,194,66,190,69,167,32"/>
+<area shape="rect" title=" " alt="" coords="264,79,355,104"/>
+<area shape="poly" title=" " alt="" coords="186,28,274,70,272,75,184,33"/>
 </map>
 </div>
 </div><div class="textblock"><div class="dynheader">
@@ -101,15 +105,17 @@ This graph shows which files directly or indirectly include this file:</div>
 <div class="dyncontent">
 <div class="center"><img src="OpenAlSoundBuffer_8h__dep__incl.png" border="0" usemap="#asrc_2sounds_2OpenAlSoundBuffer_8hdep" alt=""/></div>
 <map name="asrc_2sounds_2OpenAlSoundBuffer_8hdep" id="asrc_2sounds_2OpenAlSoundBuffer_8hdep">
-<area shape="rect" title=" " alt="" coords="323,5,555,31"/>
+<area shape="rect" title=" " alt="" coords="345,5,577,31"/>
 <area shape="rect" href="BmsNotesData_8cpp.html" title=" " alt="" coords="5,86,220,111"/>
-<area shape="poly" title=" " alt="" coords="379,36,161,89,160,83,378,31"/>
-<area shape="rect" href="loadBmsSounds_8cpp.html" title=" " alt="" coords="245,79,418,119"/>
-<area shape="poly" title=" " alt="" coords="414,41,359,81,356,76,411,37"/>
-<area shape="rect" href="OpenAlSound_8cpp.html" title=" " alt="" coords="443,86,652,111"/>
-<area shape="poly" title=" " alt="" coords="468,37,533,84,530,88,465,41"/>
-<area shape="rect" href="OpenAlSoundBuffer_8cpp.html" title=" " alt="" coords="676,86,923,111"/>
-<area shape="poly" title=" " alt="" coords="506,31,747,83,746,89,504,36"/>
+<area shape="poly" title=" " alt="" coords="397,36,164,89,163,83,396,31"/>
+<area shape="rect" href="main_8cpp.html" title=" " alt="" coords="244,86,349,111"/>
+<area shape="poly" title=" " alt="" coords="426,39,322,88,319,84,423,34"/>
+<area shape="rect" href="loadBmsSounds_8cpp.html" title=" " alt="" coords="374,79,547,119"/>
+<area shape="poly" title=" " alt="" coords="463,44,463,79,458,79,458,44"/>
+<area shape="rect" href="OpenAlSound_8cpp.html" title=" " alt="" coords="572,86,781,111"/>
+<area shape="poly" title=" " alt="" coords="506,33,646,83,644,88,504,38"/>
+<area shape="rect" href="OpenAlSoundBuffer_8cpp.html" title=" " alt="" coords="805,86,1052,111"/>
+<area shape="poly" title=" " alt="" coords="543,30,861,83,860,89,542,36"/>
 </map>
 </div>
 </div>
@@ -126,6 +132,15 @@ Namespaces</h2></td></tr>
 <tr class="memitem:namespacesounds" id="r_namespacesounds"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacesounds.html">sounds</a></td></tr>
 <tr class="memdesc:namespacesounds"><td class="mdescLeft">&#160;</td><td class="mdescRight">The namespace for all sound related classes. <br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
+Functions</h2></td></tr>
+<tr class="memitem:a414f985b0e0163d29d753c6add2bd8b6" id="r_a414f985b0e0163d29d753c6add2bd8b6"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacesounds.html#a414f985b0e0163d29d753c6add2bd8b6">sounds::getALDevice</a> () -&gt; ALCdevice *</td></tr>
+<tr class="separator:a414f985b0e0163d29d753c6add2bd8b6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a210e3a005ccf04844a9b9536ace2e272" id="r_a210e3a005ccf04844a9b9536ace2e272"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacesounds.html#a210e3a005ccf04844a9b9536ace2e272">sounds::getALContext</a> () -&gt; ALCcontext *</td></tr>
+<tr class="separator:a210e3a005ccf04844a9b9536ace2e272"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a89eddda9a5bd3c99ae21f796bcb43cf6" id="r_a89eddda9a5bd3c99ae21f796bcb43cf6"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacesounds.html#a89eddda9a5bd3c99ae21f796bcb43cf6">sounds::installOpenALEvents</a> ()</td></tr>
+<tr class="separator:a89eddda9a5bd3c99ae21f796bcb43cf6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 </div><!-- contents -->
 <!-- start footer part -->
