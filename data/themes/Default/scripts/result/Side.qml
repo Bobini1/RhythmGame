@@ -36,9 +36,7 @@ Column {
         origin.x: side.mirrored ? side.width / 2 : 0
     }
     Input.onButtonPressed: (key) => {
-        if (key === BmsKey[`Col${mirrored ? 2 : 1}1`]) {
-            lifeGraph.decrementIndex();
-        } else if (key === BmsKey[`Col${mirrored ? 2 : 1}2`]) {
+        if (key === BmsKey[`Select${mirrored ? 2 : 1}`]) {
             lifeGraph.incrementIndex();
         }
     }
