@@ -768,10 +768,10 @@ InputTranslator::loadKeyConfig(db::SqliteCppDb* db)
                     Key::Device::Keyboard,
                     Qt::Key_Control }] = BmsKey::Col1sDown;
         config[Key{
-          QVariant::fromValue(nullptr), Key::Device::Keyboard, Qt::Key_Q }] =
+          QVariant::fromValue(nullptr), Key::Device::Keyboard, Qt::Key_O }] =
           BmsKey::Start1;
         config[Key{
-          QVariant::fromValue(nullptr), Key::Device::Keyboard, Qt::Key_W }] =
+          QVariant::fromValue(nullptr), Key::Device::Keyboard, Qt::Key_P }] =
           BmsKey::Select1;
         saveKeyConfig();
     }
