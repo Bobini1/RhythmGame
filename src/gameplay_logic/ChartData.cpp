@@ -169,7 +169,7 @@ gameplay_logic::ChartData::save(db::SqliteCppDb& db) const -> void
     query.bind(23, avgBpm);
     query.bind(24, path.toStdString());
     query.bind(25, getChartDirectory().toStdString());
-    if (directory == 0) {
+    if (directory == -1) {
         query.bind(26);
     } else {
         query.bind(26, directory);

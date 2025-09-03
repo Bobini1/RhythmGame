@@ -28,7 +28,10 @@ addDirToParentDirs(db::SqliteCppDb& db, QString root, QString folder)
     auto insert = db.createStatement("INSERT OR IGNORE INTO parent_dir "
                                      "(parent_dir, dir) VALUES (:parent_dir, "
                                      ":dir)");
-    if (!folder.isEmpty() && folder.back() != '/') {
+    if (folder.isEmpty()) {
+        return -1;
+    }
+    if (folder.back() != '/') {
         folder += '/';
     }
     auto parent = std::string{};
@@ -202,9 +205,6 @@ scanFolder(const std::filesystem::path& directory,
                    updateCurrentScannedFolder,
                    buffer,
                    stop);
-    }
-    if (isSongDirectory) {
-        addDirToParentDirs(db, root, support::pathToQString(parentDirectory));
     }
 }
 
