@@ -63,7 +63,7 @@ judgeVeryHard() -> TimingWindows
         map.set({ Nanos::open(-1000ms, 0ms), Judgement::EmptyPoor });
         map.set({ Nanos::open(-200ms, +200ms), Judgement::Bad });
         map.set({ Nanos::open(-40ms, +40ms), Judgement::Good });
-        map.set({ Nanos::open(-24ms, +4ms), Judgement::Great });
+        map.set({ Nanos::open(-24ms, +24ms), Judgement::Great });
         map.set({ Nanos::open(-8ms, +8ms), Judgement::Perfect });
         return map;
     }();
