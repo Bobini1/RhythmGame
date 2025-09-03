@@ -44,9 +44,9 @@ struct ParsedBmsChart
         std::vector<std::vector<uint16_t>> bgaLayer;
         std::vector<std::vector<uint16_t>> bgaLayer2;
         std::vector<std::vector<uint16_t>> bgmNotes;
-        std::vector<uint16_t> bpmChanges;   // old-school, FF = BPM is 255
-        std::vector<uint16_t> exBpmChanges; // new, FF = #BPMFF
-        std::vector<uint16_t> stops;
+        std::vector<std::vector<uint16_t>> bpmChanges;   // old-school, FF = BPM is 255
+        std::vector<std::vector<uint16_t>> exBpmChanges; // new, FF = #BPMFF
+        std::vector<std::vector<uint16_t>> stops;
         std::optional<double> meter;
     };
 

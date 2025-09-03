@@ -31,74 +31,80 @@ enum class BpmChangeType
 };
 
 auto
-combineBpmChanges(std::span<const uint16_t> exBpmChanges,
-                  std::span<const uint16_t> bpmChanges,
-                  std::span<const uint16_t> stops,
+combineBpmChanges(std::span<const std::vector<uint16_t>> exBpmChanges,
+                  std::span<const std::vector<uint16_t>> bpmChanges,
+                  std::span<const std::vector<uint16_t>> stops,
                   const std::unordered_map<uint16_t, double>& bpms,
                   const std::unordered_map<uint16_t, double>& stopDefs)
   -> std::vector<BpmChangeDef>
 {
-    auto index = -1;
     auto combinedBpmChanges = std::vector<BpmChangeDef>{};
-    for (const auto& bpmChange : exBpmChanges) {
-        index++;
-        if (bpmChange == 0) {
-            continue;
+    for (const auto& exBpmChangeDefs : exBpmChanges) {
+        auto index = -1;
+        for (const auto& bpmChange : exBpmChangeDefs) {
+            index++;
+            if (bpmChange == 0) {
+                continue;
+            }
+            auto bpmValue = bpms.find(bpmChange);
+            if (bpmValue == bpms.end()) {
+                continue;
+            }
+            if (bpmValue->second <= 0.0) {
+                throw std::runtime_error{ "Bpm must be positive, was: " +
+                                          std::to_string(bpmValue->second) };
+            }
+            auto fraction =
+              static_cast<double>(index) / static_cast<double>(exBpmChangeDefs.size());
+            auto gcd = std::gcd(index, static_cast<int>(exBpmChangeDefs.size()));
+            auto fractionDec =
+              std::pair{ index / gcd, static_cast<int>(exBpmChangeDefs.size()) / gcd };
+            combinedBpmChanges.emplace_back(
+              BpmChangeDef{ fraction, false, fractionDec, bpmValue->second });
         }
-        auto bpmValue = bpms.find(bpmChange);
-        if (bpmValue == bpms.end()) {
-            continue;
-        }
-        if (bpmValue->second <= 0.0) {
-            throw std::runtime_error{ "Bpm must be positive, was: " +
-                                      std::to_string(bpmValue->second) };
-        }
-        auto fraction =
-          static_cast<double>(index) / static_cast<double>(exBpmChanges.size());
-        auto gcd = std::gcd(index, static_cast<int>(exBpmChanges.size()));
-        auto fractionDec =
-          std::pair{ index / gcd, static_cast<int>(exBpmChanges.size()) / gcd };
-        combinedBpmChanges.emplace_back(
-          BpmChangeDef{ fraction, false, fractionDec, bpmValue->second });
     }
-    index = -1;
-    for (const auto& bpmChange : bpmChanges) {
-        index++;
-        if (bpmChange == 0) {
-            continue;
+    for (const auto& bpmChangeDefs : bpmChanges) {
+        auto index = -1;
+        for (const auto& bpmChange : bpmChangeDefs) {
+            index++;
+            if (bpmChange == 0) {
+                continue;
+            }
+            auto fraction =
+              static_cast<double>(index) / static_cast<double>(bpmChangeDefs.size());
+            auto gcd = std::gcd(index, static_cast<int>(bpmChangeDefs.size()));
+            auto fractionDec =
+              std::pair{ index / gcd, static_cast<int>(bpmChangeDefs.size()) / gcd };
+            combinedBpmChanges.emplace_back(BpmChangeDef{
+              fraction, false, fractionDec, static_cast<double>(bpmChange) });
         }
-        auto fraction =
-          static_cast<double>(index) / static_cast<double>(bpmChanges.size());
-        auto gcd = std::gcd(index, static_cast<int>(bpmChanges.size()));
-        auto fractionDec =
-          std::pair{ index / gcd, static_cast<int>(bpmChanges.size()) / gcd };
-        combinedBpmChanges.emplace_back(BpmChangeDef{
-          fraction, false, fractionDec, static_cast<double>(bpmChange) });
     }
-    index = -1;
-    for (const auto& stop : stops) {
-        index++;
-        if (stop == 0) {
-            continue;
+    for (const auto& stopDefsVec : stops) {
+        auto index = -1;
+        for (const auto& stop : stopDefsVec) {
+            index++;
+            if (stop == 0) {
+                continue;
+            }
+            auto stopValue = stopDefs.find(stop);
+            if (stopValue == stopDefs.end()) {
+                continue;
+            }
+            if (stopValue->second <= 0.0) {
+                spdlog::debug("Stop must be positive, was: {}",
+                              std::to_string(stopValue->second));
+                continue;
+            }
+            auto fraction =
+              static_cast<double>(index) / static_cast<double>(stopDefsVec.size());
+            auto gcd = std::gcd(index, static_cast<int>(stopDefsVec.size()));
+            auto fractionDec =
+              std::pair{ index / gcd, static_cast<int>(stopDefsVec.size()) / gcd };
+            combinedBpmChanges.emplace_back(
+              BpmChangeDef{ fraction, true, fractionDec, stopValue->second });
         }
-        auto stopValue = stopDefs.find(stop);
-        if (stopValue == stopDefs.end()) {
-            continue;
-        }
-        if (stopValue->second <= 0.0) {
-            spdlog::debug("Stop must be positive, was: {}",
-                          std::to_string(stopValue->second));
-            continue;
-        }
-        auto fraction =
-          static_cast<double>(index) / static_cast<double>(stops.size());
-        auto gcd = std::gcd(index, static_cast<int>(stops.size()));
-        auto fractionDec =
-          std::pair{ index / gcd, static_cast<int>(stops.size()) / gcd };
-        combinedBpmChanges.emplace_back(
-          BpmChangeDef{ fraction, true, fractionDec, stopValue->second });
     }
-    std::ranges::sort(combinedBpmChanges, [](const auto& a, const auto& b) {
+    std::ranges::stable_sort(combinedBpmChanges, [](const auto& a, const auto& b) {
         if (a.fractionDec == b.fractionDec) {
             return a.isStop < b.isStop;
         }

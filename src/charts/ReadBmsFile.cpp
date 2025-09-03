@@ -696,16 +696,16 @@ struct TagsSink
                                   }
                                   return bpmValueHigh + bpmValueLow;
                               });
-                            state.measures[measure].bpmChanges =
-                              std::move(identifiers);
+                            state.measures[measure].bpmChanges.push_back(
+                              std::move(identifiers));
                             break;
                         case ExBpm:
-                            state.measures[measure].exBpmChanges =
-                              std::move(identifiers);
+                            state.measures[measure].exBpmChanges.push_back(
+                              std::move(identifiers));
                             break;
                         case Stop:
-                            state.measures[measure].stops =
-                              std::move(identifiers);
+                            state.measures[measure].stops.push_back(
+                              std::move(identifiers));
                             break;
                         case BgaBase:
                             state.measures[measure].bgaBase.push_back(
