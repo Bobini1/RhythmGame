@@ -11,11 +11,6 @@
 
 #include <qthreadpool.h>
 #include <spdlog/stopwatch.h>
-#ifdef _WIN32
-#include <Windows.h>
-#include <winternl.h>
-#include <ntstatus.h>
-#endif
 #include <llfio.hpp>
 #include <spdlog/spdlog.h>
 
@@ -115,158 +110,7 @@ addPreviewFileToDb(db::SqliteCppDb& db,
     statement.bind(2, directoryPath);
     statement.execute();
 }
-#ifdef _WIN32
-using NtQueryDirectoryFile_t =
-  NTSTATUS(NTAPI*)(_In_ HANDLE FileHandle,
-                   _In_opt_ HANDLE Event,
-                   _In_opt_ PIO_APC_ROUTINE ApcRoutine,
-                   _In_opt_ PVOID ApcContext,
-                   _Out_ PIO_STATUS_BLOCK IoStatusBlock,
-                   _Out_ PVOID FileInformation,
-                   _In_ ULONG Length,
-                   _In_ FILE_INFORMATION_CLASS FileInformationClass,
-                   _In_ BOOLEAN ReturnSingleEntry,
-                   _In_opt_ PUNICODE_STRING FileName,
-                   _In_ BOOLEAN RestartScan);
 
-typedef struct _FILE_DIRECTORY_INFORMATION
-{
-    ULONG NextEntryOffset;
-    ULONG FileIndex;
-    LARGE_INTEGER CreationTime;
-    LARGE_INTEGER LastAccessTime;
-    LARGE_INTEGER LastWriteTime;
-    LARGE_INTEGER ChangeTime;
-    LARGE_INTEGER EndOfFile;
-    LARGE_INTEGER AllocationSize;
-    ULONG FileAttributes;
-    ULONG FileNameLength;
-    WCHAR FileName[1];
-} FILE_DIRECTORY_INFORMATION, *PFILE_DIRECTORY_INFORMATION;
-
-void
-scanFolder(std::filesystem::path directory,
-           std::filesystem::path parentDirectory,
-           QThreadPool& threadPool,
-           db::SqliteCppDb& db,
-           const QString& root,
-           std::function<void(QString)> updateCurrentScannedFolder,
-           std::atomic_bool* stop)
-{
-    static HMODULE ntdllh = GetModuleHandleA("NTDLL.DLL");
-    static auto NtQueryDirectoryFile = reinterpret_cast<NtQueryDirectoryFile_t>(
-      GetProcAddress(ntdllh, "NtQueryDirectoryFile"));
-    auto isb = IO_STATUS_BLOCK{};
-    memset(&isb, 0, sizeof(isb));
-    isb.Status = -1;
-    static constexpr auto max_bytes = 65536;
-    char buffer[65536];
-    HANDLE hDirectory = CreateFileW(directory.c_str(),
-                                    FILE_LIST_DIRECTORY,
-                                    FILE_SHARE_READ,
-                                    NULL,
-                                    OPEN_EXISTING,
-                                    FILE_FLAG_BACKUP_SEMANTICS,
-                                    NULL);
-
-    updateCurrentScannedFolder(
-      support::pathToQString(directory.lexically_normal()));
-    auto directoriesToScan = std::vector<std::filesystem::path>{};
-    auto isSongDirectory = false;
-    auto parentDirQString = support::pathToQString(parentDirectory);
-    if (!parentDirQString.isEmpty()) {
-        if (parentDirQString.back() != '/') {
-            parentDirQString += '/';
-        }
-    }
-    auto previewPath = std::filesystem::path{};
-    auto dirId = int64_t{ 0 };
-
-    while (true) {
-        auto status = NtQueryDirectoryFile(hDirectory,
-                                           NULL,
-                                           NULL,
-                                           NULL,
-                                           &isb,
-                                           buffer,
-                                           sizeof(buffer),
-                                           FileDirectoryInformation,
-                                           FALSE,
-                                           NULL,
-                                           false);
-
-        if (status == STATUS_NO_MORE_FILES) {
-            break; // No more files to process
-        }
-
-        if (status != STATUS_SUCCESS && status != STATUS_BUFFER_OVERFLOW) {
-            spdlog::error("NtQueryDirectoryFile failed. NTSTATUS: {:#x}\n",
-                          status);
-            break;
-        }
-
-        if (*stop) {
-            break;
-        }
-
-        auto* fileInfo = reinterpret_cast<PFILE_DIRECTORY_INFORMATION>(buffer);
-
-        do {
-            auto path =
-              std::wstring_view{ fileInfo->FileName,
-                                 fileInfo->FileNameLength / sizeof(WCHAR) };
-            if (fileInfo->FileAttributes & FILE_ATTRIBUTE_DIRECTORY &&
-                path != L"." && path != L"..") {
-                if (!isSongDirectory) {
-                    directoriesToScan.emplace_back(path);
-                }
-            } else if (auto extension = std::filesystem::path(path).extension();
-                       extension.compare(".bms") == 0 ||
-                       extension.compare(".bme") == 0 ||
-                       extension.compare(".bml") == 0 ||
-                       extension.compare(".pms") == 0) {
-                if (!isSongDirectory) {
-                    dirId = addDirToParentDirs(db, root, parentDirQString);
-                    isSongDirectory = true;
-                }
-                directoriesToScan.clear();
-                if (extension.compare(".pms") != 0) {
-                    loadChart(threadPool, db, dirId, directory / path, stop);
-                }
-            } else if (path.starts_with(L"preview") &&
-                       (extension.compare(".mp3") == 0 ||
-                        extension.compare(".ogg") == 0 ||
-                        extension.compare(".wav") == 0 ||
-                        extension.compare(".flac") == 0)) {
-                previewPath = directory / path;
-            }
-
-            if (fileInfo->NextEntryOffset == 0) {
-                break;
-            }
-            fileInfo = reinterpret_cast<PFILE_DIRECTORY_INFORMATION>(
-              reinterpret_cast<BYTE*>(fileInfo) + fileInfo->NextEntryOffset);
-        } while (true);
-    }
-    if (!previewPath.empty() && isSongDirectory) {
-        threadPool.start([&db, directory, previewPath] {
-            addPreviewFileToDb(db, directory, previewPath);
-        });
-    }
-    for (const auto& entry : directoriesToScan) {
-        if (*stop) {
-            break;
-        }
-        scanFolder(directory / entry,
-                   directory,
-                   threadPool,
-                   db,
-                   root,
-                   updateCurrentScannedFolder,
-                   stop);
-    }
-}
-#else
 void
 scanFolder(const std::filesystem::path& directory,
            const std::filesystem::path& parentDirectory,
@@ -360,7 +204,6 @@ scanFolder(const std::filesystem::path& directory,
         addDirToParentDirs(db, root, support::pathToQString(parentDirectory));
     }
 }
-#endif
 
 void
 SongDbScanner::scanDirectory(
@@ -380,9 +223,7 @@ SongDbScanner::scanDirectory(
                        *db,
                        root,
                        updateCurrentScannedFolder,
-#ifndef _WIN32
                        buffer,
-#endif
                        stop);
         } else {
             spdlog::error("Resource path {} is not a directory",
