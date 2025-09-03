@@ -328,8 +328,8 @@ endif ()
 if (WIN32)
     # Some object files are too big for MSVC in Debug mode
     target_compile_options(RhythmGame_lib PRIVATE /bigobj)
+    set_target_properties(RhythmGame_exe PROPERTIES LINK_FLAGS "/STACK:8388608")
 endif ()
-
 
 # ---- Developer mode ----
 
