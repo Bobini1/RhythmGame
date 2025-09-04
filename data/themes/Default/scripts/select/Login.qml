@@ -195,6 +195,7 @@ Rectangle {
                     Binding {
                         target: Rg.profileList.battleProfiles
                         property: "player2Profile"
+                        delayed: true
 
                         value: {
                             if (Rg.profileList.battleProfiles.player1Profile === p2card.profile) {
