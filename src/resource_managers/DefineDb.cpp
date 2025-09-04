@@ -80,6 +80,8 @@ defineDb(db::SqliteCppDb& db)
                "note_data BLOB NOT NULL"
                ");");
 
+    db.execute("DELETE FROM note_data;");
+
     db.execute("CREATE TABLE IF NOT EXISTS parent_dir ("
                "id INTEGER PRIMARY KEY AUTOINCREMENT,"
                "parent_dir INTEGER,"

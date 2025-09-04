@@ -95,10 +95,10 @@ loadChart(QThreadPool& threadPool,
             const auto chartComponents =
               chartDataFactory.loadChartData(path, randomGenerator, directory);
             chartComponents.chartData->save(db);
-            ChartDataFactory::makeNotes(chartComponents.notesData.notes,
-                                        chartComponents.notesData.bpmChanges,
-                                        chartComponents.notesData.barLines)
-              ->save(db, chartComponents.chartData->getSha256().toStdString());
+            // ChartDataFactory::makeNotes(chartComponents.notesData.notes,
+            //                             chartComponents.notesData.bpmChanges,
+            //                             chartComponents.notesData.barLines)
+            //   ->save(db, chartComponents.chartData->getSha256().toStdString());
         } catch (const std::exception& e) {
             try {
                 spdlog::error(
