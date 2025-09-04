@@ -352,10 +352,13 @@ scanFolder(const std::filesystem::path& directory,
         } else if (path.string().starts_with("preview") &&
                    (extension == ".mp3" || extension == ".ogg" ||
                     extension == ".wav" || extension == ".flac")) {
-            threadPool.start([&db, directory, path] {
-                addPreviewFileToDb(db, directory, path);
-            });
+            previewPath = directory / path;
         }
+    }
+    if (!previewPath.empty() && isSongDirectory) {
+        threadPool.start([&db, directory, previewPath] {
+            addPreviewFileToDb(db, directory, previewPath);
+        });
     }
     for (const auto& entry : directoriesToScan) {
         if (*stop) {
