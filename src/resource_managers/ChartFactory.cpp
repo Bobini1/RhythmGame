@@ -39,7 +39,12 @@ loadBmp(std::filesystem::path path) -> QImage
     // QImage will try out a few different extensions
     auto image = QImage(pathQString);
     if (image.isNull()) {
-        return {};
+        // try the EXACT extension that was declared. Helps with uppercase
+        // extensions
+        image = QImage(support::pathToQString(path));
+        if (image.isNull()) {
+            return {};
+        }
     }
     image.convertTo(QImage::Format_RGBA8888);
     auto size = image.size();
