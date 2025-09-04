@@ -288,8 +288,9 @@ TEST_CASE("Parse old-style bpm changes", "[BmsChartReader]")
 {
     const auto chart = "#00103:0011"s;
     auto res = charts::readBmsChart(chart, randomGenerator);
-    REQUIRE(res.tags.measures[1].bpmChanges.size() == 2);
-    REQUIRE(res.tags.measures[1].bpmChanges[1] == 0x11);
+    REQUIRE(res.tags.measures[1].bpmChanges.size() == 1);
+    REQUIRE(res.tags.measures[1].bpmChanges[0].size() == 2);
+    REQUIRE(res.tags.measures[1].bpmChanges[0][1] == 0x11);
 }
 
 TEST_CASE("Parse new-style bpm changes", "[BmsChartReader]")
@@ -297,7 +298,8 @@ TEST_CASE("Parse new-style bpm changes", "[BmsChartReader]")
     const auto chart = "#EXBPM20 120\n#BPMFF 12\n#00108:12"s;
     auto res = charts::readBmsChart(chart, randomGenerator);
     REQUIRE(res.tags.measures[1].exBpmChanges.size() == 1);
-    REQUIRE(res.tags.measures[1].exBpmChanges[0] == 38);
+    REQUIRE(res.tags.measures[1].exBpmChanges[0].size() == 1);
+    REQUIRE(res.tags.measures[1].exBpmChanges[0][0] == 38);
     REQUIRE(res.tags.exBpms.size() == 2);
     REQUIRE(res.tags.exBpms.find(72) != res.tags.exBpms.end());
     REQUIRE(res.tags.exBpms.find(72)->second == Catch::Approx(120));
