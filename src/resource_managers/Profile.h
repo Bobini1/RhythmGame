@@ -28,8 +28,6 @@ class Profile final : public QObject
     Q_PROPERTY(qml_components::ScoreDb* scoreDb READ getScoreDb CONSTANT)
     /** @brief The unique identifier of the profile. */
     Q_PROPERTY(QString guid READ getGuid CONSTANT)
-    QString name;
-    QString avatar;
     db::SqliteCppDb db;
     std::filesystem::path dbPath;
     QQmlPropertyMap* themeConfig;
