@@ -28,7 +28,7 @@ class PreviewFilePathFetcher : public QObject
      * preview file path. The result will not contain entries for directories
      * that do not have a preview file path.
      */
-    Q_INVOKABLE QVariantHash getPreviewFilePaths(QList<QString> directories);
+    Q_INVOKABLE QVariantHash getPreviewFilePaths(QList<QString> directories) const;
 };
 
 } // namespace qml_components

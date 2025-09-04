@@ -15,7 +15,8 @@ PreviewFilePathFetcher::PreviewFilePathFetcher(db::SqliteCppDb* db,
 {
 }
 auto
-PreviewFilePathFetcher::getPreviewFilePaths(QList<QString> directories) -> QVariantHash
+PreviewFilePathFetcher::getPreviewFilePaths(QList<QString> directories) const
+  -> QVariantHash
 {
     QVariantHash result;
 
