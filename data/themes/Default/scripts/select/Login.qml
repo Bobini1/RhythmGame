@@ -157,7 +157,6 @@ Rectangle {
                     Binding {
                         target: Rg.profileList.battleProfiles
                         property: "player1Profile"
-                        delayed: true
                         value: {
                             if (Rg.profileList.battleProfiles.player2Profile === p1card.profile) {
                                 return null;
@@ -191,7 +190,6 @@ Rectangle {
                         target: Rg.profileList.battleProfiles
                         property: "player2Profile"
 
-                        delayed: true
                         value: {
                             if (Rg.profileList.battleProfiles.player1Profile === p2card.profile) {
                                 return null;
