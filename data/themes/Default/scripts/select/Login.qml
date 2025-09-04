@@ -38,6 +38,12 @@ Rectangle {
     }
 
     property bool isConfiguringDp: false
+    onIsConfiguringDpChanged: {
+        if (Rg.profileList.profiles.length === 1) {
+            let profile = Rg.profileList.createProfile();
+            profile.vars.generalVars.name = "Guest";
+        }
+    }
 
     onEnabledChanged: {
         if (enabled) {
