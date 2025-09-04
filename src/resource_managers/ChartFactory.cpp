@@ -400,8 +400,7 @@ getComponentsForPlayer(const ChartFactory::PlayerSpecificData& player,
               notes1,
               player.noteOrderAlgorithm,
               player.replayedScore
-                ? player.replayedScore->getResult()
-                                   ->getRandomSeed()
+                ? player.replayedScore->getResult()->getRandomSeed()
                 : randomSeed);
             auto notes2 =
               std::span{ visibleNotes.data() + visibleNotes.size() / 2,
@@ -415,8 +414,7 @@ getComponentsForPlayer(const ChartFactory::PlayerSpecificData& player,
                    notes1,
                    player.noteOrderAlgorithm,
                    player.replayedScore
-                     ? player.replayedScore->getResult()
-                                        ->getRandomSeed()
+                     ? player.replayedScore->getResult()->getRandomSeed()
                      : randomSeed),
                  support::ShuffleResult{} };
     }();
@@ -603,8 +601,8 @@ ChartFactory::createChart(ChartDataFactory::ChartComponents chartComponents,
         auto chartLength = getLength(*player.notes);
         if (player2->replayedScore) {
             return new gameplay_logic::RePlayer{
-                player.notes.release(),   player.score.release(),
-                player.state.release(),   player2->profile,
+                player.notes.release(),         player.score.release(),
+                player.state.release(),         player2->profile,
                 std::move(refereeFuture),       chartLength,
                 notesData.bpmChanges[0].second, player2->replayedScore,
             };
@@ -612,19 +610,18 @@ ChartFactory::createChart(ChartDataFactory::ChartComponents chartComponents,
         if (player2->autoPlay) {
             auto events = createAutoplayFromNotes(*player.notes);
             return new gameplay_logic::AutoPlayer{
-                player.notes.release(),   player.score.release(),
-                player.state.release(),   player2->profile,
+                player.notes.release(),         player.score.release(),
+                player.state.release(),         player2->profile,
                 std::move(refereeFuture),       chartLength,
                 notesData.bpmChanges[0].second, std::move(events),
             };
         }
-        return new gameplay_logic::Player{ player.notes.release(),
-                                           player.score.release(),
-                                           player.state.release(),
-                                           player2->profile,
-                                           std::move(refereeFuture),
-                                           chartLength,
-                                           notesData.bpmChanges[0].second };
+        return new gameplay_logic::Player{
+            player.notes.release(),        player.score.release(),
+            player.state.release(),        player2->profile,
+            std::move(refereeFuture),      chartLength,
+            notesData.bpmChanges[0].second
+        };
     });
     QThreadPool::globalInstance()->start([soundTask] {
         soundTask->moveToThread(QThread::currentThread());
