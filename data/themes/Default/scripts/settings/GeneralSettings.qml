@@ -273,7 +273,6 @@ Item {
                     choices: Object.keys(AudioBackend)
                     assignIndex: true
                     default_: 0
-                    default_: "EASY"
 
                     anchors {
                         left: parent.left
