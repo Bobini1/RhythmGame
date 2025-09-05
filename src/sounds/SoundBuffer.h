@@ -7,6 +7,7 @@
 #include <portaudio.h>
 #include <chrono>
 #include <filesystem>
+#include <gst/gstelement.h>
 
 namespace sounds {
 
@@ -19,10 +20,7 @@ namespace sounds {
  */
 class SoundBuffer
 {
-    std::vector<float> samples;
-    int channels = 0;
-    int sampleRate = 0;
-    std::size_t frames = 0;
+    GstElement *pipeline;
 
   public:
     /**
@@ -30,30 +28,13 @@ class SoundBuffer
      * @param filename The path to the file to load.
      */
     explicit SoundBuffer(const std::filesystem::path& filename);
+    ~SoundBuffer();
 
     /**
      * @brief Gets the internal  buffer.
      * @return The internal buffer.
      */
-    auto getBuffer() const -> const std::vector<float>&;
-    /**
-     * @brief Gets the duration of the sound.
-     * @return The duration of the sound.
-     */
-    auto getDuration() const -> std::chrono::nanoseconds;
-    /**
-     * @brief Gets the sampling frequency of the sound.
-     * @return The sampling frequency of the sound.
-     */
-    auto getFrequency() const -> int;
-    /**
-     * @brief Gets the number of channels in the sound.
-     * @return The number of channels in the sound.
-     */
-    auto getChannels() const -> int;
-
-
-    auto getFrames() const -> std::size_t;
+    auto getBuffer() const -> GstElement*;
 };
 } // namespace sounds
 

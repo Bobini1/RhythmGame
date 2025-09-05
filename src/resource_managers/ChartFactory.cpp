@@ -652,7 +652,7 @@ ChartFactory::createChart(ChartDataFactory::ChartComponents chartComponents,
       });
     return chart;
 }
-SoundTask::SoundTask(sounds::AudioEngine* engine,
+SoundTask::SoundTask(GstElement* engine,
                      std::filesystem::path path,
                      std::unordered_map<uint16_t, std::filesystem::path> wavs)
   : path(std::move(path))
@@ -665,7 +665,7 @@ SoundTask::run()
 {
     emit soundsLoaded(charts::loadBmsSounds(engine, wavs, path));
 }
-ChartFactory::ChartFactory(sounds::AudioEngine* engine,
+ChartFactory::ChartFactory(GstElement* engine,
                            input::InputTranslator* inputTranslator)
   : engine(engine)
   , inputTranslator(inputTranslator)

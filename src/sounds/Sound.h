@@ -4,6 +4,7 @@
 
 #ifndef RHYTHMGAME_SOUND_H
 #define RHYTHMGAME_SOUND_H
+#include <gst/gstelement.h>
 #include <spdlog/spdlog.h>
 
 /**
@@ -12,7 +13,6 @@
  * loading, decoding, etc.
  */
 namespace sounds {
-class AudioEngine;
 class SoundBuffer;
 
 /**
@@ -23,20 +23,10 @@ class SoundBuffer;
  */
 class Sound : public std::enable_shared_from_this<Sound>
 {
-
-    AudioEngine* engine;
+    GstElement* pipeline;
     std::shared_ptr<const SoundBuffer> buffer;
-
-    std::atomic_bool playing = false;
-
-    std::atomic<float> volume{1.0f};
-
-    std::atomic<double> positionFrames{0.0};
-    std::atomic<bool> registered{false};
-
-    void ensureRegistered();
-    void unregister();
-    std::shared_ptr<const SoundBuffer> sampleBuffer;
+    GstElement* player;
+    GstElement* volume;
 
   public:
     /**
@@ -44,7 +34,7 @@ class Sound : public std::enable_shared_from_this<Sound>
      * @param sampleBuffer The buffer to use.
      * @param engine The audio engine to use.
      */
-    explicit Sound(AudioEngine* engine,
+    explicit Sound(GstElement* player,
              std::shared_ptr<const SoundBuffer> buffer);
     ~Sound();
 
@@ -66,69 +56,19 @@ class Sound : public std::enable_shared_from_this<Sound>
      * @details Does not block. The sound can be played again.
      */
     void stop();
-    /**
-     * @brief Pauses the sound.
-     * @details Does not block. The sound can be played again.
-     */
-    void pause();
 
     /**
      * @brief Sets the volume of the sound.
      * @param volume The volume. 1 is normal, 0 is silent, 2 is twice as loud.
      */
     void setVolume(float volume);
-    /**
-     * @brief Sets the playback position.
-     * @param offset The playback position.
-     */
-    void setTimePoint(std::chrono::nanoseconds offset);
+
+    auto getVolume() const -> float;
 
     /**
      * @brief Is the sound playing right now?
      */
     auto isPlaying() const -> bool;
-    /**
-     * @brief Is the sound paused right now?
-     */
-    auto isPaused() const -> bool;
-    /**
-     * @brief Is the sound stopped right now?
-     */
-    auto isStopped() const -> bool;
-
-    /**
-     * @brief Gets the volume of the sound.
-     * @return The volume. 1 is normal, 0 is silent, 2 is twice as loud.
-     */
-    auto getVolume() const -> float;
-    /**
-     * @brief Gets the playback position.
-     * @return The playback position.
-     */
-    auto getTimePoint() const -> std::chrono::nanoseconds;
-
-    // those are forwarded from the buffer
-    /**
-     * @brief Gets the duration of the sound.
-     * @return The duration of the sound. Not affected by the playback rate.
-     */
-    auto getDuration() const -> std::chrono::nanoseconds;
-    /**
-     * @brief Gets the sampling frequency of the sound.
-     * @return The sampling frequency of the sound.
-     */
-    auto getFrequency() const -> int;
-    /**
-     * @brief Gets the number of channels of the sound.
-     * @return The number of channels of the sound.
-     */
-    auto getChannels() const -> int;
-
-    // Called by AudioEngine
-    void mixInto(float* out,
-                 unsigned long frames,
-                 int outChannels,
-                 int outSampleRate);
 };
 } // namespace sounds
 #endif // RHYTHMGAME_SOUND_H
