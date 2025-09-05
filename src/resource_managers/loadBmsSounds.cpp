@@ -3,7 +3,7 @@
 //
 
 #include "loadBmsSounds.h"
-#include "sounds/OpenAlSoundBuffer.h"
+#include "sounds/SoundBuffer.h"
 #include "support/PathToQString.h"
 
 #include <optional>
@@ -94,9 +94,10 @@ createLowerCaseFilesMap(std::filesystem::path dirToSearch)
 }
 
 auto
-loadBmsSounds(const std::unordered_map<uint16_t, std::filesystem::path>& wavs,
+loadBmsSounds(sounds::AudioEngine* engine,
+              const std::unordered_map<uint16_t, std::filesystem::path>& wavs,
               const std::filesystem::path& path)
-  -> std::unordered_map<uint16_t, sounds::OpenALSound>
+  -> std::unordered_map<uint16_t, std::shared_ptr<sounds::Sound>>
 {
     auto start = std::chrono::high_resolution_clock::now();
     auto wavsActualPaths =
@@ -130,22 +131,21 @@ loadBmsSounds(const std::unordered_map<uint16_t, std::filesystem::path>& wavs,
         }
     }
     std::unordered_map<std::filesystem::path,
-                       std::shared_ptr<const sounds::OpenALSoundBuffer>>
+                       std::shared_ptr<const sounds::SoundBuffer>>
       buffers;
     buffers.reserve(uniqueSoundPaths.size());
 
     buffers = QtConcurrent::blockingMappedReduced<
       std::unordered_map<std::filesystem::path,
-                         std::shared_ptr<const sounds::OpenALSoundBuffer>>>(
+                         std::shared_ptr<const sounds::SoundBuffer>>>(
       uniqueSoundPaths,
       [](const auto& path)
         -> std::optional<
           std::pair<std::filesystem::path,
-                    std::shared_ptr<const sounds::OpenALSoundBuffer>>> {
+                    std::shared_ptr<const sounds::SoundBuffer>>> {
           try {
               return { { path,
-                         std::make_shared<const sounds::OpenALSoundBuffer>(
-                           path) } };
+                         std::make_shared<const sounds::SoundBuffer>(path) } };
           } catch (const std::exception& e) {
               spdlog::warn(
                 "Failed to load sound {}: {}", path.string(), e.what());
@@ -159,16 +159,16 @@ loadBmsSounds(const std::unordered_map<uint16_t, std::filesystem::path>& wavs,
       },
       std::move(buffers));
 
-    auto sounds = std::unordered_map<uint16_t, sounds::OpenALSound>();
+    auto sounds = std::unordered_map<uint16_t, std::shared_ptr<sounds::Sound>>();
     sounds.reserve(wavsActualPaths.size());
     for (const auto& [key, actualPath] : wavsActualPaths) {
         auto buffer = buffers.find(actualPath);
         if (buffer != buffers.end()) {
-            sounds.emplace(key, sounds::OpenALSound(buffer->second));
+            sounds.emplace(key, std::make_shared<sounds::Sound>(engine, buffer->second));
         }
     }
     for (auto& sound : sounds) {
-        sound.second.setVolume(0.5);
+        sound.second->setVolume(0.5);
     }
     auto end = std::chrono::high_resolution_clock::now();
     spdlog::info(

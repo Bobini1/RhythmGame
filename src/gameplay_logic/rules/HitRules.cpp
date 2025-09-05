@@ -4,7 +4,7 @@
 
 #include "HitRules.h"
 
-#include "sounds/OpenAlSound.h"
+#include "sounds/Sound.h"
 
 #include <ranges>
 using namespace std::chrono_literals;
@@ -284,7 +284,7 @@ gameplay_logic::rules::HitRules::processMines(
   int column,
   std::chrono::nanoseconds offsetFromStart,
   bool pressed,
-  sounds::OpenALSound* mineHitSound) -> std::vector<HitEvent>
+  sounds::Sound* mineHitSound) -> std::vector<HitEvent>
 {
     auto& currentMineIndex = currentMines[column];
     if (currentMineIndex >= mines.size()) {

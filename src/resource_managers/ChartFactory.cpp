@@ -512,7 +512,7 @@ ChartFactory::createChart(ChartDataFactory::ChartComponents chartComponents,
         keymode = gameplay_logic::ChartData::Keymode::K14;
     }
 
-    auto soundTask = new SoundTask(path, std::move(wavs));
+    auto soundTask = new SoundTask(engine, path, std::move(wavs));
     soundTask->moveToThread(nullptr);
     auto bgaTask = [bgaBase = std::move(notesData.bgaBase),
                     bgaPoor = std::move(notesData.bgaPoor),
@@ -539,12 +539,11 @@ ChartFactory::createChart(ChartDataFactory::ChartComponents chartComponents,
            score = components1.score.get(),
            bpmChanges = notesData.bpmChanges,
            bgmNotes = std::move(notesData.bgmNotes)](
-            std::unordered_map<uint16_t, sounds::OpenALSound> sounds) mutable {
-              sounds::OpenALSound* mineHitSound = nullptr;
+            std::unordered_map<uint16_t, std::shared_ptr<sounds::Sound>>
+              sounds) mutable {
+              std::shared_ptr<sounds::Sound> mineHitSound = nullptr;
               if (const auto sound = sounds.find(0); sound != sounds.end()) {
-                  // there will be awful bugs if you insert anything into the
-                  // map after this point
-                  mineHitSound = &sound->second;
+                  mineHitSound = sound->second;
               }
               return gameplay_logic::BmsGameReferee{
                   std::move(rawNotes), bgmNotes, bpmChanges,
@@ -577,52 +576,53 @@ ChartFactory::createChart(ChartDataFactory::ChartComponents chartComponents,
             notesData.bpmChanges[0].second,
         };
     }();
-    auto player2Object = components2.transform([&](auto& player)
-                                                 -> gameplay_logic::Player* {
-        auto soundFuture =
-          QtFuture::connect(soundTask, &SoundTask::soundsLoaded);
-        auto refereeFuture = soundFuture.then(
-          [rawNotes = std::move(player.rawNotes),
-           hitRules = std::move(player2->hitRules),
-           score = player.score.get(),
-           bpmChanges = notesData.bpmChanges,
-           bgmNotes = std::move(notesData.bgmNotes)](
-            std::unordered_map<uint16_t, sounds::OpenALSound> sounds) mutable {
-              sounds::OpenALSound* mineHitSound = nullptr;
-              if (const auto sound = sounds.find(0); sound != sounds.end()) {
-                  mineHitSound = &sound->second;
-              }
-              return gameplay_logic::BmsGameReferee{
-                  std::move(rawNotes), {},    bpmChanges,
-                  mineHitSound,        score, std::move(sounds),
-                  std::move(hitRules)
+    auto player2Object =
+      components2.transform([&](auto& player) -> gameplay_logic::Player* {
+          auto soundFuture =
+            QtFuture::connect(soundTask, &SoundTask::soundsLoaded);
+          auto refereeFuture = soundFuture.then(
+            [rawNotes = std::move(player.rawNotes),
+             hitRules = std::move(player2->hitRules),
+             score = player.score.get(),
+             bpmChanges = notesData.bpmChanges,
+             bgmNotes = std::move(notesData.bgmNotes)](
+              std::unordered_map<uint16_t, std::shared_ptr<sounds::Sound>>
+                sounds) mutable {
+                std::shared_ptr<sounds::Sound> mineHitSound = nullptr;
+                if (const auto sound = sounds.find(0); sound != sounds.end()) {
+                    mineHitSound = sound->second;
+                }
+                return gameplay_logic::BmsGameReferee{
+                    std::move(rawNotes), {},    bpmChanges,
+                    mineHitSound,        score, std::move(sounds),
+                    std::move(hitRules)
+                };
+            });
+          auto chartLength = getLength(*player.notes);
+          if (player2->replayedScore) {
+              return new gameplay_logic::RePlayer{
+                  player.notes.release(),         player.score.release(),
+                  player.state.release(),         player2->profile,
+                  std::move(refereeFuture),       chartLength,
+                  notesData.bpmChanges[0].second, player2->replayedScore,
               };
-          });
-        auto chartLength = getLength(*player.notes);
-        if (player2->replayedScore) {
-            return new gameplay_logic::RePlayer{
-                player.notes.release(),         player.score.release(),
-                player.state.release(),         player2->profile,
-                std::move(refereeFuture),       chartLength,
-                notesData.bpmChanges[0].second, player2->replayedScore,
-            };
-        }
-        if (player2->autoPlay) {
-            auto events = createAutoplayFromNotes(*player.notes);
-            return new gameplay_logic::AutoPlayer{
-                player.notes.release(),         player.score.release(),
-                player.state.release(),         player2->profile,
-                std::move(refereeFuture),       chartLength,
-                notesData.bpmChanges[0].second, std::move(events),
-            };
-        }
-        return new gameplay_logic::Player{
-            player.notes.release(),        player.score.release(),
-            player.state.release(),        player2->profile,
-            std::move(refereeFuture),      chartLength,
-            notesData.bpmChanges[0].second
-        };
-    });
+          }
+          if (player2->autoPlay) {
+              auto events = createAutoplayFromNotes(*player.notes);
+              return new gameplay_logic::AutoPlayer{
+                  player.notes.release(),         player.score.release(),
+                  player.state.release(),         player2->profile,
+                  std::move(refereeFuture),       chartLength,
+                  notesData.bpmChanges[0].second, std::move(events),
+              };
+          }
+          return new gameplay_logic::Player{
+              player.notes.release(),        player.score.release(),
+              player.state.release(),        player2->profile,
+              std::move(refereeFuture),      chartLength,
+              notesData.bpmChanges[0].second
+          };
+      });
     QThreadPool::globalInstance()->start([soundTask] {
         soundTask->moveToThread(QThread::currentThread());
         soundTask->run();
@@ -652,19 +652,23 @@ ChartFactory::createChart(ChartDataFactory::ChartComponents chartComponents,
       });
     return chart;
 }
-SoundTask::SoundTask(std::filesystem::path path,
+SoundTask::SoundTask(sounds::AudioEngine* engine,
+                     std::filesystem::path path,
                      std::unordered_map<uint16_t, std::filesystem::path> wavs)
   : path(std::move(path))
   , wavs(std::move(wavs))
+  , engine(engine)
 {
 }
 void
 SoundTask::run()
 {
-    emit soundsLoaded(charts::loadBmsSounds(wavs, path));
+    emit soundsLoaded(charts::loadBmsSounds(engine, wavs, path));
 }
-ChartFactory::ChartFactory(input::InputTranslator* inputTranslator)
-  : inputTranslator(inputTranslator)
+ChartFactory::ChartFactory(sounds::AudioEngine* engine,
+                           input::InputTranslator* inputTranslator)
+  : engine(engine)
+  , inputTranslator(inputTranslator)
 {
 }
 } // namespace resource_managers

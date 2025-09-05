@@ -36,9 +36,9 @@
 #include "support/PathToUtfString.h"
 #include "support/UtfStringToPath.h"
 #include "gameplay_logic/CourseRunner.h"
-#include "sounds/OpenAlSoundBuffer.h"
+#include "sounds/AudioEngine.h"
+#include "sounds/SoundBuffer.h"
 #include "support/QtSink.h"
-#include <AL/alext.h>
 
 Q_IMPORT_QML_PLUGIN(RhythmGameQmlPlugin)
 
@@ -155,7 +155,8 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
                          &inputTranslator,
                          &input::InputTranslator::handleRelease);
 
-        auto chartFactory = resource_managers::ChartFactory{ &inputTranslator };
+        auto audioEngine = sounds::AudioEngine{};
+        auto chartFactory = resource_managers::ChartFactory{ &audioEngine, &inputTranslator };
         auto chartDataFactory = resource_managers::ChartDataFactory{};
         auto gaugeFactoryGeneral = resource_managers::GaugeFactory{};
         auto gaugeFactory =
@@ -264,8 +265,6 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
                       &languages };
 
         Rg::instance = &rg;
-
-        sounds::installOpenALEvents();
 
         // add all other common types
         qmlRegisterType<resource_managers::Level>(

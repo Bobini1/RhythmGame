@@ -59,7 +59,6 @@ class GamepadManager final : public QObject
       std::unique_ptr<SDL_Joystick, decltype(&SDL_JoystickClose)>>
       controllers;
     std::unordered_map<SDL_JoystickID, Gamepad> gamepads;
-    uint64_t startTime;
 
     void addController(int index);
     void loop();

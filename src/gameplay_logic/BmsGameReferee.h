@@ -10,7 +10,7 @@
 #include "input/BmsKeys.h"
 #include "BmsLiveScore.h"
 #include "gameplay_logic/rules/HitRules.h"
-#include "sounds/OpenAlSound.h"
+#include "sounds/Sound.h"
 
 /**
  * @brief Classes and functions mostly related to gameplay.
@@ -25,7 +25,7 @@ namespace gameplay_logic {
  */
 class BmsGameReferee
 {
-    using BgmType = std::pair<std::chrono::nanoseconds, sounds::OpenALSound*>;
+    using BgmType = std::pair<std::chrono::nanoseconds, sounds::Sound*>;
 
     std::array<std::vector<rules::HitRules::Note>,
                charts::BmsNotesData::columnNumber>
@@ -36,10 +36,10 @@ class BmsGameReferee
     std::vector<BgmType> bgms;
     std::span<BgmType> currentBgms;
     std::vector<std::pair<charts::BmsNotesData::Time, double>> bpmChanges;
-    std::unordered_map<uint16_t, sounds::OpenALSound> sounds;
+    std::unordered_map<uint16_t, std::shared_ptr<sounds::Sound>> sounds;
     rules::HitRules hitRules;
     BmsLiveScore* score;
-    sounds::OpenALSound* mineHitSound;
+    std::shared_ptr<sounds::Sound> mineHitSound;
     std::array<bool, charts::BmsNotesData::columnNumber> pressedState{};
 
   public:
@@ -63,9 +63,9 @@ class BmsGameReferee
       const std::vector<std::pair<charts::BmsNotesData::Time, uint16_t>>&
         bgmNotes,
       std::vector<std::pair<charts::BmsNotesData::Time, double>> bpmChanges,
-      sounds::OpenALSound* mineHitSound,
+      std::shared_ptr<sounds::Sound> mineHitSound,
       BmsLiveScore* score,
-      std::unordered_map<uint16_t, sounds::OpenALSound> sounds,
+      std::unordered_map<uint16_t, std::shared_ptr<sounds::Sound>> sounds,
       rules::HitRules hitRules);
     /**
      * @brief Update the internal state of the referee

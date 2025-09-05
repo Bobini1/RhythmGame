@@ -6,16 +6,15 @@
 #define RHYTHMGAME_LOADBMSSOUNDS_H
 
 #include <unordered_map>
-#include <map>
-#include <string>
 #include <filesystem>
-#include "sounds/OpenAlSound.h"
+#include "sounds/Sound.h"
 
 namespace charts {
 auto
-loadBmsSounds(const std::unordered_map<uint16_t, std::filesystem::path>& wavs,
+loadBmsSounds(sounds::AudioEngine* engine,
+              const std::unordered_map<uint16_t, std::filesystem::path>& wavs,
               const std::filesystem::path& path)
-  -> std::unordered_map<uint16_t, sounds::OpenALSound>;
+  -> std::unordered_map<uint16_t, std::shared_ptr<sounds::Sound>>;
 } // namespace charts
 
 #endif // RHYTHMGAME_LOADBMSSOUNDS_H

@@ -3,7 +3,7 @@
 //
 
 #include "resource_managers/loadBmsSounds.h"
-#include "sounds/OpenAlSoundBuffer.h"
+#include "sounds/SoundBuffer.h"
 #include "charts/BmsNotesData.h"
 #include "charts/ParsedBmsChart.h"
 #include "charts/ReadBmsFile.h"

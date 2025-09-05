@@ -13,7 +13,7 @@
 #include <chrono>
 
 namespace sounds {
-class OpenALSound;
+class Sound;
 }
 namespace gameplay_logic::rules {
 /**
@@ -51,7 +51,7 @@ class HitRules
     };
     struct Note
     {
-        sounds::OpenALSound* sound;
+        sounds::Sound* sound;
         std::chrono::nanoseconds time;
         NoteType type;
         int index;
@@ -82,7 +82,7 @@ class HitRules
                       int column,
                       std::chrono::nanoseconds offsetFromStart,
                       bool pressed,
-                      sounds::OpenALSound* mineHitSound)
+                      sounds::Sound* mineHitSound)
       -> std::vector<HitEvent>;
     auto release(std::span<Note> notes,
                  int column,

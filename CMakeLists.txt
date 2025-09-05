@@ -50,7 +50,7 @@ find_package(Boost REQUIRED COMPONENTS headers)
 
 # <------------ OpenAL (audio playback) --------------->
 
-find_package(OpenAL CONFIG REQUIRED)
+find_package(portaudio CONFIG REQUIRED)
 
 # <------------ llfio (directory scanning) --------------->
 
@@ -96,10 +96,10 @@ qt_add_library(RhythmGame_lib OBJECT ${utf8Manifest}
         src/support/Capitalize.h
         src/resource_managers/FindDataFolder.cpp
         src/resource_managers/FindDataFolder.h
-        src/sounds/OpenAlSound.cpp
-        src/sounds/OpenAlSound.h
-        src/sounds/OpenAlSoundBuffer.h
-        src/sounds/OpenAlSoundBuffer.cpp
+        src/sounds/Sound.cpp
+        src/sounds/Sound.h
+        src/sounds/SoundBuffer.h
+        src/sounds/SoundBuffer.cpp
         src/charts/BmsNotesData.cpp
         src/charts/BmsNotesData.h
         src/charts/Snap.cpp
@@ -233,6 +233,8 @@ qt_add_library(RhythmGame_lib OBJECT ${utf8Manifest}
         src/gameplay_logic/BmsScoreCourse.h
         src/support/QtSink.cpp
         src/support/QtSink.h
+        src/sounds/AudioEngine.cpp
+        src/sounds/AudioEngine.h
 )
 # define version macros
 target_compile_definitions(RhythmGame_lib PUBLIC
@@ -247,7 +249,7 @@ target_compile_definitions(RhythmGame_lib PUBLIC RHYTHMGAME_DATA_PATH="${DATA_PA
 find_package(Threads REQUIRED)
 
 target_link_libraries(RhythmGame_lib PUBLIC $<IF:$<TARGET_EXISTS:mimalloc-static>,mimalloc-static,mimalloc>)
-target_link_libraries(RhythmGame_lib PUBLIC SDL2::SDL2 Qt6::Quick Qt6::OpenGL Qt6::Concurrent Qt6::Multimedia Qt6::InterfaceFramework Threads::Threads Boost::headers SQLiteCpp spdlog::spdlog foonathan::lexy OpenAL::OpenAL magic_enum::magic_enum zstd::libzstd_static SndFile::sndfile llfio::sl LibXml2::LibXml2)
+target_link_libraries(RhythmGame_lib PUBLIC SDL2::SDL2 Qt6::Quick Qt6::OpenGL Qt6::Concurrent Qt6::Multimedia Qt6::InterfaceFramework Threads::Threads Boost::headers SQLiteCpp spdlog::spdlog foonathan::lexy portaudio_static magic_enum::magic_enum zstd::libzstd_static SndFile::sndfile llfio::sl LibXml2::LibXml2)
 
 if (WIN32)
     target_link_libraries(RhythmGame_lib PUBLIC llfio::ntkernel-error-category_sl)

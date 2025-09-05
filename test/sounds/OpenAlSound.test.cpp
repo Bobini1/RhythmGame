@@ -5,7 +5,7 @@
 #include <catch2/catch_test_macros.hpp>
 
 #include "../findTestAssetsFolder.h"
-#include "sounds/OpenAlSoundBuffer.h"
+#include "sounds/SoundBuffer.h"
 
 TEST_CASE("OpenAlSound supports formats", "[sounds][FFmpegOpenAlSound]")
 {

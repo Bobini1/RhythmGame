@@ -22,15 +22,7 @@
       "platform": "windows"
     },
     "foonathan-lexy",
-    "openal-soft",
-    {
-      "name": "openal-soft",
-      "features": [
-        "pipewire",
-        "pulseaudio"
-      ],
-      "platform": "linux"
-    },
+    "portaudio",
     "magic-enum",
     "zstd",
     {

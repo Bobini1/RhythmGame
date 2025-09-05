@@ -8,11 +8,6 @@ else ()
     set(alsoft_ext "conf")
 endif ()
 
-add_custom_command(TARGET RhythmGame_exe POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy
-        ${CMAKE_SOURCE_DIR}/alsoft.ini
-        ${CMAKE_BINARY_DIR}/bin/$<0:>/alsoft.${alsoft_ext})
-
 if (WIN32)
     find_program(TOOL_WINDEPLOYQT NAMES windeployqt)
     find_program(TOOL_WINDEPLOYQT_DEBUG NAMES windeployqt.debug.bat)

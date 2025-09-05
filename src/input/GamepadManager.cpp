@@ -18,9 +18,6 @@ GamepadManager::GamepadManager(QObject* parent)
     if (SDL_Init(SDL_INIT_GAMECONTROLLER | SDL_INIT_JOYSTICK)) {
         throw std::runtime_error(SDL_GetError());
     }
-    auto now = std::chrono::duration_cast<std::chrono::milliseconds>(
-      std::chrono::steady_clock::now().time_since_epoch());
-    startTime = (now - std::chrono::milliseconds{ SDL_GetTicks64() }).count();
 
     loopTimer.start(0);
 }
@@ -30,6 +27,9 @@ GamepadManager::loop()
 {
     SDL_Event event;
     while (SDL_PollEvent(&event)) {
+        auto now = std::chrono::duration_cast<std::chrono::milliseconds>(
+          std::chrono::steady_clock::now().time_since_epoch());
+        auto startTime = (now - std::chrono::milliseconds{ SDL_GetTicks64() }).count();
         if (event.type == SDL_JOYAXISMOTION) {
             const auto axisEvent = event.jaxis;
             const double value =

@@ -5,7 +5,7 @@
 #include <algorithm>
 #include <numeric>
 #include "BmsNotesData.h"
-#include "sounds/OpenAlSoundBuffer.h"
+#include "sounds/SoundBuffer.h"
 
 #include <ranges>
 #include <spdlog/spdlog.h>
