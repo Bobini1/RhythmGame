@@ -1,0 +1,9 @@
+<map id="src/sounds/SoundBuffer.h" name="src/sounds/SoundBuffer.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="66,5,251,31"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,79,101,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="143,33,83,73,80,69,140,28"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="125,79,192,104"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="161,31,161,65,156,65,156,31"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="216,79,307,104"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="177,28,235,68,232,73,174,33"/>
+</map>

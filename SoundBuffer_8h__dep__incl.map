@@ -1,0 +1,13 @@
+<map id="src/sounds/SoundBuffer.h" name="src/sounds/SoundBuffer.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="368,5,553,31"/>
+<area shape="rect" id="Node000002" href="$BmsNotesData_8cpp.html" title=" " alt="" coords="5,86,220,111"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="397,36,164,89,163,83,396,31"/>
+<area shape="rect" id="Node000003" href="$main_8cpp.html" title=" " alt="" coords="244,86,349,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="426,39,322,88,319,84,423,34"/>
+<area shape="rect" id="Node000004" href="$loadBmsSounds_8cpp.html" title=" " alt="" coords="374,79,547,119"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="463,44,463,79,458,79,458,44"/>
+<area shape="rect" id="Node000005" href="$Sound_8cpp.html" title=" " alt="" coords="571,86,734,111"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="502,33,626,84,624,88,500,38"/>
+<area shape="rect" id="Node000006" href="$SoundBuffer_8cpp.html" title=" " alt="" coords="758,86,958,111"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="532,31,801,83,800,89,531,36"/>
+</map>

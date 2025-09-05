@@ -229,8 +229,8 @@ Functions</h2></td></tr>
 <tr class="separator:a7538b4a28f3a1a40238f6bbe6fdca69c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a055f9dbcbc667dcb0557a1aa307e60af" id="r_a055f9dbcbc667dcb0557a1aa307e60af"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacecharts.html#a055f9dbcbc667dcb0557a1aa307e60af">createLowerCaseFilesMap</a> (std::filesystem::path dirToSearch) -&gt; std::unordered_map&lt; std::string, std::filesystem::path &gt;</td></tr>
 <tr class="separator:a055f9dbcbc667dcb0557a1aa307e60af"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa685417201ae08cbfd2347008fa23fc4" id="r_aa685417201ae08cbfd2347008fa23fc4"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacecharts.html#aa685417201ae08cbfd2347008fa23fc4">loadBmsSounds</a> (const std::unordered_map&lt; uint16_t, std::filesystem::path &gt; &amp;wavs, const std::filesystem::path &amp;path) -&gt; std::unordered_map&lt; uint16_t, <a class="el" href="classsounds_1_1OpenALSound.html">sounds::OpenALSound</a> &gt;</td></tr>
-<tr class="separator:aa685417201ae08cbfd2347008fa23fc4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5847c80fd7804c7c15ebff34cef4e636" id="r_a5847c80fd7804c7c15ebff34cef4e636"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacecharts.html#a5847c80fd7804c7c15ebff34cef4e636">loadBmsSounds</a> (<a class="el" href="classsounds_1_1AudioEngine.html">sounds::AudioEngine</a> *engine, const std::unordered_map&lt; uint16_t, std::filesystem::path &gt; &amp;wavs, const std::filesystem::path &amp;path) -&gt; std::unordered_map&lt; uint16_t, std::shared_ptr&lt; <a class="el" href="classsounds_1_1Sound.html">sounds::Sound</a> &gt; &gt;</td></tr>
+<tr class="separator:a5847c80fd7804c7c15ebff34cef4e636"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Classes and functions related to loading and calculating offsets in BMS charts. </p>
@@ -387,8 +387,8 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="aa685417201ae08cbfd2347008fa23fc4" name="aa685417201ae08cbfd2347008fa23fc4"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa685417201ae08cbfd2347008fa23fc4">&#9670;&#160;</a></span>loadBmsSounds()</h2>
+<a id="a5847c80fd7804c7c15ebff34cef4e636" name="a5847c80fd7804c7c15ebff34cef4e636"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5847c80fd7804c7c15ebff34cef4e636">&#9670;&#160;</a></span>loadBmsSounds()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -396,6 +396,12 @@ Functions</h2></td></tr>
         <tr>
           <td class="memname">auto charts::loadBmsSounds </td>
           <td>(</td>
+          <td class="paramtype"><a class="el" href="classsounds_1_1AudioEngine.html">sounds::AudioEngine</a> *&#160;</td>
+          <td class="paramname"><em>engine</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
           <td class="paramtype">const std::unordered_map&lt; uint16_t, std::filesystem::path &gt; &amp;&#160;</td>
           <td class="paramname"><em>wavs</em>, </td>
         </tr>
@@ -408,7 +414,7 @@ Functions</h2></td></tr>
         <tr>
           <td></td>
           <td>)</td>
-          <td></td><td> -&gt;  std::unordered_map&lt; uint16_t, <a class="el" href="classsounds_1_1OpenALSound.html">sounds::OpenALSound</a> &gt;</td>
+          <td></td><td> -&gt;  std::unordered_map&lt; uint16_t, std::shared_ptr&lt; <a class="el" href="classsounds_1_1Sound.html">sounds::Sound</a> &gt; &gt;</td>
         </tr>
       </table>
 </div><div class="memdoc">

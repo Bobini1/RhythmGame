@@ -105,19 +105,19 @@ Collaboration diagram for resource_managers::SoundTask:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="signals" name="signals"></a>
 Signals</h2></td></tr>
-<tr class="memitem:a8c38cbb3b4d8c3fa269cb444e12412c7" id="r_a8c38cbb3b4d8c3fa269cb444e12412c7"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classresource__managers_1_1SoundTask.html#a8c38cbb3b4d8c3fa269cb444e12412c7">soundsLoaded</a> (std::unordered_map&lt; uint16_t, <a class="el" href="classsounds_1_1OpenALSound.html">sounds::OpenALSound</a> &gt; sounds)</td></tr>
-<tr class="separator:a8c38cbb3b4d8c3fa269cb444e12412c7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a66e852940d92a4428047f983fffaf1ee" id="r_a66e852940d92a4428047f983fffaf1ee"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classresource__managers_1_1SoundTask.html#a66e852940d92a4428047f983fffaf1ee">soundsLoaded</a> (std::unordered_map&lt; uint16_t, std::shared_ptr&lt; <a class="el" href="classsounds_1_1Sound.html">sounds::Sound</a> &gt; &gt; sounds)</td></tr>
+<tr class="separator:a66e852940d92a4428047f983fffaf1ee"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:ab2ec25ef8ff1029ca686f069719ab1b9" id="r_ab2ec25ef8ff1029ca686f069719ab1b9"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classresource__managers_1_1SoundTask.html#ab2ec25ef8ff1029ca686f069719ab1b9">SoundTask</a> (std::filesystem::path path, std::unordered_map&lt; uint16_t, std::filesystem::path &gt; wavs)</td></tr>
-<tr class="separator:ab2ec25ef8ff1029ca686f069719ab1b9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abd7b13deef39eb1f1ef642e1a6dd7dec" id="r_abd7b13deef39eb1f1ef642e1a6dd7dec"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classresource__managers_1_1SoundTask.html#abd7b13deef39eb1f1ef642e1a6dd7dec">SoundTask</a> (<a class="el" href="classsounds_1_1AudioEngine.html">sounds::AudioEngine</a> *engine, std::filesystem::path path, std::unordered_map&lt; uint16_t, std::filesystem::path &gt; wavs)</td></tr>
+<tr class="separator:abd7b13deef39eb1f1ef642e1a6dd7dec"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aff45cc77b2e16460175f1e082c2b420e" id="r_aff45cc77b2e16460175f1e082c2b420e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classresource__managers_1_1SoundTask.html#aff45cc77b2e16460175f1e082c2b420e">run</a> ()</td></tr>
 <tr class="separator:aff45cc77b2e16460175f1e082c2b420e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="ab2ec25ef8ff1029ca686f069719ab1b9" name="ab2ec25ef8ff1029ca686f069719ab1b9"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab2ec25ef8ff1029ca686f069719ab1b9">&#9670;&#160;</a></span>SoundTask()</h2>
+<a id="abd7b13deef39eb1f1ef642e1a6dd7dec" name="abd7b13deef39eb1f1ef642e1a6dd7dec"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abd7b13deef39eb1f1ef642e1a6dd7dec">&#9670;&#160;</a></span>SoundTask()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -125,6 +125,12 @@ Public Member Functions</h2></td></tr>
         <tr>
           <td class="memname">resource_managers::SoundTask::SoundTask </td>
           <td>(</td>
+          <td class="paramtype"><a class="el" href="classsounds_1_1AudioEngine.html">sounds::AudioEngine</a> *&#160;</td>
+          <td class="paramname"><em>engine</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
           <td class="paramtype">std::filesystem::path&#160;</td>
           <td class="paramname"><em>path</em>, </td>
         </tr>
@@ -162,8 +168,8 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="a8c38cbb3b4d8c3fa269cb444e12412c7" name="a8c38cbb3b4d8c3fa269cb444e12412c7"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a8c38cbb3b4d8c3fa269cb444e12412c7">&#9670;&#160;</a></span>soundsLoaded</h2>
+<a id="a66e852940d92a4428047f983fffaf1ee" name="a66e852940d92a4428047f983fffaf1ee"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a66e852940d92a4428047f983fffaf1ee">&#9670;&#160;</a></span>soundsLoaded</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -174,7 +180,7 @@ Public Member Functions</h2></td></tr>
         <tr>
           <td class="memname">void resource_managers::SoundTask::soundsLoaded </td>
           <td>(</td>
-          <td class="paramtype">std::unordered_map&lt; uint16_t, <a class="el" href="classsounds_1_1OpenALSound.html">sounds::OpenALSound</a> &gt;&#160;</td>
+          <td class="paramtype">std::unordered_map&lt; uint16_t, std::shared_ptr&lt; <a class="el" href="classsounds_1_1Sound.html">sounds::Sound</a> &gt; &gt;&#160;</td>
           <td class="paramname"><em>sounds</em></td><td>)</td>
           <td></td>
         </tr>
