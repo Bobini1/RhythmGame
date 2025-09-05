@@ -9,117 +9,102 @@
 #include <stdexcept>
 
 namespace sounds {
-namespace {
-// PortAudio global init ref counting
-std::atomic_int paRefCount{ 0 };
-std::mutex paInitMutex;
 
-void
-retainPortAudio()
+void errorCallback(RtAudioErrorType type, const std::string& errorText)
 {
-    std::lock_guard lock(paInitMutex);
-    if (paRefCount.fetch_add(1) == 0) {
-        if (auto err = Pa_Initialize(); err != paNoError) {
-            paRefCount.store(0);
-            throw std::runtime_error(std::string("Pa_Initialize failed: ") +
-                                     Pa_GetErrorText(err));
-        }
+    if (type == RTAUDIO_WARNING) {
+        spdlog::warn("[RtAudio] {}", errorText);
+    } else if (type > RTAUDIO_WARNING) {
+        spdlog::error("[RtAudio] {}", errorText);
+    } else {
+        spdlog::info("[RtAudio] {}", errorText);
     }
 }
 
 void
-releasePortAudio()
+AudioEngine::restartStream()
 {
-    std::lock_guard lock(paInitMutex);
-    int prev = paRefCount.fetch_sub(1);
-    if (prev == 1) {
-        if (auto err = Pa_Terminate(); err != paNoError) {
-            spdlog::warn("Pa_Terminate error: {}", Pa_GetErrorText(err));
-        }
-    } else if (prev <= 0) {
-        paRefCount.store(0);
+    auto outputParams = RtAudio::StreamParameters{};
+    outputParams.deviceId = currentDefault;
+    outputParams.nChannels = 2; // stereo
+    auto info = audio.getDeviceInfo(outputParams.deviceId);
+    spdlog::info("Using audio device {}: {}, {} channels, {}Hz - {}",
+                 outputParams.deviceId,
+                 info.name,
+                 info.outputChannels,
+                 info.preferredSampleRate,
+                 info.isDefaultOutput ? "default" : "");
+
+    auto frames = 0u;
+    auto options = RtAudio::StreamOptions{};
+    options.flags = RTAUDIO_MINIMIZE_LATENCY;
+    auto err = audio.openStream(&outputParams,
+                                nullptr,
+                                RTAUDIO_FLOAT32,
+                                info.preferredSampleRate,
+                                &frames,
+                                &AudioEngine::callback,
+                                this,
+                                &options);
+    if (err != RTAUDIO_NO_ERROR) {
+        throw std::runtime_error("Failed to open audio stream: " +
+                                 audio.getErrorText());
+    }
+    err = audio.startStream();
+    if (err != RTAUDIO_NO_ERROR) {
+        throw std::runtime_error("Failed to start audio stream: " +
+                                 audio.getErrorText());
     }
 }
-} // namespace
-
-AudioEngine::AudioEngine(int sampleRate, PaDeviceIndex deviceIndex)
-  : sampleRate(sampleRate)
+AudioEngine::AudioEngine(RtAudio::Api api)
+    : audio(api)
 {
-    retainPortAudio();
-
-    PaStreamParameters outParams{};
-    outParams.device =
-      (deviceIndex == paNoDevice) ? Pa_GetDefaultOutputDevice() : deviceIndex;
-    if (outParams.device == paNoDevice) {
-        releasePortAudio();
-        throw std::runtime_error("No output device available.");
+    audio.setErrorCallback(&errorCallback);
+    for (auto id : audio.getDeviceIds()) {
+        try {
+            auto info = audio.getDeviceInfo(id);
+            spdlog::info("Found audio device {}: {}, {} channels, {}Hz - {}",
+                         id,
+                         info.name,
+                         info.outputChannels,
+                         info.preferredSampleRate,
+                         info.isDefaultOutput ? "default" : "");
+        } catch (const std::exception& e) {
+            spdlog::error("Error getting info for device {}: {}", id, e.what());
+        }
     }
-    outParams.channelCount = outputChannels;
-    outParams.sampleFormat = paFloat32;
-    constexpr auto bufferSize = paFramesPerBufferUnspecified;
-    auto* info = Pa_GetDeviceInfo(outParams.device);
-    outParams.suggestedLatency = info ? info->defaultLowOutputLatency : 0.1;
-    outParams.hostApiSpecificStreamInfo = nullptr;
-
-    if (auto err = Pa_OpenStream(&stream,
-                                 nullptr,
-                                 &outParams,
-                                 sampleRate,
-                                 bufferSize,
-                                 paNoFlag,
-                                 &AudioEngine::paCallback,
-                                 this);
-        err != paNoError) {
-        releasePortAudio();
-        throw std::runtime_error(std::string("Pa_OpenStream failed: ") +
-                                 Pa_GetErrorText(err));
-    }
-
-    if (auto err = Pa_StartStream(stream); err != paNoError) {
-        Pa_CloseStream(stream);
-        stream = nullptr;
-        releasePortAudio();
-        throw std::runtime_error(std::string("Pa_StartStream failed: ") +
-                                 Pa_GetErrorText(err));
-    }
-
-    running.store(true);
-    spdlog::info(
-      "AudioEngine started ({} Hz, {} ch)", sampleRate, outputChannels);
+    currentDefault = audio.getDefaultOutputDevice();
+    restartStream();
+    defaultDeviceMonitorThread = std::jthread{ [this](std::stop_token st) {
+        while (!st.stop_requested()) {
+            std::this_thread::sleep_for(std::chrono::seconds(2));
+            auto newDefault = audio.getDefaultOutputDevice();
+            if (newDefault != currentDefault) {
+                spdlog::info("Audio default output device changed: {} -> {}",
+                             currentDefault,
+                             newDefault);
+                currentDefault = newDefault;
+                try {
+                    audio.stopStream();
+                    audio.closeStream();
+                } catch (const std::exception& e) {
+                    spdlog::error("Error closing audio stream: {}", e.what());
+                }
+                try {
+                    restartStream();
+                } catch (const std::exception& e) {
+                    spdlog::error("Error restarting audio stream: {}", e.what());
+                }
+            }
+        }
+    } };
 }
 
 AudioEngine::~AudioEngine()
 {
-    running.store(false);
-    {
-        std::lock_guard lock(voicesMutex);
-        voices.clear();
-    }
-    if (stream) {
-        Pa_StopStream(stream);
-        Pa_CloseStream(stream);
-        stream = nullptr;
-    }
-    releasePortAudio();
+
 }
 
-auto
-AudioEngine::getSampleRate() const -> int
-{
-    return sampleRate;
-}
-
-auto
-AudioEngine::getOutputChannels() const -> int
-{
-    return outputChannels;
-}
-
-auto
-AudioEngine::isRunning() const -> bool
-{
-    return running.load();
-}
 
 void
 AudioEngine::registerVoice(const std::shared_ptr<Sound>& voice)
@@ -155,23 +140,25 @@ AudioEngine::unregisterVoice(Sound* voice)
 }
 
 auto
-AudioEngine::paCallback(const void*,
-                        void* output,
-                        unsigned long frameCount,
-                        const PaStreamCallbackTimeInfo*,
-                        PaStreamCallbackFlags,
-                        void* userData) -> int
+AudioEngine::callback(void* outputBuffer, void* inputBuffer, unsigned int nFrames, double streamTime, RtAudioStreamStatus status, void* userData) -> int
 {
-    auto* eng = static_cast<AudioEngine*>(userData);
-    auto* out = static_cast<float*>(output);
-    eng->mix(out, frameCount);
-    return paContinue;
+    auto data = static_cast<AudioEngine*>(userData);
+    data->mix(static_cast<float*>(outputBuffer), nFrames);
+    if (status != 0) {
+        if (status & RTAUDIO_INPUT_OVERFLOW) {
+            spdlog::warn("Audio input overflow");
+        }
+        if (status & RTAUDIO_OUTPUT_UNDERFLOW) {
+            spdlog::warn("Audio output underflow");
+        }
+    }
+    return 0;
 }
 
 void
 AudioEngine::mix(float* out, unsigned long frames)
 {
-    std::fill_n(out, frames * outputChannels, 0.0f);
+    std::fill_n(out, frames * 2, 0.0f);
 
     // Snapshot valid voices
     std::vector<std::shared_ptr<Sound>> active;
@@ -194,11 +181,11 @@ AudioEngine::mix(float* out, unsigned long frames)
 
     // Mix
     for (auto& v : active) {
-        v->mixInto(out, frames, outputChannels, sampleRate);
+        v->mixInto(out, frames, 2, audio.getStreamSampleRate());
     }
 
     // Clamp
-    auto total = frames * static_cast<unsigned long>(outputChannels);
+    auto total = frames * static_cast<unsigned long>(2);
     for (unsigned long i = 0; i < total; ++i) {
         if (out[i] > 1.0f)
             out[i] = 1.0f;

@@ -4,7 +4,6 @@
 
 #ifndef RHYTHMGAME_SOUNDBUFFER_H
 #define RHYTHMGAME_SOUNDBUFFER_H
-#include <portaudio.h>
 #include <chrono>
 #include <filesystem>
 

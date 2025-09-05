@@ -1063,7 +1063,9 @@ InputTranslator::eventFilter(QObject* watched, QEvent* event)
         if (key->isAutoRepeat()) {
             return false;
         }
-        const auto time = key->timestamp();
+        auto now = std::chrono::duration_cast<std::chrono::milliseconds>(
+          std::chrono::steady_clock::now().time_since_epoch());
+        auto nowMillis = now.count();
         const auto keyLookup = Key{ QVariant::fromValue(nullptr),
                                     Key::Device::Keyboard,
                                     key->key(),
@@ -1076,7 +1078,7 @@ InputTranslator::eventFilter(QObject* watched, QEvent* event)
         } else {
             if (const auto found = config.find(keyLookup);
                 found != config.end()) {
-                pressButton(*found, time);
+                pressButton(*found, nowMillis);
             }
         }
     } else if (event->type() == QEvent::KeyRelease && !event->isAccepted()) {
@@ -1084,13 +1086,15 @@ InputTranslator::eventFilter(QObject* watched, QEvent* event)
         if (key->isAutoRepeat()) {
             return false;
         }
-        const auto time = key->timestamp();
+        auto now = std::chrono::duration_cast<std::chrono::milliseconds>(
+          std::chrono::steady_clock::now().time_since_epoch());
+        auto nowMillis = now.count();
         const auto keyLookup = Key{ QVariant::fromValue(nullptr),
                                     Key::Device::Keyboard,
                                     key->key(),
                                     Key::Direction::None };
         if (const auto found = config.find(keyLookup); found != config.end()) {
-            releaseButton(*found, time);
+            releaseButton(*found, nowMillis);
         }
     }
     return false;

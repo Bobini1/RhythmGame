@@ -74,6 +74,23 @@ Q_ENUM_NS(GaugeMode)
 } // namespace gauge_mode
 using namespace gauge_mode;
 
+namespace audio_backend {
+Q_NAMESPACE
+enum class Api {
+    UNSPECIFIED,    /*!< Search for a working compiled API. */
+    MACOSX_CORE,    /*!< Macintosh OS-X Core Audio API. */
+    LINUX_ALSA,     /*!< The Advanced Linux Sound Architecture API. */
+    UNIX_JACK,      /*!< The Jack Low-Latency Audio Server API. */
+    LINUX_PULSE,    /*!< The Linux PulseAudio API. */
+    LINUX_OSS,      /*!< The Linux Open Sound System API. */
+    WINDOWS_ASIO,   /*!< The Steinberg Audio Stream I/O API. */
+    WINDOWS_WASAPI, /*!< The Microsoft WASAPI API. */
+    WINDOWS_DS,     /*!< The Microsoft DirectSound API. */
+    RTAUDIO_DUMMY,  /*!< A compilable but non-functional API. */
+  };
+Q_ENUM_NS(Api)
+}
+
 /**
  * @brief The general variables for the game that all screens and the engine
  * should know about and respect. Profile-specific.
@@ -207,7 +224,8 @@ class GeneralVars final : public QObject
      */
     Q_PROPERTY(
       double offset READ getOffset WRITE setOffset NOTIFY offsetChanged)
-    // ^ remember to use full namespace for enums for reflection
+    Q_PROPERTY(resource_managers::audio_backend::Api audioApi READ getAudioApi WRITE
+                 setAudioApi NOTIFY audioApiChanged RESET resetAudioApi)
     double noteScreenTimeMillis = 1000;
     bool laneCoverOn = false;
     double laneCoverRatio = 0.1;
@@ -227,6 +245,7 @@ class GeneralVars final : public QObject
     QString name = "Default";
     QString language = QLocale::system().name();
     double offset = 0.0; // Offset in milliseconds
+    resource_managers::audio_backend::Api audioApi = audio_backend::Api::UNSPECIFIED;
 
     QString avatarPath;
 
@@ -289,6 +308,9 @@ class GeneralVars final : public QObject
     auto getOffset() const -> double;
     void setOffset(double value);
     void resetOffset();
+    auto getAudioApi() const -> audio_backend::Api;
+    void setAudioApi(audio_backend::Api value);
+    void resetAudioApi();
 
   signals:
     void noteScreenTimeMillisChanged();
@@ -310,6 +332,7 @@ class GeneralVars final : public QObject
     void nameChanged();
     void languageChanged();
     void offsetChanged();
+    void audioApiChanged();
 };
 
 class Vars final : public QObject

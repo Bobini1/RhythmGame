@@ -41,7 +41,8 @@
 #include "support/QtSink.h"
 
 Q_IMPORT_QML_PLUGIN(RhythmGameQmlPlugin)
-
+#include <QMediaDevices>
+#include <QAudioDevice>
 void
 qtLogHandler(QtMsgType type,
              const QMessageLogContext& /*context*/,
@@ -67,7 +68,6 @@ qtLogHandler(QtMsgType type,
             break;
     }
 }
-
 
 auto
 main(int argc, [[maybe_unused]] char* argv[]) -> int
@@ -155,8 +155,13 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
                          &inputTranslator,
                          &input::InputTranslator::handleRelease);
 
-        auto audioEngine = sounds::AudioEngine{};
-        auto chartFactory = resource_managers::ChartFactory{ &audioEngine, &inputTranslator };
+        auto audioEngine = sounds::AudioEngine{ static_cast<RtAudio::Api>(
+          profileList.getMainProfile()
+            ->getVars()
+            ->getGeneralVars()
+            ->getAudioApi()) };
+        auto chartFactory =
+          resource_managers::ChartFactory{ &audioEngine, &inputTranslator };
         auto chartDataFactory = resource_managers::ChartDataFactory{};
         auto gaugeFactoryGeneral = resource_managers::GaugeFactory{};
         auto gaugeFactory =
@@ -223,7 +228,6 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
         auto tables = resource_managers::Tables{ &networkManager,
                                                  dataFolder / "tables",
                                                  &db };
-
 
         auto engine = QQmlApplicationEngine{};
         auto languages =
@@ -350,6 +354,13 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
           1,
           0,
           "HiSpeedFix",
+          "Access to enums & flags only");
+        qmlRegisterUncreatableMetaObject(
+          resource_managers::audio_backend::staticMetaObject,
+          "RhythmGameQml",
+          1,
+          0,
+          "AudioBackend",
           "Access to enums & flags only");
         qmlRegisterUncreatableMetaObject(
           resource_managers::gauge_mode::staticMetaObject,

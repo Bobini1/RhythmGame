@@ -6,22 +6,15 @@
 #define RHYTHMGAME_AUDIOENGINE_H
 #include <memory>
 #include <mutex>
-#include <portaudio.h>
+#include <rtaudio/RtAudio.h>
 #include <vector>
 namespace sounds {
 class Sound;
 
-/**
- * AudioEngine
- * Owns a PortAudio output stream and mixes registered Sound voices.
- */
 class AudioEngine {
 public:
-    struct Config {
-
-    };
-
-    explicit AudioEngine(int sampleRate = 48000, PaDeviceIndex deviceIndex = paNoDevice); // paNoDevice => use default);
+    explicit AudioEngine(RtAudio::Api api);
+    void restartStream();
     ~AudioEngine();
 
     AudioEngine(const AudioEngine&) = delete;
@@ -29,31 +22,21 @@ public:
     AudioEngine(AudioEngine&&) = delete;
     auto operator=(AudioEngine&&) -> AudioEngine& = delete;
 
-    auto getSampleRate() const -> int;
-    auto getOutputChannels() const -> int;
-    auto isRunning() const -> bool;
-
     // Voice management (called by Sound).
     void registerVoice(const std::shared_ptr<Sound>& voice);
     void unregisterVoice(Sound* voiceRaw);
 
 private:
-    static int paCallback(const void* input,
-                          void* output,
-                          unsigned long frameCount,
-                          const PaStreamCallbackTimeInfo* timeInfo,
-                          PaStreamCallbackFlags statusFlags,
-                          void* userData);
+    static int callback(void* outputBuffer, void* inputBuffer, unsigned int nFrames, double streamTime, RtAudioStreamStatus status, void* userData);
 
     void mix(float* out, unsigned long frames);
 
     std::vector<std::weak_ptr<Sound>> voices;
     std::mutex voicesMutex;
 
-    PaStream* stream = nullptr;
-    int sampleRate;
-    static constexpr auto outputChannels = 2;
-    std::atomic<bool> running{false};
+    RtAudio audio;
+    std::jthread defaultDeviceMonitorThread;
+    unsigned int currentDefault = 0;
 };
 } // namespace sounds
 

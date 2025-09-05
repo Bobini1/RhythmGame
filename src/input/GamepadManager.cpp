@@ -29,6 +29,7 @@ GamepadManager::loop()
     while (SDL_PollEvent(&event)) {
         auto now = std::chrono::duration_cast<std::chrono::milliseconds>(
           std::chrono::steady_clock::now().time_since_epoch());
+        auto nowMillis = now.count();
         auto startTime = (now - std::chrono::milliseconds{ SDL_GetTicks64() }).count();
         if (event.type == SDL_JOYAXISMOTION) {
             const auto axisEvent = event.jaxis;
@@ -37,17 +38,17 @@ GamepadManager::loop()
             emit axisMoved(gamepads[axisEvent.which],
                            axisEvent.axis,
                            value,
-                           axisEvent.timestamp + startTime);
+                           nowMillis);
         } else if (event.type == SDL_JOYBUTTONDOWN) {
             const auto buttonEvent = event.jbutton;
             emit buttonPressed(gamepads[buttonEvent.which],
                                buttonEvent.button,
-                               buttonEvent.timestamp + startTime);
+                               nowMillis);
         } else if (event.type == SDL_JOYBUTTONUP) {
             const auto buttonEvent = event.jbutton;
             emit buttonReleased(gamepads[buttonEvent.which],
                                 buttonEvent.button,
-                                buttonEvent.timestamp + startTime);
+                                nowMillis);
         } else if (event.type == SDL_JOYDEVICEADDED) {
             const auto deviceEvent = event.jdevice;
             addController(deviceEvent.which);

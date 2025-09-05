@@ -38,8 +38,6 @@ sounds::SoundBuffer::SoundBuffer(const std::filesystem::path& filename) {
         spdlog::warn("Short read: expected {} frames, got {} in {}", frames, readCount, filename.string());
         samples.resize(static_cast<std::size_t>(readCount) * static_cast<std::size_t>(channels));
     }
-
-    spdlog::debug("Loaded '{}' ({} frames, {} ch, {} Hz)", filename.string(), readCount, channels, sampleRate);
 }
 auto
 sounds::SoundBuffer::getBuffer() const -> const std::vector<float>&

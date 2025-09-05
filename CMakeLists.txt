@@ -50,7 +50,7 @@ find_package(Boost REQUIRED COMPONENTS headers)
 
 # <------------ OpenAL (audio playback) --------------->
 
-find_package(portaudio CONFIG REQUIRED)
+find_package(RtAudio CONFIG REQUIRED)
 
 # <------------ llfio (directory scanning) --------------->
 
@@ -249,7 +249,7 @@ target_compile_definitions(RhythmGame_lib PUBLIC RHYTHMGAME_DATA_PATH="${DATA_PA
 find_package(Threads REQUIRED)
 
 target_link_libraries(RhythmGame_lib PUBLIC $<IF:$<TARGET_EXISTS:mimalloc-static>,mimalloc-static,mimalloc>)
-target_link_libraries(RhythmGame_lib PUBLIC SDL2::SDL2 Qt6::Quick Qt6::OpenGL Qt6::Concurrent Qt6::Multimedia Qt6::InterfaceFramework Threads::Threads Boost::headers SQLiteCpp spdlog::spdlog foonathan::lexy portaudio_static magic_enum::magic_enum zstd::libzstd_static SndFile::sndfile llfio::sl LibXml2::LibXml2)
+target_link_libraries(RhythmGame_lib PUBLIC SDL2::SDL2 Qt6::Quick Qt6::OpenGL Qt6::Concurrent Qt6::Multimedia Qt6::InterfaceFramework Threads::Threads Boost::headers SQLiteCpp spdlog::spdlog foonathan::lexy RtAudio::rtaudio magic_enum::magic_enum zstd::libzstd_static SndFile::sndfile llfio::sl LibXml2::LibXml2)
 
 if (WIN32)
     target_link_libraries(RhythmGame_lib PUBLIC llfio::ntkernel-error-category_sl)

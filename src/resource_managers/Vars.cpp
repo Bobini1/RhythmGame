@@ -444,6 +444,27 @@ resource_managers::GeneralVars::resetOffset()
 {
     setOffset(0.0);
 }
+auto
+resource_managers::GeneralVars::getAudioApi() const
+  -> audio_backend::Api
+{
+    return audioApi;
+}
+void
+resource_managers::GeneralVars::setAudioApi(
+  audio_backend::Api value)
+{
+    if (audioApi == value) {
+        return;
+    }
+    audioApi = value;
+    emit audioApiChanged();
+}
+void
+resource_managers::GeneralVars::resetAudioApi()
+{
+    setAudioApi(audio_backend::Api::UNSPECIFIED);
+}
 namespace {
 void
 writeGeneralVars(const resource_managers::GeneralVars& generalVars,

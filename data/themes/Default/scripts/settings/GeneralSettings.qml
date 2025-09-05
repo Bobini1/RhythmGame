@@ -264,6 +264,22 @@ Item {
                         right: parent.right
                     }
                 }
+                Separator {
+                }
+                Choice {
+                    destination: Rg.profileList.mainProfile.vars.generalVars
+                    id_: "audioApi"
+                    name: qsTr("Bottom Shiftable Gauge")
+                    choices: Object.keys(AudioBackend)
+                    assignIndex: true
+                    default_: 0
+                    default_: "EASY"
+
+                    anchors {
+                        left: parent.left
+                        right: parent.right
+                    }
+                }
             }
         }
     }

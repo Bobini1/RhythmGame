@@ -22,7 +22,21 @@
       "platform": "windows"
     },
     "foonathan-lexy",
-    "portaudio",
+    {
+      "name": "rtaudio",
+      "features": [
+        "asio"
+      ],
+      "platform": "windows"
+    },
+    {
+      "name": "rtaudio",
+      "features": [
+        "pulse",
+        "alsa"
+      ],
+      "platform": "linux"
+    },
     "magic-enum",
     "zstd",
     {
