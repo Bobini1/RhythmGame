@@ -76,7 +76,7 @@ using namespace gauge_mode;
 
 namespace audio_backend {
 Q_NAMESPACE
-enum class Api {
+enum class AudioBackend {
     UNSPECIFIED,    /*!< Search for a working compiled API. */
     MACOSX_CORE,    /*!< Macintosh OS-X Core Audio API. */
     LINUX_ALSA,     /*!< The Advanced Linux Sound Architecture API. */
@@ -88,8 +88,9 @@ enum class Api {
     WINDOWS_DS,     /*!< The Microsoft DirectSound API. */
     RTAUDIO_DUMMY,  /*!< A compilable but non-functional API. */
   };
-Q_ENUM_NS(Api)
-}
+Q_ENUM_NS(AudioBackend)
+} // namespace audio_backend
+using namespace audio_backend;
 
 /**
  * @brief The general variables for the game that all screens and the engine
@@ -245,7 +246,7 @@ class GeneralVars final : public QObject
     QString name = "Default";
     QString language = QLocale::system().name();
     double offset = 0.0; // Offset in milliseconds
-    resource_managers::audio_backend::Api audioApi = audio_backend::Api::UNSPECIFIED;
+    AudioBackend audioApi = AudioBackend::UNSPECIFIED;
 
     QString avatarPath;
 
@@ -308,8 +309,8 @@ class GeneralVars final : public QObject
     auto getOffset() const -> double;
     void setOffset(double value);
     void resetOffset();
-    auto getAudioApi() const -> audio_backend::Api;
-    void setAudioApi(audio_backend::Api value);
+    auto getAudioApi() const -> AudioBackend;
+    void setAudioApi(AudioBackend value);
     void resetAudioApi();
 
   signals:

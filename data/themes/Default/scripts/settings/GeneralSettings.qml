@@ -269,7 +269,7 @@ Item {
                 Choice {
                     destination: Rg.profileList.mainProfile.vars.generalVars
                     id_: "audioApi"
-                    name: qsTr("Bottom Shiftable Gauge")
+                    name: qsTr("Audio Backend")
                     choices: Object.keys(AudioBackend)
                     assignIndex: true
                     default_: 0
