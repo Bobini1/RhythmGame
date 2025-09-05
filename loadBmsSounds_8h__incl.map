@@ -6,6 +6,8 @@
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="202,46,202,79,197,79,197,46"/>
 <area shape="rect" id="Node000004" href="$Sound_8h.html" title=" " alt="" coords="269,93,393,119"/>
 <area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="232,43,301,84,298,88,230,48"/>
-<area shape="rect" id="Node000005" title=" " alt="" coords="269,167,393,192"/>
-<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="334,119,334,153,329,153,329,119"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="189,167,321,192"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="321,121,280,159,276,155,317,117"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="345,167,469,192"/>
+<area shape="poly" id="edge5_Node000004_Node000006" title=" " alt="" coords="345,117,387,155,383,159,342,121"/>
 </map>

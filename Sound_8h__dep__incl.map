@@ -1,15 +1,13 @@
 <map id="src/sounds/Sound.h" name="src/sounds/Sound.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="567,5,714,31"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="474,5,621,31"/>
 <area shape="rect" id="Node000002" href="$BmsGameReferee_8h.html" title=" " alt="" coords="199,79,357,119"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="575,36,357,83,356,78,574,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="496,37,343,81,342,76,495,32"/>
 <area shape="rect" id="Node000015" href="$HitRules_8cpp.html" title=" " alt="" coords="381,79,529,119"/>
-<area shape="poly" id="edge19_Node000001_Node000015" title=" " alt="" coords="602,38,501,81,499,76,600,33"/>
+<area shape="poly" id="edge19_Node000001_Node000015" title=" " alt="" coords="525,42,479,81,476,76,522,38"/>
 <area shape="rect" id="Node000016" href="$loadBmsSounds_8h.html" title=" " alt="" coords="554,79,727,119"/>
-<area shape="poly" id="edge20_Node000001_Node000016" title=" " alt="" coords="643,44,643,79,638,79,638,44"/>
-<area shape="rect" id="Node000018" href="$AudioEngine_8cpp.html" title=" " alt="" coords="751,86,954,111"/>
-<area shape="poly" id="edge23_Node000001_Node000018" title=" " alt="" coords="685,33,823,83,821,88,683,38"/>
-<area shape="rect" id="Node000019" href="$Sound_8cpp.html" title=" " alt="" coords="978,86,1141,111"/>
-<area shape="poly" id="edge24_Node000001_Node000019" title=" " alt="" coords="719,30,966,76,1004,83,1003,89,966,81,718,36"/>
+<area shape="poly" id="edge20_Node000001_Node000016" title=" " alt="" coords="573,38,620,76,616,81,570,42"/>
+<area shape="rect" id="Node000018" href="$Sound_8cpp.html" title=" " alt="" coords="751,86,914,111"/>
+<area shape="poly" id="edge23_Node000001_Node000018" title=" " alt="" coords="603,32,792,83,790,89,601,37"/>
 <area shape="rect" id="Node000003" href="$BmsGameReferee_8cpp.html" title=" " alt="" coords="37,167,209,207"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="233,128,158,169,156,164,231,123"/>
 <area shape="rect" id="Node000004" href="$ChartRunner_8h.html" title=" " alt="" coords="233,167,381,207"/>
