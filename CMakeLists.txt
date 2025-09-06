@@ -48,10 +48,9 @@ find_package(spdlog REQUIRED)
 
 find_package(Boost REQUIRED COMPONENTS headers)
 
-# <------------ gstreamer (audio playback) --------------->
+# <------------ OpenAL (audio playback) --------------->
 
-find_package(PkgConfig REQUIRED)
-pkg_search_module(gstreamer REQUIRED IMPORTED_TARGET gstreamer)
+find_package(portaudio CONFIG REQUIRED)
 
 # <------------ llfio (directory scanning) --------------->
 
@@ -234,6 +233,8 @@ qt_add_library(RhythmGame_lib OBJECT ${utf8Manifest}
         src/gameplay_logic/BmsScoreCourse.h
         src/support/QtSink.cpp
         src/support/QtSink.h
+        src/sounds/AudioEngine.cpp
+        src/sounds/AudioEngine.h
 )
 # define version macros
 target_compile_definitions(RhythmGame_lib PUBLIC
@@ -248,7 +249,7 @@ target_compile_definitions(RhythmGame_lib PUBLIC RHYTHMGAME_DATA_PATH="${DATA_PA
 find_package(Threads REQUIRED)
 
 target_link_libraries(RhythmGame_lib PUBLIC $<IF:$<TARGET_EXISTS:mimalloc-static>,mimalloc-static,mimalloc>)
-target_link_libraries(RhythmGame_lib PUBLIC SDL2::SDL2 Qt6::Quick Qt6::OpenGL Qt6::Concurrent Qt6::Multimedia Qt6::InterfaceFramework Threads::Threads Boost::headers SQLiteCpp spdlog::spdlog foonathan::lexy PkgConfig::gstreamer magic_enum::magic_enum zstd::libzstd_static SndFile::sndfile llfio::sl LibXml2::LibXml2)
+target_link_libraries(RhythmGame_lib PUBLIC SDL2::SDL2 Qt6::Quick Qt6::OpenGL Qt6::Concurrent Qt6::Multimedia Qt6::InterfaceFramework Threads::Threads Boost::headers SQLiteCpp spdlog::spdlog foonathan::lexy portaudio_static magic_enum::magic_enum zstd::libzstd_static SndFile::sndfile llfio::sl LibXml2::LibXml2)
 
 if (WIN32)
     target_link_libraries(RhythmGame_lib PUBLIC llfio::ntkernel-error-category_sl)
@@ -274,7 +275,7 @@ qt_import_qml_plugins(RhythmGame_qmlplugin)
 if (WIN32)
     enable_language("RC")
     add_executable(RhythmGame_exe
-            src/main.cpp ${CMAKE_CURRENT_SOURCE_DIR}/staticAssets/RhythmGame.rc
+            src/main.cpp  ${CMAKE_CURRENT_SOURCE_DIR}/staticAssets/RhythmGame.rc
     )
     set_target_properties(RhythmGame_exe PROPERTIES
             WIN32_EXECUTABLE $<IF:$<CONFIG:Debug,RelWithDebInfo>,FALSE,TRUE>

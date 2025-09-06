@@ -17,11 +17,3 @@ endif ()
 if (PORT MATCHES "spdlog")
     set(SPDLOG_WCHAR_FILENAMES ON)
 endif ()
-
-if (PORT MATCHES "glib")
-    set(VCPKG_LIBRARY_LINKAGE dynamic)
-endif ()
-
-if (PORT MATCHES "gstreamer")
-    set(VCPKG_LIBRARY_LINKAGE dynamic)
-endif ()

@@ -36,9 +36,9 @@
 #include "support/PathToUtfString.h"
 #include "support/UtfStringToPath.h"
 #include "gameplay_logic/CourseRunner.h"
+#include "sounds/AudioEngine.h"
 #include "sounds/SoundBuffer.h"
 #include "support/QtSink.h"
-#include <gst/gst.h>
 
 Q_IMPORT_QML_PLUGIN(RhythmGameQmlPlugin)
 
@@ -68,6 +68,7 @@ qtLogHandler(QtMsgType type,
     }
 }
 
+
 auto
 main(int argc, [[maybe_unused]] char* argv[]) -> int
 {
@@ -94,9 +95,6 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
     set_default_logger(logger);
 
     auto app = input::CustomNotifyApp{ argc, argv };
-
-    /* init GStreamer */
-    gst_init(&argc, &argv);
 
     auto dataFolder = resource_managers::findDataFolder();
     auto logFile = dataFolder / "log.txt";
@@ -157,39 +155,9 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
                          &inputTranslator,
                          &input::InputTranslator::handleRelease);
 
-        auto* pipeline = gst_pipeline_new("audio-mixer");
-        auto* bus = gst_element_get_bus(pipeline);
-        gst_bus_add_signal_watch(bus);
-        g_signal_connect(bus,
-                         "message::error",
-                         G_CALLBACK(+[]([[maybe_unused]] GstBus* bus,
-                                        GstMessage* msg,
-                                        [[maybe_unused]] gpointer user_data) {
-                             GError* err;
-                             gchar* debug_info;
-                             gst_message_parse_error(msg, &err, &debug_info);
-                             spdlog::error("GStreamer error: {} ({})",
-                                           err->message,
-                                           debug_info ? debug_info : "no info");
-                             g_clear_error(&err);
-                             g_free(debug_info);
-                         }),
-                         nullptr);
-        gst_object_unref(bus);
-        auto* mixer = gst_element_factory_make("audiomixer", "mixer");
-        auto* sink = gst_element_factory_make("autoaudiosink", "audio-output");
-        if (!pipeline || !mixer || !sink) {
-            throw std::runtime_error("Not all elements could be created");
-        }
-        g_object_set(G_OBJECT(mixer), "latency", 10000000, NULL);
-        gst_bin_add_many(GST_BIN(pipeline), mixer, sink, NULL);
-        if (!gst_element_link(mixer, sink)) {
-            throw std::runtime_error("Could not link mixer");
-        }
-        gst_element_set_state(pipeline, GST_STATE_PLAYING);
+        auto audioEngine = sounds::AudioEngine{};
+        auto chartFactory = resource_managers::ChartFactory{ &audioEngine, &inputTranslator };
         auto chartDataFactory = resource_managers::ChartDataFactory{};
-        auto chartFactory =
-          resource_managers::ChartFactory{ pipeline, &inputTranslator };
         auto gaugeFactoryGeneral = resource_managers::GaugeFactory{};
         auto gaugeFactory =
           [gaugeFactoryGeneral](
@@ -255,6 +223,7 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
         auto tables = resource_managers::Tables{ &networkManager,
                                                  dataFolder / "tables",
                                                  &db };
+
 
         auto engine = QQmlApplicationEngine{};
         auto languages =

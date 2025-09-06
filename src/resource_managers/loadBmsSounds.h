@@ -11,7 +11,7 @@
 
 namespace charts {
 auto
-loadBmsSounds(GstElement* engine,
+loadBmsSounds(sounds::AudioEngine* engine,
               const std::unordered_map<uint16_t, std::filesystem::path>& wavs,
               const std::filesystem::path& path)
   -> std::unordered_map<uint16_t, std::shared_ptr<sounds::Sound>>;

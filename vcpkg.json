@@ -22,30 +22,7 @@
       "platform": "windows"
     },
     "foonathan-lexy",
-    {
-      "name": "gstreamer",
-      "features": [
-        "plugins-bad",
-        "plugins-base",
-        "plugins-good",
-        "openal",
-        "sndfile"
-      ]
-    },
-    {
-      "name": "gstreamer",
-      "features": [
-        "alsa"
-      ],
-      "platform": "linux"
-    },
-    {
-      "name": "gstreamer",
-      "features": [
-        "asio"
-      ],
-      "platform": "windows"
-    },
+    "portaudio",
     "magic-enum",
     "zstd",
     {
@@ -65,8 +42,7 @@
         "jpeg",
         "opengl",
         "openssl",
-        "vulkan",
-        "glib"
+        "vulkan"
       ]
     },
     {

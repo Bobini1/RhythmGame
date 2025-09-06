@@ -18,10 +18,10 @@ class SoundTask : public QObject
     Q_OBJECT
     std::filesystem::path path;
     std::unordered_map<uint16_t, std::filesystem::path> wavs;
-    GstElement* engine;
+    sounds::AudioEngine* engine;
 
   public:
-    SoundTask(GstElement* engine,
+    SoundTask(sounds::AudioEngine* engine,
               std::filesystem::path path,
               std::unordered_map<uint16_t, std::filesystem::path> wavs);
     void run();
@@ -32,7 +32,7 @@ class SoundTask : public QObject
 
 class ChartFactory
 {
-    GstElement* engine;
+    sounds::AudioEngine* engine;
     input::InputTranslator* inputTranslator;
 
   public:
@@ -47,7 +47,8 @@ class ChartFactory
         DpOptions dpOptions = DpOptions::Off;
         bool autoPlay = false;
     };
-    ChartFactory(GstElement* engine, input::InputTranslator* inputTranslator);
+    ChartFactory(sounds::AudioEngine* engine,
+                          input::InputTranslator* inputTranslator);
     auto createChart(ChartDataFactory::ChartComponents chartComponents,
                      PlayerSpecificData player1,
                      std::optional<PlayerSpecificData> player2,
