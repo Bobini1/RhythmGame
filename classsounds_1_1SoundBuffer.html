@@ -90,11 +90,20 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a97ce1cf87886b2401cf7f244a71413ac" id="r_a97ce1cf87886b2401cf7f244a71413ac"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classsounds_1_1SoundBuffer.html#a97ce1cf87886b2401cf7f244a71413ac">SoundBuffer</a> (const std::filesystem::path &amp;filename)</td></tr>
 <tr class="memdesc:a97ce1cf87886b2401cf7f244a71413ac"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates a new sound buffer from a file.  <br /></td></tr>
 <tr class="separator:a97ce1cf87886b2401cf7f244a71413ac"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a46acfaf937399a454c64f9856e5798f0" id="r_a46acfaf937399a454c64f9856e5798f0"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classsounds_1_1SoundBuffer.html#a46acfaf937399a454c64f9856e5798f0">~SoundBuffer</a> ()</td></tr>
-<tr class="separator:a46acfaf937399a454c64f9856e5798f0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aba893d5d5fe21df0631bc2594b9af6bf" id="r_aba893d5d5fe21df0631bc2594b9af6bf"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classsounds_1_1SoundBuffer.html#aba893d5d5fe21df0631bc2594b9af6bf">getBuffer</a> () const -&gt; GstElement *</td></tr>
-<tr class="memdesc:aba893d5d5fe21df0631bc2594b9af6bf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the internal buffer.  <br /></td></tr>
-<tr class="separator:aba893d5d5fe21df0631bc2594b9af6bf"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4e38c1ba53d513897f02f09dfbf6ebaf" id="r_a4e38c1ba53d513897f02f09dfbf6ebaf"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classsounds_1_1SoundBuffer.html#a4e38c1ba53d513897f02f09dfbf6ebaf">getBuffer</a> () const -&gt; const std::vector&lt; float &gt; &amp;</td></tr>
+<tr class="memdesc:a4e38c1ba53d513897f02f09dfbf6ebaf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the internal buffer.  <br /></td></tr>
+<tr class="separator:a4e38c1ba53d513897f02f09dfbf6ebaf"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a74b06fbcc294fc3ae34b56888dfe0e86" id="r_a74b06fbcc294fc3ae34b56888dfe0e86"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classsounds_1_1SoundBuffer.html#a74b06fbcc294fc3ae34b56888dfe0e86">getDuration</a> () const -&gt; std::chrono::nanoseconds</td></tr>
+<tr class="memdesc:a74b06fbcc294fc3ae34b56888dfe0e86"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the duration of the sound.  <br /></td></tr>
+<tr class="separator:a74b06fbcc294fc3ae34b56888dfe0e86"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae8396e64d7403fe09f293f649a8e5c7a" id="r_ae8396e64d7403fe09f293f649a8e5c7a"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classsounds_1_1SoundBuffer.html#ae8396e64d7403fe09f293f649a8e5c7a">getFrequency</a> () const -&gt; int</td></tr>
+<tr class="memdesc:ae8396e64d7403fe09f293f649a8e5c7a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the sampling frequency of the sound.  <br /></td></tr>
+<tr class="separator:ae8396e64d7403fe09f293f649a8e5c7a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7b823b4099455fb5f8edf0e5b2d21186" id="r_a7b823b4099455fb5f8edf0e5b2d21186"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classsounds_1_1SoundBuffer.html#a7b823b4099455fb5f8edf0e5b2d21186">getChannels</a> () const -&gt; int</td></tr>
+<tr class="memdesc:a7b823b4099455fb5f8edf0e5b2d21186"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the number of channels in the sound.  <br /></td></tr>
+<tr class="separator:a7b823b4099455fb5f8edf0e5b2d21186"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a81c76cb7a580b9b78ab3eff5ec89acf8" id="r_a81c76cb7a580b9b78ab3eff5ec89acf8"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classsounds_1_1SoundBuffer.html#a81c76cb7a580b9b78ab3eff5ec89acf8">getFrames</a> () const -&gt; std::size_t</td></tr>
+<tr class="separator:a81c76cb7a580b9b78ab3eff5ec89acf8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>A buffer that can be used to create sounds. Wraps an buffer. </p>
@@ -134,26 +143,9 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="a46acfaf937399a454c64f9856e5798f0" name="a46acfaf937399a454c64f9856e5798f0"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a46acfaf937399a454c64f9856e5798f0">&#9670;&#160;</a></span>~SoundBuffer()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">sounds::SoundBuffer::~SoundBuffer </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a id="aba893d5d5fe21df0631bc2594b9af6bf" name="aba893d5d5fe21df0631bc2594b9af6bf"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aba893d5d5fe21df0631bc2594b9af6bf">&#9670;&#160;</a></span>getBuffer()</h2>
+<a id="a4e38c1ba53d513897f02f09dfbf6ebaf" name="a4e38c1ba53d513897f02f09dfbf6ebaf"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4e38c1ba53d513897f02f09dfbf6ebaf">&#9670;&#160;</a></span>getBuffer()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -162,13 +154,90 @@ Public Member Functions</h2></td></tr>
           <td class="memname">auto sounds::SoundBuffer::getBuffer </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
-          <td> const -&gt; GstElement*</td>
+          <td> const -&gt; const std::vector&lt;float&gt;&amp;</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 <p>Gets the internal buffer. </p>
 <dl class="section return"><dt>Returns</dt><dd>The internal buffer. </dd></dl>
+
+</div>
+</div>
+<a id="a7b823b4099455fb5f8edf0e5b2d21186" name="a7b823b4099455fb5f8edf0e5b2d21186"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7b823b4099455fb5f8edf0e5b2d21186">&#9670;&#160;</a></span>getChannels()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto sounds::SoundBuffer::getChannels </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const -&gt; int</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Gets the number of channels in the sound. </p>
+<dl class="section return"><dt>Returns</dt><dd>The number of channels in the sound. </dd></dl>
+
+</div>
+</div>
+<a id="a74b06fbcc294fc3ae34b56888dfe0e86" name="a74b06fbcc294fc3ae34b56888dfe0e86"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a74b06fbcc294fc3ae34b56888dfe0e86">&#9670;&#160;</a></span>getDuration()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto sounds::SoundBuffer::getDuration </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const -&gt; std::chrono::nanoseconds</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Gets the duration of the sound. </p>
+<dl class="section return"><dt>Returns</dt><dd>The duration of the sound. </dd></dl>
+
+</div>
+</div>
+<a id="a81c76cb7a580b9b78ab3eff5ec89acf8" name="a81c76cb7a580b9b78ab3eff5ec89acf8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a81c76cb7a580b9b78ab3eff5ec89acf8">&#9670;&#160;</a></span>getFrames()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto sounds::SoundBuffer::getFrames </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const -&gt; std::size_t</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ae8396e64d7403fe09f293f649a8e5c7a" name="ae8396e64d7403fe09f293f649a8e5c7a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae8396e64d7403fe09f293f649a8e5c7a">&#9670;&#160;</a></span>getFrequency()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto sounds::SoundBuffer::getFrequency </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const -&gt; int</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Gets the sampling frequency of the sound. </p>
+<dl class="section return"><dt>Returns</dt><dd>The sampling frequency of the sound. </dd></dl>
 
 </div>
 </div>

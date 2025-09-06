@@ -1,0 +1,11 @@
+<map id="src/sounds/AudioEngine.h" name="src/sounds/AudioEngine.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="97,5,285,31"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,79,83,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="168,33,81,75,79,70,166,28"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="107,79,171,104"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="184,33,157,69,153,66,180,29"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="195,79,291,104"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="201,29,228,66,224,69,197,33"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="315,79,378,104"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="217,28,310,70,308,75,215,33"/>
+</map>

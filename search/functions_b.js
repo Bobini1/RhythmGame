@@ -13,7 +13,7 @@ var searchData=
   ['loadbga_10',['loadBga',['../namespaceresource__managers.html#acdf9bcc7e2d4e999bfb61182007c9313',1,'resource_managers']]],
   ['loadbmp_11',['loadBmp',['../namespaceresource__managers.html#a4c0aabf399a398001657dc8612f9121c',1,'resource_managers']]],
   ['loadbmpvideo_12',['loadBmpVideo',['../namespaceresource__managers.html#a7fbf24b77ea47dda90b5cbf6c02bc69d',1,'resource_managers']]],
-  ['loadbmssounds_13',['loadBmsSounds',['../namespacecharts.html#ad034dbd8b1b420558e22761cb78e6869',1,'charts']]],
+  ['loadbmssounds_13',['loadBmsSounds',['../namespacecharts.html#a5847c80fd7804c7c15ebff34cef4e636',1,'charts']]],
   ['loadchart_14',['loadchart',['../namespaceresource__managers.html#af2770a1633f6f3213bd5878feea9545b',1,'resource_managers::loadChart()'],['../classqml__components_1_1ChartLoader.html#a2ca7547b53ec7820f91befd3e4cc4fa9',1,'qml_components::ChartLoader::loadChart()']]],
   ['loadchartdata_15',['loadchartdata',['../classresource__managers_1_1ChartDataFactory.html#a21f2b81fbf3e95557308eeee9d151bb8',1,'resource_managers::ChartDataFactory::loadChartData()'],['../classqml__components_1_1ChartLoader.html#ad4d3ef6519b27062eeb235b27d65bdd0',1,'qml_components::ChartLoader::loadChartData(const QString &amp;filename, const QString &amp;md5=&quot;&quot;, QList&lt; int64_t &gt; randomSequence={}) const']]],
   ['loadchartdatafromdb_16',['loadChartDataFromDb',['../classqml__components_1_1ChartLoader.html#a9edc092f71f192655c7aeda375b2f3bb',1,'qml_components::ChartLoader']]],
