@@ -11,32 +11,17 @@
 #include <qfileinfo.h>
 #include "support/UtfStringToPath.h"
 #include "support/PathToQString.h"
-#include <llfio.hpp>
 
+#ifdef _WIN32
+#include <windows.h>
+#include <wil/resource.h>
+#else
+#include <llfio.hpp>
 namespace llfio = LLFIO_V2_NAMESPACE;
+#endif
+
 
 namespace resource_managers {
-auto
-ChartDataFactory::loadFile(const QUrl& chartPath) -> std::string
-{
-#if defined(_WIN32)
-    auto fileUtf = chartPath.toLocalFile().toStdWString();
-#else
-    auto fileUtf = chartPath.toLocalFile().toStdString();
-#endif
-    auto chartFile = std::ifstream{ fileUtf };
-    if (!chartFile.is_open()) {
-        throw std::runtime_error{ "Failed to open chart file" };
-    }
-
-    auto chart = std::string{};
-    chartFile.seekg(0, std::ios::end);
-    chart.reserve(chartFile.tellg());
-    chartFile.seekg(0, std::ios::beg);
-    chart.assign(std::istreambuf_iterator<char>{ chartFile },
-                 std::istreambuf_iterator<char>{});
-    return chart;
-}
 ChartDataFactory::ChartComponents::ChartComponents(
   std::unique_ptr<gameplay_logic::ChartData> chartData,
   charts::BmsNotesData notesData,
@@ -143,15 +128,48 @@ ChartDataFactory::convertToQVector(
     }
     return columnNotes;
 }
-auto
-ChartDataFactory::loadChartData(const std::filesystem::path& chartPath,
-                                RandomGenerator randomGenerator,
-                                int64_t directory) const -> ChartComponents
+
+auto readAndParse(const std::filesystem::path& chartPath,
+                                ChartDataFactory::RandomGenerator randomGenerator)
 {
+    #ifndef _WIN32
     auto mfh = llfio::mapped_file({}, chartPath).value();
     auto length = mfh.maximum_extent().value();
     auto chart = std::string_view{ reinterpret_cast<char*>(mfh.address()),
                                    static_cast<unsigned long>(length) };
+#else
+    // use native windows memory mapping
+    auto fileHandle = CreateFileW(chartPath.c_str(),
+                                  GENERIC_READ,
+                                  FILE_SHARE_READ,
+                                  nullptr,
+                                  OPEN_EXISTING,
+                                  FILE_ATTRIBUTE_NORMAL,
+                                  nullptr);
+    if (fileHandle == INVALID_HANDLE_VALUE) {
+        throw std::runtime_error("Could not open chart file");
+    }
+    auto fileMapping = wil::unique_handle(CreateFileMappingW(fileHandle,
+                                        nullptr,
+                                        PAGE_READONLY,
+                                        0,
+                                        0,
+                                        nullptr));
+    if (fileMapping == nullptr) {
+        throw std::runtime_error("Could not create file mapping");
+    }
+    auto mapView = wil::unique_mapview_ptr<void>{MapViewOfFile(fileMapping.get(), FILE_MAP_READ, 0, 0, 0)};
+    if (mapView == nullptr) {
+        throw std::runtime_error("Could not map view of file");
+    }
+    auto fileSize = GetFileSize(fileHandle, nullptr);
+    if (fileSize == INVALID_FILE_SIZE) {
+        throw std::runtime_error("Could not get file size");
+    }
+    auto chart = std::string_view{ reinterpret_cast<char*>(mapView.get()),
+                                   static_cast<unsigned long>(fileSize) };
+#endif
+
     auto sha256 = support::sha256(chart);
     auto md5 = support::md5(chart);
     auto randomValues = QList<qint64>{};
@@ -163,8 +181,18 @@ ChartDataFactory::loadChartData(const std::filesystem::path& chartPath,
           return generated;
       };
     auto parsedChart = charts::readBmsChart(chart, randomGeneratorRecorder);
-    mfh.close().value();
+    return std::make_tuple(std::move(parsedChart),
+                           std::move(randomValues),
+                           std::move(sha256),
+                           std::move(md5));
+}
 
+auto
+ChartDataFactory::loadChartData(const std::filesystem::path& chartPath,
+                                RandomGenerator randomGenerator,
+                                int64_t directory) const -> ChartComponents
+{
+    auto [parsedChart, randomValues, sha256, md5] = readAndParse(chartPath, randomGenerator);
     auto title = QString::fromUtf8(parsedChart.tags.title.value_or(""));
     auto artist = QString::fromUtf8(parsedChart.tags.artist.value_or(""));
     auto subtitle = QString::fromUtf8(parsedChart.tags.subTitle.value_or(""));

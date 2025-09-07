@@ -15,11 +15,12 @@
 #include <Windows.h>
 #include <winternl.h>
 #include <ntstatus.h>
-#endif
+#else
 #include <llfio.hpp>
+namespace llfio = LLFIO_V2_NAMESPACE;
+#endif
 #include <spdlog/spdlog.h>
 
-namespace llfio = LLFIO_V2_NAMESPACE;
 
 namespace resource_managers {
 SongDbScanner::SongDbScanner(db::SqliteCppDb* db)
@@ -386,7 +387,9 @@ SongDbScanner::scanDirectory(
     auto sw = spdlog::stopwatch{};
     auto threadPool = QThreadPool{};
     try {
+#ifndef _WIN32
         auto buffer = std::vector<llfio::directory_handle::buffer_type>(100);
+#endif
         if (is_directory(directory)) {
             const auto root = support::pathToQString(directory);
             scanFolder(directory,

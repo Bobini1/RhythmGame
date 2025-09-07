@@ -87,7 +87,15 @@
       "name": "qtwayland",
       "platform": "linux"
     },
-    "llfio"
+    {
+      "name": "llfio",
+      "platform": "!windows"
+    },
+    {
+      "name": "wil",
+      "platform": "windows"
+    },
+    "miniaudio"
   ],
   "default-features": [],
   "features": {
