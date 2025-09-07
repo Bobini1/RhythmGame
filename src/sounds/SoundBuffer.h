@@ -19,6 +19,7 @@ namespace sounds {
 class SoundBuffer
 {
     GstElement *pipeline;
+    GstElement* proxysink;
 
   public:
     /**
@@ -27,6 +28,7 @@ class SoundBuffer
      */
     explicit SoundBuffer(const std::filesystem::path& filename);
     ~SoundBuffer();
+    void enable() const;
 
     /**
      * @brief Gets the internal  buffer.

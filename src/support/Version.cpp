@@ -3,3 +3,5 @@
 //
 
 #include "Version.h"
+
+#include <qplugin.h>

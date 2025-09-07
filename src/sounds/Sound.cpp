@@ -16,22 +16,29 @@ Sound::Sound(GstElement* player,
   : pipeline(gst_pipeline_new("sound-player"))
   , buffer(std::move(buffer))
 {
-    pipeline = gst_pipeline_new("sound-player");
     volume = gst_element_factory_make("volume", "volume");
+    auto* proxysrc =
+      gst_element_factory_make("proxysrc", "proxy-source");
+    auto proxysink =
+      gst_element_factory_make("proxysink", "proxy-sink");
+
 
     if (!pipeline || !player || !volume) {
         g_printerr("Can't create.\n");
-        throw std::runtime_error("Failed to create pipeline.");
+        spdlog::error("Failed to create pipeline.");
+        return;
     }
     // connect
-    gst_bin_add_many(GST_BIN(pipeline), buffer->getBuffer(), volume, player);
-    if (!gst_element_link(buffer->getBuffer(), volume) ||
-        !gst_element_link(volume, player)) {
+    gst_bin_add_many(GST_BIN(pipeline), proxysrc, volume, proxysink, NULL);
+    if (!gst_element_link_many(proxysrc, volume, proxysink, NULL)) {
         g_printerr("Can't connect.\n");
         gst_object_unref(pipeline);
         pipeline = nullptr;
-        throw std::runtime_error("Failed to link elements.");
+        spdlog::error("Failed to link elements.");
+        return;
     }
+    g_object_set (player, "proxysink", proxysink, NULL);
+    g_object_set (proxysrc, "proxysink", this->buffer->getBuffer(), NULL);
 }
 
 Sound::~Sound()
@@ -42,6 +49,7 @@ Sound::~Sound()
 
 void Sound::play()
 {
+    this->buffer->enable();
     gst_element_set_state(pipeline, GST_STATE_PLAYING);
 }
 

@@ -3,9 +3,6 @@
 #include "gameplay_logic/rules/Lr2TimingWindows.h"
 #include "qml_components/ProgramSettings.h"
 #include "qml_components/ChartLoader.h"
-#ifdef _WIN32
-#include <mimalloc-new-delete.h>
-#endif
 #include <QGuiApplication>
 #include <QObject>
 #include <QtQuick>
@@ -156,7 +153,22 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
                          &input::GamepadManager::buttonReleased,
                          &inputTranslator,
                          &input::InputTranslator::handleRelease);
-
+        // set gstreamer plugin path to ../plugins
+        auto pluginPath = "../plugins";
+        g_setenv("GST_PLUGIN_PATH", pluginPath, TRUE);
+        if (auto* registry = gst_registry_get(); registry != nullptr) {
+            GList* elementList = gst_registry_get_feature_list(
+              registry, GST_TYPE_ELEMENT_FACTORY);
+            for (GList* elem = elementList; elem != nullptr; elem = elem->next) {
+                if (auto* factory =
+                      static_cast<GstElementFactory*>(elem->data);
+                    factory != nullptr) {
+                    spdlog::debug("GStreamer element: {}",
+                                  gst_element_factory_get_longname(factory));
+                }
+            }
+            g_list_free(elementList);
+        }
         auto* pipeline = gst_pipeline_new("audio-mixer");
         auto* bus = gst_element_get_bus(pipeline);
         gst_bus_add_signal_watch(bus);
@@ -178,18 +190,19 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
         gst_object_unref(bus);
         auto* mixer = gst_element_factory_make("audiomixer", "mixer");
         auto* sink = gst_element_factory_make("autoaudiosink", "audio-output");
-        if (!pipeline || !mixer || !sink) {
+        auto proxysrc = gst_element_factory_make("proxysrc", "proxy-source");
+        if (!pipeline || !mixer || !sink || !proxysrc) {
             throw std::runtime_error("Not all elements could be created");
         }
         g_object_set(G_OBJECT(mixer), "latency", 10000000, NULL);
-        gst_bin_add_many(GST_BIN(pipeline), mixer, sink, NULL);
-        if (!gst_element_link(mixer, sink)) {
+        gst_bin_add_many(GST_BIN(pipeline), proxysrc, mixer, sink, NULL);
+        if (!gst_element_link_many(proxysrc, mixer, sink, NULL)) {
             throw std::runtime_error("Could not link mixer");
         }
         gst_element_set_state(pipeline, GST_STATE_PLAYING);
         auto chartDataFactory = resource_managers::ChartDataFactory{};
         auto chartFactory =
-          resource_managers::ChartFactory{ pipeline, &inputTranslator };
+          resource_managers::ChartFactory{ proxysrc, &inputTranslator };
         auto gaugeFactoryGeneral = resource_managers::GaugeFactory{};
         auto gaugeFactory =
           [gaugeFactoryGeneral](

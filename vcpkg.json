@@ -93,10 +93,8 @@
       ]
     },
     {
-      "name": "mimalloc",
-      "features": [
-        "override"
-      ]
+      "name": "ffmpeg",
+      "platform": "windows"
     },
     "libxml2",
     {
@@ -111,7 +109,16 @@
       "name": "qtwayland",
       "platform": "linux"
     },
-    "llfio"
+    {
+      "name": "llfio",
+      "features": [
+        "status-code"
+      ]
+    },
+    {
+      "name": "wil",
+      "platform": "windows"
+    }
   ],
   "default-features": [],
   "features": {

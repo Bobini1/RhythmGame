@@ -20,10 +20,6 @@ if (supported)
     set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
 endif ()
 
-# <---- mimalloc (faster memory allocation) ---->
-
-find_package(mimalloc CONFIG REQUIRED)
-
 # <------------ LibXml2 (html parsing) --------------->
 
 find_package(LibXml2 REQUIRED)
@@ -50,12 +46,21 @@ find_package(Boost REQUIRED COMPONENTS headers)
 
 # <------------ gstreamer (audio playback) --------------->
 
-find_package(PkgConfig REQUIRED)
-pkg_search_module(gstreamer REQUIRED IMPORTED_TARGET gstreamer)
-
-# <------------ llfio (directory scanning) --------------->
-
-find_package(llfio CONFIG REQUIRED)
+find_package(pkgconfig REQUIRED)
+pkg_check_modules(GSTREAMER REQUIRED IMPORTED_TARGET gstreamer-1.0)
+pkg_check_modules(GSTREAMER_AUDIO REQUIRED IMPORTED_TARGET gstreamer-audio-1.0)
+pkg_check_modules(GSTREAMER_VIDEO REQUIRED IMPORTED_TARGET gstreamer-video-1.0)
+pkg_check_modules(GSTREAMER_APP REQUIRED IMPORTED_TARGET gstreamer-app-1.0)
+pkg_check_modules(GSTREAMER_PLUGINS_BAD REQUIRED IMPORTED_TARGET gstreamer-plugins-bad-1.0)
+pkg_get_variable(GST_PLUGINS_DIR gstreamer-1.0 pluginsdir)
+# link to every plugin in the plugins dir to avoid runtime errors
+file(GLOB GST_PLUGIN_FILES "${GST_PLUGINS_DIR}/*")
+foreach(PLUGIN_FILE ${GST_PLUGIN_FILES})
+    if (IS_SYMLINK ${PLUGIN_FILE})
+        continue()
+    endif ()
+    list(APPEND GST_PLUGIN_LIBS "${PLUGIN_FILE}")
+endforeach()
 
 # <------------ Qt (gui) --------------->
 
@@ -242,18 +247,33 @@ target_compile_definitions(RhythmGame_lib PUBLIC
         RHYTHMGAME_VERSION_PATCH=${PROJECT_VERSION_PATCH}
 )
 
+qt_import_plugins(RhythmGame_lib INCLUDE Qt6::QWindowsIntegrationPlugin Qt6::QFFmpegMediaPlugin)
+
+if (WIN32)
+    find_package(pkgconfig REQUIRED)
+#    pkg_check_modules(avcodec REQUIRED IMPORTED_TARGET libavcodec)
+#    pkg_check_modules(avformat REQUIRED IMPORTED_TARGET libavformat)
+#    pkg_check_modules(avutil REQUIRED IMPORTED_TARGET libavutil)
+#    pkg_check_modules(swresample REQUIRED IMPORTED_TARGET libswresample)
+#    pkg_check_modules(swscale REQUIRED IMPORTED_TARGET libswscale)
+#    target_link_libraries(RhythmGame_lib PUBLIC PkgConfig::avcodec PkgConfig::avformat PkgConfig::avutil PkgConfig::swresample PkgConfig::swscale)
+    find_package(wil CONFIG REQUIRED)
+    target_link_libraries(RhythmGame_lib PRIVATE WIL::WIL)
+else ()
+    # <------------ llfio (directory scanning) --------------->
+
+    find_package(llfio CONFIG REQUIRED)
+    target_link_libraries(RhythmGame_lib PUBLIC llfio::sl)
+endif ()
+
 set(DATA_PATH "../data" CACHE STRING "Path to the data folder, relative to the executable")
 target_compile_definitions(RhythmGame_lib PUBLIC RHYTHMGAME_DATA_PATH="${DATA_PATH}")
 
 find_package(Threads REQUIRED)
 
-target_link_libraries(RhythmGame_lib PUBLIC $<IF:$<TARGET_EXISTS:mimalloc-static>,mimalloc-static,mimalloc>)
-target_link_libraries(RhythmGame_lib PUBLIC SDL2::SDL2 Qt6::Quick Qt6::OpenGL Qt6::Concurrent Qt6::Multimedia Qt6::InterfaceFramework Threads::Threads Boost::headers SQLiteCpp spdlog::spdlog foonathan::lexy PkgConfig::gstreamer magic_enum::magic_enum zstd::libzstd_static SndFile::sndfile llfio::sl LibXml2::LibXml2)
+target_link_libraries(RhythmGame_lib PUBLIC SDL2::SDL2 Qt6::Quick Qt6::OpenGL Qt6::Concurrent Qt6::Multimedia Qt6::InterfaceFramework Threads::Threads Boost::headers SQLiteCpp spdlog::spdlog foonathan::lexy magic_enum::magic_enum zstd::libzstd_static SndFile::sndfile LibXml2::LibXml2)
 
-if (WIN32)
-    target_link_libraries(RhythmGame_lib PUBLIC llfio::ntkernel-error-category_sl)
-endif ()
-
+target_link_libraries(RhythmGame_lib PUBLIC PkgConfig::GSTREAMER PkgConfig::GSTREAMER_AUDIO PkgConfig::GSTREAMER_VIDEO PkgConfig::GSTREAMER_APP PkgConfig::GSTREAMER_PLUGINS_BAD)
 # We all love MSVC.
 target_compile_definitions(RhythmGame_lib PUBLIC NOMINMAX)
 
@@ -270,6 +290,7 @@ add_subdirectory(RhythmGameQml)
 qt_import_qml_plugins(RhythmGame_qmlplugin)
 
 # ---- Declare executable ----
+
 
 if (WIN32)
     enable_language("RC")
@@ -290,6 +311,15 @@ else ()
     )
 endif ()
 add_executable(RhythmGame::exe ALIAS RhythmGame_exe)
+
+# copy gst plugins to the binary dir for runtime
+if (WIN32)
+    add_custom_command(TARGET RhythmGame_exe POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_directory
+            "${GST_PLUGINS_DIR}"
+            "$<TARGET_FILE_DIR:RhythmGame_exe>/../plugins"
+    )
+endif ()
 
 qt_add_resources(
         RhythmGame_exe

@@ -18,7 +18,6 @@ namespace resource_managers {
 
 class ChartDataFactory
 {
-    static auto loadFile(const QUrl& chartPath) -> std::string;
     static auto convertToQVector(
       const std::vector<charts::BmsNotesData::Note>& column)
       -> QVector<gameplay_logic::Note>;
