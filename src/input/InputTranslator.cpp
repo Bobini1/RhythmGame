@@ -627,12 +627,22 @@ InputTranslator::autoReleaseScratch(
     }
 }
 
+int64_t
+getTime()
+{
+    return std::chrono::duration_cast<std::chrono::milliseconds>(
+             std::chrono::system_clock::now().time_since_epoch())
+      .count();
+}
 void
 InputTranslator::handleAxis(Gamepad gamepad,
                             Uint8 axis,
                             double value,
                             int64_t time)
 {
+    if (!useSystemTimestamps) {
+        time = getTime();
+    }
     const auto scratchKey = std::pair{ gamepad, axis };
     auto& scratch = scratches[scratchKey];
     if (std::isnan(scratch.value)) {
@@ -704,6 +714,9 @@ InputTranslator::handleAxis(Gamepad gamepad,
 void
 InputTranslator::handlePress(Gamepad gamepad, Uint8 button, int64_t time)
 {
+    if (!useSystemTimestamps) {
+        time = getTime();
+    }
     if (isConfiguring()) {
         auto keyLookup = Key{ QVariant::fromValue(std::move(gamepad)),
                               Key::Device::Button,
@@ -724,11 +737,19 @@ InputTranslator::handlePress(Gamepad gamepad, Uint8 button, int64_t time)
 void
 InputTranslator::handleRelease(Gamepad gamepad, Uint8 button, int64_t time)
 {
+    if (!useSystemTimestamps) {
+        time = getTime();
+    }
     auto key = config.find(Key{
       QVariant::fromValue(std::move(gamepad)), Key::Device::Button, button });
     if (key != config.end()) {
         releaseButton(*key, time);
     }
+}
+void
+InputTranslator::setUseSystemTimestamps(bool value)
+{
+    useSystemTimestamps = value;
 }
 
 void
@@ -1063,7 +1084,11 @@ InputTranslator::eventFilter(QObject* watched, QEvent* event)
         if (key->isAutoRepeat()) {
             return false;
         }
-        const auto time = key->timestamp();
+        auto time = key->timestamp();
+        if (!useSystemTimestamps) {
+            time = getTime();
+        }
+
         const auto keyLookup = Key{ QVariant::fromValue(nullptr),
                                     Key::Device::Keyboard,
                                     key->key(),
@@ -1084,7 +1109,10 @@ InputTranslator::eventFilter(QObject* watched, QEvent* event)
         if (key->isAutoRepeat()) {
             return false;
         }
-        const auto time = key->timestamp();
+        auto time = key->timestamp();
+        if (!useSystemTimestamps) {
+            time = getTime();
+        }
         const auto keyLookup = Key{ QVariant::fromValue(nullptr),
                                     Key::Device::Keyboard,
                                     key->key(),

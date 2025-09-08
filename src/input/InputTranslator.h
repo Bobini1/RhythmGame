@@ -226,6 +226,7 @@ class InputTranslator final : public QObject
     std::array<bool, magic_enum::enum_count<BmsKey>()> buttons{};
     std::optional<std::pair<Gamepad, uint8_t>> scratchAxis1;
     std::optional<std::pair<Gamepad, uint8_t>> scratchAxis2;
+    bool useSystemTimestamps = false;
 
     void pressButton(BmsKey button, uint64_t time);
     void releaseButton(BmsKey button, uint64_t time);
@@ -241,6 +242,7 @@ class InputTranslator final : public QObject
     void handleAxis(Gamepad gamepad, Uint8 axis, double value, int64_t time);
     void handlePress(Gamepad gamepad, Uint8 button, int64_t time);
     void handleRelease(Gamepad gamepad, Uint8 button, int64_t time);
+    void setUseSystemTimestamps(bool value);
 
     void loadKeyConfig(db::SqliteCppDb* db);
     void connectAnalogAxisConfig(const AnalogAxisConfig& config);

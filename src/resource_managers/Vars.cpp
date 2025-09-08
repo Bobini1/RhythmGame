@@ -444,6 +444,26 @@ resource_managers::GeneralVars::resetOffset()
 {
     setOffset(0.0);
 }
+auto
+resource_managers::GeneralVars::getUseSystemTimestamps() const -> bool
+{
+    return useSystemTimestamps;
+}
+
+void
+resource_managers::GeneralVars::setUseSystemTimestamps(bool value)
+{
+    if (useSystemTimestamps == value) {
+        return;
+    }
+    useSystemTimestamps = value;
+    emit useSystemTimestampsChanged();
+}
+void
+resource_managers::GeneralVars::resetUseSystemTimestamps()
+{
+    setUseSystemTimestamps(false);
+}
 namespace {
 void
 writeGeneralVars(const resource_managers::GeneralVars& generalVars,
