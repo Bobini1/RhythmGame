@@ -11,7 +11,6 @@ var searchData=
   ['ispaused_8',['isPaused',['../classsounds_1_1Sound.html#a9f010a51856f6c56c09c7943310bc2ca',1,'sounds::Sound']]],
   ['isplaying_9',['isPlaying',['../classsounds_1_1Sound.html#a7f8c8b0a5fd076655abbdca43fbf48f4',1,'sounds::Sound']]],
   ['ispressed_10',['ispressed',['../classgameplay__logic_1_1ColumnState.html#a10c2c1d1aff36a0037c7583a8cc64a0a',1,'gameplay_logic::ColumnState::isPressed()'],['../classgameplay__logic_1_1Filter.html#a9d901c8d5e49ee98694ca038686b5f28',1,'gameplay_logic::Filter::isPressed()']]],
-  ['isrunning_11',['isRunning',['../classsounds_1_1AudioEngine.html#a781cf02dd4ec74fba943ce73f3c2ccf6',1,'sounds::AudioEngine']]],
-  ['isscratch_12',['isScratch',['../namespaceinput.html#a9bee6d871e477c36a0d6443f01f2f32f',1,'input']]],
-  ['isstopped_13',['isStopped',['../classsounds_1_1Sound.html#a778cb7c4cbd186c629dc3d3af0810552',1,'sounds::Sound']]]
+  ['isscratch_11',['isScratch',['../namespaceinput.html#a9bee6d871e477c36a0d6443f01f2f32f',1,'input']]],
+  ['isstopped_12',['isStopped',['../classsounds_1_1Sound.html#a778cb7c4cbd186c629dc3d3af0810552',1,'sounds::Sound']]]
 ];
