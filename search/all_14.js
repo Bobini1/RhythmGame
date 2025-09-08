@@ -6,7 +6,7 @@ var searchData=
   ['tableinfo_3',['TableInfo',['../structresource__managers_1_1TableInfo.html',1,'resource_managers']]],
   ['tablename_4',['tableName',['../structresource__managers_1_1TableInfo.html#aae72733a4966954123e973d6997e6512',1,'resource_managers::TableInfo']]],
   ['tablequeryresult_5',['TableQueryResult',['../classqml__components_1_1TableQueryResult.html',1,'qml_components']]],
-  ['tables_6',['tables',['../classresource__managers_1_1Tables.html',1,'resource_managers::Tables'],['../classresource__managers_1_1Tables.html#a4f3d7f6b1252e78cff5c97262fea9105',1,'resource_managers::Tables::Tables()'],['../classRg.html#a5f675f4937f3579373dce425a1325c49',1,'Rg::tables']]],
+  ['tables_6',['tables',['../classresource__managers_1_1Tables.html',1,'resource_managers::Tables'],['../classRg.html#a5f675f4937f3579373dce425a1325c49',1,'Rg::tables'],['../classresource__managers_1_1Tables.html#a4f3d7f6b1252e78cff5c97262fea9105',1,'resource_managers::Tables::Tables()']]],
   ['tables_2ecpp_7',['Tables.cpp',['../Tables_8cpp.html',1,'']]],
   ['tables_2eh_8',['Tables.h',['../Tables_8h.html',1,'']]],
   ['tableurl_9',['tableUrl',['../structresource__managers_1_1TableInfo.html#a2aef586060824f9b86f711f4dc350060',1,'resource_managers::TableInfo']]],

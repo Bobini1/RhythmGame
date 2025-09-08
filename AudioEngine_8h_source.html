@@ -106,26 +106,34 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span> </div>
 <div class="line"><a id="l00027" name="l00027"></a><span class="lineno"><a class="line" href="classsounds_1_1AudioEngine.html#a8a7b7165efb745b6f74a73a6fedea74a">   27</a></span>    <span class="keyword">auto</span> <a class="code hl_function" href="classsounds_1_1AudioEngine.html#a8a7b7165efb745b6f74a73a6fedea74a">getEngine</a>() -&gt; ma_engine* { <span class="keywordflow">return</span> &amp;engine; }</div>
 <div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span> </div>
-<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span><span class="keyword">private</span>:</div>
-<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span>    ma_resource_manager_data_source dataSource;</div>
-<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span>    ma_device device{};</div>
-<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span>    ma_resource_manager resourceManager{};</div>
-<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span>    ma_engine engine{};</div>
-<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span>    <span class="keywordtype">int</span> sampleRate = 44100;</div>
-<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>};</div>
+<div class="line"><a id="l00029" name="l00029"></a><span class="lineno"><a class="line" href="classsounds_1_1AudioEngine.html#ac6750ba5289b7389c2b8487ffd0c1e0b">   29</a></span>    <span class="keyword">auto</span> <a class="code hl_function" href="classsounds_1_1AudioEngine.html#ac6750ba5289b7389c2b8487ffd0c1e0b">getSampleRate</a>() const -&gt; <span class="keywordtype">int</span> { <span class="keywordflow">return</span> sampleRate; }</div>
+<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span> </div>
+<div class="line"><a id="l00031" name="l00031"></a><span class="lineno"><a class="line" href="classsounds_1_1AudioEngine.html#ad5ddc3405ad2e797dfed53ec219ed29e">   31</a></span>    <span class="keyword">auto</span> <a class="code hl_function" href="classsounds_1_1AudioEngine.html#ad5ddc3405ad2e797dfed53ec219ed29e">getChannels</a>() const -&gt; <span class="keywordtype">int</span> { <span class="keywordflow">return</span> channels; }</div>
+<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span> </div>
+<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span><span class="keyword">private</span>:</div>
+<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span>    ma_context context;</div>
+<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>    ma_resource_manager_data_source dataSource;</div>
+<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span>    ma_device device{};</div>
+<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span>    ma_resource_manager resourceManager{};</div>
+<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span>    ma_engine engine{};</div>
+<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span>    <span class="keywordtype">int</span> sampleRate;</div>
+<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>    <span class="keywordtype">int</span> channels;</div>
+<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>};</div>
 </div>
-<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span>} <span class="comment">// namespace sounds</span></div>
-<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span> </div>
-<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span><span class="preprocessor">#endif </span><span class="comment">// RHYTHMGAME_AUDIOENGINE_H</span></div>
+<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span>} <span class="comment">// namespace sounds</span></div>
+<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span> </div>
+<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span><span class="preprocessor">#endif </span><span class="comment">// RHYTHMGAME_AUDIOENGINE_H</span></div>
 <div class="ttc" id="aclasssounds_1_1AudioEngine_html"><div class="ttname"><a href="classsounds_1_1AudioEngine.html">sounds::AudioEngine</a></div><div class="ttdef"><b>Definition</b> AudioEngine.h:15</div></div>
-<div class="ttc" id="aclasssounds_1_1AudioEngine_html_a1d60f57de565884e3e086ec952c0ee4f"><div class="ttname"><a href="classsounds_1_1AudioEngine.html#a1d60f57de565884e3e086ec952c0ee4f">sounds::AudioEngine::~AudioEngine</a></div><div class="ttdeci">~AudioEngine()</div><div class="ttdef"><b>Definition</b> AudioEngine.cpp:91</div></div>
+<div class="ttc" id="aclasssounds_1_1AudioEngine_html_a1d60f57de565884e3e086ec952c0ee4f"><div class="ttname"><a href="classsounds_1_1AudioEngine.html#a1d60f57de565884e3e086ec952c0ee4f">sounds::AudioEngine::~AudioEngine</a></div><div class="ttdeci">~AudioEngine()</div><div class="ttdef"><b>Definition</b> AudioEngine.cpp:90</div></div>
 <div class="ttc" id="aclasssounds_1_1AudioEngine_html_a4cf83d80306ef2ee1d122211746877c7"><div class="ttname"><a href="classsounds_1_1AudioEngine.html#a4cf83d80306ef2ee1d122211746877c7">sounds::AudioEngine::getResourceManager</a></div><div class="ttdeci">auto getResourceManager() -&gt; ma_resource_manager *</div><div class="ttdef"><b>Definition</b> AudioEngine.h:25</div></div>
 <div class="ttc" id="aclasssounds_1_1AudioEngine_html_a53811c65d5b9861dd80faa4bd0c67170"><div class="ttname"><a href="classsounds_1_1AudioEngine.html#a53811c65d5b9861dd80faa4bd0c67170">sounds::AudioEngine::AudioEngine</a></div><div class="ttdeci">AudioEngine()</div><div class="ttdef"><b>Definition</b> AudioEngine.cpp:26</div></div>
 <div class="ttc" id="aclasssounds_1_1AudioEngine_html_a6d355afd746341e6a29bdf7130d3a880"><div class="ttname"><a href="classsounds_1_1AudioEngine.html#a6d355afd746341e6a29bdf7130d3a880">sounds::AudioEngine::AudioEngine</a></div><div class="ttdeci">AudioEngine(const AudioEngine &amp;)=delete</div></div>
 <div class="ttc" id="aclasssounds_1_1AudioEngine_html_a6f3948ed8e82094b9dffb87a20ac44e9"><div class="ttname"><a href="classsounds_1_1AudioEngine.html#a6f3948ed8e82094b9dffb87a20ac44e9">sounds::AudioEngine::operator=</a></div><div class="ttdeci">auto operator=(AudioEngine &amp;&amp;) -&gt; AudioEngine &amp;=delete</div></div>
 <div class="ttc" id="aclasssounds_1_1AudioEngine_html_a7801ff521d6106d9b650a26c39afacb9"><div class="ttname"><a href="classsounds_1_1AudioEngine.html#a7801ff521d6106d9b650a26c39afacb9">sounds::AudioEngine::operator=</a></div><div class="ttdeci">auto operator=(const AudioEngine &amp;) -&gt; AudioEngine &amp;=delete</div></div>
 <div class="ttc" id="aclasssounds_1_1AudioEngine_html_a8a7b7165efb745b6f74a73a6fedea74a"><div class="ttname"><a href="classsounds_1_1AudioEngine.html#a8a7b7165efb745b6f74a73a6fedea74a">sounds::AudioEngine::getEngine</a></div><div class="ttdeci">auto getEngine() -&gt; ma_engine *</div><div class="ttdef"><b>Definition</b> AudioEngine.h:27</div></div>
+<div class="ttc" id="aclasssounds_1_1AudioEngine_html_ac6750ba5289b7389c2b8487ffd0c1e0b"><div class="ttname"><a href="classsounds_1_1AudioEngine.html#ac6750ba5289b7389c2b8487ffd0c1e0b">sounds::AudioEngine::getSampleRate</a></div><div class="ttdeci">auto getSampleRate() const -&gt; int</div><div class="ttdef"><b>Definition</b> AudioEngine.h:29</div></div>
 <div class="ttc" id="aclasssounds_1_1AudioEngine_html_ac92b39be9c47f8f1f239aa4ca4a7a404"><div class="ttname"><a href="classsounds_1_1AudioEngine.html#ac92b39be9c47f8f1f239aa4ca4a7a404">sounds::AudioEngine::AudioEngine</a></div><div class="ttdeci">AudioEngine(AudioEngine &amp;&amp;)=delete</div></div>
+<div class="ttc" id="aclasssounds_1_1AudioEngine_html_ad5ddc3405ad2e797dfed53ec219ed29e"><div class="ttname"><a href="classsounds_1_1AudioEngine.html#ad5ddc3405ad2e797dfed53ec219ed29e">sounds::AudioEngine::getChannels</a></div><div class="ttdeci">auto getChannels() const -&gt; int</div><div class="ttdef"><b>Definition</b> AudioEngine.h:31</div></div>
 <div class="ttc" id="anamespacesounds_html"><div class="ttname"><a href="namespacesounds.html">sounds</a></div><div class="ttdoc">The namespace for all sound related classes.</div><div class="ttdef"><b>Definition</b> HitRules.h:15</div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
