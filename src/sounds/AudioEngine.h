@@ -4,10 +4,7 @@
 
 #ifndef RHYTHMGAME_AUDIOENGINE_H
 #define RHYTHMGAME_AUDIOENGINE_H
-#include <memory>
-#include <mutex>
-#include <portaudio.h>
-#include <vector>
+#include <miniaudio.h>
 namespace sounds {
 class Sound;
 
@@ -17,11 +14,7 @@ class Sound;
  */
 class AudioEngine {
 public:
-    struct Config {
-
-    };
-
-    explicit AudioEngine(int sampleRate = 48000, PaDeviceIndex deviceIndex = paNoDevice); // paNoDevice => use default);
+    AudioEngine();
     ~AudioEngine();
 
     AudioEngine(const AudioEngine&) = delete;
@@ -29,31 +22,16 @@ public:
     AudioEngine(AudioEngine&&) = delete;
     auto operator=(AudioEngine&&) -> AudioEngine& = delete;
 
-    auto getSampleRate() const -> int;
-    auto getOutputChannels() const -> int;
-    auto isRunning() const -> bool;
+    auto getResourceManager() -> ma_resource_manager* { return &resourceManager; }
 
-    // Voice management (called by Sound).
-    void registerVoice(const std::shared_ptr<Sound>& voice);
-    void unregisterVoice(Sound* voiceRaw);
+    auto getEngine() -> ma_engine* { return &engine; }
 
 private:
-    static int paCallback(const void* input,
-                          void* output,
-                          unsigned long frameCount,
-                          const PaStreamCallbackTimeInfo* timeInfo,
-                          PaStreamCallbackFlags statusFlags,
-                          void* userData);
-
-    void mix(float* out, unsigned long frames);
-
-    std::vector<std::weak_ptr<Sound>> voices;
-    std::mutex voicesMutex;
-
-    PaStream* stream = nullptr;
-    int sampleRate;
-    static constexpr auto outputChannels = 2;
-    std::atomic<bool> running{false};
+    ma_resource_manager_data_source dataSource;
+    ma_device device{};
+    ma_resource_manager resourceManager{};
+    ma_engine engine{};
+    int sampleRate = 44100;
 };
 } // namespace sounds
 

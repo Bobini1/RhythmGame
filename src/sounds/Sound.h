@@ -5,6 +5,7 @@
 #ifndef RHYTHMGAME_SOUND_H
 #define RHYTHMGAME_SOUND_H
 #include <spdlog/spdlog.h>
+#include <miniaudio.h>
 
 /**
  * @brief The namespace for all sound related classes.
@@ -21,22 +22,12 @@ class SoundBuffer;
  * This means that you can have multiple instances of the same sound playing at
  * the same time, while only loading the file once.
  */
-class Sound : public std::enable_shared_from_this<Sound>
+class Sound
 {
-
     AudioEngine* engine;
     std::shared_ptr<const SoundBuffer> buffer;
-
-    std::atomic_bool playing = false;
-
-    std::atomic<float> volume{1.0f};
-
-    std::atomic<double> positionFrames{0.0};
-    std::atomic<bool> registered{false};
-
-    void ensureRegistered();
-    void unregister();
-    std::shared_ptr<const SoundBuffer> sampleBuffer;
+    std::unique_ptr<ma_audio_buffer> audioBuffer = std::make_unique<ma_audio_buffer>();
+    std::unique_ptr<ma_sound> sound = std::make_unique<ma_sound>();
 
   public:
     /**

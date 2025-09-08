@@ -139,13 +139,13 @@ loadBmsSounds(sounds::AudioEngine* engine,
       std::unordered_map<std::filesystem::path,
                          std::shared_ptr<const sounds::SoundBuffer>>>(
       uniqueSoundPaths,
-      [](const auto& path)
+      [engine](const auto& path)
         -> std::optional<
           std::pair<std::filesystem::path,
                     std::shared_ptr<const sounds::SoundBuffer>>> {
           try {
               return { { path,
-                         std::make_shared<const sounds::SoundBuffer>(path) } };
+                         std::make_shared<const sounds::SoundBuffer>(engine, path) } };
           } catch (const std::exception& e) {
               spdlog::warn(
                 "Failed to load sound {}: {}", path.string(), e.what());

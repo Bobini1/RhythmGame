@@ -5,205 +5,93 @@
 #include "AudioEngine.h"
 #include "Sound.h"
 #include <spdlog/spdlog.h>
-#include <algorithm>
 #include <stdexcept>
+
+
+//
+
 
 namespace sounds {
 namespace {
-// PortAudio global init ref counting
-std::atomic_int paRefCount{ 0 };
-std::mutex paInitMutex;
-
-void
-retainPortAudio()
+void dataCallback(ma_device* pDevice, void* pOutput, const void* pInput, ma_uint32 frameCount)
 {
-    std::lock_guard lock(paInitMutex);
-    if (paRefCount.fetch_add(1) == 0) {
-        if (auto err = Pa_Initialize(); err != paNoError) {
-            paRefCount.store(0);
-            throw std::runtime_error(std::string("Pa_Initialize failed: ") +
-                                     Pa_GetErrorText(err));
-        }
-    }
+    ma_data_source_read_pcm_frames(
+      pDevice->pUserData, pOutput, frameCount, nullptr);
+
+    (void)pInput;
 }
 
-void
-releasePortAudio()
-{
-    std::lock_guard lock(paInitMutex);
-    int prev = paRefCount.fetch_sub(1);
-    if (prev == 1) {
-        if (auto err = Pa_Terminate(); err != paNoError) {
-            spdlog::warn("Pa_Terminate error: {}", Pa_GetErrorText(err));
-        }
-    } else if (prev <= 0) {
-        paRefCount.store(0);
-    }
-}
 } // namespace
 
-AudioEngine::AudioEngine(int sampleRate, PaDeviceIndex deviceIndex)
-  : sampleRate(sampleRate)
+AudioEngine::AudioEngine()
 {
-    retainPortAudio();
+    ma_result result;
+    ma_device_config deviceConfig;
+    ma_resource_manager_config resourceManagerConfig;
+    ma_device_info* pPlaybackDeviceInfos;
+    ma_uint32 playbackDeviceCount;
+    ma_device_info* pCaptureDeviceInfos;
+    ma_uint32 captureDeviceCount;
 
-    PaStreamParameters outParams{};
-    outParams.device =
-      (deviceIndex == paNoDevice) ? Pa_GetDefaultOutputDevice() : deviceIndex;
-    if (outParams.device == paNoDevice) {
-        releasePortAudio();
-        throw std::runtime_error("No output device available.");
-    }
-    outParams.channelCount = outputChannels;
-    outParams.sampleFormat = paFloat32;
-    constexpr auto bufferSize = paFramesPerBufferUnspecified;
-    auto* info = Pa_GetDeviceInfo(outParams.device);
-    outParams.suggestedLatency = info ? info->defaultLowOutputLatency : 0.1;
-    outParams.hostApiSpecificStreamInfo = nullptr;
-
-    if (auto err = Pa_OpenStream(&stream,
-                                 nullptr,
-                                 &outParams,
-                                 sampleRate,
-                                 bufferSize,
-                                 paNoFlag,
-                                 &AudioEngine::paCallback,
-                                 this);
-        err != paNoError) {
-        releasePortAudio();
-        throw std::runtime_error(std::string("Pa_OpenStream failed: ") +
-                                 Pa_GetErrorText(err));
+    ma_context context;
+    if (ma_context_init(NULL, 0, NULL, &context) != MA_SUCCESS) {
+        throw std::runtime_error("Failed to initialize audio context.");
     }
 
-    if (auto err = Pa_StartStream(stream); err != paNoError) {
-        Pa_CloseStream(stream);
-        stream = nullptr;
-        releasePortAudio();
-        throw std::runtime_error(std::string("Pa_StartStream failed: ") +
-                                 Pa_GetErrorText(err));
+    result = ma_context_get_devices(&context, &pPlaybackDeviceInfos, &playbackDeviceCount, &pCaptureDeviceInfos, &captureDeviceCount);
+    if (result != MA_SUCCESS) {
+        throw std::runtime_error("Failed to retrieve device information.");
     }
 
-    running.store(true);
-    spdlog::info(
-      "AudioEngine started ({} Hz, {} ch)", sampleRate, outputChannels);
+    printf("Playback Devices\n");
+    for (ma_uint32 iDevice = 0; iDevice < playbackDeviceCount; ++iDevice) {
+        spdlog::info("    {}: {}\n", iDevice, pPlaybackDeviceInfos[iDevice].name);
+    }
+
+    /* We'll initialize the device first. */
+    deviceConfig = ma_device_config_init(ma_device_type_playback);
+    //deviceConfig.dataCallback = dataCallback;
+    deviceConfig.playback.format   = ma_format_f32; /* <-- Request 32-bit floating point output. */
+    deviceConfig.playback.channels = 2;            /* <-- Request stereo output. */
+    deviceConfig.sampleRate        = sampleRate;   /* <-- Request 44.1kHz output. */
+    deviceConfig.periodSizeInFrames = 512;        /* <-- Request a period size of 512 frames. */
+    deviceConfig.noFixedSizedCallback = MA_TRUE; /* <-- This tells miniaudio to not require the callback to be called with a fixed number of frames. */
+    deviceConfig.performanceProfile = ma_performance_profile_low_latency; /* <-- Low latency. */
+
+    result = ma_device_init(NULL, &deviceConfig, &device);
+    if (result != MA_SUCCESS) {
+        throw std::runtime_error("Failed to initialize audio device.");
+    }
+
+    resourceManagerConfig = ma_resource_manager_config_init();
+    resourceManagerConfig.decodedFormat     = device.playback.format;
+    resourceManagerConfig.decodedChannels   = device.playback.channels;
+    resourceManagerConfig.decodedSampleRate = device.sampleRate;
+    resourceManagerConfig.jobThreadCount = std::thread::hardware_concurrency();
+
+    result = ma_resource_manager_init(&resourceManagerConfig, &resourceManager);
+    if (result != MA_SUCCESS) {
+        ma_device_uninit(&device);
+        throw std::runtime_error("Failed to initialize resource manager.");
+    }
+
+    // create engine
+    auto engineConfig = ma_engine_config_init();
+    engineConfig.pResourceManager = &resourceManager;
+    result = ma_engine_init(&engineConfig, &engine);
+    if (result != MA_SUCCESS) {
+        ma_device_uninit(&device);
+        ma_resource_manager_uninit(&resourceManager);
+        throw std::runtime_error("Failed to initialize audio engine.");
+    }
+    (void)ma_device_start(&device);
+
 }
 
 AudioEngine::~AudioEngine()
 {
-    running.store(false);
-    {
-        std::lock_guard lock(voicesMutex);
-        voices.clear();
-    }
-    if (stream) {
-        Pa_StopStream(stream);
-        Pa_CloseStream(stream);
-        stream = nullptr;
-    }
-    releasePortAudio();
+    ma_device_uninit(&device);
+    ma_resource_manager_uninit(&resourceManager);
 }
 
-auto
-AudioEngine::getSampleRate() const -> int
-{
-    return sampleRate;
-}
-
-auto
-AudioEngine::getOutputChannels() const -> int
-{
-    return outputChannels;
-}
-
-auto
-AudioEngine::isRunning() const -> bool
-{
-    return running.load();
-}
-
-void
-AudioEngine::registerVoice(const std::shared_ptr<Sound>& voice)
-{
-    if (!voice) {
-        return;
-    }
-    std::lock_guard lock(voicesMutex);
-    // avoid duplicate raw pointers
-    auto* raw = voice.get();
-    const auto it =
-      std::ranges::find_if(voices, [raw](std::weak_ptr<Sound>& s) {
-          return !s.expired() && s.lock().get() == raw;
-      });
-    if (it == voices.end()) {
-        voices.push_back(voice);
-    }
-}
-
-void
-AudioEngine::unregisterVoice(Sound* voice)
-{
-    if (!voice) {
-        return;
-    }
-    std::lock_guard lock(voicesMutex);
-    std::erase_if(voices, [voice](const std::weak_ptr<Sound>& s) {
-        if (auto sp = s.lock()) {
-            return sp.get() == voice;
-        }
-        return true; // also purge expired
-    });
-}
-
-auto
-AudioEngine::paCallback(const void*,
-                        void* output,
-                        unsigned long frameCount,
-                        const PaStreamCallbackTimeInfo*,
-                        PaStreamCallbackFlags,
-                        void* userData) -> int
-{
-    auto* eng = static_cast<AudioEngine*>(userData);
-    auto* out = static_cast<float*>(output);
-    eng->mix(out, frameCount);
-    return paContinue;
-}
-
-void
-AudioEngine::mix(float* out, unsigned long frames)
-{
-    std::fill_n(out, frames * outputChannels, 0.0f);
-
-    // Snapshot valid voices
-    std::vector<std::shared_ptr<Sound>> active;
-    {
-        std::lock_guard lock(voicesMutex);
-        active.reserve(voices.size());
-        for (auto it = voices.begin(); it != voices.end();) {
-            if (auto sp = it->lock()) {
-                active.push_back(std::move(sp));
-                ++it;
-            } else {
-                it = voices.erase(it);
-            }
-        }
-    }
-
-    if (active.empty()) {
-        return;
-    }
-
-    // Mix
-    for (auto& v : active) {
-        v->mixInto(out, frames, outputChannels, sampleRate);
-    }
-
-    // Clamp
-    auto total = frames * static_cast<unsigned long>(outputChannels);
-    for (unsigned long i = 0; i < total; ++i) {
-        if (out[i] > 1.0f)
-            out[i] = 1.0f;
-        else if (out[i] < -1.0f)
-            out[i] = -1.0f;
-    }
-}
 }

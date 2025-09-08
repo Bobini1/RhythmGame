@@ -7,69 +7,84 @@
 #include <spdlog/spdlog.h>
 #include <sndfile.hh>
 #include <QGuiApplication>
+#include <miniaudio.h>
 
-sounds::SoundBuffer::SoundBuffer(const std::filesystem::path& filename) {
+sounds::SoundBuffer::SoundBuffer(AudioEngine* engine,
+                                 const std::filesystem::path& filename)
+{
     // Decode with libsndfile (float conversion directly).
     SndfileHandle sndFile{ filename.string() };
     if (sndFile.error() != 0) {
-        spdlog::error("Could not open sound file {}: {}", filename.string(), sf_error_number(sndFile.error()));
+        spdlog::error("Could not open sound file {}: {}",
+                      filename.string(),
+                      sf_error_number(sndFile.error()));
         throw std::runtime_error("Could not open sound file");
     }
 
     if ((sndFile.format() & SF_FORMAT_TYPEMASK) == 0) {
-        spdlog::error("Unsupported/unknown format for sound file {}", filename.string());
+        spdlog::error("Unsupported/unknown format for sound file {}",
+                      filename.string());
         throw std::runtime_error("Unsupported sound file format");
     }
-
-    channels   = sndFile.channels();
-    sampleRate = sndFile.samplerate();
-    frames = sndFile.frames();
-
-    if (channels <= 0 || sampleRate <= 0 || frames <= 0) {
-        spdlog::error("Invalid metadata in audio file {} (channels={}, rate={}, frames={})",
-                      filename.string(), channels, sampleRate, frames);
-        throw std::runtime_error("Invalid audio metadata");
+    auto sampleRate = sndFile.samplerate();
+    auto frames = sndFile.frames();
+    auto channels = sndFile.channels();
+    auto samplesOriginal = std::vector<float>(frames * channels);
+    auto framesRead = sndFile.readf(samplesOriginal.data(), frames);
+    if (framesRead != frames) {
+        throw std::runtime_error("Could not read all frames from sound file");
     }
-
-    samples.resize(frames * static_cast<std::size_t>(channels));
-
-    sf_count_t readCount = sndFile.readf(samples.data(), frames);
-    if (readCount != frames) {
-        spdlog::warn("Short read: expected {} frames, got {} in {}", frames, readCount, filename.string());
-        samples.resize(static_cast<std::size_t>(readCount) * static_cast<std::size_t>(channels));
+    auto convertedSamples = std::vector<float>{};
+    if (channels == 2) {
+        convertedSamples = std::move(samplesOriginal);
+    } else {
+        convertedSamples.resize(frames * 2);
+        ma_channel_converter_config channelConverterConfig =
+          ma_channel_converter_config_init(ma_format_f32,
+                                           sndFile.channels(),
+                                           nullptr,
+                                           2,
+                                           nullptr,
+                                           ma_channel_mix_mode_default);
+        ma_channel_converter channelConverter;
+        ma_channel_converter_init(
+          &channelConverterConfig, nullptr, &channelConverter);
+        ma_channel_converter_process_pcm_frames(&channelConverter,
+                                                convertedSamples.data(),
+                                                samplesOriginal.data(),
+                                                frames);
+        ma_channel_converter_uninit(&channelConverter, nullptr);
     }
+    if (sampleRate == 44100) {
+        samples = std::move(convertedSamples);
+    } else {
+        ma_resampler_config config = ma_resampler_config_init(
+          ma_format_f32, 2, sampleRate, 44100, ma_resample_algorithm_linear);
 
-    spdlog::debug("Loaded '{}' ({} frames, {} ch, {} Hz)", filename.string(), readCount, channels, sampleRate);
+        ma_resampler resampler;
+        const auto result = ma_resampler_init(&config, NULL, &resampler);
+        if (result != MA_SUCCESS) {
+            throw std::runtime_error("Could not initialize resampler");
+        }
+        auto framesIn = static_cast<ma_uint64>(frames);
+        auto framesOut = ma_uint64(frames * 44100 / sampleRate);
+        samples.resize(framesOut * 2);
+        ma_resampler_process_pcm_frames(&resampler,
+                                        convertedSamples.data(),
+                                        &framesIn,
+                                        samples.data(),
+                                        &framesOut);
+
+        ma_resampler_uninit(&resampler, nullptr);
+    }
 }
 auto
-sounds::SoundBuffer::getBuffer() const -> const std::vector<float>&
+sounds::SoundBuffer::getFrames() const -> ma_uint64
+{
+    return samples.size() / 2;
+}
+auto
+sounds::SoundBuffer::getSamples() const -> const std::vector<float>&
 {
     return samples;
-}
-
-
-auto
-sounds::SoundBuffer::getDuration() const -> std::chrono::nanoseconds
-{
-    if (sampleRate <= 0) return std::chrono::nanoseconds{0};
-    const auto seconds = static_cast<long double>(frames) / static_cast<long double>(sampleRate);
-    const auto ns = static_cast<std::chrono::nanoseconds::rep>(seconds * 1'000'000'000.0L);
-    return std::chrono::nanoseconds{ns};
-}
-
-auto
-sounds::SoundBuffer::getFrequency() const -> int
-{
-    return sampleRate;
-}
-
-auto
-sounds::SoundBuffer::getChannels() const -> int
-{
-    return channels;
-}
-auto
-sounds::SoundBuffer::getFrames() const -> std::size_t
-{
-    return frames;
 }

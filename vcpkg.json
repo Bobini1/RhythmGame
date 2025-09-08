@@ -22,7 +22,6 @@
       "platform": "windows"
     },
     "foonathan-lexy",
-    "portaudio",
     "magic-enum",
     "zstd",
     {
