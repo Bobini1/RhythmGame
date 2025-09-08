@@ -32,8 +32,6 @@ AudioEngine::AudioEngine()
     ma_uint32 playbackDeviceCount;
     ma_device_info* pCaptureDeviceInfos;
     ma_uint32 captureDeviceCount;
-
-    ma_context context;
     if (ma_context_init(NULL, 0, NULL, &context) != MA_SUCCESS) {
         throw std::runtime_error("Failed to initialize audio context.");
     }
@@ -48,20 +46,21 @@ AudioEngine::AudioEngine()
         spdlog::info("    {}: {}\n", iDevice, pPlaybackDeviceInfos[iDevice].name);
     }
 
-    /* We'll initialize the device first. */
     deviceConfig = ma_device_config_init(ma_device_type_playback);
-    //deviceConfig.dataCallback = dataCallback;
-    deviceConfig.playback.format   = ma_format_f32; /* <-- Request 32-bit floating point output. */
-    deviceConfig.playback.channels = 2;            /* <-- Request stereo output. */
-    deviceConfig.sampleRate        = sampleRate;   /* <-- Request 44.1kHz output. */
-    deviceConfig.periodSizeInFrames = 512;        /* <-- Request a period size of 512 frames. */
-    deviceConfig.noFixedSizedCallback = MA_TRUE; /* <-- This tells miniaudio to not require the callback to be called with a fixed number of frames. */
-    deviceConfig.performanceProfile = ma_performance_profile_low_latency; /* <-- Low latency. */
+    deviceConfig.playback.format   = ma_format_f32;
+    deviceConfig.playback.channels = 2;
+    deviceConfig.sampleRate        = 0;
+    deviceConfig.periodSizeInFrames = 64;
+    deviceConfig.noFixedSizedCallback = MA_TRUE;
+    deviceConfig.performanceProfile = ma_performance_profile_low_latency;
 
-    result = ma_device_init(NULL, &deviceConfig, &device);
+    result = ma_device_init(&context, &deviceConfig, &device);
     if (result != MA_SUCCESS) {
         throw std::runtime_error("Failed to initialize audio device.");
     }
+
+    sampleRate = device.sampleRate;
+    channels = device.playback.channels;
 
     resourceManagerConfig = ma_resource_manager_config_init();
     resourceManagerConfig.decodedFormat     = device.playback.format;
@@ -92,6 +91,8 @@ AudioEngine::~AudioEngine()
 {
     ma_device_uninit(&device);
     ma_resource_manager_uninit(&resourceManager);
+    ma_engine_uninit(&engine);
+    ma_context_uninit(&context);
 }
 
 }

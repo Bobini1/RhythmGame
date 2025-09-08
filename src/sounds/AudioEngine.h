@@ -26,12 +26,18 @@ public:
 
     auto getEngine() -> ma_engine* { return &engine; }
 
+    auto getSampleRate() const -> int { return sampleRate; }
+
+    auto getChannels() const -> int { return channels; }
+
 private:
+    ma_context context;
     ma_resource_manager_data_source dataSource;
     ma_device device{};
     ma_resource_manager resourceManager{};
     ma_engine engine{};
-    int sampleRate = 44100;
+    int sampleRate;
+    int channels;
 };
 } // namespace sounds
 

@@ -24,7 +24,7 @@ Sound::Sound(AudioEngine* engine, std::shared_ptr<const SoundBuffer> buffer)
 
     ma_sound_init_from_data_source(engine->getEngine(),
                                    audioBuffer.get(),
-                                   MA_SOUND_FLAG_DECODE,
+                                   MA_SOUND_FLAG_DECODE | MA_SOUND_FLAG_WAIT_INIT | MA_SOUND_FLAG_NO_PITCH | MA_SOUND_FLAG_NO_SPATIALIZATION,
                                    nullptr,
                                    sound.get());
 }

@@ -35,15 +35,16 @@ sounds::SoundBuffer::SoundBuffer(AudioEngine* engine,
         throw std::runtime_error("Could not read all frames from sound file");
     }
     auto convertedSamples = std::vector<float>{};
-    if (channels == 2) {
+    const auto engineChannels = engine->getChannels();
+    if (channels == engineChannels) {
         convertedSamples = std::move(samplesOriginal);
     } else {
-        convertedSamples.resize(frames * 2);
+        convertedSamples.resize(frames * engineChannels);
         ma_channel_converter_config channelConverterConfig =
           ma_channel_converter_config_init(ma_format_f32,
                                            sndFile.channels(),
                                            nullptr,
-                                           2,
+                                           engineChannels,
                                            nullptr,
                                            ma_channel_mix_mode_default);
         ma_channel_converter channelConverter;
@@ -55,11 +56,12 @@ sounds::SoundBuffer::SoundBuffer(AudioEngine* engine,
                                                 frames);
         ma_channel_converter_uninit(&channelConverter, nullptr);
     }
-    if (sampleRate == 44100) {
+    const auto engineSampleRate = engine->getSampleRate();
+    if (sampleRate == engineSampleRate) {
         samples = std::move(convertedSamples);
     } else {
-        ma_resampler_config config = ma_resampler_config_init(
-          ma_format_f32, 2, sampleRate, 44100, ma_resample_algorithm_linear);
+        auto config = ma_resampler_config_init(
+          ma_format_f32, 2, sampleRate, engineSampleRate, ma_resample_algorithm_linear);
 
         ma_resampler resampler;
         const auto result = ma_resampler_init(&config, NULL, &resampler);
@@ -67,7 +69,7 @@ sounds::SoundBuffer::SoundBuffer(AudioEngine* engine,
             throw std::runtime_error("Could not initialize resampler");
         }
         auto framesIn = static_cast<ma_uint64>(frames);
-        auto framesOut = ma_uint64(frames * 44100 / sampleRate);
+        auto framesOut = ma_uint64(frames * engineSampleRate / sampleRate);
         samples.resize(framesOut * 2);
         ma_resampler_process_pcm_frames(&resampler,
                                         convertedSamples.data(),
