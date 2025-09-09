@@ -19,4 +19,4 @@ CustomNotifyApp::notify(QObject* receiver, QEvent* event)
     }
     return notifyResult;
 }
-} // input
+} // namespace input

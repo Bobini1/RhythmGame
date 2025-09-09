@@ -68,7 +68,6 @@ qtLogHandler(QtMsgType type,
     }
 }
 
-
 auto
 main(int argc, [[maybe_unused]] char* argv[]) -> int
 {
@@ -134,6 +133,8 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
         auto gamepadManager = input::GamepadManager{};
 
         auto themes = qml_components::Themes{ availableThemes };
+
+        auto inputTranslator = input::InputTranslator{ &db };
         auto profileList =
           qml_components::ProfileList{ dataFolder / "song_db.sqlite",
                                        &db,
@@ -141,9 +142,10 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
                                        dataFolder / "profiles",
                                        avatarPath };
 
-        auto inputTranslator = input::InputTranslator{ &db };
-        auto setUseSystemTimestamps = [&profileList, &inputTranslator,
-                                       connection = QMetaObject::Connection{}]() mutable {
+        auto setUseSystemTimestamps = [&profileList,
+                                       &inputTranslator,
+                                       connection =
+                                         QMetaObject::Connection{}]() mutable {
             inputTranslator.setUseSystemTimestamps(
               profileList.getMainProfile()
                 ->getVars()
@@ -180,7 +182,8 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
                          &input::InputTranslator::handleRelease);
 
         auto audioEngine = sounds::AudioEngine{};
-        auto chartFactory = resource_managers::ChartFactory{ &audioEngine, &inputTranslator };
+        auto chartFactory =
+          resource_managers::ChartFactory{ &audioEngine, &inputTranslator };
         auto chartDataFactory = resource_managers::ChartDataFactory{};
         auto gaugeFactoryGeneral = resource_managers::GaugeFactory{};
         auto gaugeFactory =
@@ -247,7 +250,6 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
         auto tables = resource_managers::Tables{ &networkManager,
                                                  dataFolder / "tables",
                                                  &db };
-
 
         auto engine = QQmlApplicationEngine{};
         auto languages =
@@ -426,6 +428,12 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
             throw std::runtime_error{ "Failed to load main qml" };
         }
         app.setInputTranslator(&inputTranslator);
+
+        auto stmt = db.createStatement(
+          "INSERT OR REPLACE INTO properties (key, value) VALUES "
+          "('version', ?);");
+        stmt.bind(1, static_cast<int64_t>(support::currentVersion));
+        stmt.execute();
 
         return app.exec();
     } catch (const std::exception& e) {

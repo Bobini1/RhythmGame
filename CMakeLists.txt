@@ -261,6 +261,12 @@ else ()
     target_link_libraries(RhythmGame_lib PUBLIC llfio::sl)
 endif ()
 
+if (LINUX)
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(xkbcommon REQUIRED IMPORTED_TARGET xkbcommon)
+    target_link_libraries(RhythmGame_lib PUBLIC PkgConfig::xkbcommon)
+endif ()
+
 # We all love MSVC.
 target_compile_definitions(RhythmGame_lib PUBLIC NOMINMAX)
 
@@ -281,7 +287,7 @@ qt_import_qml_plugins(RhythmGame_qmlplugin)
 if (WIN32)
     enable_language("RC")
     qt_add_executable(RhythmGame_exe
-            src/main.cpp  ${CMAKE_CURRENT_SOURCE_DIR}/staticAssets/RhythmGame.rc
+            src/main.cpp ${CMAKE_CURRENT_SOURCE_DIR}/staticAssets/RhythmGame.rc
     )
     set_target_properties(RhythmGame_exe PROPERTIES
             WIN32_EXECUTABLE $<IF:$<CONFIG:Debug,RelWithDebInfo>,FALSE,TRUE>
