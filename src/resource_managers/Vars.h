@@ -236,7 +236,7 @@ class GeneralVars final : public QObject
     QString name = "Default";
     QString language = QLocale::system().name();
     double offset = 0.0; // Offset in milliseconds
-    bool useSystemTimestamps = false;
+    bool useSystemTimestamps = true;
 
     QString avatarPath;
 
