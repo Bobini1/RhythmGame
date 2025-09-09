@@ -288,7 +288,8 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
                       &gamepadManager,
                       &profileList,
                       &tables,
-                      &languages };
+                      &languages,
+                      &audioEngine };
 
         Rg::instance = &rg;
 

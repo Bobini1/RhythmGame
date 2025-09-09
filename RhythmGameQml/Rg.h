@@ -4,14 +4,15 @@
 
 #ifndef RG_H
 #define RG_H
-#include "../src/qml_components/ChartLoader.h"
-#include "../src/qml_components/FileQuery.h"
-#include "../src/qml_components/PreviewFilePathFetcher.h"
-#include "../src/qml_components/ProgramSettings.h"
-#include "../src/qml_components/RootSongFoldersConfig.h"
-#include "../src/qml_components/SongFolderFactory.h"
-#include "../src/qml_components/Themes.h"
+#include "qml_components/ChartLoader.h"
+#include "qml_components/FileQuery.h"
+#include "qml_components/PreviewFilePathFetcher.h"
+#include "qml_components/ProgramSettings.h"
+#include "qml_components/RootSongFoldersConfig.h"
+#include "qml_components/SongFolderFactory.h"
+#include "qml_components/Themes.h"
 #include "input/InputTranslator.h"
+#include "sounds/AudioEngine.h"
 #include "resource_managers/Languages.h"
 #include "resource_managers/Tables.h"
 
@@ -51,6 +52,7 @@ class Rg final : public QObject
     Q_PROPERTY(resource_managers::Tables* tables MEMBER tables CONSTANT)
     Q_PROPERTY(
       resource_managers::Languages* languages MEMBER languages CONSTANT)
+    Q_PROPERTY(sounds::AudioEngine* audioEngine MEMBER audioEngine CONSTANT)
 
     qml_components::ProgramSettings* programSettings;
     input::InputTranslator* inputTranslator;
@@ -64,6 +66,7 @@ class Rg final : public QObject
     qml_components::ProfileList* profileList;
     resource_managers::Tables* tables;
     resource_managers::Languages* languages;
+    sounds::AudioEngine* audioEngine;
 
   public:
     Rg(qml_components::ProgramSettings* programSettings,
@@ -78,6 +81,7 @@ class Rg final : public QObject
        qml_components::ProfileList* profileList,
        resource_managers::Tables* tables,
        resource_managers::Languages* languages,
+       sounds::AudioEngine* audioEngine,
        QObject* parent = nullptr);
     inline static Rg* instance = nullptr;
     static Rg* create(QQmlEngine* qmlEngine, QJSEngine*);
