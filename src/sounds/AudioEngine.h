@@ -76,7 +76,7 @@ class AudioEngine : public QObject
   signals:
     void backendChanged();
     void deviceChanged();
-    void changeDeviceRequested(ma_device& device);
+    void changeDeviceRequested();
     void backendNamesChanged();
     void deviceNamesChanged();
 };

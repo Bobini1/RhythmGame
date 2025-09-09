@@ -10,7 +10,7 @@
 #include "sounds/SoundBuffer.h"
 namespace sounds {
 void
-Sound::onDeviceChanged(ma_device& device)
+Sound::onDeviceChanged()
 {
     // get timepoint of sound
     auto cursor = ma_uint64{};

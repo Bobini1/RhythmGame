@@ -31,7 +31,7 @@ class Sound : public QObject
     std::unique_ptr<ma_audio_buffer> audioBuffer = std::make_unique<ma_audio_buffer>();
     std::unique_ptr<ma_sound> sound = std::make_unique<ma_sound>();
 
-    void onDeviceChanged(ma_device& device);
+    void onDeviceChanged();
   public:
     /**
      * @brief Creates a new sound from a buffer.

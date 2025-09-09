@@ -131,7 +131,7 @@ AudioEngine::setDeviceImpl(const QString& deviceName)
                                nameBuffer.size(),
                                &size) == MA_SUCCESS) {
             nameBuffer.resize(size);
-            currentDevice = QString::fromLocal8Bit(nameBuffer);
+            currentDevice = QString::fromUtf8(nameBuffer);
             settings.setValue("audio/" + currentBackend + "/device",
                               currentDevice);
         } else {
@@ -254,7 +254,7 @@ AudioEngine::setBackend(const QString& backend)
             if (oldDevice != currentDevice) {
                 emit deviceChanged();
             }
-            emit changeDeviceRequested(*device);
+            emit changeDeviceRequested();
         } catch (const std::exception& e) {
             spdlog::error("Failed to set audio backend: {}", e.what());
             context = std::move(tempContext);
@@ -294,7 +294,7 @@ AudioEngine::setDevice(const QString& device)
             if (oldDevice != currentDevice) {
                 emit deviceChanged();
             }
-            emit changeDeviceRequested(*this->device);
+            emit changeDeviceRequested();
         } catch (const std::exception& e) {
             spdlog::error("Failed to set audio device: {}", e.what());
             currentDevice = std::move(oldDevice);
