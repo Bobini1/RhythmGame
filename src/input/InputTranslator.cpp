@@ -12,6 +12,8 @@
 #include <QVariant>
 #ifdef _WIN32
 #include <windows.h>
+#elifdef __linux__
+#include <xkbcommon/xkbcommon.h>
 #endif
 
 namespace input {
@@ -1180,6 +1182,18 @@ InputTranslator::scancodeToString(const int scanCode)
 
     if (result > 0) {
         return QString::fromWCharArray(keyName);
+    }
+#elifdef __linux__
+    static xkb_context *ctx = xkb_context_new(XKB_CONTEXT_NO_FLAGS);
+    static xkb_keymap *keymap = xkb_keymap_new_from_names(ctx, nullptr, XKB_KEYMAP_COMPILE_NO_FLAGS);
+    static xkb_state *state = xkb_state_new(keymap);
+
+    xkb_keysym_t sym = xkb_state_key_get_one_sym(state, scanCode);
+
+    char buf[64];
+    xkb_keysym_get_name(sym, buf, sizeof(buf));
+    if (buf[0] != '\0') {
+        return QString::fromUtf8(buf);
     }
 #endif
     return QString("Scancode %1").arg(scanCode);
