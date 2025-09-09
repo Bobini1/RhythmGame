@@ -126,6 +126,11 @@ Profile::Profile(
     auto guidResult =
       getGuid.executeAndGet<std::string>().value_or(std::string{});
     guid = QString::fromStdString(guidResult);
+    auto stmt = db.createStatement(
+      "INSERT OR REPLACE INTO properties (key, value) VALUES "
+      "('version', ?);");
+    stmt.bind(1, static_cast<int64_t>(support::currentVersion));
+    stmt.execute();
 }
 auto
 Profile::getPath() const -> std::filesystem::path

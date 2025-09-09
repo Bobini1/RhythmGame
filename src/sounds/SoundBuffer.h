@@ -5,7 +5,7 @@
 #ifndef RHYTHMGAME_SOUNDBUFFER_H
 #define RHYTHMGAME_SOUNDBUFFER_H
 #include "AudioEngine.h"
-
+#include <vector>
 #include <filesystem>
 
 namespace sounds {

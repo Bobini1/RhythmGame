@@ -101,12 +101,6 @@ defineDb(db::SqliteCppDb& db)
                "value"
                ");");
 
-    auto stmt =
-      db.createStatement("INSERT OR IGNORE INTO properties (key, value) VALUES "
-                         "('version', ?);");
-    stmt.bind(1, static_cast<int64_t>(support::currentVersion));
-    stmt.execute();
-
     db.execute("CREATE TABLE IF NOT EXISTS preview_files ("
                "id INTEGER PRIMARY KEY AUTOINCREMENT,"
                "path TEXT NOT NULL,"
