@@ -27,7 +27,7 @@ class Key
      */
     Q_PROPERTY(QVariant gamepad MEMBER gamepad)
     Q_PROPERTY(Device device MEMBER device)
-    Q_PROPERTY(int code MEMBER code)
+    Q_PROPERTY(quint32 code MEMBER code)
     Q_PROPERTY(Direction direction MEMBER direction)
 
   public:
@@ -48,7 +48,7 @@ class Key
 
     QVariant gamepad = QVariant::fromValue(nullptr);
     Device device;
-    int code;
+    quint32 code;
     Direction direction{};
 
     friend auto operator>>(QDataStream& stream, Key& key) -> QDataStream&;
@@ -281,7 +281,7 @@ class InputTranslator final : public QObject
     auto getAnalogAxisConfig1() -> AnalogAxisConfig*;
     auto getAnalogAxisConfig2() -> AnalogAxisConfig*;
     auto eventFilter(QObject* watched, QEvent* event) -> bool override;
-    Q_INVOKABLE static QString scancodeToString(int scancode);
+    Q_INVOKABLE static QString scancodeToString(int virtualKey);
 
   signals:
     void buttonPressed(BmsKey button, int64_t time);

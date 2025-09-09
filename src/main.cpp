@@ -134,6 +134,8 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
         auto gamepadManager = input::GamepadManager{};
 
         auto themes = qml_components::Themes{ availableThemes };
+
+        auto inputTranslator = input::InputTranslator{ &db };
         auto profileList =
           qml_components::ProfileList{ dataFolder / "song_db.sqlite",
                                        &db,
@@ -141,7 +143,6 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
                                        dataFolder / "profiles",
                                        avatarPath };
 
-        auto inputTranslator = input::InputTranslator{ &db };
         auto setUseSystemTimestamps = [&profileList, &inputTranslator,
                                        connection = QMetaObject::Connection{}]() mutable {
             inputTranslator.setUseSystemTimestamps(

@@ -627,8 +627,8 @@ InputTranslator::autoReleaseScratch(
     }
 }
 
-int64_t
-getTime()
+static auto
+getTime() -> int64_t
 {
     return std::chrono::duration_cast<std::chrono::milliseconds>(
              std::chrono::system_clock::now().time_since_epoch())
@@ -761,38 +761,52 @@ InputTranslator::loadKeyConfig(db::SqliteCppDb* db)
         const auto array = QByteArray::fromStdString(keyConfig.value());
         config = support::decompress<QHash<Key, BmsKey>>(array);
     } else {
+#ifdef _WIN32
+#define SC_A 30
+#define SC_S 31
+#define SC_D 32
+#define SC_SPACE 57
+#define SC_J 36
+#define SC_K 37
+#define SC_L 38
+#define SC_SHIFT 42
+#define SC_CTRL 29
+#define SC_O 24
+#define SC_P 25
+#elif __linux__
+#endif
         config[Key{
-          QVariant::fromValue(nullptr), Key::Device::Keyboard, Qt::Key_A }] =
+          QVariant::fromValue(nullptr), Key::Device::Keyboard, SC_A }] =
           BmsKey::Col11;
         config[Key{
-          QVariant::fromValue(nullptr), Key::Device::Keyboard, Qt::Key_S }] =
+          QVariant::fromValue(nullptr), Key::Device::Keyboard, SC_S }] =
           BmsKey::Col12;
         config[Key{
-          QVariant::fromValue(nullptr), Key::Device::Keyboard, Qt::Key_D }] =
+          QVariant::fromValue(nullptr), Key::Device::Keyboard, SC_D }] =
           BmsKey::Col13;
         config[Key{ QVariant::fromValue(nullptr),
                     Key::Device::Keyboard,
-                    Qt::Key_Space }] = BmsKey::Col14;
+                    SC_SPACE }] = BmsKey::Col14;
         config[Key{
-          QVariant::fromValue(nullptr), Key::Device::Keyboard, Qt::Key_J }] =
+          QVariant::fromValue(nullptr), Key::Device::Keyboard, SC_J }] =
           BmsKey::Col15;
         config[Key{
-          QVariant::fromValue(nullptr), Key::Device::Keyboard, Qt::Key_K }] =
+          QVariant::fromValue(nullptr), Key::Device::Keyboard, SC_K }] =
           BmsKey::Col16;
         config[Key{
-          QVariant::fromValue(nullptr), Key::Device::Keyboard, Qt::Key_L }] =
+          QVariant::fromValue(nullptr), Key::Device::Keyboard, SC_L }] =
           BmsKey::Col17;
         config[Key{ QVariant::fromValue(nullptr),
                     Key::Device::Keyboard,
-                    Qt::Key_Shift }] = BmsKey::Col1sUp;
+                    SC_SHIFT }] = BmsKey::Col1sUp;
         config[Key{ QVariant::fromValue(nullptr),
                     Key::Device::Keyboard,
-                    Qt::Key_Control }] = BmsKey::Col1sDown;
+                    SC_CTRL }] = BmsKey::Col1sDown;
         config[Key{
-          QVariant::fromValue(nullptr), Key::Device::Keyboard, Qt::Key_O }] =
+          QVariant::fromValue(nullptr), Key::Device::Keyboard, SC_O }] =
           BmsKey::Start1;
         config[Key{
-          QVariant::fromValue(nullptr), Key::Device::Keyboard, Qt::Key_P }] =
+          QVariant::fromValue(nullptr), Key::Device::Keyboard, SC_P }] =
           BmsKey::Select1;
         saveKeyConfig();
     }
@@ -1091,7 +1105,7 @@ InputTranslator::eventFilter(QObject* watched, QEvent* event)
 
         const auto keyLookup = Key{ QVariant::fromValue(nullptr),
                                     Key::Device::Keyboard,
-                                    key->key(),
+                                    key->nativeScanCode(),
                                     Key::Direction::None };
         if (isConfiguring()) {
             unpressAndUnbind(keyLookup, key->timestamp());
@@ -1115,7 +1129,7 @@ InputTranslator::eventFilter(QObject* watched, QEvent* event)
         }
         const auto keyLookup = Key{ QVariant::fromValue(nullptr),
                                     Key::Device::Keyboard,
-                                    key->key(),
+                                    key->nativeScanCode(),
                                     Key::Direction::None };
         if (const auto found = config.find(keyLookup); found != config.end()) {
             releaseButton(*found, time);
@@ -1124,9 +1138,38 @@ InputTranslator::eventFilter(QObject* watched, QEvent* event)
     return false;
 }
 QString
-InputTranslator::scancodeToString(const int scancode)
+InputTranslator::scancodeToString(const int scanCode)
 {
-    return QKeySequence(scancode).toString(QKeySequence::NativeText);
+    // based on current keyboard layout
+#ifdef _WIN32
+    // Get the keyboard layout for the current thread
+    HKL keyboardLayout = GetKeyboardLayout(0);
+
+    // Convert scancode to virtual key
+    UINT virtualKey = MapVirtualKeyEx(scanCode, MAPVK_VSC_TO_VK, keyboardLayout);
+
+    // Get the full key name including modifiers
+    wchar_t keyName[256] = {0};
+
+    // Create a scancode with extended bit if needed
+    LONG lScanCode = scanCode << 16;
+
+    // Set extended bit for special keys
+    if (virtualKey == VK_UP || virtualKey == VK_DOWN ||
+        virtualKey == VK_LEFT || virtualKey == VK_RIGHT ||
+        virtualKey == VK_HOME || virtualKey == VK_END ||
+        virtualKey == VK_PRIOR || virtualKey == VK_NEXT ||
+        virtualKey == VK_INSERT || virtualKey == VK_DELETE) {
+        lScanCode |= 0x01000000;
+        }
+
+    int result = GetKeyNameText(lScanCode, keyName, 256);
+
+    if (result > 0) {
+        return QString::fromWCharArray(keyName);
+    }
+#endif
+    return QString("Scancode %1").arg(scanCode);
 }
 
 auto
