@@ -149,7 +149,7 @@ AudioEngine::setBackendImpl(const QString& backendName)
     config.jack.pClientName = "RhythmGame";
     config.jack.tryStartServer = MA_TRUE;
     config.pLog = &log;
-    config.threadPriority = ma_thread_priority_realtime;
+    config.threadPriority = ma_thread_priority_highest;
     config.pulse.pApplicationName = "RhythmGame";
     config.pulse.tryAutoSpawn = MA_TRUE;
 
