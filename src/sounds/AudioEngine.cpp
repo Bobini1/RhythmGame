@@ -15,6 +15,11 @@
 namespace sounds {
 namespace {
 
+void dataCallback(ma_device* pDevice, void* pFramesOut, const void* pFramesIn, ma_uint32 frameCount)
+{
+    const auto pEngine = static_cast<ma_engine*>(pDevice->pUserData);
+    ma_engine_read_pcm_frames(pEngine, pFramesOut, frameCount, NULL);
+}
 void
 logCallback(void* /*userData*/, ma_uint32 level, const char* message)
 {
@@ -86,6 +91,8 @@ AudioEngine::setDeviceImpl(const QString& deviceName)
     deviceConfig.wasapi.noAutoStreamRouting = static_cast<ma_bool8>(!deviceName.isEmpty());
     deviceConfig.wasapi.usage = ma_wasapi_usage_games;
     deviceConfig.performanceProfile = ma_performance_profile_low_latency;
+    deviceConfig.dataCallback = dataCallback;
+    deviceConfig.pUserData = engine.get();
 
     auto result = ma_device_init(context.get(), &deviceConfig, device.get());
     if (result != MA_SUCCESS) {
@@ -114,6 +121,12 @@ AudioEngine::setDeviceImpl(const QString& deviceName)
         ma_device_uninit(device.get());
         ma_resource_manager_uninit(resourceManager.get());
         throw std::runtime_error("Failed to initialize audio engine.");
+    }
+    if (ma_engine_start(engine.get()) != MA_SUCCESS) {
+        ma_engine_uninit(engine.get());
+        ma_device_uninit(device.get());
+        ma_resource_manager_uninit(resourceManager.get());
+        throw std::runtime_error("Failed to start audio engine.");
     }
     if (ma_device_start(device.get()) != MA_SUCCESS) {
         ma_engine_uninit(engine.get());
