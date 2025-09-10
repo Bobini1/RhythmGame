@@ -30,14 +30,27 @@
     </message>
 </context>
 <context>
+    <name>BgaPopup</name>
+    <message>
+        <location filename="../scripts/gameplay/popups/BgaPopup.qml" line="12"/>
+        <source>BGA Enabled</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/gameplay/popups/BgaPopup.qml" line="20"/>
+        <source>Z-index</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>ChartInfo</name>
     <message>
-        <location filename="../scripts/result/ChartInfo.qml" line="38"/>
+        <location filename="../scripts/result/ChartInfo.qml" line="39"/>
         <source>TOTAL</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/result/ChartInfo.qml" line="65"/>
+        <location filename="../scripts/result/ChartInfo.qml" line="66"/>
         <source>NOTES</source>
         <translation type="unfinished"></translation>
     </message>
@@ -45,17 +58,17 @@
 <context>
     <name>GaugePopup</name>
     <message>
-        <location filename="../scripts/gameplay/GaugePopup.qml" line="18"/>
+        <location filename="../scripts/gameplay/popups/GaugePopup.qml" line="17"/>
         <source>Z-index</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/GaugePopup.qml" line="24"/>
+        <location filename="../scripts/gameplay/popups/GaugePopup.qml" line="23"/>
         <source>Vertical Gauge</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/GaugePopup.qml" line="31"/>
+        <location filename="../scripts/gameplay/popups/GaugePopup.qml" line="30"/>
         <source>Gauge</source>
         <translation type="unfinished"></translation>
     </message>
@@ -172,6 +185,39 @@
     <message>
         <location filename="../scripts/settings/GeneralSettings.qml" line="257"/>
         <source>Bottom Shiftable Gauge</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="270"/>
+        <source>Use System Timestamps</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="271"/>
+        <source>Broken on some systems but more accurate in theory.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="284"/>
+        <source>Audio Backend</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="296"/>
+        <source>Audio Device</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="302"/>
+        <source>Default</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>JudgementCountsPopup</name>
+    <message>
+        <location filename="../scripts/gameplay/popups/JudgementCountsPopup.qml" line="14"/>
+        <source>Z-index</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -291,12 +337,12 @@
 <context>
     <name>KeymodeButton</name>
     <message>
-        <location filename="../scripts/select/KeymodeButton.qml" line="28"/>
+        <location filename="../scripts/select/KeymodeButton.qml" line="54"/>
         <source>ALL keys</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/select/KeymodeButton.qml" line="30"/>
+        <location filename="../scripts/select/KeymodeButton.qml" line="56"/>
         <source>%1 keys</source>
         <translation type="unfinished"></translation>
     </message>
@@ -304,22 +350,22 @@
 <context>
     <name>Login</name>
     <message>
-        <location filename="../scripts/select/Login.qml" line="62"/>
+        <location filename="../scripts/select/Login.qml" line="68"/>
         <source>Select Profile</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/select/Login.qml" line="177"/>
+        <location filename="../scripts/select/Login.qml" line="182"/>
         <source>Select Profiles</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/select/Login.qml" line="235"/>
+        <location filename="../scripts/select/Login.qml" line="240"/>
         <source>Single Mode</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/select/Login.qml" line="235"/>
+        <location filename="../scripts/select/Login.qml" line="240"/>
         <source>Battle Mode</source>
         <translation type="unfinished"></translation>
     </message>
@@ -350,122 +396,122 @@
 <context>
     <name>PlayAreaPopup</name>
     <message>
-        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="19"/>
+        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="19"/>
         <source>Green Number</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="26"/>
+        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="26"/>
         <source>Offset</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="34"/>
+        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="34"/>
         <source>Judgements Offset</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="41"/>
+        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="41"/>
         <source>Z-index</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="45"/>
+        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="45"/>
         <source>Hide LN Ends</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="53"/>
+        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="53"/>
         <source>Lane Brightness</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="60"/>
+        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="60"/>
         <source>Note Thickness</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="67"/>
+        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="67"/>
         <source>Judge Line Thickness</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="72"/>
+        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="72"/>
         <source>Judge Line Color</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="80"/>
+        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="80"/>
         <source>Flip Scratch Lane</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="124"/>
+        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="124"/>
         <source>Notes</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="159"/>
+        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="159"/>
         <source>Fast/Slow</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="86"/>
+        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="86"/>
         <source>Enable Lane Cover</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="94"/>
+        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="94"/>
         <source>Lane Cover Ratio</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="129"/>
+        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="129"/>
         <source>Lane Cover</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="98"/>
+        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="98"/>
         <source>Enable Lift</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="106"/>
+        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="106"/>
         <source>Lift Ratio</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="110"/>
+        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="110"/>
         <source>Enable Hidden</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="118"/>
+        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="118"/>
         <source>Hidden Ratio</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="134"/>
+        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="134"/>
         <source>Lift Cover</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="139"/>
+        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="139"/>
         <source>Mine</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="144"/>
+        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="144"/>
         <source>Key Beam</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="149"/>
+        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="149"/>
         <source>Bomb</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/PlayAreaPopup.qml" line="154"/>
+        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="154"/>
         <source>Glow</source>
         <translation type="unfinished"></translation>
     </message>
@@ -582,6 +628,29 @@
     <message>
         <location filename="../scripts/settings/PlayerSettings.qml" line="151"/>
         <source>Edit Profile</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>ReplayAutoplay</name>
+    <message>
+        <location filename="../scripts/select/ReplayAutoplay.qml" line="44"/>
+        <source>NEWEST</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/select/ReplayAutoplay.qml" line="46"/>
+        <source>BEST SCORE</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/select/ReplayAutoplay.qml" line="48"/>
+        <source>BEST CLEAR</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/select/ReplayAutoplay.qml" line="50"/>
+        <source>BEST COMBO</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -724,42 +793,42 @@
 <context>
     <name>SortButton</name>
     <message>
-        <location filename="../scripts/select/SortButton.qml" line="9"/>
+        <location filename="../scripts/select/SortButton.qml" line="14"/>
         <source>Title</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/select/SortButton.qml" line="9"/>
+        <location filename="../scripts/select/SortButton.qml" line="14"/>
         <source>Artist</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/select/SortButton.qml" line="9"/>
+        <location filename="../scripts/select/SortButton.qml" line="14"/>
         <source>BPM</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/select/SortButton.qml" line="9"/>
+        <location filename="../scripts/select/SortButton.qml" line="14"/>
         <source>Clear</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/select/SortButton.qml" line="9"/>
+        <location filename="../scripts/select/SortButton.qml" line="14"/>
         <source>Score</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/select/SortButton.qml" line="9"/>
+        <location filename="../scripts/select/SortButton.qml" line="14"/>
         <source>Level</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/select/SortButton.qml" line="9"/>
+        <location filename="../scripts/select/SortButton.qml" line="14"/>
         <source>Total</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/select/SortButton.qml" line="17"/>
+        <location filename="../scripts/select/SortButton.qml" line="38"/>
         <source>Sort: %1</source>
         <translation type="unfinished"></translation>
     </message>
