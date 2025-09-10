@@ -264,18 +264,6 @@ Item {
                         right: parent.right
                     }
                 }
-                Boolean {
-                    destination: Rg.profileList.mainProfile.vars.generalVars
-                    id_: "useSystemTimestamps"
-                    name: qsTr("Use System Timestamps")
-                    description: qsTr("Broken on some systems but more accurate in theory.")
-                    default_: false
-
-                    anchors {
-                        left: parent.left
-                        right: parent.right
-                    }
-                }
                 Separator {
                 }
                 Choice {

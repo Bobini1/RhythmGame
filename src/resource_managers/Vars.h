@@ -207,15 +207,6 @@ class GeneralVars final : public QObject
      */
     Q_PROPERTY(
       double offset READ getOffset WRITE setOffset NOTIFY offsetChanged)
-    /**
-     * @brief Use Qt/SDL timestamps for input timing instead of std::chrono
-     * timestamps.
-     * @details This should be the preferred way of getting timestamps for
-     * input events but users have reported offset issues on some setups.
-     */
-    Q_PROPERTY(bool useSystemTimestamps READ getUseSystemTimestamps WRITE
-                 setUseSystemTimestamps NOTIFY useSystemTimestampsChanged RESET
-                   resetUseSystemTimestamps)
     // ^ remember to use full namespace for enums for reflection
     double noteScreenTimeMillis = 1000;
     bool laneCoverOn = false;
@@ -236,7 +227,6 @@ class GeneralVars final : public QObject
     QString name = "Default";
     QString language = QLocale::system().name();
     double offset = 0.0; // Offset in milliseconds
-    bool useSystemTimestamps = false;
 
     QString avatarPath;
 
@@ -299,9 +289,6 @@ class GeneralVars final : public QObject
     auto getOffset() const -> double;
     void setOffset(double value);
     void resetOffset();
-    auto getUseSystemTimestamps() const -> bool;
-    void setUseSystemTimestamps(bool value);
-    void resetUseSystemTimestamps();
 
   signals:
     void noteScreenTimeMillisChanged();
@@ -323,7 +310,6 @@ class GeneralVars final : public QObject
     void nameChanged();
     void languageChanged();
     void offsetChanged();
-    void useSystemTimestampsChanged();
 };
 
 class Vars final : public QObject

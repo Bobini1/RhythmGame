@@ -143,32 +143,7 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
                                        dataFolder / "profiles",
                                        avatarPath };
 
-        auto setUseSystemTimestamps = [&profileList,
-                                       &inputTranslator,
-                                       connection =
-                                         QMetaObject::Connection{}]() mutable {
-            inputTranslator.setUseSystemTimestamps(
-              profileList.getMainProfile()
-                ->getVars()
-                ->getGeneralVars()
-                ->getUseSystemTimestamps());
-            connection = QObject::connect(
-              profileList.getMainProfile()->getVars()->getGeneralVars(),
-              &resource_managers::GeneralVars::useSystemTimestampsChanged,
-              &inputTranslator,
-              [mainProfileVars =
-                 profileList.getMainProfile()->getVars()->getGeneralVars(),
-               &inputTranslator]() {
-                  inputTranslator.setUseSystemTimestamps(
-                    mainProfileVars->getUseSystemTimestamps());
-              });
-        };
-        QObject::connect(&profileList,
-                         &qml_components::ProfileList::mainProfileChanged,
-                         &inputTranslator,
-                         setUseSystemTimestamps);
-        setUseSystemTimestamps();
-
+        auto inputTranslator = input::InputTranslator{ &db };
         QObject::connect(&gamepadManager,
                          &input::GamepadManager::axisMoved,
                          &inputTranslator,
