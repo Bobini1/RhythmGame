@@ -12,19 +12,20 @@ WindowBg {
         source: {
             switch (chartInfo.difficulty) {
             case 1:
-                return root.iniImagesUrl + "parts.png/beginner";
+                return root.iniImagesUrl + "parts.png/beginner_diff";
             case 2:
-                return root.iniImagesUrl + "parts.png/normal";
+                return root.iniImagesUrl + "parts.png/normal_diff";
             case 3:
-                return root.iniImagesUrl + "parts.png/hyper";
+                return root.iniImagesUrl + "parts.png/hyper_diff";
             case 4:
-                return root.iniImagesUrl + "parts.png/another";
+                return root.iniImagesUrl + "parts.png/another_diff";
             case 5:
-                return root.iniImagesUrl + "parts.png/insane";
+                return root.iniImagesUrl + "parts.png/insane_diff";
             default:
-                return root.iniImagesUrl + "parts.png/unknown";
+                return root.iniImagesUrl + "parts.png/unknown_diff";
             }
         }
+        Component.onCompleted: print(source)
     }
     Text {
         id: totalLabel
