@@ -94,7 +94,8 @@
       "name": "wil",
       "platform": "windows"
     },
-    "miniaudio"
+    "miniaudio",
+    "stb"
   ],
   "default-features": [],
   "features": {
