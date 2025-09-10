@@ -121,7 +121,7 @@ AudioPlayer::stop()
 auto
 AudioPlayer::getVolume() const -> float
 {
-    return sound ? ma_sound_get_volume(sound.get()) : 1.0f;
+    return volume;
 }
 void
 AudioPlayer::setVolume(float value)
