@@ -55,8 +55,8 @@ Image {
                 break;
             case "Clear":
                 songList.sort = function (a, b) {
-                    let scores1 = songList.scores[a.md5];
-                    let scores2 = songList.scores[b.md5];
+                    let scores1 = songList.scores[a.md5] || [];
+                    let scores2 = songList.scores[b.md5] || [];
                     let clearType1 = Helpers.getClearType(scores1);
                     let clearType2 = Helpers.getClearType(scores2);
                     let res = Helpers.clearTypePriorities.indexOf(clearType2) - Helpers.clearTypePriorities.indexOf(clearType1);
@@ -68,8 +68,8 @@ Image {
                 break;
             case "Score":
                 songList.sort = function (a, b) {
-                    let scores1 = songList.scores[a.md5];
-                    let scores2 = songList.scores[b.md5];
+                    let scores1 = songList.scores[a.md5] || [];
+                    let scores2 = songList.scores[b.md5] || [];
                     let score1 = Helpers.getScoreWithBestPoints(scores1);
                     let score2 = Helpers.getScoreWithBestPoints(scores2);
                     if (!score1 && !score2) {
@@ -81,7 +81,7 @@ Image {
                     if (!score2) {
                         return -1;
                     }
-                    let res = (score2.points / score2.maxPoints) - (score1.points / score1.maxPoints);
+                    let res = (score2.result.points / score2.result.maxPoints) - (score1.result.points / score1.result.maxPoints);
                     if (res !== 0) {
                         return res;
                     }
