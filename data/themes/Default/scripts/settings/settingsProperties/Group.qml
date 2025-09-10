@@ -64,7 +64,8 @@ Frame {
                     }
                     delete props.default;
                     if (props.type === "choice") {
-                        props.displayStrings = loader.displayStrings;
+                        props.displayStrings = props.choices.map(choice => choice.name[Rg.languages.getClosestLanguage(Rg.languages.selectedLanguage, Object.keys(choice.name))])
+                        props.choices = props.choices.map(choice => choice.value);
                     }
                     delete props.type;
                     props.destination = groupFrame.destination;
@@ -84,7 +85,7 @@ Frame {
                         loader.item.description = description;
                     }
                 }
-                readonly property list<string> displayStrings: modelData.type === "choice" ? modelData.displayStrings[Rg.languages.getClosestLanguage(Rg.languages.selectedLanguage, Object.keys(modelData.displayStrings))] : [];
+                readonly property list<string> displayStrings: modelData.type === "choice" ? modelData.choices.map(choice => choice.name[Rg.languages.getClosestLanguage(Rg.languages.selectedLanguage, Object.keys(choice.name))]) : [];
                 onDisplayStringsChanged: {
                     if (loader.item) {
                         loader.item.displayStrings = displayStrings;

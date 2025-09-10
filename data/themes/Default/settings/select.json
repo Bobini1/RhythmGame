@@ -1,0 +1,69 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Bobini1/RhythmGame/refs/heads/master/schemas/themeSettings.json",
+  "items": [
+    {
+      "id": "sortOrder",
+      "name": {
+        "en": "Sort Order",
+        "pl": "Kolejność sortowania"
+      },
+      "description": {
+        "en": "The sort order of songs on the select screen.",
+        "pl": "Kolejność sortowania piosenek na ekranie wyboru."
+      },
+      "type": "choice",
+      "default": "title",
+      "choices": [
+        {
+          "name": {
+            "en": "Title",
+            "pl": "Tytuł"
+          },
+          "value": "title"
+        },
+        {
+          "name": {
+            "en": "Artist",
+            "pl": "Artysta"
+          },
+          "value": "artist"
+        },
+        {
+          "name": {
+            "en": "BPM",
+            "pl": "BPM"
+          },
+          "value": "bpm"
+        },
+        {
+          "name": {
+            "en": "Clear",
+            "pl": "Clear"
+          },
+          "value": "clear"
+        },
+        {
+          "name": {
+            "en": "Score",
+            "pl": "Punkty"
+          },
+          "value": "score"
+        },
+        {
+          "name": {
+            "en": "Level",
+            "pl": "Poziom"
+          },
+          "value": "level"
+        },
+        {
+          "name": {
+            "en": "Total",
+            "pl": "total"
+          },
+          "value": "total"
+        }
+      ]
+    }
+  ]
+}

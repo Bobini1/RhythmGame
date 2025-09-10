@@ -660,37 +660,48 @@ createChoiceProperty(QHash<QString, QVariant>& screenVars,
           "not an array: {}",
           jsonValueToString(object)));
     }
-    if (!object["displayStrings"].isObject()) {
-        throw support::Exception(std::format(
-          "displayStrings field of property of type choice is undefined or "
-          "not an object: {}",
-          jsonValueToString(object)));
-    }
-    auto length = object["choices"].toArray().size();
-    for (const auto& lang : object["displayStrings"].toObject()) {
-        if (!lang.isArray()) {
+    for (const auto& choice : object["choices"].toArray()) {
+        if (!choice.isObject()) {
             throw support::Exception(
-              std::format("a language of displayStrings of property of type "
-                          "choice contains a "
-                          "non-array value: {}",
-                          jsonValueToString(lang)));
+              std::format("a choice of property of type "
+                          "choice is not an object: {}",
+                          jsonValueToString(choice)));
         }
-        if (lang.toArray().size() != length) {
-            throw support::Exception(std::format(
-              "a language of displayStrings of property of type choice has a "
-              "different number of choices than the choices field: {}",
-              jsonValueToString(lang)));
+        if (!choice.toObject()["value"].isString()) {
+            throw support::Exception(
+              std::format("a choice of property of type choice has no value "
+                          "(or not a string): {}",
+                          jsonValueToString(choice)));
+        }
+        if (!choice.toObject()["name"].isObject()) {
+            throw support::Exception(
+              std::format("a choice of property of type choice has no name "
+                          "(or not an object): {}",
+                          jsonValueToString(choice)));
+        }
+        // check if choice names are strings
+        for (const auto& value : choice.toObject()["name"].toObject()) {
+            if (!value.isString()) {
+                throw support::Exception(
+                  std::format("a choice name of property of type choice is not a "
+                              "string: {}",
+                              jsonValueToString(choice)));
+            }
         }
     }
     // confirm that the default value is one of the choices
     const auto choices = object["choices"].toArray();
+    auto values = QStringList{};
+    for (const auto& choice : choices) {
+        values.append(choice.toObject()["value"].toString());
+    }
     if (choices.isEmpty()) {
         throw support::Exception(
           std::format("choices field of property of type choice is empty: {}",
                       jsonValueToString(object)));
     }
-    if (std::ranges::find(choices, object["default"]) ==
-        std::ranges::end(choices)) {
+    if (std::ranges::find(values, object["default"].toString()) ==
+        std::ranges::end(values)) {
         throw support::Exception(
           std::format("default field of property of type choice is not one "
                       "of the choices: "

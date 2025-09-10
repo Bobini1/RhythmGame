@@ -5,8 +5,29 @@ import "../common/helpers.js" as Helpers
 Image {
     id: sortButton
 
-    property int current: 0
+    property int current: {
+        let lowercaseSorts = sortButton.options.map(function(option) { return option.toLowerCase(); });
+        let selectedSort = themeVars.sortOrder.toLowerCase();
+        let index = lowercaseSorts.indexOf(selectedSort);
+        return index === -1 ? 0 : index;
+    }
     property var options: [QT_TR_NOOP("Title"), QT_TR_NOOP("Artist"), QT_TR_NOOP("BPM"), QT_TR_NOOP("Clear"), QT_TR_NOOP("Score"), QT_TR_NOOP("Level"), QT_TR_NOOP("Total")]
+    required property var themeVars
+
+    Binding {
+        delayed: true
+        target: sortButton.themeVars
+        property: "sortOrder"
+        value: sortButton.options[sortButton.current].toLowerCase();
+    }
+    Binding {
+        sortButton.current: {
+            let lowercaseSorts = sortButton.options.map(function(option) { return option.toLowerCase(); });
+            let selectedSort = sortButton.themeVars.sortOrder.toLowerCase();
+            let index = lowercaseSorts.indexOf(selectedSort);
+            return index === -1 ? 0 : index;
+        }
+    }
 
     source: root.iniImagesUrl + "option.png/button_big"
 

@@ -299,6 +299,7 @@ FocusScope {
                 anchors.left: keymodeButton.left
                 anchors.top: keymodeButton.bottom
                 anchors.topMargin: 20
+                themeVars: Rg.profileList.mainProfile.vars.themeVars.select[QmlUtils.themeName]
             }
             MouseArea {
                 id: focusList

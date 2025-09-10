@@ -27,7 +27,7 @@
           },
           {
             "$ref": "#/$defs/stringItem"
-          },,
+          },
           {
             "$ref": "#/$defs/choiceItem"
           },
@@ -218,7 +218,15 @@
         "choices": {
           "type": "array",
           "items": {
-            "type": "string"
+            "type": "object",
+            "properties": {
+              "value": {
+                "type": "string"
+              },
+              "name": {
+                "$ref": "#/$defs/i18nString"
+              }
+            }
           },
           "minItems": 1
         },
