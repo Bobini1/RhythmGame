@@ -1,5 +1,7 @@
 <map id="gameplay_logic::rules::HitRules::Note" name="gameplay_logic::rules::HitRules::Note">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,93,171,133"/>
-<area shape="rect" id="Node000002" href="$classsounds_1_1Sound.html" title="A sound that can be played." alt="" coords="30,5,146,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="91,44,91,93,85,93,85,44"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,168,171,208"/>
+<area shape="rect" id="Node000002" href="$classsounds_1_1Sound.html" title="A sound that can be played." alt="" coords="30,80,146,105"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="91,119,91,168,85,168,85,119"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="51,5,125,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="91,45,91,80,85,80,85,45"/>
 </map>

@@ -30,7 +30,7 @@ var searchData=
   ['themefamily_2ecpp_27',['ThemeFamily.cpp',['../ThemeFamily_8cpp.html',1,'']]],
   ['themefamily_2eh_28',['ThemeFamily.h',['../ThemeFamily_8h.html',1,'']]],
   ['themename_29',['themename',['../classqml__components_1_1QmlUtilsAttached.html#a7b250c1adffa813120894d1e38f38756',1,'qml_components::QmlUtilsAttached::themeName'],['../classqml__components_1_1QmlUtilsAttached.html#a9321a3687124e195fa23f5dedc1288ff',1,'qml_components::QmlUtilsAttached::themeName() const -&gt; QString']]],
-  ['themes_30',['themes',['../index.html#autotoc_md2',1,'Customizable themes'],['../classqml__components_1_1Themes.html',1,'qml_components::Themes'],['../classRg.html#a7c57b1750045af8b27e3f32df2db6e89',1,'Rg::themes'],['../classqml__components_1_1Themes.html#afc02ff2654275c3d974af1230e791952',1,'qml_components::Themes::Themes()']]],
+  ['themes_30',['themes',['../index.html#autotoc_md2',1,'Customizable themes'],['../classqml__components_1_1Themes.html',1,'qml_components::Themes'],['../classqml__components_1_1Themes.html#afc02ff2654275c3d974af1230e791952',1,'qml_components::Themes::Themes()'],['../classRg.html#a7c57b1750045af8b27e3f32df2db6e89',1,'Rg::themes']]],
   ['themes_2ecpp_31',['Themes.cpp',['../Themes_8cpp.html',1,'']]],
   ['themes_2eh_32',['Themes.h',['../Themes_8h.html',1,'']]],
   ['themevars_33',['themeVars',['../classresource__managers_1_1Vars.html#a4f2369ea34e3fc846bc21a1068d95997',1,'resource_managers::Vars']]],

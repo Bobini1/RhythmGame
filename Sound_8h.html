@@ -79,18 +79,21 @@ $(function() {
   <div class="headertitle"><div class="title">Sound.h File Reference</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><code>#include &lt;spdlog/spdlog.h&gt;</code><br />
+<div class="textblock"><code>#include &lt;QObject&gt;</code><br />
+<code>#include &lt;spdlog/spdlog.h&gt;</code><br />
 <code>#include &lt;miniaudio.h&gt;</code><br />
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for Sound.h:</div>
 <div class="dyncontent">
 <div class="center"><img src="Sound_8h__incl.png" border="0" usemap="#asrc_2sounds_2Sound_8h" alt=""/></div>
 <map name="asrc_2sounds_2Sound_8h" id="asrc_2sounds_2Sound_8h">
-<area shape="rect" title=" " alt="" coords="62,5,209,31"/>
-<area shape="rect" title=" " alt="" coords="5,79,129,104"/>
-<area shape="poly" title=" " alt="" coords="126,33,90,70,86,67,122,29"/>
-<area shape="rect" title=" " alt="" coords="154,79,253,104"/>
-<area shape="poly" title=" " alt="" coords="148,29,185,67,181,70,145,33"/>
+<area shape="rect" title=" " alt="" coords="93,5,240,31"/>
+<area shape="rect" title=" " alt="" coords="5,79,80,104"/>
+<area shape="poly" title=" " alt="" coords="148,33,76,74,73,69,145,28"/>
+<area shape="rect" title=" " alt="" coords="105,79,229,104"/>
+<area shape="poly" title=" " alt="" coords="169,31,169,65,164,65,164,31"/>
+<area shape="rect" title=" " alt="" coords="253,79,352,104"/>
+<area shape="poly" title=" " alt="" coords="190,28,270,70,267,75,187,33"/>
 </map>
 </div>
 </div><div class="textblock"><div class="dynheader">
@@ -98,49 +101,54 @@ This graph shows which files directly or indirectly include this file:</div>
 <div class="dyncontent">
 <div class="center"><img src="Sound_8h__dep__incl.png" border="0" usemap="#asrc_2sounds_2Sound_8hdep" alt=""/></div>
 <map name="asrc_2sounds_2Sound_8hdep" id="asrc_2sounds_2Sound_8hdep">
-<area shape="rect" title=" " alt="" coords="567,5,714,31"/>
-<area shape="rect" href="BmsGameReferee_8h.html" title=" " alt="" coords="199,79,357,119"/>
-<area shape="poly" title=" " alt="" coords="575,36,357,83,356,78,574,31"/>
-<area shape="rect" href="HitRules_8cpp.html" title=" " alt="" coords="381,79,529,119"/>
-<area shape="poly" title=" " alt="" coords="602,38,501,81,499,76,600,33"/>
-<area shape="rect" href="loadBmsSounds_8h.html" title=" " alt="" coords="554,79,727,119"/>
-<area shape="poly" title=" " alt="" coords="643,44,643,79,638,79,638,44"/>
-<area shape="rect" href="AudioEngine_8cpp.html" title=" " alt="" coords="751,86,954,111"/>
-<area shape="poly" title=" " alt="" coords="685,33,823,83,821,88,683,38"/>
-<area shape="rect" href="Sound_8cpp.html" title=" " alt="" coords="978,86,1141,111"/>
-<area shape="poly" title=" " alt="" coords="719,30,966,76,1004,83,1003,89,966,81,718,36"/>
-<area shape="rect" href="BmsGameReferee_8cpp.html" title=" " alt="" coords="37,167,209,207"/>
-<area shape="poly" title=" " alt="" coords="233,128,158,169,156,164,231,123"/>
-<area shape="rect" href="ChartRunner_8h.html" title=" " alt="" coords="233,167,381,207"/>
-<area shape="poly" title=" " alt="" coords="291,131,303,166,298,167,286,133"/>
-<area shape="rect" href="ChartRunner_8cpp.html" title=" " alt="" coords="71,255,219,295"/>
-<area shape="poly" title=" " alt="" coords="261,215,182,257,179,252,258,211"/>
-<area shape="rect" href="CourseRunner_8h.html" title=" " alt="" coords="120,343,268,383"/>
-<area shape="poly" title=" " alt="" coords="290,220,209,344,204,341,285,217"/>
+<area shape="rect" title=" " alt="" coords="639,5,786,31"/>
+<area shape="rect" href="BmsGameReferee_8h.html" title=" " alt="" coords="166,79,323,119"/>
+<area shape="poly" title=" " alt="" coords="626,34,336,81,324,83,323,78,335,76,625,29"/>
+<area shape="rect" href="HitRules_8cpp.html" title=" " alt="" coords="348,79,496,119"/>
+<area shape="poly" title=" " alt="" coords="658,37,493,81,491,76,656,32"/>
+<area shape="rect" href="loadBmsSounds_8h.html" title=" " alt="" coords="521,79,694,119"/>
+<area shape="poly" title=" " alt="" coords="688,41,634,81,631,76,685,37"/>
+<area shape="rect" href="AudioEngine_8cpp.html" title=" " alt="" coords="718,86,921,111"/>
+<area shape="poly" title=" " alt="" coords="741,37,805,84,802,88,738,41"/>
+<area shape="rect" href="AudioPlayer_8h.html" title=" " alt="" coords="945,86,1129,111"/>
+<area shape="poly" title=" " alt="" coords="774,31,990,83,989,89,772,36"/>
+<area shape="rect" href="Sound_8cpp.html" title=" " alt="" coords="1153,86,1315,111"/>
+<area shape="poly" title=" " alt="" coords="800,27,959,48,1141,76,1180,83,1179,89,1140,81,958,54,799,33"/>
+<area shape="rect" href="BmsGameReferee_8cpp.html" title=" " alt="" coords="36,167,208,207"/>
+<area shape="poly" title=" " alt="" coords="208,129,151,169,148,164,205,124"/>
+<area shape="rect" href="ChartRunner_8h.html" title=" " alt="" coords="232,167,380,207"/>
+<area shape="poly" title=" " alt="" coords="268,128,295,165,290,168,264,132"/>
+<area shape="rect" href="ChartRunner_8cpp.html" title=" " alt="" coords="69,255,217,295"/>
+<area shape="poly" title=" " alt="" coords="260,215,180,257,178,252,257,211"/>
+<area shape="rect" href="CourseRunner_8h.html" title=" " alt="" coords="119,343,267,383"/>
+<area shape="poly" title=" " alt="" coords="289,220,207,344,203,341,284,217"/>
 <area shape="rect" href="ChartLoader_8cpp.html" title=" " alt="" coords="229,431,386,471"/>
-<area shape="poly" title=" " alt="" coords="310,220,310,430,305,430,305,220"/>
-<area shape="rect" href="ChartLoader_8h.html" title=" " alt="" coords="345,343,502,383"/>
-<area shape="poly" title=" " alt="" coords="330,217,413,341,408,344,325,220"/>
-<area shape="rect" href="ChartFactory_8h.html" title=" " alt="" coords="395,255,569,295"/>
-<area shape="poly" title=" " alt="" coords="359,210,445,252,443,257,357,215"/>
+<area shape="poly" title=" " alt="" coords="309,220,310,430,305,430,303,220"/>
+<area shape="rect" href="ChartLoader_8h.html" title=" " alt="" coords="343,343,501,383"/>
+<area shape="poly" title=" " alt="" coords="328,217,412,341,407,344,324,220"/>
+<area shape="rect" href="ChartFactory_8h.html" title=" " alt="" coords="394,255,567,295"/>
+<area shape="poly" title=" " alt="" coords="358,210,444,252,441,257,355,215"/>
 <area shape="rect" href="CourseRunner_8cpp.html" title=" " alt="" coords="5,431,153,471"/>
-<area shape="poly" title=" " alt="" coords="159,393,106,433,103,428,156,389"/>
-<area shape="rect" href="main_8cpp.html" title=" " alt="" coords="347,519,452,544"/>
-<area shape="poly" title=" " alt="" coords="195,396,201,434,208,453,219,469,246,492,279,508,314,518,347,524,346,529,313,523,277,513,244,496,215,472,203,455,196,435,190,396"/>
-<area shape="poly" title=" " alt="" coords="231,389,284,428,281,433,228,393"/>
-<area shape="poly" title=" " alt="" coords="421,397,404,519,398,518,416,396"/>
-<area shape="poly" title=" " alt="" coords="388,393,335,433,331,428,385,389"/>
+<area shape="poly" title=" " alt="" coords="158,393,106,433,103,428,155,389"/>
+<area shape="rect" href="main_8cpp.html" title=" " alt="" coords="371,519,476,544"/>
+<area shape="poly" title=" " alt="" coords="194,396,200,434,207,453,219,469,252,495,292,512,333,522,371,527,370,532,332,527,290,517,249,499,215,473,203,455,195,436,189,397"/>
+<area shape="poly" title=" " alt="" coords="231,389,284,428,280,433,227,393"/>
+<area shape="poly" title=" " alt="" coords="425,397,426,519,421,519,420,397"/>
+<area shape="poly" title=" " alt="" coords="387,393,334,433,331,428,384,389"/>
 <area shape="rect" href="Rg_8h.html" title=" " alt="" coords="461,438,633,463"/>
-<area shape="poly" title=" " alt="" coords="464,389,532,436,529,440,461,393"/>
-<area shape="poly" title=" " alt="" coords="515,472,423,521,420,516,512,468"/>
-<area shape="rect" href="Rg_8cpp.html" title=" " alt="" coords="477,519,663,544"/>
-<area shape="poly" title=" " alt="" coords="557,476,569,518,564,519,552,477"/>
-<area shape="poly" title=" " alt="" coords="464,307,439,344,434,341,459,304"/>
-<area shape="rect" href="ChartFactory_8cpp.html" title=" " alt="" coords="526,343,699,383"/>
-<area shape="poly" title=" " alt="" coords="524,300,585,340,582,345,521,304"/>
-<area shape="poly" title=" " alt="" coords="640,132,617,343,612,342,635,132"/>
-<area shape="rect" href="loadBmsSounds_8cpp.html" title=" " alt="" coords="650,167,823,207"/>
-<area shape="poly" title=" " alt="" coords="674,126,717,164,714,168,671,130"/>
+<area shape="poly" title=" " alt="" coords="463,389,532,436,529,440,460,393"/>
+<area shape="poly" title=" " alt="" coords="519,473,443,521,440,516,516,468"/>
+<area shape="rect" href="Rg_8cpp.html" title=" " alt="" coords="501,519,687,544"/>
+<area shape="poly" title=" " alt="" coords="564,474,589,517,585,520,559,477"/>
+<area shape="poly" title=" " alt="" coords="462,307,437,344,433,341,458,304"/>
+<area shape="rect" href="ChartFactory_8cpp.html" title=" " alt="" coords="525,343,698,383"/>
+<area shape="poly" title=" " alt="" coords="522,300,584,340,581,345,519,304"/>
+<area shape="poly" title=" " alt="" coords="610,132,614,342,608,342,605,132"/>
+<area shape="rect" href="loadBmsSounds_8cpp.html" title=" " alt="" coords="645,167,818,207"/>
+<area shape="poly" title=" " alt="" coords="648,124,705,164,702,169,645,129"/>
+<area shape="poly" title=" " alt="" coords="997,119,961,140,928,169,906,194,891,216,883,241,881,273,881,364,875,401,858,425,833,440,802,448,727,456,686,462,645,473,557,501,476,521,475,516,555,496,644,468,685,457,726,451,801,443,831,435,855,421,870,399,875,364,875,273,878,240,887,214,902,191,924,165,958,136,994,115"/>
+<area shape="rect" href="AudioPlayer_8cpp.html" title=" " alt="" coords="937,174,1136,199"/>
+<area shape="poly" title=" " alt="" coords="1039,125,1039,173,1034,173,1034,125"/>
 </map>
 </div>
 </div>

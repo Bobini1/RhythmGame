@@ -8,9 +8,8 @@ var searchData=
   ['isconfiguring_5',['isConfiguring',['../classinput_1_1InputTranslator.html#ada2705f513c5d06d33f4ae625e85fefb',1,'input::InputTranslator']]],
   ['iscoursegauge_6',['isCourseGauge',['../classgameplay__logic_1_1rules_1_1BmsGauge.html#a60b2f02887c1618454f746ca3b36370c',1,'gameplay_logic::rules::BmsGauge']]],
   ['isdp_7',['isDp',['../namespacegameplay__logic.html#a9aaea59dd952a988dd0511c8f4a9d295',1,'gameplay_logic']]],
-  ['ispaused_8',['isPaused',['../classsounds_1_1Sound.html#a9f010a51856f6c56c09c7943310bc2ca',1,'sounds::Sound']]],
+  ['islooping_8',['isLooping',['../classsounds_1_1AudioPlayer.html#a992f809567952a7a4779079c9cbb7309',1,'sounds::AudioPlayer']]],
   ['isplaying_9',['isPlaying',['../classsounds_1_1Sound.html#a7f8c8b0a5fd076655abbdca43fbf48f4',1,'sounds::Sound']]],
   ['ispressed_10',['ispressed',['../classgameplay__logic_1_1ColumnState.html#a10c2c1d1aff36a0037c7583a8cc64a0a',1,'gameplay_logic::ColumnState::isPressed()'],['../classgameplay__logic_1_1Filter.html#a9d901c8d5e49ee98694ca038686b5f28',1,'gameplay_logic::Filter::isPressed()']]],
-  ['isscratch_11',['isScratch',['../namespaceinput.html#a9bee6d871e477c36a0d6443f01f2f32f',1,'input']]],
-  ['isstopped_12',['isStopped',['../classsounds_1_1Sound.html#a778cb7c4cbd186c629dc3d3af0810552',1,'sounds::Sound']]]
+  ['isscratch_11',['isScratch',['../namespaceinput.html#a9bee6d871e477c36a0d6443f01f2f32f',1,'input']]]
 ];

@@ -9,5 +9,7 @@ var searchData=
   ['version_2eh_6',['Version.h',['../Version_8h.html',1,'']]],
   ['veryhard_7',['VeryHard',['../namespacegameplay__logic_1_1rules.html#a702e8cfe431caa24d5bbe3246185f65ba09a6e6b94a8095ccaf18060fe8229f62',1,'gameplay_logic::rules']]],
   ['videosink_8',['videoSink',['../classqml__components_1_1Bga.html#a98ab4d4a48d2627a78e4ef0f13b36ca2',1,'qml_components::Bga']]],
-  ['videosinkchanged_9',['videoSinkChanged',['../classqml__components_1_1Bga.html#ab849791b2008ceac993945f127cb87c9',1,'qml_components::Bga']]]
+  ['videosinkchanged_9',['videoSinkChanged',['../classqml__components_1_1Bga.html#ab849791b2008ceac993945f127cb87c9',1,'qml_components::Bga']]],
+  ['volume_10',['volume',['../classsounds_1_1AudioPlayer.html#ad1b45662a73c13d1b13b8fd39f66e21a',1,'sounds::AudioPlayer']]],
+  ['volumechanged_11',['volumeChanged',['../classsounds_1_1AudioPlayer.html#a897694af871b99dffd6f087a475b0230',1,'sounds::AudioPlayer']]]
 ];

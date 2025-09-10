@@ -80,6 +80,8 @@ $(function() {
 <div class="contents">
 <div class="textblock"><code>#include &quot;<a class="el" href="AudioEngine_8h_source.html">AudioEngine.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="Sound_8h_source.html">Sound.h</a>&quot;</code><br />
+<code>#include &lt;qsettings.h&gt;</code><br />
+<code>#include &lt;ranges&gt;</code><br />
 <code>#include &lt;spdlog/spdlog.h&gt;</code><br />
 <code>#include &lt;stdexcept&gt;</code><br />
 </div><div class="textblock"><div class="dynheader">
@@ -87,19 +89,29 @@ Include dependency graph for AudioEngine.cpp:</div>
 <div class="dyncontent">
 <div class="center"><img src="AudioEngine_8cpp__incl.png" border="0" usemap="#asrc_2sounds_2AudioEngine_8cpp" alt=""/></div>
 <map name="asrc_2sounds_2AudioEngine_8cpp" id="asrc_2sounds_2AudioEngine_8cpp">
-<area shape="rect" title=" " alt="" coords="117,5,320,31"/>
-<area shape="rect" href="AudioEngine_8h.html" title=" " alt="" coords="5,79,120,104"/>
-<area shape="poly" title=" " alt="" coords="195,33,102,75,100,70,193,28"/>
-<area shape="rect" href="Sound_8h.html" title=" " alt="" coords="144,79,219,104"/>
-<area shape="poly" title=" " alt="" coords="215,32,196,68,191,65,210,30"/>
-<area shape="rect" title=" " alt="" coords="179,152,303,177"/>
-<area shape="poly" title=" " alt="" coords="224,31,233,78,241,138,236,139,228,79,219,32"/>
-<area shape="rect" title=" " alt="" coords="294,79,381,104"/>
-<area shape="poly" title=" " alt="" coords="239,28,307,69,305,74,236,33"/>
-<area shape="rect" title=" " alt="" coords="41,152,140,177"/>
-<area shape="poly" title=" " alt="" coords="70,103,84,138,79,140,65,105"/>
-<area shape="poly" title=" " alt="" coords="168,106,118,145,115,141,165,102"/>
-<area shape="poly" title=" " alt="" coords="193,103,225,140,221,143,189,106"/>
+<area shape="rect" title=" " alt="" coords="415,5,618,31"/>
+<area shape="rect" href="AudioEngine_8h.html" title=" " alt="" coords="170,79,285,104"/>
+<area shape="poly" title=" " alt="" coords="471,33,288,78,287,73,470,28"/>
+<area shape="rect" href="Sound_8h.html" title=" " alt="" coords="362,79,437,104"/>
+<area shape="poly" title=" " alt="" coords="499,33,432,74,429,69,496,28"/>
+<area shape="rect" title=" " alt="" coords="461,152,585,177"/>
+<area shape="poly" title=" " alt="" coords="514,32,505,64,502,84,503,104,514,139,509,140,498,104,497,84,499,63,509,30"/>
+<area shape="rect" title=" " alt="" coords="512,79,607,104"/>
+<area shape="poly" title=" " alt="" coords="526,30,548,66,543,68,521,32"/>
+<area shape="rect" title=" " alt="" coords="631,79,698,104"/>
+<area shape="poly" title=" " alt="" coords="542,28,629,70,627,75,539,33"/>
+<area shape="rect" title=" " alt="" coords="723,79,809,104"/>
+<area shape="poly" title=" " alt="" coords="557,28,713,72,712,77,556,33"/>
+<area shape="rect" title=" " alt="" coords="5,152,105,177"/>
+<area shape="poly" title=" " alt="" coords="201,106,97,149,95,144,199,102"/>
+<area shape="rect" title=" " alt="" coords="239,152,338,177"/>
+<area shape="poly" title=" " alt="" coords="239,103,272,140,268,143,235,106"/>
+<area shape="rect" title=" " alt="" coords="130,152,215,177"/>
+<area shape="poly" title=" " alt="" coords="220,106,192,143,188,140,216,103"/>
+<area shape="poly" title=" " alt="" coords="383,106,320,147,317,142,380,102"/>
+<area shape="rect" title=" " alt="" coords="362,152,437,177"/>
+<area shape="poly" title=" " alt="" coords="402,104,402,138,397,138,397,104"/>
+<area shape="poly" title=" " alt="" coords="421,102,493,143,490,147,418,106"/>
 </map>
 </div>
 </div><table class="memberdecls">

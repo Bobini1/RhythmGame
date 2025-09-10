@@ -1,0 +1,8 @@
+<map id="sounds::AudioPlayer" name="sounds::AudioPlayer">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,168,160,193"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="40,5,115,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="81,44,85,168,80,168,76,45"/>
+<area shape="rect" id="Node000003" href="$classsounds_1_1AudioEngine.html" title=" " alt="" coords="99,80,256,105"/>
+<area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="106,37,163,77,159,82,103,41"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="156,117,98,169,94,165,152,113"/>
+</map>
