@@ -23,8 +23,6 @@ jobs:
         run: cmake -P cmake/lint.cmake
 
   coverage:
-    needs: [ lint ]
-
     runs-on: ubuntu-latest
 
     if: github.repository_owner == 'Bobini1'
@@ -68,8 +66,6 @@ jobs:
           files: build/coverage/coverage.info
 
   sanitize:
-    needs: [ lint ]
-
     env:
       CXX: clang++
       CC: clang
@@ -113,8 +109,6 @@ jobs:
           ctest --output-on-failure -j 2
 
   test:
-    needs: [ lint ]
-
     strategy:
       matrix:
         os: [ macos-latest, ubuntu-latest, windows-latest ]
@@ -186,8 +180,6 @@ jobs:
           fi
 
   deploy:
-    needs: [ sanitize, test ]
-
     strategy:
       matrix:
         os: [ macos-latest, ubuntu-latest, windows-latest ]
