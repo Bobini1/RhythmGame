@@ -10,6 +10,7 @@
 #include "resource_managers/loadBmsSounds.h"
 #include "../findTestAssetsFolder.h"
 #include "charts/ReadBmsFile.h"
+#include "sounds/AudioEngine.h"
 
 #include <support/UtfStringToPath.h>
 
@@ -32,9 +33,10 @@ TEST_CASE("Sounds are loaded from a folder according to the bms file",
     for (auto& wav : tags.wavs) {
         wavs.emplace(wav.first, support::utfStringToPath(wav.second));
     }
-    auto sounds = charts::loadBmsSounds(wavs, folder);
+    auto engine = sounds::AudioEngine{};
+    auto sounds = charts::loadBmsSounds(&engine, wavs, folder);
     REQUIRE(sounds.size() == 2);
-    REQUIRE(sounds.at(1).getBuffer() == sounds.at(2).getBuffer());
+    REQUIRE(sounds.at(1)->getBuffer() == sounds.at(2)->getBuffer());
 }
 
 TEST_CASE("Even when the extension says wav, allow loading other extensions",
@@ -62,6 +64,7 @@ TEST_CASE("Even when the extension says wav, allow loading other extensions",
     for (auto& wav : tags.wavs) {
         wavs.emplace(wav.first, support::utfStringToPath(wav.second));
     }
-    auto sounds = charts::loadBmsSounds(wavs, folder);
+    auto engine = sounds::AudioEngine{};
+    auto sounds = charts::loadBmsSounds(&engine, wavs, folder);
     REQUIRE(sounds.size() == 4);
 }

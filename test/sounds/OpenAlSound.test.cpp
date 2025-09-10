@@ -9,10 +9,11 @@
 
 TEST_CASE("OpenAlSound supports formats", "[sounds][FFmpegOpenAlSound]")
 {
+    auto engine = sounds::AudioEngine{};
     for (const auto soundFolder =
            findTestAssetsFolder() / "supportedSoundFormats";
          const auto& entry : std::filesystem::directory_iterator(soundFolder)) {
         auto filename = entry.path().string();
-        auto sound = sounds::OpenALSoundBuffer(filename.c_str());
+        auto sound = sounds::SoundBuffer(&engine, filename.c_str());
     }
 }
