@@ -76,9 +76,7 @@ find_package(magic_enum REQUIRED)
 find_package(Stb REQUIRED)
 
 if (WIN32)
-    set(utf8Manifest staticAssets/utf8.manifest
-            src/sounds/AudioPlayer.cpp
-            src/sounds/AudioPlayer.h)
+    set(utf8Manifest staticAssets/utf8.manifest)
 endif ()
 
 # ---- Load library ----
@@ -236,6 +234,8 @@ qt_add_library(RhythmGame_lib OBJECT ${utf8Manifest}
         src/sounds/AudioEngine.cpp
         src/sounds/AudioEngine.h
         src/sounds/MiniaudioImpl.cpp
+        src/sounds/AudioPlayer.cpp
+        src/sounds/AudioPlayer.h
 )
 # define version macros
 target_compile_definitions(RhythmGame_lib PUBLIC
