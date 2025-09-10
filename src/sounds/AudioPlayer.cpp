@@ -63,6 +63,7 @@ AudioPlayer::setSource(const QString& value)
     } else {
         sound = std::make_unique<ma_sound>();
     }
+    emit sourceChanged();
     if (ma_sound_init_from_file_w(engine->getEngine(),
                               value.toStdWString().c_str(),
                               MA_SOUND_FLAG_NO_PITCH |
@@ -72,10 +73,10 @@ AudioPlayer::setSource(const QString& value)
                               sound.get()) != MA_SUCCESS) {
         spdlog::error("Failed to load sound: {}", value.toStdString());
         sound.reset();
+        return;
     }
     ma_sound_set_looping(sound.get(), looping ? MA_TRUE : MA_FALSE);
     ma_sound_set_volume(sound.get(), volume);
-    emit sourceChanged();
 }
 void
 AudioPlayer::resetSource()
