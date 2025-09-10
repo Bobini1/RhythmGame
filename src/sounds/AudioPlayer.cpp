@@ -14,7 +14,7 @@ AudioPlayer::onDeviceChanged()
         return;
     }
     auto isPlayingNow = isPlaying();
-    auto cursor = size_t{};
+    auto cursor = ma_uint64{};
     auto currentPcmFrame = ma_sound_get_cursor_in_pcm_frames(sound.get(), &cursor);
     ma_sound_uninit(sound.get());
     if (ma_sound_init_from_file_w(engine->getEngine(),
