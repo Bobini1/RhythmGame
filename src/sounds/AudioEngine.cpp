@@ -218,6 +218,9 @@ AudioEngine::AudioEngine()
         throw std::runtime_error("Failed to get enabled backends.");
     }
     backends.resize(count);
+    backends.erase(
+      std::ranges::remove(backends, ma_backend_custom).begin(),
+      backends.end());
     for (const auto backend : backends) {
         backendNames.append(ma_get_backend_name(backend));
     }
