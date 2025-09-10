@@ -142,8 +142,7 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
                                        availableThemes,
                                        dataFolder / "profiles",
                                        avatarPath };
-
-        auto inputTranslator = input::InputTranslator{ &db };
+        
         QObject::connect(&gamepadManager,
                          &input::GamepadManager::axisMoved,
                          &inputTranslator,
