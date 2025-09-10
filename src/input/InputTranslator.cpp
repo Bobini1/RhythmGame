@@ -1093,9 +1093,6 @@ InputTranslator::eventFilter(QObject* watched, QEvent* event)
             return false;
         }
         auto time = key->timestamp();
-        if (!useSystemTimestamps) {
-            time = getTime();
-        }
 
         const auto keyLookup = Key{ QVariant::fromValue(nullptr),
                                     Key::Device::Keyboard,
