@@ -5,8 +5,34 @@ import QtQuick 2.0
 Image {
     id: keymodeButton
 
-    property int current: 0
+    property int current: {
+        let savedKeymode = themeVars.keymodeFilter ? parseInt(themeVars.keymodeFilter) : null;
+        let index = options.indexOf(savedKeymode);
+        return index === -1 ? 0 : index;
+    }
     property var options: Rg.profileList.battleActive ? [7] : [7, 14, null]
+    required property var themeVars
+
+    Binding {
+        delayed: true
+        target: themeVars
+        property: "keymodeFilter"
+        when: options[current] !== undefined
+        value: options[current] === null ? "" : options[current].toString()
+    }
+
+    Binding {
+        keymodeButton.current: {
+            let defaultKeymode = Rg.profileList.battleActive ? 7 : null;
+            let savedKeymode = parseInt(themeVars.keymodeFilter);
+            if (isNaN(savedKeymode)) {
+                savedKeymode = defaultKeymode;
+            }
+            let index = options.indexOf(savedKeymode);
+            return index === -1 ? 0 : index;
+        }
+    }
+
     onOptionsChanged: {
         if (current >= options.length) {
             current = 0;

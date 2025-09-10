@@ -294,6 +294,7 @@ FocusScope {
                 anchors.leftMargin: 900
                 anchors.top: parent.top
                 anchors.topMargin: 20
+                themeVars: Rg.profileList.mainProfile.vars.themeVars.select[QmlUtils.themeName]
             }
             SortButton {
                 anchors.left: keymodeButton.left
