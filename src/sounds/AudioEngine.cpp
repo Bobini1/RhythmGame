@@ -86,7 +86,7 @@ AudioEngine::setDeviceImpl(const QString& deviceName)
     deviceConfig.playback.channels = 2;
     deviceConfig.playback.pDeviceID = found ? &deviceId : nullptr;
     deviceConfig.sampleRate = sampleRate;
-    deviceConfig.periodSizeInFrames = 256;
+    deviceConfig.periodSizeInFrames = 128;
     deviceConfig.noFixedSizedCallback = MA_TRUE;
     deviceConfig.wasapi.noAutoStreamRouting = static_cast<ma_bool8>(!deviceName.isEmpty());
     deviceConfig.wasapi.usage = ma_wasapi_usage_games;
