@@ -9,12 +9,32 @@
 #include "AudioEngine.h"
 #include "sounds/SoundBuffer.h"
 namespace sounds {
+void
+Sound::onDeviceChanged()
+{
+    // get timepoint of sound
+    auto cursor = ma_uint64{};
+    const auto currentFrame = ma_sound_get_cursor_in_pcm_frames(sound.get(), &cursor);
+    const auto isPlaying = ma_sound_is_playing(sound.get());
+    const auto volume = ma_sound_get_volume(sound.get());
+    ma_sound_uninit(sound.get());
+    ma_sound_init_from_data_source(engine->getEngine(),
+                                   audioBuffer.get(),
+                                   MA_SOUND_FLAG_DECODE | MA_SOUND_FLAG_WAIT_INIT | MA_SOUND_FLAG_NO_PITCH | MA_SOUND_FLAG_NO_SPATIALIZATION,
+                                   nullptr,
+                                   sound.get());
+    ma_sound_seek_to_pcm_frame(sound.get(), currentFrame);
+    ma_sound_set_volume(sound.get(), volume);
+    if (isPlaying) {
+        ma_sound_start(sound.get());
+    }
+}
 Sound::Sound(AudioEngine* engine, std::shared_ptr<const SoundBuffer> buffer)
   : engine(engine)
   , buffer(std::move(buffer))
 {
 
-    auto audioBufferConfig =
+    const auto audioBufferConfig =
       ma_audio_buffer_config_init(ma_format_f32,
                                   2,
                                   this->buffer->getFrames(),
@@ -27,6 +47,11 @@ Sound::Sound(AudioEngine* engine, std::shared_ptr<const SoundBuffer> buffer)
                                    MA_SOUND_FLAG_DECODE | MA_SOUND_FLAG_WAIT_INIT | MA_SOUND_FLAG_NO_PITCH | MA_SOUND_FLAG_NO_SPATIALIZATION,
                                    nullptr,
                                    sound.get());
+
+    connect(engine,
+            &AudioEngine::changeDeviceRequested,
+            this,
+            &Sound::onDeviceChanged);
 }
 
 Sound::~Sound()

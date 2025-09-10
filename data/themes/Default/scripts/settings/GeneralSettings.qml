@@ -276,6 +276,42 @@ Item {
                         right: parent.right
                     }
                 }
+                Separator {
+                }
+                Choice {
+                    destination: Rg.audioEngine
+                    id_: "backend"
+                    name: qsTr("Audio Backend")
+                    choices: Rg.audioEngine.backendNames
+                    default_: Rg.audioEngine.backendNames[0]
+
+                    anchors {
+                        left: parent.left
+                        right: parent.right
+                    }
+                }
+                Choice {
+                    destination: Rg.audioEngine
+                    id_: "device"
+                    name: qsTr("Audio Device")
+                    choices: {
+                        let choices = Rg.audioEngine.deviceNames.slice();
+                        choices.unshift("");
+                        return choices;
+                    }
+                    property string defaultDeviceName: qsTr("Default")
+                    displayStrings: {
+                        let choices = Rg.audioEngine.deviceNames.slice();
+                        choices.unshift(defaultDeviceName);
+                        return choices;
+                    }
+                    default_: ""
+
+                    anchors {
+                        left: parent.left
+                        right: parent.right
+                    }
+                }
             }
         }
     }

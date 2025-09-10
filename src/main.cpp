@@ -37,6 +37,7 @@
 #include "support/UtfStringToPath.h"
 #include "gameplay_logic/CourseRunner.h"
 #include "sounds/AudioEngine.h"
+#include "sounds/AudioPlayer.h"
 #include "sounds/SoundBuffer.h"
 #include "support/QtSink.h"
 
@@ -288,7 +289,8 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
                       &gamepadManager,
                       &profileList,
                       &tables,
-                      &languages };
+                      &languages,
+                      &audioEngine };
 
         Rg::instance = &rg;
 
@@ -399,6 +401,8 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
           0,
           "Input",
           "Input is only accessible as an attached property");
+        sounds::AudioPlayer::engine = &audioEngine;
+        qmlRegisterType<sounds::AudioPlayer>("RhythmGameQml", 1, 0, "AudioPlayer");
 
         qml_components::InputAttached::inputSignalProvider = &inputTranslator;
         qml_components::QmlUtilsAttached::getThemeNameForRootFile =

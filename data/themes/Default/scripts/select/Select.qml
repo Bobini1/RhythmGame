@@ -185,27 +185,13 @@ FocusScope {
                     sceneStack.pop();
                 }
             }
-            MediaPlayer {
+            AudioPlayer {
                 id: playMusic
 
                 property bool waitingForStop: false
 
-                loops: MediaPlayer.Infinite
-                source: {
-                    let base = songList.current instanceof ChartData ? songList.previewFiles[songList.current.chartDirectory] || "" : "";
-                    if (base === "") {
-                        return base;
-                    }
-                    if (base[0] !== '/') {
-                        base = '/' + base;
-                    }
-                    return "file://" + base;
-                }
-
-                audioOutput: AudioOutput {
-                    id: audioOutput
-
-                }
+                looping: true
+                source: songList.current instanceof ChartData ? songList.previewFiles[songList.current.chartDirectory] : undefined
 
                 onSourceChanged: {
                     playMusic.stop();

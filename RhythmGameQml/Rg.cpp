@@ -16,6 +16,7 @@ Rg::Rg(qml_components::ProgramSettings* programSettings,
        qml_components::ProfileList* profileList,
        resource_managers::Tables* tables,
        resource_managers::Languages* languages,
+       sounds::AudioEngine* audioEngine,
        QObject* parent)
   : QObject(parent)
   , programSettings(programSettings)
@@ -30,6 +31,7 @@ Rg::Rg(qml_components::ProgramSettings* programSettings,
   , profileList(profileList)
   , tables(tables)
   , languages(languages)
+  , audioEngine(audioEngine)
 {
 }
 Rg*

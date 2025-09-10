@@ -7,7 +7,6 @@
 #include <spdlog/spdlog.h>
 #include <sndfile.hh>
 #include <QGuiApplication>
-#include <miniaudio.h>
 
 sounds::SoundBuffer::SoundBuffer(AudioEngine* engine,
                                  const std::filesystem::path& filename)

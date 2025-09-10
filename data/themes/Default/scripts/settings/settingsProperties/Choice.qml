@@ -43,7 +43,14 @@ RowLayout {
         }
 
         onActivated: (_) => {
-            destination[choice.id_] = choice.assignIndex ? currentIndex : choice.choices[currentIndex];
+            let old = choice.destination[choice.id_];
+            choice.destination[choice.id_] = choice.assignIndex ? currentIndex : choice.choices[currentIndex];
+            if (old === choice.destination[choice.id_]) {
+                choiceComboBox.currentIndex = Helpers.getIndex(
+                    choice.assignIndex ? Object.keys(choice.choices) : choice.choices,
+                    choice.destination[choice.id_],
+                    choiceComboBox.currentIndex) || 0;
+            }
         }
     }
 

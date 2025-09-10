@@ -73,8 +73,12 @@ find_package(SDL2 REQUIRED)
 
 find_package(magic_enum REQUIRED)
 
+find_package(Stb REQUIRED)
+
 if (WIN32)
-    set(utf8Manifest staticAssets/utf8.manifest)
+    set(utf8Manifest staticAssets/utf8.manifest
+            src/sounds/AudioPlayer.cpp
+            src/sounds/AudioPlayer.h)
 endif ()
 
 # ---- Load library ----
@@ -247,7 +251,7 @@ find_package(Threads REQUIRED)
 
 target_link_libraries(RhythmGame_lib PUBLIC $<IF:$<TARGET_EXISTS:mimalloc-static>,mimalloc-static,mimalloc>)
 target_link_libraries(RhythmGame_lib PUBLIC SDL2::SDL2 Qt6::Quick Qt6::OpenGL Qt6::Concurrent Qt6::Multimedia Qt6::InterfaceFramework Threads::Threads Boost::headers SQLiteCpp spdlog::spdlog foonathan::lexy magic_enum::magic_enum zstd::libzstd_static SndFile::sndfile LibXml2::LibXml2)
-target_include_directories(RhythmGame_lib PUBLIC ${MINIAUDIO_INCLUDE_DIRS})
+target_include_directories(RhythmGame_lib PUBLIC ${MINIAUDIO_INCLUDE_DIRS} ${Stb_INCLUDE_DIR})
 
 if (WIN32)
     # <------------ wil (Windows API helpers) --------------->
