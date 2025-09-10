@@ -132,8 +132,8 @@ AudioPlayer::setVolume(float value)
     volume = value;
     if (sound) {
         ma_sound_set_volume(sound.get(), value);
-        emit volumeChanged();
     }
+    emit volumeChanged();
 }
 auto
 AudioPlayer::isLooping() const -> bool
@@ -149,7 +149,7 @@ AudioPlayer::setLooping(bool value)
     looping = value;
     if (sound) {
         ma_sound_set_looping(sound.get(), value ? MA_TRUE : MA_FALSE);
-        emit loopingChanged();
     }
+    emit loopingChanged();
 }
 } // namespace sounds
