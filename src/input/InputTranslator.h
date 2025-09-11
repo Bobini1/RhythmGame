@@ -278,7 +278,7 @@ class InputTranslator final : public QObject
     auto select2() const -> bool;
     auto getAnalogAxisConfig1() -> AnalogAxisConfig*;
     auto getAnalogAxisConfig2() -> AnalogAxisConfig*;
-    auto eventFilter(QObject* watched, QEvent* event) -> bool override;
+    void eventFilter(std::chrono::milliseconds timePoint, QEvent* event);
     Q_INVOKABLE static QString scancodeToString(int virtualKey);
 
   signals:

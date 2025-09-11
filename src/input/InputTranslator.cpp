@@ -1084,46 +1084,43 @@ InputTranslator::getAnalogAxisConfig2() -> AnalogAxisConfig*
     return conf;
 }
 
-bool
-InputTranslator::eventFilter(QObject* watched, QEvent* event)
+void
+InputTranslator::eventFilter(std::chrono::milliseconds timePoint, QEvent* event)
 {
     if (event->type() == QEvent::KeyPress && !event->isAccepted()) {
         const auto* const key = static_cast<QKeyEvent*>(event);
         if (key->isAutoRepeat()) {
-            return false;
+            return;
         }
-        auto time = key->timestamp();
 
         const auto keyLookup = Key{ QVariant::fromValue(nullptr),
                                     Key::Device::Keyboard,
                                     key->nativeScanCode(),
                                     Key::Direction::None };
         if (isConfiguring()) {
-            unpressAndUnbind(keyLookup, key->timestamp());
+            unpressAndUnbind(keyLookup, timePoint.count());
             config[keyLookup] = *configuredButton;
             emit keyConfigModified();
             setConfiguredButton({});
         } else {
             if (const auto found = config.find(keyLookup);
                 found != config.end()) {
-                pressButton(*found, time);
+                pressButton(*found, timePoint.count());
             }
         }
     } else if (event->type() == QEvent::KeyRelease && !event->isAccepted()) {
         const auto* const key = static_cast<QKeyEvent*>(event);
         if (key->isAutoRepeat()) {
-            return false;
+            return;
         }
-        const auto time = key->timestamp();
         const auto keyLookup = Key{ QVariant::fromValue(nullptr),
                                     Key::Device::Keyboard,
                                     key->nativeScanCode(),
                                     Key::Direction::None };
         if (const auto found = config.find(keyLookup); found != config.end()) {
-            releaseButton(*found, time);
+            releaseButton(*found, timePoint.count());
         }
     }
-    return false;
 }
 QString
 InputTranslator::scancodeToString(const int scanCode)

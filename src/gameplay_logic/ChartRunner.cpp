@@ -275,7 +275,8 @@ Player::update(std::chrono::nanoseconds offsetFromStart, bool lastUpdate)
                       : 0.0));
         auto bpmChange = referee->getBpm(offsetFromStart + visualOffset);
         setBpm(bpmChange.second);
-        setPosition(referee->getPosition(bpmChange, offsetFromStart + visualOffset));
+        setPosition(
+          referee->getPosition(bpmChange, offsetFromStart + visualOffset));
         if (lastUpdate) {
             for (auto i = 0; i < charts::BmsNotesData::columnNumber; ++i) {
                 referee->passReleased(
