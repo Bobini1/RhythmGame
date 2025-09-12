@@ -75,13 +75,9 @@ find_package(magic_enum REQUIRED)
 
 find_package(Stb REQUIRED)
 
-if (WIN32)
-    set(utf8Manifest staticAssets/utf8.manifest)
-endif ()
-
 # ---- Load library ----
 
-qt_add_library(RhythmGame_lib OBJECT ${utf8Manifest}
+qt_add_library(RhythmGame_lib OBJECT
         src/db/SqliteCppDb.cpp
         src/db/SqliteCppDb.h
         src/charts/ReadBmsFile.cpp
@@ -237,6 +233,10 @@ qt_add_library(RhythmGame_lib OBJECT ${utf8Manifest}
         src/sounds/AudioPlayer.cpp
         src/sounds/AudioPlayer.h
 )
+
+if (WIN32)
+    target_sources(RhythmGame_lib INTERFACE staticAssets/utf8.manifest)
+endif ()
 # define version macros
 target_compile_definitions(RhythmGame_lib PUBLIC
         RHYTHMGAME_VERSION_MAJOR=${PROJECT_VERSION_MAJOR}
