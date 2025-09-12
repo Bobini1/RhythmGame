@@ -129,7 +129,7 @@ jobs:
           /usr/bin/clang-tidy-14 140
 
       - name: Setup MultiToolTask
-        if: matrix.os == 'windows-2022'
+        if: matrix.os == 'windows-latest'
         run: |
           Add-Content "$env:GITHUB_ENV" 'UseMultiToolTask=true'
           Add-Content "$env:GITHUB_ENV" 'EnforceProcessCountAcrossBuilds=true'
