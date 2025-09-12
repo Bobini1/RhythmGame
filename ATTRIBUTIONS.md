@@ -101,16 +101,6 @@ Copyright © Jonathan Müller
 
 https://github.com/foonathan/lexy/blob/main/LICENSE
 
-### OpenAL-Soft
-
-BSD 3-Clause license (BSD-3-Clause)
-
-Copyright © 2015, Archontis Politis  
-Copyright © 2019, Anis A. Hireche  
-Copyright © 2019, Christopher Robinson
-
-https://github.com/kcat/openal-soft/blob/master/BSD-3Clause
-
 ### Qt
 
 The GNU Lesser General Public License Version 3 (LGPL-3.0)
