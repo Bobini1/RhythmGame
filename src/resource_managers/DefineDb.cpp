@@ -108,5 +108,6 @@ defineDb(db::SqliteCppDb& db)
                ");");
 
     db.execute("PRAGMA optimize;");
+    db.execute("VACUUM");
 }
 } // namespace resource_managers
