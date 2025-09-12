@@ -24,10 +24,10 @@ CustomNotifyApp::notify(QObject* receiver, QEvent* event)
     if (inputTranslator != nullptr && (event->type() == QEvent::KeyPress ||
                                        event->type() == QEvent::KeyRelease)) {
 #ifndef _WIN32
-        auto* event = static_cast<QKeyEvent*>(event);
-        now = std::chrono::milliseconds{ event->timestamp() };
+        auto* ev = static_cast<QKeyEvent*>(event);
+        auto now = std::chrono::milliseconds{ ev->timestamp() };
 #endif
-        inputTranslator->eventFilter(now, event);
+        inputTranslator->eventFilter(now, ev);
     }
     return notifyResult;
 }
