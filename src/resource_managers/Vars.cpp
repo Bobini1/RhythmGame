@@ -642,10 +642,9 @@ createChoiceProperty(QHash<QString, QVariant>& screenVars,
     }
     for (const auto& choice : object["choices"].toArray()) {
         if (!choice.isObject()) {
-            throw support::Exception(
-              std::format("a choice of property of type "
-                          "choice is not an object: {}",
-                          jsonValueToString(choice)));
+            throw support::Exception(std::format("a choice of property of type "
+                                                 "choice is not an object: {}",
+                                                 jsonValueToString(choice)));
         }
         if (!choice.toObject()["value"].isString()) {
             throw support::Exception(
@@ -662,10 +661,10 @@ createChoiceProperty(QHash<QString, QVariant>& screenVars,
         // check if choice names are strings
         for (const auto& value : choice.toObject()["name"].toObject()) {
             if (!value.isString()) {
-                throw support::Exception(
-                  std::format("a choice name of property of type choice is not a "
-                              "string: {}",
-                              jsonValueToString(choice)));
+                throw support::Exception(std::format(
+                  "a choice name of property of type choice is not a "
+                  "string: {}",
+                  jsonValueToString(choice)));
             }
         }
     }
@@ -881,7 +880,8 @@ populateScreenVars(const std::filesystem::path& themePath,
         throw support::Exception(std::format(
           "Settings file has no items array: {}", settingsPath.string()));
     }
-    populateScreenVarsRecursive(result, themePath, contents.object()["items"].toArray());
+    populateScreenVarsRecursive(
+      result, themePath, contents.object()["items"].toArray());
     return result;
 }
 

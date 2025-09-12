@@ -21,7 +21,6 @@ namespace llfio = LLFIO_V2_NAMESPACE;
 #endif
 #include <spdlog/spdlog.h>
 
-
 namespace resource_managers {
 SongDbScanner::SongDbScanner(db::SqliteCppDb* db)
   : db(db)
@@ -99,14 +98,17 @@ loadChart(QThreadPool& threadPool,
             // ChartDataFactory::makeNotes(chartComponents.notesData.notes,
             //                             chartComponents.notesData.bpmChanges,
             //                             chartComponents.notesData.barLines)
-            //   ->save(db, chartComponents.chartData->getSha256().toStdString());
+            //   ->save(db,
+            //   chartComponents.chartData->getSha256().toStdString());
         } catch (const std::exception& e) {
             try {
-                spdlog::error(
-                  "Failed to load chart data for {}: {}", path.string(), e.what());
+                spdlog::error("Failed to load chart data for {}: {}",
+                              path.string(),
+                              e.what());
             } catch (const std::exception& e2) {
-                spdlog::error(
-                  "Failed to load chart data for ({}): {}", e2.what(), e.what());
+                spdlog::error("Failed to load chart data for ({}): {}",
+                              e2.what(),
+                              e.what());
             }
         }
     });

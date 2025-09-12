@@ -250,8 +250,7 @@ ScanningQueue::performTask()
     folder->updateStatus(RootSongFolder::Status::InProgress);
     updateStatus.reset();
     updateStatus.bind(":dir", folder->getName().toStdString());
-    updateStatus.bind(":status",
-                      static_cast<int>(folder->getStatus()));
+    updateStatus.bind(":status", static_cast<int>(folder->getStatus()));
     updateStatus.execute();
     scanImpl(folder->getName());
 }

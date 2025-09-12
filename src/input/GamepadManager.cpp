@@ -29,7 +29,8 @@ GamepadManager::loop()
     while (SDL_PollEvent(&event)) {
         auto now = std::chrono::duration_cast<std::chrono::milliseconds>(
           std::chrono::steady_clock::now().time_since_epoch());
-        auto startTime = (now - std::chrono::milliseconds{ SDL_GetTicks64() }).count();
+        auto startTime =
+          (now - std::chrono::milliseconds{ SDL_GetTicks64() }).count();
         if (event.type == SDL_JOYAXISMOTION) {
             const auto axisEvent = event.jaxis;
             const double value =
@@ -98,7 +99,7 @@ GamepadManager::addController(int index)
 }
 
 auto
-Gamepad::operator==(const Gamepad& gamepad) const-> bool
+Gamepad::operator==(const Gamepad& gamepad) const -> bool
 {
     return std::tie(name, guid, index) ==
            std::tie(gamepad.name, gamepad.guid, gamepad.index);

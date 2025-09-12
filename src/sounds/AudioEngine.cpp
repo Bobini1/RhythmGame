@@ -15,7 +15,11 @@
 namespace sounds {
 namespace {
 
-void dataCallback(ma_device* pDevice, void* pFramesOut, const void* pFramesIn, ma_uint32 frameCount)
+void
+dataCallback(ma_device* pDevice,
+             void* pFramesOut,
+             const void* pFramesIn,
+             ma_uint32 frameCount)
 {
     const auto pEngine = static_cast<ma_engine*>(pDevice->pUserData);
     ma_engine_read_pcm_frames(pEngine, pFramesOut, frameCount, NULL);
@@ -88,7 +92,8 @@ AudioEngine::setDeviceImpl(const QString& deviceName)
     deviceConfig.sampleRate = sampleRate;
     deviceConfig.periodSizeInFrames = 128;
     deviceConfig.noFixedSizedCallback = MA_TRUE;
-    deviceConfig.wasapi.noAutoStreamRouting = static_cast<ma_bool8>(!deviceName.isEmpty());
+    deviceConfig.wasapi.noAutoStreamRouting =
+      static_cast<ma_bool8>(!deviceName.isEmpty());
     deviceConfig.wasapi.usage = ma_wasapi_usage_games;
     deviceConfig.performanceProfile = ma_performance_profile_low_latency;
     deviceConfig.dataCallback = dataCallback;
@@ -218,9 +223,8 @@ AudioEngine::AudioEngine()
         throw std::runtime_error("Failed to get enabled backends.");
     }
     backends.resize(count);
-    backends.erase(
-      std::ranges::remove(backends, ma_backend_custom).begin(),
-      backends.end());
+    backends.erase(std::ranges::remove(backends, ma_backend_custom).begin(),
+                   backends.end());
     for (const auto backend : backends) {
         backendNames.append(ma_get_backend_name(backend));
     }
@@ -297,7 +301,8 @@ AudioEngine::getDevice() const -> QString
 void
 AudioEngine::setDevice(const QString& device)
 {
-    if ((deviceNames.contains(device) || device.isEmpty()) && device != currentDevice) {
+    if ((deviceNames.contains(device) || device.isEmpty()) &&
+        device != currentDevice) {
         auto oldDevice = currentDevice;
         auto tempDevice = std::move(this->device);
         auto tempResourceManager = std::move(resourceManager);

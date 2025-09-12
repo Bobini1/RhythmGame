@@ -160,10 +160,9 @@ shuffleAllNotes(std::span<std::vector<charts::BmsNotesData::Note>> arr,
 }
 
 auto
-generatePermutation(
-  std::span<std::vector<charts::BmsNotesData::Note>>& notes,
-  const resource_managers::NoteOrderAlgorithm algorithm,
-  const uint64_t randomSeed) -> ShuffleResult
+generatePermutation(std::span<std::vector<charts::BmsNotesData::Note>>& notes,
+                    const resource_managers::NoteOrderAlgorithm algorithm,
+                    const uint64_t randomSeed) -> ShuffleResult
 {
     using RandomGenerator = std::mt19937_64;
     auto columns = getColumsIota(notes.size());
@@ -183,9 +182,7 @@ generatePermutation(
             // rotate all but last column
             std::rotate(
               columns.begin(), columns.begin() + shift, columns.end() - 1);
-            std::rotate(notes.begin(),
-                        notes.begin() + shift,
-                        notes.end() - 1);
+            std::rotate(notes.begin(), notes.begin() + shift, notes.end() - 1);
             // also mirror sometimes
             if (std::uniform_int_distribution(0, 1)(randomGenerator) != 0) {
                 std::reverse(columns.begin(), columns.end() - 1);
@@ -199,9 +196,8 @@ generatePermutation(
               std::span(columns).subspan(0, columns.size() - 1),
               randomGenerator);
             randomGenerator.seed(randomSeed);
-            fisherYatesShuffle(
-              std::span(notes).subspan(0, notes.size() - 1),
-              randomGenerator);
+            fisherYatesShuffle(std::span(notes).subspan(0, notes.size() - 1),
+                               randomGenerator);
             return { randomSeed, columns };
         }
         case resource_managers::NoteOrderAlgorithm::RandomPlus: {
@@ -214,17 +210,15 @@ generatePermutation(
         case resource_managers::NoteOrderAlgorithm::SRandom: {
             auto randomGenerator = RandomGenerator{ randomSeed };
             static constexpr auto preferredNoteDistance = 40ms;
-            shuffleAllNotes(
-              std::span(notes).subspan(0, notes.size() - 1),
-              preferredNoteDistance,
-              randomGenerator);
+            shuffleAllNotes(std::span(notes).subspan(0, notes.size() - 1),
+                            preferredNoteDistance,
+                            randomGenerator);
             return { randomSeed, columns };
         }
         case resource_managers::NoteOrderAlgorithm::SRandomPlus: {
             auto randomGenerator = RandomGenerator{ randomSeed };
             static constexpr auto preferredNoteDistance = 40ms;
-            shuffleAllNotes(
-              notes, preferredNoteDistance, randomGenerator);
+            shuffleAllNotes(notes, preferredNoteDistance, randomGenerator);
             return { randomSeed, columns };
         }
     }

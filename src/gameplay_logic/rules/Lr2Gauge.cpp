@@ -12,8 +12,7 @@ gameplay_logic::rules::Lr2Gauge::addHit(
   Judgement judgement)
 {
     auto currentGauge = getGauge();
-    if (permanentDeath &&
-        currentGauge == 0.0) {
+    if (permanentDeath && currentGauge == 0.0) {
         return;
     }
     const auto judgementValue = judgementValueFactory(currentGauge, judgement);
@@ -75,31 +74,31 @@ gameplay_logic::rules::Lr2Gauge::getGauges(double total, int noteCount)
       });
     gauges.push_back(std::move(fcGauge));
 
-    auto exhardGauge =
-      std::make_unique<Lr2Gauge>("EXHARD",
-                                 100,
-                                 100,
-                                 0,
-                                 true,
-                                 false,
-                                 [](double currentGauge, Judgement judgement) {
-                                     switch (judgement) {
-                                         case Judgement::Perfect:
-                                             return 0.1;
-                                         case Judgement::Great:
-                                             return 0.1;
-                                         case Judgement::Good:
-                                             return 0.05;
-                                         case Judgement::Bad:
-                                             return (currentGauge > 32) ? -12.0 : -7.2;
-                                         case Judgement::Poor:
-                                             return (currentGauge > 32) ? -20.0 : -12.0;
-                                         case Judgement::EmptyPoor:
-                                             return (currentGauge > 32) ? -2.0 : -1.2;
-                                         default:
-                                             return 0.0;
-                                     }
-                                 });
+    auto exhardGauge = std::make_unique<Lr2Gauge>(
+      "EXHARD",
+      100,
+      100,
+      0,
+      true,
+      false,
+      [](double currentGauge, Judgement judgement) {
+          switch (judgement) {
+              case Judgement::Perfect:
+                  return 0.1;
+              case Judgement::Great:
+                  return 0.1;
+              case Judgement::Good:
+                  return 0.05;
+              case Judgement::Bad:
+                  return (currentGauge > 32) ? -12.0 : -7.2;
+              case Judgement::Poor:
+                  return (currentGauge > 32) ? -20.0 : -12.0;
+              case Judgement::EmptyPoor:
+                  return (currentGauge > 32) ? -2.0 : -1.2;
+              default:
+                  return 0.0;
+          }
+      });
     gauges.push_back(std::move(exhardGauge));
 
     auto hardGauge = std::make_unique<Lr2Gauge>(

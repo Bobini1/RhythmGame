@@ -7,8 +7,7 @@
 #include <utility>
 
 namespace qml_components {
-ProgramSettings::ProgramSettings(QString avatarFolder,
-                                 QObject* parent)
+ProgramSettings::ProgramSettings(QString avatarFolder, QObject* parent)
   : QObject(parent)
   , avatarFolder(std::move(avatarFolder))
 {

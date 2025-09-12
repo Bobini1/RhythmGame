@@ -39,14 +39,15 @@ PreviewFilePathFetcher::getPreviewFilePaths(QList<QString> directories) const
         auto placeholders = QString("?, ").repeated(chunk.size()).chopped(2);
 
         auto statement = db->createStatement(
-            "SELECT directory, path FROM preview_files WHERE directory IN (" +
-            placeholders.toStdString() + ")");
+          "SELECT directory, path FROM preview_files WHERE directory IN (" +
+          placeholders.toStdString() + ")");
 
         for (int j = 0; j < chunk.size(); ++j) {
             statement.bind(j + 1, chunk[j].toStdString());
         }
 
-        auto queryResults = statement.executeAndGetAll<std::tuple<std::string, std::string>>();
+        auto queryResults =
+          statement.executeAndGetAll<std::tuple<std::string, std::string>>();
 
         for (const auto& row : queryResults) {
             auto directory = QString::fromStdString(std::get<0>(row));

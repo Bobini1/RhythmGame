@@ -30,7 +30,8 @@ gameplay_logic::BmsGameReferee::BmsGameReferee(
         auto soundId = bgmNote.second;
         if (auto sound = this->sounds.find(soundId);
             sound != this->sounds.end()) {
-            this->bgms.emplace_back(bgmNote.first.timestamp, sound->second.get());
+            this->bgms.emplace_back(bgmNote.first.timestamp,
+                                    sound->second.get());
         }
     }
     currentBgms = bgms;
@@ -133,16 +134,16 @@ gameplay_logic::BmsGameReferee::update(std::chrono::nanoseconds offsetFromStart,
     currentBgms = currentBgms.subspan(played);
 }
 auto
-gameplay_logic::BmsGameReferee::getBpm(
-  std::chrono::nanoseconds offsetFromStart) const
-  -> std::pair<charts::BmsNotesData::Time, double>
+gameplay_logic::BmsGameReferee::getBpm(std::chrono::nanoseconds offsetFromStart)
+  const -> std::pair<charts::BmsNotesData::Time, double>
 {
     auto bpmChange = std::upper_bound(
-        bpmChanges.begin(), bpmChanges.end(),
-        offsetFromStart,
-        [](const std::chrono::nanoseconds& offset, const auto& change) {
-            return offset < change.first.timestamp;
-        });
+      bpmChanges.begin(),
+      bpmChanges.end(),
+      offsetFromStart,
+      [](const std::chrono::nanoseconds& offset, const auto& change) {
+          return offset < change.first.timestamp;
+      });
     --bpmChange;
     return *bpmChange;
 }
@@ -171,7 +172,8 @@ gameplay_logic::BmsGameReferee::passPressed(
     }
 }
 auto
-gameplay_logic::BmsGameReferee::getPosition(std::pair<charts::BmsNotesData::Time, double> bpmChange,
+gameplay_logic::BmsGameReferee::getPosition(
+  std::pair<charts::BmsNotesData::Time, double> bpmChange,
   std::chrono::nanoseconds offsetFromStart) -> Position
 {
     auto bpm = bpmChange.second;

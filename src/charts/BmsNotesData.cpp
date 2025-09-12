@@ -54,11 +54,13 @@ combineBpmChanges(std::span<const std::vector<uint16_t>> exBpmChanges,
                 throw std::runtime_error{ "Bpm must be positive, was: " +
                                           std::to_string(bpmValue->second) };
             }
-            auto fraction =
-              static_cast<double>(index) / static_cast<double>(exBpmChangeDefs.size());
-            auto gcd = std::gcd(index, static_cast<int>(exBpmChangeDefs.size()));
+            auto fraction = static_cast<double>(index) /
+                            static_cast<double>(exBpmChangeDefs.size());
+            auto gcd =
+              std::gcd(index, static_cast<int>(exBpmChangeDefs.size()));
             auto fractionDec =
-              std::pair{ index / gcd, static_cast<int>(exBpmChangeDefs.size()) / gcd };
+              std::pair{ index / gcd,
+                         static_cast<int>(exBpmChangeDefs.size()) / gcd };
             combinedBpmChanges.emplace_back(
               BpmChangeDef{ fraction, false, fractionDec, bpmValue->second });
         }
@@ -70,11 +72,12 @@ combineBpmChanges(std::span<const std::vector<uint16_t>> exBpmChanges,
             if (bpmChange == 0) {
                 continue;
             }
-            auto fraction =
-              static_cast<double>(index) / static_cast<double>(bpmChangeDefs.size());
+            auto fraction = static_cast<double>(index) /
+                            static_cast<double>(bpmChangeDefs.size());
             auto gcd = std::gcd(index, static_cast<int>(bpmChangeDefs.size()));
             auto fractionDec =
-              std::pair{ index / gcd, static_cast<int>(bpmChangeDefs.size()) / gcd };
+              std::pair{ index / gcd,
+                         static_cast<int>(bpmChangeDefs.size()) / gcd };
             combinedBpmChanges.emplace_back(BpmChangeDef{
               fraction, false, fractionDec, static_cast<double>(bpmChange) });
         }
@@ -95,21 +98,23 @@ combineBpmChanges(std::span<const std::vector<uint16_t>> exBpmChanges,
                               std::to_string(stopValue->second));
                 continue;
             }
-            auto fraction =
-              static_cast<double>(index) / static_cast<double>(stopDefsVec.size());
+            auto fraction = static_cast<double>(index) /
+                            static_cast<double>(stopDefsVec.size());
             auto gcd = std::gcd(index, static_cast<int>(stopDefsVec.size()));
             auto fractionDec =
-              std::pair{ index / gcd, static_cast<int>(stopDefsVec.size()) / gcd };
+              std::pair{ index / gcd,
+                         static_cast<int>(stopDefsVec.size()) / gcd };
             combinedBpmChanges.emplace_back(
               BpmChangeDef{ fraction, true, fractionDec, stopValue->second });
         }
     }
-    std::ranges::stable_sort(combinedBpmChanges, [](const auto& a, const auto& b) {
-        if (a.fractionDec == b.fractionDec) {
-            return a.isStop < b.isStop;
-        }
-        return a.fraction < b.fraction;
-    });
+    std::ranges::stable_sort(combinedBpmChanges,
+                             [](const auto& a, const auto& b) {
+                                 if (a.fractionDec == b.fractionDec) {
+                                     return a.isStop < b.isStop;
+                                 }
+                                 return a.fraction < b.fraction;
+                             });
     return combinedBpmChanges;
 }
 
@@ -542,8 +547,8 @@ calculateOffsetsForBga(
 }
 
 void
-removeInvalidNotes(
-  std::array<std::vector<BmsNotesData::Note>, BmsNotesData::columnNumber>& notes)
+removeInvalidNotes(std::array<std::vector<BmsNotesData::Note>,
+                              BmsNotesData::columnNumber>& notes)
 {
     for (auto columnIndex = 0; columnIndex < notes.size(); columnIndex++) {
         auto& column = notes.at(columnIndex);
@@ -609,7 +614,8 @@ BmsNotesData::generateMeasures(
     for (const auto& [measureIndex, measure] : measures) {
         auto currentMeasure = measureIndex;
         if (lnType == LnType::MGQ && currentMeasure > lastMeasure + 1) {
-            adjustMgqLnEnds(lastBpm, measureStart, insideLnP1, insideLnP2, lnNotes);
+            adjustMgqLnEnds(
+              lastBpm, measureStart, insideLnP1, insideLnP2, lnNotes);
         }
         fillEmptyMeasures(lastMeasure, currentMeasure, measureStart, lastBpm);
         auto bpmChangesInMeasure =
@@ -808,7 +814,7 @@ BmsNotesData::adjustRdmLnEnds(
   const std::array<std::optional<size_t>,
                    ParsedBmsChart::Measure::columnNumber>&
     lastInsertedRdmNoteP2,
-    std::span<std::vector<Note>> notes)
+  std::span<std::vector<Note>> notes)
 {
     for (int i = 0; i < columnMapping.size(); i++) {
         auto lastNote = lastInsertedRdmNoteP1.at(columnMapping.at(i));

@@ -90,8 +90,7 @@ qml_components::ProfileList::ProfileList(
     if (profiles.empty()) {
         spdlog::info("No profiles found, creating default profile");
         if (auto* profile = createProfile(); profile == nullptr) {
-            throw std::runtime_error(
-              "Failed to create default profile");
+            throw std::runtime_error("Failed to create default profile");
         }
     }
 

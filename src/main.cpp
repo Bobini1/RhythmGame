@@ -142,7 +142,7 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
                                        availableThemes,
                                        dataFolder / "profiles",
                                        avatarPath };
-        
+
         QObject::connect(&gamepadManager,
                          &input::GamepadManager::axisMoved,
                          &inputTranslator,
@@ -376,7 +376,8 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
           "Input",
           "Input is only accessible as an attached property");
         sounds::AudioPlayer::engine = &audioEngine;
-        qmlRegisterType<sounds::AudioPlayer>("RhythmGameQml", 1, 0, "AudioPlayer");
+        qmlRegisterType<sounds::AudioPlayer>(
+          "RhythmGameQml", 1, 0, "AudioPlayer");
 
         qml_components::InputAttached::inputSignalProvider = &inputTranslator;
         qml_components::QmlUtilsAttached::getThemeNameForRootFile =

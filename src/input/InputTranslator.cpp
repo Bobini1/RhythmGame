@@ -1155,9 +1155,10 @@ InputTranslator::scancodeToString(const int scanCode)
         return QString::fromWCharArray(keyName);
     }
 #elifdef __linux__
-    static xkb_context *ctx = xkb_context_new(XKB_CONTEXT_NO_FLAGS);
-    static xkb_keymap *keymap = xkb_keymap_new_from_names(ctx, nullptr, XKB_KEYMAP_COMPILE_NO_FLAGS);
-    static xkb_state *state = xkb_state_new(keymap);
+    static xkb_context* ctx = xkb_context_new(XKB_CONTEXT_NO_FLAGS);
+    static xkb_keymap* keymap =
+      xkb_keymap_new_from_names(ctx, nullptr, XKB_KEYMAP_COMPILE_NO_FLAGS);
+    static xkb_state* state = xkb_state_new(keymap);
 
     xkb_keysym_t sym = xkb_state_key_get_one_sym(state, scanCode);
 

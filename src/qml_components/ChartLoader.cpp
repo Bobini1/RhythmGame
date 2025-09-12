@@ -35,8 +35,8 @@ ChartLoader::createChart(
     const auto rank =
       magic_enum::enum_cast<gameplay_logic::rules::BmsRank>(rankInt).value_or(
         gameplay_logic::rules::defaultBmsRank);
-    auto hitRules = std::vector<
-      std::unique_ptr<gameplay_logic::rules::HitRules>>{};
+    auto hitRules =
+      std::vector<std::unique_ptr<gameplay_logic::rules::HitRules>>{};
     auto timingWindows = timingWindowsFactory(rank);
     auto maxHitValue = hitValueFactory(std::chrono::nanoseconds{ 0 },
                                        gameplay_logic::Judgement::Perfect);
@@ -53,8 +53,7 @@ ChartLoader::createChart(
         gaugeFactory(player1,
                      chartComponents.chartData->getTotal(),
                      chartComponents.chartData->getNormalNoteCount()),
-        gameplay_logic::rules::HitRules(timingWindows,
-                                                   hitValueFactory),
+        gameplay_logic::rules::HitRules(timingWindows, hitValueFactory),
         replayedScore1,
         p1NoteOrderAlgorithm,
         p1NoteOrderAlgorithmP2,
@@ -62,20 +61,20 @@ ChartLoader::createChart(
         player1AutoPlay
     };
     auto player2data =
-      player2 ? std::make_optional<
-                  resource_managers::ChartFactory::PlayerSpecificData>(
-                  player2,
-                  gaugeFactory(player2,
-                               chartComponents.chartData->getTotal(),
-                               chartComponents.chartData->getNormalNoteCount()),
-                  gameplay_logic::rules::HitRules(timingWindows,
-                                                             hitValueFactory),
-                  replayedScore2,
-                  player2->getVars()->getGeneralVars()->getNoteOrderAlgorithm(),
-                  resource_managers::NoteOrderAlgorithm::Normal,
-                  resource_managers::DpOptions::Off,
-                  player2AutoPlay)
-              : std::nullopt;
+      player2
+        ? std::make_optional<
+            resource_managers::ChartFactory::PlayerSpecificData>(
+            player2,
+            gaugeFactory(player2,
+                         chartComponents.chartData->getTotal(),
+                         chartComponents.chartData->getNormalNoteCount()),
+            gameplay_logic::rules::HitRules(timingWindows, hitValueFactory),
+            replayedScore2,
+            player2->getVars()->getGeneralVars()->getNoteOrderAlgorithm(),
+            resource_managers::NoteOrderAlgorithm::Normal,
+            resource_managers::DpOptions::Off,
+            player2AutoPlay)
+        : std::nullopt;
     return chartFactory->createChart(std::move(chartComponents),
                                      std::move(player1data),
                                      std::move(player2data),
@@ -171,7 +170,7 @@ ChartLoader::loadChart(const QString& filename,
                 randomSequence[counter++]);
           }
           if (randomRange <= 1) {
-              return charts::ParsedBmsChart::RandomRange{1};
+              return charts::ParsedBmsChart::RandomRange{ 1 };
           }
           return std::uniform_int_distribution{
               charts::ParsedBmsChart::RandomRange{ 1 }, randomRange
@@ -260,7 +259,7 @@ ChartLoader::loadCourse(const resource_managers::Course& course,
                         randomSequence[counter++]);
                   }
                   if (randomRange <= 1) {
-                      return charts::ParsedBmsChart::RandomRange{1};
+                      return charts::ParsedBmsChart::RandomRange{ 1 };
                   }
                   return std::uniform_int_distribution{
                       charts::ParsedBmsChart::RandomRange{ 1 }, randomRange
@@ -407,7 +406,7 @@ ChartLoader::loadChartData(const QString& filename,
                     randomSequence[counter++]);
               }
               if (randomRange <= 1) {
-                  return charts::ParsedBmsChart::RandomRange{1};
+                  return charts::ParsedBmsChart::RandomRange{ 1 };
               }
               return std::uniform_int_distribution{
                   charts::ParsedBmsChart::RandomRange{ 1 }, randomRange
@@ -480,16 +479,15 @@ ChartLoader::loadCourseChart(
     const auto rank =
       magic_enum::enum_cast<gameplay_logic::rules::BmsRank>(rankInt).value_or(
         gameplay_logic::rules::defaultBmsRank);
-    auto hitRules = std::vector<
-      std::unique_ptr<gameplay_logic::rules::HitRules>>{};
+    auto hitRules =
+      std::vector<std::unique_ptr<gameplay_logic::rules::HitRules>>{};
     auto timingWindows = timingWindowsFactory(rank);
     auto maxHitValue = hitValueFactory(std::chrono::nanoseconds{ 0 },
                                        gameplay_logic::Judgement::Perfect);
     auto player1data = resource_managers::ChartFactory::PlayerSpecificData{
         player1,
         std::move(gauges1),
-        gameplay_logic::rules::HitRules(timingWindows,
-                                                   hitValueFactory),
+        gameplay_logic::rules::HitRules(timingWindows, hitValueFactory),
         score1,
         p1NoteOrderAlgorithm,
         p1NoteOrderAlgorithmP2,
@@ -497,18 +495,18 @@ ChartLoader::loadCourseChart(
         player1AutoPlay
     };
     auto player2data =
-      player2 ? std::make_optional<
-                  resource_managers::ChartFactory::PlayerSpecificData>(
-                  player2,
-                  std::move(gauges2),
-                  gameplay_logic::rules::HitRules(timingWindows,
-                                                             hitValueFactory),
-                  score2,
-                  p2NoteOrderAlgorithm,
-                  resource_managers::NoteOrderAlgorithm::Normal,
-                  resource_managers::DpOptions::Off,
-                  player2AutoPlay)
-              : std::nullopt;
+      player2
+        ? std::make_optional<
+            resource_managers::ChartFactory::PlayerSpecificData>(
+            player2,
+            std::move(gauges2),
+            gameplay_logic::rules::HitRules(timingWindows, hitValueFactory),
+            score2,
+            p2NoteOrderAlgorithm,
+            resource_managers::NoteOrderAlgorithm::Normal,
+            resource_managers::DpOptions::Off,
+            player2AutoPlay)
+        : std::nullopt;
     return chartFactory->createChart(std::move(chartComponents),
                                      std::move(player1data),
                                      std::move(player2data),

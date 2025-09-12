@@ -14,15 +14,18 @@ Sound::onDeviceChanged()
 {
     // get timepoint of sound
     auto cursor = ma_uint64{};
-    const auto currentFrame = ma_sound_get_cursor_in_pcm_frames(sound.get(), &cursor);
+    const auto currentFrame =
+      ma_sound_get_cursor_in_pcm_frames(sound.get(), &cursor);
     const auto isPlaying = ma_sound_is_playing(sound.get());
     const auto volume = ma_sound_get_volume(sound.get());
     ma_sound_uninit(sound.get());
-    ma_sound_init_from_data_source(engine->getEngine(),
-                                   audioBuffer.get(),
-                                   MA_SOUND_FLAG_DECODE | MA_SOUND_FLAG_WAIT_INIT | MA_SOUND_FLAG_NO_PITCH | MA_SOUND_FLAG_NO_SPATIALIZATION,
-                                   nullptr,
-                                   sound.get());
+    ma_sound_init_from_data_source(
+      engine->getEngine(),
+      audioBuffer.get(),
+      MA_SOUND_FLAG_DECODE | MA_SOUND_FLAG_WAIT_INIT | MA_SOUND_FLAG_NO_PITCH |
+        MA_SOUND_FLAG_NO_SPATIALIZATION,
+      nullptr,
+      sound.get());
     ma_sound_seek_to_pcm_frame(sound.get(), currentFrame);
     ma_sound_set_volume(sound.get(), volume);
     if (isPlaying) {
@@ -42,11 +45,13 @@ Sound::Sound(AudioEngine* engine, std::shared_ptr<const SoundBuffer> buffer)
                                   nullptr);
     ma_audio_buffer_init(&audioBufferConfig, audioBuffer.get());
 
-    ma_sound_init_from_data_source(engine->getEngine(),
-                                   audioBuffer.get(),
-                                   MA_SOUND_FLAG_DECODE | MA_SOUND_FLAG_WAIT_INIT | MA_SOUND_FLAG_NO_PITCH | MA_SOUND_FLAG_NO_SPATIALIZATION,
-                                   nullptr,
-                                   sound.get());
+    ma_sound_init_from_data_source(
+      engine->getEngine(),
+      audioBuffer.get(),
+      MA_SOUND_FLAG_DECODE | MA_SOUND_FLAG_WAIT_INIT | MA_SOUND_FLAG_NO_PITCH |
+        MA_SOUND_FLAG_NO_SPATIALIZATION,
+      nullptr,
+      sound.get());
 
     connect(engine,
             &AudioEngine::changeDeviceRequested,

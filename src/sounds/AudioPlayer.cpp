@@ -15,15 +15,16 @@ AudioPlayer::onDeviceChanged()
     }
     auto isPlayingNow = isPlaying();
     auto cursor = ma_uint64{};
-    auto currentPcmFrame = ma_sound_get_cursor_in_pcm_frames(sound.get(), &cursor);
+    auto currentPcmFrame =
+      ma_sound_get_cursor_in_pcm_frames(sound.get(), &cursor);
     ma_sound_uninit(sound.get());
     if (ma_sound_init_from_file_w(engine->getEngine(),
-                              source.toStdWString().c_str(),
-                              MA_SOUND_FLAG_NO_PITCH |
-                                MA_SOUND_FLAG_NO_SPATIALIZATION,
-                              nullptr,
-                              nullptr,
-                              sound.get()) != MA_SUCCESS) {
+                                  source.toStdWString().c_str(),
+                                  MA_SOUND_FLAG_NO_PITCH |
+                                    MA_SOUND_FLAG_NO_SPATIALIZATION,
+                                  nullptr,
+                                  nullptr,
+                                  sound.get()) != MA_SUCCESS) {
         spdlog::error("Failed to load sound: {}", source.toStdString());
         sound.reset();
         return;
@@ -38,7 +39,10 @@ AudioPlayer::onDeviceChanged()
 AudioPlayer::AudioPlayer(QObject* parent)
   : QObject(parent)
 {
-    connect(engine, &AudioEngine::changeDeviceRequested, this, &AudioPlayer::onDeviceChanged);
+    connect(engine,
+            &AudioEngine::changeDeviceRequested,
+            this,
+            &AudioPlayer::onDeviceChanged);
 }
 AudioPlayer::~AudioPlayer()
 {
@@ -65,12 +69,12 @@ AudioPlayer::setSource(const QString& value)
     }
     emit sourceChanged();
     if (ma_sound_init_from_file_w(engine->getEngine(),
-                              value.toStdWString().c_str(),
-                              MA_SOUND_FLAG_NO_PITCH |
-                                MA_SOUND_FLAG_NO_SPATIALIZATION,
-                              nullptr,
-                              nullptr,
-                              sound.get()) != MA_SUCCESS) {
+                                  value.toStdWString().c_str(),
+                                  MA_SOUND_FLAG_NO_PITCH |
+                                    MA_SOUND_FLAG_NO_SPATIALIZATION,
+                                  nullptr,
+                                  nullptr,
+                                  sound.get()) != MA_SUCCESS) {
         spdlog::error("Failed to load sound: {}", value.toStdString());
         sound.reset();
         return;

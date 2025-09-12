@@ -20,7 +20,6 @@
 namespace llfio = LLFIO_V2_NAMESPACE;
 #endif
 
-
 namespace resource_managers {
 ChartDataFactory::ChartComponents::ChartComponents(
   std::unique_ptr<gameplay_logic::ChartData> chartData,
@@ -129,10 +128,11 @@ ChartDataFactory::convertToQVector(
     return columnNotes;
 }
 
-auto readAndParse(const std::filesystem::path& chartPath,
-                                ChartDataFactory::RandomGenerator randomGenerator)
+auto
+readAndParse(const std::filesystem::path& chartPath,
+             ChartDataFactory::RandomGenerator randomGenerator)
 {
-    #ifndef _WIN32
+#ifndef _WIN32
     auto mfh = llfio::mapped_file({}, chartPath).value();
     auto length = mfh.maximum_extent().value();
     auto chart = std::string_view{ reinterpret_cast<char*>(mfh.address()),
@@ -140,25 +140,22 @@ auto readAndParse(const std::filesystem::path& chartPath,
 #else
     // use native windows memory mapping
     auto fileHandle = wil::unique_handle(CreateFileW(chartPath.c_str(),
-                                  GENERIC_READ,
-                                  FILE_SHARE_READ,
-                                  nullptr,
-                                  OPEN_EXISTING,
-                                  FILE_ATTRIBUTE_NORMAL,
-                                  nullptr));
+                                                     GENERIC_READ,
+                                                     FILE_SHARE_READ,
+                                                     nullptr,
+                                                     OPEN_EXISTING,
+                                                     FILE_ATTRIBUTE_NORMAL,
+                                                     nullptr));
     if (fileHandle.get() == INVALID_HANDLE_VALUE) {
         throw std::runtime_error("Could not open chart file");
     }
-    auto fileMapping = wil::unique_handle(CreateFileMappingW(fileHandle.get(),
-                                        nullptr,
-                                        PAGE_READONLY,
-                                        0,
-                                        0,
-                                        nullptr));
+    auto fileMapping = wil::unique_handle(CreateFileMappingW(
+      fileHandle.get(), nullptr, PAGE_READONLY, 0, 0, nullptr));
     if (fileMapping == nullptr) {
         throw std::runtime_error("Could not create file mapping");
     }
-    auto mapView = wil::unique_mapview_ptr<void>{MapViewOfFile(fileMapping.get(), FILE_MAP_READ, 0, 0, 0)};
+    auto mapView = wil::unique_mapview_ptr<void>{ MapViewOfFile(
+      fileMapping.get(), FILE_MAP_READ, 0, 0, 0) };
     if (mapView == nullptr) {
         throw std::runtime_error("Could not map view of file");
     }
@@ -192,7 +189,8 @@ ChartDataFactory::loadChartData(const std::filesystem::path& chartPath,
                                 RandomGenerator randomGenerator,
                                 int64_t directory) const -> ChartComponents
 {
-    auto [parsedChart, randomValues, sha256, md5] = readAndParse(chartPath, randomGenerator);
+    auto [parsedChart, randomValues, sha256, md5] =
+      readAndParse(chartPath, randomGenerator);
     auto title = QString::fromUtf8(parsedChart.tags.title.value_or(""));
     auto artist = QString::fromUtf8(parsedChart.tags.artist.value_or(""));
     auto subtitle = QString::fromUtf8(parsedChart.tags.subTitle.value_or(""));

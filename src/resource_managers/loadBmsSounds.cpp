@@ -145,7 +145,8 @@ loadBmsSounds(sounds::AudioEngine* engine,
                     std::shared_ptr<const sounds::SoundBuffer>>> {
           try {
               return { { path,
-                         std::make_shared<const sounds::SoundBuffer>(engine, path) } };
+                         std::make_shared<const sounds::SoundBuffer>(engine,
+                                                                     path) } };
           } catch (const std::exception& e) {
               spdlog::warn(
                 "Failed to load sound {}: {}", path.string(), e.what());
@@ -159,12 +160,14 @@ loadBmsSounds(sounds::AudioEngine* engine,
       },
       std::move(buffers));
 
-    auto sounds = std::unordered_map<uint16_t, std::shared_ptr<sounds::Sound>>();
+    auto sounds =
+      std::unordered_map<uint16_t, std::shared_ptr<sounds::Sound>>();
     sounds.reserve(wavsActualPaths.size());
     for (const auto& [key, actualPath] : wavsActualPaths) {
         auto buffer = buffers.find(actualPath);
         if (buffer != buffers.end()) {
-            sounds.emplace(key, std::make_shared<sounds::Sound>(engine, buffer->second));
+            sounds.emplace(
+              key, std::make_shared<sounds::Sound>(engine, buffer->second));
         }
     }
     for (auto& sound : sounds) {

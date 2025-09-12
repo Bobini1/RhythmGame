@@ -59,8 +59,11 @@ sounds::SoundBuffer::SoundBuffer(AudioEngine* engine,
     if (sampleRate == engineSampleRate) {
         samples = std::move(convertedSamples);
     } else {
-        auto config = ma_resampler_config_init(
-          ma_format_f32, 2, sampleRate, engineSampleRate, ma_resample_algorithm_linear);
+        auto config = ma_resampler_config_init(ma_format_f32,
+                                               2,
+                                               sampleRate,
+                                               engineSampleRate,
+                                               ma_resample_algorithm_linear);
 
         ma_resampler resampler;
         const auto result = ma_resampler_init(&config, NULL, &resampler);
