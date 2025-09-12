@@ -38,8 +38,8 @@
       "name": "vcpkg-osx-sharedqt",
       "hidden": true,
       "cacheVariables": {
-        "VCPKG_TARGET_TRIPLET": "x64-osx-sharedqt",
-        "VCPKG_HOST_TRIPLET": "x64-osx-sharedqt"
+        "VCPKG_TARGET_TRIPLET": "arm64-osx-sharedqt",
+        "VCPKG_HOST_TRIPLET": "arm64-osx-sharedqt"
       }
     },
     {
