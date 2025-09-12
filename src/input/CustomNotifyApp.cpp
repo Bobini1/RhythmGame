@@ -27,7 +27,7 @@ CustomNotifyApp::notify(QObject* receiver, QEvent* event)
         auto* ev = static_cast<QKeyEvent*>(event);
         auto now = std::chrono::milliseconds{ ev->timestamp() };
 #endif
-        inputTranslator->eventFilter(now, ev);
+        inputTranslator->eventFilter(now, event);
     }
     return notifyResult;
 }
