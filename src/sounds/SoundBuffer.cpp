@@ -30,7 +30,7 @@ sounds::SoundBuffer::SoundBuffer(AudioEngine* engine,
     auto channels = sndFile.channels();
     auto samplesOriginal = std::vector<float>(frames * channels);
     auto framesRead = sndFile.readf(samplesOriginal.data(), frames);
-    if (framesRead != frames) {
+    if (framesRead == 0) {
         throw std::runtime_error("Could not read all frames from sound file");
     }
     auto convertedSamples = std::vector<float>{};
@@ -38,7 +38,7 @@ sounds::SoundBuffer::SoundBuffer(AudioEngine* engine,
     if (channels == engineChannels) {
         convertedSamples = std::move(samplesOriginal);
     } else {
-        convertedSamples.resize(frames * engineChannels);
+        convertedSamples.resize(framesRead * engineChannels);
         ma_channel_converter_config channelConverterConfig =
           ma_channel_converter_config_init(ma_format_f32,
                                            sndFile.channels(),
@@ -52,7 +52,7 @@ sounds::SoundBuffer::SoundBuffer(AudioEngine* engine,
         ma_channel_converter_process_pcm_frames(&channelConverter,
                                                 convertedSamples.data(),
                                                 samplesOriginal.data(),
-                                                frames);
+                                                framesRead);
         ma_channel_converter_uninit(&channelConverter, nullptr);
     }
     const auto engineSampleRate = engine->getSampleRate();
@@ -70,8 +70,8 @@ sounds::SoundBuffer::SoundBuffer(AudioEngine* engine,
         if (result != MA_SUCCESS) {
             throw std::runtime_error("Could not initialize resampler");
         }
-        auto framesIn = static_cast<ma_uint64>(frames);
-        auto framesOut = ma_uint64(frames * engineSampleRate / sampleRate);
+        auto framesIn = static_cast<ma_uint64>(framesRead);
+        auto framesOut = ma_uint64(framesRead * engineSampleRate / sampleRate);
         samples.resize(framesOut * 2);
         ma_resampler_process_pcm_frames(&resampler,
                                         convertedSamples.data(),
