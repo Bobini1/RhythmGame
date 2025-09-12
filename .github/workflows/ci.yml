@@ -35,7 +35,7 @@ jobs:
           && sudo apt-get install lcov -q -y
 
       - name: Install system dependencies
-        run: sudo apt-get install libtbb-dev libgl-dev libdrm-dev libgles2-mesa-dev libudev-dev nasm autoconf automake autoconf-archive gperf pkg-config python3-jinja2 '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev libltdl-dev -y
+        run: sudo apt-get install libtbb-dev libgl-dev libdrm-dev libgles2-mesa-dev libudev-dev nasm autoconf automake autoconf-archive gperf pkg-config python3-jinja2 '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev libltdl-dev x11-xserver-utils -y
 
       - name: Export GitHub Actions cache environment variables
         uses: actions/github-script@v7
@@ -144,7 +144,7 @@ jobs:
         shell: bash
         run: |
           if [ ${{ matrix.os }} = ubuntu-latest ]; then
-            sudo apt-get update && sudo apt-get install libtbb-dev libgl-dev libdrm-dev libgles2-mesa-dev libudev-dev nasm autoconf automake autoconf-archive gperf pkg-config python3-jinja2 '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev libltdl-dev -y
+            sudo apt-get update && sudo apt-get install libtbb-dev libgl-dev libdrm-dev libgles2-mesa-dev libudev-dev nasm autoconf automake autoconf-archive gperf pkg-config python3-jinja2 '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev libltdl-dev x11-xserver-utils -y
           else
             brew install autoconf automake autoconf-archive libtool
           fi
@@ -209,11 +209,11 @@ jobs:
         shell: bash
         run: |
           if [ ${{ matrix.os }} = ubuntu-latest ]; then
-            sudo apt-get update && sudo apt-get install libtbb-dev libgl-dev libdrm-dev libgles2-mesa-dev libudev-dev nasm autoconf automake autoconf-archive gperf pkg-config python3-jinja2 '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev libltdl-dev -y
+            sudo apt-get update && sudo apt-get install libtbb-dev libgl-dev libdrm-dev libgles2-mesa-dev libudev-dev nasm autoconf automake autoconf-archive gperf pkg-config python3-jinja2 '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev libltdl-dev x11-xserver-utils -y
           else
             brew install autoconf automake autoconf-archive libtool
           fi
-        
+
       - name: Export GitHub Actions cache environment variables
         uses: actions/github-script@v7
         with:
