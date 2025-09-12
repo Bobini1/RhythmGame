@@ -139,17 +139,17 @@ auto readAndParse(const std::filesystem::path& chartPath,
                                    static_cast<unsigned long>(length) };
 #else
     // use native windows memory mapping
-    auto fileHandle = CreateFileW(chartPath.c_str(),
+    auto fileHandle = wil::unique_handle(CreateFileW(chartPath.c_str(),
                                   GENERIC_READ,
                                   FILE_SHARE_READ,
                                   nullptr,
                                   OPEN_EXISTING,
                                   FILE_ATTRIBUTE_NORMAL,
-                                  nullptr);
-    if (fileHandle == INVALID_HANDLE_VALUE) {
+                                  nullptr));
+    if (fileHandle.get() == INVALID_HANDLE_VALUE) {
         throw std::runtime_error("Could not open chart file");
     }
-    auto fileMapping = wil::unique_handle(CreateFileMappingW(fileHandle,
+    auto fileMapping = wil::unique_handle(CreateFileMappingW(fileHandle.get(),
                                         nullptr,
                                         PAGE_READONLY,
                                         0,
@@ -162,7 +162,7 @@ auto readAndParse(const std::filesystem::path& chartPath,
     if (mapView == nullptr) {
         throw std::runtime_error("Could not map view of file");
     }
-    auto fileSize = GetFileSize(fileHandle, nullptr);
+    auto fileSize = GetFileSize(fileHandle.get(), nullptr);
     if (fileSize == INVALID_FILE_SIZE) {
         throw std::runtime_error("Could not get file size");
     }
