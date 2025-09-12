@@ -9,10 +9,8 @@ var searchData=
   ['updatestatus_6',['updateStatus',['../classqml__components_1_1RootSongFolder.html#a7f963bcae1397f6ed9680bc81c872b53',1,'qml_components::RootSongFolder']]],
   ['url_7',['url',['../structresource__managers_1_1Entry.html#af6ba00fe9a7e961aa9c9a26ed0bbb5ff',1,'resource_managers::Entry::url'],['../structresource__managers_1_1Table.html#a9ecc7711d68c464fb665503dc0eab882',1,'resource_managers::Table::url']]],
   ['urldiff_8',['urlDiff',['../structresource__managers_1_1Entry.html#ab86cbd0a6e85423abd965ed72503b684',1,'resource_managers::Entry']]],
-  ['usesystemtimestamps_9',['useSystemTimestamps',['../classresource__managers_1_1GeneralVars.html#af2d370835d77605ecc2efefdd768c565',1,'resource_managers::GeneralVars']]],
-  ['usesystemtimestampschanged_10',['useSystemTimestampsChanged',['../classresource__managers_1_1GeneralVars.html#aa274480dd48568fec9c43e40376c5fa0',1,'resource_managers::GeneralVars']]],
-  ['utf8_11',['utf8',['../ReadBmsFile_8cpp.html#addde933d534d9afe462f23faf40eb5d2',1,'ReadBmsFile.cpp']]],
-  ['utfstringtopath_12',['utfStringToPath',['../namespacesupport.html#a612974d26f4e28e48dfbf405a89227d8',1,'support']]],
-  ['utfstringtopath_2ecpp_13',['UtfStringToPath.cpp',['../UtfStringToPath_8cpp.html',1,'']]],
-  ['utfstringtopath_2eh_14',['UtfStringToPath.h',['../UtfStringToPath_8h.html',1,'']]]
+  ['utf8_9',['utf8',['../ReadBmsFile_8cpp.html#addde933d534d9afe462f23faf40eb5d2',1,'ReadBmsFile.cpp']]],
+  ['utfstringtopath_10',['utfStringToPath',['../namespacesupport.html#a612974d26f4e28e48dfbf405a89227d8',1,'support']]],
+  ['utfstringtopath_2ecpp_11',['UtfStringToPath.cpp',['../UtfStringToPath_8cpp.html',1,'']]],
+  ['utfstringtopath_2eh_12',['UtfStringToPath.h',['../UtfStringToPath_8h.html',1,'']]]
 ];

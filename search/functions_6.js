@@ -188,16 +188,15 @@ var searchData=
   ['gettimeout_185',['getTimeout',['../classinput_1_1AnalogAxisConfig.html#a3bd20468912fa2e10cf49ed51707d711',1,'input::AnalogAxisConfig']]],
   ['gettimingwindows_186',['getTimingWindows',['../namespacegameplay__logic_1_1rules_1_1lr2__timing__windows.html#af4f81290171afa8b6b0a48c91930fe74',1,'gameplay_logic::rules::lr2_timing_windows']]],
   ['gettitle_187',['getTitle',['../classgameplay__logic_1_1ChartData.html#acbc1c01d1f073e3f7436ced30853019d',1,'gameplay_logic::ChartData']]],
-  ['gettopposition_188',['gettopposition',['../classgameplay__logic_1_1Filter.html#a71eb2cfc7333e8f7f2d321f1391a953d',1,'gameplay_logic::Filter::getTopPosition()'],['../classgameplay__logic_1_1BarlineFilter.html#a941e0184cf75e85be142216088a32777',1,'gameplay_logic::BarlineFilter::getTopPosition()']]],
+  ['gettopposition_188',['gettopposition',['../classgameplay__logic_1_1BarlineFilter.html#a941e0184cf75e85be142216088a32777',1,'gameplay_logic::BarlineFilter::getTopPosition()'],['../classgameplay__logic_1_1Filter.html#a71eb2cfc7333e8f7f2d321f1391a953d',1,'gameplay_logic::Filter::getTopPosition()']]],
   ['gettotal_189',['getTotal',['../classgameplay__logic_1_1ChartData.html#ab93dad794740dad5b90bf34a5c17fc3f',1,'gameplay_logic::ChartData']]],
   ['gettotalscorecount_190',['getTotalScoreCount',['../classqml__components_1_1ScoreDb.html#ac1c64c6ad001561d1e92218a195ca441',1,'qml_components::ScoreDb']]],
   ['gettranslations_191',['getTranslations',['../classqml__components_1_1ThemeFamily.html#ad89cbb8377aae6098bc9189428328a19',1,'qml_components::ThemeFamily']]],
   ['gettriggerthreshold_192',['getTriggerThreshold',['../classinput_1_1AnalogAxisConfig.html#a477a663b9e5844ef0fe04284c13ff9d9',1,'input::AnalogAxisConfig']]],
-  ['gettrophies_193',['gettrophies',['../structresource__managers_1_1Course.html#af42b3972a8d9767dc2b33a2a4ee4e525',1,'resource_managers::Course::getTrophies()'],['../classgameplay__logic_1_1BmsResultCourse.html#ab1406c158ffefdd45059e089e741c668',1,'gameplay_logic::BmsResultCourse::getTrophies()']]],
-  ['getunixtimestamp_194',['getunixtimestamp',['../classgameplay__logic_1_1BmsResult.html#ae9eb7f4b4ee36327ec6f9e53f887580a',1,'gameplay_logic::BmsResult::getUnixTimestamp()'],['../classgameplay__logic_1_1BmsResultCourse.html#a30f9842fa6b6768c97790c98352c8cb0',1,'gameplay_logic::BmsResultCourse::getUnixTimestamp()']]],
-  ['getusesystemtimestamps_195',['getUseSystemTimestamps',['../classresource__managers_1_1GeneralVars.html#a78cb47764bf2c47aa3392e005c1844c8',1,'resource_managers::GeneralVars']]],
-  ['getvalue_196',['getValue',['../classgameplay__logic_1_1BmsPoints.html#aede051c5e3c8900c3807d62ce2ffbd90',1,'gameplay_logic::BmsPoints']]],
-  ['getvars_197',['getVars',['../classresource__managers_1_1Profile.html#a893178788e7b35a75566f0f0724b489b',1,'resource_managers::Profile']]],
-  ['getvideosink_198',['getVideoSink',['../classqml__components_1_1Bga.html#a9f16ad1639630744dd5d748e143861a9',1,'qml_components::Bga']]],
-  ['getvolume_199',['getvolume',['../classsounds_1_1Sound.html#a30143ae26b650990d174f1219550cfb1',1,'sounds::Sound::getVolume()'],['../classsounds_1_1AudioPlayer.html#ac9062e41b010ee1b54dc1f0a38bc33b5',1,'sounds::AudioPlayer::getVolume()']]]
+  ['gettrophies_193',['gettrophies',['../structresource__managers_1_1Course.html#af42b3972a8d9767dc2b33a2a4ee4e525',1,'resource_managers::Course::getTrophies()'],['../classgameplay__logic_1_1BmsResultCourse.html#ab1406c158ffefdd45059e089e741c668',1,'gameplay_logic::BmsResultCourse::getTrophies() const -&gt; QVariantList']]],
+  ['getunixtimestamp_194',['getunixtimestamp',['../classgameplay__logic_1_1BmsResultCourse.html#a30f9842fa6b6768c97790c98352c8cb0',1,'gameplay_logic::BmsResultCourse::getUnixTimestamp()'],['../classgameplay__logic_1_1BmsResult.html#ae9eb7f4b4ee36327ec6f9e53f887580a',1,'gameplay_logic::BmsResult::getUnixTimestamp()']]],
+  ['getvalue_195',['getValue',['../classgameplay__logic_1_1BmsPoints.html#aede051c5e3c8900c3807d62ce2ffbd90',1,'gameplay_logic::BmsPoints']]],
+  ['getvars_196',['getVars',['../classresource__managers_1_1Profile.html#a893178788e7b35a75566f0f0724b489b',1,'resource_managers::Profile']]],
+  ['getvideosink_197',['getVideoSink',['../classqml__components_1_1Bga.html#a9f16ad1639630744dd5d748e143861a9',1,'qml_components::Bga']]],
+  ['getvolume_198',['getvolume',['../classsounds_1_1AudioPlayer.html#ac9062e41b010ee1b54dc1f0a38bc33b5',1,'sounds::AudioPlayer::getVolume()'],['../classsounds_1_1Sound.html#a30143ae26b650990d174f1219550cfb1',1,'sounds::Sound::getVolume()']]]
 ];
