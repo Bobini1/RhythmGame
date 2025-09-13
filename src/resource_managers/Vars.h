@@ -206,7 +206,8 @@ class GeneralVars final : public QObject
      * @brief The visual offset in milliseconds to apply during gameplay.
      */
     Q_PROPERTY(
-      double offset READ getOffset WRITE setOffset NOTIFY offsetChanged)
+    double offset READ getOffset WRITE setOffset NOTIFY offsetChanged RESET
+      resetOffset)
     // ^ remember to use full namespace for enums for reflection
     double noteScreenTimeMillis = 1000;
     bool laneCoverOn = false;
