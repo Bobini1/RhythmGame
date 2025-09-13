@@ -197,6 +197,9 @@ class InputTranslator final : public QObject
                  getAnalogAxisConfig1 NOTIFY analogAxisConfig1Changed)
     Q_PROPERTY(input::AnalogAxisConfig* analogAxisConfig2 READ
                  getAnalogAxisConfig2 NOTIFY analogAxisConfig2Changed)
+    Q_PROPERTY(double debounceMs READ getDebounceMs WRITE setDebounceMs
+                 NOTIFY debounceMsChanged RESET resetDebounceMs)
+
 
   public:
     struct Scratch
@@ -223,9 +226,11 @@ class InputTranslator final : public QObject
       axisConfig;
     QHash<Key, BmsKey> config;
     db::SqliteCppDb* db;
-    std::array<bool, magic_enum::enum_count<BmsKey>()> buttons{};
+    std::array<bool, magic_enum::enum_count<BmsKey>()> buttons{{}};
     std::optional<std::pair<Gamepad, uint8_t>> scratchAxis1;
     std::optional<std::pair<Gamepad, uint8_t>> scratchAxis2;
+    std::array<uint64_t, magic_enum::enum_count<BmsKey>()> lastPress{{}};
+    double debounceMs = 40.0;
 
     void pressButton(BmsKey button, uint64_t time);
     void releaseButton(BmsKey button, uint64_t time);
@@ -242,9 +247,11 @@ class InputTranslator final : public QObject
     void handlePress(Gamepad gamepad, Uint8 button, int64_t time);
     void handleRelease(Gamepad gamepad, Uint8 button, int64_t time);
 
-    void loadKeyConfig(db::SqliteCppDb* db);
+    void loadKeyConfig();
     void connectAnalogAxisConfig(const AnalogAxisConfig& config);
-    void loadAnalogAxisConfig(db::SqliteCppDb* db);
+    void loadAnalogAxisConfig();
+    void loadDebounce();
+    void saveDebounce();
     explicit InputTranslator(db::SqliteCppDb* db, QObject* parent = nullptr);
     void setConfiguredButton(const QVariant& button);
     auto getConfiguredButton() const -> QVariant;
@@ -280,6 +287,9 @@ class InputTranslator final : public QObject
     auto getAnalogAxisConfig2() -> AnalogAxisConfig*;
     void eventFilter(std::chrono::milliseconds timePoint, QEvent* event);
     Q_INVOKABLE static QString scancodeToString(int virtualKey);
+    auto getDebounceMs() const -> double;
+    void setDebounceMs(double value);
+    void resetDebounceMs();
 
   signals:
     void buttonPressed(BmsKey button, int64_t time);
@@ -311,6 +321,7 @@ class InputTranslator final : public QObject
     void select2Changed();
     void analogAxisConfig1Changed();
     void analogAxisConfig2Changed();
+    void debounceMsChanged();
 };
 
 } // namespace input

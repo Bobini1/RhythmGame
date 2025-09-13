@@ -62,6 +62,20 @@ Item {
                         right: parent.right
                     }
                 }
+                Range {
+                    destination: Rg.inputTranslator
+                    id_: "debounceMs"
+                    name: qsTr("Debounce (ms)")
+                    default_: 40
+                    min: 0
+                    sliderMax: 150
+                    decimals: 0
+
+                    anchors {
+                        left: parent.left
+                        right: parent.right
+                    }
+                }
                 Separator {
                 }
                 Boolean {

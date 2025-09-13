@@ -17,6 +17,7 @@ RowLayout {
     property string id_
     property alias name: strLabel.text
     property alias description: strLabel.description
+    property int decimals: 3
 
     SettingsLabel {
         id: strLabel
@@ -39,9 +40,10 @@ RowLayout {
                     to: range.sliderMax
                     Layout.fillHeight: true
                     value: range.destination[range.id_]
+                    stepSize: 10 ** -range.decimals
 
                     onMoved: {
-                        range.destination[range.id_] = Math.round(value * 1000) / 1000
+                        range.destination[range.id_] = Math.round(value * 10 ** range.decimals) / 10 ** range.decimals
                     }
                 }
             }
@@ -51,7 +53,7 @@ RowLayout {
 
             horizontalAlignment: contentWidth >= width ? TextField.AlignLeft : TextField.AlignHCenter
             autoScroll: false
-            text: Helpers.getFormattedNumber(Qt.locale(Rg.languages.selectedLanguage), range.destination[range.id_])
+            text: Helpers.getFormattedNumber(Qt.locale(Rg.languages.selectedLanguage), range.destination[range.id_], range.decimals)
             Layout.fillHeight: true
             Layout.fillWidth: true
             Layout.maximumWidth: 200

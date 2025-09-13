@@ -124,12 +124,12 @@ function getIndex(array, elem, currentIndex) {
     return proposition;
 }
 
-function getFormattedNumber(locale, num) {
+function getFormattedNumber(locale, num, decimals = 3) {
     if (isNaN(num)) {
         return "";
     }
     let longNum = locale.toString(num, "f", -128);
-    let shortNum = locale.toString(num, "f", 3);
+    let shortNum = locale.toString(num, "f", decimals);
     if (longNum.length > shortNum.length) {
         return longNum;
     }

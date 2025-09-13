@@ -140,6 +140,11 @@ void
 InputTranslator::pressButton(BmsKey button, uint64_t time)
 {
     auto& state = buttons[static_cast<int>(button)];
+    if (const auto lastPressTime = lastPress[static_cast<int>(button)];
+        time < lastPressTime + static_cast<uint64_t>(debounceMs)) {
+        return;
+    }
+    lastPress[static_cast<int>(button)] = time;
     const auto oldState = state;
     switch (button) {
         case BmsKey::Col11:
@@ -734,7 +739,7 @@ InputTranslator::handleRelease(Gamepad gamepad, Uint8 button, int64_t time)
 }
 
 void
-InputTranslator::loadKeyConfig(db::SqliteCppDb* db)
+InputTranslator::loadKeyConfig()
 {
     auto getLastVersion =
       db->createStatement("SELECT value FROM properties WHERE key = 'version'");
@@ -826,7 +831,7 @@ InputTranslator::connectAnalogAxisConfig(const AnalogAxisConfig& config)
             &InputTranslator::saveAnalogAxisConfig);
 }
 void
-InputTranslator::loadAnalogAxisConfig(db::SqliteCppDb* db)
+InputTranslator::loadAnalogAxisConfig()
 {
     auto axisStatement = db->createStatement(
       "SELECT value FROM properties WHERE key = 'analog_axis_config'");
@@ -842,6 +847,22 @@ InputTranslator::loadAnalogAxisConfig(db::SqliteCppDb* db)
     }
     checkAnalogAxisStatus();
 }
+void
+InputTranslator::loadDebounce()
+{
+    auto axisStatement = db->createStatement(
+      "SELECT value FROM properties WHERE key = 'debounce'");
+    if (const auto value = axisStatement.executeAndGet<double>()) {
+        debounceMs = *value;
+    }
+}
+void InputTranslator::saveDebounce()
+{
+    auto statement = db->createStatement(
+      "INSERT OR REPLACE INTO properties (key, value) VALUES ('debounce', ?)");
+    statement.bind(1, debounceMs);
+    statement.execute();
+}
 InputTranslator::InputTranslator(db::SqliteCppDb* db, QObject* parent)
   : QObject(parent)
   , db(db)
@@ -851,8 +872,9 @@ InputTranslator::InputTranslator(db::SqliteCppDb* db, QObject* parent)
             this,
             &InputTranslator::saveKeyConfig);
     // load key config
-    loadKeyConfig(db);
-    loadAnalogAxisConfig(db);
+    loadKeyConfig();
+    loadAnalogAxisConfig();
+    loadDebounce();
     connect(this,
             &InputTranslator::keyConfigModified,
             this,
@@ -1169,6 +1191,29 @@ InputTranslator::scancodeToString(const int scanCode)
     }
 #endif
     return QString("Scancode %1").arg(scanCode);
+}
+
+
+auto
+InputTranslator::getDebounceMs() const -> double
+{
+    return debounceMs;
+}
+void
+InputTranslator::setDebounceMs(double value)
+{
+    value = std::max(0.0, value);
+    if (debounceMs == value) {
+        return;
+    }
+    debounceMs = value;
+    saveDebounce();
+    emit debounceMsChanged();
+}
+void
+InputTranslator::resetDebounceMs()
+{
+    setDebounceMs(40.0);
 }
 
 auto
