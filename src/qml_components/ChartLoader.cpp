@@ -306,6 +306,7 @@ ChartLoader::loadCourse(const resource_managers::Course& course,
       constrainNoteOrderAlgorithm(p2NoteOrderAlgorithm, mirror);
     auto loadCourseChartPartial =
       [=,
+       gaugeFactoryCourse = gaugeFactoryCourse,
        player1 = QPointer(player1),
        player2 = QPointer(player2),
        previous1 = QList<gameplay_logic::rules::BmsGauge*>{},
