@@ -18,6 +18,11 @@ if (PORTABLE_BUILD)
     if (LINUX)
         install(FILES RhythmGame.sh DESTINATION "${CMAKE_INSTALL_BINDIR}" PERMISSIONS OWNER_EXECUTE OWNER_READ OWNER_WRITE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
     endif ()
+else ()
+    install(
+            TARGETS RhythmGame_exe
+            RUNTIME COMPONENT RhythmGame_Runtime
+    )
 endif ()
 
 set(DATA_FOLDER_PREFIX "data" CACHE STRING "Prefix for data folder installation")
