@@ -140,332 +140,224 @@ void
 InputTranslator::pressButton(BmsKey button, uint64_t time)
 {
     auto& state = buttons[static_cast<int>(button)];
-    if (const auto lastPressTime = lastPress[static_cast<int>(button)];
-        time < lastPressTime + static_cast<uint64_t>(debounceMs)) {
+    if (const auto lastReleaseTime = lastRelease[static_cast<int>(button)];
+        time < lastReleaseTime + static_cast<uint64_t>(debounceMs)) {
         return;
     }
-    lastPress[static_cast<int>(button)] = time;
-    const auto oldState = state;
+    if (state) {
+        return;
+    }
+    state = true;
     switch (button) {
         case BmsKey::Col11:
-            state = true;
-            if (!oldState) {
-                emit col11Changed();
-            }
+            emit col11Changed();
             break;
+
         case BmsKey::Col12:
-            state = true;
-            if (!oldState) {
-                emit col12Changed();
-            }
+            emit col12Changed();
             break;
 
         case BmsKey::Col13:
-            state = true;
-            if (!oldState) {
-                emit col13Changed();
-            }
+            emit col13Changed();
             break;
 
         case BmsKey::Col14:
-            state = true;
-            if (!oldState) {
-                emit col14Changed();
-            }
+            emit col14Changed();
             break;
 
         case BmsKey::Col15:
-            state = true;
-            if (!oldState) {
-                emit col15Changed();
-            }
+            emit col15Changed();
             break;
 
         case BmsKey::Col16:
-            state = true;
-            if (!oldState) {
-                emit col16Changed();
-            }
+            emit col16Changed();
             break;
 
         case BmsKey::Col17:
             state = true;
-            if (!oldState) {
-                emit col17Changed();
-            }
+            emit col17Changed();
             break;
 
         case BmsKey::Col1sUp:
             state = true;
-            if (!oldState) {
-                emit col1sUpChanged();
-            }
+            emit col1sUpChanged();
             break;
 
         case BmsKey::Col1sDown:
             state = true;
-            if (!oldState) {
-                emit col1sDownChanged();
-            }
+            emit col1sDownChanged();
             break;
 
         case BmsKey::Col21:
             state = true;
-            if (!oldState) {
-                emit col21Changed();
-            }
+            emit col21Changed();
             break;
 
         case BmsKey::Col22:
             state = true;
-            if (!oldState) {
-                emit col22Changed();
-            }
+            emit col22Changed();
             break;
 
         case BmsKey::Col23:
             state = true;
-            if (!oldState) {
-                emit col23Changed();
-            }
+            emit col23Changed();
             break;
 
         case BmsKey::Col24:
             state = true;
-            if (!oldState) {
-                emit col24Changed();
-            }
+            emit col24Changed();
             break;
 
         case BmsKey::Col25:
             state = true;
-            if (!oldState) {
-                emit col25Changed();
-            }
+            emit col25Changed();
             break;
 
         case BmsKey::Col26:
             state = true;
-            if (!oldState) {
-                emit col26Changed();
-            }
+            emit col26Changed();
             break;
 
         case BmsKey::Col27:
             state = true;
-            if (!oldState) {
-                emit col27Changed();
-            }
+            emit col27Changed();
             break;
 
         case BmsKey::Col2sUp:
             state = true;
-            if (!oldState) {
-                emit col2sUpChanged();
-            }
+            col2sUpChanged();
             break;
 
         case BmsKey::Col2sDown:
             state = true;
-            if (!oldState) {
-                emit col2sDownChanged();
-            }
+            emit col2sDownChanged();
             break;
 
         case BmsKey::Start1:
             state = true;
-            if (!oldState) {
-                emit start1Changed();
-            }
+            emit start1Changed();
             break;
 
         case BmsKey::Select1:
             state = true;
-            if (!oldState) {
-                emit select1Changed();
-            }
+            emit select1Changed();
             break;
 
         case BmsKey::Start2:
             state = true;
-            if (!oldState) {
-                emit start2Changed();
-            }
+            emit start2Changed();
             break;
 
         case BmsKey::Select2:
             state = true;
-            if (!oldState) {
-                emit select2Changed();
-            }
+            emit select2Changed();
             break;
     }
-    if (!oldState) {
-        emit buttonPressed(button, time);
-    }
+    emit buttonPressed(button, time);
 }
 void
 InputTranslator::releaseButton(BmsKey button, uint64_t time)
 {
     auto& state = buttons[static_cast<int>(button)];
-    const auto oldState = state;
+    if (const auto lastReleaseTime = lastRelease[static_cast<int>(button)];
+        time < lastReleaseTime + static_cast<uint64_t>(debounceMs)) {
+        return;
+    }
+    if (!state) {
+        return;
+    }
+    lastRelease[static_cast<int>(button)] = time;
+    state = false;
     switch (button) {
         case BmsKey::Col11:
-            state = false;
-            if (oldState) {
-                emit col11Changed();
-            }
+            emit col11Changed();
             break;
+
         case BmsKey::Col12:
-            state = false;
-            if (oldState) {
-                emit col12Changed();
-            }
+            emit col12Changed();
             break;
 
         case BmsKey::Col13:
-            state = false;
-            if (oldState) {
-                emit col13Changed();
-            }
+            emit col13Changed();
             break;
 
         case BmsKey::Col14:
-            state = false;
-            if (oldState) {
-                emit col14Changed();
-            }
+            emit col14Changed();
             break;
 
         case BmsKey::Col15:
-            state = false;
-            if (oldState) {
-                emit col15Changed();
-            }
+            emit col15Changed();
             break;
 
         case BmsKey::Col16:
-            state = false;
-            if (oldState) {
-                emit col16Changed();
-            }
+            emit col16Changed();
             break;
 
         case BmsKey::Col17:
-            state = false;
-            if (oldState) {
-                emit col17Changed();
-            }
+            emit col17Changed();
             break;
 
         case BmsKey::Col1sUp:
-            state = false;
-            if (oldState) {
-                emit col1sUpChanged();
-            }
+            emit col1sUpChanged();
             break;
 
         case BmsKey::Col1sDown:
-            state = false;
-            if (oldState) {
-                emit col1sDownChanged();
-            }
+            emit col1sDownChanged();
             break;
 
         case BmsKey::Col21:
-            state = false;
-            if (oldState) {
-                emit col21Changed();
-            }
+            emit col21Changed();
             break;
 
         case BmsKey::Col22:
-            state = false;
-            if (oldState) {
-                emit col22Changed();
-            }
+            emit col22Changed();
             break;
 
         case BmsKey::Col23:
-            state = false;
-            if (oldState) {
-                emit col23Changed();
-            }
+            emit col23Changed();
             break;
 
         case BmsKey::Col24:
-            state = false;
-            if (oldState) {
-                emit col24Changed();
-            }
+            emit col24Changed();
             break;
 
         case BmsKey::Col25:
-            state = false;
-            if (oldState) {
-                emit col25Changed();
-            }
+            emit col25Changed();
             break;
 
         case BmsKey::Col26:
-            state = false;
-            if (oldState) {
-                emit col26Changed();
-            }
+            emit col26Changed();
             break;
 
         case BmsKey::Col27:
-            state = false;
-            if (oldState) {
-                emit col27Changed();
-            }
+            emit col27Changed();
             break;
 
         case BmsKey::Col2sUp:
-            state = false;
-            if (oldState) {
-                emit col2sUpChanged();
-            }
+            emit col2sUpChanged();
             break;
 
         case BmsKey::Col2sDown:
-            state = false;
-            if (oldState) {
-                emit col2sDownChanged();
-            }
+            emit col2sDownChanged();
             break;
 
         case BmsKey::Start1:
-            state = false;
-            if (oldState) {
-                emit start1Changed();
-            }
+            emit start1Changed();
             break;
 
         case BmsKey::Select1:
-            state = false;
-            if (oldState) {
-                emit select1Changed();
-            }
+            emit select1Changed();
             break;
 
         case BmsKey::Start2:
-            state = false;
-            if (oldState) {
-                emit start2Changed();
-            }
+            emit start2Changed();
             break;
 
         case BmsKey::Select2:
-            state = false;
-            if (oldState) {
-                emit select2Changed();
-            }
+            emit select2Changed();
             break;
     }
-    if (oldState) {
-        emit buttonReleased(button, time);
-    }
+    emit buttonReleased(button, time);
 }
 void
 InputTranslator::unpressAndUnbind(const Key& key, uint64_t time)
@@ -856,7 +748,8 @@ InputTranslator::loadDebounce()
         debounceMs = *value;
     }
 }
-void InputTranslator::saveDebounce()
+void
+InputTranslator::saveDebounce()
 {
     auto statement = db->createStatement(
       "INSERT OR REPLACE INTO properties (key, value) VALUES ('debounce', ?)");
@@ -1192,7 +1085,6 @@ InputTranslator::scancodeToString(const int scanCode)
 #endif
     return QString("Scancode %1").arg(scanCode);
 }
-
 
 auto
 InputTranslator::getDebounceMs() const -> double

@@ -229,7 +229,7 @@ class InputTranslator final : public QObject
     std::array<bool, magic_enum::enum_count<BmsKey>()> buttons{{}};
     std::optional<std::pair<Gamepad, uint8_t>> scratchAxis1;
     std::optional<std::pair<Gamepad, uint8_t>> scratchAxis2;
-    std::array<uint64_t, magic_enum::enum_count<BmsKey>()> lastPress{{}};
+    std::array<uint64_t, magic_enum::enum_count<BmsKey>()> lastRelease{{}};
     double debounceMs = 40.0;
 
     void pressButton(BmsKey button, uint64_t time);
