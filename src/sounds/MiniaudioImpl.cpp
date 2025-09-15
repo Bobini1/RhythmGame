@@ -8,4 +8,4 @@
 extern "C" {
 #include <stb_vorbis.c>
 }
-#include <miniaudio/miniaudio.h>
+#include <miniaudio.h>
