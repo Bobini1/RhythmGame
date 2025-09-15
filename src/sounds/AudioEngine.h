@@ -4,11 +4,7 @@
 
 #ifndef RHYTHMGAME_AUDIOENGINE_H
 #define RHYTHMGAME_AUDIOENGINE_H
-extern "C" {
-#define STB_VORBIS_HEADER_ONLY
-#include <stb_vorbis.c>
-}
-#include <miniaudio.h>
+#include "MiniaudioBackend.h"
 #include <QSettings>
 namespace sounds {
 class Sound;

@@ -52,7 +52,8 @@ find_package(Boost REQUIRED COMPONENTS headers)
 
 # <------------ miniaudio (audio playback) --------------->
 
-find_path(MINIAUDIO_INCLUDE_DIRS "miniaudio.h" PATHS /usr/include/miniaudio)
+find_path(MINIAUDIO_INCLUDE_DIRS "miniaudio.h" NO_DEFAULT_PATH)
+find_path(MINIAUDIO_INCLUDE_DIRS "miniaudio.h")
 message(STATUS "miniaudio include dirs: ${MINIAUDIO_INCLUDE_DIRS}")
 
 # <------------ Qt (gui) --------------->
@@ -232,7 +233,8 @@ qt_add_library(RhythmGame_lib OBJECT
         src/support/QtSink.h
         src/sounds/AudioEngine.cpp
         src/sounds/AudioEngine.h
-        src/sounds/MiniaudioImpl.cpp
+        src/sounds/MiniaudioBackend.cpp
+        src/sounds/MiniaudioBackend.h
         src/sounds/AudioPlayer.cpp
         src/sounds/AudioPlayer.h
         src/resource_managers/AvatarImageProvider.cpp

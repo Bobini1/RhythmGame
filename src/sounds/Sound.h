@@ -6,7 +6,7 @@
 #define RHYTHMGAME_SOUND_H
 #include <QObject>
 #include <spdlog/spdlog.h>
-#include <miniaudio.h>
+#include "MiniaudioBackend.h"
 
 /**
  * @brief The namespace for all sound related classes.
