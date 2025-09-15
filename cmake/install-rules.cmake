@@ -1,5 +1,5 @@
 option(PORTABLE_BUILD "Deploy libraries and provide RhythmGame.sh" ON)
-if (INSTALL_RUNTIME_DEPS)
+if (PORTABLE_BUILD)
     install(
             TARGETS RhythmGame_exe
             RUNTIME_DEPENDENCY_SET RuntimeDeps
