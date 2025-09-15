@@ -167,7 +167,7 @@ Presets</h2>
 </blockquote>
 <h2><a class="anchor" id="autotoc_md16"></a>
 Dependency manager</h2>
-<p>The above preset will make use of the <a href="https://github.com/microsoft/vcpkg">vcpkg</a> dependency manager. After installing it, make sure the <code>VCPKG_INSTALLATION_ROOT</code> environment variable is pointing at the directory where the vcpkg executable is. You will also want to inherit from the <code>vcpkg-&lt;os&gt;-sharedqt</code> preset, which will make vcpkg install the dependencies as static libraries for all libs other than Qt, FFmpeg and mimalloc.</p>
+<p>The above preset will make use of the <a href="https://github.com/microsoft/vcpkg">vcpkg</a> dependency manager. After installing it, make sure the <code>VCPKG_ROOT</code> environment variable is pointing at the directory where the vcpkg executable is. You will also want to inherit from the <code>vcpkg-&lt;os&gt;-sharedqt</code> preset, which will make vcpkg install the dependencies as static libraries for all libs other than Qt, FFmpeg and mimalloc.</p>
 <h2><a class="anchor" id="autotoc_md17"></a>
 Configure, build and test</h2>
 <p>If you followed the above instructions, then you can configure, build and test the project respectively with the following commands from the project root on any operating system with any build system:</p>
