@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.21)
 include(cmake/prelude.cmake)
 project(
         RhythmGame
-        VERSION 1.1.0
+        VERSION 1.2.0
         DESCRIPTION "A customizable BMS player for Windows and Linux. "
         HOMEPAGE_URL "https://github.com/Bobini1/RhythmGame"
         LANGUAGES C CXX
@@ -19,6 +19,8 @@ if (supported)
     message(STATUS "IPO / LTO enabled")
     set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
 endif ()
+
+option(PORTABLE_BUILD "Deploy the entire game to a portable folder, without using system dirs" ON)
 
 # <---- mimalloc (faster memory allocation) ---->
 
@@ -232,6 +234,8 @@ qt_add_library(RhythmGame_lib OBJECT
         src/sounds/MiniaudioImpl.cpp
         src/sounds/AudioPlayer.cpp
         src/sounds/AudioPlayer.h
+        src/resource_managers/AvatarImageProvider.cpp
+        src/resource_managers/AvatarImageProvider.h
 )
 
 if (WIN32)
@@ -323,6 +327,10 @@ set_target_properties(
         EXPORT_NAME exe
         RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/bin/$<0:>"
 )
+
+if (PORTABLE_BUILD)
+    target_compile_definitions(RhythmGame_exe PRIVATE RHYTHMGAME_PORTABLE_BUILD=1)
+endif ()
 
 qt_import_qml_plugins(RhythmGame_exe)
 

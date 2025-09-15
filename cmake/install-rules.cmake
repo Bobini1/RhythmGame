@@ -1,5 +1,5 @@
 option(PORTABLE_BUILD "Deploy libraries and provide RhythmGame.sh" ON)
-if (PORTABLE_BUILD)
+if (PORTABLE_BUILD OR WIN32)
     install(
             TARGETS RhythmGame_exe
             RUNTIME_DEPENDENCY_SET RuntimeDeps
@@ -55,9 +55,11 @@ if (WIN32)
     install(FILES ${CMAKE_BINARY_DIR}/bin/mimalloc-redirect.dll DESTINATION "${CMAKE_INSTALL_BINDIR}"
             COMPONENT RhythmGame_Runtime)
 
-    set(CPACK_NSIS_EXTRA_INSTALL_COMMANDS
-            "Exec 'icacls \\\"$INSTDIR/data\\\" /grant *S-1-5-32-545:(OI)(CI)F /T'"
-    )
+    if (PORTABLE_BUILD)
+        set(CPACK_NSIS_EXTRA_INSTALL_COMMANDS
+                "Exec 'icacls \\\"$INSTDIR/data\\\" /grant *S-1-5-32-545:(OI)(CI)F /T'"
+        )
+    endif ()
     set(CPACK_PACKAGE_EXECUTABLES "RhythmGame" "RhythmGame")
 endif ()
 

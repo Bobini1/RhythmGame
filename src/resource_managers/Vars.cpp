@@ -21,9 +21,10 @@
 #include <qcolor.h>
 #include <qdir.h>
 #include <utility>
-resource_managers::GeneralVars::GeneralVars(QString avatarPath, QObject* parent)
+resource_managers::GeneralVars::GeneralVars(QList<QString> avatarPaths,
+                                            QObject* parent)
   : QObject(parent)
-  , avatarPath(std::move(avatarPath))
+  , avatarPaths(std::move(avatarPaths))
 {
 }
 auto
@@ -349,35 +350,49 @@ resource_managers::GeneralVars::setAvatar(QString value)
     const auto url = QUrl{ value };
     const auto sourcePath = url.toLocalFile();
     const auto isAbsolute = QDir::isAbsolutePath(sourcePath);
-    if ((value.contains('/') || value.contains('\\')) && !isAbsolute) {
-        spdlog::warn("Avatar must be a filename or an absolute path: {}",
-                     value.toStdString());
+    if (!value.startsWith("image://avatar/") && !isAbsolute) {
+        spdlog::warn(
+          "Avatar must start with image://avatar/ or be an absolute path: {}",
+          value.toStdString());
         return;
     }
-    if (isAbsolute) {
-        auto file = QFile{ sourcePath };
-        if (!file.open(QIODevice::ReadOnly)) {
-            spdlog::warn("Failed to open avatar file: {}", value.toStdString());
-            return;
-        }
-        const auto fileName = QFileInfo{ file.fileName() }.fileName();
-        const auto targetPath = QUrl{ avatarPath + fileName }.toLocalFile();
-        const auto sourceStdPath = support::qStringToPath(sourcePath);
-        const auto targetStdPath = support::qStringToPath(targetPath);
-        if (auto err = std::error_code{};
-            !equivalent(targetStdPath, sourceStdPath, err)) {
-            // If this picture is currently used by the game, it won't be
-            // overwritten (remove will fail).
-            QFile::remove(targetPath);
-            if (!file.copy(targetPath)) {
-                spdlog::warn(
-                  "Failed to copy avatar file to the avatar folder: {}",
-                  value.toStdString());
+    if (!isAbsolute) {
+        auto filename = value;
+        filename.remove(0, QStringLiteral("image://avatar/").length());
+        // ensure it exists
+        for (const auto& path : avatarPaths) {
+            if (QFileInfo::exists(path + filename)) {
+                avatar = value;
+                emit avatarChanged();
                 return;
             }
         }
-        value = fileName;
+        spdlog::warn(
+          "Requested avatar file does not exist in any avatar folder: {}",
+          value.toStdString());
+        return;
     }
+    auto file = QFile { sourcePath };
+    if (!file.open(QIODevice::ReadOnly)) {
+        spdlog::warn("Failed to open avatar file: {}", value.toStdString());
+        return;
+    }
+    const auto fileName = QFileInfo{ file.fileName() }.fileName();
+    const auto targetPath = avatarPaths[0] + fileName;
+    const auto sourceStdPath = support::qStringToPath(sourcePath);
+    const auto targetStdPath = support::qStringToPath(targetPath);
+    if (auto err = std::error_code{};
+        !equivalent(targetStdPath, sourceStdPath, err)) {
+        // If this picture is currently used by the game, it won't be
+        // overwritten (remove will fail).
+        QFile::remove(targetPath);
+        if (!file.copy(targetPath)) {
+            spdlog::warn("Failed to copy avatar file to the avatar folder: {}",
+                         value.toStdString());
+            return;
+        }
+    }
+    value = "image://avatar/" + fileName;
     avatar = value;
     emit avatarChanged();
 }
@@ -1065,10 +1080,10 @@ resource_managers::Vars::writeGeneralVars() const
 resource_managers::Vars::Vars(
   const Profile* profile,
   QMap<QString, qml_components::ThemeFamily> availableThemeFamilies,
-  QString avatarPath,
+  QList<QString> avatarPaths,
   QObject* parent)
   : QObject(parent)
-  , generalVars(std::move(avatarPath))
+  , generalVars(std::move(avatarPaths))
   , profile(profile)
   , availableThemeFamilies(std::move(availableThemeFamilies))
   , loadedThemeVars(readThemeVars(profile->getPath().parent_path(),

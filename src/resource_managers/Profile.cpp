@@ -38,7 +38,7 @@ Profile::Profile(
   const std::filesystem::path& mainDbPath,
   const std::filesystem::path& dbPath,
   const QMap<QString, qml_components::ThemeFamily>& themeFamilies,
-  QString avatarPath,
+  QList<QString> avatarPaths,
   QObject* parent)
   : QObject(parent)
   , db(createDb(dbPath))
@@ -46,7 +46,7 @@ Profile::Profile(
   , themeConfig(
       createConfig(themeFamilies, dbPath.parent_path() / "theme_config.json")
         .release())
-  , vars(this, themeFamilies, std::move(avatarPath))
+  , vars(this, themeFamilies, std::move(avatarPaths))
 {
     auto attachStatement = db.createStatement("ATTACH DATABASE ? AS song_db;");
     attachStatement.bind(1, support::pathToUtfString(mainDbPath));

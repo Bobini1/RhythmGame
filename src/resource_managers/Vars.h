@@ -224,15 +224,15 @@ class GeneralVars final : public QObject
     QString gaugeType = "FC";
     GaugeMode gaugeMode = GaugeMode::SelectToUnder;
     QString bottomShiftableGauge = "AEASY";
-    QString avatar = "mascot.png";
+    QString avatar = "image://avatar/mascot.png";
     QString name = "Default";
     QString language = QLocale::system().name();
     double offset = 0.0; // Offset in milliseconds
 
-    QString avatarPath;
+    QList<QString> avatarPaths;
 
   public:
-    explicit GeneralVars(QString avatarPath, QObject* parent = nullptr);
+    explicit GeneralVars(QList<QString> avatarPaths, QObject* parent = nullptr);
     auto getNoteScreenTimeMillis() const -> double;
     void setNoteScreenTimeMillis(double value);
     void resetNoteScreenTimeMillis();
@@ -346,7 +346,7 @@ class Vars final : public QObject
     explicit Vars(
       const Profile* profile,
       QMap<QString, qml_components::ThemeFamily> availableThemeFamilies,
-      QString avatarPath,
+      QList<QString> avatarPaths,
       QObject* parent = nullptr);
     auto getGeneralVars() -> GeneralVars*;
     auto getThemeVars() -> QQmlPropertyMap*;

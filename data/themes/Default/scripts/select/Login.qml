@@ -116,7 +116,7 @@ Rectangle {
 
                         Image {
                             id: image
-                            source: Rg.programSettings.avatarFolder + Rg.profileList.mainProfile.vars.generalVars.avatar
+                            source: Rg.profileList.mainProfile.vars.generalVars.avatar
                             anchors.fill: parent
                             anchors.margins: 1
                             fillMode: Image.PreserveAspectFit

@@ -188,7 +188,7 @@ Rectangle {
 
                 Image {
                     id: image
-                    source: Rg.programSettings.avatarFolder + modelData.vars.generalVars.avatar
+                    source: modelData.vars.generalVars.avatar
                     asynchronous: true
                     anchors.fill: parent
                     fillMode: Image.PreserveAspectFit

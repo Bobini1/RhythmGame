@@ -40,6 +40,8 @@
 #include "sounds/AudioPlayer.h"
 #include "sounds/SoundBuffer.h"
 #include "support/QtSink.h"
+#include "resource_managers/AvatarImageProvider.h"
+#include "support/QStringToPath.h"
 
 Q_IMPORT_QML_PLUGIN(RhythmGameQmlPlugin)
 
@@ -69,6 +71,33 @@ qtLogHandler(QtMsgType type,
     }
 }
 
+void
+createStandardDirectories()
+{
+    auto base = support::qStringToPath(
+      QStandardPaths::writableLocation(QStandardPaths::AppDataLocation));
+    std::error_code ec;
+    std::filesystem::create_directories(base / "avatars", ec);
+    if (ec) {
+        spdlog::error("Could not create avatars folder: {}", ec.message());
+        throw std::runtime_error("Could not create avatars folder");
+    }
+    std::filesystem::create_directories(base / "profiles", ec);
+    if (ec) {
+        spdlog::error("Could not create profiles folder: {}", ec.message());
+        throw std::runtime_error("Could not create profiles folder");
+    }
+    std::filesystem::create_directories(base / "tables", ec);
+    if (ec) {
+        spdlog::error("Could not create tables folder: {}", ec.message());
+        throw std::runtime_error("Could not create tables folder");
+    }
+    std::filesystem::create_directories(base / "themes", ec);
+    if (ec) {
+        spdlog::error("Could not create themes folder: {}", ec.message());
+        throw std::runtime_error("Could not create themes folder");
+    }
+}
 auto
 main(int argc, [[maybe_unused]] char* argv[]) -> int
 {
@@ -96,18 +125,27 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
 
     auto app = input::CustomNotifyApp{ argc, argv };
 
-    auto dataFolder = resource_managers::findDataFolder();
+    auto dataFolder =
+#ifdef RHYTHMGAME_PORTABLE_BUILD
+      resource_managers::findDataFolder();
+#else
+      support::qStringToPath(
+        QStandardPaths::writableLocation(QStandardPaths::AppDataLocation));
+#endif
     auto logFile = dataFolder / "log.txt";
+    auto installationDataFolder = resource_managers::findDataFolder();
     logger->sinks().push_back(
       std::make_shared<spdlog::sinks::basic_file_sink_mt>(logFile, true));
 
     spdlog::flush_every(std::chrono::seconds(1));
 
-    QGuiApplication::setOrganizationName("Tomasz Kalisiak");
     QGuiApplication::setOrganizationDomain("rhythmgame.eu");
     QGuiApplication::setApplicationName("RhythmGame");
 
     try {
+#ifndef RHYTHMGAME_PORTABLE_BUILD
+        createStandardDirectories();
+#endif
         qputenv("QML_XHR_ALLOW_FILE_READ", QByteArray("1"));
 
         auto db = db::SqliteCppDb{ dataFolder / "song_db.sqlite" };
@@ -115,7 +153,6 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
         resource_managers::defineDb(db);
 
         auto songDbScanner = resource_managers::SongDbScanner{ &db };
-
         auto avatarPath = support::pathToQString(dataFolder / "avatars/");
         if (!avatarPath.startsWith("/")) {
             avatarPath = "/" + avatarPath;
@@ -127,7 +164,11 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
         qRegisterMetaType<input::Gamepad>("input::Gamepad");
 
         auto availableThemes =
-          resource_managers::scanThemes(dataFolder / "themes");
+          resource_managers::scanThemes(installationDataFolder / "themes");
+#ifndef RHYTHMGAME_PORTABLE_BUILD
+        auto userThemes = resource_managers::scanThemes(dataFolder / "themes");
+        availableThemes.insert(userThemes);
+#endif
         if (availableThemes.empty()) {
             throw std::runtime_error("No themes available");
         }
@@ -136,12 +177,18 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
         auto themes = qml_components::Themes{ availableThemes };
 
         auto inputTranslator = input::InputTranslator{ &db };
+        auto avatarFolders = QStringList{ };
+#ifndef RHYTHMGAME_PORTABLE_BUILD
+        avatarFolders.append(
+          support::pathToQString(dataFolder / "avatars/"));
+#endif
+        avatarFolders.append(support::pathToQString(installationDataFolder / "avatars/"));
         auto profileList =
           qml_components::ProfileList{ dataFolder / "song_db.sqlite",
                                        &db,
                                        availableThemes,
                                        dataFolder / "profiles",
-                                       avatarPath };
+                                       avatarFolders };
 
         QObject::connect(&gamepadManager,
                          &input::GamepadManager::axisMoved,
@@ -401,6 +448,13 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
 
         engine.addImageProvider("ini",
                                 new resource_managers::IniImageProvider{});
+        auto avatarPaths = std::vector{ installationDataFolder / "avatars/" };
+#ifndef RHYTHMGAME_PORTABLE_BUILD
+        avatarPaths.push_back(dataFolder / "avatars/");
+#endif
+        engine.addImageProvider(
+          "avatar",
+          new resource_managers::AvatarImageProvider{ std::move(avatarPaths) });
 
         engine.load(QUrl("qrc:///qt/qml/RhythmGameQml/ContentFrame.qml"));
         if (engine.rootObjects().isEmpty()) {

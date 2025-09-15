@@ -159,7 +159,7 @@ Item {
                     height: parent.width / 2
                     Image {
                         anchors.fill: parent
-                        source: Rg.programSettings.avatarFolder + Rg.profileList.mainProfile.vars.generalVars.avatar
+                        source: Rg.profileList.mainProfile.vars.generalVars.avatar
                         asynchronous: true
                         fillMode: Image.PreserveAspectFit
 

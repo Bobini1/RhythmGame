@@ -88,7 +88,7 @@ class ProfileList final : public QObject
     resource_managers::Profile* mainProfile{};
     BattleProfiles battleProfiles;
     bool battleActive{};
-    QString avatarPath;
+    QList<QString> avatarPaths;
 
     void saveMainProfile();
     void saveActiveProfiles();
@@ -98,7 +98,7 @@ class ProfileList final : public QObject
                          db::SqliteCppDb* songDb,
                          const QMap<QString, ThemeFamily>& themeFamilies,
                          std::filesystem::path profilesFolder,
-                         QString avatarPath,
+                         QList<QString> avatarPaths,
                          QObject* parent = nullptr);
     auto getProfiles() -> const QList<resource_managers::Profile*>&;
 
