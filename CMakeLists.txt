@@ -52,7 +52,7 @@ find_package(Boost REQUIRED COMPONENTS headers)
 
 # <------------ miniaudio (audio playback) --------------->
 
-find_path(MINIAUDIO_INCLUDE_DIRS "miniaudio.h" PATHS /usr/include/miniaudio/)
+find_path(MINIAUDIO_INCLUDE_DIRS "miniaudio.h" PATHS /usr/include/miniaudio/miniaudio.h)
 
 # <------------ Qt (gui) --------------->
 
