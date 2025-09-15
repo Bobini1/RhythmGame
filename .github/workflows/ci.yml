@@ -38,7 +38,6 @@ jobs:
         run: sudo apt-get install libtbb-dev libgl-dev libdrm-dev libgles2-mesa-dev libudev-dev nasm autoconf automake autoconf-archive gperf pkg-config python3-jinja2 '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev libltdl-dev libxrandr-dev mono-complete -y
 
       - name: Export environment variables for vcpkg binary caching
-        if: matrix.options.loadtests != 'OFF'
         uses: actions/github-script@v7
         with:
           script: |
@@ -95,7 +94,6 @@ jobs:
         run: sudo apt-get install libtbb-dev libgl-dev libdrm-dev libgles2-mesa-dev libudev-dev nasm autoconf automake autoconf-archive gperf pkg-config python3-jinja2 '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev libltdl-dev libxrandr-dev mono-complete -y
 
       - name: Export environment variables for vcpkg binary caching
-        if: matrix.options.loadtests != 'OFF'
         uses: actions/github-script@v7
         with:
           script: |
@@ -212,7 +210,6 @@ jobs:
           echo "some packages purged"
 
       - name: Export environment variables for vcpkg binary caching
-        if: matrix.options.loadtests != 'OFF'
         uses: actions/github-script@v7
         with:
           script: |
@@ -222,6 +219,7 @@ jobs:
 
       - name: Add NuGet sources
         shell: bash
+        if: matrix.os == 'ubuntu-latest'
         run: |
           mono `${{ env.VCPKG_EXE }} fetch nuget | tail -n 1` \
             sources add \
@@ -233,6 +231,34 @@ jobs:
           mono `${{ env.VCPKG_EXE }} fetch nuget | tail -n 1` \
             setapikey "${{ secrets.GITHUB_TOKEN }}" \
             -Source "${{ env.NUGET_FEED_URL }}"
+          
+      - name: Add NuGet sources
+        shell: pwsh
+        if: matrix.os == 'windows-latest'
+        run: |
+          .$(${{ env.VCPKG_EXE }} fetch nuget) `
+          sources add `
+          -Source "${{ env.NUGET_FEED_URL }}" `
+          -StorePasswordInClearText `
+          -Name GitHubPackages `
+          -UserName "Bobini1" `
+          -Password "${{ secrets.GITHUB_TOKEN }}"
+          .$(${{ env.VCPKG_EXE }} fetch nuget) `
+          setapikey "${{ secrets.GITHUB_TOKEN }}" `
+          -Source "${{ env.NUGET_FEED_URL }}"
+
+      - name: Add NuGet sources for vcpkg binary caching
+        if: matrix.os == 'macos-latest'
+        shell: bash
+        run: |
+          nuget sources add \
+          -Source "${{ env.NUGET_FEED_URL }}" \
+          -StorePasswordInClearText \
+          -Name GitHubPackages \
+          -UserName "Bobini1" \
+          -Password "${{ secrets.GITHUB_TOKEN }}"
+          nuget setapikey "${{ secrets.GITHUB_TOKEN }}" \
+          -Source "${{ env.NUGET_FEED_URL }}"
 
       - name: Configure
         shell: pwsh
@@ -323,7 +349,6 @@ jobs:
           echo "some packages purged"
 
       - name: Export environment variables for vcpkg binary caching
-        if: matrix.options.loadtests != 'OFF'
         uses: actions/github-script@v7
         with:
           script: |
@@ -333,6 +358,7 @@ jobs:
 
       - name: Add NuGet sources
         shell: bash
+        if: matrix.os == 'ubuntu-latest'
         run: |
           mono `${{ env.VCPKG_EXE }} fetch nuget | tail -n 1` \
             sources add \
@@ -344,6 +370,34 @@ jobs:
           mono `${{ env.VCPKG_EXE }} fetch nuget | tail -n 1` \
             setapikey "${{ secrets.GITHUB_TOKEN }}" \
             -Source "${{ env.NUGET_FEED_URL }}"
+
+      - name: Add NuGet sources
+        shell: pwsh
+        if: matrix.os == 'windows-latest'
+        run: |
+          .$(${{ env.VCPKG_EXE }} fetch nuget) `
+          sources add `
+          -Source "${{ env.NUGET_FEED_URL }}" `
+          -StorePasswordInClearText `
+          -Name GitHubPackages `
+          -UserName "Bobini1" `
+          -Password "${{ secrets.GITHUB_TOKEN }}"
+          .$(${{ env.VCPKG_EXE }} fetch nuget) `
+          setapikey "${{ secrets.GITHUB_TOKEN }}" `
+          -Source "${{ env.NUGET_FEED_URL }}"
+
+      - name: Add NuGet sources for vcpkg binary caching
+        if: matrix.os == 'macos-latest'
+        shell: bash
+        run: |
+          nuget sources add \
+          -Source "${{ env.NUGET_FEED_URL }}" \
+          -StorePasswordInClearText \
+          -Name GitHubPackages \
+          -UserName "Bobini1" \
+          -Password "${{ secrets.GITHUB_TOKEN }}"
+          nuget setapikey "${{ secrets.GITHUB_TOKEN }}" \
+          -Source "${{ env.NUGET_FEED_URL }}"
 
       - name: Configure
         shell: pwsh
