@@ -54,7 +54,7 @@ jobs:
             -Source "${{ env.NUGET_FEED_URL }}" \
             -StorePasswordInClearText \
             -Name GitHubPackages \
-            -UserName "${{ env.USERNAME }}" \
+            -UserName "Bobini1" \
             -Password "${{ secrets.GITHUB_TOKEN }}"
           mono `${{ env.VCPKG_EXE }} fetch nuget | tail -n 1` \
             setapikey "${{ secrets.GITHUB_TOKEN }}" \
@@ -111,7 +111,7 @@ jobs:
             -Source "${{ env.NUGET_FEED_URL }}" \
             -StorePasswordInClearText \
             -Name GitHubPackages \
-            -UserName "${{ env.USERNAME }}" \
+            -UserName "Bobini1" \
             -Password "${{ secrets.GITHUB_TOKEN }}"
           mono `${{ env.VCPKG_EXE }} fetch nuget | tail -n 1` \
             setapikey "${{ secrets.GITHUB_TOKEN }}" \
@@ -228,7 +228,7 @@ jobs:
             -Source "${{ env.NUGET_FEED_URL }}" \
             -StorePasswordInClearText \
             -Name GitHubPackages \
-            -UserName "${{ env.USERNAME }}" \
+            -UserName "Bobini1" \
             -Password "${{ secrets.GITHUB_TOKEN }}"
           mono `${{ env.VCPKG_EXE }} fetch nuget | tail -n 1` \
             setapikey "${{ secrets.GITHUB_TOKEN }}" \
@@ -339,7 +339,7 @@ jobs:
             -Source "${{ env.NUGET_FEED_URL }}" \
             -StorePasswordInClearText \
             -Name GitHubPackages \
-            -UserName "${{ env.USERNAME }}" \
+            -UserName "Bobini1" \
             -Password "${{ secrets.GITHUB_TOKEN }}"
           mono `${{ env.VCPKG_EXE }} fetch nuget | tail -n 1` \
             setapikey "${{ secrets.GITHUB_TOKEN }}" \
