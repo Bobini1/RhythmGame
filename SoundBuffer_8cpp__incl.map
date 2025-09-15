@@ -1,23 +1,23 @@
 <map id="src/sounds/SoundBuffer.cpp" name="src/sounds/SoundBuffer.cpp">
-<area shape="rect" id="Node000001" title=" " alt="" coords="398,5,598,31"/>
-<area shape="rect" id="Node000002" href="$SoundBuffer_8h.html" title=" " alt="" coords="237,79,349,104"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="466,33,340,77,338,72,464,28"/>
-<area shape="rect" id="Node000009" title=" " alt="" coords="372,79,496,104"/>
-<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="489,33,455,70,451,67,485,29"/>
-<area shape="rect" id="Node000010" title=" " alt="" coords="521,79,606,104"/>
-<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="511,29,545,67,542,70,507,33"/>
-<area shape="rect" id="Node000011" title=" " alt="" coords="631,79,757,104"/>
-<area shape="poly" id="edge10_Node000001_Node000011" title=" " alt="" coords="530,28,650,71,648,76,529,33"/>
-<area shape="rect" id="Node000003" href="$AudioEngine_8h.html" title=" " alt="" coords="122,152,237,177"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="276,106,211,147,208,142,273,102"/>
-<area shape="rect" id="Node000007" title=" " alt="" coords="261,152,324,177"/>
-<area shape="poly" id="edge6_Node000002_Node000007" title=" " alt="" coords="295,104,295,138,290,138,290,104"/>
-<area shape="rect" id="Node000008" title=" " alt="" coords="349,152,439,177"/>
-<area shape="poly" id="edge7_Node000002_Node000008" title=" " alt="" coords="310,102,368,142,365,146,307,106"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="433,5,633,31"/>
+<area shape="rect" id="Node000002" href="$SoundBuffer_8h.html" title=" " alt="" coords="271,79,383,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="501,33,374,77,373,72,499,28"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="407,79,531,104"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="524,33,490,70,486,67,520,29"/>
+<area shape="rect" id="Node000010" title=" " alt="" coords="555,79,641,104"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="545,29,580,67,576,70,541,33"/>
+<area shape="rect" id="Node000011" title=" " alt="" coords="665,79,792,104"/>
+<area shape="poly" id="edge10_Node000001_Node000011" title=" " alt="" coords="565,28,685,71,683,76,563,33"/>
+<area shape="rect" id="Node000003" href="$AudioEngine_8h.html" title=" " alt="" coords="157,152,271,177"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="311,106,245,147,242,142,308,102"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="296,152,359,177"/>
+<area shape="poly" id="edge6_Node000002_Node000007" title=" " alt="" coords="330,104,330,138,325,138,325,104"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="383,152,474,177"/>
+<area shape="poly" id="edge7_Node000002_Node000008" title=" " alt="" coords="345,102,402,142,399,146,342,106"/>
 <area shape="rect" id="Node000004" title=" " alt="" coords="5,225,105,251"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="161,180,89,221,86,216,158,175"/>
-<area shape="rect" id="Node000005" title=" " alt="" coords="130,225,229,251"/>
-<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="182,178,182,212,177,212,177,178"/>
-<area shape="rect" id="Node000006" title=" " alt="" coords="253,225,338,251"/>
-<area shape="poly" id="edge5_Node000003_Node000006" title=" " alt="" coords="199,175,266,216,263,220,197,180"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="190,180,95,222,93,217,187,175"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="130,225,298,251"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="217,178,217,212,211,212,211,178"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="322,225,407,251"/>
+<area shape="poly" id="edge5_Node000003_Node000006" title=" " alt="" coords="239,175,329,217,326,222,237,180"/>
 </map>
