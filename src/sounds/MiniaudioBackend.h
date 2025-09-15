@@ -8,6 +8,7 @@
 #ifdef _WIN32
 #include <windows.h>
 #endif
+#else
 #define STB_VORBIS_HEADER_ONLY
 #endif
 extern "C" {
