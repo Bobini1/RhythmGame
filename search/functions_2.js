@@ -50,7 +50,7 @@ var searchData=
   ['col21changed_47',['col21changed',['../classinput_1_1InputTranslator.html#a716096b0e3ccdfc360e2f4d45e6bc1a1',1,'input::InputTranslator::col21Changed()'],['../classqml__components_1_1InputAttached.html#a2f2875f9c7a689fcc57d562187c160bf',1,'qml_components::InputAttached::col21Changed()']]],
   ['col21pressed_48',['col21Pressed',['../classqml__components_1_1InputAttached.html#a2d72e17aac781ea9a2d8c7249342b944',1,'qml_components::InputAttached']]],
   ['col21released_49',['col21Released',['../classqml__components_1_1InputAttached.html#a2e806eb5ff882ce647076d4f79a368c7',1,'qml_components::InputAttached']]],
-  ['col22_50',['col22',['../classinput_1_1InputTranslator.html#ab62272d67f8d6f14aae769ece238930c',1,'input::InputTranslator::col22()'],['../classqml__components_1_1InputAttached.html#aa41d227764f03a057262ff3764b7c33d',1,'qml_components::InputAttached::col22() const -&gt; bool']]],
+  ['col22_50',['col22',['../classqml__components_1_1InputAttached.html#aa41d227764f03a057262ff3764b7c33d',1,'qml_components::InputAttached::col22()'],['../classinput_1_1InputTranslator.html#ab62272d67f8d6f14aae769ece238930c',1,'input::InputTranslator::col22()']]],
   ['col22changed_51',['col22changed',['../classqml__components_1_1InputAttached.html#a2cef8cdfbe5ccfbbc20892a0023f5706',1,'qml_components::InputAttached::col22Changed()'],['../classinput_1_1InputTranslator.html#ab6509065269e6d4ba9ba4490b92509ea',1,'input::InputTranslator::col22Changed()']]],
   ['col22pressed_52',['col22Pressed',['../classqml__components_1_1InputAttached.html#af05cb32aee1a435c4f3e9f029bd4ea91',1,'qml_components::InputAttached']]],
   ['col22released_53',['col22Released',['../classqml__components_1_1InputAttached.html#a7b2f5a3f459b3aa716c653e8a480e73c',1,'qml_components::InputAttached']]],
@@ -101,7 +101,8 @@ var searchData=
   ['createchart_98',['createChart',['../classresource__managers_1_1ChartFactory.html#ac8906a9dcf3b281b6ecc643da0a3ffdf',1,'resource_managers::ChartFactory']]],
   ['createlowercasefilesmap_99',['createLowerCaseFilesMap',['../namespacecharts.html#a055f9dbcbc667dcb0557a1aa307e60af',1,'charts']]],
   ['createprofile_100',['createProfile',['../classqml__components_1_1ProfileList.html#a0edf2c5fb67a5c2b10ca086cc7e2ae96',1,'qml_components::ProfileList']]],
-  ['createstatement_101',['createStatement',['../classdb_1_1SqliteCppDb.html#a31c2f3f7bf2fded47b0732367d4ca55a',1,'db::SqliteCppDb']]],
-  ['currentchartindexchanged_102',['currentChartIndexChanged',['../classgameplay__logic_1_1CourseRunner.html#aed0997ef5e3c49a945f8e6f61402e783',1,'gameplay_logic::CourseRunner']]],
-  ['currentscannedfolderchanged_103',['currentScannedFolderChanged',['../classqml__components_1_1ScanningQueue.html#a3d6788961aab27324bc1e2675126660b',1,'qml_components::ScanningQueue']]]
+  ['createstandarddirectories_101',['createStandardDirectories',['../main_8cpp.html#ac0094e36f575827128ea4f5a4dbeb94a',1,'main.cpp']]],
+  ['createstatement_102',['createStatement',['../classdb_1_1SqliteCppDb.html#a31c2f3f7bf2fded47b0732367d4ca55a',1,'db::SqliteCppDb']]],
+  ['currentchartindexchanged_103',['currentChartIndexChanged',['../classgameplay__logic_1_1CourseRunner.html#aed0997ef5e3c49a945f8e6f61402e783',1,'gameplay_logic::CourseRunner']]],
+  ['currentscannedfolderchanged_104',['currentScannedFolderChanged',['../classqml__components_1_1ScanningQueue.html#a3d6788961aab27324bc1e2675126660b',1,'qml_components::ScanningQueue']]]
 ];

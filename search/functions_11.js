@@ -13,7 +13,7 @@ var searchData=
   ['removeprofile_10',['removeProfile',['../classqml__components_1_1ProfileList.html#af92e340f37e858e3182761d769cde3c4',1,'qml_components::ProfileList']]],
   ['reorder_11',['reorder',['../classresource__managers_1_1Tables.html#ad07eb5feb07f991706f6a904e25e385e',1,'resource_managers::Tables']]],
   ['replayer_12',['RePlayer',['../classgameplay__logic_1_1RePlayer.html#a91d162ae2c558018a3441bb8285cc830',1,'gameplay_logic::RePlayer']]],
-  ['requestpixmap_13',['requestPixmap',['../classresource__managers_1_1IniImageProvider.html#a8d42cba5006895bb69320a55ce94f30d',1,'resource_managers::IniImageProvider']]],
+  ['requestpixmap_13',['requestpixmap',['../classresource__managers_1_1AvatarImageProvider.html#a10d245ad6df89c111c98f31f3fdf0402',1,'resource_managers::AvatarImageProvider::requestPixmap()'],['../classresource__managers_1_1IniImageProvider.html#a8d42cba5006895bb69320a55ce94f30d',1,'resource_managers::IniImageProvider::requestPixmap()']]],
   ['reset_14',['reset',['../classdb_1_1SqliteCppDb_1_1Statement.html#aed3bf59a450a75800e671892f40ffcdc',1,'db::SqliteCppDb::Statement']]],
   ['resetavatar_15',['resetAvatar',['../classresource__managers_1_1GeneralVars.html#a0f21d5a1fac296eb5fded6e554436a21',1,'resource_managers::GeneralVars']]],
   ['resetbgaon_16',['resetBgaOn',['../classresource__managers_1_1GeneralVars.html#a4d5bab7963b3fc2f8e25c40f69c6090c',1,'resource_managers::GeneralVars']]],

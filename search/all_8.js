@@ -21,7 +21,7 @@ var searchData=
   ['hitevent_2eh_18',['HitEvent.h',['../HitEvent_8h.html',1,'']]],
   ['hitevents_19',['hitevents',['../classgameplay__logic_1_1BmsReplayData.html#a51eb2b090ac2f5d5391a8d7ce9a2de58',1,'gameplay_logic::BmsReplayData::hitEvents'],['../structgameplay__logic_1_1BmsReplayData_1_1DTO.html#ac0bfc242e8e7f8a2dd37875429bcc18a',1,'gameplay_logic::BmsReplayData::DTO::hitEvents']]],
   ['hitoffset_20',['hitOffset',['../classgameplay__logic_1_1HitEvent.html#ad31e1e7d8f121d4c5290e4766341e086',1,'gameplay_logic::HitEvent']]],
-  ['hitrules_21',['hitrules',['../structresource__managers_1_1ChartFactory_1_1PlayerSpecificData.html#aec799d8ebd20f59db7b93b89dbe76de6',1,'resource_managers::ChartFactory::PlayerSpecificData::hitRules'],['../classgameplay__logic_1_1rules_1_1HitRules.html#a94323ec44ab8153918f1437510e678a2',1,'gameplay_logic::rules::HitRules::HitRules()'],['../classgameplay__logic_1_1rules_1_1HitRules.html',1,'gameplay_logic::rules::HitRules']]],
+  ['hitrules_21',['hitrules',['../classgameplay__logic_1_1rules_1_1HitRules.html#a94323ec44ab8153918f1437510e678a2',1,'gameplay_logic::rules::HitRules::HitRules()'],['../structresource__managers_1_1ChartFactory_1_1PlayerSpecificData.html#aec799d8ebd20f59db7b93b89dbe76de6',1,'resource_managers::ChartFactory::PlayerSpecificData::hitRules'],['../classgameplay__logic_1_1rules_1_1HitRules.html',1,'gameplay_logic::rules::HitRules']]],
   ['hitrules_2ecpp_22',['HitRules.cpp',['../HitRules_8cpp.html',1,'']]],
   ['hitrules_2eh_23',['HitRules.h',['../HitRules_8h.html',1,'']]],
   ['hitvaluefactory_24',['HitValueFactory',['../classqml__components_1_1ChartLoader.html#a482312280c7632a3dde1160caf4e0f8f',1,'qml_components::ChartLoader']]]

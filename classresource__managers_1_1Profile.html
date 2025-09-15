@@ -21,7 +21,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.1.0</span>
+   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.2.0</span>
    </div>
   </td>
  </tr>
@@ -105,9 +105,9 @@ Collaboration diagram for resource_managers::Profile:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a075ba04070c09578c6ce09bcd1bdce9c" id="r_a075ba04070c09578c6ce09bcd1bdce9c"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classresource__managers_1_1Profile.html#a075ba04070c09578c6ce09bcd1bdce9c">Profile</a> (const std::filesystem::path &amp;mainDbPath, const std::filesystem::path &amp;dbPath, const QMap&lt; QString, <a class="el" href="classqml__components_1_1ThemeFamily.html">qml_components::ThemeFamily</a> &gt; &amp;themeFamilies, QString avatarPath, QObject *parent=nullptr)</td></tr>
-<tr class="memdesc:a075ba04070c09578c6ce09bcd1bdce9c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates a profile object living in the given database.  <br /></td></tr>
-<tr class="separator:a075ba04070c09578c6ce09bcd1bdce9c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4784ce7a5aa23ba999c8bbe347d273f6" id="r_a4784ce7a5aa23ba999c8bbe347d273f6"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classresource__managers_1_1Profile.html#a4784ce7a5aa23ba999c8bbe347d273f6">Profile</a> (const std::filesystem::path &amp;mainDbPath, const std::filesystem::path &amp;dbPath, const QMap&lt; QString, <a class="el" href="classqml__components_1_1ThemeFamily.html">qml_components::ThemeFamily</a> &gt; &amp;themeFamilies, QList&lt; QString &gt; avatarPaths, QObject *parent=nullptr)</td></tr>
+<tr class="memdesc:a4784ce7a5aa23ba999c8bbe347d273f6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates a profile object living in the given database.  <br /></td></tr>
+<tr class="separator:a4784ce7a5aa23ba999c8bbe347d273f6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0d9535a6b1c1a39f271136cdb9ac00e1" id="r_a0d9535a6b1c1a39f271136cdb9ac00e1"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classresource__managers_1_1Profile.html#a0d9535a6b1c1a39f271136cdb9ac00e1">getPath</a> () const -&gt; std::filesystem::path</td></tr>
 <tr class="separator:a0d9535a6b1c1a39f271136cdb9ac00e1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad30f568aa6bcd6647c4e62f516bbacf1" id="r_ad30f568aa6bcd6647c4e62f516bbacf1"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classresource__managers_1_1Profile.html#ad30f568aa6bcd6647c4e62f516bbacf1">getPathQString</a> () const -&gt; QString</td></tr>
@@ -141,8 +141,8 @@ Properties</h2></td></tr>
 <tr class="separator:ae2ec6a8b2415139c9bc0333fcc9dd771"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="a075ba04070c09578c6ce09bcd1bdce9c" name="a075ba04070c09578c6ce09bcd1bdce9c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a075ba04070c09578c6ce09bcd1bdce9c">&#9670;&#160;</a></span>Profile()</h2>
+<a id="a4784ce7a5aa23ba999c8bbe347d273f6" name="a4784ce7a5aa23ba999c8bbe347d273f6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4784ce7a5aa23ba999c8bbe347d273f6">&#9670;&#160;</a></span>Profile()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -171,8 +171,8 @@ Properties</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">QString&#160;</td>
-          <td class="paramname"><em>avatarPath</em>, </td>
+          <td class="paramtype">QList&lt; QString &gt;&#160;</td>
+          <td class="paramname"><em>avatarPaths</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -199,7 +199,7 @@ Properties</h2></td></tr>
     <tr><td class="paramname">mainDbPath</td><td>Path to the main song database file. Has to exist. </td></tr>
     <tr><td class="paramname">dbPath</td><td>Path to the profile's database file. Doesn't have to exist. </td></tr>
     <tr><td class="paramname">themeFamilies</td><td>The available theme families. </td></tr>
-    <tr><td class="paramname">avatarPath</td><td>Path to the avatar folder. </td></tr>
+    <tr><td class="paramname">avatarPaths</td><td>Paths to the avatar folders. </td></tr>
     <tr><td class="paramname">parent</td><td>QObject parent. </td></tr>
   </table>
   </dd>

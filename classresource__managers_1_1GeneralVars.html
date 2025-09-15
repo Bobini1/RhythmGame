@@ -21,7 +21,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.1.0</span>
+   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.2.0</span>
    </div>
   </td>
  </tr>
@@ -150,8 +150,8 @@ Signals</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:aa27644b24c708e28c2a6e8311455f3fd" id="r_aa27644b24c708e28c2a6e8311455f3fd"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classresource__managers_1_1GeneralVars.html#aa27644b24c708e28c2a6e8311455f3fd">GeneralVars</a> (QString avatarPath, QObject *parent=nullptr)</td></tr>
-<tr class="separator:aa27644b24c708e28c2a6e8311455f3fd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3ebfa6902a93fba3ed720562cd3c0e8b" id="r_a3ebfa6902a93fba3ed720562cd3c0e8b"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classresource__managers_1_1GeneralVars.html#a3ebfa6902a93fba3ed720562cd3c0e8b">GeneralVars</a> (QList&lt; QString &gt; avatarPaths, QObject *parent=nullptr)</td></tr>
+<tr class="separator:a3ebfa6902a93fba3ed720562cd3c0e8b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6af727b59345b41f3be33e36bfc1b792" id="r_a6af727b59345b41f3be33e36bfc1b792"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classresource__managers_1_1GeneralVars.html#a6af727b59345b41f3be33e36bfc1b792">getNoteScreenTimeMillis</a> () const -&gt; double</td></tr>
 <tr class="separator:a6af727b59345b41f3be33e36bfc1b792"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a57dd15dd4db6f5c2b2a9aa28e7d25a7f" id="r_a57dd15dd4db6f5c2b2a9aa28e7d25a7f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classresource__managers_1_1GeneralVars.html#a57dd15dd4db6f5c2b2a9aa28e7d25a7f">setNoteScreenTimeMillis</a> (double value)</td></tr>
@@ -311,7 +311,7 @@ Properties</h2></td></tr>
 <tr class="memitem:ab4c98124ff269dbea98f0193f9da8c8c" id="r_ab4c98124ff269dbea98f0193f9da8c8c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceresource__managers_1_1gauge__mode.html#ac121e2691e7e4d13551d18c7618e8d73">resource_managers::gauge_mode::GaugeMode</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classresource__managers_1_1GeneralVars.html#ab4c98124ff269dbea98f0193f9da8c8c">gaugeMode</a></td></tr>
 <tr class="memdesc:ab4c98124ff269dbea98f0193f9da8c8c"><td class="mdescLeft">&#160;</td><td class="mdescRight">The gauge mode.  <br /></td></tr>
 <tr class="separator:ab4c98124ff269dbea98f0193f9da8c8c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6f1b77b393a5ef80ab99afae109e5eab" id="r_a6f1b77b393a5ef80ab99afae109e5eab"><td class="memItemLeft" align="right" valign="top">QString&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classresource__managers_1_1GeneralVars.html#a6f1b77b393a5ef80ab99afae109e5eab">avatar</a> = &quot;mascot.png&quot;</td></tr>
+<tr class="memitem:a6f1b77b393a5ef80ab99afae109e5eab" id="r_a6f1b77b393a5ef80ab99afae109e5eab"><td class="memItemLeft" align="right" valign="top">QString&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classresource__managers_1_1GeneralVars.html#a6f1b77b393a5ef80ab99afae109e5eab">avatar</a> = &quot;image://avatar/mascot.png&quot;</td></tr>
 <tr class="memdesc:a6f1b77b393a5ef80ab99afae109e5eab"><td class="mdescLeft">&#160;</td><td class="mdescRight">The avatar picture of the user.  <br /></td></tr>
 <tr class="separator:a6f1b77b393a5ef80ab99afae109e5eab"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad3b47ce27621bf04fb56fc600bc0a0f2" id="r_ad3b47ce27621bf04fb56fc600bc0a0f2"><td class="memItemLeft" align="right" valign="top">QString&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classresource__managers_1_1GeneralVars.html#ad3b47ce27621bf04fb56fc600bc0a0f2">name</a> = &quot;Default&quot;</td></tr>
@@ -328,8 +328,8 @@ Properties</h2></td></tr>
 <div class="textblock"><p>The general variables for the game that all screens and the engine should know about and respect. Profile-specific. </p>
 <p><a class="el" href="classresource__managers_1_1GeneralVars.html" title="The general variables for the game that all screens and the engine should know about and respect....">GeneralVars</a> are saved to generalVars.json in the profile directory. All modifications to the variables cause the file to be rewritten. </p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="aa27644b24c708e28c2a6e8311455f3fd" name="aa27644b24c708e28c2a6e8311455f3fd"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa27644b24c708e28c2a6e8311455f3fd">&#9670;&#160;</a></span>GeneralVars()</h2>
+<a id="a3ebfa6902a93fba3ed720562cd3c0e8b" name="a3ebfa6902a93fba3ed720562cd3c0e8b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3ebfa6902a93fba3ed720562cd3c0e8b">&#9670;&#160;</a></span>GeneralVars()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -340,8 +340,8 @@ Properties</h2></td></tr>
         <tr>
           <td class="memname">resource_managers::GeneralVars::GeneralVars </td>
           <td>(</td>
-          <td class="paramtype">QString&#160;</td>
-          <td class="paramname"><em>avatarPath</em>, </td>
+          <td class="paramtype">QList&lt; QString &gt;&#160;</td>
+          <td class="paramname"><em>avatarPaths</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -1839,7 +1839,7 @@ Properties</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">QString resource_managers::GeneralVars::avatar = &quot;mascot.png&quot;</td>
+          <td class="memname">QString resource_managers::GeneralVars::avatar = &quot;image://avatar/mascot.png&quot;</td>
         </tr>
       </table>
   </td>
