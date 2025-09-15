@@ -27,10 +27,10 @@ endif ()
 
 set(DATA_FOLDER_PREFIX "data" CACHE STRING "Prefix for data folder installation")
 
-install(FILES data/avatars/mascot.png DESTINATION ${DATA_FOLDER_PREFIX}/avatars/mascot.png
+install(FILES data/avatars/mascot.png DESTINATION ${DATA_FOLDER_PREFIX}/avatars
         COMPONENT RhythmGame_Runtime)
 
-install(DIRECTORY data/themes/Default DESTINATION ${DATA_FOLDER_PREFIX}/themes/Default
+install(DIRECTORY data/themes/Default DESTINATION ${DATA_FOLDER_PREFIX}/themes
         COMPONENT RhythmGame_Runtime)
 
 install(DIRECTORY DESTINATION ${DATA_FOLDER_PREFIX}/profiles/
