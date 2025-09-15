@@ -50,7 +50,7 @@ find_package(Boost REQUIRED COMPONENTS headers)
 
 # <------------ miniaudio (audio playback) --------------->
 
-find_path(MINIAUDIO_INCLUDE_DIRS "miniaudio.h")
+find_path(MINIAUDIO_INCLUDE_DIRS "miniaudio/miniaudio.h")
 
 # <------------ Qt (gui) --------------->
 
