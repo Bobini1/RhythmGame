@@ -176,7 +176,7 @@ jobs:
           if [ ${{ matrix.os }} = ubuntu-latest ]; then
             sudo apt-get update && sudo apt-get install libtbb-dev libgl-dev libdrm-dev libgles2-mesa-dev libudev-dev nasm autoconf automake autoconf-archive gperf pkg-config python3-jinja2 '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev libltdl-dev libxrandr-dev mono-complete -y
           else
-            brew install autoconf automake autoconf-archive libtool
+            brew install autoconf automake autoconf-archive libtool nuget
           fi
           
       - name: Free disk space
@@ -315,7 +315,7 @@ jobs:
           if [ ${{ matrix.os }} = ubuntu-latest ]; then
             sudo apt-get update && sudo apt-get install libtbb-dev libgl-dev libdrm-dev libgles2-mesa-dev libudev-dev nasm autoconf automake autoconf-archive gperf pkg-config python3-jinja2 '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev libltdl-dev libxrandr-dev mono-complete -y
           else
-            brew install autoconf automake autoconf-archive libtool
+            brew install autoconf automake autoconf-archive libtool nuget
           fi
 
       - name: Free disk space
