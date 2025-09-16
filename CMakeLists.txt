@@ -52,8 +52,8 @@ find_package(Boost REQUIRED COMPONENTS headers)
 
 # <------------ miniaudio (audio playback) --------------->
 
-find_path(MINIAUDIO_INCLUDE_DIRS "miniaudio.h" NO_DEFAULT_PATH)
 find_path(MINIAUDIO_INCLUDE_DIRS "miniaudio.h")
+find_path(MINIAUDIO_INCLUDE_DIRS "miniaudio.h" PATH_SUFFIXES miniaudio)
 message(STATUS "miniaudio include dirs: ${MINIAUDIO_INCLUDE_DIRS}")
 
 # <------------ Qt (gui) --------------->
