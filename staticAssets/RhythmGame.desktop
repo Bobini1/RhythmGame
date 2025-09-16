@@ -1,0 +1,12 @@
+[Desktop Entry]
+
+Type=Application
+Version=1.0
+Name=RhythmGame
+GenericName=BMS Player
+Comment=A customizable BMS player
+Path=/usr/bin
+Exec=RhythmGame
+Icon=RhythmGame
+Terminal=false
+Categories=Games;
