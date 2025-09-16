@@ -30,6 +30,5 @@ endif ()
 include(cmake/build-dir-setup.cmake)
 include(cmake/lint-targets.cmake)
 include(cmake/spell-targets.cmake)
-include(cmake/translations.cmake)
 
 add_folders(Project)

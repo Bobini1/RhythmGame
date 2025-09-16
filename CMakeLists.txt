@@ -360,6 +360,8 @@ if (WIN32)
     set_target_properties(RhythmGame_exe PROPERTIES LINK_FLAGS "/STACK:8388608")
 endif ()
 
+include(cmake/translations.cmake)
+
 # ---- Developer mode ----
 
 if (NOT RhythmGame_DEVELOPER_MODE)
