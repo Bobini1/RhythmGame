@@ -29,6 +29,8 @@ class BmsPoints
     friend auto operator>>(QDataStream& stream, BmsPoints& points)
       -> QDataStream&;
 };
+QDataStream& operator<<(QDataStream& stream, const BmsPoints& points);
+QDataStream& operator>>(QDataStream& stream, BmsPoints& points);
 } // namespace gameplay_logic
 
 #endif // RHYTHMGAME_BMSPOINTS_H
