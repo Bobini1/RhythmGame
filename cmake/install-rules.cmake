@@ -18,6 +18,12 @@ if (PORTABLE_BUILD OR WIN32)
     if (LINUX)
         install(FILES RhythmGame.sh DESTINATION "${CMAKE_INSTALL_BINDIR}" PERMISSIONS OWNER_EXECUTE OWNER_READ OWNER_WRITE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
     endif ()
+    
+    install(DIRECTORY DESTINATION ${DATA_FOLDER_PREFIX}/profiles/
+            COMPONENT RhythmGame_Runtime)
+
+    install(DIRECTORY DESTINATION ${DATA_FOLDER_PREFIX}/tables/
+            COMPONENT RhythmGame_Runtime)
 else ()
     install(
             TARGETS RhythmGame_exe
@@ -31,12 +37,6 @@ install(FILES data/avatars/mascot.png DESTINATION ${DATA_FOLDER_PREFIX}/avatars
         COMPONENT RhythmGame_Runtime)
 
 install(DIRECTORY data/themes/Default DESTINATION ${DATA_FOLDER_PREFIX}/themes
-        COMPONENT RhythmGame_Runtime)
-
-install(DIRECTORY DESTINATION ${DATA_FOLDER_PREFIX}/profiles/
-        COMPONENT RhythmGame_Runtime)
-
-install(DIRECTORY DESTINATION ${DATA_FOLDER_PREFIX}/tables/
         COMPONENT RhythmGame_Runtime)
 
 
