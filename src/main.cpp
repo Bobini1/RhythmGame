@@ -132,7 +132,12 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
       support::qStringToPath(
         QStandardPaths::writableLocation(QStandardPaths::AppDataLocation));
 #endif
+#ifdef RHYTHMGAME_PORTABLE_BUILD
+    auto logFile = support::qStringToPath(
+        QStandardPaths::writableLocation(QStandardPaths::StateLocation)) / "log.txt";
+#else
     auto logFile = dataFolder / "log.txt";
+#endif
     auto installationDataFolder = resource_managers::findDataFolder();
     logger->sinks().push_back(
       std::make_shared<spdlog::sinks::basic_file_sink_mt>(logFile, true));
