@@ -9,4 +9,4 @@ Path=/usr/bin
 Exec=RhythmGame
 Icon=RhythmGame
 Terminal=false
-Categories=Games;
+Categories=Game;
