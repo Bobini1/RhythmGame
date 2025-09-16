@@ -14,11 +14,7 @@
 extern "C" {
 #include <stb_vorbis.c>
 }
-#ifdef _WIN32
 #include <miniaudio.h>
-#else
-#include <miniaudio/miniaudio.h>
-#endif
 #undef R
 #undef L
 #undef C
