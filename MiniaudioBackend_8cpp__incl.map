@@ -1,0 +1,9 @@
+<map id="src/sounds/MiniaudioBackend.cpp" name="src/sounds/MiniaudioBackend.cpp">
+<area shape="rect" id="Node000001" title=" " alt="" coords="13,5,255,31"/>
+<area shape="rect" id="Node000002" href="$MiniaudioBackend_8h.html" title=" " alt="" coords="57,79,211,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="137,31,137,65,131,65,131,31"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="5,152,105,177"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="123,106,80,145,76,141,120,102"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="130,152,298,177"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="149,102,193,141,189,145,145,106"/>
+</map>
