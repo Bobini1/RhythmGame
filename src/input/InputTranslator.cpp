@@ -259,10 +259,6 @@ void
 InputTranslator::releaseButton(BmsKey button, uint64_t time)
 {
     auto& state = buttons[static_cast<int>(button)];
-    if (const auto lastReleaseTime = lastRelease[static_cast<int>(button)];
-        time < lastReleaseTime + static_cast<uint64_t>(debounceMs)) {
-        return;
-    }
     if (!state) {
         return;
     }
