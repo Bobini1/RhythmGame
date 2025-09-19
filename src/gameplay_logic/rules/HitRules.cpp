@@ -35,11 +35,11 @@ gameplay_logic::rules::HitRules::press(std::span<Note> notes,
         }
         auto noteTime = note.time;
         if (hitOffset <= noteTime + timingWindows.begin()->first.lower()) {
-            currentNoteIndex++;
-            continue;
+            break;
         }
         if (hitOffset >= noteTime + timingWindows.rbegin()->first.upper()) {
-            break;
+            currentNoteIndex++;
+            continue;
         }
         const auto result = timingWindows.find(hitOffset - noteTime)->second;
         if (result != Judgement::EmptyPoor
