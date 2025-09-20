@@ -239,6 +239,8 @@ qt_add_library(RhythmGame_lib OBJECT
         src/sounds/AudioPlayer.h
         src/resource_managers/AvatarImageProvider.cpp
         src/resource_managers/AvatarImageProvider.h
+        src/migrations/MigrateTo1Point2.cpp
+        src/migrations/MigrateTo1Point2.h
 )
 
 if (WIN32)
@@ -250,9 +252,6 @@ target_compile_definitions(RhythmGame_lib PUBLIC
         RHYTHMGAME_VERSION_MINOR=${PROJECT_VERSION_MINOR}
         RHYTHMGAME_VERSION_PATCH=${PROJECT_VERSION_PATCH}
 )
-
-set(DATA_PATH "../data" CACHE STRING "Path to the data folder, relative to the executable")
-target_compile_definitions(RhythmGame_lib PUBLIC RHYTHMGAME_DATA_PATH="${DATA_PATH}")
 
 find_package(Threads REQUIRED)
 
@@ -280,7 +279,7 @@ endif ()
 
 # We all love MSVC.
 target_compile_definitions(RhythmGame_lib PUBLIC NOMINMAX)
-
+target_compile_definitions(RhythmGame_lib PRIVATE RHYTHMGAME_DATA_DIR="${CMAKE_INSTALL_DATADIR}")
 target_compile_features(RhythmGame_lib PRIVATE cxx_std_23)
 target_compile_definitions(RhythmGame_lib PUBLIC "$<$<CONFIG:DEBUG>:DEBUG>")
 target_include_directories(
@@ -330,10 +329,6 @@ set_target_properties(
         EXPORT_NAME exe
         RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/bin/$<0:>"
 )
-
-if (PORTABLE_BUILD)
-    target_compile_definitions(RhythmGame_exe PRIVATE RHYTHMGAME_PORTABLE_BUILD=1)
-endif ()
 
 qt_import_qml_plugins(RhythmGame_exe)
 

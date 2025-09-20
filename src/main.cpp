@@ -36,12 +36,14 @@
 #include "support/PathToUtfString.h"
 #include "support/UtfStringToPath.h"
 #include "gameplay_logic/CourseRunner.h"
+#include "migrations/MigrateTo1Point2.h"
 #include "sounds/AudioEngine.h"
 #include "sounds/AudioPlayer.h"
 #include "sounds/SoundBuffer.h"
 #include "support/QtSink.h"
 #include "resource_managers/AvatarImageProvider.h"
 #include "support/QStringToPath.h"
+#include <sqlite3.h>
 
 Q_IMPORT_QML_PLUGIN(RhythmGameQmlPlugin)
 
@@ -98,6 +100,7 @@ createStandardDirectories()
         throw std::runtime_error("Could not create themes folder");
     }
 }
+
 auto
 main(int argc, [[maybe_unused]] char* argv[]) -> int
 {
@@ -125,13 +128,18 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
 
     auto app = input::CustomNotifyApp{ argc, argv };
 
-    auto dataFolder =
-#ifdef RHYTHMGAME_PORTABLE_BUILD
-      resource_managers::findDataFolder();
-#else
-      support::qStringToPath(
-        QStandardPaths::writableLocation(QStandardPaths::AppDataLocation));
-#endif
+    auto appPath =
+      support::qStringToPath(QCoreApplication::applicationFilePath());
+    auto isPortable =
+      std::filesystem::exists(appPath.parent_path().parent_path() / "portable.ini");
+
+    auto dataFolder = [&] {
+        if (isPortable) {
+            return resource_managers::findDataFolder();
+        }
+        return support::qStringToPath(
+          QStandardPaths::writableLocation(QStandardPaths::AppDataLocation));
+    }();
     auto logFile = dataFolder / "log.txt";
     auto installationDataFolder = resource_managers::findDataFolder();
     logger->sinks().push_back(
@@ -139,14 +147,22 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
 
     spdlog::flush_every(std::chrono::seconds(1));
 
+    if (isPortable) {
+        spdlog::info("Running in portable mode");
+    } else {
+        spdlog::info("Running in non-portable mode");
+    }
+
     QGuiApplication::setOrganizationDomain("rhythmgame.eu");
     QGuiApplication::setApplicationName("RhythmGame");
 
     try {
-#ifndef RHYTHMGAME_PORTABLE_BUILD
-        createStandardDirectories();
-#endif
+        if (!isPortable) {
+            createStandardDirectories();
+        }
         qputenv("QML_XHR_ALLOW_FILE_READ", QByteArray("1"));
+
+        migrations::migrateTo1Point2(dataFolder);
 
         auto db = db::SqliteCppDb{ dataFolder / "song_db.sqlite" };
 
@@ -165,10 +181,12 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
 
         auto availableThemes =
           resource_managers::scanThemes(installationDataFolder / "themes");
-#ifndef RHYTHMGAME_PORTABLE_BUILD
-        auto userThemes = resource_managers::scanThemes(dataFolder / "themes");
-        availableThemes.insert(userThemes);
-#endif
+
+        if (!isPortable) {
+            auto userThemes =
+              resource_managers::scanThemes(dataFolder / "themes");
+            availableThemes.insert(userThemes);
+        }
         if (availableThemes.empty()) {
             throw std::runtime_error("No themes available");
         }
@@ -177,12 +195,13 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
         auto themes = qml_components::Themes{ availableThemes };
 
         auto inputTranslator = input::InputTranslator{ &db };
-        auto avatarFolders = QStringList{ };
-#ifndef RHYTHMGAME_PORTABLE_BUILD
+        auto avatarFolders = QStringList{};
+        if (!isPortable) {
+            avatarFolders.append(
+              support::pathToQString(dataFolder / "avatars/"));
+        }
         avatarFolders.append(
-          support::pathToQString(dataFolder / "avatars/"));
-#endif
-        avatarFolders.append(support::pathToQString(installationDataFolder / "avatars/"));
+          support::pathToQString(installationDataFolder / "avatars/"));
         auto profileList =
           qml_components::ProfileList{ dataFolder / "song_db.sqlite",
                                        &db,
@@ -449,9 +468,9 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
         engine.addImageProvider("ini",
                                 new resource_managers::IniImageProvider{});
         auto avatarPaths = std::vector{ installationDataFolder / "avatars/" };
-#ifndef RHYTHMGAME_PORTABLE_BUILD
-        avatarPaths.push_back(dataFolder / "avatars/");
-#endif
+        if (!isPortable) {
+            avatarPaths.push_back(dataFolder / "avatars/");
+        }
         engine.addImageProvider(
           "avatar",
           new resource_managers::AvatarImageProvider{ std::move(avatarPaths) });

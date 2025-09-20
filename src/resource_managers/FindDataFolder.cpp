@@ -15,8 +15,8 @@ resource_managers::findDataFolder() -> std::filesystem::path
 {
     static const auto dataFolder = []() -> std::filesystem::path {
         const auto appPath = QFileInfo(QGuiApplication::applicationFilePath());
-        const auto fsPath = appPath.dir().filesystemPath();
-        return canonical(fsPath / RHYTHMGAME_DATA_PATH);
+        const auto fsPath = appPath.dir().filesystemPath().parent_path();
+        return canonical(fsPath / RHYTHMGAME_DATA_DIR / "RhythmGame/");
     }();
     return dataFolder;
 }
