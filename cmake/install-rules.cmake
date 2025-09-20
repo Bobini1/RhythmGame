@@ -45,13 +45,9 @@ set(CPACK_PACKAGE_INSTALL_DIRECTORY "RhythmGame")
 set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_SOURCE_DIR}/LICENSE.md")
 
 if (WIN32)
-    if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-        install(FILES ${CMAKE_BINARY_DIR}/bin/mimalloc-debug.dll DESTINATION "${CMAKE_INSTALL_BINDIR}"
-                COMPONENT RhythmGame_Runtime)
-    else ()
-        install(FILES ${CMAKE_BINARY_DIR}/bin/mimalloc.dll DESTINATION "${CMAKE_INSTALL_BINDIR}"
-                COMPONENT RhythmGame_Runtime)
-    endif ()
+    install(FILES ${CMAKE_BINARY_DIR}/bin/mimalloc$<$<CONFIG:Debug>:-debug>.dll
+            DESTINATION "${CMAKE_INSTALL_BINDIR}"
+            COMPONENT RhythmGame_Runtime)
     install(FILES ${CMAKE_BINARY_DIR}/bin/mimalloc-redirect.dll DESTINATION "${CMAKE_INSTALL_BINDIR}"
             COMPONENT RhythmGame_Runtime)
 
