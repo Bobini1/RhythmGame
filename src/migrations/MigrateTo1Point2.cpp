@@ -41,6 +41,8 @@ migrateTo1Point2(const std::filesystem::path& dataFolder)
     std::filesystem::rename(avatarsFolder,
                                dataFolder / "avatars",
                                ec);
-   std::filesystem::remove_all(legacyDataFolder, ec);
+   std::filesystem::remove_all(legacyDataFolder / "themes", ec);
+   std::filesystem::remove(legacyDataFolder / "log.txt", ec);
+   std::filesystem::remove(legacyDataFolder, ec);
 }
 } // namespace migrations
