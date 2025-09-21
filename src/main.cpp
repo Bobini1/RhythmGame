@@ -36,7 +36,6 @@
 #include "support/PathToUtfString.h"
 #include "support/UtfStringToPath.h"
 #include "gameplay_logic/CourseRunner.h"
-#include "migrations/MigrateTo1Point2.h"
 #include "sounds/AudioEngine.h"
 #include "sounds/AudioPlayer.h"
 #include "sounds/SoundBuffer.h"
@@ -161,8 +160,6 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
             createStandardDirectories();
         }
         qputenv("QML_XHR_ALLOW_FILE_READ", QByteArray("1"));
-
-        migrations::migrateTo1Point2(dataFolder);
 
         auto db = db::SqliteCppDb{ dataFolder / "song_db.sqlite" };
 

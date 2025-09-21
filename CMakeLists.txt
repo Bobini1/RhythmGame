@@ -239,8 +239,6 @@ qt_add_library(RhythmGame_lib OBJECT
         src/sounds/AudioPlayer.h
         src/resource_managers/AvatarImageProvider.cpp
         src/resource_managers/AvatarImageProvider.h
-        src/migrations/MigrateTo1Point2.cpp
-        src/migrations/MigrateTo1Point2.h
 )
 
 if (WIN32)
