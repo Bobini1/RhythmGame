@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['migrations_0',['migrations',['../namespacemigrations.html',1,'']]]
+  ['qml_5fcomponents_0',['qml_components',['../namespaceqml__components.html',1,'']]]
 ];

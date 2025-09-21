@@ -10,6 +10,5 @@ var searchData=
   ['md5_7',['md5',['../namespacesupport.html#aeefb6b9245ec904c54c847d56bbb722f',1,'support']]],
   ['mergetags_8',['mergeTags',['../structcharts_1_1ParsedBmsChart.html#a9c48b8e577d35da71cc03f794480b180',1,'charts::ParsedBmsChart']]],
   ['meter_9',['meter',['../structcharts_1_1Meter.html#a366c0ebc92f27d751e7ab2acc9014734',1,'charts::Meter::Meter(meter_t t_) noexcept(std::is_nothrow_move_constructible&lt; meter_t &gt;::value)'],['../structcharts_1_1Meter.html#a6e4e5a8b178c345f5eaf63654d7d3076',1,'charts::Meter::Meter() noexcept(std::is_nothrow_constructible&lt; meter_t &gt;::value)'],['../structcharts_1_1Meter.html#a9ccbc6220e28b319f808e065abc04ea9',1,'charts::Meter::Meter(const Meter &amp;t_)'],['../structcharts_1_1Meter.html#ac6d0bdfdd1c3f4d48e4eefaf3da0b1c1',1,'charts::Meter::Meter(Meter &amp;&amp;t_) noexcept(std::is_nothrow_move_constructible&lt; meter_t &gt;::value)']]],
-  ['migrateto1point2_10',['migrateTo1Point2',['../namespacemigrations.html#a588a583144ed7777287070b880574912',1,'migrations']]],
-  ['minehitschanged_11',['mineHitsChanged',['../classgameplay__logic_1_1BmsLiveScore.html#a108059120a61b6d73a27f9c0760311f1',1,'gameplay_logic::BmsLiveScore']]]
+  ['minehitschanged_10',['mineHitsChanged',['../classgameplay__logic_1_1BmsLiveScore.html#a108059120a61b6d73a27f9c0760311f1',1,'gameplay_logic::BmsLiveScore']]]
 ];
