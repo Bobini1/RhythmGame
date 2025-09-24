@@ -12,7 +12,7 @@
 #include <QVariant>
 #ifdef _WIN32
 #include <windows.h>
-#elifdef __linux__
+#elif defined(__linux__)
 #include <xkbcommon/xkbcommon.h>
 #endif
 
@@ -1065,7 +1065,7 @@ InputTranslator::scancodeToString(const int scanCode)
     if (result > 0) {
         return QString::fromWCharArray(keyName);
     }
-#elifdef __linux__
+#elif defined(__linux__)
     static xkb_context* ctx = xkb_context_new(XKB_CONTEXT_NO_FLAGS);
     static xkb_keymap* keymap =
       xkb_keymap_new_from_names(ctx, nullptr, XKB_KEYMAP_COMPILE_NO_FLAGS);
