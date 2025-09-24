@@ -113,16 +113,16 @@ class SqliteCppDb
         }
 
         template<std::default_initializable Ret>
-        void writeRow(SQLite::Statement& statement, Ret& ret, int& index) const
+        void writeRow(SQLite::Statement& stmt, Ret& ret, int& index) const
         {
             if constexpr (std::convertible_to<SQLite::Column, Ret> || std::is_same_v<Ret, std::string>) {
-                ret = getElem<std::remove_cvref_t<Ret>>(statement, index++);
+                ret = getElem<std::remove_cvref_t<Ret>>(stmt, index++);
             } else {
                 constexpr size_t tupleSize = support::tupleSizeV<Ret>;
                 constexpr auto indices =
                   std::make_integer_sequence<int, static_cast<int>(tupleSize)>();
-                [this, &statement, &ret, &index]<int... N>(std::integer_sequence<int, N...>) {
-                    (writeRow(statement, support::get<N>(ret), index), ...);
+                [this, &stmt, &ret, &index]<int... N>(std::integer_sequence<int, N...>) {
+                    (writeRow(stmt, support::get<N>(ret), index), ...);
                 }(indices);
             }
         }
