@@ -388,7 +388,9 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
         qmlRegisterType<input::Key>("RhythmGameQml", 1, 0, "key");
         qmlRegisterType<input::Gamepad>("RhythmGameQml", 1, 0, "gamepad");
         qmlRegisterType<input::AnalogAxisConfig>(
-          "RhythmGameQml", 1, 0, "AnalogAxisConfig");
+        "RhythmGameQml", 1, 0, "AnalogAxisConfig");
+        qmlRegisterType<input::InputTranslator>(
+          "RhythmGameQml", 1, 0, "InputTranslator");
         qmlRegisterUncreatableMetaObject(
           gameplay_logic::judgement::staticMetaObject,
           "RhythmGameQml",

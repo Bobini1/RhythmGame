@@ -200,7 +200,6 @@ class InputTranslator final : public QObject
     Q_PROPERTY(double debounceMs READ getDebounceMs WRITE setDebounceMs
                  NOTIFY debounceMsChanged RESET resetDebounceMs)
 
-
   public:
     struct Scratch
     {
@@ -209,6 +208,13 @@ class InputTranslator final : public QObject
         Key::Direction direction = Key::Direction::None;
         double value = std::numeric_limits<double>::quiet_NaN();
     };
+    enum TickType
+    {
+        ButtonTick,
+        AnalogScratchTick,
+        ClassicScratchTick
+    };
+    Q_ENUM(TickType)
 
   private:
     struct PairHash
@@ -227,6 +233,9 @@ class InputTranslator final : public QObject
     QHash<Key, BmsKey> config;
     db::SqliteCppDb* db;
     std::array<bool, magic_enum::enum_count<BmsKey>()> buttons{{}};
+    std::array<QTimer, magic_enum::enum_count<BmsKey>()> tickTimers;
+    std::array<int, magic_enum::enum_count<BmsKey>()> tickNumbers{{}};
+    std::array<TickType, magic_enum::enum_count<BmsKey>()> tickTypes{{}};
     std::optional<std::pair<Gamepad, uint8_t>> scratchAxis1;
     std::optional<std::pair<Gamepad, uint8_t>> scratchAxis2;
     std::array<uint64_t, magic_enum::enum_count<BmsKey>()> lastRelease{{}};
@@ -237,10 +246,11 @@ class InputTranslator final : public QObject
     void unpressAndUnbind(const Key& key, uint64_t time);
     void saveKeyConfig() const;
     void saveAnalogAxisConfig() const;
-    void handleAxisChange(Gamepad gamepad, Uint8 axis, int64_t time);
+    void handleAxisChange(Gamepad gamepad, Uint8 axis, int64_t time, bool analog);
     void checkAnalogAxisStatus();
     void autoReleaseScratch(const std::pair<Gamepad, uint8_t>& scratchKey,
                             int64_t time);
+    void emitTick(BmsKey button);
 
   public:
     void handleAxis(Gamepad gamepad, Uint8 axis, double value, int64_t time);
@@ -322,6 +332,29 @@ class InputTranslator final : public QObject
     void analogAxisConfig1Changed();
     void analogAxisConfig2Changed();
     void debounceMsChanged();
+
+    void col11Ticked(int tickNumber, TickType type);
+    void col12Ticked(int tickNumber, TickType type);
+    void col13Ticked(int tickNumber, TickType type);
+    void col14Ticked(int tickNumber, TickType type);
+    void col15Ticked(int tickNumber, TickType type);
+    void col16Ticked(int tickNumber, TickType type);
+    void col17Ticked(int tickNumber, TickType type);
+    void col1sUpTicked(int tickNumber, TickType type);
+    void col1sDownTicked(int tickNumber, TickType type);
+    void col21Ticked(int tickNumber, TickType type);
+    void col22Ticked(int tickNumber, TickType type);
+    void col23Ticked(int tickNumber, TickType type);
+    void col24Ticked(int tickNumber, TickType type);
+    void col25Ticked(int tickNumber, TickType type);
+    void col26Ticked(int tickNumber, TickType type);
+    void col27Ticked(int tickNumber, TickType type);
+    void col2sUpTicked(int tickNumber, TickType type);
+    void col2sDownTicked(int tickNumber, TickType type);
+    void start1Ticked(int tickNumber, TickType type);
+    void select1Ticked(int tickNumber, TickType type);
+    void start2Ticked(int tickNumber, TickType type);
+    void select2Ticked(int tickNumber, TickType type);
 };
 
 } // namespace input

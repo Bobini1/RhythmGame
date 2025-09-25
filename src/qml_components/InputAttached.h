@@ -87,6 +87,28 @@ class InputAttached final : public QObject
     void buttonPressed(input::BmsKey button, int64_t time);
     void buttonReleased(input::BmsKey button, int64_t time);
 
+    void col11Ticked(int tickNumber, input::InputTranslator::TickType type);
+    void col12Ticked(int tickNumber, input::InputTranslator::TickType type);
+    void col13Ticked(int tickNumber, input::InputTranslator::TickType type);
+    void col14Ticked(int tickNumber, input::InputTranslator::TickType type);
+    void col15Ticked(int tickNumber, input::InputTranslator::TickType type);
+    void col16Ticked(int tickNumber, input::InputTranslator::TickType type);
+    void col17Ticked(int tickNumber, input::InputTranslator::TickType type);
+    void col1sUpTicked(int tickNumber, input::InputTranslator::TickType type);
+    void col1sDownTicked(int tickNumber, input::InputTranslator::TickType type);
+    void col21Ticked(int tickNumber, input::InputTranslator::TickType type);
+    void col22Ticked(int tickNumber, input::InputTranslator::TickType type);
+    void col23Ticked(int tickNumber, input::InputTranslator::TickType type);
+    void col24Ticked(int tickNumber, input::InputTranslator::TickType type);
+    void col25Ticked(int tickNumber, input::InputTranslator::TickType type);
+    void col26Ticked(int tickNumber, input::InputTranslator::TickType type);
+    void col27Ticked(int tickNumber, input::InputTranslator::TickType type);
+    void col2sUpTicked(int tickNumber, input::InputTranslator::TickType type);
+    void col2sDownTicked(int tickNumber, input::InputTranslator::TickType type);
+    void start1Ticked(int tickNumber, input::InputTranslator::TickType type);
+    void select1Ticked(int tickNumber, input::InputTranslator::TickType type);
+    void start2Ticked(int tickNumber, input::InputTranslator::TickType type);
+    void select2Ticked(int tickNumber, input::InputTranslator::TickType type);
   public:
 #define KEY(name, uppercase)                                                   \
     auto name() const -> bool                                                  \

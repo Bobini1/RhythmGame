@@ -21,45 +21,33 @@ Item {
     property bool start: Input[`start${index+1}`] || (dpSuffix && (Input.start1 || Input.start2))
     property bool select: Input[`select${index+1}`] || (dpSuffix && (Input.select1 || Input.select2))
 
-    property bool startAndUp: start && Input[`col${index+1}sUp`]
-    property bool startAndDown: start && Input[`col${index+1}sDown`]
-    property bool selectAndUp: select && Input[`col${index+1}sUp`] && !startAndUp
-    property bool selectAndDown: select && Input[`col${index+1}sDown`] && !startAndDown
-
-    Timer {
-        id: gnWnTimer
-        interval: 2
-        repeat: true
-        running: side.startAndDown || side.selectAndDown || side.selectAndUp || side.startAndUp
-        property int count: 0
-
-        onTriggered: {
-            let mult = 1;
-            if (count++ > 250) {
-                mult = 5;
-            }
-            let vars = side.profile.vars.generalVars;
-            if (side.startAndDown) {
-                vars.noteScreenTimeMillis -= vars.noteScreenTimeMillis / 1000 * mult;
-            } else if (side.startAndUp) {
-                vars.noteScreenTimeMillis += vars.noteScreenTimeMillis / 1000 * mult;
-            } else if (side.selectAndDown) {
-                if (vars.laneCoverOn) {
-                    vars.laneCoverRatio -= 0.0003 * mult;
-                } else if (vars.liftOn) {
-                    vars.liftRatio -= 0.0003 * mult;
-                }
-            } else if (side.selectAndUp) {
-                if (vars.laneCoverOn) {
-                    vars.laneCoverRatio += 0.0003 * mult;
-                } else if (vars.liftOn) {
-                    vars.liftRatio += 0.0003 * mult;
-                }
+    function modifyGnWn(number, amount) {
+        let mult = 1 * amount;
+        if (number > 50) {
+            mult = 5 * amount;
+        }
+        let vars = side.profile.vars.generalVars;
+        if (side.start) {
+            vars.noteScreenTimeMillis += vars.noteScreenTimeMillis / 1000 * mult;
+        } else if (side.select) {
+            if (vars.laneCoverOn) {
+                vars.laneCoverRatio += 0.0003 * mult;
+            } else if (vars.liftOn) {
+                vars.liftRatio += 0.0003 * mult;
             }
         }
-        onRunningChanged: {
-            count = 0;
-        }
+    }
+    Input.onCol1sUpTicked: (number, type) => {
+        if (side.index === 0) side.modifyGnWn(number, -1);
+    }
+    Input.onCol1sDownTicked: (number, type) => {
+        if (side.index === 0) side.modifyGnWn(number, 1);
+    }
+    Input.onCol2sUpTicked: (number, type) => {
+        if (side.index === 1) side.modifyGnWn(number, -1)
+    }
+    Input.onCol2sDownTicked: (number, type) => {
+        if (side.index === 1) side.modifyGnWn(number, 1)
     }
 
     transform: Scale {

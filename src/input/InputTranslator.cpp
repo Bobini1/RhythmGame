@@ -7,9 +7,11 @@
 #include "GamepadManager.h"
 #include "db/SqliteCppDb.h"
 #include "support/Compress.h"
+#include "support/GeneratePermutation.h"
 
 #include <QKeyEvent>
 #include <QVariant>
+#include <spdlog/spdlog.h>
 #ifdef _WIN32
 #include <windows.h>
 #elif defined(__linux__)
@@ -225,7 +227,7 @@ InputTranslator::pressButton(BmsKey button, uint64_t time)
 
         case BmsKey::Col2sUp:
             state = true;
-            col2sUpChanged();
+            emit col2sUpChanged();
             break;
 
         case BmsKey::Col2sDown:
@@ -254,6 +256,26 @@ InputTranslator::pressButton(BmsKey button, uint64_t time)
             break;
     }
     emit buttonPressed(button, time);
+    if (isScratch(button)) {
+        for (const auto& [key, value] : config.asKeyValueRange()) {
+            if (value == button &&
+                key.device == Key::Device::Axis) {
+                auto it = axisConfig.find(
+                  { key.gamepad.value<Gamepad>(), key.code });
+                if (it != axisConfig.end()) {
+                    if (const auto& conf = *it->second;
+                        conf.getScratchAlgorithm() ==
+                        AnalogAxisConfig::ScratchAlgorithmAnalog) {
+                        return;
+                        }
+                    break;
+                }
+                }
+        }
+    }
+    auto& timer = tickTimers[static_cast<int>(button)];
+    emitTick(button);
+    timer.start();
 }
 void
 InputTranslator::releaseButton(BmsKey button, uint64_t time)
@@ -262,6 +284,7 @@ InputTranslator::releaseButton(BmsKey button, uint64_t time)
     if (!state) {
         return;
     }
+    tickNumbers[static_cast<int>(button)] = 0;
     lastRelease[static_cast<int>(button)] = time;
     state = false;
     switch (button) {
@@ -354,6 +377,8 @@ InputTranslator::releaseButton(BmsKey button, uint64_t time)
             break;
     }
     emit buttonReleased(button, time);
+    auto& timer = tickTimers[static_cast<int>(button)];
+    timer.stop();
 }
 void
 InputTranslator::unpressAndUnbind(const Key& key, uint64_t time)
@@ -434,7 +459,7 @@ InputTranslator::saveAnalogAxisConfig() const
     statement.execute();
 }
 void
-InputTranslator::handleAxisChange(Gamepad gamepad, Uint8 axis, int64_t time)
+InputTranslator::handleAxisChange(Gamepad gamepad, Uint8 axis, int64_t time, bool analog)
 {
     auto scratchKey = std::pair{ gamepad, axis };
     auto& scratch = scratches[scratchKey];
@@ -473,6 +498,12 @@ InputTranslator::handleAxisChange(Gamepad gamepad, Uint8 axis, int64_t time)
                 releaseButton(*button, time);
             } else {
                 pressButton(*button, time);
+                if (analog) {
+                    tickTypes[static_cast<int>(*button)] = AnalogScratchTick;
+                    emitTick(*button);
+                } else {
+                    tickTypes[static_cast<int>(*button)] = ClassicScratchTick;
+                }
             }
         }
     }
@@ -521,6 +552,80 @@ InputTranslator::autoReleaseScratch(
         releaseButton(*button, time);
     }
 }
+void
+InputTranslator::emitTick(const BmsKey button)
+{
+    auto tickNumber = tickNumbers[static_cast<int>(button)]++;
+    auto type = tickTypes[static_cast<int>(button)];
+    switch (button) {
+        case BmsKey::Col11:
+            emit col11Ticked(tickNumber, type);
+            break;
+        case BmsKey::Col12:
+            emit col12Ticked(tickNumber, type);
+            break;
+        case BmsKey::Col13:
+            emit col13Ticked(tickNumber, type);
+            break;
+        case BmsKey::Col14:
+            emit col14Ticked(tickNumber, type);
+            break;
+        case BmsKey::Col15:
+            emit col15Ticked(tickNumber, type);
+            break;
+        case BmsKey::Col16:
+            emit col16Ticked(tickNumber, type);
+            break;
+        case BmsKey::Col17:
+            emit col17Ticked(tickNumber, type);
+            break;
+        case BmsKey::Col1sUp:
+            emit col1sUpTicked(tickNumber, type);
+            break;
+        case BmsKey::Col1sDown:
+            emit col1sDownTicked(tickNumber, type);
+            break;
+        case BmsKey::Col21:
+            emit col21Ticked(tickNumber, type);
+            break;
+        case BmsKey::Col22:
+            emit col22Ticked(tickNumber, type);
+            break;
+        case BmsKey::Col23:
+            emit col23Ticked(tickNumber, type);
+            break;
+        case BmsKey::Col24:
+            emit col24Ticked(tickNumber, type);
+            break;
+        case BmsKey::Col25:
+            emit col25Ticked(tickNumber, type);
+            break;
+        case BmsKey::Col26:
+            emit col26Ticked(tickNumber, type);
+            break;
+        case BmsKey::Col27:
+            emit col27Ticked(tickNumber, type);
+            break;
+        case BmsKey::Col2sUp:
+            emit col2sUpTicked(tickNumber, type);
+            break;
+        case BmsKey::Col2sDown:
+            emit col2sDownTicked(tickNumber, type);
+            break;
+        case BmsKey::Start1:
+            emit start1Ticked(tickNumber, type);
+            break;
+        case BmsKey::Select1:
+            emit select1Ticked(tickNumber, type);
+            break;
+        case BmsKey::Start2:
+            emit start2Ticked(tickNumber, type);
+            break;
+        case BmsKey::Select2:
+            emit select2Ticked(tickNumber, type);
+            break;
+    }
+}
 
 void
 InputTranslator::handleAxis(Gamepad gamepad,
@@ -548,7 +653,7 @@ InputTranslator::handleAxis(Gamepad gamepad,
         } else {
             scratch.direction = Key::Direction::None;
         }
-        handleAxisChange(gamepad, axis, time);
+        handleAxisChange(gamepad, axis, time, false);
         return;
     }
 
@@ -594,7 +699,7 @@ InputTranslator::handleAxis(Gamepad gamepad,
         return;
     }
 
-    handleAxisChange(gamepad, axis, time);
+    handleAxisChange(gamepad, axis, time, true);
 }
 void
 InputTranslator::handlePress(Gamepad gamepad, Uint8 button, int64_t time)
@@ -612,6 +717,7 @@ InputTranslator::handlePress(Gamepad gamepad, Uint8 button, int64_t time)
                                     Key::Device::Button,
                                     button });
         if (key != config.end()) {
+            tickTypes[static_cast<int>(*key)] = ButtonTick;
             pressButton(*key, time);
         }
     }
@@ -760,7 +866,6 @@ InputTranslator::InputTranslator(db::SqliteCppDb* db, QObject* parent)
             &InputTranslator::keyConfigModified,
             this,
             &InputTranslator::saveKeyConfig);
-    // load key config
     loadKeyConfig();
     loadAnalogAxisConfig();
     loadDebounce();
@@ -768,6 +873,15 @@ InputTranslator::InputTranslator(db::SqliteCppDb* db, QObject* parent)
             &InputTranslator::keyConfigModified,
             this,
             &InputTranslator::checkAnalogAxisStatus);
+    for (const auto& [index, timer] :
+         std::ranges::views::enumerate(tickTimers)) {
+        // default for Windows 10
+        timer.setInterval(32);
+        timer.setSingleShot(false);
+        connect(&timer, &QTimer::timeout, this, [this, index] {
+            emitTick(static_cast<BmsKey>(index));
+        });
+    }
 }
 void
 InputTranslator::setConfiguredButton(const QVariant& button)

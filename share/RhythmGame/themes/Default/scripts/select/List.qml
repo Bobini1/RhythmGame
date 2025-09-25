@@ -98,12 +98,12 @@ PathView {
     }
 
     function decrementViewIndex() {
-        decrementCurrentIndex();
+        currentIndex = currentIndex === 0 ? count - 1 : currentIndex - 1;
         movingTimer.restart();
     }
 
     function incrementViewIndex() {
-        incrementCurrentIndex();
+        currentIndex = currentIndex === count - 1 ? 0 : currentIndex + 1;
         movingTimer.restart();
     }
 
@@ -251,8 +251,9 @@ PathView {
 
     dragMargin: 200
     highlightMoveDuration: 100
+    highlightRangeMode: PathView.StrictlyEnforceRange
     pathItemCount: 16
-    preferredHighlightBegin: 0.499999999
+    preferredHighlightBegin: 0.5
     preferredHighlightEnd: 0.5
     snapMode: PathView.SnapToItem
     cacheItemCount: 4
@@ -335,9 +336,6 @@ PathView {
     Component.onCompleted: {
         goForward("");
     }
-    Keys.onDownPressed: {
-        incrementViewIndex();
-    }
     Keys.onLeftPressed: {
         goBack();
     }
@@ -347,47 +345,55 @@ PathView {
     Keys.onRightPressed: {
         goForward(current);
     }
-    Keys.onUpPressed: {
-        decrementViewIndex();
-    }
-    Timer {
-        id: scrAutorepeat
-        interval: 100
-        running: Input.col1sUp || Input.col1sDown
-        repeat: true
-        Input.onCol1sUpPressed: up = true
-        Input.onCol1sDownPressed: up = false
-        Input.onCol1sUpReleased: up = false
-        Input.onCol1sDownReleased: up = true
-        property bool up
-        triggeredOnStart: true
-        onTriggered: {
-            if (up) {
-                pathView.decrementViewIndex();
-            } else {
-                pathView.incrementViewIndex();
+    // All this code is to make sure that scrolling is consistent and acts as you'd expect for different types of input.
+    // When you hold down both up and down, you want the last pressed key to take precedence
+    // When you release one of them, the other one should take over
+    // Additionally, when both P1 and P2 are holding up or down, the song wheel should not be accelerated to 2x speed.
+    property var lastKey: []
+    function navigate(number, type, up, key) {
+        if (lastKey[lastKey.length - 1] !== key) {
+            return;
+        }
+        let func = up ? pathView.decrementViewIndex : pathView.incrementViewIndex;
+        if (type === InputTranslator.ButtonTick) {
+            if (number === 0 || number >= 10) {
+                func();
             }
+        } else if (type === InputTranslator.ClassicScratchTick) {
+            func();
+        } else {
+            func();
         }
     }
-    Timer {
-        id: p2scrAutorepeat
-        interval: 100
-        running: Input.col2sUp || Input.col2sDown
-        repeat: true
-        Input.onCol2sUpPressed: up = true
-        Input.onCol2sDownPressed: up = false
-        Input.onCol2sUpReleased: up = false
-        Input.onCol2sDownReleased: up = true
-        property bool up
-        onTriggered: {
-            if (scrAutorepeat.running) {
-                return;
-            }
-            if (up) {
-                pathView.decrementViewIndex();
-            } else {
-                pathView.incrementViewIndex();
-            }
+    Input.onCol1sDownTicked: (number, type) => navigate(number, type, false, BmsKey.Col1sDown)
+    Input.onCol1sUpTicked: (number, type) => navigate(number, type, true, BmsKey.Col1sUp)
+    Input.onCol2sDownTicked: (number, type) => navigate(number, type, false, BmsKey.Col2sDown)
+    Input.onCol2sUpTicked: (number, type) => navigate(number, type, true, BmsKey.Col2sUp)
+    Input.onCol1sDownPressed: lastKey.push(BmsKey.Col1sDown);
+    Input.onCol1sUpPressed: lastKey.push(BmsKey.Col1sUp);
+    Input.onCol2sDownPressed: lastKey.push(BmsKey.Col2sDown);
+    Input.onCol2sUpPressed: lastKey.push(BmsKey.Col2sUp);
+    Input.onCol1sDownReleased: lastKey = lastKey.filter(k => k !== BmsKey.Col1sDown)
+    Input.onCol1sUpReleased: lastKey = lastKey.filter(k => k !== BmsKey.Col1sUp)
+    Input.onCol2sDownReleased: lastKey = lastKey.filter(k => k !== BmsKey.Col2sDown)
+    Input.onCol2sUpReleased: lastKey = lastKey.filter(k => k !== BmsKey.Col2sUp)
+    Keys.onUpPressed: (event) => {
+        event.accepted = true;
+        if (!event.isAutoRepeat) lastKey.push(Qt.Key_Up);
+        navigate(event.isAutoRepeat, null, true, Qt.Key_Up);
+    }
+    Keys.onDownPressed: (event) => {
+        event.accepted = true;
+        if (!event.isAutoRepeat) lastKey.push(Qt.Key_Down);
+        navigate(event.isAutoRepeat, null, false, Qt.Key_Down);
+    }
+    Keys.onReleased: (event) => {
+        if (event.key === Qt.Key_Up) {
+            if (!event.isAutoRepeat) lastKey = lastKey.filter(k => k !== Qt.Key_Up)
+            event.accepted = true;
+        } else if (event.key === Qt.Key_Down) {
+            if (!event.isAutoRepeat) lastKey = lastKey.filter(k => k !== Qt.Key_Down);
+            event.accepted = true;
         }
     }
     Input.onCol11Pressed: {

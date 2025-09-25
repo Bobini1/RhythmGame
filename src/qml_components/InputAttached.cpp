@@ -127,6 +127,38 @@ InputAttached::InputAttached(QObject* obj)
 #undef CASE
                 }
             });
+#define TICKED(name)                                                           \
+    connect(inputSignalProvider,                                               \
+            &input::InputTranslator::name##Ticked,                             \
+            this,                                                              \
+            [this](int tickNumber, input::InputTranslator::TickType type) {    \
+                if (isEnabled()) {                                             \
+                    emit name##Ticked(tickNumber, type);                       \
+                }                                                              \
+            })
+    TICKED(col11);
+    TICKED(col12);
+    TICKED(col13);
+    TICKED(col14);
+    TICKED(col15);
+    TICKED(col16);
+    TICKED(col17);
+    TICKED(col1sUp);
+    TICKED(col1sDown);
+    TICKED(col21);
+    TICKED(col22);
+    TICKED(col23);
+    TICKED(col24);
+    TICKED(col25);
+    TICKED(col26);
+    TICKED(col27);
+    TICKED(col2sUp);
+    TICKED(col2sDown);
+    TICKED(start1);
+    TICKED(select1);
+    TICKED(start2);
+    TICKED(select2);
+#undef TICKED
 }
 
 auto
