@@ -21,10 +21,14 @@ Item {
     property bool start: Input[`start${index+1}`] || (dpSuffix && (Input.start1 || Input.start2))
     property bool select: Input[`select${index+1}`] || (dpSuffix && (Input.select1 || Input.select2))
 
+    property bool lastDirectionUp: false
     function modifyGnWn(number, amount) {
+        if (amount > 0 && lastDirectionUp || amount < 0 && !lastDirectionUp) {
+            return;
+        }
         let mult = 1 * amount;
-        if (number > 50) {
-            mult = 5 * amount;
+        if (number > 50 || side.index === 0 && Input.col1sUp && Input.col1sDown || side.index === 1 && Input.col2sUp && Input.col2sDown) {
+            mult = 10 * amount;
         }
         let vars = side.profile.vars.generalVars;
         if (side.start) {
@@ -48,6 +52,30 @@ Item {
     }
     Input.onCol2sDownTicked: (number, type) => {
         if (side.index === 1) side.modifyGnWn(number, 1)
+    }
+    Input.onCol1sUpPressed: {
+        if (side.index === 0) side.lastDirectionUp = true;
+    }
+    Input.onCol1sUpReleased: {
+        if (side.index === 0) side.lastDirectionUp = false;
+    }
+    Input.onCol1sDownPressed: {
+        if (side.index === 0) side.lastDirectionUp = false;
+    }
+    Input.onCol1sDownReleased: {
+        if (side.index === 0) side.lastDirectionUp = true;
+    }
+    Input.onCol2sUpPressed: {
+        if (side.index === 1) side.lastDirectionUp = true;
+    }
+    Input.onCol2sUpReleased: {
+        if (side.index === 1) side.lastDirectionUp = false;
+    }
+    Input.onCol2sDownPressed: {
+        if (side.index === 1) side.lastDirectionUp = false;
+    }
+    Input.onCol2sDownReleased: {
+        if (side.index === 1) side.lastDirectionUp = true;
     }
 
     transform: Scale {
