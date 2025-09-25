@@ -1,7 +1,9 @@
 <p align=center>
     <a href="https://github.com/Bobini1/RhythmGame/actions"><img src="https://github.com/Bobini1/RhythmGame/actions/workflows/ci.yml/badge.svg"/></a>
     <a href="https://github.com/Bobini1/RhythmGame/blob/master/LICENSE.md"><img src="https://img.shields.io/github/license/Bobini1/RhythmGame"/></a>
+    <a href="">https://img.shields.io/github/downloads/Bobini1/RhythmGame/total.svg?label=total%20downloads</a>
     <a href="https://aur.archlinux.org/packages/rhythmgame-git"><img alt="AUR Popularity" src="https://img.shields.io/aur/popularity/rhythmgame-git?logo=arch-linux"></a>
+    <br>
     <a href="https://discord.gg/bDxmuSzXBW"><img src="https://img.shields.io/discord/1410743088686829661.svg?color=7289DA&label=RhythmGame%20Community&logo=Discord"/></a>
 </p>
 
