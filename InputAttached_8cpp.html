@@ -222,6 +222,8 @@ Macros</h2></td></tr>
 <tr class="separator:a4159a092192af56bbcbcbaa601c8ff7d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4159a092192af56bbcbcbaa601c8ff7d" id="r_a4159a092192af56bbcbcbaa601c8ff7d"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="InputAttached_8cpp.html#a4159a092192af56bbcbcbaa601c8ff7d">CASE</a>(key,  capital)</td></tr>
 <tr class="separator:a4159a092192af56bbcbcbaa601c8ff7d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac813cd0932933d7698a340b746c0ed50" id="r_ac813cd0932933d7698a340b746c0ed50"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="InputAttached_8cpp.html#ac813cd0932933d7698a340b746c0ed50">TICKED</a>(name)</td></tr>
+<tr class="separator:ac813cd0932933d7698a340b746c0ed50"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Macro Definition Documentation</h2>
 <a id="a4159a092192af56bbcbcbaa601c8ff7d" name="a4159a092192af56bbcbcbaa601c8ff7d"></a>
@@ -295,6 +297,33 @@ Macros</h2></td></tr>
 <div class="line">            emit key##Released(time);                                          \</div>
 <div class="line">        }                                                                      \</div>
 <div class="line">        <span class="keywordflow">break</span>;</div>
+</div><!-- fragment -->
+</div>
+</div>
+<a id="ac813cd0932933d7698a340b746c0ed50" name="ac813cd0932933d7698a340b746c0ed50"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac813cd0932933d7698a340b746c0ed50">&#9670;&#160;</a></span>TICKED</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define TICKED</td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">name</td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<b>Value:</b><div class="fragment"><div class="line">    connect(inputSignalProvider,                                               \</div>
+<div class="line">            &amp;input::InputTranslator::name##Ticked,                             \</div>
+<div class="line">            <span class="keyword">this</span>,                                                              \</div>
+<div class="line">            [<span class="keyword">this</span>](<span class="keywordtype">int</span> tickNumber, <a class="code hl_enumeration" href="classinput_1_1InputTranslator.html#a11ee382f1e1c19d60a889b2cce5c7fcf">input::InputTranslator::TickType</a> type) {    \</div>
+<div class="line">                if (isEnabled()) {                                             \</div>
+<div class="line">                    emit name##Ticked(tickNumber, type);                       \</div>
+<div class="line">                }                                                              \</div>
+<div class="line">            })</div>
+<div class="ttc" id="aclassinput_1_1InputTranslator_html_a11ee382f1e1c19d60a889b2cce5c7fcf"><div class="ttname"><a href="classinput_1_1InputTranslator.html#a11ee382f1e1c19d60a889b2cce5c7fcf">input::InputTranslator::TickType</a></div><div class="ttdeci">TickType</div><div class="ttdef"><b>Definition</b> InputTranslator.h:212</div></div>
 </div><!-- fragment -->
 </div>
 </div>

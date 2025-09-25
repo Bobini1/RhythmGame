@@ -179,16 +179,16 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00113" name="l00113"></a><span class="lineno">  113</span>        }</div>
 <div class="line"><a id="l00114" name="l00114"></a><span class="lineno">  114</span> </div>
 <div class="line"><a id="l00115" name="l00115"></a><span class="lineno">  115</span>        <span class="keyword">template</span>&lt;std::default_initializable Ret&gt;</div>
-<div class="line"><a id="l00116" name="l00116"></a><span class="lineno">  116</span>        <span class="keywordtype">void</span> writeRow(SQLite::Statement&amp; statement, Ret&amp; ret, <span class="keywordtype">int</span>&amp; index)<span class="keyword"> const</span></div>
+<div class="line"><a id="l00116" name="l00116"></a><span class="lineno">  116</span>        <span class="keywordtype">void</span> writeRow(SQLite::Statement&amp; stmt, Ret&amp; ret, <span class="keywordtype">int</span>&amp; index)<span class="keyword"> const</span></div>
 <div class="line"><a id="l00117" name="l00117"></a><span class="lineno">  117</span><span class="keyword">        </span>{</div>
 <div class="line"><a id="l00118" name="l00118"></a><span class="lineno">  118</span>            <span class="keywordflow">if</span> <span class="keyword">constexpr</span> (std::convertible_to&lt;SQLite::Column, Ret&gt; || std::is_same_v&lt;Ret, std::string&gt;) {</div>
-<div class="line"><a id="l00119" name="l00119"></a><span class="lineno">  119</span>                ret = getElem&lt;std::remove_cvref_t&lt;Ret&gt;&gt;(statement, index++);</div>
+<div class="line"><a id="l00119" name="l00119"></a><span class="lineno">  119</span>                ret = getElem&lt;std::remove_cvref_t&lt;Ret&gt;&gt;(stmt, index++);</div>
 <div class="line"><a id="l00120" name="l00120"></a><span class="lineno">  120</span>            } <span class="keywordflow">else</span> {</div>
 <div class="line"><a id="l00121" name="l00121"></a><span class="lineno">  121</span>                <span class="keyword">constexpr</span> <span class="keywordtype">size_t</span> tupleSize = support::tupleSizeV&lt;Ret&gt;;</div>
 <div class="line"><a id="l00122" name="l00122"></a><span class="lineno">  122</span>                <span class="keyword">constexpr</span> <span class="keyword">auto</span> indices =</div>
 <div class="line"><a id="l00123" name="l00123"></a><span class="lineno">  123</span>                  std::make_integer_sequence&lt;int, static_cast&lt;int&gt;(tupleSize)&gt;();</div>
-<div class="line"><a id="l00124" name="l00124"></a><span class="lineno">  124</span>                [<span class="keyword">this</span>, &amp;statement, &amp;ret, &amp;index]&lt;<span class="keywordtype">int</span>... N&gt;(std::integer_sequence&lt;int, N...&gt;) {</div>
-<div class="line"><a id="l00125" name="l00125"></a><span class="lineno">  125</span>                    (writeRow(statement, support::get&lt;N&gt;(ret), index), ...);</div>
+<div class="line"><a id="l00124" name="l00124"></a><span class="lineno">  124</span>                [<span class="keyword">this</span>, &amp;stmt, &amp;ret, &amp;index]&lt;<span class="keywordtype">int</span>... N&gt;(std::integer_sequence&lt;int, N...&gt;) {</div>
+<div class="line"><a id="l00125" name="l00125"></a><span class="lineno">  125</span>                    (writeRow(stmt, support::get&lt;N&gt;(ret), index), ...);</div>
 <div class="line"><a id="l00126" name="l00126"></a><span class="lineno">  126</span>                }(indices);</div>
 <div class="line"><a id="l00127" name="l00127"></a><span class="lineno">  127</span>            }</div>
 <div class="line"><a id="l00128" name="l00128"></a><span class="lineno">  128</span>        }</div>
