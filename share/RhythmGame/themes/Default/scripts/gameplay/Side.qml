@@ -31,9 +31,9 @@ Item {
             vars.noteScreenTimeMillis += vars.noteScreenTimeMillis / 1000 * mult;
         } else if (side.select) {
             if (vars.laneCoverOn) {
-                vars.laneCoverRatio += 0.0003 * mult;
+                vars.laneCoverRatio += 0.0005 * mult;
             } else if (vars.liftOn) {
-                vars.liftRatio += 0.0003 * mult;
+                vars.liftRatio += 0.0005 * mult;
             }
         }
     }
