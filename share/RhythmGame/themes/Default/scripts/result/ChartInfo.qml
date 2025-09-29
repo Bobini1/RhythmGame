@@ -25,7 +25,6 @@ WindowBg {
                 return root.iniImagesUrl + "parts.png/unknown_diff";
             }
         }
-        Component.onCompleted: print(source)
     }
     Text {
         id: totalLabel

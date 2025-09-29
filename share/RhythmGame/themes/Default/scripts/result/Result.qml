@@ -26,14 +26,6 @@ Item {
     readonly property Profile profile2: profiles[1] || null
     readonly property bool isBattle: score1 && score2
 
-    Timer {
-        interval: 100
-        running: true
-        repeat: false
-        onTriggered: {
-            print(root.enabled)
-        }
-    }
     Input.onButtonPressed: (key) => {
         if ([BmsKey.Col11, BmsKey.Col12, BmsKey.Col13, BmsKey.Col14, BmsKey.Col15, BmsKey.Col16, BmsKey.Col17,
             BmsKey.Col21, BmsKey.Col22, BmsKey.Col23, BmsKey.Col24, BmsKey.Col25, BmsKey.Col26, BmsKey.Col27].includes(key)) {
