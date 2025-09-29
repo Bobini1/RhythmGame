@@ -59,7 +59,7 @@ var searchData=
   ['setbattleactive_56',['setBattleActive',['../classqml__components_1_1ProfileList.html#a463dc49997368ec627cf699f58386c19',1,'qml_components::ProfileList']]],
   ['setbgaon_57',['setBgaOn',['../classresource__managers_1_1GeneralVars.html#a40fcbef6455b0cbd5f0b9e95935442ea',1,'resource_managers::GeneralVars']]],
   ['setbottomposition_58',['setbottomposition',['../classgameplay__logic_1_1Filter.html#aa081d80c7280ce807806ea245dc64d03',1,'gameplay_logic::Filter::setBottomPosition()'],['../classgameplay__logic_1_1BarlineFilter.html#a9b854db36955c70994edcdfd22454240',1,'gameplay_logic::BarlineFilter::setBottomPosition()']]],
-  ['setbottomshiftablegauge_59',['setBottomShiftableGauge',['../classresource__managers_1_1GeneralVars.html#abe983025428b446ef8e87539e89b15c4',1,'resource_managers::GeneralVars']]],
+  ['setbottomshiftablegauge_59',['setBottomShiftableGauge',['../classresource__managers_1_1GeneralVars.html#ad62796f227b10fe31d79467b27639d7c',1,'resource_managers::GeneralVars']]],
   ['setcombo_60',['setCombo',['../classgameplay__logic_1_1CoursePlayer.html#a0c6790279d9807e9f20a31d16176d5b0',1,'gameplay_logic::CoursePlayer']]],
   ['setconfiguredbutton_61',['setConfiguredButton',['../classinput_1_1InputTranslator.html#a219d7a35537301d0d8d7f94c091d8a8e',1,'input::InputTranslator']]],
   ['setdebouncems_62',['setDebounceMs',['../classinput_1_1InputTranslator.html#abeba517d2f31de9eb3487235806bc0ee',1,'input::InputTranslator']]],
