@@ -322,7 +322,7 @@ resource_managers::GeneralVars::getBottomShiftableGauge() const -> QString
     return bottomShiftableGauge;
 }
 void
-resource_managers::GeneralVars::setBottomShiftableGauge(QString value)
+resource_managers::GeneralVars::setBottomShiftableGauge(const QString& value)
 {
     if (bottomShiftableGauge == value) {
         return;

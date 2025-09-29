@@ -186,6 +186,14 @@ class GeneralVars final : public QObject
       resource_managers::gauge_mode::GaugeMode gaugeMode READ getGaugeMode WRITE
         setGaugeMode NOTIFY gaugeModeChanged RESET resetGaugeMode)
     /**
+     * @brief The bottom shiftable gauge type.
+     * @details Only relevant if gaugeMode is SelectToUnder. Determines the
+     * lowest gauge that will be enabled during gameplay.
+     */
+    Q_PROPERTY(QString bottomShiftableGauge READ getBottomShiftableGauge WRITE
+                 setBottomShiftableGauge NOTIFY bottomShiftableGaugeChanged RESET
+                   resetBottomShiftableGauge)
+    /**
      * @brief The avatar picture of the user.
      * @details Combine it with qml_components::ProgramSettings::avatarPath to
      * get the full path to the avatar picture.
@@ -205,9 +213,8 @@ class GeneralVars final : public QObject
     /**
      * @brief The visual offset in milliseconds to apply during gameplay.
      */
-    Q_PROPERTY(
-    double offset READ getOffset WRITE setOffset NOTIFY offsetChanged RESET
-      resetOffset)
+    Q_PROPERTY(double offset READ getOffset WRITE setOffset NOTIFY offsetChanged
+                 RESET resetOffset)
     // ^ remember to use full namespace for enums for reflection
     double noteScreenTimeMillis = 1000;
     bool laneCoverOn = false;
@@ -276,7 +283,7 @@ class GeneralVars final : public QObject
     void setGaugeMode(GaugeMode value);
     void resetGaugeMode();
     auto getBottomShiftableGauge() const -> QString;
-    void setBottomShiftableGauge(QString value);
+    void setBottomShiftableGauge(const QString& value);
     void resetBottomShiftableGauge();
     auto getAvatar() const -> QString;
     void setAvatar(QString value);

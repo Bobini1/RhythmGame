@@ -23,6 +23,22 @@ selectGauges(
         return elem->getName() == selectedGauge ||
                equivalents[elem->getName()] == selectedGauge;
     });
+    auto bottomIt = gauges.end();
+    if (gaugeMode == GaugeMode::SelectToUnder) {
+    const auto bottomGauge = vars->getBottomShiftableGauge();
+        bottomIt = std::ranges::find_if(
+        gauges, [&](const auto& elem) { return elem->getName() == bottomGauge ||
+             equivalents[elem->getName()] == selectedGauge; });
+        if (bottomIt != std::ranges::end(gauges) && selectedIt != std::ranges::end(gauges) &&
+            bottomIt != selectedIt) {
+            if (std::distance(bottomIt, selectedIt) > 0) {
+                bottomIt = selectedIt;
+            }
+        }
+        if (bottomIt != std::ranges::end(gauges)) {
+            ++bottomIt;
+        }
+    }
     // invalid gauge selected
     if (selectedIt == std::ranges::end(gauges)) {
         selectedIt = gauges.begin();
@@ -33,7 +49,7 @@ selectGauges(
     auto ret = QList<gameplay_logic::rules::BmsGauge*>{};
     if (gaugeMode == GaugeMode::SelectToUnder) {
         std::transform(selectedIt,
-                       std::ranges::end(gauges),
+                       bottomIt,
                        std::back_insert_iterator(ret),
                        [](auto& elem) { return elem.release(); });
     }
