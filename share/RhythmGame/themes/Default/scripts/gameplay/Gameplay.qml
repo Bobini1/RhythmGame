@@ -30,6 +30,10 @@ Rectangle {
     readonly property bool isCourse: chart instanceof CourseRunner
     property var chart
     readonly property string themeName: QmlUtils.themeName
+    property var scores1: []
+    property var scores2: []
+    property var scoreWithBestPoints1: Helpers.getScoreWithBestPoints(scores1)
+    property var scoreWithBestPoints2: Helpers.getScoreWithBestPoints(scores2)
 
     property bool showedCourseResult: false
     StackView.onActivated: {
@@ -43,6 +47,18 @@ Rectangle {
                 Qt.callLater(() => sceneStack.pop());
             }
         } else {
+            const compareArrays = (a, b) =>
+                a.length === b.length && a.every((element, index) => element === b[index]);
+            chart.player1.profile.scoreDb.getScoresForMd5(chartData.md5).then(scores => {
+                // get only the scores with the same randomSequence
+                scores1 = scores.filter(s => compareArrays(s.randomSequence, chart.randomSequence));
+            });
+            if (chart.player2) {
+                chart.player2.profile.scoreDb.getScoresForMd5(chartData.md5).then(scores => {
+                    // get only the scores with the same randomSequence
+                    scores2 = scores.filter(s => compareArrays(s.randomSequence, chart.randomSequence));
+                });
+            }
             chart.start();
         }
     }
