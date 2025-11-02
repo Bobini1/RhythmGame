@@ -4,6 +4,7 @@ import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls.Basic
 import RhythmGameQml
+import "../common/TaoQuickCustom"
 
 Item {
     id: playArea
@@ -64,9 +65,6 @@ Item {
             playArea.position = playArea.player.position;
         }
     }
-
-    height: playArea.vars.playAreaHeight
-    width: playfield.width
 
     Item {
         id: playObjectContainer
@@ -188,13 +186,54 @@ Item {
         }
     }
     Judgements {
+        id: judgements
         anchors.centerIn: parent
         anchors.verticalCenterOffset: (-playArea.vars.judgementsOffset * 2 + 1) * (parent.height - height) / 2
+        height: parent.height * playArea.vars.judgementsHeight
 
         score: playArea.score
         judge: playArea.vars.judge
         fastslow: playArea.vars.fastslow
         columns: playArea.columns
+        x: playArea.vars.judgementsX
+        y: playArea.vars.judgementsY
+    }
+    Item {
+        id: judgementsPositioner
+        Binding {
+            delayed: true
+            judgementsPositioner.x: judgements.x
+            judgementsPositioner.y: judgements.y
+            judgementsPositioner.width: judgements.width
+            judgementsPositioner.height: judgements.height
+        }
+        z: 11
+        Component.onCompleted: {
+            x = judgements.x;
+            y = judgements.y;
+            width = judgements.width;
+            height = judgements.height;
+        }
+        onYChanged: {
+            let center = parent.height / 2;
+            let offset = y + height / 2 - center;
+            playArea.vars.judgementsOffset = -offset / (center - height / 2) / 2 + 0.5;
+        }
+        onHeightChanged: {
+            playArea.vars.judgementsHeight = height / parent.height;
+        }
+
+        TemplateDragBorder {
+            id: judgementsTemplate
+
+            anchors.fill: parent
+            anchors.margins: -borderMargin
+            color: "transparent"
+            visible: root.customizeMode
+            dragAxis: Drag.YAxis
+            keepAspectRatio: true
+
+        }
     }
     Item {
         id: playAreaBg

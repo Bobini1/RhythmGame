@@ -4,7 +4,6 @@ import RhythmGameQml
 Item {
     id: judgement
 
-    height: childrenRect.height
     width: childrenRect.width
     z: 3
     visible: false
@@ -93,6 +92,7 @@ Item {
         id: judgementRow
 
         spacing: 0
+        height: parent.height
 
         AnimatedSprite {
             id: judgementAnimation
@@ -100,6 +100,8 @@ Item {
             frameDuration: 40
             frameHeight: 84
             frameWidth: 227
+            height: judgementRow.height
+            width: frameWidth * (judgement.height / frameHeight)
             interpolate: false
             onSourceChanged: {
                 if (source != root.iniImagesUrl + "judge/" + judgement.judge + "/pgreat") {
@@ -123,6 +125,8 @@ Item {
                 frameCount: judgementAnimation.source == root.iniImagesUrl + "judge/" + judgement.judge + "/pgreat" ? 3 : 1
                 frameHeight: 84
                 frameWidth: 55
+                height: judgementRow.height
+                width: frameWidth * (judgement.height / frameHeight)
                 paused: true
                 source: root.iniImagesUrl + "judge/" + judgement.judge + (judgementAnimation.source == root.iniImagesUrl + "judge/" + judgement.judge + "/pgreat" ? "/pgreat_" : "/great_") + modelData
             }
