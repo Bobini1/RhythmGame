@@ -231,6 +231,26 @@ Item {
             dragAxis: Drag.YAxis
             keepAspectRatio: true
 
+            MouseArea {
+                id: judgementsTemplateMouseArea
+
+                acceptedButtons: Qt.RightButton
+                anchors.fill: parent
+                z: -1
+
+                onClicked: mouse => {
+                    let point = mapToItem(Overlay.overlay, mouse.x, mouse.y);
+                    let popup;
+                    if (side.mirrored) {
+                        popup = judgementsPopupP2;
+                    } else {
+                        popup = judgementsPopup;
+                    }
+                    popup.setPosition(point);
+                    popup.open();
+                    root.popup = popup;
+                }
+            }
         }
     }
     Item {

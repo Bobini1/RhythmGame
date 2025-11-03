@@ -188,6 +188,26 @@ Rectangle {
             root.popup = null;
         }
     }
+    JudgementsPopup {
+        id: judgementsPopup
+
+        readonly property Profile profile: chart.player1.profile
+        themeVars: profile.vars.themeVars[root.screen][root.themeName]
+
+        onClosed: {
+            root.popup = null;
+        }
+    }
+    JudgementsPopup {
+        id: judgementsPopupP2
+
+        readonly property Profile profile: (chart.player2 || chart.player1).profile
+        themeVars: profile.vars.themeVars[root.screen][root.themeName]
+
+        onClosed: {
+            root.popup = null;
+        }
+    }
     BgaPopup {
         id: bgaPopup
 
