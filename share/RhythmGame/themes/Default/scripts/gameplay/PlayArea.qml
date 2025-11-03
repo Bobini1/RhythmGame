@@ -203,7 +203,7 @@ Item {
             judgementsPositioner.x: judgements.x
             judgementsPositioner.width: judgements.width
             judgementsPositioner.height: judgements.height
-            judgementsPositioner.y: playArea.height / 2 + judgements.anchors.verticalCenterOffset - judgements.height / 2
+            judgementsPositioner.y: playArea.height / 2 + judgements.anchors.verticalCenterOffset - judgementsPositioner.height / 2
         }
         z: 11
         Component.onCompleted: {
