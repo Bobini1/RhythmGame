@@ -15,5 +15,10 @@ GameplayPopup {
             propertyId: "judge"
             label: qsTr("Judgements")
         }
+        ImageSelection {
+            src: popup.themeVars
+            propertyId: "fastslow"
+            label: qsTr("Fast/Slow")
+        }
     }
 }

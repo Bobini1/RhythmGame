@@ -146,10 +146,5 @@ GameplayPopup {
             propertyId: "glow"
             label: qsTr("Glow")
         }
-        ImageSelection {
-            src: popup.themeVars
-            propertyId: "fastslow"
-            label: qsTr("Fast/Slow")
-        }
     }
 }
