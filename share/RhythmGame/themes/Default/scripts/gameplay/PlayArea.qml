@@ -195,17 +195,15 @@ Item {
         judge: playArea.vars.judge
         fastslow: playArea.vars.fastslow
         columns: playArea.columns
-        x: playArea.vars.judgementsX
-        y: playArea.vars.judgementsY
     }
     Item {
         id: judgementsPositioner
         Binding {
             delayed: true
             judgementsPositioner.x: judgements.x
-            judgementsPositioner.y: judgements.y
             judgementsPositioner.width: judgements.width
             judgementsPositioner.height: judgements.height
+            judgementsPositioner.y: playArea.height / 2 + judgements.anchors.verticalCenterOffset - judgements.height / 2
         }
         z: 11
         Component.onCompleted: {
