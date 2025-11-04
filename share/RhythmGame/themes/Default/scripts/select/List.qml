@@ -113,7 +113,7 @@ PathView {
         }
         let last = historyStack.pop();
         let folder = open(historyStack[historyStack.length - 1]);
-        let idx = (1 + folder.findIndex((folderItem) => {
+        let idx = folder.findIndex((folderItem) => {
             if (folderItem instanceof ChartData && last instanceof ChartData) {
                 return folderItem.path === last.path;
             } else if (typeof folderItem === "string" && typeof last === "string") {
@@ -126,7 +126,7 @@ PathView {
                 return folderItem.name === last.name;
             }
             return false;
-        })) || 1;
+        });
         pathView.positionViewAtIndex(idx, PathView.Center);
     }
 
@@ -153,7 +153,7 @@ PathView {
         }
         historyStack.push(item);
         open(item);
-        pathView.positionViewAtIndex(1, PathView.Center);
+        pathView.positionViewAtIndex(0, PathView.Center);
     }
 
     function open(item) {
@@ -209,7 +209,7 @@ PathView {
         }
         pathView.model = results;
         pathView.folderContents = newFolderContents;
-        pathView.positionViewAtIndex(1, PathView.Center);
+        pathView.positionViewAtIndex(0, PathView.Center);
         openedFolder();
     }
 
@@ -243,9 +243,9 @@ PathView {
             let currentIdx = sortedFiltered.indexOf(old);
             pathView.model = sortedFiltered;
             if (currentIdx >= 0)
-                pathView.positionViewAtIndex(currentIdx + 1, PathView.Center);
+                pathView.positionViewAtIndex(currentIdx, PathView.Center);
             else
-                pathView.positionViewAtIndex(1, PathView.Center);
+                pathView.positionViewAtIndex(0, PathView.Center);
         }
     }
 
