@@ -76,7 +76,7 @@ Image {
 
         onClicked: {
             pathView.goForward(modelData);
-            pathView.positionViewAtIndex(index + 1, PathView.Center);
+            pathView.positionViewAtIndex(index, PathView.Center);
         }
     }
 }
