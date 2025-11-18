@@ -1,5 +1,5 @@
 if (NOT WIN32)
-    option(USE_SYSTEM_LIBRARIES "Deploy libraries and provide RhythmGame.sh" OFF)
+    option(USE_SYSTEM_LIBRARIES "Do not deploy libraries and do not provide RhythmGame.sh" OFF)
 endif ()
 if (WIN32 OR NOT USE_SYSTEM_LIBRARIES)
     install(
