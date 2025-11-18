@@ -73,7 +73,7 @@ Image {
         scale: Math.min(screen.width / width, screen.height / height)
         transformOrigin: Item.Center
 
-        Label {
+        Text {
             id: titleText
             anchors.top: parent.top
             anchors.topMargin: 160
