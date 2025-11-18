@@ -34,9 +34,9 @@
   libmpg123,
 }:
 stdenv.mkDerivation rec {
-  pname = "rhythmgame";
+  pname = "RhythmGame";
   version = "unstable-2025-11-17";
-  name = "RhythmGame";
+  meta.mainProgram = "RhythmGame";
 
   src = ./../..; # Points to repository root
 
