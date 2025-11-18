@@ -36,6 +36,7 @@
 stdenv.mkDerivation rec {
   pname = "rhythmgame";
   version = "unstable-2025-11-17";
+  name = "RhythmGame";
 
   src = ./../..; # Points to repository root
 
