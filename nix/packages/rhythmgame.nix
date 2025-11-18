@@ -1,38 +1,38 @@
-{ lib
-, stdenv
-, fetchFromGitHub
-, wrapQtAppsHook
-, cmake
-, qtwayland
-, qtshadertools
-, zstd
-, magic-enum
-, SDL2
-, boost
-, sqlitecpp
-, fmt
-, libxml2
-, qtdeclarative
-, qtmultimedia
-, qtsvg
-, qtinterfaceframework
-, ned14-llfio
-, lexy
-, mimalloc
-, spdlog
-, qttools
-, libsndfile
-, stb
-, pkg-config
-, tbb
-, miniaudio
-, flac
-, libogg
-, libvorbis
-, libopus
-, libmpg123
+{
+  lib,
+  stdenv,
+  fetchFromGitHub,
+  wrapQtAppsHook,
+  cmake,
+  qtwayland,
+  qtshadertools,
+  zstd,
+  magic-enum,
+  SDL2,
+  boost,
+  sqlitecpp,
+  fmt,
+  libxml2,
+  qtdeclarative,
+  qtmultimedia,
+  qtsvg,
+  qtinterfaceframework,
+  ned14-llfio,
+  lexy,
+  mimalloc,
+  spdlog,
+  qttools,
+  libsndfile,
+  stb,
+  pkg-config,
+  tbb,
+  miniaudio,
+  flac,
+  libogg,
+  libvorbis,
+  libopus,
+  libmpg123,
 }:
-
 stdenv.mkDerivation rec {
   pname = "rhythmgame";
   version = "unstable-2025-11-17";
@@ -86,6 +86,6 @@ stdenv.mkDerivation rec {
     homepage = "https://github.com/Bobini1/RhythmGame";
     license = licenses.mit;
     platforms = platforms.linux;
-    maintainers = [ maintainers.Bobini1 ];
+    maintainers = [maintainers.Bobini1];
   };
 }

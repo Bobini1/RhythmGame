@@ -1,42 +1,42 @@
-{ mkShell
-, cmake
-, qtwayland
-, qtshadertools
-, zstd
-, magic-enum
-, SDL2
-, boost
-, sqlitecpp
-, fmt
-, libxml2
-, qtdeclarative
-, qtmultimedia
-, qtsvg
-, qtinterfaceframework
-, ned14-llfio
-, lexy
-, mimalloc
-, spdlog
-, qttools
-, libsndfile
-, stb
-, pkg-config
-, tbb
-, miniaudio
-, flac
-, libogg
-, libvorbis
-, libopus
-, libmpg123
-, clang-tools
-, libllvm
-, libcxx
-, lldb
-, gdb
-, catch2_3
-, stdenv
+{
+  mkShell,
+  cmake,
+  qtwayland,
+  qtshadertools,
+  zstd,
+  magic-enum,
+  SDL2,
+  boost,
+  sqlitecpp,
+  fmt,
+  libxml2,
+  qtdeclarative,
+  qtmultimedia,
+  qtsvg,
+  qtinterfaceframework,
+  ned14-llfio,
+  lexy,
+  mimalloc,
+  spdlog,
+  qttools,
+  libsndfile,
+  stb,
+  pkg-config,
+  tbb,
+  miniaudio,
+  flac,
+  libogg,
+  libvorbis,
+  libopus,
+  libmpg123,
+  clang-tools,
+  libllvm,
+  libcxx,
+  lldb,
+  gdb,
+  catch2_3,
+  stdenv,
 }:
-
 mkShell {
   buildInputs = [
     pkg-config
@@ -68,7 +68,6 @@ mkShell {
     libvorbis
     libopus
     libmpg123
-
   ];
 
   nativeBuildInputs = [

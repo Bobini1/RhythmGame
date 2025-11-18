@@ -1,14 +1,14 @@
-{ lib
-, stdenv
-, fetchFromGitHub
-, ned14-outcome
-, ned14-quickcpplib
-, ned14-status-code
-, byte-lite
-, span-lite
-, cmake
+{
+  lib,
+  stdenv,
+  fetchFromGitHub,
+  ned14-outcome,
+  ned14-quickcpplib,
+  ned14-status-code,
+  byte-lite,
+  span-lite,
+  cmake,
 }:
-
 stdenv.mkDerivation rec {
   pname = "ned14-llfio";
   version = "master";
@@ -42,6 +42,6 @@ stdenv.mkDerivation rec {
     homepage = "https://github.com/ned14/llfio";
     license = licenses.asl20;
     platforms = platforms.all;
-    maintainers = [ maintainers.Bobini1 ];
+    maintainers = [maintainers.Bobini1];
   };
 }
