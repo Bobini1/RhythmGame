@@ -40,6 +40,25 @@ install(FILES share/RhythmGame/avatars/mascot.png DESTINATION ${CMAKE_INSTALL_DA
 install(DIRECTORY share/RhythmGame/themes/Default DESTINATION ${CMAKE_INSTALL_DATADIR}/RhythmGame/themes
         COMPONENT RhythmGame_Runtime)
 
+if (LINUX)
+    install(
+            FILES staticAssets/RhythmGame.desktop
+            DESTINATION "${CMAKE_INSTALL_DATADIR}/applications"
+            COMPONENT RhythmGame_Runtime
+    )
+    install(
+            FILES staticAssets/icon.svg
+            DESTINATION "${CMAKE_INSTALL_DATADIR}/pixmaps"
+            RENAME RhythmGame.svg
+            COMPONENT RhythmGame_Runtime
+    )
+    install(
+            FILES LICENSE.md
+            DESTINATION "${CMAKE_INSTALL_DATADIR}/licenses/rhythmgame"
+            RENAME LICENSE
+            COMPONENT RhythmGame_Runtime
+    )
+endif ()
 
 set(CPACK_PACKAGE_VENDOR "Bobini")
 set(CPACK_PACKAGE_INSTALL_DIRECTORY "RhythmGame")
