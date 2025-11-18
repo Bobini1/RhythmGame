@@ -36,7 +36,6 @@
 stdenv.mkDerivation rec {
   pname = "RhythmGame";
   version = "unstable-2025-11-17";
-  meta.mainProgram = "RhythmGame";
 
   src = ./../..; # Points to repository root
 
@@ -88,5 +87,6 @@ stdenv.mkDerivation rec {
     license = licenses.mit;
     platforms = platforms.linux;
     maintainers = [maintainers.Bobini1];
+    mainProgram = "RhythmGame";
   };
 }
