@@ -38,7 +38,7 @@ Image {
             clip: true
 
             Column {
-                Text {
+                Label {
                     id: licenseMd
                     text: dlg.licenseText
                     textFormat: Text.MarkdownText
@@ -46,9 +46,10 @@ Image {
                     padding: 12
                     width: scrollView.width
                     onLinkActivated: Qt.openUrlExternally(link)
+                    color: palette.text
                 }
 
-                Text {
+                Label {
                     id: md
                     text: dlg.attrText
                     textFormat: Text.MarkdownText
@@ -56,6 +57,7 @@ Image {
                     padding: 12
                     width: scrollView.width
                     onLinkActivated: Qt.openUrlExternally(link)
+                    color: palette.text
                 }
             }
         }
@@ -71,7 +73,7 @@ Image {
         scale: Math.min(screen.width / width, screen.height / height)
         transformOrigin: Item.Center
 
-        Text {
+        Label {
             id: titleText
             anchors.top: parent.top
             anchors.topMargin: 160

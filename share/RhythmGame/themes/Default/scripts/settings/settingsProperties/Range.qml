@@ -60,7 +60,7 @@ RowLayout {
             Layout.minimumWidth: 80
             Layout.preferredWidth: 80
             Layout.alignment: Qt.AlignRight
-            color: acceptableInput ? "black" : "red"
+            color: acceptableInput ? palette.text : palette.accent
             validator: DoubleValidator {
                 id: doubleValidator
                 bottom: range.min

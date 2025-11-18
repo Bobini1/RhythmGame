@@ -40,7 +40,7 @@ Item {
                 ColumnLayout {
                     anchors.fill: parent
 
-                    Text {
+                    Label {
                         font.pixelSize: 20
                         text: qsTr("Song directories")
                         elide: Text.ElideRight
@@ -68,6 +68,7 @@ Item {
                                     Layout.fillWidth: true
                                     wrapMode: TextEdit.Wrap
                                     text: folderRow.rootFolder ? folderRow.rootFolder.name : ""
+                                    color: palette.text
                                 }
                                 Button {
                                     text: qsTr("Remove")
@@ -120,7 +121,7 @@ Item {
                 ColumnLayout {
                     anchors.fill: parent
 
-                    Text {
+                    Label {
                         font.pixelSize: 20
                         text: qsTr("Scanning queue")
                         elide: Text.ElideRight
@@ -144,7 +145,7 @@ Item {
                                 Layout.fillWidth: true
                                 width: parent ? parent.width : 0
 
-                                Text {
+                                Label {
                                     Layout.fillWidth: true
                                     text: scanItemRow.name
                                 }

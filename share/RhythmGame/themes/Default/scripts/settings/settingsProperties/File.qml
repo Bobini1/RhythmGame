@@ -28,13 +28,6 @@ RowLayout {
         Layout.preferredWidth: 400
         Layout.minimumWidth: 200
 
-        palette {
-            window: "white"
-            Component.onCompleted: {
-                light = palette.button
-            }
-        }
-
         Binding {
             delayed: true
             fileComboBox.currentIndex: Helpers.getIndex(fileComboBox.files, file.destination[file.id_], fileComboBox.currentIndex);

@@ -26,6 +26,7 @@ Frame {
             font.pixelSize: 24
             font.bold: true
             readOnly: true
+            color: palette.text
         }
         TextEdit {
             wrapMode: TextEdit.Wrap
@@ -36,6 +37,7 @@ Frame {
             text: groupFrame.description
             font.pixelSize: 16
             readOnly: true
+            color: palette.text
         }
         // empty space separator
         Rectangle {

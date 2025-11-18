@@ -23,7 +23,7 @@ RowLayout {
 
         height: 30
         border {
-            color: "black"
+            color: palette.shadow
             width: 1
         }
         Layout.fillWidth: true

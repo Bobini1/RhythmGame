@@ -17,4 +17,5 @@ TextEdit {
     Layout.minimumWidth: 200
     Layout.maximumWidth: 1000
     Layout.preferredWidth: 300
+    color: palette.text
 }
