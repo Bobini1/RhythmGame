@@ -1,7 +1,7 @@
 pragma ValueTypeBehavior: Addressable
 import QtQuick
 import RhythmGameQml
-import QtQuick.Controls.Basic
+import QtQuick.Controls
 import QtMultimedia
 import QtQml
 import "../common/helpers.js" as Helpers
@@ -182,7 +182,7 @@ FocusScope {
                 enabled: root.enabled
 
                 onActivated: {
-                    sceneStack.pop();
+                    globalRoot.pageStack.pop();
                 }
             }
             AudioPlayer {

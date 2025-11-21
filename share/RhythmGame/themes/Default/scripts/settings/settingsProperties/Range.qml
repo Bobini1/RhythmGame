@@ -1,5 +1,5 @@
 import QtQuick.Dialogs
-import QtQuick.Controls.Basic
+import QtQuick.Controls
 import RhythmGameQml
 import QtQuick
 import QtQuick.Layouts
@@ -48,19 +48,20 @@ RowLayout {
                 }
             }
         }
-        TextField {
+        SpinBox {
             id: textField
 
-            horizontalAlignment: contentWidth >= width ? TextField.AlignLeft : TextField.AlignHCenter
-            autoScroll: false
-            text: Helpers.getFormattedNumber(Qt.locale(Rg.languages.selectedLanguage), range.destination[range.id_], range.decimals)
+            value: range.destination[range.id_] * 10 ** range.decimals
             Layout.fillHeight: true
             Layout.fillWidth: true
             Layout.maximumWidth: 200
-            Layout.minimumWidth: 80
-            Layout.preferredWidth: 80
+            Layout.minimumWidth: 120
+            Layout.preferredWidth: 120
             Layout.alignment: Qt.AlignRight
-            color: acceptableInput ? palette.text : palette.accent
+            from: range.min
+            to: range.max
+            stepSize: 10 ** range.decimals
+            editable: true
             validator: DoubleValidator {
                 id: doubleValidator
                 bottom: range.min
@@ -68,21 +69,14 @@ RowLayout {
                 locale: Rg.languages.selectedLanguage
             }
             inputMethodHints: Qt.ImhFormattedNumbersOnly
-            onTextEdited: {
-                if (acceptableInput) {
-                    range.destination[range.id_] = Number.fromLocaleString(Qt.locale(Rg.languages.selectedLanguage), text)
-                }
+            onValueModified: {
+                range.destination[range.id_] = value / 10 ** range.decimals;
             }
-
-            onEditingFinished: {
-                ensureVisible(0);
+            valueFromText: function(text, locale) {
+                return Number.fromLocaleString(locale, text);
             }
-            onActiveFocusChanged: {
-                autoScroll = true;
-            }
-
-            Component.onCompleted: {
-                ensureVisible(0);
+            textFromValue: function(value, locale) {
+                return Helpers.getFormattedNumber(locale, value, range.decimals);
             }
             HoverHandler {
                 id: hoverHandler

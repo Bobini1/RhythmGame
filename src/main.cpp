@@ -44,7 +44,7 @@
 #include "support/QStringToPath.h"
 #include <sqlite3.h>
 
-Q_IMPORT_QML_PLUGIN(RhythmGameQmlPlugin)
+//Q_IMPORT_QML_PLUGIN(RhythmGameQmlPlugin)
 
 void
 qtLogHandler(QtMsgType type,

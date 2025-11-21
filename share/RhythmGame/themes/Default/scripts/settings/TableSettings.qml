@@ -1,11 +1,12 @@
 pragma ValueTypeBehavior: Addressable
 import QtQuick
-import QtQuick.Controls.Basic
+import QtQuick.Controls
 import RhythmGameQml
 import QtQuick.Layouts
 import QtQuick.Shapes
+import org.kde.kirigami as Kirigami
 
-Item {
+Kirigami.ScrollablePage {
     id: tableSettings
     Component {
         id: dragDelegate
@@ -31,18 +32,19 @@ Item {
             onReleased: held = false
 
 
-            Rectangle {
+            ItemDelegate {
                 id: content
                 anchors {
                     horizontalCenter: parent.horizontalCenter
                     verticalCenter: parent.verticalCenter
                 }
+                palette {
+                    inactive: palette.active
+                }
                 width: dragArea.width
                 height: Math.max(64, row.implicitHeight + 8)
 
-                property bool highlighted: dragArea.held
-
-                color: highlighted ? palette.light : palette.base
+                highlighted: dragArea.held
 
                 Drag.active: dragArea.held
                 Drag.source: dragArea
@@ -80,7 +82,7 @@ Item {
                             wrapMode: TextEdit.Wrap
                             text: dragArea.display.url
                             width: Math.min(implicitWidth, parent.width)
-                            color: content.highlighted ? palette.brightText : palette.text
+                            color: palette.text
                         }
                     }
                     Item {
@@ -182,14 +184,6 @@ Item {
     }
 
     Flickable {
-        anchors {
-            top: parent.top
-            bottom: parent.bottom
-            horizontalCenter: parent.horizontalCenter
-        }
-        width: Math.min(1200, parent.width)
-        contentWidth: Math.max(600, width)
-        contentHeight: Math.max(rootFrame.implicitHeight, parent.height)
         flickableDirection: Flickable.HorizontalFlick
         boundsBehavior: Flickable.StopAtBounds
         ScrollBar.horizontal: ScrollBar { }

@@ -1,8 +1,6 @@
 {
   mkShell,
   cmake,
-  qtwayland,
-  qtshadertools,
   zstd,
   magic-enum,
   SDL2,
@@ -10,10 +8,14 @@
   sqlitecpp,
   fmt,
   libxml2,
+  qtwayland,
+  qtshadertools,
   qtdeclarative,
   qtmultimedia,
   qtsvg,
   qtinterfaceframework,
+  kirigami,
+  kirigami-addons,
   ned14-llfio,
   lexy,
   mimalloc,
@@ -35,14 +37,16 @@
   lldb,
   gdb,
   catch2_3,
-  stdenv,
+  appstream-qt,
+  makeWrapper,
+  bashInteractive,
+  wrapQtAppsHook,
+  gammaray,
 }:
 mkShell {
   buildInputs = [
     pkg-config
     catch2_3
-    qtwayland
-    qtshadertools
     qttools
     zstd
     magic-enum
@@ -51,10 +55,15 @@ mkShell {
     sqlitecpp
     fmt
     libxml2
+    qtwayland
+    qtshadertools
     qtdeclarative
     qtmultimedia
     qtsvg
     qtinterfaceframework
+    kirigami
+    kirigami-addons
+    appstream-qt
     ned14-llfio
     lexy
     mimalloc
@@ -68,21 +77,34 @@ mkShell {
     libvorbis
     libopus
     libmpg123
+    bashInteractive
+    cmake
+    (gdb.override
+      {
+        safePaths = ["/"];
+      })
+    clang-tools
+    gammaray
+    lldb
   ];
 
   nativeBuildInputs = [
-    cmake
-    gdb
-    clang-tools
+    wrapQtAppsHook
+    makeWrapper
   ];
 
   shellHook = ''
+    setQtEnvironment=$(mktemp --suffix .setQtEnvironment.sh)
+    echo "shellHook: setQtEnvironment = $setQtEnvironment"
+    makeWrapper "/bin/sh" "$setQtEnvironment" "''${qtWrapperArgs[@]}"
+    sed "/^exec/d" -i "$setQtEnvironment"
+    source "$setQtEnvironment"
     echo "RhythmGame development environment."
     echo "Before you start coding, create a CMakeUserPresets.json"
     echo "based on the template found in DEV_ENGINE.md."
     echo "Remove all references to vcpkg (unnecessary) and clang-tidy (broken)."
     echo
-    echo "Afterwards, use the following commands to build:"
+    echo "Afterwards, use the following commands:"
     echo "  cmake --preset dev         - Configure CMake"
     echo "  cmake --build --preset dev - Build"
   '';

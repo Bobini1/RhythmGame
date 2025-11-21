@@ -42,7 +42,7 @@
         rhythmgame = pkgs.kdePackages.callPackage ./nix/packages/rhythmgame.nix {
           inherit qtinterfaceframework ned14-llfio;
           inherit (nur-foolnotion) lexy;
-          inherit stdenv;
+          inherit (stdenv) mkDerivation;
         };
         inherit qtinterfaceframework ned14-llfio;
       };
@@ -50,7 +50,6 @@
       devShells.default = pkgs.kdePackages.callPackage ./nix/shells/default.nix {
         inherit qtinterfaceframework ned14-llfio;
         inherit (nur-foolnotion) lexy;
-        inherit (pkgs.kdePackages) qtdeclarative qtsvg qtshadertools qtwayland qtmultimedia qttools;
         mkShell = pkgs.mkShell.override {inherit stdenv;};
       };
 
