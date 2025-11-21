@@ -40,17 +40,10 @@ Item {
                 width: dragArea.width
                 height: Math.max(64, row.implicitHeight + 8)
 
-                border.width: 1
-                border.color: "lightsteelblue"
+                property bool highlighted: dragArea.held
 
-                color: dragArea.held ? "lightsteelblue" : "white"
-                Behavior on color {
-                    ColorAnimation {
-                        duration: 100
-                    }
-                }
+                color: highlighted ? palette.light : palette.base
 
-                radius: 2
                 Drag.active: dragArea.held
                 Drag.source: dragArea
                 Drag.hotSpot.x: width / 2
@@ -87,6 +80,7 @@ Item {
                             wrapMode: TextEdit.Wrap
                             text: dragArea.display.url
                             width: Math.min(implicitWidth, parent.width)
+                            color: content.highlighted ? palette.brightText : palette.text
                         }
                     }
                     Item {
@@ -113,7 +107,7 @@ Item {
                                 id: errorIcon
                                 visible: dragArea.display.status === table.Error
                                 ShapePath {
-                                    strokeColor: "red"
+                                    strokeColor: palette.accent
                                     strokeWidth: 4
                                     fillColor: "transparent"
                                     startX: 0
@@ -123,7 +117,7 @@ Item {
                                     }
                                 }
                                 ShapePath {
-                                    strokeColor: "red"
+                                    strokeColor: palette.accent
                                     strokeWidth: 4
                                     fillColor: "transparent"
                                     startX: 32

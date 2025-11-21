@@ -5,7 +5,7 @@ import QtQuick.Controls.Basic
 Rectangle {
     id: settings
 
-    color: "white"
+    color: palette.window
 
     ColumnLayout {
         anchors.fill: parent
@@ -19,10 +19,10 @@ Rectangle {
                 id: backButton
                 text: "⏎"
                 font.bold: true
-                background: Rectangle {
-                    color: "FireBrick"
+                palette {
+                    button: settings.palette.accent
+                    buttonText: settings.palette.brightText
                 }
-                palette.buttonText: "white"
                 font.pixelSize: 20
                 Layout.alignment: Qt.AlignLeft | Qt.AlignTop
                 Layout.preferredWidth: tabButton.height
