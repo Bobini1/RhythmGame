@@ -1,6 +1,6 @@
 import QtQuick
 import RhythmGameQml
-import QtQuick.Controls
+import QtQuick.Controls.Basic
 
 Row {
     id: booleanOption

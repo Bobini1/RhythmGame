@@ -1,13 +1,12 @@
 pragma ValueTypeBehavior: Addressable
 import QtQuick 2.5
-import QtQuick.Controls
+import QtQuick.Controls.Basic
 import QtQuick.Layouts
 import QtQuick.Window 2.0
 import RhythmGameQml
 import "../common/helpers.js" as Helpers
-import org.kde.kirigami as Kirigami
 
-Kirigami.Page {
+Item {
     property Button checkedButton: null
 
     function pressButton(button) {

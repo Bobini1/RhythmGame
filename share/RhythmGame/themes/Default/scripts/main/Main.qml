@@ -1,23 +1,20 @@
 import QtQuick 2.15
-import QtQuick.Controls
+import QtQuick.Controls.Basic 2.15
 import QtQuick.Layouts
 import RhythmGameQml
-import org.kde.kirigami as Kirigami
 
-Kirigami.Page {
+Image {
     id: screen
     readonly property string imagesUrl: Qt.resolvedUrl(".") + "images/"
     readonly property string iniImagesUrl: "image://ini/" + rootUrl + "images/"
     property string rootUrl: QmlUtils.fileName.slice(0, QmlUtils.fileName.lastIndexOf("/") + 1)
 
-    background: Image {
-        source: imagesUrl + "RGBArtboard_2.svg"
-    }
+    source: imagesUrl + "RGBArtboard_2.svg"
 
-    Kirigami.Dialog {
+    Dialog {
         id: dlg
         modal: true
-        standardButtons: Kirigami.Dialog.Ok
+        standardButtons: Dialog.Ok
         width: Math.min(800, parent.width)
         height: Math.min(600, parent.height)
         anchors.centerIn: parent
@@ -80,29 +77,29 @@ Kirigami.Page {
             id: titleText
             anchors.top: parent.top
             anchors.topMargin: 160
-            anchors.right: parent.right
-            anchors.rightMargin: 20
+            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.horizontalCenterOffset: 280
             font.family: "Serif"
             font.pixelSize: 200
             text: "Rhythm Game"
-            renderType: Text.CurveRendering
         }
 
         Column {
             id: column
             anchors.top: parent.top
             anchors.topMargin: parent.height * 0.5
-            anchors.horizontalCenter: titleText.horizontalCenter
+            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.horizontalCenterOffset: 280
 
             width: parent.width * 0.4
 
             spacing: 5
 
             Input.onStart1Pressed: {
-                globalRoot.pageStack.pushItem(globalRoot.selectComponent);
+                sceneStack.pushItem(globalRoot.selectComponent);
             }
             Input.onStart2Pressed: {
-                globalRoot.pageStack.pushItem(globalRoot.selectComponent);
+                sceneStack.pushItem(globalRoot.selectComponent);
             }
 
             Button {
@@ -112,7 +109,7 @@ Kirigami.Page {
 
                 text: qsTr("Song Selection")
                 onClicked: {
-                    globalRoot.pageStack.pushItem(globalRoot.selectComponent);
+                    sceneStack.pushItem(globalRoot.selectComponent);
                 }
             }
 
@@ -122,7 +119,7 @@ Kirigami.Page {
                 text: qsTr("Settings")
                 font.pixelSize: 30
                 onClicked: {
-                    globalRoot.pageStack.pushItem(globalRoot.settingsComponent);
+                    sceneStack.pushItem(globalRoot.settingsComponent);
                 }
             }
 

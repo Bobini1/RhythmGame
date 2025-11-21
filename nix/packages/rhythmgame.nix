@@ -1,9 +1,11 @@
 {
   lib,
-  mkDerivation,
+  stdenv,
   fetchFromGitHub,
   wrapQtAppsHook,
   cmake,
+  qtwayland,
+  qtshadertools,
   zstd,
   magic-enum,
   SDL2,
@@ -11,15 +13,10 @@
   sqlitecpp,
   fmt,
   libxml2,
-  qtwayland,
-  qtshadertools,
   qtdeclarative,
   qtmultimedia,
   qtsvg,
   qtinterfaceframework,
-  kirigami,
-  kirigami-addons,
-  appstream-qt,
   ned14-llfio,
   lexy,
   mimalloc,
@@ -36,7 +33,7 @@
   libopus,
   libmpg123,
 }:
-mkDerivation rec {
+stdenv.mkDerivation rec {
   pname = "RhythmGame";
   version = "unstable-2025-11-17";
 
@@ -46,11 +43,12 @@ mkDerivation rec {
     cmake
     wrapQtAppsHook
     pkg-config
-    appstream-qt
   ];
 
   buildInputs = [
     qtwayland
+    qtshadertools
+    qttools
     zstd
     magic-enum
     SDL2
@@ -58,14 +56,10 @@ mkDerivation rec {
     sqlitecpp
     fmt
     libxml2
-    qtshadertools
-    qttools
     qtdeclarative
     qtmultimedia
     qtsvg
     qtinterfaceframework
-    kirigami
-    kirigami-addons
     ned14-llfio
     lexy
     mimalloc

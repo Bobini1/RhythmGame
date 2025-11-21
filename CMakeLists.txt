@@ -10,7 +10,7 @@ project(
 )
 
 include(cmake/project-is-top-level.cmake)
-
+include(cmake/variables.cmake)
 
 include(CheckIPOSupported)
 check_ipo_supported(RESULT supported OUTPUT error)
@@ -21,30 +21,6 @@ if (supported)
 endif ()
 
 option(PORTABLE_BUILD "Deploy the entire game to a portable folder, without using system dirs" ON)
-
-# <------------ Qt (gui) --------------->
-
-find_package(Qt6 COMPONENTS ShaderTools Quick Concurrent Multimedia Svg InterfaceFramework LinguistTools REQUIRED)
-qt_standard_project_setup(I18N_TRANSLATED_LANGUAGES pl jp)
-find_package(ECM REQUIRED NO_MODULE)
-set(CMAKE_MODULE_PATH ${ECM_MODULE_PATH})
-
-include(KDEInstallDirs)
-include(ECMFindQmlModule)
-include(KDECMakeSettings)
-include(cmake/variables.cmake)
-
-# <--------- Kirigami (more gui) ------------------->
-
-
-find_package(KF6 REQUIRED COMPONENTS
-    Kirigami
-    I18n
-    CoreAddons
-    QQC2DesktopStyle
-    IconThemes
-)
-ecm_find_qmlmodule(org.kde.kirigami REQUIRED)
 
 # <---- mimalloc (faster memory allocation) ---->
 
@@ -79,6 +55,11 @@ find_package(Boost REQUIRED COMPONENTS headers)
 find_path(MINIAUDIO_INCLUDE_DIRS "miniaudio.h")
 find_path(MINIAUDIO_INCLUDE_DIRS "miniaudio.h" PATH_SUFFIXES miniaudio)
 message(STATUS "miniaudio include dirs: ${MINIAUDIO_INCLUDE_DIRS}")
+
+# <------------ Qt (gui) --------------->
+
+find_package(Qt6 COMPONENTS ShaderTools Quick Concurrent Multimedia Svg InterfaceFramework LinguistTools REQUIRED)
+qt_standard_project_setup(I18N_TRANSLATED_LANGUAGES pl jp)
 
 # <------------ zstd (compression) --------------->
 
@@ -288,7 +269,7 @@ else ()
     target_link_libraries(RhythmGame_lib PUBLIC ${Stb_INCLUDE_DIR})
 endif ()
 target_link_libraries(RhythmGame_lib PUBLIC $<IF:$<TARGET_EXISTS:mimalloc-static>,mimalloc-static,mimalloc>)
-target_link_libraries(RhythmGame_lib PUBLIC KF6::I18n KF6::CoreAddons KF6::IconThemes SDL2::SDL2 Qt6::Quick Qt6::OpenGL Qt6::Concurrent Qt6::Multimedia Qt6::InterfaceFramework Threads::Threads Boost::headers SQLiteCpp spdlog::spdlog foonathan::lexy magic_enum::magic_enum $<IF:$<TARGET_EXISTS:zstd::libzstd_static>,zstd::libzstd_static,zstd::libzstd> LibXml2::LibXml2)
+target_link_libraries(RhythmGame_lib PUBLIC SDL2::SDL2 Qt6::Quick Qt6::OpenGL Qt6::Concurrent Qt6::Multimedia Qt6::InterfaceFramework Threads::Threads Boost::headers SQLiteCpp spdlog::spdlog foonathan::lexy magic_enum::magic_enum $<IF:$<TARGET_EXISTS:zstd::libzstd_static>,zstd::libzstd_static,zstd::libzstd> LibXml2::LibXml2)
 target_include_directories(RhythmGame_lib PUBLIC ${MINIAUDIO_INCLUDE_DIRS})
 
 if (WIN32)
@@ -328,6 +309,7 @@ target_include_directories(
 
 # ---- Declare QML module ----
 add_subdirectory(RhythmGameQml)
+qt_import_qml_plugins(RhythmGame_qmlplugin)
 
 # ---- Declare executable ----
 
@@ -371,7 +353,7 @@ qt_import_qml_plugins(RhythmGame_exe)
 
 target_compile_features(RhythmGame_exe PRIVATE cxx_std_20)
 
-target_link_libraries(RhythmGame_exe PRIVATE RhythmGame_lib RhythmGame_qml)
+target_link_libraries(RhythmGame_exe PRIVATE RhythmGame_lib RhythmGame_qmlplugin)
 
 if (NOT APPLE)
     if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU" OR "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")

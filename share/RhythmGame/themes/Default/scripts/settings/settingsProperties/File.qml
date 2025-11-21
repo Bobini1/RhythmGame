@@ -1,6 +1,6 @@
 import Qt.labs.folderlistmodel
 import QtQuick
-import QtQuick.Controls
+import QtQuick.Controls.Basic
 import RhythmGameQml
 import QtQuick.Layouts
 import "../../common/helpers.js" as Helpers

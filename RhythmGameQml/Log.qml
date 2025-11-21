@@ -1,7 +1,7 @@
 import QtQuick
 import QtQml
 import RhythmGameQml
-import QtQuick.Controls
+import QtQuick.Controls.Basic 2.15
 
 Rectangle {
     id: debugLog

@@ -3,7 +3,7 @@ import QtQuick.Window
 import QtQml
 import QtQuick.Layouts
 import RhythmGameQml
-import QtQuick.Controls
+import QtQuick.Controls.Basic
 import QtMultimedia
 import "../common/TaoQuickCustom"
 import "../common/helpers.js" as Helpers
@@ -312,7 +312,7 @@ Rectangle {
 
         onActivated: {
             if (nothingWasHit) {
-                globalRoot.pageStack.pop();
+                sceneStack.pop();
             } else {
                 used = true;
                 let chartData = root.chartData;

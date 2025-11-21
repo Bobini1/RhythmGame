@@ -1,6 +1,6 @@
 import RhythmGameQml
 import QtQuick
-import QtQuick.Controls
+import QtQuick.Controls.Basic
 import "../../common/helpers.js" as Helpers
 
 BorderImage {

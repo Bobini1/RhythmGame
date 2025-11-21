@@ -1,5 +1,5 @@
 import QtQuick.Dialogs
-import QtQuick.Controls
+import QtQuick.Controls.Basic
 import RhythmGameQml
 import QtQuick
 import QtQuick.Layouts
@@ -48,20 +48,19 @@ RowLayout {
                 }
             }
         }
-        SpinBox {
+        TextField {
             id: textField
 
-            value: range.destination[range.id_] * 10 ** range.decimals
+            horizontalAlignment: contentWidth >= width ? TextField.AlignLeft : TextField.AlignHCenter
+            autoScroll: false
+            text: Helpers.getFormattedNumber(Qt.locale(Rg.languages.selectedLanguage), range.destination[range.id_], range.decimals)
             Layout.fillHeight: true
             Layout.fillWidth: true
             Layout.maximumWidth: 200
-            Layout.minimumWidth: 120
-            Layout.preferredWidth: 120
+            Layout.minimumWidth: 80
+            Layout.preferredWidth: 80
             Layout.alignment: Qt.AlignRight
-            from: range.min
-            to: range.max
-            stepSize: 10 ** range.decimals
-            editable: true
+            color: acceptableInput ? palette.text : palette.accent
             validator: DoubleValidator {
                 id: doubleValidator
                 bottom: range.min
@@ -69,14 +68,21 @@ RowLayout {
                 locale: Rg.languages.selectedLanguage
             }
             inputMethodHints: Qt.ImhFormattedNumbersOnly
-            onValueModified: {
-                range.destination[range.id_] = value / 10 ** range.decimals;
+            onTextEdited: {
+                if (acceptableInput) {
+                    range.destination[range.id_] = Number.fromLocaleString(Qt.locale(Rg.languages.selectedLanguage), text)
+                }
             }
-            valueFromText: function(text, locale) {
-                return Number.fromLocaleString(locale, text);
+
+            onEditingFinished: {
+                ensureVisible(0);
             }
-            textFromValue: function(value, locale) {
-                return Helpers.getFormattedNumber(locale, value, range.decimals);
+            onActiveFocusChanged: {
+                autoScroll = true;
+            }
+
+            Component.onCompleted: {
+                ensureVisible(0);
             }
             HoverHandler {
                 id: hoverHandler

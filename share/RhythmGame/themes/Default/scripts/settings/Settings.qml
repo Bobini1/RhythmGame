@@ -1,60 +1,88 @@
 import QtQuick
 import QtQuick.Layouts
-import QtQuick.Controls
-import org.kde.kirigami as Kirigami
+import QtQuick.Controls.Basic
 
-Kirigami.ApplicationItem {
+Rectangle {
     id: settings
 
-    footer: Kirigami.NavigationTabBar {
-        actions: [
-            Kirigami.Action {
-                icon.name: "arrow-left"
-                text: qsTr("Back")
-                onTriggered: {
-                    globalRoot.pageStack.pop();
+    color: palette.window
+
+    ColumnLayout {
+        anchors.fill: parent
+
+        RowLayout {
+            Layout.fillWidth: true
+            Layout.preferredHeight: backButton.height
+            spacing: 1
+
+            Button {
+                id: backButton
+                text: "⏎"
+                font.bold: true
+                palette {
+                    button: settings.palette.accent
+                    buttonText: settings.palette.brightText
                 }
-            },
-            Kirigami.Action {
-                icon.name: "account-player"
-                text: qsTr("Player settings")
-                onTriggered:  settings.pageStack.push(Qt.resolvedUrl("PlayerSettings.qml"))
-                checked: true
-            },
-            Kirigami.Action {
-                icon.name: "folder-music"
-                text: qsTr("Song directories")
-                onTriggered: settings.pageStack.push(Qt.resolvedUrl("SongFolderSettings.qml"))
-            },
-            Kirigami.Action {
-                icon.name: "table"
-                text: qsTr("Tables")
-                onTriggered: settings.pageStack.push(Qt.resolvedUrl("TableSettings.qml"))
-            },
-            Kirigami.Action {
-                icon.name: "palette"
-                text: qsTr("Themes")
-                onTriggered: settings.pageStack.push(Qt.resolvedUrl("ThemeSettings.qml"))
-            },
-            Kirigami.Action {
-                icon.name: "settings"
-                text: qsTr("General Settings")
-                onTriggered: settings.pageStack.push(Qt.resolvedUrl("GeneralSettings.qml"))
-            },
-            Kirigami.Action {
-                icon.name: "keyboard"
-                text: qsTr("Key config")
-                onTriggered: settings.pageStack.push(Qt.resolvedUrl("KeySettings.qml"))
+                font.pixelSize: 20
+                Layout.alignment: Qt.AlignLeft | Qt.AlignTop
+                Layout.preferredWidth: tabButton.height
+                Layout.preferredHeight: tabButton.height
+                onClicked: {
+                    sceneStack.pop();
+                }
             }
-        ]
+            TabBar {
+                id: tabView
+                Layout.fillWidth: true
+
+                TabButton {
+                    id: tabButton
+                    text: qsTr("Player settings")
+                }
+                TabButton {
+                    text: qsTr("Song directories")
+                }
+                TabButton {
+                    text: qsTr("Tables")
+                }
+                TabButton {
+                    text: qsTr("Themes")
+                }
+                TabButton {
+                    text: qsTr("General Settings")
+                }
+                TabButton {
+                    text: qsTr("Key config")
+                }
+            }
+        }
+        StackLayout {
+            id: stackView
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+
+            currentIndex: tabView.currentIndex
+
+            PlayerSettings {
+            }
+            SongFolderSettings {
+            }
+            TableSettings {
+            }
+            ThemeSettings {
+            }
+            GeneralSettings {
+            }
+            KeySettings {
+            }
+        }
     }
-    
     Shortcut {
         enabled: settings.enabled
         sequence: "Esc"
 
         onActivated: {
-            globalRoot.pageStack.pop();
+            sceneStack.pop();
         }
     }
 }

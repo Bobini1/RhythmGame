@@ -1,5 +1,5 @@
 import QtQuick
-import QtQuick.Controls
+import QtQuick.Controls.Basic
 import QtQuick.Layouts
 import RhythmGameQml
 import QtQml.Models
@@ -15,8 +15,8 @@ Popup {
     property alias model: column.model
 
     function setPosition(globalPos) {
-        x = Math.min(globalPos.x, globalRoot.width - width * scale);
-        y = Math.min(globalPos.y, globalRoot.height - height * scale);
+        x = Math.min(globalPos.x, contentContainer.width - width * scale);
+        y = Math.min(globalPos.y, contentContainer.height - height * scale);
     }
 
     background: Rectangle {

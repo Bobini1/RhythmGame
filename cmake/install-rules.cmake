@@ -40,11 +40,9 @@ install(FILES share/RhythmGame/avatars/mascot.png DESTINATION ${CMAKE_INSTALL_DA
 install(DIRECTORY share/RhythmGame/themes/Default DESTINATION ${CMAKE_INSTALL_DATADIR}/RhythmGame/themes
         COMPONENT RhythmGame_Runtime)
 
-install(TARGETS RhythmGame_qml ${KDE_INSTALL_TARGETS_DEFAULT_ARGS})
-
 if (LINUX)
     install(
-            PROGRAMS staticAssets/RhythmGame.desktop
+            FILES staticAssets/RhythmGame.desktop
             DESTINATION "${CMAKE_INSTALL_DATADIR}/applications"
             COMPONENT RhythmGame_Runtime
     )

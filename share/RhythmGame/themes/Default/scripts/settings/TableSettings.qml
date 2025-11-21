@@ -1,12 +1,11 @@
 pragma ValueTypeBehavior: Addressable
 import QtQuick
-import QtQuick.Controls
+import QtQuick.Controls.Basic
 import RhythmGameQml
 import QtQuick.Layouts
 import QtQuick.Shapes
-import org.kde.kirigami as Kirigami
 
-Kirigami.ScrollablePage {
+Item {
     id: tableSettings
     Component {
         id: dragDelegate
@@ -32,19 +31,18 @@ Kirigami.ScrollablePage {
             onReleased: held = false
 
 
-            ItemDelegate {
+            Rectangle {
                 id: content
                 anchors {
                     horizontalCenter: parent.horizontalCenter
                     verticalCenter: parent.verticalCenter
                 }
-                palette {
-                    inactive: palette.active
-                }
                 width: dragArea.width
                 height: Math.max(64, row.implicitHeight + 8)
 
-                highlighted: dragArea.held
+                property bool highlighted: dragArea.held
+
+                color: highlighted ? palette.light : palette.base
 
                 Drag.active: dragArea.held
                 Drag.source: dragArea
@@ -82,7 +80,7 @@ Kirigami.ScrollablePage {
                             wrapMode: TextEdit.Wrap
                             text: dragArea.display.url
                             width: Math.min(implicitWidth, parent.width)
-                            color: palette.text
+                            color: content.highlighted ? palette.brightText : palette.text
                         }
                     }
                     Item {
@@ -184,6 +182,14 @@ Kirigami.ScrollablePage {
     }
 
     Flickable {
+        anchors {
+            top: parent.top
+            bottom: parent.bottom
+            horizontalCenter: parent.horizontalCenter
+        }
+        width: Math.min(1200, parent.width)
+        contentWidth: Math.max(600, width)
+        contentHeight: Math.max(rootFrame.implicitHeight, parent.height)
         flickableDirection: Flickable.HorizontalFlick
         boundsBehavior: Flickable.StopAtBounds
         ScrollBar.horizontal: ScrollBar { }

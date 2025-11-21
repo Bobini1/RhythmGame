@@ -1,7 +1,7 @@
 pragma ValueTypeBehavior: Addressable
 import QtQuick
 import RhythmGameQml
-import QtQuick.Controls
+import QtQuick.Controls.Basic
 import QtQml
 
 Row {

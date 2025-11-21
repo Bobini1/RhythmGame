@@ -1,5 +1,5 @@
 import QtQuick.Dialogs
-import QtQuick.Controls
+import QtQuick.Controls.Basic
 import RhythmGameQml
 import QtQuick
 import QtQuick.Layouts

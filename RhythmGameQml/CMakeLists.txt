@@ -1,15 +1,9 @@
-qt_policy(SET QTP0001 NEW)
-include(ECMQmlModule)
-
-add_library(RhythmGame_qml)
-ecm_add_qml_module(RhythmGame_qml URI RhythmGameQml VERSION 1.0
-        GENERATE_PLUGIN_SOURCE)
-target_sources(RhythmGame_qml PUBLIC Rg.h Rg.cpp)
-ecm_target_qml_sources(RhythmGame_qml SOURCES ContentFrame.qml Log.qml ColorChanger.qml)
+qt_add_library(RhythmGame_qml STATIC)
 target_link_libraries(RhythmGame_qml PUBLIC RhythmGame_lib)
 target_include_directories(RhythmGame_qml PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-ecm_finalize_qml_module(RhythmGame_qml)
-
+qt_policy(SET QTP0001 NEW)
+qt_add_qml_module(RhythmGame_qml URI RhythmGameQml VERSION 1.0 SOURCES Rg.h Rg.cpp
+        QML_FILES ContentFrame.qml Log.qml ColorChanger.qml)
 qt6_add_shaders(RhythmGame_qml "shaders"
         PREFIX
         "/"

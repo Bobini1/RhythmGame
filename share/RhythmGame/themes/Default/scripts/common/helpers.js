@@ -128,5 +128,10 @@ function getFormattedNumber(locale, num, decimals = 3) {
     if (isNaN(num)) {
         return "";
     }
-    return locale.toString(num, "g");
+    let longNum = locale.toString(num, "f", -128);
+    let shortNum = locale.toString(num, "f", decimals);
+    if (longNum.length > shortNum.length) {
+        return longNum;
+    }
+    return shortNum;
 }
