@@ -118,7 +118,8 @@ RowLayout {
                         ScreenSettings {
                             id: screenSettings
                             screen: modelData
-                            width: scrollView.contentWidth
+                            anchors.left: parent.left
+                            anchors.right: parent.right
                         }
                     }
                 }
