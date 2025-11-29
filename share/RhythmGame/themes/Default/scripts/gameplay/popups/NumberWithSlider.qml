@@ -23,7 +23,6 @@ Row {
         color: "white"
         width: 160
         fontSizeMode: Text.Fit
-        font.family: "SansSerif"
     }
     Slider {
         id: slider
