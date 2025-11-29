@@ -10,7 +10,7 @@ Popup {
     closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
     focus: true
     height: Math.min(500, column.contentHeight + padding * 2)
-    width: contentItem.width
+    width: 520 + padding * 2
     padding: 2
     property alias model: column.model
 
