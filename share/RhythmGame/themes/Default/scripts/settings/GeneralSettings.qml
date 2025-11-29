@@ -1,5 +1,5 @@
 import QtQuick
-import QtQuick.Controls.Basic
+import QtQuick.Controls
 import "settingsProperties"
 import QtQml.Models
 import QtQuick.Layouts
@@ -13,10 +13,10 @@ Item {
             bottom: parent.bottom
             horizontalCenter: parent.horizontalCenter
         }
-        width: Math.min(600, parent.width)
+        width: Math.min(800, parent.width)
 
         Frame {
-            width: 600
+            width: 800
             Column {
                 id: list
                 anchors.left: parent.left

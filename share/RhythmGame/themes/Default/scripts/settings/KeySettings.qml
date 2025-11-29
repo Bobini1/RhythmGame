@@ -1,6 +1,6 @@
 pragma ValueTypeBehavior: Addressable
 import QtQuick 2.5
-import QtQuick.Controls.Basic
+import QtQuick.Controls
 import QtQuick.Layouts
 import QtQuick.Window 2.0
 import RhythmGameQml
@@ -173,14 +173,14 @@ Item {
 
                         Label {
                             text: qsTr(buttonGroup.names[index])
-                            color: "black"
+                            color: palette.text
                             horizontalAlignment: Text.AlignRight
                         }
 
                         Label {
                             Layout.fillWidth: true
                             horizontalAlignment: Text.AlignRight
-                            color: "black"
+                            color: palette.text
                             text: {
                                 for (let i = 0; i < keyLayout.keyConfig.length; i++) {
                                     if (keyLayout.keyConfig[i].button === buttonRow.button) {
@@ -216,7 +216,16 @@ Item {
                         Label {
                             text: Rg.inputTranslator[modelData] ? qsTr("DOWN") : qsTr("UP")
                             horizontalAlignment: Text.AlignRight
-                            color: Rg.inputTranslator[modelData] ? "green" : "red"
+                            color: palette.text
+                            Layout.preferredWidth: Math.max(up.boundingRect.width, down.boundingRect.width)
+                        }
+                        TextMetrics {
+                            id: up
+                            text: qsTr("UP")
+                        }
+                        TextMetrics {
+                            id: down
+                            text: qsTr("DOWN")
                         }
 
                         Button {

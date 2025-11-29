@@ -1,5 +1,5 @@
 import QtQuick
-import QtQuick.Controls.Basic
+import QtQuick.Controls
 import RhythmGameQml
 import QtQuick.Layouts
 
@@ -118,7 +118,8 @@ RowLayout {
                         ScreenSettings {
                             id: screenSettings
                             screen: modelData
-                            width: scrollView.contentWidth
+                            anchors.left: parent.left
+                            anchors.right: parent.right
                         }
                     }
                 }

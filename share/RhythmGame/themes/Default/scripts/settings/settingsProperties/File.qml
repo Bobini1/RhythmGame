@@ -1,6 +1,6 @@
 import Qt.labs.folderlistmodel
 import QtQuick
-import QtQuick.Controls.Basic
+import QtQuick.Controls
 import RhythmGameQml
 import QtQuick.Layouts
 import "../../common/helpers.js" as Helpers
@@ -27,13 +27,6 @@ RowLayout {
         Layout.fillWidth: true
         Layout.preferredWidth: 400
         Layout.minimumWidth: 200
-
-        palette {
-            window: "white"
-            Component.onCompleted: {
-                light = palette.button
-            }
-        }
 
         Binding {
             delayed: true

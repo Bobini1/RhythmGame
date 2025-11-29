@@ -1,5 +1,5 @@
 import QtQuick 2.15
-import QtQuick.Controls.Basic 2.15
+import QtQuick.Controls
 import QtQuick.Layouts
 import RhythmGameQml
 
@@ -38,7 +38,7 @@ Image {
             clip: true
 
             Column {
-                Text {
+                Label {
                     id: licenseMd
                     text: dlg.licenseText
                     textFormat: Text.MarkdownText
@@ -46,9 +46,10 @@ Image {
                     padding: 12
                     width: scrollView.width
                     onLinkActivated: Qt.openUrlExternally(link)
+                    color: palette.text
                 }
 
-                Text {
+                Label {
                     id: md
                     text: dlg.attrText
                     textFormat: Text.MarkdownText
@@ -56,6 +57,7 @@ Image {
                     padding: 12
                     width: scrollView.width
                     onLinkActivated: Qt.openUrlExternally(link)
+                    color: palette.text
                 }
             }
         }

@@ -1,5 +1,5 @@
 import QtQuick.Dialogs
-import QtQuick.Controls.Basic
+import QtQuick.Controls
 import QtQuick.Layouts
 import RhythmGameQml
 import QtQuick
@@ -23,7 +23,7 @@ RowLayout {
 
         height: 30
         border {
-            color: "black"
+            color: palette.shadow
             width: 1
         }
         Layout.fillWidth: true

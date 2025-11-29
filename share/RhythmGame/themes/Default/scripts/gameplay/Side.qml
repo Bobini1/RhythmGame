@@ -1,7 +1,7 @@
 import QtQuick
 import QtQml
 import RhythmGameQml
-import QtQuick.Controls.Basic
+import QtQuick.Controls
 import "../common/TaoQuickCustom"
 
 Item {

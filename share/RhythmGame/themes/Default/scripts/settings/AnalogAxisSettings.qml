@@ -1,5 +1,5 @@
 import QtQuick
-import QtQuick.Controls.Basic
+import QtQuick.Controls
 import QtQuick.Layouts
 import RhythmGameQml
 import "../common/helpers.js" as Helpers
@@ -22,7 +22,7 @@ GroupBox {
         horizontalAlignment: contentWidth >= width ? TextField.AlignLeft : TextField.AlignHCenter
         autoScroll: false
         text: Qt.locale().toString(Rg.inputTranslator[`analogAxisConfig${player}`][textField.variable], "f", 3)
-        color: acceptableInput ? "black" : "red"
+        color: acceptableInput ? palette.text : "red"
         validator: DoubleValidator {
             id: doubleValidator
             bottom: textField.min; top: textField.max

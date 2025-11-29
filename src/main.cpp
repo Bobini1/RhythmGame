@@ -42,7 +42,6 @@
 #include "support/QtSink.h"
 #include "resource_managers/AvatarImageProvider.h"
 #include "support/QStringToPath.h"
-#include <sqlite3.h>
 
 Q_IMPORT_QML_PLUGIN(RhythmGameQmlPlugin)
 

@@ -7,21 +7,22 @@ Row {
     height: Math.max(selection.height, propertyLabel.height)
     spacing: 10
     property real itemHeight: 140
-    property real itemWidth: 120
+    property real itemWidth: 100
     required property string propertyId
     required property var src
     property string label: Helpers.capitalizeFirstLetter(propertyId)
-
+    
     Text {
         id: propertyLabel
 
         anchors.verticalCenter: parent.verticalCenter
         color: "white"
-        width: 110
+        width: 160
         font.bold: true
         text: imageSelection.label
         verticalAlignment: Text.AlignVCenter
         horizontalAlignment: Text.AlignHCenter
+        fontSizeMode: Text.Fit
     }
     GridView {
         id: selection

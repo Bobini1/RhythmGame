@@ -2,7 +2,7 @@ import RhythmGameQml
 import QtQuick
 import QtQuick.Layouts
 import QtQml
-import QtQuick.Controls.Basic
+import QtQuick.Controls
 import "../common/helpers.js" as Helpers
 
 Loader {
