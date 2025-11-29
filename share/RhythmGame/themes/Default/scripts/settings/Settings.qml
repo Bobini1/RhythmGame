@@ -5,7 +5,7 @@ import QtQuick.Controls
 Rectangle {
     id: settings
 
-    color: palette.window
+    color: palette.base
 
     ColumnLayout {
         anchors.fill: parent
