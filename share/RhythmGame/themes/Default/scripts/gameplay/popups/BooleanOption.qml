@@ -17,13 +17,14 @@ Row {
         horizontalAlignment: Text.AlignHCenter
         text: parent.description
         verticalAlignment: Text.AlignVCenter
-        width: 110
+        width: 160
+        fontSizeMode: Text.Fit
     }
     CheckBox {
         id: checkBox
 
         checked: booleanOption.src[booleanOption.prop]
-        width: 370
+        width: 320
 
         onCheckedChanged: {
             booleanOption.src[booleanOption.prop] = checked;

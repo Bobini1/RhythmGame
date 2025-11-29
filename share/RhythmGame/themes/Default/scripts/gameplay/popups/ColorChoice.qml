@@ -19,7 +19,8 @@ Row {
         horizontalAlignment: Text.AlignHCenter
         text: parent.description
         verticalAlignment: Text.AlignVCenter
-        width: 110
+        width: 160
+        fontSizeMode: Text.Fit
     }
 
     Rectangle {
@@ -31,7 +32,7 @@ Row {
             width: 2
         }
 
-        width: 390
+        width: 340
 
         color: src[prop]
 

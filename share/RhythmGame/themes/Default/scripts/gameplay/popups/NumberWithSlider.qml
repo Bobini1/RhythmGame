@@ -21,34 +21,46 @@ Row {
         horizontalAlignment: Text.AlignHCenter
         verticalAlignment: Text.AlignVCenter
         color: "white"
-        width: 110
+        width: 160
+        fontSizeMode: Text.Fit
+        font.family: "SansSerif"
     }
     Slider {
         id: slider
 
         value: src[numberWithSlider.prop]
-        width: 300
+        width: 180
 
         onMoved: {
             src[numberWithSlider.prop] = value;
         }
     }
-    TextField {
+    SpinBox {
         id: txt
 
-        text: Qt.locale().toString(src[numberWithSlider.prop], "f", numberWithSlider.decimals)
+        value: src[numberWithSlider.prop] * 10 ** numberWithSlider.decimals
         font.pixelSize: 18
-        width: 70
+        width: 140
         height: slider.height - 8
         anchors.verticalCenter: slider.verticalCenter
-        horizontalAlignment: Text.AlignHCenter
 
         validator: DoubleValidator {
         }
 
-        onAccepted: {
-            src[numberWithSlider.prop] = Number.fromLocaleString(text);
-            text = Qt.binding(() => Qt.locale().toString(src[numberWithSlider.prop]));
+        IntValidator {
+            id: intRange
+        }
+        from: intRange.bottom
+        to: intRange.top
+        stepSize: 10 ** -numberWithSlider.decimals
+        onValueModified: {
+            src[numberWithSlider.prop] = value * 10 ** -numberWithSlider.decimals;
+        }
+        valueFromText: function(text, locale) {
+            return Number.fromLocaleString(locale, text) * 10 ** numberWithSlider.decimals;
+        }
+        textFromValue: function(value, locale) {
+            return Qt.locale().toString(value, "f", numberWithSlider.decimals)
         }
     }
 }
