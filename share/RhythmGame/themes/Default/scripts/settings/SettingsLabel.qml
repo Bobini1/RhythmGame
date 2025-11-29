@@ -2,12 +2,10 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 
-TextEdit {
+Label {
     property string description
     font.pixelSize: 16
     font.bold: true
-    wrapMode: TextEdit.Wrap
-    readOnly: true
     HoverHandler {
         id: hoverHandler
     }
@@ -17,5 +15,4 @@ TextEdit {
     Layout.minimumWidth: 200
     Layout.maximumWidth: 1000
     Layout.preferredWidth: 300
-    color: palette.text
 }
