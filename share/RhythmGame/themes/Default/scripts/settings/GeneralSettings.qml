@@ -1,5 +1,5 @@
 import QtQuick
-import QtQuick.Controls.Basic
+import QtQuick.Controls
 import "settingsProperties"
 import QtQml.Models
 import QtQuick.Layouts

@@ -1,6 +1,6 @@
 pragma ValueTypeBehavior: Addressable
 import QtQuick
-import QtQuick.Controls.Basic
+import QtQuick.Controls
 import RhythmGameQml
 import QtQuick.Layouts
 import QtQuick.Shapes

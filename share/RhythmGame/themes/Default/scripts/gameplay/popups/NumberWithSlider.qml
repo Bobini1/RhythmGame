@@ -1,5 +1,5 @@
 import QtQuick
-import QtQuick.Controls.Basic
+import QtQuick.Controls
 import RhythmGameQml
 
 Row {
@@ -10,8 +10,7 @@ Row {
     property alias from: slider.from
     required property var src
     property real decimals: to <= 1 ? 1 : 0
-
-    height: slider.height
+    height: 40
     spacing: 10
 
     Text {
@@ -40,7 +39,7 @@ Row {
         value: src[numberWithSlider.prop] * 10 ** numberWithSlider.decimals
         font.pixelSize: 18
         width: 140
-        height: slider.height - 8
+        height: parent.height
         anchors.verticalCenter: slider.verticalCenter
 
         validator: DoubleValidator {

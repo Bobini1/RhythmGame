@@ -11,7 +11,7 @@ Row {
     required property string propertyId
     required property var src
     property string label: Helpers.capitalizeFirstLetter(propertyId)
-
+    
     Text {
         id: propertyLabel
 

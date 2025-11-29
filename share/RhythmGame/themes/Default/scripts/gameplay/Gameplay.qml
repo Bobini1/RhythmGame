@@ -3,7 +3,7 @@ import QtQuick.Window
 import QtQml
 import QtQuick.Layouts
 import RhythmGameQml
-import QtQuick.Controls.Basic
+import QtQuick.Controls
 import QtMultimedia
 import "../common/TaoQuickCustom"
 import "../common/helpers.js" as Helpers

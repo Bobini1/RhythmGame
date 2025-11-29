@@ -3,13 +3,11 @@ import RhythmGameQml
 import QtQuick.Dialogs
 
 Row {
-    height: rect.height
-
-    width: text.width + 390
-
     required property string prop
     property string description: prop
     required property var src
+    height: 40
+    spacing: 10
 
     Text {
         id: text
@@ -32,7 +30,7 @@ Row {
             width: 2
         }
 
-        width: 340
+        width: 330
 
         color: src[prop]
 

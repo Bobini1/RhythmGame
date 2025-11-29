@@ -1,5 +1,5 @@
 import QtQuick
-import QtQuick.Controls.Basic
+import QtQuick.Controls
 import QtQuick.Layouts
 import RhythmGameQml
 import QtQml.Models
@@ -21,7 +21,7 @@ Popup {
 
     background: Rectangle {
         border.color: "white"
-        border.width: parent.padding
+        border.width: 2
         color: "black"
         opacity: 0.9
     }
@@ -31,7 +31,7 @@ Popup {
     contentItem: ScrollView {
         id: scrollView
         clip: true
-        leftPadding: 6
+        padding: 6
 
         ListView {
             id: column
