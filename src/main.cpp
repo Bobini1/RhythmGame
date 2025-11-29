@@ -121,7 +121,7 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
 #ifdef DEBUG
     spdlog::set_level(spdlog::level::debug);
 #else
-    spdlog::set_level(spdlog::level::debug);
+    spdlog::set_level(spdlog::level::info);
 #endif
     set_default_logger(logger);
 
@@ -478,8 +478,6 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
         if (engine.rootObjects().isEmpty()) {
             throw std::runtime_error{ "Failed to load main qml" };
         }
-        auto* window = (QQuickWindow*)engine.rootObjects().first();
-        window->setTextRenderType(QQuickWindow::CurveTextRendering);
         app.setInputTranslator(&inputTranslator);
 
         auto stmt = db.createStatement(
