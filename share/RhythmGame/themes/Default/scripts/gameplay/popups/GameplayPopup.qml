@@ -10,7 +10,7 @@ Popup {
     closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
     focus: true
     height: Math.min(500, column.contentHeight + padding * 2)
-    width: 520
+    width: contentItem.width
     padding: 2
     property alias model: column.model
 
@@ -36,7 +36,8 @@ Popup {
         ListView {
             id: column
 
-            width: popup.width
+            anchors.left: parent.left
+            anchors.right: parent.right
         }
     }
 }
