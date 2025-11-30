@@ -21,3 +21,4 @@ share/RhythmGame/profiles/
 share/RhythmGame/tables/
 share/RhythmGame/log.txt
 *.qm
+.envrc

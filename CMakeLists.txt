@@ -65,10 +65,6 @@ qt_standard_project_setup(I18N_TRANSLATED_LANGUAGES pl jp)
 
 find_package(zstd REQUIRED)
 
-# <------------ SndFile (audio file reading) --------------->
-
-find_package(SndFile REQUIRED)
-
 # <------------ SDL2 (gamepad input handling) --------------->
 
 find_package(SDL2 REQUIRED)
@@ -76,8 +72,6 @@ find_package(SDL2 REQUIRED)
 # <------------ magic_enum (enum reflection) --------------->
 
 find_package(magic_enum REQUIRED)
-
-find_package(Stb REQUIRED)
 
 # ---- Load library ----
 
@@ -253,9 +247,30 @@ target_compile_definitions(RhythmGame_lib PUBLIC
 
 find_package(Threads REQUIRED)
 
+
+# <------------ SndFile (audio file reading) --------------->
+
+find_package(SndFile)
+if (NOT SndFile_FOUND)
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(SndFile REQUIRED IMPORTED_TARGET sndfile)
+    target_link_libraries(RhythmGame_lib PUBLIC PkgConfig::SndFile)
+else ()
+    target_link_libraries(RhythmGame_lib PUBLIC SndFile::sndfile)
+endif ()
+
+find_package(Stb)
+if (NOT Stb_FOUND)
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(stb REQUIRED IMPORTED_TARGET stb)
+    message(STATUS "stb include dirs: ${stb_INCLUDE_DIRS}")
+    target_link_libraries(RhythmGame_lib PUBLIC PkgConfig::stb)
+else ()
+    target_link_libraries(RhythmGame_lib PUBLIC ${Stb_INCLUDE_DIR})
+endif ()
 target_link_libraries(RhythmGame_lib PUBLIC $<IF:$<TARGET_EXISTS:mimalloc-static>,mimalloc-static,mimalloc>)
-target_link_libraries(RhythmGame_lib PUBLIC SDL2::SDL2 Qt6::Quick Qt6::OpenGL Qt6::Concurrent Qt6::Multimedia Qt6::InterfaceFramework Threads::Threads Boost::headers SQLiteCpp spdlog::spdlog foonathan::lexy magic_enum::magic_enum $<IF:$<TARGET_EXISTS:zstd::libzstd_static>,zstd::libzstd_static,zstd::libzstd> SndFile::sndfile LibXml2::LibXml2)
-target_include_directories(RhythmGame_lib PUBLIC ${MINIAUDIO_INCLUDE_DIRS} ${Stb_INCLUDE_DIR})
+target_link_libraries(RhythmGame_lib PUBLIC SDL2::SDL2 Qt6::Quick Qt6::OpenGL Qt6::Concurrent Qt6::Multimedia Qt6::InterfaceFramework Threads::Threads Boost::headers SQLiteCpp spdlog::spdlog foonathan::lexy magic_enum::magic_enum $<IF:$<TARGET_EXISTS:zstd::libzstd_static>,zstd::libzstd_static,zstd::libzstd> LibXml2::LibXml2)
+target_include_directories(RhythmGame_lib PUBLIC ${MINIAUDIO_INCLUDE_DIRS})
 
 if (WIN32)
     # <------------ wil (Windows API helpers) --------------->
@@ -266,7 +281,13 @@ else ()
     # <------------ llfio (directory scanning) --------------->
 
     find_package(llfio CONFIG REQUIRED)
-    target_link_libraries(RhythmGame_lib PUBLIC llfio::sl)
+    target_link_libraries(RhythmGame_lib PUBLIC llfio::hl)
+endif ()
+
+if (LINUX)
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(xkbcommon REQUIRED IMPORTED_TARGET xkbcommon)
+    target_link_libraries(RhythmGame_lib PUBLIC PkgConfig::xkbcommon)
 endif ()
 
 if (LINUX)

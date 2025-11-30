@@ -2,6 +2,14 @@
 // Created by bobini on 14.09.23.
 //
 
+#ifdef _WIN32
+#include <Windows.h>
+#include <winternl.h>
+#include <ntstatus.h>
+#else
+#include <llfio.hpp>
+namespace llfio = LLFIO_V2_NAMESPACE;
+#endif
 #include <stack>
 #include <utility>
 #include "SongDbScanner.h"
@@ -11,14 +19,6 @@
 
 #include <qthreadpool.h>
 #include <spdlog/stopwatch.h>
-#ifdef _WIN32
-#include <Windows.h>
-#include <winternl.h>
-#include <ntstatus.h>
-#else
-#include <llfio.hpp>
-namespace llfio = LLFIO_V2_NAMESPACE;
-#endif
 #include <spdlog/spdlog.h>
 
 namespace resource_managers {

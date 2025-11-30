@@ -2,6 +2,14 @@
 // Created by bobini on 23.08.23.
 //
 
+#ifdef _WIN32
+#include <windows.h>
+#include <wil/resource.h>
+#else
+#include <llfio.hpp>
+namespace llfio = LLFIO_V2_NAMESPACE;
+#endif
+
 #include "ChartDataFactory.h"
 
 #include "charts/ReadBmsFile.h"
@@ -11,14 +19,6 @@
 #include <qfileinfo.h>
 #include "support/UtfStringToPath.h"
 #include "support/PathToQString.h"
-
-#ifdef _WIN32
-#include <windows.h>
-#include <wil/resource.h>
-#else
-#include <llfio.hpp>
-namespace llfio = LLFIO_V2_NAMESPACE;
-#endif
 
 namespace resource_managers {
 ChartDataFactory::ChartComponents::ChartComponents(
