@@ -8,6 +8,7 @@
 #include "qml_components/ThemeFamily.h"
 
 #include <QObject>
+#include <QThreadPool>
 #include <QQmlPropertyMap>
 #include <filesystem>
 #include <QLocale>
@@ -347,7 +348,8 @@ class Vars final : public QObject
       QQmlPropertyMap& themeVars,
       QHash<QString, QHash<QString, QHash<QString, QVariant>>> themeVarsData,
       const std::filesystem::path& themeVarsPath);
-    Q_SLOT void writeGeneralVars() const;
+    Q_SLOT void writeGeneralVars();
+    QThreadPool writePool;
 
   public:
     explicit Vars(
