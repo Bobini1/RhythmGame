@@ -252,11 +252,9 @@ Item {
             }
         }
     }
-    Image {
+    Item {
         id: fastslow
-        property bool fast
-        source: root.iniImagesUrl + "fastslow/" + playArea.vars.fastslow + (fast ? "/fast" : "/slow")
-        opacity: shouldShow && judgements.visible ? 1 : 0
+        property bool fast: false
         property bool shouldShow: false
 
         Binding {
@@ -269,29 +267,30 @@ Item {
             target: fastslow
             property: "width"
             delayed: true
-            when: fastslow.sourceSize.height > 0
-            value: fastslow.sourceSize.width * (fastslow.height / fastslow.sourceSize.height)
+            when: fastslowImage.sourceSize.height > 0
+            value: fastslowImage.sourceSize.width * (fastslow.height / fastslowImage.sourceSize.height)
         }
         Component.onCompleted: {
             height = playArea.vars.fastslowHeight * judgements.height;
             x = judgements.x + judgements.width / 2 + playArea.vars.fastslowX * judgements.height - fastslow.width / 2;
             y = judgements.y + playArea.vars.fastslowY * judgements.height - fastslow.height;
-            width = sourceSize.width * (height / sourceSize.height);
-        }
-        onWidthChanged: {
+            if (fastslowImage.sourceSize.height > 0)
+                width = fastslowImage.sourceSize.width * (height / fastslowImage.sourceSize.height);
         }
         z: 13
         transform: Scale {
-            xScale: side.mirrored ? -1 : 1; origin.x: fastslow.width / 2
+            xScale: side.mirrored ? -1 : 1
+            origin.x: fastslow.width / 2
         }
-        onHeightChanged: {
-            playArea.vars.fastslowHeight = height / judgements.height;
-        }
-        onXChanged: {
-            playArea.vars.fastslowX = (x + width / 2 - judgements.x - judgements.width / 2) / judgements.height;
-        }
-        onYChanged: {
-            playArea.vars.fastslowY = (y - judgements.y + height) / judgements.height;
+        onHeightChanged: playArea.vars.fastslowHeight = height / judgements.height;
+        onXChanged: playArea.vars.fastslowX = (x + width / 2 - judgements.x - judgements.width / 2) / judgements.height;
+        onYChanged: playArea.vars.fastslowY = (y - judgements.y + height) / judgements.height;
+
+        Image {
+            id: fastslowImage
+            anchors.fill: parent
+            source: root.iniImagesUrl + "fastslow/" + playArea.vars.fastslow + (fastslow.fast ? "/fast" : "/slow")
+            visible: fastslow.shouldShow && judgements.visible
         }
         TemplateDragBorder {
             id: fastslowTemplate
@@ -304,38 +303,25 @@ Item {
             anchorYBottom: true
         }
         Connections {
+            target: playArea.score
             function onHit(tap) {
-                if (!tap.points) {
+                if (!tap.points || !playArea.columns.includes(tap.column))
                     return;
-                }
-                if (!playArea.columns.includes(tap.column)) {
-                    return;
-                }
                 let fast = tap.points.deviation < 0;
                 fastslow.fast = fast;
                 switch (tap.points.judgement) {
-                    case Judgement.Perfect:
-                        fastslow.shouldShow = 0;
-                        break;
-                    case Judgement.Great:
-                        fastslow.shouldShow = 1;
-                        break;
-                    case Judgement.Good:
-                        fastslow.shouldShow = 1;
-                        break;
-                    case Judgement.Bad:
-                        fastslow.shouldShow = 1;
-                        break;
-                    case Judgement.Poor:
-                    case Judgement.EmptyPoor:
-                        fastslow.shouldShow = 0;
-                        break;
-                    default:
-                        fastslow.shouldShow = 0;
+                case Judgement.Great:
+                case Judgement.Good:
+                case Judgement.Bad:
+                    fastslow.shouldShow = true;
+                    break;
+                case Judgement.Perfect:
+                case Judgement.Poor:
+                case Judgement.EmptyPoor:
+                default:
+                    fastslow.shouldShow = false;
                 }
             }
-
-            target: playArea.score
         }
     }
     GhostScore {
@@ -587,4 +573,3 @@ Item {
         opacity: 0
     }
 }
-
