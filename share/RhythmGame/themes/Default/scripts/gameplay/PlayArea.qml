@@ -286,7 +286,6 @@ Item {
         }
         onHeightChanged: {
             playArea.vars.fastslowHeight = height / judgements.height;
-            console.info("FastSlow height changed " + fastslow.sourceSize.width * (fastslow.height / fastslow.sourceSize.height));
         }
         onXChanged: {
             playArea.vars.fastslowX = (x + width / 2 - judgements.x - judgements.width / 2) / judgements.height;
