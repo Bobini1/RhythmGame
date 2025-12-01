@@ -1,20 +1,20 @@
 import QtQuick
 import RhythmGameQml
 
-Item {
-    id: ghostScore
-    property real points
-    property alias alignment: pointsText.horizontalAlignment
-
-    Text {
-        id: pointsText
-        color: ghostScore.points > 0 ? "white" : "red"
-        text: ghostScore.points > 0 ? "+" + ghostScore.points : ghostScore.points
-        anchors.centerIn: parent
-        fontSizeMode: Text.VerticalFit
-        textFormat: Text.PlainText
-        font.pixelSize: 48
-        minimumPixelSize: 6
-        horizontalAlignment: Text.AlignHCenter
+Text {
+    id: pointsText
+    function padToFour(number) {
+        if (number<=9999) { number = ("000"+number).slice(-4); }
+        return number;
     }
+    property real points
+    color: points >= 0 ? "white" : "red"
+    text: (points >= 0 ? "+" : "-") + padToFour(Math.abs(Math.round(points)))
+    fontSizeMode: Text.VerticalFit
+    textFormat: Text.PlainText
+    font.pixelSize: 1000
+    minimumPixelSize: 6
+    horizontalAlignment: Text.AlignHCenter
+    width: fontInfo.width
+    font.family: "Monospace"
 }

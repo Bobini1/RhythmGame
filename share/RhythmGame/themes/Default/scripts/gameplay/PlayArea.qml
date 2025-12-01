@@ -10,7 +10,7 @@ Item {
     id: playArea
 
     required property list<int> columns
-    readonly property list<int>columnsReversedMapping: {
+    readonly property list<int> columnsReversedMapping: {
         var mapping = [];
         for (var i = 0; i < columns.length; i++) {
             mapping[columns[i]] = i;
@@ -177,7 +177,7 @@ Item {
 
             anchors.bottom: judgeLine.bottom
             opacity: {
-                let pos = Math.abs(side.player.position % 1);
+                let pos = Math.abs(playArea.player.position % 1);
                 return (pos > 0.5 ? pos : 1 - pos) * 0.2 + 0.1;
             }
             source: root.imagesUrl + "glow/" + playArea.vars.glow
@@ -193,7 +193,6 @@ Item {
 
         score: playArea.score
         judge: playArea.vars.judge
-        fastslow: playArea.vars.fastslow
         columns: playArea.columns
     }
     Item {
@@ -250,6 +249,177 @@ Item {
                     popup.open();
                     root.popup = popup;
                 }
+            }
+        }
+    }
+    Image {
+        id: fastslow
+        property bool fast
+        source: root.iniImagesUrl + "fastslow/" + playArea.vars.fastslow + (fast ? "/fast" : "/slow")
+        opacity: 1
+        property bool shouldShow: false
+
+        Binding {
+            delayed: true
+            fastslow.x: judgements.x + judgements.width / 2 + playArea.vars.fastslowX * judgements.height - fastslow.width / 2
+            fastslow.y: judgements.y + playArea.vars.fastslowY * judgements.height - fastslow.height
+            fastslow.height: playArea.vars.fastslowHeight * judgements.height
+        }
+        Binding {
+            target: fastslow
+            property: "width"
+            delayed: true
+            when: fastslow.sourceSize.height > 0
+            value: fastslow.sourceSize.width * (fastslow.height / fastslow.sourceSize.height)
+        }
+        Component.onCompleted: {
+            height = playArea.vars.fastslowHeight * judgements.height;
+            x = judgements.x + judgements.width / 2 + playArea.vars.fastslowX * judgements.height - fastslow.width / 2;
+            y = judgements.y + playArea.vars.fastslowY * judgements.height - fastslow.height;
+            width = sourceSize.width * (height / sourceSize.height);
+        }
+        onWidthChanged: {
+        }
+        z: 13
+        transform: Scale {
+            xScale: side.mirrored ? -1 : 1; origin.x: fastslow.width / 2
+        }
+        onHeightChanged: {
+            playArea.vars.fastslowHeight = height / judgements.height;
+            console.info("FastSlow height changed " + fastslow.sourceSize.width * (fastslow.height / fastslow.sourceSize.height));
+        }
+        onXChanged: {
+            playArea.vars.fastslowX = (x + width / 2 - judgements.x - judgements.width / 2) / judgements.height;
+        }
+        onYChanged: {
+            playArea.vars.fastslowY = (y - judgements.y + height) / judgements.height;
+        }
+        TemplateDragBorder {
+            id: fastslowTemplate
+            anchors.fill: parent
+            anchors.margins: -borderMargin
+            color: "transparent"
+            visible: root.customizeMode
+            keepAspectRatio: true
+            anchorXCenter: true
+            anchorYBottom: true
+        }
+        Connections {
+            function onHit(tap) {
+                if (!tap.points) {
+                    return;
+                }
+                if (!playArea.columns.includes(tap.column)) {
+                    return;
+                }
+                let fast = tap.points.deviation < 0;
+                fastslow.fast = fast;
+                switch (tap.points.judgement) {
+                    case Judgement.Perfect:
+                        fastslow.shouldShow = 0;
+                        break;
+                    case Judgement.Great:
+                        fastslow.shouldShow = 1;
+                        break;
+                    case Judgement.Good:
+                        fastslow.shouldShow = 1;
+                        break;
+                    case Judgement.Bad:
+                        fastslow.shouldShow = 1;
+                        break;
+                    case Judgement.Poor:
+                    case Judgement.EmptyPoor:
+                        fastslow.shouldShow = 0;
+                        break;
+                    default:
+                        fastslow.shouldShow = 0;
+                }
+            }
+
+            target: playArea.score
+        }
+    }
+    GhostScore {
+        id: ghostScore
+
+        color: judgements.visible ? "white" : "transparent"
+
+        FrameAnimation {
+            onTriggered: {
+                ghostScore.points = playArea.score.points - playArea.score.maxPointsNow
+            }
+        }
+
+        TextMetrics {
+            id: fontInfo
+            font.pixelSize: ghostScore.fontInfo.pixelSize
+            font.family: ghostScore.fontInfo.family
+            text: ghostScore.text
+        }
+
+        Binding {
+            delayed: true
+            ghostScore.height: playArea.vars.ghostScoreHeight * judgements.height
+            ghostScore.x: judgements.x + judgements.width / 2 + playArea.vars.ghostScoreX * judgements.height - ghostScore.width / 2
+            ghostScore.y: judgements.y + playArea.vars.ghostScoreY * judgements.height - ghostScore.height
+        }
+        Binding {
+            target: ghostScore
+            property: "width"
+            delayed: true
+            when: fontInfo.width > 0
+            value: fontInfo.width
+        }
+        Component.onCompleted: {
+            height = playArea.vars.ghostScoreHeight * judgements.height;
+            x = judgements.x + judgements.width / 2 + playArea.vars.ghostScoreX * judgements.height - ghostScore.width / 2;
+            y = judgements.y + playArea.vars.ghostScoreY * judgements.height - ghostScore.height;
+            width = fontInfo.width;
+        }
+        z: 12
+        transform: Scale {
+            xScale: side.mirrored ? -1 : 1; origin.x: ghostScore.width / 2
+        }
+
+        onHeightChanged: {
+            playArea.vars.ghostScoreHeight = height / judgements.height;
+        }
+        onXChanged: {
+            playArea.vars.ghostScoreX = (x + width / 2 - judgements.x - judgements.width / 2) / judgements.height;
+        }
+        onYChanged: {
+            playArea.vars.ghostScoreY = (y - judgements.y + height) / judgements.height;
+        }
+
+        TemplateDragBorder {
+            id: ghostScoreTemplate
+            anchors.fill: parent
+            anchors.margins: -borderMargin
+            color: "transparent"
+            visible: root.customizeMode
+            keepAspectRatio: true
+            anchorXCenter: true
+            anchorYBottom: true
+        }
+
+        MouseArea {
+            id: ghostScoreMouseArea
+
+            acceptedButtons: Qt.RightButton
+            anchors.fill: parent
+            z: -1
+
+            onClicked: mouse => {
+                let point = mapToItem(Overlay.overlay, mouse.x, mouse.y);
+                let popup;
+                if (side.mirrored) {
+                    popup = ghostScorePopupP2;
+                } else {
+                    popup = ghostScorePopup;
+                }
+                popup.setPosition(point);
+                popup.open();
+                root.popup = popup;
             }
         }
     }

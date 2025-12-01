@@ -10,7 +10,6 @@ Item {
 
     required property var score
     required property string judge
-    required property string fastslow
     required property var columns
 
     // turn invisible after one second of no notes
@@ -21,16 +20,6 @@ Item {
         onTriggered: {
             judgement.visible = false;
         }
-    }
-
-    Image {
-        id: fastslow
-        anchors.bottom: judgementRow.top
-        anchors.horizontalCenter: judgementRow.horizontalCenter
-        anchors.bottomMargin: 10
-        asynchronous: true
-        property bool fast
-        source: root.iniImagesUrl + "fastslow/" + judgement.fastslow + (fast ? "/fast" : "/slow")
     }
 
     property int combo: 0
@@ -143,37 +132,28 @@ Item {
             if (!judgement.columns.includes(tap.column)) {
                 return;
             }
-            let fast = tap.points.deviation < 0;
-            fastslow.fast = fast;
             switch (tap.points.judgement) {
                 case Judgement.Perfect:
                     judgementAnimation.frameCount = 3;
                     judgementAnimation.source = root.iniImagesUrl + "judge/" + judgement.judge + "/pgreat";
-                    fastslow.visible = false;
                     break;
                 case Judgement.Great:
                     judgementAnimation.frameCount = 1;
                     judgementAnimation.source = root.iniImagesUrl + "judge/" + judgement.judge + "/great";
-                    fastslow.visible = true;
                     break;
                 case Judgement.Good:
                     judgementAnimation.frameCount = 1;
                     judgementAnimation.source = root.iniImagesUrl + "judge/" + judgement.judge + "/good";
-                    fastslow.visible = true;
                     break;
                 case Judgement.Bad:
                     judgementAnimation.frameCount = 1;
                     judgementAnimation.source = root.iniImagesUrl + "judge/" + judgement.judge + "/bad";
-                    fastslow.visible = true;
                     break;
                 case Judgement.Poor:
                 case Judgement.EmptyPoor:
                     judgementAnimation.frameCount = 1;
                     judgementAnimation.source = root.iniImagesUrl + "judge/" + judgement.judge + "/poor";
-                    fastslow.visible = false;
                     break;
-                default:
-                    fastslow.visible = false;
             }
         }
 

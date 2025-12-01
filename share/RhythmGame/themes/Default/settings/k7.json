@@ -488,6 +488,112 @@
           ]
         },
         {
+          "name": {
+            "en": "Ghost Score",
+            "pl": "Cel punktowy"
+          },
+          "type": "group",
+          "description": {
+            "en": "The position of the ghost score text.",
+            "pl": "Pozycja tekstu celu punktowego."
+          },
+          "items": [
+            {
+              "id": "ghostScoreX",
+              "name": {
+                "en": "X",
+                "pl": "X"
+              },
+              "type": "range",
+              "default": 0.0,
+              "description": {
+                "en": "The horizontal offset, expressed as a ratio of the judgement height (sic).",
+                "pl": "Poziome przesunięcie, wyrażone jako stosunek do wysokości (sic) ocen trafień."
+              }
+            },
+                        {
+              "id": "ghostScoreY",
+              "name": {
+                "en": "Y",
+                "pl": "Y"
+              },
+              "type": "range",
+              "default": 0.0,
+              "description": {
+                "en": "The vertical offset, expressed as a ratio of the judgement height.",
+                "pl": "Pionowe przesunięcie, wyrażone jako stosunek do wysokości ocen trafień."
+              }
+            },
+            {
+              "id": "ghostScoreHeight",
+              "name": {
+                "en": "Height",
+                "pl": "Wysokość"
+              },
+              "type": "range",
+              "min": 0,
+              "default": 0.20,
+              "description": {
+                "en": "The height of the judgement text as a ratio of judgement height.",
+                "pl": "Wysokość tekstu oceny jako stosunek do wysokości ocen trafień."
+              }
+            }
+          ]
+        },
+        {
+          "name": {
+            "en": "Fast/Slow Indicator",
+            "pl": "Wskaźnik fast/slow"
+          },
+          "type": "group",
+          "description": {
+            "en": "The position of the fast/slow text.",
+            "pl": "Pozycja tekstu fast/slow."
+          },
+          "items": [
+            {
+              "id": "fastslowX",
+              "name": {
+                "en": "X",
+                "pl": "X"
+              },
+              "type": "range",
+              "default": 0.0,
+              "description": {
+                "en": "The horizontal offset, expressed as a ratio of the judgement height (sic).",
+                "pl": "Poziome przesunięcie, wyrażone jako stosunek do wysokości (sic) ocen trafień."
+              }
+            },
+            {
+              "id": "fastslowY",
+              "name": {
+                "en": "Y",
+                "pl": "Y"
+              },
+              "type": "range",
+              "default": 0.0,
+              "description": {
+                "en": "The vertical offset, expressed as a ratio of the judgement height.",
+                "pl": "Pionowe przesunięcie, wyrażone jako stosunek do wysokości ocen trafień."
+              }
+            },
+            {
+              "id": "fastslowHeight",
+              "name": {
+                "en": "Height",
+                "pl": "Wysokość"
+              },
+              "type": "range",
+              "min": 0,
+              "default": 0.20,
+              "description": {
+                "en": "The height of the judgement text as a ratio of judgement height.",
+                "pl": "Wysokość tekstu oceny jako stosunek do wysokości ocen trafień."
+              }
+            }
+          ]
+        },
+        {
           "type": "group",
           "name": {
             "en": "LifeBar",
