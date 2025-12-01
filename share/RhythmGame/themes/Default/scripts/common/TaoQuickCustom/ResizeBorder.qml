@@ -89,7 +89,7 @@ Item {
         onPosChange: function (xOffset, yOffset) {
             if (root.keepAspectRatio) {
                 let aspectRatio = control.width / control.height;
-                if (Math.abs(xOffset) > Math.abs(yOffset)) {
+                if (Math.abs(xOffset) > Math.abs(yOffset) && !root.anchorYBottom) {
                     xOffset = yOffset * aspectRatio * -1;
                 } else {
                     yOffset = xOffset / aspectRatio * -1;
@@ -117,7 +117,7 @@ Item {
         onPosChange: function (xOffset, yOffset) {
             if (root.keepAspectRatio) {
                 let aspectRatio = control.width / control.height;
-                if (Math.abs(xOffset) > Math.abs(yOffset)) {
+                if (Math.abs(xOffset) > Math.abs(yOffset) && !root.anchorYBottom) {
                     xOffset = yOffset * aspectRatio;
                 } else {
                     yOffset = xOffset / aspectRatio;
