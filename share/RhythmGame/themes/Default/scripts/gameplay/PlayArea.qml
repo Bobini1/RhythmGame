@@ -256,7 +256,7 @@ Item {
         id: fastslow
         property bool fast
         source: root.iniImagesUrl + "fastslow/" + playArea.vars.fastslow + (fast ? "/fast" : "/slow")
-        opacity: 1
+        opacity: shouldShow && judgements.visible ? 1 : 0
         property bool shouldShow: false
 
         Binding {
