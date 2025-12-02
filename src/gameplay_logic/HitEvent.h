@@ -20,8 +20,8 @@ class HitEvent
   public:
     enum class Action
     {
-        None, /** The player did not press or release a key in this event. */
-        Press, /** The player pressed a key. */
+        None,   /** The player did not press or release a key in this event. */
+        Press,  /** The player pressed a key. */
         Release /** The player released a key. */
     };
     Q_ENUM(Action)

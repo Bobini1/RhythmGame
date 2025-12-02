@@ -34,6 +34,19 @@ Rectangle {
     property var scores2: []
     property var scoreWithBestPoints1: Helpers.getScoreWithBestPoints(scores1)
     property var scoreWithBestPoints2: Helpers.getScoreWithBestPoints(scores2)
+    property var lastScore1: scores1[scores1.length - 1] || null
+    property var lastScore2: scores2[scores2.length - 1] || null
+
+    ScoreReplayer {
+        id: scoreReplayer1
+        hitEvents: scoreWithBestPoints1?.replayData?.hitEvents || undefined
+        elapsed: chart.player1?.elapsed
+    }
+    ScoreReplayer {
+        id: scoreReplayer2
+        hitEvents: scoreWithBestPoints2?.replayData?.hitEvents || undefined
+        elapsed: chart.player2?.elapsed
+    }
 
     property bool showedCourseResult: false
     StackView.onActivated: {
@@ -47,16 +60,12 @@ Rectangle {
                 Qt.callLater(() => sceneStack.pop());
             }
         } else {
-            const compareArrays = (a, b) =>
-                a.length === b.length && a.every((element, index) => element === b[index]);
             chart.player1.profile.scoreDb.getScoresForMd5(chartData.md5).then(scores => {
-                // get only the scores with the same randomSequence
-                scores1 = scores.filter(s => compareArrays(s.randomSequence, chart.randomSequence));
+                scores1 = scores.scores[chartData.md5];
             });
             if (chart.player2) {
                 chart.player2.profile.scoreDb.getScoresForMd5(chartData.md5).then(scores => {
-                    // get only the scores with the same randomSequence
-                    scores2 = scores.filter(s => compareArrays(s.randomSequence, chart.randomSequence));
+                    scores2 = scores.scores[chartData.md5];
                 });
             }
             chart.start();
@@ -296,6 +305,7 @@ Rectangle {
             player: chart.player1
             dpSuffix: root.isDp ? "1" : ""
             index: 0
+            pointTarget: scoreReplayer1.points
             columns: root.isDp || !profileVars.scratchOnRightSide ? [7, 0, 1, 2, 3, 4, 5, 6] : [0, 1, 2, 3, 4, 5, 6, 7]
         }
         Loader {
@@ -308,6 +318,7 @@ Rectangle {
                 dpSuffix: root.isDp ? "2" : ""
                 mirrored: !root.isDp
                 index: 1
+                pointTarget: scoreReplayer2.points
                 columns: {
                     if (root.isDp) {
                         return [8, 9, 10, 11, 12, 13, 14, 15];

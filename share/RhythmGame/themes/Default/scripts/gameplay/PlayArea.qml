@@ -59,6 +59,7 @@ Item {
     readonly property var generalVars: profile.vars.generalVars
     readonly property list<real> columnSizes: root.getColumnSizes(vars)
     property real position
+    property var pointTarget
     FrameAnimation {
         running: true
         onTriggered: {
@@ -327,11 +328,17 @@ Item {
     GhostScore {
         id: ghostScore
 
-        color: judgements.visible ? "white" : "transparent"
+        color: {
+            if (!judgements.visible) {
+                return "transparent";
+            }
+            return playArea.score.points >= playArea.pointTarget ? "white" : "red";
+        }
 
         FrameAnimation {
+            running: true
             onTriggered: {
-                ghostScore.points = playArea.score.points - playArea.score.maxPointsNow
+                ghostScore.points = playArea.score.points - playArea.pointTarget;
             }
         }
 

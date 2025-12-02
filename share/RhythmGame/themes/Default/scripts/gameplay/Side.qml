@@ -20,6 +20,7 @@ Item {
 
     property bool start: Input[`start${index+1}`] || (dpSuffix && (Input.start1 || Input.start2))
     property bool select: Input[`select${index+1}`] || (dpSuffix && (Input.select1 || Input.select2))
+    property var pointTarget
 
     property bool lastDirectionUp: false
     function modifyGnWn(number, amount) {
@@ -88,6 +89,7 @@ Item {
         player: side.player
         columns: side.columns
         chartData: root.chartData
+        pointTarget: side.pointTarget
         transform: Scale {
             xScale: side.mirrored ? -1 : 1; origin.x: playArea.width / 2
         }
