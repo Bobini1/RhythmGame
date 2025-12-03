@@ -599,7 +599,7 @@
               },
               "type": "range",
               "min": 0,
-              "default": 0.20,
+              "default": 0.40,
               "description": {
                 "en": "The height of the judgement text as a ratio of judgement height.",
                 "pl": "Wysokość tekstu oceny jako stosunek do wysokości ocen trafień."
@@ -652,7 +652,7 @@
               },
               "type": "range",
               "min": 0,
-              "default": 0.20,
+              "default": 0.40,
               "description": {
                 "en": "The height of the judgement text as a ratio of judgement height.",
                 "pl": "Wysokość tekstu oceny jako stosunek do wysokości ocen trafień."
