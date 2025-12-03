@@ -518,7 +518,7 @@
               "type": "range",
               "min": 0,
               "max": 1,
-              "default": 0.20,
+              "default": 0.1,
               "description": {
                 "en": "The height of the judgement text as a ratio of playfield height.",
                 "pl": "Wysokość tekstu oceny jako stosunek do wysokości pola gry."
@@ -593,7 +593,7 @@
             }
           ]
         },
-                {
+        {
           "name": {
             "en": "Ghost Score",
             "pl": "Cel punktowy"
@@ -611,13 +611,13 @@
                 "pl": "X"
               },
               "type": "range",
-              "default": 0.0,
+              "default": 1,
               "description": {
                 "en": "The horizontal offset, expressed as a ratio of the judgement height (sic).",
                 "pl": "Poziome przesunięcie, wyrażone jako stosunek do wysokości (sic) ocen trafień."
               }
             },
-                        {
+            {
               "id": "ghostScoreY",
               "name": {
                 "en": "Y",
@@ -664,7 +664,7 @@
                 "pl": "X"
               },
               "type": "range",
-              "default": 0.0,
+              "default": -1,
               "description": {
                 "en": "The horizontal offset, expressed as a ratio of the judgement height (sic).",
                 "pl": "Poziome przesunięcie, wyrażone jako stosunek do wysokości (sic) ocen trafień."
@@ -717,7 +717,7 @@
                 "pl": "X"
               },
               "type": "range",
-              "default": 0,
+              "default": 710,
               "description": {
                 "en": "The X position of the left side of the life bar rectangle.",
                 "pl": "Pozycja X lewej strony prostokąta paska życia."
@@ -730,7 +730,7 @@
                 "pl": "Y"
               },
               "type": "range",
-              "default": 800,
+              "default": 920,
               "description": {
                 "en": "The Y position of the top side of the life bar rectangle.",
                 "pl": "Pozycja Y górnej strony prostokąta paska życia."

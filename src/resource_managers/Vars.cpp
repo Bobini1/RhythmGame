@@ -373,7 +373,7 @@ resource_managers::GeneralVars::setAvatar(QString value)
           value.toStdString());
         return;
     }
-    auto file = QFile { sourcePath };
+    auto file = QFile{ sourcePath };
     if (!file.open(QIODevice::ReadOnly)) {
         spdlog::warn("Failed to open avatar file: {}", value.toStdString());
         return;
@@ -460,9 +460,48 @@ resource_managers::GeneralVars::resetOffset()
 {
     setOffset(0.0);
 }
+auto
+resource_managers::GeneralVars::getScoreTarget() const -> ScoreTarget
+{
+    return scoreTarget;
+}
+void
+resource_managers::GeneralVars::setScoreTarget(ScoreTarget value)
+{
+    if (scoreTarget == value) {
+        return;
+    }
+    scoreTarget = value;
+    emit scoreTargetChanged();
+}
+void
+resource_managers::GeneralVars::resetScoreTarget()
+{
+    setScoreTarget(ScoreTarget::BestScore);
+}
+auto
+resource_managers::GeneralVars::getTargetScoreFraction() const -> double
+{
+    return targetScoreFraction;
+}
+void
+resource_managers::GeneralVars::setTargetScoreFraction(double value)
+{
+    if (targetScoreFraction == value) {
+        return;
+    }
+    targetScoreFraction = value;
+    emit targetScoreFractionChanged();
+}
+void
+resource_managers::GeneralVars::resetTargetScoreFraction()
+{
+    setTargetScoreFraction(8.0 / 9.0);
+}
 namespace {
 void
-writeGeneralVars(QThreadPool& writePool, const resource_managers::GeneralVars& generalVars,
+writeGeneralVars(QThreadPool& writePool,
+                 const resource_managers::GeneralVars& generalVars,
                  const std::filesystem::path& profileFolder)
 {
     auto json = QJsonObject();
@@ -481,8 +520,8 @@ writeGeneralVars(QThreadPool& writePool, const resource_managers::GeneralVars& g
         auto file = QFile{ profileFolder / "generalVars.json" };
         if (!file.open(QIODevice::WriteOnly)) {
             spdlog::error("Failed to open config for writing: {}: {}",
-                        profileFolder.string(),
-                        file.errorString().toStdString());
+                          profileFolder.string(),
+                          file.errorString().toStdString());
             return;
         }
         file.write(jsonDocument.toJson());
@@ -542,15 +581,15 @@ writeSingleThemeVar(QThreadPool& writePool,
                     const QVariant& value,
                     const std::filesystem::path& path)
 {
-    writePool.start([screen, key, value, path]() { 
+    writePool.start([screen, key, value, path]() {
         auto file = QFile{ path };
         if (!file.open(QIODevice::ReadWrite)) {
             spdlog::error(
-            "Failed to open config for reading + writing: {}: {}. The "
-            "var {} will not be written.",
-            path.string(),
-            file.errorString().toStdString(),
-            key.toStdString());
+              "Failed to open config for reading + writing: {}: {}. The "
+              "var {} will not be written.",
+              path.string(),
+              file.errorString().toStdString(),
+              key.toStdString());
             return;
         }
         auto jsonDocument = QJsonDocument::fromJson(file.readAll());
@@ -1062,12 +1101,12 @@ resource_managers::Vars::populateThemePropertyMap(
                                               const QVariant& value) {
                         loadedThemeVars[screen][themeFamily][key] = value;
                         writeSingleThemeVar(
-                              writePool,
-                              screen,
-                              key,
-                              value,
-                              themeVarsPath /
-                                support::qStringToPath(
+                          writePool,
+                          screen,
+                          key,
+                          value,
+                          themeVarsPath /
+                            support::qStringToPath(
                               themeFamily + QStringLiteral("-vars.json")));
                     });
             screenPropertyMap->insert(
@@ -1082,7 +1121,8 @@ resource_managers::Vars::populateThemePropertyMap(
 void
 resource_managers::Vars::writeGeneralVars()
 {
-    ::writeGeneralVars(writePool, generalVars, profile->getPath().parent_path());
+    ::writeGeneralVars(
+      writePool, generalVars, profile->getPath().parent_path());
 }
 
 resource_managers::Vars::Vars(

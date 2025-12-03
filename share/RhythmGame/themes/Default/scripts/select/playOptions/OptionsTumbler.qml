@@ -11,6 +11,8 @@ BorderImage {
     property var up: -1
     property var down: -1
     required property Profile profile
+    width: 360
+    height: 220
 
     source: root.iniImagesUrl + "option.png/tumbler_frame"
 

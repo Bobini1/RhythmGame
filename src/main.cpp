@@ -427,6 +427,13 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
           "GaugeMode",
           "Access to enums & flags only");
         qmlRegisterUncreatableMetaObject(
+          resource_managers::score_target::staticMetaObject,
+          "RhythmGameQml",
+          1,
+          0,
+          "ScoreTarget",
+          "Access to enums & flags only");
+        qmlRegisterUncreatableMetaObject(
           resource_managers::note_order_algorithm::staticMetaObject,
           "RhythmGameQml",
           1,

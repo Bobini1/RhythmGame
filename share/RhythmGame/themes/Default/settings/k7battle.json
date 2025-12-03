@@ -479,7 +479,7 @@
               "type": "range",
               "min": 0,
               "max": 1,
-              "default": 0.20,
+              "default": 0.1,
               "description": {
                 "en": "The height of the judgement text as a ratio of playfield height.",
                 "pl": "Wysokość tekstu oceny jako stosunek do wysokości pola gry."
@@ -554,7 +554,7 @@
             }
           ]
         },
-                {
+        {
           "name": {
             "en": "Ghost Score",
             "pl": "Cel punktowy"
@@ -572,13 +572,13 @@
                 "pl": "X"
               },
               "type": "range",
-              "default": 0.0,
+              "default": 1,
               "description": {
                 "en": "The horizontal offset, expressed as a ratio of the judgement height (sic).",
                 "pl": "Poziome przesunięcie, wyrażone jako stosunek do wysokości (sic) ocen trafień."
               }
             },
-                        {
+            {
               "id": "ghostScoreY",
               "name": {
                 "en": "Y",
@@ -625,7 +625,7 @@
                 "pl": "X"
               },
               "type": "range",
-              "default": 0.0,
+              "default": -1,
               "description": {
                 "en": "The horizontal offset, expressed as a ratio of the judgement height (sic).",
                 "pl": "Poziome przesunięcie, wyrażone jako stosunek do wysokości (sic) ocen trafień."

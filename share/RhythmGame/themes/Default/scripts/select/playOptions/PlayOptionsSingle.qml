@@ -63,8 +63,6 @@ Rectangle {
     }
 
     OptionsTumbler {
-        width: 360
-        height: 220
         anchors.top: p2RandomLabel.bottom
         anchors.topMargin: 20
         anchors.horizontalCenter: p2RandomLabel.horizontalCenter
@@ -125,8 +123,6 @@ Rectangle {
         anchors.topMargin: 20
         anchors.left: parent.left
         anchors.leftMargin: 20 + (gaugeLabel.width - width) / 2
-        width: 360
-        height: 220
         down: BmsKey.Col13
         model: ["AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC"]
         strings: qsTr("ASSISTED EASY;EASY;NORMAL;HARD;EXHARD;FC").split(";")
@@ -140,8 +136,6 @@ Rectangle {
 
     OptionsTumbler {
         id: dpOptionsTumbler
-        width: 360
-        height: 220
         anchors.top: labelRow.bottom
         anchors.topMargin: 20
         anchors.horizontalCenter: parent.horizontalCenter
@@ -158,8 +152,6 @@ Rectangle {
         anchors.topMargin: 20
         anchors.right: parent.right
         anchors.rightMargin: 20 + (hiSpeedFixLabel.width - width) / 2
-        width: 360
-        height: 220
         down: BmsKey.Col15
         model: bg.duplicate([HiSpeedFix.Main, HiSpeedFix.Start, HiSpeedFix.Max, HiSpeedFix.Min, HiSpeedFix.Avg, HiSpeedFix.Off])
         strings: bg.duplicate(qsTr("MAIN BPM;START BPM;MAX BPM;MIN BPM;AVG BPM;OFF").split(";"))

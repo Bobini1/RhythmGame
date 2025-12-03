@@ -34,17 +34,41 @@ Rectangle {
     property var scores2: []
     property var scoreWithBestPoints1: Helpers.getScoreWithBestPoints(scores1)
     property var scoreWithBestPoints2: Helpers.getScoreWithBestPoints(scores2)
-    property var lastScore1: scores1[scores1.length - 1] || null
-    property var lastScore2: scores2[scores2.length - 1] || null
+    property var lastScore1: scores1[0]
+    property var lastScore2: scores2[0]
+    property var targetScore1: {
+        switch (chart.player1.profile.vars.generalVars.scoreTarget) {
+        case ScoreTarget.BestScore:
+            return scoreWithBestPoints1;
+        case ScoreTarget.LastScore:
+            return lastScore1;
+        default:
+            return undefined;
+        }
+    }
+    property var targetScore2: {
+        switch (chart.player2?.profile?.vars?.generalVars?.scoreTarget) {
+        case ScoreTarget.BestScore:
+            return scoreWithBestPoints2;
+        case ScoreTarget.LastScore:
+            return lastScore2;
+        default:
+            return undefined;
+        }
+    }
+    property real p1MaxPointsNow: chart.player1.score.maxPointsNow
+    property real p2MaxPointsNow: chart.player2 ? chart.player2.score.maxPointsNow : 0
+    property real targetPoints1: targetScore1 ? scoreReplayer1.points : p1MaxPointsNow * chart.player1.profile.vars.generalVars.targetScoreFraction
+    property real targetPoints2: targetScore2 ? scoreReplayer2.points : p2MaxPointsNow * (chart.player2 ? chart.player2.profile.vars.generalVars.targetScoreFraction : 0)
 
     ScoreReplayer {
         id: scoreReplayer1
-        hitEvents: scoreWithBestPoints1?.replayData?.hitEvents || undefined
+        hitEvents: targetScore1?.replayData?.hitEvents
         elapsed: chart.player1?.elapsed
     }
     ScoreReplayer {
         id: scoreReplayer2
-        hitEvents: scoreWithBestPoints2?.replayData?.hitEvents || undefined
+        hitEvents: targetScore2?.replayData?.hitEvents
         elapsed: chart.player2?.elapsed
     }
 
@@ -305,7 +329,7 @@ Rectangle {
             player: chart.player1
             dpSuffix: root.isDp ? "1" : ""
             index: 0
-            pointTarget: scoreReplayer1.points
+            pointTarget: targetPoints1
             columns: root.isDp || !profileVars.scratchOnRightSide ? [7, 0, 1, 2, 3, 4, 5, 6] : [0, 1, 2, 3, 4, 5, 6, 7]
         }
         Loader {
@@ -318,7 +342,7 @@ Rectangle {
                 dpSuffix: root.isDp ? "2" : ""
                 mirrored: !root.isDp
                 index: 1
-                pointTarget: scoreReplayer2.points
+                pointTarget: targetPoints2
                 columns: {
                     if (root.isDp) {
                         return [8, 9, 10, 11, 12, 13, 14, 15];
