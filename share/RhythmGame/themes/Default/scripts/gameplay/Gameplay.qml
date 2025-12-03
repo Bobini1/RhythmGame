@@ -329,7 +329,7 @@ Rectangle {
             player: chart.player1
             dpSuffix: root.isDp ? "1" : ""
             index: 0
-            pointTarget: targetPoints1
+            pointTarget: root.targetPoints1
             columns: root.isDp || !profileVars.scratchOnRightSide ? [7, 0, 1, 2, 3, 4, 5, 6] : [0, 1, 2, 3, 4, 5, 6, 7]
         }
         Loader {
@@ -342,7 +342,7 @@ Rectangle {
                 dpSuffix: root.isDp ? "2" : ""
                 mirrored: !root.isDp
                 index: 1
-                pointTarget: targetPoints2
+                pointTarget: root.isDp ? root.targetPoints1 : root.targetPoints2
                 columns: {
                     if (root.isDp) {
                         return [8, 9, 10, 11, 12, 13, 14, 15];
