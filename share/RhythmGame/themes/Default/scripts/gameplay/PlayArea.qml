@@ -279,10 +279,6 @@ Item {
                 width = fastslowImage.sourceSize.width * (height / fastslowImage.sourceSize.height);
         }
         z: 13
-        transform: Scale {
-            xScale: side.mirrored ? -1 : 1
-            origin.x: fastslow.width / 2
-        }
         onHeightChanged: playArea.vars.fastslowHeight = height / judgements.height;
         onXChanged: playArea.vars.fastslowX = (x + width / 2 - judgements.x - judgements.width / 2) / judgements.height;
         onYChanged: playArea.vars.fastslowY = (y - judgements.y + height) / judgements.height;
@@ -369,9 +365,6 @@ Item {
             width = fontInfo.width;
         }
         z: 12
-        transform: Scale {
-            xScale: side.mirrored ? -1 : 1; origin.x: ghostScore.width / 2
-        }
 
         onHeightChanged: {
             playArea.vars.ghostScoreHeight = height / judgements.height;
@@ -392,27 +385,6 @@ Item {
             keepAspectRatio: true
             anchorXCenter: true
             anchorYBottom: true
-        }
-
-        MouseArea {
-            id: ghostScoreMouseArea
-
-            acceptedButtons: Qt.RightButton
-            anchors.fill: parent
-            z: -1
-
-            onClicked: mouse => {
-                let point = mapToItem(Overlay.overlay, mouse.x, mouse.y);
-                let popup;
-                if (side.mirrored) {
-                    popup = ghostScorePopupP2;
-                } else {
-                    popup = ghostScorePopup;
-                }
-                popup.setPosition(point);
-                popup.open();
-                root.popup = popup;
-            }
         }
     }
     Item {
