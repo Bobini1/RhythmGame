@@ -40,7 +40,6 @@ RowLayout {
                     to: range.sliderMax
                     Layout.fillHeight: true
                     value: range.destination[range.id_]
-                    stepSize: 10 ** -range.decimals
 
                     onMoved: {
                         range.destination[range.id_] = Math.round(value * 10 ** range.decimals) / 10 ** range.decimals
