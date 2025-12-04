@@ -30,7 +30,7 @@ Row {
             width: 2
         }
 
-        width: 330
+        width: 320
 
         color: src[prop]
 
