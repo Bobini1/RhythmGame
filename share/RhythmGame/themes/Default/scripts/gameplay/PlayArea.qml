@@ -232,8 +232,6 @@ Item {
             keepAspectRatio: true
 
             MouseArea {
-                id: judgementsTemplateMouseArea
-
                 acceptedButtons: Qt.RightButton
                 anchors.fill: parent
                 z: -1
@@ -287,7 +285,7 @@ Item {
             id: fastslowImage
             anchors.fill: parent
             source: root.iniImagesUrl + "fastslow/" + playArea.vars.fastslow + (fastslow.fast ? "/fast" : "/slow")
-            visible: fastslow.shouldShow && judgements.visible
+            visible: playArea.vars.fastslowEnabled && fastslow.shouldShow && judgements.visible
         }
         TemplateDragBorder {
             id: fastslowTemplate
@@ -298,6 +296,25 @@ Item {
             keepAspectRatio: true
             anchorXCenter: true
             anchorYBottom: true
+
+            MouseArea {
+                acceptedButtons: Qt.RightButton
+                anchors.fill: parent
+                z: -1
+
+                onClicked: mouse => {
+                    let point = mapToItem(Overlay.overlay, mouse.x, mouse.y);
+                    let popup;
+                    if (side.mirrored) {
+                        popup = fastslowPopupP2;
+                    } else {
+                        popup = fastslowPopup;
+                    }
+                    popup.setPosition(point);
+                    popup.open();
+                    root.popup = popup;
+                }
+            }
         }
         Connections {
             target: playArea.score
@@ -325,7 +342,7 @@ Item {
         id: ghostScore
 
         color: {
-            if (!judgements.visible) {
+            if (!playArea.vars.ghostScoreEnabled || !judgements.visible) {
                 return "transparent";
             }
             return playArea.score.points >= playArea.pointTarget ? "white" : "red";
@@ -385,6 +402,25 @@ Item {
             keepAspectRatio: true
             anchorXCenter: true
             anchorYBottom: true
+
+            MouseArea {
+                acceptedButtons: Qt.RightButton
+                anchors.fill: parent
+                z: -1
+
+                onClicked: mouse => {
+                    let point = mapToItem(Overlay.overlay, mouse.x, mouse.y);
+                    let popup;
+                    if (side.mirrored) {
+                        popup = ghostScorePopupP2;
+                    } else {
+                        popup = ghostScorePopup;
+                    }
+                    popup.setPosition(point);
+                    popup.open();
+                    root.popup = popup;
+                }
+            }
         }
     }
     Item {

@@ -27,7 +27,7 @@ BorderImage {
         id: delegateComponent
 
         Text {
-            text: frame.strings[index]
+            text: frame.strings[index] || ""
             horizontalAlignment: Text.AlignHCenter
             verticalAlignment: Text.AlignVCenter
             font.pixelSize: 32
@@ -85,6 +85,7 @@ BorderImage {
             target: frame.profile.vars.generalVars
             property: frame.prop
             when: tumbler.ready && !tumbler.flicking
+            delayed: true
             value: {
                 if (!tumbler.flicking) {
                     return frame.model[tumbler.currentIndex];

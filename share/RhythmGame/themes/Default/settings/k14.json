@@ -54,6 +54,32 @@
           "default": true
         },
         {
+          "id": "fastslowEnabled",
+          "name": {
+            "en": "Enable Fast/Slow Indicator",
+            "pl": "Włącz wskaźnik Fast/Slow"
+          },
+          "description": {
+            "en": "Show an indicator when the player hits notes too early or too late.",
+            "pl": "Pokaż wskaźnik, gdy gracz uderza notki za wcześnie lub za późno."
+          },
+          "type": "boolean",
+          "default": true
+        },
+        {
+          "id": "ghostScoreEnabled",
+          "name": {
+            "en": "Enable Ghost Score",
+            "pl": "Włącz cel punktowy"
+          },
+          "description": {
+            "en": "Show the ghost score, representing a target score for the player to aim for.",
+            "pl": "Pokaż cel punktowy, reprezentujący docelowy wynik, do którego gracz powinien dążyć."
+          },
+          "type": "boolean",
+          "default": true
+        },
+        {
           "id": "judgeLineThickness",
           "name": {
             "en": "Judge Line Thickness",

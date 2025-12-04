@@ -71,8 +71,22 @@ Rectangle {
         down: BmsKey.Col13
         profile: Rg.profileList.mainProfile
 
-        model: [1, 8.5 / 9, 8 / 9, 7.5 / 9, 7 / 9, 6.5 / 9, 6 / 9, 5.5 / 9, 5 / 9, 4 / 9, 3 / 9, 2 / 9, 1 / 9]
-        strings: qsTr("MAX;MAX-;AAA;AAA-;AA;AA-;A;A-;B;C;D;E;F").split(";")
+        model: {
+            let base = [1, 8.5 / 9, 8 / 9, 7.5 / 9, 7 / 9, 6.5 / 9, 6 / 9, 5.5 / 9, 5 / 9, 4 / 9, 3 / 9, 2 / 9, 1 / 9];
+            // This will help when something else was set in the main menu
+            let currentChoice = Rg.profileList.mainProfile.vars.generalVars.targetScoreFraction;
+            if (!(base.includes(currentChoice))) {
+                base.unshift(currentChoice);
+            }
+            return base;
+        }
+        strings: {
+            let base = qsTr("MAX;MAX-;AAA;AAA-;AA;AA-;A;A-;B;C;D;E;F").split(";");
+            if (base.length < scoreTarget.model.length) {
+                base.unshift((Rg.profileList.mainProfile.vars.generalVars.targetScoreFraction * 100).toLocaleString(Qt.locale(Rg.languages.selectedLanguage)) + "%");
+            }
+            return base;
+        }
         prop: "targetScoreFraction"
     }
 

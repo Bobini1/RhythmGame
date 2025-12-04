@@ -241,6 +241,45 @@ Rectangle {
             root.popup = null;
         }
     }
+    GhostScorePopup {
+        id: ghostScorePopup
+
+        readonly property Profile profile: chart.player1.profile
+        themeVars: profile.vars.themeVars[root.screen][root.themeName]
+
+        onClosed: {
+            root.popup = null;
+        }
+    }
+    GhostScorePopup {
+        id: ghostScorePopupP2
+        readonly property Profile profile: (chart.player2 || chart.player1).profile
+        themeVars: profile.vars.themeVars[root.screen][root.themeName]
+
+        onClosed: {
+            root.popup = null;
+        }
+    }
+    FastslowPopup {
+        id: fastslowPopup
+
+        readonly property Profile profile: chart.player1.profile
+        themeVars: profile.vars.themeVars[root.screen][root.themeName]
+
+        onClosed: {
+            root.popup = null;
+        }
+    }
+    FastslowPopup {
+        id: fastslowPopupP2
+
+        readonly property Profile profile: (chart.player2 || chart.player1).profile
+        themeVars: profile.vars.themeVars[root.screen][root.themeName]
+
+        onClosed: {
+            root.popup = null;
+        }
+    }
     BgaPopup {
         id: bgaPopup
 

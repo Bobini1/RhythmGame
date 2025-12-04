@@ -13,13 +13,6 @@ GameplayPopup {
 
     model: ObjectModel {
         NumberWithSlider {
-            from: 0
-            src: popup.generalVars
-            prop: "noteScreenTimeMillis"
-            text: qsTr("Green Number")
-            to: 2000
-        }
-        NumberWithSlider {
             from: -15
             src: popup.generalVars
             prop: "offset"
