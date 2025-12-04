@@ -28,6 +28,12 @@ gameplay_logic::BmsPoints::getDeviation() const -> int64_t
     return deviation;
 }
 auto
+gameplay_logic::BmsPoints::operator==(const BmsPoints& other) const -> bool
+{
+    return value == other.value && judgement == other.judgement &&
+           deviation == other.deviation;
+}
+auto
 gameplay_logic::operator<<(QDataStream& stream,
                            const gameplay_logic::BmsPoints& points)
   -> QDataStream&

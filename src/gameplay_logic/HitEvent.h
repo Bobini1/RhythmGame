@@ -103,6 +103,13 @@ class HitEvent
         return offsetFromStart + hitOffset >
                other.offsetFromStart + otherHitOffset;
     }
+    auto operator==(const HitEvent& other) const -> bool
+    {
+        return offsetFromStart == other.offsetFromStart &&
+               points == other.points && noteIndex == other.noteIndex &&
+               column == other.column && action == other.action &&
+               noteRemoved == other.noteRemoved;
+    }
 
     friend auto operator<<(QDataStream& stream, const HitEvent& tap)
       -> QDataStream&;

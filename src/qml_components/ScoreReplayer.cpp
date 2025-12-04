@@ -17,7 +17,7 @@ ScoreReplayer::getHitEvents() const -> const QList<gameplay_logic::HitEvent>&
 void
 ScoreReplayer::setHitEvents(const QList<gameplay_logic::HitEvent>& hitEvents)
 {
-    if (this->hitEvents.data() == hitEvents.data()) {
+    if (this->hitEvents == hitEvents) {
         return;
     }
     auto currentPoints = getPoints();
