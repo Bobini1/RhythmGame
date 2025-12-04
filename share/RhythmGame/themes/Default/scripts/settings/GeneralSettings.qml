@@ -66,7 +66,7 @@ Item {
                     destination: Rg.inputTranslator
                     id_: "debounceMs"
                     name: qsTr("Debounce (ms)")
-                    default_: 40
+                    default_: 5
                     min: 0
                     sliderMax: 150
                     decimals: 0
