@@ -81,7 +81,7 @@ Item {
 
             model: bg.duplicate([ScoreTarget.Fraction, ScoreTarget.BestScore, ScoreTarget.LastScore])
             strings: bg.duplicate(qsTr("GRADE;BEST SCORE;LAST SCORE").split(";"))
-            prop: "noteOrderAlgorithm"
+            prop: "scoreTarget"
         }
 
         DarkLabel {
