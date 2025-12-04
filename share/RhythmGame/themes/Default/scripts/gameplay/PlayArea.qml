@@ -551,4 +551,18 @@ Item {
         source: root.imagesUrl + "bomb/" + playArea.vars.bomb
         opacity: 0
     }
+    
+    Repeater {
+        id: notePreloader
+        model: ["red", "black", "white"]
+        delegate: Repeater {
+            id: colors
+            property string color: modelData
+            model: [`notes/${playArea.vars.notes}/note_`, `notes/${playArea.vars.notes}/ln_start_`, `notes/${playArea.vars.notes}/ln_end_`, `mine/${playArea.vars.mine}/mine_`]
+            delegate: Image {
+                source: root.iniImagesUrl + modelData + colors.color
+                opacity: 0
+            }
+        }
+    }
 }
