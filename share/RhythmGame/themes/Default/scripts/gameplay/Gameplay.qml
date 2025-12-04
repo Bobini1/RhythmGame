@@ -31,11 +31,8 @@ Rectangle {
     property var chart
     readonly property string themeName: QmlUtils.themeName
     property var scores1: []
-    property var scores2: []
     property var scoreWithBestPoints1: Helpers.getScoreWithBestPoints(scores1)
-    property var scoreWithBestPoints2: Helpers.getScoreWithBestPoints(scores2)
     property var lastScore1: scores1[0]
-    property var lastScore2: scores2[0]
     property var targetScore1: {
         switch (chart.player1.profile.vars.generalVars.scoreTarget) {
         case ScoreTarget.BestScore:
@@ -46,30 +43,22 @@ Rectangle {
             return undefined;
         }
     }
-    property var targetScore2: {
-        switch (chart.player2?.profile?.vars?.generalVars?.scoreTarget) {
-        case ScoreTarget.BestScore:
-            return scoreWithBestPoints2;
-        case ScoreTarget.LastScore:
-            return lastScore2;
-        default:
-            return undefined;
-        }
-    }
     property real p1MaxPointsNow: chart.player1.score.maxPointsNow
-    property real p2MaxPointsNow: chart.player2 ? chart.player2.score.maxPointsNow : 0
-    property real targetPoints1: targetScore1 ? scoreReplayer1.points : p1MaxPointsNow * chart.player1.profile.vars.generalVars.targetScoreFraction
-    property real targetPoints2: targetScore2 ? scoreReplayer2.points : p2MaxPointsNow * (chart.player2 ? chart.player2.profile.vars.generalVars.targetScoreFraction : 0)
+    property real targetPoints1: {
+        if (isBattle) {
+            return chart.player2.score.points;
+        }
+        if (targetScore1) {
+            return scoreReplayer1.points;
+        }
+        return p1MaxPointsNow * chart.player1.profile.vars.generalVars.targetScoreFraction;
+    }
+    property real targetPoints2: chart.player1.score.points
 
     ScoreReplayer {
         id: scoreReplayer1
         hitEvents: targetScore1?.replayData?.hitEvents
         elapsed: chart.player1?.elapsed
-    }
-    ScoreReplayer {
-        id: scoreReplayer2
-        hitEvents: targetScore2?.replayData?.hitEvents
-        elapsed: chart.player2?.elapsed
     }
 
     property bool showedCourseResult: false
@@ -87,11 +76,6 @@ Rectangle {
             chart.player1.profile.scoreDb.getScoresForMd5(chartData.md5).then(scores => {
                 scores1 = scores.scores[chartData.md5] || [];
             });
-            if (chart.player2) {
-                chart.player2.profile.scoreDb.getScoresForMd5(chartData.md5).then(scores => {
-                    scores2 = scores.scores[chartData.md5] || [];
-                });
-            }
             chart.start();
         }
     }
