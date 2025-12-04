@@ -4,14 +4,12 @@ import RhythmGameQml
 Item {
     id: judgement
 
-    height: childrenRect.height
     width: childrenRect.width
     z: 3
     visible: false
 
     required property var score
     required property string judge
-    required property string fastslow
     required property var columns
 
     // turn invisible after one second of no notes
@@ -22,16 +20,6 @@ Item {
         onTriggered: {
             judgement.visible = false;
         }
-    }
-
-    Image {
-        id: fastslow
-        anchors.bottom: judgementRow.top
-        anchors.horizontalCenter: judgementRow.horizontalCenter
-        anchors.bottomMargin: 10
-        asynchronous: true
-        property bool fast
-        source: root.iniImagesUrl + "fastslow/" + judgement.fastslow + (fast ? "/fast" : "/slow")
     }
 
     property int combo: 0
@@ -93,6 +81,7 @@ Item {
         id: judgementRow
 
         spacing: 0
+        height: parent.height
 
         AnimatedSprite {
             id: judgementAnimation
@@ -100,6 +89,8 @@ Item {
             frameDuration: 40
             frameHeight: 84
             frameWidth: 227
+            height: judgementRow.height
+            width: frameWidth * (judgement.height / frameHeight)
             interpolate: false
             onSourceChanged: {
                 if (source != root.iniImagesUrl + "judge/" + judgement.judge + "/pgreat") {
@@ -123,6 +114,8 @@ Item {
                 frameCount: judgementAnimation.source == root.iniImagesUrl + "judge/" + judgement.judge + "/pgreat" ? 3 : 1
                 frameHeight: 84
                 frameWidth: 55
+                height: judgementRow.height
+                width: frameWidth * (judgement.height / frameHeight)
                 paused: true
                 source: root.iniImagesUrl + "judge/" + judgement.judge + (judgementAnimation.source == root.iniImagesUrl + "judge/" + judgement.judge + "/pgreat" ? "/pgreat_" : "/great_") + modelData
             }
@@ -139,37 +132,28 @@ Item {
             if (!judgement.columns.includes(tap.column)) {
                 return;
             }
-            let fast = tap.points.deviation < 0;
-            fastslow.fast = fast;
             switch (tap.points.judgement) {
                 case Judgement.Perfect:
                     judgementAnimation.frameCount = 3;
                     judgementAnimation.source = root.iniImagesUrl + "judge/" + judgement.judge + "/pgreat";
-                    fastslow.visible = false;
                     break;
                 case Judgement.Great:
                     judgementAnimation.frameCount = 1;
                     judgementAnimation.source = root.iniImagesUrl + "judge/" + judgement.judge + "/great";
-                    fastslow.visible = true;
                     break;
                 case Judgement.Good:
                     judgementAnimation.frameCount = 1;
                     judgementAnimation.source = root.iniImagesUrl + "judge/" + judgement.judge + "/good";
-                    fastslow.visible = true;
                     break;
                 case Judgement.Bad:
                     judgementAnimation.frameCount = 1;
                     judgementAnimation.source = root.iniImagesUrl + "judge/" + judgement.judge + "/bad";
-                    fastslow.visible = true;
                     break;
                 case Judgement.Poor:
                 case Judgement.EmptyPoor:
                     judgementAnimation.frameCount = 1;
                     judgementAnimation.source = root.iniImagesUrl + "judge/" + judgement.judge + "/poor";
-                    fastslow.visible = false;
                     break;
-                default:
-                    fastslow.visible = false;
             }
         }
 

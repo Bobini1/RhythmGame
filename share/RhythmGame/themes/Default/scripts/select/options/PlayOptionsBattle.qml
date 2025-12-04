@@ -68,8 +68,6 @@ Item {
 
         OptionsTumbler {
             id: p1RandomTumbler
-            width: 360
-            height: 220
             anchors.top: p1RandomLabel.bottom
             anchors.topMargin: 20
             anchors.horizontalCenter: p1RandomLabel.horizontalCenter
@@ -120,8 +118,6 @@ Item {
             anchors.topMargin: 20
             anchors.left: parent.left
             anchors.leftMargin: 20
-            width: 360
-            height: 220
             down: BmsKey[`Col${bg.player}3`]
             model: ["AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC"]
             strings: qsTr("ASSISTED EASY;EASY;NORMAL;HARD;EXHARD;FC").split(";")
@@ -135,8 +131,6 @@ Item {
             anchors.topMargin: 20
             anchors.right: parent.right
             anchors.rightMargin: 20
-            width: 360
-            height: 220
             down: BmsKey[`Col${bg.player}5`]
             model: playOptionsBattle.duplicate([HiSpeedFix.Main, HiSpeedFix.Start, HiSpeedFix.Max, HiSpeedFix.Min, HiSpeedFix.Off])
             strings: playOptionsBattle.duplicate(qsTr("MAIN BPM;START BPM;MAX BPM;MIN BPM;AVG BPM;OFF").split(";"))

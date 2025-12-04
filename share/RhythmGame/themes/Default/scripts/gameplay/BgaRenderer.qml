@@ -19,8 +19,6 @@ Item {
         }
     }
 
-    clip: true
-
     Item {
         anchors.centerIn: parent
         height: Math.max(videoBase.sourceRect.height, videoLayer.sourceRect.height, videoLayer2.sourceRect.height, videoPoor.sourceRect.height, 256)

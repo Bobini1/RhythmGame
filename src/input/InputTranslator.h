@@ -190,7 +190,7 @@ class InputTranslator final : public QObject
     Q_PROPERTY(bool col2sUp READ col2sUp NOTIFY col2sUpChanged)
     Q_PROPERTY(bool col2sDown READ col2sDown NOTIFY col2sDownChanged)
     Q_PROPERTY(bool start1 READ start1 NOTIFY start1Changed)
-    Q_PROPERTY(bool select READ select1 NOTIFY select1Changed)
+    Q_PROPERTY(bool select1 READ select1 NOTIFY select1Changed)
     Q_PROPERTY(bool start2 READ start2 NOTIFY start2Changed)
     Q_PROPERTY(bool select2 READ select2 NOTIFY select2Changed)
     Q_PROPERTY(input::AnalogAxisConfig* analogAxisConfig1 READ

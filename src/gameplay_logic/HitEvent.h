@@ -20,8 +20,8 @@ class HitEvent
   public:
     enum class Action
     {
-        None, /** The player did not press or release a key in this event. */
-        Press, /** The player pressed a key. */
+        None,   /** The player did not press or release a key in this event. */
+        Press,  /** The player pressed a key. */
         Release /** The player released a key. */
     };
     Q_ENUM(Action)
@@ -102,6 +102,13 @@ class HitEvent
           other.points.has_value() ? other.points->getDeviation() : 0;
         return offsetFromStart + hitOffset >
                other.offsetFromStart + otherHitOffset;
+    }
+    auto operator==(const HitEvent& other) const -> bool
+    {
+        return offsetFromStart == other.offsetFromStart &&
+               points == other.points && noteIndex == other.noteIndex &&
+               column == other.column && action == other.action &&
+               noteRemoved == other.noteRemoved;
     }
 
     friend auto operator<<(QDataStream& stream, const HitEvent& tap)

@@ -30,6 +30,36 @@ Rectangle {
     readonly property bool isCourse: chart instanceof CourseRunner
     property var chart
     readonly property string themeName: QmlUtils.themeName
+    property var scores1: []
+    property var scoreWithBestPoints1: Helpers.getScoreWithBestPoints(scores1)
+    property var lastScore1: scores1[0]
+    property var targetScore1: {
+        switch (chart.player1.profile.vars.generalVars.scoreTarget) {
+        case ScoreTarget.BestScore:
+            return scoreWithBestPoints1;
+        case ScoreTarget.LastScore:
+            return lastScore1;
+        default:
+            return undefined;
+        }
+    }
+    property real p1MaxPointsNow: chart.player1.score.maxPointsNow
+    property real targetPoints1: {
+        if (isBattle) {
+            return chart.player2.score.points;
+        }
+        if (targetScore1) {
+            return scoreReplayer1.points;
+        }
+        return p1MaxPointsNow * chart.player1.profile.vars.generalVars.targetScoreFraction;
+    }
+    property real targetPoints2: chart.player1.score.points
+
+    ScoreReplayer {
+        id: scoreReplayer1
+        hitEvents: targetScore1?.replayData?.hitEvents
+        elapsed: chart.player1?.elapsed
+    }
 
     property bool showedCourseResult: false
     StackView.onActivated: {
@@ -43,6 +73,9 @@ Rectangle {
                 Qt.callLater(() => sceneStack.pop());
             }
         } else {
+            chart.player1.profile.scoreDb.getScoresForMd5(chartData.md5).then(scores => {
+                scores1 = scores.scores[chartData.md5] || [];
+            });
             chart.start();
         }
     }
@@ -172,6 +205,65 @@ Rectangle {
             root.popup = null;
         }
     }
+    JudgementsPopup {
+        id: judgementsPopup
+
+        readonly property Profile profile: chart.player1.profile
+        themeVars: profile.vars.themeVars[root.screen][root.themeName]
+
+        onClosed: {
+            root.popup = null;
+        }
+    }
+    JudgementsPopup {
+        id: judgementsPopupP2
+
+        readonly property Profile profile: (chart.player2 || chart.player1).profile
+        themeVars: profile.vars.themeVars[root.screen][root.themeName]
+
+        onClosed: {
+            root.popup = null;
+        }
+    }
+    GhostScorePopup {
+        id: ghostScorePopup
+
+        readonly property Profile profile: chart.player1.profile
+        themeVars: profile.vars.themeVars[root.screen][root.themeName]
+
+        onClosed: {
+            root.popup = null;
+        }
+    }
+    GhostScorePopup {
+        id: ghostScorePopupP2
+        readonly property Profile profile: (chart.player2 || chart.player1).profile
+        themeVars: profile.vars.themeVars[root.screen][root.themeName]
+
+        onClosed: {
+            root.popup = null;
+        }
+    }
+    FastslowPopup {
+        id: fastslowPopup
+
+        readonly property Profile profile: chart.player1.profile
+        themeVars: profile.vars.themeVars[root.screen][root.themeName]
+
+        onClosed: {
+            root.popup = null;
+        }
+    }
+    FastslowPopup {
+        id: fastslowPopupP2
+
+        readonly property Profile profile: (chart.player2 || chart.player1).profile
+        themeVars: profile.vars.themeVars[root.screen][root.themeName]
+
+        onClosed: {
+            root.popup = null;
+        }
+    }
     BgaPopup {
         id: bgaPopup
 
@@ -260,6 +352,7 @@ Rectangle {
             player: chart.player1
             dpSuffix: root.isDp ? "1" : ""
             index: 0
+            pointTarget: root.targetPoints1
             columns: root.isDp || !profileVars.scratchOnRightSide ? [7, 0, 1, 2, 3, 4, 5, 6] : [0, 1, 2, 3, 4, 5, 6, 7]
         }
         Loader {
@@ -272,6 +365,7 @@ Rectangle {
                 dpSuffix: root.isDp ? "2" : ""
                 mirrored: !root.isDp
                 index: 1
+                pointTarget: root.isDp ? root.targetPoints1 : root.targetPoints2
                 columns: {
                     if (root.isDp) {
                         return [8, 9, 10, 11, 12, 13, 14, 15];

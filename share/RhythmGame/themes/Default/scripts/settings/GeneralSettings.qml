@@ -66,7 +66,7 @@ Item {
                     destination: Rg.inputTranslator
                     id_: "debounceMs"
                     name: qsTr("Debounce (ms)")
-                    default_: 40
+                    default_: 5
                     min: 0
                     sliderMax: 150
                     decimals: 0
@@ -161,6 +161,43 @@ Item {
                     id_: "bgaOn"
                     name: qsTr("BGA On")
                     default_: true
+
+                    anchors {
+                        left: parent.left
+                        right: parent.right
+                    }
+                }
+                Separator {
+                }
+                Choice {
+                    destination: Rg.profileList.mainProfile.vars.generalVars
+                    id_: "scoreTarget"
+                    choices: [ScoreTarget.Fraction, ScoreTarget.BestScore, ScoreTarget.LastScore]
+                    displayStrings: qsTr("Percentage;Best Score;Last Score").split(";")
+                    name: qsTr("Score Target Type")
+                    default_: ScoreTarget.BestScore
+                    anchors {
+                        left: parent.left
+                        right: parent.right
+                    }
+                }
+                Range {
+                    id: targetScoreFractionRange
+                    destination: this
+                    property var value: Rg.profileList.mainProfile.vars.generalVars.targetScoreFraction * 100
+                    onValueChanged: {
+                        Rg.profileList.mainProfile.vars.generalVars.targetScoreFraction = value / 100;
+                    }
+                    Binding {
+                        delayed: true
+                        targetScoreFractionRange.value: Rg.profileList.mainProfile.vars.generalVars.targetScoreFraction * 100
+                    }
+                    id_: "value"
+                    name: qsTr("Target Score Percentage")
+                    min: 0
+                    max: 100
+                    default_: 8 / 9 * 100
+                    decimals: 8
 
                     anchors {
                         left: parent.left

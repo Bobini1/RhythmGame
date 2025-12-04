@@ -36,6 +36,7 @@
 #include "support/PathToUtfString.h"
 #include "support/UtfStringToPath.h"
 #include "gameplay_logic/CourseRunner.h"
+#include "qml_components/ScoreReplayer.h"
 #include "sounds/AudioEngine.h"
 #include "sounds/AudioPlayer.h"
 #include "sounds/SoundBuffer.h"
@@ -129,8 +130,8 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
 
     auto appPath =
       support::qStringToPath(QCoreApplication::applicationFilePath());
-    auto isPortable =
-      std::filesystem::exists(appPath.parent_path().parent_path() / "portable.ini");
+    auto isPortable = std::filesystem::exists(
+      appPath.parent_path().parent_path() / "portable.ini");
 
     auto dataFolder = [&] {
         if (isPortable) {
@@ -388,7 +389,7 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
         qmlRegisterType<input::Key>("RhythmGameQml", 1, 0, "key");
         qmlRegisterType<input::Gamepad>("RhythmGameQml", 1, 0, "gamepad");
         qmlRegisterType<input::AnalogAxisConfig>(
-        "RhythmGameQml", 1, 0, "AnalogAxisConfig");
+          "RhythmGameQml", 1, 0, "AnalogAxisConfig");
         qmlRegisterType<input::InputTranslator>(
           "RhythmGameQml", 1, 0, "InputTranslator");
         qmlRegisterUncreatableMetaObject(
@@ -426,6 +427,13 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
           "GaugeMode",
           "Access to enums & flags only");
         qmlRegisterUncreatableMetaObject(
+          resource_managers::score_target::staticMetaObject,
+          "RhythmGameQml",
+          1,
+          0,
+          "ScoreTarget",
+          "Access to enums & flags only");
+        qmlRegisterUncreatableMetaObject(
           resource_managers::note_order_algorithm::staticMetaObject,
           "RhythmGameQml",
           1,
@@ -443,6 +451,8 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
         sounds::AudioPlayer::engine = &audioEngine;
         qmlRegisterType<sounds::AudioPlayer>(
           "RhythmGameQml", 1, 0, "AudioPlayer");
+        qmlRegisterType<qml_components::ScoreReplayer>(
+          "RhythmGameQml", 1, 0, "ScoreReplayer");
 
         qml_components::InputAttached::inputSignalProvider = &inputTranslator;
         qml_components::QmlUtilsAttached::getThemeNameForRootFile =

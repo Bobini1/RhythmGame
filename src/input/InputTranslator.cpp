@@ -270,7 +270,7 @@ InputTranslator::pressButton(BmsKey button, uint64_t time)
                         }
                     break;
                 }
-                }
+            }
         }
     }
     auto& timer = tickTimers[static_cast<int>(button)];

@@ -4,12 +4,13 @@ import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls.Basic
 import RhythmGameQml
+import "../common/TaoQuickCustom"
 
 Item {
     id: playArea
 
     required property list<int> columns
-    readonly property list<int>columnsReversedMapping: {
+    readonly property list<int> columnsReversedMapping: {
         var mapping = [];
         for (var i = 0; i < columns.length; i++) {
             mapping[columns[i]] = i;
@@ -58,15 +59,13 @@ Item {
     readonly property var generalVars: profile.vars.generalVars
     readonly property list<real> columnSizes: root.getColumnSizes(vars)
     property real position
+    property var pointTarget
     FrameAnimation {
         running: true
         onTriggered: {
             playArea.position = playArea.player.position;
         }
     }
-
-    height: playArea.vars.playAreaHeight
-    width: playfield.width
 
     Item {
         id: playObjectContainer
@@ -179,7 +178,7 @@ Item {
 
             anchors.bottom: judgeLine.bottom
             opacity: {
-                let pos = Math.abs(side.player.position % 1);
+                let pos = Math.abs(playArea.player.position % 1);
                 return (pos > 0.5 ? pos : 1 - pos) * 0.2 + 0.1;
             }
             source: root.imagesUrl + "glow/" + playArea.vars.glow
@@ -188,13 +187,241 @@ Item {
         }
     }
     Judgements {
+        id: judgements
         anchors.centerIn: parent
         anchors.verticalCenterOffset: (-playArea.vars.judgementsOffset * 2 + 1) * (parent.height - height) / 2
+        height: parent.height * playArea.vars.judgementsHeight
 
         score: playArea.score
         judge: playArea.vars.judge
-        fastslow: playArea.vars.fastslow
         columns: playArea.columns
+    }
+    Item {
+        id: judgementsPositioner
+        Binding {
+            delayed: true
+            judgementsPositioner.x: judgements.x
+            judgementsPositioner.width: judgements.width
+            judgementsPositioner.height: judgements.height
+            judgementsPositioner.y: playArea.height / 2 + judgements.anchors.verticalCenterOffset - judgementsPositioner.height / 2
+        }
+        z: 11
+        Component.onCompleted: {
+            x = judgements.x;
+            y = judgements.y;
+            width = judgements.width;
+            height = judgements.height;
+        }
+        onYChanged: {
+            let center = parent.height / 2;
+            let offset = y + height / 2 - center;
+            playArea.vars.judgementsOffset = -offset / (center - height / 2) / 2 + 0.5;
+        }
+        onHeightChanged: {
+            playArea.vars.judgementsHeight = height / parent.height;
+        }
+
+        TemplateDragBorder {
+            id: judgementsTemplate
+
+            anchors.fill: parent
+            anchors.margins: -borderMargin
+            color: "transparent"
+            visible: root.customizeMode
+            dragAxis: Drag.YAxis
+            keepAspectRatio: true
+
+            MouseArea {
+                acceptedButtons: Qt.RightButton
+                anchors.fill: parent
+                z: -1
+
+                onClicked: mouse => {
+                    let point = mapToItem(Overlay.overlay, mouse.x, mouse.y);
+                    let popup;
+                    if (side.mirrored) {
+                        popup = judgementsPopupP2;
+                    } else {
+                        popup = judgementsPopup;
+                    }
+                    popup.setPosition(point);
+                    popup.open();
+                    root.popup = popup;
+                }
+            }
+        }
+    }
+    Item {
+        id: fastslow
+        property bool fast: false
+        property bool shouldShow: false
+
+        Binding {
+            delayed: true
+            fastslow.x: judgements.x + judgements.width / 2 + playArea.vars.fastslowX * judgements.height - fastslow.width / 2
+            fastslow.y: judgements.y + playArea.vars.fastslowY * judgements.height - fastslow.height
+            fastslow.height: playArea.vars.fastslowHeight * judgements.height
+        }
+        Binding {
+            target: fastslow
+            property: "width"
+            delayed: true
+            when: fastslowImage.sourceSize.height > 0
+            value: fastslowImage.sourceSize.width * (fastslow.height / fastslowImage.sourceSize.height)
+        }
+        Component.onCompleted: {
+            height = playArea.vars.fastslowHeight * judgements.height;
+            x = judgements.x + judgements.width / 2 + playArea.vars.fastslowX * judgements.height - fastslow.width / 2;
+            y = judgements.y + playArea.vars.fastslowY * judgements.height - fastslow.height;
+            if (fastslowImage.sourceSize.height > 0)
+                width = fastslowImage.sourceSize.width * (height / fastslowImage.sourceSize.height);
+        }
+        z: 13
+        onHeightChanged: playArea.vars.fastslowHeight = height / judgements.height;
+        onXChanged: playArea.vars.fastslowX = (x + width / 2 - judgements.x - judgements.width / 2) / judgements.height;
+        onYChanged: playArea.vars.fastslowY = (y - judgements.y + height) / judgements.height;
+
+        Image {
+            id: fastslowImage
+            anchors.fill: parent
+            source: root.iniImagesUrl + "fastslow/" + playArea.vars.fastslow + (fastslow.fast ? "/fast" : "/slow")
+            visible: playArea.vars.fastslowEnabled && fastslow.shouldShow && judgements.visible
+        }
+        TemplateDragBorder {
+            id: fastslowTemplate
+            anchors.fill: parent
+            anchors.margins: -borderMargin
+            color: "transparent"
+            visible: root.customizeMode
+            keepAspectRatio: true
+            anchorXCenter: true
+            anchorYBottom: true
+
+            MouseArea {
+                acceptedButtons: Qt.RightButton
+                anchors.fill: parent
+                z: -1
+
+                onClicked: mouse => {
+                    let point = mapToItem(Overlay.overlay, mouse.x, mouse.y);
+                    let popup;
+                    if (side.mirrored) {
+                        popup = fastslowPopupP2;
+                    } else {
+                        popup = fastslowPopup;
+                    }
+                    popup.setPosition(point);
+                    popup.open();
+                    root.popup = popup;
+                }
+            }
+        }
+        Connections {
+            target: playArea.score
+            function onHit(tap) {
+                if (!tap.points || !playArea.columns.includes(tap.column))
+                    return;
+                let fast = tap.points.deviation < 0;
+                fastslow.fast = fast;
+                switch (tap.points.judgement) {
+                case Judgement.Great:
+                case Judgement.Good:
+                case Judgement.Bad:
+                    fastslow.shouldShow = true;
+                    break;
+                case Judgement.Perfect:
+                case Judgement.Poor:
+                case Judgement.EmptyPoor:
+                default:
+                    fastslow.shouldShow = false;
+                }
+            }
+        }
+    }
+    GhostScore {
+        id: ghostScore
+
+        color: {
+            if (!playArea.vars.ghostScoreEnabled || !judgements.visible) {
+                return "transparent";
+            }
+            return playArea.score.points >= playArea.pointTarget ? "white" : "red";
+        }
+
+        FrameAnimation {
+            running: true
+            onTriggered: {
+                ghostScore.points = playArea.score.points - playArea.pointTarget;
+            }
+        }
+
+        TextMetrics {
+            id: fontInfo
+            font.pixelSize: ghostScore.fontInfo.pixelSize
+            font.family: ghostScore.fontInfo.family
+            text: ghostScore.text
+        }
+
+        Binding {
+            delayed: true
+            ghostScore.height: playArea.vars.ghostScoreHeight * judgements.height
+            ghostScore.x: judgements.x + judgements.width / 2 + playArea.vars.ghostScoreX * judgements.height - ghostScore.width / 2
+            ghostScore.y: judgements.y + playArea.vars.ghostScoreY * judgements.height - ghostScore.height
+        }
+        Binding {
+            target: ghostScore
+            property: "width"
+            delayed: true
+            when: fontInfo.width > 0
+            value: fontInfo.width
+        }
+        Component.onCompleted: {
+            height = playArea.vars.ghostScoreHeight * judgements.height;
+            x = judgements.x + judgements.width / 2 + playArea.vars.ghostScoreX * judgements.height - ghostScore.width / 2;
+            y = judgements.y + playArea.vars.ghostScoreY * judgements.height - ghostScore.height;
+            width = fontInfo.width;
+        }
+        z: 12
+
+        onHeightChanged: {
+            playArea.vars.ghostScoreHeight = height / judgements.height;
+        }
+        onXChanged: {
+            playArea.vars.ghostScoreX = (x + width / 2 - judgements.x - judgements.width / 2) / judgements.height;
+        }
+        onYChanged: {
+            playArea.vars.ghostScoreY = (y - judgements.y + height) / judgements.height;
+        }
+
+        TemplateDragBorder {
+            id: ghostScoreTemplate
+            anchors.fill: parent
+            anchors.margins: -borderMargin
+            color: "transparent"
+            visible: root.customizeMode
+            keepAspectRatio: true
+            anchorXCenter: true
+            anchorYBottom: true
+
+            MouseArea {
+                acceptedButtons: Qt.RightButton
+                anchors.fill: parent
+                z: -1
+
+                onClicked: mouse => {
+                    let point = mapToItem(Overlay.overlay, mouse.x, mouse.y);
+                    let popup;
+                    if (side.mirrored) {
+                        popup = ghostScorePopupP2;
+                    } else {
+                        popup = ghostScorePopup;
+                    }
+                    popup.setPosition(point);
+                    popup.open();
+                    root.popup = popup;
+                }
+            }
+        }
     }
     Item {
         id: playAreaBg
@@ -360,5 +587,18 @@ Item {
         source: root.imagesUrl + "bomb/" + playArea.vars.bomb
         opacity: 0
     }
+    
+    Repeater {
+        id: notePreloader
+        model: ["red", "black", "white"]
+        delegate: Repeater {
+            id: colors
+            property string color: modelData
+            model: [`notes/${playArea.vars.notes}/note_`, `notes/${playArea.vars.notes}/ln_start_`, `notes/${playArea.vars.notes}/ln_end_`, `mine/${playArea.vars.mine}/mine_`]
+            delegate: Image {
+                source: root.iniImagesUrl + modelData + colors.color
+                opacity: 0
+            }
+        }
+    }
 }
-

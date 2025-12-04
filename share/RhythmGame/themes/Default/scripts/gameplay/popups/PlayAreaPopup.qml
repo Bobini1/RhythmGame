@@ -13,26 +13,12 @@ GameplayPopup {
 
     model: ObjectModel {
         NumberWithSlider {
-            from: 0
-            src: popup.generalVars
-            prop: "noteScreenTimeMillis"
-            text: qsTr("Green Number")
-            to: 2000
-        }
-        NumberWithSlider {
             from: -15
             src: popup.generalVars
             prop: "offset"
             text: qsTr("Offset")
             to: 15
             decimals: 1
-        }
-        NumberWithSlider {
-            from: 0
-            src: popup.themeVars
-            prop: "judgementsOffset"
-            text: qsTr("Judgements Offset")
-            to: 1
         }
         NumberWithSlider {
             from: -10
@@ -152,11 +138,6 @@ GameplayPopup {
             src: popup.themeVars
             propertyId: "glow"
             label: qsTr("Glow")
-        }
-        ImageSelection {
-            src: popup.themeVars
-            propertyId: "fastslow"
-            label: qsTr("Fast/Slow")
         }
     }
 }

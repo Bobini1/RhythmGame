@@ -14,6 +14,8 @@ Item {
     property bool rightBorderResizable: true
     property bool topBorderResizable: true
     property bool bottomBorderResizable: true
+    property bool anchorXCenter: false
+    property bool anchorYBottom: false
 
     //左上角的拖拽
     DragItem {
@@ -28,17 +30,17 @@ Item {
             if (root.keepAspectRatio) {
                 let aspectRatio = control.width / control.height;
                 if (Math.abs(xOffset) > Math.abs(yOffset)) {
-                    xOffset = yOffset / aspectRatio;
+                    xOffset = yOffset * aspectRatio;
                 } else {
-                    yOffset = xOffset * aspectRatio;
+                    yOffset = xOffset / aspectRatio;
                 }
             }
 
             //不要简化这个判断条件，化简之后不容易看懂. Qml引擎会自动简化
             if (control.x + xOffset < control.x + control.width)
-                control.x += xOffset;
+                control.x += xOffset + (root.anchorXCenter ? -xOffset : 0);
             if (control.y + yOffset < control.y + control.height)
-                control.y += yOffset;
+                control.y += yOffset + (root.anchorYBottom ? -yOffset : 0);
             if (control.width - xOffset > 0)
                 control.width -= xOffset;
             if (control.height - yOffset > 0)
@@ -87,14 +89,14 @@ Item {
         onPosChange: function (xOffset, yOffset) {
             if (root.keepAspectRatio) {
                 let aspectRatio = control.width / control.height;
-                if (Math.abs(xOffset) > Math.abs(yOffset)) {
+                if (Math.abs(xOffset) > Math.abs(yOffset) && !root.anchorYBottom) {
                     xOffset = yOffset * aspectRatio * -1;
                 } else {
                     yOffset = xOffset / aspectRatio * -1;
                 }
             }
             if (control.x + xOffset < control.x + control.width)
-                control.x += xOffset;
+                control.x += xOffset - (root.anchorXCenter ? xOffset : 0);
             if (control.width - xOffset > 0)
                 control.width -= xOffset;
             if (control.height + yOffset > 0)
@@ -115,7 +117,7 @@ Item {
         onPosChange: function (xOffset, yOffset) {
             if (root.keepAspectRatio) {
                 let aspectRatio = control.width / control.height;
-                if (Math.abs(xOffset) > Math.abs(yOffset)) {
+                if (Math.abs(xOffset) > Math.abs(yOffset) && !root.anchorYBottom) {
                     xOffset = yOffset * aspectRatio;
                 } else {
                     yOffset = xOffset / aspectRatio;

@@ -8,6 +8,7 @@
 #include "qml_components/ThemeFamily.h"
 
 #include <QObject>
+#include <QThreadPool>
 #include <QQmlPropertyMap>
 #include <filesystem>
 #include <QLocale>
@@ -73,6 +74,18 @@ enum class GaugeMode
 Q_ENUM_NS(GaugeMode)
 } // namespace gauge_mode
 using namespace gauge_mode;
+
+namespace score_target {
+Q_NAMESPACE
+enum class ScoreTarget
+{
+    Fraction,
+    BestScore,
+    LastScore,
+};
+Q_ENUM_NS(ScoreTarget)
+} // namespace score_target
+using namespace score_target;
 
 /**
  * @brief The general variables for the game that all screens and the engine
@@ -191,8 +204,8 @@ class GeneralVars final : public QObject
      * lowest gauge that will be enabled during gameplay.
      */
     Q_PROPERTY(QString bottomShiftableGauge READ getBottomShiftableGauge WRITE
-                 setBottomShiftableGauge NOTIFY bottomShiftableGaugeChanged RESET
-                   resetBottomShiftableGauge)
+                 setBottomShiftableGauge NOTIFY bottomShiftableGaugeChanged
+                   RESET resetBottomShiftableGauge)
     /**
      * @brief The avatar picture of the user.
      * @details Combine it with qml_components::ProgramSettings::avatarPath to
@@ -215,6 +228,22 @@ class GeneralVars final : public QObject
      */
     Q_PROPERTY(double offset READ getOffset WRITE setOffset NOTIFY offsetChanged
                  RESET resetOffset)
+
+    /**
+     * @brief The primary score target type to prefer.
+     */
+    Q_PROPERTY(resource_managers::score_target::ScoreTarget scoreTarget READ
+                 getScoreTarget WRITE setScoreTarget NOTIFY scoreTargetChanged
+                   RESET resetScoreTarget)
+
+    /**
+     * @brief The target score fraction when scoreTarget is Fraction.
+     * @details A value between 0.0 and 1.0 representing the target score
+     * fraction. For example, 0.888... for 88.888% (AAA).
+     */
+    Q_PROPERTY(double targetScoreFraction READ getTargetScoreFraction WRITE
+                 setTargetScoreFraction NOTIFY targetScoreFractionChanged RESET
+                   resetTargetScoreFraction)
     // ^ remember to use full namespace for enums for reflection
     double noteScreenTimeMillis = 1000;
     bool laneCoverOn = false;
@@ -235,6 +264,8 @@ class GeneralVars final : public QObject
     QString name = "Default";
     QString language = QLocale::system().name();
     double offset = 0.0; // Offset in milliseconds
+    ScoreTarget scoreTarget = ScoreTarget::BestScore;
+    double targetScoreFraction = 8.0 / 9.0; // 0.888...
 
     QList<QString> avatarPaths;
 
@@ -297,6 +328,12 @@ class GeneralVars final : public QObject
     auto getOffset() const -> double;
     void setOffset(double value);
     void resetOffset();
+    auto getScoreTarget() const -> ScoreTarget;
+    void setScoreTarget(ScoreTarget value);
+    void resetScoreTarget();
+    auto getTargetScoreFraction() const -> double;
+    void setTargetScoreFraction(double value);
+    void resetTargetScoreFraction();
 
   signals:
     void noteScreenTimeMillisChanged();
@@ -318,6 +355,8 @@ class GeneralVars final : public QObject
     void nameChanged();
     void languageChanged();
     void offsetChanged();
+    void scoreTargetChanged();
+    void targetScoreFractionChanged();
 };
 
 class Vars final : public QObject
@@ -347,7 +386,8 @@ class Vars final : public QObject
       QQmlPropertyMap& themeVars,
       QHash<QString, QHash<QString, QHash<QString, QVariant>>> themeVarsData,
       const std::filesystem::path& themeVarsPath);
-    Q_SLOT void writeGeneralVars() const;
+    Q_SLOT void writeGeneralVars();
+    QThreadPool writePool;
 
   public:
     explicit Vars(

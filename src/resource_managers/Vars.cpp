@@ -7,6 +7,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonArray>
+#include <QtConcurrent>
 #include "Vars.h"
 
 #include "qml_components/FileQuery.h"
@@ -372,7 +373,7 @@ resource_managers::GeneralVars::setAvatar(QString value)
           value.toStdString());
         return;
     }
-    auto file = QFile { sourcePath };
+    auto file = QFile{ sourcePath };
     if (!file.open(QIODevice::ReadOnly)) {
         spdlog::warn("Failed to open avatar file: {}", value.toStdString());
         return;
@@ -459,9 +460,48 @@ resource_managers::GeneralVars::resetOffset()
 {
     setOffset(0.0);
 }
+auto
+resource_managers::GeneralVars::getScoreTarget() const -> ScoreTarget
+{
+    return scoreTarget;
+}
+void
+resource_managers::GeneralVars::setScoreTarget(ScoreTarget value)
+{
+    if (scoreTarget == value) {
+        return;
+    }
+    scoreTarget = value;
+    emit scoreTargetChanged();
+}
+void
+resource_managers::GeneralVars::resetScoreTarget()
+{
+    setScoreTarget(ScoreTarget::BestScore);
+}
+auto
+resource_managers::GeneralVars::getTargetScoreFraction() const -> double
+{
+    return targetScoreFraction;
+}
+void
+resource_managers::GeneralVars::setTargetScoreFraction(double value)
+{
+    if (targetScoreFraction == value) {
+        return;
+    }
+    targetScoreFraction = value;
+    emit targetScoreFractionChanged();
+}
+void
+resource_managers::GeneralVars::resetTargetScoreFraction()
+{
+    setTargetScoreFraction(8.0 / 9.0);
+}
 namespace {
 void
-writeGeneralVars(const resource_managers::GeneralVars& generalVars,
+writeGeneralVars(QThreadPool& writePool,
+                 const resource_managers::GeneralVars& generalVars,
                  const std::filesystem::path& profileFolder)
 {
     auto json = QJsonObject();
@@ -474,16 +514,18 @@ writeGeneralVars(const resource_managers::GeneralVars& generalVars,
                              : property.read(&generalVars).toJsonValue();
         json[property.name()] = value;
     }
-    auto file = QFile{ profileFolder / "generalVars.json" };
-    if (!file.open(QIODevice::WriteOnly)) {
-        spdlog::error("Failed to open config for writing: {}: {}",
-                      profileFolder.string(),
-                      file.errorString().toStdString());
-        return;
-    }
-    auto jsonDocument = QJsonDocument();
-    jsonDocument.setObject(json);
-    file.write(jsonDocument.toJson());
+    writePool.start([json, profileFolder] {
+        auto jsonDocument = QJsonDocument();
+        jsonDocument.setObject(json);
+        auto file = QFile{ profileFolder / "generalVars.json" };
+        if (!file.open(QIODevice::WriteOnly)) {
+            spdlog::error("Failed to open config for writing: {}: {}",
+                          profileFolder.string(),
+                          file.errorString().toStdString());
+            return;
+        }
+        file.write(jsonDocument.toJson());
+    });
 }
 
 void
@@ -533,29 +575,32 @@ writeThemeVars(
 }
 
 void
-writeSingleThemeVar(const QString& screen,
+writeSingleThemeVar(QThreadPool& writePool,
+                    const QString& screen,
                     const QString& key,
                     const QVariant& value,
                     const std::filesystem::path& path)
 {
-    auto file = QFile{ path };
-    if (!file.open(QIODevice::ReadWrite)) {
-        spdlog::error(
-          "Failed to open config for reading + writing: {}: {}. The "
-          "var {} will not be written.",
-          path.string(),
-          file.errorString().toStdString(),
-          key.toStdString());
-        return;
-    }
-    auto jsonDocument = QJsonDocument::fromJson(file.readAll());
-    auto json = jsonDocument.object();
-    auto object = json[screen].toObject();
-    object[key] = QJsonValue::fromVariant(value);
-    json[screen] = object;
-    jsonDocument.setObject(json);
-    file.resize(0);
-    file.write(jsonDocument.toJson());
+    writePool.start([screen, key, value, path]() {
+        auto file = QFile{ path };
+        if (!file.open(QIODevice::ReadWrite)) {
+            spdlog::error(
+              "Failed to open config for reading + writing: {}: {}. The "
+              "var {} will not be written.",
+              path.string(),
+              file.errorString().toStdString(),
+              key.toStdString());
+            return;
+        }
+        auto jsonDocument = QJsonDocument::fromJson(file.readAll());
+        auto json = jsonDocument.object();
+        auto object = json[screen].toObject();
+        object[key] = QJsonValue::fromVariant(value);
+        json[screen] = object;
+        jsonDocument.setObject(json);
+        file.resize(0);
+        file.write(jsonDocument.toJson());
+    });
 }
 
 auto
@@ -901,12 +946,13 @@ populateScreenVars(const std::filesystem::path& themePath,
 }
 
 void
-readGeneralVars(resource_managers::GeneralVars& generalVars,
+readGeneralVars(QThreadPool& writePool,
+                resource_managers::GeneralVars& generalVars,
                 const std::filesystem::path& profileFolder)
 {
     auto file = QFile{ profileFolder / "generalVars.json" };
     if (!file.exists()) {
-        writeGeneralVars(generalVars, profileFolder);
+        writeGeneralVars(writePool, generalVars, profileFolder);
     }
     if (!file.open(QIODevice::ReadOnly)) {
         spdlog::error("Failed to open config for reading: {}: {}",
@@ -1055,6 +1101,7 @@ resource_managers::Vars::populateThemePropertyMap(
                                               const QVariant& value) {
                         loadedThemeVars[screen][themeFamily][key] = value;
                         writeSingleThemeVar(
+                          writePool,
                           screen,
                           key,
                           value,
@@ -1072,9 +1119,10 @@ resource_managers::Vars::populateThemePropertyMap(
     themeVars.freeze();
 }
 void
-resource_managers::Vars::writeGeneralVars() const
+resource_managers::Vars::writeGeneralVars()
 {
-    ::writeGeneralVars(generalVars, profile->getPath().parent_path());
+    ::writeGeneralVars(
+      writePool, generalVars, profile->getPath().parent_path());
 }
 
 resource_managers::Vars::Vars(
@@ -1089,10 +1137,11 @@ resource_managers::Vars::Vars(
   , loadedThemeVars(readThemeVars(profile->getPath().parent_path(),
                                   this->availableThemeFamilies))
 {
+    writePool.setMaxThreadCount(1);
     writeThemeVars(loadedThemeVars, profile->getPath().parent_path());
     populateThemePropertyMap(
       themeVars, loadedThemeVars, profile->getPath().parent_path());
-    readGeneralVars(generalVars, profile->getPath().parent_path());
+    readGeneralVars(writePool, generalVars, profile->getPath().parent_path());
     writeGeneralVars();
     for (auto i = generalVars.metaObject()->propertyOffset();
          i < generalVars.metaObject()->propertyCount();
