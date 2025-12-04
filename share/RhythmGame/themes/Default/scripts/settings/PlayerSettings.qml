@@ -129,7 +129,7 @@ Item {
                             text: qsTr("Add profile")
 
                             onClicked: {
-                                Rg.profileList.createProfile();
+                                Rg.profileList.mainProfile = Rg.profileList.createProfile();
                             }
                         }
                     }

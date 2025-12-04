@@ -1,7 +1,7 @@
 import RhythmGameQml
 import QtQuick
 import QtQuick.Effects
-import "../common/helpers.js" as Helpers
+import "../../common/helpers.js" as Helpers
 
 Rectangle {
     id: card

@@ -11,6 +11,8 @@ BorderImage {
     property var up: -1
     property var down: -1
     required property Profile profile
+    width: 360
+    height: 220
 
     source: root.iniImagesUrl + "option.png/tumbler_frame"
 
@@ -25,7 +27,7 @@ BorderImage {
         id: delegateComponent
 
         Text {
-            text: frame.strings[index]
+            text: frame.strings[index] || ""
             horizontalAlignment: Text.AlignHCenter
             verticalAlignment: Text.AlignVCenter
             font.pixelSize: 32
@@ -83,6 +85,7 @@ BorderImage {
             target: frame.profile.vars.generalVars
             property: frame.prop
             when: tumbler.ready && !tumbler.flicking
+            delayed: true
             value: {
                 if (!tumbler.flicking) {
                     return frame.model[tumbler.currentIndex];

@@ -13,6 +13,7 @@ ResizeBorder {
     property alias dragged: dragItem.drag.active
     property color rotateHandleColor: "lightgreen"
     readonly property int rotateHandleDistance: 25
+    property alias dragAxis: dragItem.drag.axis
 
     signal clicked(var mouse)
     signal doubleClicked(var mouse)

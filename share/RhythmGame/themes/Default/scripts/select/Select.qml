@@ -5,7 +5,7 @@ import QtQuick.Controls
 import QtMultimedia
 import QtQml
 import "../common/helpers.js" as Helpers
-import "./playOptions"
+import "./options"
 
 FocusScope {
     Image {
@@ -67,7 +67,7 @@ FocusScope {
             scale: Math.min(parent.width / 1920, parent.height / 1080)
             width: 1920
 
-            enabled: !playOptions.enabled && !login.enabled
+            enabled: !options.visible
 
             StageFile {
                 id: stageFile
@@ -313,83 +313,9 @@ FocusScope {
                 }
             }
         }
-
-
-        Rectangle {
+        Options {
+            id: options
             anchors.fill: parent
-
-            color: {
-                let c = Qt.color("black");
-                c.a = 0.5;
-                return c;
-            }
-
-            MouseArea {
-                anchors.fill: parent
-                enabled: parent.visible
-                onClicked: (event) => {
-                    login.enabled = false;
-                }
-                onWheel: (wheel) => {
-                    wheel.accepted = true;
-                }
-            }
-
-            visible: playOptions.enabled || login.enabled
-
-            Item {
-                id: options
-                anchors.centerIn: parent
-                height: 1080
-                scale: Math.min(parent.width / 1920, parent.height / 1080)
-                width: 1920
-
-                property bool startPressed: Input.start1 || Input.start2
-
-                Loader {
-                    id: playOptions
-                    active: enabled
-                    enabled: options.startPressed && !login.enabled
-                    anchors.centerIn: parent
-
-                    source: Rg.profileList.battleActive ? "playOptions/PlayOptionsBattle.qml" : "playOptions/PlayOptionsSingle.qml"
-                }
-
-                Login {
-                    id: login
-
-                    anchors.centerIn: parent
-                    enabled: false
-                }
-                Timer {
-                    id: p1StartTimer
-                    interval: 500
-                }
-                property bool start1Pressed: Input.start1
-                onStart1PressedChanged: {
-                    if (start1Pressed) {
-                        if (p1StartTimer.running && !login.enabled || login.enabled) {
-                            login.enabled = !login.enabled;
-                        } else {
-                            p1StartTimer.restart();
-                        }
-                    }
-                }
-                Timer {
-                    id: p2StartTimer
-                    interval: 500
-                }
-                property bool start2Pressed: Input.start2
-                onStart2PressedChanged: {
-                    if (start2Pressed) {
-                        if (p2StartTimer.running && !login.enabled || login.enabled) {
-                            login.enabled = !login.enabled;
-                        } else {
-                            p2StartTimer.restart();
-                        }
-                    }
-                }
-            }
         }
     }
 }

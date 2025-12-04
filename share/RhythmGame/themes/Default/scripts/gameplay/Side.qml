@@ -20,6 +20,7 @@ Item {
 
     property bool start: Input[`start${index+1}`] || (dpSuffix && (Input.start1 || Input.start2))
     property bool select: Input[`select${index+1}`] || (dpSuffix && (Input.select1 || Input.select2))
+    property var pointTarget
 
     property bool lastDirectionUp: false
     function modifyGnWn(number, amount) {
@@ -81,49 +82,85 @@ Item {
     transform: Scale {
         xScale: side.mirrored ? -1 : 1; origin.x: side.width / 2
     }
-    PlayAreaTemplate {
-        id: playAreaTemplate
-
-        columns: playArea.columns
-        vars: side.profileVars
-        dpSuffix: side.dpSuffix
-        visible: root.customizeMode
-        z: playArea.z + 1
-
-        MouseArea {
-            id: playAreaTemplateMouseArea
-
-            acceptedButtons: Qt.RightButton
-            anchors.fill: parent
-            z: -1
-
-            onClicked: mouse => {
-                let point = mapToItem(Overlay.overlay, mouse.x, mouse.y);
-                let popup;
-                if (side.mirrored) {
-                    popup = playAreaPopupP2;
-                } else {
-                    popup = playAreaPopup;
-                }
-                popup.setPosition(point);
-                popup.open();
-                root.popup = popup;
-            }
-        }
-    }
     PlayArea {
         id: playArea
 
+        readonly property list<real> columnSizes: root.getColumnSizes(vars)
         player: side.player
         columns: side.columns
         chartData: root.chartData
+        pointTarget: side.pointTarget
         transform: Scale {
             xScale: side.mirrored ? -1 : 1; origin.x: playArea.width / 2
         }
-        x: side.profileVars["playAreaX" + side.dpSuffix]
-        y: side.profileVars["playAreaY" + side.dpSuffix]
         z: side.profileVars.playAreaZ
 
+        height: side.profileVars.playAreaHeight
+        width: side.columns.reduce((a, b) => a + playArea.columnSizes[b], 0) + (side.columns.length - 1) * playArea.vars.spacing
+        x: side.profileVars["playAreaX" + side.dpSuffix]
+        y: side.profileVars["playAreaY" + side.dpSuffix]
+
+        onHeightChanged: {
+            side.profileVars.playAreaHeight = height;
+        }
+        onWidthChanged: {
+            let spacing = side.profileVars.spacing;
+            let oldWithoutSpacing = side.columns.reduce((a, b) => a + playArea.columnSizes[b], 0);
+            let newWithoutSpacing = width - spacing * 7;
+            let newWidths = [];
+            for (let i = 5; i < 8; i++) {
+                newWidths.push(newWithoutSpacing / oldWithoutSpacing * playArea.columnSizes[i]);
+            }
+            side.profileVars.blackWidth = newWidths[0];
+            side.profileVars.whiteWidth = newWidths[1];
+            side.profileVars.scratchWidth = newWidths[2];
+        }
+        onXChanged: {
+            side.profileVars["playAreaX" + side.dpSuffix] = x;
+        }
+        onYChanged: {
+            side.profileVars["playAreaY" + side.dpSuffix] = y;
+        }
+        Binding {
+            delayed: true
+            playArea.width: {
+                return side.columns.reduce((a, b) => a + playArea.columnSizes[b], 0) + (side.columns.length - 1) * side.profileVars.spacing;
+            }
+        }
+        Binding {
+            delayed: true
+            playArea.height: side.profileVars.playAreaHeight
+        }
+
+        TemplateDragBorder {
+            visible: root.customizeMode
+            z: 10
+            
+            anchors.fill: parent
+            anchors.margins: -borderMargin
+            color: "transparent"
+
+            MouseArea {
+                id: playAreaTemplateMouseArea
+
+                acceptedButtons: Qt.RightButton
+                anchors.fill: parent
+                z: -1
+
+                onClicked: mouse => {
+                    let point = mapToItem(Overlay.overlay, mouse.x, mouse.y);
+                    let popup;
+                    if (side.mirrored) {
+                        popup = playAreaPopupP2;
+                    } else {
+                        popup = playAreaPopup;
+                    }
+                    popup.setPosition(point);
+                    popup.open();
+                    root.popup = popup;
+                }
+            }
+        }
 
         Row {
             id: gnwnText

@@ -130,8 +130,7 @@ function getFormattedNumber(locale, num, decimals = 3) {
     }
     let longNum = locale.toString(num, "f", -128);
     let shortNum = locale.toString(num, "f", decimals);
-    // remove trailing zeros from shortNum
-    if (longNum.length > shortNum.length) {
+    if (longNum.length < shortNum.length) {
         return longNum;
     }
     return shortNum;
