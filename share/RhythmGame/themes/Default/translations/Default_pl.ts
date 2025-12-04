@@ -133,17 +133,17 @@
     <message>
         <location filename="../scripts/settings/GeneralSettings.qml" line="176"/>
         <source>Percentage;Best Score;Last Score</source>
-        <translation type="unfinished"></translation>
+        <translation>Procent;Najlepszy wynik;Ostatni wynik</translation>
     </message>
     <message>
         <location filename="../scripts/settings/GeneralSettings.qml" line="177"/>
         <source>Score Target Type</source>
-        <translation type="unfinished">Typ celu punktowego</translation>
+        <translation>Typ celu punktowego</translation>
     </message>
     <message>
         <location filename="../scripts/settings/GeneralSettings.qml" line="196"/>
         <source>Target Score Percentage</source>
-        <translation type="unfinished"></translation>
+        <translation>Cel Punktowy</translation>
     </message>
     <message>
         <location filename="../scripts/settings/GeneralSettings.qml" line="214"/>
