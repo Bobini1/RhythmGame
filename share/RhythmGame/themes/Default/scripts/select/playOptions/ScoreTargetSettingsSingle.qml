@@ -72,7 +72,7 @@ Rectangle {
         profile: Rg.profileList.mainProfile
 
         model: {
-            let base = [1, 8.5 / 9, 8 / 9, 7.5 / 9, 7 / 9, 6.5 / 9, 6 / 9, 5.5 / 9, 5 / 9, 4 / 9, 3 / 9, 2 / 9, 1 / 9];
+            let base = [1, 8.5 / 9, 8 / 9, 7.5 / 9, 7 / 9, 6.5 / 9, 6 / 9, 5.5 / 9, 5 / 9, 4 / 9, 3 / 9, 2 / 9, 0];
             // This will help when something else was set in the main menu
             let currentChoice = Rg.profileList.mainProfile.vars.generalVars.targetScoreFraction;
             if (!(base.includes(currentChoice))) {
