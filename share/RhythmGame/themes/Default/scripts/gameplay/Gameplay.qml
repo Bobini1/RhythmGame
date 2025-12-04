@@ -85,11 +85,11 @@ Rectangle {
             }
         } else {
             chart.player1.profile.scoreDb.getScoresForMd5(chartData.md5).then(scores => {
-                scores1 = scores.scores[chartData.md5];
+                scores1 = scores.scores[chartData.md5] || [];
             });
             if (chart.player2) {
                 chart.player2.profile.scoreDb.getScoresForMd5(chartData.md5).then(scores => {
-                    scores2 = scores.scores[chartData.md5];
+                    scores2 = scores.scores[chartData.md5] || [];
                 });
             }
             chart.start();
