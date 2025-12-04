@@ -4,7 +4,6 @@ import QtQuick.Layouts
 import QtQuick.Controls.Basic
 import QtQuick.Effects
 import QtQuick.Shapes
-import "./playOptions"
 
 Rectangle {
     id: bg

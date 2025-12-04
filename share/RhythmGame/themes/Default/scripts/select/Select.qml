@@ -5,7 +5,7 @@ import QtQuick.Controls.Basic
 import QtMultimedia
 import QtQml
 import "../common/helpers.js" as Helpers
-import "./playOptions"
+import "./options"
 
 FocusScope {
     Image {

@@ -67,7 +67,7 @@ Rectangle {
             enabled: options.startPressed && !login.enabled
             anchors.centerIn: parent
 
-            source: Rg.profileList.battleActive ? "playOptions/PlayOptionsBattle.qml" : "playOptions/PlayOptionsSingle.qml"
+            source: Rg.profileList.battleActive ? "PlayOptionsBattle.qml" : "PlayOptionsSingle.qml"
         }
 
         Loader {
@@ -76,7 +76,7 @@ Rectangle {
             enabled: options.selectPressed && !login.enabled
             anchors.centerIn: parent
 
-            source: Rg.profileList.battleActive ? "playOptions/ScoreTargetSettingsBattle.qml" : "playOptions/ScoreTargetSettingsSingle.qml"
+            source: Rg.profileList.battleActive ? "ScoreTargetSettingsBattle.qml" : "ScoreTargetSettingsSingle.qml"
         }
 
         Login {
