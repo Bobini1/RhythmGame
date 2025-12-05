@@ -84,65 +84,67 @@ Image {
             text: "RhythmGame"
         }
 
-        Column {
-            id: column
+        Pane {
             anchors.top: parent.top
             anchors.topMargin: parent.height * 0.5
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.horizontalCenterOffset: 280
 
             width: parent.width * 0.4
+            Column {
+                id: column
+                anchors.fill: parent
 
-            spacing: 5
+                spacing: 5
 
-            Input.onStart1Pressed: {
-                sceneStack.pushItem(globalRoot.selectComponent);
-            }
-            Input.onStart2Pressed: {
-                sceneStack.pushItem(globalRoot.selectComponent);
-            }
-
-            Button {
-                width: parent.width
-                height: 100
-                font.pixelSize: 30
-
-                text: qsTr("Song Selection")
-                onClicked: {
+                Input.onStart1Pressed: {
                     sceneStack.pushItem(globalRoot.selectComponent);
                 }
-            }
+                Input.onStart2Pressed: {
+                    sceneStack.pushItem(globalRoot.selectComponent);
+                }
 
-            Button {
-                width: parent.width
-                height: 100
-                text: qsTr("Settings")
-                font.pixelSize: 30
-                onClicked: {
-                    sceneStack.pushItem(globalRoot.settingsComponent);
+                Button {
+                    width: parent.width
+                    height: 100
+                    font.pixelSize: 30
+
+                    text: qsTr("Song Selection")
+                    onClicked: {
+                        sceneStack.pushItem(globalRoot.selectComponent);
+                    }
+                }
+
+                Button {
+                    width: parent.width
+                    height: 100
+                    text: qsTr("Settings")
+                    font.pixelSize: 30
+                    onClicked: {
+                        sceneStack.pushItem(globalRoot.settingsComponent);
+                    }
+                }
+
+                Button {
+                    width: parent.width
+                    height: 100
+                    text: qsTr("Attributions")
+                    font.pixelSize: 30
+                    onClicked: {
+                        dlg.open();
+                    }
+                }
+
+                Button {
+                    width: parent.width
+                    height: 100
+                    text: qsTr("Quit")
+                    font.pixelSize: 30
+                    onClicked: {
+                        Qt.quit();
+                    }
                 }
             }
-
-            Button {
-                width: parent.width
-                height: 100
-                text: qsTr("Attributions")
-                font.pixelSize: 30
-                onClicked: {
-                    dlg.open();
-                }
-            }
-
-            Button {
-                width: parent.width
-                height: 100
-                text: qsTr("Quit")
-                font.pixelSize: 30
-                onClicked: {
-                    Qt.quit();
-                }
-            }
-
         }
     }
 }
