@@ -81,7 +81,7 @@ Image {
             anchors.horizontalCenterOffset: 280
             font.family: "Serif"
             font.pixelSize: 200
-            text: "Rhythm Game"
+            text: "RhythmGame"
         }
 
         Column {
