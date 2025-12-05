@@ -48,9 +48,9 @@ Row {
         IntValidator {
             id: intRange
         }
-        from: intRange.bottom
-        to: intRange.top
-        stepSize: 10 ** -numberWithSlider.decimals
+        from: (numberWithSlider.bottom === -Infinity ? intRange.bottom : numberWithSlider.from) * 10 ** numberWithSlider.decimals
+        to: (numberWithSlider.to === Infinity ? intRange.top : numberWithSlider.to) * 10 ** numberWithSlider.decimals
+        stepSize: 1
         onValueModified: {
             src[numberWithSlider.prop] = value * 10 ** -numberWithSlider.decimals;
         }
@@ -58,7 +58,7 @@ Row {
             return Number.fromLocaleString(locale, text) * 10 ** numberWithSlider.decimals;
         }
         textFromValue: function(value, locale) {
-            return Qt.locale().toString(value, "f", numberWithSlider.decimals)
+            return Qt.locale().toString(value * 10 ** -numberWithSlider.decimals, "f", numberWithSlider.decimals)
         }
     }
 }
