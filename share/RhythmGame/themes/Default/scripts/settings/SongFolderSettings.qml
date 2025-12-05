@@ -63,12 +63,10 @@ Item {
 
                                 width: parent ? parent.width : 0
 
-                                TextEdit {
-                                    readOnly: true
+                                Label {
                                     Layout.fillWidth: true
                                     wrapMode: TextEdit.Wrap
                                     text: folderRow.rootFolder ? folderRow.rootFolder.name : ""
-                                    color: palette.text
                                 }
                                 Button {
                                     text: qsTr("Remove")

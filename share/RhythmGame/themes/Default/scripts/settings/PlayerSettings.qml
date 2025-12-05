@@ -95,14 +95,12 @@ Item {
                                     text: folderRow.profile.vars.generalVars.name
                                 }
 
-                                TextEdit {
+                                Label {
                                     id: scoreText
                                     anchors.right: removeButton.left
                                     anchors.rightMargin: 16
                                     anchors.verticalCenter: parent.verticalCenter
-                                    readOnly: true
                                     text: qsTr("Scores: %1").arg(folderRow.profile.scoreDb.getTotalScoreCount())
-                                    color: palette.text
                                 }
 
                                 Button {
