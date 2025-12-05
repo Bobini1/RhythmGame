@@ -9,6 +9,7 @@
 #include <QGuiApplication>
 #include <QObject>
 #include <QtQuick>
+#include <QQuickStyle>
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/sinks/basic_file_sink.h>
 #include "qml_components/Logger.h"
@@ -43,7 +44,6 @@
 #include "support/QtSink.h"
 #include "resource_managers/AvatarImageProvider.h"
 #include "support/QStringToPath.h"
-#include <sqlite3.h>
 
 Q_IMPORT_QML_PLUGIN(RhythmGameQmlPlugin)
 
@@ -161,6 +161,8 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
             createStandardDirectories();
         }
         qputenv("QML_XHR_ALLOW_FILE_READ", QByteArray("1"));
+
+        QQuickStyle::setStyle("FluentWinUI3");
 
         auto db = db::SqliteCppDb{ dataFolder / "song_db.sqlite" };
 

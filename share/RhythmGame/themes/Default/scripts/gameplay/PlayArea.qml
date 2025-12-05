@@ -2,7 +2,7 @@ pragma ValueTypeBehavior: Addressable
 import QtQuick
 import QtQuick
 import QtQuick.Layouts
-import QtQuick.Controls.Basic
+import QtQuick.Controls
 import RhythmGameQml
 import "../common/TaoQuickCustom"
 

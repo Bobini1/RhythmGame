@@ -1,5 +1,5 @@
 import QtQuick
-import QtQuick.Controls.Basic
+import QtQuick.Controls
 import RhythmGameQml
 
 Row {
@@ -10,8 +10,7 @@ Row {
     property alias from: slider.from
     required property var src
     property real decimals: to <= 1 ? 1 : 0
-
-    height: slider.height
+    height: 40
     spacing: 10
 
     Text {
@@ -21,34 +20,45 @@ Row {
         horizontalAlignment: Text.AlignHCenter
         verticalAlignment: Text.AlignVCenter
         color: "white"
-        width: 110
+        width: 160
+        fontSizeMode: Text.Fit
     }
     Slider {
         id: slider
 
         value: src[numberWithSlider.prop]
-        width: 300
+        width: 180
 
         onMoved: {
             src[numberWithSlider.prop] = value;
         }
     }
-    TextField {
+    SpinBox {
         id: txt
 
-        text: Qt.locale().toString(src[numberWithSlider.prop], "f", numberWithSlider.decimals)
+        value: src[numberWithSlider.prop] * 10 ** numberWithSlider.decimals
         font.pixelSize: 18
-        width: 70
-        height: slider.height - 8
+        width: 140
+        height: parent.height
         anchors.verticalCenter: slider.verticalCenter
-        horizontalAlignment: Text.AlignHCenter
 
         validator: DoubleValidator {
         }
 
-        onAccepted: {
-            src[numberWithSlider.prop] = Number.fromLocaleString(text);
-            text = Qt.binding(() => Qt.locale().toString(src[numberWithSlider.prop]));
+        IntValidator {
+            id: intRange
+        }
+        from: numberWithSlider.bottom === -Infinity ? intRange.bottom : numberWithSlider.from * 10 ** numberWithSlider.decimals
+        to: numberWithSlider.to === Infinity ? intRange.top : numberWithSlider.to * 10 ** numberWithSlider.decimals
+        stepSize: 1
+        onValueModified: {
+            src[numberWithSlider.prop] = value * 10 ** -numberWithSlider.decimals;
+        }
+        valueFromText: function(text, locale) {
+            return Number.fromLocaleString(locale, text) * 10 ** numberWithSlider.decimals;
+        }
+        textFromValue: function(value, locale) {
+            return Qt.locale().toString(value * 10 ** -numberWithSlider.decimals, "f", numberWithSlider.decimals)
         }
     }
 }

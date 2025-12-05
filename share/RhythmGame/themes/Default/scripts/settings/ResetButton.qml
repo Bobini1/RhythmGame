@@ -1,11 +1,10 @@
-import QtQuick.Controls.Basic
+import QtQuick.Controls
 import QtQuick.Layouts
 
 Button {
     id: resetButton
 
     text: qsTr("Reset")
-    implicitWidth: 50
 
     property var destination
     property string id_

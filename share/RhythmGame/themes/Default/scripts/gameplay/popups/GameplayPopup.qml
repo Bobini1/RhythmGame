@@ -1,5 +1,5 @@
 import QtQuick
-import QtQuick.Controls.Basic
+import QtQuick.Controls
 import QtQuick.Layouts
 import RhythmGameQml
 import QtQml.Models
@@ -9,8 +9,9 @@ Popup {
 
     closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
     focus: true
-    height: Math.min(500, column.contentHeight + padding * 2)
-    width: 520
+    // No idea where the +40 comes from. Padding, margins?
+    implicitHeight: Math.min(500, column.contentHeight + 40)
+    implicitWidth: 520 + padding * 2
     padding: 2
     property alias model: column.model
 
@@ -21,7 +22,7 @@ Popup {
 
     background: Rectangle {
         border.color: "white"
-        border.width: parent.padding
+        border.width: 2
         color: "black"
         opacity: 0.9
     }
@@ -31,12 +32,13 @@ Popup {
     contentItem: ScrollView {
         id: scrollView
         clip: true
-        leftPadding: 6
+        padding: 6
 
         ListView {
             id: column
 
-            width: popup.width
+            anchors.left: parent.left
+            anchors.right: parent.right
         }
     }
 }

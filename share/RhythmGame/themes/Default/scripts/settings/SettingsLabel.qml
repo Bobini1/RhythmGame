@@ -1,13 +1,11 @@
 import QtQuick
-import QtQuick.Controls.Basic
+import QtQuick.Controls
 import QtQuick.Layouts
 
-TextEdit {
+Label {
     property string description
     font.pixelSize: 16
     font.bold: true
-    wrapMode: TextEdit.Wrap
-    readOnly: true
     HoverHandler {
         id: hoverHandler
     }

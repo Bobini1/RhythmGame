@@ -3,13 +3,11 @@ import RhythmGameQml
 import QtQuick.Dialogs
 
 Row {
-    height: rect.height
-
-    width: text.width + 390
-
     required property string prop
     property string description: prop
     required property var src
+    height: 40
+    spacing: 10
 
     Text {
         id: text
@@ -19,7 +17,8 @@ Row {
         horizontalAlignment: Text.AlignHCenter
         text: parent.description
         verticalAlignment: Text.AlignVCenter
-        width: 110
+        width: 160
+        fontSizeMode: Text.Fit
     }
 
     Rectangle {
@@ -31,7 +30,7 @@ Row {
             width: 2
         }
 
-        width: 390
+        width: 320
 
         color: src[prop]
 

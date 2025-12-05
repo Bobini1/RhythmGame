@@ -1,11 +1,11 @@
 import QtQuick.Dialogs
-import QtQuick.Controls.Basic
+import QtQuick.Controls
 import QtQuick.Layouts
 import RhythmGameQml
 import QtQuick
 import "../../common/helpers.js" as Helpers
 
-Frame {
+GroupBox {
     id: groupFrame
 
     property string name
@@ -13,29 +13,18 @@ Frame {
     property var items
     property var destination
 
+    title: name
+
     Column {
         width: parent.width
         spacing: 5
-        TextEdit {
-            wrapMode: TextEdit.Wrap
-            anchors {
-                left: parent.left
-                right: parent.right
-            }
-            text: groupFrame.name
-            font.pixelSize: 24
-            font.bold: true
-            readOnly: true
-        }
-        TextEdit {
+        Label {
             wrapMode: TextEdit.Wrap
             anchors {
                 left: parent.left
                 right: parent.right
             }
             text: groupFrame.description
-            font.pixelSize: 16
-            readOnly: true
         }
         // empty space separator
         Rectangle {

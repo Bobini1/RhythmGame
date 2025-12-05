@@ -1,5 +1,5 @@
 import QtQuick.Dialogs
-import QtQuick.Controls.Basic
+import QtQuick.Controls
 import RhythmGameQml
 import QtQuick
 import QtQuick.Layouts
@@ -17,7 +17,7 @@ RowLayout {
         id: strLabel
     }
 
-    TextArea {
+    TextField {
         id: textEdit
         text: destination[id_]
         Layout.fillWidth: true
@@ -27,7 +27,6 @@ RowLayout {
         onTextChanged: {
             str.destination[str.id_] = text;
         }
-        background: Frame {}
     }
 
 

@@ -1,5 +1,5 @@
 import QtQuick
-import QtQuick.Controls.Basic
+import QtQuick.Controls
 import RhythmGameQml
 import QtQuick.Layouts
 import QtQuick.Dialogs
@@ -40,7 +40,7 @@ Item {
                 ColumnLayout {
                     anchors.fill: parent
 
-                    Text {
+                    Label {
                         font.pixelSize: 20
                         text: qsTr("Song directories")
                         elide: Text.ElideRight
@@ -63,8 +63,7 @@ Item {
 
                                 width: parent ? parent.width : 0
 
-                                TextEdit {
-                                    readOnly: true
+                                Label {
                                     Layout.fillWidth: true
                                     wrapMode: TextEdit.Wrap
                                     text: folderRow.rootFolder ? folderRow.rootFolder.name : ""
@@ -120,7 +119,7 @@ Item {
                 ColumnLayout {
                     anchors.fill: parent
 
-                    Text {
+                    Label {
                         font.pixelSize: 20
                         text: qsTr("Scanning queue")
                         elide: Text.ElideRight
@@ -144,7 +143,7 @@ Item {
                                 Layout.fillWidth: true
                                 width: parent ? parent.width : 0
 
-                                Text {
+                                Label {
                                     Layout.fillWidth: true
                                     text: scanItemRow.name
                                 }

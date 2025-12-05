@@ -1,5 +1,5 @@
 import QtQuick 2.15
-import QtQuick.Controls.Basic 2.15
+import QtQuick.Controls
 import QtQuick.Layouts
 import RhythmGameQml
 
@@ -38,7 +38,7 @@ Image {
             clip: true
 
             Column {
-                Text {
+                Label {
                     id: licenseMd
                     text: dlg.licenseText
                     textFormat: Text.MarkdownText
@@ -46,9 +46,10 @@ Image {
                     padding: 12
                     width: scrollView.width
                     onLinkActivated: Qt.openUrlExternally(link)
+                    color: palette.text
                 }
 
-                Text {
+                Label {
                     id: md
                     text: dlg.attrText
                     textFormat: Text.MarkdownText
@@ -56,6 +57,7 @@ Image {
                     padding: 12
                     width: scrollView.width
                     onLinkActivated: Qt.openUrlExternally(link)
+                    color: palette.text
                 }
             }
         }
@@ -79,68 +81,70 @@ Image {
             anchors.horizontalCenterOffset: 280
             font.family: "Serif"
             font.pixelSize: 200
-            text: "Rhythm Game"
+            text: "RhythmGame"
         }
 
-        Column {
-            id: column
+        Pane {
             anchors.top: parent.top
             anchors.topMargin: parent.height * 0.5
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.horizontalCenterOffset: 280
 
             width: parent.width * 0.4
+            Column {
+                id: column
+                anchors.fill: parent
 
-            spacing: 5
+                spacing: 5
 
-            Input.onStart1Pressed: {
-                sceneStack.pushItem(globalRoot.selectComponent);
-            }
-            Input.onStart2Pressed: {
-                sceneStack.pushItem(globalRoot.selectComponent);
-            }
-
-            Button {
-                width: parent.width
-                height: 100
-                font.pixelSize: 30
-
-                text: qsTr("Song Selection")
-                onClicked: {
+                Input.onStart1Pressed: {
                     sceneStack.pushItem(globalRoot.selectComponent);
                 }
-            }
+                Input.onStart2Pressed: {
+                    sceneStack.pushItem(globalRoot.selectComponent);
+                }
 
-            Button {
-                width: parent.width
-                height: 100
-                text: qsTr("Settings")
-                font.pixelSize: 30
-                onClicked: {
-                    sceneStack.pushItem(globalRoot.settingsComponent);
+                Button {
+                    width: parent.width
+                    height: 100
+                    font.pixelSize: 30
+
+                    text: qsTr("Song Selection")
+                    onClicked: {
+                        sceneStack.pushItem(globalRoot.selectComponent);
+                    }
+                }
+
+                Button {
+                    width: parent.width
+                    height: 100
+                    text: qsTr("Settings")
+                    font.pixelSize: 30
+                    onClicked: {
+                        sceneStack.pushItem(globalRoot.settingsComponent);
+                    }
+                }
+
+                Button {
+                    width: parent.width
+                    height: 100
+                    text: qsTr("Attributions")
+                    font.pixelSize: 30
+                    onClicked: {
+                        dlg.open();
+                    }
+                }
+
+                Button {
+                    width: parent.width
+                    height: 100
+                    text: qsTr("Quit")
+                    font.pixelSize: 30
+                    onClicked: {
+                        Qt.quit();
+                    }
                 }
             }
-
-            Button {
-                width: parent.width
-                height: 100
-                text: qsTr("Attributions")
-                font.pixelSize: 30
-                onClicked: {
-                    dlg.open();
-                }
-            }
-
-            Button {
-                width: parent.width
-                height: 100
-                text: qsTr("Quit")
-                font.pixelSize: 30
-                onClicked: {
-                    Qt.quit();
-                }
-            }
-
         }
     }
 }

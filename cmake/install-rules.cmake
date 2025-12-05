@@ -18,7 +18,7 @@ if (WIN32 OR NOT USE_SYSTEM_LIBRARIES)
     install(SCRIPT ${deploy_script})
 
     if (NOT WIN32)
-        install(FILES RhythmGame.sh DESTINATION ${CMAKE_INSTALL_BINDIR} PERMISSIONS OWNER_EXECUTE OWNER_READ OWNER_WRITE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
+        install(PROGRAMS RhythmGame.sh DESTINATION ${CMAKE_INSTALL_BINDIR} PERMISSIONS OWNER_EXECUTE OWNER_READ OWNER_WRITE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
     endif ()
 else ()
     install(
@@ -42,7 +42,7 @@ install(DIRECTORY share/RhythmGame/themes/Default DESTINATION ${CMAKE_INSTALL_DA
 
 if (LINUX)
     install(
-            FILES staticAssets/RhythmGame.desktop
+            PROGRAMS staticAssets/RhythmGame.desktop
             DESTINATION "${CMAKE_INSTALL_DATADIR}/applications"
             COMPONENT RhythmGame_Runtime
     )

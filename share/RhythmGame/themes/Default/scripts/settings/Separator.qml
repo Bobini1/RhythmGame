@@ -1,4 +1,4 @@
-import QtQuick.Controls.Basic
+import QtQuick.Controls
 
 MenuSeparator {
     anchors {

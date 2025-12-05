@@ -1,5 +1,5 @@
 import QtQuick
-import QtQuick.Controls.Basic
+import QtQuick.Controls
 import RhythmGameQml
 import QtQuick.Layouts
 import QtQuick.Dialogs
@@ -49,7 +49,7 @@ Item {
                 ColumnLayout {
                     anchors.fill: parent
 
-                    Text {
+                    Label {
                         font.pixelSize: 20
                         text: qsTr("Select Profile")
                         elide: Text.ElideRight
@@ -68,14 +68,12 @@ Item {
                             });
                             spacing: 5
 
-                            delegate: Rectangle {
+                            delegate: ItemDelegate {
                                 id: folderRow
 
                                 property var profile: modelData
-
-                                color: isSelected ? palette.highlight : "transparent"
-                                readonly property bool isSelected:
-                                    Rg.profileList.mainProfile === profile
+                                
+                                highlighted: Rg.profileList.mainProfile === profile
                                 height: removeButton.height + 10
 
                                 MouseArea {
@@ -87,25 +85,22 @@ Item {
 
                                 width: parent ? parent.width : 0
 
-                                Text {
+                                Label {
                                     anchors.left: parent.left
                                     anchors.leftMargin: 16
                                     anchors.right: scoreText.left
                                     anchors.rightMargin: 16
                                     anchors.verticalCenter: parent.verticalCenter
                                     elide: Text.ElideRight
-                                    color: folderRow.isSelected ? palette.highlightedText : "black"
                                     text: folderRow.profile.vars.generalVars.name
                                 }
 
-                                TextEdit {
+                                Label {
                                     id: scoreText
                                     anchors.right: removeButton.left
                                     anchors.rightMargin: 16
                                     anchors.verticalCenter: parent.verticalCenter
-                                    readOnly: true
                                     text: qsTr("Scores: %1").arg(folderRow.profile.scoreDb.getTotalScoreCount())
-                                    color: palette.brightText
                                 }
 
                                 Button {
@@ -145,7 +140,7 @@ Item {
                 Layout.fillWidth: true
                 Layout.preferredWidth: 1
 
-                Text {
+                Label {
                     id: profileText
                     font.pixelSize: 20
                     text: qsTr("Edit Profile")
@@ -173,7 +168,7 @@ Item {
                 TextField {
                     text: Rg.profileList.mainProfile.vars.generalVars.name
                     font.pixelSize: 24
-                    color: "black"
+                    color: palette.text
                     width: avatarFrame.width
                     horizontalAlignment: Text.AlignHCenter
                     verticalAlignment: Text.AlignVCenter

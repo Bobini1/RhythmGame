@@ -1,14 +1,15 @@
 import QtQuick
 import RhythmGameQml
-import QtQuick.Controls.Basic
+import QtQuick.Controls
 
 Row {
     id: booleanOption
-    height: checkBox.height
 
     required property string prop
     property string description: prop
     required property var src
+    height: Math.max(40, checkBox.implicitHeight)
+    spacing: 10
 
     Text {
         anchors.verticalCenter: checkBox.verticalCenter
@@ -17,13 +18,14 @@ Row {
         horizontalAlignment: Text.AlignHCenter
         text: parent.description
         verticalAlignment: Text.AlignVCenter
-        width: 110
+        width: 160
+        fontSizeMode: Text.Fit
     }
     CheckBox {
         id: checkBox
 
         checked: booleanOption.src[booleanOption.prop]
-        width: 370
+        width: 310
 
         onCheckedChanged: {
             booleanOption.src[booleanOption.prop] = checked;

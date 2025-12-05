@@ -1,5 +1,5 @@
 import QtQuick.Dialogs
-import QtQuick.Controls.Basic
+import QtQuick.Controls
 import RhythmGameQml
 import QtQuick
 import QtQuick.Layouts
@@ -17,7 +17,8 @@ RowLayout {
     property string id_
     property alias name: strLabel.text
     property alias description: strLabel.description
-    property int decimals: 3
+    property int decimals: min < -1 || max > 1 ? 0 : 2
+    property real increment: 10 ** -decimals
 
     SettingsLabel {
         id: strLabel
@@ -40,27 +41,28 @@ RowLayout {
                     to: range.sliderMax
                     Layout.fillHeight: true
                     value: range.destination[range.id_]
-                    stepSize: 10 ** -range.decimals
 
-                    onMoved: {
-                        range.destination[range.id_] = Math.round(value * 10 ** range.decimals) / 10 ** range.decimals
-                    }
+                    onMoved: range.destination[range.id_] = value;
                 }
             }
         }
-        TextField {
+        SpinBox {
             id: textField
 
-            horizontalAlignment: contentWidth >= width ? TextField.AlignLeft : TextField.AlignHCenter
-            autoScroll: false
-            text: Helpers.getFormattedNumber(Qt.locale(Rg.languages.selectedLanguage), range.destination[range.id_], range.decimals)
+            value: range.destination[range.id_] * 10 ** range.decimals
             Layout.fillHeight: true
             Layout.fillWidth: true
             Layout.maximumWidth: 200
-            Layout.minimumWidth: 80
-            Layout.preferredWidth: 80
+            Layout.minimumWidth: 120
+            Layout.preferredWidth: 120
             Layout.alignment: Qt.AlignRight
-            color: acceptableInput ? "black" : "red"
+            IntValidator {
+                id: intRange
+            }
+            from: range.min === -Infinity ? intRange.bottom : range.min * 10 ** range.decimals
+            to: range.max === Infinity ? intRange.top : range.max * 10 ** range.decimals
+            stepSize: range.increment / 10 ** -range.decimals
+            editable: true
             validator: DoubleValidator {
                 id: doubleValidator
                 bottom: range.min
@@ -68,21 +70,14 @@ RowLayout {
                 locale: Rg.languages.selectedLanguage
             }
             inputMethodHints: Qt.ImhFormattedNumbersOnly
-            onTextEdited: {
-                if (acceptableInput) {
-                    range.destination[range.id_] = Number.fromLocaleString(Qt.locale(Rg.languages.selectedLanguage), text)
-                }
+            onValueModified: {
+                range.destination[range.id_] = value * 10 ** -range.decimals;
             }
-
-            onEditingFinished: {
-                ensureVisible(0);
+            valueFromText: function(text, locale) {
+                return Number.fromLocaleString(locale, text) * 10 ** range.decimals;
             }
-            onActiveFocusChanged: {
-                autoScroll = true;
-            }
-
-            Component.onCompleted: {
-                ensureVisible(0);
+            textFromValue: function(value, locale) {
+                return Helpers.getFormattedNumber(locale, value * 10 ** -range.decimals, range.decimals);
             }
             HoverHandler {
                 id: hoverHandler
@@ -102,5 +97,3 @@ RowLayout {
         }
     }
 }
-
-
