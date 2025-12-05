@@ -18,6 +18,7 @@ RowLayout {
     property alias name: strLabel.text
     property alias description: strLabel.description
     property int decimals: min < -1 || max > 1 ? 0 : 2
+    property real increment: 10 ** -decimals
 
     SettingsLabel {
         id: strLabel
@@ -41,9 +42,7 @@ RowLayout {
                     Layout.fillHeight: true
                     value: range.destination[range.id_]
 
-                    onMoved: {
-                        range.destination[range.id_] = Math.round(value * 10 ** range.decimals) / 10 ** range.decimals
-                    }
+                    onMoved: range.destination[range.id_] = value;
                 }
             }
         }
@@ -60,9 +59,9 @@ RowLayout {
             IntValidator {
                 id: intRange
             }
-            from: range.min == -Infinity ? intRange.bottom : range.min * 10 ** range.decimals
-            to: range.max == Infinity ? intRange.top : range.max * 10 ** range.decimals
-            stepSize: 1
+            from: range.min === -Infinity ? intRange.bottom : range.min * 10 ** range.decimals
+            to: range.max === Infinity ? intRange.top : range.max * 10 ** range.decimals
+            stepSize: range.increment / 10 ** -range.decimals
             editable: true
             validator: DoubleValidator {
                 id: doubleValidator

@@ -197,7 +197,8 @@ Item {
                     min: 0
                     max: 100
                     default_: 8 / 9 * 100
-                    decimals: 8
+                    increment: 1
+                    decimals: 6
 
                     anchors {
                         left: parent.left
