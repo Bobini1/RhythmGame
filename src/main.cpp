@@ -9,6 +9,7 @@
 #include <QGuiApplication>
 #include <QObject>
 #include <QtQuick>
+#include <QQuickStyle>
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/sinks/basic_file_sink.h>
 #include "qml_components/Logger.h"
@@ -160,6 +161,8 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
             createStandardDirectories();
         }
         qputenv("QML_XHR_ALLOW_FILE_READ", QByteArray("1"));
+
+        QQuickStyle::setStyle("FluentWinUI3");
 
         auto db = db::SqliteCppDb{ dataFolder / "song_db.sqlite" };
 
