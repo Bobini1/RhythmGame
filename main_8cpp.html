@@ -86,6 +86,7 @@ $(function() {
 <code>#include &lt;QGuiApplication&gt;</code><br />
 <code>#include &lt;QObject&gt;</code><br />
 <code>#include &lt;QtQuick&gt;</code><br />
+<code>#include &lt;QQuickStyle&gt;</code><br />
 <code>#include &lt;spdlog/sinks/stdout_color_sinks.h&gt;</code><br />
 <code>#include &lt;spdlog/sinks/basic_file_sink.h&gt;</code><br />
 <code>#include &quot;<a class="el" href="Logger_8h_source.html">qml_components/Logger.h</a>&quot;</code><br />
@@ -120,7 +121,6 @@ $(function() {
 <code>#include &quot;<a class="el" href="QtSink_8h_source.html">support/QtSink.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="AvatarImageProvider_8h_source.html">resource_managers/AvatarImageProvider.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="QStringToPath_8h_source.html">support/QStringToPath.h</a>&quot;</code><br />
-<code>#include &lt;sqlite3.h&gt;</code><br />
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for main.cpp:</div>
 <div class="dyncontent">
@@ -149,18 +149,20 @@ Include dependency graph for main.cpp:</div>
 <area shape="poly" title=" " alt="" coords="3464,22,3278,28,3158,36,3031,49,2907,67,2797,93,2749,108,2708,126,2676,146,2652,168,2647,177,2645,186,2652,205,2667,223,2685,230,2706,237,2727,253,2753,291,2771,329,2766,331,2749,294,2723,257,2703,242,2683,235,2664,227,2648,208,2640,186,2642,176,2648,165,2672,142,2706,121,2747,103,2795,87,2906,62,3030,43,3157,31,3278,23,3464,17"/>
 <area shape="rect" title=" " alt="" coords="5334,86,5409,111"/>
 <area shape="poly" title=" " alt="" coords="3569,16,3902,16,4409,22,4678,29,4932,40,5151,55,5316,76,5330,79,5329,84,5315,81,5151,61,4932,46,4678,35,4409,28,3902,22,3569,22"/>
-<area shape="rect" title=" " alt="" coords="5433,79,5581,119"/>
-<area shape="poly" title=" " alt="" coords="3570,17,3915,21,4445,30,5000,48,5237,61,5420,76,5420,82,5237,66,5000,53,4445,35,3914,26,3570,22"/>
-<area shape="rect" title=" " alt="" coords="5606,79,5747,119"/>
-<area shape="poly" title=" " alt="" coords="3570,17,3943,19,4523,27,5132,45,5392,59,5592,76,5591,81,5391,64,5132,50,4522,33,3943,24,3570,22"/>
+<area shape="rect" title=" " alt="" coords="5433,86,5536,111"/>
+<area shape="poly" title=" " alt="" coords="3570,17,3920,17,4457,24,4743,31,5013,42,5246,57,5421,76,5439,80,5437,85,5420,81,5245,62,5013,47,4743,36,4457,29,3920,23,3570,22"/>
+<area shape="rect" title=" " alt="" coords="5560,79,5708,119"/>
+<area shape="poly" title=" " alt="" coords="3570,17,3935,20,4502,28,5097,46,5351,59,5546,76,5546,81,5350,65,5097,51,4502,34,3935,25,3569,22"/>
+<area shape="rect" title=" " alt="" coords="5733,79,5874,119"/>
+<area shape="poly" title=" " alt="" coords="3570,17,3963,18,4580,26,5229,44,5506,58,5719,76,5719,81,5506,63,5229,49,4580,31,3963,24,3570,22"/>
 <area shape="rect" href="Logger_8h.html" title=" " alt="" coords="5124,262,5317,287"/>
 <area shape="poly" title=" " alt="" coords="3570,18,4110,37,4431,54,4565,64,4666,76,4768,92,4846,107,4923,129,5019,164,5115,209,5192,252,5190,257,5113,214,5017,169,4921,135,4845,113,4767,97,4666,81,4565,70,4431,59,4110,42,3569,23"/>
-<area shape="rect" href="Lr2HitValues_8h.html" title=" " alt="" coords="5772,79,5933,119"/>
-<area shape="poly" title=" " alt="" coords="3570,17,3969,20,4597,28,5259,46,5541,59,5759,76,5758,81,5541,65,5259,51,4597,33,3969,25,3569,22"/>
+<area shape="rect" href="Lr2HitValues_8h.html" title=" " alt="" coords="5899,79,6060,119"/>
+<area shape="poly" title=" " alt="" coords="3569,17,3989,19,4654,27,5356,45,5655,58,5885,76,5885,81,5655,64,5356,50,4654,32,3989,24,3569,22"/>
 <area shape="rect" href="SongDbScanner_8h.html" title=" " alt="" coords="5537,255,5741,295"/>
 <area shape="poly" title=" " alt="" coords="3570,17,3927,19,4457,27,4727,34,4967,45,5154,58,5219,67,5263,76,5282,85,5294,96,5306,107,5323,116,5364,128,5401,132,5469,127,5501,126,5533,129,5567,141,5602,165,5617,181,5628,201,5639,240,5634,242,5623,203,5613,184,5599,169,5565,146,5532,134,5501,131,5469,133,5401,137,5363,133,5321,121,5303,111,5291,100,5279,90,5261,81,5218,72,5153,64,4967,50,4727,40,4457,32,3927,24,3570,22"/>
-<area shape="rect" href="DefineDb_8h.html" title=" " alt="" coords="5958,86,6185,111"/>
-<area shape="poly" title=" " alt="" coords="3570,17,4004,21,4693,32,5414,49,5718,62,5946,76,5992,81,5991,87,5946,81,5717,67,5414,55,4693,37,4004,27,3570,22"/>
+<area shape="rect" href="DefineDb_8h.html" title=" " alt="" coords="6085,86,6311,111"/>
+<area shape="poly" title=" " alt="" coords="3569,17,4023,21,4749,31,5511,49,5831,61,6073,76,6118,81,6118,87,6072,81,5831,66,5511,54,4749,36,4023,26,3569,22"/>
 <area shape="rect" href="GamepadManager_8h.html" title=" " alt="" coords="2056,262,2209,287"/>
 <area shape="poly" title=" " alt="" coords="3464,22,3195,25,2814,34,2455,52,2324,65,2279,73,2250,81,2217,97,2195,114,2177,137,2158,168,2142,209,2136,249,2131,248,2137,208,2153,166,2172,134,2191,110,2214,93,2248,76,2278,68,2324,60,2454,47,2814,29,3195,20,3464,17"/>
 <area shape="rect" href="InputTranslator_8h.html" title=" " alt="" coords="2168,174,2335,199"/>
@@ -175,8 +177,8 @@ Include dependency graph for main.cpp:</div>
 <area shape="poly" title=" " alt="" coords="3570,25,3686,45,3821,76,3958,118,4074,159,4072,164,3956,123,3820,81,3685,51,3569,30"/>
 <area shape="rect" href="FileQuery_8h.html" title=" " alt="" coords="4265,174,4475,199"/>
 <area shape="poly" title=" " alt="" coords="3570,24,3721,45,3905,76,4131,124,4313,168,4311,173,4130,130,3904,81,3720,50,3569,29"/>
-<area shape="rect" href="InputAttached_8h.html" title=" " alt="" coords="6209,86,6451,111"/>
-<area shape="poly" title=" " alt="" coords="3570,17,4043,21,4805,31,5606,49,5943,61,6197,76,6247,81,6246,87,6196,81,5943,66,5606,54,4805,36,4043,26,3570,22"/>
+<area shape="rect" href="InputAttached_8h.html" title=" " alt="" coords="6336,86,6577,111"/>
+<area shape="poly" title=" " alt="" coords="3570,17,4063,21,4861,30,5702,48,6057,61,6324,76,6374,81,6373,87,6323,81,6057,66,5702,53,4861,35,4063,26,3570,22"/>
 <area shape="rect" href="Rg_8h.html" title=" " alt="" coords="3591,86,3775,111"/>
 <area shape="poly" title=" " alt="" coords="3542,28,3648,78,3646,83,3540,33"/>
 <area shape="rect" href="Themes_8h.html" title=" " alt="" coords="4550,174,4753,199"/>
@@ -189,8 +191,8 @@ Include dependency graph for main.cpp:</div>
 <area shape="poly" title=" " alt="" coords="3464,23,3061,38,2780,55,2494,81,2457,86,2456,81,2494,76,2780,50,3061,33,3464,18"/>
 <area shape="rect" href="QmlUtils_8h.html" title=" " alt="" coords="3156,174,3363,199"/>
 <area shape="poly" title=" " alt="" coords="3500,33,3290,169,3287,164,3498,29"/>
-<area shape="rect" href="GaugeFactory_8h.html" title=" " alt="" coords="6475,86,6729,111"/>
-<area shape="poly" title=" " alt="" coords="3569,17,4084,20,4923,30,5809,48,6183,60,6464,76,6516,82,6516,87,6463,81,6182,66,5809,53,4923,35,4084,26,3569,22"/>
+<area shape="rect" href="GaugeFactory_8h.html" title=" " alt="" coords="6602,86,6855,111"/>
+<area shape="poly" title=" " alt="" coords="3570,17,4105,20,4981,29,5906,47,6297,60,6590,76,6643,82,6642,87,6590,81,6296,65,5906,52,4981,34,4105,25,3570,22"/>
 <area shape="rect" href="ScanThemes_8h.html" title=" " alt="" coords="5,86,255,111"/>
 <area shape="poly" title=" " alt="" coords="3464,22,2903,25,1975,33,993,51,579,64,268,81,216,87,215,82,267,76,579,59,993,46,1975,28,2903,19,3464,17"/>
 <area shape="rect" href="PathToUtfString_8h.html" title=" " alt="" coords="279,86,466,111"/>
@@ -211,8 +213,6 @@ Include dependency graph for main.cpp:</div>
 <area shape="poly" title=" " alt="" coords="3464,23,2561,39,1986,56,1740,68,1550,81,1550,76,1740,63,1986,51,2561,33,3464,17"/>
 <area shape="rect" href="QStringToPath_8h.html" title=" " alt="" coords="701,86,879,111"/>
 <area shape="poly" title=" " alt="" coords="3464,22,2998,24,2252,31,1468,49,1138,63,890,81,856,86,855,81,890,76,1138,58,1468,44,2252,26,2998,18,3464,17"/>
-<area shape="rect" title=" " alt="" coords="6753,86,6832,111"/>
-<area shape="poly" title=" " alt="" coords="3570,17,4186,17,5181,24,5699,31,6164,42,6528,56,6656,66,6741,76,6754,79,6753,84,6740,81,6656,71,6527,62,6164,47,5699,36,5181,29,4186,23,3570,22"/>
 <area shape="rect" title=" " alt="" coords="854,174,945,199"/>
 <area shape="poly" title=" " alt="" coords="986,121,927,167,924,163,983,117"/>
 <area shape="rect" title=" " alt="" coords="1400,174,1564,199"/>
