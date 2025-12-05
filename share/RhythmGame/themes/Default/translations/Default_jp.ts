@@ -56,6 +56,19 @@
     </message>
 </context>
 <context>
+    <name>FastslowPopup</name>
+    <message>
+        <location filename="../scripts/gameplay/popups/FastslowPopup.qml" line="16"/>
+        <source>Enabled</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/gameplay/popups/FastslowPopup.qml" line="21"/>
+        <source>Image</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>GaugePopup</name>
     <message>
         <location filename="../scripts/gameplay/popups/GaugePopup.qml" line="17"/>
@@ -146,79 +159,79 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="214"/>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="229"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="215"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="230"/>
         <source>Normal;Mirror;Random;S-Random;R-Random;Random+;S-Random+</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="215"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="216"/>
         <source>Note Order Algorithm</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="230"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="231"/>
         <source>Note Order Algorithm P2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="246"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="247"/>
         <source>Off;Main;Start;Min;Max</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="247"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="248"/>
         <source>Hi-Speed Fix</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="262"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="263"/>
         <source>Off;Flip;Battle</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="263"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="264"/>
         <source>DP Options</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="278"/>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="310"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="279"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="311"/>
         <source>ASSISTED EASY;EASY;NORMAL;HARD;EXHARD;FC</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="279"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="280"/>
         <source>Gauge Type</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="293"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="294"/>
         <source>Exclusive;Best;Select to Under</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="294"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="295"/>
         <source>Gauge Mode</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="308"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="309"/>
         <source>Bottom Shiftable Gauge</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="323"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="324"/>
         <source>Audio Backend</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="335"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="336"/>
         <source>Audio Device</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="341"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="342"/>
         <source>Default</source>
         <translation type="unfinished"></translation>
     </message>
@@ -341,21 +354,23 @@
     </message>
     <message>
         <location filename="../scripts/settings/KeySettings.qml" line="217"/>
+        <location filename="../scripts/settings/KeySettings.qml" line="228"/>
         <source>DOWN</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../scripts/settings/KeySettings.qml" line="217"/>
+        <location filename="../scripts/settings/KeySettings.qml" line="224"/>
         <source>UP</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/KeySettings.qml" line="223"/>
+        <location filename="../scripts/settings/KeySettings.qml" line="232"/>
         <source>Configure</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/KeySettings.qml" line="235"/>
+        <location filename="../scripts/settings/KeySettings.qml" line="244"/>
         <source>Reset</source>
         <translation type="unfinished"></translation>
     </message>
@@ -376,22 +391,22 @@
 <context>
     <name>Login</name>
     <message>
-        <location filename="../scripts/select/Login.qml" line="68"/>
+        <location filename="../scripts/select/options/Login.qml" line="67"/>
         <source>Select Profile</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/select/Login.qml" line="182"/>
+        <location filename="../scripts/select/options/Login.qml" line="181"/>
         <source>Select Profiles</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/select/Login.qml" line="240"/>
+        <location filename="../scripts/select/options/Login.qml" line="239"/>
         <source>Single Mode</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/select/Login.qml" line="240"/>
+        <location filename="../scripts/select/options/Login.qml" line="239"/>
         <source>Battle Mode</source>
         <translation type="unfinished"></translation>
     </message>
@@ -399,22 +414,22 @@
 <context>
     <name>Main</name>
     <message>
-        <location filename="../scripts/main/Main.qml" line="108"/>
+        <location filename="../scripts/main/Main.qml" line="112"/>
         <source>Song Selection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/main/Main.qml" line="117"/>
+        <location filename="../scripts/main/Main.qml" line="121"/>
         <source>Settings</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/main/Main.qml" line="127"/>
+        <location filename="../scripts/main/Main.qml" line="131"/>
         <source>Attributions</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/main/Main.qml" line="137"/>
+        <location filename="../scripts/main/Main.qml" line="141"/>
         <source>Quit</source>
         <translation type="unfinished"></translation>
     </message>
@@ -530,32 +545,32 @@
 <context>
     <name>PlayOptionsBattle</name>
     <message>
-        <location filename="../scripts/select/playOptions/PlayOptionsBattle.qml" line="64"/>
+        <location filename="../scripts/select/options/PlayOptionsBattle.qml" line="64"/>
         <source>Note Order</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/select/playOptions/PlayOptionsBattle.qml" line="79"/>
+        <location filename="../scripts/select/options/PlayOptionsBattle.qml" line="79"/>
         <source>NORMAL;MIRROR;RANDOM;RANDOM+;S-RANDOM;S-RANDOM+;R-RANDOM</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/select/playOptions/PlayOptionsBattle.qml" line="99"/>
+        <location filename="../scripts/select/options/PlayOptionsBattle.qml" line="99"/>
         <source>Gauge Type</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/select/playOptions/PlayOptionsBattle.qml" line="109"/>
+        <location filename="../scripts/select/options/PlayOptionsBattle.qml" line="109"/>
         <source>Hi-Speed Fix</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/select/playOptions/PlayOptionsBattle.qml" line="123"/>
+        <location filename="../scripts/select/options/PlayOptionsBattle.qml" line="123"/>
         <source>ASSISTED EASY;EASY;NORMAL;HARD;EXHARD;FC</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/select/playOptions/PlayOptionsBattle.qml" line="136"/>
+        <location filename="../scripts/select/options/PlayOptionsBattle.qml" line="136"/>
         <source>MAIN BPM;START BPM;MAX BPM;MIN BPM;AVG BPM;OFF</source>
         <translation type="unfinished"></translation>
     </message>
@@ -563,48 +578,48 @@
 <context>
     <name>PlayOptionsSingle</name>
     <message>
-        <location filename="../scripts/select/playOptions/PlayOptionsSingle.qml" line="30"/>
+        <location filename="../scripts/select/options/PlayOptionsSingle.qml" line="30"/>
         <source>Note Order (P1)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/select/playOptions/PlayOptionsSingle.qml" line="47"/>
-        <location filename="../scripts/select/playOptions/PlayOptionsSingle.qml" line="74"/>
+        <location filename="../scripts/select/options/PlayOptionsSingle.qml" line="47"/>
+        <location filename="../scripts/select/options/PlayOptionsSingle.qml" line="74"/>
         <source>NORMAL;MIRROR;RANDOM;RANDOM+;S-RANDOM;S-RANDOM+;R-RANDOM</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/select/playOptions/PlayOptionsSingle.qml" line="60"/>
+        <location filename="../scripts/select/options/PlayOptionsSingle.qml" line="60"/>
         <source>Note Order (P2)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/select/playOptions/PlayOptionsSingle.qml" line="94"/>
+        <location filename="../scripts/select/options/PlayOptionsSingle.qml" line="94"/>
         <source>Gauge Type</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/select/playOptions/PlayOptionsSingle.qml" line="104"/>
+        <location filename="../scripts/select/options/PlayOptionsSingle.qml" line="104"/>
         <source>DP Options</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/select/playOptions/PlayOptionsSingle.qml" line="114"/>
+        <location filename="../scripts/select/options/PlayOptionsSingle.qml" line="114"/>
         <source>Hi-Speed Fix</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/select/playOptions/PlayOptionsSingle.qml" line="128"/>
+        <location filename="../scripts/select/options/PlayOptionsSingle.qml" line="128"/>
         <source>ASSISTED EASY;EASY;NORMAL;HARD;EXHARD;FC</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/select/playOptions/PlayOptionsSingle.qml" line="144"/>
+        <location filename="../scripts/select/options/PlayOptionsSingle.qml" line="144"/>
         <source>OFF;FLIP;BATTLE</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/select/playOptions/PlayOptionsSingle.qml" line="157"/>
+        <location filename="../scripts/select/options/PlayOptionsSingle.qml" line="157"/>
         <source>MAIN BPM;START BPM;MAX BPM;MIN BPM;AVG BPM;OFF</source>
         <translation type="unfinished"></translation>
     </message>
@@ -622,22 +637,22 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/PlayerSettings.qml" line="107"/>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="103"/>
         <source>Scores: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/PlayerSettings.qml" line="113"/>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="108"/>
         <source>Remove</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/PlayerSettings.qml" line="132"/>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="127"/>
         <source>Add profile</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/PlayerSettings.qml" line="151"/>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="146"/>
         <source>Edit Profile</source>
         <translation type="unfinished"></translation>
     </message>
@@ -676,22 +691,22 @@
 <context>
     <name>ScoreTargetSettingsBattle</name>
     <message>
-        <location filename="../scripts/select/playOptions/ScoreTargetSettingsBattle.qml" line="68"/>
+        <location filename="../scripts/select/options/ScoreTargetSettingsBattle.qml" line="68"/>
         <source>Score Target Type</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/select/playOptions/ScoreTargetSettingsBattle.qml" line="83"/>
+        <location filename="../scripts/select/options/ScoreTargetSettingsBattle.qml" line="83"/>
         <source>GRADE;BEST SCORE;LAST SCORE</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/select/playOptions/ScoreTargetSettingsBattle.qml" line="98"/>
+        <location filename="../scripts/select/options/ScoreTargetSettingsBattle.qml" line="98"/>
         <source>Target Grade</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/select/playOptions/ScoreTargetSettingsBattle.qml" line="123"/>
+        <location filename="../scripts/select/options/ScoreTargetSettingsBattle.qml" line="123"/>
         <source>MAX;MAX-;AAA;AAA-;AA;AA-;A;A-;B;C;D;E;F</source>
         <translation type="unfinished"></translation>
     </message>
@@ -699,22 +714,22 @@
 <context>
     <name>ScoreTargetSettingsSingle</name>
     <message>
-        <location filename="../scripts/select/playOptions/ScoreTargetSettingsSingle.qml" line="33"/>
+        <location filename="../scripts/select/options/ScoreTargetSettingsSingle.qml" line="33"/>
         <source>Score Target Type</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/select/playOptions/ScoreTargetSettingsSingle.qml" line="48"/>
+        <location filename="../scripts/select/options/ScoreTargetSettingsSingle.qml" line="48"/>
         <source>GRADE;BEST SCORE;LAST SCORE</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/select/playOptions/ScoreTargetSettingsSingle.qml" line="60"/>
+        <location filename="../scripts/select/options/ScoreTargetSettingsSingle.qml" line="60"/>
         <source>Target Grade</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/select/playOptions/ScoreTargetSettingsSingle.qml" line="84"/>
+        <location filename="../scripts/select/options/ScoreTargetSettingsSingle.qml" line="84"/>
         <source>MAX;MAX-;AAA;AAA-;AA;AA-;A;A-;B;C;D;E;F</source>
         <translation type="unfinished"></translation>
     </message>
@@ -778,32 +793,32 @@
 <context>
     <name>Settings</name>
     <message>
-        <location filename="../scripts/settings/Settings.qml" line="40"/>
+        <location filename="../scripts/settings/Settings.qml" line="35"/>
         <source>Player settings</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/Settings.qml" line="43"/>
+        <location filename="../scripts/settings/Settings.qml" line="38"/>
         <source>Song directories</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/Settings.qml" line="46"/>
+        <location filename="../scripts/settings/Settings.qml" line="41"/>
         <source>Tables</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/Settings.qml" line="49"/>
+        <location filename="../scripts/settings/Settings.qml" line="44"/>
         <source>Themes</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/Settings.qml" line="52"/>
+        <location filename="../scripts/settings/Settings.qml" line="47"/>
         <source>General Settings</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/Settings.qml" line="55"/>
+        <location filename="../scripts/settings/Settings.qml" line="50"/>
         <source>Key config</source>
         <translation type="unfinished"></translation>
     </message>
@@ -812,7 +827,7 @@
     <name>SongFolderSettings</name>
     <message>
         <location filename="../scripts/settings/SongFolderSettings.qml" line="27"/>
-        <location filename="../scripts/settings/SongFolderSettings.qml" line="94"/>
+        <location filename="../scripts/settings/SongFolderSettings.qml" line="93"/>
         <source>Add song folder</source>
         <translation type="unfinished"></translation>
     </message>
@@ -822,27 +837,27 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/SongFolderSettings.qml" line="73"/>
+        <location filename="../scripts/settings/SongFolderSettings.qml" line="72"/>
         <source>Remove</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/SongFolderSettings.qml" line="80"/>
+        <location filename="../scripts/settings/SongFolderSettings.qml" line="79"/>
         <source>Scan</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/SongFolderSettings.qml" line="102"/>
+        <location filename="../scripts/settings/SongFolderSettings.qml" line="101"/>
         <source>Scan all</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/SongFolderSettings.qml" line="125"/>
+        <location filename="../scripts/settings/SongFolderSettings.qml" line="124"/>
         <source>Scanning queue</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/SongFolderSettings.qml" line="159"/>
+        <location filename="../scripts/settings/SongFolderSettings.qml" line="158"/>
         <source>Cancel</source>
         <translation type="unfinished"></translation>
     </message>
@@ -893,22 +908,22 @@
 <context>
     <name>TableSettings</name>
     <message>
-        <location filename="../scripts/settings/TableSettings.qml" line="160"/>
+        <location filename="../scripts/settings/TableSettings.qml" line="154"/>
         <source>Reload</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/TableSettings.qml" line="167"/>
+        <location filename="../scripts/settings/TableSettings.qml" line="161"/>
         <source>Remove</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/TableSettings.qml" line="228"/>
+        <location filename="../scripts/settings/TableSettings.qml" line="222"/>
         <source>Add table</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/TableSettings.qml" line="238"/>
+        <location filename="../scripts/settings/TableSettings.qml" line="232"/>
         <source>Add</source>
         <translation type="unfinished"></translation>
     </message>
