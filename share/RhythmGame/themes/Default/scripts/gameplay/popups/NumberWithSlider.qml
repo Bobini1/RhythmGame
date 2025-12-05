@@ -48,8 +48,8 @@ Row {
         IntValidator {
             id: intRange
         }
-        from: (numberWithSlider.bottom === -Infinity ? intRange.bottom : numberWithSlider.from) * 10 ** numberWithSlider.decimals
-        to: (numberWithSlider.to === Infinity ? intRange.top : numberWithSlider.to) * 10 ** numberWithSlider.decimals
+        from: numberWithSlider.bottom === -Infinity ? intRange.bottom : numberWithSlider.from * 10 ** numberWithSlider.decimals
+        to: numberWithSlider.to === Infinity ? intRange.top : numberWithSlider.to * 10 ** numberWithSlider.decimals
         stepSize: 1
         onValueModified: {
             src[numberWithSlider.prop] = value * 10 ** -numberWithSlider.decimals;
