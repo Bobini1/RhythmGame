@@ -74,22 +74,19 @@ Item {
                         implicitWidth: 300
                         implicitHeight: tableUrl.implicitHeight
                         Layout.fillWidth: true
-                        TextEdit {
+                        Label {
                             id: tableUrl
-                            readOnly: true
                             wrapMode: TextEdit.Wrap
                             text: dragArea.display.url
                             width: Math.min(implicitWidth, parent.width)
-                            color: content.highlighted ? palette.brightText : palette.text
                         }
                     }
                     Item {
                         implicitWidth: 100
                         implicitHeight: tableName.implicitHeight
                         Layout.fillWidth: true
-                        TextEdit {
+                        Label {
                             id: tableName
-                            readOnly: true
                             wrapMode: TextEdit.Wrap
                             text: dragArea.display.name
                             width: Math.min(implicitWidth, parent.width)
