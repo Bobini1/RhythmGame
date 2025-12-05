@@ -9,8 +9,9 @@ Popup {
 
     closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
     focus: true
-    height: Math.min(500, column.contentHeight + padding * 2)
-    width: 520 + padding * 2
+    // No idea where the +40 comes from. Padding, margins?
+    implicitHeight: Math.min(500, column.contentHeight + 40)
+    implicitWidth: 520 + padding * 2
     padding: 2
     property alias model: column.model
 
