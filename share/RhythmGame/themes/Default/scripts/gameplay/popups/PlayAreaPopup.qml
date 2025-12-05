@@ -18,7 +18,8 @@ GameplayPopup {
             prop: "offset"
             text: qsTr("Offset")
             to: 15
-            decimals: 1
+            decimals: 0
+            enforceRange: false
         }
         NumberWithSlider {
             from: -10

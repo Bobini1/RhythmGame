@@ -10,6 +10,7 @@ Row {
     property alias from: slider.from
     required property var src
     property real decimals: to <= 1 ? 1 : 0
+    property bool enforceRange: true
     height: 40
     spacing: 10
 
@@ -48,8 +49,8 @@ Row {
         IntValidator {
             id: intRange
         }
-        from: numberWithSlider.bottom === -Infinity ? intRange.bottom : numberWithSlider.from * 10 ** numberWithSlider.decimals
-        to: numberWithSlider.to === Infinity ? intRange.top : numberWithSlider.to * 10 ** numberWithSlider.decimals
+        from: (numberWithSlider.bottom === -Infinity || !numberWithSlider.enforceRange) ? intRange.bottom : numberWithSlider.from * 10 ** numberWithSlider.decimals
+        to: (numberWithSlider.to === Infinity || !numberWithSlider.enforceRange) ? intRange.top : numberWithSlider.to * 10 ** numberWithSlider.decimals
         stepSize: 1
         onValueModified: {
             src[numberWithSlider.prop] = value * 10 ** -numberWithSlider.decimals;
