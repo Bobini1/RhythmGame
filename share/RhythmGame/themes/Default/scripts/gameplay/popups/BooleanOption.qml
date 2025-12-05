@@ -8,7 +8,7 @@ Row {
     required property string prop
     property string description: prop
     required property var src
-    height: 40
+    height: Math.max(40, checkBox.implicitHeight)
     spacing: 10
 
     Text {
