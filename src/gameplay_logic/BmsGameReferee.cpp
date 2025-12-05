@@ -144,6 +144,9 @@ gameplay_logic::BmsGameReferee::getBpm(std::chrono::nanoseconds offsetFromStart)
       [](const std::chrono::nanoseconds& offset, const auto& change) {
           return offset < change.first.timestamp;
       });
+    if (bpmChange == bpmChanges.begin()) {
+        return *bpmChange;
+    }
     --bpmChange;
     return *bpmChange;
 }
