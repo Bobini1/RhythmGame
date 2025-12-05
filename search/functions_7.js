@@ -9,5 +9,6 @@ var searchData=
   ['hispeedfixchanged_6',['hiSpeedFixChanged',['../classresource__managers_1_1GeneralVars.html#a6572a0aa8d623ef2eba83a085086b252',1,'resource_managers::GeneralVars']]],
   ['hit_7',['hit',['../classgameplay__logic_1_1BmsLiveScore.html#abda9695362e5a6deced675d1a380787f',1,'gameplay_logic::BmsLiveScore']]],
   ['hitevent_8',['hitevent',['../classgameplay__logic_1_1HitEvent.html#af6d17839be177ae3d80f95d08c3c218e',1,'gameplay_logic::HitEvent::HitEvent(int column, std::optional&lt; int &gt; noteIndex, DeltaTime offsetFromStart, std::optional&lt; BmsPoints &gt; points, Action action, bool noteRemoved)'],['../classgameplay__logic_1_1HitEvent.html#aef68d52abaf637b15e01656efd021889',1,'gameplay_logic::HitEvent::HitEvent()=default']]],
-  ['hitrules_9',['HitRules',['../classgameplay__logic_1_1rules_1_1HitRules.html#a94323ec44ab8153918f1437510e678a2',1,'gameplay_logic::rules::HitRules']]]
+  ['hiteventschanged_9',['hitEventsChanged',['../classqml__components_1_1ScoreReplayer.html#aecf5ffe7765183127f811aaf9ef7b74a',1,'qml_components::ScoreReplayer']]],
+  ['hitrules_10',['HitRules',['../classgameplay__logic_1_1rules_1_1HitRules.html#a94323ec44ab8153918f1437510e678a2',1,'gameplay_logic::rules::HitRules']]]
 ];

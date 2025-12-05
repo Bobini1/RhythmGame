@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['elapsedchanged_0',['elapsedChanged',['../classgameplay__logic_1_1Player.html#a23bae74e1e80cdc69505e36d9201caa4',1,'gameplay_logic::Player']]],
+  ['elapsedchanged_0',['elapsedchanged',['../classgameplay__logic_1_1Player.html#a23bae74e1e80cdc69505e36d9201caa4',1,'gameplay_logic::Player::elapsedChanged()'],['../classqml__components_1_1ScoreReplayer.html#a9cdb7a281f8d21926f02fde2d56d8461',1,'qml_components::ScoreReplayer::elapsedChanged()']]],
   ['eventfilter_1',['eventFilter',['../classinput_1_1InputTranslator.html#a16f3fabf41a8463c036dd04357265325',1,'input::InputTranslator']]],
   ['exbpm_2',['exbpm',['../structcharts_1_1ExBpm.html#aaede0db08129fdabf978a20d47080f93',1,'charts::ExBpm::ExBpm(pair_t t_) noexcept(std::is_nothrow_move_constructible&lt; pair_t &gt;::value)'],['../structcharts_1_1ExBpm.html#a52f04833467e07603a358a65756f05af',1,'charts::ExBpm::ExBpm() noexcept(std::is_nothrow_constructible&lt; pair_t &gt;::value)'],['../structcharts_1_1ExBpm.html#ab6400ae027a5ad4b1aae2c9412f88487',1,'charts::ExBpm::ExBpm(const ExBpm &amp;t_)'],['../structcharts_1_1ExBpm.html#aaf458b127a00b5ded543794115cadf3f',1,'charts::ExBpm::ExBpm(ExBpm &amp;&amp;t_) noexcept(std::is_nothrow_move_constructible&lt; pair_t &gt;::value)']]],
   ['exception_3',['Exception',['../classsupport_1_1Exception.html#a2bdaec452b04b466aa55d7f3574da3a7',1,'support::Exception']]],

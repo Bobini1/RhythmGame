@@ -16,13 +16,14 @@ var searchData=
   ['history_13',['history',['../classqml__components_1_1Logger.html#a8758fbb934deffc7126f7d179d6ed51e',1,'qml_components::Logger']]],
   ['hit_14',['hit',['../structgameplay__logic_1_1rules_1_1HitRules_1_1Note.html#a3d8c3b677253420876865922dafc9641',1,'gameplay_logic::rules::HitRules::Note::hit'],['../structgameplay__logic_1_1rules_1_1HitRules_1_1Mine.html#a7619c605337f39c4d868d557fd414348',1,'gameplay_logic::rules::HitRules::Mine::hit'],['../classgameplay__logic_1_1BmsLiveScore.html#abda9695362e5a6deced675d1a380787f',1,'gameplay_logic::BmsLiveScore::hit()']]],
   ['hitdata_15',['hitData',['../classgameplay__logic_1_1NoteState.html#a46bb6808108ce09990913fd3126336d8',1,'gameplay_logic::NoteState']]],
-  ['hitevent_16',['hitevent',['../classgameplay__logic_1_1HitEvent.html#af6d17839be177ae3d80f95d08c3c218e',1,'gameplay_logic::HitEvent::HitEvent()'],['../classgameplay__logic_1_1HitEvent.html',1,'gameplay_logic::HitEvent'],['../classgameplay__logic_1_1HitEvent.html#aef68d52abaf637b15e01656efd021889',1,'gameplay_logic::HitEvent::HitEvent()']]],
+  ['hitevent_16',['hitevent',['../classgameplay__logic_1_1HitEvent.html#aef68d52abaf637b15e01656efd021889',1,'gameplay_logic::HitEvent::HitEvent()'],['../classgameplay__logic_1_1HitEvent.html',1,'gameplay_logic::HitEvent'],['../classgameplay__logic_1_1HitEvent.html#af6d17839be177ae3d80f95d08c3c218e',1,'gameplay_logic::HitEvent::HitEvent()']]],
   ['hitevent_2ecpp_17',['HitEvent.cpp',['../HitEvent_8cpp.html',1,'']]],
   ['hitevent_2eh_18',['HitEvent.h',['../HitEvent_8h.html',1,'']]],
-  ['hitevents_19',['hitevents',['../classgameplay__logic_1_1BmsReplayData.html#a51eb2b090ac2f5d5391a8d7ce9a2de58',1,'gameplay_logic::BmsReplayData::hitEvents'],['../structgameplay__logic_1_1BmsReplayData_1_1DTO.html#ac0bfc242e8e7f8a2dd37875429bcc18a',1,'gameplay_logic::BmsReplayData::DTO::hitEvents']]],
-  ['hitoffset_20',['hitOffset',['../classgameplay__logic_1_1HitEvent.html#ad31e1e7d8f121d4c5290e4766341e086',1,'gameplay_logic::HitEvent']]],
-  ['hitrules_21',['hitrules',['../structresource__managers_1_1ChartFactory_1_1PlayerSpecificData.html#aec799d8ebd20f59db7b93b89dbe76de6',1,'resource_managers::ChartFactory::PlayerSpecificData::hitRules'],['../classgameplay__logic_1_1rules_1_1HitRules.html#a94323ec44ab8153918f1437510e678a2',1,'gameplay_logic::rules::HitRules::HitRules()'],['../classgameplay__logic_1_1rules_1_1HitRules.html',1,'gameplay_logic::rules::HitRules']]],
-  ['hitrules_2ecpp_22',['HitRules.cpp',['../HitRules_8cpp.html',1,'']]],
-  ['hitrules_2eh_23',['HitRules.h',['../HitRules_8h.html',1,'']]],
-  ['hitvaluefactory_24',['HitValueFactory',['../classqml__components_1_1ChartLoader.html#a482312280c7632a3dde1160caf4e0f8f',1,'qml_components::ChartLoader']]]
+  ['hitevents_19',['hitevents',['../classgameplay__logic_1_1BmsReplayData.html#a51eb2b090ac2f5d5391a8d7ce9a2de58',1,'gameplay_logic::BmsReplayData::hitEvents'],['../structgameplay__logic_1_1BmsReplayData_1_1DTO.html#ac0bfc242e8e7f8a2dd37875429bcc18a',1,'gameplay_logic::BmsReplayData::DTO::hitEvents'],['../classqml__components_1_1ScoreReplayer.html#a3b27ffeaac3697079793f9814607f902',1,'qml_components::ScoreReplayer::hitEvents']]],
+  ['hiteventschanged_20',['hitEventsChanged',['../classqml__components_1_1ScoreReplayer.html#aecf5ffe7765183127f811aaf9ef7b74a',1,'qml_components::ScoreReplayer']]],
+  ['hitoffset_21',['hitOffset',['../classgameplay__logic_1_1HitEvent.html#ad31e1e7d8f121d4c5290e4766341e086',1,'gameplay_logic::HitEvent']]],
+  ['hitrules_22',['hitrules',['../structresource__managers_1_1ChartFactory_1_1PlayerSpecificData.html#aec799d8ebd20f59db7b93b89dbe76de6',1,'resource_managers::ChartFactory::PlayerSpecificData::hitRules'],['../classgameplay__logic_1_1rules_1_1HitRules.html#a94323ec44ab8153918f1437510e678a2',1,'gameplay_logic::rules::HitRules::HitRules()'],['../classgameplay__logic_1_1rules_1_1HitRules.html',1,'gameplay_logic::rules::HitRules']]],
+  ['hitrules_2ecpp_23',['HitRules.cpp',['../HitRules_8cpp.html',1,'']]],
+  ['hitrules_2eh_24',['HitRules.h',['../HitRules_8h.html',1,'']]],
+  ['hitvaluefactory_25',['HitValueFactory',['../classqml__components_1_1ChartLoader.html#a482312280c7632a3dde1160caf4e0f8f',1,'qml_components::ChartLoader']]]
 ];

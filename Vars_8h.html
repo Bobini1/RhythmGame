@@ -82,6 +82,7 @@ $(function() {
 <div class="contents">
 <div class="textblock"><code>#include &quot;<a class="el" href="ThemeFamily_8h_source.html">qml_components/ThemeFamily.h</a>&quot;</code><br />
 <code>#include &lt;QObject&gt;</code><br />
+<code>#include &lt;QThreadPool&gt;</code><br />
 <code>#include &lt;QQmlPropertyMap&gt;</code><br />
 <code>#include &lt;filesystem&gt;</code><br />
 <code>#include &lt;QLocale&gt;</code><br />
@@ -90,17 +91,19 @@ Include dependency graph for Vars.h:</div>
 <div class="dyncontent">
 <div class="center"><img src="Vars_8h__incl.png" border="0" usemap="#asrc_2resource__managers_2Vars_8h" alt=""/></div>
 <map name="asrc_2resource__managers_2Vars_8h" id="asrc_2resource__managers_2Vars_8h">
-<area shape="rect" title=" " alt="" coords="349,5,522,45"/>
+<area shape="rect" title=" " alt="" coords="403,5,577,45"/>
 <area shape="rect" href="ThemeFamily_8h.html" title=" " alt="" coords="5,93,241,119"/>
-<area shape="poly" title=" " alt="" coords="361,48,183,93,181,87,360,43"/>
+<area shape="poly" title=" " alt="" coords="404,48,190,93,189,88,403,43"/>
 <area shape="rect" title=" " alt="" coords="265,93,339,119"/>
-<area shape="poly" title=" " alt="" coords="405,48,335,89,332,84,402,43"/>
-<area shape="rect" title=" " alt="" coords="364,93,507,119"/>
-<area shape="poly" title=" " alt="" coords="438,46,438,79,433,79,433,46"/>
-<area shape="rect" title=" " alt="" coords="531,93,622,119"/>
-<area shape="poly" title=" " alt="" coords="470,43,545,84,542,89,468,48"/>
-<area shape="rect" title=" " alt="" coords="646,93,721,119"/>
-<area shape="poly" title=" " alt="" coords="496,43,635,87,633,92,494,48"/>
+<area shape="poly" title=" " alt="" coords="446,48,343,90,341,85,444,43"/>
+<area shape="rect" title=" " alt="" coords="364,93,469,119"/>
+<area shape="poly" title=" " alt="" coords="474,47,439,85,435,81,470,44"/>
+<area shape="rect" title=" " alt="" coords="493,93,636,119"/>
+<area shape="poly" title=" " alt="" coords="510,44,546,81,542,85,506,47"/>
+<area shape="rect" title=" " alt="" coords="661,93,751,119"/>
+<area shape="poly" title=" " alt="" coords="543,43,662,86,661,91,541,48"/>
+<area shape="rect" title=" " alt="" coords="775,93,850,119"/>
+<area shape="poly" title=" " alt="" coords="568,43,762,90,761,95,567,48"/>
 <area shape="rect" title=" " alt="" coords="53,167,113,192"/>
 <area shape="poly" title=" " alt="" coords="119,120,99,156,94,153,114,118"/>
 <area shape="rect" title=" " alt="" coords="138,167,189,192"/>
@@ -245,6 +248,8 @@ Namespaces</h2></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:namespaceresource__managers_1_1gauge__mode" id="r_namespaceresource__managers_1_1gauge__mode"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceresource__managers_1_1gauge__mode.html">resource_managers::gauge_mode</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:namespaceresource__managers_1_1score__target" id="r_namespaceresource__managers_1_1score__target"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceresource__managers_1_1score__target.html">resource_managers::score_target</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="enum-members" name="enum-members"></a>
 Enumerations</h2></td></tr>
@@ -281,6 +286,11 @@ Enumerations</h2></td></tr>
 , <a class="el" href="namespaceresource__managers_1_1gauge__mode.html#ac121e2691e7e4d13551d18c7618e8d73a7e10afd9d6a85d5306c5e9430e871426">resource_managers::gauge_mode::SelectToUnder</a>
  }</td></tr>
 <tr class="separator:ac121e2691e7e4d13551d18c7618e8d73"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1e47ea936dfffa6b54a61168ef29c344" id="r_a1e47ea936dfffa6b54a61168ef29c344"><td class="memItemLeft" align="right" valign="top">enum class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceresource__managers_1_1score__target.html#a1e47ea936dfffa6b54a61168ef29c344">resource_managers::score_target::ScoreTarget</a> { <a class="el" href="namespaceresource__managers_1_1score__target.html#a1e47ea936dfffa6b54a61168ef29c344aef993538f3968e9d1f6c9d19a3d6cfae">resource_managers::score_target::Fraction</a>
+, <a class="el" href="namespaceresource__managers_1_1score__target.html#a1e47ea936dfffa6b54a61168ef29c344a27b8f7be31c86dd3518d04d8e25a11f0">resource_managers::score_target::BestScore</a>
+, <a class="el" href="namespaceresource__managers_1_1score__target.html#a1e47ea936dfffa6b54a61168ef29c344acf1c9e8a11956cdce51940aa078c5f7b">resource_managers::score_target::LastScore</a>
+ }</td></tr>
+<tr class="separator:a1e47ea936dfffa6b54a61168ef29c344"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 </div><!-- contents -->
 <!-- start footer part -->

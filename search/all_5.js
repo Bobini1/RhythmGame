@@ -1,8 +1,8 @@
 var searchData=
 [
   ['easy_0',['Easy',['../namespacegameplay__logic_1_1rules.html#a702e8cfe431caa24d5bbe3246185f65ba7f943921724d63dc0ac9c6febf99fa88',1,'gameplay_logic::rules']]],
-  ['elapsed_1',['elapsed',['../classgameplay__logic_1_1Player.html#a827f25e24732120ecec5cabfacf24757',1,'gameplay_logic::Player']]],
-  ['elapsedchanged_2',['elapsedChanged',['../classgameplay__logic_1_1Player.html#a23bae74e1e80cdc69505e36d9201caa4',1,'gameplay_logic::Player']]],
+  ['elapsed_1',['elapsed',['../classgameplay__logic_1_1Player.html#a827f25e24732120ecec5cabfacf24757',1,'gameplay_logic::Player::elapsed'],['../classqml__components_1_1ScoreReplayer.html#adac1b25cacec85e05ecca250653cccf2',1,'qml_components::ScoreReplayer::elapsed']]],
+  ['elapsedchanged_2',['elapsedchanged',['../classgameplay__logic_1_1Player.html#a23bae74e1e80cdc69505e36d9201caa4',1,'gameplay_logic::Player::elapsedChanged()'],['../classqml__components_1_1ScoreReplayer.html#a9cdb7a281f8d21926f02fde2d56d8461',1,'qml_components::ScoreReplayer::elapsedChanged()']]],
   ['emptypoor_3',['EmptyPoor',['../namespacegameplay__logic_1_1judgement.html#a4dd73363d266a4e4aa41782d0e02b6e6a9c9c3feaea777749aba6bfc36d5259f7',1,'gameplay_logic::judgement']]],
   ['emptypoorcount_4',['emptyPoorCount',['../structgameplay__logic_1_1BmsResult_1_1DTO.html#aefa0c794eb28efc409e99588142042ef',1,'gameplay_logic::BmsResult::DTO']]],
   ['enablesharedfrombase_5',['EnableSharedFromBase',['../classsupport_1_1EnableSharedFromBase.html',1,'support']]],
@@ -10,8 +10,8 @@ var searchData=
   ['enablesharedfrombase_2eh_7',['EnableSharedFromBase.h',['../EnableSharedFromBase_8h.html',1,'']]],
   ['engine_8',['engine',['../classsounds_1_1AudioPlayer.html#a20bb4880b11074e892a225dc52cbacc1',1,'sounds::AudioPlayer']]],
   ['engine_20development_9',['Engine Development',['../md_DEV__ENGINE.html',1,'']]],
-  ['entries_10',['entries',['../structresource__managers_1_1Level.html#a644067b38d4de3952257601279bf10a8',1,'resource_managers::Level::entries'],['../structresource__managers_1_1Level.html#a74917f1c772d4ee80ff14b74e9c7680e',1,'resource_managers::Level::entries']]],
-  ['entry_11',['entry',['../structresource__managers_1_1Entry.html',1,'resource_managers::Entry'],['../structresource__managers_1_1TableInfo.html#a54ccdf1703d3d4d50cf8eb8e871a9147',1,'resource_managers::TableInfo::entry']]],
+  ['entries_10',['entries',['../structresource__managers_1_1Level.html#a74917f1c772d4ee80ff14b74e9c7680e',1,'resource_managers::Level::entries'],['../structresource__managers_1_1Level.html#a644067b38d4de3952257601279bf10a8',1,'resource_managers::Level::entries']]],
+  ['entry_11',['entry',['../structresource__managers_1_1TableInfo.html#a54ccdf1703d3d4d50cf8eb8e871a9147',1,'resource_managers::TableInfo::entry'],['../structresource__managers_1_1Entry.html',1,'resource_managers::Entry']]],
   ['error_12',['Error',['../structresource__managers_1_1Table.html#aff2d8fb1dbb9e6d6af0f8fc60dcd10b2a4c39ec4ded2807d26e67703cc0ffa72a',1,'resource_managers::Table']]],
   ['eventfilter_13',['eventFilter',['../classinput_1_1InputTranslator.html#a16f3fabf41a8463c036dd04357265325',1,'input::InputTranslator']]],
   ['eventtype_14',['EventType',['../classgameplay__logic_1_1ChartRunner.html#af0f679d67348402a76ef38b12cc47dae',1,'gameplay_logic::ChartRunner']]],
