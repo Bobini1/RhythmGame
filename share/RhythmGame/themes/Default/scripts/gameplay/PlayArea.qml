@@ -178,7 +178,7 @@ Item {
 
             anchors.bottom: judgeLine.bottom
             opacity: {
-                let pos = Math.abs(playArea.player.position % 1);
+                let pos = Math.abs(playArea.position % 1);
                 return (pos > 0.5 ? pos : 1 - pos) * 0.2 + 0.1;
             }
             source: root.imagesUrl + "glow/" + playArea.vars.glow
