@@ -79,41 +79,44 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><code>#include &quot;<a class="el" href="CustomNotifyApp_8h_source.html">CustomNotifyApp.h</a>&quot;</code><br />
+<code>#include &lt;spdlog/spdlog.h&gt;</code><br />
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for CustomNotifyApp.cpp:</div>
 <div class="dyncontent">
 <div class="center"><img src="CustomNotifyApp_8cpp__incl.png" border="0" usemap="#asrc_2input_2CustomNotifyApp_8cpp" alt=""/></div>
 <map name="asrc_2input_2CustomNotifyApp_8cpp" id="asrc_2input_2CustomNotifyApp_8cpp">
-<area shape="rect" title=" " alt="" coords="355,5,578,31"/>
-<area shape="rect" href="CustomNotifyApp_8h.html" title=" " alt="" coords="393,79,541,104"/>
-<area shape="poly" title=" " alt="" coords="469,31,469,65,464,65,464,31"/>
-<area shape="rect" href="InputTranslator_8h.html" title=" " alt="" coords="325,152,456,177"/>
-<area shape="poly" title=" " alt="" coords="456,106,415,144,411,141,453,102"/>
-<area shape="rect" title=" " alt="" coords="481,152,607,177"/>
-<area shape="poly" title=" " alt="" coords="481,102,523,141,519,144,477,106"/>
-<area shape="rect" href="BmsKeys_8h.html" title=" " alt="" coords="14,225,109,251"/>
-<area shape="poly" title=" " alt="" coords="338,180,122,226,121,221,337,175"/>
-<area shape="rect" title=" " alt="" coords="5,299,80,324"/>
-<area shape="poly" title=" " alt="" coords="339,180,266,200,188,228,125,260,72,293,69,288,122,256,186,223,265,195,338,175"/>
-<area shape="rect" href="GamepadManager_8h.html" title=" " alt="" coords="199,225,353,251"/>
-<area shape="poly" title=" " alt="" coords="374,180,308,220,305,216,371,175"/>
-<area shape="rect" title=" " alt="" coords="519,299,606,324"/>
-<area shape="poly" title=" " alt="" coords="394,177,399,212,407,232,418,249,433,260,456,271,512,292,510,297,454,276,430,264,414,253,402,234,394,214,388,178"/>
-<area shape="rect" title=" " alt="" coords="428,225,521,251"/>
-<area shape="poly" title=" " alt="" coords="406,175,452,214,449,218,402,179"/>
-<area shape="rect" title=" " alt="" coords="546,225,625,251"/>
-<area shape="poly" title=" " alt="" coords="423,175,542,218,540,223,421,180"/>
-<area shape="rect" title=" " alt="" coords="649,225,871,251"/>
-<area shape="poly" title=" " alt="" coords="451,175,687,220,686,225,450,180"/>
-<area shape="poly" title=" " alt="" coords="61,252,52,286,47,285,56,250"/>
-<area shape="poly" title=" " alt="" coords="239,253,94,297,92,292,238,248"/>
-<area shape="rect" title=" " alt="" coords="105,299,175,324"/>
-<area shape="poly" title=" " alt="" coords="255,253,175,295,173,290,253,248"/>
-<area shape="rect" title=" " alt="" coords="199,299,363,324"/>
-<area shape="poly" title=" " alt="" coords="280,251,282,285,277,285,274,251"/>
-<area shape="rect" title=" " alt="" coords="388,299,495,324"/>
-<area shape="poly" title=" " alt="" coords="304,248,403,291,401,296,302,253"/>
-<area shape="poly" title=" " alt="" coords="323,248,507,293,505,299,321,253"/>
+<area shape="rect" title=" " alt="" coords="453,5,676,31"/>
+<area shape="rect" href="CustomNotifyApp_8h.html" title=" " alt="" coords="411,79,559,104"/>
+<area shape="poly" title=" " alt="" coords="554,33,510,72,506,68,550,29"/>
+<area shape="rect" title=" " alt="" coords="583,79,707,104"/>
+<area shape="poly" title=" " alt="" coords="579,29,623,68,620,72,576,33"/>
+<area shape="rect" href="InputTranslator_8h.html" title=" " alt="" coords="343,152,474,177"/>
+<area shape="poly" title=" " alt="" coords="474,106,433,144,429,141,471,102"/>
+<area shape="rect" title=" " alt="" coords="499,152,625,177"/>
+<area shape="poly" title=" " alt="" coords="499,102,541,141,537,144,495,106"/>
+<area shape="rect" href="BmsKeys_8h.html" title=" " alt="" coords="5,225,100,251"/>
+<area shape="poly" title=" " alt="" coords="352,180,114,227,113,222,351,175"/>
+<area shape="rect" title=" " alt="" coords="15,299,90,324"/>
+<area shape="poly" title=" " alt="" coords="344,177,256,195,209,209,165,228,115,258,76,291,73,287,112,254,162,223,208,204,255,190,343,172"/>
+<area shape="rect" href="GamepadManager_8h.html" title=" " alt="" coords="176,225,329,251"/>
+<area shape="poly" title=" " alt="" coords="385,180,292,222,290,217,383,175"/>
+<area shape="rect" title=" " alt="" coords="392,299,479,324"/>
+<area shape="poly" title=" " alt="" coords="405,179,395,211,392,231,395,250,404,269,417,287,413,290,400,272,390,251,387,231,389,210,400,177"/>
+<area shape="rect" title=" " alt="" coords="405,225,498,251"/>
+<area shape="poly" title=" " alt="" coords="418,176,440,212,435,215,413,179"/>
+<area shape="rect" title=" " alt="" coords="523,225,601,251"/>
+<area shape="poly" title=" " alt="" coords="434,175,526,217,524,222,432,180"/>
+<area shape="rect" title=" " alt="" coords="625,225,696,251"/>
+<area shape="poly" title=" " alt="" coords="450,175,613,220,611,226,448,180"/>
+<area shape="rect" title=" " alt="" coords="720,225,943,251"/>
+<area shape="poly" title=" " alt="" coords="475,174,750,220,750,226,474,180"/>
+<area shape="poly" title=" " alt="" coords="55,251,55,285,50,285,50,251"/>
+<area shape="poly" title=" " alt="" coords="221,253,99,296,98,291,220,248"/>
+<area shape="rect" title=" " alt="" coords="115,299,279,324"/>
+<area shape="poly" title=" " alt="" coords="246,253,216,289,212,286,241,249"/>
+<area shape="poly" title=" " alt="" coords="283,248,394,291,392,296,281,253"/>
+<area shape="rect" title=" " alt="" coords="303,299,367,324"/>
+<area shape="poly" title=" " alt="" coords="268,249,313,287,310,292,264,253"/>
 </map>
 </div>
 </div><table class="memberdecls">

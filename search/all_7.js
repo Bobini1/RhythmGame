@@ -4,7 +4,7 @@ var searchData=
   ['gamepad_1',['gamepad',['../classinput_1_1Key.html#a802652a68e36fe02d7339e0c9624ebd6',1,'input::Key::gamepad'],['../structinput_1_1GamepadAxisConfig.html#a33c120de0d560335f39b4fb8c0867c10',1,'input::GamepadAxisConfig::gamepad'],['../classinput_1_1Gamepad.html',1,'input::Gamepad']]],
   ['gamepadadded_2',['gamepadAdded',['../classinput_1_1GamepadManager.html#a3fc44016d818d88ca67cfdee3f0716d2',1,'input::GamepadManager']]],
   ['gamepadaxisconfig_3',['GamepadAxisConfig',['../structinput_1_1GamepadAxisConfig.html',1,'input']]],
-  ['gamepadmanager_4',['gamepadmanager',['../classinput_1_1GamepadManager.html',1,'input::GamepadManager'],['../classinput_1_1GamepadManager.html#acaf284d380314fb12304d261152a2722',1,'input::GamepadManager::GamepadManager()'],['../classRg.html#a753e54c5d20933783903c26cf9a5089f',1,'Rg::gamepadManager']]],
+  ['gamepadmanager_4',['gamepadmanager',['../classinput_1_1GamepadManager.html',1,'input::GamepadManager'],['../classRg.html#a753e54c5d20933783903c26cf9a5089f',1,'Rg::gamepadManager'],['../classinput_1_1GamepadManager.html#acaf284d380314fb12304d261152a2722',1,'input::GamepadManager::GamepadManager()']]],
   ['gamepadmanager_2ecpp_5',['GamepadManager.cpp',['../GamepadManager_8cpp.html',1,'']]],
   ['gamepadmanager_2eh_6',['GamepadManager.h',['../GamepadManager_8h.html',1,'']]],
   ['gamepadremoved_7',['gamepadRemoved',['../classinput_1_1GamepadManager.html#a1c054ba0efdbb70d6eeb6859dd55fcf5',1,'input::GamepadManager']]],
