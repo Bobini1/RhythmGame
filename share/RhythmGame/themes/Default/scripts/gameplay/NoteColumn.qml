@@ -17,6 +17,7 @@ Item {
     required property real heightMultiplier
     required property real noteHeight
     required property bool hideLnEnds
+    required property real liftRatio
 
     onPositionChanged: {
         let top = column.height / column.heightMultiplier;

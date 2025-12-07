@@ -24,6 +24,7 @@ Item {
     required property string mineImage
     required property real position
     required property bool hideLnEnds
+    required property real liftRatio
 
     width: notesRow.width
 
@@ -66,6 +67,7 @@ Item {
                 hideLnEnds: playfield.hideLnEnds
                 width: playfield.columnSizes[playfield.columns[index]]
                 position: playfield.position
+                liftRatio: playfield.liftRatio
             }
         }
     }

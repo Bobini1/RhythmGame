@@ -128,6 +128,7 @@ Item {
             mineImage: playArea.vars.mine
             hideLnEnds: playArea.vars.hideLnEnds
             position: playArea.position
+            liftRatio: playArea.generalVars.liftOn * playArea.generalVars.liftRatio
             z: 4
         }
         Row {
