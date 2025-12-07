@@ -290,6 +290,7 @@ Rectangle {
             text: "fps: " + frameAnimation.fps.toFixed(0)
             anchors.top: parent.top
             anchors.right: parent.right
+            textFormat: Text.PlainText
         }
 
         FrameAnimation {
