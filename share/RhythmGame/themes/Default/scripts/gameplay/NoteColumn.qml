@@ -63,7 +63,7 @@ Item {
 
                 y: (shouldShowStatic ? -column.position : -display.note.time.position) * column.heightMultiplier -column.noteHeight / 3
                 width: column.width
-                z: display.index
+                z: -index
 
                 Image {
                     id: noteImg
