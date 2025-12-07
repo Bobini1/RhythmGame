@@ -3,6 +3,7 @@
 //
 
 #include "CustomNotifyApp.h"
+#include <spdlog/spdlog.h>
 
 namespace input {
 void

@@ -10,6 +10,7 @@
 #include <QKeyEvent>
 #include <QObject>
 #include <QVariant>
+#include <QTimer>
 #include <magic_enum/magic_enum.hpp>
 #include <functional>
 

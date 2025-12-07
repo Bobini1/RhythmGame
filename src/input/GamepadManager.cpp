@@ -1,3 +1,5 @@
+#include "GamepadManager.h"
+#include "GamepadManager.h"
 //
 // Created by bobini on 07.12.23.
 //
@@ -7,19 +9,30 @@
 #include <SDL_joystick.h>
 #include <ranges>
 #include <spdlog/spdlog.h>
+#include <atomic>
+#include <thread>
 
 namespace input {
 
 GamepadManager::GamepadManager(QObject* parent)
   : QObject(parent)
 {
-    connect(&loopTimer, &QTimer::timeout, this, &GamepadManager::loop);
-
     if (SDL_Init(SDL_INIT_GAMECONTROLLER | SDL_INIT_JOYSTICK)) {
         throw std::runtime_error(SDL_GetError());
     }
+    // Run event loop in a dedicated thread
+    worker = std::jthread([this](std::stop_token st) { run(st); });
+}
 
-    loopTimer.start(0);
+void
+GamepadManager::run(std::stop_token stop)
+{
+    // Thread body: poll SDL and emit signals until stop is requested
+    while (!stop.stop_requested()) {
+        loop();
+        // Avoid busy-spinning when no events; small sleep helps CPU usage
+        std::this_thread::yield();
+    }
 }
 
 void
@@ -31,6 +44,7 @@ GamepadManager::loop()
           std::chrono::steady_clock::now().time_since_epoch());
         auto startTime =
           (now - std::chrono::milliseconds{ SDL_GetTicks64() }).count();
+
         if (event.type == SDL_JOYAXISMOTION) {
             const auto axisEvent = event.jaxis;
             const double value =
@@ -63,6 +77,12 @@ GamepadManager::loop()
 
 GamepadManager::~GamepadManager()
 {
+    // Stop the worker thread first to prevent signals during teardown
+    if (worker.joinable()) {
+        worker.request_stop();
+        worker.join();
+    }
+
     controllers.clear();
     SDL_QuitSubSystem(SDL_INIT_GAMECONTROLLER | SDL_INIT_JOYSTICK);
 }
