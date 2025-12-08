@@ -286,7 +286,7 @@ Item {
             id: fastslowImage
             anchors.fill: parent
             source: root.iniImagesUrl + "fastslow/" + playArea.vars.fastslow + (fastslow.fast ? "/fast" : "/slow")
-            visible: playArea.vars.fastslowEnabled && fastslow.shouldShow && judgements.visible
+            opacity: playArea.vars.fastslowEnabled && fastslow.shouldShow && judgements.visible ? 1 : 0
         }
         TemplateDragBorder {
             id: fastslowTemplate
