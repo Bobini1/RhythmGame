@@ -65,7 +65,7 @@ Item {
 
                                 Label {
                                     Layout.fillWidth: true
-                                    wrapMode: TextEdit.Wrap
+                                    wrapMode: Text.Wrap
                                     text: folderRow.rootFolder ? folderRow.rootFolder.name : ""
                                 }
                                 Button {
@@ -164,12 +164,11 @@ Item {
                             }
                         }
                     }
-                    TextEdit {
+                    Label {
                         id: logText
 
                         Layout.alignment: Qt.AlignBottom
                         Layout.fillWidth: true
-                        readOnly: true
                         text: Rg.rootSongFoldersConfig.scanningQueue.currentScannedFolder
                     }
                 }

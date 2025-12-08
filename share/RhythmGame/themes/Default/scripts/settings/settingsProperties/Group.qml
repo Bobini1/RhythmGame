@@ -19,7 +19,7 @@ GroupBox {
         width: parent.width
         spacing: 5
         Label {
-            wrapMode: TextEdit.Wrap
+            wrapMode: Text.Wrap
             anchors {
                 left: parent.left
                 right: parent.right

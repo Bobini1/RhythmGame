@@ -76,7 +76,7 @@ Item {
                         Layout.fillWidth: true
                         Label {
                             id: tableUrl
-                            wrapMode: TextEdit.Wrap
+                            wrapMode: Text.Wrap
                             text: dragArea.display.url
                             width: Math.min(implicitWidth, parent.width)
                         }
@@ -87,7 +87,7 @@ Item {
                         Layout.fillWidth: true
                         Label {
                             id: tableName
-                            wrapMode: TextEdit.Wrap
+                            wrapMode: Text.Wrap
                             text: dragArea.display.name
                             width: Math.min(implicitWidth, parent.width)
                         }
