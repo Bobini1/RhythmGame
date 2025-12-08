@@ -1131,7 +1131,7 @@ resource_managers::Vars::populateThemePropertyMap(
                             (value.typeId() == QMetaType::Double || value.canConvert<double>())) {
                             const double oldVal = ref.toDouble();
                             const double newVal = value.toDouble();
-                            constexpr std::size_t ulpsTolerance = 16; // small ULP window
+                            constexpr std::size_t ulpsTolerance = 16;
                             if (equalWithinUlps(oldVal, newVal, ulpsTolerance)) {
                                 return; // numerically equivalent within tolerance
                             }
