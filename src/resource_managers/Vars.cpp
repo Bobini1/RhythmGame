@@ -1073,6 +1073,32 @@ readThemeVars(const std::filesystem::path& profileFolder,
     return vars;
 }
 
+// I got this from cppreference
+template<class T>
+std::enable_if_t<not std::numeric_limits<T>::is_integer, bool>
+equalWithinUlps(T x, T y, std::size_t n)
+{
+    // Since `epsilon()` is the gap size (ULP, unit in the last place)
+    // of floating-point numbers in interval [1, 2), we can scale it to
+    // the gap size in interval [2^e, 2^{e+1}), where `e` is the exponent
+    // of `x` and `y`.
+
+    // If `x` and `y` have different gap sizes (which means they have
+    // different exponents), we take the smaller one. Taking the bigger
+    // one is also reasonable, I guess.
+    const T m = std::min(std::fabs(x), std::fabs(y));
+
+    // Subnormal numbers have fixed exponent, which is `min_exponent - 1`.
+    const int exp = m < std::numeric_limits<T>::min()
+                      ? std::numeric_limits<T>::min_exponent - 1
+                      : std::ilogb(m);
+
+    // We consider `x` and `y` equal if the difference between them is
+    // within `n` ULPs.
+    return std::fabs(x - y) <=
+           n * std::ldexp(std::numeric_limits<T>::epsilon(), exp);
+}
+
 } // namespace
 
 void
@@ -1099,7 +1125,24 @@ resource_managers::Vars::populateThemePropertyMap(
                      screen = screenName,
                      themeFamily = themeName](const QString& key,
                                               const QVariant& value) {
-                        loadedThemeVars[screen][themeFamily][key] = value;
+                        auto& ref = loadedThemeVars[screen][themeFamily][key];
+                        // Skip write if assigning number to number and they are very close (ULP-based)
+                        if ((ref.typeId() == QMetaType::Double || ref.canConvert<double>()) &&
+                            (value.typeId() == QMetaType::Double || value.canConvert<double>())) {
+                            const double oldVal = ref.toDouble();
+                            const double newVal = value.toDouble();
+                            constexpr std::size_t ulpsTolerance = 16; // small ULP window
+                            if (equalWithinUlps(oldVal, newVal, ulpsTolerance)) {
+                                return; // numerically equivalent within tolerance
+                            }
+                        } else {
+                            // For non-numeric, avoid redundant writes
+                            if (ref == value) {
+                                return;
+                            }
+                        }
+                        // Update cached value before writing
+                        ref = value;
                         writeSingleThemeVar(
                           writePool,
                           screen,
