@@ -4,7 +4,7 @@ import RhythmGameQml
 Item {
     id: judgement
 
-    width: childrenRect.width
+    width: judgementRow.width
     z: 3
     visible: false
 
@@ -162,15 +162,11 @@ Item {
     // preload images
 
     Image {
-        width: 0
-        height: 0
         source: root.iniImagesUrl + "judge/" + judgement.judge + "/pgreat"
         opacity: 0
     }
 
     Image {
-        width: 0
-        height: 0
         source: root.iniImagesUrl + "judge/" + judgement.judge + "/pgreat_0"
         opacity: 0
     }
