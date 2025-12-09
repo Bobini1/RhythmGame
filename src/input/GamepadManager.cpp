@@ -31,7 +31,7 @@ GamepadManager::run(std::stop_token stop)
     while (!stop.stop_requested()) {
         loop();
         // Avoid busy-spinning when no events; small sleep helps CPU usage
-        std::this_thread::yield();
+        std::this_thread::sleep_for(std::chrono::milliseconds{ 1 });
     }
 }
 
