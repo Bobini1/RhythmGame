@@ -75,14 +75,12 @@ GamepadManager::loop()
 
 GamepadManager::~GamepadManager()
 {
+    SDL_QuitSubSystem(SDL_INIT_GAMECONTROLLER | SDL_INIT_JOYSTICK);
     // Stop the worker thread first to prevent signals during teardown
     if (worker.joinable()) {
         worker.request_stop();
         worker.join();
     }
-
-    controllers.clear();
-    SDL_QuitSubSystem(SDL_INIT_GAMECONTROLLER | SDL_INIT_JOYSTICK);
 }
 
 void
