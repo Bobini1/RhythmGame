@@ -35,7 +35,6 @@ Item {
         anchors.margins: 8
         spacing: 4
 
-        clip: true
         Text {
             Layout.fillWidth: true
             Layout.fillHeight: true

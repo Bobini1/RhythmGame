@@ -7,7 +7,6 @@ Flickable {
     required property real position
     property alias model: barlinesRepeater.model
     interactive: false
-    clip: true
     contentY: -(column.position * column.heightMultiplier + height * (1 - playArea.generalVars.liftOn * playArea.generalVars.liftRatio)) + 0.5
     contentWidth: width
 

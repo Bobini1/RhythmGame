@@ -40,7 +40,6 @@ Item {
         anchors.fill: parent
 
         contentWidth: column.width
-        clip: true
         interactive: false
 
         contentY: -(column.position * column.heightMultiplier + height * (1 - playArea.generalVars.liftOn * playArea.generalVars.liftRatio)) + column.noteHeight / 3

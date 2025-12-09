@@ -23,7 +23,7 @@ Item {
         anchors.centerIn: parent
         height: Math.max(videoBase.sourceRect.height, videoLayer.sourceRect.height, videoLayer2.sourceRect.height, videoPoor.sourceRect.height, 256)
         layer.enabled: true
-        layer.smooth: true
+        //layer.smooth: true
         scale: parent.height / height
         width: Math.max(videoBase.sourceRect.width, videoLayer.sourceRect.width, videoLayer2.sourceRect.width, videoPoor.sourceRect.width, 256)
 

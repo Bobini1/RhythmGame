@@ -71,8 +71,6 @@ Item {
         id: playObjectContainer
 
         anchors.fill: parent
-        layer.enabled: true
-        layer.smooth: true
 
         Image {
             id: laneCover
