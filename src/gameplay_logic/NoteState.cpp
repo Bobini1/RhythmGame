@@ -165,14 +165,13 @@ Filter::setTopPosition(double value)
     if (value < bottomPosition) {
         setBottomPosition(value);
     }
-    const auto upper =
-      std::upper_bound(columnState->getNotes().begin(),
-                       columnState->getNotes().end(),
-                       value,
-                       [](double value, const auto& note) {
-                           return note.note.time.position > value &&
-                                  note.note.type != Note::Type::LongNoteEnd;
-                       });
+    // Find the first note strictly above the new top position, excluding LongNoteEnd
+    const auto upper = std::find_if(
+      columnState->getNotes().begin(), columnState->getNotes().end(),
+      [value](const auto& note) {
+          return note.note.type != Note::Type::LongNoteEnd &&
+                 note.note.time.position > value;
+      });
     auto newTopRow = std::distance(columnState->getNotes().begin(), upper);
     if (newTopRow > topRow) {
         beginInsertRows(
