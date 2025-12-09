@@ -6,9 +6,6 @@ Flickable {
     required property real heightMultiplier
     required property real position
     property alias model: barlinesRepeater.model
-    interactive: false
-    contentY: -(column.position * column.heightMultiplier + height * (1 - playArea.generalVars.liftOn * playArea.generalVars.liftRatio)) + 0.5
-    contentWidth: width
 
     FrameAnimation {
         running: true
@@ -23,13 +20,19 @@ Flickable {
     Repeater {
         id: barlinesRepeater
         delegate: Item {
-            y: -display.time.position * column.heightMultiplier
-            width: column.width
+            anchors.bottom: parent.bottom
+            anchors.bottomMargin: display.time.position * column.heightMultiplier + column.height
+            anchors.left: parent.left
+            anchors.right: parent.right
+            Component.onCompleted: {
+                console.info("Bar line at position:", display.time.position, x, y, width, height);
+            }
             Rectangle {
                 color: "gray"
                 height: 1
                 y: -height / 2
-                width: parent.width
+                anchors.left: parent.left
+                anchors.right: parent.right
             }
         }
     }

@@ -107,7 +107,13 @@ Item {
             model: playArea.barLinesState
             heightMultiplier: playArea.heightMultiplier
             position: playArea.position
-            anchors.fill: parent
+            height: parent.height
+            anchors {
+                left: parent.left
+                right: parent.right
+                top: parent.top
+                topMargin: (playArea.position * playArea.heightMultiplier + height * (1 - playArea.generalVars.liftOn * playArea.generalVars.liftRatio)) - 0.5
+            }
             z: 2
         }
         Playfield {
