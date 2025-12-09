@@ -30,8 +30,6 @@ GamepadManager::run(std::stop_token stop)
     // Thread body: poll SDL and emit signals until stop is requested
     while (!stop.stop_requested()) {
         loop();
-        // Avoid busy-spinning when no events; small sleep helps CPU usage
-        std::this_thread::sleep_for(std::chrono::milliseconds{ 1 });
     }
 }
 
@@ -39,7 +37,7 @@ void
 GamepadManager::loop()
 {
     SDL_Event event;
-    while (SDL_PollEvent(&event)) {
+    while (SDL_WaitEvent(&event)) {
         auto now = std::chrono::duration_cast<std::chrono::milliseconds>(
           std::chrono::steady_clock::now().time_since_epoch());
         auto startTime =
