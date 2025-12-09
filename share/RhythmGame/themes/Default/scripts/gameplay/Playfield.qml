@@ -5,6 +5,7 @@ import RhythmGameQml
 
 Item {
     id: playfield
+    clip: true
 
     required property var columnSizes
     property list<int> columns

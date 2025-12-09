@@ -8,7 +8,6 @@ import "../common/TaoQuickCustom"
 
 Item {
     id: playArea
-    clip: true
 
     required property list<int> columns
     readonly property list<int> columnsReversedMapping: {
