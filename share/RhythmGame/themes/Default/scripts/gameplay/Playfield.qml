@@ -60,7 +60,7 @@ Item {
                 }
                 height: notesRow.height
                 heightMultiplier: playfield.heightMultiplier
-                noteHeight: playfield.noteThickness * 3
+                noteHeight: playfield.noteThickness
                 notes: modelData
                 columnState: playfield.columnStates[index]
                 noteImage: playfield.noteImage
