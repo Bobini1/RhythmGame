@@ -35,14 +35,15 @@ Item {
     readonly property url lnEnd: `${root.iniImagesUrl}notes/${column.noteImage}/ln_end_${column.color}`;
     readonly property url mine: `${root.iniImagesUrl}mine/${column.mineImage}/mine_${column.color}`;
 
-    Flickable {
+    Item {
         id: flickable
-        anchors.fill: parent
-
-        contentWidth: column.width
-        interactive: false
-
-        contentY: -(column.position * column.heightMultiplier + height * (1 - playArea.generalVars.liftOn * playArea.generalVars.liftRatio)) + column.noteHeight / 3
+        height: parent.height
+        anchors {
+            left: parent.left
+            right: parent.right
+            top: parent.top
+            topMargin: (column.position * column.heightMultiplier + height * (1 - playArea.generalVars.liftOn * playArea.generalVars.liftRatio)) - column.noteHeight
+        }
 
         Repeater {
             id: repeater
@@ -60,7 +61,11 @@ Item {
                 readonly property bool shouldShowStatic: display.note.type === note.Type.LongNoteBegin && (wasHeld || display.belowBottom) && nextPosition > column.position
                 property bool wasHeld: display.note.type === note.Type.LongNoteBegin && hitData && (!display.otherEndHitData || display.otherEndHitData.points.judgement !== Judgement.LnEndSkip)
 
-                y: (shouldShowStatic ? -column.position : -display.note.time.position) * column.heightMultiplier -column.noteHeight / 3
+                anchors {
+                    horizontalCenter: parent.horizontalCenter
+                    bottom: parent.bottom
+                    bottomMargin: (shouldShowStatic ? column.position : display.note.time.position) * column.heightMultiplier + flickable.height
+                }
                 width: column.width
                 z: -index
 
