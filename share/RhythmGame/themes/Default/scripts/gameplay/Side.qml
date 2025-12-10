@@ -301,20 +301,20 @@ Item {
                 root.popup = popup;
             }
         }
+    }
 
-        Connections {
-            function onHit(tap) {
-                if (!tap.points) {
-                    return;
-                }
-                let judgement = tap.points.judgement;
-                if (judgement === Judgement.Poor || judgement === Judgement.Bad) {
-                    bga.poorVisible = true;
-                    poorLayerTimer.restart();
-                }
+    Connections {
+        function onHit(tap) {
+            if (!tap.points) {
+                return;
             }
-
-            target: side.score
+            let judgement = tap.points.judgement;
+            if (judgement === Judgement.Poor || judgement === Judgement.Bad) {
+                bga.poorVisible = true;
+                poorLayerTimer.restart();
+            }
         }
+
+        target: side.score
     }
 }
