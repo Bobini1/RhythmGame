@@ -165,9 +165,30 @@ Item {
         source: root.iniImagesUrl + "judge/" + judgement.judge + "/pgreat"
         opacity: 0
     }
-
     Image {
-        source: root.iniImagesUrl + "judge/" + judgement.judge + "/pgreat_0"
+        source: root.iniImagesUrl + "judge/" + judgement.judge + "/great"
         opacity: 0
+    }
+    Image {
+        source: root.iniImagesUrl + "judge/" + judgement.judge + "/good"
+        opacity: 0
+    }
+    Image {
+        source: root.iniImagesUrl + "judge/" + judgement.judge + "/poor"
+        opacity: 0
+    }
+
+    Repeater {
+        model: 10
+        delegate: Item {
+            Image {
+                source: root.iniImagesUrl + "judge/" + judgement.judge + "/pgreat_" + modelData
+                opacity: 0
+            }
+            Image {
+                source: root.iniImagesUrl + "judge/" + judgement.judge + "/great_" + modelData
+                opacity: 0
+            }
+        }
     }
 }
