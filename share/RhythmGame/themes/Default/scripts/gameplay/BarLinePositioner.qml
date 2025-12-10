@@ -24,9 +24,6 @@ Flickable {
             anchors.bottomMargin: display.time.position * column.heightMultiplier + column.height
             anchors.left: parent.left
             anchors.right: parent.right
-            Component.onCompleted: {
-                console.info("Bar line at position:", display.time.position, x, y, width, height);
-            }
             Rectangle {
                 color: "gray"
                 height: 1
