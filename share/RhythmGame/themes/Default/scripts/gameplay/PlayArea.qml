@@ -507,8 +507,8 @@ Item {
             property bool ln: false
 
             function restart() {
-                bomb.restart();
-                lnBomb.restart();
+                bombAnim.restart();
+                lnBombAnim.restart();
             }
 
             anchors.bottom: parent.bottom
@@ -523,40 +523,51 @@ Item {
             }
             z: 1
 
-            AnimatedSprite {
+            Image {
                 id: bomb
 
+                property int frame: 0
+                NumberAnimation on frame {
+                    id: bombAnim
+                    from: 0
+                    to: 15
+                    duration: 400
+                    running: false
+                }
+
                 anchors.centerIn: parent
-                finishBehavior: AnimatedSprite.FinishAtFinalFrame
-                frameCount: 16
-                frameDuration: 25
-                frameHeight: bombSize.sourceSize.height / 4
-                frameWidth: bombSize.sourceSize.width / 4
-                frameY: frameHeight
-                height: frameHeight / 2
-                loops: 1
-                running: false
-                source: root.imagesUrl + "bomb/" + playArea.vars.bomb
-                opacity: (running && !bombWrapper.ln ? 1 : 0)
-                width: frameWidth / 2
+                source: root.iniImagesUrl + "bomb/" + playArea.vars.bomb + "/f" + frame
+                opacity: (bombAnim.running && !bombWrapper.ln ? 1 : 0)
+                width: implicitWidth / 2
+                height: implicitHeight / 2
             }
 
-            AnimatedSprite {
+            Image {
                 id: lnBomb
 
+                property int frame: 0
+                NumberAnimation on frame {
+                    id: lnBombAnim
+                    from: 0
+                    to: 7
+                    duration: 200
+                    running: false
+                    loops: AnimatedSprite.Infinite
+                }
                 anchors.centerIn: parent
-                finishBehavior: AnimatedSprite.FinishAtFinalFrame
-                frameCount: 8
-                frameDuration: 25
-                frameHeight: bombSize.sourceSize.height / 4
-                frameWidth: bombSize.sourceSize.width / 4
-                frameY: 0
-                height: frameHeight / 2
-                loops: AnimatedSprite.Infinite
-                running: false
-                source: root.imagesUrl + "bomb/" + playArea.vars.bomb
-                opacity: (running && bombWrapper.ln ? 1 : 0)
-                width: frameWidth / 2
+                width: implicitWidth / 2
+                height: implicitHeight / 2
+
+                source: root.iniImagesUrl + "bomb/" + playArea.vars.bomb + "/f" + frame
+                opacity: (lnBombAnim.running && bombWrapper.ln ? 1 : 0)
+            }
+            // Preload all frames
+            Repeater {
+                model: 16
+                delegate: Image {
+                    source: root.iniImagesUrl + "bomb/" + playArea.vars.bomb + "/f" + index
+                    opacity: 0
+                }
             }
         }
     }

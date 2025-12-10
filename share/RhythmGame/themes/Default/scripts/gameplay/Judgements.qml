@@ -23,6 +23,14 @@ Item {
         }
     }
 
+    property int pgreatFrame: 0
+    NumberAnimation on pgreatFrame {
+        from: 0
+        to: 2
+        duration: 120
+        loops: Animation.Infinite
+    }
+
     property int combo: 0
 
     Connections {
@@ -85,28 +93,25 @@ Item {
         spacing: 0
         height: parent.height
 
-        ShaderEffectSource {
+        Image {
             id: judgementAnimation
-
-            sourceItem: {
-                switch (judgement.lastJudgement) {
-                    case Judgement.Perfect:
-                        return pgreatImage;
-                    case Judgement.Great:
-                        return greatImage;
-                    case Judgement.Good:
-                        return goodImage;
-                    case Judgement.Bad:
-                        return goodImage;
-                    case Judgement.Poor:
-                    case Judgement.EmptyPoor:
-                        return poorImage;
-                    default:
-                        return pgreatImage;
+            function sourceForJudgement(judgementType) {
+                switch (judgementType) {
+                case Judgement.Perfect:
+                    return pgreatImage.source;
+                case Judgement.Great:
+                    return greatImage.source;
+                case Judgement.Good:
+                    return goodImage.source;
+                case Judgement.Poor:
+                    return poorImage.source;
+                default:
+                    return pgreatImage.source;
                 }
             }
-            width: sourceItem ? sourceItem.width : 0
-            height: sourceItem ? sourceItem.height : 0
+            source: sourceForJudgement(judgement.lastJudgement)
+            height: judgement.height
+            width: sourceSize.width * (judgement.height / sourceSize.height)
             opacity: judgement.lastJudgement !== null ? 1 : 0
         }
 
@@ -117,10 +122,10 @@ Item {
                 ? Array.from(judgement.combo.toString(), Number)
                 : []
 
-            delegate: ShaderEffectSource {
-                sourceItem: lastJudgement === Judgement.Perfect ? pgreatDigits.itemAt(modelData) : greatDigits.itemAt(modelData)
-                width: sourceItem.width
-                height: sourceItem.height
+            delegate: Image {
+                source: lastJudgement === Judgement.Perfect ? pgreatDigits.itemAt(modelData).source : greatDigits.itemAt(modelData).source
+                height: judgement.height
+                width: sourceSize.width * (judgement.height / sourceSize.height)
             }
         }
     }
@@ -145,18 +150,9 @@ Item {
     Repeater {
         id: pgreatDigits
         model: 10
-        delegate: AnimatedSprite {
-            interpolate: false
-            frameDuration: 40
-            frameCount: 3
-            frameHeight: 84
-            frameWidth: 55
-            height: judgement.height
-            width: frameWidth * (judgement.height / frameHeight)
-            source: root.iniImagesUrl + "judge/" + judgement.judge + "/pgreat_" + modelData
+        delegate: Image {
+            source: root.iniImagesUrl + "judge/" + judgement.judge + "/pgreat_" + modelData + "_f" + judgement.pgreatFrame
             opacity: 0
-            currentFrame: pgreatImage.currentFrame
-            running: false
         }
     }
     Repeater {
@@ -167,40 +163,27 @@ Item {
             opacity: 0
         }
     }
-    AnimatedSprite {
+    Image {
         id: pgreatImage
 
-        interpolate: false
-        frameDuration: 40
-        frameHeight: 84
-        frameWidth: 227
-        frameCount: 3
-        height: judgement.height
-        width: frameWidth * (judgement.height / frameHeight)
-        source: root.iniImagesUrl + "judge/" + judgement.judge + "/pgreat"
+        source: root.iniImagesUrl + "judge/" + judgement.judge + "/pgreat_f" + judgement.pgreatFrame
         opacity: 0
     }
     Image {
         id: greatImage
 
-        height: judgement.height
-        width: sourceSize.width * (judgement.height / sourceSize.height)
         source: root.iniImagesUrl + "judge/" + judgement.judge + "/great"
         opacity: 0
     }
     Image {
         id: goodImage
 
-        height: judgement.height
-        width: sourceSize.width * (judgement.height / sourceSize.height)
         source: root.iniImagesUrl + "judge/" + judgement.judge + "/good"
         opacity: 0
     }
     Image {
         id: poorImage
 
-        height: judgement.height
-        width: sourceSize.width * (judgement.height / sourceSize.height)
         source: root.iniImagesUrl + "judge/" + judgement.judge + "/poor"
         opacity: 0
     }
