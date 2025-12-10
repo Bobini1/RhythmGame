@@ -19,9 +19,6 @@ CustomNotifyApp::notify(QObject* receiver, QEvent* event)
       std::chrono::steady_clock::now().time_since_epoch());
 #endif
     const auto notifyResult = QGuiApplication::notify(receiver, event);
-    if (event->type() == QEvent::KeyPress ||
-        event->type() == QEvent::KeyRelease) {
-    }
     if (inputTranslator != nullptr && (event->type() == QEvent::KeyPress ||
                                        event->type() == QEvent::KeyRelease)) {
 #ifndef _WIN32
