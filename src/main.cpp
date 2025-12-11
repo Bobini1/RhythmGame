@@ -164,6 +164,10 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
 
         QQuickStyle::setStyle("FluentWinUI3");
 
+        if (!qEnvironmentVariableIsSet("QSG_RHI_BACKEND")) {
+            QQuickWindow::setGraphicsApi(QSGRendererInterface::Vulkan);
+        }
+
         auto db = db::SqliteCppDb{ dataFolder / "song_db.sqlite" };
 
         resource_managers::defineDb(db);
