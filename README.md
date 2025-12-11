@@ -25,7 +25,8 @@ Customize the default theme by pressing F2 during gameplay and moving the elemen
 
 You can also create your own custom theme with [QML](https://doc.qt.io/qt-6/qmlreference.html).
 Contact me if you're interested, I can help you get started!
-You can use the [default theme](https://github.com/Bobini1/RhythmGame/tree/master/data/themes/Default) as a reference.
+You can use the [default theme](https://github.com/Bobini1/RhythmGame/tree/master/share/RhythmGame/themes/Default) as a
+reference.
 See the [DEV_THEME.md](DEV_THEME.md) document for more information.
 
 ### Rules based on Lunatic Rave 2
@@ -63,7 +64,7 @@ Contact me if you would like to help translating it to your language!
 
 ### A beautiful default theme
 
-Based on the works of [Shimi999](https://github.com/Shimi9999/GenericTheme) and 
+Based on the works of [Shimi999](https://github.com/Shimi9999/GenericTheme) and
 [souki202](https://github.com/souki202/my_beatoraja_skin),
 RhythmGame's default theme contains all the necessary features to play BMS.
 

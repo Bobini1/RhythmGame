@@ -9,7 +9,7 @@ You can also press F10 in-game to open the log overlay.
 
 # Theme structure
 
-A theme is a folder in `data/themes/` that contains a `theme.json` file.
+A theme is a folder in `share/RhythmGame/themes/` that contains a `theme.json` file.
 That file needs to have a `scripts` field with an object
 containing relative paths to QML files for each game screen implemented by the theme.
 
@@ -43,6 +43,7 @@ you can define a `settings` field in `theme.json`.
 ```
 
 It serves two purposes
+
 - Defines variables of the screen
 - Is used for generating a settings page in the settings screen
 
@@ -51,6 +52,7 @@ For persistent global settings affecting all profiles, you can use the
 But you probably won't need it. I only ever used it once, for storing screen resolution.
 
 There are 7 different types of properties you can use in a settings file:
+
 - boolean
 - range
 - string
@@ -189,6 +191,7 @@ be either a [ChartRunner](https://bobini1.github.io/RhythmGame/classgameplay__lo
 object, depending on whether the player is playing a single chart or a course.
 
 Screen `result` is expected to have the following properties:
+
 ```qml
 property list<BmsScore> scores
 property list<Profile> profiles
@@ -198,6 +201,7 @@ property ChartData chartData
 The lists will have 1 or 2 elements, depending on whether the game was played solo or in battle mode.
 
 Screen `courseResult` is expected to have the following properties:
+
 ```qml
 property list<BmsScoreCourse> scores
 property list<Profile> profiles
@@ -219,7 +223,7 @@ For mouse input, use [MouseArea](https://doc.qt.io/qt-6/qml-qtquick-mousearea.ht
 
 For keyboard input, use [Keys](https://doc.qt.io/qt-6/qml-qtquick-keys.html)
 
-For bound key input (controller or keyboard), use 
+For bound key input (controller or keyboard), use
 [Input](https://bobini1.github.io/RhythmGame/classqml__components_1_1InputAttached.html).
 
 `sceneStack` automatically disables all input for screens that are not at the top of the stack.
@@ -239,10 +243,11 @@ This will play nicely with autoplay and replays.
 
 Your theme is expected to work on all screen sizes and aspect ratios.
 There are two ways you can achieve that.
-- Use [layouts](https://doc.qt.io/qt-6/qtquicklayouts-overview.html) to dynamically set the sizes of elements based on 
-the size of their parents.
+
+- Use [layouts](https://doc.qt.io/qt-6/qtquicklayouts-overview.html) to dynamically set the sizes of elements based on
+  the size of their parents.
 - Use fixed, hard-coded component sizes and [rescale](https://doc.qt.io/qt-6/qml-qtquick-item.html#scale-prop) the top
-item to fit the size of the window.
+  item to fit the size of the window.
 
 In the default theme, you can see the first approach in the `settings` screen. All other screens use scaling.
 In general, scaling is easier to use.

@@ -4,13 +4,14 @@ Translations are theme-specific.
 The C++ part of the game does not contain any translatable strings.
 
 In a theme, translatable string come in two forms:
+
 - Theme settings strings (used only in the settings screen)
 - Strings in QML files
 
 ## Theme settings strings
 
 Those are quite straightforward. If you take a look at
-[the json file](https://github.com/Bobini1/RhythmGame/blob/master/data/themes/Default/settings/k7.json)
+[the json file](https://github.com/Bobini1/RhythmGame/blob/master/share/RhythmGame/themes/Default/settings/k7.json)
 defining the settings for the k7 screen, you will notice that the name and description
 of each setting are defined in the file itself.
 Simply add new languages next to "en" and "pl" (English and Polish).
@@ -75,11 +76,13 @@ An in-depth explanation of how to use it can be found in the
 
 For translating strings in QML files, you will need to use the Qt Linguist toolchain.
 There are three essential tools:
+
 - `lupdate`: Extracts translatable strings from QML files and creates a `.ts` file.
 - `Linguist`: A GUI tool for translators to translate the strings in a `.ts` file.
 - `lrelease`: Compiles a `.ts` file into a `.qm` file that can be used by the game.
 
-This repository contains a CMake target called `update_translations` that will run `lupdate` for you for the default theme.
+This repository contains a CMake target called `update_translations` that will run `lupdate` for you for the default
+theme.
 Add your language to `qt_standard_project_setup` in [CMakeLists.txt](CMakeLists.txt) to generate a `.ts` file for it.
 There is also a target called `release_translations` that will run `lrelease`
 (it also runs automatically when you build the game).
