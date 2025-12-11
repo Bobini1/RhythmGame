@@ -73,13 +73,14 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><p><a class="anchor" id="autotoc_md39"></a> Translations are theme-specific. The C++ part of the game does not contain any translatable strings.</p>
-<p>In a theme, translatable string come in two forms:</p><ul>
+<p>In a theme, translatable string come in two forms:</p>
+<ul>
 <li>Theme settings strings (used only in the settings screen)</li>
 <li>Strings in QML files</li>
 </ul>
 <h1><a class="anchor" id="autotoc_md40"></a>
 Theme settings strings</h1>
-<p>Those are quite straightforward. If you take a look at <a href="https://github.com/Bobini1/RhythmGame/blob/master/data/themes/Default/settings/k7.json">the json file</a> defining the settings for the k7 screen, you will notice that the name and description of each setting are defined in the file itself. Simply add new languages next to "en" and "pl" (English and Polish).</p>
+<p>Those are quite straightforward. If you take a look at <a href="https://github.com/Bobini1/RhythmGame/blob/master/share/RhythmGame/themes/Default/settings/k7.json">the json file</a> defining the settings for the k7 screen, you will notice that the name and description of each setting are defined in the file itself. Simply add new languages next to "en" and "pl" (English and Polish).</p>
 <p>The identifier of the language can be either a two-letter ISO 639-1 code (e.g. "fr" for French, "zh" for Chinese) or a combination of the ISO 639-1 code and the ISO 3166-1 alpha-2 country code (e.g. "fr_CA" for Canadian French, "zh_HK" for Traditional Chinese as used in Hong Kong).</p>
 <hr  />
 <p> <b>NOTE</b></p>
@@ -115,7 +116,8 @@ Translating a theme</h1>
 <h2><a class="anchor" id="autotoc_md44"></a>
 Strings in QML files</h2>
 <p>To mark a string in a QML file as translatable, you need to wrap it in the <code>qsTr()</code> function. An in-depth explanation of how to use it can be found in the <a href="https://doc.qt.io/qt-6/i18n-source-translation.html#qml-use-qstr">Qt documentation</a>.</p>
-<p>For translating strings in QML files, you will need to use the Qt Linguist toolchain. There are three essential tools:</p><ul>
+<p>For translating strings in QML files, you will need to use the Qt Linguist toolchain. There are three essential tools:</p>
+<ul>
 <li><code>lupdate</code>: Extracts translatable strings from QML files and creates a <code>.ts</code> file.</li>
 <li><code>Linguist</code>: A GUI tool for translators to translate the strings in a <code>.ts</code> file.</li>
 <li><code>lrelease</code>: Compiles a <code>.ts</code> file into a <code>.qm</code> file that can be used by the game.</li>

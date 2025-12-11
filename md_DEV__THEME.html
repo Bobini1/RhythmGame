@@ -76,7 +76,7 @@ $(function() {
 <p>All errors are printed to log.txt in the data folder. On platforms other than Windows, the log is printed to the console as well. You can also press F10 in-game to open the log overlay.</p>
 <h1><a class="anchor" id="autotoc_md26"></a>
 Theme structure</h1>
-<p>A theme is a folder in <code>data/themes/</code> that contains a <code>theme.json</code> file. That file needs to have a <code>scripts</code> field with an object containing relative paths to QML files for each game screen implemented by the theme.</p>
+<p>A theme is a folder in <code>share/RhythmGame/themes/</code> that contains a <code>theme.json</code> file. That file needs to have a <code>scripts</code> field with an object containing relative paths to QML files for each game screen implemented by the theme.</p>
 <p>Here is an example of a minimal <code>theme.json</code> file:</p>
 <div class="fragment"><div class="line">{</div>
 <div class="line">    &quot;scripts&quot;: {</div>
@@ -95,12 +95,14 @@ Persisent settings</h3>
 <div class="line">        &quot;result&quot;: &quot;result.json&quot;</div>
 <div class="line">    }</div>
 <div class="line">}</div>
-</div><!-- fragment --><p>It serves two purposes</p><ul>
+</div><!-- fragment --><p>It serves two purposes</p>
+<ul>
 <li>Defines variables of the screen</li>
 <li>Is used for generating a settings page in the settings screen</li>
 </ul>
 <p>For persistent global settings affecting all profiles, you can use the <a href="https://doc.qt.io/qt-6/qml-qt-labs-settings-settings.html">Settings QML type</a>. But you probably won't need it. I only ever used it once, for storing screen resolution.</p>
-<p>There are 7 different types of properties you can use in a settings file:</p><ul>
+<p>There are 7 different types of properties you can use in a settings file:</p>
+<ul>
 <li>boolean</li>
 <li>range</li>
 <li>string</li>
@@ -175,11 +177,13 @@ Initial state of screens</h2>
 <p>To use those methods, simply call <code>sceneStack.openChart(...)</code> from anywhere in your theme.</p>
 <p>Keep the folowing in mind when writing screens with initial state:</p>
 <p>Screens <code>k7</code>, <code>k14</code> and <code>k7battle</code> are expected to have single <code>var</code> property called <code>chart</code>. The assigned <code>chart</code> will be either a <a href="https://bobini1.github.io/RhythmGame/classgameplay__logic_1_1ChartRunner.html">ChartRunner</a> or <a href="https://bobini1.github.io/RhythmGame/classgameplay__logic_1_1CourseRunner.html">CourseRunner</a> object, depending on whether the player is playing a single chart or a course.</p>
-<p>Screen <code>result</code> is expected to have the following properties: </p><div class="fragment"><div class="line">property list&lt;BmsScore&gt; scores</div>
+<p>Screen <code>result</code> is expected to have the following properties:</p>
+<div class="fragment"><div class="line">property list&lt;BmsScore&gt; scores</div>
 <div class="line">property list&lt;Profile&gt; profiles</div>
 <div class="line">property ChartData chartData</div>
 </div><!-- fragment --><p>The lists will have 1 or 2 elements, depending on whether the game was played solo or in battle mode.</p>
-<p>Screen <code>courseResult</code> is expected to have the following properties: </p><div class="fragment"><div class="line">property list&lt;BmsScoreCourse&gt; scores</div>
+<p>Screen <code>courseResult</code> is expected to have the following properties:</p>
+<div class="fragment"><div class="line">property list&lt;BmsScoreCourse&gt; scores</div>
 <div class="line">property list&lt;Profile&gt; profiles</div>
 <div class="line">property list&lt;ChartData&gt; chartDatas</div>
 <div class="line">property course course</div>
@@ -194,7 +198,8 @@ Input</h2>
 <p>Gameplay screens should not use <code>Input</code> directly. Instead, use <a href="https://bobini1.github.io/RhythmGame/classgameplay__logic_1_1ColumnState.html#a116fbd7d8aec0c9ebad00828b7564ab6">columnState.pressed</a>. This will play nicely with autoplay and replays. <code>Input</code> is reserved for actual input, not injected key presses.</p>
 <h2><a class="anchor" id="autotoc_md37"></a>
 Scaling</h2>
-<p>Your theme is expected to work on all screen sizes and aspect ratios. There are two ways you can achieve that.</p><ul>
+<p>Your theme is expected to work on all screen sizes and aspect ratios. There are two ways you can achieve that.</p>
+<ul>
 <li>Use <a href="https://doc.qt.io/qt-6/qtquicklayouts-overview.html">layouts</a> to dynamically set the sizes of elements based on the size of their parents.</li>
 <li>Use fixed, hard-coded component sizes and <a href="https://doc.qt.io/qt-6/qml-qtquick-item.html#scale-prop">rescale</a> the top item to fit the size of the window.</li>
 </ul>
