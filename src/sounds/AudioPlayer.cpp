@@ -31,6 +31,7 @@ AudioPlayer::onDeviceChanged()
     }
     ma_sound_set_looping(sound.get(), looping ? MA_TRUE : MA_FALSE);
     ma_sound_set_volume(sound.get(), volume);
+    ma_sound_set_fade_in_milliseconds(sound.get(), 0, volume, fadeInMillis);
     ma_sound_seek_to_pcm_frame(sound.get(), currentPcmFrame);
     if (isPlayingNow) {
         play();
@@ -102,9 +103,6 @@ AudioPlayer::isPlaying() const -> bool
 void
 AudioPlayer::play()
 {
-    if (isPlaying()) {
-        return;
-    }
     if (sound) {
         stop();
         if (ma_sound_start(sound.get()) != MA_SUCCESS) {
@@ -115,13 +113,19 @@ AudioPlayer::play()
 void
 AudioPlayer::stop()
 {
-    if (!isPlaying()) {
-        return;
-    }
     if (sound) {
         ma_sound_stop(sound.get());
         ma_sound_seek_to_pcm_frame(sound.get(), 0);
     }
+}
+void
+AudioPlayer::playWithFadeIn()
+{
+    if (sound) {
+        stop();
+        if (ma_sound_set_fade_in_milliseconds()
+    }
+
 }
 auto
 AudioPlayer::getVolume() const -> float
@@ -156,5 +160,22 @@ AudioPlayer::setLooping(bool value)
         ma_sound_set_looping(sound.get(), value ? MA_TRUE : MA_FALSE);
     }
     emit loopingChanged();
+}
+auto
+AudioPlayer::getFadeInMillis() const -> int64_t
+{
+    return fadeInMillis;
+}
+void
+AudioPlayer::setFadeInMillis(int64_t value)
+{
+    if (fadeInMillis == value) {
+        return;
+    }
+    fadeInMillis = value;
+    if (sound) {
+        ma_sound_set_fade_in_milliseconds(sound.get(), 0, volume, value);
+    }
+    emit fadeInMillisChanged();
 }
 } // namespace sounds
