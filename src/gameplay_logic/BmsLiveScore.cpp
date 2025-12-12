@@ -149,17 +149,17 @@ void
 BmsLiveScore::addHit(const HitEvent& tap)
 {
     hits.append(tap);
-    emit hit(tap);
     if (!tap.getPointsOptional()) {
+        emit hit(tap);
         return;
     }
-    const auto points = tap.getPointsOptional();
-    if (tap.getNoteRemoved() && points->getJudgement() <= Judgement::Perfect) {
+    if (tap.getNoteRemoved()) {
         maxPointsNow += maxHitValue;
         if (maxHitValue != 0.0) [[likely]] {
             emit maxPointsNowChanged();
         }
     }
+    const auto points = tap.getPointsOptional();
     judgementCounts.addJudgement(points->getJudgement());
     switch (points->getJudgement()) {
         case Judgement::Poor:
@@ -206,6 +206,7 @@ BmsLiveScore::addHit(const HitEvent& tap)
                 increaseCombo();
             }
     }
+    emit hit(tap);
 }
 JudgementCounts::JudgementCounts(QObject* parent)
   : QAbstractListModel(parent)
