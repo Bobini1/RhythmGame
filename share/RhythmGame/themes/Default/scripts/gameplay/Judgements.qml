@@ -42,7 +42,6 @@ Item {
             judgement.combo = judgement.score.combo;
             judgement.visible = true;
             hidingTimer.restart();
-            console.info("Judgement:", hit.points.judgement, "Combo:", judgement.combo);
         }
         target: judgement.score
     }
