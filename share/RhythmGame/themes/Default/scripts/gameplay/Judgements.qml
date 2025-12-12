@@ -13,17 +13,18 @@ Item {
     required property string judge
     required property var columns
 
-    // turn invisible after one second of no notes
     Timer {
         id: hidingTimer
-
         interval: 500
         onTriggered: {
             judgement.visible = false;
         }
     }
 
+    property int combo: 0
+    property var lastJudgement: null
     property int pgreatFrame: 0
+
     NumberAnimation on pgreatFrame {
         from: 0
         to: 2
@@ -31,94 +32,69 @@ Item {
         loops: Animation.Infinite
     }
 
-    property int combo: 0
-
     Connections {
         function onHit(hit) {
-            if (!hit.points) {
-                return;
-            }
-            if (!judgement.columns.includes(hit.column)) {
-                return;
-            }
+            if (!hit.points) return;
+            if (!judgement.columns.includes(hit.column)) return;
+            if (hit.points.judgement > Judgement.Perfect) return;
 
-            Qt.callLater(function() {
-                judgement.combo = judgement.score.combo;
-                judgement.visible = true;
-                hidingTimer.restart();
-            });
+            judgement.lastJudgement = hit.points.judgement;
+            judgement.combo = judgement.score.combo;
+            judgement.visible = true;
+            hidingTimer.restart();
+            console.info("Judgement:", hit.points.judgement, "Combo:", judgement.combo);
         }
-
         target: judgement.score
+    }
+
+    onLastJudgementChanged: {
+        if (lastJudgement === Judgement.Perfect) {
+            judgementAnimationFlashing.stop();
+            judgementRow.visible = true;
+        } else {
+            judgementAnimationFlashing.restart();
+        }
     }
 
     SequentialAnimation {
         id: judgementAnimationFlashing
-
         loops: Animation.Infinite
-        running: lastJudgement !== Judgement.Perfect && lastJudgement !== null
+        running: false
 
-        PropertyAction {
-            property: "visible"
-            target: judgementRow
-            value: true
-        }
-
-        PauseAnimation {
-            duration: 40
-        }
-
-        PropertyAction {
-            property: "visible"
-            target: judgementRow
-            value: false
-        }
-
-        PauseAnimation {
-            duration: 40
-        }
-
-        PropertyAction {
-            property: "visible"
-            target: judgementRow
-            value: true
-        }
+        PropertyAction { property: "visible"; target: judgementRow; value: true }
+        PauseAnimation { duration: 40 }
+        PropertyAction { property: "visible"; target: judgementRow; value: false }
+        PauseAnimation { duration: 40 }
+        PropertyAction { property: "visible"; target: judgementRow; value: true }
     }
-
-    property var lastJudgement: null
 
     Row {
         id: judgementRow
-
         spacing: 0
         height: parent.height
 
         Image {
             id: judgementAnimation
-            function sourceForJudgement(judgementType) {
-                switch (judgementType) {
-                case Judgement.Perfect:
-                    return pgreatImage.source;
-                case Judgement.Great:
-                    return greatImage.source;
-                case Judgement.Good:
-                    return goodImage.source;
-                case Judgement.Poor:
-                    return poorImage.source;
-                default:
-                    return pgreatImage.source;
+            source: {
+                switch (judgement.lastJudgement) {
+                    case Judgement.Perfect: return pgreatImage.source;
+                    case Judgement.Great: return greatImage.source;
+                    case Judgement.Good: return goodImage.source;
+                    case Judgement.Bad: return badImage.source;
+                    case Judgement.Poor:
+                    case Judgement.EmptyPoor: return poorImage.source;
+                    default: return pgreatImage.source;
                 }
             }
-            source: sourceForJudgement(judgement.lastJudgement)
             height: judgement.height
             width: sourceSize.width * (judgement.height / sourceSize.height)
-            opacity: judgement.lastJudgement !== null ? 1 : 0
+            visible: judgement.lastJudgement !== null
         }
 
         Repeater {
             id: comboNumber
 
-            model: judgement.combo > 0
+            model: judgement.combo > 0 && judgement.lastJudgement !== Judgement.EmptyPoor
                 ? Array.from(judgement.combo.toString(), Number)
                 : []
 
@@ -128,24 +104,6 @@ Item {
                 width: sourceSize.width * (judgement.height / sourceSize.height)
             }
         }
-    }
-
-    Connections {
-        function onHit(tap) {
-            if (!tap.points) {
-                return;
-            }
-            if (!judgement.columns.includes(tap.column)) {
-                return;
-            }
-            // ignore mine hits etc.
-            if (tap.points.judgement > Judgement.Perfect) {
-                return;
-            }
-            judgement.lastJudgement = tap.points.judgement;
-        }
-
-        target: judgement.score
     }
     Repeater {
         id: pgreatDigits
@@ -179,6 +137,12 @@ Item {
         id: goodImage
 
         source: root.iniImagesUrl + "judge/" + judgement.judge + "/good"
+        opacity: 0
+    }
+    Image {
+        id: badImage
+
+        source: root.iniImagesUrl + "judge/" + judgement.judge + "/bad"
         opacity: 0
     }
     Image {
