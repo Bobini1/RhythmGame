@@ -68,6 +68,7 @@ find_package(zstd REQUIRED)
 # <------------ SDL2 (gamepad input handling) --------------->
 
 find_package(SDL2 REQUIRED)
+find_package(SDL2_image REQUIRED)
 
 # <------------ magic_enum (enum reflection) --------------->
 
@@ -237,6 +238,8 @@ qt_add_library(RhythmGame_lib OBJECT
         src/qml_components/ScoreReplayer.h
         src/support/dxa.cpp
         src/support/dxa.h
+        src/resource_managers/DxaImageProvider.cpp
+        src/resource_managers/DxaImageProvider.h
 )
 
 if (WIN32)
@@ -273,6 +276,20 @@ if (NOT Stb_FOUND)
 else ()
     target_link_libraries(RhythmGame_lib PUBLIC ${Stb_LIBRARIES})
 endif ()
+qt_add_plugin(tga STATIC
+        CLASS_NAME TgaPlugin
+        src/tgaplugin/TgaHandler.cpp
+        src/tgaplugin/TgaHandler.h
+        src/tgaplugin/TgaPlugin.cpp
+        src/tgaplugin/TgaPlugin.h
+)
+
+target_link_libraries(tga PRIVATE
+        Qt6::Core
+        Qt6::Gui
+        $<IF:$<TARGET_EXISTS:SDL2_image::SDL2_image>,SDL2_image::SDL2_image,SDL2_image::SDL2_image-static>
+)
+target_compile_definitions(tga PRIVATE QT_STATICPLUGIN)
 target_link_libraries(RhythmGame_lib PUBLIC SDL2::SDL2 Qt6::Quick Qt6::QuickControls2 Qt6::OpenGL Qt6::Concurrent Qt6::Multimedia Qt6::InterfaceFramework Threads::Threads Boost::headers SQLiteCpp spdlog::spdlog foonathan::lexy magic_enum::magic_enum $<IF:$<TARGET_EXISTS:zstd::libzstd_static>,zstd::libzstd_static,zstd::libzstd> LibXml2::LibXml2)
 target_include_directories(RhythmGame_lib PUBLIC ${MINIAUDIO_INCLUDE_DIRS})
 
@@ -357,7 +374,7 @@ qt_import_qml_plugins(RhythmGame_exe)
 
 target_compile_features(RhythmGame_exe PRIVATE cxx_std_20)
 
-target_link_libraries(RhythmGame_exe PRIVATE RhythmGame_lib RhythmGame_qmlplugin)
+target_link_libraries(RhythmGame_exe PRIVATE RhythmGame_lib RhythmGame_qmlplugin tga)
 
 if (NOT APPLE)
     if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU" OR "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")

@@ -32,6 +32,7 @@
       ]
     },
     "sdl2",
+    "sdl2-image",
     {
       "name": "qtbase",
       "default-features": false,

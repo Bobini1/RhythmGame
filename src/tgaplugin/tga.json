@@ -1,0 +1,10 @@
+{
+  "Keys": [
+    "tga"
+  ],
+  "MimeTypes": [
+    "image/x-tga",
+    "image/x-targa"
+  ],
+  "Priority": 1000000
+}

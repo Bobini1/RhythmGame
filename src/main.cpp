@@ -43,9 +43,11 @@
 #include "sounds/SoundBuffer.h"
 #include "support/QtSink.h"
 #include "resource_managers/AvatarImageProvider.h"
+#include "resource_managers/DxaImageProvider.h"
 #include "support/QStringToPath.h"
 
 Q_IMPORT_QML_PLUGIN(RhythmGameQmlPlugin)
+Q_IMPORT_PLUGIN(TgaPlugin)
 
 void
 qtLogHandler(QtMsgType type,
@@ -482,6 +484,8 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
 
         engine.addImageProvider("ini",
                                 new resource_managers::IniImageProvider{});
+        engine.addImageProvider("dxa",
+                                new resource_managers::DxaImageProvider{});
         auto avatarPaths = std::vector{ installationDataFolder / "avatars/" };
         if (!isPortable) {
             avatarPaths.push_back(dataFolder / "avatars/");

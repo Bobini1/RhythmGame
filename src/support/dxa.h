@@ -10,7 +10,7 @@
 namespace support {
 struct DXArchiveSegment
 {
-    size_t size;
+    size_t size{};
     std::shared_ptr<uint8_t[]> data;
 };
 

@@ -498,8 +498,8 @@ DirectoryDecode(u8* NameP,
                     }
                 }
 
-                output[support::pathToUtfString(
-                  DirPath / GetOriginalFileName(NameP + File->NameAddress))] =
+                output[support::pathToUtfString(weakly_canonical(
+                  DirPath / GetOriginalFileName(NameP + File->NameAddress)))] =
                   DestP;
             }
         }
