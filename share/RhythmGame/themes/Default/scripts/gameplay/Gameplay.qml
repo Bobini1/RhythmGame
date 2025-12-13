@@ -56,7 +56,7 @@ Rectangle {
     property real targetPoints2: chart.player1.score.points
     property var elapsed: 0
     FrameAnimation {
-        running: targetScore1
+        running: !!targetScore1
         onTriggered: {
             root.elapsed = chart.player1.elapsed;
         }
