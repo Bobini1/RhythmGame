@@ -118,15 +118,6 @@ AudioPlayer::stop()
         ma_sound_seek_to_pcm_frame(sound.get(), 0);
     }
 }
-void
-AudioPlayer::playWithFadeIn()
-{
-    if (sound) {
-        stop();
-        if (ma_sound_set_fade_in_milliseconds()
-    }
-
-}
 auto
 AudioPlayer::getVolume() const -> float
 {
