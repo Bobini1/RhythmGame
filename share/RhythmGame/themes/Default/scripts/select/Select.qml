@@ -218,8 +218,7 @@ FocusScope {
                 anchors.verticalCenterOffset: 150
                 sourceComponent: Grade {
                     scoreWithBestPoints: songList.currentItem
-                    ?.
-                        scoreWithBestPoints || null
+                    ?.scoreWithBestPoints || null
                 }
             }
             Connections {
