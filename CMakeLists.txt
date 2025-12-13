@@ -235,6 +235,8 @@ qt_add_library(RhythmGame_lib OBJECT
         src/resource_managers/AvatarImageProvider.h
         src/qml_components/ScoreReplayer.cpp
         src/qml_components/ScoreReplayer.h
+        src/support/dxa.cpp
+        src/support/dxa.h
 )
 
 if (WIN32)
