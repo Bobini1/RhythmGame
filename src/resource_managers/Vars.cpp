@@ -1117,41 +1117,45 @@ resource_managers::Vars::populateThemePropertyMap(
               std::make_unique<QQmlPropertyMap>(screenPropertyMap.get());
             propertyMap->insert(themeVarsData[screenName][themeName]);
             propertyMap->freeze();
-            connect(propertyMap.get(),
-                    &QQmlPropertyMap::valueChanged,
-                    this,
-                    [this,
-                     themeVarsPath,
-                     screen = screenName,
-                     themeFamily = themeName](const QString& key,
-                                              const QVariant& value) {
-                        auto& ref = loadedThemeVars[screen][themeFamily][key];
-                        // Skip write if assigning number to number and they are very close (ULP-based)
-                        if ((ref.typeId() == QMetaType::Double || ref.canConvert<double>()) &&
-                            (value.typeId() == QMetaType::Double || value.canConvert<double>())) {
-                            const double oldVal = ref.toDouble();
-                            const double newVal = value.toDouble();
-                            constexpr std::size_t ulpsTolerance = 16;
-                            if (equalWithinUlps(oldVal, newVal, ulpsTolerance)) {
-                                return; // numerically equivalent within tolerance
-                            }
-                        } else {
-                            // For non-numeric, avoid redundant writes
-                            if (ref == value) {
-                                return;
-                            }
-                        }
-                        // Update cached value before writing
-                        ref = value;
-                        writeSingleThemeVar(
-                          writePool,
-                          screen,
-                          key,
-                          value,
-                          themeVarsPath /
-                            support::qStringToPath(
-                              themeFamily + QStringLiteral("-vars.json")));
-                    });
+            connect(
+              propertyMap.get(),
+              &QQmlPropertyMap::valueChanged,
+              this,
+              [this,
+               themeVarsPath,
+               screen = screenName,
+               themeFamily = themeName](const QString& key,
+                                        const QVariant& value) {
+                  auto& ref = loadedThemeVars[screen][themeFamily][key];
+                  // Skip write if assigning number to number and they are very
+                  // close (ULP-based)
+                  if ((ref.typeId() == QMetaType::Double ||
+                       ref.typeId() == QMetaType::Float) &&
+                      (value.typeId() == QMetaType::Double ||
+                       ref.typeId() == QMetaType::Float)) {
+                      const double oldVal = ref.toDouble();
+                      const double newVal = value.toDouble();
+                      constexpr std::size_t ulpsTolerance = 16;
+                      if (equalWithinUlps(oldVal, newVal, ulpsTolerance)) {
+                          return; // numerically equivalent within tolerance
+                      }
+                  } else {
+                      // For non-numeric, avoid redundant writes
+                      if (ref == value) {
+                          return;
+                      }
+                  }
+                  // Update cached value before writing
+                  ref = value;
+                  writeSingleThemeVar(
+                    writePool,
+                    screen,
+                    key,
+                    value,
+                    themeVarsPath /
+                      support::qStringToPath(themeFamily +
+                                             QStringLiteral("-vars.json")));
+              });
             screenPropertyMap->insert(
               themeName, QVariant::fromValue(propertyMap.release()));
         }
