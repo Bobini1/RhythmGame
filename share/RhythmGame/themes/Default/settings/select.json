@@ -67,39 +67,39 @@
     },
     {
       "id": "keymodeFilter",
-        "name": {
-            "en": "Keymode Filter",
-            "pl": "Filtr ilości klawiszy"
+      "name": {
+        "en": "Keymode Filter",
+        "pl": "Filtr ilości klawiszy"
+      },
+      "description": {
+        "en": "Filter songs by keymode.",
+        "pl": "Filtrowanie piosenek według ilości klawiszy."
+      },
+      "type": "choice",
+      "default": "7",
+      "choices": [
+        {
+          "name": {
+            "en": "7K",
+            "pl": "7K"
+          },
+          "value": "7"
         },
-        "description": {
-            "en": "Filter songs by keymode.",
-            "pl": "Filtrowanie piosenek według ilości klawiszy."
+        {
+          "name": {
+            "en": "14K",
+            "pl": "14K"
+          },
+          "value": "14"
         },
-        "type": "choice",
-        "default": "7",
-        "choices": [
-            {
-                "name": {
-                    "en": "7K",
-                    "pl": "7K"
-                },
-                "value": "7"
-            },
-            {
-                "name": {
-                    "en": "14K",
-                    "pl": "14K"
-                },
-                "value": "14"
-            },
-            {
-                "name": {
-                    "en": "All keys",
-                    "pl": "Wszystkie"
-                },
-                "value": ""
-            }
-        ]
+        {
+          "name": {
+            "en": "All keys",
+            "pl": "Wszystkie"
+          },
+          "value": ""
+        }
+      ]
     }
   ]
 }
