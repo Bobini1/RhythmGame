@@ -34,7 +34,10 @@ AudioPlayer::onDeviceChanged()
     ma_sound_set_fade_in_milliseconds(sound.get(), 0, volume, fadeInMillis);
     ma_sound_seek_to_pcm_frame(sound.get(), currentPcmFrame);
     if (isPlayingNow) {
-        play();
+        if (ma_sound_start(sound.get()) != MA_SUCCESS) {
+            spdlog::error("Failed to play sound: {}", source.toStdString());
+            stop();
+        }
     }
 }
 AudioPlayer::AudioPlayer(QObject* parent)
@@ -44,7 +47,38 @@ AudioPlayer::AudioPlayer(QObject* parent)
             &AudioEngine::changeDeviceRequested,
             this,
             &AudioPlayer::onDeviceChanged);
+
+    playingFinishedTimer.setInterval(100);
+    connect(&playingFinishedTimer,
+            &QTimer::timeout,
+            this,
+            &AudioPlayer::onPlayingFinishedTimerTriggered);
 }
+
+void
+AudioPlayer::onPlayingFinishedTimerTriggered()
+{
+    stop();
+}
+
+void
+AudioPlayer::setPlaying(bool value)
+{
+    auto wasPlaying = isPlaying();
+    if (value) {
+        play();
+        if (!looping) {
+            playingFinishedTimer.start();
+        }
+    } else {
+        stop();
+        playingFinishedTimer.stop();
+    }
+    if (wasPlaying != isPlaying()) {
+        emit playingChanged();
+    }
+}
+
 AudioPlayer::~AudioPlayer()
 {
     if (sound) {
@@ -78,10 +112,18 @@ AudioPlayer::setSource(const QString& value)
                                   sound.get()) != MA_SUCCESS) {
         spdlog::error("Failed to load sound: {}", value.toStdString());
         sound.reset();
+        stop();
         return;
     }
     ma_sound_set_looping(sound.get(), looping ? MA_TRUE : MA_FALSE);
     ma_sound_set_volume(sound.get(), volume);
+    ma_sound_set_fade_in_milliseconds(sound.get(), 0, volume, fadeInMillis);
+    if (isPlaying()) {
+        if (ma_sound_start(sound.get()) != MA_SUCCESS) {
+            spdlog::error("Failed to play sound: {}", source.toStdString());
+            stop();
+        }
+    }
 }
 void
 AudioPlayer::resetSource()
@@ -98,25 +140,37 @@ AudioPlayer::resetSource()
 auto
 AudioPlayer::isPlaying() const -> bool
 {
-    return sound && ma_sound_is_playing(sound.get()) != 0;
+    return playing;
 }
 void
 AudioPlayer::play()
 {
+    if (isPlaying()) {
+        return;
+    }
     if (sound) {
         stop();
+        ma_sound_seek_to_pcm_frame(sound.get(), 0);
+        ma_sound_set_fade_in_milliseconds(sound.get(), 0, volume, fadeInMillis);
         if (ma_sound_start(sound.get()) != MA_SUCCESS) {
             spdlog::error("Failed to play sound: {}", source.toStdString());
         }
+        playing = true;
+        emit playingChanged();
     }
 }
 void
 AudioPlayer::stop()
 {
-    if (sound) {
-        ma_sound_stop(sound.get());
-        ma_sound_seek_to_pcm_frame(sound.get(), 0);
+    if (!isPlaying()) {
+        return;
     }
+    if (sound) {
+        ma_sound_set_fade_in_milliseconds(sound.get(), -1, 0.0f, fadeOutMillis);
+        ma_sound_stop(sound.get());
+    }
+    playing = false;
+    emit playingChanged();
 }
 auto
 AudioPlayer::getVolume() const -> float
@@ -150,8 +204,17 @@ AudioPlayer::setLooping(bool value)
     if (sound) {
         ma_sound_set_looping(sound.get(), value ? MA_TRUE : MA_FALSE);
     }
+    // Manage timer based on looping state
+    if (isPlaying()) {
+        if (looping) {
+            playingFinishedTimer.stop();
+        } else {
+            playingFinishedTimer.start();
+        }
+    }
     emit loopingChanged();
 }
+
 auto
 AudioPlayer::getFadeInMillis() const -> int64_t
 {
@@ -164,9 +227,6 @@ AudioPlayer::setFadeInMillis(int64_t value)
         return;
     }
     fadeInMillis = value;
-    if (sound) {
-        ma_sound_set_fade_in_milliseconds(sound.get(), 0, volume, value);
-    }
     emit fadeInMillisChanged();
 }
 } // namespace sounds

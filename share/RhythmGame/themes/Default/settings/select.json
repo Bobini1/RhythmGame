@@ -109,7 +109,7 @@
       },
       "type": "file",
       "path": "scripts/select/sounds/soundset",
-      "default": "default",
+      "default": "battle armor",
       "description": {
         "en": "The soundset used in the song selection screen.",
         "pl": "Zestaw dźwięków używany w ekranie wyboru piosenki."
