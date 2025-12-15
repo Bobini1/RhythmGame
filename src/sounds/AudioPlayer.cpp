@@ -68,12 +68,8 @@ AudioPlayer::setPlaying(bool value)
     auto wasPlaying = isPlaying();
     if (value) {
         play();
-        if (!looping) {
-            playingFinishedTimer.start();
-        }
     } else {
         stop();
-        playingFinishedTimer.stop();
     }
     if (wasPlaying != isPlaying()) {
         emit playingChanged();
@@ -168,6 +164,9 @@ AudioPlayer::play()
             spdlog::error("Failed to play sound: {}", source.toStdString());
         }
         playing = true;
+        if (!looping) {
+            playingFinishedTimer.start();
+        }
         emit playingChanged();
     }
 }
@@ -182,6 +181,7 @@ AudioPlayer::stop()
         ma_sound_stop(sound.get());
     }
     playing = false;
+    playingFinishedTimer.stop();
     emit playingChanged();
 }
 auto
