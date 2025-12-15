@@ -206,7 +206,7 @@ FocusScope {
             AudioPlayer {
                 id: bgm
                 looping: true
-                source: root.rootUrl + "sounds/bgm/" + Rg.profileList.mainProfile.vars.themeVars.select[QmlUtils.themeName].bgm + "/select.wav";
+                source: Rg.profileList.mainProfile.vars.generalVars.bgmPath + "select";
                 fadeInMillis: 1000
                 property bool canPlay: (!playMusic.playing || playMusic.source === "") && root.enabled
                 onCanPlayChanged: {

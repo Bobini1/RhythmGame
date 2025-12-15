@@ -100,34 +100,6 @@
           "value": ""
         }
       ]
-    },
-    {
-      "id": "soundset",
-      "name": {
-        "en": "Soundset",
-        "pl": "Zestaw dźwięków"
-      },
-      "type": "file",
-      "path": "scripts/select/sounds/soundset",
-      "default": "battle armor",
-      "description": {
-        "en": "The soundset used in the song selection screen.",
-        "pl": "Zestaw dźwięków używany w ekranie wyboru piosenki."
-      }
-    },
-    {
-      "id": "bgm",
-      "name": {
-        "en": "BGM",
-        "pl": "BGM"
-      },
-      "type": "file",
-      "path": "scripts/select/sounds/bgm",
-      "default": "default",
-      "description": {
-        "en": "The background music played in the song selection screen.",
-        "pl": "Muzyka w tle odtwarzana w ekranie wyboru piosenki."
-      }
     }
   ]
 }

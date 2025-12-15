@@ -5,9 +5,9 @@
 #include "AvatarImageProvider.h"
 namespace resource_managers {
 AvatarImageProvider::AvatarImageProvider(
-  std::vector<std::filesystem::path> avatarFolders)
+  std::vector<std::filesystem::path> assetsPaths)
   : QQuickImageProvider(Pixmap)
-  , avatarFolders(std::move(avatarFolders))
+  , assetsPaths(std::move(assetsPaths))
 {
 }
 auto
@@ -15,8 +15,8 @@ AvatarImageProvider::requestPixmap(const QString& id,
                                    QSize* size,
                                    const QSize& requestedSize) -> QPixmap
 {
-    for (const auto& folder : avatarFolders) {
-        auto path = folder / id.toStdString();
+    for (const auto& folder : assetsPaths) {
+        auto path = folder / "avatars" / id.toStdString();
         QPixmap pixmap(QString::fromStdString(path.string()));
         if (pixmap.isNull()) {
             continue;

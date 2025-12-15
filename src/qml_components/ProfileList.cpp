@@ -52,14 +52,14 @@ qml_components::ProfileList::ProfileList(
   db::SqliteCppDb* songDb,
   const QMap<QString, ThemeFamily>& themeFamilies,
   std::filesystem::path profilesFolder,
-  QList<QString> avatarPaths,
+  QList<QString> assetsPaths,
   QObject* parent)
   : QObject(parent)
   , profilesFolder(std::move(profilesFolder))
   , mainDbPath(std::move(mainDbPath))
   , songDb(songDb)
   , themeFamilies(themeFamilies)
-  , avatarPaths(std::move(avatarPaths))
+  , assetsPaths(std::move(assetsPaths))
 {
     if (!exists(this->profilesFolder)) {
         create_directory(this->profilesFolder);
@@ -75,7 +75,7 @@ qml_components::ProfileList::ProfileList(
                   this->mainDbPath,
                   entry.path() / "profile.sqlite",
                   themeFamilies,
-                  this->avatarPaths,
+                  this->assetsPaths,
                   this);
                 QQmlEngine::setObjectOwnership(profile,
                                                QQmlEngine::CppOwnership);
@@ -164,7 +164,7 @@ qml_components::ProfileList::createProfile() -> resource_managers::Profile*
           profilesFolder / QUuid::createUuid().toString().toStdString() /
             "profile.sqlite",
           themeFamilies,
-          avatarPaths,
+          assetsPaths,
           this);
         QQmlEngine::setObjectOwnership(profile, QQmlEngine::CppOwnership);
         profiles.append(profile);

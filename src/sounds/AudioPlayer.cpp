@@ -5,6 +5,7 @@
 #include "AudioPlayer.h"
 
 #include "AudioEngine.h"
+#include <QFileInfo>
 
 namespace sounds {
 void
@@ -102,9 +103,20 @@ AudioPlayer::setSource(const QString& value)
     } else {
         sound = std::make_unique<ma_sound>();
     }
+    auto fileinfo = QFileInfo(value);
+    if (fileinfo.suffix().isEmpty()) {
+        auto suffixes = QStringList{ "wav", "flac", "ogg", "mp3" };
+        for (const auto& suffix : suffixes) {
+            if (auto testPath = value + "." + suffix;
+                QFileInfo::exists(testPath)) {
+                source = testPath;
+                break;
+            }
+        }
+    }
     emit sourceChanged();
     if (ma_sound_init_from_file_w(engine->getEngine(),
-                                  value.toStdWString().c_str(),
+                                  source.toStdWString().c_str(),
                                   MA_SOUND_FLAG_NO_PITCH |
                                     MA_SOUND_FLAG_NO_SPATIALIZATION,
                                   nullptr,
