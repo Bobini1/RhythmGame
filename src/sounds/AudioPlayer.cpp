@@ -34,10 +34,22 @@ AudioPlayer::onDeviceChanged()
     ma_sound_set_volume(sound.get(), volume);
     ma_sound_set_fade_in_milliseconds(sound.get(), 0, volume, fadeInMillis);
     ma_sound_seek_to_pcm_frame(sound.get(), currentPcmFrame);
+    auto lengthInSeconds = 0.0f;
+    ma_sound_get_length_in_seconds(sound.get(), &lengthInSeconds);
+    playingFinishedTimer.setInterval(static_cast<int>(lengthInSeconds * 1000));
+    auto cursorInSeconds = 0.0f;
+    ma_sound_get_cursor_in_seconds(sound.get(), &cursorInSeconds);
     if (isPlayingNow) {
         if (ma_sound_start(sound.get()) != MA_SUCCESS) {
             spdlog::error("Failed to play sound: {}", source.toStdString());
             stop();
+        } else {
+            if (!looping) {
+                QTimer::singleShot(
+                  static_cast<int>((lengthInSeconds - cursorInSeconds) * 1000),
+                  this,
+                  &AudioPlayer::onPlayingFinishedTimerTriggered);
+            }
         }
     }
 }
@@ -49,7 +61,6 @@ AudioPlayer::AudioPlayer(QObject* parent)
             this,
             &AudioPlayer::onDeviceChanged);
 
-    playingFinishedTimer.setInterval(100);
     connect(&playingFinishedTimer,
             &QTimer::timeout,
             this,
@@ -121,15 +132,22 @@ AudioPlayer::setSource(const QString& value)
         spdlog::error("Failed to load sound: {}", value.toStdString());
         sound.reset();
         stop();
+        playingFinishedTimer.setInterval(0);
         return;
     }
     ma_sound_set_looping(sound.get(), looping ? MA_TRUE : MA_FALSE);
     ma_sound_set_volume(sound.get(), volume);
     ma_sound_set_fade_in_milliseconds(sound.get(), 0, volume, fadeInMillis);
+    auto lengthInSeconds = 0.0f;
+    ma_sound_get_length_in_seconds(sound.get(), &lengthInSeconds);
+    playingFinishedTimer.setInterval(static_cast<int>(lengthInSeconds * 1000));
     if (isPlaying()) {
         if (ma_sound_start(sound.get()) != MA_SUCCESS) {
             spdlog::error("Failed to play sound: {}", source.toStdString());
             stop();
+        }
+        if (!looping) {
+            playingFinishedTimer.start();
         }
     }
 }
@@ -163,12 +181,12 @@ AudioPlayer::play()
         if (ma_sound_start(sound.get()) != MA_SUCCESS) {
             spdlog::error("Failed to play sound: {}", source.toStdString());
         }
-        playing = true;
         if (!looping) {
             playingFinishedTimer.start();
         }
-        emit playingChanged();
     }
+    playing = true;
+    emit playingChanged();
 }
 void
 AudioPlayer::stop()
