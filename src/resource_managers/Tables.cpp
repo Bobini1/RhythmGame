@@ -78,7 +78,7 @@ resource_managers::Level::getEntries() const -> QVariantList
     return list;
 }
 static auto
-queryScores(db::SqliteCppDb& db, QVariantList& ret, QStringList md5List)
+queryCharts(db::SqliteCppDb& db, QVariantList& ret, QStringList md5List)
   -> size_t
 {
     // Create a single query with an IN clause
@@ -139,7 +139,7 @@ resource_managers::Level::loadCharts() const -> QVariantList
         md5List.append(chart.md5.toUpper());
     }
 
-    auto loaded = queryScores(*db, ret, md5List);
+    auto loaded = queryCharts(*db, ret, md5List);
     // sort by title, subtitle
     std::ranges::sort(ret, [](QVariant& a, QVariant& b) {
         auto getTitle = [](QVariant& chart) {
@@ -224,7 +224,7 @@ resource_managers::Course::loadCharts() const
         md5List.append(md5.toUpper());
     }
 
-    auto loaded = queryScores(*db, ret, md5List);
+    auto loaded = queryCharts(*db, ret, md5List);
     spdlog::debug("Loaded {} charts in {} s", loaded, sw);
     return ret;
 }
