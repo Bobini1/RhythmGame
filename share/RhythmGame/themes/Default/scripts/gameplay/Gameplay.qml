@@ -103,11 +103,6 @@ Rectangle {
 
     color: "black"
 
-    // stops all sounds when leaving the screen
-    Component.onDestruction: {
-        chart.destroy();
-    }
-
     Timer {
         id: poorLayerTimer
 
