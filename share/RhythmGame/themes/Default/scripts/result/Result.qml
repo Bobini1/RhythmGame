@@ -39,6 +39,23 @@ Item {
         source: root.imagesUrl + (root.score1.result.clearType === "FAILED" ? "failed.png" : "clear.png")
         width: parent.width
 
+        AudioPlayer {
+            source: {
+                let clear = root.score1.result.clearType !== "FAILED";
+                if (root.course) {
+                    if (clear) {
+                        return Rg.profileList.mainProfile.vars.generalVars.soundsetPath + "course_clear";
+                    }
+                    return Rg.profileList.mainProfile.vars.generalVars.soundsetPath + "course_fail";
+                }
+                if (clear) {
+                    return Rg.profileList.mainProfile.vars.generalVars.soundsetPath + "clear";
+                }
+                return Rg.profileList.mainProfile.vars.generalVars.soundsetPath + "fail";
+            }
+            playing: true
+        }
+
         Shortcut {
             enabled: root.enabled
             sequence: "Esc"

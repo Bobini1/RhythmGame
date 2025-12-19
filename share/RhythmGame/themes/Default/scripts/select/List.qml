@@ -107,6 +107,10 @@ PathView {
         movingTimer.restart();
     }
 
+    AudioPlayer {
+        id: closeFolderSound
+        source: Rg.profileList.mainProfile.vars.generalVars.soundsetPath + "f-close";
+    }
     function goBack() {
         if (historyStack.length === 1) {
             return;
@@ -128,9 +132,14 @@ PathView {
             return false;
         });
         pathView.positionViewAtIndex(idx, PathView.Center);
+        closeFolderSound.stop();
+        closeFolderSound.play();
     }
-
-    function goForward(item) {
+    AudioPlayer {
+        id: openFolderSound
+        source: Rg.profileList.mainProfile.vars.generalVars.soundsetPath + "f-open";
+    }
+    function goForward(item, skipSound = false) {
         if (item instanceof ChartData) {
             console.info("Opening chart " + item.path);
             if (Rg.profileList.battleActive) {
@@ -153,9 +162,12 @@ PathView {
         }
         historyStack.push(item);
         open(item);
+        if (!skipSound) {
+            openFolderSound.stop();
+            openFolderSound.play();
+        }
         pathView.positionViewAtIndex(0, PathView.Center);
     }
-
     function open(item) {
         let folder;
         if (item instanceof table) {
@@ -334,7 +346,7 @@ PathView {
     }
 
     Component.onCompleted: {
-        goForward("");
+        goForward("", true);
     }
     Keys.onLeftPressed: {
         goBack();
@@ -457,6 +469,10 @@ PathView {
             goBack();
         }
     }
+    AudioPlayer {
+        id: scratchSound
+        source: Rg.profileList.mainProfile.vars.generalVars.soundsetPath + "scratch";
+    }
     onCurrentItemChanged: {
         scrollingTextTimer.restart();
         scrollingText = false;
@@ -466,6 +482,10 @@ PathView {
     }
     onSortChanged: {
         sortOrFilterChanged();
+    }
+    onCurrentIndexChanged: {
+        scratchSound.stop();
+        scratchSound.play();
     }
 
     Timer {

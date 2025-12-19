@@ -68,6 +68,12 @@ Rectangle {
         elapsed: root.elapsed
     }
 
+    AudioPlayer {
+        id: playReadySound
+        source: Rg.profileList.mainProfile.vars.generalVars.soundsetPath + "playready";
+        playing: true;
+    }
+
     property bool showedCourseResult: false
     StackView.onActivated: {
         escapeShortcut.nothingWasHit = true;
@@ -80,6 +86,7 @@ Rectangle {
                 Qt.callLater(() => sceneStack.pop());
             }
         } else {
+            playReadySound.play();
             chart.player1.profile.scoreDb.getScoresForMd5(chartData.md5).then(scores => {
                 scores1 = scores.scores[chartData.md5] || [];
             });
@@ -400,6 +407,10 @@ Rectangle {
             escapeShortcut.nothingWasHit = false;
         }
     }
+    AudioPlayer {
+        id: playstopSound
+        source: Rg.profileList.mainProfile.vars.generalVars.soundsetPath + "playstop"
+    }
     Shortcut {
         id: escapeShortcut
         enabled: root.enabled
@@ -408,6 +419,7 @@ Rectangle {
         property bool used: false
 
         onActivated: {
+            playstopSound.play();
             if (nothingWasHit) {
                 sceneStack.pop();
             } else {
