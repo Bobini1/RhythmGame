@@ -18,6 +18,6 @@ var searchData=
   ['autoplaychanged_15',['autoPlayChanged',['../classsounds_1_1AudioPlayer.html#aec243ffca57aa1ba7c41085388608f35',1,'sounds::AudioPlayer']]],
   ['autoplayer_16',['AutoPlayer',['../classgameplay__logic_1_1AutoPlayer.html#ab78e6146e557d946b43798f6a915cea4',1,'gameplay_logic::AutoPlayer']]],
   ['avatarchanged_17',['avatarChanged',['../classresource__managers_1_1GeneralVars.html#a12fa9785e8894e36fa664e9bad3c422e',1,'resource_managers::GeneralVars']]],
-  ['avatarimageprovider_18',['AvatarImageProvider',['../classresource__managers_1_1AvatarImageProvider.html#aa40b977a27d48204304b1684099c1568',1,'resource_managers::AvatarImageProvider']]],
+  ['avatarimageprovider_18',['AvatarImageProvider',['../classresource__managers_1_1AvatarImageProvider.html#a988efe5a8b21d3ac1629879859828c28',1,'resource_managers::AvatarImageProvider']]],
   ['axismoved_19',['axisMoved',['../classinput_1_1GamepadManager.html#a5384e79d1fa4b485954161a6fa117bf8',1,'input::GamepadManager']]]
 ];

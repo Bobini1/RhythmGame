@@ -20,7 +20,7 @@ var searchData=
   ['chartfactory_2ecpp_17',['ChartFactory.cpp',['../ChartFactory_8cpp.html',1,'']]],
   ['chartfactory_2eh_18',['ChartFactory.h',['../ChartFactory_8h.html',1,'']]],
   ['chartlength_19',['chartLength',['../classgameplay__logic_1_1Player.html#adbd922919d14ce58ff4d0b0073cdec61',1,'gameplay_logic::Player']]],
-  ['chartloader_20',['chartloader',['../classqml__components_1_1ChartLoader.html#a3d2b4067ce2211ff78336b9f0471e1a8',1,'qml_components::ChartLoader::ChartLoader()'],['../classRg.html#ab168830d6cd75852dc3192bbdc722c4f',1,'Rg::chartLoader'],['../classqml__components_1_1ChartLoader.html',1,'qml_components::ChartLoader']]],
+  ['chartloader_20',['chartloader',['../classRg.html#ab168830d6cd75852dc3192bbdc722c4f',1,'Rg::chartLoader'],['../classqml__components_1_1ChartLoader.html#a3d2b4067ce2211ff78336b9f0471e1a8',1,'qml_components::ChartLoader::ChartLoader()'],['../classqml__components_1_1ChartLoader.html',1,'qml_components::ChartLoader']]],
   ['chartloader_2ecpp_21',['ChartLoader.cpp',['../ChartLoader_8cpp.html',1,'']]],
   ['chartloader_2eh_22',['ChartLoader.h',['../ChartLoader_8h.html',1,'']]],
   ['chartrunner_23',['chartrunner',['../classgameplay__logic_1_1ChartRunner.html#a87cd158f29946a9b53115111a6b1a412',1,'gameplay_logic::ChartRunner::ChartRunner()'],['../classgameplay__logic_1_1ChartRunner.html',1,'gameplay_logic::ChartRunner']]],

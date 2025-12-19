@@ -79,5 +79,5 @@ var searchData=
   ['tuplesize_2ecpp_76',['TupleSize.cpp',['../TupleSize_8cpp.html',1,'']]],
   ['tuplesize_2eh_77',['TupleSize.h',['../TupleSize_8h.html',1,'']]],
   ['tuplesizev_78',['tupleSizeV',['../namespacesupport.html#a30de9f53b3c7cdc7f6ff8eac5fe678ef',1,'support']]],
-  ['type_79',['type',['../structgameplay__logic_1_1rules_1_1HitRules_1_1Note.html#ab03dc7fc2a0807bf6070d1d78ca10eaf',1,'gameplay_logic::rules::HitRules::Note::type'],['../classgameplay__logic_1_1Note.html#a3b8d1cc4892925c524e301413a7a191c',1,'gameplay_logic::Note::type'],['../classgameplay__logic_1_1Note.html#a8e22f28b2754a4af52eb701ff01def90',1,'gameplay_logic::Note::Type']]]
+  ['type_79',['type',['../classgameplay__logic_1_1Note.html#a8e22f28b2754a4af52eb701ff01def90',1,'gameplay_logic::Note::Type'],['../structgameplay__logic_1_1rules_1_1HitRules_1_1Note.html#ab03dc7fc2a0807bf6070d1d78ca10eaf',1,'gameplay_logic::rules::HitRules::Note::type'],['../classgameplay__logic_1_1Note.html#a3b8d1cc4892925c524e301413a7a191c',1,'gameplay_logic::Note::type']]]
 ];

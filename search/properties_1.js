@@ -9,11 +9,13 @@ var searchData=
   ['battleactive_6',['battleActive',['../classqml__components_1_1ProfileList.html#a90b524ca3c03895993e3a44d53d28117',1,'qml_components::ProfileList']]],
   ['battleprofiles_7',['battleProfiles',['../classqml__components_1_1ProfileList.html#ab8e7f1a022ed11bea31a9f2f3c99a44e',1,'qml_components::ProfileList']]],
   ['belowbottom_8',['belowBottom',['../classgameplay__logic_1_1NoteState.html#a42e9df35b80531dc00dadca096b053ad',1,'gameplay_logic::NoteState']]],
-  ['bga_9',['bga',['../classgameplay__logic_1_1ChartRunner.html#a92889cd7029ddbda8513023f96d1620b',1,'gameplay_logic::ChartRunner::bga'],['../classgameplay__logic_1_1CourseRunner.html#a0deb2ca8e4aa27ee7b5b04fa4f1e66b5',1,'gameplay_logic::CourseRunner::bga']]],
+  ['bga_9',['bga',['../classgameplay__logic_1_1CourseRunner.html#a0deb2ca8e4aa27ee7b5b04fa4f1e66b5',1,'gameplay_logic::CourseRunner::bga'],['../classgameplay__logic_1_1ChartRunner.html#a92889cd7029ddbda8513023f96d1620b',1,'gameplay_logic::ChartRunner::bga']]],
   ['bgaon_10',['bgaOn',['../classresource__managers_1_1GeneralVars.html#a70f0c458645b693f52013d36e37a8353',1,'resource_managers::GeneralVars']]],
-  ['bottomposition_11',['bottomposition',['../classgameplay__logic_1_1Filter.html#abf9240c3e8273432782fb0ef05e0b7d5',1,'gameplay_logic::Filter::bottomPosition'],['../classgameplay__logic_1_1BarlineFilter.html#a1d9f7f4b0ce8459884e7e54f4812f04a',1,'gameplay_logic::BarlineFilter::bottomPosition']]],
-  ['bottomshiftablegauge_12',['bottomShiftableGauge',['../classresource__managers_1_1GeneralVars.html#a65f504aba33bb83a22f63ee2aceca91d',1,'resource_managers::GeneralVars']]],
-  ['bpm_13',['bpm',['../classgameplay__logic_1_1BpmChange.html#a72679974406720d559d2593dc4f4340f',1,'gameplay_logic::BpmChange::bpm'],['../classgameplay__logic_1_1Player.html#a513d7cdd8455ff18c05b2ff20bf58ea9',1,'gameplay_logic::Player::bpm']]],
-  ['bpmchanges_14',['bpmChanges',['../classgameplay__logic_1_1BmsNotes.html#ad5e63843117c94e92366bc232188881f',1,'gameplay_logic::BmsNotes']]],
-  ['button_15',['button',['../classinput_1_1Mapping.html#a88ff34e4fdf6cbc47a177952d303f973',1,'input::Mapping']]]
+  ['bgm_11',['bgm',['../classresource__managers_1_1GeneralVars.html#a62b82dcf973739d540a4f7a2f3f7a581',1,'resource_managers::GeneralVars']]],
+  ['bgmpath_12',['bgmPath',['../classresource__managers_1_1GeneralVars.html#afc1f9c206d99f860c7edb7f3ab64a3d5',1,'resource_managers::GeneralVars']]],
+  ['bottomposition_13',['bottomposition',['../classgameplay__logic_1_1Filter.html#abf9240c3e8273432782fb0ef05e0b7d5',1,'gameplay_logic::Filter::bottomPosition'],['../classgameplay__logic_1_1BarlineFilter.html#a1d9f7f4b0ce8459884e7e54f4812f04a',1,'gameplay_logic::BarlineFilter::bottomPosition']]],
+  ['bottomshiftablegauge_14',['bottomShiftableGauge',['../classresource__managers_1_1GeneralVars.html#a65f504aba33bb83a22f63ee2aceca91d',1,'resource_managers::GeneralVars']]],
+  ['bpm_15',['bpm',['../classgameplay__logic_1_1BpmChange.html#a72679974406720d559d2593dc4f4340f',1,'gameplay_logic::BpmChange::bpm'],['../classgameplay__logic_1_1Player.html#a513d7cdd8455ff18c05b2ff20bf58ea9',1,'gameplay_logic::Player::bpm']]],
+  ['bpmchanges_16',['bpmChanges',['../classgameplay__logic_1_1BmsNotes.html#ad5e63843117c94e92366bc232188881f',1,'gameplay_logic::BmsNotes']]],
+  ['button_17',['button',['../classinput_1_1Mapping.html#a88ff34e4fdf6cbc47a177952d303f973',1,'input::Mapping']]]
 ];
