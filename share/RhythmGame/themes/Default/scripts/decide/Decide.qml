@@ -79,10 +79,13 @@ Image {
         spacing: titleRect.height / 9
 
         Rectangle {
+            id: genreRect
             width: parent.width
             height: width / 45
             color: root.diffColor
             opacity: 0.8
+            property real pos: 1;
+            x: parent.width * pos
 
             Item {
                 width: parent.width * 2 / 3
@@ -105,6 +108,15 @@ Image {
                     }
                 }
             }
+
+            NumberAnimation {
+                id: genreAnim
+                target: genreRect
+                property: "pos"
+                to: 0
+                duration: 1000
+                easing.type: Easing.OutCubic
+            }
         }
 
         Rectangle {
@@ -113,6 +125,8 @@ Image {
             height: width / 30
             color: root.diffColor
             opacity: 0.8
+            property real pos: 1;
+            x: parent.width * pos
 
             Item {
                 width: parent.width * 2 / 3
@@ -135,6 +149,19 @@ Image {
                     }
                 }
             }
+
+            SequentialAnimation {
+                id: titleAnim
+
+                PauseAnimation { duration: 500 }
+                NumberAnimation {
+                    target: titleRect
+                    property: "pos"
+                    to: 0
+                    duration: 1000
+                    easing.type: Easing.OutCubic
+                }
+            }
         }
 
         Rectangle {
@@ -143,6 +170,8 @@ Image {
             height: width / 45
             color: root.diffColor
             opacity: 0.8
+            property real pos: 1;
+            x: parent.width * pos
 
             RowLayout {
                 width: parent.width * 2 / 3
@@ -178,9 +207,26 @@ Image {
                     minimumPixelSize: 1
                 }
             }
+
+            SequentialAnimation {
+                id: artistAnim
+                PauseAnimation { duration: 1000 }
+                NumberAnimation {
+                    target: artistRect
+                    property: "pos"
+                    to: 0
+                    duration: 1000
+                    easing.type: Easing.OutCubic
+                }
+            }
         }
     }
 
+    Component.onCompleted: {
+        genreAnim.start();
+        titleAnim.start();
+        artistAnim.start();
+    }
 
     Image {
         anchors.verticalCenter: parent.verticalCenter
