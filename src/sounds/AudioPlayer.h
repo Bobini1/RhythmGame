@@ -22,7 +22,7 @@ class AudioPlayer : public QObject
     Q_PROPERTY(float volume READ getVolume WRITE setVolume NOTIFY volumeChanged)
     Q_PROPERTY(
       bool looping READ isLooping WRITE setLooping NOTIFY loopingChanged)
-    Q_PROPERTY(int64_t fadeInMillis READ getFadeInMillis WRITE setFadeInMillis
+    Q_PROPERTY(double fadeInMillis READ getFadeInMillis WRITE setFadeInMillis
                  NOTIFY fadeInMillisChanged)
     Q_PROPERTY(
       bool playing READ isPlaying WRITE setPlaying NOTIFY playingChanged)
@@ -32,8 +32,7 @@ class AudioPlayer : public QObject
     double volume = 1.0;
     bool looping = false;
     bool playing = false;
-    int64_t fadeInMillis = 0;
-    int64_t fadeOutMillis = 0;
+    uint64_t fadeInMillis = 0;
     QTimer playingFinishedTimer;
     void onDeviceChanged();
     void onPlayingFinishedTimerTriggered();
@@ -53,8 +52,8 @@ class AudioPlayer : public QObject
     void setVolume(float value);
     auto isLooping() const -> bool;
     void setLooping(bool value);
-    auto getFadeInMillis() const -> int64_t;
-    void setFadeInMillis(int64_t value);
+    auto getFadeInMillis() const -> uint64_t;
+    void setFadeInMillis(uint64_t value);
     inline static AudioEngine* engine = nullptr;
   signals:
     void sourceChanged();

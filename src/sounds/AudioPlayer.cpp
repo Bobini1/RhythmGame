@@ -6,6 +6,7 @@
 
 #include "AudioEngine.h"
 #include <QFileInfo>
+#include <algorithm>
 
 namespace sounds {
 void
@@ -195,7 +196,7 @@ AudioPlayer::stop()
         return;
     }
     if (sound) {
-        ma_sound_set_fade_in_milliseconds(sound.get(), -1, 0.0f, fadeOutMillis);
+        ma_sound_set_fade_in_milliseconds(sound.get(), -1, 0.0f, fadeInMillis);
         ma_sound_stop(sound.get());
     }
     playing = false;
@@ -246,12 +247,12 @@ AudioPlayer::setLooping(bool value)
 }
 
 auto
-AudioPlayer::getFadeInMillis() const -> int64_t
+AudioPlayer::getFadeInMillis() const -> uint64_t
 {
     return fadeInMillis;
 }
 void
-AudioPlayer::setFadeInMillis(int64_t value)
+AudioPlayer::setFadeInMillis(uint64_t value)
 {
     if (fadeInMillis == value) {
         return;
