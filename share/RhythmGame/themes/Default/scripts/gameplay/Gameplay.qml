@@ -56,7 +56,7 @@ Rectangle {
     property real targetPoints2: chart.player1.score.points
     property var elapsed: 0
     FrameAnimation {
-        running: targetScore1
+        running: !!targetScore1
         onTriggered: {
             root.elapsed = chart.player1.elapsed;
         }
@@ -66,6 +66,12 @@ Rectangle {
         id: scoreReplayer1
         hitEvents: targetScore1?.replayData?.hitEvents
         elapsed: root.elapsed
+    }
+
+    AudioPlayer {
+        id: playReadySound
+        source: Rg.profileList.mainProfile.vars.generalVars.soundsetPath + "playready";
+        playing: true;
     }
 
     property bool showedCourseResult: false
@@ -80,6 +86,7 @@ Rectangle {
                 Qt.callLater(() => sceneStack.pop());
             }
         } else {
+            playReadySound.play();
             chart.player1.profile.scoreDb.getScoresForMd5(chartData.md5).then(scores => {
                 scores1 = scores.scores[chartData.md5] || [];
             });
@@ -102,11 +109,6 @@ Rectangle {
     }
 
     color: "black"
-
-    // stops all sounds when leaving the screen
-    Component.onDestruction: {
-        chart.destroy();
-    }
 
     Timer {
         id: poorLayerTimer
@@ -405,6 +407,10 @@ Rectangle {
             escapeShortcut.nothingWasHit = false;
         }
     }
+    AudioPlayer {
+        id: playstopSound
+        source: Rg.profileList.mainProfile.vars.generalVars.soundsetPath + "playstop"
+    }
     Shortcut {
         id: escapeShortcut
         enabled: root.enabled
@@ -413,6 +419,7 @@ Rectangle {
         property bool used: false
 
         onActivated: {
+            playstopSound.play();
             if (nothingWasHit) {
                 sceneStack.pop();
             } else {

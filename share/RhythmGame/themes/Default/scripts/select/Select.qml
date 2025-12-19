@@ -55,8 +55,9 @@ FocusScope {
                 previewDelayTimer.restart();
                 songList.refresh();
             } else {
-                playMusic.stop();
                 previewDelayTimer.stop();
+                playMusic.stop();
+                bgm.stop();
                 playMusic.waitingForStop = false;
             }
         }
@@ -189,14 +190,39 @@ FocusScope {
                 id: playMusic
 
                 property bool waitingForStop: false
-
+                fadeInMillis: 1000
                 looping: true
                 source: songList.current instanceof ChartData ? songList.previewFiles[songList.current.chartDirectory] : undefined
+                Component.onCompleted: {
+                    playing = true;
+                }
 
                 onSourceChanged: {
-                    playMusic.stop();
                     previewDelayTimer.stop();
+                    playMusic.stop();
                     waitingForStop = playMusic.source !== "";
+                }
+            }
+            AudioPlayer {
+                id: bgm
+                looping: true
+                source: Rg.profileList.mainProfile.vars.generalVars.bgmPath + "select";
+                fadeInMillis: 1000
+                property bool canPlay: (!playMusic.playing || playMusic.source === "") && root.enabled
+                onCanPlayChanged: {
+                    if (!canPlay) {
+                        bgm.stop();
+                    }
+                }
+            }
+            Timer {
+                id: bgmDelayTimer
+
+                interval: 500
+                running: bgm.canPlay
+
+                onTriggered: {
+                    bgm.play();
                 }
             }
             Difficulty {
@@ -218,8 +244,7 @@ FocusScope {
                 anchors.verticalCenterOffset: 150
                 sourceComponent: Grade {
                     scoreWithBestPoints: songList.currentItem
-                    ?.
-                        scoreWithBestPoints || null
+                    ?.scoreWithBestPoints || null
                 }
             }
             Connections {

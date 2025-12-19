@@ -235,7 +235,6 @@ class GeneralVars final : public QObject
     Q_PROPERTY(resource_managers::score_target::ScoreTarget scoreTarget READ
                  getScoreTarget WRITE setScoreTarget NOTIFY scoreTargetChanged
                    RESET resetScoreTarget)
-
     /**
      * @brief The target score fraction when scoreTarget is Fraction.
      * @details A value between 0.0 and 1.0 representing the target score
@@ -244,6 +243,31 @@ class GeneralVars final : public QObject
     Q_PROPERTY(double targetScoreFraction READ getTargetScoreFraction WRITE
                  setTargetScoreFraction NOTIFY targetScoreFractionChanged RESET
                    resetTargetScoreFraction)
+    /**
+     * @brief The folder with select and decide music.
+     * @details To get the list of available BGM folders, call
+     * getAvailableBgms().
+     */
+    Q_PROPERTY(
+      QString bgm READ getBgm WRITE setBgm NOTIFY bgmChanged RESET resetBgm)
+    /**
+     * @brief The full path to the selected BGM folder.
+     */
+    Q_PROPERTY(
+      QString bgmPath READ getBgmPath NOTIFY bgmPathChanged STORED false)
+    /**
+     * @brief The soundset to use.
+     * @details Corresponds to a folder in the soundsets/ directory in the
+     * assets paths.
+     */
+    Q_PROPERTY(QString soundset READ getSoundset WRITE setSoundset NOTIFY
+                 soundsetChanged RESET resetSoundset)
+    /**
+     * @brief The full paths to the selected soundset folder.
+     */
+    Q_PROPERTY(QString soundsetPath READ getSoundsetPath NOTIFY
+                 soundsetPathChanged STORED false)
+
     // ^ remember to use full namespace for enums for reflection
     double noteScreenTimeMillis = 1000;
     bool laneCoverOn = false;
@@ -266,11 +290,13 @@ class GeneralVars final : public QObject
     double offset = 0.0; // Offset in milliseconds
     ScoreTarget scoreTarget = ScoreTarget::BestScore;
     double targetScoreFraction = 8.0 / 9.0; // 0.888...
+    QString bgmPath;
+    QString soundsetPath;
 
-    QList<QString> avatarPaths;
+    QList<QString> assetsPaths;
 
   public:
-    explicit GeneralVars(QList<QString> avatarPaths, QObject* parent = nullptr);
+    explicit GeneralVars(QList<QString> assetsPaths, QObject* parent = nullptr);
     auto getNoteScreenTimeMillis() const -> double;
     void setNoteScreenTimeMillis(double value);
     void resetNoteScreenTimeMillis();
@@ -334,6 +360,16 @@ class GeneralVars final : public QObject
     auto getTargetScoreFraction() const -> double;
     void setTargetScoreFraction(double value);
     void resetTargetScoreFraction();
+    auto getBgm() const -> QString;
+    void setBgm(const QString& value);
+    void resetBgm();
+    auto getBgmPath() const -> QString;
+    auto getSoundset() const -> QString;
+    void setSoundset(QString value);
+    void resetSoundset();
+    auto getSoundsetPath() const -> QString;
+    Q_INVOKABLE QList<QString> getAvailableBgms() const;
+    Q_INVOKABLE QList<QString> getAvailableSoundsets() const;
 
   signals:
     void noteScreenTimeMillisChanged();
@@ -357,6 +393,10 @@ class GeneralVars final : public QObject
     void offsetChanged();
     void scoreTargetChanged();
     void targetScoreFractionChanged();
+    void bgmChanged();
+    void bgmPathChanged();
+    void soundsetChanged();
+    void soundsetPathChanged();
 };
 
 class Vars final : public QObject
@@ -393,7 +433,7 @@ class Vars final : public QObject
     explicit Vars(
       const Profile* profile,
       QMap<QString, qml_components::ThemeFamily> availableThemeFamilies,
-      QList<QString> avatarPaths,
+      QList<QString> assetsPaths,
       QObject* parent = nullptr);
     auto getGeneralVars() -> GeneralVars*;
     auto getThemeVars() -> QQmlPropertyMap*;

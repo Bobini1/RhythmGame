@@ -42,14 +42,14 @@ class Profile final : public QObject
      * @param mainDbPath Path to the main song database file. Has to exist.
      * @param dbPath Path to the profile's database file. Doesn't have to exist.
      * @param themeFamilies The available theme families.
-     * @param avatarPaths Paths to the avatar folders.
+     * @param assetsPaths Paths to the avatar folders.
      * @param parent QObject parent.
      */
     explicit Profile(
       const std::filesystem::path& mainDbPath,
       const std::filesystem::path& dbPath,
       const QMap<QString, qml_components::ThemeFamily>& themeFamilies,
-      QList<QString> avatarPaths,
+      QList<QString> assetsPaths,
       QObject* parent = nullptr);
 
     auto getPath() const -> std::filesystem::path;

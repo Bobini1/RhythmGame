@@ -10,9 +10,9 @@
 namespace resource_managers {
 class AvatarImageProvider final : public QQuickImageProvider
 {
-    std::vector<std::filesystem::path> avatarFolders;
+    std::vector<std::filesystem::path> assetsPaths;
   public:
-    AvatarImageProvider(std::vector<std::filesystem::path> avatarFolders);
+    AvatarImageProvider(std::vector<std::filesystem::path> assetsPaths);
     QPixmap requestPixmap(const QString& id,
                           QSize* size,
                           const QSize& requestedSize) override;

@@ -319,6 +319,32 @@ Item {
                 Separator {
                 }
                 Choice {
+                    destination: Rg.profileList.mainProfile.vars.generalVars
+                    id_: "bgm"
+                    name: qsTr("BGM")
+                    choices: Rg.profileList.mainProfile.vars.generalVars.getAvailableBgms()
+                    default_: "Trance"
+
+                    anchors {
+                        left: parent.left
+                        right: parent.right
+                    }
+                }
+                Choice {
+                    destination: Rg.profileList.mainProfile.vars.generalVars
+                    id_: "soundset"
+                    name: qsTr("Soundset")
+                    choices: Rg.profileList.mainProfile.vars.generalVars.getAvailableSoundsets()
+                    default_: "Default"
+
+                    anchors {
+                        left: parent.left
+                        right: parent.right
+                    }
+                }
+                Separator {
+                }
+                Choice {
                     destination: Rg.audioEngine
                     id_: "backend"
                     name: qsTr("Audio Backend")

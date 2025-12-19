@@ -15,7 +15,7 @@ getSelectableFilesForDirectory(const std::filesystem::path& path)
 {
     auto files = QList<QString>{};
     for (const auto& file : std::filesystem::directory_iterator(path)) {
-        if (!file.is_regular_file()) {
+        if (!file.is_regular_file() && !file.is_directory()) {
             continue;
         }
         if (file.path().extension() == ".ini") {
@@ -32,16 +32,17 @@ getSelectableFilesForDirectory(const std::filesystem::path& path)
 } // namespace
 
 namespace qml_components {
-bool
-FileQuery::exists(const QString& path)
+auto
+FileQuery::exists(const QString& path) -> bool
 {
     const auto url = QUrl(path);
     return url.isLocalFile() && QFile::exists(url.toLocalFile()) &&
            !url.fileName().isEmpty();
 }
 
-QList<QString>
+auto
 FileQuery::getSelectableFilesForDirectory(const QString& directory) const
+  -> QList<QString>
 {
     try {
         return ::getSelectableFilesForDirectory(

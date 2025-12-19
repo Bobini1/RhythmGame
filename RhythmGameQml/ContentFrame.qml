@@ -48,6 +48,7 @@ ApplicationWindow {
         readonly property Component resultComponent: Qt.createComponent(Rg.themes.availableThemeFamilies[mainProfile.themeConfig.result].screens.result.script)
         readonly property Component settingsComponent: Qt.createComponent(Rg.themes.availableThemeFamilies[mainProfile.themeConfig.settings].screens.settings.script)
         readonly property Component selectComponent: Qt.createComponent(Rg.themes.availableThemeFamilies[mainProfile.themeConfig.select].screens.select.script)
+        readonly property Component decideComponent: Qt.createComponent(Rg.themes.availableThemeFamilies[mainProfile.themeConfig.decide].screens.decide.script)
 
         function openChart(path, profile1, autoplay1, score1, profile2, autoplay2, score2) {
             let chart = Rg.chartLoader.loadChart(path, profile1, autoplay1, score1, profile2, autoplay2, score2);
@@ -55,11 +56,7 @@ ApplicationWindow {
                 console.error("Failed to load chart");
                 return;
             }
-            let keys = chart.keymode;
-            let battle = chart.player1 && chart.player2;
-            let screen = "k" + keys + (battle ? "battle" : "");
-            let component = globalRoot[screen + "Component"];
-            sceneStack.pushItem(component, {
+            sceneStack.pushItem(decideComponent, {
                 "chart": chart
             });
         }
@@ -70,6 +67,12 @@ ApplicationWindow {
                 console.error("Failed to load course");
                 return;
             }
+            sceneStack.pushItem(decideComponent, {
+                "chart": runner
+            });
+        }
+
+        function openGameplay(runner) {
             let keys = runner.keymode;
             let battle = runner.player1 && runner.player2;
             let screen = "k" + keys + (battle ? "battle" : "");

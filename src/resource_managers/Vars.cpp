@@ -4,9 +4,6 @@
 
 #include <memory>
 #include <spdlog/spdlog.h>
-#include <QJsonDocument>
-#include <QJsonObject>
-#include <QJsonArray>
 #include <QtConcurrent>
 #include "Vars.h"
 
@@ -17,16 +14,17 @@
 #include "support/QStringToPath.h"
 #include "support/Exception.h"
 
-#include <QQmlEngine>
 #include <chrono>
 #include <qcolor.h>
 #include <qdir.h>
 #include <utility>
-resource_managers::GeneralVars::GeneralVars(QList<QString> avatarPaths,
+resource_managers::GeneralVars::GeneralVars(QList<QString> assetsPaths,
                                             QObject* parent)
   : QObject(parent)
-  , avatarPaths(std::move(avatarPaths))
+  , assetsPaths(std::move(assetsPaths))
 {
+    resetBgm();
+    resetSoundset();
 }
 auto
 resource_managers::GeneralVars::getNoteScreenTimeMillis() const -> double
@@ -361,8 +359,8 @@ resource_managers::GeneralVars::setAvatar(QString value)
         auto filename = value;
         filename.remove(0, QStringLiteral("image://avatar/").length());
         // ensure it exists
-        for (const auto& path : avatarPaths) {
-            if (QFileInfo::exists(path + filename)) {
+        for (const auto& path : assetsPaths) {
+            if (QFileInfo::exists(path + "avatars/" + filename)) {
                 avatar = value;
                 emit avatarChanged();
                 return;
@@ -379,7 +377,7 @@ resource_managers::GeneralVars::setAvatar(QString value)
         return;
     }
     const auto fileName = QFileInfo{ file.fileName() }.fileName();
-    const auto targetPath = avatarPaths[0] + fileName;
+    const auto targetPath = assetsPaths[0] + "avatars/" + fileName;
     const auto sourceStdPath = support::qStringToPath(sourcePath);
     const auto targetStdPath = support::qStringToPath(targetPath);
     if (auto err = std::error_code{};
@@ -498,6 +496,208 @@ resource_managers::GeneralVars::resetTargetScoreFraction()
 {
     setTargetScoreFraction(8.0 / 9.0);
 }
+auto
+resource_managers::GeneralVars::getBgm() const -> QString
+{
+    // Return just the folder name
+    auto parts = bgmPath.split('/', Qt::SkipEmptyParts);
+    if (parts.isEmpty()) {
+        return "";
+    }
+    return parts.last();
+}
+void
+resource_managers::GeneralVars::setBgm(const QString& value)
+{
+    auto currentBgm = getBgm();
+    if (currentBgm == value) {
+        return;
+    }
+    auto currentBgmPath = bgmPath;
+    // Look for the folder in the assets paths
+    auto found = false;
+    auto path = QString{};
+    for (const auto& assetsPath : assetsPaths) {
+        const auto fullPath = assetsPath + "bgm/" + value + "/";
+        if (QDir(fullPath).exists()) {
+            found = true;
+            path = fullPath;
+            break;
+        }
+    }
+    if (!found) {
+        spdlog::debug("BGM folder not found in any assets path: {}",
+                      value.toStdString());
+        return;
+    }
+    bgmPath = path;
+    if (currentBgm != getBgm()) {
+        emit bgmChanged();
+    }
+    if (currentBgmPath != bgmPath) {
+        emit bgmPathChanged();
+    }
+}
+void
+resource_managers::GeneralVars::resetBgm()
+{
+    auto currentBgm = getBgm();
+    auto currentBgmPath = bgmPath;
+    // set "Trance" or first available folder
+    auto found = false;
+    for (const auto& assetsPath : assetsPaths) {
+        const auto fullPath = assetsPath + "bgm/Trance/";
+        if (QDir(fullPath).exists()) {
+            bgmPath = fullPath;
+            found = true;
+            break;
+        }
+    }
+    if (!found) {
+        for (const auto& assetsPath : assetsPaths) {
+            const auto bgmFolder = assetsPath + "bgm/";
+            const auto dir = QDir(bgmFolder);
+            const auto entries =
+              dir.entryList(QDir::Dirs | QDir::NoDotAndDotDot);
+            if (!entries.isEmpty()) {
+                bgmPath = bgmFolder + entries.first() + "/";
+                found = true;
+                break;
+            }
+        }
+    }
+    if (!found) {
+        bgmPath = "";
+    }
+    if (currentBgm != getBgm()) {
+        emit bgmChanged();
+    }
+    if (currentBgmPath != bgmPath) {
+        emit bgmPathChanged();
+    }
+}
+auto
+resource_managers::GeneralVars::getBgmPath() const -> QString
+{
+    return bgmPath;
+}
+auto
+resource_managers::GeneralVars::getSoundset() const -> QString
+{
+    // Return just the folder name
+    auto parts = soundsetPath.split('/', Qt::SkipEmptyParts);
+    if (parts.isEmpty()) {
+        return "";
+    }
+    return parts.last();
+}
+void
+resource_managers::GeneralVars::setSoundset(QString value)
+{
+    auto currentSoundset = getSoundset();
+    auto currentSoundsetPath = soundsetPath;
+    if (currentSoundset == value) {
+        return;
+    }
+    // Look for the folder in the assets paths
+    auto found = false;
+    auto path = QString{};
+    for (const auto& assetsPath : assetsPaths) {
+        const auto fullPath = assetsPath + "soundsets/" + value + "/";
+        if (QDir(fullPath).exists()) {
+            found = true;
+            path = fullPath;
+            break;
+        }
+    }
+    if (!found) {
+        spdlog::debug("Soundset folder not found in any assets path: {}",
+                      value.toStdString());
+        return;
+    }
+    soundsetPath = path;
+    if (currentSoundset != getSoundset()) {
+        emit soundsetChanged();
+    }
+    if (currentSoundsetPath != soundsetPath) {
+        emit soundsetPathChanged();
+    }
+}
+void
+resource_managers::GeneralVars::resetSoundset()
+{
+    auto current = getSoundset();
+    auto currentPath = soundsetPath;
+    // set "default" or first available folder
+    auto found = false;
+    for (const auto& assetsPath : assetsPaths) {
+        const auto fullPath = assetsPath + "soundsets/Brook/";
+        if (QDir(fullPath).exists()) {
+            soundsetPath = fullPath;
+            found = true;
+            break;
+        }
+    }
+    if (!found) {
+        for (const auto& assetsPath : assetsPaths) {
+            const auto soundsetsFolder = assetsPath + "soundsets/";
+            const auto dir = QDir(soundsetsFolder);
+            const auto entries =
+              dir.entryList(QDir::Dirs | QDir::NoDotAndDotDot);
+            if (!entries.isEmpty()) {
+                soundsetPath = soundsetsFolder + entries.first() + "/";
+                found = true;
+                break;
+            }
+        }
+    }
+    if (!found) {
+        soundsetPath = "";
+    }
+    if (current != getSoundset()) {
+        emit soundsetChanged();
+    }
+    if (currentPath != soundsetPath) {
+        emit soundsetPathChanged();
+    }
+}
+auto
+resource_managers::GeneralVars::getSoundsetPath() const -> QString
+{
+    return soundsetPath;
+}
+auto
+resource_managers::GeneralVars::getAvailableBgms() const -> QList<QString>
+{
+    auto bgms = QList<QString>{};
+    for (const auto& assetsPath : assetsPaths) {
+        const auto bgmFolder = assetsPath + "bgm/";
+        const auto dir = QDir(bgmFolder);
+        const auto entries = dir.entryList(QDir::Dirs | QDir::NoDotAndDotDot);
+        for (const auto& entry : entries) {
+            if (!bgms.contains(entry)) {
+                bgms.append(entry);
+            }
+        }
+    }
+    return bgms;
+}
+auto
+resource_managers::GeneralVars::getAvailableSoundsets() const -> QList<QString>
+{
+    auto soundsets = QList<QString>{};
+    for (const auto& assetsPath : assetsPaths) {
+        const auto soundsetsFolder = assetsPath + "soundsets/";
+        const auto dir = QDir(soundsetsFolder);
+        const auto entries = dir.entryList(QDir::Dirs | QDir::NoDotAndDotDot);
+        for (const auto& entry : entries) {
+            if (!soundsets.contains(entry)) {
+                soundsets.append(entry);
+            }
+        }
+    }
+    return soundsets;
+}
 namespace {
 void
 writeGeneralVars(QThreadPool& writePool,
@@ -509,6 +709,9 @@ writeGeneralVars(QThreadPool& writePool,
          i < generalVars.metaObject()->propertyCount();
          ++i) {
         auto property = generalVars.metaObject()->property(i);
+        if (!property.isStored()) {
+            continue;
+        }
         const auto value = property.isEnumType()
                              ? property.read(&generalVars).toString()
                              : property.read(&generalVars).toJsonValue();
@@ -1175,10 +1378,10 @@ resource_managers::Vars::writeGeneralVars()
 resource_managers::Vars::Vars(
   const Profile* profile,
   QMap<QString, qml_components::ThemeFamily> availableThemeFamilies,
-  QList<QString> avatarPaths,
+  QList<QString> assetsPaths,
   QObject* parent)
   : QObject(parent)
-  , generalVars(std::move(avatarPaths))
+  , generalVars(std::move(assetsPaths))
   , profile(profile)
   , availableThemeFamilies(std::move(availableThemeFamilies))
   , loadedThemeVars(readThemeVars(profile->getPath().parent_path(),
@@ -1193,6 +1396,9 @@ resource_managers::Vars::Vars(
     for (auto i = generalVars.metaObject()->propertyOffset();
          i < generalVars.metaObject()->propertyCount();
          ++i) {
+        if (!generalVars.metaObject()->property(i).isStored()) {
+            continue;
+        }
         connect(&generalVars,
                 generalVars.metaObject()->property(i).notifySignal(),
                 this,

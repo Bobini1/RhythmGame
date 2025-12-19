@@ -84,6 +84,16 @@ createStandardDirectories()
         spdlog::error("Could not create avatars folder: {}", ec.message());
         throw std::runtime_error("Could not create avatars folder");
     }
+    std::filesystem::create_directories(base / "bgm", ec);
+    if (ec) {
+        spdlog::error("Could not create bgm folder: {}", ec.message());
+        throw std::runtime_error("Could not create bgm folder");
+    }
+    std::filesystem::create_directories(base / "soundsets", ec);
+    if (ec) {
+        spdlog::error("Could not create soundsets folder: {}", ec.message());
+        throw std::runtime_error("Could not create soundsets folder");
+    }
     std::filesystem::create_directories(base / "profiles", ec);
     if (ec) {
         spdlog::error("Could not create profiles folder: {}", ec.message());
@@ -199,19 +209,18 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
         auto themes = qml_components::Themes{ availableThemes };
 
         auto inputTranslator = input::InputTranslator{ &db };
-        auto avatarFolders = QStringList{};
+        auto assetsFolders = QStringList{};
         if (!isPortable) {
-            avatarFolders.append(
-              support::pathToQString(dataFolder / "avatars/"));
+            assetsFolders.append(support::pathToQString(dataFolder) + "/");
         }
-        avatarFolders.append(
-          support::pathToQString(installationDataFolder / "avatars/"));
+        assetsFolders.append(support::pathToQString(installationDataFolder) +
+                             "/");
         auto profileList =
           qml_components::ProfileList{ dataFolder / "song_db.sqlite",
                                        &db,
                                        availableThemes,
                                        dataFolder / "profiles",
-                                       avatarFolders };
+                                       assetsFolders };
 
         QObject::connect(&gamepadManager,
                          &input::GamepadManager::axisMoved,
@@ -482,13 +491,13 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
 
         engine.addImageProvider("ini",
                                 new resource_managers::IniImageProvider{});
-        auto avatarPaths = std::vector{ installationDataFolder / "avatars/" };
+        auto assetsPaths = std::vector{ installationDataFolder };
         if (!isPortable) {
-            avatarPaths.push_back(dataFolder / "avatars/");
+            assetsPaths.push_back(dataFolder);
         }
         engine.addImageProvider(
           "avatar",
-          new resource_managers::AvatarImageProvider{ std::move(avatarPaths) });
+          new resource_managers::AvatarImageProvider{ std::move(assetsPaths) });
 
         engine.load(QUrl("qrc:///qt/qml/RhythmGameQml/ContentFrame.qml"));
         if (engine.rootObjects().isEmpty()) {

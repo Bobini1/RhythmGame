@@ -153,7 +153,9 @@ BmsLiveScore::addHit(const HitEvent& tap)
         emit hit(tap);
         return;
     }
-    if (tap.getNoteRemoved()) {
+    if (auto points = tap.getPointsOptional();
+        tap.getNoteRemoved() && points &&
+        points->getJudgement() <= Judgement::Perfect) {
         maxPointsNow += maxHitValue;
         if (maxHitValue != 0.0) [[likely]] {
             emit maxPointsNowChanged();
