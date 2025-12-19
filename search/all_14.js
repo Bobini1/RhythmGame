@@ -32,7 +32,7 @@ var searchData=
   ['themefamily_2ecpp_29',['ThemeFamily.cpp',['../ThemeFamily_8cpp.html',1,'']]],
   ['themefamily_2eh_30',['ThemeFamily.h',['../ThemeFamily_8h.html',1,'']]],
   ['themename_31',['themename',['../classqml__components_1_1QmlUtilsAttached.html#a7b250c1adffa813120894d1e38f38756',1,'qml_components::QmlUtilsAttached::themeName'],['../classqml__components_1_1QmlUtilsAttached.html#a9321a3687124e195fa23f5dedc1288ff',1,'qml_components::QmlUtilsAttached::themeName() const -&gt; QString']]],
-  ['themes_32',['themes',['../index.html#autotoc_md2',1,'Customizable themes'],['../classqml__components_1_1Themes.html',1,'qml_components::Themes'],['../classqml__components_1_1Themes.html#afc02ff2654275c3d974af1230e791952',1,'qml_components::Themes::Themes()'],['../classRg.html#a7c57b1750045af8b27e3f32df2db6e89',1,'Rg::themes']]],
+  ['themes_32',['themes',['../index.html#autotoc_md2',1,'Customizable themes'],['../classqml__components_1_1Themes.html',1,'qml_components::Themes'],['../classRg.html#a7c57b1750045af8b27e3f32df2db6e89',1,'Rg::themes'],['../classqml__components_1_1Themes.html#afc02ff2654275c3d974af1230e791952',1,'qml_components::Themes::Themes()']]],
   ['themes_2ecpp_33',['Themes.cpp',['../Themes_8cpp.html',1,'']]],
   ['themes_2eh_34',['Themes.h',['../Themes_8h.html',1,'']]],
   ['themevars_35',['themeVars',['../classresource__managers_1_1Vars.html#a4f2369ea34e3fc846bc21a1068d95997',1,'resource_managers::Vars']]],
@@ -79,5 +79,5 @@ var searchData=
   ['tuplesize_2ecpp_76',['TupleSize.cpp',['../TupleSize_8cpp.html',1,'']]],
   ['tuplesize_2eh_77',['TupleSize.h',['../TupleSize_8h.html',1,'']]],
   ['tuplesizev_78',['tupleSizeV',['../namespacesupport.html#a30de9f53b3c7cdc7f6ff8eac5fe678ef',1,'support']]],
-  ['type_79',['type',['../classgameplay__logic_1_1Note.html#a8e22f28b2754a4af52eb701ff01def90',1,'gameplay_logic::Note::Type'],['../structgameplay__logic_1_1rules_1_1HitRules_1_1Note.html#ab03dc7fc2a0807bf6070d1d78ca10eaf',1,'gameplay_logic::rules::HitRules::Note::type'],['../classgameplay__logic_1_1Note.html#a3b8d1cc4892925c524e301413a7a191c',1,'gameplay_logic::Note::type']]]
+  ['type_79',['type',['../structgameplay__logic_1_1rules_1_1HitRules_1_1Note.html#ab03dc7fc2a0807bf6070d1d78ca10eaf',1,'gameplay_logic::rules::HitRules::Note::type'],['../classgameplay__logic_1_1Note.html#a3b8d1cc4892925c524e301413a7a191c',1,'gameplay_logic::Note::type'],['../classgameplay__logic_1_1Note.html#a8e22f28b2754a4af52eb701ff01def90',1,'gameplay_logic::Note::Type']]]
 ];

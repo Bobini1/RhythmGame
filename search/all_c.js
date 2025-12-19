@@ -7,7 +7,7 @@ var searchData=
   ['lanecoverratiochanged_4',['laneCoverRatioChanged',['../classresource__managers_1_1GeneralVars.html#ae41b6be71fe1ceaa17247ef8e4ed4622',1,'resource_managers::GeneralVars']]],
   ['language_5',['language',['../classresource__managers_1_1GeneralVars.html#a0e55217cee4a78deb9041e9954718e9f',1,'resource_managers::GeneralVars']]],
   ['languagechanged_6',['languageChanged',['../classresource__managers_1_1GeneralVars.html#a1f504c7b35b51173478713b6510e925b',1,'resource_managers::GeneralVars']]],
-  ['languages_7',['languages',['../classresource__managers_1_1Languages.html#a851cff67fb6a60da51954f43484ff614',1,'resource_managers::Languages::Languages()'],['../classresource__managers_1_1Languages.html',1,'resource_managers::Languages'],['../classresource__managers_1_1Languages.html#ac0e007f3bf01881989ffce7202d4cb3f',1,'resource_managers::Languages::languages'],['../classRg.html#a827f6995f5fe35578040c29146822b4a',1,'Rg::languages']]],
+  ['languages_7',['languages',['../classresource__managers_1_1Languages.html#ac0e007f3bf01881989ffce7202d4cb3f',1,'resource_managers::Languages::languages'],['../classresource__managers_1_1Languages.html',1,'resource_managers::Languages'],['../classRg.html#a827f6995f5fe35578040c29146822b4a',1,'Rg::languages'],['../classresource__managers_1_1Languages.html#a851cff67fb6a60da51954f43484ff614',1,'resource_managers::Languages::Languages()']]],
   ['languages_2ecpp_8',['Languages.cpp',['../Languages_8cpp.html',1,'']]],
   ['languages_2eh_9',['Languages.h',['../Languages_8h.html',1,'']]],
   ['lastscore_10',['LastScore',['../namespaceresource__managers_1_1score__target.html#a1e47ea936dfffa6b54a61168ef29c344acf1c9e8a11956cdce51940aa078c5f7b',1,'resource_managers::score_target']]],

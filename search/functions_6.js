@@ -79,7 +79,7 @@ var searchData=
   ['getencodingfrombom_76',['getEncodingFromBom',['../namespacecharts.html#a968433e72c501222f956c7290b2cff01',1,'charts']]],
   ['getengine_77',['getEngine',['../classsounds_1_1AudioEngine.html#a8a7b7165efb745b6f74a73a6fedea74a',1,'sounds::AudioEngine']]],
   ['getentries_78',['getEntries',['../structresource__managers_1_1Level.html#a40656204067c2748ea02a9bbb60e7060',1,'resource_managers::Level']]],
-  ['getfadeinmillis_79',['getFadeInMillis',['../classsounds_1_1AudioPlayer.html#a57c38d8d194d21249fd2b94f52558523',1,'sounds::AudioPlayer']]],
+  ['getfadeinmillis_79',['getFadeInMillis',['../classsounds_1_1AudioPlayer.html#afbdf1b9172f4c7e70bf66ebdb7eff9d2',1,'sounds::AudioPlayer']]],
   ['getfolders_80',['getFolders',['../classqml__components_1_1RootSongFoldersConfig.html#a21243d1e37992976699262673db100bf',1,'qml_components::RootSongFoldersConfig']]],
   ['getframes_81',['getFrames',['../classsounds_1_1SoundBuffer.html#a364aa2485d88724e74ab9c6a264e9bca',1,'sounds::SoundBuffer']]],
   ['getgameversion_82',['getgameversion',['../classgameplay__logic_1_1BmsResultCourse.html#ac57a4efb1b84d45144ad3b14a7eb6e6e',1,'gameplay_logic::BmsResultCourse::getGameVersion()'],['../classgameplay__logic_1_1BmsResult.html#a4621193cd81bc018d3a1a387e3c7096a',1,'gameplay_logic::BmsResult::getGameVersion()']]],

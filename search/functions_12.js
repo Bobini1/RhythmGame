@@ -45,7 +45,7 @@ var searchData=
   ['setdeviceimpl_42',['setDeviceImpl',['../classsounds_1_1AudioEngine.html#a7ee7310333ac4f4f099c62c4f647fecf',1,'sounds::AudioEngine']]],
   ['setdpoptions_43',['setDpOptions',['../classresource__managers_1_1GeneralVars.html#a92785ad60f71e4443fb0a9bacb0cd8e8',1,'resource_managers::GeneralVars']]],
   ['setelapsed_44',['setElapsed',['../classqml__components_1_1ScoreReplayer.html#a14caa9f4eff49ac73831e9535cc222e5',1,'qml_components::ScoreReplayer']]],
-  ['setfadeinmillis_45',['setFadeInMillis',['../classsounds_1_1AudioPlayer.html#ad348a2766dfa3b777f64441a9814d253',1,'sounds::AudioPlayer']]],
+  ['setfadeinmillis_45',['setFadeInMillis',['../classsounds_1_1AudioPlayer.html#af4967e80b6ae2ef8e2c1620ad7b7eb53',1,'sounds::AudioPlayer']]],
   ['setgaugemode_46',['setGaugeMode',['../classresource__managers_1_1GeneralVars.html#a5bb917fbbc23c28a67b7011d9d9d695e',1,'resource_managers::GeneralVars']]],
   ['setgaugetype_47',['setGaugeType',['../classresource__managers_1_1GeneralVars.html#a90a5c124e494360d643ac74cee10b876',1,'resource_managers::GeneralVars']]],
   ['sethiddenon_48',['setHiddenOn',['../classresource__managers_1_1GeneralVars.html#adeca18d2213b2d51815ad3cdd2cb5a81',1,'resource_managers::GeneralVars']]],
