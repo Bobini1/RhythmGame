@@ -64,7 +64,7 @@ https://github.com/souki202/my_beatoraja_skin
 
 ## Audio:
 
-### brook_sound_fx soundset
+### Brook soundset
 
 Copyright © isocosa
 

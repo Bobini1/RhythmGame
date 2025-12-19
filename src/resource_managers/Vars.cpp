@@ -631,7 +631,7 @@ resource_managers::GeneralVars::resetSoundset()
     // set "default" or first available folder
     auto found = false;
     for (const auto& assetsPath : assetsPaths) {
-        const auto fullPath = assetsPath + "soundsets/brook_sound_fx/";
+        const auto fullPath = assetsPath + "soundsets/Brook/";
         if (QDir(fullPath).exists()) {
             soundsetPath = fullPath;
             found = true;
