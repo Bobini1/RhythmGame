@@ -27,17 +27,14 @@ else ()
     )
 endif ()
 
+install(DIRECTORY share/RhythmGame
+        DESTINATION ${CMAKE_INSTALL_DATADIR}
+        COMPONENT RhythmGame_Runtime)
 
 install(DIRECTORY DESTINATION ${CMAKE_INSTALL_DATADIR}/RhythmGame/profiles/
         COMPONENT RhythmGame_Runtime)
 
 install(DIRECTORY DESTINATION ${CMAKE_INSTALL_DATADIR}/RhythmGame/tables/
-        COMPONENT RhythmGame_Runtime)
-
-install(FILES share/RhythmGame/avatars/mascot.png DESTINATION ${CMAKE_INSTALL_DATADIR}/RhythmGame/avatars
-        COMPONENT RhythmGame_Runtime)
-
-install(DIRECTORY share/RhythmGame/themes/Default DESTINATION ${CMAKE_INSTALL_DATADIR}/RhythmGame/themes
         COMPONENT RhythmGame_Runtime)
 
 if (LINUX)
