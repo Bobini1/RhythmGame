@@ -419,10 +419,10 @@ Rectangle {
         property bool used: false
 
         onActivated: {
-            playstopSound.play();
             if (nothingWasHit) {
                 sceneStack.pop();
             } else {
+                playstopSound.play();
                 used = true;
                 let chartData = root.chartData;
                 let profile1 = chart.player1.profile;
