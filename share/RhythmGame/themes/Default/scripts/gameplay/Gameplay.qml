@@ -315,7 +315,7 @@ Rectangle {
             readonly property var profileVars: profile.vars.themeVars[root.screen][root.themeName]
 
             height: profileVars.bgaSize
-            visible: profile.vars.generalVars.bgaOn
+            bgaVisible: profile.vars.generalVars.bgaOn
             width: profileVars.bgaSize
             x: profileVars.bgaX
             y: profileVars.bgaY

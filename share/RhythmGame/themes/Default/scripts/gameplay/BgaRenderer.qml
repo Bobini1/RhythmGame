@@ -8,6 +8,7 @@ Item {
     readonly property alias layer2Sink: videoLayer2.videoSink
     readonly property alias poorSink: videoPoor.videoSink
     property alias poorVisible: videoPoor.visible
+    property bool bgaVisible: true
 
     function clearOutput() {
         // available since Qt 6.9
@@ -24,6 +25,7 @@ Item {
         height: Math.max(videoBase.sourceRect.height, videoLayer.sourceRect.height, videoLayer2.sourceRect.height, videoPoor.sourceRect.height, 256)
         scale: parent.height / height
         width: Math.max(videoBase.sourceRect.width, videoLayer.sourceRect.width, videoLayer2.sourceRect.width, videoPoor.sourceRect.width, 256)
+        visible: bgaVisible
 
         VideoOutput {
             id: videoBase
