@@ -2,7 +2,6 @@ pragma ValueTypeBehavior: Addressable
 import QtQuick
 import RhythmGameQml
 import QtQuick.Controls
-import QtMultimedia
 import QtQml
 import "../common/helpers.js" as Helpers
 import "./options"

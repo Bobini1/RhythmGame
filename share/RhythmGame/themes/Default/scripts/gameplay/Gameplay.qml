@@ -4,7 +4,6 @@ import QtQml
 import QtQuick.Layouts
 import RhythmGameQml
 import QtQuick.Controls
-import QtMultimedia
 import "../common/TaoQuickCustom"
 import "../common/helpers.js" as Helpers
 import "popups"
