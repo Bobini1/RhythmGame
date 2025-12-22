@@ -153,12 +153,12 @@ Image {
             SequentialAnimation {
                 id: titleAnim
 
-                PauseAnimation { duration: 500 }
+                PauseAnimation { duration: 200 }
                 NumberAnimation {
                     target: titleRect
                     property: "pos"
                     to: 0
-                    duration: 1000
+                    duration: 800
                     easing.type: Easing.OutCubic
                 }
             }
@@ -210,12 +210,12 @@ Image {
 
             SequentialAnimation {
                 id: artistAnim
-                PauseAnimation { duration: 1000 }
+                PauseAnimation { duration: 400 }
                 NumberAnimation {
                     target: artistRect
                     property: "pos"
                     to: 0
-                    duration: 1000
+                    duration: 600
                     easing.type: Easing.OutCubic
                 }
             }
@@ -223,18 +223,29 @@ Image {
     }
 
     Component.onCompleted: {
+        stagefileAnim.start();
         genreAnim.start();
         titleAnim.start();
         artistAnim.start();
     }
 
     Image {
+        id: stagefile
         anchors.verticalCenter: parent.verticalCenter
         anchors.left: parent.left
-        anchors.leftMargin: parent.width / 24
-        width: parent.width / 3 - anchors.leftMargin
+        anchors.leftMargin: pos * parent.width
+        width: parent.width / 3 - parent.width / 24
         height: width * (3/4)
         asynchronous: true
+        property real pos: - 1 / 3 + 1 / 24
+        NumberAnimation {
+            id: stagefileAnim
+            target: stagefile
+            property: "pos"
+            to: 1 / 24
+            duration: 1000
+            easing.type: Easing.OutCubic
+        }
         source: {
             let dir = chart.chartData?.chartDirectory;
             print(dir, chart.chartData);
