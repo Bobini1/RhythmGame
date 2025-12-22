@@ -274,7 +274,7 @@ Image {
     }
 
     Timer {
-        interval: Math.max(3000, Math.min(decideSound.length, 8000));
+        interval: 5000;
         running: true
         onTriggered: {
             globalRoot.openGameplay(root.chart);
