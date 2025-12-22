@@ -70,10 +70,20 @@ Rectangle {
     AudioPlayer {
         id: playReadySound
         source: Rg.profileList.mainProfile.vars.generalVars.soundsetPath + "playready";
-        playing: true;
+        onPlayingChanged: {
+            if (!playing) {
+                chart.start();
+            }
+        }
     }
 
     property bool showedCourseResult: false
+    property bool shouldPlaySound: playReadySound.length !== 0 && chart.status === ChartRunner.Ready && StackView.status === StackView.Active
+    onShouldPlaySoundChanged: {
+        if (shouldPlaySound) {
+            playReadySound.play();
+        }
+    }
     StackView.onActivated: {
         escapeShortcut.nothingWasHit = true;
         if (chart.status === ChartRunner.Finished) {
@@ -85,11 +95,12 @@ Rectangle {
                 Qt.callLater(() => sceneStack.pop());
             }
         } else {
-            playReadySound.play();
+            if (playReadySound.length === 0) {
+                chart.start();
+            }
             chart.player1.profile.scoreDb.getScoresForMd5(chartData.md5).then(scores => {
                 scores1 = scores.scores[chartData.md5] || [];
             });
-            chart.start();
         }
     }
 
