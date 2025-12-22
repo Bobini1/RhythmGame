@@ -222,16 +222,26 @@
     </message>
     <message>
         <location filename="../scripts/settings/GeneralSettings.qml" line="324"/>
-        <source>Audio Backend</source>
+        <source>BGM</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../scripts/settings/GeneralSettings.qml" line="336"/>
+        <source>Soundset</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="350"/>
+        <source>Audio Backend</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="362"/>
         <source>Audio Device</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="342"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="368"/>
         <source>Default</source>
         <translation type="unfinished"></translation>
     </message>
@@ -442,102 +452,102 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="27"/>
+        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="28"/>
         <source>Z-index</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="31"/>
+        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="32"/>
         <source>Hide LN Ends</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="39"/>
+        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="40"/>
         <source>Lane Brightness</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="46"/>
+        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="47"/>
         <source>Note Thickness</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="53"/>
+        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="54"/>
         <source>Judge Line Thickness</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="58"/>
+        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="59"/>
         <source>Judge Line Color</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="66"/>
+        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="67"/>
         <source>Flip Scratch Lane</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="110"/>
+        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="111"/>
         <source>Notes</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="72"/>
+        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="73"/>
         <source>Enable Lane Cover</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="80"/>
+        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="81"/>
         <source>Lane Cover Ratio</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="115"/>
+        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="116"/>
         <source>Lane Cover</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="84"/>
+        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="85"/>
         <source>Enable Lift</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="92"/>
+        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="93"/>
         <source>Lift Ratio</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="96"/>
+        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="97"/>
         <source>Enable Hidden</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="104"/>
+        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="105"/>
         <source>Hidden Ratio</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="120"/>
+        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="121"/>
         <source>Lift Cover</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="125"/>
+        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="126"/>
         <source>Mine</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="130"/>
+        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="131"/>
         <source>Key Beam</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="135"/>
+        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="136"/>
         <source>Bomb</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="140"/>
+        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="141"/>
         <source>Glow</source>
         <translation type="unfinished"></translation>
     </message>
@@ -908,22 +918,22 @@
 <context>
     <name>TableSettings</name>
     <message>
-        <location filename="../scripts/settings/TableSettings.qml" line="154"/>
+        <location filename="../scripts/settings/TableSettings.qml" line="151"/>
         <source>Reload</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/TableSettings.qml" line="161"/>
+        <location filename="../scripts/settings/TableSettings.qml" line="158"/>
         <source>Remove</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/TableSettings.qml" line="222"/>
+        <location filename="../scripts/settings/TableSettings.qml" line="219"/>
         <source>Add table</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/TableSettings.qml" line="232"/>
+        <location filename="../scripts/settings/TableSettings.qml" line="229"/>
         <source>Add</source>
         <translation type="unfinished"></translation>
     </message>
