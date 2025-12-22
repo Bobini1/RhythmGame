@@ -23,7 +23,7 @@ var searchData=
   ['readme_2emd_20',['README.md',['../README_8md.html',1,'']]],
   ['ready_21',['Ready',['../classgameplay__logic_1_1ChartRunner.html#af47f61dbd9ce965ac6ae35a48906c97ba075cc1b23990bd52b9f992aea4aec0a5',1,'gameplay_logic::ChartRunner']]],
   ['referee_22',['referee',['../classgameplay__logic_1_1Player.html#a55c10784820642279ed5dfc62fa35938',1,'gameplay_logic::Player']]],
-  ['release_23',['release',['../classgameplay__logic_1_1HitEvent.html#a90790c3562f52b83f1c52d0c3764f767ab8e7b465df7c5979dc731d06e84ce2cf',1,'gameplay_logic::HitEvent::Release'],['../classgameplay__logic_1_1rules_1_1HitRules.html#a237e1cc3764e77def3b8e1421b6c0ca7',1,'gameplay_logic::rules::HitRules::release()']]],
+  ['release_23',['release',['../classgameplay__logic_1_1rules_1_1HitRules.html#a237e1cc3764e77def3b8e1421b6c0ca7',1,'gameplay_logic::rules::HitRules::release()'],['../classgameplay__logic_1_1HitEvent.html#a90790c3562f52b83f1c52d0c3764f767ab8e7b465df7c5979dc731d06e84ce2cf',1,'gameplay_logic::HitEvent::Release']]],
   ['release_5ftranslations_20tt_24',['&lt;tt&gt;update_translations&lt;/tt&gt; and &lt;tt&gt;release_translations&lt;/tt&gt;',['../md_DEV__ENGINE.html#autotoc_md24',1,'']]],
   ['releasethreshold_25',['releaseThreshold',['../classinput_1_1AnalogAxisConfig.html#a32d042bcf90b5304b49169ac6a555416',1,'input::AnalogAxisConfig']]],
   ['releasethresholdchanged_26',['releaseThresholdChanged',['../classinput_1_1AnalogAxisConfig.html#a9b1dfb335d8dc761275d2e61668b455f',1,'input::AnalogAxisConfig']]],
