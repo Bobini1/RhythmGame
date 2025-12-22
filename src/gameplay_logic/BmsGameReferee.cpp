@@ -101,6 +101,10 @@ gameplay_logic::BmsGameReferee::update(std::chrono::nanoseconds offsetFromStart,
 {
     if (lastUpdate) {
         hitRules.disableSound();
+        // stop all playing sounds
+        for (const auto& sound : sounds | std::views::values) {
+            sound->stop();
+        }
         currentBgms = {};
     }
     auto events = std::vector<HitEvent>{};
