@@ -170,9 +170,6 @@ loadBmsSounds(sounds::AudioEngine* engine,
               key, std::make_shared<sounds::Sound>(engine, buffer->second));
         }
     }
-    for (auto& sound : sounds) {
-        sound.second->setVolume(0.5);
-    }
     auto end = std::chrono::high_resolution_clock::now();
     spdlog::info(
       "Loading {} sounds took: {} ms",
