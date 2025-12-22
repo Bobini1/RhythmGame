@@ -26,6 +26,7 @@ class AudioPlayer : public QObject
                  NOTIFY fadeInMillisChanged)
     Q_PROPERTY(
       bool playing READ isPlaying WRITE setPlaying NOTIFY playingChanged)
+    Q_PROPERTY(float length READ getLength NOTIFY lengthChanged)
 
     QString source;
     std::unique_ptr<ma_sound> sound;
@@ -33,6 +34,7 @@ class AudioPlayer : public QObject
     bool looping = false;
     bool playing = false;
     uint64_t fadeInMillis = 0;
+    float length = 0.0f;
     QTimer playingFinishedTimer;
     void onDeviceChanged();
     void onPlayingFinishedTimerTriggered();
@@ -54,6 +56,7 @@ class AudioPlayer : public QObject
     void setLooping(bool value);
     auto getFadeInMillis() const -> uint64_t;
     void setFadeInMillis(uint64_t value);
+    auto getLength() const -> float;
     inline static AudioEngine* engine = nullptr;
   signals:
     void sourceChanged();
@@ -62,6 +65,7 @@ class AudioPlayer : public QObject
     void autoPlayChanged();
     void fadeInMillisChanged();
     void playingChanged();
+    void lengthChanged();
 };
 
 } // namespace sounds

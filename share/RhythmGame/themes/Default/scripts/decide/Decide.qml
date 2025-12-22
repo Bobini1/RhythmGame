@@ -268,12 +268,13 @@ Image {
     }
 
     AudioPlayer {
+        id: decideSound
         source: Rg.profileList.mainProfile.vars.generalVars.bgmPath + "decide";
         playing: true
     }
 
     Timer {
-        interval: 5000
+        interval: Math.max(3000, Math.min(decideSound.length, 8000));
         running: true
         onTriggered: {
             globalRoot.openGameplay(root.chart);

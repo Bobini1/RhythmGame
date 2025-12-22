@@ -123,6 +123,7 @@ AudioPlayer::setSource(const QString& value)
         }
     }
     emit sourceChanged();
+    auto previousLength = length;
     if (ma_sound_init_from_file_w(engine->getEngine(),
                                   source.toStdWString().c_str(),
                                   MA_SOUND_FLAG_NO_PITCH |
@@ -134,14 +135,20 @@ AudioPlayer::setSource(const QString& value)
         sound.reset();
         stop();
         playingFinishedTimer.setInterval(0);
+        length = 0.0f;
+        if (previousLength != length) {
+            emit lengthChanged();
+        }
         return;
     }
     ma_sound_set_looping(sound.get(), looping ? MA_TRUE : MA_FALSE);
     ma_sound_set_volume(sound.get(), volume);
     ma_sound_set_fade_in_milliseconds(sound.get(), 0, volume, fadeInMillis);
-    auto lengthInSeconds = 0.0f;
-    ma_sound_get_length_in_seconds(sound.get(), &lengthInSeconds);
-    playingFinishedTimer.setInterval(static_cast<int>(lengthInSeconds * 1000));
+    ma_sound_get_length_in_seconds(sound.get(), &length);
+    playingFinishedTimer.setInterval(static_cast<int>(length * 1000));
+    if (previousLength != length) {
+        emit lengthChanged();
+    }
     if (isPlaying()) {
         if (ma_sound_start(sound.get()) != MA_SUCCESS) {
             spdlog::error("Failed to play sound: {}", source.toStdString());
@@ -259,5 +266,10 @@ AudioPlayer::setFadeInMillis(uint64_t value)
     }
     fadeInMillis = value;
     emit fadeInMillisChanged();
+}
+auto
+AudioPlayer::getLength() const -> float
+{
+    return length;
 }
 } // namespace sounds
