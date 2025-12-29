@@ -26,6 +26,7 @@ gameplay_logic::ChartData::ChartData(QString title,
                                      QList<qint64> randomSequence,
                                      int normalNoteCount,
                                      int lnCount,
+                                     int bssCount,
                                      int mineCount,
                                      int64_t length,
                                      double bpm,
@@ -56,6 +57,7 @@ gameplay_logic::ChartData::ChartData(QString title,
   , isRandom(isRandom)
   , normalNoteCount(normalNoteCount)
   , lnCount(lnCount)
+  , bssCount(bssCount)
   , mineCount(mineCount)
   , length(length)
   , initialBpm(bpm)
@@ -137,7 +139,7 @@ gameplay_logic::ChartData::save(db::SqliteCppDb& db) const -> void
       "INSERT OR REPLACE INTO charts (title, artist, subtitle, subartist, "
       "genre, stage_file, banner, back_bmp, rank, total, play_level, "
       "difficulty, is_random, random_sequence, normal_note_count, ln_count, "
-      "mine_count, length, initial_bpm, max_bpm, "
+      "bss_count, mine_count, length, initial_bpm, max_bpm, "
       "min_bpm, main_bpm, avg_bpm, path, chart_directory, directory, sha256, "
       "md5, keymode) "
       "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, "
@@ -160,23 +162,24 @@ gameplay_logic::ChartData::save(db::SqliteCppDb& db) const -> void
     query.bind(14, compressed.data(), compressed.size());
     query.bind(15, normalNoteCount);
     query.bind(16, lnCount);
-    query.bind(17, mineCount);
-    query.bind(18, length);
-    query.bind(19, initialBpm);
-    query.bind(20, maxBpm);
-    query.bind(21, minBpm);
-    query.bind(22, mainBpm);
-    query.bind(23, avgBpm);
-    query.bind(24, path.toStdString());
-    query.bind(25, getChartDirectory().toStdString());
+    query.bind(17, bssCount);
+    query.bind(19, mineCount);
+    query.bind(10, length);
+    query.bind(20, initialBpm);
+    query.bind(21, maxBpm);
+    query.bind(22, minBpm);
+    query.bind(23, mainBpm);
+    query.bind(24, avgBpm);
+    query.bind(25, path.toStdString());
+    query.bind(26, getChartDirectory().toStdString());
     if (directory == -1) {
-        query.bind(26);
+        query.bind(27);
     } else {
-        query.bind(26, directory);
+        query.bind(27, directory);
     }
-    query.bind(27, sha256.toStdString());
-    query.bind(28, md5.toStdString());
-    query.bind(29, static_cast<int>(keymode));
+    query.bind(28, sha256.toStdString());
+    query.bind(29, md5.toStdString());
+    query.bind(30, static_cast<int>(keymode));
     query.execute();
 }
 auto
@@ -212,6 +215,7 @@ gameplay_logic::ChartData::load(const DTO& chartDataDto)
         QByteArray::fromStdString(chartDataDto.randomSequence)),
       chartDataDto.normalNoteCount,
       chartDataDto.lnCount,
+      chartDataDto.bssCount,
       chartDataDto.mineCount,
       chartDataDto.length,
       chartDataDto.initialBpm,
@@ -295,6 +299,7 @@ gameplay_logic::ChartData::clone() const -> std::unique_ptr<ChartData>
                                        randomSequence,
                                        normalNoteCount,
                                        lnCount,
+                                       bssCount,
                                        mineCount,
                                        length,
                                        initialBpm,
@@ -337,6 +342,11 @@ auto
 gameplay_logic::ChartData::getLnCount() const -> int
 {
     return lnCount;
+}
+auto
+gameplay_logic::ChartData::getBssCount() const -> int
+{
+    return bssCount;
 }
 auto
 gameplay_logic::ChartData::getMineCount() const -> int

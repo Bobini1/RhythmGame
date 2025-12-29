@@ -59,6 +59,10 @@ Profile::Profile(
             [this, configPath](const QString&, const QVariant&) {
                 writeConfig(configPath, *themeConfig);
             });
+    auto versionStmt =
+      db.createStatement("SELECT value FROM properties WHERE key = 'version';");
+    auto version = versionStmt.executeAndGet<int64_t>().transform(
+      [](int64_t v) { return support::unpackVersion(v); });
     writeConfig(configPath, *themeConfig);
     db.execute("CREATE TABLE IF NOT EXISTS score ("
                "id INTEGER PRIMARY KEY,"
@@ -70,6 +74,7 @@ Profile::Profile(
                "max_hits INTEGER NOT NULL,"
                "normal_note_count INTEGER NOT NULL,"
                "ln_count INTEGER NOT NULL,"
+               "bss_count INTEGER NOT NULL,"
                "mine_count INTEGER NOT NULL,"
                "max_combo INTEGER NOT NULL,"
                "poor INTEGER NOT NULL,"
@@ -89,6 +94,10 @@ Profile::Profile(
                "dp_options INTEGER NOT NULL,"
                "game_version INTEGER NOT NULL"
                ");");
+    if (version && *version < std::tuple{ 1, 2, 5 }) {
+        db.execute(
+          "ALTER TABLE score ADD COLUMN bss_count INTEGER NOT NULL DEFAULT 0;");
+    }
     db.execute("CREATE TABLE IF NOT EXISTS score_course ("
                "id INTEGER PRIMARY KEY AUTOINCREMENT,"
                "guid TEXT NOT NULL UNIQUE,"

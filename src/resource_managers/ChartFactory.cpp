@@ -462,6 +462,7 @@ getComponentsForPlayer(const ChartFactory::PlayerSpecificData& player,
     auto score = std::make_unique<gameplay_logic::BmsLiveScore>(
       chartData.getNormalNoteCount() * multiplier,
       chartData.getLnCount() * multiplier,
+      chartData.getBssCount() * multiplier,
       chartData.getMineCount() * multiplier,
       (chartData.getLnCount() + chartData.getNormalNoteCount()) * multiplier,
       maxHitValue,

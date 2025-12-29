@@ -9,6 +9,10 @@ namespace resource_managers {
 void
 defineDb(db::SqliteCppDb& db)
 {
+    auto versionStmt =
+      db.createStatement("SELECT value FROM properties WHERE key = 'version';");
+    auto version = versionStmt.executeAndGet<int64_t>().transform(
+      [](int64_t v) { return support::unpackVersion(v); });
     db.execute("CREATE TABLE IF NOT EXISTS charts ("
                "id INTEGER PRIMARY KEY AUTOINCREMENT,"
                "title TEXT NOT NULL,"
@@ -27,6 +31,7 @@ defineDb(db::SqliteCppDb& db)
                "random_sequence STRING NOT NULL,"
                "normal_note_count INTEGER NOT NULL,"
                "ln_count INTEGER NOT NULL,"
+               "bss_count INTEGER NOT NULL,"
                "mine_count INTEGER NOT NULL,"
                "length INTEGER NOT NULL,"
                "initial_bpm REAL NOT NULL,"
@@ -42,6 +47,10 @@ defineDb(db::SqliteCppDb& db)
                "keymode INTEGER NOT NULL"
                ");");
 
+    if (version && *version < std::tuple{ 1, 2, 5 }) {
+        db.execute("ALTER TABLE charts ADD COLUMN bss_count INTEGER NOT NULL "
+                   "DEFAULT 0;");
+    }
     db.execute(
       "CREATE INDEX IF NOT EXISTS directory_index ON charts(directory)");
     db.execute("CREATE INDEX IF NOT EXISTS chart_directory_index ON "

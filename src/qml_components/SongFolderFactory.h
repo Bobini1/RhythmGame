@@ -20,7 +20,7 @@ class SongFolderFactory : public QObject
       "SELECT id, title, artist, subtitle, subartist, "
       "genre, stage_file, banner, back_bmp, rank, total, "
       "play_level, difficulty, is_random, random_sequence, normal_note_count, "
-      "ln_count, mine_count, length, initial_bpm, max_bpm, min_bpm, "
+      "ln_count, bss_count, mine_count, length, initial_bpm, max_bpm, min_bpm, "
       "main_bpm, avg_bpm, path, directory, sha256, md5, keymode "
       "FROM charts WHERE directory IS (SELECT id FROM parent_dir WHERE dir IS "
       "?) ORDER BY title, subtitle ASC");
@@ -28,7 +28,7 @@ class SongFolderFactory : public QObject
       "SELECT id, title, artist, subtitle, subartist, "
       "genre, stage_file, banner, back_bmp, rank, total, "
       "play_level, difficulty, is_random, random_sequence, normal_note_count, "
-      "ln_count, mine_count, length, initial_bpm, max_bpm, min_bpm, "
+      "ln_count, bss_count, mine_count, length, initial_bpm, max_bpm, min_bpm, "
       "main_bpm, avg_bpm, path, directory, sha256, md5, keymode FROM charts "
       "WHERE directory IS (SELECT id FROM parent_dir WHERE dir LIKE ? || '%') "
       "ORDER BY title ASC");
@@ -55,9 +55,9 @@ class SongFolderFactory : public QObject
       "charts.rank, charts.total, "
       "charts.play_level, charts.difficulty, charts.is_random, "
       "charts.random_sequence, charts.normal_note_count, "
-      "charts.ln_count, charts.mine_count, charts.length, charts.initial_bpm, "
-      "charts.max_bpm, charts.min_bpm, charts.main_bpm, charts.avg_bpm, "
-      "charts.path, charts.directory, charts.sha256, "
+      "charts.ln_count, charts.bss_count, charts.mine_count, charts.length, "
+      "charts.initial_bpm, charts.max_bpm, charts.min_bpm, charts.main_bpm, "
+      "charts.avg_bpm, charts.path, charts.directory, charts.sha256, "
       "charts.md5, charts.keymode FROM charts_fts(?) "
       "JOIN charts ON charts_fts.rowid = charts.id ORDER BY charts.title, "
       "charts.subtitle ASC");

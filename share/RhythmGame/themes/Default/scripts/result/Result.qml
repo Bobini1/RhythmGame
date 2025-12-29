@@ -111,7 +111,7 @@ Item {
                 ChartInfo {
                     difficulty: root.chartData?.difficulty
                     total: root.chartData?.total
-                    noteCount: root.score1.result.normalNoteCount + root.score1.result.lnCount
+                    noteCount: root.score1.result.normalNoteCount + root.score1.result.lnCount + root.score1.result.bssCount
 
                     anchors.bottom: parent.bottom
                     anchors.bottomMargin: 24

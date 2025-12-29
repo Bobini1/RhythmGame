@@ -87,18 +87,26 @@ class ChartData : public QObject
      */
     Q_PROPERTY(int normalNoteCount READ getNormalNoteCount CONSTANT)
     /**
-     * @brief The number of long notes in the chart.
+     * @brief The number of long notes in the chart excluding BSS (scratch lns).
      * @details A long note consists of an LN start and LN end. Such a pair
      * counts as one long note.
      */
     Q_PROPERTY(int lnCount READ getLnCount CONSTANT)
     /**
+     * @brief The number of BSS (scratch long notes) in the chart.
+     * @details A BSS consists of an ln start and ln end. Such a pair
+     * counts as one BSS.
+     */
+    Q_PROPERTY(int bssCount READ getBssCount CONSTANT)
+    /**
      * @brief The number of mines (landmines) in the chart.
      */
     Q_PROPERTY(int mineCount READ getMineCount CONSTANT)
     /**
-     * @brief The maximum number of hits (normal notes + long notes)
-     * in the chart.
+     * @brief The length of the chart in nanoseconds.
+     * @details This property indicates the total duration of the chart from
+     * start to finish, measured in nanoseconds.
+     * @note This is based on the timestamp of the last visible note.
      */
     Q_PROPERTY(int64_t length READ getLength CONSTANT)
     /**
@@ -128,7 +136,8 @@ class ChartData : public QObject
      */
     Q_PROPERTY(QString md5 READ getMd5 CONSTANT)
     /**
-     * @brief Whether the chart uses [#RANDOM](https://hitkey.nekokan.dyndns.info/cmds.htm#RANDOM).
+     * @brief Whether the chart uses
+     * [#RANDOM](https://hitkey.nekokan.dyndns.info/cmds.htm#RANDOM).
      * @details If true, the randomSequence property can be used to recreate
      * the same chart.
      */
@@ -194,6 +203,7 @@ class ChartData : public QObject
               QList<qint64> randomSequence,
               int normalNoteCount,
               int lnCount,
+              int bssCount,
               int mineCount,
               int64_t length,
               double initialBpm,
@@ -218,6 +228,7 @@ class ChartData : public QObject
     [[nodiscard]] auto getBackBmp() const -> const QString&;
     [[nodiscard]] auto getNormalNoteCount() const -> int;
     [[nodiscard]] auto getLnCount() const -> int;
+    [[nodiscard]] auto getBssCount() const -> int;
     [[nodiscard]] auto getMineCount() const -> int;
     [[nodiscard]] auto getLength() const -> int64_t;
     [[nodiscard]] auto getInitialBpm() const -> double;
@@ -259,6 +270,7 @@ class ChartData : public QObject
         std::string randomSequence;
         int normalNoteCount;
         int lnCount;
+        int bssCount;
         int mineCount;
         int64_t length;
         double initialBpm;
@@ -294,6 +306,7 @@ class ChartData : public QObject
     bool isRandom;
     int normalNoteCount;
     int lnCount;
+    int bssCount;
     int mineCount;
     int64_t length;
     double initialBpm;

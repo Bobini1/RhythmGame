@@ -102,6 +102,14 @@ gameplay_logic::BmsResultCourse::getLnCount() const -> int
       });
 }
 auto
+gameplay_logic::BmsResultCourse::getBssCount() const -> int
+{
+    return std::accumulate(
+      scores.begin(), scores.end(), 0, [](int sum, const BmsScore* score) {
+          return sum + score->getResult()->getBssCount();
+      });
+}
+auto
 gameplay_logic::BmsResultCourse::getMineCount() const -> int
 {
     return std::accumulate(

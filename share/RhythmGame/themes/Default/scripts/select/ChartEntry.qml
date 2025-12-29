@@ -55,7 +55,7 @@ Image {
         srcBeforeDecimal: root.iniImagesUrl + "parts.png/s_" + getDiffColorInt(modelData.difficulty) + "_"
     }
     Image {
-        visible: modelData.lnCount > 0
+        visible: modelData.lnCount > 0 || modelData.bssCount > 0
         source: root.iniImagesUrl + "folders.png/ln"
         asynchronous: true
         anchors.horizontalCenter: parent.left

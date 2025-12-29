@@ -12,6 +12,7 @@ namespace gameplay_logic {
 BmsLiveScore::BmsLiveScore(
   int normalNoteCount,
   int lnCount,
+  int bssCount,
   int mineCount,
   int maxHits,
   double maxHitValue,
@@ -33,6 +34,7 @@ BmsLiveScore::BmsLiveScore(
   , mineCount(mineCount)
   , normalNoteCount(normalNoteCount)
   , lnCount(lnCount)
+  , bssCount(bssCount)
   , maxHits(maxHits)
   , gauges(std::move(gauges))
   , randomSequence(std::move(randomSequence))
@@ -293,6 +295,7 @@ BmsLiveScore::getResult() const -> std::unique_ptr<BmsResult>
                                        maxHits,
                                        normalNoteCount,
                                        lnCount,
+                                       bssCount,
                                        mineCount,
                                        clearType,
                                        judgementCounts.getJudgementCounts(),
@@ -353,6 +356,11 @@ auto
 BmsLiveScore::getLnCount() const -> int
 {
     return lnCount;
+}
+auto
+BmsLiveScore::getBssCount() const -> int
+{
+    return bssCount;
 }
 auto
 BmsLiveScore::getMineCount() const -> int

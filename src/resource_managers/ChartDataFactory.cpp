@@ -15,7 +15,7 @@ namespace llfio = LLFIO_V2_NAMESPACE;
 #include "charts/ReadBmsFile.h"
 
 #include <utility>
-#include <fstream>
+#include <ranges>
 #include <qfileinfo.h>
 #include "support/UtfStringToPath.h"
 #include "support/PathToQString.h"
@@ -278,15 +278,21 @@ ChartDataFactory::loadChartData(const std::filesystem::path& chartPath,
     }
     auto normalNotes = 0;
     auto lnNotes = 0;
+    auto bssNotes = 0;
     auto mineNotes = 0;
-    for (const auto& column : calculatedNotesData.notes) {
+    for (const auto& [index, column] :
+         std::ranges::views::enumerate(calculatedNotesData.notes)) {
         for (const auto& note : column) {
             switch (note.noteType) {
                 case charts::BmsNotesData::NoteType::Normal:
                     normalNotes++;
                     break;
                 case charts::BmsNotesData::NoteType::LongNoteBegin:
-                    lnNotes++;
+                    if (index == 7 || index == 15) {
+                        bssNotes++;
+                    } else {
+                        lnNotes++;
+                    }
                     break;
                 case charts::BmsNotesData::NoteType::LongNoteEnd:
                     break;
@@ -319,6 +325,7 @@ ChartDataFactory::loadChartData(const std::filesystem::path& chartPath,
       randomValues,
       normalNotes,
       lnNotes,
+      bssNotes,
       mineNotes,
       lastNoteTimestamp.count(),
       initialBpm.second,
