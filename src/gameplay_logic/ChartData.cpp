@@ -281,6 +281,11 @@ gameplay_logic::ChartData::getChartDirectory() const -> QString
     return QFileInfo{ path }.absolutePath() + '/';
 }
 auto
+gameplay_logic::ChartData::getHistogramData() -> QList<QList<int>>&
+{
+    return histogramData;
+}
+auto
 gameplay_logic::ChartData::clone() const -> std::unique_ptr<ChartData>
 {
     return std::make_unique<ChartData>(title,

@@ -20,12 +20,10 @@ BmsNotes::getNotes() const -> const QList<QList<Note>>&
     return notes;
 }
 BmsNotes::BmsNotes(QList<QList<Note>> notes,
-                   QList<BpmChange> bpmChanges,
                    QList<Time> barLines,
                    QObject* parent)
   : QObject(parent)
   , notes(std::move(notes))
-  , bpmChanges(std::move(bpmChanges))
   , barLines(std::move(barLines))
 {
 }
@@ -33,11 +31,6 @@ auto
 BmsNotes::getBarLines() const -> const QList<Time>&
 {
     return barLines;
-}
-auto
-BmsNotes::getBpmChanges() const -> const QList<BpmChange>&
-{
-    return bpmChanges;
 }
 auto
 BmsNotes::load(db::SqliteCppDb& db, const support::Sha256& sha256)

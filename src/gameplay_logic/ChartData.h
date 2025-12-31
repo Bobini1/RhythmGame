@@ -8,6 +8,7 @@
 #include <QQmlEngine>
 #include "db/SqliteCppDb.h"
 namespace gameplay_logic {
+class BpmChange;
 
 /**
  * @brief Metadata and basic stats of a chart.
@@ -185,6 +186,15 @@ class ChartData : public QObject
      * @details The average BPM is the time-weighted average BPM of the chart.
      */
     Q_PROPERTY(double avgBpm READ getAvgBpm CONSTANT)
+    /**
+     * @brief The histogram data representing the distribution of hit timings.
+     */
+    Q_PROPERTY(QList<QList<int>> histogramData READ getHistogramData CONSTANT)
+
+    auto getHistogramData() const -> const QList<QList<int>>&
+    {
+        return histogramData;
+    }
 
   public:
     ChartData(QString title,
@@ -248,6 +258,7 @@ class ChartData : public QObject
     [[nodiscard]] auto getKeymode() const -> Keymode;
     [[nodiscard]] auto getDirectory() const -> QString;
     [[nodiscard]] auto getChartDirectory() const -> QString;
+    [[nodiscard]] auto getHistogramData() -> QList<QList<int>>&;
 
     auto clone() const -> std::unique_ptr<ChartData>;
 
@@ -283,6 +294,8 @@ class ChartData : public QObject
         std::string sha256;
         std::string md5;
         int keymode;
+        std::string histogramData;
+        std::string bpmData;
     };
 
     auto save(db::SqliteCppDb& db) const -> void;
@@ -319,6 +332,8 @@ class ChartData : public QObject
     QString sha256;
     QString md5;
     Keymode keymode;
+    QList<QList<int64_t>> histogramData;
+    QList<BpmChange> bpmChanges;
 };
 
 auto
