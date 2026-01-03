@@ -315,6 +315,7 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
                                             ->getVars()
                                             ->getGeneralVars()
                                             ->getLanguage());
+            QObject::disconnect(connection);
             connection = QObject::connect(
               profileList.getMainProfile()->getVars()->getGeneralVars(),
               &resource_managers::GeneralVars::languageChanged,
