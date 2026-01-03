@@ -94,10 +94,8 @@ Profile::Profile(
                "dp_options INTEGER NOT NULL,"
                "game_version INTEGER NOT NULL"
                ");");
-    if (version && *version < std::tuple{ 1, 2, 5 }) {
-        db.execute(
-          "ALTER TABLE score ADD COLUMN bss_count INTEGER NOT NULL DEFAULT 0;");
-    }
+    db.execute(
+      "ALTER TABLE score ADD COLUMN bss_count INTEGER NOT NULL DEFAULT 0;");
     db.execute("CREATE TABLE IF NOT EXISTS score_course ("
                "id INTEGER PRIMARY KEY AUTOINCREMENT,"
                "guid TEXT NOT NULL UNIQUE,"
