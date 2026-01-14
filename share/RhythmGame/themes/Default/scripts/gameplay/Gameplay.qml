@@ -96,11 +96,18 @@ Rectangle {
             }
         } else {
             if (playReadySound.length === 0) {
-                chart.start();
+                startTimer.start();
             }
             chart.player1.profile.scoreDb.getScoresForMd5(chartData.md5).then(scores => {
                 scores1 = scores.scores[chartData.md5] || [];
             });
+        }
+    }
+    Timer {
+        id: startTimer
+        interval: 1000
+        onTriggered: {
+            chart.start();
         }
     }
 
