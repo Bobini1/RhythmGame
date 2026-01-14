@@ -203,6 +203,8 @@ Item {
     }
     Item {
         id: judgementsPositioner
+        // This is a lazy solution to a bug where the judgements moved slightly on init
+        property bool initializing: true
         Binding {
             delayed: true
             judgementsPositioner.x: judgements.x
@@ -216,8 +218,10 @@ Item {
             y = judgements.y;
             width = judgements.width;
             height = judgements.height;
+            initializing = false;
         }
         onYChanged: {
+            if (initializing) return;
             let center = parent.height / 2;
             let offset = y + height / 2 - center;
             playArea.vars.judgementsOffset = -offset / (center - height / 2) / 2 + 0.5;
