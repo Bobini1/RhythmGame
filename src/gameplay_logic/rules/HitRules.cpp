@@ -397,7 +397,7 @@ gameplay_logic::rules::HitRules::release(
             iter->hit = true;
             return { column,
                      iter->index,
-                     noteTime.count(),
+                     hitOffset.count(),
                      BmsPoints{
                        hitValueFactory(hitOffset - noteTime, Judgement::Bad),
                        Judgement::Bad,
