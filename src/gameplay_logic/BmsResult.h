@@ -181,17 +181,14 @@ class BmsResult final : public QObject
   public:
     struct DTO
     {
-        int64_t id;
-        std::string guid;
-        std::string sha256;
-        std::string md5;
-        double points;
         double maxPoints;
         int maxHits;
         int normalNoteCount;
         int lnCount;
         int bssCount;
         int mineCount;
+        std::string clearType;
+        double points;
         int maxCombo;
         int poorCount;
         int emptyPoorCount;
@@ -200,7 +197,9 @@ class BmsResult final : public QObject
         int greatCount;
         int perfectCount;
         int mineHits;
-        std::string clearType;
+        std::string guid;
+        std::string sha256;
+        std::string md5;
         int64_t unixTimestamp;
         int64_t length;
         std::string randomSequence;

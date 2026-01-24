@@ -32,7 +32,16 @@ ScoreDb::getScoresForMd5Impl(QList<QString> md5s) const -> ScoreQueryResult
     for (int i = 0; i < md5sToFetch.size(); i += maxVariables) {
         auto chunk = md5sToFetch.mid(i, maxVariables);
         auto statement = scoreDb->createStatement(
-          "SELECT * "
+          "SELECT score.max_points, score.max_hits, score.normal_note_count, "
+          "score.ln_count, score.bss_count, score.mine_count, "
+          "score.clear_type, score.points, score.max_combo, score.poor, "
+          "score.empty_poor, score.bad, score.good, score.great, "
+          "score.perfect, score.mine_hits, score.guid, score.sha256, "
+          "score.md5, score.unix_timestamp, score.length, "
+          "score.random_sequence, score.random_seed, "
+          "score.note_order_algorithm, score.note_order_algorithm_p2, "
+          "score.dp_options, score.game_version, "
+          "replay_data.*, gauge_history.* "
           "FROM score "
           "JOIN replay_data ON score.guid = replay_data.score_guid "
           "JOIN gauge_history ON score.guid = gauge_history.score_guid "
@@ -119,7 +128,16 @@ ScoreDb::getScoresForCourseIdImpl(const QList<QString>& courseIds) const
     for (int i = 0; i < scoreGuids.size(); i += maxVariables) {
         auto chunk = scoreGuids.mid(i, maxVariables);
         auto statement = scoreDb->createStatement(
-          "SELECT * "
+          "SELECT score.max_points, score.max_hits, score.normal_note_count, "
+          "score.ln_count, score.bss_count, score.mine_count, "
+          "score.clear_type, score.points, score.max_combo, score.poor, "
+          "score.empty_poor, score.bad, score.good, score.great, "
+          "score.perfect, score.mine_hits, score.guid, score.sha256, "
+          "score.md5, score.unix_timestamp, score.length, "
+          "score.random_sequence, score.random_seed, "
+          "score.note_order_algorithm, score.note_order_algorithm_p2, "
+          "score.dp_options, score.game_version, "
+          "replay_data.*, gauge_history.* "
           "FROM score "
           "JOIN replay_data ON score.guid = replay_data.score_guid "
           "JOIN gauge_history ON score.guid = gauge_history.score_guid "
@@ -273,12 +291,22 @@ ScoreDb::getScores(const QString& folder) const
 
             auto* mainThread = QCoreApplication::instance()->thread();
             auto query = scoreDb->createStatement(
-              "SELECT score.*, replay_data.*, gauge_history.* "
+              "SELECT score.max_points, score.max_hits, "
+              "score.normal_note_count, score.ln_count, score.bss_count, "
+              "score.mine_count, score.clear_type, score.points, "
+              "score.max_combo, score.poor, score.empty_poor, score.bad, "
+              "score.good, score.great, score.perfect, score.mine_hits, "
+              "score.guid, score.sha256, score.md5, score.unix_timestamp, "
+              "score.length, score.random_sequence, score.random_seed, "
+              "score.note_order_algorithm, score.note_order_algorithm_p2, "
+              "score.dp_options, score.game_version, "
+              "replay_data.*, gauge_history.* "
               "FROM score "
               "JOIN replay_data ON score.guid = replay_data.score_guid "
               "JOIN gauge_history ON score.guid = gauge_history.score_guid "
               "JOIN song_db.charts ON score.md5 = song_db.charts.md5 "
               "WHERE song_db.charts.path LIKE ? || '%' ");
+
             query.bind(1, folder.toStdString());
             const auto result = query.executeAndGetAll<
               std::tuple<gameplay_logic::BmsResult::DTO,

@@ -131,7 +131,7 @@ gameplay_logic::BmsResult::save(db::SqliteCppDb& db) const
                          "game_version"
                          ")"
                          "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, "
-                         "?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?. ?);");
+                         "?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);");
     statement.bind(1, maxPoints);
     statement.bind(2, maxHits);
     statement.bind(3, normalNoteCount);

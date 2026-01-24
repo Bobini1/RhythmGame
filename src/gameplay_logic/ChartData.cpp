@@ -5,7 +5,7 @@
 #include "ChartData.h"
 #include "support/Compress.h"
 #include <QFileInfo>
-
+#include "BmsNotes.h"
 #include <memory>
 #include <utility>
 #include <spdlog/spdlog.h>
@@ -39,6 +39,8 @@ gameplay_logic::ChartData::ChartData(QString title,
                                      QString sha256,
                                      QString md5,
                                      Keymode keymode,
+                                     QList<QList<int64_t>> histogramData,
+                                     QList<BpmChange> bpmChanges,
                                      QObject* parent)
   : QObject(parent)
   , title(std::move(title))
@@ -70,6 +72,8 @@ gameplay_logic::ChartData::ChartData(QString title,
   , sha256(std::move(sha256))
   , md5(std::move(md5))
   , keymode(keymode)
+  , histogramData(std::move(histogramData))
+  , bpmChanges(std::move(bpmChanges))
 {
 }
 auto
@@ -143,8 +147,7 @@ gameplay_logic::ChartData::save(db::SqliteCppDb& db) const -> void
       "min_bpm, main_bpm, avg_bpm, path, chart_directory, directory, sha256, "
       "md5, keymode) "
       "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, "
-      "?, ?, ?, ?, ?, ?, ?, ?);");
-    query.reset();
+      "?, ?, ?, ?, ?, ?, ?, ?, ?);");
     query.bind(1, title.toStdString());
     query.bind(2, artist.toStdString());
     query.bind(3, subtitle.toStdString());
@@ -163,8 +166,8 @@ gameplay_logic::ChartData::save(db::SqliteCppDb& db) const -> void
     query.bind(15, normalNoteCount);
     query.bind(16, lnCount);
     query.bind(17, bssCount);
-    query.bind(19, mineCount);
-    query.bind(10, length);
+    query.bind(18, mineCount);
+    query.bind(19, length);
     query.bind(20, initialBpm);
     query.bind(21, maxBpm);
     query.bind(22, minBpm);
@@ -180,7 +183,17 @@ gameplay_logic::ChartData::save(db::SqliteCppDb& db) const -> void
     query.bind(28, sha256.toStdString());
     query.bind(29, md5.toStdString());
     query.bind(30, static_cast<int>(keymode));
-    query.execute();
+    auto id = query.execute();
+    auto query2 =
+      db.createStatement("INSERT OR REPLACE INTO histogram_data "
+                         "(histogram_data, bpms, chart_id) VALUES (?, ?, ?);");
+
+    auto compressedHistogram = support::compress(histogramData);
+    query2.bind(1, compressedHistogram.data(), compressedHistogram.size());
+    auto compressedBpmChanges = support::compress(bpmChanges);
+    query2.bind(2, compressedBpmChanges.data(), compressedBpmChanges.size());
+    query2.bind(3, id);
+    query2.execute();
 }
 auto
 gameplay_logic::ChartData::getSha256() const -> const QString&
@@ -197,6 +210,16 @@ auto
 gameplay_logic::ChartData::load(const DTO& chartDataDto)
   -> std::unique_ptr<ChartData>
 {
+    auto histogramData = QList<QList<int64_t>>{};
+    if (!chartDataDto.histogramData.empty()) {
+        histogramData = support::decompress<QList<QList<int64_t>>>(
+          QByteArray::fromStdString(chartDataDto.histogramData));
+    }
+    auto bpmChanges = QList<BpmChange>{};
+    if (!chartDataDto.bpmChanges.empty()) {
+        bpmChanges = support::decompress<QList<BpmChange>>(
+          QByteArray::fromStdString(chartDataDto.bpmChanges));
+    }
     return std::make_unique<ChartData>(
       QString::fromStdString(chartDataDto.title),
       QString::fromStdString(chartDataDto.artist),
@@ -227,7 +250,9 @@ gameplay_logic::ChartData::load(const DTO& chartDataDto)
       chartDataDto.directory,
       QString::fromStdString(chartDataDto.sha256),
       QString::fromStdString(chartDataDto.md5),
-      static_cast<Keymode>(chartDataDto.keymode));
+      static_cast<Keymode>(chartDataDto.keymode),
+      histogramData,
+      bpmChanges);
 }
 auto
 gameplay_logic::isDp(ChartData::Keymode keymode) -> bool
@@ -281,9 +306,14 @@ gameplay_logic::ChartData::getChartDirectory() const -> QString
     return QFileInfo{ path }.absolutePath() + '/';
 }
 auto
-gameplay_logic::ChartData::getHistogramData() -> QList<QList<int>>&
+gameplay_logic::ChartData::getHistogramData() -> QList<QList<int64_t>>&
 {
     return histogramData;
+}
+auto
+gameplay_logic::ChartData::getBpmChanges() -> QList<BpmChange>&
+{
+    return bpmChanges;
 }
 auto
 gameplay_logic::ChartData::clone() const -> std::unique_ptr<ChartData>
@@ -316,7 +346,9 @@ gameplay_logic::ChartData::clone() const -> std::unique_ptr<ChartData>
                                        directory,
                                        sha256,
                                        md5,
-                                       keymode);
+                                       keymode,
+                                       histogramData,
+                                       bpmChanges);
 }
 auto
 gameplay_logic::ChartData::getInitialBpm() const -> double

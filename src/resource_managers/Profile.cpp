@@ -94,8 +94,15 @@ Profile::Profile(
                "dp_options INTEGER NOT NULL,"
                "game_version INTEGER NOT NULL"
                ");");
-    db.execute(
-      "ALTER TABLE score ADD COLUMN bss_count INTEGER NOT NULL DEFAULT 0;");
+    // For migration from earlier versions that did not have bss_count
+    auto checkColumn =
+      db.createStatement("SELECT COUNT(*) FROM pragma_table_info('score') "
+                         "WHERE name = 'bss_count';");
+    auto columnExists = checkColumn.executeAndGet<int64_t>().value_or(0) > 0;
+    if (!columnExists) {
+        db.execute(
+          "ALTER TABLE score ADD COLUMN bss_count INTEGER NOT NULL DEFAULT 0;");
+    }
     db.execute("CREATE TABLE IF NOT EXISTS score_course ("
                "id INTEGER PRIMARY KEY AUTOINCREMENT,"
                "guid TEXT NOT NULL UNIQUE,"

@@ -19,6 +19,7 @@ namespace llfio = LLFIO_V2_NAMESPACE;
 #include <qfileinfo.h>
 #include "support/UtfStringToPath.h"
 #include "support/PathToQString.h"
+#include <magic_enum/magic_enum.hpp>
 
 namespace resource_managers {
 ChartDataFactory::ChartComponents::ChartComponents(
@@ -73,33 +74,26 @@ auto
 ChartDataFactory::makeNotes(
   const std::array<std::vector<charts::BmsNotesData::Note>,
                    charts::BmsNotesData::columnNumber>& notes,
-  const std::vector<std::pair<charts::BmsNotesData::Time, double>>& bpmChanges,
   const std::vector<charts::BmsNotesData::Time>& barLines)
   -> std::unique_ptr<gameplay_logic::BmsNotes>
 {
-    auto visibleNotesQ = QVector<QVector<gameplay_logic::Note>>{};
+    auto visibleNotesQ = QList<QList<gameplay_logic::Note>>{};
     for (const auto& column : notes) {
-        visibleNotesQ.append(convertToQVector(column));
+        visibleNotesQ.append(convertToQList(column));
     }
-    auto bpmChangesQ = QVector<gameplay_logic::BpmChange>{};
-    for (const auto& bpmChange : bpmChanges) {
-        bpmChangesQ.append({ { .timestamp = bpmChange.first.timestamp.count(),
-                               .position = bpmChange.first.position },
-                             bpmChange.second });
-    }
-    auto barLinesQ = QVector<gameplay_logic::Time>{};
+    auto barLinesQ = QList<gameplay_logic::Time>{};
     for (const auto& barLine : barLines) {
         barLinesQ.append({ barLine.timestamp.count(), barLine.position });
     }
-    return std::make_unique<gameplay_logic::BmsNotes>(
-      std::move(visibleNotesQ), std::move(bpmChangesQ), std::move(barLinesQ));
+    return std::make_unique<gameplay_logic::BmsNotes>(std::move(visibleNotesQ),
+                                                      std::move(barLinesQ));
 }
 auto
-ChartDataFactory::convertToQVector(
+ChartDataFactory::convertToQList(
   const std::vector<charts::BmsNotesData::Note>& column)
-  -> QVector<gameplay_logic::Note>
+  -> QList<gameplay_logic::Note>
 {
-    auto columnNotes = QVector<gameplay_logic::Note>{};
+    auto columnNotes = QList<gameplay_logic::Note>{};
     columnNotes.reserve(column.size());
     for (const auto& note : column) {
         auto type = gameplay_logic::Note::Type::Normal;
@@ -132,6 +126,10 @@ auto
 readAndParse(const std::filesystem::path& chartPath,
              ChartDataFactory::RandomGenerator randomGenerator)
 {
+    if (chartPath == L"T:/BMS/2007 - 戦 [sen-goku] 國 "
+                     L"〜夏の陣〜\\lb_b\\_Buntan_Gram_gimmick_easy.bme") {
+        int i = 1;
+    }
 #ifndef _WIN32
     auto mfh = llfio::mapped_file({}, chartPath).value();
     auto length = mfh.maximum_extent().value();
@@ -210,8 +208,8 @@ ChartDataFactory::loadChartData(const std::filesystem::path& chartPath,
         bmps.emplace(bmp.first, support::utfStringToPath(bmp.second));
     }
     auto calculatedNotesData = charts::BmsNotesData{ parsedChart };
-
-    auto lastNoteTimestamp = std::chrono::nanoseconds{ 0 };
+    using namespace std::chrono_literals;
+    auto lastNoteTimestamp = 0ns;
     for (const auto& column : calculatedNotesData.notes) {
         if (column.empty()) {
             continue;
@@ -251,7 +249,7 @@ ChartDataFactory::loadChartData(const std::filesystem::path& chartPath,
         auto bpmChange = *it;
         auto bpm = bpmChange.second;
         auto timestamp = bpmChange.first.timestamp;
-        auto nextTimestamp = std::chrono::nanoseconds{ 0 };
+        auto nextTimestamp = 0ns;
         if (it + 1 != calculatedNotesData.bpmChanges.end()) {
             nextTimestamp = (it + 1)->first.timestamp;
         } else {
@@ -261,8 +259,8 @@ ChartDataFactory::loadChartData(const std::filesystem::path& chartPath,
         bpms[bpm] += duration;
     }
     auto totalBpm = 0.0;
-    auto totalDuration = std::chrono::nanoseconds{ 0 };
-    auto maxBpmDuration = std::chrono::nanoseconds{ 0 };
+    auto totalDuration = 0ns;
+    auto maxBpmDuration = 0ns;
     auto mainBpm = 0.0;
     for (const auto& [bpm, duration] : bpms) {
         totalBpm += bpm * duration.count();
@@ -308,6 +306,33 @@ ChartDataFactory::loadChartData(const std::filesystem::path& chartPath,
     auto total = parsedChart.tags.total.value_or(
       (totalNotes + std::clamp(totalNotes - 400, 0, 200)) * 0.16 + 160);
     auto path = support::pathToQString(chartPath);
+    auto bpmChangesQ = QList<gameplay_logic::BpmChange>{};
+    for (const auto& bpmChange : calculatedNotesData.bpmChanges) {
+        bpmChangesQ.append({ { .timestamp = bpmChange.first.timestamp.count(),
+                               .position = bpmChange.first.position },
+                             bpmChange.second });
+    }
+    auto histogram = QList<QList<int64_t>>{};
+    histogram.resize(magic_enum::enum_count<gameplay_logic::Note::Type>());
+    for (auto& column : histogram) {
+        column.resize(100, 0);
+    }
+    if (lastNoteTimestamp != 0ns) {
+        for (const auto& column : calculatedNotesData.notes) {
+            for (const auto& note : column) {
+                const auto typeIndex =
+                  static_cast<size_t>(magic_enum::enum_integer(note.noteType));
+                if (typeIndex < histogram.size()) {
+                    const auto positionIndex = static_cast<size_t>(
+                      static_cast<double>(note.time.timestamp.count()) /
+                      static_cast<double>(lastNoteTimestamp.count()) * 100);
+                    if (positionIndex < histogram[typeIndex].size()) {
+                        histogram[typeIndex][positionIndex]++;
+                    }
+                }
+            }
+        }
+    }
     auto chartData = std::make_unique<gameplay_logic::ChartData>(
       std::move(title),
       std::move(artist),
@@ -337,10 +362,11 @@ ChartDataFactory::loadChartData(const std::filesystem::path& chartPath,
       directory,
       QString::fromStdString(sha256),
       QString::fromStdString(md5),
-      keymode);
-    auto noteData = makeNotes(calculatedNotesData.notes,
-                              calculatedNotesData.bpmChanges,
-                              calculatedNotesData.barLines);
+      keymode,
+      histogram,
+      bpmChangesQ);
+    auto noteData =
+      makeNotes(calculatedNotesData.notes, calculatedNotesData.barLines);
     return { std::move(chartData),
              std::move(calculatedNotesData),
              std::move(wavs),

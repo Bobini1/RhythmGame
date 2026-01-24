@@ -177,6 +177,19 @@ FocusScope {
                 height: parent.height
                 width: parent.width / 2
             }
+            Loader {
+                id: graphLoader
+                active: songList.current instanceof ChartData
+                anchors.horizontalCenter: songList.horizontalCenter
+                anchors.bottom: parent.bottom
+                anchors.bottomMargin: 150
+                sourceComponent: Graph {
+                    bpms: songList.current ? songList.current.bpmChanges : []
+                    histogramData: songList.current ? songList.current.histogramData : [[], []]
+                    mainBpm: songList.current ? songList.current.mainBpm : 0
+                    maxBpm: songList.current ? songList.current.maxBpm : 0
+                }
+            }
             Shortcut {
                 sequence: "Esc"
                 enabled: root.enabled

@@ -17,21 +17,32 @@ class SongFolderFactory : public QObject
 
     db::SqliteCppDb* db;
     db::SqliteCppDb::Statement getCharts = db->createStatement(
-      "SELECT id, title, artist, subtitle, subartist, "
-      "genre, stage_file, banner, back_bmp, rank, total, "
-      "play_level, difficulty, is_random, random_sequence, normal_note_count, "
-      "ln_count, bss_count, mine_count, length, initial_bpm, max_bpm, min_bpm, "
-      "main_bpm, avg_bpm, path, directory, sha256, md5, keymode "
-      "FROM charts WHERE directory IS (SELECT id FROM parent_dir WHERE dir IS "
-      "?) ORDER BY title, subtitle ASC");
+      "SELECT c.id, c.title, c.artist, c.subtitle, c.subartist, "
+      "c.genre, c.stage_file, c.banner, c.back_bmp, c.rank, c.total, "
+      "c.play_level, c.difficulty, c.is_random, c.random_sequence, "
+      "c.normal_note_count, "
+      "c.ln_count, c.bss_count, c.mine_count, c.length, c.initial_bpm, "
+      "c.max_bpm, c.min_bpm, "
+      "c.main_bpm, c.avg_bpm, c.path, c.directory, c.sha256, c.md5, c.keymode, "
+      "h.bpms, h.histogram_data "
+      "FROM charts c "
+      "LEFT JOIN histogram_data h ON h.chart_id = c.id "
+      "WHERE c.directory IS (SELECT id FROM parent_dir WHERE dir IS ?) "
+      "ORDER BY c.title, c.subtitle ASC");
     db::SqliteCppDb::Statement getChartsRecursive = db->createStatement(
-      "SELECT id, title, artist, subtitle, subartist, "
-      "genre, stage_file, banner, back_bmp, rank, total, "
-      "play_level, difficulty, is_random, random_sequence, normal_note_count, "
-      "ln_count, bss_count, mine_count, length, initial_bpm, max_bpm, min_bpm, "
-      "main_bpm, avg_bpm, path, directory, sha256, md5, keymode FROM charts "
-      "WHERE directory IS (SELECT id FROM parent_dir WHERE dir LIKE ? || '%') "
-      "ORDER BY title ASC");
+      "SELECT c.id, c.title, c.artist, c.subtitle, c.subartist, "
+      "c.genre, c.stage_file, c.banner, c.back_bmp, c.rank, c.total, "
+      "c.play_level, c.difficulty, c.is_random, c.random_sequence, "
+      "c.normal_note_count, "
+      "c.ln_count, c.bss_count, c.mine_count, c.length, c.initial_bpm, "
+      "c.max_bpm, c.min_bpm, "
+      "c.main_bpm, c.avg_bpm, c.path, c.directory, c.sha256, c.md5, c.keymode, "
+      "h.bpms, h.histogram_data "
+      "FROM charts c "
+      "LEFT JOIN histogram_data h ON h.chart_id = c.id "
+      "WHERE c.directory IS (SELECT id FROM parent_dir WHERE dir LIKE ? || "
+      "'%') "
+      "ORDER BY c.title ASC");
     db::SqliteCppDb::Statement getMd5 =
       db->createStatement("SELECT md5 FROM charts WHERE directory IS "
                           "(SELECT id FROM parent_dir WHERE dir IS ?)");
@@ -49,18 +60,18 @@ class SongFolderFactory : public QObject
       "charts WHERE "
       "directory IS (SELECT id FROM parent_dir WHERE dir IS ?)");
     db::SqliteCppDb::Statement searchCharts = db->createStatement(
-      "SELECT charts.id, charts.title, charts.artist, charts.subtitle, "
-      "charts.subartist, "
-      "charts.genre, charts.stage_file, charts.banner, charts.back_bmp, "
-      "charts.rank, charts.total, "
-      "charts.play_level, charts.difficulty, charts.is_random, "
-      "charts.random_sequence, charts.normal_note_count, "
-      "charts.ln_count, charts.bss_count, charts.mine_count, charts.length, "
-      "charts.initial_bpm, charts.max_bpm, charts.min_bpm, charts.main_bpm, "
-      "charts.avg_bpm, charts.path, charts.directory, charts.sha256, "
-      "charts.md5, charts.keymode FROM charts_fts(?) "
-      "JOIN charts ON charts_fts.rowid = charts.id ORDER BY charts.title, "
-      "charts.subtitle ASC");
+      "SELECT c.id, c.title, c.artist, c.subtitle, c.subartist, "
+      "c.genre, c.stage_file, c.banner, c.back_bmp, c.rank, c.total, "
+      "c.play_level, c.difficulty, c.is_random, c.random_sequence, "
+      "c.normal_note_count, "
+      "c.ln_count, c.bss_count, c.mine_count, c.length, c.initial_bpm, "
+      "c.max_bpm, c.min_bpm, "
+      "c.main_bpm, c.avg_bpm, c.path, c.directory, c.sha256, c.md5, c.keymode, "
+      "h.bpms, h.histogram_data "
+      "FROM charts_fts(?) "
+      "JOIN charts c ON charts_fts.rowid = c.id "
+      "LEFT JOIN histogram_data h ON h.chart_id = c.id "
+      "ORDER BY c.title, c.subtitle ASC");
     db::SqliteCppDb::Statement getParentFolder =
       db->createStatement("SELECT parent_dir FROM parent_dir WHERE dir IS ?");
 

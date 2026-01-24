@@ -435,14 +435,19 @@ ChartLoader::loadChartDataFromDb(QList<QString> md5s) const -> QVariantMap
     for (int i = 0; i < md5sToFetch.size(); i += maxVariables) {
         auto chunk = md5sToFetch.mid(i, maxVariables);
         auto statement = db->createStatement(
-          "SELECT id, title, artist, subtitle, subartist, "
-          "genre, stage_file, banner, back_bmp, rank, total, "
-          "play_level, difficulty, is_random, random_sequence, "
-          "normal_note_count, ln_count, mine_count, length, initial_bpm, "
-          "max_bpm, min_bpm, main_bpm, avg_bpm, path, directory, sha256, md5, "
-          "keymode FROM charts WHERE md5 IN (" +
+          "SELECT c.id, c.title, c.artist, c.subtitle, c.subartist, "
+          "c.genre, c.stage_file, c.banner, c.back_bmp, c.rank, c.total, "
+          "c.play_level, c.difficulty, c.is_random, c.random_sequence, "
+          "c.normal_note_count, c.ln_count, c.mine_count, c.length, "
+          "c.initial_bpm, "
+          "c.max_bpm, c.min_bpm, c.main_bpm, c.avg_bpm, c.path, c.directory, "
+          "c.sha256, c.md5, "
+          "c.keymode, h.bpms, h.histogram_data "
+          "FROM charts c "
+          "LEFT JOIN histogram_data h ON h.chart_id = c.id "
+          "WHERE c.md5 IN (" +
           QString("?, ").repeated(chunk.size()).chopped(2).toStdString() +
-          ")  ORDER BY title, subtitle ASC");
+          ") ORDER BY c.title, c.subtitle ASC");
 
         for (int j = 0; j < chunk.size(); ++j) {
             statement.bind(j + 1, chunk[j].toStdString());

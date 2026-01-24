@@ -4,53 +4,133 @@
 
 #include "DefineDb.h"
 
-#include "support/Version.h"
+namespace {
+auto
+tableMissingForeignKey(db::SqliteCppDb& db,
+                       const std::string& tableName,
+                       std::string_view foreignKeyNeedle) -> bool
+{
+    const auto query =
+      "SELECT sql FROM sqlite_master WHERE type = 'table' AND name = '" +
+      tableName + "';";
+    auto stmt = db.createStatement(query);
+    auto sql = stmt.executeAndGet<std::string>();
+    if (!sql) {
+        return false;
+    }
+    return !sql->contains(foreignKeyNeedle);
+}
+
+void
+migrateChartsDirectoryForeignKey(db::SqliteCppDb& db)
+{
+    if (!tableMissingForeignKey(db, "charts", "FOREIGN KEY (directory)")) {
+        return;
+    }
+
+    db.execute("BEGIN IMMEDIATE;");
+    try {
+        db.execute("ALTER TABLE charts RENAME TO charts_old;");
+        db.execute(
+          "CREATE TABLE charts ("
+          "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+          "title TEXT NOT NULL,"
+          "artist TEXT NOT NULL,"
+          "subtitle TEXT NOT NULL,"
+          "subartist TEXT NOT NULL,"
+          "genre TEXT NOT NULL,"
+          "stage_file TEXT NOT NULL,"
+          "banner TEXT NOT NULL,"
+          "back_bmp TEXT NOT NULL,"
+          "rank INTEGER NOT NULL,"
+          "total REAL NOT NULL,"
+          "play_level INTEGER NOT NULL,"
+          "difficulty INTEGER NOT NULL,"
+          "is_random INTEGER NOT NULL,"
+          "random_sequence STRING NOT NULL,"
+          "normal_note_count INTEGER NOT NULL,"
+          "ln_count INTEGER NOT NULL,"
+          "bss_count INTEGER NOT NULL,"
+          "mine_count INTEGER NOT NULL,"
+          "length INTEGER NOT NULL,"
+          "initial_bpm REAL NOT NULL,"
+          "max_bpm REAL NOT NULL,"
+          "min_bpm REAL NOT NULL,"
+          "main_bpm REAL NOT NULL,"
+          "avg_bpm REAL NOT NULL,"
+          "path TEXT NOT NULL UNIQUE,"
+          "chart_directory TEXT,"
+          "directory INTEGER,"
+          "sha256 TEXT NOT NULL,"
+          "md5 TEXT NOT NULL,"
+          "keymode INTEGER NOT NULL,"
+          "FOREIGN KEY (directory) REFERENCES parent_dir(id) ON DELETE CASCADE"
+          ");");
+        db.execute(
+          "INSERT INTO charts ("
+          "id, title, artist, subtitle, subartist, genre, stage_file, "
+          "banner, back_bmp, rank, total, play_level, difficulty, is_random, "
+          "random_sequence, normal_note_count, ln_count, bss_count, "
+          "mine_count, "
+          "length, initial_bpm, max_bpm, min_bpm, main_bpm, avg_bpm, path, "
+          "chart_directory, directory, sha256, md5, keymode) "
+          "SELECT "
+          "id, title, artist, subtitle, subartist, genre, stage_file, "
+          "banner, back_bmp, rank, total, play_level, difficulty, is_random, "
+          "random_sequence, normal_note_count, ln_count, 0, "
+          "mine_count, "
+          "length, initial_bpm, max_bpm, min_bpm, main_bpm, avg_bpm, path, "
+          "chart_directory, directory, sha256, md5, keymode "
+          "FROM charts_old;");
+        db.execute("DROP TABLE charts_old;");
+        db.execute("COMMIT;");
+    } catch (...) {
+        db.execute("ROLLBACK;");
+        throw;
+    }
+}
+} // namespace
+
 namespace resource_managers {
 void
 defineDb(db::SqliteCppDb& db)
 {
-    auto versionStmt =
-      db.createStatement("SELECT value FROM properties WHERE key = 'version';");
-    auto version = versionStmt.executeAndGet<int64_t>().transform(
-      [](int64_t v) { return support::unpackVersion(v); });
-    db.execute("CREATE TABLE IF NOT EXISTS charts ("
-               "id INTEGER PRIMARY KEY AUTOINCREMENT,"
-               "title TEXT NOT NULL,"
-               "artist TEXT NOT NULL,"
-               "subtitle TEXT NOT NULL,"
-               "subartist TEXT NOT NULL,"
-               "genre TEXT NOT NULL,"
-               "stage_file TEXT NOT NULL,"
-               "banner TEXT NOT NULL,"
-               "back_bmp TEXT NOT NULL,"
-               "rank INTEGER NOT NULL,"
-               "total REAL NOT NULL,"
-               "play_level INTEGER NOT NULL,"
-               "difficulty INTEGER NOT NULL,"
-               "is_random INTEGER NOT NULL,"
-               "random_sequence STRING NOT NULL,"
-               "normal_note_count INTEGER NOT NULL,"
-               "ln_count INTEGER NOT NULL,"
-               "bss_count INTEGER NOT NULL,"
-               "mine_count INTEGER NOT NULL,"
-               "length INTEGER NOT NULL,"
-               "initial_bpm REAL NOT NULL,"
-               "max_bpm REAL NOT NULL,"
-               "min_bpm REAL NOT NULL,"
-               "main_bpm REAL NOT NULL,"
-               "avg_bpm REAL NOT NULL,"
-               "path TEXT NOT NULL UNIQUE,"
-               "chart_directory TEXT,"
-               "directory INTEGER,"
-               "sha256 TEXT NOT NULL,"
-               "md5 TEXT NOT NULL,"
-               "keymode INTEGER NOT NULL"
-               ");");
-
-    if (version && *version < std::tuple{ 1, 2, 5 }) {
-        db.execute("ALTER TABLE charts ADD COLUMN bss_count INTEGER NOT NULL "
-                   "DEFAULT 0;");
-    }
+    db.execute(
+      "CREATE TABLE IF NOT EXISTS charts ("
+      "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+      "title TEXT NOT NULL,"
+      "artist TEXT NOT NULL,"
+      "subtitle TEXT NOT NULL,"
+      "subartist TEXT NOT NULL,"
+      "genre TEXT NOT NULL,"
+      "stage_file TEXT NOT NULL,"
+      "banner TEXT NOT NULL,"
+      "back_bmp TEXT NOT NULL,"
+      "rank INTEGER NOT NULL,"
+      "total REAL NOT NULL,"
+      "play_level INTEGER NOT NULL,"
+      "difficulty INTEGER NOT NULL,"
+      "is_random INTEGER NOT NULL,"
+      "random_sequence STRING NOT NULL,"
+      "normal_note_count INTEGER NOT NULL,"
+      "ln_count INTEGER NOT NULL,"
+      "bss_count INTEGER NOT NULL,"
+      "mine_count INTEGER NOT NULL,"
+      "length INTEGER NOT NULL,"
+      "initial_bpm REAL NOT NULL,"
+      "max_bpm REAL NOT NULL,"
+      "min_bpm REAL NOT NULL,"
+      "main_bpm REAL NOT NULL,"
+      "avg_bpm REAL NOT NULL,"
+      "path TEXT NOT NULL UNIQUE,"
+      "chart_directory TEXT,"
+      "directory INTEGER,"
+      "sha256 TEXT NOT NULL,"
+      "md5 TEXT NOT NULL,"
+      "keymode INTEGER NOT NULL,"
+      "FOREIGN KEY (directory) REFERENCES parent_dir(id) ON DELETE CASCADE"
+      ");");
+    migrateChartsDirectoryForeignKey(db);
     db.execute(
       "CREATE INDEX IF NOT EXISTS directory_index ON charts(directory)");
     db.execute("CREATE INDEX IF NOT EXISTS chart_directory_index ON "
@@ -83,6 +163,7 @@ defineDb(db::SqliteCppDb& db)
       "new.subartist, new.genre, new.path); "
       "END;");
 
+    // unused atm (too big)
     db.execute("CREATE TABLE IF NOT EXISTS note_data ("
                "id INTEGER PRIMARY KEY AUTOINCREMENT,"
                "sha256 TEXT NOT NULL UNIQUE,"
@@ -90,6 +171,14 @@ defineDb(db::SqliteCppDb& db)
                ");");
 
     db.execute("DELETE FROM note_data;");
+
+    db.execute("CREATE TABLE IF NOT EXISTS histogram_data ("
+               "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+               "chart_id INTEGER NOT NULL UNIQUE,"
+               "bpms BLOB NOT NULL,"
+               "histogram_data BLOB NOT NULL,"
+               "FOREIGN KEY (chart_id) REFERENCES charts(id) ON DELETE CASCADE"
+               ");");
 
     db.execute("CREATE TABLE IF NOT EXISTS parent_dir ("
                "id INTEGER PRIMARY KEY AUTOINCREMENT,"
@@ -113,7 +202,7 @@ defineDb(db::SqliteCppDb& db)
     db.execute("CREATE TABLE IF NOT EXISTS preview_files ("
                "id INTEGER PRIMARY KEY AUTOINCREMENT,"
                "path TEXT NOT NULL,"
-               "directory INTEGER UNIQUE"
+               "directory TEXT NOT NULL UNIQUE"
                ");");
 
     db.execute("PRAGMA optimize;");

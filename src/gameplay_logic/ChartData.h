@@ -187,9 +187,16 @@ class ChartData : public QObject
      */
     Q_PROPERTY(double avgBpm READ getAvgBpm CONSTANT)
     /**
-     * @brief The histogram data representing the distribution of hit timings.
+     * @brief The histogram data representing the distribution of notes.
+     * @details Each list represents a different note type.
+     * @see gameplay_logic::Note::Type
      */
-    Q_PROPERTY(QList<QList<int>> histogramData READ getHistogramData CONSTANT)
+    Q_PROPERTY(
+      QList<QList<int64_t>> histogramData READ getHistogramData CONSTANT)
+    /**
+     * @brief The list of BPM changes in the chart.
+     */
+    Q_PROPERTY(QList<BpmChange> bpmChanges READ getBpmChanges CONSTANT)
 
     auto getHistogramData() const -> const QList<QList<int>>&
     {
@@ -226,6 +233,8 @@ class ChartData : public QObject
               QString sha256,
               QString md5,
               Keymode keymode,
+              QList<QList<int64_t>> histogramData,
+              QList<BpmChange> bpmChanges,
               QObject* parent = nullptr);
 
     [[nodiscard]] auto getTitle() const -> const QString&;
@@ -258,7 +267,8 @@ class ChartData : public QObject
     [[nodiscard]] auto getKeymode() const -> Keymode;
     [[nodiscard]] auto getDirectory() const -> QString;
     [[nodiscard]] auto getChartDirectory() const -> QString;
-    [[nodiscard]] auto getHistogramData() -> QList<QList<int>>&;
+    [[nodiscard]] auto getHistogramData() -> QList<QList<int64_t>>&;
+    [[nodiscard]] auto getBpmChanges() -> QList<BpmChange>&;
 
     auto clone() const -> std::unique_ptr<ChartData>;
 
@@ -295,7 +305,7 @@ class ChartData : public QObject
         std::string md5;
         int keymode;
         std::string histogramData;
-        std::string bpmData;
+        std::string bpmChanges;
     };
 
     auto save(db::SqliteCppDb& db) const -> void;

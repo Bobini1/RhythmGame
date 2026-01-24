@@ -8,7 +8,7 @@
 #include <utility>
 #include <thread>
 
-db::SqliteCppDb::SqliteCppDb(std::filesystem::path dbPath)
+db::SqliteCppDb::SqliteCppDb(const std::filesystem::path& dbPath)
   : db(dbPath,
        SQLite::OPEN_READWRITE | // NOLINT(hicpp-signed-bitwise)
          SQLite::OPEN_CREATE | SQLite::OPEN_FULLMUTEX)
@@ -19,9 +19,7 @@ db::SqliteCppDb::SqliteCppDb(std::filesystem::path dbPath)
     sqlite3_limit(db.getHandle(),
                   SQLITE_LIMIT_WORKER_THREADS,
                   std::thread::hardware_concurrency());
-#ifdef DEBUG
     db.exec("PRAGMA foreign_keys=ON;");
-#endif
 }
 
 auto
