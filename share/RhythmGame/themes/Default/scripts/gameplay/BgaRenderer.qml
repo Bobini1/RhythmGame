@@ -69,7 +69,7 @@ Item {
 
             source: ShaderEffectSource {
                 hideSource: true
-                sourceItem: videoLayer
+                sourceItem: videoLayer2
             }
         }
         VideoOutput {

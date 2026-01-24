@@ -318,14 +318,13 @@ gameplay_logic::rules::HitRules::processMines(
         auto noteTime = mine.time;
         if (noteTime <= offsetFromStart + windowLow) {
             iter->hit = true;
-            mineHits.emplace_back(column,
-                                  mine.index,
-                                  noteTime.count(),
-                                  BmsPoints{ 0.0,
-                                             Judgement::MineAvoided,
-                                             (noteTime + windowHigh).count() },
-                                  HitEvent::Action::None,
-                                  /*noteRemoved=*/true);
+            mineHits.emplace_back(
+              column,
+              mine.index,
+              noteTime.count(),
+              BmsPoints{ 0.0, Judgement::MineAvoided, (windowHigh).count() },
+              HitEvent::Action::None,
+              /*noteRemoved=*/true);
             currentMineIndex++;
             continue;
         }
@@ -398,7 +397,7 @@ gameplay_logic::rules::HitRules::release(
             iter->hit = true;
             return { column,
                      iter->index,
-                     noteTime.count(),
+                     hitOffset.count(),
                      BmsPoints{
                        hitValueFactory(hitOffset - noteTime, Judgement::Bad),
                        Judgement::Bad,
