@@ -126,10 +126,6 @@ auto
 readAndParse(const std::filesystem::path& chartPath,
              ChartDataFactory::RandomGenerator randomGenerator)
 {
-    if (chartPath == L"T:/BMS/2007 - 戦 [sen-goku] 國 "
-                     L"〜夏の陣〜\\lb_b\\_Buntan_Gram_gimmick_easy.bme") {
-        int i = 1;
-    }
 #ifndef _WIN32
     auto mfh = llfio::mapped_file({}, chartPath).value();
     auto length = mfh.maximum_extent().value();
