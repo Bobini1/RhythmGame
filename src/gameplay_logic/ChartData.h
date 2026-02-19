@@ -198,11 +198,6 @@ class ChartData : public QObject
      */
     Q_PROPERTY(QList<BpmChange> bpmChanges READ getBpmChanges CONSTANT)
 
-    auto getHistogramData() const -> const QList<QList<int>>&
-    {
-        return histogramData;
-    }
-
   public:
     ChartData(QString title,
               QString artist,
