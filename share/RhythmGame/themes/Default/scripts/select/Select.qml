@@ -181,13 +181,18 @@ FocusScope {
                 id: graphLoader
                 active: songList.current instanceof ChartData
                 anchors.horizontalCenter: songList.horizontalCenter
+                anchors.horizontalCenterOffset: 19
                 anchors.bottom: parent.bottom
-                anchors.bottomMargin: 150
+                anchors.bottomMargin: 75
                 sourceComponent: Graph {
                     bpms: songList.current ? songList.current.bpmChanges : []
-                    histogramData: songList.current ? songList.current.histogramData : [[], []]
+                    histogramData: songList.current ? songList.current.histogramData : [[], [], []]
                     mainBpm: songList.current ? songList.current.mainBpm : 0
                     maxBpm: songList.current ? songList.current.maxBpm : 0
+                    normalCount: songList.current ? songList.current.normalNoteCount : 0
+                    scratchCount: songList.current ? songList.current.scratchCount : 0
+                    lnCount: songList.current ? songList.current.lnCount : 0
+                    bssCount: songList.current ? songList.current.bssCount : 0
                 }
             }
             Shortcut {
