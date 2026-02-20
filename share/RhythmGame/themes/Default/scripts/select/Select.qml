@@ -294,12 +294,8 @@ FocusScope {
                 spacing: 40
 
                 current: songList.current
-                scoreWithBestPoints: songList.currentItem
-                ?.
-                    scoreWithBestPoints || null
-                bestStats: songList.currentItem
-                ?.
-                    bestStats || null
+                scoreWithBestPoints: songList.currentItem?.scoreWithBestPoints || null
+                bestStats: songList.currentItem?.bestStats || null
             }
             Image {
                 id: search
