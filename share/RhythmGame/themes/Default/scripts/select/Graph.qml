@@ -64,31 +64,31 @@ Image {
                 Layout.fillHeight: true
                 Layout.fillWidth: true
                 Rectangle {
-                    implicitHeight: graphContent.height * (graph.bss[index] / graph.maxDensity)
+                    Layout.preferredHeight: graphContent.height * (graph.bss[index] / graph.maxDensity)
                     color: "green"
                     Layout.fillWidth: true
                     Layout.fillHeight: true
                 }
                 Rectangle {
-                    implicitHeight: graphContent.height * (graph.scratches[index] / graph.maxDensity)
+                    Layout.preferredHeight: graphContent.height * (graph.scratches[index] / graph.maxDensity)
                     color: "red"
                     Layout.fillWidth: true
                     Layout.fillHeight: true
                 }
                 Rectangle {
-                    implicitHeight: graphContent.height * (graph.lns[index] / graph.maxDensity)
+                    Layout.preferredHeight: graphContent.height * (graph.lns[index] / graph.maxDensity)
                     color: "blue"
                     Layout.fillWidth: true
                     Layout.fillHeight: true
                 }
                 Rectangle {
-                    implicitHeight: graphContent.height * (graph.normalNotes[index] / graph.maxDensity)
+                    Layout.preferredHeight: graphContent.height * (graph.normalNotes[index] / graph.maxDensity)
                     color: "white"
                     Layout.fillWidth: true
                     Layout.fillHeight: true
                 }
                 Rectangle {
-                    implicitHeight: graphContent.height * ((graph.maxDensity - graph.bss[index] - graph.scratches[index] - graph.lns[index] - graph.normalNotes[index]) / graph.maxDensity)
+                    Layout.preferredHeight: graphContent.height * ((graph.maxDensity - graph.bss[index] - graph.scratches[index] - graph.lns[index] - graph.normalNotes[index]) / graph.maxDensity)
                     color: "transparent"
                     Layout.fillWidth: true
                     Layout.fillHeight: true
