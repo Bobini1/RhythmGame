@@ -321,13 +321,19 @@ ChartDataFactory::loadChartData(const std::filesystem::path& chartPath,
     }
     auto totalBpm = 0.0;
     auto totalDuration = 0ns;
-    auto maxBpmDuration = 0ns;
-    auto mainBpm = 0.0;
+    auto bpmDurationMap =
+      std::unordered_map<double, std::chrono::nanoseconds>{};
     for (const auto& [bpm, duration] : bpms) {
         totalBpm += bpm * duration.count();
         totalDuration += duration;
-        if (duration > maxBpmDuration) {
-            maxBpmDuration = duration;
+        bpmDurationMap[bpm] += duration;
+    }
+    // find main bpm, which is the bpm with the longest duration
+    auto mainBpm = initialBpm.second;
+    auto longestDuration = 0ns;
+    for (const auto& [bpm, duration] : bpmDurationMap) {
+        if (duration > longestDuration && bpm > 0.0) {
+            longestDuration = duration;
             mainBpm = bpm;
         }
     }
