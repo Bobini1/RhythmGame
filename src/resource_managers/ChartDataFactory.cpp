@@ -194,7 +194,7 @@ createHistogram(const charts::BmsNotesData& calculatedNotesData,
     if (lastNoteTimestamp != 0ns) {
         for (const auto& column : calculatedNotesData.notes) {
             auto lastLnBeginPosition = size_t{ 0 };
-            for (const auto& [i, note] :
+            for (const auto& [columnIndex, note] :
                  std::ranges::views::enumerate(column)) {
                 auto typeIndex = 0;
                 auto position =
@@ -208,10 +208,12 @@ createHistogram(const charts::BmsNotesData& calculatedNotesData,
                 switch (note.noteType) {
                     case charts::BmsNotesData::NoteType::LongNoteBegin:
                         lastLnBeginPosition = positionIndex;
-                        typeIndex = (i == 7 || i == 15) ? 3 : 2;
+                        typeIndex =
+                          (columnIndex == 7 || columnIndex == 15) ? 3 : 2;
                         break;
                     case charts::BmsNotesData::NoteType::Normal:
-                        typeIndex = (i == 7 || i == 15) ? 1 : 0;
+                        typeIndex =
+                          (columnIndex == 7 || columnIndex == 15) ? 1 : 0;
                         break;
                     case charts::BmsNotesData::NoteType::Landmine:
                         typeIndex = 4;
@@ -220,7 +222,8 @@ createHistogram(const charts::BmsNotesData& calculatedNotesData,
                         typeIndex = 5;
                         break;
                     case charts::BmsNotesData::NoteType::LongNoteEnd:
-                        typeIndex = (i == 7 || i == 15) ? -3 : -2;
+                        typeIndex =
+                          (columnIndex == 7 || columnIndex == 15) ? -3 : -2;
                         // LnEnds should belong to the previous bin if they fall
                         // exactly on a bin boundary
                         auto prevF = std::nexttoward(position, 0.0);
