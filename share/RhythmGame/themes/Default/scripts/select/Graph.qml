@@ -108,16 +108,15 @@ Image {
             bottom: graph.bottom
             top: graphContent.bottom
             margins: 14
+            topMargin: 7
         }
         height: 42
         spacing: 2
         Image {
             source: root.iniImagesUrl + "parts.png/note_grey"
-            anchors.verticalCenter: parent.verticalCenter
         }
         Text {
             text: graph.normalCount
-            anchors.verticalCenter: parent.verticalCenter
             horizontalAlignment: Text.AlignHCenter
             font.pixelSize: 26
             Layout.fillWidth: true
@@ -125,11 +124,9 @@ Image {
         }
         Image {
             source: root.iniImagesUrl + "parts.png/note_red"
-            anchors.verticalCenter: parent.verticalCenter
         }
         Text {
             text: graph.scratchCount
-            anchors.verticalCenter: parent.verticalCenter
             horizontalAlignment: Text.AlignHCenter
             font.pixelSize: 26
             Layout.fillWidth: true
@@ -137,11 +134,9 @@ Image {
         }
         Image {
             source: root.iniImagesUrl + "parts.png/note_blue"
-            anchors.verticalCenter: parent.verticalCenter
         }
         Text {
             text: graph.lnCount
-            anchors.verticalCenter: parent.verticalCenter
             horizontalAlignment: Text.AlignHCenter
             font.pixelSize: 26
             Layout.fillWidth: true
@@ -149,11 +144,9 @@ Image {
         }
         Image {
             source: root.iniImagesUrl + "parts.png/note_green"
-            anchors.verticalCenter: parent.verticalCenter
         }
         Text {
             text: graph.bssCount
-            anchors.verticalCenter: parent.verticalCenter
             horizontalAlignment: Text.AlignHCenter
             font.pixelSize: 26
             Layout.fillWidth: true
