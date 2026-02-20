@@ -33,7 +33,8 @@ ScoreDb::getScoresForMd5Impl(QList<QString> md5s) const -> ScoreQueryResult
         auto chunk = md5sToFetch.mid(i, maxVariables);
         auto statement = scoreDb->createStatement(
           "SELECT score.max_points, score.max_hits, score.normal_note_count, "
-          "score.ln_count, score.bss_count, score.mine_count, "
+          "score.scratch_count, score.ln_count, score.bss_count, "
+          "score.mine_count, "
           "score.clear_type, score.points, score.max_combo, score.poor, "
           "score.empty_poor, score.bad, score.good, score.great, "
           "score.perfect, score.mine_hits, score.guid, score.sha256, "
@@ -129,7 +130,8 @@ ScoreDb::getScoresForCourseIdImpl(const QList<QString>& courseIds) const
         auto chunk = scoreGuids.mid(i, maxVariables);
         auto statement = scoreDb->createStatement(
           "SELECT score.max_points, score.max_hits, score.normal_note_count, "
-          "score.ln_count, score.bss_count, score.mine_count, "
+          "score.scratch_count, score.ln_count, score.bss_count, "
+          "score.mine_count, "
           "score.clear_type, score.points, score.max_combo, score.poor, "
           "score.empty_poor, score.bad, score.good, score.great, "
           "score.perfect, score.mine_hits, score.guid, score.sha256, "
@@ -292,7 +294,8 @@ ScoreDb::getScores(const QString& folder) const
             auto* mainThread = QCoreApplication::instance()->thread();
             auto query = scoreDb->createStatement(
               "SELECT score.max_points, score.max_hits, "
-              "score.normal_note_count, score.ln_count, score.bss_count, "
+              "score.normal_note_count, score.scratch_count, score.ln_count, "
+              "score.bss_count, "
               "score.mine_count, score.clear_type, score.points, "
               "score.max_combo, score.poor, score.empty_poor, score.bad, "
               "score.good, score.great, score.perfect, score.mine_hits, "

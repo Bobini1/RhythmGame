@@ -94,6 +94,15 @@ gameplay_logic::BmsResultCourse::getNormalNoteCount() const -> int
 }
 
 auto
+gameplay_logic::BmsResultCourse::getScratchCount() const -> int
+{
+    return std::accumulate(
+      scores.begin(), scores.end(), 0, [](int sum, const BmsScore* score) {
+          return sum + score->getResult()->getScratchCount();
+      });
+}
+
+auto
 gameplay_logic::BmsResultCourse::getLnCount() const -> int
 {
     return std::accumulate(

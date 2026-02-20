@@ -40,6 +40,17 @@ class ChartData : public QObject
     };
     Q_ENUM(Keymode)
 
+    enum class HistogramNoteType
+    {
+        Normal,
+        Scratch,
+        LongNote,
+        BssNote,
+        Landmine,
+        Invisible
+    };
+    Q_ENUM(HistogramNoteType)
+
   private:
     /** @brief The title of the chart. */
     Q_PROPERTY(QString title READ getTitle CONSTANT)
@@ -84,9 +95,15 @@ class ChartData : public QObject
     Q_PROPERTY(int difficulty READ getDifficulty CONSTANT)
     /**
      * @brief The number of normal notes in the chart.
-     * @details Normal means not long notes, not mines, not invisible notes.
+     * @details Normal means not long notes, not mines, not invisible notes, not
+     * scratches
      */
     Q_PROPERTY(int normalNoteCount READ getNormalNoteCount CONSTANT)
+    /**
+     * @brief The number of scratch notes in the chart.
+     * @details Scratch notes are normal notes on scratch columns.
+     */
+    Q_PROPERTY(int scratchCount READ getScratchCount CONSTANT)
     /**
      * @brief The number of long notes in the chart excluding BSS (scratch lns).
      * @details A long note consists of an LN start and LN end. Such a pair
@@ -187,9 +204,25 @@ class ChartData : public QObject
      */
     Q_PROPERTY(double avgBpm READ getAvgBpm CONSTANT)
     /**
-     * @brief The histogram data representing the distribution of notes.
-     * @details Each list represents a different note type.
-     * @see gameplay_logic::Note::Type
+     * @brief The peak density of the chart.
+     * @details The maximum note density within any time window.
+     */
+    Q_PROPERTY(double peakDensity READ getPeakDensity CONSTANT)
+    /**
+     * @brief The average density of the chart.
+     * @details The average note density throughout the chart.
+     */
+    Q_PROPERTY(double avgDensity READ getAvgDensity CONSTANT)
+    /**
+     * @brief The ending density of the chart.
+     * @details The note density at the end of the chart.
+     */
+    Q_PROPERTY(double endDensity READ getEndDensity CONSTANT)
+    /**
+     * @brief The histogram data representing the distribution of notes,
+     * grouped by note type.
+     * @details Each sublist represents a different note type.
+     * @see HistogramNoteType
      */
     Q_PROPERTY(
       QList<QList<int64_t>> histogramData READ getHistogramData CONSTANT)
@@ -214,6 +247,7 @@ class ChartData : public QObject
               bool isRandom,
               QList<qint64> randomSequence,
               int normalNoteCount,
+              int scratchCount,
               int lnCount,
               int bssCount,
               int mineCount,
@@ -223,6 +257,9 @@ class ChartData : public QObject
               double minBpm,
               double mainBpm,
               double avgBpm,
+              double peakDensity,
+              double avgDensity,
+              double endDensity,
               QString path,
               int64_t directory,
               QString sha256,
@@ -241,6 +278,7 @@ class ChartData : public QObject
     [[nodiscard]] auto getBanner() const -> const QString&;
     [[nodiscard]] auto getBackBmp() const -> const QString&;
     [[nodiscard]] auto getNormalNoteCount() const -> int;
+    [[nodiscard]] auto getScratchCount() const -> int;
     [[nodiscard]] auto getLnCount() const -> int;
     [[nodiscard]] auto getBssCount() const -> int;
     [[nodiscard]] auto getMineCount() const -> int;
@@ -250,6 +288,9 @@ class ChartData : public QObject
     [[nodiscard]] auto getMinBpm() const -> double;
     [[nodiscard]] auto getMainBpm() const -> double;
     [[nodiscard]] auto getAvgBpm() const -> double;
+    [[nodiscard]] auto getPeakDensity() const -> double;
+    [[nodiscard]] auto getAvgDensity() const -> double;
+    [[nodiscard]] auto getEndDensity() const -> double;
     [[nodiscard]] auto getPath() const -> QString;
     [[nodiscard]] auto getRank() const -> int;
     [[nodiscard]] auto getTotal() const -> double;
@@ -285,6 +326,7 @@ class ChartData : public QObject
         int isRandom;
         std::string randomSequence;
         int normalNoteCount;
+        int scratchCount;
         int lnCount;
         int bssCount;
         int mineCount;
@@ -294,13 +336,16 @@ class ChartData : public QObject
         double minBpm;
         double mainBpm;
         double avgBpm;
+        double peakDensity;
+        double avgDensity;
+        double endDensity;
         std::string path;
         int64_t directory;
         std::string sha256;
         std::string md5;
         int keymode;
-        std::string histogramData;
         std::string bpmChanges;
+        std::string histogramData;
     };
 
     auto save(db::SqliteCppDb& db) const -> void;
@@ -323,6 +368,7 @@ class ChartData : public QObject
     int difficulty;
     bool isRandom;
     int normalNoteCount;
+    int scratchCount;
     int lnCount;
     int bssCount;
     int mineCount;
@@ -332,6 +378,9 @@ class ChartData : public QObject
     double minBpm;
     double mainBpm;
     double avgBpm;
+    double peakDensity;
+    double avgDensity;
+    double endDensity;
     QString path;
     int64_t directory;
     QString sha256;

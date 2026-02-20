@@ -31,9 +31,15 @@ class BmsResult final : public QObject
     Q_PROPERTY(int maxHits READ getMaxHits CONSTANT)
     /**
      * @brief The number of normal notes in the chart.
-     * @details Normal means not long notes, not mines, not invisible notes.
+     * @details Normal means not long notes, not mines, not invisible notes, not
+     * scratches
      */
     Q_PROPERTY(int normalNoteCount READ getNormalNoteCount CONSTANT)
+    /**
+     * @brief The number of scratch notes in the chart.
+     * @details Scratch notes are normal notes on scratch columns.
+     */
+    Q_PROPERTY(int scratchCount READ getScratchCount CONSTANT)
     /**
      * @brief The number of long notes in the chart excluding BSS (scratch lns).
      * @details A long note consists of an LN start and LN end. Such a pair
@@ -157,6 +163,7 @@ class BmsResult final : public QObject
     double maxPoints;
     int maxHits;
     int normalNoteCount;
+    int scratchCount;
     int lnCount;
     int bssCount;
     int mineCount;
@@ -184,6 +191,7 @@ class BmsResult final : public QObject
         double maxPoints;
         int maxHits;
         int normalNoteCount;
+        int scratchCount;
         int lnCount;
         int bssCount;
         int mineCount;
@@ -213,6 +221,7 @@ class BmsResult final : public QObject
       double maxPoints,
       int maxHits,
       int normalNoteCount,
+      int scratchCount,
       int lnCount,
       int bssCount,
       int mineCount,
@@ -237,6 +246,7 @@ class BmsResult final : public QObject
     auto getMaxPoints() const -> double;
     auto getMaxHits() const -> int;
     auto getNormalNoteCount() const -> int;
+    auto getScratchCount() const -> int;
     auto getLnCount() const -> int;
     auto getBssCount() const -> int;
     auto getMineCount() const -> int;

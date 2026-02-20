@@ -9,10 +9,13 @@ namespace resource_managers {
 void
 defineDb(db::SqliteCppDb& db)
 {
-    auto versionStmt =
-      db.createStatement("SELECT value FROM properties WHERE key = 'version';");
-    auto version = versionStmt.executeAndGet<int64_t>().transform(
-      [](int64_t v) { return support::unpackVersion(v); });
+    auto version = std::optional<std::tuple<int, int, int>>{};
+    {
+        auto versionStmt = db.createStatement(
+          "SELECT value FROM properties WHERE key = 'version';");
+        version = versionStmt.executeAndGet<int64_t>().transform(
+          [](int64_t v) { return support::unpackVersion(v); });
+    }
     db.execute("CREATE TABLE IF NOT EXISTS charts ("
                "id INTEGER PRIMARY KEY AUTOINCREMENT,"
                "title TEXT NOT NULL,"
@@ -30,6 +33,7 @@ defineDb(db::SqliteCppDb& db)
                "is_random INTEGER NOT NULL,"
                "random_sequence STRING NOT NULL,"
                "normal_note_count INTEGER NOT NULL,"
+               "scratch_count INTEGER NOT NULL,"
                "ln_count INTEGER NOT NULL,"
                "bss_count INTEGER NOT NULL,"
                "mine_count INTEGER NOT NULL,"
@@ -39,6 +43,9 @@ defineDb(db::SqliteCppDb& db)
                "min_bpm REAL NOT NULL,"
                "main_bpm REAL NOT NULL,"
                "avg_bpm REAL NOT NULL,"
+               "peak_density REAL NOT NULL,"
+               "avg_density REAL NOT NULL,"
+               "end_density REAL NOT NULL,"
                "path TEXT NOT NULL UNIQUE,"
                "chart_directory TEXT,"
                "directory INTEGER,"
@@ -48,8 +55,16 @@ defineDb(db::SqliteCppDb& db)
                ");");
 
     if (version && *version < std::tuple{ 1, 2, 6 }) {
+        db.execute("ALTER TABLE charts ADD COLUMN scratch_count INTEGER NOT "
+                   "NULL DEFAULT 0;");
         db.execute("ALTER TABLE charts ADD COLUMN bss_count INTEGER NOT NULL "
                    "DEFAULT 0;");
+        db.execute("ALTER TABLE charts ADD COLUMN peak_density REAL NOT NULL "
+                   "DEFAULT 0.0;");
+        db.execute("ALTER TABLE charts ADD COLUMN avg_density REAL NOT NULL "
+                   "DEFAULT 0.0;");
+        db.execute("ALTER TABLE charts ADD COLUMN end_density REAL NOT NULL "
+                   "DEFAULT 0.0;");
     }
     db.execute(
       "CREATE INDEX IF NOT EXISTS directory_index ON charts(directory)");
@@ -123,6 +138,14 @@ defineDb(db::SqliteCppDb& db)
                "bpms BLOB NOT NULL,"
                "histogram_data BLOB NOT NULL"
                ");");
+
+    {
+        auto stmt = db.createStatement(
+          "INSERT OR REPLACE INTO properties (key, value) VALUES "
+          "('version', ?);");
+        stmt.bind(1, static_cast<int64_t>(support::currentVersion));
+        stmt.execute();
+    }
 
     db.execute("PRAGMA optimize;");
     db.execute("VACUUM");
