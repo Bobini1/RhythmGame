@@ -189,6 +189,7 @@ FocusScope {
                     histogramData: songList.current ? songList.current.histogramData : [[], [], [], []]
                     mainBpm: songList.current ? songList.current.mainBpm : 0
                     maxBpm: songList.current ? songList.current.maxBpm : 0
+                    minBpm: songList.current ? songList.current.minBpm : 0
                     normalCount: songList.current ? songList.current.normalNoteCount : 0
                     scratchCount: songList.current ? songList.current.scratchCount : 0
                     lnCount: songList.current ? songList.current.lnCount : 0

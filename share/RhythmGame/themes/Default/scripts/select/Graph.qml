@@ -10,6 +10,7 @@ Image {
     required property var histogramData
     required property real mainBpm
     required property real maxBpm
+    required property real minBpm
 
     required property int normalCount
     required property int scratchCount
@@ -100,6 +101,84 @@ Image {
                 }
             }
         }
+    }
+    Canvas {
+        id: bpmCanvas
+
+        anchors.fill: graphContent
+        z: 0
+        antialiasing: false
+
+        onPaint: {
+            let ctx = getContext("2d");
+            ctx.clearRect(0, 0, width, height);
+
+            let bpmList = graph.bpms;
+            if (!bpmList || bpmList.length === 0)
+                return;
+
+            // Last BPM change timestamp determines the total time span
+            let lastTimestamp = bpmList[bpmList.length - 1].time.timestamp;
+            // Use the histogram length to determine total duration if possible
+            let totalDuration = lastTimestamp > 0 ? lastTimestamp : 1;
+
+            ctx.lineWidth = 2;
+
+            function bpmColor(bpm) {
+                if (bpm === graph.mainBpm)
+                    return "#44ff44"; // green for main
+                if (bpm === graph.minBpm)
+                    return "#4488ff"; // blue for min
+                return "#ffff44"; // yellow for others
+            }
+
+            function bpmY(bpm) {
+                // Main BPM is always at the center, 2*mainBpm is the top
+                let maxDisplayBpm = 2 * graph.mainBpm;
+                let clamped = Math.min(bpm, maxDisplayBpm);
+                // Inset by 1px so the 2px stroke is never clipped at edges
+                return 1 + (height - 2) * (1 - clamped / maxDisplayBpm);
+            }
+
+            for (let i = 0; i < bpmList.length; i++) {
+                let bpmChange = bpmList[i];
+                let bpm = bpmChange.bpm;
+                let startTimestamp = bpmChange.time.timestamp;
+                let endTimestamp = (i + 1 < bpmList.length) ? bpmList[i + 1].time.timestamp : totalDuration;
+
+                let x1 = startTimestamp / totalDuration * width;
+                let x2 = endTimestamp / totalDuration * width;
+                let y = bpmY(bpm);
+
+                ctx.strokeStyle = bpmColor(bpm);
+                ctx.beginPath();
+                ctx.moveTo(x1 - 1, y);
+                ctx.lineTo(x2 + 1, y);
+                ctx.stroke();
+
+                if (i + 1 < bpmList.length) {
+                    let nextY = bpmY(bpmList[i + 1].bpm);
+                    if (nextY !== y) {
+                        let yStart = nextY < y ? y - 1 : y + 1;
+                        let yEnd = nextY < y ? nextY + 1 : nextY - 1;
+                        ctx.strokeStyle = "#888888"; // gray
+                        ctx.beginPath();
+                        ctx.moveTo(x2, yStart);
+                        ctx.lineTo(x2, yEnd);
+                        ctx.stroke();
+                    }
+                }
+            }
+        }
+
+        Connections {
+            target: graph
+            function onBpmsChanged() { bpmCanvas.requestPaint(); }
+            function onMainBpmChanged() { bpmCanvas.requestPaint(); }
+            function onMaxBpmChanged() { bpmCanvas.requestPaint(); }
+            function onMinBpmChanged() { bpmCanvas.requestPaint(); }
+        }
+        Component.onCompleted: requestPaint()
     }
     RowLayout {
         anchors {
