@@ -192,10 +192,10 @@ createHistogram(const charts::BmsNotesData& calculatedNotesData,
         column.resize(numBuckets, 0);
     }
     if (lastNoteTimestamp != 0ns) {
-        for (const auto& column : calculatedNotesData.notes) {
+        for (const auto& [columnIndex, column] :
+             std::ranges::views::enumerate(calculatedNotesData.notes)) {
             auto lastLnBeginPosition = size_t{ 0 };
-            for (const auto& [columnIndex, note] :
-                 std::ranges::views::enumerate(column)) {
+            for (const auto note : column) {
                 auto typeIndex = 0;
                 auto position =
                   static_cast<double>(note.time.timestamp.count()) /
