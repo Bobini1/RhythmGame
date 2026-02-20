@@ -186,7 +186,7 @@ FocusScope {
                 anchors.bottomMargin: 75
                 sourceComponent: Graph {
                     bpms: songList.current ? songList.current.bpmChanges : []
-                    histogramData: songList.current ? songList.current.histogramData : [[], [], []]
+                    histogramData: songList.current ? songList.current.histogramData : [[], [], [], []]
                     mainBpm: songList.current ? songList.current.mainBpm : 0
                     maxBpm: songList.current ? songList.current.maxBpm : 0
                     normalCount: songList.current ? songList.current.normalNoteCount : 0
