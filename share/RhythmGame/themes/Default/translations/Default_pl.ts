@@ -690,22 +690,22 @@
 <context>
     <name>ReplayAutoplay</name>
     <message>
-        <location filename="../scripts/select/ReplayAutoplay.qml" line="44"/>
+        <location filename="../scripts/select/ReplayAutoplay.qml" line="45"/>
         <source>NEWEST</source>
         <translation>NOWY</translation>
     </message>
     <message>
-        <location filename="../scripts/select/ReplayAutoplay.qml" line="46"/>
+        <location filename="../scripts/select/ReplayAutoplay.qml" line="47"/>
         <source>BEST SCORE</source>
         <translation>WYNIK</translation>
     </message>
     <message>
-        <location filename="../scripts/select/ReplayAutoplay.qml" line="48"/>
+        <location filename="../scripts/select/ReplayAutoplay.qml" line="49"/>
         <source>BEST CLEAR</source>
         <translation>CLEAR</translation>
     </message>
     <message>
-        <location filename="../scripts/select/ReplayAutoplay.qml" line="50"/>
+        <location filename="../scripts/select/ReplayAutoplay.qml" line="51"/>
         <source>BEST COMBO</source>
         <translation>COMBO</translation>
     </message>
