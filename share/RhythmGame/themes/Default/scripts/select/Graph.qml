@@ -67,25 +67,25 @@ Image {
                 Layout.fillWidth: true
                 Rectangle {
                     Layout.preferredHeight: graphContent.height * (graph.bss[index] / graph.maxDensity)
-                    color: "green"
+                    color: "#3BDC3B"
                     Layout.fillWidth: true
                     Layout.fillHeight: true
                 }
                 Rectangle {
                     Layout.preferredHeight: graphContent.height * (graph.scratches[index] / graph.maxDensity)
-                    color: "red"
+                    color: "#FF4444"
                     Layout.fillWidth: true
                     Layout.fillHeight: true
                 }
                 Rectangle {
                     Layout.preferredHeight: graphContent.height * (graph.lns[index] / graph.maxDensity)
-                    color: "blue"
+                    color: "#4444FF"
                     Layout.fillWidth: true
                     Layout.fillHeight: true
                 }
                 Rectangle {
                     Layout.preferredHeight: graphContent.height * (graph.normalNotes[index] / graph.maxDensity)
-                    color: "white"
+                    color: "#CCCCCC"
                     Layout.fillWidth: true
                     Layout.fillHeight: true
                 }
@@ -125,10 +125,10 @@ Image {
 
             function bpmColor(bpm) {
                 if (bpm === graph.mainBpm)
-                    return "#44ff44"; // green for main
+                    return "#00FF00";
                 if (bpm === graph.minBpm)
-                    return "#4488ff"; // blue for min
-                return "#ffff44"; // yellow for others
+                    return "#0000FF";
+                return "#FFFF00";
             }
 
             function bpmY(bpm) {
@@ -160,7 +160,7 @@ Image {
                     if (nextY !== y) {
                         let yStart = nextY < y ? y - 1 : y + 1;
                         let yEnd = nextY < y ? nextY + 1 : nextY - 1;
-                        ctx.strokeStyle = "#888888"; // gray
+                        ctx.strokeStyle = "#7F7F7F"; // gray
                         ctx.beginPath();
                         ctx.moveTo(x2, yStart);
                         ctx.lineTo(x2, yEnd);
