@@ -21,7 +21,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.2.5</span>
+   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.2.6</span>
    </div>
   </td>
  </tr>
@@ -141,6 +141,8 @@ Classes</h2></td></tr>
 Functions</h2></td></tr>
 <tr class="memitem:a81c960189997c32edd4ce50239bc134e" id="r_a81c960189997c32edd4ce50239bc134e"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceresource__managers.html#a81c960189997c32edd4ce50239bc134e">readAndParse</a> (const std::filesystem::path &amp;chartPath, <a class="el" href="classresource__managers_1_1ChartDataFactory.html#a17a0b84ca0e3226924a8c86f0b952b62">ChartDataFactory::RandomGenerator</a> <a class="el" href="ReadBmsFile_8cpp.html#a1bfefc378c730fdc6ed818b0f4b666f5">randomGenerator</a>)</td></tr>
 <tr class="separator:a81c960189997c32edd4ce50239bc134e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a05a5834a8c000b0e6dcb1b75425f62a3" id="r_a05a5834a8c000b0e6dcb1b75425f62a3"><td class="memItemLeft" align="right" valign="top">QList&lt; QList&lt; int64_t &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceresource__managers.html#a05a5834a8c000b0e6dcb1b75425f62a3">createHistogram</a> (const <a class="el" href="structcharts_1_1BmsNotesData.html">charts::BmsNotesData</a> &amp;calculatedNotesData, std::chrono::nanoseconds lastNoteTimestamp, size_t numBuckets)</td></tr>
+<tr class="separator:a05a5834a8c000b0e6dcb1b75425f62a3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a64d9e6cb0201e93fa8dbfcb1773f82bc" id="r_a64d9e6cb0201e93fa8dbfcb1773f82bc"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceresource__managers.html#a64d9e6cb0201e93fa8dbfcb1773f82bc">convertImageToFrame</a> (const QImage &amp;image) -&gt; std::unique_ptr&lt; QVideoFrame &gt;</td></tr>
 <tr class="separator:a64d9e6cb0201e93fa8dbfcb1773f82bc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4c0aabf399a398001657dc8612f9121c" id="r_a4c0aabf399a398001657dc8612f9121c"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceresource__managers.html#a4c0aabf399a398001657dc8612f9121c">loadBmp</a> (std::filesystem::path path) -&gt; QImage</td></tr>
@@ -280,6 +282,40 @@ Functions</h2></td></tr>
           <td class="paramname"><em>notes</em></td><td>)</td>
           <td> -&gt; std::vector&lt;<a class="el" href="classgameplay__logic_1_1HitEvent.html">gameplay_logic::HitEvent</a>&gt;
 </td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a05a5834a8c000b0e6dcb1b75425f62a3" name="a05a5834a8c000b0e6dcb1b75425f62a3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a05a5834a8c000b0e6dcb1b75425f62a3">&#9670;&#160;</a></span>createHistogram()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">QList&lt; QList&lt; int64_t &gt; &gt; resource_managers::createHistogram </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="structcharts_1_1BmsNotesData.html">charts::BmsNotesData</a> &amp;&#160;</td>
+          <td class="paramname"><em>calculatedNotesData</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::chrono::nanoseconds&#160;</td>
+          <td class="paramname"><em>lastNoteTimestamp</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>numBuckets</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
         </tr>
       </table>
 </div><div class="memdoc">

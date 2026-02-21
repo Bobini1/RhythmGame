@@ -6,7 +6,7 @@ var searchData=
   ['mainprofile_3',['mainProfile',['../classqml__components_1_1ProfileList.html#a94d78f9994866d07837a5112a6070862',1,'qml_components::ProfileList']]],
   ['mainprofilechanged_4',['mainProfileChanged',['../classqml__components_1_1ProfileList.html#a2121f0aa5bfe716e3a76d5aae44d71da',1,'qml_components::ProfileList']]],
   ['maintags_5',['MainTags',['../structcharts_1_1MainTags.html',1,'charts']]],
-  ['makenotes_6',['makeNotes',['../classresource__managers_1_1ChartDataFactory.html#a713c4ea1f49c822696e52ae711884cfe',1,'resource_managers::ChartDataFactory']]],
+  ['makenotes_6',['makeNotes',['../classresource__managers_1_1ChartDataFactory.html#a97f0605af21e7c4189eea1eb4116315d',1,'resource_managers::ChartDataFactory']]],
   ['manager_7',['Dependency manager',['../md_DEV__ENGINE.html#autotoc_md16',1,'']]],
   ['mapfromsource_8',['mapFromSource',['../classgameplay__logic_1_1Filter.html#a678eec2aa47188f77bd8e929c3b5ba6f',1,'gameplay_logic::Filter']]],
   ['mapping_9',['Mapping',['../classinput_1_1Mapping.html',1,'input']]],

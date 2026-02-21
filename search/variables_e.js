@@ -9,11 +9,12 @@ var searchData=
   ['p2longnotes_6',['p2LongNotes',['../structcharts_1_1ParsedBmsChart_1_1Measure.html#af7f8c568c831e8727cd96236da01168c',1,'charts::ParsedBmsChart::Measure']]],
   ['p2visiblenotes_7',['p2VisibleNotes',['../structcharts_1_1ParsedBmsChart_1_1Measure.html#a364a9ddc5ec55d83662f7b5067a03815',1,'charts::ParsedBmsChart::Measure']]],
   ['path_8',['path',['../structgameplay__logic_1_1ChartData_1_1DTO.html#a604725fc17c3ab668a6eb6fd68ef291f',1,'gameplay_logic::ChartData::DTO']]],
-  ['penalty_9',['penalty',['../structgameplay__logic_1_1rules_1_1HitRules_1_1Mine.html#a175b26e7e96841ead408ad370f4149f9',1,'gameplay_logic::rules::HitRules::Mine']]],
-  ['perfectcount_10',['perfectCount',['../structgameplay__logic_1_1BmsResult_1_1DTO.html#a675a9a6a5c12cd5a784912e341ee3883',1,'gameplay_logic::BmsResult::DTO']]],
-  ['playlevel_11',['playlevel',['../structcharts_1_1ParsedBmsChart_1_1Tags.html#ad2617e46de8a5cb6d47c4ce3e37cd2e2',1,'charts::ParsedBmsChart::Tags::playLevel'],['../structgameplay__logic_1_1ChartData_1_1DTO.html#a4dc720a7bb5ccbaca8d465ba762a1a44',1,'gameplay_logic::ChartData::DTO::playLevel']]],
-  ['points_12',['points',['../structgameplay__logic_1_1BmsResult_1_1DTO.html#a6a97995e91dd4e68821aa0ef1cf5b9a5',1,'gameplay_logic::BmsResult::DTO']]],
-  ['poorcount_13',['poorCount',['../structgameplay__logic_1_1BmsResult_1_1DTO.html#ac2ad70d38eb56eb6a284e0e4c0006354',1,'gameplay_logic::BmsResult::DTO']]],
-  ['position_14',['position',['../structcharts_1_1BmsNotesData_1_1Time.html#aa5305ad92a5ce7ab09b3715aa03604b6',1,'charts::BmsNotesData::Time']]],
-  ['profile_15',['profile',['../structresource__managers_1_1ChartFactory_1_1PlayerSpecificData.html#a566802bc2359fb02ec22576ed2b63998',1,'resource_managers::ChartFactory::PlayerSpecificData']]]
+  ['peakdensity_9',['peakDensity',['../structgameplay__logic_1_1ChartData_1_1DTO.html#a36fcd03f7ed003a0f63d13a45dffd228',1,'gameplay_logic::ChartData::DTO']]],
+  ['penalty_10',['penalty',['../structgameplay__logic_1_1rules_1_1HitRules_1_1Mine.html#a175b26e7e96841ead408ad370f4149f9',1,'gameplay_logic::rules::HitRules::Mine']]],
+  ['perfectcount_11',['perfectCount',['../structgameplay__logic_1_1BmsResult_1_1DTO.html#a675a9a6a5c12cd5a784912e341ee3883',1,'gameplay_logic::BmsResult::DTO']]],
+  ['playlevel_12',['playlevel',['../structcharts_1_1ParsedBmsChart_1_1Tags.html#ad2617e46de8a5cb6d47c4ce3e37cd2e2',1,'charts::ParsedBmsChart::Tags::playLevel'],['../structgameplay__logic_1_1ChartData_1_1DTO.html#a4dc720a7bb5ccbaca8d465ba762a1a44',1,'gameplay_logic::ChartData::DTO::playLevel']]],
+  ['points_13',['points',['../structgameplay__logic_1_1BmsResult_1_1DTO.html#a6a97995e91dd4e68821aa0ef1cf5b9a5',1,'gameplay_logic::BmsResult::DTO']]],
+  ['poorcount_14',['poorCount',['../structgameplay__logic_1_1BmsResult_1_1DTO.html#ac2ad70d38eb56eb6a284e0e4c0006354',1,'gameplay_logic::BmsResult::DTO']]],
+  ['position_15',['position',['../structcharts_1_1BmsNotesData_1_1Time.html#aa5305ad92a5ce7ab09b3715aa03604b6',1,'charts::BmsNotesData::Time']]],
+  ['profile_16',['profile',['../structresource__managers_1_1ChartFactory_1_1PlayerSpecificData.html#a566802bc2359fb02ec22576ed2b63998',1,'resource_managers::ChartFactory::PlayerSpecificData']]]
 ];

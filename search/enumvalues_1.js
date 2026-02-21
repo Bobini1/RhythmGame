@@ -4,6 +4,7 @@ var searchData=
   ['battle_1',['Battle',['../namespaceresource__managers_1_1dp__options.html#ac768ef700200401f8d3fbcebf69c877fa747d99f92ee9c080ba26108ac5d26488',1,'resource_managers::dp_options']]],
   ['best_2',['Best',['../namespaceresource__managers_1_1gauge__mode.html#ac121e2691e7e4d13551d18c7618e8d73a68ef004de6166492c1d668eb8efe09bd',1,'resource_managers::gauge_mode']]],
   ['bestscore_3',['BestScore',['../namespaceresource__managers_1_1score__target.html#a1e47ea936dfffa6b54a61168ef29c344a27b8f7be31c86dd3518d04d8e25a11f0',1,'resource_managers::score_target']]],
-  ['button_4',['Button',['../classinput_1_1Key.html#a015a64c0ae6491d8bd329f95d2fe0290a87b7760f14fbff78d8819291f36ab9a0',1,'input::Key']]],
-  ['buttontick_5',['ButtonTick',['../classinput_1_1InputTranslator.html#a11ee382f1e1c19d60a889b2cce5c7fcfab8ff3625a35d678818f4f68172094d65',1,'input::InputTranslator']]]
+  ['bssnote_4',['BssNote',['../classgameplay__logic_1_1ChartData.html#a795d2eb4ed70a64a020ae8e5fb7a23d4a75a383aae4ae27aa13c6e7151177b191',1,'gameplay_logic::ChartData']]],
+  ['button_5',['Button',['../classinput_1_1Key.html#a015a64c0ae6491d8bd329f95d2fe0290a87b7760f14fbff78d8819291f36ab9a0',1,'input::Key']]],
+  ['buttontick_6',['ButtonTick',['../classinput_1_1InputTranslator.html#a11ee382f1e1c19d60a889b2cce5c7fcfab8ff3625a35d678818f4f68172094d65',1,'input::InputTranslator']]]
 ];

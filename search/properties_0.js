@@ -6,5 +6,6 @@ var searchData=
   ['availablethemefamilies_3',['availableThemeFamilies',['../classqml__components_1_1Themes.html#a6ed5b447f97c7a3299ee1c9722ce954e',1,'qml_components::Themes']]],
   ['avatar_4',['avatar',['../classresource__managers_1_1GeneralVars.html#a6f1b77b393a5ef80ab99afae109e5eab',1,'resource_managers::GeneralVars']]],
   ['avatarfolder_5',['avatarFolder',['../classqml__components_1_1ProgramSettings.html#a0d6f83cd7aca0d1022cdd0fa0410fd0a',1,'qml_components::ProgramSettings']]],
-  ['avgbpm_6',['avgBpm',['../classgameplay__logic_1_1ChartData.html#a843a0508e35cbe57b70a54e1f23406ca',1,'gameplay_logic::ChartData']]]
+  ['avgbpm_6',['avgBpm',['../classgameplay__logic_1_1ChartData.html#a843a0508e35cbe57b70a54e1f23406ca',1,'gameplay_logic::ChartData']]],
+  ['avgdensity_7',['avgDensity',['../classgameplay__logic_1_1ChartData.html#a8479d6f980628820226773d42a25098b',1,'gameplay_logic::ChartData']]]
 ];
