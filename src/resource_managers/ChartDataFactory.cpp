@@ -15,10 +15,11 @@ namespace llfio = LLFIO_V2_NAMESPACE;
 #include "charts/ReadBmsFile.h"
 
 #include <utility>
-#include <fstream>
+#include <ranges>
 #include <qfileinfo.h>
 #include "support/UtfStringToPath.h"
 #include "support/PathToQString.h"
+#include <magic_enum/magic_enum.hpp>
 
 namespace resource_managers {
 ChartDataFactory::ChartComponents::ChartComponents(
@@ -73,33 +74,26 @@ auto
 ChartDataFactory::makeNotes(
   const std::array<std::vector<charts::BmsNotesData::Note>,
                    charts::BmsNotesData::columnNumber>& notes,
-  const std::vector<std::pair<charts::BmsNotesData::Time, double>>& bpmChanges,
   const std::vector<charts::BmsNotesData::Time>& barLines)
   -> std::unique_ptr<gameplay_logic::BmsNotes>
 {
-    auto visibleNotesQ = QVector<QVector<gameplay_logic::Note>>{};
+    auto visibleNotesQ = QList<QList<gameplay_logic::Note>>{};
     for (const auto& column : notes) {
-        visibleNotesQ.append(convertToQVector(column));
+        visibleNotesQ.append(convertToQList(column));
     }
-    auto bpmChangesQ = QVector<gameplay_logic::BpmChange>{};
-    for (const auto& bpmChange : bpmChanges) {
-        bpmChangesQ.append({ { .timestamp = bpmChange.first.timestamp.count(),
-                               .position = bpmChange.first.position },
-                             bpmChange.second });
-    }
-    auto barLinesQ = QVector<gameplay_logic::Time>{};
+    auto barLinesQ = QList<gameplay_logic::Time>{};
     for (const auto& barLine : barLines) {
         barLinesQ.append({ barLine.timestamp.count(), barLine.position });
     }
-    return std::make_unique<gameplay_logic::BmsNotes>(
-      std::move(visibleNotesQ), std::move(bpmChangesQ), std::move(barLinesQ));
+    return std::make_unique<gameplay_logic::BmsNotes>(std::move(visibleNotesQ),
+                                                      std::move(barLinesQ));
 }
 auto
-ChartDataFactory::convertToQVector(
+ChartDataFactory::convertToQList(
   const std::vector<charts::BmsNotesData::Note>& column)
-  -> QVector<gameplay_logic::Note>
+  -> QList<gameplay_logic::Note>
 {
-    auto columnNotes = QVector<gameplay_logic::Note>{};
+    auto columnNotes = QList<gameplay_logic::Note>{};
     columnNotes.reserve(column.size());
     for (const auto& note : column) {
         auto type = gameplay_logic::Note::Type::Normal;
@@ -184,6 +178,72 @@ readAndParse(const std::filesystem::path& chartPath,
                            std::move(md5));
 }
 
+using namespace std::chrono_literals;
+
+QList<QList<int64_t>>
+createHistogram(const charts::BmsNotesData& calculatedNotesData,
+                std::chrono::nanoseconds lastNoteTimestamp,
+                size_t numBuckets)
+{
+    auto histogram = QList<QList<int64_t>>{};
+    histogram.resize(
+      magic_enum::enum_count<gameplay_logic::ChartData::HistogramNoteType>());
+    for (auto& column : histogram) {
+        column.resize(numBuckets, 0);
+    }
+    if (lastNoteTimestamp != 0ns) {
+        for (const auto& [columnIndex, column] :
+             std::ranges::views::enumerate(calculatedNotesData.notes)) {
+            auto lastLnBeginPosition = size_t{ 0 };
+            for (const auto note : column) {
+                auto typeIndex = 0;
+                auto position =
+                  static_cast<double>(note.time.timestamp.count()) /
+                  static_cast<double>(lastNoteTimestamp.count()) * numBuckets;
+                auto positionIndex = static_cast<size_t>(position);
+                // Include the last note(s) in the last bucket
+                if (positionIndex == numBuckets) {
+                    positionIndex = numBuckets - 1;
+                }
+                switch (note.noteType) {
+                    case charts::BmsNotesData::NoteType::LongNoteBegin:
+                        lastLnBeginPosition = positionIndex;
+                        typeIndex =
+                          (columnIndex == 7 || columnIndex == 15) ? 3 : 2;
+                        break;
+                    case charts::BmsNotesData::NoteType::Normal:
+                        typeIndex =
+                          (columnIndex == 7 || columnIndex == 15) ? 1 : 0;
+                        break;
+                    case charts::BmsNotesData::NoteType::Landmine:
+                        typeIndex = 4;
+                        break;
+                    case charts::BmsNotesData::NoteType::Invisible:
+                        typeIndex = 5;
+                        break;
+                    case charts::BmsNotesData::NoteType::LongNoteEnd:
+                        typeIndex =
+                          (columnIndex == 7 || columnIndex == 15) ? -3 : -2;
+                        // LnEnds should belong to the previous bin if they fall
+                        // exactly on a bin boundary
+                        auto prevF = std::nexttoward(position, 0.0);
+                        positionIndex = static_cast<size_t>(prevF);
+                }
+                // Lns can span multiple buckets
+                if (typeIndex == -2 || typeIndex == -3) {
+                    for (auto index = lastLnBeginPosition;
+                         index <= positionIndex;
+                         index++) {
+                        histogram[-typeIndex][index]++;
+                    }
+                } else if (typeIndex != 2 && typeIndex != 3) {
+                    histogram[typeIndex][positionIndex]++;
+                }
+            }
+        }
+    }
+    return histogram;
+}
 auto
 ChartDataFactory::loadChartData(const std::filesystem::path& chartPath,
                                 RandomGenerator randomGenerator,
@@ -210,8 +270,7 @@ ChartDataFactory::loadChartData(const std::filesystem::path& chartPath,
         bmps.emplace(bmp.first, support::utfStringToPath(bmp.second));
     }
     auto calculatedNotesData = charts::BmsNotesData{ parsedChart };
-
-    auto lastNoteTimestamp = std::chrono::nanoseconds{ 0 };
+    auto lastNoteTimestamp = 0ns;
     for (const auto& column : calculatedNotesData.notes) {
         if (column.empty()) {
             continue;
@@ -240,7 +299,7 @@ ChartDataFactory::loadChartData(const std::filesystem::path& chartPath,
     }
     auto minBpm = initialBpm;
     for (const auto& bpmChange : calculatedNotesData.bpmChanges) {
-        if (bpmChange.second < minBpm.second) {
+        if (bpmChange.second > 0.0 && bpmChange.second < minBpm.second) {
             minBpm = bpmChange;
         }
     }
@@ -251,24 +310,27 @@ ChartDataFactory::loadChartData(const std::filesystem::path& chartPath,
         auto bpmChange = *it;
         auto bpm = bpmChange.second;
         auto timestamp = bpmChange.first.timestamp;
-        auto nextTimestamp = std::chrono::nanoseconds{ 0 };
+        auto nextTimestamp = 0ns;
         if (it + 1 != calculatedNotesData.bpmChanges.end()) {
             nextTimestamp = (it + 1)->first.timestamp;
         } else {
-            nextTimestamp = lastNoteTimestamp;
+            nextTimestamp = std::max(lastNoteTimestamp, timestamp);
         }
         auto duration = nextTimestamp - timestamp;
         bpms[bpm] += duration;
     }
     auto totalBpm = 0.0;
-    auto totalDuration = std::chrono::nanoseconds{ 0 };
-    auto maxBpmDuration = std::chrono::nanoseconds{ 0 };
-    auto mainBpm = 0.0;
+    auto totalDuration = 0ns;
     for (const auto& [bpm, duration] : bpms) {
         totalBpm += bpm * duration.count();
         totalDuration += duration;
-        if (duration > maxBpmDuration) {
-            maxBpmDuration = duration;
+    }
+    // find main bpm, which is the bpm with the longest duration
+    auto mainBpm = initialBpm.second;
+    auto longestDuration = 0ns;
+    for (const auto& [bpm, duration] : bpms) {
+        if (duration > longestDuration && bpm > 0.0) {
+            longestDuration = duration;
             mainBpm = bpm;
         }
     }
@@ -277,16 +339,27 @@ ChartDataFactory::loadChartData(const std::filesystem::path& chartPath,
         avgBpm /= totalDuration.count();
     }
     auto normalNotes = 0;
+    auto scratchNotes = 0;
     auto lnNotes = 0;
+    auto bssNotes = 0;
     auto mineNotes = 0;
-    for (const auto& column : calculatedNotesData.notes) {
+    for (const auto& [index, column] :
+         std::ranges::views::enumerate(calculatedNotesData.notes)) {
         for (const auto& note : column) {
             switch (note.noteType) {
                 case charts::BmsNotesData::NoteType::Normal:
-                    normalNotes++;
+                    if (index == 7 || index == 15) {
+                        scratchNotes++;
+                    } else {
+                        normalNotes++;
+                    }
                     break;
                 case charts::BmsNotesData::NoteType::LongNoteBegin:
-                    lnNotes++;
+                    if (index == 7 || index == 15) {
+                        bssNotes++;
+                    } else {
+                        lnNotes++;
+                    }
                     break;
                 case charts::BmsNotesData::NoteType::LongNoteEnd:
                     break;
@@ -302,6 +375,37 @@ ChartDataFactory::loadChartData(const std::filesystem::path& chartPath,
     auto total = parsedChart.tags.total.value_or(
       (totalNotes + std::clamp(totalNotes - 400, 0, 200)) * 0.16 + 160);
     auto path = support::pathToQString(chartPath);
+    auto bpmChangesQ = QList<gameplay_logic::BpmChange>{};
+    for (const auto& bpmChange : calculatedNotesData.bpmChanges) {
+        bpmChangesQ.append({ { .timestamp = bpmChange.first.timestamp.count(),
+                               .position = bpmChange.first.position },
+                             bpmChange.second });
+    }
+    const auto seconds =
+      std::chrono::duration_cast<std::chrono::seconds>(lastNoteTimestamp);
+    auto numSeconds = seconds.count();
+    if (numSeconds == 0) {
+        numSeconds++;
+    }
+    auto histogramForStats =
+      createHistogram(calculatedNotesData, lastNoteTimestamp, numSeconds);
+    auto summedNoteNumberBins = QList<int64_t>{};
+    summedNoteNumberBins.reserve(histogramForStats[0].size());
+    for (size_t i = 0; i < histogramForStats[0].size(); i++) {
+        auto sum = int64_t{ 0 };
+        sum += histogramForStats[0][i];
+        sum += histogramForStats[1][i];
+        sum += histogramForStats[2][i];
+        sum += histogramForStats[3][i];
+        summedNoteNumberBins.append(sum);
+    }
+    auto histogramForDisplay = std::move(histogramForStats);
+    auto avg = std::accumulate(summedNoteNumberBins.begin(),
+                               summedNoteNumberBins.end(),
+                               0.0) /
+               summedNoteNumberBins.size();
+    auto peak = *std::ranges::max_element(summedNoteNumberBins);
+    auto last = summedNoteNumberBins.back();
     auto chartData = std::make_unique<gameplay_logic::ChartData>(
       std::move(title),
       std::move(artist),
@@ -318,7 +422,9 @@ ChartDataFactory::loadChartData(const std::filesystem::path& chartPath,
       parsedChart.tags.isRandom,
       randomValues,
       normalNotes,
+      scratchNotes,
       lnNotes,
+      bssNotes,
       mineNotes,
       lastNoteTimestamp.count(),
       initialBpm.second,
@@ -326,14 +432,18 @@ ChartDataFactory::loadChartData(const std::filesystem::path& chartPath,
       minBpm.second,
       mainBpm,
       avgBpm,
+      peak,
+      avg,
+      last,
       path,
       directory,
       QString::fromStdString(sha256),
       QString::fromStdString(md5),
-      keymode);
-    auto noteData = makeNotes(calculatedNotesData.notes,
-                              calculatedNotesData.bpmChanges,
-                              calculatedNotesData.barLines);
+      keymode,
+      histogramForDisplay,
+      bpmChangesQ);
+    auto noteData =
+      makeNotes(calculatedNotesData.notes, calculatedNotesData.barLines);
     return { std::move(chartData),
              std::move(calculatedNotesData),
              std::move(wavs),

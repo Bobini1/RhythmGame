@@ -315,6 +315,7 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
                                             ->getVars()
                                             ->getGeneralVars()
                                             ->getLanguage());
+            QObject::disconnect(connection);
             connection = QObject::connect(
               profileList.getMainProfile()->getVars()->getGeneralVars(),
               &resource_managers::GeneralVars::languageChanged,
@@ -504,12 +505,6 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
             throw std::runtime_error{ "Failed to load main qml" };
         }
         app.setInputTranslator(&inputTranslator);
-
-        auto stmt = db.createStatement(
-          "INSERT OR REPLACE INTO properties (key, value) VALUES "
-          "('version', ?);");
-        stmt.bind(1, static_cast<int64_t>(support::currentVersion));
-        stmt.execute();
 
         return app.exec();
     } catch (const std::exception& e) {

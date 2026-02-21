@@ -60,22 +60,34 @@ class BmsLiveScore final : public QObject
      */
     Q_PROPERTY(double maxPoints READ getMaxPoints CONSTANT)
     /**
-     * @brief The number of points the player would have if they played perfectly
-     * till now.
+     * @brief The number of points the player would have if they played
+     * perfectly till now.
      */
     Q_PROPERTY(
       double maxPointsNow READ getMaxPointsNow NOTIFY maxPointsNowChanged)
     /**
      * @brief The number of normal notes in the chart.
-     * @details Normal means not long notes, not mines, not invisible notes.
+     * @details Normal means not long notes, not mines, not invisible notes, not
+     * scratches
      */
     Q_PROPERTY(int normalNoteCount READ getNormalNoteCount CONSTANT)
     /**
-     * @brief The number of long notes in the chart.
+     * @brief The number of scratch notes in the chart.
+     * @details Scratch notes are normal notes on scratch columns.
+     */
+    Q_PROPERTY(int scratchCount READ getScratchCount CONSTANT)
+    /**
+     * @brief The number of long notes in the chart excluding BSS (scratch lns).
      * @details A long note consists of an LN start and LN end. Such a pair
      * counts as one long note.
      */
     Q_PROPERTY(int lnCount READ getLnCount CONSTANT)
+    /**
+     * @brief The number of BSS (scratch long notes) in the chart.
+     * @details A BSS consists of an ln start and ln end. Such a pair
+     * counts as one BSS.
+     */
+    Q_PROPERTY(int bssCount READ getBssCount CONSTANT)
     /**
      * @brief The number of mines (landmines) in the chart.
      */
@@ -174,7 +186,9 @@ class BmsLiveScore final : public QObject
     double maxPoints;
     int mineCount;
     int normalNoteCount;
+    int scratchCount;
     int lnCount;
+    int bssCount;
     int maxHits;
     QList<HitEvent> hits;
     QList<rules::BmsGauge*> gauges;
@@ -202,7 +216,9 @@ class BmsLiveScore final : public QObject
     void addHit(const HitEvent& tap);
     explicit BmsLiveScore(
       int normalNoteCount,
+      int scratchCount,
       int lnCount,
+      int bssCount,
       int mineCount,
       int maxHits,
       double maxHitValue,
@@ -222,7 +238,9 @@ class BmsLiveScore final : public QObject
     auto getMaxPoints() const -> double;
     auto getMaxHits() const -> int;
     auto getNormalNoteCount() const -> int;
+    auto getScratchCount() const -> int;
     auto getLnCount() const -> int;
+    auto getBssCount() const -> int;
     auto getMineCount() const -> int;
     auto getPoints() const -> double;
     auto getMaxPointsNow() const -> double;

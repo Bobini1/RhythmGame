@@ -44,7 +44,7 @@ Row {
         }
         ScoreInfoLine {
             source: root.iniImagesUrl + "parts.png/total_notes"
-            text: scoreInfoRow.current instanceof ChartData ? scoreInfoRow.current.normalNoteCount + scoreInfoRow.current.lnCount : 0
+            text: scoreInfoRow.current instanceof ChartData ? scoreInfoRow.current.normalNoteCount + scoreInfoRow.current.lnCount + scoreInfoRow.current.bssCount : 0
         }
         ScoreInfoLine {
             source: root.iniImagesUrl + "parts.png/miss_count"

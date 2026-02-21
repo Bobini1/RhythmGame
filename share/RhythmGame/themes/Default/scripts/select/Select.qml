@@ -108,6 +108,7 @@ FocusScope {
                 anchors.verticalCenterOffset: -10
                 spacing: 5
                 current: songList.current
+                currentItem: songList.currentItem
             }
             Selector {
                 anchors.right: parent.right
@@ -176,6 +177,26 @@ FocusScope {
                 focus: true
                 height: parent.height
                 width: parent.width / 2
+            }
+            Loader {
+                id: graphLoader
+                active: songList.current instanceof ChartData
+                anchors.horizontalCenter: songList.horizontalCenter
+                anchors.horizontalCenterOffset: 19
+                anchors.bottom: parent.bottom
+                anchors.bottomMargin: 75
+                sourceComponent: Graph {
+                    bpms: songList.current ? songList.current.bpmChanges : []
+                    histogramData: songList.current ? songList.current.histogramData : [[], [], [], []]
+                    mainBpm: songList.current ? songList.current.mainBpm : 0
+                    maxBpm: songList.current ? songList.current.maxBpm : 0
+                    minBpm: songList.current ? songList.current.minBpm : 0
+                    length: songList.current ? songList.current.length : 0
+                    normalCount: songList.current ? songList.current.normalNoteCount : 0
+                    scratchCount: songList.current ? songList.current.scratchCount : 0
+                    lnCount: songList.current ? songList.current.lnCount : 0
+                    bssCount: songList.current ? songList.current.bssCount : 0
+                }
             }
             Shortcut {
                 sequence: "Esc"
@@ -276,12 +297,8 @@ FocusScope {
                 spacing: 40
 
                 current: songList.current
-                scoreWithBestPoints: songList.currentItem
-                ?.
-                    scoreWithBestPoints || null
-                bestStats: songList.currentItem
-                ?.
-                    bestStats || null
+                scoreWithBestPoints: songList.currentItem?.scoreWithBestPoints || null
+                bestStats: songList.currentItem?.bestStats || null
             }
             Image {
                 id: search

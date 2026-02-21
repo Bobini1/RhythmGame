@@ -443,9 +443,7 @@ getComponentsForPlayer(const ChartFactory::PlayerSpecificData& player,
                      : randomSeed),
                  support::ShuffleResult{} };
     }();
-    // TODO: Simplify this. Don't convert bpmChanges twice for two players.
-    auto notes = ChartDataFactory::makeNotes(
-      visibleNotes, notesData.bpmChanges, notesData.barLines);
+    auto notes = ChartDataFactory::makeNotes(visibleNotes, notesData.barLines);
     auto guid = [&] {
         if (player.replayedScore) {
             return player.replayedScore->getResult()->getGuid();
@@ -461,9 +459,13 @@ getComponentsForPlayer(const ChartFactory::PlayerSpecificData& player,
     }
     auto score = std::make_unique<gameplay_logic::BmsLiveScore>(
       chartData.getNormalNoteCount() * multiplier,
+      chartData.getScratchCount() * multiplier,
       chartData.getLnCount() * multiplier,
+      chartData.getBssCount() * multiplier,
       chartData.getMineCount() * multiplier,
-      (chartData.getLnCount() + chartData.getNormalNoteCount()) * multiplier,
+      (chartData.getLnCount() + chartData.getNormalNoteCount() +
+       chartData.getBssCount() + chartData.getScratchCount()) *
+        multiplier,
       maxHitValue,
       player.gauges,
       chartData.getRandomSequence(),

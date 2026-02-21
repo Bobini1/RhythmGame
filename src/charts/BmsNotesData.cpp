@@ -573,13 +573,18 @@ removeInvalidNotes(std::array<std::vector<BmsNotesData::Note>,
 
 } // namespace
 
-BmsNotesData::BmsNotesData(const charts::ParsedBmsChart& chart)
+BmsNotesData::BmsNotesData(const ParsedBmsChart& chart)
 {
     auto lnType = defaultLnType;
     if (chart.tags.lnType.has_value()) {
         lnType = static_cast<LnType>(chart.tags.lnType.value());
     }
-    generateMeasures(chart.tags.bpm.value_or(defaultBpm),
+    const auto bpm = chart.tags.bpm.value_or(defaultBpm);
+    if (bpm <= 0.0) {
+        throw std::runtime_error{ "Initial bpm must be positive, was: " +
+                                  std::to_string(bpm) };
+    }
+    generateMeasures(bpm,
                      chart.tags.exBpms,
                      chart.tags.stops,
                      chart.tags.measures,

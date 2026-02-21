@@ -7,6 +7,7 @@ import QtQml
 Row {
     id: replayAutoplay
     required property var current
+    required property var currentItem
     Image {
         id: auto
         source: root.iniImagesUrl + "parts.png/auto"

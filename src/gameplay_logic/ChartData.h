@@ -8,6 +8,7 @@
 #include <QQmlEngine>
 #include "db/SqliteCppDb.h"
 namespace gameplay_logic {
+class BpmChange;
 
 /**
  * @brief Metadata and basic stats of a chart.
@@ -38,6 +39,17 @@ class ChartData : public QObject
         K14 = 14
     };
     Q_ENUM(Keymode)
+
+    enum class HistogramNoteType
+    {
+        Normal,
+        Scratch,
+        LongNote,
+        BssNote,
+        Landmine,
+        Invisible
+    };
+    Q_ENUM(HistogramNoteType)
 
   private:
     /** @brief The title of the chart. */
@@ -83,22 +95,36 @@ class ChartData : public QObject
     Q_PROPERTY(int difficulty READ getDifficulty CONSTANT)
     /**
      * @brief The number of normal notes in the chart.
-     * @details Normal means not long notes, not mines, not invisible notes.
+     * @details Normal means not long notes, not mines, not invisible notes, not
+     * scratches
      */
     Q_PROPERTY(int normalNoteCount READ getNormalNoteCount CONSTANT)
     /**
-     * @brief The number of long notes in the chart.
+     * @brief The number of scratch notes in the chart.
+     * @details Scratch notes are normal notes on scratch columns.
+     */
+    Q_PROPERTY(int scratchCount READ getScratchCount CONSTANT)
+    /**
+     * @brief The number of long notes in the chart excluding BSS (scratch lns).
      * @details A long note consists of an LN start and LN end. Such a pair
      * counts as one long note.
      */
     Q_PROPERTY(int lnCount READ getLnCount CONSTANT)
     /**
+     * @brief The number of BSS (scratch long notes) in the chart.
+     * @details A BSS consists of an ln start and ln end. Such a pair
+     * counts as one BSS.
+     */
+    Q_PROPERTY(int bssCount READ getBssCount CONSTANT)
+    /**
      * @brief The number of mines (landmines) in the chart.
      */
     Q_PROPERTY(int mineCount READ getMineCount CONSTANT)
     /**
-     * @brief The maximum number of hits (normal notes + long notes)
-     * in the chart.
+     * @brief The length of the chart in nanoseconds.
+     * @details This property indicates the total duration of the chart from
+     * start to finish, measured in nanoseconds.
+     * @note This is based on the timestamp of the last visible note.
      */
     Q_PROPERTY(int64_t length READ getLength CONSTANT)
     /**
@@ -128,7 +154,8 @@ class ChartData : public QObject
      */
     Q_PROPERTY(QString md5 READ getMd5 CONSTANT)
     /**
-     * @brief Whether the chart uses [#RANDOM](https://hitkey.nekokan.dyndns.info/cmds.htm#RANDOM).
+     * @brief Whether the chart uses
+     * [#RANDOM](https://hitkey.nekokan.dyndns.info/cmds.htm#RANDOM).
      * @details If true, the randomSequence property can be used to recreate
      * the same chart.
      */
@@ -176,6 +203,33 @@ class ChartData : public QObject
      * @details The average BPM is the time-weighted average BPM of the chart.
      */
     Q_PROPERTY(double avgBpm READ getAvgBpm CONSTANT)
+    /**
+     * @brief The peak density of the chart.
+     * @details The maximum note density within any time window.
+     */
+    Q_PROPERTY(double peakDensity READ getPeakDensity CONSTANT)
+    /**
+     * @brief The average density of the chart.
+     * @details The average note density throughout the chart.
+     */
+    Q_PROPERTY(double avgDensity READ getAvgDensity CONSTANT)
+    /**
+     * @brief The ending density of the chart.
+     * @details The note density at the end of the chart.
+     */
+    Q_PROPERTY(double endDensity READ getEndDensity CONSTANT)
+    /**
+     * @brief The histogram data representing the distribution of notes,
+     * grouped by note type.
+     * @details Each sublist represents a different note type.
+     * @see HistogramNoteType
+     */
+    Q_PROPERTY(
+      QList<QList<int64_t>> histogramData READ getHistogramData CONSTANT)
+    /**
+     * @brief The list of BPM changes in the chart.
+     */
+    Q_PROPERTY(QList<BpmChange> bpmChanges READ getBpmChanges CONSTANT)
 
   public:
     ChartData(QString title,
@@ -193,7 +247,9 @@ class ChartData : public QObject
               bool isRandom,
               QList<qint64> randomSequence,
               int normalNoteCount,
+              int scratchCount,
               int lnCount,
+              int bssCount,
               int mineCount,
               int64_t length,
               double initialBpm,
@@ -201,11 +257,16 @@ class ChartData : public QObject
               double minBpm,
               double mainBpm,
               double avgBpm,
+              double peakDensity,
+              double avgDensity,
+              double endDensity,
               QString path,
               int64_t directory,
               QString sha256,
               QString md5,
               Keymode keymode,
+              QList<QList<int64_t>> histogramData,
+              QList<BpmChange> bpmChanges,
               QObject* parent = nullptr);
 
     [[nodiscard]] auto getTitle() const -> const QString&;
@@ -217,7 +278,9 @@ class ChartData : public QObject
     [[nodiscard]] auto getBanner() const -> const QString&;
     [[nodiscard]] auto getBackBmp() const -> const QString&;
     [[nodiscard]] auto getNormalNoteCount() const -> int;
+    [[nodiscard]] auto getScratchCount() const -> int;
     [[nodiscard]] auto getLnCount() const -> int;
+    [[nodiscard]] auto getBssCount() const -> int;
     [[nodiscard]] auto getMineCount() const -> int;
     [[nodiscard]] auto getLength() const -> int64_t;
     [[nodiscard]] auto getInitialBpm() const -> double;
@@ -225,6 +288,9 @@ class ChartData : public QObject
     [[nodiscard]] auto getMinBpm() const -> double;
     [[nodiscard]] auto getMainBpm() const -> double;
     [[nodiscard]] auto getAvgBpm() const -> double;
+    [[nodiscard]] auto getPeakDensity() const -> double;
+    [[nodiscard]] auto getAvgDensity() const -> double;
+    [[nodiscard]] auto getEndDensity() const -> double;
     [[nodiscard]] auto getPath() const -> QString;
     [[nodiscard]] auto getRank() const -> int;
     [[nodiscard]] auto getTotal() const -> double;
@@ -237,6 +303,8 @@ class ChartData : public QObject
     [[nodiscard]] auto getKeymode() const -> Keymode;
     [[nodiscard]] auto getDirectory() const -> QString;
     [[nodiscard]] auto getChartDirectory() const -> QString;
+    [[nodiscard]] auto getHistogramData() -> QList<QList<int64_t>>&;
+    [[nodiscard]] auto getBpmChanges() -> QList<BpmChange>&;
 
     auto clone() const -> std::unique_ptr<ChartData>;
 
@@ -258,7 +326,9 @@ class ChartData : public QObject
         int isRandom;
         std::string randomSequence;
         int normalNoteCount;
+        int scratchCount;
         int lnCount;
+        int bssCount;
         int mineCount;
         int64_t length;
         double initialBpm;
@@ -266,11 +336,16 @@ class ChartData : public QObject
         double minBpm;
         double mainBpm;
         double avgBpm;
+        double peakDensity;
+        double avgDensity;
+        double endDensity;
         std::string path;
         int64_t directory;
         std::string sha256;
         std::string md5;
         int keymode;
+        std::string bpmChanges;
+        std::string histogramData;
     };
 
     auto save(db::SqliteCppDb& db) const -> void;
@@ -293,7 +368,9 @@ class ChartData : public QObject
     int difficulty;
     bool isRandom;
     int normalNoteCount;
+    int scratchCount;
     int lnCount;
+    int bssCount;
     int mineCount;
     int64_t length;
     double initialBpm;
@@ -301,11 +378,16 @@ class ChartData : public QObject
     double minBpm;
     double mainBpm;
     double avgBpm;
+    double peakDensity;
+    double avgDensity;
+    double endDensity;
     QString path;
     int64_t directory;
     QString sha256;
     QString md5;
     Keymode keymode;
+    QList<QList<int64_t>> histogramData;
+    QList<BpmChange> bpmChanges;
 };
 
 auto

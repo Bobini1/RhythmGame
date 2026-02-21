@@ -49,7 +49,9 @@ gameplay_logic::BmsResult::BmsResult(
   double maxPoints,
   int maxHits,
   int normalNoteCount,
+  int scratchCount,
   int lnCount,
+  int bssCount,
   int mineCount,
   QString clearType,
   QList<int> judgementCounts,
@@ -72,7 +74,9 @@ gameplay_logic::BmsResult::BmsResult(
   , maxPoints(maxPoints)
   , maxHits(maxHits)
   , normalNoteCount(normalNoteCount)
+  , scratchCount(scratchCount)
   , lnCount(lnCount)
+  , bssCount(bssCount)
   , mineCount(mineCount)
   , clearType(std::move(clearType))
   , judgementCounts(std::move(judgementCounts))
@@ -103,7 +107,9 @@ gameplay_logic::BmsResult::save(db::SqliteCppDb& db) const
                          "max_points, "
                          "max_hits, "
                          "normal_note_count, "
+                         "scratch_count, "
                          "ln_count, "
+                         "bss_count, "
                          "mine_count, "
                          "clear_type, "
                          "points, "
@@ -128,35 +134,37 @@ gameplay_logic::BmsResult::save(db::SqliteCppDb& db) const
                          "game_version"
                          ")"
                          "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, "
-                         "?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                         "?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);");
     statement.bind(1, maxPoints);
     statement.bind(2, maxHits);
     statement.bind(3, normalNoteCount);
-    statement.bind(4, lnCount);
-    statement.bind(5, mineCount);
-    statement.bind(6, clearType.toStdString());
-    statement.bind(7, points);
-    statement.bind(8, maxCombo);
-    statement.bind(9, judgementCounts[static_cast<int>(Judgement::Poor)]);
-    statement.bind(10, judgementCounts[static_cast<int>(Judgement::EmptyPoor)]);
-    statement.bind(11, judgementCounts[static_cast<int>(Judgement::Bad)]);
-    statement.bind(12, judgementCounts[static_cast<int>(Judgement::Good)]);
-    statement.bind(13, judgementCounts[static_cast<int>(Judgement::Great)]);
-    statement.bind(14, judgementCounts[static_cast<int>(Judgement::Perfect)]);
-    statement.bind(15, mineHits);
-    statement.bind(16, guid.toStdString());
-    statement.bind(17, sha256.toStdString());
-    statement.bind(18, md5.toStdString());
-    statement.bind(19, unixTimestamp);
-    statement.bind(20, length);
+    statement.bind(4, scratchCount);
+    statement.bind(5, lnCount);
+    statement.bind(6, bssCount);
+    statement.bind(7, mineCount);
+    statement.bind(8, clearType.toStdString());
+    statement.bind(9, points);
+    statement.bind(10, maxCombo);
+    statement.bind(11, judgementCounts[static_cast<int>(Judgement::Poor)]);
+    statement.bind(12, judgementCounts[static_cast<int>(Judgement::EmptyPoor)]);
+    statement.bind(13, judgementCounts[static_cast<int>(Judgement::Bad)]);
+    statement.bind(14, judgementCounts[static_cast<int>(Judgement::Good)]);
+    statement.bind(15, judgementCounts[static_cast<int>(Judgement::Great)]);
+    statement.bind(16, judgementCounts[static_cast<int>(Judgement::Perfect)]);
+    statement.bind(17, mineHits);
+    statement.bind(18, guid.toStdString());
+    statement.bind(19, sha256.toStdString());
+    statement.bind(20, md5.toStdString());
+    statement.bind(21, unixTimestamp);
+    statement.bind(22, length);
     auto randomSequenceCompressed = support::compress(randomSequence);
     statement.bind(
-      21, randomSequenceCompressed.data(), randomSequenceCompressed.size());
-    statement.bind(22, static_cast<int64_t>(randomSeed));
-    statement.bind(23, static_cast<int>(noteOrderAlgorithm));
-    statement.bind(24, static_cast<int>(noteOrderAlgorithmP2));
-    statement.bind(25, static_cast<int>(dpOptions));
-    statement.bind(26, static_cast<int64_t>(gameVersion));
+      23, randomSequenceCompressed.data(), randomSequenceCompressed.size());
+    statement.bind(24, static_cast<int64_t>(randomSeed));
+    statement.bind(25, static_cast<int>(noteOrderAlgorithm));
+    statement.bind(26, static_cast<int>(noteOrderAlgorithmP2));
+    statement.bind(27, static_cast<int>(dpOptions));
+    statement.bind(28, static_cast<int64_t>(gameVersion));
     statement.execute();
 }
 auto
@@ -176,7 +184,9 @@ gameplay_logic::BmsResult::load(const DTO& dto) -> std::unique_ptr<BmsResult>
       dto.maxPoints,
       dto.maxHits,
       dto.normalNoteCount,
+      dto.scratchCount,
       dto.lnCount,
+      dto.bssCount,
       dto.mineCount,
       QString::fromStdString(dto.clearType),
       judgementCounts,
@@ -257,9 +267,19 @@ gameplay_logic::BmsResult::getNormalNoteCount() const -> int
     return normalNoteCount;
 }
 auto
+gameplay_logic::BmsResult::getScratchCount() const -> int
+{
+    return scratchCount;
+}
+auto
 gameplay_logic::BmsResult::getLnCount() const -> int
 {
     return lnCount;
+}
+auto
+gameplay_logic::BmsResult::getBssCount() const -> int
+{
+    return bssCount;
 }
 auto
 gameplay_logic::BmsResult::getMineCount() const -> int

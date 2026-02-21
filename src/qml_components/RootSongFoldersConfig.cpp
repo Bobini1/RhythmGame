@@ -300,28 +300,32 @@ ScanningQueue::clear(const QString& which)
     removeSongsStartingWith.reset();
     removeSongsStartingWith.bind(":dir", folderNameStd);
     removeSongsStartingWith.execute();
-    db->execute(
-      "WITH RECURSIVE "
-      "chart_dirs(dir) AS ( "
-      "  SELECT pd.dir "
-      "  FROM parent_dir pd "
-      "  WHERE pd.id IN (SELECT directory FROM charts) "
-      "), "
-      "keep(dir) AS ( "
-      "  SELECT dir FROM chart_dirs "
-      "  UNION "
-      "  SELECT p.dir "
-      "  FROM parent_dir p "
-      "  JOIN parent_dir child ON child.parent_dir = p.dir "
-      "  JOIN keep k ON k.dir = child.dir "
-      ") "
-      "DELETE FROM parent_dir "
-      "WHERE dir NOT IN (SELECT dir FROM keep);"
-    );
+    db->execute("WITH RECURSIVE "
+                "chart_dirs(dir) AS ( "
+                "  SELECT pd.dir "
+                "  FROM parent_dir pd "
+                "  WHERE pd.id IN (SELECT directory FROM charts) "
+                "), "
+                "keep(dir) AS ( "
+                "  SELECT dir FROM chart_dirs "
+                "  UNION "
+                "  SELECT p.dir "
+                "  FROM parent_dir p "
+                "  JOIN parent_dir child ON child.parent_dir = p.dir "
+                "  JOIN keep k ON k.dir = child.dir "
+                ") "
+                "DELETE FROM parent_dir "
+                "WHERE dir NOT IN (SELECT dir FROM keep);");
     db->execute("DELETE FROM note_data WHERE note_data.sha256 NOT IN "
                 "(SELECT sha256 FROM charts)");
+    db->execute(
+      "DELETE FROM histogram_data WHERE NOT EXISTS "
+      "(SELECT 1 FROM charts WHERE charts.id = histogram_data.chart_id)");
     db->execute("DELETE FROM preview_files WHERE directory NOT IN "
                 "(SELECT chart_directory FROM charts)");
+    // note_data is unused currently
+    // db->execute("DELETE FROM note_data WHERE note_data.sha256 NOT IN "
+    //             "(SELECT sha256 FROM charts)");
 }
 auto
 ScanningQueue::rowCount(const QModelIndex& parent) const -> int

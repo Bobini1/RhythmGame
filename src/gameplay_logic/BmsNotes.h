@@ -139,17 +139,14 @@ class BmsNotes : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(QList<QList<Note>> notes READ getNotes CONSTANT)
-    Q_PROPERTY(QList<BpmChange> bpmChanges READ getBpmChanges CONSTANT)
     Q_PROPERTY(QList<Time> barLines READ getBarLines CONSTANT)
 
     QList<QList<Note>> notes;
-    QList<BpmChange> bpmChanges;
     QList<Time> barLines;
 
   public:
     BmsNotes() = default;
     explicit BmsNotes(QList<QList<Note>> visibleNotes,
-                      QList<BpmChange> bpmChanges,
                       QList<Time> barLines,
                       QObject* parent = nullptr);
 
@@ -158,17 +155,15 @@ class BmsNotes : public QObject
     auto getNotes() const -> const QList<QList<Note>>&;
     auto getBarLines() const -> const QList<Time>&;
 
-    auto getBpmChanges() const -> const QList<BpmChange>&;
-
     friend auto operator<<(QDataStream& stream, const BmsNotes& notes)
       -> QDataStream&
     {
-        return stream << notes.notes << notes.bpmChanges << notes.barLines;
+        return stream << notes.notes << notes.barLines;
     }
 
     friend auto operator>>(QDataStream& stream, BmsNotes& notes) -> QDataStream&
     {
-        return stream >> notes.notes >> notes.bpmChanges >> notes.barLines;
+        return stream >> notes.notes >> notes.barLines;
     }
 
     static auto load(db::SqliteCppDb& db, const support::Sha256& sha256)
