@@ -55,34 +55,44 @@ qml_components::Bga::update(std::chrono::nanoseconds offsetFromStart)
         return;
     }
     const auto offset = offsetFromStart;
+
+    auto lastApplicableVideo = videoFiles.end();
     while (currentVideoFile != videoFiles.end() &&
            currentVideoFile->first < offset) {
-        currentVideoFile->second->stop();
-        if (currentVideoFile->second->isSeekable()) {
-            currentVideoFile->second->setPosition(
-              (offset - currentVideoFile->first).count() / 1000000);
-        }
-        if (playedVideo != nullptr) {
-            playedVideo->stop();
-            playedVideo->setVideoOutput(nullptr);
-        }
-        currentVideoFile->second->setVideoOutput(videoSink);
-        currentVideoFile->second->play();
-        playedVideo = currentVideoFile->second;
+        lastApplicableVideo = currentVideoFile;
         ++currentVideoFile;
     }
-    while (currentImage != images.end() && currentImage->first < offset) {
+    if (lastApplicableVideo != videoFiles.end()) {
         if (playedVideo != nullptr) {
             playedVideo->stop();
             playedVideo->setVideoOutput(nullptr);
         }
-        if (currentImage->second != nullptr) {
-            videoSink->setVideoFrame(*currentImage->second);
+        lastApplicableVideo->second->stop();
+        lastApplicableVideo->second->setVideoOutput(videoSink);
+        if (lastApplicableVideo->second->isSeekable()) {
+            lastApplicableVideo->second->setPosition(
+              (offset - lastApplicableVideo->first).count() / 1000000);
+        }
+        lastApplicableVideo->second->play();
+        playedVideo = lastApplicableVideo->second;
+    }
+
+    auto lastApplicableImage = images.end();
+    while (currentImage != images.end() && currentImage->first < offset) {
+        lastApplicableImage = currentImage;
+        ++currentImage;
+    }
+    if (lastApplicableImage != images.end()) {
+        if (playedVideo != nullptr) {
+            playedVideo->stop();
+            playedVideo->setVideoOutput(nullptr);
+            playedVideo = nullptr;
+        }
+        if (lastApplicableImage->second != nullptr) {
+            videoSink->setVideoFrame(*lastApplicableImage->second);
         } else {
             videoSink->setVideoFrame(*getEmptyVideoFrame());
         }
-
-        ++currentImage;
     }
 }
 qml_components::BgaContainer::BgaContainer(
