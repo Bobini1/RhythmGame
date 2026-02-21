@@ -99,7 +99,7 @@ var searchData=
   ['gethiddenon_96',['getHiddenOn',['../classresource__managers_1_1GeneralVars.html#ab744f90c6a2e5d62461069582525975f',1,'resource_managers::GeneralVars']]],
   ['gethiddenratio_97',['getHiddenRatio',['../classresource__managers_1_1GeneralVars.html#a3d84390132e81d6fa7552c60065a36a2',1,'resource_managers::GeneralVars']]],
   ['gethispeedfix_98',['getHiSpeedFix',['../classresource__managers_1_1GeneralVars.html#a8a01b8fa2d5c371d6129dcd4fdcc5d18',1,'resource_managers::GeneralVars']]],
-  ['gethistogramdata_99',['getHistogramData',['../classgameplay__logic_1_1ChartData.html#a42251e0ac98caa16e72c6fb3de2d39f6',1,'gameplay_logic::ChartData']]],
+  ['gethistogramdata_99',['getHistogramData',['../classgameplay__logic_1_1ChartData.html#a1a1f7f4b6ab8d84ed483abe6749a3738',1,'gameplay_logic::ChartData']]],
   ['gethistory_100',['getHistory',['../classqml__components_1_1Logger.html#abafa0f497e9ee6f54ed8e54bb51ebdba',1,'qml_components::Logger']]],
   ['gethitevents_101',['gethitevents',['../classqml__components_1_1ScoreReplayer.html#a6577e43d975152b60f8bf7f63ce2d188',1,'qml_components::ScoreReplayer::getHitEvents()'],['../classgameplay__logic_1_1BmsReplayData.html#a32ca83730d21c796ad3d515ce0834ae5',1,'gameplay_logic::BmsReplayData::getHitEvents()']]],
   ['gethitoffset_102',['getHitOffset',['../classgameplay__logic_1_1HitEvent.html#acb3e9c34c6f03bda9de5d9e09613e93c',1,'gameplay_logic::HitEvent']]],
