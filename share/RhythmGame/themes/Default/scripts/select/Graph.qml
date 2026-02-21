@@ -11,6 +11,7 @@ Image {
     required property real mainBpm
     required property real maxBpm
     required property real minBpm
+    required property real length
 
     required property int normalCount
     required property int scratchCount
@@ -117,10 +118,8 @@ Image {
             if (!bpmList || bpmList.length === 0)
                 return;
 
-            // Last BPM change timestamp determines the total time span
-            let lastTimestamp = bpmList[bpmList.length - 1].time.timestamp;
-            // Use the histogram length to determine total duration if possible
-            let totalDuration = lastTimestamp > 0 ? lastTimestamp : 1;
+            // Use the song's actual length for the total time span
+            let totalDuration = graph.length > 0 ? graph.length : 1;
 
             ctx.lineWidth = 2;
 
@@ -177,6 +176,7 @@ Image {
             function onMainBpmChanged() { bpmCanvas.requestPaint(); }
             function onMaxBpmChanged() { bpmCanvas.requestPaint(); }
             function onMinBpmChanged() { bpmCanvas.requestPaint(); }
+            function onLengthChanged() { bpmCanvas.requestPaint(); }
         }
         Component.onCompleted: requestPaint()
     }
