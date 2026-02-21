@@ -299,7 +299,7 @@ ChartDataFactory::loadChartData(const std::filesystem::path& chartPath,
     }
     auto minBpm = initialBpm;
     for (const auto& bpmChange : calculatedNotesData.bpmChanges) {
-        if (bpmChange.second < minBpm.second) {
+        if (bpmChange.second > 0.0 && bpmChange.second < minBpm.second) {
             minBpm = bpmChange;
         }
     }
@@ -314,24 +314,21 @@ ChartDataFactory::loadChartData(const std::filesystem::path& chartPath,
         if (it + 1 != calculatedNotesData.bpmChanges.end()) {
             nextTimestamp = (it + 1)->first.timestamp;
         } else {
-            nextTimestamp = lastNoteTimestamp;
+            nextTimestamp = std::max(lastNoteTimestamp, timestamp);
         }
         auto duration = nextTimestamp - timestamp;
         bpms[bpm] += duration;
     }
     auto totalBpm = 0.0;
     auto totalDuration = 0ns;
-    auto bpmDurationMap =
-      std::unordered_map<double, std::chrono::nanoseconds>{};
     for (const auto& [bpm, duration] : bpms) {
         totalBpm += bpm * duration.count();
         totalDuration += duration;
-        bpmDurationMap[bpm] += duration;
     }
     // find main bpm, which is the bpm with the longest duration
     auto mainBpm = initialBpm.second;
     auto longestDuration = 0ns;
-    for (const auto& [bpm, duration] : bpmDurationMap) {
+    for (const auto& [bpm, duration] : bpms) {
         if (duration > longestDuration && bpm > 0.0) {
             longestDuration = duration;
             mainBpm = bpm;
