@@ -108,6 +108,7 @@ FocusScope {
                 anchors.verticalCenterOffset: -10
                 spacing: 5
                 current: songList.current
+                currentItem: songList.currentItem
             }
             Selector {
                 anchors.right: parent.right
