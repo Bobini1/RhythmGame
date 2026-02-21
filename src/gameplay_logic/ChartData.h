@@ -7,8 +7,8 @@
 
 #include <QQmlEngine>
 #include "db/SqliteCppDb.h"
+#include "BmsNotes.h"
 namespace gameplay_logic {
-class BpmChange;
 
 /**
  * @brief Metadata and basic stats of a chart.
