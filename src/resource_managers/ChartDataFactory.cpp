@@ -180,12 +180,12 @@ readAndParse(const std::filesystem::path& chartPath,
 
 using namespace std::chrono_literals;
 
-QList<QList<int64_t>>
+QList<QList<qint64>>
 createHistogram(const charts::BmsNotesData& calculatedNotesData,
                 std::chrono::nanoseconds lastNoteTimestamp,
                 size_t numBuckets)
 {
-    auto histogram = QList<QList<int64_t>>{};
+    auto histogram = QList<QList<qint64>>{};
     histogram.resize(
       magic_enum::enum_count<gameplay_logic::ChartData::HistogramNoteType>());
     for (auto& column : histogram) {

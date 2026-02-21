@@ -225,7 +225,7 @@ class ChartData : public QObject
      * @see HistogramNoteType
      */
     Q_PROPERTY(
-      QList<QList<int64_t>> histogramData READ getHistogramData CONSTANT)
+      QList<QList<qint64>> histogramData READ getHistogramData CONSTANT)
     /**
      * @brief The list of BPM changes in the chart.
      */
@@ -265,7 +265,7 @@ class ChartData : public QObject
               QString sha256,
               QString md5,
               Keymode keymode,
-              QList<QList<int64_t>> histogramData,
+              QList<QList<qint64>> histogramData,
               QList<BpmChange> bpmChanges,
               QObject* parent = nullptr);
 
@@ -303,7 +303,7 @@ class ChartData : public QObject
     [[nodiscard]] auto getKeymode() const -> Keymode;
     [[nodiscard]] auto getDirectory() const -> QString;
     [[nodiscard]] auto getChartDirectory() const -> QString;
-    [[nodiscard]] auto getHistogramData() -> QList<QList<int64_t>>&;
+    [[nodiscard]] auto getHistogramData() -> QList<QList<qint64>>&;
     [[nodiscard]] auto getBpmChanges() -> QList<BpmChange>&;
 
     auto clone() const -> std::unique_ptr<ChartData>;
@@ -386,7 +386,7 @@ class ChartData : public QObject
     QString sha256;
     QString md5;
     Keymode keymode;
-    QList<QList<int64_t>> histogramData;
+    QList<QList<qint64>> histogramData;
     QList<BpmChange> bpmChanges;
 };
 

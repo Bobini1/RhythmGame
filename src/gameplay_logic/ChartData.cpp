@@ -43,7 +43,7 @@ gameplay_logic::ChartData::ChartData(QString title,
                                      QString sha256,
                                      QString md5,
                                      Keymode keymode,
-                                     QList<QList<int64_t>> histogramData,
+                                     QList<QList<qint64>> histogramData,
                                      QList<BpmChange> bpmChanges,
                                      QObject* parent)
   : QObject(parent)
@@ -229,9 +229,9 @@ auto
 gameplay_logic::ChartData::load(const DTO& chartDataDto)
   -> std::unique_ptr<ChartData>
 {
-    auto histogramData = QList<QList<int64_t>>{};
+    auto histogramData = QList<QList<qint64>>{};
     if (!chartDataDto.histogramData.empty()) {
-        histogramData = support::decompress<QList<QList<int64_t>>>(
+        histogramData = support::decompress<QList<QList<qint64>>>(
           QByteArray::fromStdString(chartDataDto.histogramData));
     }
     auto bpmChanges = QList<BpmChange>{};
@@ -329,7 +329,7 @@ gameplay_logic::ChartData::getChartDirectory() const -> QString
     return QFileInfo{ path }.absolutePath() + '/';
 }
 auto
-gameplay_logic::ChartData::getHistogramData() -> QList<QList<int64_t>>&
+gameplay_logic::ChartData::getHistogramData() -> QList<QList<qint64>>&
 {
     return histogramData;
 }
