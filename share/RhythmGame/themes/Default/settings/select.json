@@ -100,6 +100,19 @@
           "value": ""
         }
       ]
+    },
+    {
+      "id": "densityGraphGapsEnabled",
+      "name": {
+        "en": "Gaps between bars in density graph",
+        "pl": "Przerwy między słupkami na wykresie gęstości"
+      },
+      "description": {
+        "en": "Add 1px gaps between bars in the density graph if possible.",
+        "pl": "Dodaje 1px przerwy między słupkami na wykresie gęstości, jeśli to możliwe."
+      },
+      "type": "boolean",
+      "default": false
     }
   ]
 }

@@ -12,6 +12,7 @@ Image {
     required property real maxBpm
     required property real minBpm
     required property real length
+    required property bool gapsEnabled
 
     required property int normalCount
     required property int scratchCount
@@ -52,8 +53,8 @@ Image {
         anchors.fill: graphContent
         spacing: {
             let availableWidth = width;
-            let requiredWidth = graph.normalNotes.length;
-            return availableWidth > requiredWidth ? 1 : 0;
+            let requiredWidth = graph.normalNotes.length * 2;
+            return availableWidth > requiredWidth && graph.gapsEnabled ? 1 : 0;
         }
         anchors.leftMargin: 1
         anchors.rightMargin: 1
