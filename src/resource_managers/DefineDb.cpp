@@ -9,6 +9,12 @@ namespace resource_managers {
 void
 defineDb(db::SqliteCppDb& db)
 {
+    db.execute("CREATE TABLE IF NOT EXISTS properties ("
+               "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+               "key TEXT NOT NULL UNIQUE,"
+               "value"
+               ");");
+
     auto version = std::optional<std::tuple<int, int, int>>{};
     {
         auto versionStmt = db.createStatement(
@@ -119,12 +125,6 @@ defineDb(db::SqliteCppDb& db)
       "path TEXT NOT NULL UNIQUE,"
       "status INTEGER DEFAULT 0 NOT NULL" // 0 = not scanned, 1 = scanned
       ");");
-
-    db.execute("CREATE TABLE IF NOT EXISTS properties ("
-               "id INTEGER PRIMARY KEY AUTOINCREMENT,"
-               "key TEXT NOT NULL UNIQUE,"
-               "value"
-               ");");
 
     db.execute("CREATE TABLE IF NOT EXISTS preview_files ("
                "id INTEGER PRIMARY KEY AUTOINCREMENT,"
