@@ -20,6 +20,8 @@ namespace llfio = LLFIO_V2_NAMESPACE;
 #include "support/UtfStringToPath.h"
 #include "support/PathToQString.h"
 #include <magic_enum/magic_enum.hpp>
+#include <QJsonDocument>
+#include <QJsonArray>
 
 namespace resource_managers {
 ChartDataFactory::ChartComponents::ChartComponents(
@@ -122,18 +124,21 @@ ChartDataFactory::convertToQList(
     return columnNotes;
 }
 
+// Helper: memory-map a file and invoke the callback with its contents.
+// The mapped memory is valid for the duration of the callback.
+template<typename Func>
 auto
-readAndParse(const std::filesystem::path& chartPath,
-             ChartDataFactory::RandomGenerator randomGenerator)
+withMappedFile(const std::filesystem::path& path, Func&& func)
+  -> decltype(func(std::string_view{}))
 {
 #ifndef _WIN32
-    auto mfh = llfio::mapped_file({}, chartPath).value();
+    auto mfh = llfio::mapped_file({}, path).value();
     auto length = mfh.maximum_extent().value();
-    auto chart = std::string_view{ reinterpret_cast<char*>(mfh.address()),
-                                   static_cast<unsigned long>(length) };
+    auto content = std::string_view{ reinterpret_cast<char*>(mfh.address()),
+                                     static_cast<unsigned long>(length) };
+    return func(content);
 #else
-    // use native windows memory mapping
-    auto fileHandle = wil::unique_handle(CreateFileW(chartPath.c_str(),
+    auto fileHandle = wil::unique_handle(CreateFileW(path.c_str(),
                                                      GENERIC_READ,
                                                      FILE_SHARE_READ,
                                                      nullptr,
@@ -141,7 +146,7 @@ readAndParse(const std::filesystem::path& chartPath,
                                                      FILE_ATTRIBUTE_NORMAL,
                                                      nullptr));
     if (fileHandle.get() == INVALID_HANDLE_VALUE) {
-        throw std::runtime_error("Could not open chart file");
+        throw std::runtime_error("Could not open file");
     }
     auto fileMapping = wil::unique_handle(CreateFileMappingW(
       fileHandle.get(), nullptr, PAGE_READONLY, 0, 0, nullptr));
@@ -157,25 +162,33 @@ readAndParse(const std::filesystem::path& chartPath,
     if (fileSize == INVALID_FILE_SIZE) {
         throw std::runtime_error("Could not get file size");
     }
-    auto chart = std::string_view{ reinterpret_cast<char*>(mapView.get()),
-                                   static_cast<unsigned long>(fileSize) };
+    auto content = std::string_view{ reinterpret_cast<char*>(mapView.get()),
+                                     static_cast<unsigned long>(fileSize) };
+    return func(content);
 #endif
+}
 
-    auto sha256 = support::sha256(chart);
-    auto md5 = support::md5(chart);
-    auto randomValues = QList<qint64>{};
-    auto randomGeneratorRecorder =
-      [&randomValues, &randomGenerator](
-        const charts::ParsedBmsChart::RandomRange number) mutable {
-          const auto generated = randomGenerator(number);
-          randomValues.append(generated);
-          return generated;
-      };
-    auto parsedChart = charts::readBmsChart(chart, randomGeneratorRecorder);
-    return std::make_tuple(std::move(parsedChart),
-                           std::move(randomValues),
-                           std::move(sha256),
-                           std::move(md5));
+auto
+readAndParse(const std::filesystem::path& chartPath,
+             ChartDataFactory::RandomGenerator randomGenerator)
+{
+    return withMappedFile(chartPath, [&](std::string_view chart) {
+        auto sha256 = support::sha256(chart);
+        auto md5 = support::md5(chart);
+        auto randomValues = QList<qint64>{};
+        auto randomGeneratorRecorder =
+          [&randomValues, &randomGenerator](
+            const charts::ParsedBmsChart::RandomRange number) mutable {
+              const auto generated = randomGenerator(number);
+              randomValues.append(generated);
+              return generated;
+          };
+        auto parsedChart = charts::readBmsChart(chart, randomGeneratorRecorder);
+        return std::make_tuple(std::move(parsedChart),
+                               std::move(randomValues),
+                               std::move(sha256),
+                               std::move(md5));
+    });
 }
 
 using namespace std::chrono_literals;
@@ -244,6 +257,7 @@ createHistogram(const charts::BmsNotesData& calculatedNotesData,
     }
     return histogram;
 }
+
 auto
 ChartDataFactory::loadChartData(const std::filesystem::path& chartPath,
                                 RandomGenerator randomGenerator,
@@ -251,14 +265,26 @@ ChartDataFactory::loadChartData(const std::filesystem::path& chartPath,
 {
     auto [parsedChart, randomValues, sha256, md5] =
       readAndParse(chartPath, randomGenerator);
-    auto title = QString::fromUtf8(parsedChart.tags.title.value_or(""));
-    auto artist = QString::fromUtf8(parsedChart.tags.artist.value_or(""));
-    auto subtitle = QString::fromUtf8(parsedChart.tags.subTitle.value_or(""));
-    auto subartist = QString::fromUtf8(parsedChart.tags.subArtist.value_or(""));
-    auto genre = QString::fromUtf8(parsedChart.tags.genre.value_or(""));
-    auto stageFile = QString::fromUtf8(parsedChart.tags.stageFile.value_or(""));
-    auto banner = QString::fromUtf8(parsedChart.tags.banner.value_or(""));
-    auto backBmp = QString::fromUtf8(parsedChart.tags.backBmp.value_or(""));
+
+    auto metadata = ChartMetadata{
+        .title = QString::fromUtf8(parsedChart.tags.title.value_or("")),
+        .artist = QString::fromUtf8(parsedChart.tags.artist.value_or("")),
+        .subtitle = QString::fromUtf8(parsedChart.tags.subTitle.value_or("")),
+        .subartist = QString::fromUtf8(parsedChart.tags.subArtist.value_or("")),
+        .genre = QString::fromUtf8(parsedChart.tags.genre.value_or("")),
+        .stageFile = QString::fromUtf8(parsedChart.tags.stageFile.value_or("")),
+        .banner = QString::fromUtf8(parsedChart.tags.banner.value_or("")),
+        .backBmp = QString::fromUtf8(parsedChart.tags.backBmp.value_or("")),
+        .rank = parsedChart.tags.rank.value_or(2),
+        .total = parsedChart.tags.total.value_or(-1.0),
+        .playLevel = parsedChart.tags.playLevel.value_or(1),
+        .difficulty = parsedChart.tags.difficulty.value_or(1),
+        .isRandom = parsedChart.tags.isRandom,
+        .randomSequence = randomValues,
+        .sha256 = QString::fromStdString(sha256),
+        .md5 = QString::fromStdString(md5),
+    };
+
     std::unordered_map<uint16_t, std::filesystem::path> wavs;
     wavs.reserve(parsedChart.tags.wavs.size());
     for (const auto& wav : parsedChart.tags.wavs) {
@@ -269,7 +295,104 @@ ChartDataFactory::loadChartData(const std::filesystem::path& chartPath,
     for (const auto& bmp : parsedChart.tags.bmps) {
         bmps.emplace(bmp.first, support::utfStringToPath(bmp.second));
     }
-    auto calculatedNotesData = charts::BmsNotesData{ parsedChart };
+
+    auto calculatedNotesData =
+      charts::BmsNotesData::fromParsedChart(parsedChart);
+
+    return buildChartComponents(std::move(calculatedNotesData),
+                                std::move(metadata),
+                                std::move(wavs),
+                                std::move(bmps),
+                                chartPath,
+                                directory);
+}
+
+auto
+ChartDataFactory::loadBmsonChartData(const std::filesystem::path& chartPath,
+                                     int64_t directory) const -> ChartComponents
+{
+    return withMappedFile(
+      chartPath, [&](std::string_view fileContent) -> ChartComponents {
+          auto sha256 = support::sha256(fileContent);
+          auto md5 = support::md5(fileContent);
+
+          auto jsonDoc = QJsonDocument::fromJson(QByteArray(
+            fileContent.data(), static_cast<qsizetype>(fileContent.size())));
+          if (jsonDoc.isNull()) {
+              throw std::runtime_error("Could not parse bmson file as JSON");
+          }
+          auto bmson = jsonDoc.object();
+
+          // Extract metadata from bmson info object
+          auto info = bmson["info"].toObject();
+          auto subartists = info["subartists"].toArray();
+          auto subartistStr = QString{};
+          for (const auto& sa : subartists) {
+              if (!subartistStr.isEmpty()) {
+                  subartistStr += QStringLiteral(" / ");
+              }
+              subartistStr += sa.toString();
+          }
+
+          auto metadata = ChartMetadata{
+              .title = info["title"].toString(),
+              .artist = info["artist"].toString(),
+              .subtitle = info["subtitle"].toString(),
+              .subartist = subartistStr,
+              .genre = info["genre"].toString(),
+              .stageFile = info["eyecatch_image"].toString(),
+              .banner = info["banner_image"].toString(),
+              .backBmp = info["back_image"].toString(),
+              .rank = info["judge_rank"].toInt(2),
+              .total = info["total"].toDouble(-1.0),
+              .playLevel = info["level"].toInt(1),
+              .difficulty = 1,
+              .isRandom = false,
+              .randomSequence = {},
+              .sha256 = QString::fromStdString(sha256),
+              .md5 = QString::fromStdString(md5),
+          };
+
+          // Extract wav paths from sound_channels
+          std::unordered_map<uint16_t, std::filesystem::path> wavs;
+          auto soundChannels = bmson["sound_channels"].toArray();
+          uint16_t nextSoundId = 1;
+          for (const auto& channel : soundChannels) {
+              auto channelObj = channel.toObject();
+              auto name = channelObj["name"].toString().toStdString();
+              wavs.emplace(nextSoundId++, std::filesystem::path{ name });
+          }
+
+          // Extract bmp paths from bga headers
+          std::unordered_map<uint16_t, std::filesystem::path> bmps;
+          auto bgaObj = bmson["bga"].toObject();
+          for (const auto& header : bgaObj["bga_header"].toArray()) {
+              auto headerObj = header.toObject();
+              auto id = static_cast<uint16_t>(headerObj["id"].toInt(0));
+              auto name = headerObj["name"].toString().toStdString();
+              bmps.emplace(id, std::filesystem::path{ name });
+          }
+
+          auto calculatedNotesData = charts::BmsNotesData::fromBmson(bmson);
+
+          return buildChartComponents(std::move(calculatedNotesData),
+                                      std::move(metadata),
+                                      std::move(wavs),
+                                      std::move(bmps),
+                                      chartPath,
+                                      directory);
+      });
+}
+
+auto
+ChartDataFactory::buildChartComponents(
+  charts::BmsNotesData calculatedNotesData,
+  ChartMetadata metadata,
+  std::unordered_map<uint16_t, std::filesystem::path> wavs,
+  std::unordered_map<uint16_t, std::filesystem::path> bmps,
+  const std::filesystem::path& chartPath,
+  int64_t directory) -> ChartComponents
+{
     auto lastNoteTimestamp = 0ns;
     for (const auto& column : calculatedNotesData.notes) {
         if (column.empty()) {
@@ -372,8 +495,11 @@ ChartDataFactory::loadChartData(const std::filesystem::path& chartPath,
         }
     }
     auto totalNotes = normalNotes + lnNotes;
-    auto total = parsedChart.tags.total.value_or(
-      (totalNotes + std::clamp(totalNotes - 400, 0, 200)) * 0.16 + 160);
+    auto total = metadata.total;
+    if (total < 0.0) {
+        total =
+          (totalNotes + std::clamp(totalNotes - 400, 0, 200)) * 0.16 + 160;
+    }
     auto path = support::pathToQString(chartPath);
     auto bpmChangesQ = QList<gameplay_logic::BpmChange>{};
     for (const auto& bpmChange : calculatedNotesData.bpmChanges) {
@@ -406,42 +532,42 @@ ChartDataFactory::loadChartData(const std::filesystem::path& chartPath,
                summedNoteNumberBins.size();
     auto peak = *std::ranges::max_element(summedNoteNumberBins);
     auto last = summedNoteNumberBins.back();
-    auto chartData = std::make_unique<gameplay_logic::ChartData>(
-      std::move(title),
-      std::move(artist),
-      std::move(subtitle),
-      std::move(subartist),
-      std::move(genre),
-      std::move(stageFile),
-      std::move(banner),
-      std::move(backBmp),
-      parsedChart.tags.rank.value_or(2),
-      total,
-      parsedChart.tags.playLevel.value_or(1),
-      parsedChart.tags.difficulty.value_or(1),
-      parsedChart.tags.isRandom,
-      randomValues,
-      normalNotes,
-      scratchNotes,
-      lnNotes,
-      bssNotes,
-      mineNotes,
-      lastNoteTimestamp.count(),
-      initialBpm.second,
-      maxBpm.second,
-      minBpm.second,
-      mainBpm,
-      avgBpm,
-      peak,
-      avg,
-      last,
-      path,
-      directory,
-      QString::fromStdString(sha256),
-      QString::fromStdString(md5),
-      keymode,
-      histogramForDisplay,
-      bpmChangesQ);
+    auto chartData =
+      std::make_unique<gameplay_logic::ChartData>(std::move(metadata.title),
+                                                  std::move(metadata.artist),
+                                                  std::move(metadata.subtitle),
+                                                  std::move(metadata.subartist),
+                                                  std::move(metadata.genre),
+                                                  std::move(metadata.stageFile),
+                                                  std::move(metadata.banner),
+                                                  std::move(metadata.backBmp),
+                                                  metadata.rank,
+                                                  total,
+                                                  metadata.playLevel,
+                                                  metadata.difficulty,
+                                                  metadata.isRandom,
+                                                  metadata.randomSequence,
+                                                  normalNotes,
+                                                  scratchNotes,
+                                                  lnNotes,
+                                                  bssNotes,
+                                                  mineNotes,
+                                                  lastNoteTimestamp.count(),
+                                                  initialBpm.second,
+                                                  maxBpm.second,
+                                                  minBpm.second,
+                                                  mainBpm,
+                                                  avgBpm,
+                                                  peak,
+                                                  avg,
+                                                  last,
+                                                  path,
+                                                  directory,
+                                                  std::move(metadata.sha256),
+                                                  std::move(metadata.md5),
+                                                  keymode,
+                                                  histogramForDisplay,
+                                                  bpmChangesQ);
     auto noteData =
       makeNotes(calculatedNotesData.notes, calculatedNotesData.barLines);
     return { std::move(chartData),

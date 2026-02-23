@@ -67,6 +67,7 @@ addDirToParentDirs(db::SqliteCppDb& db, QString root, QString folder)
         return -1;
     }
 }
+
 void
 loadChart(QThreadPool& threadPool,
           db::SqliteCppDb& db,
@@ -79,7 +80,6 @@ loadChart(QThreadPool& threadPool,
             return;
         }
         try {
-            thread_local constexpr ChartDataFactory chartDataFactory;
             auto randomGenerator =
               [](charts::ParsedBmsChart::RandomRange randomRange) {
                   thread_local auto randomEngine =
@@ -92,8 +92,14 @@ loadChart(QThreadPool& threadPool,
                   }(randomEngine);
               };
 
-            const auto chartComponents =
-              chartDataFactory.loadChartData(path, randomGenerator, directory);
+            const auto chartComponents = [&] {
+                thread_local constexpr ChartDataFactory chartDataFactory;
+                if (path.extension() == ".bmson") {
+                    return chartDataFactory.loadBmsonChartData(path, directory);
+                }
+                return chartDataFactory.loadChartData(
+                  path, randomGenerator, directory);
+            }();
             chartComponents.chartData->save(db);
             // ChartDataFactory::makeNotes(chartComponents.notesData.notes,
             //                             chartComponents.notesData.bpmChanges,
@@ -242,7 +248,8 @@ scanFolder(std::filesystem::path directory,
                        extension.compare(".bms") == 0 ||
                        extension.compare(".bme") == 0 ||
                        extension.compare(".bml") == 0 ||
-                       extension.compare(".pms") == 0) {
+                       extension.compare(".pms") == 0 ||
+                       extension.compare(".bmson") == 0) {
                 if (!isSongDirectory) {
                     dirId = addDirToParentDirs(db, root, parentDirQString);
                     isSongDirectory = true;

@@ -4,11 +4,13 @@
 
 #include <algorithm>
 #include <numeric>
+#include <set>
 #include "BmsNotesData.h"
 #include "sounds/SoundBuffer.h"
 
 #include <ranges>
 #include <spdlog/spdlog.h>
+#include <QJsonArray>
 
 using namespace std::chrono_literals;
 
@@ -573,7 +575,8 @@ removeInvalidNotes(std::array<std::vector<BmsNotesData::Note>,
 
 } // namespace
 
-BmsNotesData::BmsNotesData(const ParsedBmsChart& chart)
+BmsNotesData
+BmsNotesData::fromParsedChart(const ParsedBmsChart& chart)
 {
     auto lnType = defaultLnType;
     if (chart.tags.lnType.has_value()) {
@@ -584,12 +587,319 @@ BmsNotesData::BmsNotesData(const ParsedBmsChart& chart)
         throw std::runtime_error{ "Initial bpm must be positive, was: " +
                                   std::to_string(bpm) };
     }
-    generateMeasures(bpm,
-                     chart.tags.exBpms,
-                     chart.tags.stops,
-                     chart.tags.measures,
-                     lnType,
-                     chart.tags.lnObj);
+    auto data = BmsNotesData{};
+    data.generateMeasures(bpm,
+                          chart.tags.exBpms,
+                          chart.tags.stops,
+                          chart.tags.measures,
+                          lnType,
+                          chart.tags.lnObj);
+    return data;
+}
+BmsNotesData
+BmsNotesData::fromBmson(const QJsonObject& bmson)
+{
+    auto data = BmsNotesData{};
+
+    // ── 1. Read basic info ──────────────────────────────────────────────
+    const auto info = bmson["info"].toObject();
+    const auto initBpm = info["init_bpm"].toDouble(defaultBpm);
+    if (initBpm <= 0.0) {
+        throw std::runtime_error{ "Initial bpm must be positive, was: " +
+                                  std::to_string(initBpm) };
+    }
+    // Resolution: pulses per quarter note (default 240)
+    const auto resolution = info["resolution"].toInt(240);
+    if (resolution <= 0) {
+        throw std::runtime_error{ "Resolution must be positive, was: " +
+                                  std::to_string(resolution) };
+    }
+
+    // ── 2. Collect BPM change events ────────────────────────────────────
+    struct BpmEvent
+    {
+        int64_t pulse;
+        double bpm;
+    };
+    auto bpmEvents = std::vector<BpmEvent>{};
+    bpmEvents.push_back({ 0, initBpm });
+    for (const auto& ev : bmson["bpm_events"].toArray()) {
+        auto obj = ev.toObject();
+        auto pulse = static_cast<int64_t>(obj["y"].toDouble(0));
+        auto bpm = obj["bpm"].toDouble(0);
+        if (bpm <= 0.0) {
+            spdlog::debug("Skipping non-positive BPM event: {}",
+                          std::to_string(bpm));
+            continue;
+        }
+        bpmEvents.push_back({ pulse, bpm });
+    }
+    std::ranges::sort(bpmEvents, [](const auto& a, const auto& b) {
+        return a.pulse < b.pulse;
+    });
+    // Deduplicate: if multiple events at the same pulse, keep the last one
+    bpmEvents.erase(std::ranges::unique(bpmEvents,
+                                        [](const auto& a, const auto& b) {
+                                            return a.pulse == b.pulse;
+                                        })
+                      .begin(),
+                    bpmEvents.end());
+
+    // ── 3. Collect stop events ──────────────────────────────────────────
+    struct StopEvent
+    {
+        int64_t pulse;
+        int64_t duration; // in pulses
+    };
+    auto stopEvents = std::vector<StopEvent>{};
+    for (const auto& ev : bmson["stop_events"].toArray()) {
+        auto obj = ev.toObject();
+        auto pulse = static_cast<int64_t>(obj["y"].toDouble(0));
+        auto dur = static_cast<int64_t>(obj["duration"].toDouble(0));
+        if (dur <= 0) {
+            spdlog::debug("Skipping non-positive stop: {}", dur);
+            continue;
+        }
+        stopEvents.push_back({ pulse, dur });
+    }
+    std::ranges::sort(stopEvents, [](const auto& a, const auto& b) {
+        return a.pulse < b.pulse;
+    });
+
+    // ── 4. Build a timeline for pulse→Time conversion ───────────────────
+    // A timeline entry records the cumulative Time at a given pulse, plus
+    // the BPM in effect from that point forward.
+    struct TimelineEntry
+    {
+        int64_t pulse;
+        Time time;
+        double bpm;
+    };
+    auto timeline = std::vector<TimelineEntry>{};
+
+    // Merge BPM changes and stops into one sorted list of pulse positions.
+    auto allPulses = std::set<int64_t>{};
+    for (const auto& ev : bpmEvents) {
+        allPulses.insert(ev.pulse);
+    }
+    for (const auto& ev : stopEvents) {
+        allPulses.insert(ev.pulse);
+    }
+
+    // Walk through the timeline, accumulating time
+    auto currentBpm = initBpm;
+    auto currentTime = Time{ 0ns, 0.0 };
+    auto lastPulse = int64_t{ 0 };
+    auto bpmIt = bpmEvents.begin();
+    auto stopIt = stopEvents.begin();
+
+    // Helper: advance time from lastPulse to targetPulse at currentBpm
+    auto advanceTime = [&](int64_t targetPulse) {
+        if (targetPulse > lastPulse) {
+            auto deltaPulses = targetPulse - lastPulse;
+            auto deltaNs = static_cast<int64_t>(
+              static_cast<double>(deltaPulses) / resolution * 60.0 *
+              1'000'000'000 / currentBpm);
+            auto deltaPos = static_cast<double>(deltaPulses) / resolution;
+            currentTime =
+              currentTime + Time{ std::chrono::nanoseconds(deltaNs), deltaPos };
+            lastPulse = targetPulse;
+        }
+    };
+
+    // Process timeline
+    timeline.push_back({ 0, currentTime, currentBpm });
+    data.bpmChanges.emplace_back(currentTime, currentBpm);
+
+    for (auto pulse : allPulses) {
+        // Advance time to this pulse
+        advanceTime(pulse);
+
+        // Apply BPM change if one exists at this pulse
+        while (bpmIt != bpmEvents.end() && bpmIt->pulse == pulse) {
+            currentBpm = bpmIt->bpm;
+            if (pulse > 0 || bpmIt != bpmEvents.begin()) {
+                // Don't double-add the initial BPM
+                data.bpmChanges.emplace_back(currentTime, currentBpm);
+            }
+            ++bpmIt;
+        }
+
+        timeline.push_back({ pulse, currentTime, currentBpm });
+
+        // Apply stops at this pulse
+        while (stopIt != stopEvents.end() && stopIt->pulse == pulse) {
+            // A stop adds time but no position change
+            data.bpmChanges.emplace_back(currentTime, 0.0);
+            auto stopNs = static_cast<int64_t>(
+              static_cast<double>(stopIt->duration) / resolution * 60.0 *
+              1'000'000'000 / currentBpm);
+            currentTime =
+              currentTime + Time{ std::chrono::nanoseconds(stopNs), 0.0 };
+            data.bpmChanges.emplace_back(currentTime, currentBpm);
+            // Update the timeline entry with the post-stop time
+            timeline.back() = { pulse, currentTime, currentBpm };
+            ++stopIt;
+        }
+    }
+
+    // ── 5. pulseToTime conversion function ──────────────────────────────
+    auto pulseToTime = [&timeline, resolution](int64_t pulse) -> Time {
+        // Binary search for the last timeline entry at or before this pulse
+        auto it = std::upper_bound(timeline.begin(),
+                                   timeline.end(),
+                                   pulse,
+                                   [](int64_t p, const TimelineEntry& entry) {
+                                       return p < entry.pulse;
+                                   });
+        if (it != timeline.begin()) {
+            --it;
+        }
+        auto deltaPulses = pulse - it->pulse;
+        auto deltaNs =
+          static_cast<int64_t>(static_cast<double>(deltaPulses) / resolution *
+                               60.0 * 1'000'000'000 / it->bpm);
+        auto deltaPos = static_cast<double>(deltaPulses) / resolution;
+        return it->time + Time{ std::chrono::nanoseconds(deltaNs), deltaPos };
+    };
+
+    auto pulseToSnap = [resolution](int64_t pulse) -> Snap {
+        // Express the pulse position within a 4-beat measure
+        auto pulsesPerMeasure = resolution * defaultBeatsPerMeasure;
+        auto posInMeasure = pulse % pulsesPerMeasure;
+        if (posInMeasure < 0) {
+            posInMeasure += pulsesPerMeasure;
+        }
+        auto gcd =
+          std::gcd(posInMeasure, static_cast<int64_t>(pulsesPerMeasure));
+        return { static_cast<double>(posInMeasure / gcd),
+                 static_cast<double>(pulsesPerMeasure / gcd) };
+    };
+
+    // ── 6. Column mapping from bmson x values ───────────────────────────
+    // bmson x: 1=scratch, 2-8=keys 1-7 for P1; 9-16 for P2; 0=BGM
+    // Internal columns: 0-6=keys 1-7, 7=scratch for P1
+    //                   8-14=keys 1-7, 15=scratch for P2
+    auto bmsonXToColumn = [](int x) -> std::optional<int> {
+        if (x == 0) {
+            return std::nullopt; // BGM
+        }
+        if (x >= 1 && x <= 8) {
+            // P1
+            if (x == 1) {
+                return 7; // scratch
+            }
+            return x - 2; // keys: x=2→col0, x=3→col1, ..., x=8→col6
+        }
+        if (x >= 9 && x <= 16) {
+            // P2
+            if (x == 9) {
+                return 15; // P2 scratch
+            }
+            return (x - 10) + 8; // keys: x=10→col8, ..., x=16→col14
+        }
+        spdlog::debug("Unknown bmson lane x={}", x);
+        return std::nullopt;
+    };
+
+    // ── 7. Process sound channels ───────────────────────────────────────
+    const auto soundChannels = bmson["sound_channels"].toArray();
+    uint16_t nextSoundId = 1; // 0 is reserved for "no sound"
+    for (const auto& channel : soundChannels) {
+        auto channelObj = channel.toObject();
+        auto soundId = nextSoundId++;
+
+        const auto notesArr = channelObj["notes"].toArray();
+        for (const auto& noteVal : notesArr) {
+            auto noteObj = noteVal.toObject();
+            auto x = noteObj["x"].toInt(0);
+            auto y = static_cast<int64_t>(noteObj["y"].toDouble(0));
+            auto l = static_cast<int64_t>(noteObj["l"].toDouble(0));
+            auto c = noteObj["c"].toBool(false);
+
+            auto time = pulseToTime(y);
+            auto snap = pulseToSnap(y);
+
+            // Use sound ID 0 for continuation notes (don't restart sound)
+            auto noteSoundId = c ? static_cast<uint16_t>(0) : soundId;
+
+            auto column = bmsonXToColumn(x);
+            if (!column.has_value()) {
+                // BGM note
+                data.bgmNotes.emplace_back(time, noteSoundId);
+                continue;
+            }
+
+            auto col = column.value();
+            if (col < 0 || col >= static_cast<int>(columnNumber)) {
+                spdlog::debug(
+                  "bmson lane x={} mapped to invalid column {}", x, col);
+                continue;
+            }
+
+            if (l > 0) {
+                // Long note
+                data.notes.at(col).emplace_back(
+                  Note{ time, snap, NoteType::LongNoteBegin, noteSoundId });
+                auto endTime = pulseToTime(y + l);
+                auto endSnap = pulseToSnap(y + l);
+                data.notes.at(col).emplace_back(
+                  Note{ endTime, endSnap, NoteType::LongNoteEnd, noteSoundId });
+            } else {
+                // Normal note
+                data.notes.at(col).emplace_back(
+                  Note{ time, snap, NoteType::Normal, noteSoundId });
+            }
+        }
+    }
+
+    // ── 8. Bar lines ────────────────────────────────────────────────────
+    for (const auto& line : bmson["lines"].toArray()) {
+        auto obj = line.toObject();
+        auto pulse = static_cast<int64_t>(obj["y"].toDouble(0));
+        data.barLines.push_back(pulseToTime(pulse));
+    }
+
+    // ── 9. BGA events ───────────────────────────────────────────────────
+    const auto bgaObj = bmson["bga"].toObject();
+
+    for (const auto& ev : bgaObj["bga_events"].toArray()) {
+        auto obj = ev.toObject();
+        auto pulse = static_cast<int64_t>(obj["y"].toDouble(0));
+        auto id = static_cast<uint16_t>(obj["id"].toInt(0));
+        data.bgaBase.emplace_back(pulseToTime(pulse), id);
+    }
+    for (const auto& ev : bgaObj["layer_events"].toArray()) {
+        auto obj = ev.toObject();
+        auto pulse = static_cast<int64_t>(obj["y"].toDouble(0));
+        auto id = static_cast<uint16_t>(obj["id"].toInt(0));
+        data.bgaLayer.emplace_back(pulseToTime(pulse), id);
+    }
+    for (const auto& ev : bgaObj["poor_events"].toArray()) {
+        auto obj = ev.toObject();
+        auto pulse = static_cast<int64_t>(obj["y"].toDouble(0));
+        auto id = static_cast<uint16_t>(obj["id"].toInt(0));
+        data.bgaPoor.emplace_back(pulseToTime(pulse), id);
+    }
+
+    // ── 10. Sort all output arrays ──────────────────────────────────────
+    for (auto& column : data.notes) {
+        std::ranges::sort(column, [](const auto& a, const auto& b) {
+            if (a.time.timestamp == b.time.timestamp) {
+                return a.noteType < b.noteType;
+            }
+            return a.time.timestamp < b.time.timestamp;
+        });
+    }
+    std::ranges::sort(data.bgmNotes);
+    std::ranges::sort(data.bgaBase);
+    std::ranges::sort(data.bgaLayer);
+    std::ranges::sort(data.bgaPoor);
+    std::ranges::sort(data.barLines);
+
+    removeInvalidNotes(data.notes);
+
+    return data;
 }
 void
 BmsNotesData::generateMeasures(

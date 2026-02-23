@@ -51,6 +51,36 @@ class ChartDataFactory
     auto loadChartData(const std::filesystem::path& chartPath,
                        RandomGenerator randomGenerator,
                        int64_t directory = 0) const -> ChartComponents;
+    auto loadBmsonChartData(const std::filesystem::path& chartPath,
+                            int64_t directory = 0) const -> ChartComponents;
+
+  private:
+    struct ChartMetadata
+    {
+        QString title;
+        QString artist;
+        QString subtitle;
+        QString subartist;
+        QString genre;
+        QString stageFile;
+        QString banner;
+        QString backBmp;
+        int rank = 2;
+        double total = -1.0; // negative means "use default"
+        int playLevel = 1;
+        int difficulty = 1;
+        bool isRandom = false;
+        QList<qint64> randomSequence;
+        QString sha256;
+        QString md5;
+    };
+    static auto buildChartComponents(
+      charts::BmsNotesData calculatedNotesData,
+      ChartMetadata metadata,
+      std::unordered_map<uint16_t, std::filesystem::path> wavs,
+      std::unordered_map<uint16_t, std::filesystem::path> bmps,
+      const std::filesystem::path& chartPath,
+      int64_t directory) -> ChartComponents;
 };
 
 } // namespace resource_managers

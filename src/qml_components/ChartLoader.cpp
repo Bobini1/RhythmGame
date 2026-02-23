@@ -193,8 +193,13 @@ ChartLoader::loadChart(const QString& filename,
             spdlog::error("Failed to find chart path to load replay");
             return nullptr;
         }
-        auto chartComponents = chartDataFactory->loadChartData(
-          fileAbsolute, std::move(randomGenerator));
+        auto chartComponents = [&] {
+            if (fileAbsolute.extension() == ".bmson") {
+                return chartDataFactory->loadBmsonChartData(*file);
+            }
+            return chartDataFactory->loadChartData(fileAbsolute,
+                                                   std::move(randomGenerator));
+        }();
         return createChart(player1,
                            player1AutoPlay,
                            score1,

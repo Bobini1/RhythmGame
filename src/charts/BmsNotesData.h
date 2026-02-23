@@ -10,6 +10,7 @@
 #include "Snap.h"
 #include "ParsedBmsChart.h"
 
+#include <QJsonObject>
 #include <span>
 /**
  * @brief Classes and functions related to loading and calculating offsets in
@@ -75,7 +76,9 @@ struct BmsNotesData
     std::vector<Time> barLines;
     static constexpr auto defaultBpm = 120.0;
     static constexpr auto defaultLnType = LnType::RDM;
-    explicit BmsNotesData(const ParsedBmsChart& chart);
+
+    static BmsNotesData fromParsedChart(const ParsedBmsChart& chart);
+    static BmsNotesData fromBmson(const QJsonObject& bmson);
 
   private:
     void generateMeasures(
