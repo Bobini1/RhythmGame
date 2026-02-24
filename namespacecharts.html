@@ -229,8 +229,11 @@ Functions</h2></td></tr>
 <tr class="separator:a7538b4a28f3a1a40238f6bbe6fdca69c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a055f9dbcbc667dcb0557a1aa307e60af" id="r_a055f9dbcbc667dcb0557a1aa307e60af"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacecharts.html#a055f9dbcbc667dcb0557a1aa307e60af">createLowerCaseFilesMap</a> (std::filesystem::path dirToSearch) -&gt; std::unordered_map&lt; std::string, std::filesystem::path &gt;</td></tr>
 <tr class="separator:a055f9dbcbc667dcb0557a1aa307e60af"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5847c80fd7804c7c15ebff34cef4e636" id="r_a5847c80fd7804c7c15ebff34cef4e636"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacecharts.html#a5847c80fd7804c7c15ebff34cef4e636">loadBmsSounds</a> (<a class="el" href="classsounds_1_1AudioEngine.html">sounds::AudioEngine</a> *engine, const std::unordered_map&lt; uint16_t, std::filesystem::path &gt; &amp;wavs, const std::filesystem::path &amp;path) -&gt; std::unordered_map&lt; uint16_t, std::shared_ptr&lt; <a class="el" href="classsounds_1_1Sound.html">sounds::Sound</a> &gt; &gt;</td></tr>
-<tr class="separator:a5847c80fd7804c7c15ebff34cef4e636"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad7c2fd536d5a265c9585904f13b491e2" id="r_ad7c2fd536d5a265c9585904f13b491e2"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacecharts.html#ad7c2fd536d5a265c9585904f13b491e2">loadBmsSounds</a> (<a class="el" href="classsounds_1_1AudioEngine.html">sounds::AudioEngine</a> *engine, const std::unordered_map&lt; uint64_t, std::filesystem::path &gt; &amp;wavs, const std::filesystem::path &amp;path) -&gt; std::unordered_map&lt; uint64_t, std::shared_ptr&lt; <a class="el" href="classsounds_1_1Sound.html">sounds::Sound</a> &gt; &gt;</td></tr>
+<tr class="separator:ad7c2fd536d5a265c9585904f13b491e2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2b91ab975ce7eac5a9b3d5c27907b537" id="r_a2b91ab975ce7eac5a9b3d5c27907b537"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacecharts.html#a2b91ab975ce7eac5a9b3d5c27907b537">loadBmsonSounds</a> (<a class="el" href="classsounds_1_1AudioEngine.html">sounds::AudioEngine</a> *engine, const std::unordered_map&lt; uint64_t, std::filesystem::path &gt; &amp;channelPaths, const std::vector&lt; <a class="el" href="structcharts_1_1BmsNotesData_1_1BmsonSliceInfo.html">BmsNotesData::BmsonSliceInfo</a> &gt; &amp;slices, const std::unordered_map&lt; uint64_t, std::vector&lt; uint64_t &gt; &gt; &amp;fusions, const std::filesystem::path &amp;basePath) -&gt; std::unordered_map&lt; uint64_t, std::shared_ptr&lt; <a class="el" href="classsounds_1_1Sound.html">sounds::Sound</a> &gt; &gt;</td></tr>
+<tr class="memdesc:a2b91ab975ce7eac5a9b3d5c27907b537"><td class="mdescLeft">&#160;</td><td class="mdescRight">Loads and slices sounds for a bmson chart.  <br /></td></tr>
+<tr class="separator:a2b91ab975ce7eac5a9b3d5c27907b537"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Classes and functions related to loading and calculating offsets in BMS charts. </p>
@@ -387,8 +390,67 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="a5847c80fd7804c7c15ebff34cef4e636" name="a5847c80fd7804c7c15ebff34cef4e636"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5847c80fd7804c7c15ebff34cef4e636">&#9670;&#160;</a></span>loadBmsSounds()</h2>
+<a id="a2b91ab975ce7eac5a9b3d5c27907b537" name="a2b91ab975ce7eac5a9b3d5c27907b537"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2b91ab975ce7eac5a9b3d5c27907b537">&#9670;&#160;</a></span>loadBmsonSounds()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto charts::loadBmsonSounds </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classsounds_1_1AudioEngine.html">sounds::AudioEngine</a> *&#160;</td>
+          <td class="paramname"><em>engine</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::unordered_map&lt; uint64_t, std::filesystem::path &gt; &amp;&#160;</td>
+          <td class="paramname"><em>channelPaths</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::vector&lt; <a class="el" href="structcharts_1_1BmsNotesData_1_1BmsonSliceInfo.html">BmsNotesData::BmsonSliceInfo</a> &gt; &amp;&#160;</td>
+          <td class="paramname"><em>slices</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::unordered_map&lt; uint64_t, std::vector&lt; uint64_t &gt; &gt; &amp;&#160;</td>
+          <td class="paramname"><em>fusions</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::filesystem::path &amp;&#160;</td>
+          <td class="paramname"><em>basePath</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> -&gt;  std::unordered_map&lt; uint64_t, std::shared_ptr&lt; <a class="el" href="classsounds_1_1Sound.html">sounds::Sound</a> &gt; &gt;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Loads and slices sounds for a bmson chart. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">engine</td><td>The audio engine. </td></tr>
+    <tr><td class="paramname">channelPaths</td><td>Map from channel index to sound file path. </td></tr>
+    <tr><td class="paramname">slices</td><td>Slice descriptors from <a class="el" href="structcharts_1_1BmsNotesData.html#afda9cc5da34c48e682cdf0d6771cf04a" title="Slice descriptors for bmson. Empty for BMS charts.">BmsNotesData::bmsonSlices</a>. </td></tr>
+    <tr><td class="paramname">fusions</td><td>Fusion map from <a class="el" href="structcharts_1_1BmsNotesData.html#a2a88aae3dcf90368cf62bbe472cb64fe">BmsNotesData::bmsonFusions</a>. </td></tr>
+    <tr><td class="paramname">basePath</td><td>The directory containing the bmson file. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Map from sound ID to Sound (including MultiSounds for fusions). </dd></dl>
+
+</div>
+</div>
+<a id="ad7c2fd536d5a265c9585904f13b491e2" name="ad7c2fd536d5a265c9585904f13b491e2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad7c2fd536d5a265c9585904f13b491e2">&#9670;&#160;</a></span>loadBmsSounds()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -402,7 +464,7 @@ Functions</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const std::unordered_map&lt; uint16_t, std::filesystem::path &gt; &amp;&#160;</td>
+          <td class="paramtype">const std::unordered_map&lt; uint64_t, std::filesystem::path &gt; &amp;&#160;</td>
           <td class="paramname"><em>wavs</em>, </td>
         </tr>
         <tr>
@@ -414,7 +476,7 @@ Functions</h2></td></tr>
         <tr>
           <td></td>
           <td>)</td>
-          <td></td><td> -&gt;  std::unordered_map&lt; uint16_t, std::shared_ptr&lt; <a class="el" href="classsounds_1_1Sound.html">sounds::Sound</a> &gt; &gt;</td>
+          <td></td><td> -&gt;  std::unordered_map&lt; uint64_t, std::shared_ptr&lt; <a class="el" href="classsounds_1_1Sound.html">sounds::Sound</a> &gt; &gt;</td>
         </tr>
       </table>
 </div><div class="memdoc">

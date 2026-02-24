@@ -1,19 +1,15 @@
 <map id="src/sounds/SoundBuffer.cpp" name="src/sounds/SoundBuffer.cpp">
-<area shape="rect" id="Node000001" title=" " alt="" coords="407,5,607,31"/>
-<area shape="rect" id="Node000002" href="$SoundBuffer_8h.html" title=" " alt="" coords="246,79,358,104"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="475,33,349,77,347,72,473,28"/>
-<area shape="rect" id="Node000010" title=" " alt="" coords="381,79,505,104"/>
-<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="499,33,465,70,461,67,495,29"/>
-<area shape="rect" id="Node000011" title=" " alt="" coords="530,79,615,104"/>
-<area shape="poly" id="edge10_Node000001_Node000011" title=" " alt="" coords="520,29,555,67,551,70,516,33"/>
-<area shape="rect" id="Node000012" title=" " alt="" coords="640,79,767,104"/>
-<area shape="poly" id="edge11_Node000001_Node000012" title=" " alt="" coords="540,28,659,71,658,76,538,33"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="253,5,453,31"/>
+<area shape="rect" id="Node000002" href="$SoundBuffer_8h.html" title=" " alt="" coords="297,79,409,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="355,31,355,65,350,65,350,31"/>
 <area shape="rect" id="Node000003" href="$AudioEngine_8h.html" title=" " alt="" coords="131,152,246,177"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="285,106,220,147,217,142,282,102"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="327,106,229,149,227,144,325,102"/>
 <area shape="rect" id="Node000008" title=" " alt="" coords="271,152,333,177"/>
-<area shape="poly" id="edge7_Node000002_Node000008" title=" " alt="" coords="305,104,305,138,299,138,299,104"/>
+<area shape="poly" id="edge7_Node000002_Node000008" title=" " alt="" coords="346,106,320,142,316,139,342,103"/>
 <area shape="rect" id="Node000009" title=" " alt="" coords="358,152,449,177"/>
-<area shape="poly" id="edge8_Node000002_Node000009" title=" " alt="" coords="320,102,377,142,374,146,317,106"/>
+<area shape="poly" id="edge8_Node000002_Node000009" title=" " alt="" coords="363,103,389,139,385,142,359,106"/>
+<area shape="rect" id="Node000010" title=" " alt="" coords="473,152,526,177"/>
+<area shape="poly" id="edge9_Node000002_Node000010" title=" " alt="" coords="377,102,464,144,462,148,375,106"/>
 <area shape="rect" id="Node000004" href="$MiniaudioBackend_8h.html" title=" " alt="" coords="40,225,193,251"/>
 <area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="179,180,140,218,136,214,175,176"/>
 <area shape="rect" id="Node000007" title=" " alt="" coords="218,225,303,251"/>

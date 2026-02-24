@@ -19,13 +19,14 @@ var searchData=
   ['bmslivescore_16',['BmsLiveScore',['../classgameplay__logic_1_1BmsLiveScore.html',1,'gameplay_logic']]],
   ['bmsnotes_17',['BmsNotes',['../classgameplay__logic_1_1BmsNotes.html',1,'gameplay_logic']]],
   ['bmsnotesdata_18',['BmsNotesData',['../structcharts_1_1BmsNotesData.html',1,'charts']]],
-  ['bmspoints_19',['BmsPoints',['../classgameplay__logic_1_1BmsPoints.html',1,'gameplay_logic']]],
-  ['bmsreplaydata_20',['BmsReplayData',['../classgameplay__logic_1_1BmsReplayData.html',1,'gameplay_logic']]],
-  ['bmsresult_21',['BmsResult',['../classgameplay__logic_1_1BmsResult.html',1,'gameplay_logic']]],
-  ['bmsresultcourse_22',['BmsResultCourse',['../classgameplay__logic_1_1BmsResultCourse.html',1,'gameplay_logic']]],
-  ['bmsscore_23',['BmsScore',['../classgameplay__logic_1_1BmsScore.html',1,'gameplay_logic']]],
-  ['bmsscorecourse_24',['BmsScoreCourse',['../classgameplay__logic_1_1BmsScoreCourse.html',1,'gameplay_logic']]],
-  ['bpm_25',['Bpm',['../structcharts_1_1Bpm.html',1,'charts']]],
-  ['bpmchange_26',['BpmChange',['../classgameplay__logic_1_1BpmChange.html',1,'gameplay_logic']]],
-  ['bpmtag_27',['BpmTag',['../structcharts_1_1BpmTag.html',1,'charts']]]
+  ['bmsonsliceinfo_19',['BmsonSliceInfo',['../structcharts_1_1BmsNotesData_1_1BmsonSliceInfo.html',1,'charts::BmsNotesData']]],
+  ['bmspoints_20',['BmsPoints',['../classgameplay__logic_1_1BmsPoints.html',1,'gameplay_logic']]],
+  ['bmsreplaydata_21',['BmsReplayData',['../classgameplay__logic_1_1BmsReplayData.html',1,'gameplay_logic']]],
+  ['bmsresult_22',['BmsResult',['../classgameplay__logic_1_1BmsResult.html',1,'gameplay_logic']]],
+  ['bmsresultcourse_23',['BmsResultCourse',['../classgameplay__logic_1_1BmsResultCourse.html',1,'gameplay_logic']]],
+  ['bmsscore_24',['BmsScore',['../classgameplay__logic_1_1BmsScore.html',1,'gameplay_logic']]],
+  ['bmsscorecourse_25',['BmsScoreCourse',['../classgameplay__logic_1_1BmsScoreCourse.html',1,'gameplay_logic']]],
+  ['bpm_26',['Bpm',['../structcharts_1_1Bpm.html',1,'charts']]],
+  ['bpmchange_27',['BpmChange',['../classgameplay__logic_1_1BpmChange.html',1,'gameplay_logic']]],
+  ['bpmtag_28',['BpmTag',['../structcharts_1_1BpmTag.html',1,'charts']]]
 ];

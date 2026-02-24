@@ -1,31 +1,15 @@
 <map id="src/sounds/Sound.cpp" name="src/sounds/Sound.cpp">
-<area shape="rect" id="Node000001" title=" " alt="" coords="185,5,348,31"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="17,79,103,104"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="234,33,107,77,106,72,233,28"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="128,79,205,104"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="252,33,196,73,193,68,249,29"/>
-<area shape="rect" id="Node000004" href="$Sound_8h.html" title=" " alt="" coords="229,79,304,104"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="269,31,269,65,264,65,264,31"/>
-<area shape="rect" id="Node000010" href="$AudioEngine_8h.html" title=" " alt="" coords="304,152,419,177"/>
-<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="280,29,318,77,353,138,348,141,314,80,276,33"/>
-<area shape="rect" id="Node000012" href="$SoundBuffer_8h.html" title=" " alt="" coords="389,79,552,104"/>
-<area shape="poly" id="edge12_Node000001_Node000012" title=" " alt="" coords="300,28,426,72,424,77,299,33"/>
-<area shape="rect" id="Node000005" title=" " alt="" coords="5,152,80,177"/>
-<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="231,107,93,150,91,145,230,101"/>
-<area shape="rect" id="Node000006" title=" " alt="" coords="105,152,229,177"/>
-<area shape="poly" id="edge5_Node000004_Node000006" title=" " alt="" coords="252,106,196,146,193,142,249,102"/>
-<area shape="rect" id="Node000007" href="$MiniaudioBackend_8h.html" title=" " alt="" coords="190,225,343,251"/>
-<area shape="poly" id="edge6_Node000004_Node000007" title=" " alt="" coords="269,104,269,212,264,212,264,104"/>
-<area shape="rect" id="Node000008" title=" " alt="" coords="155,299,255,324"/>
-<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="259,253,226,290,222,286,255,249"/>
-<area shape="rect" id="Node000009" title=" " alt="" coords="280,299,379,324"/>
-<area shape="poly" id="edge8_Node000007_Node000009" title=" " alt="" coords="279,249,312,286,308,290,275,253"/>
-<area shape="poly" id="edge10_Node000010_Node000007" title=" " alt="" coords="348,179,295,219,292,215,345,175"/>
-<area shape="rect" id="Node000011" title=" " alt="" coords="368,225,453,251"/>
-<area shape="poly" id="edge11_Node000010_Node000011" title=" " alt="" coords="372,176,397,213,393,216,367,179"/>
-<area shape="poly" id="edge13_Node000012_Node000010" title=" " alt="" coords="455,106,392,147,389,142,452,102"/>
-<area shape="rect" id="Node000013" title=" " alt="" coords="443,152,506,177"/>
-<area shape="poly" id="edge14_Node000012_Node000013" title=" " alt="" coords="474,104,476,138,471,139,469,104"/>
-<area shape="rect" id="Node000014" title=" " alt="" coords="531,152,621,177"/>
-<area shape="poly" id="edge15_Node000012_Node000014" title=" " alt="" coords="489,102,549,142,546,147,486,106"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="85,5,248,31"/>
+<area shape="rect" id="Node000002" href="$Sound_8h.html" title=" " alt="" coords="129,79,204,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="169,31,169,65,164,65,164,31"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="5,152,80,177"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="148,106,76,147,73,143,145,102"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="105,152,229,177"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="169,104,169,138,164,138,164,104"/>
+<area shape="rect" id="Node000005" href="$MiniaudioBackend_8h.html" title=" " alt="" coords="253,152,406,177"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="194,102,291,144,289,149,192,106"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="217,225,317,251"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="321,179,288,217,284,213,317,176"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="341,225,440,251"/>
+<area shape="poly" id="edge6_Node000005_Node000007" title=" " alt="" coords="341,176,374,213,370,217,337,179"/>
 </map>

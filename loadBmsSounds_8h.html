@@ -79,7 +79,9 @@ $(function() {
   <div class="headertitle"><div class="title">loadBmsSounds.h File Reference</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><code>#include &lt;unordered_map&gt;</code><br />
+<div class="textblock"><code>#include &quot;<a class="el" href="BmsNotesData_8h_source.html">charts/BmsNotesData.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="AudioEngine_8h_source.html">sounds/AudioEngine.h</a>&quot;</code><br />
+<code>#include &lt;unordered_map&gt;</code><br />
 <code>#include &lt;filesystem&gt;</code><br />
 <code>#include &quot;<a class="el" href="Sound_8h_source.html">sounds/Sound.h</a>&quot;</code><br />
 </div><div class="textblock"><div class="dynheader">
@@ -87,23 +89,51 @@ Include dependency graph for loadBmsSounds.h:</div>
 <div class="dyncontent">
 <div class="center"><img src="loadBmsSounds_8h__incl.png" border="0" usemap="#asrc_2resource__managers_2loadBmsSounds_8h" alt=""/></div>
 <map name="asrc_2resource__managers_2loadBmsSounds_8h" id="asrc_2resource__managers_2loadBmsSounds_8h">
-<area shape="rect" title=" " alt="" coords="113,5,286,45"/>
-<area shape="rect" title=" " alt="" coords="5,93,129,119"/>
-<area shape="poly" title=" " alt="" coords="169,48,100,88,98,84,166,43"/>
-<area shape="rect" title=" " alt="" coords="154,93,245,119"/>
-<area shape="poly" title=" " alt="" coords="202,46,202,79,197,79,197,46"/>
-<area shape="rect" href="Sound_8h.html" title=" " alt="" coords="269,93,393,119"/>
-<area shape="poly" title=" " alt="" coords="232,43,301,84,298,88,230,48"/>
-<area shape="rect" title=" " alt="" coords="170,167,245,192"/>
-<area shape="poly" title=" " alt="" coords="313,121,241,162,238,157,310,116"/>
-<area shape="rect" title=" " alt="" coords="269,167,393,192"/>
-<area shape="poly" title=" " alt="" coords="334,119,334,153,329,153,329,119"/>
-<area shape="rect" href="MiniaudioBackend_8h.html" title=" " alt="" coords="417,167,571,192"/>
-<area shape="poly" title=" " alt="" coords="359,116,456,159,454,163,356,121"/>
-<area shape="rect" title=" " alt="" coords="381,240,481,265"/>
-<area shape="poly" title=" " alt="" coords="486,194,453,231,449,228,482,191"/>
-<area shape="rect" title=" " alt="" coords="506,240,605,265"/>
-<area shape="poly" title=" " alt="" coords="506,191,538,228,534,231,502,194"/>
+<area shape="rect" title=" " alt="" coords="689,5,862,45"/>
+<area shape="rect" href="BmsNotesData_8h.html" title=" " alt="" coords="257,93,433,119"/>
+<area shape="poly" title=" " alt="" coords="689,45,421,94,420,88,688,40"/>
+<area shape="rect" title=" " alt="" coords="540,240,664,265"/>
+<area shape="poly" title=" " alt="" coords="742,48,711,69,683,95,616,229,611,227,679,92,708,64,739,43"/>
+<area shape="rect" href="AudioEngine_8h.html" title=" " alt="" coords="693,93,858,119"/>
+<area shape="poly" title=" " alt="" coords="778,46,778,79,773,79,773,46"/>
+<area shape="rect" title=" " alt="" coords="882,93,973,119"/>
+<area shape="poly" title=" " alt="" coords="813,43,894,84,891,89,811,48"/>
+<area shape="rect" href="Sound_8h.html" title=" " alt="" coords="997,93,1121,119"/>
+<area shape="poly" title=" " alt="" coords="844,43,1006,87,1004,92,843,48"/>
+<area shape="rect" title=" " alt="" coords="5,167,68,192"/>
+<area shape="poly" title=" " alt="" coords="293,121,82,169,81,164,291,116"/>
+<area shape="rect" title=" " alt="" coords="93,167,159,192"/>
+<area shape="poly" title=" " alt="" coords="310,121,174,165,172,160,309,116"/>
+<area shape="rect" href="Snap_8h.html" title=" " alt="" coords="183,167,250,192"/>
+<area shape="poly" title=" " alt="" coords="325,121,251,162,249,157,323,116"/>
+<area shape="rect" href="ParsedBmsChart_8h.html" title=" " alt="" coords="274,167,415,192"/>
+<area shape="poly" title=" " alt="" coords="347,119,347,153,342,153,342,119"/>
+<area shape="rect" title=" " alt="" coords="439,167,541,192"/>
+<area shape="poly" title=" " alt="" coords="369,116,455,158,453,163,367,121"/>
+<area shape="rect" title=" " alt="" coords="565,167,618,192"/>
+<area shape="poly" title=" " alt="" coords="386,116,552,164,550,169,384,121"/>
+<area shape="rect" title=" " alt="" coords="163,240,214,265"/>
+<area shape="poly" title=" " alt="" coords="321,194,228,237,226,232,319,190"/>
+<area shape="poly" title=" " alt="" coords="387,189,548,234,547,239,385,195"/>
+<area shape="rect" title=" " alt="" coords="238,240,310,265"/>
+<area shape="poly" title=" " alt="" coords="335,194,297,232,293,228,331,190"/>
+<area shape="rect" title=" " alt="" coords="334,240,409,265"/>
+<area shape="poly" title=" " alt="" coords="352,191,365,226,360,228,347,193"/>
+<area shape="rect" title=" " alt="" coords="433,240,489,265"/>
+<area shape="poly" title=" " alt="" coords="365,190,431,230,429,235,362,194"/>
+<area shape="rect" href="MiniaudioBackend_8h.html" title=" " alt="" coords="843,167,996,192"/>
+<area shape="poly" title=" " alt="" coords="800,116,885,158,882,163,797,121"/>
+<area shape="rect" title=" " alt="" coords="733,167,818,192"/>
+<area shape="poly" title=" " alt="" coords="778,119,778,153,773,153,773,119"/>
+<area shape="rect" title=" " alt="" coords="807,240,907,265"/>
+<area shape="poly" title=" " alt="" coords="911,194,878,231,874,228,907,191"/>
+<area shape="rect" title=" " alt="" coords="931,240,1030,265"/>
+<area shape="poly" title=" " alt="" coords="931,191,964,228,960,231,927,194"/>
+<area shape="poly" title=" " alt="" coords="1038,121,955,163,953,158,1036,116"/>
+<area shape="rect" title=" " alt="" coords="1022,167,1097,192"/>
+<area shape="poly" title=" " alt="" coords="1062,119,1062,153,1057,153,1057,119"/>
+<area shape="rect" title=" " alt="" coords="1121,167,1245,192"/>
+<area shape="poly" title=" " alt="" coords="1081,116,1153,157,1150,162,1078,121"/>
 </map>
 </div>
 </div><div class="textblock"><div class="dynheader">
@@ -129,8 +159,11 @@ Namespaces</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:a5847c80fd7804c7c15ebff34cef4e636" id="r_a5847c80fd7804c7c15ebff34cef4e636"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacecharts.html#a5847c80fd7804c7c15ebff34cef4e636">charts::loadBmsSounds</a> (<a class="el" href="classsounds_1_1AudioEngine.html">sounds::AudioEngine</a> *engine, const std::unordered_map&lt; uint16_t, std::filesystem::path &gt; &amp;wavs, const std::filesystem::path &amp;path) -&gt; std::unordered_map&lt; uint16_t, std::shared_ptr&lt; <a class="el" href="classsounds_1_1Sound.html">sounds::Sound</a> &gt; &gt;</td></tr>
-<tr class="separator:a5847c80fd7804c7c15ebff34cef4e636"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad7c2fd536d5a265c9585904f13b491e2" id="r_ad7c2fd536d5a265c9585904f13b491e2"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacecharts.html#ad7c2fd536d5a265c9585904f13b491e2">charts::loadBmsSounds</a> (<a class="el" href="classsounds_1_1AudioEngine.html">sounds::AudioEngine</a> *engine, const std::unordered_map&lt; uint64_t, std::filesystem::path &gt; &amp;wavs, const std::filesystem::path &amp;path) -&gt; std::unordered_map&lt; uint64_t, std::shared_ptr&lt; <a class="el" href="classsounds_1_1Sound.html">sounds::Sound</a> &gt; &gt;</td></tr>
+<tr class="separator:ad7c2fd536d5a265c9585904f13b491e2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2b91ab975ce7eac5a9b3d5c27907b537" id="r_a2b91ab975ce7eac5a9b3d5c27907b537"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacecharts.html#a2b91ab975ce7eac5a9b3d5c27907b537">charts::loadBmsonSounds</a> (<a class="el" href="classsounds_1_1AudioEngine.html">sounds::AudioEngine</a> *engine, const std::unordered_map&lt; uint64_t, std::filesystem::path &gt; &amp;channelPaths, const std::vector&lt; <a class="el" href="structcharts_1_1BmsNotesData_1_1BmsonSliceInfo.html">BmsNotesData::BmsonSliceInfo</a> &gt; &amp;slices, const std::unordered_map&lt; uint64_t, std::vector&lt; uint64_t &gt; &gt; &amp;fusions, const std::filesystem::path &amp;basePath) -&gt; std::unordered_map&lt; uint64_t, std::shared_ptr&lt; <a class="el" href="classsounds_1_1Sound.html">sounds::Sound</a> &gt; &gt;</td></tr>
+<tr class="memdesc:a2b91ab975ce7eac5a9b3d5c27907b537"><td class="mdescLeft">&#160;</td><td class="mdescRight">Loads and slices sounds for a bmson chart.  <br /></td></tr>
+<tr class="separator:a2b91ab975ce7eac5a9b3d5c27907b537"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 </div><!-- contents -->
 <!-- start footer part -->

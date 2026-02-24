@@ -112,7 +112,7 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span>    std::vector&lt;BgmType&gt; bgms;</div>
 <div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span>    std::span&lt;BgmType&gt; currentBgms;</div>
 <div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span>    std::vector&lt;std::pair&lt;charts::BmsNotesData::Time, double&gt;&gt; bpmChanges;</div>
-<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span>    std::unordered_map&lt;uint16_t, std::shared_ptr&lt;sounds::Sound&gt;&gt; <a class="code hl_namespace" href="namespacesounds.html">sounds</a>;</div>
+<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span>    std::unordered_map&lt;uint64_t, std::shared_ptr&lt;sounds::Sound&gt;&gt; <a class="code hl_namespace" href="namespacesounds.html">sounds</a>;</div>
 <div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>    <a class="code hl_class" href="classgameplay__logic_1_1rules_1_1HitRules.html">rules::HitRules</a> hitRules;</div>
 <div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>    <a class="code hl_class" href="classgameplay__logic_1_1BmsLiveScore.html">BmsLiveScore</a>* score;</div>
 <div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span>    std::shared_ptr&lt;sounds::Sound&gt; mineHitSound;</div>
@@ -136,12 +136,12 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span>    <span class="keyword">explicit</span> <a class="code hl_class" href="classgameplay__logic_1_1BmsGameReferee.html">BmsGameReferee</a>(</div>
 <div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span>      std::array&lt;std::vector&lt;charts::BmsNotesData::Note&gt;,</div>
 <div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span>                 <a class="code hl_variable" href="structcharts_1_1BmsNotesData.html#ae769bf1c0278f6b6e658f112e5f0e522">charts::BmsNotesData::columnNumber</a>&gt; notes,</div>
-<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span>      <span class="keyword">const</span> std::vector&lt;std::pair&lt;charts::BmsNotesData::Time, uint16_t&gt;&gt;&amp;</div>
+<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span>      <span class="keyword">const</span> std::vector&lt;std::pair&lt;charts::BmsNotesData::Time, uint64_t&gt;&gt;&amp;</div>
 <div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span>        bgmNotes,</div>
 <div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span>      std::vector&lt;std::pair&lt;charts::BmsNotesData::Time, double&gt;&gt; bpmChanges,</div>
 <div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span>      std::shared_ptr&lt;sounds::Sound&gt; mineHitSound,</div>
 <div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>      <a class="code hl_class" href="classgameplay__logic_1_1BmsLiveScore.html">BmsLiveScore</a>* score,</div>
-<div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span>      std::unordered_map&lt;uint16_t, std::shared_ptr&lt;sounds::Sound&gt;&gt; <a class="code hl_namespace" href="namespacesounds.html">sounds</a>,</div>
+<div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span>      std::unordered_map&lt;uint64_t, std::shared_ptr&lt;sounds::Sound&gt;&gt; <a class="code hl_namespace" href="namespacesounds.html">sounds</a>,</div>
 <div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span>      <a class="code hl_class" href="classgameplay__logic_1_1rules_1_1HitRules.html">rules::HitRules</a> hitRules);</div>
 <div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classgameplay__logic_1_1BmsGameReferee.html#a3fd7f26a5d979bfc37da8b31a2529e74">update</a>(std::chrono::nanoseconds offsetFromStart,</div>
 <div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span>                <span class="keywordtype">bool</span> lastUpdate = <span class="keyword">false</span>);</div>
@@ -149,7 +149,7 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span>    <span class="keyword">auto</span> <a class="code hl_function" href="classgameplay__logic_1_1BmsGameReferee.html#a03219524d4185b9590a7093891782024">getBpm</a>(std::chrono::nanoseconds offsetFromStart) <span class="keyword">const</span></div>
 <div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span>      -&gt; std::pair&lt;charts::BmsNotesData::Time, double&gt;;</div>
 <div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span>    <span class="keyword">static</span> <span class="keyword">auto</span> <a class="code hl_function" href="classgameplay__logic_1_1BmsGameReferee.html#a860b14a24094a6d21441ba35a8c9b9a4">getPosition</a>(std::pair&lt;charts::BmsNotesData::Time, double&gt; <a class="code hl_variable" href="BmsNotesData_8cpp.html#a7d63387ef4e3682ea3661d87f7a8145f">bpm</a>,</div>
-<div class="line"><a id="l00093" name="l00093"></a><span class="lineno">   93</span>                     std::chrono::nanoseconds offsetFromStart)</div>
+<div class="line"><a id="l00093" name="l00093"></a><span class="lineno">   93</span>                            std::chrono::nanoseconds offsetFromStart)</div>
 <div class="line"><a id="l00094" name="l00094"></a><span class="lineno">   94</span>      -&gt; <a class="code hl_typedef" href="classgameplay__logic_1_1BmsGameReferee.html#ac32c6c7eb1680257498d6e7f988bcbfd">Position</a>;</div>
 <div class="line"><a id="l00095" name="l00095"></a><span class="lineno">   95</span> </div>
 <div class="line"><a id="l00103" name="l00103"></a><span class="lineno">  103</span>    <span class="keyword">auto</span> <a class="code hl_function" href="classgameplay__logic_1_1BmsGameReferee.html#a9b16c3583c4ed2efd0820ec527e9c272">passPressed</a>(std::chrono::nanoseconds offsetFromStart,</div>

@@ -76,7 +76,7 @@ $(function() {
   <div class="summary">
 <a href="#pub-methods">Public Member Functions</a> &#124;
 <a href="classsounds_1_1SoundBuffer-members.html">List of all members</a>  </div>
-  <div class="headertitle"><div class="title">sounds::SoundBuffer Class Reference</div></div>
+  <div class="headertitle"><div class="title">sounds::SoundBuffer Class Reference<span class="mlabels"><span class="mlabel">abstract</span></span></div></div>
 </div><!--header-->
 <div class="contents">
 
@@ -84,23 +84,34 @@ $(function() {
  <a href="classsounds_1_1SoundBuffer.html#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="SoundBuffer_8h_source.html">SoundBuffer.h</a>&gt;</code></p>
+<div class="dynheader">
+Inheritance diagram for sounds::SoundBuffer:</div>
+<div class="dyncontent">
+<div class="center"><img src="classsounds_1_1SoundBuffer__inherit__graph.png" border="0" usemap="#asounds_1_1SoundBuffer_inherit__map" alt="Inheritance graph"/></div>
+<map name="asounds_1_1SoundBuffer_inherit__map" id="asounds_1_1SoundBuffer_inherit__map">
+<area shape="rect" title="A buffer that can be used to create sounds. Wraps an buffer." alt="" coords="140,5,295,31"/>
+<area shape="rect" href="classsounds_1_1NormalSoundBuffer.html" title="A buffer that can be used to create sounds. Wraps an buffer." alt="" coords="5,79,208,104"/>
+<area shape="poly" title=" " alt="" coords="189,40,126,81,123,76,187,36"/>
+<area shape="rect" href="classsounds_1_1SlicedSoundBuffer.html" title="A view into a subsection of an existing SoundBuffer." alt="" coords="232,79,427,104"/>
+<area shape="poly" title=" " alt="" coords="249,36,312,76,310,81,246,40"/>
+</map>
+<center><span class="legend">[<a href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a7290321b5580c475efa22efd911f241d" id="r_a7290321b5580c475efa22efd911f241d"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classsounds_1_1SoundBuffer.html#a7290321b5580c475efa22efd911f241d">SoundBuffer</a> (<a class="el" href="classsounds_1_1AudioEngine.html">AudioEngine</a> *engine, const std::filesystem::path &amp;filename)</td></tr>
-<tr class="memdesc:a7290321b5580c475efa22efd911f241d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates a new sound buffer from a file.  <br /></td></tr>
-<tr class="separator:a7290321b5580c475efa22efd911f241d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a364aa2485d88724e74ab9c6a264e9bca" id="r_a364aa2485d88724e74ab9c6a264e9bca"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classsounds_1_1SoundBuffer.html#a364aa2485d88724e74ab9c6a264e9bca">getFrames</a> () const -&gt; ma_uint64</td></tr>
-<tr class="separator:a364aa2485d88724e74ab9c6a264e9bca"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab52f751daf4f0d41fbce34c0257de544" id="r_ab52f751daf4f0d41fbce34c0257de544"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classsounds_1_1SoundBuffer.html#ab52f751daf4f0d41fbce34c0257de544">getSamples</a> () const -&gt; const std::vector&lt; float &gt; &amp;</td></tr>
-<tr class="separator:ab52f751daf4f0d41fbce34c0257de544"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0f086c2f0c0bf16f9682f4855bdbbb40" id="r_a0f086c2f0c0bf16f9682f4855bdbbb40"><td class="memItemLeft" align="right" valign="top">virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classsounds_1_1SoundBuffer.html#a0f086c2f0c0bf16f9682f4855bdbbb40">~SoundBuffer</a> ()=default</td></tr>
+<tr class="separator:a0f086c2f0c0bf16f9682f4855bdbbb40"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1ec0378ac8d7ba526c21c6e13a2aab13" id="r_a1ec0378ac8d7ba526c21c6e13a2aab13"><td class="memItemLeft" align="right" valign="top">virtual auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classsounds_1_1SoundBuffer.html#a1ec0378ac8d7ba526c21c6e13a2aab13">getFrames</a> () const -&gt; ma_uint64=0</td></tr>
+<tr class="separator:a1ec0378ac8d7ba526c21c6e13a2aab13"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9a6214f996830d930de6a4f4090bb541" id="r_a9a6214f996830d930de6a4f4090bb541"><td class="memItemLeft" align="right" valign="top">virtual auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classsounds_1_1SoundBuffer.html#a9a6214f996830d930de6a4f4090bb541">getSamples</a> () const -&gt; std::span&lt; const float &gt;=0</td></tr>
+<tr class="separator:a9a6214f996830d930de6a4f4090bb541"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>A buffer that can be used to create sounds. Wraps an buffer. </p>
 <p>This class is used to load, decode and store the sound data. It can be used to create multiple sounds that share the same buffer. Creating new instances of this class can be very expensive, so it is recommended to load every sound only once, at the start of a scene. </p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="a7290321b5580c475efa22efd911f241d" name="a7290321b5580c475efa22efd911f241d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7290321b5580c475efa22efd911f241d">&#9670;&#160;</a></span>SoundBuffer()</h2>
+<a id="a0f086c2f0c0bf16f9682f4855bdbbb40" name="a0f086c2f0c0bf16f9682f4855bdbbb40"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0f086c2f0c0bf16f9682f4855bdbbb40">&#9670;&#160;</a></span>~SoundBuffer()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -109,78 +120,78 @@ Public Member Functions</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">sounds::SoundBuffer::SoundBuffer </td>
+          <td class="memname">virtual sounds::SoundBuffer::~SoundBuffer </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="classsounds_1_1AudioEngine.html">AudioEngine</a> *&#160;</td>
-          <td class="paramname"><em>engine</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
+          <td class="paramname"></td><td>)</td>
           <td></td>
-          <td class="paramtype">const std::filesystem::path &amp;&#160;</td>
-          <td class="paramname"><em>filename</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
         </tr>
       </table>
   </td>
   <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">explicit</span></span>  </td>
+<span class="mlabels"><span class="mlabel">virtual</span><span class="mlabel">default</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
 
-<p>Creates a new sound buffer from a file. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">filename</td><td>The path to the file to load. </td></tr>
-  </table>
-  </dd>
-</dl>
-
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a id="a364aa2485d88724e74ab9c6a264e9bca" name="a364aa2485d88724e74ab9c6a264e9bca"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a364aa2485d88724e74ab9c6a264e9bca">&#9670;&#160;</a></span>getFrames()</h2>
+<a id="a1ec0378ac8d7ba526c21c6e13a2aab13" name="a1ec0378ac8d7ba526c21c6e13a2aab13"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1ec0378ac8d7ba526c21c6e13a2aab13">&#9670;&#160;</a></span>getFrames()</h2>
 
 <div class="memitem">
 <div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">auto sounds::SoundBuffer::getFrames </td>
+          <td class="memname">virtual auto sounds::SoundBuffer::getFrames </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
-          <td> const -&gt; ma_uint64</td>
+          <td> const -&gt;  ma_uint64</td>
         </tr>
       </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
 </div><div class="memdoc">
+
+<p>Implemented in <a class="el" href="classsounds_1_1NormalSoundBuffer.html#a840bef66b433bd5485e838fe89721734">sounds::NormalSoundBuffer</a>, and <a class="el" href="classsounds_1_1SlicedSoundBuffer.html#a65ad556b075ce61c6cffd176b3d80527">sounds::SlicedSoundBuffer</a>.</p>
 
 </div>
 </div>
-<a id="ab52f751daf4f0d41fbce34c0257de544" name="ab52f751daf4f0d41fbce34c0257de544"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab52f751daf4f0d41fbce34c0257de544">&#9670;&#160;</a></span>getSamples()</h2>
+<a id="a9a6214f996830d930de6a4f4090bb541" name="a9a6214f996830d930de6a4f4090bb541"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9a6214f996830d930de6a4f4090bb541">&#9670;&#160;</a></span>getSamples()</h2>
 
 <div class="memitem">
 <div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">auto sounds::SoundBuffer::getSamples </td>
+          <td class="memname">virtual auto sounds::SoundBuffer::getSamples </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
-          <td> const -&gt; const std::vector&lt;float&gt;&amp;</td>
+          <td> const -&gt;  std::span&lt; const float &gt;</td>
         </tr>
       </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
 </div><div class="memdoc">
+
+<p>Implemented in <a class="el" href="classsounds_1_1NormalSoundBuffer.html#a538bcec33aeeba075f5a8248fe89af2e">sounds::NormalSoundBuffer</a>, and <a class="el" href="classsounds_1_1SlicedSoundBuffer.html#a410581ec0d8942e9e3c5ea7fdf304011">sounds::SlicedSoundBuffer</a>.</p>
 
 </div>
 </div>
-<hr/>The documentation for this class was generated from the following files:<ul>
+<hr/>The documentation for this class was generated from the following file:<ul>
 <li>src/sounds/<a class="el" href="SoundBuffer_8h_source.html">SoundBuffer.h</a></li>
-<li>src/sounds/<a class="el" href="SoundBuffer_8cpp.html">SoundBuffer.cpp</a></li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->

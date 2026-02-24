@@ -76,7 +76,7 @@ $(function() {
   <div class="summary">
 <a href="#pub-methods">Public Member Functions</a> &#124;
 <a href="classsounds_1_1Sound-members.html">List of all members</a>  </div>
-  <div class="headertitle"><div class="title">sounds::Sound Class Reference</div></div>
+  <div class="headertitle"><div class="title">sounds::Sound Class Reference<span class="mlabels"><span class="mlabel">abstract</span></span></div></div>
 </div><!--header-->
 <div class="contents">
 
@@ -89,54 +89,40 @@ Inheritance diagram for sounds::Sound:</div>
 <div class="dyncontent">
 <div class="center"><img src="classsounds_1_1Sound__inherit__graph.png" border="0" usemap="#asounds_1_1Sound_inherit__map" alt="Inheritance graph"/></div>
 <map name="asounds_1_1Sound_inherit__map" id="asounds_1_1Sound_inherit__map">
-<area shape="rect" title="A sound that can be played." alt="" coords="5,79,121,104"/>
-<area shape="rect" title=" " alt="" coords="26,5,101,31"/>
-<area shape="poly" title=" " alt="" coords="66,44,66,79,61,79,61,44"/>
-</map>
-<center><span class="legend">[<a href="graph_legend.html">legend</a>]</span></center></div>
-<div class="dynheader">
-Collaboration diagram for sounds::Sound:</div>
-<div class="dyncontent">
-<div class="center"><img src="classsounds_1_1Sound__coll__graph.png" border="0" usemap="#asounds_1_1Sound_coll__map" alt="Collaboration graph"/></div>
-<map name="asounds_1_1Sound_coll__map" id="asounds_1_1Sound_coll__map">
-<area shape="rect" title="A sound that can be played." alt="" coords="5,79,121,104"/>
-<area shape="rect" title=" " alt="" coords="26,5,101,31"/>
-<area shape="poly" title=" " alt="" coords="66,44,66,79,61,79,61,44"/>
+<area shape="rect" title="A sound that can be played." alt="" coords="113,5,229,31"/>
+<area shape="rect" href="classsounds_1_1MultiSound.html" title="A sound that plays multiple underlying sounds simultaneously." alt="" coords="5,79,155,104"/>
+<area shape="poly" title=" " alt="" coords="147,41,96,81,93,76,144,37"/>
+<area shape="rect" href="classsounds_1_1NormalSound.html" title=" " alt="" coords="179,79,343,104"/>
+<area shape="poly" title=" " alt="" coords="198,37,248,76,245,81,195,41"/>
 </map>
 <center><span class="legend">[<a href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:aa138cd8dd5483578a0d2c4fc66a5a1ac" id="r_aa138cd8dd5483578a0d2c4fc66a5a1ac"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classsounds_1_1Sound.html#aa138cd8dd5483578a0d2c4fc66a5a1ac">Sound</a> (<a class="el" href="classsounds_1_1AudioEngine.html">AudioEngine</a> *engine, std::shared_ptr&lt; const <a class="el" href="classsounds_1_1SoundBuffer.html">SoundBuffer</a> &gt; buffer)</td></tr>
-<tr class="memdesc:aa138cd8dd5483578a0d2c4fc66a5a1ac"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates a new sound from a buffer.  <br /></td></tr>
-<tr class="separator:aa138cd8dd5483578a0d2c4fc66a5a1ac"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af58a67d84fc908f54a92cf30125d7150" id="r_af58a67d84fc908f54a92cf30125d7150"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classsounds_1_1Sound.html#af58a67d84fc908f54a92cf30125d7150">~Sound</a> ()</td></tr>
-<tr class="separator:af58a67d84fc908f54a92cf30125d7150"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac5464c47e30eb11ca5299bbbbaa8c86c" id="r_ac5464c47e30eb11ca5299bbbbaa8c86c"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classsounds_1_1Sound.html#ac5464c47e30eb11ca5299bbbbaa8c86c">getBuffer</a> () const -&gt; const std::shared_ptr&lt; const <a class="el" href="classsounds_1_1SoundBuffer.html">SoundBuffer</a> &gt; &amp;</td></tr>
-<tr class="memdesc:ac5464c47e30eb11ca5299bbbbaa8c86c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the underlying buffer.  <br /></td></tr>
-<tr class="separator:ac5464c47e30eb11ca5299bbbbaa8c86c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa6cee7f640d744c3167c07068c1f2d1e" id="r_aa6cee7f640d744c3167c07068c1f2d1e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classsounds_1_1Sound.html#aa6cee7f640d744c3167c07068c1f2d1e">play</a> ()</td></tr>
-<tr class="memdesc:aa6cee7f640d744c3167c07068c1f2d1e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Plays the sound.  <br /></td></tr>
-<tr class="separator:aa6cee7f640d744c3167c07068c1f2d1e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a334f2bd535d99e50cb6f638d6831adde" id="r_a334f2bd535d99e50cb6f638d6831adde"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classsounds_1_1Sound.html#a334f2bd535d99e50cb6f638d6831adde">stop</a> ()</td></tr>
-<tr class="memdesc:a334f2bd535d99e50cb6f638d6831adde"><td class="mdescLeft">&#160;</td><td class="mdescRight">Stops the sound.  <br /></td></tr>
-<tr class="separator:a334f2bd535d99e50cb6f638d6831adde"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab85fd5ea6475f2d60c6d7c25073516d7" id="r_ab85fd5ea6475f2d60c6d7c25073516d7"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classsounds_1_1Sound.html#ab85fd5ea6475f2d60c6d7c25073516d7">setVolume</a> (float volume)</td></tr>
-<tr class="memdesc:ab85fd5ea6475f2d60c6d7c25073516d7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the volume of the sound.  <br /></td></tr>
-<tr class="separator:ab85fd5ea6475f2d60c6d7c25073516d7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7f8c8b0a5fd076655abbdca43fbf48f4" id="r_a7f8c8b0a5fd076655abbdca43fbf48f4"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classsounds_1_1Sound.html#a7f8c8b0a5fd076655abbdca43fbf48f4">isPlaying</a> () const -&gt; bool</td></tr>
-<tr class="memdesc:a7f8c8b0a5fd076655abbdca43fbf48f4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Is the sound playing right now?  <br /></td></tr>
-<tr class="separator:a7f8c8b0a5fd076655abbdca43fbf48f4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a30143ae26b650990d174f1219550cfb1" id="r_a30143ae26b650990d174f1219550cfb1"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classsounds_1_1Sound.html#a30143ae26b650990d174f1219550cfb1">getVolume</a> () const -&gt; float</td></tr>
-<tr class="memdesc:a30143ae26b650990d174f1219550cfb1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the volume of the sound.  <br /></td></tr>
-<tr class="separator:a30143ae26b650990d174f1219550cfb1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a53677ac57e388b995fc5dc7afd5e5ffe" id="r_a53677ac57e388b995fc5dc7afd5e5ffe"><td class="memItemLeft" align="right" valign="top">virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classsounds_1_1Sound.html#a53677ac57e388b995fc5dc7afd5e5ffe">~Sound</a> ()=default</td></tr>
+<tr class="separator:a53677ac57e388b995fc5dc7afd5e5ffe"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a855058266f4715699271ecdccf7d11ba" id="r_a855058266f4715699271ecdccf7d11ba"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classsounds_1_1Sound.html#a855058266f4715699271ecdccf7d11ba">play</a> ()=0</td></tr>
+<tr class="memdesc:a855058266f4715699271ecdccf7d11ba"><td class="mdescLeft">&#160;</td><td class="mdescRight">Plays the sound.  <br /></td></tr>
+<tr class="separator:a855058266f4715699271ecdccf7d11ba"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac3c9bc5b905c675b64f657a1f8f88449" id="r_ac3c9bc5b905c675b64f657a1f8f88449"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classsounds_1_1Sound.html#ac3c9bc5b905c675b64f657a1f8f88449">stop</a> ()=0</td></tr>
+<tr class="memdesc:ac3c9bc5b905c675b64f657a1f8f88449"><td class="mdescLeft">&#160;</td><td class="mdescRight">Stops the sound.  <br /></td></tr>
+<tr class="separator:ac3c9bc5b905c675b64f657a1f8f88449"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4a8ad9904b0ad7ba17389ad4aa5a513b" id="r_a4a8ad9904b0ad7ba17389ad4aa5a513b"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classsounds_1_1Sound.html#a4a8ad9904b0ad7ba17389ad4aa5a513b">setVolume</a> (float volume)=0</td></tr>
+<tr class="memdesc:a4a8ad9904b0ad7ba17389ad4aa5a513b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the volume of the sound.  <br /></td></tr>
+<tr class="separator:a4a8ad9904b0ad7ba17389ad4aa5a513b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3aab98bb4fb8a10517e4822bddaace88" id="r_a3aab98bb4fb8a10517e4822bddaace88"><td class="memItemLeft" align="right" valign="top">virtual auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classsounds_1_1Sound.html#a3aab98bb4fb8a10517e4822bddaace88">isPlaying</a> () const -&gt; bool=0</td></tr>
+<tr class="memdesc:a3aab98bb4fb8a10517e4822bddaace88"><td class="mdescLeft">&#160;</td><td class="mdescRight">Is the sound playing right now?  <br /></td></tr>
+<tr class="separator:a3aab98bb4fb8a10517e4822bddaace88"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2b0fc152b623547be23e9d9e515ea13e" id="r_a2b0fc152b623547be23e9d9e515ea13e"><td class="memItemLeft" align="right" valign="top">virtual auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classsounds_1_1Sound.html#a2b0fc152b623547be23e9d9e515ea13e">getVolume</a> () const -&gt; float=0</td></tr>
+<tr class="memdesc:a2b0fc152b623547be23e9d9e515ea13e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the volume of the sound.  <br /></td></tr>
+<tr class="separator:a2b0fc152b623547be23e9d9e515ea13e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>A sound that can be played. </p>
 <p>The underlying data buffer can be shared between multiple sounds. This means that you can have multiple instances of the same sound playing at the same time, while only loading the file once. </p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="aa138cd8dd5483578a0d2c4fc66a5a1ac" name="aa138cd8dd5483578a0d2c4fc66a5a1ac"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa138cd8dd5483578a0d2c4fc66a5a1ac">&#9670;&#160;</a></span>Sound()</h2>
+<a id="a53677ac57e388b995fc5dc7afd5e5ffe" name="a53677ac57e388b995fc5dc7afd5e5ffe"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a53677ac57e388b995fc5dc7afd5e5ffe">&#9670;&#160;</a></span>~Sound()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -145,152 +131,133 @@ Public Member Functions</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">sounds::Sound::Sound </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="classsounds_1_1AudioEngine.html">AudioEngine</a> *&#160;</td>
-          <td class="paramname"><em>engine</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">std::shared_ptr&lt; const <a class="el" href="classsounds_1_1SoundBuffer.html">SoundBuffer</a> &gt;&#160;</td>
-          <td class="paramname"><em>buffer</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">explicit</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Creates a new sound from a buffer. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">buffer</td><td>The sample buffer to use. </td></tr>
-    <tr><td class="paramname">engine</td><td>The audio engine to use. </td></tr>
-  </table>
-  </dd>
-</dl>
-
-</div>
-</div>
-<a id="af58a67d84fc908f54a92cf30125d7150" name="af58a67d84fc908f54a92cf30125d7150"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af58a67d84fc908f54a92cf30125d7150">&#9670;&#160;</a></span>~Sound()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">sounds::Sound::~Sound </td>
+          <td class="memname">virtual sounds::Sound::~Sound </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td></td>
         </tr>
       </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">virtual</span><span class="mlabel">default</span></span>  </td>
+  </tr>
+</table>
 </div><div class="memdoc">
 
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a id="ac5464c47e30eb11ca5299bbbbaa8c86c" name="ac5464c47e30eb11ca5299bbbbaa8c86c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac5464c47e30eb11ca5299bbbbaa8c86c">&#9670;&#160;</a></span>getBuffer()</h2>
+<a id="a2b0fc152b623547be23e9d9e515ea13e" name="a2b0fc152b623547be23e9d9e515ea13e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2b0fc152b623547be23e9d9e515ea13e">&#9670;&#160;</a></span>getVolume()</h2>
 
 <div class="memitem">
 <div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">auto sounds::Sound::getBuffer </td>
+          <td class="memname">virtual auto sounds::Sound::getVolume </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
-          <td> const -&gt; const std::shared_ptr&lt;const <a class="el" href="classsounds_1_1SoundBuffer.html">SoundBuffer</a>&gt;&amp;</td>
+          <td> const -&gt;  float</td>
         </tr>
       </table>
-</div><div class="memdoc">
-
-<p>Gets the underlying buffer. </p>
-<dl class="section return"><dt>Returns</dt><dd>The underlying buffer. </dd></dl>
-
-</div>
-</div>
-<a id="a30143ae26b650990d174f1219550cfb1" name="a30143ae26b650990d174f1219550cfb1"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a30143ae26b650990d174f1219550cfb1">&#9670;&#160;</a></span>getVolume()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">auto sounds::Sound::getVolume </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td> const -&gt; float</td>
-        </tr>
-      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
 </div><div class="memdoc">
 
 <p>Gets the volume of the sound. </p>
 <dl class="section return"><dt>Returns</dt><dd>The volume. 1 is normal, 0 is silent, 2 is twice as loud. </dd></dl>
 
+<p>Implemented in <a class="el" href="classsounds_1_1MultiSound.html#acb9491a1d810ab7344e54e8c205931c7">sounds::MultiSound</a>, and <a class="el" href="classsounds_1_1NormalSound.html#a88c8d76a45ba2d43db4b0938025a6dfd">sounds::NormalSound</a>.</p>
+
 </div>
 </div>
-<a id="a7f8c8b0a5fd076655abbdca43fbf48f4" name="a7f8c8b0a5fd076655abbdca43fbf48f4"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7f8c8b0a5fd076655abbdca43fbf48f4">&#9670;&#160;</a></span>isPlaying()</h2>
+<a id="a3aab98bb4fb8a10517e4822bddaace88" name="a3aab98bb4fb8a10517e4822bddaace88"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3aab98bb4fb8a10517e4822bddaace88">&#9670;&#160;</a></span>isPlaying()</h2>
 
 <div class="memitem">
 <div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">auto sounds::Sound::isPlaying </td>
+          <td class="memname">virtual auto sounds::Sound::isPlaying </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
-          <td> const -&gt; bool</td>
+          <td> const -&gt;  bool</td>
         </tr>
       </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
 </div><div class="memdoc">
 
 <p>Is the sound playing right now? </p>
 
+<p>Implemented in <a class="el" href="classsounds_1_1MultiSound.html#a98ea3191c2d8623004b779bc085d5d97">sounds::MultiSound</a>, and <a class="el" href="classsounds_1_1NormalSound.html#a9d081d35d942a06159305b79da729074">sounds::NormalSound</a>.</p>
+
 </div>
 </div>
-<a id="aa6cee7f640d744c3167c07068c1f2d1e" name="aa6cee7f640d744c3167c07068c1f2d1e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa6cee7f640d744c3167c07068c1f2d1e">&#9670;&#160;</a></span>play()</h2>
+<a id="a855058266f4715699271ecdccf7d11ba" name="a855058266f4715699271ecdccf7d11ba"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a855058266f4715699271ecdccf7d11ba">&#9670;&#160;</a></span>play()</h2>
 
 <div class="memitem">
 <div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">void sounds::Sound::play </td>
+          <td class="memname">virtual void sounds::Sound::play </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td></td>
         </tr>
       </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
 </div><div class="memdoc">
 
 <p>Plays the sound. </p>
 <p>This does not block, obviously. Make sure the sound object stays alive. </p>
 
+<p>Implemented in <a class="el" href="classsounds_1_1MultiSound.html#afe62ddcb61fbb9e042b94b8dd08bd93c">sounds::MultiSound</a>, and <a class="el" href="classsounds_1_1NormalSound.html#ac10ffcb3a7e7a825cf83c89ed8955c3e">sounds::NormalSound</a>.</p>
+
 </div>
 </div>
-<a id="ab85fd5ea6475f2d60c6d7c25073516d7" name="ab85fd5ea6475f2d60c6d7c25073516d7"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab85fd5ea6475f2d60c6d7c25073516d7">&#9670;&#160;</a></span>setVolume()</h2>
+<a id="a4a8ad9904b0ad7ba17389ad4aa5a513b" name="a4a8ad9904b0ad7ba17389ad4aa5a513b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4a8ad9904b0ad7ba17389ad4aa5a513b">&#9670;&#160;</a></span>setVolume()</h2>
 
 <div class="memitem">
 <div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">void sounds::Sound::setVolume </td>
+          <td class="memname">virtual void sounds::Sound::setVolume </td>
           <td>(</td>
           <td class="paramtype">float&#160;</td>
           <td class="paramname"><em>volume</em></td><td>)</td>
           <td></td>
         </tr>
       </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
 </div><div class="memdoc">
 
 <p>Sets the volume of the sound. </p>
@@ -301,31 +268,42 @@ Public Member Functions</h2></td></tr>
   </dd>
 </dl>
 
+<p>Implemented in <a class="el" href="classsounds_1_1MultiSound.html#aece07ea5eedb8c8487b261d172fe5f0b">sounds::MultiSound</a>, and <a class="el" href="classsounds_1_1NormalSound.html#a4116d7284c21afd3a5455e4bb241476e">sounds::NormalSound</a>.</p>
+
 </div>
 </div>
-<a id="a334f2bd535d99e50cb6f638d6831adde" name="a334f2bd535d99e50cb6f638d6831adde"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a334f2bd535d99e50cb6f638d6831adde">&#9670;&#160;</a></span>stop()</h2>
+<a id="ac3c9bc5b905c675b64f657a1f8f88449" name="ac3c9bc5b905c675b64f657a1f8f88449"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac3c9bc5b905c675b64f657a1f8f88449">&#9670;&#160;</a></span>stop()</h2>
 
 <div class="memitem">
 <div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">void sounds::Sound::stop </td>
+          <td class="memname">virtual void sounds::Sound::stop </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td></td>
         </tr>
       </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
 </div><div class="memdoc">
 
 <p>Stops the sound. </p>
 <p>Does not block. The sound can be played again. </p>
 
+<p>Implemented in <a class="el" href="classsounds_1_1MultiSound.html#a1497f796bc6d310d2e3d896190df0d57">sounds::MultiSound</a>, and <a class="el" href="classsounds_1_1NormalSound.html#a815e2e89b902031f5a0d83d9c1dee480">sounds::NormalSound</a>.</p>
+
 </div>
 </div>
-<hr/>The documentation for this class was generated from the following files:<ul>
+<hr/>The documentation for this class was generated from the following file:<ul>
 <li>src/sounds/<a class="el" href="Sound_8h_source.html">Sound.h</a></li>
-<li>src/sounds/<a class="el" href="Sound_8cpp.html">Sound.cpp</a></li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->

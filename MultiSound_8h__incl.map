@@ -1,0 +1,19 @@
+<map id="src/sounds/MultiSound.h" name="src/sounds/MultiSound.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="170,5,350,31"/>
+<area shape="rect" id="Node000002" href="$Sound_8h.html" title=" " alt="" coords="129,79,204,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="247,33,194,72,191,68,243,29"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="229,79,291,104"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="263,31,263,65,257,65,257,31"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="316,79,393,104"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="277,29,330,68,327,72,274,33"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="5,152,80,177"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="148,106,76,147,73,143,145,102"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="105,152,229,177"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="169,104,169,138,164,138,164,104"/>
+<area shape="rect" id="Node000005" href="$MiniaudioBackend_8h.html" title=" " alt="" coords="253,152,406,177"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="194,102,291,144,289,149,192,106"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="217,225,317,251"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="321,179,288,217,284,213,317,176"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="341,225,440,251"/>
+<area shape="poly" id="edge6_Node000005_Node000007" title=" " alt="" coords="341,176,374,213,370,217,337,179"/>
+</map>

@@ -6,5 +6,6 @@ var searchData=
   ['measurebasedtag_3',['MeasureBasedTag',['../structcharts_1_1MeasureBasedTag.html',1,'charts']]],
   ['meter_4',['Meter',['../structcharts_1_1Meter.html',1,'charts']]],
   ['metertag_5',['MeterTag',['../structcharts_1_1MeterTag.html',1,'charts']]],
-  ['mine_6',['Mine',['../structgameplay__logic_1_1rules_1_1HitRules_1_1Mine.html',1,'gameplay_logic::rules::HitRules']]]
+  ['mine_6',['Mine',['../structgameplay__logic_1_1rules_1_1HitRules_1_1Mine.html',1,'gameplay_logic::rules::HitRules']]],
+  ['multisound_7',['MultiSound',['../classsounds_1_1MultiSound.html',1,'sounds']]]
 ];
