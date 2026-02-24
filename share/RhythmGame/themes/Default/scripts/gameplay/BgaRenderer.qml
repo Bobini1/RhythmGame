@@ -23,7 +23,7 @@ Item {
     Item {
         anchors.centerIn: parent
         height: Math.max(videoBase.sourceRect.height, videoLayer.sourceRect.height, videoLayer2.sourceRect.height, videoPoor.sourceRect.height, 256)
-        scale: parent.height / height
+        scale: Math.min(parent.height / height, parent.width / width)
         width: Math.max(videoBase.sourceRect.width, videoLayer.sourceRect.width, videoLayer2.sourceRect.width, videoPoor.sourceRect.width, 256)
         visible: bgaVisible
 
