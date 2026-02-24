@@ -96,11 +96,11 @@ loadBmpVideo(const std::filesystem::path& path) -> std::unique_ptr<QMediaPlayer>
 }
 
 auto
-loadBga(std::vector<std::pair<charts::BmsNotesData::Time, uint16_t>> bgaBase,
-        std::vector<std::pair<charts::BmsNotesData::Time, uint16_t>> bgaPoor,
-        std::vector<std::pair<charts::BmsNotesData::Time, uint16_t>> bgaLayer,
-        std::vector<std::pair<charts::BmsNotesData::Time, uint16_t>> bgaLayer2,
-        std::unordered_map<uint16_t, std::filesystem::path> bmps,
+loadBga(std::vector<std::pair<charts::BmsNotesData::Time, uint64_t>> bgaBase,
+        std::vector<std::pair<charts::BmsNotesData::Time, uint64_t>> bgaPoor,
+        std::vector<std::pair<charts::BmsNotesData::Time, uint64_t>> bgaLayer,
+        std::vector<std::pair<charts::BmsNotesData::Time, uint64_t>> bgaLayer2,
+        std::unordered_map<uint64_t, std::filesystem::path> bmps,
         QThread* thread,
         std::filesystem::path path)
   -> std::unique_ptr<qml_components::BgaContainer>
@@ -113,7 +113,7 @@ loadBga(std::vector<std::pair<charts::BmsNotesData::Time, uint16_t>> bgaBase,
             bool requested;
         };
 
-        auto requested = std::unordered_map<uint16_t, Request>{};
+        auto requested = std::unordered_map<uint64_t, Request>{};
         for (auto& bmp : bmps) {
             requested.emplace(bmp.first, Request(std::move(bmp.second), false));
         }
@@ -145,7 +145,7 @@ loadBga(std::vector<std::pair<charts::BmsNotesData::Time, uint16_t>> bgaBase,
 
         struct FrameLoadingResult
         {
-            uint16_t id;
+            uint64_t id;
             std::filesystem::path path;
             QVideoFrame* frame;
         };
@@ -168,8 +168,8 @@ loadBga(std::vector<std::pair<charts::BmsNotesData::Time, uint16_t>> bgaBase,
             });
         // create unordered_maps
         auto frames =
-          std::unordered_map<uint16_t, std::unique_ptr<QVideoFrame>>{};
-        auto videos = std::unordered_map<uint16_t, QMediaPlayer*>{};
+          std::unordered_map<uint64_t, std::unique_ptr<QVideoFrame>>{};
+        auto videos = std::unordered_map<uint64_t, QMediaPlayer*>{};
         auto nullFrames =
           std::ranges::count_if(loadedBgaFrames, [](const auto& frame) {
               return frame.frame == nullptr;
@@ -203,9 +203,10 @@ loadBga(std::vector<std::pair<charts::BmsNotesData::Time, uint16_t>> bgaBase,
             if (auto entry = frames.find(bga.second); entry != frames.end()) {
                 baseFrames.emplace_back(bga.first.timestamp,
                                         entry->second.get());
-            } else if (auto entry = videos.find(bga.second);
-                       entry != videos.end()) {
-                baseVideos.emplace_back(bga.first.timestamp, entry->second);
+            } else if (auto videoEntry = videos.find(bga.second);
+                       videoEntry != videos.end()) {
+                baseVideos.emplace_back(bga.first.timestamp,
+                                        videoEntry->second);
             } else {
                 baseFrames.emplace_back(bga.first.timestamp, nullptr);
             }
@@ -539,7 +540,16 @@ ChartFactory::createChart(ChartDataFactory::ChartComponents chartComponents,
         keymode = gameplay_logic::ChartData::Keymode::K14;
     }
 
-    auto soundTask = new SoundTask(engine, path, std::move(wavs));
+    auto* soundTask = [&]() -> SoundTask* {
+        if (!notesData.bmsonSlices.empty()) {
+            return new SoundTask(engine,
+                                 path,
+                                 std::move(wavs),
+                                 std::move(notesData.bmsonSlices),
+                                 std::move(notesData.bmsonFusions));
+        }
+        return new SoundTask(engine, path, std::move(wavs));
+    }();
     soundTask->moveToThread(nullptr);
     auto bgaTask = [bgaBase = std::move(notesData.bgaBase),
                     bgaPoor = std::move(notesData.bgaPoor),
@@ -566,7 +576,7 @@ ChartFactory::createChart(ChartDataFactory::ChartComponents chartComponents,
            score = components1.score.get(),
            bpmChanges = notesData.bpmChanges,
            bgmNotes = std::move(notesData.bgmNotes)](
-            std::unordered_map<uint16_t, std::shared_ptr<sounds::Sound>>
+            std::unordered_map<uint64_t, std::shared_ptr<sounds::Sound>>
               sounds) mutable {
               std::shared_ptr<sounds::Sound> mineHitSound = nullptr;
               if (const auto sound = sounds.find(0); sound != sounds.end()) {
@@ -613,7 +623,7 @@ ChartFactory::createChart(ChartDataFactory::ChartComponents chartComponents,
              score = player.score.get(),
              bpmChanges = notesData.bpmChanges,
              bgmNotes = std::move(notesData.bgmNotes)](
-              std::unordered_map<uint16_t, std::shared_ptr<sounds::Sound>>
+              std::unordered_map<uint64_t, std::shared_ptr<sounds::Sound>>
                 sounds) mutable {
                 std::shared_ptr<sounds::Sound> mineHitSound = nullptr;
                 if (const auto sound = sounds.find(0); sound != sounds.end()) {
@@ -681,16 +691,35 @@ ChartFactory::createChart(ChartDataFactory::ChartComponents chartComponents,
 }
 SoundTask::SoundTask(sounds::AudioEngine* engine,
                      std::filesystem::path path,
-                     std::unordered_map<uint16_t, std::filesystem::path> wavs)
+                     std::unordered_map<uint64_t, std::filesystem::path> wavs)
   : path(std::move(path))
   , wavs(std::move(wavs))
   , engine(engine)
 {
 }
+SoundTask::SoundTask(
+  sounds::AudioEngine* engine,
+  std::filesystem::path path,
+  std::unordered_map<uint64_t, std::filesystem::path> channelPaths,
+  std::vector<charts::BmsNotesData::BmsonSliceInfo> slices,
+  std::unordered_map<uint64_t, std::vector<uint64_t>> fusions)
+  : path(std::move(path))
+  , wavs(std::move(channelPaths))
+  , engine(engine)
+  , bmsonSlices(std::move(slices))
+  , bmsonFusions(std::move(fusions))
+  , isBmson(true)
+{
+}
 void
 SoundTask::run()
 {
-    emit soundsLoaded(charts::loadBmsSounds(engine, wavs, path));
+    if (isBmson) {
+        emit soundsLoaded(charts::loadBmsonSounds(
+          engine, wavs, bmsonSlices, bmsonFusions, path));
+    } else {
+        emit soundsLoaded(charts::loadBmsSounds(engine, wavs, path));
+    }
 }
 ChartFactory::ChartFactory(sounds::AudioEngine* engine,
                            input::InputTranslator* inputTranslator)

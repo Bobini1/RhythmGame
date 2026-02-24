@@ -14,8 +14,6 @@
  * loading, decoding, etc.
  */
 namespace sounds {
-class AudioEngine;
-class SoundBuffer;
 
 /**
  * @brief A sound that can be played.
@@ -23,60 +21,39 @@ class SoundBuffer;
  * This means that you can have multiple instances of the same sound playing at
  * the same time, while only loading the file once.
  */
-class Sound : public QObject
+class Sound
 {
-    Q_OBJECT
-    AudioEngine* engine;
-    std::shared_ptr<const SoundBuffer> buffer;
-    std::unique_ptr<ma_audio_buffer> audioBuffer = std::make_unique<ma_audio_buffer>();
-    std::unique_ptr<ma_sound> sound = std::make_unique<ma_sound>();
-
-    void onDeviceChanged();
   public:
-    /**
-     * @brief Creates a new sound from a buffer.
-     * @param buffer The sample buffer to use.
-     * @param engine The audio engine to use.
-     */
-    explicit Sound(AudioEngine* engine,
-             std::shared_ptr<const SoundBuffer> buffer);
-    ~Sound();
-
-    /**
-     * @brief Gets the underlying buffer.
-     * @return The underlying buffer.
-     */
-    auto getBuffer() const
-      -> const std::shared_ptr<const SoundBuffer>&;
+    virtual ~Sound() = default;
 
     /**
      * @brief Plays the sound.
      * @details This does not block, obviously. Make sure the sound object stays
      * alive.
      */
-    void play();
+    virtual void play() = 0;
     /**
      * @brief Stops the sound.
      * @details Does not block. The sound can be played again.
      */
-    void stop();
+    virtual void stop() = 0;
 
     /**
      * @brief Sets the volume of the sound.
      * @param volume The volume. 1 is normal, 0 is silent, 2 is twice as loud.
      */
-    void setVolume(float volume);
+    virtual void setVolume(float volume) = 0;
 
     /**
      * @brief Is the sound playing right now?
      */
-    auto isPlaying() const -> bool;
+    virtual auto isPlaying() const -> bool = 0;
 
     /**
      * @brief Gets the volume of the sound.
      * @return The volume. 1 is normal, 0 is silent, 2 is twice as loud.
      */
-    auto getVolume() const -> float;
+    virtual auto getVolume() const -> float = 0;
 };
 } // namespace sounds
 #endif // RHYTHMGAME_SOUND_H

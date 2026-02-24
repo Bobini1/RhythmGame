@@ -92,6 +92,10 @@ qt_add_library(RhythmGame_lib OBJECT
         src/sounds/Sound.h
         src/sounds/SoundBuffer.h
         src/sounds/SoundBuffer.cpp
+        src/sounds/SlicedSoundBuffer.h
+        src/sounds/SlicedSoundBuffer.cpp
+        src/sounds/MultiSound.h
+        src/sounds/MultiSound.cpp
         src/charts/BmsNotesData.cpp
         src/charts/BmsNotesData.h
         src/charts/Snap.cpp
@@ -235,6 +239,10 @@ qt_add_library(RhythmGame_lib OBJECT
         src/resource_managers/AvatarImageProvider.h
         src/qml_components/ScoreReplayer.cpp
         src/qml_components/ScoreReplayer.h
+        src/sounds/NormalSoundBuffer.cpp
+        src/sounds/NormalSoundBuffer.h
+        src/sounds/NormalSound.cpp
+        src/sounds/NormalSound.h
 )
 
 if (WIN32)

@@ -30,14 +30,14 @@ class ChartDataFactory
     {
         std::unique_ptr<gameplay_logic::ChartData> chartData;
         charts::BmsNotesData notesData;
-        std::unordered_map<uint16_t, std::filesystem::path> wavs;
-        std::unordered_map<uint16_t, std::filesystem::path> bmps;
+        std::unordered_map<uint64_t, std::filesystem::path> wavs;
+        std::unordered_map<uint64_t, std::filesystem::path> bmps;
 
         ChartComponents(
           std::unique_ptr<gameplay_logic::ChartData> chartData,
           charts::BmsNotesData notesData,
-          std::unordered_map<uint16_t, std::filesystem::path> wavs,
-          std::unordered_map<uint16_t, std::filesystem::path> bmps);
+          std::unordered_map<uint64_t, std::filesystem::path> wavs,
+          std::unordered_map<uint64_t, std::filesystem::path> bmps);
         ChartComponents(const ChartComponents& other);
         ChartComponents(ChartComponents&& other) noexcept;
         auto operator=(const ChartComponents& other) -> ChartComponents&;
@@ -77,8 +77,8 @@ class ChartDataFactory
     static auto buildChartComponents(
       charts::BmsNotesData calculatedNotesData,
       ChartMetadata metadata,
-      std::unordered_map<uint16_t, std::filesystem::path> wavs,
-      std::unordered_map<uint16_t, std::filesystem::path> bmps,
+      std::unordered_map<uint64_t, std::filesystem::path> wavs,
+      std::unordered_map<uint64_t, std::filesystem::path> bmps,
       const std::filesystem::path& chartPath,
       int64_t directory) -> ChartComponents;
 };

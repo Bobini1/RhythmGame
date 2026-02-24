@@ -128,18 +128,20 @@ void
 BarlineFilter::setTopPosition(double value)
 {
     if (topPosition != value) {
+        beginFilterChange();
         topPosition = value;
         emit topPositionChanged();
-        invalidateFilter();
+        endFilterChange();
     }
 }
 void
 BarlineFilter::setBottomPosition(double value)
 {
     if (bottomPosition != value) {
+        beginFilterChange();
         bottomPosition = value;
         emit bottomPositionChanged();
-        invalidateFilter();
+        endFilterChange();
     }
 }
 bool

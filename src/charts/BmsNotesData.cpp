@@ -475,7 +475,7 @@ calculateOffsetsForLandmine(
 void
 calculateOffsetsForBgm(
   const std::vector<uint16_t>& notes,
-  std::vector<std::pair<BmsNotesData::Time, uint16_t>>& target,
+  std::vector<std::pair<BmsNotesData::Time, uint64_t>>& target,
   const std::map<std::pair<double, BpmChangeType>,
                  std::pair<double, BmsNotesData::Time>>& bpmChangesInMeasure,
   double meter)
@@ -495,7 +495,7 @@ calculateOffsetsForBgm(
 void
 calculateOffsetsForBga(
   const std::vector<std::vector<uint16_t>>& notes,
-  std::vector<std::pair<BmsNotesData::Time, uint16_t>>& target,
+  std::vector<std::pair<BmsNotesData::Time, uint64_t>>& target,
   const std::map<std::pair<double, BpmChangeType>,
                  std::pair<double, BmsNotesData::Time>>& bpmChangesInMeasure,
   double meter)
@@ -609,7 +609,7 @@ BmsNotesData::fromBmson(const QJsonObject& bmson)
                                   std::to_string(initBpm) };
     }
     // Resolution: pulses per quarter note (default 240)
-    const auto resolution = info["resolution"].toInt(240);
+    const auto resolution = info["resolution"].toInteger(240);
     if (resolution <= 0) {
         throw std::runtime_error{ "Resolution must be positive, was: " +
                                   std::to_string(resolution) };
@@ -784,73 +784,236 @@ BmsNotesData::fromBmson(const QJsonObject& bmson)
         if (x == 0) {
             return std::nullopt; // BGM
         }
-        if (x >= 1 && x <= 8) {
-            // P1
-            if (x == 1) {
-                return 7; // scratch
-            }
-            return x - 2; // keys: x=2→col0, x=3→col1, ..., x=8→col6
+
+        if (x > 0 && x <= 16) {
+            return x - 1;
         }
-        if (x >= 9 && x <= 16) {
-            // P2
-            if (x == 9) {
-                return 15; // P2 scratch
-            }
-            return (x - 10) + 8; // keys: x=10→col8, ..., x=16→col14
-        }
-        spdlog::debug("Unknown bmson lane x={}", x);
-        return std::nullopt;
+        throw std::runtime_error{
+            "Unsupported keymode, encounter column index " + std::to_string(x)
+        };
     };
 
-    // ── 7. Process sound channels ───────────────────────────────────────
+    // ── 7. Process sound channels (with bmson slicing) ────────────────
+    // For each channel:
+    //   1. Gather all unique pulse values from notes, sorted.
+    //   2. Convert pulses to metric seconds for slicing.
+    //   3. Track restart points (c=false) to compute audio-file offsets.
+    //   4. Assign a unique sound ID per slice.
+    //   5. Map each note to its slice's sound ID.
     const auto soundChannels = bmson["sound_channels"].toArray();
     uint16_t nextSoundId = 1; // 0 is reserved for "no sound"
-    for (const auto& channel : soundChannels) {
-        auto channelObj = channel.toObject();
-        auto soundId = nextSoundId++;
 
+    for (uint16_t channelIdx = 0;
+         channelIdx < static_cast<uint16_t>(soundChannels.size());
+         ++channelIdx) {
+        auto channelObj = soundChannels[channelIdx].toObject();
         const auto notesArr = channelObj["notes"].toArray();
+        if (notesArr.isEmpty()) {
+            continue;
+        }
+
+        // ── 7a. Parse all notes in this channel ─────────────────────────
+        struct ChannelNote
+        {
+            qint64 x;
+            int64_t y; // pulse
+            int64_t l; // length in pulses (0 = normal)
+            bool c;    // continuation flag
+        };
+        auto channelNotes = std::vector<ChannelNote>{};
+        channelNotes.reserve(notesArr.size());
         for (const auto& noteVal : notesArr) {
             auto noteObj = noteVal.toObject();
-            auto x = noteObj["x"].toInt(0);
-            auto y = static_cast<int64_t>(noteObj["y"].toDouble(0));
-            auto l = static_cast<int64_t>(noteObj["l"].toDouble(0));
-            auto c = noteObj["c"].toBool(false);
+            channelNotes.push_back({
+              noteObj["x"].toInteger(0),
+              static_cast<int64_t>(noteObj["y"].toDouble(0)),
+              static_cast<int64_t>(noteObj["l"].toDouble(0)),
+              noteObj["c"].toBool(false),
+            });
+        }
 
-            auto time = pulseToTime(y);
-            auto snap = pulseToSnap(y);
+        // ── 7b. Gather unique pulse positions, sorted ───────────────────
+        auto uniquePulses = std::vector<int64_t>{};
+        for (const auto& note : channelNotes) {
+            uniquePulses.push_back(note.y);
+        }
+        std::ranges::sort(uniquePulses);
+        uniquePulses.erase(std::ranges::unique(uniquePulses).begin(),
+                           uniquePulses.end());
 
-            // Use sound ID 0 for continuation notes (don't restart sound)
-            auto noteSoundId = c ? static_cast<uint16_t>(0) : soundId;
+        // ── 7c. For each unique pulse, determine if it restarts audio ───
+        // A pulse restarts if ANY note at that pulse has c=false.
+        auto pulseRestarts = std::unordered_map<int64_t, bool>{};
+        for (const auto& pulse : uniquePulses) {
+            pulseRestarts[pulse] = false;
+        }
+        for (const auto& note : channelNotes) {
+            if (!note.c) {
+                pulseRestarts[note.y] = true;
+            }
+        }
 
-            auto column = bmsonXToColumn(x);
+        // ── 7d. Convert pulses to seconds and compute slices ────────────
+        // Walk through unique pulses in order. Track the "audio cursor"
+        // which resets to 0 on restart and advances by the time delta
+        // between consecutive pulses otherwise.
+        auto pulseToSeconds = [&pulseToTime](int64_t pulse) -> double {
+            auto time = pulseToTime(pulse);
+            return std::chrono::duration<double>(time.timestamp).count();
+        };
+
+        struct SliceDesc
+        {
+            uint16_t soundId;
+            double audioStart; // in seconds within the audio file
+            double audioEnd;   // -1 = end of file
+        };
+        auto slices = std::vector<SliceDesc>{};
+        // Map from pulse → soundId for this channel
+        auto pulseToSoundId = std::unordered_map<int64_t, uint16_t>{};
+
+        double audioCursor = 0.0;
+        for (size_t i = 0; i < uniquePulses.size(); ++i) {
+            auto pulse = uniquePulses[i];
+            bool restarts = pulseRestarts[pulse];
+
+            if (restarts) {
+                audioCursor = 0.0;
+            }
+
+            auto sliceSoundId = nextSoundId++;
+            pulseToSoundId[pulse] = sliceSoundId;
+
+            double sliceStart = audioCursor;
+            double sliceEnd = -1.0; // end of file by default
+
+            // Advance audio cursor to next pulse's position
+            if (i + 1 < uniquePulses.size()) {
+                auto nextPulse = uniquePulses[i + 1];
+                auto deltaSec =
+                  pulseToSeconds(nextPulse) - pulseToSeconds(pulse);
+                // If next pulse restarts, this slice extends to the delta
+                // (audio cursor will reset anyway)
+                sliceEnd = audioCursor + deltaSec;
+                if (!pulseRestarts[nextPulse]) {
+                    audioCursor += deltaSec;
+                }
+            }
+
+            slices.push_back({ sliceSoundId, sliceStart, sliceEnd });
+            data.bmsonSlices.push_back({
+              sliceSoundId,
+              channelIdx,
+              sliceStart,
+              sliceEnd,
+            });
+        }
+
+        // ── 7e. Create note data using per-slice sound IDs ──────────────
+        for (const auto& note : channelNotes) {
+            auto time = pulseToTime(note.y);
+            auto snap = pulseToSnap(note.y);
+
+            auto sliceSoundId = pulseToSoundId[note.y];
+
+            auto column = bmsonXToColumn(note.x);
             if (!column.has_value()) {
                 // BGM note
-                data.bgmNotes.emplace_back(time, noteSoundId);
+                data.bgmNotes.emplace_back(time, sliceSoundId);
                 continue;
             }
 
             auto col = column.value();
             if (col < 0 || col >= static_cast<int>(columnNumber)) {
                 spdlog::debug(
-                  "bmson lane x={} mapped to invalid column {}", x, col);
+                  "bmson lane x={} mapped to invalid column {}", note.x, col);
                 continue;
             }
 
-            if (l > 0) {
+            if (note.l > 0) {
                 // Long note
                 data.notes.at(col).emplace_back(
-                  Note{ time, snap, NoteType::LongNoteBegin, noteSoundId });
-                auto endTime = pulseToTime(y + l);
-                auto endSnap = pulseToSnap(y + l);
-                data.notes.at(col).emplace_back(
-                  Note{ endTime, endSnap, NoteType::LongNoteEnd, noteSoundId });
+                  Note{ time, snap, NoteType::LongNoteBegin, sliceSoundId });
+                auto endTime = pulseToTime(note.y + note.l);
+                auto endSnap = pulseToSnap(note.y + note.l);
+                data.notes.at(col).emplace_back(Note{
+                  endTime, endSnap, NoteType::LongNoteEnd, sliceSoundId });
             } else {
                 // Normal note
                 data.notes.at(col).emplace_back(
-                  Note{ time, snap, NoteType::Normal, noteSoundId });
+                  Note{ time, snap, NoteType::Normal, sliceSoundId });
             }
         }
+    }
+
+    // ── 7f. Fuse notes from different channels at the same position ─────
+    // For visible notes: group by (column, timestamp, noteType). If
+    // multiple notes land on the same spot, keep one note and record a
+    // fusion entry mapping a new fused sound ID to all the individual
+    // slice sound IDs.
+    for (auto& column : data.notes) {
+        // Sort first so duplicates are adjacent
+        std::ranges::sort(column, [](const auto& a, const auto& b) {
+            if (a.time.timestamp != b.time.timestamp) {
+                return a.time.timestamp < b.time.timestamp;
+            }
+            return a.noteType < b.noteType;
+        });
+        auto fusedColumn = std::vector<Note>{};
+        fusedColumn.reserve(column.size());
+        for (size_t i = 0; i < column.size();) {
+            // Find the run of notes at the same (timestamp, noteType)
+            size_t j = i + 1;
+            while (j < column.size() &&
+                   column[j].time.timestamp == column[i].time.timestamp &&
+                   column[j].noteType == column[i].noteType) {
+                ++j;
+            }
+            if (j - i == 1) {
+                // Single note, no fusion needed
+                fusedColumn.push_back(column[i]);
+            } else {
+                // Multiple notes at the same position — fuse them
+                auto fusedSoundId = nextSoundId++;
+                auto sliceIds = std::vector<uint64_t>{};
+                for (size_t k = i; k < j; ++k) {
+                    sliceIds.push_back(column[k].sound);
+                }
+                data.bmsonFusions[fusedSoundId] = std::move(sliceIds);
+                auto fusedNote = column[i];
+                fusedNote.sound = fusedSoundId;
+                fusedColumn.push_back(fusedNote);
+            }
+            i = j;
+        }
+        column = std::move(fusedColumn);
+    }
+    // Do the same for BGM notes
+    {
+        std::ranges::sort(data.bgmNotes);
+        auto fusedBgm = std::vector<std::pair<Time, uint64_t>>{};
+        fusedBgm.reserve(data.bgmNotes.size());
+        for (size_t i = 0; i < data.bgmNotes.size();) {
+            size_t j = i + 1;
+            while (j < data.bgmNotes.size() &&
+                   data.bgmNotes[j].first.timestamp ==
+                     data.bgmNotes[i].first.timestamp) {
+                ++j;
+            }
+            if (j - i == 1) {
+                fusedBgm.push_back(data.bgmNotes[i]);
+            } else {
+                auto fusedSoundId = nextSoundId++;
+                auto sliceIds = std::vector<uint64_t>{};
+                for (size_t k = i; k < j; ++k) {
+                    sliceIds.push_back(data.bgmNotes[k].second);
+                }
+                data.bmsonFusions[fusedSoundId] = std::move(sliceIds);
+                fusedBgm.emplace_back(data.bgmNotes[i].first, fusedSoundId);
+            }
+            i = j;
+        }
+        data.bgmNotes = std::move(fusedBgm);
     }
 
     // ── 8. Bar lines ────────────────────────────────────────────────────

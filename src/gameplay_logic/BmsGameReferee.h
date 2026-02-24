@@ -36,7 +36,7 @@ class BmsGameReferee
     std::vector<BgmType> bgms;
     std::span<BgmType> currentBgms;
     std::vector<std::pair<charts::BmsNotesData::Time, double>> bpmChanges;
-    std::unordered_map<uint16_t, std::shared_ptr<sounds::Sound>> sounds;
+    std::unordered_map<uint64_t, std::shared_ptr<sounds::Sound>> sounds;
     rules::HitRules hitRules;
     BmsLiveScore* score;
     std::shared_ptr<sounds::Sound> mineHitSound;
@@ -60,12 +60,12 @@ class BmsGameReferee
     explicit BmsGameReferee(
       std::array<std::vector<charts::BmsNotesData::Note>,
                  charts::BmsNotesData::columnNumber> notes,
-      const std::vector<std::pair<charts::BmsNotesData::Time, uint16_t>>&
+      const std::vector<std::pair<charts::BmsNotesData::Time, uint64_t>>&
         bgmNotes,
       std::vector<std::pair<charts::BmsNotesData::Time, double>> bpmChanges,
       std::shared_ptr<sounds::Sound> mineHitSound,
       BmsLiveScore* score,
-      std::unordered_map<uint16_t, std::shared_ptr<sounds::Sound>> sounds,
+      std::unordered_map<uint64_t, std::shared_ptr<sounds::Sound>> sounds,
       rules::HitRules hitRules);
     /**
      * @brief Update the internal state of the referee
@@ -90,7 +90,7 @@ class BmsGameReferee
      * @return The position in the chart, expressed in beats
      */
     static auto getPosition(std::pair<charts::BmsNotesData::Time, double> bpm,
-                     std::chrono::nanoseconds offsetFromStart)
+                            std::chrono::nanoseconds offsetFromStart)
       -> Position;
 
     /**

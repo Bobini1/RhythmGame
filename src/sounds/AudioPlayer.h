@@ -11,6 +11,7 @@
 #include <qqmlintegration.h>
 
 namespace sounds {
+class AudioEngine;
 
 class AudioPlayer : public QObject
 {

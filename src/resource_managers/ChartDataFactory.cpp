@@ -27,8 +27,8 @@ namespace resource_managers {
 ChartDataFactory::ChartComponents::ChartComponents(
   std::unique_ptr<gameplay_logic::ChartData> chartData,
   charts::BmsNotesData notesData,
-  std::unordered_map<uint16_t, std::filesystem::path> wavs,
-  std::unordered_map<uint16_t, std::filesystem::path> bmps)
+  std::unordered_map<uint64_t, std::filesystem::path> wavs,
+  std::unordered_map<uint64_t, std::filesystem::path> bmps)
   : chartData(std::move(chartData))
   , notesData(std::move(notesData))
   , wavs(std::move(wavs))
@@ -285,12 +285,12 @@ ChartDataFactory::loadChartData(const std::filesystem::path& chartPath,
         .md5 = QString::fromStdString(md5),
     };
 
-    std::unordered_map<uint16_t, std::filesystem::path> wavs;
+    std::unordered_map<uint64_t, std::filesystem::path> wavs;
     wavs.reserve(parsedChart.tags.wavs.size());
     for (const auto& wav : parsedChart.tags.wavs) {
         wavs.emplace(wav.first, support::utfStringToPath(wav.second));
     }
-    std::unordered_map<uint16_t, std::filesystem::path> bmps;
+    std::unordered_map<uint64_t, std::filesystem::path> bmps;
     bmps.reserve(parsedChart.tags.bmps.size());
     for (const auto& bmp : parsedChart.tags.bmps) {
         bmps.emplace(bmp.first, support::utfStringToPath(bmp.second));
@@ -353,22 +353,22 @@ ChartDataFactory::loadBmsonChartData(const std::filesystem::path& chartPath,
               .md5 = QString::fromStdString(md5),
           };
 
-          // Extract wav paths from sound_channels
-          std::unordered_map<uint16_t, std::filesystem::path> wavs;
+          // Extract wav paths from sound_channels (keyed by channel
+          // index to match BmsonSliceInfo::channelIndex)
+          std::unordered_map<uint64_t, std::filesystem::path> wavs;
           auto soundChannels = bmson["sound_channels"].toArray();
-          uint16_t nextSoundId = 1;
-          for (const auto& channel : soundChannels) {
-              auto channelObj = channel.toObject();
+          for (uint64_t idx = 0; idx < soundChannels.size(); ++idx) {
+              auto channelObj = soundChannels[idx].toObject();
               auto name = channelObj["name"].toString().toStdString();
-              wavs.emplace(nextSoundId++, std::filesystem::path{ name });
+              wavs.emplace(idx, std::filesystem::path{ name });
           }
 
           // Extract bmp paths from bga headers
-          std::unordered_map<uint16_t, std::filesystem::path> bmps;
+          std::unordered_map<uint64_t, std::filesystem::path> bmps;
           auto bgaObj = bmson["bga"].toObject();
           for (const auto& header : bgaObj["bga_header"].toArray()) {
               auto headerObj = header.toObject();
-              auto id = static_cast<uint16_t>(headerObj["id"].toInt(0));
+              auto id = headerObj["id"].toInteger(0);
               auto name = headerObj["name"].toString().toStdString();
               bmps.emplace(id, std::filesystem::path{ name });
           }
@@ -388,8 +388,8 @@ auto
 ChartDataFactory::buildChartComponents(
   charts::BmsNotesData calculatedNotesData,
   ChartMetadata metadata,
-  std::unordered_map<uint16_t, std::filesystem::path> wavs,
-  std::unordered_map<uint16_t, std::filesystem::path> bmps,
+  std::unordered_map<uint64_t, std::filesystem::path> wavs,
+  std::unordered_map<uint64_t, std::filesystem::path> bmps,
   const std::filesystem::path& chartPath,
   int64_t directory) -> ChartComponents
 {

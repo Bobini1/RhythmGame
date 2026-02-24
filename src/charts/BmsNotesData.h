@@ -67,15 +67,32 @@ struct BmsNotesData
       std::array{ 0, 1, 2, 3, 4, 7, 8, 5 }; // ignore "foot pedal"
     static constexpr auto columnNumber = columnMapping.size() * 2;
     std::array<std::vector<Note>, columnNumber> notes;
-    std::vector<std::pair<Time, uint16_t>> bgmNotes;
-    std::vector<std::pair<Time, uint16_t>> bgaBase;
-    std::vector<std::pair<Time, uint16_t>> bgaPoor;
-    std::vector<std::pair<Time, uint16_t>> bgaLayer;
-    std::vector<std::pair<Time, uint16_t>> bgaLayer2;
+    std::vector<std::pair<Time, uint64_t>> bgmNotes;
+    std::vector<std::pair<Time, uint64_t>> bgaBase;
+    std::vector<std::pair<Time, uint64_t>> bgaPoor;
+    std::vector<std::pair<Time, uint64_t>> bgaLayer;
+    std::vector<std::pair<Time, uint64_t>> bgaLayer2;
     std::vector<std::pair<Time, double>> bpmChanges;
     std::vector<Time> barLines;
     static constexpr auto defaultBpm = 120.0;
     static constexpr auto defaultLnType = LnType::RDM;
+
+    /// Describes one audio slice for bmson sound loading.
+    struct BmsonSliceInfo
+    {
+        uint64_t soundId;      ///< Unique sound ID assigned to this slice.
+        uint64_t channelIndex; ///< Index into the bmson sound_channels array.
+        double startSeconds;   ///< Slice start time in the audio file.
+        double endSeconds;     ///< Slice end time (-1 = end of file).
+    };
+
+    /// Slice descriptors for bmson. Empty for BMS charts.
+    std::vector<BmsonSliceInfo> bmsonSlices;
+
+    /// Fusion map for bmson: maps a fused sound ID to the list of slice
+    /// sound IDs that should play simultaneously. Only populated when
+    /// multiple channels have notes at the same (column, pulse).
+    std::unordered_map<uint64_t, std::vector<uint64_t>> bmsonFusions;
 
     static BmsNotesData fromParsedChart(const ParsedBmsChart& chart);
     static BmsNotesData fromBmson(const QJsonObject& bmson);

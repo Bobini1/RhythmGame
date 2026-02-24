@@ -7,6 +7,7 @@
 #include "AudioEngine.h"
 #include <vector>
 #include <filesystem>
+#include <span>
 
 namespace sounds {
 class AudioEngine;
@@ -23,15 +24,11 @@ class SoundBuffer
     std::vector<float> samples;
 
   public:
-    /**
-     * @brief Creates a new sound buffer from a file.
-     * @param filename The path to the file to load.
-     */
-    explicit SoundBuffer(AudioEngine* engine, const std::filesystem::path& filename);
+    virtual ~SoundBuffer() = default;
 
-    auto getFrames() const -> ma_uint64;
+    virtual auto getFrames() const -> ma_uint64 = 0;
 
-    auto getSamples() const -> const std::vector<float>&;
+    virtual auto getSamples() const -> std::span<const float> = 0;
 };
 } // namespace sounds
 
