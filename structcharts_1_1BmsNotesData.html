@@ -76,7 +76,7 @@ $(function() {
   <div class="summary">
 <a href="#nested-classes">Classes</a> &#124;
 <a href="#pub-types">Public Types</a> &#124;
-<a href="#pub-methods">Public Member Functions</a> &#124;
+<a href="#pub-static-methods">Static Public Member Functions</a> &#124;
 <a href="#pub-attribs">Public Attributes</a> &#124;
 <a href="#pub-static-attribs">Static Public Attributes</a> &#124;
 <a href="structcharts_1_1BmsNotesData-members.html">List of all members</a>  </div>
@@ -112,10 +112,12 @@ Public Types</h2></td></tr>
 <tr class="memitem:a0887b3caad0145433e5b6ef69897ed46" id="r_a0887b3caad0145433e5b6ef69897ed46"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structcharts_1_1BmsNotesData.html#a0887b3caad0145433e5b6ef69897ed46">Position</a> = double</td></tr>
 <tr class="separator:a0887b3caad0145433e5b6ef69897ed46"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
-Public Member Functions</h2></td></tr>
-<tr class="memitem:a4c89b6afff2b2e30bd185e7aa0436b89" id="r_a4c89b6afff2b2e30bd185e7aa0436b89"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structcharts_1_1BmsNotesData.html#a4c89b6afff2b2e30bd185e7aa0436b89">BmsNotesData</a> (const <a class="el" href="structcharts_1_1ParsedBmsChart.html">ParsedBmsChart</a> &amp;chart)</td></tr>
-<tr class="separator:a4c89b6afff2b2e30bd185e7aa0436b89"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-methods" name="pub-static-methods"></a>
+Static Public Member Functions</h2></td></tr>
+<tr class="memitem:a28846baa52ae5eeee99499f99e4d4a95" id="r_a28846baa52ae5eeee99499f99e4d4a95"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="structcharts_1_1BmsNotesData.html">BmsNotesData</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structcharts_1_1BmsNotesData.html#a28846baa52ae5eeee99499f99e4d4a95">fromParsedChart</a> (const <a class="el" href="structcharts_1_1ParsedBmsChart.html">ParsedBmsChart</a> &amp;chart)</td></tr>
+<tr class="separator:a28846baa52ae5eeee99499f99e4d4a95"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8d19ea605254347fa8d4b647942f95c4" id="r_a8d19ea605254347fa8d4b647942f95c4"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="structcharts_1_1BmsNotesData.html">BmsNotesData</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structcharts_1_1BmsNotesData.html#a8d19ea605254347fa8d4b647942f95c4">fromBmson</a> (const QJsonObject &amp;bmson)</td></tr>
+<tr class="separator:a8d19ea605254347fa8d4b647942f95c4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
@@ -220,9 +222,9 @@ Static Public Attributes</h2></td></tr>
 
 </div>
 </div>
-<h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="a4c89b6afff2b2e30bd185e7aa0436b89" name="a4c89b6afff2b2e30bd185e7aa0436b89"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4c89b6afff2b2e30bd185e7aa0436b89">&#9670;&#160;</a></span>BmsNotesData()</h2>
+<h2 class="groupheader">Member Function Documentation</h2>
+<a id="a8d19ea605254347fa8d4b647942f95c4" name="a8d19ea605254347fa8d4b647942f95c4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8d19ea605254347fa8d4b647942f95c4">&#9670;&#160;</a></span>fromBmson()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -231,7 +233,33 @@ Static Public Attributes</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">charts::BmsNotesData::BmsNotesData </td>
+          <td class="memname"><a class="el" href="structcharts_1_1BmsNotesData.html">BmsNotesData</a> charts::BmsNotesData::fromBmson </td>
+          <td>(</td>
+          <td class="paramtype">const QJsonObject &amp;&#160;</td>
+          <td class="paramname"><em>bmson</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a28846baa52ae5eeee99499f99e4d4a95" name="a28846baa52ae5eeee99499f99e4d4a95"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a28846baa52ae5eeee99499f99e4d4a95">&#9670;&#160;</a></span>fromParsedChart()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="structcharts_1_1BmsNotesData.html">BmsNotesData</a> charts::BmsNotesData::fromParsedChart </td>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="structcharts_1_1ParsedBmsChart.html">ParsedBmsChart</a> &amp;&#160;</td>
           <td class="paramname"><em>chart</em></td><td>)</td>
@@ -240,7 +268,7 @@ Static Public Attributes</h2></td></tr>
       </table>
   </td>
   <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">explicit</span></span>  </td>
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">

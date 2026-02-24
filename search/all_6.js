@@ -15,7 +15,7 @@ var searchData=
   ['finddatafolder_12',['findDataFolder',['../namespaceresource__managers.html#a328ed900df4f43724208e89d8e968f2d',1,'resource_managers']]],
   ['finddatafolder_2ecpp_13',['FindDataFolder.cpp',['../FindDataFolder_8cpp.html',1,'']]],
   ['finddatafolder_2eh_14',['FindDataFolder.h',['../FindDataFolder_8h.html',1,'']]],
-  ['finish_15',['finish',['../structcharts_1_1TagsSink_1_1SinkCallback.html#ae104c5e6e5e9798acd87033143ae78f5',1,'charts::TagsSink::SinkCallback::finish()'],['../structcharts_1_1RandomSink_1_1RandomSinkCallback.html#af7afb49ff42921ad02ba55be33011217',1,'charts::RandomSink::RandomSinkCallback::finish()'],['../classgameplay__logic_1_1ChartRunner.html#a42b6cf59462b38b21aaca4160dd1f084',1,'gameplay_logic::ChartRunner::finish()'],['../classgameplay__logic_1_1Player.html#a70b452ca8edd0316e14d6afafd8bb2d0',1,'gameplay_logic::Player::finish()'],['../classgameplay__logic_1_1CourseRunner.html#a20c65437eab26ef8f14775e820f081da',1,'gameplay_logic::CourseRunner::finish()']]],
+  ['finish_15',['finish',['../classgameplay__logic_1_1Player.html#a70b452ca8edd0316e14d6afafd8bb2d0',1,'gameplay_logic::Player::finish()'],['../classgameplay__logic_1_1CourseRunner.html#a20c65437eab26ef8f14775e820f081da',1,'gameplay_logic::CourseRunner::finish()'],['../classgameplay__logic_1_1ChartRunner.html#a42b6cf59462b38b21aaca4160dd1f084',1,'gameplay_logic::ChartRunner::finish()'],['../structcharts_1_1RandomSink_1_1RandomSinkCallback.html#af7afb49ff42921ad02ba55be33011217',1,'charts::RandomSink::RandomSinkCallback::finish()'],['../structcharts_1_1TagsSink_1_1SinkCallback.html#ae104c5e6e5e9798acd87033143ae78f5',1,'charts::TagsSink::SinkCallback::finish()']]],
   ['finished_16',['Finished',['../classgameplay__logic_1_1ChartRunner.html#af47f61dbd9ce965ac6ae35a48906c97baa7f2c243a4a4afa90ac2b2b9f1b4e307',1,'gameplay_logic::ChartRunner']]],
   ['fisheryatesshuffle_17',['fisherYatesShuffle',['../namespacesupport.html#a6b79ba387d451e0f812dfc86ccdc6b50',1,'support']]],
   ['fix_20tt_18',['fix tt',['../md_DEV__ENGINE.html#autotoc_md21',1,'&lt;tt&gt;format-check&lt;/tt&gt; and &lt;tt&gt;format-fix&lt;/tt&gt;'],['../md_DEV__ENGINE.html#autotoc_md23',1,'&lt;tt&gt;spell-check&lt;/tt&gt; and &lt;tt&gt;spell-fix&lt;/tt&gt;']]],
@@ -26,8 +26,10 @@ var searchData=
   ['foldersize_23',['folderSize',['../classqml__components_1_1SongFolderFactory.html#a92b368460c307ff7c13111b8cc2f1877',1,'qml_components::SongFolderFactory']]],
   ['for_20a_20screen_24',['Overriding the settings page for a screen',['../md_DEV__THEME.html#autotoc_md30',1,'']]],
   ['format_20check_20tt_20and_20tt_20format_20fix_20tt_25',['&lt;tt&gt;format-check&lt;/tt&gt; and &lt;tt&gt;format-fix&lt;/tt&gt;',['../md_DEV__ENGINE.html#autotoc_md21',1,'']]],
-  ['fraction_26',['fraction',['../namespaceresource__managers_1_1score__target.html#a1e47ea936dfffa6b54a61168ef29c344aef993538f3968e9d1f6c9d19a3d6cfae',1,'resource_managers::score_target::Fraction'],['../BmsNotesData_8cpp.html#a4f43290fb7c227c99bac275f57c87857',1,'fraction:&#160;BmsNotesData.cpp']]],
+  ['fraction_26',['fraction',['../BmsNotesData_8cpp.html#a4f43290fb7c227c99bac275f57c87857',1,'fraction:&#160;BmsNotesData.cpp'],['../namespaceresource__managers_1_1score__target.html#a1e47ea936dfffa6b54a61168ef29c344aef993538f3968e9d1f6c9d19a3d6cfae',1,'resource_managers::score_target::Fraction']]],
   ['fractiondec_27',['fractionDec',['../BmsNotesData_8cpp.html#a109a1d14047d645c165e2c641b71914f',1,'BmsNotesData.cpp']]],
-  ['fromjson_28',['fromJson',['../structresource__managers_1_1Trophy.html#af7c88010dbfed7063a40fe3e8d5732d3',1,'resource_managers::Trophy']]],
-  ['fromscores_29',['fromScores',['../classgameplay__logic_1_1BmsScoreCourse.html#a02d4432cc9b86c2fecec24d9f544d40b',1,'gameplay_logic::BmsScoreCourse']]]
+  ['frombmson_28',['fromBmson',['../structcharts_1_1BmsNotesData.html#a8d19ea605254347fa8d4b647942f95c4',1,'charts::BmsNotesData']]],
+  ['fromjson_29',['fromJson',['../structresource__managers_1_1Trophy.html#af7c88010dbfed7063a40fe3e8d5732d3',1,'resource_managers::Trophy']]],
+  ['fromparsedchart_30',['fromParsedChart',['../structcharts_1_1BmsNotesData.html#a28846baa52ae5eeee99499f99e4d4a95',1,'charts::BmsNotesData']]],
+  ['fromscores_31',['fromScores',['../classgameplay__logic_1_1BmsScoreCourse.html#a02d4432cc9b86c2fecec24d9f544d40b',1,'gameplay_logic::BmsScoreCourse']]]
 ];

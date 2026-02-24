@@ -139,6 +139,9 @@ Classes</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
+<tr class="memitem:a0c720f82b76b8e28793aa6a603a71e7e" id="r_a0c720f82b76b8e28793aa6a603a71e7e"><td class="memTemplParams" colspan="2">template&lt;typename Func &gt; </td></tr>
+<tr class="memitem:a0c720f82b76b8e28793aa6a603a71e7e"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceresource__managers.html#a0c720f82b76b8e28793aa6a603a71e7e">withMappedFile</a> (const std::filesystem::path &amp;path, Func &amp;&amp;func) -&gt; decltype(func(std::string_view{}))</td></tr>
+<tr class="separator:a0c720f82b76b8e28793aa6a603a71e7e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a81c960189997c32edd4ce50239bc134e" id="r_a81c960189997c32edd4ce50239bc134e"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceresource__managers.html#a81c960189997c32edd4ce50239bc134e">readAndParse</a> (const std::filesystem::path &amp;chartPath, <a class="el" href="classresource__managers_1_1ChartDataFactory.html#a17a0b84ca0e3226924a8c86f0b952b62">ChartDataFactory::RandomGenerator</a> <a class="el" href="ReadBmsFile_8cpp.html#a1bfefc378c730fdc6ed818b0f4b666f5">randomGenerator</a>)</td></tr>
 <tr class="separator:a81c960189997c32edd4ce50239bc134e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afd1f45b5bb2f8f54d38fc516886a0e14" id="r_afd1f45b5bb2f8f54d38fc516886a0e14"><td class="memItemLeft" align="right" valign="top">QList&lt; QList&lt; qint64 &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceresource__managers.html#afd1f45b5bb2f8f54d38fc516886a0e14">createHistogram</a> (const <a class="el" href="structcharts_1_1BmsNotesData.html">charts::BmsNotesData</a> &amp;calculatedNotesData, std::chrono::nanoseconds lastNoteTimestamp, size_t numBuckets)</td></tr>
@@ -723,6 +726,37 @@ Functions</h2></td></tr>
           <td></td>
           <td>)</td>
           <td></td><td> -&gt; QList&lt;<a class="el" href="classgameplay__logic_1_1rules_1_1BmsGauge.html">gameplay_logic::rules::BmsGauge</a>*&gt;
+</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a0c720f82b76b8e28793aa6a603a71e7e" name="a0c720f82b76b8e28793aa6a603a71e7e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0c720f82b76b8e28793aa6a603a71e7e">&#9670;&#160;</a></span>withMappedFile()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename Func &gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname">auto resource_managers::withMappedFile </td>
+          <td>(</td>
+          <td class="paramtype">const std::filesystem::path &amp;&#160;</td>
+          <td class="paramname"><em>path</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Func &amp;&amp;&#160;</td>
+          <td class="paramname"><em>func</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> -&gt; decltype(func(std::string_view{}))
 </td>
         </tr>
       </table>

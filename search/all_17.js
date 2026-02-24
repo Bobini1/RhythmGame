@@ -6,5 +6,6 @@ var searchData=
   ['wavtag_3',['WavTag',['../structcharts_1_1WavTag.html',1,'charts']]],
   ['what_4',['what',['../classsupport_1_1Exception.html#a25768e1c813fa1542ab41110c30e5079',1,'support::Exception']]],
   ['whitespace_5',['whitespace',['../structcharts_1_1MainTags.html#a62e1ac965f9f456c46ca157ca4cc8afa',1,'charts::MainTags']]],
-  ['writeconfig_6',['writeConfig',['../namespaceresource__managers.html#a397314cac474ac1c2dea6a7d9d8831dd',1,'resource_managers']]]
+  ['withmappedfile_6',['withMappedFile',['../namespaceresource__managers.html#a0c720f82b76b8e28793aa6a603a71e7e',1,'resource_managers']]],
+  ['writeconfig_7',['writeConfig',['../namespaceresource__managers.html#a397314cac474ac1c2dea6a7d9d8831dd',1,'resource_managers']]]
 ];

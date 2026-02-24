@@ -10,6 +10,8 @@ var searchData=
   ['fisheryatesshuffle_7',['fisherYatesShuffle',['../namespacesupport.html#a6b79ba387d451e0f812dfc86ccdc6b50',1,'support']]],
   ['flush_5f_8',['flush_',['../classsupport_1_1QtSink.html#aa6e54486c44af5c28ffa822343b3d1a5',1,'support::QtSink']]],
   ['foldersize_9',['folderSize',['../classqml__components_1_1SongFolderFactory.html#a92b368460c307ff7c13111b8cc2f1877',1,'qml_components::SongFolderFactory']]],
-  ['fromjson_10',['fromJson',['../structresource__managers_1_1Trophy.html#af7c88010dbfed7063a40fe3e8d5732d3',1,'resource_managers::Trophy']]],
-  ['fromscores_11',['fromScores',['../classgameplay__logic_1_1BmsScoreCourse.html#a02d4432cc9b86c2fecec24d9f544d40b',1,'gameplay_logic::BmsScoreCourse']]]
+  ['frombmson_10',['fromBmson',['../structcharts_1_1BmsNotesData.html#a8d19ea605254347fa8d4b647942f95c4',1,'charts::BmsNotesData']]],
+  ['fromjson_11',['fromJson',['../structresource__managers_1_1Trophy.html#af7c88010dbfed7063a40fe3e8d5732d3',1,'resource_managers::Trophy']]],
+  ['fromparsedchart_12',['fromParsedChart',['../structcharts_1_1BmsNotesData.html#a28846baa52ae5eeee99499f99e4d4a95',1,'charts::BmsNotesData']]],
+  ['fromscores_13',['fromScores',['../classgameplay__logic_1_1BmsScoreCourse.html#a02d4432cc9b86c2fecec24d9f544d40b',1,'gameplay_logic::BmsScoreCourse']]]
 ];
