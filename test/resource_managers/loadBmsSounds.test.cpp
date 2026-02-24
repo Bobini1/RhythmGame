@@ -11,6 +11,8 @@
 #include "../findTestAssetsFolder.h"
 #include "charts/ReadBmsFile.h"
 #include "sounds/AudioEngine.h"
+#include "sounds/NormalSound.h"
+#include "sounds/NormalSoundBuffer.h"
 
 #include <support/UtfStringToPath.h>
 
@@ -28,7 +30,7 @@ TEST_CASE("Sounds are loaded from a folder according to the bms file",
       std::string("8BIT_audiocheck.net_sin_1000Hz_-3dBFS_0.2s_8.0k.wav");
     const auto bmsFile = fmt::format("#WAV01 {}\n#WAV02 {}", path, path);
     auto tags = charts::readBmsChart(bmsFile, randomGenerator).tags;
-    std::unordered_map<uint16_t, std::filesystem::path> wavs;
+    std::unordered_map<uint64_t, std::filesystem::path> wavs;
     wavs.reserve(tags.wavs.size());
     for (auto& wav : tags.wavs) {
         wavs.emplace(wav.first, support::utfStringToPath(wav.second));
@@ -36,7 +38,11 @@ TEST_CASE("Sounds are loaded from a folder according to the bms file",
     auto engine = sounds::AudioEngine{};
     auto sounds = charts::loadBmsSounds(&engine, wavs, folder);
     REQUIRE(sounds.size() == 2);
-    REQUIRE(sounds.at(1)->getBuffer() == sounds.at(2)->getBuffer());
+    auto sound1 = std::dynamic_pointer_cast<sounds::NormalSound>(sounds.at(0));
+    REQUIRE(sound1 != nullptr);
+    auto sound2 = std::dynamic_pointer_cast<sounds::NormalSound>(sounds.at(1));;
+    REQUIRE(sound2 != nullptr);
+    REQUIRE(sound1->getBuffer() == sound2->getBuffer());
 }
 
 TEST_CASE("Even when the extension says wav, allow loading other extensions",
@@ -59,7 +65,7 @@ TEST_CASE("Even when the extension says wav, allow loading other extensions",
                   paths[2],
                   paths[3]);
     auto tags = charts::readBmsChart(bmsFile, randomGenerator).tags;
-    std::unordered_map<uint16_t, std::filesystem::path> wavs;
+    std::unordered_map<uint64_t, std::filesystem::path> wavs;
     wavs.reserve(tags.wavs.size());
     for (auto& wav : tags.wavs) {
         wavs.emplace(wav.first, support::utfStringToPath(wav.second));
