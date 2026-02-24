@@ -601,8 +601,22 @@ BmsNotesData::fromBmson(const QJsonObject& bmson)
 {
     auto data = BmsNotesData{};
 
+    // Reject if version is not 1.0.0
+    const auto version = bmson["version"].toString();
+    if (version != "1.0.0") {
+        throw std::runtime_error{ "Unsupported bmson version: " +
+                                  version.toStdString() };
+    }
+
     // ── 1. Read basic info ──────────────────────────────────────────────
     const auto info = bmson["info"].toObject();
+
+    auto hint = info["mode_hint"].toString();
+    if (hint != "beat-5k" && hint != "beat-7k" && hint != "beat-10k" &&
+        hint != "beat-14k" && hint != "") {
+        throw std::runtime_error{ "Unsupported bmson mode: " +
+                                  hint.toStdString() };
+    }
     const auto initBpm = info["init_bpm"].toDouble(defaultBpm);
     if (initBpm <= 0.0) {
         throw std::runtime_error{ "Initial bpm must be positive, was: " +
@@ -789,7 +803,7 @@ BmsNotesData::fromBmson(const QJsonObject& bmson)
             return x - 1;
         }
         throw std::runtime_error{
-            "Unsupported keymode, encounter column index " + std::to_string(x)
+            "Unsupported keymode, encountered column index " + std::to_string(x)
         };
     };
 
