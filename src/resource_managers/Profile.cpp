@@ -59,6 +59,11 @@ Profile::Profile(
             [this, configPath](const QString&, const QVariant&) {
                 writeConfig(configPath, *themeConfig);
             });
+    db.execute("CREATE TABLE IF NOT EXISTS properties ("
+               "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+               "key TEXT NOT NULL UNIQUE,"
+               "value"
+               ");");
     auto versionStmt =
       db.createStatement("SELECT value FROM properties WHERE key = 'version';");
     auto version = versionStmt.executeAndGet<int64_t>().transform(
@@ -136,11 +141,6 @@ Profile::Profile(
                "score_guid TEXT NOT NULL UNIQUE,"
                "gauge_info BLOB NOT NULL,"
                "FOREIGN KEY(score_guid) REFERENCES score(guid)"
-               ");");
-    db.execute("CREATE TABLE IF NOT EXISTS properties ("
-               "id INTEGER PRIMARY KEY AUTOINCREMENT,"
-               "key TEXT NOT NULL UNIQUE,"
-               "value"
                ");");
     const auto folderName = dbPath.parent_path().filename();
     auto statement = db.createStatement("INSERT OR IGNORE INTO properties "
