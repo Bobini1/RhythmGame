@@ -166,6 +166,7 @@ Item {
                     }
                 }
                 TextField {
+                    id: nameField
                     text: Rg.profileList.mainProfile.vars.generalVars.name
                     font.pixelSize: 24
                     color: palette.text
@@ -178,6 +179,62 @@ Item {
 
                     onTextChanged: {
                         Rg.profileList.mainProfile.vars.generalVars.name = text;
+                    }
+                }
+                ColumnLayout {
+                    id: loginSection
+                    anchors.top: nameField.bottom
+                    anchors.topMargin: 16
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    width: avatarFrame.width
+                    spacing: 8
+
+                    property var profile: Rg.profileList.mainProfile
+
+                    Label {
+                        text: qsTr("Online Login")
+                        font.pixelSize: 18
+                        Layout.fillWidth: true
+                    }
+
+                    Label {
+                        visible: loginSection.profile.loggedIn
+                        text: qsTr("Logged in as %1").arg(loginSection.profile.onlineUsername)
+                        font.pixelSize: 16
+                        Layout.fillWidth: true
+                    }
+
+                    Button {
+                        visible: loginSection.profile.loggedIn
+                        text: qsTr("Logout")
+                        Layout.fillWidth: true
+                        onClicked: {
+                            loginSection.profile.logout();
+                        }
+                    }
+
+                    TextField {
+                        id: emailField
+                        visible: !loginSection.profile.loggedIn
+                        placeholderText: qsTr("Email")
+                        Layout.fillWidth: true
+                    }
+
+                    TextField {
+                        id: passwordField
+                        visible: !loginSection.profile.loggedIn
+                        placeholderText: qsTr("Password")
+                        echoMode: TextInput.Password
+                        Layout.fillWidth: true
+                    }
+
+                    Button {
+                        visible: !loginSection.profile.loggedIn
+                        text: qsTr("Login")
+                        Layout.fillWidth: true
+                        onClicked: {
+                            loginSection.profile.login(emailField.text, passwordField.text);
+                        }
                     }
                 }
             }

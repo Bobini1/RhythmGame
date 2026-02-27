@@ -497,6 +497,25 @@ resource_managers::GeneralVars::resetTargetScoreFraction()
     setTargetScoreFraction(8.0 / 9.0);
 }
 auto
+resource_managers::GeneralVars::getWebApiUri() const -> QString
+{
+    return webApiUri;
+}
+void
+resource_managers::GeneralVars::setWebApiUri(const QString& value)
+{
+    if (webApiUri == value) {
+        return;
+    }
+    webApiUri = value;
+    emit webApiUriChanged();
+}
+void
+resource_managers::GeneralVars::resetWebApiUri()
+{
+    setWebApiUri("http://localhost:5173/api");
+}
+auto
 resource_managers::GeneralVars::getBgm() const -> QString
 {
     // Return just the folder name
@@ -1330,8 +1349,8 @@ resource_managers::Vars::populateThemePropertyMap(
                themeFamily = themeName](const QString& key,
                                         const QVariant& value) {
                   auto& ref = loadedThemeVars[screen][themeFamily][key];
-                  // Skip write if assigning number to number and they are very
-                  // close (ULP-based)
+                  // Skip write if assigning number to number and they are
+                  // very close (ULP-based)
                   if ((ref.typeId() == QMetaType::Double ||
                        ref.typeId() == QMetaType::Float) &&
                       (value.typeId() == QMetaType::Double ||

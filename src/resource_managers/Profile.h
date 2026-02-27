@@ -12,6 +12,9 @@
 
 #include <QQmlPropertyMap>
 #include "qml_components/ThemeFamily.h"
+
+#include <qnetworkrequestfactory.h>
+#include <qt6keychain/keychain.h>
 namespace resource_managers {
 
 class Profile final : public QObject
@@ -28,14 +31,26 @@ class Profile final : public QObject
     Q_PROPERTY(qml_components::ScoreDb* scoreDb READ getScoreDb CONSTANT)
     /** @brief The unique identifier of the profile. */
     Q_PROPERTY(QString guid READ getGuid CONSTANT)
+    Q_PROPERTY(QString onlineUsername READ getOnlineUsername NOTIFY
+                 onlineUsernameChanged)
+    Q_PROPERTY(bool loggedIn READ getLoggedIn NOTIFY loggedInChanged)
     db::SqliteCppDb db;
     std::filesystem::path dbPath;
     QQmlPropertyMap* themeConfig;
     Vars vars;
     qml_components::ScoreDb scoreDb{ &db };
     QString guid;
+    QNetworkAccessManager networkManager;
+    QNetworkRequestFactory networkRequestFactory;
+    QString onlineUsername;
+    bool loggedIn{};
+    auto loadBearerToken() const -> QByteArray;
+    void fetchOnlineData();
+    void setOnlineUsername(const QString& username);
+    void setLoggedIn(bool loggedIn);
 
   public:
+    static inline const QString keychainService = "RhythmGame";
     /**
      * @brief Creates a profile object living in the given database.
      * @details If the profile doesn't exist, it will be created.
@@ -59,6 +74,14 @@ class Profile final : public QObject
     auto getThemeConfig() const -> QQmlPropertyMap*;
     auto getVars() -> Vars*;
     auto getGuid() const -> QString;
+    Q_INVOKABLE void login(const QString& email, const QString& password);
+    Q_INVOKABLE void logout();
+    auto getOnlineUsername() const -> QString;
+    auto getLoggedIn() const -> bool;
+
+  signals:
+    void onlineUsernameChanged();
+    void loggedInChanged();
 };
 
 } // namespace resource_managers

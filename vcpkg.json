@@ -67,6 +67,7 @@
         "qml"
       ]
     },
+    "qtkeychain-qt6",
     {
       "name": "mimalloc",
       "features": [

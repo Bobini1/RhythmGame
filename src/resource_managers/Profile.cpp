@@ -10,6 +10,11 @@
 #include "support/PathToQString.h"
 #include "input/GamepadManager.h"
 #include "support/PathToUtfString.h"
+#include <qt6keychain/keychain.h>
+
+#include <QNetworkCookie>
+#include <QJsonObject>
+#include <spdlog/spdlog.h>
 
 namespace resource_managers {
 
@@ -34,6 +39,60 @@ createConfig(const QMap<QString, qml_components::ThemeFamily>& availableThemes,
 }
 } // namespace
 
+auto
+Profile::loadBearerToken() const -> QByteArray
+{
+    auto job = QKeychain::ReadPasswordJob(keychainService);
+    job.setKey(QStringLiteral("profiles/%1/token").arg(guid));
+    auto loop = QEventLoop();
+    connect(
+      &job, &QKeychain::ReadPasswordJob::finished, &loop, &QEventLoop::quit);
+    job.start();
+    loop.exec();
+    if (job.error()) {
+        spdlog::error("Error loading bearer token from keychain: {}",
+                      job.errorString().toStdString());
+        return QByteArray{};
+    }
+    return job.binaryData();
+}
+void
+Profile::fetchOnlineData()
+{
+    auto request = networkRequestFactory.createRequest("user");
+    auto reply = networkManager.get(request);
+    connect(reply, &QNetworkReply::finished, this, [this, reply]() {
+        if (reply->error() != QNetworkReply::NoError) {
+            spdlog::error("Error fetching online data: {}",
+                          reply->errorString().toStdString());
+            reply->deleteLater();
+            return;
+        }
+        auto data = reply->readAll();
+        auto json = QJsonDocument::fromJson(data).object();
+        setLoggedIn(true);
+        setOnlineUsername(json["name"].toString());
+        reply->deleteLater();
+    });
+}
+void
+Profile::setOnlineUsername(const QString& username)
+{
+    if (username == onlineUsername) {
+        return;
+    }
+    onlineUsername = username;
+    emit onlineUsernameChanged();
+}
+void
+Profile::setLoggedIn(bool loggedIn)
+{
+    if (loggedIn == this->loggedIn) {
+        return;
+    }
+    this->loggedIn = loggedIn;
+    emit loggedInChanged();
+}
 Profile::Profile(
   const std::filesystem::path& mainDbPath,
   const std::filesystem::path& dbPath,
@@ -48,6 +107,15 @@ Profile::Profile(
         .release())
   , vars(this, themeFamilies, std::move(assetsPaths))
 {
+    networkRequestFactory.setBaseUrl(vars.getGeneralVars()->getWebApiUri());
+    auto headers = networkRequestFactory.commonHeaders();
+    headers.append(QHttpHeaders::WellKnownHeader::ContentType,
+                   "application/json");
+    networkRequestFactory.setCommonHeaders(headers);
+    if (auto token = loadBearerToken(); !token.isEmpty()) {
+        networkRequestFactory.setBearerToken(token);
+        fetchOnlineData();
+    }
     auto attachStatement = db.createStatement("ATTACH DATABASE ? AS song_db;");
     attachStatement.bind(1, support::pathToUtfString(mainDbPath));
     attachStatement.execute();
@@ -192,5 +260,79 @@ auto
 Profile::getGuid() const -> QString
 {
     return guid;
+}
+void
+Profile::login(const QString& email, const QString& password)
+{
+    const auto request = networkRequestFactory.createRequest("auth/signin");
+
+    QJsonObject json;
+    json["email"] = email;
+    json["password"] = password;
+
+    QNetworkReply* reply =
+      networkManager.post(request, QJsonDocument(json).toJson());
+
+    connect(reply, &QNetworkReply::finished, [reply, this] {
+        if (reply->error() == QNetworkReply::NoError) {
+            QByteArray data = reply->readAll();
+            QJsonDocument doc = QJsonDocument::fromJson(data);
+            QJsonObject obj = doc.object();
+            QString token = obj["token"].toString();
+            if (!token.isEmpty()) {
+                auto* job =
+                  new QKeychain::WritePasswordJob(keychainService, this);
+                job->setKey(QStringLiteral("profiles/%1/token").arg(guid));
+                job->setBinaryData(token.toLatin1());
+                connect(job, &QKeychain::Job::finished, [job] {
+                    if (job->error()) {
+                        spdlog::error(
+                          "Failed to store token in keychain: {} - {}",
+                          magic_enum::enum_name(job->error()),
+                          job->errorString().toStdString());
+                    }
+                });
+                job->start();
+                networkRequestFactory.setBearerToken(token.toLatin1());
+                fetchOnlineData();
+            } else {
+                spdlog::error("Login response did not contain a token");
+            }
+            reply->deleteLater();
+        } else {
+            spdlog::error("Login request failed: {} - {}",
+                          magic_enum::enum_name(reply->error()),
+                          reply->errorString().toStdString());
+            reply->deleteLater();
+        }
+    });
+}
+void
+Profile::logout()
+{
+    auto* job = new QKeychain::DeletePasswordJob(keychainService, this);
+    job->setKey(QStringLiteral("profiles/%1/token").arg(guid));
+    connect(job, &QKeychain::Job::finished, [job] {
+        if (job->error()) {
+            spdlog::error("Failed to delete token from keychain: {} - {}",
+                          magic_enum::enum_name(job->error()),
+                          job->errorString().toStdString());
+        }
+        job->deleteLater();
+    });
+    job->start();
+    networkRequestFactory.setBearerToken({});
+    setLoggedIn(false);
+    setOnlineUsername({});
+}
+auto
+Profile::getOnlineUsername() const -> QString
+{
+    return onlineUsername;
+}
+auto
+Profile::getLoggedIn() const -> bool
+{
+    return loggedIn;
 }
 } // namespace resource_managers

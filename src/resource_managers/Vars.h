@@ -268,6 +268,14 @@ class GeneralVars final : public QObject
     Q_PROPERTY(QString soundsetPath READ getSoundsetPath NOTIFY
                  soundsetPathChanged STORED false)
 
+    /**
+     * @brief The web API uri.
+     * @details This is used for online features such as score submission and
+     * fetching online scores. It should include the protocol (e.g. "http://").
+     */
+    Q_PROPERTY(QString webApiUri READ getWebApiUri WRITE setWebApiUri NOTIFY
+                 webApiUriChanged RESET resetWebApiUri)
+
     // ^ remember to use full namespace for enums for reflection
     double noteScreenTimeMillis = 1000;
     bool laneCoverOn = false;
@@ -290,6 +298,7 @@ class GeneralVars final : public QObject
     double offset = 0.0; // Offset in milliseconds
     ScoreTarget scoreTarget = ScoreTarget::BestScore;
     double targetScoreFraction = 8.0 / 9.0; // 0.888...
+    QString webApiUri = "http://localhost:5173/api";
     QString bgmPath;
     QString soundsetPath;
 
@@ -360,6 +369,9 @@ class GeneralVars final : public QObject
     auto getTargetScoreFraction() const -> double;
     void setTargetScoreFraction(double value);
     void resetTargetScoreFraction();
+    auto getWebApiUri() const -> QString;
+    void setWebApiUri(const QString& value);
+    void resetWebApiUri();
     auto getBgm() const -> QString;
     void setBgm(const QString& value);
     void resetBgm();
@@ -393,6 +405,7 @@ class GeneralVars final : public QObject
     void offsetChanged();
     void scoreTargetChanged();
     void targetScoreFractionChanged();
+    void webApiUriChanged();
     void bgmChanged();
     void bgmPathChanged();
     void soundsetChanged();
