@@ -71,7 +71,7 @@ Profile::fetchOnlineData()
         auto data = reply->readAll();
         auto json = QJsonDocument::fromJson(data).object();
         setLoggedIn(true);
-        setOnlineUsername(json["name"].toString());
+        setOnlineUsername(json["user"].toObject()["name"].toString());
         reply->deleteLater();
     });
 }
@@ -107,6 +107,25 @@ Profile::Profile(
         .release())
   , vars(this, themeFamilies, std::move(assetsPaths))
 {
+    db.execute("CREATE TABLE IF NOT EXISTS properties ("
+               "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+               "key TEXT NOT NULL UNIQUE,"
+               "value"
+               ");");
+    auto versionStmt =
+      db.createStatement("SELECT value FROM properties WHERE key = 'version';");
+    auto version = versionStmt.executeAndGet<int64_t>().transform(
+      [](int64_t v) { return support::unpackVersion(v); });
+    const auto folderName = dbPath.parent_path().filename();
+    auto statement = db.createStatement("INSERT OR IGNORE INTO properties "
+                                        "(key, value) VALUES ('guid', ?);");
+    statement.bind(1, folderName.string());
+    statement.execute();
+    auto getGuid = db.createStatement("SELECT value FROM properties "
+                                      "WHERE key = 'guid';");
+    auto guidResult =
+      getGuid.executeAndGet<std::string>().value_or(std::string{});
+    guid = QString::fromStdString(guidResult);
     networkRequestFactory.setBaseUrl(vars.getGeneralVars()->getWebApiUri());
     auto headers = networkRequestFactory.commonHeaders();
     headers.append(QHttpHeaders::WellKnownHeader::ContentType,
@@ -127,15 +146,6 @@ Profile::Profile(
             [this, configPath](const QString&, const QVariant&) {
                 writeConfig(configPath, *themeConfig);
             });
-    db.execute("CREATE TABLE IF NOT EXISTS properties ("
-               "id INTEGER PRIMARY KEY AUTOINCREMENT,"
-               "key TEXT NOT NULL UNIQUE,"
-               "value"
-               ");");
-    auto versionStmt =
-      db.createStatement("SELECT value FROM properties WHERE key = 'version';");
-    auto version = versionStmt.executeAndGet<int64_t>().transform(
-      [](int64_t v) { return support::unpackVersion(v); });
     writeConfig(configPath, *themeConfig);
     db.execute("CREATE TABLE IF NOT EXISTS score ("
                "id INTEGER PRIMARY KEY,"
@@ -210,16 +220,6 @@ Profile::Profile(
                "gauge_info BLOB NOT NULL,"
                "FOREIGN KEY(score_guid) REFERENCES score(guid)"
                ");");
-    const auto folderName = dbPath.parent_path().filename();
-    auto statement = db.createStatement("INSERT OR IGNORE INTO properties "
-                                        "(key, value) VALUES ('guid', ?);");
-    statement.bind(1, folderName.string());
-    statement.execute();
-    auto getGuid = db.createStatement("SELECT value FROM properties "
-                                      "WHERE key = 'guid';");
-    auto guidResult =
-      getGuid.executeAndGet<std::string>().value_or(std::string{});
-    guid = QString::fromStdString(guidResult);
     auto stmt = db.createStatement(
       "INSERT OR REPLACE INTO properties (key, value) VALUES "
       "('version', ?);");
@@ -264,7 +264,7 @@ Profile::getGuid() const -> QString
 void
 Profile::login(const QString& email, const QString& password)
 {
-    const auto request = networkRequestFactory.createRequest("auth/signin");
+    const auto request = networkRequestFactory.createRequest("signin");
 
     QJsonObject json;
     json["email"] = email;
