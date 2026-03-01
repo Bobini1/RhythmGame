@@ -208,6 +208,7 @@ class BmsLiveScore final : public QObject
     int mineHits = 0;
     uint64_t randomSeed;
     int64_t length;
+    int64_t savedTimestamp;
 
     void resetCombo();
     void increaseCombo();
@@ -232,6 +233,7 @@ class BmsLiveScore final : public QObject
       int64_t length,
       QString sha256,
       QString md5,
+      int64_t savedTimestamp, // for replays
       QString guid = QUuid::createUuid().toString(),
       QObject* parent = nullptr);
 

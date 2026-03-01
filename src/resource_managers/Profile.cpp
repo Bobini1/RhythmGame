@@ -340,6 +340,9 @@ void
 Profile::submitScore(const gameplay_logic::BmsScore& score,
                      const gameplay_logic::ChartData& chartData)
 {
+    if (score.getResult()->getGuid().isEmpty()) {
+        return;
+    }
     QJsonObject json;
     json["scoreData"] = score.getResult()->toJson();
     json["chartData"] = chartData.toJson();

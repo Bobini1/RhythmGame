@@ -478,6 +478,9 @@ getComponentsForPlayer(const ChartFactory::PlayerSpecificData& player,
       chartData.getLength(),
       chartData.getSha256(),
       chartData.getMd5(),
+      player.replayedScore
+        ? player.replayedScore->getResult()->getUnixTimestamp()
+        : 0,
       guid);
     auto notesStates = QList<gameplay_logic::ColumnState*>{};
     for (const auto& column : notes->getNotes()) {

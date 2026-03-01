@@ -177,17 +177,9 @@ ChartRunner::finish() -> QList<BmsScore*>
                           10s,
                         /*lastUpdate=*/true);
     }
-    auto score1 = player1->finish();
-    ret.push_back(score1);
-    if (score1 != nullptr) {
-        player1->getProfile()->submitScore(*score1, *chartData);
-    }
+    ret.push_back(player1->finish(*chartData));
     if (player2 != nullptr) {
-        auto score2 = player2->finish();
-        ret.push_back(score2);
-        if (score2 != nullptr) {
-            player2->getProfile()->submitScore(*score2, *chartData);
-        }
+        ret.push_back(player2->finish(*chartData));
     }
     setStatus(Finished);
     return ret;
@@ -386,7 +378,7 @@ Player::getBpm() const
     return bpm;
 }
 auto
-Player::finish() -> BmsScore*
+Player::finish(const ChartData& chartData) -> BmsScore*
 {
     if (refereeFuture.isRunning()) {
         refereeFuture.cancel();
@@ -404,6 +396,9 @@ Player::finish() -> BmsScore*
             score->save(profilePtr->getDb());
         } catch (const std::exception& e) {
             spdlog::error("Failed to save score: {}", e.what());
+        }
+        if (profilePtr->getLoggedIn()) {
+            profilePtr->submitScore(*score, chartData);
         }
     } else {
         spdlog::warn("Profile was deleted before saving score");

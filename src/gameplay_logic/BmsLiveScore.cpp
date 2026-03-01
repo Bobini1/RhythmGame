@@ -27,6 +27,7 @@ BmsLiveScore::BmsLiveScore(
   int64_t length,
   QString sha256,
   QString md5,
+  int64_t savedTimestamp,
   QString guid,
   QObject* parent)
   : QObject(parent)
@@ -49,6 +50,7 @@ BmsLiveScore::BmsLiveScore(
   , guid(std::move(guid))
   , randomSeed(seed)
   , length(length)
+  , savedTimestamp(savedTimestamp)
 {
     for (auto* gauge : this->gauges) {
         gauge->setParent(this);
@@ -293,28 +295,29 @@ BmsLiveScore::getResult() const -> std::unique_ptr<BmsResult>
         return hit.getPointsOptional() &&
                hit.getPointsOptional()->getJudgement() == Judgement::MineHit;
     });
-    return std::make_unique<BmsResult>(maxPoints,
-                                       maxHits,
-                                       normalNoteCount,
-                                       scratchCount,
-                                       lnCount,
-                                       bssCount,
-                                       mineCount,
-                                       clearType,
-                                       judgementCounts.getJudgementCounts(),
-                                       mineHitsSize,
-                                       points,
-                                       maxCombo,
-                                       QDateTime::currentSecsSinceEpoch(),
-                                       length,
-                                       randomSequence,
-                                       randomSeed,
-                                       noteOrderAlgorithm,
-                                       noteOrderAlgorithmP2,
-                                       dpOptions,
-                                       guid,
-                                       sha256,
-                                       md5);
+    return std::make_unique<BmsResult>(
+      maxPoints,
+      maxHits,
+      normalNoteCount,
+      scratchCount,
+      lnCount,
+      bssCount,
+      mineCount,
+      clearType,
+      judgementCounts.getJudgementCounts(),
+      mineHitsSize,
+      points,
+      maxCombo,
+      savedTimestamp ? savedTimestamp : QDateTime::currentSecsSinceEpoch(),
+      length,
+      randomSequence,
+      randomSeed,
+      noteOrderAlgorithm,
+      noteOrderAlgorithmP2,
+      dpOptions,
+      guid,
+      sha256,
+      md5);
 }
 auto
 BmsLiveScore::getReplayData() const -> std::unique_ptr<BmsReplayData>

@@ -216,7 +216,7 @@ class Player : public QObject
     void setStatus(ChartRunner::Status status);
     auto getChartLength() const -> int64_t;
     double getBpm() const;
-    auto finish() -> BmsScore*;
+    auto finish(const ChartData& chartData) -> BmsScore*;
 
   signals:
     void positionChanged(double delta);
