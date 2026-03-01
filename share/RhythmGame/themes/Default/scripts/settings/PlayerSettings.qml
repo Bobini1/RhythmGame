@@ -190,6 +190,8 @@ Item {
                     spacing: 8
 
                     property var profile: Rg.profileList.mainProfile
+                    property bool syncing: false
+                    property int pendingOps: 0
 
                     Label {
                         text: qsTr("Online Login")
@@ -210,6 +212,40 @@ Item {
                         Layout.fillWidth: true
                         onClicked: {
                             loginSection.profile.logout();
+                        }
+                    }
+
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: 8
+                        Button {
+                            id: syncButton
+                            visible: loginSection.profile.loggedIn
+                            enabled: !loginSection.syncing
+                            text: qsTr("Sync scores")
+                            Layout.fillWidth: true
+                            onClicked: {
+                                // start both operations in parallel and show spinner until both complete
+                                loginSection.syncing = true;
+                                loginSection.pendingOps = 2;
+                                var onOpDone = function() {
+                                    loginSection.pendingOps = Math.max(0, loginSection.pendingOps - 1);
+                                    if (loginSection.pendingOps === 0) {
+                                        loginSection.syncing = false;
+                                    }
+                                }
+                                const dl = loginSection.profile.downloadScores();
+                                dl.then(function(count) { onOpDone(); }, function() { onOpDone(); });
+                                const ul = loginSection.profile.uploadScores();
+                                ul.then(function(count) { onOpDone(); }, function() { onOpDone(); });
+                            }
+                        }
+                        BusyIndicator {
+                            running: loginSection.syncing
+                            visible: running
+                            Layout.alignment: Qt.AlignVCenter
+                            width: 24
+                            height: 24
                         }
                     }
 

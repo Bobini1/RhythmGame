@@ -52,6 +52,18 @@ class Profile final : public QObject
     void setOnlineUsername(const QString& username);
     void setLoggedIn(bool loggedIn);
 
+    /**
+     * @brief Upload a bulk list of local scores identified by GUIDs.
+     * @param guids List of score GUIDs to upload.
+     */
+    void uploadScoresBulk(const QList<QString>& guids);
+    /**
+     * @brief Download scores that are missing locally from the server.
+     * @param guids List of GUIDs the client currently has; server will
+     * respond with any scores missing locally.
+     */
+    void downloadScoresBulk(const QList<QString>& guids);
+
   public:
     static inline const QString keychainService = "RhythmGame";
     /**
@@ -81,6 +93,12 @@ class Profile final : public QObject
     Q_INVOKABLE void logout();
     auto getOnlineUsername() const -> QString;
     auto getLoggedIn() const -> bool;
+    /**
+     * @brief Upload local scores to the server.
+     */
+    Q_INVOKABLE QIfPendingReply<int> uploadScores();
+    Q_INVOKABLE QIfPendingReply<int> downloadScores();
+
     void submitScore(const gameplay_logic::BmsScore& score,
                      const gameplay_logic::ChartData& chartData);
 
