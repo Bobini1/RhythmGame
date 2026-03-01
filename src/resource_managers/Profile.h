@@ -13,8 +13,11 @@
 #include <QQmlPropertyMap>
 #include "qml_components/ThemeFamily.h"
 
-#include <qnetworkrequestfactory.h>
+#include <QNetworkRequestFactory>
 #include <qt6keychain/keychain.h>
+namespace gameplay_logic {
+class ChartData;
+}
 namespace resource_managers {
 
 class Profile final : public QObject
@@ -78,6 +81,8 @@ class Profile final : public QObject
     Q_INVOKABLE void logout();
     auto getOnlineUsername() const -> QString;
     auto getLoggedIn() const -> bool;
+    void submitScore(const gameplay_logic::BmsScore& score,
+                     const gameplay_logic::ChartData& chartData);
 
   signals:
     void onlineUsernameChanged();

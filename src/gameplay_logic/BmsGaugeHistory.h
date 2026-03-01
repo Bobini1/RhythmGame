@@ -7,6 +7,7 @@
 
 #include "db/SqliteCppDb.h"
 #include "rules/BmsGauge.h"
+#include <QJsonArray>
 namespace gameplay_logic {
 
 /**
@@ -101,6 +102,8 @@ class BmsGaugeHistory final : public QObject
         std::string gaugeInfo;
     };
     static auto load(const DTO& dto) -> std::unique_ptr<BmsGaugeHistory>;
+    auto toJsonArray() const -> QJsonArray;
+    static auto fromJsonArray(const QJsonArray& array) -> QList<BmsGaugeInfo>;
 };
 } // namespace gameplay_logic
 

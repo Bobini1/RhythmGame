@@ -6,6 +6,7 @@
 #define RHYTHMGAME_CHARTDATA_H
 
 #include <QQmlEngine>
+#include <QJsonObject>
 #include "db/SqliteCppDb.h"
 #include "BmsNotes.h"
 namespace gameplay_logic {
@@ -350,6 +351,7 @@ class ChartData : public QObject
 
     auto save(db::SqliteCppDb& db) const -> void;
     static auto load(const DTO& chartDataDto) -> std::unique_ptr<ChartData>;
+    auto toJson() const -> QJsonObject;
 
   private:
     QString title;

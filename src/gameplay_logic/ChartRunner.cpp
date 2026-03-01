@@ -177,9 +177,17 @@ ChartRunner::finish() -> QList<BmsScore*>
                           10s,
                         /*lastUpdate=*/true);
     }
-    ret.append(player1->finish());
+    auto score1 = player1->finish();
+    ret.push_back(score1);
+    if (score1 != nullptr) {
+        player1->getProfile()->submitScore(*score1, *chartData);
+    }
     if (player2 != nullptr) {
-        ret.push_back(player2->finish());
+        auto score2 = player2->finish();
+        ret.push_back(score2);
+        if (score2 != nullptr) {
+            player2->getProfile()->submitScore(*score2, *chartData);
+        }
     }
     setStatus(Finished);
     return ret;

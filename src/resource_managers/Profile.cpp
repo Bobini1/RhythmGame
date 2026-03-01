@@ -6,6 +6,7 @@
 
 #include "ScanThemes.h"
 #include "SerializeConfig.h"
+#include "gameplay_logic/ChartData.h"
 #include "support/Compress.h"
 #include "support/PathToQString.h"
 #include "input/GamepadManager.h"
@@ -334,5 +335,27 @@ auto
 Profile::getLoggedIn() const -> bool
 {
     return loggedIn;
+}
+void
+Profile::submitScore(const gameplay_logic::BmsScore& score,
+                     const gameplay_logic::ChartData& chartData)
+{
+    QJsonObject json;
+    json["scoreData"] = score.getResult()->toJson();
+    json["chartData"] = chartData.toJson();
+    json["replayData"] = score.getReplayData()->toJsonArray();
+    json["gaugeHistory"] = score.getGaugeHistory()->toJsonArray();
+    auto request = networkRequestFactory.createRequest("scores");
+    auto reply = networkManager.post(request, QJsonDocument(json).toJson());
+    connect(reply, &QNetworkReply::finished, [reply]() {
+        if (reply->error() != QNetworkReply::NoError) {
+            spdlog::error("Error submitting score: {} - {}",
+                          magic_enum::enum_name(reply->error()),
+                          reply->errorString().toStdString());
+        } else {
+            spdlog::info("Score submitted successfully");
+        }
+        reply->deleteLater();
+    });
 }
 } // namespace resource_managers

@@ -12,6 +12,7 @@
 #include "support/Version.h"
 
 #include <QObject>
+#include <QJsonObject>
 namespace gameplay_logic {
 /**
  * @brief The aggregated info about a score.
@@ -270,6 +271,8 @@ class BmsResult final : public QObject
 
     void save(db::SqliteCppDb& db) const;
     static auto load(const DTO& dto) -> std::unique_ptr<BmsResult>;
+    auto toJson() const -> QJsonObject;
+    static auto fromJson(const QJsonObject& obj) -> std::unique_ptr<BmsResult>;
 };
 
 } // namespace gameplay_logic

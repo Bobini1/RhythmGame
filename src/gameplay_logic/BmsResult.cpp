@@ -10,6 +10,10 @@
 #include <QDataStream>
 #include <QDateTime>
 #include <support/Compress.h>
+#include <QJsonArray>
+#include <QJsonObject>
+#include <QString>
+
 auto
 gameplay_logic::BmsResult::getMaxPoints() const -> double
 {
@@ -290,4 +294,145 @@ auto
 gameplay_logic::BmsResult::getMineHits() const -> int
 {
     return mineHits;
+}
+auto
+gameplay_logic::BmsResult::toJson() const -> QJsonObject
+{
+    QJsonObject obj;
+    obj["maxPoints"] = maxPoints;
+    obj["maxHits"] = maxHits;
+    obj["normalNoteCount"] = normalNoteCount;
+    obj["scratchCount"] = scratchCount;
+    obj["lnCount"] = lnCount;
+    obj["bssCount"] = bssCount;
+    obj["mineCount"] = mineCount;
+    obj["points"] = points;
+    obj["maxCombo"] = maxCombo;
+    QJsonArray jc;
+    for (auto v : judgementCounts)
+        jc.append(v);
+    obj["judgementCounts"] = jc;
+    obj["mineHits"] = mineHits;
+    obj["clearType"] = clearType;
+    QJsonArray seq;
+    for (auto v : randomSequence)
+        seq.append(static_cast<qint64>(v));
+    obj["randomSequence"] = seq;
+    obj["unixTimestamp"] = static_cast<qint64>(unixTimestamp);
+    obj["length"] = static_cast<qint64>(length);
+    obj["guid"] = guid;
+    obj["sha256"] = sha256;
+    obj["md5"] = md5;
+    // Store randomSeed and gameVersion as strings per API requirements
+    obj["randomSeed"] = QString::number(randomSeed);
+    obj["noteOrderAlgorithm"] = static_cast<int>(noteOrderAlgorithm);
+    obj["noteOrderAlgorithmP2"] = static_cast<int>(noteOrderAlgorithmP2);
+    obj["dpOptions"] = static_cast<int>(dpOptions);
+    obj["gameVersion"] =
+      QString::number(static_cast<unsigned long long>(gameVersion));
+    return obj;
+}
+
+auto
+gameplay_logic::BmsResult::fromJson(const QJsonObject& obj)
+  -> std::unique_ptr<BmsResult>
+{
+    // Required fields / best-effort parse
+    double maxPoints = obj["maxPoints"].toDouble();
+    int maxHits = obj["maxHits"].toInt();
+    int normalNoteCount = obj["normalNoteCount"].toInt();
+    int scratchCount = obj["scratchCount"].toInt();
+    int lnCount = obj["lnCount"].toInt();
+    int bssCount = obj["bssCount"].toInt();
+    int mineCount = obj["mineCount"].toInt();
+    double points = obj["points"].toDouble();
+    int maxCombo = obj["maxCombo"].toInt();
+    QList<int> judgementCounts;
+    if (obj.contains("judgementCounts") && obj["judgementCounts"].isArray()) {
+        for (const auto& v : obj["judgementCounts"].toArray()) {
+            judgementCounts.append(v.toInt());
+        }
+    } else {
+        judgementCounts = QList<int>(magic_enum::enum_count<Judgement>());
+    }
+    int mineHits = obj["mineHits"].toInt();
+    QString clearType = obj["clearType"].toString();
+    QList<qint64> randomSequence;
+    if (obj.contains("randomSequence") && obj["randomSequence"].isArray()) {
+        for (const auto& v : obj["randomSequence"].toArray()) {
+            randomSequence.append(
+              static_cast<qint64>(v.toVariant().toLongLong()));
+        }
+    }
+    int64_t unixTimestamp =
+      static_cast<int64_t>(obj["unixTimestamp"].toVariant().toLongLong());
+    int64_t length =
+      static_cast<int64_t>(obj["length"].toVariant().toLongLong());
+    QString guid = obj["guid"].toString();
+    QString sha256 = obj["sha256"].toString();
+    QString md5 = obj["md5"].toString();
+
+    // Parse randomSeed (string or number)
+    uint64_t randomSeed = 0;
+    if (obj.contains("randomSeed")) {
+        const auto& rs = obj["randomSeed"];
+        if (rs.isString()) {
+            bool ok = false;
+            const auto s = rs.toString();
+            unsigned long long val = s.toULongLong(&ok);
+            if (ok)
+                randomSeed = static_cast<uint64_t>(val);
+        } else if (rs.isDouble()) {
+            randomSeed = static_cast<uint64_t>(rs.toVariant().toULongLong());
+        }
+    }
+
+    resource_managers::NoteOrderAlgorithm noa =
+      static_cast<resource_managers::NoteOrderAlgorithm>(
+        obj["noteOrderAlgorithm"].toInt());
+    resource_managers::NoteOrderAlgorithm noaP2 =
+      static_cast<resource_managers::NoteOrderAlgorithm>(
+        obj["noteOrderAlgorithmP2"].toInt());
+    resource_managers::DpOptions dpo =
+      static_cast<resource_managers::DpOptions>(obj["dpOptions"].toInt());
+
+    // Parse gameVersion (string or number)
+    uint64_t gameVersion = support::currentVersion;
+    if (obj.contains("gameVersion")) {
+        const auto& gv = obj["gameVersion"];
+        if (gv.isString()) {
+            bool ok = false;
+            const auto s = gv.toString();
+            unsigned long long val = s.toULongLong(&ok);
+            if (ok)
+                gameVersion = static_cast<uint64_t>(val);
+        } else if (gv.isDouble()) {
+            gameVersion = static_cast<uint64_t>(gv.toVariant().toULongLong());
+        }
+    }
+
+    auto result = std::make_unique<BmsResult>(maxPoints,
+                                              maxHits,
+                                              normalNoteCount,
+                                              scratchCount,
+                                              lnCount,
+                                              bssCount,
+                                              mineCount,
+                                              clearType,
+                                              judgementCounts,
+                                              mineHits,
+                                              points,
+                                              maxCombo,
+                                              unixTimestamp,
+                                              length,
+                                              randomSequence,
+                                              randomSeed,
+                                              noa,
+                                              noaP2,
+                                              dpo,
+                                              guid,
+                                              sha256,
+                                              md5,
+                                              gameVersion);
+    return result;
 }

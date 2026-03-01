@@ -9,6 +9,7 @@
 #include <memory>
 #include <utility>
 #include <spdlog/spdlog.h>
+#include <QJsonArray>
 
 gameplay_logic::ChartData::ChartData(QString title,
                                      QString artist,
@@ -431,4 +432,63 @@ auto
 gameplay_logic::ChartData::getMineCount() const -> int
 {
     return mineCount;
+}
+auto
+gameplay_logic::ChartData::toJson() const -> QJsonObject
+{
+    QJsonObject obj;
+    obj["title"] = title;
+    obj["artist"] = artist;
+    obj["subtitle"] = subtitle;
+    obj["subartist"] = subartist;
+    obj["genre"] = genre;
+    obj["stageFile"] = stageFile;
+    obj["banner"] = banner;
+    obj["backBmp"] = backBmp;
+    obj["rank"] = rank;
+    obj["total"] = total;
+    obj["playLevel"] = playLevel;
+    obj["difficulty"] = difficulty;
+    obj["normalNoteCount"] = normalNoteCount;
+    obj["scratchCount"] = scratchCount;
+    obj["lnCount"] = lnCount;
+    obj["bssCount"] = bssCount;
+    obj["mineCount"] = mineCount;
+    obj["length"] = static_cast<qint64>(length);
+    obj["path"] = path;
+    obj["sha256"] = sha256;
+    obj["md5"] = md5;
+    obj["initialBpm"] = initialBpm;
+    obj["maxBpm"] = maxBpm;
+    obj["minBpm"] = minBpm;
+    obj["mainBpm"] = mainBpm;
+    obj["avgBpm"] = avgBpm;
+    obj["peakDensity"] = peakDensity;
+    obj["avgDensity"] = avgDensity;
+    obj["endDensity"] = endDensity;
+    obj["isRandom"] = isRandom;
+    QJsonArray seq;
+    for (auto v : randomSequence) {
+        seq.append(static_cast<qint64>(v));
+    }
+    obj["randomSequence"] = seq;
+    obj["keymode"] = static_cast<int>(keymode);
+    QJsonArray histogramJson;
+    for (const auto& list : histogramData) {
+        QJsonArray sub;
+        for (auto v : list)
+            sub.append(static_cast<qint64>(v));
+        histogramJson.append(sub);
+    }
+    obj["histogramData"] = histogramJson;
+    QJsonArray bpmJson;
+    for (const auto& bpm : bpmChanges) {
+        QJsonObject o;
+        o["time"] = static_cast<qint64>(bpm.time.timestamp);
+        o["position"] = bpm.time.position;
+        o["bpm"] = bpm.bpm;
+        bpmJson.append(o);
+    }
+    obj["bpmChanges"] = bpmJson;
+    return obj;
 }
