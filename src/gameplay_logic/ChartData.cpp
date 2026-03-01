@@ -455,7 +455,6 @@ gameplay_logic::ChartData::toJson() const -> QJsonObject
     obj["bssCount"] = bssCount;
     obj["mineCount"] = mineCount;
     obj["length"] = static_cast<qint64>(length);
-    obj["path"] = path;
     obj["sha256"] = sha256;
     obj["md5"] = md5;
     obj["initialBpm"] = initialBpm;
