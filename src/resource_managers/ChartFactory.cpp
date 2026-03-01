@@ -478,7 +478,7 @@ getComponentsForPlayer(const ChartFactory::PlayerSpecificData& player,
       chartData.getLength(),
       chartData.getSha256(),
       chartData.getMd5(),
-      (player.replayedScore != nullptr)
+      player.replayedScore != nullptr
         ? player.replayedScore->getResult()->getUnixTimestamp()
         : 0,
       guid);
