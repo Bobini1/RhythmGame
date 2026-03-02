@@ -11,10 +11,12 @@ WindowBg {
     ColumnLayout {
         anchors.fill: parent
         anchors.margins: 24
+        anchors.leftMargin: 36
+        anchors.rightMargin: 36
         RowLayout {
             spacing: 13
             Rectangle {
-                width: 150
+                width: 120
                 height: 24
                 radius: 12
                 color: "#4B4B4B"
@@ -43,7 +45,7 @@ WindowBg {
         RowLayout {
             spacing: 13
             Rectangle {
-                width: 150
+                width: 120
                 height: 24
                 radius: 12
                 color: "#4B4B4B"

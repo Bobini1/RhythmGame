@@ -112,8 +112,8 @@ function getStddevAndMean(replayData) {
     const vals = [];
     for (let hit of replayData.hitEvents) {
         if (!hit.points) continue;
+        if (hit.points.judgement > Judgement.Perfect || hit.points.judgement < Judgement.Bad) continue;
         const d = hit.points.deviation;
-        if (typeof d !== 'number' || isNaN(d)) continue;
         vals.push(d);
     }
     if (vals.length === 0) return {mean: 0, stddev: 0};
