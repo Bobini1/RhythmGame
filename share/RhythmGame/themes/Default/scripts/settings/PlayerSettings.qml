@@ -102,7 +102,7 @@ Item {
                                     anchors.right: removeButton.left
                                     anchors.rightMargin: 16
                                     anchors.verticalCenter: parent.verticalCenter
-                                    property var scoreCount: (updateScoreCounts, folderRow.profile.scoreDb.getTotalScoreCount())
+                                    property var scoreCount: (rootScrollView.updateScoreCounts, folderRow.profile.scoreDb.getTotalScoreCount())
                                     text: qsTr("Scores: %1").arg(scoreCount)
                                 }
 
@@ -195,6 +195,8 @@ Item {
                     property var profile: Rg.profileList.mainProfile
                     property bool syncing: false
                     property int pendingOps: 0
+                    property bool syncError: false
+                    property bool loginError: false
 
                     Label {
                         text: qsTr("Online Login")
@@ -227,21 +229,26 @@ Item {
                             enabled: !loginSection.syncing
                             text: qsTr("Sync scores")
                             Layout.fillWidth: true
+                            palette.button: loginSection.syncError ? "red" : undefined
+                            palette.buttonText: loginSection.syncError ? "white" : undefined
                             onClicked: {
                                 // start both operations in parallel and show spinner until both complete
                                 loginSection.syncing = true;
+                                loginSection.syncError = false;
                                 loginSection.pendingOps = 2;
-                                var onOpDone = function() {
+                                var onOpDone = function(error) {
+                                    if (error) loginSection.syncError = true;
                                     loginSection.pendingOps = Math.max(0, loginSection.pendingOps - 1);
                                     if (loginSection.pendingOps === 0) {
                                         loginSection.syncing = false;
-                                        rootScrollView.updateScoreCounts++;
+                                        if (!loginSection.syncError)
+                                            rootScrollView.updateScoreCounts++;
                                     }
                                 }
                                 const dl = loginSection.profile.downloadScores();
-                                dl.then(function(count) { onOpDone(); }, function() { onOpDone(); });
+                                dl.then(function(count) { onOpDone(false); }, function() { onOpDone(true); });
                                 const ul = loginSection.profile.uploadScores();
-                                ul.then(function(count) { onOpDone(); }, function() { onOpDone(); });
+                                ul.then(function(count) { onOpDone(false); }, function() { onOpDone(true); });
                             }
                         }
                         BusyIndicator {
@@ -272,8 +279,12 @@ Item {
                         visible: !loginSection.profile.loggedIn
                         text: qsTr("Login")
                         Layout.fillWidth: true
+                        palette.button: loginSection.loginError ? "red" : undefined
+                        palette.buttonText: loginSection.loginError ? "white" : undefined
                         onClicked: {
-                            loginSection.profile.login(emailField.text, passwordField.text);
+                            loginSection.loginError = false;
+                            const reply = loginSection.profile.login(emailField.text, passwordField.text);
+                            reply.then(function() {}, function() { loginSection.loginError = true; });
                         }
                     }
                 }

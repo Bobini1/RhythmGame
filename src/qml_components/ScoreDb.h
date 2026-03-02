@@ -25,7 +25,7 @@ class TableQueryResult
     Q_GADGET
     Q_PROPERTY(ScoreQueryResult courseScores MEMBER courseScores CONSTANT)
     Q_PROPERTY(ScoreQueryResult scores MEMBER scores CONSTANT)
-public:
+  public:
     ScoreQueryResult courseScores;
     ScoreQueryResult scores;
 };
@@ -50,7 +50,7 @@ class ScoreDb final : public QObject
   public:
     explicit ScoreDb(db::SqliteCppDb* scoreDb);
     Q_INVOKABLE QIfPendingReply<ScoreQueryResult> getScoresForMd5(
-    const QList<QString>& md5s) const;
+      const QList<QString>& md5s) const;
     Q_INVOKABLE QIfPendingReply<ScoreQueryResult> getScoresForCourseId(
       const QList<QString>& courseIds) const;
     Q_INVOKABLE QIfPendingReply<ScoreQueryResult> getScores(
@@ -67,6 +67,13 @@ class ScoreDb final : public QObject
     Q_INVOKABLE void cancelPending();
 
     Q_INVOKABLE int getTotalScoreCount() const;
+
+    /**
+     * @brief Run a callable on the DB thread pool.
+     * @details Use this to serialize all DB access through one pool,
+     * avoiding concurrent access to the underlying SQLite connection.
+     */
+    void runOnDbThread(std::function<void()> fn) const;
 };
 } // namespace qml_components
 

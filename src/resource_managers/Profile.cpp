@@ -45,22 +45,23 @@ createConfig(const QMap<QString, qml_components::ThemeFamily>& availableThemes,
 }
 } // namespace
 
-auto
-Profile::loadBearerToken() const -> QByteArray
+void
+Profile::loadBearerToken()
 {
-    auto job = QKeychain::ReadPasswordJob(keychainService);
-    job.setKey(QStringLiteral("profiles/%1/token").arg(guid));
-    auto loop = QEventLoop();
-    connect(
-      &job, &QKeychain::ReadPasswordJob::finished, &loop, &QEventLoop::quit);
-    job.start();
-    loop.exec();
-    if (job.error()) {
-        spdlog::error("Error loading bearer token from keychain: {}",
-                      job.errorString().toStdString());
-        return QByteArray{};
-    }
-    return job.binaryData();
+    auto* job = new QKeychain::ReadPasswordJob(keychainService, this);
+    job->setKey(QStringLiteral("profiles/%1/token").arg(guid));
+    connect(job, &QKeychain::Job::finished, this, [this, job]() {
+        job->deleteLater();
+        if (job->error()) {
+            return;
+        }
+        const auto token = job->binaryData();
+        if (!token.isEmpty()) {
+            networkRequestFactory.setBearerToken(token);
+            fetchOnlineData();
+        }
+    });
+    job->start();
 }
 void
 Profile::fetchOnlineData()
@@ -137,10 +138,7 @@ Profile::Profile(
     headers.append(QHttpHeaders::WellKnownHeader::ContentType,
                    "application/json");
     networkRequestFactory.setCommonHeaders(headers);
-    if (auto token = loadBearerToken(); !token.isEmpty()) {
-        networkRequestFactory.setBearerToken(token);
-        fetchOnlineData();
-    }
+    loadBearerToken();
     auto attachStatement = db.createStatement("ATTACH DATABASE ? AS song_db;");
     attachStatement.bind(1, support::pathToUtfString(mainDbPath));
     attachStatement.execute();
@@ -267,9 +265,11 @@ Profile::getGuid() const -> QString
 {
     return guid;
 }
-void
+auto
 Profile::login(const QString& email, const QString& password)
+  -> QIfPendingReply<void>
 {
+    auto outerReply = QIfPendingReply<void>{};
     const auto request = networkRequestFactory.createRequest("signin");
 
     QJsonObject json;
@@ -279,39 +279,44 @@ Profile::login(const QString& email, const QString& password)
     QNetworkReply* reply =
       networkManager.post(request, QJsonDocument(json).toJson());
 
-    connect(reply, &QNetworkReply::finished, [reply, this] {
-        if (reply->error() == QNetworkReply::NoError) {
-            QByteArray data = reply->readAll();
-            QJsonDocument doc = QJsonDocument::fromJson(data);
-            QJsonObject obj = doc.object();
-            QString token = obj["token"].toString();
-            if (!token.isEmpty()) {
-                auto* job =
-                  new QKeychain::WritePasswordJob(keychainService, this);
-                job->setKey(QStringLiteral("profiles/%1/token").arg(guid));
-                job->setBinaryData(token.toLatin1());
-                connect(job, &QKeychain::Job::finished, [job] {
-                    if (job->error()) {
-                        spdlog::error(
-                          "Failed to store token in keychain: {} - {}",
-                          magic_enum::enum_name(job->error()),
-                          job->errorString().toStdString());
-                    }
-                });
-                job->start();
-                networkRequestFactory.setBearerToken(token.toLatin1());
-                fetchOnlineData();
-            } else {
-                spdlog::error("Login response did not contain a token");
-            }
-            reply->deleteLater();
-        } else {
-            spdlog::error("Login request failed: {} - {}",
-                          magic_enum::enum_name(reply->error()),
-                          reply->errorString().toStdString());
-            reply->deleteLater();
-        }
-    });
+    connect(
+      reply, &QNetworkReply::finished, [reply, this, outerReply]() mutable {
+          if (reply->error() == QNetworkReply::NoError) {
+              QByteArray data = reply->readAll();
+              QJsonDocument doc = QJsonDocument::fromJson(data);
+              QJsonObject obj = doc.object();
+              QString token = obj["token"].toString();
+              if (!token.isEmpty()) {
+                  auto* job =
+                    new QKeychain::WritePasswordJob(keychainService, this);
+                  job->setKey(QStringLiteral("profiles/%1/token").arg(guid));
+                  job->setBinaryData(token.toLatin1());
+                  connect(job, &QKeychain::Job::finished, [job] {
+                      if (job->error()) {
+                          spdlog::error(
+                            "Failed to store token in keychain: {} - {}",
+                            magic_enum::enum_name(job->error()),
+                            job->errorString().toStdString());
+                      }
+                  });
+                  job->start();
+                  networkRequestFactory.setBearerToken(token.toLatin1());
+                  fetchOnlineData();
+                  outerReply.setSuccess();
+              } else {
+                  spdlog::error("Login response did not contain a token");
+                  outerReply.setFailed();
+              }
+              reply->deleteLater();
+          } else {
+              spdlog::error("Login request failed: {} - {}",
+                            magic_enum::enum_name(reply->error()),
+                            reply->errorString().toStdString());
+              outerReply.setFailed();
+              reply->deleteLater();
+          }
+      });
+    return outerReply;
 }
 void
 Profile::logout()
@@ -370,347 +375,522 @@ auto
 Profile::uploadScores() -> QIfPendingReply<int>
 {
     auto outerReply = QIfPendingReply<int>{};
-    // Collect local GUIDs from score table
-    auto stmt = db.createStatement("SELECT guid FROM score");
-    auto rows = stmt.executeAndGetAll<std::string>();
-    QJsonArray guidsArray;
-    for (const auto& r : rows) {
-        guidsArray.append(QString::fromStdString(r));
-    }
-    auto request = networkRequestFactory.createRequest("scores/unknown");
-    QNetworkReply* unknownReply =
-      networkManager.post(request, QJsonDocument(guidsArray).toJson());
-    connect(
-      unknownReply,
-      &QNetworkReply::finished,
-      [this, unknownReply, outerReply]() mutable {
-          if (unknownReply->error() != QNetworkReply::NoError) {
-              spdlog::error("scores/unknown failed: {} - {}",
-                            magic_enum::enum_name(unknownReply->error()),
-                            unknownReply->errorString().toStdString());
-              outerReply.setFailed();
-              unknownReply->deleteLater();
-              return;
-          }
-          auto data = unknownReply->readAll();
-          auto doc = QJsonDocument::fromJson(data);
-          if (!doc.isArray()) {
-              spdlog::error("scores/unknown returned non-array");
-              outerReply.setFailed();
-              unknownReply->deleteLater();
-              return;
-          }
-          auto array = doc.array();
-          auto guids = QList<QString>{};
-          for (const auto& v : array) {
-              if (v.isString())
-                  guids.append(v.toString());
-          }
-          if (guids.isEmpty()) {
-              // Nothing to upload
-              outerReply.setSuccess(0);
-              unknownReply->deleteLater();
-              return;
-          }
 
-          // Build payload synchronously (query DB for the guid list)
-          constexpr auto columns =
-            "score.max_points, score.max_hits, score.normal_note_count, "
-            "score.scratch_count, score.ln_count, score.bss_count, "
-            "score.mine_count, "
-            "score.clear_type, score.points, score.max_combo, score.poor, "
-            "score.empty_poor, score.bad, score.good, score.great, "
-            "score.perfect, score.mine_hits, score.guid, score.sha256, "
-            "score.md5, score.unix_timestamp, score.length, "
-            "score.random_sequence, score.random_seed, "
-            "score.note_order_algorithm, score.note_order_algorithm_p2, "
-            "score.dp_options, score.game_version, "
-            "replay_data.*, gauge_history.* ";
+    scoreDb.runOnDbThread([this, outerReply]() mutable {
+        try {
+            auto stmt = db.createStatement("SELECT guid FROM score");
+            auto rows = stmt.executeAndGetAll<std::string>();
+            QJsonArray guidsArray;
+            for (const auto& r : rows) {
+                guidsArray.append(QString::fromStdString(r));
+            }
 
-          auto stmtStr =
-            std::string("SELECT ") + columns +
-            "FROM score JOIN replay_data ON score.guid = "
-            "replay_data.score_guid "
-            "JOIN gauge_history ON score.guid = gauge_history.score_guid "
-            "WHERE score.guid IN (" +
-            QString("?, ").repeated(guids.size()).chopped(2).toStdString() +
-            ") ORDER BY score.unix_timestamp DESC";
+            QMetaObject::invokeMethod(
+              this,
+              [this, outerReply, guidsArray]() mutable {
+                  auto request =
+                    networkRequestFactory.createRequest("scores/unknown");
+                  QNetworkReply* unknownReply = networkManager.post(
+                    request, QJsonDocument(guidsArray).toJson());
 
-          auto statement = db.createStatement(stmtStr);
-          for (int i = 0; i < guids.size(); ++i) {
-              statement.bind(i + 1, guids[i].toStdString());
-          }
-          const auto results = statement.executeAndGetAll<
-            std::tuple<gameplay_logic::BmsResult::DTO,
-                       gameplay_logic::BmsReplayData::DTO,
-                       gameplay_logic::BmsGaugeHistory::DTO>>();
+                  connect(
+                    unknownReply,
+                    &QNetworkReply::finished,
+                    [this, unknownReply, outerReply]() mutable {
+                        if (unknownReply->error() != QNetworkReply::NoError) {
+                            spdlog::error(
+                              "scores/unknown failed: {} - {}",
+                              magic_enum::enum_name(unknownReply->error()),
+                              unknownReply->errorString().toStdString());
+                            outerReply.setFailed();
+                            unknownReply->deleteLater();
+                            return;
+                        }
+                        auto data = unknownReply->readAll();
+                        auto doc = QJsonDocument::fromJson(data);
+                        if (!doc.isArray()) {
+                            spdlog::error("scores/unknown returned non-array");
+                            outerReply.setFailed();
+                            unknownReply->deleteLater();
+                            return;
+                        }
+                        auto array = doc.array();
+                        auto guids = QList<QString>{};
+                        for (const auto& v : array) {
+                            if (v.isString())
+                                guids.append(v.toString());
+                        }
+                        unknownReply->deleteLater();
 
-          QJsonArray payload;
-          for (const auto& row : results) {
-              auto resultDto = std::get<0>(row);
-              auto replayDto = std::get<1>(row);
-              auto gaugeDto = std::get<2>(row);
-              auto result = gameplay_logic::BmsResult::load(resultDto);
-              auto replay = gameplay_logic::BmsReplayData::load(replayDto);
-              auto gauge = gameplay_logic::BmsGaugeHistory::load(gaugeDto);
-              QJsonObject obj;
-              obj["scoreData"] = result->toJson();
-              // Chart data: query charts table by md5
-              auto chartStmt = db.createStatement(
-                "SELECT charts.id, charts.title, charts.artist, "
-                "charts.subtitle, charts.subartist, "
-                "charts.genre, charts.stage_file, charts.banner, "
-                "charts.back_bmp, charts.rank, charts.total, "
-                "charts.play_level, charts.difficulty, charts.is_random, "
-                "charts.random_sequence, charts.normal_note_count, "
-                "charts.scratch_count, charts.ln_count, charts.bss_count, "
-                "charts.mine_count, charts.length, "
-                "charts.initial_bpm, charts.max_bpm, charts.min_bpm, "
-                "charts.main_bpm, charts.avg_bpm, charts.peak_density, "
-                "charts.avg_density, charts.end_density, charts.path, "
-                "charts.directory, charts.sha256, charts.md5, charts.keymode, "
-                "h.bpms, h.histogram_data "
-                "FROM song_db.charts LEFT JOIN song_db.histogram_data h "
-                "ON h.chart_id = charts.id WHERE charts.md5 = ? LIMIT 1");
-              chartStmt.bind(1, std::get<0>(row).md5);
-              const auto chartResults =
-                chartStmt.executeAndGetAll<gameplay_logic::ChartData::DTO>();
-              if (chartResults.empty()) {
-                  // skip scores without chart data
-                  continue;
-              }
-              auto chart =
-                gameplay_logic::ChartData::load(chartResults.front());
-              obj["chartData"] = chart->toJson();
-              obj["replayData"] = replay->toJsonArray();
-              obj["gaugeHistory"] = gauge->toJsonArray();
-              payload.append(obj);
-          }
+                        if (guids.isEmpty()) {
+                            outerReply.setSuccess(0);
+                            return;
+                        }
 
-          if (payload.isEmpty()) {
-              // Nothing valid to upload
-              outerReply.setSuccess(0);
-              unknownReply->deleteLater();
-              return;
-          }
+                        scoreDb.runOnDbThread([this,
+                                               guids,
+                                               outerReply]() mutable {
+                            try {
+                                constexpr auto columns =
+                                  "score.max_points, score.max_hits, "
+                                  "score.normal_note_count, "
+                                  "score.scratch_count, score.ln_count, "
+                                  "score.bss_count, score.mine_count, "
+                                  "score.clear_type, score.points, "
+                                  "score.max_combo, score.poor, "
+                                  "score.empty_poor, score.bad, score.good, "
+                                  "score.great, score.perfect, "
+                                  "score.mine_hits, score.guid, score.sha256,"
+                                  " score.md5, score.unix_timestamp, "
+                                  "score.length, score.random_sequence, "
+                                  "score.random_seed, "
+                                  "score.note_order_algorithm, "
+                                  "score.note_order_algorithm_p2, "
+                                  "score.dp_options, score.game_version, "
+                                  "replay_data.*, gauge_history.* ";
 
-          // POST to scores/bulk and complete the outerReply when it finishes
-          auto bulkRequest = networkRequestFactory.createRequest("scores/bulk");
-          auto bulkReply =
-            networkManager.post(bulkRequest, QJsonDocument(payload).toJson());
-          const auto uploadedCount = payload.size();
-          connect(
-            bulkReply,
-            &QNetworkReply::finished,
-            [bulkReply, outerReply, uploadedCount]() mutable {
-                if (bulkReply->error() != QNetworkReply::NoError) {
-                    spdlog::error("scores/bulk failed: {} - {}",
-                                  magic_enum::enum_name(bulkReply->error()),
-                                  bulkReply->errorString().toStdString());
-                    outerReply.setFailed();
-                } else {
-                    outerReply.setSuccess(static_cast<int>(uploadedCount));
-                }
-                bulkReply->deleteLater();
-            });
+                                auto stmtStr =
+                                  std::string("SELECT ") + columns +
+                                  "FROM score JOIN replay_data ON "
+                                  "score.guid = replay_data.score_guid "
+                                  "JOIN gauge_history ON score.guid = "
+                                  "gauge_history.score_guid "
+                                  "WHERE score.guid IN (" +
+                                  QString("?, ")
+                                    .repeated(guids.size())
+                                    .chopped(2)
+                                    .toStdString() +
+                                  ") ORDER BY score.unix_timestamp DESC";
 
-          unknownReply->deleteLater();
-      });
+                                auto statement = db.createStatement(stmtStr);
+                                for (int i = 0; i < guids.size(); ++i) {
+                                    statement.bind(i + 1,
+                                                   guids[i].toStdString());
+                                }
+                                const auto results =
+                                  statement.executeAndGetAll<std::tuple<
+                                    gameplay_logic::BmsResult::DTO,
+                                    gameplay_logic::BmsReplayData::DTO,
+                                    gameplay_logic::BmsGaugeHistory::DTO>>();
+
+                                QJsonArray payload;
+                                for (const auto& row : results) {
+                                    auto result =
+                                      gameplay_logic::BmsResult::load(
+                                        std::get<0>(row));
+                                    auto replay =
+                                      gameplay_logic::BmsReplayData::load(
+                                        std::get<1>(row));
+                                    auto gauge =
+                                      gameplay_logic::BmsGaugeHistory::load(
+                                        std::get<2>(row));
+                                    QJsonObject obj;
+                                    obj["scoreData"] = result->toJson();
+                                    auto chartStmt = db.createStatement(
+                                      "SELECT charts.id, charts.title, "
+                                      "charts.artist, charts.subtitle, "
+                                      "charts.subartist, charts.genre, "
+                                      "charts.stage_file, charts.banner, "
+                                      "charts.back_bmp, charts.rank, "
+                                      "charts.total, charts.play_level, "
+                                      "charts.difficulty, charts.is_random, "
+                                      "charts.random_sequence, "
+                                      "charts.normal_note_count, "
+                                      "charts.scratch_count, charts.ln_count,"
+                                      " charts.bss_count, charts.mine_count, "
+                                      "charts.length, charts.initial_bpm, "
+                                      "charts.max_bpm, charts.min_bpm, "
+                                      "charts.main_bpm, charts.avg_bpm, "
+                                      "charts.peak_density, "
+                                      "charts.avg_density, "
+                                      "charts.end_density, charts.path, "
+                                      "charts.directory, charts.sha256, "
+                                      "charts.md5, charts.keymode, "
+                                      "h.bpms, h.histogram_data "
+                                      "FROM song_db.charts LEFT JOIN "
+                                      "song_db.histogram_data h "
+                                      "ON h.chart_id = charts.id "
+                                      "WHERE charts.md5 = ? LIMIT 1");
+                                    chartStmt.bind(1, std::get<0>(row).md5);
+                                    const auto chartResults =
+                                      chartStmt.executeAndGetAll<
+                                        gameplay_logic::ChartData::DTO>();
+                                    if (chartResults.empty())
+                                        continue;
+                                    auto chart =
+                                      gameplay_logic::ChartData::load(
+                                        chartResults.front());
+                                    obj["chartData"] = chart->toJson();
+                                    obj["replayData"] = replay->toJsonArray();
+                                    obj["gaugeHistory"] = gauge->toJsonArray();
+                                    payload.append(obj);
+                                }
+
+                                if (payload.isEmpty()) {
+                                    QMetaObject::invokeMethod(
+                                      this,
+                                      [outerReply]() mutable {
+                                          outerReply.setSuccess(0);
+                                      },
+                                      Qt::QueuedConnection);
+                                    return;
+                                }
+
+                                const auto uploadedCount = payload.size();
+                                QMetaObject::invokeMethod(
+                                  this,
+                                  [this,
+                                   payload = std::move(payload),
+                                   outerReply,
+                                   uploadedCount]() mutable {
+                                      auto bulkRequest =
+                                        networkRequestFactory.createRequest(
+                                          "scores/bulk");
+                                      auto* bulkReply = networkManager.post(
+                                        bulkRequest,
+                                        QJsonDocument(payload).toJson());
+                                      connect(bulkReply,
+                                              &QNetworkReply::finished,
+                                              [bulkReply,
+                                               outerReply,
+                                               uploadedCount]() mutable {
+                                                  if (bulkReply->error() !=
+                                                      QNetworkReply::NoError) {
+                                                      spdlog::error(
+                                                        "scores/bulk failed: "
+                                                        "{} - {}",
+                                                        magic_enum::enum_name(
+                                                          bulkReply->error()),
+                                                        bulkReply->errorString()
+                                                          .toStdString());
+                                                      outerReply.setFailed();
+                                                  } else {
+                                                      outerReply.setSuccess(
+                                                        static_cast<int>(
+                                                          uploadedCount));
+                                                  }
+                                                  bulkReply->deleteLater();
+                                              });
+                                  },
+                                  Qt::QueuedConnection);
+                            } catch (const std::exception& e) {
+                                spdlog::error(
+                                  "Error building upload payload: {}",
+                                  e.what());
+                                QMetaObject::invokeMethod(
+                                  this,
+                                  [outerReply]() mutable {
+                                      outerReply.setFailed();
+                                  },
+                                  Qt::QueuedConnection);
+                            }
+                        });
+                    });
+              },
+              Qt::QueuedConnection);
+        } catch (const std::exception& e) {
+            spdlog::error("Error in uploadScores: {}", e.what());
+            QMetaObject::invokeMethod(
+              this,
+              [outerReply]() mutable { outerReply.setFailed(); },
+              Qt::QueuedConnection);
+        }
+    });
     return outerReply;
 }
 auto
 Profile::downloadScores() -> QIfPendingReply<int>
 {
     auto outerReply = QIfPendingReply<int>{};
-    // Collect local GUIDs from score table
-    auto stmt = db.createStatement("SELECT guid FROM score");
-    auto rows = stmt.executeAndGetAll<std::string>();
-    QJsonArray guidsArray;
-    for (const auto& r : rows) {
-        guidsArray.append(QString::fromStdString(r));
-    }
-    auto request = networkRequestFactory.createRequest("scores/missing");
-    QNetworkReply* missingReply =
-      networkManager.post(request, QJsonDocument(guidsArray).toJson());
-    connect(
-      missingReply,
-      &QNetworkReply::finished,
-      [this, missingReply, outerReply]() mutable {
-          if (missingReply->error() != QNetworkReply::NoError) {
-              spdlog::error("scores/missing failed: {} - {}",
-                            magic_enum::enum_name(missingReply->error()),
-                            missingReply->errorString().toStdString());
-              outerReply.setFailed();
-              missingReply->deleteLater();
-              return;
-          }
-          auto data = missingReply->readAll();
-          auto doc = QJsonDocument::fromJson(data);
-          if (!doc.isArray()) {
-              spdlog::error("scores/missing returned non-array");
-              outerReply.setFailed();
-              missingReply->deleteLater();
-              return;
-          }
-          auto array = doc.array();
-          int processed = 0;
-          for (const auto& v : array) {
-              if (!v.isObject())
-                  continue;
-              auto o = v.toObject();
-              // Expect same shape as submitScore: scoreData, replayData,
-              // gaugeHistory
-              auto scoreObj = o["scoreData"].toObject();
-              auto chartObj = o["chartData"].toObject();
-              auto replayArr = o["replayData"].toArray();
-              auto gaugeArr = o["gaugeHistory"].toArray();
 
-              // Create ChartData and persist it (if present)
-              if (!chartObj.isEmpty()) {
-                  QString title = chartObj["title"].toString();
-                  QString artist = chartObj["artist"].toString();
-                  QString subtitle = chartObj["subtitle"].toString();
-                  QString subartist = chartObj["subartist"].toString();
-                  QString genre = chartObj["genre"].toString();
-                  QString stageFile = chartObj["stageFile"].toString();
-                  QString banner = chartObj["banner"].toString();
-                  QString backBmp = chartObj["backBmp"].toString();
-                  int rank = chartObj["rank"].toInt();
-                  double total = chartObj["total"].toDouble();
-                  int playLevel = chartObj["playLevel"].toInt();
-                  int difficulty = chartObj["difficulty"].toInt();
-                  int normalNoteCount = chartObj["normalNoteCount"].toInt();
-                  int scratchCount = chartObj["scratchCount"].toInt();
-                  int lnCount = chartObj["lnCount"].toInt();
-                  int bssCount = chartObj["bssCount"].toInt();
-                  int mineCount = chartObj["mineCount"].toInt();
-                  int64_t length = static_cast<int64_t>(
-                    chartObj["length"].toVariant().toLongLong());
-                  double initialBpm = chartObj["initialBpm"].toDouble();
-                  double maxBpm = chartObj["maxBpm"].toDouble();
-                  double minBpm = chartObj["minBpm"].toDouble();
-                  double mainBpm = chartObj["mainBpm"].toDouble();
-                  double avgBpm = chartObj["avgBpm"].toDouble();
-                  double peakDensity = chartObj["peakDensity"].toDouble();
-                  double avgDensity = chartObj["avgDensity"].toDouble();
-                  double endDensity = chartObj["endDensity"].toDouble();
-                  QString path = chartObj["path"].toString();
-                  int64_t directory = -1;
-                  if (chartObj.contains("directory")) {
-                      directory = static_cast<int64_t>(
-                        chartObj["directory"].toVariant().toLongLong());
-                  }
-                  QString sha256 = chartObj["sha256"].toString();
-                  QString md5 = chartObj["md5"].toString();
-                  bool isRandom = chartObj["isRandom"].toBool();
-                  QList<qint64> randomSequence;
-                  if (chartObj.contains("randomSequence") &&
-                      chartObj["randomSequence"].isArray()) {
-                      for (const auto& v :
-                           chartObj["randomSequence"].toArray()) {
-                          randomSequence.append(
-                            static_cast<qint64>(v.toVariant().toLongLong()));
-                      }
-                  }
-                  auto keymode = gameplay_logic::ChartData::Keymode::K7;
-                  if (chartObj.contains("keymode")) {
-                      keymode = static_cast<gameplay_logic::ChartData::Keymode>(
-                        chartObj["keymode"].toInt(static_cast<int>(
-                          gameplay_logic::ChartData::Keymode::K7)));
-                  }
-                  QList<QList<qint64>> histogramData;
-                  if (chartObj.contains("histogramData") &&
-                      chartObj["histogramData"].isArray()) {
-                      for (const auto& listV :
-                           chartObj["histogramData"].toArray()) {
-                          QList<qint64> sub;
-                          if (listV.isArray()) {
-                              for (const auto& item : listV.toArray()) {
-                                  sub.append(static_cast<qint64>(
-                                    item.toVariant().toLongLong()));
-                              }
-                          }
-                          histogramData.append(sub);
-                      }
-                  }
-                  QList<gameplay_logic::BpmChange> bpmChanges;
-                  if (chartObj.contains("bpmChanges") &&
-                      chartObj["bpmChanges"].isArray()) {
-                      for (const auto& v2 : chartObj["bpmChanges"].toArray()) {
-                          if (!v2.isObject())
-                              continue;
-                          auto o2 = v2.toObject();
-                          gameplay_logic::BpmChange bc;
-                          bc.time.timestamp = static_cast<int64_t>(
-                            o2["time"].toVariant().toLongLong());
-                          bc.time.position = o2["position"].toDouble();
-                          bc.bpm = o2["bpm"].toDouble();
-                          bpmChanges.append(bc);
-                      }
-                  }
-                  auto chart = std::make_unique<gameplay_logic::ChartData>(
-                    std::move(title),
-                    std::move(artist),
-                    std::move(subtitle),
-                    std::move(subartist),
-                    std::move(genre),
-                    std::move(stageFile),
-                    std::move(banner),
-                    std::move(backBmp),
-                    rank,
-                    total,
-                    playLevel,
-                    difficulty,
-                    isRandom,
-                    std::move(randomSequence),
-                    normalNoteCount,
-                    scratchCount,
-                    lnCount,
-                    bssCount,
-                    mineCount,
-                    length,
-                    initialBpm,
-                    maxBpm,
-                    minBpm,
-                    mainBpm,
-                    avgBpm,
-                    peakDensity,
-                    avgDensity,
-                    endDensity,
-                    std::move(path),
-                    directory,
-                    std::move(sha256),
-                    std::move(md5),
-                    keymode,
-                    std::move(histogramData),
-                    std::move(bpmChanges));
-                  if (chart)
-                      chart->save(db);
-              }
+    scoreDb.runOnDbThread([this, outerReply]() mutable {
+        try {
+            auto stmt = db.createStatement("SELECT guid FROM score");
+            auto rows = stmt.executeAndGetAll<std::string>();
+            QJsonArray guidsArray;
+            for (const auto& r : rows) {
+                guidsArray.append(QString::fromStdString(r));
+            }
 
-              // Create BmsResult
-              auto result = gameplay_logic::BmsResult::fromJson(scoreObj);
+            QMetaObject::invokeMethod(
+              this,
+              [this, outerReply, guidsArray]() mutable {
+                  auto request =
+                    networkRequestFactory.createRequest("scores/missing");
+                  QNetworkReply* missingReply = networkManager.post(
+                    request, QJsonDocument(guidsArray).toJson());
 
-              // Create replay and gauge objects
-              auto hits =
-                gameplay_logic::BmsReplayData::fromJsonArray(replayArr);
-              auto replay = std::make_unique<gameplay_logic::BmsReplayData>(
-                hits, result->getGuid());
-              auto gauges =
-                gameplay_logic::BmsGaugeHistory::fromJsonArray(gaugeArr);
-              auto gaugeHistory =
-                std::make_unique<gameplay_logic::BmsGaugeHistory>(
-                  gauges, result->getGuid());
+                  connect(
+                    missingReply,
+                    &QNetworkReply::finished,
+                    [this, missingReply, outerReply]() mutable {
+                        if (missingReply->error() != QNetworkReply::NoError) {
+                            spdlog::error(
+                              "scores/missing failed: {} - {}",
+                              magic_enum::enum_name(missingReply->error()),
+                              missingReply->errorString().toStdString());
+                            outerReply.setFailed();
+                            missingReply->deleteLater();
+                            return;
+                        }
+                        auto data = missingReply->readAll();
+                        auto doc = QJsonDocument::fromJson(data);
+                        if (!doc.isArray()) {
+                            spdlog::error("scores/missing returned non-array");
+                            outerReply.setFailed();
+                            missingReply->deleteLater();
+                            return;
+                        }
+                        auto array = doc.array();
+                        missingReply->deleteLater();
 
-              // Save all parts to DB via BmsScore::save
-              auto score = gameplay_logic::BmsScore(
-                std::move(result), std::move(replay), std::move(gaugeHistory));
-              score.save(db);
-              ++processed;
-          }
-          outerReply.setSuccess(processed);
-          missingReply->deleteLater();
-      });
+                        if (array.isEmpty()) {
+                            outerReply.setSuccess(0);
+                            return;
+                        }
+
+                        scoreDb.runOnDbThread([this,
+                                               array,
+                                               outerReply]() mutable {
+                            try {
+                                int processed = 0;
+                                for (const auto& v : array) {
+                                    if (!v.isObject())
+                                        continue;
+                                    auto o = v.toObject();
+                                    auto scoreObj = o["scoreData"].toObject();
+                                    auto chartObj = o["chartData"].toObject();
+                                    auto replayArr = o["replayData"].toArray();
+                                    auto gaugeArr = o["gaugeHistory"].toArray();
+
+                                    if (!chartObj.isEmpty()) {
+                                        QString title =
+                                          chartObj["title"].toString();
+                                        QString artist =
+                                          chartObj["artist"].toString();
+                                        QString subtitle =
+                                          chartObj["subtitle"].toString();
+                                        QString subartist =
+                                          chartObj["subartist"].toString();
+                                        QString genre =
+                                          chartObj["genre"].toString();
+                                        QString stageFile =
+                                          chartObj["stageFile"].toString();
+                                        QString banner =
+                                          chartObj["banner"].toString();
+                                        QString backBmp =
+                                          chartObj["backBmp"].toString();
+                                        int rank = chartObj["rank"].toInt();
+                                        double total =
+                                          chartObj["total"].toDouble();
+                                        int playLevel =
+                                          chartObj["playLevel"].toInt();
+                                        int difficulty =
+                                          chartObj["difficulty"].toInt();
+                                        int normalNoteCount =
+                                          chartObj["normalNoteCount"].toInt();
+                                        int scratchCount =
+                                          chartObj["scratchCount"].toInt();
+                                        int lnCount =
+                                          chartObj["lnCount"].toInt();
+                                        int bssCount =
+                                          chartObj["bssCount"].toInt();
+                                        int mineCount =
+                                          chartObj["mineCount"].toInt();
+                                        int64_t length = static_cast<int64_t>(
+                                          chartObj["length"]
+                                            .toVariant()
+                                            .toLongLong());
+                                        double initialBpm =
+                                          chartObj["initialBpm"].toDouble();
+                                        double maxBpm =
+                                          chartObj["maxBpm"].toDouble();
+                                        double minBpm =
+                                          chartObj["minBpm"].toDouble();
+                                        double mainBpm =
+                                          chartObj["mainBpm"].toDouble();
+                                        double avgBpm =
+                                          chartObj["avgBpm"].toDouble();
+                                        double peakDensity =
+                                          chartObj["peakDensity"].toDouble();
+                                        double avgDensity =
+                                          chartObj["avgDensity"].toDouble();
+                                        double endDensity =
+                                          chartObj["endDensity"].toDouble();
+                                        QString path =
+                                          chartObj["path"].toString();
+                                        int64_t directory = -1;
+                                        if (chartObj.contains("directory")) {
+                                            directory = static_cast<int64_t>(
+                                              chartObj["directory"]
+                                                .toVariant()
+                                                .toLongLong());
+                                        }
+                                        QString sha256 =
+                                          chartObj["sha256"].toString();
+                                        QString md5 =
+                                          chartObj["md5"].toString();
+                                        bool isRandom =
+                                          chartObj["isRandom"].toBool();
+                                        QList<qint64> randomSequence;
+                                        if (chartObj.contains(
+                                              "randomSequence") &&
+                                            chartObj["randomSequence"]
+                                              .isArray()) {
+                                            for (const auto& rv :
+                                                 chartObj["randomSequence"]
+                                                   .toArray()) {
+                                                randomSequence.append(
+                                                  static_cast<qint64>(
+                                                    rv.toVariant()
+                                                      .toLongLong()));
+                                            }
+                                        }
+                                        auto keymode = gameplay_logic::
+                                          ChartData::Keymode::K7;
+                                        if (chartObj.contains("keymode")) {
+                                            keymode =
+                                              static_cast<gameplay_logic::
+                                                            ChartData::Keymode>(
+                                                chartObj["keymode"].toInt(
+                                                  static_cast<int>(
+                                                    gameplay_logic::ChartData::
+                                                      Keymode::K7)));
+                                        }
+                                        QList<QList<qint64>> histogramData;
+                                        if (chartObj.contains(
+                                              "histogramData") &&
+                                            chartObj["histogramData"]
+                                              .isArray()) {
+                                            for (const auto& listV :
+                                                 chartObj["histogramData"]
+                                                   .toArray()) {
+                                                QList<qint64> sub;
+                                                if (listV.isArray()) {
+                                                    for (const auto& item :
+                                                         listV.toArray()) {
+                                                        sub.append(
+                                                          static_cast<qint64>(
+                                                            item.toVariant()
+                                                              .toLongLong()));
+                                                    }
+                                                }
+                                                histogramData.append(sub);
+                                            }
+                                        }
+                                        QList<gameplay_logic::BpmChange>
+                                          bpmChanges;
+                                        if (chartObj.contains("bpmChanges") &&
+                                            chartObj["bpmChanges"].isArray()) {
+                                            for (const auto& bv :
+                                                 chartObj["bpmChanges"]
+                                                   .toArray()) {
+                                                if (!bv.isObject())
+                                                    continue;
+                                                auto bo = bv.toObject();
+                                                gameplay_logic::BpmChange bc;
+                                                bc.time.timestamp =
+                                                  static_cast<int64_t>(
+                                                    bo["time"]
+                                                      .toVariant()
+                                                      .toLongLong());
+                                                bc.time.position =
+                                                  bo["position"].toDouble();
+                                                bc.bpm = bo["bpm"].toDouble();
+                                                bpmChanges.append(bc);
+                                            }
+                                        }
+                                        auto chart = std::make_unique<
+                                          gameplay_logic::ChartData>(
+                                          std::move(title),
+                                          std::move(artist),
+                                          std::move(subtitle),
+                                          std::move(subartist),
+                                          std::move(genre),
+                                          std::move(stageFile),
+                                          std::move(banner),
+                                          std::move(backBmp),
+                                          rank,
+                                          total,
+                                          playLevel,
+                                          difficulty,
+                                          isRandom,
+                                          std::move(randomSequence),
+                                          normalNoteCount,
+                                          scratchCount,
+                                          lnCount,
+                                          bssCount,
+                                          mineCount,
+                                          length,
+                                          initialBpm,
+                                          maxBpm,
+                                          minBpm,
+                                          mainBpm,
+                                          avgBpm,
+                                          peakDensity,
+                                          avgDensity,
+                                          endDensity,
+                                          std::move(path),
+                                          directory,
+                                          std::move(sha256),
+                                          std::move(md5),
+                                          keymode,
+                                          std::move(histogramData),
+                                          std::move(bpmChanges));
+                                        if (chart)
+                                            chart->save(db);
+                                    }
+
+                                    auto result =
+                                      gameplay_logic::BmsResult::fromJson(
+                                        scoreObj);
+                                    auto hits = gameplay_logic::BmsReplayData::
+                                      fromJsonArray(replayArr);
+                                    auto replay = std::make_unique<
+                                      gameplay_logic::BmsReplayData>(
+                                      hits, result->getGuid());
+                                    auto gauges = gameplay_logic::
+                                      BmsGaugeHistory::fromJsonArray(gaugeArr);
+                                    auto gaugeHistory = std::make_unique<
+                                      gameplay_logic::BmsGaugeHistory>(
+                                      gauges, result->getGuid());
+                                    auto score = gameplay_logic::BmsScore(
+                                      std::move(result),
+                                      std::move(replay),
+                                      std::move(gaugeHistory));
+                                    score.save(db);
+                                    ++processed;
+                                }
+
+                                QMetaObject::invokeMethod(
+                                  this,
+                                  [outerReply, processed]() mutable {
+                                      outerReply.setSuccess(processed);
+                                  },
+                                  Qt::QueuedConnection);
+                            } catch (const std::exception& e) {
+                                spdlog::error(
+                                  "Error in downloadScores processing: {}",
+                                  e.what());
+                                QMetaObject::invokeMethod(
+                                  this,
+                                  [outerReply]() mutable {
+                                      outerReply.setFailed();
+                                  },
+                                  Qt::QueuedConnection);
+                            }
+                        });
+                    });
+              },
+              Qt::QueuedConnection);
+        } catch (const std::exception& e) {
+            spdlog::error("Error in downloadScores: {}", e.what());
+            QMetaObject::invokeMethod(
+              this,
+              [outerReply]() mutable { outerReply.setFailed(); },
+              Qt::QueuedConnection);
+        }
+    });
     return outerReply;
 }
 } // namespace resource_managers

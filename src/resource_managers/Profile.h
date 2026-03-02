@@ -47,7 +47,7 @@ class Profile final : public QObject
     QNetworkRequestFactory networkRequestFactory;
     QString onlineUsername;
     bool loggedIn{};
-    auto loadBearerToken() const -> QByteArray;
+    auto loadBearerToken() -> void;
     void fetchOnlineData();
     void setOnlineUsername(const QString& username);
     void setLoggedIn(bool loggedIn);
@@ -89,14 +89,20 @@ class Profile final : public QObject
     auto getThemeConfig() const -> QQmlPropertyMap*;
     auto getVars() -> Vars*;
     auto getGuid() const -> QString;
-    Q_INVOKABLE void login(const QString& email, const QString& password);
+    Q_INVOKABLE QIfPendingReply<void> login(const QString& email,
+                                            const QString& password);
     Q_INVOKABLE void logout();
     auto getOnlineUsername() const -> QString;
     auto getLoggedIn() const -> bool;
     /**
      * @brief Upload local scores to the server.
+     * @return Number of scores uploaded, or -1 on failure.
      */
     Q_INVOKABLE QIfPendingReply<int> uploadScores();
+    /**
+     * @brief Download scores from the server that are missing locally.
+     * @return Number of scores downloaded, or -1 on failure.
+     */
     Q_INVOKABLE QIfPendingReply<int> downloadScores();
 
     void submitScore(const gameplay_logic::BmsScore& score,
