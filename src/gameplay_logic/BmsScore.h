@@ -15,7 +15,17 @@ namespace gameplay_logic {
 class BmsScore final : public QObject
 {
     Q_OBJECT
-
+  public:
+    enum class SubmissionState
+    {
+        NotSubmitting,
+        Submitting,
+        Submitted,
+        Failed,
+        Duplicate
+    };
+    Q_ENUM(SubmissionState)
+  private:
     /**
      * @brief The aggregated info about the score.
      */
@@ -28,10 +38,16 @@ class BmsScore final : public QObject
      * @brief The gauge history of the score.
      */
     Q_PROPERTY(BmsGaugeHistory* gaugeHistory READ getGaugeHistory CONSTANT)
+    /**
+     * @brief The state of score submission to the online server.
+     */
+    Q_PROPERTY(SubmissionState submissionState MEMBER submissionState NOTIFY
+                 submissionStateChanged)
 
     BmsResult* result;
     BmsReplayData* replayData;
     BmsGaugeHistory* gaugeHistory;
+    SubmissionState submissionState{ SubmissionState::NotSubmitting };
 
   public:
     explicit BmsScore(std::unique_ptr<BmsResult> result,
@@ -42,7 +58,11 @@ class BmsScore final : public QObject
     auto getResult() const -> BmsResult*;
     auto getReplayData() const -> BmsReplayData*;
     auto getGaugeHistory() const -> BmsGaugeHistory*;
+    void setSubmissionState(SubmissionState newState);
+    auto getSubmissionState() const -> SubmissionState;
     void save(db::SqliteCppDb& db) const;
+  signals:
+    void submissionStateChanged();
 };
 } // namespace gameplay_logic
 

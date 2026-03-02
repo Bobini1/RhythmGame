@@ -105,8 +105,9 @@ class Profile final : public QObject
      */
     Q_INVOKABLE QIfPendingReply<int> downloadScores();
 
-    void submitScore(const gameplay_logic::BmsScore& score,
-                     const gameplay_logic::ChartData& chartData);
+    auto submitScore(const gameplay_logic::BmsScore& score,
+                     const gameplay_logic::ChartData& chartData)
+      -> QNetworkReply*;
 
   signals:
     void onlineUsernameChanged();

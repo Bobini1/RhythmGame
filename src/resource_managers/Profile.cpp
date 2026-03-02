@@ -346,12 +346,13 @@ Profile::getLoggedIn() const -> bool
 {
     return loggedIn;
 }
-void
+auto
 Profile::submitScore(const gameplay_logic::BmsScore& score,
                      const gameplay_logic::ChartData& chartData)
+  -> QNetworkReply*
 {
     if (score.getResult()->getGuid().isEmpty()) {
-        return;
+        return nullptr;
     }
     QJsonObject json;
     json["scoreData"] = score.getResult()->toJson();
@@ -360,16 +361,6 @@ Profile::submitScore(const gameplay_logic::BmsScore& score,
     json["gaugeHistory"] = score.getGaugeHistory()->toJsonArray();
     auto request = networkRequestFactory.createRequest("scores");
     auto reply = networkManager.post(request, QJsonDocument(json).toJson());
-    connect(reply, &QNetworkReply::finished, [reply]() {
-        if (reply->error() != QNetworkReply::NoError) {
-            spdlog::error("Error submitting score: {} - {}",
-                          magic_enum::enum_name(reply->error()),
-                          reply->errorString().toStdString());
-        } else {
-            spdlog::info("Score submitted successfully");
-        }
-        reply->deleteLater();
-    });
 }
 auto
 Profile::uploadScores() -> QIfPendingReply<int>

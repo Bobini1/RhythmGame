@@ -397,8 +397,35 @@ Player::finish(const ChartData& chartData) -> BmsScore*
         } catch (const std::exception& e) {
             spdlog::error("Failed to save score: {}", e.what());
         }
-        if (profilePtr->getLoggedIn()) {
-            profilePtr->submitScore(*score, chartData);
+        if (profilePtr->getLoggedIn() &&
+            !score->getResult()->getGuid().isEmpty()) {
+            score->setSubmissionState(BmsScore::SubmissionState::Submitting);
+            auto* submission = profilePtr->submitScore(*score, chartData);
+            connect(submission,
+                    &QNetworkReply::finished,
+                    this,
+                    [score = score.get(), submission]() {
+                        if (submission->error() != QNetworkReply::NoError) {
+                            spdlog::error(
+                              "Failed to submit score: {} - {}",
+                              magic_enum::enum_name(submission->error()),
+                              submission->errorString().toStdString());
+                            if (submission
+                                  ->attribute(
+                                    QNetworkRequest::HttpStatusCodeAttribute)
+                                  .toInt() == 409) {
+                                score->setSubmissionState(
+                                  BmsScore::SubmissionState::Duplicate);
+                            } else {
+                                score->setSubmissionState(
+                                  BmsScore::SubmissionState::Failed);
+                            }
+                        } else {
+                            score->setSubmissionState(
+                              BmsScore::SubmissionState::Submitted);
+                        }
+                        submission->deleteLater();
+                    });
         }
     } else {
         spdlog::warn("Profile was deleted before saving score");
