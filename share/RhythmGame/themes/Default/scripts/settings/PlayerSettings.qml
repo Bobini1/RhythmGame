@@ -17,6 +17,8 @@ Item {
         contentWidth: Math.max(600, width)
         contentHeight: Math.max(rootRowLayout.implicitHeight, parent.height)
 
+        property int updateScoreCounts: 0
+
         RowLayout {
             id: rootRowLayout
             anchors.fill: parent
@@ -100,7 +102,8 @@ Item {
                                     anchors.right: removeButton.left
                                     anchors.rightMargin: 16
                                     anchors.verticalCenter: parent.verticalCenter
-                                    text: qsTr("Scores: %1").arg(folderRow.profile.scoreDb.getTotalScoreCount())
+                                    property var scoreCount: (updateScoreCounts, folderRow.profile.scoreDb.getTotalScoreCount())
+                                    text: qsTr("Scores: %1").arg(scoreCount)
                                 }
 
                                 Button {
@@ -232,6 +235,7 @@ Item {
                                     loginSection.pendingOps = Math.max(0, loginSection.pendingOps - 1);
                                     if (loginSection.pendingOps === 0) {
                                         loginSection.syncing = false;
+                                        rootScrollView.updateScoreCounts++;
                                     }
                                 }
                                 const dl = loginSection.profile.downloadScores();
