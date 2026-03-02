@@ -105,6 +105,31 @@ function getEarlyLate(replayData) {
     };
 }
 
+function getStddevAndMean(replayData) {
+    if (!replayData || !replayData.hitEvents) {
+        return {mean: 0, stddev: 0};
+    }
+    const vals = [];
+    for (let hit of replayData.hitEvents) {
+        if (!hit.points) continue;
+        const d = hit.points.deviation;
+        if (typeof d !== 'number' || isNaN(d)) continue;
+        vals.push(d);
+    }
+    if (vals.length === 0) return {mean: 0, stddev: 0};
+    let sum = 0;
+    for (let v of vals) sum += v;
+    const mean = sum / vals.length;
+    let sq = 0;
+    for (let v of vals) {
+        const diff = v - mean;
+        sq += diff * diff;
+    }
+    const variance = sq / vals.length; // population variance
+    const stddev = Math.sqrt(variance);
+    return {mean: mean, stddev: stddev};
+}
+
 function capitalizeFirstLetter(string) {
     return string.charAt(0).toUpperCase() + string.slice(1);
 }

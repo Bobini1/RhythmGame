@@ -10,6 +10,9 @@ Column {
     required property bool isBattle
     property bool mirrored: false
     readonly property var earlyLate: Helpers.getEarlyLate(score.replayData)
+    readonly property var stddevAndMean: Helpers.getStddevAndMean(score.replayData)
+    readonly property var stddev: stddevAndMean.stddev
+    readonly property var mean: stddevAndMean.mean
     readonly property string oldBestClear: Helpers.getClearType(scores)
     readonly property var oldBestPointsScore: Helpers.getScoreWithBestPoints(scores)
     readonly property var oldBestStats: Helpers.getBestStats(scores)
@@ -44,19 +47,19 @@ Column {
         height: childrenRect.height
         width: parent.width
 
-        LampDiff {
-            id: lampDiff
+        MeanSd {
+            id: meanSd
             anchors.left: scoreColumn.right
             anchors.top: parent.top
             anchors.topMargin: side.mirrored ? 330 : 0
             height: 104
             width: 350
 
-            clearType: side.score.result.clearType
-            oldBestClear: side.oldBestClear
+            mean: side.mean
+            stddev: side.stddev
             transform: Scale {
                 xScale: side.mirrored ? -1 : 1
-                origin.x: side.mirrored ? lampDiff.width / 2 : 0
+                origin.x: side.mirrored ? meanSd.width / 2 : 0
             }
         }
         LifeGraph {
@@ -72,7 +75,7 @@ Column {
             scale: side.isBattle ? 350 / implicitWidth : 1
             transformOrigin: Item.TopLeft
             anchors.rightMargin: 90
-            anchors.top: side.isBattle ? lampDiff.bottom : scoreColumn.top
+            anchors.top: side.isBattle ? meanSd.bottom : scoreColumn.top
             transform: Scale {
                 xScale: side.mirrored ? -1 : 1
                 origin.x: side.mirrored ? lifeGraph.scale * lifeGraph.width / 2 : 0
@@ -88,6 +91,8 @@ Column {
             earlyLate: side.earlyLate
             judgementCounts: side.score.result.judgementCounts
             maxCombo: side.score.result.maxCombo
+            clearType: side.score.result.clearType
+            oldBestClear: side.oldBestClear
             transform: Scale {
                 xScale: side.mirrored ? -1 : 1
                 origin.x: side.mirrored ? scoreColumn.width / 2 : 0

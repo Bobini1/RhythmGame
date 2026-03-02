@@ -1,37 +1,16 @@
 import QtQuick
 import QtQuick.Layouts
-import RhythmGameQml
+import "../common/helpers.js" as Helpers
 
 WindowBg {
-    id: chartInfo
-    required property var difficulty
-    required property var total
-    required property int noteCount
-    Image {
-        anchors.left: parent.left
-        anchors.top: parent.top
-        source: {
-            switch (chartInfo.difficulty) {
-            case 1:
-                return root.iniImagesUrl + "parts.png/beginner_diff";
-            case 2:
-                return root.iniImagesUrl + "parts.png/normal_diff";
-            case 3:
-                return root.iniImagesUrl + "parts.png/hyper_diff";
-            case 4:
-                return root.iniImagesUrl + "parts.png/another_diff";
-            case 5:
-                return root.iniImagesUrl + "parts.png/insane_diff";
-            default:
-                return root.iniImagesUrl + "parts.png/unknown_diff";
-            }
-        }
-    }
+    id: meanSd
+
+    required property real stddev
+    required property real mean
 
     ColumnLayout {
         anchors.fill: parent
         anchors.margins: 24
-        anchors.topMargin: 40
         RowLayout {
             spacing: 13
             Rectangle {
@@ -41,7 +20,7 @@ WindowBg {
                 color: "#4B4B4B"
                 Text {
                     anchors.centerIn: parent
-                    text: qsTr("NOTES")
+                    text: qsTr("MEAN")
                     font.bold: true
                     color: "white"
                     font.pixelSize: 16
@@ -49,7 +28,11 @@ WindowBg {
                 Layout.alignment: Qt.AlignVCenter
             }
             Text {
-                text: chartInfo.noteCount
+                text: {
+                    let num = (meanSd.mean / 1000000).toFixed(1) + " ms"
+                    let sign = meanSd.mean > 0 ? "+" : "";
+                    return sign + num;
+                }
                 font.pixelSize: 24
                 Layout.fillHeight: true
                 Layout.fillWidth: true
@@ -66,7 +49,7 @@ WindowBg {
                 color: "#4B4B4B"
                 Text {
                     anchors.centerIn: parent
-                    text: qsTr("TOTAL")
+                    text: qsTr("SD")
                     font.bold: true
                     color: "white"
                     font.pixelSize: 16
@@ -74,7 +57,11 @@ WindowBg {
                 Layout.alignment: Qt.AlignVCenter
             }
             Text {
-                text: chartInfo.total || "-"
+                text: {
+                    let num = (meanSd.stddev / 1000000).toFixed(1) + " ms"
+                    let sign = meanSd.stddev > 0 ? "+" : "";
+                    return sign + num;
+                }
                 font.pixelSize: 24
                 Layout.fillHeight: true
                 Layout.fillWidth: true
@@ -84,3 +71,4 @@ WindowBg {
         }
     }
 }
+

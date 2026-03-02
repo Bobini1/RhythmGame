@@ -10,6 +10,8 @@ Column {
     required property var oldBestStats
     required property var earlyLate
     required property int maxCombo
+    required property var clearType
+    required property var oldBestClear
 
     Score {
         height: 150
@@ -18,6 +20,26 @@ Column {
         points: scoreColumn.points
         maxPoints: scoreColumn.maxPoints
         oldBestPoints: scoreColumn.oldBestPoints
+    }
+    Row {
+        width: 668
+        height: 104
+
+        RankingPosition {
+            width: 318
+            height: parent.height
+
+            oldRankingPosition: 0
+            newRankingPosition: 1
+            totalEntries: 100
+        }
+        LampDiff {
+            width: 350
+            height: parent.height
+
+            clearType: scoreColumn.clearType
+            oldBestClear: scoreColumn.oldBestClear
+        }
     }
     HitInfo {
         height: 180
@@ -33,3 +55,5 @@ Column {
         earlyLate: scoreColumn.earlyLate
     }
 }
+
+
