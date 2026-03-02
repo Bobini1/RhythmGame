@@ -360,7 +360,7 @@ Profile::submitScore(const gameplay_logic::BmsScore& score,
     json["replayData"] = score.getReplayData()->toJsonArray();
     json["gaugeHistory"] = score.getGaugeHistory()->toJsonArray();
     auto request = networkRequestFactory.createRequest("scores");
-    auto reply = networkManager.post(request, QJsonDocument(json).toJson());
+    return networkManager.post(request, QJsonDocument(json).toJson());
 }
 auto
 Profile::uploadScores() -> QIfPendingReply<int>

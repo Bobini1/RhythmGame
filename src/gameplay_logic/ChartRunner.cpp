@@ -403,7 +403,7 @@ Player::finish(const ChartData& chartData) -> BmsScore*
             auto* submission = profilePtr->submitScore(*score, chartData);
             connect(submission,
                     &QNetworkReply::finished,
-                    this,
+                    score.get(),
                     [score = score.get(), submission]() {
                         if (submission->error() != QNetworkReply::NoError) {
                             spdlog::error(
