@@ -44,6 +44,7 @@
 #include "support/QtSink.h"
 #include "resource_managers/AvatarImageProvider.h"
 #include "support/QStringToPath.h"
+#include "qml_components/OnlineScores.h"
 
 Q_IMPORT_QML_PLUGIN(RhythmGameQmlPlugin)
 
@@ -304,32 +305,27 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
                                                  dataFolder / "tables",
                                                  &db };
 
-        auto engine = QQmlApplicationEngine{};
-        auto languages =
-          resource_managers::Languages{ availableThemes, &engine };
-        auto setLang = [&profileList,
-                        &languages,
-                        connection = QMetaObject::Connection{}]() mutable {
-            languages.setSelectedLanguage(profileList.getMainProfile()
-                                            ->getVars()
-                                            ->getGeneralVars()
-                                            ->getLanguage());
-            QObject::disconnect(connection);
-            connection = QObject::connect(
-              profileList.getMainProfile()->getVars()->getGeneralVars(),
-              &resource_managers::GeneralVars::languageChanged,
-              &languages,
-              [mainProfileVars =
-                 profileList.getMainProfile()->getVars()->getGeneralVars(),
-               &languages]() {
-                  languages.setSelectedLanguage(mainProfileVars->getLanguage());
-              });
+        auto onlineScores =
+          qml_components::OnlineScores{ &networkManager,
+                                        profileList.getMainProfile()
+                                          ->getVars()
+                                          ->getGeneralVars()
+                                          ->getWebApiUri() };
+        auto updateBaseUrl = [&onlineScores, &profileList]() {
+            onlineScores.setBaseUrl(profileList.getMainProfile()
+                                      ->getVars()
+                                      ->getGeneralVars()
+                                      ->getWebApiUri());
         };
         QObject::connect(&profileList,
                          &qml_components::ProfileList::mainProfileChanged,
-                         &languages,
-                         setLang);
-        setLang();
+                         &onlineScores,
+                         updateBaseUrl);
+
+        auto engine = QQmlApplicationEngine{};
+
+        auto languages =
+          resource_managers::Languages{ availableThemes, &engine };
 
         auto rg = Rg{ &programSettings,
                       &inputTranslator,
@@ -343,7 +339,8 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
                       &profileList,
                       &tables,
                       &languages,
-                      &audioEngine };
+                      &audioEngine,
+                      &onlineScores };
 
         Rg::instance = &rg;
 
@@ -407,6 +404,10 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
           "RhythmGameQml", 1, 0, "AnalogAxisConfig");
         qmlRegisterType<input::InputTranslator>(
           "RhythmGameQml", 1, 0, "InputTranslator");
+        qmlRegisterType<qml_components::OnlineScoreQueryResult>(
+          "RhythmGameQml", 1, 0, "OnlineScoreQueryResult");
+        qmlRegisterType<qml_components::OnlineProfileInfo>(
+          "RhythmGameQml", 1, 0, "OnlineProfileInfo");
         qmlRegisterUncreatableMetaObject(
           gameplay_logic::judgement::staticMetaObject,
           "RhythmGameQml",

@@ -184,6 +184,8 @@ qt_add_library(RhythmGame_lib OBJECT
         src/qml_components/PreviewFilePathFetcher.h
         src/qml_components/ScoreDb.cpp
         src/qml_components/ScoreDb.h
+        src/qml_components/OnlineScores.cpp
+        src/qml_components/OnlineScores.h
         src/qml_components/FileQuery.cpp
         src/qml_components/FileQuery.h
         src/qml_components/Bga.cpp
@@ -246,6 +248,8 @@ qt_add_library(RhythmGame_lib OBJECT
         src/sounds/NormalSoundBuffer.h
         src/sounds/NormalSound.cpp
         src/sounds/NormalSound.h
+        src/qml_components/OnlineProfileInfo.cpp
+        src/qml_components/OnlineProfileInfo.h
 )
 
 if (WIN32)
