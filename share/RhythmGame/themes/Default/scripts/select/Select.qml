@@ -257,15 +257,12 @@ FocusScope {
             Loader {
                 id: grade
 
-                active: songList.currentItem
-                ?.
-                    scoreWithBestPoints || false
+                active: songList.currentItem?.scoreWithBestPoints || false
                 anchors.centerIn: parent
                 anchors.horizontalCenterOffset: -10
                 anchors.verticalCenterOffset: 150
                 sourceComponent: Grade {
-                    scoreWithBestPoints: songList.currentItem
-                    ?.scoreWithBestPoints || null
+                    scoreWithBestPoints: songList.currentItem?.scoreWithBestPoints || null
                 }
             }
             Connections {
