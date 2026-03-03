@@ -288,6 +288,7 @@ FocusScope {
                 }
             }
             ScoreInfo {
+                id: scoreInfo
                 anchors.bottom: parent.bottom
                 anchors.bottomMargin: 80
                 anchors.left: parent.left
@@ -302,18 +303,18 @@ FocusScope {
                 id: search
 
                 anchors.bottom: parent.bottom
-                anchors.bottomMargin: 5
+                anchors.bottomMargin: 2
                 anchors.left: parent.left
-                anchors.leftMargin: 48
+                anchors.leftMargin: 45
                 source: root.iniImagesUrl + "parts.png/search"
 
                 TextEdit {
                     id: searchEdit
 
                     anchors.bottom: parent.bottom
-                    anchors.bottomMargin: 17
+                    anchors.bottomMargin: 20
                     anchors.left: parent.left
-                    anchors.leftMargin: 48
+                    anchors.leftMargin: 51
                     color: "white"
                     font.pixelSize: 20
                     height: 25
