@@ -327,6 +327,12 @@ FocusScope {
                     }
                 }
             }
+            Ranking {
+                md5: songList.current.md5
+                anchors.left: search.right
+                anchors.bottom: search.top
+                anchors.bottomMargin: -11
+            }
             KeymodeButton {
                 id: keymodeButton
 

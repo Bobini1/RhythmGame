@@ -1,0 +1,157 @@
+#ifndef RHYTHMGAME_ONLINERANKINGMODEL_H
+#define RHYTHMGAME_ONLINERANKINGMODEL_H
+
+#include <QAbstractListModel>
+#include <QNetworkAccessManager>
+#include <QNetworkReply>
+#include <QNetworkRequestFactory>
+#include <qqmlintegration.h>
+#include <stop_token>
+
+namespace qml_components {
+class ProfileList;
+
+class OnlineRankingModel : public QAbstractListModel
+{
+    Q_OBJECT
+    QML_ELEMENT
+
+    Q_PROPERTY(
+      QString md5 READ getMd5 WRITE setMd5 NOTIFY md5Changed RESET resetMd5)
+    Q_PROPERTY(bool loading READ isLoading NOTIFY loadingChanged)
+    Q_PROPERTY(int limit READ getLimit WRITE setLimit NOTIFY limitChanged)
+    Q_PROPERTY(int offset READ getOffset WRITE setOffset NOTIFY offsetChanged)
+    Q_PROPERTY(
+      SortableColumn sortBy READ getSortBy WRITE setSortBy NOTIFY sortByChanged)
+    Q_PROPERTY(SortDirection sortDir READ getSortDir WRITE setSortDir NOTIFY
+                 sortDirChanged)
+    Q_PROPERTY(
+      QString search READ getSearch WRITE setSearch NOTIFY searchChanged)
+
+  public:
+    enum Roles
+    {
+        UserIdRole = Qt::UserRole + 1,
+        UserNameRole,
+        UserImageRole,
+        BestPointsRole,
+        MaxPointsRole,
+        BestComboRole,
+        MaxHitsRole,
+        BestClearTypeRole,
+        BestComboBreaksRole,
+        LatestDateRole,
+        ScoreCountRole,
+        RankRole,
+    };
+    Q_ENUM(Roles)
+
+    enum class SortableColumn
+    {
+        None = 0,
+        Player,
+        ScorePct,
+        Grade,
+        Combo,
+        ComboBreaks,
+        ClearType,
+        Date,
+        PlayCount,
+    };
+    Q_ENUM(SortableColumn)
+
+    enum class SortDirection
+    {
+        None = 0,
+        Asc,
+        Desc,
+    };
+    Q_ENUM(SortDirection)
+
+    explicit OnlineRankingModel(QObject* parent = nullptr);
+
+    // QAbstractListModel interface
+    [[nodiscard]] auto rowCount(const QModelIndex& parent = {}) const
+      -> int override;
+    [[nodiscard]] auto data(const QModelIndex& index,
+                            int role = Qt::DisplayRole) const
+      -> QVariant override;
+    [[nodiscard]] auto roleNames() const -> QHash<int, QByteArray> override;
+
+    [[nodiscard]] auto getMd5() const -> QString;
+    void setMd5(const QString& md5);
+
+    void resetMd5() { setMd5(QString()); }
+
+    [[nodiscard]] auto isLoading() const -> bool;
+
+    [[nodiscard]] auto getLimit() const -> int;
+    void setLimit(int limit);
+
+    [[nodiscard]] auto getOffset() const -> int;
+    void setOffset(int offset);
+
+    [[nodiscard]] auto getSortBy() const -> SortableColumn;
+    void setSortBy(SortableColumn sortBy);
+
+    [[nodiscard]] auto getSortDir() const -> SortDirection;
+    void setSortDir(SortDirection sortDir);
+
+    [[nodiscard]] auto getSearch() const -> QString;
+    void setSearch(const QString& search);
+
+    Q_INVOKABLE void cancelPending();
+
+    void setBaseUrl(const QString& baseUrl);
+
+    inline static QNetworkAccessManager* networkManager = nullptr;
+    inline static ProfileList* profileList = nullptr;
+
+  signals:
+    void md5Changed();
+    void loadingChanged();
+    void limitChanged();
+    void offsetChanged();
+    void sortByChanged();
+    void sortDirChanged();
+    void searchChanged();
+
+    void cancelPendingRequested();
+
+  private:
+    struct RankingEntry
+    {
+        qint64 userId;
+        QString userName;
+        QString userImage;
+        double bestPoints{};
+        double maxPoints{};
+        int bestCombo{};
+        int maxHits{};
+        QString bestClearType;
+        int bestComboBreaks{};
+        qint64 latestDate{};
+        int scoreCount{};
+    };
+
+    void fetch();
+    void setLoading(bool loading);
+    [[nodiscard]] auto buildUrl() const -> QUrl;
+
+    QNetworkRequestFactory networkRequestFactory;
+
+    QString currentMd5;
+    bool currentlyLoading{ false };
+    int currentLimit{ 10 };
+    int currentOffset{ 0 };
+    SortableColumn currentSortBy{ SortableColumn::None };
+    SortDirection currentSortDir{ SortDirection::Desc };
+    QString currentSearch;
+
+    QList<RankingEntry> entries;
+    QList<QNetworkReply*> pendingReplies;
+};
+
+} // namespace qml_components
+
+#endif // RHYTHMGAME_ONLINERANKINGMODEL_H

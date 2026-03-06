@@ -96,12 +96,12 @@ class Profile final : public QObject
     auto getLoggedIn() const -> bool;
     /**
      * @brief Upload local scores to the server.
-     * @return Number of scores uploaded, or -1 on failure.
+     * @return Number of scores uploaded.
      */
     Q_INVOKABLE QIfPendingReply<int> uploadScores();
     /**
      * @brief Download scores from the server that are missing locally.
-     * @return Number of scores downloaded, or -1 on failure.
+     * @return Number of scores downloaded.
      */
     Q_INVOKABLE QIfPendingReply<int> downloadScores();
 

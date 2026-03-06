@@ -186,6 +186,8 @@ qt_add_library(RhythmGame_lib OBJECT
         src/qml_components/ScoreDb.h
         src/qml_components/OnlineScores.cpp
         src/qml_components/OnlineScores.h
+        src/qml_components/OnlineRankingModel.cpp
+        src/qml_components/OnlineRankingModel.h
         src/qml_components/FileQuery.cpp
         src/qml_components/FileQuery.h
         src/qml_components/Bga.cpp

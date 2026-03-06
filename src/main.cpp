@@ -37,6 +37,7 @@
 #include "support/PathToUtfString.h"
 #include "support/UtfStringToPath.h"
 #include "gameplay_logic/CourseRunner.h"
+#include "qml_components/OnlineRankingModel.h"
 #include "qml_components/ScoreReplayer.h"
 #include "sounds/AudioEngine.h"
 #include "sounds/AudioPlayer.h"
@@ -405,9 +406,9 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
         qmlRegisterType<input::InputTranslator>(
           "RhythmGameQml", 1, 0, "InputTranslator");
         qmlRegisterType<qml_components::OnlineScoreQueryResult>(
-          "RhythmGameQml", 1, 0, "OnlineScoreQueryResult");
+          "RhythmGameQml", 1, 0, "onlineScoreQueryResult");
         qmlRegisterType<qml_components::OnlineProfileInfo>(
-          "RhythmGameQml", 1, 0, "OnlineProfileInfo");
+          "RhythmGameQml", 1, 0, "onlineProfileInfo");
         qmlRegisterUncreatableMetaObject(
           gameplay_logic::judgement::staticMetaObject,
           "RhythmGameQml",
@@ -469,6 +470,10 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
           "RhythmGameQml", 1, 0, "AudioPlayer");
         qmlRegisterType<qml_components::ScoreReplayer>(
           "RhythmGameQml", 1, 0, "ScoreReplayer");
+        qml_components::OnlineRankingModel::networkManager = &networkManager;
+        qml_components::OnlineRankingModel::profileList = &profileList;
+        qmlRegisterType<qml_components::OnlineRankingModel>(
+          "RhythmGameQml", 1, 0, "OnlineRankingModel");
 
         qml_components::InputAttached::inputSignalProvider = &inputTranslator;
         qml_components::QmlUtilsAttached::getThemeNameForRootFile =
