@@ -57,7 +57,8 @@ defineDb(db::SqliteCppDb& db)
                "directory INTEGER,"
                "sha256 TEXT NOT NULL,"
                "md5 TEXT NOT NULL,"
-               "keymode INTEGER NOT NULL"
+               "keymode INTEGER NOT NULL,"
+               "game_version INTEGER NOT NULL"
                ");");
 
     if (version && *version < std::tuple{ 1, 2, 6 }) {
@@ -71,6 +72,13 @@ defineDb(db::SqliteCppDb& db)
                    "DEFAULT 0.0;");
         db.execute("ALTER TABLE charts ADD COLUMN end_density REAL NOT NULL "
                    "DEFAULT 0.0;");
+    }
+    if (version && *version < std::tuple{ 1, 3, 0 }) {
+        auto stmt = db.createStatement(
+          "ALTER TABLE charts ADD COLUMN game_version INTEGER NOT NULL "
+          "DEFAULT ?;");
+        stmt.bind(1, support::packVersion(1, 2, 8));
+        stmt.execute();
     }
     db.execute(
       "CREATE INDEX IF NOT EXISTS directory_index ON charts(directory)");

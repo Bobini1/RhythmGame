@@ -87,7 +87,7 @@ class BmsResult final : public QObject
      * @details If the chart uses
      * [#RANDOM](https://hitkey.nekokan.dyndns.info/cmds.htm#RANDOM),
      * this property provides the sequence of random values used to determine
-     * the note order. If the chart does not use randomization,
+     * the contents of the chart. If the chart does not use randomization,
      * this list will be empty.
      */
     Q_PROPERTY(QList<qint64> randomSequence READ getRandomSequence CONSTANT)
@@ -156,7 +156,7 @@ class BmsResult final : public QObject
     Q_PROPERTY(
       resource_managers::DpOptions dpOptions READ getDpOptions CONSTANT)
     /**
-     * @brief The game version when the score was achieved.
+     * @brief The game version where the score was achieved.
      * @details For migrations.
      */
     Q_PROPERTY(uint64_t gameVersion READ getGameVersion CONSTANT)

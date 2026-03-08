@@ -2,6 +2,7 @@
 // Created by bobini on 23.08.23.
 //
 
+#include "support/Version.h"
 #ifdef _WIN32
 #include <windows.h>
 #include <wil/resource.h>
@@ -404,6 +405,10 @@ ChartDataFactory::buildChartComponents(
         }
     }
     auto keymode = gameplay_logic::ChartData::Keymode::K7;
+    if (calculatedNotesData.notes[5].empty() &&
+        calculatedNotesData.notes[6].empty()) {
+        keymode = gameplay_logic::ChartData::Keymode::K5;
+    }
     constexpr auto startColumn = calculatedNotesData.notes.size() / 2;
     for (auto columnIndex = startColumn;
          columnIndex < calculatedNotesData.notes.size();
@@ -411,6 +416,14 @@ ChartDataFactory::buildChartComponents(
         if (!calculatedNotesData.notes[columnIndex].empty()) {
             keymode = gameplay_logic::ChartData::Keymode::K14;
             break;
+        }
+    }
+    if (keymode == gameplay_logic::ChartData::Keymode::K14) {
+        if (calculatedNotesData.notes[5].empty() &&
+            calculatedNotesData.notes[6].empty() &&
+            calculatedNotesData.notes[13].empty() &&
+            calculatedNotesData.notes[14].empty()) {
+            keymode = gameplay_logic::ChartData::Keymode::K10;
         }
     }
     auto initialBpm = calculatedNotesData.bpmChanges[0]; // guaranteed to exist
@@ -567,7 +580,8 @@ ChartDataFactory::buildChartComponents(
                                                   std::move(metadata.md5),
                                                   keymode,
                                                   histogramForDisplay,
-                                                  bpmChangesQ);
+                                                  bpmChangesQ,
+                                                  support::currentVersion);
     auto noteData =
       makeNotes(calculatedNotesData.notes, calculatedNotesData.barLines);
     return { std::move(chartData),

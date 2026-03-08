@@ -381,8 +381,8 @@ Profile::uploadScores() -> QIfPendingReply<int>
             QMetaObject::invokeMethod(
               this,
               [this, outerReply, guidsArray]() mutable {
-                  auto request =
-                    networkRequestFactory.createRequest("scores/unknown");
+                  auto request = networkRequestFactory.createRequest(
+                    "scores/unknown?fields=guid");
                   QNetworkReply* unknownReply = networkManager.post(
                     request, QJsonDocument(guidsArray).toJson());
 
@@ -498,7 +498,8 @@ Profile::uploadScores() -> QIfPendingReply<int>
                                       "charts.avg_density, "
                                       "charts.end_density, charts.path, "
                                       "charts.directory, charts.sha256, "
-                                      "charts.md5, charts.keymode, "
+                                      "charts.md5, charts.keymode,  "
+                                      "c.game_version, "
                                       "h.bpms, h.histogram_data "
                                       "FROM song_db.charts LEFT JOIN "
                                       "song_db.histogram_data h "
@@ -750,6 +751,8 @@ Profile::downloadScores() -> QIfPendingReply<int>
                                                     gameplay_logic::ChartData::
                                                       Keymode::K7)));
                                         }
+                                        auto gameVersion =
+                                          chartObj["gameVersion"].toInteger();
                                         QList<QList<qint64>> histogramData;
                                         if (chartObj.contains(
                                               "histogramData") &&
@@ -829,7 +832,8 @@ Profile::downloadScores() -> QIfPendingReply<int>
                                           std::move(md5),
                                           keymode,
                                           std::move(histogramData),
-                                          std::move(bpmChanges));
+                                          std::move(bpmChanges),
+                                          gameVersion);
                                         if (chart)
                                             chart->save(db);
                                     }

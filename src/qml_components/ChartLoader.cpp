@@ -448,7 +448,7 @@ ChartLoader::loadChartDataFromDb(QList<QString> md5s) const -> QVariantMap
           "c.max_bpm, c.min_bpm, c.main_bpm, c.avg_bpm, c.peak_density, "
           "c.avg_density, c.end_density, c.path, c.directory, "
           "c.sha256, c.md5, "
-          "c.keymode, h.bpms, h.histogram_data "
+          "c.keymode, c.game_version, h.bpms, h.histogram_data "
           "FROM charts c "
           "LEFT JOIN histogram_data h ON h.chart_id = c.id "
           "WHERE c.md5 IN (" +

@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.21)
 include(cmake/prelude.cmake)
 project(
         RhythmGame
-        VERSION 1.2.8
+        VERSION 1.3.0
         DESCRIPTION "A customizable BMS player for Windows and Linux. "
         HOMEPAGE_URL "https://github.com/Bobini1/RhythmGame"
         LANGUAGES C CXX
@@ -19,8 +19,6 @@ if (supported)
     message(STATUS "IPO / LTO enabled")
     set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
 endif ()
-
-option(PORTABLE_BUILD "Deploy the entire game to a portable folder, without using system dirs" ON)
 
 # <---- mimalloc (faster memory allocation) ---->
 
