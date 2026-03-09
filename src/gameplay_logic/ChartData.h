@@ -349,9 +349,9 @@ class ChartData : public QObject
         std::string sha256;
         std::string md5;
         int keymode;
+        int64_t gameVersion;
         std::string bpmChanges;
         std::string histogramData;
-        int64_t gameVersion;
     };
 
     auto save(db::SqliteCppDb& db) const -> void;
@@ -393,9 +393,9 @@ class ChartData : public QObject
     QString sha256;
     QString md5;
     Keymode keymode;
+    quint64 gameVersion;
     QList<QList<qint64>> histogramData;
     QList<BpmChange> bpmChanges;
-    quint64 gameVersion;
 };
 
 auto

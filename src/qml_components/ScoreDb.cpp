@@ -430,11 +430,6 @@ ScoreDb::cancelPending()
     stopSource.request_stop();
     stopSource = std::stop_source{};
 }
-void
-ScoreDb::runOnDbThread(std::function<void()> fn) const
-{
-    threadPool.start(std::move(fn));
-}
 auto
 ScoreDb::getTotalScoreCount() const -> int
 {

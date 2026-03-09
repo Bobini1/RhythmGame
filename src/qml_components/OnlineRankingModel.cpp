@@ -17,20 +17,16 @@ OnlineRankingModel::OnlineRankingModel(QObject* parent)
     networkRequestFactory.setBaseUrl(profileList->getMainProfile()
                                        ->getVars()
                                        ->getGeneralVars()
-                                       ->getWebApiUri());
+                                       ->getWebApiUrl());
     connect(profileList, &ProfileList::mainProfileChanged, this, [this]() {
         networkRequestFactory.setBaseUrl(profileList->getMainProfile()
                                            ->getVars()
                                            ->getGeneralVars()
-                                           ->getWebApiUri());
+                                           ->getWebApiUrl());
         cancelPending();
         fetch();
     });
 }
-
-// ---------------------------------------------------------------------------
-// QAbstractListModel interface
-// ---------------------------------------------------------------------------
 
 auto
 OnlineRankingModel::rowCount(const QModelIndex& parent) const -> int
@@ -96,18 +92,14 @@ OnlineRankingModel::roleNames() const -> QHash<int, QByteArray>
     };
 }
 
-// ---------------------------------------------------------------------------
-// URL builder
-// ---------------------------------------------------------------------------
-
 auto
 OnlineRankingModel::buildUrl() const -> QUrl
 {
-    auto url = networkRequestFactory.createRequest("scores").url();
+    auto url = networkRequestFactory.createRequest("score-summaries").url();
     QUrlQuery q;
     q.addQueryItem("limit", QString::number(currentLimit));
     q.addQueryItem("offset", QString::number(currentOffset));
-    q.addQueryItem("chart", currentMd5);
+    q.addQueryItem("md5", currentMd5);
     // map enum to server's sortBy string
     if (currentSortBy != SortableColumn::None) {
         QString sortByStr;
@@ -151,10 +143,6 @@ OnlineRankingModel::buildUrl() const -> QUrl
     url.setQuery(q);
     return url;
 }
-
-// ---------------------------------------------------------------------------
-// Fetch
-// ---------------------------------------------------------------------------
 
 void
 OnlineRankingModel::fetch()
@@ -204,17 +192,17 @@ OnlineRankingModel::fetch()
                 continue;
             const auto obj = item.toObject();
             RankingEntry entry;
-            entry.userId = obj.value("userId").toInteger();
-            entry.userName = obj.value("userName").toString();
-            entry.userImage = obj.value("userImage").toString();
+            auto user = obj.value("user").toObject();
+            entry.userId = user.value("id").toInt();
+            entry.userName = user.value("name").toString();
+            entry.userImage = user.value("image").toString();
             entry.bestPoints = obj.value("bestPoints").toDouble();
             entry.maxPoints = obj.value("maxPoints").toDouble();
             entry.bestCombo = obj.value("bestCombo").toInt();
             entry.maxHits = obj.value("maxHits").toInt();
             entry.bestClearType = obj.value("bestClearType").toString();
             entry.bestComboBreaks = obj.value("bestComboBreaks").toInt();
-            entry.latestDate =
-              static_cast<int64_t>(obj.value("latestDate").toDouble());
+            entry.latestDate = obj.value("latestDate").toInteger();
             entry.scoreCount = obj.value("scoreCount").toInt();
             newEntries.append(std::move(entry));
         }
@@ -337,10 +325,6 @@ OnlineRankingModel::setSearch(const QString& search)
     emit searchChanged();
     fetch();
 }
-
-// ---------------------------------------------------------------------------
-// Cancellation / base URL
-// ---------------------------------------------------------------------------
 
 void
 OnlineRankingModel::cancelPending()

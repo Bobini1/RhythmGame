@@ -324,12 +324,11 @@ gameplay_logic::BmsResult::toJson() const -> QJsonObject
     obj["sha256"] = sha256;
     obj["md5"] = md5;
     // Store randomSeed and gameVersion as strings per API requirements
-    obj["randomSeed"] = QString::number(randomSeed);
+    obj["randomSeed"] = static_cast<qint64>(randomSeed);
     obj["noteOrderAlgorithm"] = static_cast<int>(noteOrderAlgorithm);
     obj["noteOrderAlgorithmP2"] = static_cast<int>(noteOrderAlgorithmP2);
     obj["dpOptions"] = static_cast<int>(dpOptions);
-    obj["gameVersion"] =
-      QString::number(static_cast<unsigned long long>(gameVersion));
+    obj["gameVersion"] = static_cast<qint64>(gameVersion);
     return obj;
 }
 
@@ -372,20 +371,7 @@ gameplay_logic::BmsResult::fromJson(const QJsonObject& obj)
     QString sha256 = obj["sha256"].toString();
     QString md5 = obj["md5"].toString();
 
-    // Parse randomSeed (string or number)
-    uint64_t randomSeed = 0;
-    if (obj.contains("randomSeed")) {
-        const auto& rs = obj["randomSeed"];
-        if (rs.isString()) {
-            bool ok = false;
-            const auto s = rs.toString();
-            unsigned long long val = s.toULongLong(&ok);
-            if (ok)
-                randomSeed = static_cast<uint64_t>(val);
-        } else if (rs.isDouble()) {
-            randomSeed = static_cast<uint64_t>(rs.toVariant().toULongLong());
-        }
-    }
+    uint64_t randomSeed = obj["randomSeed"].toInteger();
 
     resource_managers::NoteOrderAlgorithm noa =
       static_cast<resource_managers::NoteOrderAlgorithm>(
@@ -397,19 +383,7 @@ gameplay_logic::BmsResult::fromJson(const QJsonObject& obj)
       static_cast<resource_managers::DpOptions>(obj["dpOptions"].toInt());
 
     // Parse gameVersion (string or number)
-    uint64_t gameVersion = support::currentVersion;
-    if (obj.contains("gameVersion")) {
-        const auto& gv = obj["gameVersion"];
-        if (gv.isString()) {
-            bool ok = false;
-            const auto s = gv.toString();
-            unsigned long long val = s.toULongLong(&ok);
-            if (ok)
-                gameVersion = static_cast<uint64_t>(val);
-        } else if (gv.isDouble()) {
-            gameVersion = static_cast<uint64_t>(gv.toVariant().toULongLong());
-        }
-    }
+    uint64_t gameVersion = obj["gameVersion"].toInteger();
 
     auto result = std::make_unique<BmsResult>(maxPoints,
                                               maxHits,

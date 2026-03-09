@@ -198,6 +198,30 @@ Item {
                     property bool syncError: false
                     property bool loginError: false
 
+                    function runSync() {
+                        loginSection.syncing = true;
+                        loginSection.syncError = false;
+                        loginSection.pendingOps = 2;
+
+                        function attachOp(op) {
+                            op.error.connect(function(msg) {
+                                console.warn("Sync error:", msg);
+                                loginSection.syncError = true;
+                            });
+                            op.finished.connect(function() {
+                                loginSection.pendingOps = Math.max(0, loginSection.pendingOps - 1);
+                                if (loginSection.pendingOps === 0) {
+                                    loginSection.syncing = false;
+                                    if (!loginSection.syncError)
+                                        rootScrollView.updateScoreCounts++;
+                                }
+                            });
+                        }
+
+                        attachOp(loginSection.profile.downloadScores());
+                        attachOp(loginSection.profile.uploadScores());
+                    }
+
                     Label {
                         text: qsTr("Online Login")
                         font.pixelSize: 18
@@ -232,23 +256,7 @@ Item {
                             palette.button: loginSection.syncError ? "red" : undefined
                             palette.buttonText: loginSection.syncError ? "white" : undefined
                             onClicked: {
-                                // start both operations in parallel and show spinner until both complete
-                                loginSection.syncing = true;
-                                loginSection.syncError = false;
-                                loginSection.pendingOps = 2;
-                                var onOpDone = function(error) {
-                                    if (error) loginSection.syncError = true;
-                                    loginSection.pendingOps = Math.max(0, loginSection.pendingOps - 1);
-                                    if (loginSection.pendingOps === 0) {
-                                        loginSection.syncing = false;
-                                        if (!loginSection.syncError)
-                                            rootScrollView.updateScoreCounts++;
-                                    }
-                                }
-                                const dl = loginSection.profile.downloadScores();
-                                dl.then(function(count) { onOpDone(false); }, function() { onOpDone(true); });
-                                const ul = loginSection.profile.uploadScores();
-                                ul.then(function(count) { onOpDone(false); }, function() { onOpDone(true); });
+                                loginSection.runSync();
                             }
                         }
                         BusyIndicator {

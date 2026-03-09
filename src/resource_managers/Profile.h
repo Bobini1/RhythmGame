@@ -9,6 +9,7 @@
 #include "db/SqliteCppDb.h"
 #include "input/InputTranslator.h"
 #include "qml_components/ScoreDb.h"
+#include "qml_components/ScoreSyncOperation.h"
 
 #include <QQmlPropertyMap>
 #include "qml_components/ThemeFamily.h"
@@ -45,24 +46,14 @@ class Profile final : public QObject
     QString guid;
     QNetworkAccessManager networkManager;
     QNetworkRequestFactory networkRequestFactory;
+    QThreadPool threadPool;
     QString onlineUsername;
+    qint64 onlineId{ -1 };
     bool loggedIn{};
     auto loadBearerToken() -> void;
     void fetchOnlineData();
     void setOnlineUsername(const QString& username);
     void setLoggedIn(bool loggedIn);
-
-    /**
-     * @brief Upload a bulk list of local scores identified by GUIDs.
-     * @param guids List of score GUIDs to upload.
-     */
-    void uploadScoresBulk(const QList<QString>& guids);
-    /**
-     * @brief Download scores that are missing locally from the server.
-     * @param guids List of GUIDs the client currently has; server will
-     * respond with any scores missing locally.
-     */
-    void downloadScoresBulk(const QList<QString>& guids);
 
   public:
     static inline const QString keychainService = "RhythmGame";
@@ -96,14 +87,18 @@ class Profile final : public QObject
     auto getLoggedIn() const -> bool;
     /**
      * @brief Upload local scores to the server.
-     * @return Number of scores uploaded.
+     * @details Compares local GUIDs to the server and uploads each missing
+     * score individually. Returns a ScoreSyncOperation that reports progress
+     * and per-score errors.
      */
-    Q_INVOKABLE QIfPendingReply<int> uploadScores();
+    Q_INVOKABLE qml_components::ScoreSyncOperation* uploadScores();
     /**
      * @brief Download scores from the server that are missing locally.
-     * @return Number of scores downloaded.
+     * @details Compares server GUIDs to local storage and downloads each
+     * missing score individually. Returns a ScoreSyncOperation that reports
+     * progress and per-score errors.
      */
-    Q_INVOKABLE QIfPendingReply<int> downloadScores();
+    Q_INVOKABLE qml_components::ScoreSyncOperation* downloadScores();
 
     auto submitScore(const gameplay_logic::BmsScore& score,
                      const gameplay_logic::ChartData& chartData)

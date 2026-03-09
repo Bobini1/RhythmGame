@@ -311,12 +311,12 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
                                         profileList.getMainProfile()
                                           ->getVars()
                                           ->getGeneralVars()
-                                          ->getWebApiUri() };
+                                          ->getWebApiUrl() };
         auto updateBaseUrl = [&onlineScores, &profileList]() {
             onlineScores.setBaseUrl(profileList.getMainProfile()
                                       ->getVars()
                                       ->getGeneralVars()
-                                      ->getWebApiUri());
+                                      ->getWebApiUrl());
         };
         QObject::connect(&profileList,
                          &qml_components::ProfileList::mainProfileChanged,

@@ -67,13 +67,6 @@ class ScoreDb final : public QObject
     Q_INVOKABLE void cancelPending();
 
     Q_INVOKABLE int getTotalScoreCount() const;
-
-    /**
-     * @brief Run a callable on the DB thread pool.
-     * @details Use this to serialize all DB access through one pool,
-     * avoiding concurrent access to the underlying SQLite connection.
-     */
-    void runOnDbThread(std::function<void()> fn) const;
 };
 } // namespace qml_components
 

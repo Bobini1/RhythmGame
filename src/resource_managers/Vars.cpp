@@ -497,23 +497,28 @@ resource_managers::GeneralVars::resetTargetScoreFraction()
     setTargetScoreFraction(8.0 / 9.0);
 }
 auto
-resource_managers::GeneralVars::getWebApiUri() const -> QString
+resource_managers::GeneralVars::getWebApiUrl() const -> QString
 {
-    return webApiUri;
+    return websiteBaseUrl + "/api";
+}
+auto
+resource_managers::GeneralVars::getWebsiteBaseUrl() const -> QString
+{
+    return websiteBaseUrl;
 }
 void
-resource_managers::GeneralVars::setWebApiUri(const QString& value)
+resource_managers::GeneralVars::setWebsiteBaseUrl(const QString& value)
 {
-    if (webApiUri == value) {
+    if (websiteBaseUrl == value) {
         return;
     }
-    webApiUri = value;
-    emit webApiUriChanged();
+    websiteBaseUrl = value;
+    emit websiteBaseUrlChanged();
 }
 void
-resource_managers::GeneralVars::resetWebApiUri()
+resource_managers::GeneralVars::resetWebsiteBaseUrl()
 {
-    setWebApiUri("http://localhost:5173/api");
+    setWebsiteBaseUrl("http://localhost:5173");
 }
 auto
 resource_managers::GeneralVars::getBgm() const -> QString

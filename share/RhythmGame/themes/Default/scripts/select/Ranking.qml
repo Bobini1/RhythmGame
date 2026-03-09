@@ -17,12 +17,6 @@ Image {
         sortDir: OnlineRankingModel.Desc
     }
 
-    Component.onDestruction: {
-        if (rankingModel) {
-            rankingModel.cancelPending();
-        }
-    }
-
     source: root.iniImagesUrl + "ir.png/ir" + (ranking.page + 1)
 
     Image {
@@ -73,39 +67,69 @@ Image {
         visible: running
     }
 
-    ColumnLayout {
+    Column {
         anchors.fill: parent
-        anchors.margins: 42
-        anchors.topMargin: 60
-        spacing: 4
+        anchors.margins: 28
+        anchors.topMargin: 54
+        spacing: 6
 
         Repeater {
-            model: ranking.rankingModel
-            delegate: RowLayout {
+            model: rankingModel
+            delegate: Row {
                 id: rankingEntry
                 spacing: 10
-                required property var rank
+                required property int rank
                 required property var userName
                 required property var bestClearType
                 required property var bestPoints
+                required property var maxPoints
+                anchors.left: parent.left
+                anchors.right: parent.right
+                height: rankImage.height
 
-                Text {
-                    text: "#" + rankingEntry.rank
-                    font.pixelSize: 14
-                    Layout.preferredWidth: 30
+                Image {
+                    id: rankImage
+                    source: root.iniImagesUrl + "ir.png/rank_" + rankingEntry.rank
                 }
                 Text {
+                    id: userNameText
                     text: rankingEntry.userName
-                    font.pixelSize: 14
-                    Layout.fillWidth: true
+                    font.pixelSize: 24
+                    elide: Text.ElideRight
+                    anchors.baseline: parent.bottom
+                    anchors.baselineOffset: -1
+                    fontSizeMode: Text.VerticalFit
+                    onLinkActivated: Qt.openUrlExternally(link)
+                    width: 132
+                }
+                Image {
+                    id: clearTypeImage
+                    source: root.iniImagesUrl + "parts.png/ranking_" + rankingEntry.bestClearType
+                    anchors.bottom: rankImage.bottom
+                    anchors.bottomMargin: -1
                 }
                 Text {
-                    text: rankingEntry.bestClearType
-                    font.pixelSize: 14
-                }
-                Text {
+                    id: pointsText
                     text: rankingEntry.bestPoints
-                    font.pixelSize: 14
+                    font.pixelSize: 24
+                    color: "#ff0066"
+                    verticalAlignment: Text.AlignBottom
+                    horizontalAlignment: Text.AlignRight
+                    anchors.baseline: rankImage.bottom
+                    anchors.baselineOffset: -1
+                    width: 160 - clearTypeImage.width - rankingEntry.spacing
+                    elide: Text.ElideMiddle
+                }
+                Text {
+                    id: percentageText
+                    text: (rankingEntry.bestPoints / rankingEntry.maxPoints * 100).toFixed(1) + "%"
+                    font.pixelSize: 12
+                    horizontalAlignment: Text.AlignRight
+                    verticalAlignment: Text.AlignBottom
+                    anchors.baseline: rankImage.bottom
+                    anchors.baselineOffset: -1
+                    width: 41
+                    font.bold: true
                 }
             }
         }

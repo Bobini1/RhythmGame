@@ -105,7 +105,7 @@ queryCharts(db::SqliteCppDb& db, QVariantList& ret, QStringList md5List)
                 "charts.main_bpm, charts.avg_bpm, charts.peak_density, "
                 "charts.avg_density, charts.end_density, charts.path, "
                 "charts.directory, charts.sha256, charts.md5, charts.keymode, "
-                "c.game_version, h.bpms, h.histogram_data "
+                "charts.game_version, h.bpms, h.histogram_data "
                 "FROM md5_list JOIN charts ON md5_list.md5 = charts.md5 "
                 "LEFT JOIN histogram_data h ON h.chart_id = charts.id GROUP "
                 "BY md5_list.idx";

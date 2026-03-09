@@ -76,8 +76,7 @@ defineDb(db::SqliteCppDb& db)
     if (version && *version < std::tuple{ 1, 3, 0 }) {
         auto stmt = db.createStatement(
           "ALTER TABLE charts ADD COLUMN game_version INTEGER NOT NULL "
-          "DEFAULT ?;");
-        stmt.bind(1, support::packVersion(1, 2, 8));
+          "DEFAULT 1099513724936;"); // 1.2.8
         stmt.execute();
     }
     db.execute(
