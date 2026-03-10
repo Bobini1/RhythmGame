@@ -28,7 +28,6 @@ OnlineRankingModel::performJsonGet(
 
     connect(
       reply, &QNetworkReply::finished, reply, [reply, onSuccess, onError]() {
-          const QByteArray data = reply->readAll();
           reply->deleteLater();
 
           if (reply->error() == QNetworkReply::OperationCanceledError) {
@@ -41,6 +40,7 @@ OnlineRankingModel::performJsonGet(
               onError(reply->errorString());
               return;
           }
+          const QByteArray data = reply->readAll();
 
           QJsonParseError parseErr;
           const QJsonDocument doc = QJsonDocument::fromJson(data, &parseErr);
