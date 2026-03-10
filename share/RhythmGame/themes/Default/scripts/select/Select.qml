@@ -287,6 +287,14 @@ FocusScope {
                     playMusic.play();
                 }
             }
+            Text {
+                anchors.bottom: scoreInfo.top
+                anchors.horizontalCenter: scoreInfo.horizontalCenter
+                font.pixelSize: 19
+                anchors.horizontalCenterOffset: 154
+                anchors.bottomMargin: 18
+                text: qsTr("Score Details")
+            }
             ScoreInfo {
                 id: scoreInfo
                 anchors.bottom: parent.bottom
