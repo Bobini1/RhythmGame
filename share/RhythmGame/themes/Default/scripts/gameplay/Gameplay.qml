@@ -24,8 +24,8 @@ Rectangle {
         return "k" + keys + (battle ? "battle" : "");
     }
     property var popup: null
-    readonly property bool isDp: screen === "k14"
-    readonly property bool isBattle: screen === "k7battle"
+    readonly property bool isDp: screen === "k14" || screen === "k10"
+    readonly property bool isBattle: screen === "k7battle" || screen === "k5battle"
     readonly property bool isCourse: chart instanceof CourseRunner
     property var chart
     readonly property string themeName: QmlUtils.themeName
