@@ -27,6 +27,10 @@ class OnlineRankingModel : public QAbstractListModel
                  sortDirChanged)
     Q_PROPERTY(
       QString search READ getSearch WRITE setSearch NOTIFY searchChanged)
+    Q_PROPERTY(QHash<QString, int> clearCounts READ getClearCounts NOTIFY
+                 clearCountsChanged)
+    Q_PROPERTY(int scoreCount READ getScoreCount NOTIFY scoreCountChanged)
+    Q_PROPERTY(int playerCount READ getPlayerCount NOTIFY playerCountChanged)
 
   public:
     enum Roles
@@ -100,6 +104,10 @@ class OnlineRankingModel : public QAbstractListModel
     [[nodiscard]] auto getSearch() const -> QString;
     void setSearch(const QString& search);
 
+    [[nodiscard]] auto getClearCounts() const -> QHash<QString, int>;
+    [[nodiscard]] auto getScoreCount() const -> int;
+    [[nodiscard]] auto getPlayerCount() const -> int;
+
     Q_INVOKABLE void cancelPending();
 
     void setBaseUrl(const QString& baseUrl);
@@ -115,6 +123,9 @@ class OnlineRankingModel : public QAbstractListModel
     void sortByChanged();
     void sortDirChanged();
     void searchChanged();
+    void clearCountsChanged();
+    void scoreCountChanged();
+    void playerCountChanged();
 
     void cancelPendingRequested();
 
@@ -136,7 +147,14 @@ class OnlineRankingModel : public QAbstractListModel
 
     void fetch();
     void setLoading(bool loading);
+    void setPlayerCount(int count);
+    void setScoreCount(int count);
+    void setClearCounts(QHash<QString, int> counts);
     [[nodiscard]] auto buildUrl() const -> QUrl;
+    void performJsonGet(
+      const QUrlQuery& url,
+      std::function<void(const QJsonDocument&)> onSuccess,
+        std::function<void(const QString&)> onError);
 
     QNetworkRequestFactory networkRequestFactory;
 
@@ -150,6 +168,9 @@ class OnlineRankingModel : public QAbstractListModel
 
     QList<RankingEntry> entries;
     QList<QNetworkReply*> pendingReplies;
+    QHash<QString, int> clearCounts;
+    int scoreCount{ 0 };
+    int playerCount{ 0 };
 };
 
 } // namespace qml_components

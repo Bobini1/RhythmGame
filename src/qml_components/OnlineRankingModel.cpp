@@ -8,8 +8,48 @@
 #include <QUrlQuery>
 #include <magic_enum/magic_enum.hpp>
 #include <spdlog/spdlog.h>
+#include <functional>
 
 namespace qml_components {
+
+void
+OnlineRankingModel::performJsonGet(
+  const QUrlQuery& url,
+  const std::function<void(const QJsonDocument&)> onSuccess,
+  const std::function<void(const QString&)> onError)
+{
+    const auto request = networkRequestFactory.createRequest(url);
+
+    QNetworkReply* reply = networkManager->get(request);
+
+    connect(this, &OnlineRankingModel::cancelPendingRequested, reply, [reply] {
+        reply->abort();
+    });
+
+    connect(
+      reply, &QNetworkReply::finished, reply, [reply, onSuccess, onError]() {
+          const QByteArray data = reply->readAll();
+          reply->deleteLater();
+
+          if (reply->error() == QNetworkReply::OperationCanceledError) {
+              return;
+          }
+          if (reply->error() != QNetworkReply::NoError) {
+              onError(reply->errorString());
+              return;
+          }
+
+          QJsonParseError parseErr;
+          const QJsonDocument doc = QJsonDocument::fromJson(data, &parseErr);
+          if (parseErr.error != QJsonParseError::NoError) {
+              onError(QString::fromLatin1("JSON parse error: %1")
+                        .arg(parseErr.errorString()));
+              return;
+          }
+
+          onSuccess(doc);
+      });
+}
 
 OnlineRankingModel::OnlineRankingModel(QObject* parent)
   : QAbstractListModel(parent)
@@ -152,66 +192,107 @@ OnlineRankingModel::fetch()
 
     cancelPending();
     setLoading(true);
+    setPlayerCount(0);
+    setScoreCount(0);
+    setClearCounts({});
 
-    auto req = QNetworkRequest(buildUrl());
-    auto* reply = networkManager->get(req);
-    connect(
-      this, &OnlineRankingModel::cancelPendingRequested, reply, [reply]() {
-          if (reply->isRunning()) {
-              reply->abort();
+    performJsonGet(
+      QUrlQuery{ buildUrl() },
+      [this](const QJsonDocument& doc) {
+          if (!doc.isArray()) {
+              spdlog::error("OnlineRankingModel: response is not a JSON array");
+              setLoading(false);
+              return;
           }
+
+          QList<RankingEntry> newEntries;
+          newEntries.reserve(doc.array().size());
+          for (const auto& item : doc.array()) {
+              if (!item.isObject())
+                  continue;
+              const auto obj = item.toObject();
+              RankingEntry entry;
+              auto user = obj.value("user").toObject();
+              entry.userId = user.value("id").toInt();
+              entry.userName = user.value("name").toString();
+              entry.userImage = user.value("image").toString();
+              entry.bestPoints = obj.value("bestPoints").toDouble();
+              entry.maxPoints = obj.value("maxPoints").toDouble();
+              entry.bestCombo = obj.value("bestCombo").toInt();
+              entry.maxHits = obj.value("maxHits").toInt();
+              entry.bestClearType = obj.value("bestClearType").toString();
+              entry.bestComboBreaks = obj.value("bestComboBreaks").toInt();
+              entry.latestDate = obj.value("latestDate").toInteger();
+              entry.scoreCount = obj.value("scoreCount").toInt();
+              newEntries.append(std::move(entry));
+          }
+
+          beginResetModel();
+          entries = std::move(newEntries);
+          endResetModel();
+          setLoading(false);
+      },
+      [](const QString& err) {
+          spdlog::error("OnlineRankingModel fetch failed: {}",
+                        err.toStdString());
       });
 
-    connect(reply, &QNetworkReply::finished, this, [this, reply]() {
-        reply->deleteLater();
+    // Player/score counts
+    performJsonGet(
+      QUrlQuery(
+        QString("charts/%1&fields=scoreCount,playerCount").arg(currentMd5)),
+      [this](const QJsonDocument& doc) {
+          if (!doc.isObject()) {
+              spdlog::error(
+                "OnlineRankingModel count response is not a JSON object");
+              return;
+          }
+          const auto obj = doc.object();
+          setPlayerCount(obj.value("playerCount").toInt());
+          setScoreCount(obj.value("scoreCount").toInt());
+          setClearCounts([&] {
+              QHash<QString, int> counts;
+              const auto clearCountsObj = obj.value("clearCounts").toObject();
+              for (const auto& key : clearCountsObj.keys()) {
+                  counts[key] = clearCountsObj.value(key).toInt();
+              }
+              return counts;
+          }());
+      },
+      [](const QString& err) {
+          spdlog::error("OnlineRankingModel count fetch failed: {}",
+                        err.toStdString());
+      });
 
-        if (reply->error() == QNetworkReply::OperationCanceledError) {
-            setLoading(false);
-            return;
-        }
-
-        if (reply->error() != QNetworkReply::NoError) {
-            spdlog::error("OnlineRankingModel fetch failed: {} - {}",
-                          magic_enum::enum_name(reply->error()),
-                          reply->errorString().toStdString());
-            setLoading(false);
-            return;
-        }
-
-        const auto doc = QJsonDocument::fromJson(reply->readAll());
-        if (!doc.isArray()) {
-            spdlog::error("OnlineRankingModel: response is not a JSON array");
-            setLoading(false);
-            return;
-        }
-
-        QList<RankingEntry> newEntries;
-        newEntries.reserve(doc.array().size());
-        for (const auto& item : doc.array()) {
-            if (!item.isObject())
-                continue;
-            const auto obj = item.toObject();
-            RankingEntry entry;
-            auto user = obj.value("user").toObject();
-            entry.userId = user.value("id").toInt();
-            entry.userName = user.value("name").toString();
-            entry.userImage = user.value("image").toString();
-            entry.bestPoints = obj.value("bestPoints").toDouble();
-            entry.maxPoints = obj.value("maxPoints").toDouble();
-            entry.bestCombo = obj.value("bestCombo").toInt();
-            entry.maxHits = obj.value("maxHits").toInt();
-            entry.bestClearType = obj.value("bestClearType").toString();
-            entry.bestComboBreaks = obj.value("bestComboBreaks").toInt();
-            entry.latestDate = obj.value("latestDate").toInteger();
-            entry.scoreCount = obj.value("scoreCount").toInt();
-            newEntries.append(std::move(entry));
-        }
-
-        beginResetModel();
-        entries = std::move(newEntries);
-        endResetModel();
-        setLoading(false);
-    });
+    // Clear-type summary request
+    auto clearTypesRequest =
+      QNetworkRequest(networkRequestFactory.createRequest());
+    performJsonGet(
+      QUrlQuery(
+        QString("score-summaries/%1?&fields=bestClearType").arg(currentMd5)),
+      [this](const QJsonDocument& doc) {
+          if (!doc.isArray()) {
+              spdlog::error(
+                "OnlineRankingModel clear types response is not a JSON array");
+              return;
+          }
+          auto clearTypeCounts = QHash<QString, int>{};
+          for (const auto& item : doc.array()) {
+              if (!item.isObject())
+                  continue;
+              const auto obj = item.toObject();
+              const auto clearType = obj.value("bestClearType").toString();
+              if (clearType.isEmpty()) {
+                  continue;
+              }
+              clearTypeCounts[clearType]++;
+          }
+          setClearCounts(std::move(clearTypeCounts));
+      },
+      [](const QString& err) {
+          spdlog::error("OnlineRankingModel clear types fetch failed: {}",
+                        err.toStdString());
+      });
 }
 
 // ---------------------------------------------------------------------------
@@ -249,6 +330,30 @@ OnlineRankingModel::setLoading(bool loading)
         return;
     currentlyLoading = loading;
     emit loadingChanged();
+}
+void
+OnlineRankingModel::setPlayerCount(int count)
+{
+    if (playerCount == count)
+        return;
+    playerCount = count;
+    emit playerCountChanged();
+}
+void
+OnlineRankingModel::setScoreCount(int count)
+{
+    if (scoreCount == count)
+        return;
+    scoreCount = count;
+    emit scoreCountChanged();
+}
+void
+OnlineRankingModel::setClearCounts(QHash<QString, int> counts)
+{
+    if (clearCounts == counts)
+        return;
+    clearCounts = std::move(counts);
+    emit clearCountsChanged();
 }
 
 auto
@@ -324,6 +429,21 @@ OnlineRankingModel::setSearch(const QString& search)
     currentSearch = search;
     emit searchChanged();
     fetch();
+}
+auto
+OnlineRankingModel::getClearCounts() const -> QHash<QString, int>
+{
+    return clearCounts;
+}
+auto
+OnlineRankingModel::getScoreCount() const -> int
+{
+    return scoreCount;
+}
+auto
+OnlineRankingModel::getPlayerCount() const -> int
+{
+    return playerCount;
 }
 
 void
