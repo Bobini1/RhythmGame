@@ -8,9 +8,9 @@ Image {
     property int current: {
         let savedKeymode = themeVars.keymodeFilter ? parseInt(themeVars.keymodeFilter) : null;
         let index = options.indexOf(savedKeymode);
-        return index === -1 ? 0 : index;
+        return index === -1 ? 1 : index;
     }
-    property var options: Rg.profileList.battleActive ? [7] : [7, 14, null]
+    property var options: Rg.profileList.battleActive ? [5, 7] : [5, 7, 10, 14, null]
     required property var themeVars
 
     Binding {
