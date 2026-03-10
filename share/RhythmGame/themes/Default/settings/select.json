@@ -80,10 +80,24 @@
       "choices": [
         {
           "name": {
+            "en": "5K",
+            "pl": "5K"
+          },
+          "value": "5"
+        },
+        {
+          "name": {
             "en": "7K",
             "pl": "7K"
           },
           "value": "7"
+        },
+        {
+          "name": {
+            "en": "10K",
+            "pl": "10K"
+          },
+          "value": "10"
         },
         {
           "name": {
