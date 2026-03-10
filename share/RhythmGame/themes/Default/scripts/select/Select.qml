@@ -330,6 +330,7 @@ FocusScope {
             Ranking {
                 md5: songList.current.md5
                 anchors.left: search.right
+                anchors.leftMargin: -9
                 anchors.bottom: search.top
                 anchors.bottomMargin: -11
             }

@@ -79,8 +79,8 @@ Profile::fetchOnlineData()
         }
         auto data = reply->readAll();
         auto json = QJsonDocument::fromJson(data).object();
-        setOnlineUsername(json["user"].toObject()["name"].toString());
-        onlineId = json["user"].toObject()["id"].toInt();
+        setOnlineUsername(json["name"].toString());
+        onlineId = json["id"].toInt();
         setLoggedIn(true);
         reply->deleteLater();
     });

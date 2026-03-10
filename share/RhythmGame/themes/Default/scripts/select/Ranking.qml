@@ -7,6 +7,7 @@ Image {
     id: ranking
 
     required property var md5
+    visible: !!md5
     property int page: 0
 
     OnlineRankingModel {
@@ -67,69 +68,172 @@ Image {
         visible: running
     }
 
-    Column {
+    Loader {
         anchors.fill: parent
-        anchors.margins: 28
-        anchors.topMargin: 54
-        spacing: 6
+        active: !!ranking.md5 && !rankingModel.loading
+        sourceComponent: ranking.page === 0 ? rankingDelegate : statsDelegate
+    }
 
-        Repeater {
-            model: rankingModel
-            delegate: Row {
-                id: rankingEntry
-                spacing: 10
-                required property int rank
-                required property var userName
-                required property var bestClearType
-                required property var bestPoints
-                required property var maxPoints
-                anchors.left: parent.left
-                anchors.right: parent.right
-                height: rankImage.height
+    component StatLineItem: Item {
+        id: statLineItem
+        property alias labelSource: label.source
+        property alias text1: textOne.text
+        property alias text2: textTwo.text
+        height: label.height
+        width: 188
+        Image {
+            id: label
+        }
+        Text {
+            id: textOne
+            anchors.right: textTwo.left
+            anchors.rightMargin: 5
+            anchors.baseline: label.bottom
+            font.pixelSize: 21
+            anchors.baselineOffset: -1
+        }
+        Text {
+            id: textTwo
+            font.pixelSize: 12
+            width: 37
+            horizontalAlignment: Text.AlignRight
+            verticalAlignment: Text.AlignBottom
+            anchors.right: parent.right
+            anchors.baseline: label.bottom
+            font.bold: true
+            anchors.baselineOffset: -1
+        }
+    }
 
-                Image {
-                    id: rankImage
-                    source: root.iniImagesUrl + "ir.png/rank_" + rankingEntry.rank
+    Component {
+        id: statsDelegate
+
+        RowLayout {
+            anchors.fill: parent
+            anchors.margins: 28
+            anchors.topMargin: 54
+            spacing: 10
+            Column {
+                spacing: 7
+
+                Repeater {
+                    model: ["MAX", "PERFECT", "FC", "EXHARD", "HARD", "NORMAL", "EASY"]
+                    delegate: StatLineItem {
+                        labelSource: root.iniImagesUrl + "parts.png/ranking_" + modelData
+                        text1: rankingModel.clearCounts[modelData] ?? 0
+                        text2: rankingModel.playerCount > 0 ? ((rankingModel.clearCounts[modelData] ?? 0) / rankingModel.playerCount * 100).toFixed(1) + "%" : "0.0%"
+                    }
                 }
-                Text {
-                    id: userNameText
-                    text: rankingEntry.userName
-                    font.pixelSize: 24
-                    elide: Text.ElideRight
-                    anchors.baseline: parent.bottom
-                    anchors.baselineOffset: -1
-                    fontSizeMode: Text.VerticalFit
-                    onLinkActivated: Qt.openUrlExternally(link)
-                    width: 132
+            }
+            Column {
+                spacing: 7
+
+                StatLineItem {
+                    id: playerCountItem
+                    labelSource: root.iniImagesUrl + "parts.png/ranking_PLAYER"
+                    text1: rankingModel.playerCount
                 }
-                Image {
-                    id: clearTypeImage
-                    source: root.iniImagesUrl + "parts.png/ranking_" + rankingEntry.bestClearType
-                    anchors.bottom: rankImage.bottom
-                    anchors.bottomMargin: -1
+                StatLineItem {
+                    labelSource: root.iniImagesUrl + "parts.png/ranking_FULLCOMBO"
+                    readonly property int count: (rankingModel.clearCounts["FC"] ?? 0) + (rankingModel.clearCounts["PERFECT"] ?? 0) + (rankingModel.clearCounts["MAX"] ?? 0)
+                    text1: count
+                    text2: rankingModel.playerCount > 0 ? (count / rankingModel.playerCount * 100).toFixed(1) + "%" : "0.0%"
                 }
-                Text {
-                    id: pointsText
-                    text: rankingEntry.bestPoints
-                    font.pixelSize: 24
-                    color: "#ff0066"
-                    verticalAlignment: Text.AlignBottom
-                    horizontalAlignment: Text.AlignRight
-                    anchors.baseline: rankImage.bottom
-                    anchors.baselineOffset: -1
-                    width: 160 - clearTypeImage.width - rankingEntry.spacing
-                    elide: Text.ElideMiddle
+                StatLineItem {
+                    labelSource: root.iniImagesUrl + "parts.png/ranking_CLEAR"
+                    readonly property int count: {
+                        let total = 0;
+                        for (let key in rankingModel.clearCounts) {
+                            if (key !== "NOPLAY" && key !== "FAILED") {
+                                total += rankingModel.clearCounts[key] ?? 0;
+                            }
+                        }
+                        return total;
+                    }
+                    text1: count
+                    text2: rankingModel.playerCount > 0 ? (count / rankingModel.playerCount * 100).toFixed(1) + "%" : "0.0%"
                 }
-                Text {
-                    id: percentageText
-                    text: (rankingEntry.bestPoints / rankingEntry.maxPoints * 100).toFixed(1) + "%"
-                    font.pixelSize: 12
-                    horizontalAlignment: Text.AlignRight
-                    verticalAlignment: Text.AlignBottom
-                    anchors.baseline: rankImage.bottom
-                    anchors.baselineOffset: -1
-                    width: 41
-                    font.bold: true
+                StatLineItem {
+                    height: playerCountItem.height
+                }
+                Repeater {
+                    model: ["AEASY", "FAILED", "NOPLAY"]
+                    delegate: StatLineItem {
+                        labelSource: root.iniImagesUrl + "parts.png/ranking_" + modelData
+                        text1: rankingModel.clearCounts[modelData] ?? 0
+                        text2: rankingModel.playerCount > 0 ? ((rankingModel.clearCounts[modelData] ?? 0) / rankingModel.playerCount * 100).toFixed(1) + "%" : "0.0%"
+                    }
+                }
+            }
+        }
+    }
+
+    Component {
+        id: rankingDelegate
+        Column {
+            anchors.fill: parent
+            anchors.margins: 28
+            anchors.topMargin: 54
+            spacing: 6
+
+            Repeater {
+                model: rankingModel
+                delegate: Row {
+                    id: rankingEntry
+                    spacing: 10
+                    required property int rank
+                    required property var userName
+                    required property var bestClearType
+                    required property var bestPoints
+                    required property var maxPoints
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    height: rankImage.height
+
+                    Image {
+                        id: rankImage
+                        source: root.iniImagesUrl + "ir.png/rank_" + rankingEntry.rank
+                    }
+                    Text {
+                        id: userNameText
+                        text: rankingEntry.userName
+                        font.pixelSize: 24
+                        elide: Text.ElideRight
+                        anchors.baseline: parent.bottom
+                        anchors.baselineOffset: -1
+                        fontSizeMode: Text.VerticalFit
+                        onLinkActivated: Qt.openUrlExternally(link)
+                        width: 132
+                    }
+                    Image {
+                        id: clearTypeImage
+                        source: root.iniImagesUrl + "parts.png/ranking_" + rankingEntry.bestClearType
+                        anchors.bottom: rankImage.bottom
+                        anchors.bottomMargin: -1
+                    }
+                    Text {
+                        id: pointsText
+                        text: rankingEntry.bestPoints
+                        font.pixelSize: 24
+                        color: "#ff0066"
+                        verticalAlignment: Text.AlignBottom
+                        horizontalAlignment: Text.AlignRight
+                        anchors.baseline: rankImage.bottom
+                        anchors.baselineOffset: -1
+                        width: 160 - clearTypeImage.width - rankingEntry.spacing
+                        elide: Text.ElideMiddle
+                    }
+                    Text {
+                        id: percentageText
+                        text: (rankingEntry.bestPoints / rankingEntry.maxPoints * 100).toFixed(1) + "%"
+                        font.pixelSize: 12
+                        horizontalAlignment: Text.AlignRight
+                        verticalAlignment: Text.AlignBottom
+                        anchors.baseline: rankImage.bottom
+                        anchors.baselineOffset: -1
+                        width: 41
+                        font.bold: true
+                    }
                 }
             }
         }

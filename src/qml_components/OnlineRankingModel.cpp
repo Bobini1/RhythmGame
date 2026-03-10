@@ -14,7 +14,7 @@ namespace qml_components {
 
 void
 OnlineRankingModel::performJsonGet(
-  const QUrlQuery& url,
+  const QString& url,
   const std::function<void(const QJsonDocument&)> onSuccess,
   const std::function<void(const QString&)> onError)
 {
@@ -32,6 +32,9 @@ OnlineRankingModel::performJsonGet(
           reply->deleteLater();
 
           if (reply->error() == QNetworkReply::OperationCanceledError) {
+              return;
+          }
+          if (reply->error() == QNetworkReply::ContentNotFoundError) {
               return;
           }
           if (reply->error() != QNetworkReply::NoError) {
@@ -135,7 +138,7 @@ OnlineRankingModel::roleNames() const -> QHash<int, QByteArray>
 auto
 OnlineRankingModel::buildUrl() const -> QUrl
 {
-    auto url = networkRequestFactory.createRequest("score-summaries").url();
+    auto url = QUrl("score-summaries");
     QUrlQuery q;
     q.addQueryItem("limit", QString::number(currentLimit));
     q.addQueryItem("offset", QString::number(currentOffset));
@@ -187,17 +190,19 @@ OnlineRankingModel::buildUrl() const -> QUrl
 void
 OnlineRankingModel::fetch()
 {
-    if (currentMd5.isEmpty())
-        return;
-
-    cancelPending();
-    setLoading(true);
     setPlayerCount(0);
     setScoreCount(0);
     setClearCounts({});
+    if (currentMd5.isEmpty()) {
+        setLoading(false);
+        return;
+    }
+
+    cancelPending();
+    setLoading(true);
 
     performJsonGet(
-      QUrlQuery{ buildUrl() },
+      buildUrl().toString(),
       [this](const QJsonDocument& doc) {
           if (!doc.isArray()) {
               spdlog::error("OnlineRankingModel: response is not a JSON array");
@@ -232,15 +237,15 @@ OnlineRankingModel::fetch()
           endResetModel();
           setLoading(false);
       },
-      [](const QString& err) {
+      [this](const QString& err) {
           spdlog::error("OnlineRankingModel fetch failed: {}",
                         err.toStdString());
+          setLoading(false);
       });
 
     // Player/score counts
     performJsonGet(
-      QUrlQuery(
-        QString("charts/%1&fields=scoreCount,playerCount").arg(currentMd5)),
+      QString("charts/%1?fields=scoreCount,playerCount").arg(currentMd5),
       [this](const QJsonDocument& doc) {
           if (!doc.isObject()) {
               spdlog::error(
@@ -250,14 +255,6 @@ OnlineRankingModel::fetch()
           const auto obj = doc.object();
           setPlayerCount(obj.value("playerCount").toInt());
           setScoreCount(obj.value("scoreCount").toInt());
-          setClearCounts([&] {
-              QHash<QString, int> counts;
-              const auto clearCountsObj = obj.value("clearCounts").toObject();
-              for (const auto& key : clearCountsObj.keys()) {
-                  counts[key] = clearCountsObj.value(key).toInt();
-              }
-              return counts;
-          }());
       },
       [](const QString& err) {
           spdlog::error("OnlineRankingModel count fetch failed: {}",
@@ -268,8 +265,7 @@ OnlineRankingModel::fetch()
     auto clearTypesRequest =
       QNetworkRequest(networkRequestFactory.createRequest());
     performJsonGet(
-      QUrlQuery(
-        QString("score-summaries/%1?&fields=bestClearType").arg(currentMd5)),
+      QString("score-summaries?md5=%1&fields=bestClearType").arg(currentMd5),
       [this](const QJsonDocument& doc) {
           if (!doc.isArray()) {
               spdlog::error(
@@ -287,17 +283,17 @@ OnlineRankingModel::fetch()
               }
               clearTypeCounts[clearType]++;
           }
-          setClearCounts(std::move(clearTypeCounts));
+          auto map = QVariantMap{};
+          for (const auto& key : clearTypeCounts.keys()) {
+              map[key] = clearTypeCounts[key];
+          }
+          setClearCounts(std::move(map));
       },
       [](const QString& err) {
           spdlog::error("OnlineRankingModel clear types fetch failed: {}",
                         err.toStdString());
       });
 }
-
-// ---------------------------------------------------------------------------
-// Properties
-// ---------------------------------------------------------------------------
 
 auto
 OnlineRankingModel::getMd5() const -> QString
@@ -316,6 +312,12 @@ OnlineRankingModel::setMd5(const QString& md5)
     entries.clear();
     endResetModel();
     fetch();
+}
+
+void
+OnlineRankingModel::resetMd5()
+{
+    setMd5(QString());
 }
 
 auto
@@ -348,7 +350,7 @@ OnlineRankingModel::setScoreCount(int count)
     emit scoreCountChanged();
 }
 void
-OnlineRankingModel::setClearCounts(QHash<QString, int> counts)
+OnlineRankingModel::setClearCounts(QVariantMap counts)
 {
     if (clearCounts == counts)
         return;
@@ -431,7 +433,7 @@ OnlineRankingModel::setSearch(const QString& search)
     fetch();
 }
 auto
-OnlineRankingModel::getClearCounts() const -> QHash<QString, int>
+OnlineRankingModel::getClearCounts() const -> QVariantMap
 {
     return clearCounts;
 }

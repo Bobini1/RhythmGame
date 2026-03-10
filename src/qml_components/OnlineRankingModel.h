@@ -27,7 +27,7 @@ class OnlineRankingModel : public QAbstractListModel
                  sortDirChanged)
     Q_PROPERTY(
       QString search READ getSearch WRITE setSearch NOTIFY searchChanged)
-    Q_PROPERTY(QHash<QString, int> clearCounts READ getClearCounts NOTIFY
+    Q_PROPERTY(QVariantMap clearCounts READ getClearCounts NOTIFY
                  clearCountsChanged)
     Q_PROPERTY(int scoreCount READ getScoreCount NOTIFY scoreCountChanged)
     Q_PROPERTY(int playerCount READ getPlayerCount NOTIFY playerCountChanged)
@@ -85,7 +85,7 @@ class OnlineRankingModel : public QAbstractListModel
     [[nodiscard]] auto getMd5() const -> QString;
     void setMd5(const QString& md5);
 
-    void resetMd5() { setMd5(QString()); }
+    void resetMd5();
 
     [[nodiscard]] auto isLoading() const -> bool;
 
@@ -104,7 +104,7 @@ class OnlineRankingModel : public QAbstractListModel
     [[nodiscard]] auto getSearch() const -> QString;
     void setSearch(const QString& search);
 
-    [[nodiscard]] auto getClearCounts() const -> QHash<QString, int>;
+    [[nodiscard]] auto getClearCounts() const -> QVariantMap;
     [[nodiscard]] auto getScoreCount() const -> int;
     [[nodiscard]] auto getPlayerCount() const -> int;
 
@@ -149,10 +149,10 @@ class OnlineRankingModel : public QAbstractListModel
     void setLoading(bool loading);
     void setPlayerCount(int count);
     void setScoreCount(int count);
-    void setClearCounts(QHash<QString, int> counts);
+    void setClearCounts(QVariantMap counts);
     [[nodiscard]] auto buildUrl() const -> QUrl;
     void performJsonGet(
-      const QUrlQuery& url,
+      const QString& url,
       std::function<void(const QJsonDocument&)> onSuccess,
         std::function<void(const QString&)> onError);
 
@@ -168,7 +168,7 @@ class OnlineRankingModel : public QAbstractListModel
 
     QList<RankingEntry> entries;
     QList<QNetworkReply*> pendingReplies;
-    QHash<QString, int> clearCounts;
+    QVariantMap clearCounts;
     int scoreCount{ 0 };
     int playerCount{ 0 };
 };
