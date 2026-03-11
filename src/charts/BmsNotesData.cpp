@@ -591,27 +591,25 @@ resolveBase(int base, const std::vector<std::pair<uint16_t, T>>& values)
     return map;
 }
 
+auto convertData = [](auto& data) {
+    std::ranges::for_each(data | std::ranges::views::join,
+                          [](auto& id) { id = charts::base62ToBase36(id); });
+};
+auto convertNestedData = [](auto& data) {
+    std::ranges::for_each(data | std::ranges::views::join |
+                            std::ranges::views::join,
+                          [](auto& id) { id = charts::base62ToBase36(id); });
+};
 void
 convertMeasuresBaseFrom62To36(
   std::map<int64_t, ParsedBmsChart::Measure>& measures)
 {
-    auto convertData = [](auto& data) {
-        std::ranges::for_each(data | std::ranges::views::join, [](auto& id) {
-            id = charts::base62ToBase36(id);
-        });
-    };
-    auto convertNestedData = [](auto& data) {
-        std::ranges::for_each(
-          data | std::ranges::views::join | std::ranges::views::join,
-          [](auto& id) { id = charts::base62ToBase36(id); });
-    };
     for (auto& measureData : measures | std::views::values) {
         convertData(measureData.bgaBase);
         convertData(measureData.bgaPoor);
         convertData(measureData.bgaLayer);
         convertData(measureData.bgaLayer2);
         convertData(measureData.bgmNotes);
-        convertData(measureData.bpmChanges);
         convertData(measureData.exBpmChanges);
         convertData(measureData.stops);
         convertData(measureData.scrolls);
@@ -650,6 +648,9 @@ BmsNotesData::fromParsedChart(const ParsedBmsChart& chart)
     auto measuresCopy = chart.tags.measures;
     if (base == 36) {
         convertMeasuresBaseFrom62To36(measuresCopy);
+    }
+    for (auto& measureData : measuresCopy | std::views::values) {
+        convertData(measureData.bpmChanges);
     }
     data.generateMeasures(
       bpm, exBpmsMap, stopsMap, scrollsMap, measuresCopy, lnType, lnObj);
