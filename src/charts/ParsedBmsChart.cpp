@@ -55,7 +55,7 @@ charts::ParsedBmsChart::mergeTags(Tags& first, Tags second) -> void
         first.exBpms[key] = value;
     }
     for (auto& [key, value] : second.stops) {
-        first.exBpms[key] = value;
+        first.stops[key] = value;
     }
     for (auto& [key, value] : second.wavs) {
         first.wavs[key] = std::move(value);
