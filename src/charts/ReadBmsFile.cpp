@@ -283,8 +283,11 @@ using pair_t = std::pair<uint16_t, double>;
 RG_STRONG_TYPEDEF(pair_t, ExBpm)
 using stop_t = std::pair<uint16_t, double>;
 RG_STRONG_TYPEDEF(stop_t, Stop)
+using stop_t = std::pair<uint16_t, double>;
+RG_STRONG_TYPEDEF(stop_t, Scroll)
 using meter_t = std::pair<int64_t, double>;
 RG_STRONG_TYPEDEF(meter_t, Meter)
+RG_STRONG_TYPEDEF(int, Base)
 
 struct TitleTag
 {
@@ -402,6 +405,17 @@ struct RankTag
       lexy::callback<Rank>([](int num) { return Rank{ num }; });
 };
 
+struct BaseTag
+{
+    static constexpr auto rule = [] {
+        auto baseTag = dsl::ascii::case_folding(LEXY_LIT("#base"));
+        return baseTag >> dsl::integer<int, lexy::dsl::decimal>(
+                            LEXY_LITERAL_SET(LEXY_LIT("62"), LEXY_LIT("36")));
+    }();
+    static constexpr auto value =
+      lexy::callback<Base>([](int num) { return Base{ num }; });
+};
+
 struct BpmTag
 {
     static constexpr auto rule = [] {
@@ -503,6 +517,19 @@ struct StopTag
       });
 };
 
+struct ScrollTag
+{
+    static constexpr auto rule = [] {
+        auto scrollTag =
+          dsl::ascii::case_folding(LEXY_LIT("#scroll")) + dsl::p<Identifier>;
+        return peek(scrollTag) >> (scrollTag + dsl::p<FloatingPoint>);
+    }();
+    static constexpr auto value =
+      lexy::callback<Scroll>([](uint16_t identifier, double num) {
+          return Scroll{ { identifier, num } };
+      });
+};
+
 struct MeterTag
 {
     static constexpr auto rule = [] {
@@ -562,6 +589,10 @@ struct TagsSink
         {
             state.rank = static_cast<int>(rank);
         }
+        auto operator()(Base&& base) -> void
+        {
+            state.base = static_cast<int>(base);
+        }
         auto operator()(Bpm&& bpm) -> void
         {
             state.bpm = static_cast<double>(bpm);
@@ -596,6 +627,14 @@ struct TagsSink
               static_cast<std::pair<uint16_t, double>&>(stop);
             if (value != 0.0) {
                 state.stops[identifier] = value;
+            }
+        }
+        auto operator()(Scroll&& stop) -> void
+        {
+            auto& [identifier, value] =
+              static_cast<std::pair<uint16_t, double>&>(stop);
+            if (value != 0.0) {
+                state.scrolls[identifier] = value;
             }
         }
         auto operator()(ParsedBmsChart::Tags&& randomBlock)
@@ -783,16 +822,17 @@ struct MainTags
     static constexpr auto rule = [] {
         auto term = terminator(
           dsl::eof | peek(dsl::ascii::case_folding(LEXY_LIT("#endif"))));
-        return term.list(try_(
-          dsl::unicode::newline | dsl::p<MeterTag> | dsl::p<MeasureBasedTag> |
-            dsl::p<WavTag> | dsl::p<BmpTag> | dsl::p<ExBpmTag> |
-            dsl::p<StopTag> | dsl::p<TitleTag> | dsl::p<ArtistTag> |
-            dsl::p<GenreTag> | dsl::p<StageFileTag> | dsl::p<BannerTag> |
-            dsl::p<BackBmpTag> | dsl::p<SubtitleTag> | dsl::p<SubartistTag> |
-            dsl::p<TotalTag> | dsl::p<RankTag> | dsl::p<PlayLevelTag> |
-            dsl::p<DifficultyTag> | dsl::p<BpmTag> | dsl::p<LnObjTag> |
-            dsl::p<LnTypeTag> | dsl::recurse_branch<RandomBlock>,
-          until(dsl::unicode::newline).or_eof()));
+        return term.list(
+          try_(dsl::unicode::newline | dsl::p<MeterTag> |
+                 dsl::p<MeasureBasedTag> | dsl::p<WavTag> | dsl::p<BmpTag> |
+                 dsl::p<ExBpmTag> | dsl::p<StopTag> | dsl::p<TitleTag> |
+                 dsl::p<ArtistTag> | dsl::p<GenreTag> | dsl::p<StageFileTag> |
+                 dsl::p<BannerTag> | dsl::p<BackBmpTag> | dsl::p<SubtitleTag> |
+                 dsl::p<SubartistTag> | dsl::p<TotalTag> | dsl::p<RankTag> |
+                 dsl::p<PlayLevelTag> | dsl::p<DifficultyTag> | dsl::p<BpmTag> |
+                 dsl::p<LnObjTag> | dsl::p<LnTypeTag> | dsl::p<BaseTag> |
+                 dsl::p<ScrollTag> | dsl::recurse_branch<RandomBlock>,
+               until(dsl::unicode::newline).or_eof()));
     }();
     static constexpr auto value = TagsSink{};
 };

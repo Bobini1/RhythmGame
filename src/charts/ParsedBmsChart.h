@@ -44,7 +44,8 @@ struct ParsedBmsChart
         std::vector<std::vector<uint16_t>> bgaLayer;
         std::vector<std::vector<uint16_t>> bgaLayer2;
         std::vector<std::vector<uint16_t>> bgmNotes;
-        std::vector<std::vector<uint16_t>> bpmChanges;   // old-school, FF = BPM is 255
+        std::vector<std::vector<uint16_t>>
+          bpmChanges; // old-school, FF = BPM is 255
         std::vector<std::vector<uint16_t>> exBpmChanges; // new, FF = #BPMFF
         std::vector<std::vector<uint16_t>> stops;
         std::optional<double> meter;
@@ -70,8 +71,10 @@ struct ParsedBmsChart
         std::optional<int> difficulty;
         std::optional<uint16_t> lnObj;
         std::optional<int> lnType;
+        std::optional<int> base;
         std::unordered_map<uint16_t, double> exBpms;
         std::unordered_map<uint16_t, double> stops;
+        std::unordered_map<uint16_t, double> scrolls;
         std::unordered_map<uint16_t, std::string> wavs;
         std::unordered_map<uint16_t, std::string> bmps;
         std::map<int64_t, Measure> measures;

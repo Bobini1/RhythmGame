@@ -51,11 +51,17 @@ charts::ParsedBmsChart::mergeTags(Tags& first, Tags second) -> void
     if (second.lnType.has_value()) {
         first.lnType = second.lnType;
     }
+    if (second.base.has_value()) {
+        first.base = second.base;
+    }
     for (auto& [key, value] : second.exBpms) {
         first.exBpms[key] = value;
     }
     for (auto& [key, value] : second.stops) {
         first.stops[key] = value;
+    }
+    for (auto& [key, value] : second.scrolls) {
+        first.scrolls[key] = value;
     }
     for (auto& [key, value] : second.wavs) {
         first.wavs[key] = std::move(value);
