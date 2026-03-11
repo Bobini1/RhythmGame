@@ -199,12 +199,11 @@ struct MeasureBasedTag
     struct D                                                                   \
     {                                                                          \
         T t;                                                                   \
-        explicit D(T t_) noexcept(                                             \
-          std::is_nothrow_move_constructible<T>::value)                        \
+        explicit D(T t_) noexcept(std::is_nothrow_move_constructible_v<T>)     \
           : t(std::move(t_))                                                   \
         {                                                                      \
         }                                                                      \
-        D() noexcept(std::is_nothrow_constructible<T>::value)                  \
+        D() noexcept(std::is_nothrow_constructible_v<T>)                       \
           : t()                                                                \
         {                                                                      \
         }                                                                      \
@@ -212,30 +211,28 @@ struct MeasureBasedTag
           : t(t_.t)                                                            \
         {                                                                      \
         }                                                                      \
-        D(D&& t_) noexcept(std::is_nothrow_move_constructible<T>::value)       \
+        D(D&& t_) noexcept(std::is_nothrow_move_constructible_v<T>)            \
           : t(std::move(t_.t))                                                 \
         {                                                                      \
         }                                                                      \
         D& operator=(const D& rhs) noexcept(                                   \
-          std::is_nothrow_copy_assignable<T>::value)                           \
+          std::is_nothrow_copy_assignable_v<T>)                                \
         {                                                                      \
             t = rhs.t;                                                         \
             return *this;                                                      \
         }                                                                      \
         D& operator=(const T& rhs) noexcept(                                   \
-          std::is_nothrow_copy_assignable<T>::value)                           \
+          std::is_nothrow_copy_assignable_v<T>)                                \
         {                                                                      \
             t = rhs;                                                           \
             return *this;                                                      \
         }                                                                      \
-        D& operator=(D&& rhs) noexcept(                                        \
-          std::is_nothrow_move_assignable<T>::value)                           \
+        D& operator=(D&& rhs) noexcept(std::is_nothrow_move_assignable_v<T>)   \
         {                                                                      \
             t = std::move(rhs.t);                                              \
             return *this;                                                      \
         }                                                                      \
-        D& operator=(T&& rhs) noexcept(                                        \
-          std::is_nothrow_move_assignable<T>::value)                           \
+        D& operator=(T&& rhs) noexcept(std::is_nothrow_move_assignable_v<T>)   \
         {                                                                      \
             t = std::move(rhs);                                                \
             return *this;                                                      \
