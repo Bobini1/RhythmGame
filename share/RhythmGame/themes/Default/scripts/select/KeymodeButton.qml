@@ -6,11 +6,11 @@ Image {
     id: keymodeButton
 
     property int current: {
-        let savedKeymode = themeVars.keymodeFilter ? parseInt(themeVars.keymodeFilter) : null;
+        let savedKeymode = themeVars.keymodeFilter;
         let index = options.indexOf(savedKeymode);
-        return index === -1 ? 1 : index;
+        return index === -1 ? 2 : index;
     }
-    property var options: Rg.profileList.battleActive ? [5, 7] : [5, 7, 10, 14, null]
+    property var options: Rg.profileList.battleActive ? ["5", "7", "SINGLE"] : ["5", "7", "SINGLE", "10", "14", "DOUBLE", null]
     required property var themeVars
 
     Binding {
@@ -23,19 +23,19 @@ Image {
 
     Binding {
         keymodeButton.current: {
-            let defaultKeymode = Rg.profileList.battleActive ? 7 : null;
-            let savedKeymode = parseInt(themeVars.keymodeFilter);
-            if (isNaN(savedKeymode)) {
+            let defaultKeymode = Rg.profileList.battleActive ? "SINGLE" : null;
+            let savedKeymode = themeVars.keymodeFilter;
+            if (savedKeymode === undefined) {
                 savedKeymode = defaultKeymode;
             }
             let index = options.indexOf(savedKeymode);
-            return index === -1 ? 0 : index;
+            return index === -1 ? 2 : index;
         }
     }
 
     onOptionsChanged: {
         if (current >= options.length) {
-            current = 0;
+            current = 2;
         }
         mouseArea.setFilter();
     }
@@ -53,6 +53,12 @@ Image {
             if (current === null) {
                 return qsTr("ALL keys");
             }
+            if (current === "SINGLE") {
+                return qsTr("SINGLE");
+            }
+            if (current === "DOUBLE") {
+                return qsTr("DOUBLE");
+            }
             return qsTr("%1 keys").arg(current)
         }
     }
@@ -60,10 +66,19 @@ Image {
         id: mouseArea
         function setFilter() {
             let currentKeymode = keymodeButton.options[keymodeButton.current];
+            console.warn(currentKeymode)
             if (currentKeymode) {
                 songList.filter = function (chart) {
-                    return chart.keymode === currentKeymode || chart instanceof entry
-                };
+                    if (chart instanceof entry) return true;
+                    switch (currentKeymode) {
+                        case "SINGLE":
+                            return chart.keymode === 5 || chart.keymode === 7;
+                        case "DOUBLE":
+                            return chart.keymode === 10 || chart.keymode === 14;
+                        default:
+                            return chart.keymode === parseInt(currentKeymode);
+                    }
+                }
             } else {
                 songList.filter = null;
             }

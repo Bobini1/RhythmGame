@@ -94,6 +94,13 @@
         },
         {
           "name": {
+            "en": "Single",
+            "pl": "Single"
+          },
+          "value": "SINGLE"
+        },
+        {
+          "name": {
             "en": "10K",
             "pl": "10K"
           },
@@ -105,6 +112,13 @@
             "pl": "14K"
           },
           "value": "14"
+        },
+        {
+          "name": {
+            "en": "Double",
+            "pl": "Double"
+          },
+          "value": "DOUBLE"
         },
         {
           "name": {
