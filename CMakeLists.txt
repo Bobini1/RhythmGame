@@ -251,6 +251,8 @@ qt_add_library(RhythmGame_lib OBJECT
         src/sounds/NormalSound.h
         src/qml_components/OnlineProfileInfo.cpp
         src/qml_components/OnlineProfileInfo.h
+        src/charts/Base62.cpp
+        src/charts/Base62.h
 )
 
 if (WIN32)

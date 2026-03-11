@@ -6,6 +6,8 @@
 #include <numeric>
 #include <set>
 #include "BmsNotesData.h"
+
+#include "Base62.h"
 #include "sounds/SoundBuffer.h"
 
 #include <ranges>
@@ -573,11 +575,63 @@ removeInvalidNotes(std::array<std::vector<BmsNotesData::Note>,
     }
 }
 
+template<typename T>
+auto
+resolveBase(int base, const std::vector<std::pair<uint16_t, T>>& values)
+{
+    auto map = std::unordered_map<uint16_t, T>{};
+    for (const auto& [identifier, value] : values) {
+        if (base == 36) {
+            auto resolvedIdentifier = charts::base62ToBase36(identifier);
+            map[resolvedIdentifier] = value;
+        } else {
+            map[identifier] = value;
+        }
+    }
+    return map;
+}
+
+void
+convertMeasuresBaseFrom62To36(
+  std::map<int64_t, ParsedBmsChart::Measure>& measures)
+{
+    auto convertData = [](auto& data) {
+        std::ranges::for_each(data | std::ranges::views::join, [](auto& id) {
+            id = charts::base62ToBase36(id);
+        });
+    };
+    auto convertNestedData = [](auto& data) {
+        std::ranges::for_each(
+          data | std::ranges::views::join | std::ranges::views::join,
+          [](auto& id) { id = charts::base62ToBase36(id); });
+    };
+    for (auto& measureData : measures | std::views::values) {
+        convertData(measureData.bgaBase);
+        convertData(measureData.bgaPoor);
+        convertData(measureData.bgaLayer);
+        convertData(measureData.bgaLayer2);
+        convertData(measureData.bgmNotes);
+        convertData(measureData.bpmChanges);
+        convertData(measureData.exBpmChanges);
+        convertData(measureData.stops);
+        convertData(measureData.scrolls);
+        convertNestedData(measureData.p1VisibleNotes);
+        convertNestedData(measureData.p1InvisibleNotes);
+        convertNestedData(measureData.p1LongNotes);
+        convertNestedData(measureData.p1Landmines);
+        convertNestedData(measureData.p2VisibleNotes);
+        convertNestedData(measureData.p2InvisibleNotes);
+        convertNestedData(measureData.p2LongNotes);
+        convertNestedData(measureData.p2Landmines);
+    }
+}
 } // namespace
 
 BmsNotesData
 BmsNotesData::fromParsedChart(const ParsedBmsChart& chart)
 {
+    const auto base = chart.tags.base.value_or(defaultBase);
+    auto data = BmsNotesData{};
     auto lnType = defaultLnType;
     if (chart.tags.lnType.has_value()) {
         lnType = static_cast<LnType>(chart.tags.lnType.value());
@@ -587,13 +641,18 @@ BmsNotesData::fromParsedChart(const ParsedBmsChart& chart)
         throw std::runtime_error{ "Initial bpm must be positive, was: " +
                                   std::to_string(bpm) };
     }
-    auto data = BmsNotesData{};
-    data.generateMeasures(bpm,
-                          chart.tags.exBpms,
-                          chart.tags.stops,
-                          chart.tags.measures,
-                          lnType,
-                          chart.tags.lnObj);
+    auto exBpmsMap = resolveBase(base, chart.tags.exBpms);
+    auto stopsMap = resolveBase(base, chart.tags.stops);
+    auto scrollsMap = resolveBase(base, chart.tags.scrolls);
+    auto lnObj =
+      base == 36 ? chart.tags.lnObj.transform(charts::base62ToBase36<uint16_t>)
+                 : chart.tags.lnObj;
+    auto measuresCopy = chart.tags.measures;
+    if (base == 36) {
+        convertMeasuresBaseFrom62To36(measuresCopy);
+    }
+    data.generateMeasures(
+      bpm, exBpmsMap, stopsMap, scrollsMap, measuresCopy, lnType, lnObj);
     return data;
 }
 BmsNotesData
@@ -1083,6 +1142,7 @@ BmsNotesData::generateMeasures(
   double baseBpm,
   const std::unordered_map<uint16_t, double>& bpms,
   const std::unordered_map<uint16_t, double>& stops,
+  const std::unordered_map<uint16_t, double>& scrolls,
   const std::map<int64_t, ParsedBmsChart::Measure>& measures,
   LnType lnType,
   std::optional<uint16_t> lnObj)

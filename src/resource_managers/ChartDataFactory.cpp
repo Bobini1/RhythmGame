@@ -2,6 +2,7 @@
 // Created by bobini on 23.08.23.
 //
 
+#include "charts/Base62.h"
 #include "support/Version.h"
 #ifdef _WIN32
 #include <windows.h>
@@ -288,13 +289,22 @@ ChartDataFactory::loadChartData(const std::filesystem::path& chartPath,
 
     std::unordered_map<uint64_t, std::filesystem::path> wavs;
     wavs.reserve(parsedChart.tags.wavs.size());
-    for (const auto& wav : parsedChart.tags.wavs) {
-        wavs.emplace(wav.first, support::utfStringToPath(wav.second));
+    auto base = parsedChart.tags.base.value_or(36);
+    for (const auto& [id, path] : parsedChart.tags.wavs) {
+        auto targetId = id;
+        if (base == 36) {
+            targetId = charts::base62ToBase36(id);
+        }
+        wavs[targetId] = support::utfStringToPath(path);
     }
     std::unordered_map<uint64_t, std::filesystem::path> bmps;
     bmps.reserve(parsedChart.tags.bmps.size());
-    for (const auto& bmp : parsedChart.tags.bmps) {
-        bmps.emplace(bmp.first, support::utfStringToPath(bmp.second));
+    for (const auto& [id, path] : parsedChart.tags.bmps) {
+        auto targetId = id;
+        if (base == 36) {
+            targetId = charts::base62ToBase36(id);
+        }
+        bmps[targetId] = support::utfStringToPath(path);
     }
 
     auto calculatedNotesData =

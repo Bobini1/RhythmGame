@@ -73,9 +73,11 @@ struct BmsNotesData
     std::vector<std::pair<Time, uint64_t>> bgaLayer;
     std::vector<std::pair<Time, uint64_t>> bgaLayer2;
     std::vector<std::pair<Time, double>> bpmChanges;
+    std::vector<std::pair<Time, double>> scrollChanges;
     std::vector<Time> barLines;
     static constexpr auto defaultBpm = 120.0;
     static constexpr auto defaultLnType = LnType::RDM;
+    static constexpr auto defaultBase = 36;
 
     /// Describes one audio slice for bmson sound loading.
     struct BmsonSliceInfo
@@ -102,6 +104,7 @@ struct BmsNotesData
       double baseBpm,
       const std::unordered_map<uint16_t, double>& bpms,
       const std::unordered_map<uint16_t, double>& stops,
+      const std::unordered_map<uint16_t, double>& scrolls,
       const std::map<int64_t, ParsedBmsChart::Measure>& measures,
       LnType lnType,
       std::optional<uint16_t> lnObj);

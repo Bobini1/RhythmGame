@@ -54,21 +54,11 @@ charts::ParsedBmsChart::mergeTags(Tags& first, Tags second) -> void
     if (second.base.has_value()) {
         first.base = second.base;
     }
-    for (auto& [key, value] : second.exBpms) {
-        first.exBpms[key] = value;
-    }
-    for (auto& [key, value] : second.stops) {
-        first.stops[key] = value;
-    }
-    for (auto& [key, value] : second.scrolls) {
-        first.scrolls[key] = value;
-    }
-    for (auto& [key, value] : second.wavs) {
-        first.wavs[key] = std::move(value);
-    }
-    for (auto& [key, value] : second.bmps) {
-        first.bmps[key] = std::move(value);
-    }
+    first.exBpms.append_range(second.exBpms);
+    first.stops.append_range(second.stops);
+    first.scrolls.append_range(second.scrolls);
+    first.wavs.append_range(second.wavs);
+    first.bmps.append_range(second.bmps);
     for (auto& [key, measure] : second.measures) {
         auto& firstMeasure = first.measures[key];
         for (auto column = 0; column < measure.p1VisibleNotes.size();
@@ -146,6 +136,9 @@ charts::ParsedBmsChart::mergeTags(Tags& first, Tags second) -> void
         }
         for (auto& stop : measure.stops) {
             firstMeasure.stops.push_back(std::move(stop));
+        }
+        for (auto& scroll : measure.scrolls) {
+            firstMeasure.scrolls.push_back(std::move(scroll));
         }
         if (measure.meter.has_value()) {
             firstMeasure.meter = measure.meter;

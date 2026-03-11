@@ -15,6 +15,8 @@
 #include <algorithm>
 #include "ReadBmsFile.h"
 
+#include "Base62.h"
+
 #include <lexy_ext/report_error.hpp>
 
 namespace charts {
@@ -103,34 +105,48 @@ constexpr auto decode = [](auto&& str,
     return ret.value_or(std::string{});
 };
 
+uint16_t
+base62CharToValue(char c)
+{
+    if (c >= '0' && c <= '9') {
+        return c - '0';
+    }
+    if (c >= 'A' && c <= 'Z') {
+        return c - 'A' + 10;
+    }
+    if (c >= 'a' && c <= 'z') {
+        return c - 'a' + 36;
+    }
+    return uint16_t{ 0 };
+}
+
 } // namespace
 
 struct TextTag
 {
+    static constexpr auto rule = capture(until(dsl::unicode::newline).or_eof());
     static constexpr auto value =
       lexy::bind(lexy::callback<std::string>(decode),
                  lexy::values,
                  lexy::parse_state);
-    static constexpr auto rule = capture(until(dsl::unicode::newline).or_eof());
 };
 
 struct Identifier
 {
-    static constexpr auto value = lexy::callback<uint16_t>([](auto&& str) {
-        auto res = uint16_t{};
-        auto [ptr, ec] = std::from_chars(str.begin(), str.end(), res, 36);
-        if (ec == std::errc{} && ptr == str.end()) {
-            return res;
-        }
-        return uint16_t{ 0 };
-    });
     static constexpr auto rule = capture(token(twice(dsl::ascii::alnum)));
+    static constexpr auto value = lexy::callback<uint16_t>([](auto&& str) {
+        auto char1 = str[0];
+        auto char2 = str[1];
+        auto value1 = base62CharToValue(char1);
+        auto value2 = base62CharToValue(char2);
+        return value1 * 62 + value2;
+    });
 };
 
 struct IdentifierChain
 {
-    static constexpr auto value = lexy::as_list<std::vector<uint16_t>>;
     static constexpr auto rule = list(dsl::p<Identifier>);
+    static constexpr auto value = lexy::as_list<std::vector<uint16_t>>;
 };
 
 struct FloatingPoint
@@ -454,7 +470,7 @@ struct WavTag
     }();
     static constexpr auto value =
       lexy::callback<Wav>([](uint16_t&& identifier, std::string&& filename) {
-          return Wav{ { std::move(identifier), std::move(filename) } };
+          return Wav{ { identifier, std::move(filename) } };
       });
 };
 
@@ -466,7 +482,7 @@ struct BmpTag
     }();
     static constexpr auto value =
       lexy::callback<Bmp>([](uint16_t&& identifier, std::string&& filename) {
-          return Bmp{ { std::move(identifier), std::move(filename) } };
+          return Bmp{ { identifier, std::move(filename) } };
       });
 };
 
@@ -477,7 +493,7 @@ struct LnObjTag
         return lnObjTag >> dsl::p<Identifier>;
     }();
     static constexpr auto value = lexy::callback<LnObj>(
-      [](uint16_t&& identifier) { return LnObj{ { std::move(identifier) } }; });
+      [](uint16_t&& identifier) { return LnObj{ { identifier } }; });
 };
 
 struct LnTypeTag
@@ -500,7 +516,7 @@ struct ExBpmTag
     }();
     static constexpr auto value =
       lexy::callback<ExBpm>([](uint16_t identifier, double num) {
-          return ExBpm{ { std::move(identifier), num } };
+          return ExBpm{ { identifier, num } };
       });
 };
 
@@ -513,7 +529,7 @@ struct StopTag
     }();
     static constexpr auto value =
       lexy::callback<Stop>([](uint16_t identifier, double num) {
-          return Stop{ { std::move(identifier), num } };
+          return Stop{ { identifier, num } };
       });
 };
 
@@ -618,7 +634,7 @@ struct TagsSink
             auto& [identifier, value] =
               static_cast<std::pair<uint16_t, double>&>(bpm);
             if (value != 0.0) {
-                state.exBpms[identifier] = value;
+                state.exBpms.emplace_back(identifier, value);
             }
         }
         auto operator()(Stop&& stop) -> void
@@ -626,7 +642,7 @@ struct TagsSink
             auto& [identifier, value] =
               static_cast<std::pair<uint16_t, double>&>(stop);
             if (value != 0.0) {
-                state.stops[identifier] = value;
+                state.stops.emplace_back(identifier, value);
             }
         }
         auto operator()(Scroll&& stop) -> void
@@ -634,7 +650,7 @@ struct TagsSink
             auto& [identifier, value] =
               static_cast<std::pair<uint16_t, double>&>(stop);
             if (value != 0.0) {
-                state.scrolls[identifier] = value;
+                state.scrolls.emplace_back(identifier, value);
             }
         }
         auto operator()(ParsedBmsChart::Tags&& randomBlock)
@@ -654,14 +670,14 @@ struct TagsSink
         {
             auto& [identifier, filename] =
               static_cast<std::pair<uint16_t, std::string>&>(wav);
-            state.wavs[identifier] = std::move(filename);
+            state.wavs.emplace_back(identifier, filename);
         }
 
         auto operator()(Bmp&& bmp) -> void
         {
             auto& [identifier, filename] =
               static_cast<std::pair<uint16_t, std::string>&>(bmp);
-            state.bmps[identifier] = std::move(filename);
+            state.bmps.emplace_back(identifier, filename);
         }
 
         auto operator()(
@@ -669,7 +685,6 @@ struct TagsSink
           -> void
         {
             auto [measure, channel, identifiers] = std::move(measureBasedTag);
-
             enum ChannelCategory
             {
                 General = 0,
@@ -680,20 +695,22 @@ struct TagsSink
                 P1LongNote = 5,
                 P2LongNote = 6,
                 P1Landmine = 0xD,
-                P2Landmine = 0xE
+                P2Landmine = 0xE,
+                ScrollCategory = 28, // S
             };
             enum GeneralSubcategory
             {
                 Bgm = 1,
                 /* Meter = 2, // handled elsewhere */
                 Bpm = 3,
-                BgaBase = 4, // unimplemented
+                BgaBase = 4,
                 ExtendedObject = 5,
                 BgaPoor = 6,
                 BgaLayer = 7,
                 ExBpm = 8,
                 Stop = 9,
-                BgaLayer2 = 0xA
+                BgaLayer2 = 0xA,
+                Scroll = 0xC, // C
             };
             constexpr auto base = 36;
             auto channelCategory = static_cast<ChannelCategory>(channel / base);
@@ -804,6 +821,12 @@ struct TagsSink
                              channelSubcategory,
                              std::move(identifiers));
                     break;
+                case ScrollCategory:
+                    if (channelSubcategory == Scroll) {
+                        state.measures[measure].scrolls.push_back(
+                          std::move(identifiers));
+                        break;
+                    }
                 default:
                     spdlog::debug("Unknown channel: {:02d}", channel);
                     break;
@@ -854,7 +877,7 @@ struct OrphanizedRandomCommonPart
                    dsl::p<SubtitleTag> | dsl::p<SubartistTag> |
                    dsl::p<TotalTag> | dsl::p<RankTag> | dsl::p<PlayLevelTag> |
                    dsl::p<DifficultyTag> | dsl::p<BpmTag> | dsl::p<LnObjTag> |
-                   dsl::p<LnTypeTag>,
+                   dsl::p<LnTypeTag> | dsl::p<BaseTag> | dsl::p<ScrollTag>,
                  until(dsl::unicode::newline).or_eof()));
     }();
     static constexpr auto value = TagsSink{};
