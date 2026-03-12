@@ -216,12 +216,12 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
         }
         assetsFolders.append(support::pathToQString(installationDataFolder) +
                              "/");
-        auto profileList =
-          qml_components::ProfileList{ dataFolder / "song_db.sqlite",
-                                       &db,
-                                       availableThemes,
-                                       dataFolder / "profiles",
-                                       assetsFolders };
+
+        auto networkManager = QNetworkAccessManager{};
+        auto profileList = qml_components::ProfileList{
+            dataFolder / "song_db.sqlite", &db,           availableThemes,
+            dataFolder / "profiles",       assetsFolders, &networkManager
+        };
 
         QObject::connect(&gamepadManager,
                          &input::GamepadManager::axisMoved,
@@ -301,7 +301,6 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
 
         auto fileQuery = qml_components::FileQuery{};
 
-        auto networkManager = QNetworkAccessManager{};
         auto tables = resource_managers::Tables{ &networkManager,
                                                  dataFolder / "tables",
                                                  &db };

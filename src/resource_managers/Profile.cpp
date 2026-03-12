@@ -68,7 +68,7 @@ void
 Profile::fetchOnlineData()
 {
     const auto request = networkRequestFactory.createRequest("users/me");
-    auto* reply = networkManager.get(request);
+    auto* reply = networkManager->get(request);
     connect(reply, &QNetworkReply::finished, this, [this, reply]() {
         if (reply->error() != QNetworkReply::NoError) {
             spdlog::error("Error fetching online data for user {}: {}",
@@ -108,6 +108,7 @@ Profile::Profile(
   const std::filesystem::path& dbPath,
   const QMap<QString, qml_components::ThemeFamily>& themeFamilies,
   QList<QString> assetsPaths,
+  QNetworkAccessManager* networkManager,
   QObject* parent)
   : QObject(parent)
   , db(createDb(dbPath))
@@ -116,6 +117,7 @@ Profile::Profile(
       createConfig(themeFamilies, dbPath.parent_path() / "theme_config.json")
         .release())
   , vars(this, themeFamilies, std::move(assetsPaths))
+  , networkManager(networkManager)
 {
     db.execute("CREATE TABLE IF NOT EXISTS properties ("
                "id INTEGER PRIMARY KEY AUTOINCREMENT,"
@@ -281,7 +283,7 @@ Profile::login(const QString& email, const QString& password)
     json["password"] = password;
 
     QNetworkReply* reply =
-      networkManager.post(request, QJsonDocument(json).toJson());
+      networkManager->post(request, QJsonDocument(json).toJson());
 
     connect(
       reply, &QNetworkReply::finished, [reply, this, outerReply]() mutable {
@@ -328,7 +330,7 @@ Profile::logout()
 {
     auto* job = new QKeychain::DeletePasswordJob(keychainService, this);
     auto request = networkRequestFactory.createRequest("/revoke-session");
-    networkManager.post(request, "{}");
+    networkManager->post(request, "{}");
     job->setKey(QStringLiteral("profiles/%1/token").arg(guid));
     connect(job, &QKeychain::Job::finished, [job] {
         if (job->error()) {
@@ -368,7 +370,7 @@ Profile::submitScore(const gameplay_logic::BmsScore& score,
     json["scoreData"] = scoreData;
     json["chartData"] = chartData.toJson();
     auto request = networkRequestFactory.createRequest("scores");
-    return networkManager.post(request, QJsonDocument(json).toJson());
+    return networkManager->post(request, QJsonDocument(json).toJson());
 }
 auto
 Profile::uploadScores() -> qml_components::ScoreSyncOperation*
@@ -388,7 +390,7 @@ Profile::uploadScores() -> qml_components::ScoreSyncOperation*
               [this, op, localGuids]() mutable {
                   auto request = networkRequestFactory.createRequest(
                     QString("scores?fields=guid&userId=%1").arg(onlineId));
-                  auto* guidReply = networkManager.get(request);
+                  auto* guidReply = networkManager->get(request);
 
                   connect(
                     guidReply,
@@ -561,7 +563,7 @@ Profile::uploadScores() -> qml_components::ScoreSyncOperation*
                                           auto request =
                                             networkRequestFactory.createRequest(
                                               "scores");
-                                          auto* reply = networkManager.post(
+                                          auto* reply = networkManager->post(
                                             request,
                                             QJsonDocument(p.json).toJson());
                                           const auto guid = p.guid;
@@ -643,7 +645,7 @@ Profile::downloadScores() -> qml_components::ScoreSyncOperation*
               [this, op, localGuids]() mutable {
                   auto request = networkRequestFactory.createRequest(
                     QString("scores?fields=guid&userId=%1").arg(onlineId));
-                  auto* guidReply = networkManager.get(request);
+                  auto* guidReply = networkManager->get(request);
 
                   connect(
                     guidReply,
@@ -695,7 +697,7 @@ Profile::downloadScores() -> qml_components::ScoreSyncOperation*
                         for (const auto& guid : toDownload) {
                             auto request = networkRequestFactory.createRequest(
                               QStringLiteral("scores/%1").arg(guid));
-                            auto* reply = networkManager.get(request);
+                            auto* reply = networkManager->get(request);
                             connect(
                               reply,
                               &QNetworkReply::finished,

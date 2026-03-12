@@ -44,7 +44,7 @@ class Profile final : public QObject
     Vars vars;
     qml_components::ScoreDb scoreDb{ &db };
     QString guid;
-    QNetworkAccessManager networkManager;
+    QNetworkAccessManager* networkManager;
     QNetworkRequestFactory networkRequestFactory;
     QThreadPool threadPool;
     QString onlineUsername;
@@ -71,6 +71,7 @@ class Profile final : public QObject
       const std::filesystem::path& dbPath,
       const QMap<QString, qml_components::ThemeFamily>& themeFamilies,
       QList<QString> assetsPaths,
+      QNetworkAccessManager* networkManager,
       QObject* parent = nullptr);
 
     auto getPath() const -> std::filesystem::path;

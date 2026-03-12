@@ -89,6 +89,7 @@ class ProfileList final : public QObject
     BattleProfiles battleProfiles;
     bool battleActive{};
     QList<QString> assetsPaths;
+    QNetworkAccessManager* networkAccessManager;
 
     void saveMainProfile();
     void saveActiveProfiles();
@@ -99,6 +100,7 @@ class ProfileList final : public QObject
                          const QMap<QString, ThemeFamily>& themeFamilies,
                          std::filesystem::path profilesFolder,
                          QList<QString> assetsPaths,
+                         QNetworkAccessManager* networkAccessManager,
                          QObject* parent = nullptr);
     auto getProfiles() -> const QList<resource_managers::Profile*>&;
 
