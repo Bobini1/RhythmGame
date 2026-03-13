@@ -27,7 +27,7 @@ OnlineRankingModel::performJsonGet(
     });
 
     connect(
-      reply, &QNetworkReply::finished, reply, [reply, onSuccess, onError]() {
+      reply, &QNetworkReply::finished, this, [reply, onSuccess, onError]() {
           reply->deleteLater();
 
           if (reply->error() == QNetworkReply::OperationCanceledError) {
