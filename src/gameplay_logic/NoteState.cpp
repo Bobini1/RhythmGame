@@ -18,6 +18,10 @@ ColumnState::ColumnState(QList<NoteState> notes, QObject* parent)
   : QAbstractListModel(parent)
   , notes(std::move(notes))
 {
+    // sort by position
+    std::ranges::sort(notes, [](const auto& a, const auto& b) {
+        return a.note.time.position < b.note.time.position;
+    });
 }
 auto
 ColumnState::rowCount(const QModelIndex& parent) const -> int
@@ -74,6 +78,9 @@ ColumnState::isPressed() const -> bool
 BarLinesState::BarLinesState(QList<BarLineState> barLines, QObject* parent)
   : barLines(std::move(barLines))
 {
+    std::ranges::sort(barLines, [](const auto& a, const auto& b) {
+        return a.time.position < b.time.position;
+    });
 }
 auto
 BarLinesState::rowCount(const QModelIndex& parent) const -> int
@@ -167,13 +174,15 @@ Filter::setTopPosition(double value)
     if (value < bottomPosition) {
         setBottomPosition(value);
     }
-    // Find the first note strictly above the new top position, excluding LongNoteEnd
-    const auto upper = std::find_if(
-      columnState->getNotes().begin(), columnState->getNotes().end(),
-      [value](const auto& note) {
-          return note.note.type != Note::Type::LongNoteEnd &&
-                 note.note.time.position > value;
-      });
+    // Find the first note strictly above the new top position, excluding
+    // LongNoteEnd
+    const auto upper =
+      std::find_if(columnState->getNotes().begin(),
+                   columnState->getNotes().end(),
+                   [value](const auto& note) {
+                       return note.note.type != Note::Type::LongNoteEnd &&
+                              note.note.time.position > value;
+                   });
     auto newTopRow = std::distance(columnState->getNotes().begin(), upper);
     if (newTopRow > topRow) {
         beginInsertRows(
