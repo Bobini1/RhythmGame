@@ -19,7 +19,7 @@ ColumnState::ColumnState(QList<NoteState> notes, QObject* parent)
   , notes(std::move(notes))
 {
     // sort by position
-    std::ranges::sort(notes, [](const auto& a, const auto& b) {
+    std::ranges::stable_sort(notes, [](const auto& a, const auto& b) {
         return a.note.time.position < b.note.time.position;
     });
 }
