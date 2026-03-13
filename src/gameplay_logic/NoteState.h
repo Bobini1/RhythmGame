@@ -48,6 +48,7 @@ class ColumnState final : public QAbstractListModel
     Q_PROPERTY(bool pressed READ isPressed NOTIFY pressedChanged)
 
     QList<NoteState> notes;
+    QList<int> timeToPositionIndexMapping;
     int64_t elapsed{};
     bool pressed = false;
     void setPressed(bool pressed);
@@ -60,6 +61,7 @@ class ColumnState final : public QAbstractListModel
     auto isPressed() const -> bool;
     auto getNotes() const -> const QList<NoteState>& { return notes; }
     auto getNotes() -> QList<NoteState>& { return notes; }
+    auto mapTimeIndexToPositionIndex(int64_t timeIndex) const -> int;
   signals:
     void pressedChanged();
 };
@@ -118,6 +120,7 @@ class Filter : public QAbstractProxyModel
     bool pressed = false;
     void setPressed(bool pressed);
     ColumnState* columnState;
+    void adjustLnEndVisibility(int notesFrom, int notesTo, bool shown);
 
   public:
     explicit Filter(ColumnState* columnState, QObject* parent = nullptr);
