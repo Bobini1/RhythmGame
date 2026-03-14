@@ -17,8 +17,6 @@
 
 #include "Base62.h"
 
-#include <lexy_ext/report_error.hpp>
-
 namespace charts {
 namespace dsl = lexy::dsl;
 

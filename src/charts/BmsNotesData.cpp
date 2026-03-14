@@ -669,8 +669,8 @@ convertMeasuresBaseFrom62To36(
 }
 } // namespace
 
-BmsNotesData
-BmsNotesData::fromParsedChart(const ParsedBmsChart& chart)
+auto
+BmsNotesData::fromParsedChart(const ParsedBmsChart& chart) -> BmsNotesData
 {
     const auto base = chart.tags.base.value_or(defaultBase);
     auto data = BmsNotesData{};
