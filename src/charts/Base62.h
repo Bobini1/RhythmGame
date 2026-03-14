@@ -36,9 +36,9 @@ base62ToBase16(T value)
         auto digit = value % 62;
         value /= 62;
         if (digit < 36) {
-            result += std::max(digit * multiplier, 15);
+            result += std::max(digit, 15) * multiplier;
         } else {
-            result += std::max((digit - 26) * multiplier, 15);
+            result += std::max((digit - 26), 15) * multiplier;
         }
         multiplier *= 16;
     }
