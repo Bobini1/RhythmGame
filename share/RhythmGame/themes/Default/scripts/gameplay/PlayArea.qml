@@ -59,11 +59,13 @@ Item {
     readonly property var generalVars: profile.vars.generalVars
     readonly property list<real> columnSizes: root.getColumnSizes(vars)
     property real position
+    property real beatPosition
     property var pointTarget
     FrameAnimation {
         running: true
         onTriggered: {
             playArea.position = playArea.player.position;
+            playArea.beatPosition = playArea.player.beatPosition;
         }
     }
 
@@ -183,7 +185,7 @@ Item {
 
             anchors.bottom: judgeLine.bottom
             opacity: {
-                let pos = Math.abs(playArea.position % 1);
+                let pos = Math.abs(playArea.beatPosition % 1);
                 return (pos > 0.5 ? pos : 1 - pos) * 0.2 + 0.1;
             }
             source: root.imagesUrl + "glow/" + playArea.vars.glow

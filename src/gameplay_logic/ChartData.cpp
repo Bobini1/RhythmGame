@@ -495,6 +495,7 @@ gameplay_logic::ChartData::toJson() const -> QJsonObject
         QJsonObject o;
         o["time"] = static_cast<qint64>(bpm.time.timestamp);
         o["position"] = bpm.time.position;
+        o["beatPosition"] = bpm.time.beatPosition;
         o["bpm"] = bpm.bpm;
         bpmJson.append(o);
     }

@@ -15,16 +15,22 @@ class Time
     Q_GADGET
     /** @brief Timestamp expressed in nanoseconds */
     Q_PROPERTY(int64_t timestamp MEMBER timestamp)
-    /** @brief Position expressed in beats */
+    /** @brief Position expressed in beats after applying scrolls */
     Q_PROPERTY(double position MEMBER position)
+    /** @brief Position expressed in beats */
+    Q_PROPERTY(double beatPosition MEMBER position)
   public:
     // Timestamp in milliseconds
     int64_t timestamp;
-    // Position in beats
+    // Position in beats after applying scrolls
     double position;
+    // Position in beats
+    double beatPosition;
     auto operator+(const Time& other) const -> Time
     {
-        return { timestamp + other.timestamp, position + other.position };
+        return { timestamp + other.timestamp,
+                 position + other.position,
+                 beatPosition + other.beatPosition };
     }
     auto operator<=>(const Time& other) const = default;
 };
@@ -49,22 +55,31 @@ class BpmChange
     Q_GADGET
     Q_PROPERTY(Time time MEMBER time)
     Q_PROPERTY(double bpm MEMBER bpm)
+    Q_PROPERTY(double scroll MEMBER scroll)
   public:
     Time time;
     double bpm;
+    double scroll;
+    BpmChange() = default;
+    BpmChange(Time time, double bpm, double scroll)
+      : time(time)
+      , bpm(bpm)
+      , scroll(scroll)
+    {
+    }
     auto operator<=>(const BpmChange& other) const = default;
 };
 
 inline auto
 operator<<(QDataStream& stream, const BpmChange& bpmChange) -> QDataStream&
 {
-    return stream << bpmChange.time << bpmChange.bpm;
+    return stream << bpmChange.time << bpmChange.bpm << bpmChange.scroll;
 }
 
 inline auto
 operator>>(QDataStream& stream, BpmChange& bpmChange) -> QDataStream&
 {
-    return stream >> bpmChange.time >> bpmChange.bpm;
+    return stream >> bpmChange.time >> bpmChange.bpm >> bpmChange.scroll;
 }
 
 /**

@@ -9,7 +9,7 @@ gameplay_logic::BmsGameReferee::BmsGameReferee(
   std::array<std::vector<charts::BmsNotesData::Note>,
              charts::BmsNotesData::columnNumber> notes,
   const std::vector<std::pair<charts::BmsNotesData::Time, uint64_t>>& bgmNotes,
-  std::vector<std::pair<charts::BmsNotesData::Time, double>> bpmChanges,
+  std::vector<charts::BmsNotesData::BpmChangeValues> bpmChanges,
   std::shared_ptr<sounds::Sound> mineHitSound,
   BmsLiveScore* score,
   std::unordered_map<uint64_t, std::shared_ptr<sounds::Sound>> sounds,
@@ -138,14 +138,14 @@ gameplay_logic::BmsGameReferee::update(std::chrono::nanoseconds offsetFromStart,
 }
 auto
 gameplay_logic::BmsGameReferee::getBpm(std::chrono::nanoseconds offsetFromStart)
-  const -> std::pair<charts::BmsNotesData::Time, double>
+  const -> charts::BmsNotesData::BpmChangeValues
 {
     auto bpmChange = std::upper_bound(
       bpmChanges.begin(),
       bpmChanges.end(),
       offsetFromStart,
       [](const std::chrono::nanoseconds& offset, const auto& change) {
-          return offset < change.first.timestamp;
+          return offset < change.timestamp.timestamp;
       });
     if (bpmChange == bpmChanges.begin()) {
         return *bpmChange;
@@ -179,18 +179,21 @@ gameplay_logic::BmsGameReferee::passPressed(
 }
 auto
 gameplay_logic::BmsGameReferee::getPosition(
-  std::pair<charts::BmsNotesData::Time, double> bpmChange,
-  std::chrono::nanoseconds offsetFromStart) -> Position
+  charts::BmsNotesData::BpmChangeValues bpmChange,
+  std::chrono::nanoseconds offsetFromStart) -> PositionInfo
 {
-    auto bpm = bpmChange.second;
-    auto bpmChangeTime = bpmChange.first.timestamp;
-    auto bpmChangePosition = bpmChange.first.position;
+    auto bpm = bpmChange.bpm;
+    auto bpmChangeTime = bpmChange.timestamp.timestamp;
+    auto bpmChangePosition = bpmChange.timestamp.position;
+    auto bpmChangeBeatPosition = bpmChange.timestamp.beatPosition;
     auto bpmChangeOffset = offsetFromStart - bpmChangeTime;
     auto bpmChangeOffsetSeconds =
       std::chrono::duration_cast<std::chrono::duration<double>>(
         bpmChangeOffset);
     auto bpmChangeOffsetBeats = bpmChangeOffsetSeconds.count() * bpm / 60.0;
-    return bpmChangePosition + bpmChangeOffsetBeats;
+    auto bpmChangeOffsetScroll = bpmChangeOffsetBeats * bpmChange.scroll;
+    return { .position = bpmChangePosition + bpmChangeOffsetScroll,
+             .beatPosition = bpmChangeBeatPosition + bpmChangeOffsetBeats };
 }
 
 auto

@@ -594,26 +594,26 @@ ChartFactory::createChart(ChartDataFactory::ChartComponents chartComponents,
         auto chartLength = getLength(*components1.notes);
         if (player1.replayedScore) {
             return new gameplay_logic::RePlayer{
-                components1.notes.release(),    components1.score.release(),
-                components1.state.release(),    player1.profile,
-                std::move(refereeFuture),       chartLength,
-                notesData.bpmChanges[0].second, player1.replayedScore,
+                components1.notes.release(), components1.score.release(),
+                components1.state.release(), player1.profile,
+                std::move(refereeFuture),    chartLength,
+                notesData.bpmChanges[0].bpm, player1.replayedScore,
             };
         }
         if (player1.autoPlay) {
             auto events = createAutoplayFromNotes(*components1.notes);
             return new gameplay_logic::AutoPlayer{
-                components1.notes.release(),    components1.score.release(),
-                components1.state.release(),    player1.profile,
-                std::move(refereeFuture),       chartLength,
-                notesData.bpmChanges[0].second, std::move(events),
+                components1.notes.release(), components1.score.release(),
+                components1.state.release(), player1.profile,
+                std::move(refereeFuture),    chartLength,
+                notesData.bpmChanges[0].bpm, std::move(events),
             };
         }
         return new gameplay_logic::Player{
-            components1.notes.release(),    components1.score.release(),
-            components1.state.release(),    player1.profile,
-            std::move(refereeFuture),       chartLength,
-            notesData.bpmChanges[0].second,
+            components1.notes.release(), components1.score.release(),
+            components1.state.release(), player1.profile,
+            std::move(refereeFuture),    chartLength,
+            notesData.bpmChanges[0].bpm,
         };
     }();
     auto player2Object =
@@ -641,26 +641,26 @@ ChartFactory::createChart(ChartDataFactory::ChartComponents chartComponents,
           auto chartLength = getLength(*player.notes);
           if (player2->replayedScore) {
               return new gameplay_logic::RePlayer{
-                  player.notes.release(),         player.score.release(),
-                  player.state.release(),         player2->profile,
-                  std::move(refereeFuture),       chartLength,
-                  notesData.bpmChanges[0].second, player2->replayedScore,
+                  player.notes.release(),      player.score.release(),
+                  player.state.release(),      player2->profile,
+                  std::move(refereeFuture),    chartLength,
+                  notesData.bpmChanges[0].bpm, player2->replayedScore,
               };
           }
           if (player2->autoPlay) {
               auto events = createAutoplayFromNotes(*player.notes);
               return new gameplay_logic::AutoPlayer{
-                  player.notes.release(),         player.score.release(),
-                  player.state.release(),         player2->profile,
-                  std::move(refereeFuture),       chartLength,
-                  notesData.bpmChanges[0].second, std::move(events),
+                  player.notes.release(),      player.score.release(),
+                  player.state.release(),      player2->profile,
+                  std::move(refereeFuture),    chartLength,
+                  notesData.bpmChanges[0].bpm, std::move(events),
               };
           }
           return new gameplay_logic::Player{
-              player.notes.release(),        player.score.release(),
-              player.state.release(),        player2->profile,
-              std::move(refereeFuture),      chartLength,
-              notesData.bpmChanges[0].second
+              player.notes.release(),     player.score.release(),
+              player.state.release(),     player2->profile,
+              std::move(refereeFuture),   chartLength,
+              notesData.bpmChanges[0].bpm
           };
       });
     QThreadPool::globalInstance()->start([soundTask] {

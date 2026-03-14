@@ -28,8 +28,9 @@ TEST_CASE("An empty chart is created successfully", "[BmsNotesData]")
         REQUIRE(column.empty());
     }
     REQUIRE(chart.bpmChanges.size() == 1);
-    REQUIRE(chart.bpmChanges[0].first.timestamp == std::chrono::nanoseconds(0));
-    REQUIRE(chart.bpmChanges[0].second == Catch::Approx(120.0));
+    REQUIRE(chart.bpmChanges[0].timestamp.timestamp ==
+            std::chrono::nanoseconds(0));
+    REQUIRE(chart.bpmChanges[0].bpm == Catch::Approx(120.0));
     REQUIRE(chart.barLines.empty());
 }
 
@@ -50,8 +51,9 @@ TEST_CASE("A chart with a single note is created successfully",
         REQUIRE(chart.notes[index].empty());
     }
     REQUIRE(chart.bpmChanges.size() == 1);
-    REQUIRE(chart.bpmChanges[0].first.timestamp == std::chrono::nanoseconds(0));
-    REQUIRE(chart.bpmChanges[0].second == Catch::Approx(bpm));
+    REQUIRE(chart.bpmChanges[0].timestamp.timestamp ==
+            std::chrono::nanoseconds(0));
+    REQUIRE(chart.bpmChanges[0].bpm == Catch::Approx(bpm));
     REQUIRE(chart.barLines.size() == 2);
     REQUIRE(chart.barLines[0].timestamp == measureLength);
     REQUIRE(chart.barLines[1].timestamp == measureLength * 2);
@@ -81,10 +83,11 @@ TEST_CASE("A chart with a bpm change and a note is created successfully",
     REQUIRE(chart.barLines[0].timestamp == measureLength);
     REQUIRE(chart.barLines[1].timestamp == measureLength + measureLength2);
     REQUIRE(chart.bpmChanges.size() == 2);
-    REQUIRE(chart.bpmChanges[0].first.timestamp == std::chrono::nanoseconds(0));
-    REQUIRE(chart.bpmChanges[0].second == Catch::Approx(bpm));
-    REQUIRE(chart.bpmChanges[1].first.timestamp == measureLength * 3 / 2);
-    REQUIRE(chart.bpmChanges[1].second == Catch::Approx(bpm2));
+    REQUIRE(chart.bpmChanges[0].timestamp.timestamp ==
+            std::chrono::nanoseconds(0));
+    REQUIRE(chart.bpmChanges[0].bpm == Catch::Approx(bpm));
+    REQUIRE(chart.bpmChanges[1].timestamp.timestamp == measureLength * 3 / 2);
+    REQUIRE(chart.bpmChanges[1].bpm == Catch::Approx(bpm2));
 }
 
 TEST_CASE("Multiple BPM changes mid-measure are handled correctly",
@@ -114,13 +117,14 @@ TEST_CASE("Multiple BPM changes mid-measure are handled correctly",
     REQUIRE(chart.barLines[0].timestamp == measureLength);
     REQUIRE(chart.barLines[1].timestamp == measureLength + measureLength2);
     REQUIRE(chart.bpmChanges.size() == 3);
-    REQUIRE(chart.bpmChanges[0].first.timestamp == std::chrono::nanoseconds(0));
-    REQUIRE(chart.bpmChanges[0].second == Catch::Approx(bpm));
-    REQUIRE(chart.bpmChanges[1].first.timestamp == measureLength);
-    REQUIRE(chart.bpmChanges[1].second == Catch::Approx(bpm2));
-    REQUIRE(chart.bpmChanges[2].first.timestamp ==
+    REQUIRE(chart.bpmChanges[0].timestamp.timestamp ==
+            std::chrono::nanoseconds(0));
+    REQUIRE(chart.bpmChanges[0].bpm == Catch::Approx(bpm));
+    REQUIRE(chart.bpmChanges[1].timestamp.timestamp == measureLength);
+    REQUIRE(chart.bpmChanges[1].bpm == Catch::Approx(bpm2));
+    REQUIRE(chart.bpmChanges[2].timestamp.timestamp ==
             measureLength + halvedBpmPeriod);
-    REQUIRE(chart.bpmChanges[2].second == Catch::Approx(bpm3));
+    REQUIRE(chart.bpmChanges[2].bpm == Catch::Approx(bpm3));
 }
 
 TEST_CASE("Bgm notes have the right timestamps", "[BmsNotesData]")

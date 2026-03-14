@@ -49,6 +49,7 @@ struct ParsedBmsChart
         std::vector<std::vector<uint16_t>> exBpmChanges; // new, FF = #BPMFF
         std::vector<std::vector<uint16_t>> stops;
         std::vector<std::vector<uint16_t>> scrolls;
+        std::vector<std::vector<uint16_t>> speeds;
         std::optional<double> meter;
     };
 
@@ -78,6 +79,7 @@ struct ParsedBmsChart
         std::vector<std::pair<uint16_t, double>> exBpms;
         std::vector<std::pair<uint16_t, double>> stops;
         std::vector<std::pair<uint16_t, double>> scrolls;
+        std::vector<std::pair<uint16_t, double>> speeds;
         std::vector<std::pair<uint16_t, std::string>> wavs;
         std::vector<std::pair<uint16_t, std::string>> bmps;
         std::map<int64_t, Measure> measures;

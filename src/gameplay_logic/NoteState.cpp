@@ -19,12 +19,12 @@ ColumnState::ColumnState(QList<NoteState> notes, QObject* parent)
   , notes(std::move(notes))
 {
     // sort by position
-    std::ranges::stable_sort(notes, [](const auto& a, const auto& b) {
+    std::ranges::stable_sort(this->notes, [](const auto& a, const auto& b) {
         return a.note.time.position < b.note.time.position;
     });
-    timeToPositionIndexMapping.resize(notes.size());
-    for (int i = 0; i < notes.size(); ++i) {
-        timeToPositionIndexMapping[notes[i].index] = i;
+    timeToPositionIndexMapping.resize(this->notes.size());
+    for (int i = 0; i < this->notes.size(); ++i) {
+        timeToPositionIndexMapping[this->notes[i].index] = i;
     }
 }
 auto
@@ -58,20 +58,20 @@ ColumnState::onHitEvent(HitEvent hit)
         hit.getPointsOptional()->getJudgement() == Judgement::EmptyPoor) {
         return;
     }
-    auto& note = notes[hit.getNoteIndex()];
+    auto& note = notes[mapTimeIndexToPositionIndex(hit.getNoteIndex())];
     note.hitData = QVariant::fromValue(hit);
+    const auto changedIndex = mapTimeIndexToPositionIndex(hit.getNoteIndex());
+    emit dataChanged(index(changedIndex), index(changedIndex));
     if (note.note.type == Note::Type::LongNoteBegin) {
-        auto& nextNote = notes[hit.getNoteIndex() + 1];
+        auto changedIndex = mapTimeIndexToPositionIndex(hit.getNoteIndex() + 1);
+        auto& nextNote = notes[changedIndex];
         nextNote.otherEndHitData = note.hitData;
-        emit dataChanged(index(hit.getNoteIndex()),
-                         index(hit.getNoteIndex() + 1));
+        emit dataChanged(index(changedIndex), index(changedIndex));
     } else if (note.note.type == Note::Type::LongNoteEnd) {
-        auto& prevNote = notes[hit.getNoteIndex() - 1];
+        auto changedIndex = mapTimeIndexToPositionIndex(hit.getNoteIndex() - 1);
+        auto& prevNote = notes[changedIndex];
         prevNote.otherEndHitData = note.hitData;
-        emit dataChanged(index(hit.getNoteIndex() - 1),
-                         index(hit.getNoteIndex()));
-    } else {
-        emit dataChanged(index(hit.getNoteIndex()), index(hit.getNoteIndex()));
+        emit dataChanged(index(changedIndex), index(changedIndex));
     }
 }
 auto
@@ -116,27 +116,26 @@ Filter::setPressed(bool pressed)
     this->pressed = pressed;
     emit pressedChanged();
 }
-void
-Filter::adjustLnEndVisibility(int notesFrom, int notesTo, bool shown)
+int
+Filter::getEffectiveBottomRow(int notesFrom, int notesTo)
 {
+    auto effectiveBottomRow = notesFrom;
     for (int i = notesFrom; i < notesTo; i++) {
         auto note = columnState->getNotes()[i];
-        auto otherEndIndex = 0;
+        auto otherEndRow = 0;
         if (note.note.type == Note::Type::LongNoteBegin) {
-            otherEndIndex =
+            otherEndRow =
               columnState->mapTimeIndexToPositionIndex(note.index + 1);
         } else if (note.note.type == Note::Type::LongNoteEnd) {
-            otherEndIndex =
+            otherEndRow =
               columnState->mapTimeIndexToPositionIndex(note.index - 1);
+        } else {
+            continue;
         }
-        auto& endNote = columnState->getNotes()[otherEndIndex];
-        if (endNote.belowBottom == shown) {
-            endNote.belowBottom = !shown;
-            emit columnState->dataChanged(
-              columnState->index(otherEndIndex, 0, QModelIndex()),
-              columnState->index(otherEndIndex, 0, QModelIndex()));
-        }
+        auto& endNote = columnState->getNotes()[otherEndRow];
+        effectiveBottomRow = std::min(effectiveBottomRow, otherEndRow);
     }
+    return effectiveBottomRow;
 }
 Filter::Filter(ColumnState* columnState, QObject* parent)
   : QAbstractProxyModel(parent)
@@ -205,36 +204,46 @@ Filter::setTopPosition(double value)
     if (value < bottomPosition) {
         setBottomPosition(value);
     }
-    // Find the first note strictly above the new top position, excluding
-    // LongNoteEnd
     const auto upper =
       std::ranges::find_if(columnState->getNotes(), [value](const auto& note) {
-          return note.note.type != Note::Type::LongNoteEnd &&
-                 note.note.time.position > value;
+          return note.note.time.position > value;
       });
-    auto newTopRow =
+    const auto newTopRow =
       static_cast<int>(std::distance(columnState->getNotes().begin(), upper));
     if (newTopRow > topRow) {
-        beginInsertRows(
-          QModelIndex(), topRow - bottomRow, newTopRow - bottomRow - 1);
-        topPosition = value;
+        beginInsertRows(QModelIndex(),
+                        topRow - effectiveBottomRow,
+                        newTopRow - effectiveBottomRow - 1);
         topRow = newTopRow;
         endInsertRows();
     } else if (newTopRow < topRow) {
-        beginRemoveRows(
-          QModelIndex(), newTopRow - bottomRow, topRow - bottomRow - 1);
-        topPosition = value;
+        beginRemoveRows(QModelIndex(),
+                        newTopRow - effectiveBottomRow,
+                        topRow - effectiveBottomRow - 1);
         topRow = newTopRow;
         endRemoveRows();
     }
     if (topRow != newTopRow) {
-        auto notesFrom = std::min(topRow, newTopRow);
-        auto notesTo = std::max(topRow, newTopRow);
-        auto shown = notesFrom <= notesTo;
-        adjustLnEndVisibility(notesFrom, notesTo, shown);
+        setEffectiveBottomRow(getEffectiveBottomRow(newTopRow, topRow));
     }
 
+    topPosition = value;
     emit topPositionChanged();
+}
+void
+Filter::setEffectiveBottomRow(const int newEffectiveBottomRow)
+{
+    if (newEffectiveBottomRow > effectiveBottomRow) {
+        beginRemoveRows(
+          QModelIndex(), 0, newEffectiveBottomRow - effectiveBottomRow - 1);
+        effectiveBottomRow = newEffectiveBottomRow;
+        endRemoveRows();
+    } else if (newEffectiveBottomRow < effectiveBottomRow) {
+        beginInsertRows(
+          QModelIndex(), 0, effectiveBottomRow - newEffectiveBottomRow - 1);
+        effectiveBottomRow = newEffectiveBottomRow;
+        endInsertRows();
+    }
 }
 void
 Filter::setBottomPosition(double value)
@@ -252,12 +261,8 @@ Filter::setBottomPosition(double value)
 
     const auto newBottomRow =
       static_cast<int>(std::distance(columnState->getNotes().begin(), lower));
-    if (newBottomRow > bottomRow) [[likely]] {
-        beginRemoveRows(QModelIndex(), 0, newBottomRow - bottomRow - 1);
-        auto oldBottomRow = bottomRow;
-        bottomPosition = value;
-        bottomRow = newBottomRow;
-        endRemoveRows();
+    const auto oldBottomRow = bottomRow;
+    if (newBottomRow > bottomRow) {
         for (int i = oldBottomRow; i < newBottomRow; ++i) {
             auto& note = columnState->getNotes()[i];
             note.belowBottom = true;
@@ -265,12 +270,7 @@ Filter::setBottomPosition(double value)
         emit columnState->dataChanged(
           columnState->index(oldBottomRow, 0, QModelIndex()),
           columnState->index(newBottomRow - 1, 0, QModelIndex()));
-    } else if (newBottomRow < bottomRow) [[unlikely]] {
-        beginInsertRows(QModelIndex(), 0, bottomRow - newBottomRow - 1);
-        auto oldBottomRow = bottomRow;
-        bottomPosition = value;
-        bottomRow = newBottomRow;
-        endInsertRows();
+    } else if (newBottomRow < bottomRow) {
         for (int i = newBottomRow; i < oldBottomRow; ++i) {
             auto& note = columnState->getNotes()[i];
             note.belowBottom = false;
@@ -279,12 +279,10 @@ Filter::setBottomPosition(double value)
           columnState->index(newBottomRow, 0, QModelIndex()),
           columnState->index(oldBottomRow - 1, 0, QModelIndex()));
     }
-    if (bottomRow != newBottomRow) {
-        auto notesFrom = std::min(bottomRow, newBottomRow);
-        auto notesTo = std::max(bottomRow, newBottomRow);
-        auto shown = newBottomRow < bottomRow;
-        adjustLnEndVisibility(notesFrom, notesTo, shown);
+    if (oldBottomRow != newBottomRow) {
+        setEffectiveBottomRow(getEffectiveBottomRow(newBottomRow, topRow));
     }
+    bottomPosition = value;
     emit bottomPositionChanged();
 }
 QModelIndex
@@ -304,7 +302,7 @@ Filter::parent(const QModelIndex& child) const
 int
 Filter::rowCount(const QModelIndex& parent) const
 {
-    return topRow - bottomRow;
+    return topRow - effectiveBottomRow;
 }
 int
 Filter::columnCount(const QModelIndex& parent) const
@@ -318,8 +316,9 @@ Filter::mapToSource(const QModelIndex& proxyIndex) const
         proxyIndex.row() >= rowCount({})) {
         return QModelIndex();
     }
-    return columnState->index(
-      proxyIndex.row() + bottomRow, proxyIndex.column(), QModelIndex());
+    return columnState->index(proxyIndex.row() + effectiveBottomRow,
+                              proxyIndex.column(),
+                              QModelIndex());
 }
 QModelIndex
 Filter::mapFromSource(const QModelIndex& sourceIndex) const
@@ -327,8 +326,9 @@ Filter::mapFromSource(const QModelIndex& sourceIndex) const
     if (!sourceIndex.isValid() || sourceIndex.model() != columnState) {
         return QModelIndex();
     }
-    return index(
-      sourceIndex.row() - bottomRow, sourceIndex.column(), QModelIndex());
+    return index(sourceIndex.row() - effectiveBottomRow,
+                 sourceIndex.column(),
+                 QModelIndex());
 }
 GameplayState::GameplayState(QList<ColumnState*> columnStates,
                              BarLinesState* barLinesState,

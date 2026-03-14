@@ -22,6 +22,14 @@ defineDb(db::SqliteCppDb& db)
         version = versionStmt.executeAndGet<int64_t>().transform(
           [](int64_t v) { return support::unpackVersion(v); });
     }
+    if (version && *version < std::tuple{ 1, 3, 0 }) {
+        db.execute("DROP TABLE IF EXISTS note_data;");
+        db.execute("DROP TABLE IF EXISTS histogram_data;");
+        db.execute("DROP TABLE IF EXISTS charts_fts;");
+        db.execute("DROP TABLE IF EXISTS charts;");
+        db.execute("DROP TABLE IF EXISTS parent_dir;");
+        db.execute("DROP TABLE IF EXISTS histogram_data;");
+    }
     db.execute("CREATE TABLE IF NOT EXISTS charts ("
                "id INTEGER PRIMARY KEY AUTOINCREMENT,"
                "title TEXT NOT NULL,"
@@ -61,24 +69,6 @@ defineDb(db::SqliteCppDb& db)
                "game_version INTEGER NOT NULL"
                ");");
 
-    if (version && *version < std::tuple{ 1, 2, 6 }) {
-        db.execute("ALTER TABLE charts ADD COLUMN scratch_count INTEGER NOT "
-                   "NULL DEFAULT 0;");
-        db.execute("ALTER TABLE charts ADD COLUMN bss_count INTEGER NOT NULL "
-                   "DEFAULT 0;");
-        db.execute("ALTER TABLE charts ADD COLUMN peak_density REAL NOT NULL "
-                   "DEFAULT 0.0;");
-        db.execute("ALTER TABLE charts ADD COLUMN avg_density REAL NOT NULL "
-                   "DEFAULT 0.0;");
-        db.execute("ALTER TABLE charts ADD COLUMN end_density REAL NOT NULL "
-                   "DEFAULT 0.0;");
-    }
-    if (version && *version < std::tuple{ 1, 3, 0 }) {
-        auto stmt = db.createStatement(
-          "ALTER TABLE charts ADD COLUMN game_version INTEGER NOT NULL "
-          "DEFAULT 1099513724936;"); // 1.2.8
-        stmt.execute();
-    }
     db.execute(
       "CREATE INDEX IF NOT EXISTS directory_index ON charts(directory)");
     db.execute("CREATE INDEX IF NOT EXISTS chart_directory_index ON "

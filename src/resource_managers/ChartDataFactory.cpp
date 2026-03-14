@@ -252,7 +252,9 @@ createHistogram(const charts::BmsNotesData& calculatedNotesData,
                         histogram[-typeIndex][index]++;
                     }
                 } else if (typeIndex != 2 && typeIndex != 3) {
-                    histogram[typeIndex][positionIndex]++;
+                    if (positionIndex < numBuckets) {
+                        histogram[typeIndex][positionIndex]++;
+                    }
                 }
             }
         }
@@ -439,13 +441,13 @@ ChartDataFactory::buildChartComponents(
     auto initialBpm = calculatedNotesData.bpmChanges[0]; // guaranteed to exist
     auto maxBpm = initialBpm;
     for (const auto& bpmChange : calculatedNotesData.bpmChanges) {
-        if (bpmChange.second > maxBpm.second) {
+        if (bpmChange.bpm > maxBpm.bpm) {
             maxBpm = bpmChange;
         }
     }
     auto minBpm = initialBpm;
     for (const auto& bpmChange : calculatedNotesData.bpmChanges) {
-        if (bpmChange.second > 0.0 && bpmChange.second < minBpm.second) {
+        if (bpmChange.bpm > 0.0 && bpmChange.bpm < minBpm.bpm) {
             minBpm = bpmChange;
         }
     }
@@ -454,11 +456,11 @@ ChartDataFactory::buildChartComponents(
          it != calculatedNotesData.bpmChanges.end();
          ++it) {
         auto bpmChange = *it;
-        auto bpm = bpmChange.second;
-        auto timestamp = bpmChange.first.timestamp;
+        auto bpm = bpmChange.bpm;
+        auto timestamp = bpmChange.timestamp.timestamp;
         auto nextTimestamp = 0ns;
         if (it + 1 != calculatedNotesData.bpmChanges.end()) {
-            nextTimestamp = (it + 1)->first.timestamp;
+            nextTimestamp = (it + 1)->timestamp.timestamp;
         } else {
             nextTimestamp = std::max(lastNoteTimestamp, timestamp);
         }
@@ -472,7 +474,7 @@ ChartDataFactory::buildChartComponents(
         totalDuration += duration;
     }
     // find main bpm, which is the bpm with the longest duration
-    auto mainBpm = initialBpm.second;
+    auto mainBpm = initialBpm.bpm;
     auto longestDuration = 0ns;
     for (const auto& [bpm, duration] : bpms) {
         if (duration > longestDuration && bpm > 0.0) {
@@ -526,9 +528,13 @@ ChartDataFactory::buildChartComponents(
     auto path = support::pathToQString(chartPath);
     auto bpmChangesQ = QList<gameplay_logic::BpmChange>{};
     for (const auto& bpmChange : calculatedNotesData.bpmChanges) {
-        bpmChangesQ.append({ { .timestamp = bpmChange.first.timestamp.count(),
-                               .position = bpmChange.first.position },
-                             bpmChange.second });
+        bpmChangesQ.append({
+          { .timestamp = bpmChange.timestamp.timestamp.count(),
+            .position = bpmChange.timestamp.position,
+            .beatPosition = bpmChange.timestamp.beatPosition },
+          bpmChange.bpm,
+          bpmChange.scroll,
+        });
     }
     const auto seconds =
       std::chrono::duration_cast<std::chrono::seconds>(lastNoteTimestamp);
@@ -576,9 +582,9 @@ ChartDataFactory::buildChartComponents(
                                                   bssNotes,
                                                   mineNotes,
                                                   lastNoteTimestamp.count(),
-                                                  initialBpm.second,
-                                                  maxBpm.second,
-                                                  minBpm.second,
+                                                  initialBpm.bpm,
+                                                  maxBpm.bpm,
+                                                  minBpm.bpm,
                                                   mainBpm,
                                                   avgBpm,
                                                   peak,

@@ -57,6 +57,7 @@ charts::ParsedBmsChart::mergeTags(Tags& first, Tags second) -> void
     first.exBpms.append_range(second.exBpms);
     first.stops.append_range(second.stops);
     first.scrolls.append_range(second.scrolls);
+    first.speeds.append_range(second.speeds);
     first.wavs.append_range(second.wavs);
     first.bmps.append_range(second.bmps);
     for (auto& [key, measure] : second.measures) {

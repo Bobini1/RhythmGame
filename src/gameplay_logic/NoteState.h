@@ -117,16 +117,18 @@ class Filter : public QAbstractProxyModel
     double bottomPosition = 0.0;
     int bottomRow = 0;
     int topRow = 0;
+    int effectiveBottomRow = 0;
     bool pressed = false;
     void setPressed(bool pressed);
     ColumnState* columnState;
-    void adjustLnEndVisibility(int notesFrom, int notesTo, bool shown);
+    int getEffectiveBottomRow(int notesFrom, int notesTo);
 
   public:
     explicit Filter(ColumnState* columnState, QObject* parent = nullptr);
 
     auto getTopPosition() const -> double { return topPosition; }
     void setTopPosition(double value);
+    void setEffectiveBottomRow(int newEffectiveBottomRow);
     auto getBottomPosition() const -> double { return bottomPosition; }
     void setBottomPosition(double value);
     auto isPressed() const -> bool { return pressed; }

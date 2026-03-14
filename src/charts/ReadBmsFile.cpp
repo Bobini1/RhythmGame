@@ -299,8 +299,8 @@ using pair_t = std::pair<uint16_t, double>;
 RG_STRONG_TYPEDEF(pair_t, ExBpm)
 using stop_t = std::pair<uint16_t, double>;
 RG_STRONG_TYPEDEF(stop_t, Stop)
-using stop_t = std::pair<uint16_t, double>;
 RG_STRONG_TYPEDEF(stop_t, Scroll)
+RG_STRONG_TYPEDEF(stop_t, Speed)
 using meter_t = std::pair<int64_t, double>;
 RG_STRONG_TYPEDEF(meter_t, Meter)
 RG_STRONG_TYPEDEF(int, Base)
@@ -556,6 +556,19 @@ struct MeterTag
       [](int64_t measure, double num) { return Meter{ { measure, num } }; });
 };
 
+struct SpeedTag
+{
+    static constexpr auto rule = [] {
+        auto speedTag =
+          dsl::ascii::case_folding(LEXY_LIT("#speed")) + dsl::p<Identifier>;
+        return peek(speedTag) >> (speedTag + dsl::p<FloatingPoint>);
+    }();
+    static constexpr auto value =
+      lexy::callback<Speed>([](uint16_t identifier, double num) {
+          return Speed{ { identifier, num } };
+      });
+};
+
 struct TagsSink
 {
     struct SinkCallback
@@ -645,12 +658,20 @@ struct TagsSink
                 state.stops.emplace_back(identifier, value);
             }
         }
-        auto operator()(Scroll&& stop) -> void
+        auto operator()(Scroll&& scroll) -> void
         {
             auto& [identifier, value] =
-              static_cast<std::pair<uint16_t, double>&>(stop);
+              static_cast<std::pair<uint16_t, double>&>(scroll);
             if (value != 0.0) {
                 state.scrolls.emplace_back(identifier, value);
+            }
+        }
+        auto operator()(Speed&& speed) -> void
+        {
+            auto& [identifier, value] =
+              static_cast<std::pair<uint16_t, double>&>(speed);
+            if (value != 0.0) {
+                state.speeds.emplace_back(identifier, value);
             }
         }
         auto operator()(ParsedBmsChart::Tags&& randomBlock)
@@ -711,6 +732,7 @@ struct TagsSink
                 Stop = 9,
                 BgaLayer2 = 0xA,
                 Scroll = 0xC, // C
+                Speed = 25,   // P
             };
             constexpr auto base = 36;
             auto channelCategory = static_cast<ChannelCategory>(channel / base);
@@ -814,6 +836,11 @@ struct TagsSink
                           std::move(identifiers));
                         break;
                     }
+                    if (channelSubcategory == Speed) {
+                        state.measures[measure].speeds.push_back(
+                          std::move(identifiers));
+                        break;
+                    }
                 default:
                     spdlog::debug("Unknown channel: {:02d}", channel);
                     break;
@@ -832,17 +859,17 @@ struct MainTags
     static constexpr auto rule = [] {
         auto term = terminator(
           dsl::eof | peek(dsl::ascii::case_folding(LEXY_LIT("#endif"))));
-        return term.list(
-          try_(dsl::unicode::newline | dsl::p<MeterTag> |
-                 dsl::p<MeasureBasedTag> | dsl::p<WavTag> | dsl::p<BmpTag> |
-                 dsl::p<ExBpmTag> | dsl::p<StopTag> | dsl::p<TitleTag> |
-                 dsl::p<ArtistTag> | dsl::p<GenreTag> | dsl::p<StageFileTag> |
-                 dsl::p<BannerTag> | dsl::p<BackBmpTag> | dsl::p<SubtitleTag> |
-                 dsl::p<SubartistTag> | dsl::p<TotalTag> | dsl::p<RankTag> |
-                 dsl::p<PlayLevelTag> | dsl::p<DifficultyTag> | dsl::p<BpmTag> |
-                 dsl::p<LnObjTag> | dsl::p<LnTypeTag> | dsl::p<BaseTag> |
-                 dsl::p<ScrollTag> | dsl::recurse_branch<RandomBlock>,
-               until(dsl::unicode::newline).or_eof()));
+        return term.list(try_(
+          dsl::unicode::newline | dsl::p<MeterTag> | dsl::p<MeasureBasedTag> |
+            dsl::p<WavTag> | dsl::p<BmpTag> | dsl::p<ExBpmTag> |
+            dsl::p<StopTag> | dsl::p<TitleTag> | dsl::p<ArtistTag> |
+            dsl::p<GenreTag> | dsl::p<StageFileTag> | dsl::p<BannerTag> |
+            dsl::p<BackBmpTag> | dsl::p<SubtitleTag> | dsl::p<SubartistTag> |
+            dsl::p<TotalTag> | dsl::p<RankTag> | dsl::p<PlayLevelTag> |
+            dsl::p<DifficultyTag> | dsl::p<BpmTag> | dsl::p<LnObjTag> |
+            dsl::p<LnTypeTag> | dsl::p<BaseTag> | dsl::p<ScrollTag> |
+            dsl::p<SpeedTag> | dsl::recurse_branch<RandomBlock>,
+          until(dsl::unicode::newline).or_eof()));
     }();
     static constexpr auto value = TagsSink{};
 };
@@ -864,7 +891,8 @@ struct OrphanizedRandomCommonPart
                    dsl::p<SubtitleTag> | dsl::p<SubartistTag> |
                    dsl::p<TotalTag> | dsl::p<RankTag> | dsl::p<PlayLevelTag> |
                    dsl::p<DifficultyTag> | dsl::p<BpmTag> | dsl::p<LnObjTag> |
-                   dsl::p<LnTypeTag> | dsl::p<BaseTag> | dsl::p<ScrollTag>,
+                   dsl::p<LnTypeTag> | dsl::p<BaseTag> | dsl::p<ScrollTag> |
+                   dsl::p<SpeedTag>,
                  until(dsl::unicode::newline).or_eof()));
     }();
     static constexpr auto value = TagsSink{};

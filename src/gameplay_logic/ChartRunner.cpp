@@ -2,12 +2,8 @@
 // Created by bobini on 18.08.23.
 //
 
-#include <QKeyEvent>
 #include <spdlog/spdlog.h>
 #include "ChartRunner.h"
-
-#include "resource_managers/Profile.h"
-#include "support/GeneratePermutation.h"
 
 using namespace std::chrono_literals;
 namespace gameplay_logic {
@@ -254,12 +250,29 @@ Player::setBpm(double newBpm)
     }
 }
 void
+Player::setScroll(double second)
+{
+    if (second != scroll) {
+        scroll = second;
+        emit scrollChanged();
+    }
+}
+void
 Player::setPosition(BmsGameReferee::Position newPosition)
 {
     if (newPosition != position) {
         const auto delta = newPosition - position;
         position = newPosition;
         emit positionChanged(delta);
+    }
+}
+void
+Player::setBeatPosition(BmsGameReferee::Position beatPosition)
+{
+    if (beatPosition != this->beatPosition) {
+        const auto delta = beatPosition - this->beatPosition;
+        this->beatPosition = beatPosition;
+        emit beatPositionChanged(delta);
     }
 }
 void
@@ -273,10 +286,13 @@ Player::update(std::chrono::nanoseconds offsetFromStart, bool lastUpdate)
             std::chrono::duration<double, std::milli>(
               profile ? profile->getVars()->getGeneralVars()->getOffset()
                       : 0.0));
-        auto bpmChange = referee->getBpm(offsetFromStart + visualOffset);
-        setBpm(bpmChange.second);
-        setPosition(
-          referee->getPosition(bpmChange, offsetFromStart + visualOffset));
+        const auto bpmChange = referee->getBpm(offsetFromStart + visualOffset);
+        setBpm(bpmChange.bpm);
+        setScroll(bpmChange.scroll);
+        auto position =
+          referee->getPosition(bpmChange, offsetFromStart + visualOffset);
+        setPosition(position.position);
+        setBeatPosition(position.beatPosition);
         if (lastUpdate) {
             for (auto i = 0; i < charts::BmsNotesData::columnNumber; ++i) {
                 referee->passReleased(
@@ -350,6 +366,11 @@ Player::getPosition() const -> double
     return position;
 }
 auto
+Player::getBeatPosition() const -> double
+{
+    return beatPosition;
+}
+auto
 Player::getElapsed() const -> int64_t
 {
     return elapsed;
@@ -376,6 +397,11 @@ double
 Player::getBpm() const
 {
     return bpm;
+}
+double
+Player::getScroll() const
+{
+    return scroll;
 }
 auto
 Player::finish(const ChartData& chartData) -> BmsScore*
