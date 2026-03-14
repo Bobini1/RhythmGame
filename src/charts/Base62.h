@@ -38,7 +38,7 @@ base62ToBase16(T value)
         if (digit < 36) {
             result += std::max(digit, 15) * multiplier;
         } else {
-            result += std::max((digit - 26), 15) * multiplier;
+            result += std::min((digit - 26), 15) * multiplier;
         }
         multiplier *= 16;
     }
