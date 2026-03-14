@@ -649,9 +649,9 @@ BmsNotesData::fromParsedChart(const ParsedBmsChart& chart)
     if (base == 36) {
         convertMeasuresBaseFrom62To36(measuresCopy);
     }
-    for (auto& measureData : measuresCopy | std::views::values) {
-        convertData(measureData.bpmChanges);
-    }
+    data.generateMeasures(bpm,
+                          exBpmsMap,
+                          stopsMap,
     data.generateMeasures(
       bpm, exBpmsMap, stopsMap, scrollsMap, measuresCopy, lnType, lnObj);
     return data;
