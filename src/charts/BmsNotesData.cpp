@@ -25,8 +25,8 @@ struct BpmChangeDef
     enum class Type
     {
         BpmChange,
-        Stop,
-        Scroll
+        Scroll,
+        Stop
     };
     double fraction;
     Type type;
