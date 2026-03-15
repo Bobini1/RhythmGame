@@ -1,6 +1,6 @@
 import QtQuick
 
-Flickable {
+Item {
     id: column
 
     required property real heightMultiplier
@@ -10,10 +10,9 @@ Flickable {
     FrameAnimation {
         running: true
         onTriggered: {
-            // Update the position of the bar lines based on the current position
-            barlinesRepeater.model.bottomPosition = column.position;
             let top = column.height / column.heightMultiplier;
             barlinesRepeater.model.topPosition = column.position + top;
+            barlinesRepeater.model.bottomPosition = column.position;
         }
     }
 

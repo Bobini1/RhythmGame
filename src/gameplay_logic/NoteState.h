@@ -8,7 +8,7 @@
 #include "BmsNotes.h"
 #include "HitEvent.h"
 
-#include <QSortFilterProxyModel>
+#include <QAbstractProxyModel>
 
 namespace gameplay_logic {
 class NoteState
@@ -91,6 +91,7 @@ class BarLinesState final : public QAbstractListModel
                            QObject* parent = nullptr);
     auto rowCount(const QModelIndex& parent) const -> int override;
     auto data(const QModelIndex& index, int role) const -> QVariant override;
+    auto getBarlines() const -> const QList<BarLineState>&;
 };
 
 /**
@@ -132,14 +133,17 @@ class Filter : public QAbstractProxyModel
     auto getBottomPosition() const -> double { return bottomPosition; }
     void setBottomPosition(double value);
     auto isPressed() const -> bool { return pressed; }
-    QModelIndex index(int row,
-                      int column = 0,
-                      const QModelIndex& parent = QModelIndex()) const override;
-    QModelIndex parent(const QModelIndex& child) const override;
-    int rowCount(const QModelIndex& parent) const override;
-    int columnCount(const QModelIndex& parent) const override;
-    QModelIndex mapToSource(const QModelIndex& proxyIndex) const override;
-    QModelIndex mapFromSource(const QModelIndex& sourceIndex) const override;
+    auto index(int row,
+               int column = 0,
+               const QModelIndex& parent = QModelIndex()) const
+      -> QModelIndex override;
+    auto parent(const QModelIndex& child) const -> QModelIndex override;
+    auto rowCount(const QModelIndex& parent) const -> int override;
+    auto columnCount(const QModelIndex& parent) const -> int override;
+    auto mapToSource(const QModelIndex& proxyIndex) const
+      -> QModelIndex override;
+    auto mapFromSource(const QModelIndex& sourceIndex) const
+      -> QModelIndex override;
   signals:
     void topPositionChanged();
     void bottomPositionChanged();
@@ -151,7 +155,7 @@ class Filter : public QAbstractProxyModel
  * area.
  * @see BarLinesState
  */
-class BarlineFilter : public QSortFilterProxyModel
+class BarlineFilter : public QAbstractProxyModel
 {
     Q_OBJECT
     /**
@@ -167,6 +171,8 @@ class BarlineFilter : public QSortFilterProxyModel
 
     double topPosition = 0.0;
     double bottomPosition = 0.0;
+    int bottomRow = 0;
+    int topRow = 0;
 
   public:
     explicit BarlineFilter(BarLinesState* barLinesState,
@@ -180,9 +186,21 @@ class BarlineFilter : public QSortFilterProxyModel
     void topPositionChanged();
     void bottomPositionChanged();
 
-  protected:
-    auto filterAcceptsRow(int sourceRow, const QModelIndex& sourceParent) const
-      -> bool override;
+  public:
+    // QAbstractProxyModel overrides
+    auto mapToSource(const QModelIndex& proxyIndex) const
+      -> QModelIndex override;
+    auto mapFromSource(const QModelIndex& sourceIndex) const
+      -> QModelIndex override;
+    auto index(int row,
+               int column = 0,
+               const QModelIndex& parent = QModelIndex()) const
+      -> QModelIndex override;
+    auto parent(const QModelIndex& child) const -> QModelIndex override;
+    auto rowCount(const QModelIndex& parent) const -> int override;
+    auto columnCount(const QModelIndex& parent) const -> int override;
+    auto data(const QModelIndex& index, int role = Qt::DisplayRole) const
+      -> QVariant override;
 };
 
 /**

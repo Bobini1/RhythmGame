@@ -108,6 +108,11 @@ BarLinesState::data(const QModelIndex& index, int role) const
     }
     return {};
 }
+auto
+BarLinesState::getBarlines() const -> const QList<BarLineState>&
+{
+    return barLines;
+}
 void
 Filter::setPressed(bool pressed)
 {
@@ -160,40 +165,146 @@ Filter::Filter(ColumnState* columnState, QObject* parent)
 BarlineFilter::BarlineFilter(BarLinesState* barLinesState, QObject* parent)
 {
     setSourceModel(barLinesState);
+    // forward dataChanged from source to proxy with row offset
+    connect(barLinesState,
+            &BarLinesState::dataChanged,
+            this,
+            [this](const QModelIndex& topLeft,
+                   const QModelIndex& bottomRight,
+                   const QVector<int>& roles) {
+                emit dataChanged(index(topLeft.row() - bottomRow),
+                                 index(bottomRight.row() - bottomRow),
+                                 roles);
+            });
 }
 void
 BarlineFilter::setTopPosition(double value)
 {
-    if (topPosition != value) {
-        beginFilterChange();
-        topPosition = value;
-        emit topPositionChanged();
-        endFilterChange();
+    if (topPosition == value) {
+        return;
     }
+    if (value < bottomPosition) {
+        setBottomPosition(value);
+    }
+
+    // compute newTopRow as first barline with position > value
+    const auto& barlines = static_cast<BarLinesState*>(sourceModel())->getBarlines();
+    const auto upper =
+      std::ranges::find_if(barlines, [value](const auto& bl) {
+          return bl.time.position > value;
+      });
+    const auto newTopRow = static_cast<int>(std::distance(barlines.begin(),
+                                                          upper));
+    const auto oldTopRow = topRow;
+    if (newTopRow > topRow) {
+        beginInsertRows(QModelIndex(), topRow - bottomRow,
+                        newTopRow - bottomRow - 1);
+        topRow = newTopRow;
+        endInsertRows();
+    } else if (newTopRow < topRow) {
+        beginRemoveRows(QModelIndex(), newTopRow - bottomRow,
+                        topRow - bottomRow - 1);
+        topRow = newTopRow;
+        endRemoveRows();
+    }
+
+    topPosition = value;
+    emit topPositionChanged();
 }
 void
 BarlineFilter::setBottomPosition(double value)
 {
-    if (bottomPosition != value) {
-        beginFilterChange();
-        bottomPosition = value;
-        emit bottomPositionChanged();
-        endFilterChange();
+    if (bottomPosition == value) {
+        return;
     }
+
+    const auto& barlines = static_cast<BarLinesState*>(sourceModel())->getBarlines();
+    auto lower = std::lower_bound(barlines.begin(),
+                                  barlines.end(),
+                                  value,
+                                  [](const auto& bl, double value) {
+                                      return bl.time.position < value;
+                                  });
+
+    const auto newBottomRow =
+      static_cast<int>(std::distance(barlines.begin(), lower));
+    const auto oldBottomRow = bottomRow;
+    if (newBottomRow > bottomRow) {
+        beginRemoveRows(QModelIndex(), 0, newBottomRow - bottomRow - 1);
+        bottomRow = newBottomRow;
+        endRemoveRows();
+    } else if (newBottomRow < bottomRow) {
+        beginInsertRows(QModelIndex(), 0, bottomRow - newBottomRow - 1);
+        bottomRow = newBottomRow;
+        endInsertRows();
+    }
+
+    bottomPosition = value;
+    emit bottomPositionChanged();
 }
-bool
-BarlineFilter::filterAcceptsRow(int sourceRow,
-                                const QModelIndex& sourceParent) const
+
+QModelIndex
+BarlineFilter::mapToSource(const QModelIndex& proxyIndex) const
 {
-    if (sourceRow < 0 || sourceRow >= sourceModel()->rowCount(sourceParent)) {
-        return false;
+    if (!proxyIndex.isValid() || proxyIndex.row() < 0 ||
+        proxyIndex.row() >= rowCount({})) {
+        return QModelIndex();
     }
-    const auto index = sourceModel()->index(sourceRow, 0, sourceParent);
-    const auto barLineState =
-      sourceModel()->data(index, Qt::DisplayRole).value<BarLineState>();
-    const auto show = barLineState.time.position <= topPosition &&
-                      barLineState.time.position >= bottomPosition;
-    return show;
+    return sourceModel()->index(proxyIndex.row() + bottomRow,
+                                proxyIndex.column(),
+                                QModelIndex());
+}
+
+QModelIndex
+BarlineFilter::mapFromSource(const QModelIndex& sourceIndex) const
+{
+    if (!sourceIndex.isValid() || sourceIndex.model() != sourceModel()) {
+        return QModelIndex();
+    }
+    return index(sourceIndex.row() - bottomRow, sourceIndex.column(),
+                 QModelIndex());
+}
+
+QModelIndex
+BarlineFilter::index(int row, int column, const QModelIndex& parent) const
+{
+    if (row < 0 || row >= topRow - bottomRow || column != 0) {
+        return QModelIndex();
+    }
+    // store pointer to the BarLineState inside the model index
+    const auto& bl = static_cast<BarLinesState*>(sourceModel())->getBarlines().at(row + bottomRow);
+    return createIndex(row, column, const_cast<BarLineState*>(&bl));
+}
+
+QModelIndex
+BarlineFilter::parent(const QModelIndex& child) const
+{
+    return QModelIndex();
+}
+
+int
+BarlineFilter::rowCount(const QModelIndex& parent) const
+{
+    return parent.isValid() ? 0 : static_cast<int>(topRow - bottomRow);
+}
+
+int
+BarlineFilter::columnCount(const QModelIndex& parent) const
+{
+    return parent.isValid() ? 0 : 1;
+}
+
+QVariant
+BarlineFilter::data(const QModelIndex& index, int role) const
+{
+    if (!index.isValid()) {
+        return {};
+    }
+    if (role == Qt::DisplayRole) {
+        const auto src = sourceModel()->index(index.row() + bottomRow, 0, QModelIndex());
+        return sourceModel()->data(src, role);
+    }
+    return {};
 }
 void
 Filter::setTopPosition(double value)
