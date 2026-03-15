@@ -121,7 +121,7 @@ class Filter : public QAbstractProxyModel
     bool pressed = false;
     void setPressed(bool pressed);
     ColumnState* columnState;
-    int getEffectiveBottomRow(int notesFrom, int notesTo);
+    int getEffectiveBottomRow(int notesFrom, int notesTo) const;
 
   public:
     explicit Filter(ColumnState* columnState, QObject* parent = nullptr);

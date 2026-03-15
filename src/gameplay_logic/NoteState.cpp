@@ -85,9 +85,10 @@ ColumnState::mapTimeIndexToPositionIndex(int64_t timeIndex) const -> int
     return timeToPositionIndexMapping[timeIndex];
 }
 BarLinesState::BarLinesState(QList<BarLineState> barLines, QObject* parent)
-  : barLines(std::move(barLines))
+  : QAbstractListModel(parent)
+  , barLines(std::move(barLines))
 {
-    std::ranges::sort(barLines, [](const auto& a, const auto& b) {
+    std::ranges::sort(this->barLines, [](const auto& a, const auto& b) {
         return a.time.position < b.time.position;
     });
 }
@@ -116,10 +117,10 @@ Filter::setPressed(bool pressed)
     this->pressed = pressed;
     emit pressedChanged();
 }
-int
-Filter::getEffectiveBottomRow(int notesFrom, int notesTo)
+auto
+Filter::getEffectiveBottomRow(int notesFrom, int notesTo) const -> int
 {
-    auto effectiveBottomRow = notesFrom;
+    auto newEffectiveBottomRow = notesFrom;
     for (int i = notesFrom; i < notesTo; i++) {
         auto note = columnState->getNotes()[i];
         auto otherEndRow = 0;
@@ -132,10 +133,9 @@ Filter::getEffectiveBottomRow(int notesFrom, int notesTo)
         } else {
             continue;
         }
-        auto& endNote = columnState->getNotes()[otherEndRow];
-        effectiveBottomRow = std::min(effectiveBottomRow, otherEndRow);
+        newEffectiveBottomRow = std::min(newEffectiveBottomRow, otherEndRow);
     }
-    return effectiveBottomRow;
+    return newEffectiveBottomRow;
 }
 Filter::Filter(ColumnState* columnState, QObject* parent)
   : QAbstractProxyModel(parent)
@@ -152,8 +152,8 @@ Filter::Filter(ColumnState* columnState, QObject* parent)
             [this](const QModelIndex& topLeft,
                    const QModelIndex& bottomRight,
                    const QVector<int>& roles) {
-                emit dataChanged(index(topLeft.row() - bottomRow),
-                                 index(bottomRight.row() - bottomRow),
+                emit dataChanged(index(topLeft.row() - effectiveBottomRow),
+                                 index(bottomRight.row() - effectiveBottomRow),
                                  roles);
             });
 }
@@ -210,6 +210,7 @@ Filter::setTopPosition(double value)
       });
     const auto newTopRow =
       static_cast<int>(std::distance(columnState->getNotes().begin(), upper));
+    const auto oldTopRow = topRow;
     if (newTopRow > topRow) {
         beginInsertRows(QModelIndex(),
                         topRow - effectiveBottomRow,
@@ -223,8 +224,8 @@ Filter::setTopPosition(double value)
         topRow = newTopRow;
         endRemoveRows();
     }
-    if (topRow != newTopRow) {
-        setEffectiveBottomRow(getEffectiveBottomRow(newTopRow, topRow));
+    if (oldTopRow != newTopRow) {
+        setEffectiveBottomRow(getEffectiveBottomRow(bottomRow, topRow));
     }
 
     topPosition = value;
@@ -280,7 +281,8 @@ Filter::setBottomPosition(double value)
           columnState->index(oldBottomRow - 1, 0, QModelIndex()));
     }
     if (oldBottomRow != newBottomRow) {
-        setEffectiveBottomRow(getEffectiveBottomRow(newBottomRow, topRow));
+        bottomRow = newBottomRow;
+        setEffectiveBottomRow(getEffectiveBottomRow(bottomRow, topRow));
     }
     bottomPosition = value;
     emit bottomPositionChanged();
@@ -288,11 +290,11 @@ Filter::setBottomPosition(double value)
 QModelIndex
 Filter::index(int row, int column, const QModelIndex& parent) const
 {
-    if (row < 0 || row >= topRow - bottomRow || column != 0) {
+    if (row < 0 || row >= topRow - effectiveBottomRow || column != 0) {
         return QModelIndex();
     }
     return createIndex(
-      row, column, &columnState->getNotes().at(row + bottomRow));
+      row, column, &columnState->getNotes().at(row + effectiveBottomRow));
 }
 QModelIndex
 Filter::parent(const QModelIndex& child) const
