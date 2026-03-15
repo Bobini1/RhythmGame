@@ -66,7 +66,6 @@ Image {
         id: mouseArea
         function setFilter() {
             let currentKeymode = keymodeButton.options[keymodeButton.current];
-            console.warn(currentKeymode)
             if (currentKeymode) {
                 songList.filter = function (chart) {
                     if (chart instanceof entry) return true;
