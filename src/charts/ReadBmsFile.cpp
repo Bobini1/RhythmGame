@@ -644,33 +644,25 @@ struct TagsSink
         {
             auto& [identifier, value] =
               static_cast<std::pair<uint16_t, double>&>(bpm);
-            if (value != 0.0) {
-                state.exBpms.emplace_back(identifier, value);
-            }
+            state.exBpms.emplace_back(identifier, value);
         }
         auto operator()(Stop&& stop) -> void
         {
             auto& [identifier, value] =
               static_cast<std::pair<uint16_t, double>&>(stop);
-            if (value != 0.0) {
-                state.stops.emplace_back(identifier, value);
-            }
+            state.stops.emplace_back(identifier, value);
         }
         auto operator()(Scroll&& scroll) -> void
         {
             auto& [identifier, value] =
               static_cast<std::pair<uint16_t, double>&>(scroll);
-            if (value != 0.0) {
-                state.scrolls.emplace_back(identifier, value);
-            }
+            state.scrolls.emplace_back(identifier, value);
         }
         auto operator()(Speed&& speed) -> void
         {
             auto& [identifier, value] =
               static_cast<std::pair<uint16_t, double>&>(speed);
-            if (value != 0.0) {
-                state.speeds.emplace_back(identifier, value);
-            }
+            state.speeds.emplace_back(identifier, value);
         }
         auto operator()(ParsedBmsChart::Tags&& randomBlock)
         {
