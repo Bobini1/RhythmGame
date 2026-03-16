@@ -183,33 +183,32 @@ BarlineFilter::setTopPosition(double value)
     if (topPosition == value) {
         return;
     }
+
+    topPosition = value;
+    emit topPositionChanged();
     if (value < bottomPosition) {
         setBottomPosition(value);
     }
 
     // compute newTopRow as first barline with position > value
-    const auto& barlines = static_cast<BarLinesState*>(sourceModel())->getBarlines();
-    const auto upper =
-      std::ranges::find_if(barlines, [value](const auto& bl) {
-          return bl.time.position > value;
-      });
-    const auto newTopRow = static_cast<int>(std::distance(barlines.begin(),
-                                                          upper));
+    const auto& barlines =
+      static_cast<BarLinesState*>(sourceModel())->getBarlines();
+    const auto upper = std::ranges::find_if(
+      barlines, [value](const auto& bl) { return bl.time.position > value; });
+    const auto newTopRow =
+      static_cast<int>(std::distance(barlines.begin(), upper));
     const auto oldTopRow = topRow;
     if (newTopRow > topRow) {
-        beginInsertRows(QModelIndex(), topRow - bottomRow,
-                        newTopRow - bottomRow - 1);
+        beginInsertRows(
+          QModelIndex(), topRow - bottomRow, newTopRow - bottomRow - 1);
         topRow = newTopRow;
         endInsertRows();
     } else if (newTopRow < topRow) {
-        beginRemoveRows(QModelIndex(), newTopRow - bottomRow,
-                        topRow - bottomRow - 1);
+        beginRemoveRows(
+          QModelIndex(), newTopRow - bottomRow, topRow - bottomRow - 1);
         topRow = newTopRow;
         endRemoveRows();
     }
-
-    topPosition = value;
-    emit topPositionChanged();
 }
 void
 BarlineFilter::setBottomPosition(double value)
@@ -218,13 +217,19 @@ BarlineFilter::setBottomPosition(double value)
         return;
     }
 
-    const auto& barlines = static_cast<BarLinesState*>(sourceModel())->getBarlines();
-    auto lower = std::lower_bound(barlines.begin(),
-                                  barlines.end(),
-                                  value,
-                                  [](const auto& bl, double value) {
-                                      return bl.time.position < value;
-                                  });
+    bottomPosition = value;
+    emit bottomPositionChanged();
+    if (value > topPosition) {
+        setTopPosition(value);
+    }
+
+    const auto& barlines =
+      static_cast<BarLinesState*>(sourceModel())->getBarlines();
+    auto lower = std::lower_bound(
+      barlines.begin(),
+      barlines.end(),
+      value,
+      [](const auto& bl, double value) { return bl.time.position < value; });
 
     const auto newBottomRow =
       static_cast<int>(std::distance(barlines.begin(), lower));
@@ -238,9 +243,6 @@ BarlineFilter::setBottomPosition(double value)
         bottomRow = newBottomRow;
         endInsertRows();
     }
-
-    bottomPosition = value;
-    emit bottomPositionChanged();
 }
 
 QModelIndex
@@ -250,9 +252,8 @@ BarlineFilter::mapToSource(const QModelIndex& proxyIndex) const
         proxyIndex.row() >= rowCount({})) {
         return QModelIndex();
     }
-    return sourceModel()->index(proxyIndex.row() + bottomRow,
-                                proxyIndex.column(),
-                                QModelIndex());
+    return sourceModel()->index(
+      proxyIndex.row() + bottomRow, proxyIndex.column(), QModelIndex());
 }
 
 QModelIndex
@@ -261,8 +262,8 @@ BarlineFilter::mapFromSource(const QModelIndex& sourceIndex) const
     if (!sourceIndex.isValid() || sourceIndex.model() != sourceModel()) {
         return QModelIndex();
     }
-    return index(sourceIndex.row() - bottomRow, sourceIndex.column(),
-                 QModelIndex());
+    return index(
+      sourceIndex.row() - bottomRow, sourceIndex.column(), QModelIndex());
 }
 
 QModelIndex
@@ -272,7 +273,9 @@ BarlineFilter::index(int row, int column, const QModelIndex& parent) const
         return QModelIndex();
     }
     // store pointer to the BarLineState inside the model index
-    const auto& bl = static_cast<BarLinesState*>(sourceModel())->getBarlines().at(row + bottomRow);
+    const auto& bl = static_cast<BarLinesState*>(sourceModel())
+                       ->getBarlines()
+                       .at(row + bottomRow);
     return createIndex(row, column, const_cast<BarLineState*>(&bl));
 }
 
@@ -301,7 +304,8 @@ BarlineFilter::data(const QModelIndex& index, int role) const
         return {};
     }
     if (role == Qt::DisplayRole) {
-        const auto src = sourceModel()->index(index.row() + bottomRow, 0, QModelIndex());
+        const auto src =
+          sourceModel()->index(index.row() + bottomRow, 0, QModelIndex());
         return sourceModel()->data(src, role);
     }
     return {};
@@ -312,6 +316,9 @@ Filter::setTopPosition(double value)
     if (topPosition == value) {
         return;
     }
+
+    topPosition = value;
+    emit topPositionChanged();
     if (value < bottomPosition) {
         setBottomPosition(value);
     }
@@ -338,9 +345,6 @@ Filter::setTopPosition(double value)
     if (oldTopRow != newTopRow) {
         setEffectiveBottomRow(getEffectiveBottomRow(bottomRow, topRow));
     }
-
-    topPosition = value;
-    emit topPositionChanged();
 }
 void
 Filter::setEffectiveBottomRow(const int newEffectiveBottomRow)
@@ -362,6 +366,12 @@ Filter::setBottomPosition(double value)
 {
     if (bottomPosition == value) {
         return;
+    }
+
+    bottomPosition = value;
+    emit bottomPositionChanged();
+    if (value > topPosition) {
+        setTopPosition(value);
     }
 
     auto lower = std::lower_bound(columnState->getNotes().begin(),
@@ -395,8 +405,6 @@ Filter::setBottomPosition(double value)
         bottomRow = newBottomRow;
         setEffectiveBottomRow(getEffectiveBottomRow(bottomRow, topRow));
     }
-    bottomPosition = value;
-    emit bottomPositionChanged();
 }
 QModelIndex
 Filter::index(int row, int column, const QModelIndex& parent) const
@@ -448,6 +456,7 @@ GameplayState::GameplayState(QList<ColumnState*> columnStates,
                              QObject* parent)
   : QObject(parent)
   , barLinesState(barLinesState)
+  , barLineFilter(new BarlineFilter(barLinesState, this))
   , columnStates(std::move(columnStates))
 {
     for (auto* const columnState : this->columnStates) {
@@ -455,7 +464,7 @@ GameplayState::GameplayState(QList<ColumnState*> columnStates,
         columnState->setParent(filter);
         columnFilters.append(filter);
     }
-    barLineFilter = new BarlineFilter(barLinesState, this);
+
     barLinesState->setParent(barLineFilter);
 }
 auto
