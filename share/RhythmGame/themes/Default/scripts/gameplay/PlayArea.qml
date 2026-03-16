@@ -109,12 +109,20 @@ Item {
             model: playArea.barLinesState
             heightMultiplier: playArea.heightMultiplier
             position: playArea.position
-            height: parent.height
+
+            Rectangle {
+                color: "transparent"
+                anchors.fill: parent
+                border.color: "red"
+                border.width: 5
+            }
             anchors {
                 left: parent.left
                 right: parent.right
                 top: parent.top
-                topMargin: (playArea.position * playArea.heightMultiplier + height * (1 - playArea.generalVars.liftOn * playArea.generalVars.liftRatio)) - 0.5
+                bottomMargin: parent.height * (playArea.generalVars.liftOn * playArea.generalVars.liftRatio)
+                topMargin: parent.height * (playArea.generalVars.laneCoverOn * playArea.generalVars.laneCoverRatio)
+                bottom: parent.bottom
             }
             z: 2
         }

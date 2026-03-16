@@ -16,19 +16,31 @@ Item {
         }
     }
 
-    Repeater {
-        id: barlinesRepeater
-        delegate: Item {
-            anchors.bottom: parent.bottom
-            anchors.bottomMargin: display.time.position * column.heightMultiplier + column.height
-            anchors.left: parent.left
-            anchors.right: parent.right
-            Rectangle {
-                color: "gray"
-                height: 1
-                y: -height / 2
+    Item {
+        anchors.fill: parent
+        anchors.bottomMargin: -column.position * column.heightMultiplier
+
+        Rectangle {
+            color: "transparent"
+            anchors.fill: parent
+            border.color: "blue"
+            border.width: 5
+        }
+
+        Repeater {
+            id: barlinesRepeater
+            delegate: Item {
+                anchors.bottom: parent.bottom
+                anchors.bottomMargin: display.time.position * column.heightMultiplier
                 anchors.left: parent.left
                 anchors.right: parent.right
+                Rectangle {
+                    color: "gray"
+                    height: 1
+                    y: -height / 2
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                }
             }
         }
     }
