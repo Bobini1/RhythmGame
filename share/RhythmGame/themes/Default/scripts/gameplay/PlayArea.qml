@@ -110,12 +110,6 @@ Item {
             heightMultiplier: playArea.heightMultiplier
             position: playArea.position
 
-            Rectangle {
-                color: "transparent"
-                anchors.fill: parent
-                border.color: "red"
-                border.width: 5
-            }
             anchors {
                 left: parent.left
                 right: parent.right

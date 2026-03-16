@@ -20,13 +20,6 @@ Item {
         anchors.fill: parent
         anchors.bottomMargin: -column.position * column.heightMultiplier
 
-        Rectangle {
-            color: "transparent"
-            anchors.fill: parent
-            border.color: "blue"
-            border.width: 5
-        }
-
         Repeater {
             id: barlinesRepeater
             delegate: Item {
