@@ -73,6 +73,7 @@ gameplay_logic::BmsResult::BmsResult(
   QString sha256,
   QString md5,
   uint64_t gameVersion,
+  QString owner,
   QObject* parent)
   : QObject(parent)
   , maxPoints(maxPoints)
@@ -92,12 +93,13 @@ gameplay_logic::BmsResult::BmsResult(
   , points(points)
   , maxCombo(maxCombo)
   , unixTimestamp(unixTimestamp)
-  , randomSeed(randomSeed)
   , length(length)
+  , randomSeed(randomSeed)
   , noteOrderAlgorithm(noteOrderAlgorithm)
   , noteOrderAlgorithmP2(noteOrderAlgorithmP2)
   , dpOptions(dpOptions)
   , gameVersion(gameVersion)
+  , owner(std::move(owner))
 {
 }
 void
@@ -135,10 +137,11 @@ gameplay_logic::BmsResult::save(db::SqliteCppDb& db) const
                          "note_order_algorithm,"
                          "note_order_algorithm_p2,"
                          "dp_options, "
-                         "game_version"
+                         "game_version,"
+                         "owner"
                          ")"
                          "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, "
-                         "?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);");
+                         "?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);");
     statement.bind(1, maxPoints);
     statement.bind(2, maxHits);
     statement.bind(3, normalNoteCount);
@@ -169,6 +172,7 @@ gameplay_logic::BmsResult::save(db::SqliteCppDb& db) const
     statement.bind(26, static_cast<int>(noteOrderAlgorithmP2));
     statement.bind(27, static_cast<int>(dpOptions));
     statement.bind(28, static_cast<int64_t>(gameVersion));
+    statement.bind(29, owner.toStdString());
     statement.execute();
 }
 auto
@@ -266,6 +270,11 @@ gameplay_logic::BmsResult::getGameVersion() const -> uint64_t
     return gameVersion;
 }
 auto
+gameplay_logic::BmsResult::getOwner() const -> const QString&
+{
+    return owner;
+}
+auto
 gameplay_logic::BmsResult::getNormalNoteCount() const -> int
 {
     return normalNoteCount;
@@ -337,16 +346,16 @@ gameplay_logic::BmsResult::fromJson(const QJsonObject& obj)
   -> std::unique_ptr<BmsResult>
 {
     // Required fields / best-effort parse
-    double maxPoints = obj["maxPoints"].toDouble();
-    int maxHits = obj["maxHits"].toInt();
-    int normalNoteCount = obj["normalNoteCount"].toInt();
-    int scratchCount = obj["scratchCount"].toInt();
-    int lnCount = obj["lnCount"].toInt();
-    int bssCount = obj["bssCount"].toInt();
-    int mineCount = obj["mineCount"].toInt();
-    double points = obj["points"].toDouble();
-    int maxCombo = obj["maxCombo"].toInt();
-    QList<int> judgementCounts;
+    auto maxPoints = obj["maxPoints"].toDouble();
+    auto maxHits = obj["maxHits"].toInt();
+    auto normalNoteCount = obj["normalNoteCount"].toInt();
+    auto scratchCount = obj["scratchCount"].toInt();
+    auto lnCount = obj["lnCount"].toInt();
+    auto bssCount = obj["bssCount"].toInt();
+    auto mineCount = obj["mineCount"].toInt();
+    auto points = obj["points"].toDouble();
+    auto maxCombo = obj["maxCombo"].toInt();
+    auto judgementCounts = QList<int>{};
     if (obj.contains("judgementCounts") && obj["judgementCounts"].isArray()) {
         for (const auto& v : obj["judgementCounts"].toArray()) {
             judgementCounts.append(v.toInt());
@@ -355,7 +364,7 @@ gameplay_logic::BmsResult::fromJson(const QJsonObject& obj)
         judgementCounts = QList<int>(magic_enum::enum_count<Judgement>());
     }
     int mineHits = obj["mineHits"].toInt();
-    QString clearType = obj["clearType"].toString();
+    auto clearType = obj["clearType"].toString();
     QList<qint64> randomSequence;
     if (obj.contains("randomSequence") && obj["randomSequence"].isArray()) {
         for (const auto& v : obj["randomSequence"].toArray()) {
@@ -363,27 +372,25 @@ gameplay_logic::BmsResult::fromJson(const QJsonObject& obj)
               static_cast<qint64>(v.toVariant().toLongLong()));
         }
     }
-    int64_t unixTimestamp =
+    auto unixTimestamp =
       static_cast<int64_t>(obj["unixTimestamp"].toVariant().toLongLong());
-    int64_t length =
-      static_cast<int64_t>(obj["length"].toVariant().toLongLong());
-    QString guid = obj["guid"].toString();
-    QString sha256 = obj["sha256"].toString();
-    QString md5 = obj["md5"].toString();
+    auto length = static_cast<int64_t>(obj["length"].toVariant().toLongLong());
+    auto guid = obj["guid"].toString();
+    auto sha256 = obj["sha256"].toString();
+    auto md5 = obj["md5"].toString();
 
-    uint64_t randomSeed = obj["randomSeed"].toInteger();
+    auto randomSeed = obj["randomSeed"].toInteger();
 
-    resource_managers::NoteOrderAlgorithm noa =
-      static_cast<resource_managers::NoteOrderAlgorithm>(
-        obj["noteOrderAlgorithm"].toInt());
-    resource_managers::NoteOrderAlgorithm noaP2 =
-      static_cast<resource_managers::NoteOrderAlgorithm>(
-        obj["noteOrderAlgorithmP2"].toInt());
-    resource_managers::DpOptions dpo =
+    auto noa = static_cast<resource_managers::NoteOrderAlgorithm>(
+      obj["noteOrderAlgorithm"].toInt());
+    auto noaP2 = static_cast<resource_managers::NoteOrderAlgorithm>(
+      obj["noteOrderAlgorithmP2"].toInt());
+    auto dpo =
       static_cast<resource_managers::DpOptions>(obj["dpOptions"].toInt());
 
-    // Parse gameVersion (string or number)
-    uint64_t gameVersion = obj["gameVersion"].toInteger();
+    auto gameVersion = obj["gameVersion"].toInteger();
+
+    auto owner = obj["_links"]["user"].toString();
 
     auto result = std::make_unique<BmsResult>(maxPoints,
                                               maxHits,
@@ -407,6 +414,7 @@ gameplay_logic::BmsResult::fromJson(const QJsonObject& obj)
                                               guid,
                                               sha256,
                                               md5,
-                                              gameVersion);
+                                              gameVersion,
+                                              owner);
     return result;
 }

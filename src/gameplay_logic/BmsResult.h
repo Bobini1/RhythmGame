@@ -160,6 +160,12 @@ class BmsResult final : public QObject
      * @details For migrations.
      */
     Q_PROPERTY(uint64_t gameVersion READ getGameVersion CONSTANT)
+    /**
+     * @brief The owner of the score.
+     * @details Local scores have an empty string as the source. For online
+     * scores, this is a link to the profile this score belongs to.
+     */
+    Q_PROPERTY(QString owner READ getOwner CONSTANT)
 
     double maxPoints;
     int maxHits;
@@ -185,6 +191,7 @@ class BmsResult final : public QObject
     resource_managers::NoteOrderAlgorithm noteOrderAlgorithmP2;
     resource_managers::DpOptions dpOptions;
     uint64_t gameVersion;
+    QString owner;
 
   public:
     struct DTO
@@ -217,6 +224,7 @@ class BmsResult final : public QObject
         int noteOrderAlgorithmP2;
         int dpOptions;
         int64_t gameVersion;
+        std::string owner;
     };
     explicit BmsResult(
       double maxPoints,
@@ -242,6 +250,7 @@ class BmsResult final : public QObject
       QString sha256,
       QString md5,
       uint64_t gameVersion = support::currentVersion,
+      QString owner = QStringLiteral(""),
       QObject* parent = nullptr);
 
     auto getMaxPoints() const -> double;
@@ -268,6 +277,7 @@ class BmsResult final : public QObject
       -> resource_managers::NoteOrderAlgorithm;
     auto getDpOptions() const -> resource_managers::DpOptions;
     auto getGameVersion() const -> uint64_t;
+    auto getOwner() const -> const QString&;
 
     void save(db::SqliteCppDb& db) const;
     static auto load(const DTO& dto) -> std::unique_ptr<BmsResult>;

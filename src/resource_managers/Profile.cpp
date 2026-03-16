@@ -185,7 +185,8 @@ Profile::Profile(
                "note_order_algorithm INTEGER NOT NULL,"
                "note_order_algorithm_p2 INTEGER NOT NULL,"
                "dp_options INTEGER NOT NULL,"
-               "game_version INTEGER NOT NULL"
+               "game_version INTEGER NOT NULL,"
+               "owner TEXT NOT NULL DEFAULT ''"
                ");");
     // For migration from earlier versions that did not have scratch_count
     auto checkScratchColumn =
@@ -206,6 +207,16 @@ Profile::Profile(
     if (!columnExists) {
         db.execute(
           "ALTER TABLE score ADD COLUMN bss_count INTEGER NOT NULL DEFAULT 0;");
+    }
+    // For migration from earlier versions that did not have source
+    auto checkSourceColumn =
+      db.createStatement("SELECT COUNT(*) FROM pragma_table_info('score') "
+                         "WHERE name = 'owner';");
+    auto sourceColumnExists =
+      checkSourceColumn.executeAndGet<int64_t>().value_or(0) > 0;
+    if (!sourceColumnExists) {
+        db.execute("ALTER TABLE score ADD COLUMN owner TEXT NOT NULL DEFAULT "
+                   "'';");
     }
     db.execute("CREATE TABLE IF NOT EXISTS score_course ("
                "id INTEGER PRIMARY KEY AUTOINCREMENT,"
@@ -637,8 +648,9 @@ Profile::downloadScores() -> qml_components::ScoreSyncOperation*
             auto stmt = db.createStatement("SELECT guid FROM score");
             auto rows = stmt.executeAndGetAll<std::string>();
             QSet<QString> localGuids;
-            for (const auto& r : rows)
+            for (const auto& r : rows) {
                 localGuids.insert(QString::fromStdString(r));
+            }
 
             QMetaObject::invokeMethod(
               this,
