@@ -24,6 +24,15 @@ namespace resource_managers {
 class Profile final : public QObject
 {
     Q_OBJECT
+  public:
+    enum class LoginState
+    {
+        NotLoggedIn,
+        LoggedIn,
+        LoginFailed
+    };
+    Q_ENUM(LoginState)
+  private:
     Q_PROPERTY(QString path READ getPathQString CONSTANT)
     /** @brief The themes selected for this profile. */
     Q_PROPERTY(QQmlPropertyMap* themeConfig READ getThemeConfig CONSTANT)
@@ -37,7 +46,8 @@ class Profile final : public QObject
     Q_PROPERTY(QString guid READ getGuid CONSTANT)
     Q_PROPERTY(QString onlineUsername READ getOnlineUsername NOTIFY
                  onlineUsernameChanged)
-    Q_PROPERTY(bool loggedIn READ getLoggedIn NOTIFY loggedInChanged)
+    Q_PROPERTY(resource_managers::Profile::LoginState loginState READ
+                 getLoginState NOTIFY loginStateChanged)
     db::SqliteCppDb db;
     std::filesystem::path dbPath;
     QQmlPropertyMap* themeConfig;
@@ -49,11 +59,11 @@ class Profile final : public QObject
     QThreadPool threadPool;
     QString onlineUsername;
     qint64 onlineId{ -1 };
-    bool loggedIn{};
-    auto loadBearerToken() -> void;
+    LoginState loginState{ LoginState::NotLoggedIn };
+    void loadBearerToken();
     void fetchOnlineData();
     void setOnlineUsername(const QString& username);
-    void setLoggedIn(bool loggedIn);
+    void setLoginState(LoginState state);
 
   public:
     static inline const QString keychainService = "RhythmGame";
@@ -81,11 +91,10 @@ class Profile final : public QObject
     auto getThemeConfig() const -> QQmlPropertyMap*;
     auto getVars() -> Vars*;
     auto getGuid() const -> QString;
-    Q_INVOKABLE QIfPendingReply<void> login(const QString& email,
-                                            const QString& password);
+    Q_INVOKABLE void login(const QString& email, const QString& password);
     Q_INVOKABLE void logout();
     auto getOnlineUsername() const -> QString;
-    auto getLoggedIn() const -> bool;
+    auto getLoginState() const -> LoginState;
     /**
      * @brief Upload local scores to the server.
      * @details Compares local GUIDs to the server and uploads each missing
@@ -107,7 +116,7 @@ class Profile final : public QObject
 
   signals:
     void onlineUsernameChanged();
-    void loggedInChanged();
+    void loginStateChanged();
 };
 
 } // namespace resource_managers

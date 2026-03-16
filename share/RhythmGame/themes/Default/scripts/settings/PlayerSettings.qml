@@ -229,14 +229,14 @@ Item {
                     }
 
                     Label {
-                        visible: loginSection.profile.loggedIn
+                        visible: loginSection.profile.loginState === Profile.LoggedIn
                         text: qsTr("Logged in as %1").arg(loginSection.profile.onlineUsername)
                         font.pixelSize: 16
                         Layout.fillWidth: true
                     }
 
                     Button {
-                        visible: loginSection.profile.loggedIn
+                        visible: loginSection.profile.loginState === Profile.LoggedIn
                         text: qsTr("Logout")
                         Layout.fillWidth: true
                         onClicked: {
@@ -249,7 +249,7 @@ Item {
                         spacing: 8
                         Button {
                             id: syncButton
-                            visible: loginSection.profile.loggedIn
+                            visible: loginSection.profile.loginState === Profile.LoggedIn
                             enabled: !loginSection.syncing
                             text: qsTr("Sync scores")
                             Layout.fillWidth: true
@@ -270,30 +270,26 @@ Item {
 
                     TextField {
                         id: emailField
-                        visible: !loginSection.profile.loggedIn
+                        visible: loginSection.profile.loginState !== Profile.LoggedIn
                         placeholderText: qsTr("Email")
                         Layout.fillWidth: true
                     }
 
                     TextField {
                         id: passwordField
-                        visible: !loginSection.profile.loggedIn
+                        visible: loginSection.profile.loginState !== Profile.LoggedIn
                         placeholderText: qsTr("Password")
                         echoMode: TextInput.Password
                         Layout.fillWidth: true
                     }
 
                     Button {
-                        visible: !loginSection.profile.loggedIn
+                        visible: loginSection.profile.loginState !== Profile.LoggedIn
                         text: qsTr("Login")
                         Layout.fillWidth: true
-                        palette.button: loginSection.loginError ? "red" : undefined
-                        palette.buttonText: loginSection.loginError ? "white" : undefined
-                        onClicked: {
-                            loginSection.loginError = false;
-                            const reply = loginSection.profile.login(emailField.text, passwordField.text);
-                            reply.then(function() {}, function() { loginSection.loginError = true; });
-                        }
+                        palette.button: loginSection.profile.loginState === Profile.LoginFailed ? "DarkRed" : undefined
+                        palette.buttonText: loginSection.profile.loginState === Profile.LoginFailed ? "white" : undefined
+                        onClicked: loginSection.profile.login(emailField.text, passwordField.text)
                     }
                 }
             }

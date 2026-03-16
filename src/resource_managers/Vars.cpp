@@ -1182,9 +1182,9 @@ readGeneralVars(QThreadPool& writePool,
         writeGeneralVars(writePool, generalVars, profileFolder);
     }
     if (!file.open(QIODevice::ReadOnly)) {
-        spdlog::error("Failed to open config for reading: {}: {}",
-                      profileFolder.string(),
-                      file.errorString().toStdString());
+        spdlog::info("Failed to open config for reading: {}: {}",
+                     profileFolder.string(),
+                     file.errorString().toStdString());
         return;
     }
     try {

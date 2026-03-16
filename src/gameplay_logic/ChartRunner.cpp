@@ -423,7 +423,8 @@ Player::finish(const ChartData& chartData) -> BmsScore*
         } catch (const std::exception& e) {
             spdlog::error("Failed to save score: {}", e.what());
         }
-        if (profilePtr->getLoggedIn() &&
+        if (profilePtr->getLoginState() ==
+              resource_managers::Profile::LoginState::LoggedIn &&
             !score->getResult()->getGuid().isEmpty()) {
             score->setSubmissionState(BmsScore::SubmissionState::Submitting);
             auto* submission = profilePtr->submitScore(*score, chartData);

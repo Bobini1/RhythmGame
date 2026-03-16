@@ -29,47 +29,30 @@ class ScoreSyncOperation final : public QObject
     Q_PROPERTY(int total READ getTotal NOTIFY progressChanged)
 
     int currentDone{ 0 };
-    int currentTotal{ 0 };
+    int total{ 0 };
 
   public:
-    explicit ScoreSyncOperation(QObject* parent = nullptr)
-      : QObject(parent)
-    {
-    }
+    explicit ScoreSyncOperation(QObject* parent = nullptr);
 
     [[nodiscard]] auto getDone() const -> int { return currentDone; }
-    [[nodiscard]] auto getTotal() const -> int { return currentTotal; }
+    [[nodiscard]] auto getTotal() const -> int { return total; }
 
     /**
      * @brief Set the total number of items once it is known.
      * @details Emits progressChanged(). If total is 0, also emits finished().
      */
-    void setTotal(int total)
-    {
-        currentTotal = total;
-        emit progressChanged();
-        if (currentTotal == 0) {
-            emit finished();
-        }
-    }
+    void setTotal(int total);
 
     /**
      * @brief Advance the done counter by one and emit progressChanged().
      * @details Emits finished() when done reaches total.
      */
-    void increment()
-    {
-        ++currentDone;
-        emit progressChanged();
-        if (currentDone == currentTotal) {
-            emit finished();
-        }
-    }
+    void increment();
 
     /**
      * @brief Report a per-score error without halting the operation.
      */
-    void reportError(const QString& message) { emit error(message); }
+    void reportError(const QString& message);
 
   signals:
     void progressChanged();
@@ -80,5 +63,3 @@ class ScoreSyncOperation final : public QObject
 } // namespace qml_components
 
 #endif // RHYTHMGAME_SCORESYNCOPERATION_H
-
-

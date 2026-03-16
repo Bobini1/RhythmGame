@@ -74,6 +74,7 @@ Profile::fetchOnlineData()
             spdlog::error("Error fetching online data for user {}: {}",
                           vars.getGeneralVars()->getName().toStdString(),
                           reply->errorString().toStdString());
+            setLoginState(LoginState::LoginFailed);
             reply->deleteLater();
             return;
         }
@@ -81,7 +82,7 @@ Profile::fetchOnlineData()
         auto json = QJsonDocument::fromJson(data).object();
         setOnlineUsername(json["name"].toString());
         onlineId = json["id"].toInt();
-        setLoggedIn(true);
+        setLoginState(LoginState::LoggedIn);
         reply->deleteLater();
     });
 }
@@ -95,13 +96,13 @@ Profile::setOnlineUsername(const QString& username)
     emit onlineUsernameChanged();
 }
 void
-Profile::setLoggedIn(bool loggedIn)
+Profile::setLoginState(LoginState state)
 {
-    if (loggedIn == this->loggedIn) {
+    if (state == loginState) {
         return;
     }
-    this->loggedIn = loggedIn;
-    emit loggedInChanged();
+    loginState = state;
+    emit loginStateChanged();
 }
 Profile::Profile(
   const std::filesystem::path& mainDbPath,
@@ -281,11 +282,9 @@ Profile::getGuid() const -> QString
 {
     return guid;
 }
-auto
+void
 Profile::login(const QString& email, const QString& password)
-  -> QIfPendingReply<void>
 {
-    auto outerReply = QIfPendingReply<void>{};
     const auto request =
       networkRequestFactory.createRequest("auth/sign-in/email");
 
@@ -296,45 +295,42 @@ Profile::login(const QString& email, const QString& password)
     QNetworkReply* reply =
       networkManager->post(request, QJsonDocument(json).toJson());
 
-    connect(
-      reply, &QNetworkReply::finished, [reply, this, outerReply]() mutable {
-          if (reply->error() == QNetworkReply::NoError) {
-              QByteArray data = reply->readAll();
-              QJsonDocument doc = QJsonDocument::fromJson(data);
-              QJsonObject obj = doc.object();
-              QString token = obj["token"].toString();
-              if (!token.isEmpty()) {
-                  auto* job =
-                    new QKeychain::WritePasswordJob(keychainService, this);
-                  job->setKey(QStringLiteral("profiles/%1/token").arg(guid));
-                  job->setBinaryData(token.toLatin1());
-                  connect(job, &QKeychain::Job::finished, [job] {
-                      if (job->error()) {
-                          spdlog::error(
-                            "Failed to store token in keychain: {} - {}",
-                            magic_enum::enum_name(job->error()),
-                            job->errorString().toStdString());
-                      }
-                  });
-                  job->start();
-                  networkRequestFactory.setBearerToken(token.toLatin1());
-                  setOnlineUsername(obj["user"].toObject()["name"].toString());
-                  setLoggedIn(true);
-                  outerReply.setSuccess();
-              } else {
-                  spdlog::error("Login response did not contain a token");
-                  outerReply.setFailed();
-              }
-              reply->deleteLater();
-          } else {
-              spdlog::error("Login request failed: {} - {}",
-                            magic_enum::enum_name(reply->error()),
-                            reply->errorString().toStdString());
-              outerReply.setFailed();
-              reply->deleteLater();
-          }
-      });
-    return outerReply;
+    connect(reply, &QNetworkReply::finished, [reply, this]() mutable {
+        if (reply->error() == QNetworkReply::NoError) {
+            QByteArray data = reply->readAll();
+            QJsonDocument doc = QJsonDocument::fromJson(data);
+            QJsonObject obj = doc.object();
+            QString token = obj["token"].toString();
+            if (!token.isEmpty()) {
+                auto* job =
+                  new QKeychain::WritePasswordJob(keychainService, this);
+                job->setKey(QStringLiteral("profiles/%1/token").arg(guid));
+                job->setBinaryData(token.toLatin1());
+                connect(job, &QKeychain::Job::finished, [job] {
+                    if (job->error()) {
+                        spdlog::error(
+                          "Failed to store token in keychain: {} - {}",
+                          magic_enum::enum_name(job->error()),
+                          job->errorString().toStdString());
+                    }
+                });
+                job->start();
+                networkRequestFactory.setBearerToken(token.toLatin1());
+                setOnlineUsername(obj["user"].toObject()["name"].toString());
+                setLoginState(LoginState::LoggedIn);
+            } else {
+                spdlog::error("Login response did not contain a token");
+                setLoginState(LoginState::LoginFailed);
+            }
+            reply->deleteLater();
+        } else {
+            spdlog::error("Login request failed: {} - {}",
+                          magic_enum::enum_name(reply->error()),
+                          reply->errorString().toStdString());
+            setLoginState(LoginState::LoginFailed);
+            reply->deleteLater();
+        }
+    });
 }
 void
 Profile::logout()
@@ -353,7 +349,7 @@ Profile::logout()
     });
     job->start();
     networkRequestFactory.setBearerToken({});
-    setLoggedIn(false);
+    setLoginState(LoginState::LoginFailed);
     setOnlineUsername({});
 }
 auto
@@ -362,9 +358,9 @@ Profile::getOnlineUsername() const -> QString
     return onlineUsername;
 }
 auto
-Profile::getLoggedIn() const -> bool
+Profile::getLoginState() const -> LoginState
 {
-    return loggedIn;
+    return loginState;
 }
 auto
 Profile::submitScore(const gameplay_logic::BmsScore& score,
