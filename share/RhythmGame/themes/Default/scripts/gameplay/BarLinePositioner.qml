@@ -24,7 +24,7 @@ Item {
             id: barlinesRepeater
             delegate: Item {
                 anchors.bottom: parent.bottom
-                anchors.bottomMargin: display.time.position * column.heightMultiplier
+                anchors.bottomMargin: display.time.position * column.heightMultiplier + 0.5
                 anchors.left: parent.left
                 anchors.right: parent.right
                 Rectangle {
