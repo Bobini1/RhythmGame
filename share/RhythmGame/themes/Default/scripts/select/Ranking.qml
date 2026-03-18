@@ -190,6 +190,7 @@ Image {
                     required property var maxPoints
                     required property var userId
                     required property var bestClearTypeGuid
+                    required property var bestPointsGuid
                     anchors.left: parent.left
                     anchors.right: parent.right
                     height: rankImage.height
@@ -253,6 +254,25 @@ Image {
                         anchors.baselineOffset: -1
                         width: 160 - clearTypeImage.width - rankingEntry.spacing
                         elide: Text.ElideMiddle
+                        property bool loading: false
+                        opacity: loading ? 0.5 : 1
+                        MouseArea {
+                            anchors.fill: parent
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: {
+                                pointsText.loading = true;
+                                Rg.onlineScores.getScoreByGuid(
+                                    ranking.profile.vars.generalVars.webApiUrl,
+                                    rankingEntry.bestPointsGuid).then(
+                                    (score) => {
+                                        pointsText.loading = false;
+                                        globalRoot.openChart(ranking.path, Rg.profileList.mainProfile, false, score, null, false, null);
+                                    },
+                                        () => {
+                                        pointsText.loading = false;
+                                    });
+                            }
+                        }
                     }
                     Text {
                         id: percentageText
