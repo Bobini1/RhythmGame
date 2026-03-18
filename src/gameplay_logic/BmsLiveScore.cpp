@@ -29,6 +29,7 @@ BmsLiveScore::BmsLiveScore(
   QString md5,
   int64_t savedTimestamp,
   QString guid,
+  BmsScore::SubmissionState submissionState,
   QObject* parent)
   : QObject(parent)
   , maxHitValue(maxHitValue)
@@ -51,6 +52,7 @@ BmsLiveScore::BmsLiveScore(
   , randomSeed(seed)
   , length(length)
   , savedTimestamp(savedTimestamp)
+  , submissionState(submissionState)
 {
     for (auto* gauge : this->gauges) {
         gauge->setParent(this);

@@ -481,7 +481,10 @@ getComponentsForPlayer(const ChartFactory::PlayerSpecificData& player,
       player.replayedScore != nullptr
         ? player.replayedScore->getResult()->getUnixTimestamp()
         : 0,
-      guid);
+      guid,
+      player.replayedScore != nullptr
+        ? player.replayedScore->getSubmissionState()
+        : gameplay_logic::BmsScore::SubmissionState::NotSubmitted);
     auto notesStates = QList<gameplay_logic::ColumnState*>{};
     for (const auto& column : notes->getNotes()) {
         auto notes = QList<gameplay_logic::NoteState>{};
