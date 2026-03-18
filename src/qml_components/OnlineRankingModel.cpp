@@ -248,10 +248,9 @@ OnlineRankingModel::fetch()
                   continue;
               const auto obj = item.toObject();
               RankingEntry entry;
-              auto user = obj.value("user").toObject();
-              entry.userId = user.value("id").toInt();
-              entry.userName = user.value("name").toString();
-              entry.userImage = user.value("image").toString();
+              entry.userId = obj.value("userId").toInt();
+              entry.userName = obj.value("userName").toString();
+              entry.userImage = obj.value("userImage").toString();
               entry.bestPoints = obj.value("bestPoints").toDouble();
               entry.maxPoints = obj.value("maxPoints").toDouble();
               entry.bestPointsGuid = obj.value("bestPointsGuid").toString();
