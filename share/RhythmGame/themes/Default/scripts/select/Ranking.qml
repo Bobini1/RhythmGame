@@ -210,6 +210,7 @@ Image {
                         width: 132
                         MouseArea {
                             anchors.fill: parent
+                            anchors.rightMargin: userNameText.width - userNameText.implicitWidth
                             cursorShape: Qt.PointingHandCursor
                             onClicked: Qt.openUrlExternally(
                                 Rg.onlineLinks.scoresByUserOnChart(
