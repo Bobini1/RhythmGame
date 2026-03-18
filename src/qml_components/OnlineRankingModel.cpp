@@ -87,16 +87,18 @@ OnlineRankingModel::rowCount(const QModelIndex& parent) const -> int
 {
     if (parent.isValid())
         return 0;
-    return static_cast<int>(entries.size());
+    return std::clamp(
+      static_cast<int>(entries.size()) - currentOffset, 0, currentLimit);
 }
 
 auto
 OnlineRankingModel::data(const QModelIndex& index, int role) const -> QVariant
 {
-    if (!index.isValid() || index.row() < 0 || index.row() >= entries.size())
+    if (!index.isValid() || index.row() < 0 || index.row() >= entries.size()) {
         return {};
+    }
 
-    const auto& e = entries.at(index.row());
+    const auto& e = entries.at(index.row() - currentOffset);
     switch (role) {
         case UserIdRole:
             return e.userId;
@@ -166,8 +168,6 @@ OnlineRankingModel::buildUrl() const -> QUrl
 {
     auto url = QUrl("score-summaries");
     QUrlQuery q;
-    q.addQueryItem("limit", QString::number(currentLimit));
-    q.addQueryItem("offset", QString::number(currentOffset));
     q.addQueryItem("md5", currentMd5);
     // map enum to server's sortBy string
     if (currentSortBy != SortableColumn::None) {
@@ -237,8 +237,12 @@ OnlineRankingModel::fetch()
           }
 
           QList<RankingEntry> newEntries;
-          newEntries.reserve(doc.array().size());
-          for (const auto& item : doc.array()) {
+          auto array = doc.array();
+          auto playerCount = array.size();
+          auto scoreCount = 0;
+          newEntries.reserve(array.size());
+          auto clearTypeCounts = QHash<QString, int>{};
+          for (const auto& item : array) {
               if (!item.isObject())
                   continue;
               const auto obj = item.toObject();
@@ -254,6 +258,7 @@ OnlineRankingModel::fetch()
               entry.maxHits = obj.value("maxHits").toInt();
               entry.bestComboGuid = obj.value("bestComboGuid").toString();
               entry.bestClearType = obj.value("bestClearType").toString();
+              clearTypeCounts[entry.bestClearType]++;
               entry.bestClearTypeGuid =
                 obj.value("bestClearTypeGuid").toString();
               entry.bestComboBreaks = obj.value("bestComboBreaks").toInt();
@@ -262,8 +267,16 @@ OnlineRankingModel::fetch()
               entry.latestDate = obj.value("latestDate").toInteger();
               entry.latestDateGuid = obj.value("latestDateGuid").toString();
               entry.scoreCount = obj.value("scoreCount").toInt();
+              scoreCount += entry.scoreCount;
               newEntries.append(std::move(entry));
           }
+          auto map = QVariantMap{};
+          for (const auto& key : clearTypeCounts.keys()) {
+              map[key] = clearTypeCounts[key];
+          }
+          setClearCounts(std::move(map));
+          setScoreCount(scoreCount);
+          setPlayerCount(playerCount);
 
           beginResetModel();
           entries = std::move(newEntries);
@@ -274,57 +287,6 @@ OnlineRankingModel::fetch()
           spdlog::error("OnlineRankingModel fetch failed: {}",
                         err.toStdString());
           setLoading(false);
-      });
-
-    // Player/score counts
-    performJsonGet(
-      QString("charts/%1?fields=scoreCount,playerCount").arg(currentMd5),
-      [this](const QJsonDocument& doc) {
-          if (!doc.isObject()) {
-              spdlog::error(
-                "OnlineRankingModel count response is not a JSON object");
-              return;
-          }
-          const auto obj = doc.object();
-          setPlayerCount(obj.value("playerCount").toInt());
-          setScoreCount(obj.value("scoreCount").toInt());
-      },
-      [](const QString& err) {
-          spdlog::error("OnlineRankingModel count fetch failed: {}",
-                        err.toStdString());
-      });
-
-    // Clear-type summary request
-    auto clearTypesRequest =
-      QNetworkRequest(networkRequestFactory.createRequest());
-    performJsonGet(
-      QString("score-summaries?md5=%1&fields=bestClearType").arg(currentMd5),
-      [this](const QJsonDocument& doc) {
-          if (!doc.isArray()) {
-              spdlog::error(
-                "OnlineRankingModel clear types response is not a JSON array");
-              return;
-          }
-          auto clearTypeCounts = QHash<QString, int>{};
-          for (const auto& item : doc.array()) {
-              if (!item.isObject())
-                  continue;
-              const auto obj = item.toObject();
-              const auto clearType = obj.value("bestClearType").toString();
-              if (clearType.isEmpty()) {
-                  continue;
-              }
-              clearTypeCounts[clearType]++;
-          }
-          auto map = QVariantMap{};
-          for (const auto& key : clearTypeCounts.keys()) {
-              map[key] = clearTypeCounts[key];
-          }
-          setClearCounts(std::move(map));
-      },
-      [](const QString& err) {
-          spdlog::error("OnlineRankingModel clear types fetch failed: {}",
-                        err.toStdString());
       });
 }
 
