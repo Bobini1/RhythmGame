@@ -219,12 +219,15 @@ OnlineRankingModel::fetch()
     setPlayerCount(0);
     setScoreCount(0);
     setClearCounts({});
+    beginResetModel();
+    entries.clear();
+    emit rankingEntriesChanged();
+    endResetModel();
+    cancelPending();
     if (currentMd5.isEmpty() || !networkRequestFactory.baseUrl().isValid()) {
         setLoading(false);
         return;
     }
-
-    cancelPending();
     setLoading(true);
 
     performJsonGet(
@@ -280,6 +283,7 @@ OnlineRankingModel::fetch()
 
           beginResetModel();
           entries = std::move(newEntries);
+          emit rankingEntriesChanged();
           endResetModel();
           setLoading(false);
       },
@@ -303,9 +307,6 @@ OnlineRankingModel::setMd5(const QString& md5)
     }
     currentMd5 = md5;
     emit md5Changed();
-    beginResetModel();
-    entries.clear();
-    endResetModel();
     fetch();
 }
 
@@ -449,6 +450,11 @@ auto
 OnlineRankingModel::getPlayerCount() const -> int
 {
     return playerCount;
+}
+auto
+OnlineRankingModel::getRankingEntries() const -> const QList<RankingEntry>&
+{
+    return entries;
 }
 
 void

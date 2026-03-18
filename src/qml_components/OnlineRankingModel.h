@@ -15,7 +15,47 @@ class OnlineRankingModel : public QAbstractListModel
 {
     Q_OBJECT
     QML_ELEMENT
+  public:
+    struct RankingEntry
+    {
+        Q_GADGET
+        Q_PROPERTY(qint64 userId MEMBER userId CONSTANT)
+        Q_PROPERTY(QString userName MEMBER userName CONSTANT)
+        Q_PROPERTY(QString userImage MEMBER userImage CONSTANT)
+        Q_PROPERTY(double bestPoints MEMBER bestPoints CONSTANT)
+        Q_PROPERTY(double maxPoints MEMBER maxPoints CONSTANT)
+        Q_PROPERTY(int bestCombo MEMBER bestCombo CONSTANT)
+        Q_PROPERTY(int maxHits MEMBER maxHits CONSTANT)
+        Q_PROPERTY(QString bestClearType MEMBER bestClearType CONSTANT)
+        Q_PROPERTY(int bestComboBreaks MEMBER bestComboBreaks CONSTANT)
+        Q_PROPERTY(qint64 latestDate MEMBER latestDate CONSTANT)
+        Q_PROPERTY(QString bestPointsGuid MEMBER bestPointsGuid CONSTANT)
+        Q_PROPERTY(QString bestComboGuid MEMBER bestComboGuid CONSTANT)
+        Q_PROPERTY(
+          QString bestComboBreaksGuid MEMBER bestComboBreaksGuid CONSTANT)
+        Q_PROPERTY(QString bestClearTypeGuid MEMBER bestClearTypeGuid CONSTANT)
+        Q_PROPERTY(QString latestDateGuid MEMBER latestDateGuid CONSTANT)
+        Q_PROPERTY(qint64 scoreCount MEMBER scoreCount CONSTANT)
+      public:
+        qint64 userId;
+        QString userName;
+        QString userImage;
+        double bestPoints{};
+        double maxPoints{};
+        int bestCombo{};
+        int maxHits{};
+        QString bestClearType;
+        int bestComboBreaks{};
+        qint64 latestDate{};
+        QString bestPointsGuid;
+        QString bestComboGuid;
+        QString bestComboBreaksGuid;
+        QString bestClearTypeGuid;
+        QString latestDateGuid;
+        int scoreCount{};
+    };
 
+  private:
     Q_PROPERTY(
       QString md5 READ getMd5 WRITE setMd5 NOTIFY md5Changed RESET resetMd5)
     Q_PROPERTY(bool loading READ isLoading NOTIFY loadingChanged)
@@ -33,6 +73,8 @@ class OnlineRankingModel : public QAbstractListModel
     Q_PROPERTY(int playerCount READ getPlayerCount NOTIFY playerCountChanged)
     Q_PROPERTY(QString webApiUrl READ getWebApiUrl WRITE setWebApiUrl NOTIFY
                  webApiUrlChanged)
+    Q_PROPERTY(QList<RankingEntry> rankingEntries READ getRankingEntries NOTIFY
+                 rankingEntriesChanged)
 
   public:
     enum Roles
@@ -114,6 +156,7 @@ class OnlineRankingModel : public QAbstractListModel
     [[nodiscard]] auto getClearCounts() const -> QVariantMap;
     [[nodiscard]] auto getScoreCount() const -> int;
     [[nodiscard]] auto getPlayerCount() const -> int;
+    auto getRankingEntries() const -> const QList<RankingEntry>&;
 
     Q_INVOKABLE void cancelPending();
 
@@ -135,30 +178,11 @@ class OnlineRankingModel : public QAbstractListModel
     void scoreCountChanged();
     void playerCountChanged();
     void webApiUrlChanged();
+    void rankingEntriesChanged();
 
     void cancelPendingRequested();
 
   private:
-    struct RankingEntry
-    {
-        qint64 userId;
-        QString userName;
-        QString userImage;
-        double bestPoints{};
-        double maxPoints{};
-        int bestCombo{};
-        int maxHits{};
-        QString bestClearType;
-        int bestComboBreaks{};
-        qint64 latestDate{};
-        QString bestPointsGuid;
-        QString bestComboGuid;
-        QString bestComboBreaksGuid;
-        QString bestClearTypeGuid;
-        QString latestDateGuid;
-        int scoreCount{};
-    };
-
     void fetch();
     void setLoading(bool loading);
     void setPlayerCount(int count);
