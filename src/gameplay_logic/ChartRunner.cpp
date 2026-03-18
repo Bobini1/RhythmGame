@@ -425,7 +425,9 @@ Player::finish(const ChartData& chartData) -> BmsScore*
         }
         if (profilePtr->getLoginState() ==
               resource_managers::Profile::LoginState::LoggedIn &&
-            !score->getResult()->getGuid().isEmpty()) {
+            !score->getResult()->getGuid().isEmpty() &&
+            score->getSubmissionState() !=
+              BmsScore::SubmissionState::Submitted) {
             score->setSubmissionState(BmsScore::SubmissionState::Submitting);
             auto* submission = profilePtr->submitScore(*score, chartData);
             connect(submission,

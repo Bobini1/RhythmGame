@@ -531,7 +531,7 @@ ChartLoader::ChartLoader(ProfileList* profileList,
                          HitValueFactory hitValueFactory,
                          GaugeFactory gaugeFactory,
                          GaugeFactoryCourse gaugeFactoryCourse,
-                         GetChartPathFromMd5 getChartPathFromSha256,
+                         GetChartPathFromMd5 getChartPathFromMd5,
                          resource_managers::ChartFactory* chartFactory,
                          db::SqliteCppDb* db,
                          QObject* parent)
@@ -541,7 +541,7 @@ ChartLoader::ChartLoader(ProfileList* profileList,
   , hitValueFactory(std::move(hitValueFactory))
   , gaugeFactory(std::move(gaugeFactory))
   , gaugeFactoryCourse(std::move(gaugeFactoryCourse))
-  , getChartPathFromMd5(std::move(getChartPathFromSha256))
+  , getChartPathFromMd5(std::move(getChartPathFromMd5))
   , chartFactory(chartFactory)
   , profileList(profileList)
   , inputTranslator(inputTranslator)

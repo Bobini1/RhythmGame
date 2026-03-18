@@ -12,6 +12,7 @@
 #include "qml_components/SongFolderFactory.h"
 #include "qml_components/Themes.h"
 #include "input/InputTranslator.h"
+#include "qml_components/OnlineLinks.h"
 #include "sounds/AudioEngine.h"
 #include "resource_managers/Languages.h"
 #include "resource_managers/Tables.h"
@@ -54,9 +55,10 @@ class Rg final : public QObject
     Q_PROPERTY(
       resource_managers::Languages* languages MEMBER languages CONSTANT)
     Q_PROPERTY(sounds::AudioEngine* audioEngine MEMBER audioEngine CONSTANT)
-
     Q_PROPERTY(
       qml_components::OnlineScores* onlineScores MEMBER onlineScores CONSTANT)
+    Q_PROPERTY(
+      qml_components::OnlineLinks* onlineLinks MEMBER onlineLinks CONSTANT)
 
     qml_components::ProgramSettings* programSettings;
     input::InputTranslator* inputTranslator;
@@ -71,7 +73,8 @@ class Rg final : public QObject
     resource_managers::Tables* tables;
     resource_managers::Languages* languages;
     sounds::AudioEngine* audioEngine;
-    qml_components::OnlineScores* onlineScores{ nullptr };
+    qml_components::OnlineScores* onlineScores;
+    qml_components::OnlineLinks* onlineLinks;
 
   public:
     Rg(qml_components::ProgramSettings* programSettings,
@@ -88,9 +91,10 @@ class Rg final : public QObject
        resource_managers::Languages* languages,
        sounds::AudioEngine* audioEngine,
        qml_components::OnlineScores* onlineScores,
+       qml_components::OnlineLinks* onlineLinks,
        QObject* parent = nullptr);
     inline static Rg* instance = nullptr;
-    static Rg* create(QQmlEngine* qmlEngine, QJSEngine*);
+    static auto create(QQmlEngine* qmlEngine, QJSEngine*) -> Rg*;
 };
 
 #endif // RG_H

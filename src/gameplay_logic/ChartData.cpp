@@ -497,6 +497,7 @@ gameplay_logic::ChartData::toJson() const -> QJsonObject
         o["position"] = bpm.time.position;
         o["beatPosition"] = bpm.time.beatPosition;
         o["bpm"] = bpm.bpm;
+        o["scroll"] = bpm.scroll;
         bpmJson.append(o);
     }
     obj["bpmChanges"] = bpmJson;

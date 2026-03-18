@@ -13,11 +13,11 @@ class OnlineProfileInfo
     Q_GADGET
     Q_PROPERTY(QString username MEMBER username CONSTANT)
     Q_PROPERTY(QString avatarUrl MEMBER avatarUrl CONSTANT)
-    Q_PROPERTY(QString profileUrl MEMBER profileUrl CONSTANT)
+    Q_PROPERTY(QString userId MEMBER userId CONSTANT)
   public:
     QString username;
     QString avatarUrl;
-    QString profileUrl;
+    QString userId;
 };
 } // namespace qml_components
 

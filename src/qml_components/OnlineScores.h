@@ -13,32 +13,20 @@ class QNetworkAccessManager;
 
 namespace qml_components {
 
-class OnlineScoreQueryResult
-{
-    Q_GADGET
-    Q_PROPERTY(QList<gameplay_logic::BmsScore*> scores MEMBER scores CONSTANT)
-    Q_PROPERTY(OnlineProfileInfo profileInfo MEMBER profileInfo CONSTANT)
-  public:
-    QList<gameplay_logic::BmsScore*> scores;
-    OnlineProfileInfo profileInfo;
-};
-
 class OnlineScores : public QObject
 {
     Q_OBJECT
     QML_ELEMENT
   public:
     explicit OnlineScores(QNetworkAccessManager* manager,
-                          const QString& baseUrl,
                           QObject* parent = nullptr);
-
-    Q_INVOKABLE QIfPendingReply<QList<OnlineScoreQueryResult>> getScoresForMd5(
-      const QString& md5) const;
-    void setBaseUrl(const QString& baseUrl);
+    Q_INVOKABLE
+    QIfPendingReply<gameplay_logic::BmsScore*> getScoreByGuid(
+      const QString& webApiUrl,
+      const QString& guid) const;
 
   private:
     QNetworkAccessManager* networkManager;
-    mutable QNetworkRequestFactory networkRequestFactory;
     mutable QThreadPool threadPool;
 };
 

@@ -88,7 +88,7 @@ operator>>(QDataStream& stream, BpmChange& bpmChange) -> QDataStream&
 class Snap
 {
     Q_GADGET
-    /*
+    /**
      * @brief The position of the note in a measure, expressed in whole notes.
      */
     Q_PROPERTY(double numerator MEMBER numerator)

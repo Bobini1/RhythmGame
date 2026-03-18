@@ -18,7 +18,7 @@ class BmsScore final : public QObject
   public:
     enum class SubmissionState
     {
-        NotSubmitting,
+        NotSubmitted,
         Submitting,
         Submitted,
         Failed,
@@ -47,7 +47,7 @@ class BmsScore final : public QObject
     BmsResult* result;
     BmsReplayData* replayData;
     BmsGaugeHistory* gaugeHistory;
-    SubmissionState submissionState{ SubmissionState::NotSubmitting };
+    SubmissionState submissionState{ SubmissionState::NotSubmitted };
 
   public:
     explicit BmsScore(std::unique_ptr<BmsResult> result,

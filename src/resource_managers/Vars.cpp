@@ -499,7 +499,7 @@ resource_managers::GeneralVars::resetTargetScoreFraction()
 auto
 resource_managers::GeneralVars::getWebApiUrl() const -> QString
 {
-    return websiteBaseUrl + "/api";
+    return websiteBaseUrl + "/api/";
 }
 auto
 resource_managers::GeneralVars::getWebsiteBaseUrl() const -> QString

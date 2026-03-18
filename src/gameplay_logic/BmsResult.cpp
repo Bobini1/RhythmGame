@@ -136,7 +136,7 @@ gameplay_logic::BmsResult::save(db::SqliteCppDb& db) const
                          "random_seed,"
                          "note_order_algorithm,"
                          "note_order_algorithm_p2,"
-                         "dp_options, "
+                         "dp_options,"
                          "game_version,"
                          "owner"
                          ")"

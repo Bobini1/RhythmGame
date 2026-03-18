@@ -37,6 +37,7 @@
 #include "support/PathToUtfString.h"
 #include "support/UtfStringToPath.h"
 #include "gameplay_logic/CourseRunner.h"
+#include "qml_components/OnlineLinks.h"
 #include "qml_components/OnlineRankingModel.h"
 #include "qml_components/ScoreReplayer.h"
 #include "sounds/AudioEngine.h"
@@ -253,8 +254,8 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
               return gaugeFactoryGeneral.getCourseGauges(profile,
                                                          initialValues);
           };
-        auto getChartPathFromSha256 = [&db](const QString& md5,
-                                            const std::filesystem::path& hint) {
+        auto getChartPathFromMd5 = [&db](const QString& md5,
+                                         const std::filesystem::path& hint) {
             // Check if the hint path exists and matches the hash
             if (!hint.empty()) {
                 auto hintStatement =
@@ -282,7 +283,7 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
             &gameplay_logic::rules::lr2_hit_values::getLr2HitValue,
             gaugeFactory,
             gaugeFactoryCourse,
-            getChartPathFromSha256,
+            getChartPathFromMd5,
             &chartFactory,
             &db
         };
@@ -305,27 +306,14 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
                                                  dataFolder / "tables",
                                                  &db };
 
-        auto onlineScores =
-          qml_components::OnlineScores{ &networkManager,
-                                        profileList.getMainProfile()
-                                          ->getVars()
-                                          ->getGeneralVars()
-                                          ->getWebApiUrl() };
-        auto updateBaseUrl = [&onlineScores, &profileList]() {
-            onlineScores.setBaseUrl(profileList.getMainProfile()
-                                      ->getVars()
-                                      ->getGeneralVars()
-                                      ->getWebApiUrl());
-        };
-        QObject::connect(&profileList,
-                         &qml_components::ProfileList::mainProfileChanged,
-                         &onlineScores,
-                         updateBaseUrl);
+        auto onlineScores = qml_components::OnlineScores{ &networkManager };
 
         auto engine = QQmlApplicationEngine{};
 
         auto languages =
           resource_managers::Languages{ availableThemes, &engine };
+
+        auto onlineLinks = qml_components::OnlineLinks{};
 
         auto rg = Rg{ &programSettings,
                       &inputTranslator,
@@ -340,7 +328,8 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
                       &tables,
                       &languages,
                       &audioEngine,
-                      &onlineScores };
+                      &onlineScores,
+                      &onlineLinks };
 
         Rg::instance = &rg;
 
@@ -404,8 +393,6 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
           "RhythmGameQml", 1, 0, "AnalogAxisConfig");
         qmlRegisterType<input::InputTranslator>(
           "RhythmGameQml", 1, 0, "InputTranslator");
-        qmlRegisterType<qml_components::OnlineScoreQueryResult>(
-          "RhythmGameQml", 1, 0, "onlineScoreQueryResult");
         qmlRegisterType<qml_components::OnlineProfileInfo>(
           "RhythmGameQml", 1, 0, "onlineProfileInfo");
         qmlRegisterUncreatableMetaObject(

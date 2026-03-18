@@ -6,6 +6,8 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QUrlQuery>
+#include <QUrl>
+#include <QRegularExpression>
 #include <magic_enum/magic_enum.hpp>
 #include <spdlog/spdlog.h>
 #include <functional>
@@ -57,18 +59,27 @@ OnlineRankingModel::performJsonGet(
 OnlineRankingModel::OnlineRankingModel(QObject* parent)
   : QAbstractListModel(parent)
 {
-    networkRequestFactory.setBaseUrl(profileList->getMainProfile()
-                                       ->getVars()
-                                       ->getGeneralVars()
-                                       ->getWebApiUrl());
-    connect(profileList, &ProfileList::mainProfileChanged, this, [this]() {
+    auto onWebApiUrlChanged = [this] {
         networkRequestFactory.setBaseUrl(profileList->getMainProfile()
                                            ->getVars()
                                            ->getGeneralVars()
                                            ->getWebApiUrl());
-        cancelPending();
-        fetch();
-    });
+    };
+
+    auto onProfileChanged = [this,
+                             onWebApiUrlChanged,
+                             connection = QMetaObject::Connection{}]() mutable {
+        disconnect(connection);
+        connection =
+          connect(profileList->getMainProfile()->getVars()->getGeneralVars(),
+                  &resource_managers::GeneralVars::websiteBaseUrlChanged,
+                  this,
+                  onWebApiUrlChanged);
+        onWebApiUrlChanged();
+    };
+    connect(
+      profileList, &ProfileList::mainProfileChanged, this, onProfileChanged);
+    onProfileChanged();
 }
 
 auto
@@ -95,18 +106,28 @@ OnlineRankingModel::data(const QModelIndex& index, int role) const -> QVariant
             return e.userImage;
         case BestPointsRole:
             return e.bestPoints;
+        case BestPointsGuidRole:
+            return e.bestPointsGuid;
         case MaxPointsRole:
             return e.maxPoints;
         case BestComboRole:
             return e.bestCombo;
+        case BestComboGuidRole:
+            return e.bestComboGuid;
         case MaxHitsRole:
             return e.maxHits;
         case BestClearTypeRole:
             return e.bestClearType;
+        case BestClearTypeGuidRole:
+            return e.bestClearTypeGuid;
         case BestComboBreaksRole:
             return e.bestComboBreaks;
+        case BestComboBreaksGuidRole:
+            return e.bestComboBreaksGuid;
         case LatestDateRole:
             return QVariant::fromValue(e.latestDate);
+        case LatestDateGuidRole:
+            return e.latestDateGuid;
         case ScoreCountRole:
             return e.scoreCount;
         case RankRole:
@@ -127,6 +148,11 @@ OnlineRankingModel::roleNames() const -> QHash<int, QByteArray>
         { MaxPointsRole, "maxPoints" },
         { BestComboRole, "bestCombo" },
         { MaxHitsRole, "maxHits" },
+        { BestPointsGuidRole, "bestPointsGuid" },
+        { BestComboGuidRole, "bestComboGuid" },
+        { BestComboBreaksGuidRole, "bestComboBreaksGuid" },
+        { BestClearTypeGuidRole, "bestClearTypeGuid" },
+        { LatestDateGuidRole, "latestDateGuid" },
         { BestClearTypeRole, "bestClearType" },
         { BestComboBreaksRole, "bestComboBreaks" },
         { LatestDateRole, "latestDate" },
@@ -193,7 +219,7 @@ OnlineRankingModel::fetch()
     setPlayerCount(0);
     setScoreCount(0);
     setClearCounts({});
-    if (currentMd5.isEmpty()) {
+    if (currentMd5.isEmpty() || !networkRequestFactory.baseUrl().isValid()) {
         setLoading(false);
         return;
     }
@@ -223,11 +249,18 @@ OnlineRankingModel::fetch()
               entry.userImage = user.value("image").toString();
               entry.bestPoints = obj.value("bestPoints").toDouble();
               entry.maxPoints = obj.value("maxPoints").toDouble();
+              entry.bestPointsGuid = obj.value("bestPointsGuid").toString();
               entry.bestCombo = obj.value("bestCombo").toInt();
               entry.maxHits = obj.value("maxHits").toInt();
+              entry.bestComboGuid = obj.value("bestComboGuid").toString();
               entry.bestClearType = obj.value("bestClearType").toString();
+              entry.bestClearTypeGuid =
+                obj.value("bestClearTypeGuid").toString();
               entry.bestComboBreaks = obj.value("bestComboBreaks").toInt();
+              entry.bestComboBreaksGuid =
+                obj.value("bestComboBreaksGuid").toString();
               entry.latestDate = obj.value("latestDate").toInteger();
+              entry.latestDateGuid = obj.value("latestDateGuid").toString();
               entry.scoreCount = obj.value("scoreCount").toInt();
               newEntries.append(std::move(entry));
           }
@@ -328,32 +361,36 @@ OnlineRankingModel::isLoading() const -> bool
 void
 OnlineRankingModel::setLoading(bool loading)
 {
-    if (currentlyLoading == loading)
+    if (currentlyLoading == loading) {
         return;
+    }
     currentlyLoading = loading;
     emit loadingChanged();
 }
 void
 OnlineRankingModel::setPlayerCount(int count)
 {
-    if (playerCount == count)
+    if (playerCount == count) {
         return;
+    }
     playerCount = count;
     emit playerCountChanged();
 }
 void
 OnlineRankingModel::setScoreCount(int count)
 {
-    if (scoreCount == count)
+    if (scoreCount == count) {
         return;
+    }
     scoreCount = count;
     emit scoreCountChanged();
 }
 void
 OnlineRankingModel::setClearCounts(QVariantMap counts)
 {
-    if (clearCounts == counts)
+    if (clearCounts == counts) {
         return;
+    }
     clearCounts = std::move(counts);
     emit clearCountsChanged();
 }
@@ -366,8 +403,9 @@ OnlineRankingModel::getLimit() const -> int
 void
 OnlineRankingModel::setLimit(int limit)
 {
-    if (currentLimit == limit)
+    if (currentLimit == limit) {
         return;
+    }
     currentLimit = limit;
     emit limitChanged();
     fetch();
@@ -381,8 +419,9 @@ OnlineRankingModel::getOffset() const -> int
 void
 OnlineRankingModel::setOffset(int offset)
 {
-    if (currentOffset == offset)
+    if (currentOffset == offset) {
         return;
+    }
     currentOffset = offset;
     emit offsetChanged();
     fetch();
@@ -396,8 +435,9 @@ OnlineRankingModel::getSortBy() const -> SortableColumn
 void
 OnlineRankingModel::setSortBy(SortableColumn sortBy)
 {
-    if (currentSortBy == sortBy)
+    if (currentSortBy == sortBy) {
         return;
+    }
     currentSortBy = sortBy;
     emit sortByChanged();
     fetch();
@@ -411,8 +451,9 @@ OnlineRankingModel::getSortDir() const -> SortDirection
 void
 OnlineRankingModel::setSortDir(SortDirection sortDir)
 {
-    if (currentSortDir == sortDir)
+    if (currentSortDir == sortDir) {
         return;
+    }
     currentSortDir = sortDir;
     emit sortDirChanged();
     fetch();
@@ -456,9 +497,20 @@ OnlineRankingModel::cancelPending()
 }
 
 void
-OnlineRankingModel::setBaseUrl(const QString& baseUrl)
+OnlineRankingModel::setWebApiUrl(const QString& baseUrl)
 {
+    if (networkRequestFactory.baseUrl() == baseUrl) {
+        return;
+    }
     networkRequestFactory.setBaseUrl(baseUrl);
+    cancelPending();
+    fetch();
+    emit webApiUrlChanged();
+}
+auto
+OnlineRankingModel::getWebApiUrl() const -> QString
+{
+    return networkRequestFactory.baseUrl().toString();
 }
 
 } // namespace qml_components

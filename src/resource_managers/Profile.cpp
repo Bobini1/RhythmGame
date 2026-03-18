@@ -463,6 +463,7 @@ Profile::uploadScores() -> qml_components::ScoreSyncOperation*
                                   "score.note_order_algorithm, "
                                   "score.note_order_algorithm_p2, "
                                   "score.dp_options, score.game_version, "
+                                  "score.owner, "
                                   "replay_data.*, gauge_history.* ";
 
                                 auto stmtStr =
@@ -518,8 +519,8 @@ Profile::uploadScores() -> qml_components::ScoreSyncOperation*
                                       "charts.stage_file, charts.banner, "
                                       "charts.back_bmp, charts.rank, "
                                       "charts.total, charts.play_level, "
-                                      "charts.difficulty, charts.is_random,"
-                                      " charts.random_sequence, "
+                                      "charts.difficulty, charts.is_random, "
+                                      "charts.random_sequence, "
                                       "charts.normal_note_count, "
                                       "charts.scratch_count, "
                                       "charts.ln_count, charts.bss_count, "

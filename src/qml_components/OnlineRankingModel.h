@@ -27,10 +27,12 @@ class OnlineRankingModel : public QAbstractListModel
                  sortDirChanged)
     Q_PROPERTY(
       QString search READ getSearch WRITE setSearch NOTIFY searchChanged)
-    Q_PROPERTY(QVariantMap clearCounts READ getClearCounts NOTIFY
-                 clearCountsChanged)
+    Q_PROPERTY(
+      QVariantMap clearCounts READ getClearCounts NOTIFY clearCountsChanged)
     Q_PROPERTY(int scoreCount READ getScoreCount NOTIFY scoreCountChanged)
     Q_PROPERTY(int playerCount READ getPlayerCount NOTIFY playerCountChanged)
+    Q_PROPERTY(QString webApiUrl READ getWebApiUrl WRITE setWebApiUrl NOTIFY
+                 webApiUrlChanged)
 
   public:
     enum Roles
@@ -42,6 +44,11 @@ class OnlineRankingModel : public QAbstractListModel
         MaxPointsRole,
         BestComboRole,
         MaxHitsRole,
+        BestPointsGuidRole,
+        BestComboGuidRole,
+        BestComboBreaksGuidRole,
+        BestClearTypeGuidRole,
+        LatestDateGuidRole,
         BestClearTypeRole,
         BestComboBreaksRole,
         LatestDateRole,
@@ -110,7 +117,8 @@ class OnlineRankingModel : public QAbstractListModel
 
     Q_INVOKABLE void cancelPending();
 
-    void setBaseUrl(const QString& baseUrl);
+    void setWebApiUrl(const QString& baseUrl);
+    auto getWebApiUrl() const -> QString;
 
     inline static QNetworkAccessManager* networkManager = nullptr;
     inline static ProfileList* profileList = nullptr;
@@ -126,6 +134,7 @@ class OnlineRankingModel : public QAbstractListModel
     void clearCountsChanged();
     void scoreCountChanged();
     void playerCountChanged();
+    void webApiUrlChanged();
 
     void cancelPendingRequested();
 
@@ -142,6 +151,11 @@ class OnlineRankingModel : public QAbstractListModel
         QString bestClearType;
         int bestComboBreaks{};
         qint64 latestDate{};
+        QString bestPointsGuid;
+        QString bestComboGuid;
+        QString bestComboBreaksGuid;
+        QString bestClearTypeGuid;
+        QString latestDateGuid;
         int scoreCount{};
     };
 
@@ -151,10 +165,9 @@ class OnlineRankingModel : public QAbstractListModel
     void setScoreCount(int count);
     void setClearCounts(QVariantMap counts);
     [[nodiscard]] auto buildUrl() const -> QUrl;
-    void performJsonGet(
-      const QString& url,
-      std::function<void(const QJsonDocument&)> onSuccess,
-        std::function<void(const QString&)> onError);
+    void performJsonGet(const QString& url,
+                        std::function<void(const QJsonDocument&)> onSuccess,
+                        std::function<void(const QString&)> onError);
 
     QNetworkRequestFactory networkRequestFactory;
 

@@ -7,8 +7,10 @@ Image {
     id: ranking
 
     required property var md5
+    required property var path
     visible: !!md5
     property int page: 0
+    property var profile: Rg.profileList.mainProfile
 
     OnlineRankingModel {
         id: rankingModel
@@ -186,6 +188,8 @@ Image {
                     required property var bestClearType
                     required property var bestPoints
                     required property var maxPoints
+                    required property var userId
+                    required property var bestClearTypeGuid
                     anchors.left: parent.left
                     anchors.right: parent.right
                     height: rankImage.height
@@ -202,14 +206,41 @@ Image {
                         anchors.baseline: parent.bottom
                         anchors.baselineOffset: -1
                         fontSizeMode: Text.VerticalFit
-                        onLinkActivated: Qt.openUrlExternally(link)
                         width: 132
+                        MouseArea {
+                            anchors.fill: parent
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: Qt.openUrlExternally(
+                                Rg.onlineLinks.scoresByUserOnChart(
+                                    ranking.profile.vars.generalVars.websiteBaseUrl,
+                                    ranking.md5,
+                                    rankingEntry.userId))
+                        }
                     }
                     Image {
                         id: clearTypeImage
                         source: root.iniImagesUrl + "parts.png/ranking_" + rankingEntry.bestClearType
+                        property bool loading: false
+                        opacity: loading ? 0.5 : 1
                         anchors.bottom: rankImage.bottom
                         anchors.bottomMargin: -1
+                        MouseArea {
+                            anchors.fill: parent
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: {
+                                clearTypeImage.loading = true;
+                                Rg.onlineScores.getScoreByGuid(
+                                    ranking.profile.vars.generalVars.webApiUrl,
+                                    rankingEntry.bestClearTypeGuid).then(
+                                    (score) => {
+                                        clearTypeImage.loading = false;
+                                        globalRoot.openChart(ranking.path, Rg.profileList.mainProfile, false, score, null, false, null);
+                                    },
+                                    () => {
+                                        clearTypeImage.loading = false;
+                                    });
+                            }
+                        }
                     }
                     Text {
                         id: pointsText
