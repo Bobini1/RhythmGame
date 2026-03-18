@@ -185,10 +185,10 @@ Image {
                     spacing: 10
                     required property int rank
                     required property var userName
+                    required property var userId
                     required property var bestClearType
                     required property var bestPoints
                     required property var maxPoints
-                    required property var userId
                     required property var bestClearTypeGuid
                     required property var bestPointsGuid
                     anchors.left: parent.left
@@ -214,8 +214,8 @@ Image {
                             onClicked: Qt.openUrlExternally(
                                 Rg.onlineLinks.scoresByUserOnChart(
                                     ranking.profile.vars.generalVars.websiteBaseUrl,
-                                    ranking.md5,
-                                    rankingEntry.userId))
+                                    rankingEntry.userId,
+                                    ranking.md5))
                         }
                     }
                     Image {
@@ -258,6 +258,7 @@ Image {
                         opacity: loading ? 0.5 : 1
                         MouseArea {
                             anchors.fill: parent
+                            anchors.leftMargin: pointsText.width - pointsText.implicitWidth
                             cursorShape: Qt.PointingHandCursor
                             onClicked: {
                                 pointsText.loading = true;

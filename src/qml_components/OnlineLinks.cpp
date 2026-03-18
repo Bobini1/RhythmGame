@@ -24,6 +24,6 @@ QString
 OnlineLinks::scoresByUserOnChart(QString websiteUrl, int profileId, QString md5)
 {
     return websiteUrl + "/chart/" + md5 + "/players/" +
-           QString::number(profileId);
+           QString::number(profileId) + "/scores";
 }
 } // namespace qml_components
