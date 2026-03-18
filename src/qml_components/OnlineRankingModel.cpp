@@ -7,8 +7,6 @@
 #include <QJsonObject>
 #include <QUrlQuery>
 #include <QUrl>
-#include <QRegularExpression>
-#include <magic_enum/magic_enum.hpp>
 #include <spdlog/spdlog.h>
 #include <functional>
 
