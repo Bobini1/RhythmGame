@@ -191,7 +191,7 @@ class OnlineRankingModel : public QAbstractListModel
 
     QString currentMd5;
     bool currentlyLoading{ false };
-    int currentLimit{ 10 };
+    int currentLimit{ 0 };
     int currentOffset{ 0 };
     SortableColumn currentSortBy{ SortableColumn::None };
     SortDirection currentSortDir{ SortDirection::Desc };

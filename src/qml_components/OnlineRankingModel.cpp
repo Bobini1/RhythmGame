@@ -85,8 +85,10 @@ OnlineRankingModel::rowCount(const QModelIndex& parent) const -> int
 {
     if (parent.isValid())
         return 0;
-    return std::clamp(
-      static_cast<int>(entries.size()) - currentOffset, 0, currentLimit);
+    return std::clamp(static_cast<int>(entries.size()) - currentOffset,
+                      0,
+                      currentLimit ? currentLimit
+                                   : std::numeric_limits<int>::max());
 }
 
 auto
