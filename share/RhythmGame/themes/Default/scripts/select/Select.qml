@@ -153,6 +153,7 @@ FocusScope {
                     source: root.iniImagesUrl + "parts.png/slider"
                 }
                 Binding {
+                    delayed: true
                     vbar.position: {
                         let pos = 1 - (songList.offset / songList.count);
                         // some trickery to get the scrollbar to appear at the top at the beginning
