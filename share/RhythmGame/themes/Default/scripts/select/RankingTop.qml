@@ -6,8 +6,9 @@ Column {
     spacing: 6
     property alias rankingModel: rankingRepeater.model
     property var profile
-    property var md5
-    property var path
+    property var chartData
+    readonly property var md5: chartData.md5
+    readonly property var path: chartData.path
 
     Repeater {
         id: rankingRepeater
@@ -44,12 +45,24 @@ Column {
                     anchors.fill: parent
                     anchors.rightMargin: userNameText.width - userNameText.implicitWidth
                     cursorShape: Qt.PointingHandCursor
+                    acceptedButtons: Qt.LeftButton | Qt.RightButton | Qt.MiddleButton
                     onClicked: Qt.openUrlExternally(
                         Rg.onlineLinks.scoresByUserOnChart(
                             ranking.profile.vars.generalVars.websiteBaseUrl,
                             rankingEntry.userId,
-                            ranking.md5))
+                            ranking.chartData.md5))
                 }
+            }
+            function onScoreLoaded(event, score) {
+                let replay = true;
+                if (event.button === Qt.RightButton) {
+                    globalRoot.openResult([score], [Rg.profileList.mainProfile], ranking.chartData);
+                    return;
+                }
+                if (event.button === Qt.MiddleButton) {
+                    replay = false;
+                }
+                globalRoot.openChart(ranking.path, Rg.profileList.mainProfile, false, replay, score, null, false, false, null);
             }
             Image {
                 id: clearTypeImage
@@ -61,14 +74,15 @@ Column {
                 MouseArea {
                     anchors.fill: parent
                     cursorShape: Qt.PointingHandCursor
-                    onClicked: {
+                    acceptedButtons: Qt.LeftButton | Qt.RightButton | Qt.MiddleButton
+                    onClicked: (event) => {
                         clearTypeImage.loading = true;
                         Rg.onlineScores.getScoreByGuid(
                             ranking.profile.vars.generalVars.webApiUrl,
                             rankingEntry.bestClearTypeGuid).then(
                                 (score) => {
                                 clearTypeImage.loading = false;
-                                globalRoot.openChart(ranking.path, Rg.profileList.mainProfile, false, true, score, null, false, false, null);
+                                onScoreLoaded(event, score);
                             },
                                 () => {
                                 clearTypeImage.loading = false;
@@ -76,6 +90,7 @@ Column {
                     }
                 }
             }
+
             Text {
                 id: pointsText
                 text: rankingEntry.bestPoints
@@ -93,16 +108,16 @@ Column {
                     anchors.fill: parent
                     anchors.leftMargin: pointsText.width - pointsText.implicitWidth
                     cursorShape: Qt.PointingHandCursor
-                    onClicked: {
+                    onClicked: (event) => {
                         pointsText.loading = true;
                         Rg.onlineScores.getScoreByGuid(
                             ranking.profile.vars.generalVars.webApiUrl,
                             rankingEntry.bestPointsGuid).then(
-                                (score) => {
+                            (score) => {
                                 pointsText.loading = false;
-                                globalRoot.openChart(ranking.path, Rg.profileList.mainProfile, false, true, score, null, false, false, null);
+                                onScoreLoaded(event, score);
                             },
-                                () => {
+                            () => {
                                 pointsText.loading = false;
                             });
                     }

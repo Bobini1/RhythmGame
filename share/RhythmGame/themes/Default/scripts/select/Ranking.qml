@@ -6,8 +6,8 @@ import QtQuick.Controls
 Image {
     id: ranking
 
-    required property var md5
-    required property var path
+    required property var chartData
+    readonly property var md5: chartData.md5
     visible: !!md5
     property int page: 0
     property var profile: Rg.profileList.mainProfile
@@ -72,24 +72,32 @@ Image {
         visible: running
     }
 
-    RankingTop {
-        visible: !!ranking.md5 && !onlineRankingModel.loading && ranking.page === 0
+    Loader {
         anchors.fill: parent
-        anchors.margins: 28
-        anchors.topMargin: 54
-        rankingModel: onlineRankingModel
-        profile: ranking.profile
-        md5: ranking.md5
-        path: ranking.path
+        sourceComponent: rankingPages
+        active: !!ranking.md5 && !onlineRankingModel.loading
     }
+    Component {
+        id: rankingPages
+        Item {
+            RankingTop {
+                visible: ranking.page === 0
+                anchors.fill: parent
+                anchors.margins: 28
+                anchors.topMargin: 54
+                rankingModel: onlineRankingModel
+                profile: ranking.profile
+                chartData: ranking.chartData
+            }
 
-    RankingStats {
-        visible: !!ranking.md5 && !onlineRankingModel.loading && ranking.page === 1
-        anchors.fill: parent
-        anchors.margins: 28
-        anchors.topMargin: 54
-        clearCounts: onlineRankingModel.clearCounts
-        playerCount: onlineRankingModel.playerCount
+            RankingStats {
+                visible: ranking.page === 1
+                anchors.fill: parent
+                anchors.margins: 28
+                anchors.topMargin: 54
+                clearCounts: onlineRankingModel.clearCounts
+                playerCount: onlineRankingModel.playerCount
+            }
+        }
     }
-
 }

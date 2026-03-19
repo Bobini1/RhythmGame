@@ -349,8 +349,7 @@ FocusScope {
             }
             Ranking {
                 id: ranking
-                md5: songList.current.md5
-                path: songList.current.path
+                chartData: songList.current
                 anchors.left: search.right
                 anchors.leftMargin: -9
                 anchors.bottom: search.top
