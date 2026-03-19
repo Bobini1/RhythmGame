@@ -312,6 +312,29 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
 
         auto languages =
           resource_managers::Languages{ availableThemes, &engine };
+        auto setLang = [&profileList,
+                        &languages,
+                        connection = QMetaObject::Connection{}]() mutable {
+            languages.setSelectedLanguage(profileList.getMainProfile()
+                                            ->getVars()
+                                            ->getGeneralVars()
+                                            ->getLanguage());
+            QObject::disconnect(connection);
+            connection = QObject::connect(
+              profileList.getMainProfile()->getVars()->getGeneralVars(),
+              &resource_managers::GeneralVars::languageChanged,
+              &languages,
+              [mainProfileVars =
+                 profileList.getMainProfile()->getVars()->getGeneralVars(),
+               &languages]() {
+                  languages.setSelectedLanguage(mainProfileVars->getLanguage());
+              });
+        };
+        QObject::connect(&profileList,
+                         &qml_components::ProfileList::mainProfileChanged,
+                         &languages,
+                         setLang);
+        setLang();
 
         auto onlineLinks = qml_components::OnlineLinks{};
 
