@@ -45,12 +45,12 @@
 <context>
     <name>ChartInfo</name>
     <message>
-        <location filename="../scripts/result/ChartInfo.qml" line="38"/>
+        <location filename="../scripts/result/ChartInfo.qml" line="71"/>
         <source>TOTAL</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/result/ChartInfo.qml" line="65"/>
+        <location filename="../scripts/result/ChartInfo.qml" line="46"/>
         <source>NOTES</source>
         <translation type="unfinished"></translation>
     </message>
@@ -393,7 +393,17 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/select/KeymodeButton.qml" line="56"/>
+        <location filename="../scripts/select/KeymodeButton.qml" line="57"/>
+        <source>SINGLE</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/select/KeymodeButton.qml" line="60"/>
+        <source>DOUBLE</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/select/KeymodeButton.qml" line="62"/>
         <source>%1 keys</source>
         <translation type="unfinished"></translation>
     </message>
@@ -441,6 +451,19 @@
     <message>
         <location filename="../scripts/main/Main.qml" line="141"/>
         <source>Quit</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>MeanSd</name>
+    <message>
+        <location filename="../scripts/result/MeanSd.qml" line="25"/>
+        <source>MEAN</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/result/MeanSd.qml" line="54"/>
+        <source>SD</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -637,55 +660,103 @@
 <context>
     <name>PlayerSettings</name>
     <message>
-        <location filename="../scripts/settings/PlayerSettings.qml" line="29"/>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="31"/>
         <source>Delete %1?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/PlayerSettings.qml" line="54"/>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="56"/>
         <source>Select Profile</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/PlayerSettings.qml" line="103"/>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="106"/>
         <source>Scores: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/PlayerSettings.qml" line="108"/>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="111"/>
         <source>Remove</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/PlayerSettings.qml" line="127"/>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="130"/>
         <source>Add profile</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/PlayerSettings.qml" line="146"/>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="149"/>
         <source>Edit Profile</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="226"/>
+        <source>Online Login</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="243"/>
+        <source>Logged in as %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="248"/>
+        <source>Logout</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="260"/>
+        <source>Sync scores</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="285"/>
+        <source>Email</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="291"/>
+        <source>Password</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="297"/>
+        <source>Login</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>Ranking</name>
+    <message>
+        <location filename="../scripts/select/Ranking.qml" line="51"/>
+        <source>Ranking</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/select/Ranking.qml" line="63"/>
+        <source>Stats</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
     <name>ReplayAutoplay</name>
     <message>
-        <location filename="../scripts/select/ReplayAutoplay.qml" line="45"/>
+        <location filename="../scripts/select/ReplayAutoplay.qml" line="46"/>
         <source>NEWEST</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/select/ReplayAutoplay.qml" line="47"/>
+        <location filename="../scripts/select/ReplayAutoplay.qml" line="48"/>
         <source>BEST SCORE</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/select/ReplayAutoplay.qml" line="49"/>
+        <location filename="../scripts/select/ReplayAutoplay.qml" line="50"/>
         <source>BEST CLEAR</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/select/ReplayAutoplay.qml" line="51"/>
+        <location filename="../scripts/select/ReplayAutoplay.qml" line="52"/>
         <source>BEST COMBO</source>
         <translation type="unfinished"></translation>
     </message>
@@ -789,6 +860,14 @@
     <message>
         <location filename="../scripts/settings/ScreenSettings.qml" line="39"/>
         <source>%1 Settings</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>Select</name>
+    <message>
+        <location filename="../scripts/select/Select.qml" line="322"/>
+        <source>Score Details</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -942,41 +1021,56 @@
     <name>ThemeSettings</name>
     <message>
         <location filename="../scripts/settings/ThemeSettings.qml" line="43"/>
-        <source>7k</source>
+        <source>5k</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../scripts/settings/ThemeSettings.qml" line="44"/>
-        <source>7k Battle</source>
+        <source>5k Battle</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../scripts/settings/ThemeSettings.qml" line="45"/>
-        <source>14k</source>
+        <source>10k</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../scripts/settings/ThemeSettings.qml" line="46"/>
-        <source>Main Menu</source>
+        <source>7k</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../scripts/settings/ThemeSettings.qml" line="47"/>
-        <source>Settings</source>
+        <source>7k Battle</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../scripts/settings/ThemeSettings.qml" line="48"/>
-        <source>Select</source>
+        <source>14k</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../scripts/settings/ThemeSettings.qml" line="49"/>
-        <source>Result</source>
+        <source>Main Menu</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../scripts/settings/ThemeSettings.qml" line="50"/>
+        <source>Settings</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/ThemeSettings.qml" line="51"/>
+        <source>Select</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/ThemeSettings.qml" line="52"/>
+        <source>Result</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/ThemeSettings.qml" line="53"/>
         <source>Course Result</source>
         <translation type="unfinished"></translation>
     </message>
