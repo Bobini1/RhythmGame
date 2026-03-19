@@ -61,6 +61,7 @@ class ChartFactory
         NoteOrderAlgorithm noteOrderAlgorithm;
         NoteOrderAlgorithm noteOrderAlgorithmP2;
         DpOptions dpOptions = DpOptions::Off;
+        uint64_t randomSeed;
         bool autoPlay = false;
     };
     ChartFactory(sounds::AudioEngine* engine,

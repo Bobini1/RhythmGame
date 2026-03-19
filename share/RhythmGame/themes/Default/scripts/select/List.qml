@@ -143,17 +143,17 @@ PathView {
         if (item instanceof ChartData) {
             console.info("Opening chart " + item.path);
             if (Rg.profileList.battleActive) {
-                globalRoot.openChart(item.path, Rg.profileList.battleProfiles.player1Profile, false, null, Rg.profileList.battleProfiles.player2Profile, false, null);
+                globalRoot.openChart(item.path, Rg.profileList.battleProfiles.player1Profile, false, false, null, Rg.profileList.battleProfiles.player2Profile, false, false, null);
             } else {
-                globalRoot.openChart(item.path, Rg.profileList.mainProfile, false, null, null, false, null);
+                globalRoot.openChart(item.path, Rg.profileList.mainProfile, false, false, null, null, false, false, null);
             }
             return;
         }
         if (item instanceof course) {
             if (Rg.profileList.battleActive) {
-                globalRoot.openCourse(item, Rg.profileList.battleProfiles.player1Profile, false, null, Rg.profileList.battleProfiles.player2Profile, false, null);
+                globalRoot.openCourse(item, Rg.profileList.battleProfiles.player1Profile, false, false, null, Rg.profileList.battleProfiles.player2Profile, false, false, null);
             } else {
-                globalRoot.openCourse(item, Rg.profileList.mainProfile, false, null, null, false, null);
+                globalRoot.openCourse(item, Rg.profileList.mainProfile, false, false, null, null, false, false, null);
             }
             return;
         }
@@ -416,7 +416,7 @@ PathView {
     }
     Input.onCol13Pressed: {
         if (current instanceof ChartData) {
-            globalRoot.openChart(songList.current.path, Rg.profileList.mainProfile, true, null, null, false, null);
+            globalRoot.openChart(songList.current.path, Rg.profileList.mainProfile, true, false, null, null, false, false, null);
         } else {
             goForward(current);
         }
@@ -444,7 +444,7 @@ PathView {
     }
     Input.onCol23Pressed: {
         if (current instanceof ChartData) {
-            globalRoot.openChart(songList.current.path, Rg.profileList.mainProfile, true, null, null, false, null);
+            globalRoot.openChart(songList.current.path, Rg.profileList.mainProfile, true, false, null, null, false, false, null);
         } else {
             goForward(current);
         }

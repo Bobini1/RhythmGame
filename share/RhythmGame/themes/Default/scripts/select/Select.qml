@@ -19,10 +19,10 @@ FocusScope {
             let func = songList.current instanceof course ? globalRoot.openCourse : globalRoot.openChart;
             switch (type) {
                 case 0:
-                    func(path, Rg.profileList.mainProfile, false, songList.currentItem.scores[0], null, false, null);
+                    func(path, Rg.profileList.mainProfile, false, true, songList.currentItem.scores[0], null, false, false, null);
                     break;
                 case 1:
-                    func(path, Rg.profileList.mainProfile, false, songList.currentItem.scoreWithBestPoints, null, false, null);
+                    func(path, Rg.profileList.mainProfile, false, true, songList.currentItem.scoreWithBestPoints, null, false, false, null);
                     break;
                 case 2:
                     let clearType = Helpers.getClearType(songList.currentItem?.scores);
@@ -30,7 +30,7 @@ FocusScope {
                         return score.result.clearType === clearType;
                     });
                     if (score) {
-                        func(path, Rg.profileList.mainProfile, false, score, null, false, null);
+                        func(path, Rg.profileList.mainProfile, false, true, score, null, false, false, null);
                     }
                     break;
                 case 3:
@@ -38,7 +38,7 @@ FocusScope {
                         return prev.result.maxCombo > curr.result.maxCombo ? prev : curr;
                     });
                     if (bestScore) {
-                        func(path, Rg.profileList.mainProfile, false, bestScore, null, false, null);
+                        func(path, Rg.profileList.mainProfile, false, true, bestScore, null, false, false, null);
                     }
                     break;
             }

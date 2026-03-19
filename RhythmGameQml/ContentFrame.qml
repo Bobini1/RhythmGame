@@ -53,8 +53,8 @@ ApplicationWindow {
         readonly property Component selectComponent: Qt.createComponent(Rg.themes.availableThemeFamilies[mainProfile.themeConfig.select].screens.select.script)
         readonly property Component decideComponent: Qt.createComponent(Rg.themes.availableThemeFamilies[mainProfile.themeConfig.decide].screens.decide.script)
 
-        function openChart(path, profile1, autoplay1, score1, profile2, autoplay2, score2) {
-            let chart = Rg.chartLoader.loadChart(path, profile1, autoplay1, score1, profile2, autoplay2, score2);
+        function openChart(path, profile1, autoplay1, replay1, score1, profile2, autoplay2, replay2, score2) {
+            let chart = Rg.chartLoader.loadChart(path, profile1, autoplay1, replay1, score1, profile2, autoplay2, replay2, score2);
             if (!chart) {
                 console.error("Failed to load chart");
                 return;
@@ -64,8 +64,8 @@ ApplicationWindow {
             });
         }
 
-        function openCourse(course, profile1, autoplay1, score1, profile2, autoplay2, score2) {
-            let runner = Rg.chartLoader.loadCourse(course, profile1, autoplay1, score1, profile2, autoplay2, score2);
+        function openCourse(course, profile1, autoplay1, replay1, score1, profile2, autoplay2, replay2, score2) {
+            let runner = Rg.chartLoader.loadCourse(course, profile1, autoplay1, replay1, score1, profile2, autoplay2, replay2, score2);
             if (!runner) {
                 console.error("Failed to load course");
                 return;

@@ -415,19 +415,12 @@ getComponentsForPlayer(const ChartFactory::PlayerSpecificData& player,
         }
         visibleNotes[15] = visibleNotes[7];
     }
-    thread_local auto rd = std::random_device{};
-    thread_local auto mt = std::mt19937_64(rd());
-    const auto randomSeed = mt();
     auto results = [&]() -> std::array<support::ShuffleResult, 2> {
         if (isDp(keymode)) {
             auto notes1 =
               std::span{ visibleNotes.data(), visibleNotes.size() / 2 };
             auto result1 = support::generatePermutation(
-              notes1,
-              player.noteOrderAlgorithm,
-              player.replayedScore
-                ? player.replayedScore->getResult()->getRandomSeed()
-                : randomSeed);
+              notes1, player.noteOrderAlgorithm, player.randomSeed);
             auto notes2 =
               std::span{ visibleNotes.data() + visibleNotes.size() / 2,
                          visibleNotes.size() / 2 };
@@ -437,11 +430,7 @@ getComponentsForPlayer(const ChartFactory::PlayerSpecificData& player,
         }
         auto notes1 = std::span{ visibleNotes.data(), visibleNotes.size() / 2 };
         return { support::generatePermutation(
-                   notes1,
-                   player.noteOrderAlgorithm,
-                   player.replayedScore
-                     ? player.replayedScore->getResult()->getRandomSeed()
-                     : randomSeed),
+                   notes1, player.noteOrderAlgorithm, player.randomSeed),
                  support::ShuffleResult{} };
     }();
     auto notes = ChartDataFactory::makeNotes(visibleNotes, notesData.barLines);
@@ -542,8 +531,12 @@ ChartFactory::createChart(ChartDataFactory::ChartComponents chartComponents,
           player, notesData, *chartData, maxHitValue, DpOptions::Off);
     });
     auto keymode = chartData->getKeymode();
-    if (player1.dpOptions == DpOptions::Battle && !player2 && !isDp(keymode)) {
-        keymode = gameplay_logic::ChartData::Keymode::K14;
+    if (player1.dpOptions == DpOptions::Battle && !player2) {
+        if (keymode == gameplay_logic::ChartData::Keymode::K5) {
+            keymode = gameplay_logic::ChartData::Keymode::K10;
+        } else if (keymode == gameplay_logic::ChartData::Keymode::K7) {
+            keymode = gameplay_logic::ChartData::Keymode::K14;
+        }
     }
 
     auto* soundTask = [&]() -> SoundTask* {

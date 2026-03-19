@@ -63,9 +63,11 @@ class ChartLoader : public QObject
 
     auto createChart(resource_managers::Profile* player1,
                      bool player1AutoPlay,
+                     bool player1Replay,
                      gameplay_logic::BmsScore* replayedScore1,
                      resource_managers::Profile* player2,
                      bool player2AutoPlay,
+                     bool player2Replay,
                      gameplay_logic::BmsScore* replayedScore2,
                      resource_managers::ChartDataFactory::ChartComponents
                        chartComponents) const
@@ -105,22 +107,28 @@ class ChartLoader : public QObject
      * @param filename The path to the chart file.
      * @param player1 The first player profile.
      * @param player1AutoPlay Whether the first player is in auto-play mode.
+     * @param player1Replay Whether the first player is in replay mode.
      * @param score1 The score to replay for the first player, optional.
      * Incompatible with auto-play.
      * @param player2 The second player profile, can be nullptr for
      * single-player.
      * @param player2AutoPlay Whether the second player is in auto-play mode.
+     * @param player2Replay Whether the second player is in replay mode.
      * @param score2 The score to replay for the second player. Incompatible
      * with auto-play.
      * @return A pointer to the loaded chart, or nullptr on failure.
+     * @details If score is not null and replay is false, the game will load the
+     * chart with the same settings the score (G-Battle).
      */
     Q_INVOKABLE gameplay_logic::ChartRunner* loadChart(
       const QString& filename,
       resource_managers::Profile* player1,
       bool player1AutoPlay,
+      bool player1Replay,
       gameplay_logic::BmsScore* score1,
       resource_managers::Profile* player2,
       bool player2AutoPlay,
+      bool player2Replay,
       gameplay_logic::BmsScore* score2) const;
 
     /**
@@ -141,9 +149,11 @@ class ChartLoader : public QObject
       const resource_managers::Course& course,
       resource_managers::Profile* player1,
       bool player1AutoPlay,
+      bool player1Replay,
       gameplay_logic::BmsScoreCourse* score1,
       resource_managers::Profile* player2,
       bool player2AutoPlay,
+      bool player2Replay,
       gameplay_logic::BmsScoreCourse* score2) const;
 
     /**

@@ -239,7 +239,7 @@ Image {
                                     rankingEntry.bestClearTypeGuid).then(
                                     (score) => {
                                         clearTypeImage.loading = false;
-                                        globalRoot.openChart(ranking.path, Rg.profileList.mainProfile, false, score, null, false, null);
+                                        globalRoot.openChart(ranking.path, Rg.profileList.mainProfile, false, true, score, null, false, false, null);
                                     },
                                     () => {
                                         clearTypeImage.loading = false;
@@ -271,7 +271,7 @@ Image {
                                     rankingEntry.bestPointsGuid).then(
                                     (score) => {
                                         pointsText.loading = false;
-                                        globalRoot.openChart(ranking.path, Rg.profileList.mainProfile, false, score, null, false, null);
+                                        globalRoot.openChart(ranking.path, Rg.profileList.mainProfile, false, true, score, null, false, false, null);
                                     },
                                         () => {
                                         pointsText.loading = false;

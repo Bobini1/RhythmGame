@@ -20,9 +20,9 @@ Row {
                 let func = replayAutoplay.current instanceof course ? globalRoot.openCourse : globalRoot.openChart;
                 let path = replayAutoplay.current instanceof course ? replayAutoplay.current : replayAutoplay.current.path;
                 if (Rg.profileList.battleActive) {
-                    func(path, Rg.profileList.battleProfiles.player1Profile, true, null, Rg.profileList.battleProfiles.player2Profile, true, null);
+                    func(path, Rg.profileList.battleProfiles.player1Profile, true, false, null, Rg.profileList.battleProfiles.player2Profile, true, false, null);
                 } else {
-                    func(path, Rg.profileList.mainProfile, true, null, null, false, null);
+                    func(path, Rg.profileList.mainProfile, true, false, null, null, false, false, null);
                 }
             }
         }
