@@ -228,68 +228,79 @@ Item {
                         Layout.fillWidth: true
                     }
 
-                    Label {
-                        visible: loginSection.profile.loginState === Profile.LoggedIn
-                        text: qsTr("Logged in as %1").arg(loginSection.profile.onlineUsername)
-                        font.pixelSize: 16
+                    Loader {
+                        id: authLoader
+                        sourceComponent: loginSection.profile && loginSection.profile.loginState === Profile.LoggedIn ? loggedInComponent : loggedOutComponent
+                        Layout.preferredHeight: authLoader.item ? authLoader.item.implicitHeight : 0
                         Layout.fillWidth: true
                     }
 
-                    Button {
-                        visible: loginSection.profile.loginState === Profile.LoggedIn
-                        text: qsTr("Logout")
-                        Layout.fillWidth: true
-                        onClicked: {
-                            loginSection.profile.logout();
-                        }
-                    }
-
-                    RowLayout {
-                        Layout.fillWidth: true
-                        spacing: 8
-                        Button {
-                            id: syncButton
-                            visible: loginSection.profile.loginState === Profile.LoggedIn
-                            enabled: !loginSection.syncing
-                            text: qsTr("Sync scores")
-                            Layout.fillWidth: true
-                            palette.button: loginSection.syncError ? "red" : undefined
-                            palette.buttonText: loginSection.syncError ? "white" : undefined
-                            onClicked: {
-                                loginSection.runSync();
+                    Component {
+                        id: loggedInComponent
+                        ColumnLayout {
+                            spacing: 8
+                            Label {
+                                text: qsTr("Logged in as %1").arg(loginSection.profile.onlineUsername)
+                                font.pixelSize: 16
+                                Layout.fillWidth: true
+                            }
+                            Button {
+                                text: qsTr("Logout")
+                                Layout.fillWidth: true
+                                onClicked: {
+                                    loginSection.profile.logout();
+                                }
+                            }
+                            RowLayout {
+                                Layout.fillWidth: true
+                                spacing: 8
+                                Button {
+                                    id: syncButton
+                                    enabled: !loginSection.syncing
+                                    text: qsTr("Sync scores")
+                                    Layout.fillWidth: true
+                                    palette.button: loginSection.syncError ? "red" : undefined
+                                    palette.buttonText: loginSection.syncError ? "white" : undefined
+                                    onClicked: {
+                                        loginSection.runSync();
+                                    }
+                                }
+                                BusyIndicator {
+                                    running: loginSection.syncing
+                                    visible: loginSection.syncing
+                                    Layout.alignment: Qt.AlignVCenter
+                                    width: 24
+                                    height: 24
+                                }
                             }
                         }
-                        BusyIndicator {
-                            running: loginSection.syncing
-                            visible: running
-                            Layout.alignment: Qt.AlignVCenter
-                            width: 24
-                            height: 24
+                    }
+
+                    Component {
+                        id: loggedOutComponent
+                        ColumnLayout {
+                            spacing: 8
+                            TextField {
+                                id: emailField
+                                placeholderText: qsTr("Email")
+                                Layout.fillWidth: true
+                                height: 32
+                            }
+                            TextField {
+                                id: passwordField
+                                placeholderText: qsTr("Password")
+                                echoMode: TextInput.Password
+                                Layout.fillWidth: true
+                                height: 32
+                            }
+                            Button {
+                                text: qsTr("Login")
+                                Layout.fillWidth: true
+                                palette.button: loginSection.profile.loginState === Profile.LoginFailed ? "DarkRed" : undefined
+                                palette.buttonText: loginSection.profile.loginState === Profile.LoginFailed ? "white" : undefined
+                                onClicked: loginSection.profile.login(emailField.text, passwordField.text)
+                            }
                         }
-                    }
-
-                    TextField {
-                        id: emailField
-                        visible: loginSection.profile.loginState !== Profile.LoggedIn
-                        placeholderText: qsTr("Email")
-                        Layout.fillWidth: true
-                    }
-
-                    TextField {
-                        id: passwordField
-                        visible: loginSection.profile.loginState !== Profile.LoggedIn
-                        placeholderText: qsTr("Password")
-                        echoMode: TextInput.Password
-                        Layout.fillWidth: true
-                    }
-
-                    Button {
-                        visible: loginSection.profile.loginState !== Profile.LoggedIn
-                        text: qsTr("Login")
-                        Layout.fillWidth: true
-                        palette.button: loginSection.profile.loginState === Profile.LoginFailed ? "DarkRed" : undefined
-                        palette.buttonText: loginSection.profile.loginState === Profile.LoginFailed ? "white" : undefined
-                        onClicked: loginSection.profile.login(emailField.text, passwordField.text)
                     }
                 }
             }
