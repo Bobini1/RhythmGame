@@ -12,6 +12,11 @@ Image {
     property int page: 0
     property var profile: Rg.profileList.mainProfile
     readonly property var ranking: onlineRankingModel
+    onEnabledChanged: {
+        if (enabled) {
+            onlineRankingModel.refresh();
+        }
+    }
 
     OnlineRankingModel {
         id: onlineRankingModel
