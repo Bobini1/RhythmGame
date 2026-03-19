@@ -45,7 +45,6 @@ Column {
                     anchors.fill: parent
                     anchors.rightMargin: userNameText.width - userNameText.implicitWidth
                     cursorShape: Qt.PointingHandCursor
-                    acceptedButtons: Qt.LeftButton | Qt.RightButton | Qt.MiddleButton
                     onClicked: Qt.openUrlExternally(
                         Rg.onlineLinks.scoresByUserOnChart(
                             ranking.profile.vars.generalVars.websiteBaseUrl,
@@ -108,6 +107,7 @@ Column {
                     anchors.fill: parent
                     anchors.leftMargin: pointsText.width - pointsText.implicitWidth
                     cursorShape: Qt.PointingHandCursor
+                    acceptedButtons: Qt.LeftButton | Qt.RightButton | Qt.MiddleButton
                     onClicked: (event) => {
                         pointsText.loading = true;
                         Rg.onlineScores.getScoreByGuid(
