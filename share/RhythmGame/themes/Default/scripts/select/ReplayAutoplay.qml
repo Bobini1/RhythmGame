@@ -37,6 +37,7 @@ Row {
             MouseArea {
                 anchors.fill: parent
                 cursorShape: enabled ? Qt.PointingHandCursor : undefined
+                acceptedButtons: Qt.LeftButton | Qt.RightButton | Qt.MiddleButton
                 hoverEnabled: true
                 ToolTip.visible: containsMouse
                 ToolTip.text: {
@@ -52,8 +53,8 @@ Row {
                     }
                 }
                 ToolTip.delay: 500
-                onClicked: {
-                    root.openReplay(modelData);
+                onClicked: (event) => {
+                    root.openReplay(modelData, event.button);
                 }
             }
         }

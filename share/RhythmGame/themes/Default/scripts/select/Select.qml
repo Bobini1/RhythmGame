@@ -14,15 +14,13 @@ FocusScope {
         readonly property string iniImagesUrl: "image://ini/" + rootUrl + "images/"
         property string rootUrl: QmlUtils.fileName.slice(0, QmlUtils.fileName.lastIndexOf("/") + 1)
 
-        function openReplay(type) {
-            let path = songList.current instanceof course ? songList.current : songList.current.path;
-            let func = songList.current instanceof course ? globalRoot.openCourse : globalRoot.openChart;
+        function getScore(type) {
             switch (type) {
                 case 0:
-                    func(path, Rg.profileList.mainProfile, false, true, songList.currentItem.scores[0], null, false, false, null);
+                    return songList.currentItem.scores[songList.currentItem.scores.length - 1];
                     break;
                 case 1:
-                    func(path, Rg.profileList.mainProfile, false, true, songList.currentItem.scoreWithBestPoints, null, false, false, null);
+                    return songList.currentItem.scoreWithBestPoints;
                     break;
                 case 2:
                     let clearType = Helpers.getClearType(songList.currentItem?.scores);
@@ -30,7 +28,7 @@ FocusScope {
                         return score.result.clearType === clearType;
                     });
                     if (score) {
-                        func(path, Rg.profileList.mainProfile, false, true, score, null, false, false, null);
+                        return score;
                     }
                     break;
                 case 3:
@@ -38,10 +36,26 @@ FocusScope {
                         return prev.result.maxCombo > curr.result.maxCombo ? prev : curr;
                     });
                     if (bestScore) {
-                        func(path, Rg.profileList.mainProfile, false, true, bestScore, null, false, false, null);
+                        return bestScore;
                     }
                     break;
             }
+            return null;
+        }
+
+        function openReplay(type, button) {
+            let score = getScore(type);
+            if (button === Qt.RightButton) {
+                globalRoot.openResult([score], [Rg.profileList.mainProfile], songList.current);
+                return;
+            }
+            let replay = true;
+            if (button === Qt.MiddleButton) {
+                replay = false;
+            }
+            let path = songList.current instanceof course ? songList.current : songList.current.path;
+            let func = songList.current instanceof course ? globalRoot.openCourse : globalRoot.openChart;
+            func(path, Rg.profileList.mainProfile, false, replay, score, null, false, false, null);
         }
 
         fillMode: Image.PreserveAspectCrop

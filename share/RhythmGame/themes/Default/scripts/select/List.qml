@@ -431,7 +431,7 @@ PathView {
             } else if (Keys.digit4Pressed) {
                 key = 3;
             }
-            root.openReplay(key);
+            root.openReplay(key, Qt.LeftButton);
         } else {
             goForward(current);
         }
@@ -459,7 +459,7 @@ PathView {
             } else if (Keys.digit4Pressed) {
                 key = 3;
             }
-            root.openReplay(key);
+            root.openReplay(key, Qt.LeftButton);
         } else {
             goForward(current);
         }
