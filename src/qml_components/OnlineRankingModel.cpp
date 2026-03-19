@@ -111,6 +111,8 @@ OnlineRankingModel::data(const QModelIndex& index, int role) const -> QVariant
             return e.latestDateGuid;
         case ScoreCountRole:
             return e.scoreCount;
+        case OwnerRole:
+            return e.owner;
         case RankRole:
             return currentOffset + index.row() + 1;
         default:
@@ -138,6 +140,7 @@ OnlineRankingModel::roleNames() const -> QHash<int, QByteArray>
         { BestComboBreaksRole, "bestComboBreaks" },
         { LatestDateRole, "latestDate" },
         { ScoreCountRole, "scoreCount" },
+        { OwnerRole, "owner" },
         { RankRole, "rank" },
     };
 }

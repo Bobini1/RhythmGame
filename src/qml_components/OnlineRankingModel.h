@@ -28,6 +28,7 @@ struct RankingEntry
     Q_PROPERTY(QString bestComboBreaksGuid MEMBER bestComboBreaksGuid CONSTANT)
     Q_PROPERTY(QString bestClearTypeGuid MEMBER bestClearTypeGuid CONSTANT)
     Q_PROPERTY(QString latestDateGuid MEMBER latestDateGuid CONSTANT)
+    Q_PROPERTY(QString owner MEMBER owner CONSTANT)
     Q_PROPERTY(qint64 scoreCount MEMBER scoreCount CONSTANT)
   public:
     qint64 userId;
@@ -45,6 +46,7 @@ struct RankingEntry
     QString bestComboBreaksGuid;
     QString bestClearTypeGuid;
     QString latestDateGuid;
+    QString owner;
     int scoreCount{};
 };
 class OnlineRankingModel : public QAbstractListModel
@@ -115,6 +117,7 @@ class OnlineRankingModel : public QAbstractListModel
         BestComboBreaksRole,
         LatestDateRole,
         ScoreCountRole,
+        OwnerRole,
         RankRole,
     };
     Q_ENUM(Roles)

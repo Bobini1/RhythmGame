@@ -95,7 +95,8 @@ Column {
                 property int position: {
                     let entries = rankingEntries;
                     for (let i = 0; i < entries.length; i++) {
-                        if (entries[i].userId === side.profile.onlineUserId) {
+                        if (entries[i].owner === side.score.result.owner ||
+                            (side.score.result.owner === "" && entries[i].userId === side.profile.onlineUserId)) {
                             return i + 1;
                         }
                     }
@@ -122,7 +123,8 @@ Column {
                 property int position: {
                     let entries = rankingEntries;
                     for (let i = 0; i < entries.length; i++) {
-                        if (entries[i].userId === side.profile.onlineUserId) {
+                        if (entries[i].owner === side.score.result.owner ||
+                            (side.score.result.owner === "" && entries[i].userId === side.profile.onlineUserId)) {
                             return i + 1;
                         }
                     }

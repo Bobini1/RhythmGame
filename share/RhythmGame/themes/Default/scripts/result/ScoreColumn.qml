@@ -36,9 +36,6 @@ Column {
             width: 318
             height: parent.height
 
-            oldRankingPosition: 0
-            newRankingPosition: 1
-            totalEntries: 100
             MouseArea {
                 anchors.fill: parent
                 cursorShape: scoreColumn.rankingUrl ? Qt.PointingHandCursor : undefined
