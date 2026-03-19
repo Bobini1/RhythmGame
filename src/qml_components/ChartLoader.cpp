@@ -29,9 +29,11 @@ ChartLoader::createChart(
   resource_managers::ChartDataFactory::ChartComponents chartComponents) const
   -> std::unique_ptr<gameplay_logic::ChartRunner>
 {
-    if (isDp(chartComponents.chartData->getKeymode()) && player1 && player2) {
-        spdlog::error("Can't launch DP for two players");
-        return nullptr;
+    if (isDp(chartComponents.chartData->getKeymode()) && player2) {
+        player2 = nullptr;
+        player2AutoPlay = false;
+        player2Replay = false;
+        replayedScore2 = nullptr;
     }
     const auto rankInt = chartComponents.chartData->getRank();
     const auto rank =
@@ -107,7 +109,7 @@ ChartLoader::createChart(
                      chartComponents.chartData->getTotal(),
                      chartComponents.chartData->getNormalNoteCount()),
         gameplay_logic::rules::HitRules(timingWindows, hitValueFactory),
-        replayedScore1,
+        player1Replay ? replayedScore1 : nullptr,
         p1NoteOrderAlgorithm,
         p1NoteOrderAlgorithmP2,
         p1DpOptions,
@@ -129,7 +131,7 @@ ChartLoader::createChart(
                          chartComponents.chartData->getTotal(),
                          chartComponents.chartData->getNormalNoteCount()),
             gameplay_logic::rules::HitRules(timingWindows, hitValueFactory),
-            replayedScore2,
+            player2Replay ? replayedScore2 : nullptr,
             p2NoteOrderAlgorithm,
             p2NoteOrderAlgorithmP2,
             p2DpOptions,
