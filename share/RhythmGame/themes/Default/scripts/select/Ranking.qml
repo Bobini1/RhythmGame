@@ -203,6 +203,7 @@ Image {
                     Text {
                         id: userNameText
                         text: rankingEntry.userName
+                        color: rankingEntry.userId === ranking.profile.onlineUserId ? "#ff0066" : "black"
                         font.pixelSize: 24
                         elide: Text.ElideRight
                         anchors.baseline: parent.bottom
