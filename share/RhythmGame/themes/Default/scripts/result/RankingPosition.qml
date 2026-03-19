@@ -25,7 +25,7 @@ WindowBg {
     Component {
         id: loadingIndicator
         Item {
-            anchors.topMargin: rankingText.height + 48
+            anchors.topMargin: rankingText.height + 24
             BusyIndicator {
                 anchors.centerIn: parent
                 running: true
