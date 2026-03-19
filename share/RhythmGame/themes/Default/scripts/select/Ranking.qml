@@ -72,7 +72,7 @@ Image {
         visible: running
     }
 
-    RankingDelegate {
+    RankingTop {
         visible: !!ranking.md5 && !onlineRankingModel.loading && ranking.page === 0
         anchors.fill: parent
         anchors.margins: 28
@@ -83,7 +83,7 @@ Image {
         path: ranking.path
     }
 
-    StatsDelegate {
+    RankingStats {
         visible: !!ranking.md5 && !onlineRankingModel.loading && ranking.page === 1
         anchors.fill: parent
         anchors.margins: 28
