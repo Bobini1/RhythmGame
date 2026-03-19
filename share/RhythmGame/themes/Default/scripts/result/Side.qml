@@ -90,6 +90,7 @@ Column {
                 sortBy: OnlineRankingModel.ScorePct
                 sortDir: OnlineRankingModel.Desc
                 webApiUrl: side.profile.vars.generalVars.webApiUrl
+                dateLte: side.score.result.unixTimestamp
 
                 property int position: {
                     let entries = rankingEntries;
