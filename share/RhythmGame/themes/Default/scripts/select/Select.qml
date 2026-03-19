@@ -264,6 +264,17 @@ FocusScope {
                 anchors.verticalCenterOffset: 150
                 sourceComponent: Grade {
                     scoreWithBestPoints: songList.currentItem?.scoreWithBestPoints || null
+                    loading: ranking.ranking.loading
+                    rankingTotalEntries: ranking.ranking.playerCount
+                    rankingPosition: {
+                        let entries = ranking.ranking.rankingEntries;
+                        for (let i = 0; i < entries.length; i++) {
+                            if (entries[i].userId === Rg.profileList.mainProfile.onlineUserId) {
+                                return i + 1;
+                            }
+                        }
+                        return 0;
+                    }
                 }
             }
             Connections {
@@ -337,6 +348,7 @@ FocusScope {
                 }
             }
             Ranking {
+                id: ranking
                 md5: songList.current.md5
                 path: songList.current.path
                 anchors.left: search.right

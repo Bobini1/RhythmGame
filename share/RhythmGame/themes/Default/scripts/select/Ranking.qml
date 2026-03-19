@@ -11,6 +11,7 @@ Image {
     visible: !!md5
     property int page: 0
     property var profile: Rg.profileList.mainProfile
+    readonly property var ranking: rankingModel
 
     OnlineRankingModel {
         id: rankingModel

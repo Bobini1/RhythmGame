@@ -1,13 +1,17 @@
 import QtQuick
 import RhythmGameQml
+import QtQuick.Controls
 import "../common/helpers.js" as Helpers
 
 Item {
     id: grade
 
     required property var scoreWithBestPoints
+    property var rankingTotalEntries: 0
+    property var rankingPosition: 0
+    property bool loading: false
 
-    width: 300
+    width: 350
     height: 400
 
     Image {
@@ -24,64 +28,95 @@ Item {
         id: exScore
 
         anchors.top: gradeImage.bottom
-        anchors.topMargin: 50
+        anchors.topMargin: 24
         asynchronous: true
         source: root.iniImagesUrl + "parts.png/ex_score"
     }
 
     Text {
+        id: exScoreNumber
         anchors.baseline: exScore.bottom
         anchors.left: exScore.right
         anchors.leftMargin: 55
         anchors.right: parent.right
-        anchors.rightMargin: 55
+        anchors.rightMargin: 75
 
         text: grade.scoreWithBestPoints.result.points
 
-        font.pixelSize: 48
+        font.pixelSize: 42
         color: "#ff0066"
         horizontalAlignment: Text.AlignRight
     }
 
     Image {
-        id: nextRank
+        id: scoreRate
         anchors.top: exScore.bottom
         anchors.topMargin: 15
         asynchronous: true
-        source: root.iniImagesUrl + "parts.png/next_rank"
+        source: root.iniImagesUrl + "parts.png/score_rate"
     }
 
     Text {
-        anchors.baseline: nextRank.bottom
+        anchors.baseline: scoreRate.bottom
         anchors.baselineOffset: -1
-        anchors.left: nextRank.right
+        anchors.left: scoreRate.right
         anchors.leftMargin: 55
-        anchors.right: parent.right
-        anchors.rightMargin: 55
+        anchors.right: exScoreNumber.right
 
         text: {
             let points = grade.scoreWithBestPoints.result.points;
             let maxPoints = grade.scoreWithBestPoints.result.maxPoints;
             let ratio = points / maxPoints;
 
-            const targets = [
-                { min: 0.88, target: 1.00 },
-                { min: 0.77, target: 0.88 },
-                { min: 0.66, target: 0.77 },
-                { min: 0.55, target: 0.66 },
-                { min: 0.44, target: 0.55 },
-                { min: 0.33, target: 0.44 },
-                { min: 0.22, target: 0.33 }
-            ];
-
-            for (const step of targets) {
-                if (ratio >= step.min)
-                    return Math.ceil(step.target * maxPoints - points);
-            }
-            return Math.ceil(0.22 * maxPoints - points);
+            return (ratio * 100).toFixed(2) + "%";
         }
 
-        font.pixelSize: 25
+        font.pixelSize: 28
         horizontalAlignment: Text.AlignRight
+    }
+
+    Image {
+        id: rankingPosition
+        anchors.top: scoreRate.bottom
+        anchors.topMargin: 15
+        asynchronous: true
+        source: root.iniImagesUrl + "parts.png/ir"
+    }
+    // position/ total (total is supposed to be a bit smaller, same baseline
+    Text {
+        id: rankingPositionNumber
+        anchors.baseline: rankingPosition.bottom
+        anchors.baselineOffset: -1
+        anchors.right: parent.right
+        anchors.rightMargin: 130
+
+        text: grade.rankingPosition + "/ ";
+
+        font.pixelSize: 28
+        horizontalAlignment: Text.AlignRight
+
+        visible: !grade.loading
+    }
+    Text {
+        id: total
+
+        anchors.baseline: rankingPosition.bottom
+        anchors.baselineOffset: -1
+        anchors.right: exScoreNumber.right
+
+        text: grade.rankingTotalEntries;
+
+        font.pixelSize: 22
+        horizontalAlignment: Text.AlignRight
+
+        visible: !grade.loading
+    }
+
+    BusyIndicator {
+        anchors.top: rankingPosition.top
+        anchors.bottom: rankingPosition.bottom
+        anchors.left: rankingPositionNumber.left
+        anchors.right: total.right
+        visible: grade.loading
     }
 }
