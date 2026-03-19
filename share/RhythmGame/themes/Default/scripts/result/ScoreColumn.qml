@@ -12,6 +12,12 @@ Column {
     required property int maxCombo
     required property var clearType
     required property var oldBestClear
+    property alias oldRankingPosition: rankingPosition.oldRankingPosition
+    property alias newRankingPosition: rankingPosition.newRankingPosition
+    property alias totalEntries: rankingPosition.totalEntries
+    property alias loading: rankingPosition.loading
+    property alias scoreSubmissionFailed: rankingPosition.scoreSubmissionFailed
+    property string rankingUrl
 
     Score {
         height: 150
@@ -26,12 +32,22 @@ Column {
         height: 104
 
         RankingPosition {
+            id: rankingPosition
             width: 318
             height: parent.height
 
             oldRankingPosition: 0
             newRankingPosition: 1
             totalEntries: 100
+            MouseArea {
+                anchors.fill: parent
+                cursorShape: scoreColumn.rankingUrl ? Qt.PointingHandCursor : undefined
+                enabled: scoreColumn.rankingUrl !== ""
+
+                onClicked: {
+                    Qt.openUrlExternally(scoreColumn.rankingUrl);
+                }
+            }
         }
         LampDiff {
             width: 350

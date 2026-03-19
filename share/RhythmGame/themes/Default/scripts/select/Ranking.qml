@@ -18,6 +18,7 @@ Image {
         limit: 7
         sortBy: OnlineRankingModel.ScorePct
         sortDir: OnlineRankingModel.Desc
+        webApiUrl: profile.vars.generalVars.webApiUrl
     }
 
     source: root.iniImagesUrl + "ir.png/ir" + (ranking.page + 1)

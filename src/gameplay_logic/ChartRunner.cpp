@@ -455,6 +455,10 @@ Player::finish(const ChartData& chartData) -> BmsScore*
                         }
                         submission->deleteLater();
                     });
+        } else if (profilePtr->getLoginState() !=
+                     resource_managers::Profile::LoginState::LoggedIn ||
+                   score->getResult()->getGuid().isEmpty()) {
+            score->setSubmissionState(BmsScore::SubmissionState::NotSubmitting);
         }
     } else {
         spdlog::warn("Profile was deleted before saving score");

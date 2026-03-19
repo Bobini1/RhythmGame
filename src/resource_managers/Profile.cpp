@@ -81,7 +81,7 @@ Profile::fetchOnlineData()
         auto data = reply->readAll();
         auto json = QJsonDocument::fromJson(data).object();
         setOnlineUsername(json["name"].toString());
-        onlineId = json["id"].toInt();
+        setOnlineUserId(json["id"].toString().toInt());
         setLoginState(LoginState::LoggedIn);
         reply->deleteLater();
     });
@@ -94,6 +94,15 @@ Profile::setOnlineUsername(const QString& username)
     }
     onlineUsername = username;
     emit onlineUsernameChanged();
+}
+void
+Profile::setOnlineUserId(const qint64& userId)
+{
+    if (userId == onlineUserId) {
+        return;
+    }
+    onlineUserId = userId;
+    emit onlineUserIdChanged();
 }
 void
 Profile::setLoginState(LoginState state)
@@ -317,6 +326,8 @@ Profile::login(const QString& email, const QString& password)
                 job->start();
                 networkRequestFactory.setBearerToken(token.toLatin1());
                 setOnlineUsername(obj["user"].toObject()["name"].toString());
+                setOnlineUserId(
+                  obj["user"].toObject()["id"].toString().toInt());
                 setLoginState(LoginState::LoggedIn);
             } else {
                 spdlog::error("Login response did not contain a token");
@@ -351,11 +362,17 @@ Profile::logout()
     networkRequestFactory.setBearerToken({});
     setLoginState(LoginState::LoginFailed);
     setOnlineUsername({});
+    setOnlineUserId(-1);
 }
 auto
 Profile::getOnlineUsername() const -> QString
 {
     return onlineUsername;
+}
+auto
+Profile::getOnlineUserId() const -> qint64
+{
+    return onlineUserId;
 }
 auto
 Profile::getLoginState() const -> LoginState
@@ -396,7 +413,7 @@ Profile::uploadScores() -> qml_components::ScoreSyncOperation*
               this,
               [this, op, localGuids]() mutable {
                   auto request = networkRequestFactory.createRequest(
-                    QString("scores?fields=guid&userId=%1").arg(onlineId));
+                    QString("scores?fields=guid&userId=%1").arg(onlineUserId));
                   auto* guidReply = networkManager->get(request);
 
                   connect(
@@ -653,7 +670,7 @@ Profile::downloadScores() -> qml_components::ScoreSyncOperation*
               this,
               [this, op, localGuids]() mutable {
                   auto request = networkRequestFactory.createRequest(
-                    QString("scores?fields=guid&userId=%1").arg(onlineId));
+                    QString("scores?fields=guid&userId=%1").arg(onlineUserId));
                   auto* guidReply = networkManager->get(request);
 
                   connect(

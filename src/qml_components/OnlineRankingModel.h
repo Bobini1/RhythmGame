@@ -71,6 +71,30 @@ class OnlineRankingModel : public QAbstractListModel
                  webApiUrlChanged)
     Q_PROPERTY(QList<RankingEntry> rankingEntries READ getRankingEntries NOTIFY
                  rankingEntriesChanged)
+    Q_PROPERTY(qint64 lastPlayedGte READ getLastPlayedGte WRITE setLastPlayedGte
+                 NOTIFY lastPlayedGteChanged)
+    Q_PROPERTY(qint64 lastPlayedLte READ getLastPlayedLte WRITE setLastPlayedLte
+                 NOTIFY lastPlayedLteChanged)
+
+    Q_PROPERTY(
+      qint64 dateGte READ getDateGte WRITE setDateGte NOTIFY dateGteChanged)
+    Q_PROPERTY(
+      qint64 dateLte READ getDateLte WRITE setDateLte NOTIFY dateLteChanged)
+
+    Q_PROPERTY(double scorePctGte READ getScorePctGte WRITE setScorePctGte
+                 NOTIFY scorePctGteChanged)
+    Q_PROPERTY(double scorePctLte READ getScorePctLte WRITE setScorePctLte
+                 NOTIFY scorePctLteChanged)
+
+    Q_PROPERTY(
+      int comboGte READ getComboGte WRITE setComboGte NOTIFY comboGteChanged)
+    Q_PROPERTY(
+      int comboLte READ getComboLte WRITE setComboLte NOTIFY comboLteChanged)
+
+    Q_PROPERTY(int missCountGte READ getMissCountGte WRITE setMissCountGte
+                 NOTIFY missCountGteChanged)
+    Q_PROPERTY(int missCountLte READ getMissCountLte WRITE setMissCountLte
+                 NOTIFY missCountLteChanged)
 
   public:
     enum Roles
@@ -147,12 +171,43 @@ class OnlineRankingModel : public QAbstractListModel
     auto getSearch() const -> QString;
     void setSearch(const QString& search);
 
+    auto getLastPlayedGte() const -> qint64;
+    void setLastPlayedGte(qint64 val);
+
+    auto getLastPlayedLte() const -> qint64;
+    void setLastPlayedLte(qint64 val);
+
+    auto getDateGte() const -> qint64;
+    void setDateGte(qint64 val);
+
+    auto getDateLte() const -> qint64;
+    void setDateLte(qint64 val);
+
+    auto getScorePctGte() const -> double;
+    void setScorePctGte(double val);
+
+    auto getScorePctLte() const -> double;
+    void setScorePctLte(double val);
+
+    auto getComboGte() const -> int;
+    void setComboGte(int val);
+
+    auto getComboLte() const -> int;
+    void setComboLte(int val);
+
+    auto getMissCountGte() const -> int;
+    void setMissCountGte(int val);
+
+    auto getMissCountLte() const -> int;
+    void setMissCountLte(int val);
+
     auto getClearCounts() const -> QVariantMap;
     auto getScoreCount() const -> int;
     auto getPlayerCount() const -> int;
     auto getRankingEntries() const -> const QList<RankingEntry>&;
 
     Q_INVOKABLE void cancelPending();
+    Q_INVOKABLE void refresh();
 
     void setWebApiUrl(const QString& baseUrl);
     auto getWebApiUrl() const -> QString;
@@ -168,6 +223,20 @@ class OnlineRankingModel : public QAbstractListModel
     void sortByChanged();
     void sortDirChanged();
     void searchChanged();
+    void lastPlayedGteChanged();
+    void lastPlayedLteChanged();
+
+    void dateGteChanged();
+    void dateLteChanged();
+
+    void scorePctGteChanged();
+    void scorePctLteChanged();
+
+    void comboGteChanged();
+    void comboLteChanged();
+
+    void missCountGteChanged();
+    void missCountLteChanged();
     void clearCountsChanged();
     void scoreCountChanged();
     void playerCountChanged();
@@ -196,6 +265,22 @@ class OnlineRankingModel : public QAbstractListModel
     SortableColumn currentSortBy{ SortableColumn::None };
     SortDirection currentSortDir{ SortDirection::Desc };
     QString currentSearch;
+
+    // Filter parameters
+    qint64 currentLastPlayedGte{ -1 };
+    qint64 currentLastPlayedLte{ -1 };
+
+    qint64 currentDateGte{ -1 };
+    qint64 currentDateLte{ -1 };
+
+    double currentScorePctGte{ -1.0 };
+    double currentScorePctLte{ -1.0 };
+
+    int currentComboGte{ -1 };
+    int currentComboLte{ -1 };
+
+    int currentMissCountGte{ -1 };
+    int currentMissCountLte{ -1 };
 
     QList<RankingEntry> entries;
     QList<QNetworkReply*> pendingReplies;

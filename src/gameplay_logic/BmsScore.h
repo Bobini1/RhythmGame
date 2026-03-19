@@ -19,6 +19,7 @@ class BmsScore final : public QObject
     enum class SubmissionState
     {
         NotSubmitted,
+        NotSubmitting,
         Submitting,
         Submitted,
         Failed,

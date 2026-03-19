@@ -84,6 +84,51 @@ Column {
         ScoreColumn {
             id: scoreColumn
 
+            OnlineRankingModel {
+                id: rankingModelNew
+                md5: side.score.result.md5
+                sortBy: OnlineRankingModel.ScorePct
+                sortDir: OnlineRankingModel.Desc
+                webApiUrl: side.profile.vars.generalVars.webApiUrl
+
+                property int position: {
+                    let entries = rankingEntries;
+                    for (let i = 0; i < entries.length; i++) {
+                        if (entries[i].userId === side.profile.onlineUserId) {
+                            return i + 1;
+                        }
+                    }
+                    return 0;
+                }
+            }
+
+            Connections {
+                target: side.score
+
+                function onSubmissionStateChanged() {
+                    rankingModelNew.refresh();
+                }
+            }
+
+            OnlineRankingModel {
+                id: rankingModelOld
+                md5: side.score.result.md5
+                sortBy: OnlineRankingModel.ScorePct
+                sortDir: OnlineRankingModel.Desc
+                webApiUrl: side.profile.vars.generalVars.webApiUrl
+                dateLte: side.score.result.unixTimestamp - 1
+
+                property int position: {
+                    let entries = rankingEntries;
+                    for (let i = 0; i < entries.length; i++) {
+                        if (entries[i].userId === side.profile.onlineUserId) {
+                            return i + 1;
+                        }
+                    }
+                    return 0;
+                }
+            }
+
             points: side.score.result.points
             maxPoints: side.score.result.maxPoints
             oldBestPoints: side.oldBestPointsScore?.result.points || 0
@@ -93,6 +138,12 @@ Column {
             maxCombo: side.score.result.maxCombo
             clearType: side.score.result.clearType
             oldBestClear: side.oldBestClear
+            oldRankingPosition: rankingModelOld.position
+            newRankingPosition: rankingModelNew.position
+            totalEntries: rankingModelNew.rankingEntries.length
+            loading: rankingModelNew.loading || rankingModelOld.loading || side.score.submissionState === BmsScore.Submitting
+            scoreSubmissionFailed: side.score.submissionState === BmsScore.Failed || side.score.submissionState === BmsScore.NotSubmitting
+            rankingUrl: totalEntries ? Rg.onlineLinks.chart(side.profile.vars.generalVars.websiteBaseUrl, side.score.result.md5) : ""
             transform: Scale {
                 xScale: side.mirrored ? -1 : 1
                 origin.x: side.mirrored ? scoreColumn.width / 2 : 0

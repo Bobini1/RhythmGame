@@ -57,27 +57,6 @@ OnlineRankingModel::performJsonGet(
 OnlineRankingModel::OnlineRankingModel(QObject* parent)
   : QAbstractListModel(parent)
 {
-    auto onWebApiUrlChanged = [this] {
-        networkRequestFactory.setBaseUrl(profileList->getMainProfile()
-                                           ->getVars()
-                                           ->getGeneralVars()
-                                           ->getWebApiUrl());
-    };
-
-    auto onProfileChanged = [this,
-                             onWebApiUrlChanged,
-                             connection = QMetaObject::Connection{}]() mutable {
-        disconnect(connection);
-        connection =
-          connect(profileList->getMainProfile()->getVars()->getGeneralVars(),
-                  &resource_managers::GeneralVars::websiteBaseUrlChanged,
-                  this,
-                  onWebApiUrlChanged);
-        onWebApiUrlChanged();
-    };
-    connect(
-      profileList, &ProfileList::mainProfileChanged, this, onProfileChanged);
-    onProfileChanged();
 }
 
 auto
@@ -436,6 +415,155 @@ OnlineRankingModel::setSearch(const QString& search)
     fetch();
 }
 auto
+OnlineRankingModel::getLastPlayedGte() const -> qint64
+{
+    return currentLastPlayedGte;
+}
+void
+OnlineRankingModel::setLastPlayedGte(qint64 val)
+{
+    if (currentLastPlayedGte == val)
+        return;
+    currentLastPlayedGte = val;
+    emit lastPlayedGteChanged();
+    fetch();
+}
+
+auto
+OnlineRankingModel::getLastPlayedLte() const -> qint64
+{
+    return currentLastPlayedLte;
+}
+void
+OnlineRankingModel::setLastPlayedLte(qint64 val)
+{
+    if (currentLastPlayedLte == val)
+        return;
+    currentLastPlayedLte = val;
+    emit lastPlayedLteChanged();
+    fetch();
+}
+
+auto
+OnlineRankingModel::getDateGte() const -> qint64
+{
+    return currentDateGte;
+}
+void
+OnlineRankingModel::setDateGte(qint64 val)
+{
+    if (currentDateGte == val)
+        return;
+    currentDateGte = val;
+    emit dateGteChanged();
+    fetch();
+}
+
+auto
+OnlineRankingModel::getDateLte() const -> qint64
+{
+    return currentDateLte;
+}
+void
+OnlineRankingModel::setDateLte(qint64 val)
+{
+    if (currentDateLte == val)
+        return;
+    currentDateLte = val;
+    emit dateLteChanged();
+    fetch();
+}
+
+auto
+OnlineRankingModel::getScorePctGte() const -> double
+{
+    return currentScorePctGte;
+}
+void
+OnlineRankingModel::setScorePctGte(double val)
+{
+    if (qFuzzyCompare(currentScorePctGte + 1.0, val + 1.0))
+        return;
+    currentScorePctGte = val;
+    emit scorePctGteChanged();
+    fetch();
+}
+
+auto
+OnlineRankingModel::getScorePctLte() const -> double
+{
+    return currentScorePctLte;
+}
+void
+OnlineRankingModel::setScorePctLte(double val)
+{
+    if (qFuzzyCompare(currentScorePctLte + 1.0, val + 1.0))
+        return;
+    currentScorePctLte = val;
+    emit scorePctLteChanged();
+    fetch();
+}
+
+auto
+OnlineRankingModel::getComboGte() const -> int
+{
+    return currentComboGte;
+}
+void
+OnlineRankingModel::setComboGte(int val)
+{
+    if (currentComboGte == val)
+        return;
+    currentComboGte = val;
+    emit comboGteChanged();
+    fetch();
+}
+
+auto
+OnlineRankingModel::getComboLte() const -> int
+{
+    return currentComboLte;
+}
+void
+OnlineRankingModel::setComboLte(int val)
+{
+    if (currentComboLte == val)
+        return;
+    currentComboLte = val;
+    emit comboLteChanged();
+    fetch();
+}
+
+auto
+OnlineRankingModel::getMissCountGte() const -> int
+{
+    return currentMissCountGte;
+}
+void
+OnlineRankingModel::setMissCountGte(int val)
+{
+    if (currentMissCountGte == val)
+        return;
+    currentMissCountGte = val;
+    emit missCountGteChanged();
+    fetch();
+}
+
+auto
+OnlineRankingModel::getMissCountLte() const -> int
+{
+    return currentMissCountLte;
+}
+void
+OnlineRankingModel::setMissCountLte(int val)
+{
+    if (currentMissCountLte == val)
+        return;
+    currentMissCountLte = val;
+    emit missCountLteChanged();
+    fetch();
+}
+auto
 OnlineRankingModel::getClearCounts() const -> QVariantMap
 {
     return clearCounts;
@@ -462,6 +590,11 @@ OnlineRankingModel::cancelPending()
     emit cancelPendingRequested();
     setLoading(false);
 }
+void
+OnlineRankingModel::refresh()
+{
+    fetch();
+}
 
 void
 OnlineRankingModel::setWebApiUrl(const QString& baseUrl)
@@ -470,7 +603,6 @@ OnlineRankingModel::setWebApiUrl(const QString& baseUrl)
         return;
     }
     networkRequestFactory.setBaseUrl(baseUrl);
-    cancelPending();
     fetch();
     emit webApiUrlChanged();
 }

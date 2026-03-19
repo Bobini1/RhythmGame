@@ -46,6 +46,8 @@ class Profile final : public QObject
     Q_PROPERTY(QString guid READ getGuid CONSTANT)
     Q_PROPERTY(QString onlineUsername READ getOnlineUsername NOTIFY
                  onlineUsernameChanged)
+    Q_PROPERTY(
+      qint64 onlineUserId READ getOnlineUserId NOTIFY onlineUserIdChanged)
     Q_PROPERTY(resource_managers::Profile::LoginState loginState READ
                  getLoginState NOTIFY loginStateChanged)
     db::SqliteCppDb db;
@@ -58,11 +60,12 @@ class Profile final : public QObject
     QNetworkRequestFactory networkRequestFactory;
     QThreadPool threadPool;
     QString onlineUsername;
-    qint64 onlineId{ -1 };
+    qint64 onlineUserId{ -1 };
     LoginState loginState{ LoginState::NotLoggedIn };
     void loadBearerToken();
     void fetchOnlineData();
     void setOnlineUsername(const QString& username);
+    void setOnlineUserId(const qint64& userId);
     void setLoginState(LoginState state);
 
   public:
@@ -94,6 +97,7 @@ class Profile final : public QObject
     Q_INVOKABLE void login(const QString& email, const QString& password);
     Q_INVOKABLE void logout();
     auto getOnlineUsername() const -> QString;
+    auto getOnlineUserId() const -> qint64;
     auto getLoginState() const -> LoginState;
     /**
      * @brief Upload local scores to the server.
@@ -116,6 +120,7 @@ class Profile final : public QObject
 
   signals:
     void onlineUsernameChanged();
+    void onlineUserIdChanged();
     void loginStateChanged();
 };
 
