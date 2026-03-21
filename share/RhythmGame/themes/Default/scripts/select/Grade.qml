@@ -10,6 +10,7 @@ Item {
     property var rankingTotalEntries: 0
     property var rankingPosition: 0
     property bool loading: false
+    property string rankingLink
 
     width: 350
     height: 400
@@ -73,6 +74,19 @@ Item {
 
         font.pixelSize: 28
         horizontalAlignment: Text.AlignRight
+    }
+
+    MouseArea {
+        anchors {
+            left: rankingPosition.left
+            right: total.right
+            top: rankingPosition.top
+            bottom: rankingPosition.bottom
+        }
+        cursorShape: enabled ? Qt.PointingHandCursor : undefined
+        onClicked: {
+            Qt.openUrlExternally(grade.rankingLink)
+        }
     }
 
     Image {

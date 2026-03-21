@@ -280,6 +280,16 @@ FocusScope {
                     scoreWithBestPoints: songList.currentItem?.scoreWithBestPoints || null
                     loading: ranking.ranking.loading
                     rankingTotalEntries: ranking.ranking.playerCount
+                    rankingLink: {
+                        switch (ranking.ranking.provider) {
+                            case OnlineRankingModel.RhythmGame:
+                                return Rg.onlineLinks.chart(Rg.profileList.mainProfile.vars.generalVars.websiteUrl, songList.current.md5);
+                            case OnlineRankingModel.LR2IR:
+                                return "http://www.dream-pro.info/~lavalse/LR2IR/search.cgi?mode=ranking&bmsmd5=" + songList.current.md5;
+                            default:
+                                return "";
+                        }
+                    }
                     rankingPosition: {
                         let entries = ranking.ranking.rankingEntries;
                         for (let i = 0; i < entries.length; i++) {

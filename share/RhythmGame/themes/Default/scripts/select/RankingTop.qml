@@ -45,11 +45,22 @@ Column {
                     anchors.fill: parent
                     anchors.rightMargin: userNameText.width - userNameText.implicitWidth
                     cursorShape: Qt.PointingHandCursor
-                    onClicked: Qt.openUrlExternally(
-                        Rg.onlineLinks.scoresByUserOnChart(
-                            ranking.profile.vars.generalVars.websiteBaseUrl,
-                            rankingEntry.userId,
-                            ranking.chartData.md5))
+                    onClicked: {
+                        let url;
+                        switch (ranking.rankingModel.provider) {
+                            case OnlineRankingModel.RhythmGame:
+                                url = Rg.onlineLinks.scoresByUserOnChart(
+                                    ranking.profile.vars.generalVars.websiteBaseUrl,
+                                    rankingEntry.userId,
+                                    ranking.chartData.md5);
+                                break;
+                            case OnlineRankingModel.LR2IR:
+                                url = "http://www.dream-pro.info/~lavalse/LR2IR/search.cgi?mode=mypage&playerid=" + rankingEntry.userId;
+                                break;
+                        }
+                        Qt.openUrlExternally(url);
+
+                    }
                 }
             }
             function onScoreLoaded(event, score) {
@@ -72,8 +83,9 @@ Column {
                 anchors.bottomMargin: -1
                 MouseArea {
                     anchors.fill: parent
-                    cursorShape: Qt.PointingHandCursor
+                    cursorShape: enabled ? Qt.PointingHandCursor : undefined
                     acceptedButtons: Qt.LeftButton | Qt.RightButton | Qt.MiddleButton
+                    enabled: rankingEntry.bestClearTypeGuid
                     onClicked: (event) => {
                         clearTypeImage.loading = true;
                         Rg.onlineScores.getScoreByGuid(
@@ -100,14 +112,14 @@ Column {
                 anchors.baseline: rankImage.bottom
                 anchors.baselineOffset: -1
                 width: 160 - clearTypeImage.width - rankingEntry.spacing
-                elide: Text.ElideMiddle
                 property bool loading: false
                 opacity: loading ? 0.5 : 1
                 MouseArea {
                     anchors.fill: parent
                     anchors.leftMargin: pointsText.width - pointsText.implicitWidth
-                    cursorShape: Qt.PointingHandCursor
+                    cursorShape: enabled ? Qt.PointingHandCursor : undefined
                     acceptedButtons: Qt.LeftButton | Qt.RightButton | Qt.MiddleButton
+                    enabled: rankingEntry.bestPointsGuid
                     onClicked: (event) => {
                         pointsText.loading = true;
                         Rg.onlineScores.getScoreByGuid(
