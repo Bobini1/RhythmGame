@@ -91,14 +91,32 @@ Column {
                 sortDir: OnlineRankingModel.Desc
                 webApiUrl: side.profile.vars.generalVars.webApiUrl
                 dateLte: side.score.result.unixTimestamp
+                provider: OnlineRankingModel.LR2IR
+                property int size: {
+                    if (provider === OnlineRankingModel.LR2IR) {
+                        return rankingEntries.length + 1;
+                    }
+                    rankingEntries.length
+                }
 
                 property int position: {
                     let entries = rankingEntries;
-                    for (let i = 0; i < entries.length; i++) {
-                        if (entries[i].owner === side.score.result.owner ||
-                            (side.score.result.owner === "" && entries[i].userId === side.profile.onlineUserId)) {
-                            return i + 1;
+                    if (provider === OnlineRankingModel.LR2IR) {
+                        let points = Math.max(side.score.result.points, side.oldBestPointsScore?.result?.points || 0);
+                        for (let i = 0; i < entries.length; i++) {
+                            if (points > entries[i].bestPoints) {
+                                return i + 1;
+                            }
                         }
+                        return entries.length + 1;
+                    } else if (provider === OnlineRankingModel.RhythmGame) {
+                        for (let i = 0; i < entries.length; i++) {
+                            if (entries[i].owner === side.score.result.owner ||
+                                (side.score.result.owner === "" && entries[i].userId === side.profile.onlineUserId)) {
+                                return i + 1;
+                            }
+                        }
+                        return 0;
                     }
                     return 0;
                 }
@@ -119,14 +137,30 @@ Column {
                 sortDir: OnlineRankingModel.Desc
                 webApiUrl: side.profile.vars.generalVars.webApiUrl
                 dateLte: side.score.result.unixTimestamp - 1
+                provider: OnlineRankingModel.LR2IR
+                property int size: rankingEntries.length
 
                 property int position: {
                     let entries = rankingEntries;
-                    for (let i = 0; i < entries.length; i++) {
-                        if (entries[i].owner === side.score.result.owner ||
-                            (side.score.result.owner === "" && entries[i].userId === side.profile.onlineUserId)) {
-                            return i + 1;
+                    if (provider === OnlineRankingModel.LR2IR) {
+                        if (side.oldBestPointsScore?.result?.points === undefined) {
+                            return 0;
                         }
+                        let points = side.oldBestPointsScore?.result?.points || 0;
+                        for (let i = 0; i < entries.length; i++) {
+                            if (points > entries[i].bestPoints) {
+                                return i + 1;
+                            }
+                        }
+                        return entries.length + 1;
+                    } else if (provider === OnlineRankingModel.RhythmGame) {
+                        for (let i = 0; i < entries.length; i++) {
+                            if (entries[i].owner === side.score.result.owner ||
+                                (side.score.result.owner === "" && entries[i].userId === side.profile.onlineUserId)) {
+                                return i + 1;
+                            }
+                        }
+                        return 0;
                     }
                     return 0;
                 }
@@ -134,7 +168,7 @@ Column {
 
             points: side.score.result.points
             maxPoints: side.score.result.maxPoints
-            oldBestPoints: side.oldBestPointsScore?.result.points || 0
+            oldBestPoints: side.oldBestPointsScore?.result?.points || 0
             oldBestStats: side.oldBestStats
             earlyLate: side.earlyLate
             judgementCounts: side.score.result.judgementCounts
@@ -143,7 +177,7 @@ Column {
             oldBestClear: side.oldBestClear
             oldRankingPosition: rankingModelOld.position
             newRankingPosition: rankingModelNew.position
-            totalEntries: rankingModelNew.rankingEntries.length
+            totalEntries: rankingModelNew.size
             loading: rankingModelNew.loading || rankingModelOld.loading || side.score.submissionState === BmsScore.Submitting
             scoreSubmissionFailed: side.score.submissionState === BmsScore.Failed || side.score.submissionState === BmsScore.NotSubmitting
             rankingUrl: totalEntries ? Rg.onlineLinks.chart(side.profile.vars.generalVars.websiteBaseUrl, side.score.result.md5) : ""
