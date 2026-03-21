@@ -53,7 +53,15 @@ class OnlineRankingModel : public QAbstractListModel
 {
     Q_OBJECT
     QML_ELEMENT
-
+  public:
+    enum class Provider
+    {
+        RhythmGame,
+        Tachi,
+        LR2IR
+    };
+    Q_ENUM(Provider)
+  private:
     Q_PROPERTY(
       QString md5 READ getMd5 WRITE setMd5 NOTIFY md5Changed RESET resetMd5)
     Q_PROPERTY(bool loading READ isLoading NOTIFY loadingChanged)
@@ -64,8 +72,6 @@ class OnlineRankingModel : public QAbstractListModel
     Q_PROPERTY(SortDirection sortDir READ getSortDir WRITE setSortDir NOTIFY
                  sortDirChanged)
     Q_PROPERTY(
-      QString search READ getSearch WRITE setSearch NOTIFY searchChanged)
-    Q_PROPERTY(
       QVariantMap clearCounts READ getClearCounts NOTIFY clearCountsChanged)
     Q_PROPERTY(int scoreCount READ getScoreCount NOTIFY scoreCountChanged)
     Q_PROPERTY(int playerCount READ getPlayerCount NOTIFY playerCountChanged)
@@ -73,6 +79,7 @@ class OnlineRankingModel : public QAbstractListModel
                  webApiUrlChanged)
     Q_PROPERTY(QList<RankingEntry> rankingEntries READ getRankingEntries NOTIFY
                  rankingEntriesChanged)
+
     Q_PROPERTY(qint64 lastPlayedGte READ getLastPlayedGte WRITE setLastPlayedGte
                  NOTIFY lastPlayedGteChanged)
     Q_PROPERTY(qint64 lastPlayedLte READ getLastPlayedLte WRITE setLastPlayedLte
@@ -98,6 +105,8 @@ class OnlineRankingModel : public QAbstractListModel
     Q_PROPERTY(int missCountLte READ getMissCountLte WRITE setMissCountLte
                  NOTIFY missCountLteChanged)
 
+    Q_PROPERTY(Provider provider READ getProvider WRITE setProvider NOTIFY
+                 providerChanged)
   public:
     enum Roles
     {
@@ -125,8 +134,8 @@ class OnlineRankingModel : public QAbstractListModel
     enum class SortableColumn
     {
         None = 0,
-        Player,
         ScorePct,
+        Player,
         Grade,
         Combo,
         ComboBreaks,
@@ -171,9 +180,6 @@ class OnlineRankingModel : public QAbstractListModel
     auto getSortDir() const -> SortDirection;
     void setSortDir(SortDirection sortDir);
 
-    auto getSearch() const -> QString;
-    void setSearch(const QString& search);
-
     auto getLastPlayedGte() const -> qint64;
     void setLastPlayedGte(qint64 val);
 
@@ -203,6 +209,9 @@ class OnlineRankingModel : public QAbstractListModel
 
     auto getMissCountLte() const -> int;
     void setMissCountLte(int val);
+
+    auto getProvider() const -> Provider;
+    void setProvider(Provider provider);
 
     auto getClearCounts() const -> QVariantMap;
     auto getScoreCount() const -> int;
@@ -245,16 +254,19 @@ class OnlineRankingModel : public QAbstractListModel
     void playerCountChanged();
     void webApiUrlChanged();
     void rankingEntriesChanged();
+    void providerChanged();
 
     void cancelPendingRequested();
 
   private:
+    void fetchLR2IR();
     void fetch();
     void setLoading(bool loading);
     void setPlayerCount(int count);
     void setScoreCount(int count);
     void setClearCounts(QVariantMap counts);
     auto buildUrl() const -> QUrl;
+    void fetchRhythmGame();
     void performJsonGet(const QString& url,
                         std::function<void(const QJsonDocument&)> onSuccess,
                         std::function<void(const QString&)> onError);
@@ -267,7 +279,6 @@ class OnlineRankingModel : public QAbstractListModel
     int currentOffset{ 0 };
     SortableColumn currentSortBy{ SortableColumn::None };
     SortDirection currentSortDir{ SortDirection::Desc };
-    QString currentSearch;
 
     // Filter parameters
     qint64 currentLastPlayedGte{ -1 };
@@ -290,6 +301,8 @@ class OnlineRankingModel : public QAbstractListModel
     QVariantMap clearCounts;
     int scoreCount{ 0 };
     int playerCount{ 0 };
+
+    Provider currentProvider{ Provider::RhythmGame };
 };
 
 } // namespace qml_components

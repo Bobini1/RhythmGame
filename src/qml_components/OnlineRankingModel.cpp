@@ -9,8 +9,50 @@
 #include <QUrl>
 #include <spdlog/spdlog.h>
 #include <functional>
+#include <QXmlStreamReader>
+#include <compare>
+#include <type_traits>
+#include <optional>
+#include <string>
+#include <string_view>
+#include <iconv.h>
 
 namespace qml_components {
+
+static auto
+convertToUtf8(const char* encoding,
+              const std::string_view& str,
+              const bool ignoreErrors = false) -> std::optional<std::string>
+{
+    const auto* targetEncoding = "UTF-8";
+    if (ignoreErrors) {
+        targetEncoding = "UTF-8//IGNORE";
+    }
+
+    iconv_t cd = iconv_open(targetEncoding, encoding);
+    if (cd == (iconv_t)-1) {
+        return std::nullopt;
+    }
+
+    auto* srcPtr = const_cast<char*>(str.data());
+    auto srcLeft = str.size();
+
+    const auto dstSize = str.size() * 4;
+    std::vector<char> dstBuf(dstSize + 1);
+    auto* dstPtr = dstBuf.data();
+    auto dstLeft = dstSize;
+
+    auto result = iconv(cd, &srcPtr, &srcLeft, &dstPtr, &dstLeft);
+    iconv_close(cd);
+
+    if (result == static_cast<size_t>(-1) && !ignoreErrors) {
+        return std::nullopt;
+    }
+
+    *dstPtr = '\0';
+    const auto result_size = dstSize - dstLeft;
+    return std::string(dstBuf.data(), result_size);
+}
 
 void
 OnlineRankingModel::performJsonGet(
@@ -155,11 +197,11 @@ OnlineRankingModel::buildUrl() const -> QUrl
     if (currentSortBy != SortableColumn::None) {
         QString sortByStr;
         switch (currentSortBy) {
-            case SortableColumn::Player:
-                sortByStr = "player";
-                break;
             case SortableColumn::ScorePct:
                 sortByStr = "score_pct";
+                break;
+            case SortableColumn::Player:
+                sortByStr = "player";
                 break;
             case SortableColumn::Grade:
                 sortByStr = "grade";
@@ -189,29 +231,13 @@ OnlineRankingModel::buildUrl() const -> QUrl
     if (currentSortDir != SortDirection::None)
         q.addQueryItem("sortDir",
                        currentSortDir == SortDirection::Asc ? "asc" : "desc");
-    if (!currentSearch.isEmpty())
-        q.addQueryItem("search", currentSearch);
     url.setQuery(q);
     return url;
 }
 
 void
-OnlineRankingModel::fetch()
+OnlineRankingModel::fetchRhythmGame()
 {
-    setPlayerCount(0);
-    setScoreCount(0);
-    setClearCounts({});
-    beginResetModel();
-    entries.clear();
-    emit rankingEntriesChanged();
-    endResetModel();
-    cancelPending();
-    if (currentMd5.isEmpty() || !networkRequestFactory.baseUrl().isValid()) {
-        setLoading(false);
-        return;
-    }
-    setLoading(true);
-
     performJsonGet(
       buildUrl().toString(),
       [this](const QJsonDocument& doc) {
@@ -273,6 +299,313 @@ OnlineRankingModel::fetch()
                         err.toStdString());
           setLoading(false);
       });
+}
+
+namespace {
+struct TmpEntry
+{
+    QString name;
+    int id{ 0 };
+    int clear{ 0 };
+    int notes{ 0 };
+    int combo{ 0 };
+    int pg{ 0 };
+    int gr{ 0 };
+    int minbp{ 0 };
+};
+
+auto
+parseLr2Scores(QXmlStreamReader& xr) -> QList<TmpEntry>
+{
+    auto out = QList<TmpEntry>{};
+    while (!xr.atEnd()) {
+        xr.readNext();
+        if (xr.isStartElement() && xr.name() == QLatin1String("score")) {
+            TmpEntry e;
+            // parse children until </score>
+            while (!xr.atEnd()) {
+                xr.readNext();
+                if (xr.isStartElement()) {
+                    const auto nm = xr.name().toString();
+                    const auto text = xr.readElementText();
+                    if (nm == QLatin1String("name")) {
+                        e.name = text;
+                    } else if (nm == QLatin1String("id")) {
+                        e.id = text.toInt();
+                    } else if (nm == QLatin1String("clear")) {
+                        e.clear = text.toInt();
+                    } else if (nm == QLatin1String("notes")) {
+                        e.notes = text.toInt();
+                    } else if (nm == QLatin1String("combo")) {
+                        e.combo = text.toInt();
+                    } else if (nm == QLatin1String("pg")) {
+                        e.pg = text.toInt();
+                    } else if (nm == QLatin1String("gr")) {
+                        e.gr = text.toInt();
+                    } else if (nm == QLatin1String("minbp")) {
+                        e.minbp = text.toInt();
+                    }
+                } else if (xr.isEndElement() &&
+                           xr.name() == QLatin1String("score")) {
+                    break;
+                }
+            }
+            out.append(std::move(e));
+        }
+    }
+    return out;
+}
+}
+void
+OnlineRankingModel::fetchLR2IR()
+{
+    const QUrl url(
+      "http://www.dream-pro.info/~lavalse/LR2IR/2/getrankingxml.cgi");
+    QNetworkRequest request(url);
+    request.setHeader(QNetworkRequest::ContentTypeHeader,
+                      "application/x-www-form-urlencoded");
+
+    const QByteArray postData =
+      QString("songmd5=%1&id=1").arg(currentMd5).toUtf8();
+
+    QNetworkReply* reply = networkManager->post(request, postData);
+
+    connect(this, &OnlineRankingModel::cancelPendingRequested, reply, [reply] {
+        reply->abort();
+    });
+
+    connect(reply, &QNetworkReply::finished, this, [this, reply] {
+        reply->deleteLater();
+
+        if (reply->error() == QNetworkReply::OperationCanceledError) {
+            return;
+        }
+        if (reply->error() == QNetworkReply::ContentNotFoundError) {
+            return;
+        }
+        if (reply->error() != QNetworkReply::NoError) {
+            spdlog::error("OnlineRankingModel fetchLR2IR failed: {}",
+                          reply->errorString().toStdString());
+            setLoading(false);
+            return;
+        }
+
+        const QByteArray raw = reply->readAll();
+
+        // Some LR2IR responses start with a leading '#' or other junk before
+        // the XML declaration (e.g. "#<?xml ... encoding=\"shift_jis\"?>").
+        // Strip any bytes before the first '<' so the XML declaration is at
+        // the start and QXmlStreamReader can detect the declared encoding.
+        QByteArray xmlBytes = raw;
+        const int firstLt = xmlBytes.indexOf('<');
+        if (firstLt > 0) {
+            xmlBytes = xmlBytes.mid(firstLt);
+        }
+
+        QXmlStreamReader xr(xmlBytes);
+        auto tmpList = parseLr2Scores(xr);
+
+        QList<RankingEntry> newEntries;
+        newEntries.reserve(tmpList.size());
+        QHash<QString, int> clearTypeCounts;
+        int totalScoreCount = 0;
+
+        struct WithPct
+        {
+            RankingEntry entry;
+            double scorePct;
+        };
+        QVector<WithPct> withPct;
+
+        for (const auto& t : tmpList) {
+            RankingEntry r;
+            r.userId = t.id;
+            r.userName = t.name;
+            r.userImage = QString();
+            const double points = t.pg * 2 + t.gr;
+            const double maxPoints = t.notes * 2;
+            r.bestPoints = points;
+            r.maxPoints = maxPoints;
+            r.bestPointsGuid.clear();
+            r.bestCombo = t.combo;
+            r.maxHits = t.notes;
+            r.bestComboGuid.clear();
+            r.bestClearType = [&] {
+                switch (t.clear) {
+                    case 0:
+                        return "NOPLAY";
+                    case 1:
+                        return "FAILED";
+                    case 2:
+                        return "EASY";
+                    case 3:
+                        return "NORMAL";
+                    case 4:
+                        return "HARD";
+                    default: {
+                        if (r.bestPoints == r.maxPoints) {
+                            return "MAX";
+                        }
+                        if (t.gr + t.pg == r.maxHits) {
+                            return "PERFECT";
+                        }
+                        return "FC";
+                    }
+                }
+            }();
+            clearTypeCounts[r.bestClearType]++;
+            r.bestClearTypeGuid.clear();
+            r.bestComboBreaks = t.minbp;
+            r.bestComboBreaksGuid.clear();
+            r.latestDate = 0;
+            r.latestDateGuid.clear();
+            r.scoreCount = 0;
+            r.owner.clear();
+
+            totalScoreCount += r.scoreCount;
+
+            const double scorePct =
+              (maxPoints > 0.0) ? (points / maxPoints) : 0.0;
+            withPct.append({ std::move(r), scorePct });
+        }
+
+        QVector<WithPct> filtered;
+        filtered.reserve(withPct.size());
+        for (auto& wp : withPct) {
+            bool ok = true;
+            if (currentScorePctGte >= 0.0 && wp.scorePct < currentScorePctGte)
+                ok = false;
+            if (currentScorePctLte >= 0.0 && wp.scorePct > currentScorePctLte)
+                ok = false;
+            if (currentComboGte >= 0 && wp.entry.bestCombo < currentComboGte)
+                ok = false;
+            if (currentComboLte >= 0 && wp.entry.bestCombo > currentComboLte)
+                ok = false;
+            if (currentMissCountGte >= 0 &&
+                wp.entry.bestComboBreaks < currentMissCountGte)
+                ok = false;
+            if (currentMissCountLte >= 0 &&
+                wp.entry.bestComboBreaks > currentMissCountLte)
+                ok = false;
+            if (ok)
+                filtered.append(std::move(wp));
+        }
+
+        // Sorting: comparator returns true if a should come before b
+        // Use explicit priority ordering for clear types
+        static const QStringList clearTypePriorities = {
+            "NOPLAY", "FAILED", "AEASY", "EASY",    "NORMAL",
+            "HARD",   "EXHARD", "FC",    "PERFECT", "MAX",
+        };
+
+        auto comparator = [this](const WithPct& a, const WithPct& b) {
+            std::partial_ordering ord = std::weak_ordering::equivalent;
+            switch (currentSortBy) {
+                case SortableColumn::Player: {
+                    ord = a.entry.userName <=> b.entry.userName;
+                    if (ord == std::partial_ordering::equivalent) {
+                        ord = a.scorePct <=> b.scorePct;
+                    }
+                } break;
+                case SortableColumn::Grade: {
+                    ord = a.scorePct <=> b.scorePct;
+                } break;
+                case SortableColumn::Combo:
+                    ord = a.entry.bestCombo <=> b.entry.bestCombo;
+                    if (ord == std::partial_ordering::equivalent) {
+                        ord = a.scorePct <=> b.scorePct;
+                    }
+                    break;
+                case SortableColumn::ComboBreaks:
+                    ord = a.entry.bestComboBreaks <=> b.entry.bestComboBreaks;
+                    if (ord == std::partial_ordering::equivalent) {
+                        ord = a.scorePct <=> b.scorePct;
+                    }
+                    break;
+                case SortableColumn::ClearType: {
+                    const int ia =
+                      clearTypePriorities.indexOf(a.entry.bestClearType);
+                    const int ib =
+                      clearTypePriorities.indexOf(b.entry.bestClearType);
+                    ord = ia <=> ib;
+                    if (ord == std::partial_ordering::equivalent) {
+                        ord = a.scorePct <=> b.scorePct;
+                    }
+                    break;
+                }
+                case SortableColumn::ScorePct:
+                case SortableColumn::Date:
+                case SortableColumn::PlayCount:
+                case SortableColumn::None:
+                default:
+                    ord = a.scorePct <=> b.scorePct;
+                    if (ord == std::partial_ordering::equivalent) {
+                        const int ia =
+                          clearTypePriorities.indexOf(a.entry.bestClearType);
+                        const int ib =
+                          clearTypePriorities.indexOf(b.entry.bestClearType);
+                        ord = ia <=> ib;
+                    }
+                    break;
+            }
+
+            if (ord == std::weak_ordering::less)
+                return currentSortDir == SortDirection::Asc;
+            if (ord == std::weak_ordering::greater)
+                return currentSortDir == SortDirection::Desc;
+            return false;
+        };
+
+        std::ranges::sort(
+          filtered, [&comparator](const WithPct& a, const WithPct& b) -> bool {
+              return comparator(a, b);
+          });
+
+        QList<RankingEntry> finalEntries;
+        for (auto& entry : filtered) {
+            finalEntries.append(std::move(entry.entry));
+        }
+
+        // clearCounts -> convert to QVariantMap
+        QVariantMap map;
+        for (const auto& key : clearTypeCounts.keys()) {
+            map[key] = clearTypeCounts[key];
+        }
+
+        setClearCounts(std::move(map));
+        setPlayerCount(withPct.size());
+
+        beginResetModel();
+        entries = std::move(finalEntries);
+        emit rankingEntriesChanged();
+        endResetModel();
+        setLoading(false);
+    });
+}
+void
+OnlineRankingModel::fetch()
+{
+    setPlayerCount(0);
+    setScoreCount(0);
+    setClearCounts({});
+    beginResetModel();
+    entries.clear();
+    emit rankingEntriesChanged();
+    endResetModel();
+    cancelPending();
+    if (currentMd5.isEmpty() || !networkRequestFactory.baseUrl().isValid() &&
+                                  currentProvider == Provider::RhythmGame) {
+        setLoading(false);
+        return;
+    }
+    setLoading(true);
+
+    switch (currentProvider) {
+        case Provider::RhythmGame:
+            fetchRhythmGame();
+        case Provider::LR2IR:
+            fetchLR2IR();
+    }
 }
 
 auto
@@ -403,20 +736,6 @@ OnlineRankingModel::setSortDir(SortDirection sortDir)
     fetch();
 }
 
-auto
-OnlineRankingModel::getSearch() const -> QString
-{
-    return currentSearch;
-}
-void
-OnlineRankingModel::setSearch(const QString& search)
-{
-    if (currentSearch == search)
-        return;
-    currentSearch = search;
-    emit searchChanged();
-    fetch();
-}
 auto
 OnlineRankingModel::getLastPlayedGte() const -> qint64
 {
@@ -564,6 +883,21 @@ OnlineRankingModel::setMissCountLte(int val)
         return;
     currentMissCountLte = val;
     emit missCountLteChanged();
+    fetch();
+}
+auto
+OnlineRankingModel::getProvider() const -> Provider
+{
+    return currentProvider;
+}
+void
+OnlineRankingModel::setProvider(Provider provider)
+{
+    if (currentProvider == provider) {
+        return;
+    }
+    currentProvider = provider;
+    emit providerChanged();
     fetch();
 }
 auto

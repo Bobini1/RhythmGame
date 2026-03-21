@@ -25,6 +25,7 @@ Image {
         sortBy: OnlineRankingModel.ScorePct
         sortDir: OnlineRankingModel.Desc
         webApiUrl: profile.vars.generalVars.webApiUrl
+        provider: OnlineRankingModel.LR2IR
     }
 
     source: root.iniImagesUrl + "ir.png/ir" + (ranking.page + 1)
