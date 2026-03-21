@@ -46,7 +46,7 @@ Column {
                     anchors.fill: parent
                     anchors.rightMargin: userNameText.width - userNameText.implicitWidth
                     cursorShape: enabled ? Qt.PointingHandCursor : undefined
-                    enabled: modelData.userId
+                    enabled: !modelData.bestPointsScore
                     onClicked: {
                         let url = Rg.onlineLinks.scoresByUserOnChart(
                             ranking.profile.vars.generalVars.websiteBaseUrl,
