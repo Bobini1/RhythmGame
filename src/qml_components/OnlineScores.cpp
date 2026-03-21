@@ -37,7 +37,7 @@ OnlineScores::getScoreByGuid(const QString& webApiUrl,
     QNetworkReply* reply = networkManager->get(req);
     connect(reply, &QNetworkReply::finished, [this, reply, outer]() mutable {
         if (reply->error() != QNetworkReply::NoError) {
-            spdlog::error("getScoresForMd5 failed: {} - {}",
+            spdlog::error("getScoreByGuid failed: {} - {}",
                           magic_enum::enum_name(reply->error()),
                           reply->errorString().toStdString());
             outer.setFailed();

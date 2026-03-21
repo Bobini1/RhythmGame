@@ -362,7 +362,7 @@ Profile::logout()
     networkRequestFactory.setBearerToken({});
     setLoginState(LoginState::LoginFailed);
     setOnlineUsername({});
-    setOnlineUserId(-1);
+    setOnlineUserId(0);
 }
 auto
 Profile::getOnlineUsername() const -> QString

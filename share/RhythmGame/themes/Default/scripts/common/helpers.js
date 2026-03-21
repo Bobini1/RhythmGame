@@ -26,6 +26,25 @@ function getScoreWithBestPoints(scores) {
     return bestScore;
 }
 
+function getScoreWithBestClear(scores) {
+    let bestClear = "NOPLAY";
+    let bestScore = null;
+    let bestPoints = 0;
+    for (let score of scores) {
+        let oldIndex = clearTypePriorities.indexOf(bestClear);
+        let newIndex = clearTypePriorities.indexOf(score.result.clearType);
+        if (newIndex >= oldIndex || bestScore === null) {
+            if (newIndex === oldIndex && score.result.points / (score.result.maxPoints || 1) < bestPoints) {
+                continue;
+            }
+            bestClear = score.result.clearType;
+            bestScore = score;
+            bestPoints = score.result.points / (score.result.maxPoints || 1);
+        }
+    }
+    return bestScore;
+}
+
 function getBestStats(scores) {
     // create an object with the clear types as keys and the scores as values
     let best = {};

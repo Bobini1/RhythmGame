@@ -279,7 +279,7 @@ FocusScope {
                 sourceComponent: Grade {
                     scoreWithBestPoints: songList.currentItem?.scoreWithBestPoints || null
                     loading: ranking.ranking.loading
-                    rankingTotalEntries: ranking.ranking.playerCount
+                    rankingTotalEntries: ranking.playerCount
                     rankingLink: {
                         switch (ranking.ranking.provider) {
                             case OnlineRankingModel.RhythmGame:
@@ -291,11 +291,22 @@ FocusScope {
                         }
                     }
                     rankingPosition: {
-                        let entries = ranking.ranking.rankingEntries;
-                        for (let i = 0; i < entries.length; i++) {
-                            if (entries[i].userId === Rg.profileList.mainProfile.onlineUserId) {
-                                return i + 1;
-                            }
+                        let entries = ranking.entries;
+                        switch (ranking.ranking.provider) {
+                            case OnlineRankingModel.RhythmGame:
+                                for (let i = 0; i < entries.length; i++) {
+                                    if (entries[i].userId === Rg.profileList.mainProfile.onlineUserId) {
+                                        return i + 1;
+                                    }
+                                }
+                                break;
+                            case OnlineRankingModel.LR2IR:
+                                for (let i = 0; i < entries.length; i++) {
+                                    if (!(entries[i] instanceof rankingEntry)) {
+                                        return i + 1;
+                                    }
+                                }
+                                break;
                         }
                         return 0;
                     }
@@ -378,6 +389,8 @@ FocusScope {
                 anchors.leftMargin: -9
                 anchors.bottom: search.top
                 anchors.bottomMargin: -11
+                bestPointsScore: songList.currentItem?.scoreWithBestPoints || null
+                bestClearTypeScore: songList.currentItem?.scoreWithBestClear || null
             }
             KeymodeButton {
                 id: keymodeButton

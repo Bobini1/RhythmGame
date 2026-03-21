@@ -392,10 +392,7 @@ OnlineRankingModel::fetchLR2IR()
 
         const QByteArray raw = reply->readAll();
 
-        // Some LR2IR responses start with a leading '#' or other junk before
-        // the XML declaration (e.g. "#<?xml ... encoding=\"shift_jis\"?>").
-        // Strip any bytes before the first '<' so the XML declaration is at
-        // the start and QXmlStreamReader can detect the declared encoding.
+        // Remove the leading '#'
         QByteArray xmlBytes = raw;
         const int firstLt = xmlBytes.indexOf('<');
         if (firstLt > 0) {

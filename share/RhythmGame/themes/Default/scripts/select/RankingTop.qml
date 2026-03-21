@@ -1,40 +1,41 @@
+pragma ValueTypeBehavior: Addressable
 import QtQuick
 import RhythmGameQml
 
 Column {
     id: ranking
     spacing: 6
-    property alias rankingModel: rankingRepeater.model
+    property var entries
     property var profile
     property var chartData
+    property var provider: OnlineRankingModel.RhythmGame
     readonly property var md5: chartData.md5
     readonly property var path: chartData.path
 
     Repeater {
         id: rankingRepeater
+        model: ranking.entries
         delegate: Row {
-            id: rankingEntry
+            id: entry
             spacing: 10
-            required property int rank
-            required property var userName
-            required property var userId
-            required property var bestClearType
-            required property var bestPoints
-            required property var maxPoints
-            required property var bestClearTypeGuid
-            required property var bestPointsGuid
             anchors.left: parent.left
             anchors.right: parent.right
             height: rankImage.height
 
             Image {
                 id: rankImage
-                source: root.iniImagesUrl + "ir.png/rank_" + rankingEntry.rank
+                source: root.iniImagesUrl + "ir.png/rank_" + (index + 1)
             }
             Text {
                 id: userNameText
-                text: rankingEntry.userName
-                color: rankingEntry.userId === ranking.profile.onlineUserId ? "#ff0066" : "black"
+                text: modelData.userName
+                color: {
+                    if (modelData.bestPointsScore ||
+                        modelData.userId === ranking.profile.onlineUserId) {
+                        return "#ff0066";
+                    }
+                    return "black";
+                }
                 font.pixelSize: 24
                 elide: Text.ElideRight
                 anchors.baseline: parent.bottom
@@ -44,19 +45,15 @@ Column {
                 MouseArea {
                     anchors.fill: parent
                     anchors.rightMargin: userNameText.width - userNameText.implicitWidth
-                    cursorShape: Qt.PointingHandCursor
+                    cursorShape: enabled ? Qt.PointingHandCursor : undefined
+                    enabled: modelData.userId
                     onClicked: {
-                        let url;
-                        switch (ranking.rankingModel.provider) {
-                            case OnlineRankingModel.RhythmGame:
-                                url = Rg.onlineLinks.scoresByUserOnChart(
-                                    ranking.profile.vars.generalVars.websiteBaseUrl,
-                                    rankingEntry.userId,
-                                    ranking.chartData.md5);
-                                break;
-                            case OnlineRankingModel.LR2IR:
-                                url = "http://www.dream-pro.info/~lavalse/LR2IR/search.cgi?mode=mypage&playerid=" + rankingEntry.userId;
-                                break;
+                        let url = Rg.onlineLinks.scoresByUserOnChart(
+                            ranking.profile.vars.generalVars.websiteBaseUrl,
+                            modelData.userId,
+                            ranking.chartData.md5);
+                        if (ranking.provider === OnlineRankingModel.LR2IR && !modelData.bestPointsScore) {
+                            url = "http://www.dream-pro.info/~lavalse/LR2IR/search.cgi?mode=mypage&playerid=" + modelData.userId;
                         }
                         Qt.openUrlExternally(url);
 
@@ -76,21 +73,26 @@ Column {
             }
             Image {
                 id: clearTypeImage
-                source: root.iniImagesUrl + "parts.png/ranking_" + rankingEntry.bestClearType
+                source: root.iniImagesUrl + "parts.png/ranking_" + modelData.bestClearType
                 property bool loading: false
-                opacity: loading ? 0.5 : 1
                 anchors.bottom: rankImage.bottom
                 anchors.bottomMargin: -1
                 MouseArea {
                     anchors.fill: parent
                     cursorShape: enabled ? Qt.PointingHandCursor : undefined
                     acceptedButtons: Qt.LeftButton | Qt.RightButton | Qt.MiddleButton
-                    enabled: rankingEntry.bestClearTypeGuid
+                    enabled: modelData.bestClearTypeGuid
                     onClicked: (event) => {
+                        if (ranking.provider === OnlineRankingModel.LR2IR) {
+                            if (modelData.bestPointsScore) {
+                                onScoreLoaded(event, modelData.bestPointsScore);
+                            }
+                            return;
+                        }
                         clearTypeImage.loading = true;
                         Rg.onlineScores.getScoreByGuid(
                             ranking.profile.vars.generalVars.webApiUrl,
-                            rankingEntry.bestClearTypeGuid).then(
+                            modelData.bestClearTypeGuid).then(
                                 (score) => {
                                 clearTypeImage.loading = false;
                                 onScoreLoaded(event, score);
@@ -104,14 +106,14 @@ Column {
 
             Text {
                 id: pointsText
-                text: rankingEntry.bestPoints
+                text: modelData.bestPoints
                 font.pixelSize: 24
                 color: "#ff0066"
                 verticalAlignment: Text.AlignBottom
                 horizontalAlignment: Text.AlignRight
                 anchors.baseline: rankImage.bottom
                 anchors.baselineOffset: -1
-                width: 160 - clearTypeImage.width - rankingEntry.spacing
+                width: 160 - clearTypeImage.width - 10
                 property bool loading: false
                 opacity: loading ? 0.5 : 1
                 MouseArea {
@@ -119,12 +121,18 @@ Column {
                     anchors.leftMargin: pointsText.width - pointsText.implicitWidth
                     cursorShape: enabled ? Qt.PointingHandCursor : undefined
                     acceptedButtons: Qt.LeftButton | Qt.RightButton | Qt.MiddleButton
-                    enabled: rankingEntry.bestPointsGuid
+                    enabled: modelData.bestPointsGuid
                     onClicked: (event) => {
+                        if (ranking.provider === OnlineRankingModel.LR2IR) {
+                            if (modelData.bestPointsScore) {
+                                onScoreLoaded(event, modelData.bestPointsScore);
+                            }
+                            return;
+                        }
                         pointsText.loading = true;
                         Rg.onlineScores.getScoreByGuid(
                             ranking.profile.vars.generalVars.webApiUrl,
-                            rankingEntry.bestPointsGuid).then(
+                            modelData.bestPointsGuid).then(
                             (score) => {
                                 pointsText.loading = false;
                                 onScoreLoaded(event, score);
@@ -137,7 +145,7 @@ Column {
             }
             Text {
                 id: percentageText
-                text: (rankingEntry.bestPoints / rankingEntry.maxPoints * 100).toFixed(1) + "%"
+                text: (modelData.bestPoints / modelData.maxPoints * 100).toFixed(1) + "%"
                 font.pixelSize: 12
                 horizontalAlignment: Text.AlignRight
                 verticalAlignment: Text.AlignBottom

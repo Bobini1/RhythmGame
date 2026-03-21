@@ -60,7 +60,7 @@ class Profile final : public QObject
     QNetworkRequestFactory networkRequestFactory;
     QThreadPool threadPool;
     QString onlineUsername;
-    qint64 onlineUserId{ -1 };
+    qint64 onlineUserId{ 0 };
     LoginState loginState{ LoginState::NotLoggedIn };
     void loadBearerToken();
     void fetchOnlineData();

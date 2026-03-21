@@ -308,6 +308,7 @@ PathView {
         }
 
         readonly property var scoreWithBestPoints: "scoreWithBestPoints" in item ? item.scoreWithBestPoints : null
+        readonly property var scoreWithBestClear: "scoreWithBestClear" in item ? item.scoreWithBestClear : null
         readonly property var scores: "scores" in item ? item.scores : []
         readonly property var bestStats: "bestStats" in item ? item.bestStats : null
         readonly property bool isCurrentItem: PathView.isCurrentItem

@@ -483,6 +483,8 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
         qml_components::OnlineRankingModel::profileList = &profileList;
         qmlRegisterType<qml_components::OnlineRankingModel>(
           "RhythmGameQml", 1, 0, "OnlineRankingModel");
+        qmlRegisterType<qml_components::RankingEntry>(
+          "RhythmGameQml", 1, 0, "rankingEntry");
 
         qml_components::InputAttached::inputSignalProvider = &inputTranslator;
         qml_components::QmlUtilsAttached::getThemeNameForRootFile =
