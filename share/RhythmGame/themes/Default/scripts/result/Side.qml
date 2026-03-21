@@ -181,7 +181,7 @@ Column {
             loading: rankingModelNew.loading || rankingModelOld.loading || side.score.submissionState === BmsScore.Submitting
             scoreSubmissionFailed: side.score.submissionState === BmsScore.Failed || side.score.submissionState === BmsScore.NotSubmitting
             rankingUrl: {
-                if (newRankingModel.provider === OnlineRankingModel.LR2IR) {
+                if (rankingModelNew.provider === OnlineRankingModel.LR2IR) {
                     return "http://www.dream-pro.info/~lavalse/LR2IR/search.cgi?mode=ranking&bmsmd5=" + side.score.result.md5;
                 }
                 return totalEntries ? Rg.onlineLinks.chart(side.profile.vars.generalVars.websiteBaseUrl, side.score.result.md5) : ""
