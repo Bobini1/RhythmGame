@@ -5,7 +5,6 @@
 #ifndef RHYTHMGAME_CHART_H
 #define RHYTHMGAME_CHART_H
 
-#include <QObject>
 #include "BmsGameReferee.h"
 #include "ChartData.h"
 #include "BmsScore.h"
@@ -15,8 +14,7 @@
 #include "NoteState.h"
 
 #include <QTimer>
-#include <qfuture.h>
-#include <qfuturewatcher.h>
+#include <QFutureWatcher>
 namespace gameplay_logic {
 class GameplayState;
 class Player;
@@ -78,6 +76,14 @@ class ChartRunner final : public QObject
      * @details Only set in battle mode, null otherwise.
      */
     Q_PROPERTY(Player* player2 READ getPlayer2 CONSTANT)
+    /**
+     * @brief Mapping of BmsKey to column index. Usually iota by default except
+     * in 10k mode, where the P2 side has columns moved right.
+     * @details If you want to flip scratch in 5k mode, you will want key 3 to
+     * correspond to column 1. Use this to achieve that.
+     */
+    Q_PROPERTY(QList<int> inputMapping READ getInputMapping WRITE
+                 setInputMapping NOTIFY inputMappingChanged)
 
     QTimer propertyUpdateTimer;
     std::chrono::steady_clock::time_point startTimepoint;
@@ -89,6 +95,7 @@ class ChartRunner final : public QObject
     Status status{ Loading };
     bool startRequested = false;
     ChartData::Keymode keymode;
+    QList<int> inputMapping;
 
     void updateElapsed();
     int numberOfSetupCalls = 0;
@@ -119,10 +126,13 @@ class ChartRunner final : public QObject
 
     auto getPlayer1() const -> Player*;
     auto getPlayer2() const -> Player*;
+    auto getInputMapping() const -> QList<int>;
+    void setInputMapping(QList<int> inputMapping);
 
   signals:
     void statusChanged();
     void bgaLoaded();
+    void inputMappingChanged();
 };
 
 /**
@@ -230,8 +240,8 @@ class Player : public QObject
     auto getStatus() const -> ChartRunner::Status;
     void setStatus(ChartRunner::Status status);
     auto getChartLength() const -> int64_t;
-    double getBpm() const;
-    double getScroll() const;
+    auto getBpm() const -> double;
+    auto getScroll() const -> double;
     auto finish(const ChartData& chartData) -> BmsScore*;
 
   signals:

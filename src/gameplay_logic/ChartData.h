@@ -172,8 +172,6 @@ class ChartData : public QObject
      * @brief The keymode of the chart, i.e. how many keys/columns it has.
      * If the DP option "Battle" is enabled, an SP chart will have 14 keys
      * regardless, so pay attention to that.
-     * @warning K5 and K10 are unimplemented and treated as K7 and K14,
-     * respectively.
      * @see Keymode
      */
     Q_PROPERTY(Keymode keymode READ getKeymode CONSTANT)

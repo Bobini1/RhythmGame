@@ -11,6 +11,7 @@
 #include "BmsGaugeHistory.h"
 #include "BmsReplayData.h"
 #include "BmsScore.h"
+#include "ChartData.h"
 #include "resource_managers/Vars.h"
 
 #include <QAbstractListModel>
@@ -182,6 +183,14 @@ class BmsLiveScore final : public QObject
      * created and can be used to uniquely identify the score instance.
      */
     Q_PROPERTY(QString guid READ getGuid CONSTANT)
+    /**
+     * @brief The keymode of the chart, i.e. how many keys/columns it has.
+     * If the DP option "Battle" is enabled, an SP chart will have 14 keys
+     * regardless, so pay attention to that.
+     * @see Keymode
+     */
+    Q_PROPERTY(
+      gameplay_logic::ChartData::Keymode keymode READ getKeymode CONSTANT)
 
     double maxHitValue;
     double maxPoints;
@@ -266,6 +275,7 @@ class BmsLiveScore final : public QObject
     auto getPermutation() const -> const QList<int>&;
     auto getRandomSeed() const -> uint64_t;
     auto getGuid() const -> QString;
+    auto getKeymode() const -> ChartData::Keymode;
 
     auto getResult() const -> std::unique_ptr<BmsResult>;
     auto getReplayData() const -> std::unique_ptr<BmsReplayData>;

@@ -26,6 +26,13 @@ ChartRunner::ChartRunner(
     if (player2 != nullptr) {
         player2->setParent(this);
     }
+    auto p1keymode = player1->getScore()->getKeymode();
+    inputMapping = { 0, 1, 2, 3, 4, 5, 6, 7 };
+    if (p1keymode == ChartData::Keymode::K10) {
+        inputMapping.append({ 14, 13, 8, 9, 10, 11, 12, 15 });
+    } else {
+        inputMapping.append({ 8, 9, 10, 11, 12, 13, 14, 15 });
+    }
     chartData->setParent(this);
     connect(&bgaFutureWatcher,
             &QFutureWatcher<qml_components::Bga*>::finished,
@@ -91,7 +98,15 @@ ChartRunner::passKey(input::BmsKey key,
         key == input::BmsKey::Start2 || key == input::BmsKey::Select2) {
         return;
     }
-    const auto index = playerIndexFromKey(key);
+    if (key == input::BmsKey::Col1sDown) {
+        key = input::BmsKey::Col1sUp;
+    }
+    if (key == input::BmsKey::Col2sDown) {
+        key = input::BmsKey::Col2sUp;
+    }
+    auto mapped =
+      static_cast<input::BmsKey>(inputMapping[static_cast<int>(key)]);
+    const auto index = playerIndexFromKey(mapped);
     // key pressed for a player side that is not present
     if (!isDp(chartData->getKeymode()) && index == 1 && player2 == nullptr) {
         return;
@@ -100,11 +115,11 @@ ChartRunner::passKey(input::BmsKey key,
       std::chrono::milliseconds{ time } - startTimepoint.time_since_epoch();
     auto* player =
       isDp(chartData->getKeymode()) || index == 0 ? player1 : player2;
-    key = isDp(chartData->getKeymode()) ? key : convertToP1Key(key);
+    mapped = isDp(chartData->getKeymode()) ? mapped : convertToP1Key(mapped);
     if (!isDp(chartData->getKeymode())) {
-        key = convertToP1Key(key);
+        mapped = convertToP1Key(mapped);
     }
-    player->passKey(key, eventType, offset);
+    player->passKey(mapped, eventType, offset);
 }
 
 auto
@@ -203,6 +218,31 @@ auto
 ChartRunner::getPlayer2() const -> Player*
 {
     return player2;
+}
+auto
+ChartRunner::getInputMapping() const -> QList<int>
+{
+    return inputMapping;
+}
+void
+ChartRunner::setInputMapping(QList<int> inputMapping)
+{
+    if (this->inputMapping == inputMapping) {
+        return;
+    }
+    // validate input mapping
+    // when both are sorted, they need to be equal
+    auto originalSorted = inputMapping;
+    std::ranges::sort(originalSorted);
+    auto sortedInputMapping = inputMapping;
+    std::ranges::sort(sortedInputMapping);
+    if (originalSorted != sortedInputMapping) {
+        spdlog::error("Invalid input mapping: {}",
+                      fmt::join(inputMapping, ","));
+        return;
+    }
+    this->inputMapping = inputMapping;
+    emit inputMappingChanged();
 }
 Player::Player(BmsNotes* notes,
                BmsLiveScore* score,

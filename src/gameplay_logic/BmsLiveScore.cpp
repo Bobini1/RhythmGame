@@ -144,6 +144,11 @@ BmsLiveScore::getGuid() const -> QString
 {
     return guid;
 }
+auto
+BmsLiveScore::getKeymode() const -> ChartData::Keymode
+{
+    return static_cast<ChartData::Keymode>(keymode);
+}
 void
 BmsLiveScore::increaseCombo()
 {
