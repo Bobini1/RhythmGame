@@ -25,12 +25,16 @@ fisherYatesShuffle(std::span<T> arr, Random& randomGenerator)
 }
 
 auto
-getColumsIota(const int size) -> QList<int>
+getColumsIota(const int size, bool k5) -> QList<int>
 {
     auto columns = QList<int>{};
     columns.reserve(size);
     for (auto i = 0; i < size; ++i) {
         columns.append(i);
+    }
+    if (k5) {
+        columns.removeAll(5);
+        columns.removeAll(6);
     }
     return columns;
 }
@@ -130,7 +134,8 @@ template<typename Random>
 void
 shuffleAllNotes(std::span<std::vector<charts::BmsNotesData::Note>> arr,
                 const std::chrono::nanoseconds preferredNoteDistance,
-                Random& randomGenerator)
+                Random& randomGenerator,
+                bool k5)
 {
     auto newColumns = std::vector<std::vector<charts::BmsNotesData::Note>>{};
     newColumns.resize(arr.size());
@@ -144,7 +149,7 @@ shuffleAllNotes(std::span<std::vector<charts::BmsNotesData::Note>> arr,
     while (auto noteIt = getNextNote(arr, noteIters)) {
         // first, we generate a list of proposed positions, ordered by
         // preference
-        auto columnsIota = getColumsIota(arr.size());
+        auto columnsIota = getColumsIota(arr.size(), k5);
         fisherYatesShuffle(std::span(columnsIota), randomGenerator);
         //  check where there is enough space for the note
         const auto spotFound = tryPushingNoteWithDistance(
@@ -162,10 +167,11 @@ shuffleAllNotes(std::span<std::vector<charts::BmsNotesData::Note>> arr,
 auto
 generatePermutation(std::span<std::vector<charts::BmsNotesData::Note>>& notes,
                     const resource_managers::NoteOrderAlgorithm algorithm,
-                    const uint64_t randomSeed) -> ShuffleResult
+                    const uint64_t randomSeed,
+                    bool k5) -> ShuffleResult
 {
     using RandomGenerator = std::mt19937_64;
-    auto columns = getColumsIota(notes.size());
+    auto columns = getColumsIota(notes.size(), k5);
     switch (algorithm) {
         case resource_managers::NoteOrderAlgorithm::Normal: {
             return { 0, columns };
@@ -212,13 +218,14 @@ generatePermutation(std::span<std::vector<charts::BmsNotesData::Note>>& notes,
             static constexpr auto preferredNoteDistance = 40ms;
             shuffleAllNotes(std::span(notes).subspan(0, notes.size() - 1),
                             preferredNoteDistance,
-                            randomGenerator);
+                            randomGenerator,
+                            k5);
             return { randomSeed, columns };
         }
         case resource_managers::NoteOrderAlgorithm::SRandomPlus: {
             auto randomGenerator = RandomGenerator{ randomSeed };
             static constexpr auto preferredNoteDistance = 40ms;
-            shuffleAllNotes(notes, preferredNoteDistance, randomGenerator);
+            shuffleAllNotes(notes, preferredNoteDistance, randomGenerator, k5);
             return { randomSeed, columns };
         }
     }

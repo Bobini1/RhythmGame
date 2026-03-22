@@ -400,8 +400,24 @@ getComponentsForPlayer(const ChartFactory::PlayerSpecificData& player,
     }
     auto keymode = chartData.getKeymode();
     if (dpOptions == DpOptions::Battle) {
-        keymode = gameplay_logic::ChartData::Keymode::K14;
+        switch (keymode) {
+            case gameplay_logic::ChartData::Keymode::K5:
+                keymode = gameplay_logic::ChartData::Keymode::K10;
+                break;
+            case gameplay_logic::ChartData::Keymode::K7:
+                keymode = gameplay_logic::ChartData::Keymode::K14;
+                break;
+        }
     }
+    auto isLegacy5kReplay =
+      player.replayedScore &&
+      support::unpackVersion(
+        player.replayedScore->getResult()->getGameVersion()) <
+        std::tuple{ 1, 3, 0 };
+    // We used to treat 5k as 7k. Reproduce that when generating replays.
+    auto randomIs5k =
+      !isLegacy5kReplay && (keymode == gameplay_logic::ChartData::Keymode::K5 ||
+                            keymode == gameplay_logic::ChartData::Keymode::K10);
 
     if (dpOptions == DpOptions::Flip) {
         for (int i = 0; i < 7; i += 1) {
@@ -420,17 +436,22 @@ getComponentsForPlayer(const ChartFactory::PlayerSpecificData& player,
             auto notes1 =
               std::span{ visibleNotes.data(), visibleNotes.size() / 2 };
             auto result1 = support::generatePermutation(
-              notes1, player.noteOrderAlgorithm, player.randomSeed);
+              notes1, player.noteOrderAlgorithm, player.randomSeed, randomIs5k);
             auto notes2 =
               std::span{ visibleNotes.data() + visibleNotes.size() / 2,
                          visibleNotes.size() / 2 };
-            auto result2 = support::generatePermutation(
-              notes2, player.noteOrderAlgorithmP2, result1.seed + 1);
+            auto result2 =
+              support::generatePermutation(notes2,
+                                           player.noteOrderAlgorithmP2,
+                                           result1.seed + 1,
+                                           randomIs5k);
             return { result1, result2 };
         }
         auto notes1 = std::span{ visibleNotes.data(), visibleNotes.size() / 2 };
-        return { support::generatePermutation(
-                   notes1, player.noteOrderAlgorithm, player.randomSeed),
+        return { support::generatePermutation(notes1,
+                                              player.noteOrderAlgorithm,
+                                              player.randomSeed,
+                                              randomIs5k),
                  support::ShuffleResult{} };
     }();
     auto notes = ChartDataFactory::makeNotes(visibleNotes, notesData.barLines);

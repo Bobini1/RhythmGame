@@ -31,11 +31,10 @@ struct ShuffleResult
  * order.
  */
 auto
-generatePermutation(
-  std::span<std::vector<charts::BmsNotesData::Note>>&
-    notes,
-  resource_managers::NoteOrderAlgorithm algorithm,
-  uint64_t seed) -> ShuffleResult;
+generatePermutation(std::span<std::vector<charts::BmsNotesData::Note>>& notes,
+                    resource_managers::NoteOrderAlgorithm algorithm,
+                    uint64_t seed,
+                    bool k5) -> ShuffleResult;
 } // namespace support
 
 #endif // GENERATEPERMUTATION_H
