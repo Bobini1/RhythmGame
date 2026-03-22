@@ -561,7 +561,8 @@ Profile::uploadScores() -> qml_components::ScoreSyncOperation*
                                   "score.random_seed, "
                                   "score.note_order_algorithm, "
                                   "score.note_order_algorithm_p2, "
-                                  "score.dp_options, score.keymode, score.game_version, "
+                                  "score.dp_options, score.keymode, "
+                                  "score.game_version, "
                                   "score.owner, "
                                   "replay_data.*, gauge_history.* ";
 
@@ -587,7 +588,7 @@ Profile::uploadScores() -> qml_components::ScoreSyncOperation*
                                   gameplay_logic::BmsResult::DTO,
                                   gameplay_logic::BmsReplayData::DTO,
                                   gameplay_logic::BmsGaugeHistory::DTO>;
-                                const auto results =
+                                auto results =
                                   statement.executeAndGetAll<Row>();
 
                                 // Build per-score payloads on the DB thread
@@ -600,16 +601,7 @@ Profile::uploadScores() -> qml_components::ScoreSyncOperation*
                                 payloads.reserve(
                                   static_cast<int>(results.size()));
 
-                                for (const auto& row : results) {
-                                    auto result =
-                                      gameplay_logic::BmsResult::load(
-                                        std::get<0>(row));
-                                    auto replay =
-                                      gameplay_logic::BmsReplayData::load(
-                                        std::get<1>(row));
-                                    auto gauge =
-                                      gameplay_logic::BmsGaugeHistory::load(
-                                        std::get<2>(row));
+                                for (auto& row : results) {
 
                                     auto chartStmt = db.createStatement(
                                       "SELECT charts.id, charts.title, "
@@ -650,6 +642,31 @@ Profile::uploadScores() -> qml_components::ScoreSyncOperation*
                                     auto chart =
                                       gameplay_logic::ChartData::load(
                                         chartResults.front());
+
+                                    // For old scores, we need to guess keymode
+                                    auto& resultDto = std::get<0>(row);
+                                    if (resultDto.keymode == 0) {
+                                        auto chartKeymode = chart->getKeymode();
+                                        if (resultDto.dpOptions ==
+                                            static_cast<int>(
+                                              DpOptions::Battle)) {
+                                            resultDto.keymode =
+                                              static_cast<int>(chartKeymode) *
+                                              2;
+                                        } else {
+                                            resultDto.keymode =
+                                              static_cast<int>(chartKeymode);
+                                        }
+                                    }
+                                    auto result =
+                                      gameplay_logic::BmsResult::load(
+                                        std::get<0>(row));
+                                    auto replay =
+                                      gameplay_logic::BmsReplayData::load(
+                                        std::get<1>(row));
+                                    auto gauge =
+                                      gameplay_logic::BmsGaugeHistory::load(
+                                        std::get<2>(row));
 
                                     auto scoreData = result->toJson();
                                     scoreData["replayData"] =
