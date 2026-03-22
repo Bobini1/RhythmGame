@@ -27,7 +27,7 @@ BmsLiveScore::BmsLiveScore(
   int64_t length,
   QString sha256,
   QString md5,
-  int keymode,
+  ChartData::Keymode keymode,
   int64_t savedTimestamp,
   QString guid,
   BmsScore::SubmissionState submissionState,
@@ -147,7 +147,7 @@ BmsLiveScore::getGuid() const -> QString
 auto
 BmsLiveScore::getKeymode() const -> ChartData::Keymode
 {
-    return static_cast<ChartData::Keymode>(keymode);
+    return keymode;
 }
 void
 BmsLiveScore::increaseCombo()

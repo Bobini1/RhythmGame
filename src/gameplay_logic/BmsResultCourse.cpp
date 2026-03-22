@@ -275,3 +275,11 @@ gameplay_logic::BmsResultCourse::getLength() const -> int64_t
                                return sum + score->getResult()->getLength();
                            });
 }
+auto
+gameplay_logic::BmsResultCourse::getKeymode() const
+  -> gameplay_logic::ChartData::Keymode
+{
+    return scores.isEmpty() ? ChartData::Keymode::K7
+                            : static_cast<ChartData::Keymode>(
+                                scores.first()->getResult()->getKeymode());
+}

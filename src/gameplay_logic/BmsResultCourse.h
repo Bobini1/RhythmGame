@@ -6,6 +6,7 @@
 #define BMSRESULTCOURSE_H
 
 #include "BmsScore.h"
+#include "ChartData.h"
 #include "resource_managers/Tables.h"
 #include "support/Version.h"
 #include "resource_managers/Vars.h"
@@ -151,6 +152,15 @@ class BmsResultCourse final : public QObject
      */
     Q_PROPERTY(uint64_t gameVersion READ getGameVersion CONSTANT)
     /**
+     * @brief The keymode of the chart.
+     * @details Can be different from the keymode of chartData when
+     * resource_managers::dp_options::DpOptions is battle.
+     * @note This is the property used to determine which gampley screen to
+     * load.
+     */
+    Q_PROPERTY(
+      gameplay_logic::ChartData::Keymode keymode READ getKeymode CONSTANT)
+    /**
      * @brief The constraints of the course, like "gauge_lr2" or "grade_mirror"
      */
     Q_PROPERTY(QStringList constraints READ getConstraints CONSTANT)
@@ -217,6 +227,7 @@ class BmsResultCourse final : public QObject
     auto getIdentifier() const -> QString;
     auto getDpOptions() const -> resource_managers::DpOptions;
     auto getLength() const -> int64_t;
+    auto getKeymode() const -> gameplay_logic::ChartData::Keymode;
 };
 } // namespace gameplay_logic
 

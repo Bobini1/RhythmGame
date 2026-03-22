@@ -69,7 +69,7 @@ gameplay_logic::BmsResult::BmsResult(
   resource_managers::NoteOrderAlgorithm noteOrderAlgorithm,
   resource_managers::NoteOrderAlgorithm noteOrderAlgorithmP2,
   resource_managers::DpOptions dpOptions,
-  int keymode,
+  ChartData::Keymode keymode,
   QString guid,
   QString sha256,
   QString md5,
@@ -214,7 +214,7 @@ gameplay_logic::BmsResult::load(const DTO& dto) -> std::unique_ptr<BmsResult>
       static_cast<resource_managers::NoteOrderAlgorithm>(
         dto.noteOrderAlgorithmP2),
       static_cast<resource_managers::DpOptions>(dto.dpOptions),
-      dto.keymode,
+      static_cast<ChartData::Keymode>(dto.keymode),
       QString::fromStdString(dto.guid),
       QString::fromStdString(dto.sha256),
       QString::fromStdString(dto.md5),
@@ -270,7 +270,7 @@ gameplay_logic::BmsResult::getDpOptions() const -> resource_managers::DpOptions
     return dpOptions;
 }
 auto
-gameplay_logic::BmsResult::getKeymode() const -> int
+gameplay_logic::BmsResult::getKeymode() const -> ChartData::Keymode
 {
     return keymode;
 }
@@ -347,7 +347,7 @@ gameplay_logic::BmsResult::toJson() const -> QJsonObject
     obj["noteOrderAlgorithm"] = static_cast<int>(noteOrderAlgorithm);
     obj["noteOrderAlgorithmP2"] = static_cast<int>(noteOrderAlgorithmP2);
     obj["dpOptions"] = static_cast<int>(dpOptions);
-    obj["keymode"] = keymode;
+    obj["keymode"] = static_cast<int>(keymode);
     obj["gameVersion"] = static_cast<qint64>(gameVersion);
     return obj;
 }
@@ -405,30 +405,31 @@ gameplay_logic::BmsResult::fromJson(const QJsonObject& obj)
 
     auto owner = obj["_links"]["user"].toString();
 
-    auto result = std::make_unique<BmsResult>(maxPoints,
-                                              maxHits,
-                                              normalNoteCount,
-                                              scratchCount,
-                                              lnCount,
-                                              bssCount,
-                                              mineCount,
-                                              clearType,
-                                              judgementCounts,
-                                              mineHits,
-                                              points,
-                                              maxCombo,
-                                              unixTimestamp,
-                                              length,
-                                              randomSequence,
-                                              randomSeed,
-                                              noa,
-                                              noaP2,
-                                              dpo,
-                                              keymode,
-                                              guid,
-                                              sha256,
-                                              md5,
-                                              gameVersion,
-                                              owner);
+    auto result =
+      std::make_unique<BmsResult>(maxPoints,
+                                  maxHits,
+                                  normalNoteCount,
+                                  scratchCount,
+                                  lnCount,
+                                  bssCount,
+                                  mineCount,
+                                  clearType,
+                                  judgementCounts,
+                                  mineHits,
+                                  points,
+                                  maxCombo,
+                                  unixTimestamp,
+                                  length,
+                                  randomSequence,
+                                  randomSeed,
+                                  noa,
+                                  noaP2,
+                                  dpo,
+                                  static_cast<ChartData::Keymode>(keymode),
+                                  guid,
+                                  sha256,
+                                  md5,
+                                  gameVersion,
+                                  owner);
     return result;
 }

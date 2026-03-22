@@ -5,6 +5,8 @@
 #ifndef RHYTHMGAME_BMSRESULT_H
 #define RHYTHMGAME_BMSRESULT_H
 
+#include "ChartData.h"
+
 #include <magic_enum/magic_enum.hpp>
 #include "Judgement.h"
 #include "db/SqliteCppDb.h"
@@ -156,6 +158,15 @@ class BmsResult final : public QObject
     Q_PROPERTY(
       resource_managers::DpOptions dpOptions READ getDpOptions CONSTANT)
     /**
+     * @brief The keymode of the chart.
+     * @details Can be different from the keymode of chartData when
+     * resource_managers::dp_options::DpOptions is battle.
+     * @note This is the property used to determine which gampley screen to
+     * load.
+     */
+    Q_PROPERTY(
+      gameplay_logic::ChartData::Keymode keymode READ getKeymode CONSTANT)
+    /**
      * @brief The game version where the score was achieved.
      * @details For migrations.
      */
@@ -192,7 +203,7 @@ class BmsResult final : public QObject
     resource_managers::DpOptions dpOptions;
     uint64_t gameVersion;
     QString owner;
-    int keymode{0};
+    ChartData::Keymode keymode;
 
   public:
     struct DTO
@@ -248,7 +259,7 @@ class BmsResult final : public QObject
       resource_managers::NoteOrderAlgorithm noteOrderAlgorithm,
       resource_managers::NoteOrderAlgorithm noteOrderAlgorithmP2,
       resource_managers::DpOptions dpOptions,
-      int keymode,
+      ChartData::Keymode keymode,
       QString guid,
       QString sha256,
       QString md5,
@@ -279,7 +290,7 @@ class BmsResult final : public QObject
     auto getNoteOrderAlgorithmP2() const
       -> resource_managers::NoteOrderAlgorithm;
     auto getDpOptions() const -> resource_managers::DpOptions;
-    auto getKeymode() const -> int;
+    auto getKeymode() const -> ChartData::Keymode;
     auto getGameVersion() const -> uint64_t;
     auto getOwner() const -> const QString&;
 
