@@ -27,7 +27,6 @@ ChartRunner::ChartRunner(
         player2->setParent(this);
     }
     auto p1keymode = player1->getScore()->getKeymode();
-    auto p2keymode = player2 ? player2->getScore()->getKeymode() : p1keymode;
     inputMapping = { 0, 1, 2, 3, 4, 5, 6, 7 };
     if (p1keymode == ChartData::Keymode::K10) {
         inputMapping.append({ 14, 13, 8, 9, 10, 11, 12, 15 });
