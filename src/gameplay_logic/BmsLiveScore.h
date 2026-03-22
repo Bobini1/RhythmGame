@@ -202,6 +202,7 @@ class BmsLiveScore final : public QObject
     QString sha256;
     QString md5;
     QString guid;
+    int keymode;
     double points = 0;
     double maxPointsNow = 0;
     int combo = 0;
@@ -234,6 +235,7 @@ class BmsLiveScore final : public QObject
                  int64_t length,
                  QString sha256,
                  QString md5,
+                 int keymode,
                  int64_t savedTimestamp, // for replays
                  QString guid = QUuid::createUuid().toString(),
                  BmsScore::SubmissionState submissionState =

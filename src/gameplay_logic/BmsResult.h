@@ -192,6 +192,7 @@ class BmsResult final : public QObject
     resource_managers::DpOptions dpOptions;
     uint64_t gameVersion;
     QString owner;
+    int keymode{0};
 
   public:
     struct DTO
@@ -223,6 +224,7 @@ class BmsResult final : public QObject
         int noteOrderAlgorithm;
         int noteOrderAlgorithmP2;
         int dpOptions;
+        int keymode;
         int64_t gameVersion;
         std::string owner;
     };
@@ -246,6 +248,7 @@ class BmsResult final : public QObject
       resource_managers::NoteOrderAlgorithm noteOrderAlgorithm,
       resource_managers::NoteOrderAlgorithm noteOrderAlgorithmP2,
       resource_managers::DpOptions dpOptions,
+      int keymode,
       QString guid,
       QString sha256,
       QString md5,
@@ -276,6 +279,7 @@ class BmsResult final : public QObject
     auto getNoteOrderAlgorithmP2() const
       -> resource_managers::NoteOrderAlgorithm;
     auto getDpOptions() const -> resource_managers::DpOptions;
+    auto getKeymode() const -> int;
     auto getGameVersion() const -> uint64_t;
     auto getOwner() const -> const QString&;
 

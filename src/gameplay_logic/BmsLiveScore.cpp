@@ -27,6 +27,7 @@ BmsLiveScore::BmsLiveScore(
   int64_t length,
   QString sha256,
   QString md5,
+  int keymode,
   int64_t savedTimestamp,
   QString guid,
   BmsScore::SubmissionState submissionState,
@@ -48,6 +49,7 @@ BmsLiveScore::BmsLiveScore(
   , permutation(std::move(permutation))
   , sha256(std::move(sha256))
   , md5(std::move(md5))
+  , keymode(keymode)
   , guid(std::move(guid))
   , randomSeed(seed)
   , length(length)
@@ -317,6 +319,7 @@ BmsLiveScore::getResult() const -> std::unique_ptr<BmsResult>
       noteOrderAlgorithm,
       noteOrderAlgorithmP2,
       dpOptions,
+      keymode,
       guid,
       sha256,
       md5);

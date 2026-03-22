@@ -210,6 +210,7 @@ Profile::Profile(
                "perfect INTEGER NOT NULL,"
                "mine_hits INTEGER NOT NULL,"
                "clear_type TEXT NOT NULL,"
+               "keymode INTEGER NOT NULL,"
                "unix_timestamp INTEGER NOT NULL,"
                "length INTEGER NOT NULL,"
                "random_sequence STRING NOT NULL,"
@@ -249,6 +250,16 @@ Profile::Profile(
     if (!sourceColumnExists) {
         db.execute("ALTER TABLE score ADD COLUMN owner TEXT NOT NULL DEFAULT "
                    "'';");
+    }
+    // For migration from earlier versions that did not have keymode
+    auto checkKeymodeColumn =
+      db.createStatement("SELECT COUNT(*) FROM pragma_table_info('score') "
+                         "WHERE name = 'keymode';");
+    auto keymodeColumnExists =
+      checkKeymodeColumn.executeAndGet<int64_t>().value_or(0) > 0;
+    if (!keymodeColumnExists) {
+        db.execute(
+          "ALTER TABLE score ADD COLUMN keymode INTEGER NOT NULL DEFAULT 0;");
     }
     db.execute("CREATE TABLE IF NOT EXISTS score_course ("
                "id INTEGER PRIMARY KEY AUTOINCREMENT,"
@@ -550,7 +561,7 @@ Profile::uploadScores() -> qml_components::ScoreSyncOperation*
                                   "score.random_seed, "
                                   "score.note_order_algorithm, "
                                   "score.note_order_algorithm_p2, "
-                                  "score.dp_options, score.game_version, "
+                                  "score.dp_options, score.keymode, score.game_version, "
                                   "score.owner, "
                                   "replay_data.*, gauge_history.* ";
 

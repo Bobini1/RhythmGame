@@ -69,6 +69,7 @@ gameplay_logic::BmsResult::BmsResult(
   resource_managers::NoteOrderAlgorithm noteOrderAlgorithm,
   resource_managers::NoteOrderAlgorithm noteOrderAlgorithmP2,
   resource_managers::DpOptions dpOptions,
+  int keymode,
   QString guid,
   QString sha256,
   QString md5,
@@ -98,6 +99,7 @@ gameplay_logic::BmsResult::BmsResult(
   , noteOrderAlgorithm(noteOrderAlgorithm)
   , noteOrderAlgorithmP2(noteOrderAlgorithmP2)
   , dpOptions(dpOptions)
+  , keymode(keymode)
   , gameVersion(gameVersion)
   , owner(std::move(owner))
 {
@@ -137,11 +139,12 @@ gameplay_logic::BmsResult::save(db::SqliteCppDb& db) const
                          "note_order_algorithm,"
                          "note_order_algorithm_p2,"
                          "dp_options,"
+                         "keymode,"
                          "game_version,"
                          "owner"
                          ")"
                          "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, "
-                         "?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);");
+                         "?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);");
     statement.bind(1, maxPoints);
     statement.bind(2, maxHits);
     statement.bind(3, normalNoteCount);
@@ -171,8 +174,9 @@ gameplay_logic::BmsResult::save(db::SqliteCppDb& db) const
     statement.bind(25, static_cast<int>(noteOrderAlgorithm));
     statement.bind(26, static_cast<int>(noteOrderAlgorithmP2));
     statement.bind(27, static_cast<int>(dpOptions));
-    statement.bind(28, static_cast<int64_t>(gameVersion));
-    statement.bind(29, owner.toStdString());
+    statement.bind(28, static_cast<int>(keymode));
+    statement.bind(29, static_cast<int64_t>(gameVersion));
+    statement.bind(30, owner.toStdString());
     statement.execute();
 }
 auto
@@ -210,6 +214,7 @@ gameplay_logic::BmsResult::load(const DTO& dto) -> std::unique_ptr<BmsResult>
       static_cast<resource_managers::NoteOrderAlgorithm>(
         dto.noteOrderAlgorithmP2),
       static_cast<resource_managers::DpOptions>(dto.dpOptions),
+      dto.keymode,
       QString::fromStdString(dto.guid),
       QString::fromStdString(dto.sha256),
       QString::fromStdString(dto.md5),
@@ -263,6 +268,11 @@ auto
 gameplay_logic::BmsResult::getDpOptions() const -> resource_managers::DpOptions
 {
     return dpOptions;
+}
+auto
+gameplay_logic::BmsResult::getKeymode() const -> int
+{
+    return keymode;
 }
 auto
 gameplay_logic::BmsResult::getGameVersion() const -> uint64_t
@@ -337,6 +347,7 @@ gameplay_logic::BmsResult::toJson() const -> QJsonObject
     obj["noteOrderAlgorithm"] = static_cast<int>(noteOrderAlgorithm);
     obj["noteOrderAlgorithmP2"] = static_cast<int>(noteOrderAlgorithmP2);
     obj["dpOptions"] = static_cast<int>(dpOptions);
+    obj["keymode"] = keymode;
     obj["gameVersion"] = static_cast<qint64>(gameVersion);
     return obj;
 }
@@ -388,6 +399,8 @@ gameplay_logic::BmsResult::fromJson(const QJsonObject& obj)
     auto dpo =
       static_cast<resource_managers::DpOptions>(obj["dpOptions"].toInt());
 
+    auto keymode = obj.contains("keymode") ? obj["keymode"].toInt() : 0;
+
     auto gameVersion = obj["gameVersion"].toInteger();
 
     auto owner = obj["_links"]["user"].toString();
@@ -411,6 +424,7 @@ gameplay_logic::BmsResult::fromJson(const QJsonObject& obj)
                                               noa,
                                               noaP2,
                                               dpo,
+                                              keymode,
                                               guid,
                                               sha256,
                                               md5,
