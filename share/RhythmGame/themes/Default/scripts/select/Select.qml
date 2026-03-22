@@ -295,7 +295,7 @@ FocusScope {
                         switch (ranking.ranking.provider) {
                             case OnlineRankingModel.RhythmGame:
                                 for (let i = 0; i < entries.length; i++) {
-                                    if (entries[i].userId === Rg.profileList.mainProfile.onlineUserId) {
+                                    if (entries[i].userId === Rg.profileList.mainProfile.onlineUserData?.userId) {
                                         return i + 1;
                                     }
                                 }

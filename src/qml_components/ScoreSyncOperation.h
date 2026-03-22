@@ -27,21 +27,30 @@ class ScoreSyncOperation final : public QObject
 
     Q_PROPERTY(int done READ getDone NOTIFY progressChanged)
     Q_PROPERTY(int total READ getTotal NOTIFY progressChanged)
+    Q_PROPERTY(bool finished READ isFinished NOTIFY finishedChanged)
 
     int currentDone{ 0 };
     int total{ 0 };
+    bool finishedFlag{ false };
 
   public:
     explicit ScoreSyncOperation(QObject* parent = nullptr);
 
     [[nodiscard]] auto getDone() const -> int { return currentDone; }
     [[nodiscard]] auto getTotal() const -> int { return total; }
+    [[nodiscard]] auto isFinished() const -> bool;
 
     /**
      * @brief Set the total number of items once it is known.
      * @details Emits progressChanged(). If total is 0, also emits finished().
      */
     void setTotal(int total);
+
+    /**
+     * @brief Set/get the finished state for bindings.
+     * @details Setting to true will emit finishedChanged() and finished().
+     */
+    void setFinished(bool value);
 
     /**
      * @brief Advance the done counter by one and emit progressChanged().
@@ -56,7 +65,7 @@ class ScoreSyncOperation final : public QObject
 
   signals:
     void progressChanged();
-    void finished();
+    void finishedChanged();
     void error(const QString& message);
 };
 

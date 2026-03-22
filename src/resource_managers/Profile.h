@@ -20,6 +20,30 @@ namespace gameplay_logic {
 class ChartData;
 }
 namespace resource_managers {
+class TachiData
+{
+    Q_GADGET
+    Q_PROPERTY(qint64 userId MEMBER userId CONSTANT)
+    Q_PROPERTY(QString username MEMBER username CONSTANT)
+    Q_PROPERTY(QString image MEMBER image CONSTANT)
+  public:
+    qint64 userId;
+    QString username;
+    QString image;
+    auto operator<=>(const TachiData&) const = default;
+};
+class OnlineUserData
+{
+    Q_GADGET
+    Q_PROPERTY(qint64 userId MEMBER userId CONSTANT)
+    Q_PROPERTY(QString username MEMBER username CONSTANT)
+    Q_PROPERTY(QString image MEMBER image CONSTANT)
+  public:
+    qint64 userId;
+    QString username;
+    QString image;
+    auto operator<=>(const OnlineUserData&) const = default;
+};
 
 class Profile final : public QObject
 {
@@ -28,6 +52,7 @@ class Profile final : public QObject
     enum class LoginState
     {
         NotLoggedIn,
+        LoggingIn,
         LoggedIn,
         LoginFailed
     };
@@ -44,12 +69,13 @@ class Profile final : public QObject
     Q_PROPERTY(qml_components::ScoreDb* scoreDb READ getScoreDb CONSTANT)
     /** @brief The unique identifier of the profile. */
     Q_PROPERTY(QString guid READ getGuid CONSTANT)
-    Q_PROPERTY(QString onlineUsername READ getOnlineUsername NOTIFY
-                 onlineUsernameChanged)
-    Q_PROPERTY(
-      qint64 onlineUserId READ getOnlineUserId NOTIFY onlineUserIdChanged)
+    Q_PROPERTY(QVariant onlineUserData READ getOnlineUserData NOTIFY
+                 onlineUserDataChanged)
+    Q_PROPERTY(QVariant tachiData READ getTachiData NOTIFY tachiDataChanged)
     Q_PROPERTY(resource_managers::Profile::LoginState loginState READ
                  getLoginState NOTIFY loginStateChanged)
+    Q_PROPERTY(LoginState tachiLoginState READ getTachiLoginState NOTIFY
+                 loginStateChanged)
     db::SqliteCppDb db;
     std::filesystem::path dbPath;
     QQmlPropertyMap* themeConfig;
@@ -59,14 +85,17 @@ class Profile final : public QObject
     QNetworkAccessManager* networkManager;
     QNetworkRequestFactory networkRequestFactory;
     QThreadPool threadPool;
-    QString onlineUsername;
-    qint64 onlineUserId{ 0 };
+
     LoginState loginState{ LoginState::NotLoggedIn };
+    LoginState tachiLoginState{ LoginState::NotLoggedIn };
+    std::optional<OnlineUserData> userData;
+    std::optional<TachiData> tachiData;
     void loadBearerToken();
     void fetchOnlineData();
-    void setOnlineUsername(const QString& username);
-    void setOnlineUserId(const qint64& userId);
     void setLoginState(LoginState state);
+    void setTachiLoginState(LoginState state);
+    void setOnlineUserData(std::optional<OnlineUserData> userData);
+    void setTachiData(std::optional<TachiData> tachiData);
 
   public:
     static inline const QString keychainService = "RhythmGame";
@@ -77,6 +106,7 @@ class Profile final : public QObject
      * @param dbPath Path to the profile's database file. Doesn't have to exist.
      * @param themeFamilies The available theme families.
      * @param assetsPaths Paths to the avatar folders.
+     * @param networkManager The network manager to use for online operations.
      * @param parent QObject parent.
      */
     explicit Profile(
@@ -94,11 +124,13 @@ class Profile final : public QObject
     auto getThemeConfig() const -> QQmlPropertyMap*;
     auto getVars() -> Vars*;
     auto getGuid() const -> QString;
+    void fetchTachiData(int tachiId);
     Q_INVOKABLE void login(const QString& email, const QString& password);
     Q_INVOKABLE void logout();
-    auto getOnlineUsername() const -> QString;
-    auto getOnlineUserId() const -> qint64;
     auto getLoginState() const -> LoginState;
+    auto getTachiLoginState() const -> LoginState;
+    auto getOnlineUserData() const -> QVariant;
+    auto getTachiData() const -> QVariant;
     /**
      * @brief Upload local scores to the server.
      * @details Compares local GUIDs to the server and uploads each missing
@@ -115,13 +147,14 @@ class Profile final : public QObject
     Q_INVOKABLE qml_components::ScoreSyncOperation* downloadScores();
 
     auto submitScore(const gameplay_logic::BmsScore& score,
-                     const gameplay_logic::ChartData& chartData)
+                     const gameplay_logic::ChartData& chartData) const
       -> QNetworkReply*;
 
   signals:
-    void onlineUsernameChanged();
-    void onlineUserIdChanged();
     void loginStateChanged();
+    void tachiLoginStateChanged();
+    void onlineUserDataChanged();
+    void tachiDataChanged();
 };
 
 } // namespace resource_managers

@@ -30,8 +30,9 @@ Column {
                 id: userNameText
                 text: modelData.userName
                 color: {
+                    // bestPointsScore is set for LR2 provider
                     if (modelData.bestPointsScore ||
-                        modelData.userId === ranking.profile.onlineUserId) {
+                        modelData.userId === ranking.profile.onlineUserData?.userId) {
                         return "#ff0066";
                     }
                     return "black";

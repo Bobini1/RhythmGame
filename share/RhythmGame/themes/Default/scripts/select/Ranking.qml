@@ -39,7 +39,7 @@ Image {
         provider: OnlineRankingModel.LR2IR
         property var entries: {
             let entries = onlineRankingModel.rankingEntries;
-            let ourUserId = ranking.profile.onlineUserId;
+            let ourUserId = ranking.profile.onlineUserData?.userId;
             if (provider !== OnlineRankingModel.LR2IR) {
                 return entries;
             }

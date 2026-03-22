@@ -208,7 +208,7 @@ Item {
                                 console.warn("Sync error:", msg);
                                 loginSection.syncError = true;
                             });
-                            op.finished.connect(function() {
+                            op.finishedChanged.connect(function() {
                                 loginSection.pendingOps = Math.max(0, loginSection.pendingOps - 1);
                                 if (loginSection.pendingOps === 0) {
                                     loginSection.syncing = false;
@@ -240,7 +240,7 @@ Item {
                         ColumnLayout {
                             spacing: 8
                             Label {
-                                text: qsTr("Logged in as %1").arg(loginSection.profile.onlineUsername)
+                                text: qsTr("Logged in as %1").arg(loginSection.profile.onlineUserData.username)
                                 font.pixelSize: 16
                                 Layout.fillWidth: true
                             }

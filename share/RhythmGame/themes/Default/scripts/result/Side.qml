@@ -112,7 +112,7 @@ Column {
                     } else if (provider === OnlineRankingModel.RhythmGame) {
                         for (let i = 0; i < entries.length; i++) {
                             if (entries[i].owner === side.score.result.owner ||
-                                (side.score.result.owner === "" && entries[i].userId === side.profile.onlineUserId)) {
+                                (side.score.result.owner === "" && entries[i].userId === side.profile.onlineUserData?.userId)) {
                                 return i + 1;
                             }
                         }
@@ -156,7 +156,7 @@ Column {
                     } else if (provider === OnlineRankingModel.RhythmGame) {
                         for (let i = 0; i < entries.length; i++) {
                             if (entries[i].owner === side.score.result.owner ||
-                                (side.score.result.owner === "" && entries[i].userId === side.profile.onlineUserId)) {
+                                (side.score.result.owner === "" && entries[i].userId === side.profile.onlineUserData?.userId)) {
                                 return i + 1;
                             }
                         }

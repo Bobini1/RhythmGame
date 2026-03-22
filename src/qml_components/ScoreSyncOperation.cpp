@@ -9,12 +9,23 @@ ScoreSyncOperation::ScoreSyncOperation(QObject* parent)
   : QObject(parent)
 {
 }
+auto
+ScoreSyncOperation::isFinished() const -> bool
+{
+    return finishedFlag;
+}
+void
+ScoreSyncOperation::setFinished(bool value)
+{
+    if (finishedFlag == value) {
+        return;
+    }
+    finishedFlag = value;
+    emit finishedChanged();
+}
 void
 ScoreSyncOperation::setTotal(int total)
 {
-    if (total == 0) {
-        emit finished();
-    }
     if (total == this->total) {
         return;
     }
@@ -27,7 +38,7 @@ ScoreSyncOperation::increment()
     ++currentDone;
     emit progressChanged();
     if (currentDone == total) {
-        emit finished();
+        setFinished(true);
     }
 }
 void

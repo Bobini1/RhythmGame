@@ -485,6 +485,10 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
           "RhythmGameQml", 1, 0, "OnlineRankingModel");
         qmlRegisterType<qml_components::RankingEntry>(
           "RhythmGameQml", 1, 0, "rankingEntry");
+        qmlRegisterType<resource_managers::OnlineUserData>(
+          "RhythmGameQml", 1, 0, "onlineUserData");
+        qmlRegisterType<resource_managers::TachiData>(
+          "RhythmGameQml", 1, 0, "tachiData");
 
         qml_components::InputAttached::inputSignalProvider = &inputTranslator;
         qml_components::QmlUtilsAttached::getThemeNameForRootFile =
