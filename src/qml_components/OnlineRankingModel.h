@@ -1,12 +1,7 @@
 #ifndef RHYTHMGAME_ONLINERANKINGMODEL_H
 #define RHYTHMGAME_ONLINERANKINGMODEL_H
 
-#include <QAbstractListModel>
-#include <QNetworkAccessManager>
-#include <QNetworkReply>
-#include <QNetworkRequestFactory>
-#include <qqmlintegration.h>
-#include <stop_token>
+#include <QtQml>
 
 namespace qml_components {
 class ProfileList;
