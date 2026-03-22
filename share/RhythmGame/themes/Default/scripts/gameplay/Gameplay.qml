@@ -37,7 +37,7 @@ Rectangle {
         if (chart.player1.score.keymode === 5 && isPlayerScratchRightSide(chart.player1)) {
             left = [6, 5, 0, 1, 2, 3, 4, 7];
         }
-        if (chart.player2 && chart.player2.score.keymode === 5 && isPlayerScratchRightSide(chart.player2)) {
+        if ((chart.player2 && chart.player2.score.keymode === 5 && isPlayerScratchRightSide(chart.player2)) || chart.player1.score.keymode === 10) {
             right = [14, 13, 8, 9, 10, 11, 12, 15];
         }
         return left.concat(right);
@@ -422,7 +422,7 @@ Rectangle {
                 pointTarget: root.isDp ? root.targetPoints1 : root.targetPoints2
                 columns: {
                     if (root.isDp) {
-                        return [8, 9, 10, 11, 12, 13, 14, 15];
+                        return chart.player1.score.keymode === 14 ? [8, 9, 10, 11, 12, 13, 14, 15] : [14, 13, 8, 9, 10, 11, 12, 15];
                     } else {
                         if (root.isPlayerScratchRightSide(chart.player2)) {
                             return chart.player2.score.keymode === 7 ? [0, 1, 2, 3, 4, 5, 6, 7] : [6, 5, 0, 1, 2, 3, 4, 7];

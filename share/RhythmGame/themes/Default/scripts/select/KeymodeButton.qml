@@ -8,9 +8,9 @@ Image {
     property int current: {
         let savedKeymode = themeVars.keymodeFilter;
         let index = options.indexOf(savedKeymode);
-        return index === -1 ? 2 : index;
+        return index === -1 ? 0 : index;
     }
-    property var options: Rg.profileList.battleActive ? ["5", "7", "SINGLE"] : ["5", "7", "SINGLE", "10", "14", "DOUBLE", null]
+    property var options: Rg.profileList.battleActive ? ["SINGLE", "5", "7"] : ["SINGLE", "5", "7", "DOUBLE", "10", "14", null]
     required property var themeVars
 
     Binding {
@@ -29,13 +29,13 @@ Image {
                 savedKeymode = defaultKeymode;
             }
             let index = options.indexOf(savedKeymode);
-            return index === -1 ? 2 : index;
+            return index === -1 ? 0 : index;
         }
     }
 
     onOptionsChanged: {
         if (current >= options.length) {
-            current = 2;
+            current = 0;
         }
         mouseArea.setFilter();
     }
