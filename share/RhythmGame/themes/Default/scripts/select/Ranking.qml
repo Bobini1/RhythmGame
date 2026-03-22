@@ -24,6 +24,19 @@ Image {
         }
         return counts;
     }
+    readonly property string keymode: {
+        // convert keymode to string for tachi provider
+        switch (ranking.chartData.keymode) {
+            case 5:
+            case 7:
+                return "7K";
+            case 10:
+            case 14:
+                return "14K";
+        }
+        return "";
+    }
+    readonly property string chartId: onlineRankingModel.chartId
     onEnabledChanged: {
         if (enabled) {
             onlineRankingModel.refresh();
@@ -36,7 +49,7 @@ Image {
         sortBy: OnlineRankingModel.ScorePct
         sortDir: OnlineRankingModel.Desc
         webApiUrl: profile.vars.generalVars.webApiUrl
-        provider: OnlineRankingModel.LR2IR
+        provider: OnlineRankingModel.Tachi
         property var entries: {
             let entries = onlineRankingModel.rankingEntries;
             let ourUserId = ranking.profile.onlineUserData?.userId;
@@ -52,9 +65,7 @@ Image {
                     bestPoints: ranking.bestPointsScore.result.points,
                     maxPoints: ranking.bestPointsScore.result.maxPoints,
                     bestClearTypeGuid: ranking.bestClearTypeScore.result.guid,
-                    bestPointsGuid: ranking.bestPointsScore.result.guid,
-                    bestPointsScore: ranking.bestPointsScore,
-                    bestClearTypeScore: ranking.bestClearTypeScore
+                    bestPointsGuid: ranking.bestPointsScore.result.guid
                 };
                 // insert where it belongs based on bestPoints
                 let newEntries = [];
@@ -128,7 +139,7 @@ Image {
     Loader {
         anchors.fill: parent
         sourceComponent: rankingPages
-        active: !!ranking.md5 && !onlineRankingModel.loading
+        active: !!ranking.md5 && onlineRankingModel.entries.length
     }
     Component {
         id: rankingPages
@@ -142,6 +153,9 @@ Image {
                 chartData: ranking.chartData
                 provider: onlineRankingModel.provider
                 entries: onlineRankingModel.entries.slice(0, 7)
+                bestPointsScore: ranking.bestPointsScore
+                bestClearTypeScore: ranking.bestClearTypeScore
+                keymode: ranking.keymode
             }
 
             RankingStats {

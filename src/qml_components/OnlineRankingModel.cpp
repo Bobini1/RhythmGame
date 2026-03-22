@@ -7,53 +7,10 @@
 #include <QJsonObject>
 #include <QUrlQuery>
 #include <QUrl>
-#include <spdlog/spdlog.h>
-#include <functional>
 #include <QXmlStreamReader>
-#include <compare>
-#include <type_traits>
-#include <optional>
-#include <string>
-#include <string_view>
-#include <iconv.h>
+#include <spdlog/spdlog.h>
 
 namespace qml_components {
-
-static auto
-convertToUtf8(const char* encoding,
-              const std::string_view& str,
-              const bool ignoreErrors = false) -> std::optional<std::string>
-{
-    const auto* targetEncoding = "UTF-8";
-    if (ignoreErrors) {
-        targetEncoding = "UTF-8//IGNORE";
-    }
-
-    iconv_t cd = iconv_open(targetEncoding, encoding);
-    if (cd == (iconv_t)-1) {
-        return std::nullopt;
-    }
-
-    auto* srcPtr = const_cast<char*>(str.data());
-    auto srcLeft = str.size();
-
-    const auto dstSize = str.size() * 4;
-    std::vector<char> dstBuf(dstSize + 1);
-    auto* dstPtr = dstBuf.data();
-    auto dstLeft = dstSize;
-
-    auto result = iconv(cd, &srcPtr, &srcLeft, &dstPtr, &dstLeft);
-    iconv_close(cd);
-
-    if (result == static_cast<size_t>(-1) && !ignoreErrors) {
-        return std::nullopt;
-    }
-
-    *dstPtr = '\0';
-    const auto result_size = dstSize - dstLeft;
-    return std::string(dstBuf.data(), result_size);
-}
-
 void
 OnlineRankingModel::performJsonGet(
   const QString& url,
@@ -68,37 +25,223 @@ OnlineRankingModel::performJsonGet(
         reply->abort();
     });
 
-    connect(
-      reply, &QNetworkReply::finished, this, [reply, onSuccess, onError]() {
-          reply->deleteLater();
+    connect(reply,
+            &QNetworkReply::finished,
+            this,
+            [this, reply, onSuccess, onError]() {
+                reply->deleteLater();
 
-          if (reply->error() == QNetworkReply::OperationCanceledError) {
-              return;
-          }
-          if (reply->error() == QNetworkReply::ContentNotFoundError) {
-              return;
-          }
-          if (reply->error() != QNetworkReply::NoError) {
-              onError(reply->errorString());
-              return;
-          }
-          const QByteArray data = reply->readAll();
+                if (reply->error() == QNetworkReply::OperationCanceledError) {
+                    return;
+                }
+                if (reply->error() == QNetworkReply::ContentNotFoundError) {
+                    setLoading(false);
+                    return;
+                }
+                if (reply->error() != QNetworkReply::NoError) {
+                    onError(reply->errorString());
+                    return;
+                }
+                const QByteArray data = reply->readAll();
 
-          QJsonParseError parseErr;
-          const QJsonDocument doc = QJsonDocument::fromJson(data, &parseErr);
-          if (parseErr.error != QJsonParseError::NoError) {
-              onError(QString::fromLatin1("JSON parse error: %1")
-                        .arg(parseErr.errorString()));
-              return;
-          }
+                QJsonParseError parseErr;
+                const QJsonDocument doc =
+                  QJsonDocument::fromJson(data, &parseErr);
+                if (parseErr.error != QJsonParseError::NoError) {
+                    onError(QString::fromLatin1("JSON parse error: %1")
+                              .arg(parseErr.errorString()));
+                    return;
+                }
 
-          onSuccess(doc);
-      });
+                onSuccess(doc);
+            });
+}
+
+QString
+convertTachiClearType(const int enumIndex)
+{
+    switch (enumIndex) {
+        case 0:
+            return "NOPLAY";
+        case 1:
+            return "FAILED";
+        case 2:
+            return "AEASY";
+        case 3:
+            return "EASY";
+        case 4:
+            return "NORMAL";
+        case 5:
+            return "HARD";
+        case 6:
+            return "EXHARD";
+        case 7:
+            return "FC";
+        default:
+            return QString::number(enumIndex);
+    }
+}
+void
+OnlineRankingModel::handleTachiReply(int startRanking,
+                                     int noteCount,
+                                     QNetworkReply* reply)
+{
+    reply->deleteLater();
+    if (reply->error() == QNetworkReply::OperationCanceledError) {
+        setLoading(false);
+        return;
+    }
+    if (reply->error() == QNetworkReply::ContentNotFoundError) {
+        setLoading(false);
+        return;
+    }
+    if (reply->error() != QNetworkReply::NoError) {
+        spdlog::error("OnlineRankingModel fetchTachi pbs fetch failed: {}",
+                      reply->errorString().toStdString());
+        setLoading(false);
+        return;
+    }
+
+    const QByteArray pbsData = reply->readAll();
+
+    QJsonParseError pbsErr;
+    const QJsonDocument pbsDoc = QJsonDocument::fromJson(pbsData, &pbsErr);
+    if (pbsErr.error != QJsonParseError::NoError || !pbsDoc.isObject()) {
+        spdlog::error("OnlineRankingModel fetchTachi: pbs JSON parse error: {}",
+                      pbsErr.errorString().toStdString());
+        setLoading(false);
+        return;
+    }
+
+    const QJsonObject pbsRoot = pbsDoc.object();
+    const QJsonObject pbsBody = pbsRoot.value("body").toObject();
+    const QJsonArray pbsArr = pbsBody.value("pbs").toArray();
+    const QJsonArray usersArr = pbsBody.value("users").toArray();
+
+    if (pbsArr.isEmpty()) {
+        setLoading(false);
+        return;
+    } else {
+        const int pageSize = 100;
+        startRanking += pageSize;
+        const auto pbsUrlStr =
+          QString("https://boku.tachi.ac/api/v1/games/bms/7K/charts/%1/"
+                  "pbs?startRanking=%2")
+            .arg(chartId)
+            .arg(startRanking);
+        auto pbsReq = QNetworkRequest(QUrl(pbsUrlStr));
+        QNetworkReply* pbsReply = networkManager->get(pbsReq);
+        connect(this,
+                &OnlineRankingModel::cancelPendingRequested,
+                pbsReply,
+                [pbsReply] { pbsReply->abort(); });
+        connect(pbsReply,
+                &QNetworkReply::finished,
+                this,
+                [this, startRanking, noteCount, pbsReply]() {
+                    handleTachiReply(startRanking, noteCount, pbsReply);
+                });
+    }
+
+    for (const auto& [index, pbv] : std::ranges::views::enumerate(pbsArr)) {
+        if (!pbv.isObject()) {
+            continue;
+        }
+        const QJsonObject pb = pbv.toObject();
+        RankingEntry r;
+        r.userId = pb.value("userID").toInt();
+        const QJsonObject uobj = usersArr[index].toObject();
+        r.userName = uobj.value("username").toString();
+        r.userImage = uobj.value("customPfpLocation").toString();
+
+        const QJsonObject scoreData = pb.value("scoreData").toObject();
+        r.bestPoints = scoreData.value("score").toDouble();
+        r.maxPoints = noteCount * 2;
+
+        auto judgements = scoreData.value("judgements").toObject();
+
+        r.bestClearType = convertTachiClearType(
+          scoreData["enumIndexes"].toObject()["lamp"].toInt());
+        if (r.bestClearType == "FC") {
+            if (judgements["good"].toInt() == 0) {
+                r.bestClearType = "PERFECT";
+                if (judgements["great"].toInt() == 0) {
+                    r.bestClearType = "MAX";
+                }
+            }
+        }
+
+        const QJsonObject optionalObj = scoreData.value("optional").toObject();
+        if (optionalObj.contains("maxCombo") &&
+            optionalObj.value("maxCombo").isDouble()) {
+            r.bestCombo = optionalObj.value("maxCombo").toInt();
+        }
+        r.maxHits = noteCount;
+
+        if (optionalObj.contains("bp") && optionalObj.value("bp").isDouble()) {
+            r.bestComboBreaks = optionalObj.value("bp").toInt();
+        } else {
+            r.bestComboBreaks =
+              judgements["bad"].toInt() + judgements["poor"].toInt();
+        }
+
+        const auto composedFrom = pb.value("composedFrom").toArray();
+        for (const auto& cf : composedFrom) {
+            if (!cf.isObject()) {
+                continue;
+            }
+            const QJsonObject cfObj = cf.toObject();
+            if (cfObj["name"] == "Best Lamp") {
+                auto value = cfObj.value("scoreID").toString();
+                r.bestClearTypeGuid = value;
+                if (r.bestClearTypeGuid.isEmpty()) {
+                    r.bestClearTypeGuid = value;
+                }
+                if (r.bestClearTypeGuid.isEmpty()) {
+                    r.bestClearTypeGuid = value;
+                }
+            } else if (cfObj["name"] == "BEST SCORE") {
+                r.bestPointsGuid = cfObj.value("scoreID").toString();
+            } else if (cfObj["name"] == "LOWEST BP") {
+                r.bestComboBreaksGuid = cfObj.value("scoreID").toString();
+            }
+        }
+
+        // This is the time the pb was achieved,
+        // not the last time the score was played.
+        // But we don't have other data to use.
+        if (pb.contains("timeAchieved") &&
+            pb.value("timeAchieved").isDouble()) {
+            const auto ms = pb.value("timeAchieved").toInteger();
+            r.latestDate = ms / 1000;
+        }
+
+        r.scoreCount = 1;
+
+        r.owner =
+          "https://boku.tachi.ac/api/v1/users/" + QString::number(r.userId);
+
+        auto entries = getRankingEntries();
+        entries.append(std::move(r));
+        setEntries(entries);
+        auto rankingData = scoreData["rankingData"].toObject();
+    }
 }
 
 OnlineRankingModel::OnlineRankingModel(QObject* parent)
   : QAbstractListModel(parent)
 {
+    connect(this, &OnlineRankingModel::rankingEntriesChanged, this, [this] {
+        auto map = QHash<QString, int>{};
+        for (const auto& entry : entries) {
+            map[entry.bestClearType]++;
+        }
+        auto variantMap = QVariantMap{};
+        for (const auto& key : map.keys()) {
+            variantMap[key] = map[key];
+        }
+        setClearCounts(std::move(variantMap));
+    });
 }
 
 auto
@@ -280,18 +423,9 @@ OnlineRankingModel::fetchRhythmGame()
               scoreCount += entry.scoreCount;
               newEntries.append(std::move(entry));
           }
-          auto map = QVariantMap{};
-          for (const auto& key : clearTypeCounts.keys()) {
-              map[key] = clearTypeCounts[key];
-          }
-          setClearCounts(std::move(map));
           setScoreCount(scoreCount);
           setPlayerCount(playerCount);
 
-          beginResetModel();
-          entries = std::move(newEntries);
-          emit rankingEntriesChanged();
-          endResetModel();
           setLoading(false);
       },
       [this](const QString& err) {
@@ -381,6 +515,7 @@ OnlineRankingModel::fetchLR2IR()
             return;
         }
         if (reply->error() == QNetworkReply::ContentNotFoundError) {
+            setLoading(false);
             return;
         }
         if (reply->error() != QNetworkReply::NoError) {
@@ -404,8 +539,7 @@ OnlineRankingModel::fetchLR2IR()
 
         QList<RankingEntry> newEntries;
         newEntries.reserve(tmpList.size());
-        QHash<QString, int> clearTypeCounts;
-        int totalScoreCount = 0;
+        auto totalScoreCount = 0;
 
         struct WithPct
         {
@@ -450,14 +584,10 @@ OnlineRankingModel::fetchLR2IR()
                     }
                 }
             }();
-            clearTypeCounts[r.bestClearType]++;
-            r.bestClearTypeGuid.clear();
             r.bestComboBreaks = t.minbp;
-            r.bestComboBreaksGuid.clear();
-            r.latestDate = 0;
-            r.latestDateGuid.clear();
-            r.scoreCount = 0;
-            r.owner.clear();
+            r.owner = "http://www.dream-pro.info/~lavalse/LR2IR/"
+                      "search.cgi?mode=mypage&playerid=" +
+                      QString::number(r.userId);
 
             totalScoreCount += r.scoreCount;
 
@@ -562,33 +692,104 @@ OnlineRankingModel::fetchLR2IR()
         for (auto& entry : filtered) {
             finalEntries.append(std::move(entry.entry));
         }
-
-        // clearCounts -> convert to QVariantMap
-        QVariantMap map;
-        for (const auto& key : clearTypeCounts.keys()) {
-            map[key] = clearTypeCounts[key];
-        }
-
-        setClearCounts(std::move(map));
         setPlayerCount(withPct.size());
 
-        beginResetModel();
-        entries = std::move(finalEntries);
-        emit rankingEntriesChanged();
-        endResetModel();
+        setEntries(std::move(finalEntries));
         setLoading(false);
     });
+}
+void
+OnlineRankingModel::fetchTachi()
+{
+    const QUrl resolveUrl(
+      "https://boku.tachi.ac/api/v1/games/bms/7K/charts/resolve");
+    QNetworkRequest resolveReq(resolveUrl);
+    resolveReq.setHeader(QNetworkRequest::ContentTypeHeader,
+                         "application/json");
+
+    QJsonObject body;
+    body.insert("matchType", "bmsChartHash");
+    body.insert("identifier", currentMd5.toLower());
+    const auto bodyDoc = QJsonDocument(body);
+    QNetworkReply* resolveReply =
+      networkManager->post(resolveReq, bodyDoc.toJson(QJsonDocument::Compact));
+
+    connect(this,
+            &OnlineRankingModel::cancelPendingRequested,
+            resolveReply,
+            [resolveReply] { resolveReply->abort(); });
+
+    connect(
+      resolveReply, &QNetworkReply::finished, this, [this, resolveReply]() {
+          resolveReply->deleteLater();
+
+          if (resolveReply->error() == QNetworkReply::OperationCanceledError) {
+              return;
+          }
+          if (resolveReply->error() == QNetworkReply::ContentNotFoundError) {
+              setLoading(false);
+              return;
+          }
+          if (resolveReply->error() != QNetworkReply::NoError) {
+              spdlog::error("OnlineRankingModel fetchTachi resolve failed: {}",
+                            resolveReply->errorString().toStdString());
+              setLoading(false);
+              return;
+          }
+
+          const auto data = resolveReply->readAll();
+          auto perr = QJsonParseError{};
+          const auto doc = QJsonDocument::fromJson(data, &perr);
+          if (perr.error != QJsonParseError::NoError || !doc.isObject()) {
+              spdlog::error(
+                "OnlineRankingModel fetchTachi: resolve JSON parse error: {}",
+                perr.errorString().toStdString());
+              setLoading(false);
+              return;
+          }
+
+          const auto root = doc.object();
+          const auto bodyObj = root["body"].toObject();
+          const auto chartObj = bodyObj["chart"].toObject();
+          const auto chartID = chartObj["chartID"].toString();
+          if (chartID.isEmpty()) {
+              spdlog::error("OnlineRankingModel fetchTachi: no chartID in "
+                            "resolve response");
+              setLoading(false);
+              return;
+          }
+          setChartId(chartID);
+          const auto noteCount =
+            chartObj["data"].toObject()["notecount"].toInt();
+
+          // page through pbs?startRanking=N (increase by 100) until empty
+          int startRanking = 1;
+
+          const auto pbsUrlStr =
+            QString("https://boku.tachi.ac/api/v1/games/bms/7K/charts/%1/"
+                    "pbs?startRanking=%2")
+              .arg(chartID)
+              .arg(startRanking);
+          auto pbsReq = QNetworkRequest(QUrl(pbsUrlStr));
+          QNetworkReply* pbsReply = networkManager->get(pbsReq);
+          connect(pbsReply,
+                  &QNetworkReply::finished,
+                  this,
+                  [this, startRanking, noteCount, pbsReply]() {
+                      handleTachiReply(startRanking, noteCount, pbsReply);
+                  });
+          connect(this,
+                  &OnlineRankingModel::cancelPendingRequested,
+                  pbsReply,
+                  [pbsReply] { pbsReply->abort(); });
+      });
 }
 void
 OnlineRankingModel::fetch()
 {
     setPlayerCount(0);
     setScoreCount(0);
-    setClearCounts({});
-    beginResetModel();
-    entries.clear();
-    emit rankingEntriesChanged();
-    endResetModel();
+    setEntries({});
     cancelPending();
     if (currentMd5.isEmpty() || !networkRequestFactory.baseUrl().isValid() &&
                                   currentProvider == Provider::RhythmGame) {
@@ -600,8 +801,17 @@ OnlineRankingModel::fetch()
     switch (currentProvider) {
         case Provider::RhythmGame:
             fetchRhythmGame();
+            break;
         case Provider::LR2IR:
             fetchLR2IR();
+            break;
+        case Provider::Tachi:
+            fetchTachi();
+            break;
+        default:
+            // unknown provider
+            setLoading(false);
+            break;
     }
 }
 
@@ -618,6 +828,11 @@ OnlineRankingModel::setMd5(const QString& md5)
     }
     currentMd5 = md5;
     emit md5Changed();
+    if (currentProvider != Provider::Tachi) {
+        setChartId(md5);
+    } else {
+        setChartId("");
+    }
     fetch();
 }
 
@@ -667,6 +882,26 @@ OnlineRankingModel::setClearCounts(QVariantMap counts)
     }
     clearCounts = std::move(counts);
     emit clearCountsChanged();
+}
+void
+OnlineRankingModel::setChartId(const QString& chartId)
+{
+    if (this->chartId == chartId) {
+        return;
+    }
+    this->chartId = chartId;
+    emit chartIdChanged();
+}
+void
+OnlineRankingModel::setEntries(QList<RankingEntry> entries)
+{
+    if (this->entries == entries) {
+        return;
+    }
+    beginResetModel();
+    this->entries = std::move(entries);
+    emit rankingEntriesChanged();
+    endResetModel();
 }
 
 auto
@@ -895,6 +1130,11 @@ OnlineRankingModel::setProvider(Provider provider)
     }
     currentProvider = provider;
     emit providerChanged();
+    if (provider == Provider::Tachi) {
+        setChartId("");
+    } else {
+        setChartId(currentMd5);
+    }
     fetch();
 }
 auto
@@ -944,6 +1184,11 @@ auto
 OnlineRankingModel::getWebApiUrl() const -> QString
 {
     return networkRequestFactory.baseUrl().toString();
+}
+auto
+OnlineRankingModel::getChartId() const -> QString
+{
+    return chartId;
 }
 
 } // namespace qml_components

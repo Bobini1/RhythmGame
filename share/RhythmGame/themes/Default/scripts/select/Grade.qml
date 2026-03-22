@@ -84,6 +84,7 @@ Item {
             bottom: rankingPosition.bottom
         }
         cursorShape: enabled ? Qt.PointingHandCursor : undefined
+        enabled: grade.rankingLink !== ""
         onClicked: {
             Qt.openUrlExternally(grade.rankingLink)
         }

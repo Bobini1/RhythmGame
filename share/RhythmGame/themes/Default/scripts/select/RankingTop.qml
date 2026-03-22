@@ -8,19 +8,33 @@ Column {
     property var entries
     property var profile
     property var chartData
-    property var provider: OnlineRankingModel.RhythmGame
+    property var provider
     readonly property var md5: chartData.md5
     readonly property var path: chartData.path
+    property var bestPointsScore
+    property var bestClearTypeScore
+    property string keymode
 
     Repeater {
         id: rankingRepeater
         model: ranking.entries
         delegate: Row {
-            id: entry
+            id: userEntry
             spacing: 10
             anchors.left: parent.left
             anchors.right: parent.right
             height: rankImage.height
+
+            readonly property bool isCurrentUser: {
+                switch (ranking.provider) {
+                    case OnlineRankingModel.RhythmGame:
+                        return modelData.userId === ranking.profile.onlineUserData?.userId;
+                    case OnlineRankingModel.Tachi:
+                        return modelData.userId === ranking.profile.tachiData?.userId;
+                    case OnlineRankingModel.LR2IR:
+                        return !(modelData instanceof rankingEntry);
+                }
+            }
 
             Image {
                 id: rankImage
@@ -30,9 +44,8 @@ Column {
                 id: userNameText
                 text: modelData.userName
                 color: {
-                    // bestPointsScore is set for LR2 provider
-                    if (modelData.bestPointsScore ||
-                        modelData.userId === ranking.profile.onlineUserData?.userId) {
+                    console.info("Entry:", modelData.userName, "isCurrentUser:", entry.isCurrentUser);
+                    if (userEntry.isCurrentUser) {
                         return "#ff0066";
                     }
                     return "black";
@@ -47,14 +60,16 @@ Column {
                     anchors.fill: parent
                     anchors.rightMargin: userNameText.width - userNameText.implicitWidth
                     cursorShape: enabled ? Qt.PointingHandCursor : undefined
-                    enabled: !modelData.bestPointsScore
+                    enabled: !(userEntry.isCurrentUser && !profile.onlineUserData)
                     onClicked: {
                         let url = Rg.onlineLinks.scoresByUserOnChart(
                             ranking.profile.vars.generalVars.websiteBaseUrl,
                             modelData.userId,
                             ranking.chartData.md5);
-                        if (ranking.provider === OnlineRankingModel.LR2IR && !modelData.bestPointsScore) {
+                        if (ranking.provider === OnlineRankingModel.LR2IR && !userEntry.isCurrentUser) {
                             url = "http://www.dream-pro.info/~lavalse/LR2IR/search.cgi?mode=mypage&playerid=" + modelData.userId;
+                        } else if (ranking.provider === OnlineRankingModel.Tachi) {
+                            url = "https://boku.tachi.ac/u/" + modelData.userName + "/games/bms/" + ranking.keymode
                         }
                         Qt.openUrlExternally(url);
 
@@ -82,11 +97,12 @@ Column {
                     anchors.fill: parent
                     cursorShape: enabled ? Qt.PointingHandCursor : undefined
                     acceptedButtons: Qt.LeftButton | Qt.RightButton | Qt.MiddleButton
-                    enabled: modelData.bestClearTypeGuid
+                    enabled: (userEntry.isCurrentUser && ranking.provider === OnlineRankingModel.LR2IR)
+                        || ranking.provider === OnlineRankingModel.RhythmGame
                     onClicked: (event) => {
                         if (ranking.provider === OnlineRankingModel.LR2IR) {
-                            if (modelData.bestPointsScore) {
-                                onScoreLoaded(event, modelData.bestPointsScore);
+                            if (ranking.bestPointsScore) {
+                                onScoreLoaded(event, ranking.bestPointsScore);
                             }
                             return;
                         }
@@ -122,11 +138,12 @@ Column {
                     anchors.leftMargin: pointsText.width - pointsText.implicitWidth
                     cursorShape: enabled ? Qt.PointingHandCursor : undefined
                     acceptedButtons: Qt.LeftButton | Qt.RightButton | Qt.MiddleButton
-                    enabled: modelData.bestPointsGuid
+                    enabled: (userEntry.isCurrentUser && ranking.provider === OnlineRankingModel.LR2IR)
+                        || ranking.provider === OnlineRankingModel.RhythmGame
                     onClicked: (event) => {
                         if (ranking.provider === OnlineRankingModel.LR2IR) {
-                            if (modelData.bestPointsScore) {
-                                onScoreLoaded(event, modelData.bestPointsScore);
+                            if (ranking.bestPointsScore) {
+                                onScoreLoaded(event, ranking.bestPointsScore);
                             }
                             return;
                         }

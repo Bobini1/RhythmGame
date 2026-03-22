@@ -25,6 +25,7 @@ Item {
     readonly property Profile profile1: profiles[0]
     readonly property Profile profile2: profiles[1] || null
     readonly property bool isBattle: score1 && score2
+    readonly property var keymode: chartData?.keymode || chartDatas[0]?.keymode
 
     Input.onButtonPressed: (key) => {
         if ([BmsKey.Col11, BmsKey.Col12, BmsKey.Col13, BmsKey.Col14, BmsKey.Col15, BmsKey.Col16, BmsKey.Col17,
@@ -124,6 +125,7 @@ Item {
                 score: root.score1
                 isBattle: root.isBattle
                 profile: root.profile1
+                keymode: root.keymode
                 width: parent.width
                 anchors.top: chartInfoRow.bottom
             }
@@ -136,6 +138,7 @@ Item {
                     score: root.score2
                     isBattle: root.isBattle
                     profile: root.profile2
+                    keymode: root.keymode
                     mirrored: true
                 }
             }

@@ -123,7 +123,7 @@ Profile::setOnlineUserData(std::optional<OnlineUserData> userData)
 void
 Profile::setTachiData(std::optional<TachiData> tachiData)
 {
-    if (!this->tachiData) {
+    if (this->tachiData == tachiData) {
         return;
     }
     this->tachiData = tachiData;
@@ -331,9 +331,10 @@ Profile::fetchTachiData(int tachiId)
             spdlog::error("Tachi data response unsuccessful for user {}: {}",
                           vars.getGeneralVars()->getName().toStdString(),
                           json["description"].toString().toStdString());
-            auto body = json["body"].toString();
+        } else {
+            auto body = json["body"].toObject();
             auto tachiData = TachiData{};
-            tachiData.username = json["name"].toString();
+            tachiData.username = body["username"].toString();
             tachiData.image = "https://boku.tachi.ac/api/v1/users/" +
                               QString::number(tachiId) + "/pfp";
             tachiData.userId = tachiId;

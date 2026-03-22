@@ -48,6 +48,7 @@ struct RankingEntry
     QString latestDateGuid;
     QString owner;
     int scoreCount{};
+    auto operator<=>(const RankingEntry&) const = default;
 };
 class OnlineRankingModel : public QAbstractListModel
 {
@@ -107,6 +108,8 @@ class OnlineRankingModel : public QAbstractListModel
 
     Q_PROPERTY(Provider provider READ getProvider WRITE setProvider NOTIFY
                  providerChanged)
+
+    Q_PROPERTY(QString chartId READ getChartId NOTIFY chartIdChanged)
   public:
     enum Roles
     {
@@ -223,6 +226,7 @@ class OnlineRankingModel : public QAbstractListModel
 
     void setWebApiUrl(const QString& baseUrl);
     auto getWebApiUrl() const -> QString;
+    auto getChartId() const -> QString;
 
     inline static QNetworkAccessManager* networkManager = nullptr;
     inline static ProfileList* profileList = nullptr;
@@ -255,21 +259,28 @@ class OnlineRankingModel : public QAbstractListModel
     void webApiUrlChanged();
     void rankingEntriesChanged();
     void providerChanged();
+    void chartIdChanged();
 
     void cancelPendingRequested();
 
   private:
     void fetchLR2IR();
+    void fetchTachi();
     void fetch();
     void setLoading(bool loading);
     void setPlayerCount(int count);
     void setScoreCount(int count);
     void setClearCounts(QVariantMap counts);
+    void setChartId(const QString& chartId);
+    void setEntries(QList<RankingEntry> entries);
     auto buildUrl() const -> QUrl;
     void fetchRhythmGame();
     void performJsonGet(const QString& url,
                         std::function<void(const QJsonDocument&)> onSuccess,
                         std::function<void(const QString&)> onError);
+    void handleTachiReply(int startRanking,
+                          int noteCount,
+                          QNetworkReply* reply);
 
     QNetworkRequestFactory networkRequestFactory;
 
@@ -301,6 +312,7 @@ class OnlineRankingModel : public QAbstractListModel
     QVariantMap clearCounts;
     int scoreCount{ 0 };
     int playerCount{ 0 };
+    QString chartId;
 
     Provider currentProvider{ Provider::RhythmGame };
 };

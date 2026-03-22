@@ -8,6 +8,7 @@ Column {
     required property var score
     required property Profile profile
     required property bool isBattle
+    required property var keymode
     property bool mirrored: false
     readonly property var earlyLate: Helpers.getEarlyLate(score.replayData)
     readonly property var stddevAndMean: Helpers.getStddevAndMean(score.replayData)
@@ -91,7 +92,7 @@ Column {
                 sortDir: OnlineRankingModel.Desc
                 webApiUrl: side.profile.vars.generalVars.webApiUrl
                 dateLte: side.score.result.unixTimestamp
-                provider: OnlineRankingModel.LR2IR
+                provider: OnlineRankingModel.Tachi
                 property int size: {
                     if (provider === OnlineRankingModel.LR2IR) {
                         return rankingEntries.length + 1;
@@ -117,10 +118,19 @@ Column {
                             }
                         }
                         return 0;
+                    } if (provider === OnlineRankingModel.Tachi) {
+                        let points = Math.max(side.score.result.points, side.oldBestPointsScore?.result?.points || 0);
+                        for (let i = 0; i < entries.length; i++) {
+                            if (entries[i].userId === side.profile.tachiData?.userId)
+                            {
+                                return i + 1;
+                            }
+                        }
+                        return 0;
                     }
-                    return 0;
                 }
             }
+
 
             Connections {
                 target: side.score
@@ -137,10 +147,10 @@ Column {
                 sortDir: OnlineRankingModel.Desc
                 webApiUrl: side.profile.vars.generalVars.webApiUrl
                 dateLte: side.score.result.unixTimestamp - 1
-                provider: OnlineRankingModel.LR2IR
+                provider: OnlineRankingModel.Tachi
                 property int size: rankingEntries.length
 
-                property int position: {
+                property string position: {
                     let entries = rankingEntries;
                     if (provider === OnlineRankingModel.LR2IR) {
                         if (side.oldBestPointsScore?.result?.points === undefined) {
@@ -161,9 +171,24 @@ Column {
                             }
                         }
                         return 0;
+                    } else if (provider === OnlineRankingModel.Tachi) {
+                        return "?";
                     }
                     return 0;
                 }
+            }
+
+            readonly property string keymode: {
+                // convert keymode to string for tachi provider
+                switch (side.keymode) {
+                    case 5:
+                    case 7:
+                        return "7K";
+                    case 10:
+                    case 14:
+                        return "14K";
+                }
+                return "";
             }
 
             points: side.score.result.points
@@ -183,6 +208,10 @@ Column {
             rankingUrl: {
                 if (rankingModelNew.provider === OnlineRankingModel.LR2IR) {
                     return "http://www.dream-pro.info/~lavalse/LR2IR/search.cgi?mode=ranking&bmsmd5=" + side.score.result.md5;
+                }
+                if (rankingModelNew.provider === OnlineRankingModel.Tachi) {
+                    return "https://boku.tachi.ac/games/bms/" + scoreColumn.keymode +
+                        "/charts/" + rankingModelNew.chartId;
                 }
                 return totalEntries ? Rg.onlineLinks.chart(side.profile.vars.generalVars.websiteBaseUrl, side.score.result.md5) : ""
             }

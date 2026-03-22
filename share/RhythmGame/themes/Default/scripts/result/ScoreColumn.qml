@@ -38,6 +38,7 @@ Column {
 
             MouseArea {
                 anchors.fill: parent
+                anchors.margins: 13
                 cursorShape: scoreColumn.rankingUrl ? Qt.PointingHandCursor : undefined
                 enabled: scoreColumn.rankingUrl !== ""
 

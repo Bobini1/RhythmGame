@@ -286,8 +286,12 @@ FocusScope {
                                 return Rg.onlineLinks.chart(Rg.profileList.mainProfile.vars.generalVars.websiteUrl, songList.current.md5);
                             case OnlineRankingModel.LR2IR:
                                 return "http://www.dream-pro.info/~lavalse/LR2IR/search.cgi?mode=ranking&bmsmd5=" + songList.current.md5;
-                            default:
-                                return "";
+                            case OnlineRankingModel.Tachi:
+                                if (!ranking.chartId) {
+                                    return "";
+                                }
+                                return "https://boku.tachi.ac/games/bms/" + ranking.keymode +
+                                    "/charts/" + ranking.chartId;
                         }
                     }
                     rankingPosition: {
