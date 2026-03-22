@@ -11,7 +11,7 @@
 #include "charts/BmsNotesData.h"
 namespace sounds {
 class AudioEngine;
-}
+} // namespace sounds
 namespace qml_components {
 class ProfileList;
 } // namespace qml_components
