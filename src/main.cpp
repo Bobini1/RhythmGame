@@ -219,6 +219,7 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
                              "/");
 
         auto networkManager = QNetworkAccessManager{};
+        networkManager.setCookieJar(nullptr);
         auto profileList = qml_components::ProfileList{
             dataFolder / "song_db.sqlite", &db,           availableThemes,
             dataFolder / "profiles",       assetsFolders, &networkManager

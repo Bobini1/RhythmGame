@@ -1,4 +1,4 @@
-﻿//
+//
 // Created by bobini on 27.09.23.
 //
 
@@ -22,6 +22,7 @@
 #include "gameplay_logic/BmsGaugeHistory.h"
 #include "gameplay_logic/BmsScore.h"
 #include <QJsonArray>
+#include <qnetworkcookiejar.h>
 
 namespace resource_managers {
 
@@ -371,10 +372,10 @@ Profile::login(const QString& email, const QString& password)
 
     connect(reply, &QNetworkReply::finished, [reply, this]() mutable {
         if (reply->error() == QNetworkReply::NoError) {
-            QByteArray data = reply->readAll();
-            QJsonDocument doc = QJsonDocument::fromJson(data);
-            QJsonObject obj = doc.object();
-            QString token = obj["token"].toString();
+            auto data = reply->readAll();
+            auto doc = QJsonDocument::fromJson(data);
+            auto obj = doc.object();
+            auto token = obj["token"].toString();
             if (!token.isEmpty()) {
                 auto* job =
                   new QKeychain::WritePasswordJob(keychainService, this);
@@ -406,6 +407,9 @@ Profile::login(const QString& email, const QString& password)
             spdlog::error("Login request failed: {} - {}",
                           magic_enum::enum_name(reply->error()),
                           reply->errorString().toStdString());
+            auto body = reply->readAll();
+            spdlog::debug("Login failure response body: {}",
+                          QString::fromUtf8(body).toStdString());
             setLoginState(LoginState::LoginFailed);
             reply->deleteLater();
         }
@@ -415,8 +419,10 @@ void
 Profile::logout()
 {
     auto* job = new QKeychain::DeletePasswordJob(keychainService, this);
-    auto request = networkRequestFactory.createRequest("/revoke-session");
-    networkManager->post(request, "{}");
+    auto request = networkRequestFactory.createRequest("auth/sign-out");
+    auto* reply = networkManager->post(request, "{}");
+    connect(
+      reply, &QNetworkReply::finished, reply, &QNetworkReply::deleteLater);
     job->setKey(QStringLiteral("profiles/%1/token").arg(guid));
     connect(job, &QKeychain::Job::finished, [job] {
         if (job->error()) {
@@ -427,7 +433,7 @@ Profile::logout()
         job->deleteLater();
     });
     job->start();
-    networkRequestFactory.setBearerToken({});
+    networkRequestFactory.clearBearerToken();
     setLoginState(LoginState::NotLoggedIn);
     setTachiLoginState(LoginState::NotLoggedIn);
     setOnlineUserData({});
