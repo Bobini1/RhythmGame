@@ -81,11 +81,6 @@ class OnlineRankingModel : public QAbstractListModel
     Q_PROPERTY(qint64 lastPlayedLte READ getLastPlayedLte WRITE setLastPlayedLte
                  NOTIFY lastPlayedLteChanged)
 
-    Q_PROPERTY(
-      qint64 dateGte READ getDateGte WRITE setDateGte NOTIFY dateGteChanged)
-    Q_PROPERTY(
-      qint64 dateLte READ getDateLte WRITE setDateLte NOTIFY dateLteChanged)
-
     Q_PROPERTY(double scorePctGte READ getScorePctGte WRITE setScorePctGte
                  NOTIFY scorePctGteChanged)
     Q_PROPERTY(double scorePctLte READ getScorePctLte WRITE setScorePctLte
