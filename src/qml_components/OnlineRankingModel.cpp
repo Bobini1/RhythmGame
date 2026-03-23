@@ -160,7 +160,8 @@ OnlineRankingModel::handleTachiReply(int startRanking,
         r.userId = pb.value("userID").toInt();
         const auto uobj = usersMap[r.userId];
         r.userName = uobj.value("username").toString();
-        r.userImage = uobj.value("customPfpLocation").toString();
+        r.userImage = QString("https://cdn-boku.tachi.ac/api/v1/users/%1/pfp")
+                        .arg(r.userId);
 
         const QJsonObject scoreData = pb.value("scoreData").toObject();
         r.bestPoints = scoreData.value("score").toDouble();
@@ -1003,36 +1004,6 @@ OnlineRankingModel::setLastPlayedLte(qint64 val)
         return;
     currentLastPlayedLte = val;
     emit lastPlayedLteChanged();
-    fetch();
-}
-
-auto
-OnlineRankingModel::getDateGte() const -> qint64
-{
-    return currentDateGte;
-}
-void
-OnlineRankingModel::setDateGte(qint64 val)
-{
-    if (currentDateGte == val)
-        return;
-    currentDateGte = val;
-    emit dateGteChanged();
-    fetch();
-}
-
-auto
-OnlineRankingModel::getDateLte() const -> qint64
-{
-    return currentDateLte;
-}
-void
-OnlineRankingModel::setDateLte(qint64 val)
-{
-    if (currentDateLte == val)
-        return;
-    currentDateLte = val;
-    emit dateLteChanged();
     fetch();
 }
 

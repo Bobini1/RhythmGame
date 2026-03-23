@@ -184,9 +184,6 @@ class OnlineRankingModel : public QAbstractListModel
     auto getLastPlayedLte() const -> qint64;
     void setLastPlayedLte(qint64 val);
 
-    auto getDateGte() const -> qint64;
-    void setDateGte(qint64 val);
-
     auto getDateLte() const -> qint64;
     void setDateLte(qint64 val);
 
@@ -289,9 +286,6 @@ class OnlineRankingModel : public QAbstractListModel
     // Filter parameters
     qint64 currentLastPlayedGte{ -1 };
     qint64 currentLastPlayedLte{ -1 };
-
-    qint64 currentDateGte{ -1 };
-    qint64 currentDateLte{ -1 };
 
     double currentScorePctGte{ -1.0 };
     double currentScorePctLte{ -1.0 };
