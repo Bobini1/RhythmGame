@@ -9,6 +9,7 @@
 #include "HitEvent.h"
 
 #include <QAbstractProxyModel>
+#include <boost/icl/interval_map.hpp>
 
 namespace gameplay_logic {
 class NoteState
@@ -49,6 +50,7 @@ class ColumnState final : public QAbstractListModel
 
     QList<NoteState> notes;
     QList<int> timeToPositionIndexMapping;
+    boost::icl::interval_map<double, std::set<qint64>> lnBodies;
     int64_t elapsed{};
     bool pressed = false;
     void setPressed(bool pressed);
@@ -62,6 +64,11 @@ class ColumnState final : public QAbstractListModel
     auto getNotes() const -> const QList<NoteState>& { return notes; }
     auto getNotes() -> QList<NoteState>& { return notes; }
     auto mapTimeIndexToPositionIndex(int64_t timeIndex) const -> int;
+    /**
+     * @brief Helper for getting the lowest lnbegin in lnbodies
+     */
+    auto getLnBottomPositionIndex(double position) const -> std::optional<int>;
+
   signals:
     void pressedChanged();
 };
@@ -122,7 +129,7 @@ class Filter : public QAbstractProxyModel
     bool pressed = false;
     void setPressed(bool pressed);
     ColumnState* columnState;
-    int getEffectiveBottomRow(int notesFrom, int notesTo) const;
+    std::optional<double> getEffectiveBottomRow(double position) const;
 
   public:
     explicit Filter(ColumnState* columnState, QObject* parent = nullptr);
