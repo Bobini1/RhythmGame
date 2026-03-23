@@ -132,7 +132,7 @@ Image {
 
     BusyIndicator {
         anchors.centerIn: parent
-        running: onlineRankingModel.loading
+        running: (onlineRankingModel.loading && ranking.page === 1) || !ranking.entries.length
         visible: running
     }
 
