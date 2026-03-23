@@ -311,6 +311,13 @@ FocusScope {
                                     }
                                 }
                                 break;
+                            case OnlineRankingModel.Tachi:
+                                for (let i = 0; i < entries.length; i++) {
+                                    if (entries[i].userId === Rg.profileList.mainProfile.tachiData?.userId) {
+                                        return i + 1;
+                                    }
+                                }
+                                break;
                         }
                         return 0;
                     }
