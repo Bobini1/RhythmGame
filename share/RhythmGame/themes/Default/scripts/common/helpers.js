@@ -11,7 +11,7 @@ function getClearType(scores) {
 }
 
 function getScoreWithBestPoints(scores) {
-    let bestPoints = 0;
+    let bestPoints = -1;
     let bestScore = null;
     for (let score of scores) {
         if (score.result.maxPoints === 0) {
@@ -27,7 +27,7 @@ function getScoreWithBestPoints(scores) {
 }
 
 function getScoreWithBestClear(scores) {
-    let bestClear = "NOPLAY";
+    let bestClear = "";
     let bestScore = null;
     let bestPoints = 0;
     for (let score of scores) {
