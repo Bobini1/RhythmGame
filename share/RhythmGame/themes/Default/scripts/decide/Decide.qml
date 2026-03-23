@@ -248,7 +248,6 @@ Image {
         }
         source: {
             let dir = chart.chartData?.chartDirectory;
-            print(dir, chart.chartData);
             if (dir === undefined || !chart.chartData?.stageFile) {
                 return "";
             }
