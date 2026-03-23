@@ -44,7 +44,6 @@ Column {
                 id: userNameText
                 text: modelData.userName
                 color: {
-                    console.info("Entry:", modelData.userName, "isCurrentUser:", entry.isCurrentUser);
                     if (userEntry.isCurrentUser) {
                         return "#ff0066";
                     }
