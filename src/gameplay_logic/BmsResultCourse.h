@@ -227,7 +227,7 @@ class BmsResultCourse final : public QObject
     auto getIdentifier() const -> QString;
     auto getDpOptions() const -> resource_managers::DpOptions;
     auto getLength() const -> int64_t;
-    auto getKeymode() const -> gameplay_logic::ChartData::Keymode;
+    auto getKeymode() const -> ChartData::Keymode;
 };
 } // namespace gameplay_logic
 
