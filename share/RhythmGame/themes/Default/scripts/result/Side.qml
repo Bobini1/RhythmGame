@@ -8,7 +8,6 @@ Column {
     required property var score
     required property Profile profile
     required property bool isBattle
-    required property var keymode
     property bool mirrored: false
     readonly property var earlyLate: Helpers.getEarlyLate(score.replayData)
     readonly property var stddevAndMean: Helpers.getStddevAndMean(score.replayData)
@@ -180,7 +179,7 @@ Column {
 
             readonly property string keymode: {
                 // convert keymode to string for tachi provider
-                switch (side.keymode) {
+                switch (side.score.keymode) {
                     case 5:
                     case 7:
                         return "7K";
