@@ -408,8 +408,10 @@ Filter::setBottomPosition(double value)
     }
     if (oldBottomRow != newBottomRow) {
         bottomRow = newBottomRow;
-        setEffectiveBottomRow(columnState->getLnBottomPositionIndex(topPosition)
-                                .value_or(bottomRow));
+        setEffectiveBottomRow(
+          std::min(columnState->getLnBottomPositionIndex(topPosition)
+                     .value_or(bottomRow),
+                   bottomRow));
     }
 }
 QModelIndex
