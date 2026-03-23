@@ -407,9 +407,6 @@ Profile::login(const QString& email, const QString& password)
             spdlog::error("Login request failed: {} - {}",
                           magic_enum::enum_name(reply->error()),
                           reply->errorString().toStdString());
-            auto body = reply->readAll();
-            spdlog::debug("Login failure response body: {}",
-                          QString::fromUtf8(body).toStdString());
             setLoginState(LoginState::LoginFailed);
             reply->deleteLater();
         }
