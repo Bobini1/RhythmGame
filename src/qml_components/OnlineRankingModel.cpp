@@ -121,36 +121,44 @@ OnlineRankingModel::handleTachiReply(int startRanking,
     if (pbsArr.isEmpty()) {
         setLoading(false);
         return;
-    } else {
-        const int pageSize = 100;
-        startRanking += pageSize;
-        const auto pbsUrlStr =
-          QString("https://boku.tachi.ac/api/v1/games/bms/7K/charts/%1/"
-                  "pbs?startRanking=%2")
-            .arg(chartId)
-            .arg(startRanking);
-        auto pbsReq = QNetworkRequest(QUrl(pbsUrlStr));
-        QNetworkReply* pbsReply = networkManager->get(pbsReq);
-        connect(this,
-                &OnlineRankingModel::cancelPendingRequested,
-                pbsReply,
-                [pbsReply] { pbsReply->abort(); });
-        connect(pbsReply,
-                &QNetworkReply::finished,
-                this,
-                [this, startRanking, noteCount, pbsReply]() {
-                    handleTachiReply(startRanking, noteCount, pbsReply);
-                });
+    }
+    const int pageSize = 100;
+    startRanking += pageSize;
+    const auto pbsUrlStr =
+      QString("https://boku.tachi.ac/api/v1/games/bms/7K/charts/%1/"
+              "pbs?startRanking=%2")
+        .arg(chartId)
+        .arg(startRanking);
+    auto pbsReq = QNetworkRequest(QUrl(pbsUrlStr));
+    QNetworkReply* pbsReply = networkManager->get(pbsReq);
+    connect(this,
+            &OnlineRankingModel::cancelPendingRequested,
+            pbsReply,
+            [pbsReply] { pbsReply->abort(); });
+    connect(pbsReply,
+            &QNetworkReply::finished,
+            this,
+            [this, startRanking, noteCount, pbsReply]() {
+                handleTachiReply(startRanking, noteCount, pbsReply);
+            });
+    auto usersMap = QHash<int, QJsonObject>();
+    for (const auto& userv : usersArr) {
+        if (!userv.isObject()) {
+            continue;
+        }
+        const QJsonObject userObj = userv.toObject();
+        const int userId = userObj.value("id").toInt();
+        usersMap[userId] = userObj;
     }
 
-    for (const auto& [index, pbv] : std::ranges::views::enumerate(pbsArr)) {
+    for (const auto& pbv : pbsArr) {
         if (!pbv.isObject()) {
             continue;
         }
         const QJsonObject pb = pbv.toObject();
         RankingEntry r;
         r.userId = pb.value("userID").toInt();
-        const QJsonObject uobj = usersArr[index].toObject();
+        const auto uobj = usersMap[r.userId];
         r.userName = uobj.value("username").toString();
         r.userImage = uobj.value("customPfpLocation").toString();
 
