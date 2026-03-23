@@ -230,9 +230,33 @@ Item {
 
                     Loader {
                         id: authLoader
-                        sourceComponent: loginSection.profile && loginSection.profile.loginState === Profile.LoggedIn ? loggedInComponent : loggedOutComponent
+                        sourceComponent: {
+                            switch (loginSection.profile.loginState) {
+                            case Profile.NotLoggedIn:
+                            case Profile.LoginFailed:
+                                return loggedOutComponent;
+                            case Profile.LoggingIn:
+                                return loggingInComponent;
+                            case Profile.LoggedIn:
+                                return loggedInComponent;
+                            }
+                        }
                         Layout.preferredHeight: authLoader.item ? authLoader.item.implicitHeight : 0
                         Layout.fillWidth: true
+                    }
+
+                    Component {
+                        id: loggingInComponent
+                        ColumnLayout {
+                            spacing: 8
+                            BusyIndicator {
+                                running: true
+                                visible: true
+                                Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
+                                width: 32
+                                height: 32
+                            }
+                        }
                     }
 
                     Component {
@@ -285,6 +309,9 @@ Item {
                                 placeholderText: qsTr("Email")
                                 Layout.fillWidth: true
                                 height: 32
+                                onAccepted: {
+                                    passwordField.forceActiveFocus();
+                                }
                             }
                             TextField {
                                 id: passwordField
@@ -292,6 +319,9 @@ Item {
                                 echoMode: TextInput.Password
                                 Layout.fillWidth: true
                                 height: 32
+                                onAccepted: {
+                                    loginSection.profile.login(emailField.text, passwordField.text);
+                                }
                             }
                             Button {
                                 text: qsTr("Login")
