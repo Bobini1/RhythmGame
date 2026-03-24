@@ -1,6 +1,7 @@
 import QtQuick
 import RhythmGameQml
 import QtQuick.Controls
+import QtQuick.Effects
 import "../common/helpers.js" as Helpers
 
 Item {
@@ -11,6 +12,7 @@ Item {
     property var rankingPosition: 0
     property bool loading: false
     property string rankingLink
+    property var provider
 
     width: 350
     height: 400
@@ -91,9 +93,63 @@ Item {
     }
 
     Image {
+        source: root.imagesUrl + "arrow"
+        anchors.right: providerIcon.left
+        anchors.rightMargin: 10
+        anchors.top: providerIcon.top
+        anchors.bottom: providerIcon.bottom
+        fillMode: Image.PreserveAspectFit
+        mirror: true
+        layer.enabled: true
+        layer.effect: MultiEffect {
+            shadowEnabled: true
+        }
+    }
+    Image {
+        id: providerIcon
+        source: {
+            switch (grade.provider) {
+                case OnlineRankingModel.RhythmGame:
+                    return root.commonImagesUrl + "rhythmgame";
+                case OnlineRankingModel.LR2IR:
+                    return root.commonImagesUrl + "lr2ir";
+                case OnlineRankingModel.Tachi:
+                    return root.commonImagesUrl + "bokutachi";
+            }
+        }
+        anchors.top: scoreRate.bottom
+        anchors.topMargin: 15
+        anchors.left: parent.left
+        anchors.leftMargin: 30
+        fillMode: Image.PreserveAspectFit
+        width: rankingPosition.height
+        height: rankingPosition.height
+        sourceSize.width: 64
+        sourceSize.height: 64
+        layer.enabled: true
+        layer.effect: MultiEffect {
+            shadowEnabled: true
+        }
+        z: 1
+    }
+    Image {
+        source: root.imagesUrl + "arrow"
+        anchors.left: providerIcon.right
+        anchors.leftMargin: 10
+        anchors.top: providerIcon.top
+        anchors.bottom: providerIcon.bottom
+        fillMode: Image.PreserveAspectFit
+        layer.enabled: true
+        layer.effect: MultiEffect {
+            shadowEnabled: true
+        }
+    }
+    Image {
         id: rankingPosition
         anchors.top: scoreRate.bottom
         anchors.topMargin: 15
+        anchors.left: parent.left
+        anchors.leftMargin: 100
         asynchronous: true
         source: root.iniImagesUrl + "parts.png/ir"
     }

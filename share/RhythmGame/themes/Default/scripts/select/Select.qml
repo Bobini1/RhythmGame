@@ -13,6 +13,7 @@ FocusScope {
         readonly property string imagesUrl: Qt.resolvedUrl(".") + "images/"
         readonly property string iniImagesUrl: "image://ini/" + rootUrl + "images/"
         property string rootUrl: QmlUtils.fileName.slice(0, QmlUtils.fileName.lastIndexOf("/") + 1)
+        readonly property string commonImagesUrl: Qt.resolvedUrl("../common/") + "images/"
 
         function getScore(type) {
             switch (type) {
@@ -278,10 +279,11 @@ FocusScope {
                 anchors.verticalCenterOffset: 150
                 sourceComponent: Grade {
                     scoreWithBestPoints: songList.currentItem?.scoreWithBestPoints || null
-                    loading: ranking.ranking.loading
+                    loading: ranking.loading
                     rankingTotalEntries: ranking.playerCount
+                    provider: ranking.provider
                     rankingLink: {
-                        switch (ranking.ranking.provider) {
+                        switch (ranking.provider) {
                             case OnlineRankingModel.RhythmGame:
                                 return Rg.profileList.mainProfile.vars.generalVars.websiteUrl + "/charts/" + songList.current.md5;
                             case OnlineRankingModel.LR2IR:
@@ -296,7 +298,7 @@ FocusScope {
                     }
                     rankingPosition: {
                         let entries = ranking.entries;
-                        switch (ranking.ranking.provider) {
+                        switch (ranking.provider) {
                             case OnlineRankingModel.RhythmGame:
                                 for (let i = 0; i < entries.length; i++) {
                                     if (entries[i].userId === Rg.profileList.mainProfile.onlineUserData?.userId) {

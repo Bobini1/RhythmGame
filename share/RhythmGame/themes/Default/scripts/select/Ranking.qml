@@ -11,7 +11,8 @@ Image {
     visible: !!md5
     property int page: 0
     property var profile: Rg.profileList.mainProfile
-    readonly property var ranking: onlineRankingModel
+    property var provider: OnlineRankingModel.LR2IR
+    property bool loading: onlineRankingModel.loading
     property var bestPointsScore
     property var bestClearTypeScore
     readonly property var entries: onlineRankingModel.entries
@@ -43,13 +44,11 @@ Image {
         }
     }
 
-    OnlineRankingModel {
-        id: onlineRankingModel
+    component RankingModel: OnlineRankingModel {
         md5: ranking.md5
         sortBy: OnlineRankingModel.ScorePct
         sortDir: OnlineRankingModel.Desc
         webApiUrl: profile.vars.generalVars.webApiUrl
-        provider: OnlineRankingModel.Tachi
         property var entries: {
             let entries = onlineRankingModel.rankingEntries;
             let ourUserId = ranking.profile.onlineUserData?.userId;
@@ -83,6 +82,45 @@ Image {
                 return newEntries;
             }
             return entries;
+        }
+    }
+
+    RankingModel {
+        id: tachi
+        provider: OnlineRankingModel.Tachi
+    }
+    RankingModel {
+        id: lr2ir
+        provider: OnlineRankingModel.LR2IR
+    }
+    RankingModel {
+        id: rhythmGame
+        provider: OnlineRankingModel.RhythmGame
+    }
+
+    property var onlineRankingModel: {
+        switch (ranking.provider) {
+            case OnlineRankingModel.RhythmGame:
+                return rhythmGame;
+            case OnlineRankingModel.LR2IR:
+                return lr2ir;
+            case OnlineRankingModel.Tachi:
+                return tachi;
+        }
+    }
+
+    Timer {
+        interval: 1000
+        running: true
+        repeat: true
+        onTriggered: {
+            if (ranking.provider === OnlineRankingModel.RhythmGame) {
+                ranking.provider = OnlineRankingModel.Tachi;
+            } else if (ranking.provider === OnlineRankingModel.Tachi) {
+                ranking.provider = OnlineRankingModel.LR2IR;
+            } else if (ranking.provider === OnlineRankingModel.LR2IR) {
+                ranking.provider = OnlineRankingModel.RhythmGame;
+            }
         }
     }
 
