@@ -293,29 +293,23 @@ ChartDataFactory::handleImplicitSubtitle(QString& title,
         return;
 
     auto count = u32.size() - lastDelimStart;
-    if (count == 2)
+    if (count == 2) {
         return;
+    }
 
-    // Preserve the spaces between the previous title end and this component
     auto subTitleU32 = std::u32string(u32.data() + lastDelimStart, count);
     auto remainderU32 = std::u32string(u32.data(), lastDelimStart);
 
-    // Count trailing spaces in the remainder to preserve spacing
-    auto trailingSpaces =
-      remainderU32.size() - remainderU32.find_last_not_of(U' ') - 1;
-    auto spacer = std::u32string(trailingSpaces, U' ');
-
     subtitle = QString::fromStdU32String(subTitleU32);
-    title = QString::fromStdU32String(remainderU32).trimmed();
+    auto titleWithoutTrim = QString::fromStdU32String(remainderU32);
+    title = titleWithoutTrim.trimmed();
+    auto titleSpaces = titleWithoutTrim.mid(title.size());
 
-    // Recurse: extract any further implicit subtitle components from the
-    // trimmed title, then append the one we just found after them
     QString innerSubtitle;
     handleImplicitSubtitle(title, innerSubtitle);
 
     if (!innerSubtitle.isEmpty()) {
-        // innerSubtitle came first visually, so it precedes what we found
-        subtitle = innerSubtitle + QString::fromStdU32String(spacer) + subtitle;
+        subtitle = innerSubtitle + titleSpaces + subtitle;
     }
 }
 auto
