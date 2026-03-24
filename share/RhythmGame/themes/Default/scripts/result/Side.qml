@@ -81,6 +81,18 @@ Column {
                 xScale: side.mirrored ? -1 : 1
                 origin.x: side.mirrored ? lifeGraph.scale * lifeGraph.width / 2 : 0
             }
+            MouseArea {
+                anchors.fill: parent
+                hoverEnabled: true
+
+                onWheel: (event) => {
+                    if (event.angleDelta.y > 0) {
+                        lifeGraph.incrementIndex();
+                    } else if (event.angleDelta.y < 0) {
+                        lifeGraph.decrementIndex();
+                    }
+                }
+            }
         }
         ScoreColumn {
             id: scoreColumn
@@ -119,19 +131,23 @@ Column {
                 }
             }
 
-            Timer {
-                interval: 1000
-                running: true
-                repeat: true
+            onLeftClicked: {
+                if (scoreColumn.rankingProvider === OnlineRankingModel.RhythmGame) {
+                    scoreColumn.rankingProvider = OnlineRankingModel.Tachi;
+                } else if (scoreColumn.rankingProvider === OnlineRankingModel.Tachi) {
+                    scoreColumn.rankingProvider = OnlineRankingModel.LR2IR;
+                } else if (scoreColumn.rankingProvider === OnlineRankingModel.LR2IR) {
+                    scoreColumn.rankingProvider = OnlineRankingModel.RhythmGame;
+                }
+            }
 
-                onTriggered: {
-                    if (scoreColumn.rankingProvider === OnlineRankingModel.RhythmGame) {
-                        scoreColumn.rankingProvider = OnlineRankingModel.LR2IR;
-                    } else if (scoreColumn.rankingProvider === OnlineRankingModel.LR2IR) {
-                        scoreColumn.rankingProvider = OnlineRankingModel.Tachi;
-                    } else if (scoreColumn.rankingProvider === OnlineRankingModel.Tachi) {
-                        scoreColumn.rankingProvider = OnlineRankingModel.RhythmGame;
-                    }
+            onRightClicked: {
+                if (scoreColumn.rankingProvider === OnlineRankingModel.RhythmGame) {
+                    scoreColumn.rankingProvider = OnlineRankingModel.LR2IR;
+                } else if (scoreColumn.rankingProvider === OnlineRankingModel.LR2IR) {
+                    scoreColumn.rankingProvider = OnlineRankingModel.Tachi;
+                } else if (scoreColumn.rankingProvider === OnlineRankingModel.Tachi) {
+                    scoreColumn.rankingProvider = OnlineRankingModel.RhythmGame;
                 }
             }
 
@@ -169,11 +185,13 @@ Column {
             // Course rankings are not implemented atm
             oldRankingPosition: root.course ? 0 : ranking.oldPosition
             newRankingPosition: root.course ? 0 : ranking.position
+            websiteUrl: side.profile.vars.generalVars.websiteBaseUrl
+            provider: ranking.provider
             totalEntries: root.course ? 0 : ranking.size
             loading: ranking.loading || ranking.positionLoading || side.score.submissionState === BmsScore.Submitting
             scoreSubmissionFailed: side.score.submissionState === BmsScore.Failed || side.score.submissionState === BmsScore.NotSubmitting || root.course
             rankingUrl: {
-                if (root.course) {
+                if (root.course || !totalEntries) {
                     return "";
                 }
                 if (ranking.provider === OnlineRankingModel.LR2IR) {
@@ -183,7 +201,7 @@ Column {
                     return "https://boku.tachi.ac/games/bms/" + scoreColumn.keymode +
                         "/charts/" + ranking.chartId;
                 }
-                return totalEntries ? side.profile.vars.generalVars.websiteBaseUrl + "/charts/" + side.score.result.md5 : ""
+                return side.profile.vars.generalVars.websiteBaseUrl + "/charts/" + side.score.result.md5
             }
             transform: Scale {
                 xScale: side.mirrored ? -1 : 1

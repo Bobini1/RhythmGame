@@ -19,6 +19,7 @@ Item {
 
     readonly property string imagesUrl: Qt.resolvedUrl(".") + "images/"
     readonly property string iniImagesUrl: "image://ini/" + rootUrl + "images/"
+    readonly property string commonImagesUrl: Qt.resolvedUrl("../common/") + "images/"
     readonly property string rootUrl: QmlUtils.fileName.slice(0, QmlUtils.fileName.lastIndexOf("/") + 1)
     readonly property var score1: scores[0]
     readonly property var score2: scores[1] || null

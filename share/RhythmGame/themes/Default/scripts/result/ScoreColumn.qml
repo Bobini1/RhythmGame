@@ -1,4 +1,7 @@
 import QtQuick
+import RhythmGameQml
+import QtQuick.Effects
+import QtQuick.Controls
 
 Column {
     id: scoreColumn
@@ -12,12 +15,17 @@ Column {
     required property int maxCombo
     required property var clearType
     required property var oldBestClear
+    required property string websiteUrl
     property alias oldRankingPosition: rankingPosition.oldRankingPosition
     property alias newRankingPosition: rankingPosition.newRankingPosition
     property alias totalEntries: rankingPosition.totalEntries
     property alias loading: rankingPosition.loading
     property alias scoreSubmissionFailed: rankingPosition.scoreSubmissionFailed
     property string rankingUrl
+    property var provider
+
+    signal leftClicked()
+    signal rightClicked()
 
     Score {
         height: 150
@@ -30,29 +38,103 @@ Column {
     Row {
         width: 668
         height: 104
+        spacing: 3
 
-        RankingPosition {
-            id: rankingPosition
-            width: 318
+        Image {
+            source: root.imagesUrl + "arrow"
+            width: 32
             height: parent.height
-
+            fillMode: Image.PreserveAspectFit
+            mirror: true
+            layer.enabled: true
+            layer.effect: MultiEffect {
+                shadowEnabled: true
+            }
             MouseArea {
                 anchors.fill: parent
-                anchors.margins: 14
-                cursorShape: scoreColumn.rankingUrl ? Qt.PointingHandCursor : undefined
-                enabled: scoreColumn.rankingUrl !== ""
 
+                cursorShape: Qt.PointingHandCursor
                 onClicked: {
-                    Qt.openUrlExternally(scoreColumn.rankingUrl);
+                    scoreColumn.rightClicked();
                 }
             }
         }
-        LampDiff {
-            width: 350
+
+        Item {
+            width: 290
             height: parent.height
 
-            clearType: scoreColumn.clearType
-            oldBestClear: scoreColumn.oldBestClear
+            RankingPosition {
+                id: rankingPosition
+                anchors.fill: parent
+                anchors.margins: -14
+
+                Image {
+                    source: {
+                        switch (scoreColumn.provider) {
+                            case OnlineRankingModel.RhythmGame:
+                                return root.commonImagesUrl + "rhythmgame";
+                            case OnlineRankingModel.LR2IR:
+                                return root.commonImagesUrl + "lr2ir";
+                            case OnlineRankingModel.Tachi:
+                                return root.commonImagesUrl + "bokutachi";
+                        }
+                    }
+                    layer.enabled: true
+                    layer.effect: MultiEffect {
+                        shadowEnabled: true
+                    }
+                    anchors.right: parent.right
+                    anchors.top: parent.top
+                    anchors.margins: 20
+                    height: 32
+                    width: 32
+                    sourceSize.width: 64
+                    sourceSize.height: 64
+                    fillMode: Image.PreserveAspectFit
+                }
+
+                MouseArea {
+                    anchors.fill: parent
+                    anchors.margins: 14
+                    cursorShape: scoreColumn.rankingUrl ? Qt.PointingHandCursor : undefined
+                    enabled: scoreColumn.rankingUrl !== ""
+
+                    onClicked: {
+                        Qt.openUrlExternally(scoreColumn.rankingUrl);
+                    }
+                }
+            }
+        }
+        Image {
+            source: root.imagesUrl + "arrow"
+            width: 32
+            height: parent.height
+            fillMode: Image.PreserveAspectFit
+            layer.enabled: true
+            layer.effect: MultiEffect {
+                shadowEnabled: true
+            }
+            MouseArea {
+                anchors.fill: parent
+                cursorShape: Qt.PointingHandCursor
+
+                onClicked: {
+                    scoreColumn.rightClicked();
+                }
+            }
+        }
+
+        Item {
+            width: 290
+            height: parent.height
+
+            LampDiff {
+                anchors.fill: parent
+                anchors.margins: -14
+                clearType: scoreColumn.clearType
+                oldBestClear: scoreColumn.oldBestClear
+            }
         }
     }
     HitInfo {
