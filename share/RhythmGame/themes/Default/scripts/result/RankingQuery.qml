@@ -67,7 +67,7 @@ OnlineRankingModel {
         if (!userId) {
             return;
         }
-        Rg.onlineScores.getRankingEntryAtTimestamp(side.profile.vars.generalVars.webApiUrl, userId, side.score.result.md5, Date.now() - 5000, provider).then((entry) => {
+        Rg.onlineScores.getRankingEntryAtTimestamp(side.profile.vars.generalVars.webApiUrl, userId, side.score.result.md5, Date.now() / 1000 - 5000, provider).then((entry) => {
             if (entry) {
                 // go through entries to find the position we would have based on bestPoints
                 let points = entry.bestPoints;

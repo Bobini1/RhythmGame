@@ -85,22 +85,64 @@ Column {
         ScoreColumn {
             id: scoreColumn
 
-            RankingQuery {
-                id: rankingModel
+            component Ranking: RankingQuery {
                 md5: side.score.result.md5
                 webApiUrl: side.profile.vars.generalVars.webApiUrl
-                provider: OnlineRankingModel.Tachi
                 userId: provider === OnlineRankingModel.Tachi ? side.profile.tachiData?.userId : side.profile.onlineUserData?.userId
+            }
+
+            Ranking {
+                id: tachi
+                provider: OnlineRankingModel.Tachi
+            }
+
+            Ranking {
+                id: lr2ir
+                provider: OnlineRankingModel.LR2IR
+            }
+
+            Ranking {
+                id: rhythmGame
+                provider: OnlineRankingModel.RhythmGame
+            }
+
+            property var rankingProvider: OnlineRankingModel.RhythmGame
+
+            property var ranking: {
+                switch (rankingProvider) {
+                    case OnlineRankingModel.RhythmGame:
+                        return rhythmGame;
+                    case OnlineRankingModel.LR2IR:
+                        return lr2ir;
+                    case OnlineRankingModel.Tachi:
+                        return tachi;
+                }
+            }
+
+            Timer {
+                interval: 1000
+                running: true
+                repeat: true
+
+                onTriggered: {
+                    if (scoreColumn.rankingProvider === OnlineRankingModel.RhythmGame) {
+                        scoreColumn.rankingProvider = OnlineRankingModel.LR2IR;
+                    } else if (scoreColumn.rankingProvider === OnlineRankingModel.LR2IR) {
+                        scoreColumn.rankingProvider = OnlineRankingModel.Tachi;
+                    } else if (scoreColumn.rankingProvider === OnlineRankingModel.Tachi) {
+                        scoreColumn.rankingProvider = OnlineRankingModel.RhythmGame;
+                    }
+                }
             }
 
             Connections {
                 target: side.score
 
                 function onSubmissionStateChanged() {
-                    rankingModel.refresh();
+                    rhythmGame.refresh();
+                    tachi.refresh();
                 }
             }
-
 
             readonly property string keymode: {
                 switch (side.score.keymode || side.chartKeymode) {
@@ -123,18 +165,18 @@ Column {
             maxCombo: side.score.result.maxCombo
             clearType: side.score.result.clearType
             oldBestClear: side.oldBestClear
-            oldRankingPosition: rankingModel.oldPosition
-            newRankingPosition: rankingModel.position
-            totalEntries: rankingModel.size
-            loading: rankingModel.loading || rankingModel.positionLoading || side.score.submissionState === BmsScore.Submitting
+            oldRankingPosition: ranking.oldPosition
+            newRankingPosition: ranking.position
+            totalEntries: ranking.size
+            loading: ranking.loading || ranking.positionLoading || side.score.submissionState === BmsScore.Submitting
             scoreSubmissionFailed: side.score.submissionState === BmsScore.Failed || side.score.submissionState === BmsScore.NotSubmitting
             rankingUrl: {
-                if (rankingModel.provider === OnlineRankingModel.LR2IR) {
+                if (ranking.provider === OnlineRankingModel.LR2IR) {
                     return "http://www.dream-pro.info/~lavalse/LR2IR/search.cgi?mode=ranking&bmsmd5=" + side.score.result.md5;
                 }
-                if (rankingModel.provider === OnlineRankingModel.Tachi) {
+                if (ranking.provider === OnlineRankingModel.Tachi) {
                     return "https://boku.tachi.ac/games/bms/" + scoreColumn.keymode +
-                        "/charts/" + rankingModel.chartId;
+                        "/charts/" + ranking.chartId;
                 }
                 return totalEntries ? Rg.onlineLinks.chart(side.profile.vars.generalVars.websiteBaseUrl, side.score.result.md5) : ""
             }
