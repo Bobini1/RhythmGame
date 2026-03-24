@@ -262,6 +262,62 @@ createHistogram(const charts::BmsNotesData& calculatedNotesData,
     return histogram;
 }
 
+void
+ChartDataFactory::handleImplicitSubtitle(QString& title,
+                                         QString& subtitle) const
+{
+    if (title.size() < 3 || !subtitle.isEmpty())
+        return;
+
+    auto u32 = title.toStdU32String();
+    auto delimiters = std::array{ U'～', U'-', U')', U']', U'>', U'"' };
+    auto delimitersStart = std::array{ U'～', U'-', U'(', U'[', U'<', U'"' };
+
+    auto selectedDelim = U'\0';
+    for (const auto& delimiter : delimiters) {
+        if (u32.back() == delimiter) {
+            selectedDelim = delimiter;
+        }
+    }
+    if (selectedDelim == U'\0')
+        return;
+
+    auto delimIndex =
+      std::ranges::find(delimiters, selectedDelim) - delimiters.begin();
+    auto delimStart = delimitersStart[delimIndex];
+    auto lastDelimStart = u32.find_last_of(delimStart, u32.size() - 2);
+    if (lastDelimStart == std::u32string::npos)
+        return;
+
+    if (lastDelimStart == 0)
+        return;
+
+    auto count = u32.size() - lastDelimStart;
+    if (count == 2)
+        return;
+
+    // Preserve the spaces between the previous title end and this component
+    auto subTitleU32 = std::u32string(u32.data() + lastDelimStart, count);
+    auto remainderU32 = std::u32string(u32.data(), lastDelimStart);
+
+    // Count trailing spaces in the remainder to preserve spacing
+    auto trailingSpaces =
+      remainderU32.size() - remainderU32.find_last_not_of(U' ') - 1;
+    auto spacer = std::u32string(trailingSpaces, U' ');
+
+    subtitle = QString::fromStdU32String(subTitleU32);
+    title = QString::fromStdU32String(remainderU32).trimmed();
+
+    // Recurse: extract any further implicit subtitle components from the
+    // trimmed title, then append the one we just found after them
+    QString innerSubtitle;
+    handleImplicitSubtitle(title, innerSubtitle);
+
+    if (!innerSubtitle.isEmpty()) {
+        // innerSubtitle came first visually, so it precedes what we found
+        subtitle = innerSubtitle + QString::fromStdU32String(spacer) + subtitle;
+    }
+}
 auto
 ChartDataFactory::loadChartData(const std::filesystem::path& chartPath,
                                 RandomGenerator randomGenerator,
@@ -270,10 +326,17 @@ ChartDataFactory::loadChartData(const std::filesystem::path& chartPath,
     auto [parsedChart, randomValues, sha256, md5] =
       readAndParse(chartPath, randomGenerator);
 
+    auto title = QString::fromUtf8(parsedChart.tags.title.value_or(""));
+    auto subtitle = QString::fromUtf8(parsedChart.tags.subTitle.value_or(""));
+    if (parsedChart.tags.title.has_value() &&
+        !parsedChart.tags.subTitle.has_value()) {
+        handleImplicitSubtitle(title, subtitle);
+    }
+
     auto metadata = ChartMetadata{
-        .title = QString::fromUtf8(parsedChart.tags.title.value_or("")),
+        .title = title,
         .artist = QString::fromUtf8(parsedChart.tags.artist.value_or("")),
-        .subtitle = QString::fromUtf8(parsedChart.tags.subTitle.value_or("")),
+        .subtitle = subtitle,
         .subartist = QString::fromUtf8(parsedChart.tags.subArtist.value_or("")),
         .genre = QString::fromUtf8(parsedChart.tags.genre.value_or("")),
         .stageFile = QString::fromUtf8(parsedChart.tags.stageFile.value_or("")),
