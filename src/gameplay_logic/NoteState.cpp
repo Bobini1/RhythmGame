@@ -42,7 +42,8 @@ ColumnState::ColumnState(QList<NoteState> notes, QObject* parent)
         lnBodies +=
           boost::icl::interval_map<double, std::set<qint64>>::value_type{
               boost::icl::interval<double>::closed(lo, hi),
-              std::set{ noteState.index }
+              std::set{ static_cast<qint64>(
+                timeToPositionIndexMapping[noteState.index]) }
           };
     }
 }
@@ -409,7 +410,7 @@ Filter::setBottomPosition(double value)
     if (oldBottomRow != newBottomRow) {
         bottomRow = newBottomRow;
         setEffectiveBottomRow(
-          std::min(columnState->getLnBottomPositionIndex(topPosition)
+          std::min(columnState->getLnBottomPositionIndex(bottomPosition)
                      .value_or(bottomRow),
                    bottomRow));
     }
