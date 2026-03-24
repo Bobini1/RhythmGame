@@ -4,7 +4,7 @@ import QtQuick.Controls
 WindowBg {
     id: rankingPosition
 
-    required property string oldRankingPosition
+    required property int oldRankingPosition
     required property int newRankingPosition
     required property int totalEntries
     required property bool loading

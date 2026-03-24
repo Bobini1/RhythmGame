@@ -724,9 +724,8 @@ OnlineRankingModel::fetchTachi()
             this,
             [this, handle](const QString& err) {
                 handle->deleteLater();
-                spdlog::error(
-                  "OnlineRankingModel fetchTachi resolve failed: {}",
-                  err.toStdString());
+                spdlog::info("OnlineRankingModel fetchTachi resolve failed: {}",
+                             err.toStdString());
                 setLoading(false);
             });
 

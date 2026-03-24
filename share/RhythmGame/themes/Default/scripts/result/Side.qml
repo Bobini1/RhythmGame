@@ -8,6 +8,7 @@ Column {
     required property var score
     required property Profile profile
     required property bool isBattle
+    required property var chartKeymode
     property bool mirrored: false
     readonly property var earlyLate: Helpers.getEarlyLate(score.replayData)
     readonly property var stddevAndMean: Helpers.getStddevAndMean(score.replayData)
@@ -84,100 +85,25 @@ Column {
         ScoreColumn {
             id: scoreColumn
 
-            OnlineRankingModel {
-                id: rankingModelNew
+            RankingQuery {
+                id: rankingModel
                 md5: side.score.result.md5
-                sortBy: OnlineRankingModel.ScorePct
-                sortDir: OnlineRankingModel.Desc
                 webApiUrl: side.profile.vars.generalVars.webApiUrl
                 provider: OnlineRankingModel.Tachi
-                property int size: {
-                    if (provider === OnlineRankingModel.LR2IR) {
-                        return rankingEntries.length + 1;
-                    }
-                    rankingEntries.length
-                }
-
-                property int position: {
-                    let entries = rankingEntries;
-                    if (provider === OnlineRankingModel.LR2IR) {
-                        let points = Math.max(side.score.result.points, side.oldBestPointsScore?.result?.points || 0);
-                        for (let i = 0; i < entries.length; i++) {
-                            if (points > entries[i].bestPoints) {
-                                return i + 1;
-                            }
-                        }
-                        return entries.length + 1;
-                    } else if (provider === OnlineRankingModel.RhythmGame) {
-                        for (let i = 0; i < entries.length; i++) {
-                            if (entries[i].owner === side.score.result.owner ||
-                                (side.score.result.owner === "" && entries[i].userId === side.profile.onlineUserData?.userId)) {
-                                return i + 1;
-                            }
-                        }
-                        return 0;
-                    } if (provider === OnlineRankingModel.Tachi) {
-                        let points = Math.max(side.score.result.points, side.oldBestPointsScore?.result?.points || 0);
-                        for (let i = 0; i < entries.length; i++) {
-                            if (entries[i].userId === side.profile.tachiData?.userId)
-                            {
-                                return i + 1;
-                            }
-                        }
-                        return 0;
-                    }
-                }
+                userId: provider === OnlineRankingModel.Tachi ? side.profile.tachiData?.userId : side.profile.onlineUserData?.userId
             }
-
 
             Connections {
                 target: side.score
 
                 function onSubmissionStateChanged() {
-                    rankingModelNew.refresh();
+                    rankingModel.refresh();
                 }
             }
 
-            OnlineRankingModel {
-                id: rankingModelOld
-                md5: side.score.result.md5
-                sortBy: OnlineRankingModel.ScorePct
-                sortDir: OnlineRankingModel.Desc
-                webApiUrl: side.profile.vars.generalVars.webApiUrl
-                provider: OnlineRankingModel.Tachi
-                property int size: rankingEntries.length
-
-                property string position: {
-                    let entries = rankingEntries;
-                    if (provider === OnlineRankingModel.LR2IR) {
-                        if (side.oldBestPointsScore?.result?.points === undefined) {
-                            return 0;
-                        }
-                        let points = side.oldBestPointsScore?.result?.points || 0;
-                        for (let i = 0; i < entries.length; i++) {
-                            if (points > entries[i].bestPoints) {
-                                return i + 1;
-                            }
-                        }
-                        return entries.length + 1;
-                    } else if (provider === OnlineRankingModel.RhythmGame) {
-                        for (let i = 0; i < entries.length; i++) {
-                            if (entries[i].owner === side.score.result.owner ||
-                                (side.score.result.owner === "" && entries[i].userId === side.profile.onlineUserData?.userId)) {
-                                return i + 1;
-                            }
-                        }
-                        return 0;
-                    } else if (provider === OnlineRankingModel.Tachi) {
-                        return "?";
-                    }
-                    return 0;
-                }
-            }
 
             readonly property string keymode: {
-                // convert keymode to string for tachi provider
-                switch (side.score.keymode) {
+                switch (side.score.keymode || side.chartKeymode) {
                     case 5:
                     case 7:
                         return "7K";
@@ -197,18 +123,18 @@ Column {
             maxCombo: side.score.result.maxCombo
             clearType: side.score.result.clearType
             oldBestClear: side.oldBestClear
-            oldRankingPosition: rankingModelOld.position
-            newRankingPosition: rankingModelNew.position
-            totalEntries: rankingModelNew.size
-            loading: rankingModelNew.loading || rankingModelOld.loading || side.score.submissionState === BmsScore.Submitting
+            oldRankingPosition: rankingModel.oldPosition
+            newRankingPosition: rankingModel.position
+            totalEntries: rankingModel.size
+            loading: rankingModel.loading || rankingModel.positionLoading || side.score.submissionState === BmsScore.Submitting
             scoreSubmissionFailed: side.score.submissionState === BmsScore.Failed || side.score.submissionState === BmsScore.NotSubmitting
             rankingUrl: {
-                if (rankingModelNew.provider === OnlineRankingModel.LR2IR) {
+                if (rankingModel.provider === OnlineRankingModel.LR2IR) {
                     return "http://www.dream-pro.info/~lavalse/LR2IR/search.cgi?mode=ranking&bmsmd5=" + side.score.result.md5;
                 }
-                if (rankingModelNew.provider === OnlineRankingModel.Tachi) {
+                if (rankingModel.provider === OnlineRankingModel.Tachi) {
                     return "https://boku.tachi.ac/games/bms/" + scoreColumn.keymode +
-                        "/charts/" + rankingModelNew.chartId;
+                        "/charts/" + rankingModel.chartId;
                 }
                 return totalEntries ? Rg.onlineLinks.chart(side.profile.vars.generalVars.websiteBaseUrl, side.score.result.md5) : ""
             }

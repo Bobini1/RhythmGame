@@ -211,6 +211,7 @@ OnlineScores::getRankingEntryAtTimestamp(
             QUrlQuery q;
             q.addQueryItem("md5", md5);
             q.addQueryItem("date_lte", QString::number(timestamp));
+            q.addQueryItem("user_id", QString::number(userId));
             url.setQuery(q);
 
             QNetworkRequest request(url);
@@ -256,7 +257,7 @@ OnlineScores::getRankingEntryAtTimestamp(
                       entry.userId = obj.value("userId").toInt();
                       entry.userName = obj.value("userName").toString();
                       entry.userImage = obj.value("userImage").toString();
-                      entry.bestPoints = obj.value("bestPoints").toDouble();
+                      entry.bestPoints = obj.value("points").toDouble();
                       entry.maxPoints = obj.value("maxPoints").toDouble();
                       entry.bestPointsGuid =
                         obj.value("bestPointsGuid").toString();
@@ -343,9 +344,10 @@ OnlineScores::getRankingEntryAtTimestamp(
                             return;
                         }
 
+                        auto replyText = scoresReply->readAll();
                         QJsonParseError perr;
-                        const auto doc = QJsonDocument::fromJson(
-                          scoresReply->readAll(), &perr);
+                        const auto doc =
+                          QJsonDocument::fromJson(replyText, &perr);
                         if (perr.error != QJsonParseError::NoError ||
                             !doc.isObject()) {
                             pendingReply.setFailed();
@@ -353,7 +355,7 @@ OnlineScores::getRankingEntryAtTimestamp(
                         }
 
                         const QJsonArray scoresArr =
-                          doc.object()["body"].toObject()["scores"].toArray();
+                          doc.object()["body"].toArray();
 
                         const qint64 timestampMs = timestamp * 1000LL;
 
@@ -367,7 +369,8 @@ OnlineScores::getRankingEntryAtTimestamp(
                             qint64 timeAchieved{ 0 };
                         };
 
-                        Candidate bestScore, bestLamp, lowestBp, bestCombo;
+                        Candidate bestScore, bestLamp, lowestBp, bestCombo,
+                          latest;
                         bool anyScore = false;
                         qint64 latestDate = 0;
                         int scoreCount = 0;
@@ -388,23 +391,27 @@ OnlineScores::getRankingEntryAtTimestamp(
                             const auto scoreData = s["scoreData"].toObject();
                             const auto judgements =
                               scoreData["judgements"].toObject();
+                            const auto optObj =
+                              scoreData["optional"].toObject();
                             const auto enumIndexes =
-                              scoreData["enumIndexes"].toObject();
+                              s["enumIndexes"].toObject(); // top-level
                             const double ex = scoreData["score"].toDouble();
                             const int lamp = enumIndexes["lamp"].toInt();
                             const QString sid = s["scoreID"].toString();
-                            const auto optObj =
-                              scoreData["optional"].toObject();
 
                             if (ex > bestScore.exScore) {
                                 bestScore.exScore = ex;
                                 bestScore.scoreId = sid;
-                                bestScore.timeAchieved = ta;
                             }
 
                             if (lamp > bestLamp.lamp) {
                                 bestLamp.lamp = lamp;
                                 bestLamp.scoreId = sid;
+                            }
+
+                            if (ta > latest.timeAchieved) {
+                                latest.timeAchieved = ta;
+                                latest.scoreId = sid;
                             }
 
                             const int bp =
@@ -475,8 +482,10 @@ OnlineScores::getRankingEntryAtTimestamp(
                         entry.bestCombo = bestCombo.combo;
                         entry.bestComboGuid = bestCombo.scoreId;
 
-                        entry.maxHits = noteCount;
                         entry.latestDate = latestDate;
+                        entry.latestDateGuid = bestLamp.scoreId;
+
+                        entry.maxHits = noteCount;
                         entry.scoreCount = scoreCount;
 
                         pendingReply.setSuccess(
