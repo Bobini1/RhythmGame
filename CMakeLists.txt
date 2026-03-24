@@ -256,6 +256,8 @@ qt_add_library(RhythmGame_lib OBJECT
         src/charts/Base62.h
         src/qml_components/OnlineLinks.cpp
         src/qml_components/OnlineLinks.h
+        src/support/ConvertTachiClearType.cpp
+        src/support/ConvertTachiClearType.h
 )
 
 if (WIN32)

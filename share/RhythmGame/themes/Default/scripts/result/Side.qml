@@ -90,7 +90,6 @@ Column {
                 sortBy: OnlineRankingModel.ScorePct
                 sortDir: OnlineRankingModel.Desc
                 webApiUrl: side.profile.vars.generalVars.webApiUrl
-                dateLte: side.score.result.unixTimestamp
                 provider: OnlineRankingModel.Tachi
                 property int size: {
                     if (provider === OnlineRankingModel.LR2IR) {
@@ -145,7 +144,6 @@ Column {
                 sortBy: OnlineRankingModel.ScorePct
                 sortDir: OnlineRankingModel.Desc
                 webApiUrl: side.profile.vars.generalVars.webApiUrl
-                dateLte: side.score.result.unixTimestamp - 1
                 provider: OnlineRankingModel.Tachi
                 property int size: rankingEntries.length
 

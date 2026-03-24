@@ -38,6 +38,7 @@
 #include "support/UtfStringToPath.h"
 #include "gameplay_logic/CourseRunner.h"
 #include "qml_components/OnlineLinks.h"
+#include "qml_components/OnlineProfileInfo.h"
 #include "qml_components/OnlineRankingModel.h"
 #include "qml_components/ScoreReplayer.h"
 #include "sounds/AudioEngine.h"
@@ -482,6 +483,7 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
           "RhythmGameQml", 1, 0, "ScoreReplayer");
         qml_components::OnlineRankingModel::networkManager = &networkManager;
         qml_components::OnlineRankingModel::profileList = &profileList;
+        qml_components::OnlineRankingModel::onlineScores = &onlineScores;
         qmlRegisterType<qml_components::OnlineRankingModel>(
           "RhythmGameQml", 1, 0, "OnlineRankingModel");
         qmlRegisterType<qml_components::RankingEntry>(

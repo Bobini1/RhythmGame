@@ -4,6 +4,7 @@
 #include <QtQml>
 
 namespace qml_components {
+class OnlineScores;
 class ProfileList;
 struct RankingEntry
 {
@@ -217,6 +218,7 @@ class OnlineRankingModel : public QAbstractListModel
 
     inline static QNetworkAccessManager* networkManager = nullptr;
     inline static ProfileList* profileList = nullptr;
+    inline static OnlineScores* onlineScores = nullptr;
 
   signals:
     void md5Changed();

@@ -1,6 +1,8 @@
 #include "OnlineRankingModel.h"
 
+#include "OnlineScores.h"
 #include "ProfileList.h"
+#include "support/ConvertTachiClearType.h"
 
 #include <QJsonArray>
 #include <QJsonDocument>
@@ -57,30 +59,6 @@ OnlineRankingModel::performJsonGet(
             });
 }
 
-QString
-convertTachiClearType(const int enumIndex)
-{
-    switch (enumIndex) {
-        case 0:
-            return "NOPLAY";
-        case 1:
-            return "FAILED";
-        case 2:
-            return "AEASY";
-        case 3:
-            return "EASY";
-        case 4:
-            return "NORMAL";
-        case 5:
-            return "HARD";
-        case 6:
-            return "EXHARD";
-        case 7:
-            return "FC";
-        default:
-            return QString::number(enumIndex);
-    }
-}
 void
 OnlineRankingModel::handleTachiReply(int startRanking,
                                      int noteCount,
@@ -169,7 +147,7 @@ OnlineRankingModel::handleTachiReply(int startRanking,
 
         auto judgements = scoreData.value("judgements").toObject();
 
-        r.bestClearType = convertTachiClearType(
+        r.bestClearType = support::convertTachiClearType(
           scoreData["enumIndexes"].toObject()["lamp"].toInt());
         if (r.bestClearType == "FC") {
             if (judgements["good"].toInt() == 0) {
@@ -710,88 +688,53 @@ OnlineRankingModel::fetchLR2IR()
 void
 OnlineRankingModel::fetchTachi()
 {
-    const QUrl resolveUrl(
-      "https://boku.tachi.ac/api/v1/games/bms/7K/charts/resolve");
-    QNetworkRequest resolveReq(resolveUrl);
-    resolveReq.setHeader(QNetworkRequest::ContentTypeHeader,
-                         "application/json");
+    auto* handle = onlineScores->resolveTachiChartId(currentMd5.toLower());
+    handle->setParent(this);
 
-    QJsonObject body;
-    body.insert("matchType", "bmsChartHash");
-    body.insert("identifier", currentMd5.toLower());
-    const auto bodyDoc = QJsonDocument(body);
-    QNetworkReply* resolveReply =
-      networkManager->post(resolveReq, bodyDoc.toJson(QJsonDocument::Compact));
+    connect(handle,
+            &TachiResolveHandle::resolved,
+            this,
+            [this, handle](
+              const QString& chartID, const QString& playtype, int noteCount) {
+                handle->deleteLater();
+                setChartId(chartID);
 
+                const auto pbsUrlStr =
+                  QString("https://boku.tachi.ac/api/v1/games/bms/%1/charts/%2/"
+                          "pbs?startRanking=1")
+                    .arg(playtype)
+                    .arg(chartID);
+
+                QNetworkReply* pbsReply =
+                  networkManager->get(QNetworkRequest(QUrl(pbsUrlStr)));
+                connect(this,
+                        &OnlineRankingModel::cancelPendingRequested,
+                        pbsReply,
+                        [pbsReply] { pbsReply->abort(); });
+                connect(pbsReply,
+                        &QNetworkReply::finished,
+                        this,
+                        [this, playtype, noteCount, pbsReply]() {
+                            handleTachiReply(1, noteCount, pbsReply);
+                        });
+            });
+
+    connect(handle,
+            &TachiResolveHandle::failed,
+            this,
+            [this, handle](const QString& err) {
+                handle->deleteLater();
+                spdlog::error(
+                  "OnlineRankingModel fetchTachi resolve failed: {}",
+                  err.toStdString());
+                setLoading(false);
+            });
+
+    // Cancellation is now just a signal connection — no manual bookkeeping.
     connect(this,
             &OnlineRankingModel::cancelPendingRequested,
-            resolveReply,
-            [resolveReply] { resolveReply->abort(); });
-
-    connect(
-      resolveReply, &QNetworkReply::finished, this, [this, resolveReply]() {
-          resolveReply->deleteLater();
-
-          if (resolveReply->error() == QNetworkReply::OperationCanceledError) {
-              return;
-          }
-          if (resolveReply->error() == QNetworkReply::ContentNotFoundError) {
-              setLoading(false);
-              return;
-          }
-          if (resolveReply->error() != QNetworkReply::NoError) {
-              spdlog::error("OnlineRankingModel fetchTachi resolve failed: {}",
-                            resolveReply->errorString().toStdString());
-              setLoading(false);
-              return;
-          }
-
-          const auto data = resolveReply->readAll();
-          auto perr = QJsonParseError{};
-          const auto doc = QJsonDocument::fromJson(data, &perr);
-          if (perr.error != QJsonParseError::NoError || !doc.isObject()) {
-              spdlog::error(
-                "OnlineRankingModel fetchTachi: resolve JSON parse error: {}",
-                perr.errorString().toStdString());
-              setLoading(false);
-              return;
-          }
-
-          const auto root = doc.object();
-          const auto bodyObj = root["body"].toObject();
-          const auto chartObj = bodyObj["chart"].toObject();
-          const auto chartID = chartObj["chartID"].toString();
-          if (chartID.isEmpty()) {
-              spdlog::error("OnlineRankingModel fetchTachi: no chartID in "
-                            "resolve response");
-              setLoading(false);
-              return;
-          }
-          setChartId(chartID);
-          const auto noteCount =
-            chartObj["data"].toObject()["notecount"].toInt();
-
-          // page through pbs?startRanking=N (increase by 100) until empty
-          int startRanking = 1;
-
-          const auto pbsUrlStr =
-            QString("https://boku.tachi.ac/api/v1/games/bms/7K/charts/%1/"
-                    "pbs?startRanking=%2")
-              .arg(chartID)
-              .arg(startRanking);
-          auto pbsReq = QNetworkRequest(QUrl(pbsUrlStr));
-          QNetworkReply* pbsReply = networkManager->get(pbsReq);
-          connect(pbsReply,
-                  &QNetworkReply::finished,
-                  this,
-                  [this, startRanking, noteCount, pbsReply]() {
-                      handleTachiReply(startRanking, noteCount, pbsReply);
-                  });
-          connect(this,
-                  &OnlineRankingModel::cancelPendingRequested,
-                  pbsReply,
-                  [pbsReply] { pbsReply->abort(); });
-      });
+            handle,
+            &TachiResolveHandle::cancel);
 }
 void
 OnlineRankingModel::fetch()

@@ -96,6 +96,7 @@ class Profile final : public QObject
     void setTachiLoginState(LoginState state);
     void setOnlineUserData(std::optional<OnlineUserData> userData);
     void setTachiData(std::optional<TachiData> tachiData);
+    void fetchTachiData(int tachiId);
 
   public:
     static inline const QString keychainService = "RhythmGame";
@@ -124,7 +125,6 @@ class Profile final : public QObject
     auto getThemeConfig() const -> QQmlPropertyMap*;
     auto getVars() -> Vars*;
     auto getGuid() const -> QString;
-    void fetchTachiData(int tachiId);
     Q_INVOKABLE void login(const QString& email, const QString& password);
     Q_INVOKABLE void logout();
     auto getLoginState() const -> LoginState;
