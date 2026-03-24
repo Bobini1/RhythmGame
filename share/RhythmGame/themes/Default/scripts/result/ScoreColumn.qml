@@ -35,9 +35,14 @@ Column {
         maxPoints: scoreColumn.maxPoints
         oldBestPoints: scoreColumn.oldBestPoints
     }
+    Rectangle {
+        width: 668
+        height: 14
+        color: "transparent"
+    }
     Row {
         width: 668
-        height: 104
+        height: 76
         spacing: 3
 
         Image {
@@ -136,6 +141,11 @@ Column {
                 oldBestClear: scoreColumn.oldBestClear
             }
         }
+    }
+    Rectangle {
+        width: 668
+        height: 14
+        color: "transparent"
     }
     HitInfo {
         height: 180
