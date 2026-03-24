@@ -61,17 +61,14 @@ Column {
                     cursorShape: enabled ? Qt.PointingHandCursor : undefined
                     enabled: !(userEntry.isCurrentUser && !profile.onlineUserData)
                     onClicked: {
-                        let url = Rg.onlineLinks.scoresByUserOnChart(
-                            ranking.profile.vars.generalVars.websiteBaseUrl,
-                            modelData.userId,
-                            ranking.chartData.md5);
+                        let url = ranking.profile.vars.generalVars.websiteBaseUrl + "/charts/" +
+                            ranking.chartData.md5 + "/players/" + modelData.userId + "/scores"
                         if (ranking.provider === OnlineRankingModel.LR2IR && !userEntry.isCurrentUser) {
                             url = "http://www.dream-pro.info/~lavalse/LR2IR/search.cgi?mode=mypage&playerid=" + modelData.userId;
                         } else if (ranking.provider === OnlineRankingModel.Tachi) {
                             url = "https://boku.tachi.ac/u/" + modelData.userName + "/games/bms/" + ranking.keymode
                         }
                         Qt.openUrlExternally(url);
-
                     }
                 }
             }

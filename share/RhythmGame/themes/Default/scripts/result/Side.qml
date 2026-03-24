@@ -137,6 +137,7 @@ Column {
 
             Connections {
                 target: side.score
+                ignoreUnknownSignals: true
 
                 function onSubmissionStateChanged() {
                     rhythmGame.refresh();
@@ -165,12 +166,16 @@ Column {
             maxCombo: side.score.result.maxCombo
             clearType: side.score.result.clearType
             oldBestClear: side.oldBestClear
-            oldRankingPosition: ranking.oldPosition
-            newRankingPosition: ranking.position
-            totalEntries: ranking.size
+            // Course rankings are not implemented atm
+            oldRankingPosition: root.course ? 0 : ranking.oldPosition
+            newRankingPosition: root.course ? 0 : ranking.position
+            totalEntries: root.course ? 0 : ranking.size
             loading: ranking.loading || ranking.positionLoading || side.score.submissionState === BmsScore.Submitting
-            scoreSubmissionFailed: side.score.submissionState === BmsScore.Failed || side.score.submissionState === BmsScore.NotSubmitting
+            scoreSubmissionFailed: side.score.submissionState === BmsScore.Failed || side.score.submissionState === BmsScore.NotSubmitting || root.course
             rankingUrl: {
+                if (root.course) {
+                    return "";
+                }
                 if (ranking.provider === OnlineRankingModel.LR2IR) {
                     return "http://www.dream-pro.info/~lavalse/LR2IR/search.cgi?mode=ranking&bmsmd5=" + side.score.result.md5;
                 }
@@ -178,7 +183,7 @@ Column {
                     return "https://boku.tachi.ac/games/bms/" + scoreColumn.keymode +
                         "/charts/" + ranking.chartId;
                 }
-                return totalEntries ? Rg.onlineLinks.chart(side.profile.vars.generalVars.websiteBaseUrl, side.score.result.md5) : ""
+                return totalEntries ? side.profile.vars.generalVars.websiteBaseUrl + "/charts/" + side.score.result.md5 : ""
             }
             transform: Scale {
                 xScale: side.mirrored ? -1 : 1

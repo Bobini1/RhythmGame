@@ -37,7 +37,6 @@
 #include "support/PathToUtfString.h"
 #include "support/UtfStringToPath.h"
 #include "gameplay_logic/CourseRunner.h"
-#include "qml_components/OnlineLinks.h"
 #include "qml_components/OnlineProfileInfo.h"
 #include "qml_components/OnlineRankingModel.h"
 #include "qml_components/ScoreReplayer.h"
@@ -338,8 +337,6 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
                          setLang);
         setLang();
 
-        auto onlineLinks = qml_components::OnlineLinks{};
-
         auto rg = Rg{ &programSettings,
                       &inputTranslator,
                       &chartLoader,
@@ -353,8 +350,7 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
                       &tables,
                       &languages,
                       &audioEngine,
-                      &onlineScores,
-                      &onlineLinks };
+                      &onlineScores };
 
         Rg::instance = &rg;
 

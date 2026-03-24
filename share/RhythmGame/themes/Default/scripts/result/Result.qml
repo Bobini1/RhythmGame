@@ -151,7 +151,6 @@ Item {
                 width: parent.width
                 chartDatas: root.chartDatas
             }
-
         }
     }
 }

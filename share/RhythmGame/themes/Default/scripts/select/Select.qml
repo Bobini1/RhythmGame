@@ -283,7 +283,7 @@ FocusScope {
                     rankingLink: {
                         switch (ranking.ranking.provider) {
                             case OnlineRankingModel.RhythmGame:
-                                return Rg.onlineLinks.chart(Rg.profileList.mainProfile.vars.generalVars.websiteUrl, songList.current.md5);
+                                return Rg.profileList.mainProfile.vars.generalVars.websiteUrl + "/charts/" + songList.current.md5;
                             case OnlineRankingModel.LR2IR:
                                 return "http://www.dream-pro.info/~lavalse/LR2IR/search.cgi?mode=ranking&bmsmd5=" + songList.current.md5;
                             case OnlineRankingModel.Tachi:

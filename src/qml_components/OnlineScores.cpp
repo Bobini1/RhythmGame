@@ -67,7 +67,7 @@ OnlineScores::resolveTachiChartId(const QString& md5) const
           reply,
           &QNetworkReply::finished,
           this,
-          [handle, reply, attemptIndex, tryNext]() mutable {
+          [handle = QPointer(handle), reply, attemptIndex, tryNext]() mutable {
               reply->deleteLater();
 
               if (reply->error() == QNetworkReply::OperationCanceledError)
@@ -82,6 +82,9 @@ OnlineScores::resolveTachiChartId(const QString& md5) const
               QJsonParseError perr;
               const auto doc = QJsonDocument::fromJson(reply->readAll(), &perr);
               if (perr.error != QJsonParseError::NoError || !doc.isObject()) {
+                  if (!handle) {
+                      return;
+                  }
                   emit handle->failed(
                     QString("JSON parse error resolving Tachi chart: %1")
                       .arg(perr.errorString()));
@@ -99,6 +102,9 @@ OnlineScores::resolveTachiChartId(const QString& md5) const
 
               const int noteCount =
                 chartObj["data"].toObject()["notecount"].toInt();
+              if (!handle) {
+                  return;
+              }
               emit handle->resolved(
                 chartID, QString(playtypes[*attemptIndex]), noteCount);
           });
