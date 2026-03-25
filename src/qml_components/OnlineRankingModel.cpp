@@ -507,7 +507,7 @@ OnlineRankingModel::fetchLR2IR()
             return;
         }
         if (reply->error() != QNetworkReply::NoError) {
-            spdlog::error("OnlineRankingModel fetchLR2IR failed: {}",
+            spdlog::debug("OnlineRankingModel fetchLR2IR failed: {}",
                           reply->errorString().toStdString());
             setLoading(false);
             return;
@@ -725,8 +725,9 @@ OnlineRankingModel::fetchTachi()
             this,
             [this, handle](const QString& err) {
                 handle->deleteLater();
-                spdlog::info("OnlineRankingModel fetchTachi resolve failed: {}",
-                             err.toStdString());
+                spdlog::debug(
+                  "OnlineRankingModel fetchTachi resolve failed: {}",
+                  err.toStdString());
                 setLoading(false);
             });
 

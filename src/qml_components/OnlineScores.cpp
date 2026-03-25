@@ -236,7 +236,7 @@ OnlineScores::getRankingEntryAtTimestamp(
                       return;
                   }
                   if (reply->error() != QNetworkReply::NoError) {
-                      spdlog::error(
+                      spdlog::debug(
                         "getRankingEntryAtTimestamp RhythmGame failed: {}",
                         reply->errorString().toStdString());
                       pendingReply.setFailed();
@@ -504,7 +504,7 @@ OnlineScores::getRankingEntryAtTimestamp(
                     this,
                     [handle, pendingReply](const QString& err) mutable {
                         handle->deleteLater();
-                        spdlog::error(
+                        spdlog::debug(
                           "getRankingEntryAtTimestamp Tachi resolve failed: {}",
                           err.toStdString());
                         pendingReply.setSuccess(
