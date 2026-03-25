@@ -578,22 +578,37 @@ struct TagsSink
         auto finish() && -> return_type { return std::move(state); }
         auto operator()(Title&& title) -> void
         {
+            if (title.t.empty() && state.title.has_value()) {
+                return;
+            }
             state.title = static_cast<std::string&&>(std::move(title));
         }
         auto operator()(Artist&& artist) -> void
         {
+            if (artist.t.empty() && state.artist.has_value()) {
+                return;
+            }
             state.artist = static_cast<std::string&&>(std::move(artist));
         }
         auto operator()(Subtitle&& subtitle) -> void
         {
+            if (subtitle.t.empty() && state.title.has_value()) {
+                return;
+            }
             state.subTitle = static_cast<std::string&&>(std::move(subtitle));
         }
         auto operator()(Subartist&& subartist) -> void
         {
+            if (subartist.t.empty() && state.title.has_value()) {
+                return;
+            }
             state.subArtist = static_cast<std::string&&>(std::move(subartist));
         }
         auto operator()(Genre&& genre) -> void
         {
+            if (genre.t.empty() && state.genre.has_value()) {
+                return;
+            }
             state.genre = static_cast<std::string&&>(std::move(genre));
         }
         auto operator()(StageFile&& stageFile) -> void
