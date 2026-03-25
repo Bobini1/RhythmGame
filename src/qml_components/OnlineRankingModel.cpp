@@ -412,6 +412,7 @@ OnlineRankingModel::fetchRhythmGame()
           }
           setScoreCount(scoreCount);
           setPlayerCount(playerCount);
+          setEntries(std::move(newEntries));
 
           setLoading(false);
       },
@@ -742,8 +743,8 @@ OnlineRankingModel::fetch()
     setScoreCount(0);
     setEntries({});
     cancelPending();
-    if (currentMd5.isEmpty() || !networkRequestFactory.baseUrl().isValid() &&
-                                  currentProvider == Provider::RhythmGame) {
+    if (currentMd5.isEmpty() || (!networkRequestFactory.baseUrl().isValid() &&
+                                 currentProvider == Provider::RhythmGame)) {
         setLoading(false);
         return;
     }
