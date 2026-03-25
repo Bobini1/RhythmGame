@@ -175,7 +175,7 @@ Image {
                 provider: onlineRankingModel.provider
                 entries: {
                     let entries = onlineRankingModel.entries.slice(0, 7)
-                    if (ranking.loading && entries.length === 1 && ranking.provider === OnlineRankingModel.LR2IR && (entries[0] instanceof rankingEntry)) {
+                    if (ranking.loading && entries.length === 1 && ranking.provider === OnlineRankingModel.LR2IR && !(entries[0] instanceof rankingEntry)) {
                         return [];
                     }
                     return entries;
