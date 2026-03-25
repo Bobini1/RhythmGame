@@ -510,13 +510,15 @@ OnlineRankingModel::sortFilterLocal(QList<RankingEntry> entriesUnfiltered) const
     filtered.reserve(entriesUnfiltered.size());
     for (auto& wp : entriesUnfiltered) {
         bool ok = true;
-        if (currentScorePctGte >= 0.0 && wp.maxPoints > 0
-              ? (wp.bestPoints / wp.maxPoints) < currentScorePctGte
-              : false)
+        if (currentScorePctGte >= 0.0 &&
+            (wp.maxPoints > 0
+               ? (wp.bestPoints / wp.maxPoints) < currentScorePctGte
+               : true))
             ok = false;
-        if (currentScorePctLte >= 0.0 && wp.maxPoints > 0
-              ? (wp.bestPoints / wp.maxPoints) > currentScorePctLte
-              : false)
+        if (currentScorePctLte >= 0.0 &&
+            (wp.maxPoints > 0
+               ? (wp.bestPoints / wp.maxPoints) > currentScorePctLte
+               : false))
             ok = false;
         if (currentComboGte >= 0 && wp.bestCombo < currentComboGte)
             ok = false;
