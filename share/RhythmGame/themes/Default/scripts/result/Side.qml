@@ -189,7 +189,7 @@ Column {
             provider: ranking.provider
             totalEntries: root.course ? 0 : ranking.size
             loading: ranking.loading || ranking.positionLoading || side.score.submissionState === BmsScore.Submitting
-            scoreSubmissionFailed: side.score.submissionState === BmsScore.Failed || side.score.submissionState === BmsScore.NotSubmitting || root.course
+            scoreSubmissionFailed: side.score.submissionState === BmsScore.Failed || side.score.submissionState === BmsScore.NotSubmitting || root.course || false
             rankingUrl: {
                 if (root.course || !totalEntries) {
                     return "";

@@ -19,24 +19,6 @@ WindowBg {
         source: root.iniImagesUrl + "parts.png/ranking"
     }
 
-    // Image {
-    //     source: root.iniImagesUrl + "parts.png/arrow"
-    //     anchors.left: parent.left
-    //     anchors.leftMargin: 52
-    //     anchors.top: parent.top
-    //     anchors.topMargin: 24
-    // }
-    // Image {
-    //     id: arrow2
-    //     source: root.iniImagesUrl + "parts.png/arrow"
-    //     transform: Scale {
-    //         xScale: -1: origin.x: arrow2.width / 2
-    //     }
-    //     anchors.right: parent.right
-    //     anchors.rightMargin: 52
-    //     anchors.top: parent.top
-    //     anchors.topMargin: 24
-    // }
     Loader {
         anchors.fill: parent
         sourceComponent: loading ? loadingIndicator : loaded
