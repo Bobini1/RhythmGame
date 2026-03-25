@@ -180,9 +180,6 @@ class OnlineRankingModel : public QAbstractListModel
     auto getLastPlayedLte() const -> qint64;
     void setLastPlayedLte(qint64 val);
 
-    auto getDateLte() const -> qint64;
-    void setDateLte(qint64 val);
-
     auto getScorePctGte() const -> double;
     void setScorePctGte(double val);
 
@@ -253,6 +250,8 @@ class OnlineRankingModel : public QAbstractListModel
     void cancelPendingRequested();
 
   private:
+    auto sortFilterLocal(QList<RankingEntry> entries) const
+      -> QList<RankingEntry>;
     void fetchLR2IR();
     void fetchTachi();
     void fetch();

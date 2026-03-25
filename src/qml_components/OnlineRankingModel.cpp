@@ -13,6 +13,15 @@
 #include <spdlog/spdlog.h>
 
 namespace qml_components {
+
+namespace {
+struct WithPct
+{
+    RankingEntry entry;
+    double scorePct;
+};
+} // namespace
+
 void
 OnlineRankingModel::performJsonGet(
   const QString& url,
@@ -97,6 +106,16 @@ OnlineRankingModel::handleTachiReply(int startRanking,
     const QJsonArray usersArr = pbsBody.value("users").toArray();
 
     if (pbsArr.isEmpty()) {
+        // we can now sort according to user preference.
+        if (currentSortBy != SortableColumn::None &&
+            currentSortDir != SortDirection::None &&
+            !(currentSortBy == SortableColumn::ScorePct &&
+              currentSortDir == SortDirection::Desc) &&
+            (currentComboLte > 0 || currentComboGte > 0 ||
+             currentMissCountGte > 0 || currentMissCountLte > 0 ||
+             currentScorePctGte > 0.0 || currentScorePctLte > 0.0)) {
+            setEntries(sortFilterLocal(std::move(entries)));
+        }
         setLoading(false);
         return;
     }
@@ -478,6 +497,120 @@ parseLr2Scores(QXmlStreamReader& xr) -> QList<TmpEntry>
     return out;
 }
 }
+auto
+OnlineRankingModel::sortFilterLocal(QList<RankingEntry> entriesUnfiltered) const
+  -> QList<RankingEntry>
+{
+
+    QVector<RankingEntry> filtered;
+    filtered.reserve(entriesUnfiltered.size());
+    for (auto& wp : entriesUnfiltered) {
+        bool ok = true;
+        if (currentScorePctGte >= 0.0 && wp.maxPoints > 0
+              ? (wp.bestPoints / std::max(wp.maxPoints, 1.0)) <
+                  currentScorePctGte
+              : true)
+            ok = false;
+        if (currentScorePctLte >= 0.0 && wp.maxPoints > 0
+              ? (wp.bestPoints / std::max(wp.maxPoints, 1.0)) >
+                  currentScorePctLte
+              : false)
+            ok = false;
+        if (currentComboGte >= 0 && wp.bestCombo < currentComboGte)
+            ok = false;
+        if (currentComboLte >= 0 && wp.bestCombo > currentComboLte)
+            ok = false;
+        if (currentMissCountGte >= 0 &&
+            wp.bestComboBreaks < currentMissCountGte)
+            ok = false;
+        if (currentMissCountLte >= 0 &&
+            wp.bestComboBreaks > currentMissCountLte)
+            ok = false;
+        if (ok) {
+            filtered.append(std::move(wp));
+        }
+    }
+
+    // Sorting: comparator returns true if a should come before b
+    // Use explicit priority ordering for clear types
+    static const QStringList clearTypePriorities = {
+        "NOPLAY", "FAILED", "AEASY", "EASY",    "NORMAL",
+        "HARD",   "EXHARD", "FC",    "PERFECT", "MAX",
+    };
+
+    auto comparator = [this](const RankingEntry& a, const RankingEntry& b) {
+        std::partial_ordering ord = std::weak_ordering::equivalent;
+        switch (currentSortBy) {
+            case SortableColumn::Player: {
+                ord = a.userName <=> b.userName;
+                if (ord == std::partial_ordering::equivalent) {
+                    ord = (a.maxPoints > 0) ? (a.bestPoints / a.maxPoints) <=>
+                                                (b.bestPoints / b.maxPoints)
+                                            : std::partial_ordering::equivalent;
+                }
+            } break;
+            case SortableColumn::Grade: {
+                ord = (a.maxPoints > 0) ? (a.bestPoints / a.maxPoints) <=>
+                                            (b.bestPoints / b.maxPoints)
+                                        : std::partial_ordering::equivalent;
+            } break;
+            case SortableColumn::Combo:
+                ord = a.bestCombo <=> b.bestCombo;
+                if (ord == std::partial_ordering::equivalent) {
+                    ord = (a.maxPoints > 0) ? (a.bestPoints / a.maxPoints) <=>
+                                                (b.bestPoints / b.maxPoints)
+                                            : std::partial_ordering::equivalent;
+                }
+                break;
+            case SortableColumn::ComboBreaks:
+                ord = a.bestComboBreaks <=> b.bestComboBreaks;
+                if (ord == std::partial_ordering::equivalent) {
+                    ord = (a.maxPoints > 0) ? (a.bestPoints / a.maxPoints) <=>
+                                                (b.bestPoints / b.maxPoints)
+                                            : std::partial_ordering::equivalent;
+                }
+                break;
+            case SortableColumn::ClearType: {
+                const int ia = clearTypePriorities.indexOf(a.bestClearType);
+                const int ib = clearTypePriorities.indexOf(b.bestClearType);
+                ord = ia <=> ib;
+                if (ord == std::partial_ordering::equivalent) {
+                    ord = (a.maxPoints > 0) ? (a.bestPoints / a.maxPoints) <=>
+                                                (b.bestPoints / b.maxPoints)
+                                            : std::partial_ordering::equivalent;
+                }
+                break;
+            }
+            case SortableColumn::ScorePct:
+            case SortableColumn::Date:
+            case SortableColumn::PlayCount:
+            case SortableColumn::None:
+            default:
+                ord = (a.maxPoints > 0) ? (a.bestPoints / a.maxPoints) <=>
+                                            (b.bestPoints / b.maxPoints)
+                                        : std::partial_ordering::equivalent;
+                if (ord == std::partial_ordering::equivalent) {
+                    const int ia = clearTypePriorities.indexOf(a.bestClearType);
+                    const int ib = clearTypePriorities.indexOf(b.bestClearType);
+                    ord = ia <=> ib;
+                }
+                break;
+        }
+
+        if (ord == std::weak_ordering::less)
+            return currentSortDir == SortDirection::Asc;
+        if (ord == std::weak_ordering::greater)
+            return currentSortDir == SortDirection::Desc;
+        return false;
+    };
+
+    std::ranges::sort(
+      filtered,
+      [&comparator](const RankingEntry& a, const RankingEntry& b) -> bool {
+          return comparator(a, b);
+      });
+    return filtered;
+}
 void
 OnlineRankingModel::fetchLR2IR()
 {
@@ -529,12 +662,7 @@ OnlineRankingModel::fetchLR2IR()
         newEntries.reserve(tmpList.size());
         auto totalScoreCount = 0;
 
-        struct WithPct
-        {
-            RankingEntry entry;
-            double scorePct;
-        };
-        QVector<WithPct> withPct;
+        QVector<RankingEntry> entriesUnfiltered;
 
         for (const auto& t : tmpList) {
             RankingEntry r;
@@ -579,110 +707,12 @@ OnlineRankingModel::fetchLR2IR()
 
             totalScoreCount += r.scoreCount;
 
-            const double scorePct =
-              (maxPoints > 0.0) ? (points / maxPoints) : 0.0;
-            withPct.append({ std::move(r), scorePct });
+            entriesUnfiltered.append(std::move(r));
         }
 
-        QVector<WithPct> filtered;
-        filtered.reserve(withPct.size());
-        for (auto& wp : withPct) {
-            bool ok = true;
-            if (currentScorePctGte >= 0.0 && wp.scorePct < currentScorePctGte)
-                ok = false;
-            if (currentScorePctLte >= 0.0 && wp.scorePct > currentScorePctLte)
-                ok = false;
-            if (currentComboGte >= 0 && wp.entry.bestCombo < currentComboGte)
-                ok = false;
-            if (currentComboLte >= 0 && wp.entry.bestCombo > currentComboLte)
-                ok = false;
-            if (currentMissCountGte >= 0 &&
-                wp.entry.bestComboBreaks < currentMissCountGte)
-                ok = false;
-            if (currentMissCountLte >= 0 &&
-                wp.entry.bestComboBreaks > currentMissCountLte)
-                ok = false;
-            if (ok)
-                filtered.append(std::move(wp));
-        }
+        setPlayerCount(entriesUnfiltered.size());
 
-        // Sorting: comparator returns true if a should come before b
-        // Use explicit priority ordering for clear types
-        static const QStringList clearTypePriorities = {
-            "NOPLAY", "FAILED", "AEASY", "EASY",    "NORMAL",
-            "HARD",   "EXHARD", "FC",    "PERFECT", "MAX",
-        };
-
-        auto comparator = [this](const WithPct& a, const WithPct& b) {
-            std::partial_ordering ord = std::weak_ordering::equivalent;
-            switch (currentSortBy) {
-                case SortableColumn::Player: {
-                    ord = a.entry.userName <=> b.entry.userName;
-                    if (ord == std::partial_ordering::equivalent) {
-                        ord = a.scorePct <=> b.scorePct;
-                    }
-                } break;
-                case SortableColumn::Grade: {
-                    ord = a.scorePct <=> b.scorePct;
-                } break;
-                case SortableColumn::Combo:
-                    ord = a.entry.bestCombo <=> b.entry.bestCombo;
-                    if (ord == std::partial_ordering::equivalent) {
-                        ord = a.scorePct <=> b.scorePct;
-                    }
-                    break;
-                case SortableColumn::ComboBreaks:
-                    ord = a.entry.bestComboBreaks <=> b.entry.bestComboBreaks;
-                    if (ord == std::partial_ordering::equivalent) {
-                        ord = a.scorePct <=> b.scorePct;
-                    }
-                    break;
-                case SortableColumn::ClearType: {
-                    const int ia =
-                      clearTypePriorities.indexOf(a.entry.bestClearType);
-                    const int ib =
-                      clearTypePriorities.indexOf(b.entry.bestClearType);
-                    ord = ia <=> ib;
-                    if (ord == std::partial_ordering::equivalent) {
-                        ord = a.scorePct <=> b.scorePct;
-                    }
-                    break;
-                }
-                case SortableColumn::ScorePct:
-                case SortableColumn::Date:
-                case SortableColumn::PlayCount:
-                case SortableColumn::None:
-                default:
-                    ord = a.scorePct <=> b.scorePct;
-                    if (ord == std::partial_ordering::equivalent) {
-                        const int ia =
-                          clearTypePriorities.indexOf(a.entry.bestClearType);
-                        const int ib =
-                          clearTypePriorities.indexOf(b.entry.bestClearType);
-                        ord = ia <=> ib;
-                    }
-                    break;
-            }
-
-            if (ord == std::weak_ordering::less)
-                return currentSortDir == SortDirection::Asc;
-            if (ord == std::weak_ordering::greater)
-                return currentSortDir == SortDirection::Desc;
-            return false;
-        };
-
-        std::ranges::sort(
-          filtered, [&comparator](const WithPct& a, const WithPct& b) -> bool {
-              return comparator(a, b);
-          });
-
-        QList<RankingEntry> finalEntries;
-        for (auto& entry : filtered) {
-            finalEntries.append(std::move(entry.entry));
-        }
-        setPlayerCount(withPct.size());
-
-        setEntries(std::move(finalEntries));
+        setEntries(sortFilterLocal(std::move(entriesUnfiltered)));
         setLoading(false);
     });
 }
