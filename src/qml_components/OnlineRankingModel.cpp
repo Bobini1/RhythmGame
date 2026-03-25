@@ -13,15 +13,6 @@
 #include <spdlog/spdlog.h>
 
 namespace qml_components {
-
-namespace {
-struct WithPct
-{
-    RankingEntry entry;
-    double scorePct;
-};
-} // namespace
-
 void
 OnlineRankingModel::performJsonGet(
   const QString& url,
