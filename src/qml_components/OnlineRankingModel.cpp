@@ -210,7 +210,7 @@ OnlineRankingModel::handleTachiReply(int startRanking,
 
         auto entries = getRankingEntries();
         entries.append(std::move(r));
-        setEntries(entries);
+        setEntries(std::move(entries));
         auto rankingData = scoreData["rankingData"].toObject();
     }
 }
