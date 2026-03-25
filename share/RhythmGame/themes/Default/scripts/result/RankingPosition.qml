@@ -47,7 +47,7 @@ WindowBg {
                 anchors.baseline: parent.bottom
                 anchors.baselineOffset: -25
                 anchors.left: parent.left
-                anchors.leftMargin: 30
+                anchors.leftMargin: rankingPosition.newRankingPosition.toString().length < 5 ? 30 : 25
                 font.pixelSize: 24
 
                 text: {
@@ -72,7 +72,7 @@ WindowBg {
                 anchors.baseline: parent.bottom
                 anchors.baselineOffset: -25
                 anchors.right: parent.right
-                anchors.rightMargin: 90
+                anchors.rightMargin: rankingPosition.newRankingPosition.toString().length < 5 ? 90 : 85
                 font.pixelSize: 30
 
                 text: {
@@ -88,7 +88,7 @@ WindowBg {
                 id: totalEntries
 
                 anchors.right: parent.right
-                anchors.rightMargin: 30
+                anchors.rightMargin: rankingPosition.totalEntries.toString().length < 5 ? 30 : 15
                 anchors.baseline: parent.bottom
                 anchors.baselineOffset: -25
                 font.pixelSize: 24
