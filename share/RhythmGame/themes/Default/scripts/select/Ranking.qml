@@ -38,14 +38,9 @@ Image {
         return "";
     }
     readonly property string chartId: onlineRankingModel.chartId
-    onEnabledChanged: {
-        if (enabled) {
-            onlineRankingModel.refresh();
-        }
-    }
 
     component RankingModel: OnlineRankingModel {
-        md5: ranking.md5
+        md5: ranking.enabled ? ranking.md5 : "" // disable loading when in gameplay
         sortBy: OnlineRankingModel.ScorePct
         sortDir: OnlineRankingModel.Desc
         webApiUrl: profile.vars.generalVars.webApiUrl
