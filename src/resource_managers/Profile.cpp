@@ -45,6 +45,81 @@ createConfig(const QMap<QString, qml_components::ThemeFamily>& availableThemes,
     config->freeze();
     return config;
 }
+constexpr int maxSqlVariables = 999;
+
+// Fetches all local score GUIDs from the DB on a background thread,
+// then calls onResult on the main thread.
+void
+fetchLocalGuids(db::SqliteCppDb& db,
+                QThreadPool& threadPool,
+                QObject* context,
+                std::function<void(QSet<QString>)> onResult,
+                std::function<void(QString)> onError)
+{
+    threadPool.start([&db, context, onResult, onError]() mutable {
+        try {
+            auto stmt = db.createStatement("SELECT guid FROM score");
+            auto rows = stmt.executeAndGetAll<std::string>();
+            QSet<QString> localGuids;
+            for (const auto& r : rows)
+                localGuids.insert(QString::fromStdString(r));
+
+            QMetaObject::invokeMethod(
+              context,
+              [onResult, localGuids]() mutable {
+                  onResult(std::move(localGuids));
+              },
+              Qt::QueuedConnection);
+        } catch (const std::exception& e) {
+            QMetaObject::invokeMethod(
+              context,
+              [onError, msg = std::string(e.what())]() mutable {
+                  onError(QString::fromStdString(msg));
+              },
+              Qt::QueuedConnection);
+        }
+    });
+}
+
+// Fetches server-side GUIDs for a given userId,
+// then calls onResult on the main thread.
+void
+fetchServerGuids(QNetworkAccessManager* networkManager,
+                 QNetworkRequestFactory& factory,
+                 int userId,
+                 QObject* context,
+                 std::function<void(QSet<QString>)> onResult,
+                 std::function<void(QString)> onError)
+{
+    auto request = factory.createRequest(
+      QStringLiteral("scores?fields=guid&userId=%1").arg(userId));
+    auto* reply = networkManager->get(request);
+
+    QObject::connect(
+      reply,
+      &QNetworkReply::finished,
+      context,
+      [reply, onResult, onError]() mutable {
+          reply->deleteLater();
+          if (reply->error() != QNetworkReply::NoError) {
+              onError(reply->errorString());
+              return;
+          }
+          auto doc = QJsonDocument::fromJson(reply->readAll());
+          if (!doc.isArray()) {
+              onError(QStringLiteral("Unexpected server response"));
+              return;
+          }
+          QSet<QString> guids;
+          for (const auto& v : doc.array()) {
+              if (v.isObject() && v.toObject().contains("guid"))
+                  guids.insert(v.toObject()["guid"].toString());
+              else
+                  spdlog::warn("Skipping invalid score guid entry");
+          }
+          onResult(std::move(guids));
+      });
+}
 } // namespace
 
 void
@@ -479,283 +554,62 @@ auto
 Profile::uploadScores() -> qml_components::ScoreSyncOperation*
 {
     auto* op = new qml_components::ScoreSyncOperation(this);
-
     if (!userData) {
         op->setFinished(true);
         return op;
     }
-    auto userId = userData->userId;
+    const auto userId = userData->userId;
 
-    threadPool.start([this, op, userId]() mutable {
-        try {
-            auto stmt = db.createStatement("SELECT guid FROM score");
-            auto rows = stmt.executeAndGetAll<std::string>();
-            QSet<QString> localGuids;
-            for (const auto& r : rows)
-                localGuids.insert(QString::fromStdString(r));
+    fetchLocalGuids(
+      db,
+      threadPool,
+      this,
+      [this, op, userId](QSet<QString> localGuids) {
+          fetchServerGuids(
+            networkManager,
+            networkRequestFactory,
+            userId,
+            this,
+            [this, op, localGuids](QSet<QString> serverGuids) {
+                const auto toUpload = (localGuids - serverGuids).values();
+                if (toUpload.isEmpty()) {
+                    op->setFinished(true);
+                    return;
+                }
 
-            QMetaObject::invokeMethod(
-              this,
-              [this, op, localGuids, userId]() mutable {
-                  auto request = networkRequestFactory.createRequest(
-                    QString("scores?fields=guid&userId=%1").arg(userId));
-                  auto* guidReply = networkManager->get(request);
-
-                  connect(
-                    guidReply,
-                    &QNetworkReply::finished,
-                    this,
-                    [this, guidReply, op, localGuids]() mutable {
-                        guidReply->deleteLater();
-                        if (guidReply->error() != QNetworkReply::NoError) {
-                            spdlog::error(
-                              "scores guid fetch failed: {} - {}",
-                              magic_enum::enum_name(guidReply->error()),
-                              guidReply->errorString().toStdString());
-                            op->reportError(guidReply->errorString());
-                            op->setFinished(true);
-                            return;
-                        }
-                        auto doc =
-                          QJsonDocument::fromJson(guidReply->readAll());
-                        if (!doc.isArray()) {
-                            spdlog::error(
-                              "scores guid fetch returned non-array");
-                            op->reportError(
-                              QStringLiteral("Unexpected server response"));
-                            op->setFinished(true);
-                            return;
-                        }
-                        QSet<QString> serverGuids;
-                        for (const auto& v : doc.array()) {
-                            if (v.isObject() && v.toObject().contains("guid")) {
-                                serverGuids.insert(
-                                  v.toObject()["guid"].toString());
-                            } else {
-                                spdlog::warn("Skipping invalid score guid "
-                                             "entry in server "
-                                             "response");
-                            }
-                        }
-
-                        // GUIDs present locally but missing on the server
-                        auto toUpload = (localGuids - serverGuids).values();
-
-                        if (toUpload.isEmpty()) {
-                            op->setFinished(true);
-                            return;
-                        }
-
-                        threadPool.start([this, op, toUpload]() mutable {
-                            try {
-                                constexpr auto columns =
-                                  "score.max_points, score.max_hits, "
-                                  "score.normal_note_count, "
-                                  "score.scratch_count, score.ln_count, "
-                                  "score.bss_count, score.mine_count, "
-                                  "score.clear_type, score.points, "
-                                  "score.max_combo, score.poor, "
-                                  "score.empty_poor, score.bad, score.good,"
-                                  " score.great, score.perfect, "
-                                  "score.mine_hits, score.guid, "
-                                  "score.sha256, score.md5, "
-                                  "score.unix_timestamp, score.length, "
-                                  "score.random_sequence, "
-                                  "score.random_seed, "
-                                  "score.note_order_algorithm, "
-                                  "score.note_order_algorithm_p2, "
-                                  "score.dp_options, score.keymode, "
-                                  "score.game_version, "
-                                  "score.owner, "
-                                  "replay_data.*, gauge_history.* ";
-
-                                auto stmtStr =
-                                  std::string("SELECT ") + columns +
-                                  "FROM score JOIN replay_data ON "
-                                  "score.guid = replay_data.score_guid "
-                                  "JOIN gauge_history ON score.guid = "
-                                  "gauge_history.score_guid "
-                                  "WHERE score.guid IN (" +
-                                  QString("?, ")
-                                    .repeated(static_cast<int>(toUpload.size()))
-                                    .chopped(2)
-                                    .toStdString() +
-                                  ") ORDER BY score.unix_timestamp DESC";
-
-                                auto statement = db.createStatement(stmtStr);
-                                for (int i = 0; i < toUpload.size(); ++i) {
-                                    statement.bind(i + 1,
-                                                   toUpload[i].toStdString());
-                                }
-                                using Row = std::tuple<
-                                  gameplay_logic::BmsResult::DTO,
-                                  gameplay_logic::BmsReplayData::DTO,
-                                  gameplay_logic::BmsGaugeHistory::DTO>;
-                                auto results =
-                                  statement.executeAndGetAll<Row>();
-
-                                // Build per-score payloads on the DB thread
-                                struct Payload
-                                {
-                                    QString guid;
-                                    QJsonObject json;
-                                };
-                                QList<Payload> payloads;
-                                payloads.reserve(
-                                  static_cast<int>(results.size()));
-
-                                for (auto& row : results) {
-
-                                    auto chartStmt = db.createStatement(
-                                      "SELECT charts.id, charts.title, "
-                                      "charts.artist, charts.subtitle, "
-                                      "charts.subartist, charts.genre, "
-                                      "charts.stage_file, charts.banner, "
-                                      "charts.back_bmp, charts.rank, "
-                                      "charts.total, charts.play_level, "
-                                      "charts.difficulty, "
-                                      "charts.is_random, "
-                                      "charts.random_sequence, "
-                                      "charts.normal_note_count, "
-                                      "charts.scratch_count, "
-                                      "charts.ln_count, charts.bss_count, "
-                                      "charts.mine_count, charts.length, "
-                                      "charts.initial_bpm, charts.max_bpm, "
-                                      "charts.min_bpm, charts.main_bpm, "
-                                      "charts.avg_bpm, "
-                                      "charts.peak_density, "
-                                      "charts.avg_density, "
-                                      "charts.end_density, charts.path, "
-                                      "charts.directory, charts.sha256, "
-                                      "charts.md5, charts.keymode, "
-                                      "charts.game_version, "
-                                      "h.bpms, h.histogram_data "
-                                      "FROM song_db.charts LEFT JOIN "
-                                      "song_db.histogram_data h "
-                                      "ON h.chart_id = charts.id "
-                                      "WHERE charts.md5 = ? LIMIT 1");
-                                    chartStmt.bind(1, std::get<0>(row).md5);
-                                    const auto chartResults =
-                                      chartStmt.executeAndGetAll<
-                                        gameplay_logic::ChartData::DTO>();
-                                    if (chartResults.empty()) {
-                                        continue;
-                                    }
-
-                                    auto chart =
-                                      gameplay_logic::ChartData::load(
-                                        chartResults.front());
-
-                                    // For old scores, we need to guess keymode
-                                    auto& resultDto = std::get<0>(row);
-                                    if (resultDto.keymode == 0) {
-                                        auto chartKeymode = chart->getKeymode();
-                                        if (resultDto.dpOptions ==
-                                            static_cast<int>(
-                                              DpOptions::Battle)) {
-                                            resultDto.keymode =
-                                              static_cast<int>(chartKeymode) *
-                                              2;
-                                        } else {
-                                            resultDto.keymode =
-                                              static_cast<int>(chartKeymode);
-                                        }
-                                    }
-                                    auto result =
-                                      gameplay_logic::BmsResult::load(
-                                        std::get<0>(row));
-                                    auto replay =
-                                      gameplay_logic::BmsReplayData::load(
-                                        std::get<1>(row));
-                                    auto gauge =
-                                      gameplay_logic::BmsGaugeHistory::load(
-                                        std::get<2>(row));
-
-                                    auto scoreData = result->toJson();
-                                    scoreData["replayData"] =
-                                      replay->toJsonArray();
-                                    scoreData["gaugeHistory"] =
-                                      gauge->toJsonArray();
-
-                                    QJsonObject obj;
-                                    obj["scoreData"] = std::move(scoreData);
-                                    obj["chartData"] = chart->toJson();
-                                    payloads.append(
-                                      { result->getGuid(), std::move(obj) });
-                                }
-
-                                QMetaObject::invokeMethod(
-                                  this,
-                                  [this, op, payloads]() mutable {
-                                      op->setTotal(payloads.size());
-                                      if (payloads.empty()) {
-                                          op->setFinished(true);
-                                          return;
-                                      }
-                                      for (auto& p : payloads) {
-                                          auto request =
-                                            networkRequestFactory.createRequest(
-                                              "scores");
-                                          auto* reply = networkManager->post(
-                                            request,
-                                            QJsonDocument(p.json).toJson());
-                                          const auto guid = p.guid;
-                                          connect(
-                                            reply,
-                                            &QNetworkReply::finished,
-                                            this,
-                                            [reply, op, guid]() {
-                                                reply->deleteLater();
-                                                if (reply->error() !=
-                                                    QNetworkReply::NoError) {
-                                                    spdlog::error(
-                                                      "Score upload failed "
-                                                      "for {}: {}",
-                                                      guid.toStdString(),
-                                                      reply->errorString()
-                                                        .toStdString());
-                                                    op->reportError(
-                                                      QStringLiteral(
-                                                        "Upload failed for "
-                                                        "%1: %2")
-                                                        .arg(
-                                                          guid,
-                                                          reply
-                                                            ->errorString()));
-                                                }
-                                                op->increment();
-                                            });
-                                      }
-                                  },
-                                  Qt::QueuedConnection);
-                            } catch (const std::exception& e) {
-                                spdlog::error(
-                                  "Error building upload payloads: {}",
-                                  e.what());
-                                QMetaObject::invokeMethod(
-                                  this,
-                                  [op, msg = std::string(e.what())]() mutable {
-                                      op->reportError(
-                                        QString::fromStdString(msg));
-                                      op->setFinished(true);
-                                  },
-                                  Qt::QueuedConnection);
-                            }
-                        });
-                    });
-              },
-              Qt::QueuedConnection);
-        } catch (const std::exception& e) {
-            spdlog::error("Error in uploadScores: {}", e.what());
-            QMetaObject::invokeMethod(
-              this,
-              [op, msg = std::string(e.what())]() mutable {
-                  op->reportError(QString::fromStdString(msg));
-                  op->setFinished(true);
-              },
-              Qt::QueuedConnection);
-        }
-    });
+                threadPool.start([this, op, toUpload]() mutable {
+                    try {
+                        auto payloads = buildUploadPayloads(toUpload);
+                        QMetaObject::invokeMethod(
+                          this,
+                          [this, op, payloads]() mutable {
+                              dispatchUploads(op, std::move(payloads));
+                          },
+                          Qt::QueuedConnection);
+                    } catch (const std::exception& e) {
+                        QMetaObject::invokeMethod(
+                          this,
+                          [op, msg = std::string(e.what())]() mutable {
+                              op->reportError(QString::fromStdString(msg));
+                              op->setFinished(true);
+                          },
+                          Qt::QueuedConnection);
+                    }
+                });
+            },
+            [op](const QString& err) {
+                spdlog::error("scores guid fetch failed: {}",
+                              err.toStdString());
+                op->reportError(err);
+                op->setFinished(true);
+            });
+      },
+      [op](const QString& err) {
+          spdlog::error("Error fetching local guids for upload: {}",
+                        err.toStdString());
+          op->reportError(err);
+          op->setFinished(true);
+      });
 
     return op;
 }
@@ -764,173 +618,231 @@ auto
 Profile::downloadScores() -> qml_components::ScoreSyncOperation*
 {
     auto* op = new qml_components::ScoreSyncOperation(this);
-
     if (!userData) {
         op->setFinished(true);
         return op;
     }
-    auto userId = userData->userId;
-    threadPool.start([this, op, userId]() mutable {
-        try {
-            auto stmt = db.createStatement("SELECT guid FROM score");
-            auto rows = stmt.executeAndGetAll<std::string>();
-            QSet<QString> localGuids;
-            for (const auto& r : rows) {
-                localGuids.insert(QString::fromStdString(r));
-            }
+    const auto userId = userData->userId;
 
-            QMetaObject::invokeMethod(
-              this,
-              [this, op, localGuids, userId]() mutable {
-                  auto request = networkRequestFactory.createRequest(
-                    QString("scores?fields=guid&userId=%1").arg(userId));
-                  auto* guidReply = networkManager->get(request);
-
-                  connect(
-                    guidReply,
-                    &QNetworkReply::finished,
-                    this,
-                    [this, guidReply, op, localGuids]() mutable {
-                        guidReply->deleteLater();
-                        if (guidReply->error() != QNetworkReply::NoError) {
-                            spdlog::error(
-                              "scores guid fetch failed: {} - {}",
-                              magic_enum::enum_name(guidReply->error()),
-                              guidReply->errorString().toStdString());
-                            op->reportError(guidReply->errorString());
-                            op->setFinished(true);
-                            return;
-                        }
-                        auto doc =
-                          QJsonDocument::fromJson(guidReply->readAll());
-                        if (!doc.isArray()) {
-                            spdlog::error(
-                              "scores guid fetch returned non-array");
-                            op->reportError(
-                              QStringLiteral("Unexpected server response"));
-                            op->setFinished(true);
-                            return;
-                        }
-                        QSet<QString> serverGuids;
-                        for (const auto& v : doc.array()) {
-                            if (v.isObject() && v.toObject().contains("guid")) {
-                                serverGuids.insert(
-                                  v.toObject()["guid"].toString());
-                            } else {
-                                spdlog::warn("Skipping invalid score guid "
-                                             "entry in server "
-                                             "response");
-                            }
-                        }
-
-                        // GUIDs present on the server but missing locally
-                        auto toDownload = (serverGuids - localGuids).values();
-
-                        if (toDownload.isEmpty()) {
-                            op->setFinished(true);
-                            return;
-                        }
-
-                        op->setTotal(toDownload.size());
-
-                        for (const auto& guid : toDownload) {
-                            auto request = networkRequestFactory.createRequest(
-                              QStringLiteral("scores/%1").arg(guid));
-                            auto* reply = networkManager->get(request);
-                            connect(
-                              reply,
-                              &QNetworkReply::finished,
-                              this,
-                              [this, reply, op, guid]() mutable {
-                                  reply->deleteLater();
-                                  if (reply->error() !=
-                                      QNetworkReply::NoError) {
-                                      spdlog::error(
-                                        "Score download failed for {}: {}",
-                                        guid.toStdString(),
-                                        reply->errorString().toStdString());
-                                      op->reportError(
-                                        QStringLiteral(
-                                          "Download failed for %1: %2")
-                                          .arg(guid, reply->errorString()));
-                                      op->increment();
-                                      return;
-                                  }
-                                  auto data = reply->readAll();
-                                  threadPool.start([this,
-                                                    op,
-                                                    guid,
-                                                    data]() mutable {
-                                      try {
-                                          auto doc =
-                                            QJsonDocument::fromJson(data);
-                                          auto scoreObj = doc.object();
-                                          auto replayArr =
-                                            scoreObj["replayData"].toArray();
-                                          auto gaugeArr =
-                                            scoreObj["gaugeHistory"].toArray();
-
-                                          auto result =
-                                            gameplay_logic::BmsResult::fromJson(
-                                              scoreObj);
-                                          auto hits =
-                                            gameplay_logic::BmsReplayData::
-                                              fromJsonArray(replayArr);
-                                          auto replayData = std::make_unique<
-                                            gameplay_logic::BmsReplayData>(
-                                            hits, result->getGuid());
-                                          auto gauges =
-                                            gameplay_logic::BmsGaugeHistory::
-                                              fromJsonArray(gaugeArr);
-                                          auto gaugeHistory = std::make_unique<
-                                            gameplay_logic::BmsGaugeHistory>(
-                                            gauges, result->getGuid());
-                                          auto score = gameplay_logic::BmsScore(
-                                            std::move(result),
-                                            std::move(replayData),
-                                            std::move(gaugeHistory));
-                                          score.save(db);
-
-                                          QMetaObject::invokeMethod(
-                                            this,
-                                            [op]() { op->increment(); },
-                                            Qt::QueuedConnection);
-                                      } catch (const std::exception& e) {
-                                          spdlog::error(
-                                            "Error saving downloaded score "
-                                            "{}: {}",
-                                            guid.toStdString(),
-                                            e.what());
-                                          QMetaObject::invokeMethod(
-                                            this,
-                                            [op,
-                                             msg = std::string(
-                                               e.what())]() mutable {
-                                                op->reportError(
-                                                  QString::fromStdString(msg));
-                                                op->increment();
-                                            },
-                                            Qt::QueuedConnection);
-                                      }
-                                  });
-                              });
-                        }
-                    });
-              },
-              Qt::QueuedConnection);
-        } catch (const std::exception& e) {
-            spdlog::error("Error in downloadScores: {}", e.what());
-            QMetaObject::invokeMethod(
-              this,
-              [op, msg = std::string(e.what())]() mutable {
-                  op->reportError(QString::fromStdString(msg));
-                  op->setFinished(true);
-              },
-              Qt::QueuedConnection);
-        }
-    });
+    fetchLocalGuids(
+      db,
+      threadPool,
+      this,
+      [this, op, userId](QSet<QString> localGuids) {
+          fetchServerGuids(
+            networkManager,
+            networkRequestFactory,
+            userId,
+            this,
+            [this, op, localGuids](QSet<QString> serverGuids) {
+                const auto toDownload = (serverGuids - localGuids).values();
+                if (toDownload.isEmpty()) {
+                    op->setFinished(true);
+                    return;
+                }
+                op->setTotal(toDownload.size());
+                for (const auto& guid : toDownload)
+                    dispatchDownload(op, guid);
+            },
+            [op](const QString& err) {
+                spdlog::error("scores guid fetch failed: {}",
+                              err.toStdString());
+                op->reportError(err);
+                op->setFinished(true);
+            });
+      },
+      [op](const QString& err) {
+          spdlog::error("Error fetching local guids for download: {}",
+                        err.toStdString());
+          op->reportError(err);
+          op->setFinished(true);
+      });
 
     return op;
+}
+
+// Called on a background thread. Builds JSON payloads for a list of GUIDs,
+// chunking the SQL query to stay under the SQLite variable limit.
+auto
+Profile::buildUploadPayloads(const QList<QString>& guids) -> QList<Payload>
+{
+    constexpr auto columns =
+      "score.max_points, score.max_hits, score.normal_note_count, "
+      "score.scratch_count, score.ln_count, score.bss_count, score.mine_count, "
+      "score.clear_type, score.points, score.max_combo, score.poor, "
+      "score.empty_poor, score.bad, score.good, score.great, score.perfect, "
+      "score.mine_hits, score.guid, score.sha256, score.md5, "
+      "score.unix_timestamp, score.length, score.random_sequence, "
+      "score.random_seed, score.note_order_algorithm, "
+      "score.note_order_algorithm_p2, score.dp_options, score.keymode, "
+      "score.game_version, score.owner, replay_data.*, gauge_history.* ";
+
+    using Row = std::tuple<gameplay_logic::BmsResult::DTO,
+                           gameplay_logic::BmsReplayData::DTO,
+                           gameplay_logic::BmsGaugeHistory::DTO>;
+
+    QList<Row> rows;
+    for (int i = 0; i < guids.size(); i += maxSqlVariables) {
+        const auto chunk = guids.mid(i, maxSqlVariables);
+        auto stmtStr =
+          std::string("SELECT ") + columns +
+          "FROM score "
+          "JOIN replay_data ON score.guid = replay_data.score_guid "
+          "JOIN gauge_history ON score.guid = gauge_history.score_guid "
+          "WHERE score.guid IN (" +
+          QString("?, ").repeated(chunk.size()).chopped(2).toStdString() +
+          ") ORDER BY score.unix_timestamp DESC";
+
+        auto statement = db.createStatement(stmtStr);
+        for (int j = 0; j < chunk.size(); ++j)
+            statement.bind(j + 1, chunk[j].toStdString());
+
+        auto chunkRows = statement.executeAndGetAll<Row>();
+        rows.append(QList<Row>(chunkRows.begin(), chunkRows.end()));
+    }
+
+    QList<Payload> payloads;
+    payloads.reserve(rows.size());
+
+    for (auto& row : rows) {
+        auto& resultDto = std::get<0>(row);
+
+        auto chartStmt = db.createStatement(
+          "SELECT charts.id, charts.title, charts.artist, charts.subtitle, "
+          "charts.subartist, charts.genre, charts.stage_file, charts.banner, "
+          "charts.back_bmp, charts.rank, charts.total, charts.play_level, "
+          "charts.difficulty, charts.is_random, charts.random_sequence, "
+          "charts.normal_note_count, charts.scratch_count, charts.ln_count, "
+          "charts.bss_count, charts.mine_count, charts.length, "
+          "charts.initial_bpm, charts.max_bpm, charts.min_bpm, "
+          "charts.main_bpm, "
+          "charts.avg_bpm, charts.peak_density, charts.avg_density, "
+          "charts.end_density, charts.path, charts.directory, charts.sha256, "
+          "charts.md5, charts.keymode, charts.game_version, "
+          "h.bpms, h.histogram_data "
+          "FROM song_db.charts LEFT JOIN song_db.histogram_data h "
+          "ON h.chart_id = charts.id "
+          "WHERE charts.md5 = ? LIMIT 1");
+        chartStmt.bind(1, resultDto.md5);
+        const auto chartResults =
+          chartStmt.executeAndGetAll<gameplay_logic::ChartData::DTO>();
+        if (chartResults.empty())
+            continue;
+
+        auto chart = gameplay_logic::ChartData::load(chartResults.front());
+
+        if (resultDto.keymode == 0) {
+            const auto chartKeymode = chart->getKeymode();
+            resultDto.keymode =
+              (resultDto.dpOptions == static_cast<int>(DpOptions::Battle))
+                ? static_cast<int>(chartKeymode) * 2
+                : static_cast<int>(chartKeymode);
+        }
+
+        auto result = gameplay_logic::BmsResult::load(std::get<0>(row));
+        auto replay = gameplay_logic::BmsReplayData::load(std::get<1>(row));
+        auto gauge = gameplay_logic::BmsGaugeHistory::load(std::get<2>(row));
+
+        auto scoreData = result->toJson();
+        scoreData["replayData"] = replay->toJsonArray();
+        scoreData["gaugeHistory"] = gauge->toJsonArray();
+
+        QJsonObject obj;
+        obj["scoreData"] = std::move(scoreData);
+        obj["chartData"] = chart->toJson();
+        payloads.append({ result->getGuid(), std::move(obj) });
+    }
+
+    return payloads;
+}
+
+// Called on the main thread. Fires one POST per payload.
+void
+Profile::dispatchUploads(qml_components::ScoreSyncOperation* op,
+                         QList<Payload> payloads)
+{
+    op->setTotal(payloads.size());
+    if (payloads.isEmpty()) {
+        op->setFinished(true);
+        return;
+    }
+    for (auto& p : payloads) {
+        auto request = networkRequestFactory.createRequest("scores");
+        auto* reply =
+          networkManager->post(request, QJsonDocument(p.json).toJson());
+        const auto guid = p.guid;
+        connect(reply, &QNetworkReply::finished, this, [reply, op, guid]() {
+            reply->deleteLater();
+            if (reply->error() != QNetworkReply::NoError) {
+                spdlog::error("Score upload failed for {}: {}",
+                              guid.toStdString(),
+                              reply->errorString().toStdString());
+                op->reportError(QStringLiteral("Upload failed for %1: %2")
+                                  .arg(guid, reply->errorString()));
+            }
+            op->increment();
+        });
+    }
+}
+
+// Called on the main thread. Fires one GET and saves the result.
+void
+Profile::dispatchDownload(qml_components::ScoreSyncOperation* op,
+                          const QString& guid)
+{
+    auto request = networkRequestFactory.createRequest(
+      QStringLiteral("scores/%1").arg(guid));
+    auto* reply = networkManager->get(request);
+
+    connect(
+      reply, &QNetworkReply::finished, this, [this, reply, op, guid]() mutable {
+          reply->deleteLater();
+          if (reply->error() != QNetworkReply::NoError) {
+              spdlog::error("Score download failed for {}: {}",
+                            guid.toStdString(),
+                            reply->errorString().toStdString());
+              op->reportError(QStringLiteral("Download failed for %1: %2")
+                                .arg(guid, reply->errorString()));
+              op->increment();
+              return;
+          }
+          auto data = reply->readAll();
+          threadPool.start([this, op, guid, data]() mutable {
+              try {
+                  auto doc = QJsonDocument::fromJson(data);
+                  auto scoreObj = doc.object();
+                  auto result = gameplay_logic::BmsResult::fromJson(scoreObj);
+                  auto replayData =
+                    std::make_unique<gameplay_logic::BmsReplayData>(
+                      gameplay_logic::BmsReplayData::fromJsonArray(
+                        scoreObj["replayData"].toArray()),
+                      result->getGuid());
+                  auto gaugeHistory =
+                    std::make_unique<gameplay_logic::BmsGaugeHistory>(
+                      gameplay_logic::BmsGaugeHistory::fromJsonArray(
+                        scoreObj["gaugeHistory"].toArray()),
+                      result->getGuid());
+                  gameplay_logic::BmsScore(std::move(result),
+                                           std::move(replayData),
+                                           std::move(gaugeHistory))
+                    .save(db);
+
+                  QMetaObject::invokeMethod(
+                    this, [op]() { op->increment(); }, Qt::QueuedConnection);
+              } catch (const std::exception& e) {
+                  spdlog::error("Error saving downloaded score {}: {}",
+                                guid.toStdString(),
+                                e.what());
+                  QMetaObject::invokeMethod(
+                    this,
+                    [op, msg = std::string(e.what())]() mutable {
+                        op->reportError(QString::fromStdString(msg));
+                        op->increment();
+                    },
+                    Qt::QueuedConnection);
+              }
+          });
+      });
 }
 
 } // namespace resource_managers

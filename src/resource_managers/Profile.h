@@ -97,6 +97,17 @@ class Profile final : public QObject
     void setOnlineUserData(std::optional<OnlineUserData> userData);
     void setTachiData(std::optional<TachiData> tachiData);
     void fetchTachiData(int tachiId);
+    struct Payload
+    {
+        QString guid;
+        QJsonObject json;
+    };
+
+    auto buildUploadPayloads(const QList<QString>& guids) -> QList<Payload>;
+    void dispatchUploads(qml_components::ScoreSyncOperation* op,
+                         QList<Payload> payloads);
+    void dispatchDownload(qml_components::ScoreSyncOperation* op,
+                          const QString& guid);
 
   public:
     static inline const QString keychainService = "RhythmGame";
