@@ -511,13 +511,11 @@ OnlineRankingModel::sortFilterLocal(QList<RankingEntry> entriesUnfiltered) const
     for (auto& wp : entriesUnfiltered) {
         bool ok = true;
         if (currentScorePctGte >= 0.0 && wp.maxPoints > 0
-              ? (wp.bestPoints / std::max(wp.maxPoints, 1.0)) <
-                  currentScorePctGte
-              : true)
+              ? (wp.bestPoints / wp.maxPoints) < currentScorePctGte
+              : false)
             ok = false;
         if (currentScorePctLte >= 0.0 && wp.maxPoints > 0
-              ? (wp.bestPoints / std::max(wp.maxPoints, 1.0)) >
-                  currentScorePctLte
+              ? (wp.bestPoints / wp.maxPoints) > currentScorePctLte
               : false)
             ok = false;
         if (currentComboGte >= 0 && wp.bestCombo < currentComboGte)
