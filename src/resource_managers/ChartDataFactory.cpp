@@ -266,20 +266,20 @@ void
 ChartDataFactory::handleImplicitSubtitle(QString& title,
                                          QString& subtitle) const
 {
-    if (title.size() < 3 || !subtitle.isEmpty())
+    if (title.size() < 3 || !subtitle.isEmpty()) {
         return;
+    }
 
     auto u32 = title.toStdU32String();
-    auto delimiters = std::array{ U'～', U'-',  U')',  U']',  U'>',
+    auto delimiters = std::array{ U'～', U'〜', U'-',  U')',  U']', U'>',
                                   U'"',  U'〔', U'【', U'［', U'（' };
-    auto delimitersStart = std::array{ U'～', U'-',  U'(',  U'[',  U'<',
+    auto delimitersStart = std::array{ U'～', U'〜', U'-',  U'(',  U'[', U'<',
                                        U'"',  U'〕', U'】', U'］', U'）' };
 
     auto selectedDelim = U'\0';
     for (const auto& delimiter : delimiters) {
-        if (u32.back() == delimiter) {
+        if (u32.back() == delimiter)
             selectedDelim = delimiter;
-        }
     }
     if (selectedDelim == U'\0')
         return;
@@ -287,20 +287,37 @@ ChartDataFactory::handleImplicitSubtitle(QString& title,
     auto delimIndex =
       std::ranges::find(delimiters, selectedDelim) - delimiters.begin();
     auto delimStart = delimitersStart[delimIndex];
-    auto lastDelimStart = u32.find_last_of(delimStart, u32.size() - 2);
-    if (lastDelimStart == std::u32string::npos)
-        return;
 
-    if (lastDelimStart == 0)
-        return;
-
-    auto count = u32.size() - lastDelimStart;
-    if (count == 2) {
-        return;
+    // For non-paired delimiters (～, -, ") fall back to find_last_of
+    // since there's no nesting concept.
+    size_t openPos = std::u32string::npos;
+    if (delimStart == selectedDelim) {
+        openPos = u32.find_last_of(delimStart, u32.size() - 2);
+    } else {
+        // Walk backwards, tracking nesting depth to find the matching open.
+        int depth = 0;
+        for (size_t i = u32.size() - 1; i > 0; --i) {
+            if (u32[i] == selectedDelim)
+                ++depth;
+            else if (u32[i] == delimStart) {
+                --depth;
+                if (depth == 0) {
+                    openPos = i;
+                    break;
+                }
+            }
+        }
     }
 
-    auto subTitleU32 = std::u32string(u32.data() + lastDelimStart, count);
-    auto remainderU32 = std::u32string(u32.data(), lastDelimStart);
+    if (openPos == std::u32string::npos || openPos == 0)
+        return;
+
+    auto count = u32.size() - openPos;
+    if (count == 2)
+        return;
+
+    auto subTitleU32 = std::u32string(u32.data() + openPos, count);
+    auto remainderU32 = std::u32string(u32.data(), openPos);
 
     subtitle = QString::fromStdU32String(subTitleU32);
     auto titleWithoutTrim = QString::fromStdU32String(remainderU32);
@@ -310,9 +327,8 @@ ChartDataFactory::handleImplicitSubtitle(QString& title,
     QString innerSubtitle;
     handleImplicitSubtitle(title, innerSubtitle);
 
-    if (!innerSubtitle.isEmpty()) {
+    if (!innerSubtitle.isEmpty())
         subtitle = innerSubtitle + titleSpaces + subtitle;
-    }
 }
 auto
 ChartDataFactory::loadChartData(const std::filesystem::path& chartPath,
