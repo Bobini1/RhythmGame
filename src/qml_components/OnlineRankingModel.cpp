@@ -106,7 +106,6 @@ OnlineRankingModel::handleTachiReply(int startRanking,
     const QJsonArray usersArr = pbsBody.value("users").toArray();
 
     if (pbsArr.isEmpty()) {
-        // we can now sort according to user preference.
         if (currentSortBy != SortableColumn::None &&
             currentSortDir != SortDirection::None &&
             !(currentSortBy == SortableColumn::ScorePct &&
@@ -119,25 +118,28 @@ OnlineRankingModel::handleTachiReply(int startRanking,
         setLoading(false);
         return;
     }
-    const int pageSize = 100;
-    startRanking += pageSize;
-    const auto pbsUrlStr =
-      QString("https://boku.tachi.ac/api/v1/games/bms/7K/charts/%1/"
-              "pbs?startRanking=%2")
-        .arg(chartId)
-        .arg(startRanking);
-    auto pbsReq = QNetworkRequest(QUrl(pbsUrlStr));
-    QNetworkReply* pbsReply = networkManager->get(pbsReq);
-    connect(this,
-            &OnlineRankingModel::cancelPendingRequested,
-            pbsReply,
-            [pbsReply] { pbsReply->abort(); });
-    connect(pbsReply,
-            &QNetworkReply::finished,
-            this,
-            [this, startRanking, noteCount, pbsReply]() {
-                handleTachiReply(startRanking, noteCount, pbsReply);
-            });
+    if (entries.size() + pbsArr.size() != playerCount) {
+        const int pageSize = 100;
+        startRanking += pageSize;
+        const auto pbsUrlStr =
+          QString("https://boku.tachi.ac/api/v1/games/bms/7K/charts/%1/"
+                  "pbs?startRanking=%2")
+            .arg(chartId)
+            .arg(startRanking);
+        auto pbsReq = QNetworkRequest(QUrl(pbsUrlStr));
+        QNetworkReply* pbsReply = networkManager->get(pbsReq);
+        connect(this,
+                &OnlineRankingModel::cancelPendingRequested,
+                pbsReply,
+                [pbsReply] { pbsReply->abort(); });
+        connect(pbsReply,
+                &QNetworkReply::finished,
+                this,
+                [this, startRanking, noteCount, pbsReply]() {
+                    handleTachiReply(startRanking, noteCount, pbsReply);
+                });
+    }
+
     auto usersMap = QHash<int, QJsonObject>();
     for (const auto& userv : usersArr) {
         if (!userv.isObject()) {
@@ -229,8 +231,19 @@ OnlineRankingModel::handleTachiReply(int startRanking,
 
         auto entries = getRankingEntries();
         entries.append(std::move(r));
-        setEntries(std::move(entries));
-        auto rankingData = scoreData["rankingData"].toObject();
+        if (entries.size() == playerCount) {
+            if (currentSortBy != SortableColumn::None &&
+                currentSortDir != SortDirection::None &&
+                !(currentSortBy == SortableColumn::ScorePct &&
+                  currentSortDir == SortDirection::Desc) &&
+                (currentComboLte > 0 || currentComboGte > 0 ||
+                 currentMissCountGte > 0 || currentMissCountLte > 0 ||
+                 currentScorePctGte > 0.0 || currentScorePctLte > 0.0)) {
+                setEntries(sortFilterLocal(std::move(entries)));
+            }
+        } else {
+            setEntries(std::move(entries));
+        }
     }
 }
 
