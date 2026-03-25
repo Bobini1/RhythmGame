@@ -70,9 +70,11 @@ OnlineRankingModel {
 
     function fetchPosition() {
         if (provider === OnlineRankingModel.LR2IR) {
+            positionLoading = false;
             return;
         }
         if (!userId) {
+            positionLoading = false;
             return;
         }
         Rg.onlineScores.getRankingEntryAtTimestamp(side.profile.vars.generalVars.webApiUrl, userId, side.score.result.md5, Date.now() / 1000 - 5, provider).then((entry) => {

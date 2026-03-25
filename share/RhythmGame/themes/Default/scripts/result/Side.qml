@@ -231,7 +231,10 @@ Column {
             provider: ranking.provider
             totalEntries: root.course ? 0 : ranking.size
             loading: ranking.loading || ranking.positionLoading || side.score.submissionState === BmsScore.Submitting
-            scoreSubmissionFailed: side.score.submissionState === BmsScore.Failed || side.score.submissionState === BmsScore.NotSubmitting || root.course || false
+            scoreSubmissionFailed: side.score.submissionState === BmsScore.Failed ||
+                side.score.submissionState === BmsScore.NotSubmitting || root.course ||
+                (ranking.provider === OnlineRankingModel.RhythmGame && !side.profile.onlineUserData) ||
+                (ranking.provider === OnlineRankingModel.Tachi && !side.profile.tachiData)
             rankingUrl: {
                 if (root.course || !totalEntries) {
                     return "";
