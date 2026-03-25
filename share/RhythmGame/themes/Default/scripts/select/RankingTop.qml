@@ -159,7 +159,7 @@ Column {
             }
             Text {
                 id: percentageText
-                text: (modelData.bestPoints / modelData.maxPoints * 100).toFixed(1) + "%"
+                text: (Math.floor(modelData.bestPoints / modelData.maxPoints * 1000) / 10).toFixed(1) + "%"
                 font.pixelSize: 12
                 horizontalAlignment: Text.AlignRight
                 verticalAlignment: Text.AlignBottom
