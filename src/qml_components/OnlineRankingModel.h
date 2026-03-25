@@ -261,12 +261,14 @@ class OnlineRankingModel : public QAbstractListModel
     void setClearCounts(QVariantMap counts);
     void setChartId(const QString& chartId);
     void setEntries(QList<RankingEntry> entries);
+    void appendEntries(QList<RankingEntry> entries);
     auto buildUrl() const -> QUrl;
     void fetchRhythmGame();
     void performJsonGet(const QString& url,
                         std::function<void(const QJsonDocument&)> onSuccess,
                         std::function<void(const QString&)> onError);
     void handleTachiReply(int startRanking,
+                          QString keymode,
                           int noteCount,
                           QNetworkReply* reply);
 

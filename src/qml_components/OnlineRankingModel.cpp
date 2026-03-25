@@ -61,6 +61,7 @@ OnlineRankingModel::performJsonGet(
 
 void
 OnlineRankingModel::handleTachiReply(int startRanking,
+                                     QString keymode,
                                      int noteCount,
                                      QNetworkReply* reply)
 {
@@ -113,8 +114,9 @@ OnlineRankingModel::handleTachiReply(int startRanking,
         const int pageSize = 100;
         startRanking += pageSize;
         const auto pbsUrlStr =
-          QString("https://boku.tachi.ac/api/v1/games/bms/7K/charts/%1/"
-                  "pbs?startRanking=%2")
+          QString("https://boku.tachi.ac/api/v1/games/bms/%1/charts/%2/"
+                  "pbs?startRanking=%3")
+            .arg(keymode)
             .arg(chartId)
             .arg(startRanking);
         auto pbsReq = QNetworkRequest(QUrl(pbsUrlStr));
@@ -126,8 +128,9 @@ OnlineRankingModel::handleTachiReply(int startRanking,
         connect(pbsReply,
                 &QNetworkReply::finished,
                 this,
-                [this, startRanking, noteCount, pbsReply]() {
-                    handleTachiReply(startRanking, noteCount, pbsReply);
+                [this, startRanking, noteCount, pbsReply, keymode]() {
+                    handleTachiReply(
+                      startRanking, keymode, noteCount, pbsReply);
                 });
     }
 
@@ -141,6 +144,7 @@ OnlineRankingModel::handleTachiReply(int startRanking,
         usersMap[userId] = userObj;
     }
 
+    auto newPbs = QList<RankingEntry>();
     for (const auto& pbv : pbsArr) {
         if (!pbv.isObject()) {
             continue;
@@ -219,22 +223,23 @@ OnlineRankingModel::handleTachiReply(int startRanking,
 
         r.owner =
           "https://boku.tachi.ac/api/v1/users/" + QString::number(r.userId);
+        newPbs.append(r);
+    }
 
-        auto entries = getRankingEntries();
-        entries.append(std::move(r));
-        if (entries.size() == playerCount) {
-            if (currentSortBy != SortableColumn::None &&
-                currentSortDir != SortDirection::None &&
-                !(currentSortBy == SortableColumn::ScorePct &&
-                  currentSortDir == SortDirection::Desc) &&
-                (currentComboLte > 0 || currentComboGte > 0 ||
-                 currentMissCountGte > 0 || currentMissCountLte > 0 ||
-                 currentScorePctGte > 0.0 || currentScorePctLte > 0.0)) {
-                setEntries(sortFilterLocal(std::move(entries)));
-            }
-        } else {
-            setEntries(std::move(entries));
+    if (entries.size() == playerCount) {
+        if (currentSortBy != SortableColumn::None &&
+            currentSortDir != SortDirection::None &&
+            !(currentSortBy == SortableColumn::ScorePct &&
+              currentSortDir == SortDirection::Desc) &&
+            (currentComboLte > 0 || currentComboGte > 0 ||
+             currentMissCountGte > 0 || currentMissCountLte > 0 ||
+             currentScorePctGte > 0.0 || currentScorePctLte > 0.0)) {
+            auto oldEntries = entries;
+            oldEntries.append(newPbs);
+            setEntries(sortFilterLocal(std::move(oldEntries)));
         }
+    } else {
+        appendEntries(newPbs);
     }
 }
 
@@ -664,7 +669,6 @@ OnlineRankingModel::fetchLR2IR()
 
         QList<RankingEntry> newEntries;
         newEntries.reserve(tmpList.size());
-        auto totalScoreCount = 0;
 
         QVector<RankingEntry> entriesUnfiltered;
 
@@ -709,12 +713,11 @@ OnlineRankingModel::fetchLR2IR()
                       "search.cgi?mode=mypage&playerid=" +
                       QString::number(r.userId);
 
-            totalScoreCount += r.scoreCount;
-
             entriesUnfiltered.append(std::move(r));
         }
 
         setPlayerCount(entriesUnfiltered.size());
+        setScoreCount(entriesUnfiltered.size());
 
         setEntries(sortFilterLocal(std::move(entriesUnfiltered)));
         setLoading(false);
@@ -750,7 +753,7 @@ OnlineRankingModel::fetchTachi()
                         &QNetworkReply::finished,
                         this,
                         [this, playtype, noteCount, pbsReply]() {
-                            handleTachiReply(1, noteCount, pbsReply);
+                            handleTachiReply(1, playtype, noteCount, pbsReply);
                         });
             });
 
@@ -889,6 +892,18 @@ OnlineRankingModel::setEntries(QList<RankingEntry> entries)
     this->entries = std::move(entries);
     emit rankingEntriesChanged();
     endResetModel();
+}
+void
+OnlineRankingModel::appendEntries(QList<RankingEntry> entries)
+{
+    if (entries.isEmpty()) {
+        return;
+    }
+    const int oldSize = this->entries.size();
+    beginInsertRows(QModelIndex(), oldSize, oldSize + entries.size() - 1);
+    this->entries.append(std::move(entries));
+    emit rankingEntriesChanged();
+    endInsertRows();
 }
 
 auto
