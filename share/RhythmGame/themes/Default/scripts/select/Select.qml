@@ -81,6 +81,7 @@ FocusScope {
             height: 1080
             scale: Math.min(parent.width / 1920, parent.height / 1080)
             width: 1920
+            clip: true
 
             enabled: !options.visible
 
