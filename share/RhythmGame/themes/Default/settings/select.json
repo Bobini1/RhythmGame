@@ -141,6 +141,42 @@
       },
       "type": "boolean",
       "default": false
+    },
+    {
+      "id": "rankingProvider",
+      "name": {
+        "en": "Ranking Provider",
+        "pl": "Dostawca rankingów"
+      },
+      "description": {
+        "en": "The provider of online rankings.",
+        "pl": "Dostawca rankingów online."
+      },
+      "type": "choice",
+      "default": "rhythmgame",
+      "choices": [
+        {
+          "name": {
+            "en": "RhythmGame",
+            "pl": "RhythmGame"
+          },
+          "value": "rhythmgame"
+        },
+        {
+          "name": {
+            "en": "LR2IR",
+            "pl": "LR2IR"
+          },
+          "value": "lr2ir"
+        },
+        {
+          "name": {
+            "en": "Bokutachi",
+            "pl": "Bokutachi"
+          },
+          "value": "bokutachi"
+        }
+      ]
     }
   ]
 }

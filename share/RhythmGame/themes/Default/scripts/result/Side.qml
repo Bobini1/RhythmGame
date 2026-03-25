@@ -118,8 +118,6 @@ Column {
                 provider: OnlineRankingModel.RhythmGame
             }
 
-            property var rankingProvider: OnlineRankingModel.RhythmGame
-
             property var ranking: {
                 switch (rankingProvider) {
                     case OnlineRankingModel.RhythmGame:
@@ -128,6 +126,50 @@ Column {
                         return lr2ir;
                     case OnlineRankingModel.Tachi:
                         return tachi;
+                }
+            }
+
+            property var rankingProvider: {
+                let choice = profile.vars.themeVars.select[QmlUtils.themeName].rankingProvider
+                switch (choice) {
+                    case "rhythmgame":
+                        return OnlineRankingModel.RhythmGame;
+                    case "lr2ir":
+                        return OnlineRankingModel.LR2IR;
+                    case "bokutachi":
+                        return OnlineRankingModel.Tachi;
+                    default:
+                        return OnlineRankingModel.RhythmGame;
+                }
+            }
+            Binding {
+                delayed: true
+                scoreColumn.rankingProvider: {
+                    switch (side.profile.vars.themeVars.select[QmlUtils.themeName].rankingProvider) {
+                        case "rhythmgame":
+                            return OnlineRankingModel.RhythmGame;
+                        case "lr2ir":
+                            return OnlineRankingModel.LR2IR;
+                        case "bokutachi":
+                            return OnlineRankingModel.Tachi;
+                        default:
+                            return OnlineRankingModel.RhythmGame;
+                    }
+                }
+            }
+            Binding {
+                delayed: true
+                target: side.profile.vars.themeVars.select[QmlUtils.themeName]
+                property: "rankingProvider"
+                value: {
+                    switch (scoreColumn.rankingProvider) {
+                        case OnlineRankingModel.RhythmGame:
+                            return "rhythmgame";
+                        case OnlineRankingModel.LR2IR:
+                            return "lr2ir";
+                        case OnlineRankingModel.Tachi:
+                            return "bokutachi";
+                    }
                 }
             }
 

@@ -10,7 +10,50 @@ Item {
     property var rankingPosition: 0
     property bool loading: false
     property string rankingLink
-    property var provider: OnlineRankingModel.RhythmGame
+    property var profile: Rg.profileList.mainProfile
+    property var provider: {
+        let choice = profile.vars.themeVars.select[QmlUtils.themeName].rankingProvider
+        switch (choice) {
+            case "rhythmgame":
+                return OnlineRankingModel.RhythmGame;
+            case "lr2ir":
+                return OnlineRankingModel.LR2IR;
+            case "bokutachi":
+                return OnlineRankingModel.Tachi;
+            default:
+                return OnlineRankingModel.RhythmGame;
+        }
+    }
+    Binding {
+        delayed: true
+        ir.provider: {
+            switch (profile.vars.themeVars.select[QmlUtils.themeName].rankingProvider) {
+                case "rhythmgame":
+                    return OnlineRankingModel.RhythmGame;
+                case "lr2ir":
+                    return OnlineRankingModel.LR2IR;
+                case "bokutachi":
+                    return OnlineRankingModel.Tachi;
+                default:
+                    return OnlineRankingModel.RhythmGame;
+            }
+        }
+    }
+    Binding {
+        delayed: true
+        target: profile.vars.themeVars.select[QmlUtils.themeName]
+        property: "rankingProvider"
+        value: {
+            switch (ir.provider) {
+                case OnlineRankingModel.RhythmGame:
+                    return "rhythmgame";
+                case OnlineRankingModel.LR2IR:
+                    return "lr2ir";
+                case OnlineRankingModel.Tachi:
+                    return "bokutachi";
+            }
+        }
+    }
 
     function incrementProvider() {
         switch (ir.provider) {
