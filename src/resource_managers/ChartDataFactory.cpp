@@ -272,9 +272,9 @@ ChartDataFactory::handleImplicitSubtitle(QString& title,
 
     auto u32 = title.toStdU32String();
     auto delimiters = std::array{ U'～', U'〜', U'-',  U')',  U']', U'>',
-                                  U'"',  U'〔', U'【', U'［', U'（' };
+                                  U'"',  U'〕', U'】', U'］', U'）' };
     auto delimitersStart = std::array{ U'～', U'〜', U'-',  U'(',  U'[', U'<',
-                                       U'"',  U'〕', U'】', U'］', U'）' };
+                                       U'"',  U'〔', U'【', U'［', U'（' };
 
     auto selectedDelim = U'\0';
     for (const auto& delimiter : delimiters) {
