@@ -46,10 +46,19 @@ OnlineRankingModel {
     property int oldPosition: {
         let entries = rankingEntries;
         if (provider === OnlineRankingModel.LR2IR) {
-            if (side.oldBestPointsScore?.result?.points === undefined) {
-                return 0;
+            // check timestamp of current score, compare with Date.now() - 5000
+            let currentScoreTimestamp = side.score.result.unixTimestamp || 0;
+            let points;
+            if (currentScoreTimestamp < Date.now() / 1000 - 5) {
+                points = Math.max(side.score.result.points, side.oldBestPointsScore?.result?.points || 0);
+                console.info(points)
+            } else {
+                if (side.oldBestPointsScore?.result?.points === undefined) {
+                    return 0;
+                }
+                points = side.oldBestPointsScore?.result?.points || 0;
             }
-            let points = side.oldBestPointsScore?.result?.points || 0;
+
             for (let i = 0; i < entries.length; i++) {
                 if (points > entries[i].bestPoints) {
                     return i + 1;
@@ -67,7 +76,7 @@ OnlineRankingModel {
         if (!userId) {
             return;
         }
-        Rg.onlineScores.getRankingEntryAtTimestamp(side.profile.vars.generalVars.webApiUrl, userId, side.score.result.md5, Date.now() / 1000 - 5000, provider).then((entry) => {
+        Rg.onlineScores.getRankingEntryAtTimestamp(side.profile.vars.generalVars.webApiUrl, userId, side.score.result.md5, Date.now() / 1000 - 5, provider).then((entry) => {
             if (entry) {
                 // go through entries to find the position we would have based on bestPoints
                 let points = entry.bestPoints;
