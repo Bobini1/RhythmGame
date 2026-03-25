@@ -521,7 +521,8 @@ ChartDataFactory::buildChartComponents(
         if (it + 1 != calculatedNotesData.bpmChanges.end()) {
             nextTimestamp = (it + 1)->timestamp.timestamp;
         } else {
-            nextTimestamp = std::min(lastNoteTimestamp, timestamp);
+            nextTimestamp =
+              timestamp > lastNoteTimestamp ? timestamp : lastNoteTimestamp;
         }
         auto duration = nextTimestamp - timestamp;
         bpms[bpm] += duration;
