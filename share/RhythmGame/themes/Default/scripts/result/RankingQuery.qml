@@ -51,7 +51,6 @@ OnlineRankingModel {
             let points;
             if (currentScoreTimestamp < Date.now() / 1000 - 5) {
                 points = Math.max(side.score.result.points, side.oldBestPointsScore?.result?.points || 0);
-                console.info(points)
             } else {
                 if (side.oldBestPointsScore?.result?.points === undefined) {
                     return 0;

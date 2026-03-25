@@ -109,21 +109,6 @@ Image {
         }
     }
 
-    Timer {
-        interval: 1000
-        running: true
-        repeat: true
-        onTriggered: {
-            if (ranking.provider === OnlineRankingModel.RhythmGame) {
-                ranking.provider = OnlineRankingModel.Tachi;
-            } else if (ranking.provider === OnlineRankingModel.Tachi) {
-                ranking.provider = OnlineRankingModel.LR2IR;
-            } else if (ranking.provider === OnlineRankingModel.LR2IR) {
-                ranking.provider = OnlineRankingModel.RhythmGame;
-            }
-        }
-    }
-
     source: root.iniImagesUrl + "ir.png/ir" + (ranking.page + 1)
 
     Image {

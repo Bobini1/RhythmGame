@@ -277,52 +277,65 @@ FocusScope {
                 anchors.centerIn: parent
                 anchors.horizontalCenterOffset: -10
                 anchors.verticalCenterOffset: 150
+                width: 350
+                height: 400
                 sourceComponent: Grade {
                     scoreWithBestPoints: songList.currentItem?.scoreWithBestPoints || null
-                    loading: ranking.loading
-                    rankingTotalEntries: ranking.playerCount
-                    provider: ranking.provider
-                    rankingLink: {
-                        switch (ranking.provider) {
-                            case OnlineRankingModel.RhythmGame:
-                                return Rg.profileList.mainProfile.vars.generalVars.websiteUrl + "/charts/" + songList.current.md5;
-                            case OnlineRankingModel.LR2IR:
-                                return "http://www.dream-pro.info/~lavalse/LR2IR/search.cgi?mode=ranking&bmsmd5=" + songList.current.md5;
-                            case OnlineRankingModel.Tachi:
-                                if (!ranking.chartId) {
-                                    return "";
-                                }
-                                return "https://boku.tachi.ac/games/bms/" + ranking.keymode +
-                                    "/charts/" + ranking.chartId;
-                        }
+                }
+            }
+            RankingPosition {
+                id: rankingPosition
+
+                anchors.left: grade.left
+                width: 276
+                anchors.top: grade.bottom
+                anchors.topMargin: -146
+                loading: ranking.loading
+                rankingTotalEntries: ranking.playerCount
+                visible: ranking.visible
+                rankingLink: {
+                    if (!rankingTotalEntries) {
+                        return "";
                     }
-                    rankingPosition: {
-                        let entries = ranking.entries;
-                        switch (ranking.provider) {
-                            case OnlineRankingModel.RhythmGame:
-                                for (let i = 0; i < entries.length; i++) {
-                                    if (entries[i].userId === Rg.profileList.mainProfile.onlineUserData?.userId) {
-                                        return i + 1;
-                                    }
-                                }
-                                break;
-                            case OnlineRankingModel.LR2IR:
-                                for (let i = 0; i < entries.length; i++) {
-                                    if (!(entries[i] instanceof rankingEntry)) {
-                                        return i + 1;
-                                    }
-                                }
-                                break;
-                            case OnlineRankingModel.Tachi:
-                                for (let i = 0; i < entries.length; i++) {
-                                    if (entries[i].userId === Rg.profileList.mainProfile.tachiData?.userId) {
-                                        return i + 1;
-                                    }
-                                }
-                                break;
-                        }
-                        return 0;
+                    switch (ranking.provider) {
+                        case OnlineRankingModel.RhythmGame:
+                            return Rg.profileList.mainProfile.vars.generalVars.websiteBaseUrl + "/charts/" + songList.current.md5;
+                        case OnlineRankingModel.LR2IR:
+                            return "http://www.dream-pro.info/~lavalse/LR2IR/search.cgi?mode=ranking&bmsmd5=" + songList.current.md5;
+                        case OnlineRankingModel.Tachi:
+                            if (!ranking.chartId) {
+                                return "";
+                            }
+                            return "https://boku.tachi.ac/games/bms/" + ranking.keymode +
+                                "/charts/" + ranking.chartId;
                     }
+                }
+                rankingPosition: {
+                    let entries = ranking.entries;
+                    switch (ranking.provider) {
+                        case OnlineRankingModel.RhythmGame:
+                            for (let i = 0; i < entries.length; i++) {
+                                if (entries[i].userId === Rg.profileList.mainProfile.onlineUserData?.userId) {
+                                    return i + 1;
+                                }
+                            }
+                            break;
+                        case OnlineRankingModel.LR2IR:
+                            for (let i = 0; i < entries.length; i++) {
+                                if (!(entries[i] instanceof rankingEntry)) {
+                                    return i + 1;
+                                }
+                            }
+                            break;
+                        case OnlineRankingModel.Tachi:
+                            for (let i = 0; i < entries.length; i++) {
+                                if (entries[i].userId === Rg.profileList.mainProfile.tachiData?.userId) {
+                                    return i + 1;
+                                }
+                            }
+                            break;
+                    }
+                    return 0;
                 }
             }
             Connections {
@@ -402,6 +415,7 @@ FocusScope {
                 anchors.leftMargin: -9
                 anchors.bottom: search.top
                 anchors.bottomMargin: -11
+                provider: rankingPosition.provider
                 bestPointsScore: songList.currentItem?.scoreWithBestPoints || null
                 bestClearTypeScore: songList.currentItem?.scoreWithBestClear || null
             }
