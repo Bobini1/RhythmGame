@@ -226,7 +226,9 @@ OnlineRankingModel::handleTachiReply(int startRanking,
         newPbs.append(r);
     }
 
-    if (entries.size() == playerCount) {
+    if (newPbs.size() + entries.size() == playerCount) {
+        auto oldEntries = entries;
+        oldEntries.append(newPbs);
         if (currentSortBy != SortableColumn::None &&
             currentSortDir != SortDirection::None &&
             !(currentSortBy == SortableColumn::ScorePct &&
@@ -234,9 +236,9 @@ OnlineRankingModel::handleTachiReply(int startRanking,
             (currentComboLte > 0 || currentComboGte > 0 ||
              currentMissCountGte > 0 || currentMissCountLte > 0 ||
              currentScorePctGte > 0.0 || currentScorePctLte > 0.0)) {
-            auto oldEntries = entries;
-            oldEntries.append(newPbs);
             setEntries(sortFilterLocal(std::move(oldEntries)));
+        } else {
+            setEntries(std::move(oldEntries));
         }
     } else {
         appendEntries(newPbs);
@@ -246,17 +248,6 @@ OnlineRankingModel::handleTachiReply(int startRanking,
 OnlineRankingModel::OnlineRankingModel(QObject* parent)
   : QAbstractListModel(parent)
 {
-    connect(this, &OnlineRankingModel::rankingEntriesChanged, this, [this] {
-        auto map = QHash<QString, int>{};
-        for (const auto& entry : entries) {
-            map[entry.bestClearType]++;
-        }
-        auto variantMap = QVariantMap{};
-        for (const auto& key : map.keys()) {
-            variantMap[key] = map[key];
-        }
-        setClearCounts(std::move(variantMap));
-    });
 }
 
 auto
@@ -892,6 +883,15 @@ OnlineRankingModel::setEntries(QList<RankingEntry> entries)
     this->entries = std::move(entries);
     emit rankingEntriesChanged();
     endResetModel();
+    auto map = QHash<QString, int>{};
+    for (const auto& entry : entries) {
+        map[entry.bestClearType]++;
+    }
+    auto variantMap = QVariantMap{};
+    for (const auto& key : map.keys()) {
+        variantMap[key] = map[key];
+    }
+    setClearCounts(std::move(variantMap));
 }
 void
 OnlineRankingModel::appendEntries(QList<RankingEntry> entries)
@@ -904,6 +904,16 @@ OnlineRankingModel::appendEntries(QList<RankingEntry> entries)
     this->entries.append(std::move(entries));
     emit rankingEntriesChanged();
     endInsertRows();
+    auto clearCounts = getClearCounts();
+    auto newClearCounts = QHash<QString, int>{};
+    for (const auto& entry : entries) {
+        newClearCounts[entry.bestClearType]++;
+    }
+    for (const auto& key : newClearCounts.keys()) {
+        clearCounts[key] =
+          clearCounts.value(key, 0).toInt() + newClearCounts[key];
+    }
+    setClearCounts(std::move(clearCounts));
 }
 
 auto
