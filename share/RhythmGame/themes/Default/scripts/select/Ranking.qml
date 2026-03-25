@@ -1,3 +1,4 @@
+pragma ValueTypeBehavior: Addressable
 import QtQuick
 import QtQuick.Layouts
 import RhythmGameQml
@@ -151,7 +152,8 @@ Image {
     BusyIndicator {
         anchors.centerIn: parent
         running: (onlineRankingModel.loading && ranking.page === 1) ||
-            (onlineRankingModel.loading && !ranking.entries.length)
+            (onlineRankingModel.loading && !ranking.entries.length) ||
+            (onlineRankingModel.loading && ranking.entries.length === 1 && ranking.provider === OnlineRankingModel.LR2IR)
         visible: running
     }
 
@@ -171,7 +173,13 @@ Image {
                 profile: ranking.profile
                 chartData: ranking.chartData
                 provider: onlineRankingModel.provider
-                entries: onlineRankingModel.entries.slice(0, 7)
+                entries: {
+                    let entries = onlineRankingModel.entries.slice(0, 7)
+                    if (ranking.loading && entries.length === 1 && ranking.provider === OnlineRankingModel.LR2IR && (entries[0] instanceof rankingEntry)) {
+                        return [];
+                    }
+                    return entries;
+                }
                 bestPointsScore: ranking.bestPointsScore
                 bestClearTypeScore: ranking.bestClearTypeScore
                 keymode: ranking.keymode
