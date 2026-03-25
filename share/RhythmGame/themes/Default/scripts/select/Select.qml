@@ -294,7 +294,7 @@ FocusScope {
                 rankingTotalEntries: ranking.playerCount
                 visible: ranking.visible
                 rankingLink: {
-                    if (!rankingTotalEntries) {
+                    if (!rankingTotalEntries || (ranking.provider === OnlineRankingModel.LR2IR && rankingTotalEntries <= 1)) {
                         return "";
                     }
                     switch (ranking.provider) {
