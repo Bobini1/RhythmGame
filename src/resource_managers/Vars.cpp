@@ -497,6 +497,30 @@ resource_managers::GeneralVars::resetTargetScoreFraction()
     setTargetScoreFraction(8.0 / 9.0);
 }
 auto
+resource_managers::GeneralVars::getWebApiUrl() const -> QString
+{
+    return websiteBaseUrl + "/api/";
+}
+auto
+resource_managers::GeneralVars::getWebsiteBaseUrl() const -> QString
+{
+    return websiteBaseUrl;
+}
+void
+resource_managers::GeneralVars::setWebsiteBaseUrl(const QString& value)
+{
+    if (websiteBaseUrl == value) {
+        return;
+    }
+    websiteBaseUrl = value;
+    emit websiteBaseUrlChanged();
+}
+void
+resource_managers::GeneralVars::resetWebsiteBaseUrl()
+{
+    setWebsiteBaseUrl("https://rhythmgame.eu");
+}
+auto
 resource_managers::GeneralVars::getBgm() const -> QString
 {
     // Return just the folder name
@@ -1158,9 +1182,9 @@ readGeneralVars(QThreadPool& writePool,
         writeGeneralVars(writePool, generalVars, profileFolder);
     }
     if (!file.open(QIODevice::ReadOnly)) {
-        spdlog::error("Failed to open config for reading: {}: {}",
-                      profileFolder.string(),
-                      file.errorString().toStdString());
+        spdlog::info("Failed to open config for reading: {}: {}",
+                     profileFolder.string(),
+                     file.errorString().toStdString());
         return;
     }
     try {
@@ -1198,7 +1222,11 @@ readThemeVarsForTheme(const std::filesystem::path& themeVarsPath,
 {
     auto vars = QHash<QString, ScreenVarsPopulationResult>{};
     for (const auto& screen : themeFamily.getScreens().keys()) {
-        auto settingsUrl = themeFamily.getScreens()[screen].getSettings();
+        auto screenObj = themeFamily.getScreens()[screen];
+        if (screenObj.isAliased()) {
+            continue;
+        }
+        auto settingsUrl = screenObj.getSettings();
         if (settingsUrl.isEmpty()) {
             continue;
         }
@@ -1221,6 +1249,9 @@ readThemeVarsForTheme(const std::filesystem::path& themeVarsPath,
     }
     auto contents = QJsonDocument::fromJson(file.readAll()).object();
     for (const auto& screen : themeFamily.getScreens().keys()) {
+        if (themeFamily.getScreens()[screen].isAliased()) {
+            continue;
+        }
         for (const auto& [key, value] :
              contents[screen].toObject().toVariantHash().asKeyValueRange()) {
             if (vars[screen].fileTypeProperties.contains(key)) {
@@ -1310,9 +1341,6 @@ resource_managers::Vars::populateThemePropertyMap(
   QHash<QString, QHash<QString, QHash<QString, QVariant>>> themeVarsData,
   const std::filesystem::path& themeVarsPath)
 {
-    for (const auto& key : themeVars.keys()) {
-        themeVars[key].value<QQmlPropertyMap*>()->deleteLater();
-    }
     for (const auto& [screenName, themes] : themeVarsData.asKeyValueRange()) {
         auto screenPropertyMap = std::make_unique<QQmlPropertyMap>(&themeVars);
         for (const auto& [themeName, vars] : themes.asKeyValueRange()) {
@@ -1330,8 +1358,8 @@ resource_managers::Vars::populateThemePropertyMap(
                themeFamily = themeName](const QString& key,
                                         const QVariant& value) {
                   auto& ref = loadedThemeVars[screen][themeFamily][key];
-                  // Skip write if assigning number to number and they are very
-                  // close (ULP-based)
+                  // Skip write if assigning number to number and they are
+                  // very close (ULP-based)
                   if ((ref.typeId() == QMetaType::Double ||
                        ref.typeId() == QMetaType::Float) &&
                       (value.typeId() == QMetaType::Double ||
@@ -1362,9 +1390,50 @@ resource_managers::Vars::populateThemePropertyMap(
             screenPropertyMap->insert(
               themeName, QVariant::fromValue(propertyMap.release()));
         }
-        screenPropertyMap->freeze();
         themeVars.insert(screenName,
                          QVariant::fromValue(screenPropertyMap.release()));
+    }
+    for (const auto& screenName : themeVars.keys()) {
+        for (const auto screenObj =
+               themeVars[screenName].value<QQmlPropertyMap*>();
+             const auto& themeName : screenObj->keys()) {
+            if (screenName == "k7") {
+                auto* k5Obj = themeVars["k5"].value<QQmlPropertyMap*>();
+                if (k5Obj == nullptr) {
+                    k5Obj = new QQmlPropertyMap(&themeVars);
+                    themeVars.insert("k5", QVariant::fromValue(k5Obj));
+                }
+                if (k5Obj->keys().contains(themeName)) {
+                    continue;
+                }
+                k5Obj->insert(themeName, screenObj->value(themeName));
+            } else if (screenName == "k7battle") {
+                auto* k5battleObj =
+                  themeVars["k5battle"].value<QQmlPropertyMap*>();
+                if (k5battleObj == nullptr) {
+                    k5battleObj = new QQmlPropertyMap(&themeVars);
+                    themeVars.insert("k5battle",
+                                     QVariant::fromValue(k5battleObj));
+                }
+                if (k5battleObj->keys().contains(themeName)) {
+                    continue;
+                }
+                k5battleObj->insert(themeName, screenObj->value(themeName));
+            } else if (screenName == "k14") {
+                auto* k10Obj = themeVars["k10"].value<QQmlPropertyMap*>();
+                if (k10Obj == nullptr) {
+                    k10Obj = new QQmlPropertyMap(&themeVars);
+                    themeVars.insert("k10", QVariant::fromValue(k10Obj));
+                }
+                if (k10Obj->keys().contains(themeName)) {
+                    continue;
+                }
+                k10Obj->insert(themeName, screenObj->value(themeName));
+            }
+        }
+    }
+    for (const auto& screenName : themeVars.keys()) {
+        themeVars[screenName].value<QQmlPropertyMap*>()->freeze();
     }
     themeVars.freeze();
 }

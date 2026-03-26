@@ -17,6 +17,8 @@ Item {
         contentWidth: Math.max(600, width)
         contentHeight: Math.max(rootRowLayout.implicitHeight, parent.height)
 
+        property int updateScoreCounts: 0
+
         RowLayout {
             id: rootRowLayout
             anchors.fill: parent
@@ -100,7 +102,8 @@ Item {
                                     anchors.right: removeButton.left
                                     anchors.rightMargin: 16
                                     anchors.verticalCenter: parent.verticalCenter
-                                    text: qsTr("Scores: %1").arg(folderRow.profile.scoreDb.getTotalScoreCount())
+                                    property var scoreCount: (rootScrollView.updateScoreCounts, folderRow.profile.scoreDb.getTotalScoreCount())
+                                    text: qsTr("Scores: %1").arg(scoreCount)
                                 }
 
                                 Button {
@@ -166,6 +169,7 @@ Item {
                     }
                 }
                 TextField {
+                    id: nameField
                     text: Rg.profileList.mainProfile.vars.generalVars.name
                     font.pixelSize: 24
                     color: palette.text
@@ -178,6 +182,155 @@ Item {
 
                     onTextChanged: {
                         Rg.profileList.mainProfile.vars.generalVars.name = text;
+                    }
+                }
+                ColumnLayout {
+                    id: loginSection
+                    anchors.top: nameField.bottom
+                    anchors.topMargin: 16
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    width: avatarFrame.width
+                    spacing: 8
+
+                    property var profile: Rg.profileList.mainProfile
+                    property bool syncing: false
+                    property int pendingOps: 0
+                    property bool syncError: false
+                    property bool loginError: false
+
+                    function runSync() {
+                        loginSection.syncing = true;
+                        loginSection.syncError = false;
+                        loginSection.pendingOps = 2;
+
+                        function attachOp(op) {
+                            op.error.connect(function(msg) {
+                                console.warn("Sync error:", msg);
+                                loginSection.syncError = true;
+                            });
+                            op.finishedChanged.connect(function() {
+                                loginSection.pendingOps = Math.max(0, loginSection.pendingOps - 1);
+                                if (loginSection.pendingOps === 0) {
+                                    loginSection.syncing = false;
+                                    if (!loginSection.syncError)
+                                        rootScrollView.updateScoreCounts++;
+                                }
+                            });
+                        }
+
+                        attachOp(loginSection.profile.downloadScores());
+                        attachOp(loginSection.profile.uploadScores());
+                    }
+
+                    Label {
+                        text: qsTr("Online Login")
+                        font.pixelSize: 18
+                        Layout.fillWidth: true
+                    }
+
+                    Loader {
+                        id: authLoader
+                        sourceComponent: {
+                            switch (loginSection.profile.loginState) {
+                            case Profile.NotLoggedIn:
+                            case Profile.LoginFailed:
+                                return loggedOutComponent;
+                            case Profile.LoggingIn:
+                                return loggingInComponent;
+                            case Profile.LoggedIn:
+                                return loggedInComponent;
+                            }
+                        }
+                        Layout.preferredHeight: authLoader.item ? authLoader.item.implicitHeight : 0
+                        Layout.fillWidth: true
+                    }
+
+                    Component {
+                        id: loggingInComponent
+                        ColumnLayout {
+                            spacing: 8
+                            BusyIndicator {
+                                running: true
+                                visible: true
+                                Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
+                                width: 32
+                                height: 32
+                            }
+                        }
+                    }
+
+                    Component {
+                        id: loggedInComponent
+                        ColumnLayout {
+                            spacing: 8
+                            Label {
+                                text: qsTr("Logged in as %1").arg(loginSection.profile.onlineUserData.username)
+                                font.pixelSize: 16
+                                Layout.fillWidth: true
+                            }
+                            Button {
+                                text: qsTr("Logout")
+                                Layout.fillWidth: true
+                                onClicked: {
+                                    loginSection.profile.logout();
+                                }
+                            }
+                            RowLayout {
+                                Layout.fillWidth: true
+                                spacing: 8
+                                Button {
+                                    id: syncButton
+                                    enabled: !loginSection.syncing
+                                    text: qsTr("Sync scores")
+                                    Layout.fillWidth: true
+                                    palette.button: loginSection.syncError ? "red" : undefined
+                                    palette.buttonText: loginSection.syncError ? "white" : undefined
+                                    onClicked: {
+                                        loginSection.runSync();
+                                    }
+                                }
+                                BusyIndicator {
+                                    running: loginSection.syncing
+                                    visible: loginSection.syncing
+                                    Layout.alignment: Qt.AlignVCenter
+                                    width: 24
+                                    height: 24
+                                }
+                            }
+                        }
+                    }
+
+                    Component {
+                        id: loggedOutComponent
+                        ColumnLayout {
+                            spacing: 8
+                            TextField {
+                                id: emailField
+                                placeholderText: qsTr("Email")
+                                Layout.fillWidth: true
+                                height: 32
+                                onAccepted: {
+                                    passwordField.forceActiveFocus();
+                                }
+                            }
+                            TextField {
+                                id: passwordField
+                                placeholderText: qsTr("Password")
+                                echoMode: TextInput.Password
+                                Layout.fillWidth: true
+                                height: 32
+                                onAccepted: {
+                                    loginSection.profile.login(emailField.text, passwordField.text);
+                                }
+                            }
+                            Button {
+                                text: qsTr("Login")
+                                Layout.fillWidth: true
+                                palette.button: loginSection.profile.loginState === Profile.LoginFailed ? "DarkRed" : undefined
+                                palette.buttonText: loginSection.profile.loginState === Profile.LoginFailed ? "white" : undefined
+                                onClicked: loginSection.profile.login(emailField.text, passwordField.text)
+                            }
+                        }
                     }
                 }
             }

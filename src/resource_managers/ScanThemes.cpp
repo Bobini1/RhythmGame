@@ -48,8 +48,8 @@ resource_managers::scanThemes(std::filesystem::path themesFolder)
             }
 
             auto themeMap = QMap<QString, qml_components::Screen>();
-            for (const auto& [key, value] :
-                 scripts.toObject().toVariantMap().asKeyValueRange()) {
+            auto scriptObj = scripts.toObject().toVariantMap();
+            for (const auto& [key, value] : scriptObj.asKeyValueRange()) {
                 auto settingsUrl =
                   settings.toObject().contains(key)
                     ? QUrl::fromLocalFile(support::pathToQString(
@@ -63,12 +63,25 @@ resource_managers::scanThemes(std::filesystem::path themesFolder)
                                  settingsScripts.toObject()[key].toString())))
                     : QUrl("");
 
-                themeMap[key] = {
+                auto screen = qml_components::Screen{
                     QUrl::fromLocalFile(support::pathToQString(
                       path / support::qStringToPath(value.toString()))),
                     settingsUrl,
                     settingsScriptUrl,
                 };
+                themeMap[key] = screen;
+                auto aliasedScreen = qml_components::Screen{
+                    screen.getScript(), settingsUrl, settingsScriptUrl, true
+                };
+                if (key == "k7" && !scriptObj.contains("k5")) {
+                    themeMap["k5"] = aliasedScreen;
+                }
+                if (key == "k7battle" && !scriptObj.contains("k5battle")) {
+                    themeMap["k5battle"] = aliasedScreen;
+                }
+                if (key == "k14" && !scriptObj.contains("k10")) {
+                    themeMap["k10"] = aliasedScreen;
+                }
             }
             // Load translations
             auto translations = QMap<QString, QUrl>{};
@@ -119,5 +132,14 @@ resource_managers::fillWithDefaults(
                 object.insert(screen, name);
             }
         }
+    }
+    if (!object.contains("k5") && object.contains("k7")) {
+        object.insert("k5", object.value("k7"));
+    }
+    if (!object.contains("k5battle") && object.contains("k7battle")) {
+        object.insert("k5battle", object.value("k7battle"));
+    }
+    if (!object.contains("k14") && object.contains("k14battle")) {
+        object.insert("k14", object.value("k14battle"));
     }
 }

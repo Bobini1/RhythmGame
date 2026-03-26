@@ -23,15 +23,30 @@ struct BmsNotesData
     struct Time
     {
         std::chrono::nanoseconds timestamp;
-        Position position;
+        Position beatPosition; // without scrolls
+        Position position;     // with scroll applied
+
+        Time(std::chrono::nanoseconds timestamp,
+             Position beatPosition,
+             Position position)
+          : timestamp(timestamp)
+          , beatPosition(beatPosition)
+          , position(position)
+        {
+        }
+
+        Time() = default;
 
         auto operator+(const Time& other) const -> Time
         {
-            return { timestamp + other.timestamp, position + other.position };
+            return { timestamp + other.timestamp,
+                     beatPosition + other.beatPosition,
+                     position + other.position };
         }
         auto operator-=(const Time& other) -> Time&
         {
             timestamp -= other.timestamp;
+            beatPosition -= other.beatPosition;
             position -= other.position;
             return *this;
         }
@@ -62,6 +77,13 @@ struct BmsNotesData
         MGQ = 2
     };
 
+    struct BpmChangeValues
+    {
+        double bpm;
+        double scroll;
+        Time timestamp;
+    };
+
     static constexpr auto defaultBeatsPerMeasure = 4;
     static constexpr auto columnMapping =
       std::array{ 0, 1, 2, 3, 4, 7, 8, 5 }; // ignore "foot pedal"
@@ -72,10 +94,12 @@ struct BmsNotesData
     std::vector<std::pair<Time, uint64_t>> bgaPoor;
     std::vector<std::pair<Time, uint64_t>> bgaLayer;
     std::vector<std::pair<Time, uint64_t>> bgaLayer2;
-    std::vector<std::pair<Time, double>> bpmChanges;
+    std::vector<BpmChangeValues> bpmChanges;
     std::vector<Time> barLines;
     static constexpr auto defaultBpm = 120.0;
     static constexpr auto defaultLnType = LnType::RDM;
+    static constexpr auto defaultBase = 36;
+    static constexpr auto defaultScroll = 1.0;
 
     /// Describes one audio slice for bmson sound loading.
     struct BmsonSliceInfo
@@ -94,21 +118,24 @@ struct BmsNotesData
     /// multiple channels have notes at the same (column, pulse).
     std::unordered_map<uint64_t, std::vector<uint64_t>> bmsonFusions;
 
-    static BmsNotesData fromParsedChart(const ParsedBmsChart& chart);
-    static BmsNotesData fromBmson(const QJsonObject& bmson);
+    static auto fromParsedChart(const ParsedBmsChart& chart) -> BmsNotesData;
+    static auto fromBmson(const QJsonObject& bmson) -> BmsNotesData;
 
   private:
     void generateMeasures(
       double baseBpm,
       const std::unordered_map<uint16_t, double>& bpms,
       const std::unordered_map<uint16_t, double>& stops,
+      const std::unordered_map<uint16_t, double>& scrolls,
+      const std::unordered_map<uint16_t, double>& speeds,
       const std::map<int64_t, ParsedBmsChart::Measure>& measures,
       LnType lnType,
       std::optional<uint16_t> lnObj);
     void fillEmptyMeasures(int64_t lastMeasure,
                            int64_t measureIndex,
                            Time& measureStart,
-                           double lastBpm);
+                           double lastBpm,
+                           double lastScroll);
     void adjustRdmLnEnds(
       const std::array<std::optional<size_t>,
                        ParsedBmsChart::Measure::columnNumber>&
@@ -119,6 +146,7 @@ struct BmsNotesData
       std::span<std::vector<Note>> notes);
     void adjustMgqLnEnds(
       double lastBpm,
+      double lastScroll,
       Time measureStart,
       std::array<bool, ParsedBmsChart::Measure::columnNumber>& insideLnP1,
       std::array<bool, ParsedBmsChart::Measure::columnNumber>& insideLnP2,

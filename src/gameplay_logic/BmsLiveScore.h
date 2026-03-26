@@ -10,6 +10,8 @@
 #include "BmsResult.h"
 #include "BmsGaugeHistory.h"
 #include "BmsReplayData.h"
+#include "BmsScore.h"
+#include "ChartData.h"
 #include "resource_managers/Vars.h"
 
 #include <QAbstractListModel>
@@ -139,7 +141,7 @@ class BmsLiveScore final : public QObject
      * @details If the chart uses
      * [#RANDOM](https://hitkey.nekokan.dyndns.info/cmds.htm#RANDOM),
      * this property provides the sequence of random values used to determine
-     * the note order. If the chart does not use randomization,
+     * the contents of the chart. If the chart does not use randomization,
      * this list will be empty.
      */
     Q_PROPERTY(QList<qint64> randomSequence READ getRandomSequence CONSTANT)
@@ -181,6 +183,14 @@ class BmsLiveScore final : public QObject
      * created and can be used to uniquely identify the score instance.
      */
     Q_PROPERTY(QString guid READ getGuid CONSTANT)
+    /**
+     * @brief The keymode of the chart, i.e. how many keys/columns it has.
+     * If the DP option "Battle" is enabled, an SP chart will have 14 keys
+     * regardless, so pay attention to that.
+     * @see Keymode
+     */
+    Q_PROPERTY(
+      gameplay_logic::ChartData::Keymode keymode READ getKeymode CONSTANT)
 
     double maxHitValue;
     double maxPoints;
@@ -201,6 +211,7 @@ class BmsLiveScore final : public QObject
     QString sha256;
     QString md5;
     QString guid;
+    ChartData::Keymode keymode;
     double points = 0;
     double maxPointsNow = 0;
     int combo = 0;
@@ -208,32 +219,37 @@ class BmsLiveScore final : public QObject
     int mineHits = 0;
     uint64_t randomSeed;
     int64_t length;
+    int64_t savedTimestamp;
+    BmsScore::SubmissionState submissionState;
 
     void resetCombo();
     void increaseCombo();
 
   public:
     void addHit(const HitEvent& tap);
-    explicit BmsLiveScore(
-      int normalNoteCount,
-      int scratchCount,
-      int lnCount,
-      int bssCount,
-      int mineCount,
-      int maxHits,
-      double maxHitValue,
-      QList<rules::BmsGauge*> gauges,
-      QList<qint64> randomSequence,
-      resource_managers::NoteOrderAlgorithm noteOrderAlgorithm,
-      resource_managers::NoteOrderAlgorithm noteOrderAlgorithmP2,
-      resource_managers::DpOptions dpOptions,
-      QList<int> permutation,
-      uint64_t seed,
-      int64_t length,
-      QString sha256,
-      QString md5,
-      QString guid = QUuid::createUuid().toString(),
-      QObject* parent = nullptr);
+    BmsLiveScore(int normalNoteCount,
+                 int scratchCount,
+                 int lnCount,
+                 int bssCount,
+                 int mineCount,
+                 int maxHits,
+                 double maxHitValue,
+                 QList<rules::BmsGauge*> gauges,
+                 QList<qint64> randomSequence,
+                 resource_managers::NoteOrderAlgorithm noteOrderAlgorithm,
+                 resource_managers::NoteOrderAlgorithm noteOrderAlgorithmP2,
+                 resource_managers::DpOptions dpOptions,
+                 QList<int> permutation,
+                 uint64_t seed,
+                 int64_t length,
+                 QString sha256,
+                 QString md5,
+                 ChartData::Keymode keymode,
+                 int64_t savedTimestamp, // for replays
+                 QString guid = QUuid::createUuid().toString(),
+                 BmsScore::SubmissionState submissionState =
+                   BmsScore::SubmissionState::NotSubmitted,
+                 QObject* parent = nullptr);
 
     auto getMaxPoints() const -> double;
     auto getMaxHits() const -> int;
@@ -259,6 +275,7 @@ class BmsLiveScore final : public QObject
     auto getPermutation() const -> const QList<int>&;
     auto getRandomSeed() const -> uint64_t;
     auto getGuid() const -> QString;
+    auto getKeymode() const -> ChartData::Keymode;
 
     auto getResult() const -> std::unique_ptr<BmsResult>;
     auto getReplayData() const -> std::unique_ptr<BmsReplayData>;

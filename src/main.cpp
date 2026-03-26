@@ -37,6 +37,8 @@
 #include "support/PathToUtfString.h"
 #include "support/UtfStringToPath.h"
 #include "gameplay_logic/CourseRunner.h"
+#include "qml_components/OnlineProfileInfo.h"
+#include "qml_components/OnlineRankingModel.h"
 #include "qml_components/ScoreReplayer.h"
 #include "sounds/AudioEngine.h"
 #include "sounds/AudioPlayer.h"
@@ -44,6 +46,7 @@
 #include "support/QtSink.h"
 #include "resource_managers/AvatarImageProvider.h"
 #include "support/QStringToPath.h"
+#include "qml_components/OnlineScores.h"
 
 Q_IMPORT_QML_PLUGIN(RhythmGameQmlPlugin)
 
@@ -214,12 +217,13 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
         }
         assetsFolders.append(support::pathToQString(installationDataFolder) +
                              "/");
-        auto profileList =
-          qml_components::ProfileList{ dataFolder / "song_db.sqlite",
-                                       &db,
-                                       availableThemes,
-                                       dataFolder / "profiles",
-                                       assetsFolders };
+
+        auto networkManager = QNetworkAccessManager{};
+        networkManager.setCookieJar(nullptr);
+        auto profileList = qml_components::ProfileList{
+            dataFolder / "song_db.sqlite", &db,           availableThemes,
+            dataFolder / "profiles",       assetsFolders, &networkManager
+        };
 
         QObject::connect(&gamepadManager,
                          &input::GamepadManager::axisMoved,
@@ -251,8 +255,8 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
               return gaugeFactoryGeneral.getCourseGauges(profile,
                                                          initialValues);
           };
-        auto getChartPathFromSha256 = [&db](const QString& md5,
-                                            const std::filesystem::path& hint) {
+        auto getChartPathFromMd5 = [&db](const QString& md5,
+                                         const std::filesystem::path& hint) {
             // Check if the hint path exists and matches the hash
             if (!hint.empty()) {
                 auto hintStatement =
@@ -280,7 +284,7 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
             &gameplay_logic::rules::lr2_hit_values::getLr2HitValue,
             gaugeFactory,
             gaugeFactoryCourse,
-            getChartPathFromSha256,
+            getChartPathFromMd5,
             &chartFactory,
             &db
         };
@@ -299,12 +303,14 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
 
         auto fileQuery = qml_components::FileQuery{};
 
-        auto networkManager = QNetworkAccessManager{};
         auto tables = resource_managers::Tables{ &networkManager,
                                                  dataFolder / "tables",
                                                  &db };
 
+        auto onlineScores = qml_components::OnlineScores{ &networkManager };
+
         auto engine = QQmlApplicationEngine{};
+
         auto languages =
           resource_managers::Languages{ availableThemes, &engine };
         auto setLang = [&profileList,
@@ -343,7 +349,8 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
                       &profileList,
                       &tables,
                       &languages,
-                      &audioEngine };
+                      &audioEngine,
+                      &onlineScores };
 
         Rg::instance = &rg;
 
@@ -407,6 +414,8 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
           "RhythmGameQml", 1, 0, "AnalogAxisConfig");
         qmlRegisterType<input::InputTranslator>(
           "RhythmGameQml", 1, 0, "InputTranslator");
+        qmlRegisterType<qml_components::OnlineProfileInfo>(
+          "RhythmGameQml", 1, 0, "onlineProfileInfo");
         qmlRegisterUncreatableMetaObject(
           gameplay_logic::judgement::staticMetaObject,
           "RhythmGameQml",
@@ -468,6 +477,17 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
           "RhythmGameQml", 1, 0, "AudioPlayer");
         qmlRegisterType<qml_components::ScoreReplayer>(
           "RhythmGameQml", 1, 0, "ScoreReplayer");
+        qml_components::OnlineRankingModel::networkManager = &networkManager;
+        qml_components::OnlineRankingModel::profileList = &profileList;
+        qml_components::OnlineRankingModel::onlineScores = &onlineScores;
+        qmlRegisterType<qml_components::OnlineRankingModel>(
+          "RhythmGameQml", 1, 0, "OnlineRankingModel");
+        qmlRegisterType<qml_components::RankingEntry>(
+          "RhythmGameQml", 1, 0, "rankingEntry");
+        qmlRegisterType<resource_managers::OnlineUserData>(
+          "RhythmGameQml", 1, 0, "onlineUserData");
+        qmlRegisterType<resource_managers::TachiData>(
+          "RhythmGameQml", 1, 0, "tachiData");
 
         qml_components::InputAttached::inputSignalProvider = &inputTranslator;
         qml_components::QmlUtilsAttached::getThemeNameForRootFile =

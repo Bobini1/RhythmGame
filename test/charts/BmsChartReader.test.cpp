@@ -301,10 +301,10 @@ TEST_CASE("Parse new-style bpm changes", "[BmsChartReader]")
     REQUIRE(res.tags.measures[1].exBpmChanges[0].size() == 1);
     REQUIRE(res.tags.measures[1].exBpmChanges[0][0] == 38);
     REQUIRE(res.tags.exBpms.size() == 2);
-    REQUIRE(res.tags.exBpms.find(72) != res.tags.exBpms.end());
-    REQUIRE(res.tags.exBpms.find(72)->second == Catch::Approx(120));
-    REQUIRE(res.tags.exBpms.find(555) != res.tags.exBpms.end());
-    REQUIRE(res.tags.exBpms.find(555)->second == Catch::Approx(12));
+    REQUIRE(res.tags.exBpms[0].first == 72);
+    REQUIRE(res.tags.exBpms[0].second == Catch::Approx(120));
+    REQUIRE(res.tags.exBpms[1].first == 555);
+    REQUIRE(res.tags.exBpms[1].second == Catch::Approx(12));
 }
 
 TEST_CASE("Parse WAVXX", "[BmsChartReader]")
@@ -312,6 +312,6 @@ TEST_CASE("Parse WAVXX", "[BmsChartReader]")
     const auto chart = "#WAV01 01.wav"s;
     auto res = charts::readBmsChart(chart, randomGenerator);
     REQUIRE(res.tags.wavs.size() == 1);
-    REQUIRE(res.tags.wavs.find(1) != res.tags.wavs.end());
-    REQUIRE(res.tags.wavs[1] == "01.wav"s);
+    REQUIRE(res.tags.wavs[0].first == 1);
+    REQUIRE(res.tags.wavs[0].second == "01.wav"s);
 }

@@ -45,12 +45,12 @@
 <context>
     <name>ChartInfo</name>
     <message>
-        <location filename="../scripts/result/ChartInfo.qml" line="38"/>
+        <location filename="../scripts/result/ChartInfo.qml" line="71"/>
         <source>TOTAL</source>
         <translation>TOTAL</translation>
     </message>
     <message>
-        <location filename="../scripts/result/ChartInfo.qml" line="65"/>
+        <location filename="../scripts/result/ChartInfo.qml" line="46"/>
         <source>NOTES</source>
         <translation>NOTKI</translation>
     </message>
@@ -94,139 +94,149 @@
         <translation>Język</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="42"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="43"/>
+        <source>Windowed;Fullscreen</source>
+        <translation>Okno;Pełny ekran</translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="44"/>
+        <source>Display Mode</source>
+        <translation>Tryb wyświetlania</translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="55"/>
         <source>Note Screen Time (ms)</source>
         <translation>Czas widoczności notki (ms)</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="55"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="68"/>
         <source>Offset (ms)</source>
         <translation>Offset (ms)</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="68"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="81"/>
         <source>Debounce (ms)</source>
         <translation>Debounce (ms)</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="84"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="97"/>
         <source>Lane Cover</source>
         <translation>Zasłona od góry</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="95"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="108"/>
         <source>Lane Cover Ratio</source>
         <translation>Poziom zasłony</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="110"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="123"/>
         <source>Lift</source>
         <translation>Podniesienie</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="121"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="134"/>
         <source>Lift Ratio</source>
         <translation>Poziom podniesienia</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="136"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="149"/>
         <source>Hidden</source>
         <translation>Ukrycie od dołu</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="147"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="160"/>
         <source>Hidden Ratio</source>
         <translation>Poziom ukrycia</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="162"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="175"/>
         <source>BGA On</source>
         <translation>BGA</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="176"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="189"/>
         <source>Percentage;Best Score;Last Score</source>
         <translation>Procent;Najlepszy wynik;Ostatni wynik</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="177"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="190"/>
         <source>Score Target Type</source>
         <translation>Typ celu punktowego</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="196"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="209"/>
         <source>Target Score Percentage</source>
         <translation>Cel Punktowy</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="215"/>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="230"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="228"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="243"/>
         <source>Normal;Mirror;Random;S-Random;R-Random;Random+;S-Random+</source>
         <translation>Normalne;Lustrzane;Losowe;S-Losowe;R-Losowe;Losowe+;S-Losowe+</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="216"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="229"/>
         <source>Note Order Algorithm</source>
         <translation>Ułożenie notek</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="231"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="244"/>
         <source>Note Order Algorithm P2</source>
         <translation>Ułożenie notek P2</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="247"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="260"/>
         <source>Off;Main;Start;Min;Max</source>
         <translation>Wyłączony;Główny;Początkowy;Min;Max</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="248"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="261"/>
         <source>Hi-Speed Fix</source>
         <translation>Tryb ustawień prędkości</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="263"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="276"/>
         <source>Off;Flip;Battle</source>
         <translation>Wyłączony;Przerzuć;Bitwa</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="264"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="277"/>
         <source>DP Options</source>
         <translation>Opcje DP</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="279"/>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="311"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="292"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="324"/>
         <source>ASSISTED EASY;EASY;NORMAL;HARD;EXHARD;FC</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="280"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="293"/>
         <source>Gauge Type</source>
         <translation>Typ gajgi</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="294"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="307"/>
         <source>Exclusive;Best;Select to Under</source>
         <translation>Wyłączny;Najlepszy;Wybór do najgorszego</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="295"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="308"/>
         <source>Gauge Mode</source>
         <translation>Tryb gajgi</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="309"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="322"/>
         <source>Bottom Shiftable Gauge</source>
         <translation>Najniższa gajga</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="324"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="337"/>
         <source>BGM</source>
         <translation>BGM</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="336"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="349"/>
         <source>Soundset</source>
         <translation>Zestaw dźwięków</translation>
     </message>
@@ -239,17 +249,17 @@
         <translation type="vanished">Bardziej dokładne, ale mogą nie działać prawidłowo na niektórych systemach.</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="350"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="363"/>
         <source>Audio Backend</source>
         <translation>Backend audio</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="362"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="375"/>
         <source>Audio Device</source>
         <translation>Urządzenie audio</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="368"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="381"/>
         <source>Default</source>
         <translation>Domyślne</translation>
     </message>
@@ -401,7 +411,17 @@
         <translation>WSZYSTKIE klawisze</translation>
     </message>
     <message>
-        <location filename="../scripts/select/KeymodeButton.qml" line="56"/>
+        <location filename="../scripts/select/KeymodeButton.qml" line="57"/>
+        <source>SINGLE</source>
+        <translation>1 strona</translation>
+    </message>
+    <message>
+        <location filename="../scripts/select/KeymodeButton.qml" line="60"/>
+        <source>DOUBLE</source>
+        <translation>2 strony</translation>
+    </message>
+    <message>
+        <location filename="../scripts/select/KeymodeButton.qml" line="62"/>
         <source>%1 keys</source>
         <translation>%1 klawiszy</translation>
     </message>
@@ -432,24 +452,37 @@
 <context>
     <name>Main</name>
     <message>
-        <location filename="../scripts/main/Main.qml" line="112"/>
+        <location filename="../scripts/main/Main.qml" line="126"/>
         <source>Song Selection</source>
         <translation>Wybór piosenek</translation>
     </message>
     <message>
-        <location filename="../scripts/main/Main.qml" line="121"/>
+        <location filename="../scripts/main/Main.qml" line="135"/>
         <source>Settings</source>
         <translation>Ustawienia</translation>
     </message>
     <message>
-        <location filename="../scripts/main/Main.qml" line="131"/>
+        <location filename="../scripts/main/Main.qml" line="145"/>
         <source>Attributions</source>
         <translation>Atrybucje</translation>
     </message>
     <message>
-        <location filename="../scripts/main/Main.qml" line="141"/>
+        <location filename="../scripts/main/Main.qml" line="155"/>
         <source>Quit</source>
         <translation>Wyjdź</translation>
+    </message>
+</context>
+<context>
+    <name>MeanSd</name>
+    <message>
+        <location filename="../scripts/result/MeanSd.qml" line="25"/>
+        <source>MEAN</source>
+        <translation>ŚREDNIA</translation>
+    </message>
+    <message>
+        <location filename="../scripts/result/MeanSd.qml" line="54"/>
+        <source>SD</source>
+        <translation>SD</translation>
     </message>
 </context>
 <context>
@@ -657,55 +690,103 @@
 <context>
     <name>PlayerSettings</name>
     <message>
-        <location filename="../scripts/settings/PlayerSettings.qml" line="29"/>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="31"/>
         <source>Delete %1?</source>
         <translation>Usunąć %1?</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/PlayerSettings.qml" line="54"/>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="56"/>
         <source>Select Profile</source>
         <translation>Wybierz profil</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/PlayerSettings.qml" line="103"/>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="106"/>
         <source>Scores: %1</source>
         <translation>Wyniki: %1</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/PlayerSettings.qml" line="108"/>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="111"/>
         <source>Remove</source>
         <translation>Usuń</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/PlayerSettings.qml" line="127"/>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="130"/>
         <source>Add profile</source>
         <translation>Dodaj profil</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/PlayerSettings.qml" line="146"/>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="149"/>
         <source>Edit Profile</source>
         <translation>Edytuj profil</translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="226"/>
+        <source>Online Login</source>
+        <translation>Logowanie online</translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="267"/>
+        <source>Logged in as %1</source>
+        <translation>Zalogowano jako %1</translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="272"/>
+        <source>Logout</source>
+        <translation>Wyloguj</translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="284"/>
+        <source>Sync scores</source>
+        <translation>Synchronizuj wyniki</translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="309"/>
+        <source>Email</source>
+        <translation>Email</translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="318"/>
+        <source>Password</source>
+        <translation>Hasło</translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="327"/>
+        <source>Login</source>
+        <translation>Zaloguj</translation>
+    </message>
+</context>
+<context>
+    <name>Ranking</name>
+    <message>
+        <location filename="../scripts/select/Ranking.qml" line="129"/>
+        <source>Ranking</source>
+        <translation>Ranking</translation>
+    </message>
+    <message>
+        <location filename="../scripts/select/Ranking.qml" line="141"/>
+        <source>Stats</source>
+        <translation>Statystyki</translation>
     </message>
 </context>
 <context>
     <name>ReplayAutoplay</name>
     <message>
-        <location filename="../scripts/select/ReplayAutoplay.qml" line="45"/>
+        <location filename="../scripts/select/ReplayAutoplay.qml" line="46"/>
         <source>NEWEST</source>
         <translation>NOWY</translation>
     </message>
     <message>
-        <location filename="../scripts/select/ReplayAutoplay.qml" line="47"/>
+        <location filename="../scripts/select/ReplayAutoplay.qml" line="48"/>
         <source>BEST SCORE</source>
         <translation>WYNIK</translation>
     </message>
     <message>
-        <location filename="../scripts/select/ReplayAutoplay.qml" line="49"/>
+        <location filename="../scripts/select/ReplayAutoplay.qml" line="50"/>
         <source>BEST CLEAR</source>
         <translation>CLEAR</translation>
     </message>
     <message>
-        <location filename="../scripts/select/ReplayAutoplay.qml" line="51"/>
+        <location filename="../scripts/select/ReplayAutoplay.qml" line="52"/>
         <source>BEST COMBO</source>
         <translation>COMBO</translation>
     </message>
@@ -810,6 +891,14 @@
         <location filename="../scripts/settings/ScreenSettings.qml" line="36"/>
         <source>Course Result Settings</source>
         <translation>Ustawienia ekranu wyników serii</translation>
+    </message>
+</context>
+<context>
+    <name>Select</name>
+    <message>
+        <location filename="../scripts/select/Select.qml" line="370"/>
+        <source>Score Details</source>
+        <translation>Szczegóły wyniku</translation>
     </message>
 </context>
 <context>
@@ -962,41 +1051,56 @@
     <name>ThemeSettings</name>
     <message>
         <location filename="../scripts/settings/ThemeSettings.qml" line="43"/>
+        <source>5k</source>
+        <translation>5k</translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/ThemeSettings.qml" line="44"/>
+        <source>5k Battle</source>
+        <translation>5k bitwa</translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/ThemeSettings.qml" line="45"/>
+        <source>10k</source>
+        <translation>10k</translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/ThemeSettings.qml" line="46"/>
         <source>7k</source>
         <translation>7k</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/ThemeSettings.qml" line="44"/>
+        <location filename="../scripts/settings/ThemeSettings.qml" line="47"/>
         <source>7k Battle</source>
         <translation>7k bitwa</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/ThemeSettings.qml" line="45"/>
+        <location filename="../scripts/settings/ThemeSettings.qml" line="48"/>
         <source>14k</source>
         <translation>14k</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/ThemeSettings.qml" line="46"/>
+        <location filename="../scripts/settings/ThemeSettings.qml" line="49"/>
         <source>Main Menu</source>
         <translation>Menu główne</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/ThemeSettings.qml" line="47"/>
+        <location filename="../scripts/settings/ThemeSettings.qml" line="50"/>
         <source>Settings</source>
         <translation>Ustawienia</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/ThemeSettings.qml" line="48"/>
+        <location filename="../scripts/settings/ThemeSettings.qml" line="51"/>
         <source>Select</source>
         <translation>Wybór piosenek</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/ThemeSettings.qml" line="49"/>
+        <location filename="../scripts/settings/ThemeSettings.qml" line="52"/>
         <source>Result</source>
         <translation>Ekran wyników</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/ThemeSettings.qml" line="50"/>
+        <location filename="../scripts/settings/ThemeSettings.qml" line="53"/>
         <source>Course Result</source>
         <translation>Ekran wyników serii</translation>
     </message>

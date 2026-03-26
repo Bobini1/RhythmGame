@@ -33,6 +33,19 @@ gameplay_logic::BmsScore::getGaugeHistory() const -> BmsGaugeHistory*
     return gaugeHistory;
 }
 void
+gameplay_logic::BmsScore::setSubmissionState(SubmissionState newState)
+{
+    if (submissionState != newState) {
+        submissionState = newState;
+        emit submissionStateChanged();
+    }
+}
+auto
+gameplay_logic::BmsScore::getSubmissionState() const -> SubmissionState
+{
+    return submissionState;
+}
+void
 gameplay_logic::BmsScore::save(db::SqliteCppDb& db) const
 {
     result->save(db);

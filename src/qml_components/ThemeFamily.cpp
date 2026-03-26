@@ -23,7 +23,7 @@ ThemeFamily::getScreensVariant() const -> QVariantMap
     return ret;
 }
 auto
-ThemeFamily::getScreens() const -> QMap<QString, Screen>
+ThemeFamily::getScreens() const -> const QMap<QString, Screen>&
 {
     return screens;
 }
@@ -35,10 +35,11 @@ ThemeFamily::ThemeFamily(QString path,
   , translations(std::move(translations))
 {
 }
-Screen::Screen(QUrl script, QUrl settings, QUrl settingsScript)
+Screen::Screen(QUrl script, QUrl settings, QUrl settingsScript, bool aliased)
   : script(std::move(script))
   , settings(std::move(settings))
   , settingsScript(std::move(settingsScript))
+  , aliased(aliased)
 {
 }
 auto
@@ -55,6 +56,11 @@ auto
 Screen::getSettingsScript() const -> QUrl
 {
     return settingsScript;
+}
+auto
+Screen::isAliased() const -> bool
+{
+    return aliased;
 }
 auto
 ThemeFamily::getTranslations() const -> QMap<QString, QUrl>

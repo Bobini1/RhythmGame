@@ -5,7 +5,6 @@
 #ifndef RHYTHMGAME_CHART_H
 #define RHYTHMGAME_CHART_H
 
-#include <QObject>
 #include "BmsGameReferee.h"
 #include "ChartData.h"
 #include "BmsScore.h"
@@ -15,8 +14,7 @@
 #include "NoteState.h"
 
 #include <QTimer>
-#include <qfuture.h>
-#include <qfuturewatcher.h>
+#include <QFutureWatcher>
 namespace gameplay_logic {
 class GameplayState;
 class Player;
@@ -78,6 +76,14 @@ class ChartRunner final : public QObject
      * @details Only set in battle mode, null otherwise.
      */
     Q_PROPERTY(Player* player2 READ getPlayer2 CONSTANT)
+    /**
+     * @brief Mapping of BmsKey to column index. Usually iota by default except
+     * in 10k mode, where the P2 side has columns moved right.
+     * @details If you want to flip scratch in 5k mode, you will want key 3 to
+     * correspond to column 1. Use this to achieve that.
+     */
+    Q_PROPERTY(QList<int> inputMapping READ getInputMapping WRITE
+                 setInputMapping NOTIFY inputMappingChanged)
 
     QTimer propertyUpdateTimer;
     std::chrono::steady_clock::time_point startTimepoint;
@@ -89,6 +95,7 @@ class ChartRunner final : public QObject
     Status status{ Loading };
     bool startRequested = false;
     ChartData::Keymode keymode;
+    QList<int> inputMapping;
 
     void updateElapsed();
     int numberOfSetupCalls = 0;
@@ -119,10 +126,13 @@ class ChartRunner final : public QObject
 
     auto getPlayer1() const -> Player*;
     auto getPlayer2() const -> Player*;
+    auto getInputMapping() const -> QList<int>;
+    void setInputMapping(QList<int> inputMapping);
 
   signals:
     void statusChanged();
     void bgaLoaded();
+    void inputMappingChanged();
 };
 
 /**
@@ -152,13 +162,22 @@ class Player : public QObject
      */
     Q_PROPERTY(resource_managers::Profile* profile READ getProfile CONSTANT)
     /**
-     * @brief The positition in the chart, expressed in beats.
+     * @brief The positition in the chart, expressed in beats*scroll
      */
     Q_PROPERTY(double position READ getPosition NOTIFY positionChanged)
+    /**
+     * @brief The position in the chart, expressed in beats
+     */
+    Q_PROPERTY(
+      double beatPosition READ getBeatPosition NOTIFY beatPositionChanged)
     /**
      * @brief The current BPM of the chart.
      */
     Q_PROPERTY(double bpm READ getBpm NOTIFY bpmChanged)
+    /**
+     * @brief The current #SCROLL of the chart.
+     */
+    Q_PROPERTY(double scroll READ getScroll NOTIFY scrollChanged)
     /**
      * @brief The elapsed time since the start of the chart, in nanoseconds.
      */
@@ -171,18 +190,23 @@ class Player : public QObject
      * @brief The length of the chart in nanoseconds.
      */
     Q_PROPERTY(int64_t chartLength READ getChartLength CONSTANT)
+
     BmsNotes* notes;
     GameplayState* state;
     QPointer<resource_managers::Profile> profile;
     BmsGameReferee::Position position{};
+    BmsGameReferee::Position beatPosition{};
     ChartRunner::Status status{ ChartRunner::Status::Loading };
     int64_t elapsed{};
     std::chrono::nanoseconds chartLength;
     double bpm;
+    double scroll = 1.0;
 
     void setElapsed(int64_t newElapsed);
     void setPosition(BmsGameReferee::Position position);
+    void setBeatPosition(BmsGameReferee::Position beatPosition);
     void setBpm(double newBpm);
+    void setScroll(double second);
 
     QFutureWatcher<BmsGameReferee> refereeWatcher;
     QFuture<BmsGameReferee> refereeFuture;
@@ -211,17 +235,21 @@ class Player : public QObject
     auto getState() const -> GameplayState*;
     auto getProfile() const -> resource_managers::Profile*;
     auto getPosition() const -> double;
+    auto getBeatPosition() const -> double;
     auto getElapsed() const -> int64_t;
     auto getStatus() const -> ChartRunner::Status;
     void setStatus(ChartRunner::Status status);
     auto getChartLength() const -> int64_t;
-    double getBpm() const;
-    auto finish() -> BmsScore*;
+    auto getBpm() const -> double;
+    auto getScroll() const -> double;
+    auto finish(const ChartData& chartData) -> BmsScore*;
 
   signals:
     void positionChanged(double delta);
+    void beatPositionChanged(double delta);
     void elapsedChanged(int64_t delta);
     void bpmChanged();
+    void scrollChanged();
     void statusChanged();
 };
 

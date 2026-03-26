@@ -42,7 +42,7 @@ Item {
             left: parent.left
             right: parent.right
             top: parent.top
-            topMargin: (column.position * column.heightMultiplier + height * (1 - playArea.generalVars.liftOn * playArea.generalVars.liftRatio)) - column.noteHeight
+            topMargin: (column.position * column.heightMultiplier + height * (1 - playArea.generalVars.liftOn * playArea.generalVars.liftRatio))
         }
 
         Repeater {
@@ -64,14 +64,22 @@ Item {
                 anchors {
                     horizontalCenter: parent.horizontalCenter
                     bottom: parent.bottom
-                    bottomMargin: (shouldShowStatic ? column.position : display.note.time.position) * column.heightMultiplier + flickable.height
+                    bottomMargin: (shouldShowStatic ? column.position : display.note.time.position) * column.heightMultiplier + flickable.height + noteImg.height
                 }
                 width: column.width
                 z: -index
 
                 Image {
                     id: noteImg
-                    height: column.noteHeight
+                    height: {
+                        switch (noteObj.display.note.type) {
+                            case note.Type.LongNoteBegin:
+                            case note.Type.LongNoteEnd:
+                                return column.noteHeight * 2;
+                            default:
+                                return column.noteHeight;
+                        }
+                    }
                     width: column.width
 
                     source: {
@@ -107,9 +115,9 @@ Item {
                             fillMode: Image.TileVertically
                             height: {
                                 if (!noteObj.shouldShowStatic) {
-                                    return (noteObj.nextPosition - noteObj.display.note.time.position) * column.heightMultiplier - column.noteHeight
+                                    return (noteObj.nextPosition - noteObj.display.note.time.position) * column.heightMultiplier - noteImg.height
                                 } else {
-                                    return (noteObj.nextPosition - column.position) * column.heightMultiplier - column.noteHeight
+                                    return (noteObj.nextPosition - column.position) * column.heightMultiplier - noteImg.height
                                 }
                             }
                             source: {

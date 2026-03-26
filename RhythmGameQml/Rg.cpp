@@ -17,6 +17,7 @@ Rg::Rg(qml_components::ProgramSettings* programSettings,
        resource_managers::Tables* tables,
        resource_managers::Languages* languages,
        sounds::AudioEngine* audioEngine,
+       qml_components::OnlineScores* onlineScores,
        QObject* parent)
   : QObject(parent)
   , programSettings(programSettings)
@@ -32,6 +33,7 @@ Rg::Rg(qml_components::ProgramSettings* programSettings,
   , tables(tables)
   , languages(languages)
   , audioEngine(audioEngine)
+  , onlineScores(onlineScores)
 {
 }
 Rg*

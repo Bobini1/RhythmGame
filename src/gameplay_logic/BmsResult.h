@@ -5,6 +5,8 @@
 #ifndef RHYTHMGAME_BMSRESULT_H
 #define RHYTHMGAME_BMSRESULT_H
 
+#include "ChartData.h"
+
 #include <magic_enum/magic_enum.hpp>
 #include "Judgement.h"
 #include "db/SqliteCppDb.h"
@@ -12,6 +14,7 @@
 #include "support/Version.h"
 
 #include <QObject>
+#include <QJsonObject>
 namespace gameplay_logic {
 /**
  * @brief The aggregated info about a score.
@@ -86,7 +89,7 @@ class BmsResult final : public QObject
      * @details If the chart uses
      * [#RANDOM](https://hitkey.nekokan.dyndns.info/cmds.htm#RANDOM),
      * this property provides the sequence of random values used to determine
-     * the note order. If the chart does not use randomization,
+     * the contents of the chart. If the chart does not use randomization,
      * this list will be empty.
      */
     Q_PROPERTY(QList<qint64> randomSequence READ getRandomSequence CONSTANT)
@@ -155,10 +158,25 @@ class BmsResult final : public QObject
     Q_PROPERTY(
       resource_managers::DpOptions dpOptions READ getDpOptions CONSTANT)
     /**
-     * @brief The game version when the score was achieved.
+     * @brief The keymode of the chart.
+     * @details Can be different from the keymode of chartData when
+     * resource_managers::dp_options::DpOptions is battle.
+     * @note This is the property used to determine which gampley screen to
+     * load.
+     */
+    Q_PROPERTY(
+      gameplay_logic::ChartData::Keymode keymode READ getKeymode CONSTANT)
+    /**
+     * @brief The game version where the score was achieved.
      * @details For migrations.
      */
     Q_PROPERTY(uint64_t gameVersion READ getGameVersion CONSTANT)
+    /**
+     * @brief The owner of the score.
+     * @details Local scores have an empty string as the source. For online
+     * scores, this is a link to the profile this score belongs to.
+     */
+    Q_PROPERTY(QString owner READ getOwner CONSTANT)
 
     double maxPoints;
     int maxHits;
@@ -184,6 +202,8 @@ class BmsResult final : public QObject
     resource_managers::NoteOrderAlgorithm noteOrderAlgorithmP2;
     resource_managers::DpOptions dpOptions;
     uint64_t gameVersion;
+    QString owner;
+    ChartData::Keymode keymode;
 
   public:
     struct DTO
@@ -215,7 +235,9 @@ class BmsResult final : public QObject
         int noteOrderAlgorithm;
         int noteOrderAlgorithmP2;
         int dpOptions;
+        int keymode;
         int64_t gameVersion;
+        std::string owner;
     };
     explicit BmsResult(
       double maxPoints,
@@ -237,10 +259,12 @@ class BmsResult final : public QObject
       resource_managers::NoteOrderAlgorithm noteOrderAlgorithm,
       resource_managers::NoteOrderAlgorithm noteOrderAlgorithmP2,
       resource_managers::DpOptions dpOptions,
+      ChartData::Keymode keymode,
       QString guid,
       QString sha256,
       QString md5,
       uint64_t gameVersion = support::currentVersion,
+      QString owner = QStringLiteral(""),
       QObject* parent = nullptr);
 
     auto getMaxPoints() const -> double;
@@ -266,10 +290,14 @@ class BmsResult final : public QObject
     auto getNoteOrderAlgorithmP2() const
       -> resource_managers::NoteOrderAlgorithm;
     auto getDpOptions() const -> resource_managers::DpOptions;
+    auto getKeymode() const -> ChartData::Keymode;
     auto getGameVersion() const -> uint64_t;
+    auto getOwner() const -> const QString&;
 
     void save(db::SqliteCppDb& db) const;
     static auto load(const DTO& dto) -> std::unique_ptr<BmsResult>;
+    auto toJson() const -> QJsonObject;
+    static auto fromJson(const QJsonObject& obj) -> std::unique_ptr<BmsResult>;
 };
 
 } // namespace gameplay_logic

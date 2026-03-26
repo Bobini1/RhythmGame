@@ -93,23 +93,22 @@ queryCharts(db::SqliteCppDb& db, QVariantList& ret, QStringList md5List)
     }
     queryStr += value;
 
-    queryStr +=
-      ") SELECT min(md5_list.idx), charts.id, charts.title, "
-      "charts.artist, charts.subtitle, charts.subartist, "
-      "charts.genre, charts.stage_file, charts.banner, "
-      "charts.back_bmp, charts.rank, charts.total, "
-      "charts.play_level, charts.difficulty, charts.is_random, "
-      "charts.random_sequence, charts.normal_note_count, "
-      "charts.scratch_count, charts.ln_count, charts.bss_count, "
-      "charts.mine_count, charts.length, "
-      "charts.initial_bpm, charts.max_bpm, charts.min_bpm, "
-      "charts.main_bpm, charts.avg_bpm, charts.peak_density, "
-      "charts.avg_density, charts.end_density, charts.path, "
-      "charts.directory, charts.sha256, charts.md5, charts.keymode, h.bpms, "
-      "h.histogram_data "
-      "FROM md5_list JOIN charts ON md5_list.md5 = charts.md5 "
-      "LEFT JOIN histogram_data h ON h.chart_id = charts.id GROUP "
-      "BY md5_list.idx";
+    queryStr += ") SELECT min(md5_list.idx), charts.id, charts.title, "
+                "charts.artist, charts.subtitle, charts.subartist, "
+                "charts.genre, charts.stage_file, charts.banner, "
+                "charts.back_bmp, charts.rank, charts.total, "
+                "charts.play_level, charts.difficulty, charts.is_random, "
+                "charts.random_sequence, charts.normal_note_count, "
+                "charts.scratch_count, charts.ln_count, charts.bss_count, "
+                "charts.mine_count, charts.length, "
+                "charts.initial_bpm, charts.max_bpm, charts.min_bpm, "
+                "charts.main_bpm, charts.avg_bpm, charts.peak_density, "
+                "charts.avg_density, charts.end_density, charts.path, "
+                "charts.directory, charts.sha256, charts.md5, charts.keymode, "
+                "charts.game_version, h.bpms, h.histogram_data "
+                "FROM md5_list JOIN charts ON md5_list.md5 = charts.md5 "
+                "LEFT JOIN histogram_data h ON h.chart_id = charts.id GROUP "
+                "BY md5_list.idx";
 
     auto query = db.createStatement(queryStr);
     for (const auto& [index, md5] : std::ranges::views::enumerate(md5List)) {

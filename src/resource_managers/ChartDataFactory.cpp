@@ -2,6 +2,8 @@
 // Created by bobini on 23.08.23.
 //
 
+#include "charts/Base62.h"
+#include "support/Version.h"
 #ifdef _WIN32
 #include <windows.h>
 #include <wil/resource.h>
@@ -250,7 +252,9 @@ createHistogram(const charts::BmsNotesData& calculatedNotesData,
                         histogram[-typeIndex][index]++;
                     }
                 } else if (typeIndex != 2 && typeIndex != 3) {
-                    histogram[typeIndex][positionIndex]++;
+                    if (positionIndex < numBuckets) {
+                        histogram[typeIndex][positionIndex]++;
+                    }
                 }
             }
         }
@@ -258,6 +262,84 @@ createHistogram(const charts::BmsNotesData& calculatedNotesData,
     return histogram;
 }
 
+void
+ChartDataFactory::handleImplicitSubtitle(QString& title,
+                                         QString& subtitle) const
+{
+    if (title.size() < 3 || !subtitle.isEmpty()) {
+        return;
+    }
+
+    auto u32 = title.toStdU32String();
+    auto delimiters = std::array{ U'～', U'〜', U'-',  U')',  U']', U'>',
+                                  U'"',  U'〕', U'】', U'］', U'）' };
+    auto delimitersStart = std::array{ U'～', U'〜', U'-',  U'(',  U'[', U'<',
+                                       U'"',  U'〔', U'【', U'［', U'（' };
+
+    auto selectedDelim = U'\0';
+    for (const auto& delimiter : delimiters) {
+        if (u32.back() == delimiter)
+            selectedDelim = delimiter;
+    }
+    if (selectedDelim == U'\0')
+        return;
+
+    auto delimIndex =
+      std::ranges::find(delimiters, selectedDelim) - delimiters.begin();
+    auto delimStart = delimitersStart[delimIndex];
+
+    // For non-paired delimiters (～, -, ") fall back to find_last_of
+    // since there's no nesting concept.
+    size_t openPos = std::u32string::npos;
+    if (delimStart == selectedDelim) {
+        openPos = u32.find_last_of(delimStart, u32.size() - 2);
+    } else {
+        // Walk backwards, tracking nesting depth to find the matching open.
+        int depth = 0;
+        for (size_t i = u32.size() - 1; i > 0; --i) {
+            if (u32[i] == selectedDelim)
+                ++depth;
+            else if (u32[i] == delimStart) {
+                --depth;
+                if (depth == 0) {
+                    openPos = i;
+                    break;
+                }
+            }
+        }
+    }
+
+    if (openPos == std::u32string::npos || openPos == 0)
+        return;
+    // To avoid weird titles like "(^^)⇒(^^X^^)⇒(^^)) ((^^)"
+    for (const auto& delimiter : delimitersStart) {
+        if (u32[openPos - 1] == delimiter) {
+            return;
+        }
+    }
+    // This is pretty much specifically for Δ(^^)
+    if (u32[openPos - 1] == U'Δ') {
+        return;
+    }
+
+    auto count = u32.size() - openPos;
+    if (count == 2)
+        return;
+
+    auto subTitleU32 = std::u32string(u32.data() + openPos, count);
+    auto remainderU32 = std::u32string(u32.data(), openPos);
+
+    subtitle = QString::fromStdU32String(subTitleU32);
+    auto titleWithoutTrim = QString::fromStdU32String(remainderU32);
+    title = titleWithoutTrim.trimmed();
+    auto titleSpaces = titleWithoutTrim.mid(title.size());
+
+    QString innerSubtitle;
+    handleImplicitSubtitle(title, innerSubtitle);
+
+    if (!innerSubtitle.isEmpty())
+        subtitle = innerSubtitle + titleSpaces + subtitle;
+}
 auto
 ChartDataFactory::loadChartData(const std::filesystem::path& chartPath,
                                 RandomGenerator randomGenerator,
@@ -266,10 +348,17 @@ ChartDataFactory::loadChartData(const std::filesystem::path& chartPath,
     auto [parsedChart, randomValues, sha256, md5] =
       readAndParse(chartPath, randomGenerator);
 
+    auto title = QString::fromUtf8(parsedChart.tags.title.value_or(""));
+    auto subtitle = QString::fromUtf8(parsedChart.tags.subTitle.value_or(""));
+    if (parsedChart.tags.title.has_value() &&
+        !parsedChart.tags.subTitle.has_value()) {
+        handleImplicitSubtitle(title, subtitle);
+    }
+
     auto metadata = ChartMetadata{
-        .title = QString::fromUtf8(parsedChart.tags.title.value_or("")),
+        .title = title,
         .artist = QString::fromUtf8(parsedChart.tags.artist.value_or("")),
-        .subtitle = QString::fromUtf8(parsedChart.tags.subTitle.value_or("")),
+        .subtitle = subtitle,
         .subartist = QString::fromUtf8(parsedChart.tags.subArtist.value_or("")),
         .genre = QString::fromUtf8(parsedChart.tags.genre.value_or("")),
         .stageFile = QString::fromUtf8(parsedChart.tags.stageFile.value_or("")),
@@ -287,13 +376,22 @@ ChartDataFactory::loadChartData(const std::filesystem::path& chartPath,
 
     std::unordered_map<uint64_t, std::filesystem::path> wavs;
     wavs.reserve(parsedChart.tags.wavs.size());
-    for (const auto& wav : parsedChart.tags.wavs) {
-        wavs.emplace(wav.first, support::utfStringToPath(wav.second));
+    auto base = parsedChart.tags.base.value_or(36);
+    for (const auto& [id, path] : parsedChart.tags.wavs) {
+        auto targetId = id;
+        if (base == 36) {
+            targetId = charts::base62ToBase36(id);
+        }
+        wavs[targetId] = support::utfStringToPath(path);
     }
     std::unordered_map<uint64_t, std::filesystem::path> bmps;
     bmps.reserve(parsedChart.tags.bmps.size());
-    for (const auto& bmp : parsedChart.tags.bmps) {
-        bmps.emplace(bmp.first, support::utfStringToPath(bmp.second));
+    for (const auto& [id, path] : parsedChart.tags.bmps) {
+        auto targetId = id;
+        if (base == 36) {
+            targetId = charts::base62ToBase36(id);
+        }
+        bmps[targetId] = support::utfStringToPath(path);
     }
 
     auto calculatedNotesData =
@@ -404,6 +502,10 @@ ChartDataFactory::buildChartComponents(
         }
     }
     auto keymode = gameplay_logic::ChartData::Keymode::K7;
+    if (calculatedNotesData.notes[5].empty() &&
+        calculatedNotesData.notes[6].empty()) {
+        keymode = gameplay_logic::ChartData::Keymode::K5;
+    }
     constexpr auto startColumn = calculatedNotesData.notes.size() / 2;
     for (auto columnIndex = startColumn;
          columnIndex < calculatedNotesData.notes.size();
@@ -413,16 +515,24 @@ ChartDataFactory::buildChartComponents(
             break;
         }
     }
+    if (keymode == gameplay_logic::ChartData::Keymode::K14) {
+        if (calculatedNotesData.notes[5].empty() &&
+            calculatedNotesData.notes[6].empty() &&
+            calculatedNotesData.notes[13].empty() &&
+            calculatedNotesData.notes[14].empty()) {
+            keymode = gameplay_logic::ChartData::Keymode::K10;
+        }
+    }
     auto initialBpm = calculatedNotesData.bpmChanges[0]; // guaranteed to exist
     auto maxBpm = initialBpm;
     for (const auto& bpmChange : calculatedNotesData.bpmChanges) {
-        if (bpmChange.second > maxBpm.second) {
+        if (bpmChange.bpm > maxBpm.bpm) {
             maxBpm = bpmChange;
         }
     }
     auto minBpm = initialBpm;
     for (const auto& bpmChange : calculatedNotesData.bpmChanges) {
-        if (bpmChange.second > 0.0 && bpmChange.second < minBpm.second) {
+        if (bpmChange.bpm > 0.0 && bpmChange.bpm < minBpm.bpm) {
             minBpm = bpmChange;
         }
     }
@@ -431,13 +541,14 @@ ChartDataFactory::buildChartComponents(
          it != calculatedNotesData.bpmChanges.end();
          ++it) {
         auto bpmChange = *it;
-        auto bpm = bpmChange.second;
-        auto timestamp = bpmChange.first.timestamp;
+        auto bpm = bpmChange.bpm;
+        auto timestamp = bpmChange.timestamp.timestamp;
         auto nextTimestamp = 0ns;
         if (it + 1 != calculatedNotesData.bpmChanges.end()) {
-            nextTimestamp = (it + 1)->first.timestamp;
+            nextTimestamp = (it + 1)->timestamp.timestamp;
         } else {
-            nextTimestamp = std::max(lastNoteTimestamp, timestamp);
+            nextTimestamp =
+              timestamp > lastNoteTimestamp ? timestamp : lastNoteTimestamp;
         }
         auto duration = nextTimestamp - timestamp;
         bpms[bpm] += duration;
@@ -449,7 +560,7 @@ ChartDataFactory::buildChartComponents(
         totalDuration += duration;
     }
     // find main bpm, which is the bpm with the longest duration
-    auto mainBpm = initialBpm.second;
+    auto mainBpm = initialBpm.bpm;
     auto longestDuration = 0ns;
     for (const auto& [bpm, duration] : bpms) {
         if (duration > longestDuration && bpm > 0.0) {
@@ -503,9 +614,13 @@ ChartDataFactory::buildChartComponents(
     auto path = support::pathToQString(chartPath);
     auto bpmChangesQ = QList<gameplay_logic::BpmChange>{};
     for (const auto& bpmChange : calculatedNotesData.bpmChanges) {
-        bpmChangesQ.append({ { .timestamp = bpmChange.first.timestamp.count(),
-                               .position = bpmChange.first.position },
-                             bpmChange.second });
+        bpmChangesQ.append({
+          { .timestamp = bpmChange.timestamp.timestamp.count(),
+            .position = bpmChange.timestamp.position,
+            .beatPosition = bpmChange.timestamp.beatPosition },
+          bpmChange.bpm,
+          bpmChange.scroll,
+        });
     }
     const auto seconds =
       std::chrono::duration_cast<std::chrono::seconds>(lastNoteTimestamp);
@@ -553,9 +668,9 @@ ChartDataFactory::buildChartComponents(
                                                   bssNotes,
                                                   mineNotes,
                                                   lastNoteTimestamp.count(),
-                                                  initialBpm.second,
-                                                  maxBpm.second,
-                                                  minBpm.second,
+                                                  initialBpm.bpm,
+                                                  maxBpm.bpm,
+                                                  minBpm.bpm,
                                                   mainBpm,
                                                   avgBpm,
                                                   peak,
@@ -567,7 +682,8 @@ ChartDataFactory::buildChartComponents(
                                                   std::move(metadata.md5),
                                                   keymode,
                                                   histogramForDisplay,
-                                                  bpmChangesQ);
+                                                  bpmChangesQ,
+                                                  support::currentVersion);
     auto noteData =
       makeNotes(calculatedNotesData.notes, calculatedNotesData.barLines);
     return { std::move(chartData),

@@ -11,7 +11,7 @@ function getClearType(scores) {
 }
 
 function getScoreWithBestPoints(scores) {
-    let bestPoints = 0;
+    let bestPoints = -1;
     let bestScore = null;
     for (let score of scores) {
         if (score.result.maxPoints === 0) {
@@ -21,6 +21,25 @@ function getScoreWithBestPoints(scores) {
         if (percent > bestPoints) {
             bestPoints = percent;
             bestScore = score;
+        }
+    }
+    return bestScore;
+}
+
+function getScoreWithBestClear(scores) {
+    let bestClear = "";
+    let bestScore = null;
+    let bestPoints = 0;
+    for (let score of scores) {
+        let oldIndex = clearTypePriorities.indexOf(bestClear);
+        let newIndex = clearTypePriorities.indexOf(score.result.clearType);
+        if (newIndex >= oldIndex || bestScore === null) {
+            if (newIndex === oldIndex && score.result.points / (score.result.maxPoints || 1) < bestPoints) {
+                continue;
+            }
+            bestClear = score.result.clearType;
+            bestScore = score;
+            bestPoints = score.result.points / (score.result.maxPoints || 1);
         }
     }
     return bestScore;
@@ -103,6 +122,31 @@ function getEarlyLate(replayData) {
         early: early,
         late: late
     };
+}
+
+function getStddevAndMean(replayData) {
+    if (!replayData || !replayData.hitEvents) {
+        return {mean: 0, stddev: 0};
+    }
+    const vals = [];
+    for (let hit of replayData.hitEvents) {
+        if (!hit.points) continue;
+        if (hit.points.judgement > Judgement.Perfect || hit.points.judgement < Judgement.Bad) continue;
+        const d = hit.points.deviation;
+        vals.push(d);
+    }
+    if (vals.length === 0) return {mean: 0, stddev: 0};
+    let sum = 0;
+    for (let v of vals) sum += v;
+    const mean = sum / vals.length;
+    let sq = 0;
+    for (let v of vals) {
+        const diff = v - mean;
+        sq += diff * diff;
+    }
+    const variance = sq / vals.length; // population variance
+    const stddev = Math.sqrt(variance);
+    return {mean: mean, stddev: stddev};
 }
 
 function capitalizeFirstLetter(string) {

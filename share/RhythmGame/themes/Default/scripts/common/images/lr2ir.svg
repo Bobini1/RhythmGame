@@ -1,0 +1,10 @@
+<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+    <rect x="0" y="0" width="200" height="200" fill="black" rx="16"/>
+    <text x="100" y="118"
+          text-anchor="middle"
+          font-family="sans-serif"
+          font-weight="bold"
+          font-size="60"
+          fill="white">LR2IR
+    </text>
+</svg>

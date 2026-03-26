@@ -11,7 +11,7 @@
 #include "charts/BmsNotesData.h"
 namespace sounds {
 class AudioEngine;
-}
+} // namespace sounds
 namespace qml_components {
 class ProfileList;
 } // namespace qml_components
@@ -61,6 +61,7 @@ class ChartFactory
         NoteOrderAlgorithm noteOrderAlgorithm;
         NoteOrderAlgorithm noteOrderAlgorithmP2;
         DpOptions dpOptions = DpOptions::Off;
+        uint64_t randomSeed;
         bool autoPlay = false;
     };
     ChartFactory(sounds::AudioEngine* engine,

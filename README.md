@@ -29,6 +29,18 @@ You can use the [default theme](https://github.com/Bobini1/RhythmGame/tree/maste
 reference.
 See the [DEV_THEME.md](DEV_THEME.md) document for more information.
 
+### Internet Ranking with Bokutachi and LR2IR support
+
+Compete with players around the world! RhythmGame supports has its own native IR server at https://rhythmgame.eu,
+but you can also submit your scores to [Bokutachi](https://boku.tachi.ac/) and see the scores from
+the [Lunatic Rave 2 Internet Ranking](http://www.dream-pro.info/~lavalse/LR2IR/search.cgi).
+
+[![Internet ranking](docs/images/ranking.png)](https://rhythmgame.eu)
+
+|                      Ranking                       |                      Online Stats                       |
+|:--------------------------------------------------:|:-------------------------------------------------------:|
+| ![In-game ranking](docs/images/ranking-ingame.png) | ![In-game ranking stats](docs/images/ranking-stats.png) |
+
 ### Rules based on Lunatic Rave 2
 
 The timing windows and gauges match Lunatic Rave 2/Lr2oraja

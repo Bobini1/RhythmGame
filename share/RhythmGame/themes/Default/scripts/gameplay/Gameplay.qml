@@ -24,10 +24,27 @@ Rectangle {
         return "k" + keys + (battle ? "battle" : "");
     }
     property var popup: null
-    readonly property bool isDp: screen === "k14"
-    readonly property bool isBattle: screen === "k7battle"
+    readonly property bool isDp: screen === "k14" || screen === "k10"
+    readonly property bool isBattle: screen === "k7battle" || screen === "k5battle"
     readonly property bool isCourse: chart instanceof CourseRunner
     property var chart
+    function isPlayerScratchRightSide(player) {
+        return player?.profile?.vars?.themeVars[root.screen][root.themeName]?.scratchOnRightSide;
+    }
+    property var inputMapping: {
+        let left = [0, 1, 2, 3, 4, 5, 6, 7];
+        let right = [8, 9, 10, 11, 12, 13, 14, 15];
+        if (chart.player1.score.keymode === 5 && isPlayerScratchRightSide(chart.player1)) {
+            left = [6, 5, 0, 1, 2, 3, 4, 7];
+        }
+        if ((chart.player2 && chart.player2.score.keymode === 5 && isPlayerScratchRightSide(chart.player2)) || chart.player1.score.keymode === 10) {
+            right = [14, 13, 8, 9, 10, 11, 12, 15];
+        }
+        return left.concat(right);
+    }
+    onInputMappingChanged: {
+        chart.inputMapping = inputMapping;
+    }
     readonly property string themeName: QmlUtils.themeName
     property var scores1: []
     property var scoreWithBestPoints1: Helpers.getScoreWithBestPoints(scores1)
@@ -380,7 +397,17 @@ Rectangle {
             dpSuffix: root.isDp ? "1" : ""
             index: 0
             pointTarget: root.targetPoints1
-            columns: root.isDp || !profileVars.scratchOnRightSide ? [7, 0, 1, 2, 3, 4, 5, 6] : [0, 1, 2, 3, 4, 5, 6, 7]
+            columns: {
+                if (root.isDp) {
+                    return [7, 0, 1, 2, 3, 4, 5, 6];
+                } else {
+                    if (root.isPlayerScratchRightSide(chart.player1)) {
+                        return chart.player1.score.keymode === 7 ? [0, 1, 2, 3, 4, 5, 6, 7] : [6, 5, 0, 1, 2, 3, 4, 7];
+                    } else {
+                        return [7, 0, 1, 2, 3, 4, 5, 6];
+                    }
+                }
+            }
         }
         Loader {
             id: p2SideLoader
@@ -395,9 +422,13 @@ Rectangle {
                 pointTarget: root.isDp ? root.targetPoints1 : root.targetPoints2
                 columns: {
                     if (root.isDp) {
-                        return [8, 9, 10, 11, 12, 13, 14, 15];
+                        return chart.player1.score.keymode === 14 ? [8, 9, 10, 11, 12, 13, 14, 15] : [14, 13, 8, 9, 10, 11, 12, 15];
                     } else {
-                        return profileVars.scratchOnRightSide ? [0, 1, 2, 3, 4, 5, 6, 7] : [7, 0, 1, 2, 3, 4, 5, 6];
+                        if (root.isPlayerScratchRightSide(chart.player2)) {
+                            return chart.player2.score.keymode === 7 ? [0, 1, 2, 3, 4, 5, 6, 7] : [6, 5, 0, 1, 2, 3, 4, 7];
+                        } else {
+                            return [7, 0, 1, 2, 3, 4, 5, 6];
+                        }
                     }
                 }
             }

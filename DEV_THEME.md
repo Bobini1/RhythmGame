@@ -17,9 +17,9 @@ Here is an example of a minimal `theme.json` file:
 
 ```json
 {
-    "scripts": {
-        "result": "result.qml"
-    }
+  "scripts": {
+    "result": "result.qml"
+  }
 }
 ```
 
@@ -33,12 +33,12 @@ you can define a `settings` field in `theme.json`.
 
 ```json
 {
-    "scripts": {
-        "result": "result.qml"
-    },
-    "settings": {
-        "result": "result.json"
-    }
+  "scripts": {
+    "result": "result.qml"
+  },
+  "settings": {
+    "result": "result.json"
+  }
 }
 ```
 
@@ -98,15 +98,15 @@ You can override the auto-generated settings page for a screen by providing a QM
 
 ```json
 {
-    "scripts": {
-        "result": "result.qml"
-    },
-    "settings": {
-        "result": "result.json"
-    },
-    "settingsScripts": {
-        "result": "resultSettings.qml"
-    }
+  "scripts": {
+    "result": "result.qml"
+  },
+  "settings": {
+    "result": "result.json"
+  },
+  "settingsScripts": {
+    "result": "resultSettings.qml"
+  }
 }
 ```
 
@@ -118,19 +118,19 @@ Translations are described in [DEV_LANG.md](DEV_LANG.md).
 
 ```json
 {
-    "scripts": {
-        "result": "result.qml"
-    },
-    "settings": {
-        "result": "result.json"
-    },
-    "settingsScripts": {
-        "result": "resultSettings.qml"
-    },
-    "translations": {
-        "en": "en.qm",
-        "pl": "pl.qm"
-    }
+  "scripts": {
+    "result": "result.qml"
+  },
+  "settings": {
+    "result": "result.json"
+  },
+  "settingsScripts": {
+    "result": "resultSettings.qml"
+  },
+  "translations": {
+    "en": "en.qm",
+    "pl": "pl.qm"
+  }
 }
 ```
 
@@ -169,8 +169,8 @@ Do not remove screens from under yourself. It's messy and unnecessary.
 `sceneStack` contains a few helper methods:
 
 ```qml
-function openChart(path, profile1, autoplay1, score1, profile2, autoplay2, score2)
-function openCourse(course, profile1, autoplay1, score1, profile2, autoplay2, score2)
+function openChart(path, profile1, autoplay1, replay1, score1, profile2, autoplay2, replay2, score2)
+function openCourse(course, profile1, autoplay1, replay1, score1, profile2, autoplay2, replay2, score2)
 function openResult(scores, profiles, chartData)
 function openCourseResult(scores, profiles, chartDatas, course)
 ```

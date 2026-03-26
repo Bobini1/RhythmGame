@@ -55,7 +55,7 @@ https://github.com/souki202/my_beatoraja_skin
 
 #### SocialSkin dependencies:
 
-* Background image: (Originally: \*/background/\*.png; RhythmGame: bg.png, clear.png, failed.png):
+* Background image: (Originally: \*/background/\*.png; RhythmGame: bg.png, clear.png, failed.png, flower-back0716.png):
   Flower images from [百花繚乱](https://flowerillust.com/).
 * Font: Copyright © 2014, 2015 Adobe Systems Incorporated (http://www.adobe.com/),
   with Reserved Font Name 'Source', Kozuka Gothic.
@@ -131,6 +131,13 @@ The GNU Lesser General Public License Version 3 (LGPL-3.0)
 Copyright © The Qt Company Ltd.
 
 https://doc.qt.io/qt-6/lgpl.html
+
+### QtKeychain
+
+BSD 3-Clause "New" or "Revised" License (BSD 3-Clause)
+
+Copyright © 2011–2015 Frank Osterfeld
+Copyright © 2016 Mathias Hasselmann
 
 ### libxml2
 
@@ -827,3 +834,60 @@ BSD 2-Clause License (BSD-2-Clause)
 Copyright © 2001-2014 Peter Johnson and other Yasm developers
 
 https://github.com/yasm/yasm/blob/master/COPYING
+
+### libdbus-1 headers
+
+Academic Free License v2.1 (AFL-2.1)
+
+Copyright © 2002, 2003 CodeFactory AB
+Copyright © 2004, 2005 Red Hat, Inc.
+
+### libsecret
+
+GNU Lesser General Public License v2.1 or later (LGPL-2.1-or-later)
+
+### libgcrypt
+
+GNU Lesser General Public License v2.1 or later (LGPL-2.1-or-later)
+
+#### BSD 3-Clause License (BSD-3-Clause):
+
+cipher/sha256-avx-amd64.S
+cipher/sha256-avx2-bmi2-amd64.S
+cipher/sha256-ssse3-amd64.S
+cipher/sha512-avx-amd64.S
+cipher/sha512-avx2-bmi2-amd64.S
+cipher/sha512-ssse3-amd64.S
+cipher/sha512-ssse3-i386.c
+cipher/sha512-avx512-amd64.S
+
+Copyright © 2012, Intel Corporation
+
+cipher/poly1305-amd64-avx512.S
+
+Copyright © 2021–2022, Intel Corporation
+
+random/jitterentropy-base.c
+random/jitterentropy-gcd.c
+random/jitterentropy-gcd.h
+random/jitterentropy-health.c
+random/jitterentropy-health.h
+random/jitterentropy-noise.c
+random/jitterentropy-noise.h
+random/jitterentropy-sha3.c
+random/jitterentropy-sha3.h
+random/jitterentropy-timer.c
+random/jitterentropy-timer.h
+random/jitterentropy.h
+random/rndjent.c (plus common Libgcrypt copyright holders)
+
+Copyright © 2017–2021, Stephan Mueller <smueller@chronox.de>
+
+cipher/cipher-gcm-ppc.c
+cipher/keccak-amd64-avx512.S
+
+Copyright © 2006, CRYPTOGAMS by <appro@openssl.org> All rights reserved.
+
+### libgpg-error
+
+GNU Lesser General Public License v2.1 or later (LGPL-2.1-or-later)

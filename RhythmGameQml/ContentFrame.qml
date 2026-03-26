@@ -17,9 +17,20 @@ ApplicationWindow {
         property alias width: contentContainer.width
         property int visibility
     }
+    property bool settingsRestored: false
     Component.onCompleted: {
         if (settings.visibility) {
             contentContainer.visibility = settings.visibility;
+        }
+    }
+    onActiveChanged: {
+        if (active && !settingsRestored) {
+            settingsRestored = true;
+        }
+    }
+    onVisibilityChanged: {
+        if (settingsRestored && (contentContainer.visibility === Window.Windowed || contentContainer.visibility === Window.FullScreen)) {
+            settings.visibility = contentContainer.visibility;
         }
     }
     Shortcut {
@@ -29,10 +40,8 @@ ApplicationWindow {
         onActivated: {
             if (contentContainer.visibility === Window.FullScreen) {
                 contentContainer.visibility = Window.Windowed;
-                settings.visibility = Window.Windowed;
             } else {
                 contentContainer.visibility = Window.FullScreen;
-                settings.visibility = Window.FullScreen;
             }
         }
     }
@@ -44,14 +53,17 @@ ApplicationWindow {
         readonly property Component k7Component: Qt.createComponent(Rg.themes.availableThemeFamilies[mainProfile.themeConfig.k7].screens.k7.script)
         readonly property Component k7battleComponent: Qt.createComponent(Rg.themes.availableThemeFamilies[mainProfile.themeConfig.k7battle].screens.k7battle.script)
         readonly property Component k14Component: Qt.createComponent(Rg.themes.availableThemeFamilies[mainProfile.themeConfig.k14].screens.k14.script)
+        readonly property Component k5Component: Qt.createComponent(Rg.themes.availableThemeFamilies[mainProfile.themeConfig.k5].screens.k5.script)
+        readonly property Component k5battleComponent: Qt.createComponent(Rg.themes.availableThemeFamilies[mainProfile.themeConfig.k5battle].screens.k5battle.script)
+        readonly property Component k10Component: Qt.createComponent(Rg.themes.availableThemeFamilies[mainProfile.themeConfig.k10].screens.k10.script)
         readonly property Component mainComponent: Qt.createComponent(Rg.themes.availableThemeFamilies[mainProfile.themeConfig.main].screens.main.script)
         readonly property Component resultComponent: Qt.createComponent(Rg.themes.availableThemeFamilies[mainProfile.themeConfig.result].screens.result.script)
         readonly property Component settingsComponent: Qt.createComponent(Rg.themes.availableThemeFamilies[mainProfile.themeConfig.settings].screens.settings.script)
         readonly property Component selectComponent: Qt.createComponent(Rg.themes.availableThemeFamilies[mainProfile.themeConfig.select].screens.select.script)
         readonly property Component decideComponent: Qt.createComponent(Rg.themes.availableThemeFamilies[mainProfile.themeConfig.decide].screens.decide.script)
 
-        function openChart(path, profile1, autoplay1, score1, profile2, autoplay2, score2) {
-            let chart = Rg.chartLoader.loadChart(path, profile1, autoplay1, score1, profile2, autoplay2, score2);
+        function openChart(path, profile1, autoplay1, replay1, score1, profile2, autoplay2, replay2, score2) {
+            let chart = Rg.chartLoader.loadChart(path, profile1, autoplay1, replay1, score1, profile2, autoplay2, replay2, score2);
             if (!chart) {
                 console.error("Failed to load chart");
                 return;
@@ -61,8 +73,8 @@ ApplicationWindow {
             });
         }
 
-        function openCourse(course, profile1, autoplay1, score1, profile2, autoplay2, score2) {
-            let runner = Rg.chartLoader.loadCourse(course, profile1, autoplay1, score1, profile2, autoplay2, score2);
+        function openCourse(course, profile1, autoplay1, replay1, score1, profile2, autoplay2, replay2, score2) {
+            let runner = Rg.chartLoader.loadCourse(course, profile1, autoplay1, replay1, score1, profile2, autoplay2, replay2, score2);
             if (!runner) {
                 console.error("Failed to load course");
                 return;

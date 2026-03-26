@@ -59,11 +59,13 @@ Item {
     readonly property var generalVars: profile.vars.generalVars
     readonly property list<real> columnSizes: root.getColumnSizes(vars)
     property real position
+    property real beatPosition
     property var pointTarget
     FrameAnimation {
         running: true
         onTriggered: {
             playArea.position = playArea.player.position;
+            playArea.beatPosition = playArea.player.beatPosition;
         }
     }
 
@@ -107,12 +109,14 @@ Item {
             model: playArea.barLinesState
             heightMultiplier: playArea.heightMultiplier
             position: playArea.position
-            height: parent.height
+
             anchors {
                 left: parent.left
                 right: parent.right
                 top: parent.top
-                topMargin: (playArea.position * playArea.heightMultiplier + height * (1 - playArea.generalVars.liftOn * playArea.generalVars.liftRatio)) - 0.5
+                bottomMargin: parent.height * (playArea.generalVars.liftOn * playArea.generalVars.liftRatio)
+                topMargin: parent.height * (playArea.generalVars.laneCoverOn * playArea.generalVars.laneCoverRatio)
+                bottom: parent.bottom
             }
             z: 2
         }
@@ -183,7 +187,7 @@ Item {
 
             anchors.bottom: judgeLine.bottom
             opacity: {
-                let pos = Math.abs(playArea.position % 1);
+                let pos = Math.abs(playArea.beatPosition % 1);
                 return (pos > 0.5 ? pos : 1 - pos) * 0.2 + 0.1;
             }
             source: root.imagesUrl + "glow/" + playArea.vars.glow

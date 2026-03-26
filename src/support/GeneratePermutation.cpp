@@ -160,19 +160,52 @@ shuffleAllNotes(std::span<std::vector<charts::BmsNotesData::Note>> arr,
 }
 
 auto
+convertColumnsToK7(QList<int>& columns) -> void
+{
+    if (columns.size() == 6) {
+        // add 5 at index 5
+        columns.insert(5, 5);
+        columns.insert(6, 6);
+    }
+}
+
+auto
+convertNotesToK7(std::span<std::vector<charts::BmsNotesData::Note>>& notes)
+  -> void
+{
+    using std::swap;
+    swap(notes[5], notes[7]);
+}
+
+auto
 generatePermutation(std::span<std::vector<charts::BmsNotesData::Note>>& notes,
                     const resource_managers::NoteOrderAlgorithm algorithm,
-                    const uint64_t randomSeed) -> ShuffleResult
+                    const uint64_t randomSeed,
+                    bool k5) -> ShuffleResult
 {
     using RandomGenerator = std::mt19937_64;
+    auto originalSpan = notes;
+    if (k5) {
+        // temporarily move column 7 to column 5
+        notes[5].swap(notes[7]);
+        notes = notes.subspan(0, 6);
+    }
     auto columns = getColumsIota(notes.size());
     switch (algorithm) {
         case resource_managers::NoteOrderAlgorithm::Normal: {
+            convertColumnsToK7(columns);
+            if (k5) {
+                convertNotesToK7(originalSpan);
+            }
             return { 0, columns };
         }
         case resource_managers::NoteOrderAlgorithm::Mirror: {
             std::reverse(columns.begin(), columns.end() - 1);
             std::reverse(notes.begin(), notes.end() - 1);
+            convertColumnsToK7(columns);
+            if (k5) {
+                convertNotesToK7(originalSpan);
+            }
             return { 0, columns };
         }
         case resource_managers::NoteOrderAlgorithm::RRandom: {
@@ -188,6 +221,10 @@ generatePermutation(std::span<std::vector<charts::BmsNotesData::Note>>& notes,
                 std::reverse(columns.begin(), columns.end() - 1);
                 std::reverse(notes.begin(), notes.end() - 1);
             }
+            convertColumnsToK7(columns);
+            if (k5) {
+                convertNotesToK7(originalSpan);
+            }
             return { randomSeed, columns };
         }
         case resource_managers::NoteOrderAlgorithm::Random: {
@@ -198,6 +235,10 @@ generatePermutation(std::span<std::vector<charts::BmsNotesData::Note>>& notes,
             randomGenerator.seed(randomSeed);
             fisherYatesShuffle(std::span(notes).subspan(0, notes.size() - 1),
                                randomGenerator);
+            convertColumnsToK7(columns);
+            if (k5) {
+                convertNotesToK7(originalSpan);
+            }
             return { randomSeed, columns };
         }
         case resource_managers::NoteOrderAlgorithm::RandomPlus: {
@@ -205,6 +246,10 @@ generatePermutation(std::span<std::vector<charts::BmsNotesData::Note>>& notes,
             fisherYatesShuffle(std::span(columns), randomGenerator);
             randomGenerator.seed(randomSeed);
             fisherYatesShuffle(notes, randomGenerator);
+            convertColumnsToK7(columns);
+            if (k5) {
+                convertNotesToK7(originalSpan);
+            }
             return { randomSeed, columns };
         }
         case resource_managers::NoteOrderAlgorithm::SRandom: {
@@ -213,12 +258,17 @@ generatePermutation(std::span<std::vector<charts::BmsNotesData::Note>>& notes,
             shuffleAllNotes(std::span(notes).subspan(0, notes.size() - 1),
                             preferredNoteDistance,
                             randomGenerator);
+            convertColumnsToK7(columns);
             return { randomSeed, columns };
         }
         case resource_managers::NoteOrderAlgorithm::SRandomPlus: {
             auto randomGenerator = RandomGenerator{ randomSeed };
             static constexpr auto preferredNoteDistance = 40ms;
             shuffleAllNotes(notes, preferredNoteDistance, randomGenerator);
+            convertColumnsToK7(columns);
+            if (k5) {
+                convertNotesToK7(originalSpan);
+            }
             return { randomSeed, columns };
         }
     }

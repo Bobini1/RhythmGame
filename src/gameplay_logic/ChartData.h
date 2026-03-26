@@ -6,6 +6,7 @@
 #define RHYTHMGAME_CHARTDATA_H
 
 #include <QQmlEngine>
+#include <QJsonObject>
 #include "db/SqliteCppDb.h"
 #include "BmsNotes.h"
 namespace gameplay_logic {
@@ -28,8 +29,6 @@ class ChartData : public QObject
      * @details The keymode of the chart, i.e. how many keys/columns it has.
      * If the DP option "Battle" is enabled, an SP chart will have 14 keys
      * regardless, so pay attention to that.
-     * @warning K5 and K10 are unimplemented and treated as K7 and K14
-     * respectively.
      */
     enum class Keymode
     {
@@ -165,7 +164,7 @@ class ChartData : public QObject
      * @details If the chart uses
      * [#RANDOM](https://hitkey.nekokan.dyndns.info/cmds.htm#RANDOM),
      * this property provides the sequence of random values used to determine
-     * the note order. If the chart does not use randomization,
+     * the contents of the chart. If the chart does not use randomization,
      * this list will be empty.
      */
     Q_PROPERTY(QList<qint64> randomSequence READ getRandomSequence CONSTANT)
@@ -173,8 +172,6 @@ class ChartData : public QObject
      * @brief The keymode of the chart, i.e. how many keys/columns it has.
      * If the DP option "Battle" is enabled, an SP chart will have 14 keys
      * regardless, so pay attention to that.
-     * @warning K5 and K10 are unimplemented and treated as K7 and K14,
-     * respectively.
      * @see Keymode
      */
     Q_PROPERTY(Keymode keymode READ getKeymode CONSTANT)
@@ -230,6 +227,10 @@ class ChartData : public QObject
      * @brief The list of BPM changes in the chart.
      */
     Q_PROPERTY(QList<BpmChange> bpmChanges READ getBpmChanges CONSTANT)
+    /**
+     * @brief The game version where the chart was parsed.
+     */
+    Q_PROPERTY(quint64 gameVersion READ getGameVersion CONSTANT)
 
   public:
     ChartData(QString title,
@@ -267,6 +268,7 @@ class ChartData : public QObject
               Keymode keymode,
               QList<QList<qint64>> histogramData,
               QList<BpmChange> bpmChanges,
+              quint64 gameVersion,
               QObject* parent = nullptr);
 
     [[nodiscard]] auto getTitle() const -> const QString&;
@@ -305,6 +307,7 @@ class ChartData : public QObject
     [[nodiscard]] auto getChartDirectory() const -> QString;
     [[nodiscard]] auto getHistogramData() -> QList<QList<qint64>>&;
     [[nodiscard]] auto getBpmChanges() -> QList<BpmChange>&;
+    [[nodiscard]] auto getGameVersion() const -> quint64;
 
     auto clone() const -> std::unique_ptr<ChartData>;
 
@@ -344,12 +347,14 @@ class ChartData : public QObject
         std::string sha256;
         std::string md5;
         int keymode;
+        int64_t gameVersion;
         std::string bpmChanges;
         std::string histogramData;
     };
 
     auto save(db::SqliteCppDb& db) const -> void;
     static auto load(const DTO& chartDataDto) -> std::unique_ptr<ChartData>;
+    auto toJson() const -> QJsonObject;
 
   private:
     QString title;
@@ -386,6 +391,7 @@ class ChartData : public QObject
     QString sha256;
     QString md5;
     Keymode keymode;
+    quint64 gameVersion;
     QList<QList<qint64>> histogramData;
     QList<BpmChange> bpmChanges;
 };

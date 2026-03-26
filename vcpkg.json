@@ -51,7 +51,8 @@
         "xcb",
         "xcb-xlib",
         "xrender",
-        "egl"
+        "egl",
+        "dbus"
       ],
       "platform": "linux"
     },
@@ -67,6 +68,7 @@
         "qml"
       ]
     },
+    "qtkeychain-qt6",
     {
       "name": "mimalloc",
       "features": [

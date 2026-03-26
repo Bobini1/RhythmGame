@@ -48,6 +48,7 @@ class ChartDataFactory
                        charts::BmsNotesData::columnNumber>& notes,
       const std::vector<charts::BmsNotesData::Time>& barLines)
       -> std::unique_ptr<gameplay_logic::BmsNotes>;
+    void handleImplicitSubtitle(QString& title, QString& subtitle) const;
     auto loadChartData(const std::filesystem::path& chartPath,
                        RandomGenerator randomGenerator,
                        int64_t directory = 0) const -> ChartComponents;

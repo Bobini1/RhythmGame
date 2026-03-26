@@ -11,6 +11,7 @@ Image {
     required property var scores
     property var bestStats: Helpers.getBestStats(scores)
     property var scoreWithBestPoints: Helpers.getScoreWithBestPoints(scores)
+    property var scoreWithBestClear: Helpers.getScoreWithBestClear(scores)
     property bool scrollingText: false
     property bool isCurrentItem: false
     readonly property bool isCourse: modelData instanceof course

@@ -80,6 +80,13 @@
       "choices": [
         {
           "name": {
+            "en": "5K",
+            "pl": "5K"
+          },
+          "value": "5"
+        },
+        {
+          "name": {
             "en": "7K",
             "pl": "7K"
           },
@@ -87,10 +94,31 @@
         },
         {
           "name": {
+            "en": "Single",
+            "pl": "Single"
+          },
+          "value": "SINGLE"
+        },
+        {
+          "name": {
+            "en": "10K",
+            "pl": "10K"
+          },
+          "value": "10"
+        },
+        {
+          "name": {
             "en": "14K",
             "pl": "14K"
           },
           "value": "14"
+        },
+        {
+          "name": {
+            "en": "Double",
+            "pl": "Double"
+          },
+          "value": "DOUBLE"
         },
         {
           "name": {
@@ -113,6 +141,42 @@
       },
       "type": "boolean",
       "default": false
+    },
+    {
+      "id": "rankingProvider",
+      "name": {
+        "en": "Ranking Provider",
+        "pl": "Dostawca rankingów"
+      },
+      "description": {
+        "en": "The provider of online rankings.",
+        "pl": "Dostawca rankingów online."
+      },
+      "type": "choice",
+      "default": "rhythmgame",
+      "choices": [
+        {
+          "name": {
+            "en": "RhythmGame",
+            "pl": "RhythmGame"
+          },
+          "value": "rhythmgame"
+        },
+        {
+          "name": {
+            "en": "LR2IR",
+            "pl": "LR2IR"
+          },
+          "value": "lr2ir"
+        },
+        {
+          "name": {
+            "en": "Bokutachi",
+            "pl": "Bokutachi"
+          },
+          "value": "bokutachi"
+        }
+      ]
     }
   ]
 }

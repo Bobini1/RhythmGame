@@ -19,12 +19,14 @@ Item {
 
     readonly property string imagesUrl: Qt.resolvedUrl(".") + "images/"
     readonly property string iniImagesUrl: "image://ini/" + rootUrl + "images/"
+    readonly property string commonImagesUrl: Qt.resolvedUrl("../common/") + "images/"
     readonly property string rootUrl: QmlUtils.fileName.slice(0, QmlUtils.fileName.lastIndexOf("/") + 1)
     readonly property var score1: scores[0]
     readonly property var score2: scores[1] || null
     readonly property Profile profile1: profiles[0]
     readonly property Profile profile2: profiles[1] || null
     readonly property bool isBattle: score1 && score2
+    readonly property var chartKeymode: chartData ? chartData.keymode : chartDatas[0].keymode
 
     Input.onButtonPressed: (key) => {
         if ([BmsKey.Col11, BmsKey.Col12, BmsKey.Col13, BmsKey.Col14, BmsKey.Col15, BmsKey.Col16, BmsKey.Col17,
@@ -111,7 +113,7 @@ Item {
                 ChartInfo {
                     difficulty: root.chartData?.difficulty
                     total: root.chartData?.total
-                    noteCount: root.score1.result.normalNoteCount + root.score1.result.lnCount + root.score1.result.bssCount
+                    noteCount: root.score1.result.normalNoteCount + root.score1.result.lnCount + root.score1.result.bssCount + root.score1.result.scratchCount
 
                     anchors.bottom: parent.bottom
                     anchors.bottomMargin: 24
@@ -126,6 +128,7 @@ Item {
                 profile: root.profile1
                 width: parent.width
                 anchors.top: chartInfoRow.bottom
+                chartKeymode: root.chartKeymode
             }
 
             Loader {
@@ -137,6 +140,7 @@ Item {
                     isBattle: root.isBattle
                     profile: root.profile2
                     mirrored: true
+                    chartKeymode: root.chartKeymode
                 }
             }
 
@@ -148,7 +152,6 @@ Item {
                 width: parent.width
                 chartDatas: root.chartDatas
             }
-
         }
     }
 }

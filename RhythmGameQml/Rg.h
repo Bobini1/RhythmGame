@@ -15,6 +15,7 @@
 #include "sounds/AudioEngine.h"
 #include "resource_managers/Languages.h"
 #include "resource_managers/Tables.h"
+#include "qml_components/OnlineScores.h"
 
 #include <QObject>
 #include <qqmlintegration.h>
@@ -53,6 +54,8 @@ class Rg final : public QObject
     Q_PROPERTY(
       resource_managers::Languages* languages MEMBER languages CONSTANT)
     Q_PROPERTY(sounds::AudioEngine* audioEngine MEMBER audioEngine CONSTANT)
+    Q_PROPERTY(
+      qml_components::OnlineScores* onlineScores MEMBER onlineScores CONSTANT)
 
     qml_components::ProgramSettings* programSettings;
     input::InputTranslator* inputTranslator;
@@ -67,6 +70,7 @@ class Rg final : public QObject
     resource_managers::Tables* tables;
     resource_managers::Languages* languages;
     sounds::AudioEngine* audioEngine;
+    qml_components::OnlineScores* onlineScores;
 
   public:
     Rg(qml_components::ProgramSettings* programSettings,
@@ -82,9 +86,10 @@ class Rg final : public QObject
        resource_managers::Tables* tables,
        resource_managers::Languages* languages,
        sounds::AudioEngine* audioEngine,
+       qml_components::OnlineScores* onlineScores,
        QObject* parent = nullptr);
     inline static Rg* instance = nullptr;
-    static Rg* create(QQmlEngine* qmlEngine, QJSEngine*);
+    static auto create(QQmlEngine* qmlEngine, QJSEngine*) -> Rg*;
 };
 
 #endif // RG_H

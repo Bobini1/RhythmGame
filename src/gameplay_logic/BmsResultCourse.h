@@ -6,6 +6,7 @@
 #define BMSRESULTCOURSE_H
 
 #include "BmsScore.h"
+#include "ChartData.h"
 #include "resource_managers/Tables.h"
 #include "support/Version.h"
 #include "resource_managers/Vars.h"
@@ -84,7 +85,7 @@ class BmsResultCourse final : public QObject
      * @details If the charts use
      * [#RANDOM](https://hitkey.nekokan.dyndns.info/cmds.htm#RANDOM),
      * this property provides the sequence of random values used to determine
-     * the note order. If charts do not use randomization,
+     * the contents of the chart. If charts do not use randomization,
      * this list will be empty.
      */
     Q_PROPERTY(QList<qint64> randomSequence READ getRandomSequence CONSTANT)
@@ -146,10 +147,19 @@ class BmsResultCourse final : public QObject
     Q_PROPERTY(
       resource_managers::DpOptions dpOptions READ getDpOptions CONSTANT)
     /**
-     * @brief The game version when the score was achieved.
+     * @brief The game version where the score was achieved.
      * @details For migrations.
      */
     Q_PROPERTY(uint64_t gameVersion READ getGameVersion CONSTANT)
+    /**
+     * @brief The keymode of the chart.
+     * @details Can be different from the keymode of chartData when
+     * resource_managers::dp_options::DpOptions is battle.
+     * @note This is the property used to determine which gampley screen to
+     * load.
+     */
+    Q_PROPERTY(
+      gameplay_logic::ChartData::Keymode keymode READ getKeymode CONSTANT)
     /**
      * @brief The constraints of the course, like "gauge_lr2" or "grade_mirror"
      */
@@ -217,6 +227,7 @@ class BmsResultCourse final : public QObject
     auto getIdentifier() const -> QString;
     auto getDpOptions() const -> resource_managers::DpOptions;
     auto getLength() const -> int64_t;
+    auto getKeymode() const -> ChartData::Keymode;
 };
 } // namespace gameplay_logic
 

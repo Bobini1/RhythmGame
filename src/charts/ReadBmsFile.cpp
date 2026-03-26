@@ -15,7 +15,7 @@
 #include <algorithm>
 #include "ReadBmsFile.h"
 
-#include <lexy_ext/report_error.hpp>
+#include "Base62.h"
 
 namespace charts {
 namespace dsl = lexy::dsl;
@@ -103,34 +103,48 @@ constexpr auto decode = [](auto&& str,
     return ret.value_or(std::string{});
 };
 
+uint16_t
+base62CharToValue(char c)
+{
+    if (c >= '0' && c <= '9') {
+        return c - '0';
+    }
+    if (c >= 'A' && c <= 'Z') {
+        return c - 'A' + 10;
+    }
+    if (c >= 'a' && c <= 'z') {
+        return c - 'a' + 36;
+    }
+    return uint16_t{ 0 };
+}
+
 } // namespace
 
 struct TextTag
 {
+    static constexpr auto rule = capture(until(dsl::unicode::newline).or_eof());
     static constexpr auto value =
       lexy::bind(lexy::callback<std::string>(decode),
                  lexy::values,
                  lexy::parse_state);
-    static constexpr auto rule = capture(until(dsl::unicode::newline).or_eof());
 };
 
 struct Identifier
 {
-    static constexpr auto value = lexy::callback<uint16_t>([](auto&& str) {
-        auto res = uint16_t{};
-        auto [ptr, ec] = std::from_chars(str.begin(), str.end(), res, 36);
-        if (ec == std::errc{} && ptr == str.end()) {
-            return res;
-        }
-        return uint16_t{ 0 };
-    });
     static constexpr auto rule = capture(token(twice(dsl::ascii::alnum)));
+    static constexpr auto value = lexy::callback<uint16_t>([](auto&& str) {
+        auto char1 = str[0];
+        auto char2 = str[1];
+        auto value1 = base62CharToValue(char1);
+        auto value2 = base62CharToValue(char2);
+        return value1 * 62 + value2;
+    });
 };
 
 struct IdentifierChain
 {
-    static constexpr auto value = lexy::as_list<std::vector<uint16_t>>;
     static constexpr auto rule = list(dsl::p<Identifier>);
+    static constexpr auto value = lexy::as_list<std::vector<uint16_t>>;
 };
 
 struct FloatingPoint
@@ -199,12 +213,11 @@ struct MeasureBasedTag
     struct D                                                                   \
     {                                                                          \
         T t;                                                                   \
-        explicit D(T t_) noexcept(                                             \
-          std::is_nothrow_move_constructible<T>::value)                        \
+        explicit D(T t_) noexcept(std::is_nothrow_move_constructible_v<T>)     \
           : t(std::move(t_))                                                   \
         {                                                                      \
         }                                                                      \
-        D() noexcept(std::is_nothrow_constructible<T>::value)                  \
+        D() noexcept(std::is_nothrow_constructible_v<T>)                       \
           : t()                                                                \
         {                                                                      \
         }                                                                      \
@@ -212,30 +225,28 @@ struct MeasureBasedTag
           : t(t_.t)                                                            \
         {                                                                      \
         }                                                                      \
-        D(D&& t_) noexcept(std::is_nothrow_move_constructible<T>::value)       \
+        D(D&& t_) noexcept(std::is_nothrow_move_constructible_v<T>)            \
           : t(std::move(t_.t))                                                 \
         {                                                                      \
         }                                                                      \
         D& operator=(const D& rhs) noexcept(                                   \
-          std::is_nothrow_copy_assignable<T>::value)                           \
+          std::is_nothrow_copy_assignable_v<T>)                                \
         {                                                                      \
             t = rhs.t;                                                         \
             return *this;                                                      \
         }                                                                      \
         D& operator=(const T& rhs) noexcept(                                   \
-          std::is_nothrow_copy_assignable<T>::value)                           \
+          std::is_nothrow_copy_assignable_v<T>)                                \
         {                                                                      \
             t = rhs;                                                           \
             return *this;                                                      \
         }                                                                      \
-        D& operator=(D&& rhs) noexcept(                                        \
-          std::is_nothrow_move_assignable<T>::value)                           \
+        D& operator=(D&& rhs) noexcept(std::is_nothrow_move_assignable_v<T>)   \
         {                                                                      \
             t = std::move(rhs.t);                                              \
             return *this;                                                      \
         }                                                                      \
-        D& operator=(T&& rhs) noexcept(                                        \
-          std::is_nothrow_move_assignable<T>::value)                           \
+        D& operator=(T&& rhs) noexcept(std::is_nothrow_move_assignable_v<T>)   \
         {                                                                      \
             t = std::move(rhs);                                                \
             return *this;                                                      \
@@ -286,8 +297,11 @@ using pair_t = std::pair<uint16_t, double>;
 RG_STRONG_TYPEDEF(pair_t, ExBpm)
 using stop_t = std::pair<uint16_t, double>;
 RG_STRONG_TYPEDEF(stop_t, Stop)
+RG_STRONG_TYPEDEF(stop_t, Scroll)
+RG_STRONG_TYPEDEF(stop_t, Speed)
 using meter_t = std::pair<int64_t, double>;
 RG_STRONG_TYPEDEF(meter_t, Meter)
+RG_STRONG_TYPEDEF(int, Base)
 
 struct TitleTag
 {
@@ -405,6 +419,17 @@ struct RankTag
       lexy::callback<Rank>([](int num) { return Rank{ num }; });
 };
 
+struct BaseTag
+{
+    static constexpr auto rule = [] {
+        auto baseTag = dsl::ascii::case_folding(LEXY_LIT("#base"));
+        return baseTag >> dsl::integer<int, lexy::dsl::decimal>(
+                            LEXY_LITERAL_SET(LEXY_LIT("62"), LEXY_LIT("36")));
+    }();
+    static constexpr auto value =
+      lexy::callback<Base>([](int num) { return Base{ num }; });
+};
+
 struct BpmTag
 {
     static constexpr auto rule = [] {
@@ -443,7 +468,7 @@ struct WavTag
     }();
     static constexpr auto value =
       lexy::callback<Wav>([](uint16_t&& identifier, std::string&& filename) {
-          return Wav{ { std::move(identifier), std::move(filename) } };
+          return Wav{ { identifier, std::move(filename) } };
       });
 };
 
@@ -455,7 +480,7 @@ struct BmpTag
     }();
     static constexpr auto value =
       lexy::callback<Bmp>([](uint16_t&& identifier, std::string&& filename) {
-          return Bmp{ { std::move(identifier), std::move(filename) } };
+          return Bmp{ { identifier, std::move(filename) } };
       });
 };
 
@@ -466,7 +491,7 @@ struct LnObjTag
         return lnObjTag >> dsl::p<Identifier>;
     }();
     static constexpr auto value = lexy::callback<LnObj>(
-      [](uint16_t&& identifier) { return LnObj{ { std::move(identifier) } }; });
+      [](uint16_t&& identifier) { return LnObj{ { identifier } }; });
 };
 
 struct LnTypeTag
@@ -489,7 +514,7 @@ struct ExBpmTag
     }();
     static constexpr auto value =
       lexy::callback<ExBpm>([](uint16_t identifier, double num) {
-          return ExBpm{ { std::move(identifier), num } };
+          return ExBpm{ { identifier, num } };
       });
 };
 
@@ -502,7 +527,20 @@ struct StopTag
     }();
     static constexpr auto value =
       lexy::callback<Stop>([](uint16_t identifier, double num) {
-          return Stop{ { std::move(identifier), num } };
+          return Stop{ { identifier, num } };
+      });
+};
+
+struct ScrollTag
+{
+    static constexpr auto rule = [] {
+        auto scrollTag =
+          dsl::ascii::case_folding(LEXY_LIT("#scroll")) + dsl::p<Identifier>;
+        return peek(scrollTag) >> (scrollTag + dsl::p<FloatingPoint>);
+    }();
+    static constexpr auto value =
+      lexy::callback<Scroll>([](uint16_t identifier, double num) {
+          return Scroll{ { identifier, num } };
       });
 };
 
@@ -516,6 +554,19 @@ struct MeterTag
       [](int64_t measure, double num) { return Meter{ { measure, num } }; });
 };
 
+struct SpeedTag
+{
+    static constexpr auto rule = [] {
+        auto speedTag =
+          dsl::ascii::case_folding(LEXY_LIT("#speed")) + dsl::p<Identifier>;
+        return peek(speedTag) >> (speedTag + dsl::p<FloatingPoint>);
+    }();
+    static constexpr auto value =
+      lexy::callback<Speed>([](uint16_t identifier, double num) {
+          return Speed{ { identifier, num } };
+      });
+};
+
 struct TagsSink
 {
     struct SinkCallback
@@ -527,22 +578,37 @@ struct TagsSink
         auto finish() && -> return_type { return std::move(state); }
         auto operator()(Title&& title) -> void
         {
+            if (title.t.empty() && state.title.has_value()) {
+                return;
+            }
             state.title = static_cast<std::string&&>(std::move(title));
         }
         auto operator()(Artist&& artist) -> void
         {
+            if (artist.t.empty() && state.artist.has_value()) {
+                return;
+            }
             state.artist = static_cast<std::string&&>(std::move(artist));
         }
         auto operator()(Subtitle&& subtitle) -> void
         {
+            if (subtitle.t.empty() && state.title.has_value()) {
+                return;
+            }
             state.subTitle = static_cast<std::string&&>(std::move(subtitle));
         }
         auto operator()(Subartist&& subartist) -> void
         {
+            if (subartist.t.empty() && state.title.has_value()) {
+                return;
+            }
             state.subArtist = static_cast<std::string&&>(std::move(subartist));
         }
         auto operator()(Genre&& genre) -> void
         {
+            if (genre.t.empty() && state.genre.has_value()) {
+                return;
+            }
             state.genre = static_cast<std::string&&>(std::move(genre));
         }
         auto operator()(StageFile&& stageFile) -> void
@@ -564,6 +630,10 @@ struct TagsSink
         auto operator()(Rank&& rank) -> void
         {
             state.rank = static_cast<int>(rank);
+        }
+        auto operator()(Base&& base) -> void
+        {
+            state.base = static_cast<int>(base);
         }
         auto operator()(Bpm&& bpm) -> void
         {
@@ -589,17 +659,25 @@ struct TagsSink
         {
             auto& [identifier, value] =
               static_cast<std::pair<uint16_t, double>&>(bpm);
-            if (value != 0.0) {
-                state.exBpms[identifier] = value;
-            }
+            state.exBpms.emplace_back(identifier, value);
         }
         auto operator()(Stop&& stop) -> void
         {
             auto& [identifier, value] =
               static_cast<std::pair<uint16_t, double>&>(stop);
-            if (value != 0.0) {
-                state.stops[identifier] = value;
-            }
+            state.stops.emplace_back(identifier, value);
+        }
+        auto operator()(Scroll&& scroll) -> void
+        {
+            auto& [identifier, value] =
+              static_cast<std::pair<uint16_t, double>&>(scroll);
+            state.scrolls.emplace_back(identifier, value);
+        }
+        auto operator()(Speed&& speed) -> void
+        {
+            auto& [identifier, value] =
+              static_cast<std::pair<uint16_t, double>&>(speed);
+            state.speeds.emplace_back(identifier, value);
         }
         auto operator()(ParsedBmsChart::Tags&& randomBlock)
         {
@@ -618,14 +696,14 @@ struct TagsSink
         {
             auto& [identifier, filename] =
               static_cast<std::pair<uint16_t, std::string>&>(wav);
-            state.wavs[identifier] = std::move(filename);
+            state.wavs.emplace_back(identifier, filename);
         }
 
         auto operator()(Bmp&& bmp) -> void
         {
             auto& [identifier, filename] =
               static_cast<std::pair<uint16_t, std::string>&>(bmp);
-            state.bmps[identifier] = std::move(filename);
+            state.bmps.emplace_back(identifier, filename);
         }
 
         auto operator()(
@@ -633,7 +711,6 @@ struct TagsSink
           -> void
         {
             auto [measure, channel, identifiers] = std::move(measureBasedTag);
-
             enum ChannelCategory
             {
                 General = 0,
@@ -644,20 +721,23 @@ struct TagsSink
                 P1LongNote = 5,
                 P2LongNote = 6,
                 P1Landmine = 0xD,
-                P2Landmine = 0xE
+                P2Landmine = 0xE,
+                ScrollCategory = 28, // S
             };
             enum GeneralSubcategory
             {
                 Bgm = 1,
                 /* Meter = 2, // handled elsewhere */
                 Bpm = 3,
-                BgaBase = 4, // unimplemented
+                BgaBase = 4,
                 ExtendedObject = 5,
                 BgaPoor = 6,
                 BgaLayer = 7,
                 ExBpm = 8,
                 Stop = 9,
-                BgaLayer2 = 0xA
+                BgaLayer2 = 0xA,
+                Scroll = 0xC, // C
+                Speed = 25,   // P
             };
             constexpr auto base = 36;
             auto channelCategory = static_cast<ChannelCategory>(channel / base);
@@ -680,22 +760,9 @@ struct TagsSink
                               std::move(identifiers));
                             break;
                         case Bpm:
-                            std::ranges::transform(
-                              identifiers,
-                              identifiers.begin(),
-                              [](auto identifier) -> uint16_t {
-                                  // convert from base-36 identifier to base-16
-                                  auto bpmValueHigh = identifier / 36;
-                                  if (bpmValueHigh >= 16) [[unlikely]] {
-                                      return 0;
-                                  }
-                                  bpmValueHigh *= 16;
-                                  auto bpmValueLow = identifier % 36;
-                                  if (bpmValueLow >= 16) [[unlikely]] {
-                                      return 0;
-                                  }
-                                  return bpmValueHigh + bpmValueLow;
-                              });
+                            std::ranges::for_each(identifiers, [](auto& id) {
+                                id = base62ToBase16(id);
+                            });
                             state.measures[measure].bpmChanges.push_back(
                               std::move(identifiers));
                             break;
@@ -768,6 +835,17 @@ struct TagsSink
                              channelSubcategory,
                              std::move(identifiers));
                     break;
+                case ScrollCategory:
+                    if (channelSubcategory == Scroll) {
+                        state.measures[measure].scrolls.push_back(
+                          std::move(identifiers));
+                        break;
+                    }
+                    if (channelSubcategory == Speed) {
+                        state.measures[measure].speeds.push_back(
+                          std::move(identifiers));
+                        break;
+                    }
                 default:
                     spdlog::debug("Unknown channel: {:02d}", channel);
                     break;
@@ -794,7 +872,8 @@ struct MainTags
             dsl::p<BackBmpTag> | dsl::p<SubtitleTag> | dsl::p<SubartistTag> |
             dsl::p<TotalTag> | dsl::p<RankTag> | dsl::p<PlayLevelTag> |
             dsl::p<DifficultyTag> | dsl::p<BpmTag> | dsl::p<LnObjTag> |
-            dsl::p<LnTypeTag> | dsl::recurse_branch<RandomBlock>,
+            dsl::p<LnTypeTag> | dsl::p<BaseTag> | dsl::p<ScrollTag> |
+            dsl::p<SpeedTag> | dsl::recurse_branch<RandomBlock>,
           until(dsl::unicode::newline).or_eof()));
     }();
     static constexpr auto value = TagsSink{};
@@ -817,7 +896,8 @@ struct OrphanizedRandomCommonPart
                    dsl::p<SubtitleTag> | dsl::p<SubartistTag> |
                    dsl::p<TotalTag> | dsl::p<RankTag> | dsl::p<PlayLevelTag> |
                    dsl::p<DifficultyTag> | dsl::p<BpmTag> | dsl::p<LnObjTag> |
-                   dsl::p<LnTypeTag>,
+                   dsl::p<LnTypeTag> | dsl::p<BaseTag> | dsl::p<ScrollTag> |
+                   dsl::p<SpeedTag>,
                  until(dsl::unicode::newline).or_eof()));
     }();
     static constexpr auto value = TagsSink{};

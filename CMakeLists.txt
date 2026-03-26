@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.21)
 include(cmake/prelude.cmake)
 project(
         RhythmGame
-        VERSION 1.2.8
+        VERSION 1.3.0
         DESCRIPTION "A customizable BMS player for Windows and Linux. "
         HOMEPAGE_URL "https://github.com/Bobini1/RhythmGame"
         LANGUAGES C CXX
@@ -19,8 +19,6 @@ if (supported)
     message(STATUS "IPO / LTO enabled")
     set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
 endif ()
-
-option(PORTABLE_BUILD "Deploy the entire game to a portable folder, without using system dirs" ON)
 
 # <---- mimalloc (faster memory allocation) ---->
 
@@ -60,6 +58,9 @@ message(STATUS "miniaudio include dirs: ${MINIAUDIO_INCLUDE_DIRS}")
 
 find_package(Qt6 COMPONENTS ShaderTools Quick Concurrent Multimedia Svg InterfaceFramework LinguistTools QuickControls2 REQUIRED)
 qt_standard_project_setup(I18N_TRANSLATED_LANGUAGES pl jp)
+
+# <------------ QtKeychain (storing login data) --------------->
+find_package(Qt6Keychain CONFIG REQUIRED)
 
 # <------------ zstd (compression) --------------->
 
@@ -181,6 +182,12 @@ qt_add_library(RhythmGame_lib OBJECT
         src/qml_components/PreviewFilePathFetcher.h
         src/qml_components/ScoreDb.cpp
         src/qml_components/ScoreDb.h
+        src/qml_components/ScoreSyncOperation.cpp
+        src/qml_components/ScoreSyncOperation.h
+        src/qml_components/OnlineScores.cpp
+        src/qml_components/OnlineScores.h
+        src/qml_components/OnlineRankingModel.cpp
+        src/qml_components/OnlineRankingModel.h
         src/qml_components/FileQuery.cpp
         src/qml_components/FileQuery.h
         src/qml_components/Bga.cpp
@@ -243,6 +250,12 @@ qt_add_library(RhythmGame_lib OBJECT
         src/sounds/NormalSoundBuffer.h
         src/sounds/NormalSound.cpp
         src/sounds/NormalSound.h
+        src/qml_components/OnlineProfileInfo.cpp
+        src/qml_components/OnlineProfileInfo.h
+        src/charts/Base62.cpp
+        src/charts/Base62.h
+        src/support/ConvertTachiClearType.cpp
+        src/support/ConvertTachiClearType.h
 )
 
 if (WIN32)
@@ -261,7 +274,7 @@ target_link_libraries(RhythmGame_lib PUBLIC $<IF:$<TARGET_EXISTS:mimalloc-static
 
 # <------------ SndFile (audio file reading) --------------->
 
-find_package(SndFile)
+find_package(SndFile QUIET)
 if (NOT SndFile_FOUND)
     find_package(PkgConfig REQUIRED)
     pkg_check_modules(SndFile REQUIRED IMPORTED_TARGET sndfile)
@@ -270,7 +283,7 @@ else ()
     target_link_libraries(RhythmGame_lib PUBLIC SndFile::sndfile)
 endif ()
 
-find_package(Stb)
+find_package(Stb QUIET)
 if (NOT Stb_FOUND)
     find_package(PkgConfig REQUIRED)
     pkg_check_modules(stb REQUIRED IMPORTED_TARGET stb)
@@ -279,7 +292,7 @@ if (NOT Stb_FOUND)
 else ()
     target_link_libraries(RhythmGame_lib PUBLIC ${Stb_LIBRARIES})
 endif ()
-target_link_libraries(RhythmGame_lib PUBLIC SDL2::SDL2 Qt6::Quick Qt6::QuickControls2 Qt6::OpenGL Qt6::Concurrent Qt6::Multimedia Qt6::InterfaceFramework Threads::Threads Boost::headers SQLiteCpp spdlog::spdlog foonathan::lexy magic_enum::magic_enum $<IF:$<TARGET_EXISTS:zstd::libzstd_static>,zstd::libzstd_static,zstd::libzstd> LibXml2::LibXml2)
+target_link_libraries(RhythmGame_lib PUBLIC SDL2::SDL2 Qt6::Quick Qt6::QuickControls2 Qt6::OpenGL Qt6::Concurrent Qt6::Multimedia Qt6::InterfaceFramework Qt6Keychain::Qt6Keychain Threads::Threads Boost::headers SQLiteCpp spdlog::spdlog foonathan::lexy magic_enum::magic_enum $<IF:$<TARGET_EXISTS:zstd::libzstd_static>,zstd::libzstd_static,zstd::libzstd> LibXml2::LibXml2)
 target_include_directories(RhythmGame_lib PUBLIC ${MINIAUDIO_INCLUDE_DIRS})
 
 if (WIN32)

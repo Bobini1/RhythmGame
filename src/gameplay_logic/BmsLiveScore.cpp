@@ -27,7 +27,10 @@ BmsLiveScore::BmsLiveScore(
   int64_t length,
   QString sha256,
   QString md5,
+  ChartData::Keymode keymode,
+  int64_t savedTimestamp,
   QString guid,
+  BmsScore::SubmissionState submissionState,
   QObject* parent)
   : QObject(parent)
   , maxHitValue(maxHitValue)
@@ -46,9 +49,12 @@ BmsLiveScore::BmsLiveScore(
   , permutation(std::move(permutation))
   , sha256(std::move(sha256))
   , md5(std::move(md5))
+  , keymode(keymode)
   , guid(std::move(guid))
   , randomSeed(seed)
   , length(length)
+  , savedTimestamp(savedTimestamp)
+  , submissionState(submissionState)
 {
     for (auto* gauge : this->gauges) {
         gauge->setParent(this);
@@ -137,6 +143,11 @@ auto
 BmsLiveScore::getGuid() const -> QString
 {
     return guid;
+}
+auto
+BmsLiveScore::getKeymode() const -> ChartData::Keymode
+{
+    return keymode;
 }
 void
 BmsLiveScore::increaseCombo()
@@ -293,28 +304,30 @@ BmsLiveScore::getResult() const -> std::unique_ptr<BmsResult>
         return hit.getPointsOptional() &&
                hit.getPointsOptional()->getJudgement() == Judgement::MineHit;
     });
-    return std::make_unique<BmsResult>(maxPoints,
-                                       maxHits,
-                                       normalNoteCount,
-                                       scratchCount,
-                                       lnCount,
-                                       bssCount,
-                                       mineCount,
-                                       clearType,
-                                       judgementCounts.getJudgementCounts(),
-                                       mineHitsSize,
-                                       points,
-                                       maxCombo,
-                                       QDateTime::currentSecsSinceEpoch(),
-                                       length,
-                                       randomSequence,
-                                       randomSeed,
-                                       noteOrderAlgorithm,
-                                       noteOrderAlgorithmP2,
-                                       dpOptions,
-                                       guid,
-                                       sha256,
-                                       md5);
+    return std::make_unique<BmsResult>(
+      maxPoints,
+      maxHits,
+      normalNoteCount,
+      scratchCount,
+      lnCount,
+      bssCount,
+      mineCount,
+      clearType,
+      judgementCounts.getJudgementCounts(),
+      mineHitsSize,
+      points,
+      maxCombo,
+      savedTimestamp ? savedTimestamp : QDateTime::currentSecsSinceEpoch(),
+      length,
+      randomSequence,
+      randomSeed,
+      noteOrderAlgorithm,
+      noteOrderAlgorithmP2,
+      dpOptions,
+      keymode,
+      guid,
+      sha256,
+      md5);
 }
 auto
 BmsLiveScore::getReplayData() const -> std::unique_ptr<BmsReplayData>
