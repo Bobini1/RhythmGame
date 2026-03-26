@@ -29,8 +29,8 @@ ApplicationWindow {
         }
     }
     onVisibilityChanged: {
-        if (settingsRestored && (visibility === Window.Windowed || visibility === Window.FullScreen)) {
-            settings.visibility = visibility;
+        if (settingsRestored && (contentContainer.visibility === Window.Windowed || contentContainer.visibility === Window.FullScreen)) {
+            settings.visibility = contentContainer.visibility;
         }
     }
     Shortcut {
