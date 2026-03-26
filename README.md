@@ -6,6 +6,7 @@
     <a href="https://github.com/Bobini1/RhythmGame/blob/master/flake.nix"><img alt="Nix" src="https://img.shields.io/badge/Nix-5277C3?logo=nixos&logoColor=fff"></a>
     <br>
     <a href="https://discord.gg/bDxmuSzXBW"><img src="https://img.shields.io/discord/1410743088686829661.svg?color=7289DA&label=RhythmGame%20Community&logo=Discord"/></a>
+    <a href="https://rhythmgame.eu"><img src="https://img.shields.io/website?url=https%3A%2F%2Frhythmgame.eu&label=IR"/></a>
 </p>
 
 # RhythmGame
