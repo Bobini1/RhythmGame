@@ -17,9 +17,20 @@ ApplicationWindow {
         property alias width: contentContainer.width
         property int visibility
     }
+    property bool settingsRestored: false
     Component.onCompleted: {
         if (settings.visibility) {
             contentContainer.visibility = settings.visibility;
+        }
+    }
+    onActiveChanged: {
+        if (active && !settingsRestored) {
+            settingsRestored = true;
+        }
+    }
+    onVisibilityChanged: {
+        if (settingsRestored && (visibility === Window.Windowed || visibility === Window.FullScreen)) {
+            settings.visibility = visibility;
         }
     }
     Shortcut {
@@ -29,10 +40,8 @@ ApplicationWindow {
         onActivated: {
             if (contentContainer.visibility === Window.FullScreen) {
                 contentContainer.visibility = Window.Windowed;
-                settings.visibility = Window.Windowed;
             } else {
                 contentContainer.visibility = Window.FullScreen;
-                settings.visibility = Window.FullScreen;
             }
         }
     }

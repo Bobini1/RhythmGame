@@ -36,6 +36,19 @@ Item {
                         right: parent.right
                     }
                 }
+                Choice {
+                    destination: Window.window
+                    id_: "visibility"
+                    choices: [Window.Windowed, Window.FullScreen]
+                    displayStrings: qsTr("Windowed;Fullscreen").split(";")
+                    name: qsTr("Display Mode")
+                    default_: Window.Windowed
+
+                    anchors {
+                        left: parent.left
+                        right: parent.right
+                    }
+                }
                 Range {
                     destination: Rg.profileList.mainProfile.vars.generalVars
                     id_: "noteScreenTimeMillis"
