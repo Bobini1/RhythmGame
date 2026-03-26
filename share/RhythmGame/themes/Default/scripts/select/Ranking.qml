@@ -160,7 +160,7 @@ Image {
     Loader {
         anchors.fill: parent
         sourceComponent: rankingPages
-        active: !!ranking.md5 && onlineRankingModel.entries.length
+        active: !!ranking.md5 && onlineRankingModel.entries.length && !(ranking.loading && ranking.entries.length === 1 && ranking.provider === OnlineRankingModel.LR2IR)
     }
     Component {
         id: rankingPages
