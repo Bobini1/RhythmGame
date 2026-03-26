@@ -236,7 +236,7 @@ Column {
                 (ranking.provider === OnlineRankingModel.RhythmGame && !side.profile.onlineUserData) ||
                 (ranking.provider === OnlineRankingModel.Tachi && !side.profile.tachiData)
             rankingUrl: {
-                if (root.course || !totalEntries) {
+                if (root.course || !totalEntries || (ranking.provider === OnlineRankingModel.LR2IR && totalEntries <= 1)) {
                     return "";
                 }
                 if (ranking.provider === OnlineRankingModel.LR2IR) {
