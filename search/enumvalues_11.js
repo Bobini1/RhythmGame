@@ -1,15 +1,19 @@
 var searchData=
 [
   ['scanned_0',['Scanned',['../classqml__components_1_1RootSongFolder.html#a3c9ed590e22ba6e58b18665c5fa02c90a92a1df410a29ea315a39a22ceaa75ac6',1,'qml_components::RootSongFolder']]],
-  ['scratch_1',['Scratch',['../classgameplay__logic_1_1ChartData.html#a795d2eb4ed70a64a020ae8e5fb7a23d4aa53f4cee63e4f783b0d8dded8760cfba',1,'gameplay_logic::ChartData']]],
-  ['scratchalgorithmanalog_2',['ScratchAlgorithmAnalog',['../classinput_1_1AnalogAxisConfig.html#a531d303c03fc0e20819caa30ab2849c2ae90c14263e795016c4be92cb504531a5',1,'input::AnalogAxisConfig']]],
-  ['scratchalgorithmclassic_3',['ScratchAlgorithmClassic',['../classinput_1_1AnalogAxisConfig.html#a531d303c03fc0e20819caa30ab2849c2ac3ad1e5561c56cbf0aea47b1c069c27f',1,'input::AnalogAxisConfig']]],
-  ['select1_4',['Select1',['../namespaceinput.html#a89dbd5c89689deb9b22511daf93d97b1a75b57f54c33ba3b05706cd9552ad95ce',1,'input']]],
-  ['select2_5',['Select2',['../namespaceinput.html#a89dbd5c89689deb9b22511daf93d97b1ab07d35fe7bfcd47ab069247c6fd0f900',1,'input']]],
-  ['selecttounder_6',['SelectToUnder',['../namespaceresource__managers_1_1gauge__mode.html#ac121e2691e7e4d13551d18c7618e8d73a7e10afd9d6a85d5306c5e9430e871426',1,'resource_managers::gauge_mode']]],
-  ['srandom_7',['SRandom',['../namespaceresource__managers_1_1note__order__algorithm.html#ac185a2ae792679199f885982df647691ad54452d54d8b27ab270e65bfe6955e59',1,'resource_managers::note_order_algorithm']]],
-  ['srandomplus_8',['SRandomPlus',['../namespaceresource__managers_1_1note__order__algorithm.html#ac185a2ae792679199f885982df647691a4dfb9bd717831dae503201c9f792f013',1,'resource_managers::note_order_algorithm']]],
-  ['start_9',['Start',['../namespaceresource__managers_1_1hi__speed__fix.html#ac715382b9422d7bab66ac00314eb3e7eaa6122a65eaa676f700ae68d393054a37',1,'resource_managers::hi_speed_fix']]],
-  ['start1_10',['Start1',['../namespaceinput.html#a89dbd5c89689deb9b22511daf93d97b1a0671fc9271064f54ba99fb7af287a55c',1,'input']]],
-  ['start2_11',['Start2',['../namespaceinput.html#a89dbd5c89689deb9b22511daf93d97b1a171aaabd2a163a8e5cbcda2c2b23c64f',1,'input']]]
+  ['scorecountrole_1',['ScoreCountRole',['../classqml__components_1_1OnlineRankingModel.html#a790c20943ba1e8a360130027f69233bfa010c35a5c6aa1ae6621d5efdd34a6806',1,'qml_components::OnlineRankingModel']]],
+  ['scorepct_2',['ScorePct',['../classqml__components_1_1OnlineRankingModel.html#ac0db71d62af3a8aaf2e137775b33fc51a56e11cfffe2ccb3e300482361f66af84',1,'qml_components::OnlineRankingModel']]],
+  ['scratch_3',['Scratch',['../classgameplay__logic_1_1ChartData.html#a795d2eb4ed70a64a020ae8e5fb7a23d4aa53f4cee63e4f783b0d8dded8760cfba',1,'gameplay_logic::ChartData']]],
+  ['scratchalgorithmanalog_4',['ScratchAlgorithmAnalog',['../classinput_1_1AnalogAxisConfig.html#a531d303c03fc0e20819caa30ab2849c2ae90c14263e795016c4be92cb504531a5',1,'input::AnalogAxisConfig']]],
+  ['scratchalgorithmclassic_5',['ScratchAlgorithmClassic',['../classinput_1_1AnalogAxisConfig.html#a531d303c03fc0e20819caa30ab2849c2ac3ad1e5561c56cbf0aea47b1c069c27f',1,'input::AnalogAxisConfig']]],
+  ['select1_6',['Select1',['../namespaceinput.html#a89dbd5c89689deb9b22511daf93d97b1a75b57f54c33ba3b05706cd9552ad95ce',1,'input']]],
+  ['select2_7',['Select2',['../namespaceinput.html#a89dbd5c89689deb9b22511daf93d97b1ab07d35fe7bfcd47ab069247c6fd0f900',1,'input']]],
+  ['selecttounder_8',['SelectToUnder',['../namespaceresource__managers_1_1gauge__mode.html#ac121e2691e7e4d13551d18c7618e8d73a7e10afd9d6a85d5306c5e9430e871426',1,'resource_managers::gauge_mode']]],
+  ['srandom_9',['SRandom',['../namespaceresource__managers_1_1note__order__algorithm.html#ac185a2ae792679199f885982df647691ad54452d54d8b27ab270e65bfe6955e59',1,'resource_managers::note_order_algorithm']]],
+  ['srandomplus_10',['SRandomPlus',['../namespaceresource__managers_1_1note__order__algorithm.html#ac185a2ae792679199f885982df647691a4dfb9bd717831dae503201c9f792f013',1,'resource_managers::note_order_algorithm']]],
+  ['start_11',['Start',['../namespaceresource__managers_1_1hi__speed__fix.html#ac715382b9422d7bab66ac00314eb3e7eaa6122a65eaa676f700ae68d393054a37',1,'resource_managers::hi_speed_fix']]],
+  ['start1_12',['Start1',['../namespaceinput.html#a89dbd5c89689deb9b22511daf93d97b1a0671fc9271064f54ba99fb7af287a55c',1,'input']]],
+  ['start2_13',['Start2',['../namespaceinput.html#a89dbd5c89689deb9b22511daf93d97b1a171aaabd2a163a8e5cbcda2c2b23c64f',1,'input']]],
+  ['submitted_14',['Submitted',['../classgameplay__logic_1_1BmsScore.html#a884ea7325dac70efb1ae5d5ddd9f028ea5c835c22429f25992b4371691ecde1a4',1,'gameplay_logic::BmsScore']]],
+  ['submitting_15',['Submitting',['../classgameplay__logic_1_1BmsScore.html#a884ea7325dac70efb1ae5d5ddd9f028ea37096d4c09162577c84ef58296a375f8',1,'gameplay_logic::BmsScore']]]
 ];

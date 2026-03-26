@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['roles_0',['Roles',['../classgameplay__logic_1_1JudgementCounts.html#a85a716b9b6bd73e0dabf994ed4553ef6',1,'gameplay_logic::JudgementCounts']]]
+  ['provider_0',['Provider',['../classqml__components_1_1OnlineRankingModel.html#a3cb485c0fd73499916e3e6db1a964aac',1,'qml_components::OnlineRankingModel']]]
 ];

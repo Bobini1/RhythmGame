@@ -21,7 +21,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.2.8</span>
+   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.3.0</span>
    </div>
   </td>
  </tr>
@@ -118,6 +118,8 @@ Functions</h2></td></tr>
 <tr class="memitem:ac0a5d7a67683b20124f54061dae1bfdd" id="r_ac0a5d7a67683b20124f54061dae1bfdd"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
 <tr class="memitem:ac0a5d7a67683b20124f54061dae1bfdd"><td class="memTemplItemLeft" align="right" valign="top">T&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacesupport.html#ac0a5d7a67683b20124f54061dae1bfdd">decompress</a> (QByteArray data)</td></tr>
 <tr class="separator:ac0a5d7a67683b20124f54061dae1bfdd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0012be8f95b0b93bd0a39c0640512687" id="r_a0012be8f95b0b93bd0a39c0640512687"><td class="memItemLeft" align="right" valign="top">QString&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacesupport.html#a0012be8f95b0b93bd0a39c0640512687">convertTachiClearType</a> (const int enumIndex)</td></tr>
+<tr class="separator:a0012be8f95b0b93bd0a39c0640512687"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6b79ba387d451e0f812dfc86ccdc6b50" id="r_a6b79ba387d451e0f812dfc86ccdc6b50"><td class="memTemplParams" colspan="2">template&lt;typename T , typename Random &gt; </td></tr>
 <tr class="memitem:a6b79ba387d451e0f812dfc86ccdc6b50"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacesupport.html#a6b79ba387d451e0f812dfc86ccdc6b50">fisherYatesShuffle</a> (std::span&lt; T &gt; arr, Random &amp;<a class="el" href="ReadBmsFile_8cpp.html#a1bfefc378c730fdc6ed818b0f4b666f5">randomGenerator</a>)</td></tr>
 <tr class="separator:a6b79ba387d451e0f812dfc86ccdc6b50"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -134,9 +136,13 @@ Functions</h2></td></tr>
 <tr class="memitem:ae3594fe6b0f2afc9c535315fee3e0fa0" id="r_ae3594fe6b0f2afc9c535315fee3e0fa0"><td class="memTemplParams" colspan="2">template&lt;typename Random &gt; </td></tr>
 <tr class="memitem:ae3594fe6b0f2afc9c535315fee3e0fa0"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacesupport.html#ae3594fe6b0f2afc9c535315fee3e0fa0">shuffleAllNotes</a> (std::span&lt; std::vector&lt; <a class="el" href="structcharts_1_1BmsNotesData_1_1Note.html">charts::BmsNotesData::Note</a> &gt; &gt; arr, const std::chrono::nanoseconds preferredNoteDistance, Random &amp;<a class="el" href="ReadBmsFile_8cpp.html#a1bfefc378c730fdc6ed818b0f4b666f5">randomGenerator</a>)</td></tr>
 <tr class="separator:ae3594fe6b0f2afc9c535315fee3e0fa0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a47ccd83f3841eccefe7e57affacfe892" id="r_a47ccd83f3841eccefe7e57affacfe892"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacesupport.html#a47ccd83f3841eccefe7e57affacfe892">generatePermutation</a> (std::span&lt; std::vector&lt; <a class="el" href="structcharts_1_1BmsNotesData_1_1Note.html">charts::BmsNotesData::Note</a> &gt; &gt; &amp;notes, <a class="el" href="namespaceresource__managers_1_1note__order__algorithm.html#ac185a2ae792679199f885982df647691">resource_managers::NoteOrderAlgorithm</a> algorithm, uint64_t seed) -&gt; <a class="el" href="structsupport_1_1ShuffleResult.html">ShuffleResult</a></td></tr>
-<tr class="memdesc:a47ccd83f3841eccefe7e57affacfe892"><td class="mdescLeft">&#160;</td><td class="mdescRight">Generate a permutation of notes.  <br /></td></tr>
-<tr class="separator:a47ccd83f3841eccefe7e57affacfe892"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9e1cb213763e98483cf062653499ea72" id="r_a9e1cb213763e98483cf062653499ea72"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacesupport.html#a9e1cb213763e98483cf062653499ea72">convertColumnsToK7</a> (QList&lt; int &gt; &amp;columns) -&gt; void</td></tr>
+<tr class="separator:a9e1cb213763e98483cf062653499ea72"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5ced6b784ca1748795107c3d0eb6e73c" id="r_a5ced6b784ca1748795107c3d0eb6e73c"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacesupport.html#a5ced6b784ca1748795107c3d0eb6e73c">convertNotesToK7</a> (std::span&lt; std::vector&lt; <a class="el" href="structcharts_1_1BmsNotesData_1_1Note.html">charts::BmsNotesData::Note</a> &gt; &gt; &amp;<a class="el" href="OnlineRankingModel_8cpp.html#a7dbd379c73b20ded52adb099da250071">notes</a>) -&gt; void</td></tr>
+<tr class="separator:a5ced6b784ca1748795107c3d0eb6e73c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af916bd758797733f8ace78038fd1a53c" id="r_af916bd758797733f8ace78038fd1a53c"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacesupport.html#af916bd758797733f8ace78038fd1a53c">generatePermutation</a> (std::span&lt; std::vector&lt; <a class="el" href="structcharts_1_1BmsNotesData_1_1Note.html">charts::BmsNotesData::Note</a> &gt; &gt; &amp;<a class="el" href="OnlineRankingModel_8cpp.html#a7dbd379c73b20ded52adb099da250071">notes</a>, <a class="el" href="namespaceresource__managers_1_1note__order__algorithm.html#ac185a2ae792679199f885982df647691">resource_managers::NoteOrderAlgorithm</a> algorithm, uint64_t seed, bool k5) -&gt; <a class="el" href="structsupport_1_1ShuffleResult.html">ShuffleResult</a></td></tr>
+<tr class="memdesc:af916bd758797733f8ace78038fd1a53c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Generate a permutation of notes.  <br /></td></tr>
+<tr class="separator:af916bd758797733f8ace78038fd1a53c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8d284947c7b3924dd880a510eddcf00b" id="r_a8d284947c7b3924dd880a510eddcf00b"><td class="memTemplParams" colspan="2">template&lt;std::size_t N, typename T &gt; <br />
 requires requires { std::get&lt;N&gt;(std::declval&lt;T&gt;()); }</td></tr>
 <tr class="memitem:a8d284947c7b3924dd880a510eddcf00b"><td class="memTemplItemLeft" align="right" valign="top">constexpr auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacesupport.html#a8d284947c7b3924dd880a510eddcf00b">get</a> (T &amp;&amp;t) -&gt; auto &amp;</td></tr>
@@ -172,7 +178,7 @@ requires std::is_aggregate_v&lt;std::remove_cvref_t&lt;T&gt;&gt;</td></tr>
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="var-members" name="var-members"></a>
 Variables</h2></td></tr>
 <tr class="memitem:a30de9f53b3c7cdc7f6ff8eac5fe678ef" id="r_a30de9f53b3c7cdc7f6ff8eac5fe678ef"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
-<tr class="memitem:a30de9f53b3c7cdc7f6ff8eac5fe678ef"><td class="memTemplItemLeft" align="right" valign="top">constexpr auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacesupport.html#a30de9f53b3c7cdc7f6ff8eac5fe678ef">tupleSizeV</a> = <a class="el" href="classsupport_1_1TupleSize.html">TupleSize</a>&lt;T&gt;::value</td></tr>
+<tr class="memitem:a30de9f53b3c7cdc7f6ff8eac5fe678ef"><td class="memTemplItemLeft" align="right" valign="top">constexpr auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacesupport.html#a30de9f53b3c7cdc7f6ff8eac5fe678ef">tupleSizeV</a> = <a class="el" href="classsupport_1_1TupleSize.html">TupleSize</a>&lt;T&gt;<a class="el" href="BmsNotesData_8cpp.html#aee90379adb0307effb138f4871edbc5c">::value</a></td></tr>
 <tr class="separator:a30de9f53b3c7cdc7f6ff8eac5fe678ef"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a90973505aecff0d859086ba0f7916b12" id="r_a90973505aecff0d859086ba0f7916b12"><td class="memItemLeft" align="right" valign="top">constexpr uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacesupport.html#a90973505aecff0d859086ba0f7916b12">currentVersion</a></td></tr>
 <tr class="separator:a90973505aecff0d859086ba0f7916b12"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -262,6 +268,62 @@ template&lt;typename T &gt; </div>
 
 </div>
 </div>
+<a id="a9e1cb213763e98483cf062653499ea72" name="a9e1cb213763e98483cf062653499ea72"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9e1cb213763e98483cf062653499ea72">&#9670;&#160;</a></span>convertColumnsToK7()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto support::convertColumnsToK7 </td>
+          <td>(</td>
+          <td class="paramtype">QList&lt; int &gt; &amp;&#160;</td>
+          <td class="paramname"><em>columns</em></td><td>)</td>
+          <td> -&gt; void
+</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a5ced6b784ca1748795107c3d0eb6e73c" name="a5ced6b784ca1748795107c3d0eb6e73c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5ced6b784ca1748795107c3d0eb6e73c">&#9670;&#160;</a></span>convertNotesToK7()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto support::convertNotesToK7 </td>
+          <td>(</td>
+          <td class="paramtype">std::span&lt; std::vector&lt; <a class="el" href="structcharts_1_1BmsNotesData_1_1Note.html">charts::BmsNotesData::Note</a> &gt; &gt; &amp;&#160;</td>
+          <td class="paramname"><em>notes</em></td><td>)</td>
+          <td> -&gt; void
+</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a0012be8f95b0b93bd0a39c0640512687" name="a0012be8f95b0b93bd0a39c0640512687"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0012be8f95b0b93bd0a39c0640512687">&#9670;&#160;</a></span>convertTachiClearType()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">QString support::convertTachiClearType </td>
+          <td>(</td>
+          <td class="paramtype">const int&#160;</td>
+          <td class="paramname"><em>enumIndex</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="ac0a5d7a67683b20124f54061dae1bfdd" name="ac0a5d7a67683b20124f54061dae1bfdd"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ac0a5d7a67683b20124f54061dae1bfdd">&#9670;&#160;</a></span>decompress() <span class="overload">[1/2]</span></h2>
 
@@ -342,8 +404,8 @@ template&lt;typename T , typename Random &gt; </div>
 
 </div>
 </div>
-<a id="a47ccd83f3841eccefe7e57affacfe892" name="a47ccd83f3841eccefe7e57affacfe892"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a47ccd83f3841eccefe7e57affacfe892">&#9670;&#160;</a></span>generatePermutation()</h2>
+<a id="af916bd758797733f8ace78038fd1a53c" name="af916bd758797733f8ace78038fd1a53c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af916bd758797733f8ace78038fd1a53c">&#9670;&#160;</a></span>generatePermutation()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -364,7 +426,13 @@ template&lt;typename T , typename Random &gt; </div>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">uint64_t&#160;</td>
-          <td class="paramname"><em>seed</em>&#160;</td>
+          <td class="paramname"><em>seed</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>k5</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -956,7 +1024,7 @@ template&lt;typename T &gt; </div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">constexpr auto support::tupleSizeV = <a class="el" href="classsupport_1_1TupleSize.html">TupleSize</a>&lt;T&gt;::value</td>
+          <td class="memname">constexpr auto support::tupleSizeV = <a class="el" href="classsupport_1_1TupleSize.html">TupleSize</a>&lt;T&gt;<a class="el" href="BmsNotesData_8cpp.html#aee90379adb0307effb138f4871edbc5c">::value</a></td>
         </tr>
       </table>
   </td>

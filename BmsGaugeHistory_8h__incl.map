@@ -1,9 +1,11 @@
 <map id="src/gameplay_logic/BmsGaugeHistory.h" name="src/gameplay_logic/BmsGaugeHistory.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="642,5,797,45"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="997,5,1151,45"/>
 <area shape="rect" id="Node000002" href="$SqliteCppDb_8h.html" title=" " alt="" coords="419,93,553,119"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="664,48,534,91,532,86,663,43"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="997,40,567,97,567,91,996,34"/>
 <area shape="rect" id="Node000013" href="$BmsGauge_8h.html" title=" " alt="" coords="1003,93,1145,119"/>
-<area shape="poly" id="edge13_Node000001_Node000013" title=" " alt="" coords="797,41,1009,88,1008,93,796,46"/>
+<area shape="poly" id="edge13_Node000001_Node000013" title=" " alt="" coords="1077,46,1077,79,1071,79,1071,46"/>
+<area shape="rect" id="Node000017" title=" " alt="" coords="1169,93,1264,119"/>
+<area shape="poly" id="edge18_Node000001_Node000017" title=" " alt="" coords="1109,43,1185,84,1183,89,1107,48"/>
 <area shape="rect" id="Node000003" title=" " alt="" coords="5,167,177,192"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="423,121,169,167,168,162,422,116"/>
 <area shape="rect" id="Node000004" title=" " alt="" coords="202,167,277,192"/>

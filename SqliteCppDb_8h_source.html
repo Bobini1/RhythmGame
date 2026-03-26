@@ -21,7 +21,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.2.8</span>
+   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.3.0</span>
    </div>
   </td>
  </tr>
@@ -122,9 +122,9 @@ $(document).ready(function() { init_codefold(0); });
 </div>
 <div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>        <span class="keyword">template</span>&lt;<span class="keyword">typename</span>... T&gt;</div>
 <div class="foldopen" id="foldopen00047" data-start="{" data-end="}">
-<div class="line"><a id="l00047" name="l00047"></a><span class="lineno"><a class="line" href="classdb_1_1SqliteCppDb_1_1Statement.html#a03295a4ffffd3a640dc3bf80556b93bb">   47</a></span>        <span class="keyword">auto</span> <a class="code hl_function" href="classdb_1_1SqliteCppDb_1_1Statement.html#a03295a4ffffd3a640dc3bf80556b93bb">bind</a>(<span class="keyword">const</span> std::string&amp; name, T&amp;&amp;... values) -&gt; <span class="keywordtype">void</span></div>
+<div class="line"><a id="l00047" name="l00047"></a><span class="lineno"><a class="line" href="classdb_1_1SqliteCppDb_1_1Statement.html#a03295a4ffffd3a640dc3bf80556b93bb">   47</a></span>        <span class="keyword">auto</span> <a class="code hl_function" href="classdb_1_1SqliteCppDb_1_1Statement.html#a03295a4ffffd3a640dc3bf80556b93bb">bind</a>(<span class="keyword">const</span> std::string&amp; <a class="code hl_variable" href="OnlineRankingModel_8cpp.html#abc29e461e01cc0c712944f8f47f91331">name</a>, T&amp;&amp;... values) -&gt; <span class="keywordtype">void</span></div>
 <div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>        {</div>
-<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>            statement.bind(name, std::forward&lt;T&gt;(values)...);</div>
+<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>            statement.bind(<a class="code hl_variable" href="OnlineRankingModel_8cpp.html#abc29e461e01cc0c712944f8f47f91331">name</a>, std::forward&lt;T&gt;(values)...);</div>
 <div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span>        }</div>
 </div>
 <div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>        <span class="keywordtype">void</span> <a class="code hl_function" href="classdb_1_1SqliteCppDb_1_1Statement.html#aed3bf59a450a75800e671892f40ffcdc">reset</a>();</div>
@@ -205,6 +205,7 @@ $(document).ready(function() { init_codefold(0); });
 </div>
 <div class="line"><a id="l00154" name="l00154"></a><span class="lineno">  154</span> </div>
 <div class="line"><a id="l00155" name="l00155"></a><span class="lineno">  155</span><span class="preprocessor">#endif </span><span class="comment">// RHYTHMGAME_SQLITECPPDB_H</span></div>
+<div class="ttc" id="aOnlineRankingModel_8cpp_html_abc29e461e01cc0c712944f8f47f91331"><div class="ttname"><a href="OnlineRankingModel_8cpp.html#abc29e461e01cc0c712944f8f47f91331">name</a></div><div class="ttdeci">QString name</div><div class="ttdef"><b>Definition</b> OnlineRankingModel.cpp:448</div></div>
 <div class="ttc" id="aTupleSize_8h_html"><div class="ttname"><a href="TupleSize_8h.html">TupleSize.h</a></div></div>
 <div class="ttc" id="aclassdb_1_1SqliteCppDb_1_1Statement_html"><div class="ttname"><a href="classdb_1_1SqliteCppDb_1_1Statement.html">db::SqliteCppDb::Statement</a></div><div class="ttdoc">Wrapper for SQLiteCpp::Statement.</div><div class="ttdef"><b>Definition</b> SqliteCppDb.h:34</div></div>
 <div class="ttc" id="aclassdb_1_1SqliteCppDb_1_1Statement_html_a03295a4ffffd3a640dc3bf80556b93bb"><div class="ttname"><a href="classdb_1_1SqliteCppDb_1_1Statement.html#a03295a4ffffd3a640dc3bf80556b93bb">db::SqliteCppDb::Statement::bind</a></div><div class="ttdeci">auto bind(const std::string &amp;name, T &amp;&amp;... values) -&gt; void</div><div class="ttdef"><b>Definition</b> SqliteCppDb.h:47</div></div>

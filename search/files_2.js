@@ -15,8 +15,10 @@ var searchData=
   ['compress_2ecpp_12',['Compress.cpp',['../Compress_8cpp.html',1,'']]],
   ['compress_2eh_13',['Compress.h',['../Compress_8h.html',1,'']]],
   ['contributing_2emd_14',['CONTRIBUTING.md',['../CONTRIBUTING_8md.html',1,'']]],
-  ['courserunner_2ecpp_15',['CourseRunner.cpp',['../CourseRunner_8cpp.html',1,'']]],
-  ['courserunner_2eh_16',['CourseRunner.h',['../CourseRunner_8h.html',1,'']]],
-  ['customnotifyapp_2ecpp_17',['CustomNotifyApp.cpp',['../CustomNotifyApp_8cpp.html',1,'']]],
-  ['customnotifyapp_2eh_18',['CustomNotifyApp.h',['../CustomNotifyApp_8h.html',1,'']]]
+  ['converttachicleartype_2ecpp_15',['ConvertTachiClearType.cpp',['../ConvertTachiClearType_8cpp.html',1,'']]],
+  ['converttachicleartype_2eh_16',['ConvertTachiClearType.h',['../ConvertTachiClearType_8h.html',1,'']]],
+  ['courserunner_2ecpp_17',['CourseRunner.cpp',['../CourseRunner_8cpp.html',1,'']]],
+  ['courserunner_2eh_18',['CourseRunner.h',['../CourseRunner_8h.html',1,'']]],
+  ['customnotifyapp_2ecpp_19',['CustomNotifyApp.cpp',['../CustomNotifyApp_8cpp.html',1,'']]],
+  ['customnotifyapp_2eh_20',['CustomNotifyApp.h',['../CustomNotifyApp_8h.html',1,'']]]
 ];

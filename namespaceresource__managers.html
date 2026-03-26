@@ -21,7 +21,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.2.8</span>
+   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.3.0</span>
    </div>
   </td>
  </tr>
@@ -117,6 +117,8 @@ Classes</h2></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structresource__managers_1_1Level.html">Level</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classresource__managers_1_1OnlineUserData.html">OnlineUserData</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classresource__managers_1_1Profile.html">Profile</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structresource__managers_1_1RandomizedData.html">RandomizedData</a></td></tr>
@@ -131,6 +133,8 @@ Classes</h2></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classresource__managers_1_1Tables.html">Tables</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Manages the download and storage of tables from given URLs.  <a href="classresource__managers_1_1Tables.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classresource__managers_1_1TachiData.html">TachiData</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structresource__managers_1_1Trophy.html">Trophy</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -154,7 +158,7 @@ Functions</h2></td></tr>
 <tr class="separator:a7fbf24b77ea47dda90b5cbf6c02bc69d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7c0519eadea61aa14d021b7166d42f17" id="r_a7c0519eadea61aa14d021b7166d42f17"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceresource__managers.html#a7c0519eadea61aa14d021b7166d42f17">loadBga</a> (std::vector&lt; std::pair&lt; <a class="el" href="structcharts_1_1BmsNotesData_1_1Time.html">charts::BmsNotesData::Time</a>, uint64_t &gt; &gt; bgaBase, std::vector&lt; std::pair&lt; <a class="el" href="structcharts_1_1BmsNotesData_1_1Time.html">charts::BmsNotesData::Time</a>, uint64_t &gt; &gt; bgaPoor, std::vector&lt; std::pair&lt; <a class="el" href="structcharts_1_1BmsNotesData_1_1Time.html">charts::BmsNotesData::Time</a>, uint64_t &gt; &gt; bgaLayer, std::vector&lt; std::pair&lt; <a class="el" href="structcharts_1_1BmsNotesData_1_1Time.html">charts::BmsNotesData::Time</a>, uint64_t &gt; &gt; bgaLayer2, std::unordered_map&lt; uint64_t, std::filesystem::path &gt; bmps, QThread *thread, std::filesystem::path path) -&gt; std::unique_ptr&lt; <a class="el" href="classqml__components_1_1BgaContainer.html">qml_components::BgaContainer</a> &gt;</td></tr>
 <tr class="separator:a7c0519eadea61aa14d021b7166d42f17"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7a7e8c86418feb3f52200249560d423f" id="r_a7a7e8c86418feb3f52200249560d423f"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceresource__managers.html#a7a7e8c86418feb3f52200249560d423f">createAutoplayFromNotes</a> (const <a class="el" href="classgameplay__logic_1_1BmsNotes.html">gameplay_logic::BmsNotes</a> &amp;notes) -&gt; std::vector&lt; <a class="el" href="classgameplay__logic_1_1HitEvent.html">gameplay_logic::HitEvent</a> &gt;</td></tr>
+<tr class="memitem:a7a7e8c86418feb3f52200249560d423f" id="r_a7a7e8c86418feb3f52200249560d423f"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceresource__managers.html#a7a7e8c86418feb3f52200249560d423f">createAutoplayFromNotes</a> (const <a class="el" href="classgameplay__logic_1_1BmsNotes.html">gameplay_logic::BmsNotes</a> &amp;<a class="el" href="OnlineRankingModel_8cpp.html#a7dbd379c73b20ded52adb099da250071">notes</a>) -&gt; std::vector&lt; <a class="el" href="classgameplay__logic_1_1HitEvent.html">gameplay_logic::HitEvent</a> &gt;</td></tr>
 <tr class="separator:a7a7e8c86418feb3f52200249560d423f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac13be06feafd9ba245f5e7bf595587ec" id="r_ac13be06feafd9ba245f5e7bf595587ec"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceresource__managers.html#ac13be06feafd9ba245f5e7bf595587ec">defineDb</a> (<a class="el" href="classdb_1_1SqliteCppDb.html">db::SqliteCppDb</a> &amp;db)</td></tr>
 <tr class="separator:ac13be06feafd9ba245f5e7bf595587ec"><td class="memSeparator" colspan="2">&#160;</td></tr>

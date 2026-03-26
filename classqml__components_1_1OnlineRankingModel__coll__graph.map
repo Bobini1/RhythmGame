@@ -1,0 +1,12 @@
+<map id="qml_components::OnlineRankingModel" name="qml_components::OnlineRankingModel">
+<area shape="rect" id="Node000001" title=" " alt="" coords="164,168,401,208"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,80,155,105"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="118,108,243,166,241,170,116,113"/>
+<area shape="rect" id="Node000003" href="$classqml__components_1_1ProfileList.html" title="The list of local profiles." alt="" coords="179,80,386,105"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="285,119,285,168,280,168,280,119"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="365,5,440,31"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="373,40,303,82,301,78,371,35"/>
+<area shape="rect" id="Node000005" href="$classqml__components_1_1OnlineScores.html" title=" " alt="" coords="411,80,637,105"/>
+<area shape="poly" id="edge5_Node000005_Node000004" title=" " alt="" coords="435,35,506,78,503,82,432,40"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="483,113,332,170,330,166,481,108"/>
+</map>

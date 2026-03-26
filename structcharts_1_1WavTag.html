@@ -21,7 +21,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.2.8</span>
+   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.3.0</span>
    </div>
   </td>
  </tr>
@@ -135,7 +135,7 @@ Static Public Attributes</h2></td></tr>
 </div><div class="memdoc">
 <b>Initial value:</b><div class="fragment"><div class="line">=</div>
 <div class="line">      lexy::callback&lt;Wav&gt;([](uint16_t&amp;&amp; identifier, std::string&amp;&amp; filename) {</div>
-<div class="line">          <span class="keywordflow">return</span> Wav{ { std::move(identifier), std::move(filename) } };</div>
+<div class="line">          <span class="keywordflow">return</span> Wav{ { identifier, std::move(filename) } };</div>
 <div class="line">      })</div>
 </div><!-- fragment -->
 </div>

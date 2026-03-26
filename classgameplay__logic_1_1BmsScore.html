@@ -21,7 +21,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.2.8</span>
+   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.3.0</span>
    </div>
   </td>
  </tr>
@@ -74,6 +74,8 @@ $(function() {
 </div><!-- top -->
 <div class="header">
   <div class="summary">
+<a href="#pub-types">Public Types</a> &#124;
+<a href="#signals">Signals</a> &#124;
 <a href="#pub-methods">Public Member Functions</a> &#124;
 <a href="#properties">Properties</a> &#124;
 <a href="classgameplay__logic_1_1BmsScore-members.html">List of all members</a>  </div>
@@ -106,6 +108,25 @@ Collaboration diagram for gameplay_logic::BmsScore:</div>
 </map>
 <center><span class="legend">[<a href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-types" name="pub-types"></a>
+Public Types</h2></td></tr>
+<tr class="memitem:a884ea7325dac70efb1ae5d5ddd9f028e" id="r_a884ea7325dac70efb1ae5d5ddd9f028e"><td class="memItemLeft" align="right" valign="top">enum class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgameplay__logic_1_1BmsScore.html#a884ea7325dac70efb1ae5d5ddd9f028e">SubmissionState</a> { <br />
+&#160;&#160;<a class="el" href="classgameplay__logic_1_1BmsScore.html#a884ea7325dac70efb1ae5d5ddd9f028ea408ffca27f2ca33eccbc6e23c3e67734">NotSubmitted</a>
+, <a class="el" href="classgameplay__logic_1_1BmsScore.html#a884ea7325dac70efb1ae5d5ddd9f028ea6d6be0f698d5beedefe6ff05cc577bd3">NotSubmitting</a>
+, <a class="el" href="classgameplay__logic_1_1BmsScore.html#a884ea7325dac70efb1ae5d5ddd9f028ea37096d4c09162577c84ef58296a375f8">Submitting</a>
+, <a class="el" href="classgameplay__logic_1_1BmsScore.html#a884ea7325dac70efb1ae5d5ddd9f028ea5c835c22429f25992b4371691ecde1a4">Submitted</a>
+, <br />
+&#160;&#160;<a class="el" href="classgameplay__logic_1_1BmsScore.html#a884ea7325dac70efb1ae5d5ddd9f028ead7c8c85bf79bbe1b7188497c32c3b0ca">Failed</a>
+, <a class="el" href="classgameplay__logic_1_1BmsScore.html#a884ea7325dac70efb1ae5d5ddd9f028eaed75712b0eb1913c28a3872731ffd48d">Duplicate</a>
+<br />
+ }</td></tr>
+<tr class="separator:a884ea7325dac70efb1ae5d5ddd9f028e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="signals" name="signals"></a>
+Signals</h2></td></tr>
+<tr class="memitem:a5ac50e7ed94b1773040a6fe7c5b6bba7" id="r_a5ac50e7ed94b1773040a6fe7c5b6bba7"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgameplay__logic_1_1BmsScore.html#a5ac50e7ed94b1773040a6fe7c5b6bba7">submissionStateChanged</a> ()</td></tr>
+<tr class="separator:a5ac50e7ed94b1773040a6fe7c5b6bba7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a215063e9d346568dc2544d2ab9e3f477" id="r_a215063e9d346568dc2544d2ab9e3f477"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgameplay__logic_1_1BmsScore.html#a215063e9d346568dc2544d2ab9e3f477">BmsScore</a> (std::unique_ptr&lt; <a class="el" href="classgameplay__logic_1_1BmsResult.html">BmsResult</a> &gt; <a class="el" href="classgameplay__logic_1_1BmsScore.html#a8b249001f144b67963b5cdca911b4fe0">result</a>, std::unique_ptr&lt; <a class="el" href="classgameplay__logic_1_1BmsReplayData.html">BmsReplayData</a> &gt; <a class="el" href="classgameplay__logic_1_1BmsScore.html#a8966f4fddbbd7ac6ae3912a5f41c4e6b">replayData</a>, std::unique_ptr&lt; <a class="el" href="classgameplay__logic_1_1BmsGaugeHistory.html">BmsGaugeHistory</a> &gt; <a class="el" href="classgameplay__logic_1_1BmsScore.html#adb1ba0e2d52f4fca897b07cdc817e468">gaugeHistory</a>, QObject *parent=nullptr)</td></tr>
@@ -116,6 +137,10 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a1c803bfc0fefa492ba079ffe6142ef75"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a72609ec49af526d5eaf5af1c8a71e6d8" id="r_a72609ec49af526d5eaf5af1c8a71e6d8"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgameplay__logic_1_1BmsScore.html#a72609ec49af526d5eaf5af1c8a71e6d8">getGaugeHistory</a> () const -&gt; <a class="el" href="classgameplay__logic_1_1BmsGaugeHistory.html">BmsGaugeHistory</a> *</td></tr>
 <tr class="separator:a72609ec49af526d5eaf5af1c8a71e6d8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afc280624c60a5a57459475bdb9ac04b9" id="r_afc280624c60a5a57459475bdb9ac04b9"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgameplay__logic_1_1BmsScore.html#afc280624c60a5a57459475bdb9ac04b9">setSubmissionState</a> (<a class="el" href="classgameplay__logic_1_1BmsScore.html#a884ea7325dac70efb1ae5d5ddd9f028e">SubmissionState</a> newState)</td></tr>
+<tr class="separator:afc280624c60a5a57459475bdb9ac04b9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a91bf597f43504d68c29b1508fc1717a1" id="r_a91bf597f43504d68c29b1508fc1717a1"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgameplay__logic_1_1BmsScore.html#a91bf597f43504d68c29b1508fc1717a1">getSubmissionState</a> () const -&gt; <a class="el" href="classgameplay__logic_1_1BmsScore.html#a884ea7325dac70efb1ae5d5ddd9f028e">SubmissionState</a></td></tr>
+<tr class="separator:a91bf597f43504d68c29b1508fc1717a1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2b50f567a935a86e721aa759c9faf3c9" id="r_a2b50f567a935a86e721aa759c9faf3c9"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgameplay__logic_1_1BmsScore.html#a2b50f567a935a86e721aa759c9faf3c9">save</a> (<a class="el" href="classdb_1_1SqliteCppDb.html">db::SqliteCppDb</a> &amp;db) const</td></tr>
 <tr class="separator:a2b50f567a935a86e721aa759c9faf3c9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
@@ -130,10 +155,44 @@ Properties</h2></td></tr>
 <tr class="memitem:adb1ba0e2d52f4fca897b07cdc817e468" id="r_adb1ba0e2d52f4fca897b07cdc817e468"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classgameplay__logic_1_1BmsGaugeHistory.html">BmsGaugeHistory</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgameplay__logic_1_1BmsScore.html#adb1ba0e2d52f4fca897b07cdc817e468">gaugeHistory</a></td></tr>
 <tr class="memdesc:adb1ba0e2d52f4fca897b07cdc817e468"><td class="mdescLeft">&#160;</td><td class="mdescRight">The gauge history of the score.  <br /></td></tr>
 <tr class="separator:adb1ba0e2d52f4fca897b07cdc817e468"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab55b74a3a539639c637cf64a9b158a3e" id="r_ab55b74a3a539639c637cf64a9b158a3e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classgameplay__logic_1_1BmsScore.html#a884ea7325dac70efb1ae5d5ddd9f028e">SubmissionState</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgameplay__logic_1_1BmsScore.html#ab55b74a3a539639c637cf64a9b158a3e">submissionState</a> { <a class="el" href="classgameplay__logic_1_1BmsScore.html#a884ea7325dac70efb1ae5d5ddd9f028ea408ffca27f2ca33eccbc6e23c3e67734">SubmissionState::NotSubmitted</a> }</td></tr>
+<tr class="memdesc:ab55b74a3a539639c637cf64a9b158a3e"><td class="mdescLeft">&#160;</td><td class="mdescRight">The state of score submission to the online server.  <br /></td></tr>
+<tr class="separator:ab55b74a3a539639c637cf64a9b158a3e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>The result of playing a chart. </p>
-</div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
+</div><h2 class="groupheader">Member Enumeration Documentation</h2>
+<a id="a884ea7325dac70efb1ae5d5ddd9f028e" name="a884ea7325dac70efb1ae5d5ddd9f028e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a884ea7325dac70efb1ae5d5ddd9f028e">&#9670;&#160;</a></span>SubmissionState</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">enum class <a class="el" href="classgameplay__logic_1_1BmsScore.html#a884ea7325dac70efb1ae5d5ddd9f028e">gameplay_logic::BmsScore::SubmissionState</a></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">strong</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<table class="fieldtable">
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a884ea7325dac70efb1ae5d5ddd9f028ea408ffca27f2ca33eccbc6e23c3e67734" name="a884ea7325dac70efb1ae5d5ddd9f028ea408ffca27f2ca33eccbc6e23c3e67734"></a>NotSubmitted&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a884ea7325dac70efb1ae5d5ddd9f028ea6d6be0f698d5beedefe6ff05cc577bd3" name="a884ea7325dac70efb1ae5d5ddd9f028ea6d6be0f698d5beedefe6ff05cc577bd3"></a>NotSubmitting&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a884ea7325dac70efb1ae5d5ddd9f028ea37096d4c09162577c84ef58296a375f8" name="a884ea7325dac70efb1ae5d5ddd9f028ea37096d4c09162577c84ef58296a375f8"></a>Submitting&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a884ea7325dac70efb1ae5d5ddd9f028ea5c835c22429f25992b4371691ecde1a4" name="a884ea7325dac70efb1ae5d5ddd9f028ea5c835c22429f25992b4371691ecde1a4"></a>Submitted&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a884ea7325dac70efb1ae5d5ddd9f028ead7c8c85bf79bbe1b7188497c32c3b0ca" name="a884ea7325dac70efb1ae5d5ddd9f028ead7c8c85bf79bbe1b7188497c32c3b0ca"></a>Failed&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a884ea7325dac70efb1ae5d5ddd9f028eaed75712b0eb1913c28a3872731ffd48d" name="a884ea7325dac70efb1ae5d5ddd9f028eaed75712b0eb1913c28a3872731ffd48d"></a>Duplicate&#160;</td><td class="fielddoc"></td></tr>
+</table>
+
+</div>
+</div>
+<h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a215063e9d346568dc2544d2ab9e3f477" name="a215063e9d346568dc2544d2ab9e3f477"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a215063e9d346568dc2544d2ab9e3f477">&#9670;&#160;</a></span>BmsScore()</h2>
 
@@ -234,6 +293,23 @@ Properties</h2></td></tr>
 
 </div>
 </div>
+<a id="a91bf597f43504d68c29b1508fc1717a1" name="a91bf597f43504d68c29b1508fc1717a1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a91bf597f43504d68c29b1508fc1717a1">&#9670;&#160;</a></span>getSubmissionState()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto gameplay_logic::BmsScore::getSubmissionState </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const -&gt; <a class="el" href="classgameplay__logic_1_1BmsScore.html#a884ea7325dac70efb1ae5d5ddd9f028e">SubmissionState</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a2b50f567a935a86e721aa759c9faf3c9" name="a2b50f567a935a86e721aa759c9faf3c9"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a2b50f567a935a86e721aa759c9faf3c9">&#9670;&#160;</a></span>save()</h2>
 
@@ -248,6 +324,49 @@ Properties</h2></td></tr>
           <td> const</td>
         </tr>
       </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="afc280624c60a5a57459475bdb9ac04b9" name="afc280624c60a5a57459475bdb9ac04b9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afc280624c60a5a57459475bdb9ac04b9">&#9670;&#160;</a></span>setSubmissionState()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void gameplay_logic::BmsScore::setSubmissionState </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classgameplay__logic_1_1BmsScore.html#a884ea7325dac70efb1ae5d5ddd9f028e">SubmissionState</a>&#160;</td>
+          <td class="paramname"><em>newState</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a5ac50e7ed94b1773040a6fe7c5b6bba7" name="a5ac50e7ed94b1773040a6fe7c5b6bba7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5ac50e7ed94b1773040a6fe7c5b6bba7">&#9670;&#160;</a></span>submissionStateChanged</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void gameplay_logic::BmsScore::submissionStateChanged </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">signal</span></span>  </td>
+  </tr>
+</table>
 </div><div class="memdoc">
 
 </div>
@@ -322,6 +441,22 @@ Properties</h2></td></tr>
 </div><div class="memdoc">
 
 <p>The aggregated info about the score. </p>
+
+</div>
+</div>
+<a id="ab55b74a3a539639c637cf64a9b158a3e" name="ab55b74a3a539639c637cf64a9b158a3e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab55b74a3a539639c637cf64a9b158a3e">&#9670;&#160;</a></span>submissionState</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classgameplay__logic_1_1BmsScore.html#a884ea7325dac70efb1ae5d5ddd9f028e">SubmissionState</a> gameplay_logic::BmsScore::submissionState { <a class="el" href="classgameplay__logic_1_1BmsScore.html#a884ea7325dac70efb1ae5d5ddd9f028ea408ffca27f2ca33eccbc6e23c3e67734">SubmissionState::NotSubmitted</a> }</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>The state of score submission to the online server. </p>
 
 </div>
 </div>

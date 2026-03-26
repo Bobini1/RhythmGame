@@ -21,7 +21,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.2.8</span>
+   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.3.0</span>
    </div>
   </td>
  </tr>
@@ -91,6 +91,8 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structcharts_1_1BmsNotesData_1_1BmsonSliceInfo.html">BmsonSliceInfo</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Describes one audio slice for bmson sound loading.  <a href="structcharts_1_1BmsNotesData_1_1BmsonSliceInfo.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structcharts_1_1BmsNotesData_1_1BpmChangeValues.html">BpmChangeValues</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structcharts_1_1BmsNotesData_1_1Note.html">Note</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structcharts_1_1BmsNotesData_1_1Time.html">Time</a></td></tr>
@@ -117,10 +119,10 @@ Public Types</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-methods" name="pub-static-methods"></a>
 Static Public Member Functions</h2></td></tr>
-<tr class="memitem:a28846baa52ae5eeee99499f99e4d4a95" id="r_a28846baa52ae5eeee99499f99e4d4a95"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="structcharts_1_1BmsNotesData.html">BmsNotesData</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structcharts_1_1BmsNotesData.html#a28846baa52ae5eeee99499f99e4d4a95">fromParsedChart</a> (const <a class="el" href="structcharts_1_1ParsedBmsChart.html">ParsedBmsChart</a> &amp;chart)</td></tr>
-<tr class="separator:a28846baa52ae5eeee99499f99e4d4a95"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8d19ea605254347fa8d4b647942f95c4" id="r_a8d19ea605254347fa8d4b647942f95c4"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="structcharts_1_1BmsNotesData.html">BmsNotesData</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structcharts_1_1BmsNotesData.html#a8d19ea605254347fa8d4b647942f95c4">fromBmson</a> (const QJsonObject &amp;bmson)</td></tr>
-<tr class="separator:a8d19ea605254347fa8d4b647942f95c4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9764cc84868c62ada5f3cce63a03ec48" id="r_a9764cc84868c62ada5f3cce63a03ec48"><td class="memItemLeft" align="right" valign="top">static auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structcharts_1_1BmsNotesData.html#a9764cc84868c62ada5f3cce63a03ec48">fromParsedChart</a> (const <a class="el" href="structcharts_1_1ParsedBmsChart.html">ParsedBmsChart</a> &amp;chart) -&gt; <a class="el" href="structcharts_1_1BmsNotesData.html">BmsNotesData</a></td></tr>
+<tr class="separator:a9764cc84868c62ada5f3cce63a03ec48"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a782281926489efb3b2aa3d95d010f235" id="r_a782281926489efb3b2aa3d95d010f235"><td class="memItemLeft" align="right" valign="top">static auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structcharts_1_1BmsNotesData.html#a782281926489efb3b2aa3d95d010f235">fromBmson</a> (const QJsonObject &amp;bmson) -&gt; <a class="el" href="structcharts_1_1BmsNotesData.html">BmsNotesData</a></td></tr>
+<tr class="separator:a782281926489efb3b2aa3d95d010f235"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
@@ -136,8 +138,8 @@ Public Attributes</h2></td></tr>
 <tr class="separator:a4e0fc3cd8d48ee1dfa04a470a64c7063"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a73d8d97de7360abd408148ef22d0c718" id="r_a73d8d97de7360abd408148ef22d0c718"><td class="memItemLeft" align="right" valign="top">std::vector&lt; std::pair&lt; <a class="el" href="structcharts_1_1BmsNotesData_1_1Time.html">Time</a>, uint64_t &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structcharts_1_1BmsNotesData.html#a73d8d97de7360abd408148ef22d0c718">bgaLayer2</a></td></tr>
 <tr class="separator:a73d8d97de7360abd408148ef22d0c718"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad21d394a230d3d9087da2b9b92b0abea" id="r_ad21d394a230d3d9087da2b9b92b0abea"><td class="memItemLeft" align="right" valign="top">std::vector&lt; std::pair&lt; <a class="el" href="structcharts_1_1BmsNotesData_1_1Time.html">Time</a>, double &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structcharts_1_1BmsNotesData.html#ad21d394a230d3d9087da2b9b92b0abea">bpmChanges</a></td></tr>
-<tr class="separator:ad21d394a230d3d9087da2b9b92b0abea"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2341e4cfede05f65a4f8e26277eae0ac" id="r_a2341e4cfede05f65a4f8e26277eae0ac"><td class="memItemLeft" align="right" valign="top">std::vector&lt; <a class="el" href="structcharts_1_1BmsNotesData_1_1BpmChangeValues.html">BpmChangeValues</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structcharts_1_1BmsNotesData.html#a2341e4cfede05f65a4f8e26277eae0ac">bpmChanges</a></td></tr>
+<tr class="separator:a2341e4cfede05f65a4f8e26277eae0ac"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aec6579fc69b39f641d52b0d6baefe0b5" id="r_aec6579fc69b39f641d52b0d6baefe0b5"><td class="memItemLeft" align="right" valign="top">std::vector&lt; <a class="el" href="structcharts_1_1BmsNotesData_1_1Time.html">Time</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structcharts_1_1BmsNotesData.html#aec6579fc69b39f641d52b0d6baefe0b5">barLines</a></td></tr>
 <tr class="separator:aec6579fc69b39f641d52b0d6baefe0b5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afda9cc5da34c48e682cdf0d6771cf04a" id="r_afda9cc5da34c48e682cdf0d6771cf04a"><td class="memItemLeft" align="right" valign="top">std::vector&lt; <a class="el" href="structcharts_1_1BmsNotesData_1_1BmsonSliceInfo.html">BmsonSliceInfo</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structcharts_1_1BmsNotesData.html#afda9cc5da34c48e682cdf0d6771cf04a">bmsonSlices</a></td></tr>
@@ -158,6 +160,10 @@ Static Public Attributes</h2></td></tr>
 <tr class="separator:acb7c9b02c9d3458d39a5563c92ef0438"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a43f516a54bd83a78aca7a6a3ea6a0fcb" id="r_a43f516a54bd83a78aca7a6a3ea6a0fcb"><td class="memItemLeft" align="right" valign="top">static constexpr auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structcharts_1_1BmsNotesData.html#a43f516a54bd83a78aca7a6a3ea6a0fcb">defaultLnType</a> = <a class="el" href="structcharts_1_1BmsNotesData.html#a65fd4b4ad481a5966521748190b18c0da006795aeeab570e4ca336932c33932f2">LnType::RDM</a></td></tr>
 <tr class="separator:a43f516a54bd83a78aca7a6a3ea6a0fcb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afd60d7974a1429a754ff1bb6d76e1d64" id="r_afd60d7974a1429a754ff1bb6d76e1d64"><td class="memItemLeft" align="right" valign="top">static constexpr auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structcharts_1_1BmsNotesData.html#afd60d7974a1429a754ff1bb6d76e1d64">defaultBase</a> = 36</td></tr>
+<tr class="separator:afd60d7974a1429a754ff1bb6d76e1d64"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4fa55034065b125f81c380ded9dc9c56" id="r_a4fa55034065b125f81c380ded9dc9c56"><td class="memItemLeft" align="right" valign="top">static constexpr auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structcharts_1_1BmsNotesData.html#a4fa55034065b125f81c380ded9dc9c56">defaultScroll</a> = 1.0</td></tr>
+<tr class="separator:a4fa55034065b125f81c380ded9dc9c56"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Member Typedef Documentation</h2>
 <a id="a0887b3caad0145433e5b6ef69897ed46" name="a0887b3caad0145433e5b6ef69897ed46"></a>
@@ -231,8 +237,8 @@ Static Public Attributes</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a id="a8d19ea605254347fa8d4b647942f95c4" name="a8d19ea605254347fa8d4b647942f95c4"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a8d19ea605254347fa8d4b647942f95c4">&#9670;&#160;</a></span>fromBmson()</h2>
+<a id="a782281926489efb3b2aa3d95d010f235" name="a782281926489efb3b2aa3d95d010f235"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a782281926489efb3b2aa3d95d010f235">&#9670;&#160;</a></span>fromBmson()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -245,7 +251,7 @@ Static Public Attributes</h2></td></tr>
           <td>(</td>
           <td class="paramtype">const QJsonObject &amp;&#160;</td>
           <td class="paramname"><em>bmson</em></td><td>)</td>
-          <td></td>
+          <td> -&gt; <a class="el" href="structcharts_1_1BmsNotesData.html">BmsNotesData</a></td>
         </tr>
       </table>
   </td>
@@ -257,8 +263,8 @@ Static Public Attributes</h2></td></tr>
 
 </div>
 </div>
-<a id="a28846baa52ae5eeee99499f99e4d4a95" name="a28846baa52ae5eeee99499f99e4d4a95"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a28846baa52ae5eeee99499f99e4d4a95">&#9670;&#160;</a></span>fromParsedChart()</h2>
+<a id="a9764cc84868c62ada5f3cce63a03ec48" name="a9764cc84868c62ada5f3cce63a03ec48"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9764cc84868c62ada5f3cce63a03ec48">&#9670;&#160;</a></span>fromParsedChart()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -267,11 +273,11 @@ Static Public Attributes</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="structcharts_1_1BmsNotesData.html">BmsNotesData</a> charts::BmsNotesData::fromParsedChart </td>
+          <td class="memname">auto charts::BmsNotesData::fromParsedChart </td>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="structcharts_1_1ParsedBmsChart.html">ParsedBmsChart</a> &amp;&#160;</td>
           <td class="paramname"><em>chart</em></td><td>)</td>
-          <td></td>
+          <td> -&gt; <a class="el" href="structcharts_1_1BmsNotesData.html">BmsNotesData</a></td>
         </tr>
       </table>
   </td>
@@ -399,14 +405,14 @@ Static Public Attributes</h2></td></tr>
 
 </div>
 </div>
-<a id="ad21d394a230d3d9087da2b9b92b0abea" name="ad21d394a230d3d9087da2b9b92b0abea"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad21d394a230d3d9087da2b9b92b0abea">&#9670;&#160;</a></span>bpmChanges</h2>
+<a id="a2341e4cfede05f65a4f8e26277eae0ac" name="a2341e4cfede05f65a4f8e26277eae0ac"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2341e4cfede05f65a4f8e26277eae0ac">&#9670;&#160;</a></span>bpmChanges</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">std::vector&lt;std::pair&lt;<a class="el" href="structcharts_1_1BmsNotesData_1_1Time.html">Time</a>, double&gt; &gt; charts::BmsNotesData::bpmChanges</td>
+          <td class="memname">std::vector&lt;<a class="el" href="structcharts_1_1BmsNotesData_1_1BpmChangeValues.html">BpmChangeValues</a>&gt; charts::BmsNotesData::bpmChanges</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -448,6 +454,28 @@ Static Public Attributes</h2></td></tr>
       <table class="memname">
         <tr>
           <td class="memname">constexpr auto charts::BmsNotesData::columnNumber = columnMapping.size() * 2</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="afd60d7974a1429a754ff1bb6d76e1d64" name="afd60d7974a1429a754ff1bb6d76e1d64"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afd60d7974a1429a754ff1bb6d76e1d64">&#9670;&#160;</a></span>defaultBase</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr auto charts::BmsNotesData::defaultBase = 36</td>
         </tr>
       </table>
   </td>
@@ -514,6 +542,28 @@ Static Public Attributes</h2></td></tr>
       <table class="memname">
         <tr>
           <td class="memname">constexpr auto charts::BmsNotesData::defaultLnType = <a class="el" href="structcharts_1_1BmsNotesData.html#a65fd4b4ad481a5966521748190b18c0da006795aeeab570e4ca336932c33932f2">LnType::RDM</a></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a4fa55034065b125f81c380ded9dc9c56" name="a4fa55034065b125f81c380ded9dc9c56"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4fa55034065b125f81c380ded9dc9c56">&#9670;&#160;</a></span>defaultScroll</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr auto charts::BmsNotesData::defaultScroll = 1.0</td>
         </tr>
       </table>
   </td>

@@ -1,0 +1,18 @@
+<map id="src/qml_components/OnlineRankingModel.h" name="src/qml_components/OnlineRankingModel.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="39,5,212,45"/>
+<area shape="rect" id="Node000002" href="$main_8cpp.html" title=" " alt="" coords="181,269,286,295"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="92,56,56,91,24,133,14,156,9,178,10,199,21,220,45,237,86,251,181,271,180,276,85,256,43,241,17,223,5,201,3,177,9,154,20,131,52,87,89,52"/>
+<area shape="rect" id="Node000003" href="$OnlineRankingModel_8cpp.html" title=" " alt="" coords="31,181,219,221"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="128,59,128,181,123,181,123,59"/>
+<area shape="rect" id="Node000004" href="$OnlineScores_8h.html" title=" " alt="" coords="179,93,336,133"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="167,51,230,91,227,95,165,55"/>
+<area shape="poly" id="edge7_Node000004_Node000002" title=" " alt="" coords="255,148,238,270,232,269,250,147"/>
+<area shape="poly" id="edge8_Node000004_Node000003" title=" " alt="" coords="218,143,156,183,153,179,215,139"/>
+<area shape="rect" id="Node000005" href="$Rg_8h.html" title=" " alt="" coords="295,189,467,214"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="298,139,366,186,363,191,295,144"/>
+<area shape="rect" id="Node000007" href="$OnlineScores_8cpp.html" title=" " alt="" coords="492,181,649,221"/>
+<area shape="poly" id="edge9_Node000004_Node000007" title=" " alt="" coords="340,134,503,179,501,184,339,140"/>
+<area shape="poly" id="edge6_Node000005_Node000002" title=" " alt="" coords="349,223,257,271,254,267,346,218"/>
+<area shape="rect" id="Node000006" href="$Rg_8cpp.html" title=" " alt="" coords="311,269,497,295"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="391,227,403,268,398,270,386,228"/>
+</map>

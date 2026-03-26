@@ -1,7 +1,17 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="Node000000" title=" " alt="" coords="5,45,169,70"/>
-<area shape="rect" id="Node000001" href="$classresource__managers_1_1AvatarImageProvider.html" title=" " alt="" coords="217,5,376,45"/>
-<area shape="poly" id="edge59_Node000000_Node000001" title=" " alt="" coords="183,40,217,35,218,40,183,45"/>
-<area shape="rect" id="Node000002" href="$classresource__managers_1_1IniImageProvider.html" title=" " alt="" coords="217,69,376,109"/>
-<area shape="poly" id="edge60_Node000000_Node000002" title=" " alt="" coords="183,69,218,75,217,80,183,75"/>
+<area shape="rect" id="Node000000" title=" " alt="" coords="5,191,155,217"/>
+<area shape="rect" id="Node000001" href="$classgameplay__logic_1_1BarLinesState.html" title="The state of the barlines in the chart." alt="" coords="227,5,416,45"/>
+<area shape="poly" id="edge1_Node000000_Node000001" title=" " alt="" coords="93,178,136,116,166,83,201,55,225,43,227,48,204,60,170,87,140,120,97,181"/>
+<area shape="rect" id="Node000002" href="$classgameplay__logic_1_1ColumnState.html" title="The state of a single column, including its notes and whether it is currently pressed." alt="" coords="213,70,430,95"/>
+<area shape="poly" id="edge2_Node000000_Node000002" title=" " alt="" coords="102,179,145,141,201,106,237,93,239,98,204,110,149,145,105,183"/>
+<area shape="rect" id="Node000003" href="$classgameplay__logic_1_1JudgementCounts.html" title=" " alt="" coords="220,120,423,160"/>
+<area shape="poly" id="edge3_Node000000_Node000003" title=" " alt="" coords="141,185,244,158,246,163,143,190"/>
+<area shape="rect" id="Node000004" href="$classqml__components_1_1OnlineRankingModel.html" title=" " alt="" coords="203,184,440,224"/>
+<area shape="poly" id="edge4_Node000000_Node000004" title=" " alt="" coords="169,201,202,201,202,207,169,207"/>
+<area shape="rect" id="Node000005" href="$classqml__components_1_1RootSongFolders.html" title=" " alt="" coords="219,248,423,288"/>
+<area shape="poly" id="edge5_Node000000_Node000005" title=" " alt="" coords="143,218,246,245,244,250,141,223"/>
+<area shape="rect" id="Node000006" href="$classqml__components_1_1ScanningQueue.html" title=" " alt="" coords="221,312,422,352"/>
+<area shape="poly" id="edge6_Node000000_Node000006" title=" " alt="" coords="106,225,150,262,204,298,232,309,230,314,201,302,146,267,103,229"/>
+<area shape="rect" id="Node000007" href="$classresource__managers_1_1Tables.html" title="Manages the download and storage of tables from given URLs." alt="" coords="242,376,401,416"/>
+<area shape="poly" id="edge7_Node000000_Node000007" title=" " alt="" coords="96,228,138,295,168,331,204,362,243,380,241,385,201,366,165,335,134,298,91,231"/>
 </map>

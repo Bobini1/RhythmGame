@@ -21,7 +21,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.2.8</span>
+   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.3.0</span>
    </div>
   </td>
  </tr>
@@ -82,10 +82,10 @@ $(function() {
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-attribs" name="pub-static-attribs"></a>
 Static Public Attributes</h2></td></tr>
-<tr class="memitem:afd449229264dbef9236bdf0d58bf78d8" id="r_afd449229264dbef9236bdf0d58bf78d8"><td class="memItemLeft" align="right" valign="top">static constexpr auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structcharts_1_1Identifier.html#afd449229264dbef9236bdf0d58bf78d8">value</a></td></tr>
-<tr class="separator:afd449229264dbef9236bdf0d58bf78d8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a444739b9829bf703a7ceacb67991500d" id="r_a444739b9829bf703a7ceacb67991500d"><td class="memItemLeft" align="right" valign="top">static constexpr auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structcharts_1_1Identifier.html#a444739b9829bf703a7ceacb67991500d">rule</a> = capture(token(twice(dsl::ascii::alnum)))</td></tr>
 <tr class="separator:a444739b9829bf703a7ceacb67991500d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afd449229264dbef9236bdf0d58bf78d8" id="r_afd449229264dbef9236bdf0d58bf78d8"><td class="memItemLeft" align="right" valign="top">static constexpr auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structcharts_1_1Identifier.html#afd449229264dbef9236bdf0d58bf78d8">value</a></td></tr>
+<tr class="separator:afd449229264dbef9236bdf0d58bf78d8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Member Data Documentation</h2>
 <a id="a444739b9829bf703a7ceacb67991500d" name="a444739b9829bf703a7ceacb67991500d"></a>
@@ -130,12 +130,11 @@ Static Public Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 <b>Initial value:</b><div class="fragment"><div class="line">= lexy::callback&lt;uint16_t&gt;([](<span class="keyword">auto</span>&amp;&amp; str) {</div>
-<div class="line">        <span class="keyword">auto</span> res = uint16_t{};</div>
-<div class="line">        <span class="keyword">auto</span> [ptr, ec] = std::from_chars(str.begin(), str.end(), res, 36);</div>
-<div class="line">        <span class="keywordflow">if</span> (ec == std::errc{} &amp;&amp; ptr == str.end()) {</div>
-<div class="line">            <span class="keywordflow">return</span> res;</div>
-<div class="line">        }</div>
-<div class="line">        <span class="keywordflow">return</span> uint16_t{ 0 };</div>
+<div class="line">        <span class="keyword">auto</span> char1 = str[0];</div>
+<div class="line">        <span class="keyword">auto</span> char2 = str[1];</div>
+<div class="line">        <span class="keyword">auto</span> value1 = base62CharToValue(char1);</div>
+<div class="line">        <span class="keyword">auto</span> value2 = base62CharToValue(char2);</div>
+<div class="line">        <span class="keywordflow">return</span> value1 * 62 + value2;</div>
 <div class="line">    })</div>
 </div><!-- fragment -->
 </div>

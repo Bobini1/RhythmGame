@@ -1,15 +1,17 @@
 <map id="src/gameplay_logic/BmsReplayData.h" name="src/gameplay_logic/BmsReplayData.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="555,5,703,45"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="614,5,762,45"/>
 <area shape="rect" id="Node000002" href="$HitEvent_8h.html" title=" " alt="" coords="72,93,163,119"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="555,41,177,98,176,93,554,35"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="614,39,176,99,176,94,613,34"/>
 <area shape="rect" id="Node000003" title=" " alt="" coords="92,313,167,339"/>
-<area shape="poly" id="edge21_Node000001_Node000003" title=" " alt="" coords="556,44,493,61,424,87,354,123,321,144,291,169,273,192,266,216,258,241,240,267,209,292,175,310,172,306,206,288,237,264,253,239,261,215,268,190,287,165,318,140,351,118,421,82,492,56,554,39"/>
+<area shape="poly" id="edge21_Node000001_Node000003" title=" " alt="" coords="614,39,540,53,455,79,368,116,328,140,291,169,273,192,265,216,258,241,241,267,209,292,175,310,172,306,206,288,237,264,253,238,260,214,268,190,287,165,325,136,366,111,453,74,539,48,613,33"/>
 <area shape="rect" id="Node000007" href="$SqliteCppDb_8h.html" title=" " alt="" coords="562,93,697,119"/>
-<area shape="poly" id="edge8_Node000001_Node000007" title=" " alt="" coords="632,46,632,79,627,79,627,46"/>
+<area shape="poly" id="edge8_Node000001_Node000007" title=" " alt="" coords="676,47,648,84,644,80,672,44"/>
 <area shape="rect" id="Node000018" title=" " alt="" coords="721,93,775,119"/>
-<area shape="poly" id="edge20_Node000001_Node000018" title=" " alt="" coords="659,43,721,84,718,88,656,48"/>
+<area shape="poly" id="edge20_Node000001_Node000018" title=" " alt="" coords="705,44,733,81,729,84,700,47"/>
 <area shape="rect" id="Node000019" title=" " alt="" coords="799,93,870,119"/>
-<area shape="poly" id="edge22_Node000001_Node000019" title=" " alt="" coords="679,43,792,86,790,91,677,48"/>
+<area shape="poly" id="edge22_Node000001_Node000019" title=" " alt="" coords="724,43,802,84,800,89,722,48"/>
+<area shape="rect" id="Node000020" title=" " alt="" coords="894,93,989,119"/>
+<area shape="poly" id="edge23_Node000001_Node000020" title=" " alt="" coords="749,43,892,87,890,92,748,48"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="78,121,50,133,25,149,10,168,8,179,10,191,29,225,53,256,104,303,100,307,49,260,24,228,5,193,3,179,5,166,22,145,48,128,76,116"/>
 <area shape="rect" id="Node000004" title=" " alt="" coords="21,167,99,192"/>
 <area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="110,121,80,158,76,154,106,117"/>

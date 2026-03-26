@@ -21,7 +21,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.2.8</span>
+   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.3.0</span>
    </div>
   </td>
  </tr>
@@ -136,7 +136,7 @@ Static Public Attributes</h2></td></tr>
 </div><div class="memdoc">
 <b>Initial value:</b><div class="fragment"><div class="line">=</div>
 <div class="line">      lexy::callback&lt;Stop&gt;([](uint16_t identifier, <span class="keywordtype">double</span> num) {</div>
-<div class="line">          <span class="keywordflow">return</span> Stop{ { std::move(identifier), num } };</div>
+<div class="line">          <span class="keywordflow">return</span> Stop{ { identifier, num } };</div>
 <div class="line">      })</div>
 </div><!-- fragment -->
 </div>

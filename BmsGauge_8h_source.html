@@ -21,7 +21,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.2.8</span>
+   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.3.0</span>
    </div>
   </td>
  </tr>
@@ -121,14 +121,14 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>{</div>
 <div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>    Q_OBJECT</div>
 <div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span> </div>
-<div class="line"><a id="l00046" name="l00046"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1rules_1_1BmsGauge.html#add962624966aff7dfc94dbb8193fa9dd">   46</a></span>    Q_PROPERTY(QString name READ getName CONSTANT)</div>
+<div class="line"><a id="l00046" name="l00046"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1rules_1_1BmsGauge.html#add962624966aff7dfc94dbb8193fa9dd">   46</a></span>    Q_PROPERTY(QString <a class="code hl_variable" href="OnlineRankingModel_8cpp.html#abc29e461e01cc0c712944f8f47f91331">name</a> READ getName CONSTANT)</div>
 <div class="line"><a id="l00053" name="l00053"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1rules_1_1BmsGauge.html#abf0029efe3f5ba313bbed4101eef0918">   53</a></span>    Q_PROPERTY(<span class="keywordtype">bool</span> courseGauge READ isCourseGauge CONSTANT)</div>
 <div class="line"><a id="l00057" name="l00057"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1rules_1_1BmsGauge.html#a11fb97e2cd6bfe1773c970ad86dc05a2">   57</a></span>    Q_PROPERTY(<span class="keywordtype">double</span> <a class="code hl_property" href="classgameplay__logic_1_1rules_1_1GaugeHistoryEntry.html#a727326e93b02b0db3aa0adc56e2b755b">gauge</a> READ <a class="code hl_function" href="classgameplay__logic_1_1rules_1_1GaugeHistoryEntry.html#ac2756b336b9fa459771a4ad8799176e4">getGauge</a> NOTIFY gaugeChanged)</div>
 <div class="line"><a id="l00061" name="l00061"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1rules_1_1BmsGauge.html#adb39fa1c4d3d210e63931f09e2f1cbf3">   61</a></span>    Q_PROPERTY(<span class="keywordtype">double</span> gaugeMax READ getGaugeMax CONSTANT)</div>
 <div class="line"><a id="l00067" name="l00067"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1rules_1_1BmsGauge.html#ae77acc3e4ce7f373737097c5bba4f5b0">   67</a></span>    Q_PROPERTY(<span class="keywordtype">double</span> threshold READ getThreshold CONSTANT)</div>
 <div class="line"><a id="l00073" name="l00073"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1rules_1_1BmsGauge.html#aee6720bc39f974b46b1b4f5d4ef1c0fb">   73</a></span>    Q_PROPERTY(QList&lt;<a class="code hl_namespace" href="namespacegameplay__logic.html">gameplay_logic</a>::rules::<a class="code hl_class" href="classgameplay__logic_1_1rules_1_1GaugeHistoryEntry.html">GaugeHistoryEntry</a>&gt; gaugeHistory READ</div>
 <div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span>                 getGaugeHistory NOTIFY gaugeChanged)</div>
-<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span>    QString name;</div>
+<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span>    QString <a class="code hl_variable" href="OnlineRankingModel_8cpp.html#abc29e461e01cc0c712944f8f47f91331">name</a>;</div>
 <div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span> </div>
 <div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span>    <span class="keywordtype">double</span> gaugeMax;</div>
 <div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span>    <span class="keywordtype">double</span> threshold = 0;</div>
@@ -138,7 +138,7 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00082" name="l00082"></a><span class="lineno">   82</span>    <a class="code hl_class" href="classgameplay__logic_1_1rules_1_1BmsGauge.html">BmsGauge</a>() = default;</div>
 <div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span> </div>
 <div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span>  public:</div>
-<div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span>    explicit <a class="code hl_class" href="classgameplay__logic_1_1rules_1_1BmsGauge.html">BmsGauge</a>(QString name,</div>
+<div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span>    explicit <a class="code hl_class" href="classgameplay__logic_1_1rules_1_1BmsGauge.html">BmsGauge</a>(QString <a class="code hl_variable" href="OnlineRankingModel_8cpp.html#abc29e461e01cc0c712944f8f47f91331">name</a>,</div>
 <div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span>                      <span class="keywordtype">double</span> gaugeMax,</div>
 <div class="line"><a id="l00087" name="l00087"></a><span class="lineno">   87</span>                      <span class="keywordtype">double</span> initialValue,</div>
 <div class="line"><a id="l00088" name="l00088"></a><span class="lineno">   88</span>                      <span class="keywordtype">double</span> threshold,</div>
@@ -168,6 +168,7 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00111" name="l00111"></a><span class="lineno">  111</span> </div>
 <div class="line"><a id="l00112" name="l00112"></a><span class="lineno">  112</span><span class="preprocessor">#endif </span><span class="comment">// RHYTHMGAME_BMSGAUGE_H</span></div>
 <div class="ttc" id="aJudgement_8h_html"><div class="ttname"><a href="Judgement_8h.html">Judgement.h</a></div></div>
+<div class="ttc" id="aOnlineRankingModel_8cpp_html_abc29e461e01cc0c712944f8f47f91331"><div class="ttname"><a href="OnlineRankingModel_8cpp.html#abc29e461e01cc0c712944f8f47f91331">name</a></div><div class="ttdeci">QString name</div><div class="ttdef"><b>Definition</b> OnlineRankingModel.cpp:448</div></div>
 <div class="ttc" id="aclassgameplay__logic_1_1rules_1_1BmsGauge_html"><div class="ttname"><a href="classgameplay__logic_1_1rules_1_1BmsGauge.html">gameplay_logic::rules::BmsGauge</a></div><div class="ttdef"><b>Definition</b> BmsGauge.h:40</div></div>
 <div class="ttc" id="aclassgameplay__logic_1_1rules_1_1GaugeHistoryEntry_html"><div class="ttname"><a href="classgameplay__logic_1_1rules_1_1GaugeHistoryEntry.html">gameplay_logic::rules::GaugeHistoryEntry</a></div><div class="ttdef"><b>Definition</b> BmsGauge.h:20</div></div>
 <div class="ttc" id="aclassgameplay__logic_1_1rules_1_1GaugeHistoryEntry_html_a727326e93b02b0db3aa0adc56e2b755b"><div class="ttname"><a href="classgameplay__logic_1_1rules_1_1GaugeHistoryEntry.html#a727326e93b02b0db3aa0adc56e2b755b">gameplay_logic::rules::GaugeHistoryEntry::gauge</a></div><div class="ttdeci">double gauge</div><div class="ttdef"><b>Definition</b> BmsGauge.h:23</div></div>

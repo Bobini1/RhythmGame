@@ -21,7 +21,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.2.8</span>
+   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.3.0</span>
    </div>
   </td>
  </tr>
@@ -93,193 +93,209 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span><span class="preprocessor">#include &quot;<a class="code" href="BmsResult_8h.html">BmsResult.h</a>&quot;</span></div>
 <div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span><span class="preprocessor">#include &quot;<a class="code" href="BmsGaugeHistory_8h.html">BmsGaugeHistory.h</a>&quot;</span></div>
 <div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span><span class="preprocessor">#include &quot;<a class="code" href="BmsReplayData_8h.html">BmsReplayData.h</a>&quot;</span></div>
-<div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span><span class="preprocessor">#include &quot;<a class="code" href="Vars_8h.html">resource_managers/Vars.h</a>&quot;</span></div>
-<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span> </div>
-<div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span><span class="preprocessor">#include &lt;QAbstractListModel&gt;</span></div>
-<div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span><span class="preprocessor">#include &lt;QUuid&gt;</span></div>
-<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span> </div>
-<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span><span class="keyword">namespace </span><a class="code hl_namespace" href="namespacegameplay__logic.html">gameplay_logic</a> {</div>
+<div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span><span class="preprocessor">#include &quot;<a class="code" href="BmsScore_8h.html">BmsScore.h</a>&quot;</span></div>
+<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span><span class="preprocessor">#include &quot;<a class="code" href="ChartData_8h.html">ChartData.h</a>&quot;</span></div>
+<div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span><span class="preprocessor">#include &quot;<a class="code" href="Vars_8h.html">resource_managers/Vars.h</a>&quot;</span></div>
+<div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span> </div>
+<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span><span class="preprocessor">#include &lt;QAbstractListModel&gt;</span></div>
+<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span><span class="preprocessor">#include &lt;QUuid&gt;</span></div>
 <div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span> </div>
-<div class="foldopen" id="foldopen00020" data-start="{" data-end="};">
-<div class="line"><a id="l00020" name="l00020"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1JudgementCounts.html">   20</a></span><span class="keyword">class </span><a class="code hl_class" href="classgameplay__logic_1_1JudgementCounts.html">JudgementCounts</a> final : <span class="keyword">public</span> QAbstractListModel</div>
-<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span>{</div>
-<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span>    Q_OBJECT</div>
-<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span> </div>
-<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span>    QList&lt;int&gt; judgementCounts =</div>
-<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span>      QList&lt;int&gt;(magic_enum::enum_count&lt;Judgement&gt;());</div>
-<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span> </div>
-<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span>  <span class="keyword">public</span>:</div>
-<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>    <span class="keyword">explicit</span> <a class="code hl_class" href="classgameplay__logic_1_1JudgementCounts.html">JudgementCounts</a>(QObject* parent = <span class="keyword">nullptr</span>);</div>
-<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span> </div>
-<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span>    <span class="keyword">auto</span> <a class="code hl_function" href="classgameplay__logic_1_1JudgementCounts.html#a19f6623e81564c81126480fde839df90">rowCount</a>(<span class="keyword">const</span> QModelIndex&amp; parent = QModelIndex()) <span class="keyword">const</span></div>
-<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span>      -&gt; <span class="keywordtype">int</span> <span class="keyword">override</span>;</div>
-<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span> </div>
-<div class="foldopen" id="foldopen00033" data-start="{" data-end="};">
-<div class="line"><a id="l00033" name="l00033"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1JudgementCounts.html#a85a716b9b6bd73e0dabf994ed4553ef6">   33</a></span>    <span class="keyword">enum</span> <a class="code hl_enumeration" href="classgameplay__logic_1_1JudgementCounts.html#a85a716b9b6bd73e0dabf994ed4553ef6">Roles</a></div>
-<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span>    {</div>
-<div class="line"><a id="l00035" name="l00035"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1JudgementCounts.html#a85a716b9b6bd73e0dabf994ed4553ef6a4a4db6dc2a701d8d823e96efb75a190c">   35</a></span>        <a class="code hl_enumvalue" href="classgameplay__logic_1_1JudgementCounts.html#a85a716b9b6bd73e0dabf994ed4553ef6a4a4db6dc2a701d8d823e96efb75a190c">JudgementRole</a> = Qt::UserRole + 1,</div>
-<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span>        <a class="code hl_enumvalue" href="classgameplay__logic_1_1JudgementCounts.html#a85a716b9b6bd73e0dabf994ed4553ef6a4586098c1fd0178130115c86c866dc0e">CountRole</a></div>
-<div class="line"><a id="l00037" name="l00037"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1JudgementCounts.html#a85a716b9b6bd73e0dabf994ed4553ef6a4586098c1fd0178130115c86c866dc0e">   37</a></span>    };</div>
+<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span><span class="keyword">namespace </span><a class="code hl_namespace" href="namespacegameplay__logic.html">gameplay_logic</a> {</div>
+<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span> </div>
+<div class="foldopen" id="foldopen00022" data-start="{" data-end="};">
+<div class="line"><a id="l00022" name="l00022"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1JudgementCounts.html">   22</a></span><span class="keyword">class </span><a class="code hl_class" href="classgameplay__logic_1_1JudgementCounts.html">JudgementCounts</a> final : <span class="keyword">public</span> QAbstractListModel</div>
+<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span>{</div>
+<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span>    Q_OBJECT</div>
+<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span> </div>
+<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span>    QList&lt;int&gt; judgementCounts =</div>
+<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span>      QList&lt;int&gt;(magic_enum::enum_count&lt;Judgement&gt;());</div>
+<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span> </div>
+<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span>  <span class="keyword">public</span>:</div>
+<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span>    <span class="keyword">explicit</span> <a class="code hl_class" href="classgameplay__logic_1_1JudgementCounts.html">JudgementCounts</a>(QObject* parent = <span class="keyword">nullptr</span>);</div>
+<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span> </div>
+<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span>    <span class="keyword">auto</span> <a class="code hl_function" href="classgameplay__logic_1_1JudgementCounts.html#a19f6623e81564c81126480fde839df90">rowCount</a>(<span class="keyword">const</span> QModelIndex&amp; parent = QModelIndex()) <span class="keyword">const</span></div>
+<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span>      -&gt; <span class="keywordtype">int</span> <span class="keyword">override</span>;</div>
+<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span> </div>
+<div class="foldopen" id="foldopen00035" data-start="{" data-end="};">
+<div class="line"><a id="l00035" name="l00035"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1JudgementCounts.html#a85a716b9b6bd73e0dabf994ed4553ef6">   35</a></span>    <span class="keyword">enum</span> <a class="code hl_enumeration" href="classgameplay__logic_1_1JudgementCounts.html#a85a716b9b6bd73e0dabf994ed4553ef6">Roles</a></div>
+<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span>    {</div>
+<div class="line"><a id="l00037" name="l00037"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1JudgementCounts.html#a85a716b9b6bd73e0dabf994ed4553ef6a4a4db6dc2a701d8d823e96efb75a190c">   37</a></span>        <a class="code hl_enumvalue" href="classgameplay__logic_1_1JudgementCounts.html#a85a716b9b6bd73e0dabf994ed4553ef6a4a4db6dc2a701d8d823e96efb75a190c">JudgementRole</a> = Qt::UserRole + 1,</div>
+<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span>        <a class="code hl_enumvalue" href="classgameplay__logic_1_1JudgementCounts.html#a85a716b9b6bd73e0dabf994ed4553ef6a4586098c1fd0178130115c86c866dc0e">CountRole</a></div>
+<div class="line"><a id="l00039" name="l00039"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1JudgementCounts.html#a85a716b9b6bd73e0dabf994ed4553ef6a4586098c1fd0178130115c86c866dc0e">   39</a></span>    };</div>
 </div>
-<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span> </div>
-<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span>    <span class="keyword">auto</span> <a class="code hl_function" href="classgameplay__logic_1_1JudgementCounts.html#a70d105d385ff2e9cc4306f07676e785d">roleNames</a>() const -&gt; QHash&lt;<span class="keywordtype">int</span>, QByteArray&gt; override;</div>
 <div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span> </div>
-<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>    auto <a class="code hl_function" href="classgameplay__logic_1_1JudgementCounts.html#aff32c7dcb84c62980e8a180e2b10a550">data</a>(const QModelIndex&amp; index, <span class="keywordtype">int</span> role) const -&gt; QVariant override;</div>
+<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>    <span class="keyword">auto</span> <a class="code hl_function" href="classgameplay__logic_1_1JudgementCounts.html#a70d105d385ff2e9cc4306f07676e785d">roleNames</a>() const -&gt; QHash&lt;<span class="keywordtype">int</span>, QByteArray&gt; override;</div>
 <div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span> </div>
-<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classgameplay__logic_1_1JudgementCounts.html#add4a1de9ddcefd3560ce4a3927e6f5ec">addJudgement</a>(<a class="code hl_enumeration" href="namespacegameplay__logic_1_1judgement.html#a4dd73363d266a4e4aa41782d0e02b6e6">Judgement</a> judgement);</div>
+<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span>    auto <a class="code hl_function" href="classgameplay__logic_1_1JudgementCounts.html#aff32c7dcb84c62980e8a180e2b10a550">data</a>(const QModelIndex&amp; index, <span class="keywordtype">int</span> role) const -&gt; QVariant override;</div>
 <div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span> </div>
-<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>    auto <a class="code hl_function" href="classgameplay__logic_1_1JudgementCounts.html#a098b01a9d97795a5026825142914d376">getJudgementCounts</a>() const -&gt; const QList&lt;<span class="keywordtype">int</span>&gt;&amp;;</div>
-<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>};</div>
+<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classgameplay__logic_1_1JudgementCounts.html#add4a1de9ddcefd3560ce4a3927e6f5ec">addJudgement</a>(<a class="code hl_enumeration" href="namespacegameplay__logic_1_1judgement.html#a4dd73363d266a4e4aa41782d0e02b6e6">Judgement</a> judgement);</div>
+<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span> </div>
+<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>    auto <a class="code hl_function" href="classgameplay__logic_1_1JudgementCounts.html#a098b01a9d97795a5026825142914d376">getJudgementCounts</a>() const -&gt; const QList&lt;<span class="keywordtype">int</span>&gt;&amp;;</div>
+<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>};</div>
 </div>
-<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span> </div>
-<div class="foldopen" id="foldopen00054" data-start="{" data-end="};">
-<div class="line"><a id="l00054" name="l00054"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1BmsLiveScore.html">   54</a></span>class <a class="code hl_class" href="classgameplay__logic_1_1BmsLiveScore.html">BmsLiveScore</a> final : public QObject</div>
-<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>{</div>
-<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span>    Q_OBJECT</div>
-<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span> </div>
-<div class="line"><a id="l00061" name="l00061"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1BmsLiveScore.html#a049d35a99ecffd70265d310bf9eda11c">   61</a></span>    Q_PROPERTY(<span class="keywordtype">double</span> maxPoints READ getMaxPoints CONSTANT)</div>
-<div class="line"><a id="l00066" name="l00066"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1BmsLiveScore.html#aa7a27feb2afd8860c670e596d79e94d4">   66</a></span>    Q_PROPERTY(</div>
-<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>      <span class="keywordtype">double</span> maxPointsNow READ getMaxPointsNow NOTIFY maxPointsNowChanged)</div>
-<div class="line"><a id="l00073" name="l00073"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1BmsLiveScore.html#af8eae0468da24ae58d2aef31f1a65c90">   73</a></span>    Q_PROPERTY(<span class="keywordtype">int</span> normalNoteCount READ getNormalNoteCount CONSTANT)</div>
-<div class="line"><a id="l00078" name="l00078"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1BmsLiveScore.html#a778c7384885d59f9dce69d842f49bfaf">   78</a></span>    Q_PROPERTY(<span class="keywordtype">int</span> scratchCount READ getScratchCount CONSTANT)</div>
-<div class="line"><a id="l00084" name="l00084"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1BmsLiveScore.html#a95ef6cff9f9d50e9af141d6709e58f12">   84</a></span>    Q_PROPERTY(<span class="keywordtype">int</span> lnCount READ getLnCount CONSTANT)</div>
-<div class="line"><a id="l00090" name="l00090"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1BmsLiveScore.html#a7dc5091bf1b6a3d63885f24dcf3aa3c8">   90</a></span>    Q_PROPERTY(<span class="keywordtype">int</span> bssCount READ getBssCount CONSTANT)</div>
-<div class="line"><a id="l00094" name="l00094"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1BmsLiveScore.html#a71c27a4c3c468e0e766f212123e516a3">   94</a></span>    Q_PROPERTY(<span class="keywordtype">int</span> mineCount READ getMineCount CONSTANT)</div>
-<div class="line"><a id="l00099" name="l00099"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1BmsLiveScore.html#a81295f5bbea931e54c73ec81e2d48255">   99</a></span>    Q_PROPERTY(<span class="keywordtype">int</span> maxHits READ getMaxHits CONSTANT)</div>
-<div class="line"><a id="l00103" name="l00103"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1BmsLiveScore.html#aa262678b6c75393c414bb83caa8f3b3c">  103</a></span>    Q_PROPERTY(<span class="keywordtype">double</span> points READ getPoints NOTIFY pointsChanged)</div>
-<div class="line"><a id="l00107" name="l00107"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1BmsLiveScore.html#acbbd46751cc64573191115254b64852f">  107</a></span>    Q_PROPERTY(<span class="keywordtype">int</span> combo READ getCombo NOTIFY comboChanged)</div>
-<div class="line"><a id="l00111" name="l00111"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1BmsLiveScore.html#ab6915937e8f3cf17a0564bc0644d0c40">  111</a></span>    Q_PROPERTY(<span class="keywordtype">int</span> maxCombo READ getMaxCombo NOTIFY maxComboChanged)</div>
-<div class="line"><a id="l00120" name="l00120"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1BmsLiveScore.html#a923b8bff553c565b5e5997fe3e2c1152">  120</a></span>    Q_PROPERTY(</div>
-<div class="line"><a id="l00121" name="l00121"></a><span class="lineno">  121</span>      <a class="code hl_class" href="classgameplay__logic_1_1JudgementCounts.html">JudgementCounts</a>* judgementCounts READ <a class="code hl_function" href="classgameplay__logic_1_1JudgementCounts.html#a098b01a9d97795a5026825142914d376">getJudgementCounts</a> CONSTANT)</div>
-<div class="line"><a id="l00125" name="l00125"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1BmsLiveScore.html#a19158e602ec67a29b94b2b9aa7949aff">  125</a></span>    Q_PROPERTY(<span class="keywordtype">int</span> mineHits READ getMineHits NOTIFY mineHitsChanged)</div>
-<div class="line"><a id="l00136" name="l00136"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1BmsLiveScore.html#a90dec513134814f809f87ca2f9158d46">  136</a></span>    Q_PROPERTY(QList&lt;rules::BmsGauge*&gt; gauges READ getGauges CONSTANT)</div>
-<div class="line"><a id="l00145" name="l00145"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1BmsLiveScore.html#a1a7d64fae8972088ed7debf7c30c5b3b">  145</a></span>    Q_PROPERTY(QList&lt;qint64&gt; randomSequence READ getRandomSequence CONSTANT)</div>
-<div class="line"><a id="l00152" name="l00152"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1BmsLiveScore.html#a8e368984c960f86df1ea6cb1f98eb97d">  152</a></span>    Q_PROPERTY(<a class="code hl_namespace" href="namespaceresource__managers.html">resource_managers</a>::note_order_algorithm::NoteOrderAlgorithm</div>
-<div class="line"><a id="l00153" name="l00153"></a><span class="lineno">  153</span>                 noteOrderAlgorithm READ getNoteOrderAlgorithm CONSTANT)</div>
-<div class="line"><a id="l00158" name="l00158"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1BmsLiveScore.html#a00be7df516bfaa6276b8e3406505062a">  158</a></span>    Q_PROPERTY(<a class="code hl_namespace" href="namespaceresource__managers.html">resource_managers</a>::note_order_algorithm::NoteOrderAlgorithm</div>
-<div class="line"><a id="l00159" name="l00159"></a><span class="lineno">  159</span>                 noteOrderAlgorithmP2 READ getNoteOrderAlgorithmP2 CONSTANT)</div>
-<div class="line"><a id="l00166" name="l00166"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1BmsLiveScore.html#adc0ecbc28cf216788c9d08f0e2c69a73">  166</a></span>    Q_PROPERTY(QList&lt;<span class="keywordtype">int</span>&gt; permutation READ getPermutation CONSTANT)</div>
-<div class="line"><a id="l00177" name="l00177"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1BmsLiveScore.html#acdbfa8d808aa9ada7b925eab6128cd76">  177</a></span>    Q_PROPERTY(uint64_t randomSeed READ getRandomSeed CONSTANT)</div>
-<div class="line"><a id="l00183" name="l00183"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1BmsLiveScore.html#aebd4e0dee8a82818a360ed84b867b9c0">  183</a></span>    Q_PROPERTY(QString guid READ getGuid CONSTANT)</div>
-<div class="line"><a id="l00184" name="l00184"></a><span class="lineno">  184</span> </div>
-<div class="line"><a id="l00185" name="l00185"></a><span class="lineno">  185</span>    <span class="keywordtype">double</span> maxHitValue;</div>
-<div class="line"><a id="l00186" name="l00186"></a><span class="lineno">  186</span>    <span class="keywordtype">double</span> maxPoints;</div>
-<div class="line"><a id="l00187" name="l00187"></a><span class="lineno">  187</span>    <span class="keywordtype">int</span> mineCount;</div>
-<div class="line"><a id="l00188" name="l00188"></a><span class="lineno">  188</span>    <span class="keywordtype">int</span> normalNoteCount;</div>
-<div class="line"><a id="l00189" name="l00189"></a><span class="lineno">  189</span>    <span class="keywordtype">int</span> scratchCount;</div>
-<div class="line"><a id="l00190" name="l00190"></a><span class="lineno">  190</span>    <span class="keywordtype">int</span> lnCount;</div>
-<div class="line"><a id="l00191" name="l00191"></a><span class="lineno">  191</span>    <span class="keywordtype">int</span> bssCount;</div>
-<div class="line"><a id="l00192" name="l00192"></a><span class="lineno">  192</span>    <span class="keywordtype">int</span> maxHits;</div>
-<div class="line"><a id="l00193" name="l00193"></a><span class="lineno">  193</span>    QList&lt;<a class="code hl_class" href="classgameplay__logic_1_1HitEvent.html">HitEvent</a>&gt; hits;</div>
-<div class="line"><a id="l00194" name="l00194"></a><span class="lineno">  194</span>    QList&lt;rules::BmsGauge*&gt; gauges;</div>
-<div class="line"><a id="l00195" name="l00195"></a><span class="lineno">  195</span>    <a class="code hl_class" href="classgameplay__logic_1_1JudgementCounts.html">JudgementCounts</a> judgementCounts;</div>
-<div class="line"><a id="l00196" name="l00196"></a><span class="lineno">  196</span>    QList&lt;qint64&gt; randomSequence;</div>
-<div class="line"><a id="l00197" name="l00197"></a><span class="lineno">  197</span>    <a class="code hl_namespace" href="namespaceresource__managers.html">resource_managers</a>::NoteOrderAlgorithm noteOrderAlgorithm;</div>
-<div class="line"><a id="l00198" name="l00198"></a><span class="lineno">  198</span>    <a class="code hl_namespace" href="namespaceresource__managers.html">resource_managers</a>::NoteOrderAlgorithm noteOrderAlgorithmP2;</div>
-<div class="line"><a id="l00199" name="l00199"></a><span class="lineno">  199</span>    <a class="code hl_namespace" href="namespaceresource__managers.html">resource_managers</a>::DpOptions dpOptions;</div>
-<div class="line"><a id="l00200" name="l00200"></a><span class="lineno">  200</span>    QList&lt;<span class="keywordtype">int</span>&gt; permutation;</div>
-<div class="line"><a id="l00201" name="l00201"></a><span class="lineno">  201</span>    QString sha256;</div>
-<div class="line"><a id="l00202" name="l00202"></a><span class="lineno">  202</span>    QString md5;</div>
-<div class="line"><a id="l00203" name="l00203"></a><span class="lineno">  203</span>    QString guid;</div>
-<div class="line"><a id="l00204" name="l00204"></a><span class="lineno">  204</span>    <span class="keywordtype">double</span> points = 0;</div>
-<div class="line"><a id="l00205" name="l00205"></a><span class="lineno">  205</span>    <span class="keywordtype">double</span> maxPointsNow = 0;</div>
-<div class="line"><a id="l00206" name="l00206"></a><span class="lineno">  206</span>    <span class="keywordtype">int</span> combo = 0;</div>
-<div class="line"><a id="l00207" name="l00207"></a><span class="lineno">  207</span>    <span class="keywordtype">int</span> maxCombo = 0;</div>
-<div class="line"><a id="l00208" name="l00208"></a><span class="lineno">  208</span>    <span class="keywordtype">int</span> mineHits = 0;</div>
-<div class="line"><a id="l00209" name="l00209"></a><span class="lineno">  209</span>    uint64_t randomSeed;</div>
-<div class="line"><a id="l00210" name="l00210"></a><span class="lineno">  210</span>    int64_t length;</div>
-<div class="line"><a id="l00211" name="l00211"></a><span class="lineno">  211</span> </div>
-<div class="line"><a id="l00212" name="l00212"></a><span class="lineno">  212</span>    <span class="keywordtype">void</span> resetCombo();</div>
-<div class="line"><a id="l00213" name="l00213"></a><span class="lineno">  213</span>    <span class="keywordtype">void</span> increaseCombo();</div>
-<div class="line"><a id="l00214" name="l00214"></a><span class="lineno">  214</span> </div>
-<div class="line"><a id="l00215" name="l00215"></a><span class="lineno">  215</span>  public:</div>
-<div class="line"><a id="l00216" name="l00216"></a><span class="lineno">  216</span>    <span class="keywordtype">void</span> addHit(const <a class="code hl_class" href="classgameplay__logic_1_1HitEvent.html">HitEvent</a>&amp; tap);</div>
-<div class="line"><a id="l00217" name="l00217"></a><span class="lineno">  217</span>    explicit <a class="code hl_class" href="classgameplay__logic_1_1BmsLiveScore.html">BmsLiveScore</a>(</div>
-<div class="line"><a id="l00218" name="l00218"></a><span class="lineno">  218</span>      <span class="keywordtype">int</span> normalNoteCount,</div>
-<div class="line"><a id="l00219" name="l00219"></a><span class="lineno">  219</span>      <span class="keywordtype">int</span> scratchCount,</div>
-<div class="line"><a id="l00220" name="l00220"></a><span class="lineno">  220</span>      <span class="keywordtype">int</span> lnCount,</div>
-<div class="line"><a id="l00221" name="l00221"></a><span class="lineno">  221</span>      <span class="keywordtype">int</span> bssCount,</div>
-<div class="line"><a id="l00222" name="l00222"></a><span class="lineno">  222</span>      <span class="keywordtype">int</span> mineCount,</div>
-<div class="line"><a id="l00223" name="l00223"></a><span class="lineno">  223</span>      <span class="keywordtype">int</span> maxHits,</div>
-<div class="line"><a id="l00224" name="l00224"></a><span class="lineno">  224</span>      <span class="keywordtype">double</span> maxHitValue,</div>
-<div class="line"><a id="l00225" name="l00225"></a><span class="lineno">  225</span>      QList&lt;rules::BmsGauge*&gt; gauges,</div>
-<div class="line"><a id="l00226" name="l00226"></a><span class="lineno">  226</span>      QList&lt;qint64&gt; randomSequence,</div>
-<div class="line"><a id="l00227" name="l00227"></a><span class="lineno">  227</span>      <a class="code hl_namespace" href="namespaceresource__managers.html">resource_managers</a>::NoteOrderAlgorithm noteOrderAlgorithm,</div>
-<div class="line"><a id="l00228" name="l00228"></a><span class="lineno">  228</span>      <a class="code hl_namespace" href="namespaceresource__managers.html">resource_managers</a>::NoteOrderAlgorithm noteOrderAlgorithmP2,</div>
-<div class="line"><a id="l00229" name="l00229"></a><span class="lineno">  229</span>      <a class="code hl_namespace" href="namespaceresource__managers.html">resource_managers</a>::DpOptions dpOptions,</div>
-<div class="line"><a id="l00230" name="l00230"></a><span class="lineno">  230</span>      QList&lt;<span class="keywordtype">int</span>&gt; permutation,</div>
-<div class="line"><a id="l00231" name="l00231"></a><span class="lineno">  231</span>      uint64_t seed,</div>
-<div class="line"><a id="l00232" name="l00232"></a><span class="lineno">  232</span>      int64_t length,</div>
-<div class="line"><a id="l00233" name="l00233"></a><span class="lineno">  233</span>      QString sha256,</div>
-<div class="line"><a id="l00234" name="l00234"></a><span class="lineno">  234</span>      QString md5,</div>
-<div class="line"><a id="l00235" name="l00235"></a><span class="lineno">  235</span>      QString guid = QUuid::createUuid().toString(),</div>
-<div class="line"><a id="l00236" name="l00236"></a><span class="lineno">  236</span>      QObject* parent = <span class="keywordtype">nullptr</span>);</div>
-<div class="line"><a id="l00237" name="l00237"></a><span class="lineno">  237</span> </div>
-<div class="line"><a id="l00238" name="l00238"></a><span class="lineno">  238</span>    auto getMaxPoints() const -&gt; <span class="keywordtype">double</span>;</div>
-<div class="line"><a id="l00239" name="l00239"></a><span class="lineno">  239</span>    auto getMaxHits() const -&gt; <span class="keywordtype">int</span>;</div>
-<div class="line"><a id="l00240" name="l00240"></a><span class="lineno">  240</span>    auto getNormalNoteCount() const -&gt; <span class="keywordtype">int</span>;</div>
-<div class="line"><a id="l00241" name="l00241"></a><span class="lineno">  241</span>    auto getScratchCount() const -&gt; <span class="keywordtype">int</span>;</div>
-<div class="line"><a id="l00242" name="l00242"></a><span class="lineno">  242</span>    auto getLnCount() const -&gt; <span class="keywordtype">int</span>;</div>
-<div class="line"><a id="l00243" name="l00243"></a><span class="lineno">  243</span>    auto getBssCount() const -&gt; <span class="keywordtype">int</span>;</div>
-<div class="line"><a id="l00244" name="l00244"></a><span class="lineno">  244</span>    auto getMineCount() const -&gt; <span class="keywordtype">int</span>;</div>
-<div class="line"><a id="l00245" name="l00245"></a><span class="lineno">  245</span>    auto getPoints() const -&gt; <span class="keywordtype">double</span>;</div>
-<div class="line"><a id="l00246" name="l00246"></a><span class="lineno">  246</span>    auto getMaxPointsNow() const -&gt; <span class="keywordtype">double</span>;</div>
-<div class="line"><a id="l00247" name="l00247"></a><span class="lineno">  247</span>    auto <a class="code hl_function" href="classgameplay__logic_1_1JudgementCounts.html#a098b01a9d97795a5026825142914d376">getJudgementCounts</a>() -&gt; <a class="code hl_class" href="classgameplay__logic_1_1JudgementCounts.html">JudgementCounts</a>*;</div>
-<div class="line"><a id="l00248" name="l00248"></a><span class="lineno">  248</span>    auto <a class="code hl_function" href="classgameplay__logic_1_1JudgementCounts.html#a098b01a9d97795a5026825142914d376">getJudgementCounts</a>() const -&gt; const <a class="code hl_class" href="classgameplay__logic_1_1JudgementCounts.html">JudgementCounts</a>*;</div>
-<div class="line"><a id="l00249" name="l00249"></a><span class="lineno">  249</span>    <span class="keywordtype">void</span> sendVisualOnlyTap(<a class="code hl_class" href="classgameplay__logic_1_1HitEvent.html">HitEvent</a> tap);</div>
-<div class="line"><a id="l00250" name="l00250"></a><span class="lineno">  250</span>    <span class="keywordtype">void</span> sendVisualOnlyRelease(const <a class="code hl_class" href="classgameplay__logic_1_1HitEvent.html">HitEvent</a>&amp; release);</div>
-<div class="line"><a id="l00251" name="l00251"></a><span class="lineno">  251</span>    auto getCombo() const -&gt; <span class="keywordtype">int</span>;</div>
-<div class="line"><a id="l00252" name="l00252"></a><span class="lineno">  252</span>    auto getMaxCombo() const -&gt; <span class="keywordtype">int</span>;</div>
-<div class="line"><a id="l00253" name="l00253"></a><span class="lineno">  253</span>    auto getMineHits() const -&gt; <span class="keywordtype">int</span>;</div>
-<div class="line"><a id="l00254" name="l00254"></a><span class="lineno">  254</span>    auto getGauges() const -&gt; QList&lt;rules::BmsGauge*&gt;;</div>
-<div class="line"><a id="l00255" name="l00255"></a><span class="lineno">  255</span>    auto getRandomSequence() const -&gt; const QList&lt;qint64&gt;&amp;;</div>
-<div class="line"><a id="l00256" name="l00256"></a><span class="lineno">  256</span>    auto getNoteOrderAlgorithm() const -&gt; <a class="code hl_namespace" href="namespaceresource__managers.html">resource_managers</a>::NoteOrderAlgorithm;</div>
-<div class="line"><a id="l00257" name="l00257"></a><span class="lineno">  257</span>    auto getNoteOrderAlgorithmP2() const</div>
-<div class="line"><a id="l00258" name="l00258"></a><span class="lineno">  258</span>      -&gt; <a class="code hl_namespace" href="namespaceresource__managers.html">resource_managers</a>::NoteOrderAlgorithm;</div>
-<div class="line"><a id="l00259" name="l00259"></a><span class="lineno">  259</span>    auto getPermutation() const -&gt; const QList&lt;<span class="keywordtype">int</span>&gt;&amp;;</div>
-<div class="line"><a id="l00260" name="l00260"></a><span class="lineno">  260</span>    auto getRandomSeed() const -&gt; uint64_t;</div>
-<div class="line"><a id="l00261" name="l00261"></a><span class="lineno">  261</span>    auto getGuid() const -&gt; QString;</div>
-<div class="line"><a id="l00262" name="l00262"></a><span class="lineno">  262</span> </div>
-<div class="line"><a id="l00263" name="l00263"></a><span class="lineno">  263</span>    auto getResult() const -&gt; std::unique_ptr&lt;<a class="code hl_class" href="classgameplay__logic_1_1BmsResult.html">BmsResult</a>&gt;;</div>
-<div class="line"><a id="l00264" name="l00264"></a><span class="lineno">  264</span>    auto getReplayData() const -&gt; std::unique_ptr&lt;<a class="code hl_class" href="classgameplay__logic_1_1BmsReplayData.html">BmsReplayData</a>&gt;;</div>
-<div class="line"><a id="l00265" name="l00265"></a><span class="lineno">  265</span>    auto getGaugeHistory() const -&gt; std::unique_ptr&lt;<a class="code hl_class" href="classgameplay__logic_1_1BmsGaugeHistory.html">BmsGaugeHistory</a>&gt;;</div>
-<div class="line"><a id="l00266" name="l00266"></a><span class="lineno">  266</span> </div>
-<div class="line"><a id="l00267" name="l00267"></a><span class="lineno">  267</span>  signals:</div>
-<div class="line"><a id="l00268" name="l00268"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1BmsLiveScore.html#a7f845ff3c44e9a2e6dc6a35034bda102">  268</a></span>    <span class="keywordtype">void</span> pointsChanged();</div>
-<div class="line"><a id="l00269" name="l00269"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1BmsLiveScore.html#ad425587cc3c5bda0894aaeafcacda801">  269</a></span>    <span class="keywordtype">void</span> comboChanged();</div>
-<div class="line"><a id="l00270" name="l00270"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1BmsLiveScore.html#a5e9e11749260809521a245e3ca18d34d">  270</a></span>    <span class="keywordtype">void</span> comboDropped();</div>
-<div class="line"><a id="l00271" name="l00271"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1BmsLiveScore.html#a84170d2c8a09a918551cb38f1f3da560">  271</a></span>    <span class="keywordtype">void</span> comboIncreased();</div>
-<div class="line"><a id="l00272" name="l00272"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1BmsLiveScore.html#a960ab48e33ef692e0de24e89df4917f3">  272</a></span>    <span class="keywordtype">void</span> maxComboChanged();</div>
-<div class="line"><a id="l00273" name="l00273"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1BmsLiveScore.html#a108059120a61b6d73a27f9c0760311f1">  273</a></span>    <span class="keywordtype">void</span> mineHitsChanged();</div>
-<div class="line"><a id="l00274" name="l00274"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1BmsLiveScore.html#aef897b0a5d794ae1c9ab26a31907b396">  274</a></span>    <span class="keywordtype">void</span> maxPointsNowChanged();</div>
-<div class="line"><a id="l00275" name="l00275"></a><span class="lineno">  275</span> </div>
-<div class="line"><a id="l00276" name="l00276"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1BmsLiveScore.html#abda9695362e5a6deced675d1a380787f">  276</a></span>    <span class="keywordtype">void</span> hit(<a class="code hl_class" href="classgameplay__logic_1_1HitEvent.html">HitEvent</a> hit);</div>
-<div class="line"><a id="l00277" name="l00277"></a><span class="lineno">  277</span>};</div>
+<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span> </div>
+<div class="foldopen" id="foldopen00056" data-start="{" data-end="};">
+<div class="line"><a id="l00056" name="l00056"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1BmsLiveScore.html">   56</a></span>class <a class="code hl_class" href="classgameplay__logic_1_1BmsLiveScore.html">BmsLiveScore</a> final : public QObject</div>
+<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span>{</div>
+<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span>    Q_OBJECT</div>
+<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span> </div>
+<div class="line"><a id="l00063" name="l00063"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1BmsLiveScore.html#a049d35a99ecffd70265d310bf9eda11c">   63</a></span>    Q_PROPERTY(<span class="keywordtype">double</span> maxPoints READ getMaxPoints CONSTANT)</div>
+<div class="line"><a id="l00068" name="l00068"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1BmsLiveScore.html#aa7a27feb2afd8860c670e596d79e94d4">   68</a></span>    Q_PROPERTY(</div>
+<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span>      <span class="keywordtype">double</span> maxPointsNow READ getMaxPointsNow NOTIFY maxPointsNowChanged)</div>
+<div class="line"><a id="l00075" name="l00075"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1BmsLiveScore.html#af8eae0468da24ae58d2aef31f1a65c90">   75</a></span>    Q_PROPERTY(<span class="keywordtype">int</span> normalNoteCount READ getNormalNoteCount CONSTANT)</div>
+<div class="line"><a id="l00080" name="l00080"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1BmsLiveScore.html#a778c7384885d59f9dce69d842f49bfaf">   80</a></span>    Q_PROPERTY(<span class="keywordtype">int</span> scratchCount READ getScratchCount CONSTANT)</div>
+<div class="line"><a id="l00086" name="l00086"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1BmsLiveScore.html#a95ef6cff9f9d50e9af141d6709e58f12">   86</a></span>    Q_PROPERTY(<span class="keywordtype">int</span> lnCount READ getLnCount CONSTANT)</div>
+<div class="line"><a id="l00092" name="l00092"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1BmsLiveScore.html#a7dc5091bf1b6a3d63885f24dcf3aa3c8">   92</a></span>    Q_PROPERTY(<span class="keywordtype">int</span> bssCount READ getBssCount CONSTANT)</div>
+<div class="line"><a id="l00096" name="l00096"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1BmsLiveScore.html#a71c27a4c3c468e0e766f212123e516a3">   96</a></span>    Q_PROPERTY(<span class="keywordtype">int</span> mineCount READ getMineCount CONSTANT)</div>
+<div class="line"><a id="l00101" name="l00101"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1BmsLiveScore.html#a81295f5bbea931e54c73ec81e2d48255">  101</a></span>    Q_PROPERTY(<span class="keywordtype">int</span> maxHits READ getMaxHits CONSTANT)</div>
+<div class="line"><a id="l00105" name="l00105"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1BmsLiveScore.html#aa262678b6c75393c414bb83caa8f3b3c">  105</a></span>    Q_PROPERTY(<span class="keywordtype">double</span> points READ getPoints NOTIFY pointsChanged)</div>
+<div class="line"><a id="l00109" name="l00109"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1BmsLiveScore.html#acbbd46751cc64573191115254b64852f">  109</a></span>    Q_PROPERTY(<span class="keywordtype">int</span> <a class="code hl_variable" href="OnlineRankingModel_8cpp.html#a4cb3fe817072bbf8f876295d34726aed">combo</a> READ getCombo NOTIFY comboChanged)</div>
+<div class="line"><a id="l00113" name="l00113"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1BmsLiveScore.html#ab6915937e8f3cf17a0564bc0644d0c40">  113</a></span>    Q_PROPERTY(<span class="keywordtype">int</span> maxCombo READ getMaxCombo NOTIFY maxComboChanged)</div>
+<div class="line"><a id="l00122" name="l00122"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1BmsLiveScore.html#a923b8bff553c565b5e5997fe3e2c1152">  122</a></span>    Q_PROPERTY(</div>
+<div class="line"><a id="l00123" name="l00123"></a><span class="lineno">  123</span>      <a class="code hl_class" href="classgameplay__logic_1_1JudgementCounts.html">JudgementCounts</a>* judgementCounts READ <a class="code hl_function" href="classgameplay__logic_1_1JudgementCounts.html#a098b01a9d97795a5026825142914d376">getJudgementCounts</a> CONSTANT)</div>
+<div class="line"><a id="l00127" name="l00127"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1BmsLiveScore.html#a19158e602ec67a29b94b2b9aa7949aff">  127</a></span>    Q_PROPERTY(<span class="keywordtype">int</span> mineHits READ getMineHits NOTIFY mineHitsChanged)</div>
+<div class="line"><a id="l00138" name="l00138"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1BmsLiveScore.html#a90dec513134814f809f87ca2f9158d46">  138</a></span>    Q_PROPERTY(QList&lt;rules::BmsGauge*&gt; gauges READ getGauges CONSTANT)</div>
+<div class="line"><a id="l00147" name="l00147"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1BmsLiveScore.html#a1a7d64fae8972088ed7debf7c30c5b3b">  147</a></span>    Q_PROPERTY(QList&lt;qint64&gt; randomSequence READ getRandomSequence CONSTANT)</div>
+<div class="line"><a id="l00154" name="l00154"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1BmsLiveScore.html#a8e368984c960f86df1ea6cb1f98eb97d">  154</a></span>    Q_PROPERTY(<a class="code hl_namespace" href="namespaceresource__managers.html">resource_managers</a>::note_order_algorithm::NoteOrderAlgorithm</div>
+<div class="line"><a id="l00155" name="l00155"></a><span class="lineno">  155</span>                 noteOrderAlgorithm READ getNoteOrderAlgorithm CONSTANT)</div>
+<div class="line"><a id="l00160" name="l00160"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1BmsLiveScore.html#a00be7df516bfaa6276b8e3406505062a">  160</a></span>    Q_PROPERTY(<a class="code hl_namespace" href="namespaceresource__managers.html">resource_managers</a>::note_order_algorithm::NoteOrderAlgorithm</div>
+<div class="line"><a id="l00161" name="l00161"></a><span class="lineno">  161</span>                 noteOrderAlgorithmP2 READ getNoteOrderAlgorithmP2 CONSTANT)</div>
+<div class="line"><a id="l00168" name="l00168"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1BmsLiveScore.html#adc0ecbc28cf216788c9d08f0e2c69a73">  168</a></span>    Q_PROPERTY(QList&lt;<span class="keywordtype">int</span>&gt; permutation READ getPermutation CONSTANT)</div>
+<div class="line"><a id="l00179" name="l00179"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1BmsLiveScore.html#acdbfa8d808aa9ada7b925eab6128cd76">  179</a></span>    Q_PROPERTY(uint64_t randomSeed READ getRandomSeed CONSTANT)</div>
+<div class="line"><a id="l00185" name="l00185"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1BmsLiveScore.html#aebd4e0dee8a82818a360ed84b867b9c0">  185</a></span>    Q_PROPERTY(QString guid READ getGuid CONSTANT)</div>
+<div class="line"><a id="l00192" name="l00192"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1BmsLiveScore.html#a442aa60a9125ba98a29b2d444c94264c">  192</a></span>    Q_PROPERTY(</div>
+<div class="line"><a id="l00193" name="l00193"></a><span class="lineno">  193</span>      <a class="code hl_namespace" href="namespacegameplay__logic.html">gameplay_logic</a>::<a class="code hl_class" href="classgameplay__logic_1_1ChartData.html">ChartData</a>::Keymode keymode READ getKeymode CONSTANT)</div>
+<div class="line"><a id="l00194" name="l00194"></a><span class="lineno">  194</span> </div>
+<div class="line"><a id="l00195" name="l00195"></a><span class="lineno">  195</span>    <span class="keywordtype">double</span> maxHitValue;</div>
+<div class="line"><a id="l00196" name="l00196"></a><span class="lineno">  196</span>    <span class="keywordtype">double</span> maxPoints;</div>
+<div class="line"><a id="l00197" name="l00197"></a><span class="lineno">  197</span>    <span class="keywordtype">int</span> mineCount;</div>
+<div class="line"><a id="l00198" name="l00198"></a><span class="lineno">  198</span>    <span class="keywordtype">int</span> normalNoteCount;</div>
+<div class="line"><a id="l00199" name="l00199"></a><span class="lineno">  199</span>    <span class="keywordtype">int</span> scratchCount;</div>
+<div class="line"><a id="l00200" name="l00200"></a><span class="lineno">  200</span>    <span class="keywordtype">int</span> lnCount;</div>
+<div class="line"><a id="l00201" name="l00201"></a><span class="lineno">  201</span>    <span class="keywordtype">int</span> bssCount;</div>
+<div class="line"><a id="l00202" name="l00202"></a><span class="lineno">  202</span>    <span class="keywordtype">int</span> maxHits;</div>
+<div class="line"><a id="l00203" name="l00203"></a><span class="lineno">  203</span>    QList&lt;<a class="code hl_class" href="classgameplay__logic_1_1HitEvent.html">HitEvent</a>&gt; hits;</div>
+<div class="line"><a id="l00204" name="l00204"></a><span class="lineno">  204</span>    QList&lt;rules::BmsGauge*&gt; gauges;</div>
+<div class="line"><a id="l00205" name="l00205"></a><span class="lineno">  205</span>    <a class="code hl_class" href="classgameplay__logic_1_1JudgementCounts.html">JudgementCounts</a> judgementCounts;</div>
+<div class="line"><a id="l00206" name="l00206"></a><span class="lineno">  206</span>    QList&lt;qint64&gt; randomSequence;</div>
+<div class="line"><a id="l00207" name="l00207"></a><span class="lineno">  207</span>    <a class="code hl_namespace" href="namespaceresource__managers.html">resource_managers</a>::NoteOrderAlgorithm noteOrderAlgorithm;</div>
+<div class="line"><a id="l00208" name="l00208"></a><span class="lineno">  208</span>    <a class="code hl_namespace" href="namespaceresource__managers.html">resource_managers</a>::NoteOrderAlgorithm noteOrderAlgorithmP2;</div>
+<div class="line"><a id="l00209" name="l00209"></a><span class="lineno">  209</span>    <a class="code hl_namespace" href="namespaceresource__managers.html">resource_managers</a>::DpOptions dpOptions;</div>
+<div class="line"><a id="l00210" name="l00210"></a><span class="lineno">  210</span>    QList&lt;<span class="keywordtype">int</span>&gt; permutation;</div>
+<div class="line"><a id="l00211" name="l00211"></a><span class="lineno">  211</span>    QString sha256;</div>
+<div class="line"><a id="l00212" name="l00212"></a><span class="lineno">  212</span>    QString md5;</div>
+<div class="line"><a id="l00213" name="l00213"></a><span class="lineno">  213</span>    QString guid;</div>
+<div class="line"><a id="l00214" name="l00214"></a><span class="lineno">  214</span>    <a class="code hl_class" href="classgameplay__logic_1_1ChartData.html">ChartData</a>::Keymode keymode;</div>
+<div class="line"><a id="l00215" name="l00215"></a><span class="lineno">  215</span>    <span class="keywordtype">double</span> points = 0;</div>
+<div class="line"><a id="l00216" name="l00216"></a><span class="lineno">  216</span>    <span class="keywordtype">double</span> maxPointsNow = 0;</div>
+<div class="line"><a id="l00217" name="l00217"></a><span class="lineno">  217</span>    <span class="keywordtype">int</span> <a class="code hl_variable" href="OnlineRankingModel_8cpp.html#a4cb3fe817072bbf8f876295d34726aed">combo</a> = 0;</div>
+<div class="line"><a id="l00218" name="l00218"></a><span class="lineno">  218</span>    <span class="keywordtype">int</span> maxCombo = 0;</div>
+<div class="line"><a id="l00219" name="l00219"></a><span class="lineno">  219</span>    <span class="keywordtype">int</span> mineHits = 0;</div>
+<div class="line"><a id="l00220" name="l00220"></a><span class="lineno">  220</span>    uint64_t randomSeed;</div>
+<div class="line"><a id="l00221" name="l00221"></a><span class="lineno">  221</span>    int64_t length;</div>
+<div class="line"><a id="l00222" name="l00222"></a><span class="lineno">  222</span>    int64_t savedTimestamp;</div>
+<div class="line"><a id="l00223" name="l00223"></a><span class="lineno">  223</span>    <a class="code hl_class" href="classgameplay__logic_1_1BmsScore.html">BmsScore</a>::SubmissionState submissionState;</div>
+<div class="line"><a id="l00224" name="l00224"></a><span class="lineno">  224</span> </div>
+<div class="line"><a id="l00225" name="l00225"></a><span class="lineno">  225</span>    <span class="keywordtype">void</span> resetCombo();</div>
+<div class="line"><a id="l00226" name="l00226"></a><span class="lineno">  226</span>    <span class="keywordtype">void</span> increaseCombo();</div>
+<div class="line"><a id="l00227" name="l00227"></a><span class="lineno">  227</span> </div>
+<div class="line"><a id="l00228" name="l00228"></a><span class="lineno">  228</span>  public:</div>
+<div class="line"><a id="l00229" name="l00229"></a><span class="lineno">  229</span>    <span class="keywordtype">void</span> addHit(const <a class="code hl_class" href="classgameplay__logic_1_1HitEvent.html">HitEvent</a>&amp; tap);</div>
+<div class="line"><a id="l00230" name="l00230"></a><span class="lineno">  230</span>    <a class="code hl_class" href="classgameplay__logic_1_1BmsLiveScore.html">BmsLiveScore</a>(<span class="keywordtype">int</span> normalNoteCount,</div>
+<div class="line"><a id="l00231" name="l00231"></a><span class="lineno">  231</span>                 <span class="keywordtype">int</span> scratchCount,</div>
+<div class="line"><a id="l00232" name="l00232"></a><span class="lineno">  232</span>                 <span class="keywordtype">int</span> lnCount,</div>
+<div class="line"><a id="l00233" name="l00233"></a><span class="lineno">  233</span>                 <span class="keywordtype">int</span> bssCount,</div>
+<div class="line"><a id="l00234" name="l00234"></a><span class="lineno">  234</span>                 <span class="keywordtype">int</span> mineCount,</div>
+<div class="line"><a id="l00235" name="l00235"></a><span class="lineno">  235</span>                 <span class="keywordtype">int</span> maxHits,</div>
+<div class="line"><a id="l00236" name="l00236"></a><span class="lineno">  236</span>                 <span class="keywordtype">double</span> maxHitValue,</div>
+<div class="line"><a id="l00237" name="l00237"></a><span class="lineno">  237</span>                 QList&lt;rules::BmsGauge*&gt; gauges,</div>
+<div class="line"><a id="l00238" name="l00238"></a><span class="lineno">  238</span>                 QList&lt;qint64&gt; randomSequence,</div>
+<div class="line"><a id="l00239" name="l00239"></a><span class="lineno">  239</span>                 <a class="code hl_namespace" href="namespaceresource__managers.html">resource_managers</a>::NoteOrderAlgorithm noteOrderAlgorithm,</div>
+<div class="line"><a id="l00240" name="l00240"></a><span class="lineno">  240</span>                 <a class="code hl_namespace" href="namespaceresource__managers.html">resource_managers</a>::NoteOrderAlgorithm noteOrderAlgorithmP2,</div>
+<div class="line"><a id="l00241" name="l00241"></a><span class="lineno">  241</span>                 <a class="code hl_namespace" href="namespaceresource__managers.html">resource_managers</a>::DpOptions dpOptions,</div>
+<div class="line"><a id="l00242" name="l00242"></a><span class="lineno">  242</span>                 QList&lt;<span class="keywordtype">int</span>&gt; permutation,</div>
+<div class="line"><a id="l00243" name="l00243"></a><span class="lineno">  243</span>                 uint64_t seed,</div>
+<div class="line"><a id="l00244" name="l00244"></a><span class="lineno">  244</span>                 int64_t length,</div>
+<div class="line"><a id="l00245" name="l00245"></a><span class="lineno">  245</span>                 QString sha256,</div>
+<div class="line"><a id="l00246" name="l00246"></a><span class="lineno">  246</span>                 QString md5,</div>
+<div class="line"><a id="l00247" name="l00247"></a><span class="lineno">  247</span>                 <a class="code hl_class" href="classgameplay__logic_1_1ChartData.html">ChartData</a>::Keymode keymode,</div>
+<div class="line"><a id="l00248" name="l00248"></a><span class="lineno">  248</span>                 int64_t savedTimestamp, <span class="comment">// for replays</span></div>
+<div class="line"><a id="l00249" name="l00249"></a><span class="lineno">  249</span>                 QString guid = QUuid::createUuid().toString(),</div>
+<div class="line"><a id="l00250" name="l00250"></a><span class="lineno">  250</span>                 <a class="code hl_class" href="classgameplay__logic_1_1BmsScore.html">BmsScore</a>::SubmissionState submissionState =</div>
+<div class="line"><a id="l00251" name="l00251"></a><span class="lineno">  251</span>                   <a class="code hl_class" href="classgameplay__logic_1_1BmsScore.html">BmsScore</a>::SubmissionState::NotSubmitted,</div>
+<div class="line"><a id="l00252" name="l00252"></a><span class="lineno">  252</span>                 QObject* parent = <span class="keywordtype">nullptr</span>);</div>
+<div class="line"><a id="l00253" name="l00253"></a><span class="lineno">  253</span> </div>
+<div class="line"><a id="l00254" name="l00254"></a><span class="lineno">  254</span>    auto getMaxPoints() const -&gt; <span class="keywordtype">double</span>;</div>
+<div class="line"><a id="l00255" name="l00255"></a><span class="lineno">  255</span>    auto getMaxHits() const -&gt; <span class="keywordtype">int</span>;</div>
+<div class="line"><a id="l00256" name="l00256"></a><span class="lineno">  256</span>    auto getNormalNoteCount() const -&gt; <span class="keywordtype">int</span>;</div>
+<div class="line"><a id="l00257" name="l00257"></a><span class="lineno">  257</span>    auto getScratchCount() const -&gt; <span class="keywordtype">int</span>;</div>
+<div class="line"><a id="l00258" name="l00258"></a><span class="lineno">  258</span>    auto getLnCount() const -&gt; <span class="keywordtype">int</span>;</div>
+<div class="line"><a id="l00259" name="l00259"></a><span class="lineno">  259</span>    auto getBssCount() const -&gt; <span class="keywordtype">int</span>;</div>
+<div class="line"><a id="l00260" name="l00260"></a><span class="lineno">  260</span>    auto getMineCount() const -&gt; <span class="keywordtype">int</span>;</div>
+<div class="line"><a id="l00261" name="l00261"></a><span class="lineno">  261</span>    auto getPoints() const -&gt; <span class="keywordtype">double</span>;</div>
+<div class="line"><a id="l00262" name="l00262"></a><span class="lineno">  262</span>    auto getMaxPointsNow() const -&gt; <span class="keywordtype">double</span>;</div>
+<div class="line"><a id="l00263" name="l00263"></a><span class="lineno">  263</span>    auto <a class="code hl_function" href="classgameplay__logic_1_1JudgementCounts.html#a098b01a9d97795a5026825142914d376">getJudgementCounts</a>() -&gt; <a class="code hl_class" href="classgameplay__logic_1_1JudgementCounts.html">JudgementCounts</a>*;</div>
+<div class="line"><a id="l00264" name="l00264"></a><span class="lineno">  264</span>    auto <a class="code hl_function" href="classgameplay__logic_1_1JudgementCounts.html#a098b01a9d97795a5026825142914d376">getJudgementCounts</a>() const -&gt; const <a class="code hl_class" href="classgameplay__logic_1_1JudgementCounts.html">JudgementCounts</a>*;</div>
+<div class="line"><a id="l00265" name="l00265"></a><span class="lineno">  265</span>    <span class="keywordtype">void</span> sendVisualOnlyTap(<a class="code hl_class" href="classgameplay__logic_1_1HitEvent.html">HitEvent</a> tap);</div>
+<div class="line"><a id="l00266" name="l00266"></a><span class="lineno">  266</span>    <span class="keywordtype">void</span> sendVisualOnlyRelease(const <a class="code hl_class" href="classgameplay__logic_1_1HitEvent.html">HitEvent</a>&amp; release);</div>
+<div class="line"><a id="l00267" name="l00267"></a><span class="lineno">  267</span>    auto getCombo() const -&gt; <span class="keywordtype">int</span>;</div>
+<div class="line"><a id="l00268" name="l00268"></a><span class="lineno">  268</span>    auto getMaxCombo() const -&gt; <span class="keywordtype">int</span>;</div>
+<div class="line"><a id="l00269" name="l00269"></a><span class="lineno">  269</span>    auto getMineHits() const -&gt; <span class="keywordtype">int</span>;</div>
+<div class="line"><a id="l00270" name="l00270"></a><span class="lineno">  270</span>    auto getGauges() const -&gt; QList&lt;rules::BmsGauge*&gt;;</div>
+<div class="line"><a id="l00271" name="l00271"></a><span class="lineno">  271</span>    auto getRandomSequence() const -&gt; const QList&lt;qint64&gt;&amp;;</div>
+<div class="line"><a id="l00272" name="l00272"></a><span class="lineno">  272</span>    auto getNoteOrderAlgorithm() const -&gt; <a class="code hl_namespace" href="namespaceresource__managers.html">resource_managers</a>::NoteOrderAlgorithm;</div>
+<div class="line"><a id="l00273" name="l00273"></a><span class="lineno">  273</span>    auto getNoteOrderAlgorithmP2() const</div>
+<div class="line"><a id="l00274" name="l00274"></a><span class="lineno">  274</span>      -&gt; <a class="code hl_namespace" href="namespaceresource__managers.html">resource_managers</a>::NoteOrderAlgorithm;</div>
+<div class="line"><a id="l00275" name="l00275"></a><span class="lineno">  275</span>    auto getPermutation() const -&gt; const QList&lt;<span class="keywordtype">int</span>&gt;&amp;;</div>
+<div class="line"><a id="l00276" name="l00276"></a><span class="lineno">  276</span>    auto getRandomSeed() const -&gt; uint64_t;</div>
+<div class="line"><a id="l00277" name="l00277"></a><span class="lineno">  277</span>    auto getGuid() const -&gt; QString;</div>
+<div class="line"><a id="l00278" name="l00278"></a><span class="lineno">  278</span>    auto getKeymode() const -&gt; <a class="code hl_class" href="classgameplay__logic_1_1ChartData.html">ChartData</a>::Keymode;</div>
+<div class="line"><a id="l00279" name="l00279"></a><span class="lineno">  279</span> </div>
+<div class="line"><a id="l00280" name="l00280"></a><span class="lineno">  280</span>    auto getResult() const -&gt; std::unique_ptr&lt;<a class="code hl_class" href="classgameplay__logic_1_1BmsResult.html">BmsResult</a>&gt;;</div>
+<div class="line"><a id="l00281" name="l00281"></a><span class="lineno">  281</span>    auto getReplayData() const -&gt; std::unique_ptr&lt;<a class="code hl_class" href="classgameplay__logic_1_1BmsReplayData.html">BmsReplayData</a>&gt;;</div>
+<div class="line"><a id="l00282" name="l00282"></a><span class="lineno">  282</span>    auto getGaugeHistory() const -&gt; std::unique_ptr&lt;<a class="code hl_class" href="classgameplay__logic_1_1BmsGaugeHistory.html">BmsGaugeHistory</a>&gt;;</div>
+<div class="line"><a id="l00283" name="l00283"></a><span class="lineno">  283</span> </div>
+<div class="line"><a id="l00284" name="l00284"></a><span class="lineno">  284</span>  signals:</div>
+<div class="line"><a id="l00285" name="l00285"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1BmsLiveScore.html#a7f845ff3c44e9a2e6dc6a35034bda102">  285</a></span>    <span class="keywordtype">void</span> pointsChanged();</div>
+<div class="line"><a id="l00286" name="l00286"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1BmsLiveScore.html#ad425587cc3c5bda0894aaeafcacda801">  286</a></span>    <span class="keywordtype">void</span> comboChanged();</div>
+<div class="line"><a id="l00287" name="l00287"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1BmsLiveScore.html#a5e9e11749260809521a245e3ca18d34d">  287</a></span>    <span class="keywordtype">void</span> comboDropped();</div>
+<div class="line"><a id="l00288" name="l00288"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1BmsLiveScore.html#a84170d2c8a09a918551cb38f1f3da560">  288</a></span>    <span class="keywordtype">void</span> comboIncreased();</div>
+<div class="line"><a id="l00289" name="l00289"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1BmsLiveScore.html#a960ab48e33ef692e0de24e89df4917f3">  289</a></span>    <span class="keywordtype">void</span> maxComboChanged();</div>
+<div class="line"><a id="l00290" name="l00290"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1BmsLiveScore.html#a108059120a61b6d73a27f9c0760311f1">  290</a></span>    <span class="keywordtype">void</span> mineHitsChanged();</div>
+<div class="line"><a id="l00291" name="l00291"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1BmsLiveScore.html#aef897b0a5d794ae1c9ab26a31907b396">  291</a></span>    <span class="keywordtype">void</span> maxPointsNowChanged();</div>
+<div class="line"><a id="l00292" name="l00292"></a><span class="lineno">  292</span> </div>
+<div class="line"><a id="l00293" name="l00293"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1BmsLiveScore.html#abda9695362e5a6deced675d1a380787f">  293</a></span>    <span class="keywordtype">void</span> hit(<a class="code hl_class" href="classgameplay__logic_1_1HitEvent.html">HitEvent</a> hit);</div>
+<div class="line"><a id="l00294" name="l00294"></a><span class="lineno">  294</span>};</div>
 </div>
-<div class="line"><a id="l00278" name="l00278"></a><span class="lineno">  278</span> </div>
-<div class="line"><a id="l00279" name="l00279"></a><span class="lineno">  279</span>} <span class="comment">// namespace gameplay_logic</span></div>
-<div class="line"><a id="l00280" name="l00280"></a><span class="lineno">  280</span> </div>
-<div class="line"><a id="l00281" name="l00281"></a><span class="lineno">  281</span><span class="preprocessor">#endif </span><span class="comment">// RHYTHMGAME_BMSSCORE_H</span></div>
+<div class="line"><a id="l00295" name="l00295"></a><span class="lineno">  295</span> </div>
+<div class="line"><a id="l00296" name="l00296"></a><span class="lineno">  296</span>} <span class="comment">// namespace gameplay_logic</span></div>
+<div class="line"><a id="l00297" name="l00297"></a><span class="lineno">  297</span> </div>
+<div class="line"><a id="l00298" name="l00298"></a><span class="lineno">  298</span><span class="preprocessor">#endif </span><span class="comment">// RHYTHMGAME_BMSSCORE_H</span></div>
 <div class="ttc" id="aBmsGaugeHistory_8h_html"><div class="ttname"><a href="BmsGaugeHistory_8h.html">BmsGaugeHistory.h</a></div></div>
 <div class="ttc" id="aBmsGauge_8h_html"><div class="ttname"><a href="BmsGauge_8h.html">BmsGauge.h</a></div></div>
 <div class="ttc" id="aBmsReplayData_8h_html"><div class="ttname"><a href="BmsReplayData_8h.html">BmsReplayData.h</a></div></div>
 <div class="ttc" id="aBmsResult_8h_html"><div class="ttname"><a href="BmsResult_8h.html">BmsResult.h</a></div></div>
+<div class="ttc" id="aBmsScore_8h_html"><div class="ttname"><a href="BmsScore_8h.html">BmsScore.h</a></div></div>
+<div class="ttc" id="aChartData_8h_html"><div class="ttname"><a href="ChartData_8h.html">ChartData.h</a></div></div>
 <div class="ttc" id="aHitEvent_8h_html"><div class="ttname"><a href="HitEvent_8h.html">HitEvent.h</a></div></div>
+<div class="ttc" id="aOnlineRankingModel_8cpp_html_a4cb3fe817072bbf8f876295d34726aed"><div class="ttname"><a href="OnlineRankingModel_8cpp.html#a4cb3fe817072bbf8f876295d34726aed">combo</a></div><div class="ttdeci">int combo</div><div class="ttdef"><b>Definition</b> OnlineRankingModel.cpp:452</div></div>
 <div class="ttc" id="aVars_8h_html"><div class="ttname"><a href="Vars_8h.html">Vars.h</a></div></div>
-<div class="ttc" id="aclassgameplay__logic_1_1BmsGaugeHistory_html"><div class="ttname"><a href="classgameplay__logic_1_1BmsGaugeHistory.html">gameplay_logic::BmsGaugeHistory</a></div><div class="ttdoc">The history of all gauges used in a BMS score.</div><div class="ttdef"><b>Definition</b> BmsGaugeHistory.h:66</div></div>
-<div class="ttc" id="aclassgameplay__logic_1_1BmsLiveScore_html"><div class="ttname"><a href="classgameplay__logic_1_1BmsLiveScore.html">gameplay_logic::BmsLiveScore</a></div><div class="ttdoc">The score that gets updated during gameplay.</div><div class="ttdef"><b>Definition</b> BmsLiveScore.h:55</div></div>
-<div class="ttc" id="aclassgameplay__logic_1_1BmsReplayData_html"><div class="ttname"><a href="classgameplay__logic_1_1BmsReplayData.html">gameplay_logic::BmsReplayData</a></div><div class="ttdef"><b>Definition</b> BmsReplayData.h:17</div></div>
-<div class="ttc" id="aclassgameplay__logic_1_1BmsResult_html"><div class="ttname"><a href="classgameplay__logic_1_1BmsResult.html">gameplay_logic::BmsResult</a></div><div class="ttdoc">The aggregated info about a score.</div><div class="ttdef"><b>Definition</b> BmsResult.h:20</div></div>
+<div class="ttc" id="aclassgameplay__logic_1_1BmsGaugeHistory_html"><div class="ttname"><a href="classgameplay__logic_1_1BmsGaugeHistory.html">gameplay_logic::BmsGaugeHistory</a></div><div class="ttdoc">The history of all gauges used in a BMS score.</div><div class="ttdef"><b>Definition</b> BmsGaugeHistory.h:67</div></div>
+<div class="ttc" id="aclassgameplay__logic_1_1BmsLiveScore_html"><div class="ttname"><a href="classgameplay__logic_1_1BmsLiveScore.html">gameplay_logic::BmsLiveScore</a></div><div class="ttdoc">The score that gets updated during gameplay.</div><div class="ttdef"><b>Definition</b> BmsLiveScore.h:57</div></div>
+<div class="ttc" id="aclassgameplay__logic_1_1BmsReplayData_html"><div class="ttname"><a href="classgameplay__logic_1_1BmsReplayData.html">gameplay_logic::BmsReplayData</a></div><div class="ttdef"><b>Definition</b> BmsReplayData.h:18</div></div>
+<div class="ttc" id="aclassgameplay__logic_1_1BmsResult_html"><div class="ttname"><a href="classgameplay__logic_1_1BmsResult.html">gameplay_logic::BmsResult</a></div><div class="ttdoc">The aggregated info about a score.</div><div class="ttdef"><b>Definition</b> BmsResult.h:23</div></div>
+<div class="ttc" id="aclassgameplay__logic_1_1BmsScore_html"><div class="ttname"><a href="classgameplay__logic_1_1BmsScore.html">gameplay_logic::BmsScore</a></div><div class="ttdoc">The result of playing a chart.</div><div class="ttdef"><b>Definition</b> BmsScore.h:16</div></div>
+<div class="ttc" id="aclassgameplay__logic_1_1ChartData_html"><div class="ttname"><a href="classgameplay__logic_1_1ChartData.html">gameplay_logic::ChartData</a></div><div class="ttdoc">Metadata and basic stats of a chart.</div><div class="ttdef"><b>Definition</b> ChartData.h:24</div></div>
 <div class="ttc" id="aclassgameplay__logic_1_1HitEvent_html"><div class="ttname"><a href="classgameplay__logic_1_1HitEvent.html">gameplay_logic::HitEvent</a></div><div class="ttdoc">A very generic event that happened during gameplay.</div><div class="ttdef"><b>Definition</b> HitEvent.h:18</div></div>
-<div class="ttc" id="aclassgameplay__logic_1_1JudgementCounts_html"><div class="ttname"><a href="classgameplay__logic_1_1JudgementCounts.html">gameplay_logic::JudgementCounts</a></div><div class="ttdef"><b>Definition</b> BmsLiveScore.h:21</div></div>
-<div class="ttc" id="aclassgameplay__logic_1_1JudgementCounts_html_a098b01a9d97795a5026825142914d376"><div class="ttname"><a href="classgameplay__logic_1_1JudgementCounts.html#a098b01a9d97795a5026825142914d376">gameplay_logic::JudgementCounts::getJudgementCounts</a></div><div class="ttdeci">auto getJudgementCounts() const -&gt; const QList&lt; int &gt; &amp;</div><div class="ttdef"><b>Definition</b> BmsLiveScore.cpp:255</div></div>
-<div class="ttc" id="aclassgameplay__logic_1_1JudgementCounts_html_a19f6623e81564c81126480fde839df90"><div class="ttname"><a href="classgameplay__logic_1_1JudgementCounts.html#a19f6623e81564c81126480fde839df90">gameplay_logic::JudgementCounts::rowCount</a></div><div class="ttdeci">auto rowCount(const QModelIndex &amp;parent=QModelIndex()) const -&gt; int override</div><div class="ttdef"><b>Definition</b> BmsLiveScore.cpp:222</div></div>
-<div class="ttc" id="aclassgameplay__logic_1_1JudgementCounts_html_a70d105d385ff2e9cc4306f07676e785d"><div class="ttname"><a href="classgameplay__logic_1_1JudgementCounts.html#a70d105d385ff2e9cc4306f07676e785d">gameplay_logic::JudgementCounts::roleNames</a></div><div class="ttdeci">auto roleNames() const -&gt; QHash&lt; int, QByteArray &gt; override</div><div class="ttdef"><b>Definition</b> BmsLiveScore.cpp:227</div></div>
-<div class="ttc" id="aclassgameplay__logic_1_1JudgementCounts_html_a85a716b9b6bd73e0dabf994ed4553ef6"><div class="ttname"><a href="classgameplay__logic_1_1JudgementCounts.html#a85a716b9b6bd73e0dabf994ed4553ef6">gameplay_logic::JudgementCounts::Roles</a></div><div class="ttdeci">Roles</div><div class="ttdef"><b>Definition</b> BmsLiveScore.h:34</div></div>
-<div class="ttc" id="aclassgameplay__logic_1_1JudgementCounts_html_a85a716b9b6bd73e0dabf994ed4553ef6a4586098c1fd0178130115c86c866dc0e"><div class="ttname"><a href="classgameplay__logic_1_1JudgementCounts.html#a85a716b9b6bd73e0dabf994ed4553ef6a4586098c1fd0178130115c86c866dc0e">gameplay_logic::JudgementCounts::CountRole</a></div><div class="ttdeci">@ CountRole</div><div class="ttdef"><b>Definition</b> BmsLiveScore.h:36</div></div>
-<div class="ttc" id="aclassgameplay__logic_1_1JudgementCounts_html_a85a716b9b6bd73e0dabf994ed4553ef6a4a4db6dc2a701d8d823e96efb75a190c"><div class="ttname"><a href="classgameplay__logic_1_1JudgementCounts.html#a85a716b9b6bd73e0dabf994ed4553ef6a4a4db6dc2a701d8d823e96efb75a190c">gameplay_logic::JudgementCounts::JudgementRole</a></div><div class="ttdeci">@ JudgementRole</div><div class="ttdef"><b>Definition</b> BmsLiveScore.h:35</div></div>
-<div class="ttc" id="aclassgameplay__logic_1_1JudgementCounts_html_add4a1de9ddcefd3560ce4a3927e6f5ec"><div class="ttname"><a href="classgameplay__logic_1_1JudgementCounts.html#add4a1de9ddcefd3560ce4a3927e6f5ec">gameplay_logic::JudgementCounts::addJudgement</a></div><div class="ttdeci">void addJudgement(Judgement judgement)</div><div class="ttdef"><b>Definition</b> BmsLiveScore.cpp:247</div></div>
-<div class="ttc" id="aclassgameplay__logic_1_1JudgementCounts_html_aff32c7dcb84c62980e8a180e2b10a550"><div class="ttname"><a href="classgameplay__logic_1_1JudgementCounts.html#aff32c7dcb84c62980e8a180e2b10a550">gameplay_logic::JudgementCounts::data</a></div><div class="ttdeci">auto data(const QModelIndex &amp;index, int role) const -&gt; QVariant override</div><div class="ttdef"><b>Definition</b> BmsLiveScore.cpp:232</div></div>
+<div class="ttc" id="aclassgameplay__logic_1_1JudgementCounts_html"><div class="ttname"><a href="classgameplay__logic_1_1JudgementCounts.html">gameplay_logic::JudgementCounts</a></div><div class="ttdef"><b>Definition</b> BmsLiveScore.h:23</div></div>
+<div class="ttc" id="aclassgameplay__logic_1_1JudgementCounts_html_a098b01a9d97795a5026825142914d376"><div class="ttname"><a href="classgameplay__logic_1_1JudgementCounts.html#a098b01a9d97795a5026825142914d376">gameplay_logic::JudgementCounts::getJudgementCounts</a></div><div class="ttdeci">auto getJudgementCounts() const -&gt; const QList&lt; int &gt; &amp;</div><div class="ttdef"><b>Definition</b> BmsLiveScore.cpp:266</div></div>
+<div class="ttc" id="aclassgameplay__logic_1_1JudgementCounts_html_a19f6623e81564c81126480fde839df90"><div class="ttname"><a href="classgameplay__logic_1_1JudgementCounts.html#a19f6623e81564c81126480fde839df90">gameplay_logic::JudgementCounts::rowCount</a></div><div class="ttdeci">auto rowCount(const QModelIndex &amp;parent=QModelIndex()) const -&gt; int override</div><div class="ttdef"><b>Definition</b> BmsLiveScore.cpp:233</div></div>
+<div class="ttc" id="aclassgameplay__logic_1_1JudgementCounts_html_a70d105d385ff2e9cc4306f07676e785d"><div class="ttname"><a href="classgameplay__logic_1_1JudgementCounts.html#a70d105d385ff2e9cc4306f07676e785d">gameplay_logic::JudgementCounts::roleNames</a></div><div class="ttdeci">auto roleNames() const -&gt; QHash&lt; int, QByteArray &gt; override</div><div class="ttdef"><b>Definition</b> BmsLiveScore.cpp:238</div></div>
+<div class="ttc" id="aclassgameplay__logic_1_1JudgementCounts_html_a85a716b9b6bd73e0dabf994ed4553ef6"><div class="ttname"><a href="classgameplay__logic_1_1JudgementCounts.html#a85a716b9b6bd73e0dabf994ed4553ef6">gameplay_logic::JudgementCounts::Roles</a></div><div class="ttdeci">Roles</div><div class="ttdef"><b>Definition</b> BmsLiveScore.h:36</div></div>
+<div class="ttc" id="aclassgameplay__logic_1_1JudgementCounts_html_a85a716b9b6bd73e0dabf994ed4553ef6a4586098c1fd0178130115c86c866dc0e"><div class="ttname"><a href="classgameplay__logic_1_1JudgementCounts.html#a85a716b9b6bd73e0dabf994ed4553ef6a4586098c1fd0178130115c86c866dc0e">gameplay_logic::JudgementCounts::CountRole</a></div><div class="ttdeci">@ CountRole</div><div class="ttdef"><b>Definition</b> BmsLiveScore.h:38</div></div>
+<div class="ttc" id="aclassgameplay__logic_1_1JudgementCounts_html_a85a716b9b6bd73e0dabf994ed4553ef6a4a4db6dc2a701d8d823e96efb75a190c"><div class="ttname"><a href="classgameplay__logic_1_1JudgementCounts.html#a85a716b9b6bd73e0dabf994ed4553ef6a4a4db6dc2a701d8d823e96efb75a190c">gameplay_logic::JudgementCounts::JudgementRole</a></div><div class="ttdeci">@ JudgementRole</div><div class="ttdef"><b>Definition</b> BmsLiveScore.h:37</div></div>
+<div class="ttc" id="aclassgameplay__logic_1_1JudgementCounts_html_add4a1de9ddcefd3560ce4a3927e6f5ec"><div class="ttname"><a href="classgameplay__logic_1_1JudgementCounts.html#add4a1de9ddcefd3560ce4a3927e6f5ec">gameplay_logic::JudgementCounts::addJudgement</a></div><div class="ttdeci">void addJudgement(Judgement judgement)</div><div class="ttdef"><b>Definition</b> BmsLiveScore.cpp:258</div></div>
+<div class="ttc" id="aclassgameplay__logic_1_1JudgementCounts_html_aff32c7dcb84c62980e8a180e2b10a550"><div class="ttname"><a href="classgameplay__logic_1_1JudgementCounts.html#aff32c7dcb84c62980e8a180e2b10a550">gameplay_logic::JudgementCounts::data</a></div><div class="ttdeci">auto data(const QModelIndex &amp;index, int role) const -&gt; QVariant override</div><div class="ttdef"><b>Definition</b> BmsLiveScore.cpp:243</div></div>
 <div class="ttc" id="anamespacegameplay__logic_1_1judgement_html_a4dd73363d266a4e4aa41782d0e02b6e6"><div class="ttname"><a href="namespacegameplay__logic_1_1judgement.html#a4dd73363d266a4e4aa41782d0e02b6e6">gameplay_logic::judgement::Judgement</a></div><div class="ttdeci">Judgement</div><div class="ttdoc">The possible judgements for note hits.</div><div class="ttdef"><b>Definition</b> Judgement.h:18</div></div>
 <div class="ttc" id="anamespacegameplay__logic_html"><div class="ttname"><a href="namespacegameplay__logic.html">gameplay_logic</a></div><div class="ttdoc">Classes and functions mostly related to gameplay.</div><div class="ttdef"><b>Definition</b> BmsGameReferee.h:18</div></div>
 <div class="ttc" id="anamespaceresource__managers_html"><div class="ttname"><a href="namespaceresource__managers.html">resource_managers</a></div><div class="ttdoc">Classes and functions related to loading and managing resources such as charts, sounds,...</div><div class="ttdef"><b>Definition</b> ProfileList.h:11</div></div>

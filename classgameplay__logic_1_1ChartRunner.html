@@ -21,7 +21,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.2.8</span>
+   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.3.0</span>
    </div>
   </td>
  </tr>
@@ -127,6 +127,8 @@ Signals</h2></td></tr>
 <tr class="separator:a750d8d0d675d8892e64c8ae5b8c3d20f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac522da23dadd8ad2f83e5270e577f4da" id="r_ac522da23dadd8ad2f83e5270e577f4da"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgameplay__logic_1_1ChartRunner.html#ac522da23dadd8ad2f83e5270e577f4da">bgaLoaded</a> ()</td></tr>
 <tr class="separator:ac522da23dadd8ad2f83e5270e577f4da"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3090a7bb3b4d0961aee54a30994e98b8" id="r_a3090a7bb3b4d0961aee54a30994e98b8"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgameplay__logic_1_1ChartRunner.html#a3090a7bb3b4d0961aee54a30994e98b8">inputMappingChanged</a> ()</td></tr>
+<tr class="separator:a3090a7bb3b4d0961aee54a30994e98b8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
@@ -150,6 +152,10 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:ae1ac8a6fac775a23fae74085518e6cfa"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0c73dd6c7ea0e47eb2b61e62834aef67" id="r_a0c73dd6c7ea0e47eb2b61e62834aef67"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgameplay__logic_1_1ChartRunner.html#a0c73dd6c7ea0e47eb2b61e62834aef67">getPlayer2</a> () const -&gt; <a class="el" href="classgameplay__logic_1_1Player.html">Player</a> *</td></tr>
 <tr class="separator:a0c73dd6c7ea0e47eb2b61e62834aef67"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9854b475896b7bd6983d238e9d84ee5e" id="r_a9854b475896b7bd6983d238e9d84ee5e"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgameplay__logic_1_1ChartRunner.html#a9854b475896b7bd6983d238e9d84ee5e">getInputMapping</a> () const -&gt; QList&lt; int &gt;</td></tr>
+<tr class="separator:a9854b475896b7bd6983d238e9d84ee5e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abafdcbd7fdc1f209cd03414a28238c96" id="r_abafdcbd7fdc1f209cd03414a28238c96"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgameplay__logic_1_1ChartRunner.html#abafdcbd7fdc1f209cd03414a28238c96">setInputMapping</a> (QList&lt; int &gt; <a class="el" href="classgameplay__logic_1_1ChartRunner.html#a465f0b6500e36211e13e501af46bfb09">inputMapping</a>)</td></tr>
+<tr class="separator:abafdcbd7fdc1f209cd03414a28238c96"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="properties" name="properties"></a>
 Properties</h2></td></tr>
@@ -165,6 +171,9 @@ Properties</h2></td></tr>
 <tr class="memitem:ab80e0ad02f1d7d86e084b0690bcf6dae" id="r_ab80e0ad02f1d7d86e084b0690bcf6dae"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classgameplay__logic_1_1ChartData.html#a292daeb8d3a0ee906e350eece3adae04">gameplay_logic::ChartData::Keymode</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgameplay__logic_1_1ChartRunner.html#ab80e0ad02f1d7d86e084b0690bcf6dae">keymode</a></td></tr>
 <tr class="memdesc:ab80e0ad02f1d7d86e084b0690bcf6dae"><td class="mdescLeft">&#160;</td><td class="mdescRight">The keymode of the chart being played.  <br /></td></tr>
 <tr class="separator:ab80e0ad02f1d7d86e084b0690bcf6dae"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a465f0b6500e36211e13e501af46bfb09" id="r_a465f0b6500e36211e13e501af46bfb09"><td class="memItemLeft" align="right" valign="top">QList&lt; int &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgameplay__logic_1_1ChartRunner.html#a465f0b6500e36211e13e501af46bfb09">inputMapping</a></td></tr>
+<tr class="memdesc:a465f0b6500e36211e13e501af46bfb09"><td class="mdescLeft">&#160;</td><td class="mdescRight">Mapping of BmsKey to column index. Usually iota by default except in 10k mode, where the P2 side has columns moved right.  <br /></td></tr>
+<tr class="separator:a465f0b6500e36211e13e501af46bfb09"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>The main class responsible for running a chart during gameplay. </p>
@@ -354,6 +363,23 @@ Properties</h2></td></tr>
 
 </div>
 </div>
+<a id="a9854b475896b7bd6983d238e9d84ee5e" name="a9854b475896b7bd6983d238e9d84ee5e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9854b475896b7bd6983d238e9d84ee5e">&#9670;&#160;</a></span>getInputMapping()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto gameplay_logic::ChartRunner::getInputMapping </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const -&gt; QList&lt;int&gt;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="ab2a96cefdf16d0d8eb542528cba309e3" name="ab2a96cefdf16d0d8eb542528cba309e3"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ab2a96cefdf16d0d8eb542528cba309e3">&#9670;&#160;</a></span>getKeymode()</h2>
 
@@ -422,6 +448,31 @@ Properties</h2></td></tr>
 
 </div>
 </div>
+<a id="a3090a7bb3b4d0961aee54a30994e98b8" name="a3090a7bb3b4d0961aee54a30994e98b8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3090a7bb3b4d0961aee54a30994e98b8">&#9670;&#160;</a></span>inputMappingChanged</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void gameplay_logic::ChartRunner::inputMappingChanged </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">signal</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a8e5f9b6a84220f5e58ae9a349593d975" name="a8e5f9b6a84220f5e58ae9a349593d975"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a8e5f9b6a84220f5e58ae9a349593d975">&#9670;&#160;</a></span>passKey()</h2>
 
@@ -450,6 +501,24 @@ Properties</h2></td></tr>
           <td></td>
           <td>)</td>
           <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="abafdcbd7fdc1f209cd03414a28238c96" name="abafdcbd7fdc1f209cd03414a28238c96"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abafdcbd7fdc1f209cd03414a28238c96">&#9670;&#160;</a></span>setInputMapping()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void gameplay_logic::ChartRunner::setInputMapping </td>
+          <td>(</td>
+          <td class="paramtype">QList&lt; int &gt;&#160;</td>
+          <td class="paramname"><em>inputMapping</em></td><td>)</td>
+          <td></td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -544,6 +613,31 @@ Properties</h2></td></tr>
 </div><div class="memdoc">
 
 <p>The chart data of the chart being played. </p>
+
+</div>
+</div>
+<a id="a465f0b6500e36211e13e501af46bfb09" name="a465f0b6500e36211e13e501af46bfb09"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a465f0b6500e36211e13e501af46bfb09">&#9670;&#160;</a></span>inputMapping</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">QList&lt; int &gt; gameplay_logic::ChartRunner::inputMapping</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">read</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Mapping of BmsKey to column index. Usually iota by default except in 10k mode, where the P2 side has columns moved right. </p>
+<p>If you want to flip scratch in 5k mode, you will want key 3 to correspond to column 1. Use this to achieve that. </p>
 
 </div>
 </div>

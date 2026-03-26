@@ -1,15 +1,17 @@
 <map id="src/qml_components/ProfileList.h" name="src/qml_components/ProfileList.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="279,5,437,45"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="394,5,551,45"/>
 <area shape="rect" id="Node000002" href="$main_8cpp.html" title=" " alt="" coords="5,269,111,295"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="266,41,160,62,116,77,88,95,74,115,64,138,54,188,54,235,58,269,53,269,49,235,49,188,58,137,69,113,84,91,113,73,158,57,265,36"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="380,33,297,40,211,52,135,70,107,82,88,95,73,115,63,138,53,188,54,234,58,269,53,269,48,235,48,187,58,136,68,112,84,91,105,77,134,65,210,46,297,34,380,28"/>
 <area shape="rect" id="Node000003" href="$ChartLoader_8h.html" title=" " alt="" coords="98,93,255,133"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="307,54,218,96,215,91,305,49"/>
-<area shape="rect" id="Node000007" href="$ProfileList_8cpp.html" title=" " alt="" coords="279,93,437,133"/>
-<area shape="poly" id="edge8_Node000001_Node000007" title=" " alt="" coords="361,59,361,93,355,93,355,59"/>
-<area shape="rect" id="Node000008" href="$ChartFactory_8cpp.html" title=" " alt="" coords="461,93,634,133"/>
-<area shape="poly" id="edge9_Node000001_Node000008" title=" " alt="" coords="413,49,507,91,505,96,411,53"/>
-<area shape="rect" id="Node000009" href="$Vars_8cpp.html" title=" " alt="" coords="658,93,831,133"/>
-<area shape="poly" id="edge10_Node000001_Node000009" title=" " alt="" coords="451,44,661,91,659,96,449,50"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="395,52,242,96,241,91,394,47"/>
+<area shape="rect" id="Node000007" href="$OnlineRankingModel_8cpp.html" title=" " alt="" coords="280,93,468,133"/>
+<area shape="poly" id="edge8_Node000001_Node000007" title=" " alt="" coords="442,56,398,95,394,91,439,52"/>
+<area shape="rect" id="Node000008" href="$ProfileList_8cpp.html" title=" " alt="" coords="493,93,650,133"/>
+<area shape="poly" id="edge9_Node000001_Node000008" title=" " alt="" coords="506,52,551,91,548,95,503,56"/>
+<area shape="rect" id="Node000009" href="$ChartFactory_8cpp.html" title=" " alt="" coords="674,93,847,133"/>
+<area shape="poly" id="edge10_Node000001_Node000009" title=" " alt="" coords="550,47,698,91,697,96,548,52"/>
+<area shape="rect" id="Node000010" href="$Vars_8cpp.html" title=" " alt="" coords="871,93,1045,133"/>
+<area shape="poly" id="edge11_Node000001_Node000010" title=" " alt="" coords="565,39,860,91,871,93,870,98,859,96,564,45"/>
 <area shape="poly" id="edge6_Node000003_Node000002" title=" " alt="" coords="146,145,111,183,83,230,65,270,60,268,78,228,107,180,142,141"/>
 <area shape="rect" id="Node000004" href="$Rg_8h.html" title=" " alt="" coords="120,189,292,214"/>
 <area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="190,145,204,187,199,189,185,147"/>

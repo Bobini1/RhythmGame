@@ -1,5 +1,9 @@
 var searchData=
 [
-  ['ticktype_0',['TickType',['../classinput_1_1InputTranslator.html#a11ee382f1e1c19d60a889b2cce5c7fcf',1,'input::InputTranslator']]],
-  ['type_1',['Type',['../classgameplay__logic_1_1Note.html#a8e22f28b2754a4af52eb701ff01def90',1,'gameplay_logic::Note']]]
+  ['scoretarget_0',['ScoreTarget',['../namespaceresource__managers_1_1score__target.html#a1e47ea936dfffa6b54a61168ef29c344',1,'resource_managers::score_target']]],
+  ['scratchalgorithm_1',['ScratchAlgorithm',['../classinput_1_1AnalogAxisConfig.html#a531d303c03fc0e20819caa30ab2849c2',1,'input::AnalogAxisConfig']]],
+  ['sortablecolumn_2',['SortableColumn',['../classqml__components_1_1OnlineRankingModel.html#ac0db71d62af3a8aaf2e137775b33fc51',1,'qml_components::OnlineRankingModel']]],
+  ['sortdirection_3',['SortDirection',['../classqml__components_1_1OnlineRankingModel.html#aa5af959362ef473bc9cacff77ec7e1e1',1,'qml_components::OnlineRankingModel']]],
+  ['status_4',['status',['../classgameplay__logic_1_1ChartRunner.html#af47f61dbd9ce965ac6ae35a48906c97b',1,'gameplay_logic::ChartRunner::Status'],['../classqml__components_1_1RootSongFolder.html#a3c9ed590e22ba6e58b18665c5fa02c90',1,'qml_components::RootSongFolder::Status'],['../structresource__managers_1_1Table.html#aff2d8fb1dbb9e6d6af0f8fc60dcd10b2',1,'resource_managers::Table::Status']]],
+  ['submissionstate_5',['SubmissionState',['../classgameplay__logic_1_1BmsScore.html#a884ea7325dac70efb1ae5d5ddd9f028e',1,'gameplay_logic::BmsScore']]]
 ];

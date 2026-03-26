@@ -21,7 +21,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.2.8</span>
+   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.3.0</span>
    </div>
   </td>
  </tr>
@@ -128,19 +128,19 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span>    explicit <a class="code hl_class" href="classsounds_1_1AudioPlayer.html">AudioPlayer</a>(QObject* parent = <span class="keywordtype">nullptr</span>);</div>
 <div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>    ~<a class="code hl_class" href="classsounds_1_1AudioPlayer.html">AudioPlayer</a>() override;</div>
 <div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>    auto <a class="code hl_function" href="classsounds_1_1AudioPlayer.html#a3aed7673639e98525d35064730198f16">getSource</a>() const -&gt; QString;</div>
-<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classsounds_1_1AudioPlayer.html#a2021b098ed2fc5777630effdc319a1c1">setSource</a>(const QString&amp; value);</div>
+<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classsounds_1_1AudioPlayer.html#a2021b098ed2fc5777630effdc319a1c1">setSource</a>(const QString&amp; <a class="code hl_variable" href="BmsNotesData_8cpp.html#aee90379adb0307effb138f4871edbc5c">value</a>);</div>
 <div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classsounds_1_1AudioPlayer.html#a97358e4b58896a7138eff171957f6717">resetSource</a>();</div>
-<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classsounds_1_1AudioPlayer.html#aecf2ee97039827d979dca7806fcf4d46">setPlaying</a>(<span class="keywordtype">bool</span> value);</div>
+<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classsounds_1_1AudioPlayer.html#aecf2ee97039827d979dca7806fcf4d46">setPlaying</a>(<span class="keywordtype">bool</span> <a class="code hl_variable" href="BmsNotesData_8cpp.html#aee90379adb0307effb138f4871edbc5c">value</a>);</div>
 <div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span>    Q_INVOKABLE <span class="keywordtype">void</span> <a class="code hl_function" href="classsounds_1_1AudioPlayer.html#a14a055d48f5c64e6e85f4725126da3c6">play</a>();</div>
 <div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>    Q_INVOKABLE <span class="keywordtype">void</span> <a class="code hl_function" href="classsounds_1_1AudioPlayer.html#a27fd6626b7e45180503c27e56d61de35">stop</a>();</div>
 <div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>    auto <a class="code hl_function" href="classsounds_1_1AudioPlayer.html#adf1942ab76e5adb0ac75e5fc82992250">isPlaying</a>() const -&gt; <span class="keywordtype">bool</span>;</div>
 <div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span> </div>
 <div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>    auto <a class="code hl_function" href="classsounds_1_1AudioPlayer.html#ac9062e41b010ee1b54dc1f0a38bc33b5">getVolume</a>() const -&gt; <span class="keywordtype">float</span>;</div>
-<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classsounds_1_1AudioPlayer.html#a19c99a9741fbd83ab1bc62fc408f5df0">setVolume</a>(<span class="keywordtype">float</span> value);</div>
+<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classsounds_1_1AudioPlayer.html#a19c99a9741fbd83ab1bc62fc408f5df0">setVolume</a>(<span class="keywordtype">float</span> <a class="code hl_variable" href="BmsNotesData_8cpp.html#aee90379adb0307effb138f4871edbc5c">value</a>);</div>
 <div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span>    auto <a class="code hl_function" href="classsounds_1_1AudioPlayer.html#a992f809567952a7a4779079c9cbb7309">isLooping</a>() const -&gt; <span class="keywordtype">bool</span>;</div>
-<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classsounds_1_1AudioPlayer.html#a23add57f92e3112069564fe62ddd44ab">setLooping</a>(<span class="keywordtype">bool</span> value);</div>
+<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classsounds_1_1AudioPlayer.html#a23add57f92e3112069564fe62ddd44ab">setLooping</a>(<span class="keywordtype">bool</span> <a class="code hl_variable" href="BmsNotesData_8cpp.html#aee90379adb0307effb138f4871edbc5c">value</a>);</div>
 <div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span>    auto <a class="code hl_function" href="classsounds_1_1AudioPlayer.html#afbdf1b9172f4c7e70bf66ebdb7eff9d2">getFadeInMillis</a>() const -&gt; uint64_t;</div>
-<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classsounds_1_1AudioPlayer.html#af4967e80b6ae2ef8e2c1620ad7b7eb53">setFadeInMillis</a>(uint64_t value);</div>
+<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classsounds_1_1AudioPlayer.html#af4967e80b6ae2ef8e2c1620ad7b7eb53">setFadeInMillis</a>(uint64_t <a class="code hl_variable" href="BmsNotesData_8cpp.html#aee90379adb0307effb138f4871edbc5c">value</a>);</div>
 <div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span>    auto <a class="code hl_function" href="classsounds_1_1AudioPlayer.html#a9f5f05f30b2704ed1ba52229bcd1f938">getLength</a>() const -&gt; <span class="keywordtype">float</span>;</div>
 <div class="line"><a id="l00061" name="l00061"></a><span class="lineno"><a class="line" href="classsounds_1_1AudioPlayer.html#a20bb4880b11074e892a225dc52cbacc1">   61</a></span>    inline static <a class="code hl_class" href="classsounds_1_1AudioEngine.html">AudioEngine</a>* <a class="code hl_variable" href="classsounds_1_1AudioPlayer.html#a20bb4880b11074e892a225dc52cbacc1">engine</a> = <span class="keywordtype">nullptr</span>;</div>
 <div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span>  signals:</div>
@@ -157,6 +157,7 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span>} <span class="comment">// namespace sounds</span></div>
 <div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span> </div>
 <div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span><span class="preprocessor">#endif </span><span class="comment">// RHYTHMGAME_AUDIOPLAYER_H</span></div>
+<div class="ttc" id="aBmsNotesData_8cpp_html_aee90379adb0307effb138f4871edbc5c"><div class="ttname"><a href="BmsNotesData_8cpp.html#aee90379adb0307effb138f4871edbc5c">value</a></div><div class="ttdeci">double value</div><div class="ttdef"><b>Definition</b> BmsNotesData.cpp:34</div></div>
 <div class="ttc" id="aSound_8h_html"><div class="ttname"><a href="Sound_8h.html">Sound.h</a></div></div>
 <div class="ttc" id="aclasssounds_1_1AudioEngine_html"><div class="ttname"><a href="classsounds_1_1AudioEngine.html">sounds::AudioEngine</a></div><div class="ttdef"><b>Definition</b> AudioEngine.h:13</div></div>
 <div class="ttc" id="aclasssounds_1_1AudioPlayer_html"><div class="ttname"><a href="classsounds_1_1AudioPlayer.html">sounds::AudioPlayer</a></div><div class="ttdef"><b>Definition</b> AudioPlayer.h:17</div></div>
