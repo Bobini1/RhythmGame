@@ -518,7 +518,7 @@ resource_managers::GeneralVars::setWebsiteBaseUrl(const QString& value)
 void
 resource_managers::GeneralVars::resetWebsiteBaseUrl()
 {
-    setWebsiteBaseUrl("http://localhost:5173");
+    setWebsiteBaseUrl("https://rhythmgame.eu");
 }
 auto
 resource_managers::GeneralVars::getBgm() const -> QString
