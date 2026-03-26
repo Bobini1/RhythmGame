@@ -126,7 +126,7 @@ void
 Profile::loadBearerToken()
 {
     auto* job = new QKeychain::ReadPasswordJob(keychainService, this);
-    job->setKey(QStringLiteral("profiles/%1/token").arg(guid));
+    job->setKey(QStringLiteral("RhythmGame/profiles/%1/token").arg(guid));
     connect(job, &QKeychain::Job::finished, this, [this, job]() {
         job->deleteLater();
         if (job->error()) {
@@ -454,7 +454,8 @@ Profile::login(const QString& email, const QString& password)
             if (!token.isEmpty()) {
                 auto* job =
                   new QKeychain::WritePasswordJob(keychainService, this);
-                job->setKey(QStringLiteral("profiles/%1/token").arg(guid));
+                job->setKey(
+                  QStringLiteral("RhythmGame/profiles/%1/token").arg(guid));
                 job->setBinaryData(token.toLatin1());
                 connect(job, &QKeychain::Job::finished, [job] {
                     if (job->error()) {
@@ -495,7 +496,7 @@ Profile::logout()
     auto* reply = networkManager->post(request, "{}");
     connect(
       reply, &QNetworkReply::finished, reply, &QNetworkReply::deleteLater);
-    job->setKey(QStringLiteral("profiles/%1/token").arg(guid));
+    job->setKey(QStringLiteral("RhythmGame/profiles/%1/token").arg(guid));
     connect(job, &QKeychain::Job::finished, [job] {
         if (job->error()) {
             spdlog::error("Failed to delete token from keychain: {} - {}",
