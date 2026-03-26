@@ -771,6 +771,7 @@ OnlineRankingModel::fetch()
     setPlayerCount(0);
     setScoreCount(0);
     setEntries({});
+    setClearCounts({});
     cancelPending();
     if (currentMd5.isEmpty() || (!networkRequestFactory.baseUrl().isValid() &&
                                  currentProvider == Provider::RhythmGame)) {
