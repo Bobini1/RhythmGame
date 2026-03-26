@@ -8,7 +8,7 @@ Image {
     id: ranking
 
     required property var chartData
-    readonly property var md5: chartData.md5
+    readonly property var md5: chartData?.md5
     visible: !!md5
     property int page: 0
     property var profile: Rg.profileList.mainProfile
@@ -28,7 +28,7 @@ Image {
     }
     readonly property string keymode: {
         // convert keymode to string for tachi provider
-        switch (ranking.chartData.keymode) {
+        switch (ranking.chartData?.keymode) {
             case 5:
             case 7:
                 return "7K";

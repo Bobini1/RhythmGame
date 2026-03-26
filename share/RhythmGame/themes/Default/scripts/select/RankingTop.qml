@@ -9,8 +9,8 @@ Column {
     property var profile
     property var chartData
     property var provider
-    readonly property var md5: chartData.md5
-    readonly property var path: chartData.path
+    readonly property var md5: chartData?.md5
+    readonly property var path: chartData?.path
     property var bestPointsScore
     property var bestClearTypeScore
     property string keymode

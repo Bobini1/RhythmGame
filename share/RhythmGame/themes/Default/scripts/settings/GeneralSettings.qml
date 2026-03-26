@@ -37,7 +37,7 @@ Item {
                     }
                 }
                 Choice {
-                    destination: Window.window
+                    destination: Window.window || {}
                     id_: "visibility"
                     choices: [Window.Windowed, Window.FullScreen]
                     displayStrings: qsTr("Windowed;Fullscreen").split(";")
