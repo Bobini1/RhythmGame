@@ -769,8 +769,8 @@ Profile::dispatchUploads(qml_components::ScoreSyncOperation* op,
     }
     for (auto& p : payloads) {
         auto request = networkRequestFactory.createRequest("scores");
-        auto* reply =
-          networkManager->post(request, QJsonDocument(p.json).toJson());
+        auto* reply = networkManager->post(
+          request, QJsonDocument(p.json).toJson(QJsonDocument::Compact));
         const auto guid = p.guid;
         connect(reply, &QNetworkReply::finished, this, [reply, op, guid]() {
             reply->deleteLater();
