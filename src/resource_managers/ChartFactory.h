@@ -63,6 +63,7 @@ class ChartFactory
         DpOptions dpOptions = DpOptions::Off;
         uint64_t randomSeed;
         bool autoPlay = false;
+        bool usePre130{};
     };
     ChartFactory(sounds::AudioEngine* engine,
                  input::InputTranslator* inputTranslator);

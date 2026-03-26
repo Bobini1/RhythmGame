@@ -13,12 +13,13 @@ namespace support {
 
 template<typename T, typename Random>
 void
-fisherYatesShuffle(std::span<T> arr, Random& randomGenerator)
+fisherYatesShuffle(std::span<T> arr, Random& randomGenerator, bool usePre130)
 {
     for (auto i = arr.size() - 1; i > 0; --i) {
+        // The algorithm was broken before 1.3.0
+        auto max = usePre130 ? static_cast<int>(i + 1) : static_cast<int>(i);
         // we shouldn't need to support more than 256 columns
-        auto distribution =
-          std::uniform_int_distribution(0, static_cast<int>(i - 1));
+        auto distribution = std::uniform_int_distribution(0, max);
         const auto j = distribution(randomGenerator);
         std::swap(arr[i], arr[j]);
     }
@@ -130,7 +131,8 @@ template<typename Random>
 void
 shuffleAllNotes(std::span<std::vector<charts::BmsNotesData::Note>> arr,
                 const std::chrono::nanoseconds preferredNoteDistance,
-                Random& randomGenerator)
+                Random& randomGenerator,
+                bool usePre130)
 {
     auto newColumns = std::vector<std::vector<charts::BmsNotesData::Note>>{};
     newColumns.resize(arr.size());
@@ -145,7 +147,7 @@ shuffleAllNotes(std::span<std::vector<charts::BmsNotesData::Note>> arr,
         // first, we generate a list of proposed positions, ordered by
         // preference
         auto columnsIota = getColumsIota(arr.size());
-        fisherYatesShuffle(std::span(columnsIota), randomGenerator);
+        fisherYatesShuffle(std::span(columnsIota), randomGenerator, usePre130);
         //  check where there is enough space for the note
         const auto spotFound = tryPushingNoteWithDistance(
           *noteIt, columnsIota, newColumns, preferredNoteDistance);
@@ -181,7 +183,8 @@ auto
 generatePermutation(std::span<std::vector<charts::BmsNotesData::Note>>& notes,
                     const resource_managers::NoteOrderAlgorithm algorithm,
                     const uint64_t randomSeed,
-                    bool k5) -> ShuffleResult
+                    bool k5,
+                    bool usePre130) -> ShuffleResult
 {
     using RandomGenerator = std::mt19937_64;
     auto originalSpan = notes;
@@ -231,10 +234,12 @@ generatePermutation(std::span<std::vector<charts::BmsNotesData::Note>>& notes,
             auto randomGenerator = RandomGenerator{ randomSeed };
             fisherYatesShuffle(
               std::span(columns).subspan(0, columns.size() - 1),
-              randomGenerator);
+              randomGenerator,
+              usePre130);
             randomGenerator.seed(randomSeed);
             fisherYatesShuffle(std::span(notes).subspan(0, notes.size() - 1),
-                               randomGenerator);
+                               randomGenerator,
+                               usePre130);
             convertColumnsToK7(columns);
             if (k5) {
                 convertNotesToK7(originalSpan);
@@ -243,9 +248,9 @@ generatePermutation(std::span<std::vector<charts::BmsNotesData::Note>>& notes,
         }
         case resource_managers::NoteOrderAlgorithm::RandomPlus: {
             auto randomGenerator = RandomGenerator{ randomSeed };
-            fisherYatesShuffle(std::span(columns), randomGenerator);
+            fisherYatesShuffle(std::span(columns), randomGenerator, usePre130);
             randomGenerator.seed(randomSeed);
-            fisherYatesShuffle(notes, randomGenerator);
+            fisherYatesShuffle(notes, randomGenerator, usePre130);
             convertColumnsToK7(columns);
             if (k5) {
                 convertNotesToK7(originalSpan);
@@ -257,7 +262,8 @@ generatePermutation(std::span<std::vector<charts::BmsNotesData::Note>>& notes,
             static constexpr auto preferredNoteDistance = 40ms;
             shuffleAllNotes(std::span(notes).subspan(0, notes.size() - 1),
                             preferredNoteDistance,
-                            randomGenerator);
+                            randomGenerator,
+                            usePre130);
             convertColumnsToK7(columns);
             if (k5) {
                 convertNotesToK7(originalSpan);
@@ -267,7 +273,8 @@ generatePermutation(std::span<std::vector<charts::BmsNotesData::Note>>& notes,
         case resource_managers::NoteOrderAlgorithm::SRandomPlus: {
             auto randomGenerator = RandomGenerator{ randomSeed };
             static constexpr auto preferredNoteDistance = 40ms;
-            shuffleAllNotes(notes, preferredNoteDistance, randomGenerator);
+            shuffleAllNotes(
+              notes, preferredNoteDistance, randomGenerator, usePre130);
             convertColumnsToK7(columns);
             if (k5) {
                 convertNotesToK7(originalSpan);

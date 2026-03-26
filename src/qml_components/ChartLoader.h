@@ -86,7 +86,9 @@ class ChartLoader : public QObject
       resource_managers::NoteOrderAlgorithm p1NoteOrderAlgorithm,
       resource_managers::NoteOrderAlgorithm p1NoteOrderAlgorithmP2,
       resource_managers::DpOptions p1DpOptions,
-      resource_managers::NoteOrderAlgorithm p2NoteOrderAlgorithm) const
+      resource_managers::NoteOrderAlgorithm p2NoteOrderAlgorithm,
+      bool p1Pre130,
+      bool p2Pre130) const
       -> std::unique_ptr<gameplay_logic::ChartRunner>;
 
   public:

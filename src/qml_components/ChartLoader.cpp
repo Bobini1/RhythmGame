@@ -50,10 +50,20 @@ ChartLoader::createChart(
     auto p1NoteOrderAlgorithm = resource_managers::NoteOrderAlgorithm::Normal;
     auto p1NoteOrderAlgorithmP2 = resource_managers::NoteOrderAlgorithm::Normal;
     auto p1DpOptions = resource_managers::DpOptions::Off;
+    auto p1Pre130 = replayedScore1
+                      ? support::unpackVersion(
+                          replayedScore1->getResult()->getGameVersion()) <
+                          std::tuple{ 1, 3, 0 }
+                      : false;
 
     auto p2NoteOrderAlgorithm = resource_managers::NoteOrderAlgorithm::Normal;
     auto p2NoteOrderAlgorithmP2 = resource_managers::NoteOrderAlgorithm::Normal;
     auto p2DpOptions = resource_managers::DpOptions::Off;
+    auto p2Pre130 = replayedScore2
+                      ? support::unpackVersion(
+                          replayedScore2->getResult()->getGameVersion()) <
+                          std::tuple{ 1, 3, 0 }
+                      : false;
 
     if (replayedScore1) {
         // prefer settings stored in the replay
@@ -103,6 +113,7 @@ ChartLoader::createChart(
         thread_local auto mt = std::mt19937_64(rd());
         return mt();
     }();
+
     auto player1data = resource_managers::ChartFactory::PlayerSpecificData{
         player1,
         gaugeFactory(player1,
@@ -114,7 +125,8 @@ ChartLoader::createChart(
         p1NoteOrderAlgorithmP2,
         p1DpOptions,
         randomSeed1,
-        player1AutoPlay
+        player1AutoPlay,
+        p1Pre130
     };
     const auto randomSeed2 = [&] {
         if (replayedScore2) {
@@ -136,7 +148,8 @@ ChartLoader::createChart(
             p2NoteOrderAlgorithmP2,
             p2DpOptions,
             randomSeed2,
-            player2AutoPlay)
+            player2AutoPlay,
+            p2Pre130)
         : std::nullopt;
     return chartFactory->createChart(std::move(chartComponents),
                                      std::move(player1data),
@@ -385,10 +398,32 @@ ChartLoader::loadCourse(const resource_managers::Course& course,
     auto p1NoteOrderAlgorithm = resource_managers::NoteOrderAlgorithm::Normal;
     auto p1NoteOrderAlgorithmP2 = resource_managers::NoteOrderAlgorithm::Normal;
     auto p1DpOptions = resource_managers::DpOptions::Off;
+    auto p1Pre130 = [&] {
+        if (score1 && !score1->getScores().isEmpty()) {
+            const auto* first = score1->getScores().first();
+            if (first) {
+                return support::unpackVersion(
+                         first->getResult()->getGameVersion()) <
+                       std::tuple{ 1, 3, 0 };
+            }
+        }
+        return false;
+    }();
 
     auto p2NoteOrderAlgorithm = resource_managers::NoteOrderAlgorithm::Normal;
     auto p2NoteOrderAlgorithmP2 = resource_managers::NoteOrderAlgorithm::Normal;
     auto p2DpOptions = resource_managers::DpOptions::Off;
+    auto p2Pre130 = [&] {
+        if (score2 && !score2->getScores().isEmpty()) {
+            const auto* first = score2->getScores().first();
+            if (first) {
+                return support::unpackVersion(
+                         first->getResult()->getGameVersion()) <
+                       std::tuple{ 1, 3, 0 };
+            }
+        }
+        return false;
+    }();
 
     if (score1 && !score1->getScores().isEmpty()) {
         // Use the first score's result as representative for course-level
@@ -471,16 +506,20 @@ ChartLoader::loadCourse(const resource_managers::Course& course,
           chartComponents[index],
           player1,
           player1AutoPlay,
-          score1 ? score1->getScores().value(index, nullptr) : nullptr,
+          (player1Replay && score1) ? score1->getScores().value(index, nullptr)
+                                    : nullptr,
           player2,
           player2AutoPlay,
-          score2 ? score2->getScores().value(index, nullptr) : nullptr,
+          (player2Replay && score2) ? score2->getScores().value(index, nullptr)
+                                    : nullptr,
           gauges1,
           gauges2,
           p1NoteOrderAlgorithm,
           p1NoteOrderAlgorithmP2,
           p1DpOptions,
-          p2NoteOrderAlgorithm);
+          p2NoteOrderAlgorithm,
+          p1Pre130,
+          p2Pre130);
         previous1 = std::move(gauges1);
         previous2 = std::move(gauges2);
         index++;
@@ -615,7 +654,9 @@ ChartLoader::loadCourseChart(
   resource_managers::NoteOrderAlgorithm p1NoteOrderAlgorithm,
   resource_managers::NoteOrderAlgorithm p1NoteOrderAlgorithmP2,
   resource_managers::DpOptions p1DpOptions,
-  resource_managers::NoteOrderAlgorithm p2NoteOrderAlgorithm) const
+  resource_managers::NoteOrderAlgorithm p2NoteOrderAlgorithm,
+  bool p1Pre130,
+  bool p2Pre130) const
   -> std::unique_ptr<gameplay_logic::ChartRunner>
 {
     const auto rankInt = chartComponents.chartData->getRank();
@@ -647,7 +688,8 @@ ChartLoader::loadCourseChart(
         p1NoteOrderAlgorithmP2,
         p1DpOptions,
         randomSeed1,
-        player1AutoPlay
+        player1AutoPlay,
+        p1Pre130
     };
     const auto randomSeed2 = [&] {
         if (score2) {
@@ -667,7 +709,8 @@ ChartLoader::loadCourseChart(
             resource_managers::NoteOrderAlgorithm::Normal,
             resource_managers::DpOptions::Off,
             randomSeed2,
-            player2AutoPlay)
+            player2AutoPlay,
+            p2Pre130)
         : std::nullopt;
     return chartFactory->createChart(std::move(chartComponents),
                                      std::move(player1data),

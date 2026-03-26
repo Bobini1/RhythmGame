@@ -391,7 +391,8 @@ getComponentsForPlayer(const ChartFactory::PlayerSpecificData& player,
                        const charts::BmsNotesData& notesData,
                        const gameplay_logic::ChartData& chartData,
                        const double maxHitValue,
-                       DpOptions dpOptions) -> RandomizedData
+                       DpOptions dpOptions,
+                       const bool usePre130) -> RandomizedData
 {
     auto visibleNotes = notesData.notes;
     if ((dpOptions == DpOptions::Battle && isDp(chartData.getKeymode())) ||
@@ -409,15 +410,10 @@ getComponentsForPlayer(const ChartFactory::PlayerSpecificData& player,
                 break;
         }
     }
-    auto isLegacy5kReplay =
-      player.replayedScore &&
-      support::unpackVersion(
-        player.replayedScore->getResult()->getGameVersion()) <
-        std::tuple{ 1, 3, 0 };
     // We used to treat 5k as 7k. Reproduce that when generating replays.
     auto randomIs5k =
-      !isLegacy5kReplay && (keymode == gameplay_logic::ChartData::Keymode::K5 ||
-                            keymode == gameplay_logic::ChartData::Keymode::K10);
+      !usePre130 && (keymode == gameplay_logic::ChartData::Keymode::K5 ||
+                     keymode == gameplay_logic::ChartData::Keymode::K10);
 
     if (dpOptions == DpOptions::Flip) {
         for (int i = 0; i < 7; i += 1) {
@@ -435,8 +431,12 @@ getComponentsForPlayer(const ChartFactory::PlayerSpecificData& player,
         if (isDp(keymode)) {
             auto notes1 =
               std::span{ visibleNotes.data(), visibleNotes.size() / 2 };
-            auto result1 = support::generatePermutation(
-              notes1, player.noteOrderAlgorithm, player.randomSeed, randomIs5k);
+            auto result1 =
+              support::generatePermutation(notes1,
+                                           player.noteOrderAlgorithm,
+                                           player.randomSeed,
+                                           randomIs5k,
+                                           usePre130);
             auto notes2 =
               std::span{ visibleNotes.data() + visibleNotes.size() / 2,
                          visibleNotes.size() / 2 };
@@ -444,14 +444,16 @@ getComponentsForPlayer(const ChartFactory::PlayerSpecificData& player,
               support::generatePermutation(notes2,
                                            player.noteOrderAlgorithmP2,
                                            result1.seed + 1,
-                                           randomIs5k);
+                                           randomIs5k,
+                                           usePre130);
             return { result1, result2 };
         }
         auto notes1 = std::span{ visibleNotes.data(), visibleNotes.size() / 2 };
         return { support::generatePermutation(notes1,
                                               player.noteOrderAlgorithm,
                                               player.randomSeed,
-                                              randomIs5k),
+                                              randomIs5k,
+                                              usePre130),
                  support::ShuffleResult{} };
     }();
     auto notes = ChartDataFactory::makeNotes(visibleNotes, notesData.barLines);
@@ -546,11 +548,19 @@ ChartFactory::createChart(ChartDataFactory::ChartComponents chartComponents,
 {
     auto& [chartData, notesData, wavs, bmps] = chartComponents;
     auto path = support::qStringToPath(chartData->getPath()).parent_path();
-    auto components1 = getComponentsForPlayer(
-      player1, notesData, *chartData, maxHitValue, player1.dpOptions);
+    auto components1 = getComponentsForPlayer(player1,
+                                              notesData,
+                                              *chartData,
+                                              maxHitValue,
+                                              player1.dpOptions,
+                                              player1.usePre130);
     auto components2 = player2.transform([&](auto& player) {
-        return getComponentsForPlayer(
-          player, notesData, *chartData, maxHitValue, DpOptions::Off);
+        return getComponentsForPlayer(player,
+                                      notesData,
+                                      *chartData,
+                                      maxHitValue,
+                                      DpOptions::Off,
+                                      player.usePre130);
     });
     auto keymode = chartData->getKeymode();
     if (player1.dpOptions == DpOptions::Battle && !player2) {
