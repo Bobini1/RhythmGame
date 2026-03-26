@@ -1,6 +1,7 @@
 import QtQuick 2.15
 import QtQuick.Controls
 import QtQuick.Layouts
+import QtQuick.Effects
 import RhythmGameQml
 
 Image {
@@ -9,7 +10,20 @@ Image {
     readonly property string iniImagesUrl: "image://ini/" + rootUrl + "images/"
     property string rootUrl: QmlUtils.fileName.slice(0, QmlUtils.fileName.lastIndexOf("/") + 1)
 
-    source: imagesUrl + "RGBArtboard_2.svg"
+    source: imagesUrl + "RGBArtboard_2"
+
+    Image {
+        anchors.fill: parent
+        source: imagesUrl + "flower-back0716"
+        z: -2
+        mirror: true
+
+        Rectangle {
+            anchors.fill: parent
+            color: "white"
+            opacity: 0.75
+        }
+    }
 
     Dialog {
         id: dlg

@@ -55,7 +55,7 @@ https://github.com/souki202/my_beatoraja_skin
 
 #### SocialSkin dependencies:
 
-* Background image: (Originally: \*/background/\*.png; RhythmGame: bg.png, clear.png, failed.png):
+* Background image: (Originally: \*/background/\*.png; RhythmGame: bg.png, clear.png, failed.png, flower-back0716.png):
   Flower images from [百花繚乱](https://flowerillust.com/).
 * Font: Copyright © 2014, 2015 Adobe Systems Incorporated (http://www.adobe.com/),
   with Reserved Font Name 'Source', Kozuka Gothic.
