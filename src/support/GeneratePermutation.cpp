@@ -259,6 +259,9 @@ generatePermutation(std::span<std::vector<charts::BmsNotesData::Note>>& notes,
                             preferredNoteDistance,
                             randomGenerator);
             convertColumnsToK7(columns);
+            if (k5) {
+                convertNotesToK7(originalSpan);
+            }
             return { randomSeed, columns };
         }
         case resource_managers::NoteOrderAlgorithm::SRandomPlus: {
