@@ -26,7 +26,7 @@ var searchData=
   ['notestate_23',['NoteState',['../classgameplay__logic_1_1NoteState.html',1,'gameplay_logic']]],
   ['notestate_2ecpp_24',['NoteState.cpp',['../NoteState_8cpp.html',1,'']]],
   ['notestate_2eh_25',['NoteState.h',['../NoteState_8h.html',1,'']]],
-  ['notetype_26',['notetype',['../classgameplay__logic_1_1rules_1_1HitRules.html#a443db728853f654e21e75e9dd322a716',1,'gameplay_logic::rules::HitRules::NoteType'],['../structcharts_1_1BmsNotesData.html#a5a4d3df918dce2039d2c1fbc22c77997',1,'charts::BmsNotesData::NoteType'],['../structcharts_1_1BmsNotesData_1_1Note.html#abf2b4ac6efed86409380fd36cab40a10',1,'charts::BmsNotesData::Note::noteType']]],
+  ['notetype_26',['notetype',['../structcharts_1_1BmsNotesData_1_1Note.html#abf2b4ac6efed86409380fd36cab40a10',1,'charts::BmsNotesData::Note::noteType'],['../classgameplay__logic_1_1rules_1_1HitRules.html#a443db728853f654e21e75e9dd322a716',1,'gameplay_logic::rules::HitRules::NoteType'],['../structcharts_1_1BmsNotesData.html#a5a4d3df918dce2039d2c1fbc22c77997',1,'charts::BmsNotesData::NoteType']]],
   ['notify_27',['notify',['../classinput_1_1CustomNotifyApp.html#aa6279691de622c9d7249080680ae729f',1,'input::CustomNotifyApp']]],
   ['notloggedin_28',['NotLoggedIn',['../classresource__managers_1_1Profile.html#a24ca795ca1e26537ba6acf5815cc3d14a68118f8d291e5a67d4d9c3408a083c69',1,'resource_managers::Profile']]],
   ['notscanned_29',['NotScanned',['../classqml__components_1_1RootSongFolder.html#a3c9ed590e22ba6e58b18665c5fa02c90ac2a4a89ec4ef8905a9904ec681f7f1e1',1,'qml_components::RootSongFolder']]],
