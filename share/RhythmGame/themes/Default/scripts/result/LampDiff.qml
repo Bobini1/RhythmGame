@@ -41,7 +41,7 @@ WindowBg {
         anchors.bottom: parent.bottom
         anchors.bottomMargin: 24
         anchors.right: parent.right
-        anchors.rightMargin: 36
+        anchors.rightMargin: 34
         source: root.iniImagesUrl + "parts.png/" + (clearTypesForCourse[lampDiff.clearType] || lampDiff.clearType)
     }
 }
