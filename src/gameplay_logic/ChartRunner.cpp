@@ -3,6 +3,7 @@
 //
 
 #include <spdlog/spdlog.h>
+#include <fmt/ranges.h>
 #include "ChartRunner.h"
 
 using namespace std::chrono_literals;

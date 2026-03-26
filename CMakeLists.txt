@@ -274,7 +274,7 @@ target_link_libraries(RhythmGame_lib PUBLIC $<IF:$<TARGET_EXISTS:mimalloc-static
 
 # <------------ SndFile (audio file reading) --------------->
 
-find_package(SndFile)
+find_package(SndFile QUIET)
 if (NOT SndFile_FOUND)
     find_package(PkgConfig REQUIRED)
     pkg_check_modules(SndFile REQUIRED IMPORTED_TARGET sndfile)
@@ -283,7 +283,7 @@ else ()
     target_link_libraries(RhythmGame_lib PUBLIC SndFile::sndfile)
 endif ()
 
-find_package(Stb)
+find_package(Stb QUIET)
 if (NOT Stb_FOUND)
     find_package(PkgConfig REQUIRED)
     pkg_check_modules(stb REQUIRED IMPORTED_TARGET stb)
