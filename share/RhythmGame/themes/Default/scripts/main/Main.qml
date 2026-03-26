@@ -15,6 +15,7 @@ Image {
     Image {
         anchors.fill: parent
         source: imagesUrl + "flower-back0716"
+        fillMode: Image.PreserveAspectCrop
         z: -2
         mirror: true
 
