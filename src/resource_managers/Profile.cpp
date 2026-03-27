@@ -777,7 +777,7 @@ Profile::dispatchUploads(qml_components::ScoreSyncOperation* op,
             if (reply->error() != QNetworkReply::NoError) {
                 spdlog::error("Score upload failed for {}: {} {}",
                               guid.toStdString(),
-                              magic_enum::enum_name(reply->error()),
+                              static_cast<int>(reply->error()),
                               reply->errorString().toStdString());
                 op->reportError(QStringLiteral("Upload failed for %1: %2")
                                   .arg(guid, reply->errorString()));

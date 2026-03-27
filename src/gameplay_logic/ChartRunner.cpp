@@ -478,7 +478,7 @@ Player::finish(const ChartData& chartData) -> BmsScore*
                         if (submission->error() != QNetworkReply::NoError) {
                             spdlog::error(
                               "Failed to submit score: {} - {}",
-                              magic_enum::enum_name(submission->error()),
+                              static_cast<int>(submission->error()),
                               submission->errorString().toStdString());
                             if (submission
                                   ->attribute(
