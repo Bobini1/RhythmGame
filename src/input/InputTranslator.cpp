@@ -662,14 +662,12 @@ InputTranslator::handleAxis(Gamepad gamepad,
     }
 
     double curDelta = value - scratch.value;
-    if (curDelta > 1) {
-        curDelta = value + scratch.value;
-    }
-    if (curDelta < -1) {
-        curDelta = value + scratch.value;
+    if (curDelta > 1.0) {
+        curDelta -= 2.0;
+    } else if (curDelta < -1.0) {
+        curDelta += 2.0;
     }
     scratch.value = value;
-
     scratch.delta += curDelta;
 
     auto setScratchDirection = [&](Key::Direction dir) {
