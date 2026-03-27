@@ -433,15 +433,16 @@ Profile::fetchTachiData(int tachiId)
 void
 Profile::login(const QString& email, const QString& password)
 {
-    const auto request =
-      networkRequestFactory.createRequest("auth/sign-in/email");
+    auto request = networkRequestFactory.createRequest("auth/sign-in/email");
 
     QJsonObject json;
     json["email"] = email;
     json["password"] = password;
 
-    QNetworkReply* reply =
-      networkManager->post(request, QJsonDocument(json).toJson());
+    // Ensure Content-Type is explicitly set and body is compact JSON
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+    const QByteArray loginBody = QJsonDocument(json).toJson(QJsonDocument::Compact);
+    QNetworkReply* reply = networkManager->post(request, loginBody);
 
     setLoginState(LoginState::LoggingIn);
 
@@ -493,7 +494,9 @@ Profile::logout()
 {
     auto* job = new QKeychain::DeletePasswordJob(keychainService, this);
     auto request = networkRequestFactory.createRequest("auth/sign-out");
-    auto* reply = networkManager->post(request, "{}");
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+    const QByteArray logoutBody = QByteArrayLiteral("{}");
+    auto* reply = networkManager->post(request, logoutBody);
     connect(
       reply, &QNetworkReply::finished, reply, &QNetworkReply::deleteLater);
     job->setKey(QStringLiteral("RhythmGame/profiles/%1/token").arg(guid));
@@ -549,7 +552,9 @@ Profile::submitScore(const gameplay_logic::BmsScore& score,
     json["scoreData"] = scoreData;
     json["chartData"] = chartData.toJson();
     auto request = networkRequestFactory.createRequest("scores");
-    return networkManager->post(request, QJsonDocument(json).toJson());
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+    const QByteArray body = QJsonDocument(json).toJson(QJsonDocument::Compact);
+    return networkManager->post(request, body);
 }
 auto
 Profile::uploadScores() -> qml_components::ScoreSyncOperation*
@@ -769,16 +774,30 @@ Profile::dispatchUploads(qml_components::ScoreSyncOperation* op,
     }
     for (auto& p : payloads) {
         auto request = networkRequestFactory.createRequest("scores");
-        auto* reply = networkManager->post(
-          request, QJsonDocument(p.json).toJson(QJsonDocument::Compact));
+        // Ensure the Content-Type header is explicitly set for the POST
+        request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json; charset=utf-8");
+        const QByteArray body = QJsonDocument(p.json).toJson(QJsonDocument::Compact);
+        auto* reply = networkManager->post(request, body);
         const auto guid = p.guid;
-        connect(reply, &QNetworkReply::finished, this, [reply, op, guid]() {
+        connect(reply, &QNetworkReply::finished, this, [reply, op, guid, body]() {
+            // Capture and log additional information when an error occurs to aid debugging
+            const auto qtError = reply->error();
+            const auto httpStatus = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+            const auto contentTypeHeader = reply->header(QNetworkRequest::ContentTypeHeader).toString();
+            const QByteArray respBody = reply->readAll();
             reply->deleteLater();
-            if (reply->error() != QNetworkReply::NoError) {
-                spdlog::error("Score upload failed for {}: {} {}",
-                              guid.toStdString(),
-                              static_cast<int>(reply->error()),
-                              reply->errorString().toStdString());
+
+            if (qtError != QNetworkReply::NoError) {
+                spdlog::error(
+                  "Score upload failed for {}: qtError={} httpStatus={} qtErrorStr={} contentType={} respBody={} requestBody={} ",
+                  guid.toStdString(),
+                  static_cast<int>(qtError),
+                  httpStatus,
+                  reply->errorString().toStdString(),
+                  contentTypeHeader.toStdString(),
+                  std::string(respBody.constData(), respBody.size()),
+                  std::string(body.constData(), body.size()));
+
                 op->reportError(QStringLiteral("Upload failed for %1: %2")
                                   .arg(guid, reply->errorString()));
             }
