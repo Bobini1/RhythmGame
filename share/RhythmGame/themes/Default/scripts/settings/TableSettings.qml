@@ -42,7 +42,7 @@ Item {
 
                 property bool highlighted: dragArea.held
 
-                color: highlighted ? palette.light : palette.base
+                color: highlighted ? palette.highlight : palette.base
 
                 Drag.active: dragArea.held
                 Drag.source: dragArea
@@ -79,6 +79,7 @@ Item {
                             wrapMode: Text.Wrap
                             text: dragArea.display.url
                             width: Math.min(implicitWidth, parent.width)
+                            color: content.highlighted ? palette.highlightedText : palette.text
                         }
                     }
                     Item {
@@ -90,6 +91,7 @@ Item {
                             wrapMode: Text.Wrap
                             text: dragArea.display.name
                             width: Math.min(implicitWidth, parent.width)
+                            color: content.highlighted ? palette.highlightedText : palette.text
                         }
                     }
                     Component {
