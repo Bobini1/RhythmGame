@@ -22,5 +22,6 @@ var searchData=
   ['col2sup_19',['Col2sUp',['../namespaceinput.html#a89dbd5c89689deb9b22511daf93d97b1ad92f8df2916297d2c332f48fbec9bdf3',1,'input']]],
   ['combo_20',['Combo',['../classqml__components_1_1OnlineRankingModel.html#ac0db71d62af3a8aaf2e137775b33fc51ad8929068f239cc2984d214ec4717cc5f',1,'qml_components::OnlineRankingModel']]],
   ['combobreaks_21',['ComboBreaks',['../classqml__components_1_1OnlineRankingModel.html#ac0db71d62af3a8aaf2e137775b33fc51a58ed7b72484af895ff3b0eacecad56b7',1,'qml_components::OnlineRankingModel']]],
-  ['countrole_22',['CountRole',['../classgameplay__logic_1_1JudgementCounts.html#a85a716b9b6bd73e0dabf994ed4553ef6a4586098c1fd0178130115c86c866dc0e',1,'gameplay_logic::JudgementCounts']]]
+  ['converge_22',['Converge',['../namespacesupport.html#aef42ac78f3aa1c99e114e6d802a4cafba3d2ff8abd980d730b2f4fd0abae52f60',1,'support']]],
+  ['countrole_23',['CountRole',['../classgameplay__logic_1_1JudgementCounts.html#a85a716b9b6bd73e0dabf994ed4553ef6a4586098c1fd0178130115c86c866dc0e',1,'gameplay_logic::JudgementCounts']]]
 ];

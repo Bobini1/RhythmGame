@@ -12,7 +12,7 @@ var searchData=
   ['hiddenonchanged_9',['hiddenOnChanged',['../classresource__managers_1_1GeneralVars.html#a9cc120a435bae438ec2830e02b9dec3d',1,'resource_managers::GeneralVars']]],
   ['hiddenratio_10',['hiddenRatio',['../classresource__managers_1_1GeneralVars.html#a6b6a00da7de0c77fb30f6b3308b88013',1,'resource_managers::GeneralVars']]],
   ['hiddenratiochanged_11',['hiddenRatioChanged',['../classresource__managers_1_1GeneralVars.html#a8615d89d75ce3d215e64eb237d689b71',1,'resource_managers::GeneralVars']]],
-  ['hispeedfix_12',['hispeedfix',['../namespaceresource__managers_1_1hi__speed__fix.html#ac715382b9422d7bab66ac00314eb3e7e',1,'resource_managers::hi_speed_fix::HiSpeedFix'],['../classresource__managers_1_1GeneralVars.html#ad60531f723c76c871531cbe36ca350f9',1,'resource_managers::GeneralVars::hiSpeedFix']]],
+  ['hispeedfix_12',['hispeedfix',['../classresource__managers_1_1GeneralVars.html#ad60531f723c76c871531cbe36ca350f9',1,'resource_managers::GeneralVars::hiSpeedFix'],['../namespaceresource__managers_1_1hi__speed__fix.html#ac715382b9422d7bab66ac00314eb3e7e',1,'resource_managers::hi_speed_fix::HiSpeedFix']]],
   ['hispeedfixchanged_13',['hiSpeedFixChanged',['../classresource__managers_1_1GeneralVars.html#a6572a0aa8d623ef2eba83a085086b252',1,'resource_managers::GeneralVars']]],
   ['histogramdata_14',['histogramdata',['../classgameplay__logic_1_1ChartData.html#ae6c2d25164a57375417de9ca927a0775',1,'gameplay_logic::ChartData::histogramData'],['../structgameplay__logic_1_1ChartData_1_1DTO.html#a7985bfd1b49bcdcb75f2fef47d6d3ac6',1,'gameplay_logic::ChartData::DTO::histogramData']]],
   ['histogramnotetype_15',['HistogramNoteType',['../classgameplay__logic_1_1ChartData.html#a795d2eb4ed70a64a020ae8e5fb7a23d4',1,'gameplay_logic::ChartData']]],
@@ -28,5 +28,6 @@ var searchData=
   ['hitrules_25',['hitrules',['../classgameplay__logic_1_1rules_1_1HitRules.html#a94323ec44ab8153918f1437510e678a2',1,'gameplay_logic::rules::HitRules::HitRules()'],['../structresource__managers_1_1ChartFactory_1_1PlayerSpecificData.html#aec799d8ebd20f59db7b93b89dbe76de6',1,'resource_managers::ChartFactory::PlayerSpecificData::hitRules'],['../classgameplay__logic_1_1rules_1_1HitRules.html',1,'gameplay_logic::rules::HitRules']]],
   ['hitrules_2ecpp_26',['HitRules.cpp',['../HitRules_8cpp.html',1,'']]],
   ['hitrules_2eh_27',['HitRules.h',['../HitRules_8h.html',1,'']]],
-  ['hitvaluefactory_28',['HitValueFactory',['../classqml__components_1_1ChartLoader.html#a482312280c7632a3dde1160caf4e0f8f',1,'qml_components::ChartLoader']]]
+  ['hitvaluefactory_28',['HitValueFactory',['../classqml__components_1_1ChartLoader.html#a482312280c7632a3dde1160caf4e0f8f',1,'qml_components::ChartLoader']]],
+  ['hrandom_29',['HRandom',['../namespacesupport.html#aef42ac78f3aa1c99e114e6d802a4cafba6d080ca2e383d97422cbc9a3e8865760',1,'support']]]
 ];

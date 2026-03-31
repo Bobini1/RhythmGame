@@ -13,5 +13,6 @@ var searchData=
   ['minbp_10',['minbp',['../OnlineRankingModel_8cpp.html#aa5b8adc8b723f4236746fc30934e1683',1,'OnlineRankingModel.cpp']]],
   ['minbpm_11',['minBpm',['../structgameplay__logic_1_1ChartData_1_1DTO.html#a0ef59e386fb65384644305b42e23f063',1,'gameplay_logic::ChartData::DTO']]],
   ['minecount_12',['minecount',['../structgameplay__logic_1_1BmsResult_1_1DTO.html#a0890b5774823517c583dc1937f7e00a1',1,'gameplay_logic::BmsResult::DTO::mineCount'],['../structgameplay__logic_1_1ChartData_1_1DTO.html#a7b36b2109a208922e5acbe4e60afcecb',1,'gameplay_logic::ChartData::DTO::mineCount']]],
-  ['minehits_13',['mineHits',['../structgameplay__logic_1_1BmsResult_1_1DTO.html#ae22d5da3b86184801bfd5ed46833aae1',1,'gameplay_logic::BmsResult::DTO']]]
+  ['minehits_13',['mineHits',['../structgameplay__logic_1_1BmsResult_1_1DTO.html#ae22d5da3b86184801bfd5ed46833aae1',1,'gameplay_logic::BmsResult::DTO']]],
+  ['modifylanes_14',['modifyLanes',['../structsupport_1_1BeatorajaState.html#a3c8e3590823b3cde1b689fe615bcfe44',1,'support::BeatorajaState']]]
 ];

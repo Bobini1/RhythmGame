@@ -9,11 +9,15 @@ var searchData=
   ['select1_6',['Select1',['../namespaceinput.html#a89dbd5c89689deb9b22511daf93d97b1a75b57f54c33ba3b05706cd9552ad95ce',1,'input']]],
   ['select2_7',['Select2',['../namespaceinput.html#a89dbd5c89689deb9b22511daf93d97b1ab07d35fe7bfcd47ab069247c6fd0f900',1,'input']]],
   ['selecttounder_8',['SelectToUnder',['../namespaceresource__managers_1_1gauge__mode.html#ac121e2691e7e4d13551d18c7618e8d73a7e10afd9d6a85d5306c5e9430e871426',1,'resource_managers::gauge_mode']]],
-  ['srandom_9',['SRandom',['../namespaceresource__managers_1_1note__order__algorithm.html#ac185a2ae792679199f885982df647691ad54452d54d8b27ab270e65bfe6955e59',1,'resource_managers::note_order_algorithm']]],
-  ['srandomplus_10',['SRandomPlus',['../namespaceresource__managers_1_1note__order__algorithm.html#ac185a2ae792679199f885982df647691a4dfb9bd717831dae503201c9f792f013',1,'resource_managers::note_order_algorithm']]],
-  ['start_11',['Start',['../namespaceresource__managers_1_1hi__speed__fix.html#ac715382b9422d7bab66ac00314eb3e7eaa6122a65eaa676f700ae68d393054a37',1,'resource_managers::hi_speed_fix']]],
-  ['start1_12',['Start1',['../namespaceinput.html#a89dbd5c89689deb9b22511daf93d97b1a0671fc9271064f54ba99fb7af287a55c',1,'input']]],
-  ['start2_13',['Start2',['../namespaceinput.html#a89dbd5c89689deb9b22511daf93d97b1a171aaabd2a163a8e5cbcda2c2b23c64f',1,'input']]],
-  ['submitted_14',['Submitted',['../classgameplay__logic_1_1BmsScore.html#a884ea7325dac70efb1ae5d5ddd9f028ea5c835c22429f25992b4371691ecde1a4',1,'gameplay_logic::BmsScore']]],
-  ['submitting_15',['Submitting',['../classgameplay__logic_1_1BmsScore.html#a884ea7325dac70efb1ae5d5ddd9f028ea37096d4c09162577c84ef58296a375f8',1,'gameplay_logic::BmsScore']]]
+  ['spiral_9',['Spiral',['../namespacesupport.html#aef42ac78f3aa1c99e114e6d802a4cafbac978545ade9f5ce21bfa0353c04feda9',1,'support']]],
+  ['srandom_10',['srandom',['../namespaceresource__managers_1_1note__order__algorithm.html#ac185a2ae792679199f885982df647691ad54452d54d8b27ab270e65bfe6955e59',1,'resource_managers::note_order_algorithm::SRandom'],['../namespacesupport.html#aef42ac78f3aa1c99e114e6d802a4cafbad54452d54d8b27ab270e65bfe6955e59',1,'support::SRandom']]],
+  ['srandomex_11',['SRandomEx',['../namespacesupport.html#aef42ac78f3aa1c99e114e6d802a4cafbac217d37f3075debb11cff6ef075f58b0',1,'support']]],
+  ['srandomnothreshold_12',['SRandomNoThreshold',['../namespacesupport.html#aef42ac78f3aa1c99e114e6d802a4cafbafd907b0fb28251f4c99c82660b5d483c',1,'support']]],
+  ['srandomplayable_13',['SRandomPlayable',['../namespacesupport.html#aef42ac78f3aa1c99e114e6d802a4cafba94e7e99a040c55b6730a56fe4a70bfc3',1,'support']]],
+  ['srandomplus_14',['SRandomPlus',['../namespaceresource__managers_1_1note__order__algorithm.html#ac185a2ae792679199f885982df647691a4dfb9bd717831dae503201c9f792f013',1,'resource_managers::note_order_algorithm']]],
+  ['start_15',['Start',['../namespaceresource__managers_1_1hi__speed__fix.html#ac715382b9422d7bab66ac00314eb3e7eaa6122a65eaa676f700ae68d393054a37',1,'resource_managers::hi_speed_fix']]],
+  ['start1_16',['Start1',['../namespaceinput.html#a89dbd5c89689deb9b22511daf93d97b1a0671fc9271064f54ba99fb7af287a55c',1,'input']]],
+  ['start2_17',['Start2',['../namespaceinput.html#a89dbd5c89689deb9b22511daf93d97b1a171aaabd2a163a8e5cbcda2c2b23c64f',1,'input']]],
+  ['submitted_18',['Submitted',['../classgameplay__logic_1_1BmsScore.html#a884ea7325dac70efb1ae5d5ddd9f028ea5c835c22429f25992b4371691ecde1a4',1,'gameplay_logic::BmsScore']]],
+  ['submitting_19',['Submitting',['../classgameplay__logic_1_1BmsScore.html#a884ea7325dac70efb1ae5d5ddd9f028ea37096d4c09162577c84ef58296a375f8',1,'gameplay_logic::BmsScore']]]
 ];
