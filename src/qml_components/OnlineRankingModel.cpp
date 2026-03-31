@@ -166,11 +166,16 @@ OnlineRankingModel::handleTachiReply(int startRanking,
         r.bestClearType = support::convertTachiClearType(
           scoreData["enumIndexes"].toObject()["lamp"].toInt());
         if (r.bestClearType == "FC") {
-            if (judgements["good"].toInt() == 0) {
+            if (!judgements["good"].isNull() &&
+                judgements["good"].toInt() == 0) {
                 r.bestClearType = "PERFECT";
-                if (judgements["great"].toInt() == 0) {
+                if (!judgements["great"].isNull() &&
+                    judgements["great"].toInt() == 0) {
                     r.bestClearType = "MAX";
                 }
+            }
+            if (r.bestPoints == r.maxPoints) {
+                r.bestClearType = "MAX";
             }
         }
 
