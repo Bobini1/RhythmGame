@@ -681,7 +681,9 @@ createScoreFromReplay(resource_managers::Profile& profile, ReplayPayload replay)
     const auto endOffset =
       std::chrono::nanoseconds(chartData->getLength()) + 10s;
     referee.update(endOffset, true);
-    for (int i = 0; i < charts::BmsNotesData::columnNumber; ++i) {
+    for (int i = static_cast<int>(input::BmsKey::Col11);
+         i <= static_cast<int>(input::BmsKey::Col2sDown);
+         ++i) {
         referee.passReleased(endOffset, static_cast<input::BmsKey>(i));
     }
 

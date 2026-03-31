@@ -353,6 +353,7 @@ Profile::Profile(
                "replay_data BLOB NOT NULL,"
                "FOREIGN KEY(score_guid) REFERENCES score(guid)"
                ");");
+    gameplay_logic::BmsReplayData::migrateStoredReplayData(db);
     db.execute("CREATE TABLE IF NOT EXISTS gauge_history ("
                "id INTEGER PRIMARY KEY AUTOINCREMENT,"
                "score_guid TEXT NOT NULL UNIQUE,"

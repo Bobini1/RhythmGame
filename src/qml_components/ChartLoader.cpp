@@ -113,12 +113,23 @@ ChartLoader::createChart(
         thread_local auto mt = std::mt19937_64(rd());
         return mt();
     }();
+    const auto getStandardGaugeNoteCount =
+      [&](resource_managers::DpOptions dpOptions) {
+          const auto multiplier =
+            dpOptions == resource_managers::DpOptions::Battle ? 2 : 1;
+          return (chartComponents.chartData->getNormalNoteCount() +
+                  chartComponents.chartData->getLnCount() +
+                  chartComponents.chartData->getBssCount() +
+                  chartComponents.chartData->getScratchCount()) *
+                 multiplier;
+      };
+    const auto player1GaugeNoteCount = getStandardGaugeNoteCount(p1DpOptions);
 
     auto player1data = resource_managers::ChartFactory::PlayerSpecificData{
         player1,
         gaugeFactory(player1,
                      chartComponents.chartData->getTotal(),
-                     chartComponents.chartData->getNormalNoteCount()),
+                     player1GaugeNoteCount),
         gameplay_logic::rules::HitRules(timingWindows, hitValueFactory),
         player1Replay ? replayedScore1 : nullptr,
         p1NoteOrderAlgorithm,
@@ -134,6 +145,7 @@ ChartLoader::createChart(
         }
         return randomSeed1;
     }();
+    const auto player2GaugeNoteCount = getStandardGaugeNoteCount(p2DpOptions);
     auto player2data =
       player2
         ? std::make_optional<
@@ -141,7 +153,7 @@ ChartLoader::createChart(
             player2,
             gaugeFactory(player2,
                          chartComponents.chartData->getTotal(),
-                         chartComponents.chartData->getNormalNoteCount()),
+                         player2GaugeNoteCount),
             gameplay_logic::rules::HitRules(timingWindows, hitValueFactory),
             player2Replay ? replayedScore2 : nullptr,
             p2NoteOrderAlgorithm,

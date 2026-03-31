@@ -5,6 +5,24 @@
 #include <algorithm>
 #include <ranges>
 #include "BmsGameReferee.h"
+
+namespace {
+
+auto
+keyToGameplayColumn(input::BmsKey key) -> int
+{
+    switch (key) {
+        case input::BmsKey::Col1sDown:
+            return static_cast<int>(input::BmsKey::Col1sUp);
+        case input::BmsKey::Col2sDown:
+            return static_cast<int>(input::BmsKey::Col2sUp);
+        default:
+            return static_cast<int>(key);
+    }
+}
+
+}
+
 gameplay_logic::BmsGameReferee::BmsGameReferee(
   std::array<std::vector<charts::BmsNotesData::Note>,
              charts::BmsNotesData::columnNumber> notes,
@@ -158,22 +176,21 @@ gameplay_logic::BmsGameReferee::passPressed(
   std::chrono::nanoseconds offsetFromStart,
   input::BmsKey key) -> void
 {
-    if (key == input::BmsKey::Col1sDown) {
-        key = input::BmsKey::Col1sUp;
+    const auto keyIndex = static_cast<int>(key);
+    if (keyIndex < 0 || keyIndex >= inputKeyCount) {
+        return;
     }
-    if (key == input::BmsKey::Col2sDown) {
-        key = input::BmsKey::Col2sUp;
-    }
-    auto columnIndex = static_cast<int>(key);
+    auto columnIndex = keyToGameplayColumn(key);
     if (columnIndex < 0 || columnIndex >= charts::BmsNotesData::columnNumber) {
         return;
     }
-    if (pressedState[columnIndex]) {
+    if (pressedKeys[keyIndex]) {
         return;
     }
-    pressedState[columnIndex] = true;
+    pressedKeys[keyIndex] = true;
+    pressedState[columnIndex]++;
     for (const auto& hit :
-         hitRules.press(notes[columnIndex], columnIndex, offsetFromStart)) {
+         hitRules.press(notes[columnIndex], columnIndex, offsetFromStart, key)) {
         score->addHit(hit);
     }
 }
@@ -201,20 +218,19 @@ gameplay_logic::BmsGameReferee::passReleased(
   std::chrono::nanoseconds offsetFromStart,
   input::BmsKey key) -> void
 {
-    if (key == input::BmsKey::Col1sDown) {
-        key = input::BmsKey::Col1sUp;
+    const auto keyIndex = static_cast<int>(key);
+    if (keyIndex < 0 || keyIndex >= inputKeyCount) {
+        return;
     }
-    if (key == input::BmsKey::Col2sDown) {
-        key = input::BmsKey::Col2sUp;
-    }
-    auto columnIndex = static_cast<int>(key);
+    auto columnIndex = keyToGameplayColumn(key);
     if (columnIndex < 0 || columnIndex >= charts::BmsNotesData::columnNumber) {
         return;
     }
-    if (!pressedState[columnIndex]) {
+    if (!pressedKeys[keyIndex]) {
         return;
     }
-    pressedState[columnIndex] = false;
+    pressedKeys[keyIndex] = false;
+    pressedState[columnIndex] = std::max(0, pressedState[columnIndex] - 1);
     score->addHit(
-      hitRules.release(notes[columnIndex], columnIndex, offsetFromStart));
+      hitRules.release(notes[columnIndex], columnIndex, offsetFromStart, key));
 }

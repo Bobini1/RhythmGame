@@ -11,7 +11,8 @@ using namespace std::chrono_literals;
 auto
 gameplay_logic::rules::HitRules::press(std::span<Note> notes,
                                        const int column,
-                                       const std::chrono::nanoseconds hitOffset)
+                                       const std::chrono::nanoseconds hitOffset,
+                                       const std::optional<input::BmsKey> key)
   -> QList<HitEvent>
 {
     struct PendingHit
@@ -23,6 +24,7 @@ gameplay_logic::rules::HitRules::press(std::span<Note> notes,
     auto currentNoteIndex = currentNotes[column];
     auto pendingHits =
       std::vector<PendingHit>{ { HitEvent{ column,
+                                           key,
                                            std::nullopt,
                                            hitOffset.count(),
                                            std::nullopt,
@@ -63,6 +65,7 @@ gameplay_logic::rules::HitRules::press(std::span<Note> notes,
             }
             if (note.type != NoteType::LnBegin) {
                 return { { column,
+                           key,
                            note.index,
                            hitOffset.count(),
                            BmsPoints{
@@ -79,7 +82,9 @@ gameplay_logic::rules::HitRules::press(std::span<Note> notes,
                 result,
                 (hitOffset - noteTime).count(), // unused
             };
+            lnPressedKeys[column] = result == Judgement::Bad ? std::nullopt : key;
             auto ret = QList<HitEvent>{ { column,
+                                          key,
                                           note.index,
                                           hitOffset.count(),
                                           BmsPoints{
@@ -113,6 +118,7 @@ gameplay_logic::rules::HitRules::press(std::span<Note> notes,
 
             auto pendingHit = PendingHit{
                 HitEvent(column,
+                         key,
                          note.index,
                          hitOffset.count(),
                          BmsPoints{
@@ -229,6 +235,7 @@ gameplay_logic::rules::HitRules::processMisses(
         }
         if (iter->type == NoteType::LnEnd) {
             if (iter->time <= offsetFromStart) {
+                lnPressedKeys[column] = std::nullopt;
                 events.emplace_back(
                   column,
                   iter->index,
@@ -255,6 +262,7 @@ gameplay_logic::rules::HitRules::processMisses(
         }
         // register a skip event for the end of the long note
         if (iter->type == NoteType::LnBegin) {
+            lnPressedKeys[column] = std::nullopt;
             if (iter->sound != nullptr) {
                 iter->sound->stop();
             }
@@ -365,7 +373,8 @@ auto
 gameplay_logic::rules::HitRules::release(
   std::span<Note> notes,
   const int column,
-  const std::chrono::nanoseconds hitOffset) -> HitEvent
+  const std::chrono::nanoseconds hitOffset,
+  const std::optional<input::BmsKey> key) -> HitEvent
 {
     const auto currentNoteIndex = currentNotes[column];
     const auto windowLow = [&] {
@@ -378,6 +387,7 @@ gameplay_logic::rules::HitRules::release(
     }();
     if (currentNoteIndex > notes.size()) {
         return { column,
+                 key,
                  std::nullopt,
                  hitOffset.count(),
                  std::nullopt,
@@ -391,6 +401,7 @@ gameplay_logic::rules::HitRules::release(
         }
         if (iter->type != NoteType::LnEnd) {
             return { column,
+                     key,
                      std::nullopt,
                      hitOffset.count(),
                      std::nullopt,
@@ -402,10 +413,22 @@ gameplay_logic::rules::HitRules::release(
         if (!lnBegin.hit) {
             continue;
         }
+        if (lnPressedKeys[column].has_value() && key.has_value() &&
+            lnPressedKeys[column] != key) {
+            return { column,
+                     key,
+                     std::nullopt,
+                     hitOffset.count(),
+                     std::nullopt,
+                     HitEvent::Action::Release,
+                     /*noteRemoved=*/false };
+        }
         // dropped too early
         if (hitOffset <= noteTime + windowLow) {
             iter->hit = true;
+            lnPressedKeys[column] = std::nullopt;
             return { column,
+                     key,
                      iter->index,
                      hitOffset.count(),
                      BmsPoints{
@@ -420,7 +443,9 @@ gameplay_logic::rules::HitRules::release(
             break;
         }
         iter->hit = true;
+        lnPressedKeys[column] = std::nullopt;
         return { column,
+                 key,
                  iter->index,
                  noteTime.count(),
                  BmsPoints{ lnBeginPoints[column].getValue(),
@@ -430,6 +455,7 @@ gameplay_logic::rules::HitRules::release(
                  /*noteRemoved=*/true };
     }
     return { column,
+             key,
              std::nullopt,
              hitOffset.count(),
              std::nullopt,

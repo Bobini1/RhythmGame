@@ -67,6 +67,7 @@ BmsScoreCourse::fromScores(std::unique_ptr<BmsResultCourse> resultCourse,
         const auto& scoreHitEvents = replayData->getHitEvents();
         for (const auto& event : scoreHitEvents) {
             hitEvents.append(HitEvent(event.getColumn(),
+                                      event.getKeyOptional(),
                                       event.getNoteIndex(),
                                       event.getOffsetFromStart() + offset,
                                       event.getPointsOptional(),
