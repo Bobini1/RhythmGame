@@ -14,17 +14,27 @@ gameplay_logic::rules::HitRules::press(std::span<Note> notes,
                                        const std::chrono::nanoseconds hitOffset)
   -> QList<HitEvent>
 {
+    struct PendingHit
+    {
+        HitEvent event;
+        int notePosition;
+    };
+
     auto currentNoteIndex = currentNotes[column];
-    // by default, there is no empty poor, this is an empty hit
-    auto emptyPoorOrBadOrNothing = QList{ HitEvent{ column,
-                                                    std::nullopt,
-                                                    hitOffset.count(),
-                                                    std::nullopt,
-                                                    HitEvent::Action::Press,
-                                                    /*noteRemoved=*/false } };
+    auto pendingHits =
+      std::vector<PendingHit>{ { HitEvent{ column,
+                                           std::nullopt,
+                                           hitOffset.count(),
+                                           std::nullopt,
+                                           HitEvent::Action::Press,
+                                           /*noteRemoved=*/false },
+                                 -1 } };
     auto subspan = notes.subspan(currentNoteIndex);
+    const auto subspanStartIndex = currentNoteIndex;
     for (auto iter = subspan.begin(); iter < subspan.end(); ++iter) {
         auto& note = *iter;
+        const auto notePosition =
+          subspanStartIndex + static_cast<int>(iter - subspan.begin());
         if (note.hit) {
             currentNoteIndex++;
             continue;
@@ -96,77 +106,72 @@ gameplay_logic::rules::HitRules::press(std::span<Note> notes,
             }
             return ret;
         }
-        if (!emptyPoorOrBadOrNothing.first().getPointsOptional().has_value() ||
+        if (!pendingHits.front().event.getPointsOptional().has_value() ||
             (result == Judgement::Bad &&
-             notes[emptyPoorOrBadOrNothing.first().getNoteIndex()].type !=
+             notes[pendingHits.front().notePosition].type !=
                NoteType::LnBegin)) {
 
-            auto hitEvent =
-              HitEvent(column,
-                       note.index,
-                       hitOffset.count(),
-                       BmsPoints{
-                         hitValueFactory(hitOffset - noteTime, result),
-                         result,
-                         (hitOffset - noteTime).count(),
-                       },
-                       HitEvent::Action::Press,
-                       /*noteRemoved=*/result != Judgement::EmptyPoor);
-            if (!emptyPoorOrBadOrNothing.first()
-                   .getPointsOptional()
-                   .has_value() ||
-                result > emptyPoorOrBadOrNothing.first()
-                           .getPointsOptional()
+            auto pendingHit = PendingHit{
+                HitEvent(column,
+                         note.index,
+                         hitOffset.count(),
+                         BmsPoints{
+                           hitValueFactory(hitOffset - noteTime, result),
+                           result,
+                           (hitOffset - noteTime).count(),
+                         },
+                         HitEvent::Action::Press,
+                         /*noteRemoved=*/result != Judgement::EmptyPoor),
+                notePosition
+            };
+            if (!pendingHits.front().event.getPointsOptional().has_value() ||
+                result > pendingHits.front()
+                           .event.getPointsOptional()
                            .value()
                            .getJudgement()) {
-                emptyPoorOrBadOrNothing = { hitEvent };
+                pendingHits = { pendingHit };
             } else {
-                hitEvent.setAction(HitEvent::Action::None);
-                emptyPoorOrBadOrNothing.append(hitEvent);
+                pendingHit.event.setAction(HitEvent::Action::None);
+                pendingHits.push_back(pendingHit);
             }
 
             if (note.type == NoteType::LnBegin &&
                 result != Judgement::EmptyPoor) {
-                emptyPoorOrBadOrNothing.last().setPoints(BmsPoints{
+                pendingHits.back().event.setPoints(BmsPoints{
                   0.0,
                   Judgement::LnBeginHit,
                   (hitOffset - noteTime).count(),
                 });
                 const auto nextNote = std::next(iter);
-                emptyPoorOrBadOrNothing.append(HitEvent{
-                  column,
-                  nextNote->index,
-                  hitOffset.count(),
-                  BmsPoints{
-                    hitValueFactory(hitOffset - noteTime, Judgement::Bad),
-                    result,
-                    (hitOffset - noteTime).count(),
-                  },
-                  HitEvent::Action::None,
-                  /*noteRemoved=*/true });
+                pendingHits.push_back(PendingHit{
+                  HitEvent{
+                    column,
+                    nextNote->index,
+                    hitOffset.count(),
+                    BmsPoints{
+                      hitValueFactory(hitOffset - noteTime, Judgement::Bad),
+                      result,
+                      (hitOffset - noteTime).count(),
+                    },
+                    HitEvent::Action::None,
+                    /*noteRemoved=*/true },
+                  notePosition + 1 });
             }
         }
         currentNoteIndex++;
     }
-    if (emptyPoorOrBadOrNothing.first().getPointsOptional().has_value() &&
-        emptyPoorOrBadOrNothing.first()
-            .getPointsOptional()
-            .value()
-            .getJudgement() == Judgement::Bad) {
-        for (auto& hitEvent : emptyPoorOrBadOrNothing) {
-            // play the sound assigned to the note
-            if (!soundDisabled) {
-                auto noteIndex = hitEvent.getNoteIndex();
-                if (notes[noteIndex].sound != nullptr &&
-                    notes[noteIndex].type != NoteType::LnEnd) {
-                    notes[noteIndex].sound->play();
-                    break;
-                }
+    if (pendingHits.front().event.getPointsOptional().has_value() &&
+        pendingHits.front().event.getPointsOptional().value().getJudgement() ==
+          Judgement::Bad) {
+        for (auto& hitEvent : pendingHits) {
+            if (!soundDisabled && hitEvent.notePosition != -1 &&
+                notes[hitEvent.notePosition].sound != nullptr &&
+                notes[hitEvent.notePosition].type != NoteType::LnEnd) {
+                notes[hitEvent.notePosition].sound->play();
+                break;
             }
         }
     } else {
-        // find the sound to play (the last note before the hit)
-        // go backwards
         auto notesToCheck = notes.subspan(0, currentNoteIndex);
         auto found = false;
         for (auto& note : std::ranges::reverse_view(notesToCheck)) {
@@ -179,20 +184,25 @@ gameplay_logic::rules::HitRules::press(std::span<Note> notes,
             }
         }
         if (!found) {
-            // play the first sound, if one exists
             if (!notes.empty() && notes.front().sound != nullptr &&
                 !soundDisabled) {
                 notes.front().sound->play();
             }
         }
     }
-    for (const auto& note : emptyPoorOrBadOrNothing) {
-        if (note.getNoteIndex() != -1 && note.getPointsOptional().has_value() &&
-            note.getPointsOptional()->getJudgement() != Judgement::EmptyPoor) {
-            notes[note.getNoteIndex()].hit = true;
+
+    auto result = QList<HitEvent>{};
+    result.reserve(static_cast<qsizetype>(pendingHits.size()));
+    for (const auto& note : pendingHits) {
+        if (note.notePosition != -1 &&
+            note.event.getPointsOptional().has_value() &&
+            note.event.getPointsOptional()->getJudgement() !=
+              Judgement::EmptyPoor) {
+            notes[note.notePosition].hit = true;
         }
+        result.append(note.event);
     }
-    return emptyPoorOrBadOrNothing;
+    return result;
 }
 auto
 gameplay_logic::rules::HitRules::processMisses(
