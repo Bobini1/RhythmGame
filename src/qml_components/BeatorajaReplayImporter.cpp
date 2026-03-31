@@ -59,6 +59,8 @@ struct ReplayPayload
     QList<ReplayKeyEvent> keylog;
     int randomOption{};
     qint64 randomOptionSeed{ -1 };
+    int randomOptionP2{};
+    qint64 randomOptionSeedP2{ -1 };
     qint64 date{};
     int gauge{};
     int doubleOption{};
@@ -172,6 +174,16 @@ parseReplayPayload(const QString& filePath) -> ReplayPayload
         .randomOption = object["randomoption"].toInt(0),
         .randomOptionSeed = static_cast<qint64>(
           object["randomoptionseed"].toVariant().toLongLong()),
+        .randomOptionP2 =
+          object.contains("randomoption2")
+            ? object["randomoption2"].toInt(object["randomoption"].toInt(0))
+            : object["randomoption"].toInt(0),
+        .randomOptionSeedP2 = static_cast<qint64>(
+          object.contains("randomoptionseed2")
+            ? object["randomoptionseed2"].toVariant().toLongLong()
+          : object.contains("randomoption2seed")
+            ? object["randomoption2seed"].toVariant().toLongLong()
+            : object["randomoptionseed"].toVariant().toLongLong()),
         .date = static_cast<qint64>(object["date"].toVariant().toLongLong()),
         .gauge = object["gauge"].toInt(-1),
         .doubleOption = object["doubleoption"].toInt(0),
@@ -294,9 +306,125 @@ mapReplayKeycode(gameplay_logic::ChartData::Keymode keymode, int keycode)
                 default:
                     return std::nullopt;
             }
+        case ChartData::Keymode::K10:
+            switch (keycode) {
+                case 0:
+                    return BmsKey::Col11;
+                case 1:
+                    return BmsKey::Col12;
+                case 2:
+                    return BmsKey::Col13;
+                case 3:
+                    return BmsKey::Col14;
+                case 4:
+                    return BmsKey::Col15;
+                case 5:
+                    return BmsKey::Col1sUp;
+                case 6:
+                    return BmsKey::Col1sDown;
+                case 7:
+                    return BmsKey::Col21;
+                case 8:
+                    return BmsKey::Col22;
+                case 9:
+                    return BmsKey::Col23;
+                case 10:
+                    return BmsKey::Col24;
+                case 11:
+                    return BmsKey::Col25;
+                case 12:
+                    return BmsKey::Col2sUp;
+                case 13:
+                    return BmsKey::Col2sDown;
+                default:
+                    return std::nullopt;
+            }
+        case ChartData::Keymode::K14:
+            switch (keycode) {
+                case 0:
+                    return BmsKey::Col11;
+                case 1:
+                    return BmsKey::Col12;
+                case 2:
+                    return BmsKey::Col13;
+                case 3:
+                    return BmsKey::Col14;
+                case 4:
+                    return BmsKey::Col15;
+                case 5:
+                    return BmsKey::Col16;
+                case 6:
+                    return BmsKey::Col17;
+                case 7:
+                    return BmsKey::Col1sUp;
+                case 8:
+                    return BmsKey::Col1sDown;
+                case 9:
+                    return BmsKey::Col21;
+                case 10:
+                    return BmsKey::Col22;
+                case 11:
+                    return BmsKey::Col23;
+                case 12:
+                    return BmsKey::Col24;
+                case 13:
+                    return BmsKey::Col25;
+                case 14:
+                    return BmsKey::Col26;
+                case 15:
+                    return BmsKey::Col27;
+                case 16:
+                    return BmsKey::Col2sUp;
+                case 17:
+                    return BmsKey::Col2sDown;
+                default:
+                    return std::nullopt;
+            }
         default:
             return std::nullopt;
     }
+}
+
+auto
+requiresReplaySeed(resource_managers::NoteOrderAlgorithm algorithm) -> bool
+{
+    return algorithm != resource_managers::NoteOrderAlgorithm::Normal &&
+           algorithm != resource_managers::NoteOrderAlgorithm::Mirror;
+}
+
+auto
+flipPlayfields(std::array<std::vector<charts::BmsNotesData::Note>,
+                          charts::BmsNotesData::columnNumber>& visibleNotes)
+  -> void
+{
+    for (int i = 0; i < 7; ++i) {
+        std::swap(visibleNotes[14 - i], visibleNotes[i]);
+    }
+    std::swap(visibleNotes[15], visibleNotes[7]);
+}
+
+auto
+duplicateSingleToBattle(
+  std::array<std::vector<charts::BmsNotesData::Note>,
+             charts::BmsNotesData::columnNumber>& visibleNotes,
+  gameplay_logic::ChartData::Keymode keymode)
+  -> gameplay_logic::ChartData::Keymode
+{
+    if (keymode == gameplay_logic::ChartData::Keymode::K5) {
+        for (int i = 0; i < 7; ++i) {
+            visibleNotes[14 - i] = visibleNotes[i];
+        }
+        visibleNotes[15] = visibleNotes[7];
+        return gameplay_logic::ChartData::Keymode::K10;
+    }
+    if (keymode == gameplay_logic::ChartData::Keymode::K7) {
+        for (int i = 0; i < 7; ++i) {
+            visibleNotes[14 - i] = visibleNotes[i];
+        }
+        visibleNotes[15] = visibleNotes[7];
+        return gameplay_logic::ChartData::Keymode::K14;
+    }
+    return keymode;
 }
 
 auto
@@ -355,8 +483,7 @@ applyImportedOrder(std::span<std::vector<charts::BmsNotesData::Note>>& notes,
 }
 
 auto
-createScoreFromReplay(resource_managers::Profile& profile,
-                      const ReplayPayload& replay)
+createScoreFromReplay(resource_managers::Profile& profile, ReplayPayload replay)
   -> std::unique_ptr<gameplay_logic::BmsScore>
 {
     auto chartPath = getChartPath(profile, replay.sha256);
@@ -387,71 +514,141 @@ createScoreFromReplay(resource_managers::Profile& profile,
         throw std::runtime_error(
           "Replay RANDOM sequence did not match chart requirements");
     }
-    if (chartData->getKeymode() != gameplay_logic::ChartData::Keymode::K5 &&
-        chartData->getKeymode() != gameplay_logic::ChartData::Keymode::K7) {
-        throw std::runtime_error("Only 5-key and 7-key replays are supported");
-    }
-    if (replay.doubleOption != 0) {
-        throw std::runtime_error(
-          "Only single-play beatoraja replays are supported");
-    }
-
     const auto algorithm = mapRandomOption(replay.randomOption);
+    const auto algorithmP2 = mapRandomOption(replay.randomOptionP2);
     if (!algorithm) {
         throw std::runtime_error(
           "Replay used an unsupported beatoraja random option");
     }
-    if (*algorithm != resource_managers::NoteOrderAlgorithm::Normal &&
-        *algorithm != resource_managers::NoteOrderAlgorithm::Mirror &&
-        replay.randomOptionSeed < 0) {
+    if (!algorithmP2) {
+        throw std::runtime_error(
+          "Replay used an unsupported beatoraja random option for player 2");
+    }
+    if (requiresReplaySeed(*algorithm) && replay.randomOptionSeed < 0) {
         throw std::runtime_error("Replay is missing the random option seed");
     }
+    if (requiresReplaySeed(*algorithmP2) && replay.randomOptionSeedP2 < 0) {
+        replay.randomOptionSeedP2 =
+          replay.randomOptionSeed >= 0 ? replay.randomOptionSeed + 1 : 1;
+    }
 
+    auto keymode = chartData->getKeymode();
+    auto dpOptions = resource_managers::DpOptions::Off;
     auto visibleNotes = chartComponents.notesData.notes;
-    auto notesSpan = std::span{ visibleNotes.data(), visibleNotes.size() / 2 };
-    const auto is5k =
-      chartData->getKeymode() == gameplay_logic::ChartData::Keymode::K5;
-    const auto shuffle =
-      applyImportedOrder(notesSpan,
-                         *algorithm,
-                         replay.randomOptionSeed < 0
-                           ? 0
-                           : static_cast<uint64_t>(replay.randomOptionSeed),
-                         is5k);
+
+    if (keymode != gameplay_logic::ChartData::Keymode::K5 &&
+        keymode != gameplay_logic::ChartData::Keymode::K7 &&
+        keymode != gameplay_logic::ChartData::Keymode::K10 &&
+        keymode != gameplay_logic::ChartData::Keymode::K14) {
+        throw std::runtime_error(
+          "Only 5-key, 7-key, 10-key, and 14-key replays are supported");
+    }
+
+    if (replay.doubleOption == 3) {
+        throw std::runtime_error("BATTLE AS replays are not supported");
+    }
+
+    switch (replay.doubleOption) {
+        case 0:
+            break;
+        case 1:
+            if (keymode == gameplay_logic::ChartData::Keymode::K10 ||
+                keymode == gameplay_logic::ChartData::Keymode::K14) {
+                flipPlayfields(visibleNotes);
+                dpOptions = resource_managers::DpOptions::Flip;
+            }
+            break;
+        case 2:
+            if (keymode == gameplay_logic::ChartData::Keymode::K5 ||
+                keymode == gameplay_logic::ChartData::Keymode::K7) {
+                keymode = duplicateSingleToBattle(visibleNotes, keymode);
+                dpOptions = resource_managers::DpOptions::Battle;
+            } else if (keymode == gameplay_logic::ChartData::Keymode::K10 ||
+                       keymode == gameplay_logic::ChartData::Keymode::K14) {
+                flipPlayfields(visibleNotes);
+                dpOptions = resource_managers::DpOptions::Flip;
+            }
+            break;
+        default:
+            throw std::runtime_error(
+              "Replay used an unsupported double option");
+    }
+
+    auto shuffle = support::ShuffleResult{};
+    auto shuffleP2 = support::ShuffleResult{};
+    if (keymode == gameplay_logic::ChartData::Keymode::K10 ||
+        keymode == gameplay_logic::ChartData::Keymode::K14) {
+        auto notes1 = std::span{ visibleNotes.data(), visibleNotes.size() / 2 };
+        auto notes2 = std::span{ visibleNotes.data() + visibleNotes.size() / 2,
+                                 visibleNotes.size() / 2 };
+        const auto is5k = keymode == gameplay_logic::ChartData::Keymode::K10;
+        shuffle =
+          applyImportedOrder(notes1,
+                             *algorithm,
+                             replay.randomOptionSeed < 0
+                               ? 0
+                               : static_cast<uint64_t>(replay.randomOptionSeed),
+                             is5k);
+        const auto secondSeed = replay.randomOptionSeedP2 < 0
+                                  ? static_cast<qint64>(shuffle.seed) + 1
+                                  : replay.randomOptionSeedP2;
+        shuffleP2 = applyImportedOrder(
+          notes2, *algorithmP2, static_cast<uint64_t>(secondSeed), is5k);
+    } else {
+        auto notesSpan =
+          std::span{ visibleNotes.data(), visibleNotes.size() / 2 };
+        const auto is5k = keymode == gameplay_logic::ChartData::Keymode::K5;
+        shuffle =
+          applyImportedOrder(notesSpan,
+                             *algorithm,
+                             replay.randomOptionSeed < 0
+                               ? 0
+                               : static_cast<uint64_t>(replay.randomOptionSeed),
+                             is5k);
+    }
 
     const auto rank = magic_enum::enum_cast<gameplay_logic::rules::BmsRank>(
                         chartData->getRank())
                         .value_or(gameplay_logic::rules::defaultBmsRank);
+    auto multiplier = 1;
+    if (dpOptions == resource_managers::DpOptions::Battle) {
+        multiplier = 2;
+    }
     auto gaugesRaw = gameplay_logic::rules::Lr2Gauge::getGauges(
       chartData->getTotal(),
-      chartData->getNormalNoteCount() + chartData->getLnCount() +
-        chartData->getBssCount() + chartData->getScratchCount());
+      (chartData->getNormalNoteCount() + chartData->getLnCount() +
+       chartData->getBssCount() + chartData->getScratchCount()) *
+        multiplier);
     auto gauges = QList<gameplay_logic::rules::BmsGauge*>{};
     for (auto& gauge : gaugesRaw) {
         gauges.append(gauge.release());
     }
 
     auto liveScore = std::make_unique<gameplay_logic::BmsLiveScore>(
-      chartData->getNormalNoteCount(),
-      chartData->getScratchCount(),
-      chartData->getLnCount(),
-      chartData->getBssCount(),
-      chartData->getMineCount(),
-      chartData->getNormalNoteCount() + chartData->getLnCount() +
-        chartData->getBssCount() + chartData->getScratchCount(),
+      chartData->getNormalNoteCount() * multiplier,
+      chartData->getScratchCount() * multiplier,
+      chartData->getLnCount() * multiplier,
+      chartData->getBssCount() * multiplier,
+      chartData->getMineCount() * multiplier,
+      (chartData->getNormalNoteCount() + chartData->getLnCount() +
+       chartData->getBssCount() + chartData->getScratchCount()) *
+        multiplier,
       gameplay_logic::rules::lr2_hit_values::getLr2HitValue(
         0ns, gameplay_logic::Judgement::Perfect),
       gauges,
       chartData->getRandomSequence(),
       *algorithm,
-      resource_managers::NoteOrderAlgorithm::Normal,
-      resource_managers::DpOptions::Off,
-      shuffle.columns,
+      (keymode == gameplay_logic::ChartData::Keymode::K10 ||
+       keymode == gameplay_logic::ChartData::Keymode::K14)
+        ? *algorithmP2
+        : resource_managers::NoteOrderAlgorithm::Normal,
+      dpOptions,
+      shuffle.columns + shuffleP2.columns,
       shuffle.seed,
       chartData->getLength(),
       chartData->getSha256(),
       chartData->getMd5(),
-      chartData->getKeymode(),
+      keymode,
       replay.date > 0 ? replay.date : 0,
       QUuid::createUuid().toString());
 
@@ -467,8 +664,7 @@ createScoreFromReplay(resource_managers::Profile& profile,
         gameplay_logic::rules::lr2_hit_values::getLr2HitValue));
 
     for (const auto& event : replay.keylog) {
-        const auto mapped =
-          mapReplayKeycode(chartData->getKeymode(), event.keycode);
+        const auto mapped = mapReplayKeycode(keymode, event.keycode);
         if (!mapped) {
             throw std::runtime_error(
               "Replay contained an unsupported keycode for this chart");
