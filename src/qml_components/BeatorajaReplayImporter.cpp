@@ -58,7 +58,7 @@ struct ReplayPayload
     QList<qint64> randomSequence;
     QList<ReplayKeyEvent> keylog;
     int randomOption{};
-    qint64 randomOptionSeed{-1};
+    qint64 randomOptionSeed{ -1 };
     qint64 date{};
     int gauge{};
     int doubleOption{};
@@ -72,7 +72,8 @@ gzipDecompress(const QByteArray& compressed) -> QByteArray
     }
 
     z_stream stream{};
-    stream.next_in = reinterpret_cast<Bytef*>(const_cast<char*>(compressed.data()));
+    stream.next_in =
+      reinterpret_cast<Bytef*>(const_cast<char*>(compressed.data()));
     stream.avail_in = static_cast<uInt>(compressed.size());
 
     if (inflateInit2(&stream, 16 + MAX_WBITS) != Z_OK) {
@@ -107,11 +108,12 @@ decodeKeyinput(const QString& keyinput) -> QList<ReplayKeyEvent>
 
     auto events = QList<ReplayKeyEvent>{};
     events.reserve(raw.size() / 9);
-    for (int offset = 0, order = 0; offset + 9 <= raw.size(); offset += 9, ++order) {
+    for (int offset = 0, order = 0; offset + 9 <= raw.size();
+         offset += 9, ++order) {
         const auto keyByte = static_cast<qint8>(raw[offset]);
         const auto keycode = std::abs(static_cast<int>(keyByte)) - 1;
-        const auto timeUs =
-          qFromLittleEndian<qint64>(reinterpret_cast<const uchar*>(raw.constData() + offset + 1));
+        const auto timeUs = qFromLittleEndian<qint64>(
+          reinterpret_cast<const uchar*>(raw.constData() + offset + 1));
         events.append({
           .offsetFromStartNs = timeUs * 1000,
           .keycode = keycode,
@@ -133,15 +135,15 @@ decodeKeylogArray(const QJsonArray& keylog) -> QList<ReplayKeyEvent>
             continue;
         }
         const auto entry = entryValue.toObject();
-        const auto keycode = entry.contains("keycode")
-                               ? entry["keycode"].toInt()
-                               : 0;
+        const auto keycode =
+          entry.contains("keycode") ? entry["keycode"].toInt() : 0;
         const auto hasPresstime = entry.contains("presstime");
         const auto rawTime = static_cast<qint64>(
           hasPresstime ? entry["presstime"].toVariant().toLongLong()
                        : entry["time"].toVariant().toLongLong());
         events.append({
-          .offsetFromStartNs = hasPresstime ? rawTime * 1000 : rawTime * 1'000'000,
+          .offsetFromStartNs =
+            hasPresstime ? rawTime * 1000 : rawTime * 1'000'000,
           .keycode = keycode,
           .pressed = entry["pressed"].toBool(),
           .order = order++,
@@ -168,15 +170,14 @@ parseReplayPayload(const QString& filePath) -> ReplayPayload
     auto payload = ReplayPayload{
         .sha256 = object["sha256"].toString().toUpper(),
         .randomOption = object["randomoption"].toInt(0),
-        .randomOptionSeed =
-          static_cast<qint64>(object["randomoptionseed"].toVariant().toLongLong()),
+        .randomOptionSeed = static_cast<qint64>(
+          object["randomoptionseed"].toVariant().toLongLong()),
         .date = static_cast<qint64>(object["date"].toVariant().toLongLong()),
         .gauge = object["gauge"].toInt(-1),
         .doubleOption = object["doubleoption"].toInt(0),
     };
     for (const auto& value : object["rand"].toArray()) {
-        payload.randomSequence.append(
-          static_cast<qint64>(value.toVariant().toLongLong()));
+        payload.randomSequence.append(value.toVariant().toLongLong());
     }
 
     if (object.contains("keyinput") && object["keyinput"].isString()) {
@@ -185,15 +186,17 @@ parseReplayPayload(const QString& filePath) -> ReplayPayload
         payload.keylog = decodeKeylogArray(object["keylog"].toArray());
     }
 
-    std::ranges::stable_sort(payload.keylog, [](const auto& left, const auto& right) {
-        if (left.offsetFromStartNs != right.offsetFromStartNs) {
-            return left.offsetFromStartNs < right.offsetFromStartNs;
-        }
-        return left.order < right.order;
-    });
+    std::ranges::stable_sort(
+      payload.keylog, [](const auto& left, const auto& right) {
+          if (left.offsetFromStartNs != right.offsetFromStartNs) {
+              return left.offsetFromStartNs < right.offsetFromStartNs;
+          }
+          return left.order < right.order;
+      });
 
     if (payload.sha256.isEmpty() || payload.keylog.isEmpty()) {
-        throw std::runtime_error("Replay payload is missing chart hash or keylog");
+        throw std::runtime_error(
+          "Replay payload is missing chart hash or keylog");
     }
 
     return payload;
@@ -203,11 +206,11 @@ auto
 getChartPath(resource_managers::Profile& profile, const QString& sha256)
   -> std::optional<std::filesystem::path>
 {
-    auto statement =
-      profile.getDb().createStatement(
-        "SELECT path FROM song_db.charts WHERE sha256 = ? LIMIT 1;");
+    auto statement = profile.getDb().createStatement(
+      "SELECT path FROM song_db.charts WHERE sha256 = ? LIMIT 1;");
     statement.bind(1, sha256.toStdString());
-    return statement.executeAndGet<std::string>().transform(support::utfStringToPath);
+    return statement.executeAndGet<std::string>().transform(
+      support::utfStringToPath);
 }
 
 auto
@@ -340,7 +343,8 @@ applyImportedOrder(std::span<std::vector<charts::BmsNotesData::Note>>& notes,
           algorithm,
           static_cast<int64_t>(seed),
           scratchCol,
-          /*includeScratch=*/algorithm == resource_managers::NoteOrderAlgorithm::Normal);
+          /*includeScratch=*/algorithm ==
+            resource_managers::NoteOrderAlgorithm::Normal);
     }();
 
     if (k5) {
@@ -357,16 +361,15 @@ createScoreFromReplay(resource_managers::Profile& profile,
 {
     auto chartPath = getChartPath(profile, replay.sha256);
     if (!chartPath) {
-        throw std::runtime_error("Chart hash was not found in the song database");
-    }
-    if (replay.doubleOption != 0) {
-        throw std::runtime_error("Only single-play beatoraja replays are supported");
+        throw std::runtime_error(
+          "Chart hash was not found in the song database");
     }
 
     auto chartDataFactory = resource_managers::ChartDataFactory{};
     const auto recordedRandoms = replay.randomSequence;
     auto randomGenerator =
-      [recordedRandoms, index = 0](charts::ParsedBmsChart::RandomRange range) mutable {
+      [recordedRandoms,
+       index = 0](charts::ParsedBmsChart::RandomRange range) mutable {
           if (index < recordedRandoms.size()) {
               return static_cast<charts::ParsedBmsChart::RandomRange>(
                 recordedRandoms[index++]);
@@ -376,20 +379,27 @@ createScoreFromReplay(resource_managers::Profile& profile,
           }
           return charts::ParsedBmsChart::RandomRange{ 1 };
       };
-    auto chartComponents = chartDataFactory.loadChartData(*chartPath, randomGenerator);
-    auto* chartData = chartComponents.chartData.get();
+    auto chartComponents =
+      chartDataFactory.loadChartData(*chartPath, randomGenerator);
+    auto& chartData = chartComponents.chartData;
     if (chartData->getIsRandom() &&
         chartData->getRandomSequence().size() != replay.randomSequence.size()) {
-        throw std::runtime_error("Replay RANDOM sequence did not match chart requirements");
+        throw std::runtime_error(
+          "Replay RANDOM sequence did not match chart requirements");
     }
     if (chartData->getKeymode() != gameplay_logic::ChartData::Keymode::K5 &&
         chartData->getKeymode() != gameplay_logic::ChartData::Keymode::K7) {
         throw std::runtime_error("Only 5-key and 7-key replays are supported");
     }
+    if (replay.doubleOption != 0) {
+        throw std::runtime_error(
+          "Only single-play beatoraja replays are supported");
+    }
 
     const auto algorithm = mapRandomOption(replay.randomOption);
     if (!algorithm) {
-        throw std::runtime_error("Replay used an unsupported beatoraja random option");
+        throw std::runtime_error(
+          "Replay used an unsupported beatoraja random option");
     }
     if (*algorithm != resource_managers::NoteOrderAlgorithm::Normal &&
         *algorithm != resource_managers::NoteOrderAlgorithm::Mirror &&
@@ -399,12 +409,15 @@ createScoreFromReplay(resource_managers::Profile& profile,
 
     auto visibleNotes = chartComponents.notesData.notes;
     auto notesSpan = std::span{ visibleNotes.data(), visibleNotes.size() / 2 };
-    const auto is5k = chartData->getKeymode() == gameplay_logic::ChartData::Keymode::K5;
-    const auto shuffle = applyImportedOrder(
-      notesSpan,
-      *algorithm,
-      replay.randomOptionSeed < 0 ? 0 : static_cast<uint64_t>(replay.randomOptionSeed),
-      is5k);
+    const auto is5k =
+      chartData->getKeymode() == gameplay_logic::ChartData::Keymode::K5;
+    const auto shuffle =
+      applyImportedOrder(notesSpan,
+                         *algorithm,
+                         replay.randomOptionSeed < 0
+                           ? 0
+                           : static_cast<uint64_t>(replay.randomOptionSeed),
+                         is5k);
 
     const auto rank = magic_enum::enum_cast<gameplay_logic::rules::BmsRank>(
                         chartData->getRank())
@@ -454,9 +467,11 @@ createScoreFromReplay(resource_managers::Profile& profile,
         gameplay_logic::rules::lr2_hit_values::getLr2HitValue));
 
     for (const auto& event : replay.keylog) {
-        const auto mapped = mapReplayKeycode(chartData->getKeymode(), event.keycode);
+        const auto mapped =
+          mapReplayKeycode(chartData->getKeymode(), event.keycode);
         if (!mapped) {
-            throw std::runtime_error("Replay contained an unsupported keycode for this chart");
+            throw std::runtime_error(
+              "Replay contained an unsupported keycode for this chart");
         }
         const auto offset = std::chrono::nanoseconds(event.offsetFromStartNs);
         referee.update(offset, false);
@@ -467,15 +482,17 @@ createScoreFromReplay(resource_managers::Profile& profile,
         }
     }
 
-    const auto endOffset = std::chrono::nanoseconds(chartData->getLength()) + 10s;
+    const auto endOffset =
+      std::chrono::nanoseconds(chartData->getLength()) + 10s;
     referee.update(endOffset, true);
     for (int i = 0; i < charts::BmsNotesData::columnNumber; ++i) {
         referee.passReleased(endOffset, static_cast<input::BmsKey>(i));
     }
 
-    return std::make_unique<gameplay_logic::BmsScore>(liveScore->getResult(),
-                                                      liveScore->getReplayData(),
-                                                      liveScore->getGaugeHistory());
+    return std::make_unique<gameplay_logic::BmsScore>(
+      liveScore->getResult(),
+      liveScore->getReplayData(),
+      liveScore->getGaugeHistory());
 }
 
 } // namespace
@@ -507,7 +524,8 @@ BeatorajaReplayImporter::importFolder(resource_managers::Profile* profile,
 
     const auto directory = QDir(resolvedFolderPath);
     if (!directory.exists()) {
-        result["errors"] = QStringList{ QStringLiteral("Folder does not exist") };
+        result["errors"] =
+          QStringList{ QStringLiteral("Folder does not exist") };
         return result;
     }
 
@@ -527,8 +545,8 @@ BeatorajaReplayImporter::importFolder(resource_managers::Profile* profile,
             ++imported;
         } catch (const std::exception& e) {
             ++skipped;
-            const auto error = QStringLiteral("%1: %2")
-                                 .arg(replayPath, QString::fromUtf8(e.what()));
+            const auto error = QStringLiteral("%1: %2").arg(
+              replayPath, QString::fromUtf8(e.what()));
             errors.append(error);
             spdlog::warn("Failed to import beatoraja replay {}: {}",
                          replayPath.toStdString(),
