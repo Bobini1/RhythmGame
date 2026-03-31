@@ -387,6 +387,52 @@ createAutoplayFromNotes(const gameplay_logic::BmsNotes& notes)
 }
 namespace {
 auto
+applyBeatorajaOrder(std::span<std::vector<charts::BmsNotesData::Note>>& notes,
+                    resource_managers::NoteOrderAlgorithm algorithm,
+                    uint64_t seed,
+                    bool k5) -> support::ShuffleResult
+{
+    auto originalSpan = notes;
+    auto workingNotes = notes;
+    auto scratchCol = static_cast<int>(notes.size()) - 1;
+    if (k5) {
+        notes[5].swap(notes[7]);
+        workingNotes = notes.subspan(0, 6);
+        scratchCol = 5;
+    }
+
+    const auto includeScratch =
+      support::beatorajaNoteOrderIncludesScratch(algorithm);
+    const auto result = [&]() {
+        switch (algorithm) {
+            case resource_managers::NoteOrderAlgorithm::Mirror:
+            case resource_managers::NoteOrderAlgorithm::BeatorajaRandom:
+            case resource_managers::NoteOrderAlgorithm::BeatorajaRotate:
+            case resource_managers::NoteOrderAlgorithm::BeatorajaRandomEx:
+                return support::generateBeatorajaLanePermutation(
+                  workingNotes,
+                  algorithm,
+                  static_cast<int64_t>(seed),
+                  scratchCol,
+                  includeScratch);
+            default:
+                return support::generateBeatorajaPermutation(
+                  workingNotes,
+                  support::beatorajaRandomFromNoteOrderAlgorithm(algorithm),
+                  static_cast<int64_t>(seed),
+                  scratchCol,
+                  includeScratch);
+        }
+    }();
+
+    if (k5) {
+        notes[5].swap(notes[7]);
+        notes = originalSpan;
+    }
+    return result;
+}
+
+auto
 getComponentsForPlayer(const ChartFactory::PlayerSpecificData& player,
                        const charts::BmsNotesData& notesData,
                        const gameplay_logic::ChartData& chartData,
@@ -431,29 +477,46 @@ getComponentsForPlayer(const ChartFactory::PlayerSpecificData& player,
         if (isDp(keymode)) {
             auto notes1 =
               std::span{ visibleNotes.data(), visibleNotes.size() / 2 };
-            auto result1 =
-              support::generatePermutation(notes1,
-                                           player.noteOrderAlgorithm,
-                                           player.randomSeed,
-                                           randomIs5k,
-                                           usePre130);
+            auto result1 = support::isBeatorajaNoteOrderAlgorithm(
+                             player.noteOrderAlgorithm)
+                             ? applyBeatorajaOrder(notes1,
+                                                   player.noteOrderAlgorithm,
+                                                   player.randomSeed,
+                                                   randomIs5k)
+                             : support::generatePermutation(notes1,
+                                                            player.noteOrderAlgorithm,
+                                                            player.randomSeed,
+                                                            randomIs5k,
+                                                            usePre130);
             auto notes2 =
               std::span{ visibleNotes.data() + visibleNotes.size() / 2,
                          visibleNotes.size() / 2 };
-            auto result2 =
-              support::generatePermutation(notes2,
-                                           player.noteOrderAlgorithmP2,
-                                           result1.seed + 1,
-                                           randomIs5k,
-                                           usePre130);
+            auto result2 = support::isBeatorajaNoteOrderAlgorithm(
+                             player.noteOrderAlgorithmP2)
+                             ? applyBeatorajaOrder(notes2,
+                                                   player.noteOrderAlgorithmP2,
+                                                   result1.seed + 1,
+                                                   randomIs5k)
+                             : support::generatePermutation(
+                                 notes2,
+                                 player.noteOrderAlgorithmP2,
+                                 result1.seed + 1,
+                                 randomIs5k,
+                                 usePre130);
             return { result1, result2 };
         }
         auto notes1 = std::span{ visibleNotes.data(), visibleNotes.size() / 2 };
-        return { support::generatePermutation(notes1,
-                                              player.noteOrderAlgorithm,
-                                              player.randomSeed,
-                                              randomIs5k,
-                                              usePre130),
+        return { support::isBeatorajaNoteOrderAlgorithm(
+                   player.noteOrderAlgorithm)
+                   ? applyBeatorajaOrder(notes1,
+                                         player.noteOrderAlgorithm,
+                                         player.randomSeed,
+                                         randomIs5k)
+                   : support::generatePermutation(notes1,
+                                                  player.noteOrderAlgorithm,
+                                                  player.randomSeed,
+                                                  randomIs5k,
+                                                  usePre130),
                  support::ShuffleResult{} };
     }();
     auto notes = ChartDataFactory::makeNotes(visibleNotes, notesData.barLines);

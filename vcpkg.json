@@ -24,6 +24,7 @@
     "foonathan-lexy",
     "magic-enum",
     "zstd",
+    "zlib-ng",
     {
       "name": "libsndfile",
       "features": [

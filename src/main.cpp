@@ -40,6 +40,7 @@
 #include "qml_components/OnlineProfileInfo.h"
 #include "qml_components/OnlineRankingModel.h"
 #include "qml_components/ScoreReplayer.h"
+#include "qml_components/BeatorajaReplayImporter.h"
 #include "sounds/AudioEngine.h"
 #include "sounds/AudioPlayer.h"
 #include "sounds/SoundBuffer.h"
@@ -477,6 +478,8 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
           "RhythmGameQml", 1, 0, "AudioPlayer");
         qmlRegisterType<qml_components::ScoreReplayer>(
           "RhythmGameQml", 1, 0, "ScoreReplayer");
+        qmlRegisterType<qml_components::BeatorajaReplayImporter>(
+          "RhythmGameQml", 1, 0, "BeatorajaReplayImporter");
         qml_components::OnlineRankingModel::networkManager = &networkManager;
         qml_components::OnlineRankingModel::profileList = &profileList;
         qml_components::OnlineRankingModel::onlineScores = &onlineScores;

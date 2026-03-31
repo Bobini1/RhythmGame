@@ -24,6 +24,10 @@ Item {
             anchors.fill: parent
             anchors.margins: 5
 
+            BeatorajaReplayImporter {
+                id: beatorajaReplayImporter
+            }
+
             Dialog {
                 id: confirmDeletion
                 anchors.centerIn: parent
@@ -39,6 +43,14 @@ Item {
                 currentFolder: Rg.programSettings.avatarFolder
                 onAccepted: {
                     Rg.profileList.mainProfile.vars.generalVars.avatar = selectedFile;
+                }
+            }
+            FolderDialog {
+                id: replayFolderDialog
+                title: qsTr("Select beatoraja replay folder")
+
+                onAccepted: {
+                    replayImportSection.selectedFolder = selectedFolder
                 }
             }
             Frame {
@@ -331,6 +343,86 @@ Item {
                                 onClicked: loginSection.profile.login(emailField.text, passwordField.text)
                             }
                         }
+                    }
+                }
+                ColumnLayout {
+                    id: replayImportSection
+                    anchors.top: loginSection.bottom
+                    anchors.topMargin: 24
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    width: avatarFrame.width
+                    spacing: 8
+
+                    property url selectedFolder: ""
+                    property int imported: 0
+                    property int skipped: 0
+                    property string errorSummary: ""
+
+                    Label {
+                        text: qsTr("Import beatoraja replays")
+                        font.pixelSize: 18
+                        Layout.fillWidth: true
+                    }
+
+                    Label {
+                        Layout.fillWidth: true
+                        wrapMode: Text.Wrap
+                        text: replayImportSection.selectedFolder === ""
+                            ? qsTr("No folder selected")
+                            : replayImportSection.selectedFolder.toString()
+                    }
+
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: 8
+
+                        Button {
+                            text: qsTr("Choose folder")
+                            Layout.fillWidth: true
+
+                            onClicked: {
+                                replayFolderDialog.open();
+                            }
+                        }
+
+                        Button {
+                            text: qsTr("Import scores")
+                            Layout.fillWidth: true
+                            enabled: replayImportSection.selectedFolder !== ""
+
+                            onClicked: {
+                                const result = beatorajaReplayImporter.importFolder(
+                                    Rg.profileList.mainProfile,
+                                    replayImportSection.selectedFolder.toString());
+                                replayImportSection.imported = result.imported || 0;
+                                replayImportSection.skipped = result.skipped || 0;
+
+                                const errors = result.errors || [];
+                                if (errors.length > 0) {
+                                    replayImportSection.errorSummary = errors.join("\n");
+                                } else {
+                                    replayImportSection.errorSummary = "";
+                                }
+
+                                rootScrollView.updateScoreCounts++;
+                            }
+                        }
+                    }
+
+                    Label {
+                        Layout.fillWidth: true
+                        wrapMode: Text.Wrap
+                        text: qsTr("Imported: %1, skipped: %2")
+                            .arg(replayImportSection.imported)
+                            .arg(replayImportSection.skipped)
+                    }
+
+                    Label {
+                        Layout.fillWidth: true
+                        visible: replayImportSection.errorSummary !== ""
+                        wrapMode: Text.Wrap
+                        color: "tomato"
+                        text: replayImportSection.errorSummary
                     }
                 }
             }
