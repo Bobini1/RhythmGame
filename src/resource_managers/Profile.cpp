@@ -27,6 +27,8 @@
 namespace resource_managers {
 
 namespace {
+constexpr auto replayDataMigrationVersion = std::tuple{ 1, 3, 1 };
+
 auto
 createDb(const std::filesystem::path& dbPath) -> db::SqliteCppDb
 {
@@ -353,7 +355,9 @@ Profile::Profile(
                "replay_data BLOB NOT NULL,"
                "FOREIGN KEY(score_guid) REFERENCES score(guid)"
                ");");
-    gameplay_logic::BmsReplayData::migrateStoredReplayData(db);
+    if (version && *version < replayDataMigrationVersion) {
+        gameplay_logic::BmsReplayData::migrateStoredReplayData(db);
+    }
     db.execute("CREATE TABLE IF NOT EXISTS gauge_history ("
                "id INTEGER PRIMARY KEY AUTOINCREMENT,"
                "score_guid TEXT NOT NULL UNIQUE,"
@@ -442,7 +446,8 @@ Profile::login(const QString& email, const QString& password)
 
     // Ensure Content-Type is explicitly set and body is compact JSON
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
-    const QByteArray loginBody = QJsonDocument(json).toJson(QJsonDocument::Compact);
+    const QByteArray loginBody =
+      QJsonDocument(json).toJson(QJsonDocument::Compact);
     QNetworkReply* reply = networkManager->post(request, loginBody);
 
     setLoginState(LoginState::LoggingIn);
@@ -776,34 +781,42 @@ Profile::dispatchUploads(qml_components::ScoreSyncOperation* op,
     for (auto& p : payloads) {
         auto request = networkRequestFactory.createRequest("scores");
         // Ensure the Content-Type header is explicitly set for the POST
-        request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json; charset=utf-8");
-        const QByteArray body = QJsonDocument(p.json).toJson(QJsonDocument::Compact);
+        request.setHeader(QNetworkRequest::ContentTypeHeader,
+                          "application/json; charset=utf-8");
+        const QByteArray body =
+          QJsonDocument(p.json).toJson(QJsonDocument::Compact);
         auto* reply = networkManager->post(request, body);
         const auto guid = p.guid;
-        connect(reply, &QNetworkReply::finished, this, [reply, op, guid, body]() {
-            // Capture and log additional information when an error occurs to aid debugging
-            const auto qtError = reply->error();
-            const auto httpStatus = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
-            const auto contentTypeHeader = reply->header(QNetworkRequest::ContentTypeHeader).toString();
-            const QByteArray respBody = reply->readAll();
-            reply->deleteLater();
+        connect(
+          reply, &QNetworkReply::finished, this, [reply, op, guid, body]() {
+              // Capture and log additional information when an error occurs to
+              // aid debugging
+              const auto qtError = reply->error();
+              const auto httpStatus =
+                reply->attribute(QNetworkRequest::HttpStatusCodeAttribute)
+                  .toInt();
+              const auto contentTypeHeader =
+                reply->header(QNetworkRequest::ContentTypeHeader).toString();
+              const QByteArray respBody = reply->readAll();
+              reply->deleteLater();
 
-            if (qtError != QNetworkReply::NoError) {
-                spdlog::error(
-                  "Score upload failed for {}: qtError={} httpStatus={} qtErrorStr={} contentType={} respBody={} requestBody={} ",
-                  guid.toStdString(),
-                  static_cast<int>(qtError),
-                  httpStatus,
-                  reply->errorString().toStdString(),
-                  contentTypeHeader.toStdString(),
-                  std::string(respBody.constData(), respBody.size()),
-                  std::string(body.constData(), body.size()));
+              if (qtError != QNetworkReply::NoError) {
+                  spdlog::error(
+                    "Score upload failed for {}: qtError={} httpStatus={} "
+                    "qtErrorStr={} contentType={} respBody={} requestBody={} ",
+                    guid.toStdString(),
+                    static_cast<int>(qtError),
+                    httpStatus,
+                    reply->errorString().toStdString(),
+                    contentTypeHeader.toStdString(),
+                    std::string(respBody.constData(), respBody.size()),
+                    std::string(body.constData(), body.size()));
 
-                op->reportError(QStringLiteral("Upload failed for %1: %2")
-                                  .arg(guid, reply->errorString()));
-            }
-            op->increment();
-        });
+                  op->reportError(QStringLiteral("Upload failed for %1: %2")
+                                    .arg(guid, reply->errorString()));
+              }
+              op->increment();
+          });
     }
 }
 

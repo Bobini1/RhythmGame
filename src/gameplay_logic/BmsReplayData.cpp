@@ -123,8 +123,7 @@ serializeReplayData(const QList<HitEvent>& hitEvents) -> QByteArray
 }
 
 auto
-deserializeReplayData(const QByteArray& data, bool* wasLegacy = nullptr)
-  -> QList<HitEvent>
+deserializeReplayData(const QByteArray& data) -> QList<HitEvent>
 {
     auto raw = decompressRaw(data);
     auto stream = QDataStream(&raw, QIODevice::ReadOnly);
@@ -138,9 +137,6 @@ deserializeReplayData(const QByteArray& data, bool* wasLegacy = nullptr)
         }
         auto hitEvents = QList<HitEvent>{};
         stream >> hitEvents;
-        if (wasLegacy != nullptr) {
-            *wasLegacy = false;
-        }
         return hitEvents;
     }
 
@@ -157,9 +153,6 @@ deserializeReplayData(const QByteArray& data, bool* wasLegacy = nullptr)
                                   legacy.points,
                                   legacy.action,
                                   legacy.noteRemoved));
-    }
-    if (wasLegacy != nullptr) {
-        *wasLegacy = true;
     }
     return hitEvents;
 }
@@ -219,12 +212,8 @@ BmsReplayData::migrateStoredReplayData(db::SqliteCppDb& db)
       "UPDATE replay_data SET replay_data = ? WHERE id = ?;");
     for (const auto& [id, guid, replayData] : rows) {
         try {
-            auto wasLegacy = false;
-            const auto hitEvents = deserializeReplayData(
-              QByteArray::fromStdString(replayData), &wasLegacy);
-            if (!wasLegacy) {
-                continue;
-            }
+            const auto hitEvents =
+              deserializeReplayData(QByteArray::fromStdString(replayData));
             const auto serialized = serializeReplayData(hitEvents);
             update.reset();
             update.bind(1, serialized.data(), serialized.size());
