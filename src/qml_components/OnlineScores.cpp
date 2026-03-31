@@ -463,11 +463,12 @@ OnlineScores::getRankingEntryAtTimestamp(
                                     if (!judg["great"].isNull() &&
                                         judg["great"].toInt() == 0)
                                         bestClearType = "MAX";
+                                    break;
                                 }
                                 if (bestScore.exScore == noteCount * 2) {
                                     bestClearType = "MAX";
+                                    break;
                                 }
-                                break;
                             }
                         }
 
