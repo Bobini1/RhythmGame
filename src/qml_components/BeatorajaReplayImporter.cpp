@@ -172,18 +172,9 @@ parseReplayPayload(const QString& filePath) -> ReplayPayload
     auto payload = ReplayPayload{
         .sha256 = object["sha256"].toString().toUpper(),
         .randomOption = object["randomoption"].toInt(0),
-        .randomOptionSeed = static_cast<qint64>(
-          object["randomoptionseed"].toVariant().toLongLong()),
-        .randomOptionP2 =
-          object.contains("randomoption2")
-            ? object["randomoption2"].toInt(object["randomoption"].toInt(0))
-            : object["randomoption"].toInt(0),
-        .randomOptionSeedP2 = static_cast<qint64>(
-          object.contains("randomoptionseed2")
-            ? object["randomoptionseed2"].toVariant().toLongLong()
-          : object.contains("randomoption2seed")
-            ? object["randomoption2seed"].toVariant().toLongLong()
-            : object["randomoptionseed"].toVariant().toLongLong()),
+        .randomOptionSeed = object["randomoptionseed"].toInteger(0),
+        .randomOptionP2 = object["randomoption2"].toInt(0),
+        .randomOptionSeedP2 = object["randomoption2seed"].toInteger(0),
         .date = static_cast<qint64>(object["date"].toVariant().toLongLong()),
         .gauge = object["gauge"].toInt(-1),
         .doubleOption = object["doubleoption"].toInt(0),
@@ -206,7 +197,12 @@ parseReplayPayload(const QString& filePath) -> ReplayPayload
           return left.order < right.order;
       });
 
+    spdlog::error(
+      "Replay payload is missing required fields. Payload content: {}",
+      QString(QJsonDocument(object).toJson(QJsonDocument::Indented))
+        .toStdString());
     if (payload.sha256.isEmpty() || payload.keylog.isEmpty()) {
+        // print the json
         throw std::runtime_error(
           "Replay payload is missing chart hash or keylog");
     }
@@ -237,20 +233,8 @@ mapRandomOption(int randomOption)
             return NoteOrderAlgorithm::Mirror;
         case 2:
             return NoteOrderAlgorithm::BeatorajaRandom;
-        case 3:
-            return NoteOrderAlgorithm::BeatorajaRotate;
-        case 4:
-            return NoteOrderAlgorithm::BeatorajaSRandom;
         case 5:
-            return NoteOrderAlgorithm::BeatorajaSpiral;
-        case 6:
-            return NoteOrderAlgorithm::BeatorajaHRandom;
-        case 7:
-            return NoteOrderAlgorithm::BeatorajaAllScr;
-        case 8:
             return NoteOrderAlgorithm::BeatorajaRandomEx;
-        case 9:
-            return NoteOrderAlgorithm::BeatorajaSRandomEx;
         default:
             return std::nullopt;
     }
@@ -435,45 +419,13 @@ applyImportedOrder(std::span<std::vector<charts::BmsNotesData::Note>>& notes,
 {
     auto originalSpan = notes;
     auto workingNotes = notes;
-    auto scratchCol = static_cast<int>(notes.size()) - 1;
     if (k5) {
         notes[5].swap(notes[7]);
         workingNotes = notes.subspan(0, 6);
-        scratchCol = 5;
     }
 
-    const auto result = [&]() {
-        if (support::isBeatorajaNoteOrderAlgorithm(algorithm)) {
-            const auto includeScratch =
-              support::beatorajaNoteOrderIncludesScratch(algorithm);
-            switch (algorithm) {
-                case resource_managers::NoteOrderAlgorithm::Mirror:
-                case resource_managers::NoteOrderAlgorithm::BeatorajaRandom:
-                case resource_managers::NoteOrderAlgorithm::BeatorajaRotate:
-                case resource_managers::NoteOrderAlgorithm::BeatorajaRandomEx:
-                    return support::generateBeatorajaLanePermutation(
-                      workingNotes,
-                      algorithm,
-                      static_cast<int64_t>(seed),
-                      scratchCol,
-                      includeScratch);
-                default:
-                    return support::generateBeatorajaPermutation(
-                      workingNotes,
-                      support::beatorajaRandomFromNoteOrderAlgorithm(algorithm),
-                      static_cast<int64_t>(seed),
-                      scratchCol,
-                      includeScratch);
-            }
-        }
-        return support::generateBeatorajaLanePermutation(
-          workingNotes,
-          algorithm,
-          static_cast<int64_t>(seed),
-          scratchCol,
-          /*includeScratch=*/algorithm ==
-            resource_managers::NoteOrderAlgorithm::Normal);
-    }();
+    const auto result = support::generateBeatorajaLanePermutation(
+      workingNotes, algorithm, static_cast<int64_t>(seed));
 
     if (k5) {
         notes[5].swap(notes[7]);
@@ -521,29 +473,13 @@ createScoreFromReplay(resource_managers::Profile& profile, ReplayPayload replay)
           "Replay used an unsupported beatoraja random option");
     }
     if (!algorithmP2) {
-        throw std::runtime_error(
-          "Replay used an unsupported beatoraja random option for player 2");
-    }
-    if (requiresReplaySeed(*algorithm) && replay.randomOptionSeed < 0) {
-        throw std::runtime_error("Replay is missing the random option seed");
-    }
-    if (requiresReplaySeed(*algorithmP2) && replay.randomOptionSeedP2 < 0) {
-        replay.randomOptionSeedP2 =
-          replay.randomOptionSeed >= 0 ? replay.randomOptionSeed + 1 : 1;
+        throw std::runtime_error("Replay used an unsupported beatoraja random "
+                                 "option for player 2 side");
     }
 
     auto keymode = chartData->getKeymode();
     auto dpOptions = resource_managers::DpOptions::Off;
     auto visibleNotes = chartComponents.notesData.notes;
-
-    if (keymode != gameplay_logic::ChartData::Keymode::K5 &&
-        keymode != gameplay_logic::ChartData::Keymode::K7 &&
-        keymode != gameplay_logic::ChartData::Keymode::K10 &&
-        keymode != gameplay_logic::ChartData::Keymode::K14) {
-        throw std::runtime_error(
-          "Only 5-key, 7-key, 10-key, and 14-key replays are supported");
-    }
-
     if (replay.doubleOption == 3) {
         throw std::runtime_error("BATTLE AS replays are not supported");
     }
