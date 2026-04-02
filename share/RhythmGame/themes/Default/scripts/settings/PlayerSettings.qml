@@ -24,9 +24,6 @@ Item {
             anchors.fill: parent
             anchors.margins: 5
 
-            BeatorajaReplayImporter {
-                id: beatorajaReplayImporter
-            }
 
             Dialog {
                 id: confirmDeletion
@@ -354,9 +351,33 @@ Item {
                     spacing: 8
 
                     property url selectedFolder: ""
-                    property int imported: 0
-                    property int skipped: 0
-                    property string errorSummary: ""
+                    readonly property var op: loginSection.profile.replayImportOperation
+                    readonly property bool importing: op !== null && !op.finished
+
+                    ListModel {
+                        id: errorsModel
+                    }
+
+                    // Clear errors whenever a fresh import operation is started.
+                    Connections {
+                        target: loginSection.profile
+                        function onReplayImportOperationChanged() {
+                            errorsModel.clear()
+                        }
+                    }
+
+                    // Track per-score errors and the finished signal from the
+                    // current operation. When op is null these connections are
+                    // simply inactive.
+                    Connections {
+                        target: replayImportSection.op
+                        function onError(message) {
+                            errorsModel.append({ message: message })
+                        }
+                        function onFinishedChanged() {
+                            rootScrollView.updateScoreCounts++
+                        }
+                    }
 
                     Label {
                         text: qsTr("Import beatoraja replays")
@@ -379,6 +400,7 @@ Item {
                         Button {
                             text: qsTr("Choose folder")
                             Layout.fillWidth: true
+                            enabled: !replayImportSection.importing
 
                             onClicked: {
                                 replayFolderDialog.open();
@@ -388,41 +410,58 @@ Item {
                         Button {
                             text: qsTr("Import scores")
                             Layout.fillWidth: true
-                            enabled: replayImportSection.selectedFolder !== ""
+                            enabled: replayImportSection.selectedFolder !== "" &&
+                                     !replayImportSection.importing
 
                             onClicked: {
-                                const result = beatorajaReplayImporter.importFolder(
-                                    Rg.profileList.mainProfile,
-                                    replayImportSection.selectedFolder.toString());
-                                replayImportSection.imported = result.imported || 0;
-                                replayImportSection.skipped = result.skipped || 0;
-
-                                const errors = result.errors || [];
-                                if (errors.length > 0) {
-                                    replayImportSection.errorSummary = errors.join("\n");
-                                } else {
-                                    replayImportSection.errorSummary = "";
-                                }
-
-                                rootScrollView.updateScoreCounts++;
+                                loginSection.profile.importReplays(
+                                    replayImportSection.selectedFolder.toString())
                             }
+                        }
+
+                        BusyIndicator {
+                            running: replayImportSection.importing
+                            visible: replayImportSection.importing
+                            Layout.alignment: Qt.AlignVCenter
+                            width: 24
+                            height: 24
                         }
                     }
 
-                    Label {
+                    ProgressBar {
                         Layout.fillWidth: true
-                        wrapMode: Text.Wrap
-                        text: qsTr("Imported: %1, skipped: %2")
-                            .arg(replayImportSection.imported)
-                            .arg(replayImportSection.skipped)
+                        visible: replayImportSection.op !== null
+                        value: replayImportSection.op !== null
+                               ? replayImportSection.op.done / Math.max(replayImportSection.op.total, 1)
+                               : 0
                     }
 
                     Label {
                         Layout.fillWidth: true
-                        visible: replayImportSection.errorSummary !== ""
                         wrapMode: Text.Wrap
-                        color: "tomato"
-                        text: replayImportSection.errorSummary
+                        visible: replayImportSection.op !== null
+                        text: qsTr("Imported: %1, skipped: %2, total: %3")
+                            .arg(replayImportSection.op ? replayImportSection.op.imported : 0)
+                            .arg(replayImportSection.op ? replayImportSection.op.skipped : 0)
+                            .arg(replayImportSection.op ? replayImportSection.op.total : 0)
+                    }
+
+                    ListView {
+                        Layout.fillWidth: true
+                        height: 120
+                        visible: errorsModel.count > 0
+                        model: errorsModel
+                        spacing: 2
+                        clip: true
+                        ScrollBar.vertical: ScrollBar {}
+
+                        delegate: Label {
+                            required property string message
+                            width: ListView.view.width
+                            wrapMode: Text.Wrap
+                            color: "tomato"
+                            text: message
+                        }
                     }
                 }
             }

@@ -5,7 +5,9 @@
 #ifndef RHYTHMGAME_BEATORAJAREPLAYIMPORTER_H
 #define RHYTHMGAME_BEATORAJAREPLAYIMPORTER_H
 
-#include <QObject>
+#include "ReplayImportOperation.h"
+
+class QObject;
 
 namespace resource_managers {
 class Profile;
@@ -13,16 +15,14 @@ class Profile;
 
 namespace qml_components {
 
-class BeatorajaReplayImporter : public QObject
-{
-    Q_OBJECT
-
-  public:
-    explicit BeatorajaReplayImporter(QObject* parent = nullptr);
-
-    Q_INVOKABLE QVariantMap importFolder(resource_managers::Profile* profile,
-                                         const QString& folderPath) const;
-};
+/**
+ * @brief Start an asynchronous beatoraja replay import.
+ * @details The returned operation is parented to @p parent and tracks
+ * progress. The caller is responsible for exposing it to QML.
+ */
+ReplayImportOperation* startBeatorajaReplayImport(
+  resource_managers::Profile* profile,
+  const QString& folderPath);
 
 } // namespace qml_components
 

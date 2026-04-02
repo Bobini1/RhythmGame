@@ -257,6 +257,8 @@ qt_add_library(RhythmGame_lib OBJECT
         src/qml_components/OnlineProfileInfo.h
         src/qml_components/BeatorajaReplayImporter.cpp
         src/qml_components/BeatorajaReplayImporter.h
+        src/qml_components/ReplayImportOperation.cpp
+        src/qml_components/ReplayImportOperation.h
         src/charts/Base62.cpp
         src/charts/Base62.h
         src/support/ConvertTachiClearType.cpp

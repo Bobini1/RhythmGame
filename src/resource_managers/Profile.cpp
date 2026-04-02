@@ -12,6 +12,7 @@
 #include "input/GamepadManager.h"
 #include "support/PathToUtfString.h"
 #include "qml_components/ScoreSyncOperation.h"
+#include "qml_components/BeatorajaReplayImporter.h"
 #include <qt6keychain/keychain.h>
 
 #include <QNetworkCookie>
@@ -223,6 +224,7 @@ Profile::Profile(
   , vars(this, themeFamilies, std::move(assetsPaths))
   , networkManager(networkManager)
 {
+    importPool.setMaxThreadCount(1);
     db.execute("CREATE TABLE IF NOT EXISTS properties ("
                "id INTEGER PRIMARY KEY AUTOINCREMENT,"
                "key TEXT NOT NULL UNIQUE,"
@@ -878,6 +880,34 @@ Profile::dispatchDownload(qml_components::ScoreSyncOperation* op,
               }
           });
       });
+}
+
+} // namespace resource_managers
+
+namespace resource_managers {
+
+void
+Profile::importReplays(const QString& folderPath)
+{
+    importPool.start([this, folderPath]() {
+        qml_components::startBeatorajaReplayImport(this, folderPath);
+    });
+}
+
+auto
+Profile::beginImportOp(int fileCount) -> qml_components::ReplayImportOperation*
+{
+    currentImportOp =
+      new qml_components::ReplayImportOperation(fileCount, this);
+    emit replayImportOperationChanged();
+    return currentImportOp;
+}
+
+auto
+Profile::getReplayImportOperation() const
+  -> qml_components::ReplayImportOperation*
+{
+    return currentImportOp;
 }
 
 } // namespace resource_managers

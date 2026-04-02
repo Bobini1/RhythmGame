@@ -10,6 +10,7 @@
 #include "input/InputTranslator.h"
 #include "qml_components/ScoreDb.h"
 #include "qml_components/ScoreSyncOperation.h"
+#include "qml_components/ReplayImportOperation.h"
 
 #include <QQmlPropertyMap>
 #include "qml_components/ThemeFamily.h"
@@ -76,6 +77,9 @@ class Profile final : public QObject
                  getLoginState NOTIFY loginStateChanged)
     Q_PROPERTY(LoginState tachiLoginState READ getTachiLoginState NOTIFY
                  loginStateChanged)
+    Q_PROPERTY(qml_components::ReplayImportOperation* replayImportOperation
+                 READ getReplayImportOperation
+                 NOTIFY replayImportOperationChanged)
     db::SqliteCppDb db;
     std::filesystem::path dbPath;
     QQmlPropertyMap* themeConfig;
@@ -85,6 +89,9 @@ class Profile final : public QObject
     QNetworkAccessManager* networkManager;
     QNetworkRequestFactory networkRequestFactory;
     QThreadPool threadPool;
+    QThreadPool importPool;
+
+    qml_components::ReplayImportOperation* currentImportOp{ nullptr };
 
     LoginState loginState{ LoginState::NotLoggedIn };
     LoginState tachiLoginState{ LoginState::NotLoggedIn };
@@ -157,6 +164,22 @@ class Profile final : public QObject
      */
     Q_INVOKABLE qml_components::ScoreSyncOperation* downloadScores();
 
+    /**
+     * @brief Start importing beatoraja replay files from a folder.
+     * @details Runs in the background. Progress is tracked via the
+     * replayImportOperation property.
+     */
+    Q_INVOKABLE void importReplays(const QString& folderPath);
+    auto getReplayImportOperation() const
+      -> qml_components::ReplayImportOperation*;
+
+    /**
+     * @brief Create and publish a new import operation.
+     * @details Must only be called on the main thread. Intended to be invoked
+     * from a background import task via Qt::BlockingQueuedConnection.
+     */
+    auto beginImportOp(int fileCount) -> qml_components::ReplayImportOperation*;
+
     auto submitScore(const gameplay_logic::BmsScore& score,
                      const gameplay_logic::ChartData& chartData) const
       -> QNetworkReply*;
@@ -166,6 +189,7 @@ class Profile final : public QObject
     void tachiLoginStateChanged();
     void onlineUserDataChanged();
     void tachiDataChanged();
+    void replayImportOperationChanged();
 };
 
 } // namespace resource_managers

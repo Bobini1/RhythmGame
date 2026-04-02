@@ -3,6 +3,7 @@
 //
 
 #include "BeatorajaReplayImporter.h"
+#include "ReplayImportOperation.h"
 
 #include "gameplay_logic/BmsGameReferee.h"
 #include "gameplay_logic/BmsLiveScore.h"
@@ -22,13 +23,13 @@
 #include <QDir>
 #include <QDirIterator>
 #include <QFile>
+#include <QFileInfo>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QScopeGuard>
 #include <QSet>
 #include <QUrl>
-#include <QUuid>
 #include <QtEndian>
 #include <magic_enum/magic_enum.hpp>
 #include <spdlog/spdlog.h>
@@ -197,14 +198,8 @@ parseReplayPayload(const QString& filePath) -> ReplayPayload
           return left.order < right.order;
       });
 
-    spdlog::error(
-      "Replay payload is missing required fields. Payload content: {}",
-      QString(QJsonDocument(object).toJson(QJsonDocument::Indented))
-        .toStdString());
-    if (payload.sha256.isEmpty() || payload.keylog.isEmpty()) {
-        // print the json
-        throw std::runtime_error(
-          "Replay payload is missing chart hash or keylog");
+    if (payload.sha256.isEmpty()) {
+        throw std::runtime_error("Replay payload is missing chart hash");
     }
 
     return payload;
@@ -388,30 +383,6 @@ flipPlayfields(std::array<std::vector<charts::BmsNotesData::Note>,
 }
 
 auto
-duplicateSingleToBattle(
-  std::array<std::vector<charts::BmsNotesData::Note>,
-             charts::BmsNotesData::columnNumber>& visibleNotes,
-  gameplay_logic::ChartData::Keymode keymode)
-  -> gameplay_logic::ChartData::Keymode
-{
-    if (keymode == gameplay_logic::ChartData::Keymode::K5) {
-        for (int i = 0; i < 7; ++i) {
-            visibleNotes[14 - i] = visibleNotes[i];
-        }
-        visibleNotes[15] = visibleNotes[7];
-        return gameplay_logic::ChartData::Keymode::K10;
-    }
-    if (keymode == gameplay_logic::ChartData::Keymode::K7) {
-        for (int i = 0; i < 7; ++i) {
-            visibleNotes[14 - i] = visibleNotes[i];
-        }
-        visibleNotes[15] = visibleNotes[7];
-        return gameplay_logic::ChartData::Keymode::K14;
-    }
-    return keymode;
-}
-
-auto
 applyImportedOrder(std::span<std::vector<charts::BmsNotesData::Note>>& notes,
                    resource_managers::NoteOrderAlgorithm algorithm,
                    uint64_t seed,
@@ -435,7 +406,9 @@ applyImportedOrder(std::span<std::vector<charts::BmsNotesData::Note>>& notes,
 }
 
 auto
-createScoreFromReplay(resource_managers::Profile& profile, ReplayPayload replay)
+createScoreFromReplay(resource_managers::Profile& profile,
+                      ReplayPayload replay,
+                      const QString& guid)
   -> std::unique_ptr<gameplay_logic::BmsScore>
 {
     auto chartPath = getChartPath(profile, replay.sha256);
@@ -481,7 +454,7 @@ createScoreFromReplay(resource_managers::Profile& profile, ReplayPayload replay)
     auto dpOptions = resource_managers::DpOptions::Off;
     auto visibleNotes = chartComponents.notesData.notes;
     if (replay.doubleOption == 3) {
-        throw std::runtime_error("BATTLE AS replays are not supported");
+        throw std::runtime_error("BATTLE replays are not supported atm");
     }
 
     switch (replay.doubleOption) {
@@ -490,17 +463,6 @@ createScoreFromReplay(resource_managers::Profile& profile, ReplayPayload replay)
         case 1:
             if (keymode == gameplay_logic::ChartData::Keymode::K10 ||
                 keymode == gameplay_logic::ChartData::Keymode::K14) {
-                flipPlayfields(visibleNotes);
-                dpOptions = resource_managers::DpOptions::Flip;
-            }
-            break;
-        case 2:
-            if (keymode == gameplay_logic::ChartData::Keymode::K5 ||
-                keymode == gameplay_logic::ChartData::Keymode::K7) {
-                keymode = duplicateSingleToBattle(visibleNotes, keymode);
-                dpOptions = resource_managers::DpOptions::Battle;
-            } else if (keymode == gameplay_logic::ChartData::Keymode::K10 ||
-                       keymode == gameplay_logic::ChartData::Keymode::K14) {
                 flipPlayfields(visibleNotes);
                 dpOptions = resource_managers::DpOptions::Flip;
             }
@@ -519,56 +481,37 @@ createScoreFromReplay(resource_managers::Profile& profile, ReplayPayload replay)
                                  visibleNotes.size() / 2 };
         const auto is5k = keymode == gameplay_logic::ChartData::Keymode::K10;
         shuffle =
-          applyImportedOrder(notes1,
-                             *algorithm,
-                             replay.randomOptionSeed < 0
-                               ? 0
-                               : static_cast<uint64_t>(replay.randomOptionSeed),
-                             is5k);
-        const auto secondSeed = replay.randomOptionSeedP2 < 0
-                                  ? static_cast<qint64>(shuffle.seed) + 1
-                                  : replay.randomOptionSeedP2;
+          applyImportedOrder(notes1, *algorithm, replay.randomOptionSeed, is5k);
         shuffleP2 = applyImportedOrder(
-          notes2, *algorithmP2, static_cast<uint64_t>(secondSeed), is5k);
+          notes2, *algorithmP2, replay.randomOptionSeedP2, is5k);
     } else {
         auto notesSpan =
           std::span{ visibleNotes.data(), visibleNotes.size() / 2 };
         const auto is5k = keymode == gameplay_logic::ChartData::Keymode::K5;
-        shuffle =
-          applyImportedOrder(notesSpan,
-                             *algorithm,
-                             replay.randomOptionSeed < 0
-                               ? 0
-                               : static_cast<uint64_t>(replay.randomOptionSeed),
-                             is5k);
+        shuffle = applyImportedOrder(
+          notesSpan, *algorithm, replay.randomOptionSeed, is5k);
     }
 
     const auto rank = magic_enum::enum_cast<gameplay_logic::rules::BmsRank>(
                         chartData->getRank())
                         .value_or(gameplay_logic::rules::defaultBmsRank);
-    auto multiplier = 1;
-    if (dpOptions == resource_managers::DpOptions::Battle) {
-        multiplier = 2;
-    }
     auto gaugesRaw = gameplay_logic::rules::Lr2Gauge::getGauges(
       chartData->getTotal(),
       (chartData->getNormalNoteCount() + chartData->getLnCount() +
-       chartData->getBssCount() + chartData->getScratchCount()) *
-        multiplier);
+       chartData->getBssCount() + chartData->getScratchCount()));
     auto gauges = QList<gameplay_logic::rules::BmsGauge*>{};
     for (auto& gauge : gaugesRaw) {
         gauges.append(gauge.release());
     }
 
     auto liveScore = std::make_unique<gameplay_logic::BmsLiveScore>(
-      chartData->getNormalNoteCount() * multiplier,
-      chartData->getScratchCount() * multiplier,
-      chartData->getLnCount() * multiplier,
-      chartData->getBssCount() * multiplier,
-      chartData->getMineCount() * multiplier,
+      chartData->getNormalNoteCount(),
+      chartData->getScratchCount(),
+      chartData->getLnCount(),
+      chartData->getBssCount(),
+      chartData->getMineCount(),
       (chartData->getNormalNoteCount() + chartData->getLnCount() +
-       chartData->getBssCount() + chartData->getScratchCount()) *
-        multiplier,
+       chartData->getBssCount() + chartData->getScratchCount()),
       gameplay_logic::rules::lr2_hit_values::getLr2HitValue(
         0ns, gameplay_logic::Judgement::Perfect),
       gauges,
@@ -586,7 +529,7 @@ createScoreFromReplay(resource_managers::Profile& profile, ReplayPayload replay)
       chartData->getMd5(),
       keymode,
       replay.date > 0 ? replay.date : 0,
-      QUuid::createUuid().toString());
+      guid);
 
     auto referee = gameplay_logic::BmsGameReferee(
       visibleNotes,
@@ -631,24 +574,12 @@ createScoreFromReplay(resource_managers::Profile& profile, ReplayPayload replay)
 
 } // namespace
 
-BeatorajaReplayImporter::BeatorajaReplayImporter(QObject* parent)
-  : QObject(parent)
+ReplayImportOperation*
+startBeatorajaReplayImport(resource_managers::Profile* profile,
+                           const QString& folderPath)
 {
-}
-
-QVariantMap
-BeatorajaReplayImporter::importFolder(resource_managers::Profile* profile,
-                                      const QString& folderPath) const
-{
-    auto result = QVariantMap{
-        { "imported", 0 },
-        { "skipped", 0 },
-        { "errors", QStringList{} },
-    };
-    if (profile == nullptr) {
-        result["errors"] = QStringList{ QStringLiteral("Profile is null") };
-        return result;
-    }
+    // This function is always called from a background thread
+    // (Profile::importPool).
 
     auto resolvedFolderPath = folderPath;
     const auto folderUrl = QUrl(folderPath);
@@ -656,42 +587,75 @@ BeatorajaReplayImporter::importFolder(resource_managers::Profile* profile,
         resolvedFolderPath = folderUrl.toLocalFile();
     }
 
-    const auto directory = QDir(resolvedFolderPath);
-    if (!directory.exists()) {
-        result["errors"] =
-          QStringList{ QStringLiteral("Folder does not exist") };
-        return result;
-    }
-
-    auto imported = 0;
-    auto skipped = 0;
-    auto errors = QStringList{};
-    auto iterator = QDirIterator(resolvedFolderPath,
-                                 { QStringLiteral("*.brd") },
-                                 QDir::Files,
-                                 QDirIterator::Subdirectories);
-    while (iterator.hasNext()) {
-        const auto replayPath = iterator.next();
-        try {
-            auto replay = parseReplayPayload(replayPath);
-            auto score = createScoreFromReplay(*profile, replay);
-            score->save(profile->getDb());
-            ++imported;
-        } catch (const std::exception& e) {
-            ++skipped;
-            const auto error = QStringLiteral("%1: %2").arg(
-              replayPath, QString::fromUtf8(e.what()));
-            errors.append(error);
-            spdlog::warn("Failed to import beatoraja replay {}: {}",
-                         replayPath.toStdString(),
-                         e.what());
+    // Enumerate replay files on this background thread.
+    auto replayFiles = QStringList{};
+    const auto dirExists = QDir(resolvedFolderPath).exists();
+    if (dirExists) {
+        auto iterator = QDirIterator(resolvedFolderPath,
+                                     { QStringLiteral("*.brd") },
+                                     QDir::Files,
+                                     QDirIterator::Subdirectories);
+        while (iterator.hasNext()) {
+            replayFiles.append(iterator.next());
         }
     }
 
-    result["imported"] = imported;
-    result["skipped"] = skipped;
-    result["errors"] = errors;
-    return result;
+    // Create and publish the operation on the main thread, then block until
+    // done.
+    ReplayImportOperation* op = nullptr;
+    QMetaObject::invokeMethod(
+      profile,
+      [profile, count = replayFiles.size(), &op]() {
+          op = profile->beginImportOp(count);
+      },
+      Qt::BlockingQueuedConnection);
+
+    if (op == nullptr) {
+        return nullptr;
+    }
+
+    if (!dirExists) {
+        QMetaObject::invokeMethod(op, [op] {
+            op->reportError(QStringLiteral("Folder does not exist"));
+        });
+        return op;
+    }
+
+    for (const auto& replayPath : replayFiles) {
+        const auto guid = QFileInfo(replayPath).completeBaseName();
+
+        try {
+            auto checkStmt = profile->getDb().createStatement(
+              "SELECT COUNT(*) FROM score WHERE guid = ? LIMIT 1;");
+            checkStmt.bind(1, guid.toStdString());
+            const auto exists =
+              checkStmt.executeAndGet<int64_t>().value_or(0) > 0;
+
+            if (exists) {
+                QMetaObject::invokeMethod(op, [op] { op->incrementSkipped(); });
+                continue;
+            }
+
+            auto replay = parseReplayPayload(replayPath);
+            auto score =
+              createScoreFromReplay(*profile, std::move(replay), guid);
+            score->save(profile->getDb());
+
+            QMetaObject::invokeMethod(op, [op] { op->incrementImported(); });
+        } catch (const std::exception& e) {
+            const auto msg = QStringLiteral("%1: %2").arg(
+              replayPath, QString::fromUtf8(e.what()));
+            spdlog::warn("Failed to import beatoraja replay {}: {}",
+                         replayPath.toStdString(),
+                         e.what());
+            QMetaObject::invokeMethod(op, [op, msg] {
+                op->reportError(msg);
+                op->incrementErrored();
+            });
+        }
+    }
+
+    return op;
 }
 
 } // namespace qml_components
