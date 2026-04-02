@@ -25,12 +25,14 @@ class ReplayImportOperation final : public QObject
     Q_PROPERTY(int total READ getTotal NOTIFY progressChanged)
     Q_PROPERTY(int imported READ getImported NOTIFY progressChanged)
     Q_PROPERTY(int skipped READ getSkipped NOTIFY progressChanged)
+    Q_PROPERTY(int errored READ getErrored NOTIFY progressChanged)
     Q_PROPERTY(bool finished READ isFinished NOTIFY finishedChanged)
 
     int currentDone{ 0 };
     int currentTotal{ 0 };
     int importedCount{ 0 };
     int skippedCount{ 0 };
+    int erroredCount{ 0 };
     bool finishedFlag{ false };
 
     void checkFinished();
@@ -42,6 +44,7 @@ class ReplayImportOperation final : public QObject
     [[nodiscard]] auto getTotal() const -> int { return currentTotal; }
     [[nodiscard]] auto getImported() const -> int { return importedCount; }
     [[nodiscard]] auto getSkipped() const -> int { return skippedCount; }
+    [[nodiscard]] auto getErrored() const -> int { return erroredCount; }
     [[nodiscard]] auto isFinished() const -> bool { return finishedFlag; }
 
     /** Called on the main thread when a replay was successfully saved. */

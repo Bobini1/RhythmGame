@@ -43,6 +43,7 @@ ReplayImportOperation::incrementSkipped()
 void
 ReplayImportOperation::incrementErrored()
 {
+    ++erroredCount;
     ++currentDone;
     emit progressChanged();
     checkFinished();

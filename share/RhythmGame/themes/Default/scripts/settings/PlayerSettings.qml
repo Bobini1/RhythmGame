@@ -152,54 +152,59 @@ Item {
                 Layout.fillWidth: true
                 Layout.preferredWidth: 1
 
-                Label {
-                    id: profileText
-                    font.pixelSize: 20
-                    text: qsTr("Edit Profile")
-                }
-                Frame {
-                    id: avatarFrame
-                    anchors.top: profileText.bottom
-                    anchors.topMargin: 16
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    width: parent.width / 2
-                    height: parent.width / 2
-                    Image {
-                        anchors.fill: parent
-                        source: Rg.profileList.mainProfile.vars.generalVars.avatar
-                        asynchronous: true
-                        fillMode: Image.PreserveAspectFit
+                ColumnLayout {
+                    id: profileColumnLayout
+                    anchors.fill: parent
+                    spacing: 0
 
-                        TapHandler {
-                            onTapped: {
-                                fileDialog.open();
+                    Label {
+                        id: profileText
+                        font.pixelSize: 20
+                        text: qsTr("Edit Profile")
+                        Layout.bottomMargin: 16
+                    }
+                    Frame {
+                        id: avatarFrame
+                        Layout.alignment: Qt.AlignHCenter
+                        Layout.preferredWidth: profileColumnLayout.width / 2
+                        Layout.maximumWidth: profileColumnLayout.width / 2
+                        Layout.preferredHeight: profileColumnLayout.width / 2
+                        Image {
+                            anchors.fill: parent
+                            source: Rg.profileList.mainProfile.vars.generalVars.avatar
+                            asynchronous: true
+                            fillMode: Image.PreserveAspectFit
+
+                            TapHandler {
+                                onTapped: {
+                                    fileDialog.open();
+                                }
                             }
                         }
                     }
-                }
-                TextField {
-                    id: nameField
-                    text: Rg.profileList.mainProfile.vars.generalVars.name
-                    font.pixelSize: 24
-                    color: palette.text
-                    width: avatarFrame.width
-                    horizontalAlignment: Text.AlignHCenter
-                    verticalAlignment: Text.AlignVCenter
-                    anchors.top: avatarFrame.bottom
-                    anchors.topMargin: 16
-                    anchors.horizontalCenter: parent.horizontalCenter
+                    TextField {
+                        id: nameField
+                        text: Rg.profileList.mainProfile.vars.generalVars.name
+                        font.pixelSize: 24
+                        color: palette.text
+                        Layout.preferredWidth: profileColumnLayout.width / 2
+                        Layout.maximumWidth: profileColumnLayout.width / 2
+                        Layout.alignment: Qt.AlignHCenter
+                        Layout.topMargin: 16
+                        horizontalAlignment: Text.AlignHCenter
+                        verticalAlignment: Text.AlignVCenter
 
-                    onTextChanged: {
-                        Rg.profileList.mainProfile.vars.generalVars.name = text;
+                        onTextChanged: {
+                            Rg.profileList.mainProfile.vars.generalVars.name = text;
+                        }
                     }
-                }
-                ColumnLayout {
-                    id: loginSection
-                    anchors.top: nameField.bottom
-                    anchors.topMargin: 16
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    width: avatarFrame.width
-                    spacing: 8
+                    ColumnLayout {
+                        id: loginSection
+                        Layout.alignment: Qt.AlignHCenter
+                        Layout.preferredWidth: profileColumnLayout.width / 2
+                        Layout.maximumWidth: profileColumnLayout.width / 2
+                        Layout.topMargin: 16
+                        spacing: 8
 
                     property var profile: Rg.profileList.mainProfile
                     property bool syncing: false
@@ -342,13 +347,15 @@ Item {
                         }
                     }
                 }
-                ColumnLayout {
-                    id: replayImportSection
-                    anchors.top: loginSection.bottom
-                    anchors.topMargin: 24
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    width: avatarFrame.width
-                    spacing: 8
+                    ColumnLayout {
+                        id: replayImportSection
+                        Layout.alignment: Qt.AlignHCenter
+                        Layout.preferredWidth: profileColumnLayout.width / 2
+                        Layout.maximumWidth: profileColumnLayout.width / 2
+                        Layout.topMargin: 24
+                        Layout.fillHeight: true
+                        Layout.bottomMargin: 16
+                        spacing: 8
 
                     property url selectedFolder: ""
                     readonly property var op: loginSection.profile.replayImportOperation
@@ -440,15 +447,17 @@ Item {
                         Layout.fillWidth: true
                         wrapMode: Text.Wrap
                         visible: replayImportSection.op !== null
-                        text: qsTr("Imported: %1, skipped: %2, total: %3")
+                        text: qsTr("Imported: %1, errors: %2, skipped: %3, total: %4")
                             .arg(replayImportSection.op ? replayImportSection.op.imported : 0)
+                            .arg(replayImportSection.op ? replayImportSection.op.errored : 0)
                             .arg(replayImportSection.op ? replayImportSection.op.skipped : 0)
                             .arg(replayImportSection.op ? replayImportSection.op.total : 0)
                     }
 
                     ListView {
                         Layout.fillWidth: true
-                        height: 120
+                        Layout.fillHeight: true
+                        Layout.minimumHeight: 100
                         visible: errorsModel.count > 0
                         model: errorsModel
                         spacing: 2
@@ -463,6 +472,11 @@ Item {
                             text: message
                         }
                     }
+                    Item {
+                        Layout.fillHeight: true
+                        visible: errorsModel.count === 0
+                    }
+                }
                 }
             }
         }
