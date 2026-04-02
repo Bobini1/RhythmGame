@@ -22,6 +22,7 @@ OnlineRankingModel::performJsonGet(
     const auto request = networkRequestFactory.createRequest(url);
 
     QNetworkReply* reply = networkManager->get(request);
+    reply->setParent(this);
 
     connect(this, &OnlineRankingModel::cancelPendingRequested, reply, [reply] {
         reply->abort();
@@ -121,6 +122,7 @@ OnlineRankingModel::handleTachiReply(int startRanking,
             .arg(startRanking);
         auto pbsReq = QNetworkRequest(QUrl(pbsUrlStr));
         QNetworkReply* pbsReply = networkManager->get(pbsReq);
+        reply->setParent(this);
         connect(this,
                 &OnlineRankingModel::cancelPendingRequested,
                 pbsReply,
@@ -629,6 +631,7 @@ OnlineRankingModel::fetchLR2IR()
       QString("songmd5=%1&id=1").arg(currentMd5).toUtf8();
 
     QNetworkReply* reply = networkManager->post(request, postData);
+    reply->setParent(this);
 
     connect(this, &OnlineRankingModel::cancelPendingRequested, reply, [reply] {
         reply->abort();
@@ -741,6 +744,7 @@ OnlineRankingModel::fetchTachi()
 
                 QNetworkReply* pbsReply =
                   networkManager->get(QNetworkRequest(QUrl(pbsUrlStr)));
+                pbsReply->setParent(this);
                 connect(this,
                         &OnlineRankingModel::cancelPendingRequested,
                         pbsReply,
