@@ -448,7 +448,7 @@ Item {
                         Layout.fillWidth: true
                         wrapMode: Text.Wrap
                         visible: replayImportSection.op !== null
-                        text: qsTr("Imported: %1, errors: %2, skipped: %3, total: %4")
+                        text: qsTr("Imported: %1, errors: %2,\nskipped: %3, total: %4")
                             .arg(replayImportSection.op ? replayImportSection.op.imported : 0)
                             .arg(replayImportSection.op ? replayImportSection.op.errored : 0)
                             .arg(replayImportSection.op ? replayImportSection.op.skipped : 0)

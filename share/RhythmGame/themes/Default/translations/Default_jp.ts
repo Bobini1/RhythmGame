@@ -444,22 +444,22 @@
 <context>
     <name>Main</name>
     <message>
-        <location filename="../scripts/main/Main.qml" line="126"/>
+        <location filename="../scripts/main/Main.qml" line="127"/>
         <source>Song Selection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/main/Main.qml" line="135"/>
+        <location filename="../scripts/main/Main.qml" line="136"/>
         <source>Settings</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/main/Main.qml" line="145"/>
+        <location filename="../scripts/main/Main.qml" line="146"/>
         <source>Attributions</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/main/Main.qml" line="155"/>
+        <location filename="../scripts/main/Main.qml" line="156"/>
         <source>Quit</source>
         <translation type="unfinished"></translation>
     </message>
@@ -670,68 +670,104 @@
 <context>
     <name>PlayerSettings</name>
     <message>
-        <location filename="../scripts/settings/PlayerSettings.qml" line="31"/>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="33"/>
         <source>Delete %1?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/PlayerSettings.qml" line="56"/>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="48"/>
+        <source>Select beatoraja replay folder</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="67"/>
         <source>Select Profile</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/PlayerSettings.qml" line="106"/>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="117"/>
         <source>Scores: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/PlayerSettings.qml" line="111"/>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="122"/>
         <source>Remove</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/PlayerSettings.qml" line="130"/>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="141"/>
         <source>Add profile</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/PlayerSettings.qml" line="149"/>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="165"/>
         <source>Edit Profile</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/PlayerSettings.qml" line="226"/>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="242"/>
         <source>Online Login</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/PlayerSettings.qml" line="267"/>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="283"/>
         <source>Logged in as %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/PlayerSettings.qml" line="272"/>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="288"/>
         <source>Logout</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/PlayerSettings.qml" line="284"/>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="300"/>
         <source>Sync scores</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/PlayerSettings.qml" line="309"/>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="325"/>
         <source>Email</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/PlayerSettings.qml" line="318"/>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="334"/>
         <source>Password</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/PlayerSettings.qml" line="327"/>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="343"/>
         <source>Login</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="384"/>
+        <source>Import beatoraja replays</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="395"/>
+        <source>e.g. beatoraja/player/player1/replay</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="415"/>
+        <source>Import</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="423"/>
+        <source>Select…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="423"/>
+        <source>Change…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="451"/>
+        <source>Imported: %1, errors: %2,
+skipped: %3, total: %4</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -1007,22 +1043,22 @@
 <context>
     <name>TableSettings</name>
     <message>
-        <location filename="../scripts/settings/TableSettings.qml" line="151"/>
+        <location filename="../scripts/settings/TableSettings.qml" line="153"/>
         <source>Reload</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/TableSettings.qml" line="158"/>
+        <location filename="../scripts/settings/TableSettings.qml" line="160"/>
         <source>Remove</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/TableSettings.qml" line="219"/>
+        <location filename="../scripts/settings/TableSettings.qml" line="221"/>
         <source>Add table</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/TableSettings.qml" line="229"/>
+        <location filename="../scripts/settings/TableSettings.qml" line="231"/>
         <source>Add</source>
         <translation type="unfinished"></translation>
     </message>
