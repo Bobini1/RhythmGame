@@ -36,4 +36,6 @@ QDataStream&
 operator>>(QDataStream& stream, BmsPoints& points);
 } // namespace gameplay_logic
 
+Q_DECLARE_METATYPE(gameplay_logic::BmsPoints)
+
 #endif // RHYTHMGAME_BMSPOINTS_H

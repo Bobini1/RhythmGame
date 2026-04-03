@@ -11,7 +11,8 @@ using namespace std::chrono_literals;
 auto
 gameplay_logic::rules::HitRules::press(std::span<Note> notes,
                                        const int column,
-                                       const std::chrono::nanoseconds hitOffset)
+                                       const std::chrono::nanoseconds hitOffset,
+                                       const std::optional<input::BmsKey> key)
   -> QList<HitEvent>
 {
     struct PendingHit
@@ -23,6 +24,7 @@ gameplay_logic::rules::HitRules::press(std::span<Note> notes,
     auto currentNoteIndex = currentNotes[column];
     auto pendingHits =
       std::vector<PendingHit>{ { HitEvent{ column,
+                                           key,
                                            std::nullopt,
                                            hitOffset.count(),
                                            std::nullopt,
@@ -36,6 +38,38 @@ gameplay_logic::rules::HitRules::press(std::span<Note> notes,
         const auto notePosition =
           subspanStartIndex + static_cast<int>(iter - subspan.begin());
         if (note.hit) {
+            // Already-hit notes can still trigger EmptyPoor (beatoraja
+            // behavior): a press near a consumed note in the EmptyPoor window
+            // generates an empty poor penalty.
+            // Only Normal and LnBegin are eligible — beatoraja filters out
+            // MineNote and LongNote.isEnd() before any judgement logic.
+            const auto noteTime = note.time;
+            if (note.type != NoteType::LnEnd &&
+                note.type != NoteType::Invisible &&
+                hitOffset > noteTime + timingWindows.begin()->first.lower() &&
+                hitOffset <= noteTime + timingWindows.rbegin()->first.upper()) {
+                const auto it = timingWindows.find(hitOffset - noteTime);
+                if (it != timingWindows.end() &&
+                    it->second == Judgement::EmptyPoor &&
+                    !pendingHits.front()
+                       .event.getPointsOptional()
+                       .has_value()) {
+                    pendingHits = { PendingHit{
+                      HitEvent(column,
+                               key,
+                               std::nullopt,
+                               hitOffset.count(),
+                               BmsPoints{
+                                 hitValueFactory(hitOffset - noteTime,
+                                                 Judgement::EmptyPoor),
+                                 Judgement::EmptyPoor,
+                                 (hitOffset - noteTime).count(),
+                               },
+                               HitEvent::Action::Press,
+                               /*noteRemoved=*/false),
+                      -1 } };
+                }
+            }
             currentNoteIndex++;
             continue;
         }
@@ -47,11 +81,19 @@ gameplay_logic::rules::HitRules::press(std::span<Note> notes,
         if (hitOffset <= noteTime + timingWindows.begin()->first.lower()) {
             break;
         }
-        if (hitOffset >= noteTime + timingWindows.rbegin()->first.upper()) {
+        if (hitOffset > noteTime + timingWindows.rbegin()->first.upper()) {
             currentNoteIndex++;
             continue;
         }
         const auto result = timingWindows.find(hitOffset - noteTime)->second;
+        // LN late-Bad removal (beatoraja behavior): an LN start that is late
+        // beyond the Good window is ignored — it will be missed later by
+        // processMisses instead of getting a Bad judgement.
+        if (note.type == NoteType::LnBegin && result == Judgement::Bad &&
+            (hitOffset - noteTime) > std::chrono::nanoseconds{ 0 }) {
+            currentNoteIndex++;
+            continue;
+        }
         if (result != Judgement::EmptyPoor
 #ifndef RHYTHMGAME_BOTTOM_NOTES_GET_PRIORITY
             && result != Judgement::Bad
@@ -61,17 +103,38 @@ gameplay_logic::rules::HitRules::press(std::span<Note> notes,
             if (note.sound != nullptr && !soundDisabled) {
                 note.sound->play();
             }
+
+            // Collect multi-bad events: earlier notes that were in the Bad
+            // window get a Bad judgement instead of being silently dropped
+            // (they would otherwise become Poor misses later).
+            auto multiBadEvents = QList<HitEvent>{};
+            for (const auto& pending : pendingHits) {
+                if (pending.notePosition >= 0 &&
+                    pending.event.getPointsOptional().has_value() &&
+                    pending.event.getPointsOptional()->getJudgement() ==
+                      Judgement::Bad &&
+                    notes[pending.notePosition].type == NoteType::Normal) {
+                    notes[pending.notePosition].hit = true;
+                    auto event = pending.event;
+                    event.setAction(HitEvent::Action::None);
+                    multiBadEvents.append(std::move(event));
+                }
+            }
+
             if (note.type != NoteType::LnBegin) {
-                return { { column,
-                           note.index,
-                           hitOffset.count(),
-                           BmsPoints{
-                             hitValueFactory(hitOffset - noteTime, result),
-                             result,
-                             (hitOffset - noteTime).count(),
-                           },
-                           HitEvent::Action::Press,
-                           /*noteRemoved=*/true } };
+                multiBadEvents.append(
+                  { column,
+                    key,
+                    note.index,
+                    hitOffset.count(),
+                    BmsPoints{
+                      hitValueFactory(hitOffset - noteTime, result),
+                      result,
+                      (hitOffset - noteTime).count(),
+                    },
+                    HitEvent::Action::Press,
+                    /*noteRemoved=*/true });
+                return multiBadEvents;
             }
 
             lnBeginPoints[column] = BmsPoints{
@@ -79,20 +142,23 @@ gameplay_logic::rules::HitRules::press(std::span<Note> notes,
                 result,
                 (hitOffset - noteTime).count(), // unused
             };
-            auto ret = QList<HitEvent>{ { column,
-                                          note.index,
-                                          hitOffset.count(),
-                                          BmsPoints{
-                                            0.0,
-                                            Judgement::LnBeginHit,
-                                            (hitOffset - noteTime).count(),
-                                          },
-                                          HitEvent::Action::Press,
-                                          /*noteRemoved=*/true } };
+            lnPressedKeys[column] =
+              result == Judgement::Bad ? std::nullopt : key;
+            multiBadEvents.append({ column,
+                                    key,
+                                    note.index,
+                                    hitOffset.count(),
+                                    BmsPoints{
+                                      0.0,
+                                      Judgement::LnBeginHit,
+                                      (hitOffset - noteTime).count(),
+                                    },
+                                    HitEvent::Action::Press,
+                                    /*noteRemoved=*/true });
             if (result == Judgement::Bad) {
                 const auto nextNote = std::next(iter);
                 nextNote->hit = true;
-                ret.append(
+                multiBadEvents.append(
                   { column,
                     nextNote->index,
                     hitOffset.count(),
@@ -104,15 +170,17 @@ gameplay_logic::rules::HitRules::press(std::span<Note> notes,
                     HitEvent::Action::None,
                     /*noteRemoved=*/true });
             }
-            return ret;
+            return multiBadEvents;
         }
         if (!pendingHits.front().event.getPointsOptional().has_value() ||
             (result == Judgement::Bad &&
-             notes[pendingHits.front().notePosition].type !=
-               NoteType::LnBegin)) {
+             (pendingHits.front().notePosition < 0 ||
+              notes[pendingHits.front().notePosition].type !=
+                NoteType::LnBegin))) {
 
             auto pendingHit = PendingHit{
                 HitEvent(column,
+                         key,
                          note.index,
                          hitOffset.count(),
                          BmsPoints{
@@ -224,11 +292,23 @@ gameplay_logic::rules::HitRules::processMisses(
             continue;
         }
         auto noteTime = iter->time;
-        if (offsetFromStart < noteTime + upperBound) {
-            break;
+        if (offsetFromStart <= noteTime + upperBound) {
+            // For LnEnd notes whose LnBegin was hit, judge them as soon as
+            // the current time passes the LN end time (matching beatoraja's
+            // immediate held-past-end judgement at line 619 of JudgeManager).
+            // Without this, the LN end sits unjudged for up to 200ms,
+            // during which lnBeginPoints[column] can be overwritten by a
+            // subsequent LN press in the same column.
+            if (iter->type == NoteType::LnEnd &&
+                offsetFromStart > noteTime) {
+                // fall through to process this LnEnd
+            } else {
+                break;
+            }
         }
         if (iter->type == NoteType::LnEnd) {
             if (iter->time <= offsetFromStart) {
+                lnPressedKeys[column] = std::nullopt;
                 events.emplace_back(
                   column,
                   iter->index,
@@ -255,6 +335,7 @@ gameplay_logic::rules::HitRules::processMisses(
         }
         // register a skip event for the end of the long note
         if (iter->type == NoteType::LnBegin) {
+            lnPressedKeys[column] = std::nullopt;
             if (iter->sound != nullptr) {
                 iter->sound->stop();
             }
@@ -365,7 +446,8 @@ auto
 gameplay_logic::rules::HitRules::release(
   std::span<Note> notes,
   const int column,
-  const std::chrono::nanoseconds hitOffset) -> HitEvent
+  const std::chrono::nanoseconds hitOffset,
+  const std::optional<input::BmsKey> key) -> HitEvent
 {
     const auto currentNoteIndex = currentNotes[column];
     const auto windowLow = [&] {
@@ -378,6 +460,7 @@ gameplay_logic::rules::HitRules::release(
     }();
     if (currentNoteIndex > notes.size()) {
         return { column,
+                 key,
                  std::nullopt,
                  hitOffset.count(),
                  std::nullopt,
@@ -391,6 +474,7 @@ gameplay_logic::rules::HitRules::release(
         }
         if (iter->type != NoteType::LnEnd) {
             return { column,
+                     key,
                      std::nullopt,
                      hitOffset.count(),
                      std::nullopt,
@@ -402,10 +486,22 @@ gameplay_logic::rules::HitRules::release(
         if (!lnBegin.hit) {
             continue;
         }
-        // dropped too early
-        if (hitOffset <= noteTime + windowLow) {
-            iter->hit = true;
+        if (lnPressedKeys[column].has_value() && key.has_value() &&
+            lnPressedKeys[column] != key) {
             return { column,
+                     key,
+                     std::nullopt,
+                     hitOffset.count(),
+                     std::nullopt,
+                     HitEvent::Action::Release,
+                     /*noteRemoved=*/false };
+        }
+        // dropped too early
+        if (hitOffset < noteTime + windowLow) {
+            iter->hit = true;
+            lnPressedKeys[column] = std::nullopt;
+            return { column,
+                     key,
                      iter->index,
                      hitOffset.count(),
                      BmsPoints{
@@ -415,12 +511,25 @@ gameplay_logic::rules::HitRules::release(
                      HitEvent::Action::Release,
                      /*noteRemoved=*/true };
         }
-        // dropped late (handled in processMisses)
+        // Held past the LN end time: judge with start judgement
+        // (beatoraja behavior - line 619 of JudgeManager)
         if (hitOffset >= noteTime) {
-            break;
+            iter->hit = true;
+            lnPressedKeys[column] = std::nullopt;
+            return { column,
+                     key,
+                     iter->index,
+                     noteTime.count(),
+                     BmsPoints{ lnBeginPoints[column].getValue(),
+                                lnBeginPoints[column].getJudgement(),
+                                (hitOffset - noteTime).count() },
+                     HitEvent::Action::Release,
+                     /*noteRemoved=*/true };
         }
         iter->hit = true;
+        lnPressedKeys[column] = std::nullopt;
         return { column,
+                 key,
                  iter->index,
                  noteTime.count(),
                  BmsPoints{ lnBeginPoints[column].getValue(),
@@ -430,6 +539,7 @@ gameplay_logic::rules::HitRules::release(
                  /*noteRemoved=*/true };
     }
     return { column,
+             key,
              std::nullopt,
              hitOffset.count(),
              std::nullopt,

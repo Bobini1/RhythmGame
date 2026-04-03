@@ -39,6 +39,17 @@ generatePermutation(std::span<std::vector<charts::BmsNotesData::Note>>& notes,
                     uint64_t seed,
                     bool k5,
                     bool usePre130) -> ShuffleResult;
+
+auto
+generateBeatorajaLanePermutation(
+  std::span<std::vector<charts::BmsNotesData::Note>> notes,
+  resource_managers::NoteOrderAlgorithm algorithm,
+  int64_t seed) -> ShuffleResult;
+
+auto
+isBeatorajaNoteOrderAlgorithm(resource_managers::NoteOrderAlgorithm algorithm)
+  -> bool;
+
 } // namespace support
 
 #endif // GENERATEPERMUTATION_H

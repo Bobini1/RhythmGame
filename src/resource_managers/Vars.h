@@ -30,7 +30,9 @@ enum class NoteOrderAlgorithm
     SRandom,
     RRandom,
     RandomPlus,
-    SRandomPlus
+    SRandomPlus,
+    BeatorajaRandom,
+    BeatorajaRandomEx,
 };
 Q_ENUM_NS(NoteOrderAlgorithm)
 } // namespace note_order_algorithm

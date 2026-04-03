@@ -8,6 +8,7 @@
 #include "TimingWindows.h"
 #include "BmsGauge.h"
 #include "gameplay_logic/HitEvent.h"
+#include "input/BmsKeys.h"
 
 #include <span>
 #include <chrono>
@@ -39,6 +40,8 @@ class HitRules
     std::array<int, charts::BmsNotesData::columnNumber> currentNotes{};
     std::array<int, charts::BmsNotesData::columnNumber> currentMines{};
     std::array<BmsPoints, charts::BmsNotesData::columnNumber> lnBeginPoints{};
+    std::array<std::optional<input::BmsKey>, charts::BmsNotesData::columnNumber>
+      lnPressedKeys{};
     bool soundDisabled = false;
 
   public:
@@ -71,7 +74,9 @@ class HitRules
     void disableSound();
     auto press(std::span<Note> notes,
                int column,
-               std::chrono::nanoseconds hitOffset) -> QList<HitEvent>;
+               std::chrono::nanoseconds hitOffset,
+               std::optional<input::BmsKey> key = std::nullopt)
+      -> QList<HitEvent>;
 
     auto processMisses(std::span<Note> notes,
                        int column,
@@ -86,7 +91,8 @@ class HitRules
       -> std::vector<HitEvent>;
     auto release(std::span<Note> notes,
                  int column,
-                 std::chrono::nanoseconds hitOffset) -> HitEvent;
+                 std::chrono::nanoseconds hitOffset,
+                 std::optional<input::BmsKey> key = std::nullopt) -> HitEvent;
 };
 } // namespace gameplay_logic::rules
 

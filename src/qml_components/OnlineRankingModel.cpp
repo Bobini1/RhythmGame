@@ -22,6 +22,7 @@ OnlineRankingModel::performJsonGet(
     const auto request = networkRequestFactory.createRequest(url);
 
     QNetworkReply* reply = networkManager->get(request);
+    reply->setParent(this);
 
     connect(this, &OnlineRankingModel::cancelPendingRequested, reply, [reply] {
         reply->abort();
@@ -121,6 +122,7 @@ OnlineRankingModel::handleTachiReply(int startRanking,
             .arg(startRanking);
         auto pbsReq = QNetworkRequest(QUrl(pbsUrlStr));
         QNetworkReply* pbsReply = networkManager->get(pbsReq);
+        reply->setParent(this);
         connect(this,
                 &OnlineRankingModel::cancelPendingRequested,
                 pbsReply,
@@ -166,11 +168,16 @@ OnlineRankingModel::handleTachiReply(int startRanking,
         r.bestClearType = support::convertTachiClearType(
           scoreData["enumIndexes"].toObject()["lamp"].toInt());
         if (r.bestClearType == "FC") {
-            if (judgements["good"].toInt() == 0) {
+            if (!judgements["good"].isNull() &&
+                judgements["good"].toInt() == 0) {
                 r.bestClearType = "PERFECT";
-                if (judgements["great"].toInt() == 0) {
+                if (!judgements["great"].isNull() &&
+                    judgements["great"].toInt() == 0) {
                     r.bestClearType = "MAX";
                 }
+            }
+            if (r.bestPoints == r.maxPoints) {
+                r.bestClearType = "MAX";
             }
         }
 
@@ -624,6 +631,7 @@ OnlineRankingModel::fetchLR2IR()
       QString("songmd5=%1&id=1").arg(currentMd5).toUtf8();
 
     QNetworkReply* reply = networkManager->post(request, postData);
+    reply->setParent(this);
 
     connect(this, &OnlineRankingModel::cancelPendingRequested, reply, [reply] {
         reply->abort();
@@ -736,6 +744,7 @@ OnlineRankingModel::fetchTachi()
 
                 QNetworkReply* pbsReply =
                   networkManager->get(QNetworkRequest(QUrl(pbsUrlStr)));
+                pbsReply->setParent(this);
                 connect(this,
                         &OnlineRankingModel::cancelPendingRequested,
                         pbsReply,

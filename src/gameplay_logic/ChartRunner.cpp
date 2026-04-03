@@ -2,12 +2,47 @@
 // Created by bobini on 18.08.23.
 //
 
+#include <algorithm>
 #include <spdlog/spdlog.h>
 #include <fmt/ranges.h>
 #include "ChartRunner.h"
 
 using namespace std::chrono_literals;
 namespace gameplay_logic {
+
+namespace {
+
+constexpr auto inputMappingSize = 16;
+
+auto
+mappingKeyFor(const input::BmsKey key) -> input::BmsKey
+{
+    switch (key) {
+        case input::BmsKey::Col1sDown:
+            return input::BmsKey::Col1sUp;
+        case input::BmsKey::Col2sDown:
+            return input::BmsKey::Col2sUp;
+        default:
+            return key;
+    }
+}
+
+auto
+restoreScratchDirection(input::BmsKey mapped, const input::BmsKey original)
+  -> input::BmsKey
+{
+    if (original == input::BmsKey::Col1sDown &&
+        mapped == input::BmsKey::Col1sUp) {
+        return input::BmsKey::Col1sDown;
+    }
+    if (original == input::BmsKey::Col2sDown &&
+        mapped == input::BmsKey::Col2sUp) {
+        return input::BmsKey::Col2sDown;
+    }
+    return mapped;
+}
+
+} // namespace
 
 ChartRunner::ChartRunner(
   ChartData* chartData,
@@ -28,11 +63,12 @@ ChartRunner::ChartRunner(
         player2->setParent(this);
     }
     auto p1keymode = player1->getScore()->getKeymode();
-    inputMapping = { 0, 1, 2, 3, 4, 5, 6, 7 };
     if (p1keymode == ChartData::Keymode::K10) {
-        inputMapping.append({ 14, 13, 8, 9, 10, 11, 12, 15 });
+        inputMapping = { 0, 1, 2, 3, 4, 5, 6, 7, 14, 13, 8, 9, 10, 11,
+                         12, 15 };
     } else {
-        inputMapping.append({ 8, 9, 10, 11, 12, 13, 14, 15 });
+        inputMapping = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
+                         11, 12, 13, 14, 15 };
     }
     chartData->setParent(this);
     connect(&bgaFutureWatcher,
@@ -99,14 +135,21 @@ ChartRunner::passKey(input::BmsKey key,
         key == input::BmsKey::Start2 || key == input::BmsKey::Select2) {
         return;
     }
-    if (key == input::BmsKey::Col1sDown) {
-        key = input::BmsKey::Col1sUp;
+    const auto keyIndex = static_cast<int>(mappingKeyFor(key));
+    if (keyIndex < 0 || keyIndex >= inputMapping.size()) {
+        spdlog::error("Input key {} is outside input mapping bounds {}",
+                      keyIndex,
+                      inputMapping.size());
+        return;
     }
-    if (key == input::BmsKey::Col2sDown) {
-        key = input::BmsKey::Col2sUp;
+    const auto mappedIndex = inputMapping[keyIndex];
+    if (mappedIndex < 0 || mappedIndex >= inputMappingSize) {
+        spdlog::error("Mapped input key {} is outside valid range",
+                      mappedIndex);
+        return;
     }
     auto mapped =
-      static_cast<input::BmsKey>(inputMapping[static_cast<int>(key)]);
+      restoreScratchDirection(static_cast<input::BmsKey>(mappedIndex), key);
     const auto index = playerIndexFromKey(mapped);
     // key pressed for a player side that is not present
     if (!isDp(chartData->getKeymode()) && index == 1 && player2 == nullptr) {
@@ -231,13 +274,20 @@ ChartRunner::setInputMapping(QList<int> inputMapping)
     if (this->inputMapping == inputMapping) {
         return;
     }
+    if (inputMapping.size() != inputMappingSize) {
+        spdlog::error("Invalid input mapping size: {}",
+                      inputMapping.size());
+        return;
+    }
     // validate input mapping
-    // when both are sorted, they need to be equal
-    auto originalSorted = inputMapping;
-    std::ranges::sort(originalSorted);
     auto sortedInputMapping = inputMapping;
     std::ranges::sort(sortedInputMapping);
-    if (originalSorted != sortedInputMapping) {
+    auto expectedInputMapping = QList<int>{};
+    expectedInputMapping.reserve(inputMappingSize);
+    for (auto i = 0; i < inputMappingSize; ++i) {
+        expectedInputMapping.append(i);
+    }
+    if (sortedInputMapping != expectedInputMapping) {
         spdlog::error("Invalid input mapping: {}",
                       fmt::join(inputMapping, ","));
         return;
@@ -335,7 +385,9 @@ Player::update(std::chrono::nanoseconds offsetFromStart, bool lastUpdate)
         setPosition(position.position);
         setBeatPosition(position.beatPosition);
         if (lastUpdate) {
-            for (auto i = 0; i < charts::BmsNotesData::columnNumber; ++i) {
+            for (auto i = static_cast<int>(input::BmsKey::Col11);
+                 i <= static_cast<int>(input::BmsKey::Col2sDown);
+                 ++i) {
                 referee->passReleased(
                   std::chrono::nanoseconds{ getChartLength() } + 10s,
                   static_cast<input::BmsKey>(i));
@@ -351,16 +403,27 @@ Player::passKey(input::BmsKey key,
                 ChartRunner::EventType eventType,
                 std::chrono::nanoseconds offset)
 {
+    const auto logicalColumn = [&key] {
+        if (key == input::BmsKey::Col1sDown) {
+            return static_cast<int>(input::BmsKey::Col1sUp);
+        }
+        if (key == input::BmsKey::Col2sDown) {
+            return static_cast<int>(input::BmsKey::Col2sUp);
+        }
+        return static_cast<int>(key);
+    }();
     if (!referee || status == ChartRunner::Status::Finished) {
         if (eventType == ChartRunner::EventType::KeyPress) {
-            score->sendVisualOnlyTap({ static_cast<int>(key),
+            score->sendVisualOnlyTap({ logicalColumn,
+                                       key,
                                        std::nullopt,
                                        offset.count(),
                                        std::nullopt,
                                        HitEvent::Action::Press,
                                        /*noteRemoved=*/false });
         } else {
-            score->sendVisualOnlyRelease(HitEvent{ static_cast<int>(key),
+            score->sendVisualOnlyRelease(HitEvent{ logicalColumn,
+                                                   key,
                                                    std::nullopt,
                                                    offset.count(),
                                                    std::nullopt,
@@ -547,11 +610,14 @@ RePlayer::update(const std::chrono::nanoseconds offsetFromStart,
         if (event.getAction() == HitEvent::Action::Press) {
             referee->update(hitOffset, lastUpdate);
             referee->passPressed(hitOffset,
-                                 static_cast<input::BmsKey>(event.getColumn()));
+                                 event.getKeyOptional().value_or(
+                                   static_cast<input::BmsKey>(event.getColumn())));
         } else if (event.getAction() == HitEvent::Action::Release) {
             referee->update(hitOffset, lastUpdate);
             referee->passReleased(
-              hitOffset, static_cast<input::BmsKey>(event.getColumn()));
+              hitOffset,
+              event.getKeyOptional().value_or(
+                static_cast<input::BmsKey>(event.getColumn())));
         }
     }
     Player::update(offsetFromStart, lastUpdate);
@@ -600,11 +666,14 @@ AutoPlayer::update(std::chrono::nanoseconds offsetFromStart, bool lastUpdate)
         if (event.getAction() == HitEvent::Action::Press) {
             referee->update(hitOffset, lastUpdate);
             referee->passPressed(hitOffset,
-                                 static_cast<input::BmsKey>(event.getColumn()));
+                                 event.getKeyOptional().value_or(
+                                   static_cast<input::BmsKey>(event.getColumn())));
         } else if (event.getAction() == HitEvent::Action::Release) {
             referee->update(hitOffset, lastUpdate);
             referee->passReleased(
-              hitOffset, static_cast<input::BmsKey>(event.getColumn()));
+              hitOffset,
+              event.getKeyOptional().value_or(
+                static_cast<input::BmsKey>(event.getColumn())));
         }
     }
     Player::update(offsetFromStart, lastUpdate);

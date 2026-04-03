@@ -40,7 +40,10 @@ class BmsGameReferee
     rules::HitRules hitRules;
     BmsLiveScore* score;
     std::shared_ptr<sounds::Sound> mineHitSound;
-    std::array<bool, charts::BmsNotesData::columnNumber> pressedState{};
+    static constexpr auto inputKeyCount =
+      static_cast<int>(input::BmsKey::Col2sDown) + 1;
+    std::array<bool, inputKeyCount> pressedKeys{};
+    std::array<int, charts::BmsNotesData::columnNumber> pressedState{};
 
   public:
     using Position = double;

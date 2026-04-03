@@ -7,6 +7,7 @@
 #include <QObject>
 #include <QVariant>
 #include "BmsPoints.h"
+#include "input/BmsKeys.h"
 namespace gameplay_logic {
 
 /**
@@ -50,6 +51,12 @@ class HitEvent
      */
     Q_PROPERTY(int column READ getColumn CONSTANT)
     /**
+     * @brief The physical key that caused this event or -1 if not applicable.
+     * @details This differs from column for scratch where up/down share one
+     * logical lane.
+     */
+    Q_PROPERTY(int key READ getKey CONSTANT)
+    /**
      * @brief The index of the note that was hit or -1 if no note was hit.
      * @details This index corresponds to the index in BmsNotes::notes.
      * It will be -1 for hits that hit nothing.
@@ -69,16 +76,33 @@ class HitEvent
     std::optional<BmsPoints> points;
     std::optional<int> noteIndex;
     int column;
+    std::optional<input::BmsKey> key;
     Action action;
     bool noteRemoved;
 
   public:
     HitEvent(int column,
+             std::optional<input::BmsKey> key,
              std::optional<int> noteIndex,
              DeltaTime offsetFromStart,
              std::optional<BmsPoints> points,
              Action action,
              bool noteRemoved);
+    HitEvent(int column,
+             std::optional<int> noteIndex,
+             DeltaTime offsetFromStart,
+             std::optional<BmsPoints> points,
+             Action action,
+             bool noteRemoved)
+      : HitEvent(column,
+                 std::nullopt,
+                 noteIndex,
+                 offsetFromStart,
+                 points,
+                 action,
+                 noteRemoved)
+    {
+    }
     HitEvent() = default;
 
     auto getOffsetFromStart() const -> DeltaTime;
@@ -87,6 +111,8 @@ class HitEvent
     auto getPoints() const -> QVariant;
     auto getPointsOptional() const -> std::optional<BmsPoints>;
     auto getColumn() const -> int;
+    auto getKey() const -> int;
+    auto getKeyOptional() const -> std::optional<input::BmsKey>;
     // if the tap did not hit a note, this returns -1
     auto getNoteIndex() const -> int;
     auto getAction() const -> Action;
@@ -107,7 +133,8 @@ class HitEvent
     {
         return offsetFromStart == other.offsetFromStart &&
                points == other.points && noteIndex == other.noteIndex &&
-               column == other.column && action == other.action &&
+               column == other.column && key == other.key &&
+               action == other.action &&
                noteRemoved == other.noteRemoved;
     }
 

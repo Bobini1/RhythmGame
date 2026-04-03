@@ -40,6 +40,7 @@
 #include "qml_components/OnlineProfileInfo.h"
 #include "qml_components/OnlineRankingModel.h"
 #include "qml_components/ScoreReplayer.h"
+#include "gameplay_logic/BmsPoints.h"
 #include "sounds/AudioEngine.h"
 #include "sounds/AudioPlayer.h"
 #include "sounds/SoundBuffer.h"
@@ -194,6 +195,8 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
         auto programSettings = qml_components::ProgramSettings{ avatarPath };
 
         qRegisterMetaType<input::Gamepad>("input::Gamepad");
+        qRegisterMetaType<gameplay_logic::BmsPoints>(
+          "gameplay_logic::BmsPoints");
 
         auto availableThemes =
           resource_managers::scanThemes(installationDataFolder / "themes");

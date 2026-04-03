@@ -457,12 +457,19 @@ OnlineScores::getRankingEntryAtTimestamp(
                                 const auto judg = s["scoreData"]
                                                     .toObject()["judgements"]
                                                     .toObject();
-                                if (judg["good"].toInt() == 0) {
+                                if (!judg["good"].isNull() &&
+                                    judg["good"].toInt() == 0) {
                                     bestClearType = "PERFECT";
-                                    if (judg["great"].toInt() == 0)
+                                    if (!judg["great"].isNull() &&
+                                        judg["great"].toInt() == 0) {
                                         bestClearType = "MAX";
+                                        break;
+                                    }
                                 }
-                                break;
+                                if (bestScore.exScore == noteCount * 2) {
+                                    bestClearType = "MAX";
+                                    break;
+                                }
                             }
                         }
 
