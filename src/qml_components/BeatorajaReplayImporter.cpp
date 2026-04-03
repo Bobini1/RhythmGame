@@ -15,7 +15,6 @@
 #include "resource_managers/ChartDataFactory.h"
 #include "resource_managers/Profile.h"
 #include "support/GeneratePermutation.h"
-#include "support/PathToUtfString.h"
 #include "support/QStringToPath.h"
 #include "support/UtfStringToPath.h"
 
@@ -33,7 +32,7 @@
 #include <QtEndian>
 #include <magic_enum/magic_enum.hpp>
 #include <spdlog/spdlog.h>
-#include <zlib.h>
+#include <zlib-ng.h>
 
 #include <array>
 #include <algorithm>
@@ -74,23 +73,23 @@ gzipDecompress(const QByteArray& compressed) -> QByteArray
         return {};
     }
 
-    z_stream stream{};
+    zng_stream stream{};
     stream.next_in =
-      reinterpret_cast<Bytef*>(const_cast<char*>(compressed.data()));
-    stream.avail_in = static_cast<uInt>(compressed.size());
+      reinterpret_cast<uint8_t*>(const_cast<char*>(compressed.data()));
+    stream.avail_in = static_cast<uint32_t>(compressed.size());
 
-    if (inflateInit2(&stream, 16 + MAX_WBITS) != Z_OK) {
+    if (zng_inflateInit2(&stream, 16 + MAX_WBITS) != Z_OK) {
         throw std::runtime_error("Failed to initialize gzip decompressor");
     }
-    const auto cleanup = qScopeGuard([&stream] { inflateEnd(&stream); });
+    const auto cleanup = qScopeGuard([&stream] { zng_inflateEnd(&stream); });
 
     QByteArray output;
     std::array<char, 16 * 1024> buffer{};
     int rc = Z_OK;
     do {
-        stream.next_out = reinterpret_cast<Bytef*>(buffer.data());
-        stream.avail_out = static_cast<uInt>(buffer.size());
-        rc = inflate(&stream, Z_NO_FLUSH);
+        stream.next_out = reinterpret_cast<uint8_t*>(buffer.data());
+        stream.avail_out = static_cast<uint32_t>(buffer.size());
+        rc = zng_inflate(&stream, Z_NO_FLUSH);
         if (rc != Z_OK && rc != Z_STREAM_END) {
             throw std::runtime_error("Failed to decompress gzip payload");
         }

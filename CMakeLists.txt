@@ -74,7 +74,10 @@ find_package(SDL2 REQUIRED)
 
 find_package(magic_enum REQUIRED)
 
-# <------------ zlib-ng (Unpacking beatoraja's replay data) --------------->
+# <------------ zlib / zlib-ng (Unpacking beatoraja's replay data) --------------->
+# Prefer zlib-ng in compat mode (zlib-ng::zlib) when available (e.g. vcpkg).
+# On Linux distributions that ship zlib-ng without compat mode the target is
+# absent; fall back to the system zlib which exposes the same API.
 find_package(zlib-ng CONFIG REQUIRED)
 
 # ---- Load library ----
