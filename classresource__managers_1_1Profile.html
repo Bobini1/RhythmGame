@@ -21,7 +21,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.3.0</span>
+   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.3.1</span>
    </div>
   </td>
  </tr>
@@ -126,6 +126,8 @@ Signals</h2></td></tr>
 <tr class="separator:a967db385c5b9c968c0366592d3734052"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4fc01437abff1bb9d7e2172fcf660708" id="r_a4fc01437abff1bb9d7e2172fcf660708"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classresource__managers_1_1Profile.html#a4fc01437abff1bb9d7e2172fcf660708">tachiDataChanged</a> ()</td></tr>
 <tr class="separator:a4fc01437abff1bb9d7e2172fcf660708"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af5c8ed758db0bf094770a95fd3a4d0dd" id="r_af5c8ed758db0bf094770a95fd3a4d0dd"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classresource__managers_1_1Profile.html#af5c8ed758db0bf094770a95fd3a4d0dd">replayImportOperationChanged</a> ()</td></tr>
+<tr class="separator:af5c8ed758db0bf094770a95fd3a4d0dd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
@@ -164,6 +166,14 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a8001b6bfd353cbed170c3d2fa2b8b644" id="r_a8001b6bfd353cbed170c3d2fa2b8b644"><td class="memItemLeft" align="right" valign="top">Q_INVOKABLE <a class="el" href="classqml__components_1_1ScoreSyncOperation.html">qml_components::ScoreSyncOperation</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classresource__managers_1_1Profile.html#a8001b6bfd353cbed170c3d2fa2b8b644">downloadScores</a> ()</td></tr>
 <tr class="memdesc:a8001b6bfd353cbed170c3d2fa2b8b644"><td class="mdescLeft">&#160;</td><td class="mdescRight">Download scores from the server that are missing locally.  <br /></td></tr>
 <tr class="separator:a8001b6bfd353cbed170c3d2fa2b8b644"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a58b5d22dd17b5faf6b8d7e01a44a0d46" id="r_a58b5d22dd17b5faf6b8d7e01a44a0d46"><td class="memItemLeft" align="right" valign="top">Q_INVOKABLE void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classresource__managers_1_1Profile.html#a58b5d22dd17b5faf6b8d7e01a44a0d46">importReplays</a> (const QString &amp;folderPath)</td></tr>
+<tr class="memdesc:a58b5d22dd17b5faf6b8d7e01a44a0d46"><td class="mdescLeft">&#160;</td><td class="mdescRight">Start importing beatoraja replay files from a folder.  <br /></td></tr>
+<tr class="separator:a58b5d22dd17b5faf6b8d7e01a44a0d46"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aeed63ec63eec4bbbc4dd0f0c42b3f9c7" id="r_aeed63ec63eec4bbbc4dd0f0c42b3f9c7"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classresource__managers_1_1Profile.html#aeed63ec63eec4bbbc4dd0f0c42b3f9c7">getReplayImportOperation</a> () const -&gt; <a class="el" href="classqml__components_1_1ReplayImportOperation.html">qml_components::ReplayImportOperation</a> *</td></tr>
+<tr class="separator:aeed63ec63eec4bbbc4dd0f0c42b3f9c7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a672ab3bcd1fa49f5ecde6fe4993c0cef" id="r_a672ab3bcd1fa49f5ecde6fe4993c0cef"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classresource__managers_1_1Profile.html#a672ab3bcd1fa49f5ecde6fe4993c0cef">beginImportOp</a> (int fileCount) -&gt; <a class="el" href="classqml__components_1_1ReplayImportOperation.html">qml_components::ReplayImportOperation</a> *</td></tr>
+<tr class="memdesc:a672ab3bcd1fa49f5ecde6fe4993c0cef"><td class="mdescLeft">&#160;</td><td class="mdescRight">Create and publish a new import operation.  <br /></td></tr>
+<tr class="separator:a672ab3bcd1fa49f5ecde6fe4993c0cef"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a48ce49fc0329bbec37215aa648cf6fcb" id="r_a48ce49fc0329bbec37215aa648cf6fcb"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classresource__managers_1_1Profile.html#a48ce49fc0329bbec37215aa648cf6fcb">submitScore</a> (const <a class="el" href="classgameplay__logic_1_1BmsScore.html">gameplay_logic::BmsScore</a> &amp;score, const <a class="el" href="classgameplay__logic_1_1ChartData.html">gameplay_logic::ChartData</a> &amp;chartData) const -&gt; QNetworkReply *</td></tr>
 <tr class="separator:a48ce49fc0329bbec37215aa648cf6fcb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
@@ -196,6 +206,8 @@ Properties</h2></td></tr>
 <tr class="separator:ab03e54d7b8e736b70de6b4d02b600fc6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a290798a935badedb561c04d2e9dab419" id="r_a290798a935badedb561c04d2e9dab419"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classresource__managers_1_1Profile.html#a24ca795ca1e26537ba6acf5815cc3d14">LoginState</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classresource__managers_1_1Profile.html#a290798a935badedb561c04d2e9dab419">tachiLoginState</a> { <a class="el" href="classresource__managers_1_1Profile.html#a24ca795ca1e26537ba6acf5815cc3d14a68118f8d291e5a67d4d9c3408a083c69">LoginState::NotLoggedIn</a> }</td></tr>
 <tr class="separator:a290798a935badedb561c04d2e9dab419"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad3f5b03aca0da96eb45a9dd4a4753314" id="r_ad3f5b03aca0da96eb45a9dd4a4753314"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classqml__components_1_1ReplayImportOperation.html">qml_components::ReplayImportOperation</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classresource__managers_1_1Profile.html#ad3f5b03aca0da96eb45a9dd4a4753314">replayImportOperation</a></td></tr>
+<tr class="separator:ad3f5b03aca0da96eb45a9dd4a4753314"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Member Enumeration Documentation</h2>
 <a id="a24ca795ca1e26537ba6acf5815cc3d14" name="a24ca795ca1e26537ba6acf5815cc3d14"></a>
@@ -301,6 +313,27 @@ Properties</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
+<a id="a672ab3bcd1fa49f5ecde6fe4993c0cef" name="a672ab3bcd1fa49f5ecde6fe4993c0cef"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a672ab3bcd1fa49f5ecde6fe4993c0cef">&#9670;&#160;</a></span>beginImportOp()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto resource_managers::Profile::beginImportOp </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>fileCount</em></td><td>)</td>
+          <td> -&gt; <a class="el" href="classqml__components_1_1ReplayImportOperation.html">qml_components::ReplayImportOperation</a>*</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Create and publish a new import operation. </p>
+<p>Must only be called on the main thread. Intended to be invoked from a background import task via Qt::BlockingQueuedConnection. </p>
+
+</div>
+</div>
 <a id="a8001b6bfd353cbed170c3d2fa2b8b644" name="a8001b6bfd353cbed170c3d2fa2b8b644"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a8001b6bfd353cbed170c3d2fa2b8b644">&#9670;&#160;</a></span>downloadScores()</h2>
 
@@ -423,6 +456,23 @@ Properties</h2></td></tr>
 
 </div>
 </div>
+<a id="aeed63ec63eec4bbbc4dd0f0c42b3f9c7" name="aeed63ec63eec4bbbc4dd0f0c42b3f9c7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aeed63ec63eec4bbbc4dd0f0c42b3f9c7">&#9670;&#160;</a></span>getReplayImportOperation()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto resource_managers::Profile::getReplayImportOperation </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const -&gt; <a class="el" href="classqml__components_1_1ReplayImportOperation.html">qml_components::ReplayImportOperation</a>*</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="aa34b730aa71686589bc80b8b7fe13185" name="aa34b730aa71686589bc80b8b7fe13185"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aa34b730aa71686589bc80b8b7fe13185">&#9670;&#160;</a></span>getScoreDb()</h2>
 
@@ -508,6 +558,27 @@ Properties</h2></td></tr>
 
 </div>
 </div>
+<a id="a58b5d22dd17b5faf6b8d7e01a44a0d46" name="a58b5d22dd17b5faf6b8d7e01a44a0d46"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a58b5d22dd17b5faf6b8d7e01a44a0d46">&#9670;&#160;</a></span>importReplays()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void resource_managers::Profile::importReplays </td>
+          <td>(</td>
+          <td class="paramtype">const QString &amp;&#160;</td>
+          <td class="paramname"><em>folderPath</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Start importing beatoraja replay files from a folder. </p>
+<p>Runs in the background. Progress is tracked via the replayImportOperation property. </p>
+
+</div>
+</div>
 <a id="a3b6030a466e71719b122f5518a460938" name="a3b6030a466e71719b122f5518a460938"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a3b6030a466e71719b122f5518a460938">&#9670;&#160;</a></span>login()</h2>
 
@@ -589,6 +660,31 @@ Properties</h2></td></tr>
       <table class="memname">
         <tr>
           <td class="memname">void resource_managers::Profile::onlineUserDataChanged </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">signal</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="af5c8ed758db0bf094770a95fd3a4d0dd" name="af5c8ed758db0bf094770a95fd3a4d0dd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af5c8ed758db0bf094770a95fd3a4d0dd">&#9670;&#160;</a></span>replayImportOperationChanged</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void resource_managers::Profile::replayImportOperationChanged </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td></td>
@@ -796,6 +892,28 @@ Properties</h2></td></tr>
       <table class="memname">
         <tr>
           <td class="memname">QString resource_managers::Profile::path</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">read</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ad3f5b03aca0da96eb45a9dd4a4753314" name="ad3f5b03aca0da96eb45a9dd4a4753314"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad3f5b03aca0da96eb45a9dd4a4753314">&#9670;&#160;</a></span>replayImportOperation</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classqml__components_1_1ReplayImportOperation.html">qml_components::ReplayImportOperation</a>* resource_managers::Profile::replayImportOperation</td>
         </tr>
       </table>
   </td>

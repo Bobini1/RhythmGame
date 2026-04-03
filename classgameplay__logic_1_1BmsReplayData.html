@@ -21,7 +21,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.3.0</span>
+   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.3.1</span>
    </div>
   </td>
  </tr>
@@ -127,6 +127,8 @@ Public Member Functions</h2></td></tr>
 Static Public Member Functions</h2></td></tr>
 <tr class="memitem:a461c5d47ebb3021057aca813cb124053" id="r_a461c5d47ebb3021057aca813cb124053"><td class="memItemLeft" align="right" valign="top">static auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgameplay__logic_1_1BmsReplayData.html#a461c5d47ebb3021057aca813cb124053">load</a> (const <a class="el" href="structgameplay__logic_1_1BmsReplayData_1_1DTO.html">DTO</a> &amp;dto) -&gt; std::unique_ptr&lt; <a class="el" href="classgameplay__logic_1_1BmsReplayData.html">BmsReplayData</a> &gt;</td></tr>
 <tr class="separator:a461c5d47ebb3021057aca813cb124053"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a84479d71409bad25f0bc51f141b4dcf7" id="r_a84479d71409bad25f0bc51f141b4dcf7"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgameplay__logic_1_1BmsReplayData.html#a84479d71409bad25f0bc51f141b4dcf7">migrateStoredReplayData</a> (<a class="el" href="classdb_1_1SqliteCppDb.html">db::SqliteCppDb</a> &amp;db)</td></tr>
+<tr class="separator:a84479d71409bad25f0bc51f141b4dcf7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa0aef9d3c043a9710ec51029527606b4" id="r_aa0aef9d3c043a9710ec51029527606b4"><td class="memItemLeft" align="right" valign="top">static auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgameplay__logic_1_1BmsReplayData.html#aa0aef9d3c043a9710ec51029527606b4">fromJsonArray</a> (const QJsonArray &amp;array) -&gt; QList&lt; <a class="el" href="classgameplay__logic_1_1HitEvent.html">HitEvent</a> &gt;</td></tr>
 <tr class="separator:aa0aef9d3c043a9710ec51029527606b4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
@@ -258,6 +260,32 @@ Properties</h2></td></tr>
           <td class="paramtype">const <a class="el" href="structgameplay__logic_1_1BmsReplayData_1_1DTO.html">DTO</a> &amp;&#160;</td>
           <td class="paramname"><em>dto</em></td><td>)</td>
           <td> -&gt; std::unique_ptr&lt;<a class="el" href="classgameplay__logic_1_1BmsReplayData.html">BmsReplayData</a>&gt;</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a84479d71409bad25f0bc51f141b4dcf7" name="a84479d71409bad25f0bc51f141b4dcf7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a84479d71409bad25f0bc51f141b4dcf7">&#9670;&#160;</a></span>migrateStoredReplayData()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void gameplay_logic::BmsReplayData::migrateStoredReplayData </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classdb_1_1SqliteCppDb.html">db::SqliteCppDb</a> &amp;&#160;</td>
+          <td class="paramname"><em>db</em></td><td>)</td>
+          <td></td>
         </tr>
       </table>
   </td>

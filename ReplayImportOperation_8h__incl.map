@@ -1,0 +1,9 @@
+<map id="src/qml_components/ReplayImportOperation.h" name="src/qml_components/ReplayImportOperation.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="130,5,321,45"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,93,155,119"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="192,48,115,89,112,84,189,43"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="179,93,272,119"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="228,46,228,79,223,79,223,46"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="296,93,435,119"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="260,43,334,84,331,89,258,48"/>
+</map>

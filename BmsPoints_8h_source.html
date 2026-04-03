@@ -21,7 +21,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.3.0</span>
+   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.3.1</span>
    </div>
   </td>
  </tr>
@@ -108,20 +108,23 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span>    auto <a class="code hl_function" href="classgameplay__logic_1_1BmsPoints.html#a7c1dc2515450fa93f1f79c5cdfb9b0c4">getJudgement</a>() const -&gt; <a class="code hl_enumeration" href="namespacegameplay__logic_1_1judgement.html#a4dd73363d266a4e4aa41782d0e02b6e6">Judgement</a>;</div>
 <div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span>    auto <a class="code hl_function" href="classgameplay__logic_1_1BmsPoints.html#a6c319bf0fb78fa19ef0686b24489e2e7">getDeviation</a>() const -&gt; int64_t;</div>
 <div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span> </div>
-<div class="line"><a id="l00027" name="l00027"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1BmsPoints.html#a78c431e4365f7c4b6bc9695ea1f6f14b">   27</a></span>    friend auto operator&lt;&lt;(QDataStream&amp; stream, const <a class="code hl_class" href="classgameplay__logic_1_1BmsPoints.html">BmsPoints</a>&amp; points)</div>
+<div class="line"><a id="l00027" name="l00027"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1BmsPoints.html#a78c431e4365f7c4b6bc9695ea1f6f14b">   27</a></span>    friend auto operator&lt;&lt;(QDataStream&amp; stream, const <a class="code hl_class" href="classgameplay__logic_1_1BmsPoints.html">BmsPoints</a>&amp; <a class="code hl_variable" href="BmsReplayData_8cpp.html#a2a4a81d4f5a0d80411065389053ff3c2">points</a>)</div>
 <div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>      -&gt; QDataStream&amp;;</div>
-<div class="line"><a id="l00029" name="l00029"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1BmsPoints.html#add245485edccd1d3e4918833fd12629d">   29</a></span>    friend auto operator&gt;&gt;(QDataStream&amp; stream, <a class="code hl_class" href="classgameplay__logic_1_1BmsPoints.html">BmsPoints</a>&amp; points)</div>
+<div class="line"><a id="l00029" name="l00029"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1BmsPoints.html#add245485edccd1d3e4918833fd12629d">   29</a></span>    friend auto operator&gt;&gt;(QDataStream&amp; stream, <a class="code hl_class" href="classgameplay__logic_1_1BmsPoints.html">BmsPoints</a>&amp; <a class="code hl_variable" href="BmsReplayData_8cpp.html#a2a4a81d4f5a0d80411065389053ff3c2">points</a>)</div>
 <div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span>      -&gt; QDataStream&amp;;</div>
 <div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span>    auto operator==(const <a class="code hl_class" href="classgameplay__logic_1_1BmsPoints.html">BmsPoints</a>&amp; other) const -&gt; <span class="keywordtype">bool</span>;</div>
 <div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span>};</div>
 </div>
 <div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span>QDataStream&amp;</div>
-<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span>operator&lt;&lt;(QDataStream&amp; stream, const <a class="code hl_class" href="classgameplay__logic_1_1BmsPoints.html">BmsPoints</a>&amp; points);</div>
+<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span>operator&lt;&lt;(QDataStream&amp; stream, const <a class="code hl_class" href="classgameplay__logic_1_1BmsPoints.html">BmsPoints</a>&amp; <a class="code hl_variable" href="BmsReplayData_8cpp.html#a2a4a81d4f5a0d80411065389053ff3c2">points</a>);</div>
 <div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>QDataStream&amp;</div>
-<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span>operator&gt;&gt;(QDataStream&amp; stream, <a class="code hl_class" href="classgameplay__logic_1_1BmsPoints.html">BmsPoints</a>&amp; points);</div>
+<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span>operator&gt;&gt;(QDataStream&amp; stream, <a class="code hl_class" href="classgameplay__logic_1_1BmsPoints.html">BmsPoints</a>&amp; <a class="code hl_variable" href="BmsReplayData_8cpp.html#a2a4a81d4f5a0d80411065389053ff3c2">points</a>);</div>
 <div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span>} <span class="comment">// namespace gameplay_logic</span></div>
 <div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span> </div>
-<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span><span class="preprocessor">#endif </span><span class="comment">// RHYTHMGAME_BMSPOINTS_H</span></div>
+<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span>Q_DECLARE_METATYPE(<a class="code hl_namespace" href="namespacegameplay__logic.html">gameplay_logic</a>::<a class="code hl_class" href="classgameplay__logic_1_1BmsPoints.html">BmsPoints</a>)</div>
+<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span> </div>
+<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span><span class="preprocessor">#endif </span><span class="comment">// RHYTHMGAME_BMSPOINTS_H</span></div>
+<div class="ttc" id="aBmsReplayData_8cpp_html_a2a4a81d4f5a0d80411065389053ff3c2"><div class="ttname"><a href="BmsReplayData_8cpp.html#a2a4a81d4f5a0d80411065389053ff3c2">points</a></div><div class="ttdeci">std::optional&lt; BmsPoints &gt; points</div><div class="ttdef"><b>Definition</b> BmsReplayData.cpp:26</div></div>
 <div class="ttc" id="aJudgement_8h_html"><div class="ttname"><a href="Judgement_8h.html">Judgement.h</a></div></div>
 <div class="ttc" id="aclassgameplay__logic_1_1BmsPoints_html"><div class="ttname"><a href="classgameplay__logic_1_1BmsPoints.html">gameplay_logic::BmsPoints</a></div><div class="ttdef"><b>Definition</b> BmsPoints.h:11</div></div>
 <div class="ttc" id="aclassgameplay__logic_1_1BmsPoints_html_a6c319bf0fb78fa19ef0686b24489e2e7"><div class="ttname"><a href="classgameplay__logic_1_1BmsPoints.html#a6c319bf0fb78fa19ef0686b24489e2e7">gameplay_logic::BmsPoints::getDeviation</a></div><div class="ttdeci">auto getDeviation() const -&gt; int64_t</div><div class="ttdef"><b>Definition</b> BmsPoints.cpp:26</div></div>
