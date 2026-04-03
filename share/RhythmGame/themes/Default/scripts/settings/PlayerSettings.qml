@@ -3,6 +3,7 @@ import QtQuick.Controls
 import RhythmGameQml
 import QtQuick.Layouts
 import QtQuick.Dialogs
+import QtCore
 
 
 Item {
@@ -45,9 +46,10 @@ Item {
             FolderDialog {
                 id: replayFolderDialog
                 title: qsTr("Select beatoraja replay folder")
+                currentFolder: replayFolderSettings.folder
 
                 onAccepted: {
-                    replayImportSection.selectedFolder = selectedFolder
+                    replayFolderSettings.folder = selectedFolder.toString()
                 }
             }
             Frame {
@@ -347,40 +349,32 @@ Item {
                         }
                     }
                 }
-                    ColumnLayout {
-                        id: replayImportSection
-                        Layout.alignment: Qt.AlignHCenter
-                        Layout.preferredWidth: profileColumnLayout.width / 2
-                        Layout.maximumWidth: profileColumnLayout.width / 2
-                        Layout.topMargin: 24
-                        Layout.fillHeight: true
-                        Layout.bottomMargin: 16
-                        spacing: 8
+                ColumnLayout {
+                    id: replayImportSection
+                    Layout.alignment: Qt.AlignHCenter
+                    Layout.preferredWidth: profileColumnLayout.width / 2
+                    Layout.maximumWidth: profileColumnLayout.width / 2
+                    Layout.topMargin: 24
+                    Layout.fillHeight: true
+                    Layout.bottomMargin: 16
+                    spacing: 8
 
-                    property url selectedFolder: ""
+                    property string selectedFolder: replayFolderSettings.folder
                     readonly property var op: loginSection.profile.replayImportOperation
                     readonly property bool importing: op !== null && !op.finished
 
-                    ListModel {
-                        id: errorsModel
+                    Settings {
+                        id: replayFolderSettings
+                        category: "replayImportFolder/" + loginSection.profile.guid
+                        property string folder: ""
+                        onCategoryChanged: folder = value("folder", "")
                     }
 
-                    // Clear errors whenever a fresh import operation is started.
-                    Connections {
-                        target: loginSection.profile
-                        function onReplayImportOperationChanged() {
-                            errorsModel.clear()
-                        }
-                    }
-
-                    // Track per-score errors and the finished signal from the
-                    // current operation. When op is null these connections are
-                    // simply inactive.
+                    // Notify the score list when an import finishes.
+                    // Errors are tracked by op itself (QAbstractListModel);
+                    // a new op always starts empty so no explicit clear needed.
                     Connections {
                         target: replayImportSection.op
-                        function onError(message) {
-                            errorsModel.append({ message: message })
-                        }
                         function onFinishedChanged() {
                             rootScrollView.updateScoreCounts++
                         }
@@ -388,6 +382,7 @@ Item {
 
                     Label {
                         text: qsTr("Import beatoraja replays")
+                        wrapMode: Text.Wrap
                         font.pixelSize: 18
                         Layout.fillWidth: true
                     }
@@ -395,9 +390,21 @@ Item {
                     Label {
                         Layout.fillWidth: true
                         wrapMode: Text.Wrap
-                        text: replayImportSection.selectedFolder === ""
-                            ? qsTr("No folder selected")
-                            : replayImportSection.selectedFolder.toString()
+                        visible: replayFolderSettings.folder === ""
+                        color: palette.placeholderText
+                        text: qsTr("e.g. beatoraja/player/player1/replay")
+                    }
+
+                    Label {
+                        Layout.fillWidth: true
+                        wrapMode: Text.Wrap
+                        visible: replayFolderSettings.folder !== ""
+                        text: {
+                            var f = replayFolderSettings.folder
+                            return f.startsWith("file:///")
+                                ? f.slice(Qt.platform.os === "windows" ? 8 : 7)
+                                : f
+                        }
                     }
 
                     RowLayout {
@@ -405,25 +412,19 @@ Item {
                         spacing: 8
 
                         Button {
-                            text: qsTr("Choose folder")
+                            text: qsTr("Import")
                             Layout.fillWidth: true
-                            enabled: !replayImportSection.importing
-
-                            onClicked: {
-                                replayFolderDialog.open();
-                            }
+                            Layout.preferredWidth: 2
+                            enabled: replayFolderSettings.folder !== "" && !replayImportSection.importing
+                            onClicked: loginSection.profile.importReplays(replayFolderSettings.folder)
                         }
 
                         Button {
-                            text: qsTr("Import scores")
+                            text: replayFolderSettings.folder === "" ? qsTr("Select…") : qsTr("Change…")
                             Layout.fillWidth: true
-                            enabled: replayImportSection.selectedFolder !== "" &&
-                                     !replayImportSection.importing
-
-                            onClicked: {
-                                loginSection.profile.importReplays(
-                                    replayImportSection.selectedFolder.toString())
-                            }
+                            Layout.preferredWidth: 1
+                            enabled: !replayImportSection.importing
+                            onClicked: replayFolderDialog.open()
                         }
 
                         BusyIndicator {
@@ -458,8 +459,8 @@ Item {
                         Layout.fillWidth: true
                         Layout.fillHeight: true
                         Layout.minimumHeight: 100
-                        visible: errorsModel.count > 0
-                        model: errorsModel
+                        visible: replayImportSection.op !== null && replayImportSection.op.count > 0
+                        model: replayImportSection.op
                         spacing: 2
                         clip: true
                         ScrollBar.vertical: ScrollBar {}
@@ -474,7 +475,7 @@ Item {
                     }
                     Item {
                         Layout.fillHeight: true
-                        visible: errorsModel.count === 0
+                        visible: !replayImportSection.op || replayImportSection.op.count === 0
                     }
                 }
                 }
