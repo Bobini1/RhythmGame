@@ -23,13 +23,13 @@
 #include <QDir>
 #include <QDirIterator>
 #include <QFile>
-#include <QFileInfo>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QScopeGuard>
 #include <QSet>
 #include <QUrl>
+#include <QUuid>
 #include <QtEndian>
 #include <magic_enum/magic_enum.hpp>
 #include <spdlog/spdlog.h>
@@ -621,25 +621,48 @@ startBeatorajaReplayImport(resource_managers::Profile* profile,
         return op;
     }
 
+    // Load every existing (sha256, unix_timestamp) pair in one query so we
+    // can do duplicate detection with an in-memory lookup instead of one
+    // round-trip per file.
+    auto existingStmt = profile->getDb().createStatement(
+      "SELECT sha256, unix_timestamp FROM score;");
+    const auto existingRows =
+      existingStmt.executeAndGetAll<std::tuple<std::string, int64_t>>();
+    auto existingScores = QSet<QPair<QString, qint64>>{};
+    existingScores.reserve(static_cast<qsizetype>(existingRows.size()));
+    for (const auto& [sha256, ts] : existingRows) {
+        existingScores.insert({ QString::fromStdString(sha256), ts });
+    }
+
+    // Wrap all writes in a single transaction – SQLite auto-commits every
+    // INSERT otherwise, which dominates runtime for large imports.
+    profile->getDb().execute("BEGIN;");
+    bool committed = false;
+    const auto rollbackGuard = qScopeGuard([&] {
+        if (!committed) {
+            try {
+                profile->getDb().execute("ROLLBACK;");
+            } catch (...) {
+            }
+        }
+    });
+
     for (const auto& replayPath : replayFiles) {
-        const auto guid = QFileInfo(replayPath).completeBaseName();
-
         try {
-            auto checkStmt = profile->getDb().createStatement(
-              "SELECT COUNT(*) FROM score WHERE guid = ? LIMIT 1;");
-            checkStmt.bind(1, guid.toStdString());
-            const auto exists =
-              checkStmt.executeAndGet<int64_t>().value_or(0) > 0;
+            auto replay = parseReplayPayload(replayPath);
 
-            if (exists) {
+            if (existingScores.contains({ replay.sha256, replay.date })) {
                 QMetaObject::invokeMethod(op, [op] { op->incrementSkipped(); });
                 continue;
             }
 
-            auto replay = parseReplayPayload(replayPath);
+            const auto guid =
+              QUuid::createUuid().toString(QUuid::WithoutBraces);
             auto score =
               createScoreFromReplay(*profile, std::move(replay), guid);
             score->save(profile->getDb());
+            // Track so a duplicate file later in the same batch is also skipped.
+            existingScores.insert({ replay.sha256, replay.date });
 
             QMetaObject::invokeMethod(op, [op] { op->incrementImported(); });
         } catch (const std::exception& e) {
@@ -654,6 +677,9 @@ startBeatorajaReplayImport(resource_managers::Profile* profile,
             });
         }
     }
+
+    profile->getDb().execute("COMMIT;");
+    committed = true;
 
     return op;
 }
