@@ -1112,13 +1112,23 @@ InputTranslator::eventFilter(std::chrono::milliseconds timePoint, QEvent* event)
 {
     if (event->type() == QEvent::KeyPress && !event->isAccepted()) {
         const auto* const key = static_cast<QKeyEvent*>(event);
-        if (key->isAutoRepeat()) {
+        const auto scanCode = key->nativeScanCode();
+        // Track whether this scan code was already physically held.
+        // Qt shares VK_MENU between L-Alt and R-Alt, so pressing one while the
+        // other is held causes Windows to set the "previous key-state" bit,
+        // making Qt report isAutoRepeat()==true for what is actually a new
+        // physical key.  We use our own per-scan-code tracking to detect that.
+        const bool alreadyDown = pressedScanCodes.contains(scanCode);
+        pressedScanCodes.insert(scanCode);
+        if (key->isAutoRepeat() && alreadyDown) {
+            // Genuine auto-repeat for a key that is already held – skip.
             return;
         }
+        // Either not auto-repeat, or a new scan code Qt mis-tagged as repeat.
 
         const auto keyLookup = Key{ QVariant::fromValue(nullptr),
                                     Key::Device::Keyboard,
-                                    key->nativeScanCode(),
+                                    scanCode,
                                     Key::Direction::None };
         if (isConfiguring()) {
             unpressAndUnbind(keyLookup, timePoint.count());
@@ -1133,12 +1143,14 @@ InputTranslator::eventFilter(std::chrono::milliseconds timePoint, QEvent* event)
         }
     } else if (event->type() == QEvent::KeyRelease && !event->isAccepted()) {
         const auto* const key = static_cast<QKeyEvent*>(event);
+        const auto scanCode = key->nativeScanCode();
+        pressedScanCodes.remove(scanCode);
         if (key->isAutoRepeat()) {
             return;
         }
         const auto keyLookup = Key{ QVariant::fromValue(nullptr),
                                     Key::Device::Keyboard,
-                                    key->nativeScanCode(),
+                                    scanCode,
                                     Key::Direction::None };
         if (const auto found = config.find(keyLookup); found != config.end()) {
             releaseButton(*found, timePoint.count());
