@@ -528,7 +528,7 @@ createScoreFromReplay(resource_managers::Profile& profile,
       chartData->getSha256(),
       chartData->getMd5(),
       keymode,
-      replay.date > 0 ? replay.date : 0,
+      replay.date,
       guid);
 
     auto referee = gameplay_logic::BmsGameReferee(
@@ -661,7 +661,8 @@ startBeatorajaReplayImport(resource_managers::Profile* profile,
             auto score =
               createScoreFromReplay(*profile, std::move(replay), guid);
             score->save(profile->getDb());
-            // Track so a duplicate file later in the same batch is also skipped.
+            // Track so a duplicate file later in the same batch is also
+            // skipped.
             existingScores.insert({ replay.sha256, replay.date });
 
             QMetaObject::invokeMethod(op, [op] { op->incrementImported(); });
