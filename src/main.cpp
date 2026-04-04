@@ -528,7 +528,9 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
         }
         app.setInputTranslator(&inputTranslator);
 
-        return app.exec();
+        const int exitCode = app.exec();
+        QCoreApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+        return exitCode;
     } catch (const std::exception& e) {
         spdlog::critical("Fatal: {}", e.what());
         return 1;
