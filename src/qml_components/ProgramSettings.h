@@ -13,14 +13,17 @@ class ProgramSettings : public QObject
     Q_OBJECT
 
     Q_PROPERTY(QString avatarFolder READ getAvatarFolder CONSTANT)
+    Q_PROPERTY(QString screenshotsFolder READ getScreenshotsFolder CONSTANT)
 
-    QString chartPath;
     QString avatarFolder;
+    QString screenshotsFolder;
 
   public:
     explicit ProgramSettings(QString avatarFolder,
+                             QString screenshotsFolder,
                              QObject* parent = nullptr);
     auto getAvatarFolder() const -> QString;
+    auto getScreenshotsFolder() const -> QString;
 };
 
 } // namespace qml_components

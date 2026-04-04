@@ -74,6 +74,40 @@ Item {
                 sceneStack.pop();
             }
         }
+        Shortcut {
+            enabled: root.enabled
+            sequence: "Print"
+
+            onActivated: {
+                let date = new Date();
+                let timestamp = Qt.formatDateTime(date, "yyyyMMdd_HHmmss");
+
+                let g = Helpers.getGrade(root.score1.result.points,
+                                         root.score1.result.maxPoints).toUpperCase();
+                let clearType = root.score1.result.clearType;
+
+                let prefix = "";
+                if (root.chartData) {
+                    let diff = Helpers.difficultyName(root.chartData.difficulty);
+                    let level = root.chartData.playLevel;
+                    prefix = (diff ? diff + " " : "") + level + " ";
+                }
+
+                let rawTitle = root.chartData?.title || root.course?.name || "";
+                let title = Helpers.sanitizeFilename(rawTitle);
+
+                let filename = timestamp + "_" + prefix + title
+                               + " " + clearType + " " + g + ".png";
+                root.grabToImage(function (grabResult) {
+                    if (grabResult.saveToFile(
+                        Rg.programSettings.screenshotsFolder + "/" + filename)) {
+                        Rg.showMessage("Screenshot saved: " + filename);
+                    } else {
+                        Rg.showMessage("Failed to save screenshot");
+                    }
+                });
+            }
+        }
         Input.onStart1Pressed: () => {
             sceneStack.pop();
         }
@@ -144,14 +178,14 @@ Item {
                 }
             }
 
-            CourseSongList {
-                anchors.bottom: parent.bottom
-                anchors.bottomMargin: 20
-                anchors.horizontalCenter: parent.horizontalCenter
-                spacing: 10
-                width: parent.width
-                chartDatas: root.chartDatas
-            }
+        CourseSongList {
+            anchors.bottom: parent.bottom
+            anchors.bottomMargin: 20
+            anchors.horizontalCenter: parent.horizontalCenter
+            spacing: 10
+            width: parent.width
+            chartDatas: root.chartDatas
         }
     }
+}
 }

@@ -179,3 +179,29 @@ function getFormattedNumber(locale, num, decimals = 3) {
     }
     return shortNum;
 }
+
+/**
+ * Returns the full difficulty name for BMS difficulty integers 1–5.
+ * @param {number} diff - ChartData.difficulty
+ * @returns {string}
+ */
+function difficultyName(diff) {
+    switch (diff) {
+        case 1: return "BEGINNER";
+        case 2: return "NORMAL";
+        case 3: return "HYPER";
+        case 4: return "ANOTHER";
+        case 5: return "INSANE";
+        default: return "";
+    }
+}
+
+/**
+ * Replaces characters forbidden in filenames on Windows / macOS / Linux
+ * with underscores.
+ * @param {string} str
+ * @returns {string}
+ */
+function sanitizeFilename(str) {
+    return str.replace(/[/\\:*?"<>|]/g, "_");
+}

@@ -113,6 +113,11 @@ createStandardDirectories()
         spdlog::error("Could not create themes folder: {}", ec.message());
         throw std::runtime_error("Could not create themes folder");
     }
+    std::filesystem::create_directories(base / "screenshots", ec);
+    if (ec) {
+        spdlog::error("Could not create screenshots folder: {}", ec.message());
+        throw std::runtime_error("Could not create screenshots folder");
+    }
 }
 
 auto
@@ -192,7 +197,11 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
         }
         avatarPath = "file://" + avatarPath;
 
-        auto programSettings = qml_components::ProgramSettings{ avatarPath };
+        auto screenshotsPath =
+          support::pathToQString(dataFolder / "screenshots");
+
+        auto programSettings =
+          qml_components::ProgramSettings{ avatarPath, screenshotsPath };
 
         qRegisterMetaType<input::Gamepad>("input::Gamepad");
         qRegisterMetaType<gameplay_logic::BmsPoints>(
