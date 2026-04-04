@@ -70,18 +70,9 @@ Rectangle {
         return p1MaxPointsNow * chart.player1.profile.vars.generalVars.targetScoreFraction;
     }
     property real targetPoints2: chart.player1.score.points
-    property var elapsed: 0
-    FrameAnimation {
-        running: !!targetScore1
-        onTriggered: {
-            root.elapsed = chart.player1.elapsed;
-        }
-    }
-
     ScoreReplayer {
         id: scoreReplayer1
         hitEvents: targetScore1?.replayData?.hitEvents
-        elapsed: root.elapsed
     }
 
     AudioPlayer {
@@ -112,6 +103,7 @@ Rectangle {
                 Qt.callLater(() => sceneStack.pop());
             }
         } else {
+            scoreReplayer1.resetPoints();
             if (playReadySound.length === 0) {
                 startTimer.start();
             }
@@ -437,6 +429,9 @@ Rectangle {
     Connections {
         target: chart.player1.score
         function onHit(tap) {
+            if (targetScore1) {
+                scoreReplayer1.notifyHit(tap);
+            }
             let ignoreJudgements = [Judgement.Poor, Judgement.EmptyPoor, Judgement.MineHit, Judgement.MineAvoided];
             if (!tap.points || ignoreJudgements.includes(tap.points?.judgement)) {
                 return;
