@@ -280,6 +280,13 @@ class GeneralVars final : public QObject
     Q_PROPERTY(
       QString websiteBaseUrl READ getWebsiteBaseUrl WRITE setWebsiteBaseUrl
         NOTIFY websiteBaseUrlChanged RESET resetWebsiteBaseUrl)
+    /**
+     * @brief The URL used to fetch the community table list in the Browse
+     * panel of Table Settings.
+     * @details Defaults to the darksabun table list endpoint.
+     */
+    Q_PROPERTY(QString tableListUrl READ getTableListUrl WRITE setTableListUrl
+                 NOTIFY tableListUrlChanged RESET resetTableListUrl)
 
     // ^ remember to use full namespace for enums for reflection
     double noteScreenTimeMillis = 1000;
@@ -306,6 +313,16 @@ class GeneralVars final : public QObject
     QString websiteBaseUrl = "https://rhythmgame.eu";
     QString bgmPath;
     QString soundsetPath;
+    // Default darksabun community table-list endpoint.
+    inline static const QString defaultTableListUrl = QStringLiteral(
+        "https://script.googleusercontent.com/macros/echo?user_content_key="
+        "AWDtjMUPqG3VGAp2E2nnIIN6ai0Im_ai4lD3Kb998b5zNu881oh8U93tiKchKmz0"
+        "CiU21TRk2FbhTVDg_UeCGlGKMiMeQ2jJXOzkMeAz4QdAqiTffivqe9OiSxrfIS"
+        "ozhZnz1LxSk6vfXCbm-Wt6eKqKBffTcCdUrrkIDQyRLK00pAHNTLiK4899SSycq"
+        "Urh6huo4gENgokERvbeHrT8OUrVVTq1gEtFMtpGurM9HXC037qo1SMe5CSsOXb0"
+        "UfYy-14dlRmOHb-v3Nbin-Pr5pU9nApG7zcoJfqB6bEut33v"
+        "&lib=MZGF-rpGWT28d9kh49MlyleOKhrMb7MMj");
+    QString tableListUrl = defaultTableListUrl;
 
     QList<QString> assetsPaths;
 
@@ -388,6 +405,9 @@ class GeneralVars final : public QObject
     auto getSoundsetPath() const -> QString;
     Q_INVOKABLE QList<QString> getAvailableBgms() const;
     Q_INVOKABLE QList<QString> getAvailableSoundsets() const;
+    auto getTableListUrl() const -> QString;
+    void setTableListUrl(const QString& value);
+    void resetTableListUrl();
 
   signals:
     void noteScreenTimeMillisChanged();
@@ -416,6 +436,7 @@ class GeneralVars final : public QObject
     void bgmPathChanged();
     void soundsetChanged();
     void soundsetPathChanged();
+    void tableListUrlChanged();
 };
 
 class Vars final : public QObject

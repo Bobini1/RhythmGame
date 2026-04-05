@@ -722,6 +722,25 @@ resource_managers::GeneralVars::getAvailableSoundsets() const -> QList<QString>
     }
     return soundsets;
 }
+auto
+resource_managers::GeneralVars::getTableListUrl() const -> QString
+{
+    return tableListUrl;
+}
+void
+resource_managers::GeneralVars::setTableListUrl(const QString& value)
+{
+    if (tableListUrl == value) {
+        return;
+    }
+    tableListUrl = value;
+    emit tableListUrlChanged();
+}
+void
+resource_managers::GeneralVars::resetTableListUrl()
+{
+    setTableListUrl(defaultTableListUrl);
+}
 namespace {
 void
 writeGeneralVars(QThreadPool& writePool,
