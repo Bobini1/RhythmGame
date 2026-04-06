@@ -71,7 +71,7 @@ Rectangle {
     }
     property real targetPoints2: chart.player1.score.points
     readonly property real targetFinalPoints1: {
-        if (isBattle) return chart.player2.score.maxPoints;
+        if (isBattle) return 0;
         if (targetScore1) return targetScore1.result.points;
         return chart.player1.score.maxPoints * chart.player1.profile.vars.generalVars.targetScoreFraction;
     }
@@ -569,7 +569,7 @@ Rectangle {
                 bestFinalPoints: root.isDp ? (root.scoreWithBestPoints1 ? root.scoreWithBestPoints1.result.points : 0) : 0
                 bestMaxPoints: root.isDp ? (root.scoreWithBestPoints1 ? root.scoreWithBestPoints1.result.maxPoints : 0) : 0
                 bestPoints: root.isDp ? bestScoreReplayer1.points : 0
-                targetFinalPoints: root.isDp ? root.targetFinalPoints1 : chart.player1.score.maxPoints
+                targetFinalPoints: root.isDp ? root.targetFinalPoints1 : 0
                 columns: {
                     if (root.isDp) {
                         return chart.player1.score.keymode === 14 ? [8, 9, 10, 11, 12, 13, 14, 15] : [14, 13, 8, 9, 10, 11, 12, 15];
