@@ -271,6 +271,20 @@
             "en": "The texture used for the laser beam that appears when a key is pressed.",
             "pl": "Tekstura używana dla lasera, który pojawia się po naciśnięciu klawisza."
           }
+        },
+        {
+          "id": "scoregraph",
+          "name": {
+            "en": "Score Graph Background",
+            "pl": "Tło wykresu wyników"
+          },
+          "type": "file",
+          "path": "scripts/gameplay/images/scoregraph",
+          "default": "default.png",
+          "description": {
+            "en": "The background image for the score graph.",
+            "pl": "Obraz tła wykresu wyników."
+          }
         }
       ]
     },
@@ -752,6 +766,326 @@
               }
             }
           ]
+        },
+        {
+          "type": "group",
+          "name": {
+            "en": "Title Display",
+            "pl": "Wyświetlacz tytułu"
+          },
+          "description": {
+            "en": "Position, size, and visibility of the title/subtitle display.",
+            "pl": "Pozycja, rozmiar i widoczność wyświetlacza tytułu/podtytułu."
+          },
+          "items": [
+            {
+              "id": "titleDisplayEnabled",
+              "name": {
+                "en": "Enabled",
+                "pl": "Włączony"
+              },
+              "type": "boolean",
+              "default": true,
+              "description": {
+                "en": "Show the title/subtitle display.",
+                "pl": "Pokaż wyświetlacz tytułu/podtytułu."
+              }
+            },
+            {
+              "id": "titleDisplayX",
+              "name": {
+                "en": "X",
+                "pl": "X"
+              },
+              "type": "range",
+              "default": 450,
+              "description": {
+                "en": "X position.",
+                "pl": "Pozycja X."
+              }
+            },
+            {
+              "id": "titleDisplayY",
+              "name": {
+                "en": "Y",
+                "pl": "Y"
+              },
+              "type": "range",
+              "default": 5,
+              "description": {
+                "en": "Y position.",
+                "pl": "Pozycja Y."
+              }
+            },
+            {
+              "id": "titleDisplayWidth",
+              "name": {
+                "en": "Width",
+                "pl": "Szerokość"
+              },
+              "type": "range",
+              "min": 0,
+              "default": 420,
+              "description": {
+                "en": "Width.",
+                "pl": "Szerokość."
+              }
+            },
+            {
+              "id": "titleDisplayHeight",
+              "name": {
+                "en": "Height",
+                "pl": "Wysokość"
+              },
+              "type": "range",
+              "min": 0,
+              "default": 50,
+              "description": {
+                "en": "Height.",
+                "pl": "Wysokość."
+              }
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "name": {
+            "en": "Difficulty Display",
+            "pl": "Wyświetlacz trudności"
+          },
+          "description": {
+            "en": "Position, size, and visibility of the difficulty/play level display.",
+            "pl": "Pozycja, rozmiar i widoczność wyświetlacza trudności/poziomu gry."
+          },
+          "items": [
+            {
+              "id": "difficultyDisplayEnabled",
+              "name": {
+                "en": "Enabled",
+                "pl": "Włączony"
+              },
+              "type": "boolean",
+              "default": true,
+              "description": {
+                "en": "Show the difficulty/play level display.",
+                "pl": "Pokaż wyświetlacz trudności/poziomu gry."
+              }
+            },
+            {
+              "id": "difficultyDisplayX",
+              "name": {
+                "en": "X",
+                "pl": "X"
+              },
+              "type": "range",
+              "default": 450,
+              "description": {
+                "en": "X position.",
+                "pl": "Pozycja X."
+              }
+            },
+            {
+              "id": "difficultyDisplayY",
+              "name": {
+                "en": "Y",
+                "pl": "Y"
+              },
+              "type": "range",
+              "default": 60,
+              "description": {
+                "en": "Y position.",
+                "pl": "Pozycja Y."
+              }
+            },
+            {
+              "id": "difficultyDisplayWidth",
+              "name": {
+                "en": "Width",
+                "pl": "Szerokość"
+              },
+              "type": "range",
+              "min": 0,
+              "default": 120,
+              "description": {
+                "en": "Width.",
+                "pl": "Szerokość."
+              }
+            },
+            {
+              "id": "difficultyDisplayHeight",
+              "name": {
+                "en": "Height",
+                "pl": "Wysokość"
+              },
+              "type": "range",
+              "min": 0,
+              "default": 60,
+              "description": {
+                "en": "Height.",
+                "pl": "Wysokość."
+              }
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "name": {
+            "en": "BPM Display",
+            "pl": "Wyświetlacz BPM"
+          },
+          "description": {
+            "en": "Position, size, and visibility of the current/min/max BPM display.",
+            "pl": "Pozycja, rozmiar i widoczność wyświetlacza BPM."
+          },
+          "items": [
+            {
+              "id": "bpmDisplayEnabled",
+              "name": {
+                "en": "Enabled",
+                "pl": "Włączony"
+              },
+              "type": "boolean",
+              "default": true,
+              "description": {
+                "en": "Show the BPM display.",
+                "pl": "Pokaż wyświetlacz BPM."
+              }
+            },
+            {
+              "id": "bpmDisplayX",
+              "name": {
+                "en": "X",
+                "pl": "X"
+              },
+              "type": "range",
+              "default": 450,
+              "description": {
+                "en": "X position.",
+                "pl": "Pozycja X."
+              }
+            },
+            {
+              "id": "bpmDisplayY",
+              "name": {
+                "en": "Y",
+                "pl": "Y"
+              },
+              "type": "range",
+              "default": 70,
+              "description": {
+                "en": "Y position.",
+                "pl": "Pozycja Y."
+              }
+            },
+            {
+              "id": "bpmDisplayWidth",
+              "name": {
+                "en": "Width",
+                "pl": "Szerokość"
+              },
+              "type": "range",
+              "min": 0,
+              "default": 250,
+              "description": {
+                "en": "Width.",
+                "pl": "Szerokość."
+              }
+            },
+            {
+              "id": "bpmDisplayHeight",
+              "name": {
+                "en": "Height",
+                "pl": "Wysokość"
+              },
+              "type": "range",
+              "min": 0,
+              "default": 55,
+              "description": {
+                "en": "Height.",
+                "pl": "Wysokość."
+              }
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "name": {
+            "en": "Score Graph",
+            "pl": "Wykres wyników"
+          },
+          "description": {
+            "en": "Position, size, and visibility of the score graph.",
+            "pl": "Pozycja, rozmiar i widoczność wykresu wyników."
+          },
+          "items": [
+            {
+              "id": "scoreGraphEnabled",
+              "name": {
+                "en": "Enabled",
+                "pl": "Włączony"
+              },
+              "type": "boolean",
+              "default": true,
+              "description": {
+                "en": "Show the score graph.",
+                "pl": "Pokaż wykres wyników."
+              }
+            },
+            {
+              "id": "scoreGraphX",
+              "name": {
+                "en": "X",
+                "pl": "X"
+              },
+              "type": "range",
+              "default": 450,
+              "description": {
+                "en": "X position.",
+                "pl": "Pozycja X."
+              }
+            },
+            {
+              "id": "scoreGraphY",
+              "name": {
+                "en": "Y",
+                "pl": "Y"
+              },
+              "type": "range",
+              "default": 130,
+              "description": {
+                "en": "Y position.",
+                "pl": "Pozycja Y."
+              }
+            },
+            {
+              "id": "scoreGraphWidth",
+              "name": {
+                "en": "Width",
+                "pl": "Szerokość"
+              },
+              "type": "range",
+              "min": 0,
+              "default": 420,
+              "description": {
+                "en": "Width.",
+                "pl": "Szerokość."
+              }
+            },
+            {
+              "id": "scoreGraphHeight",
+              "name": {
+                "en": "Height",
+                "pl": "Wysokość"
+              },
+              "type": "range",
+              "min": 0,
+              "default": 220,
+              "description": {
+                "en": "Height.",
+                "pl": "Wysokość."
+              }
+            }
+          ]
         }
       ]
     },
@@ -816,6 +1150,58 @@
           "description": {
             "en": "The z-index of the judgement counts.",
             "pl": "Wartość z-index licznika trafień."
+          }
+        },
+        {
+          "id": "scoreGraphZ",
+          "name": {
+            "en": "Score Graph Z",
+            "pl": "Wykres wyników Z"
+          },
+          "type": "range",
+          "default": 0,
+          "description": {
+            "en": "The z-index of the score graph.",
+            "pl": "Wartość z-index wykresu wyników."
+          }
+        },
+        {
+          "id": "bpmDisplayZ",
+          "name": {
+            "en": "BPM Display Z",
+            "pl": "Wyświetlacz BPM Z"
+          },
+          "type": "range",
+          "default": 0,
+          "description": {
+            "en": "The z-index of the BPM display.",
+            "pl": "Wartość z-index wyświetlacza BPM."
+          }
+        },
+        {
+          "id": "titleDisplayZ",
+          "name": {
+            "en": "Title Display Z",
+            "pl": "Wyświetlacz tytułu Z"
+          },
+          "type": "range",
+          "default": 0,
+          "description": {
+            "en": "The z-index of the title display.",
+            "pl": "Wartość z-index wyświetlacza tytułu."
+          }
+        },
+        {
+          "id": "difficultyDisplayZ",
+          "name": {
+            "en": "Difficulty Display Z",
+            "pl": "Wyświetlacz trudności Z"
+          },
+          "type": "range",
+          "default": 0,
+          "description": {
+            "en": "The z-index of the difficulty display.",
+            "pl": "Wartość z-index wyświetlacza trudności."
           }
         }
       ]
