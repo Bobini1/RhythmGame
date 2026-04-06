@@ -43,6 +43,37 @@
     </message>
 </context>
 <context>
+    <name>BpmDisplay</name>
+    <message>
+        <location filename="../scripts/gameplay/BpmDisplay.qml" line="37"/>
+        <source>MIN</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/gameplay/BpmDisplay.qml" line="46"/>
+        <source>BPM</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/gameplay/BpmDisplay.qml" line="55"/>
+        <source>MAX</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>BpmDisplayPopup</name>
+    <message>
+        <location filename="../scripts/gameplay/popups/BpmDisplayPopup.qml" line="11"/>
+        <source>Enabled</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/gameplay/popups/BpmDisplayPopup.qml" line="19"/>
+        <source>Z-index</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>ChartInfo</name>
     <message>
         <location filename="../scripts/result/ChartInfo.qml" line="71"/>
@@ -52,6 +83,19 @@
     <message>
         <location filename="../scripts/result/ChartInfo.qml" line="46"/>
         <source>NOTES</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>DifficultyDisplayPopup</name>
+    <message>
+        <location filename="../scripts/gameplay/popups/DifficultyDisplayPopup.qml" line="11"/>
+        <source>Enabled</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/gameplay/popups/DifficultyDisplayPopup.qml" line="19"/>
+        <source>Z-index</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -71,17 +115,22 @@
 <context>
     <name>GaugePopup</name>
     <message>
-        <location filename="../scripts/gameplay/popups/GaugePopup.qml" line="17"/>
+        <location filename="../scripts/gameplay/popups/GaugePopup.qml" line="16"/>
+        <source>Enabled</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/gameplay/popups/GaugePopup.qml" line="22"/>
         <source>Z-index</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/popups/GaugePopup.qml" line="23"/>
+        <location filename="../scripts/gameplay/popups/GaugePopup.qml" line="28"/>
         <source>Vertical Gauge</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/popups/GaugePopup.qml" line="30"/>
+        <location filename="../scripts/gameplay/popups/GaugePopup.qml" line="35"/>
         <source>Gauge</source>
         <translation type="unfinished"></translation>
     </message>
@@ -275,7 +324,12 @@
 <context>
     <name>JudgementsPopup</name>
     <message>
-        <location filename="../scripts/gameplay/popups/JudgementsPopup.qml" line="16"/>
+        <location filename="../scripts/gameplay/popups/JudgementsPopup.qml" line="14"/>
+        <source>Enabled</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/gameplay/popups/JudgementsPopup.qml" line="21"/>
         <source>Image</source>
         <translation type="unfinished"></translation>
     </message>
@@ -816,6 +870,29 @@ skipped: %3, total: %4</source>
     </message>
 </context>
 <context>
+    <name>ScoreGraphPopup</name>
+    <message>
+        <location filename="../scripts/gameplay/popups/ScoreGraphPopup.qml" line="11"/>
+        <source>Enabled</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/gameplay/popups/ScoreGraphPopup.qml" line="19"/>
+        <source>Z-index</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/gameplay/popups/ScoreGraphPopup.qml" line="26"/>
+        <source>Bar Width</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/gameplay/popups/ScoreGraphPopup.qml" line="32"/>
+        <source>Background</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>ScoreTargetSettingsBattle</name>
     <message>
         <location filename="../scripts/select/options/ScoreTargetSettingsBattle.qml" line="68"/>
@@ -1043,22 +1120,135 @@ skipped: %3, total: %4</source>
 <context>
     <name>TableSettings</name>
     <message>
-        <location filename="../scripts/settings/TableSettings.qml" line="153"/>
+        <location filename="../scripts/settings/TableSettings.qml" line="27"/>
+        <source>SP</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/TableSettings.qml" line="28"/>
+        <source>DP</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/TableSettings.qml" line="29"/>
+        <source>EVENT</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/TableSettings.qml" line="30"/>
+        <source>PMS</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/TableSettings.qml" line="31"/>
+        <source>etc</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/TableSettings.qml" line="33"/>
+        <source>General</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/TableSettings.qml" line="34"/>
+        <source>Personal</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/TableSettings.qml" line="35"/>
+        <source>BMS Event</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/TableSettings.qml" line="36"/>
+        <source>Chart Event</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/TableSettings.qml" line="37"/>
+        <source>Self-made Chart Only</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/TableSettings.qml" line="38"/>
+        <source>Uploader</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/TableSettings.qml" line="255"/>
+        <source>Drag to reorder</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/TableSettings.qml" line="333"/>
+        <location filename="../scripts/settings/TableSettings.qml" line="651"/>
         <source>Reload</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/TableSettings.qml" line="160"/>
+        <location filename="../scripts/settings/TableSettings.qml" line="340"/>
         <source>Remove</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/TableSettings.qml" line="221"/>
+        <location filename="../scripts/settings/TableSettings.qml" line="522"/>
         <source>Add table</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/TableSettings.qml" line="231"/>
+        <location filename="../scripts/settings/TableSettings.qml" line="567"/>
+        <location filename="../scripts/settings/TableSettings.qml" line="613"/>
+        <source>Recommended</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/TableSettings.qml" line="572"/>
+        <location filename="../scripts/settings/TableSettings.qml" line="617"/>
+        <source>Type:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/TableSettings.qml" line="574"/>
+        <location filename="../scripts/settings/TableSettings.qml" line="586"/>
+        <location filename="../scripts/settings/TableSettings.qml" line="620"/>
+        <location filename="../scripts/settings/TableSettings.qml" line="633"/>
+        <source>Any</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/TableSettings.qml" line="584"/>
+        <location filename="../scripts/settings/TableSettings.qml" line="630"/>
+        <source>Category:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/TableSettings.qml" line="647"/>
+        <source>Search…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/TableSettings.qml" line="660"/>
+        <source>Configure source URL</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/TableSettings.qml" line="676"/>
+        <source>Source URL:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/TableSettings.qml" line="695"/>
+        <source>Reset</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/TableSettings.qml" line="721"/>
+        <source>Failed to load table list: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/TableSettings.qml" line="466"/>
+        <location filename="../scripts/settings/TableSettings.qml" line="528"/>
         <source>Add</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1118,6 +1308,19 @@ skipped: %3, total: %4</source>
     <message>
         <location filename="../scripts/settings/ThemeSettings.qml" line="53"/>
         <source>Course Result</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>TitleDisplayPopup</name>
+    <message>
+        <location filename="../scripts/gameplay/popups/TitleDisplayPopup.qml" line="11"/>
+        <source>Enabled</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/gameplay/popups/TitleDisplayPopup.qml" line="19"/>
+        <source>Z-index</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
