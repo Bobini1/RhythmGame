@@ -19,6 +19,13 @@ GameplayPopup {
             text: qsTr("Z-index")
             src: popup.themeVars
         }
+        NumberWithSlider {
+            from: 0
+            to: 1
+            prop: "scoreGraphBarWidth"
+            text: qsTr("Bar Width")
+            src: popup.themeVars
+        }
         ImageSelection {
             propertyId: "scoregraph"
             src: popup.themeVars

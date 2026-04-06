@@ -109,7 +109,6 @@ Rectangle {
         } else {
             scoreReplayer1.resetPoints();
             bestScoreReplayer1.resetPoints();
-            scoreGraphItem.reset();
             if (playReadySound.length === 0) {
                 startTimer.start();
             }
@@ -530,22 +529,17 @@ Rectangle {
             contentVisible: root.mainProfileVars.scoreGraphEnabled
             currentPoints: chart.player1.score.points
             maxPoints: chart.player1.score.maxPoints
-            elapsed: chart.player1.elapsed
-            chartLength: chart.player1.chartLength
-            graphBackground: root.mainProfileVars.scoregraph || ""
-            bestHitEvents: root.scoreWithBestPoints1 ? root.scoreWithBestPoints1.replayData.hitEvents : null
-            targetHitEvents: {
-                if (!root.targetScore1) return null;
-                if (root.targetScore1 === root.scoreWithBestPoints1) return null;
-                return root.targetScore1.replayData.hitEvents;
-            }
+            graphBackground: root.mainProfileVars.scoregraph
+            barWidthRatio: root.mainProfileVars.scoreGraphBarWidth
+            bestFinalPoints: root.scoreWithBestPoints1 ? root.scoreWithBestPoints1.result.points : 0
+            bestMaxPoints: root.scoreWithBestPoints1 ? root.scoreWithBestPoints1.result.maxPoints : 0
+            bestPoints: bestScoreReplayer1.points
             targetPoints: root.targetPoints1
             targetFinalPoints: {
-                if (root.isBattle) return chart.player1.score.maxPoints;
+                if (root.isBattle) return chart.player2.score.maxPoints;
                 if (root.targetScore1) return root.targetScore1.result.points;
                 return chart.player1.score.maxPoints * chart.player1.profile.vars.generalVars.targetScoreFraction;
             }
-            bestReplayPoints: bestScoreReplayer1.points
             onXChanged: root.mainProfileVars.scoreGraphX = x
             onYChanged: root.mainProfileVars.scoreGraphY = y
             onWidthChanged: root.mainProfileVars.scoreGraphWidth = width

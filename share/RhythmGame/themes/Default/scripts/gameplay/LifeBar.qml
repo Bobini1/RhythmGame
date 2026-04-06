@@ -8,6 +8,7 @@ Item {
     required property string gaugeImage
     required property var score
     required property bool verticalGauge
+    property bool contentVisible: true
 
     Component {
         id: horizontalLayout
@@ -63,6 +64,7 @@ Item {
     Loader {
         active: true
         anchors.fill: parent
+        visible: lifeBar.contentVisible
         sourceComponent: lifeBar.verticalGauge ? verticalLayout : horizontalLayout
     }
 }

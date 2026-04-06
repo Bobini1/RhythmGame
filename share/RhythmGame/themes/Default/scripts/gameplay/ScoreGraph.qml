@@ -5,84 +5,25 @@ Item {
 
     // Live data
     property real currentPoints: 0
-    property real maxPoints: 1
-    property real elapsed: 0       // nanoseconds
-    property real chartLength: 1   // nanoseconds
-
-    property var bestHitEvents: null
-    property var targetHitEvents: null  // kept for API compatibility
+    required property real maxPoints
 
     property string graphBackground: ""
 
-    // Live target (from scoreReplayer / fraction / battle)
+    // Bar width as a fraction of the total available bar-area width (1.0 = fill all)
+    property real barWidthRatio: 1.0
+
     property real targetPoints: 0
-    // End-of-song target (from saved score / fraction / battle)
     property real targetFinalPoints: 0
-    // Note-by-note best score replay points (from ScoreReplayer, same logic as ghost score)
-    property real bestReplayPoints: 0
-
-    property var bestHistory: []
-
-    function buildScoreHistory(hitEvents) {
-        if (!hitEvents || hitEvents.length === 0)
-            return [];
-        let points = 0;
-        let history = [[0, 0]];
-        let seenNotes = {};
-        for (let i = 0; i < hitEvents.length; i++) {
-            let ev = hitEvents[i];
-            if (!ev.noteRemoved || !ev.points)
-                continue;
-            if (ev.noteIndex < 0)
-                continue;
-            let key = String(ev.column) + "_" + String(ev.noteIndex);
-            if (seenNotes[key])
-                continue;
-            seenNotes[key] = true;
-            points += ev.points.value;
-            history.push([ev.offsetFromStart, points]);
-        }
-        return history;
-    }
-
-    // Interpolate score value at a given elapsed time from a history array.
-    function scoreAtElapsed(history, elapsedNs) {
-        if (!history || history.length === 0)
-            return 0;
-        if (elapsedNs <= history[0][0])
-            return history[0][1];
-        let last = history[history.length - 1];
-        if (elapsedNs >= last[0])
-            return last[1];
-        let lo = 0, hi = history.length - 1;
-        while (lo + 1 < hi) {
-            let mid = Math.floor((lo + hi) / 2);
-            if (history[mid][0] <= elapsedNs)
-                lo = mid;
-            else
-                hi = mid;
-        }
-        let t0 = history[lo][0], t1 = history[hi][0];
-        let s0 = history[lo][1], s1 = history[hi][1];
-        if (t1 === t0)
-            return s1;
-        return s0 + (s1 - s0) * (elapsedNs - t0) / (t1 - t0);
-    }
-
-    function reset() {
-        bestHistory = buildScoreHistory(bestHitEvents);
-    }
-
-    onBestHitEventsChanged: bestHistory = buildScoreHistory(bestHitEvents)
+    property real bestPoints: 0
+    property real bestFinalPoints: 0
+    property real bestMaxPoints: 0
 
     // Reactive fractions — drive Rectangle sizes directly
     readonly property real mp: maxPoints > 0 ? maxPoints : 1
-    readonly property real bestFinal: (bestHistory && bestHistory.length > 0)
-        ? bestHistory[bestHistory.length - 1][1] / mp : 0
-    readonly property real bestNow: (bestHistory && bestHistory.length > 0)
-        ? scoreAtElapsed(bestHistory, elapsed) / mp : 0
     readonly property real tgtFinal: targetFinalPoints / mp
     readonly property real tgtNow: targetPoints / mp
+    readonly property real bestFinal: bestFinalPoints / mp
+    readonly property real bestNow: bestPoints / mp
     readonly property bool hasTgt: targetFinalPoints > 0 || targetPoints > 0
     readonly property real curFrac: currentPoints / mp
 
@@ -94,20 +35,11 @@ Item {
     ]
 
     readonly property real fontSize: Math.max(7, scoreGraph.height / 27)
-    // Vertical space reserved above the bar area so MAX label fits above the MAX line
     readonly property real topPad: Math.round(fontSize * 1.6 + 2)
-    // Label column width — just wide enough for the longest label ("MAX" / "AAA")
     readonly property real labelColWidth: Math.ceil(fontSize * 3.4)
-    // Grade reference lines — always thin, not scaled
     readonly property int lineInnerH: 1
     readonly property int lineOuterH: 3
 
-    // -----------------------------------------------------------------
-    // Visuals
-    // -----------------------------------------------------------------
-
-    // Wraps all content so the drag border (added as a child in Gameplay.qml)
-    // remains visible even when contentVisible is false.
     property bool contentVisible: true
     Rectangle {
         id: content
@@ -126,7 +58,6 @@ Item {
         visible: scoreGraph.contentVisible && scoreGraph.graphBackground !== ""
     }
 
-    // Grade reference lines — full width, offset by topPad
     Repeater {
         model: scoreGraph.grades
         Item {
@@ -190,11 +121,13 @@ Item {
         visible: scoreGraph.contentVisible
 
         readonly property real barGap: 3
-        readonly property real barW: Math.floor((width - barGap * 4) / 3)
-        
+        readonly property real barW: Math.floor((width - barGap * 4) / 3 * scoreGraph.barWidthRatio)
+        readonly property real totalBarGroupW: barGap * 4 + barW * 3
+        readonly property real barOffset: width - totalBarGroupW
+
         // ── Current bar (blue) ──────────────────────────────────────
         Item {
-            x: barArea.barGap;  y: 0
+            x: barArea.barOffset + barArea.barGap;  y: 0
             width: barArea.barW;  height: barArea.height
 
             Rectangle {
@@ -207,7 +140,7 @@ Item {
 
         // ── Best bar (green) ────────────────────────────────────────
         Item {
-            x: barArea.barGap * 2 + barArea.barW;  y: 0
+            x: barArea.barOffset + barArea.barGap * 2 + barArea.barW;  y: 0
             width: barArea.barW;  height: barArea.height
 
             Rectangle {  // ghost
@@ -226,7 +159,7 @@ Item {
 
         // ── Target bar (red) ────────────────────────────────────────
         Item {
-            x: barArea.barGap * 3 + barArea.barW * 2;  y: 0
+            x: barArea.barOffset + barArea.barGap * 3 + barArea.barW * 2;  y: 0
             width: barArea.barW;  height: barArea.height
 
             Rectangle {  // ghost
@@ -293,7 +226,7 @@ Item {
             Text {
                 anchors.right: parent.right
                 visible: deltaDisplay.showAny && scoreGraph.bestFinal > 0
-                readonly property real delta: scoreGraph.currentPoints - scoreGraph.bestReplayPoints
+                readonly property real delta: scoreGraph.currentPoints - scoreGraph.bestPoints
                 readonly property string num: String(Math.abs(Math.round(delta))).padStart(4, "0")
                 text: (deltaDisplay.showFull ? "MYBEST: " : "B: ") + (delta >= 0 ? "+" : "-") + num
                 color: "white"; font.pixelSize: scoreGraph.fontSize; font.bold: true

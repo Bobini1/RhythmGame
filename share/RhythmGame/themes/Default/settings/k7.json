@@ -69,8 +69,8 @@
         {
           "id": "fastslowEnabled",
           "name": {
-            "en": "Enable Fast/Slow Indicator",
-            "pl": "Włącz wskaźnik Fast/Slow"
+            "en": "Show Fast/Slow Indicator",
+            "pl": "Pokaż wskaźnik Fast/Slow"
           },
           "description": {
             "en": "Show an indicator when the player hits notes too early or too late.",
@@ -82,8 +82,8 @@
         {
           "id": "ghostScoreEnabled",
           "name": {
-            "en": "Enable Ghost Score",
-            "pl": "Włącz cel punktowy"
+            "en": "Show Ghost Score",
+            "pl": "Pokaż cel punktowy"
           },
           "description": {
             "en": "Show the ghost score, representing a target score for the player to aim for.",
@@ -91,6 +91,71 @@
           },
           "type": "boolean",
           "default": true
+        },
+        {
+          "id": "lifeBarEnabled",
+          "name": {
+            "en": "Show Life Bar",
+            "pl": "Pokaż pasek życia"
+          },
+          "type": "boolean",
+          "default": true,
+          "description": {
+            "en": "Show the life bar.",
+            "pl": "Pokaż pasek życia."
+          }
+        },
+        {
+          "id": "titleDisplayEnabled",
+          "name": {
+            "en": "Show Title Display",
+            "pl": "Pokaż wyświetlacz tytułu"
+          },
+          "type": "boolean",
+          "default": true,
+          "description": {
+            "en": "Show the title/subtitle display.",
+            "pl": "Pokaż wyświetlacz tytułu/podtytułu."
+          }
+        },
+        {
+          "id": "difficultyDisplayEnabled",
+          "name": {
+            "en": "Show Difficulty Display",
+            "pl": "Pokaż wyświetlacz trudności"
+          },
+          "type": "boolean",
+          "default": true,
+          "description": {
+            "en": "Show the difficulty/play level display.",
+            "pl": "Pokaż wyświetlacz trudności/poziomu gry."
+          }
+        },
+        {
+          "id": "bpmDisplayEnabled",
+          "name": {
+            "en": "Show BPM Display",
+            "pl": "Pokaż wyświetlacz BPM"
+          },
+          "type": "boolean",
+          "default": true,
+          "description": {
+            "en": "Show the BPM display.",
+            "pl": "Pokaż wyświetlacz BPM."
+          }
+        },
+        {
+          "id": "scoreGraphEnabled",
+          "name": {
+            "en": "Show Score Graph",
+            "pl": "Pokaż wykres wyników"
+          },
+          "type": "boolean",
+          "default": true,
+          "description": {
+            "en": "Show the score graph.",
+            "pl": "Pokaż wykres wyników."
+          }
         },
         {
           "id": "judgeLineThickness",
@@ -779,19 +844,6 @@
           },
           "items": [
             {
-              "id": "titleDisplayEnabled",
-              "name": {
-                "en": "Enabled",
-                "pl": "Włączony"
-              },
-              "type": "boolean",
-              "default": true,
-              "description": {
-                "en": "Show the title/subtitle display.",
-                "pl": "Pokaż wyświetlacz tytułu/podtytułu."
-              }
-            },
-            {
               "id": "titleDisplayX",
               "name": {
                 "en": "X",
@@ -858,19 +910,6 @@
             "pl": "Pozycja, rozmiar i widoczność wyświetlacza trudności/poziomu gry."
           },
           "items": [
-            {
-              "id": "difficultyDisplayEnabled",
-              "name": {
-                "en": "Enabled",
-                "pl": "Włączony"
-              },
-              "type": "boolean",
-              "default": true,
-              "description": {
-                "en": "Show the difficulty/play level display.",
-                "pl": "Pokaż wyświetlacz trudności/poziomu gry."
-              }
-            },
             {
               "id": "difficultyDisplayX",
               "name": {
@@ -939,19 +978,6 @@
           },
           "items": [
             {
-              "id": "bpmDisplayEnabled",
-              "name": {
-                "en": "Enabled",
-                "pl": "Włączony"
-              },
-              "type": "boolean",
-              "default": true,
-              "description": {
-                "en": "Show the BPM display.",
-                "pl": "Pokaż wyświetlacz BPM."
-              }
-            },
-            {
               "id": "bpmDisplayX",
               "name": {
                 "en": "X",
@@ -1019,16 +1045,18 @@
           },
           "items": [
             {
-              "id": "scoreGraphEnabled",
+              "id": "scoreGraphBarWidth",
               "name": {
-                "en": "Enabled",
-                "pl": "Włączony"
+                "en": "Bar Width",
+                "pl": "Szerokość słupków"
               },
-              "type": "boolean",
-              "default": true,
+              "type": "range",
+              "min": 0,
+              "max": 1,
+              "default": 1.0,
               "description": {
-                "en": "Show the score graph.",
-                "pl": "Pokaż wykres wyników."
+                "en": "Width of each score bar as a ratio of the available bar width.",
+                "pl": "Szerokość każdego słupka jako ułamek dostępnej szerokości."
               }
             },
             {

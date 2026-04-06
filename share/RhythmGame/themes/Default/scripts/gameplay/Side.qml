@@ -193,6 +193,7 @@ Item {
         verticalGauge: side.profileVars.verticalGauge
         gaugeImage: side.profileVars.gauge
         score: side.score
+        contentVisible: side.profileVars.lifeBarEnabled
         transform: Scale {
             xScale: side.mirrored ? -1 : 1; origin.x: lifeBar.width / 2
         }
