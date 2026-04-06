@@ -139,7 +139,7 @@ Item {
         TemplateDragBorder {
             visible: root.customizeMode
             z: 10
-            
+            mirrored: side.mirrored
             anchors.fill: parent
             anchors.margins: -borderMargin
             color: "transparent"
@@ -228,6 +228,7 @@ Item {
             anchors.margins: -borderMargin
             color: "transparent"
             visible: root.customizeMode
+            mirrored: side.mirrored
 
             MouseArea {
                 id: lifeBarMouseArea
@@ -285,6 +286,7 @@ Item {
             anchors.margins: -borderMargin
             color: "transparent"
             visible: root.customizeMode
+            mirrored: side.mirrored
         }
 
         MouseArea {
@@ -335,6 +337,7 @@ Item {
             anchors.margins: -borderMargin
             color: "transparent"
             visible: root.customizeMode
+            mirrored: side.mirrored
         }
 
         MouseArea {
