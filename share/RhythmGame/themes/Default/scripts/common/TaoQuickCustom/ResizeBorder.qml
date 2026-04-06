@@ -6,8 +6,6 @@ Item {
 
     property bool borderPressed: leftTopHandle.pressed || rightTopHandle.pressed || leftBottomHandle.pressed || rightBottomHandle.pressed || posTopItem.pressed || posLeftItem.pressed || posRightItem.pressed || posBottomItem.pressed
     property int borderWidth: 12
-    //controller 要控制大小的目标，可以是Item，也可以是view，只要提供x、y、width、height等属性的修改
-    //默认值为parent
     property var control: parent
     property bool keepAspectRatio: false
     property bool leftBorderResizable: true
@@ -16,6 +14,10 @@ Item {
     property bool bottomBorderResizable: true
     property bool anchorXCenter: false
     property bool anchorYBottom: false
+    // When true the item lives in a horizontally-mirrored coordinate space
+    // (e.g. inside a Scale{xScale:-1} parent).  The resize math is adjusted
+    // so that dragging a visual edge moves that edge, not the opposite one.
+    property bool mirrored: false
 
     //左上角的拖拽
     DragItem {
@@ -35,14 +37,18 @@ Item {
                     yOffset = xOffset / aspectRatio;
                 }
             }
-
-            //不要简化这个判断条件，化简之后不容易看懂. Qml引擎会自动简化
-            if (control.x + xOffset < control.x + control.width)
-                control.x += xOffset + (root.anchorXCenter ? -xOffset : 0);
+            if (root.mirrored) {
+                // visual left edge: change width only
+                if (control.width - xOffset > 0)
+                    control.width -= xOffset;
+            } else {
+                if (control.x + xOffset < control.x + control.width)
+                    control.x += xOffset + (root.anchorXCenter ? -xOffset : 0);
+                if (control.width - xOffset > 0)
+                    control.width -= xOffset;
+            }
             if (control.y + yOffset < control.y + control.height)
                 control.y += yOffset + (root.anchorYBottom ? -yOffset : 0);
-            if (control.width - xOffset > 0)
-                control.width -= xOffset;
             if (control.height - yOffset > 0)
                 control.height -= yOffset;
         }
@@ -66,10 +72,16 @@ Item {
                     yOffset = xOffset / aspectRatio * -1;
                 }
             }
-
-            //向左拖动时，xOffset为负数
-            if (control.width + xOffset > 0)
-                control.width += xOffset;
+            if (root.mirrored) {
+                // visual right edge: move x and width together
+                if (control.width + xOffset > 0) {
+                    control.x -= xOffset;
+                    control.width += xOffset;
+                }
+            } else {
+                if (control.width + xOffset > 0)
+                    control.width += xOffset;
+            }
             if (control.height - yOffset > 0)
                 control.height -= yOffset;
             if (control.y + yOffset < control.y + control.height)
@@ -95,10 +107,16 @@ Item {
                     yOffset = xOffset / aspectRatio * -1;
                 }
             }
-            if (control.x + xOffset < control.x + control.width)
-                control.x += xOffset - (root.anchorXCenter ? xOffset : 0);
-            if (control.width - xOffset > 0)
-                control.width -= xOffset;
+            if (root.mirrored) {
+                // visual left edge: change width only
+                if (control.width - xOffset > 0)
+                    control.width -= xOffset;
+            } else {
+                if (control.x + xOffset < control.x + control.width)
+                    control.x += xOffset - (root.anchorXCenter ? xOffset : 0);
+                if (control.width - xOffset > 0)
+                    control.width -= xOffset;
+            }
             if (control.height + yOffset > 0)
                 control.height += yOffset;
         }
@@ -123,8 +141,16 @@ Item {
                     yOffset = xOffset / aspectRatio;
                 }
             }
-            if (control.width + xOffset > 0)
-                control.width += xOffset;
+            if (root.mirrored) {
+                // visual right edge: move x and width together
+                if (control.width + xOffset > 0) {
+                    control.x -= xOffset;
+                    control.width += xOffset;
+                }
+            } else {
+                if (control.width + xOffset > 0)
+                    control.width += xOffset;
+            }
             if (control.height + yOffset > 0)
                 control.height += yOffset;
         }
@@ -158,10 +184,16 @@ Item {
         y: leftTopHandle.height
 
         onPosChange: function (xOffset, yOffset) {
-            if (control.x + xOffset < control.x + control.width)
-                control.x += xOffset;
-            if (control.width - xOffset > 0)
-                control.width -= xOffset;
+            if (root.mirrored) {
+                // visual left edge: change width only, keep x fixed
+                if (control.width - xOffset > 0)
+                    control.width -= xOffset;
+            } else {
+                if (control.x + xOffset < control.x + control.width)
+                    control.x += xOffset;
+                if (control.width - xOffset > 0)
+                    control.width -= xOffset;
+            }
         }
     }
     //右边拖拽
@@ -176,8 +208,16 @@ Item {
         y: rightTopHandle.height
 
         onPosChange: function (xOffset, yOffset) {
-            if (control.width + xOffset > 0)
-                control.width += xOffset;
+            if (root.mirrored) {
+                // visual right edge: move x so the right visual edge tracks the mouse
+                if (control.width + xOffset > 0) {
+                    control.x -= xOffset;
+                    control.width += xOffset;
+                }
+            } else {
+                if (control.width + xOffset > 0)
+                    control.width += xOffset;
+            }
         }
     }
     //下边拖拽

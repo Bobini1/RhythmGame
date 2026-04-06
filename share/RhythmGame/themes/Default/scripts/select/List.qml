@@ -16,7 +16,7 @@ PathView {
         refreshFolderClearStats();
     }
     Component.onDestruction: {
-        Rg.profileList.mainProfile.scoreDb.cancelPending();
+        Rg.profileList?.mainProfile?.scoreDb?.cancelPending();
     }
     function refreshScores() {
         Rg.profileList.mainProfile.scoreDb.cancelPending();

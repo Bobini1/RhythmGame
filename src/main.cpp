@@ -527,7 +527,7 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
             throw std::runtime_error{ "Failed to load main qml" };
         }
         app.setInputTranslator(&inputTranslator);
-
+        
         return app.exec();
     } catch (const std::exception& e) {
         spdlog::critical("Fatal: {}", e.what());

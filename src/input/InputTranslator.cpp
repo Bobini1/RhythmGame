@@ -1108,41 +1108,51 @@ InputTranslator::getAnalogAxisConfig2() -> AnalogAxisConfig*
 }
 
 void
-InputTranslator::eventFilter(std::chrono::milliseconds timePoint, QEvent* event)
+InputTranslator::handleKeyEvent(quint32 nativeScanCode,
+                                 bool isPress,
+                                 int64_t time)
 {
-    if (event->type() == QEvent::KeyPress && !event->isAccepted()) {
-        const auto* const key = static_cast<QKeyEvent*>(event);
-        if (key->isAutoRepeat()) {
-            return;
-        }
-
-        const auto keyLookup = Key{ QVariant::fromValue(nullptr),
-                                    Key::Device::Keyboard,
-                                    key->nativeScanCode(),
-                                    Key::Direction::None };
+    const auto keyLookup = Key{ QVariant::fromValue(nullptr),
+                                Key::Device::Keyboard,
+                                nativeScanCode,
+                                Key::Direction::None };
+    if (isPress) {
         if (isConfiguring()) {
-            unpressAndUnbind(keyLookup, timePoint.count());
+            unpressAndUnbind(keyLookup, time);
             config[keyLookup] = *configuredButton;
             emit keyConfigModified();
             setConfiguredButton({});
         } else {
             if (const auto found = config.find(keyLookup);
                 found != config.end()) {
-                pressButton(*found, timePoint.count());
+                tickTypes[static_cast<int>(*found)] = ButtonTick;
+                pressButton(*found, time);
             }
         }
-    } else if (event->type() == QEvent::KeyRelease && !event->isAccepted()) {
+    } else {
+        if (const auto found = config.find(keyLookup); found != config.end()) {
+            releaseButton(*found, time);
+        }
+    }
+}
+
+void
+InputTranslator::eventFilter(std::chrono::milliseconds timePoint, QEvent* event)
+{
+    // Used only on non-Windows platforms; on Windows the WH_KEYBOARD_LL hook
+    // in CustomNotifyApp calls handleKeyEvent directly before the IME runs.
+    if (event->type() == QEvent::KeyPress) {
         const auto* const key = static_cast<QKeyEvent*>(event);
         if (key->isAutoRepeat()) {
             return;
         }
-        const auto keyLookup = Key{ QVariant::fromValue(nullptr),
-                                    Key::Device::Keyboard,
-                                    key->nativeScanCode(),
-                                    Key::Direction::None };
-        if (const auto found = config.find(keyLookup); found != config.end()) {
-            releaseButton(*found, timePoint.count());
+        handleKeyEvent(key->nativeScanCode(), true, timePoint.count());
+    } else if (event->type() == QEvent::KeyRelease) {
+        const auto* const key = static_cast<QKeyEvent*>(event);
+        if (key->isAutoRepeat()) {
+            return;
         }
+        handleKeyEvent(key->nativeScanCode(), false, timePoint.count());
     }
 }
 QString

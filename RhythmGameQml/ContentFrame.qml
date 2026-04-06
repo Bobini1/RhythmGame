@@ -29,7 +29,7 @@ ApplicationWindow {
         }
     }
     onVisibilityChanged: {
-        if (settingsRestored && (contentContainer.visibility === Window.Windowed || contentContainer.visibility === Window.FullScreen)) {
+        if (settingsRestored && (contentContainer.visibility === Window.Windowed || contentContainer.visibility === Window.FullScreen || contentContainer.visibility === Window.Maximized)) {
             settings.visibility = contentContainer.visibility;
         }
     }

@@ -16,7 +16,7 @@ Item {
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.topMargin: 100
         asynchronous: true
-        source: root.iniImagesUrl + "parts.png/" + Helpers.getGrade(grade.scoreWithBestPoints.result.points, grade.scoreWithBestPoints.result.maxPoints)
+        source: root.iniImagesUrl + "parts.png/" + Helpers.getGrade(grade.scoreWithBestPoints?.result?.points, grade.scoreWithBestPoints?.result?.maxPoints)
     }
 
     Image {

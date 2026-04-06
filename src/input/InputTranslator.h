@@ -260,6 +260,10 @@ class InputTranslator final : public QObject
     void handleAxis(Gamepad gamepad, Uint8 axis, double value, int64_t time);
     void handlePress(Gamepad gamepad, Uint8 button, int64_t time);
     void handleRelease(Gamepad gamepad, Uint8 button, int64_t time);
+    // Handles a single physical keyboard key event identified by its native
+    // scan code.  Called by the platform-specific input path (LL hook on
+    // Windows, CustomNotifyApp::notify on other platforms).
+    void handleKeyEvent(quint32 nativeScanCode, bool isPress, int64_t time);
 
     void loadKeyConfig();
     void connectAnalogAxisConfig(const AnalogAxisConfig& config);
