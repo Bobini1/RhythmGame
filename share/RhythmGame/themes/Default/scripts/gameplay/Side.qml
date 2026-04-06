@@ -21,6 +21,10 @@ Item {
     property bool start: Input[`start${index+1}`] || (dpSuffix && (Input.start1 || Input.start2))
     property bool select: Input[`select${index+1}`] || (dpSuffix && (Input.select1 || Input.select2))
     property var pointTarget
+    property real bestFinalPoints: 0
+    property real bestMaxPoints: 0
+    property real bestPoints: 0
+    property real targetFinalPoints: 0
 
     property bool lastDirectionUp: false
     function modifyGnWn(number, amount) {
@@ -247,6 +251,57 @@ Item {
             }
         }
     }
+    ScoreGraph {
+        id: sideScoreGraph
+
+        x: side.profileVars.scoreGraphX
+        y: side.profileVars.scoreGraphY
+        width: side.profileVars.scoreGraphWidth
+        height: side.profileVars.scoreGraphHeight
+        z: side.profileVars.scoreGraphZ
+        transform: Scale {
+            xScale: side.mirrored ? -1 : 1; origin.x: sideScoreGraph.width / 2
+        }
+
+        contentVisible: side.profileVars.scoreGraphEnabled
+        graphBackground: side.profileVars.scoregraph || ""
+        barWidthRatio: side.profileVars.scoreGraphBarWidth
+
+        maxPoints: side.score.maxPoints
+        currentPoints: side.score.points
+        bestFinalPoints: side.bestFinalPoints
+        bestMaxPoints: side.bestMaxPoints
+        bestPoints: side.bestPoints
+        targetPoints: side.pointTarget
+        targetFinalPoints: side.targetFinalPoints
+
+        onXChanged: side.profileVars.scoreGraphX = x
+        onYChanged: side.profileVars.scoreGraphY = y
+        onWidthChanged: side.profileVars.scoreGraphWidth = width
+        onHeightChanged: side.profileVars.scoreGraphHeight = height
+
+        TemplateDragBorder {
+            anchors.fill: parent
+            anchors.margins: -borderMargin
+            color: "transparent"
+            visible: root.customizeMode
+        }
+
+        MouseArea {
+            acceptedButtons: Qt.RightButton
+            anchors.fill: parent
+            z: -1
+
+            onClicked: mouse => {
+                let point = mapToItem(Overlay.overlay, mouse.x, mouse.y);
+                let popup = side.mirrored ? scoreGraphPopupP2 : scoreGraphPopup;
+                popup.setPosition(point);
+                popup.open();
+                root.popup = popup;
+            }
+        }
+    }
+
     JudgementCounts {
         id: judgementCountsContainer
 

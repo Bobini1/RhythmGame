@@ -850,7 +850,7 @@
                 "pl": "X"
               },
               "type": "range",
-              "default": 450,
+              "default": 660,
               "description": {
                 "en": "X position.",
                 "pl": "Pozycja X."
@@ -863,7 +863,7 @@
                 "pl": "Y"
               },
               "type": "range",
-              "default": 5,
+              "default": 870,
               "description": {
                 "en": "Y position.",
                 "pl": "Pozycja Y."
@@ -877,7 +877,7 @@
               },
               "type": "range",
               "min": 0,
-              "default": 420,
+              "default": 600,
               "description": {
                 "en": "Width.",
                 "pl": "Szerokość."
@@ -917,7 +917,7 @@
                 "pl": "X"
               },
               "type": "range",
-              "default": 450,
+              "default": 540,
               "description": {
                 "en": "X position.",
                 "pl": "Pozycja X."
@@ -930,7 +930,7 @@
                 "pl": "Y"
               },
               "type": "range",
-              "default": 60,
+              "default": 870,
               "description": {
                 "en": "Y position.",
                 "pl": "Pozycja Y."
@@ -984,7 +984,7 @@
                 "pl": "X"
               },
               "type": "range",
-              "default": 450,
+              "default": 835,
               "description": {
                 "en": "X position.",
                 "pl": "Pozycja X."
@@ -997,7 +997,7 @@
                 "pl": "Y"
               },
               "type": "range",
-              "default": 70,
+              "default": 930,
               "description": {
                 "en": "Y position.",
                 "pl": "Pozycja Y."
@@ -1066,7 +1066,7 @@
                 "pl": "X"
               },
               "type": "range",
-              "default": 450,
+              "default": 520,
               "description": {
                 "en": "X position.",
                 "pl": "Pozycja X."
@@ -1079,7 +1079,7 @@
                 "pl": "Y"
               },
               "type": "range",
-              "default": 130,
+              "default": 160,
               "description": {
                 "en": "Y position.",
                 "pl": "Pozycja Y."
@@ -1093,7 +1093,7 @@
               },
               "type": "range",
               "min": 0,
-              "default": 420,
+              "default": 122,
               "description": {
                 "en": "Width.",
                 "pl": "Szerokość."
@@ -1107,7 +1107,7 @@
               },
               "type": "range",
               "min": 0,
-              "default": 220,
+              "default": 380,
               "description": {
                 "en": "Height.",
                 "pl": "Wysokość."

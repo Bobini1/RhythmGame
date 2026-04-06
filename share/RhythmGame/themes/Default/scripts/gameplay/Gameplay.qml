@@ -70,6 +70,11 @@ Rectangle {
         return p1MaxPointsNow * chart.player1.profile.vars.generalVars.targetScoreFraction;
     }
     property real targetPoints2: chart.player1.score.points
+    readonly property real targetFinalPoints1: {
+        if (isBattle) return chart.player2.score.maxPoints;
+        if (targetScore1) return targetScore1.result.points;
+        return chart.player1.score.maxPoints * chart.player1.profile.vars.generalVars.targetScoreFraction;
+    }
     ScoreReplayer {
         id: scoreReplayer1
         hitEvents: targetScore1?.replayData?.hitEvents
@@ -267,7 +272,16 @@ Rectangle {
     }
     ScoreGraphPopup {
         id: scoreGraphPopup
-        themeVars: root.mainProfileVars
+        readonly property Profile profile: chart.player1.profile
+        themeVars: profile.vars.themeVars[root.screen][root.themeName]
+        onClosed: {
+            root.popup = null;
+        }
+    }
+    ScoreGraphPopup {
+        id: scoreGraphPopupP2
+        readonly property Profile profile: (chart.player2 || chart.player1).profile
+        themeVars: profile.vars.themeVars[root.screen][root.themeName]
         onClosed: {
             root.popup = null;
         }
@@ -519,57 +533,16 @@ Rectangle {
             }
         }
 
-        ScoreGraph {
-            id: scoreGraphItem
-            x: root.mainProfileVars.scoreGraphX
-            y: root.mainProfileVars.scoreGraphY
-            width: root.mainProfileVars.scoreGraphWidth
-            height: root.mainProfileVars.scoreGraphHeight
-            z: root.mainProfileVars.scoreGraphZ
-            contentVisible: root.mainProfileVars.scoreGraphEnabled
-            currentPoints: chart.player1.score.points
-            maxPoints: chart.player1.score.maxPoints
-            graphBackground: root.mainProfileVars.scoregraph
-            barWidthRatio: root.mainProfileVars.scoreGraphBarWidth
-            bestFinalPoints: root.scoreWithBestPoints1 ? root.scoreWithBestPoints1.result.points : 0
-            bestMaxPoints: root.scoreWithBestPoints1 ? root.scoreWithBestPoints1.result.maxPoints : 0
-            bestPoints: bestScoreReplayer1.points
-            targetPoints: root.targetPoints1
-            targetFinalPoints: {
-                if (root.isBattle) return chart.player2.score.maxPoints;
-                if (root.targetScore1) return root.targetScore1.result.points;
-                return chart.player1.score.maxPoints * chart.player1.profile.vars.generalVars.targetScoreFraction;
-            }
-            onXChanged: root.mainProfileVars.scoreGraphX = x
-            onYChanged: root.mainProfileVars.scoreGraphY = y
-            onWidthChanged: root.mainProfileVars.scoreGraphWidth = width
-            onHeightChanged: root.mainProfileVars.scoreGraphHeight = height
-
-            TemplateDragBorder {
-                anchors.fill: parent
-                anchors.margins: -borderMargin
-                color: "transparent"
-                visible: root.customizeMode
-            }
-            MouseArea {
-                acceptedButtons: Qt.RightButton
-                anchors.fill: parent
-                z: -1
-                onClicked: mouse => {
-                    let point = mapToItem(Overlay.overlay, mouse.x, mouse.y);
-                    scoreGraphPopup.setPosition(point);
-                    scoreGraphPopup.open();
-                    root.popup = scoreGraphPopup;
-                }
-            }
-        }
-
         Side {
             anchors.fill: parent
             player: chart.player1
             dpSuffix: root.isDp ? "1" : ""
             index: 0
             pointTarget: root.targetPoints1
+            bestFinalPoints: root.scoreWithBestPoints1 ? root.scoreWithBestPoints1.result.points : 0
+            bestMaxPoints: root.scoreWithBestPoints1 ? root.scoreWithBestPoints1.result.maxPoints : 0
+            bestPoints: bestScoreReplayer1.points
+            targetFinalPoints: root.targetFinalPoints1
             columns: {
                 if (root.isDp) {
                     return [7, 0, 1, 2, 3, 4, 5, 6];
@@ -593,6 +566,10 @@ Rectangle {
                 mirrored: !root.isDp
                 index: 1
                 pointTarget: root.isDp ? root.targetPoints1 : root.targetPoints2
+                bestFinalPoints: root.isDp ? (root.scoreWithBestPoints1 ? root.scoreWithBestPoints1.result.points : 0) : 0
+                bestMaxPoints: root.isDp ? (root.scoreWithBestPoints1 ? root.scoreWithBestPoints1.result.maxPoints : 0) : 0
+                bestPoints: root.isDp ? bestScoreReplayer1.points : 0
+                targetFinalPoints: root.isDp ? root.targetFinalPoints1 : chart.player1.score.maxPoints
                 columns: {
                     if (root.isDp) {
                         return chart.player1.score.keymode === 14 ? [8, 9, 10, 11, 12, 13, 14, 15] : [14, 13, 8, 9, 10, 11, 12, 15];
