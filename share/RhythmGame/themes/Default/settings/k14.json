@@ -600,6 +600,19 @@
           },
           "items": [
             {
+              "id": "judgementsEnabled",
+              "name": {
+                "en": "Show Judgements",
+                "pl": "Pokaż oceny trafień"
+              },
+              "type": "boolean",
+              "default": true,
+              "description": {
+                "en": "Show the judgement display.",
+                "pl": "Pokaż wyświetlacz ocen trafień."
+              }
+            },
+            {
               "id": "judgementsOffset",
               "name": {
                 "en": "Position",

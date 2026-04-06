@@ -293,6 +293,7 @@ Item {
             acceptedButtons: Qt.RightButton
             anchors.fill: parent
             z: -1
+            enabled: root.customizeMode
 
             onClicked: mouse => {
                 let point = mapToItem(Overlay.overlay, mouse.x, mouse.y);
@@ -346,6 +347,7 @@ Item {
             acceptedButtons: Qt.RightButton
             anchors.fill: parent
             z: -1
+            enabled: root.customizeMode
 
             onClicked: mouse => {
                 let point = mapToItem(Overlay.overlay, mouse.x, mouse.y);

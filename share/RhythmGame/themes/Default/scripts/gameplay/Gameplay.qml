@@ -420,6 +420,7 @@ Rectangle {
                 acceptedButtons: Qt.RightButton
                 anchors.fill: parent
                 z: -1
+                enabled: root.customizeMode
 
                 onClicked: mouse => {
                     let point = mapToItem(Overlay.overlay, mouse.x, mouse.y);
@@ -455,6 +456,7 @@ Rectangle {
                 acceptedButtons: Qt.RightButton
                 anchors.fill: parent
                 z: -1
+                enabled: root.customizeMode
                 onClicked: mouse => {
                     let point = mapToItem(Overlay.overlay, mouse.x, mouse.y);
                     titleDisplayPopup.setPosition(point);
@@ -489,6 +491,7 @@ Rectangle {
                 acceptedButtons: Qt.RightButton
                 anchors.fill: parent
                 z: -1
+                enabled: root.customizeMode
                 onClicked: mouse => {
                     let point = mapToItem(Overlay.overlay, mouse.x, mouse.y);
                     difficultyDisplayPopup.setPosition(point);
@@ -524,6 +527,7 @@ Rectangle {
                 acceptedButtons: Qt.RightButton
                 anchors.fill: parent
                 z: -1
+                enabled: root.customizeMode
                 onClicked: mouse => {
                     let point = mapToItem(Overlay.overlay, mouse.x, mouse.y);
                     bpmDisplayPopup.setPosition(point);

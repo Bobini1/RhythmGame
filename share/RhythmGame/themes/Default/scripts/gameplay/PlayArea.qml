@@ -204,6 +204,7 @@ Item {
         score: playArea.score
         judge: playArea.vars.judge
         columns: playArea.columns
+        contentVisible: playArea.vars.judgementsEnabled
     }
     Item {
         id: judgementsPositioner
