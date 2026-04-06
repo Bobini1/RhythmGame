@@ -1,11 +1,13 @@
 <map id="src/qml_components/ScoreReplayer.h" name="src/qml_components/ScoreReplayer.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="294,5,451,45"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="347,5,504,45"/>
 <area shape="rect" id="Node000002" href="$HitEvent_8h.html" title=" " alt="" coords="82,93,279,119"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="327,48,222,91,220,86,325,43"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="368,48,230,92,228,87,366,43"/>
 <area shape="rect" id="Node000003" title=" " alt="" coords="91,313,166,339"/>
-<area shape="poly" id="edge11_Node000001_Node000003" title=" " alt="" coords="379,45,386,89,389,148,386,180,379,211,367,241,349,267,321,285,277,300,180,320,179,315,276,295,319,281,345,263,362,238,374,209,380,179,383,148,381,90,374,46"/>
+<area shape="poly" id="edge12_Node000001_Node000003" title=" " alt="" coords="420,47,400,94,389,144,386,187,378,226,367,247,349,267,310,295,266,313,221,323,180,327,179,322,220,317,264,308,308,290,345,263,362,243,373,225,381,186,384,144,395,93,415,45"/>
 <area shape="rect" id="Node000008" title=" " alt="" coords="410,93,548,119"/>
-<area shape="poly" id="edge10_Node000001_Node000008" title=" " alt="" coords="400,43,454,83,450,87,397,48"/>
+<area shape="poly" id="edge10_Node000001_Node000008" title=" " alt="" coords="441,44,466,80,461,83,437,47"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="573,93,638,119"/>
+<area shape="poly" id="edge11_Node000001_Node000009" title=" " alt="" coords="470,43,568,85,566,90,468,48"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="92,121,50,139,32,152,17,168,9,186,9,205,16,224,28,242,62,277,99,304,96,308,59,281,24,246,11,226,4,206,4,185,13,165,29,148,48,134,90,116"/>
 <area shape="rect" id="Node000004" title=" " alt="" coords="26,167,105,192"/>
 <area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="163,121,97,162,95,157,161,116"/>

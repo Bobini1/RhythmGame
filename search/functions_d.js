@@ -7,5 +7,6 @@ var searchData=
   ['noteorderalgorithmchanged_4',['noteOrderAlgorithmChanged',['../classresource__managers_1_1GeneralVars.html#a5b1acac8580e9190ecbd9c66d3d9feb7',1,'resource_managers::GeneralVars']]],
   ['noteorderalgorithmp2changed_5',['noteOrderAlgorithmP2Changed',['../classresource__managers_1_1GeneralVars.html#af7d545f56ba606487aa4fb908ae20b40',1,'resource_managers::GeneralVars']]],
   ['notescreentimemillischanged_6',['noteScreenTimeMillisChanged',['../classresource__managers_1_1GeneralVars.html#a608661ddc8960280e9abbf3fddb9aee9',1,'resource_managers::GeneralVars']]],
-  ['notify_7',['notify',['../classinput_1_1CustomNotifyApp.html#aa6279691de622c9d7249080680ae729f',1,'input::CustomNotifyApp']]]
+  ['notify_7',['notify',['../classinput_1_1CustomNotifyApp.html#aa6279691de622c9d7249080680ae729f',1,'input::CustomNotifyApp']]],
+  ['notifyhit_8',['notifyHit',['../classqml__components_1_1ScoreReplayer.html#a27686dff14dd59c39d455928eb20a370',1,'qml_components::ScoreReplayer']]]
 ];

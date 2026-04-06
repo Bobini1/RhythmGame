@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['elapsedchanged_0',['elapsedchanged',['../classgameplay__logic_1_1Player.html#a23bae74e1e80cdc69505e36d9201caa4',1,'gameplay_logic::Player::elapsedChanged()'],['../classqml__components_1_1ScoreReplayer.html#a9cdb7a281f8d21926f02fde2d56d8461',1,'qml_components::ScoreReplayer::elapsedChanged()']]],
+  ['elapsedchanged_0',['elapsedChanged',['../classgameplay__logic_1_1Player.html#a23bae74e1e80cdc69505e36d9201caa4',1,'gameplay_logic::Player']]],
   ['erasefirst_1',['eraseFirst',['../namespacesupport.html#a54a59b2fba617895872e973a53397fef',1,'support']]],
   ['error_2',['error',['../classqml__components_1_1ReplayImportOperation.html#a1eee1c4e7d705ecd25905da873243af8',1,'qml_components::ReplayImportOperation::error()'],['../classqml__components_1_1ScoreSyncOperation.html#aabe7d8f8a649fde659396bc593e2fb51',1,'qml_components::ScoreSyncOperation::error()']]],
   ['eventfilter_3',['eventFilter',['../classinput_1_1InputTranslator.html#a16f3fabf41a8463c036dd04357265325',1,'input::InputTranslator']]],
