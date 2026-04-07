@@ -41,13 +41,6 @@ Item {
     readonly property int lineOuterH: 3
 
     property bool contentVisible: true
-    Rectangle {
-        id: content
-        anchors.fill: parent
-        visible: scoreGraph.contentVisible && scoreGraph.graphBackground === ""
-        color: "#111111"
-        opacity: 0.8
-    }
 
     Image {
         anchors.fill: parent
@@ -77,7 +70,6 @@ Item {
         }
     }
 
-    // Left label column
     Item {
         id: labelCol
         width: scoreGraph.labelColWidth
@@ -85,6 +77,7 @@ Item {
         anchors.top: parent.top
         anchors.bottom: parent.bottom
         visible: scoreGraph.contentVisible
+        z: 1
 
         Repeater {
             model: scoreGraph.grades
@@ -109,10 +102,10 @@ Item {
         }
     }
 
-    // Bar area (right of label column)
+    // Bar area (full width; label column overlays on top)
     Item {
         id: barArea
-        anchors.left: labelCol.right
+        anchors.left: parent.left
         anchors.right: parent.right
         anchors.top: parent.top
         anchors.topMargin: scoreGraph.topPad
@@ -120,14 +113,15 @@ Item {
         anchors.rightMargin: 1
         visible: scoreGraph.contentVisible
 
+        // barWidthRatio scales the entire bar group (all bars + gaps) as a fraction of the available width
         readonly property real barGap: 3
-        readonly property real barW: Math.floor((width - barGap * 4) / 3 * scoreGraph.barWidthRatio)
-        readonly property real totalBarGroupW: barGap * 4 + barW * 3
-        readonly property real barOffset: width - totalBarGroupW
+        readonly property real totalW: Math.floor(width * scoreGraph.barWidthRatio)
+        readonly property real barW: Math.max(0, Math.floor((totalW - barGap * 3) / 3))
+        readonly property real offset: width - totalW  // right-align the group
 
         // ── Current bar (blue) ──────────────────────────────────────
         Item {
-            x: barArea.barOffset + barArea.barGap;  y: 0
+            x: barArea.offset + barArea.barGap;  y: 0
             width: barArea.barW;  height: barArea.height
 
             Rectangle {
@@ -140,7 +134,7 @@ Item {
 
         // ── Best bar (green) ────────────────────────────────────────
         Item {
-            x: barArea.barOffset + barArea.barGap * 2 + barArea.barW;  y: 0
+            x: barArea.offset + barArea.barGap * 2 + barArea.barW;  y: 0
             width: barArea.barW;  height: barArea.height
 
             Rectangle {  // ghost
@@ -159,7 +153,7 @@ Item {
 
         // ── Target bar (red) ────────────────────────────────────────
         Item {
-            x: barArea.barOffset + barArea.barGap * 3 + barArea.barW * 2;  y: 0
+            x: barArea.offset + barArea.barGap * 3 + barArea.barW * 2;  y: 0
             width: barArea.barW;  height: barArea.height
 
             Rectangle {  // ghost

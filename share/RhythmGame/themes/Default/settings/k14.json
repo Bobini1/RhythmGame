@@ -1105,7 +1105,7 @@
               "type": "range",
               "min": 0,
               "max": 1,
-              "default": 1.0,
+              "default": 0.7,
               "description": {
                 "en": "Total width of all score bars as a ratio of the available bar width.",
                 "pl": "Szerokość wszystkich słupków jako ułamek dostępnej szerokości."
