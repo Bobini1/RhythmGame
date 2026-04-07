@@ -103,6 +103,7 @@ Rectangle {
     }
     StackView.onActivated: {
         escapeShortcut.nothingWasHit = true;
+        escapeShortcut.used = false;
         if (chart.status === ChartRunner.Finished) {
             if (isCourse && !showedCourseResult) {
                 showedCourseResult = true;
