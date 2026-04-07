@@ -98,7 +98,10 @@ Item {
                     }
                 }
 
-                let rawTitle = root.chartData?.title || root.course?.name || "";
+                let rawTitle = root.chartData
+                    ? root.chartData.title + (root.chartData.subtitle ? " " + root.chartData.subtitle : "")
+                    : root.course?.name ?? "";
+
                 let title = Helpers.sanitizeFilename(rawTitle);
 
                 let filename = timestamp + "_" + prefix + title
@@ -107,9 +110,9 @@ Item {
                     let filepath = Rg.programSettings.screenshotsFolder + "/" + filename;
                     if (grabResult.saveToFile(filepath)) {
                         Rg.programSettings.copyImageToClipboard(filepath);
-                        screenshotMessage.show("Screenshot saved to " + filepath + " and clipboard.");
+                        screenshotMessage.show(qsTr("Screenshot saved to %1 and clipboard.").arg(filepath));
                     } else {
-                        screenshotMessage.show("Failed to save screenshot");
+                        screenshotMessage.show(qsTr("Failed to save screenshot."));
                     }
                 });
             }

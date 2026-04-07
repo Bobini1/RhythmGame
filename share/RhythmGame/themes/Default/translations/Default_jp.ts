@@ -870,6 +870,19 @@ skipped: %3, total: %4</source>
     </message>
 </context>
 <context>
+    <name>Result</name>
+    <message>
+        <location filename="../scripts/result/Result.qml" line="113"/>
+        <source>Screenshot saved to %1 and clipboard.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/result/Result.qml" line="115"/>
+        <source>Failed to save screenshot.</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>ScoreGraphPopup</name>
     <message>
         <location filename="../scripts/gameplay/popups/ScoreGraphPopup.qml" line="11"/>
