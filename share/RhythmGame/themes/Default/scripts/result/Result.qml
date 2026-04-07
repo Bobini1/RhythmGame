@@ -76,7 +76,7 @@ Item {
         }
         Shortcut {
             enabled: root.enabled
-            sequence: "Print"
+            sequence: "F6"
 
             onActivated: {
                 let date = new Date();
@@ -88,9 +88,14 @@ Item {
 
                 let prefix = "";
                 if (root.chartData) {
-                    let diff = Helpers.difficultyName(root.chartData.difficulty);
-                    let level = root.chartData.playLevel;
-                    prefix = (diff ? diff + " " : "") + level + " ";
+                    let info = Rg.tables.search(root.chartData.md5);
+                    if (info.length > 0) {
+                        prefix = info[0].symbol + info[0].levelName + " ";
+                    } else {
+                        let diff = Helpers.difficultyName(root.chartData.difficulty);
+                        let level = root.chartData.playLevel;
+                        prefix = (diff ? diff + " " : "") + level + " ";
+                    }
                 }
 
                 let rawTitle = root.chartData?.title || root.course?.name || "";
@@ -99,11 +104,12 @@ Item {
                 let filename = timestamp + "_" + prefix + title
                                + " " + clearType + " " + g + ".png";
                 root.grabToImage(function (grabResult) {
-                    if (grabResult.saveToFile(
-                        Rg.programSettings.screenshotsFolder + "/" + filename)) {
-                        Rg.showMessage("Screenshot saved: " + filename);
+                    let filepath = Rg.programSettings.screenshotsFolder + "/" + filename;
+                    if (grabResult.saveToFile(filepath)) {
+                        Rg.programSettings.copyImageToClipboard(filepath);
+                        screenshotMessage.show("Screenshot saved to " + filepath + " and clipboard.");
                     } else {
-                        Rg.showMessage("Failed to save screenshot");
+                        screenshotMessage.show("Failed to save screenshot");
                     }
                 });
             }
@@ -122,10 +128,41 @@ Item {
             width: 1920
             anchors.centerIn: parent
 
+            Text {
+                id: screenshotMessage
+
+                anchors.top: parent.top
+                anchors.topMargin: 16
+                anchors.horizontalCenter: parent.horizontalCenter
+                width: titleArtist.width
+                z: 10
+                opacity: 0
+                color: "white"
+                font.pixelSize: 28
+                font.bold: true
+                fontSizeMode: Text.HorizontalFit
+                minimumPixelSize: 10
+                horizontalAlignment: Text.AlignHCenter
+                style: Text.Outline
+                styleColor: "black"
+
+                function show(msg) {
+                    text = msg;
+                    fadeAnim.restart();
+                }
+
+                SequentialAnimation {
+                    id: fadeAnim
+                    NumberAnimation { target: screenshotMessage; property: "opacity"; to: 1.0; duration: 150 }
+                    PauseAnimation { duration: 3000 }
+                    NumberAnimation { target: screenshotMessage; property: "opacity"; to: 0.0; duration: 600 }
+                }
+            }
 
             Row {
                 id: chartInfoRow
-                anchors.horizontalCenter: parent.horizontalCenter
+                anchors.left: parent.left
+                anchors.leftMargin: 14
 
                 StageFile {
                     chartDirectory: chartData?.chartDirectory || ""
@@ -142,7 +179,7 @@ Item {
                     anchors.bottom: parent.bottom
                     anchors.bottomMargin: 24
                     height: 124
-                    width: 1214
+                    width: 1286
                 }
                 ChartInfo {
                     difficulty: root.chartData?.difficulty

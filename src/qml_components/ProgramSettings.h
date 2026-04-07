@@ -24,6 +24,11 @@ class ProgramSettings : public QObject
                              QObject* parent = nullptr);
     auto getAvatarFolder() const -> QString;
     auto getScreenshotsFolder() const -> QString;
+    /**
+     * @brief Copies the image at the given file path to the system clipboard.
+     * @param path The absolute path to the image file.
+     */
+    Q_INVOKABLE void copyImageToClipboard(const QString& path);
 };
 
 } // namespace qml_components
