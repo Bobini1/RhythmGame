@@ -7,11 +7,11 @@ Item {
     property int playLevel: 0
     property bool contentVisible: true
 
-    readonly property var difficultyNames: ["?", "BEGINNER", "NORMAL", "HYPER", "ANOTHER", "INSANE"]
+    readonly property var difficultyNames: ["INSANE", "BEGINNER", "NORMAL", "HYPER", "ANOTHER", "INSANE"]
     readonly property string difficultyName: difficulty >= 1 && difficulty <= 5
         ? difficultyNames[difficulty]
-        : (difficulty > 0 ? String(difficulty) : "?")
-    readonly property var difficultyColors: ["#888888", "#44AAFF", "#44CC44", "#FF9900", "#FF3300", "#9900FF"]
+        : (difficulty > 0 ? String(difficulty) : "INSANE")
+    readonly property var difficultyColors: ["#888888", "#44CC44", "#44AAFF", "#FF9900", "#FF3300", "#9900FF"]
     readonly property color difficultyColor: difficulty >= 0 && difficulty <= 5
         ? difficultyColors[difficulty]
         : "#888888"
