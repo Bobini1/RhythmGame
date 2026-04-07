@@ -30,7 +30,7 @@ var searchData=
   ['profile_27',['Profile',['../classresource__managers_1_1Profile.html#a2b7eedede90718dd3a85decc85cbcc10',1,'resource_managers::Profile']]],
   ['profilelist_28',['ProfileList',['../classqml__components_1_1ProfileList.html#a8dcfc7e82cd3fb662f9a4e9fd5e18556',1,'qml_components::ProfileList']]],
   ['profileschanged_29',['profilesChanged',['../classqml__components_1_1ProfileList.html#af79455808aa8ceb78bca1b47f7180785',1,'qml_components::ProfileList']]],
-  ['programsettings_30',['ProgramSettings',['../classqml__components_1_1ProgramSettings.html#a815a5a90b6a937769acedca937e8fb79',1,'qml_components::ProgramSettings']]],
+  ['programsettings_30',['ProgramSettings',['../classqml__components_1_1ProgramSettings.html#a9ebaf265b2eb7b208cd84e5bddc22d34',1,'qml_components::ProgramSettings']]],
   ['progresschanged_31',['progresschanged',['../classqml__components_1_1ScoreSyncOperation.html#a9f8515b6662cc70fb699c3ef708d7d8e',1,'qml_components::ScoreSyncOperation::progressChanged()'],['../classqml__components_1_1ReplayImportOperation.html#a2508846621262f469d8effe18619e3ca',1,'qml_components::ReplayImportOperation::progressChanged()']]],
   ['providerchanged_32',['providerChanged',['../classqml__components_1_1OnlineRankingModel.html#a8b212ad99fc2c6c7f734a0f490abcf18',1,'qml_components::OnlineRankingModel']]],
   ['pushnotewithmaxdistance_33',['pushNoteWithMaxDistance',['../namespacesupport.html#ab40b2d655395537c1b8a4e4afa3100ff',1,'support']]],
