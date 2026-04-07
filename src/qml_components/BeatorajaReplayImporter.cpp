@@ -655,8 +655,7 @@ startBeatorajaReplayImport(resource_managers::Profile* profile,
                 continue;
             }
 
-            const auto guid =
-              QUuid::createUuid().toString(QUuid::WithoutBraces);
+            const auto guid = QUuid::createUuid().toString();
             auto score =
               createScoreFromReplay(*profile, std::move(replay), guid);
             score->save(profile->getDb());

@@ -64,11 +64,9 @@ ChartRunner::ChartRunner(
     }
     auto p1keymode = player1->getScore()->getKeymode();
     if (p1keymode == ChartData::Keymode::K10) {
-        inputMapping = { 0, 1, 2, 3, 4, 5, 6, 7, 14, 13, 8, 9, 10, 11,
-                         12, 15 };
+        inputMapping = { 0, 1, 2, 3, 4, 5, 6, 7, 14, 13, 8, 9, 10, 11, 12, 15 };
     } else {
-        inputMapping = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
-                         11, 12, 13, 14, 15 };
+        inputMapping = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
     }
     chartData->setParent(this);
     connect(&bgaFutureWatcher,
@@ -275,8 +273,7 @@ ChartRunner::setInputMapping(QList<int> inputMapping)
         return;
     }
     if (inputMapping.size() != inputMappingSize) {
-        spdlog::error("Invalid input mapping size: {}",
-                      inputMapping.size());
+        spdlog::error("Invalid input mapping size: {}", inputMapping.size());
         return;
     }
     // validate input mapping
@@ -534,31 +531,46 @@ Player::finish(const ChartData& chartData) -> BmsScore*
               BmsScore::SubmissionState::Submitted) {
             score->setSubmissionState(BmsScore::SubmissionState::Submitting);
             auto* submission = profilePtr->submitScore(*score, chartData);
-            connect(submission,
-                    &QNetworkReply::finished,
-                    score.get(),
-                    [score = score.get(), submission]() {
-                        if (submission->error() != QNetworkReply::NoError) {
-                            spdlog::error(
-                              "Failed to submit score: {} - {}",
-                              static_cast<int>(submission->error()),
-                              submission->errorString().toStdString());
-                            if (submission
-                                  ->attribute(
-                                    QNetworkRequest::HttpStatusCodeAttribute)
-                                  .toInt() == 409) {
-                                score->setSubmissionState(
-                                  BmsScore::SubmissionState::Duplicate);
-                            } else {
-                                score->setSubmissionState(
-                                  BmsScore::SubmissionState::Failed);
-                            }
-                        } else {
-                            score->setSubmissionState(
-                              BmsScore::SubmissionState::Submitted);
-                        }
-                        submission->deleteLater();
-                    });
+            connect(
+              submission,
+              &QNetworkReply::finished,
+              score.get(),
+              [score = score.get(), submission]() {
+                  if (submission->error() != QNetworkReply::NoError) {
+                      const auto qtError = submission->error();
+                      const auto httpStatus =
+                        submission
+                          ->attribute(QNetworkRequest::HttpStatusCodeAttribute)
+                          .toInt();
+                      const auto contentTypeHeader =
+                        submission->header(QNetworkRequest::ContentTypeHeader)
+                          .toString();
+                      const QByteArray respBody = submission->readAll();
+                      submission->deleteLater();
+                      spdlog::error(
+                        "Score upload failed: qtError={} httpStatus={} "
+                        "qtErrorStr={} contentType={} respBody={}",
+                        static_cast<int>(qtError),
+                        httpStatus,
+                        submission->errorString().toStdString(),
+                        contentTypeHeader.toStdString(),
+                        std::string(respBody.constData(), respBody.size()));
+                      if (submission
+                            ->attribute(
+                              QNetworkRequest::HttpStatusCodeAttribute)
+                            .toInt() == 409) {
+                          score->setSubmissionState(
+                            BmsScore::SubmissionState::Duplicate);
+                      } else {
+                          score->setSubmissionState(
+                            BmsScore::SubmissionState::Failed);
+                      }
+                  } else {
+                      score->setSubmissionState(
+                        BmsScore::SubmissionState::Submitted);
+                  }
+                  submission->deleteLater();
+              });
         } else if (profilePtr->getLoginState() !=
                      resource_managers::Profile::LoginState::LoggedIn ||
                    score->getResult()->getGuid().isEmpty()) {
@@ -609,9 +621,10 @@ RePlayer::update(const std::chrono::nanoseconds offsetFromStart,
           std::chrono::nanoseconds{ event.getOffsetFromStart() };
         if (event.getAction() == HitEvent::Action::Press) {
             referee->update(hitOffset, lastUpdate);
-            referee->passPressed(hitOffset,
-                                 event.getKeyOptional().value_or(
-                                   static_cast<input::BmsKey>(event.getColumn())));
+            referee->passPressed(
+              hitOffset,
+              event.getKeyOptional().value_or(
+                static_cast<input::BmsKey>(event.getColumn())));
         } else if (event.getAction() == HitEvent::Action::Release) {
             referee->update(hitOffset, lastUpdate);
             referee->passReleased(
@@ -665,9 +678,10 @@ AutoPlayer::update(std::chrono::nanoseconds offsetFromStart, bool lastUpdate)
           std::chrono::nanoseconds{ event.getOffsetFromStart() };
         if (event.getAction() == HitEvent::Action::Press) {
             referee->update(hitOffset, lastUpdate);
-            referee->passPressed(hitOffset,
-                                 event.getKeyOptional().value_or(
-                                   static_cast<input::BmsKey>(event.getColumn())));
+            referee->passPressed(
+              hitOffset,
+              event.getKeyOptional().value_or(
+                static_cast<input::BmsKey>(event.getColumn())));
         } else if (event.getAction() == HitEvent::Action::Release) {
             referee->update(hitOffset, lastUpdate);
             referee->passReleased(

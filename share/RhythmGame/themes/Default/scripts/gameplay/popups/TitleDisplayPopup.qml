@@ -1,7 +1,4 @@
 import QtQuick
-import QtQuick.Controls.Basic
-import QtQuick.Layouts
-import RhythmGameQml
 import QtQml.Models
 
 GameplayPopup {
@@ -13,12 +10,14 @@ GameplayPopup {
         BooleanOption {
             description: qsTr("Enabled")
             src: popup.themeVars
-            prop: "judgementsEnabled"
+            prop: "titleDisplayEnabled"
         }
-        ImageSelection {
+        NumberWithSlider {
+            from: -10
+            to: 10
+            prop: "titleDisplayZ"
+            text: qsTr("Z-index")
             src: popup.themeVars
-            propertyId: "judge"
-            label: qsTr("Image")
         }
     }
 }

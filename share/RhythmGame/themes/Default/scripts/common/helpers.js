@@ -3,7 +3,7 @@ const clearTypePriorities = ["NOPLAY", "FAILED", "AEASY", "EASY", "NORMAL", "HAR
 function getClearType(scores) {
     let clearType = "NOPLAY";
     for (let score of scores) {
-        if (clearTypePriorities.indexOf(score.result.clearType) > clearTypePriorities.indexOf(clearType)) {
+        if (clearTypePriorities.indexOf(score?.result?.clearType) > clearTypePriorities.indexOf(clearType)) {
             clearType = score.result.clearType;
         }
     }
@@ -73,19 +73,19 @@ function getGrade(points, maxPoints) {
         return "max";
     }
     let percent = points / maxPoints;
-    if (percent >= 0.88) {
+    if (percent >= 8.0 / 9.0) {
         return "aaa";
-    } else if (percent >= 0.77) {
+    } else if (percent >= 7.0 / 9.0) {
         return "aa";
-    } else if (percent >= 0.66) {
+    } else if (percent >= 6.0 / 9.0) {
         return "a";
-    } else if (percent >= 0.55) {
+    } else if (percent >= 5.0 / 9.0) {
         return "b";
-    } else if (percent >= 0.44) {
+    } else if (percent >= 4.0 / 9.0) {
         return "c";
-    } else if (percent >= 0.33) {
+    } else if (percent >= 3.0 / 9.0) {
         return "d";
-    } else if (percent >= 0.22) {
+    } else if (percent >= 2.0 / 9.0) {
         return "e";
     } else {
         return "f";

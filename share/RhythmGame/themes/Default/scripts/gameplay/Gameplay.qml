@@ -70,9 +70,18 @@ Rectangle {
         return p1MaxPointsNow * chart.player1.profile.vars.generalVars.targetScoreFraction;
     }
     property real targetPoints2: chart.player1.score.points
+    readonly property real targetFinalPoints1: {
+        if (isBattle) return 0;
+        if (targetScore1) return targetScore1.result.points;
+        return chart.player1.score.maxPoints * chart.player1.profile.vars.generalVars.targetScoreFraction;
+    }
     ScoreReplayer {
         id: scoreReplayer1
         hitEvents: targetScore1?.replayData?.hitEvents
+    }
+    ScoreReplayer {
+        id: bestScoreReplayer1
+        hitEvents: root.scoreWithBestPoints1 ? root.scoreWithBestPoints1.replayData.hitEvents : []
     }
 
     AudioPlayer {
@@ -104,6 +113,7 @@ Rectangle {
             }
         } else {
             scoreReplayer1.resetPoints();
+            bestScoreReplayer1.resetPoints();
             if (playReadySound.length === 0) {
                 startTimer.start();
             }
@@ -260,6 +270,43 @@ Rectangle {
             root.popup = null;
         }
     }
+    ScoreGraphPopup {
+        id: scoreGraphPopup
+        readonly property Profile profile: chart.player1.profile
+        themeVars: profile.vars.themeVars[root.screen][root.themeName]
+        onClosed: {
+            root.popup = null;
+        }
+    }
+    ScoreGraphPopup {
+        id: scoreGraphPopupP2
+        readonly property Profile profile: (chart.player2 || chart.player1).profile
+        themeVars: profile.vars.themeVars[root.screen][root.themeName]
+        onClosed: {
+            root.popup = null;
+        }
+    }
+    BpmDisplayPopup {
+        id: bpmDisplayPopup
+        themeVars: root.mainProfileVars
+        onClosed: {
+            root.popup = null;
+        }
+    }
+    TitleDisplayPopup {
+        id: titleDisplayPopup
+        themeVars: root.mainProfileVars
+        onClosed: {
+            root.popup = null;
+        }
+    }
+    DifficultyDisplayPopup {
+        id: difficultyDisplayPopup
+        themeVars: root.mainProfileVars
+        onClosed: {
+            root.popup = null;
+        }
+    }
     GhostScorePopup {
         id: ghostScorePopup
 
@@ -373,6 +420,7 @@ Rectangle {
                 acceptedButtons: Qt.RightButton
                 anchors.fill: parent
                 z: -1
+                enabled: root.customizeMode
 
                 onClicked: mouse => {
                     let point = mapToItem(Overlay.overlay, mouse.x, mouse.y);
@@ -383,12 +431,122 @@ Rectangle {
             }
         }
 
+        TitleDisplay {
+            id: titleDisplayItem
+            x: root.mainProfileVars.titleDisplayX
+            y: root.mainProfileVars.titleDisplayY
+            width: root.mainProfileVars.titleDisplayWidth
+            height: root.mainProfileVars.titleDisplayHeight
+            z: root.mainProfileVars.titleDisplayZ
+            contentVisible: root.mainProfileVars.titleDisplayEnabled
+            title: root.chartData.title
+            subtitle: root.chartData.subtitle
+            onXChanged: root.mainProfileVars.titleDisplayX = x
+            onYChanged: root.mainProfileVars.titleDisplayY = y
+            onWidthChanged: root.mainProfileVars.titleDisplayWidth = width
+            onHeightChanged: root.mainProfileVars.titleDisplayHeight = height
+
+            TemplateDragBorder {
+                anchors.fill: parent
+                anchors.margins: -borderMargin
+                color: "transparent"
+                visible: root.customizeMode
+            }
+            MouseArea {
+                acceptedButtons: Qt.RightButton
+                anchors.fill: parent
+                z: -1
+                enabled: root.customizeMode
+                onClicked: mouse => {
+                    let point = mapToItem(Overlay.overlay, mouse.x, mouse.y);
+                    titleDisplayPopup.setPosition(point);
+                    titleDisplayPopup.open();
+                    root.popup = titleDisplayPopup;
+                }
+            }
+        }
+
+        DifficultyDisplay {
+            id: difficultyDisplayItem
+            x: root.mainProfileVars.difficultyDisplayX
+            y: root.mainProfileVars.difficultyDisplayY
+            width: root.mainProfileVars.difficultyDisplayWidth
+            height: root.mainProfileVars.difficultyDisplayHeight
+            z: root.mainProfileVars.difficultyDisplayZ
+            contentVisible: root.mainProfileVars.difficultyDisplayEnabled
+            difficulty: root.chartData.difficulty
+            playLevel: root.chartData.playLevel
+            onXChanged: root.mainProfileVars.difficultyDisplayX = x
+            onYChanged: root.mainProfileVars.difficultyDisplayY = y
+            onWidthChanged: root.mainProfileVars.difficultyDisplayWidth = width
+            onHeightChanged: root.mainProfileVars.difficultyDisplayHeight = height
+
+            TemplateDragBorder {
+                anchors.fill: parent
+                anchors.margins: -borderMargin
+                color: "transparent"
+                visible: root.customizeMode
+            }
+            MouseArea {
+                acceptedButtons: Qt.RightButton
+                anchors.fill: parent
+                z: -1
+                enabled: root.customizeMode
+                onClicked: mouse => {
+                    let point = mapToItem(Overlay.overlay, mouse.x, mouse.y);
+                    difficultyDisplayPopup.setPosition(point);
+                    difficultyDisplayPopup.open();
+                    root.popup = difficultyDisplayPopup;
+                }
+            }
+        }
+
+        BpmDisplay {
+            id: bpmDisplayItem
+            x: root.mainProfileVars.bpmDisplayX
+            y: root.mainProfileVars.bpmDisplayY
+            width: root.mainProfileVars.bpmDisplayWidth
+            height: root.mainProfileVars.bpmDisplayHeight
+            z: root.mainProfileVars.bpmDisplayZ
+            contentVisible: root.mainProfileVars.bpmDisplayEnabled
+            currentBpm: chart.player1.bpm
+            minBpm: root.chartData.minBpm
+            maxBpm: root.chartData.maxBpm
+            onXChanged: root.mainProfileVars.bpmDisplayX = x
+            onYChanged: root.mainProfileVars.bpmDisplayY = y
+            onWidthChanged: root.mainProfileVars.bpmDisplayWidth = width
+            onHeightChanged: root.mainProfileVars.bpmDisplayHeight = height
+
+            TemplateDragBorder {
+                anchors.fill: parent
+                anchors.margins: -borderMargin
+                color: "transparent"
+                visible: root.customizeMode
+            }
+            MouseArea {
+                acceptedButtons: Qt.RightButton
+                anchors.fill: parent
+                z: -1
+                enabled: root.customizeMode
+                onClicked: mouse => {
+                    let point = mapToItem(Overlay.overlay, mouse.x, mouse.y);
+                    bpmDisplayPopup.setPosition(point);
+                    bpmDisplayPopup.open();
+                    root.popup = bpmDisplayPopup;
+                }
+            }
+        }
+
         Side {
             anchors.fill: parent
             player: chart.player1
             dpSuffix: root.isDp ? "1" : ""
             index: 0
             pointTarget: root.targetPoints1
+            bestFinalPoints: root.scoreWithBestPoints1 ? root.scoreWithBestPoints1.result.points : 0
+            bestMaxPoints: root.scoreWithBestPoints1 ? root.scoreWithBestPoints1.result.maxPoints : 0
+            bestPoints: bestScoreReplayer1.points
+            targetFinalPoints: root.targetFinalPoints1
             columns: {
                 if (root.isDp) {
                     return [7, 0, 1, 2, 3, 4, 5, 6];
@@ -412,6 +570,10 @@ Rectangle {
                 mirrored: !root.isDp
                 index: 1
                 pointTarget: root.isDp ? root.targetPoints1 : root.targetPoints2
+                bestFinalPoints: root.isDp ? (root.scoreWithBestPoints1 ? root.scoreWithBestPoints1.result.points : 0) : 0
+                bestMaxPoints: root.isDp ? (root.scoreWithBestPoints1 ? root.scoreWithBestPoints1.result.maxPoints : 0) : 0
+                bestPoints: root.isDp ? bestScoreReplayer1.points : 0
+                targetFinalPoints: root.isDp ? root.targetFinalPoints1 : 0
                 columns: {
                     if (root.isDp) {
                         return chart.player1.score.keymode === 14 ? [8, 9, 10, 11, 12, 13, 14, 15] : [14, 13, 8, 9, 10, 11, 12, 15];
@@ -432,6 +594,7 @@ Rectangle {
             if (targetScore1) {
                 scoreReplayer1.notifyHit(tap);
             }
+            bestScoreReplayer1.notifyHit(tap);
             let ignoreJudgements = [Judgement.Poor, Judgement.EmptyPoor, Judgement.MineHit, Judgement.MineAvoided];
             if (!tap.points || ignoreJudgements.includes(tap.points?.judgement)) {
                 return;

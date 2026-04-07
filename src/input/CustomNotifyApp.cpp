@@ -37,25 +37,22 @@ CustomNotifyApp::LowLevelKeyboardProc(int nCode, WPARAM wParam, LPARAM lParam)
         s_instance->inputTranslator != nullptr) {
 
         const auto* kbd = reinterpret_cast<KBDLLHOOKSTRUCT*>(lParam);
-        const bool isDown =
-          (wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN);
-        const bool isUp =
-          (wParam == WM_KEYUP || wParam == WM_SYSKEYUP);
+        const bool isDown = (wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN);
+        const bool isUp = (wParam == WM_KEYUP || wParam == WM_SYSKEYUP);
 
         if (isDown || isUp) {
             // Skip the synthetic Left-Ctrl that Windows injects before every
             // AltGr press.  In WH_KEYBOARD_LL this event carries LLKHF_INJECTED
             // (it does NOT come from a physical key stroke).
-            if (kbd->vkCode == VK_LCONTROL &&
-                (kbd->flags & LLKHF_INJECTED)) {
+            if (kbd->vkCode == VK_LCONTROL && (kbd->flags & LLKHF_INJECTED)) {
                 return CallNextHookEx(nullptr, nCode, wParam, lParam);
             }
 
-            // Build the same scan-code value Qt's nativeScanCode() would return:
-            // 8-bit hardware scan code ORed with 0x100 for extended keys.
+            // Build the same scan-code value Qt's nativeScanCode() would
+            // return: 8-bit hardware scan code ORed with 0x100 for extended
+            // keys.
             const quint32 scanCode =
-              kbd->scanCode |
-              ((kbd->flags & LLKHF_EXTENDED) ? 0x100u : 0u);
+              kbd->scanCode | ((kbd->flags & LLKHF_EXTENDED) ? 0x100u : 0u);
 
             // Suppress auto-repeat key-down messages.
             if (isDown) {
@@ -65,6 +62,10 @@ CustomNotifyApp::LowLevelKeyboardProc(int nCode, WPARAM wParam, LPARAM lParam)
                 s_instance->m_pressedScanCodes.insert(scanCode);
             } else {
                 s_instance->m_pressedScanCodes.erase(scanCode);
+            }
+
+            if (focusWindow() == nullptr) {
+                return CallNextHookEx(nullptr, nCode, wParam, lParam);
             }
 
             // Do not process game input while a text-entry widget has focus
@@ -156,4 +157,3 @@ CustomNotifyApp::notify(QObject* receiver, QEvent* event)
 }
 
 } // namespace input
-

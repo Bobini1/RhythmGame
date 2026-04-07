@@ -536,10 +536,8 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
             throw std::runtime_error{ "Failed to load main qml" };
         }
         app.setInputTranslator(&inputTranslator);
-
-        const int exitCode = app.exec();
-        QCoreApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
-        return exitCode;
+        
+        return app.exec();
     } catch (const std::exception& e) {
         spdlog::critical("Fatal: {}", e.what());
         return 1;

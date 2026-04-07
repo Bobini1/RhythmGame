@@ -1,7 +1,4 @@
 import QtQuick
-import QtQuick.Controls
-import QtQuick.Layouts
-import RhythmGameQml
 import QtQml.Models
 
 GameplayPopup {
@@ -11,28 +8,28 @@ GameplayPopup {
 
     model: ObjectModel {
         BooleanOption {
-            prop: "lifeBarEnabled"
-            src: popup.themeVars
             description: qsTr("Enabled")
+            src: popup.themeVars
+            prop: "scoreGraphEnabled"
         }
         NumberWithSlider {
-            to: 10
             from: -10
-            prop: "lifeBarZ"
+            to: 10
+            prop: "scoreGraphZ"
             text: qsTr("Z-index")
             src: popup.themeVars
         }
-        BooleanOption {
-            prop: "verticalGauge"
+        NumberWithSlider {
+            from: 0
+            to: 1
+            prop: "scoreGraphBarWidth"
+            text: qsTr("Bar Width")
             src: popup.themeVars
-            description: qsTr("Vertical Gauge")
         }
         ImageSelection {
-            id: gauge
-
-            propertyId: "gauge"
+            propertyId: "scoregraph"
             src: popup.themeVars
-            label: qsTr("Gauge")
+            label: qsTr("Background")
         }
     }
 }
