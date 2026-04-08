@@ -32,13 +32,13 @@ Rectangle {
     color:   "transparent"
     border {
         color: Qt.rgba(1, 1, 1, root.frameOpacity)
-        width: root.frameOpacity > 0 ? 1 : 0
+        width: 1
     }
 
     DensityGraphContent {
         anchors {
             fill:    parent
-            margins: root.frameOpacity > 0 ? 1 : 0
+            margins: 1
         }
 
         histogramData: root.histogramData
