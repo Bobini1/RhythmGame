@@ -154,15 +154,15 @@ Item {
             if (xhr.status === 200) {
                 try {
                     const parsed = JSON.parse(xhr.responseText)
-                    allTables = Array.isArray(parsed) ? parsed : (parsed.data ?? [])
-                    fetchState = "done"
+                    tableSettings.allTables = Array.isArray(parsed) ? parsed : (parsed.data ?? [])
+                    tableSettings.fetchState = "done"
                 } catch (e) {
-                    fetchError = String(e.message)
-                    fetchState = "error"
+                    tableSettings.fetchError = String(e.message)
+                    tableSettings.fetchState = "error"
                 }
             } else {
-                fetchError = "HTTP " + xhr.status
-                fetchState = "error"
+                tableSettings.fetchError = "HTTP " + xhr.status
+                tableSettings.fetchState = "error"
             }
         }
         xhr.send()
