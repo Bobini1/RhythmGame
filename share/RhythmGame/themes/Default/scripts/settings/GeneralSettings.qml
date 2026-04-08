@@ -348,7 +348,7 @@ Item {
                     id_: "soundset"
                     name: qsTr("Soundset")
                     choices: Rg.profileList.mainProfile.vars.generalVars.getAvailableSoundsets()
-                    default_: "Default"
+                    default_: "Brook"
 
                     anchors {
                         left: parent.left
