@@ -182,9 +182,11 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
         qputenv("QML_XHR_ALLOW_FILE_READ", QByteArray("1"));
 
         QQuickStyle::setStyle("FluentWinUI3");
+#ifndef __APPLE__
         if (!qEnvironmentVariableIsSet("QSG_RHI_BACKEND")) {
             QQuickWindow::setGraphicsApi(QSGRendererInterface::Vulkan);
         }
+#endif
 
         auto db = db::SqliteCppDb{ dataFolder / "song_db.sqlite" };
 

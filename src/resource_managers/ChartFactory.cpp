@@ -7,7 +7,7 @@
 #include "ChartFactory.h"
 
 #include "loadBmsSounds.h"
-#include "qml_components/ProfileList.h"
+#include <range/v3/view/enumerate.hpp>
 #include "support/GeneratePermutation.h"
 #include "support/QStringToPath.h"
 #include "support/PathToQString.h"
@@ -325,9 +325,9 @@ createAutoplayFromNotes(const gameplay_logic::BmsNotes& notes)
     auto events = std::vector<gameplay_logic::HitEvent>{};
     const auto& noteArr = notes.getNotes();
     for (const auto& [columnIndex, column] :
-         std::ranges::views::enumerate(noteArr)) {
+         ranges::views::enumerate(noteArr)) {
         for (const auto& [noteIndex, note] :
-             std::ranges::views::enumerate(column)) {
+             ranges::views::enumerate(column)) {
             if (note.type == gameplay_logic::Note::Type::Normal) {
                 events.emplace_back(
                   columnIndex,
@@ -542,16 +542,16 @@ getComponentsForPlayer(const ChartFactory::PlayerSpecificData& player,
     for (const auto& column : notes->getNotes()) {
         auto notes = QList<gameplay_logic::NoteState>{};
         notes.reserve(column.size());
-        for (const auto& [i, note] : std::ranges::views::enumerate(column)) {
-            notes.append({ note, i });
+        for (const auto& [i, note] : ranges::views::enumerate(column)) {
+            notes.append({ note, static_cast<qint64>(i) });
         }
         notesStates.append(new gameplay_logic::ColumnState(std::move(notes)));
     }
     auto barLineStates = QList<gameplay_logic::BarLineState>{};
     barLineStates.reserve(notes->getBarLines().size());
     for (const auto& [i, barLine] :
-         std::ranges::views::enumerate(notes->getBarLines())) {
-        barLineStates.append({ barLine, i });
+         ranges::views::enumerate(notes->getBarLines())) {
+        barLineStates.append({ barLine, static_cast<qint64>(i) });
     }
     auto* barLinesState =
       new gameplay_logic::BarLinesState(std::move(barLineStates));

@@ -8,6 +8,7 @@
 #include "db/SqliteCppDb.h"
 #include "support/Compress.h"
 #include "support/GeneratePermutation.h"
+#include <range/v3/view/enumerate.hpp>
 
 #include <QKeyEvent>
 #include <QVariant>
@@ -872,7 +873,7 @@ InputTranslator::InputTranslator(db::SqliteCppDb* db, QObject* parent)
             this,
             &InputTranslator::checkAnalogAxisStatus);
     for (const auto& [index, timer] :
-         std::ranges::views::enumerate(tickTimers)) {
+         ranges::views::enumerate(tickTimers)) {
         // default for Windows 10
         timer.setInterval(32);
         timer.setSingleShot(false);

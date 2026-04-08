@@ -10,6 +10,8 @@
 #include "db/SqliteCppDb.h"
 #include "gameplay_logic/BmsScore.h"
 #include "resource_managers/Tables.h"
+
+#include <__stop_token/stop_source.h>
 namespace qml_components {
 class ScoreQueryResult
 {

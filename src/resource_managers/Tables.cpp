@@ -16,6 +16,7 @@
 #include <QUrl>
 #include <spdlog/spdlog.h>
 #include <spdlog/stopwatch.h>
+#include <range/v3/view/enumerate.hpp>
 auto
 getBmstableLink(const QByteArray& html) -> QString
 {
@@ -111,7 +112,7 @@ queryCharts(db::SqliteCppDb& db, QVariantList& ret, QStringList md5List)
                 "BY md5_list.idx";
 
     auto query = db.createStatement(queryStr);
-    for (const auto& [index, md5] : std::ranges::views::enumerate(md5List)) {
+    for (const auto& [index, md5] : ranges::views::enumerate(md5List)) {
         query.bind(index * 2 + 1, md5.toStdString());
         query.bind(index * 2 + 2, static_cast<int64_t>(index));
     }
@@ -298,7 +299,7 @@ resource_managers::Tables::handleInitialReply(QNetworkReply* reply,
 void
 resource_managers::Tables::setErrorFlag(const QUrl& url)
 {
-    for (const auto& [index, table] : std::ranges::views::enumerate(tables)) {
+    for (const auto& [index, table] : ranges::views::enumerate(tables)) {
         if (table.url == url) {
             table.status = Table::Error;
             emit dataChanged(createIndex(index, 0), createIndex(index, 0));
@@ -328,7 +329,7 @@ save(const QDir& tableLocation,
     auto thisTableObject = QJsonObject{};
     auto entryIndex = -1;
     for (const auto& [index, entry] :
-         std::ranges::views::enumerate(existingJson.array())) {
+         ranges::views::enumerate(existingArray)) {
         if (entry.toObject()["url"].toString() == url.toString()) {
             thisTableObject = entry.toObject();
             entryIndex = index;
@@ -363,7 +364,7 @@ reorderInFile(const QDir& tableLocation, const QUrl& url1, const QUrl& url2)
     int index1 = -1;
     int index2 = -1;
     for (const auto& [index, entry] :
-         std::ranges::views::enumerate(existingArray)) {
+         ranges::views::enumerate(existingArray)) {
         if (entry.toObject()["url"].toString() == url1.toString()) {
             index1 = index;
         }
@@ -388,7 +389,7 @@ reorderInFile(const QDir& tableLocation, const QUrl& url1, const QUrl& url2)
 void
 resource_managers::Tables::handleData(const QUrl& url, const QJsonArray& data)
 {
-    for (const auto& [index, table] : std::ranges::views::enumerate(tables)) {
+    for (const auto& [index, table] : ranges::views::enumerate(tables)) {
         if (table.url == url) {
             auto map = QHash<QString, Level*>{};
             for (auto& level : table.levels) {
@@ -501,7 +502,7 @@ void
 resource_managers::Tables::handleHeader(const QUrl& url,
                                         const QJsonObject& header)
 {
-    for (const auto& [index, table] : std::ranges::views::enumerate(tables)) {
+    for (const auto& [index, table] : ranges::views::enumerate(tables)) {
         if (table.url == url) {
             table.name = header["name"].toString();
             table.tag = header["tag"].toString();
@@ -634,7 +635,7 @@ removeFromFile(const QDir& tableLocation, const QUrl& url)
     auto existingArray = existingJson.array();
     // don't trust the file to have the entry at the same index
     for (const auto& [index, entry] :
-         std::ranges::views::enumerate(existingJson.array())) {
+         ranges::views::enumerate(existingArray)) {
         if (entry.toObject()["url"].toString() == url.toString()) {
             existingArray.removeAt(index);
         }
@@ -668,7 +669,7 @@ void
 resource_managers::Tables::add(const QUrl& url)
 {
     int indexToRemove = -1;
-    for (const auto& [index, table] : std::ranges::views::enumerate(tables)) {
+    for (const auto& [index, table] : ranges::views::enumerate(tables)) {
         if (table.url == url) {
             indexToRemove = index;
         }

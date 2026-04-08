@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <spdlog/spdlog.h>
 #include <fmt/ranges.h>
+#include <range/v3/view/enumerate.hpp>
 #include "ChartRunner.h"
 
 using namespace std::chrono_literals;
@@ -318,7 +319,7 @@ Player::Player(BmsNotes* notes,
             &Player::setup);
     refereeWatcher.setFuture(refereeFuture);
     for (auto [index, column] :
-         std::ranges::views::enumerate(state->getColumnStates())) {
+         ranges::views::enumerate(state->getColumnStates())) {
         connect(score,
                 &BmsLiveScore::hit,
                 column,

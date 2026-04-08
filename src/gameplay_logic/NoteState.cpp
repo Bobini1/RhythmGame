@@ -477,12 +477,12 @@ GameplayState::GameplayState(QList<ColumnState*> columnStates,
     barLinesState->setParent(barLineFilter);
 }
 auto
-GameplayState::getColumnStates() -> QList<ColumnState*>
+GameplayState::getColumnStates() -> const QList<ColumnState*>&
 {
     return columnStates;
 }
 auto
-GameplayState::getColumnFilters() -> QList<Filter*>
+GameplayState::getColumnFilters() -> const QList<Filter*>&
 {
     return columnFilters;
 }

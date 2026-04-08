@@ -41,8 +41,7 @@
         "harfbuzz",
         "jpeg",
         "opengl",
-        "openssl",
-        "vulkan"
+        "openssl"
       ]
     },
     {
@@ -56,6 +55,14 @@
         "dbus"
       ],
       "platform": "linux"
+    },
+    {
+      "name": "qtbase",
+      "default-features": false,
+      "features": [
+        "vulkan"
+      ],
+      "platform": "!osx"
     },
     "qtdeclarative",
     "qtshadertools",
@@ -98,7 +105,8 @@
       "platform": "windows"
     },
     "miniaudio",
-    "stb"
+    "stb",
+    "range-v3"
   ],
   "default-features": [],
   "features": {

@@ -18,11 +18,12 @@ namespace llfio = LLFIO_V2_NAMESPACE;
 
 #include <utility>
 #include <ranges>
-#include <qfileinfo.h>
+#include <QFileInfo>
 #include "support/UtfStringToPath.h"
 #include "support/PathToQString.h"
 #include <magic_enum/magic_enum.hpp>
 #include <QJsonDocument>
+#include <range/v3/view/enumerate.hpp>
 #include <QJsonArray>
 
 namespace resource_managers {
@@ -208,7 +209,7 @@ createHistogram(const charts::BmsNotesData& calculatedNotesData,
     }
     if (lastNoteTimestamp != 0ns) {
         for (const auto& [columnIndex, column] :
-             std::ranges::views::enumerate(calculatedNotesData.notes)) {
+             ranges::views::enumerate(calculatedNotesData.notes)) {
             auto lastLnBeginPosition = size_t{ 0 };
             for (const auto note : column) {
                 auto typeIndex = 0;
@@ -313,7 +314,7 @@ ChartDataFactory::handleImplicitSubtitle(QString& title,
         return;
     // To avoid weird titles like "(^^)⇒(^^X^^)⇒(^^)) ((^^)"
     for (const auto& [index, delimiter] :
-         std::ranges::views::enumerate(delimitersStart)) {
+         ranges::views::enumerate(delimitersStart)) {
         if (u32[openPos - 1] == delimiter && delimiter != delimiters[index]) {
             return;
         }
@@ -579,7 +580,7 @@ ChartDataFactory::buildChartComponents(
     auto bssNotes = 0;
     auto mineNotes = 0;
     for (const auto& [index, column] :
-         std::ranges::views::enumerate(calculatedNotesData.notes)) {
+         ranges::views::enumerate(calculatedNotesData.notes)) {
         for (const auto& note : column) {
             switch (note.noteType) {
                 case charts::BmsNotesData::NoteType::Normal:

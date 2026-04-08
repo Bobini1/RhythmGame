@@ -80,6 +80,10 @@ find_package(magic_enum REQUIRED)
 # absent; fall back to the system zlib which exposes the same API.
 find_package(zlib-ng CONFIG REQUIRED)
 
+# <------------ range-v3 (For MacOS...) ------------------->
+
+find_package(range-v3 CONFIG REQUIRED)
+
 # ---- Load library ----
 
 qt_add_library(RhythmGame_lib OBJECT
@@ -319,6 +323,7 @@ target_link_libraries(RhythmGame_lib PUBLIC SDL2::SDL2
         $<IF:$<TARGET_EXISTS:zstd::libzstd_static>,zstd::libzstd_static,zstd::libzstd>
         LibXml2::LibXml2
         zlib-ng::zlib
+        range-v3::range-v3
 )
 target_include_directories(RhythmGame_lib PUBLIC ${MINIAUDIO_INCLUDE_DIRS})
 

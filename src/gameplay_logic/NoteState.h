@@ -228,8 +228,8 @@ class GameplayState final : public QObject
     GameplayState(QList<ColumnState*> columnStates,
                   BarLinesState* barLinesState,
                   QObject* parent = nullptr);
-    auto getColumnStates() -> QList<ColumnState*>;
-    auto getColumnFilters() -> QList<Filter*>;
+    auto getColumnStates() -> const QList<ColumnState*>&;
+    auto getColumnFilters() -> const QList<Filter*>&;
     auto getBarLinesState() const -> BarLinesState*;
     auto getBarLineFilter() const -> BarlineFilter*;
 };

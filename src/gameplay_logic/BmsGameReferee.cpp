@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <ranges>
+#include <range/v3/view/enumerate.hpp>
 #include "BmsGameReferee.h"
 
 namespace {
@@ -40,7 +41,7 @@ gameplay_logic::BmsGameReferee::BmsGameReferee(
 {
     for (int i = 0; i < charts::BmsNotesData::columnNumber; i++) {
         for (const auto& [index, note] :
-             std::ranges::views::enumerate(notes[i])) {
+             ranges::views::enumerate(notes[i])) {
             addNote(this->notes[i], this->mines[i], note, index);
         }
     }

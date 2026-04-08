@@ -11,6 +11,7 @@
 #include <QDir>
 #include "gameplay_logic/CourseRunner.h"
 #include <ranges>
+#include <range/v3/view/enumerate.hpp>
 
 #include <spdlog/spdlog.h>
 
@@ -355,7 +356,7 @@ ChartLoader::loadCourse(const resource_managers::Course& course,
     }
     auto chartComponents =
       QList<resource_managers::ChartDataFactory::ChartComponents>{};
-    for (const auto& [i, md5] : std::ranges::views::enumerate(course.md5s)) {
+    for (const auto& [i, md5] : ranges::views::enumerate(course.md5s)) {
         try {
             auto path = getChartPathFromMd5(md5.toUpper(), {});
             if (!path) {
