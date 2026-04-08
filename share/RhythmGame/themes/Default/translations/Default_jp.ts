@@ -1002,7 +1002,7 @@ skipped: %3, total: %4</source>
 <context>
     <name>Select</name>
     <message>
-        <location filename="../scripts/select/Select.qml" line="370"/>
+        <location filename="../scripts/select/Select.qml" line="371"/>
         <source>Score Details</source>
         <translation type="unfinished"></translation>
     </message>
