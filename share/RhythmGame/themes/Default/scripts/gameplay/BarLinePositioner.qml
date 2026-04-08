@@ -15,6 +15,7 @@ Item {
             barlinesRepeater.model.bottomPosition = column.position;
         }
     }
+    clip: true
 
     Item {
         anchors.fill: parent
