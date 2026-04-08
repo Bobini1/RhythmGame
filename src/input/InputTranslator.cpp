@@ -484,7 +484,7 @@ InputTranslator::handleAxisChange(Gamepad gamepad, Uint8 axis, int64_t time, boo
             keyLookup.direction = Key::Direction::Up;
         }
         auto oppositeKeyLookup = keyLookup;
-        oppositeKeyLookup.direction = scratch.direction == Key::Direction::Up
+        oppositeKeyLookup.direction = keyLookup.direction == Key::Direction::Up
                                         ? Key::Direction::Down
                                         : Key::Direction::Up;
         // find the key with the opposite direction
