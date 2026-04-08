@@ -214,6 +214,7 @@ FocusScope {
                     lnCount: songList.current ? songList.current.lnCount : 0
                     bssCount: songList.current ? songList.current.bssCount : 0
                     gapsEnabled: Rg.profileList.mainProfile.vars.themeVars.select[QmlUtils.themeName].densityGraphGapsEnabled
+                    bpmConnectorOpacity: Rg.profileList.mainProfile.vars.themeVars.select[QmlUtils.themeName].densityGraphBpmConnectorOpacity
                 }
             }
             Shortcut {

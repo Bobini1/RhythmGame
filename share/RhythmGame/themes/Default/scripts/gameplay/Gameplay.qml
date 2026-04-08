@@ -553,14 +553,14 @@ Rectangle {
             width:   root.mainProfileVars.densityGraphWidth
             height:  root.mainProfileVars.densityGraphHeight
             z:       root.mainProfileVars.densityGraphZ
-            opacity: root.mainProfileVars.densityGraphOpacity
-            contentVisible:     root.mainProfileVars.densityGraphEnabled
-            gapsEnabled:        root.mainProfileVars.densityGraphGapsEnabled
-            showNotes:          root.mainProfileVars.densityGraphShowNotes
-            showBpm:            root.mainProfileVars.densityGraphShowBpm
-            frameEnabled:       root.mainProfileVars.densityGraphFrameEnabled
-            backgroundOpacity:  root.mainProfileVars.densityGraphBackgroundOpacity
-            vertical:           root.mainProfileVars.densityGraphVertical
+            contentVisible:         root.mainProfileVars.densityGraphEnabled
+            gapsEnabled:            root.mainProfileVars.densityGraphGapsEnabled
+            notesOpacity:           root.mainProfileVars.densityGraphNotesOpacity
+            bpmOpacity:             root.mainProfileVars.densityGraphBpmOpacity
+            frameOpacity:           root.mainProfileVars.densityGraphFrameOpacity
+            backgroundOpacity:      root.mainProfileVars.densityGraphBackgroundOpacity
+            bpmConnectorOpacity:    root.mainProfileVars.densityGraphBpmConnectorOpacity
+            vertical:               root.mainProfileVars.densityGraphVertical
 
             histogramData: root.chartData.histogramData
             bpms:          root.chartData.bpmChanges
@@ -569,6 +569,7 @@ Rectangle {
             minBpm:        root.chartData.minBpm
             length:        root.chartData.length
             elapsed:       chart.player1.elapsed
+            positionLineOpacity: root.mainProfileVars.densityGraphPositionLineOpacity
 
             onXChanged:      root.mainProfileVars.densityGraphX = x
             onYChanged:      root.mainProfileVars.densityGraphY = y

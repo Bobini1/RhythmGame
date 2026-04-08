@@ -143,6 +143,21 @@
       "default": false
     },
     {
+      "id": "densityGraphBpmConnectorOpacity",
+      "name": {
+        "en": "Density graph BPM connector opacity",
+        "pl": "Przezroczystość łączników BPM na wykresie gęstości"
+      },
+      "description": {
+        "en": "Opacity of the gray vertical lines that connect adjacent BPM level lines.",
+        "pl": "Przezroczystość szarych pionowych linii łączących poziomy BPM."
+      },
+      "type": "range",
+      "min": 0,
+      "max": 1,
+      "default": 0.75
+    },
+    {
       "id": "rankingProvider",
       "name": {
         "en": "Ranking Provider",

@@ -12,27 +12,36 @@ GameplayPopup {
             src: popup.themeVars
             prop: "densityGraphEnabled"
         }
-        NumberWithSlider {
-            from: 0
-            to: 1
-            prop: "densityGraphOpacity"
-            text: qsTr("Opacity")
-            src: popup.themeVars
-        }
         BooleanOption {
             description: qsTr("Show Gaps")
             src: popup.themeVars
             prop: "densityGraphGapsEnabled"
         }
         BooleanOption {
-            description: qsTr("Show Notes")
+            description: qsTr("Vertical")
             src: popup.themeVars
-            prop: "densityGraphShowNotes"
+            prop: "densityGraphVertical"
         }
-        BooleanOption {
-            description: qsTr("Show BPM")
+        NumberWithSlider {
+            from: 0
+            to: 1
+            prop: "densityGraphNotesOpacity"
+            text: qsTr("Notes Opacity")
             src: popup.themeVars
-            prop: "densityGraphShowBpm"
+        }
+        NumberWithSlider {
+            from: 0
+            to: 1
+            prop: "densityGraphBpmOpacity"
+            text: qsTr("BPM Opacity")
+            src: popup.themeVars
+        }
+        NumberWithSlider {
+            from: 0
+            to: 1
+            prop: "densityGraphBpmConnectorOpacity"
+            text: qsTr("BPM Connector Opacity")
+            src: popup.themeVars
         }
         NumberWithSlider {
             from: 0
@@ -41,15 +50,19 @@ GameplayPopup {
             text: qsTr("Background Opacity")
             src: popup.themeVars
         }
-        BooleanOption {
-            description: qsTr("Frame")
+        NumberWithSlider {
+            from: 0
+            to: 1
+            prop: "densityGraphFrameOpacity"
+            text: qsTr("Frame Opacity")
             src: popup.themeVars
-            prop: "densityGraphFrameEnabled"
         }
-        BooleanOption {
-            description: qsTr("Vertical")
+        NumberWithSlider {
+            from: 0
+            to: 1
+            prop: "densityGraphPositionLineOpacity"
+            text: qsTr("Position Line Opacity")
             src: popup.themeVars
-            prop: "densityGraphVertical"
         }
         NumberWithSlider {
             from: -10

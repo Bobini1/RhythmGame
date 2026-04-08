@@ -14,6 +14,7 @@ Image {
     required property real minBpm
     required property real length
     required property bool gapsEnabled
+    property real bpmConnectorOpacity: 0.4
 
     required property int normalCount
     required property int scratchCount
@@ -40,7 +41,8 @@ Image {
         maxBpm:        graph.maxBpm
         minBpm:        graph.minBpm
         length:        graph.length
-        gapsEnabled:   graph.gapsEnabled
+        gapsEnabled:            graph.gapsEnabled
+        bpmConnectorOpacity:    graph.bpmConnectorOpacity
         // vertical orientation is not used in song select
         vertical: false
     }

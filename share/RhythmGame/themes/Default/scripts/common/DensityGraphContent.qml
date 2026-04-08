@@ -17,13 +17,15 @@ Item {
     property bool vertical: false
 
     // --- visibility toggles ---
-    property bool showNotes: true   // show the note-density histogram bars
-    property bool showBpm:   true   // show the BPM overlay lines
+    property real notesOpacity: 1.0  // 0 hides the note-density histogram bars
+    property real bpmOpacity:   1.0  // 0 hides the BPM overlay lines
 
     // --- background ---
-    property real backgroundOpacity: 0.8
+    property real backgroundOpacity:    0.8
+    required property real bpmConnectorOpacity
 
     property real positionRatio: -1
+    property real positionLineOpacity: 1.0
 
     readonly property var  normalNotes: histogramData[0]
     readonly property var  scratches:   histogramData[1]
@@ -59,7 +61,8 @@ Item {
 
         // Histogram bars
         RowLayout {
-            visible: root.showNotes
+            visible: root.notesOpacity > 0
+            opacity: root.notesOpacity
             anchors {
                 fill: parent
                 leftMargin: 1
@@ -114,10 +117,11 @@ Item {
             }
         }
 
-        // BPM overlay (drawn in canvas coordinates of the horizontal layout)
+        // BPM overlay – colored horizontal level lines only.
         Canvas {
             id: bpmCanvas
-            visible: root.showBpm
+            visible: root.bpmOpacity > 0
+            opacity: root.bpmOpacity
             anchors.fill: parent
             antialiasing: false
 
@@ -161,19 +165,6 @@ Item {
                     ctx.moveTo(x1 - 1, y);
                     ctx.lineTo(x2 + 1, y);
                     ctx.stroke();
-
-                    if (i + 1 < bpmList.length) {
-                        let nextY = bpmY(bpmList[i + 1].bpm);
-                        if (nextY !== y) {
-                            let yStart = nextY < y ? y - 1 : y + 1;
-                            let yEnd   = nextY < y ? nextY + 1 : nextY - 1;
-                            ctx.strokeStyle = "#7F7F7F";
-                            ctx.beginPath();
-                            ctx.moveTo(x2, yStart);
-                            ctx.lineTo(x2, yEnd);
-                            ctx.stroke();
-                        }
-                    }
                 }
             }
 
@@ -188,6 +179,60 @@ Item {
             Component.onCompleted: requestPaint()
         }
 
+        // Gray vertical BPM-transition connectors – drawn on a separate canvas
+        // at full opacity internally.  The canvas Item's opacity property is
+        // applied to the fully-composited texture, so stacked connectors at
+        // the same x position never exceed bpmConnectorOpacity.
+        Canvas {
+            id: bpmConnectorCanvas
+            visible: root.bpmOpacity > 0
+            anchors.fill: parent
+            antialiasing: false
+            opacity: root.bpmOpacity * root.bpmConnectorOpacity
+
+            onPaint: {
+                let ctx = getContext("2d");
+                ctx.clearRect(0, 0, width, height);
+
+                let bpmList = root.bpms;
+                if (!bpmList || bpmList.length === 0)
+                    return;
+
+                let totalDuration = root.length > 0 ? root.length : 1;
+                ctx.lineWidth = 2;
+                ctx.strokeStyle = "#7F7F7F";
+
+                function bpmY(bpm) {
+                    let maxDisplayBpm = 2 * root.mainBpm;
+                    let clamped = Math.min(bpm, maxDisplayBpm);
+                    return 1 + (height - 2) * (1 - clamped / maxDisplayBpm);
+                }
+
+                for (let i = 0; i + 1 < bpmList.length; i++) {
+                    let y     = bpmY(bpmList[i].bpm);
+                    let nextY = bpmY(bpmList[i + 1].bpm);
+                    if (nextY === y) continue;
+
+                    let x2    = bpmList[i + 1].time.timestamp / totalDuration * width;
+                    let yStart = nextY < y ? y - 1 : y + 1;
+                    let yEnd   = nextY < y ? nextY + 1 : nextY - 1;
+                    ctx.beginPath();
+                    ctx.moveTo(x2, yStart);
+                    ctx.lineTo(x2, yEnd);
+                    ctx.stroke();
+                }
+            }
+
+            Connections {
+                target: root
+                function onBpmsChanged()   { bpmConnectorCanvas.requestPaint(); }
+                function onMainBpmChanged(){ bpmConnectorCanvas.requestPaint(); }
+                function onMinBpmChanged() { bpmConnectorCanvas.requestPaint(); }
+                function onLengthChanged() { bpmConnectorCanvas.requestPaint(); }
+            }
+            Component.onCompleted: requestPaint()
+        }
+
         // Red position line – drawn on a Canvas so it sits at the exact
         // sub-pixel x coordinate.  With antialiasing=true the 1.5 px stroke
         // is blended across adjacent pixels, giving a constant visual weight
@@ -196,7 +241,8 @@ Item {
             id: positionCanvas
             anchors.fill: parent
             antialiasing: true
-            visible: root.positionRatio >= 0
+            visible: root.positionRatio >= 0 && root.positionLineOpacity > 0
+            opacity: root.positionLineOpacity
             z: 1
 
             onPaint: {
@@ -206,7 +252,7 @@ Item {
                     return;
                 let x = root.positionRatio * width;
                 ctx.strokeStyle = "#FF0000";
-                ctx.lineWidth = 2;
+                ctx.lineWidth = 1.5;
                 ctx.beginPath();
                 ctx.moveTo(x, 0);
                 ctx.lineTo(x, height);
