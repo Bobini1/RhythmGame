@@ -145,160 +145,336 @@
           }
         },
         {
-          "id": "densityGraphEnabled",
           "name": {
-            "en": "Show Density Graph",
-            "pl": "Pokaż wykres gęstości"
+            "en": "Density Graph",
+            "pl": "Wykres gęstości"
           },
-          "type": "boolean",
-          "default": true,
+          "type": "group",
           "description": {
-            "en": "Show the note-density graph.",
-            "pl": "Pokaż wykres gęstości notek."
-          }
+            "en": "Options for the note-density graph.",
+            "pl": "Opcje wykresu gęstości notek."
+          },
+          "items": [
+            {
+              "id": "densityGraphEnabled",
+              "name": {
+                "en": "Show Density Graph",
+                "pl": "Pokaż wykres gęstości"
+              },
+              "type": "boolean",
+              "default": true,
+              "description": {
+                "en": "Show the note-density graph.",
+                "pl": "Pokaż wykres gęstości notek."
+              }
+            },
+            {
+              "id": "densityGraphGapsEnabled",
+              "name": {
+                "en": "Gaps",
+                "pl": "Przerwy w wykresie gęstości"
+              },
+              "type": "boolean",
+              "default": false,
+              "description": {
+                "en": "Add 1 px gaps between bars in the density graph if possible.",
+                "pl": "Dodaje 1 px przerwy między słupkami na wykresie gęstości, jeśli to możliwe."
+              }
+            },
+            {
+              "id": "densityGraphNotesOpacity",
+              "name": {
+                "en": "Notes Opacity",
+                "pl": "przezroczystość notek"
+              },
+              "type": "range",
+              "min": 0,
+              "max": 1,
+              "default": 1.0,
+              "description": {
+                "en": "Opacity of the note-density histogram bars (0 = hidden).",
+                "pl": "Przezroczystość słupków histogramu gęstości notek (0 = ukryte)."
+              }
+            },
+            {
+              "id": "densityGraphBpmOpacity",
+              "name": {
+                "en": "BPM Opacity",
+                "pl": "przezroczystość BPM"
+              },
+              "type": "range",
+              "min": 0,
+              "max": 1,
+              "default": 1.0,
+              "description": {
+                "en": "Opacity of the BPM overlay lines (0 = hidden).",
+                "pl": "Przezroczystość linii BPM na wykresie (0 = ukryte)."
+              }
+            },
+            {
+              "id": "densityGraphBackgroundOpacity",
+              "name": {
+                "en": "Background Opacity",
+                "pl": "przezroczystość tła"
+              },
+              "type": "range",
+              "min": 0,
+              "max": 1,
+              "default": 0.8,
+              "description": {
+                "en": "Opacity of the black background behind the density graph bars.",
+                "pl": "Przezroczystość czarnego tła za słupkami wykresu gęstości."
+              }
+            },
+            {
+              "id": "densityGraphBpmConnectorOpacity",
+              "name": {
+                "en": "BPM Connector Opacity",
+                "pl": "przezroczystość łączników BPM"
+              },
+              "type": "range",
+              "min": 0,
+              "max": 1,
+              "default": 0.75,
+              "description": {
+                "en": "Opacity of the gray vertical lines that connect adjacent BPM level lines.",
+                "pl": "Przezroczystość szarych pionowych linii łączących poziomy BPM."
+              }
+            },
+            {
+              "id": "densityGraphFrameOpacity",
+              "name": {
+                "en": "Frame Opacity",
+                "pl": "przezroczystość ramki"
+              },
+              "type": "range",
+              "min": 0,
+              "max": 1,
+              "default": 1.0,
+              "description": {
+                "en": "Opacity of the 1 px white border around the density graph (0 = hidden).",
+                "pl": "Przezroczystość 1 px białej ramki wokół wykresu gęstości (0 = ukryta)."
+              }
+            },
+            {
+              "id": "densityGraphPositionLineOpacity",
+              "name": {
+                "en": "Position Line Opacity",
+                "pl": "przezroczystość linii pozycji"
+              },
+              "type": "range",
+              "min": 0,
+              "max": 1,
+              "default": 1.0,
+              "description": {
+                "en": "Opacity of the red current-position line on the density graph (0 = hidden).",
+                "pl": "Przezroczystość czerwonej linii bieżącej pozycji na wykresie gęstości (0 = ukryta)."
+              }
+            },
+            {
+              "id": "densityGraphVertical",
+              "name": {
+                "en": "Vertical",
+                "pl": "Pionowy wykres gęstości"
+              },
+              "type": "boolean",
+              "default": false,
+              "description": {
+                "en": "Rotate the density graph so time runs bottom → top.",
+                "pl": "Obróć wykres gęstości, by czas biegł od dołu do góry."
+              }
+            }
+          ]
         },
         {
-          "id": "densityGraphGapsEnabled",
           "name": {
-            "en": "Density Graph Gaps",
-            "pl": "Przerwy w wykresie gęstości"
+            "en": "Judge Line",
+            "pl": "Dolna kreska"
           },
-          "type": "boolean",
-          "default": false,
+          "type": "group",
           "description": {
-            "en": "Add 1 px gaps between bars in the density graph if possible.",
-            "pl": "Dodaje 1 px przerwy między słupkami na wykresie gęstości, jeśli to możliwe."
-          }
+            "en": "Options for the judge line.",
+            "pl": "Opcje dolnej kreski, na której trafia się notki."
+          },
+          "items": [
+            {
+              "id": "judgeLineThickness",
+              "name": {
+                "en": "Thickness",
+                "pl": "Grubość"
+              },
+              "type": "range",
+              "description": {
+                "en": "The thickness of the line",
+                "pl": "Grubość linii"
+              },
+              "min": 0,
+              "default": 8
+            },
+            {
+              "id": "judgeLineColor",
+              "name": {
+                "en": "Judge Line Color",
+                "pl": "Kolor dolnej kreski"
+              },
+              "type": "color",
+              "description": {
+                "en": "The color of the line",
+                "pl": "Kolor linii"
+              },
+              "default": "red"
+            }
+          ]
         },
         {
-          "id": "densityGraphNotesOpacity",
           "name": {
-            "en": "Density Graph Notes Opacity",
-            "pl": "Wykres gęstości — przezroczystość notek"
+            "en": "Hit Distribution",
+            "pl": "Rozkład trafień"
           },
-          "type": "range",
-          "min": 0,
-          "max": 1,
-          "default": 1.0,
+          "type": "group",
           "description": {
-            "en": "Opacity of the note-density histogram bars (0 = hidden).",
-            "pl": "Przezroczystość słupków histogramu gęstości notek (0 = ukryte)."
-          }
-        },
-        {
-          "id": "densityGraphBpmOpacity",
-          "name": {
-            "en": "Density Graph BPM Opacity",
-            "pl": "Wykres gęstości — przezroczystość BPM"
+            "en": "Options for the hit timing distribution graph.",
+            "pl": "Opcje wykresu rozkładu czasu trafień."
           },
-          "type": "range",
-          "min": 0,
-          "max": 1,
-          "default": 1.0,
-          "description": {
-            "en": "Opacity of the BPM overlay lines (0 = hidden).",
-            "pl": "Przezroczystość linii BPM na wykresie (0 = ukryte)."
-          }
-        },
-        {
-          "id": "densityGraphBackgroundOpacity",
-          "name": {
-            "en": "Density Graph Background Opacity",
-            "pl": "Wykres gęstości — przezroczystość tła"
-          },
-          "type": "range",
-          "min": 0,
-          "max": 1,
-          "default": 0.8,
-          "description": {
-            "en": "Opacity of the black background behind the density graph bars.",
-            "pl": "Przezroczystość czarnego tła za słupkami wykresu gęstości."
-          }
-        },
-        {
-          "id": "densityGraphBpmConnectorOpacity",
-          "name": {
-            "en": "Density Graph BPM Connector Opacity",
-            "pl": "Wykres gęstości — przezroczystość łączników BPM"
-          },
-          "type": "range",
-          "min": 0,
-          "max": 1,
-          "default": 0.4,
-          "description": {
-            "en": "Opacity of the gray vertical lines that connect adjacent BPM level lines.",
-            "pl": "Przezroczystość szarych pionowych linii łączących poziomy BPM."
-          }
-        },
-        {
-          "id": "densityGraphFrameOpacity",
-          "name": {
-            "en": "Density Graph Frame Opacity",
-            "pl": "Wykres gęstości — przezroczystość ramki"
-          },
-          "type": "range",
-          "min": 0,
-          "max": 1,
-          "default": 1.0,
-          "description": {
-            "en": "Opacity of the 1 px white border around the density graph (0 = hidden).",
-            "pl": "Przezroczystość 1 px białej ramki wokół wykresu gęstości (0 = ukryta)."
-          }
-        },
-        {
-          "id": "densityGraphPositionLineOpacity",
-          "name": {
-            "en": "Density Graph Position Line Opacity",
-            "pl": "Wykres gęstości — przezroczystość linii pozycji"
-          },
-          "type": "range",
-          "min": 0,
-          "max": 1,
-          "default": 1.0,
-          "description": {
-            "en": "Opacity of the red current-position line on the density graph (0 = hidden).",
-            "pl": "Przezroczystość czerwonej linii bieżącej pozycji na wykresie gęstości (0 = ukryta)."
-          }
-        },
-        {
-          "id": "densityGraphVertical",
-          "name": {
-            "en": "Density Graph Vertical",
-            "pl": "Pionowy wykres gęstości"
-          },
-          "type": "boolean",
-          "default": false,
-          "description": {
-            "en": "Rotate the density graph so time runs bottom → top.",
-            "pl": "Obróć wykres gęstości, by czas biegł od dołu do góry."
-          }
-        },
-        {
-          "id": "judgeLineThickness",
-          "name": {
-            "en": "Judge Line Thickness",
-            "pl": "Grubość dolnej kreski"
-          },
-          "type": "range",
-          "description": {
-            "en": "The thickness of the line where you are supposed to hit the note",
-            "pl": "Grubość linii, na której należy uderzyć notkę"
-          },
-          "min": 0,
-          "default": 8
-        },
-        {
-          "id": "judgeLineColor",
-          "name": {
-            "en": "Judge Line Color",
-            "pl": "Kolor dolnej kreski"
-          },
-          "type": "color",
-          "description": {
-            "en": "The color of the line where you are supposed to hit the note",
-            "pl": "Kolor linii, na której należy uderzyć notkę"
-          },
-          "default": "red"
+          "items": [
+            {
+              "id": "hitDistributionEnabled",
+              "name": {
+                "en": "Show Hit Distribution",
+                "pl": "Pokaż rozkład trafień"
+              },
+              "type": "boolean",
+              "default": true,
+              "description": {
+                "en": "Show the hit timing distribution graph.",
+                "pl": "Pokaż wykres rozkładu czasu trafień."
+              }
+            },
+            {
+              "id": "hitDistributionVertical",
+              "name": {
+                "en": "Hit Distribution Vertical",
+                "pl": "Pionowy rozkład trafień"
+              },
+              "type": "boolean",
+              "default": false,
+              "description": {
+                "en": "Orient the hit distribution graph vertically (timing axis runs top → bottom).",
+                "pl": "Ustaw wykres rozkładu trafień pionowo (oś czasowa od góry do dołu)."
+              }
+            },
+            {
+              "id": "hitDistributionBackgroundOpacity",
+              "name": {
+                "en": "Hit Distribution Background Opacity",
+                "pl": "Przezroczystość tła rozkładu trafień"
+              },
+              "type": "range",
+              "min": 0,
+              "max": 1,
+              "default": 1.0,
+              "description": {
+                "en": "Opacity of the timing window colour bands in the background.",
+                "pl": "Przezroczystość kolorowych pasm okien czasowych w tle."
+              }
+            },
+            {
+              "id": "hitDistributionEwmaMode",
+              "name": {
+                "en": "Hit Distribution EWMA Mode",
+                "pl": "Tryb EWMA rozkładu trafień"
+              },
+              "type": "boolean",
+              "default": false,
+              "description": {
+                "en": "Show a single line tracking an exponential weighted moving average instead of a trail.",
+                "pl": "Pokaż pojedynczą linię śledzącą wykładniczą średnią ruchomą zamiast śladu."
+              }
+            },
+            {
+              "id": "hitDistributionEwmaAlpha",
+              "name": {
+                "en": "EWMA Alpha",
+                "pl": "Współczynnik alfa EWMA"
+              },
+              "type": "range",
+              "min": 0.01,
+              "max": 1.0,
+              "default": 0.1,
+              "description": {
+                "en": "EWMA smoothing factor: 0 = never moves, 1 = instant snap to latest hit.",
+                "pl": "Współczynnik wygładzania EWMA: 0 = nie rusza się, 1 = natychmiastowe dopasowanie."
+              }
+            },
+            {
+              "id": "hitDistributionMaxTrail",
+              "name": {
+                "en": "Hit Distribution Trail Length",
+                "pl": "Długość śladu rozkładu trafień"
+              },
+              "type": "range",
+              "min": 1,
+              "default": 30,
+              "description": {
+                "en": "Maximum number of hit lines shown in trail mode.",
+                "pl": "Maksymalna liczba linii trafień widocznych w trybie śladu."
+              }
+            },
+            {
+              "id": "hitDistributionLineColor",
+              "name": {
+                "en": "Hit Distribution Line Color",
+                "pl": "Kolor linii rozkładu trafień"
+              },
+              "type": "color",
+              "default": "white",
+              "description": {
+                "en": "Color of the hit indicator line(s).",
+                "pl": "Kolor linii wskaźnika trafień."
+              }
+            },
+            {
+              "id": "hitDistributionCenterLineColor",
+              "name": {
+                "en": "Hit Distribution Center Line Color",
+                "pl": "Kolor linii środkowej rozkładu trafień"
+              },
+              "type": "color",
+              "default": "gray",
+              "description": {
+                "en": "Color of the central reference line (perfect timing).",
+                "pl": "Kolor środkowej linii odniesienia (idealne trafienie)."
+              }
+            },
+            {
+              "id": "hitDistributionLineWidth",
+              "name": {
+                "en": "Hit Distribution Line Width",
+                "pl": "Szerokość linii rozkładu trafień"
+              },
+              "type": "range",
+              "min": 1,
+              "default": 2,
+              "description": {
+                "en": "Width in pixels of each hit indicator line.",
+                "pl": "Szerokość w pikselach każdej linii wskaźnika trafień."
+              }
+            },
+            {
+              "id": "hitDistributionCenterLineWidth",
+              "name": {
+                "en": "Hit Distribution Center Line Width",
+                "pl": "Szerokość linii środkowej rozkładu trafień"
+              },
+              "type": "range",
+              "min": 0,
+              "default": 1,
+              "description": {
+                "en": "Width in pixels of the central reference line.",
+                "pl": "Szerokość w pikselach środkowej linii odniesienia."
+              }
+            }
+          ]
         }
       ]
     },
@@ -1362,6 +1538,73 @@
               }
             }
           ]
+        },
+        {
+          "type": "group",
+          "name": {
+            "en": "Hit Distribution",
+            "pl": "Rozkład trafień"
+          },
+          "description": {
+            "en": "Position and size of the hit timing distribution graph (centred for DP).",
+            "pl": "Pozycja i rozmiar wykresu rozkładu czasu trafień (na środku dla DP)."
+          },
+          "items": [
+            {
+              "id": "hitDistributionX",
+              "name": {
+                "en": "X",
+                "pl": "X"
+              },
+              "type": "range",
+              "default": 1085,
+              "description": {
+                "en": "X position.",
+                "pl": "Pozycja X."
+              }
+            },
+            {
+              "id": "hitDistributionY",
+              "name": {
+                "en": "Y",
+                "pl": "Y"
+              },
+              "type": "range",
+              "default": 860,
+              "description": {
+                "en": "Y position.",
+                "pl": "Pozycja Y."
+              }
+            },
+            {
+              "id": "hitDistributionWidth",
+              "name": {
+                "en": "Width",
+                "pl": "Szerokość"
+              },
+              "type": "range",
+              "min": 0,
+              "default": 320,
+              "description": {
+                "en": "Width.",
+                "pl": "Szerokość."
+              }
+            },
+            {
+              "id": "hitDistributionHeight",
+              "name": {
+                "en": "Height",
+                "pl": "Wysokość"
+              },
+              "type": "range",
+              "min": 0,
+              "default": 55,
+              "description": {
+                "en": "Height.",
+                "pl": "Wysokość."
+              }
+            }
+          ]
         }
       ]
     },
@@ -1491,6 +1734,19 @@
           "description": {
             "en": "The z-index of the density graph.",
             "pl": "Wartość z-index wykresu gęstości."
+          }
+        },
+        {
+          "id": "hitDistributionZ",
+          "name": {
+            "en": "Hit Distribution Z",
+            "pl": "Rozkład trafień Z"
+          },
+          "type": "range",
+          "default": 0,
+          "description": {
+            "en": "The z-index of the hit distribution graph.",
+            "pl": "Wartość z-index wykresu rozkładu trafień."
           }
         }
       ]

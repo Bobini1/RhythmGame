@@ -367,6 +367,25 @@ Rectangle {
         }
     }
 
+    HitDistributionPopup {
+        id: hitDistributionPopup
+        readonly property Profile profile: chart.player1.profile
+        themeVars: profile.vars.themeVars[root.screen][root.themeName]
+        onClosed: { root.popup = null; }
+    }
+    HitDistributionPopup {
+        id: hitDistributionPopupP2
+        readonly property Profile profile: (chart.player2 || chart.player1).profile
+        themeVars: profile.vars.themeVars[root.screen][root.themeName]
+        onClosed: { root.popup = null; }
+    }
+    // Used for the single centred hit distribution in DP (k14) mode.
+    HitDistributionPopup {
+        id: hitDistributionPopupDp
+        themeVars: root.mainProfileVars
+        onClosed: { root.popup = null; }
+    }
+
     Item {
         id: scaledRoot
 
@@ -670,6 +689,58 @@ Rectangle {
                 return;
             }
             escapeShortcut.nothingWasHit = false;
+        }
+    }
+
+
+    HitDistribution {
+        id: dpHitDistribution
+
+        visible: root.isDp
+        contentVisible: root.isDp && root.mainProfileVars.hitDistributionEnabled
+
+        x: root.mainProfileVars.hitDistributionX
+        y: root.mainProfileVars.hitDistributionY
+        width: root.mainProfileVars.hitDistributionWidth
+        height: root.mainProfileVars.hitDistributionHeight
+        z: root.mainProfileVars.hitDistributionZ
+
+        ewmaMode: root.mainProfileVars.hitDistributionEwmaMode
+        ewmaAlpha: root.mainProfileVars.hitDistributionEwmaAlpha
+        maxTrail: root.mainProfileVars.hitDistributionMaxTrail
+        vertical: root.mainProfileVars.hitDistributionVertical
+        lineColor: root.mainProfileVars.hitDistributionLineColor
+        centerLineColor: root.mainProfileVars.hitDistributionCenterLineColor
+        lineWidth: root.mainProfileVars.hitDistributionLineWidth
+        centerLineWidth: root.mainProfileVars.hitDistributionCenterLineWidth
+        backgroundOpacity: root.mainProfileVars.hitDistributionBackgroundOpacity
+
+        timingWindows: root.chartData.timingWindows
+        score: chart.player1.score
+
+        onXChanged: root.mainProfileVars.hitDistributionX = x
+        onYChanged: root.mainProfileVars.hitDistributionY = y
+        onWidthChanged: root.mainProfileVars.hitDistributionWidth = width
+        onHeightChanged: root.mainProfileVars.hitDistributionHeight = height
+
+        TemplateDragBorder {
+            anchors.fill: parent
+            anchors.margins: -borderMargin
+            color: "transparent"
+            visible: root.customizeMode
+        }
+
+        MouseArea {
+            acceptedButtons: Qt.RightButton
+            anchors.fill: parent
+            z: -1
+            enabled: root.customizeMode
+            onClicked: mouse => {
+                let point = mapToItem(Overlay.overlay, mouse.x, mouse.y);
+                hitDistributionPopupDp.setPosition(point);
+                hitDistributionPopupDp.open();
+                root.popup = hitDistributionPopupDp;
+            }
         }
     }
     AudioPlayer {

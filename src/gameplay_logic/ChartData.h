@@ -231,6 +231,14 @@ class ChartData : public QObject
      * @brief The game version where the chart was parsed.
      */
     Q_PROPERTY(quint64 gameVersion READ getGameVersion CONSTANT)
+    /**
+     * @brief The timing windows for the chart based on its rank.
+     * @details Returns a list of maps, each with "judgement" (string) and
+     * "windowNs" (qint64) keys. The list is ordered from widest window (Bad)
+     * to narrowest (Perfect). Window values are symmetric half-widths in
+     * nanoseconds. Based on LR2 timing window specification.
+     */
+    Q_PROPERTY(QVariantList timingWindows READ getTimingWindows CONSTANT)
 
   public:
     ChartData(QString title,
@@ -308,6 +316,7 @@ class ChartData : public QObject
     [[nodiscard]] auto getHistogramData() -> QList<QList<qint64>>&;
     [[nodiscard]] auto getBpmChanges() -> QList<BpmChange>&;
     [[nodiscard]] auto getGameVersion() const -> quint64;
+    [[nodiscard]] auto getTimingWindows() const -> QVariantList;
 
     auto clone() const -> std::unique_ptr<ChartData>;
 

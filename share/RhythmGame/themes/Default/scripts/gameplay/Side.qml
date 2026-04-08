@@ -378,4 +378,67 @@ Item {
 
         target: side.score
     }
+
+    // ── Hit Distribution ────────────────────────────────────────────────────
+    // Only shown for SP and battle modes; DP uses a single centred component
+    // in Gameplay.qml instead.
+    HitDistribution {
+        id: hitDistributionItem
+
+        // Suppress in DP (dpSuffix is "" for SP/battle, "1"/"2" for DP).
+        contentVisible: side.dpSuffix === "" && side.profileVars.hitDistributionEnabled
+        visible: side.dpSuffix === ""
+
+        x: side.profileVars.hitDistributionX
+        y: side.profileVars.hitDistributionY
+        width: side.profileVars.hitDistributionWidth
+        height: side.profileVars.hitDistributionHeight
+        z: side.profileVars.hitDistributionZ
+
+        transform: Scale {
+            xScale: side.mirrored ? -1 : 1
+            origin.x: hitDistributionItem.width / 2
+        }
+
+        ewmaMode: side.profileVars.hitDistributionEwmaMode
+        ewmaAlpha: side.profileVars.hitDistributionEwmaAlpha
+        maxTrail: side.profileVars.hitDistributionMaxTrail
+        vertical: side.profileVars.hitDistributionVertical
+        lineColor: side.profileVars.hitDistributionLineColor
+        centerLineColor: side.profileVars.hitDistributionCenterLineColor
+        lineWidth: side.profileVars.hitDistributionLineWidth
+        centerLineWidth: side.profileVars.hitDistributionCenterLineWidth
+        backgroundOpacity: side.profileVars.hitDistributionBackgroundOpacity
+
+        timingWindows: root.chartData.timingWindows
+        score: side.score
+
+        onXChanged: side.profileVars.hitDistributionX = x
+        onYChanged: side.profileVars.hitDistributionY = y
+        onWidthChanged: side.profileVars.hitDistributionWidth = width
+        onHeightChanged: side.profileVars.hitDistributionHeight = height
+
+        TemplateDragBorder {
+            anchors.fill: parent
+            anchors.margins: -borderMargin
+            color: "transparent"
+            visible: root.customizeMode
+            mirrored: side.mirrored
+        }
+
+        MouseArea {
+            acceptedButtons: Qt.RightButton
+            anchors.fill: parent
+            z: -1
+            enabled: root.customizeMode
+
+            onClicked: mouse => {
+                let point = mapToItem(Overlay.overlay, mouse.x, mouse.y);
+                let popup = side.mirrored ? hitDistributionPopupP2 : hitDistributionPopup;
+                popup.setPosition(point);
+                popup.open();
+                root.popup = popup;
+            }
+        }
+    }
 }

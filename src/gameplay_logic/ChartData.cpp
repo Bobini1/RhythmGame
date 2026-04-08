@@ -8,6 +8,8 @@
 #include "BmsNotes.h"
 #include <memory>
 #include <utility>
+#include <algorithm>
+#include <array>
 #include <spdlog/spdlog.h>
 #include <QJsonArray>
 
@@ -503,4 +505,53 @@ gameplay_logic::ChartData::toJson() const -> QJsonObject
     obj["bpmChanges"] = bpmJson;
     obj["gameVersion"] = static_cast<qint64>(gameVersion);
     return obj;
+}
+
+auto
+gameplay_logic::ChartData::getTimingWindows() const -> QVariantList
+{
+    struct Win
+    {
+        const char* judgement;
+        qint64 earlyNs;
+        qint64 lateNs;
+    };
+    static constexpr qint64 kMs = 1'000'000LL;
+    static const std::array<std::array<Win, 5>, 4> kByRank{ {
+      // VeryHard
+      { { { "EmptyPoor", 1000 * kMs, 0 },
+          { "Bad", 200 * kMs, 200 * kMs },
+          { "Good", 40 * kMs, 40 * kMs },
+          { "Great", 24 * kMs, 24 * kMs },
+          { "Perfect", 8 * kMs, 8 * kMs } } },
+      // Hard
+      { { { "EmptyPoor", 1000 * kMs, 0 },
+          { "Bad", 200 * kMs, 200 * kMs },
+          { "Good", 60 * kMs, 60 * kMs },
+          { "Great", 30 * kMs, 30 * kMs },
+          { "Perfect", 15 * kMs, 15 * kMs } } },
+      // Normal
+      { { { "EmptyPoor", 1000 * kMs, 0 },
+          { "Bad", 200 * kMs, 200 * kMs },
+          { "Good", 100 * kMs, 100 * kMs },
+          { "Great", 40 * kMs, 40 * kMs },
+          { "Perfect", 18 * kMs, 18 * kMs } } },
+      // Easy
+      { { { "EmptyPoor", 1000 * kMs, 0 },
+          { "Bad", 200 * kMs, 200 * kMs },
+          { "Good", 120 * kMs, 120 * kMs },
+          { "Great", 60 * kMs, 60 * kMs },
+          { "Perfect", 21 * kMs, 21 * kMs } } },
+    } };
+
+    const auto idx = static_cast<std::size_t>(std::clamp(rank, 0, 3));
+    QVariantList result;
+    for (const auto& win : kByRank[idx]) {
+        QVariantMap m;
+        m[QStringLiteral("judgement")] = QString::fromLatin1(win.judgement);
+        m[QStringLiteral("earlyNs")] = QVariant::fromValue(win.earlyNs);
+        m[QStringLiteral("lateNs")] = QVariant::fromValue(win.lateNs);
+        result.append(m);
+    }
+    return result;
 }
