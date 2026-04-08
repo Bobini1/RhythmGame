@@ -158,6 +158,114 @@
           }
         },
         {
+          "id": "densityGraphEnabled",
+          "name": {
+            "en": "Show Density Graph",
+            "pl": "Pokaż wykres gęstości"
+          },
+          "type": "boolean",
+          "default": true,
+          "description": {
+            "en": "Show the note-density graph.",
+            "pl": "Pokaż wykres gęstości notek."
+          }
+        },
+        {
+          "id": "densityGraphOpacity",
+          "name": {
+            "en": "Density Graph Opacity",
+            "pl": "Przezroczystość wykresu gęstości"
+          },
+          "type": "range",
+          "min": 0,
+          "max": 1,
+          "default": 0.7,
+          "description": {
+            "en": "Opacity of the density graph.",
+            "pl": "Przezroczystość wykresu gęstości."
+          }
+        },
+        {
+          "id": "densityGraphGapsEnabled",
+          "name": {
+            "en": "Density Graph Gaps",
+            "pl": "Przerwy w wykresie gęstości"
+          },
+          "type": "boolean",
+          "default": false,
+          "description": {
+            "en": "Add 1 px gaps between bars in the density graph if possible.",
+            "pl": "Dodaje 1 px przerwy między słupkami na wykresie gęstości, jeśli to możliwe."
+          }
+        },
+        {
+          "id": "densityGraphShowNotes",
+          "name": {
+            "en": "Density Graph Show Notes",
+            "pl": "Wykres gęstości — pokaż notki"
+          },
+          "type": "boolean",
+          "default": true,
+          "description": {
+            "en": "Show the note-density histogram bars.",
+            "pl": "Pokaż słupki histogramu gęstości notek."
+          }
+        },
+        {
+          "id": "densityGraphShowBpm",
+          "name": {
+            "en": "Density Graph Show BPM",
+            "pl": "Wykres gęstości — pokaż BPM"
+          },
+          "type": "boolean",
+          "default": true,
+          "description": {
+            "en": "Show the BPM overlay lines on the density graph.",
+            "pl": "Pokaż linie BPM na wykresie gęstości."
+          }
+        },
+        {
+          "id": "densityGraphBackgroundOpacity",
+          "name": {
+            "en": "Density Graph Background Opacity",
+            "pl": "Wykres gęstości — przezroczystość tła"
+          },
+          "type": "range",
+          "min": 0,
+          "max": 1,
+          "default": 0.8,
+          "description": {
+            "en": "Opacity of the black background behind the density graph bars.",
+            "pl": "Przezroczystość czarnego tła za słupkami wykresu gęstości."
+          }
+        },
+        {
+          "id": "densityGraphFrameEnabled",
+          "name": {
+            "en": "Density Graph Frame",
+            "pl": "Wykres gęstości — ramka"
+          },
+          "type": "boolean",
+          "default": true,
+          "description": {
+            "en": "Show the 1 px white border around the density graph.",
+            "pl": "Pokaż 1 px białą ramkę wokół wykresu gęstości."
+          }
+        },
+        {
+          "id": "densityGraphVertical",
+          "name": {
+            "en": "Density Graph Vertical",
+            "pl": "Pionowy wykres gęstości"
+          },
+          "type": "boolean",
+          "default": false,
+          "description": {
+            "en": "Rotate the density graph so time runs bottom → top.",
+            "pl": "Obróć wykres gęstości, by czas biegł od dołu do góry."
+          }
+        },
+        {
           "id": "judgeLineThickness",
           "name": {
             "en": "Judge Line Thickness",
@@ -1127,6 +1235,49 @@
               }
             }
           ]
+        },
+        {
+          "type": "group",
+          "name": {
+            "en": "Density Graph",
+            "pl": "Wykres gęstości"
+          },
+          "description": {
+            "en": "Position, size, and visibility of the note-density graph.",
+            "pl": "Pozycja, rozmiar i widoczność wykresu gęstości notek."
+          },
+          "items": [
+            {
+              "id": "densityGraphX",
+              "name": { "en": "X", "pl": "X" },
+              "type": "range",
+              "default": 930,
+              "description": { "en": "X position.", "pl": "Pozycja X." }
+            },
+            {
+              "id": "densityGraphY",
+              "name": { "en": "Y", "pl": "Y" },
+              "type": "range",
+              "default": 840,
+              "description": { "en": "Y position.", "pl": "Pozycja Y." }
+            },
+            {
+              "id": "densityGraphWidth",
+              "name": { "en": "Width", "pl": "Szerokość" },
+              "type": "range",
+              "min": 0,
+              "default": 750,
+              "description": { "en": "Width.", "pl": "Szerokość." }
+            },
+            {
+              "id": "densityGraphHeight",
+              "name": { "en": "Height", "pl": "Wysokość" },
+              "type": "range",
+              "min": 0,
+              "default": 80,
+              "description": { "en": "Height.", "pl": "Wysokość." }
+            }
+          ]
         }
       ]
     },
@@ -1243,6 +1394,19 @@
           "description": {
             "en": "The z-index of the difficulty display.",
             "pl": "Wartość z-index wyświetlacza trudności."
+          }
+        },
+        {
+          "id": "densityGraphZ",
+          "name": {
+            "en": "Density Graph Z",
+            "pl": "Wykres gęstości Z"
+          },
+          "type": "range",
+          "default": 0,
+          "description": {
+            "en": "The z-index of the density graph.",
+            "pl": "Wartość z-index wykresu gęstości."
           }
         }
       ]

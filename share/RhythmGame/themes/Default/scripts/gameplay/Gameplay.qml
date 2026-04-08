@@ -358,6 +358,14 @@ Rectangle {
             root.popup = null;
         }
     }
+    DensityGraphPopup {
+        id: densityGraphPopup
+        themeVars: root.mainProfileVars
+
+        onClosed: {
+            root.popup = null;
+        }
+    }
 
     Item {
         id: scaledRoot
@@ -534,6 +542,55 @@ Rectangle {
                     bpmDisplayPopup.setPosition(point);
                     bpmDisplayPopup.open();
                     root.popup = bpmDisplayPopup;
+                }
+            }
+        }
+
+        DensityGraph {
+            id: densityGraphItem
+            x:       root.mainProfileVars.densityGraphX
+            y:       root.mainProfileVars.densityGraphY
+            width:   root.mainProfileVars.densityGraphWidth
+            height:  root.mainProfileVars.densityGraphHeight
+            z:       root.mainProfileVars.densityGraphZ
+            opacity: root.mainProfileVars.densityGraphOpacity
+            contentVisible:     root.mainProfileVars.densityGraphEnabled
+            gapsEnabled:        root.mainProfileVars.densityGraphGapsEnabled
+            showNotes:          root.mainProfileVars.densityGraphShowNotes
+            showBpm:            root.mainProfileVars.densityGraphShowBpm
+            frameEnabled:       root.mainProfileVars.densityGraphFrameEnabled
+            backgroundOpacity:  root.mainProfileVars.densityGraphBackgroundOpacity
+            vertical:           root.mainProfileVars.densityGraphVertical
+
+            histogramData: root.chartData.histogramData
+            bpms:          root.chartData.bpmChanges
+            mainBpm:       root.chartData.mainBpm
+            maxBpm:        root.chartData.maxBpm
+            minBpm:        root.chartData.minBpm
+            length:        root.chartData.length
+            elapsed:       chart.player1.elapsed
+
+            onXChanged:      root.mainProfileVars.densityGraphX = x
+            onYChanged:      root.mainProfileVars.densityGraphY = y
+            onWidthChanged:  root.mainProfileVars.densityGraphWidth = width
+            onHeightChanged: root.mainProfileVars.densityGraphHeight = height
+
+            TemplateDragBorder {
+                anchors.fill: parent
+                anchors.margins: -borderMargin
+                color: "transparent"
+                visible: root.customizeMode
+            }
+            MouseArea {
+                acceptedButtons: Qt.RightButton
+                anchors.fill: parent
+                z: -1
+                enabled: root.customizeMode
+                onClicked: mouse => {
+                    let point = mapToItem(Overlay.overlay, mouse.x, mouse.y);
+                    densityGraphPopup.setPosition(point);
+                    densityGraphPopup.open();
+                    root.popup = densityGraphPopup;
                 }
             }
         }
