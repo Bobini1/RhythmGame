@@ -16,11 +16,12 @@ var searchData=
   ['time_13',['time',['../classgameplay__logic_1_1Note.html#a2dc366a0722b5898680c8c3e9663cb64',1,'gameplay_logic::Note::time'],['../classgameplay__logic_1_1BarLineState.html#acb00d45b8242f205d48a62461377f1a0',1,'gameplay_logic::BarLineState::time'],['../classgameplay__logic_1_1BpmChange.html#aa36a291e6fd614b196b79ba834cf5992',1,'gameplay_logic::BpmChange::time']]],
   ['timeout_14',['timeout',['../classinput_1_1AnalogAxisConfig.html#ac822ab3b88ffc93bcdb1a97769e0024e',1,'input::AnalogAxisConfig']]],
   ['timestamp_15',['timestamp',['../classgameplay__logic_1_1Time.html#a68ff2e5cb6d39a2d6a28f770b1c31a71',1,'gameplay_logic::Time']]],
-  ['title_16',['title',['../classgameplay__logic_1_1ChartData.html#a66c6fd7bccfc50c88a0d9d047de2f90c',1,'gameplay_logic::ChartData::title'],['../structresource__managers_1_1Entry.html#a2391f19a77155b29a4affe0d7485a08a',1,'resource_managers::Entry::title']]],
-  ['topposition_17',['topposition',['../classgameplay__logic_1_1Filter.html#ac6672af960ce0d4e382cb40463aa6677',1,'gameplay_logic::Filter::topPosition'],['../classgameplay__logic_1_1BarlineFilter.html#adb8e95102ba6160644ff53adf315cdf6',1,'gameplay_logic::BarlineFilter::topPosition']]],
-  ['total_18',['total',['../classgameplay__logic_1_1ChartData.html#a0402dd7e787ee86e75597821bd088a0b',1,'gameplay_logic::ChartData::total'],['../classqml__components_1_1ReplayImportOperation.html#a804ff81efc5cc0a84f8553c01afb9048',1,'qml_components::ReplayImportOperation::total'],['../classqml__components_1_1ScoreSyncOperation.html#a68e261e3c2c8c7e14aa9dc48a53f40e2',1,'qml_components::ScoreSyncOperation::total']]],
-  ['translations_19',['translations',['../classqml__components_1_1ThemeFamily.html#a6338cfe045a3c35e8f4c5f5068abc9f0',1,'qml_components::ThemeFamily']]],
-  ['triggerthreshold_20',['triggerThreshold',['../classinput_1_1AnalogAxisConfig.html#af1a4c7539aadd225704928eb8594ef83',1,'input::AnalogAxisConfig']]],
-  ['trophies_21',['trophies',['../structresource__managers_1_1Course.html#a5c3dacd8aa709c10493b266dc13211e4',1,'resource_managers::Course']]],
-  ['type_22',['type',['../classgameplay__logic_1_1Note.html#a3b8d1cc4892925c524e301413a7a191c',1,'gameplay_logic::Note']]]
+  ['timingwindows_16',['timingWindows',['../classgameplay__logic_1_1ChartData.html#a593db823a2b94ee1c8c347a37c374475',1,'gameplay_logic::ChartData']]],
+  ['title_17',['title',['../classgameplay__logic_1_1ChartData.html#a66c6fd7bccfc50c88a0d9d047de2f90c',1,'gameplay_logic::ChartData::title'],['../structresource__managers_1_1Entry.html#a2391f19a77155b29a4affe0d7485a08a',1,'resource_managers::Entry::title']]],
+  ['topposition_18',['topposition',['../classgameplay__logic_1_1Filter.html#ac6672af960ce0d4e382cb40463aa6677',1,'gameplay_logic::Filter::topPosition'],['../classgameplay__logic_1_1BarlineFilter.html#adb8e95102ba6160644ff53adf315cdf6',1,'gameplay_logic::BarlineFilter::topPosition']]],
+  ['total_19',['total',['../classgameplay__logic_1_1ChartData.html#a0402dd7e787ee86e75597821bd088a0b',1,'gameplay_logic::ChartData::total'],['../classqml__components_1_1ReplayImportOperation.html#a804ff81efc5cc0a84f8553c01afb9048',1,'qml_components::ReplayImportOperation::total'],['../classqml__components_1_1ScoreSyncOperation.html#a68e261e3c2c8c7e14aa9dc48a53f40e2',1,'qml_components::ScoreSyncOperation::total']]],
+  ['translations_20',['translations',['../classqml__components_1_1ThemeFamily.html#a6338cfe045a3c35e8f4c5f5068abc9f0',1,'qml_components::ThemeFamily']]],
+  ['triggerthreshold_21',['triggerThreshold',['../classinput_1_1AnalogAxisConfig.html#af1a4c7539aadd225704928eb8594ef83',1,'input::AnalogAxisConfig']]],
+  ['trophies_22',['trophies',['../structresource__managers_1_1Course.html#a5c3dacd8aa709c10493b266dc13211e4',1,'resource_managers::Course']]],
+  ['type_23',['type',['../classgameplay__logic_1_1Note.html#a3b8d1cc4892925c524e301413a7a191c',1,'gameplay_logic::Note']]]
 ];

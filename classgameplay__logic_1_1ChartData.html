@@ -212,6 +212,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a94e8d2078d8d1cb4c0f41ed4aeaadb44"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa676df1c6fc19e6140dda612538c03f8" id="r_aa676df1c6fc19e6140dda612538c03f8"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgameplay__logic_1_1ChartData.html#aa676df1c6fc19e6140dda612538c03f8">getGameVersion</a> () const -&gt; quint64</td></tr>
 <tr class="separator:aa676df1c6fc19e6140dda612538c03f8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adb517bef53dd8f006abc2981dba7cb82" id="r_adb517bef53dd8f006abc2981dba7cb82"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgameplay__logic_1_1ChartData.html#adb517bef53dd8f006abc2981dba7cb82">getTimingWindows</a> () const -&gt; QVariantList</td></tr>
+<tr class="separator:adb517bef53dd8f006abc2981dba7cb82"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac41c34b438283742d3777e81f0f7c805" id="r_ac41c34b438283742d3777e81f0f7c805"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgameplay__logic_1_1ChartData.html#ac41c34b438283742d3777e81f0f7c805">clone</a> () const -&gt; std::unique_ptr&lt; <a class="el" href="classgameplay__logic_1_1ChartData.html">ChartData</a> &gt;</td></tr>
 <tr class="separator:ac41c34b438283742d3777e81f0f7c805"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4174f29c1fb6c78fd56670adf9ba6e0f" id="r_a4174f29c1fb6c78fd56670adf9ba6e0f"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgameplay__logic_1_1ChartData.html#a4174f29c1fb6c78fd56670adf9ba6e0f">save</a> (<a class="el" href="classdb_1_1SqliteCppDb.html">db::SqliteCppDb</a> &amp;db) const -&gt; void</td></tr>
@@ -337,6 +339,9 @@ Properties</h2></td></tr>
 <tr class="memitem:abd706454f12c6f65748340b14afb9afb" id="r_abd706454f12c6f65748340b14afb9afb"><td class="memItemLeft" align="right" valign="top">quint64&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgameplay__logic_1_1ChartData.html#abd706454f12c6f65748340b14afb9afb">gameVersion</a></td></tr>
 <tr class="memdesc:abd706454f12c6f65748340b14afb9afb"><td class="mdescLeft">&#160;</td><td class="mdescRight">The game version where the chart was parsed.  <br /></td></tr>
 <tr class="separator:abd706454f12c6f65748340b14afb9afb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a593db823a2b94ee1c8c347a37c374475" id="r_a593db823a2b94ee1c8c347a37c374475"><td class="memItemLeft" align="right" valign="top">QVariantList&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgameplay__logic_1_1ChartData.html#a593db823a2b94ee1c8c347a37c374475">timingWindows</a></td></tr>
+<tr class="memdesc:a593db823a2b94ee1c8c347a37c374475"><td class="mdescLeft">&#160;</td><td class="mdescRight">The timing windows for the chart based on its rank.  <br /></td></tr>
+<tr class="separator:a593db823a2b94ee1c8c347a37c374475"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Metadata and basic stats of a chart. </p>
@@ -1247,6 +1252,23 @@ Properties</h2></td></tr>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const -&gt; const QString&amp;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="adb517bef53dd8f006abc2981dba7cb82" name="adb517bef53dd8f006abc2981dba7cb82"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adb517bef53dd8f006abc2981dba7cb82">&#9670;&#160;</a></span>getTimingWindows()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto gameplay_logic::ChartData::getTimingWindows </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const -&gt; QVariantList</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -2211,6 +2233,31 @@ rules::lr2_timing_windows::Lr2TimingWindows::getTimingWindows() </dd></dl>
 </div><div class="memdoc">
 
 <p>The subtitle of the chart. </p>
+
+</div>
+</div>
+<a id="a593db823a2b94ee1c8c347a37c374475" name="a593db823a2b94ee1c8c347a37c374475"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a593db823a2b94ee1c8c347a37c374475">&#9670;&#160;</a></span>timingWindows</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">QVariantList gameplay_logic::ChartData::timingWindows</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">read</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>The timing windows for the chart based on its rank. </p>
+<p>Returns a list of maps, each with "judgement" (string) and "windowNs" (qint64) keys. The list is ordered from widest window (Bad) to narrowest (Perfect). Window values are symmetric half-widths in nanoseconds. Based on LR2 timing window specification. </p>
 
 </div>
 </div>
