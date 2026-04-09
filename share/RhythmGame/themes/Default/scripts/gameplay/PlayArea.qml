@@ -95,6 +95,36 @@ Item {
             y: parent.height - height
             z: 6
         }
+        Image {
+            id: fiveKeysCover
+
+            // Cover the two unused lanes when playing a 5k (keymode 5) or 10k (keymode 10) chart.
+            // The unused BMS columns are always 5 & 6 (SP/battle) or 13 & 14 (DP right side).
+            // When the scratch is the first column (scratch-left / DP-left layout) the unused
+            // columns sit at the end of the columns array (indices 6-7); otherwise at the start.
+            readonly property bool coverAtEnd: playArea.columns.length >= 8 &&
+                                               (playArea.columns[0] === 7 || playArea.columns[0] === 15)
+
+            visible: playArea.vars.fiveKeysCoverEnabled &&
+                     (playArea.score.keymode === 5 || playArea.score.keymode === 10)
+            source: root.imagesUrl + "5keyscover/" + playArea.vars.fiveKeysCover
+            height: parent.height
+            fillMode: Image.Stretch
+            x: {
+                if (!coverAtEnd) return 0;
+                let xPos = 0;
+                for (let i = 0; i < 6; i++) {
+                    xPos += playArea.columnSizes[playArea.columns[i]];
+                }
+                return xPos + 6 * playArea.spacing;
+            }
+            width: {
+                let colA = coverAtEnd ? playArea.columns[6] : playArea.columns[0];
+                let colB = coverAtEnd ? playArea.columns[7] : playArea.columns[1];
+                return playArea.columnSizes[colA] + playArea.spacing + playArea.columnSizes[colB];
+            }
+            z: 8
+        }
         Rectangle {
             id: judgeLine
 

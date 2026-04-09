@@ -54,6 +54,19 @@
           "default": false
         },
         {
+          "id": "fiveKeysCoverEnabled",
+          "name": {
+            "en": "Enable 5 Keys Cover",
+            "pl": "Włącz zakrycie dla 5k"
+          },
+          "description": {
+            "en": "Show a cover image over the unused lanes when playing a 5-key chart.",
+            "pl": "Pokaż obraz zakrycia nad nieużywanymi kolumnami podczas grania na 5 klawiszy."
+          },
+          "type": "boolean",
+          "default": false
+        },
+        {
           "id": "hideLnEnds",
           "name": {
             "en": "Hide LN Ends",
@@ -598,6 +611,20 @@
           "description": {
             "en": "The texture used for covering the bottom part of the playfield.",
             "pl": "Tekstura zakrywająca dolną część pola gry."
+          }
+        },
+        {
+          "id": "fiveKeysCover",
+          "name": {
+            "en": "5 Keys Cover",
+            "pl": "Zakrycie 5 klawiszy"
+          },
+          "type": "file",
+          "path": "scripts/gameplay/images/5keyscover",
+          "default": "plain.png",
+          "description": {
+            "en": "The texture used to cover the unused lanes when playing a 5-key chart.",
+            "pl": "Tekstura zakrywająca nieużywane kolumny podczas grania na 5 klawiszy."
           }
         },
         {

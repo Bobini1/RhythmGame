@@ -194,6 +194,7 @@ Rectangle {
         themeVars: profile.vars.themeVars[root.screen][root.themeName]
         generalVars: profile.vars.generalVars
         dp: root.isDp
+        fiveKeys: chart.player1.score.keymode === 5 || chart.player1.score.keymode === 10
 
         onClosed: {
             root.popup = null;
@@ -206,6 +207,7 @@ Rectangle {
         themeVars: profile.vars.themeVars[root.screen][root.themeName]
         generalVars: profile.vars.generalVars
         dp: root.isDp
+        fiveKeys: (chart.player2 || chart.player1).score.keymode === 5 || (chart.player2 || chart.player1).score.keymode === 10
 
         onClosed: {
             root.popup = null;
