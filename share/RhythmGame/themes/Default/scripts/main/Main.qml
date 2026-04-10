@@ -94,7 +94,6 @@ Image {
             anchors.topMargin: 160
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.horizontalCenterOffset: 280
-            font.family: "Serif"
             font.pixelSize: 200
             text: "RhythmGame"
         }

@@ -403,6 +403,13 @@ set_target_properties(
         EXPORT_NAME exe
         RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/bin/$<0:>"
 )
+if (APPLE)
+    # Put the .app bundle at the build root, not inside bin/.
+    set_target_properties(RhythmGame_exe PROPERTIES
+            BUNDLE_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/$<0:>"
+            RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/$<0:>"
+    )
+endif ()
 
 qt_import_qml_plugins(RhythmGame_exe)
 

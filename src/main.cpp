@@ -149,8 +149,13 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
 
     auto appPath =
       support::qStringToPath(QCoreApplication::applicationFilePath());
-    auto isPortable = std::filesystem::exists(
-      appPath.parent_path().parent_path() / "portable.ini");
+    auto portableSearchDir = appPath.parent_path().parent_path();
+#ifdef Q_OS_MACOS
+    if (portableSearchDir.filename() == "Contents") {
+        portableSearchDir = portableSearchDir.parent_path().parent_path();
+    }
+#endif
+    auto isPortable = std::filesystem::exists(portableSearchDir / "portable.ini");
 
     auto dataFolder = [&] {
         if (isPortable) {
