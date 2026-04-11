@@ -59,11 +59,7 @@ WindowBg {
                 Layout.alignment: Qt.AlignVCenter
             }
             Text {
-                text: {
-                    let num = (meanSd.stddev / 1000000).toFixed(1) + " ms"
-                    let sign = meanSd.stddev > 0 ? "+" : "";
-                    return sign + num;
-                }
+                text: (meanSd.stddev / 1000000).toFixed(1) + " ms"
                 font.pixelSize: 24
                 Layout.fillHeight: true
                 Layout.fillWidth: true
