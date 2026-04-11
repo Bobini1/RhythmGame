@@ -187,12 +187,18 @@ function getFormattedNumber(locale, num, decimals = 3) {
  */
 function difficultyName(diff) {
     switch (diff) {
-        case 1: return "BEGINNER";
-        case 2: return "NORMAL";
-        case 3: return "HYPER";
-        case 4: return "ANOTHER";
-        case 5: return "INSANE";
-        default: return "";
+        case 1:
+            return "BEGINNER";
+        case 2:
+            return "NORMAL";
+        case 3:
+            return "HYPER";
+        case 4:
+            return "ANOTHER";
+        case 5:
+            return "INSANE";
+        default:
+            return "";
     }
 }
 
