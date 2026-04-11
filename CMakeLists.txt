@@ -312,6 +312,7 @@ target_link_libraries(RhythmGame_lib PUBLIC SDL2::SDL2
         Qt6::OpenGL
         Qt6::Concurrent
         Qt6::Multimedia
+        Qt6::Svg
         Qt6::InterfaceFramework
         Qt6Keychain::Qt6Keychain
         Threads::Threads
@@ -351,9 +352,17 @@ if (LINUX)
     target_link_libraries(RhythmGame_lib PUBLIC PkgConfig::xkbcommon)
 endif ()
 
+if (APPLE)
+    target_link_libraries(RhythmGame_lib PUBLIC "-framework Carbon")
+endif ()
+
 # We all love MSVC.
 target_compile_definitions(RhythmGame_lib PUBLIC NOMINMAX)
-target_compile_definitions(RhythmGame_lib PRIVATE RHYTHMGAME_DATA_DIR="${CMAKE_INSTALL_DATADIR}")
+if (APPLE)
+    target_compile_definitions(RhythmGame_lib PRIVATE RHYTHMGAME_DATA_DIR="Resources")
+else ()
+    target_compile_definitions(RhythmGame_lib PRIVATE RHYTHMGAME_DATA_DIR="${CMAKE_INSTALL_DATADIR}")
+endif ()
 target_compile_features(RhythmGame_lib PRIVATE cxx_std_23)
 target_compile_definitions(RhythmGame_lib PUBLIC "$<$<CONFIG:DEBUG>:DEBUG>")
 target_include_directories(
@@ -385,6 +394,21 @@ else ()
     qt_add_executable(RhythmGame_exe
             src/main.cpp
     )
+    if (APPLE)
+        set_target_properties(RhythmGame_exe PROPERTIES
+                MACOSX_BUNDLE TRUE
+                MACOSX_BUNDLE_BUNDLE_NAME "RhythmGame"
+                MACOSX_BUNDLE_GUI_IDENTIFIER "eu.rhythmgame"
+                MACOSX_BUNDLE_BUNDLE_VERSION "${PROJECT_VERSION}"
+                MACOSX_BUNDLE_SHORT_VERSION_STRING "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}"
+                MACOSX_BUNDLE_ICON_FILE "icon.icns"
+                MACOSX_BUNDLE_COPYRIGHT "© Bobini"
+        )
+        # Copy the icon into the bundle's Resources folder
+        target_sources(RhythmGame_exe PRIVATE "${CMAKE_SOURCE_DIR}/staticAssets/icon.icns")
+        set_source_files_properties("${CMAKE_SOURCE_DIR}/staticAssets/icon.icns"
+                PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
+    endif ()
 endif ()
 add_executable(RhythmGame::exe ALIAS RhythmGame_exe)
 
@@ -430,10 +454,13 @@ if (NOT CMAKE_SKIP_INSTALL_RULES)
     include(cmake/install-rules.cmake)
 endif ()
 
+target_link_options(RhythmGame_exe PRIVATE
+        $<$<PLATFORM_ID:Darwin>:LINKER:-stack_size,0x800000>
+        $<$<CXX_COMPILER_ID:MSVC>:/STACK:8388608>
+)
+
 if (WIN32)
-    # Some object files are too big for MSVC in Debug mode
     target_compile_options(RhythmGame_lib PRIVATE /bigobj)
-    set_target_properties(RhythmGame_exe PROPERTIES LINK_FLAGS "/STACK:8388608")
 endif ()
 
 include(cmake/translations.cmake)

@@ -128,6 +128,12 @@ ApplicationWindow {
                         item.enabled = (i === topIndex);
                     }
                 }
+                // Ensure the top item receives keyboard focus so that
+                // Keys.* attached-property handlers work on all platforms.
+                let top = get(topIndex, StackView.ForceLoad);
+                if (top) {
+                    top.forceActiveFocus();
+                }
             }
 
             anchors.fill: parent

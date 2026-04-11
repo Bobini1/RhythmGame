@@ -17,6 +17,8 @@
 #include <windows.h>
 #elif defined(__linux__)
 #include <xkbcommon/xkbcommon.h>
+#elif defined(__APPLE__)
+#include <Carbon/Carbon.h>
 #endif
 
 namespace input {
@@ -773,6 +775,20 @@ InputTranslator::loadKeyConfig()
 #define SC_CTRL 51
 #define SC_O 48
 #define SC_P 49
+#elif defined(__APPLE__)
+// macOS Carbon virtual key codes (from <Carbon/Events.h>).
+// nativeVirtualKey() returns these values on macOS.
+#define SC_A kVK_ANSI_A        // 0x00
+#define SC_S kVK_ANSI_S        // 0x01
+#define SC_D kVK_ANSI_D        // 0x02
+#define SC_SPACE kVK_Space     // 0x31
+#define SC_J kVK_ANSI_J        // 0x26
+#define SC_K kVK_ANSI_K        // 0x28
+#define SC_L kVK_ANSI_L        // 0x25
+#define SC_SHIFT kVK_Shift     // 0x38
+#define SC_CTRL kVK_Control    // 0x3B
+#define SC_O kVK_ANSI_O        // 0x1F
+#define SC_P kVK_ANSI_P        // 0x23
 #endif
 #ifdef SC_A
     config[Key{ QVariant::fromValue(nullptr), Key::Device::Keyboard, SC_A }] =
@@ -1147,13 +1163,23 @@ InputTranslator::eventFilter(std::chrono::milliseconds timePoint, QEvent* event)
         if (key->isAutoRepeat()) {
             return;
         }
+#ifdef __APPLE__
+        // macOS nativeScanCode() always returns 0; use nativeVirtualKey()
+        // which provides the Carbon virtual key code (physical key id).
+        handleKeyEvent(key->nativeVirtualKey(), true, timePoint.count());
+#else
         handleKeyEvent(key->nativeScanCode(), true, timePoint.count());
+#endif
     } else if (event->type() == QEvent::KeyRelease) {
         const auto* const key = static_cast<QKeyEvent*>(event);
         if (key->isAutoRepeat()) {
             return;
         }
+#ifdef __APPLE__
+        handleKeyEvent(key->nativeVirtualKey(), false, timePoint.count());
+#else
         handleKeyEvent(key->nativeScanCode(), false, timePoint.count());
+#endif
     }
 }
 QString
@@ -1200,6 +1226,95 @@ InputTranslator::scancodeToString(const int scanCode)
     xkb_keysym_get_name(sym, buf, sizeof(buf));
     if (buf[0] != '\0') {
         return QString::fromUtf8(buf);
+    }
+#elif defined(__APPLE__)
+    // Handle modifier and special keys that UCKeyTranslate won't produce
+    // characters for.  The codes are Carbon virtual key codes (kVK_*).
+    static const QHash<int, QString> specialKeys = {
+        { kVK_Return, QStringLiteral("Return") },
+        { kVK_Tab, QStringLiteral("Tab") },
+        { kVK_Space, QStringLiteral("Space") },
+        { kVK_Delete, QStringLiteral("Delete") },
+        { kVK_Escape, QStringLiteral("Escape") },
+        { kVK_Command, QStringLiteral("Command") },
+        { kVK_Shift, QStringLiteral("Shift") },
+        { kVK_CapsLock, QStringLiteral("CapsLock") },
+        { kVK_Option, QStringLiteral("Option") },
+        { kVK_Control, QStringLiteral("Control") },
+        { kVK_RightCommand, QStringLiteral("Right Command") },
+        { kVK_RightShift, QStringLiteral("Right Shift") },
+        { kVK_RightOption, QStringLiteral("Right Option") },
+        { kVK_RightControl, QStringLiteral("Right Control") },
+        { kVK_Function, QStringLiteral("Fn") },
+        { kVK_UpArrow, QStringLiteral("Up") },
+        { kVK_DownArrow, QStringLiteral("Down") },
+        { kVK_LeftArrow, QStringLiteral("Left") },
+        { kVK_RightArrow, QStringLiteral("Right") },
+        { kVK_Home, QStringLiteral("Home") },
+        { kVK_End, QStringLiteral("End") },
+        { kVK_PageUp, QStringLiteral("PageUp") },
+        { kVK_PageDown, QStringLiteral("PageDown") },
+        { kVK_ForwardDelete, QStringLiteral("Forward Delete") },
+        { kVK_Help, QStringLiteral("Help") },
+        { kVK_F1, QStringLiteral("F1") },
+        { kVK_F2, QStringLiteral("F2") },
+        { kVK_F3, QStringLiteral("F3") },
+        { kVK_F4, QStringLiteral("F4") },
+        { kVK_F5, QStringLiteral("F5") },
+        { kVK_F6, QStringLiteral("F6") },
+        { kVK_F7, QStringLiteral("F7") },
+        { kVK_F8, QStringLiteral("F8") },
+        { kVK_F9, QStringLiteral("F9") },
+        { kVK_F10, QStringLiteral("F10") },
+        { kVK_F11, QStringLiteral("F11") },
+        { kVK_F12, QStringLiteral("F12") },
+        { kVK_F13, QStringLiteral("F13") },
+        { kVK_F14, QStringLiteral("F14") },
+        { kVK_F15, QStringLiteral("F15") },
+        { kVK_F16, QStringLiteral("F16") },
+        { kVK_F17, QStringLiteral("F17") },
+        { kVK_F18, QStringLiteral("F18") },
+        { kVK_F19, QStringLiteral("F19") },
+        { kVK_F20, QStringLiteral("F20") },
+    };
+    if (auto it = specialKeys.find(scanCode); it != specialKeys.end()) {
+        return *it;
+    }
+    // For printable keys use the current keyboard layout via UCKeyTranslate.
+    TISInputSourceRef currentKeyboard = TISCopyCurrentKeyboardInputSource();
+    if (currentKeyboard) {
+        CFDataRef layoutData = static_cast<CFDataRef>(
+          TISGetInputSourceProperty(currentKeyboard,
+                                    kTISPropertyUnicodeKeyLayoutData));
+        if (layoutData) {
+            const auto* keyboardLayout =
+              reinterpret_cast<const UCKeyboardLayout*>(
+                CFDataGetBytePtr(layoutData));
+            UInt32 deadKeyState = 0;
+            UniChar chars[4];
+            UniCharCount charCount = 0;
+            OSStatus status = UCKeyTranslate(keyboardLayout,
+                                             static_cast<UInt16>(scanCode),
+                                             kUCKeyActionDisplay,
+                                             0, // no modifiers
+                                             LMGetKbdType(),
+                                             kUCKeyTranslateNoDeadKeysBit,
+                                             &deadKeyState,
+                                             4,
+                                             &charCount,
+                                             chars);
+            CFRelease(currentKeyboard);
+            if (status == noErr && charCount > 0) {
+                QString result = QString::fromUtf16(
+                  reinterpret_cast<const char16_t*>(chars),
+                  static_cast<qsizetype>(charCount));
+                if (!result.isEmpty() && result[0].isPrint()) {
+                    return result.toUpper();
+                }
+            }
+        } else {
+            CFRelease(currentKeyboard);
+        }
     }
 #endif
     return QString("Scancode %1").arg(scanCode);

@@ -66,6 +66,7 @@ FocusScope {
 
         onEnabledChanged: {
             if (enabled) {
+                songList.forceActiveFocus();
                 previewDelayTimer.restart();
                 songList.refresh();
             } else {
@@ -406,7 +407,7 @@ FocusScope {
                     Keys.onReturnPressed: {
                         songList.search(searchEdit.text);
                         searchEdit.text = "";
-                        songList.focus = true;
+                        songList.forceActiveFocus();
                     }
                 }
             }
@@ -443,7 +444,7 @@ FocusScope {
                 z: -1
 
                 onClicked: {
-                    songList.focus = true;
+                    songList.forceActiveFocus();
                 }
             }
         }

@@ -192,7 +192,6 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
             QQuickWindow::setGraphicsApi(QSGRendererInterface::Vulkan);
         }
 #endif
-
         auto db = db::SqliteCppDb{ dataFolder / "song_db.sqlite" };
 
         resource_managers::defineDb(db);
