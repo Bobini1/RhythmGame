@@ -453,7 +453,7 @@
                 "pl": "Kolor linii środkowej rozkładu trafień"
               },
               "type": "color",
-              "default": "gray",
+              "default": "red",
               "description": {
                 "en": "Color of the central reference line (perfect timing).",
                 "pl": "Kolor środkowej linii odniesienia (idealne trafienie)."
