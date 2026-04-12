@@ -21,7 +21,7 @@ gameplay_logic::ChartData::ChartData(QString title,
                                      QString stageFile,
                                      QString banner,
                                      QString backBmp,
-                                     int rank,
+                                     double rank,
                                      double total,
                                      int playLevel,
                                      int difficulty,
@@ -84,9 +84,9 @@ gameplay_logic::ChartData::ChartData(QString title,
   , sha256(std::move(sha256))
   , md5(std::move(md5))
   , keymode(keymode)
+  , gameVersion(gameVersion)
   , histogramData(std::move(histogramData))
   , bpmChanges(std::move(bpmChanges))
-  , gameVersion(gameVersion)
 {
 }
 auto
@@ -120,7 +120,7 @@ gameplay_logic::ChartData::getPath() const -> QString
     return path;
 }
 auto
-gameplay_logic::ChartData::getRank() const -> int
+gameplay_logic::ChartData::getRank() const -> double
 {
     return rank;
 }
@@ -510,48 +510,117 @@ gameplay_logic::ChartData::toJson() const -> QJsonObject
 auto
 gameplay_logic::ChartData::getTimingWindows() const -> QVariantList
 {
-    struct Win
-    {
-        const char* judgement;
-        qint64 earlyNs;
-        qint64 lateNs;
-    };
-    static constexpr qint64 kMs = 1'000'000LL;
-    static const std::array<std::array<Win, 5>, 4> kByRank{ {
-      // VeryHard
-      { { { "EmptyPoor", 1000 * kMs, 0 },
-          { "Bad", 200 * kMs, 200 * kMs },
-          { "Good", 40 * kMs, 40 * kMs },
-          { "Great", 24 * kMs, 24 * kMs },
-          { "Perfect", 8 * kMs, 8 * kMs } } },
-      // Hard
-      { { { "EmptyPoor", 1000 * kMs, 0 },
-          { "Bad", 200 * kMs, 200 * kMs },
-          { "Good", 60 * kMs, 60 * kMs },
-          { "Great", 30 * kMs, 30 * kMs },
-          { "Perfect", 15 * kMs, 15 * kMs } } },
-      // Normal
-      { { { "EmptyPoor", 1000 * kMs, 0 },
-          { "Bad", 200 * kMs, 200 * kMs },
-          { "Good", 100 * kMs, 100 * kMs },
-          { "Great", 40 * kMs, 40 * kMs },
-          { "Perfect", 18 * kMs, 18 * kMs } } },
-      // Easy
-      { { { "EmptyPoor", 1000 * kMs, 0 },
-          { "Bad", 200 * kMs, 200 * kMs },
-          { "Good", 120 * kMs, 120 * kMs },
-          { "Great", 60 * kMs, 60 * kMs },
-          { "Perfect", 21 * kMs, 21 * kMs } } },
-    } };
-
-    const auto idx = static_cast<std::size_t>(std::clamp(rank, 0, 3));
+    const auto hash = getTimingWindowsHash();
     QVariantList result;
-    for (const auto& win : kByRank[idx]) {
+
+    auto appendIf = [&](Judgement j, const QString& name) {
+        if (!hash.contains(j))
+            return;
+        const auto p = hash.value(j);
+        const qint64 early = p.first < 0 ? -p.first : p.first;
+        const qint64 late = p.second;
         QVariantMap m;
-        m[QStringLiteral("judgement")] = QString::fromLatin1(win.judgement);
-        m[QStringLiteral("earlyNs")] = QVariant::fromValue(win.earlyNs);
-        m[QStringLiteral("lateNs")] = QVariant::fromValue(win.lateNs);
+        m[QStringLiteral("judgement")] = name;
+        m[QStringLiteral("earlyNs")] =
+          QVariant::fromValue(static_cast<qint64>(early));
+        m[QStringLiteral("lateNs")] =
+          QVariant::fromValue(static_cast<qint64>(late));
         result.append(m);
-    }
+    };
+
+    appendIf(Judgement::EmptyPoor, QString::fromLatin1("EmptyPoor"));
+    appendIf(Judgement::Bad, QString::fromLatin1("Bad"));
+    appendIf(Judgement::Good, QString::fromLatin1("Good"));
+    appendIf(Judgement::Great, QString::fromLatin1("Great"));
+    appendIf(Judgement::Perfect, QString::fromLatin1("Perfect"));
+
     return result;
+}
+
+auto
+gameplay_logic::ChartData::getTimingWindowsHash() const
+  -> QHash<Judgement, QPair<qint64, qint64>>
+{
+    QHash<Judgement, QPair<qint64, qint64>> ret;
+    static constexpr qint64 kMs = 1'000'000LL;
+
+    constexpr auto perfectMsBase = std::array{ 8.0, 15.0, 18.0, 21.0 };
+    constexpr auto greatMsBase = std::array{ 24.0, 30.0, 40.0, 60.0 };
+    constexpr auto goodMsBase = std::array{ 40.0, 60.0, 100.0, 120.0 };
+
+    auto r = rank;
+    auto interp = [](double a, double b, double t) { return a + (b - a) * t; };
+
+    auto perfectMs = 0.0;
+    auto greatMs = 0.0;
+    auto goodMs = 0.0;
+
+    if (r <= 0.0) {
+        perfectMs = 0.0;
+        greatMs = 0.0;
+        goodMs = 0.0;
+    } else if (r <= 25.0) {
+        auto t = (r - 0.0) / 25.0;
+        perfectMs = interp(0.0, perfectMsBase[0], t);
+        greatMs = interp(0.0, greatMsBase[0], t);
+        goodMs = interp(0.0, goodMsBase[0], t);
+    } else if (r <= 50.0) {
+        auto t = (r - 25.0) / 25.0;
+        perfectMs = interp(perfectMsBase[0], perfectMsBase[1], t);
+        greatMs = interp(greatMsBase[0], greatMsBase[1], t);
+        goodMs = interp(goodMsBase[0], goodMsBase[1], t);
+    } else if (r <= 75.0) {
+        auto t = (r - 50.0) / 25.0;
+        perfectMs = interp(perfectMsBase[1], perfectMsBase[2], t);
+        greatMs = interp(greatMsBase[1], greatMsBase[2], t);
+        goodMs = interp(goodMsBase[1], goodMsBase[2], t);
+    } else if (r <= 100.0) {
+        auto t = (r - 75.0) / 25.0;
+        perfectMs = interp(perfectMsBase[2], perfectMsBase[3], t);
+        greatMs = interp(greatMsBase[2], greatMsBase[3], t);
+        goodMs = interp(goodMsBase[2], goodMsBase[3], t);
+    } else {
+        auto scale = r / 100.0;
+        perfectMs = perfectMsBase[3] * scale;
+        greatMs = greatMsBase[3] * scale;
+        goodMs = goodMsBase[3] * scale;
+    }
+
+    constexpr double badMsBase = 200.0;
+    constexpr double emptyPoorEarlyMs = 1000.0;
+
+    auto effectiveBadMs = badMsBase;
+    if (goodMs > effectiveBadMs)
+        effectiveBadMs = goodMs;
+    auto effectiveEmptyPoorEarlyMs = emptyPoorEarlyMs;
+    if (effectiveBadMs > effectiveEmptyPoorEarlyMs)
+        effectiveEmptyPoorEarlyMs = effectiveBadMs;
+
+    // EmptyPoor: open(-effectiveEmptyPoorEarlyMs, 0ms) -> store as {-earlyNs,
+    // 0}
+    ret.insert(Judgement::EmptyPoor,
+               { -static_cast<qint64>(effectiveEmptyPoorEarlyMs * kMs),
+                 static_cast<qint64>(0) });
+
+    // Bad
+    ret.insert(Judgement::Bad,
+               { -static_cast<qint64>(effectiveBadMs * kMs),
+                 static_cast<qint64>(effectiveBadMs * kMs) });
+
+    // Good
+    ret.insert(Judgement::Good,
+               { -static_cast<qint64>(goodMs * kMs),
+                 static_cast<qint64>(goodMs * kMs) });
+
+    // Great
+    ret.insert(Judgement::Great,
+               { -static_cast<qint64>(greatMs * kMs),
+                 static_cast<qint64>(greatMs * kMs) });
+
+    // Perfect
+    ret.insert(Judgement::Perfect,
+               { -static_cast<qint64>(perfectMs * kMs),
+                 static_cast<qint64>(perfectMs * kMs) });
+
+    return ret;
 }

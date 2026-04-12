@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.21)
 include(cmake/prelude.cmake)
 project(
         RhythmGame
-        VERSION 1.3.5
+        VERSION 1.3.6
         DESCRIPTION "A customizable BMS player for Windows and Linux. "
         HOMEPAGE_URL "https://github.com/Bobini1/RhythmGame"
         LANGUAGES C CXX
@@ -266,6 +266,8 @@ qt_add_library(RhythmGame_lib OBJECT
         src/charts/Base62.h
         src/support/ConvertTachiClearType.cpp
         src/support/ConvertTachiClearType.h
+        src/support/TimingWindowsFromHash.cpp
+        src/support/TimingWindowsFromHash.h
 )
 
 if (WIN32)

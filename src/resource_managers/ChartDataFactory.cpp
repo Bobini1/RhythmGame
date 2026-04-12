@@ -365,7 +365,7 @@ ChartDataFactory::loadChartData(const std::filesystem::path& chartPath,
         .stageFile = QString::fromUtf8(parsedChart.tags.stageFile.value_or("")),
         .banner = QString::fromUtf8(parsedChart.tags.banner.value_or("")),
         .backBmp = QString::fromUtf8(parsedChart.tags.backBmp.value_or("")),
-        .rank = parsedChart.tags.rank.value_or(2),
+        .rank = parsedChart.tags.rank.value_or(75.0),
         .total = parsedChart.tags.total.value_or(-1.0),
         .playLevel = parsedChart.tags.playLevel.value_or(1),
         .difficulty = parsedChart.tags.difficulty.value_or(1),
@@ -403,7 +403,8 @@ ChartDataFactory::loadChartData(const std::filesystem::path& chartPath,
                                 std::move(wavs),
                                 std::move(bmps),
                                 chartPath,
-                                directory);
+                                directory,
+                                false);
 }
 
 auto
@@ -442,8 +443,8 @@ ChartDataFactory::loadBmsonChartData(const std::filesystem::path& chartPath,
               .stageFile = info["eyecatch_image"].toString(),
               .banner = info["banner_image"].toString(),
               .backBmp = info["back_image"].toString(),
-              .rank = info["judge_rank"].toInt(2),
-              .total = info["total"].toDouble(-1.0),
+              .rank = info["judge_rank"].toDouble(100),
+              .total = info["total"].toDouble(100),
               .playLevel = info["level"].toInt(1),
               .difficulty = 1,
               .isRandom = false,
@@ -479,7 +480,8 @@ ChartDataFactory::loadBmsonChartData(const std::filesystem::path& chartPath,
                                       std::move(wavs),
                                       std::move(bmps),
                                       chartPath,
-                                      directory);
+                                      directory,
+                                      true);
       });
 }
 
@@ -490,7 +492,8 @@ ChartDataFactory::buildChartComponents(
   std::unordered_map<uint64_t, std::filesystem::path> wavs,
   std::unordered_map<uint64_t, std::filesystem::path> bmps,
   const std::filesystem::path& chartPath,
-  int64_t directory) -> ChartComponents
+  int64_t directory,
+  bool bmson) -> ChartComponents
 {
     auto lastNoteTimestamp = 0ns;
     for (const auto& column : calculatedNotesData.notes) {
@@ -606,11 +609,18 @@ ChartDataFactory::buildChartComponents(
             }
         }
     }
-    auto totalNotes = normalNotes + lnNotes;
+    auto totalNotes = normalNotes + lnNotes + bssNotes + scratchNotes;
     auto total = metadata.total;
-    if (total < 0.0) {
+    if (!bmson) {
+        if (total < 0.0) {
+            total =
+              (totalNotes + std::clamp(totalNotes - 400, 0, 200)) * 0.16 + 160;
+        }
+    } else {
+        total = std::abs(total);
         total =
-          (totalNotes + std::clamp(totalNotes - 400, 0, 200)) * 0.16 + 160;
+          total / 100 *
+          ((totalNotes + std::clamp(totalNotes - 400, 0, 200)) * 0.16 + 160);
     }
     auto path = support::pathToQString(chartPath);
     auto bpmChangesQ = QList<gameplay_logic::BpmChange>{};

@@ -282,7 +282,7 @@ RG_STRONG_TYPEDEF(std::string, StageFile)
 RG_STRONG_TYPEDEF(std::string, Banner)
 RG_STRONG_TYPEDEF(std::string, BackBmp)
 RG_STRONG_TYPEDEF(double, Total)
-RG_STRONG_TYPEDEF(int, Rank)
+RG_STRONG_TYPEDEF(double, Rank)
 RG_STRONG_TYPEDEF(double, Bpm)
 RG_STRONG_TYPEDEF(int, PlayLevel)
 RG_STRONG_TYPEDEF(int, Difficulty)
@@ -415,8 +415,29 @@ struct RankTag
         auto rankTag = dsl::ascii::case_folding(LEXY_LIT("#rank"));
         return rankTag >> dsl::integer<int>(dsl::digits<>);
     }();
+    static constexpr auto value = lexy::callback<Rank>([](int num) {
+        switch (num) {
+            case 0:
+                return Rank{ 25 };
+            case 1:
+                return Rank{ 50 };
+            case 2:
+                return Rank{ 75 };
+            case 3:
+                return Rank{ 100 };
+        }
+        return Rank{ 75 };
+    });
+};
+
+struct DefExRankTag
+{
+    static constexpr auto rule = [] {
+        auto rankTag = dsl::ascii::case_folding(LEXY_LIT("#defexrank"));
+        return rankTag >> dsl::p<FloatingPoint>;
+    }();
     static constexpr auto value =
-      lexy::callback<Rank>([](int num) { return Rank{ num }; });
+      lexy::callback<Rank>([](double num) { return Rank{ num }; });
 };
 
 struct BaseTag
@@ -864,17 +885,18 @@ struct MainTags
     static constexpr auto rule = [] {
         auto term = terminator(
           dsl::eof | peek(dsl::ascii::case_folding(LEXY_LIT("#endif"))));
-        return term.list(try_(
-          dsl::unicode::newline | dsl::p<MeterTag> | dsl::p<MeasureBasedTag> |
-            dsl::p<WavTag> | dsl::p<BmpTag> | dsl::p<ExBpmTag> |
-            dsl::p<StopTag> | dsl::p<TitleTag> | dsl::p<ArtistTag> |
-            dsl::p<GenreTag> | dsl::p<StageFileTag> | dsl::p<BannerTag> |
-            dsl::p<BackBmpTag> | dsl::p<SubtitleTag> | dsl::p<SubartistTag> |
-            dsl::p<TotalTag> | dsl::p<RankTag> | dsl::p<PlayLevelTag> |
-            dsl::p<DifficultyTag> | dsl::p<BpmTag> | dsl::p<LnObjTag> |
-            dsl::p<LnTypeTag> | dsl::p<BaseTag> | dsl::p<ScrollTag> |
-            dsl::p<SpeedTag> | dsl::recurse_branch<RandomBlock>,
-          until(dsl::unicode::newline).or_eof()));
+        return term.list(
+          try_(dsl::unicode::newline | dsl::p<MeterTag> |
+                 dsl::p<MeasureBasedTag> | dsl::p<WavTag> | dsl::p<BmpTag> |
+                 dsl::p<ExBpmTag> | dsl::p<StopTag> | dsl::p<TitleTag> |
+                 dsl::p<ArtistTag> | dsl::p<GenreTag> | dsl::p<StageFileTag> |
+                 dsl::p<BannerTag> | dsl::p<BackBmpTag> | dsl::p<SubtitleTag> |
+                 dsl::p<SubartistTag> | dsl::p<TotalTag> | dsl::p<RankTag> |
+                 dsl::p<DefExRankTag> | dsl::p<PlayLevelTag> |
+                 dsl::p<DifficultyTag> | dsl::p<BpmTag> | dsl::p<LnObjTag> |
+                 dsl::p<LnTypeTag> | dsl::p<BaseTag> | dsl::p<ScrollTag> |
+                 dsl::p<SpeedTag> | dsl::recurse_branch<RandomBlock>,
+               until(dsl::unicode::newline).or_eof()));
     }();
     static constexpr auto value = TagsSink{};
 };
@@ -894,10 +916,10 @@ struct OrphanizedRandomCommonPart
                    dsl::p<ArtistTag> | dsl::p<GenreTag> | dsl::p<StageFileTag> |
                    dsl::p<BannerTag> | dsl::p<BackBmpTag> |
                    dsl::p<SubtitleTag> | dsl::p<SubartistTag> |
-                   dsl::p<TotalTag> | dsl::p<RankTag> | dsl::p<PlayLevelTag> |
-                   dsl::p<DifficultyTag> | dsl::p<BpmTag> | dsl::p<LnObjTag> |
-                   dsl::p<LnTypeTag> | dsl::p<BaseTag> | dsl::p<ScrollTag> |
-                   dsl::p<SpeedTag>,
+                   dsl::p<TotalTag> | dsl::p<RankTag> | dsl::p<DefExRankTag> |
+                   dsl::p<PlayLevelTag> | dsl::p<DifficultyTag> |
+                   dsl::p<BpmTag> | dsl::p<LnObjTag> | dsl::p<LnTypeTag> |
+                   dsl::p<BaseTag> | dsl::p<ScrollTag> | dsl::p<SpeedTag>,
                  until(dsl::unicode::newline).or_eof()));
     }();
     static constexpr auto value = TagsSink{};

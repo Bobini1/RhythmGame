@@ -292,7 +292,6 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
             &profileList,
             &inputTranslator,
             &chartDataFactory,
-            &gameplay_logic::rules::lr2_timing_windows::getTimingWindows,
             &gameplay_logic::rules::lr2_hit_values::getLr2HitValue,
             gaugeFactory,
             gaugeFactoryCourse,

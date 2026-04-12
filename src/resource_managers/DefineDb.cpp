@@ -40,7 +40,7 @@ defineDb(db::SqliteCppDb& db)
                "stage_file TEXT NOT NULL,"
                "banner TEXT NOT NULL,"
                "back_bmp TEXT NOT NULL,"
-               "rank INTEGER NOT NULL,"
+               "rank REAL NOT NULL,"
                "total REAL NOT NULL,"
                "play_level INTEGER NOT NULL,"
                "difficulty INTEGER NOT NULL,"
@@ -135,6 +135,21 @@ defineDb(db::SqliteCppDb& db)
                "bpms BLOB NOT NULL,"
                "histogram_data BLOB NOT NULL"
                ");");
+
+    if (version < std::tuple{ 1, 3, 6 }) {
+        db.execute("UPDATE charts SET rank = CASE rank "
+                   "WHEN 0 THEN 25 "
+                   "WHEN 1 THEN 50 "
+                   "WHEN 2 THEN 75 "
+                   "WHEN 3 THEN 100 "
+                   "ELSE 75 END WHERE path NOT LIKE '%.bmson';");
+        // changing the type to REAL
+        db.execute("ALTER TABLE charts RENAME COLUMN rank TO rank_old");
+        db.execute(
+          "ALTER TABLE charts ADD COLUMN rank REAL NOT NULL DEFAULT 75");
+        db.execute("UPDATE charts SET rank = rank_old");
+        db.execute("ALTER TABLE charts DROP COLUMN rank_old");
+    }
 
     {
         auto stmt = db.createStatement(

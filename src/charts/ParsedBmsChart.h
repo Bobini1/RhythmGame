@@ -68,7 +68,7 @@ struct ParsedBmsChart
         std::optional<std::string> backBmp;
         std::optional<double> bpm;
         std::optional<double> total;
-        std::optional<int> rank;
+        std::optional<double> rank;
         std::optional<int> playLevel;
         std::optional<int> difficulty;
         std::optional<uint16_t> lnObj;

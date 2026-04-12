@@ -66,7 +66,7 @@ class ChartDataFactory
         QString stageFile;
         QString banner;
         QString backBmp;
-        int rank = 2;
+        double rank = 75.0;
         double total = -1.0; // negative means "use default"
         int playLevel = 1;
         int difficulty = 1;
@@ -81,7 +81,8 @@ class ChartDataFactory
       std::unordered_map<uint64_t, std::filesystem::path> wavs,
       std::unordered_map<uint64_t, std::filesystem::path> bmps,
       const std::filesystem::path& chartPath,
-      int64_t directory) -> ChartComponents;
+      int64_t directory,
+      bool bmson) -> ChartComponents;
 };
 
 } // namespace resource_managers

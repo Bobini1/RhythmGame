@@ -8,8 +8,11 @@
 #include "gameplay_logic/ChartRunner.h"
 #include "support/QStringToPath.h"
 #include "magic_enum/magic_enum.hpp"
+#include "gameplay_logic/Judgement.h"
 #include <QDir>
 #include "gameplay_logic/CourseRunner.h"
+#include "support/TimingWindowsFromHash.h"
+
 #include <ranges>
 
 #include <spdlog/spdlog.h>
@@ -35,13 +38,10 @@ ChartLoader::createChart(
         player2Replay = false;
         replayedScore2 = nullptr;
     }
-    const auto rankInt = chartComponents.chartData->getRank();
-    const auto rank =
-      magic_enum::enum_cast<gameplay_logic::rules::BmsRank>(rankInt).value_or(
-        gameplay_logic::rules::defaultBmsRank);
     auto hitRules =
       std::vector<std::unique_ptr<gameplay_logic::rules::HitRules>>{};
-    auto timingWindows = timingWindowsFactory(rank);
+    auto timingWindows = support::timingWindowsFromHash(
+      chartComponents.chartData->getTimingWindowsHash());
     auto maxHitValue = hitValueFactory(std::chrono::nanoseconds{ 0 },
                                        gameplay_logic::Judgement::Perfect);
     // Determine NoteOrderAlgorithm and DpOptions. Prefer values from a
@@ -668,8 +668,7 @@ ChartLoader::loadCourseChart(
   resource_managers::DpOptions p1DpOptions,
   resource_managers::NoteOrderAlgorithm p2NoteOrderAlgorithm,
   bool p1Pre130,
-  bool p2Pre130) const
-  -> std::unique_ptr<gameplay_logic::ChartRunner>
+  bool p2Pre130) const -> std::unique_ptr<gameplay_logic::ChartRunner>
 {
     const auto rankInt = chartComponents.chartData->getRank();
     const auto rank =
@@ -677,7 +676,9 @@ ChartLoader::loadCourseChart(
         gameplay_logic::rules::defaultBmsRank);
     auto hitRules =
       std::vector<std::unique_ptr<gameplay_logic::rules::HitRules>>{};
-    auto timingWindows = timingWindowsFactory(rank);
+    // Use ChartData's timing windows (new scheme) and convert to TimingWindows
+    auto timingWindows = support::timingWindowsFromHash(
+      chartComponents.chartData->getTimingWindowsHash());
     auto maxHitValue = hitValueFactory(std::chrono::nanoseconds{ 0 },
                                        gameplay_logic::Judgement::Perfect);
     const auto randomSeed1 = [&] {
@@ -732,7 +733,6 @@ ChartLoader::loadCourseChart(
 ChartLoader::ChartLoader(ProfileList* profileList,
                          input::InputTranslator* inputTranslator,
                          resource_managers::ChartDataFactory* chartDataFactory,
-                         TimingWindowsFactory timingWindowsFactory,
                          HitValueFactory hitValueFactory,
                          GaugeFactory gaugeFactory,
                          GaugeFactoryCourse gaugeFactoryCourse,
@@ -742,7 +742,6 @@ ChartLoader::ChartLoader(ProfileList* profileList,
                          QObject* parent)
   : QObject(parent)
   , chartDataFactory(chartDataFactory)
-  , timingWindowsFactory(std::move(timingWindowsFactory))
   , hitValueFactory(std::move(hitValueFactory))
   , gaugeFactory(std::move(gaugeFactory))
   , gaugeFactoryCourse(std::move(gaugeFactoryCourse))

@@ -39,9 +39,6 @@ class ChartLoader : public QObject
       std::function<QList<gameplay_logic::rules::BmsGauge*>(
         resource_managers::Profile* profile,
         const QHash<QString, double>& initialValues)>;
-    using TimingWindowsFactory =
-      std::function<gameplay_logic::rules::TimingWindows(
-        gameplay_logic::rules::BmsRank)>;
     using HitValueFactory = std::function<double(std::chrono::nanoseconds,
                                                  gameplay_logic::Judgement)>;
     using GetChartPathFromMd5 =
@@ -51,7 +48,6 @@ class ChartLoader : public QObject
 
   private:
     resource_managers::ChartDataFactory* chartDataFactory;
-    TimingWindowsFactory timingWindowsFactory;
     HitValueFactory hitValueFactory;
     GaugeFactory gaugeFactory;
     GaugeFactoryCourse gaugeFactoryCourse;
@@ -88,14 +84,12 @@ class ChartLoader : public QObject
       resource_managers::DpOptions p1DpOptions,
       resource_managers::NoteOrderAlgorithm p2NoteOrderAlgorithm,
       bool p1Pre130,
-      bool p2Pre130) const
-      -> std::unique_ptr<gameplay_logic::ChartRunner>;
+      bool p2Pre130) const -> std::unique_ptr<gameplay_logic::ChartRunner>;
 
   public:
     ChartLoader(ProfileList* profileList,
                 input::InputTranslator* inputTranslator,
                 resource_managers::ChartDataFactory* chartDataFactory,
-                TimingWindowsFactory timingWindowsFactory,
                 HitValueFactory hitValueFactory,
                 GaugeFactory gaugeFactory,
                 GaugeFactoryCourse gaugeFactoryCourse,

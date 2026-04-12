@@ -12,10 +12,12 @@
 #include "gameplay_logic/rules/Lr2Gauge.h"
 #include "gameplay_logic/rules/Lr2HitValues.h"
 #include "gameplay_logic/rules/Lr2TimingWindows.h"
+#include "gameplay_logic/Judgement.h"
 #include "resource_managers/ChartDataFactory.h"
 #include "resource_managers/Profile.h"
 #include "support/GeneratePermutation.h"
 #include "support/QStringToPath.h"
+#include "support/TimingWindowsFromHash.h"
 #include "support/UtfStringToPath.h"
 
 #include <QByteArray>
@@ -43,7 +45,6 @@ using namespace std::chrono_literals;
 
 namespace qml_components {
 namespace {
-
 struct ReplayKeyEvent
 {
     qint64 offsetFromStartNs{};
@@ -491,9 +492,6 @@ createScoreFromReplay(resource_managers::Profile& profile,
           notesSpan, *algorithm, replay.randomOptionSeed, is5k);
     }
 
-    const auto rank = magic_enum::enum_cast<gameplay_logic::rules::BmsRank>(
-                        chartData->getRank())
-                        .value_or(gameplay_logic::rules::defaultBmsRank);
     auto gaugesRaw = gameplay_logic::rules::Lr2Gauge::getGauges(
       chartData->getTotal(),
       (chartData->getNormalNoteCount() + chartData->getLnCount() +
@@ -538,7 +536,7 @@ createScoreFromReplay(resource_managers::Profile& profile,
       liveScore.get(),
       {},
       gameplay_logic::rules::HitRules(
-        gameplay_logic::rules::lr2_timing_windows::getTimingWindows(rank),
+        support::timingWindowsFromHash(chartData->getTimingWindowsHash()),
         gameplay_logic::rules::lr2_hit_values::getLr2HitValue));
 
     for (const auto& event : replay.keylog) {

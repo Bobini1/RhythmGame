@@ -8,6 +8,9 @@
 #include <QQmlEngine>
 #include <QJsonObject>
 #include "db/SqliteCppDb.h"
+#include "gameplay_logic/Judgement.h"
+#include <QHash>
+#include <QPair>
 #include "BmsNotes.h"
 namespace gameplay_logic {
 
@@ -68,12 +71,14 @@ class ChartData : public QObject
     /** @brief The path to the chart's backbmp. */
     Q_PROPERTY(QString backBmp READ getBackBmp CONSTANT)
     /**
-     * @brief The rank of the chart.
-     * @details Determines the timing windows for judgements.
+     * @brief The rank of the chart, converted to defexrank format.
+     * @details Determines the timing windows for judgements. 25=veryhard,
+     * 50=hard, 75=normal, 100=easy, like in lr2oraja. Interpolated linearly.
      * @see https://hitkey.nekokan.dyndns.info/cmds.htm#RANK
+     * @see https://hitkey.nekokan.dyndns.info/cmds.htm#DEFEXRANK
      * @see rules::lr2_timing_windows::Lr2TimingWindows::getTimingWindows()
      */
-    Q_PROPERTY(int rank READ getRank CONSTANT)
+    Q_PROPERTY(double rank READ getRank CONSTANT)
     /**
      * @brief The total value of the chart.
      * @details RhythmGame's gauges use the same total value system as LR2.
@@ -234,9 +239,9 @@ class ChartData : public QObject
     /**
      * @brief The timing windows for the chart based on its rank.
      * @details Returns a list of maps, each with "judgement" (string) and
-     * "windowNs" (qint64) keys. The list is ordered from widest window (Bad)
-     * to narrowest (Perfect). Window values are symmetric half-widths in
-     * nanoseconds. Based on LR2 timing window specification.
+     * "earlyNs"/"lateNs" (qint64) keys. The list is ordered from widest
+     * window (Bad) to narrowest (Perfect). Window values are symmetric
+     * half-widths in nanoseconds. Based on LR2 timing window specification.
      */
     Q_PROPERTY(QVariantList timingWindows READ getTimingWindows CONSTANT)
 
@@ -249,7 +254,7 @@ class ChartData : public QObject
               QString stageFile,
               QString banner,
               QString backBmp,
-              int rank,
+              double rank,
               double total,
               int playLevel,
               int difficulty,
@@ -302,7 +307,7 @@ class ChartData : public QObject
     [[nodiscard]] auto getAvgDensity() const -> double;
     [[nodiscard]] auto getEndDensity() const -> double;
     [[nodiscard]] auto getPath() const -> QString;
-    [[nodiscard]] auto getRank() const -> int;
+    [[nodiscard]] auto getRank() const -> double;
     [[nodiscard]] auto getTotal() const -> double;
     [[nodiscard]] auto getPlayLevel() const -> int;
     [[nodiscard]] auto getDifficulty() const -> int;
@@ -317,6 +322,7 @@ class ChartData : public QObject
     [[nodiscard]] auto getBpmChanges() -> QList<BpmChange>&;
     [[nodiscard]] auto getGameVersion() const -> quint64;
     [[nodiscard]] auto getTimingWindows() const -> QVariantList;
+    [[nodiscard]] auto getTimingWindowsHash() const -> QHash<Judgement, QPair<qint64, qint64>>;
 
     auto clone() const -> std::unique_ptr<ChartData>;
 
@@ -376,7 +382,7 @@ class ChartData : public QObject
     QString banner;
     QString backBmp;
     QList<qint64> randomSequence;
-    int rank;
+    double rank;
     double total;
     int playLevel;
     int difficulty;
