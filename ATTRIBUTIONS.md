@@ -82,6 +82,12 @@ Copyright © agu
 
 Licensed under CC BY-NC-SA 4.0.
 
+### 「SJ's Pasture」 BGM
+
+Copyright @ nevermind
+
+Licensed under CC0 1.0.
+
 ## Libraries:
 
 ### fmt
