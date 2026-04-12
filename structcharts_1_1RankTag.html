@@ -21,7 +21,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.3.5</span>
+   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.3.6</span>
    </div>
   </td>
  </tr>
@@ -133,8 +133,20 @@ Static Public Attributes</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
-<b>Initial value:</b><div class="fragment"><div class="line">=</div>
-<div class="line">      lexy::callback&lt;Rank&gt;([](<span class="keywordtype">int</span> num) { <span class="keywordflow">return</span> Rank{ num }; })</div>
+<b>Initial value:</b><div class="fragment"><div class="line">= lexy::callback&lt;Rank&gt;([](<span class="keywordtype">int</span> num) {</div>
+<div class="line">        <span class="keywordflow">switch</span> (num) {</div>
+<div class="line">            <span class="keywordflow">case</span> 0:</div>
+<div class="line">                <span class="keywordflow">return</span> Rank{ 25 };</div>
+<div class="line">            <span class="keywordflow">case</span> 1:</div>
+<div class="line">                <span class="keywordflow">return</span> <a class="code hl_struct" href="structcharts_1_1Rank.html">Rank</a>{ 50 };</div>
+<div class="line">            <span class="keywordflow">case</span> 2:</div>
+<div class="line">                <span class="keywordflow">return</span> <a class="code hl_struct" href="structcharts_1_1Rank.html">Rank</a>{ 75 };</div>
+<div class="line">            <span class="keywordflow">case</span> 3:</div>
+<div class="line">                <span class="keywordflow">return</span> Rank{ 100 };</div>
+<div class="line">        }</div>
+<div class="line">        <span class="keywordflow">return</span> Rank{ 75 };</div>
+<div class="line">    })</div>
+<div class="ttc" id="astructcharts_1_1Rank_html"><div class="ttname"><a href="structcharts_1_1Rank.html">charts::Rank</a></div><div class="ttdef"><b>Definition</b> ReadBmsFile.cpp:285</div></div>
 </div><!-- fragment -->
 </div>
 </div>

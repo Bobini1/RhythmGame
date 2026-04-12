@@ -21,7 +21,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.3.5</span>
+   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.3.6</span>
    </div>
   </td>
  </tr>
@@ -112,8 +112,6 @@ Public Types</h2></td></tr>
 <tr class="separator:a4c8d17b82b5a8b481ccccedfa4e23cfb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7e8ca3dc2506c0aed3b58f78cc235c7e" id="r_a7e8ca3dc2506c0aed3b58f78cc235c7e"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classqml__components_1_1ChartLoader.html#a7e8ca3dc2506c0aed3b58f78cc235c7e">GaugeFactoryCourse</a> = std::function&lt; QList&lt; <a class="el" href="classgameplay__logic_1_1rules_1_1BmsGauge.html">gameplay_logic::rules::BmsGauge</a> * &gt;(<a class="el" href="classresource__managers_1_1Profile.html">resource_managers::Profile</a> *profile, const QHash&lt; QString, double &gt; &amp;initialValues)&gt;</td></tr>
 <tr class="separator:a7e8ca3dc2506c0aed3b58f78cc235c7e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aec76b6ab78f7999169fb2f00a3079aea" id="r_aec76b6ab78f7999169fb2f00a3079aea"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classqml__components_1_1ChartLoader.html#aec76b6ab78f7999169fb2f00a3079aea">TimingWindowsFactory</a> = std::function&lt; <a class="el" href="namespacegameplay__logic_1_1rules.html#a0a8cef460ac2d13e98de365dc8b265cd">gameplay_logic::rules::TimingWindows</a>(<a class="el" href="namespacegameplay__logic_1_1rules.html#a702e8cfe431caa24d5bbe3246185f65b">gameplay_logic::rules::BmsRank</a>)&gt;</td></tr>
-<tr class="separator:aec76b6ab78f7999169fb2f00a3079aea"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a482312280c7632a3dde1160caf4e0f8f" id="r_a482312280c7632a3dde1160caf4e0f8f"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classqml__components_1_1ChartLoader.html#a482312280c7632a3dde1160caf4e0f8f">HitValueFactory</a> = std::function&lt; double(std::chrono::nanoseconds, <a class="el" href="namespacegameplay__logic_1_1judgement.html#a4dd73363d266a4e4aa41782d0e02b6e6">gameplay_logic::Judgement</a>)&gt;</td></tr>
 <tr class="separator:a482312280c7632a3dde1160caf4e0f8f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9fe13611e7f29273a7145a447ea66821" id="r_a9fe13611e7f29273a7145a447ea66821"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classqml__components_1_1ChartLoader.html#a9fe13611e7f29273a7145a447ea66821">GetChartPathFromMd5</a> = std::function&lt; std::optional&lt; std::filesystem::path &gt;(const QString &amp;hash, const std::filesystem::path &amp;hint)&gt;</td></tr>
@@ -121,8 +119,8 @@ Public Types</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a3d2b4067ce2211ff78336b9f0471e1a8" id="r_a3d2b4067ce2211ff78336b9f0471e1a8"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classqml__components_1_1ChartLoader.html#a3d2b4067ce2211ff78336b9f0471e1a8">ChartLoader</a> (<a class="el" href="classqml__components_1_1ProfileList.html">ProfileList</a> *profileList, <a class="el" href="classinput_1_1InputTranslator.html">input::InputTranslator</a> *inputTranslator, <a class="el" href="classresource__managers_1_1ChartDataFactory.html">resource_managers::ChartDataFactory</a> *chartDataFactory, <a class="el" href="classqml__components_1_1ChartLoader.html#aec76b6ab78f7999169fb2f00a3079aea">TimingWindowsFactory</a> timingWindowsFactory, <a class="el" href="classqml__components_1_1ChartLoader.html#a482312280c7632a3dde1160caf4e0f8f">HitValueFactory</a> hitValueFactory, <a class="el" href="classqml__components_1_1ChartLoader.html#a4c8d17b82b5a8b481ccccedfa4e23cfb">GaugeFactory</a> gaugeFactory, <a class="el" href="classqml__components_1_1ChartLoader.html#a7e8ca3dc2506c0aed3b58f78cc235c7e">GaugeFactoryCourse</a> gaugeFactoryCourse, <a class="el" href="classqml__components_1_1ChartLoader.html#a9fe13611e7f29273a7145a447ea66821">GetChartPathFromMd5</a> getChartPathFromSha256, <a class="el" href="classresource__managers_1_1ChartFactory.html">resource_managers::ChartFactory</a> *chartFactory, <a class="el" href="classdb_1_1SqliteCppDb.html">db::SqliteCppDb</a> *db, QObject *parent=nullptr)</td></tr>
-<tr class="separator:a3d2b4067ce2211ff78336b9f0471e1a8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afbd8d817f0f5e66004137547836e5f27" id="r_afbd8d817f0f5e66004137547836e5f27"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classqml__components_1_1ChartLoader.html#afbd8d817f0f5e66004137547836e5f27">ChartLoader</a> (<a class="el" href="classqml__components_1_1ProfileList.html">ProfileList</a> *profileList, <a class="el" href="classinput_1_1InputTranslator.html">input::InputTranslator</a> *inputTranslator, <a class="el" href="classresource__managers_1_1ChartDataFactory.html">resource_managers::ChartDataFactory</a> *chartDataFactory, <a class="el" href="classqml__components_1_1ChartLoader.html#a482312280c7632a3dde1160caf4e0f8f">HitValueFactory</a> hitValueFactory, <a class="el" href="classqml__components_1_1ChartLoader.html#a4c8d17b82b5a8b481ccccedfa4e23cfb">GaugeFactory</a> gaugeFactory, <a class="el" href="classqml__components_1_1ChartLoader.html#a7e8ca3dc2506c0aed3b58f78cc235c7e">GaugeFactoryCourse</a> gaugeFactoryCourse, <a class="el" href="classqml__components_1_1ChartLoader.html#a9fe13611e7f29273a7145a447ea66821">GetChartPathFromMd5</a> getChartPathFromSha256, <a class="el" href="classresource__managers_1_1ChartFactory.html">resource_managers::ChartFactory</a> *chartFactory, <a class="el" href="classdb_1_1SqliteCppDb.html">db::SqliteCppDb</a> *db, QObject *parent=nullptr)</td></tr>
+<tr class="separator:afbd8d817f0f5e66004137547836e5f27"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4f8cf7104e29ac0e2753795b5a8a52e1" id="r_a4f8cf7104e29ac0e2753795b5a8a52e1"><td class="memItemLeft" align="right" valign="top">Q_INVOKABLE <a class="el" href="classgameplay__logic_1_1ChartRunner.html">gameplay_logic::ChartRunner</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classqml__components_1_1ChartLoader.html#a4f8cf7104e29ac0e2753795b5a8a52e1">loadChart</a> (const QString &amp;filename, <a class="el" href="classresource__managers_1_1Profile.html">resource_managers::Profile</a> *player1, bool player1AutoPlay, bool player1Replay, <a class="el" href="classgameplay__logic_1_1BmsScore.html">gameplay_logic::BmsScore</a> *score1, <a class="el" href="classresource__managers_1_1Profile.html">resource_managers::Profile</a> *player2, bool player2AutoPlay, bool player2Replay, <a class="el" href="classgameplay__logic_1_1BmsScore.html">gameplay_logic::BmsScore</a> *score2) const</td></tr>
 <tr class="memdesc:a4f8cf7104e29ac0e2753795b5a8a52e1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Loads a chart with the given parameters.  <br /></td></tr>
 <tr class="separator:a4f8cf7104e29ac0e2753795b5a8a52e1"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -195,23 +193,9 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="aec76b6ab78f7999169fb2f00a3079aea" name="aec76b6ab78f7999169fb2f00a3079aea"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aec76b6ab78f7999169fb2f00a3079aea">&#9670;&#160;</a></span>TimingWindowsFactory</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">using <a class="el" href="classqml__components_1_1ChartLoader.html#aec76b6ab78f7999169fb2f00a3079aea">qml_components::ChartLoader::TimingWindowsFactory</a> =  std::function&lt;<a class="el" href="namespacegameplay__logic_1_1rules.html#a0a8cef460ac2d13e98de365dc8b265cd">gameplay_logic::rules::TimingWindows</a>( <a class="el" href="namespacegameplay__logic_1_1rules.html#a702e8cfe431caa24d5bbe3246185f65b">gameplay_logic::rules::BmsRank</a>)&gt;</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
 <h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="a3d2b4067ce2211ff78336b9f0471e1a8" name="a3d2b4067ce2211ff78336b9f0471e1a8"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3d2b4067ce2211ff78336b9f0471e1a8">&#9670;&#160;</a></span>ChartLoader()</h2>
+<a id="afbd8d817f0f5e66004137547836e5f27" name="afbd8d817f0f5e66004137547836e5f27"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afbd8d817f0f5e66004137547836e5f27">&#9670;&#160;</a></span>ChartLoader()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -233,12 +217,6 @@ Public Member Functions</h2></td></tr>
           <td></td>
           <td class="paramtype"><a class="el" href="classresource__managers_1_1ChartDataFactory.html">resource_managers::ChartDataFactory</a> *&#160;</td>
           <td class="paramname"><em>chartDataFactory</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="classqml__components_1_1ChartLoader.html#aec76b6ab78f7999169fb2f00a3079aea">TimingWindowsFactory</a>&#160;</td>
-          <td class="paramname"><em>timingWindowsFactory</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>

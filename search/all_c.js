@@ -8,7 +8,7 @@ var searchData=
   ['lanes_5',['lanes',['../structsupport_1_1Timeline.html#a03853077f92296938a177b844e2c1651',1,'support::Timeline']]],
   ['language_6',['language',['../classresource__managers_1_1GeneralVars.html#a0e55217cee4a78deb9041e9954718e9f',1,'resource_managers::GeneralVars']]],
   ['languagechanged_7',['languageChanged',['../classresource__managers_1_1GeneralVars.html#a1f504c7b35b51173478713b6510e925b',1,'resource_managers::GeneralVars']]],
-  ['languages_8',['languages',['../classresource__managers_1_1Languages.html#a851cff67fb6a60da51954f43484ff614',1,'resource_managers::Languages::Languages()'],['../classRg.html#a827f6995f5fe35578040c29146822b4a',1,'Rg::languages'],['../classresource__managers_1_1Languages.html#ac0e007f3bf01881989ffce7202d4cb3f',1,'resource_managers::Languages::languages'],['../classresource__managers_1_1Languages.html',1,'resource_managers::Languages']]],
+  ['languages_8',['languages',['../classRg.html#a827f6995f5fe35578040c29146822b4a',1,'Rg::languages'],['../classresource__managers_1_1Languages.html#ac0e007f3bf01881989ffce7202d4cb3f',1,'resource_managers::Languages::languages'],['../classresource__managers_1_1Languages.html#a851cff67fb6a60da51954f43484ff614',1,'resource_managers::Languages::Languages(const QMap&lt; QString, qml_components::ThemeFamily &gt; &amp;availableThemes, QQmlEngine *qmlEngine, QObject *parent=nullptr)'],['../classresource__managers_1_1Languages.html',1,'resource_managers::Languages']]],
   ['languages_2ecpp_9',['Languages.cpp',['../Languages_8cpp.html',1,'']]],
   ['languages_2eh_10',['Languages.h',['../Languages_8h.html',1,'']]],
   ['lastnotetime_11',['lastNoteTime',['../structsupport_1_1BeatorajaState.html#aa4b87a98e0f48e1ffda9c25176c8cb98',1,'support::BeatorajaState']]],

@@ -21,7 +21,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.3.5</span>
+   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.3.6</span>
    </div>
   </td>
  </tr>
@@ -147,7 +147,7 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span>        QString stageFile;</div>
 <div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>        QString banner;</div>
 <div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span>        QString backBmp;</div>
-<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span>        <span class="keywordtype">int</span> rank = 2;</div>
+<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span>        <span class="keywordtype">double</span> rank = 75.0;</div>
 <div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span>        <span class="keywordtype">double</span> total = -1.0; <span class="comment">// negative means &quot;use default&quot;</span></div>
 <div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span>        <span class="keywordtype">int</span> playLevel = 1;</div>
 <div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span>        <span class="keywordtype">int</span> difficulty = 1;</div>
@@ -162,15 +162,16 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span>      std::unordered_map&lt;uint64_t, std::filesystem::path&gt; wavs,</div>
 <div class="line"><a id="l00082" name="l00082"></a><span class="lineno">   82</span>      std::unordered_map&lt;uint64_t, std::filesystem::path&gt; bmps,</div>
 <div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span>      <span class="keyword">const</span> std::filesystem::path&amp; chartPath,</div>
-<div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span>      int64_t directory) -&gt; ChartComponents;</div>
-<div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span>};</div>
+<div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span>      int64_t directory,</div>
+<div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span>      <span class="keywordtype">bool</span> bmson) -&gt; ChartComponents;</div>
+<div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span>};</div>
 </div>
-<div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span> </div>
-<div class="line"><a id="l00087" name="l00087"></a><span class="lineno">   87</span>} <span class="comment">// namespace resource_managers</span></div>
-<div class="line"><a id="l00088" name="l00088"></a><span class="lineno">   88</span> </div>
-<div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span><span class="preprocessor">#endif </span><span class="comment">// RHYTHMGAME_CHARTDATAFACTORY_H</span></div>
-<div class="ttc" id="aBeatorajaReplayImporter_8cpp_html_ac08bf238fe8c57ef0755fd0794d6c504"><div class="ttname"><a href="BeatorajaReplayImporter_8cpp.html#ac08bf238fe8c57ef0755fd0794d6c504">sha256</a></div><div class="ttdeci">QString sha256</div><div class="ttdef"><b>Definition</b> BeatorajaReplayImporter.cpp:57</div></div>
-<div class="ttc" id="aBeatorajaReplayImporter_8cpp_html_ac25f7bd1049ee7bbc6843c3681f3925c"><div class="ttname"><a href="BeatorajaReplayImporter_8cpp.html#ac25f7bd1049ee7bbc6843c3681f3925c">randomSequence</a></div><div class="ttdeci">QList&lt; qint64 &gt; randomSequence</div><div class="ttdef"><b>Definition</b> BeatorajaReplayImporter.cpp:58</div></div>
+<div class="line"><a id="l00087" name="l00087"></a><span class="lineno">   87</span> </div>
+<div class="line"><a id="l00088" name="l00088"></a><span class="lineno">   88</span>} <span class="comment">// namespace resource_managers</span></div>
+<div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span> </div>
+<div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span><span class="preprocessor">#endif </span><span class="comment">// RHYTHMGAME_CHARTDATAFACTORY_H</span></div>
+<div class="ttc" id="aBeatorajaReplayImporter_8cpp_html_ac08bf238fe8c57ef0755fd0794d6c504"><div class="ttname"><a href="BeatorajaReplayImporter_8cpp.html#ac08bf238fe8c57ef0755fd0794d6c504">sha256</a></div><div class="ttdeci">QString sha256</div><div class="ttdef"><b>Definition</b> BeatorajaReplayImporter.cpp:58</div></div>
+<div class="ttc" id="aBeatorajaReplayImporter_8cpp_html_ac25f7bd1049ee7bbc6843c3681f3925c"><div class="ttname"><a href="BeatorajaReplayImporter_8cpp.html#ac25f7bd1049ee7bbc6843c3681f3925c">randomSequence</a></div><div class="ttdeci">QList&lt; qint64 &gt; randomSequence</div><div class="ttdef"><b>Definition</b> BeatorajaReplayImporter.cpp:59</div></div>
 <div class="ttc" id="aBmsNotesData_8h_html"><div class="ttname"><a href="BmsNotesData_8h.html">BmsNotesData.h</a></div></div>
 <div class="ttc" id="aBmsNotes_8h_html"><div class="ttname"><a href="BmsNotes_8h.html">BmsNotes.h</a></div></div>
 <div class="ttc" id="aBmsReplayData_8cpp_html_a60dae4c6e78188cd718b696e4f08fc71"><div class="ttname"><a href="BmsReplayData_8cpp.html#a60dae4c6e78188cd718b696e4f08fc71">column</a></div><div class="ttdeci">int column</div><div class="ttdef"><b>Definition</b> BmsReplayData.cpp:28</div></div>
@@ -180,7 +181,7 @@ $(document).ready(function() { init_codefold(0); });
 <div class="ttc" id="aclassresource__managers_1_1ChartDataFactory_html"><div class="ttname"><a href="classresource__managers_1_1ChartDataFactory.html">resource_managers::ChartDataFactory</a></div><div class="ttdef"><b>Definition</b> ChartDataFactory.h:20</div></div>
 <div class="ttc" id="aclassresource__managers_1_1ChartDataFactory_html_a17a0b84ca0e3226924a8c86f0b952b62"><div class="ttname"><a href="classresource__managers_1_1ChartDataFactory.html#a17a0b84ca0e3226924a8c86f0b952b62">resource_managers::ChartDataFactory::RandomGenerator</a></div><div class="ttdeci">std::function&lt; charts::ParsedBmsChart::RandomRange(charts::ParsedBmsChart::RandomRange)&gt; RandomGenerator</div><div class="ttdef"><b>Definition</b> ChartDataFactory.h:28</div></div>
 <div class="ttc" id="aclassresource__managers_1_1ChartDataFactory_html_a21f2b81fbf3e95557308eeee9d151bb8"><div class="ttname"><a href="classresource__managers_1_1ChartDataFactory.html#a21f2b81fbf3e95557308eeee9d151bb8">resource_managers::ChartDataFactory::loadChartData</a></div><div class="ttdeci">auto loadChartData(const std::filesystem::path &amp;chartPath, RandomGenerator randomGenerator, int64_t directory=0) const -&gt; ChartComponents</div><div class="ttdef"><b>Definition</b> ChartDataFactory.cpp:345</div></div>
-<div class="ttc" id="aclassresource__managers_1_1ChartDataFactory_html_a434b19e107ecbef2a36ae47756361a68"><div class="ttname"><a href="classresource__managers_1_1ChartDataFactory.html#a434b19e107ecbef2a36ae47756361a68">resource_managers::ChartDataFactory::loadBmsonChartData</a></div><div class="ttdeci">auto loadBmsonChartData(const std::filesystem::path &amp;chartPath, int64_t directory=0) const -&gt; ChartComponents</div><div class="ttdef"><b>Definition</b> ChartDataFactory.cpp:410</div></div>
+<div class="ttc" id="aclassresource__managers_1_1ChartDataFactory_html_a434b19e107ecbef2a36ae47756361a68"><div class="ttname"><a href="classresource__managers_1_1ChartDataFactory.html#a434b19e107ecbef2a36ae47756361a68">resource_managers::ChartDataFactory::loadBmsonChartData</a></div><div class="ttdeci">auto loadBmsonChartData(const std::filesystem::path &amp;chartPath, int64_t directory=0) const -&gt; ChartComponents</div><div class="ttdef"><b>Definition</b> ChartDataFactory.cpp:411</div></div>
 <div class="ttc" id="aclassresource__managers_1_1ChartDataFactory_html_a97f0605af21e7c4189eea1eb4116315d"><div class="ttname"><a href="classresource__managers_1_1ChartDataFactory.html#a97f0605af21e7c4189eea1eb4116315d">resource_managers::ChartDataFactory::makeNotes</a></div><div class="ttdeci">static auto makeNotes(const std::array&lt; std::vector&lt; charts::BmsNotesData::Note &gt;, charts::BmsNotesData::columnNumber &gt; &amp;notes, const std::vector&lt; charts::BmsNotesData::Time &gt; &amp;barLines) -&gt; std::unique_ptr&lt; gameplay_logic::BmsNotes &gt;</div><div class="ttdef"><b>Definition</b> ChartDataFactory.cpp:78</div></div>
 <div class="ttc" id="aclassresource__managers_1_1ChartDataFactory_html_ad6d9c6c0da72f51e9677867b17424734"><div class="ttname"><a href="classresource__managers_1_1ChartDataFactory.html#ad6d9c6c0da72f51e9677867b17424734">resource_managers::ChartDataFactory::handleImplicitSubtitle</a></div><div class="ttdeci">void handleImplicitSubtitle(QString &amp;title, QString &amp;subtitle) const</div><div class="ttdef"><b>Definition</b> ChartDataFactory.cpp:266</div></div>
 <div class="ttc" id="anamespaceresource__managers_html"><div class="ttname"><a href="namespaceresource__managers.html">resource_managers</a></div><div class="ttdoc">Classes and functions related to loading and managing resources such as charts, sounds,...</div><div class="ttdef"><b>Definition</b> BeatorajaReplayImporter.h:12</div></div>

@@ -1,5 +1,7 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="Node000000" title=" " alt="" coords="5,5,185,31"/>
-<area shape="rect" id="Node000001" href="$classsupport_1_1QtSink.html" title=" " alt="" coords="233,5,427,31"/>
-<area shape="poly" id="edge69_Node000000_Node000001" title=" " alt="" coords="199,15,233,15,233,21,199,21"/>
+<area shape="rect" id="Node000000" href="$classsounds_1_1SoundBuffer.html" title="A buffer that can be used to create sounds. Wraps an buffer." alt="" coords="5,31,160,56"/>
+<area shape="rect" id="Node000001" href="$classsounds_1_1NormalSoundBuffer.html" title="A buffer that can be used to create sounds. Wraps an buffer." alt="" coords="208,5,411,31"/>
+<area shape="poly" id="edge67_Node000000_Node000001" title=" " alt="" coords="174,31,207,27,208,32,174,36"/>
+<area shape="rect" id="Node000002" href="$classsounds_1_1SlicedSoundBuffer.html" title="A view into a subsection of an existing SoundBuffer." alt="" coords="212,55,407,80"/>
+<area shape="poly" id="edge68_Node000000_Node000002" title=" " alt="" coords="174,50,212,54,211,60,174,56"/>
 </map>

@@ -27,7 +27,7 @@ var searchData=
   ['foldersize_24',['folderSize',['../classqml__components_1_1SongFolderFactory.html#a92b368460c307ff7c13111b8cc2f1877',1,'qml_components::SongFolderFactory']]],
   ['for_20a_20screen_25',['Overriding the settings page for a screen',['../md_DEV__THEME.html#autotoc_md31',1,'']]],
   ['format_20check_20tt_20and_20tt_20format_20fix_20tt_26',['&lt;tt&gt;format-check&lt;/tt&gt; and &lt;tt&gt;format-fix&lt;/tt&gt;',['../md_DEV__ENGINE.html#autotoc_md22',1,'']]],
-  ['fraction_27',['fraction',['../BmsNotesData_8cpp.html#a4f43290fb7c227c99bac275f57c87857',1,'fraction:&#160;BmsNotesData.cpp'],['../namespaceresource__managers_1_1score__target.html#a1e47ea936dfffa6b54a61168ef29c344aef993538f3968e9d1f6c9d19a3d6cfae',1,'resource_managers::score_target::Fraction']]],
+  ['fraction_27',['fraction',['../namespaceresource__managers_1_1score__target.html#a1e47ea936dfffa6b54a61168ef29c344aef993538f3968e9d1f6c9d19a3d6cfae',1,'resource_managers::score_target::Fraction'],['../BmsNotesData_8cpp.html#a4f43290fb7c227c99bac275f57c87857',1,'fraction:&#160;BmsNotesData.cpp']]],
   ['fractiondec_28',['fractionDec',['../BmsNotesData_8cpp.html#a109a1d14047d645c165e2c641b71914f',1,'BmsNotesData.cpp']]],
   ['frombmson_29',['fromBmson',['../structcharts_1_1BmsNotesData.html#a782281926489efb3b2aa3d95d010f235',1,'charts::BmsNotesData']]],
   ['fromjson_30',['fromjson',['../structresource__managers_1_1Trophy.html#af7c88010dbfed7063a40fe3e8d5732d3',1,'resource_managers::Trophy::fromJson()'],['../classgameplay__logic_1_1BmsResult.html#a1cfd51342ad80b48ef19aba62010f00c',1,'gameplay_logic::BmsResult::fromJson()']]],
