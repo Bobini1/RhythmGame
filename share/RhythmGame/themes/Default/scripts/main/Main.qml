@@ -26,6 +26,14 @@ Image {
         }
     }
 
+    AudioPlayer {
+        id: bgm
+        looping: true
+        source: Rg.profileList.mainProfile.vars.generalVars.bgmPath + "main";
+        playing: screen.enabled
+        fadeInMillis: 1000
+    }
+
     Dialog {
         id: dlg
         modal: true
