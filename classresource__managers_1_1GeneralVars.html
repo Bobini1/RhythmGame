@@ -395,7 +395,7 @@ Properties</h2></td></tr>
 <tr class="memdesc:a24d737673cf140274d0d52692e5830e4"><td class="mdescLeft">&#160;</td><td class="mdescRight">The target score fraction when scoreTarget is Fraction.  <br /></td></tr>
 <tr class="separator:a24d737673cf140274d0d52692e5830e4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a62b82dcf973739d540a4f7a2f3f7a581" id="r_a62b82dcf973739d540a4f7a2f3f7a581"><td class="memItemLeft" align="right" valign="top">QString&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classresource__managers_1_1GeneralVars.html#a62b82dcf973739d540a4f7a2f3f7a581">bgm</a></td></tr>
-<tr class="memdesc:a62b82dcf973739d540a4f7a2f3f7a581"><td class="mdescLeft">&#160;</td><td class="mdescRight">The folder with select and decide music.  <br /></td></tr>
+<tr class="memdesc:a62b82dcf973739d540a4f7a2f3f7a581"><td class="mdescLeft">&#160;</td><td class="mdescRight">The folder with select, decide and main screen music.  <br /></td></tr>
 <tr class="separator:a62b82dcf973739d540a4f7a2f3f7a581"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afc1f9c206d99f860c7edb7f3ab64a3d5" id="r_afc1f9c206d99f860c7edb7f3ab64a3d5"><td class="memItemLeft" align="right" valign="top">QString&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classresource__managers_1_1GeneralVars.html#afc1f9c206d99f860c7edb7f3ab64a3d5">bgmPath</a></td></tr>
 <tr class="memdesc:afc1f9c206d99f860c7edb7f3ab64a3d5"><td class="mdescLeft">&#160;</td><td class="mdescRight">The full path to the selected BGM folder.  <br /></td></tr>
@@ -2586,8 +2586,8 @@ Properties</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>The folder with select and decide music. </p>
-<p>To get the list of available BGM folders, call <a class="el" href="classresource__managers_1_1GeneralVars.html#a70953da9fd9fc4896f79b3ffc5a4aa7a">getAvailableBgms()</a>. </p>
+<p>The folder with select, decide and main screen music. </p>
+<p>To get the list of available BGM folders, call <a class="el" href="classresource__managers_1_1GeneralVars.html#a70953da9fd9fc4896f79b3ffc5a4aa7a">getAvailableBgms()</a>. Skins are supposed to load files named select.&lt;ext&gt;, decide.&lt;ext&gt;, main.&lt;ext&gt; from the selected BGM, where &lt;ext&gt; is an audio format supported by the game. To get the full path to the BGM, use the bgmPath property. </p><dl class="section see"><dt>See also</dt><dd><a class="el" href="classresource__managers_1_1GeneralVars.html#afc1f9c206d99f860c7edb7f3ab64a3d5" title="The full path to the selected BGM folder.">bgmPath</a> </dd></dl>
 
 </div>
 </div>
@@ -2612,6 +2612,7 @@ Properties</h2></td></tr>
 </div><div class="memdoc">
 
 <p>The full path to the selected BGM folder. </p>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="classresource__managers_1_1GeneralVars.html#a62b82dcf973739d540a4f7a2f3f7a581" title="The folder with select, decide and main screen music.">bgm</a> </dd></dl>
 
 </div>
 </div>
@@ -3080,7 +3081,24 @@ Properties</h2></td></tr>
 </div><div class="memdoc">
 
 <p>The soundset to use. </p>
-<p>Corresponds to a folder in the soundsets/ directory in the assets paths. </p>
+<p>Corresponds to a folder in the soundsets/ directory in the assets folder. To get the full path to the soundset, use the soundsetPath property. Skins are supposed to respect the soundset setting by loading sound files from the selected soundset folder and playing them at appropriate events. Current supported events:</p><ul>
+<li>scratch - moving on the song list</li>
+<li>f-open - entering a song list folder</li>
+<li>f-close - quitting a song list folder</li>
+<li>o-change - changing some kind of option in a menu</li>
+<li>o-open - entering an options menu (not in the default soundset atm)</li>
+<li>o-close - exiting an options menu (not in the default soundset atm)</li>
+<li>clear - clearing a normal chart (clearType != FAILED)</li>
+<li>fail - failing a chart (clearType == FAILED)</li>
+<li>course_clear - clearing a course (clearType != FAILED)</li>
+<li>course_fail - failing a course (clearType == FAILED)</li>
+<li>playready - starting a song (not in the default soundset atm)</li>
+<li>playstop - quitting a song early</li>
+<li>guide-gd - UNIMPLEMENTED (hitsounds)</li>
+<li>guide-gr - UNIMPLEMENTED (hitsounds)</li>
+<li>guide-pg - UNIMPLEMENTED (hitsounds) It is perfectly legal to use those sounds in different ways but this is the canonical meaning that users will expect. <dl class="section see"><dt>See also</dt><dd><a class="el" href="classresource__managers_1_1GeneralVars.html#aa14e5e0074156fe38fe392714f0684f0" title="The full paths to the selected soundset folder.">soundsetPath</a> </dd></dl>
+</li>
+</ul>
 
 </div>
 </div>
