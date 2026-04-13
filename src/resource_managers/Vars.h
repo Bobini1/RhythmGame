@@ -286,6 +286,7 @@ class GeneralVars final : public QObject
      * - guide-gd - UNIMPLEMENTED (hitsounds)
      * - guide-gr - UNIMPLEMENTED (hitsounds)
      * - guide-pg - UNIMPLEMENTED (hitsounds)
+     *
      * It is perfectly legal to use those sounds in different ways but this is
      * the canonical meaning that users will expect.
      * @see soundsetPath
