@@ -343,13 +343,13 @@ class GeneralVars final : public QObject
     QString soundsetPath;
     // Default darksabun community table-list endpoint.
     inline static const QString defaultTableListUrl = QStringLiteral(
-        "https://script.googleusercontent.com/macros/echo?user_content_key="
-        "AWDtjMUPqG3VGAp2E2nnIIN6ai0Im_ai4lD3Kb998b5zNu881oh8U93tiKchKmz0"
-        "CiU21TRk2FbhTVDg_UeCGlGKMiMeQ2jJXOzkMeAz4QdAqiTffivqe9OiSxrfIS"
-        "ozhZnz1LxSk6vfXCbm-Wt6eKqKBffTcCdUrrkIDQyRLK00pAHNTLiK4899SSycq"
-        "Urh6huo4gENgokERvbeHrT8OUrVVTq1gEtFMtpGurM9HXC037qo1SMe5CSsOXb0"
-        "UfYy-14dlRmOHb-v3Nbin-Pr5pU9nApG7zcoJfqB6bEut33v"
-        "&lib=MZGF-rpGWT28d9kh49MlyleOKhrMb7MMj");
+      "https://script.googleusercontent.com/macros/echo?user_content_key="
+      "AWDtjMUPqG3VGAp2E2nnIIN6ai0Im_ai4lD3Kb998b5zNu881oh8U93tiKchKmz0"
+      "CiU21TRk2FbhTVDg_UeCGlGKMiMeQ2jJXOzkMeAz4QdAqiTffivqe9OiSxrfIS"
+      "ozhZnz1LxSk6vfXCbm-Wt6eKqKBffTcCdUrrkIDQyRLK00pAHNTLiK4899SSycq"
+      "Urh6huo4gENgokERvbeHrT8OUrVVTq1gEtFMtpGurM9HXC037qo1SMe5CSsOXb0"
+      "UfYy-14dlRmOHb-v3Nbin-Pr5pU9nApG7zcoJfqB6bEut33v"
+      "&lib=MZGF-rpGWT28d9kh49MlyleOKhrMb7MMj");
     QString tableListUrl = defaultTableListUrl;
 
     QList<QString> assetsPaths;
