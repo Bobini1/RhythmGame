@@ -246,21 +246,49 @@ class GeneralVars final : public QObject
                  setTargetScoreFraction NOTIFY targetScoreFractionChanged RESET
                    resetTargetScoreFraction)
     /**
-     * @brief The folder with select and decide music.
+     * @brief The folder with select, decide and main screen music
      * @details To get the list of available BGM folders, call
      * getAvailableBgms().
+     * Skins are supposed to load files named
+     * select.<ext>, decide.<ext>, main.<ext> from the selected BGM,
+     * where <ext> is an audio format supported by the game.
+     * To get the full path to the BGM, use the bgmPath property.
+     * @see bgmPath
      */
     Q_PROPERTY(
       QString bgm READ getBgm WRITE setBgm NOTIFY bgmChanged RESET resetBgm)
     /**
      * @brief The full path to the selected BGM folder.
+     * @see bgm
      */
     Q_PROPERTY(
       QString bgmPath READ getBgmPath NOTIFY bgmPathChanged STORED false)
     /**
      * @brief The soundset to use.
      * @details Corresponds to a folder in the soundsets/ directory in the
-     * assets paths.
+     * assets folder. To get the full path to the soundset, use the soundsetPath
+     * property.
+     * Skins are supposed to respect the soundset setting by loading sound files
+     * from the selected soundset folder and playing them at appropriate events.
+     * Current supported events:
+     * - scratch - moving on the song list
+     * - f-open - entering a song list folder
+     * - f-close - quitting a song list folder
+     * - o-change - changing some kind of option in a menu
+     * - o-open - entering an options menu (not in the default soundset atm)
+     * - o-close - exiting an options menu (not in the default soundset atm)
+     * - clear - clearing a normal chart (clearType != FAILED)
+     * - fail - failing a chart (clearType == FAILED)
+     * - course_clear - clearing a course (clearType != FAILED)
+     * - course_fail - failing a course (clearType == FAILED)
+     * - playready - starting a song (not in the default soundset atm)
+     * - playstop - quitting a song early
+     * - guide-gd - UNIMPLEMENTED (hitsounds)
+     * - guide-gr - UNIMPLEMENTED (hitsounds)
+     * - guide-pg - UNIMPLEMENTED (hitsounds)
+     * It is perfectly legal to use those sounds in different ways but this is
+     * the canonical meaning that users will expect.
+     * @see soundsetPath
      */
     Q_PROPERTY(QString soundset READ getSoundset WRITE setSoundset NOTIFY
                  soundsetChanged RESET resetSoundset)
