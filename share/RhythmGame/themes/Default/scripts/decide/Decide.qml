@@ -20,6 +20,7 @@ Image {
         if (chart.chartData?.subtitle !== "") {
             title += " " + chart.chartData.subtitle;
         }
+        title = title.replace(/\r\n|\n|\r/g, " ");
         return title;
     }
     readonly property string genreString: {
