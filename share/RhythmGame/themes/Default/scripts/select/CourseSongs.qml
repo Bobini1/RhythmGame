@@ -17,12 +17,12 @@ Column {
                 let chartData = chartDatas[md5];
                 let red = (chartData === undefined);
                 if (info.length) {
-                    names.push({red, text: info[0].symbol + info[0].levelName + " " + info[0].entry.title + (info[0].entry.subtitle ? " " + info[0].entry.subtitle : "")});
+                    names.push({red, text: (info[0].symbol + info[0].levelName + " " + info[0].entry.title + (info[0].entry.subtitle ? " " + info[0].entry.subtitle : "")).replace(/\r\n|\n|\r/g, " ")});
                 } else {
                     if (chartData !== undefined) {
-                        names.push({red, text: chartData.title + (chartData.subtitle ? " " + chartData.subtitle : "")});
+                        names.push({red, text: (chartData.title + (chartData.subtitle ? " " + chartData.subtitle : "")).replace(/\r\n|\n|\r/g, " ")});
                     } else {
-                        names.push({red, text: before + md5 + after});
+                        names.push({red, text: md5});
                     }
                 }
             }

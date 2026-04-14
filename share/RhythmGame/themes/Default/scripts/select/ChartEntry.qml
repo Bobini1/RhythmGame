@@ -69,7 +69,8 @@ Image {
         color: (modelData instanceof ChartData || modelData instanceof course) ? "black" : "red"
         height: parent.height
         scrolling: image.isCurrentItem && image.scrollingText
-        text: (modelData.title || modelData.name || "") + (modelData.subtitle ? (" " + modelData.subtitle) : "")
+        // newlines replaced with spaces
+        text: ((modelData.title || modelData.name || "") + (modelData.subtitle ? (" " + modelData.subtitle) : "")).replace(/\r\n|\n|\r/g, " ")
         width: parent.width * 0.7
     }
     MouseArea {

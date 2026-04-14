@@ -19,7 +19,7 @@ WindowBg {
         anchors.rightMargin: 10
         elide: Text.ElideRight
         font.pixelSize: 40
-        text: title.title + (title.subtitle ? (" " + title.subtitle) : "")
+        text: (title.title + (title.subtitle ? (" " + title.subtitle) : "")).replace(/\r\n|\n|\r/g, " ")
     }
     Text {
         id: artistText
