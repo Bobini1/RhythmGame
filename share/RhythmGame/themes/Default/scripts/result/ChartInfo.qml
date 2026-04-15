@@ -1,4 +1,5 @@
 import QtQuick
+import QtQuick.Layouts
 import RhythmGameQml
 
 WindowBg {
@@ -26,58 +27,62 @@ WindowBg {
             }
         }
     }
-    Text {
-        id: totalLabel
 
-        anchors.baseline: parent.top
-        anchors.baselineOffset: 60
-        anchors.horizontalCenter: parent.horizontalCenter
-        anchors.horizontalCenterOffset: -60
-        color: "white"
-        font.pixelSize: 20
-        text: qsTr("TOTAL")
-
-        Rectangle {
-            anchors.centerIn: parent
-            color: "#4b4b4b"
-            height: 20
-            radius: 10
-            width: 90
-            z: -1
-        }
-    }
-    Text {
-        anchors.baseline: totalLabel.baseline
-        anchors.right: parent.right
+    ColumnLayout {
+        anchors.fill: parent
+        anchors.bottomMargin: 24
+        anchors.topMargin: 40
+        anchors.leftMargin: 36
         anchors.rightMargin: 36
-        font.pixelSize: 20
-        text: chartInfo.total || "-"
-    }
-    Text {
-        id: noteCountLabel
-
-        anchors.baseline: parent.top
-        anchors.baselineOffset: 90
-        anchors.horizontalCenter: parent.horizontalCenter
-        anchors.horizontalCenterOffset: -60
-        color: "white"
-        font.pixelSize: 20
-        text: qsTr("NOTES")
-
-        Rectangle {
-            anchors.centerIn: parent
-            color: "#4b4b4b"
-            height: 20
-            radius: 10
-            width: 90
-            z: -1
+        RowLayout {
+            spacing: 13
+            Rectangle {
+                width: 120
+                height: 24
+                radius: 12
+                color: "#4B4B4B"
+                Text {
+                    anchors.centerIn: parent
+                    text: qsTr("NOTES")
+                    font.bold: true
+                    color: "white"
+                    font.pixelSize: 16
+                }
+                Layout.alignment: Qt.AlignVCenter
+            }
+            Text {
+                text: chartInfo.noteCount
+                font.pixelSize: 24
+                Layout.fillHeight: true
+                Layout.fillWidth: true
+                horizontalAlignment: Text.AlignRight
+                verticalAlignment: Text.AlignVCenter
+            }
         }
-    }
-    Text {
-        anchors.baseline: noteCountLabel.baseline
-        anchors.right: parent.right
-        anchors.rightMargin: 36
-        font.pixelSize: 20
-        text: chartInfo.noteCount
+        RowLayout {
+            spacing: 13
+            Rectangle {
+                width: 120
+                height: 24
+                radius: 12
+                color: "#4B4B4B"
+                Text {
+                    anchors.centerIn: parent
+                    text: qsTr("TOTAL")
+                    font.bold: true
+                    color: "white"
+                    font.pixelSize: 16
+                }
+                Layout.alignment: Qt.AlignVCenter
+            }
+            Text {
+                text: chartInfo.total || "-"
+                font.pixelSize: 24
+                Layout.fillHeight: true
+                Layout.fillWidth: true
+                horizontalAlignment: Text.AlignRight
+                verticalAlignment: Text.AlignVCenter
+            }
+        }
     }
 }

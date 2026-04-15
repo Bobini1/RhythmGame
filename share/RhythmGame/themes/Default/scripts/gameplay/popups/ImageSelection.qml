@@ -10,6 +10,7 @@ Row {
     property real itemWidth: 100
     required property string propertyId
     required property var src
+    property string dirName: propertyId
     property string label: Helpers.capitalizeFirstLetter(propertyId)
     
     Text {
@@ -27,7 +28,7 @@ Row {
     GridView {
         id: selection
 
-        readonly property var files: Rg.fileQuery.getSelectableFilesForDirectory(root.rootUrl + "images/" + imageSelection.propertyId + "/")
+        readonly property var files: Rg.fileQuery.getSelectableFilesForDirectory(root.rootUrl + "images/" + imageSelection.dirName + "/")
 
         activeFocusOnTab: true
         cellHeight: imageSelection.itemHeight + imageSelection.spacing
@@ -41,7 +42,7 @@ Row {
         delegate: Image {
             fillMode: Image.PreserveAspectFit
             height: selection.cellHeight - imageSelection.spacing
-            source: "../images/" + imageSelection.propertyId + "/" + modelData
+            source: "../images/" + imageSelection.dirName + "/" + modelData
             width: selection.cellWidth - imageSelection.spacing
 
             MouseArea {

@@ -37,7 +37,10 @@
 #include "support/PathToUtfString.h"
 #include "support/UtfStringToPath.h"
 #include "gameplay_logic/CourseRunner.h"
+#include "qml_components/OnlineProfileInfo.h"
+#include "qml_components/OnlineRankingModel.h"
 #include "qml_components/ScoreReplayer.h"
+#include "gameplay_logic/BmsPoints.h"
 #include "sounds/AudioEngine.h"
 #include "sounds/AudioPlayer.h"
 #include "sounds/SoundBuffer.h"
@@ -45,6 +48,7 @@
 #include "resource_managers/AvatarImageProvider.h"
 #include "resource_managers/DxaImageProvider.h"
 #include "support/QStringToPath.h"
+#include "qml_components/OnlineScores.h"
 
 Q_IMPORT_QML_PLUGIN(RhythmGameQmlPlugin)
 Q_IMPORT_PLUGIN(TgaPlugin)
@@ -86,6 +90,16 @@ createStandardDirectories()
         spdlog::error("Could not create avatars folder: {}", ec.message());
         throw std::runtime_error("Could not create avatars folder");
     }
+    std::filesystem::create_directories(base / "bgm", ec);
+    if (ec) {
+        spdlog::error("Could not create bgm folder: {}", ec.message());
+        throw std::runtime_error("Could not create bgm folder");
+    }
+    std::filesystem::create_directories(base / "soundsets", ec);
+    if (ec) {
+        spdlog::error("Could not create soundsets folder: {}", ec.message());
+        throw std::runtime_error("Could not create soundsets folder");
+    }
     std::filesystem::create_directories(base / "profiles", ec);
     if (ec) {
         spdlog::error("Could not create profiles folder: {}", ec.message());
@@ -100,6 +114,11 @@ createStandardDirectories()
     if (ec) {
         spdlog::error("Could not create themes folder: {}", ec.message());
         throw std::runtime_error("Could not create themes folder");
+    }
+    std::filesystem::create_directories(base / "screenshots", ec);
+    if (ec) {
+        spdlog::error("Could not create screenshots folder: {}", ec.message());
+        throw std::runtime_error("Could not create screenshots folder");
     }
 }
 
@@ -165,7 +184,6 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
         qputenv("QML_XHR_ALLOW_FILE_READ", QByteArray("1"));
 
         QQuickStyle::setStyle("FluentWinUI3");
-
         if (!qEnvironmentVariableIsSet("QSG_RHI_BACKEND")) {
             QQuickWindow::setGraphicsApi(QSGRendererInterface::Vulkan);
         }
@@ -181,9 +199,15 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
         }
         avatarPath = "file://" + avatarPath;
 
-        auto programSettings = qml_components::ProgramSettings{ avatarPath };
+        auto screenshotsPath =
+          support::pathToQString(dataFolder / "screenshots");
+
+        auto programSettings =
+          qml_components::ProgramSettings{ avatarPath, screenshotsPath };
 
         qRegisterMetaType<input::Gamepad>("input::Gamepad");
+        qRegisterMetaType<gameplay_logic::BmsPoints>(
+          "gameplay_logic::BmsPoints");
 
         auto availableThemes =
           resource_managers::scanThemes(installationDataFolder / "themes");
@@ -201,19 +225,19 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
         auto themes = qml_components::Themes{ availableThemes };
 
         auto inputTranslator = input::InputTranslator{ &db };
-        auto avatarFolders = QStringList{};
+        auto assetsFolders = QStringList{};
         if (!isPortable) {
-            avatarFolders.append(
-              support::pathToQString(dataFolder / "avatars/"));
+            assetsFolders.append(support::pathToQString(dataFolder) + "/");
         }
-        avatarFolders.append(
-          support::pathToQString(installationDataFolder / "avatars/"));
-        auto profileList =
-          qml_components::ProfileList{ dataFolder / "song_db.sqlite",
-                                       &db,
-                                       availableThemes,
-                                       dataFolder / "profiles",
-                                       avatarFolders };
+        assetsFolders.append(support::pathToQString(installationDataFolder) +
+                             "/");
+
+        auto networkManager = QNetworkAccessManager{};
+        networkManager.setCookieJar(nullptr);
+        auto profileList = qml_components::ProfileList{
+            dataFolder / "song_db.sqlite", &db,           availableThemes,
+            dataFolder / "profiles",       assetsFolders, &networkManager
+        };
 
         QObject::connect(&gamepadManager,
                          &input::GamepadManager::axisMoved,
@@ -245,8 +269,8 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
               return gaugeFactoryGeneral.getCourseGauges(profile,
                                                          initialValues);
           };
-        auto getChartPathFromSha256 = [&db](const QString& md5,
-                                            const std::filesystem::path& hint) {
+        auto getChartPathFromMd5 = [&db](const QString& md5,
+                                         const std::filesystem::path& hint) {
             // Check if the hint path exists and matches the hash
             if (!hint.empty()) {
                 auto hintStatement =
@@ -270,11 +294,10 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
             &profileList,
             &inputTranslator,
             &chartDataFactory,
-            &gameplay_logic::rules::lr2_timing_windows::getTimingWindows,
             &gameplay_logic::rules::lr2_hit_values::getLr2HitValue,
             gaugeFactory,
             gaugeFactoryCourse,
-            getChartPathFromSha256,
+            getChartPathFromMd5,
             &chartFactory,
             &db
         };
@@ -293,12 +316,14 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
 
         auto fileQuery = qml_components::FileQuery{};
 
-        auto networkManager = QNetworkAccessManager{};
         auto tables = resource_managers::Tables{ &networkManager,
                                                  dataFolder / "tables",
                                                  &db };
 
+        auto onlineScores = qml_components::OnlineScores{ &networkManager };
+
         auto engine = QQmlApplicationEngine{};
+
         auto languages =
           resource_managers::Languages{ availableThemes, &engine };
         auto setLang = [&profileList,
@@ -308,6 +333,7 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
                                             ->getVars()
                                             ->getGeneralVars()
                                             ->getLanguage());
+            QObject::disconnect(connection);
             connection = QObject::connect(
               profileList.getMainProfile()->getVars()->getGeneralVars(),
               &resource_managers::GeneralVars::languageChanged,
@@ -336,7 +362,8 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
                       &profileList,
                       &tables,
                       &languages,
-                      &audioEngine };
+                      &audioEngine,
+                      &onlineScores };
 
         Rg::instance = &rg;
 
@@ -400,6 +427,8 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
           "RhythmGameQml", 1, 0, "AnalogAxisConfig");
         qmlRegisterType<input::InputTranslator>(
           "RhythmGameQml", 1, 0, "InputTranslator");
+        qmlRegisterType<qml_components::OnlineProfileInfo>(
+          "RhythmGameQml", 1, 0, "onlineProfileInfo");
         qmlRegisterUncreatableMetaObject(
           gameplay_logic::judgement::staticMetaObject,
           "RhythmGameQml",
@@ -461,6 +490,17 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
           "RhythmGameQml", 1, 0, "AudioPlayer");
         qmlRegisterType<qml_components::ScoreReplayer>(
           "RhythmGameQml", 1, 0, "ScoreReplayer");
+        qml_components::OnlineRankingModel::networkManager = &networkManager;
+        qml_components::OnlineRankingModel::profileList = &profileList;
+        qml_components::OnlineRankingModel::onlineScores = &onlineScores;
+        qmlRegisterType<qml_components::OnlineRankingModel>(
+          "RhythmGameQml", 1, 0, "OnlineRankingModel");
+        qmlRegisterType<qml_components::RankingEntry>(
+          "RhythmGameQml", 1, 0, "rankingEntry");
+        qmlRegisterType<resource_managers::OnlineUserData>(
+          "RhythmGameQml", 1, 0, "onlineUserData");
+        qmlRegisterType<resource_managers::TachiData>(
+          "RhythmGameQml", 1, 0, "tachiData");
 
         qml_components::InputAttached::inputSignalProvider = &inputTranslator;
         qml_components::QmlUtilsAttached::getThemeNameForRootFile =
@@ -486,26 +526,20 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
                                 new resource_managers::IniImageProvider{});
         engine.addImageProvider("dxa",
                                 new resource_managers::DxaImageProvider{});
-        auto avatarPaths = std::vector{ installationDataFolder / "avatars/" };
+        auto assetsPaths = std::vector{ installationDataFolder };
         if (!isPortable) {
-            avatarPaths.push_back(dataFolder / "avatars/");
+            assetsPaths.push_back(dataFolder);
         }
         engine.addImageProvider(
           "avatar",
-          new resource_managers::AvatarImageProvider{ std::move(avatarPaths) });
+          new resource_managers::AvatarImageProvider{ std::move(assetsPaths) });
 
         engine.load(QUrl("qrc:///qt/qml/RhythmGameQml/ContentFrame.qml"));
         if (engine.rootObjects().isEmpty()) {
             throw std::runtime_error{ "Failed to load main qml" };
         }
         app.setInputTranslator(&inputTranslator);
-
-        auto stmt = db.createStatement(
-          "INSERT OR REPLACE INTO properties (key, value) VALUES "
-          "('version', ?);");
-        stmt.bind(1, static_cast<int64_t>(support::currentVersion));
-        stmt.execute();
-
+        
         return app.exec();
     } catch (const std::exception& e) {
         spdlog::critical("Fatal: {}", e.what());

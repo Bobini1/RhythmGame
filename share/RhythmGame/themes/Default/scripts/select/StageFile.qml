@@ -20,20 +20,10 @@ Image {
     sourceSize.height: 450
     sourceSize.width: 600
 
-    onSourceChanged: {
-        shadow.active = false;
-    }
-    onStatusChanged: {
-        if (status === Image.Ready) {
-            shadow.active = true;
-            return;
-        }
-    }
-
     Loader {
         id: shadow
 
-        active: false
+        active: stageFile.status === Image.Ready
         asynchronous: true
 
         sourceComponent: Component {

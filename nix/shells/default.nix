@@ -13,6 +13,7 @@
   qtdeclarative,
   qtmultimedia,
   qtsvg,
+  qtkeychain,
   qtinterfaceframework,
   ned14-llfio,
   lexy,
@@ -54,6 +55,7 @@ mkShell {
     qtdeclarative
     qtmultimedia
     qtsvg
+    qtkeychain
     qtinterfaceframework
     ned14-llfio
     lexy

@@ -81,6 +81,10 @@ CourseRunner::connectChart()
                 this,
                 [this] { coursePlayer2->setCombo(0); });
     }
+    connect(currentChart.get(),
+            &ChartRunner::inputMappingChanged,
+            this,
+            [this] { emit inputMappingChanged(); });
 }
 CourseRunner::CourseRunner(CoursePlayer* coursePlayer1,
                            CoursePlayer* coursePlayer2,
@@ -156,6 +160,18 @@ CourseRunner::getKeymode() const -> ChartData::Keymode
     return currentChart ? currentChart->getKeymode() : ChartData::Keymode::K7;
 }
 auto
+CourseRunner::getInputMapping() const -> QList<int>
+{
+    return currentChart ? currentChart->getInputMapping() : QList<int>();
+}
+void
+CourseRunner::setInputMapping(QList<int> inputMapping)
+{
+    if (currentChart) {
+        currentChart->setInputMapping(std::move(inputMapping));
+    }
+}
+auto
 CourseRunner::proceed() -> QList<BmsScore*>
 
 {
@@ -164,7 +180,9 @@ CourseRunner::proceed() -> QList<BmsScore*>
     }
     const auto* p2 = getPlayer2();
     auto scores = QList<BmsScore*>{};
+    auto currentInputMapping = QList<int>{};
     if (currentChart) {
+        currentInputMapping = currentChart->getInputMapping();
         scores = currentChart->finish();
         clear1 = QStringLiteral("FAILED");
         if (scores.size() > 0) {
@@ -199,6 +217,9 @@ CourseRunner::proceed() -> QList<BmsScore*>
         emit currentChartIndexChanged();
         currentChart.release()->deleteLater();
         currentChart = loadChart();
+        if (!currentInputMapping.isEmpty()) {
+            currentChart->setInputMapping(std::move(currentInputMapping));
+        }
         emit bgaChanged();
         emit player1Changed();
         if (p2 != getPlayer2()) {

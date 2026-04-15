@@ -6,7 +6,12 @@
 #define RHYTHMGAME_CHARTDATA_H
 
 #include <QQmlEngine>
+#include <QJsonObject>
 #include "db/SqliteCppDb.h"
+#include "gameplay_logic/Judgement.h"
+#include <QHash>
+#include <QPair>
+#include "BmsNotes.h"
 namespace gameplay_logic {
 
 /**
@@ -27,8 +32,6 @@ class ChartData : public QObject
      * @details The keymode of the chart, i.e. how many keys/columns it has.
      * If the DP option "Battle" is enabled, an SP chart will have 14 keys
      * regardless, so pay attention to that.
-     * @warning K5 and K10 are unimplemented and treated as K7 and K14
-     * respectively.
      */
     enum class Keymode
     {
@@ -38,6 +41,17 @@ class ChartData : public QObject
         K14 = 14
     };
     Q_ENUM(Keymode)
+
+    enum class HistogramNoteType
+    {
+        Normal,
+        Scratch,
+        LongNote,
+        BssNote,
+        Landmine,
+        Invisible
+    };
+    Q_ENUM(HistogramNoteType)
 
   private:
     /** @brief The title of the chart. */
@@ -57,12 +71,14 @@ class ChartData : public QObject
     /** @brief The path to the chart's backbmp. */
     Q_PROPERTY(QString backBmp READ getBackBmp CONSTANT)
     /**
-     * @brief The rank of the chart.
-     * @details Determines the timing windows for judgements.
+     * @brief The rank of the chart, converted to defexrank format.
+     * @details Determines the timing windows for judgements. 25=veryhard,
+     * 50=hard, 75=normal, 100=easy, like in lr2oraja. Interpolated linearly.
      * @see https://hitkey.nekokan.dyndns.info/cmds.htm#RANK
+     * @see https://hitkey.nekokan.dyndns.info/cmds.htm#DEFEXRANK
      * @see rules::lr2_timing_windows::Lr2TimingWindows::getTimingWindows()
      */
-    Q_PROPERTY(int rank READ getRank CONSTANT)
+    Q_PROPERTY(double rank READ getRank CONSTANT)
     /**
      * @brief The total value of the chart.
      * @details RhythmGame's gauges use the same total value system as LR2.
@@ -83,22 +99,36 @@ class ChartData : public QObject
     Q_PROPERTY(int difficulty READ getDifficulty CONSTANT)
     /**
      * @brief The number of normal notes in the chart.
-     * @details Normal means not long notes, not mines, not invisible notes.
+     * @details Normal means not long notes, not mines, not invisible notes, not
+     * scratches
      */
     Q_PROPERTY(int normalNoteCount READ getNormalNoteCount CONSTANT)
     /**
-     * @brief The number of long notes in the chart.
+     * @brief The number of scratch notes in the chart.
+     * @details Scratch notes are normal notes on scratch columns.
+     */
+    Q_PROPERTY(int scratchCount READ getScratchCount CONSTANT)
+    /**
+     * @brief The number of long notes in the chart excluding BSS (scratch lns).
      * @details A long note consists of an LN start and LN end. Such a pair
      * counts as one long note.
      */
     Q_PROPERTY(int lnCount READ getLnCount CONSTANT)
     /**
+     * @brief The number of BSS (scratch long notes) in the chart.
+     * @details A BSS consists of an ln start and ln end. Such a pair
+     * counts as one BSS.
+     */
+    Q_PROPERTY(int bssCount READ getBssCount CONSTANT)
+    /**
      * @brief The number of mines (landmines) in the chart.
      */
     Q_PROPERTY(int mineCount READ getMineCount CONSTANT)
     /**
-     * @brief The maximum number of hits (normal notes + long notes)
-     * in the chart.
+     * @brief The length of the chart in nanoseconds.
+     * @details This property indicates the total duration of the chart from
+     * start to finish, measured in nanoseconds.
+     * @note This is based on the timestamp of the last visible note.
      */
     Q_PROPERTY(int64_t length READ getLength CONSTANT)
     /**
@@ -128,7 +158,8 @@ class ChartData : public QObject
      */
     Q_PROPERTY(QString md5 READ getMd5 CONSTANT)
     /**
-     * @brief Whether the chart uses [#RANDOM](https://hitkey.nekokan.dyndns.info/cmds.htm#RANDOM).
+     * @brief Whether the chart uses
+     * [#RANDOM](https://hitkey.nekokan.dyndns.info/cmds.htm#RANDOM).
      * @details If true, the randomSequence property can be used to recreate
      * the same chart.
      */
@@ -138,7 +169,7 @@ class ChartData : public QObject
      * @details If the chart uses
      * [#RANDOM](https://hitkey.nekokan.dyndns.info/cmds.htm#RANDOM),
      * this property provides the sequence of random values used to determine
-     * the note order. If the chart does not use randomization,
+     * the contents of the chart. If the chart does not use randomization,
      * this list will be empty.
      */
     Q_PROPERTY(QList<qint64> randomSequence READ getRandomSequence CONSTANT)
@@ -146,8 +177,6 @@ class ChartData : public QObject
      * @brief The keymode of the chart, i.e. how many keys/columns it has.
      * If the DP option "Battle" is enabled, an SP chart will have 14 keys
      * regardless, so pay attention to that.
-     * @warning K5 and K10 are unimplemented and treated as K7 and K14,
-     * respectively.
      * @see Keymode
      */
     Q_PROPERTY(Keymode keymode READ getKeymode CONSTANT)
@@ -176,6 +205,45 @@ class ChartData : public QObject
      * @details The average BPM is the time-weighted average BPM of the chart.
      */
     Q_PROPERTY(double avgBpm READ getAvgBpm CONSTANT)
+    /**
+     * @brief The peak density of the chart.
+     * @details The maximum note density within any time window.
+     */
+    Q_PROPERTY(double peakDensity READ getPeakDensity CONSTANT)
+    /**
+     * @brief The average density of the chart.
+     * @details The average note density throughout the chart.
+     */
+    Q_PROPERTY(double avgDensity READ getAvgDensity CONSTANT)
+    /**
+     * @brief The ending density of the chart.
+     * @details The note density at the end of the chart.
+     */
+    Q_PROPERTY(double endDensity READ getEndDensity CONSTANT)
+    /**
+     * @brief The histogram data representing the distribution of notes,
+     * grouped by note type.
+     * @details Each sublist represents a different note type.
+     * @see HistogramNoteType
+     */
+    Q_PROPERTY(
+      QList<QList<qint64>> histogramData READ getHistogramData CONSTANT)
+    /**
+     * @brief The list of BPM changes in the chart.
+     */
+    Q_PROPERTY(QList<BpmChange> bpmChanges READ getBpmChanges CONSTANT)
+    /**
+     * @brief The game version where the chart was parsed.
+     */
+    Q_PROPERTY(quint64 gameVersion READ getGameVersion CONSTANT)
+    /**
+     * @brief The timing windows for the chart based on its rank.
+     * @details Returns a list of maps, each with "judgement" (string) and
+     * "earlyNs"/"lateNs" (qint64) keys. The list is ordered from widest
+     * window (Bad) to narrowest (Perfect). Window values are symmetric
+     * half-widths in nanoseconds. Based on LR2 timing window specification.
+     */
+    Q_PROPERTY(QVariantList timingWindows READ getTimingWindows CONSTANT)
 
   public:
     ChartData(QString title,
@@ -186,14 +254,16 @@ class ChartData : public QObject
               QString stageFile,
               QString banner,
               QString backBmp,
-              int rank,
+              double rank,
               double total,
               int playLevel,
               int difficulty,
               bool isRandom,
               QList<qint64> randomSequence,
               int normalNoteCount,
+              int scratchCount,
               int lnCount,
+              int bssCount,
               int mineCount,
               int64_t length,
               double initialBpm,
@@ -201,11 +271,17 @@ class ChartData : public QObject
               double minBpm,
               double mainBpm,
               double avgBpm,
+              double peakDensity,
+              double avgDensity,
+              double endDensity,
               QString path,
               int64_t directory,
               QString sha256,
               QString md5,
               Keymode keymode,
+              QList<QList<qint64>> histogramData,
+              QList<BpmChange> bpmChanges,
+              quint64 gameVersion,
               QObject* parent = nullptr);
 
     [[nodiscard]] auto getTitle() const -> const QString&;
@@ -217,7 +293,9 @@ class ChartData : public QObject
     [[nodiscard]] auto getBanner() const -> const QString&;
     [[nodiscard]] auto getBackBmp() const -> const QString&;
     [[nodiscard]] auto getNormalNoteCount() const -> int;
+    [[nodiscard]] auto getScratchCount() const -> int;
     [[nodiscard]] auto getLnCount() const -> int;
+    [[nodiscard]] auto getBssCount() const -> int;
     [[nodiscard]] auto getMineCount() const -> int;
     [[nodiscard]] auto getLength() const -> int64_t;
     [[nodiscard]] auto getInitialBpm() const -> double;
@@ -225,8 +303,11 @@ class ChartData : public QObject
     [[nodiscard]] auto getMinBpm() const -> double;
     [[nodiscard]] auto getMainBpm() const -> double;
     [[nodiscard]] auto getAvgBpm() const -> double;
+    [[nodiscard]] auto getPeakDensity() const -> double;
+    [[nodiscard]] auto getAvgDensity() const -> double;
+    [[nodiscard]] auto getEndDensity() const -> double;
     [[nodiscard]] auto getPath() const -> QString;
-    [[nodiscard]] auto getRank() const -> int;
+    [[nodiscard]] auto getRank() const -> double;
     [[nodiscard]] auto getTotal() const -> double;
     [[nodiscard]] auto getPlayLevel() const -> int;
     [[nodiscard]] auto getDifficulty() const -> int;
@@ -237,6 +318,11 @@ class ChartData : public QObject
     [[nodiscard]] auto getKeymode() const -> Keymode;
     [[nodiscard]] auto getDirectory() const -> QString;
     [[nodiscard]] auto getChartDirectory() const -> QString;
+    [[nodiscard]] auto getHistogramData() -> QList<QList<qint64>>&;
+    [[nodiscard]] auto getBpmChanges() -> QList<BpmChange>&;
+    [[nodiscard]] auto getGameVersion() const -> quint64;
+    [[nodiscard]] auto getTimingWindows() const -> QVariantList;
+    [[nodiscard]] auto getTimingWindowsHash() const -> QHash<Judgement, QPair<qint64, qint64>>;
 
     auto clone() const -> std::unique_ptr<ChartData>;
 
@@ -258,7 +344,9 @@ class ChartData : public QObject
         int isRandom;
         std::string randomSequence;
         int normalNoteCount;
+        int scratchCount;
         int lnCount;
+        int bssCount;
         int mineCount;
         int64_t length;
         double initialBpm;
@@ -266,15 +354,22 @@ class ChartData : public QObject
         double minBpm;
         double mainBpm;
         double avgBpm;
+        double peakDensity;
+        double avgDensity;
+        double endDensity;
         std::string path;
         int64_t directory;
         std::string sha256;
         std::string md5;
         int keymode;
+        int64_t gameVersion;
+        std::string bpmChanges;
+        std::string histogramData;
     };
 
     auto save(db::SqliteCppDb& db) const -> void;
     static auto load(const DTO& chartDataDto) -> std::unique_ptr<ChartData>;
+    auto toJson() const -> QJsonObject;
 
   private:
     QString title;
@@ -287,13 +382,15 @@ class ChartData : public QObject
     QString banner;
     QString backBmp;
     QList<qint64> randomSequence;
-    int rank;
+    double rank;
     double total;
     int playLevel;
     int difficulty;
     bool isRandom;
     int normalNoteCount;
+    int scratchCount;
     int lnCount;
+    int bssCount;
     int mineCount;
     int64_t length;
     double initialBpm;
@@ -301,11 +398,17 @@ class ChartData : public QObject
     double minBpm;
     double mainBpm;
     double avgBpm;
+    double peakDensity;
+    double avgDensity;
+    double endDensity;
     QString path;
     int64_t directory;
     QString sha256;
     QString md5;
     Keymode keymode;
+    quint64 gameVersion;
+    QList<QList<qint64>> histogramData;
+    QList<BpmChange> bpmChanges;
 };
 
 auto

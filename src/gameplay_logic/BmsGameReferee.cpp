@@ -5,14 +5,32 @@
 #include <algorithm>
 #include <ranges>
 #include "BmsGameReferee.h"
+
+namespace {
+
+auto
+keyToGameplayColumn(input::BmsKey key) -> int
+{
+    switch (key) {
+        case input::BmsKey::Col1sDown:
+            return static_cast<int>(input::BmsKey::Col1sUp);
+        case input::BmsKey::Col2sDown:
+            return static_cast<int>(input::BmsKey::Col2sUp);
+        default:
+            return static_cast<int>(key);
+    }
+}
+
+}
+
 gameplay_logic::BmsGameReferee::BmsGameReferee(
   std::array<std::vector<charts::BmsNotesData::Note>,
              charts::BmsNotesData::columnNumber> notes,
-  const std::vector<std::pair<charts::BmsNotesData::Time, uint16_t>>& bgmNotes,
-  std::vector<std::pair<charts::BmsNotesData::Time, double>> bpmChanges,
+  const std::vector<std::pair<charts::BmsNotesData::Time, uint64_t>>& bgmNotes,
+  std::vector<charts::BmsNotesData::BpmChangeValues> bpmChanges,
   std::shared_ptr<sounds::Sound> mineHitSound,
   BmsLiveScore* score,
-  std::unordered_map<uint16_t, std::shared_ptr<sounds::Sound>> sounds,
+  std::unordered_map<uint64_t, std::shared_ptr<sounds::Sound>> sounds,
   rules::HitRules hitRules)
   : bpmChanges(std::move(bpmChanges))
   , sounds(std::move(sounds))
@@ -101,6 +119,9 @@ gameplay_logic::BmsGameReferee::update(std::chrono::nanoseconds offsetFromStart,
 {
     if (lastUpdate) {
         hitRules.disableSound();
+        for (const auto& sound : sounds | std::views::values) {
+            sound->stop();
+        }
         currentBgms = {};
     }
     auto events = std::vector<HitEvent>{};
@@ -135,14 +156,14 @@ gameplay_logic::BmsGameReferee::update(std::chrono::nanoseconds offsetFromStart,
 }
 auto
 gameplay_logic::BmsGameReferee::getBpm(std::chrono::nanoseconds offsetFromStart)
-  const -> std::pair<charts::BmsNotesData::Time, double>
+  const -> charts::BmsNotesData::BpmChangeValues
 {
     auto bpmChange = std::upper_bound(
       bpmChanges.begin(),
       bpmChanges.end(),
       offsetFromStart,
       [](const std::chrono::nanoseconds& offset, const auto& change) {
-          return offset < change.first.timestamp;
+          return offset < change.timestamp.timestamp;
       });
     if (bpmChange == bpmChanges.begin()) {
         return *bpmChange;
@@ -155,39 +176,41 @@ gameplay_logic::BmsGameReferee::passPressed(
   std::chrono::nanoseconds offsetFromStart,
   input::BmsKey key) -> void
 {
-    if (key == input::BmsKey::Col1sDown) {
-        key = input::BmsKey::Col1sUp;
+    const auto keyIndex = static_cast<int>(key);
+    if (keyIndex < 0 || keyIndex >= inputKeyCount) {
+        return;
     }
-    if (key == input::BmsKey::Col2sDown) {
-        key = input::BmsKey::Col2sUp;
-    }
-    auto columnIndex = static_cast<int>(key);
+    auto columnIndex = keyToGameplayColumn(key);
     if (columnIndex < 0 || columnIndex >= charts::BmsNotesData::columnNumber) {
         return;
     }
-    if (pressedState[columnIndex]) {
+    if (pressedKeys[keyIndex]) {
         return;
     }
-    pressedState[columnIndex] = true;
+    pressedKeys[keyIndex] = true;
+    pressedState[columnIndex]++;
     for (const auto& hit :
-         hitRules.press(notes[columnIndex], columnIndex, offsetFromStart)) {
+         hitRules.press(notes[columnIndex], columnIndex, offsetFromStart, key)) {
         score->addHit(hit);
     }
 }
 auto
 gameplay_logic::BmsGameReferee::getPosition(
-  std::pair<charts::BmsNotesData::Time, double> bpmChange,
-  std::chrono::nanoseconds offsetFromStart) -> Position
+  charts::BmsNotesData::BpmChangeValues bpmChange,
+  std::chrono::nanoseconds offsetFromStart) -> PositionInfo
 {
-    auto bpm = bpmChange.second;
-    auto bpmChangeTime = bpmChange.first.timestamp;
-    auto bpmChangePosition = bpmChange.first.position;
+    auto bpm = bpmChange.bpm;
+    auto bpmChangeTime = bpmChange.timestamp.timestamp;
+    auto bpmChangePosition = bpmChange.timestamp.position;
+    auto bpmChangeBeatPosition = bpmChange.timestamp.beatPosition;
     auto bpmChangeOffset = offsetFromStart - bpmChangeTime;
     auto bpmChangeOffsetSeconds =
       std::chrono::duration_cast<std::chrono::duration<double>>(
         bpmChangeOffset);
     auto bpmChangeOffsetBeats = bpmChangeOffsetSeconds.count() * bpm / 60.0;
-    return bpmChangePosition + bpmChangeOffsetBeats;
+    auto bpmChangeOffsetScroll = bpmChangeOffsetBeats * bpmChange.scroll;
+    return { .position = bpmChangePosition + bpmChangeOffsetScroll,
+             .beatPosition = bpmChangeBeatPosition + bpmChangeOffsetBeats };
 }
 
 auto
@@ -195,20 +218,19 @@ gameplay_logic::BmsGameReferee::passReleased(
   std::chrono::nanoseconds offsetFromStart,
   input::BmsKey key) -> void
 {
-    if (key == input::BmsKey::Col1sDown) {
-        key = input::BmsKey::Col1sUp;
+    const auto keyIndex = static_cast<int>(key);
+    if (keyIndex < 0 || keyIndex >= inputKeyCount) {
+        return;
     }
-    if (key == input::BmsKey::Col2sDown) {
-        key = input::BmsKey::Col2sUp;
-    }
-    auto columnIndex = static_cast<int>(key);
+    auto columnIndex = keyToGameplayColumn(key);
     if (columnIndex < 0 || columnIndex >= charts::BmsNotesData::columnNumber) {
         return;
     }
-    if (!pressedState[columnIndex]) {
+    if (!pressedKeys[keyIndex]) {
         return;
     }
-    pressedState[columnIndex] = false;
+    pressedKeys[keyIndex] = false;
+    pressedState[columnIndex] = std::max(0, pressedState[columnIndex] - 1);
     score->addHit(
-      hitRules.release(notes[columnIndex], columnIndex, offsetFromStart));
+      hitRules.release(notes[columnIndex], columnIndex, offsetFromStart, key));
 }

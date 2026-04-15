@@ -8,8 +8,11 @@
 #include "gameplay_logic/ChartRunner.h"
 #include "support/QStringToPath.h"
 #include "magic_enum/magic_enum.hpp"
+#include "gameplay_logic/Judgement.h"
 #include <QDir>
 #include "gameplay_logic/CourseRunner.h"
+#include "support/TimingWindowsFromHash.h"
+
 #include <ranges>
 
 #include <spdlog/spdlog.h>
@@ -20,46 +23,129 @@ auto
 ChartLoader::createChart(
   resource_managers::Profile* player1,
   bool player1AutoPlay,
+  bool player1Replay,
   gameplay_logic::BmsScore* replayedScore1,
   resource_managers::Profile* player2,
   bool player2AutoPlay,
+  bool player2Replay,
   gameplay_logic::BmsScore* replayedScore2,
   resource_managers::ChartDataFactory::ChartComponents chartComponents) const
   -> std::unique_ptr<gameplay_logic::ChartRunner>
 {
-    if (isDp(chartComponents.chartData->getKeymode()) && player1 && player2) {
-        spdlog::error("Can't launch DP for two players");
-        return nullptr;
+    if (isDp(chartComponents.chartData->getKeymode()) && player2) {
+        player2 = nullptr;
+        player2AutoPlay = false;
+        player2Replay = false;
+        replayedScore2 = nullptr;
     }
-    const auto rankInt = chartComponents.chartData->getRank();
-    const auto rank =
-      magic_enum::enum_cast<gameplay_logic::rules::BmsRank>(rankInt).value_or(
-        gameplay_logic::rules::defaultBmsRank);
     auto hitRules =
       std::vector<std::unique_ptr<gameplay_logic::rules::HitRules>>{};
-    auto timingWindows = timingWindowsFactory(rank);
+    auto timingWindows = support::timingWindowsFromHash(
+      chartComponents.chartData->getTimingWindowsHash());
     auto maxHitValue = hitValueFactory(std::chrono::nanoseconds{ 0 },
                                        gameplay_logic::Judgement::Perfect);
-    auto p1DpOptions = player2
-                         ? resource_managers::DpOptions::Off
-                         : player1->getVars()->getGeneralVars()->getDpOptions();
-    auto p1NoteOrderAlgorithm =
-      player1->getVars()->getGeneralVars()->getNoteOrderAlgorithm();
-    auto p1NoteOrderAlgorithmP2 =
-      player2 ? resource_managers::NoteOrderAlgorithm::Normal
-              : player1->getVars()->getGeneralVars()->getNoteOrderAlgorithmP2();
+    // Determine NoteOrderAlgorithm and DpOptions. Prefer values from a
+    // replayed score when available. If either player's DpOptions is
+    // Battle, disable player2 entirely.
+    auto p1NoteOrderAlgorithm = resource_managers::NoteOrderAlgorithm::Normal;
+    auto p1NoteOrderAlgorithmP2 = resource_managers::NoteOrderAlgorithm::Normal;
+    auto p1DpOptions = resource_managers::DpOptions::Off;
+    auto p1Pre130 = replayedScore1
+                      ? support::unpackVersion(
+                          replayedScore1->getResult()->getGameVersion()) <
+                          std::tuple{ 1, 3, 0 }
+                      : false;
+
+    auto p2NoteOrderAlgorithm = resource_managers::NoteOrderAlgorithm::Normal;
+    auto p2NoteOrderAlgorithmP2 = resource_managers::NoteOrderAlgorithm::Normal;
+    auto p2DpOptions = resource_managers::DpOptions::Off;
+    auto p2Pre130 = replayedScore2
+                      ? support::unpackVersion(
+                          replayedScore2->getResult()->getGameVersion()) <
+                          std::tuple{ 1, 3, 0 }
+                      : false;
+
+    if (replayedScore1) {
+        // prefer settings stored in the replay
+        p1NoteOrderAlgorithm =
+          replayedScore1->getResult()->getNoteOrderAlgorithm();
+        p1NoteOrderAlgorithmP2 =
+          replayedScore1->getResult()->getNoteOrderAlgorithmP2();
+        p1DpOptions = replayedScore1->getResult()->getDpOptions();
+    } else {
+        p1NoteOrderAlgorithm =
+          player1->getVars()->getGeneralVars()->getNoteOrderAlgorithm();
+        p1NoteOrderAlgorithmP2 =
+          player2
+            ? resource_managers::NoteOrderAlgorithm::Normal
+            : player1->getVars()->getGeneralVars()->getNoteOrderAlgorithmP2();
+        p1DpOptions = player2
+                        ? resource_managers::DpOptions::Off
+                        : player1->getVars()->getGeneralVars()->getDpOptions();
+    }
+
+    if (replayedScore2) {
+        p2NoteOrderAlgorithm =
+          replayedScore2->getResult()->getNoteOrderAlgorithm();
+        p2NoteOrderAlgorithmP2 =
+          replayedScore2->getResult()->getNoteOrderAlgorithmP2();
+        p2DpOptions = replayedScore2->getResult()->getDpOptions();
+    } else if (player2) {
+        p2NoteOrderAlgorithm =
+          player2->getVars()->getGeneralVars()->getNoteOrderAlgorithm();
+        p2NoteOrderAlgorithmP2 = resource_managers::NoteOrderAlgorithm::Normal;
+        p2DpOptions = resource_managers::DpOptions::Off;
+    }
+
+    // If either player's dp option is Battle, we must not use player2
+    if (p1DpOptions == resource_managers::DpOptions::Battle ||
+        p2DpOptions == resource_managers::DpOptions::Battle) {
+        player2 = nullptr;
+    }
+    const auto randomSeed1 = [&] {
+        if (replayedScore1) {
+            return replayedScore1->getResult()->getRandomSeed();
+        }
+        if (replayedScore2) {
+            return replayedScore2->getResult()->getRandomSeed();
+        }
+        thread_local auto rd = std::random_device{};
+        thread_local auto mt = std::mt19937_64(rd());
+        return mt();
+    }();
+    const auto getStandardGaugeNoteCount =
+      [&](resource_managers::DpOptions dpOptions) {
+          const auto multiplier =
+            dpOptions == resource_managers::DpOptions::Battle ? 2 : 1;
+          return (chartComponents.chartData->getNormalNoteCount() +
+                  chartComponents.chartData->getLnCount() +
+                  chartComponents.chartData->getBssCount() +
+                  chartComponents.chartData->getScratchCount()) *
+                 multiplier;
+      };
+    const auto player1GaugeNoteCount = getStandardGaugeNoteCount(p1DpOptions);
+
     auto player1data = resource_managers::ChartFactory::PlayerSpecificData{
         player1,
         gaugeFactory(player1,
                      chartComponents.chartData->getTotal(),
-                     chartComponents.chartData->getNormalNoteCount()),
+                     player1GaugeNoteCount),
         gameplay_logic::rules::HitRules(timingWindows, hitValueFactory),
-        replayedScore1,
+        player1Replay ? replayedScore1 : nullptr,
         p1NoteOrderAlgorithm,
         p1NoteOrderAlgorithmP2,
         p1DpOptions,
-        player1AutoPlay
+        randomSeed1,
+        player1AutoPlay,
+        p1Pre130
     };
+    const auto randomSeed2 = [&] {
+        if (replayedScore2) {
+            return replayedScore2->getResult()->getRandomSeed();
+        }
+        return randomSeed1;
+    }();
+    const auto player2GaugeNoteCount = getStandardGaugeNoteCount(p2DpOptions);
     auto player2data =
       player2
         ? std::make_optional<
@@ -67,13 +153,15 @@ ChartLoader::createChart(
             player2,
             gaugeFactory(player2,
                          chartComponents.chartData->getTotal(),
-                         chartComponents.chartData->getNormalNoteCount()),
+                         player2GaugeNoteCount),
             gameplay_logic::rules::HitRules(timingWindows, hitValueFactory),
-            replayedScore2,
-            player2->getVars()->getGeneralVars()->getNoteOrderAlgorithm(),
-            resource_managers::NoteOrderAlgorithm::Normal,
-            resource_managers::DpOptions::Off,
-            player2AutoPlay)
+            player2Replay ? replayedScore2 : nullptr,
+            p2NoteOrderAlgorithm,
+            p2NoteOrderAlgorithmP2,
+            p2DpOptions,
+            randomSeed2,
+            player2AutoPlay,
+            p2Pre130)
         : std::nullopt;
     return chartFactory->createChart(std::move(chartComponents),
                                      std::move(player1data),
@@ -85,9 +173,11 @@ template<typename Score>
 bool
 validateParams(resource_managers::Profile* player1,
                bool player1AutoPlay,
+               bool player1Replay,
                Score* score1,
                resource_managers::Profile* player2,
                bool player2AutoPlay,
+               bool player2Replay,
                Score* score2)
 {
     if (!player1) {
@@ -100,6 +190,22 @@ validateParams(resource_managers::Profile* player1,
     }
     if (!player2 && score2) {
         spdlog::error("Player 2 replay requested but player 2 is null");
+        return false;
+    }
+    if (player1Replay && score1 == nullptr) {
+        spdlog::error("Player 1 replay requested but score 1 is null");
+        return false;
+    }
+    if (player2Replay && score2 == nullptr) {
+        spdlog::error("Player 2 replay requested but score 2 is null");
+        return false;
+    }
+    if (player1Replay && player1AutoPlay) {
+        spdlog::error("Player 1 autoplay and replay both requested");
+        return false;
+    }
+    if (player2Replay && player2AutoPlay) {
+        spdlog::error("Player 2 autoplay and replay both requested");
         return false;
     }
     if constexpr (std::is_same_v<Score, gameplay_logic::BmsResultCourse>) {
@@ -132,29 +238,28 @@ validateParams(resource_managers::Profile* player1,
             }
         }
     }
-
-    if (player1AutoPlay && score1) {
-        spdlog::error("Player 1 autoplay requested but replay also provided");
-        return false;
-    }
-    if (player2AutoPlay && score2) {
-        spdlog::error("Player 2 autoplay requested but replay also provided");
-        return false;
-    }
     return true;
 }
 auto
 ChartLoader::loadChart(const QString& filename,
                        resource_managers::Profile* player1,
                        bool player1AutoPlay,
+                       bool player1Replay,
                        gameplay_logic::BmsScore* score1,
                        resource_managers::Profile* player2,
                        bool player2AutoPlay,
+                       bool player2Replay,
                        gameplay_logic::BmsScore* score2) const
   -> gameplay_logic::ChartRunner*
 {
-    if (!validateParams(
-          player1, player1AutoPlay, score1, player2, player2AutoPlay, score2)) {
+    if (!validateParams(player1,
+                        player1AutoPlay,
+                        player2Replay,
+                        score1,
+                        player2,
+                        player2AutoPlay,
+                        player2Replay,
+                        score2)) {
         return nullptr;
     }
     auto randomSequence = score1   ? score1->getResult()->getRandomSequence()
@@ -193,13 +298,20 @@ ChartLoader::loadChart(const QString& filename,
             spdlog::error("Failed to find chart path to load replay");
             return nullptr;
         }
-        auto chartComponents = chartDataFactory->loadChartData(
-          fileAbsolute, std::move(randomGenerator));
+        auto chartComponents = [&] {
+            if (fileAbsolute.extension() == ".bmson") {
+                return chartDataFactory->loadBmsonChartData(*file);
+            }
+            return chartDataFactory->loadChartData(fileAbsolute,
+                                                   std::move(randomGenerator));
+        }();
         return createChart(player1,
                            player1AutoPlay,
+                           player1Replay,
                            score1,
                            player2,
                            player2AutoPlay,
+                           player2Replay,
                            score2,
                            std::move(chartComponents))
           .release();
@@ -224,13 +336,21 @@ gameplay_logic::CourseRunner*
 ChartLoader::loadCourse(const resource_managers::Course& course,
                         resource_managers::Profile* player1,
                         bool player1AutoPlay,
+                        bool player1Replay,
                         gameplay_logic::BmsScoreCourse* score1,
                         resource_managers::Profile* player2,
                         bool player2AutoPlay,
+                        bool player2Replay,
                         gameplay_logic::BmsScoreCourse* score2) const
 {
-    if (!validateParams(
-          player1, player1AutoPlay, score1, player2, player2AutoPlay, score2)) {
+    if (!validateParams(player1,
+                        player1AutoPlay,
+                        player1Replay,
+                        score1,
+                        player2,
+                        player2AutoPlay,
+                        player2Replay,
+                        score2)) {
         return nullptr;
     }
     auto chartComponents =
@@ -286,17 +406,80 @@ ChartLoader::loadCourse(const resource_managers::Course& course,
             return nullptr;
         }
     }
-    auto p1DpOptions = player2
-                         ? resource_managers::DpOptions::Off
-                         : player1->getVars()->getGeneralVars()->getDpOptions();
-    auto p1NoteOrderAlgorithm =
-      player1->getVars()->getGeneralVars()->getNoteOrderAlgorithm();
-    auto p1NoteOrderAlgorithmP2 =
-      player2 ? resource_managers::NoteOrderAlgorithm::Normal
-              : player1->getVars()->getGeneralVars()->getNoteOrderAlgorithmP2();
-    auto p2NoteOrderAlgorithm =
-      player2 ? player2->getVars()->getGeneralVars()->getNoteOrderAlgorithm()
-              : resource_managers::NoteOrderAlgorithm::Normal;
+    // Prefer settings from a replayed course score when available.
+    auto p1NoteOrderAlgorithm = resource_managers::NoteOrderAlgorithm::Normal;
+    auto p1NoteOrderAlgorithmP2 = resource_managers::NoteOrderAlgorithm::Normal;
+    auto p1DpOptions = resource_managers::DpOptions::Off;
+    auto p1Pre130 = [&] {
+        if (score1 && !score1->getScores().isEmpty()) {
+            const auto* first = score1->getScores().first();
+            if (first) {
+                return support::unpackVersion(
+                         first->getResult()->getGameVersion()) <
+                       std::tuple{ 1, 3, 0 };
+            }
+        }
+        return false;
+    }();
+
+    auto p2NoteOrderAlgorithm = resource_managers::NoteOrderAlgorithm::Normal;
+    auto p2NoteOrderAlgorithmP2 = resource_managers::NoteOrderAlgorithm::Normal;
+    auto p2DpOptions = resource_managers::DpOptions::Off;
+    auto p2Pre130 = [&] {
+        if (score2 && !score2->getScores().isEmpty()) {
+            const auto* first = score2->getScores().first();
+            if (first) {
+                return support::unpackVersion(
+                         first->getResult()->getGameVersion()) <
+                       std::tuple{ 1, 3, 0 };
+            }
+        }
+        return false;
+    }();
+
+    if (score1 && !score1->getScores().isEmpty()) {
+        // Use the first score's result as representative for course-level
+        // playback options when a replay is provided.
+        const auto* first = score1->getScores().first();
+        if (first) {
+            p1NoteOrderAlgorithm = first->getResult()->getNoteOrderAlgorithm();
+            p1NoteOrderAlgorithmP2 =
+              first->getResult()->getNoteOrderAlgorithmP2();
+            p1DpOptions = first->getResult()->getDpOptions();
+        }
+    } else {
+        p1NoteOrderAlgorithm =
+          player1->getVars()->getGeneralVars()->getNoteOrderAlgorithm();
+        p1NoteOrderAlgorithmP2 =
+          player2
+            ? resource_managers::NoteOrderAlgorithm::Normal
+            : player1->getVars()->getGeneralVars()->getNoteOrderAlgorithmP2();
+        p1DpOptions = player2
+                        ? resource_managers::DpOptions::Off
+                        : player1->getVars()->getGeneralVars()->getDpOptions();
+    }
+
+    if (score2 && !score2->getScores().isEmpty()) {
+        const auto* first = score2->getScores().first();
+        if (first) {
+            p2NoteOrderAlgorithm = first->getResult()->getNoteOrderAlgorithm();
+            p2NoteOrderAlgorithmP2 =
+              first->getResult()->getNoteOrderAlgorithmP2();
+            p2DpOptions = first->getResult()->getDpOptions();
+        }
+    } else if (player2) {
+        p2NoteOrderAlgorithm =
+          player2->getVars()->getGeneralVars()->getNoteOrderAlgorithm();
+        p2NoteOrderAlgorithmP2 = resource_managers::NoteOrderAlgorithm::Normal;
+        p2DpOptions = resource_managers::DpOptions::Off;
+    }
+
+    // If either player's dp option is Battle, we must not use player2
+    if (p1DpOptions == resource_managers::DpOptions::Battle ||
+        p2DpOptions == resource_managers::DpOptions::Battle) {
+        player2 = nullptr;
+    }
+
     const auto mirror = course.constraints.contains("grade_mirror");
     p1NoteOrderAlgorithm =
       constrainNoteOrderAlgorithm(p1NoteOrderAlgorithm, mirror);
@@ -335,16 +518,20 @@ ChartLoader::loadCourse(const resource_managers::Course& course,
           chartComponents[index],
           player1,
           player1AutoPlay,
-          score1 ? score1->getScores().value(index, nullptr) : nullptr,
+          (player1Replay && score1) ? score1->getScores().value(index, nullptr)
+                                    : nullptr,
           player2,
           player2AutoPlay,
-          score2 ? score2->getScores().value(index, nullptr) : nullptr,
+          (player2Replay && score2) ? score2->getScores().value(index, nullptr)
+                                    : nullptr,
           gauges1,
           gauges2,
           p1NoteOrderAlgorithm,
           p1NoteOrderAlgorithmP2,
           p1DpOptions,
-          p2NoteOrderAlgorithm);
+          p2NoteOrderAlgorithm,
+          p1Pre130,
+          p2Pre130);
         previous1 = std::move(gauges1);
         previous2 = std::move(gauges2);
         index++;
@@ -435,14 +622,20 @@ ChartLoader::loadChartDataFromDb(QList<QString> md5s) const -> QVariantMap
     for (int i = 0; i < md5sToFetch.size(); i += maxVariables) {
         auto chunk = md5sToFetch.mid(i, maxVariables);
         auto statement = db->createStatement(
-          "SELECT id, title, artist, subtitle, subartist, "
-          "genre, stage_file, banner, back_bmp, rank, total, "
-          "play_level, difficulty, is_random, random_sequence, "
-          "normal_note_count, ln_count, mine_count, length, initial_bpm, "
-          "max_bpm, min_bpm, main_bpm, avg_bpm, path, directory, sha256, md5, "
-          "keymode FROM charts WHERE md5 IN (" +
+          "SELECT c.id, c.title, c.artist, c.subtitle, c.subartist, "
+          "c.genre, c.stage_file, c.banner, c.back_bmp, c.rank, c.total, "
+          "c.play_level, c.difficulty, c.is_random, c.random_sequence, "
+          "c.normal_note_count, c.scratch_count, c.ln_count, c.bss_count, "
+          "c.mine_count, c.length, c.initial_bpm, "
+          "c.max_bpm, c.min_bpm, c.main_bpm, c.avg_bpm, c.peak_density, "
+          "c.avg_density, c.end_density, c.path, c.directory, "
+          "c.sha256, c.md5, "
+          "c.keymode, c.game_version, h.bpms, h.histogram_data "
+          "FROM charts c "
+          "LEFT JOIN histogram_data h ON h.chart_id = c.id "
+          "WHERE c.md5 IN (" +
           QString("?, ").repeated(chunk.size()).chopped(2).toStdString() +
-          ")  ORDER BY title, subtitle ASC");
+          ") ORDER BY c.title, c.subtitle ASC");
 
         for (int j = 0; j < chunk.size(); ++j) {
             statement.bind(j + 1, chunk[j].toStdString());
@@ -473,8 +666,9 @@ ChartLoader::loadCourseChart(
   resource_managers::NoteOrderAlgorithm p1NoteOrderAlgorithm,
   resource_managers::NoteOrderAlgorithm p1NoteOrderAlgorithmP2,
   resource_managers::DpOptions p1DpOptions,
-  resource_managers::NoteOrderAlgorithm p2NoteOrderAlgorithm) const
-  -> std::unique_ptr<gameplay_logic::ChartRunner>
+  resource_managers::NoteOrderAlgorithm p2NoteOrderAlgorithm,
+  bool p1Pre130,
+  bool p2Pre130) const -> std::unique_ptr<gameplay_logic::ChartRunner>
 {
     const auto rankInt = chartComponents.chartData->getRank();
     const auto rank =
@@ -482,9 +676,22 @@ ChartLoader::loadCourseChart(
         gameplay_logic::rules::defaultBmsRank);
     auto hitRules =
       std::vector<std::unique_ptr<gameplay_logic::rules::HitRules>>{};
-    auto timingWindows = timingWindowsFactory(rank);
+    // Use ChartData's timing windows (new scheme) and convert to TimingWindows
+    auto timingWindows = support::timingWindowsFromHash(
+      chartComponents.chartData->getTimingWindowsHash());
     auto maxHitValue = hitValueFactory(std::chrono::nanoseconds{ 0 },
                                        gameplay_logic::Judgement::Perfect);
+    const auto randomSeed1 = [&] {
+        if (score1) {
+            return score1->getResult()->getRandomSeed();
+        }
+        if (score2) {
+            return score2->getResult()->getRandomSeed();
+        }
+        thread_local auto rd = std::random_device{};
+        thread_local auto mt = std::mt19937_64(rd());
+        return mt();
+    }();
     auto player1data = resource_managers::ChartFactory::PlayerSpecificData{
         player1,
         std::move(gauges1),
@@ -493,8 +700,16 @@ ChartLoader::loadCourseChart(
         p1NoteOrderAlgorithm,
         p1NoteOrderAlgorithmP2,
         p1DpOptions,
-        player1AutoPlay
+        randomSeed1,
+        player1AutoPlay,
+        p1Pre130
     };
+    const auto randomSeed2 = [&] {
+        if (score2) {
+            return score2->getResult()->getRandomSeed();
+        }
+        return randomSeed1;
+    }();
     auto player2data =
       player2
         ? std::make_optional<
@@ -506,7 +721,9 @@ ChartLoader::loadCourseChart(
             p2NoteOrderAlgorithm,
             resource_managers::NoteOrderAlgorithm::Normal,
             resource_managers::DpOptions::Off,
-            player2AutoPlay)
+            randomSeed2,
+            player2AutoPlay,
+            p2Pre130)
         : std::nullopt;
     return chartFactory->createChart(std::move(chartComponents),
                                      std::move(player1data),
@@ -516,21 +733,19 @@ ChartLoader::loadCourseChart(
 ChartLoader::ChartLoader(ProfileList* profileList,
                          input::InputTranslator* inputTranslator,
                          resource_managers::ChartDataFactory* chartDataFactory,
-                         TimingWindowsFactory timingWindowsFactory,
                          HitValueFactory hitValueFactory,
                          GaugeFactory gaugeFactory,
                          GaugeFactoryCourse gaugeFactoryCourse,
-                         GetChartPathFromMd5 getChartPathFromSha256,
+                         GetChartPathFromMd5 getChartPathFromMd5,
                          resource_managers::ChartFactory* chartFactory,
                          db::SqliteCppDb* db,
                          QObject* parent)
   : QObject(parent)
   , chartDataFactory(chartDataFactory)
-  , timingWindowsFactory(std::move(timingWindowsFactory))
   , hitValueFactory(std::move(hitValueFactory))
   , gaugeFactory(std::move(gaugeFactory))
   , gaugeFactoryCourse(std::move(gaugeFactoryCourse))
-  , getChartPathFromMd5(std::move(getChartPathFromSha256))
+  , getChartPathFromMd5(std::move(getChartPathFromMd5))
   , chartFactory(chartFactory)
   , profileList(profileList)
   , inputTranslator(inputTranslator)

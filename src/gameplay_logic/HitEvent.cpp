@@ -21,6 +21,7 @@ HitEvent::getColumn() const -> int
     return column;
 }
 HitEvent::HitEvent(int column,
+                   std::optional<input::BmsKey> key,
                    std::optional<int> noteIndex,
                    DeltaTime offsetFromStart,
                    std::optional<BmsPoints> points,
@@ -30,9 +31,20 @@ HitEvent::HitEvent(int column,
   , points(points)
   , noteIndex(noteIndex)
   , column(column)
+  , key(key)
   , action(action)
   , noteRemoved(noteRemoved)
 {
+}
+auto
+HitEvent::getKey() const -> int
+{
+    return key ? static_cast<int>(*key) : -1;
+}
+auto
+HitEvent::getKeyOptional() const -> std::optional<input::BmsKey>
+{
+    return key;
 }
 auto
 HitEvent::getNoteIndex() const -> int
@@ -74,7 +86,8 @@ operator<<(QDataStream& stream, const HitEvent& tap) -> QDataStream&
 {
     auto points = tap.getPoints();
     stream << static_cast<qint64>(tap.offsetFromStart) << points << tap.column
-           << tap.getNoteIndex() << tap.action << tap.noteRemoved;
+           << tap.getKey() << tap.getNoteIndex() << tap.action
+           << tap.noteRemoved;
     return stream;
 }
 auto
@@ -83,15 +96,19 @@ operator>>(QDataStream& stream, HitEvent& tap) -> QDataStream&
     qint64 offsetFromStart;
     QVariant points;
     int column;
+    int key;
     int noteIndex;
     HitEvent::Action action;
     bool noteRemoved;
-    stream >> offsetFromStart >> points >> column >> noteIndex >> action >>
+    stream >> offsetFromStart >> points >> column >> key >> noteIndex >> action >>
       noteRemoved;
     tap.offsetFromStart = offsetFromStart;
     tap.points =
       points.isNull() ? std::nullopt : std::optional(points.value<BmsPoints>());
     tap.column = column;
+    tap.key = key == -1 ? std::nullopt
+                        : std::optional<input::BmsKey>(
+                            static_cast<input::BmsKey>(key));
     tap.noteIndex = noteIndex == -1 ? std::nullopt : std::optional(noteIndex);
     tap.action = action;
     tap.noteRemoved = noteRemoved;

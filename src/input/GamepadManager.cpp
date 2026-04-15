@@ -9,7 +9,7 @@
 #include <SDL_joystick.h>
 #include <ranges>
 #include <spdlog/spdlog.h>
-#include <atomic>
+#include <QGuiApplication>
 #include <thread>
 
 namespace input {
@@ -21,16 +21,11 @@ GamepadManager::GamepadManager(QObject* parent)
         throw std::runtime_error(SDL_GetError());
     }
     // Run event loop in a dedicated thread
-    worker = std::jthread([this](std::stop_token st) { run(st); });
+    worker = std::jthread([this] { loop(); });
 }
-
-void
-GamepadManager::run(std::stop_token stop)
+GamepadManager::~GamepadManager()
 {
-    // Thread body: poll SDL and emit signals until stop is requested
-    while (!stop.stop_requested()) {
-        loop();
-    }
+    SDL_QuitSubSystem(SDL_INIT_GAMECONTROLLER | SDL_INIT_JOYSTICK);
 }
 
 void
@@ -70,16 +65,6 @@ GamepadManager::loop()
             controllers.erase(deviceEvent.which);
             gamepads.erase(deviceEvent.which);
         }
-    }
-}
-
-GamepadManager::~GamepadManager()
-{
-    SDL_QuitSubSystem(SDL_INIT_GAMECONTROLLER | SDL_INIT_JOYSTICK);
-    // Stop the worker thread first to prevent signals during teardown
-    if (worker.joinable()) {
-        worker.request_stop();
-        worker.join();
     }
 }
 

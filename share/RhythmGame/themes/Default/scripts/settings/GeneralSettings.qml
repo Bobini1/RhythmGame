@@ -36,6 +36,19 @@ Item {
                         right: parent.right
                     }
                 }
+                Choice {
+                    destination: Window.window || {}
+                    id_: "visibility"
+                    choices: [Window.Windowed, Window.FullScreen]
+                    displayStrings: qsTr("Windowed;Fullscreen").split(";")
+                    name: qsTr("Display Mode")
+                    default_: Window.Windowed
+
+                    anchors {
+                        left: parent.left
+                        right: parent.right
+                    }
+                }
                 Range {
                     destination: Rg.profileList.mainProfile.vars.generalVars
                     id_: "noteScreenTimeMillis"
@@ -310,6 +323,32 @@ Item {
                     choices: ["AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC"]
                     displayStrings: qsTr("ASSISTED EASY;EASY;NORMAL;HARD;EXHARD;FC").split(";")
                     default_: "EASY"
+
+                    anchors {
+                        left: parent.left
+                        right: parent.right
+                    }
+                }
+                Separator {
+                }
+                Choice {
+                    destination: Rg.profileList.mainProfile.vars.generalVars
+                    id_: "bgm"
+                    name: qsTr("BGM")
+                    choices: Rg.profileList.mainProfile.vars.generalVars.getAvailableBgms()
+                    default_: "Trance"
+
+                    anchors {
+                        left: parent.left
+                        right: parent.right
+                    }
+                }
+                Choice {
+                    destination: Rg.profileList.mainProfile.vars.generalVars
+                    id_: "soundset"
+                    name: qsTr("Soundset")
+                    choices: Rg.profileList.mainProfile.vars.generalVars.getAvailableSoundsets()
+                    default_: "Brook"
 
                     anchors {
                         left: parent.left

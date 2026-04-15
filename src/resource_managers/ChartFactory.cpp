@@ -96,11 +96,11 @@ loadBmpVideo(const std::filesystem::path& path) -> std::unique_ptr<QMediaPlayer>
 }
 
 auto
-loadBga(std::vector<std::pair<charts::BmsNotesData::Time, uint16_t>> bgaBase,
-        std::vector<std::pair<charts::BmsNotesData::Time, uint16_t>> bgaPoor,
-        std::vector<std::pair<charts::BmsNotesData::Time, uint16_t>> bgaLayer,
-        std::vector<std::pair<charts::BmsNotesData::Time, uint16_t>> bgaLayer2,
-        std::unordered_map<uint16_t, std::filesystem::path> bmps,
+loadBga(std::vector<std::pair<charts::BmsNotesData::Time, uint64_t>> bgaBase,
+        std::vector<std::pair<charts::BmsNotesData::Time, uint64_t>> bgaPoor,
+        std::vector<std::pair<charts::BmsNotesData::Time, uint64_t>> bgaLayer,
+        std::vector<std::pair<charts::BmsNotesData::Time, uint64_t>> bgaLayer2,
+        std::unordered_map<uint64_t, std::filesystem::path> bmps,
         QThread* thread,
         std::filesystem::path path)
   -> std::unique_ptr<qml_components::BgaContainer>
@@ -113,7 +113,7 @@ loadBga(std::vector<std::pair<charts::BmsNotesData::Time, uint16_t>> bgaBase,
             bool requested;
         };
 
-        auto requested = std::unordered_map<uint16_t, Request>{};
+        auto requested = std::unordered_map<uint64_t, Request>{};
         for (auto& bmp : bmps) {
             requested.emplace(bmp.first, Request(std::move(bmp.second), false));
         }
@@ -145,7 +145,7 @@ loadBga(std::vector<std::pair<charts::BmsNotesData::Time, uint16_t>> bgaBase,
 
         struct FrameLoadingResult
         {
-            uint16_t id;
+            uint64_t id;
             std::filesystem::path path;
             QVideoFrame* frame;
         };
@@ -168,8 +168,8 @@ loadBga(std::vector<std::pair<charts::BmsNotesData::Time, uint16_t>> bgaBase,
             });
         // create unordered_maps
         auto frames =
-          std::unordered_map<uint16_t, std::unique_ptr<QVideoFrame>>{};
-        auto videos = std::unordered_map<uint16_t, QMediaPlayer*>{};
+          std::unordered_map<uint64_t, std::unique_ptr<QVideoFrame>>{};
+        auto videos = std::unordered_map<uint64_t, QMediaPlayer*>{};
         auto nullFrames =
           std::ranges::count_if(loadedBgaFrames, [](const auto& frame) {
               return frame.frame == nullptr;
@@ -203,9 +203,10 @@ loadBga(std::vector<std::pair<charts::BmsNotesData::Time, uint16_t>> bgaBase,
             if (auto entry = frames.find(bga.second); entry != frames.end()) {
                 baseFrames.emplace_back(bga.first.timestamp,
                                         entry->second.get());
-            } else if (auto entry = videos.find(bga.second);
-                       entry != videos.end()) {
-                baseVideos.emplace_back(bga.first.timestamp, entry->second);
+            } else if (auto videoEntry = videos.find(bga.second);
+                       videoEntry != videos.end()) {
+                baseVideos.emplace_back(bga.first.timestamp,
+                                        videoEntry->second);
             } else {
                 baseFrames.emplace_back(bga.first.timestamp, nullptr);
             }
@@ -386,11 +387,35 @@ createAutoplayFromNotes(const gameplay_logic::BmsNotes& notes)
 }
 namespace {
 auto
+applyBeatorajaOrder(std::span<std::vector<charts::BmsNotesData::Note>>& notes,
+                    NoteOrderAlgorithm algorithm,
+                    uint64_t seed,
+                    bool k5) -> support::ShuffleResult
+{
+    auto originalSpan = notes;
+    auto workingNotes = notes;
+    if (k5) {
+        notes[5].swap(notes[7]);
+        workingNotes = notes.subspan(0, 6);
+    }
+
+    const auto result = support::generateBeatorajaLanePermutation(
+      workingNotes, algorithm, static_cast<int64_t>(seed));
+
+    if (k5) {
+        notes[5].swap(notes[7]);
+        notes = originalSpan;
+    }
+    return result;
+}
+
+auto
 getComponentsForPlayer(const ChartFactory::PlayerSpecificData& player,
                        const charts::BmsNotesData& notesData,
                        const gameplay_logic::ChartData& chartData,
                        const double maxHitValue,
-                       DpOptions dpOptions) -> RandomizedData
+                       DpOptions dpOptions,
+                       const bool usePre130) -> RandomizedData
 {
     auto visibleNotes = notesData.notes;
     if ((dpOptions == DpOptions::Battle && isDp(chartData.getKeymode())) ||
@@ -399,8 +424,19 @@ getComponentsForPlayer(const ChartFactory::PlayerSpecificData& player,
     }
     auto keymode = chartData.getKeymode();
     if (dpOptions == DpOptions::Battle) {
-        keymode = gameplay_logic::ChartData::Keymode::K14;
+        switch (keymode) {
+            case gameplay_logic::ChartData::Keymode::K5:
+                keymode = gameplay_logic::ChartData::Keymode::K10;
+                break;
+            case gameplay_logic::ChartData::Keymode::K7:
+                keymode = gameplay_logic::ChartData::Keymode::K14;
+                break;
+        }
     }
+    // We used to treat 5k as 7k. Reproduce that when generating replays.
+    auto randomIs5k =
+      !usePre130 && (keymode == gameplay_logic::ChartData::Keymode::K5 ||
+                     keymode == gameplay_logic::ChartData::Keymode::K10);
 
     if (dpOptions == DpOptions::Flip) {
         for (int i = 0; i < 7; i += 1) {
@@ -414,38 +450,53 @@ getComponentsForPlayer(const ChartFactory::PlayerSpecificData& player,
         }
         visibleNotes[15] = visibleNotes[7];
     }
-    thread_local auto rd = std::random_device{};
-    thread_local auto mt = std::mt19937_64(rd());
-    const auto randomSeed = mt();
     auto results = [&]() -> std::array<support::ShuffleResult, 2> {
         if (isDp(keymode)) {
             auto notes1 =
               std::span{ visibleNotes.data(), visibleNotes.size() / 2 };
-            auto result1 = support::generatePermutation(
-              notes1,
-              player.noteOrderAlgorithm,
-              player.replayedScore
-                ? player.replayedScore->getResult()->getRandomSeed()
-                : randomSeed);
+            auto result1 =
+              support::isBeatorajaNoteOrderAlgorithm(player.noteOrderAlgorithm)
+                ? applyBeatorajaOrder(notes1,
+                                      player.noteOrderAlgorithm,
+                                      player.randomSeed,
+                                      randomIs5k)
+                : support::generatePermutation(notes1,
+                                               player.noteOrderAlgorithm,
+                                               player.randomSeed,
+                                               randomIs5k,
+                                               usePre130);
             auto notes2 =
               std::span{ visibleNotes.data() + visibleNotes.size() / 2,
                          visibleNotes.size() / 2 };
-            auto result2 = support::generatePermutation(
-              notes2, player.noteOrderAlgorithmP2, result1.seed + 1);
+            auto result2 =
+              support::isBeatorajaNoteOrderAlgorithm(
+                player.noteOrderAlgorithmP2)
+                ? applyBeatorajaOrder(notes2,
+                                      player.noteOrderAlgorithmP2,
+                                      result1.seed + 1,
+                                      randomIs5k)
+                : support::generatePermutation(notes2,
+                                               player.noteOrderAlgorithmP2,
+                                               result1.seed + 1,
+                                               randomIs5k,
+                                               usePre130);
             return { result1, result2 };
         }
         auto notes1 = std::span{ visibleNotes.data(), visibleNotes.size() / 2 };
-        return { support::generatePermutation(
-                   notes1,
-                   player.noteOrderAlgorithm,
-                   player.replayedScore
-                     ? player.replayedScore->getResult()->getRandomSeed()
-                     : randomSeed),
+        return { support::isBeatorajaNoteOrderAlgorithm(
+                   player.noteOrderAlgorithm)
+                   ? applyBeatorajaOrder(notes1,
+                                         player.noteOrderAlgorithm,
+                                         player.randomSeed,
+                                         randomIs5k)
+                   : support::generatePermutation(notes1,
+                                                  player.noteOrderAlgorithm,
+                                                  player.randomSeed,
+                                                  randomIs5k,
+                                                  usePre130),
                  support::ShuffleResult{} };
     }();
-    // TODO: Simplify this. Don't convert bpmChanges twice for two players.
-    auto notes = ChartDataFactory::makeNotes(
-      visibleNotes, notesData.bpmChanges, notesData.barLines);
+    auto notes = ChartDataFactory::makeNotes(visibleNotes, notesData.barLines);
     auto guid = [&] {
         if (player.replayedScore) {
             return player.replayedScore->getResult()->getGuid();
@@ -461,9 +512,13 @@ getComponentsForPlayer(const ChartFactory::PlayerSpecificData& player,
     }
     auto score = std::make_unique<gameplay_logic::BmsLiveScore>(
       chartData.getNormalNoteCount() * multiplier,
+      chartData.getScratchCount() * multiplier,
       chartData.getLnCount() * multiplier,
+      chartData.getBssCount() * multiplier,
       chartData.getMineCount() * multiplier,
-      (chartData.getLnCount() + chartData.getNormalNoteCount()) * multiplier,
+      (chartData.getLnCount() + chartData.getNormalNoteCount() +
+       chartData.getBssCount() + chartData.getScratchCount()) *
+        multiplier,
       maxHitValue,
       player.gauges,
       chartData.getRandomSequence(),
@@ -475,7 +530,14 @@ getComponentsForPlayer(const ChartFactory::PlayerSpecificData& player,
       chartData.getLength(),
       chartData.getSha256(),
       chartData.getMd5(),
-      guid);
+      keymode,
+      player.replayedScore != nullptr
+        ? player.replayedScore->getResult()->getUnixTimestamp()
+        : 0,
+      guid,
+      player.replayedScore != nullptr
+        ? player.replayedScore->getSubmissionState()
+        : gameplay_logic::BmsScore::SubmissionState::NotSubmitted);
     auto notesStates = QList<gameplay_logic::ColumnState*>{};
     for (const auto& column : notes->getNotes()) {
         auto notes = QList<gameplay_logic::NoteState>{};
@@ -526,18 +588,39 @@ ChartFactory::createChart(ChartDataFactory::ChartComponents chartComponents,
 {
     auto& [chartData, notesData, wavs, bmps] = chartComponents;
     auto path = support::qStringToPath(chartData->getPath()).parent_path();
-    auto components1 = getComponentsForPlayer(
-      player1, notesData, *chartData, maxHitValue, player1.dpOptions);
+    auto components1 = getComponentsForPlayer(player1,
+                                              notesData,
+                                              *chartData,
+                                              maxHitValue,
+                                              player1.dpOptions,
+                                              player1.usePre130);
     auto components2 = player2.transform([&](auto& player) {
-        return getComponentsForPlayer(
-          player, notesData, *chartData, maxHitValue, DpOptions::Off);
+        return getComponentsForPlayer(player,
+                                      notesData,
+                                      *chartData,
+                                      maxHitValue,
+                                      DpOptions::Off,
+                                      player.usePre130);
     });
     auto keymode = chartData->getKeymode();
-    if (player1.dpOptions == DpOptions::Battle && !player2 && !isDp(keymode)) {
-        keymode = gameplay_logic::ChartData::Keymode::K14;
+    if (player1.dpOptions == DpOptions::Battle && !player2) {
+        if (keymode == gameplay_logic::ChartData::Keymode::K5) {
+            keymode = gameplay_logic::ChartData::Keymode::K10;
+        } else if (keymode == gameplay_logic::ChartData::Keymode::K7) {
+            keymode = gameplay_logic::ChartData::Keymode::K14;
+        }
     }
 
-    auto soundTask = new SoundTask(engine, path, std::move(wavs));
+    auto* soundTask = [&]() -> SoundTask* {
+        if (!notesData.bmsonSlices.empty()) {
+            return new SoundTask(engine,
+                                 path,
+                                 std::move(wavs),
+                                 std::move(notesData.bmsonSlices),
+                                 std::move(notesData.bmsonFusions));
+        }
+        return new SoundTask(engine, path, std::move(wavs));
+    }();
     soundTask->moveToThread(nullptr);
     auto bgaTask = [bgaBase = std::move(notesData.bgaBase),
                     bgaPoor = std::move(notesData.bgaPoor),
@@ -564,7 +647,7 @@ ChartFactory::createChart(ChartDataFactory::ChartComponents chartComponents,
            score = components1.score.get(),
            bpmChanges = notesData.bpmChanges,
            bgmNotes = std::move(notesData.bgmNotes)](
-            std::unordered_map<uint16_t, std::shared_ptr<sounds::Sound>>
+            std::unordered_map<uint64_t, std::shared_ptr<sounds::Sound>>
               sounds) mutable {
               std::shared_ptr<sounds::Sound> mineHitSound = nullptr;
               if (const auto sound = sounds.find(0); sound != sounds.end()) {
@@ -579,26 +662,26 @@ ChartFactory::createChart(ChartDataFactory::ChartComponents chartComponents,
         auto chartLength = getLength(*components1.notes);
         if (player1.replayedScore) {
             return new gameplay_logic::RePlayer{
-                components1.notes.release(),    components1.score.release(),
-                components1.state.release(),    player1.profile,
-                std::move(refereeFuture),       chartLength,
-                notesData.bpmChanges[0].second, player1.replayedScore,
+                components1.notes.release(), components1.score.release(),
+                components1.state.release(), player1.profile,
+                std::move(refereeFuture),    chartLength,
+                notesData.bpmChanges[0].bpm, player1.replayedScore,
             };
         }
         if (player1.autoPlay) {
             auto events = createAutoplayFromNotes(*components1.notes);
             return new gameplay_logic::AutoPlayer{
-                components1.notes.release(),    components1.score.release(),
-                components1.state.release(),    player1.profile,
-                std::move(refereeFuture),       chartLength,
-                notesData.bpmChanges[0].second, std::move(events),
+                components1.notes.release(), components1.score.release(),
+                components1.state.release(), player1.profile,
+                std::move(refereeFuture),    chartLength,
+                notesData.bpmChanges[0].bpm, std::move(events),
             };
         }
         return new gameplay_logic::Player{
-            components1.notes.release(),    components1.score.release(),
-            components1.state.release(),    player1.profile,
-            std::move(refereeFuture),       chartLength,
-            notesData.bpmChanges[0].second,
+            components1.notes.release(), components1.score.release(),
+            components1.state.release(), player1.profile,
+            std::move(refereeFuture),    chartLength,
+            notesData.bpmChanges[0].bpm,
         };
     }();
     auto player2Object =
@@ -611,7 +694,7 @@ ChartFactory::createChart(ChartDataFactory::ChartComponents chartComponents,
              score = player.score.get(),
              bpmChanges = notesData.bpmChanges,
              bgmNotes = std::move(notesData.bgmNotes)](
-              std::unordered_map<uint16_t, std::shared_ptr<sounds::Sound>>
+              std::unordered_map<uint64_t, std::shared_ptr<sounds::Sound>>
                 sounds) mutable {
                 std::shared_ptr<sounds::Sound> mineHitSound = nullptr;
                 if (const auto sound = sounds.find(0); sound != sounds.end()) {
@@ -626,26 +709,26 @@ ChartFactory::createChart(ChartDataFactory::ChartComponents chartComponents,
           auto chartLength = getLength(*player.notes);
           if (player2->replayedScore) {
               return new gameplay_logic::RePlayer{
-                  player.notes.release(),         player.score.release(),
-                  player.state.release(),         player2->profile,
-                  std::move(refereeFuture),       chartLength,
-                  notesData.bpmChanges[0].second, player2->replayedScore,
+                  player.notes.release(),      player.score.release(),
+                  player.state.release(),      player2->profile,
+                  std::move(refereeFuture),    chartLength,
+                  notesData.bpmChanges[0].bpm, player2->replayedScore,
               };
           }
           if (player2->autoPlay) {
               auto events = createAutoplayFromNotes(*player.notes);
               return new gameplay_logic::AutoPlayer{
-                  player.notes.release(),         player.score.release(),
-                  player.state.release(),         player2->profile,
-                  std::move(refereeFuture),       chartLength,
-                  notesData.bpmChanges[0].second, std::move(events),
+                  player.notes.release(),      player.score.release(),
+                  player.state.release(),      player2->profile,
+                  std::move(refereeFuture),    chartLength,
+                  notesData.bpmChanges[0].bpm, std::move(events),
               };
           }
           return new gameplay_logic::Player{
-              player.notes.release(),        player.score.release(),
-              player.state.release(),        player2->profile,
-              std::move(refereeFuture),      chartLength,
-              notesData.bpmChanges[0].second
+              player.notes.release(),     player.score.release(),
+              player.state.release(),     player2->profile,
+              std::move(refereeFuture),   chartLength,
+              notesData.bpmChanges[0].bpm
           };
       });
     QThreadPool::globalInstance()->start([soundTask] {
@@ -679,16 +762,35 @@ ChartFactory::createChart(ChartDataFactory::ChartComponents chartComponents,
 }
 SoundTask::SoundTask(sounds::AudioEngine* engine,
                      std::filesystem::path path,
-                     std::unordered_map<uint16_t, std::filesystem::path> wavs)
+                     std::unordered_map<uint64_t, std::filesystem::path> wavs)
   : path(std::move(path))
   , wavs(std::move(wavs))
   , engine(engine)
 {
 }
+SoundTask::SoundTask(
+  sounds::AudioEngine* engine,
+  std::filesystem::path path,
+  std::unordered_map<uint64_t, std::filesystem::path> channelPaths,
+  std::vector<charts::BmsNotesData::BmsonSliceInfo> slices,
+  std::unordered_map<uint64_t, std::vector<uint64_t>> fusions)
+  : path(std::move(path))
+  , wavs(std::move(channelPaths))
+  , engine(engine)
+  , bmsonSlices(std::move(slices))
+  , bmsonFusions(std::move(fusions))
+  , isBmson(true)
+{
+}
 void
 SoundTask::run()
 {
-    emit soundsLoaded(charts::loadBmsSounds(engine, wavs, path));
+    if (isBmson) {
+        emit soundsLoaded(charts::loadBmsonSounds(
+          engine, wavs, bmsonSlices, bmsonFusions, path));
+    } else {
+        emit soundsLoaded(charts::loadBmsSounds(engine, wavs, path));
+    }
 }
 ChartFactory::ChartFactory(sounds::AudioEngine* engine,
                            input::InputTranslator* inputTranslator)

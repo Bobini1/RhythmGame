@@ -1,4 +1,5 @@
 import QtQuick
+import RhythmGameQml
 
 Column {
     id: courseSongList
@@ -16,6 +17,7 @@ Column {
                 if (infos && infos.length > 0) {
                     title = infos[0].symbol + infos[0].levelName + " " + title;
                 }
+                title = title.replace(/\r\n|\n|\r/g, " ")
                 ret.push(title);
             }
             return ret;

@@ -19,25 +19,25 @@ namespace resource_managers {
 class ChartDataFactory
 {
     static auto loadFile(const QUrl& chartPath) -> std::string;
-    static auto convertToQVector(
+    static auto convertToQList(
       const std::vector<charts::BmsNotesData::Note>& column)
       -> QVector<gameplay_logic::Note>;
 
   public:
-    using RandomGenerator =
-      std::function<charts::ParsedBmsChart::RandomRange(
-        charts::ParsedBmsChart::RandomRange)>;
+    using RandomGenerator = std::function<charts::ParsedBmsChart::RandomRange(
+      charts::ParsedBmsChart::RandomRange)>;
     struct ChartComponents
     {
         std::unique_ptr<gameplay_logic::ChartData> chartData;
         charts::BmsNotesData notesData;
-        std::unordered_map<uint16_t, std::filesystem::path> wavs;
-        std::unordered_map<uint16_t, std::filesystem::path> bmps;
+        std::unordered_map<uint64_t, std::filesystem::path> wavs;
+        std::unordered_map<uint64_t, std::filesystem::path> bmps;
 
-        ChartComponents(std::unique_ptr<gameplay_logic::ChartData> chartData,
-            charts::BmsNotesData notesData,
-            std::unordered_map<uint16_t, std::filesystem::path> wavs,
-            std::unordered_map<uint16_t, std::filesystem::path> bmps);
+        ChartComponents(
+          std::unique_ptr<gameplay_logic::ChartData> chartData,
+          charts::BmsNotesData notesData,
+          std::unordered_map<uint64_t, std::filesystem::path> wavs,
+          std::unordered_map<uint64_t, std::filesystem::path> bmps);
         ChartComponents(const ChartComponents& other);
         ChartComponents(ChartComponents&& other) noexcept;
         auto operator=(const ChartComponents& other) -> ChartComponents&;
@@ -45,16 +45,44 @@ class ChartDataFactory
     };
     static auto makeNotes(
       const std::array<std::vector<charts::BmsNotesData::Note>,
-                       charts::BmsNotesData::columnNumber>&
-        notes,
-      const std::vector<std::pair<charts::BmsNotesData::Time,
-                                  double>>& bpmChanges,
+                       charts::BmsNotesData::columnNumber>& notes,
       const std::vector<charts::BmsNotesData::Time>& barLines)
       -> std::unique_ptr<gameplay_logic::BmsNotes>;
-    auto loadChartData(
+    void handleImplicitSubtitle(QString& title, QString& subtitle) const;
+    auto loadChartData(const std::filesystem::path& chartPath,
+                       RandomGenerator randomGenerator,
+                       int64_t directory = 0) const -> ChartComponents;
+    auto loadBmsonChartData(const std::filesystem::path& chartPath,
+                            int64_t directory = 0) const -> ChartComponents;
+
+  private:
+    struct ChartMetadata
+    {
+        QString title;
+        QString artist;
+        QString subtitle;
+        QString subartist;
+        QString genre;
+        QString stageFile;
+        QString banner;
+        QString backBmp;
+        double rank = 75.0;
+        double total = -1.0; // negative means "use default"
+        int playLevel = 1;
+        int difficulty = 1;
+        bool isRandom = false;
+        QList<qint64> randomSequence;
+        QString sha256;
+        QString md5;
+    };
+    static auto buildChartComponents(
+      charts::BmsNotesData calculatedNotesData,
+      ChartMetadata metadata,
+      std::unordered_map<uint64_t, std::filesystem::path> wavs,
+      std::unordered_map<uint64_t, std::filesystem::path> bmps,
       const std::filesystem::path& chartPath,
-      RandomGenerator randomGenerator,
-      int64_t directory = 0) const -> ChartComponents;
+      int64_t directory,
+      bool bmson) -> ChartComponents;
 };
 
 } // namespace resource_managers

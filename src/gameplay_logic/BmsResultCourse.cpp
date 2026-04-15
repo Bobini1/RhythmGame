@@ -94,11 +94,28 @@ gameplay_logic::BmsResultCourse::getNormalNoteCount() const -> int
 }
 
 auto
+gameplay_logic::BmsResultCourse::getScratchCount() const -> int
+{
+    return std::accumulate(
+      scores.begin(), scores.end(), 0, [](int sum, const BmsScore* score) {
+          return sum + score->getResult()->getScratchCount();
+      });
+}
+
+auto
 gameplay_logic::BmsResultCourse::getLnCount() const -> int
 {
     return std::accumulate(
       scores.begin(), scores.end(), 0, [](int sum, const BmsScore* score) {
           return sum + score->getResult()->getLnCount();
+      });
+}
+auto
+gameplay_logic::BmsResultCourse::getBssCount() const -> int
+{
+    return std::accumulate(
+      scores.begin(), scores.end(), 0, [](int sum, const BmsScore* score) {
+          return sum + score->getResult()->getBssCount();
       });
 }
 auto
@@ -257,4 +274,12 @@ gameplay_logic::BmsResultCourse::getLength() const -> int64_t
                            [](int64_t sum, const BmsScore* score) {
                                return sum + score->getResult()->getLength();
                            });
+}
+auto
+gameplay_logic::BmsResultCourse::getKeymode() const
+  -> gameplay_logic::ChartData::Keymode
+{
+    return scores.isEmpty() ? ChartData::Keymode::K7
+                            : static_cast<ChartData::Keymode>(
+                                scores.first()->getResult()->getKeymode());
 }

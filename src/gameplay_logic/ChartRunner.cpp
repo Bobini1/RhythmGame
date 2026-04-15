@@ -2,15 +2,47 @@
 // Created by bobini on 18.08.23.
 //
 
-#include <QKeyEvent>
+#include <algorithm>
 #include <spdlog/spdlog.h>
+#include <fmt/ranges.h>
 #include "ChartRunner.h"
-
-#include "resource_managers/Profile.h"
-#include "support/GeneratePermutation.h"
 
 using namespace std::chrono_literals;
 namespace gameplay_logic {
+
+namespace {
+
+constexpr auto inputMappingSize = 16;
+
+auto
+mappingKeyFor(const input::BmsKey key) -> input::BmsKey
+{
+    switch (key) {
+        case input::BmsKey::Col1sDown:
+            return input::BmsKey::Col1sUp;
+        case input::BmsKey::Col2sDown:
+            return input::BmsKey::Col2sUp;
+        default:
+            return key;
+    }
+}
+
+auto
+restoreScratchDirection(input::BmsKey mapped, const input::BmsKey original)
+  -> input::BmsKey
+{
+    if (original == input::BmsKey::Col1sDown &&
+        mapped == input::BmsKey::Col1sUp) {
+        return input::BmsKey::Col1sDown;
+    }
+    if (original == input::BmsKey::Col2sDown &&
+        mapped == input::BmsKey::Col2sUp) {
+        return input::BmsKey::Col2sDown;
+    }
+    return mapped;
+}
+
+} // namespace
 
 ChartRunner::ChartRunner(
   ChartData* chartData,
@@ -29,6 +61,12 @@ ChartRunner::ChartRunner(
     player1->setParent(this);
     if (player2 != nullptr) {
         player2->setParent(this);
+    }
+    auto p1keymode = player1->getScore()->getKeymode();
+    if (p1keymode == ChartData::Keymode::K10) {
+        inputMapping = { 0, 1, 2, 3, 4, 5, 6, 7, 14, 13, 8, 9, 10, 11, 12, 15 };
+    } else {
+        inputMapping = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
     }
     chartData->setParent(this);
     connect(&bgaFutureWatcher,
@@ -95,7 +133,22 @@ ChartRunner::passKey(input::BmsKey key,
         key == input::BmsKey::Start2 || key == input::BmsKey::Select2) {
         return;
     }
-    const auto index = playerIndexFromKey(key);
+    const auto keyIndex = static_cast<int>(mappingKeyFor(key));
+    if (keyIndex < 0 || keyIndex >= inputMapping.size()) {
+        spdlog::error("Input key {} is outside input mapping bounds {}",
+                      keyIndex,
+                      inputMapping.size());
+        return;
+    }
+    const auto mappedIndex = inputMapping[keyIndex];
+    if (mappedIndex < 0 || mappedIndex >= inputMappingSize) {
+        spdlog::error("Mapped input key {} is outside valid range",
+                      mappedIndex);
+        return;
+    }
+    auto mapped =
+      restoreScratchDirection(static_cast<input::BmsKey>(mappedIndex), key);
+    const auto index = playerIndexFromKey(mapped);
     // key pressed for a player side that is not present
     if (!isDp(chartData->getKeymode()) && index == 1 && player2 == nullptr) {
         return;
@@ -104,11 +157,11 @@ ChartRunner::passKey(input::BmsKey key,
       std::chrono::milliseconds{ time } - startTimepoint.time_since_epoch();
     auto* player =
       isDp(chartData->getKeymode()) || index == 0 ? player1 : player2;
-    key = isDp(chartData->getKeymode()) ? key : convertToP1Key(key);
+    mapped = isDp(chartData->getKeymode()) ? mapped : convertToP1Key(mapped);
     if (!isDp(chartData->getKeymode())) {
-        key = convertToP1Key(key);
+        mapped = convertToP1Key(mapped);
     }
-    player->passKey(key, eventType, offset);
+    player->passKey(mapped, eventType, offset);
 }
 
 auto
@@ -177,9 +230,9 @@ ChartRunner::finish() -> QList<BmsScore*>
                           10s,
                         /*lastUpdate=*/true);
     }
-    ret.append(player1->finish());
+    ret.push_back(player1->finish(*chartData));
     if (player2 != nullptr) {
-        ret.push_back(player2->finish());
+        ret.push_back(player2->finish(*chartData));
     }
     setStatus(Finished);
     return ret;
@@ -207,6 +260,37 @@ auto
 ChartRunner::getPlayer2() const -> Player*
 {
     return player2;
+}
+auto
+ChartRunner::getInputMapping() const -> QList<int>
+{
+    return inputMapping;
+}
+void
+ChartRunner::setInputMapping(QList<int> inputMapping)
+{
+    if (this->inputMapping == inputMapping) {
+        return;
+    }
+    if (inputMapping.size() != inputMappingSize) {
+        spdlog::error("Invalid input mapping size: {}", inputMapping.size());
+        return;
+    }
+    // validate input mapping
+    auto sortedInputMapping = inputMapping;
+    std::ranges::sort(sortedInputMapping);
+    auto expectedInputMapping = QList<int>{};
+    expectedInputMapping.reserve(inputMappingSize);
+    for (auto i = 0; i < inputMappingSize; ++i) {
+        expectedInputMapping.append(i);
+    }
+    if (sortedInputMapping != expectedInputMapping) {
+        spdlog::error("Invalid input mapping: {}",
+                      fmt::join(inputMapping, ","));
+        return;
+    }
+    this->inputMapping = inputMapping;
+    emit inputMappingChanged();
 }
 Player::Player(BmsNotes* notes,
                BmsLiveScore* score,
@@ -254,12 +338,29 @@ Player::setBpm(double newBpm)
     }
 }
 void
+Player::setScroll(double second)
+{
+    if (second != scroll) {
+        scroll = second;
+        emit scrollChanged();
+    }
+}
+void
 Player::setPosition(BmsGameReferee::Position newPosition)
 {
     if (newPosition != position) {
         const auto delta = newPosition - position;
         position = newPosition;
         emit positionChanged(delta);
+    }
+}
+void
+Player::setBeatPosition(BmsGameReferee::Position beatPosition)
+{
+    if (beatPosition != this->beatPosition) {
+        const auto delta = beatPosition - this->beatPosition;
+        this->beatPosition = beatPosition;
+        emit beatPositionChanged(delta);
     }
 }
 void
@@ -273,12 +374,17 @@ Player::update(std::chrono::nanoseconds offsetFromStart, bool lastUpdate)
             std::chrono::duration<double, std::milli>(
               profile ? profile->getVars()->getGeneralVars()->getOffset()
                       : 0.0));
-        auto bpmChange = referee->getBpm(offsetFromStart + visualOffset);
-        setBpm(bpmChange.second);
-        setPosition(
-          referee->getPosition(bpmChange, offsetFromStart + visualOffset));
+        const auto bpmChange = referee->getBpm(offsetFromStart + visualOffset);
+        setBpm(bpmChange.bpm);
+        setScroll(bpmChange.scroll);
+        auto position =
+          referee->getPosition(bpmChange, offsetFromStart + visualOffset);
+        setPosition(position.position);
+        setBeatPosition(position.beatPosition);
         if (lastUpdate) {
-            for (auto i = 0; i < charts::BmsNotesData::columnNumber; ++i) {
+            for (auto i = static_cast<int>(input::BmsKey::Col11);
+                 i <= static_cast<int>(input::BmsKey::Col2sDown);
+                 ++i) {
                 referee->passReleased(
                   std::chrono::nanoseconds{ getChartLength() } + 10s,
                   static_cast<input::BmsKey>(i));
@@ -294,16 +400,27 @@ Player::passKey(input::BmsKey key,
                 ChartRunner::EventType eventType,
                 std::chrono::nanoseconds offset)
 {
+    const auto logicalColumn = [&key] {
+        if (key == input::BmsKey::Col1sDown) {
+            return static_cast<int>(input::BmsKey::Col1sUp);
+        }
+        if (key == input::BmsKey::Col2sDown) {
+            return static_cast<int>(input::BmsKey::Col2sUp);
+        }
+        return static_cast<int>(key);
+    }();
     if (!referee || status == ChartRunner::Status::Finished) {
         if (eventType == ChartRunner::EventType::KeyPress) {
-            score->sendVisualOnlyTap({ static_cast<int>(key),
+            score->sendVisualOnlyTap({ logicalColumn,
+                                       key,
                                        std::nullopt,
                                        offset.count(),
                                        std::nullopt,
                                        HitEvent::Action::Press,
                                        /*noteRemoved=*/false });
         } else {
-            score->sendVisualOnlyRelease(HitEvent{ static_cast<int>(key),
+            score->sendVisualOnlyRelease(HitEvent{ logicalColumn,
+                                                   key,
                                                    std::nullopt,
                                                    offset.count(),
                                                    std::nullopt,
@@ -350,6 +467,11 @@ Player::getPosition() const -> double
     return position;
 }
 auto
+Player::getBeatPosition() const -> double
+{
+    return beatPosition;
+}
+auto
 Player::getElapsed() const -> int64_t
 {
     return elapsed;
@@ -377,8 +499,13 @@ Player::getBpm() const
 {
     return bpm;
 }
+double
+Player::getScroll() const
+{
+    return scroll;
+}
 auto
-Player::finish() -> BmsScore*
+Player::finish(const ChartData& chartData) -> BmsScore*
 {
     if (refereeFuture.isRunning()) {
         refereeFuture.cancel();
@@ -396,6 +523,58 @@ Player::finish() -> BmsScore*
             score->save(profilePtr->getDb());
         } catch (const std::exception& e) {
             spdlog::error("Failed to save score: {}", e.what());
+        }
+        if (profilePtr->getLoginState() ==
+              resource_managers::Profile::LoginState::LoggedIn &&
+            !score->getResult()->getGuid().isEmpty() &&
+            score->getSubmissionState() !=
+              BmsScore::SubmissionState::Submitted) {
+            score->setSubmissionState(BmsScore::SubmissionState::Submitting);
+            auto* submission = profilePtr->submitScore(*score, chartData);
+            connect(
+              submission,
+              &QNetworkReply::finished,
+              score.get(),
+              [score = score.get(), submission]() {
+                  if (submission->error() != QNetworkReply::NoError) {
+                      const auto qtError = submission->error();
+                      const auto httpStatus =
+                        submission
+                          ->attribute(QNetworkRequest::HttpStatusCodeAttribute)
+                          .toInt();
+                      const auto contentTypeHeader =
+                        submission->header(QNetworkRequest::ContentTypeHeader)
+                          .toString();
+                      const QByteArray respBody = submission->readAll();
+                      submission->deleteLater();
+                      spdlog::error(
+                        "Score upload failed: qtError={} httpStatus={} "
+                        "qtErrorStr={} contentType={} respBody={}",
+                        static_cast<int>(qtError),
+                        httpStatus,
+                        submission->errorString().toStdString(),
+                        contentTypeHeader.toStdString(),
+                        std::string(respBody.constData(), respBody.size()));
+                      if (submission
+                            ->attribute(
+                              QNetworkRequest::HttpStatusCodeAttribute)
+                            .toInt() == 409) {
+                          score->setSubmissionState(
+                            BmsScore::SubmissionState::Duplicate);
+                      } else {
+                          score->setSubmissionState(
+                            BmsScore::SubmissionState::Failed);
+                      }
+                  } else {
+                      score->setSubmissionState(
+                        BmsScore::SubmissionState::Submitted);
+                  }
+                  submission->deleteLater();
+              });
+        } else if (profilePtr->getLoginState() !=
+                     resource_managers::Profile::LoginState::LoggedIn ||
+                   score->getResult()->getGuid().isEmpty()) {
+            score->setSubmissionState(BmsScore::SubmissionState::NotSubmitting);
         }
     } else {
         spdlog::warn("Profile was deleted before saving score");
@@ -442,12 +621,16 @@ RePlayer::update(const std::chrono::nanoseconds offsetFromStart,
           std::chrono::nanoseconds{ event.getOffsetFromStart() };
         if (event.getAction() == HitEvent::Action::Press) {
             referee->update(hitOffset, lastUpdate);
-            referee->passPressed(hitOffset,
-                                 static_cast<input::BmsKey>(event.getColumn()));
+            referee->passPressed(
+              hitOffset,
+              event.getKeyOptional().value_or(
+                static_cast<input::BmsKey>(event.getColumn())));
         } else if (event.getAction() == HitEvent::Action::Release) {
             referee->update(hitOffset, lastUpdate);
             referee->passReleased(
-              hitOffset, static_cast<input::BmsKey>(event.getColumn()));
+              hitOffset,
+              event.getKeyOptional().value_or(
+                static_cast<input::BmsKey>(event.getColumn())));
         }
     }
     Player::update(offsetFromStart, lastUpdate);
@@ -495,12 +678,16 @@ AutoPlayer::update(std::chrono::nanoseconds offsetFromStart, bool lastUpdate)
           std::chrono::nanoseconds{ event.getOffsetFromStart() };
         if (event.getAction() == HitEvent::Action::Press) {
             referee->update(hitOffset, lastUpdate);
-            referee->passPressed(hitOffset,
-                                 static_cast<input::BmsKey>(event.getColumn()));
+            referee->passPressed(
+              hitOffset,
+              event.getKeyOptional().value_or(
+                static_cast<input::BmsKey>(event.getColumn())));
         } else if (event.getAction() == HitEvent::Action::Release) {
             referee->update(hitOffset, lastUpdate);
             referee->passReleased(
-              hitOffset, static_cast<input::BmsKey>(event.getColumn()));
+              hitOffset,
+              event.getKeyOptional().value_or(
+                static_cast<input::BmsKey>(event.getColumn())));
         }
     }
     Player::update(offsetFromStart, lastUpdate);

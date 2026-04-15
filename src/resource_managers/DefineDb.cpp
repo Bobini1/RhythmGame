@@ -9,6 +9,27 @@ namespace resource_managers {
 void
 defineDb(db::SqliteCppDb& db)
 {
+    db.execute("CREATE TABLE IF NOT EXISTS properties ("
+               "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+               "key TEXT NOT NULL UNIQUE,"
+               "value"
+               ");");
+
+    auto version = std::optional<std::tuple<int, int, int>>{};
+    {
+        auto versionStmt = db.createStatement(
+          "SELECT value FROM properties WHERE key = 'version';");
+        version = versionStmt.executeAndGet<int64_t>().transform(
+          [](int64_t v) { return support::unpackVersion(v); });
+    }
+    if (version && *version < std::tuple{ 1, 3, 0 }) {
+        db.execute("DROP TABLE IF EXISTS note_data;");
+        db.execute("DROP TABLE IF EXISTS histogram_data;");
+        db.execute("DROP TABLE IF EXISTS charts_fts;");
+        db.execute("DROP TABLE IF EXISTS charts;");
+        db.execute("DROP TABLE IF EXISTS parent_dir;");
+        db.execute("DROP TABLE IF EXISTS histogram_data;");
+    }
     db.execute("CREATE TABLE IF NOT EXISTS charts ("
                "id INTEGER PRIMARY KEY AUTOINCREMENT,"
                "title TEXT NOT NULL,"
@@ -19,14 +40,16 @@ defineDb(db::SqliteCppDb& db)
                "stage_file TEXT NOT NULL,"
                "banner TEXT NOT NULL,"
                "back_bmp TEXT NOT NULL,"
-               "rank INTEGER NOT NULL,"
+               "rank REAL NOT NULL,"
                "total REAL NOT NULL,"
                "play_level INTEGER NOT NULL,"
                "difficulty INTEGER NOT NULL,"
                "is_random INTEGER NOT NULL,"
                "random_sequence STRING NOT NULL,"
                "normal_note_count INTEGER NOT NULL,"
+               "scratch_count INTEGER NOT NULL,"
                "ln_count INTEGER NOT NULL,"
+               "bss_count INTEGER NOT NULL,"
                "mine_count INTEGER NOT NULL,"
                "length INTEGER NOT NULL,"
                "initial_bpm REAL NOT NULL,"
@@ -34,12 +57,16 @@ defineDb(db::SqliteCppDb& db)
                "min_bpm REAL NOT NULL,"
                "main_bpm REAL NOT NULL,"
                "avg_bpm REAL NOT NULL,"
+               "peak_density REAL NOT NULL,"
+               "avg_density REAL NOT NULL,"
+               "end_density REAL NOT NULL,"
                "path TEXT NOT NULL UNIQUE,"
                "chart_directory TEXT,"
                "directory INTEGER,"
                "sha256 TEXT NOT NULL,"
                "md5 TEXT NOT NULL,"
-               "keymode INTEGER NOT NULL"
+               "keymode INTEGER NOT NULL,"
+               "game_version INTEGER NOT NULL"
                ");");
 
     db.execute(
@@ -74,6 +101,7 @@ defineDb(db::SqliteCppDb& db)
       "new.subartist, new.genre, new.path); "
       "END;");
 
+    // unused atm (too big)
     db.execute("CREATE TABLE IF NOT EXISTS note_data ("
                "id INTEGER PRIMARY KEY AUTOINCREMENT,"
                "sha256 TEXT NOT NULL UNIQUE,"
@@ -95,17 +123,41 @@ defineDb(db::SqliteCppDb& db)
       "status INTEGER DEFAULT 0 NOT NULL" // 0 = not scanned, 1 = scanned
       ");");
 
-    db.execute("CREATE TABLE IF NOT EXISTS properties ("
-               "id INTEGER PRIMARY KEY AUTOINCREMENT,"
-               "key TEXT NOT NULL UNIQUE,"
-               "value"
-               ");");
-
     db.execute("CREATE TABLE IF NOT EXISTS preview_files ("
                "id INTEGER PRIMARY KEY AUTOINCREMENT,"
                "path TEXT NOT NULL,"
-               "directory INTEGER UNIQUE"
+               "directory TEXT NOT NULL UNIQUE"
                ");");
+
+    db.execute("CREATE TABLE IF NOT EXISTS histogram_data ("
+               "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+               "chart_id INTEGER NOT NULL UNIQUE,"
+               "bpms BLOB NOT NULL,"
+               "histogram_data BLOB NOT NULL"
+               ");");
+
+    if (version < std::tuple{ 1, 3, 6 }) {
+        db.execute("UPDATE charts SET rank = CASE rank "
+                   "WHEN 0 THEN 25 "
+                   "WHEN 1 THEN 50 "
+                   "WHEN 2 THEN 75 "
+                   "WHEN 3 THEN 100 "
+                   "ELSE 75 END WHERE path NOT LIKE '%.bmson';");
+        // changing the type to REAL
+        db.execute("ALTER TABLE charts RENAME COLUMN rank TO rank_old");
+        db.execute(
+          "ALTER TABLE charts ADD COLUMN rank REAL NOT NULL DEFAULT 75");
+        db.execute("UPDATE charts SET rank = rank_old");
+        db.execute("ALTER TABLE charts DROP COLUMN rank_old");
+    }
+
+    {
+        auto stmt = db.createStatement(
+          "INSERT OR REPLACE INTO properties (key, value) VALUES "
+          "('version', ?);");
+        stmt.bind(1, static_cast<int64_t>(support::currentVersion));
+        stmt.execute();
+    }
 
     db.execute("PRAGMA optimize;");
     db.execute("VACUUM");

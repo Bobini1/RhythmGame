@@ -6,6 +6,7 @@
     <a href="https://github.com/Bobini1/RhythmGame/blob/master/flake.nix"><img alt="Nix" src="https://img.shields.io/badge/Nix-5277C3?logo=nixos&logoColor=fff"></a>
     <br>
     <a href="https://discord.gg/bDxmuSzXBW"><img src="https://img.shields.io/discord/1410743088686829661.svg?color=7289DA&label=RhythmGame%20Community&logo=Discord"/></a>
+    <a href="https://rhythmgame.eu"><img src="https://img.shields.io/website?url=https%3A%2F%2Frhythmgame.eu&label=IR"/></a>
 </p>
 
 # RhythmGame
@@ -28,6 +29,18 @@ Contact me if you're interested, I can help you get started!
 You can use the [default theme](https://github.com/Bobini1/RhythmGame/tree/master/share/RhythmGame/themes/Default) as a
 reference.
 See the [DEV_THEME.md](DEV_THEME.md) document for more information.
+
+### Internet Ranking with Bokutachi and LR2IR support
+
+Compete with players around the world! RhythmGame supports has its own native IR server at https://rhythmgame.eu,
+but you can also submit your scores to [Bokutachi](https://boku.tachi.ac/) and see the scores from
+the [Lunatic Rave 2 Internet Ranking](http://www.dream-pro.info/~lavalse/LR2IR/search.cgi).
+
+[![Internet ranking](docs/images/ranking.png)](https://rhythmgame.eu)
+
+|                      Ranking                       |                      Online Stats                       |
+|:--------------------------------------------------:|:-------------------------------------------------------:|
+| ![In-game ranking](docs/images/ranking-ingame.png) | ![In-game ranking stats](docs/images/ranking-stats.png) |
 
 ### Rules based on Lunatic Rave 2
 

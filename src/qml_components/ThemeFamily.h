@@ -14,16 +14,22 @@ class Screen
     Q_PROPERTY(QUrl script READ getScript CONSTANT)
     Q_PROPERTY(QUrl settings READ getSettings CONSTANT)
     Q_PROPERTY(QUrl settingsScript READ getSettingsScript CONSTANT)
+    Q_PROPERTY(bool aliased READ isAliased CONSTANT)
     QUrl script;
     QUrl settings;
     QUrl settingsScript;
+    bool aliased;
 
   public:
     Screen() = default; // necessary for Qt
-    Screen(QUrl script, QUrl settings, QUrl settingsScript);
+    Screen(QUrl script,
+           QUrl settings,
+           QUrl settingsScript,
+           bool aliased = false);
     auto getScript() const -> QUrl;
     auto getSettings() const -> QUrl;
     auto getSettingsScript() const -> QUrl;
+    auto isAliased() const -> bool;
 };
 class ThemeFamily
 {
@@ -35,7 +41,7 @@ class ThemeFamily
   public:
     auto getPath() const -> QString;
     auto getScreensVariant() const -> QVariantMap;
-    auto getScreens() const -> QMap<QString, Screen>;
+    auto getScreens() const -> const QMap<QString, Screen>&;
     ThemeFamily() = default; // necessary for Qt
     ThemeFamily(QString path,
                 QMap<QString, Screen> screens,

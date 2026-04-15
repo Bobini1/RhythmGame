@@ -4,7 +4,6 @@ import QtQml
 import QtQuick.Layouts
 import RhythmGameQml
 import QtQuick.Controls
-import QtMultimedia
 import "../common/TaoQuickCustom"
 import "../common/helpers.js" as Helpers
 import "popups"
@@ -25,10 +24,27 @@ Rectangle {
         return "k" + keys + (battle ? "battle" : "");
     }
     property var popup: null
-    readonly property bool isDp: screen === "k14"
-    readonly property bool isBattle: screen === "k7battle"
+    readonly property bool isDp: screen === "k14" || screen === "k10"
+    readonly property bool isBattle: screen === "k7battle" || screen === "k5battle"
     readonly property bool isCourse: chart instanceof CourseRunner
     property var chart
+    function isPlayerScratchRightSide(player) {
+        return player?.profile?.vars?.themeVars[root.screen][root.themeName]?.scratchOnRightSide;
+    }
+    property var inputMapping: {
+        let left = [0, 1, 2, 3, 4, 5, 6, 7];
+        let right = [8, 9, 10, 11, 12, 13, 14, 15];
+        if (chart.player1.score.keymode === 5 && isPlayerScratchRightSide(chart.player1)) {
+            left = [6, 5, 0, 1, 2, 3, 4, 7];
+        }
+        if ((chart.player2 && chart.player2.score.keymode === 5 && isPlayerScratchRightSide(chart.player2)) || chart.player1.score.keymode === 10) {
+            right = [14, 13, 8, 9, 10, 11, 12, 15];
+        }
+        return left.concat(right);
+    }
+    onInputMappingChanged: {
+        chart.inputMapping = inputMapping;
+    }
     readonly property string themeName: QmlUtils.themeName
     property var scores1: []
     property var scoreWithBestPoints1: Helpers.getScoreWithBestPoints(scores1)
@@ -54,23 +70,40 @@ Rectangle {
         return p1MaxPointsNow * chart.player1.profile.vars.generalVars.targetScoreFraction;
     }
     property real targetPoints2: chart.player1.score.points
-    property var elapsed: 0
-    FrameAnimation {
-        running: targetScore1
-        onTriggered: {
-            root.elapsed = chart.player1.elapsed;
-        }
+    readonly property real targetFinalPoints1: {
+        if (isBattle) return 0;
+        if (targetScore1) return targetScore1.result.points;
+        return chart.player1.score.maxPoints * chart.player1.profile.vars.generalVars.targetScoreFraction;
     }
-
     ScoreReplayer {
         id: scoreReplayer1
         hitEvents: targetScore1?.replayData?.hitEvents
-        elapsed: root.elapsed
+    }
+    ScoreReplayer {
+        id: bestScoreReplayer1
+        hitEvents: root.scoreWithBestPoints1 ? root.scoreWithBestPoints1.replayData.hitEvents : []
+    }
+
+    AudioPlayer {
+        id: playReadySound
+        source: Rg.profileList.mainProfile.vars.generalVars.soundsetPath + "playready";
+        onPlayingChanged: {
+            if (!playing) {
+                chart.start();
+            }
+        }
     }
 
     property bool showedCourseResult: false
+    property bool shouldPlaySound: playReadySound.length !== 0 && chart.status === ChartRunner.Ready && StackView.status === StackView.Active
+    onShouldPlaySoundChanged: {
+        if (shouldPlaySound) {
+            playReadySound.play();
+        }
+    }
     StackView.onActivated: {
         escapeShortcut.nothingWasHit = true;
+        escapeShortcut.used = false;
         if (chart.status === ChartRunner.Finished) {
             if (isCourse && !showedCourseResult) {
                 showedCourseResult = true;
@@ -80,9 +113,20 @@ Rectangle {
                 Qt.callLater(() => sceneStack.pop());
             }
         } else {
+            scoreReplayer1.resetPoints();
+            bestScoreReplayer1.resetPoints();
+            if (playReadySound.length === 0) {
+                startTimer.start();
+            }
             chart.player1.profile.scoreDb.getScoresForMd5(chartData.md5).then(scores => {
                 scores1 = scores.scores[chartData.md5] || [];
             });
+        }
+    }
+    Timer {
+        id: startTimer
+        interval: 1000
+        onTriggered: {
             chart.start();
         }
     }
@@ -102,11 +146,6 @@ Rectangle {
     }
 
     color: "black"
-
-    // stops all sounds when leaving the screen
-    Component.onDestruction: {
-        chart.destroy();
-    }
 
     Timer {
         id: poorLayerTimer
@@ -155,6 +194,7 @@ Rectangle {
         themeVars: profile.vars.themeVars[root.screen][root.themeName]
         generalVars: profile.vars.generalVars
         dp: root.isDp
+        fiveKeys: chart.player1.score.keymode === 5 || chart.player1.score.keymode === 10
 
         onClosed: {
             root.popup = null;
@@ -167,6 +207,7 @@ Rectangle {
         themeVars: profile.vars.themeVars[root.screen][root.themeName]
         generalVars: profile.vars.generalVars
         dp: root.isDp
+        fiveKeys: (chart.player2 || chart.player1).score.keymode === 5 || (chart.player2 || chart.player1).score.keymode === 10
 
         onClosed: {
             root.popup = null;
@@ -232,6 +273,43 @@ Rectangle {
             root.popup = null;
         }
     }
+    ScoreGraphPopup {
+        id: scoreGraphPopup
+        readonly property Profile profile: chart.player1.profile
+        themeVars: profile.vars.themeVars[root.screen][root.themeName]
+        onClosed: {
+            root.popup = null;
+        }
+    }
+    ScoreGraphPopup {
+        id: scoreGraphPopupP2
+        readonly property Profile profile: (chart.player2 || chart.player1).profile
+        themeVars: profile.vars.themeVars[root.screen][root.themeName]
+        onClosed: {
+            root.popup = null;
+        }
+    }
+    BpmDisplayPopup {
+        id: bpmDisplayPopup
+        themeVars: root.mainProfileVars
+        onClosed: {
+            root.popup = null;
+        }
+    }
+    TitleDisplayPopup {
+        id: titleDisplayPopup
+        themeVars: root.mainProfileVars
+        onClosed: {
+            root.popup = null;
+        }
+    }
+    DifficultyDisplayPopup {
+        id: difficultyDisplayPopup
+        themeVars: root.mainProfileVars
+        onClosed: {
+            root.popup = null;
+        }
+    }
     GhostScorePopup {
         id: ghostScorePopup
 
@@ -282,6 +360,33 @@ Rectangle {
             root.popup = null;
         }
     }
+    DensityGraphPopup {
+        id: densityGraphPopup
+        themeVars: root.mainProfileVars
+
+        onClosed: {
+            root.popup = null;
+        }
+    }
+
+    HitDistributionPopup {
+        id: hitDistributionPopup
+        readonly property Profile profile: chart.player1.profile
+        themeVars: profile.vars.themeVars[root.screen][root.themeName]
+        onClosed: { root.popup = null; }
+    }
+    HitDistributionPopup {
+        id: hitDistributionPopupP2
+        readonly property Profile profile: (chart.player2 || chart.player1).profile
+        themeVars: profile.vars.themeVars[root.screen][root.themeName]
+        onClosed: { root.popup = null; }
+    }
+    // Used for the single centred hit distribution in DP (k14) mode.
+    HitDistributionPopup {
+        id: hitDistributionPopupDp
+        themeVars: root.mainProfileVars
+        onClosed: { root.popup = null; }
+    }
 
     Item {
         id: scaledRoot
@@ -313,7 +418,7 @@ Rectangle {
             readonly property var profileVars: profile.vars.themeVars[root.screen][root.themeName]
 
             height: profileVars.bgaSize
-            visible: profile.vars.generalVars.bgaOn
+            bgaVisible: profile.vars.generalVars.bgaOn
             width: profileVars.bgaSize
             x: profileVars.bgaX
             y: profileVars.bgaY
@@ -345,6 +450,7 @@ Rectangle {
                 acceptedButtons: Qt.RightButton
                 anchors.fill: parent
                 z: -1
+                enabled: root.customizeMode
 
                 onClicked: mouse => {
                     let point = mapToItem(Overlay.overlay, mouse.x, mouse.y);
@@ -355,13 +461,183 @@ Rectangle {
             }
         }
 
+        TitleDisplay {
+            id: titleDisplayItem
+            x: root.mainProfileVars.titleDisplayX
+            y: root.mainProfileVars.titleDisplayY
+            width: root.mainProfileVars.titleDisplayWidth
+            height: root.mainProfileVars.titleDisplayHeight
+            z: root.mainProfileVars.titleDisplayZ
+            contentVisible: root.mainProfileVars.titleDisplayEnabled
+            title: root.chartData.title
+            subtitle: root.chartData.subtitle
+            onXChanged: root.mainProfileVars.titleDisplayX = x
+            onYChanged: root.mainProfileVars.titleDisplayY = y
+            onWidthChanged: root.mainProfileVars.titleDisplayWidth = width
+            onHeightChanged: root.mainProfileVars.titleDisplayHeight = height
+
+            TemplateDragBorder {
+                anchors.fill: parent
+                anchors.margins: -borderMargin
+                color: "transparent"
+                visible: root.customizeMode
+            }
+            MouseArea {
+                acceptedButtons: Qt.RightButton
+                anchors.fill: parent
+                z: -1
+                enabled: root.customizeMode
+                onClicked: mouse => {
+                    let point = mapToItem(Overlay.overlay, mouse.x, mouse.y);
+                    titleDisplayPopup.setPosition(point);
+                    titleDisplayPopup.open();
+                    root.popup = titleDisplayPopup;
+                }
+            }
+        }
+
+        DifficultyDisplay {
+            id: difficultyDisplayItem
+            x: root.mainProfileVars.difficultyDisplayX
+            y: root.mainProfileVars.difficultyDisplayY
+            width: root.mainProfileVars.difficultyDisplayWidth
+            height: root.mainProfileVars.difficultyDisplayHeight
+            z: root.mainProfileVars.difficultyDisplayZ
+            contentVisible: root.mainProfileVars.difficultyDisplayEnabled
+            difficulty: root.chartData.difficulty
+            playLevel: root.chartData.playLevel
+            onXChanged: root.mainProfileVars.difficultyDisplayX = x
+            onYChanged: root.mainProfileVars.difficultyDisplayY = y
+            onWidthChanged: root.mainProfileVars.difficultyDisplayWidth = width
+            onHeightChanged: root.mainProfileVars.difficultyDisplayHeight = height
+
+            TemplateDragBorder {
+                anchors.fill: parent
+                anchors.margins: -borderMargin
+                color: "transparent"
+                visible: root.customizeMode
+            }
+            MouseArea {
+                acceptedButtons: Qt.RightButton
+                anchors.fill: parent
+                z: -1
+                enabled: root.customizeMode
+                onClicked: mouse => {
+                    let point = mapToItem(Overlay.overlay, mouse.x, mouse.y);
+                    difficultyDisplayPopup.setPosition(point);
+                    difficultyDisplayPopup.open();
+                    root.popup = difficultyDisplayPopup;
+                }
+            }
+        }
+
+        BpmDisplay {
+            id: bpmDisplayItem
+            x: root.mainProfileVars.bpmDisplayX
+            y: root.mainProfileVars.bpmDisplayY
+            width: root.mainProfileVars.bpmDisplayWidth
+            height: root.mainProfileVars.bpmDisplayHeight
+            z: root.mainProfileVars.bpmDisplayZ
+            contentVisible: root.mainProfileVars.bpmDisplayEnabled
+            currentBpm: chart.player1.bpm
+            minBpm: root.chartData.minBpm
+            maxBpm: root.chartData.maxBpm
+            onXChanged: root.mainProfileVars.bpmDisplayX = x
+            onYChanged: root.mainProfileVars.bpmDisplayY = y
+            onWidthChanged: root.mainProfileVars.bpmDisplayWidth = width
+            onHeightChanged: root.mainProfileVars.bpmDisplayHeight = height
+
+            TemplateDragBorder {
+                anchors.fill: parent
+                anchors.margins: -borderMargin
+                color: "transparent"
+                visible: root.customizeMode
+            }
+            MouseArea {
+                acceptedButtons: Qt.RightButton
+                anchors.fill: parent
+                z: -1
+                enabled: root.customizeMode
+                onClicked: mouse => {
+                    let point = mapToItem(Overlay.overlay, mouse.x, mouse.y);
+                    bpmDisplayPopup.setPosition(point);
+                    bpmDisplayPopup.open();
+                    root.popup = bpmDisplayPopup;
+                }
+            }
+        }
+
+        DensityGraph {
+            id: densityGraphItem
+            x:       root.mainProfileVars.densityGraphX
+            y:       root.mainProfileVars.densityGraphY
+            width:   root.mainProfileVars.densityGraphWidth
+            height:  root.mainProfileVars.densityGraphHeight
+            z:       root.mainProfileVars.densityGraphZ
+            contentVisible:         root.mainProfileVars.densityGraphEnabled
+            gapsEnabled:            root.mainProfileVars.densityGraphGapsEnabled
+            notesOpacity:           root.mainProfileVars.densityGraphNotesOpacity
+            bpmOpacity:             root.mainProfileVars.densityGraphBpmOpacity
+            frameOpacity:           root.mainProfileVars.densityGraphFrameOpacity
+            backgroundOpacity:      root.mainProfileVars.densityGraphBackgroundOpacity
+            bpmConnectorOpacity:    root.mainProfileVars.densityGraphBpmConnectorOpacity
+            vertical:               root.mainProfileVars.densityGraphVertical
+
+            histogramData: root.chartData.histogramData
+            bpms:          root.chartData.bpmChanges
+            mainBpm:       root.chartData.mainBpm
+            maxBpm:        root.chartData.maxBpm
+            minBpm:        root.chartData.minBpm
+            length:        root.chartData.length
+            elapsed:       chart.player1.elapsed
+            positionLineOpacity: root.mainProfileVars.densityGraphPositionLineOpacity
+
+            onXChanged:      root.mainProfileVars.densityGraphX = x
+            onYChanged:      root.mainProfileVars.densityGraphY = y
+            onWidthChanged:  root.mainProfileVars.densityGraphWidth = width
+            onHeightChanged: root.mainProfileVars.densityGraphHeight = height
+
+            TemplateDragBorder {
+                anchors.fill: parent
+                anchors.margins: -borderMargin
+                color: "transparent"
+                visible: root.customizeMode
+            }
+            MouseArea {
+                acceptedButtons: Qt.RightButton
+                anchors.fill: parent
+                z: -1
+                enabled: root.customizeMode
+                onClicked: mouse => {
+                    let point = mapToItem(Overlay.overlay, mouse.x, mouse.y);
+                    densityGraphPopup.setPosition(point);
+                    densityGraphPopup.open();
+                    root.popup = densityGraphPopup;
+                }
+            }
+        }
+
         Side {
             anchors.fill: parent
             player: chart.player1
             dpSuffix: root.isDp ? "1" : ""
             index: 0
             pointTarget: root.targetPoints1
-            columns: root.isDp || !profileVars.scratchOnRightSide ? [7, 0, 1, 2, 3, 4, 5, 6] : [0, 1, 2, 3, 4, 5, 6, 7]
+            bestFinalPoints: root.scoreWithBestPoints1 ? root.scoreWithBestPoints1.result.points : 0
+            bestMaxPoints: root.scoreWithBestPoints1 ? root.scoreWithBestPoints1.result.maxPoints : 0
+            bestPoints: bestScoreReplayer1.points
+            targetFinalPoints: root.targetFinalPoints1
+            columns: {
+                if (root.isDp) {
+                    return [7, 0, 1, 2, 3, 4, 5, 6];
+                } else {
+                    if (root.isPlayerScratchRightSide(chart.player1)) {
+                        return chart.player1.score.keymode === 7 ? [0, 1, 2, 3, 4, 5, 6, 7] : [6, 5, 0, 1, 2, 3, 4, 7];
+                    } else {
+                        return [7, 0, 1, 2, 3, 4, 5, 6];
+                    }
+                }
+            }
         }
         Loader {
             id: p2SideLoader
@@ -374,11 +650,19 @@ Rectangle {
                 mirrored: !root.isDp
                 index: 1
                 pointTarget: root.isDp ? root.targetPoints1 : root.targetPoints2
+                bestFinalPoints: root.isDp ? (root.scoreWithBestPoints1 ? root.scoreWithBestPoints1.result.points : 0) : 0
+                bestMaxPoints: root.isDp ? (root.scoreWithBestPoints1 ? root.scoreWithBestPoints1.result.maxPoints : 0) : 0
+                bestPoints: root.isDp ? bestScoreReplayer1.points : 0
+                targetFinalPoints: root.isDp ? root.targetFinalPoints1 : 0
                 columns: {
                     if (root.isDp) {
-                        return [8, 9, 10, 11, 12, 13, 14, 15];
+                        return chart.player1.score.keymode === 14 ? [8, 9, 10, 11, 12, 13, 14, 15] : [14, 13, 8, 9, 10, 11, 12, 15];
                     } else {
-                        return profileVars.scratchOnRightSide ? [0, 1, 2, 3, 4, 5, 6, 7] : [7, 0, 1, 2, 3, 4, 5, 6];
+                        if (root.isPlayerScratchRightSide(chart.player2)) {
+                            return chart.player2.score.keymode === 7 ? [0, 1, 2, 3, 4, 5, 6, 7] : [6, 5, 0, 1, 2, 3, 4, 7];
+                        } else {
+                            return [7, 0, 1, 2, 3, 4, 5, 6];
+                        }
                     }
                 }
             }
@@ -387,6 +671,10 @@ Rectangle {
     Connections {
         target: chart.player1.score
         function onHit(tap) {
+            if (targetScore1) {
+                scoreReplayer1.notifyHit(tap);
+            }
+            bestScoreReplayer1.notifyHit(tap);
             let ignoreJudgements = [Judgement.Poor, Judgement.EmptyPoor, Judgement.MineHit, Judgement.MineAvoided];
             if (!tap.points || ignoreJudgements.includes(tap.points?.judgement)) {
                 return;
@@ -405,6 +693,62 @@ Rectangle {
             escapeShortcut.nothingWasHit = false;
         }
     }
+
+
+    HitDistribution {
+        id: dpHitDistribution
+
+        visible: root.isDp
+        contentVisible: root.isDp && root.mainProfileVars.hitDistributionEnabled
+
+        x: root.mainProfileVars.hitDistributionX
+        y: root.mainProfileVars.hitDistributionY
+        width: root.mainProfileVars.hitDistributionWidth
+        height: root.mainProfileVars.hitDistributionHeight
+        z: root.mainProfileVars.hitDistributionZ
+
+        ewmaMode: root.mainProfileVars.hitDistributionEwmaMode
+        ewmaAlpha: root.mainProfileVars.hitDistributionEwmaAlpha
+        maxTrail: root.mainProfileVars.hitDistributionMaxTrail
+        vertical: root.mainProfileVars.hitDistributionVertical
+        lineColor: root.mainProfileVars.hitDistributionLineColor
+        centerLineColor: root.mainProfileVars.hitDistributionCenterLineColor
+        lineWidth: root.mainProfileVars.hitDistributionLineWidth
+        centerLineWidth: root.mainProfileVars.hitDistributionCenterLineWidth
+        backgroundOpacity: root.mainProfileVars.hitDistributionBackgroundOpacity
+
+        timingWindows: root.chartData.timingWindows
+        score: chart.player1.score
+
+        onXChanged: root.mainProfileVars.hitDistributionX = x
+        onYChanged: root.mainProfileVars.hitDistributionY = y
+        onWidthChanged: root.mainProfileVars.hitDistributionWidth = width
+        onHeightChanged: root.mainProfileVars.hitDistributionHeight = height
+
+        TemplateDragBorder {
+            anchors.fill: parent
+            anchors.margins: -borderMargin
+            color: "transparent"
+            visible: root.customizeMode
+        }
+
+        MouseArea {
+            acceptedButtons: Qt.RightButton
+            anchors.fill: parent
+            z: -1
+            enabled: root.customizeMode
+            onClicked: mouse => {
+                let point = mapToItem(Overlay.overlay, mouse.x, mouse.y);
+                hitDistributionPopupDp.setPosition(point);
+                hitDistributionPopupDp.open();
+                root.popup = hitDistributionPopupDp;
+            }
+        }
+    }
+    AudioPlayer {
+        id: playstopSound
+        source: Rg.profileList.mainProfile.vars.generalVars.soundsetPath + "playstop"
+    }
     Shortcut {
         id: escapeShortcut
         enabled: root.enabled
@@ -416,6 +760,7 @@ Rectangle {
             if (nothingWasHit) {
                 sceneStack.pop();
             } else {
+                playstopSound.play();
                 used = true;
                 let chartData = root.chartData;
                 let profile1 = chart.player1.profile;

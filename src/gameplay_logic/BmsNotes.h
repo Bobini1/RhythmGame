@@ -15,16 +15,22 @@ class Time
     Q_GADGET
     /** @brief Timestamp expressed in nanoseconds */
     Q_PROPERTY(int64_t timestamp MEMBER timestamp)
-    /** @brief Position expressed in beats */
+    /** @brief Position expressed in beats after applying scrolls */
     Q_PROPERTY(double position MEMBER position)
+    /** @brief Position expressed in beats */
+    Q_PROPERTY(double beatPosition MEMBER position)
   public:
     // Timestamp in milliseconds
     int64_t timestamp;
-    // Position in beats
+    // Position in beats after applying scrolls
     double position;
+    // Position in beats
+    double beatPosition;
     auto operator+(const Time& other) const -> Time
     {
-        return { timestamp + other.timestamp, position + other.position };
+        return { timestamp + other.timestamp,
+                 position + other.position,
+                 beatPosition + other.beatPosition };
     }
     auto operator<=>(const Time& other) const = default;
 };
@@ -49,22 +55,31 @@ class BpmChange
     Q_GADGET
     Q_PROPERTY(Time time MEMBER time)
     Q_PROPERTY(double bpm MEMBER bpm)
+    Q_PROPERTY(double scroll MEMBER scroll)
   public:
     Time time;
     double bpm;
+    double scroll;
+    BpmChange() = default;
+    BpmChange(Time time, double bpm, double scroll)
+      : time(time)
+      , bpm(bpm)
+      , scroll(scroll)
+    {
+    }
     auto operator<=>(const BpmChange& other) const = default;
 };
 
 inline auto
 operator<<(QDataStream& stream, const BpmChange& bpmChange) -> QDataStream&
 {
-    return stream << bpmChange.time << bpmChange.bpm;
+    return stream << bpmChange.time << bpmChange.bpm << bpmChange.scroll;
 }
 
 inline auto
 operator>>(QDataStream& stream, BpmChange& bpmChange) -> QDataStream&
 {
-    return stream >> bpmChange.time >> bpmChange.bpm;
+    return stream >> bpmChange.time >> bpmChange.bpm >> bpmChange.scroll;
 }
 
 /**
@@ -73,7 +88,7 @@ operator>>(QDataStream& stream, BpmChange& bpmChange) -> QDataStream&
 class Snap
 {
     Q_GADGET
-    /*
+    /**
      * @brief The position of the note in a measure, expressed in whole notes.
      */
     Q_PROPERTY(double numerator MEMBER numerator)
@@ -139,17 +154,14 @@ class BmsNotes : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(QList<QList<Note>> notes READ getNotes CONSTANT)
-    Q_PROPERTY(QList<BpmChange> bpmChanges READ getBpmChanges CONSTANT)
     Q_PROPERTY(QList<Time> barLines READ getBarLines CONSTANT)
 
     QList<QList<Note>> notes;
-    QList<BpmChange> bpmChanges;
     QList<Time> barLines;
 
   public:
     BmsNotes() = default;
     explicit BmsNotes(QList<QList<Note>> visibleNotes,
-                      QList<BpmChange> bpmChanges,
                       QList<Time> barLines,
                       QObject* parent = nullptr);
 
@@ -158,17 +170,15 @@ class BmsNotes : public QObject
     auto getNotes() const -> const QList<QList<Note>>&;
     auto getBarLines() const -> const QList<Time>&;
 
-    auto getBpmChanges() const -> const QList<BpmChange>&;
-
     friend auto operator<<(QDataStream& stream, const BmsNotes& notes)
       -> QDataStream&
     {
-        return stream << notes.notes << notes.bpmChanges << notes.barLines;
+        return stream << notes.notes << notes.barLines;
     }
 
     friend auto operator>>(QDataStream& stream, BmsNotes& notes) -> QDataStream&
     {
-        return stream >> notes.notes >> notes.bpmChanges >> notes.barLines;
+        return stream >> notes.notes >> notes.barLines;
     }
 
     static auto load(db::SqliteCppDb& db, const support::Sha256& sha256)

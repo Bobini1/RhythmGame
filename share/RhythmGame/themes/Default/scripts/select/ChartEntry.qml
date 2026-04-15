@@ -11,6 +11,7 @@ Image {
     required property var scores
     property var bestStats: Helpers.getBestStats(scores)
     property var scoreWithBestPoints: Helpers.getScoreWithBestPoints(scores)
+    property var scoreWithBestClear: Helpers.getScoreWithBestClear(scores)
     property bool scrollingText: false
     property bool isCurrentItem: false
     readonly property bool isCourse: modelData instanceof course
@@ -55,7 +56,7 @@ Image {
         srcBeforeDecimal: root.iniImagesUrl + "parts.png/s_" + getDiffColorInt(modelData.difficulty) + "_"
     }
     Image {
-        visible: modelData.lnCount > 0
+        visible: modelData.lnCount > 0 || modelData.bssCount > 0
         source: root.iniImagesUrl + "folders.png/ln"
         asynchronous: true
         anchors.horizontalCenter: parent.left
@@ -68,7 +69,8 @@ Image {
         color: (modelData instanceof ChartData || modelData instanceof course) ? "black" : "red"
         height: parent.height
         scrolling: image.isCurrentItem && image.scrollingText
-        text: (modelData.title || modelData.name || "") + (modelData.subtitle ? (" " + modelData.subtitle) : "")
+        // newlines replaced with spaces
+        text: ((modelData.title || modelData.name || "") + (modelData.subtitle ? (" " + modelData.subtitle) : "")).replace(/\r\n|\n|\r/g, " ")
         width: parent.width * 0.7
     }
     MouseArea {

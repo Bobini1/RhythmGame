@@ -61,6 +61,8 @@ class CourseRunner final : public QObject
                  CONSTANT)
     Q_PROPERTY(
       gameplay_logic::ChartData::Keymode keymode READ getKeymode CONSTANT)
+    Q_PROPERTY(QList<int> inputMapping READ getInputMapping WRITE
+                 setInputMapping NOTIFY inputMappingChanged)
     QList<ChartData*> chartDatas;
     int currentChartIndex{ 0 };
     ChartRunner::Status status{ ChartRunner::Status::Loading };
@@ -99,6 +101,8 @@ class CourseRunner final : public QObject
     auto getCoursePlayer2() const -> CoursePlayer*;
     auto getCourse() const -> const resource_managers::Course&;
     auto getKeymode() const -> ChartData::Keymode;
+    auto getInputMapping() const -> QList<int>;
+    void setInputMapping(QList<int> inputMapping);
     Q_INVOKABLE QList<BmsScore*> proceed();
     Q_INVOKABLE QList<BmsScoreCourse*> finish();
     Q_INVOKABLE void start() const;
@@ -109,6 +113,7 @@ class CourseRunner final : public QObject
     void statusChanged();
     void player1Changed();
     void player2Changed();
+    void inputMappingChanged();
 };
 
 } // namespace gameplay_logic

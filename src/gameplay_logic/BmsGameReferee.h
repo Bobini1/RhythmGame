@@ -35,12 +35,15 @@ class BmsGameReferee
       mines;
     std::vector<BgmType> bgms;
     std::span<BgmType> currentBgms;
-    std::vector<std::pair<charts::BmsNotesData::Time, double>> bpmChanges;
-    std::unordered_map<uint16_t, std::shared_ptr<sounds::Sound>> sounds;
+    std::vector<charts::BmsNotesData::BpmChangeValues> bpmChanges;
+    std::unordered_map<uint64_t, std::shared_ptr<sounds::Sound>> sounds;
     rules::HitRules hitRules;
     BmsLiveScore* score;
     std::shared_ptr<sounds::Sound> mineHitSound;
-    std::array<bool, charts::BmsNotesData::columnNumber> pressedState{};
+    static constexpr auto inputKeyCount =
+      static_cast<int>(input::BmsKey::Col2sDown) + 1;
+    std::array<bool, inputKeyCount> pressedKeys{};
+    std::array<int, charts::BmsNotesData::columnNumber> pressedState{};
 
   public:
     using Position = double;
@@ -60,12 +63,12 @@ class BmsGameReferee
     explicit BmsGameReferee(
       std::array<std::vector<charts::BmsNotesData::Note>,
                  charts::BmsNotesData::columnNumber> notes,
-      const std::vector<std::pair<charts::BmsNotesData::Time, uint16_t>>&
+      const std::vector<std::pair<charts::BmsNotesData::Time, uint64_t>>&
         bgmNotes,
-      std::vector<std::pair<charts::BmsNotesData::Time, double>> bpmChanges,
+      std::vector<charts::BmsNotesData::BpmChangeValues> bpmChanges,
       std::shared_ptr<sounds::Sound> mineHitSound,
       BmsLiveScore* score,
-      std::unordered_map<uint16_t, std::shared_ptr<sounds::Sound>> sounds,
+      std::unordered_map<uint64_t, std::shared_ptr<sounds::Sound>> sounds,
       rules::HitRules hitRules);
     /**
      * @brief Update the internal state of the referee
@@ -81,17 +84,26 @@ class BmsGameReferee
                 bool lastUpdate = false);
 
     auto getBpm(std::chrono::nanoseconds offsetFromStart) const
-      -> std::pair<charts::BmsNotesData::Time, double>;
+      -> charts::BmsNotesData::BpmChangeValues;
+
+    /**
+     *  @brief The position at which we are in the chart
+     */
+    struct PositionInfo
+    {
+        Position position;     // Expressed in beats * scroll
+        Position beatPosition; // Expressed in beats
+    };
     /**
      * @brief Get the position in the chart, expressed in beats
      * @param bpm The current BPM change (as returned by getBpm())
      * @param offsetFromStart The time offset from the start of the
      * chart
-     * @return The position in the chart, expressed in beats
+     * @return The position in the chart
      */
-    static auto getPosition(std::pair<charts::BmsNotesData::Time, double> bpm,
-                     std::chrono::nanoseconds offsetFromStart)
-      -> Position;
+    static auto getPosition(charts::BmsNotesData::BpmChangeValues bpm,
+                            std::chrono::nanoseconds offsetFromStart)
+      -> PositionInfo;
 
     /**
      * @brief Handle a key press event

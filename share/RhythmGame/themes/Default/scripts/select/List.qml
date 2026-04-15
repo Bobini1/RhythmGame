@@ -15,6 +15,9 @@ PathView {
         refreshScores();
         refreshFolderClearStats();
     }
+    Component.onDestruction: {
+        Rg.profileList?.mainProfile?.scoreDb?.cancelPending();
+    }
     function refreshScores() {
         Rg.profileList.mainProfile.scoreDb.cancelPending();
         if (historyStack[historyStack.length - 1] === "SEARCH") {
@@ -97,16 +100,41 @@ PathView {
         }
     }
 
+    property int targetIndex: 0
+
     function decrementViewIndex() {
-        currentIndex = currentIndex === 0 ? count - 1 : currentIndex - 1;
+        if (count === 0) return;
+        targetIndex = (targetIndex - 1 + count) % count;
         movingTimer.restart();
+        if (!navigationTimer.running) {
+            applyNavigation();
+        }
     }
 
     function incrementViewIndex() {
-        currentIndex = currentIndex === count - 1 ? 0 : currentIndex + 1;
+        if (count === 0) return;
+        targetIndex = (targetIndex + 1) % count;
         movingTimer.restart();
+        if (!navigationTimer.running) {
+            applyNavigation();
+        }
     }
 
+    function applyNavigation() {
+        if (currentIndex === targetIndex) return;
+        currentIndex = targetIndex;
+        navigationTimer.restart();
+    }
+
+    function resetNavigation() {
+        navigationTimer.stop();
+        targetIndex = currentIndex;
+    }
+
+    AudioPlayer {
+        id: closeFolderSound
+        source: Rg.profileList.mainProfile.vars.generalVars.soundsetPath + "f-close";
+    }
     function goBack() {
         if (historyStack.length === 1) {
             return;
@@ -128,23 +156,29 @@ PathView {
             return false;
         });
         pathView.positionViewAtIndex(idx, PathView.Center);
+        resetNavigation();
+        closeFolderSound.stop();
+        closeFolderSound.play();
     }
-
-    function goForward(item) {
+    AudioPlayer {
+        id: openFolderSound
+        source: Rg.profileList.mainProfile.vars.generalVars.soundsetPath + "f-open";
+    }
+    function goForward(item, skipSound = false) {
         if (item instanceof ChartData) {
             console.info("Opening chart " + item.path);
             if (Rg.profileList.battleActive) {
-                globalRoot.openChart(item.path, Rg.profileList.battleProfiles.player1Profile, false, null, Rg.profileList.battleProfiles.player2Profile, false, null);
+                globalRoot.openChart(item.path, Rg.profileList.battleProfiles.player1Profile, false, false, null, Rg.profileList.battleProfiles.player2Profile, false, false, null);
             } else {
-                globalRoot.openChart(item.path, Rg.profileList.mainProfile, false, null, null, false, null);
+                globalRoot.openChart(item.path, Rg.profileList.mainProfile, false, false, null, null, false, false, null);
             }
             return;
         }
         if (item instanceof course) {
             if (Rg.profileList.battleActive) {
-                globalRoot.openCourse(item, Rg.profileList.battleProfiles.player1Profile, false, null, Rg.profileList.battleProfiles.player2Profile, false, null);
+                globalRoot.openCourse(item, Rg.profileList.battleProfiles.player1Profile, false, false, null, Rg.profileList.battleProfiles.player2Profile, false, false, null);
             } else {
-                globalRoot.openCourse(item, Rg.profileList.mainProfile, false, null, null, false, null);
+                globalRoot.openCourse(item, Rg.profileList.mainProfile, false, false, null, null, false, false, null);
             }
             return;
         }
@@ -153,9 +187,13 @@ PathView {
         }
         historyStack.push(item);
         open(item);
+        if (!skipSound) {
+            openFolderSound.stop();
+            openFolderSound.play();
+        }
         pathView.positionViewAtIndex(0, PathView.Center);
+        resetNavigation();
     }
-
     function open(item) {
         let folder;
         if (item instanceof table) {
@@ -210,6 +248,7 @@ PathView {
         pathView.model = results;
         pathView.folderContents = newFolderContents;
         pathView.positionViewAtIndex(0, PathView.Center);
+        resetNavigation();
         openedFolder();
     }
 
@@ -246,6 +285,7 @@ PathView {
                 pathView.positionViewAtIndex(currentIdx, PathView.Center);
             else
                 pathView.positionViewAtIndex(0, PathView.Center);
+            resetNavigation();
         }
     }
 
@@ -256,7 +296,7 @@ PathView {
     preferredHighlightBegin: 0.5
     preferredHighlightEnd: 0.5
     snapMode: PathView.SnapToItem
-    cacheItemCount: 4
+    cacheItemCount: 16
 
     delegate: Loader {
         id: selectItemLoader
@@ -296,6 +336,7 @@ PathView {
         }
 
         readonly property var scoreWithBestPoints: "scoreWithBestPoints" in item ? item.scoreWithBestPoints : null
+        readonly property var scoreWithBestClear: "scoreWithBestClear" in item ? item.scoreWithBestClear : null
         readonly property var scores: "scores" in item ? item.scores : []
         readonly property var bestStats: "bestStats" in item ? item.bestStats : null
         readonly property bool isCurrentItem: PathView.isCurrentItem
@@ -334,7 +375,7 @@ PathView {
     }
 
     Component.onCompleted: {
-        goForward("");
+        goForward("", true);
     }
     Keys.onLeftPressed: {
         goBack();
@@ -404,7 +445,7 @@ PathView {
     }
     Input.onCol13Pressed: {
         if (current instanceof ChartData) {
-            globalRoot.openChart(songList.current.path, Rg.profileList.mainProfile, true, null, null, false, null);
+            globalRoot.openChart(songList.current.path, Rg.profileList.mainProfile, true, false, null, null, false, false, null);
         } else {
             goForward(current);
         }
@@ -419,7 +460,7 @@ PathView {
             } else if (Keys.digit4Pressed) {
                 key = 3;
             }
-            root.openReplay(key);
+            root.openReplay(key, Qt.LeftButton);
         } else {
             goForward(current);
         }
@@ -432,7 +473,7 @@ PathView {
     }
     Input.onCol23Pressed: {
         if (current instanceof ChartData) {
-            globalRoot.openChart(songList.current.path, Rg.profileList.mainProfile, true, null, null, false, null);
+            globalRoot.openChart(songList.current.path, Rg.profileList.mainProfile, true, false, null, null, false, false, null);
         } else {
             goForward(current);
         }
@@ -447,7 +488,7 @@ PathView {
             } else if (Keys.digit4Pressed) {
                 key = 3;
             }
-            root.openReplay(key);
+            root.openReplay(key, Qt.LeftButton);
         } else {
             goForward(current);
         }
@@ -457,9 +498,15 @@ PathView {
             goBack();
         }
     }
+    AudioPlayer {
+        id: scratchSound
+        source: Rg.profileList.mainProfile.vars.generalVars.soundsetPath + "scratch";
+    }
     onCurrentItemChanged: {
         scrollingTextTimer.restart();
         scrollingText = false;
+        scratchSound.stop();
+        scratchSound.play();
     }
     onFilterChanged: {
         sortOrFilterChanged();
@@ -481,6 +528,16 @@ PathView {
         id: movingTimer
 
         interval: pathView.highlightMoveDuration
+    }
+    Timer {
+        id: navigationTimer
+
+        interval: 16
+        repeat: false
+
+        onTriggered: {
+            pathView.applyNavigation();
+        }
     }
     MouseArea {
         id: mouse

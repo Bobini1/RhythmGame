@@ -44,9 +44,12 @@ struct ParsedBmsChart
         std::vector<std::vector<uint16_t>> bgaLayer;
         std::vector<std::vector<uint16_t>> bgaLayer2;
         std::vector<std::vector<uint16_t>> bgmNotes;
-        std::vector<std::vector<uint16_t>> bpmChanges;   // old-school, FF = BPM is 255
+        std::vector<std::vector<uint16_t>>
+          bpmChanges; // old-school, FF = BPM is 255
         std::vector<std::vector<uint16_t>> exBpmChanges; // new, FF = #BPMFF
         std::vector<std::vector<uint16_t>> stops;
+        std::vector<std::vector<uint16_t>> scrolls;
+        std::vector<std::vector<uint16_t>> speeds;
         std::optional<double> meter;
     };
 
@@ -65,15 +68,20 @@ struct ParsedBmsChart
         std::optional<std::string> backBmp;
         std::optional<double> bpm;
         std::optional<double> total;
-        std::optional<int> rank;
+        std::optional<double> rank;
         std::optional<int> playLevel;
         std::optional<int> difficulty;
         std::optional<uint16_t> lnObj;
         std::optional<int> lnType;
-        std::unordered_map<uint16_t, double> exBpms;
-        std::unordered_map<uint16_t, double> stops;
-        std::unordered_map<uint16_t, std::string> wavs;
-        std::unordered_map<uint16_t, std::string> bmps;
+        std::optional<int> base;
+        // we can't use maps here because we need to preserve the order of
+        // definitions for base62-base36 conversion
+        std::vector<std::pair<uint16_t, double>> exBpms;
+        std::vector<std::pair<uint16_t, double>> stops;
+        std::vector<std::pair<uint16_t, double>> scrolls;
+        std::vector<std::pair<uint16_t, double>> speeds;
+        std::vector<std::pair<uint16_t, std::string>> wavs;
+        std::vector<std::pair<uint16_t, std::string>> bmps;
         std::map<int64_t, Measure> measures;
         bool isRandom = false;
     };

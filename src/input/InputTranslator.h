@@ -198,8 +198,8 @@ class InputTranslator final : public QObject
                  getAnalogAxisConfig1 NOTIFY analogAxisConfig1Changed)
     Q_PROPERTY(input::AnalogAxisConfig* analogAxisConfig2 READ
                  getAnalogAxisConfig2 NOTIFY analogAxisConfig2Changed)
-    Q_PROPERTY(double debounceMs READ getDebounceMs WRITE setDebounceMs
-                 NOTIFY debounceMsChanged RESET resetDebounceMs)
+    Q_PROPERTY(double debounceMs READ getDebounceMs WRITE setDebounceMs NOTIFY
+                 debounceMsChanged RESET resetDebounceMs)
 
   public:
     struct Scratch
@@ -233,13 +233,13 @@ class InputTranslator final : public QObject
       axisConfig;
     QHash<Key, BmsKey> config;
     db::SqliteCppDb* db;
-    std::array<bool, magic_enum::enum_count<BmsKey>()> buttons{{}};
+    std::array<bool, magic_enum::enum_count<BmsKey>()> buttons{ {} };
     std::array<QTimer, magic_enum::enum_count<BmsKey>()> tickTimers;
-    std::array<int, magic_enum::enum_count<BmsKey>()> tickNumbers{{}};
-    std::array<TickType, magic_enum::enum_count<BmsKey>()> tickTypes{{}};
+    std::array<int, magic_enum::enum_count<BmsKey>()> tickNumbers{ {} };
+    std::array<TickType, magic_enum::enum_count<BmsKey>()> tickTypes{ {} };
     std::optional<std::pair<Gamepad, uint8_t>> scratchAxis1;
     std::optional<std::pair<Gamepad, uint8_t>> scratchAxis2;
-    std::array<uint64_t, magic_enum::enum_count<BmsKey>()> lastRelease{{}};
+    std::array<uint64_t, magic_enum::enum_count<BmsKey>()> lastRelease{ {} };
     double debounceMs = 5.0;
 
     void pressButton(BmsKey button, uint64_t time);
@@ -247,7 +247,10 @@ class InputTranslator final : public QObject
     void unpressAndUnbind(const Key& key, uint64_t time);
     void saveKeyConfig() const;
     void saveAnalogAxisConfig() const;
-    void handleAxisChange(Gamepad gamepad, Uint8 axis, int64_t time, bool analog);
+    void handleAxisChange(Gamepad gamepad,
+                          Uint8 axis,
+                          int64_t time,
+                          bool analog);
     void checkAnalogAxisStatus();
     void autoReleaseScratch(const std::pair<Gamepad, uint8_t>& scratchKey,
                             int64_t time);
@@ -257,6 +260,10 @@ class InputTranslator final : public QObject
     void handleAxis(Gamepad gamepad, Uint8 axis, double value, int64_t time);
     void handlePress(Gamepad gamepad, Uint8 button, int64_t time);
     void handleRelease(Gamepad gamepad, Uint8 button, int64_t time);
+    // Handles a single physical keyboard key event identified by its native
+    // scan code.  Called by the platform-specific input path (LL hook on
+    // Windows, CustomNotifyApp::notify on other platforms).
+    void handleKeyEvent(quint32 nativeScanCode, bool isPress, int64_t time);
 
     void loadKeyConfig();
     void connectAnalogAxisConfig(const AnalogAxisConfig& config);

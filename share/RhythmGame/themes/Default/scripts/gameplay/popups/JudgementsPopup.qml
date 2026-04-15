@@ -10,6 +10,11 @@ GameplayPopup {
     required property var themeVars
 
     model: ObjectModel {
+        BooleanOption {
+            description: qsTr("Enabled")
+            src: popup.themeVars
+            prop: "judgementsEnabled"
+        }
         ImageSelection {
             src: popup.themeVars
             propertyId: "judge"

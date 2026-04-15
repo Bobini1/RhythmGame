@@ -16,7 +16,7 @@ Shape {
         fillColor: "transparent"
         joinStyle: ShapePath.MiterJoin
         miterLimit: 10
-        startX: (1E9 + shape.history[0].offsetFromStart) / (4E9 + shape.songLength) * shape.width
+        startX: (shape.history[0].offsetFromStart) / (3E9 + shape.songLength) * shape.width
         startY: shape.height - shape.history[0].gauge / shape.maxGauge * shape.height
         strokeColor: "red"
         strokeWidth: 4
@@ -48,7 +48,7 @@ Shape {
         }
 
         PathLine {
-            x: (1E9 + modelData.offsetFromStart) / (4E9 + shape.songLength) * shape.width
+            x: (modelData.offsetFromStart) / (3E9 + shape.songLength) * shape.width
             y: shape.height - modelData.gauge / shape.maxGauge * shape.height
         }
     }

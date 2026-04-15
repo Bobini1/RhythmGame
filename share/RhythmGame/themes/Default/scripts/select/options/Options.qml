@@ -20,6 +20,30 @@ Rectangle {
     }
 
     visible: playOptions.enabled || login.enabled || targetOptions.enabled
+    property bool ready: false
+    Component.onCompleted: {
+        ready = true;
+    }
+    onVisibleChanged: {
+        if (!ready) {
+            return;
+        }
+        if (visible) {
+            optionsOpenSound.stop();
+            optionsOpenSound.play();
+        } else {
+            optionsCloseSound.stop();
+            optionsCloseSound.play();
+        }
+    }
+    AudioPlayer {
+        id: optionsOpenSound
+        source: Rg.profileList.mainProfile.vars.generalVars.soundsetPath + "o-open";
+    }
+    AudioPlayer {
+        id: optionsCloseSound
+        source: Rg.profileList.mainProfile.vars.generalVars.soundsetPath + "o-close";
+    }
 
     Item {
         id: options

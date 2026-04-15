@@ -8,6 +8,10 @@
 #include "ChartDataFactory.h"
 #include "gameplay_logic/ChartRunner.h"
 #include "input/InputTranslator.h"
+#include "charts/BmsNotesData.h"
+namespace sounds {
+class AudioEngine;
+} // namespace sounds
 namespace qml_components {
 class ProfileList;
 } // namespace qml_components
@@ -17,17 +21,29 @@ class SoundTask : public QObject
 {
     Q_OBJECT
     std::filesystem::path path;
-    std::unordered_map<uint16_t, std::filesystem::path> wavs;
+    std::unordered_map<uint64_t, std::filesystem::path> wavs;
     sounds::AudioEngine* engine;
 
+    // bmson-specific (empty for BMS)
+    std::vector<charts::BmsNotesData::BmsonSliceInfo> bmsonSlices;
+    std::unordered_map<uint64_t, std::vector<uint64_t>> bmsonFusions;
+    bool isBmson = false;
+
   public:
+    /// Constructor for BMS charts.
     SoundTask(sounds::AudioEngine* engine,
               std::filesystem::path path,
-              std::unordered_map<uint16_t, std::filesystem::path> wavs);
+              std::unordered_map<uint64_t, std::filesystem::path> wavs);
+    /// Constructor for bmson charts.
+    SoundTask(sounds::AudioEngine* engine,
+              std::filesystem::path path,
+              std::unordered_map<uint64_t, std::filesystem::path> channelPaths,
+              std::vector<charts::BmsNotesData::BmsonSliceInfo> slices,
+              std::unordered_map<uint64_t, std::vector<uint64_t>> fusions);
     void run();
   signals:
     void soundsLoaded(
-      std::unordered_map<uint16_t, std::shared_ptr<sounds::Sound>> sounds);
+      std::unordered_map<uint64_t, std::shared_ptr<sounds::Sound>> sounds);
 };
 
 class ChartFactory
@@ -45,10 +61,12 @@ class ChartFactory
         NoteOrderAlgorithm noteOrderAlgorithm;
         NoteOrderAlgorithm noteOrderAlgorithmP2;
         DpOptions dpOptions = DpOptions::Off;
+        uint64_t randomSeed;
         bool autoPlay = false;
+        bool usePre130{};
     };
     ChartFactory(sounds::AudioEngine* engine,
-                          input::InputTranslator* inputTranslator);
+                 input::InputTranslator* inputTranslator);
     auto createChart(ChartDataFactory::ChartComponents chartComponents,
                      PlayerSpecificData player1,
                      std::optional<PlayerSpecificData> player2,

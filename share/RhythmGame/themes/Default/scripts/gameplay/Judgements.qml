@@ -12,6 +12,7 @@ Item {
     required property var score
     required property string judge
     required property var columns
+    property bool contentVisible: true
 
     Timer {
         id: hidingTimer
@@ -40,7 +41,7 @@ Item {
 
             judgement.lastJudgement = hit.points.judgement;
             judgement.combo = judgement.score.combo;
-            judgement.visible = true;
+            judgement.visible = judgement.contentVisible;
             hidingTimer.restart();
         }
         target: judgement.score

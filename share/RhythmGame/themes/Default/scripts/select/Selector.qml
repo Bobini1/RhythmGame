@@ -72,16 +72,24 @@ Image {
                     anchors.leftMargin: 20
                     source: {
                         let rank = currentItem.rank;
-                        rank = Math.min(3, Math.max(0, rank));
-                        switch (rank) {
-                        case 0:
+                        if (rank < 25) {
+                            return root.iniImagesUrl + "parts.png/r_over_hard";
+                        } else if (rank === 25) {
                             return root.iniImagesUrl + "parts.png/r_very_hard";
-                        case 1:
+                        } else if (rank < 50) {
+                            return root.iniImagesUrl + "parts.png/r_more_hard";
+                        } else if (rank === 50) {
                             return root.iniImagesUrl + "parts.png/r_hard";
-                        case 2:
+                        } else if (rank < 75) {
+                            return root.iniImagesUrl + "parts.png/r_little_hard";
+                        } else if (rank === 75) {
                             return root.iniImagesUrl + "parts.png/r_normal";
-                        case 3:
+                        } else if (rank < 100) {
+                            return root.iniImagesUrl + "parts.png/r_little_easy";
+                        } else if (rank === 100) {
                             return root.iniImagesUrl + "parts.png/r_easy";
+                        } else {
+                            return root.iniImagesUrl + "parts.png/r_over_easy";
                         }
                     }
                 }

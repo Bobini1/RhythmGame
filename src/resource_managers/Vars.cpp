@@ -4,9 +4,6 @@
 
 #include <memory>
 #include <spdlog/spdlog.h>
-#include <QJsonDocument>
-#include <QJsonObject>
-#include <QJsonArray>
 #include <QtConcurrent>
 #include "Vars.h"
 
@@ -17,16 +14,17 @@
 #include "support/QStringToPath.h"
 #include "support/Exception.h"
 
-#include <QQmlEngine>
 #include <chrono>
 #include <qcolor.h>
 #include <qdir.h>
 #include <utility>
-resource_managers::GeneralVars::GeneralVars(QList<QString> avatarPaths,
+resource_managers::GeneralVars::GeneralVars(QList<QString> assetsPaths,
                                             QObject* parent)
   : QObject(parent)
-  , avatarPaths(std::move(avatarPaths))
+  , assetsPaths(std::move(assetsPaths))
 {
+    resetBgm();
+    resetSoundset();
 }
 auto
 resource_managers::GeneralVars::getNoteScreenTimeMillis() const -> double
@@ -361,8 +359,8 @@ resource_managers::GeneralVars::setAvatar(QString value)
         auto filename = value;
         filename.remove(0, QStringLiteral("image://avatar/").length());
         // ensure it exists
-        for (const auto& path : avatarPaths) {
-            if (QFileInfo::exists(path + filename)) {
+        for (const auto& path : assetsPaths) {
+            if (QFileInfo::exists(path + "avatars/" + filename)) {
                 avatar = value;
                 emit avatarChanged();
                 return;
@@ -379,7 +377,7 @@ resource_managers::GeneralVars::setAvatar(QString value)
         return;
     }
     const auto fileName = QFileInfo{ file.fileName() }.fileName();
-    const auto targetPath = avatarPaths[0] + fileName;
+    const auto targetPath = assetsPaths[0] + "avatars/" + fileName;
     const auto sourceStdPath = support::qStringToPath(sourcePath);
     const auto targetStdPath = support::qStringToPath(targetPath);
     if (auto err = std::error_code{};
@@ -498,6 +496,251 @@ resource_managers::GeneralVars::resetTargetScoreFraction()
 {
     setTargetScoreFraction(8.0 / 9.0);
 }
+auto
+resource_managers::GeneralVars::getWebApiUrl() const -> QString
+{
+    return websiteBaseUrl + "/api/";
+}
+auto
+resource_managers::GeneralVars::getWebsiteBaseUrl() const -> QString
+{
+    return websiteBaseUrl;
+}
+void
+resource_managers::GeneralVars::setWebsiteBaseUrl(const QString& value)
+{
+    if (websiteBaseUrl == value) {
+        return;
+    }
+    websiteBaseUrl = value;
+    emit websiteBaseUrlChanged();
+}
+void
+resource_managers::GeneralVars::resetWebsiteBaseUrl()
+{
+    setWebsiteBaseUrl("https://rhythmgame.eu");
+}
+auto
+resource_managers::GeneralVars::getBgm() const -> QString
+{
+    // Return just the folder name
+    auto parts = bgmPath.split('/', Qt::SkipEmptyParts);
+    if (parts.isEmpty()) {
+        return "";
+    }
+    return parts.last();
+}
+void
+resource_managers::GeneralVars::setBgm(const QString& value)
+{
+    auto currentBgm = getBgm();
+    if (currentBgm == value) {
+        return;
+    }
+    auto currentBgmPath = bgmPath;
+    // Look for the folder in the assets paths
+    auto found = false;
+    auto path = QString{};
+    for (const auto& assetsPath : assetsPaths) {
+        const auto fullPath = assetsPath + "bgm/" + value + "/";
+        if (QDir(fullPath).exists()) {
+            found = true;
+            path = fullPath;
+            break;
+        }
+    }
+    if (!found) {
+        spdlog::debug("BGM folder not found in any assets path: {}",
+                      value.toStdString());
+        return;
+    }
+    bgmPath = path;
+    if (currentBgm != getBgm()) {
+        emit bgmChanged();
+    }
+    if (currentBgmPath != bgmPath) {
+        emit bgmPathChanged();
+    }
+}
+void
+resource_managers::GeneralVars::resetBgm()
+{
+    auto currentBgm = getBgm();
+    auto currentBgmPath = bgmPath;
+    // set "Trance" or first available folder
+    auto found = false;
+    for (const auto& assetsPath : assetsPaths) {
+        const auto fullPath = assetsPath + "bgm/Trance/";
+        if (QDir(fullPath).exists()) {
+            bgmPath = fullPath;
+            found = true;
+            break;
+        }
+    }
+    if (!found) {
+        for (const auto& assetsPath : assetsPaths) {
+            const auto bgmFolder = assetsPath + "bgm/";
+            const auto dir = QDir(bgmFolder);
+            const auto entries =
+              dir.entryList(QDir::Dirs | QDir::NoDotAndDotDot);
+            if (!entries.isEmpty()) {
+                bgmPath = bgmFolder + entries.first() + "/";
+                found = true;
+                break;
+            }
+        }
+    }
+    if (!found) {
+        bgmPath = "";
+    }
+    if (currentBgm != getBgm()) {
+        emit bgmChanged();
+    }
+    if (currentBgmPath != bgmPath) {
+        emit bgmPathChanged();
+    }
+}
+auto
+resource_managers::GeneralVars::getBgmPath() const -> QString
+{
+    return bgmPath;
+}
+auto
+resource_managers::GeneralVars::getSoundset() const -> QString
+{
+    // Return just the folder name
+    auto parts = soundsetPath.split('/', Qt::SkipEmptyParts);
+    if (parts.isEmpty()) {
+        return "";
+    }
+    return parts.last();
+}
+void
+resource_managers::GeneralVars::setSoundset(QString value)
+{
+    auto currentSoundset = getSoundset();
+    auto currentSoundsetPath = soundsetPath;
+    if (currentSoundset == value) {
+        return;
+    }
+    // Look for the folder in the assets paths
+    auto found = false;
+    auto path = QString{};
+    for (const auto& assetsPath : assetsPaths) {
+        const auto fullPath = assetsPath + "soundsets/" + value + "/";
+        if (QDir(fullPath).exists()) {
+            found = true;
+            path = fullPath;
+            break;
+        }
+    }
+    if (!found) {
+        spdlog::debug("Soundset folder not found in any assets path: {}",
+                      value.toStdString());
+        return;
+    }
+    soundsetPath = path;
+    if (currentSoundset != getSoundset()) {
+        emit soundsetChanged();
+    }
+    if (currentSoundsetPath != soundsetPath) {
+        emit soundsetPathChanged();
+    }
+}
+void
+resource_managers::GeneralVars::resetSoundset()
+{
+    auto current = getSoundset();
+    auto currentPath = soundsetPath;
+    // set "default" or first available folder
+    auto found = false;
+    for (const auto& assetsPath : assetsPaths) {
+        const auto fullPath = assetsPath + "soundsets/Brook/";
+        if (QDir(fullPath).exists()) {
+            soundsetPath = fullPath;
+            found = true;
+            break;
+        }
+    }
+    if (!found) {
+        for (const auto& assetsPath : assetsPaths) {
+            const auto soundsetsFolder = assetsPath + "soundsets/";
+            const auto dir = QDir(soundsetsFolder);
+            const auto entries =
+              dir.entryList(QDir::Dirs | QDir::NoDotAndDotDot);
+            if (!entries.isEmpty()) {
+                soundsetPath = soundsetsFolder + entries.first() + "/";
+                found = true;
+                break;
+            }
+        }
+    }
+    if (!found) {
+        soundsetPath = "";
+    }
+    if (current != getSoundset()) {
+        emit soundsetChanged();
+    }
+    if (currentPath != soundsetPath) {
+        emit soundsetPathChanged();
+    }
+}
+auto
+resource_managers::GeneralVars::getSoundsetPath() const -> QString
+{
+    return soundsetPath;
+}
+auto
+resource_managers::GeneralVars::getAvailableBgms() const -> QList<QString>
+{
+    auto bgms = QList<QString>{};
+    for (const auto& assetsPath : assetsPaths) {
+        const auto bgmFolder = assetsPath + "bgm/";
+        const auto dir = QDir(bgmFolder);
+        const auto entries = dir.entryList(QDir::Dirs | QDir::NoDotAndDotDot);
+        for (const auto& entry : entries) {
+            if (!bgms.contains(entry)) {
+                bgms.append(entry);
+            }
+        }
+    }
+    return bgms;
+}
+auto
+resource_managers::GeneralVars::getAvailableSoundsets() const -> QList<QString>
+{
+    auto soundsets = QList<QString>{};
+    for (const auto& assetsPath : assetsPaths) {
+        const auto soundsetsFolder = assetsPath + "soundsets/";
+        const auto dir = QDir(soundsetsFolder);
+        const auto entries = dir.entryList(QDir::Dirs | QDir::NoDotAndDotDot);
+        for (const auto& entry : entries) {
+            if (!soundsets.contains(entry)) {
+                soundsets.append(entry);
+            }
+        }
+    }
+    return soundsets;
+}
+auto
+resource_managers::GeneralVars::getTableListUrl() const -> QString
+{
+    return tableListUrl;
+}
+void
+resource_managers::GeneralVars::setTableListUrl(const QString& value)
+{
+    if (tableListUrl == value) {
+        return;
+    }
+    tableListUrl = value;
+    emit tableListUrlChanged();
+}
+void
+resource_managers::GeneralVars::resetTableListUrl()
+{
+    setTableListUrl(defaultTableListUrl);
+}
 namespace {
 void
 writeGeneralVars(QThreadPool& writePool,
@@ -509,6 +752,9 @@ writeGeneralVars(QThreadPool& writePool,
          i < generalVars.metaObject()->propertyCount();
          ++i) {
         auto property = generalVars.metaObject()->property(i);
+        if (!property.isStored()) {
+            continue;
+        }
         const auto value = property.isEnumType()
                              ? property.read(&generalVars).toString()
                              : property.read(&generalVars).toJsonValue();
@@ -955,9 +1201,9 @@ readGeneralVars(QThreadPool& writePool,
         writeGeneralVars(writePool, generalVars, profileFolder);
     }
     if (!file.open(QIODevice::ReadOnly)) {
-        spdlog::error("Failed to open config for reading: {}: {}",
-                      profileFolder.string(),
-                      file.errorString().toStdString());
+        spdlog::info("Failed to open config for reading: {}: {}",
+                     profileFolder.string(),
+                     file.errorString().toStdString());
         return;
     }
     try {
@@ -995,7 +1241,11 @@ readThemeVarsForTheme(const std::filesystem::path& themeVarsPath,
 {
     auto vars = QHash<QString, ScreenVarsPopulationResult>{};
     for (const auto& screen : themeFamily.getScreens().keys()) {
-        auto settingsUrl = themeFamily.getScreens()[screen].getSettings();
+        auto screenObj = themeFamily.getScreens()[screen];
+        if (screenObj.isAliased()) {
+            continue;
+        }
+        auto settingsUrl = screenObj.getSettings();
         if (settingsUrl.isEmpty()) {
             continue;
         }
@@ -1018,6 +1268,9 @@ readThemeVarsForTheme(const std::filesystem::path& themeVarsPath,
     }
     auto contents = QJsonDocument::fromJson(file.readAll()).object();
     for (const auto& screen : themeFamily.getScreens().keys()) {
+        if (themeFamily.getScreens()[screen].isAliased()) {
+            continue;
+        }
         for (const auto& [key, value] :
              contents[screen].toObject().toVariantHash().asKeyValueRange()) {
             if (vars[screen].fileTypeProperties.contains(key)) {
@@ -1107,9 +1360,6 @@ resource_managers::Vars::populateThemePropertyMap(
   QHash<QString, QHash<QString, QHash<QString, QVariant>>> themeVarsData,
   const std::filesystem::path& themeVarsPath)
 {
-    for (const auto& key : themeVars.keys()) {
-        themeVars[key].value<QQmlPropertyMap*>()->deleteLater();
-    }
     for (const auto& [screenName, themes] : themeVarsData.asKeyValueRange()) {
         auto screenPropertyMap = std::make_unique<QQmlPropertyMap>(&themeVars);
         for (const auto& [themeName, vars] : themes.asKeyValueRange()) {
@@ -1117,47 +1367,92 @@ resource_managers::Vars::populateThemePropertyMap(
               std::make_unique<QQmlPropertyMap>(screenPropertyMap.get());
             propertyMap->insert(themeVarsData[screenName][themeName]);
             propertyMap->freeze();
-            connect(propertyMap.get(),
-                    &QQmlPropertyMap::valueChanged,
-                    this,
-                    [this,
-                     themeVarsPath,
-                     screen = screenName,
-                     themeFamily = themeName](const QString& key,
-                                              const QVariant& value) {
-                        auto& ref = loadedThemeVars[screen][themeFamily][key];
-                        // Skip write if assigning number to number and they are very close (ULP-based)
-                        if ((ref.typeId() == QMetaType::Double || ref.canConvert<double>()) &&
-                            (value.typeId() == QMetaType::Double || value.canConvert<double>())) {
-                            const double oldVal = ref.toDouble();
-                            const double newVal = value.toDouble();
-                            constexpr std::size_t ulpsTolerance = 16;
-                            if (equalWithinUlps(oldVal, newVal, ulpsTolerance)) {
-                                return; // numerically equivalent within tolerance
-                            }
-                        } else {
-                            // For non-numeric, avoid redundant writes
-                            if (ref == value) {
-                                return;
-                            }
-                        }
-                        // Update cached value before writing
-                        ref = value;
-                        writeSingleThemeVar(
-                          writePool,
-                          screen,
-                          key,
-                          value,
-                          themeVarsPath /
-                            support::qStringToPath(
-                              themeFamily + QStringLiteral("-vars.json")));
-                    });
+            connect(
+              propertyMap.get(),
+              &QQmlPropertyMap::valueChanged,
+              this,
+              [this,
+               themeVarsPath,
+               screen = screenName,
+               themeFamily = themeName](const QString& key,
+                                        const QVariant& value) {
+                  auto& ref = loadedThemeVars[screen][themeFamily][key];
+                  // Skip write if assigning number to number and they are
+                  // very close (ULP-based)
+                  if ((ref.typeId() == QMetaType::Double ||
+                       ref.typeId() == QMetaType::Float) &&
+                      (value.typeId() == QMetaType::Double ||
+                       ref.typeId() == QMetaType::Float)) {
+                      const double oldVal = ref.toDouble();
+                      const double newVal = value.toDouble();
+                      constexpr std::size_t ulpsTolerance = 16;
+                      if (equalWithinUlps(oldVal, newVal, ulpsTolerance)) {
+                          return; // numerically equivalent within tolerance
+                      }
+                  } else {
+                      // For non-numeric, avoid redundant writes
+                      if (ref == value) {
+                          return;
+                      }
+                  }
+                  // Update cached value before writing
+                  ref = value;
+                  writeSingleThemeVar(
+                    writePool,
+                    screen,
+                    key,
+                    value,
+                    themeVarsPath /
+                      support::qStringToPath(themeFamily +
+                                             QStringLiteral("-vars.json")));
+              });
             screenPropertyMap->insert(
               themeName, QVariant::fromValue(propertyMap.release()));
         }
-        screenPropertyMap->freeze();
         themeVars.insert(screenName,
                          QVariant::fromValue(screenPropertyMap.release()));
+    }
+    for (const auto& screenName : themeVars.keys()) {
+        for (const auto screenObj =
+               themeVars[screenName].value<QQmlPropertyMap*>();
+             const auto& themeName : screenObj->keys()) {
+            if (screenName == "k7") {
+                auto* k5Obj = themeVars["k5"].value<QQmlPropertyMap*>();
+                if (k5Obj == nullptr) {
+                    k5Obj = new QQmlPropertyMap(&themeVars);
+                    themeVars.insert("k5", QVariant::fromValue(k5Obj));
+                }
+                if (k5Obj->keys().contains(themeName)) {
+                    continue;
+                }
+                k5Obj->insert(themeName, screenObj->value(themeName));
+            } else if (screenName == "k7battle") {
+                auto* k5battleObj =
+                  themeVars["k5battle"].value<QQmlPropertyMap*>();
+                if (k5battleObj == nullptr) {
+                    k5battleObj = new QQmlPropertyMap(&themeVars);
+                    themeVars.insert("k5battle",
+                                     QVariant::fromValue(k5battleObj));
+                }
+                if (k5battleObj->keys().contains(themeName)) {
+                    continue;
+                }
+                k5battleObj->insert(themeName, screenObj->value(themeName));
+            } else if (screenName == "k14") {
+                auto* k10Obj = themeVars["k10"].value<QQmlPropertyMap*>();
+                if (k10Obj == nullptr) {
+                    k10Obj = new QQmlPropertyMap(&themeVars);
+                    themeVars.insert("k10", QVariant::fromValue(k10Obj));
+                }
+                if (k10Obj->keys().contains(themeName)) {
+                    continue;
+                }
+                k10Obj->insert(themeName, screenObj->value(themeName));
+            }
+        }
+    }
+    for (const auto& screenName : themeVars.keys()) {
+        themeVars[screenName].value<QQmlPropertyMap*>()->freeze();
     }
     themeVars.freeze();
 }
@@ -1171,10 +1466,10 @@ resource_managers::Vars::writeGeneralVars()
 resource_managers::Vars::Vars(
   const Profile* profile,
   QMap<QString, qml_components::ThemeFamily> availableThemeFamilies,
-  QList<QString> avatarPaths,
+  QList<QString> assetsPaths,
   QObject* parent)
   : QObject(parent)
-  , generalVars(std::move(avatarPaths))
+  , generalVars(std::move(assetsPaths))
   , profile(profile)
   , availableThemeFamilies(std::move(availableThemeFamilies))
   , loadedThemeVars(readThemeVars(profile->getPath().parent_path(),
@@ -1189,6 +1484,9 @@ resource_managers::Vars::Vars(
     for (auto i = generalVars.metaObject()->propertyOffset();
          i < generalVars.metaObject()->propertyCount();
          ++i) {
+        if (!generalVars.metaObject()->property(i).isStored()) {
+            continue;
+        }
         connect(&generalVars,
                 generalVars.metaObject()->property(i).notifySignal(),
                 this,

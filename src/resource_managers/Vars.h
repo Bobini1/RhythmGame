@@ -30,7 +30,9 @@ enum class NoteOrderAlgorithm
     SRandom,
     RRandom,
     RandomPlus,
-    SRandomPlus
+    SRandomPlus,
+    BeatorajaRandom,
+    BeatorajaRandomEx,
 };
 Q_ENUM_NS(NoteOrderAlgorithm)
 } // namespace note_order_algorithm
@@ -235,7 +237,6 @@ class GeneralVars final : public QObject
     Q_PROPERTY(resource_managers::score_target::ScoreTarget scoreTarget READ
                  getScoreTarget WRITE setScoreTarget NOTIFY scoreTargetChanged
                    RESET resetScoreTarget)
-
     /**
      * @brief The target score fraction when scoreTarget is Fraction.
      * @details A value between 0.0 and 1.0 representing the target score
@@ -244,6 +245,78 @@ class GeneralVars final : public QObject
     Q_PROPERTY(double targetScoreFraction READ getTargetScoreFraction WRITE
                  setTargetScoreFraction NOTIFY targetScoreFractionChanged RESET
                    resetTargetScoreFraction)
+    /**
+     * @brief The folder with select, decide and main screen music
+     * @details To get the list of available BGM folders, call
+     * getAvailableBgms().
+     * Skins are supposed to load files named
+     * select.<ext>, decide.<ext>, main.<ext> from the selected BGM,
+     * where <ext> is an audio format supported by the game.
+     * To get the full path to the BGM, use the bgmPath property.
+     * @see bgmPath
+     */
+    Q_PROPERTY(
+      QString bgm READ getBgm WRITE setBgm NOTIFY bgmChanged RESET resetBgm)
+    /**
+     * @brief The full path to the selected BGM folder.
+     * @see bgm
+     */
+    Q_PROPERTY(
+      QString bgmPath READ getBgmPath NOTIFY bgmPathChanged STORED false)
+    /**
+     * @brief The soundset to use.
+     * @details Corresponds to a folder in the soundsets/ directory in the
+     * assets folder. To get the full path to the soundset, use the soundsetPath
+     * property.
+     * Skins are supposed to respect the soundset setting by loading sound files
+     * from the selected soundset folder and playing them at appropriate events.
+     * Current supported events:
+     * - scratch - moving on the song list
+     * - f-open - entering a song list folder
+     * - f-close - quitting a song list folder
+     * - o-change - changing some kind of option in a menu
+     * - o-open - entering an options menu (not in the default soundset atm)
+     * - o-close - exiting an options menu (not in the default soundset atm)
+     * - clear - clearing a normal chart (clearType != FAILED)
+     * - fail - failing a chart (clearType == FAILED)
+     * - course_clear - clearing a course (clearType != FAILED)
+     * - course_fail - failing a course (clearType == FAILED)
+     * - playready - starting a song (not in the default soundset atm)
+     * - playstop - quitting a song early
+     * - guide-gd - UNIMPLEMENTED (hitsounds)
+     * - guide-gr - UNIMPLEMENTED (hitsounds)
+     * - guide-pg - UNIMPLEMENTED (hitsounds)
+     *
+     * It is perfectly legal to use those sounds in different ways but this is
+     * the canonical meaning that users will expect.
+     * @see soundsetPath
+     */
+    Q_PROPERTY(QString soundset READ getSoundset WRITE setSoundset NOTIFY
+                 soundsetChanged RESET resetSoundset)
+    /**
+     * @brief The full paths to the selected soundset folder.
+     */
+    Q_PROPERTY(QString soundsetPath READ getSoundsetPath NOTIFY
+                 soundsetPathChanged STORED false)
+
+    /**
+     * @brief The web API uri.
+     * @details This is used for online features such as score submission and
+     * fetching online scores. It should include the protocol (e.g. "http://").
+     */
+    Q_PROPERTY(QString webApiUrl READ getWebApiUrl NOTIFY websiteBaseUrlChanged
+                 STORED false)
+    Q_PROPERTY(
+      QString websiteBaseUrl READ getWebsiteBaseUrl WRITE setWebsiteBaseUrl
+        NOTIFY websiteBaseUrlChanged RESET resetWebsiteBaseUrl)
+    /**
+     * @brief The URL used to fetch the community table list in the Browse
+     * panel of Table Settings.
+     * @details Defaults to the darksabun table list endpoint.
+     */
+    Q_PROPERTY(QString tableListUrl READ getTableListUrl WRITE setTableListUrl
+                 NOTIFY tableListUrlChanged RESET resetTableListUrl)
+
     // ^ remember to use full namespace for enums for reflection
     double noteScreenTimeMillis = 1000;
     bool laneCoverOn = false;
@@ -266,11 +339,24 @@ class GeneralVars final : public QObject
     double offset = 0.0; // Offset in milliseconds
     ScoreTarget scoreTarget = ScoreTarget::BestScore;
     double targetScoreFraction = 8.0 / 9.0; // 0.888...
+    QString websiteBaseUrl = "https://rhythmgame.eu";
+    QString bgmPath;
+    QString soundsetPath;
+    // Default darksabun community table-list endpoint.
+    inline static const QString defaultTableListUrl = QStringLiteral(
+      "https://script.googleusercontent.com/macros/echo?user_content_key="
+      "AWDtjMUPqG3VGAp2E2nnIIN6ai0Im_ai4lD3Kb998b5zNu881oh8U93tiKchKmz0"
+      "CiU21TRk2FbhTVDg_UeCGlGKMiMeQ2jJXOzkMeAz4QdAqiTffivqe9OiSxrfIS"
+      "ozhZnz1LxSk6vfXCbm-Wt6eKqKBffTcCdUrrkIDQyRLK00pAHNTLiK4899SSycq"
+      "Urh6huo4gENgokERvbeHrT8OUrVVTq1gEtFMtpGurM9HXC037qo1SMe5CSsOXb0"
+      "UfYy-14dlRmOHb-v3Nbin-Pr5pU9nApG7zcoJfqB6bEut33v"
+      "&lib=MZGF-rpGWT28d9kh49MlyleOKhrMb7MMj");
+    QString tableListUrl = defaultTableListUrl;
 
-    QList<QString> avatarPaths;
+    QList<QString> assetsPaths;
 
   public:
-    explicit GeneralVars(QList<QString> avatarPaths, QObject* parent = nullptr);
+    explicit GeneralVars(QList<QString> assetsPaths, QObject* parent = nullptr);
     auto getNoteScreenTimeMillis() const -> double;
     void setNoteScreenTimeMillis(double value);
     void resetNoteScreenTimeMillis();
@@ -334,6 +420,23 @@ class GeneralVars final : public QObject
     auto getTargetScoreFraction() const -> double;
     void setTargetScoreFraction(double value);
     void resetTargetScoreFraction();
+    auto getWebApiUrl() const -> QString;
+    auto getWebsiteBaseUrl() const -> QString;
+    void setWebsiteBaseUrl(const QString& value);
+    void resetWebsiteBaseUrl();
+    auto getBgm() const -> QString;
+    void setBgm(const QString& value);
+    void resetBgm();
+    auto getBgmPath() const -> QString;
+    auto getSoundset() const -> QString;
+    void setSoundset(QString value);
+    void resetSoundset();
+    auto getSoundsetPath() const -> QString;
+    Q_INVOKABLE QList<QString> getAvailableBgms() const;
+    Q_INVOKABLE QList<QString> getAvailableSoundsets() const;
+    auto getTableListUrl() const -> QString;
+    void setTableListUrl(const QString& value);
+    void resetTableListUrl();
 
   signals:
     void noteScreenTimeMillisChanged();
@@ -357,6 +460,12 @@ class GeneralVars final : public QObject
     void offsetChanged();
     void scoreTargetChanged();
     void targetScoreFractionChanged();
+    void websiteBaseUrlChanged();
+    void bgmChanged();
+    void bgmPathChanged();
+    void soundsetChanged();
+    void soundsetPathChanged();
+    void tableListUrlChanged();
 };
 
 class Vars final : public QObject
@@ -393,7 +502,7 @@ class Vars final : public QObject
     explicit Vars(
       const Profile* profile,
       QMap<QString, qml_components::ThemeFamily> availableThemeFamilies,
-      QList<QString> avatarPaths,
+      QList<QString> assetsPaths,
       QObject* parent = nullptr);
     auto getGeneralVars() -> GeneralVars*;
     auto getThemeVars() -> QQmlPropertyMap*;

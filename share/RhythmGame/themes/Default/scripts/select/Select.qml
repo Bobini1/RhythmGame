@@ -2,7 +2,6 @@ pragma ValueTypeBehavior: Addressable
 import QtQuick
 import RhythmGameQml
 import QtQuick.Controls
-import QtMultimedia
 import QtQml
 import "../common/helpers.js" as Helpers
 import "./options"
@@ -14,16 +13,15 @@ FocusScope {
         readonly property string imagesUrl: Qt.resolvedUrl(".") + "images/"
         readonly property string iniImagesUrl: "image://ini/" + rootUrl + "images/"
         property string rootUrl: QmlUtils.fileName.slice(0, QmlUtils.fileName.lastIndexOf("/") + 1)
+        readonly property string commonImagesUrl: Qt.resolvedUrl("../common/") + "images/"
 
-        function openReplay(type) {
-            let path = songList.current instanceof course ? songList.current : songList.current.path;
-            let func = songList.current instanceof course ? globalRoot.openCourse : globalRoot.openChart;
+        function getScore(type) {
             switch (type) {
                 case 0:
-                    func(path, Rg.profileList.mainProfile, false, songList.currentItem.scores[0], null, false, null);
+                    return songList.currentItem.scores[songList.currentItem.scores.length - 1];
                     break;
                 case 1:
-                    func(path, Rg.profileList.mainProfile, false, songList.currentItem.scoreWithBestPoints, null, false, null);
+                    return songList.currentItem.scoreWithBestPoints;
                     break;
                 case 2:
                     let clearType = Helpers.getClearType(songList.currentItem?.scores);
@@ -31,7 +29,7 @@ FocusScope {
                         return score.result.clearType === clearType;
                     });
                     if (score) {
-                        func(path, Rg.profileList.mainProfile, false, score, null, false, null);
+                        return score;
                     }
                     break;
                 case 3:
@@ -39,10 +37,26 @@ FocusScope {
                         return prev.result.maxCombo > curr.result.maxCombo ? prev : curr;
                     });
                     if (bestScore) {
-                        func(path, Rg.profileList.mainProfile, false, bestScore, null, false, null);
+                        return bestScore;
                     }
                     break;
             }
+            return null;
+        }
+
+        function openReplay(type, button) {
+            let score = getScore(type);
+            if (button === Qt.RightButton) {
+                globalRoot.openResult([score], [Rg.profileList.mainProfile], songList.current);
+                return;
+            }
+            let replay = true;
+            if (button === Qt.MiddleButton) {
+                replay = false;
+            }
+            let path = songList.current instanceof course ? songList.current : songList.current.path;
+            let func = songList.current instanceof course ? globalRoot.openCourse : globalRoot.openChart;
+            func(path, Rg.profileList.mainProfile, false, replay, score, null, false, false, null);
         }
 
         fillMode: Image.PreserveAspectCrop
@@ -55,8 +69,9 @@ FocusScope {
                 previewDelayTimer.restart();
                 songList.refresh();
             } else {
-                playMusic.stop();
                 previewDelayTimer.stop();
+                playMusic.stop();
+                bgm.stop();
                 playMusic.waitingForStop = false;
             }
         }
@@ -66,6 +81,7 @@ FocusScope {
             height: 1080
             scale: Math.min(parent.width / 1920, parent.height / 1080)
             width: 1920
+            clip: true
 
             enabled: !options.visible
 
@@ -108,6 +124,7 @@ FocusScope {
                 anchors.verticalCenterOffset: -10
                 spacing: 5
                 current: songList.current
+                currentItem: songList.currentItem
             }
             Selector {
                 anchors.right: parent.right
@@ -142,6 +159,7 @@ FocusScope {
                     if (pressed) {
                         previewDelayTimer.restart();
                         songList.offset = songList.count * (1 - vbar.position);
+                        songList.resetNavigation();
                     }
                 }
                 snapMode: ScrollBar.SnapOnRelease
@@ -152,6 +170,7 @@ FocusScope {
                     source: root.iniImagesUrl + "parts.png/slider"
                 }
                 Binding {
+                    delayed: true
                     vbar.position: {
                         let pos = 1 - (songList.offset / songList.count);
                         // some trickery to get the scrollbar to appear at the top at the beginning
@@ -177,6 +196,28 @@ FocusScope {
                 height: parent.height
                 width: parent.width / 2
             }
+            Loader {
+                id: graphLoader
+                active: songList.current instanceof ChartData
+                anchors.horizontalCenter: songList.horizontalCenter
+                anchors.horizontalCenterOffset: 19
+                anchors.bottom: parent.bottom
+                anchors.bottomMargin: 75
+                sourceComponent: Graph {
+                    bpms: songList.current ? songList.current.bpmChanges : []
+                    histogramData: songList.current ? songList.current.histogramData : [[], [], [], []]
+                    mainBpm: songList.current ? songList.current.mainBpm : 0
+                    maxBpm: songList.current ? songList.current.maxBpm : 0
+                    minBpm: songList.current ? songList.current.minBpm : 0
+                    length: songList.current ? songList.current.length : 0
+                    normalCount: songList.current ? songList.current.normalNoteCount : 0
+                    scratchCount: songList.current ? songList.current.scratchCount : 0
+                    lnCount: songList.current ? songList.current.lnCount : 0
+                    bssCount: songList.current ? songList.current.bssCount : 0
+                    gapsEnabled: Rg.profileList.mainProfile.vars.themeVars.select[QmlUtils.themeName].densityGraphGapsEnabled
+                    bpmConnectorOpacity: Rg.profileList.mainProfile.vars.themeVars.select[QmlUtils.themeName].densityGraphBpmConnectorOpacity
+                }
+            }
             Shortcut {
                 sequence: "Esc"
                 enabled: root.enabled
@@ -189,14 +230,39 @@ FocusScope {
                 id: playMusic
 
                 property bool waitingForStop: false
-
+                fadeInMillis: 1000
                 looping: true
                 source: songList.current instanceof ChartData ? songList.previewFiles[songList.current.chartDirectory] : undefined
+                Component.onCompleted: {
+                    playing = true;
+                }
 
                 onSourceChanged: {
-                    playMusic.stop();
                     previewDelayTimer.stop();
+                    playMusic.stop();
                     waitingForStop = playMusic.source !== "";
+                }
+            }
+            AudioPlayer {
+                id: bgm
+                looping: true
+                source: Rg.profileList.mainProfile.vars.generalVars.bgmPath + "select";
+                fadeInMillis: 1000
+                property bool canPlay: (!playMusic.playing || playMusic.source === "") && root.enabled
+                onCanPlayChanged: {
+                    if (!canPlay) {
+                        bgm.stop();
+                    }
+                }
+            }
+            Timer {
+                id: bgmDelayTimer
+
+                interval: 500
+                running: bgm.canPlay
+
+                onTriggered: {
+                    bgm.play();
                 }
             }
             Difficulty {
@@ -210,16 +276,69 @@ FocusScope {
             Loader {
                 id: grade
 
-                active: songList.currentItem
-                ?.
-                    scoreWithBestPoints || false
+                active: songList.currentItem?.scoreWithBestPoints || false
                 anchors.centerIn: parent
                 anchors.horizontalCenterOffset: -10
                 anchors.verticalCenterOffset: 150
+                width: 350
+                height: 400
                 sourceComponent: Grade {
-                    scoreWithBestPoints: songList.currentItem
-                    ?.
-                        scoreWithBestPoints || null
+                    scoreWithBestPoints: songList.currentItem?.scoreWithBestPoints || null
+                }
+            }
+            RankingPosition {
+                id: rankingPosition
+
+                anchors.left: grade.left
+                width: 276
+                anchors.top: grade.bottom
+                anchors.topMargin: -146
+                loading: ranking.loading
+                rankingTotalEntries: ranking.playerCount
+                visible: ranking.visible
+                rankingLink: {
+                    if (!rankingTotalEntries || (ranking.provider === OnlineRankingModel.LR2IR && rankingTotalEntries <= 1)) {
+                        return "";
+                    }
+                    switch (ranking.provider) {
+                        case OnlineRankingModel.RhythmGame:
+                            return Rg.profileList.mainProfile.vars.generalVars.websiteBaseUrl + "/charts/" + songList.current.md5;
+                        case OnlineRankingModel.LR2IR:
+                            return "http://www.dream-pro.info/~lavalse/LR2IR/search.cgi?mode=ranking&bmsmd5=" + songList.current.md5;
+                        case OnlineRankingModel.Tachi:
+                            if (!ranking.chartId) {
+                                return "";
+                            }
+                            return "https://boku.tachi.ac/games/bms/" + ranking.keymode +
+                                "/charts/" + ranking.chartId;
+                    }
+                }
+                rankingPosition: {
+                    let entries = ranking.entries;
+                    switch (ranking.provider) {
+                        case OnlineRankingModel.RhythmGame:
+                            for (let i = 0; i < entries.length; i++) {
+                                if (entries[i].userId === Rg.profileList.mainProfile.onlineUserData?.userId) {
+                                    return i + 1;
+                                }
+                            }
+                            break;
+                        case OnlineRankingModel.LR2IR:
+                            for (let i = 0; i < entries.length; i++) {
+                                if (!(entries[i] instanceof rankingEntry)) {
+                                    return i + 1;
+                                }
+                            }
+                            break;
+                        case OnlineRankingModel.Tachi:
+                            for (let i = 0; i < entries.length; i++) {
+                                if (entries[i].userId === Rg.profileList.mainProfile.tachiData?.userId) {
+                                    return i + 1;
+                                }
+                            }
+                            break;
+                    }
+                    return 0;
                 }
             }
             Connections {
@@ -244,7 +363,16 @@ FocusScope {
                     playMusic.play();
                 }
             }
+            Text {
+                anchors.bottom: scoreInfo.top
+                anchors.horizontalCenter: scoreInfo.horizontalCenter
+                font.pixelSize: 19
+                anchors.horizontalCenterOffset: 154
+                anchors.bottomMargin: 18
+                text: qsTr("Score Details")
+            }
             ScoreInfo {
+                id: scoreInfo
                 anchors.bottom: parent.bottom
                 anchors.bottomMargin: 80
                 anchors.left: parent.left
@@ -252,29 +380,25 @@ FocusScope {
                 spacing: 40
 
                 current: songList.current
-                scoreWithBestPoints: songList.currentItem
-                ?.
-                    scoreWithBestPoints || null
-                bestStats: songList.currentItem
-                ?.
-                    bestStats || null
+                scoreWithBestPoints: songList.currentItem?.scoreWithBestPoints || null
+                bestStats: songList.currentItem?.bestStats || null
             }
             Image {
                 id: search
 
                 anchors.bottom: parent.bottom
-                anchors.bottomMargin: 5
+                anchors.bottomMargin: 2
                 anchors.left: parent.left
-                anchors.leftMargin: 48
+                anchors.leftMargin: 45
                 source: root.iniImagesUrl + "parts.png/search"
 
                 TextEdit {
                     id: searchEdit
 
                     anchors.bottom: parent.bottom
-                    anchors.bottomMargin: 17
+                    anchors.bottomMargin: 20
                     anchors.left: parent.left
-                    anchors.leftMargin: 48
+                    anchors.leftMargin: 51
                     color: "white"
                     font.pixelSize: 20
                     height: 25
@@ -286,6 +410,17 @@ FocusScope {
                         songList.focus = true;
                     }
                 }
+            }
+            Ranking {
+                id: ranking
+                chartData: songList.current
+                anchors.left: search.right
+                anchors.leftMargin: -9
+                anchors.bottom: search.top
+                anchors.bottomMargin: -11
+                provider: rankingPosition.provider
+                bestPointsScore: songList.currentItem?.scoreWithBestPoints || null
+                bestClearTypeScore: songList.currentItem?.scoreWithBestClear || null
             }
             KeymodeButton {
                 id: keymodeButton

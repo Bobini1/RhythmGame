@@ -3,7 +3,7 @@ const clearTypePriorities = ["NOPLAY", "FAILED", "AEASY", "EASY", "NORMAL", "HAR
 function getClearType(scores) {
     let clearType = "NOPLAY";
     for (let score of scores) {
-        if (clearTypePriorities.indexOf(score.result.clearType) > clearTypePriorities.indexOf(clearType)) {
+        if (clearTypePriorities.indexOf(score?.result?.clearType) > clearTypePriorities.indexOf(clearType)) {
             clearType = score.result.clearType;
         }
     }
@@ -11,7 +11,7 @@ function getClearType(scores) {
 }
 
 function getScoreWithBestPoints(scores) {
-    let bestPoints = 0;
+    let bestPoints = -1;
     let bestScore = null;
     for (let score of scores) {
         if (score.result.maxPoints === 0) {
@@ -21,6 +21,25 @@ function getScoreWithBestPoints(scores) {
         if (percent > bestPoints) {
             bestPoints = percent;
             bestScore = score;
+        }
+    }
+    return bestScore;
+}
+
+function getScoreWithBestClear(scores) {
+    let bestClear = "";
+    let bestScore = null;
+    let bestPoints = 0;
+    for (let score of scores) {
+        let oldIndex = clearTypePriorities.indexOf(bestClear);
+        let newIndex = clearTypePriorities.indexOf(score.result.clearType);
+        if (newIndex >= oldIndex || bestScore === null) {
+            if (newIndex === oldIndex && score.result.points / (score.result.maxPoints || 1) < bestPoints) {
+                continue;
+            }
+            bestClear = score.result.clearType;
+            bestScore = score;
+            bestPoints = score.result.points / (score.result.maxPoints || 1);
         }
     }
     return bestScore;
@@ -54,19 +73,19 @@ function getGrade(points, maxPoints) {
         return "max";
     }
     let percent = points / maxPoints;
-    if (percent >= 0.88) {
+    if (percent >= 8.0 / 9.0) {
         return "aaa";
-    } else if (percent >= 0.77) {
+    } else if (percent >= 7.0 / 9.0) {
         return "aa";
-    } else if (percent >= 0.66) {
+    } else if (percent >= 6.0 / 9.0) {
         return "a";
-    } else if (percent >= 0.55) {
+    } else if (percent >= 5.0 / 9.0) {
         return "b";
-    } else if (percent >= 0.44) {
+    } else if (percent >= 4.0 / 9.0) {
         return "c";
-    } else if (percent >= 0.33) {
+    } else if (percent >= 3.0 / 9.0) {
         return "d";
-    } else if (percent >= 0.22) {
+    } else if (percent >= 2.0 / 9.0) {
         return "e";
     } else {
         return "f";
@@ -105,6 +124,31 @@ function getEarlyLate(replayData) {
     };
 }
 
+function getStddevAndMean(replayData) {
+    if (!replayData || !replayData.hitEvents) {
+        return {mean: 0, stddev: 0};
+    }
+    const vals = [];
+    for (let hit of replayData.hitEvents) {
+        if (!hit.points) continue;
+        if (hit.points.judgement > Judgement.Perfect || hit.points.judgement < Judgement.Bad) continue;
+        const d = hit.points.deviation;
+        vals.push(d);
+    }
+    if (vals.length === 0) return {mean: 0, stddev: 0};
+    let sum = 0;
+    for (let v of vals) sum += v;
+    const mean = sum / vals.length;
+    let sq = 0;
+    for (let v of vals) {
+        const diff = v - mean;
+        sq += diff * diff;
+    }
+    const variance = sq / vals.length; // population variance
+    const stddev = Math.sqrt(variance);
+    return {mean: mean, stddev: stddev};
+}
+
 function capitalizeFirstLetter(string) {
     return string.charAt(0).toUpperCase() + string.slice(1);
 }
@@ -134,4 +178,36 @@ function getFormattedNumber(locale, num, decimals = 3) {
         return longNum;
     }
     return shortNum;
+}
+
+/**
+ * Returns the full difficulty name for BMS difficulty integers 1–5.
+ * @param {number} diff - ChartData.difficulty
+ * @returns {string}
+ */
+function difficultyName(diff) {
+    switch (diff) {
+        case 1:
+            return "BEGINNER";
+        case 2:
+            return "NORMAL";
+        case 3:
+            return "HYPER";
+        case 4:
+            return "ANOTHER";
+        case 5:
+            return "INSANE";
+        default:
+            return "";
+    }
+}
+
+/**
+ * Replaces characters forbidden in filenames on Windows / macOS / Linux
+ * with underscores.
+ * @param {string} str
+ * @returns {string}
+ */
+function sanitizeFilename(str) {
+    return str.replace(/[/\\:*?"<>|]/g, "_");
 }

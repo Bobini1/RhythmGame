@@ -71,6 +71,11 @@ BorderImage {
             ready = true;
         }
 
+        AudioPlayer {
+            id: scrollSound
+            source: Rg.profileList.mainProfile.vars.generalVars.soundsetPath + "o-change"
+        }
+
         property bool ready: false
 
         Binding {
@@ -79,6 +84,12 @@ BorderImage {
         }
         onModelChanged: {
             tumbler.currentIndex = Helpers.getIndex(frame.model, frame.profile.vars.generalVars[frame.prop], tumbler.currentIndex);
+        }
+        onCurrentIndexChanged: {
+            if (ready && visible && enabled) {
+                scrollSound.stop();
+                scrollSound.play();
+            }
         }
 
         Binding {

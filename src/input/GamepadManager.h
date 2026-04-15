@@ -63,9 +63,8 @@ class GamepadManager final : public QObject
     void loop();
 
   public:
-    ~GamepadManager() override;
     explicit GamepadManager(QObject* parent = nullptr);
-    void run(std::stop_token stop);
+    ~GamepadManager() override;
 
   signals:
 

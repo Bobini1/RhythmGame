@@ -52,14 +52,16 @@ qml_components::ProfileList::ProfileList(
   db::SqliteCppDb* songDb,
   const QMap<QString, ThemeFamily>& themeFamilies,
   std::filesystem::path profilesFolder,
-  QList<QString> avatarPaths,
+  QList<QString> assetsPaths,
+  QNetworkAccessManager* networkAccessManager,
   QObject* parent)
   : QObject(parent)
   , profilesFolder(std::move(profilesFolder))
   , mainDbPath(std::move(mainDbPath))
   , songDb(songDb)
   , themeFamilies(themeFamilies)
-  , avatarPaths(std::move(avatarPaths))
+  , assetsPaths(std::move(assetsPaths))
+  , networkAccessManager(networkAccessManager)
 {
     if (!exists(this->profilesFolder)) {
         create_directory(this->profilesFolder);
@@ -75,7 +77,8 @@ qml_components::ProfileList::ProfileList(
                   this->mainDbPath,
                   entry.path() / "profile.sqlite",
                   themeFamilies,
-                  this->avatarPaths,
+                  this->assetsPaths,
+                  networkAccessManager,
                   this);
                 QQmlEngine::setObjectOwnership(profile,
                                                QQmlEngine::CppOwnership);
@@ -164,7 +167,8 @@ qml_components::ProfileList::createProfile() -> resource_managers::Profile*
           profilesFolder / QUuid::createUuid().toString().toStdString() /
             "profile.sqlite",
           themeFamilies,
-          avatarPaths,
+          assetsPaths,
+          networkAccessManager,
           this);
         QQmlEngine::setObjectOwnership(profile, QQmlEngine::CppOwnership);
         profiles.append(profile);
@@ -199,19 +203,26 @@ qml_components::ProfileList::removeProfile(resource_managers::Profile* profile)
     if (battleProfiles.player2Profile == profile) {
         battleProfiles.setPlayer2Profile(nullptr);
     }
+    auto guid = profile->getGuid();
     profile->deleteLater();
     // We should delete the profile after the profile object (with a db
     // connection) is destroyed.
-    connect(profile,
-            &resource_managers::Profile::destroyed,
-            this,
-            [path = profile->getPath().parent_path(), this] {
-                auto ec = std::error_code{};
-                remove_all(path, ec);
-                if (ec) {
-                    spdlog::error("Failed to remove profile: {}", ec.message());
-                }
-            });
+    connect(
+      profile,
+      &resource_managers::Profile::destroyed,
+      this,
+      [path = profile->getPath().parent_path(), guid = std::move(guid), this] {
+          auto ec = std::error_code{};
+          remove_all(path, ec);
+          if (ec) {
+              spdlog::error("Failed to remove profile: {}", ec.message());
+          }
+
+          QKeychain::DeletePasswordJob job(
+            resource_managers::Profile::keychainService, this);
+          job.setKey(QString("profile/%1/token").arg(guid));
+          job.start();
+      });
     emit profilesChanged();
 }
 void

@@ -11,6 +11,7 @@
 #include <QList>
 #include <QObject>
 #include <QString>
+#include <QJsonArray>
 namespace gameplay_logic {
 
 class BmsReplayData final : public QObject
@@ -45,6 +46,9 @@ class BmsReplayData final : public QObject
 
     void save(db::SqliteCppDb& db) const;
     static auto load(const DTO& dto) -> std::unique_ptr<BmsReplayData>;
+    static void migrateStoredReplayData(db::SqliteCppDb& db);
+    auto toJsonArray() const -> QJsonArray;
+    static auto fromJsonArray(const QJsonArray& array) -> QList<HitEvent>;
 };
 
 } // namespace gameplay_logic

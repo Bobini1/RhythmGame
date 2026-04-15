@@ -3,6 +3,7 @@
 ## Themes:
 
 ### GenericTheme
+
 Copyright © Shimi9999
 
 This project uses image assets from the **GenericTheme** Beatoraja skin
@@ -15,20 +16,22 @@ https://github.com/Shimi9999/GenericTheme
 #### GenericTheme dependencies:
 
 ##### Fonts
-- 源真ゴシック (http://jikasei.me/font/genshin/)  
-  * Licensed under SIL Open Font License 1.1 (http://scripts.sil.org/OFL)  
-  * © 2015 自家製フォント工房, © 2014, 2015 Adobe Systems Incorporated, © 2015 M+  
-  * FONTS PROJECT
-- Squada One (https://fonts.google.com/specimen/Squada+One)  
-  * Licensed under SIL Open Font License 1.1 (http://scripts.sil.org/OFL)
-- x16y32pxGridGazer (https://hicchicc.github.io/00ff/)  
-  * © 2018-2023 hicc 患者長ひっく
-- Kenney Fonts (https://kenney.nl/assets/kenney-fonts)  
-  * Licensed under CC0 1.0 Universal (https://creativecommons.org/publicdomain/zero/1.0/)
-- Newtown (https://fontmeme.com/jfont/newtown-font/)  
-  * Public Domain
+
+- 源真ゴシック (http://jikasei.me/font/genshin/)
+    * Licensed under SIL Open Font License 1.1 (http://scripts.sil.org/OFL)
+    * © 2015 自家製フォント工房, © 2014, 2015 Adobe Systems Incorporated, © 2015 M+
+    * FONTS PROJECT
+- Squada One (https://fonts.google.com/specimen/Squada+One)
+    * Licensed under SIL Open Font License 1.1 (http://scripts.sil.org/OFL)
+- x16y32pxGridGazer (https://hicchicc.github.io/00ff/)
+    * © 2018-2023 hicc 患者長ひっく
+- Kenney Fonts (https://kenney.nl/assets/kenney-fonts)
+    * Licensed under CC0 1.0 Universal (https://creativecommons.org/publicdomain/zero/1.0/)
+- Newtown (https://fontmeme.com/jfont/newtown-font/)
+    * Public Domain
 
 ##### Images
+
 - Explosion - 8556 (https://pixabay.com/videos/id-8556/)
 - presents-1913987 (https://pixabay.com/images/id-1913987/)
 - steampunk-3169877 (https://pixabay.com/images/id-3169877/)
@@ -39,8 +42,8 @@ https://github.com/Shimi9999/GenericTheme
 - giraffe-805096 (https://pixabay.com/images/id-805096/)
 - lion-951778 (https://pixabay.com/images/id-951778/)
 
-
 ### SocialSkin
+
 Copyright © souki202
 
 This project uses image assets from the **SocialSkin** Beatoraja skin
@@ -52,12 +55,38 @@ https://github.com/souki202/my_beatoraja_skin
 
 #### SocialSkin dependencies:
 
-* Background image: (Originally: \*/background/\*.png; RhythmGame: bg.png, clear.png, failed.png):
-Flower images from [百花繚乱](https://flowerillust.com/).
+* Background image: (Originally: \*/background/\*.png; RhythmGame: bg.png, clear.png, failed.png, flower-back0716.png):
+  Flower images from [百花繚乱](https://flowerillust.com/).
 * Font: Copyright © 2014, 2015 Adobe Systems Incorporated (http://www.adobe.com/),
-with Reserved Font Name 'Source', Kozuka Gothic.
+  with Reserved Font Name 'Source', Kozuka Gothic.
 * Some icons (icon at the bottom left of the song bar, statistics button icon): ICOOON MONO
 * Some images: Marble Vectors by Vecteezy
+
+## Audio:
+
+### Brook soundset
+
+Copyright © isocosa
+
+Licensed under CC BY-SA 4.0.
+
+### Trance BGM
+
+Copyright © nanoblender
+
+Licensed under CC BY-NC-SA 4.0.
+
+### Battle Armor BGM and High Impact Hamburger BGM
+
+Copyright © agu
+
+Licensed under CC BY-NC-SA 4.0.
+
+### 「SJ's Pasture」 BGM
+
+Copyright @ nevermind
+
+Licensed under CC0 1.0.
 
 ## Libraries:
 
@@ -89,7 +118,7 @@ https://github.com/libsndfile/libsndfile?tab=LGPL-2.1-1-ov-file
 
 The MIT License (MIT)
 
-Copyright © 2012-2025 Sébastien Rombauts 
+Copyright © 2012-2025 Sébastien Rombauts
 
 https://github.com/SRombauts/SQLiteCpp/blob/master/LICENSE.txt
 
@@ -109,11 +138,18 @@ Copyright © The Qt Company Ltd.
 
 https://doc.qt.io/qt-6/lgpl.html
 
+### QtKeychain
+
+BSD 3-Clause "New" or "Revised" License (BSD 3-Clause)
+
+Copyright © 2011–2015 Frank Osterfeld
+Copyright © 2016 Mathias Hasselmann
+
 ### libxml2
 
 The MIT License (MIT)
 
-Copyright © 1998-2012 Daniel Veillard.  All Rights Reserved.  
+Copyright © 1998-2012 Daniel Veillard. All Rights Reserved.  
 Copyright © The Libxml2 Contributors.
 
 https://github.com/GNOME/libxml2/blob/master/Copyright
@@ -148,7 +184,6 @@ zlib License (Zlib)
 
 http://www.libsdl.org/license.php
 
-
 ### ICU
 
 Unicode License v3 (Unicode-3.0)
@@ -164,7 +199,6 @@ BSD 3-Clause License (BSD-3-Clause)
 Copyright © Meta Platforms, Inc. and affiliates. All rights reserved.
 
 https://github.com/facebook/zstd/blob/dev/LICENSE
-
 
 ### magic_enum
 
@@ -430,7 +464,7 @@ Copyright © 2015-2024 Werner Lemberg
 Copyright © 2004-2024 suzuki toshiya, Masatake YAMATO, Red Hat K.K., David Turner, Robert Wilhelm, and Werner Lemberg  
 Copyright © 2019 nyorain  
 Copyright © 2022-2024 David Turner, Robert Wilhelm, Werner Lemberg, George Williams, and Dominik Röttsches  
-Copyright © 2009, 2023  Red Hat, Inc.
+Copyright © 2009, 2023 Red Hat, Inc.
 
 https://doc.qt.io/qt-6/qtgui-attribution-freetype.html
 
@@ -438,23 +472,23 @@ https://doc.qt.io/qt-6/qtgui-attribution-freetype.html
 
 MIT License (MIT)
 
-Copyright © 2010-2022  Google, Inc.  
-Copyright © 2015-2020  Ebrahim Byagowi  
-Copyright © 2019,2020  Facebook, Inc.  
-Copyright © 2012,2015  Mozilla Foundation  
-Copyright © 2011  Codethink Limited  
-Copyright © 2008,2010  Nokia Corporation and/or its subsidiary(-ies)  
-Copyright © 2009  Keith Stribley  
-Copyright © 2011  Martin Hosken and SIL International  
-Copyright © 2007  Chris Wilson  
-Copyright © 2005,2006,2020,2021,2022,2023  Behdad Esfahbod  
-Copyright © 2004,2007,2008,2009,2010,2013,2021,2022,2023  Red Hat, Inc.  
-Copyright © 1998-2005  David Turner and Werner Lemberg  
-Copyright © 2016  Igalia S.L.  
-Copyright © 2022  Matthias Clasen  
-Copyright © 2018,2021  Khaled Hosny  
-Copyright © 2018,2019,2020  Adobe, Inc  
-Copyright © 2013-2015  Alexei Podtelezhnikov
+Copyright © 2010-2022 Google, Inc.  
+Copyright © 2015-2020 Ebrahim Byagowi  
+Copyright © 2019,2020 Facebook, Inc.  
+Copyright © 2012,2015 Mozilla Foundation  
+Copyright © 2011 Codethink Limited  
+Copyright © 2008,2010 Nokia Corporation and/or its subsidiary(-ies)  
+Copyright © 2009 Keith Stribley  
+Copyright © 2011 Martin Hosken and SIL International  
+Copyright © 2007 Chris Wilson  
+Copyright © 2005,2006,2020,2021,2022,2023 Behdad Esfahbod  
+Copyright © 2004,2007,2008,2009,2010,2013,2021,2022,2023 Red Hat, Inc.  
+Copyright © 1998-2005 David Turner and Werner Lemberg  
+Copyright © 2016 Igalia S.L.  
+Copyright © 2022 Matthias Clasen  
+Copyright © 2018,2021 Khaled Hosny  
+Copyright © 2018,2019,2020 Adobe, Inc  
+Copyright © 2013-2015 Alexei Podtelezhnikov
 
 https://doc.qt.io/qt-6/qtgui-attribution-harfbuzz-ng.html
 
@@ -717,8 +751,8 @@ https://doc.qt.io/qt-6/qtshadertools-attribution-glslang.html
 
 BSD 3-Clause License (BSD-3-Clause)
 
-Copyright © 2000-2009  Josh Coalson  
-Copyright © 2011-2025  Xiph.Org Foundation
+Copyright © 2000-2009 Josh Coalson  
+Copyright © 2011-2025 Xiph.Org Foundation
 
 https://github.com/xiph/flac?tab=BSD-3-Clause-4-ov-file
 
@@ -806,3 +840,60 @@ BSD 2-Clause License (BSD-2-Clause)
 Copyright © 2001-2014 Peter Johnson and other Yasm developers
 
 https://github.com/yasm/yasm/blob/master/COPYING
+
+### libdbus-1 headers
+
+Academic Free License v2.1 (AFL-2.1)
+
+Copyright © 2002, 2003 CodeFactory AB
+Copyright © 2004, 2005 Red Hat, Inc.
+
+### libsecret
+
+GNU Lesser General Public License v2.1 or later (LGPL-2.1-or-later)
+
+### libgcrypt
+
+GNU Lesser General Public License v2.1 or later (LGPL-2.1-or-later)
+
+#### BSD 3-Clause License (BSD-3-Clause):
+
+cipher/sha256-avx-amd64.S
+cipher/sha256-avx2-bmi2-amd64.S
+cipher/sha256-ssse3-amd64.S
+cipher/sha512-avx-amd64.S
+cipher/sha512-avx2-bmi2-amd64.S
+cipher/sha512-ssse3-amd64.S
+cipher/sha512-ssse3-i386.c
+cipher/sha512-avx512-amd64.S
+
+Copyright © 2012, Intel Corporation
+
+cipher/poly1305-amd64-avx512.S
+
+Copyright © 2021–2022, Intel Corporation
+
+random/jitterentropy-base.c
+random/jitterentropy-gcd.c
+random/jitterentropy-gcd.h
+random/jitterentropy-health.c
+random/jitterentropy-health.h
+random/jitterentropy-noise.c
+random/jitterentropy-noise.h
+random/jitterentropy-sha3.c
+random/jitterentropy-sha3.h
+random/jitterentropy-timer.c
+random/jitterentropy-timer.h
+random/jitterentropy.h
+random/rndjent.c (plus common Libgcrypt copyright holders)
+
+Copyright © 2017–2021, Stephan Mueller <smueller@chronox.de>
+
+cipher/cipher-gcm-ppc.c
+cipher/keccak-amd64-avx512.S
+
+Copyright © 2006, CRYPTOGAMS by <appro@openssl.org> All rights reserved.
+
+### libgpg-error
+
+GNU Lesser General Public License v2.1 or later (LGPL-2.1-or-later)

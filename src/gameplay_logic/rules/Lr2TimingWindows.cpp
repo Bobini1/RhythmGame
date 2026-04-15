@@ -13,10 +13,10 @@ judgeEasy() -> TimingWindows
     static auto map = [] {
         auto map = TimingWindows{};
         map.set({ Nanos::open(-1000ms, 0ms), Judgement::EmptyPoor });
-        map.set({ Nanos::open(-200ms, +200ms), Judgement::Bad });
-        map.set({ Nanos::open(-120ms, +120ms), Judgement::Good });
-        map.set({ Nanos::open(-60ms, +60ms), Judgement::Great });
-        map.set({ Nanos::open(-21ms, +21ms), Judgement::Perfect });
+        map.set({ Nanos::closed(-200ms, +200ms), Judgement::Bad });
+        map.set({ Nanos::closed(-120ms, +120ms), Judgement::Good });
+        map.set({ Nanos::closed(-60ms, +60ms), Judgement::Great });
+        map.set({ Nanos::closed(-21ms, +21ms), Judgement::Perfect });
         return map;
     }();
     return map;
@@ -29,10 +29,10 @@ judgeNormal() -> TimingWindows
     static auto map = [] {
         auto map = TimingWindows{};
         map.set({ Nanos::open(-1000ms, 0ms), Judgement::EmptyPoor });
-        map.set({ Nanos::open(-200ms, +200ms), Judgement::Bad });
-        map.set({ Nanos::open(-100ms, +100ms), Judgement::Good });
-        map.set({ Nanos::open(-40ms, +40ms), Judgement::Great });
-        map.set({ Nanos::open(-18ms, +18ms), Judgement::Perfect });
+        map.set({ Nanos::closed(-200ms, +200ms), Judgement::Bad });
+        map.set({ Nanos::closed(-100ms, +100ms), Judgement::Good });
+        map.set({ Nanos::closed(-40ms, +40ms), Judgement::Great });
+        map.set({ Nanos::closed(-18ms, +18ms), Judgement::Perfect });
         return map;
     }();
     return map;
@@ -45,10 +45,10 @@ judgeHard() -> TimingWindows
     static auto map = [] {
         auto map = TimingWindows{};
         map.set({ Nanos::open(-1000ms, 0ms), Judgement::EmptyPoor });
-        map.set({ Nanos::open(-200ms, +200ms), Judgement::Bad });
-        map.set({ Nanos::open(-60ms, +60ms), Judgement::Good });
-        map.set({ Nanos::open(-30ms, +30ms), Judgement::Great });
-        map.set({ Nanos::open(-15ms, +15ms), Judgement::Perfect });
+        map.set({ Nanos::closed(-200ms, +200ms), Judgement::Bad });
+        map.set({ Nanos::closed(-60ms, +60ms), Judgement::Good });
+        map.set({ Nanos::closed(-30ms, +30ms), Judgement::Great });
+        map.set({ Nanos::closed(-15ms, +15ms), Judgement::Perfect });
         return map;
     }();
     return map;
@@ -61,10 +61,10 @@ judgeVeryHard() -> TimingWindows
     static auto map = [] {
         auto map = TimingWindows{};
         map.set({ Nanos::open(-1000ms, 0ms), Judgement::EmptyPoor });
-        map.set({ Nanos::open(-200ms, +200ms), Judgement::Bad });
-        map.set({ Nanos::open(-40ms, +40ms), Judgement::Good });
-        map.set({ Nanos::open(-24ms, +24ms), Judgement::Great });
-        map.set({ Nanos::open(-8ms, +8ms), Judgement::Perfect });
+        map.set({ Nanos::closed(-200ms, +200ms), Judgement::Bad });
+        map.set({ Nanos::closed(-40ms, +40ms), Judgement::Good });
+        map.set({ Nanos::closed(-24ms, +24ms), Judgement::Great });
+        map.set({ Nanos::closed(-8ms, +8ms), Judgement::Perfect });
         return map;
     }();
     return map;

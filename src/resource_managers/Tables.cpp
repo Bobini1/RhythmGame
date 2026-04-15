@@ -78,7 +78,7 @@ resource_managers::Level::getEntries() const -> QVariantList
     return list;
 }
 static auto
-queryScores(db::SqliteCppDb& db, QVariantList& ret, QStringList md5List)
+queryCharts(db::SqliteCppDb& db, QVariantList& ret, QStringList md5List)
   -> size_t
 {
     // Create a single query with an IN clause
@@ -99,11 +99,15 @@ queryScores(db::SqliteCppDb& db, QVariantList& ret, QStringList md5List)
                 "charts.back_bmp, charts.rank, charts.total, "
                 "charts.play_level, charts.difficulty, charts.is_random, "
                 "charts.random_sequence, charts.normal_note_count, "
-                "charts.ln_count, charts.mine_count, charts.length, "
+                "charts.scratch_count, charts.ln_count, charts.bss_count, "
+                "charts.mine_count, charts.length, "
                 "charts.initial_bpm, charts.max_bpm, charts.min_bpm, "
-                "charts.main_bpm, charts.avg_bpm, charts.path, "
-                "charts.directory, charts.sha256, charts.md5, charts.keymode "
-                "FROM md5_list JOIN charts ON md5_list.md5 = charts.md5 GROUP "
+                "charts.main_bpm, charts.avg_bpm, charts.peak_density, "
+                "charts.avg_density, charts.end_density, charts.path, "
+                "charts.directory, charts.sha256, charts.md5, charts.keymode, "
+                "charts.game_version, h.bpms, h.histogram_data "
+                "FROM md5_list JOIN charts ON md5_list.md5 = charts.md5 "
+                "LEFT JOIN histogram_data h ON h.chart_id = charts.id GROUP "
                 "BY md5_list.idx";
 
     auto query = db.createStatement(queryStr);
@@ -139,7 +143,7 @@ resource_managers::Level::loadCharts() const -> QVariantList
         md5List.append(chart.md5.toUpper());
     }
 
-    auto loaded = queryScores(*db, ret, md5List);
+    auto loaded = queryCharts(*db, ret, md5List);
     // sort by title, subtitle
     std::ranges::sort(ret, [](QVariant& a, QVariant& b) {
         auto getTitle = [](QVariant& chart) {
@@ -224,7 +228,7 @@ resource_managers::Course::loadCharts() const
         md5List.append(md5.toUpper());
     }
 
-    auto loaded = queryScores(*db, ret, md5List);
+    auto loaded = queryCharts(*db, ret, md5List);
     spdlog::debug("Loaded {} charts in {} s", loaded, sw);
     return ret;
 }

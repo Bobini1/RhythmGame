@@ -10,6 +10,7 @@ GameplayPopup {
     required property var generalVars
     required property var themeVars
     property bool dp: false
+    property bool fiveKeys: false
 
     model: ObjectModel {
         NumberWithSlider {
@@ -69,6 +70,16 @@ GameplayPopup {
                 }
             }
         }
+        Loader {
+            active: popup.fiveKeys
+            sourceComponent: Component {
+                BooleanOption {
+                    src: popup.themeVars
+                    description: qsTr("Enable 5 Keys Cover")
+                    prop: "fiveKeysCoverEnabled"
+                }
+            }
+        }
         BooleanOption {
             description: qsTr("Enable Lane Cover")
             src: popup.generalVars
@@ -104,6 +115,17 @@ GameplayPopup {
             prop: "hiddenRatio"
             text: qsTr("Hidden Ratio")
             to: 1
+        }
+        Loader {
+            active: popup.fiveKeys
+            sourceComponent: Component {
+                ImageSelection {
+                    src: popup.themeVars
+                    propertyId: "fiveKeysCover"
+                    dirName: "5keyscover"
+                    label: qsTr("5 Keys Cover")
+                }
+            }
         }
         ImageSelection {
             src: popup.themeVars

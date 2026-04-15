@@ -8,6 +8,7 @@ Checks: "*,\
   fuchsia-multiple-inheritance,\
   -llvm-header-guard,\
   -llvm-include-order,\
+  -llvm-prefer-static-over-anonymous-namespace,\
   -llvmlibc-*,\
   -modernize-use-nodiscard,\
   -bugprone-unchecked-optional-access,\

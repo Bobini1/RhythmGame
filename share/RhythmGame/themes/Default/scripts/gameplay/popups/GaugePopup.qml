@@ -10,6 +10,11 @@ GameplayPopup {
     required property var themeVars
 
     model: ObjectModel {
+        BooleanOption {
+            prop: "lifeBarEnabled"
+            src: popup.themeVars
+            description: qsTr("Enabled")
+        }
         NumberWithSlider {
             to: 10
             from: -10

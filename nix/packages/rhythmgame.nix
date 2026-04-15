@@ -16,6 +16,7 @@
   qtdeclarative,
   qtmultimedia,
   qtsvg,
+  qtkeychain,
   qtinterfaceframework,
   ned14-llfio,
   lexy,
@@ -59,6 +60,7 @@ stdenv.mkDerivation rec {
     qtdeclarative
     qtmultimedia
     qtsvg
+    qtkeychain
     qtinterfaceframework
     ned14-llfio
     lexy

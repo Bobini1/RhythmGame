@@ -20,13 +20,14 @@ WindowBg {
         anchors.bottom: parent.bottom
         anchors.bottomMargin: 24
         anchors.left: parent.left
-        anchors.leftMargin: 48
+        anchors.leftMargin: 40
         source: root.iniImagesUrl + "parts.png/" + lampDiff.oldBestClear + "_s"
     }
     Image {
         anchors.bottom: parent.bottom
         anchors.bottomMargin: 24
         anchors.horizontalCenter: parent.horizontalCenter
+        anchors.horizontalCenterOffset: -12
         source: root.iniImagesUrl + "parts.png/arrow"
     }
     Image {
@@ -41,7 +42,7 @@ WindowBg {
         anchors.bottom: parent.bottom
         anchors.bottomMargin: 24
         anchors.right: parent.right
-        anchors.rightMargin: 36
+        anchors.rightMargin: 32
         source: root.iniImagesUrl + "parts.png/" + (clearTypesForCourse[lampDiff.clearType] || lampDiff.clearType)
     }
 }

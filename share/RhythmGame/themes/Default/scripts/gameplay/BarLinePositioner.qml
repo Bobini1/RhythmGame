@@ -1,6 +1,6 @@
 import QtQuick
 
-Flickable {
+Item {
     id: column
 
     required property real heightMultiplier
@@ -10,26 +10,42 @@ Flickable {
     FrameAnimation {
         running: true
         onTriggered: {
-            // Update the position of the bar lines based on the current position
-            barlinesRepeater.model.bottomPosition = column.position;
             let top = column.height / column.heightMultiplier;
             barlinesRepeater.model.topPosition = column.position + top;
+            barlinesRepeater.model.bottomPosition = column.position;
         }
     }
+    clip: true
 
-    Repeater {
-        id: barlinesRepeater
-        delegate: Item {
-            anchors.bottom: parent.bottom
-            anchors.bottomMargin: display.time.position * column.heightMultiplier + column.height
-            anchors.left: parent.left
-            anchors.right: parent.right
-            Rectangle {
-                color: "gray"
-                height: 1
-                y: -height / 2
+    Item {
+        anchors.fill: parent
+        anchors.bottomMargin: -column.position * column.heightMultiplier
+
+        Repeater {
+            id: barlinesRepeater
+            delegate: Item {
+                anchors.bottom: parent.bottom
+                anchors.bottomMargin: display.time.position * column.heightMultiplier
                 anchors.left: parent.left
                 anchors.right: parent.right
+
+                Canvas {
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    height: 2
+                    y: -1
+                    antialiasing: true
+
+                    onPaint: {
+                        let ctx = getContext("2d");
+                        ctx.strokeStyle = "gray";
+                        ctx.lineWidth = 1;
+                        ctx.beginPath();
+                        ctx.moveTo(0, 1);      // horizontal line through the canvas centre
+                        ctx.lineTo(width, 1);
+                        ctx.stroke();
+                    }
+                }
             }
         }
     }

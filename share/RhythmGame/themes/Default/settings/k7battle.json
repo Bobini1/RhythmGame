@@ -54,6 +54,19 @@
           "default": false
         },
         {
+          "id": "fiveKeysCoverEnabled",
+          "name": {
+            "en": "Enable 5 Keys Cover",
+            "pl": "Włącz zakrycie dla 5k"
+          },
+          "description": {
+            "en": "Show a cover image over the unused lanes when playing a 5-key chart.",
+            "pl": "Pokaż obraz zakrycia nad nieużywanymi kolumnami podczas grania na 5 klawiszy."
+          },
+          "type": "boolean",
+          "default": false
+        },
+        {
           "id": "hideLnEnds",
           "name": {
             "en": "Hide LN Ends",
@@ -69,8 +82,8 @@
         {
           "id": "fastslowEnabled",
           "name": {
-            "en": "Enable Fast/Slow Indicator",
-            "pl": "Włącz wskaźnik Fast/Slow"
+            "en": "Show Fast/Slow Indicator",
+            "pl": "Pokaż wskaźnik Fast/Slow"
           },
           "description": {
             "en": "Show an indicator when the player hits notes too early or too late.",
@@ -82,8 +95,8 @@
         {
           "id": "ghostScoreEnabled",
           "name": {
-            "en": "Enable Ghost Score",
-            "pl": "Włącz cel punktowy"
+            "en": "Show Ghost Score",
+            "pl": "Pokaż cel punktowy"
           },
           "description": {
             "en": "Show the ghost score, representing a target score for the player to aim for.",
@@ -93,31 +106,401 @@
           "default": true
         },
         {
-          "id": "judgeLineThickness",
+          "id": "lifeBarEnabled",
           "name": {
-            "en": "Judge Line Thickness",
-            "pl": "Grubość dolnej kreski"
+            "en": "Show Life Bar",
+            "pl": "Pokaż pasek życia"
           },
-          "type": "range",
+          "type": "boolean",
+          "default": true,
           "description": {
-            "en": "The thickness of the line where you are supposed to hit the note",
-            "pl": "Grubość linii, na której należy uderzyć notkę"
-          },
-          "min": 0,
-          "default": 8
+            "en": "Show the life bar.",
+            "pl": "Pokaż pasek życia."
+          }
         },
         {
-          "id": "judgeLineColor",
+          "id": "titleDisplayEnabled",
           "name": {
-            "en": "Judge Line Color",
-            "pl": "Kolor dolnej kreski"
+            "en": "Show Title Display",
+            "pl": "Pokaż wyświetlacz tytułu"
           },
-          "type": "color",
+          "type": "boolean",
+          "default": true,
           "description": {
-            "en": "The color of the line where you are supposed to hit the note",
-            "pl": "Kolor linii, na której należy uderzyć notkę"
+            "en": "Show the title/subtitle display.",
+            "pl": "Pokaż wyświetlacz tytułu/podtytułu."
+          }
+        },
+        {
+          "id": "difficultyDisplayEnabled",
+          "name": {
+            "en": "Show Difficulty Display",
+            "pl": "Pokaż wyświetlacz trudności"
           },
-          "default": "red"
+          "type": "boolean",
+          "default": true,
+          "description": {
+            "en": "Show the difficulty/play level display.",
+            "pl": "Pokaż wyświetlacz trudności/poziomu gry."
+          }
+        },
+        {
+          "id": "bpmDisplayEnabled",
+          "name": {
+            "en": "Show BPM Display",
+            "pl": "Pokaż wyświetlacz BPM"
+          },
+          "type": "boolean",
+          "default": true,
+          "description": {
+            "en": "Show the BPM display.",
+            "pl": "Pokaż wyświetlacz BPM."
+          }
+        },
+        {
+          "id": "scoreGraphEnabled",
+          "name": {
+            "en": "Show Score Graph",
+            "pl": "Pokaż wykres wyników"
+          },
+          "type": "boolean",
+          "default": true,
+          "description": {
+            "en": "Show the score graph.",
+            "pl": "Pokaż wykres wyników."
+          }
+        },
+        {
+          "name": {
+            "en": "Density Graph",
+            "pl": "Wykres gęstości"
+          },
+          "type": "group",
+          "description": {
+            "en": "Options for the note-density graph.",
+            "pl": "Opcje wykresu gęstości notek."
+          },
+          "items": [
+            {
+              "id": "densityGraphEnabled",
+              "name": {
+                "en": "Show Density Graph",
+                "pl": "Pokaż wykres gęstości"
+              },
+              "type": "boolean",
+              "default": true,
+              "description": {
+                "en": "Show the note-density graph.",
+                "pl": "Pokaż wykres gęstości notek."
+              }
+            },
+            {
+              "id": "densityGraphGapsEnabled",
+              "name": {
+                "en": "Gaps",
+                "pl": "Przerwy w wykresie gęstości"
+              },
+              "type": "boolean",
+              "default": false,
+              "description": {
+                "en": "Add 1 px gaps between bars if possible.",
+                "pl": "Dodaje 1 px przerwy między słupkami, jeśli to możliwe."
+              }
+            },
+            {
+              "id": "densityGraphNotesOpacity",
+              "name": {
+                "en": "Notes Opacity",
+                "pl": "przezroczystość notek"
+              },
+              "type": "range",
+              "min": 0,
+              "max": 1,
+              "default": 1.0,
+              "description": {
+                "en": "Opacity of the note-density histogram bars (0 = hidden).",
+                "pl": "Przezroczystość słupków histogramu gęstości notek (0 = ukryte)."
+              }
+            },
+            {
+              "id": "densityGraphBpmOpacity",
+              "name": {
+                "en": "BPM Opacity",
+                "pl": "przezroczystość BPM"
+              },
+              "type": "range",
+              "min": 0,
+              "max": 1,
+              "default": 1.0,
+              "description": {
+                "en": "Opacity of the BPM overlay lines (0 = hidden).",
+                "pl": "Przezroczystość linii BPM na wykresie (0 = ukryte)."
+              }
+            },
+            {
+              "id": "densityGraphBackgroundOpacity",
+              "name": {
+                "en": "Background Opacity",
+                "pl": "przezroczystość tła"
+              },
+              "type": "range",
+              "min": 0,
+              "max": 1,
+              "default": 0.8,
+              "description": {
+                "en": "Opacity of the black background behind the bars.",
+                "pl": "Przezroczystość czarnego tła za słupkami."
+              }
+            },
+            {
+              "id": "densityGraphBpmConnectorOpacity",
+              "name": {
+                "en": "BPM Connector Opacity",
+                "pl": "przezroczystość łączników BPM"
+              },
+              "type": "range",
+              "min": 0,
+              "max": 1,
+              "default": 0.75,
+              "description": {
+                "en": "Opacity of the gray vertical lines that connect adjacent BPM level lines.",
+                "pl": "Przezroczystość szarych pionowych linii łączących poziomy BPM."
+              }
+            },
+            {
+              "id": "densityGraphFrameOpacity",
+              "name": {
+                "en": "Frame Opacity",
+                "pl": "przezroczystość ramki"
+              },
+              "type": "range",
+              "min": 0,
+              "max": 1,
+              "default": 1.0,
+              "description": {
+                "en": "Opacity of the 1 px white border (0 = hidden).",
+                "pl": "Przezroczystość 1 px białej ramki (0 = ukryta)."
+              }
+            },
+            {
+              "id": "densityGraphPositionLineOpacity",
+              "name": {
+                "en": "Position Line Opacity",
+                "pl": "przezroczystość linii pozycji"
+              },
+              "type": "range",
+              "min": 0,
+              "max": 1,
+              "default": 1.0,
+              "description": {
+                "en": "Opacity of the red current-position line (0 = hidden).",
+                "pl": "Przezroczystość czerwonej linii bieżącej pozycji (0 = ukryta)."
+              }
+            },
+            {
+              "id": "densityGraphVertical",
+              "name": {
+                "en": "Vertical",
+                "pl": "Pionowy wykres gęstości"
+              },
+              "type": "boolean",
+              "default": false,
+              "description": {
+                "en": "Rotate so time runs bottom → top.",
+                "pl": "Obróć, by czas biegł od dołu do góry."
+              }
+            }
+          ]
+        },
+        {
+          "name": {
+            "en": "Judge Line",
+            "pl": "Dolna kreska"
+          },
+          "type": "group",
+          "description": {
+            "en": "Options for the judge line.",
+            "pl": "Opcje dolnej kreski, na której trafia się notki."
+          },
+          "items": [
+            {
+              "id": "judgeLineThickness",
+              "name": {
+                "en": "Thickness",
+                "pl": "Grubość"
+              },
+              "type": "range",
+              "description": {
+                "en": "The thickness of the line",
+                "pl": "Grubość linii"
+              },
+              "min": 0,
+              "default": 8
+            },
+            {
+              "id": "judgeLineColor",
+              "name": {
+                "en": "Judge Line Color",
+                "pl": "Kolor dolnej kreski"
+              },
+              "type": "color",
+              "description": {
+                "en": "The color of the line",
+                "pl": "Kolor linii"
+              },
+              "default": "red"
+            }
+          ]
+        },
+        {
+          "name": {
+            "en": "Hit Distribution",
+            "pl": "Rozkład trafień"
+          },
+          "type": "group",
+          "description": {
+            "en": "Options for the hit timing distribution graph.",
+            "pl": "Opcje wykresu rozkładu czasu trafień."
+          },
+          "items": [
+            {
+              "id": "hitDistributionEnabled",
+              "name": {
+                "en": "Show Hit Distribution",
+                "pl": "Pokaż rozkład trafień"
+              },
+              "type": "boolean",
+              "default": true,
+              "description": {
+                "en": "Show the graph.",
+                "pl": "Pokaż wykres."
+              }
+            },
+            {
+              "id": "hitDistributionVertical",
+              "name": {
+                "en": "Hit Distribution Vertical",
+                "pl": "Pionowy rozkład trafień"
+              },
+              "type": "boolean",
+              "default": false,
+              "description": {
+                "en": "Orient the graph vertically.",
+                "pl": "Ustaw wykres pionowo."
+              }
+            },
+            {
+              "id": "hitDistributionBackgroundOpacity",
+              "name": {
+                "en": "Hit Distribution Background Opacity",
+                "pl": "Przezroczystość tła rozkładu trafień"
+              },
+              "type": "range",
+              "min": 0,
+              "max": 1,
+              "default": 1.0,
+              "description": {
+                "en": "Opacity of the timing window colour bands in the background.",
+                "pl": "Przezroczystość kolorowych pasm okien czasowych w tle."
+              }
+            },
+            {
+              "id": "hitDistributionEwmaMode",
+              "name": {
+                "en": "Hit Distribution EWMA Mode",
+                "pl": "Tryb EWMA rozkładu trafień"
+              },
+              "type": "boolean",
+              "default": false,
+              "description": {
+                "en": "Show a single EWMA line instead of a trail.",
+                "pl": "Pokaż pojedynczą linię EWMA zamiast śladu."
+              }
+            },
+            {
+              "id": "hitDistributionEwmaAlpha",
+              "name": {
+                "en": "EWMA Alpha",
+                "pl": "Współczynnik alfa EWMA"
+              },
+              "type": "range",
+              "min": 0.01,
+              "max": 1.0,
+              "default": 0.1,
+              "description": {
+                "en": "EWMA smoothing factor.",
+                "pl": "Współczynnik wygładzania EWMA."
+              }
+            },
+            {
+              "id": "hitDistributionMaxTrail",
+              "name": {
+                "en": "Hit Distribution Trail Length",
+                "pl": "Długość śladu rozkładu trafień"
+              },
+              "type": "range",
+              "min": 1,
+              "default": 30,
+              "description": {
+                "en": "Maximum number of hit lines in trail mode.",
+                "pl": "Maksymalna liczba linii trafień w trybie śladu."
+              }
+            },
+            {
+              "id": "hitDistributionLineColor",
+              "name": {
+                "en": "Hit Distribution Line Color",
+                "pl": "Kolor linii rozkładu trafień"
+              },
+              "type": "color",
+              "default": "white",
+              "description": {
+                "en": "Color of the hit indicator line(s).",
+                "pl": "Kolor linii wskaźnika trafień."
+              }
+            },
+            {
+              "id": "hitDistributionCenterLineColor",
+              "name": {
+                "en": "Hit Distribution Center Line Color",
+                "pl": "Kolor linii środkowej rozkładu trafień"
+              },
+              "type": "color",
+              "default": "red",
+              "description": {
+                "en": "Color of the central reference line.",
+                "pl": "Kolor środkowej linii odniesienia."
+              }
+            },
+            {
+              "id": "hitDistributionLineWidth",
+              "name": {
+                "en": "Hit Distribution Line Width",
+                "pl": "Szerokość linii rozkładu trafień"
+              },
+              "type": "range",
+              "min": 1,
+              "default": 2,
+              "description": {
+                "en": "Width in pixels of each hit indicator line.",
+                "pl": "Szerokość w pikselach każdej linii wskaźnika trafień."
+              }
+            },
+            {
+              "id": "hitDistributionCenterLineWidth",
+              "name": {
+                "en": "Hit Distribution Center Line Width",
+                "pl": "Szerokość linii środkowej rozkładu trafień"
+              },
+              "type": "range",
+              "min": 0,
+              "default": 1,
+              "description": {
+                "en": "Width in pixels of the central reference line.",
+                "pl": "Szerokość w pikselach środkowej linii odniesienia."
+              }
+            }
+          ]
         }
       ]
     },
@@ -231,6 +614,20 @@
           }
         },
         {
+          "id": "fiveKeysCover",
+          "name": {
+            "en": "5 Keys Cover",
+            "pl": "Zakrycie 5 klawiszy"
+          },
+          "type": "file",
+          "path": "scripts/gameplay/images/5keyscover",
+          "default": "plain.png",
+          "description": {
+            "en": "The texture used to cover the unused lanes when playing a 5-key chart.",
+            "pl": "Tekstura zakrywająca nieużywane kolumny podczas grania na 5 klawiszy."
+          }
+        },
+        {
           "id": "judge",
           "name": {
             "en": "Judgement",
@@ -270,6 +667,20 @@
           "description": {
             "en": "The texture used for the laser beam that appears when a key is pressed.",
             "pl": "Tekstura używana dla lasera, który pojawia się po naciśnięciu klawisza."
+          }
+        },
+        {
+          "id": "scoregraph",
+          "name": {
+            "en": "Score Graph Background",
+            "pl": "Tło wykresu wyników"
+          },
+          "type": "file",
+          "path": "scripts/gameplay/images/scoregraph",
+          "default": "default.png",
+          "description": {
+            "en": "The background image for the score graph.",
+            "pl": "Obraz tła wykresu wyników."
           }
         }
       ]
@@ -482,6 +893,19 @@
           },
           "items": [
             {
+              "id": "judgementsEnabled",
+              "name": {
+                "en": "Show Judgements",
+                "pl": "Pokaż oceny trafień"
+              },
+              "type": "boolean",
+              "default": true,
+              "description": {
+                "en": "Show the judgement display.",
+                "pl": "Pokaż wyświetlacz ocen trafień."
+              }
+            },
+            {
               "id": "judgementsOffset",
               "name": {
                 "en": "Position",
@@ -509,73 +933,6 @@
               "description": {
                 "en": "The height of the judgement text as a ratio of playfield height.",
                 "pl": "Wysokość tekstu oceny jako stosunek do wysokości pola gry."
-              }
-            }
-          ]
-        },
-        {
-          "type": "group",
-          "name": {
-            "en": "LifeBar",
-            "pl": "Pasek życia"
-          },
-          "description": {
-            "en": "The position of the life bar.",
-            "pl": "Pozycja paska życia."
-          },
-          "items": [
-            {
-              "id": "lifeBarX",
-              "name": {
-                "en": "X",
-                "pl": "X"
-              },
-              "type": "range",
-              "default": 0,
-              "description": {
-                "en": "The X position of the left side of the life bar rectangle.",
-                "pl": "Pozycja X lewej strony prostokąta paska życia."
-              }
-            },
-            {
-              "id": "lifeBarY",
-              "name": {
-                "en": "Y",
-                "pl": "Y"
-              },
-              "type": "range",
-              "default": 800,
-              "description": {
-                "en": "The Y position of the top side of the life bar rectangle.",
-                "pl": "Pozycja Y górnej strony prostokąta paska życia."
-              }
-            },
-            {
-              "id": "lifeBarWidth",
-              "name": {
-                "en": "Width",
-                "pl": "Szerokość"
-              },
-              "type": "range",
-              "min": 0,
-              "default": 500,
-              "description": {
-                "en": "The width of the life bar rectangle.",
-                "pl": "Szerokość prostokąta paska życia."
-              }
-            },
-            {
-              "id": "lifeBarHeight",
-              "name": {
-                "en": "Height",
-                "pl": "Wysokość"
-              },
-              "type": "range",
-              "min": 0,
-              "default": 40,
-              "description": {
-                "en": "The height of the life bar rectangle.",
-                "pl": "Wysokość prostokąta paska życia."
               }
             }
           ]
@@ -819,6 +1176,423 @@
               }
             }
           ]
+        },
+        {
+          "type": "group",
+          "name": {
+            "en": "Title Display",
+            "pl": "Wyświetlacz tytułu"
+          },
+          "description": {
+            "en": "Position, size, and visibility of the title/subtitle display.",
+            "pl": "Pozycja, rozmiar i widoczność wyświetlacza tytułu/podtytułu."
+          },
+          "items": [
+            {
+              "id": "titleDisplayX",
+              "name": {
+                "en": "X",
+                "pl": "X"
+              },
+              "type": "range",
+              "default": 660,
+              "description": {
+                "en": "X position.",
+                "pl": "Pozycja X."
+              }
+            },
+            {
+              "id": "titleDisplayY",
+              "name": {
+                "en": "Y",
+                "pl": "Y"
+              },
+              "type": "range",
+              "default": 870,
+              "description": {
+                "en": "Y position.",
+                "pl": "Pozycja Y."
+              }
+            },
+            {
+              "id": "titleDisplayWidth",
+              "name": {
+                "en": "Width",
+                "pl": "Szerokość"
+              },
+              "type": "range",
+              "min": 0,
+              "default": 600,
+              "description": {
+                "en": "Width.",
+                "pl": "Szerokość."
+              }
+            },
+            {
+              "id": "titleDisplayHeight",
+              "name": {
+                "en": "Height",
+                "pl": "Wysokość"
+              },
+              "type": "range",
+              "min": 0,
+              "default": 50,
+              "description": {
+                "en": "Height.",
+                "pl": "Wysokość."
+              }
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "name": {
+            "en": "Difficulty Display",
+            "pl": "Wyświetlacz trudności"
+          },
+          "description": {
+            "en": "Position, size, and visibility of the difficulty/play level display.",
+            "pl": "Pozycja, rozmiar i widoczność wyświetlacza trudności/poziomu gry."
+          },
+          "items": [
+            {
+              "id": "difficultyDisplayX",
+              "name": {
+                "en": "X",
+                "pl": "X"
+              },
+              "type": "range",
+              "default": 540,
+              "description": {
+                "en": "X position.",
+                "pl": "Pozycja X."
+              }
+            },
+            {
+              "id": "difficultyDisplayY",
+              "name": {
+                "en": "Y",
+                "pl": "Y"
+              },
+              "type": "range",
+              "default": 870,
+              "description": {
+                "en": "Y position.",
+                "pl": "Pozycja Y."
+              }
+            },
+            {
+              "id": "difficultyDisplayWidth",
+              "name": {
+                "en": "Width",
+                "pl": "Szerokość"
+              },
+              "type": "range",
+              "min": 0,
+              "default": 120,
+              "description": {
+                "en": "Width.",
+                "pl": "Szerokość."
+              }
+            },
+            {
+              "id": "difficultyDisplayHeight",
+              "name": {
+                "en": "Height",
+                "pl": "Wysokość"
+              },
+              "type": "range",
+              "min": 0,
+              "default": 60,
+              "description": {
+                "en": "Height.",
+                "pl": "Wysokość."
+              }
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "name": {
+            "en": "BPM Display",
+            "pl": "Wyświetlacz BPM"
+          },
+          "description": {
+            "en": "Position, size, and visibility of the current/min/max BPM display.",
+            "pl": "Pozycja, rozmiar i widoczność wyświetlacza BPM."
+          },
+          "items": [
+            {
+              "id": "bpmDisplayX",
+              "name": {
+                "en": "X",
+                "pl": "X"
+              },
+              "type": "range",
+              "default": 835,
+              "description": {
+                "en": "X position.",
+                "pl": "Pozycja X."
+              }
+            },
+            {
+              "id": "bpmDisplayY",
+              "name": {
+                "en": "Y",
+                "pl": "Y"
+              },
+              "type": "range",
+              "default": 930,
+              "description": {
+                "en": "Y position.",
+                "pl": "Pozycja Y."
+              }
+            },
+            {
+              "id": "bpmDisplayWidth",
+              "name": {
+                "en": "Width",
+                "pl": "Szerokość"
+              },
+              "type": "range",
+              "min": 0,
+              "default": 250,
+              "description": {
+                "en": "Width.",
+                "pl": "Szerokość."
+              }
+            },
+            {
+              "id": "bpmDisplayHeight",
+              "name": {
+                "en": "Height",
+                "pl": "Wysokość"
+              },
+              "type": "range",
+              "min": 0,
+              "default": 55,
+              "description": {
+                "en": "Height.",
+                "pl": "Wysokość."
+              }
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "name": {
+            "en": "Score Graph",
+            "pl": "Wykres wyników"
+          },
+          "description": {
+            "en": "Position, size, and visibility of the score graph.",
+            "pl": "Pozycja, rozmiar i widoczność wykresu wyników."
+          },
+          "items": [
+            {
+              "id": "scoreGraphBarWidth",
+              "name": {
+                "en": "Bar Width",
+                "pl": "Szerokość słupków"
+              },
+              "type": "range",
+              "min": 0,
+              "max": 1,
+              "default": 0.7,
+              "description": {
+                "en": "Total width of all score bars as a ratio of the available bar width.",
+                "pl": "Szerokość wszystkich słupków jako ułamek dostępnej szerokości."
+              }
+            },
+            {
+              "id": "scoreGraphX",
+              "name": {
+                "en": "X",
+                "pl": "X"
+              },
+              "type": "range",
+              "default": 520,
+              "description": {
+                "en": "X position.",
+                "pl": "Pozycja X."
+              }
+            },
+            {
+              "id": "scoreGraphY",
+              "name": {
+                "en": "Y",
+                "pl": "Y"
+              },
+              "type": "range",
+              "default": 160,
+              "description": {
+                "en": "Y position.",
+                "pl": "Pozycja Y."
+              }
+            },
+            {
+              "id": "scoreGraphWidth",
+              "name": {
+                "en": "Width",
+                "pl": "Szerokość"
+              },
+              "type": "range",
+              "min": 0,
+              "default": 122,
+              "description": {
+                "en": "Width.",
+                "pl": "Szerokość."
+              }
+            },
+            {
+              "id": "scoreGraphHeight",
+              "name": {
+                "en": "Height",
+                "pl": "Wysokość"
+              },
+              "type": "range",
+              "min": 0,
+              "default": 380,
+              "description": {
+                "en": "Height.",
+                "pl": "Wysokość."
+              }
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "name": {
+            "en": "Density Graph",
+            "pl": "Wykres gęstości"
+          },
+          "description": {
+            "en": "Position, size, and visibility of the note-density graph.",
+            "pl": "Pozycja, rozmiar i widoczność wykresu gęstości notek."
+          },
+          "items": [
+            {
+              "id": "densityGraphX",
+              "name": {
+                "en": "X",
+                "pl": "X"
+              },
+              "type": "range",
+              "default": 660,
+              "description": {
+                "en": "X position.",
+                "pl": "Pozycja X."
+              }
+            },
+            {
+              "id": "densityGraphY",
+              "name": {
+                "en": "Y",
+                "pl": "Y"
+              },
+              "type": "range",
+              "default": 985,
+              "description": {
+                "en": "Y position.",
+                "pl": "Pozycja Y."
+              }
+            },
+            {
+              "id": "densityGraphWidth",
+              "name": {
+                "en": "Width",
+                "pl": "Szerokość"
+              },
+              "type": "range",
+              "min": 0,
+              "default": 600,
+              "description": {
+                "en": "Width.",
+                "pl": "Szerokość."
+              }
+            },
+            {
+              "id": "densityGraphHeight",
+              "name": {
+                "en": "Height",
+                "pl": "Wysokość"
+              },
+              "type": "range",
+              "min": 0,
+              "default": 80,
+              "description": {
+                "en": "Height.",
+                "pl": "Wysokość."
+              }
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "name": {
+            "en": "Hit Distribution",
+            "pl": "Rozkład trafień"
+          },
+          "description": {
+            "en": "Position and size of the hit timing distribution graph.",
+            "pl": "Pozycja i rozmiar wykresu rozkładu czasu trafień."
+          },
+          "items": [
+            {
+              "id": "hitDistributionX",
+              "name": {
+                "en": "X",
+                "pl": "X"
+              },
+              "type": "range",
+              "default": 0,
+              "description": {
+                "en": "X position.",
+                "pl": "Pozycja X."
+              }
+            },
+            {
+              "id": "hitDistributionY",
+              "name": {
+                "en": "Y",
+                "pl": "Y"
+              },
+              "type": "range",
+              "default": 850,
+              "description": {
+                "en": "Y position.",
+                "pl": "Pozycja Y."
+              }
+            },
+            {
+              "id": "hitDistributionWidth",
+              "name": {
+                "en": "Width",
+                "pl": "Szerokość"
+              },
+              "type": "range",
+              "min": 0,
+              "default": 500,
+              "description": {
+                "en": "Width.",
+                "pl": "Szerokość."
+              }
+            },
+            {
+              "id": "hitDistributionHeight",
+              "name": {
+                "en": "Height",
+                "pl": "Wysokość"
+              },
+              "type": "range",
+              "min": 0,
+              "default": 60,
+              "description": {
+                "en": "Height.",
+                "pl": "Wysokość."
+              }
+            }
+          ]
         }
       ]
     },
@@ -883,6 +1657,84 @@
           "description": {
             "en": "The z-index of the judgement counts.",
             "pl": "Wartość z-index licznika trafień."
+          }
+        },
+        {
+          "id": "scoreGraphZ",
+          "name": {
+            "en": "Score Graph Z",
+            "pl": "Wykres wyników Z"
+          },
+          "type": "range",
+          "default": 0,
+          "description": {
+            "en": "The z-index of the score graph.",
+            "pl": "Wartość z-index wykresu wyników."
+          }
+        },
+        {
+          "id": "bpmDisplayZ",
+          "name": {
+            "en": "BPM Display Z",
+            "pl": "Wyświetlacz BPM Z"
+          },
+          "type": "range",
+          "default": 0,
+          "description": {
+            "en": "The z-index of the BPM display.",
+            "pl": "Wartość z-index wyświetlacza BPM."
+          }
+        },
+        {
+          "id": "titleDisplayZ",
+          "name": {
+            "en": "Title Display Z",
+            "pl": "Wyświetlacz tytułu Z"
+          },
+          "type": "range",
+          "default": 0,
+          "description": {
+            "en": "The z-index of the title display.",
+            "pl": "Wartość z-index wyświetlacza tytułu."
+          }
+        },
+        {
+          "id": "difficultyDisplayZ",
+          "name": {
+            "en": "Difficulty Display Z",
+            "pl": "Wyświetlacz trudności Z"
+          },
+          "type": "range",
+          "default": 0,
+          "description": {
+            "en": "The z-index of the difficulty display.",
+            "pl": "Wartość z-index wyświetlacza trudności."
+          }
+        },
+        {
+          "id": "densityGraphZ",
+          "name": {
+            "en": "Density Graph Z",
+            "pl": "Wykres gęstości Z"
+          },
+          "type": "range",
+          "default": 0,
+          "description": {
+            "en": "The z-index of the density graph.",
+            "pl": "Wartość z-index wykresu gęstości."
+          }
+        },
+        {
+          "id": "hitDistributionZ",
+          "name": {
+            "en": "Hit Distribution Z",
+            "pl": "Rozkład trafień Z"
+          },
+          "type": "range",
+          "default": 0,
+          "description": {
+            "en": "The z-index of the hit distribution graph.",
+            "pl": "Wartość z-index wykresu rozkładu trafień."
           }
         }
       ]
