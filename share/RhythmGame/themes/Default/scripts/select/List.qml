@@ -100,14 +100,35 @@ PathView {
         }
     }
 
+    property int targetIndex: 0
+
     function decrementViewIndex() {
-        currentIndex = currentIndex === 0 ? count - 1 : currentIndex - 1;
+        if (count === 0) return;
+        targetIndex = (targetIndex - 1 + count) % count;
         movingTimer.restart();
+        if (!navigationTimer.running) {
+            applyNavigation();
+        }
     }
 
     function incrementViewIndex() {
-        currentIndex = currentIndex === count - 1 ? 0 : currentIndex + 1;
+        if (count === 0) return;
+        targetIndex = (targetIndex + 1) % count;
         movingTimer.restart();
+        if (!navigationTimer.running) {
+            applyNavigation();
+        }
+    }
+
+    function applyNavigation() {
+        if (currentIndex === targetIndex) return;
+        currentIndex = targetIndex;
+        navigationTimer.restart();
+    }
+
+    function resetNavigation() {
+        navigationTimer.stop();
+        targetIndex = currentIndex;
     }
 
     AudioPlayer {
@@ -135,6 +156,7 @@ PathView {
             return false;
         });
         pathView.positionViewAtIndex(idx, PathView.Center);
+        resetNavigation();
         closeFolderSound.stop();
         closeFolderSound.play();
     }
@@ -170,6 +192,7 @@ PathView {
             openFolderSound.play();
         }
         pathView.positionViewAtIndex(0, PathView.Center);
+        resetNavigation();
     }
     function open(item) {
         let folder;
@@ -225,6 +248,7 @@ PathView {
         pathView.model = results;
         pathView.folderContents = newFolderContents;
         pathView.positionViewAtIndex(0, PathView.Center);
+        resetNavigation();
         openedFolder();
     }
 
@@ -261,6 +285,7 @@ PathView {
                 pathView.positionViewAtIndex(currentIdx, PathView.Center);
             else
                 pathView.positionViewAtIndex(0, PathView.Center);
+            resetNavigation();
         }
     }
 
@@ -271,7 +296,7 @@ PathView {
     preferredHighlightBegin: 0.5
     preferredHighlightEnd: 0.5
     snapMode: PathView.SnapToItem
-    cacheItemCount: 4
+    cacheItemCount: 16
 
     delegate: Loader {
         id: selectItemLoader
@@ -480,16 +505,14 @@ PathView {
     onCurrentItemChanged: {
         scrollingTextTimer.restart();
         scrollingText = false;
+        scratchSound.stop();
+        scratchSound.play();
     }
     onFilterChanged: {
         sortOrFilterChanged();
     }
     onSortChanged: {
         sortOrFilterChanged();
-    }
-    onCurrentIndexChanged: {
-        scratchSound.stop();
-        scratchSound.play();
     }
 
     Timer {
@@ -505,6 +528,16 @@ PathView {
         id: movingTimer
 
         interval: pathView.highlightMoveDuration
+    }
+    Timer {
+        id: navigationTimer
+
+        interval: 16
+        repeat: false
+
+        onTriggered: {
+            pathView.applyNavigation();
+        }
     }
     MouseArea {
         id: mouse

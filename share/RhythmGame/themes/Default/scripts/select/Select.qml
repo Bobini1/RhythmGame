@@ -159,6 +159,7 @@ FocusScope {
                     if (pressed) {
                         previewDelayTimer.restart();
                         songList.offset = songList.count * (1 - vbar.position);
+                        songList.resetNavigation();
                     }
                 }
                 snapMode: ScrollBar.SnapOnRelease
