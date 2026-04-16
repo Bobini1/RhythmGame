@@ -32,7 +32,7 @@ TgaHandler::read(QImage* image)
     if (!rw)
         return false;
 
-    SDL_Surface* surface = IMG_LoadTGA_RW(rw);
+    SDL_Surface* surface = IMG_Load_RW(rw, 0);
     SDL_RWclose(rw);
 
     if (!surface)
