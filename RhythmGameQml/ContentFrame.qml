@@ -62,15 +62,34 @@ ApplicationWindow {
         readonly property Component selectComponent: Qt.createComponent(Rg.themes.availableThemeFamilies[mainProfile.themeConfig.select].screens.select.script)
         readonly property Component decideComponent: Qt.createComponent(Rg.themes.availableThemeFamilies[mainProfile.themeConfig.decide].screens.decide.script)
 
+        function currentLr2Settings(screenKey) {
+            let themeName = mainProfile.themeConfig[screenKey];
+            let screenVars = mainProfile.vars.themeVars[screenKey];
+            if (screenVars && screenVars[themeName]) {
+                let source = screenVars[themeName];
+                let result = {};
+                let keys = source.keys ? source.keys() : Object.keys(source);
+                for (let key of keys) {
+                    result[key] = source[key];
+                }
+                return result;
+            }
+            return undefined;
+        }
+
         function openChart(path, profile1, autoplay1, replay1, score1, profile2, autoplay2, replay2, score2) {
             let chart = Rg.chartLoader.loadChart(path, profile1, autoplay1, replay1, score1, profile2, autoplay2, replay2, score2);
             if (!chart) {
                 console.error("Failed to load chart");
                 return;
             }
-            sceneStack.pushItem(decideComponent, {
-                "chart": chart
-            });
+            let decideScreen = Rg.themes.availableThemeFamilies[mainProfile.themeConfig.decide].screens.decide;
+            let props = { "chart": chart };
+            if (decideScreen.csvPath) {
+                props["csvPath"] = decideScreen.csvPath;
+                props["skinSettings"] = currentLr2Settings("decide");
+            }
+            sceneStack.pushItem(decideComponent, props);
         }
 
         function openCourse(course, profile1, autoplay1, replay1, score1, profile2, autoplay2, replay2, score2) {
@@ -79,19 +98,27 @@ ApplicationWindow {
                 console.error("Failed to load course");
                 return;
             }
-            sceneStack.pushItem(decideComponent, {
-                "chart": runner
-            });
+            let decideScreen = Rg.themes.availableThemeFamilies[mainProfile.themeConfig.decide].screens.decide;
+            let props = { "chart": runner };
+            if (decideScreen.csvPath) {
+                props["csvPath"] = decideScreen.csvPath;
+                props["skinSettings"] = currentLr2Settings("decide");
+            }
+            sceneStack.pushItem(decideComponent, props);
         }
 
         function openGameplay(runner) {
             let keys = runner.keymode;
             let battle = runner.player1 && runner.player2;
-            let screen = "k" + keys + (battle ? "battle" : "");
-            let component = globalRoot[screen + "Component"];
-            sceneStack.pushItem(component, {
-                "chart": runner
-            });
+            let screenKey = "k" + keys + (battle ? "battle" : "");
+            let component = globalRoot[screenKey + "Component"];
+            let screenObj = Rg.themes.availableThemeFamilies[mainProfile.themeConfig[screenKey]].screens[screenKey];
+            let props = { "chart": runner };
+            if (screenObj && screenObj.csvPath) {
+                props["csvPath"] = screenObj.csvPath;
+                props["skinSettings"] = currentLr2Settings(screenKey);
+            }
+            sceneStack.pushItem(component, props);
         }
 
         function openResult(scores, profiles, chartData) {

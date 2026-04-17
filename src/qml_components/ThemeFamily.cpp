@@ -35,11 +35,18 @@ ThemeFamily::ThemeFamily(QString path,
   , translations(std::move(translations))
 {
 }
-Screen::Screen(QUrl script, QUrl settings, QUrl settingsScript, bool aliased)
+Screen::Screen(QUrl script,
+               QUrl settings,
+               QString settingsData,
+               QUrl settingsScript,
+               bool aliased,
+               QString csvPath)
   : script(std::move(script))
   , settings(std::move(settings))
+  , settingsData(std::move(settingsData))
   , settingsScript(std::move(settingsScript))
   , aliased(aliased)
+  , csvPath(std::move(csvPath))
 {
 }
 auto
@@ -53,6 +60,11 @@ Screen::getSettings() const -> QUrl
     return settings;
 }
 auto
+Screen::getSettingsData() const -> QString
+{
+    return settingsData;
+}
+auto
 Screen::getSettingsScript() const -> QUrl
 {
     return settingsScript;
@@ -61,6 +73,11 @@ auto
 Screen::isAliased() const -> bool
 {
     return aliased;
+}
+auto
+Screen::getCsvPath() const -> QString
+{
+    return csvPath;
 }
 auto
 ThemeFamily::getTranslations() const -> QMap<QString, QUrl>

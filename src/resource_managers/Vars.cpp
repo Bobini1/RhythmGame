@@ -1163,6 +1163,20 @@ populateScreenVarsRecursive( // NOLINT(*-no-recursion)
 
 auto
 populateScreenVars(const std::filesystem::path& themePath,
+                   const QJsonObject& settingsObject)
+  -> ScreenVarsPopulationResult
+{
+    auto result = ScreenVarsPopulationResult{};
+    if (!settingsObject.contains("items") || !settingsObject["items"].isArray()) {
+        throw support::Exception("Settings object has no items array");
+    }
+    populateScreenVarsRecursive(
+      result, themePath, settingsObject["items"].toArray());
+    return result;
+}
+
+auto
+populateScreenVars(const std::filesystem::path& themePath,
                    const std::filesystem::path& settingsPath)
   -> ScreenVarsPopulationResult
 {
@@ -1175,6 +1189,7 @@ populateScreenVars(const std::filesystem::path& themePath,
         spdlog::error("Failed to open config for reading: {}: {}",
                       settingsPath.string(),
                       file.errorString().toStdString());
+        return {};
     }
     const auto contents = QJsonDocument::fromJson(file.readAll());
     if (!contents.isObject()) {
@@ -1246,11 +1261,21 @@ readThemeVarsForTheme(const std::filesystem::path& themeVarsPath,
             continue;
         }
         auto settingsUrl = screenObj.getSettings();
-        if (settingsUrl.isEmpty()) {
+        if (settingsUrl.isEmpty() && screenObj.getSettingsData().isEmpty()) {
             continue;
         }
-        auto settingsPath = support::qStringToPath(settingsUrl.toLocalFile());
-        vars[screen] = populateScreenVars(themePath, settingsPath);
+        if (!screenObj.getSettingsData().isEmpty()) {
+            const auto contents =
+              QJsonDocument::fromJson(screenObj.getSettingsData().toUtf8());
+            if (!contents.isObject()) {
+                throw support::Exception(
+                  std::format("In-memory settings data is not an object for screen {}", screen.toStdString()));
+            }
+            vars[screen] = populateScreenVars(themePath, contents.object());
+        } else {
+            auto settingsPath = support::qStringToPath(settingsUrl.toLocalFile());
+            vars[screen] = populateScreenVars(themePath, settingsPath);
+        }
     }
     auto result = QHash<QString, QHash<QString, QVariant>>{};
     for (const auto& [screen, screenVars] : vars.asKeyValueRange()) {

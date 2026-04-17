@@ -47,8 +47,11 @@
 #include "support/QtSink.h"
 #include "resource_managers/AvatarImageProvider.h"
 #include "resource_managers/DxaImageProvider.h"
+#include "resource_managers/Lr2FontCatalog.h"
+#include "resource_managers/Lr2FontImageProvider.h"
 #include "support/QStringToPath.h"
 #include "qml_components/OnlineScores.h"
+#include "gameplay_logic/lr2_skin/Lr2SkinModel.h"
 
 Q_IMPORT_QML_PLUGIN(RhythmGameQmlPlugin)
 Q_IMPORT_PLUGIN(TgaPlugin)
@@ -502,6 +505,27 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
         qmlRegisterType<resource_managers::TachiData>(
           "RhythmGameQml", 1, 0, "tachiData");
 
+        qmlRegisterUncreatableType<gameplay_logic::lr2_skin::Lr2Dst>(
+          "RhythmGameQml", 1, 0, "lr2Dst", "Q_GADGET");
+        qmlRegisterUncreatableType<gameplay_logic::lr2_skin::Lr2SrcImage>(
+          "RhythmGameQml", 1, 0, "lr2SrcImage", "Q_GADGET");
+        qmlRegisterUncreatableType<gameplay_logic::lr2_skin::Lr2SrcText>(
+          "RhythmGameQml", 1, 0, "lr2SrcText", "Q_GADGET");
+        qmlRegisterUncreatableType<gameplay_logic::lr2_skin::Lr2SrcNumber>(
+          "RhythmGameQml", 1, 0, "lr2SrcNumber", "Q_GADGET");
+        qmlRegisterUncreatableType<gameplay_logic::lr2_skin::Lr2Element>(
+          "RhythmGameQml", 1, 0, "lr2Element", "Q_GADGET");
+        qmlRegisterType<gameplay_logic::lr2_skin::Lr2SkinModel>(
+          "RhythmGameQml", 1, 0, "Lr2SkinModel");
+        qmlRegisterSingletonType<resource_managers::Lr2FontCatalog>(
+          "RhythmGameQml",
+          1,
+          0,
+          "Lr2FontCatalog",
+          [](QQmlEngine*, QJSEngine*) -> QObject* {
+              return new resource_managers::Lr2FontCatalog{};
+          });
+
         qml_components::InputAttached::inputSignalProvider = &inputTranslator;
         qml_components::QmlUtilsAttached::getThemeNameForRootFile =
           [&availableThemes](const QUrl& rootFile) {
@@ -526,6 +550,8 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
                                 new resource_managers::IniImageProvider{});
         engine.addImageProvider("dxa",
                                 new resource_managers::DxaImageProvider{});
+        engine.addImageProvider("lr2font",
+                                new resource_managers::Lr2FontImageProvider{});
         auto assetsPaths = std::vector{ installationDataFolder };
         if (!isPortable) {
             assetsPaths.push_back(dataFolder);
@@ -539,7 +565,7 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
             throw std::runtime_error{ "Failed to load main qml" };
         }
         app.setInputTranslator(&inputTranslator);
-        
+
         return app.exec();
     } catch (const std::exception& e) {
         spdlog::critical("Fatal: {}", e.what());

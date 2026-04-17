@@ -1,0 +1,108 @@
+#include "Lr2FontImageProvider.h"
+
+#include "Lr2FontCache.h"
+
+#include <QPainter>
+#include <QUrlQuery>
+
+namespace resource_managers {
+
+Lr2FontImageProvider::Lr2FontImageProvider()
+  : QQuickImageProvider(QQuickImageProvider::Image)
+{
+}
+
+QImage
+Lr2FontImageProvider::requestImage(const QString& id,
+                                   QSize* size,
+                                   const QSize& /*requestedSize*/)
+{
+    const QUrl url("id://" + id);
+    QString path = url.path();
+    if (path.startsWith('/')) {
+        path = path.mid(1);
+    }
+    const QUrlQuery query(url.query());
+
+    const auto* dict = Lr2FontCache::instance().load(path);
+    if (!dict) {
+        if (size) {
+            *size = QSize(0, 0);
+        }
+        return {};
+    }
+
+    // Atlas form: return texture N directly. Qt caches the resulting QImage
+    // by URL, so all glyphs clipping from the same atlas share one texture.
+    if (query.hasQueryItem("atlas")) {
+        const int atlasIdx = query.queryItemValue("atlas").toInt();
+        if (atlasIdx < 0 || atlasIdx >= dict->textures.size()) {
+            if (size) {
+                *size = QSize(0, 0);
+            }
+            return {};
+        }
+        const auto& atlas = dict->textures[atlasIdx];
+        if (size) {
+            *size = atlas.size();
+        }
+        return atlas;
+    }
+
+    // Legacy form: compose the full string into one image.
+    const auto text = query.queryItemValue("text");
+    int totalW = 0;
+    int maxH = dict->height;
+
+    struct DrawCmd
+    {
+        const QImage* src;
+        QRect rect;
+        int dx;
+    };
+    QList<DrawCmd> cmds;
+    cmds.reserve(text.size());
+
+    for (const QChar c : text) {
+        const char32_t c32 = c.unicode();
+        if (const auto it = dict->glyphs.find(c32); it != dict->glyphs.end()) {
+            const auto& g = it.value();
+            if (g.imgIdx >= 0 && g.imgIdx < dict->textures.size()) {
+                cmds.append({&dict->textures[g.imgIdx], g.rect, totalW});
+                totalW += g.rect.width();
+                maxH = qMax(maxH, g.rect.height());
+            } else {
+                totalW += g.rect.width();
+            }
+        } else if (c == ' ') {
+            totalW += maxH / 2;
+        }
+    }
+
+    if (totalW <= 0) {
+        totalW = 1;
+    }
+    if (maxH <= 0) {
+        maxH = 1;
+    }
+
+    QImage result(totalW, maxH, QImage::Format_ARGB32);
+    result.fill(Qt::transparent);
+    QPainter painter(&result);
+    for (const auto& cmd : cmds) {
+        painter.drawImage(cmd.dx,
+                          0,
+                          *cmd.src,
+                          cmd.rect.x(),
+                          cmd.rect.y(),
+                          cmd.rect.width(),
+                          cmd.rect.height());
+    }
+
+    if (size) {
+        *size = result.size();
+    }
+    return result;
+}
+
+} // namespace resource_managers
