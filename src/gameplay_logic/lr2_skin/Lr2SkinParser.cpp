@@ -3,11 +3,12 @@
 #include "support/PathToQString.h"
 #include "support/QStringToPath.h"
 
+#include <QFile>
 #include <QRegularExpression>
+#include <QStringDecoder>
 #include <QStringList>
 #include <algorithm>
 #include <filesystem>
-#include <fstream>
 #include <set>
 #include <vector>
 #include <spdlog/spdlog.h>
@@ -21,16 +22,31 @@ struct CustomFile
     QString wildcard;
 };
 
+struct FontDefinition
+{
+    QString path;
+    QString family;
+    int size = 0;
+    int thickness = 0;
+    int type = 0;
+    bool bitmap = false;
+};
+
 struct ParseState
 {
     QList<Lr2Element> elements;
     QList<QString> images;
-    QList<QString> fonts;
+    QList<FontDefinition> systemFonts;
+    QList<FontDefinition> imageFonts;
     QList<CustomFile> customFiles;
     std::set<int> activeOptions;
     Lr2Element currentElement;
     bool hasCurrentElement = false;
     QVariantMap settingValues;
+    int startInput = 0;
+    int sceneTime = 0;
+    int fadeOut = 0;
+    int skip = 0;
 };
 
 auto
@@ -39,6 +55,14 @@ makeSafeId(QString text, const QString& fallback) -> QString
     text = text.toLower().replace(QRegularExpression("[^a-z0-9]+"), "_");
     text = text.replace(QRegularExpression("^_|_$"), "");
     return text.isEmpty() ? fallback : text;
+}
+
+auto
+lr2ConfiguredFontFamily() -> QString
+{
+    // LR2 ignores the family tokens in #FONT and uses config.skin.fontname.
+    // The stock config default is "Ariel" (sic); Qt resolves "Arial" more reliably.
+    return QStringLiteral("Arial");
 }
 
 void
@@ -52,22 +76,42 @@ flushCurrentElement(ParseState& state)
 }
 
 auto
-tokenizeLine(const std::string& raw) -> QStringList
+tokenizeLine(QString raw) -> QStringList
 {
-    auto content = QString::fromStdString(raw);
-    const auto commentPos = content.indexOf("//");
+    const auto commentPos = raw.indexOf("//");
     if (commentPos >= 0) {
-        content = content.left(commentPos);
+        raw = raw.left(commentPos);
     }
-    content = content.trimmed();
-    if (content.isEmpty()) {
+    raw = raw.trimmed();
+    if (raw.isEmpty()) {
         return {};
     }
-    auto tokens = content.split(',');
+    auto tokens = raw.split(',');
     for (auto& token : tokens) {
         token = token.trimmed();
     }
     return tokens;
+}
+
+auto
+decodeSkinText(const QByteArray& data) -> QString
+{
+    if (data.startsWith("\xEF\xBB\xBF")) {
+        return QString::fromUtf8(data.sliced(3));
+    }
+
+    QStringDecoder utf8Decoder(QStringConverter::Utf8);
+    const auto utf8 = utf8Decoder.decode(data);
+    if (!utf8Decoder.hasError()) {
+        return utf8;
+    }
+
+    QStringDecoder shiftJisDecoder("Shift-JIS");
+    if (shiftJisDecoder.isValid()) {
+        return shiftJisDecoder.decode(data);
+    }
+
+    return QString::fromLatin1(data);
 }
 
 void
@@ -323,7 +367,23 @@ processCommand(const QStringList& tokens,
     }
 
     const auto command = tokens[0].toUpper();
-    if (command == "#CUSTOMOPTION") {
+    if (command == "#STARTINPUT") {
+        if (tokens.size() > 1) {
+            state.startInput = tokens[1].trimmed().toInt();
+        }
+    } else if (command == "#SCENETIME") {
+        if (tokens.size() > 1) {
+            state.sceneTime = tokens[1].trimmed().toInt();
+        }
+    } else if (command == "#FADEOUT") {
+        if (tokens.size() > 1) {
+            state.fadeOut = tokens[1].trimmed().toInt();
+        }
+    } else if (command == "#SKIP") {
+        if (tokens.size() > 1) {
+            state.skip = tokens[1].trimmed().toInt();
+        }
+    } else if (command == "#CUSTOMOPTION") {
         if (tokens.size() < 4) {
             return;
         }
@@ -385,18 +445,27 @@ processCommand(const QStringList& tokens,
                       tokens.size() > 1 ? tokens[1].trimmed() : QString{},
                       state));
     } else if (command == "#FONT") {
-        if (tokens.size() > 5 && !tokens[5].trimmed().isEmpty()) {
-            state.fonts.append(tokens[5].trimmed());
-        } else if (tokens.size() > 4 && !tokens[4].trimmed().isEmpty()) {
-            state.fonts.append(tokens[4].trimmed());
-        } else if (tokens.size() > 1 && !tokens[1].trimmed().isEmpty()) {
-            state.fonts.append(tokens[1].trimmed());
+        FontDefinition font;
+        if (tokens.size() > 1 && !tokens[1].trimmed().isEmpty()) {
+            font.size = tokens[1].trimmed().toInt();
         }
+        if (tokens.size() > 2 && !tokens[2].trimmed().isEmpty()) {
+            font.thickness = tokens[2].trimmed().toInt();
+        }
+        if (tokens.size() > 3 && !tokens[3].trimmed().isEmpty()) {
+            font.type = tokens[3].trimmed().toInt();
+        }
+        font.family = lr2ConfiguredFontFamily();
+        font.path = font.family;
+        state.systemFonts.append(font);
     } else if (command == "#LR2FONT") {
-        state.fonts.append(
+        FontDefinition font;
+        font.bitmap = true;
+        font.path =
           resolvePath(currentDir,
                       tokens.size() > 1 ? tokens[1].trimmed() : QString{},
-                      state));
+                      state);
+        state.imageFonts.append(font);
     } else if (command == "#SRC_IMAGE") {
         flushCurrentElement(state);
         state.currentElement = Lr2Element{};
@@ -498,8 +567,20 @@ processCommand(const QStringList& tokens,
             src.edit = tokens[5].toInt();
         if (tokens.size() > 6 && !tokens[6].isEmpty())
             src.panel = tokens[6].toInt();
-        if (src.font >= 0 && src.font < state.fonts.size()) {
-            src.fontPath = state.fonts[src.font];
+        if (src.font >= 0 && src.font < state.systemFonts.size()) {
+            const auto& font = state.systemFonts[src.font];
+            src.fontPath = font.path;
+            src.fontFamily = font.family;
+            src.fontSize = font.size;
+            src.fontThickness = font.thickness;
+            src.fontType = font.type;
+        }
+        if (src.font >= 0 && src.font < state.imageFonts.size()) {
+            const auto& font = state.imageFonts[src.font];
+            if (!font.path.isEmpty()) {
+                src.fontPath = font.path;
+                src.bitmapFont = true;
+            }
         }
         state.currentElement.src = QVariant::fromValue(src);
     } else if (command == "#DST_TEXT") {
@@ -543,15 +624,17 @@ parseLines(const std::vector<QStringList>& lines,
 auto
 loadLines(const std::filesystem::path& filePath) -> std::vector<QStringList>
 {
-    std::ifstream ifs(filePath);
-    if (!ifs.is_open()) {
+    QFile file(support::pathToQString(filePath));
+    if (!file.open(QIODevice::ReadOnly)) {
         spdlog::warn("Could not open LR2 skin file: {}", filePath.string());
         return {};
     }
 
     std::vector<QStringList> lines;
-    std::string raw;
-    while (std::getline(ifs, raw)) {
+    const auto text = decodeSkinText(file.readAll());
+    const auto rawLines = text.split('\n');
+    lines.reserve(static_cast<std::size_t>(rawLines.size()));
+    for (const auto& raw : rawLines) {
         lines.push_back(tokenizeLine(raw));
     }
     return lines;
@@ -571,21 +654,24 @@ parseFileIntoState(const std::filesystem::path& filePath, ParseState& state)
 auto
 parseFile(const std::filesystem::path& filePath,
           const QVariantMap& settingValues,
-          const std::set<int>& initialOptions) -> QList<Lr2Element>
+          const std::set<int>& initialOptions) -> Lr2SkinData
 {
     ParseState state;
     state.settingValues = settingValues;
     state.activeOptions = initialOptions;
     parseFileIntoState(filePath, state);
     flushCurrentElement(state);
-    return state.elements;
+    return Lr2SkinData{
+      .elements = state.elements,
+      .startInput = state.startInput,
+      .sceneTime = state.sceneTime,
+      .fadeOut = state.fadeOut,
+      .skip = state.skip,
+    };
 }
-} // namespace
 
-QList<Lr2Element>
-Lr2SkinParser::parse(const QString& path,
-                     const QVariantMap& settingValues,
-                     const QVariantList& activeOptions)
+auto
+parseOptions(const QVariantList& activeOptions) -> std::set<int>
 {
     std::set<int> options;
     for (const auto& optionValue : activeOptions) {
@@ -595,6 +681,24 @@ Lr2SkinParser::parse(const QString& path,
             options.insert(option);
         }
     }
+    return options;
+}
+} // namespace
+
+QList<Lr2Element>
+Lr2SkinParser::parse(const QString& path,
+                     const QVariantMap& settingValues,
+                     const QVariantList& activeOptions)
+{
+    return parseData(path, settingValues, activeOptions).elements;
+}
+
+Lr2SkinData
+Lr2SkinParser::parseData(const QString& path,
+                         const QVariantMap& settingValues,
+                         const QVariantList& activeOptions)
+{
+    const auto options = parseOptions(activeOptions);
     return parseFile(support::qStringToPath(path), settingValues, options);
 }
 

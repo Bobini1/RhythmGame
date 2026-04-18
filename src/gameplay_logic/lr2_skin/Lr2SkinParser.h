@@ -134,6 +134,11 @@ struct Lr2SrcText
     Q_PROPERTY(int edit MEMBER edit)
     Q_PROPERTY(int panel MEMBER panel)
     Q_PROPERTY(QString fontPath MEMBER fontPath)
+    Q_PROPERTY(QString fontFamily MEMBER fontFamily)
+    Q_PROPERTY(int fontSize MEMBER fontSize)
+    Q_PROPERTY(int fontThickness MEMBER fontThickness)
+    Q_PROPERTY(int fontType MEMBER fontType)
+    Q_PROPERTY(bool bitmapFont MEMBER bitmapFont)
   public:
     int font = 0;
     int st = 0;
@@ -141,6 +146,11 @@ struct Lr2SrcText
     int edit = 0;
     int panel = 0;
     QString fontPath;
+    QString fontFamily;
+    int fontSize = 0;
+    int fontThickness = 0;
+    int fontType = 0;
+    bool bitmapFont = false;
 };
 
 struct Lr2Element
@@ -155,12 +165,24 @@ struct Lr2Element
     QVariantList dsts;
 };
 
+struct Lr2SkinData
+{
+    QList<Lr2Element> elements;
+    int startInput = 0;
+    int sceneTime = 0;
+    int fadeOut = 0;
+    int skip = 0;
+};
+
 class Lr2SkinParser
 {
   public:
     static QList<Lr2Element> parse(const QString& path,
                                    const QVariantMap& settingValues = {},
                                    const QVariantList& activeOptions = {});
+    static Lr2SkinData parseData(const QString& path,
+                                 const QVariantMap& settingValues = {},
+                                 const QVariantList& activeOptions = {});
 };
 
 auto

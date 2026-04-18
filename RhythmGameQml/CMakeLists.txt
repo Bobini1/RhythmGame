@@ -3,7 +3,7 @@ target_link_libraries(RhythmGame_qml PUBLIC RhythmGame_lib)
 target_include_directories(RhythmGame_qml PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 qt_policy(SET QTP0001 NEW)
 qt_add_qml_module(RhythmGame_qml URI RhythmGameQml VERSION 1.0 SOURCES Rg.h Rg.cpp
-        QML_FILES ContentFrame.qml Log.qml ColorChanger.qml Lr2SkinScreenWrapper.qml Lr2SpriteRenderer.qml Lr2TextRenderer.qml Lr2BitmapFontText.qml
+        QML_FILES ContentFrame.qml Log.qml ColorChanger.qml Lr2SkinScreenWrapper.qml Lr2SpriteRenderer.qml Lr2TextRenderer.qml Lr2BitmapFontText.qml Lr2SystemFontText.qml
         RESOURCES Lr2Timeline.js)
 qt6_add_shaders(RhythmGame_qml "shaders"
         PREFIX
@@ -11,4 +11,5 @@ qt6_add_shaders(RhythmGame_qml "shaders"
         FILES
         "ColorChanger.frag"
         "Lr2AddBlend.frag"
+        "Lr2InvertBlend.frag"
 )

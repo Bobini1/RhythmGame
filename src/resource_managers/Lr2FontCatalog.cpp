@@ -26,7 +26,7 @@ Lr2FontCatalog::glyph(const QString& fontPath, int codepoint)
 
     const auto code = static_cast<char32_t>(codepoint);
     const auto it = dict->glyphs.find(code);
-    if (it == dict->glyphs.end() || it.value().imgIdx < 0) {
+    if (it == dict->glyphs.end()) {
         out["found"] = false;
         // Treat unknown chars as half-em spaces so strings don't collapse.
         out["advance"] = dict->height > 0 ? dict->height / 2 : 0;
@@ -34,6 +34,12 @@ Lr2FontCatalog::glyph(const QString& fontPath, int codepoint)
     }
 
     const auto& g = it.value();
+    if (g.imgIdx < 0) {
+        out["found"] = false;
+        out["advance"] = g.rect.width() > 0 ? g.rect.width() : dict->height / 2;
+        return out;
+    }
+
     out["found"] = true;
     out["atlas"] = g.imgIdx;
     out["x"] = g.rect.x();
@@ -52,13 +58,11 @@ Lr2FontCatalog::layout(const QString& fontPath, const QString& text)
     if (!dict) {
         return out;
     }
-    out.reserve(text.size());
+    const auto codepoints = text.toUcs4();
+    out.reserve(codepoints.size());
 
-    // QString iterates UTF-16 code units; surrogate pairs would need extra
-    // handling, but LR2 fonts are SJIS-derived and their BMP coverage is
-    // the entire use case. One iteration per QChar is fine.
-    for (const QChar c : text) {
-        out.append(glyph(fontPath, c.unicode()));
+    for (const auto codepoint : codepoints) {
+        out.append(glyph(fontPath, static_cast<int>(codepoint)));
     }
     return out;
 }

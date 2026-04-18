@@ -22,17 +22,19 @@ Item {
     //   0 = TRANSCOLOR alpha (black -> transparent, then alpha)
     //   1 = plain alpha
     //   2 = ADD, implemented via Lr2AddBlend.frag + premult-alpha trick
+    //   5 = ADD (undocumented LR2 alias seen in existing skins)
     //   6 = ADD(XOR) — visually identical to ADD on the opaque surfaces LR2
     //       skins actually composite onto, so we alias it to 2.
-    // Modes 3 (SUB), 4 (MULT), 9, 10 (INVERT), 11 (MULT*ALPHA) all require
+    //   10 = INVSRC / ANTI_COLOR, implemented as an inverted source alpha blend
+    // Modes 3 (SUB), 4 (MULT), 9, 11 (MULT*ALPHA) all require
     // custom glBlendFunc state (e.g. GL_FUNC_REVERSE_SUBTRACT, GL_DST_COLOR)
     // which Qt Quick's default ShaderEffect pipeline can't set. Implementing
     // them properly needs a C++ QSGMaterial subclass that overrides
     // updatePipelineState(). Until that lands, fall through to plain alpha.
     readonly property int blendMode: {
         let raw = currentState ? currentState.blend : 1;
-        if (raw === 6) return 2;
-        if (raw === 3 || raw === 4 || raw === 9 || raw === 10 || raw === 11) return 1;
+        if (raw === 5 || raw === 6) return 2;
+        if (raw === 3 || raw === 4 || raw === 9 || raw === 11) return 1;
         return raw;
     }
     readonly property var anchor: Lr2Timeline.centerAnchor(currentState ? currentState.center : 4)
@@ -90,9 +92,9 @@ Item {
             source: root.resolvedSource
             fillMode: Image.Stretch
             cache: true
-            // For blend 0 (TRANSCOLOR) and 2 (ADD), a sibling effect samples
-            // this Image via ShaderEffectSource and draws the final composite.
-            visible: root.blendMode !== 0 && root.blendMode !== 2
+            // For special blend modes, sibling effects sample this Image via
+            // ShaderEffectSource and draw the final composite.
+            visible: root.blendMode !== 0 && root.blendMode !== 2 && root.blendMode !== 10
 
             sourceClipRect: {
                 if (!srcData) return Qt.rect(0, 0, 0, 0);
@@ -137,7 +139,7 @@ Item {
 
         // Blend mode 2: ADD. fragColor = vec4(rgb*a, 0) collapses Qt's premult
         // blend (out = src + dst*(1-src.a)) to pure additive.
-        // TODO: blend modes 3 (SUB), 4 (MULT), 9/10/11 fall through to plain
+        // TODO: blend modes 3 (SUB), 4 (MULT), 9/11 fall through to plain
         // alpha until we wire up custom GL blend functions.
         ShaderEffect {
             anchors.fill: parent
@@ -150,6 +152,20 @@ Item {
                 sourceRect: Qt.rect(0, 0, spriteImg.width, spriteImg.height)
             }
             fragmentShader: "qrc:/Lr2AddBlend.frag.qsb"
+        }
+
+        // Blend mode 10: INVSRC / ANTI_COLOR.
+        ShaderEffect {
+            anchors.fill: parent
+            visible: !root.isSolidFill && spriteImg.source !== "" && root.blendMode === 10
+            blending: true
+            property variant source: ShaderEffectSource {
+                hideSource: false
+                sourceItem: spriteImg
+                live: true
+                sourceRect: Qt.rect(0, 0, spriteImg.width, spriteImg.height)
+            }
+            fragmentShader: "qrc:/Lr2InvertBlend.frag.qsb"
         }
 
         Rectangle {

@@ -41,6 +41,22 @@ QVariantList Lr2SkinModel::activeOptions() const {
     return m_activeOptions;
 }
 
+int Lr2SkinModel::startInput() const {
+    return m_startInput;
+}
+
+int Lr2SkinModel::sceneTime() const {
+    return m_sceneTime;
+}
+
+int Lr2SkinModel::fadeOut() const {
+    return m_fadeOut;
+}
+
+int Lr2SkinModel::skip() const {
+    return m_skip;
+}
+
 void Lr2SkinModel::setCsvPath(const QString& path) {
     if (m_csvPath == path) return;
     m_csvPath = path;
@@ -64,8 +80,21 @@ void Lr2SkinModel::setActiveOptions(const QVariantList& options) {
 
 void Lr2SkinModel::loadSkin() {
     beginResetModel();
-    m_elements = Lr2SkinParser::parse(m_csvPath, m_settingValues, m_activeOptions);
+    const auto skinData = Lr2SkinParser::parseData(m_csvPath, m_settingValues, m_activeOptions);
+    m_elements = skinData.elements;
+    const bool metadataChanged = m_startInput != skinData.startInput ||
+                                 m_sceneTime != skinData.sceneTime ||
+                                 m_fadeOut != skinData.fadeOut ||
+                                 m_skip != skinData.skip;
+    m_startInput = skinData.startInput;
+    m_sceneTime = skinData.sceneTime;
+    m_fadeOut = skinData.fadeOut;
+    m_skip = skinData.skip;
     endResetModel();
+    if (metadataChanged) {
+        emit skinMetadataChanged();
+    }
+    emit skinLoaded();
 }
 
 } // namespace gameplay_logic::lr2_skin

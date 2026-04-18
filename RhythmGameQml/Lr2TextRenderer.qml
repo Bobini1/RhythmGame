@@ -19,7 +19,23 @@ Item {
     property string resolvedText: ""
 
     readonly property var currentState: Lr2Timeline.getCurrentState(dsts, skinTime, timers, activeOptions)
-    readonly property bool isLr2Font: srcData && srcData.fontPath && srcData.fontPath.toLowerCase().endsWith(".lr2font")
+    readonly property bool isLr2Font: srcData
+        && (srcData.bitmapFont || (srcData.fontPath && srcData.fontPath.toLowerCase().endsWith(".lr2font")))
+    readonly property int blendMode: {
+        let raw = currentState ? currentState.blend : 1;
+        if (raw === 5 || raw === 6) return 2;
+        if (raw === 3 || raw === 4 || raw === 9 || raw === 10 || raw === 11) return 1;
+        return raw;
+    }
+    readonly property string displayText: root.resolvedText || ("ST_" + (root.srcData ? root.srcData.st : "?"))
+    readonly property color textColor: root.currentState
+        ? Qt.rgba(root.currentState.r / 255.0, root.currentState.g / 255.0, root.currentState.b / 255.0, 1.0)
+        : "white"
+    readonly property string fontFamily: root.srcData ? (root.srcData.fontFamily || root.srcData.fontPath || "") : ""
+    readonly property int textAlignment: root.srcData ? root.srcData.align : 0
+    readonly property int textFontSize: root.srcData ? root.srcData.fontSize : 0
+    readonly property int textFontThickness: root.srcData ? root.srcData.fontThickness : 0
+    readonly property int textFontType: root.srcData ? root.srcData.fontType : 0
 
     Item {
         id: textBox
@@ -31,30 +47,68 @@ Item {
         opacity: root.currentState ? root.currentState.a / 255.0 : 0
 
         Lr2BitmapFontText {
-            visible: root.isLr2Font
+            visible: root.isLr2Font && root.blendMode !== 2
             anchors.fill: parent
             fontPath: root.srcData ? root.srcData.fontPath : ""
             text: root.resolvedText
-            alignment: root.srcData ? root.srcData.align : 0
+            alignment: root.textAlignment
         }
 
-        Text {
-            visible: !root.isLr2Font
+        Lr2SystemFontText {
+            visible: !root.isLr2Font && root.blendMode !== 2
             anchors.fill: parent
-            text: root.resolvedText || ("ST_" + (root.srcData ? root.srcData.st : "?"))
-            color: root.currentState
-                   ? Qt.rgba(root.currentState.r / 255.0, root.currentState.g / 255.0, root.currentState.b / 255.0, 1.0)
-                   : "white"
-            font.pixelSize: Math.max(1, Math.round(parent.height))
-            font.family: root.srcData && root.srcData.fontPath && !root.isLr2Font ? root.srcData.fontPath : ""
-            horizontalAlignment: {
-                if (!root.srcData) return Text.AlignLeft;
-                if (root.srcData.align === 1) return Text.AlignRight;
-                if (root.srcData.align === 2) return Text.AlignHCenter;
-                return Text.AlignLeft;
+            text: root.displayText
+            textColor: root.textColor
+            family: root.fontFamily
+            alignment: root.textAlignment
+            fontSize: root.textFontSize
+            fontThickness: root.textFontThickness
+            fontType: root.textFontType
+            blendMode: root.blendMode
+        }
+
+        Item {
+            id: additiveTextSource
+            visible: root.blendMode === 2
+            anchors.fill: parent
+
+            Lr2BitmapFontText {
+                visible: root.isLr2Font
+                anchors.fill: parent
+                fontPath: root.srcData ? root.srcData.fontPath : ""
+                text: root.resolvedText
+                alignment: root.textAlignment
             }
-            verticalAlignment: Text.AlignVCenter
-            elide: Text.ElideRight
+
+            Lr2SystemFontText {
+                visible: !root.isLr2Font
+                anchors.fill: parent
+                text: root.displayText
+                textColor: root.textColor
+                family: root.fontFamily
+                alignment: root.textAlignment
+                fontSize: root.textFontSize
+                fontThickness: root.textFontThickness
+                fontType: root.textFontType
+                blendMode: root.blendMode
+            }
+        }
+
+        // LR2 often layers an additive copy of text over the normal one for
+        // the shimmering title effect. Reuse the sprite ADD shader here: it
+        // emits rgb * alpha with zero alpha so Qt Quick's premultiplied blend
+        // becomes dst + src.
+        ShaderEffect {
+            anchors.fill: parent
+            visible: root.blendMode === 2
+            blending: true
+            property variant source: ShaderEffectSource {
+                hideSource: true
+                sourceItem: additiveTextSource
+                live: true
+                sourceRect: Qt.rect(0, 0, additiveTextSource.width, additiveTextSource.height)
+            }
+            fragmentShader: "qrc:/Lr2AddBlend.frag.qsb"
         }
     }
 }

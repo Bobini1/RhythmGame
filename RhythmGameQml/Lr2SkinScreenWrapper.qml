@@ -4,8 +4,15 @@ import RhythmGameQml 1.0
 Item {
     id: root
     property string csvPath
+    property string screenKey: ""
     property var chart
     property var skinSettings
+
+    onEnabledChanged: {
+        if (root.screenKey === "decide" && enabled) {
+            Qt.callLater(() => sceneStack.pop());
+        }
+    }
 
     Shortcut {
         enabled: root.enabled
@@ -44,11 +51,7 @@ Item {
         switch (st) {
         case 10:
             if (chartData) {
-                let title = chartData.title || "";
-                if (chartData.subtitle) {
-                    title += " " + chartData.subtitle;
-                }
-                return title.replace(/\r\n|\n|\r/g, " ");
+                return (chartData.title || "").replace(/\r\n|\n|\r/g, " ");
             }
             return root.chart.course ? root.chart.course.name : "";
         case 11:
@@ -64,10 +67,24 @@ Item {
         }
     }
 
-    // Monotonic scene clock. Anchored to the moment the screen loads so that
-    // animations don't drift if frames are skipped.
-    readonly property double sceneStartMs: Date.now()
+    // Monotonic scene clock. Reset after the parsed model is ready so skin
+    // loading does not eat the first second or two of LR2's decide animation.
+    property double sceneStartMs: Date.now()
     property int globalSkinTime: 0
+    readonly property bool shouldAutoAdvance: root.screenKey === "decide"
+        && !!root.chart
+        && skinModel.sceneTime > 0
+
+    function restartSkinClock() {
+        root.sceneStartMs = Date.now();
+        root.globalSkinTime = 0;
+        if (root.shouldAutoAdvance) {
+            sceneEndTimer.restart();
+        } else {
+            sceneEndTimer.stop();
+        }
+    }
+
     Timer {
         id: skinStopwatch
         interval: 16
@@ -75,6 +92,17 @@ Item {
         repeat: true
         onTriggered: {
             root.globalSkinTime = Date.now() - root.sceneStartMs;
+        }
+    }
+
+    Timer {
+        id: sceneEndTimer
+        interval: Math.max(1, skinModel.sceneTime)
+        repeat: false
+        onTriggered: {
+            if (root.shouldAutoAdvance) {
+                globalRoot.openGameplay(root.chart);
+            }
         }
     }
 
@@ -88,7 +116,11 @@ Item {
         csvPath: root.csvPath
         settingValues: root.skinSettings || {}
         activeOptions: root.activeOptions
+
+        onSkinLoaded: Qt.callLater(root.restartSkinClock)
     }
+
+    Component.onCompleted: Qt.callLater(root.restartSkinClock)
 
     readonly property real skinW: 640
     readonly property real skinH: 480
@@ -117,6 +149,8 @@ Item {
                     x: 0; y: 0
                     width: skinW * skinScale
                     height: skinH * skinScale
+                    // Match LR2/Vibes drawQueue order: earlier CSV elements
+                    // are further back, later elements are painted on top.
                     z: index
 
                     sourceComponent: {

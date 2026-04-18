@@ -10,7 +10,7 @@ Item {
 
     property string fontPath: ""
     property string text: ""
-    // 0 = left (default), 1 = right, 2 = center. Matches LR2's #SRC_TEXT align.
+    // 0 = left (default), 1 = center, 2 = right. Matches LR2's #SRC_TEXT align.
     property int alignment: 0
 
     // Force recomputation whenever fontPath or text changes; the binding
@@ -20,26 +20,32 @@ Item {
         : []
 
     readonly property int lineHeight: fontPath ? Lr2FontCatalog.lineHeight(fontPath) : 0
+    readonly property string encodedFontPath: fontPath ? encodeURIComponent(fontPath) : ""
 
     // Scale so that one line of glyphs fits our height exactly. If either
     // dimension is unknown, render at 1:1 so the text is at least visible.
-    readonly property real glyphScale: (lineHeight > 0 && height > 0)
+    readonly property real glyphScaleY: (lineHeight > 0 && height > 0)
         ? (height / lineHeight)
         : 1.0
 
-    readonly property real totalWidth: {
+    readonly property real sourceTotalWidth: {
         let sum = 0;
         for (let i = 0; i < glyphs.length; ++i) {
             let g = glyphs[i];
             let advance = g ? (g.advance || 0) : 0;
-            sum += advance * glyphScale;
+            sum += advance;
         }
         return sum;
     }
+    readonly property real fitScaleX: sourceTotalWidth > width && width > 0
+        ? width / sourceTotalWidth
+        : 1.0
+    readonly property real glyphScaleX: glyphScaleY * fitScaleX
+    readonly property real totalWidth: sourceTotalWidth * glyphScaleX
 
     readonly property real offsetX: {
-        if (alignment === 1) return Math.max(0, width - totalWidth);
-        if (alignment === 2) return Math.max(0, (width - totalWidth) / 2);
+        if (alignment === 1) return -totalWidth / 2;
+        if (alignment === 2) return -totalWidth;
         return 0;
     }
 
@@ -56,8 +62,8 @@ Item {
                 readonly property real advance: modelData ? (modelData.advance || 0) : 0
 
                 width: hasGlyph
-                    ? modelData.w * root.glyphScale
-                    : advance * root.glyphScale
+                    ? modelData.w * root.glyphScaleX
+                    : advance * root.glyphScaleX
                 height: root.height
 
                 Image {
@@ -67,11 +73,13 @@ Item {
                     cache: true
                     smooth: true
                     source: hasGlyph
-                        ? ("image://lr2font/" + root.fontPath + "?atlas=" + modelData.atlas)
+                        ? ("image://lr2font/" + root.encodedFontPath
+                            + "?atlas=" + modelData.atlas
+                            + "&x=" + modelData.x
+                            + "&y=" + modelData.y
+                            + "&w=" + modelData.w
+                            + "&h=" + modelData.h)
                         : ""
-                    sourceClipRect: hasGlyph
-                        ? Qt.rect(modelData.x, modelData.y, modelData.w, modelData.h)
-                        : Qt.rect(0, 0, 0, 0)
                 }
             }
         }

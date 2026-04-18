@@ -3,9 +3,29 @@
 #include "Lr2FontCache.h"
 
 #include <QPainter>
+#include <QUrl>
 #include <QUrlQuery>
+#include <utility>
 
 namespace resource_managers {
+namespace {
+
+auto
+splitProviderId(const QString& id) -> std::pair<QString, QUrlQuery>
+{
+    const auto queryStart = id.indexOf('?');
+    auto rawPath = queryStart >= 0 ? id.left(queryStart) : id;
+    const auto rawQuery = queryStart >= 0 ? id.mid(queryStart + 1) : QString{};
+
+    auto path = QUrl::fromPercentEncoding(rawPath.toUtf8());
+    if (path.startsWith('/') && path.size() > 2 && path[2] == ':') {
+        path.remove(0, 1);
+    }
+
+    return {path, QUrlQuery(rawQuery)};
+}
+
+} // namespace
 
 Lr2FontImageProvider::Lr2FontImageProvider()
   : QQuickImageProvider(QQuickImageProvider::Image)
@@ -17,12 +37,7 @@ Lr2FontImageProvider::requestImage(const QString& id,
                                    QSize* size,
                                    const QSize& /*requestedSize*/)
 {
-    const QUrl url("id://" + id);
-    QString path = url.path();
-    if (path.startsWith('/')) {
-        path = path.mid(1);
-    }
-    const QUrlQuery query(url.query());
+    const auto [path, query] = splitProviderId(id);
 
     const auto* dict = Lr2FontCache::instance().load(path);
     if (!dict) {
@@ -43,6 +58,19 @@ Lr2FontImageProvider::requestImage(const QString& id,
             return {};
         }
         const auto& atlas = dict->textures[atlasIdx];
+        if (query.hasQueryItem("x") && query.hasQueryItem("y") &&
+            query.hasQueryItem("w") && query.hasQueryItem("h")) {
+            const QRect glyphRect(query.queryItemValue("x").toInt(),
+                                  query.queryItemValue("y").toInt(),
+                                  query.queryItemValue("w").toInt(),
+                                  query.queryItemValue("h").toInt());
+            const auto glyph = atlas.copy(glyphRect);
+            if (size) {
+                *size = glyph.size();
+            }
+            return glyph;
+        }
+
         if (size) {
             *size = atlas.size();
         }
@@ -63,8 +91,8 @@ Lr2FontImageProvider::requestImage(const QString& id,
     QList<DrawCmd> cmds;
     cmds.reserve(text.size());
 
-    for (const QChar c : text) {
-        const char32_t c32 = c.unicode();
+    for (const auto codepoint : text.toUcs4()) {
+        const char32_t c32 = static_cast<char32_t>(codepoint);
         if (const auto it = dict->glyphs.find(c32); it != dict->glyphs.end()) {
             const auto& g = it.value();
             if (g.imgIdx >= 0 && g.imgIdx < dict->textures.size()) {
@@ -72,9 +100,9 @@ Lr2FontImageProvider::requestImage(const QString& id,
                 totalW += g.rect.width();
                 maxH = qMax(maxH, g.rect.height());
             } else {
-                totalW += g.rect.width();
+                totalW += g.rect.width() > 0 ? g.rect.width() : maxH / 2;
             }
-        } else if (c == ' ') {
+        } else if (c32 == U' ') {
             totalW += maxH / 2;
         }
     }

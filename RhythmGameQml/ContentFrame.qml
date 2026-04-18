@@ -88,6 +88,7 @@ ApplicationWindow {
             if (decideScreen.csvPath) {
                 props["csvPath"] = decideScreen.csvPath;
                 props["skinSettings"] = currentLr2Settings("decide");
+                props["screenKey"] = "decide";
             }
             sceneStack.pushItem(decideComponent, props);
         }
@@ -103,6 +104,7 @@ ApplicationWindow {
             if (decideScreen.csvPath) {
                 props["csvPath"] = decideScreen.csvPath;
                 props["skinSettings"] = currentLr2Settings("decide");
+                props["screenKey"] = "decide";
             }
             sceneStack.pushItem(decideComponent, props);
         }
@@ -117,6 +119,7 @@ ApplicationWindow {
             if (screenObj && screenObj.csvPath) {
                 props["csvPath"] = screenObj.csvPath;
                 props["skinSettings"] = currentLr2Settings(screenKey);
+                props["screenKey"] = screenKey;
             }
             sceneStack.pushItem(component, props);
         }
