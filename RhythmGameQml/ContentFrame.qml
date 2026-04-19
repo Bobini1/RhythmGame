@@ -77,6 +77,17 @@ ApplicationWindow {
             return undefined;
         }
 
+        function openSelect() {
+            let selectScreen = Rg.themes.availableThemeFamilies[mainProfile.themeConfig.select].screens.select;
+            let props = {};
+            if (selectScreen && selectScreen.csvPath) {
+                props["csvPath"] = selectScreen.csvPath;
+                props["skinSettings"] = currentLr2Settings("select");
+                props["screenKey"] = "select";
+            }
+            sceneStack.pushItem(selectComponent, props);
+        }
+
         function openChart(path, profile1, autoplay1, replay1, score1, profile2, autoplay2, replay2, score2) {
             let chart = Rg.chartLoader.loadChart(path, profile1, autoplay1, replay1, score1, profile2, autoplay2, replay2, score2);
             if (!chart) {

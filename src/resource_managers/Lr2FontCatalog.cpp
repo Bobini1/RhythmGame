@@ -40,6 +40,14 @@ Lr2FontCatalog::glyph(const QString& fontPath, int codepoint)
         return out;
     }
 
+    if (g.imgIdx >= dict->textures.size() || dict->textures[g.imgIdx].isNull() ||
+        g.rect.width() <= 0 || g.rect.height() <= 0 ||
+        !dict->textures[g.imgIdx].rect().contains(g.rect)) {
+        out["found"] = false;
+        out["advance"] = g.rect.width() > 0 ? g.rect.width() : dict->height / 2;
+        return out;
+    }
+
     out["found"] = true;
     out["atlas"] = g.imgIdx;
     out["x"] = g.rect.x();

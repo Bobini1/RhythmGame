@@ -6,10 +6,9 @@ namespace resource_managers {
 
 // URL formats served:
 //
-//   image://lr2font/<absolute-font-path>?atlas=<N>
-//     Returns the Nth texture atlas from the font, at its natural size.
-//     Used by the char-by-char Lr2BitmapFontText QML component, which
-//     clips each glyph out of a shared atlas via sourceClipRect.
+//   image://lr2font/<absolute-font-path>?atlas=<N>&x=<X>&y=<Y>&w=<W>&h=<H>
+//     Returns one glyph cropped from the Nth texture atlas. Invalid crops
+//     return transparent pixels rather than exposing the full atlas.
 //
 //   image://lr2font/<absolute-font-path>?text=<urlencoded-string>
 //     Legacy: composes the entire string into a single QImage. Kept so

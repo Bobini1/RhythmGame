@@ -15,6 +15,8 @@ Item {
     property var timers: ({ 0: 0 })
     property var chart
     property real scaleOverride: 1.0
+    property real offsetX: 0
+    property real offsetY: 0
     // Bound externally by the screen wrapper with the actual text for this st index
     property string resolvedText: ""
 
@@ -39,8 +41,8 @@ Item {
 
     Item {
         id: textBox
-        x: root.currentState ? root.currentState.x * root.scaleOverride : 0
-        y: root.currentState ? root.currentState.y * root.scaleOverride : 0
+        x: root.currentState ? (root.currentState.x + root.offsetX) * root.scaleOverride : 0
+        y: root.currentState ? (root.currentState.y + root.offsetY) * root.scaleOverride : 0
         width: root.currentState ? root.currentState.w * root.scaleOverride : 0
         height: root.currentState ? root.currentState.h * root.scaleOverride : 0
         visible: root.currentState && root.currentState.a > 0 && width > 0 && height > 0

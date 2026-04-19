@@ -25,6 +25,26 @@ splitProviderId(const QString& id) -> std::pair<QString, QUrlQuery>
     return {path, QUrlQuery(rawQuery)};
 }
 
+auto
+transparentImage(const QSize& imageSize) -> QImage
+{
+    QImage image(qMax(1, imageSize.width()),
+                 qMax(1, imageSize.height()),
+                 QImage::Format_ARGB32);
+    image.fill(Qt::transparent);
+    return image;
+}
+
+auto
+transparentGlyph(QSize* size, const QSize& imageSize) -> QImage
+{
+    auto image = transparentImage(imageSize);
+    if (size) {
+        *size = image.size();
+    }
+    return image;
+}
+
 } // namespace
 
 Lr2FontImageProvider::Lr2FontImageProvider()
@@ -50,7 +70,8 @@ Lr2FontImageProvider::requestImage(const QString& id,
     // Atlas form: return texture N directly. Qt caches the resulting QImage
     // by URL, so all glyphs clipping from the same atlas share one texture.
     if (query.hasQueryItem("atlas")) {
-        const int atlasIdx = query.queryItemValue("atlas").toInt();
+        bool atlasOk = false;
+        const int atlasIdx = query.queryItemValue("atlas").toInt(&atlasOk);
         if (atlasIdx < 0 || atlasIdx >= dict->textures.size()) {
             if (size) {
                 *size = QSize(0, 0);
@@ -58,23 +79,32 @@ Lr2FontImageProvider::requestImage(const QString& id,
             return {};
         }
         const auto& atlas = dict->textures[atlasIdx];
-        if (query.hasQueryItem("x") && query.hasQueryItem("y") &&
-            query.hasQueryItem("w") && query.hasQueryItem("h")) {
-            const QRect glyphRect(query.queryItemValue("x").toInt(),
-                                  query.queryItemValue("y").toInt(),
-                                  query.queryItemValue("w").toInt(),
-                                  query.queryItemValue("h").toInt());
-            const auto glyph = atlas.copy(glyphRect);
-            if (size) {
-                *size = glyph.size();
-            }
-            return glyph;
+        if (!atlasOk || atlas.isNull() || !query.hasQueryItem("x") ||
+            !query.hasQueryItem("y") || !query.hasQueryItem("w") ||
+            !query.hasQueryItem("h")) {
+            return transparentGlyph(size, QSize(1, 1));
         }
 
-        if (size) {
-            *size = atlas.size();
+        bool xOk = false;
+        bool yOk = false;
+        bool wOk = false;
+        bool hOk = false;
+        const QRect glyphRect(query.queryItemValue("x").toInt(&xOk),
+                              query.queryItemValue("y").toInt(&yOk),
+                              query.queryItemValue("w").toInt(&wOk),
+                              query.queryItemValue("h").toInt(&hOk));
+        const QSize requestedGlyphSize(qMax(1, glyphRect.width()),
+                                       qMax(1, glyphRect.height()));
+        if (!xOk || !yOk || !wOk || !hOk || glyphRect.width() <= 0 ||
+            glyphRect.height() <= 0 || !atlas.rect().contains(glyphRect)) {
+            return transparentGlyph(size, requestedGlyphSize);
         }
-        return atlas;
+
+        const auto glyph = atlas.copy(glyphRect);
+        if (size) {
+            *size = glyph.size();
+        }
+        return glyph;
     }
 
     // Legacy form: compose the full string into one image.
@@ -95,7 +125,10 @@ Lr2FontImageProvider::requestImage(const QString& id,
         const char32_t c32 = static_cast<char32_t>(codepoint);
         if (const auto it = dict->glyphs.find(c32); it != dict->glyphs.end()) {
             const auto& g = it.value();
-            if (g.imgIdx >= 0 && g.imgIdx < dict->textures.size()) {
+            if (g.imgIdx >= 0 && g.imgIdx < dict->textures.size() &&
+                !dict->textures[g.imgIdx].isNull() && g.rect.width() > 0 &&
+                g.rect.height() > 0 &&
+                dict->textures[g.imgIdx].rect().contains(g.rect)) {
                 cmds.append({&dict->textures[g.imgIdx], g.rect, totalW});
                 totalW += g.rect.width();
                 maxH = qMax(maxH, g.rect.height());

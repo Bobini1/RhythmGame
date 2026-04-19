@@ -15,6 +15,11 @@ class Lr2SkinModel : public QAbstractListModel {
     Q_PROPERTY(int sceneTime READ sceneTime NOTIFY skinMetadataChanged)
     Q_PROPERTY(int fadeOut READ fadeOut NOTIFY skinMetadataChanged)
     Q_PROPERTY(int skip READ skip NOTIFY skinMetadataChanged)
+    Q_PROPERTY(QVariantList effectiveActiveOptions READ effectiveActiveOptions NOTIFY skinMetadataChanged)
+    Q_PROPERTY(QVariantList barRows READ barRows NOTIFY skinMetadataChanged)
+    Q_PROPERTY(int barCenter READ barCenter NOTIFY skinMetadataChanged)
+    Q_PROPERTY(int barAvailableStart READ barAvailableStart NOTIFY skinMetadataChanged)
+    Q_PROPERTY(int barAvailableEnd READ barAvailableEnd NOTIFY skinMetadataChanged)
 
 public:
     enum Roles {
@@ -39,6 +44,11 @@ public:
     int sceneTime() const;
     int fadeOut() const;
     int skip() const;
+    QVariantList effectiveActiveOptions() const;
+    QVariantList barRows() const;
+    int barCenter() const;
+    int barAvailableStart() const;
+    int barAvailableEnd() const;
 
 signals:
     void csvPathChanged();
@@ -53,10 +63,15 @@ private:
     QString m_csvPath;
     QVariantMap m_settingValues;
     QVariantList m_activeOptions;
+    QVariantList m_effectiveActiveOptions;
+    QVariantList m_barRows;
     int m_startInput = 0;
     int m_sceneTime = 0;
     int m_fadeOut = 0;
     int m_skip = 0;
+    int m_barCenter = 0;
+    int m_barAvailableStart = 0;
+    int m_barAvailableEnd = -1;
 };
 
 } // namespace gameplay_logic::lr2_skin

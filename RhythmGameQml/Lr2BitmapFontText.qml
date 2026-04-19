@@ -71,7 +71,7 @@ Item {
                     anchors.fill: parent
                     fillMode: Image.Stretch
                     cache: true
-                    smooth: true
+                    smooth: false
                     source: hasGlyph
                         ? ("image://lr2font/" + root.encodedFontPath
                             + "?atlas=" + modelData.atlas

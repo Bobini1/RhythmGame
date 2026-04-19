@@ -57,6 +57,26 @@ int Lr2SkinModel::skip() const {
     return m_skip;
 }
 
+QVariantList Lr2SkinModel::effectiveActiveOptions() const {
+    return m_effectiveActiveOptions;
+}
+
+QVariantList Lr2SkinModel::barRows() const {
+    return m_barRows;
+}
+
+int Lr2SkinModel::barCenter() const {
+    return m_barCenter;
+}
+
+int Lr2SkinModel::barAvailableStart() const {
+    return m_barAvailableStart;
+}
+
+int Lr2SkinModel::barAvailableEnd() const {
+    return m_barAvailableEnd;
+}
+
 void Lr2SkinModel::setCsvPath(const QString& path) {
     if (m_csvPath == path) return;
     m_csvPath = path;
@@ -79,17 +99,55 @@ void Lr2SkinModel::setActiveOptions(const QVariantList& options) {
 }
 
 void Lr2SkinModel::loadSkin() {
+    if (m_csvPath.isEmpty()) {
+        beginResetModel();
+        m_elements.clear();
+        const bool metadataChanged = !m_effectiveActiveOptions.isEmpty() ||
+                                     !m_barRows.isEmpty() ||
+                                     m_startInput != 0 ||
+                                     m_sceneTime != 0 ||
+                                     m_fadeOut != 0 ||
+                                     m_skip != 0 ||
+                                     m_barCenter != 0 ||
+                                     m_barAvailableStart != 0 ||
+                                     m_barAvailableEnd != -1;
+        m_effectiveActiveOptions.clear();
+        m_barRows.clear();
+        m_startInput = 0;
+        m_sceneTime = 0;
+        m_fadeOut = 0;
+        m_skip = 0;
+        m_barCenter = 0;
+        m_barAvailableStart = 0;
+        m_barAvailableEnd = -1;
+        endResetModel();
+        if (metadataChanged) {
+            emit skinMetadataChanged();
+        }
+        return;
+    }
+
     beginResetModel();
     const auto skinData = Lr2SkinParser::parseData(m_csvPath, m_settingValues, m_activeOptions);
     m_elements = skinData.elements;
     const bool metadataChanged = m_startInput != skinData.startInput ||
                                  m_sceneTime != skinData.sceneTime ||
                                  m_fadeOut != skinData.fadeOut ||
-                                 m_skip != skinData.skip;
+                                 m_skip != skinData.skip ||
+                                 m_effectiveActiveOptions != skinData.activeOptions ||
+                                 m_barRows != skinData.barRows ||
+                                 m_barCenter != skinData.barCenter ||
+                                 m_barAvailableStart != skinData.barAvailableStart ||
+                                 m_barAvailableEnd != skinData.barAvailableEnd;
     m_startInput = skinData.startInput;
     m_sceneTime = skinData.sceneTime;
     m_fadeOut = skinData.fadeOut;
     m_skip = skinData.skip;
+    m_effectiveActiveOptions = skinData.activeOptions;
+    m_barRows = skinData.barRows;
+    m_barCenter = skinData.barCenter;
+    m_barAvailableStart = skinData.barAvailableStart;
+    m_barAvailableEnd = skinData.barAvailableEnd;
     endResetModel();
     if (metadataChanged) {
         emit skinMetadataChanged();
